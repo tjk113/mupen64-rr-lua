@@ -727,23 +727,23 @@ void InitializeLuaDC_(HWND mainWnd){
 	luaDCBufHeight = r.bottom;
 }
 void DrawLuaDC(){
-/*
+
 	HDC luaGUIDC = GetDC(mainHWND);
 	DEBUG_GETLASTERROR;
 	BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
 	DEBUG_GETLASTERROR;
 	ReleaseDC(mainHWND, luaGUIDC);
 	DEBUG_GETLASTERROR;
-*/
+
 }
 void NextLuaDC(){
-/*
+
 	HDC mainDC = GetDC(mainHWND);
 	DEBUG_GETLASTERROR;
 	BitBlt(luaDC, 0, 0, luaDCBufWidth, luaDCBufHeight, mainDC, 0, 0, SRCCOPY);
 	DEBUG_GETLASTERROR;
 	ReleaseDC(mainHWND, mainDC);
-*/
+
 }
 void FinalizeLuaDC() {
 	ReleaseDC(mainHWND, luaDC);
@@ -2366,9 +2366,7 @@ void AtMemoryRW() {
 			PushIntU(L, address);
 			PushIntU(L, sizeof(T));
 			if(GetLuaClass(L)->errorPCall(2, 0)){
-				//イテレータが無効になったりしてるので
-				//とりあえずやりなおす
-				if(hashMap[address>>16] != NULL)	//本来Breakするかどうか
+				if(hashMap[address>>16] != NULL)
 					AtMemoryRW<T, rw>();
 				return;
 			}
@@ -2875,7 +2873,7 @@ void InitializeLuaDC(HWND mainWnd) {
 	LuaEngine::InitializeLuaDC_(mainWnd);
 }
 
-void LuaDCUpadate(int redraw){
+void LuaDCUpdate(int redraw){
 	if(LuaEngine::luaDC && redraw) {
 		LuaEngine::NextLuaDC();
 	}

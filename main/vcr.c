@@ -38,6 +38,7 @@
 #include <commctrl.h> // for SendMessage, SB_SETTEXT
 #include <windows.h> // for truncate functions
 #include <../../winproject/resource.h> // for EMU_RESET
+#include <WinUser.h>
 
 #endif
 
@@ -1492,6 +1493,7 @@ VCR_updateScreen()
 	if (m_capture == 0 || readScreen == 0)
 	{
 #ifdef __WIN32__
+		extern HWND mainHWND;
 		extern BOOL manualFPSLimit;
 		if(!manualFPSLimit)
 		{
@@ -1502,14 +1504,14 @@ VCR_updateScreen()
 		}
 #endif
 #ifdef LUA_SPEEDMODE
-		if(maximumSpeedMode)redraw = 0;
+		if(maximumSpeedMode)redraw = 1;
 #endif
-
 		if(redraw) {
 			updateScreen();
 		}
 #ifdef LUA_GUI
-		LuaDCUpadate(redraw);
+		extern HWND mainHWND;
+		LuaDCUpdate(redraw);
 #endif
 //		captureFrameValid = TRUE;
 		return;
@@ -1528,7 +1530,7 @@ VCR_updateScreen()
 	updateScreen();
 		}
 #ifdef LUA_GUI
-		LuaDCUpadate(redraw);
+		LuaDCUpdate(redraw);
 #endif
 //	captureFrameValid = TRUE;
 	readScreen( &image, &width, &height );

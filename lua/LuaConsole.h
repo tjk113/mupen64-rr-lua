@@ -27,7 +27,7 @@ void AtIntervalLuaCallback();
 
 void LuaBreakpointSyncPure();
 void LuaBreakpointSyncInterp();
-void LuaDCUpadate(int redraw);
+void LuaDCUpdate(int redraw);
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
