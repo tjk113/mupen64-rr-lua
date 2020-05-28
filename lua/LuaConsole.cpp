@@ -655,7 +655,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 
 void CreateLuaWindow(void(*callback)()) {
 	if(!luaDC) {
-		InitalizeLuaDC(mainHWND);
+		InitializeLuaDC(mainHWND);
 	}
 	HWND wnd = CreateDialogParam(app_hInstance,
 		MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND, DialogProc,
@@ -687,7 +687,7 @@ LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(wnd, msg, wParam, lParam);
 //	return SendMessage(mainHWND, msg, wParam, lParam);
 }
-void InitalizeLuaDC_(HWND mainWnd){
+void InitializeLuaDC_(HWND mainWnd){
 	if(luaDC) {
 		FinalizeLuaDC();
 	}
@@ -2042,6 +2042,7 @@ int DrawLine(lua_State *L) {
 	return 0;
 }
 int GetGUIInfo(lua_State *L) {
+	InitializeLuaDC(mainHWND);
 	lua_newtable(L);
 	lua_pushinteger(L, luaDCBufWidth);
 	lua_setfield(L, -2, "width");
@@ -2061,7 +2062,7 @@ int ResizeWindow(lua_State *L) {
 		w + (wndRect.right - clientRect.right),
 		h + (wndRect.bottom - clientRect.bottom),
 		SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
-	InitalizeLuaDC(mainHWND);
+	InitializeLuaDC(mainHWND);
 	return 0;
 }
 //emu
@@ -2870,8 +2871,8 @@ void LuaReload() {
 	LuaEngine::luaMessage.post(msg);
 }
 
-void InitalizeLuaDC(HWND mainWnd) {
-	LuaEngine::InitalizeLuaDC_(mainWnd);
+void InitializeLuaDC(HWND mainWnd) {
+	LuaEngine::InitializeLuaDC_(mainWnd);
 }
 
 void LuaDCUpadate(int redraw){

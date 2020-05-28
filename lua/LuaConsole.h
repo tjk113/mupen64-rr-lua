@@ -13,7 +13,7 @@
 #ifndef LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include <Windows.h>
 bool IsLuaConsoleMessage(MSG* msg);
-void InitalizeLuaDC(HWND mainWnd);
+void InitializeLuaDC(HWND mainWnd);
 void NewLuaScript(void(*callback)());
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 #endif

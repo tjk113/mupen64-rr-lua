@@ -403,5 +403,5 @@
 
     
 
-#define MUPEN_VERSION     "Mupen 64  0.5" 
+#define MUPEN_VERSION     "Mupen 64 rr Lua" 
 
