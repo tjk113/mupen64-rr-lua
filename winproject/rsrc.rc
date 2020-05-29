@@ -11,7 +11,7 @@
 #include "resource.h"
 
 
-1 RT_MANIFEST "../mupen64.exe.manifest"
+1 RT_MANIFEST "mupen64.exe.manifest"
 
 //
 // Bitmap resources
@@ -235,7 +235,7 @@ FONT 8, "Tahoma", 0, 0, 0
     CONTROL         "", IDC_TOTAL_ROMS_PROGRESS, PROGRESS_CLASS, PBS_SMOOTH, 11, 84, 160, 14, WS_EX_STATICEDGE
 }
 
-// TODO: _MSC_VER�ŕ���ł��Ȃ�
+// TODO: _MSC_VERÅªòÅ«È¢
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 IDD_LUAWINDOW DIALOGEX 0, 0, 240, 166
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
