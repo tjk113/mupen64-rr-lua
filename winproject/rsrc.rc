@@ -2,13 +2,16 @@
 // Copyright (C) 2006-2010
 // http://www.resedit.net
 
+#define APSTUDIO_HIDDEN_SYMBOLS
 #include <windows.h>
+#include "prsht.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
 #include <commctrl.h>
-#include <richedit.h>
+//#include <richedit.h> not needed?
 #include "resource.h"
 
 
-
+1 RT_MANIFEST "../mupen64.exe.manifest"
 
 //
 // Bitmap resources
@@ -178,7 +181,7 @@ FONT 8, "Tahoma", 0, 0, 0
     PUSHBUTTON      "&Web Site", IDC_WEBSITE, 134, 197, 60, 14
     GROUPBOX        "About this program", IDC_STATIC, 5, 65, 189, 127
     LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanx to the many others who have helped (check the help file)", IDC_STATIC, 13, 82, 173, 104, SS_LEFT
-    CONTROL         "", 133, WC_STATIC, SS_BITMAP, 0, 0, 200, 100
+    CONTROL         "", 133, "STATIC", SS_BITMAP, 0, 0, 200, 100
 }
 
 

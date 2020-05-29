@@ -83,8 +83,7 @@ void search_languages()
             strcmp(FindFileData.cFileName, "..") != 0 &&
 			!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
         {
-             char *filePart;
-             GetFullPathName(FindFileData.cFileName, _MAX_PATH, name, &filePart);
+             sprintf(name, "%slang\\%s", AppPath, FindFileData.cFileName);
              memset(String,0,sizeof(String));
              GetPrivateProfileSectionNames(String, sizeof(String), name);
              if (String) 
@@ -142,7 +141,7 @@ void SetupLanguages( HWND hWnd )
 	search_languages();
 	p = lang_list->next;
 	hSubMenu = GetSubMenu(hMenu,0);
-	hSubMenu = GetSubMenu(hSubMenu,6);
+	hSubMenu = GetSubMenu(hSubMenu,7);
 	menuinfo.cbSize = sizeof(MENUITEMINFO);
 	menuinfo.fMask = MIIM_TYPE|MIIM_ID;
 	menuinfo.fType = MFT_STRING;
