@@ -138,8 +138,8 @@ void savestates_save()
 	save_flashram_infos(buf);
 	gzwrite(f, buf, 24);
    
-	gzwrite(f, tlb_LUT_r, 0x400000);
-	gzwrite(f, tlb_LUT_w, 0x400000);
+	gzwrite(f, tlb_LUT_r, 0x100000);
+	gzwrite(f, tlb_LUT_w, 0x100000);
    
 	gzwrite(f, &llbit, 4);
 	gzwrite(f, reg, 32*8);
@@ -265,8 +265,8 @@ void savestates_load()
 	gzread(f, buf, 24);
 	load_flashram_infos(buf);
    
-	gzread(f, tlb_LUT_r, 0x400000);
-	gzread(f, tlb_LUT_w, 0x400000);
+	gzread(f, tlb_LUT_r, 0x100000);
+	gzread(f, tlb_LUT_w, 0x100000);
    
 	gzread(f, &llbit, 4);
 	gzread(f, reg, 32*8);
