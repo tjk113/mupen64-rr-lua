@@ -1745,7 +1745,7 @@ ShowInfo("[VCR]:refreshing movie info...");
 
 	SetDlgItemText(hwnd,IDC_FROMSNAPSHOT_TEXT,(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) ? "Snapshot" : "Start");
 
-	sprintf(tempbuf, "%d  (%d input)", (int)m_header.length_vis, (int)m_header.length_samples);
+	sprintf(tempbuf, "%u  (%u input)", (int)m_header.length_vis, (int)m_header.length_samples);
 	SetDlgItemText(hwnd,IDC_MOVIE_FRAMES,tempbuf);
 
 //ShowInfo("calculating movie length...\n");
@@ -1775,7 +1775,7 @@ ShowInfo("[VCR]:refreshing movie info...");
 
 //ShowInfo("refreshing movie rerecords...\n");
 
-	sprintf(tempbuf, "%d", (int)m_header.rerecord_count);
+	sprintf(tempbuf, "%u", m_header.rerecord_count);
 	SetDlgItemText(hwnd,IDC_MOVIE_RERECORDS,tempbuf);
 
 ShowInfo("[VCR]:refreshing movie author and description...");
