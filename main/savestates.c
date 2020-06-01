@@ -172,7 +172,6 @@ void savestates_save()
 		unsigned long movie_freeze_size = 0;
 
 		VCR_movieFreeze(&movie_freeze_buf, &movie_freeze_size);
-		VCR_flushMovie();
 		if(movie_freeze_buf)
 		{
 			gzwrite(f, &movie_freeze_size, sizeof(movie_freeze_size));

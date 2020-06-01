@@ -1125,12 +1125,12 @@ VCR_stopRecord()
 	if (m_task == Recording)
 	{
 //		long end = -1;
-
-		m_task = Idle;
 		
 		setROMInfo(&m_header);
 		
 		flush_movie();
+
+		m_task = Idle;
 
 //		fwrite( &end, 1, sizeof (long), m_file );
 //		fwrite( &m_header.length_samples, 1, sizeof (long), m_file );
@@ -1426,14 +1426,6 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 int
 VCR_stopPlayback()
 {
-	if(m_inputBuffer)
-	{
-		free(m_inputBuffer);
-		m_inputBuffer = NULL;
-		m_inputBufferPtr = NULL;
-		m_inputBufferSize = 0;
-	}
-
 	if (m_file && m_task != StartRecording && m_task != Recording)
 	{
 		fclose( m_file );
@@ -1470,10 +1462,7 @@ VCR_stopPlayback()
 }
 
 
-void VCR_flushMovie()
-{
-	flush_movie();
-}
+
 
 
 
@@ -1824,6 +1813,10 @@ VCR_startCapture( const char *recFilename, const char *aviFilename )
 void
 VCR_toggleReadOnly ()
 {
+	if (m_task == Recording)
+	{
+		flush_movie();
+	}
 	VCR_setReadOnly(!m_readOnly);
 
 #ifdef __WIN32__
