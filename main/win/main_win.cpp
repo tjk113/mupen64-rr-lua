@@ -2532,6 +2532,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 #endif
 	switch(Message)
 	{
+    case WM_DROPFILES:
+        //HDROP hFile = (HDROP) wParam;
+        char fname[MAX_PATH];
+        DragQueryFile((HDROP)wParam, 0, fname, sizeof(fname));
+        VCR_startPlayback(fname, 0, 0);
+        break;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 		{
@@ -3324,7 +3330,7 @@ int WINAPI WinMain(
 		Accel = LoadAccelerators(hInstance,MAKEINTRESOURCE(IDR_ACCEL));
     
 		hwnd = CreateWindowEx(
-			0 ,
+            WS_EX_ACCEPTFILES,
 			g_szClassName,
 			MUPEN_VERSION,
 			WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_EX_TOPMOST,
