@@ -1470,7 +1470,10 @@ VCR_stopPlayback()
 }
 
 
-
+void VCR_flushMovie()
+{
+	flush_movie();
+}
 
 
 

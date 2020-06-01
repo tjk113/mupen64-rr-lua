@@ -1168,6 +1168,7 @@ void pauseEmu(BOOL quiet)
 			SuspendThread(SoundThreadHandle);
 		if(!quiet)
 			SetStatusTranslatedString(hStatus,0,"Emulation paused");
+		if (VCR_isActive()) VCR_flushMovie();
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_STOP, 0);
@@ -1367,11 +1368,11 @@ void resetEmu()
      // simply by clearing out some memory and maybe notifying the plugins...
      
     if (emu_launched ) {
-                         ShowInfo("Restart Rom");
-                         restart_mode = 0;
-                         really_restart_mode = TRUE;
-                         CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
-                  }
+        ShowInfo("Restart Rom");
+        restart_mode = 0;
+        really_restart_mode = TRUE;
+        CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
+	}
                        
 }
 

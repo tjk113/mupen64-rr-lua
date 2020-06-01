@@ -81,6 +81,7 @@ extern void VCR_setLengthVIs(unsigned long val);
 extern void VCR_setLengthSamples(unsigned long val);
 extern void VCR_updateFrameCounter();
 extern void VCR_toggleReadOnly ();
+extern void VCR_flushMovie();
 
 extern void VCR_movieFreeze (char** buf, unsigned long* size);
 extern int VCR_movieUnfreeze (const char* buf, unsigned long size);
