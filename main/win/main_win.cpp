@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #include <windows.h>
+#include <Shlwapi.h>
 #ifndef _WIN32_IE
 #define _WIN32_IE 0x0500
 #endif
@@ -2534,10 +2535,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	{
     case WM_DROPFILES:
         //HDROP hFile = (HDROP) wParam;
-        char fname[MAX_PATH];
-        DragQueryFile((HDROP)wParam, 0, fname, sizeof(fname));
-        VCR_startPlayback(fname, 0, 0);
-        break;
+		char fname[MAX_PATH];
+		LPSTR fext;
+		DragQueryFile((HDROP)wParam, 0, fname, sizeof(fname));
+		fext = CharUpper(PathFindExtension(fname));
+
+		if (lstrcmp(fext, ".N64") == 0 || lstrcmp(fext, ".V64") == 0 || lstrcmp(fext, ".Z64") == 0 || lstrcmp(fext, ".ROM") == 0) {
+			StartRom(fname);
+		}	
+		else if (lstrcmp(fext, ".M64") == 0) {
+			if (rom) {
+				if (!VCR_getReadOnly())	VCR_toggleReadOnly();
+				VCR_startPlayback(fname, 0, 0);
+				EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
+				EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+			}
+		}
+		else if (strcmp(fext, ".ST") == 0) {
+			if (rom) {
+				savestates_select_filename(fname);
+				savestates_job = LOADSTATE;
+			}
+		}
+		
+		break;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 		{

@@ -129,7 +129,7 @@
       <FloatingPointModel>Strict</FloatingPointModel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>vfw32.lib;winmm.lib;Comctl32.lib;zlib-2008-x32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;Comctl32.lib;zlib-2008-x32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../zlib;../../lua;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
