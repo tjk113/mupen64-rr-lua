@@ -500,6 +500,7 @@ SMovieHeader VCR_getHeaderInfo(const char* filename)
 	}
 
     read_movie_header(tempFile, &tempHeader);
+	fclose(tempFile);
     return tempHeader;
 }
 
