@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <windows.h>
-#define DIRECTINPUT_VERSION 0x0700
+#define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include "Controller.h"
 #include "DI.h"
@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "resource.h"
 
 
-LPDIRECTINPUT7        g_lpDI          = NULL;
+LPDIRECTINPUT8        g_lpDI          = NULL;
 DIINPUTDEVICE DInputDev[MAX_DEVICES];
 BYTE nCurrentDevices;
 
@@ -41,17 +41,15 @@ BOOL WINAPI InitDirectInput(HWND hMainWindow)
 
 // Create the DirectInput object.
 	nCurrentDevices = 0;
-     
-	if FAILED(hr = DirectInputCreateEx(g_hInstance, DIRECTINPUT_VERSION, 
-			IID_IDirectInput7, (void**)&g_lpDI, NULL) ) {
+	if FAILED(hr = DirectInput8Create(g_hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8 ,(LPVOID*) &g_lpDI, NULL) ) {
 		if (hr == DIERR_OLDDIRECTINPUTVERSION)
 			MessageBox(NULL,"Old version of DirectX detected. Use DirectX 7 or higher!","Error",MB_ICONERROR | MB_OK);
 		return FALSE;
 	}
 	else {
-		g_lpDI->EnumDevices(DIDEVTYPE_KEYBOARD, DIEnumDevicesCallback,
+		g_lpDI->EnumDevices(DI8DEVTYPE_KEYBOARD, DIEnumDevicesCallback,
                        (LPVOID)hMainWindow, DIEDFL_ATTACHEDONLY);
-		g_lpDI->EnumDevices(DIDEVTYPE_JOYSTICK, DIEnumDevicesCallback,
+		g_lpDI->EnumDevices(DI8DEVTYPE_JOYSTICK, DIEnumDevicesCallback,
                        (LPVOID)hMainWindow, DIEDFL_ATTACHEDONLY);
 		if (nCurrentDevices == 0)
 			return FALSE;
@@ -70,11 +68,11 @@ BOOL CALLBACK DIEnumDevicesCallback( LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef) {
 		return DIENUM_STOP;
 
     //if( (GET_DIDEVICE_TYPE(lpddi->dwDevType) == DIDEVTYPE_KEYBOARD) ) 
-	if((lpddi->dwDevType & DIDEVTYPE_KEYBOARD) == DIDEVTYPE_KEYBOARD){
+	if((lpddi->dwDevType & DI8DEVTYPE_KEYBOARD) == DI8DEVTYPE_KEYBOARD){
 
 		memcpy(&DInputDev[nCurrentDevices].DIDevInst, lpddi, sizeof(DIDEVICEINSTANCE));
-		if (!FAILED( hr = g_lpDI->CreateDeviceEx( lpddi->guidInstance, IID_IDirectInputDevice7,
-										(void **) &DInputDev[nCurrentDevices].lpDIDevice, NULL ) ) ){
+		if (!FAILED( hr = g_lpDI->CreateDevice(lpddi->guidInstance,
+										&DInputDev[nCurrentDevices].lpDIDevice,0) ) ){
 		
 			if FAILED( hr = DInputDev[nCurrentDevices].lpDIDevice->SetDataFormat(&c_dfDIKeyboard) ) 
 				bOK = FALSE; 
@@ -84,11 +82,11 @@ BOOL CALLBACK DIEnumDevicesCallback( LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef) {
 		}
 	}
 	
-	if((lpddi->dwDevType & DIDEVTYPE_JOYSTICK) == DIDEVTYPE_JOYSTICK){
+	if((lpddi->dwDevType & DI8DEVTYPE_JOYSTICK) == DI8DEVTYPE_JOYSTICK){
 
 		memcpy(&DInputDev[nCurrentDevices].DIDevInst, lpddi, sizeof(DIDEVICEINSTANCE));
-		if (!FAILED( hr = g_lpDI->CreateDeviceEx( lpddi->guidInstance, IID_IDirectInputDevice7,
-									(void **) &DInputDev[nCurrentDevices].lpDIDevice, NULL ) ) ){
+		if (!FAILED( hr = g_lpDI->CreateDevice( lpddi->guidInstance,
+									&DInputDev[nCurrentDevices].lpDIDevice,0) ) ){
 		
 			if FAILED( hr = DInputDev[nCurrentDevices].lpDIDevice->SetDataFormat(&c_dfDIJoystick) ) 
 				bOK = FALSE; 

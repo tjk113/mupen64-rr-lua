@@ -27,12 +27,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern BYTE nCurrentDevices;
 
-extern LPDIRECTINPUT7        g_lpDI;
+extern LPDIRECTINPUT8        g_lpDI;
 
 extern GUID Guids[MAX_DEVICES];
 
 typedef struct {
-	LPDIRECTINPUTDEVICE7 lpDIDevice;
+	LPDIRECTINPUTDEVICE8 lpDIDevice;
 	DIDEVICEINSTANCE	 DIDevInst;
 } DIINPUTDEVICE;
 

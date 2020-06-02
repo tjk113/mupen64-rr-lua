@@ -1,3 +1,8 @@
 winproject/mupen64/
 commit.txt
 .gitignore
+/tasinput_plugin/bin/
+/tasinput_plugin/src/Debug
+/tasinput_plugin/src/Release
+/tasinput_plugin/src/.vs
+/tasinput_plugin/src/UpgradeLog.htm

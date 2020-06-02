@@ -77,7 +77,7 @@ typedef struct {
 	BYTE type;
 	BYTE vkey;
 	DWORD button;
-} INPUT;
+} INPUT_CTRL;
 
 typedef struct {
 	TCHAR szName[16];
@@ -87,7 +87,7 @@ typedef struct {
 	BOOL bMemPak;
 	BYTE SensMax;
 	BYTE SensMin;
-	INPUT Input[NUMBER_OF_BUTTONS];
+	INPUT_CTRL Input[NUMBER_OF_BUTTONS];
 } DEFCONTROLLER;
 
 extern DEFCONTROLLER Controller[NUMBER_OF_CONTROLS];

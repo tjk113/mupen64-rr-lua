@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <windows.h>
 #include <commctrl.h>
-#define DIRECTINPUT_VERSION 0x0700
+#define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include "Controller.h"
 #include "DI.h"
@@ -548,7 +548,7 @@ void WINAPI Initialize_Controller_Display(HWND hDlg, BYTE NController)
 	//IDC_LDEVICES
 	for(BYTE count=0; count<MAX_DEVICES; count++)
 		SendDlgItemMessage(hDlg, IDC_LDEVICES, LB_SETSEL, BST_UNCHECKED, count);
-	for(count=0; count<Controller[NController].NDevices; count++)
+	for(BYTE count=0; count<Controller[NController].NDevices; count++)
 		SendDlgItemMessage(hDlg, IDC_LDEVICES, LB_SETSEL, BST_CHECKED, Controller[NController].Devices[count]);
 
 	//IDC_E_MAX
@@ -864,7 +864,7 @@ BOOL WINAPI GetAControl(HWND hDlg, DWORD ControlValue, BYTE NController, BYTE NC
 		DeviceNum = (BYTE) Controller[NController].Devices[devicecount];
 		if (DInputDev[DeviceNum].lpDIDevice != NULL) {
 		
-			if((DInputDev[DeviceNum].DIDevInst.dwDevType & DIDEVTYPE_KEYBOARD) == DIDEVTYPE_KEYBOARD){
+			if((DInputDev[DeviceNum].DIDevInst.dwDevType & DI8DEVTYPE_KEYBOARD) == DI8DEVTYPE_KEYBOARD){
 				ZeroMemory( &buffer, sizeof(buffer) );	
 				if FAILED(hr = DInputDev[DeviceNum].lpDIDevice->GetDeviceState(sizeof(buffer),&buffer)) { 
 					hr = DInputDev[DeviceNum].lpDIDevice->Acquire();
@@ -886,7 +886,7 @@ BOOL WINAPI GetAControl(HWND hDlg, DWORD ControlValue, BYTE NController, BYTE NC
 				}
 			}
 	
-			if((DInputDev[DeviceNum].DIDevInst.dwDevType & DIDEVTYPE_JOYSTICK) == DIDEVTYPE_JOYSTICK){
+			if((DInputDev[DeviceNum].DIDevInst.dwDevType & DI8DEVTYPE_JOYSTICK) == DI8DEVTYPE_JOYSTICK){
 				if FAILED(hr = DInputDev[DeviceNum].lpDIDevice->Poll()) { 
 					hr = DInputDev[DeviceNum].lpDIDevice->Acquire();
 					while( hr == DIERR_INPUTLOST ) 

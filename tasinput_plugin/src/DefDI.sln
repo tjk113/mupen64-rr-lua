@@ -1,21 +1,24 @@
-Microsoft Visual Studio Solution File, Format Version 8.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DefDI", "DefDI.vcproj", "{FEADD90C-0176-4BD9-86AA-32322B7EDACB}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DefDI", "DefDI.vcxproj", "{FEADD90C-0176-4BD9-86AA-32322B7EDACB}"
 EndProject
 Global
-	GlobalSection(SolutionConfiguration) = preSolution
-		Debug = Debug
-		Release = Release
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
 	EndGlobalSection
-	GlobalSection(ProjectConfiguration) = postSolution
-		{FEADD90C-0176-4BD9-86AA-32322B7EDACB}.Debug.ActiveCfg = Debug|Win32
-		{FEADD90C-0176-4BD9-86AA-32322B7EDACB}.Debug.Build.0 = Debug|Win32
-		{FEADD90C-0176-4BD9-86AA-32322B7EDACB}.Release.ActiveCfg = Release|Win32
-		{FEADD90C-0176-4BD9-86AA-32322B7EDACB}.Release.Build.0 = Release|Win32
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEADD90C-0176-4BD9-86AA-32322B7EDACB}.Debug|x86.ActiveCfg = Debug|Win32
+		{FEADD90C-0176-4BD9-86AA-32322B7EDACB}.Debug|x86.Build.0 = Debug|Win32
+		{FEADD90C-0176-4BD9-86AA-32322B7EDACB}.Release|x86.ActiveCfg = Release|Win32
+		{FEADD90C-0176-4BD9-86AA-32322B7EDACB}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-	EndGlobalSection
-	GlobalSection(ExtensibilityAddIns) = postSolution
+		SolutionGuid = {8DAEA0A3-5704-4FA6-A27E-EEF91E250F5E}
 	EndGlobalSection
 EndGlobal

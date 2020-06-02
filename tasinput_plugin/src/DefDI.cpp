@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <windows.h>
 #include <commctrl.h>
-#define DIRECTINPUT_VERSION 0x0700
+#define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <stdio.h>
 #include <math.h>
@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "Config.h"
 #include "resource.h"
 
-#define PLUGIN_NAME "TAS Input Plugin 0.6"
+#define PLUGIN_NAME "TAS Input"
 
 #define PI 3.14159265358979f
 
@@ -272,7 +272,7 @@ void Status::GetKeys(BUTTONS * Keys)
 			{
 				LONG count;
 		
-				if((DInputDev[DeviceNum].DIDevInst.dwDevType & DIDEVTYPE_KEYBOARD) == DIDEVTYPE_KEYBOARD)
+				if((DInputDev[DeviceNum].DIDevInst.dwDevType & DI8DEVTYPE_KEYBOARD) == DI8DEVTYPE_KEYBOARD)
 				{
 					ZeroMemory( &buffer, sizeof(buffer) );	
 					if FAILED(hr = DInputDev[DeviceNum].lpDIDevice->GetDeviceState(sizeof(buffer),&buffer))
@@ -324,7 +324,7 @@ void Status::GetKeys(BUTTONS * Keys)
 					}
 				}
 
-				else if((DInputDev[DeviceNum].DIDevInst.dwDevType & DIDEVTYPE_JOYSTICK) == DIDEVTYPE_JOYSTICK)
+				else if((DInputDev[DeviceNum].DIDevInst.dwDevType & DI8DEVTYPE_JOYSTICK) == DI8DEVTYPE_JOYSTICK)
 				{
 					if FAILED(hr = DInputDev[DeviceNum].lpDIDevice->Poll())
 					{
