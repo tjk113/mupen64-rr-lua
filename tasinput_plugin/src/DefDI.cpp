@@ -33,7 +33,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "Config.h"
 #include "resource.h"
 
+#ifdef DEBUG
+#define PLUGIN_NAME "TAS Input debug"
+#else
 #define PLUGIN_NAME "TAS Input"
+#endif
 
 #define PI 3.14159265358979f
 
@@ -1697,6 +1701,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					if(gettingKeys)
 						Sleep(0);
+					ActivateEmulatorWindow();
 					if(!gettingKeys)
 					{
 						BUTTONS Keys;
@@ -1705,6 +1710,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						GetKeys(&Keys);
 //						incrementingFrameNow = true;
 						relativeControlNow = false;
+						ActivateEmulatorWindow();
 					}
 				}
 				else
