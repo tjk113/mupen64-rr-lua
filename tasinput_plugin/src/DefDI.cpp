@@ -100,7 +100,7 @@ struct Status
 		// and can't call IsDialogMessage() because it doesn't know what our dialog is.
 		// So, create a new thread and spawn a MODAL (to that thread) dialog,
 		// to guarantee it always gets the messages it should.
-		statusThread = CreateThread (NULL, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId); 
+		statusThread = CreateThread(0, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId);
 
 		if(prevStatusDlg)
 			DestroyWindow(prevStatusDlg);
@@ -1344,6 +1344,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 	if(initialized || msg == WM_INITDIALOG /*|| msg == WM_DESTROY || msg == WM_NCDESTROY*/)
 	switch (msg)
     {
+		case WM_ERASEBKGND:
+			return 1;
+
         case WM_INITDIALOG:
 		{
 			// reset some dialog state
@@ -1406,7 +1409,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				yPosition = 0;
 				positioned = true;
 			}
-			SetWindowPos(statusDlg, NULL, xPosition, yPosition, 0,0, SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+			SetWindowPos(statusDlg,HWND_NOTOPMOST, xPosition, yPosition, 0,0, SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW);
 
 			// reposition stick picture
 			MoveWindow(GetDlgItem(statusDlg,IDC_STICKPIC), picRect.left, picRect.top, STICKPIC_SIZE, STICKPIC_SIZE, FALSE);
@@ -1480,7 +1483,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			if(IsWindowFromEmulatorProcessActive())
 				ActivateEmulatorWindow();
 		}	break;
-
         case WM_NCDESTROY:
         case WM_DESTROY:
 		{
@@ -1629,7 +1631,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					lastXDrag = newDragX-dragXStart;
 					lastYDrag = newDragY-dragYStart;
-					SetWindowPos(statusDlg, NULL, lastXDrag, lastYDrag, 0,0, SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+					SetWindowPos(statusDlg,0, lastXDrag, lastYDrag, 0,0, SWP_NOSIZE|SWP_SHOWWINDOW);
 				}
 			}
 			else if(draggingStick)
@@ -1721,20 +1723,28 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						deactivateAfterClick = false;
 					}
 				}
+				SetWindowPos(statusDlg, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 			}
 			break;
-
 		case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
-				HDC hdc = BeginPaint(statusDlg, &ps);
+				HDC hdcmain = BeginPaint(statusDlg, &ps);
+				HDC hdc = CreateCompatibleDC(hdcmain); //buffer 
 				RECT rect, rect2;
 				GetWindowRect(GetDlgItem(statusDlg,IDC_STICKPIC), &rect);
 				GetWindowRect(statusDlg, &rect2);
-				rect.left -= rect2.left+3; rect.right  -= rect2.left+3;
- 				rect.top  -= rect2.top+3;  rect.bottom -= rect2.top+3;
+				//move to relative of whole window, adjusted because ellipse sucks and because bottom right is exclusive
+				rect.left -= rect2.left+2; rect.right  -= rect2.left+4;
+				rect.top  -= rect2.top+2;  rect.bottom -= rect2.top+4;
 
-				Ellipse(hdc, rect.left+2, rect.top+2, rect.right-2, rect.bottom-2);
+				int w = rect.right;
+				int h = rect.bottom;
+				HBITMAP hBmp = CreateCompatibleBitmap(hdcmain, w, h);   //!!! it has to be compatible with  main dc, not buffer!
+				SelectObject(hdc, hBmp); //use the bmp to draw
+
+				FillRect(hdc, &rect, GetSysColorBrush(COLOR_BTNFACE)); //I clear background on my own
+				Ellipse(hdc, rect.left, rect.top, rect.right, rect.bottom);
 
 				HPEN hpenOld, hpenBlue, hpenRed;
 				hpenBlue = CreatePen(PS_SOLID, 3, RGB(0, 0, 255)); // these need to be re-created every time...
@@ -1757,12 +1767,18 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				hpenOld = (HPEN)SelectObject(hdc, hpenRed);
 				MoveToEx(hdc, x,y, NULL);
 				LineTo(hdc, x,y);
-
 				SelectObject(hdc, hpenOld);
 				DeleteObject(hpenRed);
-
+				BitBlt(hdcmain, rect.left, rect.top, w, h, hdc, rect.left, rect.top, SRCCOPY);
 				EndPaint (statusDlg, &ps) ;
+				//free everything to avoid memory leak
+				DeleteDC(hdc);
+				DeleteDC(hdcmain);
+				DeleteObject(hBmp);
+				DeleteObject(hpenOld);
+
 			}
+
 			break;
 
 //		case UDN_DELTAPOS:
