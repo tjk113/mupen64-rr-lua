@@ -89,7 +89,7 @@ void new_frame() {
    if (CurrentFPSTime - CounterTime >= 1000 ) {
       FPS = (float) (Fps_Counter * 1000.0 / (CurrentFPSTime - CounterTime));
       sprintf(mes,"FPS: %.1f",FPS);
-      SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)mes );
+      SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)mes );
       CounterTime = timeGetTime();
       Fps_Counter = 0;
      }
@@ -162,8 +162,8 @@ void new_vi() {
      if ( Config.showVIS ) {
           if (CurrentFPSTime - CounterTime >= 1000.0 ) {
              sprintf(mes,"VI/s: %.1f",(float) (VI_Counter * 1000.0 / (CurrentFPSTime - CounterTime)));
-             if (Config.showFPS) SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)mes );
-             else SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)mes );
+             if (Config.showFPS) SendMessage( hStatus, SB_SETTEXT, 3, (LPARAM)mes );
+             else SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)mes );
              CounterTime = timeGetTime() ;
              VI_Counter = 0 ;
           }

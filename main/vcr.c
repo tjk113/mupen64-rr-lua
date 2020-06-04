@@ -1151,6 +1151,7 @@ VCR_stopRecord()
 		
 #ifdef __WIN32__
 		extern HWND hStatus/*, hStatusProgress*/;
+		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
 		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped recording.");
 #endif
 		
@@ -1376,8 +1377,12 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 //				m_currentSample = 0;
 
 				fseek(m_file, 0, SEEK_END);
-
-
+				#ifdef _WIN32
+				char buf[50];
+				sprintf(buf, "%d rr", m_header.rerecord_count);
+				extern HWND hStatus;
+				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
+				#endif
 			}	break;
             default:
 				fprintf( stderr, "[VCR]: Error playing movie: %s.\n", m_errCodeName[code]);
@@ -1447,13 +1452,12 @@ VCR_stopPlayback()
 #ifdef __WIN32__
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
+
+		extern HWND hStatus;
+		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
+		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped playback.");
 #else
 		// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
-#endif
-
-#ifdef __WIN32__
-	extern HWND hStatus;
-	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped playback.");
 #endif
 
 		return 0;
@@ -1945,10 +1949,17 @@ void VCR_updateFrameCounter ()
 	}
 
 	char str [128];
-	if(VCR_isRecording())
+	char rr[50];
+	if (VCR_isRecording())
+	{
 		sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, inputDisplay);
-	else if(VCR_isPlaying())
+		sprintf(rr, "%d rr", m_header.rerecord_count);
+	}
+	else if (VCR_isPlaying())
+	{
 		sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), inputDisplay);
+		sprintf(rr, "%d rr", m_header.rerecord_count);
+	}
 	else
 		strcpy(str, inputDisplay);
 		
@@ -1961,7 +1972,8 @@ void VCR_updateFrameCounter ()
 
 //	if(m_intro && m_currentSample < 60 && VCR_isPlaying())
 //		sprintf(str, "%d re-records, %d frames", (int)m_header.rerecord_count, (int)m_header.length_vis);
-
+	if (VCR_isRecording() || VCR_isPlaying())
+		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)rr);
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)str);
 
 #else

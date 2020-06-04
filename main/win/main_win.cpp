@@ -2022,9 +2022,9 @@ void SetStatusMode( int mode )
 {
     RECT rcClient;                                    //Client area of parent window 
     const int loadingwidths[] = {200, 300, -1};       //Initial statusbar
-    const int emulatewidthsFPSVIS[] = {260, 330, 410, -1};//Emulating statusbar with FPS and VIS
-    const int emulatewidthsFPS[] = {270, 340, -1};    //Emulating statusbar with FPS
-    const int emulatewidths[] = {340, -1};            //Emulating statusbar
+    const int emulatewidthsFPSVIS[] = {230, 300, 370, 440, -1};//Emulating statusbar with FPS and VIS
+    const int emulatewidthsFPS[] = {230, 300, 370, -1};    //Emulating statusbar with FPS
+    const int emulatewidths[] = {230, 300, -1};            //Emulating statusbar
     const int browserwidths[] = {400, -1};	          //Initial statusbar
     int parts;
 
@@ -2082,27 +2082,31 @@ void SetStatusMode( int mode )
              if (Config.showFPS && Config.showVIS)
              {
                  SendMessage( hStatus, SB_SETPARTS, sizeof(emulatewidthsFPSVIS)/sizeof(int), (LPARAM)emulatewidthsFPSVIS);
-                 SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)"" );
-                 SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)"" );
-                 parts = 4;
+                 SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)""); //rr
+                 SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)""); //FPS
+                 SendMessage( hStatus, SB_SETTEXT, 3, (LPARAM)""); //VIS
+                 parts = 5;
              }else if (Config.showFPS)
              {
                  SendMessage( hStatus, SB_SETPARTS, sizeof(emulatewidthsFPS)/sizeof(int), (LPARAM)emulatewidthsFPS);
-                 SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)"" );
-                 parts = 3;
+                 SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
+                 SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)"");
+                 parts = 4;
              }else if (Config.showVIS)
              {
                  SendMessage( hStatus, SB_SETPARTS, sizeof(emulatewidthsFPS)/sizeof(int), (LPARAM)emulatewidthsFPS);
-                 SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)"" );
-                 parts = 3;
+                 SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
+                 SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)"");
+                 parts = 4;
              }else
              {                          
                  SendMessage( hStatus, SB_SETPARTS, sizeof(emulatewidths)/sizeof(int), (LPARAM)emulatewidths);
-                 parts = 2;             
+                 SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
+                 parts = 3;             
              }
                
              SendMessage( hStatus, SB_SETTEXT, 0, (LPARAM)statusmsg );
-             sprintf( TempMessage, "        %s", ROM_SETTINGS.goodname );
+             sprintf( TempMessage, "%s", ROM_SETTINGS.goodname );
              SendMessage( hStatus, SB_SETTEXT, parts-1, (LPARAM)TempMessage );
 /*
              switch( ROM_HEADER->Country_code&0xFF )             //Choosing icon
