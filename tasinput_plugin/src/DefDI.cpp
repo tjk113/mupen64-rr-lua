@@ -53,6 +53,7 @@ LRESULT CALLBACK StatusDlgProc2 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lPar
 LRESULT CALLBACK StatusDlgProc3 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter);
 bool romIsOpen = false;
+bool erase = true;
 
 struct Status
 {
@@ -1345,11 +1346,17 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
     {
 		case WM_ERASEBKGND:
+			if (erase)
+			{
+				erase = false;
+				break;
+			}
 			return 1;
 
         case WM_INITDIALOG:
 		{
 			// reset some dialog state
+			erase = true;
 			dragging = false;
 			lastXDrag = 0;
 			lastYDrag = 0;
@@ -1409,7 +1416,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				yPosition = 0;
 				positioned = true;
 			}
-			SetWindowPos(statusDlg,HWND_NOTOPMOST, xPosition, yPosition, 0,0, SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW);
+			SetWindowPos(statusDlg,HWND_NOTOPMOST, xPosition, yPosition, 0,0, SWP_NOSIZE|SWP_SHOWWINDOW);
 
 			// reposition stick picture
 			MoveWindow(GetDlgItem(statusDlg,IDC_STICKPIC), picRect.left, picRect.top, STICKPIC_SIZE, STICKPIC_SIZE, FALSE);
@@ -1417,7 +1424,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			// set ranges
 			if(!AngDisp)
 			{
-				SendDlgItemMessage(statusDlg, IDC_SPINX, UDM_SETRANGE, 0, (LPARAM)MAKELONG(127,-128));
+				SendDlgItemMessage(statusDlg, IDC_SPINX, UDM_SETRANGE, 0, (LPARAM)MAKELONG(-128,127));
 				SendDlgItemMessage(statusDlg, IDC_SPINY, UDM_SETRANGE, 0, (LPARAM)MAKELONG(-128,127));
 			}
 			else
@@ -1654,9 +1661,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					overrideX = overrideX * (overrideX > 0 ? 127 : 128) / div;
 					overrideY = overrideY * (overrideY > 0 ? 127 : 128) / div;
 				}
-				if(overrideX < 5 && overrideX > -5) // snap near-zero clicks to zero
+				if(overrideX < 7 && overrideX > -7) // snap near-zero clicks to zero
 					overrideX = 0;
-				if(overrideY < 5 && overrideY > -5)
+				if(overrideY < 7 && overrideY > -7)
 					overrideY = 0;
 
 				if(oldOverrideX != overrideX || (AngDisp && oldOverrideY != overrideY))
@@ -1802,7 +1809,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						deactivateAfterClick = true;
 					}
 					int pos = SendDlgItemMessage(statusDlg, IDC_SLIDERX, TBM_GETPOS, 0, 0);
-					xScale = pos / 1000.0f;
 					if(GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 						deactivateAfterClick = true;
 				}	break;
@@ -1815,7 +1821,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						deactivateAfterClick = true;
 					}
 					int pos = SendDlgItemMessage(statusDlg, IDC_SLIDERY, TBM_GETPOS, 0, 0);
-					yScale = pos / 1000.0f;
 					if(GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 						deactivateAfterClick = true;
 				}	break;

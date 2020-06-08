@@ -64,7 +64,7 @@
       <PrecompiledHeaderOutputFile>.\Debug/DefDI.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
       <ObjectFileName>.\Debug/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>../bin/$(TargetName).pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -76,7 +76,7 @@
       <OutputFile>..\bin\TASDI_Debug.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/DefDI.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>../bin/$(TargetName).pdb</ProgramDatabaseFile>
       <ImportLibrary>.\Debug/DefDI.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
@@ -105,7 +105,7 @@
       <PrecompiledHeaderOutputFile>.\Release/DefDI.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
       <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>../bin/$(TargetName).pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
@@ -113,7 +113,7 @@
       <AdditionalDependencies>dxguid.lib;dinput8.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\bin\TASDI.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/DefDI.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>../bin/$(TargetName).pdb</ProgramDatabaseFile>
       <ImportLibrary>.\Release/DefDI.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
