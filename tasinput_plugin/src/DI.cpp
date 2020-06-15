@@ -47,9 +47,9 @@ BOOL WINAPI InitDirectInput(HWND hMainWindow)
 		return FALSE;
 	}
 	else {
-		g_lpDI->EnumDevices(DI8DEVTYPE_KEYBOARD, DIEnumDevicesCallback,
+		g_lpDI->EnumDevices(DI8DEVCLASS_KEYBOARD, DIEnumDevicesCallback,
                        (LPVOID)hMainWindow, DIEDFL_ATTACHEDONLY);
-		g_lpDI->EnumDevices(DI8DEVTYPE_JOYSTICK, DIEnumDevicesCallback,
+		g_lpDI->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback,
                        (LPVOID)hMainWindow, DIEDFL_ATTACHEDONLY);
 		if (nCurrentDevices == 0)
 			return FALSE;
