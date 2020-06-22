@@ -23,10 +23,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <windows.h>
 #include <commctrl.h>
+#include <windowsx.h>
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <stdio.h>
 #include <math.h>
+#include <vector>
 #include "Controller.h"
 #include "DI.h"
 #include "DefDI.h"
@@ -54,6 +56,14 @@ LRESULT CALLBACK StatusDlgProc3 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lPar
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter);
 bool romIsOpen = false;
 bool erase = true;
+
+FILE* cFile; /*combo file conains list of combos in format:
+				n bytes - null terminated name string,
+				4 bytes - combo length,
+				length*4 bytes - combo data.*/
+
+std::vector<COMBO> ComboList;
+
 
 struct Status
 {
@@ -86,6 +96,7 @@ struct Status
 		prevHWnd = NULL;
 		Extend = 1|2;
 		positioned = false;
+		comboTask = C_IDLE;
 	}
 
 	void StartThread(int ControllerNumber)
@@ -156,6 +167,7 @@ struct Status
 	bool resetXScale, resetYScale;
 //	int frameCounter;
 	static int frameCounter;
+	int comboStart;
 	BUTTONS buttonOverride, buttonAutofire, buttonAutofire2;
 	BUTTONS buttonDisplayed;
 	BUTTONS	LastControllerInput;
@@ -163,7 +175,10 @@ struct Status
 	HWND prevHWnd;
 	int Control;
 	int Extend;
+	int comboTask;
+	int activeCombo;
 
+	void InitialiseCombos(HWND);
 	void RefreshAnalogPicture ();
 	void ActivateEmulatorWindow ();
 	bool IsWindowFromEmulatorProcessActive ();
@@ -250,6 +265,22 @@ EXPORT void CALL SetKeys(int Control, BUTTONS ControllerInput)
 
 void Status::GetKeys(BUTTONS * Keys)
 {
+	if (comboTask == C_RUNNING || comboTask == C_LOOP)
+	{
+		int frame = frameCounter - comboStart+1; //+1 so it's human friendly
+		Keys->Value = ComboList.at(activeCombo).data[frame-1];
+		if (frame == ComboList.at(activeCombo).length) {
+			if (comboTask == C_LOOP)
+			{
+				comboStart = frameCounter+1; //+1 because frameCounter will get incremented by the time it get's here again
+			}
+			else
+			{
+				comboTask = C_IDLE;
+			}
+		}
+		return;
+	}
 	gettingKeys = true;
 
 //	if(incrementingFrameNow)
@@ -1202,6 +1233,34 @@ EXPORT void CALL WM_KeyUp( WPARAM wParam, LPARAM lParam )
 {
 }
 
+void Status::InitialiseCombos(HWND lBox) {
+	char c; //used to read name of combo
+	char name[MAX_PATH] = "Empty"; //cap of 260 characters!
+	cFile = fopen("combos.txt", "a+"); //in .exe location
+	c = fgetc(cFile);
+	if (c==-1) { //file empty
+		ListBox_AddString(lBox, name);
+	}
+	else {
+		while (c != -1) { //for each combo
+			COMBO combo;
+			int i = 0;
+			while (c > 0) {  //read name until \0
+				name[i] = c;
+				c = fgetc(cFile);
+				i++;
+			}
+			name[i++] = '\0';
+			ListBox_AddString(lBox, name);
+			fread(&combo.length, 4, 1, cFile); //reads 4 bytes - length
+			combo.data = (int*) malloc(combo.length*4);
+			fread(combo.data, 4, combo.length, cFile);
+			ComboList.push_back(combo);
+			c = fgetc(cFile);
+		}
+	}
+	fclose(cFile);
+}
 
 void Status::RefreshAnalogPicture ()
 {
@@ -1478,6 +1537,10 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			// start WM_TIMER events going
 			SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC) NULL);
 
+			//Load combos
+			HWND lBox = GetDlgItem(statusDlg, IDC_MACROLIST);
+			if (lBox) InitialiseCombos(lBox);
+
 			// switch to emulator
 			if(IsWindowFromEmulatorProcessActive())
 				ActivateEmulatorWindow();
@@ -1716,7 +1779,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						BUTTONS Keys;
 						relativeControlNow = (msg == WM_TIMER);
 //						incrementingFrameNow = false;
-						GetKeys(&Keys);
+						//GetKeys(&Keys);      will it break anything?? it was messing with combo counter
 //						incrementingFrameNow = true;
 						relativeControlNow = false;
 						ActivateEmulatorWindow();
@@ -2046,7 +2109,27 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					// due to some messages not getting through to repair it
 					StartThread(Control);
 				}	break;
-
+				case IDC_PLAY:
+					comboTask = C_RUNNING;
+					activeCombo = ListBox_GetCurSel(GetDlgItem(statusDlg, IDC_MACROLIST));
+					comboStart = frameCounter;
+					break;
+				case IDC_STOP:
+					comboTask = C_IDLE;
+					activeCombo = 0;
+					break;
+				case IDC_PAUSE:
+					comboTask = C_PAUSE;
+					break;
+				case IDC_LOOP:
+					if (comboTask == C_LOOP)
+					{
+						comboTask = C_RUNNING;
+						break;
+					}
+					comboStart = frameCounter;
+					comboTask = C_LOOP;
+					break;
 				default:
 //					SetFocus(statusDlg);
 					break;

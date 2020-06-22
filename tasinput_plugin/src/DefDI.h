@@ -72,6 +72,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define IDT_TIMER3 3
 
+//combo tasks
+#define C_IDLE 0
+#define C_RUNNING 1
+#define C_LOOP 2
+#define C_PAUSE 3
+#define C_RECORD 4
+
+
+typedef struct
+{
+	int length = 0;
+	int* data; //pointer to combo key data somewhere in memory (because it's dynamic)
+} COMBO;
+
 typedef struct {
 	BYTE Device;
 	BYTE type;

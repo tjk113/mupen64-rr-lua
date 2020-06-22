@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by config.rc
+// Plik do³¹czany wygenerowany przez œrodowisko Microsoft Visual C++.
+// U¿ywany przez: config.rc
 //
 #define IDD_CONFIGDLG                   101
 #define IDD_MACRODLG                    102
@@ -144,16 +144,11 @@
 #define IDC_MACROBOX                    1109
 #define IDC_MACROLIST                   1111
 #define IDC_BUTTON1                     1112
-#define IDC_BUTTON2                     1113
 #define IDC_MOREBUTTON5                 1114
-#define IDC_BUTTON3                     1115
-#define IDC_BUTTON4                     1116
 #define IDC_CHECK_PLAYCOMBO             1116
-#define IDC_BUTTON5                     1117
+#define IDC_PLAY                        1116
 #define IDC_MACROCOMBOBOX               1117
-#define IDC_BUTTON6                     1118
 #define IDC_RADIO1                      1118
-#define IDC_BUTTON7                     1119
 #define IDC_RADIO2                      1119
 #define IDC_RADIO4                      1120
 #define IDC_CLEARBUTTONS                1122
@@ -162,14 +157,21 @@
 #define IDC_CHECK_ANGDISP               1125
 #define IDC_SLIDERX                     1126
 #define IDC_SLIDERY                     1127
+#define IDC_STOP                        1128
+#define IDC_PAUSE                       1129
+#define IDC_LOOP                        1130
+#define IDC_RECORD                      1131
+#define IDC_COMPACT                     1132
+#define IDC_CLEAR                       1133
+#define IDC_CHECK2                      1134
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        104
+#define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1128
+#define _APS_NEXT_CONTROL_VALUE         1135
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
