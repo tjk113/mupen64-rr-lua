@@ -61,9 +61,10 @@ bool romIsOpen = false;
 bool erase = true;
 
 bool lock; //don't focus mupen
+bool hardlock; //temporarily disable message handling (combo open dialog)
 FILE* cFile; /*combo file conains list of combos in format:
 				n bytes - null terminated name string,
-				4 bytes - combo length,
+				4 bytes - combo length (little endian),
 				length*4 bytes - combo data.*/
 
 std::vector<COMBO> ComboList;
@@ -186,11 +187,13 @@ struct Status
 
 	void FreeCombos();
 
-	void InitialiseCombos(HWND);
-	void StopRecording();
+	void SetStatus(char*); //updates text over combo list
+	void SaveCombos();
+	void InitialiseCombos(char*); //path to file
 	int CreateNewCombo(int);
 	void StartEdit(int);
 	void EndEdit(int,char*);
+
 	void RefreshAnalogPicture ();
 
 	void ActivateEmulatorWindow ();
@@ -306,7 +309,7 @@ LRESULT CALLBACK EditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, 
 	case WM_KILLFOCUS:
 		DestroyWindow(hwnd);
 		lock = false;
-			break;
+		break;
 	case WM_NCDESTROY:
 		RemoveWindowSubclass(hwnd, EditBoxProc, sId);
 	}
@@ -336,6 +339,7 @@ void Status::GetKeys(BUTTONS * Keys)
 			}
 			else
 			{
+				SetStatus("Idle");
 				comboTask = C_IDLE;
 			}
 		}
@@ -1306,11 +1310,6 @@ EXPORT void CALL WM_KeyUp( WPARAM wParam, LPARAM lParam )
 {
 }
 
-//stop recording combo, uhh I think I dont need to do anything lol
-void Status::StopRecording() {
-	return;
-}
-
 void Status::FreeCombos()
 {
 	if (ComboList.size()) //reset
@@ -1322,6 +1321,15 @@ void Status::FreeCombos()
 		}
 		ComboList.clear();
 	}
+}
+
+//sets information about current task
+void Status::SetStatus(char* str)
+{
+	HWND hTask = GetDlgItem(statusDlg, IDC_STATUS);
+	char buf[100] = "Status: ";
+	strcat(buf, str);
+	SendMessage(hTask, WM_SETTEXT, 0, (LPARAM)buf);
 }
 
 //Creates new combo, if id!=1 duplicates existing (todo)
@@ -1376,14 +1384,31 @@ void Status::EndEdit(int id,char* name) {
 	}
 }
 
+//saves combos to combos.cmb
+void Status::SaveCombos()
+{
+	cFile = fopen("combos.cmb", "w");
+	for (int i =0; i<ComboList.size();i++)
+	{
+		char name[MAX_PATH];
+		ListBox_GetText(lBox, i,name);
+		fputs(name, cFile); //write name
+		fputc(0, cFile); //write null terminator because fputs doesn't
+		fwrite(&ComboList.at(i).length, 4, 1, cFile); //write length
+		fwrite(ComboList.at(i).data, 4, ComboList.at(i).length,cFile); //write data
+
+	}
+	fclose(cFile);
+}
+
 //load combos to listBox
-void Status::InitialiseCombos(HWND lBox) {
+void Status::InitialiseCombos(char* path) {
 	char c; //used to read name of combo
 	char name[MAX_PATH] = "Empty"; //cap of 260 characters!
-	cFile = fopen("combos.txt", "a+"); //in .exe location
+	cFile = fopen(path, "a+"); //file used to store combos is in .exe location
 	c = fgetc(cFile);
 	if (c==-1) { //file empty
-		ListBox_AddString(lBox, name);
+		//ListBox_AddString(lBox, name); //maybe let's not create a ghost combo that crashes everything 
 	}
 	else {
 		while (c != -1) { //for each combo
@@ -1689,7 +1714,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			if (lBox)
 			{
 					FreeCombos();
-					InitialiseCombos(lBox);
+					InitialiseCombos("combos.cmb");
 			}
 			// switch to emulator
 			if(IsWindowFromEmulatorProcessActive())
@@ -1917,7 +1942,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				ActivateEmulatorWindow();
 			}
-			else if(IsWindowFromEmulatorProcessActive())
+			else if(IsWindowFromEmulatorProcessActive() &&!lock)
 			{
 				if(!IsAnyStatusDialogActive())
 				{
@@ -2041,7 +2066,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 		}	break;
 
 		case EDIT_END:
-			EndEdit(activeCombo,(char*)lParam);
+			EndEdit(activeCombo, (char*)lParam);
 			break;
 		case WM_COMMAND:
 			switch (LOWORD(wParam)) 
@@ -2265,44 +2290,53 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				}	break;
 				case IDC_PLAY:
 					activeCombo = ListBox_GetCurSel(GetDlgItem(statusDlg, IDC_MACROLIST));
-					if (activeCombo == -1) break;
+					if (activeCombo == -1) { SetStatus("Select a combo first");break; }
+					SetStatus("Playing combo");
+					CheckDlgButton(statusDlg, IDC_LOOP, 0);
 					comboTask = C_RUNNING;
 					comboStart = frameCounter;
 					break;
 				case IDC_STOP:
-					if (comboTask == C_RECORD) StopRecording();
+					SetStatus("Idle");
+					CheckDlgButton(statusDlg,IDC_LOOP, 0);
 					comboTask = C_IDLE;
 					comboStart = 0; //should avoid unnecessary bugs
 					break;
-				case IDC_PAUSE:
+				case IDC_PAUSE: //todo, ok you can pause but then what
+					SetStatus("Paused");
+					CheckDlgButton(statusDlg, IDC_LOOP, 0);
 					comboTask = C_PAUSE;
 					break;
 				case IDC_LOOP:
 					if (comboTask == C_LOOP)
 					{
+						SetStatus("Stopped looping");
 						comboTask = C_RUNNING;
 						break;
 					}
+					SetStatus("Looping");
 					comboStart = frameCounter;
 					comboTask = C_LOOP;
 					break;
 				case IDC_RECORD:
 					if (comboTask == C_RECORD)
 					{
+						SetStatus("Recording stopped");
 						comboTask = C_IDLE;
-						StopRecording();
 						//free(aCombo.data); //is it better to copy to new, aligned buffer or leave it?
 					}
 					else
 					{
 						if (comboTask == C_IDLE || activeCombo==-1)
 						{
+							SetStatus("Recording new combo");
 							activeCombo = CreateNewCombo(-1);
 							ListBox_SetCurSel(lBox, activeCombo);
 							comboStart = frameCounter;
 						}
 						else
 						{
+							SetStatus("Overwriting combo");
 							aCombo.length = frameCounter - comboStart;
 							aCombo.data = ExtendBuffer(aCombo.data, aCombo.length*4);
 						}
@@ -2311,15 +2345,49 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					break;
 				case IDC_EDIT:
 					activeCombo = ListBox_GetCurSel(GetDlgItem(statusDlg, IDC_MACROLIST));
-					if (activeCombo == -1) break;
+					if (activeCombo == -1) { SetStatus("Select a combo first");break; }
+					SetStatus("Editing...");
 					StartEdit(activeCombo);
+					break;
 				case IDC_CLEAR:
+					comboTask = C_IDLE;
+					activeCombo = -1;
 					//good joke, imagine msgbox working
 					//if (MessageBox(0, "Do you want to remove everything?", "Warning", MB_YESNO| MB_ICONQUESTION) == 6)
 					//{
+					SetStatus("Clearing...");
+					CheckDlgButton(statusDlg, IDC_LOOP, 0);
 					FreeCombos();
 					ListBox_ResetContent(lBox);
+					SetStatus("Cleared all combos");
 					//}
+					break;
+				case IDC_IMPORT:
+				{
+					SetStatus("Importing...");
+					OPENFILENAME data = { 0 };
+					char file[MAX_PATH] = "\0";
+					data.lStructSize = sizeof(data);
+					data.lpstrFilter = "Combo file (*.cmb)\0*.cmb\0\0";
+					data.nFilterIndex = 1;
+					data.nMaxFile = MAX_PATH;
+					data.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+					data.lpstrFile = file;
+					lock = true;
+					//hardlock = true;
+					if (GetOpenFileName(&data))
+					{
+						InitialiseCombos(file);
+					}
+					lock = false;
+					//hardlock = false;
+					SetStatus("Imported combo data");
+					break;
+				}
+				case IDC_SAVE:
+					SetStatus("Saving...");
+					SaveCombos();
+					SetStatus("Saved to combos.cmb");
 					break;
 				default:
 //					SetFocus(statusDlg);
