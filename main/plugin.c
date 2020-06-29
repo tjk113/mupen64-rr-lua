@@ -75,6 +75,7 @@ static DWORD __cdecl dummy_aiReadLength() { return 0; }
 //static void dummy_aiUpdate(BOOL Wait) {}
 static void __cdecl dummy_controllerCommand(int Control, BYTE * Command) {}
 static void __cdecl dummy_getKeys(int Control, BUTTONS *Keys) {}
+static void __cdecl dummy_setKeys(int Control, BUTTONS Keys) {}
 static void __cdecl dummy_readController(int Control, BYTE *Command) {}
 static void __cdecl dummy_keyDown(WPARAM wParam, LPARAM lParam) {}
 static void __cdecl dummy_keyUp(WPARAM wParam, LPARAM lParam) {}
@@ -111,6 +112,7 @@ void (__cdecl*romOpen_audio)() = dummy_void;
 void (__cdecl*closeDLL_input)() = dummy_void;
 void (__cdecl*controllerCommand)(int Control, BYTE * Command) = dummy_controllerCommand;
 void (__cdecl*getKeys)(int Control, BUTTONS *Keys) = dummy_getKeys;
+void (__cdecl*setKeys)(int Control, BUTTONS Keys) = dummy_setKeys;
 void (__cdecl*initiateControllers)(CONTROL_INFO ControlInfo) = dummy_initiateControllers;
 void (__cdecl*readController)(int Control, BYTE *Command) = dummy_readController;
 void (__cdecl*romClosed_input)() = dummy_void;
@@ -458,6 +460,7 @@ void plugin_load_plugins(const char *gfx_name,
 	closeDLL_input = dlsym(handle_input, "CloseDLL");
 	controllerCommand = dlsym(handle_input, "ControllerCommand");
 	getKeys = dlsym(handle_input, "GetKeys");
+	setKeys = dlsym(handle_input, "SetKeys");
 	initiateControllers = dlsym(handle_input, "InitiateControllers");
 	readController = dlsym(handle_input, "ReadController");
 	romClosed_input = dlsym(handle_input, "RomClosed");
@@ -468,6 +471,7 @@ void plugin_load_plugins(const char *gfx_name,
 	if (closeDLL_input == NULL) closeDLL_input = dummy_void;
 	if (controllerCommand == NULL) controllerCommand = dummy_controllerCommand;
 	if (getKeys == NULL) getKeys = dummy_getKeys;
+	if (setKeys == NULL) setKeys = dummy_setKeys;
 	if (initiateControllers == NULL) initiateControllers = dummy_initiateControllers;
 	if (readController == NULL) readController = dummy_readController;
 	if (romClosed_input == NULL) romClosed_input = dummy_void;

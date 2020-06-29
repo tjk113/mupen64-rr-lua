@@ -61,7 +61,6 @@ bool romIsOpen = false;
 bool erase = true;
 
 bool lock; //don't focus mupen
-bool hardlock; //temporarily disable message handling (combo open dialog)
 FILE* cFile; /*combo file conains list of combos in format:
 				n bytes - null terminated name string,
 				4 bytes - combo length (little endian),
@@ -2374,13 +2373,11 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					data.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
 					data.lpstrFile = file;
 					lock = true;
-					//hardlock = true;
 					if (GetOpenFileName(&data))
 					{
 						InitialiseCombos(file);
 					}
 					lock = false;
-					//hardlock = false;
 					SetStatus("Imported combo data");
 					break;
 				}

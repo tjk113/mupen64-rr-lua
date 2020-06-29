@@ -267,6 +267,7 @@ extern void (__cdecl*romOpen_audio)();
 extern void (__cdecl*closeDLL_input)();
 extern void (__cdecl*controllerCommand)(int Control, BYTE * Command);
 extern void (__cdecl*getKeys)(int Control, BUTTONS *Keys);
+extern void (__cdecl*setKeys)(int Control, BUTTONS Keys);
 extern void (__cdecl*initiateControllers)(CONTROL_INFO ControlInfo);
 extern void (__cdecl*readController)(int Control, BYTE *Command);
 extern void (__cdecl*romClosed_input)();

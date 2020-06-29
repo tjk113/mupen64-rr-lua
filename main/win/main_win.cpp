@@ -132,6 +132,7 @@ void (__cdecl*viWidthChanged)();
 void (__cdecl*closeDLL_input)();
 void (__cdecl*controllerCommand)(int Control, BYTE * Command);
 void (__cdecl*getKeys)(int Control, BUTTONS *Keys);
+void (__cdecl*setKeys)(int Control, BUTTONS  Keys);
 void (__cdecl*initiateControllers)(CONTROL_INFO ControlInfo);
 void (__cdecl*readController)(int Control, BYTE *Command);
 void (__cdecl*romClosed_input)();
@@ -171,6 +172,7 @@ static DWORD __cdecl dummy_aiReadLength() { return 0; }
 //static void dummy_aiUpdate(BOOL Wait) {}
 static void __cdecl dummy_controllerCommand(int Control, BYTE * Command) {}
 static void __cdecl dummy_getKeys(int Control, BUTTONS *Keys) {}
+static void __cdecl dummy_setKeys(int Control, BUTTONS  Keys) {}
 static void __cdecl dummy_readController(int Control, BYTE *Command) {}
 static void __cdecl dummy_keyDown(WPARAM wParam, LPARAM lParam) {}
 static void __cdecl dummy_keyUp(WPARAM wParam, LPARAM lParam) {}
@@ -862,6 +864,7 @@ int load_input(HMODULE handle_input)
    closeDLL_input = (void(__cdecl*)())GetProcAddress(handle_input, "CloseDLL");
    controllerCommand = (void(__cdecl*)(int Control, BYTE * Command))GetProcAddress(handle_input, "ControllerCommand");
    getKeys = (void(__cdecl*)(int Control, BUTTONS *Keys))GetProcAddress(handle_input, "GetKeys");
+   setKeys = (void(__cdecl*)(int Control, BUTTONS  Keys))GetProcAddress(handle_input, "SetKeys");
    if (PluginInfo.Version == 0x0101)
        initiateControllers = (void(__cdecl*)(CONTROL_INFO ControlInfo))GetProcAddress(handle_input, "InitiateControllers");
    else
@@ -875,6 +878,7 @@ int load_input(HMODULE handle_input)
    if (closeDLL_input == NULL) closeDLL_input = dummy_void;
 	if (controllerCommand == NULL) controllerCommand = dummy_controllerCommand;
 	if (getKeys == NULL) getKeys = dummy_getKeys;
+    if (setKeys == NULL) setKeys = dummy_setKeys;
 	if (initiateControllers == NULL) initiateControllers = dummy_initiateControllers;
 	if (readController == NULL) readController = dummy_readController;
 	if (romClosed_input == NULL) romClosed_input = dummy_void;
@@ -908,6 +912,7 @@ int load_input(HMODULE handle_input)
     closeDLL_input = dummy_void;
 	controllerCommand = dummy_controllerCommand;
 	getKeys = dummy_getKeys;
+    setKeys = dummy_setKeys;
 	initiateControllers = dummy_initiateControllers;
 	readController = dummy_readController;
 	romClosed_input = dummy_void;
