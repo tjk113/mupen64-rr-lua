@@ -1768,6 +1768,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				          !IsMouseOverControl(statusDlg,IDC_SPINY) &&
 				          !IsMouseOverControl(statusDlg,IDC_SLIDERX) &&
 				          !IsMouseOverControl(statusDlg,IDC_SLIDERY) &&
+							 !IsMouseOverControl(statusDlg, IDC_CHECK_ANGDISP) &&
 				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON0) &&
 				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON1))) &&
 					    (!HasPanel(2) ||
