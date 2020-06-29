@@ -165,6 +165,7 @@
 #define IDC_IMPORT                      1134
 #define IDC_EDIT                        1135
 #define IDC_SAVE                        1136
+#define IDC_CLEAR3                      1136
 #define IDC_STATUS                      1137
 
 // Next default values for new objects
