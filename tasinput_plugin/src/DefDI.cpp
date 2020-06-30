@@ -326,25 +326,37 @@ int *ExtendBuffer(int* buf, int curSize) //size in bytes
 
 void Status::GetKeys(BUTTONS * Keys)
 {
-	if (activeCombo!=-1 && (comboTask == C_RUNNING || comboTask == C_LOOP)) //override controller data with combo
+	if ( activeCombo != -1 && (comboTask == C_RUNNING || comboTask == C_LOOP)) //override controller data with combo
 	{
-		int frame = frameCounter - comboStart+1; //+1 so it's human friendly
-		Keys->Value = aCombo.data[frame-1];
-		SetKeys(*Keys); //show changes
-		if (frame == aCombo.length) {
-			if (comboTask == C_LOOP)
-			{
-				comboStart = frameCounter+1; //+1 because frameCounter will get incremented by the time it get's here again
+		if (aCombo.length) //this has to be separate because activeCombo might be -1
+		{
+			int frame = frameCounter - comboStart;
+			if (frame > aCombo.length - 1) { //if frame is out of range
+				if (comboTask == C_LOOP)
+				{
+					comboStart = frameCounter;
+					frame = 0;
+				}
+				else
+				{
+					SetStatus("Idle");
+					comboTask = C_IDLE;
+					goto controller_continue; //continue to get normal contoller data here, because this frame is now an idle frame!
+					//(goto bad blah blah but I can't find any better solution...)//
+				}
 			}
-			else
-			{
-				SetStatus("Idle");
-				comboTask = C_IDLE;
-			}
+			char buf[64];
+			sprintf(buf, "Playing combo (%d/%d)", frame + 1, aCombo.length);
+			SetStatus(buf);
+			Keys->Value = aCombo.data[frame];
+			SetKeys(*Keys); //show changes
+			return; //don't continue to normal controller here
 		}
-		return;
+		SetStatus("Idle");
+		comboTask = C_IDLE;
 	}
-
+	else if (comboTask == C_PAUSE) comboStart++;
+	controller_continue:
 	gettingKeys = true;
 
 //	if(incrementingFrameNow)
@@ -781,6 +793,9 @@ void Status::GetKeys(BUTTONS * Keys)
 	if (comboTask == C_RECORD)
 	{
 		//extend if full and frame is not 0
+		char buf[64];
+		sprintf(buf, "Recording combo (%d)", frameCounter - comboStart + 1);
+		SetStatus(buf);
 		if (frameCounter-comboStart && aCombo.length%BUFFER_CHUNK==0) aCombo.data = ExtendBuffer(aCombo.data, aCombo.length*4);
 		aCombo.data[frameCounter - comboStart] = Keys->Value;
 		aCombo.length++;
@@ -1420,7 +1435,7 @@ void Status::InitialiseCombos(char* path) {
 			}
 			name[i++] = '\0';
 			//todo: use CreateNewCombo() here?
-			ListBox_AddString(lBox, name);
+			ListBox_InsertString(lBox,-1, name);
 			fread(&combo.length, 4, 1, cFile); //reads 4 bytes - length
 			combo.data = (int*) malloc(combo.length*4);
 			fread(combo.data, 4, combo.length, cFile);
@@ -2293,8 +2308,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					if (activeCombo == -1) { SetStatus("Select a combo first");break; }
 					SetStatus("Playing combo");
 					CheckDlgButton(statusDlg, IDC_LOOP, 0);
+					if (comboTask !=C_PAUSE) comboStart = frameCounter;
 					comboTask = C_RUNNING;
-					comboStart = frameCounter;
 					break;
 				case IDC_STOP:
 					SetStatus("Idle");
@@ -2303,9 +2318,12 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					comboStart = 0; //should avoid unnecessary bugs
 					break;
 				case IDC_PAUSE: //todo, ok you can pause but then what
-					SetStatus("Paused");
-					CheckDlgButton(statusDlg, IDC_LOOP, 0);
-					comboTask = C_PAUSE;
+					if (comboTask == C_RUNNING || comboTask == C_LOOP)
+					{
+						SetStatus("Paused");
+						CheckDlgButton(statusDlg, IDC_LOOP, 0);
+						comboTask = C_PAUSE;
+					}
 					break;
 				case IDC_LOOP:
 					if (comboTask == C_LOOP)
@@ -2314,9 +2332,11 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						comboTask = C_RUNNING;
 						break;
 					}
-					SetStatus("Looping");
-					comboStart = frameCounter;
+					activeCombo = ListBox_GetCurSel(GetDlgItem(statusDlg, IDC_MACROLIST));
+					if (activeCombo == -1) { SetStatus("Select a combo first");break; }
+					if (comboTask != C_PAUSE) comboStart = frameCounter;
 					comboTask = C_LOOP;
+					SetStatus("Looping combo");
 					break;
 				case IDC_RECORD:
 					if (comboTask == C_RECORD)
