@@ -1668,7 +1668,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			// set ranges
 			if(!AngDisp)
 			{
-				SendDlgItemMessage(statusDlg, IDC_SPINX, UDM_SETRANGE, 0, (LPARAM)MAKELONG(-128,127));
+				SendDlgItemMessage(statusDlg, IDC_SPINX, UDM_SETRANGE, 0, (LPARAM)MAKELONG(127,-128));
 				SendDlgItemMessage(statusDlg, IDC_SPINY, UDM_SETRANGE, 0, (LPARAM)MAKELONG(-128,127));
 			}
 			else
