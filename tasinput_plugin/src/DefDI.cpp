@@ -1677,9 +1677,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				SendDlgItemMessage(statusDlg, IDC_SPINY, UDM_SETRANGE, 0, (LPARAM)MAKELONG(180,-180));
 			}
 			SendDlgItemMessage(statusDlg, IDC_SLIDERX, TBM_SETRANGE, TRUE, (LPARAM)MAKELONG(10,2010));
-			SendDlgItemMessage(statusDlg, IDC_SLIDERX, TBM_SETPOS, TRUE, (LPARAM)(LONG)(xScale*1000));
+			SendDlgItemMessage(statusDlg, IDC_SLIDERX, TBM_SETPOS, TRUE, 1000);
 			SendDlgItemMessage(statusDlg, IDC_SLIDERY, TBM_SETRANGE, TRUE, (LPARAM)MAKELONG(10,2010));
-			SendDlgItemMessage(statusDlg, IDC_SLIDERY, TBM_SETPOS, TRUE, (LPARAM)(LONG)(yScale*1000));
+			SendDlgItemMessage(statusDlg, IDC_SLIDERY, TBM_SETPOS, TRUE, 1000);
 
 			// set checkbox initial states
 			if(HasPanel(1))
@@ -1969,7 +1969,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						BUTTONS Keys;
 						relativeControlNow = (msg == WM_TIMER);
 //						incrementingFrameNow = false;
-						//GetKeys(&Keys);      will it break anything?? it was messing with combo counter
+						GetKeys(&Keys); //used in radial mode I think
 //						incrementingFrameNow = true;
 						relativeControlNow = false;
 						ActivateEmulatorWindow();
@@ -2062,6 +2062,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						deactivateAfterClick = true;
 					}
 					int pos = SendDlgItemMessage(statusDlg, IDC_SLIDERX, TBM_GETPOS, 0, 0);
+					xScale = pos / 1000.0f;
 					if(GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 						deactivateAfterClick = true;
 				}	break;
@@ -2074,6 +2075,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						deactivateAfterClick = true;
 					}
 					int pos = SendDlgItemMessage(statusDlg, IDC_SLIDERY, TBM_GETPOS, 0, 0);
+					yScale = pos / 1000.0f;
 					if(GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 						deactivateAfterClick = true;
 				}	break;
