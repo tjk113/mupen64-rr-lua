@@ -167,6 +167,7 @@
 #define IDC_SAVE                        1136
 #define IDC_CLEAR3                      1136
 #define IDC_STATUS                      1137
+#define IDC_STATIC                      0
 
 // Next default values for new objects
 // 
