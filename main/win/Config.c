@@ -139,7 +139,14 @@ void LoadConfig()
     Config.WindowHeight = ReadCfgInt("Window","Height",480); 
     Config.WindowPosX = ReadCfgInt("Window","X",(GetSystemMetrics( SM_CXSCREEN ) - Config.WindowWidth) / 2);
     Config.WindowPosY = ReadCfgInt("Window","Y",(GetSystemMetrics( SM_CYSCREEN ) - Config.WindowHeight) / 2);
-    
+    //if mupen was closed by minimising
+    if (Config.WindowPosX == -32000) {
+        Config.WindowPosX = 0;
+        Config.WindowHeight = 700;
+        Config.WindowPosY = 0;
+        Config.WindowWidth = 700;
+    }
+
     //General Vars
     Config.showFPS = ReadCfgInt("General","Show FPS",1);
     Config.showVIS = ReadCfgInt("General","Show VIS",1);
