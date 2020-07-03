@@ -2913,10 +2913,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      sprintf(TempMessage,"%sreadme.pdf",AppPath);
                      ShellExecute(hwnd, "open", TempMessage, NULL, NULL, SW_SHOWNORMAL);           
                      break;
-			case ID_HELP_WHATSNEW:
-                     sprintf(TempMessage,"%swhatsnew.txt",AppPath);
-                     ShellExecute(hwnd, "open", TempMessage, NULL, NULL, SW_SHOWNORMAL);           
-                     break;
+            case ID_RAMSTART:
+            {
+                char buf[10];
+                sprintf(buf, "%#08X", rdram);
+                MessageBox(0, buf, "Ram start for STROOP config", MB_ICONINFORMATION);
+                break;
+            }
 			case IDLOAD:   
                      ZeroMemory(&oifn, sizeof(OPENFILENAME));
                      oifn.lStructSize = sizeof(OPENFILENAME);

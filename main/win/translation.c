@@ -346,7 +346,7 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     //Help menu
     submenu = GetSubMenu(hMenu,4);
     SetMenuTranslatedString(submenu,0,"Contents...","");
-    SetMenuTranslatedString(submenu,1,"Whats new...","");
+    SetMenuTranslatedString(submenu,1,"Show RAM start","");
     SetMenuTranslatedString(submenu,3,"About...","");
     DrawMenuBar(mainHWND);
     

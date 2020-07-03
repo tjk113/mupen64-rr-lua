@@ -141,7 +141,7 @@ IDR_MYMENU MENU
     POPUP "&Help"
     {
         MENUITEM "&Contents...", ID_HELP_CONTENS
-        MENUITEM "&Whats new...", ID_HELP_WHATSNEW
+        MENUITEM "Show RAM Start", ID_RAMSTART
         MENUITEM SEPARATOR
         MENUITEM "&About Mupen64...", ID_HELP_ABOUT
     }
