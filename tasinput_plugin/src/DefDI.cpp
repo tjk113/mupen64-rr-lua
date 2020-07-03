@@ -778,13 +778,8 @@ void Status::GetKeys(BUTTONS * Keys)
 	{
 		SetKeys(ControllerInput);
 	}
-	overrideAllowed = prevOverrideAllowed;
-
-	if(overrideOn)
-	{
-		ControllerInput.X_AXIS = overrideX;
-		ControllerInput.Y_AXIS = overrideY;
-	}
+	ControllerInput.X_AXIS = overrideX;
+	ControllerInput.Y_AXIS = overrideY;
 
 	//Pass Button Info to Emulator
 	Keys->Value = ControllerInput.Value;
@@ -811,7 +806,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 	{
 		if(buttonDisplayed.Value != ControllerInput.Value)
 		{
-			if(HasPanel(2))
+			if(!overrideOn && HasPanel(2))
 			{
 #define UPDATECHECK(idc,field) {if(buttonDisplayed.field != ControllerInput.field) CheckDlgButton(statusDlg, idc, ControllerInput.field);}
 				UPDATECHECK(IDC_CHECK_A, A_BUTTON);
@@ -832,7 +827,6 @@ void Status::SetKeys(BUTTONS ControllerInput)
 			}
 			buttonDisplayed.Value = ControllerInput.Value;
 		}
-
 		if(relativeXOn == 3 && radialRecalc)
 		{
 			radialDistance = sqrtf((float)((overrideX*overrideX)/(xScale*xScale) + (overrideY*overrideY)/(yScale*yScale)));
@@ -976,7 +970,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 			else
 				ControllerInput.Y_AXIS = overrideY;
 		}
-		if(LastControllerInput.X_AXIS != ControllerInput.X_AXIS || (AngDisp && LastControllerInput.Y_AXIS != ControllerInput.Y_AXIS))
+		if(!overrideOn && (LastControllerInput.X_AXIS != ControllerInput.X_AXIS || (AngDisp && LastControllerInput.Y_AXIS != ControllerInput.Y_AXIS)))
 		{
 			if(HasPanel(1))
 			{
@@ -990,7 +984,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					float angle2 = fmodf(90.0f + radialAngle*(180.0f/PI), 360.0f);
 					sprintf(str, "%d", (int)(angle2 + (angle2>0 ? 0.5f : -0.5f)));
 					skipEditX = true;
-					overrideX = (int)ControllerInput.X_AXIS;
+					if (!overrideOn) overrideX = (int)ControllerInput.X_AXIS;
 					RefreshAnalogPicture();
 				}
 				if(strcmp(str,str2))
@@ -998,7 +992,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 			}
 			changed = true;
 		}
-		if(LastControllerInput.Y_AXIS != ControllerInput.Y_AXIS || (AngDisp && LastControllerInput.X_AXIS != ControllerInput.X_AXIS))
+		if(!overrideOn && (LastControllerInput.Y_AXIS != ControllerInput.Y_AXIS || (AngDisp && LastControllerInput.X_AXIS != ControllerInput.X_AXIS)))
 		{
 			if(HasPanel(1))
 			{
@@ -1023,12 +1017,13 @@ void Status::SetKeys(BUTTONS ControllerInput)
 	if(relativeYOn || relativeXOn != 3)
 		LastControllerInput = ControllerInput;
 
-	if(changed)
+	if(changed & !overrideOn)
 	{
 		overrideX = ControllerInput.X_AXIS;
 		overrideY = ControllerInput.Y_AXIS;
 		RefreshAnalogPicture();
 	}
+	overrideOn = false; //reset every frame
 }
 
 
@@ -1613,8 +1608,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			deactivateAfterClick = false;
 			lastClick = ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000));
 			lastWasRight = 0!=(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
-			int initialStickX = overrideOn ? overrideX : LastControllerInput.X_AXIS;
-			int initialStickY = overrideOn ? overrideY : LastControllerInput.Y_AXIS;
+			int initialStickX = overrideX;
+			int initialStickY = overrideY;
 
 			// set title
 			char str [256];
@@ -1896,9 +1891,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(draggingStick)
 			{
-				bool changed = false;
-				int oldOverrideX = overrideOn ? overrideX : LastControllerInput.X_AXIS;
-				int oldOverrideY = overrideOn ? overrideY : LastControllerInput.Y_AXIS;
 				POINT pt;
 				GetCursorPos(&pt);
 				ScreenToClient(GetDlgItem(statusDlg, IDC_STICKPIC), &pt);
@@ -1918,43 +1910,31 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					overrideX = 0;
 				if(overrideY < 7 && overrideY > -7)
 					overrideY = 0;
+				
+				char str [256];
+				if(!AngDisp)
+					sprintf(str, "%d", overrideX);
+				else
+				{
+					float radialAngle = 4*PI + atan2f((float)-overrideY, (float)overrideX);
+					float angle2 = fmodf(90.0f + radialAngle*(180.0f/PI), 360.0f);
+					sprintf(str, "%d", (int)(angle2 + (angle2>0 ? 0.5f : -0.5f)));
+					skipEditX = true;
+				}
+				SetDlgItemText(statusDlg, IDC_EDITX, str);
+				if(!AngDisp)
+					sprintf(str, "%d", -overrideY);
+				else
+				{
+					float radialDistance = sqrtf((float)(overrideX*overrideX + overrideY*overrideY));
+					sprintf(str, "%d", (int)(0.5f + radialDistance));
+					skipEditY = true;
+				}
+				SetDlgItemText(statusDlg, IDC_EDITY, str);
 
-				if(oldOverrideX != overrideX || (AngDisp && oldOverrideY != overrideY))
-				{
-					char str [256];
-					if(!AngDisp)
-						sprintf(str, "%d", overrideX);
-					else
-					{
-						float radialAngle = 4*PI + atan2f((float)-overrideY, (float)overrideX);
-						float angle2 = fmodf(90.0f + radialAngle*(180.0f/PI), 360.0f);
-						sprintf(str, "%d", (int)(angle2 + (angle2>0 ? 0.5f : -0.5f)));
-						skipEditX = true;
-					}
-					SetDlgItemText(statusDlg, IDC_EDITX, str);
-					changed = true;
-				}
-				if(oldOverrideY != overrideY || (AngDisp && oldOverrideX != overrideX))
-				{
-					char str [256];
-					if(!AngDisp)
-						sprintf(str, "%d", -overrideY);
-					else
-					{
-						float radialDistance = sqrtf((float)(overrideX*overrideX + overrideY*overrideY));
-						sprintf(str, "%d", (int)(0.5f + radialDistance));
-						skipEditY = true;
-					}
-					SetDlgItemText(statusDlg, IDC_EDITY, str);
-					changed = true;
-				}
-
-				if(changed)
-				{
-					radialRecalc = true;
-					overrideOn = true;
-					RefreshAnalogPicture();
-				}
+				radialRecalc = true;
+				overrideOn = true; //joystick dragged with mouse
+				RefreshAnalogPicture();
 				ActivateEmulatorWindow();
 			}
 			else if(IsWindowFromEmulatorProcessActive() &&!lock)
@@ -1964,7 +1944,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					if(gettingKeys)
 						Sleep(0);
 					ActivateEmulatorWindow();
-					if(!gettingKeys)
+					if(!gettingKeys && relativeXOn == 3)
 					{
 						BUTTONS Keys;
 						relativeControlNow = (msg == WM_TIMER);
@@ -2137,7 +2117,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 					if(changed)
 					{
-						overrideOn = true;
+						//overrideOn = true; //no, because it's also called when editbox is being edited by m64 play, which doesn't mean joystick was draggeds
 						RefreshAnalogPicture ();
 					}
 				}	break;
@@ -2179,7 +2159,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 					if(changed)
 					{
-						overrideOn = true;
+						//overrideOn = true;  //same here
 						RefreshAnalogPicture ();
 					}
 				}	break;
