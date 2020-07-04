@@ -2032,6 +2032,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					if(GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 						deactivateAfterClick = true;
+						overrideOn = true;
 				}	break;
 
 				case IDC_SLIDERX:
