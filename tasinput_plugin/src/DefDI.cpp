@@ -994,7 +994,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					float angle2 = fmodf(90.0f + radialAngle*(180.0f/PI), 360.0f);
 					sprintf(str, "%d", (int)(angle2 + (angle2>0 ? 0.5f : -0.5f)));
 					skipEditX = true;
-					if (!overrideOn) overrideX = (int)ControllerInput.X_AXIS;
+					overrideX = (int)ControllerInput.X_AXIS;
 					RefreshAnalogPicture();
 				}
 				if(strcmp(str,str2))
@@ -1955,7 +1955,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					if(gettingKeys)
 						Sleep(0);
 					ActivateEmulatorWindow();
-					if(!gettingKeys && relativeXOn == 3)
+					if(!gettingKeys && (relativeXOn || relativeYOn))
 					{
 						BUTTONS Keys;
 						relativeControlNow = (msg == WM_TIMER);
