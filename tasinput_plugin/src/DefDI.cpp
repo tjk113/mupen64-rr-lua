@@ -75,6 +75,7 @@ struct Status
 	{
 		statusThread = NULL;
 		dwThreadId = 0;
+		copyButtons = false;
 		overrideOn = false;
 		overrideAllowed = false;
 		relativeControlNow = false;
@@ -155,6 +156,7 @@ struct Status
 
 	HANDLE statusThread;
 	DWORD dwThreadId, dwThreadParam;
+	int copyButtons;
 	int overrideX, overrideY;
 	bool overrideOn, overrideAllowed, relativeControlNow, gettingKeys;
 //	bool incrementingFrameNow;
@@ -765,8 +767,8 @@ void Status::GetKeys(BUTTONS * Keys)
 		}
 	}
 
-	ControllerInput.Value |= (buttonOverride.Value &= ~ControllerInput.Value);
-//	if((frameCounter/2)%2 == 0)
+	ControllerInput.Value |= buttonOverride.Value;
+	//if((frameCounter/2)%2 == 0)
 	if(frameCounter%2 == 0)
 		ControllerInput.Value ^= (buttonAutofire.Value &= ~buttonOverride.Value);
 	else
@@ -776,6 +778,7 @@ void Status::GetKeys(BUTTONS * Keys)
 	overrideAllowed = true;
 	if (comboTask != C_PAUSE)
 	{
+		copyButtons = false;
 		SetKeys(ControllerInput);
 	}
 	ControllerInput.X_AXIS = overrideX;
@@ -801,12 +804,19 @@ void Status::GetKeys(BUTTONS * Keys)
 
 void Status::SetKeys(BUTTONS ControllerInput)
 {
+	if (copyButtons)
+	{
+		buttonOverride.Value = ControllerInput.Value;
+		buttonOverride.X_AXIS = 0;
+		buttonOverride.Y_AXIS = 0;
+	}
+	copyButtons = true;
 	bool changed = false;
 	if(statusDlg)
 	{
-		if(buttonDisplayed.Value != ControllerInput.Value)
+		if (buttonDisplayed.Value != ControllerInput.Value && HasPanel(2))
 		{
-			if(!overrideOn && HasPanel(2))
+			if (!overrideOn)
 			{
 #define UPDATECHECK(idc,field) {if(buttonDisplayed.field != ControllerInput.field) CheckDlgButton(statusDlg, idc, ControllerInput.field);}
 				UPDATECHECK(IDC_CHECK_A, A_BUTTON);
@@ -1808,6 +1818,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				        IsMouseOverControl(statusDlg,IDC_CHECK_DLEFT) ||
 				        IsMouseOverControl(statusDlg,IDC_CHECK_DRIGHT)))
 					{
+						overrideOn = true; //clicking on buttons counts as override
 						if(GetAsyncKeyState(VK_RBUTTON) & 0x8000) // right click on a button to autofire it
 						{
 #define UPDATEAUTO(idc,field) \
