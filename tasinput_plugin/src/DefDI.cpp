@@ -341,6 +341,11 @@ void Status::GetKeys(BUTTONS * Keys)
 				}
 				else
 				{
+					if (!overrideOn)
+					{
+						BUTTONS zero = { 0 };
+						SetKeys(zero);
+					}
 					SetStatus("Idle");
 					comboTask = C_IDLE;
 					goto controller_continue; //continue to get normal contoller data here, because this frame is now an idle frame!

@@ -954,6 +954,8 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 //				VCR_stopCapture();
 //			else
 				VCR_stopPlayback();
+				BUTTONS zero = { 0 };
+				setKeys(Control,zero);
 				getKeys(Control,Keys);
 				if (Control == 0)
 					memcpy(&m_lastController1Keys, Keys, sizeof(unsigned long));
