@@ -766,13 +766,12 @@ void Status::GetKeys(BUTTONS * Keys)
 			}
 		}
 	}
-
 	ControllerInput.Value |= buttonOverride.Value;
 	//if((frameCounter/2)%2 == 0)
-	if(frameCounter%2 == 0)
-		ControllerInput.Value ^= (buttonAutofire.Value &= ~buttonOverride.Value);
+	if (frameCounter % 2 == 0)
+		ControllerInput.Value ^= buttonAutofire.Value;
 	else
-		ControllerInput.Value ^= (buttonAutofire2.Value &= ~buttonOverride.Value);
+		ControllerInput.Value ^= buttonAutofire2.Value;
 
 	bool prevOverrideAllowed = overrideAllowed;
 	overrideAllowed = true;
@@ -807,34 +806,30 @@ void Status::SetKeys(BUTTONS ControllerInput)
 	if (copyButtons)
 	{
 		buttonOverride.Value = ControllerInput.Value;
-		buttonOverride.X_AXIS = 0;
-		buttonOverride.Y_AXIS = 0;
 	}
 	copyButtons = true;
 	bool changed = false;
 	if(statusDlg)
 	{
+		//true if physical controller state is changed (because logical is handled in GetKeys)
 		if (buttonDisplayed.Value != ControllerInput.Value && HasPanel(2))
 		{
-			if (!overrideOn)
-			{
-#define UPDATECHECK(idc,field) {if(buttonDisplayed.field != ControllerInput.field) CheckDlgButton(statusDlg, idc, ControllerInput.field);}
-				UPDATECHECK(IDC_CHECK_A, A_BUTTON);
-				UPDATECHECK(IDC_CHECK_B, B_BUTTON);
-				UPDATECHECK(IDC_CHECK_START, START_BUTTON);
-				UPDATECHECK(IDC_CHECK_L, L_TRIG);
-				UPDATECHECK(IDC_CHECK_R, R_TRIG);
-				UPDATECHECK(IDC_CHECK_Z, Z_TRIG);
-				UPDATECHECK(IDC_CHECK_CUP, U_CBUTTON);
-				UPDATECHECK(IDC_CHECK_CLEFT, L_CBUTTON);
-				UPDATECHECK(IDC_CHECK_CRIGHT, R_CBUTTON);
-				UPDATECHECK(IDC_CHECK_CDOWN, D_CBUTTON);
-				UPDATECHECK(IDC_CHECK_DUP, U_DPAD);
-				UPDATECHECK(IDC_CHECK_DLEFT, L_DPAD);
-				UPDATECHECK(IDC_CHECK_DRIGHT, R_DPAD);
-				UPDATECHECK(IDC_CHECK_DDOWN, D_DPAD);
+#define UPDATECHECK(idc,field) {if(buttonDisplayed.field != ControllerInput.field) CheckDlgButton(statusDlg, idc, ControllerInput.field^(buttonAutofire2.field|buttonAutofire.field));}
+			UPDATECHECK(IDC_CHECK_A, A_BUTTON);
+			UPDATECHECK(IDC_CHECK_B, B_BUTTON);
+			UPDATECHECK(IDC_CHECK_START, START_BUTTON);
+			UPDATECHECK(IDC_CHECK_L, L_TRIG);
+			UPDATECHECK(IDC_CHECK_R, R_TRIG);
+			UPDATECHECK(IDC_CHECK_Z, Z_TRIG);
+			UPDATECHECK(IDC_CHECK_CUP, U_CBUTTON);
+			UPDATECHECK(IDC_CHECK_CLEFT, L_CBUTTON);
+			UPDATECHECK(IDC_CHECK_CRIGHT, R_CBUTTON);
+			UPDATECHECK(IDC_CHECK_CDOWN, D_CBUTTON);
+			UPDATECHECK(IDC_CHECK_DUP, U_DPAD);
+			UPDATECHECK(IDC_CHECK_DLEFT, L_DPAD);
+			UPDATECHECK(IDC_CHECK_DRIGHT, R_DPAD);
+			UPDATECHECK(IDC_CHECK_DDOWN, D_DPAD);
 #undef UPDATECHECK
-			}
 			buttonDisplayed.Value = ControllerInput.Value;
 		}
 		if(relativeXOn == 3 && radialRecalc)
@@ -1825,6 +1820,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 { \
 	if(IsMouseOverControl(statusDlg,idc)) \
 	{ \
+		CheckDlgButton(statusDlg,idc,buttonAutofire.field|buttonAutofire2.field ? 0 : 1); \
 		BUTTONS &autoFire1 = (frameCounter%2 == 0) ? buttonAutofire : buttonAutofire2; \
 		BUTTONS &autoFire2 = (frameCounter%2 == 0) ? buttonAutofire2 : buttonAutofire; \
 		autoFire1.field = !(autoFire1.field|autoFire2.field); \
@@ -2240,20 +2236,22 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					ActivateEmulatorWindow();
 				}	break;
 
-				case IDC_CHECK_A:      buttonOverride.A_BUTTON =     IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.A_BUTTON =     buttonAutofire2.A_BUTTON =     0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_B:      buttonOverride.B_BUTTON =     IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.B_BUTTON =     buttonAutofire2.B_BUTTON =     0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_START:  buttonOverride.START_BUTTON = IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.START_BUTTON = buttonAutofire2.START_BUTTON = 0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_Z:      buttonOverride.Z_TRIG =       IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.Z_TRIG =       buttonAutofire2.Z_TRIG =       0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_L:      buttonOverride.L_TRIG =       IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.L_TRIG =       buttonAutofire2.L_TRIG =       0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_R:      buttonOverride.R_TRIG =       IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.R_TRIG =       buttonAutofire2.R_TRIG =       0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_CLEFT:  buttonOverride.L_CBUTTON =    IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.L_CBUTTON =    buttonAutofire2.L_CBUTTON =    0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_CUP:    buttonOverride.U_CBUTTON =    IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.U_CBUTTON =    buttonAutofire2.U_CBUTTON =    0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_CRIGHT: buttonOverride.R_CBUTTON =    IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.R_CBUTTON =    buttonAutofire2.R_CBUTTON =    0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_CDOWN:  buttonOverride.D_CBUTTON =    IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.D_CBUTTON =    buttonAutofire2.D_CBUTTON =    0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_DLEFT:  buttonOverride.L_DPAD =       IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.L_DPAD =       buttonAutofire2.L_DPAD =       0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_DUP:    buttonOverride.U_DPAD =       IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.U_DPAD =       buttonAutofire2.U_DPAD =       0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_DRIGHT: buttonOverride.R_DPAD =       IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.R_DPAD =       buttonAutofire2.R_DPAD =       0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_DDOWN:  buttonOverride.D_DPAD =       IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.D_DPAD =       buttonAutofire2.D_DPAD =       0; ActivateEmulatorWindow(); break;
+				//on checkbox click set buttonOverride and buttonDisplayed field and reset autofire
+				#define DISP_UPDATE(field) buttonDisplayed.field = buttonOverride.field = IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.field=buttonAutofire2.field =0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_A:      DISP_UPDATE(A_BUTTON);
+				case IDC_CHECK_B:      DISP_UPDATE(B_BUTTON);
+				case IDC_CHECK_START:  DISP_UPDATE(START_BUTTON);
+				case IDC_CHECK_Z:      DISP_UPDATE(Z_TRIG);
+				case IDC_CHECK_L:      DISP_UPDATE(L_TRIG);
+				case IDC_CHECK_R:      DISP_UPDATE(R_TRIG);
+				case IDC_CHECK_CLEFT:  DISP_UPDATE(L_CBUTTON);
+				case IDC_CHECK_CUP:    DISP_UPDATE(U_CBUTTON);
+				case IDC_CHECK_CRIGHT: DISP_UPDATE(R_CBUTTON);
+				case IDC_CHECK_CDOWN:  DISP_UPDATE(D_CBUTTON);
+				case IDC_CHECK_DLEFT:  DISP_UPDATE(L_DPAD);
+				case IDC_CHECK_DUP:    DISP_UPDATE(U_DPAD);
+				case IDC_CHECK_DRIGHT: DISP_UPDATE(R_DPAD);
+				case IDC_CHECK_DDOWN:  DISP_UPDATE(D_DPAD);
 				case IDC_CLEARBUTTONS: buttonOverride.Value = 0; buttonAutofire.Value = 0; buttonAutofire2.Value = 0; ActivateEmulatorWindow(); break;
 
 				case IDC_MOREBUTTON0:
@@ -2311,7 +2309,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					comboTask = C_IDLE;
 					comboStart = 0; //should avoid unnecessary bugs
 					break;
-				case IDC_PAUSE: //todo, ok you can pause but then what
+				case IDC_PAUSE:
 					if (comboTask == C_RUNNING || comboTask == C_LOOP)
 					{
 						SetStatus("Paused");
