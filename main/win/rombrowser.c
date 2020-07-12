@@ -457,6 +457,7 @@ void AddRomToList (char * RomLocation) {
 	memset(&lvItem, 0, sizeof(lvItem));
 //Filling rombrowser info
 	strncpy(pRomInfo->szFullFileName, RomLocation, MAX_PATH);
+    _splitpath(RomLocation,0,0,pRomInfo->FileName,0);
     strncpy(pRomInfo->InternalName, (const char*)ROM_HEADER->nom, sizeof(ROM_HEADER->nom));
     pRomInfo->Country = ROM_HEADER->Country_code;
     pRomInfo->RomSize = ROM_SIZE;
@@ -553,7 +554,7 @@ void RomList_GetDispInfo(LPNMHDR pnmh) {
     break;    
     
     case 5:
-      strncpy(lpdi->item.pszText, pRomInfo->szFullFileName, lpdi->item.cchTextMax); 
+      strncpy(lpdi->item.pszText, pRomInfo->FileName, lpdi->item.cchTextMax); 
     break;
     
     case 6:
