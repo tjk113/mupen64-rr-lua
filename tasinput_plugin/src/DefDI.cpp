@@ -280,6 +280,16 @@ EXPORT void CALL SetKeys(int Control, BUTTONS ControllerInput)
 		status[Control].SetKeys(ControllerInput);
 }
 
+//check if given combo data uses joystick
+bool ParseCombo(BUTTONS* data, int len)
+{
+	for (int i = 0;i != len;i++)
+	{
+		if (data[i].X_AXIS || data[i].Y_AXIS) return true;
+	}
+	return false;
+}
+
 LRESULT CALLBACK EditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
 {
 	//debug messages
@@ -319,51 +329,15 @@ LRESULT CALLBACK EditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, 
 
 //reallocate buffer to closest multiple of chunk size <- assumes it didn't overflow already
 //returns pointer to new buffer (or old extended pointer)
-int *ExtendBuffer(int* buf, int curSize) //size in bytes
+BUTTONS *ExtendBuffer(BUTTONS* buf, int curSize) //size in bytes
 {
 	//realloc(buf, curSize + BUFFER_CHUNK); //bad because crashes on unaligned buffers, which may come from combo file
 	int newsize = (div(curSize, BUFFER_CHUNK).quot+1) * BUFFER_CHUNK*4;
-	return (int*)realloc(buf, newsize);
+	return (BUTTONS*)realloc(buf, newsize);
 }
 
 void Status::GetKeys(BUTTONS * Keys)
 {
-	if ( activeCombo != -1 && (comboTask == C_RUNNING || comboTask == C_LOOP)) //override controller data with combo
-	{
-		if (aCombo.length) //this has to be separate because activeCombo might be -1
-		{
-			int frame = frameCounter - comboStart;
-			if (frame > aCombo.length - 1) { //if frame is out of range
-				if (comboTask == C_LOOP)
-				{
-					comboStart = frameCounter;
-					frame = 0;
-				}
-				else
-				{
-					if (!overrideOn)
-					{
-						BUTTONS zero = { 0 };
-						SetKeys(zero);
-					}
-					SetStatus("Idle");
-					comboTask = C_IDLE;
-					goto controller_continue; //continue to get normal contoller data here, because this frame is now an idle frame!
-					//(goto bad blah blah but I can't find any better solution...)//
-				}
-			}
-			char buf[64];
-			sprintf(buf, "Playing combo (%d/%d)", frame + 1, aCombo.length);
-			SetStatus(buf);
-			Keys->Value = aCombo.data[frame];
-			SetKeys(*Keys); //show changes
-			return; //don't continue to normal controller here
-		}
-		SetStatus("Idle");
-		comboTask = C_IDLE;
-	}
-	else if (comboTask == C_PAUSE) comboStart++;
-	controller_continue:
 	gettingKeys = true;
 
 //	if(incrementingFrameNow)
@@ -771,9 +745,49 @@ void Status::GetKeys(BUTTONS * Keys)
 			}
 		}
 	}
+
+	//here ControllerInput holds true physical controller, which gets modified by tasinput / combo
+	DWORD oldOverride = buttonOverride.Value; //so the keys don't stick...
+	if (activeCombo != -1 && (comboTask == C_RUNNING || comboTask == C_LOOP))
+	{
+		if (aCombo.length) //this has to be separate because activeCombo might be -1
+		{
+			int frame = frameCounter - comboStart;
+			if (frame > aCombo.length - 1) { //if frame is out of range
+				if (comboTask == C_LOOP)
+				{
+					comboStart = frameCounter;
+					frame = 0;
+				}
+				else
+				{
+					if (!overrideOn) //if combo ends and tasinput state wasn't changed, clear
+					{
+						buttonOverride.Value = 0;
+					}
+					SetStatus("Idle");
+					comboTask = C_IDLE;
+					goto continue_controller;
+				}
+			}
+			char buf[64];
+			sprintf(buf, "Playing combo (%d/%d)", frame + 1, aCombo.length);
+			SetStatus(buf);
+			//allows to use joystick with combos
+			buttonOverride.Value |= aCombo.data[frame].Value;
+			if (aCombo.joystickUsed) //if joystick used, paste the values too (because simply ORing is not enough)
+			{
+				overrideX = ControllerInput.X_AXIS = aCombo.data[frame].X_AXIS;
+				overrideY = ControllerInput.Y_AXIS = aCombo.data[frame].Y_AXIS;
+			}
+		};
+	}
+	else if (comboTask == C_PAUSE) comboStart++;
+
+	continue_controller:
 	ControllerInput.Value |= buttonOverride.Value;
 	//if((frameCounter/2)%2 == 0)
-	if (frameCounter % 2 == 0)
+	if (frameCounter % 2 == 0) //autofire stuff
 		ControllerInput.Value ^= buttonAutofire.Value;
 	else
 		ControllerInput.Value ^= buttonAutofire2.Value;
@@ -783,14 +797,14 @@ void Status::GetKeys(BUTTONS * Keys)
 	if (comboTask != C_PAUSE)
 	{
 		copyButtons = false;
-		SetKeys(ControllerInput);
+		SetKeys(ControllerInput); 
 	}
 	ControllerInput.X_AXIS = overrideX;
 	ControllerInput.Y_AXIS = overrideY;
 
 	//Pass Button Info to Emulator
 	Keys->Value = ControllerInput.Value;
-
+	buttonOverride.Value = oldOverride;
 	//copy fetched data to combo too
 	if (comboTask == C_RECORD)
 	{
@@ -799,7 +813,7 @@ void Status::GetKeys(BUTTONS * Keys)
 		sprintf(buf, "Recording combo (%d)", frameCounter - comboStart + 1);
 		SetStatus(buf);
 		if (frameCounter-comboStart && aCombo.length%BUFFER_CHUNK==0) aCombo.data = ExtendBuffer(aCombo.data, aCombo.length*4);
-		aCombo.data[frameCounter - comboStart] = Keys->Value;
+		aCombo.data[frameCounter - comboStart].Value = Keys->Value;
 		aCombo.length++;
 	}
 
@@ -1335,7 +1349,7 @@ void Status::FreeCombos()
 	{
 		for (COMBO c : ComboList)
 		{
-			c.ClearData();
+			free(c.data); //because default destructor gets called when building vector and input data shouldn't get freed yet.
 			//delete c; //no you can't
 		}
 		ComboList.clear();
@@ -1355,7 +1369,7 @@ void Status::SetStatus(char* str)
 int Status::CreateNewCombo(int id) {
 	COMBO Combo;
 	Combo.length = 0;
-	Combo.data = (int*)malloc(BUFFER_CHUNK * 4); //must be aligned
+	Combo.data = (BUTTONS*)malloc(BUFFER_CHUNK * 4); //must be aligned
 	char name[] = "New Combo"; //must be later renamed lol
 	ComboList.push_back(Combo);
 	return ListBox_InsertString(lBox,-1, name);
@@ -1401,6 +1415,7 @@ void Status::EndEdit(int id,char* name) {
 			ListBox_InsertString(lBox,id, name);
 		}
 	}
+	SetStatus("Idle");
 }
 
 //saves combos to combos.cmb
@@ -1442,9 +1457,10 @@ void Status::InitialiseCombos(char* path) {
 			//todo: use CreateNewCombo() here?
 			ListBox_InsertString(lBox,-1, name);
 			fread(&combo.length, 4, 1, cFile); //reads 4 bytes - length
-			combo.data = (int*) malloc(combo.length*4);
+			combo.data = (BUTTONS*) malloc(combo.length*4);
 			fread(combo.data, 4, combo.length, cFile);
 			ComboList.push_back(combo); //this calls destructor
+			combo.joystickUsed = ParseCombo(combo.data,combo.length);
 			c = fgetc(cFile);
 		}
 	}

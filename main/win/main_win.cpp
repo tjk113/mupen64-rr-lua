@@ -265,6 +265,14 @@ TCHAR CoreNames[3][30] = {TEXT("Interpreter"), TEXT("Dynamic Recompiler"), TEXT(
 
 char AppPath[MAX_PATH];
 
+void ClearButtons()
+{
+    BUTTONS zero = { 0 };
+    for (int i = 0;i < 4;i++)
+    {
+        setKeys(i, zero);
+    }
+}
 void getAppFullPath (char *ret) {
     char drive[_MAX_DRIVE], dirn[_MAX_DIR] ;
 	char fname[_MAX_FNAME], ext[_MAX_EXT] ;
@@ -3053,6 +3061,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      	; // fail quietly
 //                        MessageBox(NULL, "Couldn't stop recording.", "VCR", MB_OK);
                      else {
+                         ClearButtons();
                         EnableMenuItem(hMenu,ID_STOP_RECORD,MF_GRAYED);
                         EnableMenuItem(hMenu,ID_START_RECORD,MF_ENABLED);
                         SetStatusTranslatedString(hStatus,0,"Recording stopped");            
@@ -3068,6 +3077,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      	; // fail quietly
 //                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
                      else {
+                         ClearButtons();
                         EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
                         EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
                         SetStatusTranslatedString(hStatus,0,"Playback stopped");
