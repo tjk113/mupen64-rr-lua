@@ -49,6 +49,7 @@ extern void update_debugger();
 unsigned long i, dynacore = 0, interpcore = 0;
 int no_audio_delay = 0;
 int no_compiled_jump = 0;
+int round_to_zero = 0;
 int stop, llbit;
 long long int reg[32], hi, lo;
 long long int local_rs, local_rt;
@@ -1568,7 +1569,7 @@ void go()
    
    Random = 31;
    Status= 0x34000000;
-   Config= 0x6e463;
+   Config_cop0= 0x6e463;
    PRevID = 0xb00;
    Count = 0x5000;
    Cause = 0x5C;

@@ -33,6 +33,7 @@
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
+extern int round_to_zero;
 
 ////////////////////// Service functions and structures ////////////////////////
 
@@ -164,12 +165,13 @@ void LoadConfig()
     
     
     //Advanced vars
-    Config.StartFullScreen = ReadCfgInt("Advanced","Start Full Screen",0);
-    Config.PauseWhenNotActive = ReadCfgInt("Advanced","Pause when not active",1);
-    Config.OverwritePluginSettings = ReadCfgInt("Advanced","Overwrite Plugins Settings ",0);
-    Config.GuiToolbar = ReadCfgInt( "Advanced", "Use Toolbar", 0);
-    Config.GuiStatusbar = ReadCfgInt( "Advanced", "Use Statusbar", 1);
-    Config.AutoIncSaveSlot = ReadCfgInt( "Advanced", "Auto Increment Save Slot", 0);
+    Config.StartFullScreen = ReadCfgInt("Advanced", "Start Full Screen", 0);
+    Config.PauseWhenNotActive = ReadCfgInt("Advanced", "Pause when not active", 1);
+    Config.OverwritePluginSettings = ReadCfgInt("Advanced", "Overwrite Plugins Settings", 0);
+    Config.GuiToolbar = ReadCfgInt("Advanced", "Use Toolbar", 0);
+    Config.GuiStatusbar = ReadCfgInt("Advanced", "Use Statusbar", 1);
+    Config.AutoIncSaveSlot = ReadCfgInt("Advanced", "Auto Increment Save Slot", 0);
+    round_to_zero = ReadCfgInt("Advanced", "Round To Zero", 0);
     
     //Compatibility Settings
     no_audio_delay = ReadCfgInt("Compatibility","No Audio Delay", 0);
@@ -327,6 +329,7 @@ void SaveConfig()
     WriteCfgInt( "Advanced", "Use Toolbar", Config.GuiToolbar);
     WriteCfgInt( "Advanced", "Use Statusbar", Config.GuiStatusbar);
     WriteCfgInt( "Advanced", "Auto Increment Save Slot", Config.AutoIncSaveSlot);
+    WriteCfgInt( "Advanced", "Round To Zero", round_to_zero);
     
     WriteCfgInt( "CPU", "Core", Config.guiDynacore);
     
