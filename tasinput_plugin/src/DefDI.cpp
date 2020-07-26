@@ -796,6 +796,11 @@ void Status::GetKeys(BUTTONS * Keys)
 	overrideAllowed = true;
 	if (comboTask != C_PAUSE)
 	{
+		if (copyButtons)
+		{
+			ControllerInput.X_AXIS = overrideX;
+			ControllerInput.Y_AXIS = overrideY;
+		}
 		copyButtons = false;
 		SetKeys(ControllerInput); 
 	}
@@ -825,6 +830,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 	if (copyButtons)
 	{
 		buttonOverride.Value = ControllerInput.Value;
+		buttonOverride.X_AXIS = buttonOverride.Y_AXIS = 0;
 	}
 	copyButtons = true;
 	bool changed = false;
