@@ -796,17 +796,12 @@ void Status::GetKeys(BUTTONS * Keys)
 	overrideAllowed = true;
 	if (comboTask != C_PAUSE)
 	{
-		if (copyButtons)
-		{
-			ControllerInput.X_AXIS = overrideX;
-			ControllerInput.Y_AXIS = overrideY;
-		}
+		if (!copyButtons) SetKeys(ControllerInput); //don't overwrite after switching to read write
+		else LastControllerInput = ControllerInput;
 		copyButtons = false;
-		SetKeys(ControllerInput); 
 	}
 	ControllerInput.X_AXIS = overrideX;
 	ControllerInput.Y_AXIS = overrideY;
-
 	//Pass Button Info to Emulator
 	Keys->Value = ControllerInput.Value;
 	buttonOverride.Value = oldOverride;
@@ -827,7 +822,7 @@ void Status::GetKeys(BUTTONS * Keys)
 
 void Status::SetKeys(BUTTONS ControllerInput)
 {
-	if (copyButtons)
+	if (copyButtons) //copy m64 data to current input
 	{
 		buttonOverride.Value = ControllerInput.Value;
 		buttonOverride.X_AXIS = buttonOverride.Y_AXIS = 0;
