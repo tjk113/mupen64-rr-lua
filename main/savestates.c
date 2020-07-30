@@ -262,6 +262,21 @@ void savestates_load()
 	gzread(f, SP_IMEM, 0x1000);
 	gzread(f, PIF_RAM, 0x40);
 
+
+	//if st was created during frame advance it didn't copy its pif ram to rdram yet, so its filled with 000000ff
+	if (rdram[si_register.si_dram_addr / 4] == 0x000000ff) {
+		//memcpy(&rdram[si_register.si_dram_addr / 4], PIF_RAM, 0x40); //nah
+		for (i = 0; i < (64 / 4); i++)
+			rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
+		update_count();
+		add_interupt_event(SI_INT, /*0x100*/0x900);
+	}
+	else {
+		extern int frame_advancing;
+		extern int emu_paused;
+		if (emu_paused) frame_advancing = 2; //don't pause in pif.c, workaround
+	}
+
 	gzread(f, buf, 24);
 	load_flashram_infos(buf);
    

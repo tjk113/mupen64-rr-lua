@@ -2863,9 +2863,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case EMU_FRAMEADVANCE:
                 {
 					extern int frame_advancing;
-					frame_advancing = 1; 
-					resumeEmu(TRUE); // maybe multithreading unsafe
-
+                    if (frame_advancing !=2) frame_advancing = 1;
+                    resumeEmu(TRUE); // maybe multithreading unsafe
                 }
                 break;
                

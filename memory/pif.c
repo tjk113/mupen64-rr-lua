@@ -486,22 +486,29 @@ void update_pif_read()
 				if (frame_advancing && channel <= controllerRead && (&PIF_RAMb[i])[2] == 1)
 				{
 					extern void pauseEmu(BOOL quiet);
-					frame_advancing = 0;
-					pauseEmu(TRUE);
-					#ifdef __WIN32__
-					extern BOOL emu_paused;
-					#ifdef LUA_EMUPAUSED_WORK
-					AtIntervalLuaCallback();
-					#endif
-					while (emu_paused)
+					if (frame_advancing == 2) //skip if st special care, see savestates.c
 					{
-						Sleep(10);
-						#ifdef LUA_EMUPAUSED_WORK
-						AtIntervalLuaCallback();
-						GetLuaMessage();
-						#endif
+						frame_advancing = 1;
 					}
-				#endif
+					else
+					{
+						frame_advancing = 0;
+						pauseEmu(TRUE);
+#ifdef __WIN32__
+						extern BOOL emu_paused;
+#ifdef LUA_EMUPAUSED_WORK
+						AtIntervalLuaCallback();
+#endif
+						while (emu_paused)
+						{
+							Sleep(10);
+#ifdef LUA_EMUPAUSED_WORK
+							AtIntervalLuaCallback();
+							GetLuaMessage();
+#endif
+						}
+#endif
+					}
 				}
 				
 				controllerRead = channel;
