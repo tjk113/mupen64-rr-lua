@@ -488,12 +488,23 @@ void update_pif_read()
 					extern void pauseEmu(BOOL quiet);
 					frame_advancing = 0;
 					pauseEmu(TRUE);
+					#ifdef __WIN32__
+					extern BOOL emu_paused;
+					#ifdef LUA_EMUPAUSED_WORK
+					AtIntervalLuaCallback();
+					#endif
+					while (emu_paused)
+					{
+						Sleep(10);
+						#ifdef LUA_EMUPAUSED_WORK
+						AtIntervalLuaCallback();
+						GetLuaMessage();
+						#endif
+					}
+				#endif
 				}
 				
 				controllerRead = channel;
-
-
-
 		       if (Controls[channel].Present && 
 			   Controls[channel].RawData
 #ifdef VCR_SUPPORT
