@@ -274,7 +274,7 @@ void savestates_load()
 	else {
 		extern int frame_advancing;
 		extern int emu_paused;
-		if (emu_paused) frame_advancing = 2; //don't pause in pif.c, workaround
+		if (emu_paused && !frame_advancing) frame_advancing = 2; //don't pause in pif.c, workaround
 	}
 
 	gzread(f, buf, 24);

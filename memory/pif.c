@@ -452,6 +452,7 @@ void update_pif_write()
 void update_pif_read()
 {
    int i=0, channel=0;
+   bool once = frame_advancing;
 #ifdef DEBUG_PIF
    printf("read\n");
    print_pif();
@@ -483,8 +484,9 @@ void update_pif_read()
 				// frame advance - pause before every 'frame of input',
 				// which is manually resumed to enter 1 input and emulate until being
 				// paused here again before the next input
-				if (frame_advancing && channel <= controllerRead && (&PIF_RAMb[i])[2] == 1)
+				if (once && channel <= controllerRead && (&PIF_RAMb[i])[2] == 1)
 				{
+					once = false;
 					extern void pauseEmu(BOOL quiet);
 					if (frame_advancing == 2) //skip if st special care, see savestates.c
 					{
