@@ -452,7 +452,10 @@ void update_pif_write()
 void update_pif_read()
 {
    int i=0, channel=0;
-   bool once = frame_advancing;
+   extern int emu_paused; //if you get error here, this means you're compiling for linux, and linux version 
+						  //doesn't have pausing. But this also means linux version is unusable for tasing.
+						  //If you really want it for some reason, define emu_paused.
+   bool once = emu_paused | frame_advancing;
 #ifdef DEBUG_PIF
    printf("read\n");
    print_pif();
@@ -496,8 +499,6 @@ void update_pif_read()
 					{
 						frame_advancing = 0;
 						pauseEmu(TRUE);
-#ifdef __WIN32__
-						extern BOOL emu_paused;
 #ifdef LUA_EMUPAUSED_WORK
 						AtIntervalLuaCallback();
 #endif
@@ -509,7 +510,6 @@ void update_pif_read()
 							GetLuaMessage();
 #endif
 						}
-#endif
 					}
 				}
 				
