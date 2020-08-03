@@ -3255,27 +3255,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	FILE *newfp;
-	newfp = freopen("stdout.txt", "w", stdout);
-	if ( newfp == NULL )
-	{
-		newfp = fopen("stdout.txt", "w");
-		if ( newfp )
-		{
- 			*stdout = *newfp;
- 		}
-	}
-	
-	newfp = freopen("stderr.txt", "w", stderr);
-	if ( newfp == NULL )
-	{
-		newfp = fopen("stderr.txt", "w");
-		if ( newfp )
-		{
- 			*stderr = *newfp;
- 		}
-	}
-	
+#ifdef _DEBUG
+    AllocConsole();
+    FILE* f = 0;
+    freopen_s(&f, "CONIN$", "r", stdin);
+    freopen_s(&f, "CONOUT$", "w", stdout);
+    freopen_s(&f, "CONOUT$", "w", stderr);
+    printf("mupen64 debug console");
+#endif
 	/* Put absolute App path to AppPath variable */  
 	getAppFullPath( AppPath );
   app_hInstance = hInstance;
@@ -3463,7 +3450,6 @@ int WINAPI WinMain(
 		}
 	}
         
-	fclose(newfp);
 	CloseLogWindow();
 	CloseKaillera();
 	return Msg.wParam;

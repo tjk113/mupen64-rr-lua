@@ -28,6 +28,9 @@
 **/
 
 //#include "../config.h"
+#ifdef _DEBUG
+#define DEBUG_PIF //don't define if you don't need spam
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +48,7 @@
 #include "../main/plugin.h"
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"
+#include "../main/savestates.h"
 
 #include "../lua/LuaConsole.h"
 
@@ -62,7 +66,7 @@ void print_pif()
      printf("%x %x %x %x | %x %x %x %x\n",
 	    PIF_RAMb[i*8+0], PIF_RAMb[i*8+1],PIF_RAMb[i*8+2], PIF_RAMb[i*8+3],
 	    PIF_RAMb[i*8+4], PIF_RAMb[i*8+5],PIF_RAMb[i*8+6], PIF_RAMb[i*8+7]);
-   getchar();
+   //getchar();
 }
 #endif
 
@@ -379,8 +383,9 @@ void update_pif_write()
 {
    int i=0, channel=0;
 #ifdef DEBUG_PIF
-   printf("write\n");
+   printf("---------- before write ---------\n");
    print_pif();
+   printf("---------------------------------\n");
 #endif
    if (PIF_RAMb[0x3F] > 1)
      {
@@ -420,7 +425,7 @@ void update_pif_write()
 	   case 0xFF:
 	     break;
 	   default:
-	     if (!(PIF_RAMb[i] & 0xC0))
+	     if (!(PIF_RAMb[i] & 0xC0)) 
 	       {
 		  if (channel < 4)
 		    {
@@ -445,7 +450,9 @@ void update_pif_write()
    //PIF_RAMb[0x3F] = 0;
    controllerCommand(-1, NULL);
 #ifdef DEBUG_PIF
+   printf("---------- after write ----------\n");
    print_pif();
+   printf("---------------------------------\n");
 #endif
 }
 
@@ -457,8 +464,9 @@ void update_pif_read()
 						  //If you really want it for some reason, define emu_paused.
    bool once = emu_paused | frame_advancing;
 #ifdef DEBUG_PIF
-   printf("read\n");
+   printf("---------- before read ----------\n");
    print_pif();
+   printf("---------------------------------\n");
 #endif
    while (i<0x40)
      {
@@ -478,7 +486,8 @@ void update_pif_read()
 	   case 0xB8:
 	     break;
 	   default:
-	     if (!(PIF_RAMb[i] & 0xC0))
+		 //01 04 01 is read controller 4 bytes
+	     if (!(PIF_RAMb[i] & 0xC0)) //mask error bits (isn't this wrong? error bits are on i+1???)
 	       {
 		  if (channel < 4)
 		    {
@@ -511,6 +520,17 @@ void update_pif_read()
 #endif
 						}
 					}
+				}
+
+				if (savestates_job & SAVESTATE)
+				{
+					savestates_save();
+					savestates_job &= ~SAVESTATE;
+				}
+				else if (savestates_job & LOADSTATE)
+				{
+					savestates_load();
+					savestates_job &= ~LOADSTATE;
 				}
 				
 				controllerRead = channel;
@@ -548,6 +568,8 @@ void update_pif_read()
      }
    readController(-1, NULL);
 #ifdef DEBUG_PIF
+   printf("---------- after read -----------\n");
    print_pif();
+   printf("---------------------------------\n");
 #endif
 }

@@ -45,7 +45,6 @@
 #include "exception.h"
 #include "../main/plugin.h"
 #include "../main/guifuncs.h"
-#include "../main/savestates.h"
 #include "../main/vcr.h"
 #include "../lua/LuaConsole.h"
 
@@ -128,6 +127,7 @@ void add_interupt_event(int type, unsigned long delay)
    
    if (get_event(type)) {
       printf("two events of type %x in queue\n", type);
+	  print_queue();
    }
    interupt_queue *aux = q;
    
@@ -339,12 +339,6 @@ void gen_interupt()
 	{
 		dyna_stop();
 	}
-   if (savestates_job & LOADSTATE) 
-     {
-	savestates_load();
-	savestates_job &= ~LOADSTATE;
-	return;
-     }
    
    if (skip_jump /*&& !dynacore*/)
      {
@@ -527,9 +521,4 @@ void gen_interupt()
 	break;
      }
    exception_general();
-   if (savestates_job & SAVESTATE) 
-     {
-	savestates_save();
-	savestates_job &= ~SAVESTATE;
-     }
 }
