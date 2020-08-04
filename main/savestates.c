@@ -41,6 +41,7 @@
 #include "../r4300/r4300.h"
 #include "../r4300/interupt.h"
 
+#include "../lua/LuaConsole.h"
 
 extern unsigned long interp_addr;
 extern int *autoinc_save_slot;
@@ -184,6 +185,7 @@ void savestates_save()
 			savestates_job_success = FALSE;
 		}
 	}
+	AtSaveStateLuaCallback();
 	// /re-recording
 
 	gzclose(f);
@@ -377,6 +379,7 @@ void savestates_load()
 				VCR_stopRecord();
 		}
 	}
+	AtLoadStateLuaCallback();
 failedLoad:
 
 	gzclose(f);

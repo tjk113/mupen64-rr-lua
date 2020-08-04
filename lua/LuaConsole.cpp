@@ -91,7 +91,38 @@ int luaDCBufWidth, luaDCBufHeight;
 unsigned inputCount = 0;
 size_t current_break_value_size = 1;
 std::map<HWND, Lua*> luaWindowMap;
-
+//improved debug print from stackoverflow, now shows function info
+#ifdef _DEBUG
+static void stackDump(lua_State* L) {
+	int i = lua_gettop(L);
+	printf(" ----------------  Stack Dump ----------------\n");
+	while (i) {
+		int t = lua_type(L, i);
+		switch (t) {
+		case LUA_TSTRING:
+			printf("%d:`%s'", i, lua_tostring(L, i));
+			break;
+		case LUA_TBOOLEAN:
+			printf("%d: %s", i, lua_toboolean(L, i) ? "true" : "false");
+			break;
+		case LUA_TNUMBER:
+			printf("%d: %g", i, lua_tonumber(L, i));
+			break;
+		case LUA_TFUNCTION:
+			lua_Debug ar;
+			lua_getstack(L, 0, &ar);
+			lua_pushvalue(L, -1);
+			lua_getinfo(L, ">S", &ar);
+			printf("%d: %s %x, type: %s", i, "function at", lua_topointer(L,-1), ar.what);
+			break;
+		default: printf("%d: %s", i, lua_typename(L, t)); break;
+		}
+		printf("\n");
+		i--;
+	}
+	printf("--------------- Stack Dump Finished ---------------\n");
+}
+#endif
 void ASSERT(bool e, char *s = "assert"){
 	if(!e) {
 		DebugBreak();
@@ -151,6 +182,7 @@ public:
 		font = (HFONT)GetStockObject(SYSTEM_FONT);
 		col = bkcol = 0;
 		bkmode = TRANSPARENT;
+		hMutex = CreateMutex(0, 0, 0);
 		newLuaState();
 		runFile(path);
 		if(isrunning())
@@ -209,6 +241,10 @@ public:
 		for(int i = 0; i < n; i ++) {
 			lua_pushinteger(L, 1+i);
 			lua_gettable(L, -2);
+#ifdef _DEBUG
+			//printf("Load state...\n");
+			//stackDump(L);
+#endif
 			if(f(L)){
 				error();
 				return true;
@@ -226,6 +262,7 @@ public:
 	}
 	
 	HWND ownWnd;
+	HANDLE hMutex;
 private:
 	void newLuaState(){
 		ASSERT(L==0);
@@ -622,6 +659,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		msg->runPath.wnd = wnd;
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 			msg->runPath.path, MAX_PATH);
+		strcpy(Config.LuaScriptPath, msg->runPath.path);
 		luaMessage.post(msg);
 		return TRUE;
 	}
@@ -799,6 +837,8 @@ const char * const REG_READBREAK = "R";
 const char * const REG_WRITEBREAK = "W";
 const char * const REG_WINDOWMESSAGE = "M";
 const char * const REG_ATINTERVAL = "N";
+const char* const REG_ATLOADSTATE = "LS";
+const char* const REG_ATSAVESTATE = "SS";
 
 Lua *GetLuaClass(lua_State *L) {
 	lua_getfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
@@ -889,10 +929,22 @@ void registerFuncEach(int(*f)(lua_State*), const char *key) {
 		it != luaWindows.end(); it ++) {
 		Lua *lua = GetWindowLua(*it);
 		if(lua && lua->isrunning()) {
-			if(lua->registerFuncEach(f, key)) {
-				//エラーだと色々とあれなのでとりあえずやりなおす
-				registerFuncEach(f, key);
-				return;
+#ifdef WIN32
+			//ensure thread safety (load and savestate callbacks for example)
+			DWORD waitResult = WaitForSingleObject(lua->hMutex,INFINITE);
+			switch (waitResult)
+			{
+			case WAIT_OBJECT_0:
+#endif
+				if (lua->registerFuncEach(f, key)) {
+					printf("!ERRROR, RETRY\n");
+					//if error happened, try again (but what if it fails again and again?)
+					registerFuncEach(f, key);
+					return;
+				}
+#ifdef WIN32
+				ReleaseMutex(lua->hMutex);
+#endif
 			}
 		}
 	}
@@ -2165,10 +2217,48 @@ int RegisterInterval(lua_State *L) {
 	}
 	return 0;
 }
+
+int RegisterLoadState(lua_State* L) {
+	if (lua_toboolean(L, 2)) {
+		lua_pop(L, 1);
+		UnregisterFunction(L, REG_ATLOADSTATE);
+	}
+	else {
+		if (lua_gettop(L) == 2)
+			lua_pop(L, 1);
+		RegisterFunction(L, REG_ATLOADSTATE);
+	}
+	return 0;
+}
+
+int RegisterSaveState(lua_State* L) {
+	if (lua_toboolean(L, 2)) {
+		lua_pop(L, 1);
+		UnregisterFunction(L, REG_ATSAVESTATE);
+	}
+	else {
+		if (lua_gettop(L) == 2)
+			lua_pop(L, 1);
+		RegisterFunction(L, REG_ATSAVESTATE);
+	}
+	return 0;
+}
+
 int AtInterval(lua_State *L) {
 	return lua_pcall(L, 0, 0, 0);
 }
 
+//st functions - notice that these are called from different thread (mupen gui)
+//				 so they need extra care
+int AtLoadState(lua_State* L) {
+	//stackDump(L);
+	return lua_pcall(L, 0, 0, 0);
+}
+
+int AtSaveState(lua_State* L) {
+	return lua_pcall(L, 0, 0, 0);
+}
+//st end
 int GetVICount(lua_State *L) {
 	lua_pushinteger(L, m_currentVI);
 	return 1;
@@ -2669,6 +2759,8 @@ const luaL_Reg emuFuncs[] = {
 	{"atstop", RegisterStop},
 	{"atwindowmessage", RegisterWindowMessage},
 	{"atinterval", RegisterInterval},
+	{"atloadstate", RegisterLoadState},
+	{"atsavestate", RegisterSaveState},
 
 	{"framecount", GetVICount},
 	{"samplecount", GetSampleCount},
@@ -2850,6 +2942,14 @@ void AtInputLuaCallback(int n) {
 }
 void AtIntervalLuaCallback() {
 	LuaEngine::registerFuncEach(LuaEngine::AtInterval, LuaEngine::REG_ATINTERVAL);
+}
+
+void AtLoadStateLuaCallback() {
+	LuaEngine::registerFuncEach(LuaEngine::AtLoadState, LuaEngine::REG_ATLOADSTATE);
+}
+
+void AtSaveStateLuaCallback() {
+	LuaEngine::registerFuncEach(LuaEngine::AtSaveState, LuaEngine::REG_ATSAVESTATE);
 }
 
 void GetLuaMessage(){

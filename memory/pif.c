@@ -514,7 +514,7 @@ void update_pif_read()
 						while (emu_paused)
 						{
 							Sleep(10);
-#ifdef LUA_EMUPAUSED_WORK
+#ifdef LUA_EMUPAUSED_WORK		
 							AtIntervalLuaCallback();
 							GetLuaMessage();
 #endif
