@@ -839,6 +839,7 @@ const char * const REG_WINDOWMESSAGE = "M";
 const char * const REG_ATINTERVAL = "N";
 const char* const REG_ATLOADSTATE = "LS";
 const char* const REG_ATSAVESTATE = "SS";
+const char* const REG_ATRESET = "RE";
 
 Lua *GetLuaClass(lua_State *L) {
 	lua_getfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
@@ -2244,21 +2245,24 @@ int RegisterSaveState(lua_State* L) {
 	return 0;
 }
 
-int AtInterval(lua_State *L) {
+int RegisterReset(lua_State* L) {
+	if (lua_toboolean(L, 2)) {
+		lua_pop(L, 1);
+		UnregisterFunction(L, REG_ATRESET);
+	}
+	else {
+		if (lua_gettop(L) == 2)
+			lua_pop(L, 1);
+		RegisterFunction(L, REG_ATRESET);
+	}
+	return 0;
+}
+
+//generic function used for all of the At... callbacks, calls function from stack top.
+int CallTop(lua_State* L) {
 	return lua_pcall(L, 0, 0, 0);
 }
 
-//st functions - notice that these are called from different thread (mupen gui)
-//				 so they need extra care
-int AtLoadState(lua_State* L) {
-	//stackDump(L);
-	return lua_pcall(L, 0, 0, 0);
-}
-
-int AtSaveState(lua_State* L) {
-	return lua_pcall(L, 0, 0, 0);
-}
-//st end
 int GetVICount(lua_State *L) {
 	lua_pushinteger(L, m_currentVI);
 	return 1;
@@ -2761,6 +2765,7 @@ const luaL_Reg emuFuncs[] = {
 	{"atinterval", RegisterInterval},
 	{"atloadstate", RegisterLoadState},
 	{"atsavestate", RegisterSaveState},
+	{"atreset", RegisterReset},
 
 	{"framecount", GetVICount},
 	{"samplecount", GetSampleCount},
@@ -2941,15 +2946,20 @@ void AtInputLuaCallback(int n) {
 	LuaEngine::inputCount ++;
 }
 void AtIntervalLuaCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::AtInterval, LuaEngine::REG_ATINTERVAL);
+	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATINTERVAL);
 }
 
 void AtLoadStateLuaCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::AtLoadState, LuaEngine::REG_ATLOADSTATE);
+	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATLOADSTATE);
 }
 
 void AtSaveStateLuaCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::AtSaveState, LuaEngine::REG_ATSAVESTATE);
+	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATSAVESTATE);
+}
+
+//called after reset, when emulation ready
+void AtResetCallback() {
+	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATRESET);
 }
 
 void GetLuaMessage(){

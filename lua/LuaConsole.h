@@ -26,6 +26,7 @@ void AtInputLuaCallback(int n);
 void AtIntervalLuaCallback();
 void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
+void AtResetCallback();
 
 void LuaBreakpointSyncPure();
 void LuaBreakpointSyncInterp();

@@ -378,6 +378,9 @@ void gen_interupt()
 	break;
 	
       case VI_INT:
+#ifdef LUA_EMUPAUSED_WORK
+		  AtIntervalLuaCallback();
+#endif
 #ifdef VCR_SUPPORT
 	VCR_updateScreen();
 #else

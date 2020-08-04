@@ -1371,7 +1371,7 @@ static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show r
        StartRom(LastSelectedRom);
       }
    }
-   
+
    continue_vcr_on_restart_mode = FALSE;
 
    return 0;
@@ -2324,6 +2324,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
     SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
 	ThreadFuncState = TFS_EMULATING;
     ShowInfo("Emu thread: Emulation started....");
+    AtResetCallback();
     go();
     ShowInfo("Emu thread: Core stopped...");
 	ThreadFuncState = TFS_CLOSEINPUT;

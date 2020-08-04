@@ -29,7 +29,7 @@
 
 //#include "../config.h"
 #ifdef _DEBUG
-#define DEBUG_PIF //don't define if you don't need spam
+//#define DEBUG_PIF //don't define if you don't need spam
 #endif
 
 #include <stdio.h>
@@ -508,9 +508,6 @@ void update_pif_read()
 					{
 						frame_advancing = 0;
 						pauseEmu(TRUE);
-#ifdef LUA_EMUPAUSED_WORK
-						AtIntervalLuaCallback();
-#endif
 						while (emu_paused)
 						{
 							Sleep(10);
