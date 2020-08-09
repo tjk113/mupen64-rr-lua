@@ -59,6 +59,7 @@ void warn_savestate_from_another_rom()
    if (!Config.savesERRORS) return;
    TranslateDefault("Savestates Wrong Region","This savestate is from another ROM or version",TempMessage);
    SendMessage( hStatus, SB_SETTEXT, 0, (LPARAM)TempMessage ); 
+   MessageBox(mainHWND, TempMessage, "Error", MB_ICONERROR);
   
 }
 

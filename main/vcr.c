@@ -123,6 +123,7 @@ long lastSound = 0;
 volatile BOOL captureFrameValid = FALSE;
 static int AVIBreakMovie = 0;
 
+int titleLength;
 
 static void printWarning (char* str)
 {
@@ -905,10 +906,15 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 			extern BOOL savestates_job_success;
 			if(!savestates_job_success)
 			{
-				char str [2048];
-				sprintf(str, "Couldn't find or load this movie's snapshot,\n\"%s\".\nMake sure that file is where Mupen64 can find it.", savestates_get_selected_filename());
-				printError(str);
+				//char str [2048];
+				//sprintf(str, "Couldn't find or load this movie's snapshot,\n\"%s\".\nMake sure that file is where Mupen64 can find it.", savestates_get_selected_filename());
+				//printError(str);
 				m_task = Idle;
+				extern HWND mainHWND;
+				char title[MAX_PATH];
+				GetWindowText(mainHWND, title, MAX_PATH);
+				title[titleLength] = '\0'; //remove movie being played part
+				SetWindowText(mainHWND, title);
 				getKeys( Control, Keys );
 				return;
 			}
@@ -1182,7 +1188,9 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 	VCR_coreStopped();
 //	m_intro = TRUE;
 	
+	extern HWND mainHWND;
 	char buf[PATH_MAX];
+	char title[MAX_PATH];
 /*
 	if (m_task != Idle)
 	{
@@ -1209,6 +1217,16 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
     		fprintf( stderr, "[VCR]: Cannot start playback, could not open .m64 file '%s': %s\n", filename, strerror( errno ) );
     		return -1;
         }
+		titleLength = GetWindowText(mainHWND, title, MAX_PATH);
+		_splitpath(buf, 0, 0, buf, 0);
+		//trim trailing spaces because it looks weird
+		while (title[--titleLength] == ' ');
+		title[++titleLength] = '\0';
+
+		strcat(title, " | ");
+		strcat(title, buf);
+		strcat(title, ".m64");
+		SetWindowText(mainHWND, title);
 	}
 
     {
@@ -1459,9 +1477,14 @@ VCR_stopPlayback()
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
 
-		extern HWND hStatus;
+		extern HWND hStatus,mainHWND;
 		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
 		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped playback.");
+
+		char title[MAX_PATH];
+		GetWindowText(mainHWND, title, MAX_PATH);
+		title[titleLength] = '\0'; //remove movie being played part
+		SetWindowText(mainHWND, title);
 #else
 		// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
 #endif

@@ -356,7 +356,7 @@ void Status::GetKeys(BUTTONS * Keys)
 		int M1Speed = 0, M2Speed = 0;
 		bool analogKey = false;
 
-		if (Keys == NULL) { gettingKeys = false; return; }
+		if (Keys == NULL) { gettingKeys = false; SetKeys(ControllerInput); return; }
 
 		for(BYTE devicecount=0; devicecount<Controller[Control].NDevices; devicecount++)
 		{		
@@ -2274,7 +2274,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				case IDC_CHECK_DUP:    DISP_UPDATE(U_DPAD);
 				case IDC_CHECK_DRIGHT: DISP_UPDATE(R_DPAD);
 				case IDC_CHECK_DDOWN:  DISP_UPDATE(D_DPAD);
-				case IDC_CLEARBUTTONS: buttonOverride.Value = 0; buttonAutofire.Value = 0; buttonAutofire2.Value = 0; ActivateEmulatorWindow(); break;
+				case IDC_CLEARBUTTONS: buttonOverride.Value = buttonAutofire.Value = buttonAutofire2.Value = 0; GetKeys(0); ActivateEmulatorWindow(); break;
 
 				case IDC_MOREBUTTON0:
 				case IDC_MOREBUTTON1:
