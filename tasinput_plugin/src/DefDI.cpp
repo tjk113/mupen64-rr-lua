@@ -185,6 +185,7 @@ struct Status
 	int Extend;
 	int comboTask;
 	int activeCombo;
+	bool fakeInput;
 
 	void FreeCombos();
 
@@ -748,7 +749,7 @@ void Status::GetKeys(BUTTONS * Keys)
 
 	//here ControllerInput holds true physical controller, which gets modified by tasinput / combo
 	DWORD oldOverride = buttonOverride.Value; //so the keys don't stick...
-	if (activeCombo != -1 && (comboTask == C_RUNNING || comboTask == C_LOOP))
+	if (!fakeInput && activeCombo != -1 && (comboTask == C_RUNNING || comboTask == C_LOOP))
 	{
 		if (aCombo.length) //this has to be separate because activeCombo might be -1
 		{
@@ -764,6 +765,7 @@ void Status::GetKeys(BUTTONS * Keys)
 					if (!overrideOn) //if combo ends and tasinput state wasn't changed, clear
 					{
 						buttonOverride.Value = 0;
+						oldOverride = 0;
 					}
 					SetStatus("Idle");
 					comboTask = C_IDLE;
@@ -806,7 +808,7 @@ void Status::GetKeys(BUTTONS * Keys)
 	Keys->Value = ControllerInput.Value;
 	buttonOverride.Value = oldOverride;
 	//copy fetched data to combo too
-	if (comboTask == C_RECORD)
+	if (comboTask == C_RECORD && !fakeInput)
 	{
 		//extend if full and frame is not 0
 		char buf[64];
@@ -1973,13 +1975,13 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					if(gettingKeys)
 						Sleep(0);
 					ActivateEmulatorWindow();
-					if(!gettingKeys && (relativeXOn || relativeYOn))
+					if(!gettingKeys && !(comboTask & (C_RUNNING | C_LOOP)))
 					{
 						BUTTONS Keys;
 						relativeControlNow = (msg == WM_TIMER);
-//						incrementingFrameNow = false;
+						fakeInput = true;
 						GetKeys(&Keys); //used in radial mode I think
-//						incrementingFrameNow = true;
+						fakeInput = false;
 						relativeControlNow = false;
 						ActivateEmulatorWindow();
 					}
@@ -2327,7 +2329,11 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					break;
 				case IDC_STOP:
 					SetStatus("Idle");
-					CheckDlgButton(statusDlg,IDC_LOOP, 0);
+					CheckDlgButton(statusDlg, IDC_LOOP, 0);
+					if (comboTask = C_RECORD)
+					{
+						aCombo.joystickUsed = ParseCombo(aCombo.data, aCombo.length);
+					}
 					comboTask = C_IDLE;
 					comboStart = 0; //should avoid unnecessary bugs
 					break;
