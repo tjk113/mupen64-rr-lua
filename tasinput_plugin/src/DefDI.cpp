@@ -1801,6 +1801,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				          !IsMouseOverControl(statusDlg,IDC_YREL) &&
 				          !IsMouseOverControl(statusDlg,IDC_EDITX) &&
 				          !IsMouseOverControl(statusDlg,IDC_EDITY) &&
+					      !IsMouseOverControl(statusDlg, IDC_CLEARJOY) &&
 				          !IsMouseOverControl(statusDlg,IDC_SPINX) &&
 				          !IsMouseOverControl(statusDlg,IDC_SPINY) &&
 				          !IsMouseOverControl(statusDlg,IDC_SLIDERX) &&
@@ -2273,9 +2274,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				case IDC_CHECK_DLEFT:  DISP_UPDATE(L_DPAD);
 				case IDC_CHECK_DUP:    DISP_UPDATE(U_DPAD);
 				case IDC_CHECK_DRIGHT: DISP_UPDATE(R_DPAD);
-				case IDC_CHECK_DDOWN:  DISP_UPDATE(D_DPAD);
+				case IDC_CHECK_DDOWN:  DISP_UPDATE(D_DPAD); 
+				case IDC_CLEARJOY: overrideAllowed = true; overrideOn = true; overrideX = 0; overrideY = 0; SetDlgItemText(statusDlg, IDC_EDITY, "0"); SetDlgItemText(statusDlg, IDC_EDITX, "0"); RefreshAnalogPicture(); ActivateEmulatorWindow(); break;
 				case IDC_CLEARBUTTONS: buttonOverride.Value = buttonAutofire.Value = buttonAutofire2.Value = 0; GetKeys(0); ActivateEmulatorWindow(); break;
-
 				case IDC_MOREBUTTON0:
 				case IDC_MOREBUTTON1:
 				case IDC_MOREBUTTON2:
