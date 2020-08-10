@@ -1177,6 +1177,11 @@ VCR_stopRecord()
 		m_inputBufferPtr = NULL;
 		m_inputBufferSize = 0;
 	}
+	extern HWND mainHWND;
+	char title[MAX_PATH];
+	GetWindowText(mainHWND, title, MAX_PATH);
+	title[titleLength] = '\0'; //remove movie being played part
+	SetWindowText(mainHWND, title);
 
 	return retVal;
 }
