@@ -1499,6 +1499,7 @@
 #define stc25                           0x0458
 #define IDC_CLEARJOY                    1112
 #define stc26                           0x0459
+#define IDC_CLEARJOY2                   1113
 #define IDC_MOREBUTTON5                 1114
 #define stc27                           0x045a
 #define stc28                           0x045b
