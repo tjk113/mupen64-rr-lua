@@ -1,22 +1,9 @@
-// Microsoft Visual C++ generated resource script.
-//
 #include "resource.h"
-
-#define APSTUDIO_READONLY_SYMBOLS
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 2 resource.
-//
-#include "afxres.h"
+#include <windows.h>
 
 /////////////////////////////////////////////////////////////////////////////
-#undef APSTUDIO_READONLY_SYMBOLS
+// Angielski (Stany Zjednoczone) resources
 
-/////////////////////////////////////////////////////////////////////////////
-// Neutral (Default) (unknown sub-lang: 0x3) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ZZZ)
-LANGUAGE LANG_NEUTRAL, 0x3
 #pragma code_page(1252)
 
 /////////////////////////////////////////////////////////////////////////////
