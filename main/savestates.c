@@ -387,7 +387,7 @@ failedLoad:
 	//legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
 	//This should cause issues anyway but libultra seems to be flexible (this means there's a chance it fails).
 	//For safety, load .sts in dynarec because it completely avoids this issue by being differently coded
-	if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && interpcore))
+	if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && !dynacore))
 		ignore = true;
 	if (!dynacore && interpcore)
 	{
