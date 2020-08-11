@@ -55,6 +55,8 @@ unsigned long interp_addr;
 unsigned long op;
 static long skip;
 
+bool ignore;
+
 void prefetch();
 
 extern void (*interp_ops[])(void);
@@ -2179,7 +2181,7 @@ static void BEQ()
    interp_ops[((op >> 26) & 0x3F)]();
    update_count();
    delay_slot=0;
-   if (local_rs == local_rt)
+   if (local_rs == local_rt && !ignore)
      interp_addr += (local_immediate-1)*4;
    last_addr = interp_addr;
    if (next_interupt <= Count) gen_interupt();
@@ -3120,7 +3122,6 @@ void prefetch()
 #endif
 
 }
-
 void pure_interpreter()
 {
    interp_addr = 0xa4000040;
@@ -3130,6 +3131,7 @@ void pure_interpreter()
    while (!stop)
      {
 	//if (interp_addr == 0x10022d08) stop = 1;
+    //printf("addr: %x\n", interp_addr);
 	prefetch();
 #ifdef COMPARE_CORE
 	compare_core();
@@ -3137,6 +3139,7 @@ void pure_interpreter()
 	//if (Count > 0x2000000) printf("inter:%x,%x\n", interp_addr,op);
 	//if ((Count+debug_count) > 0xabaa2c) stop=1;
 	interp_ops[((op >> 26) & 0x3F)]();
+    ignore = false;
 
 	//Count = (unsigned long)Count + 2;
 	//if (interp_addr == 0x80000180) last_addr = interp_addr;

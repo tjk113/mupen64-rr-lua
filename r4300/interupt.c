@@ -367,7 +367,7 @@ void gen_interupt()
 	skip_jump=0;
 	return;
      } 
-   
+
    switch(q->type)
      {
       case SPECIAL_INT:
@@ -378,6 +378,7 @@ void gen_interupt()
 	break;
 	
       case VI_INT:
+	//printf("VI\n");
 #ifdef LUA_EMUPAUSED_WORK
 		  AtIntervalLuaCallback();
 #endif
@@ -410,6 +411,7 @@ void gen_interupt()
 	break;
 	
       case COMPARE_INT:
+	//printf("CMP_INT\n");
 	remove_interupt_event();
 	Count+=2;
 	add_interupt_event_count(COMPARE_INT, Compare);
@@ -421,6 +423,7 @@ void gen_interupt()
 	break;
 	
       case CHECK_INT:
+	//printf("CHECK_INT\n");
 	remove_interupt_event();
 	break;
 	
@@ -428,6 +431,7 @@ void gen_interupt()
 #ifndef __WIN32__
 	SDL_PumpEvents();
 #endif
+	//printf("SI\n");
 	PIF_RAMb[0x3F] = 0x0;
 	remove_interupt_event();
 	MI_register.mi_intr_reg |= 0x02;
@@ -441,6 +445,7 @@ void gen_interupt()
 	break;
 	
       case PI_INT:
+		  printf("PI\n");
 	remove_interupt_event();
 	MI_register.mi_intr_reg |= 0x10;
 	pi_register.read_pi_status_reg &= ~3;
@@ -453,6 +458,7 @@ void gen_interupt()
 	break;
 	
       case AI_INT:
+	//printf("AI\n");
 	if (ai_register.ai_status & 0x80000000) // full
 	  {
 	     unsigned long ai_event = get_event(AI_INT);
@@ -489,6 +495,7 @@ void gen_interupt()
 	break;
 	
       case SP_INT:
+	//printf("SP\n");
 	remove_interupt_event();
 	sp_register.sp_status_reg |= 0x303;
 	//sp_register.signal1 = 1;
@@ -507,6 +514,7 @@ void gen_interupt()
 	break;
 	
       case DP_INT:
+	//printf("DP\n");
 	remove_interupt_event();
 	dpc_register.dpc_status &= ~2;
 	dpc_register.dpc_status |= 0x81;
@@ -520,6 +528,7 @@ void gen_interupt()
 	break;
 	
       default:
+	//printf("DEFAULT\n");
 	remove_interupt_event();
 	break;
      }

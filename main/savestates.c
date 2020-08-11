@@ -383,8 +383,20 @@ void savestates_load()
 failedLoad:
 
 	gzclose(f);
+	extern bool ignore;
+	//legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
+	//This should cause issues anyway but libultra seems to be flexible (this means there's a chance it fails).
+	//For safety, load .sts in dynarec because it completely avoids this issue by being differently coded
+	if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && interpcore))
+		ignore = true;
 	if (!dynacore && interpcore)
+	{
+		printf(".st jump: %x, stopped here:%x\n", interp_addr, last_addr);
 		last_addr = interp_addr;
+	}
 	else
+	{
+		printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
 		last_addr = PC->addr;
+	}
 }

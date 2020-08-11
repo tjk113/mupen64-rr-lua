@@ -46,6 +46,8 @@ extern int debugger_mode;
 extern void update_debugger();
 #endif
 
+extern bool ignore;
+
 unsigned long i, dynacore = 0, interpcore = 0;
 int no_audio_delay = 0;
 int no_compiled_jump = 0;
@@ -223,7 +225,7 @@ void BEQ()
    PC->ops();
    update_count();
    delay_slot=0;
-   if (local_rs == local_rt && !skip_jump)
+   if (local_rs == local_rt && !skip_jump && !ignore)
      PC += (PC-2)->f.i.immediate-1;
    last_addr = PC->addr;
    if (next_interupt <= Count) gen_interupt();
@@ -1769,6 +1771,7 @@ void go()
 			if(enablePCBreak)LuaPCBreakInterp();
 #endif
 	     PC->ops();
+         ignore = false;
 	     /*if (j!= (Count & 0xFFF00000))
 	       {
 		  j = (Count & 0xFFF00000);
