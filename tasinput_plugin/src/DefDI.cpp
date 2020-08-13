@@ -1654,7 +1654,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(HasPanel(3))
 			{
-				sprintf(str, "Combos - NOT YET IMPLEMENTED - Controller %d", Control+1); // XXX
+				sprintf(str, "Combos - Controller %d", Control+1); // XXX
 				SetWindowText(GetDlgItem(statusDlg,IDC_COMBOLABEL), str);
 			}
 			if(AngDisp)
@@ -1976,7 +1976,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					if(gettingKeys)
 						Sleep(0);
 					ActivateEmulatorWindow();
-					if(!gettingKeys && !(comboTask & (C_RUNNING | C_LOOP)))
+					if(!gettingKeys && !(comboTask & (C_RUNNING | C_LOOP)) && !copyButtons)
 					{
 						BUTTONS Keys;
 						relativeControlNow = (msg == WM_TIMER);
