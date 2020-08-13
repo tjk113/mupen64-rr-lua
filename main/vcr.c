@@ -1461,6 +1461,16 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 int
 VCR_stopPlayback()
 {
+#ifdef __WIN32__
+	extern HWND mainHWND;
+	if (titleLength)
+	{
+		char title[MAX_PATH];
+		GetWindowText(mainHWND, title, MAX_PATH);
+		title[titleLength] = '\0'; //remove movie being played part
+		SetWindowText(mainHWND, title);
+	}
+#endif
 	if (m_file && m_task != StartRecording && m_task != Recording)
 	{
 		fclose( m_file );
@@ -1482,14 +1492,9 @@ VCR_stopPlayback()
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
 
-		extern HWND hStatus,mainHWND;
+		extern HWND hStatus;
 		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
 		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped playback.");
-
-		char title[MAX_PATH];
-		GetWindowText(mainHWND, title, MAX_PATH);
-		title[titleLength] = '\0'; //remove movie being played part
-		SetWindowText(mainHWND, title);
 #else
 		// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
 #endif
