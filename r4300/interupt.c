@@ -445,7 +445,7 @@ void gen_interupt()
 	break;
 	
       case PI_INT:
-		  printf("PI\n");
+		  //printf("PI\n");
 	remove_interupt_event();
 	MI_register.mi_intr_reg |= 0x10;
 	pi_register.read_pi_status_reg &= ~3;

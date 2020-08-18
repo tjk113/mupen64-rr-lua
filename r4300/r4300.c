@@ -1538,11 +1538,8 @@ void go()
 	tlb_e[i].end_odd=0;
 	tlb_e[i].phys_odd=0;
      }
-   for (i=0; i<0x100000; i++)
-     {
-	tlb_LUT_r[i] = 0;
-	tlb_LUT_w[i] = 0;
-     }
+   memset(tlb_LUT_r, 0, sizeof(tlb_LUT_r));
+   memset(tlb_LUT_r, 0, sizeof(tlb_LUT_w));
    llbit=0;
    hi=0;
    lo=0;
