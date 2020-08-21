@@ -184,6 +184,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam);
 
 const char g_szClassName[] = "myWindowClass";
 char LastSelectedRom[_MAX_PATH];
+bool scheduled_restart = false;
 static BOOL restart_mode = 0;
 BOOL really_restart_mode = 0;
 BOOL clear_sram_on_restart_mode = 0;
@@ -1280,7 +1281,7 @@ static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show r
            resumeEmu(FALSE);
          }
       
-      if (recording/* && !continue_vcr_on_restart_mode*/)
+      if (recording && !continue_vcr_on_restart_mode)
       {
          Sleep(1000); // HACK - seems to help crash on closing ROM during capture...?
          if (VCR_stopCapture() < 0)
@@ -2893,8 +2894,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  break;
                 
 			case EMU_RESET:
-                 resetEmu() ;
-                 break;
+                extern int m_task;
+                if (m_task == 3 && !Config.NoReset) //recording
+                {
+                    scheduled_restart = true;
+                    continue_vcr_on_restart_mode = true;
+                    display_status("Writing restart to m64...");
+                    break;
+                }
+                //resttart_mode = 1; //has issues
+                resetEmu();
+                break;
                
 			case ID_LOAD_CONFIG:
 				{

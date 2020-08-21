@@ -136,6 +136,9 @@ typedef struct _CONFIG {
     char RomBrowserSortMethod[10];
     BOOL RomBrowserRecursion;
     
+    //Recording options
+    bool NoReset;
+
     HOTKEY hotkey [NUM_HOTKEYS];
 
 		//Lua

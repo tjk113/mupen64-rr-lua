@@ -38,6 +38,7 @@
 #include <commctrl.h> // for SendMessage, SB_SETTEXT
 #include <windows.h> // for truncate functions
 #include <../../winproject/resource.h> // for EMU_RESET
+#include "win/main_win.h" //config struct
 #include <WinUser.h>
 
 #endif
@@ -55,7 +56,7 @@
 #define MUP_HEADER_SIZE (sizeof(SMovieHeader))
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? MUP_HEADER_SIZE_OLD : MUP_HEADER_SIZE)
 
-
+extern CONFIG Config;
 
 #define BUFFER_GROWTH_SIZE (4096)
 
@@ -98,7 +99,7 @@ static const char *m_taskName[] =
 static char   m_filename[PATH_MAX];
 static char   AVIFileName[PATH_MAX];
 static FILE*  m_file = 0;
-static int    m_task = Idle;
+int m_task = Idle;
 
 static SMovieHeader m_header;
 static BOOL m_readOnly = FALSE;
@@ -124,6 +125,8 @@ volatile BOOL captureFrameValid = FALSE;
 static int AVIBreakMovie = 0;
 
 int titleLength;
+
+extern void resetEmu();
 
 static void printWarning (char* str)
 {
@@ -931,7 +934,14 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 
 		reserve_buffer_space((unsigned long)((m_inputBufferPtr+sizeof(BUTTONS))-m_inputBuffer));
 		
+		extern bool scheduled_restart;
+		if (scheduled_restart)
+		{
+			Keys->Reserved1 = true;
+		}
+
 		*((BUTTONS*)m_inputBufferPtr) = *Keys;
+
 		m_inputBufferPtr += sizeof(BUTTONS);
 
 //		fwrite( Keys, 1, sizeof (BUTTONS), m_file ); // write the data for this controller (sizeof(BUTTONS) == 4 the last time I checked)
@@ -944,6 +954,11 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 			flush_movie();
 		}
 
+		if (scheduled_restart)
+		{
+			resetEmu();
+			scheduled_restart = false;
+		}
 		return;
 	}
 
@@ -978,7 +993,13 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 			*Keys = *((BUTTONS*)m_inputBufferPtr);
 			m_inputBufferPtr += sizeof(BUTTONS);
 			setKeys(Control, *Keys);
-	
+
+			if (Keys->Reserved1 && !Config.NoReset)
+			{
+				continue_vcr_on_restart_mode = true;
+				resetEmu();
+			}
+
 #ifdef LUA_JOYPAD
 			 lastInputLua[Control] = *(DWORD*)Keys;
 			 AtInputLuaCallback(Control);

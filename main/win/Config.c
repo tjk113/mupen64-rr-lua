@@ -207,6 +207,9 @@ void LoadConfig()
     Config.RomBrowserRecursion = ReadCfgInt("Rom Browser","Recursion",0);
     ReadCfgString("Rom Browser","Sort Method","ASC",Config.RomBrowserSortMethod);
 
+    // Recording Options
+    Config.NoReset = ReadCfgInt("Recording Options", "No reset recording",1);
+
 	// Load A Whole Whackton Of Hotkeys:
 
 		ReadHotkeyConfig(0, "Fast Forward", 0, VK_TAB);	// handled specially
@@ -354,8 +357,8 @@ void SaveConfig()
     WriteCfgInt( "Directories", "Default Screenshots Directory", Config.DefaultScreenshotsDir);
     WriteCfgString("Directories","Screenshots Directory",Config.ScreenshotsDir);    
 
-
-	// Load A Whole Whackton Of Hotkeys:
+    WriteCfgInt("Recording Options", "No reset recording", Config.DefaultScreenshotsDir);
+	// Save A Whole Whackton Of Hotkeys:
 
 		WriteHotkeyConfig(0, "Fast Forward");
 		WriteHotkeyConfig(1, "Speed Up");

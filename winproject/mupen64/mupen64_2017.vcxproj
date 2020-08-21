@@ -101,6 +101,9 @@
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
+    <ResourceCompile>
+      <ShowProgress>true</ShowProgress>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -699,6 +702,32 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\icons\austral.ico" />
+    <Image Include="..\icons\beta.ico" />
+    <Image Include="..\icons\Control.bmp" />
+    <Image Include="..\icons\demo.ico" />
+    <Image Include="..\icons\Display.bmp" />
+    <Image Include="..\icons\down_arrow.bmp" />
+    <Image Include="..\icons\europe.ico" />
+    <Image Include="..\icons\france.ico" />
+    <Image Include="..\icons\germany.ico" />
+    <Image Include="..\icons\italy.ico" />
+    <Image Include="..\icons\japan.ico" />
+    <Image Include="..\icons\logo.bmp" />
+    <Image Include="..\icons\m64big.ico" />
+    <Image Include="..\icons\m64small.ico" />
+    <Image Include="..\icons\RSP.bmp" />
+    <Image Include="..\icons\Sound.bmp" />
+    <Image Include="..\icons\spain.ico" />
+    <Image Include="..\icons\toolbar.bmp" />
+    <Image Include="..\icons\unknown.ico" />
+    <Image Include="..\icons\up_arrow.bmp" />
+    <Image Include="..\icons\usa.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\mupen64.exe.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

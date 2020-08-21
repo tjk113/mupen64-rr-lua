@@ -486,4 +486,72 @@
   <ItemGroup>
     <None Include="..\Makefile" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\icons\Control.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\Display.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\down_arrow.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\logo.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\RSP.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\Sound.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\up_arrow.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\austral.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\m64big.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\beta.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\demo.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\europe.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\france.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\germany.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\italy.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\japan.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\m64small.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\spain.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\unknown.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\usa.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\mupen64.exe.manifest" />
+  </ItemGroup>
 </Project>

@@ -1,4 +1,8 @@
-#define IDC_STATIC -1
+//{{NO_DEPENDENCIES}}
+// Plik do³¹czany wygenerowany przez œrodowisko Microsoft Visual C++.
+// U¿ywany przez: rsrc.rc
+//
+#define MUPEN_VERSION     "Mupen 64 rr Lua" 
 
 #define IDR_MYMENU 101
 #define IDR_ACCEL 103
@@ -140,7 +144,7 @@
 #define IDC_INCREASE_MODIFIER       2262
 #define IDC_DECREASE_MODIFIER       2263
 #define IDC_RESET_MODIFIER          2264
-  
+
 
 #define STATE_SAVE                  3000
 #define STATE_SAVEAS                3001 
@@ -220,7 +224,7 @@
 #define IDC_COLUMN_FILENAME             5509
 #define IDC_COLUMN_MD5                  5510
 #define IDC_COLUMN_COMMENTS             5511
-#define IDC_PLUGIN_OVERWRITE            5512 
+#define IDC_PLUGIN_OVERWRITE            5512
 #define IDC_COMMON                      5513
 #define IDC_COMPATIBILITY               5514
 #define IDC_NO_AUDIO_DELAY              5515
@@ -228,6 +232,7 @@
 #define IDC_AUTOINCSAVESLOT             5517
 #define IDD_HOTKEY_CONFIG               5518
 #define IDC_WIIVC_OPTIONS               5519
+#define IDC_RECORDINGOPT				5520
 
 #define ID_RECENTROMS_RESET             6000
 #define ID_RECENTROMS_FREEZE            6001
@@ -294,10 +299,10 @@
 #define IDC_CRC1CRC2                    7029
 
 #define IDC_ROM_PLUGINS                 8000
-#define IDC_SAVE_PROFILE                8001 
+#define IDC_SAVE_PROFILE                8001
 
 
-#define ID_LOG_WINDOW                   9000  
+#define ID_LOG_WINDOW                   9000
 #define ID_KAILLERA                     9100
 #define ID_BENCHMARK                    9101
 
@@ -306,9 +311,9 @@
 #define ID_START_RECORD                 9200
 #define ID_STOP_RECORD                  9202
 #define ID_START_PLAYBACK               9203
-#define ID_STOP_PLAYBACK                9204       
+#define ID_STOP_PLAYBACK                9204
 #define ID_START_CAPTURE                9205
-#define ID_END_CAPTURE                  9206  
+#define ID_END_CAPTURE                  9206
 
 
 #define IDC_CONTROLLER1                 9247
@@ -389,22 +394,23 @@
 
 #define ID_LUA_RELOAD                   9600
 
-
-
+#define ID_LANG_ENGLISH                 10000
+#define IDC_ROUNDTOZERO                 10002
+#define IDC_NORESET                     10003
+#define IDC_ROMLIST                     12347
 #define ID_EMULATOR_EXIT                40001
 #define ID_LANG_INFO_MENU               40002
 #define AC_PAUSE                        40004
 #define EMU_RESET                       40007
+#define IDC_STATIC                      -1
 
-#define IDC_ROMLIST                     12347
-
-
-
-#define ID_LANG_ENGLISH                 10000
-
-#define IDC_ROUNDTOZERO                 10002
-
-    
-
-#define MUPEN_VERSION     "Mupen 64 rr Lua" 
-
+// Next default values for new objects
+// 
+#ifdef APSTUDIO_INVOKED
+#ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_NEXT_RESOURCE_VALUE        102
+#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_CONTROL_VALUE         1001
+#define _APS_NEXT_SYMED_VALUE           101
+#endif
+#endif
