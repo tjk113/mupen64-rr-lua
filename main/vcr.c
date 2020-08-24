@@ -128,7 +128,7 @@ int titleLength;
 
 extern void resetEmu();
 
-static void printWarning (char* str)
+void printWarning (char* str)
 {
 #ifdef __WIN32__
 	extern BOOL cmdlineNoGui;
@@ -145,7 +145,7 @@ static void printWarning (char* str)
 #endif
 }
 
-static void printError (char* str)
+void printError (char* str)
 {
 #ifdef __WIN32__
 	extern BOOL cmdlineNoGui;
@@ -994,7 +994,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 			m_inputBufferPtr += sizeof(BUTTONS);
 			setKeys(Control, *Keys);
 
-			if (Keys->Reserved1 && !Config.NoReset)
+			if (Keys->Reserved1) //&& !Config.NoReset) no matter if noreset is active, still reset on playback
 			{
 				continue_vcr_on_restart_mode = true;
 				resetEmu();
@@ -1435,7 +1435,9 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 				#endif
 			}	break;
             default:
-				fprintf( stderr, "[VCR]: Error playing movie: %s.\n", m_errCodeName[code]);
+				char buf[100];
+				sprintf(buf, "[VCR]: Error playing movie: %s.\n", m_errCodeName[code]);
+				printError(buf);
 				break;
         }
 

@@ -49,6 +49,10 @@ extern int *autoinc_save_slot;
 int savestates_job = 0;
 int savestates_job_success = 1;
 
+bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
+			 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
+			 //- execution continues at exception handler (after input poll) at 0x80000180.
+
 static unsigned int slot = 0;
 static char fname[1024] = {0,};
 
@@ -338,28 +342,25 @@ void savestates_load()
 		if(code != SUCCESS && !VCR_isIdle())
 		{
 			char errStr [1024];
-			strcpy(errStr, "Failed to load movie snapshot\n");
+			strcpy(errStr, "Failed to load movie snapshot,\n");
 			switch(code)
 			{
 				case NOT_FROM_THIS_MOVIE: 
-					strcat(errStr, ";\nSnapshot not from this movie"); 
+					strcat(errStr, "snapshot not from this movie\n"); 
 					break;
 				case NOT_FROM_A_MOVIE:
-					strcat(errStr, ";\nNot a movie snapshot"); 
+					strcat(errStr, "not a movie snapshot\n"); 
 					break;// shouldn't get here...
 				case INVALID_FRAME:
-					strcat(errStr, ";\nInvalid frame number");
+					strcat(errStr, "invalid frame number\n");
 					break;
 				case WRONG_FORMAT: 
-					strcat(errStr, ";\nWrong format");
+					strcat(errStr, "wrong format\n");
 					break;
 			}
-			strcat(errStr, ".");
-			fprintf(stderr, "%s\n", errStr);
-		#ifdef __WIN32__
-			void ShowInfo(char *Str, ...);
-			ShowInfo(errStr);
-		#endif
+			printWarning(errStr);
+			if (VCR_isRecording) VCR_stopRecord();
+			else VCR_stopPlayback();
 			savestates_job_success = FALSE;
 			goto failedLoad;
 		}
@@ -383,10 +384,12 @@ void savestates_load()
 failedLoad:
 
 	gzclose(f);
-	extern bool ignore;
+	extern bool ignore,old_st;
 	//legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
 	//This should cause issues anyway but libultra seems to be flexible (this means there's a chance it fails).
 	//For safety, load .sts in dynarec because it completely avoids this issue by being differently coded
+	old_st = (interp_addr == 0x80000180 || PC->addr == 0x80000180);
+	//doubled because can't just reuse this variable
 	if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && !dynacore))
 		ignore = true;
 	if (!dynacore && interpcore)

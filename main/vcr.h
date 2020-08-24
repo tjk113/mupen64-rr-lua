@@ -95,6 +95,9 @@ extern int VCR_stopCapture();
 
 extern void VCR_coreStopped();
 
+extern void printWarning(char*);
+extern void printError(char*);
+
 #pragma pack(push, 1)
 //#pragms pack(1)
 typedef struct 

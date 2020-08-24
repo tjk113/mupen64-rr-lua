@@ -491,7 +491,7 @@ void update_pif_read()
 	       {
 		  if (channel < 4)
 		    {
-				static int controllerRead = 999;
+			  static int controllerRead = 999;
 			
 				// frame advance - pause before every 'frame of input',
 				// which is manually resumed to enter 1 input and emulate until being
@@ -500,22 +500,15 @@ void update_pif_read()
 				{
 					once = false;
 					extern void pauseEmu(BOOL quiet);
-					if (frame_advancing == 2) //skip if st special care, see savestates.c
+					frame_advancing = 0;
+					pauseEmu(TRUE);
+					while (emu_paused)
 					{
-						frame_advancing = 1;
-					}
-					else
-					{
-						frame_advancing = 0;
-						pauseEmu(TRUE);
-						while (emu_paused)
-						{
-							Sleep(10);
+						Sleep(10);
 #ifdef LUA_EMUPAUSED_WORK		
-							AtIntervalLuaCallback();
-							GetLuaMessage();
+						AtIntervalLuaCallback();
+						GetLuaMessage();
 #endif
-						}
 					}
 				}
 
@@ -528,9 +521,11 @@ void update_pif_read()
 				{
 					savestates_load();
 					savestates_job &= ~LOADSTATE;
+					extern bool old_st;
+					if (old_st) return; //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
 				}
 				
-				controllerRead = channel;
+			   controllerRead = channel;
 		       if (Controls[channel].Present && 
 			   Controls[channel].RawData
 #ifdef VCR_SUPPORT
