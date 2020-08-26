@@ -242,7 +242,7 @@ void savestates_load()
 		return;
 	}
 	free(filename);
-   
+	//printf("--------st start---------\n");
 	gzread(f, buf, 32);
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
@@ -381,6 +381,9 @@ void savestates_load()
 		}
 	}
 	AtLoadStateLuaCallback();
+	//extern long m_currentSample;
+	//printf(".st frame: %d\n", m_currentSample);
+	//printf("--------st end-----------\n");
 failedLoad:
 
 	gzclose(f);
@@ -394,12 +397,12 @@ failedLoad:
 		ignore = true;
 	if (!dynacore && interpcore)
 	{
-		printf(".st jump: %x, stopped here:%x\n", interp_addr, last_addr);
+		//printf(".st jump: %x, stopped here:%x\n", interp_addr, last_addr);
 		last_addr = interp_addr;
 	}
 	else
 	{
-		printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
+		//printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
 		last_addr = PC->addr;
 	}
 }

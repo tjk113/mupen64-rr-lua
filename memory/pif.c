@@ -458,11 +458,13 @@ void update_pif_write()
 
 void update_pif_read()
 {
+	//printf("pif entry\n");
    int i=0, channel=0;
    extern int emu_paused; //if you get error here, this means you're compiling for linux, and linux version 
 						  //doesn't have pausing. But this also means linux version is unusable for tasing.
 						  //If you really want it for some reason, define emu_paused.
-   bool once = emu_paused | frame_advancing;
+   bool once = emu_paused | frame_advancing; //used to pause only once during controller routine
+   bool stAllowed = true; //used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
    printf("---------- before read ----------\n");
    print_pif();
@@ -512,19 +514,19 @@ void update_pif_read()
 					}
 				}
 
-				if (savestates_job & SAVESTATE)
+				if (savestates_job & SAVESTATE && stAllowed)
 				{
 					savestates_save();
 					savestates_job &= ~SAVESTATE;
 				}
-				else if (savestates_job & LOADSTATE)
+				else if (savestates_job & LOADSTATE && stAllowed)
 				{
 					savestates_load();
 					savestates_job &= ~LOADSTATE;
 					extern bool old_st;
-					if (old_st) return; //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
+					if (old_st) { printf("old st detected\n"); old_st = false; return; } //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
 				}
-				
+			   stAllowed = false;
 			   controllerRead = channel;
 		       if (Controls[channel].Present && 
 			   Controls[channel].RawData
@@ -564,4 +566,5 @@ void update_pif_read()
    print_pif();
    printf("---------------------------------\n");
 #endif
+   //printf("pif exit\n");
 }

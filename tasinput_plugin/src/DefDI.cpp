@@ -1012,9 +1012,9 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					sprintf(str, "%d", (int)(angle2 + (angle2>0 ? 0.5f : -0.5f)));
 					skipEditX = true;
 					overrideX = (int)ControllerInput.X_AXIS;
-					RefreshAnalogPicture();
 				}
 				if(strcmp(str,str2))
+					//this and the same one for Y editbox is slow as fuck, this is mainly where tasinput lags
 					SetDlgItemText(statusDlg, IDC_EDITX, str);
 			}
 			changed = true;
@@ -1033,7 +1033,6 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					sprintf(str, "%d", (int)(0.5f + radialDistance));
 					skipEditY = true;
 					overrideY = (int)ControllerInput.Y_AXIS;
-					RefreshAnalogPicture();
 				}
 				if(strcmp(str,str2))
 					SetDlgItemText(statusDlg, IDC_EDITY, str);

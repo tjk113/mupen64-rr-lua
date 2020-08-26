@@ -990,9 +990,16 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 
 		if(m_header.controllerFlags & CONTROLLER_X_PRESENT(Control))
 		{
+			//cool debug info
+			//extern int frame_advancing;
+			//printf("frame advancing? %d\n", frame_advancing);
+			//printf("reading frame: %d\n", m_currentSample);
 			*Keys = *((BUTTONS*)m_inputBufferPtr);
 			m_inputBufferPtr += sizeof(BUTTONS);
+			//printf("read donex x: %d, y: %d\n", Keys->X_AXIS, Keys->Y_AXIS);
+			//printf("setKeys!\n");
 			setKeys(Control, *Keys);
+			//printf("setKeys done\n\n");
 
 			if (Keys->Reserved1) //&& !Config.NoReset) no matter if noreset is active, still reset on playback
 			{
@@ -1564,7 +1571,8 @@ VCR_updateScreen()
 #endif
 #ifdef LUA_SPEEDMODE
 		if(maximumSpeedMode)redraw = 1;
-#endif
+#endif	
+		printf("Screen update!\n");
 		if(redraw) {
 			updateScreen();
 		}
