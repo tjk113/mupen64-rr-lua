@@ -221,22 +221,25 @@ void savestates_load()
 		slot -= 10;
 		filename_f = 1;
 	}
-
+	char fname[200];
+	char str[256];
+	if (filename_f)
 	{
-		char str [256];
-		if(filename_f)
-			sprintf(str, "loading %-200s", filename);
-		else
-			sprintf(str, "loading slot %d", slot);
-		display_status(str);
+		_splitpath(filename, 0, 0, fname,0);
+		sprintf(str, "loading %s.st", fname);
 	}
+	else
+		sprintf(str, "loading slot %d", slot);
+	display_status(str);
 
 	f = gzopen(filename, "rb");
    
 	if (f == NULL)
 	{
-		printf("Savestate \"%s\" not found.\n", filename);
+		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 		free(filename);
+		sprintf(str, "Savestate \"%s.st\" not found.", fname);
+		MessageBox(0, str, "Error", MB_ICONWARNING);
 		warn_savestate_not_exist();
 		savestates_job_success = FALSE;
 		return;
@@ -359,7 +362,7 @@ void savestates_load()
 					break;
 			}
 			printWarning(errStr);
-			if (VCR_isRecording) VCR_stopRecord();
+			if (VCR_isRecording()) VCR_stopRecord();
 			else VCR_stopPlayback();
 			savestates_job_success = FALSE;
 			goto failedLoad;

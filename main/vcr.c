@@ -1383,7 +1383,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 					strncpy(name, input_name, 64);
                 if(name[0] && m_header.inputPluginName[0] && stricmp(m_header.inputPluginName, name) != 0)
                 {
-				    printf("Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.", m_header.inputPluginName, name);
+				    printf("Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.\n", m_header.inputPluginName, name);
 				}
 //				if(TempRomSettings.GfxPluginName[0])
 //					strncpy(name, TempRomSettings.GfxPluginName, 64);
@@ -1391,7 +1391,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 					strncpy(name, gfx_name, 64);
                 if(name[0] && m_header.videoPluginName[0] && stricmp(m_header.videoPluginName, name) != 0)
                 {
-				    printf("Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.", m_header.videoPluginName, name);
+				    printf("Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.\n", m_header.videoPluginName, name);
 				}
 //				if(TempRomSettings.SoundPluginName[0])
 //					strncpy(name, TempRomSettings.SoundPluginName, 64);
@@ -1399,7 +1399,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 					strncpy(name, sound_name, 64);
                 if(name[0] && m_header.soundPluginName[0] && stricmp(m_header.soundPluginName, name) != 0)
                 {
-				    printf("Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.", m_header.soundPluginName, name);
+				    printf("Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.\n", m_header.soundPluginName, name);
 				}
 //				if(TempRomSettings.RspPluginName[0])
 //					strncpy(name, TempRomSettings.RspPluginName, 64);
@@ -1407,7 +1407,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 					strncpy(name, rsp_name, 64);
                 if(name[0] && m_header.rspPluginName[0] && stricmp(m_header.rspPluginName, name) != 0)
                 {
-				    printf("Warning: The movie was recorded with the RSP plugin \"%s\",\nbut you are using the RSP plugin \"%s\",\nso the movie probably won't play properly.", m_header.rspPluginName, name);
+				    printf("Warning: The movie was recorded with the RSP plugin \"%s\",\nbut you are using the RSP plugin \"%s\",\nso the movie probably won't play properly.\n", m_header.rspPluginName, name);
 				}
 
 
@@ -1572,7 +1572,7 @@ VCR_updateScreen()
 #ifdef LUA_SPEEDMODE
 		if(maximumSpeedMode)redraw = 1;
 #endif	
-		printf("Screen update!\n");
+		//printf("Screen update!\n");
 		if(redraw) {
 			updateScreen();
 		}
