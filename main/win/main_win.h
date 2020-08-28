@@ -90,6 +90,7 @@ typedef struct _CONFIG {
     int guiDynacore;
     BOOL UseFPSmodifier;
     int FPSmodifier;
+    int skipFrequency;
     
     // Advanced vars
     BOOL StartFullScreen;
@@ -146,5 +147,7 @@ typedef struct _CONFIG {
 } CONFIG;
 
 extern "C" CONFIG Config;
+
+#define IGNORE_RSP (!manualFPSLimit && (!Config.skipFrequency || (frame++ % Config.skipFrequency))) //if frame advancing and either skipfreq is 0 or modulo is 0
 
 #endif

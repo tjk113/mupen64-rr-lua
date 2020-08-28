@@ -226,10 +226,12 @@ void savestates_load()
 	if (filename_f)
 	{
 		_splitpath(filename, 0, 0, fname,0);
-		sprintf(str, "loading %s.st", fname);
+		strcat(fname, ".st");
+		sprintf(str, "loading %s", fname);
 	}
 	else
 		sprintf(str, "loading slot %d", slot);
+		sprintf(fname, "slot %d",slot);
 	display_status(str);
 
 	f = gzopen(filename, "rb");
@@ -238,7 +240,7 @@ void savestates_load()
 	{
 		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 		free(filename);
-		sprintf(str, "Savestate \"%s.st\" not found.", fname);
+		sprintf(str, "Savestate \"%s\" not found.\n", fname);
 		MessageBox(0, str, "Error", MB_ICONWARNING);
 		warn_savestate_not_exist();
 		savestates_job_success = FALSE;

@@ -2369,9 +2369,11 @@ void exit_emu(int postquit)
 	   } 
 	   ini_closeFile();
 	}
-
-   //closeRom();
-   CreateThread(NULL, 0, closeRom, NULL, 0, &Id); //
+   else
+   {
+    //closeRom();
+    CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
+   }
    
    if(postquit){
 	   freeRomDirList(); 
@@ -3272,13 +3274,14 @@ int WINAPI WinMain(
     freopen_s(&f, "CONIN$", "r", stdin);
     freopen_s(&f, "CONOUT$", "w", stdout);
     freopen_s(&f, "CONOUT$", "w", stderr);
-    printf("mupen64 debug console");
+    printf("mupen64 debug console\n");
 #endif
 	/* Put absolute App path to AppPath variable */  
 	getAppFullPath( AppPath );
   app_hInstance = hInstance;
   InitCommonControls(); 
   SaveCmdLineParameter(lpCmdLine);
+  printf("cmd: \"%s\"\n", lpCmdLine);
   ini_openFile();
     
   // ensure folders exist!
@@ -3332,7 +3335,9 @@ int WINAPI WinMain(
 			Config.WindowPosX, Config.WindowPosY, Config.WindowWidth, Config.WindowHeight,
 			NULL, NULL, hInstance, NULL);
         
-		GUI_CreateLogWindow(hwnd);
+#ifdef _DEBUG
+        GUI_CreateLogWindow(hwnd);
+#endif
 		mainHWND = hwnd ;
 		ShowWindow(hwnd, nCmdShow);
 		UpdateWindow(hwnd);
@@ -3392,8 +3397,9 @@ int WINAPI WinMain(
 		ShowWindow(hwnd, nCmdShow);
 		UpdateWindow(hwnd);
 #endif
-
+#ifdef _DEBUG
 		GUI_CreateLogWindow(hwnd);
+#endif
 		if (!extLogger)
 		{
 			//DeleteMenu( GetMenu(hwnd), ID_LOG_WINDOW, MF_BYCOMMAND);

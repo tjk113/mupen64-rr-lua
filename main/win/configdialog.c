@@ -160,6 +160,42 @@ void ChangeSettings(HWND hwndOwner) {
 	return;
 }
 
+//Taken from windows docs
+HWND CreateToolTip(int toolID, HWND hDlg, PTSTR pszText)
+{
+    if (!toolID || !hDlg || !pszText)
+    {
+        return FALSE;
+    }
+    // Get the window of the tool.
+    HWND hwndTool = GetDlgItem(hDlg, toolID);
+
+    // Create the tooltip. g_hInst is the global instance handle.
+    HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+        WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        hDlg, NULL,
+        GetModuleHandle(NULL), NULL);
+
+    if (!hwndTool || !hwndTip)
+    {
+        return (HWND)NULL;
+    }
+
+    // Associate the tooltip with the tool.
+    TOOLINFO toolInfo = { 0 };
+    toolInfo.cbSize = sizeof(toolInfo);
+    toolInfo.hwnd = hDlg;
+    toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+    toolInfo.uId = (UINT_PTR)hwndTool;
+    toolInfo.lpszText = pszText;
+    SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+
+    return hwndTip;
+}
+
+
 BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
     switch(Message)
@@ -636,7 +672,7 @@ void FillModifierValue(HWND hwnd,int value ) {
 
 BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-        
+
     switch(Message) {
     case WM_INITDIALOG:
          WriteCheckBoxValue( hwnd, IDC_SHOWFPS, Config.showFPS) ;
@@ -647,7 +683,10 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
          WriteCheckBoxValue( hwnd, IDC_LIMITFPS, Config.limitFps);  
          WriteCheckBoxValue( hwnd, IDC_INI_COMPRESSED, Config.compressedIni);
          WriteCheckBoxValue( hwnd, IDC_SPEEDMODIFIER, Config.UseFPSmodifier  );
+         SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.skipFrequency,0);
                
+         CreateToolTip(IDC_SKIPFREQ, hwnd, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame");
+
          switch (Config.guiDynacore)    
             {        
                case 0:
@@ -716,6 +755,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                               Config.compressedIni = ReadCheckBoxValue(hwnd,IDC_INI_COMPRESSED);
                               Config.FPSmodifier = SendMessage( hwndTrack , TBM_GETPOS, 0, 0);
                               Config.UseFPSmodifier = ReadCheckBoxValue( hwnd , IDC_SPEEDMODIFIER );
+                              Config.skipFrequency = GetDlgItemInt(hwnd, IDC_SKIPFREQ,0,0);
                               if (emu_launched) SetStatusMode( 2 );
                               else SetStatusMode( 0 );
                               InitTimer();

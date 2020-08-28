@@ -35,6 +35,7 @@
 #include "../main/winlnxdefs.h"
 #else
 #include <windows.h>
+#include "../main/win/main_win.h"
 #endif
 
 #include "memory.h"
@@ -49,6 +50,10 @@
 #include "../main/plugin.h"
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"
+
+extern BOOL manualFPSLimit; //0 = ff enabled
+static int frame;
+extern CONFIG Config;
 
 /* definitions of the rcp's structures and memory area */
 RDRAM_register rdram_register;
@@ -1203,8 +1208,8 @@ void update_SP()
 	     //processDList();
 	     rsp_register.rsp_pc &= 0xFFF;
 	     start_section(GFX_SECTION);
-	     doRspCycles(100);
-	     end_section(GFX_SECTION);
+         if (!IGNORE_RSP) doRspCycles(100);
+         end_section(GFX_SECTION);
 	     rsp_register.rsp_pc |= save_pc;
 	     new_frame();
 	     
@@ -1274,8 +1279,9 @@ void update_SP()
 	  {
 	     //processAList();
 	     rsp_register.rsp_pc &= 0xFFF;
-	     start_section(AUDIO_zSECTION);
-	     doRspCycles(100);
+	     start_section(AUDIO_SECTION);
+         //if (!IGNORE_RSP) doRspCycles(100); //cursed, also watch out because it increases frame second time here
+         doRspCycles(100);
 	     end_section(AUDIO_SECTION);
 	     rsp_register.rsp_pc |= save_pc;
 	     
