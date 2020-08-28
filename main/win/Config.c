@@ -158,7 +158,7 @@ void LoadConfig()
     Config.compressedIni = ReadCfgInt("General","Compressed Ini",1);
     Config.UseFPSmodifier = ReadCfgInt("General","Use Fps Modifier",1);
     Config.FPSmodifier = ReadCfgInt("General","Fps Modifier",100);
-    Config.skipFrequency = ReadCfgInt("General", "Skip Frequency", 0);
+    Config.skipFrequency = ReadCfgInt("General", "Skip Frequency", 8);
     
     
     Config.guiDynacore = ReadCfgInt("CPU","Core",1);
@@ -249,7 +249,7 @@ void LoadConfig()
 		}
 	}
 	//Lua
-	//ダイアログに追加するの面倒くさい
+	//繝繧､繧｢繝ｭ繧ｰ縺ｫ霑ｽ蜉縺吶ｋ縺ｮ髱｢蛟偵￥縺輔＞
 	ReadCfgString("Lua", "Script Path", "", Config.LuaScriptPath);
   ReadHotkeyConfig(40, "Lua Script Reload", ID_LUA_RELOAD, VK_F3|0x200);
   ReadHotkeyConfig(41, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4|0x200);
