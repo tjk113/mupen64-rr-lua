@@ -148,6 +148,6 @@ typedef struct _CONFIG {
 
 extern "C" CONFIG Config;
 
-#define IGNORE_RSP (!manualFPSLimit && (!Config.skipFrequency || (frame++ % Config.skipFrequency))) //if frame advancing and either skipfreq is 0 or modulo is 0
+#define IGNORE_RSP ((!Config.limitFps || !manualFPSLimit) && (!Config.skipFrequency || (frame++ % Config.skipFrequency))) //if frame advancing and either skipfreq is 0 or modulo is 0
 
 #endif
