@@ -1536,8 +1536,8 @@ void Status::ActivateEmulatorWindow ()
 			hWnd = NULL;
 	if(!hWnd)
 	{
-		if(prevHWnd)
-			SetForegroundWindow(prevHWnd); // if that failed, try the last other window from the same process
+		if (prevHWnd)
+			BringWindowToTop(prevHWnd); // fix taskbar flash... by just calling another method
 		return;
 	}
 
