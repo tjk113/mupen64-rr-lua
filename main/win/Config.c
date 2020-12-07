@@ -359,7 +359,7 @@ void SaveConfig()
     WriteCfgInt( "Directories", "Default Screenshots Directory", Config.DefaultScreenshotsDir);
     WriteCfgString("Directories","Screenshots Directory",Config.ScreenshotsDir);    
 
-    WriteCfgInt("Recording Options", "No reset recording", Config.DefaultScreenshotsDir);
+    WriteCfgInt("Recording Options", "No reset recording", Config.NoReset);
 	// Save A Whole Whackton Of Hotkeys:
 
 		WriteHotkeyConfig(0, "Fast Forward");
