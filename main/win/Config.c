@@ -375,7 +375,6 @@ void SaveConfig()
     // 0.001s faster 
 
     // Save/Load Hotkeys
-    {
         int i;
         char str[128];
 
@@ -389,7 +388,6 @@ void SaveConfig()
             WriteHotkeyConfig(30 + i, str);
         }
         // 2 miliseconds faster
-    }
     //Lua
     WriteCfgString("Lua", "Script Path", Config.LuaScriptPath);
     WriteHotkeyConfig(40, "Lua Script Reload");
