@@ -262,12 +262,12 @@ void saveWindowSettings()
 {
     RECT rcMain;
     GetWindowRect(mainHWND, &rcMain);
-	Config.WindowPosX=rcMain.left;
-	Config.WindowPosY=rcMain.top;
-	Config.WindowWidth = rcMain.right - rcMain.left;
-	Config.WindowHeight = rcMain.bottom - rcMain.top;
-	WriteCfgInt("Window","Width",Config.WindowWidth); 
-    WriteCfgInt("Window","Height",Config.WindowHeight); 
+    Config.WindowPosX=rcMain.left;
+    Config.WindowPosY=rcMain.top;
+    Config.WindowWidth = rcMain.right - rcMain.left;
+    Config.WindowHeight = rcMain.bottom - rcMain.top;
+    WriteCfgInt("Window","Width",Config.WindowWidth);
+    WriteCfgInt("Window","Height",Config.WindowHeight);
     WriteCfgInt("Window","X",Config.WindowPosX);
     WriteCfgInt("Window","Y",Config.WindowPosY);
 }
@@ -306,102 +306,94 @@ void SaveRecentRoms()
 void SaveConfig()
 {
     saveWindowSettings();
-    
-    if (!cmdlineNoGui) {
-        saveBrowserSettings();
-        SaveRecentRoms();
-    }    
-    
-    //Language
-    WriteCfgString( "Language", "Default", Config.DefaultLanguage);
-    
-    //General Vars
-    WriteCfgInt( "General", "Show FPS", Config.showFPS);
-    WriteCfgInt( "General", "Show VIS", Config.showVIS);
-    WriteCfgInt( "General", "Alert Bad roms", Config.alertBAD);
-    WriteCfgInt( "General", "Alert Hacked roms", Config.alertHACK);
-    WriteCfgInt( "General", "Alert Saves errors", Config.savesERRORS);
-    WriteCfgInt( "General", "Alert Saves errors", Config.limitFps);
-    WriteCfgInt( "General", "Compressed Ini", Config.compressedIni);
-    WriteCfgInt( "General", "Fps Modifier", Config.FPSmodifier);
-    WriteCfgInt( "General", "Use Fps Modifier", Config.UseFPSmodifier);
-    WriteCfgInt("General", "Skip Frequency", Config.skipFrequency);
-    
-    //Advanced Vars
-    WriteCfgInt( "Advanced", "Start Full Screen", Config.StartFullScreen);
-    WriteCfgInt( "Advanced", "Pause when not active", Config.PauseWhenNotActive);
-    WriteCfgInt( "Advanced", "Overwrite Plugins Settings", Config.OverwritePluginSettings);
-    WriteCfgInt( "Advanced", "Use Toolbar", Config.GuiToolbar);
-    WriteCfgInt( "Advanced", "Use Statusbar", Config.GuiStatusbar);
-    WriteCfgInt( "Advanced", "Auto Increment Save Slot", Config.AutoIncSaveSlot);
-    WriteCfgInt( "Advanced", "Round To Zero", round_to_zero);
-    
-    WriteCfgInt( "CPU", "Core", Config.guiDynacore);
-    
-    //Compatibility Settings
-    WriteCfgInt( "Compatibility", "No Audio Delay", no_audio_delay);
-    WriteCfgInt( "Compatibility", "No Compiled Jump", no_compiled_jump);
-    
-    //Rom Browser columns
-    WriteCfgInt("Rom Browser Columns","Good Name", Config.Column_GoodName);
-    WriteCfgInt("Rom Browser Columns","Internal Name", Config.Column_InternalName);
-    WriteCfgInt("Rom Browser Columns","Country", Config.Column_Country);
-    WriteCfgInt("Rom Browser Columns","Size", Config.Column_Size);
-    WriteCfgInt("Rom Browser Columns","Comments", Config.Column_Comments);
-    WriteCfgInt("Rom Browser Columns","File Name", Config.Column_FileName);
-    WriteCfgInt("Rom Browser Columns","MD5", Config.Column_MD5);
-    
-    // Directories
-    WriteCfgInt( "Directories", "Default Plugins Directory", Config.DefaultPluginsDir);
-    WriteCfgString("Directories","Plugins Directory",Config.PluginsDir);
-    WriteCfgInt( "Directories","Default Saves Directory", Config.DefaultSavesDir);
-    WriteCfgString("Directories","Saves Directory",Config.SavesDir);
-    WriteCfgInt( "Directories", "Default Screenshots Directory", Config.DefaultScreenshotsDir);
-    WriteCfgString("Directories","Screenshots Directory",Config.ScreenshotsDir);    
 
-    WriteCfgInt("Recording Options", "No reset recording", Config.NoReset);
-	// Save A Whole Whackton Of Hotkeys:
+        if (!cmdlineNoGui) {
+            saveBrowserSettings();
+            SaveRecentRoms();
+        }
+        
+        //Language
+        WriteCfgString("Language", "Default", Config.DefaultLanguage);
+        
+        //General Vars
+        WriteCfgInt("General", "Show FPS", Config.showFPS);
+        WriteCfgInt("General", "Show VIS", Config.showVIS);
+        WriteCfgInt("General", "Alert Bad roms", Config.alertBAD);
+        WriteCfgInt("General", "Alert Hacked roms", Config.alertHACK);
+        WriteCfgInt("General", "Alert Saves errors", Config.savesERRORS);
+        WriteCfgInt("General", "Alert Saves errors", Config.limitFps);
+        WriteCfgInt("General", "Compressed Ini", Config.compressedIni);
+        WriteCfgInt("General", "Fps Modifier", Config.FPSmodifier);
+        WriteCfgInt("General", "Use Fps Modifier", Config.UseFPSmodifier);
+        WriteCfgInt("General", "Skip Frequency", Config.skipFrequency);
 
-		WriteHotkeyConfig(0, "Fast Forward");
-		WriteHotkeyConfig(1, "Speed Up");
-		WriteHotkeyConfig(2, "Slow Down");
-		WriteHotkeyConfig(3, "Frame Advance");
-		WriteHotkeyConfig(4, "Pause Resume");
-		WriteHotkeyConfig(5, "ReadOnly");
-		WriteHotkeyConfig(6, "Play");
-		WriteHotkeyConfig(7, "PlayStop");
-		WriteHotkeyConfig(8, "Record");
-		WriteHotkeyConfig(9, "RecordStop");
-		WriteHotkeyConfig(10,"Screenshot");
-		WriteHotkeyConfig(11,"Save Current");
-		WriteHotkeyConfig(12,"Load Current");
+        //Advanced Vars
+        WriteCfgInt("Advanced", "Start Full Screen", Config.StartFullScreen);
+        WriteCfgInt("Advanced", "Pause when not active", Config.PauseWhenNotActive);
+        WriteCfgInt("Advanced", "Overwrite Plugins Settings", Config.OverwritePluginSettings);
+        WriteCfgInt("Advanced", "Use Toolbar", Config.GuiToolbar);
+        WriteCfgInt("Advanced", "Use Statusbar", Config.GuiStatusbar);
+        WriteCfgInt("Advanced", "Auto Increment Save Slot", Config.AutoIncSaveSlot);
+        WriteCfgInt("Advanced", "Round To Zero", round_to_zero);
 
-    // Save/Load Hotkeys
-    {
-		int i;
-	    char str [128];
-	    
-	    for(i = 1 ; i <= 9 ; i++)
-	    {
+        WriteCfgInt("CPU", "Core", Config.guiDynacore);
 
-			sprintf(str, "Save %d", i);
-				WriteHotkeyConfig(12+i,str);
-		}
-	    for(i = 1 ; i <= 9 ; i++)
-	    {
-			sprintf(str, "Load %d", i);
-				WriteHotkeyConfig(21+i,str);
-		}
-	    for(i = 1 ; i <= 9 ; i++)
-	    {
-			sprintf(str, "Select %d", i);
-				WriteHotkeyConfig(30+i,str);
-		}
-	}
-	//Lua
-	WriteCfgString("Lua", "Script Path", Config.LuaScriptPath);
-  WriteHotkeyConfig(40, "Lua Script Reload");
-  WriteHotkeyConfig(41, "Lua Script CloseAll");
+        //Compatibility Settings
+        WriteCfgInt("Compatibility", "No Audio Delay", no_audio_delay);
+        WriteCfgInt("Compatibility", "No Compiled Jump", no_compiled_jump);
+
+        //Rom Browser columns
+        WriteCfgInt("Rom Browser Columns", "Good Name", Config.Column_GoodName);
+        WriteCfgInt("Rom Browser Columns", "Internal Name", Config.Column_InternalName);
+        WriteCfgInt("Rom Browser Columns", "Country", Config.Column_Country);
+        WriteCfgInt("Rom Browser Columns", "Size", Config.Column_Size);
+        WriteCfgInt("Rom Browser Columns", "Comments", Config.Column_Comments);
+        WriteCfgInt("Rom Browser Columns", "File Name", Config.Column_FileName);
+        WriteCfgInt("Rom Browser Columns", "MD5", Config.Column_MD5);
+
+        // Directories
+        WriteCfgInt("Directories", "Default Plugins Directory", Config.DefaultPluginsDir);
+        WriteCfgString("Directories", "Plugins Directory", Config.PluginsDir);
+        WriteCfgInt("Directories", "Default Saves Directory", Config.DefaultSavesDir);
+        WriteCfgString("Directories", "Saves Directory", Config.SavesDir);
+        WriteCfgInt("Directories", "Default Screenshots Directory", Config.DefaultScreenshotsDir);
+        WriteCfgString("Directories", "Screenshots Directory", Config.ScreenshotsDir);
+
+        WriteCfgInt("Recording Options", "No reset recording", Config.NoReset);
+        
+        // Save A Whole Whackton Of Hotkeys:
+
+        char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
+            "ReadOnly", "Play", "PlayStop", "Record",
+            "RecordStop", "Screenshot", "Save Current", "Load Current" };
+        // goes out of scope
+
+        for (int i = 0; i <= 12; i++)
+        {
+            WriteHotkeyConfig(i, settingStrings[i]);
+        }
+        // 0.001s faster 
+
+        // Save/Load Hotkeys
+        {
+            int i;
+            char str[128];
+
+            for (i = 1; i <= 9; i++)
+            {
+                sprintf(str, "Save %d", i);
+                WriteHotkeyConfig(12 + i, str);
+                sprintf(str, "Load %d", i);
+                WriteHotkeyConfig(21 + i, str);
+                sprintf(str, "Select %d", i);
+                WriteHotkeyConfig(30 + i, str);
+            }
+            // 2 miliseconds faster
+        }
+        //Lua
+        WriteCfgString("Lua", "Script Path", Config.LuaScriptPath);
+        WriteHotkeyConfig(40, "Lua Script Reload");
+        WriteHotkeyConfig(41, "Lua Script CloseAll");
 }
 
 
