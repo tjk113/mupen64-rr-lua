@@ -1,5 +1,5 @@
 # Mupen64 Lua
-[>>Releases<<](https://github.com/mkdasher/mupen64-rr-lua-/releases)
+[![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://github.com/mkdasher/mupen64-rr-lua-/releases/)
 
 This repository contains source code for continued development of Mupen64 - Nintendo 64 emulator with TAS support, and TASinput plugin. 
 
