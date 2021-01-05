@@ -243,7 +243,7 @@ void savestates_load()
 		free(filename);
 		sprintf(str, "Savestate \"%s\" not found.\n", fname);
 		MessageBox(0, str, "Error", MB_ICONWARNING);
-		warn_savestate_not_exist();
+		warn_savestate("Savestate doesn't exist", "You have selected wrong save slot or save doesn't exist");
 		savestates_job_success = FALSE;
 		return;
 	}
@@ -252,7 +252,7 @@ void savestates_load()
 	gzread(f, buf, 32);
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
-		warn_savestate_from_another_rom();
+		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version");
 		gzclose(f);
 		savestates_job_success = FALSE;
 		return;
@@ -316,9 +316,10 @@ void savestates_load()
 		gzread(f, buf+len+4, 4);
 	}
 	if (len == BUFLEN) { // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
-	    fprintf(stderr, "Snapshot event queue terminator not reached.\n");
+		fprintf(stderr, "Snapshot event queue terminator not reached.\n");
 		savestates_job_success = FALSE;
-		goto failedLoad;
+		warn_savestate("Savestate error", "Event queue too long (Savestate corrupted?)");
+		return;
 	}
 	load_eventqueue_infos(buf);
       

@@ -38,7 +38,6 @@ int ask_hack();
 void new_frame();
 void new_vi();
 
-void warn_savestate_not_exist();
-void warn_savestate_from_another_rom();
+void warn_savestate(char* messageCaption, char* message);
 
 void display_status(const char* status);

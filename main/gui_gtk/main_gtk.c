@@ -324,32 +324,16 @@ ask_hack()
 }
 
 void
-warn_savestate_from_another_rom()
+warn_savestate(char* messageCaption, char* message)
 {
 
 	if (!g_GuiEnabled)
 	{
-		printf( "You're trying to load a save state from either another rom\n"
-		        "or another dump.\n" );
+		printf(message);
 		return;
 	}
 
-	messagebox(tr("Wrong save state"), MB_OK,
-		   tr("You're trying to load a save state from either another rom\n"
-		      "or another dump.") );
-}
-
-void
-warn_savestate_not_exist()
-{
-	if (!g_GuiEnabled)
-	{
-		printf( "The save state you're trying to load doesn't exist\n" );
-		return;
-	}
-
-	messagebox(tr("Save state not exist"), MB_OK,
-		   tr("The save state you're trying to load doesn't exist"));
+	messagebox(tr(messageCaption), MB_OK, tr(message));
 }
 
 void
