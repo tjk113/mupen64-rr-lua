@@ -87,11 +87,7 @@ void display_MD5calculating_progress(int p)
 {
 }
 
-void warn_savestate_from_another_rom()
-{
-}
-
-void warn_savestate_not_exist()
+void warn_savestate()
 {
 }
 
