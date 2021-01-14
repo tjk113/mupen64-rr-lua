@@ -18,4 +18,4 @@ You can debug mupen straight away by running it and placing breakpoints in Visua
 Work in progress
 
 # Links
-Discord: https://discord.gg/hGQzKy
+Discord: https://discord.gg/eZXbmguKEq
