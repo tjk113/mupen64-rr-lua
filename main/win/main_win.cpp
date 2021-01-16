@@ -63,6 +63,7 @@ extern "C" {
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 typedef std::string String;
+static bool shouldSave = false;
 
 #if defined(__cplusplus) && !defined(_MSC_VER)
 }
@@ -2358,20 +2359,23 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 void exit_emu(int postquit)
 {
-   //SleepEx(100,TRUE);
+    if (VCR_isRecording() && MessageBox(NULL, "Movie is being recorded, are you sure you want to quit?",
+        "Close rom?", MB_YESNO | MB_ICONWARNING) == 7) {
+        return;
+    }
    if(postquit){
-	   if ((!cmdlineMode)||(cmdlineSave)) {
+       
+	   if (!cmdlineMode||cmdlineSave) {
 	      ini_updateFile(Config.compressedIni);
-	      SaveConfig();
-	      if (!cmdlineNoGui) {
+	      if (!cmdlineNoGui)
 	          SaveRomBrowserCache();
-	      }    
 	   } 
+       if (shouldSave)
+       SaveConfig();
 	   ini_closeFile();
 	}
    else
    {
-    //closeRom();
     CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
    }
    
@@ -2914,6 +2918,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  if (emu_launched&&!emu_paused) {
                     pauseEmu(FALSE) ; 
                  }
+                 shouldSave = true;
                  ChangeSettings(hwnd);
 		         ini_updateFile(Config.compressedIni);
                  if (emu_launched&&emu_paused&&!wasPaused) {
