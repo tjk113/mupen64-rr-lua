@@ -51,8 +51,8 @@ void warn_savestate(char* messageCaption, char* message)
     if (!Config.savesERRORS) return;
     TranslateDefault(message, messageCaption, TempMessage);
 
-    SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)TempMessage);
-    MessageBox(mainHWND, TempMessage, "Error", MB_ICONERROR);
+    display_status(TempMessage);
+    //MessageBox(mainHWND, TempMessage, "Error", MB_ICONERROR); //annoying!!! read the status bar for error and that's it
 
 }
 
@@ -94,6 +94,7 @@ int ask_hack()
             return 0;
 }
 
+//Shows text in the first sector of statusbar
 void display_status(const char* status)
 {
    SendMessage( hStatus, SB_SETTEXT, 0, (LPARAM)status ); 

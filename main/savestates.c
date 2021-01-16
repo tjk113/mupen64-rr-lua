@@ -242,7 +242,7 @@ void savestates_load()
 		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 		free(filename);
 		sprintf(str, "Savestate \"%s\" not found.\n", fname);
-		MessageBox(0, str, "Error", MB_ICONWARNING);
+		//MessageBox(0, str, "Error", MB_ICONWARNING); annoying
 		warn_savestate("Savestate doesn't exist", "You have selected wrong save slot or save doesn't exist");
 		savestates_job_success = FALSE;
 		return;
@@ -377,13 +377,13 @@ void savestates_load()
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if(VCR_isActive())
+		if(VCR_isActive()
+		//#ifdef WIN32 //linux implements that right
+		&& MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING) == 7
+		//#endif
+		)
 		{
-		#ifdef __WIN32__
-			MessageBox(NULL, "The movie has been stopped to load this non-movie snapshot.", "Warning", MB_OK | MB_ICONWARNING);
-		#else
-			printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
-		#endif
+		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
 			if(VCR_isPlaying())
 				VCR_stopPlayback();
 			else
