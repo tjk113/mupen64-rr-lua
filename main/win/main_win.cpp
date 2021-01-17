@@ -63,6 +63,7 @@ extern "C" {
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 typedef std::string String;
+static bool shouldSave = false;
 
 #if defined(__cplusplus) && !defined(_MSC_VER)
 }
@@ -2362,7 +2363,8 @@ void exit_emu(int postquit)
    if(postquit){
 	   if ((!cmdlineMode)||(cmdlineSave)) {
 	      ini_updateFile(Config.compressedIni);
-	      SaveConfig();
+          if (shouldSave)
+              SaveConfig();
 	      if (!cmdlineNoGui) {
 	          SaveRomBrowserCache();
 	      }    
@@ -2914,6 +2916,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  if (emu_launched&&!emu_paused) {
                     pauseEmu(FALSE) ; 
                  }
+                 shouldSave = true;
                  ChangeSettings(hwnd);
 		         ini_updateFile(Config.compressedIni);
                  if (emu_launched&&emu_paused&&!wasPaused) {
