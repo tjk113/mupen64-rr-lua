@@ -2359,21 +2359,23 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 void exit_emu(int postquit)
 {
-   //SleepEx(100,TRUE);
+    if (VCR_isRecording() && MessageBox(NULL, "Movie is being recorded, are you sure you want to quit?",
+        "Close rom?", MB_YESNO | MB_ICONWARNING) == 7) {
+        return;
+    }
    if(postquit){
-	   if ((!cmdlineMode)||(cmdlineSave)) {
+       
+	   if (!cmdlineMode||cmdlineSave) {
 	      ini_updateFile(Config.compressedIni);
-          if (shouldSave)
-              SaveConfig();
-	      if (!cmdlineNoGui) {
+	      if (!cmdlineNoGui)
 	          SaveRomBrowserCache();
-	      }    
 	   } 
+       if (shouldSave)
+       SaveConfig();
 	   ini_closeFile();
 	}
    else
    {
-    //closeRom();
     CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
    }
    
