@@ -54,7 +54,7 @@ bool old_st; //.st that comes from no delay fix mupen, it has some differences c
 			 //- execution continues at exception handler (after input poll) at 0x80000180.
 
 static unsigned int slot = 0;
-static char fname[1024] = {0,};
+static char fname[MAX_PATH] = {0,};
 
 void savestates_select_slot(unsigned int s)
 {
@@ -66,7 +66,7 @@ void savestates_select_slot(unsigned int s)
 void savestates_select_filename(const char *fn)
 {
    slot += 10;
-   if (strlen((const char *)fn) >= 1024) 
+   if (strlen((const char *)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
 		 return;
    strcpy(fname, (const char *)fn);
 }
@@ -199,12 +199,12 @@ void savestates_load()
 {
 #define BUFLEN 1024
 	char *filename, buf[BUFLEN];
-	gzFile f;
+	gzFile f; //handle to st
 	int len, i;
-	int filename_f = 0;
 
 	savestates_job_success = TRUE;
    
+	//construct .st name for 1-9 slots based on rom name and number
 	if (slot <= 9)
 	{
 		filename = (char*)malloc(strlen(get_savespath())+
@@ -215,16 +215,18 @@ void savestates_load()
 		sprintf(buf, "%d", slot);
 		strcat(filename, buf);
 	}
+
+	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
 		filename = (char*)malloc(strlen(fname)+1);
 		strcpy(filename, fname);
 		slot -= 10;
-		filename_f = 1;
 	}
-	char fname[200];
 	char str[256];
-	if (filename_f)
+
+	//print info about loading slot to console,
+	if (slot > 9)
 	{
 		_splitpath(filename, 0, 0, fname,0);
 		strcat(fname, ".st");
@@ -236,18 +238,20 @@ void savestates_load()
 	display_status(str);
 
 	f = gzopen(filename, "rb");
-   
+
+    //failed opening st
 	if (f == NULL)
 	{
 		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 		free(filename);
-		sprintf(str, "Savestate \"%s\" not found.\n", fname);
+		//sprintf(str, "Savestate \"%s\" not found.\n", fname);
 		//MessageBox(0, str, "Error", MB_ICONWARNING); annoying
 		warn_savestate("Savestate doesn't exist", "You have selected wrong save slot or save doesn't exist");
 		savestates_job_success = FALSE;
 		return;
 	}
 	free(filename);
+
 	//printf("--------st start---------\n");
 	gzread(f, buf, 32);
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))

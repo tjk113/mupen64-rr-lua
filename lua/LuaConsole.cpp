@@ -22,7 +22,8 @@
 
 #ifdef LUA_CONSOLE
 
-#pragma comment(lib, "lua51.lib")
+//nice msvc pragma smh
+#pragma comment(lib, "lua54.lib")
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
@@ -235,9 +236,13 @@ public:
 		::SetBkMode(luaDC, bkmode);
 		::SetBkColor(luaDC, bkcol);
 	}
+	//calls all functions that lua script has defined as callbacks, reads them from registry
+	//returns true at fail
 	bool registerFuncEach(int(*f)(lua_State*), const char *key) {
 		lua_getfield(L, LUA_REGISTRYINDEX, key);
-		int n = lua_objlen(L, -1);
+		//shouldn't ever happen but could cause kernel panic
+		if lua_isnil(L, -1) { lua_pop(L, 1); return false; }
+		int n = luaL_len(L, -1);
 		for(int i = 0; i < n; i ++) {
 			lua_pushinteger(L, 1+i);
 			lua_gettable(L, -2);
@@ -277,6 +282,13 @@ private:
 		lua_close(L);
 		L = NULL;
 	}
+
+	void registerAsPackage(lua_State *L, const char* name,const luaL_Reg reg[])
+	{
+		luaL_newlib(L, reg);
+		lua_setglobal(L, name);
+	}
+
 	void registerFunctions(){
 		luaL_openlibs(L);
 		//‚È‚ñ‚©luaL_register(L, NULL, globalFuncs)‚·‚é‚Æ—Ž‚¿‚é
@@ -284,25 +296,20 @@ private:
 		do{
 			lua_register(L, p->name, p->func);
 		}while((++p)->func);
-		luaL_register(L, "emu", emuFuncs);
-		luaL_register(L, "memory", memoryFuncs);
-		luaL_register(L, "gui", guiFuncs);
-		luaL_register(L, "wgui", wguiFuncs);
-		luaL_register(L, "input", inputFuncs);
-		luaL_register(L, "joypad", joypadFuncs);
-		luaL_register(L, "savestate", savestateFuncs);
+		registerAsPackage(L, "emu", emuFuncs);
+		registerAsPackage(L, "memory", memoryFuncs);
+		registerAsPackage(L, "gui", guiFuncs);
+		registerAsPackage(L, "wgui", wguiFuncs);
+		registerAsPackage(L, "input", inputFuncs);
+		registerAsPackage(L, "joypad", joypadFuncs);
+		registerAsPackage(L, "savestate", savestateFuncs);
 	}
 	void runFile(char *path) {
-int GetErrorMessage(lua_State *L);
+		//int GetErrorMessage(lua_State *L);
 		int result;
 		SetButtonState(ownWnd, true);
-//		lua_pushcfunction(L, GetErrorMessage);
-		result = luaL_loadfile(L, path);
-		if(result) {
-			error();
-			return;
-		}
-		result = lua_pcall(L, 0, 0, 0);
+		//lua_pushcfunction(L, GetErrorMessage);
+		result = luaL_dofile(L, path);
 		if(result) {
 			error();
 			return;
@@ -850,7 +857,7 @@ Lua *GetLuaClass(lua_State *L) {
 void SetLuaClass(lua_State *L, void *lua) {
 	lua_pushlightuserdata(L, lua);
 	lua_setfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
-	lua_pop(L, 1);
+	//lua_pop(L, 1); //iteresting, it worked before
 }
 int GetErrorMessage(lua_State *L) {
 	return 1;
@@ -891,7 +898,7 @@ int RegisterFunction(lua_State *L, const char *key) {
 		lua_setfield(L, LUA_REGISTRYINDEX, key);
 		lua_getfield(L, LUA_REGISTRYINDEX, key);
 	}
-	int i = lua_objlen(L, -1)+1;
+	int i = luaL_len(L, -1)+1;
 	lua_pushinteger(L, i);
 	lua_pushvalue(L, -3);	//
 	lua_settable(L, -3);
@@ -904,7 +911,7 @@ void UnregisterFunction(lua_State *L, const char *key) {
 		lua_pop(L, 1);
 		lua_newtable(L);	//‚Æ‚è‚ ‚¦‚¸
 	}
-	int n = lua_objlen(L, -1);
+	int n = luaL_len(L, -1);
 	for(int i = 0; i < n; i ++) {
 		lua_pushinteger(L, 1+i);
 		lua_gettable(L, -2);
@@ -1104,7 +1111,7 @@ int BitNOT(lua_State *L) {
 }
 int BitShift(lua_State *L) {
 	unsigned n = CheckIntegerU(L, 1);
-	int s = luaL_checkint(L, 2);
+	int s = luaL_checkinteger(L, 2);
 	if(s >= 0) {
 		PushIntU(L, n >> s);
 	}else {
@@ -1933,7 +1940,7 @@ int SetPen(lua_State *L) {
 		GetLuaClass(L)->setPen((HPEN)GetStockObject(NULL_PEN));
 	else
 		GetLuaClass(L)->setPen(::CreatePen(
-			PS_SOLID, luaL_optint(L, 2, 1), StrToColor(s)));
+			PS_SOLID, luaL_optinteger(L, 2, 1), StrToColor(s)));
 	return 0;
 }
 int SetTextColor(lua_State *L) {
@@ -1951,7 +1958,7 @@ int SetBackgroundColor(lua_State *L) {
 int SetFont(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	LOGFONT font = {0};
-	font.lfHeight = -MulDiv(luaL_optint(L, 1, 0),
+	font.lfHeight = -MulDiv(luaL_optinteger(L, 1, 0),
 		GetDeviceCaps(luaDC, LOGPIXELSY), 72);
 	lstrcpyn(font.lfFaceName, luaL_optstring(L, 2, "MS Gothic"),
 		LF_FACESIZE);
@@ -1975,7 +1982,7 @@ int TextOut(lua_State *L) {
 	lua->selectBackgroundColor();
 	lua->selectFont();
 	::TextOut(luaDC,
-		luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+		luaL_checknumber(L, 1), luaL_checknumber(L, 2),
 		lua_tostring(L, 3), lstrlen(lua_tostring(L, 3)));
 	return 0;
 }
@@ -2045,8 +2052,8 @@ int DrawRect(lua_State *L) {
 	lua->selectBrush();
 	lua->selectPen();
 	::Rectangle(luaDC,
-		luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-		luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+		luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
 int DrawEllipse(lua_State *L) {
@@ -2054,14 +2061,14 @@ int DrawEllipse(lua_State *L) {
 	lua->selectBrush();
 	lua->selectPen();
 	::Ellipse(luaDC,
-		luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-		luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+		luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
 int DrawPolygon(lua_State *L) {
 	POINT p[0x100];
 	luaL_checktype(L, 1, LUA_TTABLE);
-	int n = lua_objlen(L, 1);
+	int n = luaL_len(L, 1);
 	if(n >= sizeof(p)/sizeof(p[0])){
 		lua_pushfstring(L, "wgui.polygon: too many points (%d < %d)",
 			sizeof(p)/sizeof(p[0]), n);
@@ -2089,9 +2096,9 @@ int DrawPolygon(lua_State *L) {
 int DrawLine(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	lua->selectPen();
-	::MoveToEx(luaDC, luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+	::MoveToEx(luaDC, luaL_checknumber(L, 1), luaL_checknumber(L, 2),
 		NULL);
-	::LineTo(luaDC, luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+	::LineTo(luaDC, luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
 int GetGUIInfo(lua_State *L) {
