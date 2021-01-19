@@ -217,7 +217,8 @@ void ini_closeFile()
    
    free(ini.comment);
    ini.comment = NULL;
-   while(ini.list != NULL)
+   
+	while(ini.list != NULL)
 	 {
 	    iniElem *aux = ini.list->next_entry;
 	    free(ini.list);
