@@ -1093,40 +1093,7 @@ int PrintX(lua_State *L) {
 	ConsoleWrite(GetLuaClass(L)->ownWnd, str.append("\r\n").c_str());
 	return 1;
 }
-int BitAND(lua_State *L) {
-	PushIntU(L, CheckIntegerU(L, 1) & CheckIntegerU(L, 2));
-	return 1;
-}
-int BitOR(lua_State *L) {
-	PushIntU(L, CheckIntegerU(L, 1) | CheckIntegerU(L, 2));
-	return 1;
-}
-int BitXOR(lua_State *L) {
-	PushIntU(L, CheckIntegerU(L, 1) ^ CheckIntegerU(L, 2));
-	return 1;
-}
-int BitNOT(lua_State *L) {
-	PushIntU(L, ~CheckIntegerU(L, 1));
-	return 1;
-}
-int BitShift(lua_State *L) {
-	unsigned n = CheckIntegerU(L, 1);
-	int s = luaL_checkinteger(L, 2);
-	if(s >= 0) {
-		PushIntU(L, n >> s);
-	}else {
-		PushIntU(L, n << -s);
-	}
-	return 1;
-}
-int BitBits(lua_State *L) {
-	unsigned n = CheckIntegerU(L, 1),
-		x = CheckIntegerU(L, 2), y = CheckIntegerU(L, 3),
-		m;
-	m = (1<<y)-1;
-	PushIntU(L, n>>x & m);
-	return 1;
-}
+
 int MoveToSingle(lua_State *L) {
 	ULONG n = CheckIntegerU(L, 1);
 	lua_pushnumber(L, *(FLOAT*)&n);
@@ -2741,14 +2708,6 @@ const luaL_Reg globalFuncs[] = {
 	{"print", Print},
 	{"printx", PrintX},
 	{"tostringex", ToStringExs},
-
-	//bit functions
-	{"AND", BitAND},
-	{"OR", BitOR},
-	{"XOR", BitXOR},
-	{"NOT", BitNOT},
-	{"SHIFT", BitShift},
-	{"BITS", BitBits},
 
 	//floating number
 	{"MTC1", MoveToSingle},
