@@ -494,7 +494,7 @@ SMovieHeader VCR_getHeaderInfo(const char* filename)
 	tempFile = fopen( buf, "rb+" );
 	if (tempFile == 0 && (tempFile = fopen( buf, "rb" )) == 0)
 	{
-        strncat( buf, ".m64", PATH_MAX );
+        strncat( buf, ".m64", 4 );
 	    tempFile = fopen( buf, "rb+" );
     	if (tempFile == 0 && (tempFile = fopen( buf, "rb" )) == 0)
     	{
@@ -1468,7 +1468,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 					break;
 			}
 
-	    	strncat( buf, ".st", PATH_MAX );
+	    	strncat( buf, ".st", 4);
 	    	savestates_select_filename( buf );
 	    	savestates_job |= LOADSTATE;
 	    	m_task = StartPlaybackFromSnapshot;

@@ -881,7 +881,7 @@ DWORD CheckIntegerU(lua_State *L, int i = -1) {
 	return (DWORD)luaL_checknumber(L, i);
 }
 void PushIntU(lua_State *L, unsigned int x) {
-	lua_pushnumber(L, x);
+	lua_pushinteger(L, x);
 }
 void PushDword(lua_State *L, ULONGLONG x) {
 	lua_newtable(L);
