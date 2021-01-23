@@ -1153,12 +1153,12 @@ VCR_stopRecord()
 
 		strcpy( buf, m_filename );
 		strncat( m_filename, ".st", PATH_MAX );
-		if (unlink( buf ) < 0)
+		if (_unlink( buf ) < 0)
 			fprintf( stderr, "[VCR]: Couldn't remove save state: %s\n", strerror( errno ) );
 
 		strcpy( buf, m_filename );
 		strncat( m_filename, ".m64", PATH_MAX );
-		if (unlink( buf ) < 0)
+		if (_unlink( buf ) < 0)
 			fprintf( stderr, "[VCR]: Couldn't remove recorded file: %s\n", strerror( errno ) );
 
 		retVal = 0;
@@ -1345,7 +1345,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 
 				char str [512], name [512];
 				extern rom_header *ROM_HEADER;
-                if(ROM_HEADER && stricmp(m_header.romNom, (const char*)ROM_HEADER->nom) != 0)
+                if(ROM_HEADER && _stricmp(m_header.romNom, (const char*)ROM_HEADER->nom) != 0)
                 {
 				    sprintf(str, "The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n", m_header.romNom, ROM_HEADER->nom);
 					strcat(warningStr, str);
@@ -1382,7 +1382,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 //					strncpy(name, TempRomSettings.InputPluginName, 64);
 //				else
 					strncpy(name, input_name, 64);
-                if(name[0] && m_header.inputPluginName[0] && stricmp(m_header.inputPluginName, name) != 0)
+                if(name[0] && m_header.inputPluginName[0] && _stricmp(m_header.inputPluginName, name) != 0)
                 {
 				    printf("Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.\n", m_header.inputPluginName, name);
 				}
@@ -1390,7 +1390,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 //					strncpy(name, TempRomSettings.GfxPluginName, 64);
 //				else
 					strncpy(name, gfx_name, 64);
-                if(name[0] && m_header.videoPluginName[0] && stricmp(m_header.videoPluginName, name) != 0)
+                if(name[0] && m_header.videoPluginName[0] && _stricmp(m_header.videoPluginName, name) != 0)
                 {
 				    printf("Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.\n", m_header.videoPluginName, name);
 				}
@@ -1398,7 +1398,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 //					strncpy(name, TempRomSettings.SoundPluginName, 64);
 //				else
 					strncpy(name, sound_name, 64);
-                if(name[0] && m_header.soundPluginName[0] && stricmp(m_header.soundPluginName, name) != 0)
+                if(name[0] && m_header.soundPluginName[0] && _stricmp(m_header.soundPluginName, name) != 0)
                 {
 				    printf("Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.\n", m_header.soundPluginName, name);
 				}
@@ -1406,7 +1406,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 //					strncpy(name, TempRomSettings.RspPluginName, 64);
 //				else
 					strncpy(name, rsp_name, 64);
-                if(name[0] && m_header.rspPluginName[0] && stricmp(m_header.rspPluginName, name) != 0)
+                if(name[0] && m_header.rspPluginName[0] && _stricmp(m_header.rspPluginName, name) != 0)
                 {
 				    printf("Warning: The movie was recorded with the RSP plugin \"%s\",\nbut you are using the RSP plugin \"%s\",\nso the movie probably won't play properly.\n", m_header.rspPluginName, name);
 				}

@@ -518,7 +518,7 @@ int get_plugin_type()
 char *getPluginNameInner( plugins *p, char *pluginpath, int plugintype)
 {
     if (!p->next) return NULL;
-    if ((plugintype==p->next->type) && (strcasecmp(p->next->file_name, pluginpath)==0) )
+    if ((plugintype==p->next->type) && (_stricmp(p->next->file_name, pluginpath)==0) )
          return p->next->plugin_name;
     else  
          return getPluginNameInner(p->next, pluginpath, plugintype);
@@ -2000,7 +2000,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
                      oifn.lpstrInitialDir = "";
                      oifn.Flags = OFN_PATHMUSTEXIST | OFN_NOREADONLYRETURN;
                      if (GetSaveFileName(&oifn)) {
-						if(strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
+						if(strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
 							strcat(path_buffer, ".m64");
 						SetDlgItemText(hwnd,IDC_INI_MOVIEFILE,path_buffer);
                      }
@@ -2941,7 +2941,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case ID_RAMSTART:
             {
                 char buf[10];
-                sprintf(buf, "%#08X", rdram);
+                sprintf(buf, "0x%#08p", rdram);
                 MessageBox(0, buf, "Ram start for STROOP config", MB_ICONINFORMATION);
                 break;
             }

@@ -92,6 +92,7 @@ int luaDCBufWidth, luaDCBufHeight;
 unsigned inputCount = 0;
 size_t current_break_value_size = 1;
 std::map<HWND, Lua*> luaWindowMap;
+int getn(lua_State*);
 //improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
 static void stackDump(lua_State* L) {
@@ -114,7 +115,7 @@ static void stackDump(lua_State* L) {
 			lua_getstack(L, 0, &ar);
 			lua_pushvalue(L, -1);
 			lua_getinfo(L, ">S", &ar);
-			printf("%d: %s %x, type: %s", i, "function at", lua_topointer(L,-1), ar.what);
+			printf("%d: %s %p, type: %s", i, "function at", lua_topointer(L,-1), ar.what);
 			break;
 		default: printf("%d: %s", i, lua_typename(L, t)); break;
 		}
@@ -243,7 +244,7 @@ public:
 		//shouldn't ever happen but could cause kernel panic
 		if lua_isnil(L, -1) { lua_pop(L, 1); return false; }
 		int n = luaL_len(L, -1);
-		for(int i = 0; i < n; i ++) {
+		for(LUA_INTEGER i = 0; i < n; i ++) {
 			lua_pushinteger(L, 1+i);
 			lua_gettable(L, -2);
 #ifdef _DEBUG
@@ -303,6 +304,12 @@ private:
 		registerAsPackage(L, "input", inputFuncs);
 		registerAsPackage(L, "joypad", joypadFuncs);
 		registerAsPackage(L, "savestate", savestateFuncs);
+		
+		//this makes old scripts backward compatible, new syntax for table length is '#'
+		lua_getglobal(L, "table");
+		lua_pushcfunction(L, getn);
+		lua_setfield(L, -2, "getn");
+		lua_pop(L, 1);
 	}
 	void runFile(char *path) {
 		//int GetErrorMessage(lua_State *L);
@@ -863,6 +870,12 @@ int GetErrorMessage(lua_State *L) {
 	return 1;
 }
 
+int getn(lua_State* L)
+{
+	lua_pushinteger(L, luaL_len(L, -1));
+	return 1;
+}
+
 //lua‚Ì•â•ŠÖ”‚Æ‚©
 DWORD CheckIntegerU(lua_State *L, int i = -1) {
 	return (DWORD)luaL_checknumber(L, i);
@@ -912,7 +925,7 @@ void UnregisterFunction(lua_State *L, const char *key) {
 		lua_newtable(L);	//‚Æ‚è‚ ‚¦‚¸
 	}
 	int n = luaL_len(L, -1);
-	for(int i = 0; i < n; i ++) {
+	for(LUA_INTEGER i = 0; i < n; i ++) {
 		lua_pushinteger(L, 1+i);
 		lua_gettable(L, -2);
 		if(lua_rawequal(L, -1, -3)) {
