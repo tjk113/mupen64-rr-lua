@@ -127,7 +127,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <BasicRuntimeChecks>
       </BasicRuntimeChecks>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Strict</FloatingPointModel>
     </ClCompile>
     <Link>
