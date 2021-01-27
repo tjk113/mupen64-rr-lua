@@ -86,27 +86,28 @@ void ShowHideLogWindow()
 
 
 /* Add Text to Log */
-void ShowInfo(char *Str, ...)
+void ShowInfo(char* Str, ...)
 {
-   int i;
-   char Msg[800];
-	
-   va_list ap;
-   va_start( ap, Str );
-   _vsnprintf( Msg, sizeof(Msg), Str, ap );
-   va_end( ap );
-	  
-   
-	for ( i = 0 ; i < strlen( Msg ) ; i++ )	{
-		if ( Msg[ i ] == '\n' ) Msg[ i ] = ' ';		//carrier retirn
-		if ( Msg[ i ] == '\r' ) Msg[ i ] = ' ';
-		if ( Msg[ i ] == '\t' ) Msg[ i ] = ' ';		//tab
-	}
+    int i;
+    char Msg[800];
+
+    va_list ap;
+    va_start(ap, Str);
+    _vsnprintf(Msg, sizeof(Msg), Str, ap);
+    va_end(ap);
+
+
+    for (i = 0; i < strlen(Msg); i++) {
+        if (Msg[i] == '\n') Msg[i] = ' ';		//carrier retirn
+        if (Msg[i] == '\r') Msg[i] = ' ';
+        if (Msg[i] == '\t') Msg[i] = ' ';		//tab
+    }
 #if 0
-	OutputDebugString(Msg);
-	OutputDebugString("\n");
+    OutputDebugString(Msg);
+    OutputDebugString("\n");
 #else
-   if (DVMsg) DVMsg( DV_INFO, Msg) ;
+    if (DVMsg) DVMsg(DV_INFO, Msg); //logger disabled
+    else {printf(Msg); printf("\n");}
 #endif
 }
 

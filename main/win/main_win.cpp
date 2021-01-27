@@ -2721,7 +2721,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 //		case WM_SETCURSOR:
 //			SetCursor(FALSE);
 //			return 0;
-	    
+    case WM_WINDOWPOSCHANGING:  //allow gfx plugin to set arbitrary size 
+        return 0;
 	case WM_ENTERMENULOOP:       
              AutoPause = emu_paused;
              if (!emu_paused)
@@ -3349,7 +3350,7 @@ int WINAPI WinMain(
      
 		StartGameByCommandLine();
 		
-		ShowInfo("Mupen64 - Nintendo 64 emulator - Guiless mode");
+		ShowInfo(MUPEN_VERSION " - Nintendo 64 emulator - Guiless mode");
         
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
@@ -3424,8 +3425,7 @@ int WINAPI WinMain(
 			cmdlineMode = 0;
 		}
 
-		ShowInfo("Mupen64 - Nintendo 64 emulator - re-recording v8 - GUI mode");
-		SetStatusTranslatedString( hStatus, 0, "Mupen64 - Nintendo 64 emulator - re-recording v8" );
+		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
     
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
