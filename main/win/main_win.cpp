@@ -1214,7 +1214,7 @@ BOOL StartRom(char *fullRomPath)
                          //Makes window not resizable                         
                          //ShowWindow(mainHWND, FALSE);
                          winstyle = GetWindowLong( mainHWND, GWL_STYLE );
-                         winstyle = winstyle & ~WS_THICKFRAME;
+                         winstyle = winstyle & ~(WS_THICKFRAME|WS_MAXIMIZEBOX);
                          SetWindowLong(mainHWND, GWL_STYLE, winstyle );
                          SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED );  //Set on top
                          //ShowWindow(mainHWND, TRUE);
@@ -1255,7 +1255,7 @@ BOOL StartRom(char *fullRomPath)
                          
                          ShowInfo("Creating emulation thread...");                          
                          EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
-                         sprintf(TempMessage, "%s - %s",MUPEN_VERSION, ROM_HEADER->nom);
+                         sprintf(TempMessage, MUPEN_VERSION " - %s", ROM_HEADER->nom);
                          SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
                          SetWindowText(mainHWND,TempMessage);
                          SetStatusTranslatedString(hStatus,0,"Emulation started");
@@ -2715,7 +2715,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 //			if(VCR_isCapturing())
 //				VCR_invalidatedCaptureFrame();
-
+        RedrawWindow(mainHWND, 0, 0, RDW_VALIDATE);
 		return 0;
 
 //		case WM_SETCURSOR:
