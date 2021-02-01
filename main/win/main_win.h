@@ -26,7 +26,7 @@ extern char *getPluginName( char *pluginpath, int plugintype);
 extern char* getExtension(char *str);
 
 /********* Global Variables **********/
-extern char TempMessage[800];
+extern char TempMessage[200];
 extern int emu_launched; // emu_emulating
 extern int emu_paused;
 extern int recording;

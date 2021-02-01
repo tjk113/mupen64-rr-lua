@@ -196,7 +196,7 @@ void TranslateDefault(char* GuiWord,char *Default,char* Ret)
       GetPrivateProfileString(current_lang->language_name,GuiWord,Default,Ret,200,current_lang->file_name); 
    }
    else {
-      sprintf( Ret, GuiWord) ;
+      snprintf( Ret, 200, GuiWord) ;
    }
 }
 

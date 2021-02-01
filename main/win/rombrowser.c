@@ -221,6 +221,11 @@ ROM_DIRECTORY_PTR LoadRomBrowserDirs() {
     cacheFile = gzopen(get_dirfilepath(), "rb");
     if (cacheFile) {
     gzgets(cacheFile, RomBrowserDir, MAX_PATH);
+    if (*RomBrowserDir == '\0') //if cache file empty (happens when no dirs left and .cch was saved)
+    {
+        gzclose(cacheFile);
+        return NULL;
+    }
     RomBrowserDir[strlen(RomBrowserDir)-1]='\0';
     if (strcmp(RomBrowserDir, "")) {
             head = (ROM_DIRECTORY_LIST*)malloc(sizeof(ROM_DIRECTORY_LIST));

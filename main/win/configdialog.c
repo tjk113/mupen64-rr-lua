@@ -232,7 +232,7 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
 
 BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-  char Buffer[MAX_PATH], Directory[255];
+  char Buffer[MAX_PATH], Directory[MAX_PATH];
     LPITEMIDLIST pidl;
 	BROWSEINFO bi;
     char RomBrowserDir[_MAX_PATH]; 
@@ -276,7 +276,7 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                 if (((NMHDR FAR *) lParam)->code == PSN_APPLY) {
                     SaveRomBrowserDirs();
                     selected = SendDlgItemMessage( hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED?TRUE:FALSE;    
-                    GetDlgItemText( hwnd, IDC_PLUGINS_DIR, TempMessage, MAX_PATH );
+                    GetDlgItemText( hwnd, IDC_PLUGINS_DIR, TempMessage, 200 );
                     if (strcasecmp(TempMessage,Config.PluginsDir)!=0 || Config.DefaultPluginsDir !=selected)  
                                   //if plugin dir changed,search for plugins in new dir
 					           {

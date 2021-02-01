@@ -199,7 +199,7 @@ static BOOL MenuPaused = 0;
 static HWND hStaticHandle;                                 //Handle for static place
 int externalReadScreen;
 
-char TempMessage[800];
+char TempMessage[200];
 int emu_launched; // emu_emulating
 int emu_paused;
 int recording;
