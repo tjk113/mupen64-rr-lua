@@ -3034,6 +3034,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      oifn.lpstrFileTitle = "";
                      oifn.nMaxFileTitle = 0;
                      oifn.lpstrInitialDir = "";
+                     oifn.lpstrDefExt = "st";
                     if (GetSaveFileName (&oifn)) {
                      savestates_select_filename(path_buffer);
                      savestates_job = SAVESTATE;
