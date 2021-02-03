@@ -2853,7 +2853,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  if (emu_launched) {
                        //closeRom();
                        stop_it();
-                       SleepEx(1000, TRUE); //todo check if can remove
+                       //SleepEx(1000, TRUE); //todo check if can remove
                        CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, &Id);
                        SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 0);
                        SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);

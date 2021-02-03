@@ -937,8 +937,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 		extern bool scheduled_restart;
 		if (scheduled_restart)
 		{
-			Keys->Reserved1 = true;
-			Keys->Reserved2 = true;
+			Keys->Value = 0xC000; //Reserved 1 and 2
 		}
 
 		*((BUTTONS*)m_inputBufferPtr) = *Keys;
@@ -1002,7 +1001,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 			setKeys(Control, *Keys);
 			//printf("setKeys done\n\n");
 
-			if (Keys->Reserved1 && Keys->Reserved2) //&& !Config.NoReset) no matter if noreset is active, still reset on playback
+			if (Keys->Value==0xC000) //no readable code because 120 star tas can't get this right >:(
 			{
 				continue_vcr_on_restart_mode = true;
 				resetEmu();
