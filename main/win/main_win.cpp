@@ -63,7 +63,7 @@ extern "C" {
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 typedef std::string String;
-static bool shouldSave = false;
+bool shouldSave = false;
 
 #if defined(__cplusplus) && !defined(_MSC_VER)
 }

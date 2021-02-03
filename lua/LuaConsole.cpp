@@ -30,6 +30,7 @@ extern void (*interp_ops[64])(void);
 extern int m_currentVI;
 extern long m_currentSample;
 extern int fast_memory;
+extern bool shouldSave;
 void SYNC();
 void NOTCOMPILED();
 void InitTimer();
@@ -689,6 +690,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		if(!newPath.empty())
 			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				newPath.c_str());
+		shouldSave = true;
 		return TRUE;
 		}
 	case IDC_BUTTON_LUAEDIT:{
