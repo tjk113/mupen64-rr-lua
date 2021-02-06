@@ -787,10 +787,29 @@ int load_gfx(HMODULE handle_gfx)
    viWidthChanged = (void(__cdecl*)())GetProcAddress(handle_gfx, "ViWidthChanged");
    moveScreen = (void(__cdecl*)(int, int))GetProcAddress(handle_gfx, "MoveScreen");
    CaptureScreen = (void(__cdecl*)(char *Directory))GetProcAddress(handle_gfx, "CaptureScreen");
-   readScreen = (void(__cdecl*)(void **dest, long *width, long *height))GetProcAddress(handle_gfx, "ReadScreen");
-   if(readScreen == NULL) externalReadScreen = 0;
-   else externalReadScreen = 1;
-   
+   if (Config.forceInternalCapture)
+   {
+       readScreen = NULL;
+       externalReadScreen = 0;
+       DllCrtFree = free;
+   }
+   else
+   {
+       readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen");
+       if (readScreen == NULL)
+       {
+           externalReadScreen = 0;
+           DllCrtFree = free;
+       }
+       else
+       {
+           externalReadScreen = 1;
+           DllCrtFree = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "DllCrtFree");
+           if ( DllCrtFree == NULL) DllCrtFree = free; //attempt to match the crt, it will probably crash, issue only with gliden64
+       }
+
+   }
+
    fBRead = (void(__cdecl*)(DWORD))GetProcAddress(handle_gfx, "FBRead");
    fBWrite = (void(__cdecl*)(DWORD, DWORD))GetProcAddress(handle_gfx, "FBWrite");
    fBGetFrameBufferInfo = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "FBGetFrameBufferInfo");

@@ -140,6 +140,8 @@ typedef struct _CONFIG {
     //Recording options
     bool NoReset;
 
+    //avi options
+    bool forceInternalCapture;
     HOTKEY hotkey [NUM_HOTKEYS];
 
 		//Lua

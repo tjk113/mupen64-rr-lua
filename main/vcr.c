@@ -1666,8 +1666,8 @@ VCR_updateScreen()
 
 	if(externalReadScreen /*|| (!captureFrameValid && lastImage != image)*/)
 	{
-		if(image)
-			free(image);
+		if (image)
+			DllCrtFree(image);
 	}
 /*	else
 	{
@@ -1848,9 +1848,11 @@ VCR_startCapture( const char *recFilename, const char *aviFilename )
 	m_audioFrame = 0.0;
 	void *dest;
 	long width, height;
-	readScreen( &dest, &width, &height );
+	readScreen( &dest, &width, &height ); //if you see this crash, you're using GlideN64, not much can be done atm,
+										  //unknown issue...
 	if (dest)
-		free( dest );
+		DllCrtFree(dest); //if you see this crash, then the graphics plugin has mismatched crt
+						  //and doesn't export DllCrtFree(), you're out of luck
 	VCRComp_startFile( aviFilename, width, height, visByCountrycode(), 1);
 	m_capture = 1;
 	strncpy( AVIFileName, aviFilename, PATH_MAX );

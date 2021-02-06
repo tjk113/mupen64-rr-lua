@@ -253,6 +253,7 @@ extern void (__cdecl*updateScreen)();
 extern void (__cdecl*viStatusChanged)();
 extern void (__cdecl*viWidthChanged)();
 extern void (__cdecl*readScreen)(void **dest, long *width, long *height);
+extern void(__cdecl* DllCrtFree)(void*block);
 
 extern void (__cdecl*aiDacrateChanged)(int SystemType);
 extern void (__cdecl*aiLenChanged)();

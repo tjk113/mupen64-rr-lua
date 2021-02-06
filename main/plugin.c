@@ -98,6 +98,7 @@ void (__cdecl*updateScreen)() = dummy_void;
 void (__cdecl*viStatusChanged)() = dummy_void;
 void (__cdecl*viWidthChanged)() = dummy_void;
 void (__cdecl*readScreen)(void **dest, long *width, long *height) = 0;
+void(__cdecl* DllCrtFree)(void* block);
 
 void (__cdecl*aiDacrateChanged)(int SystemType) = dummy_aiDacrateChanged;
 void (__cdecl*aiLenChanged)() = dummy_void;

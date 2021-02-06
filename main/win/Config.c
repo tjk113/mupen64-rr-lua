@@ -211,6 +211,9 @@ void LoadConfig()
     // Recording Options
     Config.NoReset = ReadCfgInt("Recording Options", "No reset recording", 1);
 
+    //avi options
+    Config.forceInternalCapture = ReadCfgInt("Avi Options", "Force internal capture", 0);
+
     // Load A Whole Whackton Of Hotkeys:
 
     ReadHotkeyConfig(0, "Fast Forward", 0, VK_TAB);	// handled specially
@@ -360,6 +363,8 @@ void SaveConfig()
     WriteCfgString("Directories", "Screenshots Directory", Config.ScreenshotsDir);
 
     WriteCfgInt("Recording Options", "No reset recording", Config.NoReset);
+
+    WriteCfgInt("Avi Options", "Force internal capture", Config.forceInternalCapture);
 
     // Save A Whole Whackton Of Hotkeys:
 

@@ -899,6 +899,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          
          WriteCheckBoxValue(hwnd, !IDC_NORESET, Config.NoReset);
 
+         WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.forceInternalCapture);
+
          TranslateAdvancedDialog(hwnd) ;                           
          return TRUE;
          
@@ -930,6 +932,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 Config.Column_MD5 = ReadCheckBoxValue( hwnd, IDC_COLUMN_MD5); 
 
                 Config.NoReset = ReadCheckBoxValue(hwnd, !IDC_NORESET);
+                Config.forceInternalCapture = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
                 
                 EnableToolbar(); 
                 EnableStatusbar();

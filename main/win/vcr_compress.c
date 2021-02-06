@@ -256,7 +256,7 @@ void init_readScreen()
 {
 #ifdef __WIN32__
 	void ShowInfo(char *Str, ...);
-	ShowInfo((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin." : (char*)"ReadScreen not implemented by this graphics plugin - substituting...");
+	ShowInfo((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin." : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...");
 #endif
 
     if(readScreen == NULL)
