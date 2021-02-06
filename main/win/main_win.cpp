@@ -3148,7 +3148,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                                (path_buffer[len-3] != 'a' && path_buffer[len-3] != 'A') ||
                                path_buffer[len-4] != '.')
                                strcat(path_buffer, ".avi");
-                           Sleep(1000);
+                           //Sleep(1000);
                            if (VCR_startCapture( rec_buffer, path_buffer ) < 0)
                            {   
                               MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
