@@ -148,6 +148,8 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 
 BOOL VCRComp_addVideoFrame( unsigned char *data )
 {
+	extern int m_task;
+	if (m_task == 4 || m_task == 5) return 1; //don't record frames that are during emu loading (black frames)
     long int TempLen;
     BOOL ret = AVIStreamWrite(compressed_video_stream, frame++, 1, data, infoHeader.biSizeImage, AVIIF_KEYFRAME, NULL, &TempLen);
     AVIFileSize += TempLen; 

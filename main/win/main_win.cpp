@@ -62,6 +62,8 @@ extern "C" {
 
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
+void StartMovies();
+
 typedef std::string String;
 bool shouldSave = false;
 
@@ -1272,12 +1274,13 @@ BOOL StartRom(char *fullRomPath)
                          
                          SetStatusMode( 2 );
                          
-                         ShowInfo("Creating emulation thread...");                          
+                         ShowInfo("Creating emulation thread...");    
                          EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
                          sprintf(TempMessage, MUPEN_VERSION " - %s", ROM_HEADER->nom);
                          SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
                          SetWindowText(mainHWND,TempMessage);
                          SetStatusTranslatedString(hStatus,0,"Emulation started");
+                         printf("Thread created\n");
                          //SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)"" ); 
                          return FALSE;
                      }
@@ -2345,6 +2348,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
     SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
 	ThreadFuncState = TFS_EMULATING;
     ShowInfo("Emu thread: Emulation started....");
+    StartMovies();
     AtResetCallback();
     go();
     ShowInfo("Emu thread: Core stopped...");
@@ -3291,6 +3295,44 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	return TRUE;	
 }
 
+//starts m64 and avi
+//this is called from game thread because otherwise gfx plugin tries to resize window,
+//but main thread waits for game thread to finish loading, and hangs.
+void StartMovies()
+{
+    //-m64, -g
+    HMENU hMenu = GetMenu(mainHWND);
+    printf("------thread done------\n");
+    if (CmdLineParameterExist(CMDLINE_PLAY_M64) && CmdLineParameterExist(CMDLINE_GAME_FILENAME))
+    {
+        char file[MAX_PATH];
+        GetCmdLineParameter(CMDLINE_PLAY_M64, file);
+        //not reading author nor description atm
+        VCR_startPlayback(file, 0, 0);
+        if (CmdLineParameterExist(CMDLINE_CAPTURE_AVI)) {
+            GetCmdLineParameter(CMDLINE_CAPTURE_AVI, file);
+            if (VCR_startCapture(0, file) < 0)
+            {
+                MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
+                recording = FALSE;
+            }
+            else {
+                SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top
+                EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
+                EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
+                if (!externalReadScreen)
+                {
+                    EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);           //Disables fullscreen menu
+                    SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE); //Disables fullscreen button
+                }
+                SetStatusTranslatedString(hStatus, 0, "Recording avi...");
+                recording = TRUE;
+            }
+        }
+        resumeEmu(FALSE);
+    }
+}
+
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -3369,7 +3411,7 @@ int WINAPI WinMain(
 		UpdateWindow(hwnd);
      
 		StartGameByCommandLine();
-		
+
 		ShowInfo(MUPEN_VERSION " - Nintendo 64 emulator - Guiless mode");
         
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)

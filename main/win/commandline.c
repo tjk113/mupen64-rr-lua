@@ -58,6 +58,9 @@ void SaveCmdLineParameter(char *cmdline)
 //	"-r"	-> return rom path
 //  "-nogui"-> nogui mode
 //  "-save" -> save options on exit 
+
+//  "-m64"  -> play m64 from path, requires -g
+//  "-avi"  -> capture m64 to avi, requires -m64
 char *CmdLineArgFlags[] =
 {
 	"-a",
@@ -68,7 +71,10 @@ char *CmdLineArgFlags[] =
 	"-g",
 	"-f",
 	"-nogui",
-	"-save"
+	"-save",
+	//new parameters
+	"-m64",
+	"-avi"
 };
 
 void GetCmdLineParameter(CmdLineParameterType arg, char *buf)
