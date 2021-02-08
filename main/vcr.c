@@ -981,7 +981,9 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 				if (gStopAVI)
 				{
 					VCR_stopCapture();
-					SendMessage(mainHWND, WM_COMMAND, ID_EMULATOR_EXIT, 0);
+					extern BOOL GuiDisabled();
+					if(GuiDisabled()) SendMessage(mainHWND, WM_CLOSE, 0, 0);
+					else SendMessage(mainHWND, WM_COMMAND, ID_EMULATOR_EXIT, 0);
 				}
 				BUTTONS zero = { 0 };
 				setKeys(Control,zero);
