@@ -165,11 +165,13 @@ BOOL VCRComp_addAudioData( unsigned char *data, int len )
 }
 
 bool VRComp_loadOptions() {
+	extern char AppPath[MAX_PATH];
+	SetCurrentDirectory(AppPath);
 	FILE* f = fopen("avi.cfg", "rb");
 	if (f == NULL) return false; //file doesn't exist
 
 	fseek(f, 0, SEEK_END);
-	if (ftell(f) == 0) return false; //empty file
+	if (ftell(f) == 0) goto error; //empty file
 	fseek(f, 0, SEEK_SET);
 
 	pvideo_options[0] =(AVICOMPRESSOPTIONS*) malloc(sizeof(AVICOMPRESSOPTIONS));
@@ -179,9 +181,15 @@ bool VRComp_loadOptions() {
 	pvideo_options[0]->lpParms = moreOptions;
 	fclose(f);
 	return true;
+error:
+	fclose(f);
+	return false;
+
 }
 
 void VRComp_saveOptions() {
+	extern char AppPath[MAX_PATH];
+	SetCurrentDirectory(AppPath);
 	FILE *f = fopen("avi.cfg", "w");
 	fwrite(pvideo_options[0], sizeof(AVICOMPRESSOPTIONS), 1, f);
 	fwrite(pvideo_options[0]->lpParms, pvideo_options[0]->cbParms, 1, f);
@@ -228,7 +236,7 @@ void VCRComp_startFile( const char *filename, long width, long height, int fps, 
 	   AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options);
    }
    VRComp_saveOptions();
-   AVIMakeCompressedStream(&compressed_video_stream, video_stream, &video_options, NULL);
+   AVIMakeCompressedStream(&compressed_video_stream, video_stream, pvideo_options[0], NULL);
    AVIStreamSetFormat(compressed_video_stream, 0, &infoHeader, 
 					  infoHeader.biSize + infoHeader.biClrUsed * sizeof(RGBQUAD));
                       
