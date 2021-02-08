@@ -164,6 +164,31 @@ BOOL VCRComp_addAudioData( unsigned char *data, int len )
 	return ok;
 }
 
+bool VRComp_loadOptions() {
+	FILE* f = fopen("avi.cfg", "rb");
+	if (f == NULL) return false; //file doesn't exist
+
+	fseek(f, 0, SEEK_END);
+	if (ftell(f) == 0) return false; //empty file
+	fseek(f, 0, SEEK_SET);
+
+	pvideo_options[0] =(AVICOMPRESSOPTIONS*) malloc(sizeof(AVICOMPRESSOPTIONS));
+	fread(pvideo_options[0], sizeof(AVICOMPRESSOPTIONS), 1, f);
+	void* moreOptions = malloc(pvideo_options[0]->cbParms);
+	fread(moreOptions, pvideo_options[0]->cbParms, 1, f);
+	pvideo_options[0]->lpParms = moreOptions;
+	fclose(f);
+	return true;
+}
+
+void VRComp_saveOptions() {
+	FILE *f = fopen("avi.cfg", "w");
+	fwrite(pvideo_options[0], sizeof(AVICOMPRESSOPTIONS), 1, f);
+	fwrite(pvideo_options[0]->lpParms, pvideo_options[0]->cbParms, 1, f);
+	fflush(f);
+	fclose(f);
+}
+
 void VCRComp_startFile( const char *filename, long width, long height, int fps, int New )
 {
    recording = 1;
@@ -192,12 +217,17 @@ void VCRComp_startFile( const char *filename, long width, long height, int fps, 
    video_stream_header.dwSuggestedBufferSize = 0;
    AVIFileCreateStream(avi_file, &video_stream, &video_stream_header);
    
+   if (!New && pvideo_options[0] == NULL) //if hide dialog and options not found
+   {
+	   New = !VRComp_loadOptions(); //if failed to load defaults, ask with dialog
+   }
    if (New)
    {
 	   ZeroMemory(&video_options, sizeof(AVICOMPRESSOPTIONS));
 	   pvideo_options[0] = &video_options;
 	   AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options);
    }
+   VRComp_saveOptions();
    AVIMakeCompressedStream(&compressed_video_stream, video_stream, &video_options, NULL);
    AVIStreamSetFormat(compressed_video_stream, 0, &infoHeader, 
 					  infoHeader.biSize + infoHeader.biClrUsed * sizeof(RGBQUAD));

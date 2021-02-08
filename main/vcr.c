@@ -1821,8 +1821,13 @@ void VCR_aiLenChanged()
 void init_readScreen();
 #endif
 
-int
-VCR_startCapture( const char *recFilename, const char *aviFilename )
+//starts avi capture, creates avi file
+
+//recFilename - unused, this was supposed to be the m64 to capture, preciously it had .rec extension
+//aviFIlename - name of the avi file that will be created, intrestingly you can capture to another file,
+//				even to mp4 if compressor supports that, but audio will always be put inside avi.
+//codecDialog - displays codec dialog if true, otherwise uses last used settings
+int VCR_startCapture( const char *recFilename, const char *aviFilename, bool codecDialog )
 {
 #ifdef __WIN32__
 	extern BOOL emu_paused;
@@ -1853,7 +1858,7 @@ VCR_startCapture( const char *recFilename, const char *aviFilename )
 	if (dest)
 		DllCrtFree(dest); //if you see this crash, then the graphics plugin has mismatched crt
 						  //and doesn't export DllCrtFree(), you're out of luck
-	VCRComp_startFile( aviFilename, width, height, visByCountrycode(), 1);
+	VCRComp_startFile( aviFilename, width, height, visByCountrycode(), codecDialog);
 	m_capture = 1;
 	strncpy( AVIFileName, aviFilename, PATH_MAX );
 /*	if (VCR_startPlayback( recFilename ) < 0)

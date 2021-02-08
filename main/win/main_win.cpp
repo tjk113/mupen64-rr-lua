@@ -3153,7 +3153,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                                path_buffer[len-4] != '.')
                                strcat(path_buffer, ".avi");
                            //Sleep(1000);
-                           if (VCR_startCapture( rec_buffer, path_buffer ) < 0)
+                           if (VCR_startCapture( rec_buffer, path_buffer , true) < 0)
                            {   
                               MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
                               recording = FALSE;
@@ -3311,7 +3311,7 @@ void StartMovies()
         VCR_startPlayback(file, 0, 0);
         if (CmdLineParameterExist(CMDLINE_CAPTURE_AVI)) {
             GetCmdLineParameter(CMDLINE_CAPTURE_AVI, file);
-            if (VCR_startCapture(0, file) < 0)
+            if (VCR_startCapture(0, file, false) < 0)
             {
                 MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
                 recording = FALSE;
