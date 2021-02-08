@@ -58,6 +58,9 @@
 
 extern CONFIG Config;
 
+//stop AVI at m64 end, set by command line avi
+bool gStopAVI = false;
+
 #define BUFFER_GROWTH_SIZE (4096)
 
 static const char *m_errCodeName[] =
@@ -975,6 +978,11 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 //				VCR_stopCapture();
 //			else
 				VCR_stopPlayback();
+				if (gStopAVI)
+				{
+					VCR_stopCapture();
+					SendMessage(mainHWND, WM_COMMAND, ID_EMULATOR_EXIT, 0);
+				}
 				BUTTONS zero = { 0 };
 				setKeys(Control,zero);
 				getKeys(Control,Keys);
@@ -1917,6 +1925,7 @@ VCR_stopCapture()
 	// re-enable the toolbar (m_capture==0 causes this call to do that)
 	extern void EnableToolbar();
 	EnableToolbar();
+	SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 #else
 	usleep( 100000 ); // HACK - is this really necessary?
 #endif

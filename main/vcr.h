@@ -62,6 +62,8 @@
 	(0xFF000000) Analog Y
 */
 
+extern bool gStopAVI;
+
 extern void VCR_getKeys( int Control, BUTTONS *Keys );
 extern void VCR_updateScreen();
 extern void VCR_aiDacrateChanged( int SystemType );

@@ -3317,6 +3317,7 @@ void StartMovies()
                 recording = FALSE;
             }
             else {
+                gStopAVI = true;
                 SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top
                 EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
                 EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
