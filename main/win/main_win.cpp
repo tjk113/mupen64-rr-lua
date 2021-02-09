@@ -2709,36 +2709,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
         
 	case WM_PAINT:
-/*			if(emu_launched && emu_paused)
-			{
-				//// doesn't work...
-				//extern void (*updateScreen)();
-				//updateScreen();
-				
-				// since I can't convince the graphics plugin to update the window,
-				// just clear everything so we don't get partial clearage...
-				// (only if capturing - partial is probably better than full otherwise)
-				if(VCR_isCapturing())
-				{
-					InvalidateRect(hwnd,NULL,TRUE);
-					VCR_invalidatedCaptureFrame();
-				}
-			}*/
-
-//			if(VCR_isCapturing())
-//				VCR_invalidatedCaptureFrame();
+			
 
 		BeginPaint(hwnd, &ps);
 
-//			if(VCR_isCapturing())
-//				VCR_invalidatedCaptureFrame();
-
+			
 		EndPaint(hwnd, &ps);
 
 
-//			if(VCR_isCapturing())
-//				VCR_invalidatedCaptureFrame();
-        RedrawWindow(mainHWND, 0, 0, RDW_VALIDATE);
+        
 		return 0;
 
 //		case WM_SETCURSOR:
@@ -2763,6 +2742,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
              }
              break;
 	case WM_ACTIVATE:
+            SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_LAYERED); // This fixes offscreen recording issue
 			minimize = (BOOL) HIWORD(wParam);
 			
 			switch(LOWORD(wParam))
