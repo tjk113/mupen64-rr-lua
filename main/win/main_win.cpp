@@ -2742,7 +2742,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
              }
              break;
 	case WM_ACTIVATE:
-            SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_LAYERED); // This fixes offscreen recording issue
 			minimize = (BOOL) HIWORD(wParam);
 			
 			switch(LOWORD(wParam))
@@ -3428,7 +3427,7 @@ int WINAPI WinMain(
 		Accel = LoadAccelerators(hInstance,MAKEINTRESOURCE(IDR_ACCEL));
     
 		hwnd = CreateWindowEx(
-            WS_EX_ACCEPTFILES,
+            0,
 			g_szClassName,
 			MUPEN_VERSION,
 			WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_EX_TOPMOST,
@@ -3441,9 +3440,10 @@ int WINAPI WinMain(
 				MB_ICONEXCLAMATION | MB_OK);
 			return 0;
 		}
-
 		mainHWND = hwnd ;
 		ShowWindow(hwnd, nCmdShow);
+        // This fixes offscreen recording issue
+        SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED); //this can't be applied before ShowWindow(), otherwise you must use some fancy function
 		UpdateWindow(hwnd);
 #endif
 #ifdef _DEBUG
