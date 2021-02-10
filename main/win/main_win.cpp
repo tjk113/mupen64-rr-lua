@@ -67,6 +67,8 @@ void StartMovies();
 typedef std::string String;
 bool shouldSave = false;
 
+bool ffup = false;
+
 #if defined(__cplusplus) && !defined(_MSC_VER)
 }
 #endif
@@ -2651,6 +2653,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if((int)wParam == Config.hotkey[0].key) // fast-forward off
 			{
             	manualFPSLimit = 1 ; 
+                ffup = true; //fuck it, timers.c is too weird
 			}
             if (emu_launched)
 				keyUp(wParam, lParam);

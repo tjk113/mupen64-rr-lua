@@ -27,6 +27,8 @@
 #include "../vcr.h"
 #include "../../lua/LuaConsole.h"
 
+extern bool ffup;
+
 static float VILimit = 60.0;
 static double VILimitMilliseconds = 1000.0/60.0;
 
@@ -152,18 +154,24 @@ void new_vi() {
       {
           CalculatedTime = CounterTime + (double)VILimitMilliseconds * (double)VI_Counter;
           time = (int)(CalculatedTime - CurrentFPSTime);
-          if (time>0&&time<1000) {
-                    Sleep(time);
+		  if (ffup) {
+			  time = 0; CounterTime = 0; ffup = false;
+		  }
+          if (time>0) {
+			Sleep(time);
           }
           CurrentFPSTime = CurrentFPSTime + time;
       }
      }
-     
      if ( Config.showVIS ) {
           if (CurrentFPSTime - CounterTime >= 1000.0 ) {
-             sprintf(mes,"VI/s: %.1f",(float) (VI_Counter * 1000.0 / (CurrentFPSTime - CounterTime)));
-             if (Config.showFPS) SendMessage( hStatus, SB_SETTEXT, 3, (LPARAM)mes );
-             else SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)mes );
+			  float VIs = VI_Counter * 1000.0 / (CurrentFPSTime - CounterTime);
+			  if (VIs > 1) //if after fast forwarding pretend statusbar lagged idk
+			  {
+				  sprintf(mes, "VI/s: %.1f", VIs);
+				  if (Config.showFPS) SendMessage(hStatus, SB_SETTEXT, 3, (LPARAM)mes);
+				  else SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)mes);
+			  }
              CounterTime = timeGetTime() ;
              VI_Counter = 0 ;
           }
