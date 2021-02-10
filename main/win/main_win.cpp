@@ -2614,6 +2614,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 		{
+        printf("down\n");
 			BOOL hit = FALSE;
 			if(manualFPSLimit)
 			{
@@ -2624,6 +2625,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkey[0].alt)
 					{
 						manualFPSLimit = 0;
+                        printf("-------F ON\n");
 						hit = TRUE;
 					}
 				}
@@ -2647,9 +2649,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				return DefWindowProc(hwnd, Message, wParam, lParam);
         }	break;
 	case WM_KEYUP:
+        printf("up\n");
 			if((int)wParam == Config.hotkey[0].key) // fast-forward off
 			{
             	manualFPSLimit = 1 ; 
+                printf("-------F OFF\n");
 			}
             if (emu_launched)
 				keyUp(wParam, lParam);

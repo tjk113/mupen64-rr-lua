@@ -1580,11 +1580,11 @@ VCR_updateScreen()
 		//printf("Screen update!\n");
 		if(redraw) {
 			updateScreen();
-		}
 #ifdef LUA_GUI
-		extern HWND mainHWND;
 		LuaDCUpdate(redraw);
 #endif
+		redraw = 0;
+		}
 //		captureFrameValid = TRUE;
 		return;
 	}
@@ -1600,10 +1600,10 @@ VCR_updateScreen()
 
 		if(redraw) {
 	updateScreen();
-		}
 #ifdef LUA_GUI
 		LuaDCUpdate(redraw);
 #endif
+		}
 //	captureFrameValid = TRUE;
 	readScreen( &image, &width, &height );
 	if (image == 0)
