@@ -620,6 +620,7 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		return WmCommand(wnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
 	case WM_SIZE:
 		SizingControls(wnd, LOWORD(lParam), HIWORD(lParam));
+		if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
 		break;
 	}
 	return FALSE;
