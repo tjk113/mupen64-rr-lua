@@ -1278,9 +1278,14 @@ BOOL StartRom(char *fullRomPath)
                          
                          ShowInfo("Creating emulation thread...");    
                          EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
-                         sprintf(TempMessage, MUPEN_VERSION " - %s", ROM_HEADER->nom);
+
+                         extern int m_task;
+                         if (m_task == 0)
+                         {
+                             sprintf(TempMessage, MUPEN_VERSION " - %s", ROM_HEADER->nom);
+                             SetWindowText(mainHWND, TempMessage);
+                         }
                          SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
-                         SetWindowText(mainHWND,TempMessage);
                          SetStatusTranslatedString(hStatus,0,"Emulation started");
                          printf("Thread created\n");
                          //SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)"" ); 
@@ -1357,8 +1362,12 @@ static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show r
          ShowRomBrowser(!really_restart_mode,!!lpParam);
          if (!lpParam)
          {
-             SetWindowText(mainHWND,MUPEN_VERSION);
-             SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)" " ); 
+             extern int m_task;
+             if (m_task == 0)
+             {
+                 SetWindowText(mainHWND, MUPEN_VERSION);
+                 SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)" ");
+             }
          }
       }
       ShowInfo("Rom closed.");
@@ -1393,7 +1402,9 @@ static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show r
 		}
 
        really_restart_mode = FALSE;
-       just_restarted_flag = TRUE;
+       extern int m_task;
+       if (m_task!=0)
+        just_restarted_flag = TRUE;
        StartRom(LastSelectedRom);
       }
    }
@@ -1974,7 +1985,8 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
 					
 					GetDlgItemText(hwnd,IDC_INI_MOVIEFILE,tempbuf,MAX_PATH);
-                    if (strlen(tempbuf) == 0 || VCR_startRecord( tempbuf, IsDlgButtonChecked(hwnd,IDC_FROMSNAPSHOT_RADIO), authorUTF8, descriptionUTF8 ) < 0)
+                    unsigned short flag = IsDlgButtonChecked(hwnd, IDC_FROMSNAPSHOT_RADIO) ? MOVIE_START_FROM_SNAPSHOT : IsDlgButtonChecked(hwnd, IDC_FROMSTART_RADIO) ? MOVIE_START_FROM_NOTHING : MOVIE_START_FROM_EEPROM;
+                    if (strlen(tempbuf) == 0 || VCR_startRecord( tempbuf, flag, authorUTF8, descriptionUTF8 ) < 0)
                     {
 					   sprintf(tempbuf2, "Couldn't start recording\nof \"%s\".", tempbuf);
                        MessageBox(hwnd, tempbuf2, "VCR", MB_OK);

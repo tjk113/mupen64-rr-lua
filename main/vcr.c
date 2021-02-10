@@ -165,15 +165,19 @@ void printError (char* str)
 #endif
 }
 
-static void hardResetAndClearAllSaveData ()
+static void hardResetAndClearAllSaveData (bool clear)
 {
 #ifdef __WIN32__
 //	extern void resetEmu();
 	extern BOOL clear_sram_on_restart_mode;
 	extern BOOL continue_vcr_on_restart_mode;
 	extern HWND mainHWND;
-	clear_sram_on_restart_mode = TRUE;
+	clear_sram_on_restart_mode = clear;
 	continue_vcr_on_restart_mode = TRUE;
+	if (clear)
+		printf("Clearing save data...\n");
+	else
+		printf("Playing movie without clearing save data\n");
 //	resetEmu();
 	SendMessage(mainHWND, WM_COMMAND, EMU_RESET, 0);
 #else
@@ -857,8 +861,8 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 			}
 			else
 			{
-		       printf( "[VCR]: Starting recording...\n" );
-		       hardResetAndClearAllSaveData();
+				printf( "[VCR]: Starting recording...\n" );
+				hardResetAndClearAllSaveData(!(m_header.startFlags & MOVIE_START_FROM_EEPROM));
 			}
 		}
 ///       return;
@@ -890,8 +894,8 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 			}
 			else
 			{
-		       printf( "[VCR]: Starting playback...\n" );
-		       hardResetAndClearAllSaveData();
+				printf( "[VCR]: Starting playback...\n" );
+				hardResetAndClearAllSaveData(!(m_header.startFlags & MOVIE_START_FROM_EEPROM));
 			}
 		}
 #else
@@ -1048,7 +1052,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 
 
 int
-VCR_startRecord( const char *filename, BOOL fromSnapshot, const char *authorUTF8, const char *descriptionUTF8 )
+VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8 )
 {
 	VCR_coreStopped();
 	
@@ -1089,11 +1093,11 @@ VCR_startRecord( const char *filename, BOOL fromSnapshot, const char *authorUTF8
     m_header.length_vis = 0;
     m_header.length_samples = 0;
 	m_header.rerecord_count = 0;
-	m_header.startFlags = fromSnapshot ? MOVIE_START_FROM_SNAPSHOT : MOVIE_START_FROM_NOTHING;
+	m_header.startFlags = flags;
 
 	reserve_buffer_space(4096);
 
-    if(fromSnapshot)
+    if(flags & MOVIE_START_FROM_SNAPSHOT)
     {
     	// save state
     	printf( "[VCR]: Saving state...\n" );

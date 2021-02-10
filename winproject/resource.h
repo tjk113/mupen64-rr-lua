@@ -380,6 +380,7 @@
 #define IDC_STARTSFROM_LABEL            9504
 #define IDC_FROMSNAPSHOT_RADIO          9505
 #define IDC_FROMSTART_RADIO             9506
+#define IDC_FROMEEPROM_RADIO					9516
 #define IDC_PAUSEAT_LABEL               9507
 #define IDC_PAUSEAT_FIELD               9508
 //Lua

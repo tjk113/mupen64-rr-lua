@@ -24,6 +24,7 @@
 
 #define MOVIE_START_FROM_SNAPSHOT	(1<<0)
 #define MOVIE_START_FROM_NOTHING	(1<<1)
+#define MOVIE_START_FROM_EEPROM     (1<<2)
 
 #define CONTROLLER_X_PRESENT(x)	(1<<(x))
 #define CONTROLLER_1_PRESENT	(1<<0)
@@ -88,7 +89,7 @@ extern void VCR_movieFreeze (char** buf, unsigned long* size);
 extern int VCR_movieUnfreeze (const char* buf, unsigned long size);
 extern void VCR_clearAllSaveData();
 
-extern int VCR_startRecord( const char *filename, BOOL fromSnapshot, const char *authorUTF8, const char *descriptionUTF8 );
+extern int VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8 );
 extern int VCR_stopRecord();
 extern int VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8 );
 extern int VCR_stopPlayback();
