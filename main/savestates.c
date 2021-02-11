@@ -221,7 +221,7 @@ void savestates_load()
 	{
 		filename = (char*)malloc(strlen(fname)+1);
 		strcpy(filename, fname);
-		slot -= 10;
+		//slot -= 10;
 	}
 	char str[256];
 
@@ -259,6 +259,8 @@ void savestates_load()
 		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version");
 		gzclose(f);
 		savestates_job_success = FALSE;
+		if (VCR_isRecording()) VCR_stopRecord();
+		else VCR_stopPlayback();
 		return;
 	}
    
