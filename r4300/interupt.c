@@ -119,7 +119,8 @@ int before_event(unsigned long evt1, unsigned long evt2, int type2)
 
 void add_interupt_event(int type, unsigned long delay)
 {
-   unsigned long count = Count + delay/**2*/;
+	//printf("INT %d, COUNT %d DELAY %d\n", type, Count, delay);
+	unsigned long count = Count + delay/**2*/;
    int special = 0;
    
    if(type == SPECIAL_INT /*|| type == COMPARE_INT*/) special = 1;
@@ -137,17 +138,21 @@ void add_interupt_event(int type, unsigned long delay)
 	//count = Count + delay/**2*/;
      //}
    
+   //if queue doesn't exist, create it, add event and end
    if (q == NULL)
      {
 	q = (interupt_queue*)malloc(sizeof(interupt_queue));
 	q->next = NULL;
 	q->count = count;
 	q->type = type;
-	next_interupt = q->count;
+	next_interupt = q->count; //set next interrupt to the calculated value, assuming queue always exists during 
+							  //emulation then this always will be value of Count
 	//print_queue();
 	return;
      }
    
+   //if queue existed do something else
+
    if(before_event(count, q->count, q->type) && !special)
      {
 	q = (interupt_queue*)malloc(sizeof(interupt_queue));
@@ -290,15 +295,20 @@ void load_eventqueue_infos(char *buf)
      }
 }
 
+//this seems to place VI interrupt on queue to force it to allocate memory and create pointer.
+//the only lines required are next_vi = *value* and adding the VI
+//rest of code does nothing to emulation...
 void init_interupt()
 {
-   SPECIAL_done = 1;
-   next_vi = next_interupt = 5000;
-   vi_register.vi_delay = next_vi;
-   vi_field = 0;
-   clear_queue();
-   add_interupt_event_count(VI_INT, next_vi);
-   add_interupt_event_count(SPECIAL_INT, 0);
+   SPECIAL_done = 1; //does nothing
+   next_vi = /*next_interupt =*/ 0x5000; //seems to control how long the blackscreen lasts at emu start
+   //next_interrput is overwritten later based on next_vi with different value anyway??
+   vi_register.vi_delay = next_vi; //does nothing
+   vi_field = 0; //this seems to be a boolean, but does nothing
+   clear_queue(); //is it possible for queue to exist here??
+   add_interupt_event_count(VI_INT, next_vi); //Count is initialised to 0x5000, not 5000, so first delay is negative??
+   add_interupt_event_count(SPECIAL_INT, 0); //this makes delay be -Count, but add_interupt_event_count adds Count, so result is 0
+   //in the end that event just gets added to queue, nut sure what special means
 }
 
 void check_interupt()
