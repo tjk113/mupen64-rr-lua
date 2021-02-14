@@ -802,14 +802,20 @@ int load_gfx(HMODULE handle_gfx)
        readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen");
        if (readScreen == NULL)
        {
-           externalReadScreen = 0;
-           DllCrtFree = free;
+           //try to find readscreen2 instead (gln64)
+           readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen2");
+           if (readScreen == NULL)
+           {
+               externalReadScreen = 0;
+               DllCrtFree = free;
+           }
+
        }
-       else
+       if(readScreen)
        {
            externalReadScreen = 1;
            DllCrtFree = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "DllCrtFree");
-           if ( DllCrtFree == NULL) DllCrtFree = free; //attempt to match the crt, it will probably crash, issue only with gliden64
+           if ( DllCrtFree == NULL) DllCrtFree = free; //attempt to match the crt, avi capture will probably crash without this
        }
 
    }
