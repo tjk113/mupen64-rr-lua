@@ -130,6 +130,7 @@ static int AVIBreakMovie = 0;
 int titleLength;
 
 extern void resetEmu();
+void SetActiveMovie(char* buf, int maxlen);
 
 void printWarning (char* str)
 {
@@ -1120,7 +1121,7 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
     } else{
      	m_task = StartRecording;
     }
-
+	SetActiveMovie(buf, MAX_PATH);
 	setROMInfo(&m_header);
 
 	// utf8 strings are also null-terminated so this method still works
@@ -1228,6 +1229,33 @@ VCR_stopRecord()
 	return retVal;
 }
 
+//on titlebar, modifies passed buffer!!
+//if buffer == NULL, remove current active
+void SetActiveMovie(char* buf,int maxlen)
+{
+	static bool active = false;
+	char title[MAX_PATH];
+	if (buf == NULL && titleLength)
+	{
+		GetWindowText(mainHWND, title, MAX_PATH);
+		title[titleLength] = '\0'; //remove movie being played part
+		SetWindowText(mainHWND, title);
+	}
+	else
+	{
+		//original length
+		titleLength = GetWindowText(mainHWND, title, MAX_PATH);
+		_splitpath(buf, 0, 0, buf, 0);
+		//trim trailing spaces because it looks weird
+		while (title[--titleLength] == ' ');
+		title[++titleLength] = '\0';
+
+		strcat(title, " | ");
+		strcat(title, buf);
+		strcat(title, ".m64");
+		SetWindowText(mainHWND, title);
+	}
+}
 
 int
 VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8 )
@@ -1237,7 +1265,6 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 	
 	extern HWND mainHWND;
 	char buf[PATH_MAX];
-	char title[MAX_PATH];
 /*
 	if (m_task != Idle)
 	{
@@ -1264,18 +1291,8 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
     		fprintf( stderr, "[VCR]: Cannot start playback, could not open .m64 file '%s': %s\n", filename, strerror( errno ) );
     		return -1;
         }
-		titleLength = GetWindowText(mainHWND, title, MAX_PATH);
-		_splitpath(buf, 0, 0, buf, 0);
-		//trim trailing spaces because it looks weird
-		while (title[--titleLength] == ' ');
-		title[++titleLength] = '\0';
-
-		strcat(title, " | ");
-		strcat(title, buf);
-		strcat(title, ".m64");
-		SetWindowText(mainHWND, title);
 	}
-
+	SetActiveMovie(buf, MAX_PATH);
     {
         int code = read_movie_header(m_file, &m_header);
         
@@ -1507,13 +1524,7 @@ VCR_stopPlayback()
 {
 #ifdef __WIN32__
 	extern HWND mainHWND;
-	if (titleLength)
-	{
-		char title[MAX_PATH];
-		GetWindowText(mainHWND, title, MAX_PATH);
-		title[titleLength] = '\0'; //remove movie being played part
-		SetWindowText(mainHWND, title);
-	}
+	SetActiveMovie(NULL, 0); //remove from title
 #endif
 	if (m_file && m_task != StartRecording && m_task != Recording)
 	{
