@@ -1553,6 +1553,13 @@ VCR_stopPlayback()
 #else
 		// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
 #endif
+		if (m_inputBuffer)
+		{
+			free(m_inputBuffer);
+			m_inputBuffer = NULL;
+			m_inputBufferPtr = NULL;
+			m_inputBufferSize = 0;
+		}
 
 		return 0;
 	}
