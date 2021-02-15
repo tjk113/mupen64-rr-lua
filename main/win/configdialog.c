@@ -146,7 +146,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[4].pfnCallback = NULL;
  
     psh.dwSize = sizeof(PROPSHEETHEADER);
-    psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW;
+    psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
     psh.hwndParent = hwndOwner;
     psh.hInstance = app_hInstance;
     TranslateDefault("Settings","Settings",titleStr);
