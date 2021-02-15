@@ -100,7 +100,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[0].hInstance = app_hInstance;
     psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
     psp[0].pfnDlgProc = PluginsCfg;
-	TranslateDefault("Config Plugins","Config Plugins",ConfigStr);
+	TranslateDefault("Plugins","Plugins",ConfigStr);
 	psp[0].pszTitle = ConfigStr;
     psp[0].lParam = 0;
     psp[0].pfnCallback = NULL;
@@ -120,7 +120,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[2].hInstance = app_hInstance;
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
     psp[2].pfnDlgProc = GeneralCfg;
-	TranslateDefault("General","General",settingsStr);
+	TranslateDefault("General","General", settingsStr);
     psp[2].pszTitle = settingsStr;
     psp[2].lParam = 0;
     psp[2].pfnCallback = NULL;
@@ -130,7 +130,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[3].hInstance = app_hInstance;
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
     psp[3].pfnDlgProc = AdvancedSettingsProc;
-	TranslateDefault("Advanced Settings","Advanced Settings",AdvSettingsStr);
+	TranslateDefault("Advanced","Advanced",AdvSettingsStr);
     psp[3].pszTitle = AdvSettingsStr;
     psp[3].lParam = 0;
     psp[3].pfnCallback = NULL;
