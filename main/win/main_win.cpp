@@ -2809,13 +2809,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 #ifdef LUA_TRACELOG
 #ifdef LUA_TRACEINTERP
                 if (!emu_launched) {
+                    MessageBox(mainHWND,
+                        "Trace Logging works only with a ROM\n"
+                        "Please load a ROM to use the trace logger.",
+                        NULL, 0);
                     return FALSE;
                 }
 				if(!dynacore) {
+                    //ShowInfo
 					::LuaTraceLogState();
 				}else {
 					MessageBox(mainHWND,
-						"trace logging works only in (pure) interpreter core\n"
+						"Trace Logging works only in (pure) interpreter core\n"
 						"(Menu->Option->Settings->General->CPU Core->(Pure) Interpreter)",
 						NULL, 0);
 				}
