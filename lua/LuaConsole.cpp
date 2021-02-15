@@ -698,7 +698,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		CHAR buf[MAX_PATH];
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 			buf, MAX_PATH);
-		ShellExecute(wnd, "edit", buf, NULL, NULL, SW_SHOWNORMAL);
+		ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
 		return TRUE;
 		}
 	case IDC_BUTTON_LUACLEAR:
