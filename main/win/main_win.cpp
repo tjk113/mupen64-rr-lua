@@ -2816,7 +2816,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     return FALSE;
                 }
 				if(!dynacore) {
-                    //ShowInfo
 					::LuaTraceLogState();
 				}else {
 					MessageBox(mainHWND,
@@ -2972,7 +2971,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      break;
 			case ID_HELP_CONTENS:
                      sprintf(TempMessage,"%sreadme.pdf",AppPath);
-                     ShellExecute(hwnd, "open", TempMessage, NULL, NULL, SW_SHOWNORMAL);           
+                     ShellExecute(0,0, TempMessage, NULL, NULL, SW_SHOWNORMAL);           
                      break;
             case ID_RAMSTART:
             {
