@@ -2808,6 +2808,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_TRACELOG:
 #ifdef LUA_TRACELOG
 #ifdef LUA_TRACEINTERP
+                if (!emu_launched) {
+                    return FALSE;
+                }
 				if(!dynacore) {
 					::LuaTraceLogState();
 				}else {
