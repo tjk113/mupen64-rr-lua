@@ -230,13 +230,12 @@ void savestates_load()
 	{
 		_splitpath(filename, 0, 0, fname,0);
 		strcat(fname, ".st");
-		sprintf(str, "loading %s", fname);
+		sprintf(str, "Loading %s", fname);
 	}
-	else
-		sprintf(str, "loading slot %d", slot);
-		sprintf(fname, "slot %d",slot);
-	display_status(str);
-
+	else if(slot < 9) {
+		sprintf(str, "Loading slot %d", slot);
+		sprintf(fname, "Slot %d", slot);
+	}
 	f = gzopen(filename, "rb");
 
     //failed opening st
@@ -244,12 +243,12 @@ void savestates_load()
 	{
 		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 		free(filename);
-		//sprintf(str, "Savestate \"%s\" not found.\n", fname);
-		//MessageBox(0, str, "Error", MB_ICONWARNING); annoying
-		warn_savestate("Savestate doesn't exist", "You have selected wrong save slot or save doesn't exist");
+		warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
+												  // by moving the warn function it doesn't do this anymore 
 		savestates_job_success = FALSE;
 		return;
 	}
+	display_status(str);
 	free(filename);
 
 	//printf("--------st start---------\n");
