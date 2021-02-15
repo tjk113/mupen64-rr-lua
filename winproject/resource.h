@@ -2,7 +2,7 @@
 // Plik do³¹czany wygenerowany przez œrodowisko Microsoft Visual C++.
 // U¿ywany przez: rsrc.rc
 //
-#define MUPEN_VERSION     "Mupen 64 1.0.5"
+#define MUPEN_VERSION     "Mupen 64 1.0.6"
 
 #define IDR_MYMENU 101
 #define IDR_ACCEL 103
