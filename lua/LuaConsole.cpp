@@ -179,6 +179,11 @@ public:
 		ShowInfo("Lua destruct");
 	}
 	void run(char *path){
+
+		std::string pathStr(path);
+		if ((&pathStr.substr(pathStr.find_last_of(".") + 1))->compare("lua") || path == NULL || &path == NULL)
+			return;
+
 		ASSERT(!isrunning());
 		brush = (HBRUSH)GetStockObject(WHITE_BRUSH);
 		pen = (HPEN)GetStockObject(BLACK_PEN);
@@ -698,6 +703,9 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		CHAR buf[MAX_PATH];
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 			buf, MAX_PATH);
+			if(buf == NULL || strlen(buf) == 0)/* || strlen(buf)>MAX_PATH*/
+			return FALSE; // previously , clicking edit with empty path will open current directory in explorer, which is very bad
+
 		ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
 		return TRUE;
 		}
