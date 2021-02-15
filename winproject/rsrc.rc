@@ -130,8 +130,8 @@ BEGIN
     END
     POPUP "&Lua Script"
     BEGIN
-        MENUITEM "New Instance...",             ID_MENU_LUASCRIPT_NEW
-        MENUITEM "Close ALL Instance",          ID_MENU_LUASCRIPT_CLOSEALL
+        MENUITEM "New Instance",                 ID_MENU_LUASCRIPT_NEW
+        MENUITEM "Close All",           ID_MENU_LUASCRIPT_CLOSEALL
     END
 END
 
@@ -160,8 +160,8 @@ BEGIN
     DEFPUSHBUTTON   "&Ok",IDOK,69,197,60,14
     PUSHBUTTON      "&Web Site",IDC_WEBSITE,134,197,60,14
     GROUPBOX        "About this program",IDC_STATIC,5,65,189,127
-    LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanx to the many others who have hel",IDC_STATIC,13,82,173,104
-    CONTROL         "",133,"Static",SS_BITMAP,0,0,200,100
+    LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanks to the many others who helped",IDC_STATIC,13,82,173,104
+    CONTROL         "",133,"Static",SS_BITMAP,0,0,200,100 
 END
 
 IDD_ADVANCED_OPTIONS DIALOGEX 0, 0, 231, 262
@@ -225,7 +225,7 @@ FONT 8, "Ms Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Run",IDC_BUTTON_LUASTATE,193,23,40,18
     EDITTEXT        IDC_TEXTBOX_LUASCRIPTPATH,7,7,226,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Browse...",IDC_BUTTON_LUABROWSE,7,23,40,18
+    PUSHBUTTON      "Browse",IDC_BUTTON_LUABROWSE,7,23,40,18
     PUSHBUTTON      "Edit",IDC_BUTTON_LUAEDIT,49,23,40,18
     PUSHBUTTON      "Clear",IDC_BUTTON_LUACLEAR,109,23,40,18
     PUSHBUTTON      "Stop",IDC_BUTTON_LUASTOP,151,23,40,18,WS_DISABLED
