@@ -2257,6 +2257,9 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
 
+      EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);           // mf enabled lmao
+      SendMessage(hTool, TB_ENABLEBUTTON, ID_TRACELOG, TRUE);
+
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
       EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_ENABLED);    //Record Menu
 if(!continue_vcr_on_restart_mode)
@@ -2295,6 +2298,8 @@ if(!continue_vcr_on_restart_mode)
       DisableRecentRoms( hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
+      EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);           // mf enabled lmao
+      SendMessage(hTool, TB_ENABLEBUTTON, ID_TRACELOG, FALSE);
      
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
 //      EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_GRAYED);    //Record Menu
@@ -2808,13 +2813,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_TRACELOG:
 #ifdef LUA_TRACELOG
 #ifdef LUA_TRACEINTERP
-                if (!emu_launched) {
-                    MessageBox(mainHWND,
-                        "Trace Logging works only with a ROM\n"
-                        "Please load a ROM to use the trace logger.",
-                        NULL, 0);
-                    return FALSE;
-                }
 				if(!dynacore) {
 					::LuaTraceLogState();
 				}else {
