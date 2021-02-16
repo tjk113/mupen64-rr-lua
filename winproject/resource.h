@@ -405,6 +405,7 @@
 #define ID_LANG_INFO_MENU               40002
 #define AC_PAUSE                        40004
 #define EMU_RESET                       40007
+#define IDC_STARTFROM2					40008
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

@@ -1396,6 +1396,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 				
 				if(strlen(warningStr) > 0)
 				{
+					
 					if(dontPlay)
 						printError(warningStr);
 					else
