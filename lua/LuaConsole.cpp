@@ -43,7 +43,6 @@ bool enableTraceLog;
 bool traceLogMode;
 bool enablePCBreak;
 bool maximumSpeedMode;
-bool anyInstanceRunning;
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
@@ -196,7 +195,6 @@ public:
 		runFile(path);
 		if(isrunning())
 			SetButtonState(ownWnd, true);
-		anyInstanceRunning = true;
 		ShowInfo("Lua run");
 	}
 	void stop() {
@@ -209,7 +207,6 @@ public:
 		deleteGDIObject(font, SYSTEM_FONT);
 		deleteLuaState();
 		SetButtonState(ownWnd, false);
-		anyInstanceRunning = false;
 		ShowInfo("Lua stop");
 	}
 	bool isrunning() {
@@ -2908,8 +2905,10 @@ void NewLuaScript(void(*callback)()) {
 }
 
 void CloseAllLuaScript(void) {
-	if (!anyInstanceRunning)
+	if (LuaEngine::luaWindowMap.empty()||LuaEngine::luaWindows.empty()) { 
+		//printf("No active lua scripts");
 		return;
+	}
 
 	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::CloseAll;
