@@ -1241,7 +1241,7 @@ void SetActiveMovie(char* buf,int maxlen)
 		title[titleLength] = '\0'; //remove movie being played part
 		SetWindowText(mainHWND, title);
 	}
-	else
+	else if(buf != NULL && m_task!=Idle) // thanks to madghostek
 	{
 		//original length
 		titleLength = GetWindowText(mainHWND, title, MAX_PATH);
