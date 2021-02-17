@@ -904,11 +904,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          TranslateAdvancedDialog(hwnd) ;                           
          return TRUE;
          
-      case WM_COMMAND:
-        //switch(LOWORD(wParam))
-        //{
-        //}
-        break;
+      
 
        case WM_NOTIFY:
            if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
