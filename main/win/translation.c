@@ -306,12 +306,12 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     //SetMenuTranslatedString(submenu,0,"Reset","F1");
     SetMenuTranslatedString(submenu,0,"Pause","");
     SetMenuTranslatedString(submenu,1,"Frame Advance","");
-    SetMenuTranslatedString(submenu,2,"Generate Bitmap","");
+    SetMenuTranslatedString(submenu,2,"Take Screenshot","");
     SetMenuTranslatedString(submenu,4,"Save State","");
-    SetMenuTranslatedString(submenu,5,"Save As...","Ctrl A");
+    SetMenuTranslatedString(submenu,5,"Save As","Ctrl A");
     SetMenuTranslatedString(submenu,6,"Load State","");
-    SetMenuTranslatedString(submenu,7,"Load As...","Ctrl L");
-    SetMenuTranslatedString(submenu,9,"Current Save State","");
+    SetMenuTranslatedString(submenu,7,"Load As","Ctrl L");
+    SetMenuTranslatedString(submenu,9,"Selected Save State","");
     
     //Options menu
     submenu = GetSubMenu(hMenu,2);
@@ -380,22 +380,22 @@ void TranslateConfigDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_GFXPLUGIN,"Video Plugin");
     SetItemTranslatedString(hwnd,IDGFXCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDGFXTEST,"Test");
-    SetItemTranslatedString(hwnd,IDGFXABOUT,"Plugin About");
+    SetItemTranslatedString(hwnd,IDGFXABOUT, "About");
     
     SetItemTranslatedString(hwnd,IDC_INPUTPLUGIN,"Input Plugin");
     SetItemTranslatedString(hwnd,IDINPUTCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDINPUTTEST,"Test");
-    SetItemTranslatedString(hwnd,IDINPUTABOUT,"Plugin About");
+    SetItemTranslatedString(hwnd,IDINPUTABOUT,"About");
     
     SetItemTranslatedString(hwnd,IDC_SOUNDPLUGIN,"Sound Plugin");
     SetItemTranslatedString(hwnd,IDSOUNDCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDSOUNDTEST,"Test");
-    SetItemTranslatedString(hwnd,IDSOUNDABOUT,"Plugin About");
+    SetItemTranslatedString(hwnd,IDSOUNDABOUT,"About");
     
     SetItemTranslatedString(hwnd,IDC_RSPPLUGIN,"RSP Plugin");
     SetItemTranslatedString(hwnd,IDRSPCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDRSPTEST,"Test");
-    SetItemTranslatedString(hwnd,IDRSPABOUT,"Plugin About");
+    SetItemTranslatedString(hwnd,IDRSPABOUT,"About");
   
 }
 

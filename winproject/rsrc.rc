@@ -64,7 +64,7 @@ BEGIN
     BEGIN
         MENUITEM "Pause",                       EMU_PAUSE, GRAYED
         MENUITEM "Frame Advance",               EMU_FRAMEADVANCE, GRAYED
-        MENUITEM "Generate Bitmap",             GENERATE_BITMAP, GRAYED
+        MENUITEM "Take Screenshot",             GENERATE_BITMAP, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Save State",                 STATE_SAVE, GRAYED
         MENUITEM "Save State As...\tCtrl A",    STATE_SAVEAS, GRAYED
