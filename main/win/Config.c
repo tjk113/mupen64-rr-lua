@@ -173,6 +173,7 @@ void LoadConfig()
     Config.GuiStatusbar = ReadCfgInt("Advanced", "Use Statusbar", 1);
     Config.AutoIncSaveSlot = ReadCfgInt("Advanced", "Auto Increment Save Slot", 0);
     round_to_zero = ReadCfgInt("Advanced", "Round To Zero", 0);
+    input_delay = ReadCfgInt("Advanced", "Old Input Delay", 0);
 
     //Compatibility Settings
     no_audio_delay = ReadCfgInt("Compatibility", "No Audio Delay", 0);
@@ -338,6 +339,7 @@ void SaveConfig()
     WriteCfgInt("Advanced", "Use Statusbar", Config.GuiStatusbar);
     WriteCfgInt("Advanced", "Auto Increment Save Slot", Config.AutoIncSaveSlot);
     WriteCfgInt("Advanced", "Round To Zero", round_to_zero);
+    WriteCfgInt("Advanced", "Old Input Delay", input_delay);
 
     WriteCfgInt("CPU", "Core", Config.guiDynacore);
 

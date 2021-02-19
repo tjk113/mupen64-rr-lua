@@ -47,7 +47,7 @@
 static DWORD dwExitCode;
 static DWORD Id;
 BOOL stopScan = FALSE;
-HWND WINAPI CreateTrackbar( HWND hwndDlg, UINT iMin, UINT iMax,  UINT iSelMin, UINT iSelMax);
+HWND __stdcall CreateTrackbar( HWND hwndDlg, UINT iMin, UINT iMax,  UINT iSelMin, UINT iSelMax); // winapi macro was very confusing
 HWND hwndTrack ; 
 
 extern int no_audio_delay;
@@ -885,7 +885,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          WriteCheckBoxValue( hwnd, IDC_GUI_STATUSBAR, Config.GuiStatusbar);
          WriteCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT, Config.AutoIncSaveSlot);
          WriteCheckBoxValue( hwnd, IDC_ROUNDTOZERO, round_to_zero);
-                  
+         WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, input_delay);
+
          WriteCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
          WriteCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
          
@@ -915,7 +916,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 Config.GuiStatusbar = ReadCheckBoxValue( hwnd, IDC_GUI_STATUSBAR);
 	            Config.AutoIncSaveSlot = ReadCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT);
                 round_to_zero = ReadCheckBoxValue( hwnd, IDC_ROUNDTOZERO);
-                                                                                               
+                input_delay = ReadCheckBoxValue(hwnd, IDC_INPUTDELAY);
+
                 no_audio_delay = ReadCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY);
                 no_compiled_jump = ReadCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP);
                 

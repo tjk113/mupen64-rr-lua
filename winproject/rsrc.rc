@@ -170,6 +170,8 @@ FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Common Options",IDC_COMMON,7,7,215,60
     CONTROL         "Start game in full screen",IDC_STARTFULLSCREEN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,100,10
+    CONTROL         "1f Input Delay", IDC_INPUTDELAY, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 30, 70, 10
+
     CONTROL         "Pause emulation when window is not active",IDC_PAUSENOTACTIVE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,100,10
     CONTROL         "Use global plugins settings",IDC_PLUGIN_OVERWRITE,
@@ -190,7 +192,7 @@ BEGIN
     CONTROL         "Comments",IDC_COLUMN_COMMENTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,144,100,10
     CONTROL         "File Name",IDC_COLUMN_FILENAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,158,100,10
     CONTROL         "MD5",IDC_COLUMN_MD5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,172,100,10
-    GROUPBOX        "Wii VC Options",IDC_WIIVC_OPTIONS,7,207,98,50
+    GROUPBOX        "Compatibility Options",IDC_WIIVC_OPTIONS,7,207,98,50
     CONTROL         "Round To Zero",IDC_ROUNDTOZERO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,221,75,10
     GROUPBOX        "Recording Options",IDC_RECORDINGOPT,112,207,110,50
     CONTROL         "Record resets",IDC_NORESET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,119,220,87,10
