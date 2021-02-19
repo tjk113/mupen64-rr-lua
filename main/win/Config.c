@@ -34,6 +34,7 @@
 extern int no_audio_delay;
 extern int no_compiled_jump;
 extern int round_to_zero;
+int input_delay;
 
 ////////////////////// Service functions and structures ////////////////////////
 
