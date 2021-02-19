@@ -1229,7 +1229,6 @@ void pauseEmu(BOOL quiet)
 BOOL StartRom(char *fullRomPath)
 {
      LONG winstyle;
-  	
      if (emu_launched) {
 			/*closeRom();*/
        really_restart_mode = TRUE;
@@ -1294,7 +1293,7 @@ BOOL StartRom(char *fullRomPath)
                          SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
                          SetStatusTranslatedString(hStatus,0,"Emulation started");
                          printf("Thread created\n");
-                         //SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)"" ); 
+                         EnableEmulationMenuItems(TRUE);
                          return FALSE;
                      }
                      return 0;
@@ -2256,10 +2255,18 @@ void EnableEmulationMenuItems(BOOL flag)
       DisableRecentRoms( hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
-
-      EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);           // mf enabled lmao
-      SendMessage(hTool, TB_ENABLEBUTTON, ID_TRACELOG, TRUE);
-
+      
+      if (dynacore == 0) {
+          EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
+          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
+      }
+      else {
+          EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
+          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, true);
+      }
+      
+      
+      
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
       EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_ENABLED);    //Record Menu
 if(!continue_vcr_on_restart_mode)
@@ -2298,8 +2305,11 @@ if(!continue_vcr_on_restart_mode)
       DisableRecentRoms( hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
-      EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);           // mf enabled lmao
-      SendMessage(hTool, TB_ENABLEBUTTON, ID_TRACELOG, FALSE);
+
+      if (!dynacore) {
+          EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
+          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
+      }
      
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
 //      EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_GRAYED);    //Record Menu
@@ -2813,22 +2823,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_TRACELOG:
 #ifdef LUA_TRACELOG
 #ifdef LUA_TRACEINTERP
+                // keep if check just in case user manages to screw with mupen config or something
 				if(!dynacore) {
 					::LuaTraceLogState();
-				}else {
-					MessageBox(mainHWND,
-						"Trace Logging works only in (pure) interpreter core\n"
-						"(Menu->Option->Settings->General->CPU Core->(Pure) Interpreter)",
-						NULL, 0);
 				}
 #else
 				if(!dynacore && interpcore == 1) {
 					::LuaTraceLogState();
-				}else {
-					MessageBox(mainHWND,
-						"trace logging works only in pure interpreter core\n"
-						"(Menu->Option->Settings->General->CPU Core->Pure Interpreter)",
-						NULL, 0);
 				}
 #endif
 #endif
