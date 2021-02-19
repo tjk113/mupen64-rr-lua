@@ -2629,6 +2629,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				savestates_job = LOADSTATE;
 			}
 		}
+		else if (strcmp(fext, ".LUA") == 0) {
+			if (rom) {
+				LuaOpenAndRun(fname);
+			}
+		}
 		
 		break;
 	case WM_KEYDOWN:

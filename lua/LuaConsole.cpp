@@ -466,6 +466,7 @@ public:
 			struct {
 				HWND wnd;
 				char path[MAX_PATH];
+				int useLastWnd;
 			} runPath;
 			struct {
 				HWND wnd;
@@ -513,7 +514,14 @@ public:
 				break;
 			}
 			case RunPath:{
-				HWND wnd = msg->runPath.wnd;
+				HWND wnd;
+				if (msg->runPath.useLastWnd) {
+					wnd = luaWindows.back();
+					SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), msg->runPath.path);
+				}
+				else {
+					wnd = msg->runPath.wnd;
+				}
 				Lua *lua = GetWindowLua(wnd);
 				if(lua) {
 					lua->stop();
@@ -2959,6 +2967,24 @@ void LuaReload() {
 	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::ReloadFirst;
 	LuaEngine::luaMessage.post(msg);
+}
+
+static char ExternallyLoadedPath[MAX_PATH];
+
+static void RunExternallyLoadedPath(void) {
+	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
+	msg->type = LuaEngine::LuaMessage::RunPath;
+	strcpy(msg->runPath.path, ExternallyLoadedPath);
+	// using the last window works off the assumption that no new windows
+	// were created between the time the window was created, and the time
+	// this callback is called (practically safe, theoretically not good)
+	msg->runPath.useLastWnd = 1; 
+	LuaEngine::luaMessage.post(msg);
+}
+
+void LuaOpenAndRun(const char *path) {
+	strcpy(ExternallyLoadedPath, path);
+	PostMessage(mainHWND, WM_COMMAND, ID_MENU_LUASCRIPT_NEW, (LPARAM)RunExternallyLoadedPath);
 }
 
 void InitializeLuaDC(HWND mainWnd) {
