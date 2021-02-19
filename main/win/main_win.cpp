@@ -63,7 +63,7 @@ extern "C" {
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 void StartMovies();
-void StartLuaScript();
+void StartLuaScripts();
 void StartSavestate();
 
 typedef std::string String;
@@ -2371,7 +2371,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	ThreadFuncState = TFS_EMULATING;
     ShowInfo("Emu thread: Emulation started....");
     StartMovies(); // check commandline args
-	StartLuaScript();
+	StartLuaScripts();
 	StartSavestate();
     AtResetCallback();
     go();
@@ -3348,13 +3348,33 @@ void StartMovies()
 }
 
 //-lua, -g
-void StartLuaScript() {
+// runs multiple lua scripts with paths seperated by ;
+// Ex: "path\script1.lua;path\script2.lua"
+// From testing only works with 2 scripts ?
+void StartLuaScripts() {
 	HMENU hMenu = GetMenu(mainHWND);
 	if (CmdLineParameterExist(CMDLINE_LUA) && CmdLineParameterExist(CMDLINE_GAME_FILENAME))
 	{
+		char files[MAX_PATH];
+		GetCmdLineParameter(CMDLINE_LUA, files);
+		int len = strlen(files);
+		int numScripts = 1;
+		int scriptStartPositions[MAX_LUA_OPEN_AND_RUN_INSTANCES] = {0};
+		for (int i = 0; i < len; ++i) {
+			if (files[i] == ';') {
+				files[i] = 0; // turn ; into \0 so we can copy each part easily
+				scriptStartPositions[numScripts] = i + 1;
+				++numScripts;
+				if (numScripts >= MAX_LUA_OPEN_AND_RUN_INSTANCES) {
+					break;
+				}
+			}
+		}
 		char file[MAX_PATH];
-		GetCmdLineParameter(CMDLINE_LUA, file);
-		LuaOpenAndRun(file);
+		for (int i = 0; i < numScripts; ++i) {
+			strcpy(file, &files[scriptStartPositions[i]]);
+			LuaOpenAndRun(file);
+		}
 	}
 }
 

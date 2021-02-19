@@ -2969,12 +2969,16 @@ void LuaReload() {
 	LuaEngine::luaMessage.post(msg);
 }
 
-static char ExternallyLoadedPath[MAX_PATH];
+// allow loading 10 lua scripts at a time
+static char ExternallyLoadedPaths[MAX_LUA_OPEN_AND_RUN_INSTANCES][MAX_PATH];
+static int elpLoadIndex = 0; // increment after runPath message has been sent
+static int elpSaveIndex = 0; // increment after new console created
 
 static void RunExternallyLoadedPath(void) {
 	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::RunPath;
-	strcpy(msg->runPath.path, ExternallyLoadedPath);
+	strcpy(msg->runPath.path, ExternallyLoadedPaths[elpLoadIndex]);
+	elpLoadIndex = (elpLoadIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
 	// using the last window works off the assumption that no new windows
 	// were created between the time the window was created, and the time
 	// this callback is called (practically safe, theoretically not good)
@@ -2983,7 +2987,8 @@ static void RunExternallyLoadedPath(void) {
 }
 
 void LuaOpenAndRun(const char *path) {
-	strcpy(ExternallyLoadedPath, path);
+	strcpy(ExternallyLoadedPaths[elpSaveIndex], path);
+	elpSaveIndex = (elpSaveIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
 	PostMessage(mainHWND, WM_COMMAND, ID_MENU_LUASCRIPT_NEW, (LPARAM)RunExternallyLoadedPath);
 }
 

@@ -30,7 +30,7 @@
 BOOL cmdlineMode = 0;
 BOOL cmdlineSave = 0;
 BOOL cmdlineNoGui = 0;
-char cmdLineParameterBuf[250] = {0};
+char cmdLineParameterBuf[512] = {0};
 void SaveCmdLineParameter(char *cmdline)
 {
 	strcpy(cmdLineParameterBuf, cmdline);
