@@ -2048,6 +2048,26 @@ int DrawRect(lua_State *L) {
 		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
+int FillRect(lua_State* L) {
+	Lua* lua = GetLuaClass(L);
+	RECT rect;
+	COLORREF color;
+	color = RGB(
+		luaL_checknumber(L, 5),
+		luaL_checknumber(L, 6),
+		luaL_checknumber(L, 7)
+	);
+	
+	rect.bottom = luaL_checknumber(L, 1);
+	rect.left = luaL_checknumber(L, 2);
+	rect.right = luaL_checknumber(L, 3);
+	rect.top = luaL_checknumber(L, 4);
+	
+	//printf("ok");
+	HBRUSH brush = CreateSolidBrush(color);
+	::FillRect(luaDC,&rect, brush);
+	return 0;
+}
 int DrawEllipse(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	lua->selectBrush();
@@ -2869,6 +2889,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"text", TextOut},
 	{"drawtext", DrawText},
 	{"rect", DrawRect},
+	{"fillrect", FillRect}, // Experimental
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
 	{"line", DrawLine},
