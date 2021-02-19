@@ -381,7 +381,7 @@ void gen_interupt()
 		break;
 
 	case VI_INT:
-		printf("VI, count: %x\n", q->count);
+		//printf("VI, count: %x\n", q->count);
 #ifdef LUA_EMUPAUSED_WORK
 		AtIntervalLuaCallback();
 #endif
