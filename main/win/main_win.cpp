@@ -63,6 +63,8 @@ extern "C" {
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 void StartMovies();
+void StartLuaScript();
+void StartSavestate();
 
 typedef std::string String;
 bool shouldSave = false;
@@ -2368,7 +2370,9 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
     SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
 	ThreadFuncState = TFS_EMULATING;
     ShowInfo("Emu thread: Emulation started....");
-    StartMovies();
+    StartMovies(); // check commandline args
+	StartLuaScript();
+	StartSavestate();
     AtResetCallback();
     go();
     ShowInfo("Emu thread: Core stopped...");
@@ -3341,6 +3345,30 @@ void StartMovies()
         }
         resumeEmu(FALSE);
     }
+}
+
+//-lua, -g
+void StartLuaScript() {
+	HMENU hMenu = GetMenu(mainHWND);
+	if (CmdLineParameterExist(CMDLINE_LUA) && CmdLineParameterExist(CMDLINE_GAME_FILENAME))
+	{
+		char file[MAX_PATH];
+		GetCmdLineParameter(CMDLINE_LUA, file);
+		LuaOpenAndRun(file);
+	}
+}
+
+//-st, -g
+void StartSavestate() {
+	HMENU hMenu = GetMenu(mainHWND);
+	if (CmdLineParameterExist(CMDLINE_SAVESTATE) && CmdLineParameterExist(CMDLINE_GAME_FILENAME)
+		&& !CmdLineParameterExist(CMDLINE_PLAY_M64))
+	{
+		char file[MAX_PATH];
+		GetCmdLineParameter(CMDLINE_SAVESTATE, file);
+		savestates_select_filename(file);
+		savestates_job = LOADSTATE;
+	}
 }
 
 int WINAPI WinMain(
