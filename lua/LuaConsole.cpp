@@ -466,7 +466,6 @@ public:
 			struct {
 				HWND wnd;
 				char path[MAX_PATH];
-				int useLastWnd;
 			} runPath;
 			struct {
 				HWND wnd;
@@ -515,7 +514,10 @@ public:
 			}
 			case RunPath:{
 				HWND wnd;
-				if (msg->runPath.useLastWnd) {
+				if (msg->runPath.wnd == NULL) {
+					if (luaWindows.size() == 0) {
+						break; // silently skip the message if it can't be run
+					}
 					wnd = luaWindows.back();
 					SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), msg->runPath.path);
 				}
@@ -2983,7 +2985,7 @@ static void RunExternallyLoadedPath() {
 	msg->type = LuaEngine::LuaMessage::RunPath;
 	strcpy(msg->runPath.path, ExternallyLoadedPaths[elpLoadIndex]);
 	elpLoadIndex = (elpLoadIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
-	msg->runPath.useLastWnd = 1; 
+	msg->runPath.wnd = NULL; 
 	LuaEngine::luaMessage.post(msg);
 }
 
