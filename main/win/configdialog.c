@@ -877,6 +877,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 {
         
     switch(Message) {
+    
       case WM_INITDIALOG:
          WriteCheckBoxValue( hwnd, IDC_STARTFULLSCREEN, Config.StartFullScreen);
          WriteCheckBoxValue( hwnd, IDC_PAUSENOTACTIVE, Config.PauseWhenNotActive);
@@ -917,8 +918,13 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 	            Config.AutoIncSaveSlot = ReadCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT);
                 round_to_zero = ReadCheckBoxValue( hwnd, IDC_ROUNDTOZERO);
                 input_delay = ReadCheckBoxValue(hwnd, IDC_INPUTDELAY);
+                
                 LUA_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
-
+                if (LUA_double_buffered && strstr(gfx_name, "Jabo") == 0) {
+                    //CheckDlgButton(hwnd, IDC_CLUADOUBLEBUFFER, 0);
+                    //LUA_double_buffered = false;
+                    MessageBoxA(mainHWND, "Your current video plugin might produce unexpected results with LUA double buffering.", "Incompatible Plugin", 0);
+                }
                 no_audio_delay = ReadCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY);
                 no_compiled_jump = ReadCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP);
                 
