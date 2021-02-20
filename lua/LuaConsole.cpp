@@ -674,9 +674,9 @@ void SetButtonState(HWND wnd, bool state) {
 }
 
 BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
-	switch(id) {
-	case IDC_BUTTON_LUASTATE:{
-		LuaMessage::Msg *msg = new LuaMessage::Msg();
+	switch (id) {
+	case IDC_BUTTON_LUASTATE: {
+		LuaMessage::Msg* msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::RunPath;
 		msg->runPath.wnd = wnd;
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -685,32 +685,38 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		luaMessage.post(msg);
 		return TRUE;
 	}
-	case IDC_BUTTON_LUASTOP:{
-		LuaMessage::Msg *msg = new LuaMessage::Msg();
+	case IDC_BUTTON_LUASTOP: {
+		LuaMessage::Msg* msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::StopCurrent;
 		msg->stopCurrent.wnd = wnd;
 		luaMessage.post(msg);
 		return TRUE;
 	}
-	case IDC_BUTTON_LUABROWSE:{
+	case IDC_BUTTON_LUABROWSE: {
 		std::string newPath = OpenLuaFileDialog();
-		if(!newPath.empty())
+		if (!newPath.empty())
 			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				newPath.c_str());
 		shouldSave = true;
 		return TRUE;
-		}
-	case IDC_BUTTON_LUAEDIT:{
+	}
+	case IDC_BUTTON_LUAEDIT: {
 		CHAR buf[MAX_PATH];
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 			buf, MAX_PATH);
-			if(buf == NULL || strlen(buf) == 0)/* || strlen(buf)>MAX_PATH*/
+		if (buf == NULL || strlen(buf) == 0)/* || strlen(buf)>MAX_PATH*/
 			return FALSE; // previously , clicking edit with empty path will open current directory in explorer, which is very bad
 
 		ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
 		return TRUE;
-		}
+	}
 	case IDC_BUTTON_LUACLEAR:
+		if (GetAsyncKeyState(VK_MENU)) {
+			// clear path
+			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
+			return TRUE;
+		}
+
 		SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
 		return TRUE;
 	}
