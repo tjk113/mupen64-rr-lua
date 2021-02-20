@@ -2816,8 +2816,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_MENU_LUASCRIPT_CLOSEALL:
 				{
 #ifdef LUA_CONSOLE
-					MUPEN64RR_DEBUGINFO("LuaScript CloseALL");
-					::CloseAllLuaScript();
+                
+                    ::CloseAllLuaScript();
 #endif
 				} break;
 			case ID_TRACELOG:

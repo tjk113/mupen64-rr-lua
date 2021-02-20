@@ -2927,10 +2927,10 @@ void NewLuaScript(void(*callback)()) {
 
 void CloseAllLuaScript(void) {
 	if (LuaEngine::luaWindowMap.empty()||LuaEngine::luaWindows.empty()) { 
-		//printf("No active lua scripts");
+		MUPEN64RR_DEBUGINFO("No scripts running");
 		return;
 	}
-
+	MUPEN64RR_DEBUGINFO("Close all scripts");
 	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::CloseAll;
 	LuaEngine::luaMessage.post(msg);
