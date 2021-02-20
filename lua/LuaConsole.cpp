@@ -2969,23 +2969,25 @@ void LuaReload() {
 	LuaEngine::luaMessage.post(msg);
 }
 
-// allow loading 10 lua scripts at a time
+// allow loading multiple lua scripts at a time
 static char ExternallyLoadedPaths[MAX_LUA_OPEN_AND_RUN_INSTANCES][MAX_PATH];
 static int elpLoadIndex = 0; // increment after runPath message has been sent
 static int elpSaveIndex = 0; // increment after new console created
 
-static void RunExternallyLoadedPath(void) {
+// Send a lua message to run a path on the last lua window.
+// This works off the assumption that no new windows were made between
+// the time the desired window was created, and the time this callback
+// is run (practically safe, theoretically not good)
+static void RunExternallyLoadedPath() {
 	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::RunPath;
 	strcpy(msg->runPath.path, ExternallyLoadedPaths[elpLoadIndex]);
 	elpLoadIndex = (elpLoadIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
-	// using the last window works off the assumption that no new windows
-	// were created between the time the window was created, and the time
-	// this callback is called (practically safe, theoretically not good)
 	msg->runPath.useLastWnd = 1; 
 	LuaEngine::luaMessage.post(msg);
 }
 
+// Stores the path to be used after a new lua window is created
 void LuaOpenAndRun(const char *path) {
 	strcpy(ExternallyLoadedPaths[elpSaveIndex], path);
 	elpSaveIndex = (elpSaveIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
