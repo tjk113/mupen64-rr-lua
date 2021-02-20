@@ -56,7 +56,7 @@
 #include "../config.h"
 #ifndef __WIN32__
 #include <SDL.h>
-#else
+#endif
 #if defined (__linux__)
 #include <signal.h>
 #endif
