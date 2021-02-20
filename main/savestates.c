@@ -255,7 +255,11 @@ void savestates_load()
 	gzread(f, buf, 32);
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
+		if(!VCR_isRecording())
 		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version");
+		else
+		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version\nRecording will be stopped");
+
 		gzclose(f);
 		savestates_job_success = FALSE;
 		if (VCR_isRecording()) VCR_stopRecord();
