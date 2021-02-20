@@ -18,7 +18,8 @@ void WriteCfgString   (char *Section,char *Key,char *Value) ;
 void WriteCfgInt      (char *Section,char *Key,int Value) ;
 void ReadCfgString    (char *Section,char *Key,char *DefaultValue,char *retValue) ;
 int ReadCfgInt        (char *Section,char *Key,int DefaultValue) ;
-extern int input_delay; // ??? extern int input_delay: linker error, this: linker error. 
+extern int input_delay;
+extern int LUA_double_buffered; 
 
 void LoadConfig()  ;
 void SaveConfig()  ; 

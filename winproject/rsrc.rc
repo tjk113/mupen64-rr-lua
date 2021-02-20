@@ -171,6 +171,7 @@ BEGIN
     GROUPBOX        "Common Options",IDC_COMMON,7,7,215,60
     CONTROL         "Start game in full screen",IDC_STARTFULLSCREEN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,100,10
     CONTROL         "1f Input Delay", IDC_INPUTDELAY, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 100, 84, 80, 18
+    CONTROL         "LUA Double Buffer", IDC_CLUADOUBLEBUFFER, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 100, 105, 80, 18
 
     CONTROL         "Pause emulation when window is not active",IDC_PAUSENOTACTIVE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,100,10
@@ -183,7 +184,7 @@ BEGIN
     CONTROL         "No audio delay (it can fix some compatibility issues but audio won't be synchronised with video)",IDC_NO_AUDIO_DELAY,
                     "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,84,60,18
     CONTROL         "No compiled jump (improves compatibility at the cost of some speed)",IDC_NO_COMPILED_JUMP,
-                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,105,200,18
+                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,105,80,18
     GROUPBOX        "ROM Browser Columns",IDC_ROMBROWSERCOLUMNS,7,131,215,73
     CONTROL         "Good Name",IDC_COLUMN_GOODNAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,144,100,10
     CONTROL         "Internal Name",IDC_COLUMN_INTERNALNAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,158,100,10

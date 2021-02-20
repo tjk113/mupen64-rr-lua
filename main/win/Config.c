@@ -35,6 +35,7 @@ extern int no_audio_delay;
 extern int no_compiled_jump;
 extern int round_to_zero;
 int input_delay;
+int LUA_double_buffered;
 
 ////////////////////// Service functions and structures ////////////////////////
 
@@ -175,6 +176,7 @@ void LoadConfig()
     Config.AutoIncSaveSlot = ReadCfgInt("Advanced", "Auto Increment Save Slot", 0);
     round_to_zero = ReadCfgInt("Advanced", "Round To Zero", 0);
     input_delay = ReadCfgInt("Advanced", "Old Input Delay", 0);
+    LUA_double_buffered = ReadCfgInt("Advanced", "LUA Double Buffer", 1);
 
     //Compatibility Settings
     no_audio_delay = ReadCfgInt("Compatibility", "No Audio Delay", 0);
@@ -341,6 +343,7 @@ void SaveConfig()
     WriteCfgInt("Advanced", "Auto Increment Save Slot", Config.AutoIncSaveSlot);
     WriteCfgInt("Advanced", "Round To Zero", round_to_zero);
     WriteCfgInt("Advanced", "Old Input Delay", input_delay);
+    WriteCfgInt("Advanced", "LUA Double Buffer", LUA_double_buffered);
 
     WriteCfgInt("CPU", "Core", Config.guiDynacore);
 

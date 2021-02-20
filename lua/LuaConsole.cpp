@@ -19,6 +19,8 @@
 #include "../main/plugin.h"
 #include "../main/disasm.h"
 #include "../main/savestates.h"
+#include "../main/win/Config.h"
+
 
 #ifdef LUA_CONSOLE
 
@@ -761,47 +763,29 @@ void InitializeLuaDC_(HWND mainWnd){
 	if(luaDC) {
 		FinalizeLuaDC();
 	}
+	HDC mainDC;
 	RECT r;
 	GetClientRect(mainWnd, &r);
-	/*
-	WNDCLASS wc = {0};
-	wc.lpfnWndProc = LuaGUIWndProc;
-	wc.hInstance = app_hInstance;
-	wc.lpszClassName = "Mupen64_LuaGUIWnd";
-	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-	ATOM atom = RegisterClass(&wc);
-	DEBUG_GETLASTERROR;
-	luaGUIWnd = CreateWindowEx(0, (LPCTSTR)atom, "",
-		WS_VISIBLE | WS_POPUP, 50, 50, r.right, r.bottom,
-		mainHWND, NULL, app_hInstance, NULL);
-	DEBUG_GETLASTERROR;
-	*/
-/*
-	HDC mainDC = GetDC(mainWnd);
-	luaDC = CreateCompatibleDC(mainDC);
-	DEBUG_GETLASTERROR;
-	BITMAPINFO b = {0};
-	b.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	b.bmiHeader.biWidth = r.right; b.bmiHeader.biHeight = -r.bottom;
-	b.bmiHeader.biPlanes = 1; b.bmiHeader.biBitCount = 32;
-	b.bmiHeader.biCompression = BI_RGB;
-	HBITMAP bh = CreateDIBSection(NULL, &b, DIB_RGB_COLORS,
-		(VOID**)&luaDCBuf, NULL, 0);
-	SelectObject(luaDC, bh);
-	DEBUG_GETLASTERROR;
-	ReleaseDC(mainWnd, mainDC);
-	DEBUG_GETLASTERROR;
-*/
 	luaDC = GetDC(mainWnd);
+	
+	if(LUA_double_buffered){
+		mainDC = GetDC(mainWnd);
+		luaDC = CreateCompatibleDC(mainDC);
+		HBITMAP bmp = CreateCompatibleBitmap(mainDC, r.right, r.bottom);
+		SelectObject(luaDC, bmp);
+	}
+	
 	luaDCBufWidth = r.right;
 	luaDCBufHeight = r.bottom;
+	// releasing mainDC seems like a bad idea but this is just temporary dc
+	//ReleaseDC(mainWnd, mainDC); 
 }
 void DrawLuaDC(){
 
 	HDC luaGUIDC = GetDC(mainHWND);
-	DEBUG_GETLASTERROR;
+	//DEBUG_GETLASTERROR;
 	BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
-	DEBUG_GETLASTERROR;
+	//DEBUG_GETLASTERROR;
 	ReleaseDC(mainHWND, luaGUIDC);
 	DEBUG_GETLASTERROR;
 
