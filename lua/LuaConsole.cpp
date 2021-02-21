@@ -674,17 +674,27 @@ void SetButtonState(HWND wnd, bool state) {
 	InvalidateRect(stateButton, NULL, FALSE);
 	InvalidateRect(stopButton, NULL, FALSE);
 }
+VOID runLUA(HWND wnd) {
+	LuaMessage::Msg* msg = new LuaMessage::Msg();
+	msg->type = LuaMessage::RunPath;
+	msg->runPath.wnd = wnd;
+	GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+		msg->runPath.path, MAX_PATH);
+	strcpy(Config.LuaScriptPath, msg->runPath.path);
+	luaMessage.post(msg);
+}
+VOID runLUA(HWND wnd, char path[]) {
 
+	LuaMessage::Msg* msg = new LuaMessage::Msg();
+	msg->type = LuaMessage::RunPath;
+	msg->runPath.wnd = wnd;
+	strcpy(path, msg->runPath.path);
+	luaMessage.post(msg);
+}
 BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 	switch (id) {
 	case IDC_BUTTON_LUASTATE: {
-		LuaMessage::Msg* msg = new LuaMessage::Msg();
-		msg->type = LuaMessage::RunPath;
-		msg->runPath.wnd = wnd;
-		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			msg->runPath.path, MAX_PATH);
-		strcpy(Config.LuaScriptPath, msg->runPath.path);
-		luaMessage.post(msg);
+		runLUA(wnd);
 		return TRUE;
 	}
 	case IDC_BUTTON_LUASTOP: {
