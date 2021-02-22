@@ -2308,6 +2308,10 @@ int SetRRCount(lua_State* L) {
 	rrCount = luaL_checknumber(L, 1); // Not actuall rr count
 	return 1;
 }
+int GetMupenVersion(lua_State* L) {
+    lua_pushstring(L, MUPEN_VERSION);
+	return 1;
+}
 int GetAddress(lua_State *L) {
 	struct NameAndVariable {
 		const char *name;
@@ -2797,6 +2801,8 @@ const luaL_Reg emuFuncs[] = {
 	{"inputcount", GetInputCount},
 	{"getrrcount", GetRRCount},
 	{"setrrcount", SetRRCount},
+
+	{"getversion", GetMupenVersion},
 
 	{"pause", EmuPause},
 	{"getpause", GetEmuPause},
