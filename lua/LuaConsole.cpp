@@ -2070,6 +2070,7 @@ int FillRect(lua_State* L) {
 	//printf("ok");
 	HBRUSH brush = CreateSolidBrush(color);
 	::FillRect(luaDC,&rect, brush);
+	DeleteObject(brush);
 	return 0;
 }
 int DrawEllipse(lua_State *L) {
