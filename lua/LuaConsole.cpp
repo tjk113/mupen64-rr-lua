@@ -20,6 +20,7 @@
 #include "../main/disasm.h"
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
+#include <vcr.h>
 
 
 #ifdef LUA_CONSOLE
@@ -2299,6 +2300,14 @@ int GetInputCount(lua_State *L) {
 	lua_pushinteger(L, inputCount);
 	return 1;
 }
+int GetRRCount(lua_State* L) {
+	lua_pushinteger(L, rrCount);
+    return 1;
+}
+int SetRRCount(lua_State* L) {
+	rrCount = luaL_checknumber(L, 1); // Not actuall rr count
+	return 1;
+}
 int GetAddress(lua_State *L) {
 	struct NameAndVariable {
 		const char *name;
@@ -2786,6 +2795,8 @@ const luaL_Reg emuFuncs[] = {
 	{"framecount", GetVICount},
 	{"samplecount", GetSampleCount},
 	{"inputcount", GetInputCount},
+	{"getrrcount", GetRRCount},
+	{"setrrcount", SetRRCount},
 
 	{"pause", EmuPause},
 	{"getpause", GetEmuPause},
