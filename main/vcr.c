@@ -774,7 +774,10 @@ int VCR_movieUnfreeze (const char* buf, unsigned long size)
 		m_currentVI = current_vi;
 
 		m_header.rerecord_count++;
+
+		if(rrCount!=0) // this is so bad but ig this is how we do it
 		rrCount = m_header.rerecord_count;
+
 		m_header.rerecord_count = rrCount; // Set rr count. Im sure there is a easier way to do this but i dont care
 
 		reserve_buffer_space(space_needed);
@@ -1098,7 +1101,9 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
     m_header.length_samples = 0;
 
 	m_header.rerecord_count = 0;
+	if(rrCount != 0)
 	rrCount = m_header.rerecord_count;
+
 	m_header.rerecord_count = rrCount;
 	m_header.startFlags = flags;
 
@@ -1408,7 +1413,11 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 					else
 						printWarning(warningStr);
 				}
-				
+#define chMSG(x) #x
+#define chMSG2(x) chMSG(x)
+#define MESSAGE(desc) message( __FILE
+#pragma MESSAGE(Add error checking here later);
+
 				extern char gfx_name[255];
 				extern char input_name[255];
 				extern char sound_name[255];
@@ -1453,7 +1462,6 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 				if(dontPlay)
 					return -1;
 
-
 				// recalculate length of movie from the file size
 //				fseek(m_file, 0, SEEK_END);
 //				int fileSize = ftell(m_file);
@@ -1470,11 +1478,15 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 				// read "baseline" controller data
 ///				read_frame_controller_data(0); // correct if we can assume the first controller is active, which we can on all GBx/xGB systems
 //				m_currentSample = 0;
-
+				
 				fseek(m_file, 0, SEEK_END);
 				#ifdef _WIN32
 				char buf[50];
+				if(rrCount==0)
 				sprintf(buf, "%d rr", m_header.rerecord_count);
+				else
+				sprintf(buf, "%d rr", rrCount);
+
 				extern HWND hStatus;
 				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
 				#endif
@@ -2065,12 +2077,18 @@ void VCR_updateFrameCounter ()
 	if (VCR_isRecording())
 	{
 		sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, inputDisplay);
-		sprintf(rr, "%d rr", m_header.rerecord_count);
+		if (rrCount == 0)
+			sprintf(rr, "%d rr", m_header.rerecord_count);
+		else
+			sprintf(rr, "%d rr", rrCount);
 	}
 	else if (VCR_isPlaying())
 	{
 		sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), inputDisplay);
-		sprintf(rr, "%d rr", m_header.rerecord_count);
+		if (rrCount == 0)
+			sprintf(rr, "%d rr", m_header.rerecord_count);
+		else
+			sprintf(rr, "%d rr", rrCount);
 	}
 	else
 		strcpy(str, inputDisplay);
