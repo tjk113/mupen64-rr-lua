@@ -10,6 +10,7 @@
 
 //識別子衝突対策
 //本当はヘッダ分割すべきか
+
 #ifndef LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include <Windows.h>
 bool IsLuaConsoleMessage(MSG* msg);
@@ -34,6 +35,7 @@ void LuaDCUpdate(int redraw);
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
+
 
 //無理やりinline関数に
 namespace LuaEngine {

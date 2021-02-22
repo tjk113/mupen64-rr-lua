@@ -146,6 +146,7 @@ struct EmulationLock{
 	}
 };
 
+void runLUA(HWND wnd, char path[]); // bad solution
 void ConsoleWrite(HWND, const char*);
 void SetWindowLua(HWND wnd, Lua *lua);
 void SetButtonState(HWND wnd, bool state);
@@ -164,7 +165,8 @@ extern const luaL_Reg inputFuncs[];
 extern const luaL_Reg joypadFuncs[];
 extern const luaL_Reg savestateFuncs[];
 extern const char * const REG_ATSTOP;
-int AtStop(lua_State *L);
+int AtStop(lua_State *L); 
+
 class Lua {
 public:
 	Lua(HWND wnd):
@@ -564,7 +566,24 @@ public:
 	Msg *current_msg;
 };
 LuaMessage luaMessage;
+void runLUA(HWND wnd, char path[])
+{
 
+	LuaMessage::Msg* msg = new LuaMessage::Msg();
+	msg->type = LuaMessage::RunPath;
+	msg->runPath.wnd = wnd;
+	if (path != NULL) {
+		// from mupen
+		strcpy(path, msg->runPath.path);
+	}
+	else {
+		// internally
+		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+			msg->runPath.path, MAX_PATH);
+		//strcpy(Config.LuaScriptPath, msg->runPath.path);
+	}
+	luaMessage.post(msg);
+}
 
 Lua *GetWindowLua(HWND wnd) {
 	return luaWindowMap.find(wnd)->second;
@@ -674,27 +693,12 @@ void SetButtonState(HWND wnd, bool state) {
 	InvalidateRect(stateButton, NULL, FALSE);
 	InvalidateRect(stopButton, NULL, FALSE);
 }
-VOID runLUA(HWND wnd) {
-	LuaMessage::Msg* msg = new LuaMessage::Msg();
-	msg->type = LuaMessage::RunPath;
-	msg->runPath.wnd = wnd;
-	GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-		msg->runPath.path, MAX_PATH);
-	strcpy(Config.LuaScriptPath, msg->runPath.path);
-	luaMessage.post(msg);
-}
-VOID runLUA(HWND wnd, char path[]) {
 
-	LuaMessage::Msg* msg = new LuaMessage::Msg();
-	msg->type = LuaMessage::RunPath;
-	msg->runPath.wnd = wnd;
-	strcpy(path, msg->runPath.path);
-	luaMessage.post(msg);
-}
+
 BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 	switch (id) {
 	case IDC_BUTTON_LUASTATE: {
-		runLUA(wnd);
+		runLUA(wnd, NULL);
 		return TRUE;
 	}
 	case IDC_BUTTON_LUASTOP: {
@@ -2921,6 +2925,7 @@ const luaL_Reg savestateFuncs[] = {
 }	//namespace
 
 #if 1
+
 void NewLuaScript(void(*callback)()) {
 	LuaEngine::CreateLuaWindow(callback);
 }
@@ -3302,6 +3307,7 @@ void LuaTraceLogState() {
 		LuaEngine::TraceLogStop();
 	}
 }
+
 
 void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 	LuaEngine::LuaMessage::Msg *m = new LuaEngine::LuaMessage::Msg();
