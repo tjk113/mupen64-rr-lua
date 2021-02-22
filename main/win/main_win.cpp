@@ -2782,6 +2782,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
              }
              break;
 	case WM_ACTIVATE:
+        UpdateWindow(hwnd);
 			minimize = (BOOL) HIWORD(wParam);
 			
 			switch(LOWORD(wParam))
