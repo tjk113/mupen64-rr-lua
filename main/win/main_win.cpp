@@ -63,6 +63,8 @@ extern "C" {
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 void StartMovies();
+void StartLuaScripts();
+void StartSavestate();
 
 typedef std::string String;
 bool shouldSave = false;
@@ -2368,7 +2370,9 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
     SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
 	ThreadFuncState = TFS_EMULATING;
     ShowInfo("Emu thread: Emulation started....");
-    StartMovies();
+    StartMovies(); // check commandline args
+	StartLuaScripts();
+	StartSavestate();
     AtResetCallback();
     go();
     ShowInfo("Emu thread: Core stopped...");
@@ -2627,6 +2631,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if (rom) {
 				savestates_select_filename(fname);
 				savestates_job = LOADSTATE;
+			}
+		}
+		else if (strcmp(fext, ".LUA") == 0) {
+			if (rom) {
+				LuaOpenAndRun(fname);
 			}
 		}
 		
@@ -3336,6 +3345,50 @@ void StartMovies()
         }
         resumeEmu(FALSE);
     }
+}
+
+//-lua, -g
+// runs multiple lua scripts with paths seperated by ;
+// Ex: "path\script1.lua;path\script2.lua"
+// From testing only works with 2 scripts ?
+void StartLuaScripts() {
+	HMENU hMenu = GetMenu(mainHWND);
+	if (CmdLineParameterExist(CMDLINE_LUA) && CmdLineParameterExist(CMDLINE_GAME_FILENAME))
+	{
+		char files[MAX_PATH];
+		GetCmdLineParameter(CMDLINE_LUA, files);
+		int len = strlen(files);
+		int numScripts = 1;
+		int scriptStartPositions[MAX_LUA_OPEN_AND_RUN_INSTANCES] = {0};
+		for (int i = 0; i < len; ++i) {
+			if (files[i] == ';') {
+				files[i] = 0; // turn ; into \0 so we can copy each part easily
+				scriptStartPositions[numScripts] = i + 1;
+				++numScripts;
+				if (numScripts >= MAX_LUA_OPEN_AND_RUN_INSTANCES) {
+					break;
+				}
+			}
+		}
+		char file[MAX_PATH];
+		for (int i = 0; i < numScripts; ++i) {
+			strcpy(file, &files[scriptStartPositions[i]]);
+			LuaOpenAndRun(file);
+		}
+	}
+}
+
+//-st, -g
+void StartSavestate() {
+	HMENU hMenu = GetMenu(mainHWND);
+	if (CmdLineParameterExist(CMDLINE_SAVESTATE) && CmdLineParameterExist(CMDLINE_GAME_FILENAME)
+		&& !CmdLineParameterExist(CMDLINE_PLAY_M64))
+	{
+		char file[MAX_PATH];
+		GetCmdLineParameter(CMDLINE_SAVESTATE, file);
+		savestates_select_filename(file);
+		savestates_job = LOADSTATE;
+	}
 }
 
 int WINAPI WinMain(

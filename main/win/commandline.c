@@ -30,7 +30,7 @@
 BOOL cmdlineMode = 0;
 BOOL cmdlineSave = 0;
 BOOL cmdlineNoGui = 0;
-char cmdLineParameterBuf[250] = {0};
+char cmdLineParameterBuf[512] = {0};
 void SaveCmdLineParameter(char *cmdline)
 {
 	strcpy(cmdLineParameterBuf, cmdline);
@@ -61,6 +61,8 @@ void SaveCmdLineParameter(char *cmdline)
 
 //  "-m64"  -> play m64 from path, requires -g
 //  "-avi"  -> capture m64 to avi, requires -m64
+//  "-lua"  -> play a lua script from path, requires -g
+//  "-st"   -> load a savestate from path, requires -g, cant have -m64
 char *CmdLineArgFlags[] =
 {
 	"-a",
@@ -74,7 +76,9 @@ char *CmdLineArgFlags[] =
 	"-save",
 	//new parameters
 	"-m64",
-	"-avi"
+	"-avi",
+	"-lua",
+	"-st"
 };
 
 void GetCmdLineParameter(CmdLineParameterType arg, char *buf)

@@ -513,7 +513,17 @@ public:
 				break;
 			}
 			case RunPath:{
-				HWND wnd = msg->runPath.wnd;
+				HWND wnd;
+				if (msg->runPath.wnd == NULL) {
+					if (luaWindows.size() == 0) {
+						break; // silently skip the message if it can't be run
+					}
+					wnd = luaWindows.back();
+					SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), msg->runPath.path);
+				}
+				else {
+					wnd = msg->runPath.wnd;
+				}
 				Lua *lua = GetWindowLua(wnd);
 				if(lua) {
 					lua->stop();
@@ -2959,6 +2969,31 @@ void LuaReload() {
 	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::ReloadFirst;
 	LuaEngine::luaMessage.post(msg);
+}
+
+// allow loading multiple lua scripts at a time
+static char ExternallyLoadedPaths[MAX_LUA_OPEN_AND_RUN_INSTANCES][MAX_PATH];
+static int elpLoadIndex = 0; // increment after runPath message has been sent
+static int elpSaveIndex = 0; // increment after new console created
+
+// Send a lua message to run a path on the last lua window.
+// This works off the assumption that no new windows were made between
+// the time the desired window was created, and the time this callback
+// is run (practically safe, theoretically not good)
+static void RunExternallyLoadedPath() {
+	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
+	msg->type = LuaEngine::LuaMessage::RunPath;
+	strcpy(msg->runPath.path, ExternallyLoadedPaths[elpLoadIndex]);
+	elpLoadIndex = (elpLoadIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
+	msg->runPath.wnd = NULL; 
+	LuaEngine::luaMessage.post(msg);
+}
+
+// Stores the path to be used after a new lua window is created
+void LuaOpenAndRun(const char *path) {
+	strcpy(ExternallyLoadedPaths[elpSaveIndex], path);
+	elpSaveIndex = (elpSaveIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
+	PostMessage(mainHWND, WM_COMMAND, ID_MENU_LUASCRIPT_NEW, (LPARAM)RunExternallyLoadedPath);
 }
 
 void InitializeLuaDC(HWND mainWnd) {
