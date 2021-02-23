@@ -2310,18 +2310,16 @@ int SetRRCount(lua_State* L) {
 }
 int GetMupenVersion(lua_State* L) {
 	int type = luaL_checknumber(L, 1);
+	const char* version;
 	// 0 = name + version number
 	// 1 = version number
-	
 
-	if (type == 1) {
-		const char* version = { &MUPEN_VERSION[strlen("Mupen 64 ")] };
-		lua_pushstring(L, version);
-	}
-	else {
-		lua_pushstring(L, MUPEN_VERSION);
-	}
-   
+	if (type == 1) 
+		version = { &MUPEN_VERSION[strlen("Mupen 64 ")] };
+	else 
+		version = MUPEN_VERSION;
+	
+	lua_pushstring(L, version);
 	return 1;
 }
 int GetAddress(lua_State *L) {
