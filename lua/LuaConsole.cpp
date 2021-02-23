@@ -2810,7 +2810,7 @@ const luaL_Reg emuFuncs[] = {
 	{"samplecount", GetSampleCount},
 	{"inputcount", GetInputCount},
 	{"getrrcount", GetRRCount},
-	{"setrrcount", SetRRCount},
+	{"setrrcount", SetRRCount}, // Very experimental. Doesn't work 100%! 
 
 	{"getversion", GetMupenVersion},
 
