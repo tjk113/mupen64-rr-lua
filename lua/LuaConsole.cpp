@@ -2336,7 +2336,8 @@ int SetGFX(lua_State* L) {
 	}
 	else {
 		forceIgnoreRSP = false;
-		UpdateWindow(mainHWND); // vcr updatescreen causes access violation. 
+		UpdateWindow(mainHWND); // vcr updatescreen causes access violation when called in loop. 
+								// this doesnt but still doesnt work consistently
 	}
 	return 0;
 }

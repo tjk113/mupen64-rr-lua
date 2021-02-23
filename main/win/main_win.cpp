@@ -2978,7 +2978,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 char buf[10];
                 sprintf(buf, "0x%#08p", rdram);
-                MessageBox(0, buf, "Ram start for STROOP config", MB_ICONINFORMATION);
+                MessageBox(0, buf, "RAM Start", MB_ICONINFORMATION);
                 break;
             }
 			case IDLOAD:   
