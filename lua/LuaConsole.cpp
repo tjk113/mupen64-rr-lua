@@ -2328,7 +2328,7 @@ int SetGFX(lua_State* L) {
 	//forceIgnoreRSP = !state; // ???? buggy
 
 	// DO NOT CALL THIS LUA FUNCTION INSIDE A LOOP!!! 
-	// (it will not work lol)
+	// (unpausing will not work and it gets stuck with paused gfx lol)
 
 	if (state == 0) { 
 		forceIgnoreRSP = true;
