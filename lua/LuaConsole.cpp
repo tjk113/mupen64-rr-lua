@@ -2322,6 +2322,24 @@ int GetMupenVersion(lua_State* L) {
 	lua_pushstring(L, version);
 	return 1;
 }
+int SetGFX(lua_State* L) {
+	// Ignore or update gfx
+	int state = luaL_checknumber(L, 1);
+	//forceIgnoreRSP = !state; // ???? buggy
+
+	// DO NOT CALL THIS LUA FUNCTION INSIDE A LOOP!!! 
+	// (it will not work lol)
+
+	if (state == 0) { 
+		forceIgnoreRSP = true;
+		VCR_updateScreen();
+	}
+	else {
+		forceIgnoreRSP = false;
+		UpdateWindow(mainHWND); // vcr updatescreen causes access violation. 
+	}
+	return 0;
+}
 int GetAddress(lua_State *L) {
 	struct NameAndVariable {
 		const char *name;
@@ -2819,7 +2837,8 @@ const luaL_Reg emuFuncs[] = {
 	{"getspeed", GetSpeed},
 	{"speed", SetSpeed},
 	{"speedmode", SetSpeedMode},
-
+	{"setgfx", SetGFX},
+	
 	{"getaddress", GetAddress},
 	
 	{NULL, NULL}

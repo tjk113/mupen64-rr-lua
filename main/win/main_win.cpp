@@ -68,6 +68,7 @@ typedef std::string String;
 bool shouldSave = false;
 
 bool ffup = false;
+BOOL forceIgnoreRSP = false;
 
 #if defined(__cplusplus) && !defined(_MSC_VER)
 }

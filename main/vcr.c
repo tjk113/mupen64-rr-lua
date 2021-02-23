@@ -1613,17 +1613,17 @@ VCR_updateScreen()
 		extern HWND mainHWND;
 		extern BOOL manualFPSLimit;
 		// skip frames according to skipFrequency if fast-forwarding and not capturing to AVI
-		if (IGNORE_RSP) redraw = 0;
+		if (IGNORE_RSP || forceIgnoreRSP) redraw = 0;
 #endif
 #ifdef LUA_SPEEDMODE
 		if(maximumSpeedMode)redraw = 1;
-#endif	
+#endif
 		//printf("Screen update!\n");
 		if(redraw) {
 			updateScreen();
-#ifdef LUA_GUI
-		LuaDCUpdate(redraw);
-#endif
+		#ifdef LUA_GUI
+			LuaDCUpdate(redraw);
+		#endif
 		redraw = 0;
 		}
 //		captureFrameValid = TRUE;
