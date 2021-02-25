@@ -395,6 +395,7 @@
 #define IDC_TEXTBOX_LUAPROMPT           9520
 
 #define ID_LUA_RELOAD                   9600
+#define MAX_LUA_OPEN_AND_RUN_INSTANCES  5
 
 #define ID_LANG_ENGLISH                 10000
 #define IDC_ROUNDTOZERO                 10002
