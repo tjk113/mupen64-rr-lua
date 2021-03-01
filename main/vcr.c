@@ -1220,11 +1220,6 @@ VCR_stopRecord()
 		m_inputBufferPtr = NULL;
 		m_inputBufferSize = 0;
 	}
-	extern HWND mainHWND;
-	char title[MAX_PATH];
-	GetWindowText(mainHWND, title, MAX_PATH);
-	title[titleLength] = '\0'; //remove movie being played part
-	SetWindowText(mainHWND, title);
 
 	return retVal;
 }
@@ -1243,6 +1238,7 @@ void SetActiveMovie(char* buf,int maxlen)
 	}
 	else
 	{
+		if (!buf) return;
 		//original length
 		titleLength = GetWindowText(mainHWND, title, MAX_PATH);
 		_splitpath(buf, 0, 0, buf, 0);
@@ -1777,6 +1773,12 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 #endif
 			printf("SOUND BUFFER OVERFLOW\n");
 			return;
+		}
+		else
+		{
+			float pro = (float)(soundBufPos + len) * 100 / (44100 * 2 * sizeof(char));
+			if (pro > 75) printf("---!!!---");
+			printf("sound buffer: %.2f%%\n", pro);
 		}
 		memcpy(soundBuf + soundBufPos, (char*)buf, len);
 		m_audioFrame += ((len/4)/(float)m_audioFreq)*visByCountrycode();
