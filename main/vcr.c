@@ -1770,6 +1770,14 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 	
 	if(len > 0)
 	{
+		if (soundBufPos + len > 44100 * 2 * sizeof(char))
+		{
+#ifdef WIN32
+			MessageBox(0, "Fatal error", "Sound buffer overflow", MB_ICONERROR);
+#endif
+			printf("SOUND BUFFER OVERFLOW\n");
+			return;
+		}
 		memcpy(soundBuf + soundBufPos, (char*)buf, len);
 		m_audioFrame += ((len/4)/(float)m_audioFreq)*visByCountrycode();
 		soundBufPos += len;

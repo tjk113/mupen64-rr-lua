@@ -357,6 +357,7 @@ void savestates_load()
 			free(local_movie_data);
 		if(code != SUCCESS && !VCR_isIdle())
 		{
+			bool stop = false;
 			char errStr [1024];
 			strcpy(errStr, "Failed to load movie snapshot,\n");
 			switch(code)
@@ -372,11 +373,12 @@ void savestates_load()
 					break;
 				case WRONG_FORMAT: 
 					strcat(errStr, "wrong format\n");
+					stop = true;
 					break;
 			}
 			printWarning(errStr);
-			if (VCR_isRecording()) VCR_stopRecord();
-			else VCR_stopPlayback();
+			if (stop && VCR_isRecording()) VCR_stopRecord();
+			else if (stop) VCR_stopPlayback();
 			savestates_job_success = FALSE;
 			goto failedLoad;
 		}
