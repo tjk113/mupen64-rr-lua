@@ -120,7 +120,7 @@ static int    m_audioFreq = 33000;		//0x30018;
 static int    m_audioBitrate = 16;		// 16 bits
 static float  m_videoFrame = 0;
 static float  m_audioFrame = 0;
-static char soundBuf [44100*2];
+static char soundBuf [44100*2*2];
 static char soundBufEmpty [44100*2];
 static int soundBufPos = 0;
 long lastSound = 0;
@@ -1766,7 +1766,7 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 	
 	if(len > 0)
 	{
-		if (soundBufPos + len > 44100 * 2 * sizeof(char))
+		if (soundBufPos + len > 44100 * 2 * 2 * sizeof(char))
 		{
 #ifdef WIN32
 			MessageBox(0, "Fatal error", "Sound buffer overflow", MB_ICONERROR);
@@ -1774,12 +1774,14 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 			printf("SOUND BUFFER OVERFLOW\n");
 			return;
 		}
+#ifdef _DEBUG
 		else
 		{
-			float pro = (float)(soundBufPos + len) * 100 / (44100 * 2 * sizeof(char));
+			float pro = (float)(soundBufPos + len) * 100 / (44100 * 2 * 2 * sizeof(char));
 			if (pro > 75) printf("---!!!---");
 			printf("sound buffer: %.2f%%\n", pro);
 		}
+#endif
 		memcpy(soundBuf + soundBufPos, (char*)buf, len);
 		m_audioFrame += ((len/4)/(float)m_audioFreq)*visByCountrycode();
 		soundBufPos += len;
