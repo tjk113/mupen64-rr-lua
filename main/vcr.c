@@ -1413,11 +1413,6 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 					else
 						printWarning(warningStr);
 				}
-#define chMSG(x) #x
-#define chMSG2(x) chMSG(x)
-#define MESSAGE(desc) message( __FILE
-#pragma MESSAGE(Add error checking here later);
-
 				extern char gfx_name[255];
 				extern char input_name[255];
 				extern char sound_name[255];
