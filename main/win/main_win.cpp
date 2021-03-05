@@ -2987,9 +2987,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      break;
             case ID_RAMSTART:
             {
+                pauseEmu(FALSE);
                 char buf[30];
                 sprintf(buf, "0x%#08p", rdram);
                 MessageBox(0, buf, "RAM Start", MB_ICONINFORMATION);
+                resumeEmu(FALSE);
                 break;
             }
 			case IDLOAD:   
