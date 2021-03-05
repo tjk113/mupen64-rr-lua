@@ -3349,7 +3349,7 @@ void LuaTraceLogState() {
 	ofn.lpstrFile =  filename;
 	ofn.nMaxFile = MAX_PATH;
 	ofn.lpstrDefExt = "log";
-	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
 	
 	if(GetSaveFileName(&ofn))
