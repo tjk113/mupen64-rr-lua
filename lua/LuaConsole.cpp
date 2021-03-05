@@ -794,7 +794,8 @@ void InitializeLuaDC_(HWND mainWnd){
 
 	luaDCBufWidth = r.right;
 	luaDCBufHeight = r.bottom;
-	//ReleaseDC(mainWnd, mainDC);  // DO NOT RELEASE MAIN DC!!!!
+	if(LUA_double_buffered)
+	ReleaseDC(mainWnd, mainDC);
 }
 void DrawLuaDC(){
 
