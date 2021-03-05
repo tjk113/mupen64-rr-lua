@@ -3352,9 +3352,12 @@ void LuaTraceLogState() {
 	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
 	
-	if(GetSaveFileName(&ofn))
+	if (GetSaveFileName(&ofn)) {
 		LuaEngine::TraceLogStart(ofn.lpstrFile);
-	}else {
+	}
+
+	}
+	else {
 		LuaEngine::TraceLogStop();
 	}
 }
