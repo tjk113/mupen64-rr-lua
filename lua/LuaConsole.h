@@ -59,7 +59,7 @@ extern bool enableTraceLog;
 extern bool traceLogMode;
 extern bool enablePCBreak;
 extern bool maximumSpeedMode;
-
+extern bool anyLuaRunning;
 
 
 #endif

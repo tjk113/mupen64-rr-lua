@@ -46,6 +46,7 @@ bool enableTraceLog;
 bool traceLogMode;
 bool enablePCBreak;
 bool maximumSpeedMode;
+bool anyLuaRunning;
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
@@ -569,7 +570,7 @@ public:
 LuaMessage luaMessage;
 void runLUA(HWND wnd, char path[])
 {
-
+	anyLuaRunning = true;
 	LuaMessage::Msg* msg = new LuaMessage::Msg();
 	msg->type = LuaMessage::RunPath;
 	msg->runPath.wnd = wnd;
@@ -766,6 +767,7 @@ const COLORREF LUADC_BG_COLOR = 0x000000;
 const COLORREF LUADC_BG_COLOR_A = 0x010101;
 */
 LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	printf("Lua message");
 	switch(msg) {
 	case WM_CREATE:
 	case WM_DESTROY:
@@ -2499,6 +2501,7 @@ void PCBreak(void *p_, unsigned long addr) {
 		lua_pop(L, 1);
 	}
 }
+extern void LuaDCUpdate(int redraw);
 template<typename T>struct TypeIndex{enum{v = -1};};
 template<>struct TypeIndex<UCHAR>{enum{v = 0};};
 template<>struct TypeIndex<USHORT>{enum{v = 1};};
@@ -2981,6 +2984,7 @@ void NewLuaScript(void(*callback)()) {
 void CloseAllLuaScript(void) {
 	if (LuaEngine::luaWindowMap.empty()||LuaEngine::luaWindows.empty()) { 
 		MUPEN64RR_DEBUGINFO("No scripts running");
+		anyLuaRunning = false;
 		return;
 	}
 	MUPEN64RR_DEBUGINFO("Close all scripts");
