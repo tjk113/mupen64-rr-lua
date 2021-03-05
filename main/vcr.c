@@ -128,7 +128,6 @@ volatile BOOL captureFrameValid = FALSE;
 static int AVIBreakMovie = 0;
 
 int titleLength;
-int rrCount; // global. not actual rr count
 
 extern void resetEmu();
 void SetActiveMovie(char* buf, int maxlen);
@@ -775,11 +774,6 @@ int VCR_movieUnfreeze (const char* buf, unsigned long size)
 
 		m_header.rerecord_count++;
 
-		if(rrCount!=0) // this is so bad but ig this is how we do it
-		rrCount = m_header.rerecord_count;
-
-		m_header.rerecord_count = rrCount; // Set rr count. Im sure there is a easier way to do this but i dont care
-
 		reserve_buffer_space(space_needed);
 		memcpy(m_inputBuffer, ptr, space_needed);
 		flush_movie();
@@ -1101,10 +1095,6 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
     m_header.length_samples = 0;
 
 	m_header.rerecord_count = 0;
-	if(rrCount != 0)
-	rrCount = m_header.rerecord_count;
-
-	m_header.rerecord_count = rrCount;
 	m_header.startFlags = flags;
 
 	reserve_buffer_space(4096);
@@ -1477,10 +1467,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 				fseek(m_file, 0, SEEK_END);
 				#ifdef _WIN32
 				char buf[50];
-				if(rrCount==0)
 				sprintf(buf, "%d rr", m_header.rerecord_count);
-				else
-				sprintf(buf, "%d rr", rrCount);
 
 				extern HWND hStatus;
 				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
@@ -2072,18 +2059,18 @@ void VCR_updateFrameCounter ()
 	if (VCR_isRecording())
 	{
 		sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, inputDisplay);
-		if (rrCount == 0)
+		if (m_header.rerecord_count == 0)
 			sprintf(rr, "%d rr", m_header.rerecord_count);
 		else
-			sprintf(rr, "%d rr", rrCount);
+			sprintf(rr, "%d rr", m_header.rerecord_count);
 	}
 	else if (VCR_isPlaying())
 	{
 		sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), inputDisplay);
-		if (rrCount == 0)
+		if (m_header.rerecord_count == 0)
 			sprintf(rr, "%d rr", m_header.rerecord_count);
 		else
-			sprintf(rr, "%d rr", rrCount);
+			sprintf(rr, "%d rr", m_header.rerecord_count);
 	}
 	else
 		strcpy(str, inputDisplay);

@@ -64,7 +64,6 @@
 */
 
 extern bool gStopAVI;
-extern int rrCount; // global. not actuall rr count
 
 extern void VCR_getKeys( int Control, BUTTONS *Keys );
 extern void VCR_updateScreen();

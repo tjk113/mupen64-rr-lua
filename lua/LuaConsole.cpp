@@ -1005,7 +1005,11 @@ int Print(lua_State *L) {
 	ConsoleWrite(wnd, "\r\n");
 	return 0;
 }
-
+int StopScript(lua_State* L) {
+	HWND wnd = GetLuaClass(L)->ownWnd;
+	GetWindowLua(wnd)->stop();
+	return 0;
+}
 int ToStringEx(lua_State *L) {
 	switch(lua_type(L, -1)) {
 	case LUA_TNIL:
@@ -2304,14 +2308,8 @@ int GetInputCount(lua_State *L) {
 	lua_pushinteger(L, inputCount);
 	return 1;
 }
-int GetRRCount(lua_State* L) {
-	lua_pushinteger(L, rrCount);
-    return 1;
-}
-int SetRRCount(lua_State* L) {
-	rrCount = luaL_checknumber(L, 1); // Not actuall rr count
-	return 1;
-}
+
+
 int GetMupenVersion(lua_State* L) {
 	int type = luaL_checknumber(L, 1);
 	const char* version;
@@ -2805,7 +2803,7 @@ const luaL_Reg globalFuncs[] = {
 	{"print", Print},
 	{"printx", PrintX},
 	{"tostringex", ToStringExs},
-
+	{"stop", StopScript},
 	//floating number
 	{"MTC1", MoveToSingle},
 	{"DMTC1", MoveToDouble},
@@ -2833,8 +2831,6 @@ const luaL_Reg emuFuncs[] = {
 	{"framecount", GetVICount},
 	{"samplecount", GetSampleCount},
 	{"inputcount", GetInputCount},
-	{"getrrcount", GetRRCount},
-	{"setrrcount", SetRRCount}, // Very experimental. Doesn't work 100%! 
 
 	{"getversion", GetMupenVersion},
 
