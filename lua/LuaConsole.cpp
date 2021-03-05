@@ -783,10 +783,10 @@ void InitializeLuaDC_(HWND mainWnd){
 	HDC mainDC;
 	RECT r;
 	GetClientRect(mainWnd, &r);
-	luaDC = GetDC(mainWnd);
+	mainDC = luaDC = GetDC(mainWnd);
 	
+
 	if(LUA_double_buffered){
-		mainDC = GetDC(mainWnd);
 		luaDC = CreateCompatibleDC(mainDC);
 		HBITMAP bmp = CreateCompatibleBitmap(mainDC, r.right, r.bottom);
 		SelectObject(luaDC, bmp);
