@@ -427,9 +427,9 @@ void TranslateGeneralDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_ALERTHACKEDROM,"Alert Hacked ROM");
     SetItemTranslatedString(hwnd,IDC_ALERTSAVESERRORS,"Alert Saves errors");
 
-    SetItemTranslatedString(hwnd,IDC_FPSTITLE,"Fps / VIs");
+    SetItemTranslatedString(hwnd,IDC_FPSTITLE,"FPS / VIs");
 
-    SetItemTranslatedString(hwnd,IDC_LIMITFPS,"Limit fps (auto)");
+    SetItemTranslatedString(hwnd,IDC_LIMITFPS,"Limit FPS (auto)");
     SetItemTranslatedString(hwnd,IDC_SPEEDMODIFIER,"Use Speed Modifier");
     SetItemTranslatedString(hwnd,IDC_SHOWFPS,"Show FPS");
     SetItemTranslatedString(hwnd,IDC_SHOWVIS,"Show VIs");

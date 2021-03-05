@@ -46,7 +46,7 @@ bool enableTraceLog;
 bool traceLogMode;
 bool enablePCBreak;
 bool maximumSpeedMode;
-bool anyLuaRunning;
+bool anyLuaRunning = false;
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
@@ -517,9 +517,10 @@ public:
 				Lua *lua = GetWindowLua(wnd);
 				luaWindows.erase(std::find(
 					luaWindows.begin(), luaWindows.end(), wnd));
-				if(lua)lua->stop();
+				if (lua) { lua->stop(); }
 				if(luaWindows.empty()) {
 					FinalizeLuaDC();
+					anyLuaRunning = false;
 				}
 				delete lua;
 				break;
@@ -542,6 +543,7 @@ public:
 				for(it = copy.begin(); it != copy.end(); it ++) {
 					PostMessage(*it, WM_CLOSE, 0, 0);
 				}
+				anyLuaRunning = false;
 				break;
 			}
 			case ReloadFirst:{
@@ -570,7 +572,6 @@ public:
 LuaMessage luaMessage;
 void runLUA(HWND wnd, char path[])
 {
-	anyLuaRunning = true;
 	LuaMessage::Msg* msg = new LuaMessage::Msg();
 	msg->type = LuaMessage::RunPath;
 	msg->runPath.wnd = wnd;
@@ -584,6 +585,7 @@ void runLUA(HWND wnd, char path[])
 			msg->runPath.path, MAX_PATH);
 		//strcpy(Config.LuaScriptPath, msg->runPath.path);
 	}
+	anyLuaRunning = true;
 	luaMessage.post(msg);
 }
 

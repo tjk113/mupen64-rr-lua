@@ -82,7 +82,7 @@ BOOL forceIgnoreRSP = false;
 #define strncasecmp	strnicmp
 #endif
 
-#define LUA_UPDATEBUFFER if (anyLuaRunning && LUA_double_buffered) LuaDCUpdate(1);
+#define LUA_UPDATEBUFFER if (anyLuaRunning==true /*being explicit seems to fix it*/ && LUA_double_buffered) { LuaDCUpdate(1); printf("omg"); }
 
 
 static DWORD Id;
