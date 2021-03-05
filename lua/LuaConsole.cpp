@@ -777,25 +777,24 @@ LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //	return SendMessage(mainHWND, msg, wParam, lParam);
 }
 void InitializeLuaDC_(HWND mainWnd){
-	if(luaDC) {
+	if (luaDC) {
 		FinalizeLuaDC();
 	}
 	HDC mainDC;
 	RECT r;
 	GetClientRect(mainWnd, &r);
-	mainDC = luaDC = GetDC(mainWnd);
-	
+	luaDC = GetDC(mainWnd);
 
-	if(LUA_double_buffered){
+	if (LUA_double_buffered) {
+		mainDC = GetDC(mainWnd);
 		luaDC = CreateCompatibleDC(mainDC);
 		HBITMAP bmp = CreateCompatibleBitmap(mainDC, r.right, r.bottom);
 		SelectObject(luaDC, bmp);
 	}
-	
+
 	luaDCBufWidth = r.right;
 	luaDCBufHeight = r.bottom;
-	// releasing mainDC seems like a bad idea but this is just temporary dc
-	ReleaseDC(mainWnd, mainDC); 
+	//ReleaseDC(mainWnd, mainDC);  // DO NOT RELEASE MAIN DC!!!!
 }
 void DrawLuaDC(){
 
