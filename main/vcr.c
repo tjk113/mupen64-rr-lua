@@ -1629,7 +1629,7 @@ VCR_updateScreen()
 		}
 //	captureFrameValid = TRUE;
 	readScreen( &image, &width, &height );
-	if (image == 0)
+	if (image == NULL)
 	{
 		fprintf( stderr, "[VCR]: Couldn't read screen (out of memory?)\n" );
 		return;
