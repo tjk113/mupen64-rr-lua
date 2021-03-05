@@ -3009,8 +3009,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      oifn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
                      if (GetOpenFileName(&oifn) ) {
                         // before starting the ROM, also add enclosing directory to ROM list directories, because people are lazy
-//						if(!emu_launched)
-                        {
 						    char temp_buffer [_MAX_PATH];
 						    strcpy(temp_buffer, path_buffer);
 							unsigned int i; for(i = 0 ; i < strlen(temp_buffer) ; i++)
@@ -3026,8 +3024,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			                        SaveConfig();
 		                        }
 							}
-						}
-						
                         StartRom(path_buffer);
                      }
                      break;
