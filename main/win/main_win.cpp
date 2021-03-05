@@ -1806,7 +1806,10 @@ ShowInfo("[VCR]:refreshing movie info...");
 
 //ShowInfo("refreshing movie start/frames...\n");
 
-	SetDlgItemText(hwnd,IDC_FROMSNAPSHOT_TEXT,(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) ? "Snapshot" : "Start");
+	SetDlgItemText(hwnd,IDC_FROMSNAPSHOT_TEXT,(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) ? "Savestate" : "Start");
+    if (m_header.startFlags & MOVIE_START_FROM_EEPROM) {
+        SetDlgItemTextA(hwnd, IDC_FROMSNAPSHOT_TEXT, "EEPROM");
+    }
 
 	sprintf(tempbuf, "%u  (%u input)", (int)m_header.length_vis, (int)m_header.length_samples);
 	SetDlgItemText(hwnd,IDC_MOVIE_FRAMES,tempbuf);
