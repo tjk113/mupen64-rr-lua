@@ -2760,9 +2760,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
         
-    case WM_ERASEBKGND:
-        return TRUE;
-
 	case WM_PAINT:
 			
 
