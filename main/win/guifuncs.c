@@ -49,7 +49,7 @@ void display_loading_progress(int p)
 
 bool warn_recording() {
 
-    if (!VCR_isRecording) return false;
+    if (!VCR_isRecording()) return false;
 
     int r = MessageBoxA(NULL, "Movie is being recorded, are you sure you want to quit?",
         "Close rom?", MB_YESNO | MB_ICONWARNING);
