@@ -1308,6 +1308,7 @@ static int shut_window = 0;
 //void closeRom()
 static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist? 
 {
+
     //ShowInfo("Close Rom"); this crashes everytime????
     
    LONG winstyle;                                //Used for setting new style to the window
@@ -1315,10 +1316,10 @@ static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show r
 
    
    if (emu_launched)  {
-     if (emu_paused)  {
+      if (emu_paused)  {
            resumeEmu(FALSE);
-         }
-      
+      }
+
       if (recording && !continue_vcr_on_restart_mode)
       {
          Sleep(1000); // HACK - seems to help crash on closing ROM during capture...?
@@ -1428,8 +1429,7 @@ void resetEmu()
      // right now it's hacked to exit to the GUI then re-load the ROM,
      // but it should be possible to reset the game while it's still running
      // simply by clearing out some memory and maybe notifying the plugins...
-     
-    if (emu_launched ) {
+    if (emu_launched) {
                          ShowInfo("Restart Rom");
                          restart_mode = 0;
                          really_restart_mode = TRUE;
@@ -2423,12 +2423,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 void exit_emu(int postquit)
 {
-    if (VCR_isRecording() && MessageBox(NULL, "Movie is being recorded, are you sure you want to quit?",
-        "Close rom?", MB_YESNO | MB_ICONWARNING) == 7) {
-        return;
-    }
    if(postquit){
-       
 	   if (!cmdlineMode||cmdlineSave) {
 	      ini_updateFile(Config.compressedIni);
 	      if (!cmdlineNoGui)
@@ -2440,6 +2435,8 @@ void exit_emu(int postquit)
 	}
    else
    {
+       if (warn_recording())
+           return;
     CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
    }
    
@@ -2453,6 +2450,8 @@ void exit_emu(int postquit)
 
 void exit_emu2()
 {
+    // who cares
+
      if ((!cmdlineMode)||(cmdlineSave)) {
       ini_updateFile(Config.compressedIni);
       SaveConfig();
@@ -2897,6 +2896,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}	break;  
 			case EMU_STOP:
                  if (emu_launched) {
+                       if (warn_recording())break;
                        //closeRom();
                        stop_it();
                        //SleepEx(1000, TRUE); //todo check if can remove
@@ -2947,6 +2947,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  break;
                 
 			case EMU_RESET:
+                if (warn_recording())break;
                 extern int m_task;
                 if (m_task == 3 && !Config.NoReset) //recording
                 {

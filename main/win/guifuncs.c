@@ -23,6 +23,7 @@
 #include "translation.h"
 #include "rombrowser.h"
 #include "../../winproject/resource.h"
+#include <vcr.h>
 
 char *get_currentpath()
 {
@@ -44,6 +45,16 @@ void display_loading_progress(int p)
    sprintf(TempMessage,"%d%%",p);
    //SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)TempMessage );  
    SendMessage( hStatusProgress, PBM_SETPOS, p+1, 0 );
+}
+
+bool warn_recording() {
+
+    if (!VCR_isRecording) return false;
+
+    int r = MessageBoxA(NULL, "Movie is being recorded, are you sure you want to quit?",
+        "Close rom?", MB_YESNO | MB_ICONWARNING);
+
+    return r == 7;
 }
 
 void warn_savestate(char* messageCaption, char* message)

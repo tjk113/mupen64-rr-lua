@@ -38,6 +38,7 @@ int ask_hack();
 void new_frame();
 void new_vi();
 
+bool warn_recording();
 void warn_savestate(char* messageCaption, char* message);
 
 void display_status(const char* status);
