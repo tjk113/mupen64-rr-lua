@@ -470,8 +470,8 @@ void sleep_while_emu_paused()
 	extern int emu_paused;
 	while (emu_paused)
 	{
-		//Sleep(10); // Not needed?
-		#ifdef LUA_EMUPAUSED_WORK		
+		#ifdef LUA_EMUPAUSED_WORK	
+		Sleep(10);	
 		AtIntervalLuaCallback();
 		GetLuaMessage();
 		#endif
