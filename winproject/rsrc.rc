@@ -38,7 +38,7 @@ IDB_UP_ARROW            BITMAP                  "icons\\up_arrow.bmp"
 
 IDR_MYMENU MENU
 BEGIN
-    POPUP "&File"
+    POPUP "File"
     BEGIN
         MENUITEM "&Load ROM...",                IDLOAD
         MENUITEM "&Close ROM\tF4",              EMU_STOP, GRAYED
@@ -60,7 +60,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt F4",               ID_EMULATOR_EXIT
     END
-    POPUP "&Emulation"
+    POPUP "Emulation"
     BEGIN
         MENUITEM "Pause",                       EMU_PAUSE, GRAYED
         MENUITEM "Frame Advance",               EMU_FRAMEADVANCE, GRAYED
@@ -84,7 +84,7 @@ BEGIN
             MENUITEM "Slot 9",                      ID_CURRENTSAVE_9
         END
     END
-    POPUP "&Options"
+    POPUP "Options"
     BEGIN
         MENUITEM "&Full Screen\tAlt Enter",     FULL_SCREEN, GRAYED
         MENUITEM SEPARATOR
@@ -98,7 +98,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Settings...\tCtrl S",        ID_LOAD_CONFIG
     END
-    POPUP "&Utilities"
+    POPUP "Utilities"
     BEGIN
         MENUITEM "Rom Properties...\tCtrl P",   ID_POPUP_ROM_SETTING, GRAYED
         MENUITEM SEPARATOR
@@ -121,14 +121,14 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
     END
-    POPUP "&Help"
+    POPUP "Help"
     BEGIN
         MENUITEM "&Contents...",                ID_HELP_CONTENS
         MENUITEM "Show RAM Start",              ID_RAMSTART
         MENUITEM SEPARATOR
         MENUITEM "&About Mupen64...",           ID_HELP_ABOUT
     END
-    POPUP "&Lua Script"
+    POPUP "Lua Script"
     BEGIN
         MENUITEM "New Instance",                 ID_MENU_LUASCRIPT_NEW
         MENUITEM "Close All",           ID_MENU_LUASCRIPT_CLOSEALL
