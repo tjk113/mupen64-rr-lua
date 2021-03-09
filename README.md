@@ -8,7 +8,7 @@
 
 This repository contains source code for continued development of Mupen64 - Nintendo 64 emulator with TAS support, and TASinput plugin. 
 
-This version includes AVISplit, Reset recording, WII VC, and [backwards compatibility](a "No input delay savestates and are compatible both ways") options all in one.
+This version includes [new Features such as: AVISplit, Reset recording, WiiVC and Backwards Compatibility](https://imgur.com/a/SA2CgEB) options all in one.
 
 # Building
 (This was written having Windows in mind, but it should be possible on Linux as well)
