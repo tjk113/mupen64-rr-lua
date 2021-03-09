@@ -10,7 +10,8 @@ This repository contains source code for continued development of Mupen64 - Nint
 
 This version includes <a href="https://imgur.com/a/SA2CgEB" target="_blank">new Features such as: AVISplit, Reset recording, WiiVC and Backwards Compatibility</a> options all in one.
 
-[comment]: <> (Thanks a lot markdown for not having open in new feature guess i need html for this smh)
+[comment]: <> ("Thanks a lot markdown for not having open in new feature guess i need html for this smh")
+[comment]: <> ("Update: not even this works... This is achievable using kramdown but the github preview renderer doesnt support it so we are stuck with this")
 
 
 # Building
