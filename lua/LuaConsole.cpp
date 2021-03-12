@@ -2318,11 +2318,10 @@ int GetMupenVersion(lua_State* L) {
 	const char* version;
 	// 0 = name + version number
 	// 1 = version number
-
-	if (type == 1) 
+	version = MUPEN_VERSION;
+	if (type > 1) 
 		version = { &MUPEN_VERSION[strlen("Mupen 64 ")] };
-	else 
-		version = MUPEN_VERSION;
+
 	
 	lua_pushstring(L, version);
 	return 1;
