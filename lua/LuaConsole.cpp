@@ -2334,15 +2334,15 @@ int SetGFX(lua_State* L) {
 	// DO NOT CALL THIS LUA FUNCTION INSIDE A LOOP!!! 
 	// (unpausing will not work and it gets stuck with paused gfx lol)
 
-	if (state == 0) { 
+	forceIgnoreRSP = state == 0;
+	/*if (state == 0) {
 		forceIgnoreRSP = true;
-		VCR_updateScreen();
 	}
 	else {
 		forceIgnoreRSP = false;
-		UpdateWindow(mainHWND); // vcr updatescreen causes access violation when called in loop. 
+		//UpdateWindow(mainHWND); // vcr updatescreen causes access violation when called in loop. 
 								// this doesnt but still doesnt work consistently
-	}
+	}*/
 	return 0;
 }
 int GetAddress(lua_State *L) {
