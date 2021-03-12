@@ -2311,6 +2311,7 @@ if(!continue_vcr_on_restart_mode)
       DisableRecentRoms( hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
+     
 
       if (!dynacore) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
@@ -2327,6 +2328,11 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
       EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
+      LONG winstyle;
+      winstyle = GetWindowLong(mainHWND, GWL_STYLE);
+      winstyle |= WS_MAXIMIZEBOX;
+      SetWindowLong(mainHWND, GWL_STYLE, winstyle);
+      SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);  //Set on top
 }
       if (Config.GuiToolbar)
       {
