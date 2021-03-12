@@ -769,14 +769,13 @@ const COLORREF LUADC_BG_COLOR = 0x000000;
 const COLORREF LUADC_BG_COLOR_A = 0x010101;
 */
 LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	printf("Lua message");
 	switch(msg) {
 	case WM_CREATE:
 	case WM_DESTROY:
 		return 0;
 	}
 	return DefWindowProc(wnd, msg, wParam, lParam);
-//	return SendMessage(mainHWND, msg, wParam, lParam);
+
 }
 void InitializeLuaDC_(HWND mainWnd){
 	if (luaDC) {
