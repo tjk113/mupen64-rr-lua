@@ -2061,6 +2061,13 @@ int DrawRect(lua_State *L) {
 	return 0;
 }
 int FillRect(lua_State* L) {
+	/*
+	(Info)
+	Drawing for 1 frame only with double buffering enabled is impossible due to the way double buffering works.
+	This applies to all wgui functions that only run once, but this shouldn't be a problem for scripts like Input Direction which
+	repaint at every input.
+
+	*/
 	Lua* lua = GetLuaClass(L);
 	RECT rect;
 	COLORREF color;
@@ -2069,16 +2076,13 @@ int FillRect(lua_State* L) {
 		luaL_checknumber(L, 6),
 		luaL_checknumber(L, 7)
 	);
-	
+	COLORREF colorold = SetBkColor(luaDC, color);
 	rect.bottom = luaL_checknumber(L, 1);
 	rect.left = luaL_checknumber(L, 2);
 	rect.right = luaL_checknumber(L, 3);
 	rect.top = luaL_checknumber(L, 4);
-	
-	//printf("ok");
-	HBRUSH brush = CreateSolidBrush(color);
-	::FillRect(luaDC,&rect, brush);
-	DeleteObject(brush);
+	ExtTextOut(luaDC, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
+	SetBkColor(luaDC, colorold);
 	return 0;
 }
 int DrawEllipse(lua_State *L) {
