@@ -268,7 +268,7 @@ void dma_si_read()
 	printf("unknown SI use\n");
 	stop=1;
      }
-   update_pif_read();
+   update_pif_read(true);
    for (i=0; i<(64/4); i++)
      rdram[si_register.si_dram_addr/4+i] = sl(PIF_RAM[i]);
    update_count();

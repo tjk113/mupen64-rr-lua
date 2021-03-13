@@ -58,6 +58,7 @@ extern "C" {
 
 #define EMULATOR_MAIN_CPP_DEF
 #include "kaillera.h"
+#include "../../memory/pif.h"
 #undef EMULATOR_MAIN_CPP_DEF
 
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
@@ -465,10 +466,12 @@ void LoadTheState(HWND hWnd, int StateID)
 	SelectState(hWnd, (StateID - ID_LOAD_1) + ID_CURRENTSAVE_1);
 	
 //	SendMessage(hWnd, WM_COMMAND, STATE_RESTORE, 0);
-    if(!emu_paused)
-		savestates_job = LOADSTATE;
-    else if(emu_launched)
-		savestates_load();
+    if (emu_launched) {
+        savestates_job = LOADSTATE;
+    }
+    if(emu_paused){
+        update_pif_read(FALSE); // pass in true and it will stuck
+    }
 }
 
 
@@ -3093,11 +3096,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case STATE_RESTORE:
-                    if(!emu_paused)  {
-                      savestates_job = LOADSTATE;
-                    }
-                    else if(emu_launched)
+                    if(emu_launched)
                     {
+                        savestates_job = LOADSTATE;
 						savestates_load();
 					}
                     break;
@@ -3384,11 +3385,11 @@ int WINAPI WinMain(
   // ensure folders exist!
   {
 		String path = AppPath;
-		CreateDirectory((path + "save").c_str(), NULL);
-		CreateDirectory((path + "Mempaks").c_str(), NULL);
+		CreateDirectory((path + "Save").c_str(), NULL);
+		CreateDirectory((path + "Mempak").c_str(), NULL);
 		CreateDirectory((path + "Lang").c_str(), NULL);
-		CreateDirectory((path + "ScreenShots").c_str(), NULL);
-		CreateDirectory((path + "plugin").c_str(), NULL);
+		CreateDirectory((path + "Screenhot").c_str(), NULL);
+		CreateDirectory((path + "Plugin").c_str(), NULL);
 	}
            
   emu_launched = 0;

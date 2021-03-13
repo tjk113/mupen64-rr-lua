@@ -478,7 +478,7 @@ void sleep_while_emu_paused()
 	}
 }
 
-void update_pif_read()
+void update_pif_read(bool stcheck)
 {
 	//printf("pif entry\n");
 	int i = 0, channel = 0;
@@ -530,20 +530,21 @@ void update_pif_read()
 							sleep_while_emu_paused();
 						}
 					}
-
-					if (!input_delay) {
-						if (savestates_job & SAVESTATE && stAllowed)
-						{
-							savestates_save();
-							savestates_job &= ~SAVESTATE;
+					if (stcheck) {
+						if (!input_delay) {
+							if (savestates_job & SAVESTATE && stAllowed)
+							{
+								savestates_save();
+								savestates_job &= ~SAVESTATE;
+							}
 						}
-					}
-					if (savestates_job & LOADSTATE && stAllowed)
-					{
-						savestates_load();
-						savestates_job &= ~LOADSTATE;
-						extern bool old_st;
-						if (old_st) { printf("old st detected\n"); old_st = false; return; } //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
+						if (savestates_job & LOADSTATE && stAllowed)
+						{
+							savestates_load();
+							savestates_job &= ~LOADSTATE;
+							extern bool old_st;
+							if (old_st) { printf("old st detected\n"); old_st = false; return; } //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
+						}
 					}
 					stAllowed = false;
 					controllerRead = channel;
