@@ -94,7 +94,15 @@ void display_MD5calculating_progress(int p )
        }   
    }    
 }
+int ask_extension()
+{
+    if (!Config.alertBAD) /*technically a bad rom, right?*/return 1;
 
+    if (MessageBox(NULL, "This rom has an invalid extension, do you want to continue? (May cause instability)", "Warning", MB_YESNO | MB_ICONWARNING) != IDNO)
+        return 1;
+    else
+        return 0;
+}
 int ask_bad()
 {
     if (!Config.alertBAD) return 1;

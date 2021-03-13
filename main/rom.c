@@ -46,6 +46,7 @@
 #include "mupenIniApi.h"
 #include "guifuncs.h"
 #include <win/rombrowser.h>
+#include <string>
 
 static FILE *rom_file;
 static gzFile z_rom_file;
@@ -89,7 +90,25 @@ static int findsize()
    return taille_rom / 1024 / 1024 * 8;
    // divide through 131072 works too but im sure compiler is smart enough
 }
+bool iequals(const std::string& a, const std::string& b) // https://stackoverflow.com/questions/11635/case-insensitive-string-comparison-in-c
+														// will fail with letters like ß (unicode)
+{
+	unsigned int sz = a.size();
+	if (b.size() != sz)
+		return false;
+	for (unsigned int i = 0; i < sz; ++i)
+		if (tolower(a[i]) != tolower(b[i]))
+			return false;
+	return true;
+}
 
+bool validRomExt(std::string str) {
+	// z64,n64,v64,rom
+	return iequals(str, "z64") ||
+		   iequals(str, "n64") ||
+		   iequals(str, "v64") ||
+		   iequals(str, "rom");
+}
 static int find_file(char *argv)
 {
    z=0;
@@ -157,6 +176,11 @@ int rom_read(const char *argv)
    char buf[1024], arg[1024], *s;
    
    strncpy(arg, argv, 1000);
+   std::string strfileName = argv;
+   if (strfileName.find_last_of(".") != std::string::npos 
+	   && !validRomExt(strfileName.substr(strfileName.find_last_of(".") + 1))
+	   && !ask_extension()) {goto killRom;}
+	   
    if (find_file(arg))
      {
 	strncpy(arg, "roms/", 1000);
@@ -247,7 +271,12 @@ int rom_read(const char *argv)
 	  }
 	printf("rom byteswaped\n");
      }
-   else if ((rom[0] != 0x80) || (rom[1] != 0x37) || (rom[2] != 0x12) || (rom[3] != 0x40))
+   else if ((rom[0] != 0x80) 
+	   || (rom[1] != 0x37) 
+	   || (rom[2] != 0x12) 
+	   || (rom[3] != 0x40)
+	   
+	   )
      {
 	printf("wrong file format !\n");
 	free(rom);
