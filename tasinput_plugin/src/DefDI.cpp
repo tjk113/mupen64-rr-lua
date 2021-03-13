@@ -1584,8 +1584,9 @@ void RefreshChanges(HWND hwnd)
 		SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 }
 
-bool ShowContextMenu(HWND hwnd, int x, int y)
+bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 {
+	if (hitwnd != hwnd) return TRUE;
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
 	HMENU hMenu = CreatePopupMenu();
 	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on top");
@@ -1644,7 +1645,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
     {
 
 	case WM_CONTEXTMENU:
-		if (!ShowContextMenu(statusDlg, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); //DefWindowProc()
+		if (!ShowContextMenu(statusDlg, (HWND)wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); //DefWindowProc()
 		break;
 		case WM_ERASEBKGND:
 			if (erase)
@@ -2028,6 +2029,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						deactivateAfterClick = false;
 					}
 				}
+				SetWindowPos(statusDlg, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 			}
 			break;
 		case WM_PAINT:
