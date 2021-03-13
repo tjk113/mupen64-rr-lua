@@ -45,6 +45,7 @@
 #include "md5.h"
 #include "mupenIniApi.h"
 #include "guifuncs.h"
+#include <win/rombrowser.h>
 
 static FILE *rom_file;
 static gzFile z_rom_file;
@@ -57,18 +58,18 @@ unsigned char *rom;
 rom_header *ROM_HEADER;
 rom_settings ROM_SETTINGS;
 
-static void findsize()
+static int findsize()
 {
    if (!z)
-     {
+   {
 	fseek(rom_file, 0L, SEEK_END);
 	taille_rom=ftell(rom_file);
 	printf ("rom size: %d bytes (or %d Mb or %d Megabits)\n", 
 		taille_rom, taille_rom/1024/1024, taille_rom/1024/1024*8);
 	fseek(rom_file, 0L, SEEK_SET);
-     }
+   }
    else if (z == 1)
-     {
+   {
 	taille_rom=0;
 	rom=(unsigned char*)malloc(100000);
 	for(;;)
@@ -79,12 +80,14 @@ static void findsize()
 		     taille_rom, taille_rom/1024/1024, taille_rom/1024/1024*8);
 	     fflush(stdout);
 	     if (!i) break;
-	  }
+	}
 	free(rom);
 	rom = NULL;
 	printf("\n");
 	gzseek(z_rom_file, 0L, SEEK_SET);
      }
+   return taille_rom / 1024 / 1024 * 8;
+   // divide through 131072 works too but im sure compiler is smart enough
 }
 
 static int find_file(char *argv)
@@ -173,8 +176,10 @@ int rom_read(const char *argv)
      }
    printf ("file found\n");
 /*------------------------------------------------------------------------*/   
-   findsize();
-   
+   BOOLEAN over = findsize() > 64; // Explicit to illustrate order of execution
+   if (findsize() > 64) {
+	   if (!ask_hack()) goto killRom;
+   }
    if (rom) free(rom);
    rom = (unsigned char*)malloc(taille_rom);
 
@@ -340,13 +345,14 @@ int rom_read(const char *argv)
 	if (s[i] == 'T' || s[i] == 't' || s[i] == 'h' || s[i] == 'f' || s[i] == 'o')
 	  {
 	     if (!ask_hack())
-	       {
+	     {
+		  killRom: 
 		  free(rom);
 		  rom = NULL;
 		  free(ROM_HEADER);
 		  ROM_HEADER = NULL;
 		  return 1;
-	       }
+	     }
 	  }
 	if (s[i] == 'b')
 	  {
@@ -366,7 +372,6 @@ int rom_read(const char *argv)
      entry = ini_search_by_md5(entry->refMD5);
    ROM_SETTINGS.eeprom_16kb = entry->eeprom16kb;
    printf("eeprom type:%d\n", ROM_SETTINGS.eeprom_16kb);
-   
    return 0;
 }
 

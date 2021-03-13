@@ -99,7 +99,7 @@ int ask_hack()
 {
     if (!Config.alertHACK) return 1;
     
-    if (MessageBox(NULL,"This rom is a hacked dump, do you want to continue?","Question",MB_YESNO | MB_ICONQUESTION) != IDNO)
+    if (MessageBox(NULL,"This rom is a hacked or too large dump, do you want to continue?","Question",MB_YESNO | MB_ICONQUESTION) != IDNO)
             return 1;
     else
             return 0;
