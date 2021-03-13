@@ -494,14 +494,18 @@ void TranslateAuditDialog(HWND hwnd)
 void TranslateLangInfoDialog( HWND hwnd )
 {
     char tmp[200];
+    TranslateDefault("Language Information Dialog", "Language Information", tmp);
+    SetItemTranslatedString(hwnd, IDOK, "Ok");
+    if (!current_lang)         // no language (default english)
+                               // dont show placeholder text
+        return;
+
     SetItemTranslatedString(hwnd,IDC_LANG_AUTHOR_TEXT,"Translation Author TEXT");
     SetItemTranslatedString(hwnd,IDC_LANG_VERSION_TEXT,"Version TEXT");
     SetItemTranslatedString(hwnd,IDC_LANG_DATE_TEXT,"Creation Date TEXT");
     SetItemTranslatedString(hwnd,IDC_LANG_AUTHOR,"Translation Author");
     SetItemTranslatedString(hwnd,IDC_LANG_VERSION,"Version");
     SetItemTranslatedString(hwnd,IDC_LANG_DATE,"Creation Date");
-    SetItemTranslatedString(hwnd,IDOK, "Ok");
-    TranslateDefault("Language Information Dialog","Language Information",tmp);
     SetWindowText(hwnd,tmp);
 }
 

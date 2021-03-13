@@ -3390,7 +3390,7 @@ int WINAPI WinMain(
         CreateDirectory((path + "Lang").c_str(), NULL);
         CreateDirectory((path + "ScreenShots").c_str(), NULL);
         CreateDirectory((path + "plugin").c_str(), NULL);
-	}
+  }
            
   emu_launched = 0;
   emu_paused = 1;
