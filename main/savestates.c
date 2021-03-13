@@ -386,11 +386,9 @@ void savestates_load()
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if(VCR_isActive()
-		//#ifdef WIN32 //linux implements that right
-		&& MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING) == 7
-		//#endif
-		)
+		if(VCR_isActive() && MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
+			"Warning",
+			MB_YESNO | MB_ICONWARNING) == 7)
 		{
 		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
 			if(VCR_isPlaying())
