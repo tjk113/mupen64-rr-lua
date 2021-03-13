@@ -3385,11 +3385,11 @@ int WINAPI WinMain(
   // ensure folders exist!
   {
 		String path = AppPath;
-		CreateDirectory((path + "Save").c_str(), NULL);
-		CreateDirectory((path + "Mempak").c_str(), NULL);
-		CreateDirectory((path + "Lang").c_str(), NULL);
-		CreateDirectory((path + "Screenhot").c_str(), NULL);
-		CreateDirectory((path + "Plugin").c_str(), NULL);
+        CreateDirectory((path + "save").c_str(), NULL);
+        CreateDirectory((path + "Mempaks").c_str(), NULL);
+        CreateDirectory((path + "Lang").c_str(), NULL);
+        CreateDirectory((path + "ScreenShots").c_str(), NULL);
+        CreateDirectory((path + "plugin").c_str(), NULL);
 	}
            
   emu_launched = 0;
