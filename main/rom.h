@@ -26,12 +26,15 @@
  * USA.
  *
 **/
+#include <string>
 
 #ifndef ROM_H
 #define ROM_H
 
 int rom_read(const char *argv);
 int fill_header(const char *argv);
+bool iequals(const std::string& a, const std::string& b);
+bool validRomExt(std::string str);
 void calculateMD5(const char *argv, unsigned char digest[16]);
 extern unsigned char *rom;
 extern int taille_rom;
@@ -56,6 +59,8 @@ typedef struct _rom_header
    unsigned long Boot_Code[1008];
 } rom_header;
 extern rom_header *ROM_HEADER;
+
+
 
 typedef struct _rom_settings
 {
