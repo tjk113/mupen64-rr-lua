@@ -88,10 +88,14 @@ BEGIN
     BEGIN
         MENUITEM "&Full Screen\tAlt Enter",     FULL_SCREEN, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "&Video Settings...",          IDGFXCONFIG
-        MENUITEM "&Input Settings...",          IDINPUTCONFIG
-        MENUITEM "&Audio Settings...",          IDSOUNDCONFIG
-        MENUITEM "&RSP Settings...",            IDRSPCONFIG
+
+    POPUP "Plugin Settings"
+    BEGIN
+    MENUITEM "&Video Settings...",          IDGFXCONFIG
+    MENUITEM "&Input Settings...",          IDINPUTCONFIG
+    MENUITEM "&Audio Settings...",          IDSOUNDCONFIG
+    MENUITEM "&RSP Settings...",            IDRSPCONFIG
+    END
         MENUITEM SEPARATOR
         MENUITEM "Show &Toolbar\tAlt T",        IDC_GUI_TOOLBAR
         MENUITEM "Show Status&bar\tAlt S",      IDC_GUI_STATUSBAR

@@ -316,17 +316,18 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     //Options menu
     submenu = GetSubMenu(hMenu,2);
     SetMenuTranslatedString(submenu,0,"Full Screen","Alt Enter");
-    SetMenuTranslatedString(submenu,2,"Video Settings...","");
-    SetMenuTranslatedString(submenu,3,"Input Settings...","");
-    SetMenuTranslatedString(submenu,4,"Audio Settings...","");
-    SetMenuTranslatedString(submenu,5,"RSP Settings...","");
-    SetMenuTranslatedString(submenu,7 ,"Show Toolbar","Alt T");
-    SetMenuTranslatedString(submenu,8 ,"Show Statusbar","Alt S");
-    SetMenuTranslatedString(submenu,10 ,"Settings...","Ctrl S");
+    subsubmenu = GetSubMenu(submenu, 2);
+    SetMenuTranslatedString(subsubmenu, 0, "Video", "");
+    SetMenuTranslatedString(subsubmenu, 1, "Input", "");
+    SetMenuTranslatedString(subsubmenu, 2, "Audio", "");
+    SetMenuTranslatedString(subsubmenu, 3, "RSP", "");
+    SetMenuTranslatedString(submenu, 4, "Show Toolbar", "Alt T");
+    SetMenuTranslatedString(submenu, 5, "Full Screen", "Alt S");
+    SetMenuTranslatedString(submenu, 7, "Settings", "Ctrl S  ");
 
     //Utility menu
     submenu = GetSubMenu(hMenu,3);
-    SetMenuTranslatedString(submenu,0,"ROM Properties...","Ctrl P");
+    SetMenuTranslatedString(submenu,0,"ROM Properties","Ctrl P");
     SetMenuTranslatedString(submenu,2,"Audit ROMs...","");
     //SetMenuTranslatedString(submenu,3,"Benchmark...","");
     SetMenuTranslatedString(submenu,3,"Generate ROM Info...","");
