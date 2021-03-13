@@ -1310,13 +1310,10 @@ static int shut_window = 0;
 
 //void closeRom()
 static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist? 
-{
-
-    //ShowInfo("Close Rom"); this crashes everytime????
-    
+{    
    LONG winstyle;                                //Used for setting new style to the window
 //   int browserwidths[] = {400, -1};              //Rombrowser statusbar
-
+   if (warn_recording())return 0;
    
    if (emu_launched)  {
       if (emu_paused)  {
@@ -1325,8 +1322,8 @@ static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show r
 
       if (recording && !continue_vcr_on_restart_mode)
       {
-         Sleep(1000); // HACK - seems to help crash on closing ROM during capture...?
-         if (VCR_stopCapture() < 0)
+         //Sleep(1000); // HACK - seems to help crash on closing ROM during capture...?
+         if (VCR_stopCapture() != 0) // but it never returns non-zero ???
              MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
          else {
              SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -2432,6 +2429,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 void exit_emu(int postquit)
 {
+
    if(postquit){
 	   if (!cmdlineMode||cmdlineSave) {
 	      ini_updateFile(Config.compressedIni);
@@ -2444,11 +2442,12 @@ void exit_emu(int postquit)
 	}
    else
    {
-       if (warn_recording())
-           return;
     CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
    }
-   
+
+   if (warn_recording())
+       return;
+
    if(postquit){
 	   freeRomDirList(); 
 	   freeRomList();
@@ -2459,7 +2458,8 @@ void exit_emu(int postquit)
 
 void exit_emu2()
 {
-    // who cares
+    if (warn_recording())
+        return;
 
      if ((!cmdlineMode)||(cmdlineSave)) {
       ini_updateFile(Config.compressedIni);

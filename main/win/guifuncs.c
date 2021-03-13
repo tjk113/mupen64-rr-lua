@@ -49,10 +49,20 @@ void display_loading_progress(int p)
 
 bool warn_recording() {
 
-    if (!VCR_isRecording()) return false;
-
-    int r = MessageBoxA(NULL, "Movie is being recorded, are you sure you want to quit?",
-        "Close rom?", MB_YESNO | MB_ICONWARNING);
+    int r = 0;
+    bool rec = VCR_isCapturing() || recording;
+    //printf("\nRecording info:\nVCR_isRecording: %i\nVCR_isCapturing: %i", VCR_isRecording(), VCR_isCapturing());
+    SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // HACK: fix msgbox appearing behind window when avi recording
+    if (VCR_isRecording()) {
+        r = MessageBoxA(NULL, "Movie is being recorded, are you sure you want to quit?",
+            "Close rom?", MB_YESNO | MB_ICONWARNING);
+    }
+    if (rec && continue_vcr_on_restart_mode == 0 /*again, being explicit seems to fix issues... why tho*/) {
+        r = MessageBoxA(NULL, "AVI is being recorded, are you sure you want to quit?",
+            "Close rom?", MB_YESNO | MB_ICONWARNING);
+    }
+    
+    if(rec) SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
     return r == 7;
 }
@@ -96,7 +106,7 @@ int ask_bad()
 }
 
 int ask_hack()
-{
+{   
     if (!Config.alertHACK) return 1;
     
     if (MessageBox(NULL,"This rom is a hacked or too large dump, do you want to continue?","Question",MB_YESNO | MB_ICONQUESTION) != IDNO)
