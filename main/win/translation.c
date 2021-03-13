@@ -424,9 +424,9 @@ void TranslateDirectoriesConfig(HWND hwnd)
 void TranslateGeneralDialog(HWND hwnd)
 {
     SetItemTranslatedString(hwnd,IDC_MESSAGES,"Alerts");
-    SetItemTranslatedString(hwnd,IDC_ALERTBADROM,"Alert Bad ROM");
-    SetItemTranslatedString(hwnd,IDC_ALERTHACKEDROM,"Alert Hacked ROM");
-    SetItemTranslatedString(hwnd,IDC_ALERTSAVESERRORS,"Alert Saves errors");
+    SetItemTranslatedString(hwnd,IDC_ALERTBADROM,"Manage Bad ROMs");
+    SetItemTranslatedString(hwnd,IDC_ALERTHACKEDROM,"Alert Hacked ROMs");
+    SetItemTranslatedString(hwnd,IDC_ALERTSAVESERRORS,"Alert Save Error");
 
     SetItemTranslatedString(hwnd,IDC_FPSTITLE,"FPS / VIs");
 
