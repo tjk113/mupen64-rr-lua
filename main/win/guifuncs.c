@@ -53,11 +53,11 @@ bool warn_recording() {
     bool rec = VCR_isCapturing() || recording;
     //printf("\nRecording info:\nVCR_isRecording: %i\nVCR_isCapturing: %i", VCR_isRecording(), VCR_isCapturing());
     SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // HACK: fix msgbox appearing behind window when avi recording
-    if (VCR_isRecording()) {
+    if (VCR_isRecording() && continue_vcr_on_restart_mode == 0) {
         r = MessageBoxA(NULL, "Movie is being recorded, are you sure you want to quit?",
             "Close rom?", MB_YESNO | MB_ICONWARNING);
     }
-    if (rec && continue_vcr_on_restart_mode == 0 /*again, being explicit seems to fix issues... why tho*/) {
+    if (rec) {
         r = MessageBoxA(NULL, "AVI is being recorded, are you sure you want to quit?",
             "Close rom?", MB_YESNO | MB_ICONWARNING);
     }
