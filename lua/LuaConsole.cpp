@@ -710,6 +710,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		msg->type = LuaMessage::StopCurrent;
 		msg->stopCurrent.wnd = wnd;
 		luaMessage.post(msg);
+		// save config?
 		return TRUE;
 	}
 	case IDC_BUTTON_LUABROWSE: {

@@ -33,7 +33,7 @@
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
-extern int round_to_zero;
+
 int input_delay;
 int LUA_double_buffered;
 
@@ -344,7 +344,7 @@ void SaveConfig()
     WriteCfgInt("Advanced", "Round To Zero", round_to_zero);
     WriteCfgInt("Advanced", "Old Input Delay", input_delay);
     WriteCfgInt("Advanced", "LUA Double Buffer", LUA_double_buffered);
-
+    
     WriteCfgInt("CPU", "Core", Config.guiDynacore);
 
     //Compatibility Settings
