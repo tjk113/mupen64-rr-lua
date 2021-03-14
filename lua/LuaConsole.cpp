@@ -187,7 +187,7 @@ public:
 	void run(char *path){
 
 		std::string pathStr(path);
-		if ((&pathStr.substr(pathStr.find_last_of(".") + 1))->compare("lua") || path == NULL || &path == NULL)
+		if (&path == NULL || (&pathStr.substr(pathStr.find_last_of(".") + 1))->compare("lua"))
 			return;
 
 		ASSERT(!isrunning());
@@ -526,7 +526,17 @@ public:
 				break;
 			}
 			case RunPath:{
-				HWND wnd = msg->runPath.wnd;
+				HWND wnd;
+				if (msg->runPath.wnd == NULL) {
+					if (luaWindows.size() == 0) {
+						break; // silently skip the message if it can't be run
+					}
+					wnd = luaWindows.back();
+					SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), msg->runPath.path);
+				}
+				else {
+					wnd = msg->runPath.wnd;
+				}
 				Lua *lua = GetWindowLua(wnd);
 				if(lua) {
 					lua->stop();
@@ -570,24 +580,6 @@ public:
 	Msg *current_msg;
 };
 LuaMessage luaMessage;
-void runLUA(HWND wnd, char path[])
-{
-	LuaMessage::Msg* msg = new LuaMessage::Msg();
-	msg->type = LuaMessage::RunPath;
-	msg->runPath.wnd = wnd;
-	if (path != NULL) {
-		// from mupen
-		strcpy(path, msg->runPath.path);
-	}
-	else {
-		// internally
-		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			msg->runPath.path, MAX_PATH);
-		//strcpy(Config.LuaScriptPath, msg->runPath.path);
-	}
-	anyLuaRunning = true;
-	luaMessage.post(msg);
-}
 
 Lua *GetWindowLua(HWND wnd) {
 	return luaWindowMap.find(wnd)->second;
@@ -702,7 +694,14 @@ void SetButtonState(HWND wnd, bool state) {
 BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 	switch (id) {
 	case IDC_BUTTON_LUASTATE: {
-		runLUA(wnd, NULL);
+		LuaMessage::Msg* msg = new LuaMessage::Msg();
+		msg->type = LuaMessage::RunPath;
+		msg->runPath.wnd = wnd;
+		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+			msg->runPath.path, MAX_PATH);
+		//strcpy(Config.LuaScriptPath, msg->runPath.path);
+		anyLuaRunning = true;
+		luaMessage.post(msg);
 		return TRUE;
 	}
 	case IDC_BUTTON_LUASTOP: {
@@ -710,6 +709,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		msg->type = LuaMessage::StopCurrent;
 		msg->stopCurrent.wnd = wnd;
 		luaMessage.post(msg);
+		// save config?
 		return TRUE;
 	}
 	case IDC_BUTTON_LUABROWSE: {
@@ -3051,6 +3051,31 @@ void LuaReload() {
 	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::ReloadFirst;
 	LuaEngine::luaMessage.post(msg);
+}
+
+// allow loading multiple lua scripts at a time
+static char ExternallyLoadedPaths[MAX_LUA_OPEN_AND_RUN_INSTANCES][MAX_PATH];
+static int elpLoadIndex = 0; // increment after runPath message has been sent
+static int elpSaveIndex = 0; // increment after new console created
+
+// Send a lua message to run a path on the last lua window.
+// This works off the assumption that no new windows were made between
+// the time the desired window was created, and the time this callback
+// is run (practically safe, theoretically not good)
+static void RunExternallyLoadedPath() {
+	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
+	msg->type = LuaEngine::LuaMessage::RunPath;
+	strcpy(msg->runPath.path, ExternallyLoadedPaths[elpLoadIndex]);
+	elpLoadIndex = (elpLoadIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
+	msg->runPath.wnd = NULL; 
+	LuaEngine::luaMessage.post(msg);
+}
+
+// Stores the path to be used after a new lua window is created
+void LuaOpenAndRun(const char *path) {
+	strcpy(ExternallyLoadedPaths[elpSaveIndex], path);
+	elpSaveIndex = (elpSaveIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
+	PostMessage(mainHWND, WM_COMMAND, ID_MENU_LUASCRIPT_NEW, (LPARAM)RunExternallyLoadedPath);
 }
 
 void InitializeLuaDC(HWND mainWnd) {

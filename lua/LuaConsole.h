@@ -19,6 +19,7 @@ void NewLuaScript(void(*callback)());
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 #endif
 void LuaReload();
+void LuaOpenAndRun(const char *path);
 void CloseAllLuaScript();
 void AtUpdateScreenLuaCallback();
 void AtVILuaCallback();

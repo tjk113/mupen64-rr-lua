@@ -474,6 +474,8 @@ void sleep_while_emu_paused()
 		Sleep(10);	
 		AtIntervalLuaCallback();
 		GetLuaMessage();
+		if(LUA_double_buffered)
+		updateScreen();
 		#endif
 	}
 }

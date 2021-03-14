@@ -269,10 +269,10 @@ void VCRComp_startFile( const char *filename, long width, long height, int fps, 
 
 void VCRComp_finishFile(int split)
 {
-   SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+   //SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // why is this being set when recording is stopped...
    AVIStreamClose(compressed_video_stream);
-   AVIStreamClose(video_stream);
-   //AVIStreamClose(compressed_sound_stream);
+   AVIStreamRelease(video_stream);
+  // AVIStreamClose(compressed_video_stream);
    AVIStreamClose(sound_stream);
    AVIFileClose(avi_file);
    AVIFileExit();
@@ -297,7 +297,7 @@ void init_readScreen()
 #ifdef __WIN32__
 	void ShowInfo(char *Str, ...);
 	ShowInfo((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin." : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...");
-#endif
+#endif	
 
     if(readScreen == NULL)
         readScreen = win_readScreen;

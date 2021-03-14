@@ -33,7 +33,7 @@
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
-extern int round_to_zero;
+
 int input_delay;
 int LUA_double_buffered;
 
@@ -143,11 +143,12 @@ void LoadConfig()
     Config.WindowPosX = ReadCfgInt("Window", "X", (GetSystemMetrics(SM_CXSCREEN) - Config.WindowWidth) / 2);
     Config.WindowPosY = ReadCfgInt("Window", "Y", (GetSystemMetrics(SM_CYSCREEN) - Config.WindowHeight) / 2);
     //if mupen was closed by minimising
-    if (Config.WindowPosX == -32000) {
-        Config.WindowPosX = 0;
-        Config.WindowHeight = 700;
-        Config.WindowPosY = 0;
-        Config.WindowWidth = 700;
+    if (Config.WindowPosX < 0 || Config.WindowWidth < 0) {
+        printf("\nWindow size too small");
+        Config.WindowWidth = 800;
+        Config.WindowHeight = 600;
+        Config.WindowPosX = (GetSystemMetrics(SM_CXSCREEN) - Config.WindowWidth) / 2;
+        Config.WindowPosY = (GetSystemMetrics(SM_CYSCREEN) - Config.WindowHeight) / 2;
     }
 
     //General Vars
@@ -344,7 +345,7 @@ void SaveConfig()
     WriteCfgInt("Advanced", "Round To Zero", round_to_zero);
     WriteCfgInt("Advanced", "Old Input Delay", input_delay);
     WriteCfgInt("Advanced", "LUA Double Buffer", LUA_double_buffered);
-
+    
     WriteCfgInt("CPU", "Core", Config.guiDynacore);
 
     //Compatibility Settings
@@ -377,7 +378,6 @@ void SaveConfig()
     char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
         "ReadOnly", "Play", "PlayStop", "Record",
         "RecordStop", "Screenshot", "Save Current", "Load Current" };
-    // goes out of scope
 
     for (int i = 0; i <= 12; i++)
     {

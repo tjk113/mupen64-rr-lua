@@ -111,6 +111,17 @@ extern DEFCONTROLLER Controller[NUMBER_OF_CONTROLS];
 
 extern HINSTANCE g_hInstance;
 
+//---- Popup menu
+enum PopupOptions {
+	None,
+	OnTop
+};
+
+typedef struct {
+	bool onTop = false;
+} MENUCONFIG;
+//----
+
 void WINAPI GetNegAxisVal(LONG AxisValue, int Control, LONG count, BUTTONS *ControllerInput, int &M1Speed, int &M2Speed);
 void WINAPI GetPosAxisVal(LONG AxisValue, int Control, LONG count, BUTTONS *ControllerInput, int &M1Speed, int &M2Speed);
 void WINAPI InitializeAndCheckDevices(HWND hMainWindow);

@@ -316,17 +316,18 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     //Options menu
     submenu = GetSubMenu(hMenu,2);
     SetMenuTranslatedString(submenu,0,"Full Screen","Alt Enter");
-    SetMenuTranslatedString(submenu,2,"Video Settings...","");
-    SetMenuTranslatedString(submenu,3,"Input Settings...","");
-    SetMenuTranslatedString(submenu,4,"Audio Settings...","");
-    SetMenuTranslatedString(submenu,5,"RSP Settings...","");
-    SetMenuTranslatedString(submenu,7 ,"Show Toolbar","Alt T");
-    SetMenuTranslatedString(submenu,8 ,"Show Statusbar","Alt S");
-    SetMenuTranslatedString(submenu,10 ,"Settings...","Ctrl S");
+    subsubmenu = GetSubMenu(submenu, 2);
+    SetMenuTranslatedString(subsubmenu, 0, "Video", "");
+    SetMenuTranslatedString(subsubmenu, 1, "Input", "");
+    SetMenuTranslatedString(subsubmenu, 2, "Audio", "");
+    SetMenuTranslatedString(subsubmenu, 3, "RSP", "");
+    SetMenuTranslatedString(submenu, 4, "Show Toolbar", "Alt T");
+    SetMenuTranslatedString(submenu, 5, "Show Statusbar", "Alt S");
+    SetMenuTranslatedString(submenu, 7, "Settings", "Ctrl S  ");
 
     //Utility menu
     submenu = GetSubMenu(hMenu,3);
-    SetMenuTranslatedString(submenu,0,"ROM Properties...","Ctrl P");
+    SetMenuTranslatedString(submenu,0,"ROM Properties","Ctrl P");
     SetMenuTranslatedString(submenu,2,"Audit ROMs...","");
     //SetMenuTranslatedString(submenu,3,"Benchmark...","");
     SetMenuTranslatedString(submenu,3,"Generate ROM Info...","");
@@ -345,9 +346,8 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
             
     //Help menu
     submenu = GetSubMenu(hMenu,4);
-    SetMenuTranslatedString(submenu,0,"Contents...","");
-    SetMenuTranslatedString(submenu,1,"Show RAM start","");
-    SetMenuTranslatedString(submenu,3,"About...","");
+    SetMenuTranslatedString(submenu,0,"Show RAM start","");
+    SetMenuTranslatedString(submenu,2,"About","");
     DrawMenuBar(mainHWND);
     
     
@@ -423,9 +423,9 @@ void TranslateDirectoriesConfig(HWND hwnd)
 void TranslateGeneralDialog(HWND hwnd)
 {
     SetItemTranslatedString(hwnd,IDC_MESSAGES,"Alerts");
-    SetItemTranslatedString(hwnd,IDC_ALERTBADROM,"Alert Bad ROM");
-    SetItemTranslatedString(hwnd,IDC_ALERTHACKEDROM,"Alert Hacked ROM");
-    SetItemTranslatedString(hwnd,IDC_ALERTSAVESERRORS,"Alert Saves errors");
+    SetItemTranslatedString(hwnd,IDC_ALERTBADROM,"Manage Bad ROMs");
+    SetItemTranslatedString(hwnd,IDC_ALERTHACKEDROM,"Alert Hacked ROMs");
+    SetItemTranslatedString(hwnd,IDC_ALERTSAVESERRORS,"Alert Save Error");
 
     SetItemTranslatedString(hwnd,IDC_FPSTITLE,"FPS / VIs");
 
@@ -494,14 +494,18 @@ void TranslateAuditDialog(HWND hwnd)
 void TranslateLangInfoDialog( HWND hwnd )
 {
     char tmp[200];
+    TranslateDefault("Language Information Dialog", "Language Information", tmp);
+    SetItemTranslatedString(hwnd, IDOK, "Ok");
+    if (!current_lang)         // no language (default english)
+                               // dont show placeholder text
+        return;
+
     SetItemTranslatedString(hwnd,IDC_LANG_AUTHOR_TEXT,"Translation Author TEXT");
     SetItemTranslatedString(hwnd,IDC_LANG_VERSION_TEXT,"Version TEXT");
     SetItemTranslatedString(hwnd,IDC_LANG_DATE_TEXT,"Creation Date TEXT");
     SetItemTranslatedString(hwnd,IDC_LANG_AUTHOR,"Translation Author");
     SetItemTranslatedString(hwnd,IDC_LANG_VERSION,"Version");
     SetItemTranslatedString(hwnd,IDC_LANG_DATE,"Creation Date");
-    SetItemTranslatedString(hwnd,IDOK, "Ok");
-    TranslateDefault("Language Information Dialog","Language Information",tmp);
     SetWindowText(hwnd,tmp);
 }
 

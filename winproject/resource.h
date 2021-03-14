@@ -395,6 +395,7 @@
 #define IDC_TEXTBOX_LUAPROMPT           9520
 
 #define ID_LUA_RELOAD                   9600
+#define MAX_LUA_OPEN_AND_RUN_INSTANCES  5
 
 #define ID_LANG_ENGLISH                 10000
 #define IDC_ROUNDTOZERO                 10002
@@ -408,6 +409,7 @@
 #define IDC_STARTFROM2					40008
 #define IDC_INPUTDELAY					40009
 #define IDC_CLUADOUBLEBUFFER			40010
+#define IDC_GITREPO						40011
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

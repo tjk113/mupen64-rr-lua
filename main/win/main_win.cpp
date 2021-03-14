@@ -64,6 +64,8 @@ extern "C" {
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 void StartMovies();
+void StartLuaScripts();
+void StartSavestate();
 
 typedef std::string String;
 bool shouldSave = false;
@@ -83,7 +85,7 @@ BOOL forceIgnoreRSP = false;
 #define strncasecmp	strnicmp
 #endif
 
-#define LUA_UPDATEBUFFER if (anyLuaRunning==true /*being explicit seems to fix it*/ && LUA_double_buffered) { AtIntervalLuaCallback(); GetLuaMessage(); LuaDCUpdate(1); }
+#define LUA_UPDATEBUFFER if (anyLuaRunning==true && LUA_double_buffered) { AtIntervalLuaCallback(); GetLuaMessage();}
 
 
 static DWORD Id;
@@ -303,6 +305,7 @@ static void gui_ChangeWindow()
 {
     if( FullScreenMode )
 	{
+        EnableStatusbar();
 		EnableWindow( hTool, FALSE);
 		ShowWindow( hTool, SW_HIDE);
 		ShowWindow( hStatus, SW_HIDE);
@@ -1311,13 +1314,9 @@ static int shut_window = 0;
 
 //void closeRom()
 static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist? 
-{
-
-    //ShowInfo("Close Rom"); this crashes everytime????
-    
+{    
    LONG winstyle;                                //Used for setting new style to the window
 //   int browserwidths[] = {400, -1};              //Rombrowser statusbar
-
    
    if (emu_launched)  {
       if (emu_paused)  {
@@ -1326,8 +1325,8 @@ static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show r
 
       if (recording && !continue_vcr_on_restart_mode)
       {
-         Sleep(1000); // HACK - seems to help crash on closing ROM during capture...?
-         if (VCR_stopCapture() < 0)
+         //Sleep(1000); // HACK - seems to help crash on closing ROM during capture...?
+         if (VCR_stopCapture() != 0) // but it never returns non-zero ???
              MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
          else {
              SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -2399,7 +2398,9 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
     SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
 	ThreadFuncState = TFS_EMULATING;
     ShowInfo("Emu thread: Emulation started....");
-    StartMovies();
+    StartMovies(); // check commandline args
+	StartLuaScripts();
+	StartSavestate();
     AtResetCallback();
     go();
     ShowInfo("Emu thread: Core stopped...");
@@ -2433,6 +2434,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 void exit_emu(int postquit)
 {
+
    if(postquit){
 	   if (!cmdlineMode||cmdlineSave) {
 	      ini_updateFile(Config.compressedIni);
@@ -2445,11 +2447,9 @@ void exit_emu(int postquit)
 	}
    else
    {
-       if (warn_recording())
-           return;
     CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
    }
-   
+
    if(postquit){
 	   freeRomDirList(); 
 	   freeRomList();
@@ -2460,7 +2460,8 @@ void exit_emu(int postquit)
 
 void exit_emu2()
 {
-    // who cares
+    if (warn_recording())
+        return;
 
      if ((!cmdlineMode)||(cmdlineSave)) {
       ini_updateFile(Config.compressedIni);
@@ -2659,6 +2660,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				savestates_job = LOADSTATE;
 			}
 		}
+		else if (strcmp(fext, ".LUA") == 0) {
+			if (rom) {
+				LuaOpenAndRun(fname);
+			}
+		}
 		
 		break;
 	case WM_KEYDOWN:
@@ -2695,16 +2701,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				keyDown(wParam, lParam);
 			if(!hit)
 				return DefWindowProc(hwnd, Message, wParam, lParam);
-            LUA_UPDATEBUFFER;
         }	break;
-    case WM_LBUTTONDOWN:
-    case WM_RBUTTONDOWN:
-    case WM_LBUTTONUP:
-    case WM_RBUTTONUP:
-    {
-        LUA_UPDATEBUFFER;
-        break;
-    }
     case WM_SYSKEYUP:
 	case WM_KEYUP:
 			if((int)wParam == Config.hotkey[0].key) // fast-forward off
@@ -2756,6 +2753,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             ////////////////////////////
             return TRUE;
 	case WM_CLOSE:
+        if (warn_recording())break;
 		if(emu_launched)
 		{
 			shut_window = 1;
@@ -2905,8 +2903,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     resumeEmu(FALSE);
 				}	break;  
 			case EMU_STOP:
+                if (warn_recording())break;
                  if (emu_launched) {
-                       if (warn_recording())break;
+                       //if (warn_recording())break;
                        //closeRom();
                        stop_it();
                        //SleepEx(1000, TRUE); //todo check if can remove
@@ -2957,7 +2956,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  break;
                 
 			case EMU_RESET:
-                if (warn_recording())break;
+                if (Config.NoReset && warn_recording())break;
                 extern int m_task;
                 if (m_task == 3 && !Config.NoReset) //recording
                 {
@@ -2992,16 +2991,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      ret = DialogBox(GetModuleHandle(NULL), 
                      MAKEINTRESOURCE(IDD_ABOUT), hwnd, AboutDlgProc);
                      break;
-			case ID_HELP_CONTENS:
-                     sprintf(TempMessage,"%sreadme.pdf",AppPath);
-                     ShellExecute(0,0, TempMessage, NULL, NULL, SW_SHOWNORMAL);           
-                     break;
             case ID_RAMSTART:
             {
                 pauseEmu(FALSE);
                 char buf[30];
                 sprintf(buf, "0x%#08p", rdram);
-                MessageBox(0, buf, "RAM Start", MB_ICONINFORMATION);
+                MessageBoxA(0, buf, "RAM Start", MB_ICONINFORMATION|MB_TASKMODAL);
                 resumeEmu(FALSE);
                 break;
             }
@@ -3039,6 +3034,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      }
                      break;
                 case ID_EMULATOR_EXIT:
+                    if (warn_recording())break;
                      shut_window = 1;
                      if(emu_launched)
                        exit_emu(0);
@@ -3364,6 +3360,50 @@ void StartMovies()
     }
 }
 
+//-lua, -g
+// runs multiple lua scripts with paths seperated by ;
+// Ex: "path\script1.lua;path\script2.lua"
+// From testing only works with 2 scripts ?
+void StartLuaScripts() {
+	HMENU hMenu = GetMenu(mainHWND);
+	if (CmdLineParameterExist(CMDLINE_LUA) && CmdLineParameterExist(CMDLINE_GAME_FILENAME))
+	{
+		char files[MAX_PATH];
+		GetCmdLineParameter(CMDLINE_LUA, files);
+		int len = strlen(files);
+		int numScripts = 1;
+		int scriptStartPositions[MAX_LUA_OPEN_AND_RUN_INSTANCES] = {0};
+		for (int i = 0; i < len; ++i) {
+			if (files[i] == ';') {
+				files[i] = 0; // turn ; into \0 so we can copy each part easily
+				scriptStartPositions[numScripts] = i + 1;
+				++numScripts;
+				if (numScripts >= MAX_LUA_OPEN_AND_RUN_INSTANCES) {
+					break;
+				}
+			}
+		}
+		char file[MAX_PATH];
+		for (int i = 0; i < numScripts; ++i) {
+			strcpy(file, &files[scriptStartPositions[i]]);
+			LuaOpenAndRun(file);
+		}
+	}
+}
+
+//-st, -g
+void StartSavestate() {
+	HMENU hMenu = GetMenu(mainHWND);
+	if (CmdLineParameterExist(CMDLINE_SAVESTATE) && CmdLineParameterExist(CMDLINE_GAME_FILENAME)
+		&& !CmdLineParameterExist(CMDLINE_PLAY_M64))
+	{
+		char file[MAX_PATH];
+		GetCmdLineParameter(CMDLINE_SAVESTATE, file);
+		savestates_select_filename(file);
+		savestates_job = LOADSTATE;
+	}
+}
+
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -3386,12 +3426,12 @@ int WINAPI WinMain(
   // ensure folders exist!
   {
 		String path = AppPath;
-		CreateDirectory((path + "Save").c_str(), NULL);
-		CreateDirectory((path + "Mempak").c_str(), NULL);
-		CreateDirectory((path + "Lang").c_str(), NULL);
-		CreateDirectory((path + "Screenhot").c_str(), NULL);
-		CreateDirectory((path + "Plugin").c_str(), NULL);
-	}
+        CreateDirectory((path + "save").c_str(), NULL);
+        CreateDirectory((path + "Mempaks").c_str(), NULL);
+        CreateDirectory((path + "Lang").c_str(), NULL);
+        CreateDirectory((path + "ScreenShots").c_str(), NULL);
+        CreateDirectory((path + "plugin").c_str(), NULL);
+  }
            
   emu_launched = 0;
   emu_paused = 1;

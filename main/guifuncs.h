@@ -32,6 +32,7 @@ char *get_savespath();
 void display_loading_progress(int p);
 void display_MD5calculating_progress(int p);
 
+int ask_extension();
 int ask_bad();
 int ask_hack();
 

@@ -30,6 +30,7 @@
 #include "RomSettings.h"
 #include "translation.h"
 #include "Config.h"
+#include <string>
 
 static int TOTAL_ROMS_NUMBER = 0;
 static BOOL SortAscending ;
@@ -838,6 +839,7 @@ void LoadRomList()
     if (!LoadRomBrowserCache()) {
     RomDirsHeader = ROM_DIRECTORY_HEADER ; 
     while (RomDirsHeader) {
+        // POOP
        AddDirToList(RomDirsHeader->RomDirectory,FALSE);
        RomDirsHeader = RomDirsHeader->next ;
       }
@@ -871,6 +873,11 @@ void AddDirToList(char RomBrowserDir[MAX_PATH],BOOL sortflag)
      strcpy(FullPath,RomBrowserDir);
      if (FullPath[strlen(RomBrowserDir) - 1] != '\\') { strcat(FullPath,"\\"); }
      strcat(FullPath,fd.cFileName);
+     std::string strfileName = FullPath;
+     if (strfileName.find_last_of(".") != std::string::npos
+         && !validRomExt(strfileName.substr(strfileName.find_last_of(".") + 1)) && Config.alertBAD) {
+         continue;
+     }
      if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
             if (Config.RomBrowserRecursion) { 
               		AddDirToList(FullPath,FALSE); }

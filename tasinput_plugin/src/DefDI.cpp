@@ -68,6 +68,7 @@ FILE* cFile; /*combo file conains list of combos in format:
 
 std::vector<COMBO> ComboList;
 
+MENUCONFIG menuConfig;
 
 struct Status
 {
@@ -1574,6 +1575,36 @@ bool Status::IsAnyStatusDialogActive ()
 	return false;
 }
 
+//called after right-click menu closes, used to apply some changes
+void RefreshChanges(HWND hwnd)
+{
+	if (menuConfig.onTop)
+		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+	else
+		SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+}
+
+bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
+{
+	if (hitwnd != hwnd) return TRUE;
+	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
+	HMENU hMenu = CreatePopupMenu();
+	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on top");
+	//AppendMenu(hMenu, 1, 2, "B");
+	//AppendMenu(hMenu, 0, 3, "C");
+
+	int res = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, x, y, hwnd, 0);
+	printf("trackmenu result %d\n",res);
+	switch (res){
+	case OnTop:
+		menuConfig.onTop^=1;
+		break;
+	}
+	RefreshChanges(hwnd);
+	DestroyMenu(hMenu);
+	return TRUE;
+}
+
 //LRESULT CALLBACK StatusDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 //{
 //	// awkward way of getting our parameter, as this is a callback function...
@@ -1612,6 +1643,10 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 	if(initialized || msg == WM_INITDIALOG /*|| msg == WM_DESTROY || msg == WM_NCDESTROY*/)
 	switch (msg)
     {
+
+	case WM_CONTEXTMENU:
+		if (!ShowContextMenu(statusDlg, (HWND)wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); //DefWindowProc()
+		break;
 		case WM_ERASEBKGND:
 			if (erase)
 			{
@@ -1683,7 +1718,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				yPosition = 0;
 				positioned = true;
 			}
-			SetWindowPos(statusDlg,HWND_NOTOPMOST, xPosition, yPosition, 0,0, SWP_NOSIZE|SWP_SHOWWINDOW);
+			SetWindowPos(statusDlg,0, xPosition, yPosition, 0,0, SWP_NOZORDER|SWP_NOSIZE|SWP_SHOWWINDOW);
 
 			// reposition stick picture
 			MoveWindow(GetDlgItem(statusDlg,IDC_STICKPIC), picRect.left, picRect.top, STICKPIC_SIZE, STICKPIC_SIZE, FALSE);
@@ -1917,7 +1952,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					lastXDrag = newDragX-dragXStart;
 					lastYDrag = newDragY-dragYStart;
-					SetWindowPos(statusDlg,0, lastXDrag, lastYDrag, 0,0, SWP_NOSIZE|SWP_SHOWWINDOW);
+					SetWindowPos(statusDlg,0, lastXDrag, lastYDrag, 0,0, SWP_NOZORDER|SWP_NOSIZE|SWP_SHOWWINDOW);
 				}
 			}
 			else if(draggingStick)

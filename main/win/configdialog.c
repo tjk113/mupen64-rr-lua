@@ -52,7 +52,6 @@ HWND hwndTrack ;
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
-extern int round_to_zero;
 
 void WriteCheckBoxValue( HWND hwnd, int resourceID , int value)
 {
@@ -220,8 +219,11 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
                 break;
                 
                 case IDC_WEBSITE:
-                     ShellExecute(NULL, "open", "http://mupen64.emulation64.com", NULL, NULL, SW_SHOWNORMAL);
+                    ShellExecute(0, 0, "http://mupen64.emulation64.com", 0, 0, SW_SHOW); 
                 break;
+                case IDC_GITREPO:
+                    ShellExecute(0, 0, "https://github.com/mkdasher/mupen64-rr-lua-/", 0, 0, SW_SHOW);
+                    break;
             }
         break;
         default:
@@ -899,7 +901,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          WriteCheckBoxValue( hwnd, IDC_COLUMN_FILENAME, Config.Column_FileName);
          WriteCheckBoxValue( hwnd, IDC_COLUMN_MD5, Config.Column_MD5);
          
-         WriteCheckBoxValue(hwnd, !IDC_NORESET, Config.NoReset);
+         WriteCheckBoxValue(hwnd, IDC_NORESET, !Config.NoReset);
 
          WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.forceInternalCapture);
 
@@ -936,7 +938,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 Config.Column_FileName = ReadCheckBoxValue( hwnd, IDC_COLUMN_FILENAME);
                 Config.Column_MD5 = ReadCheckBoxValue( hwnd, IDC_COLUMN_MD5); 
 
-                Config.NoReset = ReadCheckBoxValue(hwnd, !IDC_NORESET);
+                Config.NoReset = !ReadCheckBoxValue(hwnd, IDC_NORESET);
                 Config.forceInternalCapture = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
                 
                 EnableToolbar(); 
