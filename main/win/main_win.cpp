@@ -2992,10 +2992,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      ret = DialogBox(GetModuleHandle(NULL), 
                      MAKEINTRESOURCE(IDD_ABOUT), hwnd, AboutDlgProc);
                      break;
-			case ID_HELP_CONTENS:
-                     sprintf(TempMessage,"%sreadme.pdf",AppPath);
-                     ShellExecute(0,0, TempMessage, NULL, NULL, SW_SHOWNORMAL);           
-                     break;
             case ID_RAMSTART:
             {
                 pauseEmu(FALSE);

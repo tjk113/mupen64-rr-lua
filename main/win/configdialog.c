@@ -219,8 +219,11 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
                 break;
                 
                 case IDC_WEBSITE:
-                     ShellExecute(NULL, "open", "http://mupen64.emulation64.com", NULL, NULL, SW_SHOWNORMAL);
+                    ShellExecute(0, 0, "http://mupen64.emulation64.com", 0, 0, SW_SHOW); 
                 break;
+                case IDC_GITREPO:
+                    ShellExecute(0, 0, "https://github.com/mkdasher/mupen64-rr-lua-/", 0, 0, SW_SHOW);
+                    break;
             }
         break;
         default:

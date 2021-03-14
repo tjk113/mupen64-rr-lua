@@ -408,6 +408,7 @@
 #define IDC_STARTFROM2					40008
 #define IDC_INPUTDELAY					40009
 #define IDC_CLUADOUBLEBUFFER			40010
+#define IDC_GITREPO						40011
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
