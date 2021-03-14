@@ -1093,6 +1093,7 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 	m_header.uid = (unsigned long)time(NULL);
     m_header.length_vis = 0;
     m_header.length_samples = 0;
+
 	m_header.rerecord_count = 0;
 	m_header.startFlags = flags;
 
@@ -1236,7 +1237,7 @@ void SetActiveMovie(char* buf,int maxlen)
 		title[titleLength] = '\0'; //remove movie being played part
 		SetWindowText(mainHWND, title);
 	}
-	else
+	else if(buf != NULL && m_task!=Idle) // thanks to madghostek
 	{
 		if (!buf) return;
 		//original length
@@ -1392,12 +1393,12 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 				
 				if(strlen(warningStr) > 0)
 				{
+					
 					if(dontPlay)
 						printError(warningStr);
 					else
 						printWarning(warningStr);
 				}
-				
 				extern char gfx_name[255];
 				extern char input_name[255];
 				extern char sound_name[255];
@@ -1442,7 +1443,6 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 				if(dontPlay)
 					return -1;
 
-
 				// recalculate length of movie from the file size
 //				fseek(m_file, 0, SEEK_END);
 //				int fileSize = ftell(m_file);
@@ -1459,11 +1459,12 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 				// read "baseline" controller data
 ///				read_frame_controller_data(0); // correct if we can assume the first controller is active, which we can on all GBx/xGB systems
 //				m_currentSample = 0;
-
+				
 				fseek(m_file, 0, SEEK_END);
 				#ifdef _WIN32
 				char buf[50];
 				sprintf(buf, "%d rr", m_header.rerecord_count);
+
 				extern HWND hStatus;
 				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
 				#endif
@@ -1590,17 +1591,17 @@ VCR_updateScreen()
 		extern HWND mainHWND;
 		extern BOOL manualFPSLimit;
 		// skip frames according to skipFrequency if fast-forwarding and not capturing to AVI
-		if (IGNORE_RSP) redraw = 0;
+		if (IGNORE_RSP || forceIgnoreRSP) redraw = 0;
 #endif
 #ifdef LUA_SPEEDMODE
 		if(maximumSpeedMode)redraw = 1;
-#endif	
+#endif
 		//printf("Screen update!\n");
 		if(redraw) {
 			updateScreen();
-#ifdef LUA_GUI
-		LuaDCUpdate(redraw);
-#endif
+		#ifdef LUA_GUI
+			LuaDCUpdate(redraw);
+		#endif
 		redraw = 0;
 		}
 //		captureFrameValid = TRUE;
@@ -1624,7 +1625,7 @@ VCR_updateScreen()
 		}
 //	captureFrameValid = TRUE;
 	readScreen( &image, &width, &height );
-	if (image == 0)
+	if (image == NULL)
 	{
 		fprintf( stderr, "[VCR]: Couldn't read screen (out of memory?)\n" );
 		return;
@@ -2070,12 +2071,18 @@ void VCR_updateFrameCounter ()
 	if (VCR_isRecording())
 	{
 		sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, inputDisplay);
-		sprintf(rr, "%d rr", m_header.rerecord_count);
+		if (m_header.rerecord_count == 0)
+			sprintf(rr, "%d rr", m_header.rerecord_count);
+		else
+			sprintf(rr, "%d rr", m_header.rerecord_count);
 	}
 	else if (VCR_isPlaying())
 	{
 		sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), inputDisplay);
-		sprintf(rr, "%d rr", m_header.rerecord_count);
+		if (m_header.rerecord_count == 0)
+			sprintf(rr, "%d rr", m_header.rerecord_count);
+		else
+			sprintf(rr, "%d rr", m_header.rerecord_count);
 	}
 	else
 		strcpy(str, inputDisplay);

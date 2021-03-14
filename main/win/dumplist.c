@@ -70,9 +70,7 @@ void generateRomInfo()
     //ShowMessage("File romlist.txt created");
     if (MessageBox(NULL,"File romlist.txt created. Do you want to open it?","ROM Info",MB_YESNO | MB_ICONQUESTION) != IDNO)
     {    
-    //    _spawnlp( _P_NOWAIT, "notepad.exe", "notepad.exe", RomListFileName, NULL );
-        sprintf(TempMessage,"%s%s",AppPath,RomListFileName);
-        ShellExecute(NULL, "open", TempMessage, NULL, NULL, SW_SHOWNORMAL);           
+        ShellExecute(0, 0, "romlist.txt", 0, 0, SW_SHOW); // local path
     }
 
 }

@@ -38,7 +38,7 @@ IDB_UP_ARROW            BITMAP                  "icons\\up_arrow.bmp"
 
 IDR_MYMENU MENU
 BEGIN
-    POPUP "&File"
+    POPUP "File"
     BEGIN
         MENUITEM "&Load ROM...",                IDLOAD
         MENUITEM "&Close ROM\tF4",              EMU_STOP, GRAYED
@@ -60,11 +60,11 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt F4",               ID_EMULATOR_EXIT
     END
-    POPUP "&Emulation"
+    POPUP "Emulation"
     BEGIN
         MENUITEM "Pause",                       EMU_PAUSE, GRAYED
         MENUITEM "Frame Advance",               EMU_FRAMEADVANCE, GRAYED
-        MENUITEM "Generate Bitmap",             GENERATE_BITMAP, GRAYED
+        MENUITEM "Take Screenshot",             GENERATE_BITMAP, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Save State",                 STATE_SAVE, GRAYED
         MENUITEM "Save State As...\tCtrl A",    STATE_SAVEAS, GRAYED
@@ -84,21 +84,25 @@ BEGIN
             MENUITEM "Slot 9",                      ID_CURRENTSAVE_9
         END
     END
-    POPUP "&Options"
+    POPUP "Options"
     BEGIN
         MENUITEM "&Full Screen\tAlt Enter",     FULL_SCREEN, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "&Video Settings...",          IDGFXCONFIG
-        MENUITEM "&Input Settings...",          IDINPUTCONFIG
-        MENUITEM "&Audio Settings...",          IDSOUNDCONFIG
-        MENUITEM "&RSP Settings...",            IDRSPCONFIG
+
+    POPUP "Plugin Settings"
+    BEGIN
+    MENUITEM "&Video Settings...",          IDGFXCONFIG
+    MENUITEM "&Input Settings...",          IDINPUTCONFIG
+    MENUITEM "&Audio Settings...",          IDSOUNDCONFIG
+    MENUITEM "&RSP Settings...",            IDRSPCONFIG
+    END
         MENUITEM SEPARATOR
         MENUITEM "Show &Toolbar\tAlt T",        IDC_GUI_TOOLBAR
         MENUITEM "Show Status&bar\tAlt S",      IDC_GUI_STATUSBAR
         MENUITEM SEPARATOR
         MENUITEM "&Settings...\tCtrl S",        ID_LOAD_CONFIG
     END
-    POPUP "&Utilities"
+    POPUP "Utilities"
     BEGIN
         MENUITEM "Rom Properties...\tCtrl P",   ID_POPUP_ROM_SETTING, GRAYED
         MENUITEM SEPARATOR
@@ -121,17 +125,16 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
     END
-    POPUP "&Help"
+    POPUP "Help"
     BEGIN
-        MENUITEM "&Contents...",                ID_HELP_CONTENS
         MENUITEM "Show RAM Start",              ID_RAMSTART
         MENUITEM SEPARATOR
         MENUITEM "&About Mupen64...",           ID_HELP_ABOUT
     END
-    POPUP "&Lua Script"
+    POPUP "Lua Script"
     BEGIN
-        MENUITEM "New Instance...",             ID_MENU_LUASCRIPT_NEW
-        MENUITEM "Close ALL Instance",          ID_MENU_LUASCRIPT_CLOSEALL
+        MENUITEM "New Instance",                 ID_MENU_LUASCRIPT_NEW
+        MENUITEM "Close All",           ID_MENU_LUASCRIPT_CLOSEALL
     END
 END
 
@@ -153,15 +156,16 @@ END
 //
 
 IDD_ABOUT DIALOGEX 0, 0, 200, 216
-STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU 
 CAPTION "About Mupen64"
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "&Ok",IDOK,69,197,60,14
-    PUSHBUTTON      "&Web Site",IDC_WEBSITE,134,197,60,14
+    DEFPUSHBUTTON   "Ok",IDOK,5,197,60,14
+    PUSHBUTTON      "Github", IDC_GITREPO, 69, 197, 60, 14
+    PUSHBUTTON      "Website",IDC_WEBSITE,134,197,60,14
     GROUPBOX        "About this program",IDC_STATIC,5,65,189,127
-    LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanx to the many others who have hel",IDC_STATIC,13,82,173,104
-    CONTROL         "",133,"Static",SS_BITMAP,0,0,200,100
+    LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanks to the many others who helped",IDC_STATIC,13,82,173,104
+    CONTROL         "",133,"Static",SS_BITMAP,0,0,200,100 
 END
 
 IDD_ADVANCED_OPTIONS DIALOGEX 0, 0, 231, 262
@@ -170,6 +174,9 @@ FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Common Options",IDC_COMMON,7,7,215,60
     CONTROL         "Start game in full screen",IDC_STARTFULLSCREEN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,100,10
+    CONTROL         "1f Input Delay", IDC_INPUTDELAY, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 100, 84, 80, 18
+    CONTROL         "LUA Double Buffer", IDC_CLUADOUBLEBUFFER, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 100, 105, 80, 18
+
     CONTROL         "Pause emulation when window is not active",IDC_PAUSENOTACTIVE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,100,10
     CONTROL         "Use global plugins settings",IDC_PLUGIN_OVERWRITE,
@@ -179,9 +186,9 @@ BEGIN
     CONTROL         "Auto Increment save slot",IDC_AUTOINCSAVESLOT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,50,100,10
     GROUPBOX        "Compatibility Options",IDC_COMPATIBILITY,7,71,215,56
     CONTROL         "No audio delay (it can fix some compatibility issues but audio won't be synchronised with video)",IDC_NO_AUDIO_DELAY,
-                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,84,200,18
+                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,84,60,18
     CONTROL         "No compiled jump (improves compatibility at the cost of some speed)",IDC_NO_COMPILED_JUMP,
-                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,105,200,18
+                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,105,80,18
     GROUPBOX        "ROM Browser Columns",IDC_ROMBROWSERCOLUMNS,7,131,215,73
     CONTROL         "Good Name",IDC_COLUMN_GOODNAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,144,100,10
     CONTROL         "Internal Name",IDC_COLUMN_INTERNALNAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,158,100,10
@@ -190,7 +197,7 @@ BEGIN
     CONTROL         "Comments",IDC_COLUMN_COMMENTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,144,100,10
     CONTROL         "File Name",IDC_COLUMN_FILENAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,158,100,10
     CONTROL         "MD5",IDC_COLUMN_MD5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,172,100,10
-    GROUPBOX        "Wii VC Options",IDC_WIIVC_OPTIONS,7,207,98,50
+    GROUPBOX        "Compatibility Options",IDC_WIIVC_OPTIONS,7,207,98,50
     CONTROL         "Round To Zero",IDC_ROUNDTOZERO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,221,75,10
     GROUPBOX        "Recording Options",IDC_RECORDINGOPT,112,207,110,50
     CONTROL         "Record resets",IDC_NORESET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,119,220,87,10
@@ -219,13 +226,13 @@ BEGIN
 END
 
 IDD_LUAWINDOW DIALOGEX 0, 0, 240, 166
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Lua Script"
+STYLE DS_SETFONT | WS_VISIBLE | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_MINIMIZEBOX | WS_TABSTOP
+CAPTION "LUA Instance"
 FONT 8, "Ms Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Run",IDC_BUTTON_LUASTATE,193,23,40,18
     EDITTEXT        IDC_TEXTBOX_LUASCRIPTPATH,7,7,226,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Browse...",IDC_BUTTON_LUABROWSE,7,23,40,18
+    PUSHBUTTON      "Browse",IDC_BUTTON_LUABROWSE,7,23,40,18
     PUSHBUTTON      "Edit",IDC_BUTTON_LUAEDIT,49,23,40,18
     PUSHBUTTON      "Clear",IDC_BUTTON_LUACLEAR,109,23,40,18
     PUSHBUTTON      "Stop",IDC_BUTTON_LUASTOP,151,23,40,18,WS_DISABLED
@@ -517,9 +524,10 @@ BEGIN
     EDITTEXT        IDC_MOVIE_CONTROLLER2_TEXT2,217,165,91,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     EDITTEXT        IDC_MOVIE_CONTROLLER3_TEXT2,217,176,91,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     EDITTEXT        IDC_MOVIE_CONTROLLER4_TEXT2,217,187,91,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CONTROL         "From Snapshot",IDC_FROMSNAPSHOT_RADIO,"Button",BS_AUTORADIOBUTTON,211,107,64,10
-    CONTROL         "From Start",IDC_FROMSTART_RADIO,"Button",BS_AUTORADIOBUTTON,211,95,50,10
-    CONTROL         "From EEPROM",IDC_FROMEEPROM_RADIO,"Button",BS_AUTORADIOBUTTON,211,120,64,10
+    GROUPBOX        "Start From", IDC_STARTFROM2, 177, 88, 139, 50
+    CONTROL         "Savestate",IDC_FROMSNAPSHOT_RADIO,"Button",BS_AUTORADIOBUTTON,190,112,64,10
+    CONTROL         "Start",IDC_FROMSTART_RADIO,"Button",BS_AUTORADIOBUTTON,190,100,50,10
+    CONTROL         "EEPROM",IDC_FROMEEPROM_RADIO,"Button",BS_AUTORADIOBUTTON,190,125,64,10
 END
 
 IDD_ROM_SETTING_DIALOG DIALOGEX 0, 0, 340, 305

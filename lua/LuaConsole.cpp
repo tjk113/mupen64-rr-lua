@@ -19,6 +19,9 @@
 #include "../main/plugin.h"
 #include "../main/disasm.h"
 #include "../main/savestates.h"
+#include "../main/win/Config.h"
+#include <vcr.h>
+
 
 #ifdef LUA_CONSOLE
 
@@ -43,6 +46,7 @@ bool enableTraceLog;
 bool traceLogMode;
 bool enablePCBreak;
 bool maximumSpeedMode;
+bool anyLuaRunning = false;
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
@@ -144,6 +148,7 @@ struct EmulationLock{
 	}
 };
 
+void runLUA(HWND wnd, char path[]); // bad solution
 void ConsoleWrite(HWND, const char*);
 void SetWindowLua(HWND wnd, Lua *lua);
 void SetButtonState(HWND wnd, bool state);
@@ -162,7 +167,8 @@ extern const luaL_Reg inputFuncs[];
 extern const luaL_Reg joypadFuncs[];
 extern const luaL_Reg savestateFuncs[];
 extern const char * const REG_ATSTOP;
-int AtStop(lua_State *L);
+int AtStop(lua_State *L); 
+
 class Lua {
 public:
 	Lua(HWND wnd):
@@ -179,6 +185,11 @@ public:
 		ShowInfo("Lua destruct");
 	}
 	void run(char *path){
+
+		std::string pathStr(path);
+		if ((&pathStr.substr(pathStr.find_last_of(".") + 1))->compare("lua") || path == NULL || &path == NULL)
+			return;
+
 		ASSERT(!isrunning());
 		brush = (HBRUSH)GetStockObject(WHITE_BRUSH);
 		pen = (HPEN)GetStockObject(BLACK_PEN);
@@ -195,6 +206,7 @@ public:
 	void stop() {
 		if(!isrunning())
 			return;
+
 		registerFuncEach(AtStop, REG_ATSTOP);
 		deleteGDIObject(brush, WHITE_BRUSH);
 		deleteGDIObject(pen, BLACK_PEN);
@@ -505,9 +517,10 @@ public:
 				Lua *lua = GetWindowLua(wnd);
 				luaWindows.erase(std::find(
 					luaWindows.begin(), luaWindows.end(), wnd));
-				if(lua)lua->stop();
+				if (lua) { lua->stop(); }
 				if(luaWindows.empty()) {
 					FinalizeLuaDC();
+					anyLuaRunning = false;
 				}
 				delete lua;
 				break;
@@ -540,6 +553,7 @@ public:
 				for(it = copy.begin(); it != copy.end(); it ++) {
 					PostMessage(*it, WM_CLOSE, 0, 0);
 				}
+				anyLuaRunning = false;
 				break;
 			}
 			case ReloadFirst:{
@@ -566,7 +580,24 @@ public:
 	Msg *current_msg;
 };
 LuaMessage luaMessage;
-
+void runLUA(HWND wnd, char path[])
+{
+	LuaMessage::Msg* msg = new LuaMessage::Msg();
+	msg->type = LuaMessage::RunPath;
+	msg->runPath.wnd = wnd;
+	if (path != NULL) {
+		// from mupen
+		strcpy(path, msg->runPath.path);
+	}
+	else {
+		// internally
+		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+			msg->runPath.path, MAX_PATH);
+		//strcpy(Config.LuaScriptPath, msg->runPath.path);
+	}
+	anyLuaRunning = true;
+	luaMessage.post(msg);
+}
 
 Lua *GetWindowLua(HWND wnd) {
 	return luaWindowMap.find(wnd)->second;
@@ -677,41 +708,46 @@ void SetButtonState(HWND wnd, bool state) {
 	InvalidateRect(stopButton, NULL, FALSE);
 }
 
+
 BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
-	switch(id) {
-	case IDC_BUTTON_LUASTATE:{
-		LuaMessage::Msg *msg = new LuaMessage::Msg();
-		msg->type = LuaMessage::RunPath;
-		msg->runPath.wnd = wnd;
-		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			msg->runPath.path, MAX_PATH);
-		strcpy(Config.LuaScriptPath, msg->runPath.path);
-		luaMessage.post(msg);
+	switch (id) {
+	case IDC_BUTTON_LUASTATE: {
+		runLUA(wnd, NULL);
 		return TRUE;
 	}
-	case IDC_BUTTON_LUASTOP:{
-		LuaMessage::Msg *msg = new LuaMessage::Msg();
+	case IDC_BUTTON_LUASTOP: {
+		LuaMessage::Msg* msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::StopCurrent;
 		msg->stopCurrent.wnd = wnd;
 		luaMessage.post(msg);
+		// save config?
 		return TRUE;
 	}
-	case IDC_BUTTON_LUABROWSE:{
+	case IDC_BUTTON_LUABROWSE: {
 		std::string newPath = OpenLuaFileDialog();
-		if(!newPath.empty())
+		if (!newPath.empty())
 			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				newPath.c_str());
 		shouldSave = true;
 		return TRUE;
-		}
-	case IDC_BUTTON_LUAEDIT:{
+	}
+	case IDC_BUTTON_LUAEDIT: {
 		CHAR buf[MAX_PATH];
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 			buf, MAX_PATH);
-		ShellExecute(wnd, "edit", buf, NULL, NULL, SW_SHOWNORMAL);
+		if (buf == NULL || strlen(buf) == 0)/* || strlen(buf)>MAX_PATH*/
+			return FALSE; // previously , clicking edit with empty path will open current directory in explorer, which is very bad
+
+		ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
 		return TRUE;
-		}
+	}
 	case IDC_BUTTON_LUACLEAR:
+		if (GetAsyncKeyState(VK_MENU)) {
+			// clear path
+			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
+			return TRUE;
+		}
+
 		SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
 		return TRUE;
 	}
@@ -750,53 +786,35 @@ LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 	return DefWindowProc(wnd, msg, wParam, lParam);
-//	return SendMessage(mainHWND, msg, wParam, lParam);
+
 }
 void InitializeLuaDC_(HWND mainWnd){
-	if(luaDC) {
+	if (luaDC) {
 		FinalizeLuaDC();
 	}
+	HDC mainDC;
 	RECT r;
 	GetClientRect(mainWnd, &r);
-	/*
-	WNDCLASS wc = {0};
-	wc.lpfnWndProc = LuaGUIWndProc;
-	wc.hInstance = app_hInstance;
-	wc.lpszClassName = "Mupen64_LuaGUIWnd";
-	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-	ATOM atom = RegisterClass(&wc);
-	DEBUG_GETLASTERROR;
-	luaGUIWnd = CreateWindowEx(0, (LPCTSTR)atom, "",
-		WS_VISIBLE | WS_POPUP, 50, 50, r.right, r.bottom,
-		mainHWND, NULL, app_hInstance, NULL);
-	DEBUG_GETLASTERROR;
-	*/
-/*
-	HDC mainDC = GetDC(mainWnd);
-	luaDC = CreateCompatibleDC(mainDC);
-	DEBUG_GETLASTERROR;
-	BITMAPINFO b = {0};
-	b.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	b.bmiHeader.biWidth = r.right; b.bmiHeader.biHeight = -r.bottom;
-	b.bmiHeader.biPlanes = 1; b.bmiHeader.biBitCount = 32;
-	b.bmiHeader.biCompression = BI_RGB;
-	HBITMAP bh = CreateDIBSection(NULL, &b, DIB_RGB_COLORS,
-		(VOID**)&luaDCBuf, NULL, 0);
-	SelectObject(luaDC, bh);
-	DEBUG_GETLASTERROR;
-	ReleaseDC(mainWnd, mainDC);
-	DEBUG_GETLASTERROR;
-*/
 	luaDC = GetDC(mainWnd);
+
+	if (LUA_double_buffered) {
+		mainDC = GetDC(mainWnd);
+		luaDC = CreateCompatibleDC(mainDC);
+		HBITMAP bmp = CreateCompatibleBitmap(mainDC, r.right, r.bottom);
+		SelectObject(luaDC, bmp);
+	}
+
 	luaDCBufWidth = r.right;
 	luaDCBufHeight = r.bottom;
+	if(LUA_double_buffered)
+	ReleaseDC(mainWnd, mainDC);
 }
 void DrawLuaDC(){
 
 	HDC luaGUIDC = GetDC(mainHWND);
-	DEBUG_GETLASTERROR;
+	//DEBUG_GETLASTERROR;
 	BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
-	DEBUG_GETLASTERROR;
+	//DEBUG_GETLASTERROR;
 	ReleaseDC(mainHWND, luaGUIDC);
 	DEBUG_GETLASTERROR;
 
@@ -997,7 +1015,11 @@ int Print(lua_State *L) {
 	ConsoleWrite(wnd, "\r\n");
 	return 0;
 }
-
+int StopScript(lua_State* L) {
+	HWND wnd = GetLuaClass(L)->ownWnd;
+	GetWindowLua(wnd)->stop();
+	return 0;
+}
 int ToStringEx(lua_State *L) {
 	switch(lua_type(L, -1)) {
 	case LUA_TNIL:
@@ -2049,6 +2071,31 @@ int DrawRect(lua_State *L) {
 		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
+int FillRect(lua_State* L) {
+	/*
+	(Info)
+	Drawing for 1 frame only with double buffering enabled is impossible due to the way double buffering works.
+	This applies to all wgui functions that only run once, but this shouldn't be a problem for scripts like Input Direction which
+	repaint at every input.
+
+	*/
+	Lua* lua = GetLuaClass(L);
+	RECT rect;
+	COLORREF color;
+	color = RGB(
+		luaL_checknumber(L, 5),
+		luaL_checknumber(L, 6),
+		luaL_checknumber(L, 7)
+	);
+	COLORREF colorold = SetBkColor(luaDC, color);
+	rect.bottom = luaL_checknumber(L, 1);
+	rect.left = luaL_checknumber(L, 2);
+	rect.right = luaL_checknumber(L, 3);
+	rect.top = luaL_checknumber(L, 4);
+	ExtTextOut(luaDC, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
+	SetBkColor(luaDC, colorold);
+	return 0;
+}
 int DrawEllipse(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	lua->selectBrush();
@@ -2275,6 +2322,40 @@ int GetInputCount(lua_State *L) {
 	lua_pushinteger(L, inputCount);
 	return 1;
 }
+
+
+int GetMupenVersion(lua_State* L) {
+	int type = luaL_checknumber(L, 1);
+	const char* version;
+	// 0 = name + version number
+	// 1 = version number
+	version = MUPEN_VERSION;
+	if (type > 1) 
+		version = { &MUPEN_VERSION[strlen("Mupen 64 ")] };
+
+	
+	lua_pushstring(L, version);
+	return 1;
+}
+int SetGFX(lua_State* L) {
+	// Ignore or update gfx
+	int state = luaL_checknumber(L, 1);
+	//forceIgnoreRSP = !state; // ???? buggy
+
+	// DO NOT CALL THIS LUA FUNCTION INSIDE A LOOP!!! 
+	// (unpausing will not work and it gets stuck with paused gfx lol)
+
+	forceIgnoreRSP = state == 0;
+	/*if (state == 0) {
+		forceIgnoreRSP = true;
+	}
+	else {
+		forceIgnoreRSP = false;
+		//UpdateWindow(mainHWND); // vcr updatescreen causes access violation when called in loop. 
+								// this doesnt but still doesnt work consistently
+	}*/
+	return 0;
+}
 int GetAddress(lua_State *L) {
 	struct NameAndVariable {
 		const char *name;
@@ -2433,6 +2514,7 @@ void PCBreak(void *p_, unsigned long addr) {
 		lua_pop(L, 1);
 	}
 }
+extern void LuaDCUpdate(int redraw);
 template<typename T>struct TypeIndex{enum{v = -1};};
 template<>struct TypeIndex<UCHAR>{enum{v = 0};};
 template<>struct TypeIndex<USHORT>{enum{v = 1};};
@@ -2734,7 +2816,7 @@ const luaL_Reg globalFuncs[] = {
 	{"print", Print},
 	{"printx", PrintX},
 	{"tostringex", ToStringExs},
-
+	{"stop", StopScript},
 	//floating number
 	{"MTC1", MoveToSingle},
 	{"DMTC1", MoveToDouble},
@@ -2763,12 +2845,15 @@ const luaL_Reg emuFuncs[] = {
 	{"samplecount", GetSampleCount},
 	{"inputcount", GetInputCount},
 
+	{"getversion", GetMupenVersion},
+
 	{"pause", EmuPause},
 	{"getpause", GetEmuPause},
 	{"getspeed", GetSpeed},
 	{"speed", SetSpeed},
 	{"speedmode", SetSpeedMode},
-
+	{"setgfx", SetGFX},
+	
 	{"getaddress", GetAddress},
 	
 	{NULL, NULL}
@@ -2870,6 +2955,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"text", TextOut},
 	{"drawtext", DrawText},
 	{"rect", DrawRect},
+	{"fillrect", FillRect}, // Experimental
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
 	{"line", DrawLine},
@@ -2901,11 +2987,18 @@ const luaL_Reg savestateFuncs[] = {
 }	//namespace
 
 #if 1
+
 void NewLuaScript(void(*callback)()) {
 	LuaEngine::CreateLuaWindow(callback);
 }
 
 void CloseAllLuaScript(void) {
+	if (LuaEngine::luaWindowMap.empty()||LuaEngine::luaWindows.empty()) { 
+		MUPEN64RR_DEBUGINFO("No scripts running");
+		anyLuaRunning = false;
+		return;
+	}
+	MUPEN64RR_DEBUGINFO("Close all scripts");
 	LuaEngine::LuaMessage::Msg *msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::CloseAll;
 	LuaEngine::luaMessage.post(msg);
@@ -3293,15 +3386,19 @@ void LuaTraceLogState() {
 	ofn.lpstrFile =  filename;
 	ofn.nMaxFile = MAX_PATH;
 	ofn.lpstrDefExt = "log";
-	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
 	
-	if(GetSaveFileName(&ofn))
+	if (GetSaveFileName(&ofn)) {
 		LuaEngine::TraceLogStart(ofn.lpstrFile);
-	}else {
+	}
+
+	}
+	else {
 		LuaEngine::TraceLogStop();
 	}
 }
+
 
 void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 	LuaEngine::LuaMessage::Msg *m = new LuaEngine::LuaMessage::Msg();

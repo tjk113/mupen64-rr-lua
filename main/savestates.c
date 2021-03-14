@@ -230,13 +230,12 @@ void savestates_load()
 	{
 		_splitpath(filename, 0, 0, fname,0);
 		strcat(fname, ".st");
-		sprintf(str, "loading %s", fname);
+		sprintf(str, "Loading %s", fname);
 	}
-	else
-		sprintf(str, "loading slot %d", slot);
-		sprintf(fname, "slot %d",slot);
-	display_status(str);
-
+	else if(slot < 9) {
+		sprintf(str, "Loading slot %d", slot);
+		sprintf(fname, "Slot %d", slot);
+	}
 	f = gzopen(filename, "rb");
 
     //failed opening st
@@ -244,19 +243,23 @@ void savestates_load()
 	{
 		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 		free(filename);
-		//sprintf(str, "Savestate \"%s\" not found.\n", fname);
-		//MessageBox(0, str, "Error", MB_ICONWARNING); annoying
-		warn_savestate("Savestate doesn't exist", "You have selected wrong save slot or save doesn't exist");
+		warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
+												  // by moving the warn function it doesn't do this anymore 
 		savestates_job_success = FALSE;
 		return;
 	}
+	display_status(str);
 	free(filename);
 
 	//printf("--------st start---------\n");
 	gzread(f, buf, 32);
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
+		if(!VCR_isRecording())
 		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version");
+		else
+		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version\nRecording will be stopped");
+
 		gzclose(f);
 		savestates_job_success = FALSE;
 		if (VCR_isRecording()) VCR_stopRecord();
@@ -385,11 +388,9 @@ void savestates_load()
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if(VCR_isActive()
-		//#ifdef WIN32 //linux implements that right
-		&& MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING) == 7
-		//#endif
-		)
+		if(VCR_isActive() && MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
+			"Warning",
+			MB_YESNO | MB_ICONWARNING) == 7)
 		{
 		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
 			if(VCR_isPlaying())

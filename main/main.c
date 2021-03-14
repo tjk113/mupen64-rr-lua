@@ -54,9 +54,9 @@
 #define NOGUI_VERSION
 #include "gui_gtk/config.h"
 #include "../config.h"
-
+#ifndef __WIN32__
 #include <SDL.h>
-
+#endif
 #if defined (__linux__)
 #include <signal.h>
 #endif

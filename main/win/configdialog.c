@@ -47,12 +47,11 @@
 static DWORD dwExitCode;
 static DWORD Id;
 BOOL stopScan = FALSE;
-HWND WINAPI CreateTrackbar( HWND hwndDlg, UINT iMin, UINT iMax,  UINT iSelMin, UINT iSelMax);
+HWND __stdcall CreateTrackbar( HWND hwndDlg, UINT iMin, UINT iMax,  UINT iSelMin, UINT iSelMax); // winapi macro was very confusing
 HWND hwndTrack ; 
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
-extern int round_to_zero;
 
 void WriteCheckBoxValue( HWND hwnd, int resourceID , int value)
 {
@@ -100,7 +99,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[0].hInstance = app_hInstance;
     psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
     psp[0].pfnDlgProc = PluginsCfg;
-	TranslateDefault("Config Plugins","Config Plugins",ConfigStr);
+	TranslateDefault("Plugins","Plugins",ConfigStr);
 	psp[0].pszTitle = ConfigStr;
     psp[0].lParam = 0;
     psp[0].pfnCallback = NULL;
@@ -120,7 +119,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[2].hInstance = app_hInstance;
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
     psp[2].pfnDlgProc = GeneralCfg;
-	TranslateDefault("General","General",settingsStr);
+	TranslateDefault("General","General", settingsStr);
     psp[2].pszTitle = settingsStr;
     psp[2].lParam = 0;
     psp[2].pfnCallback = NULL;
@@ -130,7 +129,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[3].hInstance = app_hInstance;
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
     psp[3].pfnDlgProc = AdvancedSettingsProc;
-	TranslateDefault("Advanced Settings","Advanced Settings",AdvSettingsStr);
+	TranslateDefault("Advanced","Advanced",AdvSettingsStr);
     psp[3].pszTitle = AdvSettingsStr;
     psp[3].lParam = 0;
     psp[3].pfnCallback = NULL;
@@ -146,7 +145,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[4].pfnCallback = NULL;
  
     psh.dwSize = sizeof(PROPSHEETHEADER);
-    psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW;
+    psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
     psh.hwndParent = hwndOwner;
     psh.hInstance = app_hInstance;
     TranslateDefault("Settings","Settings",titleStr);
@@ -220,8 +219,11 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
                 break;
                 
                 case IDC_WEBSITE:
-                     ShellExecute(NULL, "open", "http://mupen64.emulation64.com", NULL, NULL, SW_SHOWNORMAL);
+                    ShellExecute(0, 0, "http://mupen64.emulation64.com", 0, 0, SW_SHOW); 
                 break;
+                case IDC_GITREPO:
+                    ShellExecute(0, 0, "https://github.com/mkdasher/mupen64-rr-lua-/", 0, 0, SW_SHOW);
+                    break;
             }
         break;
         default:
@@ -877,6 +879,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 {
         
     switch(Message) {
+    
       case WM_INITDIALOG:
          WriteCheckBoxValue( hwnd, IDC_STARTFULLSCREEN, Config.StartFullScreen);
          WriteCheckBoxValue( hwnd, IDC_PAUSENOTACTIVE, Config.PauseWhenNotActive);
@@ -885,7 +888,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          WriteCheckBoxValue( hwnd, IDC_GUI_STATUSBAR, Config.GuiStatusbar);
          WriteCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT, Config.AutoIncSaveSlot);
          WriteCheckBoxValue( hwnd, IDC_ROUNDTOZERO, round_to_zero);
-                  
+         WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, input_delay);
+         WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, LUA_double_buffered);
          WriteCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
          WriteCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
          
@@ -904,11 +908,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          TranslateAdvancedDialog(hwnd) ;                           
          return TRUE;
          
-      case WM_COMMAND:
-        //switch(LOWORD(wParam))
-        //{
-        //}
-        break;
+      
 
        case WM_NOTIFY:
            if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
@@ -919,7 +919,14 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 Config.GuiStatusbar = ReadCheckBoxValue( hwnd, IDC_GUI_STATUSBAR);
 	            Config.AutoIncSaveSlot = ReadCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT);
                 round_to_zero = ReadCheckBoxValue( hwnd, IDC_ROUNDTOZERO);
-                                                                                               
+                input_delay = ReadCheckBoxValue(hwnd, IDC_INPUTDELAY);
+                
+                LUA_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
+                if (LUA_double_buffered && strstr(gfx_name, "Jabo") == 0) {
+                    //CheckDlgButton(hwnd, IDC_CLUADOUBLEBUFFER, 0);
+                    //LUA_double_buffered = false;
+                    MessageBoxA(mainHWND, "Your current video plugin might produce unexpected results with LUA double buffering.", "Incompatible Plugin", 48L);
+                }
                 no_audio_delay = ReadCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY);
                 no_compiled_jump = ReadCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP);
                 

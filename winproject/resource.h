@@ -2,7 +2,7 @@
 // Plik do³¹czany wygenerowany przez œrodowisko Microsoft Visual C++.
 // U¿ywany przez: rsrc.rc
 //
-#define MUPEN_VERSION     "Mupen 64 1.0.6"
+#define MUPEN_VERSION     "Mupen 64 1.0.7"
 
 #define IDR_MYMENU 101
 #define IDR_ACCEL 103
@@ -406,6 +406,10 @@
 #define ID_LANG_INFO_MENU               40002
 #define AC_PAUSE                        40004
 #define EMU_RESET                       40007
+#define IDC_STARTFROM2					40008
+#define IDC_INPUTDELAY					40009
+#define IDC_CLUADOUBLEBUFFER			40010
+#define IDC_GITREPO						40011
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

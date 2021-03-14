@@ -23,6 +23,7 @@
 #include "translation.h"
 #include "rombrowser.h"
 #include "../../winproject/resource.h"
+#include <vcr.h>
 
 char *get_currentpath()
 {
@@ -44,6 +45,28 @@ void display_loading_progress(int p)
    sprintf(TempMessage,"%d%%",p);
    //SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)TempMessage );  
    SendMessage( hStatusProgress, PBM_SETPOS, p+1, 0 );
+}
+
+bool warn_recording() {
+
+    int r = 0;
+    bool rec = VCR_isCapturing() || recording;
+
+    //printf("\nRecording info:\nVCR_isRecording: %i\nVCR_isCapturing: %i", VCR_isRecording(), VCR_isCapturing());
+    if (continue_vcr_on_restart_mode == 0) {
+        if (VCR_isRecording()) {
+            r = MessageBoxA(NULL, "Movie is being recorded, are you sure you want to quit?",
+                "Close rom?", MB_YESNO | MB_ICONWARNING);
+        }
+        if (rec) {
+            SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // HACK: fix msgbox appearing behind window when avi recording
+            r = MessageBoxA(NULL, "AVI is being recorded, are you sure you want to quit?",
+                "Close rom?", MB_YESNO | MB_ICONWARNING);
+        }
+    }
+    if(rec) SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+    return r == 7;
 }
 
 void warn_savestate(char* messageCaption, char* message)
@@ -73,7 +96,15 @@ void display_MD5calculating_progress(int p )
        }   
    }    
 }
+int ask_extension()
+{
+    if (!Config.alertBAD) /*technically a bad rom, right?*/return 1;
 
+    if (MessageBox(NULL, "This rom has an invalid extension, do you want to continue? (May cause instability)", "Warning", MB_YESNO | MB_ICONWARNING) != IDNO)
+        return 1;
+    else
+        return 0;
+}
 int ask_bad()
 {
     if (!Config.alertBAD) return 1;
@@ -85,10 +116,10 @@ int ask_bad()
 }
 
 int ask_hack()
-{
+{   
     if (!Config.alertHACK) return 1;
     
-    if (MessageBox(NULL,"This rom is a hacked dump, do you want to continue?","Question",MB_YESNO | MB_ICONQUESTION) != IDNO)
+    if (MessageBox(NULL,"This rom is a hacked or too large dump, do you want to continue?","Question",MB_YESNO | MB_ICONQUESTION) != IDNO)
             return 1;
     else
             return 0;
