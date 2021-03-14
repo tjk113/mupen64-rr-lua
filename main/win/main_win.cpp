@@ -469,9 +469,10 @@ void LoadTheState(HWND hWnd, int StateID)
     if (emu_launched) {
         savestates_job = LOADSTATE;
     }
-    if(emu_paused){
-        update_pif_read(FALSE); // pass in true and it will stuck
-    }
+    //don't
+    //if(emu_paused){
+        //update_pif_read(FALSE); // pass in true and it will stuck
+    //}
 }
 
 

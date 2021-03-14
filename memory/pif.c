@@ -526,8 +526,22 @@ void update_pif_read(bool stcheck)
 						extern void pauseEmu(BOOL quiet);
 						frame_advancing = 0;
 						pauseEmu(TRUE);
-						if (!input_delay) {
-							sleep_while_emu_paused();
+						if (!input_delay)
+						{
+							while (emu_paused)
+							{
+#ifdef LUA_EMUPAUSED_WORK	
+								Sleep(10);
+								AtIntervalLuaCallback();
+								GetLuaMessage();
+#endif
+								//should this be before or after? idk
+								if (savestates_job & LOADSTATE && stAllowed)
+								{
+									savestates_load();
+									savestates_job &= ~LOADSTATE;
+								}
+							}
 						}
 					}
 					if (stcheck) {
@@ -538,13 +552,17 @@ void update_pif_read(bool stcheck)
 								savestates_job &= ~SAVESTATE;
 							}
 						}
-						if (savestates_job & LOADSTATE && stAllowed)
-						{
-							savestates_load();
-							savestates_job &= ~LOADSTATE;
-							extern bool old_st;
-							if (old_st) { printf("old st detected\n"); old_st = false; return; } //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
-						}
+					}
+					if (savestates_job & LOADSTATE && stAllowed)
+					{
+						savestates_load();
+						savestates_job &= ~LOADSTATE;
+					}
+					extern bool old_st;
+					if (old_st) { //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
+						printf("old st detected\n");
+						old_st = false;
+						return;
 					}
 					stAllowed = false;
 					controllerRead = channel;
