@@ -303,6 +303,7 @@ static void gui_ChangeWindow()
 {
     if( FullScreenMode )
 	{
+        EnableStatusbar();
 		EnableWindow( hTool, FALSE);
 		ShowWindow( hTool, SW_HIDE);
 		ShowWindow( hStatus, SW_HIDE);
