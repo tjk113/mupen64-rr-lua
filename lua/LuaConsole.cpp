@@ -587,7 +587,7 @@ void runLUA(HWND wnd, char path[])
 	msg->runPath.wnd = wnd;
 	if (path != NULL) {
 		// from mupen
-		strcpy(path, msg->runPath.path);
+		strcpy(msg->runPath.path, path);
 	}
 	else {
 		// internally
