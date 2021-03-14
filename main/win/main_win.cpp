@@ -83,7 +83,7 @@ BOOL forceIgnoreRSP = false;
 #define strncasecmp	strnicmp
 #endif
 
-#define LUA_UPDATEBUFFER if (anyLuaRunning==true /*being explicit seems to fix it*/ && LUA_double_buffered) { AtIntervalLuaCallback(); GetLuaMessage(); LuaDCUpdate(1); }
+#define LUA_UPDATEBUFFER if (anyLuaRunning==true && LUA_double_buffered) { AtIntervalLuaCallback(); GetLuaMessage();}
 
 
 static DWORD Id;
@@ -2695,16 +2695,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				keyDown(wParam, lParam);
 			if(!hit)
 				return DefWindowProc(hwnd, Message, wParam, lParam);
-            LUA_UPDATEBUFFER;
         }	break;
-    case WM_LBUTTONDOWN:
-    case WM_RBUTTONDOWN:
-    case WM_LBUTTONUP:
-    case WM_RBUTTONUP:
-    {
-        LUA_UPDATEBUFFER;
-        break;
-    }
     case WM_SYSKEYUP:
 	case WM_KEYUP:
 			if((int)wParam == Config.hotkey[0].key) // fast-forward off

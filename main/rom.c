@@ -46,7 +46,6 @@
 #include "mupenIniApi.h"
 #include "guifuncs.h"
 #include <win/rombrowser.h>
-#include <string>
 
 static FILE *rom_file;
 static gzFile z_rom_file;
@@ -90,24 +89,14 @@ static int findsize()
    return taille_rom / 1024 / 1024 * 8;
    // divide through 131072 works too but im sure compiler is smart enough
 }
-bool iequals(const std::string& a, const std::string& b) // https://stackoverflow.com/questions/11635/case-insensitive-string-comparison-in-c
-														// will fail with letters like ß (unicode)
-{
-	unsigned int sz = a.size();
-	if (b.size() != sz)
-		return false;
-	for (unsigned int i = 0; i < sz; ++i)
-		if (tolower(a[i]) != tolower(b[i]))
-			return false;
-	return true;
-}
 
 bool validRomExt(std::string str) {
 	// z64,n64,v64,rom
-	return iequals(str, "z64") ||
-		   iequals(str, "n64") ||
-		   iequals(str, "v64") ||
-		   iequals(str, "rom");
+	const char* cstr = str.c_str();
+	return stricmp(cstr, "z64") ||
+		   stricmp(cstr, "n64") ||
+		   stricmp(cstr, "v64") ||
+		   stricmp(cstr, "rom");
 }
 static int find_file(char *argv)
 {
@@ -200,10 +189,7 @@ int rom_read(const char *argv)
      }
    printf ("file found\n");
 /*------------------------------------------------------------------------*/   
-   BOOLEAN over = findsize() > 64; // Explicit to illustrate order of execution
-   if (findsize() > 64) {
-	   if (!ask_hack()) goto killRom;
-   }
+   if (findsize() > 64 && !ask_hack())goto killRom;
    if (rom) free(rom);
    rom = (unsigned char*)malloc(taille_rom);
 
