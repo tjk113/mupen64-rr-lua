@@ -2997,7 +2997,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 pauseEmu(FALSE);
                 char buf[30];
                 sprintf(buf, "0x%#08p", rdram);
-                MessageBox(0, buf, "RAM Start", MB_ICONINFORMATION);
+                MessageBoxA(0, buf, "RAM Start", MB_ICONINFORMATION|MB_TASKMODAL);
                 resumeEmu(FALSE);
                 break;
             }
