@@ -322,7 +322,7 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     SetMenuTranslatedString(subsubmenu, 2, "Audio", "");
     SetMenuTranslatedString(subsubmenu, 3, "RSP", "");
     SetMenuTranslatedString(submenu, 4, "Show Toolbar", "Alt T");
-    SetMenuTranslatedString(submenu, 5, "Full Screen", "Alt S");
+    SetMenuTranslatedString(submenu, 5, "Show Statusbar", "Alt S");
     SetMenuTranslatedString(submenu, 7, "Settings", "Ctrl S  ");
 
     //Utility menu
