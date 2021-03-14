@@ -2897,7 +2897,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}	break;  
 			case EMU_STOP:
                  if (emu_launched) {
-                       if (warn_recording())break;
+                       //if (warn_recording())break;
                        //closeRom();
                        stop_it();
                        //SleepEx(1000, TRUE); //todo check if can remove
