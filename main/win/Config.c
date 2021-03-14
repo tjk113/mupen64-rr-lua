@@ -149,7 +149,6 @@ void LoadConfig()
         Config.WindowHeight = 600;
         Config.WindowPosX = (GetSystemMetrics(SM_CXSCREEN) - Config.WindowWidth) / 2;
         Config.WindowPosY = (GetSystemMetrics(SM_CYSCREEN) - Config.WindowHeight) / 2;
-        
     }
 
     //General Vars
@@ -379,7 +378,6 @@ void SaveConfig()
     char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
         "ReadOnly", "Play", "PlayStop", "Record",
         "RecordStop", "Screenshot", "Save Current", "Load Current" };
-    // goes out of scope
 
     for (int i = 0; i <= 12; i++)
     {
