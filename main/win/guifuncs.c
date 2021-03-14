@@ -62,9 +62,9 @@ bool warn_recording() {
             SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // HACK: fix msgbox appearing behind window when avi recording
             r = MessageBoxA(NULL, "AVI is being recorded, are you sure you want to quit?",
                 "Close rom?", MB_YESNO | MB_ICONWARNING);
+            SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         }
     }
-    if(rec) SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
     return r == 7;
 }

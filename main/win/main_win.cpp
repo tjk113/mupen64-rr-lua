@@ -1316,7 +1316,6 @@ static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show r
 {    
    LONG winstyle;                                //Used for setting new style to the window
 //   int browserwidths[] = {400, -1};              //Rombrowser statusbar
-   if (warn_recording())return 0;
    
    if (emu_launched)  {
       if (emu_paused)  {
@@ -2450,9 +2449,6 @@ void exit_emu(int postquit)
     CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
    }
 
-   if (warn_recording())
-       return;
-
    if(postquit){
 	   freeRomDirList(); 
 	   freeRomList();
@@ -2756,6 +2752,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             ////////////////////////////
             return TRUE;
 	case WM_CLOSE:
+        if (warn_recording())break;
 		if(emu_launched)
 		{
 			shut_window = 1;
@@ -2905,6 +2902,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     resumeEmu(FALSE);
 				}	break;  
 			case EMU_STOP:
+                if (warn_recording())break;
                  if (emu_launched) {
                        //if (warn_recording())break;
                        //closeRom();
@@ -2957,7 +2955,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  break;
                 
 			case EMU_RESET:
-                if (warn_recording())break;
+                if (Config.NoReset && warn_recording())break;
                 extern int m_task;
                 if (m_task == 3 && !Config.NoReset) //recording
                 {
@@ -3035,6 +3033,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      }
                      break;
                 case ID_EMULATOR_EXIT:
+                    if (warn_recording())break;
                      shut_window = 1;
                      if(emu_launched)
                        exit_emu(0);
