@@ -1592,8 +1592,9 @@ bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on top");
 	//AppendMenu(hMenu, 1, 2, "B");
 	//AppendMenu(hMenu, 0, 3, "C");
-
+	lock = true;
 	int res = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, x, y, hwnd, 0);
+	lock = false;
 	printf("trackmenu result %d\n",res);
 	switch (res){
 	case OnTop:
