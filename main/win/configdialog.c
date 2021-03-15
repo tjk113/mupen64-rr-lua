@@ -889,6 +889,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          WriteCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT, Config.AutoIncSaveSlot);
          WriteCheckBoxValue( hwnd, IDC_ROUNDTOZERO, round_to_zero);
          WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, input_delay);
+         EnableWindow(GetDlgItem(hwnd, IDC_INPUTDELAY), false); //disable for now
          WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, LUA_double_buffered);
          WriteCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
          WriteCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
