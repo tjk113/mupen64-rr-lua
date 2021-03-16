@@ -263,7 +263,7 @@ void savestates_load()
 		gzclose(f);
 		savestates_job_success = FALSE;
 		if (VCR_isRecording()) VCR_stopRecord();
-		else VCR_stopPlayback();
+		else VCR_stopPlayback(true);
 		return;
 	}
    
@@ -381,20 +381,20 @@ void savestates_load()
 			}
 			printWarning(errStr);
 			if (stop && VCR_isRecording()) VCR_stopRecord();
-			else if (stop) VCR_stopPlayback();
+			else if (stop) VCR_stopPlayback(true);
 			savestates_job_success = FALSE;
 			goto failedLoad;
 		}
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if(VCR_isActive() && MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
+		if(VCR_isActive() && !VCR_getLoopMovie() && (true || MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
 			"Warning",
-			MB_YESNO | MB_ICONWARNING) == 7)
+			MB_YESNO | MB_ICONWARNING) == 7))
 		{
 		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
 			if(VCR_isPlaying())
-				VCR_stopPlayback();
+				VCR_stopPlayback(false);
 			else
 				VCR_stopRecord();
 		}

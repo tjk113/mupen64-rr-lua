@@ -2947,6 +2947,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					VCR_toggleReadOnly();
 				}
 				break;
+
+			case ID_LOOP_MOVIE:
+				VCR_toggleLoopMovie();
+				break;
                 
 			case EMU_PLAY:
                  if (emu_launched) 
@@ -3156,8 +3160,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                       OpenMoviePlaybackDialog();
       
                 break;
-                case ID_STOP_PLAYBACK:
-                     if (VCR_stopPlayback() < 0)
+				 case ID_STOP_PLAYBACK:
+                     if (VCR_stopPlayback(true) < 0)
                      	; // fail quietly
 //                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
                      else {

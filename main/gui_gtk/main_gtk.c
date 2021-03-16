@@ -908,7 +908,7 @@ callback_vcrStopPlayback( GtkWidget *widget, gpointer data )
 {
 	if( g_EmulationThread )
 	{
-		if (VCR_stopPlayback() < 0)
+		if (VCR_stopPlayback(false) < 0) // not sure if this needs to be true or not?
 			messagebox( tr( "VCR" ), MB_ICONERROR | MB_OK,
 			            tr( "Couldn't stop playback." ) );
 	}
