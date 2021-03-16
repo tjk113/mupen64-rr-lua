@@ -3012,7 +3012,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      oifn.lpstrFileTitle = "";
                      oifn.nMaxFileTitle = 0;
                      oifn.lpstrInitialDir = "";
-                     oifn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+                     oifn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
                      if (GetOpenFileName(&oifn) ) {
                         // before starting the ROM, also add enclosing directory to ROM list directories, because people are lazy
 						    char temp_buffer [_MAX_PATH];
