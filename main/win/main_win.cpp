@@ -1172,25 +1172,25 @@ void WaitEmuThread()
 
 void resumeEmu(BOOL quiet)
 {
-	BOOL wasPaused = emu_paused;
-	if (emu_launched) {
-		if(!quiet)
-			ShowInfo("Resume emulation");
-		emu_paused = 0 ;
-//		ResumeThread(EmuThreadHandle);
-		ResumeThread(SoundThreadHandle);
-		if(!quiet)
-			SetStatusTranslatedString(hStatus,0,"Emulation started");
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 0);
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
-	}
-	else
-	{
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
-	}
+    BOOL wasPaused = emu_paused;
+    if (emu_launched) {
+        if(!quiet)
+            ShowInfo("Resume emulation");
+        emu_paused = 0 ;
+        //		ResumeThread(EmuThreadHandle);
+        ResumeThread(SoundThreadHandle);
+        if(!quiet)
+            SetStatusTranslatedString(hStatus,0,"Emulation started");
+        SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 0);
+        SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
+    }
+    else
+    {
+        SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
+    }
 
-	if(emu_paused != wasPaused && !quiet)
-		CheckMenuItem( GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
+    if(emu_paused != wasPaused && !quiet)
+        CheckMenuItem( GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
 }
 
 //void autoPauseEmu(flag)
@@ -2993,11 +2993,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      break;
             case ID_RAMSTART:
             {
-                pauseEmu(FALSE);
+                BOOL temppaused = !emu_paused;
+                pauseEmu(TRUE);
                 char buf[30];
                 sprintf(buf, "0x%#08p", rdram);
                 MessageBoxA(0, buf, "RAM Start", MB_ICONINFORMATION|MB_TASKMODAL);
-                resumeEmu(FALSE);
+                if (temppaused) {
+                    resumeEmu(TRUE);
+                    CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
+                }
                 break;
             }
 			case IDLOAD:   
