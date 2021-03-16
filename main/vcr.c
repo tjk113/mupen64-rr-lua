@@ -106,6 +106,7 @@ int m_task = Idle;
 
 static SMovieHeader m_header;
 static BOOL m_readOnly = FALSE;
+static bool m_loopMovie = false;
 
 long m_currentSample = -1;	// should = length_samples when recording, and be < length_samples when playing
 int m_currentVI = -1;
@@ -652,6 +653,19 @@ VCR_setReadOnly(BOOL val)
 	m_readOnly = val;
 }
 
+bool VCR_getLoopMovie() {
+	return m_loopMovie;
+}
+
+void VCR_setLoopMovie(bool val) {
+#ifdef __WIN32__
+	extern HWND mainHWND;
+	if (m_loopMovie != val)
+		CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
+#endif
+	m_loopMovie = val;
+}
+
 unsigned long VCR_getLengthVIs()
 {
 	return VCR_isActive() ? m_header.length_vis : 0;
@@ -982,7 +996,8 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 //			if (m_capture != 0)
 //				VCR_stopCapture();
 //			else
-				VCR_stopPlayback();
+			//if (m_loopMovie) return;
+				VCR_stopPlayback(false);
 				if (gStopAVI)
 				{
 					VCR_stopCapture();
@@ -1515,10 +1530,43 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 	}
 }
 
+int VCR_restartPlayback()
+{
+	VCR_setReadOnly(true); // force read only
+	// attempt to load a savestate so that you
+	// can loop over the latest part of a TAS
+	//if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) {
+	//
+	//}
+	return VCR_startPlayback(m_filename, "", "");
+	// there are no checks like (m_task == idle) because I'm not
+	/*/ sure of the behaviour when recording starts/stops as well
+	if (m_file == NULL) {
+		return -1;
+	}
+	char buf[PATH_MAX];
+	strcpy(buf, m_filename);
+	char *dot = strchr(buf, '.');
+	if (dot) { // "tas.123.m64" => "tas.st"
+		strcpy(dot, ".st");
+	} else {
+		strcat(buf, ".st");
+	}
+	savestates_select_filename(buf);
+	savestates_job |= LOADSTATE;
+	m_task = StartPlayback;
+	printf("Restarting Playback. Loading %s\n", buf);
+	just_restarted_flag = true;
+	return 0;*/
+}
+
 
 int
-VCR_stopPlayback()
+VCR_stopPlayback(bool bypassLoopSetting)
 {
+	if (!bypassLoopSetting && m_loopMovie) {
+		return VCR_restartPlayback();
+	}
 #ifdef __WIN32__
 	extern HWND mainHWND;
 	SetActiveMovie(NULL, 0); //remove from title
@@ -1948,6 +1996,18 @@ VCR_toggleReadOnly ()
 	printf("%s\n", m_readOnly ? "read-only" : "read+write");
 #endif
 }
+void
+VCR_toggleLoopMovie()
+{
+	VCR_setLoopMovie(!m_loopMovie);
+
+#ifdef __WIN32__
+	extern HWND hStatus/*, hStatusProgress*/;
+	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(m_readOnly ? "loop movie enabled" : "loop movie disabled"));
+#else
+	printf("%s\n", m_readOnly ? "loop movie enabled" : "loop movie disabled");
+#endif
+}
 
 
 int
@@ -1994,7 +2054,7 @@ VCR_coreStopped()
 		case StartPlayback:
 		case StartPlaybackFromSnapshot:
 		case Playback:
-	        VCR_stopPlayback();
+	        VCR_stopPlayback(true);
 			break;
 	}
 
