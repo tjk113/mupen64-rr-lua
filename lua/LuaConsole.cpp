@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include <filesystem>
 #include "LuaConsole.h"
 #include "../../winproject/resource.h"
 #include "win/DebugInfo.hpp"
@@ -27,6 +28,7 @@
 
 //nice msvc pragma smh
 #pragma comment(lib, "lua54.lib")
+
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
@@ -166,6 +168,7 @@ extern const luaL_Reg memoryFuncs[];
 extern const luaL_Reg inputFuncs[];
 extern const luaL_Reg joypadFuncs[];
 extern const luaL_Reg savestateFuncs[];
+extern const luaL_Reg ioFuncs[];
 extern const char * const REG_ATSTOP;
 int AtStop(lua_State *L); 
 
@@ -317,7 +320,8 @@ private:
 		registerAsPackage(L, "input", inputFuncs);
 		registerAsPackage(L, "joypad", joypadFuncs);
 		registerAsPackage(L, "savestate", savestateFuncs);
-		
+		registerAsPackage(L, "io", ioFuncs);
+
 		//this makes old scripts backward compatible, new syntax for table length is '#'
 		lua_getglobal(L, "table");
 		lua_pushcfunction(L, getn);
@@ -1009,7 +1013,7 @@ int StopScript(lua_State* L) {
 	GetWindowLua(wnd)->stop();
 	return 0;
 }
-int ToStringEx(lua_State *L) {
+int ToStringEx(lua_State *L) {	
 	switch(lua_type(L, -1)) {
 	case LUA_TNIL:
 	case LUA_TBOOLEAN:
@@ -2424,6 +2428,23 @@ int LoadFileSavestate(lua_State *L) {
 	return 0;
 }
 
+// IO
+int WriteToFile(lua_State* L) {
+	// For now only int types are supported
+	luaL_checktype(L, 1, LUA_TNUMBER);
+	INT num = luaL_checknumber(L, 1);
+	const char* cstr = luaL_checkstring(L, 2);
+	printf("LUA Write path: %s\nLUA Write contents: %d\n", cstr,num);
+	
+	return 1;
+}
+
+int ReadFromFile(lua_State* L) {
+   return 1;
+}
+
+
+
 //callback‚È‚Ç
 bool BreakpointSync(SyncBreakMap::iterator it, ULONG addr){
 	AddrBreakFuncVec &f = it->second.func;
@@ -2969,6 +2990,11 @@ const luaL_Reg joypadFuncs[] = {
 const luaL_Reg savestateFuncs[] = {
 	{"savefile", SaveFileSavestate},
 	{"loadfile", LoadFileSavestate},
+	{NULL, NULL}
+};
+const luaL_Reg ioFuncs[] = {
+	{"write", WriteToFile},
+	{"read", ReadFromFile},
 	{NULL, NULL}
 };
 
