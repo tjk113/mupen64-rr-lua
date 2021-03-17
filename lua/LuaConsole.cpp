@@ -2429,18 +2429,78 @@ int LoadFileSavestate(lua_State *L) {
 }
 
 // IO
-int WriteToFile(lua_State* L) {
-	// For now only int types are supported
-	luaL_checktype(L, 1, LUA_TNUMBER);
-	INT num = luaL_checknumber(L, 1);
-	const char* cstr = luaL_checkstring(L, 2);
-	printf("LUA Write path: %s\nLUA Write contents: %d\n", cstr,num);
-	
+int WriteString(lua_State* L) {
+	const char* str = luaL_checkstring(L, 1);
+	const char* path = luaL_checkstring(L, 2);
+	printf("---LUA WRITESTRING---\nPath: %s\nContents: %s\n", path, str);
+	printf("Sizeof char: %d\Strlen str: %d\n---LUA WRITESTRING END---\n", sizeof(char), sizeof(str));
+
+	FILE* f = fopen(path, "w");
+	fwrite(str, sizeof(char), /*sizeof(str) this will not work. found this out the hard way lmfao*/strlen(str), f);
+
+	fflush(f); fclose(f);
 	return 1;
 }
 
-int ReadFromFile(lua_State* L) {
-   return 1;
+int ReadString(lua_State* L) {
+	CONST CHAR* path = luaL_checkstring(L, 1);
+	// stolen from so
+	CHAR* buffer = 0;
+	LONG length;
+	FILE* f = fopen(path, "rb");
+
+	if (f)
+	{
+		fseek(f, 0, SEEK_END);
+		length = ftell(f);
+		fseek(f, 0, SEEK_SET);
+		buffer = (char*)malloc((length + 1) * sizeof(char));
+		if (buffer)
+		{
+			fread(buffer, sizeof(char), length, f);
+		}
+		fclose(f);
+	}
+	else {
+		// File doesn't exist. Buffer is null pointer and memory will be accessed at buffer[length] = '\0'
+		// So what to do... lua panic? Custom error handler?
+		return 1;
+	}
+	buffer[length] = '\0'; // vs warns of dereferencing null pointer but the fread call will eventually fill buffer unless file doesnt exist... see previous comment
+	lua_pushstring(L, buffer);
+	return 1;
+}
+
+int WriteInt(lua_State* L) {
+	int n = luaL_checkinteger(L, 1);
+	const char* path = luaL_checkstring(L, 2);
+	printf("---LUA WRITEINT---\nPath: %s\nContents: %d\n", path, n);
+
+	FILE* f = fopen(path, "w");
+	fwrite(&n, sizeof(int), 1, f); // looks like it will fail eventually
+	fflush(f); fclose(f);
+	return 1;
+}
+int ReadInt(lua_State* L) {
+	CONST CHAR* path = luaL_checkstring(L, 1);
+	int num;
+	FILE* f = fopen(path, "rb");
+	fread(&num, sizeof(int), 1, f);
+	lua_pushinteger(L, num);
+	fclose(f);
+	return 1;
+}
+
+int DelFile(lua_State* L) {
+	CONST CHAR* path = luaL_checkstring(L, 1);
+	DeleteFile(path);
+	return 1;
+}
+int FileExists(lua_State* L) {
+	CONST CHAR* path = luaL_checkstring(L, 1);
+	struct stat buffer;
+	lua_pushboolean(L, (stat(path, &buffer) == 0));
+	return 1;
 }
 
 
@@ -2993,9 +3053,14 @@ const luaL_Reg savestateFuncs[] = {
 	{NULL, NULL}
 };
 const luaL_Reg ioFuncs[] = {
-	{"write", WriteToFile},
-	{"read", ReadFromFile},
-	{NULL, NULL}
+		{"writestr", WriteString},
+		{"readstr", ReadString},
+		{"writeint", WriteInt},
+		{"readint", ReadInt},
+		//#undef DeleteFile		nah i dont care
+		{"delete", DelFile},
+		{"accessible", FileExists}, // checks for accessibility not for existing but its basically the same thing rightj hahiudajlsdhs
+		{NULL, NULL}
 };
 
 
