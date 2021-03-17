@@ -50,6 +50,9 @@ bool enablePCBreak;
 bool maximumSpeedMode;
 bool anyLuaRunning = false;
 
+FILE* f;
+BOOL streamopen = FALSE;
+#define ASSERT_STREAMOPEN if(f == NULL || streamopen == FALSE) return 1;
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
 namespace LuaEngine {
@@ -2429,25 +2432,65 @@ int LoadFileSavestate(lua_State *L) {
 }
 
 // IO
+BOOL validType(const char* type) {
+	printf("Type: %s\n", type);
+	const char* validTypes[15] = { "r","rb","w","wb","a","ab","r+","rb+","r+b","w+","wb+","w+b","a+","ab+","a+b" };
+	for (int i = 0; i < 15; i++)
+	{
+		if (strcmp(validTypes[i], type) != 0) {
+			return TRUE;
+		}
+	}
+	/*return strcmp(type, "r") ||
+		   strcmp(type,"rw") ||
+		   strcmp(type,"rb");*/
+	return FALSE;
+}
+BOOL fileexists(const char* path) {
+	struct stat buffer;
+	return (stat(path, &buffer) == 0);
+}	
+
+int OpenStream(lua_State* L) {
+	const char* path = luaL_checkstring(L, 1);
+	const char* type = luaL_checkstring(L, 2);
+	if (!validType(type)) {
+		// Ok so something failed, error print maybe?
+		printf("\nInvalid Type\n");
+		return 1;
+	}
+	if (streamopen) { f = NULL; }
+
+	f = fopen(path, type);
+	streamopen = TRUE;
+	return 1;
+}
+int CloseStream(lua_State* L) {
+	if (!streamopen) {
+		// error print?
+		return 1;
+	}
+	f = NULL;
+	streamopen = FALSE;
+	return 1;
+}
 int WriteString(lua_State* L) {
+	ASSERT_STREAMOPEN;
 	const char* str = luaL_checkstring(L, 1);
-	const char* path = luaL_checkstring(L, 2);
-	printf("---LUA WRITESTRING---\nPath: %s\nContents: %s\n", path, str);
-	printf("Sizeof char: %d\Strlen str: %d\n---LUA WRITESTRING END---\n", sizeof(char), sizeof(str));
+	/*printf("---LUA WRITESTRING---\nPath: %s\nContents: %s\n", path, str);
+	printf("Sizeof char: %d\Strlen str: %d\n---LUA WRITESTRING END---\n", sizeof(char), sizeof(str));*/
 
-	FILE* f = fopen(path, "w");
 	fwrite(str, sizeof(char), /*sizeof(str) this will not work. found this out the hard way lmfao*/strlen(str), f);
-
-	fflush(f); fclose(f);
+	fseek(f, 0, SEEK_SET); fflush(f); fclose(f);
 	return 1;
 }
 
 int ReadString(lua_State* L) {
+	ASSERT_STREAMOPEN;
 	CONST CHAR* path = luaL_checkstring(L, 1);
 	// stolen from so
 	CHAR* buffer = 0;
 	LONG length;
-	FILE* f = fopen(path, "rb");
 
 	if (f)
 	{
@@ -2468,25 +2511,26 @@ int ReadString(lua_State* L) {
 	}
 	buffer[length] = '\0'; // vs warns of dereferencing null pointer but the fread call will eventually fill buffer unless file doesnt exist... see previous comment
 	lua_pushstring(L, buffer);
+
+	fseek(f, 0, SEEK_SET);
+	fclose(f);
 	return 1;
 }
 
 int WriteInt(lua_State* L) {
+	ASSERT_STREAMOPEN;
 	int n = luaL_checkinteger(L, 1);
-	const char* path = luaL_checkstring(L, 2);
-	printf("---LUA WRITEINT---\nPath: %s\nContents: %d\n", path, n);
 
-	FILE* f = fopen(path, "w");
 	fwrite(&n, sizeof(int), 1, f); // looks like it will fail eventually
-	fflush(f); fclose(f);
+	fseek(f, 0, SEEK_SET); fflush(f); fclose(f);
 	return 1;
 }
 int ReadInt(lua_State* L) {
-	CONST CHAR* path = luaL_checkstring(L, 1);
+	ASSERT_STREAMOPEN;
 	int num;
-	FILE* f = fopen(path, "rb");
 	fread(&num, sizeof(int), 1, f);
 	lua_pushinteger(L, num);
+	fseek(f, 0, SEEK_SET);
 	fclose(f);
 	return 1;
 }
@@ -2498,8 +2542,7 @@ int DelFile(lua_State* L) {
 }
 int FileExists(lua_State* L) {
 	CONST CHAR* path = luaL_checkstring(L, 1);
-	struct stat buffer;
-	lua_pushboolean(L, (stat(path, &buffer) == 0));
+	lua_pushboolean(L,fileexists(path));
 	return 1;
 }
 
@@ -3053,11 +3096,12 @@ const luaL_Reg savestateFuncs[] = {
 	{NULL, NULL}
 };
 const luaL_Reg ioFuncs[] = {
+	    {"open", OpenStream},
+	    {"close", OpenStream},
 		{"writestr", WriteString},
 		{"readstr", ReadString},
 		{"writeint", WriteInt},
 		{"readint", ReadInt},
-		//#undef DeleteFile		nah i dont care
 		{"delete", DelFile},
 		{"accessible", FileExists}, // checks for accessibility not for existing but its basically the same thing rightj hahiudajlsdhs
 		{NULL, NULL}
