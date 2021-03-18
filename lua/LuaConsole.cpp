@@ -2459,19 +2459,22 @@ int OpenStream(lua_State* L) {
 		printf("\nInvalid Type\n");
 		return 1;
 	}
-	if (streamopen) { f = NULL; }
+	if (streamopen) { fclose(f); }
 
 	f = fopen(path, type);
 	streamopen = TRUE;
 	return 1;
 }
 int CloseStream(lua_State* L) {
-	if (!streamopen) {
-		// error print?
-		return 1;
-	}
+	ASSERT_STREAMOPEN;
 	fclose(f);
 	streamopen = FALSE;
+	return 1;
+}
+int StreamSeek(lua_State* L) {
+	ASSERT_STREAMOPEN;
+	LONG offset = luaL_checkinteger(L, 1); // incompatible types...
+	fseek(f, offset, SEEK_SET);
 	return 1;
 }
 int WriteString(lua_State* L) {
@@ -2487,7 +2490,6 @@ int WriteString(lua_State* L) {
 
 int ReadString(lua_State* L) {
 	ASSERT_STREAMOPEN;
-	CONST CHAR* path = luaL_checkstring(L, 1);
 	// stolen from so
 	CHAR* buffer = 0;
 	LONG length;
@@ -2511,7 +2513,6 @@ int ReadString(lua_State* L) {
 	}
 	buffer[length] = '\0'; // vs warns of dereferencing null pointer but the fread call will eventually fill buffer unless file doesnt exist... see previous comment
 	lua_pushstring(L, buffer);
-
 	/*fseek(f, 0, SEEK_SET);
 	fclose(f);*/
 	return 1;
@@ -3097,12 +3098,16 @@ const luaL_Reg savestateFuncs[] = {
 	{NULL, NULL}
 };
 const luaL_Reg ioFuncs[] = {
-	    {"open", OpenStream},
-	    {"close", CloseStream},
+		{"open", OpenStream},
+		{"close", CloseStream},
+	    {"seek", StreamSeek},
+
 		{"writestr", WriteString},
 		{"readstr", ReadString},
+
 		{"writeint", WriteInt},
 		{"readint", ReadInt},
+
 		{"delete", DelFile},
 		{"accessible", FileExists}, // checks for accessibility not for existing but its basically the same thing rightj hahiudajlsdhs
 		{NULL, NULL}
