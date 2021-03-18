@@ -1595,7 +1595,7 @@ void RefreshChanges(HWND hwnd)
 
 bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 {
-	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC)) return TRUE;
+	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(VK_LBUTTON) & 0x8000) != 0) return TRUE;
 	RefreshChanges(hwnd);
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
 	HMENU hMenu = CreatePopupMenu();
