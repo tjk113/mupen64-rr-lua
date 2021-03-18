@@ -1599,8 +1599,8 @@ bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 	RefreshChanges(hwnd);
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
 	HMENU hMenu = CreatePopupMenu();
-	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on top");
-	AppendMenu(hMenu, menuConfig.floatFromParent ? MF_CHECKED : 0, Float, "Float from parent");
+	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on Top");
+	AppendMenu(hMenu, menuConfig.floatFromParent ? MF_CHECKED : 0, Float, "Show in Taskbar");
 	//AppendMenu(hMenu, 1, 2, "B");
 	//AppendMenu(hMenu, 0, 3, "C");
 	lock = true;
