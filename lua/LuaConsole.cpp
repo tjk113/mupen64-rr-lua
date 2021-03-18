@@ -2493,12 +2493,13 @@ int ReadString(lua_State* L) {
 	// stolen from so
 	CHAR* buffer = 0;
 	LONG length;
+	LONG position = ftell(f); // HACK: temporary variable
 
 	if (f)
 	{
 		fseek(f, 0, SEEK_END);
 		length = ftell(f);
-		fseek(f, 0, SEEK_SET);
+		fseek(f, position, SEEK_SET);
 		buffer = (char*)malloc((length + 1) * sizeof(char));
 		if (buffer)
 		{
