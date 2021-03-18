@@ -2495,23 +2495,15 @@ int ReadString(lua_State* L) {
 	LONG length;
 	LONG position = ftell(f); // HACK: temporary variable
 
-	if (f)
+	fseek(f, 0, SEEK_END);
+	length = ftell(f);
+	fseek(f, position, SEEK_SET);
+	buffer = (char*)malloc((length + 1) * sizeof(char));
+	if (buffer)
 	{
-		fseek(f, 0, SEEK_END);
-		length = ftell(f);
-		fseek(f, position, SEEK_SET);
-		buffer = (char*)malloc((length + 1) * sizeof(char));
-		if (buffer)
-		{
-			fread(buffer, sizeof(char), length, f);
-		}
-		fclose(f);
+		fread(buffer, sizeof(char), length, f);
 	}
-	else {
-		// File doesn't exist. Buffer is null pointer and memory will be accessed at buffer[length] = '\0'
-		// So what to do... lua panic? Custom error handler?
-		return 1;
-	}
+	fclose(f);
 	buffer[length] = '\0'; // vs warns of dereferencing null pointer but the fread call will eventually fill buffer unless file doesnt exist... see previous comment
 	lua_pushstring(L, buffer);
 	/*fseek(f, 0, SEEK_SET);
