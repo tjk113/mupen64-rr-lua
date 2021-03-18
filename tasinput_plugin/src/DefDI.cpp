@@ -1577,7 +1577,16 @@ bool Status::IsAnyStatusDialogActive ()
 
 //called after right-click menu closes, used to apply some changes
 void RefreshChanges(HWND hwnd)
-{
+{	
+	if (menuConfig.floatFromParent) {
+		SetWindowLongA(hwnd, GWL_STYLE,DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE);
+		SetWindowLongA(hwnd, GWL_EXSTYLE, WS_EX_STATICEDGE);
+	}
+	else {
+		SetWindowLongA(hwnd, GWL_STYLE, DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE);
+		SetWindowLongA(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW | WS_EX_STATICEDGE);
+	}
+
 	if (menuConfig.onTop)
 		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	else
@@ -1587,18 +1596,23 @@ void RefreshChanges(HWND hwnd)
 bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 {
 	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC)) return TRUE;
+	RefreshChanges(hwnd);
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
 	HMENU hMenu = CreatePopupMenu();
 	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on top");
+	AppendMenu(hMenu, menuConfig.floatFromParent ? MF_CHECKED : 0, Float, "Float from parent");
 	//AppendMenu(hMenu, 1, 2, "B");
 	//AppendMenu(hMenu, 0, 3, "C");
 	lock = true;
 	int res = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, x, y, hwnd, 0);
 	lock = false;
 	printf("trackmenu result %d\n",res);
-	switch (res){
+	switch (res) {
 	case OnTop:
-		menuConfig.onTop^=1;
+		menuConfig.onTop ^= 1;
+		break;
+	case Float:
+		menuConfig.floatFromParent ^= 1;
 		break;
 	}
 	RefreshChanges(hwnd);

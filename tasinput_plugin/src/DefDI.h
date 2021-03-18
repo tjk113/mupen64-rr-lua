@@ -114,11 +114,13 @@ extern HINSTANCE g_hInstance;
 //---- Popup menu
 enum PopupOptions {
 	None,
-	OnTop
+	OnTop,
+	Float,
 };
 
 typedef struct {
 	bool onTop = false;
+	bool floatFromParent = true;
 } MENUCONFIG;
 //----
 
