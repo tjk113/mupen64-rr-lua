@@ -3100,7 +3100,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if(emu_launched)
                     {
                         savestates_job = LOADSTATE;
-						savestates_load();
+						// Saving/loading in quick succession will cause extremely weird behaviour ranging from
+                        // hotkey issues and audio cutoff to crashes and emu stuckness
+                        //savestates_load();
 					}
                     break;
                 case STATE_LOAD:
