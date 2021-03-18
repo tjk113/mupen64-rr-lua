@@ -2435,7 +2435,7 @@ int LoadFileSavestate(lua_State *L) {
 BOOL validType(const char* type) {
 	printf("Type: %s\n", type);
 	const char* validTypes[15] = { "r","rb","w","wb","a","ab","r+","rb+","r+b","w+","wb+","w+b","a+","ab+","a+b" };
-	for (int i = 0; i < 15; i++)
+	for (int i = 0; i <= 15; i++)
 	{
 		if (strcmp(validTypes[i], type) != 0) {
 			return TRUE;
