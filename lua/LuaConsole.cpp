@@ -2503,7 +2503,6 @@ int ReadString(lua_State* L) {
 	{
 		fread(buffer, sizeof(char), length, f);
 	}
-	fclose(f);
 	buffer[length] = '\0'; // vs warns of dereferencing null pointer but the fread call will eventually fill buffer unless file doesnt exist... see previous comment
 	lua_pushstring(L, buffer);
 	/*fseek(f, 0, SEEK_SET);
