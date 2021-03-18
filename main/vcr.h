@@ -77,7 +77,7 @@ extern BOOL VCR_isRecording();
 extern BOOL VCR_isCapturing();
 extern void VCR_invalidatedCaptureFrame();
 extern BOOL VCR_getReadOnly();
-extern bool VCR_getLoopMovie();
+extern bool VCR_isLooping();
 extern void VCR_setReadOnly(BOOL val);
 extern void VCR_setLoopMovie(bool val);
 extern unsigned long VCR_getLengthVIs();

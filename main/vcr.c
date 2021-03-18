@@ -653,7 +653,7 @@ VCR_setReadOnly(BOOL val)
 	m_readOnly = val;
 }
 
-bool VCR_getLoopMovie() {
+bool VCR_isLooping() {
 	return m_loopMovie;
 }
 
@@ -1533,31 +1533,23 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 int VCR_restartPlayback()
 {
 	VCR_setReadOnly(true); // force read only
-	// attempt to load a savestate so that you
-	// can loop over the latest part of a TAS
-	//if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) {
-	//
-	//}
-	return VCR_startPlayback(m_filename, "", "");
-	// there are no checks like (m_task == idle) because I'm not
-	/*/ sure of the behaviour when recording starts/stops as well
-	if (m_file == NULL) {
-		return -1;
+	int ret = VCR_startPlayback(m_filename, "", "");
+	// attempt to load a savestate so that you can loop over the latest part of a TAS
+	// this is already done for movies that start from a snapshot
+	if (m_header.startFlags & MOVIE_START_FROM_NOTHING) {
+		char buf[PATH_MAX];
+		strcpy(buf, m_filename);
+		char *dot = strchr(buf, '.');
+		if (dot) { // "tas.123.m64" => "tas.st"
+			strcpy(dot, ".st");
+		}
+		else {
+			strcat(buf, ".st");
+		}
+		savestates_select_filename(buf);
+		savestates_job |= LOADSTATE;
 	}
-	char buf[PATH_MAX];
-	strcpy(buf, m_filename);
-	char *dot = strchr(buf, '.');
-	if (dot) { // "tas.123.m64" => "tas.st"
-		strcpy(dot, ".st");
-	} else {
-		strcat(buf, ".st");
-	}
-	savestates_select_filename(buf);
-	savestates_job |= LOADSTATE;
-	m_task = StartPlayback;
-	printf("Restarting Playback. Loading %s\n", buf);
-	just_restarted_flag = true;
-	return 0;*/
+	return ret;
 }
 
 
@@ -2003,9 +1995,9 @@ VCR_toggleLoopMovie()
 
 #ifdef __WIN32__
 	extern HWND hStatus/*, hStatusProgress*/;
-	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(m_readOnly ? "loop movie enabled" : "loop movie disabled"));
+	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(m_loopMovie ? "loop movie enabled" : "loop movie disabled"));
 #else
-	printf("%s\n", m_readOnly ? "loop movie enabled" : "loop movie disabled");
+	printf("%s\n", m_loopMovie ? "loop movie enabled" : "loop movie disabled");
 #endif
 }
 
