@@ -2470,7 +2470,7 @@ int CloseStream(lua_State* L) {
 		// error print?
 		return 1;
 	}
-	f = NULL;
+	fclose(f);
 	streamopen = FALSE;
 	return 1;
 }
@@ -2481,7 +2481,7 @@ int WriteString(lua_State* L) {
 	printf("Sizeof char: %d\Strlen str: %d\n---LUA WRITESTRING END---\n", sizeof(char), sizeof(str));*/
 
 	fwrite(str, sizeof(char), /*sizeof(str) this will not work. found this out the hard way lmfao*/strlen(str), f);
-	fseek(f, 0, SEEK_SET); fflush(f); fclose(f);
+	/*fseek(f, 0, SEEK_SET);*/ fflush(f); /*fclose(f);*/
 	return 1;
 }
 
@@ -2512,8 +2512,8 @@ int ReadString(lua_State* L) {
 	buffer[length] = '\0'; // vs warns of dereferencing null pointer but the fread call will eventually fill buffer unless file doesnt exist... see previous comment
 	lua_pushstring(L, buffer);
 
-	fseek(f, 0, SEEK_SET);
-	fclose(f);
+	/*fseek(f, 0, SEEK_SET);
+	fclose(f);*/
 	return 1;
 }
 
@@ -2522,7 +2522,7 @@ int WriteInt(lua_State* L) {
 	int n = luaL_checkinteger(L, 1);
 
 	fwrite(&n, sizeof(int), 1, f); // looks like it will fail eventually
-	fseek(f, 0, SEEK_SET); fflush(f); fclose(f);
+	/*fseek(f, 0, SEEK_SET);*/ fflush(f);/* fclose(f);*/
 	return 1;
 }
 int ReadInt(lua_State* L) {
@@ -2530,8 +2530,9 @@ int ReadInt(lua_State* L) {
 	int num;
 	fread(&num, sizeof(int), 1, f);
 	lua_pushinteger(L, num);
-	fseek(f, 0, SEEK_SET);
-	fclose(f);
+	/*fseek(f, 0, SEEK_SET);
+	fclose(f);*/
+	
 	return 1;
 }
 
@@ -3097,7 +3098,7 @@ const luaL_Reg savestateFuncs[] = {
 };
 const luaL_Reg ioFuncs[] = {
 	    {"open", OpenStream},
-	    {"close", OpenStream},
+	    {"close", CloseStream},
 		{"writestr", WriteString},
 		{"readstr", ReadString},
 		{"writeint", WriteInt},
