@@ -2528,12 +2528,21 @@ int WriteInt(lua_State* L) {
 }
 int ReadInt(lua_State* L) {
 	ASSERT_STREAMOPEN;
-	int num;
-	fread(&num, sizeof(int), 1, f);
-	lua_pushinteger(L, num);
+	int buf;
+	fread(&buf, sizeof(int), 1, f);
+	lua_pushinteger(L, buf);
 	/*fseek(f, 0, SEEK_SET);
 	fclose(f);*/
 	
+	return 1;
+}
+int ReadBytes(lua_State* L) {
+	ASSERT_STREAMOPEN;
+	// read x bytes. return as integer
+	int buf,bytes;
+	bytes = luaL_checkinteger(L, 1);
+	fread(&buf, bytes, 1, f);
+	lua_pushinteger(L,buf);
 	return 1;
 }
 
@@ -3107,6 +3116,8 @@ const luaL_Reg ioFuncs[] = {
 
 		{"writeint", WriteInt},
 		{"readint", ReadInt},
+
+		{"readxbytes", ReadBytes},
 
 		{"delete", DelFile},
 		{"accessible", FileExists}, // checks for accessibility not for existing but its basically the same thing rightj hahiudajlsdhs
