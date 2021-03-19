@@ -3101,7 +3101,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if(emu_launched)
                     {
                         savestates_job = LOADSTATE;
-						savestates_load();
+						savestates_load(false);
 					}
                     break;
                 case STATE_LOAD:

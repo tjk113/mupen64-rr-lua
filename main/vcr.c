@@ -1534,10 +1534,19 @@ int VCR_restartPlayback()
 {
 	VCR_setReadOnly(true); // force read only
 	int ret = VCR_startPlayback(m_filename, "", "", true);
+
+	// Enable Stop Movie Playback button
+	m_task = Playback;
+#ifdef __WIN32__
+	extern void EnableEmulationMenuItems(BOOL flag);
+	EnableEmulationMenuItems(TRUE);
+#endif
+
 	// attempt to load a savestate so that you can loop over the latest part of a TAS
 	// this is already done for movies that start from a snapshot
 	if (m_header.startFlags & MOVIE_START_FROM_NOTHING ||
 		m_header.startFlags & MOVIE_START_FROM_EEPROM) {
+		m_task = StartPlayback; // Needs to be set back otherwise it wont actually reset
 		char buf[PATH_MAX];
 		strcpy(buf, m_filename);
 		char *dot = strchr(buf, '.');
@@ -1548,13 +1557,8 @@ int VCR_restartPlayback()
 			strcat(buf, ".st");
 		}
 		savestates_select_filename(buf);
-		savestates_job |= LOADSTATE;
+		savestates_load(true);
 	}
-	m_task = Playback; // Enable Stop Movie Playback button
-#ifdef __WIN32__
-	extern void EnableEmulationMenuItems(BOOL flag);
-	EnableEmulationMenuItems(TRUE);
-#endif
 	return ret;
 }
 

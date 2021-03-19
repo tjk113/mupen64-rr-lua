@@ -195,7 +195,7 @@ void savestates_save()
 	gzclose(f);
 }
 
-void savestates_load()
+void savestates_load(bool silenceNotFoundError)
 {
 #define BUFLEN 1024
 	char *filename, buf[BUFLEN];
@@ -241,6 +241,7 @@ void savestates_load()
     //failed opening st
 	if (f == NULL)
 	{
+		if (silenceNotFoundError) return;
 		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 		free(filename);
 		warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
@@ -388,13 +389,13 @@ void savestates_load()
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if(VCR_isActive() && !VCR_isLooping() && (true || MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
+		if(VCR_isActive() && (false || MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
 			"Warning",
 			MB_YESNO | MB_ICONWARNING) == 7))
 		{
 		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
 			if(VCR_isPlaying())
-				VCR_stopPlayback(false);
+				VCR_stopPlayback(true);
 			else
 				VCR_stopRecord();
 		}
