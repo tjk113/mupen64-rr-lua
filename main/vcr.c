@@ -664,7 +664,6 @@ void VCR_setLoopMovie(bool val) {
 		CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
 #endif
 	m_loopMovie = val;
-	Config.loopMovie = val;
 }
 
 unsigned long VCR_getLengthVIs()

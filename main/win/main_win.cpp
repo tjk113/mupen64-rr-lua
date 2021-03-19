@@ -2940,6 +2940,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case ID_LOOP_MOVIE:
 				VCR_toggleLoopMovie();
+				Config.loopMovie = VCR_isLooping();
 				shouldSave = true;
 				break;
                 
