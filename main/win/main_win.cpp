@@ -1691,7 +1691,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 						GetDlgItemTextA(hwnd,IDC_INI_DESCRIPTION,descriptionUTF8,MOVIE_DESCRIPTION_DATA_SIZE);
 
 					VCR_setReadOnly(IsDlgButtonChecked(hwnd,IDC_MOVIE_READONLY));
-                    if (strlen(tempbuf) == 0 || VCR_startPlayback( tempbuf, authorUTF8, descriptionUTF8 ) < 0)
+                    if (strlen(tempbuf) == 0 || VCR_startPlayback( tempbuf, authorUTF8, descriptionUTF8, 0 ) < 0)
                     {
 						sprintf(tempbuf2, "Couldn't start playback\nof \"%s\".", tempbuf);
                        MessageBox(hwnd, tempbuf2, "VCR", MB_OK);
@@ -2649,7 +2649,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		else if (lstrcmp(fext, ".M64") == 0) {
 			if (rom) {
 				if (!VCR_getReadOnly())	VCR_toggleReadOnly();
-				VCR_startPlayback(fname, 0, 0);
+				VCR_startPlayback(fname, 0, 0, 0);
 				EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
 				EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
 			}
@@ -2940,6 +2940,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case ID_LOOP_MOVIE:
 				VCR_toggleLoopMovie();
+				shouldSave = true;
 				break;
                 
 			case EMU_PLAY:
@@ -3148,7 +3149,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      if (VCR_stopPlayback(true) < 0)
                      	; // fail quietly
 //                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
-                     else {
+					 else {
                          ClearButtons();
                         EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
                         EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
@@ -3338,7 +3339,7 @@ void StartMovies()
         char file[MAX_PATH];
         GetCmdLineParameter(CMDLINE_PLAY_M64, file);
         //not reading author nor description atm
-        VCR_startPlayback(file, 0, 0);
+        VCR_startPlayback(file, 0, 0, 0);
         if (CmdLineParameterExist(CMDLINE_CAPTURE_AVI)) {
             GetCmdLineParameter(CMDLINE_CAPTURE_AVI, file);
             if (VCR_startCapture(0, file, false) < 0)
@@ -3406,6 +3407,11 @@ void StartSavestate() {
 		savestates_select_filename(file);
 		savestates_job = LOADSTATE;
 	}
+}
+
+// sets UI state from config
+void loadUI() {
+	if (Config.loopMovie) VCR_toggleLoopMovie();
 }
 
 int WINAPI WinMain(
@@ -3564,7 +3570,9 @@ int WINAPI WinMain(
 		}
 
 		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
-    
+
+		loadUI();
+
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
 			if (!TranslateAccelerator(mainHWND,Accel,&Msg)
