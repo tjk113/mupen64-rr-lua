@@ -3425,9 +3425,10 @@ void StartSavestate() {
 	}
 }
 
-// sets UI state from config
-void loadUI() {
-	if (Config.loopMovie) VCR_toggleLoopMovie();
+// Loads various variables from the current config state
+void LoadConfigExternals() {
+	VCR_setLoopMovie(Config.loopMovie);
+	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
 }
 
 int WINAPI WinMain(
@@ -3587,7 +3588,7 @@ int WINAPI WinMain(
 
 		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
 
-		loadUI();
+		LoadConfigExternals();
 
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{

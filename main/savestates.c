@@ -48,6 +48,7 @@ extern int *autoinc_save_slot;
 
 int savestates_job = 0;
 int savestates_job_success = 1;
+bool savestates_ignore_nonmovie_warnings = false;
 
 bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
 			 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
@@ -380,18 +381,26 @@ void savestates_load(bool silenceNotFoundError)
 					stop = true;
 					break;
 			}
-			printWarning(errStr);
-			if (stop && VCR_isRecording()) VCR_stopRecord();
-			else if (stop) VCR_stopPlayback(true);
-			savestates_job_success = FALSE;
-			goto failedLoad;
+			if (savestates_ignore_nonmovie_warnings) {
+				display_status("Warning: mismatched savestate\n");
+			}
+			else {
+				printWarning(errStr);
+				if (stop && VCR_isRecording()) VCR_stopRecord();
+				else if (stop) VCR_stopPlayback(true);
+				savestates_job_success = FALSE;
+				goto failedLoad;
+			}
 		}
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if(VCR_isActive() && (false || MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
+		if (VCR_isActive() && savestates_ignore_nonmovie_warnings) {
+			display_status("Warning: non-movie savestate\n");
+		}
+		else if (VCR_isActive() && MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
 			"Warning",
-			MB_YESNO | MB_ICONWARNING) == 7))
+			MB_YESNO | MB_ICONWARNING) == 7)
 		{
 		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
 			if(VCR_isPlaying())

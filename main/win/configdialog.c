@@ -893,6 +893,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, LUA_double_buffered);
          WriteCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
          WriteCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
+		 WriteCheckBoxValue( hwnd, IDC_SUPPRESS_LOAD_ST_PROMPT, Config.IgnoreStWarnings);
          
          WriteCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME, Config.Column_GoodName);
          WriteCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME, Config.Column_InternalName);
@@ -930,6 +931,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 }
                 no_audio_delay = ReadCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY);
                 no_compiled_jump = ReadCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP);
+				Config.IgnoreStWarnings = ReadCheckBoxValue( hwnd, IDC_SUPPRESS_LOAD_ST_PROMPT);
                 
                 Config.Column_GoodName = ReadCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME);
                 Config.Column_InternalName = ReadCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME);
@@ -944,7 +946,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 
                 EnableToolbar(); 
                 EnableStatusbar();
-                FastRefreshBrowser();                
+                FastRefreshBrowser();
+				LoadConfigExternals();
            }
        break;
                             

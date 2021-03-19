@@ -179,6 +179,7 @@ void LoadConfig()
     round_to_zero = ReadCfgInt("Advanced", "Round To Zero", 0);
     input_delay = ReadCfgInt("Advanced", "Old Input Delay", 0);
     LUA_double_buffered = ReadCfgInt("Advanced", "LUA Double Buffer", 1);
+	Config.IgnoreStWarnings = ReadCfgInt("Advanced", "Ignore non-movie st warning", 0);
 
     //Compatibility Settings
     no_audio_delay = ReadCfgInt("Compatibility", "No Audio Delay", 0);
@@ -346,7 +347,8 @@ void SaveConfig()
     WriteCfgInt("Advanced", "Auto Increment Save Slot", Config.AutoIncSaveSlot);
     WriteCfgInt("Advanced", "Round To Zero", round_to_zero);
     WriteCfgInt("Advanced", "Old Input Delay", input_delay);
-    WriteCfgInt("Advanced", "LUA Double Buffer", LUA_double_buffered);
+	WriteCfgInt("Advanced", "LUA Double Buffer", LUA_double_buffered);
+    WriteCfgInt("Advanced", "Ignore non-movie st warning", Config.IgnoreStWarnings);
     
     WriteCfgInt("CPU", "Core", Config.guiDynacore);
 

@@ -61,6 +61,7 @@ extern void exec_about(char *name);
 extern void EnableStatusbar();
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
+extern void LoadConfigExternals();
 
 typedef struct _HOTKEY {
     int key;
@@ -101,6 +102,7 @@ typedef struct _CONFIG {
     BOOL GuiStatusbar;
     BOOL AutoIncSaveSlot;
     //BOOL RoundToZero;
+	BOOL IgnoreStWarnings;
     
     //Compatibility Options
     //BOOL NoAudioDelay;

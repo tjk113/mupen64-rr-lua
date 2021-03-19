@@ -402,6 +402,7 @@
 #define IDC_ROUNDTOZERO                 10002
 #define IDC_NORESET                     10003
 #define IDC_FORCEINTERNAL				10004
+#define IDC_SUPPRESS_LOAD_ST_PROMPT		10005
 #define IDC_ROMLIST                     12347
 #define ID_EMULATOR_EXIT                40001
 #define ID_LANG_INFO_MENU               40002
