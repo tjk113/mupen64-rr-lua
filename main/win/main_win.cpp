@@ -1,4 +1,4 @@
-/***************************************************************************
+ï»¿/***************************************************************************
                           main_win.cpp  -  description
                              -------------------
     copyright C) 2003    : ShadowPrince (shadow@emulation64.com)
@@ -581,7 +581,7 @@ struct ProcAddress
 
 void search_plugins()
 {
-	// TODO: ‚±‚Ì•Ó‚è‚È‚É‚µ‚Ä‚é‚©‚æ‚­Œ©‚Ä‚È‚¢
+	// TODO: ï¿½ï¿½ï¿½Ì•Ó‚ï¿½È‚É‚ï¿½ï¿½Ä‚é‚©ï¿½æ‚­ï¿½ï¿½ï¿½Ä‚È‚ï¿½
 	liste_plugins = (plugins*)malloc(sizeof(plugins));
 	liste_plugins->type = -1;
 	liste_plugins->next = NULL;
@@ -605,7 +605,7 @@ void search_plugins()
 	}
 
 	do
-	{ //pluginƒfƒBƒŒƒNƒgƒŠ‚ğ“Ç‚ñ‚ÅAƒvƒ‰ƒOƒCƒ“ƒŠƒXƒg‚ğ¶¬
+	{ //pluginï¿½fï¿½Bï¿½ï¿½ï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ÅAï¿½vï¿½ï¿½ï¿½Oï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½gï¿½ğ¶ï¿½
 		if(String(::getExtension(entry.cFileName)) == "dll")
 		{
 			String pluginPath;

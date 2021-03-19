@@ -540,7 +540,7 @@ void update_pif_read(bool stcheck)
 								//should this be before or after? idk
 								if (savestates_job & LOADSTATE && stAllowed)
 								{
-									savestates_load();
+									savestates_load(false);
 									savestates_job &= ~LOADSTATE;
 								}
 							}
@@ -557,7 +557,7 @@ void update_pif_read(bool stcheck)
 					}
 					if (savestates_job & LOADSTATE && stAllowed)
 					{
-						savestates_load();
+						savestates_load(false);
 						savestates_job &= ~LOADSTATE;
 					}
 					extern bool old_st;
