@@ -664,6 +664,7 @@ void VCR_setLoopMovie(bool val) {
 		CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
 #endif
 	m_loopMovie = val;
+	Config.loopMovie = val;
 }
 
 unsigned long VCR_getLengthVIs()
@@ -996,7 +997,6 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 //			if (m_capture != 0)
 //				VCR_stopCapture();
 //			else
-			//if (m_loopMovie) return;
 				VCR_stopPlayback(false);
 				if (gStopAVI)
 				{
@@ -1270,7 +1270,7 @@ void SetActiveMovie(char* buf,int maxlen)
 }
 
 int
-VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8 )
+VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting )
 {
 	VCR_coreStopped();
 //	m_intro = TRUE;
@@ -1304,7 +1304,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
     		return -1;
         }
 	}
-	SetActiveMovie(buf, MAX_PATH);
+	if (!restarting) SetActiveMovie(buf, MAX_PATH); // can crash when looping + fast forward, no need to change this
     {
         int code = read_movie_header(m_file, &m_header);
         
@@ -1512,7 +1512,7 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 
 	    	strncat( buf, ".st", 4);
 	    	savestates_select_filename( buf );
-	    	savestates_job |= LOADSTATE;
+			savestates_job |= LOADSTATE;
 	    	m_task = StartPlaybackFromSnapshot;
 	    } else {
 	    	m_task = StartPlayback;
@@ -1533,10 +1533,11 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 int VCR_restartPlayback()
 {
 	VCR_setReadOnly(true); // force read only
-	int ret = VCR_startPlayback(m_filename, "", "");
+	int ret = VCR_startPlayback(m_filename, "", "", true);
 	// attempt to load a savestate so that you can loop over the latest part of a TAS
 	// this is already done for movies that start from a snapshot
-	if (m_header.startFlags & MOVIE_START_FROM_NOTHING) {
+	if (m_header.startFlags & MOVIE_START_FROM_NOTHING ||
+		m_header.startFlags & MOVIE_START_FROM_EEPROM) {
 		char buf[PATH_MAX];
 		strcpy(buf, m_filename);
 		char *dot = strchr(buf, '.');
@@ -1549,6 +1550,11 @@ int VCR_restartPlayback()
 		savestates_select_filename(buf);
 		savestates_job |= LOADSTATE;
 	}
+	m_task = Playback; // Enable Stop Movie Playback button
+#ifdef __WIN32__
+	extern void EnableEmulationMenuItems(BOOL flag);
+	EnableEmulationMenuItems(TRUE);
+#endif
 	return ret;
 }
 

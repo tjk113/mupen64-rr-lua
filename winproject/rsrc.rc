@@ -118,10 +118,11 @@ BEGIN
             MENUITEM "Start Movie Playback...",     ID_START_PLAYBACK, GRAYED
             MENUITEM "Stop Movie Playback",         ID_STOP_PLAYBACK, GRAYED
             MENUITEM "Toggle Read-Only",            EMU_VCRTOGGLEREADONLY
-            MENUITEM "Toggle Loop Movie",           ID_LOOP_MOVIE
             MENUITEM SEPARATOR
             MENUITEM "Start AVI Capture...",        ID_START_CAPTURE, GRAYED
             MENUITEM "Stop AVI Capture",            ID_END_CAPTURE, GRAYED
+	MENUITEM SEPARATOR
+	MENUITEM "Loop Movie Playback", ID_LOOP_MOVIE
         END
         MENUITEM SEPARATOR
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
