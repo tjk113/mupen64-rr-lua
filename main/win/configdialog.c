@@ -923,10 +923,10 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 input_delay = ReadCheckBoxValue(hwnd, IDC_INPUTDELAY);
                 
                 LUA_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
-                if (LUA_double_buffered && strstr(gfx_name, "Jabo") == 0) {
+                if (LUA_double_buffered && gfx_name[0] == 0 && strstr(gfx_name, "Jabo") == 0) {
                     //CheckDlgButton(hwnd, IDC_CLUADOUBLEBUFFER, 0);
                     //LUA_double_buffered = false;
-                    MessageBoxA(mainHWND, "Your current video plugin might produce unexpected results with LUA double buffering.", "Incompatible Plugin", 48L);
+                    MessageBoxA(mainHWND, "Your current video plugin might produce unexpected results with LUA double buffering.", "Incompatible Plugin", MB_TASKMODAL | MB_TOPMOST/*make sure to annoy user a lot*/);
                 }
                 no_audio_delay = ReadCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY);
                 no_compiled_jump = ReadCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP);
