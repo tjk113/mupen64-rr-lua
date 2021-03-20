@@ -753,31 +753,41 @@ void exec_about(char *name)
 }
 int check_plugins()
 {
-   void *handle_gfx, *handle_input, *handle_sound,*handle_rsp ;
-
+    // Bad implementation... i forgot this is C++ and not C so
+    // i went with a low-level implementation at first...
+    // But hey this works 
+    void *handle_gfx, *handle_input, *handle_sound,*handle_rsp;
    handle_gfx = get_handle(liste_plugins, gfx_name);
-   if (!handle_gfx) {
-         ShowMessage("Choose graphics plugin in Configuration Dialog.");
-		 return (0);
-   }
-   
    handle_input = get_handle(liste_plugins, input_name);
-   if (!handle_input) {
-         ShowMessage("Choose input plugin in Configuration Dialog.");
-		 return (0);
-   }
-   
    handle_sound = get_handle(liste_plugins, sound_name);
-   if (!handle_sound) {
-         ShowMessage("Choose audio plugin in Configuration Dialog.");
-		 return (0);
+   handle_rsp = get_handle(liste_plugins, rsp_name);
+   
+   void* pluginHandles[4] = { handle_gfx, handle_input, handle_sound,handle_rsp }; // can probably be done in one line
+   char pluginsMissing = 0;
+   std::string pluginNames[] = { "Video","Input","Sound","RSP" };
+   std::string finalMessage = "Plugin(s) missing: ";
+   for (char i = 0; i <= 3; i++)
+   {
+       if (!pluginHandles[i]) {
+           printf("Plugin missing: %s\n", pluginNames[i].c_str());
+           if (i != 3)
+               pluginNames[i].append(", ");
+
+           finalMessage.append(pluginNames[i]);
+           pluginsMissing++;
+           //strcat(finalMessage, pluginNames[i]);
+       }
+   }
+
+   if (finalMessage != "Plugin(s) missing: ") {  // not calling strcmp.. 
+       // strdup seems like a bad idea... this too :)
+#ifdef _WIN32
+       MessageBox(mainHWND, finalMessage.c_str(), "Plugin(s) Missing", MB_TASKMODAL);
+       //ShowMessage(strdup(finalMessage.c_str())); return(0);
+#endif
+       return 0;
    }
    
-   handle_rsp = get_handle(liste_plugins, rsp_name);
-   if (!handle_rsp) {
-         ShowMessage("Choose RSP plugin in Configuration Dialog.");
-		 return (0);
-   }
    return 1;
 }
 
