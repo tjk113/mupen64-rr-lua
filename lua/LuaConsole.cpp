@@ -2432,6 +2432,27 @@ int LoadFileSavestate(lua_State *L) {
 }
 
 // IO
+int SelectFileDialog(lua_State* L) {
+	EmulationLock lock;
+	OPENFILENAME ofn;
+	char filename[MAX_PATH] = "";
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = mainHWND;
+	ofn.lpstrFilter =
+		"All Files (*.*)\0*.*\0";
+
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFile = filename;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
+	ofn.lpstrInitialDir = NULL;
+	GetOpenFileName(&ofn);
+	lua_pushstring(L, ofn.lpstrFile);
+	return 1;
+}
+
+
 BOOL validType(const char* type) {
 	printf("Type: %s\n", type);
 	const char* validTypes[15] = { "r","rb","w","wb","a","ab","r+","rb+","r+b","w+","wb+","w+b","a+","ab+","a+b" };
@@ -3099,6 +3120,8 @@ const luaL_Reg savestateFuncs[] = {
 	{NULL, NULL}
 };
 const luaL_Reg ioFuncs[] = {
+		{"diagopen", SelectFileDialog},
+
 		{"open", OpenStream},
 		{"close", CloseStream},
 	    {"seek", StreamSeek},
