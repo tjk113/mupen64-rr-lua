@@ -265,7 +265,7 @@ void savestates_load(bool silenceNotFoundError)
 		gzclose(f);
 		savestates_job_success = FALSE;
 		if (VCR_isRecording()) VCR_stopRecord();
-		else VCR_stopPlayback(true);
+		else VCR_stopPlayback();
 		return;
 	}
    
@@ -387,7 +387,7 @@ void savestates_load(bool silenceNotFoundError)
 			else {
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord();
-				else if (stop) VCR_stopPlayback(true);
+				else if (stop) VCR_stopPlayback();
 				savestates_job_success = FALSE;
 				goto failedLoad;
 			}
@@ -404,7 +404,7 @@ void savestates_load(bool silenceNotFoundError)
 		{
 		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
 			if(VCR_isPlaying())
-				VCR_stopPlayback(true);
+				VCR_stopPlayback();
 			else
 				VCR_stopRecord();
 		}
