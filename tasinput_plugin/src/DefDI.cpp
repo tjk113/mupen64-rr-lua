@@ -1972,21 +1972,28 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(draggingStick)
 			{
-				POINT pt;
+				POINT pt, ptemp;
+				RECT client;
 				GetCursorPos(&pt);
+				ptemp = pt;
 				ScreenToClient(GetDlgItem(statusDlg, IDC_STICKPIC), &pt);
-				overrideX =  (pt.x*256/STICKPIC_SIZE - 128 + 1);
-				overrideY = -(pt.y*256/STICKPIC_SIZE - 128 + 1);
-				
-				// normalize out-of-bounds clicks
-				if(overrideX > 127 || overrideY > 127 || overrideX < -128 || overrideY < -129)
-				{
-					int absX = abs(overrideX);
-					int absY = abs(overrideY);
-					int div = (absX > absY) ? absX : absY;
-					overrideX = overrideX * (overrideX > 0 ? 127 : 128) / div;
-					overrideY = overrideY * (overrideY > 0 ? 127 : 128) / div;
+				GetWindowRect(statusDlg, &client);
+
+				if ((ptemp.x > client.left && ptemp.x < client.right && ptemp.y > client.left && ptemp.y < client.right)) {
+					overrideX = (pt.x * 256 / STICKPIC_SIZE - 128 + 1);
+					overrideY = -(pt.y * 256 / STICKPIC_SIZE - 128 + 1);
 				}
+
+					// normalize out-of-bounds clicks
+					if (overrideX > 127 || overrideY > 127 || overrideX < -128 || overrideY < -129)
+					{
+						int absX = abs(overrideX);
+						int absY = abs(overrideY);
+						int div = (absX > absY) ? absX : absY;
+						overrideX = overrideX * (overrideX > 0 ? 127 : 128) / div;
+						overrideY = overrideY * (overrideY > 0 ? 127 : 128) / div;
+					}
+
 				if(overrideX < 7 && overrideX > -7) // snap near-zero clicks to zero
 					overrideX = 0;
 				if(overrideY < 7 && overrideY > -7)
