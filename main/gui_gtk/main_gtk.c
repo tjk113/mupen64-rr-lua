@@ -869,7 +869,7 @@ callback_vcrStartPlayback_fileSelected( GtkWidget *widget, gpointer data )
 		// really hide dialog (let gtk work)
 		while( g_main_iteration( FALSE ) );
 
-		if (VCR_startPlayback( filename, NULL, NULL, 0 ) < 0)
+		if (VCR_startPlayback( filename, NULL, NULL ) < 0)
 			messagebox( tr( "VCR" ), MB_ICONERROR | MB_OK,
 			            tr( "Couldn't start playback." ) );
 	}
@@ -908,7 +908,7 @@ callback_vcrStopPlayback( GtkWidget *widget, gpointer data )
 {
 	if( g_EmulationThread )
 	{
-		if (VCR_stopPlayback(false) < 0) // not sure if this needs to be true or not?
+		if (VCR_stopPlayback() < 0) // not sure if this needs to be true or not?
 			messagebox( tr( "VCR" ), MB_ICONERROR | MB_OK,
 			            tr( "Couldn't stop playback." ) );
 	}

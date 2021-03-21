@@ -133,6 +133,10 @@ int titleLength;
 extern void resetEmu();
 void SetActiveMovie(char* buf, int maxlen);
 
+static int startPlayback(const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting);
+static int restartPlayback();
+static int stopPlayback(const bool bypassLoopSetting);
+
 void printWarning (char* str)
 {
 #ifdef __WIN32__
@@ -657,15 +661,6 @@ bool VCR_isLooping() {
 	return m_loopMovie;
 }
 
-void VCR_setLoopMovie(bool val) {
-#ifdef __WIN32__
-	extern HWND mainHWND;
-	if (m_loopMovie != val)
-		CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
-#endif
-	m_loopMovie = val;
-}
-
 unsigned long VCR_getLengthVIs()
 {
 	return VCR_isActive() ? m_header.length_vis : 0;
@@ -996,7 +991,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 //			if (m_capture != 0)
 //				VCR_stopCapture();
 //			else
-				VCR_stopPlayback(false);
+				stopPlayback(false);
 				if (gStopAVI)
 				{
 					VCR_stopCapture();
@@ -1269,7 +1264,12 @@ void SetActiveMovie(char* buf,int maxlen)
 }
 
 int
-VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting )
+VCR_startPlayback(const char *filename, const char *authorUTF8, const char *descriptionUTF8) {
+	return startPlayback(filename, authorUTF8, descriptionUTF8, false);
+}
+
+static int
+startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting )
 {
 	VCR_coreStopped();
 //	m_intro = TRUE;
@@ -1529,10 +1529,18 @@ VCR_startPlayback( const char *filename, const char *authorUTF8, const char *des
 	}
 }
 
-int VCR_restartPlayback()
+int VCR_restartPlayback() {
+	bool current_loop_setting = m_loopMovie;
+	m_loopMovie = true; // temporarily enable
+	int ret = stopPlayback(false);
+	m_loopMovie = current_loop_setting;
+	return ret;
+}
+
+int restartPlayback()
 {
 	VCR_setReadOnly(true); // force read only
-	int ret = VCR_startPlayback(m_filename, "", "", true);
+	int ret = startPlayback(m_filename, "", "", true);
 
 	// Enable Stop Movie Playback button
 	m_task = Playback;
@@ -1561,12 +1569,15 @@ int VCR_restartPlayback()
 	return ret;
 }
 
+int VCR_stopPlayback() {
+	return stopPlayback(true);
+}
 
-int
-VCR_stopPlayback(bool bypassLoopSetting)
+static int
+stopPlayback(bool bypassLoopSetting)
 {
 	if (!bypassLoopSetting && m_loopMovie) {
-		return VCR_restartPlayback();
+		return restartPlayback();
 	}
 #ifdef __WIN32__
 	extern HWND mainHWND;
@@ -1612,7 +1623,6 @@ VCR_stopPlayback(bool bypassLoopSetting)
 
 	return -1;
 }
-
 
 
 
@@ -2000,9 +2010,12 @@ VCR_toggleReadOnly ()
 void
 VCR_toggleLoopMovie()
 {
-	VCR_setLoopMovie(!m_loopMovie);
+	m_loopMovie = !m_loopMovie;
 
 #ifdef __WIN32__
+	extern HWND mainHWND;
+	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (m_loopMovie ? MFS_CHECKED : MFS_UNCHECKED));
+
 	extern HWND hStatus/*, hStatusProgress*/;
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(m_loopMovie ? "loop movie enabled" : "loop movie disabled"));
 #else
@@ -2055,7 +2068,7 @@ VCR_coreStopped()
 		case StartPlayback:
 		case StartPlaybackFromSnapshot:
 		case Playback:
-	        VCR_stopPlayback(true);
+	        VCR_stopPlayback();
 			break;
 	}
 

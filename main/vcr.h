@@ -79,7 +79,6 @@ extern void VCR_invalidatedCaptureFrame();
 extern BOOL VCR_getReadOnly();
 extern bool VCR_isLooping();
 extern void VCR_setReadOnly(BOOL val);
-extern void VCR_setLoopMovie(bool val);
 extern unsigned long VCR_getLengthVIs();
 extern unsigned long VCR_getLengthSamples();
 extern void VCR_setLengthVIs(unsigned long val);
@@ -94,9 +93,9 @@ extern void VCR_clearAllSaveData();
 
 extern int VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8 );
 extern int VCR_stopRecord();
-extern int VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting );
+extern int VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8 );
 extern int VCR_restartPlayback();
-extern int VCR_stopPlayback(bool bypassLoopSetting);
+extern int VCR_stopPlayback();
 extern int VCR_startCapture( const char *recFilename, const char *aviFilename, bool codecDialog );
 extern int VCR_stopCapture();
 
