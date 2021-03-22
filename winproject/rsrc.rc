@@ -3,11 +3,11 @@
 #include "resource.h"
 #include <windows.h>
 /////////////////////////////////////////////////////////////////////////////
-// Neutralny (Domyœlny) resources
+// Neutral (Default) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
-#pragma code_page(1250)
+#pragma code_page(1252)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -88,14 +88,13 @@ BEGIN
     BEGIN
         MENUITEM "&Full Screen\tAlt Enter",     FULL_SCREEN, GRAYED
         MENUITEM SEPARATOR
-
-    POPUP "Plugin Settings"
-    BEGIN
-    MENUITEM "&Video Settings...",          IDGFXCONFIG
-    MENUITEM "&Input Settings...",          IDINPUTCONFIG
-    MENUITEM "&Audio Settings...",          IDSOUNDCONFIG
-    MENUITEM "&RSP Settings...",            IDRSPCONFIG
-    END
+        POPUP "Plugin Settings"
+        BEGIN
+            MENUITEM "&Video Settings...",          IDGFXCONFIG
+            MENUITEM "&Input Settings...",          IDINPUTCONFIG
+            MENUITEM "&Audio Settings...",          IDSOUNDCONFIG
+            MENUITEM "&RSP Settings...",            IDRSPCONFIG
+        END
         MENUITEM SEPARATOR
         MENUITEM "Show &Toolbar\tAlt T",        IDC_GUI_TOOLBAR
         MENUITEM "Show Status&bar\tAlt S",      IDC_GUI_STATUSBAR
@@ -121,6 +120,8 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "Start AVI Capture...",        ID_START_CAPTURE, GRAYED
             MENUITEM "Stop AVI Capture",            ID_END_CAPTURE, GRAYED
+            MENUITEM SEPARATOR
+            MENUITEM "Loop Movie Playback",         ID_LOOP_MOVIE
         END
         MENUITEM SEPARATOR
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
@@ -133,8 +134,8 @@ BEGIN
     END
     POPUP "Lua Script"
     BEGIN
-        MENUITEM "New Instance",                 ID_MENU_LUASCRIPT_NEW
-        MENUITEM "Close All",           ID_MENU_LUASCRIPT_CLOSEALL
+        MENUITEM "New Instance",                ID_MENU_LUASCRIPT_NEW
+        MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END
 END
 
@@ -156,16 +157,16 @@ END
 //
 
 IDD_ABOUT DIALOGEX 0, 0, 200, 216
-STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU 
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About Mupen64"
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "Ok",IDOK,5,197,60,14
-    PUSHBUTTON      "Github", IDC_GITREPO, 69, 197, 60, 14
+    PUSHBUTTON      "Github",IDC_GITREPO,69,197,60,14
     PUSHBUTTON      "Website",IDC_WEBSITE,134,197,60,14
     GROUPBOX        "About this program",IDC_STATIC,5,65,189,127
     LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanks to the many others who helped",IDC_STATIC,13,82,173,104
-    CONTROL         "",133,"Static",SS_BITMAP,0,0,200,100 
+    CONTROL         "",133,"Static",SS_BITMAP,0,0,200,100
 END
 
 IDD_ADVANCED_OPTIONS DIALOGEX 0, 0, 231, 262
@@ -174,9 +175,8 @@ FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Common Options",IDC_COMMON,7,7,215,60
     CONTROL         "Start game in full screen",IDC_STARTFULLSCREEN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,100,10
-    CONTROL         "1f Input Delay", IDC_INPUTDELAY, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 100, 84, 80, 18
-    CONTROL         "LUA Double Buffer", IDC_CLUADOUBLEBUFFER, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 100, 105, 80, 18
-
+    CONTROL         "1f Input Delay",IDC_INPUTDELAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,100,83,80,18
+    CONTROL         "LUA Double Buffer",IDC_CLUADOUBLEBUFFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,100,104,80,18
     CONTROL         "Pause emulation when window is not active",IDC_PAUSENOTACTIVE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,100,10
     CONTROL         "Use global plugins settings",IDC_PLUGIN_OVERWRITE,
@@ -185,10 +185,9 @@ BEGIN
     CONTROL         "Show statusbar",IDC_GUI_STATUSBAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,35,100,10
     CONTROL         "Auto Increment save slot",IDC_AUTOINCSAVESLOT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,50,100,10
     GROUPBOX        "Compatibility Options",IDC_COMPATIBILITY,7,71,215,56
-    CONTROL         "No audio delay (it can fix some compatibility issues but audio won't be synchronised with video)",IDC_NO_AUDIO_DELAY,
-                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,84,60,18
-    CONTROL         "No compiled jump (improves compatibility at the cost of some speed)",IDC_NO_COMPILED_JUMP,
-                    "Button",BS_AUTOCHECKBOX | BS_VCENTER | BS_MULTILINE | WS_TABSTOP,16,105,80,18
+    CONTROL         "No audio delay (desyncs A/V)",IDC_NO_AUDIO_DELAY,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,16,83,78,16
+    CONTROL         "No compiled jump (EXPERIMENTAL)",IDC_NO_COMPILED_JUMP,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,16,104,78,16
     GROUPBOX        "ROM Browser Columns",IDC_ROMBROWSERCOLUMNS,7,131,215,73
     CONTROL         "Good Name",IDC_COLUMN_GOODNAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,144,100,10
     CONTROL         "Internal Name",IDC_COLUMN_INTERNALNAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,158,100,10
@@ -202,6 +201,8 @@ BEGIN
     GROUPBOX        "Recording Options",IDC_RECORDINGOPT,112,207,110,50
     CONTROL         "Record resets",IDC_NORESET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,119,220,87,10
     CONTROL         "Force internal avi capture",IDC_FORCEINTERNAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,119,236,99,10
+    CONTROL         "Suppress non-movie snapshot warnings",IDC_SUPPRESS_LOAD_ST_PROMPT,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,16,235,78,16
 END
 
 IDD_AUDIT_ROMS_DIALOG DIALOGEX 0, 0, 183, 138
@@ -226,7 +227,7 @@ BEGIN
 END
 
 IDD_LUAWINDOW DIALOGEX 0, 0, 240, 166
-STYLE DS_SETFONT | WS_VISIBLE | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_MINIMIZEBOX | WS_TABSTOP
+STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "LUA Instance"
 FONT 8, "Ms Shell Dlg", 0, 0, 0x1
 BEGIN
@@ -524,7 +525,7 @@ BEGIN
     EDITTEXT        IDC_MOVIE_CONTROLLER2_TEXT2,217,165,91,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     EDITTEXT        IDC_MOVIE_CONTROLLER3_TEXT2,217,176,91,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     EDITTEXT        IDC_MOVIE_CONTROLLER4_TEXT2,217,187,91,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    GROUPBOX        "Start From", IDC_STARTFROM2, 177, 88, 139, 50
+    GROUPBOX        "Start From",IDC_STARTFROM2,177,88,139,50
     CONTROL         "Savestate",IDC_FROMSNAPSHOT_RADIO,"Button",BS_AUTORADIOBUTTON,190,112,64,10
     CONTROL         "Start",IDC_FROMSTART_RADIO,"Button",BS_AUTORADIOBUTTON,190,100,50,10
     CONTROL         "EEPROM",IDC_FROMEEPROM_RADIO,"Button",BS_AUTORADIOBUTTON,190,125,64,10
@@ -753,7 +754,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Neutralny (Domyœlny) resources
+#endif    // Neutral (Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

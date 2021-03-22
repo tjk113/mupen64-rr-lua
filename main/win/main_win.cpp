@@ -2937,6 +2937,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					VCR_toggleReadOnly();
 				}
 				break;
+
+			case ID_LOOP_MOVIE:
+				VCR_toggleLoopMovie();
+				Config.loopMovie = VCR_isLooping();
+				shouldSave = true;
+				break;
                 
 			case EMU_PLAY:
                  if (emu_launched) 
@@ -3096,7 +3102,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if(emu_launched)
                     {
                         savestates_job = LOADSTATE;
-						savestates_load();
+						savestates_load(false);
 					}
                     break;
                 case STATE_LOAD:
@@ -3140,11 +3146,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                       OpenMoviePlaybackDialog();
       
                 break;
-                case ID_STOP_PLAYBACK:
+				 case ID_STOP_PLAYBACK:
                      if (VCR_stopPlayback() < 0)
                      	; // fail quietly
 //                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
-                     else {
+					 else {
                          ClearButtons();
                         EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
                         EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
@@ -3404,6 +3410,12 @@ void StartSavestate() {
 	}
 }
 
+// Loads various variables from the current config state
+void LoadConfigExternals() {
+	if (VCR_isLooping() != Config.loopMovie) VCR_toggleLoopMovie();
+	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
+}
+
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -3560,7 +3572,9 @@ int WINAPI WinMain(
 		}
 
 		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
-    
+
+		LoadConfigExternals();
+
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
 			if (!TranslateAccelerator(mainHWND,Accel,&Msg)

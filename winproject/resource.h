@@ -315,6 +315,7 @@
 #define ID_STOP_PLAYBACK                9204
 #define ID_START_CAPTURE                9205
 #define ID_END_CAPTURE                  9206
+#define ID_LOOP_MOVIE                   9207
 
 
 #define IDC_CONTROLLER1                 9247
@@ -401,6 +402,7 @@
 #define IDC_ROUNDTOZERO                 10002
 #define IDC_NORESET                     10003
 #define IDC_FORCEINTERNAL				10004
+#define IDC_SUPPRESS_LOAD_ST_PROMPT		10005
 #define IDC_ROMLIST                     12347
 #define ID_EMULATOR_EXIT                40001
 #define ID_LANG_INFO_MENU               40002

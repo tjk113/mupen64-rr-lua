@@ -488,8 +488,8 @@ create_configDialog( void )
 	gtk_box_pack_start( GTK_BOX(vbox), g_ConfigDialog.corePureInterpCheckButton, FALSE, FALSE, 0 );
    
         // special core options
-	g_ConfigDialog.noAudioDelayCheckButton = gtk_check_button_new_with_label("No audio delay (it can fix some compatibility issues \n but audio won't be synchronised with video)");
-        g_ConfigDialog.noCompiledJumpCheckButton = gtk_check_button_new_with_label("No compiled jump (improves compatibility at the cost of some speed)");
+	g_ConfigDialog.noAudioDelayCheckButton = gtk_check_button_new_with_label("No audio delay (desyncs A/V)");
+        g_ConfigDialog.noCompiledJumpCheckButton = gtk_check_button_new_with_label("No compiled jump (EXPERIMENTAL)");
         g_ConfigDialog.autoincSaveSlotCheckButton = gtk_check_button_new_with_label("Auto increment save slot");
         gtk_box_pack_start(GTK_BOX(g_ConfigDialog.configMupen), g_ConfigDialog.noAudioDelayCheckButton, FALSE, FALSE, 0);
         gtk_box_pack_start(GTK_BOX(g_ConfigDialog.configMupen), g_ConfigDialog.noCompiledJumpCheckButton, FALSE, FALSE, 0);
