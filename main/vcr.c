@@ -1634,8 +1634,48 @@ stopPlayback(bool bypassLoopSetting)
 	return -1;
 }
 
+BOOL CALLBACK EnumWnds(HWND hwnd, LPARAM lParam)
+{
+	extern HWND mainHWND;
+	HMENU hMenu = GetMenu(mainHWND);
+	RECT mrect;
+	if (hwnd == mainHWND)
+	{
+		return FALSE;
+	}
+	GetWindowRect((HWND)hMenu, &mrect);
+	HDC dc = GetDC(hwnd);
+	HDC maindc = GetDC(mainHWND);
+	RECT trect, mainrect, realrect;
+	GetWindowRect(hwnd, &trect);
+	GetClientRect(mainHWND, &mainrect);
+	GetWindowRect(mainHWND, &realrect);
+	trect.top -= realrect.top-mainrect.top+60;
+	trect.right -= realrect.left;
+	trect.bottom -= realrect.top - mainrect.top+60;
+	trect.left -= realrect.left;
+	trect.right -= 4;
+	trect.left -= 4;
+	if (trect.right - trect.left < 100 || trect.bottom - trect.top < 100)
+	{
+		DeleteObject(dc);
+		DeleteObject(maindc);
+		return TRUE;
+	}
 
+		//trect.top -=-mrect.bottom- mrect.top;
+		//trect.bottom -= mrect.bottom - mrect.top;
+	if (trect.right>mainrect.left && trect.bottom>mainrect.top && trect.left<mainrect.right && trect.top<mainrect.bottom)
+		BitBlt(maindc, trect.left, trect.top, trect.right - trect.left, trect.bottom - trect.top, dc, 0, 0, SRCCOPY);
+	DeleteObject(dc);
+	DeleteObject(maindc);
+	return TRUE;
+}
 
+void CopyWindows()
+{
+	EnumWindows(EnumWnds, 0);
+}
 
 
 void VCR_invalidatedCaptureFrame()
@@ -1693,6 +1733,8 @@ VCR_updateScreen()
 #endif
 		}
 //	captureFrameValid = TRUE;
+		//CopyWindows(); //or v
+		//ScreenShot(image);
 	readScreen( &image, &width, &height );
 	if (image == NULL)
 	{

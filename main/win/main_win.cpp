@@ -3206,7 +3206,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                               recording = FALSE;
                            }
                            else {
-                              SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top
+                              //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
                               EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
                               EnableMenuItem(hMenu,ID_END_CAPTURE,MF_ENABLED);
                               if(!externalReadScreen)
