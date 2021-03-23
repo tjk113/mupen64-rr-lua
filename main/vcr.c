@@ -1677,7 +1677,6 @@ void CopyWindows()
 	EnumWindows(EnumWnds, 0);
 }
 
-
 void VCR_invalidatedCaptureFrame()
 {
 	captureFrameValid = FALSE;

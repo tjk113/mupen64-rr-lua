@@ -2950,6 +2950,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case ID_LOOP_MOVIE:
 				VCR_toggleLoopMovie();
+				Config.loopMovie = VCR_isLooping();
 				shouldSave = true;
 				break;
                 
@@ -3423,6 +3424,12 @@ void StartSavestate() {
 		savestates_select_filename(file);
 		savestates_job = LOADSTATE;
 	}
+}
+
+// Loads various variables from the current config state
+void LoadConfigExternals() {
+	if (VCR_isLooping() != Config.loopMovie) VCR_toggleLoopMovie();
+	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
 }
 
 // Loads various variables from the current config state
