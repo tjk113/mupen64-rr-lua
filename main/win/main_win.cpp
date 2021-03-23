@@ -3432,12 +3432,6 @@ void LoadConfigExternals() {
 	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
 }
 
-// Loads various variables from the current config state
-void LoadConfigExternals() {
-	if (VCR_isLooping() != Config.loopMovie) VCR_toggleLoopMovie();
-	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
-}
-
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
