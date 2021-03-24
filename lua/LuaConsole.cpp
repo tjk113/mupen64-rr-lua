@@ -2436,12 +2436,12 @@ int SelectFileDialog(lua_State* L) {
 	EmulationLock lock;
 	OPENFILENAME ofn;
 	char filename[MAX_PATH] = "";
+	const char* filter = luaL_checkstring(L, 1);
+	if (!filter[0])filter = "All Files (*.*)\0*.*\0";
 	ZeroMemory(&ofn, sizeof(ofn));
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = mainHWND;
-	ofn.lpstrFilter =
-		"All Files (*.*)\0*.*\0";
-
+	ofn.lpstrFilter = filter;
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFile = filename;
 	ofn.nMaxFile = MAX_PATH;
