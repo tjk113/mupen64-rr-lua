@@ -98,7 +98,7 @@ unsigned pcBreakCount = 0;
 ULONGLONG break_value;	//read/writeŒ“—p
 bool break_value_flag;
 HDC luaDC;
-int luaDCBufWidth, luaDCBufHeight;
+int luaDCBufWidth, luaDCBufHeight, luaDCBufX, luaDCBufY;
 unsigned inputCount = 0;
 size_t current_break_value_size = 1;
 std::map<HWND, Lua*> luaWindowMap;
@@ -800,20 +800,15 @@ void InitializeLuaDC_(HWND mainWnd){
 		SelectObject(luaDC, bmp);
 	}
 
-	luaDCBufWidth = r.right;
-	luaDCBufHeight = r.bottom;
+	luaDCBufWidth = r.right; luaDCBufHeight = r.bottom;
+	luaDCBufX = r.top; luaDCBufY = r.left;
 	if(LUA_double_buffered)
 	ReleaseDC(mainWnd, mainDC);
 }
 void DrawLuaDC(){
-
 	HDC luaGUIDC = GetDC(mainHWND);
-	//DEBUG_GETLASTERROR;
-	BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
-	//DEBUG_GETLASTERROR;
+	BitBlt(luaGUIDC, luaDCBufX, luaDCBufY, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
 	ReleaseDC(mainHWND, luaGUIDC);
-	DEBUG_GETLASTERROR;
-
 }
 void NextLuaDC(){
 
