@@ -800,8 +800,7 @@ void InitializeLuaDC_(HWND mainWnd){
 		SelectObject(luaDC, bmp);
 	}
 
-	luaDCBufWidth = r.right;
-	luaDCBufHeight = r.bottom;
+	luaDCBufWidth = r.right; luaDCBufHeight = r.bottom;
 	if(LUA_double_buffered)
 	ReleaseDC(mainWnd, mainDC);
 }
