@@ -806,23 +806,23 @@ void InitializeLuaDC_(HWND mainWnd){
 	ReleaseDC(mainWnd, mainDC);
 }
 void DrawLuaDC(){
-
-	HDC luaGUIDC = GetDC(mainHWND);
-	//DEBUG_GETLASTERROR;
-	BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
-	//DEBUG_GETLASTERROR;
-	ReleaseDC(mainHWND, luaGUIDC);
-	DEBUG_GETLASTERROR;
-
+	if (LUA_double_buffered) {
+		HDC luaGUIDC = GetDC(mainHWND);
+		//DEBUG_GETLASTERROR;
+		BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
+		//DEBUG_GETLASTERROR;
+		ReleaseDC(mainHWND, luaGUIDC);
+		DEBUG_GETLASTERROR;
+	}
 }
 void NextLuaDC(){
-
-	HDC mainDC = GetDC(mainHWND);
-	DEBUG_GETLASTERROR;
-	BitBlt(luaDC, 0, 0, luaDCBufWidth, luaDCBufHeight, mainDC, 0, 0, SRCCOPY);
-	DEBUG_GETLASTERROR;
-	ReleaseDC(mainHWND, mainDC);
-
+	if (LUA_double_buffered) {
+		HDC mainDC = GetDC(mainHWND);
+		DEBUG_GETLASTERROR;
+		BitBlt(luaDC, 0, 0, luaDCBufWidth, luaDCBufHeight, mainDC, 0, 0, SRCCOPY);
+		DEBUG_GETLASTERROR;
+		ReleaseDC(mainHWND, mainDC);
+	}
 }
 void FinalizeLuaDC() {
 	ReleaseDC(mainHWND, luaDC);
