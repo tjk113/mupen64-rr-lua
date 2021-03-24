@@ -2458,9 +2458,8 @@ BOOL validType(const char* type) {
 	const char* validTypes[15] = { "r","rb","w","wb","a","ab","r+","rb+","r+b","w+","wb+","w+b","a+","ab+","a+b" };
 	for (int i = 0; i <= 15; i++)
 	{
-		if (strcmp(validTypes[i], type) != 0) {
+		if (strcmp(validTypes[i], type))
 			return TRUE;
-		}
 	}
 	/*return strcmp(type, "r") ||
 		   strcmp(type,"rw") ||
