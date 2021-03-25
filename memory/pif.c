@@ -474,8 +474,8 @@ void sleep_while_emu_paused()
 		Sleep(10);	
 		AtIntervalLuaCallback();
 		GetLuaMessage();
-		if(LUA_double_buffered)
-		updateScreen();
+		if (LUA_double_buffered)
+			LuaDCUpdate(1);
 		#endif
 	}
 }
@@ -536,6 +536,7 @@ void update_pif_read(bool stcheck)
 								Sleep(10);
 								AtIntervalLuaCallback();
 								GetLuaMessage();
+								LuaDCUpdate(1);
 #endif
 								//should this be before or after? idk
 								if (savestates_job & LOADSTATE && stAllowed)
