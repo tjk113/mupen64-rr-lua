@@ -536,6 +536,7 @@ void update_pif_read(bool stcheck)
 								Sleep(10);
 								AtIntervalLuaCallback();
 								GetLuaMessage();
+								if(LUA_double_buffered)
 								LuaDCUpdate(1);
 #endif
 								//should this be before or after? idk
