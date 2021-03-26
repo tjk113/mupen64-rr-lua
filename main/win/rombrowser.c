@@ -62,26 +62,26 @@ int isFieldInBrowser(int index)
     switch (index)
     {
         case 0:
-               return Config.Column_GoodName ; 
-        break;
+        return Config.Column_GoodName; 
+
         case 1:
-               return Config.Column_InternalName ;
-        break;
+        return Config.Column_InternalName;
+
         case 2:
-               return Config.Column_Country ;
-        break;
+        return Config.Column_Country;
+
         case 3:
-               return Config.Column_Size;
-        break;
+        return Config.Column_Size;
+
         case 4:
-               return Config.Column_Comments;
-        break;
+        return Config.Column_Comments;
+
         case 5:
-               return Config.Column_FileName ;
-        break;
+        return Config.Column_FileName;
+
         case 6:
-               return Config.Column_MD5;
-        break;
+        return Config.Column_MD5;
+
         default:
         return 0;
     }

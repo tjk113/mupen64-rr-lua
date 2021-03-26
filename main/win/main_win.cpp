@@ -1,4 +1,4 @@
-/***************************************************************************
+ï»¿/***************************************************************************
                           main_win.cpp  -  description
                              -------------------
     copyright C) 2003    : ShadowPrince (shadow@emulation64.com)
@@ -84,8 +84,6 @@ BOOL forceIgnoreRSP = false;
 #define strcasecmp	stricmp
 #define strncasecmp	strnicmp
 #endif
-
-#define LUA_UPDATEBUFFER if (anyLuaRunning==true && LUA_double_buffered) { AtIntervalLuaCallback(); GetLuaMessage();}
 
 
 static DWORD Id;
@@ -581,7 +579,7 @@ struct ProcAddress
 
 void search_plugins()
 {
-	// TODO: ‚±‚Ì•Ó‚è‚È‚É‚µ‚Ä‚é‚©‚æ‚­Œ©‚Ä‚È‚¢
+	// TODO: ï¿½ï¿½ï¿½Ì•Ó‚ï¿½È‚É‚ï¿½ï¿½Ä‚é‚©ï¿½æ‚­ï¿½ï¿½ï¿½Ä‚È‚ï¿½
 	liste_plugins = (plugins*)malloc(sizeof(plugins));
 	liste_plugins->type = -1;
 	liste_plugins->next = NULL;
@@ -605,7 +603,7 @@ void search_plugins()
 	}
 
 	do
-	{ //pluginƒfƒBƒŒƒNƒgƒŠ‚ğ“Ç‚ñ‚ÅAƒvƒ‰ƒOƒCƒ“ƒŠƒXƒg‚ğ¶¬
+	{ //pluginï¿½fï¿½Bï¿½ï¿½ï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ÅAï¿½vï¿½ï¿½ï¿½Oï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½gï¿½ğ¶ï¿½
 		if(String(::getExtension(entry.cFileName)) == "dll")
 		{
 			String pluginPath;
@@ -2947,6 +2945,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					VCR_toggleReadOnly();
 				}
 				break;
+
+			case ID_LOOP_MOVIE:
+				VCR_toggleLoopMovie();
+				Config.loopMovie = VCR_isLooping();
+				shouldSave = true;
+				break;
                 
 			case EMU_PLAY:
                  if (emu_launched) 
@@ -3156,11 +3160,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                       OpenMoviePlaybackDialog();
       
                 break;
-                case ID_STOP_PLAYBACK:
+				 case ID_STOP_PLAYBACK:
                      if (VCR_stopPlayback() < 0)
                      	; // fail quietly
 //                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
-                     else {
+					 else {
                          ClearButtons();
                         EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
                         EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
@@ -3201,7 +3205,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                               recording = FALSE;
                            }
                            else {
-                              SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top
+                              //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
                               EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
                               EnableMenuItem(hMenu,ID_END_CAPTURE,MF_ENABLED);
                               if(!externalReadScreen)
@@ -3420,6 +3424,12 @@ void StartSavestate() {
 	}
 }
 
+// Loads various variables from the current config state
+void LoadConfigExternals() {
+	if (VCR_isLooping() != Config.loopMovie) VCR_toggleLoopMovie();
+	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
+}
+
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -3576,7 +3586,9 @@ int WINAPI WinMain(
 		}
 
 		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
-    
+
+		LoadConfigExternals();
+
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
 			if (!TranslateAccelerator(mainHWND,Accel,&Msg)

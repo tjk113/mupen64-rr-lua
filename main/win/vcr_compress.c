@@ -69,8 +69,10 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 //	void ShowInfo(char *Str, ...);
 //	ShowInfo("win_readScreen()");
 	HDC dc = GetDC(mainHWND);
-	RECT rect, rectS, rectT;
-	
+	HDC all = GetDC(NULL);
+	RECT rect, rectS, rectT,rectM;
+	POINT cli_tl{ 0,0 };
+	ClientToScreen(mainHWND, &cli_tl);
 	// retrieve the dimension of the picture
 	GetClientRect(mainHWND, &rect);
 	*width = rect.right - rect.left;
@@ -94,8 +96,9 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 	HDC copy = CreateCompatibleDC(dc);
 	HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
 	HBITMAP oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
+	Sleep(0);
 	if(copy)
-		BitBlt(copy, 0, 0, *width, *height, dc, 0, heightT + (origHeight - *height), SRCCOPY);
+		BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x, cli_tl.y+heightT + (origHeight - *height), SRCCOPY);
 	
 	
 	if (!avi_opened || !copy || !bitmap)

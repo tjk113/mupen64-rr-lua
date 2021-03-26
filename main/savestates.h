@@ -31,9 +31,10 @@
 #define LOADSTATE 2
 
 extern int savestates_job;
+extern bool savestates_ignore_nonmovie_warnings;
 
 void savestates_save();
-void savestates_load();
+void savestates_load(bool silenceNotFoundError);
 
 void savestates_select_slot(unsigned int s);
 void savestates_select_filename(const char *fn);

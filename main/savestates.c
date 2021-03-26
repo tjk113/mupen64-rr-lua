@@ -48,6 +48,7 @@ extern int *autoinc_save_slot;
 
 int savestates_job = 0;
 int savestates_job_success = 1;
+bool savestates_ignore_nonmovie_warnings = false;
 
 bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
 			 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
@@ -195,7 +196,7 @@ void savestates_save()
 	gzclose(f);
 }
 
-void savestates_load()
+void savestates_load(bool silenceNotFoundError)
 {
 #define BUFLEN 1024
 	char *filename, buf[BUFLEN];
@@ -241,6 +242,7 @@ void savestates_load()
     //failed opening st
 	if (f == NULL)
 	{
+		if (silenceNotFoundError) return;
 		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 		free(filename);
 		warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
@@ -379,16 +381,24 @@ void savestates_load()
 					stop = true;
 					break;
 			}
-			printWarning(errStr);
-			if (stop && VCR_isRecording()) VCR_stopRecord();
-			else if (stop) VCR_stopPlayback();
-			savestates_job_success = FALSE;
-			goto failedLoad;
+			if (savestates_ignore_nonmovie_warnings) {
+				display_status("Warning: mismatched savestate\n");
+			}
+			else {
+				printWarning(errStr);
+				if (stop && VCR_isRecording()) VCR_stopRecord();
+				else if (stop) VCR_stopPlayback();
+				savestates_job_success = FALSE;
+				goto failedLoad;
+			}
 		}
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if(VCR_isActive() && MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
+		if (VCR_isActive() && savestates_ignore_nonmovie_warnings) {
+			display_status("Warning: non-movie savestate\n");
+		}
+		else if (VCR_isActive() && MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
 			"Warning",
 			MB_YESNO | MB_ICONWARNING) == 7)
 		{
