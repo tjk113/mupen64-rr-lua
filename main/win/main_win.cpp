@@ -662,14 +662,15 @@ void exec_config(char *name)
 		                  if (closeDLL_audio) closeDLL_audio();
 		               }
                     break;
+
                     case PLUGIN_TYPE_GFX:   
                         if (!emu_launched) {
                              initiateGFX = (BOOL(__cdecl*)(GFX_INFO Gfx_Info))GetProcAddress(handle, "InitiateGFX");
                              if (!initiateGFX(dummy_gfx_info)) {
-                                 ShowMessage("Failed to initiate gfx plugin.") ;                   
+                                 ShowMessage("Failed to initiate gfx plugin.");                   
                              } 
                         }
-                        
+
                         dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllConfig");              
                         if (dllConfig) dllConfig(hwnd_plug); 
                         if (!emu_launched) {
@@ -677,6 +678,7 @@ void exec_config(char *name)
                              if (closeDLL_gfx) closeDLL_gfx();
                         }       
                     break;
+
                     case PLUGIN_TYPE_CONTROLLER: 
                         if (!emu_launched) {  
                            if (PluginInfo.Version == 0x0101)
@@ -3012,7 +3014,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 pauseEmu(TRUE);
                 char buf[30];
                 sprintf(buf, "0x%#08p", rdram);
-                MessageBoxA(0, buf, "RAM Start", MB_ICONINFORMATION|MB_TASKMODAL);
+                std::string stdstr_buf = buf;
+#ifdef _WIN32 // This will only work on windows
+                OpenClipboard(mainHWND);
+                EmptyClipboard();
+                HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size());
+                if (hg) {
+                    memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size());
+                    GlobalUnlock(hg);
+                    SetClipboardData(CF_TEXT, hg);
+                    CloseClipboard();
+                    GlobalFree(hg);
+                }
+                else { CloseClipboard(); }
+
+                MessageBoxA(0, stdstr_buf.c_str(), "RAM Start (Copied to clipboard)", MB_ICONINFORMATION|MB_TASKMODAL);
+#endif
+
                 if (temppaused) {
                     resumeEmu(TRUE);
                     CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
