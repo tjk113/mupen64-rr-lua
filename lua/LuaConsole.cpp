@@ -50,9 +50,6 @@ bool enablePCBreak;
 bool maximumSpeedMode;
 bool anyLuaRunning = false;
 
-FILE* f;
-BOOL streamopen = FALSE;
-#define ASSERT_STREAMOPEN if(f == NULL || streamopen == FALSE) return 1;
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
 namespace LuaEngine {
@@ -98,7 +95,7 @@ unsigned pcBreakCount = 0;
 ULONGLONG break_value;	//read/writeŒ“—p
 bool break_value_flag;
 HDC luaDC;
-int luaDCBufWidth, luaDCBufHeight, luaDCBufX, luaDCBufY;
+int luaDCBufWidth, luaDCBufHeight;
 unsigned inputCount = 0;
 size_t current_break_value_size = 1;
 std::map<HWND, Lua*> luaWindowMap;
@@ -171,11 +168,14 @@ extern const luaL_Reg memoryFuncs[];
 extern const luaL_Reg inputFuncs[];
 extern const luaL_Reg joypadFuncs[];
 extern const luaL_Reg savestateFuncs[];
-extern const luaL_Reg ioFuncs[];
+extern const luaL_Reg ioHelperFuncs[];
 extern const char * const REG_ATSTOP;
 int AtStop(lua_State *L); 
 
 class Lua {
+private:
+	bool stopping = false;
+
 public:
 	Lua(HWND wnd):
 		L(NULL),
@@ -191,7 +191,7 @@ public:
 		ShowInfo("Lua destruct");
 	}
 	void run(char *path){
-
+		stopping = false;
 		std::string pathStr(path);
 		if (&path == NULL || (&pathStr.substr(pathStr.find_last_of(".") + 1))->compare("lua"))
 			return;
@@ -212,7 +212,8 @@ public:
 	void stop() {
 		if(!isrunning())
 			return;
-
+		
+		stopping = true;
 		registerFuncEach(AtStop, REG_ATSTOP);
 		deleteGDIObject(brush, WHITE_BRUSH);
 		deleteGDIObject(pen, BLACK_PEN);
@@ -222,7 +223,7 @@ public:
 		ShowInfo("Lua stop");
 	}
 	bool isrunning() {
-		return L != NULL;
+		return L != NULL && !stopping;
 	}
 	void setBrush(HBRUSH h) {
 		setGDIObject((HGDIOBJ*)&brush, h);
@@ -323,7 +324,7 @@ private:
 		registerAsPackage(L, "input", inputFuncs);
 		registerAsPackage(L, "joypad", joypadFuncs);
 		registerAsPackage(L, "savestate", savestateFuncs);
-		registerAsPackage(L, "io", ioFuncs);
+		registerAsPackage(L, "iohelper", ioHelperFuncs);
 
 		//this makes old scripts backward compatible, new syntax for table length is '#'
 		lua_getglobal(L, "table");
@@ -801,23 +802,27 @@ void InitializeLuaDC_(HWND mainWnd){
 	}
 
 	luaDCBufWidth = r.right; luaDCBufHeight = r.bottom;
-	luaDCBufX = r.top; luaDCBufY = r.left;
 	if(LUA_double_buffered)
 	ReleaseDC(mainWnd, mainDC);
 }
 void DrawLuaDC(){
-	HDC luaGUIDC = GetDC(mainHWND);
-	BitBlt(luaGUIDC, luaDCBufX, luaDCBufY, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
-	ReleaseDC(mainHWND, luaGUIDC);
+	if (LUA_double_buffered) {
+		HDC luaGUIDC = GetDC(mainHWND);
+		//DEBUG_GETLASTERROR;
+		BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
+		//DEBUG_GETLASTERROR;
+		ReleaseDC(mainHWND, luaGUIDC);
+		DEBUG_GETLASTERROR;
+	}
 }
 void NextLuaDC(){
-
-	HDC mainDC = GetDC(mainHWND);
-	DEBUG_GETLASTERROR;
-	BitBlt(luaDC, 0, 0, luaDCBufWidth, luaDCBufHeight, mainDC, 0, 0, SRCCOPY);
-	DEBUG_GETLASTERROR;
-	ReleaseDC(mainHWND, mainDC);
-
+	if (LUA_double_buffered) {
+		HDC mainDC = GetDC(mainHWND);
+		DEBUG_GETLASTERROR;
+		BitBlt(luaDC, 0, 0, luaDCBufWidth, luaDCBufHeight, mainDC, 0, 0, SRCCOPY);
+		DEBUG_GETLASTERROR;
+		ReleaseDC(mainHWND, mainDC);
+	}
 }
 void FinalizeLuaDC() {
 	ReleaseDC(mainHWND, luaDC);
@@ -2427,7 +2432,7 @@ int LoadFileSavestate(lua_State *L) {
 }
 
 // IO
-int SelectFileDialog(lua_State* L) {
+int OpenFileDialog(lua_State* L) {
 	EmulationLock lock;
 	OPENFILENAME ofn;
 	char filename[MAX_PATH] = "";
@@ -2443,6 +2448,26 @@ int SelectFileDialog(lua_State* L) {
 	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
 	GetOpenFileName(&ofn);
+	lua_pushstring(L, ofn.lpstrFile);
+	return 1;
+}
+
+int SaveFileDialog(lua_State* L) {
+	EmulationLock lock;
+	OPENFILENAME ofn;
+	char filename[MAX_PATH] = "";
+	const char* filter = luaL_checkstring(L, 1);
+	if (!filter[0])filter = "All Files (*.*)\0*.*\0";
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = mainHWND;
+	ofn.lpstrFilter = filter;
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFile = filename;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
+	ofn.lpstrInitialDir = NULL;
+	GetSaveFileName(&ofn);
 	lua_pushstring(L, ofn.lpstrFile);
 	return 1;
 }
@@ -2464,107 +2489,7 @@ BOOL validType(const char* type) {
 BOOL fileexists(const char* path) {
 	struct stat buffer;
 	return (stat(path, &buffer) == 0);
-}	
-
-int OpenStream(lua_State* L) {
-	const char* path = luaL_checkstring(L, 1);
-	const char* type = luaL_checkstring(L, 2);
-	if (!validType(type)) {
-		// Ok so something failed, error print maybe?
-		printf("\nInvalid Type\n");
-		return 1;
-	}
-	if (streamopen) { fclose(f); }
-
-	f = fopen(path, type);
-	streamopen = TRUE;
-	return 1;
 }
-int CloseStream(lua_State* L) {
-	ASSERT_STREAMOPEN;
-	fclose(f);
-	streamopen = FALSE;
-	return 1;
-}
-int StreamSeek(lua_State* L) {
-	ASSERT_STREAMOPEN;
-	LONG offset = luaL_checkinteger(L, 1); // incompatible types...
-	fseek(f, offset, SEEK_SET);
-	return 1;
-}
-int WriteString(lua_State* L) {
-	ASSERT_STREAMOPEN;
-	const char* str = luaL_checkstring(L, 1);
-	/*printf("---LUA WRITESTRING---\nPath: %s\nContents: %s\n", path, str);
-	printf("Sizeof char: %d\Strlen str: %d\n---LUA WRITESTRING END---\n", sizeof(char), sizeof(str));*/
-
-	fwrite(str, sizeof(char), /*sizeof(str) this will not work. found this out the hard way lmfao*/strlen(str), f);
-	/*fseek(f, 0, SEEK_SET);*/ fflush(f); /*fclose(f);*/
-	return 1;
-}
-
-int ReadString(lua_State* L) {
-	ASSERT_STREAMOPEN;
-	// stolen from so
-	CHAR* buffer = 0;
-	LONG length;
-	LONG position = ftell(f); // HACK: temporary variable
-
-	fseek(f, 0, SEEK_END);
-	length = ftell(f);
-	fseek(f, position, SEEK_SET);
-	buffer = (char*)malloc((length + 1) * sizeof(char));
-	if (buffer)
-	{
-		fread(buffer, sizeof(char), length, f);
-	}
-	buffer[length] = '\0'; // vs warns of dereferencing null pointer but the fread call will eventually fill buffer unless file doesnt exist... see previous comment
-	lua_pushstring(L, buffer);
-	/*fseek(f, 0, SEEK_SET);
-	fclose(f);*/
-	return 1;
-}
-
-int WriteInt(lua_State* L) {
-	ASSERT_STREAMOPEN;
-	int n = luaL_checkinteger(L, 1);
-
-	fwrite(&n, sizeof(int), 1, f); // looks like it will fail eventually
-	/*fseek(f, 0, SEEK_SET);*/ fflush(f);/* fclose(f);*/
-	return 1;
-}
-int ReadInt(lua_State* L) {
-	ASSERT_STREAMOPEN;
-	int buf;
-	fread(&buf, sizeof(int), 1, f);
-	lua_pushinteger(L, buf);
-	/*fseek(f, 0, SEEK_SET);
-	fclose(f);*/
-	
-	return 1;
-}
-int ReadBytes(lua_State* L) {
-	ASSERT_STREAMOPEN;
-	// read x bytes. return as integer
-	int buf,bytes;
-	bytes = luaL_checkinteger(L, 1);
-	fread(&buf, bytes, 1, f);
-	lua_pushinteger(L,buf);
-	return 1;
-}
-
-int DelFile(lua_State* L) {
-	CONST CHAR* path = luaL_checkstring(L, 1);
-	DeleteFile(path);
-	return 1;
-}
-int FileExists(lua_State* L) {
-	CONST CHAR* path = luaL_checkstring(L, 1);
-	lua_pushboolean(L,fileexists(path));
-	return 1;
-}
-
-
 
 //callback‚È‚Ç
 bool BreakpointSync(SyncBreakMap::iterator it, ULONG addr){
@@ -3113,23 +3038,9 @@ const luaL_Reg savestateFuncs[] = {
 	{"loadfile", LoadFileSavestate},
 	{NULL, NULL}
 };
-const luaL_Reg ioFuncs[] = {
-		{"diagopen", SelectFileDialog},
-
-		{"open", OpenStream},
-		{"close", CloseStream},
-	    {"seek", StreamSeek},
-
-		{"writestr", WriteString},
-		{"readstr", ReadString},
-
-		{"writeint", WriteInt},
-		{"readint", ReadInt},
-
-		{"readxbytes", ReadBytes},
-
-		{"delete", DelFile},
-		{"accessible", FileExists}, // checks for accessibility not for existing but its basically the same thing rightj hahiudajlsdhs
+const luaL_Reg ioHelperFuncs[] = {
+		{"diagopen", OpenFileDialog},
+		{"diagsave", SaveFileDialog},
 		{NULL, NULL}
 };
 
