@@ -3013,22 +3013,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 BOOL temppaused = !emu_paused;
                 pauseEmu(TRUE);
                 char buf[30];
+                char res;
                 sprintf(buf, "0x%#08p", rdram);
                 std::string stdstr_buf = buf;
 #ifdef _WIN32 // This will only work on windows
-                OpenClipboard(mainHWND);
-                EmptyClipboard();
-                HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size());
-                if (hg) {
-                    memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size());
-                    GlobalUnlock(hg);
-                    SetClipboardData(CF_TEXT, hg);
-                    CloseClipboard();
-                    GlobalFree(hg);
+                res = MessageBoxA(0, stdstr_buf.c_str(), "RAM Start (Click Yes to Copy)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO);
+                printf("MSGBOX result: %d\n", res);
+                if (res == IDYES) {
+                    OpenClipboard(mainHWND);
+                    EmptyClipboard();
+                    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size());
+                    if (hg) {
+                        memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size());
+                        GlobalUnlock(hg);
+                        SetClipboardData(CF_TEXT, hg);
+                        CloseClipboard();
+                        GlobalFree(hg);
+                    }
+                    else { CloseClipboard(); }
                 }
-                else { CloseClipboard(); }
-
-                MessageBoxA(0, stdstr_buf.c_str(), "RAM Start (Copied to clipboard)", MB_ICONINFORMATION|MB_TASKMODAL);
 #endif
 
                 if (temppaused) {
