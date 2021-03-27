@@ -854,7 +854,8 @@ int load_gfx(HMODULE handle_gfx)
 	if (viStatusChanged == NULL) viStatusChanged = dummy_void;
 	if (viWidthChanged == NULL) viWidthChanged = dummy_void;
     if (CaptureScreen == NULL) CaptureScreen = (void(__cdecl*)(char*))dummy_void;
-    
+    if (moveScreen == NULL) moveScreen = (void(__cdecl*)(int, int))dummy_void;
+
    gfx_info.hWnd = mainHWND;
    if (Config.GuiStatusbar) {
       gfx_info.hStatusBar = hStatus ;
@@ -2734,8 +2735,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		    return 0;
 	case WM_MOVE:
             if (emu_launched&&!FullScreenMode) {
-                     moveScreen(wParam, lParam);
-                    }
+                moveScreen(wParam, lParam);
+            }
             break;
 	case WM_SIZE:
              if (!FullScreenMode) {
