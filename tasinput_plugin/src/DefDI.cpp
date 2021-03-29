@@ -242,7 +242,8 @@ EXPORT void CALL ControllerCommand ( int Control, BYTE * Command)
 
 EXPORT void CALL DllAbout ( HWND hParent )
 {
-	MessageBox(hParent, PLUGIN_NAME"\nFor DirectX 7 or higher\n\nBased on Def's Direct Input 0.54 by Deflection\nTAS Modifications by Nitsuja","About",MB_ICONINFORMATION | MB_OK);
+	if (MessageBox(hParent, PLUGIN_NAME"\nFor DirectX 7 or higher\nBased on Def's Direct Input 0.54 by Deflection\nTAS Modifications by Nitsuja\nContinued development by the Mupen64-rr-lua contributors.\nDo you want to visit the repository?", "About", MB_ICONINFORMATION | MB_YESNO) == IDYES)
+		ShellExecute(0, 0, "https://github.com/mkdasher/mupen64-rr-lua-/tree/dev/tasinput_plugin/src", 0, 0, SW_SHOW);
 }
 
 EXPORT void CALL DllConfig ( HWND hParent )
