@@ -2509,27 +2509,25 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
     // Specify the resource identifier of the descriptive 
     // text for the given button. 
     HMENU hMenu = GetMenu(hWnd);
-    printf("tooltip proc...\n");
-    
+
+    if (!IsMenuItemEnabled(hMenu, lpttt->hdr.idFrom) && lpttt->hdr.idFrom != EMU_PLAY /*This button never is disabled so this... fails?*/)
+    {
+        printf("(Toolbar) Ignoring Tooltip of Control with ID %d\n", lpttt->hdr.idFrom);
+        return;
+    }
     switch (lpttt->hdr.idFrom) 
-	{ 
+	{
 		case IDLOAD:
-            if (IsMenuItemEnabled(hMenu,IDLOAD)) {
                 TranslateDefault("Load ROM...", "Load ROM...", TempMessage);
                 lpttt->lpszText = TempMessage;
-            }
 			break;
 		case EMU_PLAY:
-            if (IsMenuItemEnabled(hMenu, EMU_PLAY)) {
                 TranslateDefault("Start/Resume Emulation", "Start/Resume Emulation", TempMessage);
                 lpttt->lpszText = TempMessage;
-            }
 			break; 
   		case EMU_PAUSE:
-            if (IsMenuItemEnabled(hMenu, EMU_PAUSE)) {
                 TranslateDefault("Pause Emulation", "Pause Emulation", TempMessage);
                 lpttt->lpszText = TempMessage;
-            }
 			break; 	
 		case EMU_STOP:
             if (IsMenuItemEnabled(hMenu, EMU_STOP)) {
