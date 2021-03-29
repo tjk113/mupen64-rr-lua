@@ -662,14 +662,15 @@ void exec_config(char *name)
 		                  if (closeDLL_audio) closeDLL_audio();
 		               }
                     break;
+
                     case PLUGIN_TYPE_GFX:   
                         if (!emu_launched) {
                              initiateGFX = (BOOL(__cdecl*)(GFX_INFO Gfx_Info))GetProcAddress(handle, "InitiateGFX");
                              if (!initiateGFX(dummy_gfx_info)) {
-                                 ShowMessage("Failed to initiate gfx plugin.") ;                   
+                                 ShowMessage("Failed to initiate gfx plugin.");                   
                              } 
                         }
-                        
+
                         dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllConfig");              
                         if (dllConfig) dllConfig(hwnd_plug); 
                         if (!emu_launched) {
@@ -677,6 +678,7 @@ void exec_config(char *name)
                              if (closeDLL_gfx) closeDLL_gfx();
                         }       
                     break;
+
                     case PLUGIN_TYPE_CONTROLLER: 
                         if (!emu_launched) {  
                            if (PluginInfo.Version == 0x0101)
@@ -779,6 +781,11 @@ int check_plugins()
 
    if (finalMessage != "Plugin(s) missing: ") {  // not calling strcmp.. 
        // strdup seems like a bad idea... this too :)
+       if (pluginsMissing == 1) { 
+           /*finalMessage.pop_back();*/ 
+           finalMessage.resize(finalMessage.size() - 2);
+           /* HACK: instead of doing better programming, just trim last letter (whitespace too)*/
+       }
 #ifdef _WIN32
        MessageBox(mainHWND, finalMessage.c_str(), "Plugin(s) Missing", MB_TASKMODAL);
        //ShowMessage(strdup(finalMessage.c_str())); return(0);
@@ -854,7 +861,8 @@ int load_gfx(HMODULE handle_gfx)
 	if (viStatusChanged == NULL) viStatusChanged = dummy_void;
 	if (viWidthChanged == NULL) viWidthChanged = dummy_void;
     if (CaptureScreen == NULL) CaptureScreen = (void(__cdecl*)(char*))dummy_void;
-    
+    if (moveScreen == NULL) moveScreen = (void(__cdecl*)(int, int))dummy_void;
+
    gfx_info.hWnd = mainHWND;
    if (Config.GuiStatusbar) {
       gfx_info.hStatusBar = hStatus ;
@@ -2734,8 +2742,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		    return 0;
 	case WM_MOVE:
             if (emu_launched&&!FullScreenMode) {
-                     moveScreen(wParam, lParam);
-                    }
+                moveScreen(wParam, lParam);
+            }
             break;
 	case WM_SIZE:
              if (!FullScreenMode) {
@@ -3010,8 +3018,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 BOOL temppaused = !emu_paused;
                 pauseEmu(TRUE);
                 char buf[30];
+                char res;
                 sprintf(buf, "0x%#08p", rdram);
-                MessageBoxA(0, buf, "RAM Start", MB_ICONINFORMATION|MB_TASKMODAL);
+                std::string stdstr_buf = buf;
+#ifdef _WIN32 // This will only work on windows
+                res = MessageBoxA(0, stdstr_buf.c_str(), "RAM Start (Click Yes to Copy)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO);
+                printf("MSGBOX result: %d\n", res);
+                if (res == IDYES) {
+                    OpenClipboard(mainHWND);
+                    EmptyClipboard();
+                    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size());
+                    if (hg) {
+                        memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size());
+                        GlobalUnlock(hg);
+                        SetClipboardData(CF_TEXT, hg);
+                        CloseClipboard();
+                        GlobalFree(hg);
+                    }
+                    else { CloseClipboard(); }
+                }
+#endif
+
                 if (temppaused) {
                     resumeEmu(TRUE);
                     CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
