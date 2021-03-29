@@ -1240,13 +1240,15 @@ void pauseEmu(BOOL quiet)
 		if(!quiet)
 			SetStatusTranslatedString(hStatus,0,"Emulation paused");
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
+        CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_CHECKED);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_STOP, 0);
 	}
 	else
 	{
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 0);
-	}     
+        CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
+	}
 
 	if(emu_paused != wasPaused && !quiet && !MenuPaused)
 		CheckMenuItem( GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
