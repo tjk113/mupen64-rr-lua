@@ -2432,11 +2432,12 @@ int LoadFileSavestate(lua_State *L) {
 }
 
 // IO
-int OpenFileDialog(lua_State* L) {
+int LuaFileDialog(lua_State* L) {
 	EmulationLock lock;
 	OPENFILENAME ofn;
 	char filename[MAX_PATH] = "";
 	const char* filter = luaL_checkstring(L, 1);
+	int type = luaL_checkinteger(L, 2);
 	if (!filter[0])filter = "All Files (*.*)\0*.*\0";
 	ZeroMemory(&ofn, sizeof(ofn));
 	ofn.lStructSize = sizeof(ofn);
@@ -2447,30 +2448,12 @@ int OpenFileDialog(lua_State* L) {
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
-	GetOpenFileName(&ofn);
+	if(!type) GetOpenFileName(&ofn);
+	else GetSaveFileName(&ofn);
 	lua_pushstring(L, ofn.lpstrFile);
 	return 1;
 }
 
-int SaveFileDialog(lua_State* L) {
-	EmulationLock lock;
-	OPENFILENAME ofn;
-	char filename[MAX_PATH] = "";
-	const char* filter = luaL_checkstring(L, 1);
-	if (!filter[0])filter = "All Files (*.*)\0*.*\0";
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = mainHWND;
-	ofn.lpstrFilter = filter;
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFile = filename;
-	ofn.nMaxFile = MAX_PATH;
-	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
-	ofn.lpstrInitialDir = NULL;
-	GetSaveFileName(&ofn);
-	lua_pushstring(L, ofn.lpstrFile);
-	return 1;
-}
 
 
 BOOL validType(const char* type) {
@@ -3039,8 +3022,7 @@ const luaL_Reg savestateFuncs[] = {
 	{NULL, NULL}
 };
 const luaL_Reg ioHelperFuncs[] = {
-		{"diagopen", OpenFileDialog},
-		{"diagsave", SaveFileDialog},
+		{"filediag", LuaFileDialog},
 		{NULL, NULL}
 };
 
