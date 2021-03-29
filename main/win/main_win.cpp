@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-#include <windows.h>
+#include <windows.h> // TODO: Include Windows.h not windows.h and see if it breaks
 #include <Shlwapi.h>
 #ifndef _WIN32_IE
 #define _WIN32_IE 0x0500
@@ -2495,7 +2495,11 @@ void exit_emu2()
    PostQuitMessage (0);
 }
 
-void ProcessToolTips(LPARAM lParam)
+BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId) {
+    return !(GetMenuState(hMenu, uId, MF_BYCOMMAND) & (MF_DISABLED | MF_GRAYED));
+}
+
+void ProcessToolTips(LPARAM lParam, HWND hWnd)
 {
     LPTOOLTIPTEXT lpttt; 
 
@@ -2504,27 +2508,40 @@ void ProcessToolTips(LPARAM lParam)
 
     // Specify the resource identifier of the descriptive 
     // text for the given button. 
+    HMENU hMenu = GetMenu(hWnd);
+    printf("tooltip proc...\n");
+    
     switch (lpttt->hdr.idFrom) 
 	{ 
 		case IDLOAD:
-			 TranslateDefault("Load ROM...","Load ROM...",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+            if (IsMenuItemEnabled(hMenu,IDLOAD)) {
+                TranslateDefault("Load ROM...", "Load ROM...", TempMessage);
+                lpttt->lpszText = TempMessage;
+            }
 			break;
 		case EMU_PLAY:
-		     TranslateDefault("Start/Resume Emulation","Start/Resume Emulation",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+            if (IsMenuItemEnabled(hMenu, EMU_PLAY)) {
+                TranslateDefault("Start/Resume Emulation", "Start/Resume Emulation", TempMessage);
+                lpttt->lpszText = TempMessage;
+            }
 			break; 
   		case EMU_PAUSE:
-             TranslateDefault("Pause Emulation","Pause Emulation",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+            if (IsMenuItemEnabled(hMenu, EMU_PAUSE)) {
+                TranslateDefault("Pause Emulation", "Pause Emulation", TempMessage);
+                lpttt->lpszText = TempMessage;
+            }
 			break; 	
 		case EMU_STOP:
-  	         TranslateDefault("Stop Emulation","Stop Emulation",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+            if (IsMenuItemEnabled(hMenu, EMU_STOP)) {
+                TranslateDefault("Stop Emulation", "Stop Emulation", TempMessage);
+                lpttt->lpszText = TempMessage;
+            }
 			break; 
        case FULL_SCREEN:
-             TranslateDefault("Full Screen","Full Screen",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+           if (IsMenuItemEnabled(hMenu, FULL_SCREEN)) {
+               TranslateDefault("Full Screen", "Full Screen", TempMessage);
+               lpttt->lpszText = TempMessage;
+           }
 			break;
         case IDGFXCONFIG:
              TranslateDefault("Video Settings...","Video Settings...",TempMessage) ;
@@ -2546,7 +2563,6 @@ void ProcessToolTips(LPARAM lParam)
              TranslateDefault("Settings...","Settings...",TempMessage) ;
              lpttt->lpszText = TempMessage; 
 			break;
-                 	
    }
 }
 
@@ -2738,7 +2754,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             switch (((LPNMHDR) lParam)->code) 
             	{ 
 		            case TTN_NEEDTEXT : 
-                          ProcessToolTips(lParam);
+                          ProcessToolTips(lParam,hwnd);
 				    break;
 		        }
 		    return 0;
