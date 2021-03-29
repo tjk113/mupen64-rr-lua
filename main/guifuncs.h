@@ -41,5 +41,6 @@ void new_vi();
 
 bool warn_recording();
 void warn_savestate(char* messageCaption, char* message);
+void warn_savestate(char* messageCaption, char* message, bool modal); // Overload
 
 void display_status(const char* status);

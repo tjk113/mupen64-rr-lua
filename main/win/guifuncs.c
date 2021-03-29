@@ -77,16 +77,16 @@ bool warn_recording() {
 
     return res == 7;
 }
-
-void warn_savestate(char* messageCaption, char* message)
-{
+void internal_warnsavestate(char* messageCaption, char* message, bool modal) {
     if (!Config.savesERRORS) return;
     TranslateDefault(message, messageCaption, TempMessage);
-
-    display_status(TempMessage);
-    //MessageBox(mainHWND, TempMessage, "Error", MB_ICONERROR); //annoying!!! read the status bar for error and that's it
-
+    if (modal) 
+        MessageBox(mainHWND, TempMessage, messageCaption, MB_ICONERROR);
+    else 
+        display_status(TempMessage);
 }
+void warn_savestate(char* messageCaption, char* message){internal_warnsavestate(messageCaption, message, false);}
+void warn_savestate(char* messageCaption, char* message, bool modal){internal_warnsavestate(messageCaption, message, modal);}
 
 void display_MD5calculating_progress(int p )
 {

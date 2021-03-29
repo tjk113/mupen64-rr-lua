@@ -258,9 +258,9 @@ void savestates_load(bool silenceNotFoundError)
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
 		if(!VCR_isRecording())
-		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version");
+		warn_savestate("Savestates Wrong Region", "Savestate Wrong Region");
 		else
-		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version\nRecording will be stopped");
+		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version\nRecording will be stopped!",TRUE);
 
 		gzclose(f);
 		savestates_job_success = FALSE;

@@ -3017,26 +3017,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 BOOL temppaused = !emu_paused;
                 pauseEmu(TRUE);
-                char buf[30];
+                char buf[31];
                 char res;
                 sprintf(buf, "0x%#08p", rdram);
                 std::string stdstr_buf = buf;
 #ifdef _WIN32 // This will only work on windows
                 res = MessageBoxA(0, stdstr_buf.c_str(), "RAM Start (Click Yes to Copy)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO);
-                printf("MSGBOX result: %d\n", res);
+                printf("Buffer size: %d\n", stdstr_buf.size());
+                printf("Buffer length: %d\n", stdstr_buf.length());
                 if (res == IDYES) {
                     OpenClipboard(mainHWND);
                     EmptyClipboard();
-                    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size());
+                    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size()+1);
                     if (hg) {
-                        memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size());
+                        memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size()+1);
                         GlobalUnlock(hg);
                         SetClipboardData(CF_TEXT, hg);
                         CloseClipboard();
                         GlobalFree(hg);
                     }
-                    else { CloseClipboard(); }
+                    else { printf("Failed to copy"); CloseClipboard(); }
                 }
+               
+
 #endif
 
                 if (temppaused) {
