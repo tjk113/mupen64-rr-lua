@@ -60,6 +60,7 @@ extern CONFIG Config;
 
 //stop AVI at m64 end, set by command line avi
 bool gStopAVI = false;
+bool captureMarkedStop;
 
 #define BUFFER_GROWTH_SIZE (4096)
 
@@ -1693,6 +1694,11 @@ VCR_updateScreen()
 	static int frame = 0;
 	int redraw = 1;
 
+	if (captureMarkedStop && VCR_isCapturing()) {
+		// Stop capture.
+		VCR_stopCapture();
+		// If it crashes here, let me know (auru) because this is bad code
+	}
 	if (m_capture == 0 || readScreen == 0)
 	{
 #ifdef __WIN32__
