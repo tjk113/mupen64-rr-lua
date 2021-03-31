@@ -22,6 +22,8 @@
 
 #include <shlobj.h>
 #include <stdio.h>
+#include <Uxtheme.h>
+#pragma comment(lib,"uxtheme.lib") // Visual studio only
 #include "main_win.h"
 #include "../../winproject/resource.h"
 #include "../plugin.h"
@@ -48,7 +50,7 @@ static DWORD dwExitCode;
 static DWORD Id;
 BOOL stopScan = FALSE;
 HWND __stdcall CreateTrackbar( HWND hwndDlg, UINT iMin, UINT iMax,  UINT iSelMin, UINT iSelMax); // winapi macro was very confusing
-HWND hwndTrack ; 
+HWND hwndTrack;
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
@@ -880,37 +882,54 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
         
     switch(Message) {
     
-      case WM_INITDIALOG:
-         WriteCheckBoxValue( hwnd, IDC_STARTFULLSCREEN, Config.StartFullScreen);
-         WriteCheckBoxValue( hwnd, IDC_PAUSENOTACTIVE, Config.PauseWhenNotActive);
-         WriteCheckBoxValue( hwnd, IDC_PLUGIN_OVERWRITE, Config.OverwritePluginSettings);      
-         WriteCheckBoxValue( hwnd, IDC_GUI_TOOLBAR, Config.GuiToolbar);
-         WriteCheckBoxValue( hwnd, IDC_GUI_STATUSBAR, Config.GuiStatusbar);
-         WriteCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT, Config.AutoIncSaveSlot);
-         WriteCheckBoxValue( hwnd, IDC_ROUNDTOZERO, round_to_zero);
-         WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, input_delay);
-         EnableWindow(GetDlgItem(hwnd, IDC_INPUTDELAY), false); //disable for now
-         WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, LUA_double_buffered);
-         WriteCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
-         WriteCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
-		 WriteCheckBoxValue( hwnd, IDC_SUPPRESS_LOAD_ST_PROMPT, Config.IgnoreStWarnings);
-         
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME, Config.Column_GoodName);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME, Config.Column_InternalName);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_COUNTRY, Config.Column_Country);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_SIZE, Config.Column_Size);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_COMMENTS, Config.Column_Comments);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_FILENAME, Config.Column_FileName);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_MD5, Config.Column_MD5);
-         
-         WriteCheckBoxValue(hwnd, IDC_NORESET, !Config.NoReset);
+    case WM_INITDIALOG: {
+        WriteCheckBoxValue( hwnd, IDC_STARTFULLSCREEN, Config.StartFullScreen);
+        WriteCheckBoxValue( hwnd, IDC_PAUSENOTACTIVE, Config.PauseWhenNotActive);
+        WriteCheckBoxValue( hwnd, IDC_PLUGIN_OVERWRITE, Config.OverwritePluginSettings);
+        WriteCheckBoxValue( hwnd, IDC_GUI_TOOLBAR, Config.GuiToolbar);
+        WriteCheckBoxValue( hwnd, IDC_GUI_STATUSBAR, Config.GuiStatusbar);
+        WriteCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT, Config.AutoIncSaveSlot);
+        WriteCheckBoxValue( hwnd, IDC_ROUNDTOZERO, round_to_zero);
+        WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, input_delay);
+        EnableWindow(GetDlgItem(hwnd, IDC_INPUTDELAY), false); //disable for now
+        WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, LUA_double_buffered);
+        WriteCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
+        WriteCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
+        WriteCheckBoxValue( hwnd, IDC_SUPPRESS_LOAD_ST_PROMPT, Config.IgnoreStWarnings);
 
-         WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.forceInternalCapture);
+        WriteCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME, Config.Column_GoodName);
+        WriteCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME, Config.Column_InternalName);
+        WriteCheckBoxValue( hwnd, IDC_COLUMN_COUNTRY, Config.Column_Country);
+        WriteCheckBoxValue( hwnd, IDC_COLUMN_SIZE, Config.Column_Size);
+        WriteCheckBoxValue( hwnd, IDC_COLUMN_COMMENTS, Config.Column_Comments);
+        WriteCheckBoxValue( hwnd, IDC_COLUMN_FILENAME, Config.Column_FileName);
+        WriteCheckBoxValue( hwnd, IDC_COLUMN_MD5, Config.Column_MD5);
 
-         TranslateAdvancedDialog(hwnd) ;                           
-         return TRUE;
-         
-      
+        WriteCheckBoxValue(hwnd, IDC_NORESET, !Config.NoReset);
+
+        WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.forceInternalCapture);
+
+        TranslateAdvancedDialog(hwnd) ;
+
+        // Can't call these inside of wm_ctlcolorstatic because of recursion (somewhere deep inside setwindowtheme it invalidates controls)
+        SetWindowTheme(GetDlgItem(hwnd, IDC_CLUADOUBLEBUFFER), L"", L""); // This also removes the modern windows theme... this is a bit gross looking 
+        //SetWindowTheme(GetDlgItem(hwnd, IDC_INPUTDELAY), L"", L""); // this one is disabled so no theme change
+        SetWindowTheme(GetDlgItem(hwnd, IDC_NO_AUDIO_DELAY), L"", L"");
+        SetWindowTheme(GetDlgItem(hwnd, IDC_NO_COMPILED_JUMP), L"", L"");
+
+        return TRUE;
+    }
+
+    case WM_CTLCOLORSTATIC: { 
+        WORD ctl = GetDlgCtrlID((HWND)lParam);
+        if (ctl == IDC_CLUADOUBLEBUFFER || ctl == IDC_INPUTDELAY || ctl == IDC_NO_AUDIO_DELAY || ctl == IDC_NO_COMPILED_JUMP)
+        {
+            HDC hdcChk1 = (HDC)wParam;
+            SetTextColor(hdcChk1, RGB(255, 0, 0));
+            // !!!!! Releasing DC will also destroy control
+        }
+        break;
+    }
 
        case WM_NOTIFY:
            if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
@@ -950,7 +969,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 				LoadConfigExternals();
            }
        break;
-                            
        default:
            return FALSE;       
     }
