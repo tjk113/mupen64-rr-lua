@@ -2074,6 +2074,7 @@ VCR_toggleLoopMovie()
 	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (m_loopMovie ? MFS_CHECKED : MFS_UNCHECKED));
 
 	extern HWND hStatus/*, hStatusProgress*/;
+	if(emu_launched)
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(m_loopMovie ? "loop movie enabled" : "loop movie disabled"));
 #else
 	printf("%s\n", m_loopMovie ? "loop movie enabled" : "loop movie disabled");
