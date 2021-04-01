@@ -1635,49 +1635,6 @@ stopPlayback(bool bypassLoopSetting)
 	return -1;
 }
 
-BOOL CALLBACK EnumWnds(HWND hwnd, LPARAM lParam)
-{
-	extern HWND mainHWND;
-	HMENU hMenu = GetMenu(mainHWND);
-	RECT mrect;
-	if (hwnd == mainHWND)
-	{
-		return FALSE;
-	}
-	GetWindowRect((HWND)hMenu, &mrect);
-	HDC dc = GetDC(hwnd);
-	HDC maindc = GetDC(mainHWND);
-	RECT trect, mainrect, realrect;
-	GetWindowRect(hwnd, &trect);
-	GetClientRect(mainHWND, &mainrect);
-	GetWindowRect(mainHWND, &realrect);
-	trect.top -= realrect.top-mainrect.top+60;
-	trect.right -= realrect.left;
-	trect.bottom -= realrect.top - mainrect.top+60;
-	trect.left -= realrect.left;
-	trect.right -= 4;
-	trect.left -= 4;
-	if (trect.right - trect.left < 100 || trect.bottom - trect.top < 100)
-	{
-		DeleteObject(dc);
-		DeleteObject(maindc);
-		return TRUE;
-	}
-
-		//trect.top -=-mrect.bottom- mrect.top;
-		//trect.bottom -= mrect.bottom - mrect.top;
-	if (trect.right>mainrect.left && trect.bottom>mainrect.top && trect.left<mainrect.right && trect.top<mainrect.bottom)
-		BitBlt(maindc, trect.left, trect.top, trect.right - trect.left, trect.bottom - trect.top, dc, 0, 0, SRCCOPY);
-	DeleteObject(dc);
-	DeleteObject(maindc);
-	return TRUE;
-}
-
-void CopyWindows()
-{
-	EnumWindows(EnumWnds, 0);
-}
-
 void VCR_invalidatedCaptureFrame()
 {
 	captureFrameValid = FALSE;
@@ -1688,7 +1645,7 @@ VCR_updateScreen()
 {
 //	ShowInfo("VCR_updateScreen()");
 	extern int externalReadScreen;
-	void *image;
+	void *image = NULL; 
 //	static void* lastImage = NULL;
 	long width, height;
 	static int frame = 0;
@@ -1738,8 +1695,6 @@ VCR_updateScreen()
 #endif
 		}
 //	captureFrameValid = TRUE;
-		//CopyWindows(); //or v
-		//ScreenShot(image);
 	readScreen( &image, &width, &height );
 	if (image == NULL)
 	{
@@ -2012,7 +1967,7 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 
 	m_videoFrame = 0.0;
 	m_audioFrame = 0.0;
-	void *dest;
+	void* dest = (void*)1; //trick, this tells readscreen() that it's initialisation phase
 	long width, height;
 	readScreen( &dest, &width, &height ); //if you see this crash, you're using GlideN64, not much can be done atm,
 										  //unknown issue...
