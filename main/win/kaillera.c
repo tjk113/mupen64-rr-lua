@@ -27,10 +27,7 @@ static char	szKailleraNamedRoms[50 * 2000];
 DWORD WINAPI KailleraThread(LPVOID lpParam) 
 {
     LoadKaillera();
-    ShowInfo("Kaillera thread : Kaillera Loaded") ;
-    while (KailleraHandle) {
-        
-    }
+    PRINTKAILLERA("Loaded");
     return 0;
 }
 
@@ -64,8 +61,6 @@ int LoadKaillera()
     if (Config.DefaultPluginsDir)
     {
         strcat(TempStr, "\plugin\\kailleraclient.dll");
-        printf("\nKAILERA PATH DEFAULT: %s\n", TempStr);
-
     }
     else
     {
@@ -74,68 +69,69 @@ int LoadKaillera()
         strcat(TempStr, Config.PluginsDir);  // todo: simplify this
         strcat(TempStr, "kailleraclient.dll");
         //strcat(TempStr, "\plugin\\kailleraclient.dll");
-        printf("\nKAILERA PATH CONFIG: %s\n", TempStr);
     }
+    PRINTKAILLERA(TempStr)
+
     KailleraHandle = LoadLibrary(TempStr);
     
     if (KailleraHandle) {
-      ShowInfo("Kaillera Library found") ;
+      PRINTKAILLERA("Library found");
       kailleraGetVersion = (void (__stdcall* ) (char*)) GetProcAddress( KailleraHandle, "_kailleraGetVersion@4");
       if (kailleraGetVersion==NULL) {
-         printf("kailleraGetVersion not found") ;
-         return 0 ;
+         PRINTKAILLERA("kailleraGetVersion not implemented");
+         return 0;
       }   
       
       kailleraInit = (void (__stdcall *)(void)) GetProcAddress( KailleraHandle, "_kailleraInit@0");
       if (kailleraInit==NULL) {
-          printf("kailleraInit not found") ;
-         return 0  ;
+         PRINTKAILLERA("kailleraInit not implemented");
+         return 0;
       } 
       
       kailleraShutdown = (void (__stdcall *) (void)) GetProcAddress(KailleraHandle, "_kailleraShutdown@0");
 	  if(kailleraShutdown == NULL) {
-          printf("kailleraShutdown not found") ;
-         return 0  ;
+         PRINTKAILLERA("kailleraShutdown not implemented");
+         return 0;
       }
       
       kailleraSetInfos = (void(__stdcall *) (kailleraInfos *)) GetProcAddress(KailleraHandle, "_kailleraSetInfos@4");
       if(kailleraSetInfos == NULL) {
-          printf("kailleraSetInfos not found") ;
-         return 0  ;
+         PRINTKAILLERA("kailleraSetInfos not implemented");
+         return 0;
       } 
       
       kailleraSelectServerDialog = (void (__stdcall* ) (HWND parent)) GetProcAddress(KailleraHandle, "_kailleraSelectServerDialog@4");
       if (kailleraSelectServerDialog == NULL) {
-          printf("kailleraSelectServerDialog not found");
-        return 0  ;   
+        PRINTKAILLERA("kailleraSelectServerDialog not implemented");;
+        return 0;   
       }
       
       kailleraModifyPlayValues = (void (__stdcall *) (void *values, int size)) GetProcAddress (	KailleraHandle,"_kailleraModifyPlayValues@8");
 	  if(kailleraModifyPlayValues == NULL) {
-          printf("kailleraModifyPlayValues not found");
+        PRINTKAILLERA("kailleraModifyPlayValues not implemented");
         return 0  ;
       }
       
       kailleraChatSend = (void(__stdcall *) (char *)) GetProcAddress( KailleraHandle, "_kailleraChatSend@4");
 	  if(kailleraChatSend == NULL) {
-          printf("kailleraChatSend not found");
-        return 0  ;
+        PRINTKAILLERA("kailleraChatSend not implemented");
+        return 0;
       }
 
       kailleraEndGame = (void (__stdcall *) (void)) GetProcAddress( KailleraHandle, "_kailleraEndGame@0");
 	  if(kailleraEndGame == NULL) {
-          printf("kailleraEndGame not found");
+        PRINTKAILLERA("kailleraEndGame not implemented");
 	    return 0 ;
       }
       kailleraGetVersion(TempStr);
-      printf( "Kaillera version %s", TempStr);
-      printf( "Starting Kaillera...") ;
+      PRINTFKAILLERA("Version %s", TempStr);
+      PRINTKAILLERA("Starting...");
       KailleraPlay();
       return 1;        
    }
    else {
       char errorMsg[MAX_PATH];
-      printf("Kaillera Library file 'kailleraclient.dll' not found ");
+      PRINTKAILLERA("Library file 'kailleraclient.dll' not found");
       // sorry linux users
       strcpy(errorMsg, "Couldn\'t find kailleraclient.dll at path ("); // todo: simplify this too
       strcat(errorMsg, TempStr);
@@ -147,16 +143,16 @@ int LoadKaillera()
 
 void CloseKaillera()
 {
-    ShowInfo("Kaillera : kailleraShutdown()");
+    PRINTKAILLERA("Shutting down...");
     if (kailleraShutdown) kailleraShutdown();
     if (KailleraHandle) FreeLibrary(KailleraHandle) ;
-    KailleraHandle = NULL ;
+    KailleraHandle = NULL;
 }
 
 void EndGameKaillera()
 {
     if (KailleraHandle) { 
-       ShowInfo("Kaillera : kailleraEndGame()");
+       PRINTKAILLERA("Ending game...");
        kailleraEndGame();
     }   
 }
@@ -169,16 +165,16 @@ int WINAPI kailleraGameCallback(char *game, int player, int numplayers)
     int i;
     ROM_INFO *pRomInfo;
     
-    ShowInfo("Kaillera : kailleraGameCallback()");
+    PRINTKAILLERA("Game callback!")
     for (i=0;i<ItemList.ListCount;i++)
     {
         pRomInfo = &ItemList.List[i];
         if (strcmp(pRomInfo->GoodName, game) == 0) {
-          ShowInfo("Kaillera : Starting rom %s",pRomInfo->GoodName);
+          PRINTFKAILLERA("Starting rom %s", pRomInfo->GoodName);
           StartRom(pRomInfo->szFullFileName);
-          SetForegroundWindow( mainHWND) ;
-          SetFocus( mainHWND) ;
-          ShowWindow( mainHWND, SW_SHOW) ;
+          SetForegroundWindow(mainHWND);
+          SetFocus(mainHWND);
+          ShowWindow(mainHWND,SW_SHOW);
           return 0;
         }
     }
@@ -226,7 +222,7 @@ int WINAPI kailleraGameCallback(char *game, int player, int numplayers)
 void WINAPI kailleraChatReceivedCallback(char *nick, char *text)
 {
 	/* Do what you want with this :) */
-	ShowInfo("Kaillera : <%s> : %s",nick,text) ;
+	ShowInfo("Kaillera : <%s> : %s",nick,text);
 }
 
 /*

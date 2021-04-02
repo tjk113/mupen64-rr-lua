@@ -18,7 +18,8 @@
 
 
 #define KAILLERA_CLIENT_API_VERSION "0.8"
-
+#define PRINTKAILLERA(x) printf("[KAILLERA] "); printf(x); printf("\n");
+#define PRINTFKAILLERA(x, f) printf("[KAILLERA] "); printf(x,f); printf("\n");
 
 #ifndef EMULATOR_MAIN_CPP_DEF
   typedef struct {
