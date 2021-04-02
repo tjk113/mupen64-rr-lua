@@ -60,10 +60,22 @@ int LoadKaillera()
     
     //sprintf(TempStr,"%s%s",AppPath,"kailleraclient.dll") ; 
     strcpy(TempStr, AppPath);
-    strcat(TempStr, "\plugin\\kailleraclient.dll");
 
-    printf("\nKAILERA PATH: %s\n", TempStr);
+    if (Config.DefaultPluginsDir)
+    {
+        strcat(TempStr, "\plugin\\kailleraclient.dll");
+        printf("\nKAILERA PATH DEFAULT: %s\n", TempStr);
 
+    }
+    else
+    {
+        //pluginDir.assign(Config.PluginsDir);
+        ZeroMemory(TempStr, strlen(TempStr)); // best way to clear
+        strcat(TempStr, Config.PluginsDir);  // todo: simplify this
+        strcat(TempStr, "kailleraclient.dll");
+        //strcat(TempStr, "\plugin\\kailleraclient.dll");
+        printf("\nKAILERA PATH CONFIG: %s\n", TempStr);
+    }
     KailleraHandle = LoadLibrary(TempStr);
     
     if (KailleraHandle) {
@@ -122,9 +134,13 @@ int LoadKaillera()
       return 1;        
    }
    else {
-        printf("Kaillera Library file 'kailleraclient.dll' not found ");
-        // sorry linux users
-      MessageBox(mainHWND, "Couldn\'t find kailleraclient.dll in local plugins folder (this\\plugin\\kailleraclient.dll). Are you sure it\'s in the correct folder?", "", MB_TOPMOST | MB_TASKMODAL);
+      char errorMsg[MAX_PATH];
+      printf("Kaillera Library file 'kailleraclient.dll' not found ");
+      // sorry linux users
+      strcpy(errorMsg, "Couldn\'t find kailleraclient.dll at path ("); // todo: simplify this too
+      strcat(errorMsg, TempStr);
+      strcat(errorMsg, ") Are you sure it\'s in the right folder?");
+      MessageBox(mainHWND, errorMsg, "", MB_TOPMOST | MB_TASKMODAL);
       return 0;
     }
 }
