@@ -157,9 +157,11 @@ void new_vi() {
 		  if (ffup) {
 			  time = 0; CounterTime = 0; ffup = false;
 		  }
-          if (time>0) {
-			Sleep(time);
-          }
+		  if (time > 0 && time < 700) {
+			  Sleep(time);
+		  }
+		  else
+			  printf("Invalid timer: %d\n", time);
           CurrentFPSTime = CurrentFPSTime + time;
       }
      }

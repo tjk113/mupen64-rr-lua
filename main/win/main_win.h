@@ -145,6 +145,7 @@ typedef struct _CONFIG {
 
     //avi options
     bool forceInternalCapture;
+    bool captureOtherWindows;
     HOTKEY hotkey [NUM_HOTKEYS];
 
 		//Lua

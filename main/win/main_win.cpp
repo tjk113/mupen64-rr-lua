@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-#include <windows.h>
+#include <windows.h> // TODO: Include Windows.h not windows.h and see if it breaks
 #include <Shlwapi.h>
 #include <shellscalingapi.h>
 #pragma comment(lib,"shcore.lib") // MSVC only
@@ -86,8 +86,6 @@ BOOL forceIgnoreRSP = false;
 #define strcasecmp	stricmp
 #define strncasecmp	strnicmp
 #endif
-
-#define LUA_UPDATEBUFFER if (anyLuaRunning==true && LUA_double_buffered) { AtIntervalLuaCallback(); GetLuaMessage();}
 
 
 static DWORD Id;
@@ -666,14 +664,15 @@ void exec_config(char *name)
 		                  if (closeDLL_audio) closeDLL_audio();
 		               }
                     break;
+
                     case PLUGIN_TYPE_GFX:   
                         if (!emu_launched) {
                              initiateGFX = (BOOL(__cdecl*)(GFX_INFO Gfx_Info))GetProcAddress(handle, "InitiateGFX");
                              if (!initiateGFX(dummy_gfx_info)) {
-                                 ShowMessage("Failed to initiate gfx plugin.") ;                   
+                                 ShowMessage("Failed to initiate gfx plugin.");                   
                              } 
                         }
-                        
+
                         dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllConfig");              
                         if (dllConfig) dllConfig(hwnd_plug); 
                         if (!emu_launched) {
@@ -681,6 +680,7 @@ void exec_config(char *name)
                              if (closeDLL_gfx) closeDLL_gfx();
                         }       
                     break;
+
                     case PLUGIN_TYPE_CONTROLLER: 
                         if (!emu_launched) {  
                            if (PluginInfo.Version == 0x0101)
@@ -783,6 +783,11 @@ int check_plugins()
 
    if (finalMessage != "Plugin(s) missing: ") {  // not calling strcmp.. 
        // strdup seems like a bad idea... this too :)
+       if (pluginsMissing == 1) { 
+           /*finalMessage.pop_back();*/ 
+           finalMessage.resize(finalMessage.size() - 2);
+           /* HACK: instead of doing better programming, just trim last letter (whitespace too)*/
+       }
 #ifdef _WIN32
        MessageBox(mainHWND, finalMessage.c_str(), "Plugin(s) Missing", MB_TASKMODAL);
        //ShowMessage(strdup(finalMessage.c_str())); return(0);
@@ -858,7 +863,8 @@ int load_gfx(HMODULE handle_gfx)
 	if (viStatusChanged == NULL) viStatusChanged = dummy_void;
 	if (viWidthChanged == NULL) viWidthChanged = dummy_void;
     if (CaptureScreen == NULL) CaptureScreen = (void(__cdecl*)(char*))dummy_void;
-    
+    if (moveScreen == NULL) moveScreen = (void(__cdecl*)(int, int))dummy_void;
+
    gfx_info.hWnd = mainHWND;
    if (Config.GuiStatusbar) {
       gfx_info.hStatusBar = hStatus ;
@@ -1236,13 +1242,15 @@ void pauseEmu(BOOL quiet)
 		if(!quiet)
 			SetStatusTranslatedString(hStatus,0,"Emulation paused");
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
+        CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_CHECKED);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_STOP, 0);
 	}
 	else
 	{
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 0);
-	}     
+        CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
+	}
 
 	if(emu_paused != wasPaused && !quiet && !MenuPaused)
 		CheckMenuItem( GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
@@ -2491,7 +2499,11 @@ void exit_emu2()
    PostQuitMessage (0);
 }
 
-void ProcessToolTips(LPARAM lParam)
+BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId) {
+    return !(GetMenuState(hMenu, uId, MF_BYCOMMAND) & (MF_DISABLED | MF_GRAYED));
+}
+
+void ProcessToolTips(LPARAM lParam, HWND hWnd)
 {
     LPTOOLTIPTEXT lpttt; 
 
@@ -2500,27 +2512,38 @@ void ProcessToolTips(LPARAM lParam)
 
     // Specify the resource identifier of the descriptive 
     // text for the given button. 
+    HMENU hMenu = GetMenu(hWnd);
+
+    if (!IsMenuItemEnabled(hMenu, lpttt->hdr.idFrom) && lpttt->hdr.idFrom != EMU_PLAY /*This button never is disabled so this... fails?*/)
+    {
+        printf("(Toolbar) Ignoring Tooltip of Control with ID %d\n", lpttt->hdr.idFrom);
+        return;
+    }
     switch (lpttt->hdr.idFrom) 
-	{ 
+	{
 		case IDLOAD:
-			 TranslateDefault("Load ROM...","Load ROM...",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+                TranslateDefault("Load ROM...", "Load ROM...", TempMessage);
+                lpttt->lpszText = TempMessage;
 			break;
 		case EMU_PLAY:
-		     TranslateDefault("Start/Resume Emulation","Start/Resume Emulation",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+                TranslateDefault("Start/Resume Emulation", "Start/Resume Emulation", TempMessage);
+                lpttt->lpszText = TempMessage;
 			break; 
   		case EMU_PAUSE:
-             TranslateDefault("Pause Emulation","Pause Emulation",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+                TranslateDefault("Pause Emulation", "Pause Emulation", TempMessage);
+                lpttt->lpszText = TempMessage;
 			break; 	
 		case EMU_STOP:
-  	         TranslateDefault("Stop Emulation","Stop Emulation",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+            if (IsMenuItemEnabled(hMenu, EMU_STOP)) {
+                TranslateDefault("Stop Emulation", "Stop Emulation", TempMessage);
+                lpttt->lpszText = TempMessage;
+            }
 			break; 
        case FULL_SCREEN:
-             TranslateDefault("Full Screen","Full Screen",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
+           if (IsMenuItemEnabled(hMenu, FULL_SCREEN)) {
+               TranslateDefault("Full Screen", "Full Screen", TempMessage);
+               lpttt->lpszText = TempMessage;
+           }
 			break;
         case IDGFXCONFIG:
              TranslateDefault("Video Settings...","Video Settings...",TempMessage) ;
@@ -2542,7 +2565,6 @@ void ProcessToolTips(LPARAM lParam)
              TranslateDefault("Settings...","Settings...",TempMessage) ;
              lpttt->lpszText = TempMessage; 
 			break;
-                 	
    }
 }
 
@@ -2734,14 +2756,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             switch (((LPNMHDR) lParam)->code) 
             	{ 
 		            case TTN_NEEDTEXT : 
-                          ProcessToolTips(lParam);
+                          ProcessToolTips(lParam,hwnd);
 				    break;
 		        }
 		    return 0;
 	case WM_MOVE:
             if (emu_launched&&!FullScreenMode) {
-                     moveScreen(wParam, lParam);
-                    }
+                moveScreen(wParam, lParam);
+            }
             break;
 	case WM_SIZE:
              if (!FullScreenMode) {
@@ -3015,9 +3037,31 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 BOOL temppaused = !emu_paused;
                 pauseEmu(TRUE);
-                char buf[30];
+                char buf[31];
+                char res;
                 sprintf(buf, "0x%#08p", rdram);
-                MessageBoxA(0, buf, "RAM Start", MB_ICONINFORMATION|MB_TASKMODAL);
+                std::string stdstr_buf = buf;
+#ifdef _WIN32 // This will only work on windows
+                res = MessageBoxA(0, stdstr_buf.c_str(), "RAM Start (Click Yes to Copy)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO);
+                printf("Buffer size: %d\n", stdstr_buf.size());
+                printf("Buffer length: %d\n", stdstr_buf.length());
+                if (res == IDYES) {
+                    OpenClipboard(mainHWND);
+                    EmptyClipboard();
+                    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size()+1);
+                    if (hg) {
+                        memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size()+1);
+                        GlobalUnlock(hg);
+                        SetClipboardData(CF_TEXT, hg);
+                        CloseClipboard();
+                        GlobalFree(hg);
+                    }
+                    else { printf("Failed to copy"); CloseClipboard(); }
+                }
+               
+
+#endif
+
                 if (temppaused) {
                     resumeEmu(TRUE);
                     CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
