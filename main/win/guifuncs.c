@@ -70,9 +70,9 @@ bool warn_recording() {
             warnings++;
         }
         finalMessage.append("is running. Are you sure you want to stop emulation?");
-        if(rec) SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        if(warnings > 0) res = MessageBox(NULL, finalMessage.c_str(), "Stop emulation?", MB_YESNO | MB_ICONWARNING);
-        if (rec) SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        //if(rec) SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        if(warnings > 0) res = MessageBox(NULL, finalMessage.c_str(), "Stop emulation?", MB_YESNO | MB_TOPMOST | MB_ICONWARNING);
+        //if (rec) SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
     }
 
     return res == 7;
