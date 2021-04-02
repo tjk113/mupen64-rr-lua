@@ -1,4 +1,5 @@
-# Mupen64 Lua
+# Mupen64 Lua - Kaillera
+
 [![Release](https://img.shields.io/github/v/release/mkdasher/mupen64-rr-lua-?label=Release)](https://github.com/mkdasher/mupen64-rr-lua-/releases)
 [<img src="https://img.shields.io/github/downloads/mkdasher/mupen64-rr-lua-/total?label=Downloads">]()
 [<img src="https://img.shields.io/discord/723573549607944272?label=Discord">](https://discord.gg/bxvZpwdFmW)
@@ -6,13 +7,15 @@
 
 [comment]: <> (Second image has to be inline so another approach is used)
 
-This repository contains source code for continued development of Mupen64 - Nintendo 64 emulator with TAS support, and TASinput plugin. 
+This repository contains source code for continued development of Mupen64 - Nintendo 64 emulator with TAS and Kaillera support. 
 
 This version includes <a href="https://imgur.com/a/SA2CgEB" target="_blank">new Features such as: AVISplit, Reset recording, WiiVC and Backwards Compatibility</a> options all in one.
 
 [comment]: <> ("Thanks a lot markdown for not having open in new feature guess i need html for this smh")
 [comment]: <> ("Update: not even this works... This is achievable using kramdown but the github preview renderer doesnt support it so we are stuck with this")
 
+# Kaillera
+Extract [kaillera.dll](http://kaillera.com/files/kaillera-0.9-sdk.zip) into the plugin folder of your mupen64. (This has to be in the real plugin folder, not the one selected in config)
 
 # Building
 (This was written having Windows in mind, but it should be possible on Linux as well)
