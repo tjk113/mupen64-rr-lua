@@ -3269,7 +3269,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     
                 break;
                 case ID_END_CAPTURE:
-		         Sleep(1000); // HACK - seems to help crash on closing ROM during capture...?
                    if (VCR_stopCapture() < 0)
                         MessageBox(NULL, "Couldn't stop capturing.", "VCR", MB_OK);
                      else {
