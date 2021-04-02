@@ -324,16 +324,16 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     SetMenuTranslatedString(submenu, 4, "Show Toolbar", "Alt T");
     SetMenuTranslatedString(submenu, 5, "Show Statusbar", "Alt S");
     SetMenuTranslatedString(submenu, 7, "Settings", "Ctrl S  ");
-
+    
     //Utility menu
     submenu = GetSubMenu(hMenu,3);
     SetMenuTranslatedString(submenu,0,"ROM Properties","Ctrl P");
     SetMenuTranslatedString(submenu,2,"Audit ROMs...","");
-    //SetMenuTranslatedString(submenu,3,"Benchmark...","");
     SetMenuTranslatedString(submenu,3,"Generate ROM Info...","");
     SetMenuTranslatedString(submenu,4,"Show Log Window","");
-    //SetMenuTranslatedString(submenu,5,"Kaillera...","");
-    SetMenuTranslatedString(submenu,6,"Movie","");
+    SetMenuTranslatedString(submenu,5,"Kaillera","");
+    SetMenuTranslatedString(submenu,7,"Movie","");
+    SetMenuTranslatedString(submenu,9, "Trace Logger", "");
     subsubmenu = GetSubMenu(submenu,6);
 
     SetMenuTranslatedString(subsubmenu,0,"Start Movie Recording...","");

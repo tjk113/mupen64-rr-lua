@@ -39,7 +39,7 @@ int isKailleraExist()
     static int KailleraExist = -1 ;
     char TempStr[MAX_PATH];
     if (KailleraExist<0) {    
-        sprintf(TempStr,"%s%s",AppPath,"kailleraclient.dll") ;
+        sprintf(TempStr, "%s%s", AppPath, "kailleraclient.dll");
         KailleraHandle = LoadLibrary(TempStr);
         if (KailleraHandle) {
           KailleraExist = 1 ; 
@@ -57,68 +57,74 @@ int LoadKaillera()
 {
     
     char TempStr[MAX_PATH];
-        
-    sprintf(TempStr,"%s%s",AppPath,"kailleraclient.dll") ; 
-      
+    
+    //sprintf(TempStr,"%s%s",AppPath,"kailleraclient.dll") ; 
+    strcpy(TempStr, AppPath);
+    strcat(TempStr, "\plugin\\kailleraclient.dll");
+
+    printf("\nKAILERA PATH: %s\n", TempStr);
+
     KailleraHandle = LoadLibrary(TempStr);
     
     if (KailleraHandle) {
       ShowInfo("Kaillera Library found") ;
       kailleraGetVersion = (void (__stdcall* ) (char*)) GetProcAddress( KailleraHandle, "_kailleraGetVersion@4");
       if (kailleraGetVersion==NULL) {
-         ShowError("kailleraGetVersion not found") ;
+         printf("kailleraGetVersion not found") ;
          return 0 ;
       }   
       
       kailleraInit = (void (__stdcall *)(void)) GetProcAddress( KailleraHandle, "_kailleraInit@0");
       if (kailleraInit==NULL) {
-         ShowError("kailleraInit not found") ;
+          printf("kailleraInit not found") ;
          return 0  ;
       } 
       
       kailleraShutdown = (void (__stdcall *) (void)) GetProcAddress(KailleraHandle, "_kailleraShutdown@0");
 	  if(kailleraShutdown == NULL) {
-	     ShowError("kailleraShutdown not found") ;
+          printf("kailleraShutdown not found") ;
          return 0  ;
       }
       
       kailleraSetInfos = (void(__stdcall *) (kailleraInfos *)) GetProcAddress(KailleraHandle, "_kailleraSetInfos@4");
       if(kailleraSetInfos == NULL) {
-	     ShowError("kailleraSetInfos not found") ;
+          printf("kailleraSetInfos not found") ;
          return 0  ;
       } 
       
       kailleraSelectServerDialog = (void (__stdcall* ) (HWND parent)) GetProcAddress(KailleraHandle, "_kailleraSelectServerDialog@4");
       if (kailleraSelectServerDialog == NULL) {
-        ShowError("kailleraSelectServerDialog not found"); 
+          printf("kailleraSelectServerDialog not found");
         return 0  ;   
       }
       
       kailleraModifyPlayValues = (void (__stdcall *) (void *values, int size)) GetProcAddress (	KailleraHandle,"_kailleraModifyPlayValues@8");
 	  if(kailleraModifyPlayValues == NULL) {
-	    ShowError("kailleraModifyPlayValues not found");
+          printf("kailleraModifyPlayValues not found");
         return 0  ;
       }
       
       kailleraChatSend = (void(__stdcall *) (char *)) GetProcAddress( KailleraHandle, "_kailleraChatSend@4");
 	  if(kailleraChatSend == NULL) {
-	    ShowError("kailleraChatSend not found");
+          printf("kailleraChatSend not found");
         return 0  ;
       }
 
       kailleraEndGame = (void (__stdcall *) (void)) GetProcAddress( KailleraHandle, "_kailleraEndGame@0");
 	  if(kailleraEndGame == NULL) {
-	    ShowError("kailleraEndGame not found");
+          printf("kailleraEndGame not found");
 	    return 0 ;
       }
       kailleraGetVersion(TempStr);
-      ShowInfo( "Kaillera version %s", TempStr);
-      ShowInfo( "Starting Kaillera...") ;
-      KailleraPlay() ;
+      printf( "Kaillera version %s", TempStr);
+      printf( "Starting Kaillera...") ;
+      KailleraPlay();
       return 1;        
    }
    else {
-      ShowError("Kaillera Library file 'kailleraclient.dll' not found ") ;
+        printf("Kaillera Library file 'kailleraclient.dll' not found ");
+        // sorry linux users
+      MessageBox(mainHWND, "Couldn\'t find kailleraclient.dll in local plugins folder (this\\plugin\\kailleraclient.dll). Are you sure it\'s in the correct folder?", "", MB_TOPMOST | MB_TASKMODAL);
       return 0;
     }
 }
@@ -292,8 +298,6 @@ void KailleraPlay(void)
 
 	// Stop emulator if running
 
-
-	// Unlock menu items
 
 
 }

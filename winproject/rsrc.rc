@@ -108,6 +108,7 @@ BEGIN
         MENUITEM "&Audit ROMs...",              ID_AUDIT_ROMS
         MENUITEM "&Generate ROM Info...",       ID_GENERATE_ROM_INFO
         MENUITEM "&Show Log Window",            ID_LOG_WINDOW
+        MENUITEM "&Kaillera",                   ID_KAILLERA
         MENUITEM SEPARATOR
         POPUP "Movie"
         BEGIN

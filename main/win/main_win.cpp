@@ -25,6 +25,8 @@ extern "C" {
 
 #include <windows.h>
 #include <Shlwapi.h>
+#include <shellscalingapi.h>
+#pragma comment(lib,"shcore.lib") // MSVC only
 #ifndef _WIN32_IE
 #define _WIN32_IE 0x0500
 #endif
@@ -2274,7 +2276,8 @@ void EnableEmulationMenuItems(BOOL flag)
       DisableRecentRoms( hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
-      
+      EnableMenuItem(hMenu,ID_KAILLERA, MF_ENABLED);
+
       if (dynacore == 0) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
           SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
@@ -2324,7 +2327,8 @@ if(!continue_vcr_on_restart_mode)
       DisableRecentRoms( hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
-     
+      EnableMenuItem(hMenu, ID_KAILLERA, MF_DISABLED);
+
 
       if (!dynacore) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
@@ -3432,12 +3436,6 @@ void LoadConfigExternals() {
 	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
 }
 
-// Loads various variables from the current config state
-void LoadConfigExternals() {
-	if (VCR_isLooping() != Config.loopMovie) VCR_toggleLoopMovie();
-	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
-}
-
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -3580,10 +3578,6 @@ int WINAPI WinMain(
 			EnableMenuItem(GetMenu(hwnd), ID_LOG_WINDOW, MF_GRAYED);
 		}
     
-		if (!isKailleraExist())
-		{
-			DeleteMenu( GetMenu(hwnd), ID_KAILLERA, MF_BYCOMMAND);
-		}   
     
 		SetupDummyInfo(); 
     
@@ -3596,7 +3590,6 @@ int WINAPI WinMain(
 		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
 
 		LoadConfigExternals();
-
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
 			if (!TranslateAccelerator(mainHWND,Accel,&Msg)
