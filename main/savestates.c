@@ -53,6 +53,7 @@ bool savestates_ignore_nonmovie_warnings = false;
 bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
 			 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
 			 //- execution continues at exception handler (after input poll) at 0x80000180.
+bool lockNoStWarn;
 
 static unsigned int slot = 0;
 static char fname[MAX_PATH] = {0,};
@@ -398,7 +399,7 @@ void savestates_load(bool silenceNotFoundError)
 		if (VCR_isActive() && savestates_ignore_nonmovie_warnings) {
 			display_status("Warning: non-movie savestate\n");
 		}
-		else if (VCR_isActive()&&!silenceNotFoundError)
+		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn)
 		{
 			if (MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING)== 7) {
 			printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
@@ -407,6 +408,7 @@ void savestates_load(bool silenceNotFoundError)
 			else
 				VCR_stopRecord();
 			}
+			lockNoStWarn = false; //reset
 		}
 	}
 	AtLoadStateLuaCallback();

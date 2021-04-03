@@ -2978,6 +2978,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
             case ID_RESTART_MOVIE:
                 if (VCR_isPlaying()) {
+                    extern bool lockNoStWarn;
+                    lockNoStWarn = true;
                     VCR_restartPlayback(); // todo: make this not show the nonmovie st warning
                 }
                 break;
