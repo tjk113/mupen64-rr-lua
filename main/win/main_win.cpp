@@ -2282,7 +2282,7 @@ void EnableEmulationMenuItems(BOOL flag)
       DisableRecentRoms( hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
-      
+      EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
       if (dynacore == 0) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
           SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
@@ -2332,7 +2332,8 @@ if(!continue_vcr_on_restart_mode)
       DisableRecentRoms( hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
-     
+      EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
+
 
       if (!dynacore) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
@@ -2975,7 +2976,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				Config.loopMovie = VCR_isLooping();
 				shouldSave = true;
 				break;
-                
+            case ID_RESTART_MOVIE:
+                if (VCR_isPlaying()) {
+                    VCR_restartPlayback(); // todo: make this not show the nonmovie st warning
+                }
+                break;
 			case EMU_PLAY:
                  if (emu_launched) 
                  {

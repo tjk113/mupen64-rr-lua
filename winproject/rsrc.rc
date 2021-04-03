@@ -122,6 +122,7 @@ BEGIN
             MENUITEM "Stop AVI Capture",            ID_END_CAPTURE, GRAYED
             MENUITEM SEPARATOR
             MENUITEM "Loop Movie Playback",         ID_LOOP_MOVIE
+            MENUITEM "Start From Beginning",        ID_RESTART_MOVIE
         END
         MENUITEM SEPARATOR
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG

@@ -1256,6 +1256,7 @@ void SetActiveMovie(char* buf,int maxlen)
 		GetWindowText(mainHWND, title, MAX_PATH);
 		title[titleLength] = '\0'; //remove movie being played part
 		SetWindowText(mainHWND, title);
+		printf("\nText: %s\n", title);
 	}
 	else if(buf != NULL && m_task!=Idle) // thanks to madghostek
 	{
@@ -1465,8 +1466,10 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 
 
-				if(dontPlay)
+				if (dontPlay) {
+					SetWindowText(mainHWND, MUPEN_VERSION);
 					return -1;
+				}
 
 				// recalculate length of movie from the file size
 //				fseek(m_file, 0, SEEK_END);

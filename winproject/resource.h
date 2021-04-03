@@ -316,7 +316,7 @@
 #define ID_START_CAPTURE                9205
 #define ID_END_CAPTURE                  9206
 #define ID_LOOP_MOVIE                   9207
-
+#define ID_RESTART_MOVIE				9208
 
 #define IDC_CONTROLLER1                 9247
 #define IDC_CONTROLLER2                 9248

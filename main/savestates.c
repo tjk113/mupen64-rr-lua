@@ -398,15 +398,15 @@ void savestates_load(bool silenceNotFoundError)
 		if (VCR_isActive() && savestates_ignore_nonmovie_warnings) {
 			display_status("Warning: non-movie savestate\n");
 		}
-		else if (VCR_isActive() && MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
-			"Warning",
-			MB_YESNO | MB_ICONWARNING) == 7)
+		else if (VCR_isActive()&&!silenceNotFoundError)
 		{
-		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
-			if(VCR_isPlaying())
+			if (MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING)== 7) {
+			printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
+			if (VCR_isPlaying())
 				VCR_stopPlayback();
 			else
 				VCR_stopRecord();
+			}
 		}
 	}
 	AtLoadStateLuaCallback();
