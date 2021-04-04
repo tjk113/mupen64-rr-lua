@@ -2675,11 +2675,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		LPSTR fext;
 		DragQueryFile((HDROP)wParam, 0, fname, sizeof(fname));
 		fext = CharUpper(PathFindExtension(fname));
-
 		if (lstrcmp(fext, ".N64") == 0 || lstrcmp(fext, ".V64") == 0 || lstrcmp(fext, ".Z64") == 0 || lstrcmp(fext, ".ROM") == 0) {
 			StartRom(fname);
-		}	
-		else if (lstrcmp(fext, ".M64") == 0) {
+		}
+		else if (lstrcmp(fext, ".M64") == 0 || lstrcmp(fext, ".m64") == 0) {
 			if (rom) {
 				if (!VCR_getReadOnly())	VCR_toggleReadOnly();
 				VCR_startPlayback(fname, 0, 0);
@@ -2687,14 +2686,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
 			}
 		}
-		else if (strcmp(fext, ".ST") == 0) {
+		else if (strcmp(fext, ".ST")==0) {
 			if (rom) {
 				savestates_select_filename(fname);
 				savestates_job = LOADSTATE;
 			}
 		}
-		else if (strcmp(fext, ".LUA") == 0) {
+		else if (strcmp(fext, ".LUA")==0) {
 			if (rom) {
+                for (; *fext; ++fext) *fext = tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
 				LuaOpenAndRun(fname);
 			}
 		}
