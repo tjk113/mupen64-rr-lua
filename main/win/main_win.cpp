@@ -1239,6 +1239,19 @@ void pauseEmu(BOOL quiet)
 			SuspendThread(SoundThreadHandle);
 		if(!quiet)
 			SetStatusTranslatedString(hStatus,0,"Emulation paused");
+       
+        //extern int frame_advancing;
+
+        // fps wont update when emu is stuck so we must check vi/s
+        // but vi/s will sometimes go over 100 in normal gameplay while holding down fast forward!
+        if (emu_launched && emu_paused && VIs > 100 && MessageBox(NULL, "Emulation problem detected, restart rom?", "Warning", MB_YESNO | MB_TOPMOST | MB_TASKMODAL) == IDYES) {
+            // this is bad because what if:
+            // 1. Your pc cant reach over 100 vi/s when emu stuck
+            // 2. Your pc can reach over 100 vi/s with normal frame advancing
+            //CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, &Id);
+            resetEmu();
+        
+        }
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
         CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_CHECKED);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
@@ -1262,7 +1275,8 @@ BOOL StartRom(char *fullRomPath)
        really_restart_mode = TRUE;
        strcpy(LastSelectedRom, fullRomPath);
 			CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
-		}
+	 }
+     //if (emu_paused) resumeEmu(1);
 //     while (emu_launched) {
 //		SleepEx(10, TRUE);
 //	 }

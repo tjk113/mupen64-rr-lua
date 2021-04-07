@@ -31,6 +31,7 @@ extern bool ffup;
 
 static float VILimit = 60.0;
 static double VILimitMilliseconds = 1000.0/60.0;
+float VIs, FPS;
 
 int GetVILimit()
 {
@@ -77,7 +78,6 @@ void InitTimer() {
 void new_frame() {
    
    DWORD CurrentFPSTime;
-   float FPS;
    char mes[100];
    static DWORD LastFPSTime;
    static DWORD CounterTime;
@@ -138,12 +138,12 @@ void new_vi() {
 		}
 	}
 #endif
-   
+
    if ( (!Config.showVIS) && (!Config.limitFps) ) return;
    VI_Counter++;
          
    CurrentFPSTime = timeGetTime();
-   
+
    Dif = CurrentFPSTime - LastFPSTime;
    if (Config.limitFps && manualFPSLimit && !frame_advancing
 #ifdef LUA_SPEEDMODE
@@ -167,7 +167,7 @@ void new_vi() {
      }
      if ( Config.showVIS ) {
           if (CurrentFPSTime - CounterTime >= 1000.0 ) {
-			  float VIs = VI_Counter * 1000.0 / (CurrentFPSTime - CounterTime);
+			  VIs = VI_Counter * 1000.0 / (CurrentFPSTime - CounterTime);
 			  if (VIs > 1) //if after fast forwarding pretend statusbar lagged idk
 			  {
 				  sprintf(mes, "VI/s: %.1f", VIs);
