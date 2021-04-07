@@ -90,7 +90,7 @@ static DWORD Id;
 static DWORD SOUNDTHREADID;
 static HANDLE SoundThreadHandle;
 static BOOL FullScreenMode = 0;
-static DWORD WINAPI closeRom(LPVOID lpParam);
+DWORD WINAPI closeRom(LPVOID lpParam);
 
 HANDLE EmuThreadHandle;
 HWND hwnd_plug;
@@ -1240,18 +1240,6 @@ void pauseEmu(BOOL quiet)
 		if(!quiet)
 			SetStatusTranslatedString(hStatus,0,"Emulation paused");
        
-        //extern int frame_advancing;
-
-        // fps wont update when emu is stuck so we must check vi/s
-        // but vi/s will sometimes go over 100 in normal gameplay while holding down fast forward!
-        if (emu_launched && emu_paused && VIs > 100 && MessageBox(NULL, "Emulation problem detected, restart rom?", "Warning", MB_YESNO | MB_TOPMOST | MB_TASKMODAL) == IDYES) {
-            // this is bad because what if:
-            // 1. Your pc cant reach over 100 vi/s when emu stuck
-            // 2. Your pc can reach over 100 vi/s with normal frame advancing
-            CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, &Id);
-            //resetEmu();
-        
-        }
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
         CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_CHECKED);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
@@ -1345,7 +1333,7 @@ void exit_emu2();
 static int shut_window = 0;
 
 //void closeRom()
-static DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist? 
+DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist? 
 {    
    LONG winstyle;                                //Used for setting new style to the window
 //   int browserwidths[] = {400, -1};              //Rombrowser statusbar
@@ -1465,11 +1453,13 @@ void resetEmu()
      // but it should be possible to reset the game while it's still running
      // simply by clearing out some memory and maybe notifying the plugins...
     if (emu_launched) {
-                         ShowInfo("Restart Rom");
-                         restart_mode = 0;
-                         really_restart_mode = TRUE;
-                         CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
-                  }
+        extern int frame_advancing;
+        frame_advancing = false;
+        ShowInfo("Restart Rom");
+        restart_mode = 0;
+        really_restart_mode = TRUE;
+        CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
+    }
                        
 }
 

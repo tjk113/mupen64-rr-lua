@@ -101,6 +101,18 @@ void new_frame() {
 
 extern int m_currentVI;
 void new_vi() {
+//#ifdef WIN32// this is windows only already
+	extern DWORD WINAPI closeRom(LPVOID lpParam);
+	extern int frame_advancing;
+
+	// fps wont update when emu is stuck so we must check vi/s
+	// vi/s shouldn't go over 300 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
+	if (emu_launched && frame_advancing && VIs > 300 && MessageBox(NULL, "Emulation problem detected, close rom?", "Warning", MB_YESNO | MB_TOPMOST | MB_TASKMODAL) == IDYES) {
+		frame_advancing = false; //don't pause at next open
+		CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, 0);
+
+	}
+//#endif
    DWORD Dif;
    DWORD CurrentFPSTime;
    char mes[100];
