@@ -1248,8 +1248,8 @@ void pauseEmu(BOOL quiet)
             // this is bad because what if:
             // 1. Your pc cant reach over 100 vi/s when emu stuck
             // 2. Your pc can reach over 100 vi/s with normal frame advancing
-            //CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, &Id);
-            resetEmu();
+            CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, &Id);
+            //resetEmu();
         
         }
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
