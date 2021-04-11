@@ -51,6 +51,8 @@ TCHAR RomBrowserFields[ROM_COLUMN_FIELDS][30] = {TEXT("Good Name"),
 int RomBrowserFieldsWidth[ROM_COLUMN_FIELDS] = {250,150,70,70,200,100,100};  
 
 int RealColumn[ROM_COLUMN_FIELDS] = {0,2,3,4,-1,-1,-1};
+static DWORD Id;
+HANDLE romBrowserRefreshThread;
 
 char *getFieldName(int col)
 {
@@ -986,16 +988,22 @@ void FastRefreshBrowser()
     LoadRomBrowserCache();
     ListViewSort();
 }
+DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
+    remove(get_cachepath());
+    SaveRomBrowserDirs();
+    TOTAL_ROMS_NUMBER = 0;
+    ShowTotalRoms();
+    ListView_DeleteAllItems(hRomList);
+    freeRomList();
+    LoadRomList();
+    TerminateThread(romBrowserRefreshThread,0); // is it a good idea for thread to kill itself
+                                                // vs is warning too about this... better way?
+    return 0;
+}
 
 void RefreshRomBrowser()
 {
-    remove(get_cachepath());
-    SaveRomBrowserDirs();
-    TOTAL_ROMS_NUMBER = 0 ;
-    ShowTotalRoms();
-    ListView_DeleteAllItems (hRomList);
-    freeRomList();
-	LoadRomList();
+    romBrowserRefreshThread = CreateThread(NULL, 0, RefreshRomBrowserInternal, NULL, 0, &Id);
 }
 
 void drawSortArrow(int SubItem)
