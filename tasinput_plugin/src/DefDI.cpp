@@ -1788,9 +1788,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			sprintf(str, "%d", -initialStickY);
 			SetDlgItemText(statusDlg, IDC_EDITY, str);
 
-			// start WM_TIMER events going
-			SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC) NULL);
-
 			//Load combos
 			//I realised there's HasPanel() too, but doesn't make much difference
 			lBox = GetDlgItem(statusDlg, IDC_MACROLIST);
@@ -2256,7 +2253,14 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					if(IsDlgButtonChecked(statusDlg, IDC_YSEM)) relativeYOn = 1;
 					if(IsDlgButtonChecked(statusDlg, IDC_XREL)) relativeXOn = 2;
 					if(IsDlgButtonChecked(statusDlg, IDC_YREL)) relativeYOn = 2;
-					if(IsDlgButtonChecked(statusDlg, IDC_XRAD)) relativeXOn = 3;
+					if(IsDlgButtonChecked(statusDlg, IDC_XRAD)) {
+						relativeXOn = 3;
+						SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC)NULL);
+					}
+					if (relativeXOn != 3) KillTimer(statusDlg, IDT_TIMER3);
+					// Workaround for wine: this will start or stop the application-breaking timer depending on radial mode enabled or not...
+					// no one uses radial anyway so we're good
+
 					radialRecalc = true;
 
 					HKEY hKey;
