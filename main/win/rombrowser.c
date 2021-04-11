@@ -53,6 +53,7 @@ int RomBrowserFieldsWidth[ROM_COLUMN_FIELDS] = {250,150,70,70,200,100,100};
 int RealColumn[ROM_COLUMN_FIELDS] = {0,2,3,4,-1,-1,-1};
 static DWORD Id;
 HANDLE romBrowserRefreshThread;
+bool romBrowserbusy;
 
 char *getFieldName(int col)
 {
@@ -996,6 +997,7 @@ DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
     ListView_DeleteAllItems(hRomList);
     freeRomList();
     LoadRomList();
+    romBrowserbusy = false;
     TerminateThread(romBrowserRefreshThread,0); // is it a good idea for thread to kill itself
                                                 // vs is warning too about this... better way?
     return 0;
@@ -1003,6 +1005,7 @@ DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
 
 void RefreshRomBrowser()
 {
+    romBrowserbusy = true;
     romBrowserRefreshThread = CreateThread(NULL, 0, RefreshRomBrowserInternal, NULL, 0, &Id);
 }
 

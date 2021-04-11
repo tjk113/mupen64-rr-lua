@@ -1171,7 +1171,7 @@ void WaitEmuThread()
 
 			if( EmuThreadHandle != NULL) {
 	            ShowError("Abnormal emu thread termination!");
-	            TerminateThread( EmuThreadHandle,0); 
+	            TerminateThread( EmuThreadHandle,0);
 	            EmuThreadHandle = NULL; 
 			}
 
@@ -1257,6 +1257,9 @@ void pauseEmu(BOOL quiet)
 
 BOOL StartRom(char *fullRomPath)
 {
+     if (romBrowserbusy) {
+        return TRUE;
+     }
      LONG winstyle;
      if (emu_launched) {
 			/*closeRom();*/

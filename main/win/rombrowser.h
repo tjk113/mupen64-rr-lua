@@ -105,6 +105,7 @@ ROM_INFO *getSelectedRom();
 
 extern HWND romInfoHWND ;
 extern ITEM_LIST ItemList;
+extern bool romBrowserbusy;
 
 #define ROM_COLUMN_FIELDS 7
 #define MAX_RECENT_ROMS 10
