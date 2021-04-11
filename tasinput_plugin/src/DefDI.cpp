@@ -58,7 +58,6 @@ LRESULT CALLBACK StatusDlgProc2 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lPar
 LRESULT CALLBACK StatusDlgProc3 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter);
 bool romIsOpen = false;
-bool erase = true;
 
 bool lock; //don't focus mupen
 FILE* cFile; /*combo file conains list of combos in format:
@@ -1663,18 +1662,14 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_CONTEXTMENU:
 		if (!ShowContextMenu(statusDlg, (HWND)wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); //DefWindowProc()
 		break;
+
 		case WM_ERASEBKGND:
-			if (erase)
-			{
-				erase = false;
-				break;
-			}
-			return 1;
+			return TRUE; // just tell windows its handled and thats that!!
+						 // if you are reading this in a few years and windows update broke it just fiddle with this until it works ok -auru
 
         case WM_INITDIALOG:
 		{
 			// reset some dialog state
-			erase = true;
 			dragging = false;
 			lastXDrag = 0;
 			lastYDrag = 0;
