@@ -1258,7 +1258,7 @@ void SetActiveMovie(char* buf,int maxlen)
 		SetWindowText(mainHWND, title);
 		printf("\nText: %s\n", title);
 	}
-	else if(buf != NULL && m_task!=Idle) // thanks to madghostek
+	else if(buf != NULL)
 	{
 		if (!buf) return;
 		//original length
