@@ -1258,6 +1258,7 @@ void pauseEmu(BOOL quiet)
 BOOL StartRom(char *fullRomPath)
 {
      if (romBrowserbusy) {
+        display_status("Rom browser busy!");
         return TRUE;
      }
      LONG winstyle;
