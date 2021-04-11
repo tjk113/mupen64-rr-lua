@@ -831,8 +831,8 @@ VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
 	if (!textXHWND) textXHWND = GetDlgItem(parent, IDC_EDITX);
 	if (!textYHWND) textYHWND = GetDlgItem(parent, IDC_EDITY);
 
-	if (x) SetWindowTextA(textXHWND, str); // Is there implicit char* -> long pointer string happening?
-	else SetWindowTextA(textYHWND, str);
+	if (x) SetWindowText(textXHWND, str); // Is there implicit char* -> long pointer string happening?
+	else SetWindowText(textYHWND, str);
 }
 void Status::SetKeys(BUTTONS ControllerInput)
 {
