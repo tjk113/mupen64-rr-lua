@@ -68,6 +68,7 @@ FILE* cFile; /*combo file conains list of combos in format:
 std::vector<COMBO> ComboList;
 
 MENUCONFIG menuConfig;
+HWND textXHWND = NULL, textYHWND = textXHWND;
 
 struct Status
 {
@@ -822,7 +823,17 @@ void Status::GetKeys(BUTTONS * Keys)
 
 	gettingKeys = false;
 }
+VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
+	// Optimized setdlgitemtext: explanation:
+	// GetDlgItem is very slow because of the many controls and this may limit the speed of emulator in some cases(?)
+	// Instead of using SetDlgItemText every time and (internally) calling GetDlgItem, we precompute the handles to x and y textboxes the first time and re-use them
+	// NOTE: this may break when extending dialogs because handle changes (will fix in future)
+	if (!textXHWND) textXHWND = GetDlgItem(parent, IDC_EDITX);
+	if (!textYHWND) textYHWND = GetDlgItem(parent, IDC_EDITY);
 
+	if (x) SetWindowText(textXHWND, str); // Is there implicit char* -> long pointer string happening?
+	else SetWindowText(textYHWND, str);
+}
 void Status::SetKeys(BUTTONS ControllerInput)
 {
 	if (copyButtons) //copy m64 data to current input
@@ -1014,9 +1025,10 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					skipEditX = true;
 					overrideX = (int)ControllerInput.X_AXIS;
 				}
-				if(strcmp(str,str2))
+				if (strcmp(str, str2))
 					//this and the same one for Y editbox is slow as fuck, this is mainly where tasinput lags
-					SetDlgItemText(statusDlg, IDC_EDITX, str);
+					//SetDlgItemText(statusDlg, IDC_EDITX, str);
+					SetXYTextFast(statusDlg, TRUE, str);
 			}
 			changed = true;
 		}
@@ -1036,7 +1048,8 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					overrideY = (int)ControllerInput.Y_AXIS;
 				}
 				if(strcmp(str,str2))
-					SetDlgItemText(statusDlg, IDC_EDITY, str);
+					//SetDlgItemText(statusDlg, IDC_EDITY, str);
+					SetXYTextFast(statusDlg, FALSE, str);
 			}
 			changed = true;
 		}
