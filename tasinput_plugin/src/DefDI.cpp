@@ -187,7 +187,7 @@ struct Status
 	int comboTask;
 	int activeCombo;
 	bool fakeInput;
-
+	
 	void FreeCombos();
 
 	void SetStatus(char*); //updates text over combo list
@@ -1309,7 +1309,22 @@ EXPORT void CALL RomClosed (void) {
 	for(int i=0; i<NUMBER_OF_CONTROLS; i++)
 		status[i].StopThread();
 }
+void StartFake() {
+	if (MessageBox(0, "This is an experimental feature. Are you sure you want to test this plugin?", "Test TASInput?", MB_TOPMOST|MB_SYSTEMMODAL|MB_YESNO) == IDNO) return;
+	DWORD dwThreadParam, dwThreadId;
+	HANDLE statusThread = CreateThread(0, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId);
 
+	romIsOpen = true;
+	for (int i = 0; i < NUMBER_OF_CONTROLS; i++)
+		if (Controller[i].bActive)
+			status[i].StartThread(i);
+		else
+			status[i].Control = i;
+}
+
+EXPORT void CALL DllTest(HWND hParent) {
+	StartFake();
+}
 
 EXPORT void CALL RomOpen (void) {
 	RomClosed();
@@ -1322,16 +1337,16 @@ EXPORT void CALL RomOpen (void) {
 	dwSize = sizeof(DEFCONTROLLER);
 	dwDWType = REG_DWORD;
 	dwDWSize = sizeof(DWORD);
-	
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, SUBKEY, 0, KEY_READ, &hKey) == ERROR_SUCCESS ) {
-		for ( BYTE Control = 0; Control<NUMBER_OF_CONTROLS; Control++ ) {
+
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, SUBKEY, 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+		for (BYTE Control = 0; Control < NUMBER_OF_CONTROLS; Control++) {
 			RegQueryValueEx(hKey, Controller[Control].szName, 0, &dwType, (LPBYTE)&Controller[Control], &dwSize);
-			if ( Controller[Control].bActive )
+			if (Controller[Control].bActive)
 				ControlDef[Control]->Present = TRUE;
 			else
 				ControlDef[Control]->Present = FALSE;
 
-			char str [256];
+			char str[256];
 			sprintf(str, "Controller%dRelativeX", Control);
 			RegQueryValueEx(hKey, str, 0, &dwDWType, (LPBYTE)&status[Control].relativeXOn, &dwDWSize);
 			sprintf(str, "Controller%dRelativeY", Control);
@@ -1344,8 +1359,8 @@ EXPORT void CALL RomOpen (void) {
 	}
 	RegCloseKey(hKey);
 
-	for(int i=0; i<NUMBER_OF_CONTROLS; i++)
-		if(Controller[i].bActive)
+	for (int i = 0; i < NUMBER_OF_CONTROLS; i++)
+		if (Controller[i].bActive)
 			status[i].StartThread(i);
 		else
 			status[i].Control = i;
@@ -1519,7 +1534,7 @@ DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter)
 		case 1: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc1); break;
 		case 2: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc2); break;
 		case 3: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc3); break;
-		default: break;
+		default:  DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc1);
 	}
 //	DialogBoxParam(g_hInstance, MAKEINTRESOURCE(IDD_STATUS), NULL, (DLGPROC)StatusDlgProc);
 //	statusThread = NULL;
