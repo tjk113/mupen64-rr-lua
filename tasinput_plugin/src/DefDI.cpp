@@ -1308,7 +1308,7 @@ EXPORT void CALL ReadController ( int Control, BYTE * Command )
 
 EXPORT void CALL RomClosed (void) {
 	romIsOpen = false;
-	TerminateThread(&fakeStatusThread);
+	TerminateThread(&fakeStatusThread,0);
 	for(int i=0; i<NUMBER_OF_CONTROLS; i++)
 		status[i].StopThread();
 }
