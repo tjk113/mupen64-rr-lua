@@ -59,6 +59,8 @@ LRESULT CALLBACK StatusDlgProc3 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lPar
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter);
 bool romIsOpen = false;
 
+HANDLE fakeStatusThread; // fake! used for testing plugin
+
 bool lock; //don't focus mupen
 FILE* cFile; /*combo file conains list of combos in format:
 				n bytes - null terminated name string,
@@ -1306,20 +1308,15 @@ EXPORT void CALL ReadController ( int Control, BYTE * Command )
 
 EXPORT void CALL RomClosed (void) {
 	romIsOpen = false;
+	TerminateThread(&fakeStatusThread);
 	for(int i=0; i<NUMBER_OF_CONTROLS; i++)
 		status[i].StopThread();
 }
 void StartFake() {
 	if (MessageBox(0, "This is an experimental feature. Are you sure you want to test this plugin?", "Test TASInput?", MB_TOPMOST|MB_YESNO) == IDNO) return;
 	DWORD dwThreadParam, dwThreadId;
-	HANDLE statusThread = CreateThread(0, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId);
-
+	fakeStatusThread = CreateThread(0, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId);
 	romIsOpen = true;
-	for (int i = 0; i < NUMBER_OF_CONTROLS; i++)
-		if (Controller[i].bActive)
-			status[i].StartThread(i);
-		else
-			status[i].Control = i;
 }
 
 EXPORT void CALL DllTest(HWND hParent) {
@@ -1614,7 +1611,7 @@ void RefreshChanges(HWND hwnd)
 		SetWindowLongA(hwnd, GWL_STYLE, DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE);
 		SetWindowLongA(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW | WS_EX_STATICEDGE);
 	}
-
+	
 	if (menuConfig.onTop)
 		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	else
