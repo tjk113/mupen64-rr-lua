@@ -58,6 +58,7 @@ LRESULT CALLBACK StatusDlgProc2 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lPar
 LRESULT CALLBACK StatusDlgProc3 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter);
 bool romIsOpen = false;
+HMENU hMenu;
 
 HANDLE fakeStatusThread; // fake! used for testing plugin
 
@@ -1627,11 +1628,9 @@ bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(VK_LBUTTON) & 0x8000) != 0) return TRUE;
 	RefreshChanges(hwnd);
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
-	HMENU hMenu = CreatePopupMenu();
+	hMenu = CreatePopupMenu();
 	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on Top");
 	AppendMenu(hMenu, menuConfig.floatFromParent ? MF_CHECKED : 0, Float, "Show in Taskbar");
-	//AppendMenu(hMenu, 1, 2, "B");
-	//AppendMenu(hMenu, 0, 3, "C");
 	lock = true;
 	int res = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, x, y, hwnd, 0);
 	lock = false;
@@ -1837,6 +1836,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			if(IsWindowFromEmulatorProcessActive())
 				ActivateEmulatorWindow();
 		}	break;
+		case SC_MINIMIZE:
+		DestroyMenu(hMenu); // nuke context menu when minimized...
+		break;
         case WM_NCDESTROY:
         case WM_DESTROY:
 		{
