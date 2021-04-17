@@ -1310,7 +1310,7 @@ EXPORT void CALL RomClosed (void) {
 		status[i].StopThread();
 }
 void StartFake() {
-	if (MessageBox(0, "This is an experimental feature. Are you sure you want to test this plugin?", "Test TASInput?", MB_TOPMOST|MB_SYSTEMMODAL|MB_YESNO) == IDNO) return;
+	if (MessageBox(0, "This is an experimental feature. Are you sure you want to test this plugin?", "Test TASInput?", MB_TOPMOST|MB_YESNO) == IDNO) return;
 	DWORD dwThreadParam, dwThreadId;
 	HANDLE statusThread = CreateThread(0, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId);
 
