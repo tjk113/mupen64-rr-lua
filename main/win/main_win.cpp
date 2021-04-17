@@ -3607,7 +3607,7 @@ int WINAPI WinMain(
             0,
 			g_szClassName,
 			MUPEN_VERSION,
-			WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_EX_TOPMOST,
+			WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
 			Config.WindowPosX, Config.WindowPosY, Config.WindowWidth, Config.WindowHeight,
 			NULL, NULL, hInstance, NULL);
 	
