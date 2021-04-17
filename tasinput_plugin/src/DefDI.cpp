@@ -1534,7 +1534,7 @@ DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter)
 		case 1: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc1); break;
 		case 2: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc2); break;
 		case 3: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc3); break;
-		default:  DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc1);
+		default:  DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_STATUS_12), NULL, (DLGPROC)StatusDlgProc0);
 	}
 //	DialogBoxParam(g_hInstance, MAKEINTRESOURCE(IDD_STATUS), NULL, (DLGPROC)StatusDlgProc);
 //	statusThread = NULL;
