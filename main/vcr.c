@@ -60,6 +60,7 @@ extern CONFIG Config;
 
 //stop AVI at m64 end, set by command line avi
 bool gStopAVI = false;
+bool captureMarkedStop;
 
 #define BUFFER_GROWTH_SIZE (4096)
 
@@ -1256,7 +1257,7 @@ void SetActiveMovie(char* buf,int maxlen)
 		title[titleLength] = '\0'; //remove movie being played part
 		SetWindowText(mainHWND, title);
 	}
-	else if(buf != NULL && m_task!=Idle) // thanks to madghostek
+	else if(buf != NULL)
 	{
 		if (!buf) return;
 		//original length
@@ -1464,8 +1465,10 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 
 
-				if(dontPlay)
+				if (dontPlay) {
+					SetWindowText(mainHWND, MUPEN_VERSION);
 					return -1;
+				}
 
 				// recalculate length of movie from the file size
 //				fseek(m_file, 0, SEEK_END);
@@ -1634,49 +1637,6 @@ stopPlayback(bool bypassLoopSetting)
 	return -1;
 }
 
-BOOL CALLBACK EnumWnds(HWND hwnd, LPARAM lParam)
-{
-	extern HWND mainHWND;
-	HMENU hMenu = GetMenu(mainHWND);
-	RECT mrect;
-	if (hwnd == mainHWND)
-	{
-		return FALSE;
-	}
-	GetWindowRect((HWND)hMenu, &mrect);
-	HDC dc = GetDC(hwnd);
-	HDC maindc = GetDC(mainHWND);
-	RECT trect, mainrect, realrect;
-	GetWindowRect(hwnd, &trect);
-	GetClientRect(mainHWND, &mainrect);
-	GetWindowRect(mainHWND, &realrect);
-	trect.top -= realrect.top-mainrect.top+60;
-	trect.right -= realrect.left;
-	trect.bottom -= realrect.top - mainrect.top+60;
-	trect.left -= realrect.left;
-	trect.right -= 4;
-	trect.left -= 4;
-	if (trect.right - trect.left < 100 || trect.bottom - trect.top < 100)
-	{
-		DeleteObject(dc);
-		DeleteObject(maindc);
-		return TRUE;
-	}
-
-		//trect.top -=-mrect.bottom- mrect.top;
-		//trect.bottom -= mrect.bottom - mrect.top;
-	if (trect.right>mainrect.left && trect.bottom>mainrect.top && trect.left<mainrect.right && trect.top<mainrect.bottom)
-		BitBlt(maindc, trect.left, trect.top, trect.right - trect.left, trect.bottom - trect.top, dc, 0, 0, SRCCOPY);
-	DeleteObject(dc);
-	DeleteObject(maindc);
-	return TRUE;
-}
-
-void CopyWindows()
-{
-	EnumWindows(EnumWnds, 0);
-}
-
 void VCR_invalidatedCaptureFrame()
 {
 	captureFrameValid = FALSE;
@@ -1687,12 +1647,17 @@ VCR_updateScreen()
 {
 //	ShowInfo("VCR_updateScreen()");
 	extern int externalReadScreen;
-	void *image;
+	void *image = NULL; 
 //	static void* lastImage = NULL;
 	long width, height;
 	static int frame = 0;
 	int redraw = 1;
 
+	if (captureMarkedStop && VCR_isCapturing()) {
+		// Stop capture.
+		VCR_stopCapture();
+		// If it crashes here, let me know (auru) because this is bad code
+	}
 	if (m_capture == 0 || readScreen == 0)
 	{
 #ifdef __WIN32__
@@ -1732,8 +1697,6 @@ VCR_updateScreen()
 #endif
 		}
 //	captureFrameValid = TRUE;
-		//CopyWindows(); //or v
-		//ScreenShot(image);
 	readScreen( &image, &width, &height );
 	if (image == NULL)
 	{
@@ -2006,7 +1969,7 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 
 	m_videoFrame = 0.0;
 	m_audioFrame = 0.0;
-	void *dest;
+	void* dest = (void*)1; //trick, this tells readscreen() that it's initialisation phase
 	long width, height;
 	readScreen( &dest, &width, &height ); //if you see this crash, you're using GlideN64, not much can be done atm,
 										  //unknown issue...
@@ -2068,6 +2031,7 @@ VCR_toggleLoopMovie()
 	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (m_loopMovie ? MFS_CHECKED : MFS_UNCHECKED));
 
 	extern HWND hStatus/*, hStatusProgress*/;
+	if(emu_launched)
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(m_loopMovie ? "loop movie enabled" : "loop movie disabled"));
 #else
 	printf("%s\n", m_loopMovie ? "loop movie enabled" : "loop movie disabled");

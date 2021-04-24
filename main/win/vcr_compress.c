@@ -30,12 +30,12 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <stdio.h>
-#include "vfw.h"
-#include "../../winproject/resource.h"
-
-#include "../plugin.h"
+#include "../win/main_win.h"
 
 #include "../vcr_compress.h"
+#include "../plugin.h"
+#include "../../winproject/resource.h"
+#include "vfw.h"
 
 #ifndef _MSC_VER
 void (*readScreen)(void **dest, long *width, long *height);
@@ -64,88 +64,110 @@ static PAVISTREAM sound_stream;
 //static AVICOMPRESSOPTIONS sound_options;
 //static AVICOMPRESSOPTIONS *psound_options[1];
 
+// "internal" readScreen, used when plugin doesn't implement it
 void __cdecl win_readScreen(void **dest, long *width, long *height)
 {
-//	void ShowInfo(char *Str, ...);
+	HDC mupendc, all, copy; //all - screen; copy - buffer
+	RECT rect, rectS, rectT;
+	POINT cli_tl{ 0,0 }; //mupen client x y 
+	HBITMAP bitmap, oldbitmap;
+
 //	ShowInfo("win_readScreen()");
-	HDC dc = GetDC(mainHWND);
-	HDC all = GetDC(NULL);
-	RECT rect, rectS, rectT,rectM;
-	POINT cli_tl{ 0,0 };
-	ClientToScreen(mainHWND, &cli_tl);
+	mupendc = GetDC(mainHWND);  //only client area
+	if (Config.captureOtherWindows)
+	{
+		//get whole screen dc and find out where is mupen's client area
+		all = GetDC(NULL);
+		ClientToScreen(mainHWND, &cli_tl);
+	}
+	
 	// retrieve the dimension of the picture
 	GetClientRect(mainHWND, &rect);
 	*width = rect.right - rect.left;
 	*height = rect.bottom - rect.top;
 	
+	//get size of toolbar and statusbar
 	if(hTool)
 		GetClientRect(hTool, &rectT);
 	int heightT = hTool ? (rectT.bottom - rectT.top) : 0;
 	if(hStatus)
 		GetClientRect(hStatus, &rectS);
 	int heightS = hStatus ? (rectS.bottom - rectS.top) : 0;
+
+	//subtract size of toolbar and statusbar from buffer dimensions
+	//if video plugin knows about this, whole game screen should be captured. Most of the plugins do.
 	*height -= (heightT + heightS);
 	
+	//round size to multiple of 4 (avi needs that iirc), not sure why it saves orig dimensions
 	const int origWidth = *width;
 	const int origHeight = *height;
-	
-	*width = (origWidth /*+ 3*/) & ~3;
-	*height =(origHeight/*+ 3*/) & ~3;
+	*width = (origWidth) & ~3;
+	*height =(origHeight) & ~3;
 	
 	// copy to a context in memory to speed up process
-	HDC copy = CreateCompatibleDC(dc);
-	HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
-	HBITMAP oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
+	copy = CreateCompatibleDC(mupendc);
+	bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
+	oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
 	Sleep(0);
-	if(copy)
-		BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x, cli_tl.y+heightT + (origHeight - *height), SRCCOPY);
-	
+	if (copy)
+	{
+		if (Config.captureOtherWindows)
+			BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x, cli_tl.y + heightT + (origHeight - *height), SRCCOPY);
+		else
+			BitBlt(copy, 0, 0, *width, *height, mupendc, 0, heightT + (origHeight - *height), SRCCOPY);
+	}
 	
 	if (!avi_opened || !copy || !bitmap)
 	{
+		if (!*dest) //don't show warning, this is initialisation phase
+			MessageBox(0, "Unexpected AVI error 1", "Error", MB_ICONERROR);
 		*dest = NULL;
+		SelectObject(copy, oldbitmap); //apparently this leaks 1 pixel bitmap if not used
 		if(bitmap)
 			DeleteObject(bitmap);
 		if(copy)
 			DeleteDC(copy);
-		if(dc)
-			ReleaseDC(mainHWND,dc);
+		if(mupendc)
+			ReleaseDC(mainHWND,mupendc);
 		return;
 	}
 	
 	// read the context
 	static unsigned char *buffer = NULL;
 	static unsigned int bufferSize = 0;
-	if(!buffer || bufferSize < *width * *height * 3 +1)
+	if(!buffer || bufferSize < *width * *height * 3 +1) //if buffer doesn't exist yet or changed size somehow
 	{
 		if(buffer) free(buffer);
 		bufferSize = *width * *height * 3 +1;
 		buffer = (unsigned char*)malloc(bufferSize);
 	}
 	
-	if(!buffer)
+	if(!buffer) //failed to alloc
 	{
+		MessageBox(0, "Failed to allocate memory for buffer", "Error", MB_ICONERROR);
 		*dest = NULL;
+		SelectObject(copy, oldbitmap);
 		if(bitmap)
 			DeleteObject(bitmap);
 		if(copy)
 			DeleteDC(copy);
-		if(dc)
-			ReleaseDC(mainHWND,dc);
+		if(mupendc)
+			ReleaseDC(mainHWND,mupendc);
 		return;
 	}
-	SelectObject(copy, oldbitmap);
+
 	BITMAPINFO bmpinfos;
-	memcpy(&bmpinfos.bmiHeader, &infoHeader, sizeof(BITMAPINFOHEADER));
+	memcpy(&bmpinfos.bmiHeader, &infoHeader, sizeof(BITMAPINFOHEADER)); //copy info from avi file init
 	GetDIBits(copy, bitmap, 0, *height, buffer, &bmpinfos, DIB_RGB_COLORS);
 	
 	*dest = buffer;
+	SelectObject(copy, oldbitmap);
 	if(bitmap)
 		DeleteObject(bitmap);
 	if(copy)
 		DeleteDC(copy);
-	if(dc)
-		ReleaseDC(mainHWND,dc);
+	if(mupendc)
+		ReleaseDC(mainHWND,mupendc);
 //	ShowInfo("win_readScreen() done");
 }
 
@@ -236,7 +258,8 @@ void VCRComp_startFile( const char *filename, long width, long height, int fps, 
    {
 	   ZeroMemory(&video_options, sizeof(AVICOMPRESSOPTIONS));
 	   pvideo_options[0] = &video_options;
-	   AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options);
+	   extern bool captureMarkedStop;
+	   captureMarkedStop = !AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options);
    }
    VRComp_saveOptions();
    AVIMakeCompressedStream(&compressed_video_stream, video_stream, pvideo_options[0], NULL);

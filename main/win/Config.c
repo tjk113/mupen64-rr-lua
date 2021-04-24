@@ -220,6 +220,7 @@ void LoadConfig()
 
     //avi options
     Config.forceInternalCapture = ReadCfgInt("Avi Options", "Force internal capture", 0);
+    Config.captureOtherWindows = ReadCfgInt("Avi Options", "Capture other windows", 0);
 
     // Load A Whole Whackton Of Hotkeys:
 
@@ -376,6 +377,7 @@ void SaveConfig()
     WriteCfgInt("Recording Options", "No reset recording", Config.NoReset);
 
     WriteCfgInt("Avi Options", "Force internal capture", Config.forceInternalCapture);
+    WriteCfgInt("Avi Options", "Capture other windows", Config.captureOtherWindows);
 
     // Save A Whole Whackton Of Hotkeys:
 

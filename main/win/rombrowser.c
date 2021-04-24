@@ -51,6 +51,9 @@ TCHAR RomBrowserFields[ROM_COLUMN_FIELDS][30] = {TEXT("Good Name"),
 int RomBrowserFieldsWidth[ROM_COLUMN_FIELDS] = {250,150,70,70,200,100,100};  
 
 int RealColumn[ROM_COLUMN_FIELDS] = {0,2,3,4,-1,-1,-1};
+static DWORD Id;
+HANDLE romBrowserRefreshThread;
+bool romBrowserbusy;
 
 char *getFieldName(int col)
 {
@@ -62,26 +65,26 @@ int isFieldInBrowser(int index)
     switch (index)
     {
         case 0:
-               return Config.Column_GoodName ; 
-        break;
+        return Config.Column_GoodName; 
+
         case 1:
-               return Config.Column_InternalName ;
-        break;
+        return Config.Column_InternalName;
+
         case 2:
-               return Config.Column_Country ;
-        break;
+        return Config.Column_Country;
+
         case 3:
-               return Config.Column_Size;
-        break;
+        return Config.Column_Size;
+
         case 4:
-               return Config.Column_Comments;
-        break;
+        return Config.Column_Comments;
+
         case 5:
-               return Config.Column_FileName ;
-        break;
+        return Config.Column_FileName;
+
         case 6:
-               return Config.Column_MD5;
-        break;
+        return Config.Column_MD5;
+
         default:
         return 0;
     }
@@ -986,16 +989,24 @@ void FastRefreshBrowser()
     LoadRomBrowserCache();
     ListViewSort();
 }
+DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
+    remove(get_cachepath());
+    SaveRomBrowserDirs();
+    TOTAL_ROMS_NUMBER = 0;
+    ShowTotalRoms();
+    ListView_DeleteAllItems(hRomList);
+    freeRomList();
+    LoadRomList();
+    romBrowserbusy = false;
+    TerminateThread(romBrowserRefreshThread,0); // is it a good idea for thread to kill itself
+                                                // vs is warning too about this... better way?
+    return 0;
+}
 
 void RefreshRomBrowser()
 {
-    remove(get_cachepath());
-    SaveRomBrowserDirs();
-    TOTAL_ROMS_NUMBER = 0 ;
-    ShowTotalRoms();
-    ListView_DeleteAllItems (hRomList);
-    freeRomList();
-	LoadRomList();
+    romBrowserbusy = true;
+    romBrowserRefreshThread = CreateThread(NULL, 0, RefreshRomBrowserInternal, NULL, 0, &Id);
 }
 
 void drawSortArrow(int SubItem)
@@ -1217,37 +1228,19 @@ void RunRecentRom(int id) {
     }
 }
 
-void DisableRecentRoms(HMENU hMenu,BOOL disable) {
-    int i;
-    
-    if (disable) {
-          for (i=0;i<MAX_RECENT_ROMS;i++) {
-               EnableMenuItem(hMenu,ID_RECENTROMS_FIRST + i,MF_GRAYED);     
-          }
-          
-          
-    }
-    else         {
-             for (i=0;i<MAX_RECENT_ROMS;i++) {
-               EnableMenuItem(hMenu,ID_RECENTROMS_FIRST + i,MF_ENABLED);
-             }  
-    }
+void DisableRecentRoms(HMENU hMenu, BOOL disable) {
+    // this is cool but why
+    if (!Config.RecentRomsFreeze) return; // only disable rom loading if freeze enabled
+    for (int i = 0; i < MAX_RECENT_ROMS; i++)
+        EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, (disable ? MF_ENABLED : MF_DISABLED));
+
 }
 
 void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable) {
 	HMENU hMenu = GetMenu(hWnd);
 	if (ChangeConfigVariable) {
+       shouldSave = 1;
 	   Config.RecentRomsFreeze = 1 - Config.RecentRomsFreeze ;
 	}
-	
-	if (Config.RecentRomsFreeze)
-    {
-	   CheckMenuItem( hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | MFS_CHECKED );
-       
-	}
-	else
-	{
-       CheckMenuItem( hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | MFS_UNCHECKED );
-      
-    } 
+    CheckMenuItem(hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | (Config.RecentRomsFreeze ? MFS_CHECKED : MFS_UNCHECKED));
 }

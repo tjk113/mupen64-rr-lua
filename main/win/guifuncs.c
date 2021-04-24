@@ -24,6 +24,7 @@
 #include "rombrowser.h"
 #include "../../winproject/resource.h"
 #include <vcr.h>
+#include <LuaConsole.h>
 
 char *get_currentpath()
 {
@@ -49,35 +50,43 @@ void display_loading_progress(int p)
 
 bool warn_recording() {
 
-    int r = 0;
+    int res = 0, warnings = res; // red eared slider
     bool rec = VCR_isCapturing() || recording;
-
     //printf("\nRecording info:\nVCR_isRecording: %i\nVCR_isCapturing: %i", VCR_isRecording(), VCR_isCapturing());
     if (continue_vcr_on_restart_mode == 0) {
+        std::string finalMessage = "";
         if (VCR_isRecording()) {
-            r = MessageBoxA(NULL, "Movie is being recorded, are you sure you want to quit?",
-                "Close rom?", MB_YESNO | MB_ICONWARNING);
+            finalMessage.append("Movie recording ");
+            warnings++;
         }
         if (rec) {
-            SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // HACK: fix msgbox appearing behind window when avi recording
-            r = MessageBoxA(NULL, "AVI is being recorded, are you sure you want to quit?",
-                "Close rom?", MB_YESNO | MB_ICONWARNING);
-            SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            if (warnings > 0) { finalMessage.append(","); }
+            finalMessage.append(" AVI capture ");
+            warnings++;
         }
+        if (enableTraceLog) {
+            if(warnings > 0){ finalMessage.append(","); }
+            finalMessage.append(" Trace logging ");
+            warnings++;
+        }
+        finalMessage.append("is running. Are you sure you want to stop emulation?");
+        //if(rec) SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        if(warnings > 0) res = MessageBox(NULL, finalMessage.c_str(), "Stop emulation?", MB_YESNO | MB_TOPMOST | MB_ICONWARNING);
+        //if (rec) SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
     }
 
-    return r == 7;
+    return res == 7;
 }
-
-void warn_savestate(char* messageCaption, char* message)
-{
+void internal_warnsavestate(char* messageCaption, char* message, bool modal) {
     if (!Config.savesERRORS) return;
     TranslateDefault(message, messageCaption, TempMessage);
-
-    display_status(TempMessage);
-    //MessageBox(mainHWND, TempMessage, "Error", MB_ICONERROR); //annoying!!! read the status bar for error and that's it
-
+    if (modal) 
+        MessageBox(mainHWND, TempMessage, messageCaption, MB_ICONERROR);
+    else 
+        display_status(TempMessage);
 }
+void warn_savestate(char* messageCaption, char* message){internal_warnsavestate(messageCaption, message, false);}
+void warn_savestate(char* messageCaption, char* message, bool modal){internal_warnsavestate(messageCaption, message, modal);}
 
 void display_MD5calculating_progress(int p )
 {

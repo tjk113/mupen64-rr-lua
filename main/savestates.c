@@ -53,6 +53,7 @@ bool savestates_ignore_nonmovie_warnings = false;
 bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
 			 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
 			 //- execution continues at exception handler (after input poll) at 0x80000180.
+bool lockNoStWarn;
 
 static unsigned int slot = 0;
 static char fname[MAX_PATH] = {0,};
@@ -220,7 +221,7 @@ void savestates_load(bool silenceNotFoundError)
 	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
-		filename = (char*)malloc(strlen(fname)+1);
+		filename = (char*)malloc(strlen(fname)+11);
 		strcpy(filename, fname);
 		//slot -= 10;
 	}
@@ -233,22 +234,40 @@ void savestates_load(bool silenceNotFoundError)
 		strcat(fname, ".st");
 		sprintf(str, "Loading %s", fname);
 	}
-	else if(slot < 9) {
+	else{
 		sprintf(str, "Loading slot %d", slot);
 		sprintf(fname, "Slot %d", slot);
 	}
 	f = gzopen(filename, "rb");
 
+	//try loading .savestate, workaround for discord...
+	if (f == NULL && slot > 9)
+	{
+		filename[strlen(filename) - 3] = '\0';
+		strcat(filename, ".savestate");
+		f = gzopen(filename, "rb");
+	}
+
     //failed opening st
 	if (f == NULL)
 	{
-		if (silenceNotFoundError) return;
-		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
-		free(filename);
-		warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
+		if (f == NULL)
+		{
+			if (silenceNotFoundError) return;
+
+			if (slot > 9)
+			{
+				//print .st not .savestate because
+				filename[strlen(filename) - 10] = '\0';
+				strcat(filename, ".st");
+			}
+			printf("Savestate \"%s\" not found.\n", filename); //full path for debug
+			free(filename);
+			warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
 												  // by moving the warn function it doesn't do this anymore 
-		savestates_job_success = FALSE;
-		return;
+			savestates_job_success = FALSE;
+			return;
+		}
 	}
 	display_status(str);
 	free(filename);
@@ -258,9 +277,9 @@ void savestates_load(bool silenceNotFoundError)
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
 		if(!VCR_isRecording())
-		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version");
+		warn_savestate("Savestates Wrong Region", "Savestate Wrong Region");
 		else
-		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version\nRecording will be stopped");
+		warn_savestate("Savestates Wrong Region", "This savestate is from another ROM or version\nRecording will be stopped!",TRUE);
 
 		gzclose(f);
 		savestates_job_success = FALSE;
@@ -398,15 +417,16 @@ void savestates_load(bool silenceNotFoundError)
 		if (VCR_isActive() && savestates_ignore_nonmovie_warnings) {
 			display_status("Warning: non-movie savestate\n");
 		}
-		else if (VCR_isActive() && MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)",
-			"Warning",
-			MB_YESNO | MB_ICONWARNING) == 7)
+		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn)
 		{
-		printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
-			if(VCR_isPlaying())
+			if (MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING)== 7) {
+			printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
+			if (VCR_isPlaying())
 				VCR_stopPlayback();
 			else
 				VCR_stopRecord();
+			}
+			lockNoStWarn = false; //reset
 		}
 	}
 	AtLoadStateLuaCallback();

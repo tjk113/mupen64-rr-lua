@@ -58,7 +58,9 @@ LRESULT CALLBACK StatusDlgProc2 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lPar
 LRESULT CALLBACK StatusDlgProc3 (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter);
 bool romIsOpen = false;
-bool erase = true;
+HMENU hMenu;
+
+HANDLE fakeStatusThread = NULL; // fake! used for testing plugin
 
 bool lock; //don't focus mupen
 FILE* cFile; /*combo file conains list of combos in format:
@@ -69,6 +71,7 @@ FILE* cFile; /*combo file conains list of combos in format:
 std::vector<COMBO> ComboList;
 
 MENUCONFIG menuConfig;
+HWND textXHWND = NULL, textYHWND = textXHWND;
 
 struct Status
 {
@@ -103,12 +106,15 @@ struct Status
 		Extend = 1|2;
 		positioned = false;
 		comboTask = C_IDLE;
+		once = true;
 	}
 
 	void StartThread(int ControllerNumber)
 	{
 		HANDLE prevStatusThread = statusThread;
 		HWND prevStatusDlg = statusDlg;
+
+		once = true; //redraw once
 
 		Control = ControllerNumber;
 		dwThreadId = Control;
@@ -188,6 +194,8 @@ struct Status
 	int activeCombo;
 	bool fakeInput;
 
+	bool once;
+	
 	void FreeCombos();
 
 	void SetStatus(char*); //updates text over combo list
@@ -242,7 +250,8 @@ EXPORT void CALL ControllerCommand ( int Control, BYTE * Command)
 
 EXPORT void CALL DllAbout ( HWND hParent )
 {
-	MessageBox(hParent, PLUGIN_NAME"\nFor DirectX 7 or higher\n\nBased on Def's Direct Input 0.54 by Deflection\nTAS Modifications by Nitsuja","About",MB_ICONINFORMATION | MB_OK);
+	if (MessageBox(hParent, PLUGIN_NAME"\nFor DirectX 7 or higher\nBased on Def's Direct Input 0.54 by Deflection\nTAS Modifications by Nitsuja\nContinued development by the Mupen64-rr-lua contributors.\nDo you want to visit the repository?", "About", MB_ICONINFORMATION | MB_YESNO) == IDYES)
+		ShellExecute(0, 0, "https://github.com/mkdasher/mupen64-rr-lua-/tree/dev/tasinput_plugin/src", 0, 0, SW_SHOW);
 }
 
 EXPORT void CALL DllConfig ( HWND hParent )
@@ -822,7 +831,17 @@ void Status::GetKeys(BUTTONS * Keys)
 
 	gettingKeys = false;
 }
+VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
+	// Optimized setdlgitemtext: explanation:
+	// GetDlgItem is very slow because of the many controls and this may limit the speed of emulator in some cases(?)
+	// Instead of using SetDlgItemText every time and (internally) calling GetDlgItem, we precompute the handles to x and y textboxes the first time and re-use them
+	// NOTE: this may break when extending dialogs because handle changes (will fix in future)
+	if (!textXHWND) textXHWND = GetDlgItem(parent, IDC_EDITX);
+	if (!textYHWND) textYHWND = GetDlgItem(parent, IDC_EDITY);
 
+	if (x) SetWindowText(textXHWND, str); // Is there implicit char* -> long pointer string happening?
+	else SetWindowText(textYHWND, str);
+}
 void Status::SetKeys(BUTTONS ControllerInput)
 {
 	if (copyButtons) //copy m64 data to current input
@@ -1014,9 +1033,10 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					skipEditX = true;
 					overrideX = (int)ControllerInput.X_AXIS;
 				}
-				if(strcmp(str,str2))
-					//this and the same one for Y editbox is slow as fuck, this is mainly where tasinput lags
-					SetDlgItemText(statusDlg, IDC_EDITX, str);
+				if (strcmp(str, str2))
+					//this and the same one for Y editbox is running at a moderate speed
+					//SetDlgItemText(statusDlg, IDC_EDITX, str);
+					SetXYTextFast(statusDlg, TRUE, str);
 			}
 			changed = true;
 		}
@@ -1036,7 +1056,8 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					overrideY = (int)ControllerInput.Y_AXIS;
 				}
 				if(strcmp(str,str2))
-					SetDlgItemText(statusDlg, IDC_EDITY, str);
+					//SetDlgItemText(statusDlg, IDC_EDITY, str);
+					SetXYTextFast(statusDlg, FALSE, str);
 			}
 			changed = true;
 		}
@@ -1293,14 +1314,39 @@ EXPORT void CALL ReadController ( int Control, BYTE * Command )
 
 EXPORT void CALL RomClosed (void) {
 	romIsOpen = false;
+	if (fakeStatusThread) {
+		// really try to nuke it
+		printf("Rom opened with fake window");
+		DestroyWindow(status[0].statusDlg);
+		status[0].statusDlg = NULL;
+		status[0].FreeCombos();
+		TerminateThread(fakeStatusThread, 0);
+		fakeStatusThread = NULL;
+		return;
+	}
 	for(int i=0; i<NUMBER_OF_CONTROLS; i++)
 		status[i].StopThread();
 }
+void StartFake() {
+	if (fakeStatusThread) {
+		MessageBox(0, "You can only have 1 testing TASInput running at a time", "Too many instances", MB_TOPMOST); 
+		return;
+	}
 
+	if (MessageBox(0, "This is an experimental feature. Are you sure you want to test this plugin? (All combos made with this temporary TASInput will be gone after closing if you don't save)", "Test TASInput?", MB_TOPMOST|MB_YESNO) == IDNO) return;
+	DWORD dwThreadParam = 0, dwThreadId;
+	fakeStatusThread = CreateThread(0, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId);
+	romIsOpen = true;
+}
+
+EXPORT void CALL DllTest(HWND hParent) {
+	StartFake();
+}
 
 EXPORT void CALL RomOpen (void) {
 	RomClosed();
 	romIsOpen = true;
+
 
 	HKEY hKey;
 	DWORD dwSize, dwType, dwDWSize, dwDWType;
@@ -1309,16 +1355,16 @@ EXPORT void CALL RomOpen (void) {
 	dwSize = sizeof(DEFCONTROLLER);
 	dwDWType = REG_DWORD;
 	dwDWSize = sizeof(DWORD);
-	
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, SUBKEY, 0, KEY_READ, &hKey) == ERROR_SUCCESS ) {
-		for ( BYTE Control = 0; Control<NUMBER_OF_CONTROLS; Control++ ) {
+
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, SUBKEY, 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+		for (BYTE Control = 0; Control < NUMBER_OF_CONTROLS; Control++) {
 			RegQueryValueEx(hKey, Controller[Control].szName, 0, &dwType, (LPBYTE)&Controller[Control], &dwSize);
-			if ( Controller[Control].bActive )
+			if (Controller[Control].bActive)
 				ControlDef[Control]->Present = TRUE;
 			else
 				ControlDef[Control]->Present = FALSE;
 
-			char str [256];
+			char str[256];
 			sprintf(str, "Controller%dRelativeX", Control);
 			RegQueryValueEx(hKey, str, 0, &dwDWType, (LPBYTE)&status[Control].relativeXOn, &dwDWSize);
 			sprintf(str, "Controller%dRelativeY", Control);
@@ -1331,8 +1377,8 @@ EXPORT void CALL RomOpen (void) {
 	}
 	RegCloseKey(hKey);
 
-	for(int i=0; i<NUMBER_OF_CONTROLS; i++)
-		if(Controller[i].bActive)
+	for (int i = 0; i < NUMBER_OF_CONTROLS; i++)
+		if (Controller[i].bActive)
 			status[i].StartThread(i);
 		else
 			status[i].Control = i;
@@ -1506,7 +1552,7 @@ DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter)
 		case 1: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc1); break;
 		case 2: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc2); break;
 		case 3: DialogBox(g_hInstance, MAKEINTRESOURCE(DialogID), NULL, (DLGPROC)StatusDlgProc3); break;
-		default: break;
+		default:  DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_STATUS_12), NULL, (DLGPROC)StatusDlgProc0);
 	}
 //	DialogBoxParam(g_hInstance, MAKEINTRESOURCE(IDD_STATUS), NULL, (DLGPROC)StatusDlgProc);
 //	statusThread = NULL;
@@ -1586,7 +1632,7 @@ void RefreshChanges(HWND hwnd)
 		SetWindowLongA(hwnd, GWL_STYLE, DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE);
 		SetWindowLongA(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW | WS_EX_STATICEDGE);
 	}
-
+	
 	if (menuConfig.onTop)
 		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	else
@@ -1598,11 +1644,9 @@ bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(VK_LBUTTON) & 0x8000) != 0) return TRUE;
 	RefreshChanges(hwnd);
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
-	HMENU hMenu = CreatePopupMenu();
+	hMenu = CreatePopupMenu();
 	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on Top");
 	AppendMenu(hMenu, menuConfig.floatFromParent ? MF_CHECKED : 0, Float, "Show in Taskbar");
-	//AppendMenu(hMenu, 1, 2, "B");
-	//AppendMenu(hMenu, 0, 3, "C");
 	lock = true;
 	int res = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, x, y, hwnd, 0);
 	lock = false;
@@ -1662,18 +1706,17 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_CONTEXTMENU:
 		if (!ShowContextMenu(statusDlg, (HWND)wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); //DefWindowProc()
 		break;
+
 		case WM_ERASEBKGND:
-			if (erase)
+			if (once)
 			{
-				erase = false;
+				once = false;
 				break;
 			}
-			return 1;
-
+			return TRUE; 
         case WM_INITDIALOG:
 		{
 			// reset some dialog state
-			erase = true;
 			dragging = false;
 			lastXDrag = 0;
 			lastYDrag = 0;
@@ -1792,9 +1835,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			sprintf(str, "%d", -initialStickY);
 			SetDlgItemText(statusDlg, IDC_EDITY, str);
 
-			// start WM_TIMER events going
-			SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC) NULL);
-
 			//Load combos
 			//I realised there's HasPanel() too, but doesn't make much difference
 			lBox = GetDlgItem(statusDlg, IDC_MACROLIST);
@@ -1815,6 +1855,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			if(IsWindowFromEmulatorProcessActive())
 				ActivateEmulatorWindow();
 		}	break;
+		case SC_MINIMIZE:
+		DestroyMenu(hMenu); // nuke context menu when minimized...
+		break;
         case WM_NCDESTROY:
         case WM_DESTROY:
 		{
@@ -1972,28 +2015,21 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(draggingStick)
 			{
-				POINT pt, ptemp;
-				RECT client;
+				POINT pt;
 				GetCursorPos(&pt);
-				ptemp = pt;
 				ScreenToClient(GetDlgItem(statusDlg, IDC_STICKPIC), &pt);
-				GetWindowRect(statusDlg, &client);
-
-				if ((ptemp.x > client.left && ptemp.x < client.right && ptemp.y > client.left && ptemp.y < client.right)) {
-					overrideX = (pt.x * 256 / STICKPIC_SIZE - 128 + 1);
-					overrideY = -(pt.y * 256 / STICKPIC_SIZE - 128 + 1);
+				overrideX =  (pt.x*256/STICKPIC_SIZE - 128 + 1);
+				overrideY = -(pt.y*256/STICKPIC_SIZE - 128 + 1);
+				
+				// normalize out-of-bounds clicks
+				if(overrideX > 127 || overrideY > 127 || overrideX < -128 || overrideY < -129)
+				{
+					int absX = abs(overrideX);
+					int absY = abs(overrideY);
+					int div = (absX > absY) ? absX : absY;
+					overrideX = overrideX * (overrideX > 0 ? 127 : 128) / div;
+					overrideY = overrideY * (overrideY > 0 ? 127 : 128) / div;
 				}
-
-					// normalize out-of-bounds clicks
-					if (overrideX > 127 || overrideY > 127 || overrideX < -128 || overrideY < -129)
-					{
-						int absX = abs(overrideX);
-						int absY = abs(overrideY);
-						int div = (absX > absY) ? absX : absY;
-						overrideX = overrideX * (overrideX > 0 ? 127 : 128) / div;
-						overrideY = overrideY * (overrideY > 0 ? 127 : 128) / div;
-					}
-
 				if(overrideX < 7 && overrideX > -7) // snap near-zero clicks to zero
 					overrideX = 0;
 				if(overrideY < 7 && overrideY > -7)
@@ -2267,7 +2303,14 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					if(IsDlgButtonChecked(statusDlg, IDC_YSEM)) relativeYOn = 1;
 					if(IsDlgButtonChecked(statusDlg, IDC_XREL)) relativeXOn = 2;
 					if(IsDlgButtonChecked(statusDlg, IDC_YREL)) relativeYOn = 2;
-					if(IsDlgButtonChecked(statusDlg, IDC_XRAD)) relativeXOn = 3;
+					if(IsDlgButtonChecked(statusDlg, IDC_XRAD)) {
+						relativeXOn = 3;
+						SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC)NULL);
+					}
+					if (relativeXOn != 3) KillTimer(statusDlg, IDT_TIMER3);
+					// Workaround for wine: this will start or stop the application-breaking timer depending on radial mode enabled or not...
+					// no one uses radial anyway so we're good
+
 					radialRecalc = true;
 
 					HKEY hKey;

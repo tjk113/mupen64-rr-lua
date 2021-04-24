@@ -31,6 +31,7 @@ extern bool ffup;
 
 static float VILimit = 60.0;
 static double VILimitMilliseconds = 1000.0/60.0;
+float VIs, FPS;
 
 int GetVILimit()
 {
@@ -77,7 +78,6 @@ void InitTimer() {
 void new_frame() {
    
    DWORD CurrentFPSTime;
-   float FPS;
    char mes[100];
    static DWORD LastFPSTime;
    static DWORD CounterTime;
@@ -101,6 +101,18 @@ void new_frame() {
 
 extern int m_currentVI;
 void new_vi() {
+//#ifdef WIN32// this is windows only already
+	extern DWORD WINAPI closeRom(LPVOID lpParam);
+	extern int frame_advancing;
+
+	// fps wont update when emu is stuck so we must check vi/s
+	// vi/s shouldn't go over 300 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
+	if (emu_launched && frame_advancing && VIs > 300 && MessageBox(NULL, "Emulation problem detected, close rom?", "Warning", MB_ICONWARNING | MB_YESNO | MB_TOPMOST | MB_TASKMODAL) == IDYES) {
+		frame_advancing = false; //don't pause at next open
+		CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, 0);
+
+	}
+//#endif
    DWORD Dif;
    DWORD CurrentFPSTime;
    char mes[100];
@@ -138,12 +150,12 @@ void new_vi() {
 		}
 	}
 #endif
-   
+
    if ( (!Config.showVIS) && (!Config.limitFps) ) return;
    VI_Counter++;
          
    CurrentFPSTime = timeGetTime();
-   
+
    Dif = CurrentFPSTime - LastFPSTime;
    if (Config.limitFps && manualFPSLimit && !frame_advancing
 #ifdef LUA_SPEEDMODE
@@ -157,15 +169,21 @@ void new_vi() {
 		  if (ffup) {
 			  time = 0; CounterTime = 0; ffup = false;
 		  }
-          if (time>0) {
-			Sleep(time);
-          }
+		  if (time > 0 && time < 700) {
+			  Sleep(time);
+		  }
+		  else
+		  {
+			  printf("Invalid timer: %d\n", time);
+			  //reset values?
+			  time = 0; CounterTime = 0; ffup = false;
+		  }
           CurrentFPSTime = CurrentFPSTime + time;
       }
      }
      if ( Config.showVIS ) {
           if (CurrentFPSTime - CounterTime >= 1000.0 ) {
-			  float VIs = VI_Counter * 1000.0 / (CurrentFPSTime - CounterTime);
+			  VIs = VI_Counter * 1000.0 / (CurrentFPSTime - CounterTime);
 			  if (VIs > 1) //if after fast forwarding pretend statusbar lagged idk
 			  {
 				  sprintf(mes, "VI/s: %.1f", VIs);
