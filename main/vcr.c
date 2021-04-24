@@ -1256,7 +1256,6 @@ void SetActiveMovie(char* buf,int maxlen)
 		GetWindowText(mainHWND, title, MAX_PATH);
 		title[titleLength] = '\0'; //remove movie being played part
 		SetWindowText(mainHWND, title);
-		printf("\nText: %s\n", title);
 	}
 	else if(buf != NULL)
 	{

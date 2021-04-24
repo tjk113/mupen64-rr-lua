@@ -173,7 +173,11 @@ void new_vi() {
 			  Sleep(time);
 		  }
 		  else
+		  {
 			  printf("Invalid timer: %d\n", time);
+			  //reset values?
+			  time = 0; CounterTime = 0; ffup = false;
+		  }
           CurrentFPSTime = CurrentFPSTime + time;
       }
      }

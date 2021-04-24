@@ -221,7 +221,7 @@ void savestates_load(bool silenceNotFoundError)
 	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
-		filename = (char*)malloc(strlen(fname)+1);
+		filename = (char*)malloc(strlen(fname)+11);
 		strcpy(filename, fname);
 		//slot -= 10;
 	}
@@ -234,22 +234,40 @@ void savestates_load(bool silenceNotFoundError)
 		strcat(fname, ".st");
 		sprintf(str, "Loading %s", fname);
 	}
-	else if(slot < 9) {
+	else{
 		sprintf(str, "Loading slot %d", slot);
 		sprintf(fname, "Slot %d", slot);
 	}
 	f = gzopen(filename, "rb");
 
+	//try loading .savestate, workaround for discord...
+	if (f == NULL && slot > 9)
+	{
+		filename[strlen(filename) - 3] = '\0';
+		strcat(filename, ".savestate");
+		f = gzopen(filename, "rb");
+	}
+
     //failed opening st
 	if (f == NULL)
 	{
-		if (silenceNotFoundError) return;
-		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
-		free(filename);
-		warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
+		if (f == NULL)
+		{
+			if (silenceNotFoundError) return;
+
+			if (slot > 9)
+			{
+				//print .st not .savestate because
+				filename[strlen(filename) - 10] = '\0';
+				strcat(filename, ".st");
+			}
+			printf("Savestate \"%s\" not found.\n", filename); //full path for debug
+			free(filename);
+			warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
 												  // by moving the warn function it doesn't do this anymore 
-		savestates_job_success = FALSE;
-		return;
+			savestates_job_success = FALSE;
+			return;
+		}
 	}
 	display_status(str);
 	free(filename);
