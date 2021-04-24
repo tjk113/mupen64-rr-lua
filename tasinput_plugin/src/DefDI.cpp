@@ -106,12 +106,15 @@ struct Status
 		Extend = 1|2;
 		positioned = false;
 		comboTask = C_IDLE;
+		once = true;
 	}
 
 	void StartThread(int ControllerNumber)
 	{
 		HANDLE prevStatusThread = statusThread;
 		HWND prevStatusDlg = statusDlg;
+
+		once = true; //redraw once
 
 		Control = ControllerNumber;
 		dwThreadId = Control;
@@ -190,6 +193,8 @@ struct Status
 	int comboTask;
 	int activeCombo;
 	bool fakeInput;
+
+	bool once;
 	
 	void FreeCombos();
 
@@ -1342,6 +1347,7 @@ EXPORT void CALL RomOpen (void) {
 	RomClosed();
 	romIsOpen = true;
 
+
 	HKEY hKey;
 	DWORD dwSize, dwType, dwDWSize, dwDWType;
 
@@ -1702,9 +1708,12 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 
 		case WM_ERASEBKGND:
-			return TRUE; // just tell windows its handled and thats that!!
-						 // if you are reading this in a few years and windows update broke it just fiddle with this until it works ok -auru
-
+			if (once)
+			{
+				once = false;
+				break;
+			}
+			return TRUE; 
         case WM_INITDIALOG:
 		{
 			// reset some dialog state
