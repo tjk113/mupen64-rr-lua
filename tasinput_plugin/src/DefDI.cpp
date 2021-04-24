@@ -60,7 +60,7 @@ DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter);
 bool romIsOpen = false;
 HMENU hMenu;
 
-HANDLE fakeStatusThread; // fake! used for testing plugin
+HANDLE fakeStatusThread = NULL; // fake! used for testing plugin
 
 bool lock; //don't focus mupen
 FILE* cFile; /*combo file conains list of combos in format:
@@ -1029,7 +1029,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 					overrideX = (int)ControllerInput.X_AXIS;
 				}
 				if (strcmp(str, str2))
-					//this and the same one for Y editbox is slow as fuck, this is mainly where tasinput lags
+					//this and the same one for Y editbox is running at a moderate speed
 					//SetDlgItemText(statusDlg, IDC_EDITX, str);
 					SetXYTextFast(statusDlg, TRUE, str);
 			}
@@ -1310,16 +1310,21 @@ EXPORT void CALL ReadController ( int Control, BYTE * Command )
 EXPORT void CALL RomClosed (void) {
 	romIsOpen = false;
 	if (fakeStatusThread) {
-		TerminateThread(&fakeStatusThread, 0);
-		status[0].StopThread();
+		// really try to nuke it
+		printf("Rom opened with fake window");
+		DestroyWindow(status[0].statusDlg);
+		status[0].statusDlg = NULL;
+		status[0].FreeCombos();
+		TerminateThread(fakeStatusThread, 0);
+		fakeStatusThread = NULL;
 		return;
 	}
 	for(int i=0; i<NUMBER_OF_CONTROLS; i++)
 		status[i].StopThread();
 }
 void StartFake() {
-	if (MessageBox(0, "This is an experimental feature. Are you sure you want to test this plugin?", "Test TASInput?", MB_TOPMOST|MB_YESNO) == IDNO) return;
-	DWORD dwThreadParam, dwThreadId;
+	if (MessageBox(0, "This is an experimental feature. Are you sure you want to test this plugin? (All combos made with this temporary TASInput will be gone after closing if you don't save)", "Test TASInput?", MB_TOPMOST|MB_YESNO) == IDNO) return;
+	DWORD dwThreadParam = 0, dwThreadId;
 	fakeStatusThread = CreateThread(0, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId);
 	romIsOpen = true;
 }
