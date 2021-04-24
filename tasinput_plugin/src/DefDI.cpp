@@ -1323,6 +1323,11 @@ EXPORT void CALL RomClosed (void) {
 		status[i].StopThread();
 }
 void StartFake() {
+	if (fakeStatusThread) {
+		MessageBox(0, "You can only have 1 testing TASInput running at a time", "Too many instances", MB_TOPMOST); 
+		return;
+	}
+
 	if (MessageBox(0, "This is an experimental feature. Are you sure you want to test this plugin? (All combos made with this temporary TASInput will be gone after closing if you don't save)", "Test TASInput?", MB_TOPMOST|MB_YESNO) == IDNO) return;
 	DWORD dwThreadParam = 0, dwThreadId;
 	fakeStatusThread = CreateThread(0, 0, StatusDlgThreadProc, &dwThreadParam, 0, &dwThreadId);
