@@ -35,7 +35,7 @@ extern void (*interp_ops[64])(void);
 extern int m_currentVI;
 extern long m_currentSample;
 extern int fast_memory;
-extern bool shouldSave;
+extern int shouldSave;
 void SYNC();
 void NOTCOMPILED();
 void InitTimer();

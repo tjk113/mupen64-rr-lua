@@ -68,7 +68,7 @@ void StartLuaScripts();
 void StartSavestate();
 
 typedef std::string String;
-bool shouldSave = false;
+int shouldSave = FALSE;
 
 bool ffup = false;
 BOOL forceIgnoreRSP = false;
@@ -2287,7 +2287,7 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,STATE_RESTORE,MF_ENABLED);
       EnableMenuItem(hMenu,STATE_LOAD,MF_ENABLED);
       EnableMenuItem(hMenu,GENERATE_BITMAP,MF_ENABLED);
-      DisableRecentRoms( hMenu, FALSE);
+      DisableRecentRoms(hMenu, FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
@@ -2337,7 +2337,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,STATE_RESTORE,MF_GRAYED);
       EnableMenuItem(hMenu,STATE_LOAD,MF_GRAYED);
       EnableMenuItem(hMenu,GENERATE_BITMAP,MF_GRAYED);
-      DisableRecentRoms( hMenu, FALSE);
+      DisableRecentRoms(hMenu,FALSE);
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
@@ -2982,7 +2982,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_LOOP_MOVIE:
 				VCR_toggleLoopMovie();
 				Config.loopMovie = VCR_isLooping();
-				shouldSave = true;
+				shouldSave = TRUE;
 				break;
             case ID_RESTART_MOVIE:
                 if (VCR_isPlaying()) {
@@ -3028,7 +3028,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  if (emu_launched&&!emu_paused) {
                     pauseEmu(FALSE) ; 
                  }
-                 shouldSave = true;
+                 shouldSave = TRUE;
                  ChangeSettings(hwnd);
 		         ini_updateFile(Config.compressedIni);
                  if (emu_launched&&emu_paused&&!wasPaused) {
@@ -3315,7 +3315,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      ClearRecentList(hwnd,TRUE);           
                      break;   
                 case ID_RECENTROMS_FREEZE: 
-                     FreezeRecentRoms( hwnd, TRUE ) ;                                                                      
+                     FreezeRecentRoms(hwnd, TRUE);                                                                      
                      break; 
                 case ID_LOG_WINDOW:
                      ShowHideLogWindow();

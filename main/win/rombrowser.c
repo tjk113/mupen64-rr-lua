@@ -1228,37 +1228,19 @@ void RunRecentRom(int id) {
     }
 }
 
-void DisableRecentRoms(HMENU hMenu,BOOL disable) {
-    int i;
-    
-    if (disable) {
-          for (i=0;i<MAX_RECENT_ROMS;i++) {
-               EnableMenuItem(hMenu,ID_RECENTROMS_FIRST + i,MF_GRAYED);     
-          }
-          
-          
-    }
-    else         {
-             for (i=0;i<MAX_RECENT_ROMS;i++) {
-               EnableMenuItem(hMenu,ID_RECENTROMS_FIRST + i,MF_ENABLED);
-             }  
-    }
+void DisableRecentRoms(HMENU hMenu, BOOL disable) {
+    // this is cool but why
+    if (!Config.RecentRomsFreeze) return; // only disable rom loading if freeze enabled
+    for (int i = 0; i < MAX_RECENT_ROMS; i++)
+        EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, (disable ? MF_ENABLED : MF_DISABLED));
+
 }
 
 void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable) {
 	HMENU hMenu = GetMenu(hWnd);
 	if (ChangeConfigVariable) {
+       shouldSave = 1;
 	   Config.RecentRomsFreeze = 1 - Config.RecentRomsFreeze ;
 	}
-	
-	if (Config.RecentRomsFreeze)
-    {
-	   CheckMenuItem( hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | MFS_CHECKED );
-       
-	}
-	else
-	{
-       CheckMenuItem( hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | MFS_UNCHECKED );
-      
-    } 
+    CheckMenuItem(hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | (Config.RecentRomsFreeze ? MFS_CHECKED : MFS_UNCHECKED));
 }
