@@ -221,6 +221,7 @@ char input_name[255];
 char sound_name[255];
 char rsp_name[255];
 
+char stroopConfigLine[150] = {0};
 
 enum EThreadFuncState {
 	TFS_INITMEM,
@@ -3048,20 +3049,44 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 BOOL temppaused = !emu_paused;
                 pauseEmu(TRUE);
-                char buf[31];
-                char res;
+
+                // todo: simplify
+
+                // maybe pack formatted and buffer and result into one long char array where you only read necessary part
+
+                char buf[12]; // ram start
                 sprintf(buf, "0x%#08p", rdram);
-                std::string stdstr_buf = buf;
-#ifdef _WIN32 // This will only work on windows
-                res = MessageBoxA(0, stdstr_buf.c_str(), "RAM Start (Click Yes to Copy)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO);
-                printf("Buffer size: %d\n", stdstr_buf.size());
-                printf("Buffer length: %d\n", stdstr_buf.length());
-                if (res == IDYES) {
+
+                if (!stroopConfigLine[0]) {
+                    TCHAR procName[MAX_PATH];
+                    GetModuleFileName(NULL, procName, MAX_PATH);
+                    _splitpath(procName, 0, 0, procName, 0);
+
+                    // yea this is very gross but i cant get sprintf work at all in this case
+                    // apparently you cant do something like this:
+
+                    //char* a = (char*)malloc(20);
+                    //char* b = (char*)malloc(20);
+                    //strcpy(a, "hi, %s");
+                    //strcpy(b, "person");
+                    //sprintf(a, b);
+                    //printf(a);
+
+                    // --- "a" will not be "hi, person"
+                    strcpy(stroopConfigLine, "<Emulator name=\"Mupen 5.0 RR\" processName=\"");
+                    strcat(stroopConfigLine, (char*)procName);
+                    strcat(stroopConfigLine, "\" ramStart=\"");
+                    strcat(stroopConfigLine, buf);
+                    strcat(stroopConfigLine, "\" endianness=\"little\"/>");
+                }
+                std::string stdstr_buf = stroopConfigLine;
+#ifdef _WIN32
+                if (MessageBoxA(0, buf, "RAM Start (Click Yes to Copy STROOP config line)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO) == IDYES) {
                     OpenClipboard(mainHWND);
                     EmptyClipboard();
-                    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size()+1);
+                    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size() + 1);
                     if (hg) {
-                        memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size()+1);
+                        memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size() + 1);
                         GlobalUnlock(hg);
                         SetClipboardData(CF_TEXT, hg);
                         CloseClipboard();
@@ -3069,9 +3094,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     }
                     else { printf("Failed to copy"); CloseClipboard(); }
                 }
-               
+
 
 #endif
+
 
                 if (temppaused) {
                     resumeEmu(TRUE);
