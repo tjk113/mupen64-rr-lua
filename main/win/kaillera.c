@@ -27,7 +27,7 @@ static char	szKailleraNamedRoms[50 * 2000];
 DWORD WINAPI KailleraThread(LPVOID lpParam) 
 {
     LoadKaillera();
-    PRINTKAILLERA("Loaded");
+    PRINTFKAILLERA("Kaillera thread %d", lpParam);
     return 0;
 }
 
@@ -130,13 +130,12 @@ int LoadKaillera()
       return 1;        
    }
    else {
-      char errorMsg[MAX_PATH];
+      char* errorMsg = (char*)malloc(MAX_PATH + 46);
       PRINTKAILLERA("Library file 'kailleraclient.dll' not found");
       // sorry linux users
-      strcpy(errorMsg, "Couldn\'t find kailleraclient.dll at path ("); // todo: simplify this too
-      strcat(errorMsg, TempStr);
-      strcat(errorMsg, ") Are you sure it\'s in the right folder?");
+      sprintf(errorMsg, "Couldn\'t find kailleraclient.dll at path \"%s\"", TempStr);
       MessageBox(mainHWND, errorMsg, "", MB_TOPMOST | MB_TASKMODAL);
+      free(errorMsg); // i somehow missed this last time and un-freed allocation calls like this will eventually eat up a lot of memory
       return 0;
     }
 }
