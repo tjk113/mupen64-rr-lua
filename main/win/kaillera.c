@@ -27,7 +27,7 @@ static char	szKailleraNamedRoms[50 * 2000];
 DWORD WINAPI KailleraThread(LPVOID lpParam) 
 {
     LoadKaillera();
-    PRINTFKAILLERA("Kaillera thread %d", lpParam);
+    PRINTFKAILLERA("Kaillera thread %d", lpParam); // %lu doesnt seem to work either so idc lol
     return 0;
 }
 
