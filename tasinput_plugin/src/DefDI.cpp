@@ -1329,7 +1329,9 @@ EXPORT void CALL RomClosed (void) {
 }
 void StartFake() {
 	if (fakeStatusThread) {
-		MessageBox(0, "You can only have 1 testing TASInput running at a time", "Too many instances", MB_TOPMOST); 
+		if (MessageBox(0, "You can only have 1 testing TASInput running at a time. Do you want to kill current TASInput instance?", "Too many instances", MB_TOPMOST | MB_YESNO) == IDNO)return;
+		// kill tasinput
+		RomClosed();
 		return;
 	}
 
