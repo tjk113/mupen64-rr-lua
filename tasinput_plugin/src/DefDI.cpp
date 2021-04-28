@@ -61,6 +61,7 @@ bool romIsOpen = false;
 HMENU hMenu;
 
 HANDLE fakeStatusThread = NULL; // fake! used for testing plugin
+bool validatedhTxtbox = FALSE;
 
 bool lock; //don't focus mupen
 FILE* cFile; /*combo file conains list of combos in format:
@@ -831,13 +832,14 @@ void Status::GetKeys(BUTTONS * Keys)
 
 	gettingKeys = false;
 }
+
 VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
 	// Optimized setdlgitemtext: explanation:
 	// GetDlgItem is very slow because of the many controls and this may limit the speed of emulator in some cases(?)
 	// Instead of using SetDlgItemText every time and (internally) calling GetDlgItem, we precompute the handles to x and y textboxes the first time and re-use them
 	// NOTE: this may break when extending dialogs because handle changes (will fix in future)
-	if (!textXHWND) textXHWND = GetDlgItem(parent, IDC_EDITX);
-	if (!textYHWND) textYHWND = GetDlgItem(parent, IDC_EDITY);
+	if (!textXHWND || validatedhTxtbox) textXHWND = GetDlgItem(parent, IDC_EDITX);
+	if (!textYHWND || validatedhTxtbox) textYHWND = GetDlgItem(parent, IDC_EDITY);
 
 	if (x) SetWindowText(textXHWND, str); // Is there implicit char* -> long pointer string happening?
 	else SetWindowText(textYHWND, str);
@@ -1833,7 +1835,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// initial x/y text field values
 			sprintf(str, "%d", initialStickX);
-			SetDlgItemText(statusDlg, IDC_EDITX, str);
+			SetDlgItemText(statusDlg, IDC_EDITX, str); // no need for "fast" version here this only happens one time
 			sprintf(str, "%d", -initialStickY);
 			SetDlgItemText(statusDlg, IDC_EDITY, str);
 
@@ -2047,7 +2049,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					sprintf(str, "%d", (int)(angle2 + (angle2>0 ? 0.5f : -0.5f)));
 					skipEditX = true;
 				}
-				SetDlgItemText(statusDlg, IDC_EDITX, str);
+				SetXYTextFast(statusDlg, true, str);
 				if(!AngDisp)
 					sprintf(str, "%d", -overrideY);
 				else
@@ -2056,8 +2058,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					sprintf(str, "%d", (int)(0.5f + radialDistance));
 					skipEditY = true;
 				}
-				SetDlgItemText(statusDlg, IDC_EDITY, str);
-
+				SetXYTextFast(statusDlg, false, str);
 				radialRecalc = true;
 				overrideOn = true; //joystick dragged with mouse
 				RefreshAnalogPicture();
@@ -2210,7 +2211,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 							if(newOverrideX > 127) newOverrideX = 127;
 							if(newOverrideX < -128) newOverrideX = -128;
 							sprintf(str, "%d", newOverrideX);
-							SetDlgItemText(statusDlg, IDC_EDITX, str);
+							SetXYTextFast(statusDlg, true, str);
 						}
 					}
 					else
@@ -2221,12 +2222,12 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 							if(newAng >= 360)
 							{
 								sprintf(str, "%d", newAng-360);
-								SetDlgItemText(statusDlg, IDC_EDITX, str);
+								SetXYTextFast(statusDlg, true, str);
 							}
 							else if(newAng < 0)
 							{
 								sprintf(str, "%d", newAng+360);
-								SetDlgItemText(statusDlg, IDC_EDITX, str);
+								SetXYTextFast(statusDlg, true, str);
 							}
 							float newAngF = (newAng - 90) * (PI/180.0f);
 							newOverrideX =  (int)(xScale * radialDistance * cosf((float)newAngF));
@@ -2265,7 +2266,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 							if(newOverrideY > 127) newOverrideY = 127;
 							if(newOverrideY < -128) newOverrideY = -128;
 							sprintf(str, "%d", -newOverrideY);
-							SetDlgItemText(statusDlg, IDC_EDITY, str);
+							SetXYTextFast(statusDlg, false, str);
 						}
 					}
 					else
@@ -2420,6 +2421,10 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					// Resizing wouldn't work, because any resizing causes visible damage to the dialog's background
 					// due to some messages not getting through to repair it
 					StartThread(Control);
+
+					// Invalidate cache
+					validatedhTxtbox = FALSE;
+
 				}	break;
 				case IDC_PLAY:
 					activeCombo = ListBox_GetCurSel(GetDlgItem(statusDlg, IDC_MACROLIST));
