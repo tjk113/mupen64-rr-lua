@@ -838,8 +838,8 @@ VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
 	// GetDlgItem is very slow because of the many controls and this may limit the speed of emulator in some cases(?)
 	// Instead of using SetDlgItemText every time and (internally) calling GetDlgItem, we precompute the handles to x and y textboxes the first time and re-use them
 	// NOTE: this may break when extending dialogs because handle changes (will fix in future)
-	if (!textXHWND || validatedhTxtbox) textXHWND = GetDlgItem(parent, IDC_EDITX);
-	if (!textYHWND || validatedhTxtbox) textYHWND = GetDlgItem(parent, IDC_EDITY);
+	if (!textXHWND || !validatedhTxtbox) textXHWND = GetDlgItem(parent, IDC_EDITX);
+	if (!textYHWND || !validatedhTxtbox) textYHWND = GetDlgItem(parent, IDC_EDITY);
 
 	if (x) SetWindowText(textXHWND, str); // Is there implicit char* -> long pointer string happening?
 	else SetWindowText(textYHWND, str);
