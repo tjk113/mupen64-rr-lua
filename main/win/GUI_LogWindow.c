@@ -20,13 +20,14 @@
 #include "DebugView.h"
 #include "main_win.h"
 
-int extLogger ; 
-
+int extLogger; 
+//HINSTANCE dv_hInst;
+HMODULE DVHandle;
 ///////////////// External Logger DLL ////////////////////////////////////////// 
  
 int CreateExtLogger() 
 {
-    HMODULE DVHandle;
+    
     char TempStr[MAX_PATH];
         
     sprintf(TempStr,"%s%s",AppPath,"debugview.dll") ; 
@@ -36,23 +37,16 @@ int CreateExtLogger()
     if (DVHandle) {
         
         FileLog = (void (__cdecl *)(char *, ...)) GetProcAddress(DVHandle, "FileLog");
-        
         OpenDV = (HWND (__cdecl *)(HINSTANCE, int)) GetProcAddress(DVHandle, "OpenDV");
-        
         DVMsg = (void (__cdecl *)(int, char *, ...)) GetProcAddress(DVHandle, "DVMsg");
-        
         CloseDV = (void (__cdecl *)(void)) GetProcAddress(DVHandle, "CloseDV");
-        
         ShowDV = (void (__cdecl *)(int)) GetProcAddress(DVHandle, "ShowDV");
-        
         SetUserIcon = (void (__cdecl *)(int, HICON)) GetProcAddress(DVHandle, "SetUserIcon");
-        
         SetUserIconName = (void (__cdecl *)(int, char*)) GetProcAddress(DVHandle, "SetUserIconName");
-        
         DVClear = (void (__cdecl*)( void )) GetProcAddress(DVHandle, "DVClear");;
        
         
-        OpenDV( DVHandle, DV_SHOW );
+        OpenDV(DVHandle, DV_HIDE);
 //        ShowDV( DV_HIDE ) ;
 
         return 1;        
@@ -63,24 +57,18 @@ int CreateExtLogger()
 }
 
 /* Show / Hide Management */
-void ShowLogWindow()	{ 
-    if (extLogger) {
-      if (ShowDV)  ShowDV( DV_SHOW ) ;
-    }
+void ShowLogWindow() {
+    if (extLogger) ShowDV(DV_SHOW);
 }
     
-void HideLogWindow()	{    
-    if (extLogger) {
-      if (ShowDV) ShowDV( DV_HIDE ) ;
-    }    
+void HideLogWindow() {
+    if (extLogger) ShowDV(DV_HIDE);
 }
 
 
 void ShowHideLogWindow()
 {
-    if (extLogger) {
-      if (ShowDV) ShowDV( DV_AUTO ) ;
-    }
+    if (extLogger) ShowDV(DV_AUTO);
 }
 
 
@@ -162,13 +150,15 @@ void ClearLogWindow()
 
 
 int GUI_CreateLogWindow( HWND hwnd )  {
-    extLogger = CreateExtLogger() ;
-    return 0;
+    extLogger = CreateExtLogger();
+    return extLogger;
 }
 
 void CloseLogWindow() {
+    // if this closes once you can never open it again
+    // probably this is just shitty programming because debugview source code isnt available
     if (extLogger) {
-       if (CloseDV)  CloseDV() ;
+       if (CloseDV) CloseDV();
     }
 }
 

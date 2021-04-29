@@ -3649,14 +3649,13 @@ int WINAPI WinMain(
         SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED); //this can't be applied before ShowWindow(), otherwise you must use some fancy function
 		UpdateWindow(hwnd);
 #endif
+        EnableMenuItem(GetMenu(hwnd), ID_LOG_WINDOW, MF_DISABLED);
 #ifdef _DEBUG
-		GUI_CreateLogWindow(hwnd);
+		if(GUI_CreateLogWindow(mainHWND)) EnableMenuItem(GetMenu(hwnd), ID_LOG_WINDOW, MF_ENABLED);
 #endif
-		if (!extLogger)
-		{
-			//DeleteMenu( GetMenu(hwnd), ID_LOG_WINDOW, MF_BYCOMMAND);
-			EnableMenuItem(GetMenu(hwnd), ID_LOG_WINDOW, MF_GRAYED);
-		}
+		
+		
+		
     
 		if (!isKailleraExist())
 		{
