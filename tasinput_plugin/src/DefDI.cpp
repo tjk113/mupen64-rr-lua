@@ -63,6 +63,7 @@ HMENU hMenu;
 
 HANDLE fakeStatusThread = NULL; // fake! used for testing plugin
 bool validatedhTxtbox = FALSE;
+UINT systemDPI;
 
 bool lock; //don't focus mupen
 FILE* cFile; /*combo file conains list of combos in format:
@@ -841,32 +842,42 @@ VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
 	// Optimized setdlgitemtext: explanation:
 	// GetDlgItem is very slow because of the many controls and this may limit the speed of emulator in some cases(?)
 	// Instead of using SetDlgItemText every time and (internally) calling GetDlgItem, we precompute the handles to x and y textboxes the first time and re-use them
-	// NOTE: this may break when extending dialogs because handle changes (will fix in future)
 	if (!textXHWND || !validatedhTxtbox) textXHWND = GetDlgItem(parent, IDC_EDITX);
 	if (!textYHWND || !validatedhTxtbox) textYHWND = GetDlgItem(parent, IDC_EDITY);
 
-	if (x) SetWindowText(textXHWND, str); // Is there implicit char* -> long pointer string happening?
-	else SetWindowText(textYHWND, str);
+	if (x) SetWindowText(textXHWND, str); 
+	else   SetWindowText(textYHWND, str);
 }
 
 BOOL AdjustForDPI(HWND parent, UINT dpi) {
 
 	// Adjust for system scaling
 
-	// 96 - normal
-	// 120 - big
+	// 96 - 100%
+	// 120 - 125%
 
-	if (STICKPIC_SIZE == 131) return FALSE; // early return (stickpic size is already correct)
-											// prevent it from getting infinitely bigger when reinitializing dialog by resizing
+	RECT ctl_pos, ctl_gp_pos;
+	GetWindowRect(GetDlgItem(parent, IDC_STICKPIC), &ctl_pos);
+	GetWindowRect(GetDlgItem(parent, IDC_STATICX), &ctl_gp_pos);
 
-	RECT pos;
-	GetWindowRect(GetDlgItem(parent, IDC_STICKPIC), &pos);
-	
-	
-	if (dpi == 120) {
-		STICKPIC_SIZE += 26;
+	ctl_gp_pos.left -= 3; // adjust for border
+
+	if (STICKPIC_SIZE == 131) {
+		// prevent infinitely increasing size
+
+		if (dpi == 120) { 
+			STICKPIC_SIZE = STICKPIC_SIZE*125/100; // * 1.25 works too
+		}
+
+
+		// check for overlap with gpbox and try to fix it
+		if (ctl_pos.right > ctl_gp_pos.left) {
+			printf("overlap with groupbox (%d/%d)", ctl_pos.right, ctl_gp_pos.left);
+			STICKPIC_SIZE = ctl_gp_pos.left;
+		}
 	}
-	
+	//STICKPIC_SIZE = (UINT)STICKPIC_SIZE; // ensure no double
+	printf("stickpic size: %d\ndpi: %d", STICKPIC_SIZE, dpi);
 	return dpi != 96;
 
 }
@@ -1749,7 +1760,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			//SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 			// sure... did i think it is that easy
 
-			AdjustForDPI(statusDlg, GetDpiForSystem());
+			systemDPI = GetDpiForSystem();
+
+			AdjustForDPI(statusDlg, systemDPI, TRUE);
 
 			// reset some dialog state
 			dragging = false;

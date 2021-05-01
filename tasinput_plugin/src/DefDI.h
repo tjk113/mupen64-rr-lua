@@ -115,7 +115,7 @@ extern HINSTANCE g_hInstance;
 enum PopupOptions {
 	None,
 	OnTop,
-	Float,
+	Float
 };
 
 typedef struct {
