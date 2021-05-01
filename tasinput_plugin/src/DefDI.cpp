@@ -222,6 +222,8 @@ int Status::frameCounter = 0;
 Status status [NUMBER_OF_CONTROLS];
 
 //#define STICKPIC_SIZE (131) 
+
+// todo split into x y
 UINT STICKPIC_SIZE = 131;
 
 int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
@@ -848,16 +850,20 @@ VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
 }
 
 BOOL AdjustForDPI(HWND parent, UINT dpi) {
+
 	// Adjust for system scaling
 
 	// 96 - normal
 	// 120 - big
+
+	if (STICKPIC_SIZE == 131) return FALSE; // early return (stickpic size is already correct)
+											// prevent it from getting infinitely bigger when reinitializing dialog by resizing
+
 	RECT pos;
 	GetWindowRect(GetDlgItem(parent, IDC_STICKPIC), &pos);
-
+	
 	
 	if (dpi == 120) {
-		if(STICKPIC_SIZE == 131) // prevent it from getting infinitely bigger when reinitializing dialog by resizing
 		STICKPIC_SIZE += 26;
 	}
 	
