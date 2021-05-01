@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define PI 3.14159265358979f
 #define BUFFER_CHUNK 128
 
+#undef List // look at line 32 for cause
 #define aCombo ComboList.at(activeCombo) //so it's a bit cleaner
 
 HINSTANCE g_hInstance;
@@ -220,11 +221,12 @@ int Status::frameCounter = 0;
 
 Status status [NUMBER_OF_CONTROLS];
 
-
-#define STICKPIC_SIZE (131)
+//#define STICKPIC_SIZE (131) 
+UINT STICKPIC_SIZE = 131;
 
 int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
-{    
+{
+
 	switch (fdwReason)
 	{
 		case DLL_PROCESS_ATTACH:
@@ -843,6 +845,24 @@ VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
 
 	if (x) SetWindowText(textXHWND, str); // Is there implicit char* -> long pointer string happening?
 	else SetWindowText(textYHWND, str);
+}
+
+BOOL AdjustForDPI(HWND parent, UINT dpi) {
+	// Adjust for system scaling
+
+	// 96 - normal
+	// 120 - big
+	RECT pos;
+	GetWindowRect(GetDlgItem(parent, IDC_STICKPIC), &pos);
+
+	
+	if (dpi == 120) {
+		if(STICKPIC_SIZE != STICKPIC_SIZE + 26) // prevent it from getting infinitely bigger when reinitializing dialog by resizing
+		STICKPIC_SIZE += 26;
+	}
+	
+	return dpi != 96;
+
 }
 void Status::SetKeys(BUTTONS ControllerInput)
 {
@@ -1720,6 +1740,11 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			return TRUE; 
         case WM_INITDIALOG:
 		{
+			//SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+			// sure... did i think it is that easy
+
+			AdjustForDPI(statusDlg, GetDpiForSystem());
+
 			// reset some dialog state
 			dragging = false;
 			lastXDrag = 0;
