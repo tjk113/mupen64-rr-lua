@@ -59,6 +59,6 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
     fprintf(f, error);
     fclose(f);
 
-    int code = MessageBox(0, "Emulator crashed, press OK to try to continue\n Crash log saved to " CRASH_LOG, "Exception", MB_OKCANCEL | MB_ICONERROR);
+    int code = MessageBox(0, "Emulator crashed, press OK to try to continue\nCrash log saved to " CRASH_LOG, "Exception", MB_OKCANCEL | MB_ICONERROR);
     return code == IDOK ? EXCEPTION_CONTINUE_EXECUTION : EXCEPTION_EXECUTE_HANDLER;
 }
