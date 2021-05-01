@@ -857,7 +857,7 @@ BOOL AdjustForDPI(HWND parent, UINT dpi) {
 
 	
 	if (dpi == 120) {
-		if(STICKPIC_SIZE != STICKPIC_SIZE + 26) // prevent it from getting infinitely bigger when reinitializing dialog by resizing
+		if(STICKPIC_SIZE == 131) // prevent it from getting infinitely bigger when reinitializing dialog by resizing
 		STICKPIC_SIZE += 26;
 	}
 	
