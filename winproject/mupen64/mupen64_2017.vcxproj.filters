@@ -203,6 +203,9 @@
     <ClInclude Include="..\..\lua\luaDefine.h">
       <Filter>Source Files\lua</Filter>
     </ClInclude>
+    <ClInclude Include="CrashHandler.h">
+      <Filter>Source Files\main\win</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main\adler32.c">
@@ -441,6 +444,9 @@
     </ClCompile>
     <ClCompile Include="..\..\main\disasm.c">
       <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="CrashHandler.cpp">
+      <Filter>Source Files\main\win</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

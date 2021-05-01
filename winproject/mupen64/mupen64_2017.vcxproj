@@ -234,6 +234,7 @@
     <ClInclude Include="..\..\main\win\timers.h" />
     <ClInclude Include="..\..\main\win\translation.h" />
     <ClInclude Include="..\..\main\win\vfw.h" />
+    <ClInclude Include="CrashHandler.h" />
     <CustomBuildStep Include="..\..\main\gui_gtk\aboutdialog.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
@@ -711,6 +712,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="..\..\lua\LuaConsole.cpp" />
+    <ClCompile Include="CrashHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\rsrc.rc" />

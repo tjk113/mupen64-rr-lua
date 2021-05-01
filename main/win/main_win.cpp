@@ -52,6 +52,7 @@ extern "C" {
 #include "RomSettings.h"
 #include "GUI_logwindow.h"
 #include "commandline.h"
+#include "CrashHandler.h"
 
 #include "../vcr.h"
 #include "../../r4300/recomph.h"
@@ -3516,6 +3517,7 @@ void LoadConfigExternals() {
 	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
 }
 
+
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -3544,7 +3546,6 @@ int WINAPI WinMain(
         CreateDirectory((path + "ScreenShots").c_str(), NULL);
         CreateDirectory((path + "plugin").c_str(), NULL);
   }
-           
   emu_launched = 0;
   emu_paused = 1;
   /************    Loading Config  *******/
@@ -3674,6 +3675,11 @@ int WINAPI WinMain(
 
 		LoadConfigExternals();
 
+        #ifndef _DEBUG
+        //warning, this is ignored when debugger is attached (like visual studio)
+        SetUnhandledExceptionFilter(ExceptionReleaseTarget); 
+        #endif
+        //RaiseException(1, 0, 0, 0); //shows messagebox from wntdll
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
 			if (!TranslateAccelerator(mainHWND,Accel,&Msg)
