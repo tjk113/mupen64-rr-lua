@@ -28,7 +28,7 @@ int FindModuleName(char *error, void* addr, int len)
 
                 // write the address with module
                 if (hMods[i]<addr)
-                    return sprintf(error+len,"Addr:0x%p (%s)\n", addr,modname);
+                    return sprintf(error+len,"Addr:0x%p (%s 0x%p)\n", addr,modname,hMods[i]);
             }
         }
     }
