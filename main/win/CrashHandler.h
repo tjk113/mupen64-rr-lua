@@ -3,4 +3,4 @@
 
 #define CRASH_LOG "crash.log"
 
-LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
+LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo);
