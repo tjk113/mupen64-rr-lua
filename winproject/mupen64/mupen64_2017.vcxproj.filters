@@ -203,7 +203,7 @@
     <ClInclude Include="..\..\lua\luaDefine.h">
       <Filter>Source Files\lua</Filter>
     </ClInclude>
-    <ClInclude Include="CrashHandler.h">
+    <ClInclude Include="..\..\main\win\CrashHandler.h">
       <Filter>Source Files\main\win</Filter>
     </ClInclude>
   </ItemGroup>
@@ -445,7 +445,7 @@
     <ClCompile Include="..\..\main\disasm.c">
       <Filter>Source Files\main</Filter>
     </ClCompile>
-    <ClCompile Include="CrashHandler.cpp">
+    <ClCompile Include="..\..\main\win\CrashHandler.cpp">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
   </ItemGroup>
