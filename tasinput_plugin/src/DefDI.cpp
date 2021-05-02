@@ -1346,9 +1346,10 @@ EXPORT void CALL ReadController ( int Control, BYTE * Command )
 	//      (The frame counter is used only for autofire and combo progression.)
 	if(Control == -1)
 		Status::frameCounter++;
-//		for(Control = 0; Control < NUMBER_OF_CONTROLS; Control++)
-//			if(Controller[Control].bActive)
-//				status[Control].frameCounter++;
+
+	for (char i = 0; i < 4; i++)
+		SendMessage(status[i].statusDlg, WM_SETCURSOR, 0, 0);
+
 }
 
 EXPORT void CALL RomClosed (void) {
