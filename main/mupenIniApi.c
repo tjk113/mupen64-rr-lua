@@ -132,6 +132,7 @@ void ini_openFile()
 	       {
 		  cur->next_entry = (iniElem*)malloc(sizeof(iniElem));
 		  cur = cur->next_entry;
+		  cur->next_entry = NULL;
 		  cur->next_crc = NULL;
 		  cur->next_MD5 = NULL;
 	       }

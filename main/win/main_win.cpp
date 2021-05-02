@@ -3675,10 +3675,8 @@ int WINAPI WinMain(
 
 		LoadConfigExternals();
 
-        #ifndef _DEBUG
         //warning, this is ignored when debugger is attached (like visual studio)
         SetUnhandledExceptionFilter(ExceptionReleaseTarget); 
-        #endif
         //example
         //RaiseException(1, 0, 0, 0); //shows messagebox from wntdll
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
