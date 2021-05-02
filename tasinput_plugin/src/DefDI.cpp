@@ -1928,23 +1928,30 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			GetCursorPos(&pt);
 
 
-		
+			//is any mouse button pressed?
 			nextClick = ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000));
-			lastWasRight = 0!=(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+
+			//used for sliders (rightclick reset), remembers if rightclick was pressed
+			//!! turns it into bool
+			lastWasRight = !!(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+			//if not dragging, previous interacion wasn't click with R or L, and current one (nextClick) is R or L
 			if(!dragging && !lastClick && nextClick)
 			{
 				if(IsMouseOverControl(statusDlg,IDC_STICKPIC))
 				{
+					//if clicked RMB and permadrag was active, disable it
 					if(draggingPermaStick || GetAsyncKeyState(VK_RBUTTON) & 0x8000)
 					{
 						draggingPermaStick = !draggingPermaStick;
 						draggingStick = draggingPermaStick;
 					}
+					//otherwise just drag stick
 					else
 						draggingStick = true;
 				}
 				// no else if... you cant be over stickpic AND not on it (schrödingers mouse wtf)
-				if(IsMouseOverControl(statusDlg,IDC_BUTTONSLABEL)) 
+				//If mouse over any of the labels and not over joystick, start dragging or autofire
+				else if(IsMouseOverControl(statusDlg,IDC_BUTTONSLABEL) || IsMouseOverControl(statusDlg, IDC_ANALOGSTICKLABEL))
 				{
 #ifdef DEBUG
 					printf("HWND hit: %d\n", ChildWindowFromPoint(statusDlg, pt));
@@ -1953,7 +1960,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 #endif
 					//we need to go deeper because it wont return lowest control like we want it
 					// atmost 4 gpboxes down (combo menu) so this should work but will break with major ui changes or edge cases
-					if(ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt), pt), pt) == GetDlgItem(statusDlg,IDC_BUTTONSLABEL))
+					//my comment: grab whatever it hits and it should be the buttons label,then start looking for checkboxes
+					if(ChildWindowFromPoint(statusDlg, pt) == GetDlgItem(statusDlg,IDC_BUTTONSLABEL))
 					{
 						overrideOn = true; //clicking on buttons counts as override
 						if(GetAsyncKeyState(VK_RBUTTON) & 0x8000) // right click on a button to autofire it
