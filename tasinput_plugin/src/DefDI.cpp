@@ -1682,7 +1682,7 @@ void RefreshChanges(HWND hwnd)
 
 bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 {
-	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(VK_LBUTTON) & 0x8000) != 0) return TRUE;
+	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(VK_LBUTTON) & 0x8000)) return TRUE;
 	RefreshChanges(hwnd);
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
 	hMenu = CreatePopupMenu();
@@ -1923,6 +1923,12 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 
 		// too bad we don't get useful events like WM_MOUSEMOVE or WM_LBUTTONDOWN...
 		case WM_SETCURSOR:
+		
+			POINT pt;
+			GetCursorPos(&pt);
+
+
+		
 			nextClick = ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000));
 			lastWasRight = 0!=(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
 			if(!dragging && !lastClick && nextClick)
@@ -1937,66 +1943,21 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					else
 						draggingStick = true;
 				}
-				else if((!HasPanel(1) || // Any non-control area of the window is draggable.
-					     (!IsMouseOverControl(statusDlg,IDC_XABS) && // This is done partly out of necessity,
-				          !IsMouseOverControl(statusDlg,IDC_XSEM) && // because normal automatic window movement
-				          !IsMouseOverControl(statusDlg,IDC_XREL) && // would not work (don't get messages for it),
-				          !IsMouseOverControl(statusDlg,IDC_XRAD) && // and partly because the result occupies
-				          !IsMouseOverControl(statusDlg,IDC_YABS) && // less space and is more convenient
-				          !IsMouseOverControl(statusDlg,IDC_YSEM) &&
-				          !IsMouseOverControl(statusDlg,IDC_YREL) &&
-				          !IsMouseOverControl(statusDlg,IDC_EDITX) &&
-				          !IsMouseOverControl(statusDlg,IDC_EDITY) &&
-					      !IsMouseOverControl(statusDlg, IDC_CLEARJOY) &&
-				          !IsMouseOverControl(statusDlg,IDC_SPINX) &&
-				          !IsMouseOverControl(statusDlg,IDC_SPINY) &&
-				          !IsMouseOverControl(statusDlg,IDC_SLIDERX) &&
-				          !IsMouseOverControl(statusDlg,IDC_SLIDERY) &&
-							 !IsMouseOverControl(statusDlg, IDC_CHECK_ANGDISP) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON0) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON1))) &&
-					    (!HasPanel(2) ||
-					     (!IsMouseOverControl(statusDlg,IDC_CLEARBUTTONS) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON2) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON3) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON4))) &&
-					    (!HasPanel(3) ||
-					     (!IsMouseOverControl(statusDlg,IDC_MACROBOX) &&
-				          !IsMouseOverControl(statusDlg,IDC_MACROLIST) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON5) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON6))))
+				// no else if... you cant be over stickpic AND not on it (schrödingers mouse wtf)
+				if(IsMouseOverControl(statusDlg,IDC_BUTTONSLABEL)) 
 				{
-					if(HasPanel(2) &&
-					   (IsMouseOverControl(statusDlg,IDC_CHECK_A) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_B) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_L) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_R) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_Z) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_START) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_CUP) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_CDOWN) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_CLEFT) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_CRIGHT) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_DUP) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_DDOWN) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_DLEFT) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_DRIGHT)))
+#ifdef DEBUG
+					printf("HWND hit: %d\n", ChildWindowFromPoint(statusDlg, pt));
+					printf("HWND deeper 1: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt));
+					printf("HWND deeper 2: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt), pt));
+#endif
+					//we need to go deeper because it wont return lowest control like we want it
+					// atmost 4 gpboxes down (combo menu) so this should work but will break with major ui changes or edge cases
+					if(ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt), pt), pt) == GetDlgItem(statusDlg,IDC_BUTTONSLABEL))
 					{
 						overrideOn = true; //clicking on buttons counts as override
 						if(GetAsyncKeyState(VK_RBUTTON) & 0x8000) // right click on a button to autofire it
 						{
-#define UPDATEAUTO(idc,field) \
-{ \
-	if(IsMouseOverControl(statusDlg,idc)) \
-	{ \
-		CheckDlgButton(statusDlg,idc,buttonAutofire.field|buttonAutofire2.field ? 0 : 1); \
-		BUTTONS &autoFire1 = (frameCounter%2 == 0) ? buttonAutofire : buttonAutofire2; \
-		BUTTONS &autoFire2 = (frameCounter%2 == 0) ? buttonAutofire2 : buttonAutofire; \
-		autoFire1.field = !(autoFire1.field|autoFire2.field); \
-		autoFire2.field = 0; \
-		buttonOverride.field = 0; \
-	} \
-}
 							UPDATEAUTO(IDC_CHECK_A, A_BUTTON);
 							UPDATEAUTO(IDC_CHECK_B, B_BUTTON);
 							UPDATEAUTO(IDC_CHECK_START, START_BUTTON);
@@ -2011,7 +1972,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 							UPDATEAUTO(IDC_CHECK_DLEFT, L_DPAD);
 							UPDATEAUTO(IDC_CHECK_DRIGHT, R_DPAD);
 							UPDATEAUTO(IDC_CHECK_DDOWN, D_DPAD);
-#undef UPDATEAUTO
+
 							ActivateEmulatorWindow();
 						}
 					}
@@ -2019,7 +1980,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						if (menuConfig.movable) {
 							dragging = true;
-							POINT pt;
 							GetCursorPos(&pt);
 							dragXStart = pt.x;
 							dragYStart = pt.y;
@@ -2064,7 +2024,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					lastXDrag = newDragX-dragXStart;
 					lastYDrag = newDragY-dragYStart;
-					SetWindowPos(statusDlg,0, lastXDrag, lastYDrag, 0,0, SWP_NOZORDER|SWP_NOSIZE|SWP_SHOWWINDOW);
+																		// do not
+					SetWindowPos(statusDlg,0, lastXDrag, lastYDrag, 0,0,/*SWP_NOZORDER|*/SWP_NOSIZE|SWP_SHOWWINDOW);
 				}
 			}
 			else if(draggingStick)
