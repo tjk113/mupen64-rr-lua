@@ -1958,10 +1958,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					printf("HWND deeper 1: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt));
 					printf("HWND deeper 2: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt), pt));
 #endif
-					//we need to go deeper because it wont return lowest control like we want it
-					// atmost 4 gpboxes down (combo menu) so this should work but will break with major ui changes or edge cases
-					//my comment: grab whatever it hits and it should be the buttons label,then start looking for checkboxes
-					if(ChildWindowFromPoint(statusDlg, pt) == GetDlgItem(statusDlg,IDC_BUTTONSLABEL))
+					//if we are over buttons area and right is clicked, look for autofire candidates
+					if(lastWasRight && IsMouseOverControl(statusDlg, IDC_BUTTONSLABEL))
 					{
 						overrideOn = true; //clicking on buttons counts as override
 						if(GetAsyncKeyState(VK_RBUTTON) & 0x8000) // right click on a button to autofire it
