@@ -852,7 +852,7 @@ VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
 BOOL AdjustForDPI(HWND parent, UINT dpi) {
 
 	// Adjust for system scaling
-
+	// todo: more scaling checks
 	// 96 - 100%
 	// 120 - 125%
 
@@ -1688,6 +1688,7 @@ bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 	hMenu = CreatePopupMenu();
 	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on Top");
 	AppendMenu(hMenu, menuConfig.floatFromParent ? MF_CHECKED : 0, Float, "Show in Taskbar");
+	AppendMenu(hMenu, menuConfig.movable ? MF_CHECKED : 0, Movable, "Movable");
 	lock = true;
 	int res = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, x, y, hwnd, 0);
 	lock = false;
@@ -1698,6 +1699,9 @@ bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 		break;
 	case Float:
 		menuConfig.floatFromParent ^= 1;
+		break;
+	case Movable:
+		menuConfig.movable ^= 1;
 		break;
 	}
 	RefreshChanges(hwnd);
@@ -1762,7 +1766,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 
 			systemDPI = GetDpiForSystem();
 
-			AdjustForDPI(statusDlg, systemDPI, TRUE);
+			AdjustForDPI(statusDlg, systemDPI);
 
 			// reset some dialog state
 			dragging = false;
@@ -2013,16 +2017,18 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 					else
 					{
-						dragging = true;
-						POINT pt;
-						GetCursorPos(&pt);
-						dragXStart = pt.x;
-						dragYStart = pt.y;
+						if (menuConfig.movable) {
+							dragging = true;
+							POINT pt;
+							GetCursorPos(&pt);
+							dragXStart = pt.x;
+							dragYStart = pt.y;
 
-						RECT rect;
-						GetWindowRect(statusDlg, &rect);
-						dragXStart -= rect.left;
-						dragYStart -= rect.top;
+							RECT rect;
+							GetWindowRect(statusDlg, &rect);
+							dragXStart -= rect.left;
+							dragYStart -= rect.top;
+						}
 					}
 				}
 			}
