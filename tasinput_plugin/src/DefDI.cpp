@@ -2038,8 +2038,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				POINT pt;
 				GetCursorPos(&pt);
 				ScreenToClient(GetDlgItem(statusDlg, IDC_STICKPIC), &pt);
-				overrideX =  (pt.x*256/STICKPIC_SIZE - 128 + 1);
-				overrideY = -(pt.y*256/STICKPIC_SIZE - 128 + 1);
+				overrideX =  (pt.x*256/(signed)STICKPIC_SIZE - 128 + 1);
+				overrideY = -(pt.y*256/(signed)STICKPIC_SIZE - 128 + 1);
 				
 				// normalize out-of-bounds clicks
 				if(overrideX > 127 || overrideY > 127 || overrideX < -128 || overrideY < -129)
