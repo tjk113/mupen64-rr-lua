@@ -2025,6 +2025,8 @@ void
 VCR_toggleLoopMovie()
 {
 	m_loopMovie = !m_loopMovie;
+	extern bool lockNoStWarn;
+	lockNoStWarn = m_loopMovie;
 
 #ifdef __WIN32__
 	extern HWND mainHWND;
