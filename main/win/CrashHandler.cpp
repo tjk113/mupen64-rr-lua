@@ -5,7 +5,7 @@
 #include "../../winproject/resource.h" //MUPEN_VERSION
 #include "vcr.h"
 
-//Attempt to find the base module, might be faulty with crazy crashes where everything corrupts
+//Attempt to find crashing module, finds closest base address to crash point which should be the module (right?)
 //error - points to the error msg buffer
 //addr - where did it crash
 //len - current error length so it can append properly
@@ -15,22 +15,24 @@ int FindModuleName(char *error, void* addr, int len)
     HMODULE hMods[1024];
     HANDLE hProcess = GetCurrentProcess();
     DWORD cbNeeded;
+    //printf("addr: %p\n", addr);
     if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
     {
+        HMODULE maxbase = 0;
         for (int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
         {
-            char modname[MAX_PATH];
-            // Get the full path to the module's file.
-
-            if (GetModuleBaseName(hProcess, hMods[i], modname,
-                sizeof(modname) / sizeof(char)))
-            {
-
-                // write the address with module
-                if (hMods[i]<addr)
-                    return sprintf(error+len,"Addr:0x%p (%s 0x%p)\n", addr,modname,hMods[i]);
-            }
+            //find closest addr
+            if (hMods[i] > maxbase && hMods[i] < addr)
+                maxbase = hMods[i];
+                //char modname[MAX_PATH];
+                //GetModuleBaseName(hProcess, maxbase, modname, sizeof(modname) / sizeof(char));
+                //printf("%s: %p\n", modname, maxbase);
         }
+        // Get the full path to the module's file.
+        char modname[MAX_PATH];
+        if (GetModuleBaseName(hProcess, maxbase, modname,sizeof(modname) / sizeof(char)))
+            // write the address with module
+            return sprintf(error+len,"Addr:0x%p (%s 0x%p)\n", addr,modname,maxbase);
     }
     return 0; //what
 }
