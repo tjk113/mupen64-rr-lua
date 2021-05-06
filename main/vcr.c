@@ -132,7 +132,7 @@ static int AVIBreakMovie = 0;
 int titleLength;
 
 extern void resetEmu();
-void SetActiveMovie(char* buf, int maxlen);
+void SetActiveMovie(char* buf);
 
 static int startPlayback(const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting);
 static int restartPlayback();
@@ -1142,7 +1142,7 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
     } else{
      	m_task = StartRecording;
     }
-	SetActiveMovie(buf, MAX_PATH);
+	SetActiveMovie(buf);
 	setROMInfo(&m_header);
 
 	// utf8 strings are also null-terminated so this method still works
@@ -1247,31 +1247,23 @@ VCR_stopRecord()
 
 //on titlebar, modifies passed buffer!!
 //if buffer == NULL, remove current active
-void SetActiveMovie(char* buf,int maxlen)
+void SetActiveMovie(char* buf)
 {
-	static bool active = false;
 	char title[MAX_PATH];
-	if (buf == NULL && titleLength)
+	if (buf==NULL)
 	{
-		GetWindowText(mainHWND, title, MAX_PATH);
-		title[titleLength] = '\0'; //remove movie being played part
-		SetWindowText(mainHWND, title);
+		sprintf(title, MUPEN_VERSION " - %s", ROM_HEADER->nom);
 	}
-	else if(buf != NULL)
+	else
 	{
-		if (!buf) return;
-		//original length
-		titleLength = GetWindowText(mainHWND, title, MAX_PATH);
+		int titleLength = GetWindowText(mainHWND, title, MAX_PATH);
 		_splitpath(buf, 0, 0, buf, 0);
 		//trim trailing spaces because it looks weird
 		while (title[--titleLength] == ' ');
 		title[++titleLength] = '\0';
-
-		strcat(title, " | ");
-		strcat(title, buf);
-		strcat(title, ".m64");
-		SetWindowText(mainHWND, title);
+		sprintf(title, "%s | %s.m64", title, buf);
 	}
+	SetWindowText(mainHWND, title);
 }
 
 int
@@ -1314,7 +1306,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
     		return -1;
         }
 	}
-	if (!restarting) SetActiveMovie(buf, MAX_PATH); // can crash when looping + fast forward, no need to change this
+	if (!restarting) SetActiveMovie(buf); // can crash when looping + fast forward, no need to change this
     {
         int code = read_movie_header(m_file, &m_header);
         
@@ -1594,7 +1586,7 @@ stopPlayback(bool bypassLoopSetting)
 	}
 #ifdef __WIN32__
 	extern HWND mainHWND;
-	SetActiveMovie(NULL, 0); //remove from title
+	SetActiveMovie(NULL); //remove from title
 #endif
 	if (m_file && m_task != StartRecording && m_task != Recording)
 	{
