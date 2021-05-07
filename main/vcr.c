@@ -1249,22 +1249,22 @@ VCR_stopRecord()
 //if buffer == NULL, remove current active
 void SetActiveMovie(char* buf)
 {
+	static bool active = false;
 	char title[MAX_PATH];
-	if (buf==NULL)
+
+	if (!buf)
 	{
 		sprintf(title, MUPEN_VERSION " - %s", ROM_HEADER->nom);
 	}
-	else
+	else if (buf)
 	{
-		int titleLength = GetWindowText(mainHWND, title, MAX_PATH);
+
 		_splitpath(buf, 0, 0, buf, 0);
-		//trim trailing spaces because it looks weird
-		while (title[--titleLength] == ' ');
-		title[++titleLength] = '\0';
-		sprintf(title, "%s | %s.m64", title, buf);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64", ROM_HEADER->nom, buf);
 	}
 	SetWindowText(mainHWND, title);
 }
+
 
 int
 VCR_startPlayback(const char *filename, const char *authorUTF8, const char *descriptionUTF8) {
