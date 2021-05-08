@@ -131,6 +131,8 @@
       </BasicRuntimeChecks>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Strict</FloatingPointModel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;Comctl32.lib;zlib-2008-x32.lib;%(AdditionalDependencies)</AdditionalDependencies>
