@@ -1,4 +1,7 @@
-# Mupen64 Lua
+### ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) **Experimental - Expect instability**
+# Mupen64 Lua - New C Standard 
+
+
 [![Release](https://img.shields.io/github/v/release/mkdasher/mupen64-rr-lua-?label=Release)](https://github.com/mkdasher/mupen64-rr-lua-/releases)
 [<img src="https://img.shields.io/github/downloads/mkdasher/mupen64-rr-lua-/total?label=Downloads">]()
 [<img src="https://img.shields.io/discord/723573549607944272?label=Discord">](https://discord.gg/bxvZpwdFmW)
@@ -6,7 +9,8 @@
 
 [comment]: <> (Second image has to be inline so another approach is used)
 
-This repository contains source code for continued development of Mupen64 - Nintendo 64 emulator with TAS support, and TASinput plugin. 
+This repository contains source code for continued development of Mupen64 - Nintendo 64 emulator with TAS support, and TASinput plugin and compiled with the new C/C++ standard.
+
 
 This version includes <a href="https://imgur.com/a/SA2CgEB" target="_blank">new Features such as: AVISplit, Reset recording, WiiVC and Backwards Compatibility</a> options all in one.
 
