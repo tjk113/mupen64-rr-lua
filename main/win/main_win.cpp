@@ -2827,6 +2827,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 //			return 0;
     case WM_WINDOWPOSCHANGING:  //allow gfx plugin to set arbitrary size 
         return 0;
+    case WM_GETMINMAXINFO:
+    {
+        LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+        lpMMI->ptMinTrackSize.x = MIN_WINDOW_W;
+        lpMMI->ptMinTrackSize.y = MIN_WINDOW_H;
+        // this might break small res with gfx plugin!!!
+    }
+
 	case WM_ENTERMENULOOP:       
              AutoPause = emu_paused;
              if (!emu_paused)
