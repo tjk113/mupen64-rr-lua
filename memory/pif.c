@@ -554,7 +554,8 @@ void update_pif_read(bool stcheck)
 							savestates_save();
 							savestates_job &= ~SAVESTATE;
 						}
-					} else if (savestates_job & LOADSTATE && stAllowed) {
+					}
+					if (savestates_job & LOADSTATE && stAllowed) {
 						savestates_load(false);
 						savestates_job &= ~LOADSTATE;
 					}
