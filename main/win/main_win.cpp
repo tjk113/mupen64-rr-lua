@@ -1259,7 +1259,7 @@ void pauseEmu(BOOL quiet)
 
 BOOL StartRom(char *fullRomPath)
 {
-     if (romBrowserbusy) {
+     if (romBrowserRefreshThread) {
         display_status("Rom browser busy!");
         return TRUE;
      }
@@ -2384,7 +2384,8 @@ if(!continue_vcr_on_restart_mode)
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
 {
-    while (emu_launched) aiUpdate(1);
+    while (emu_launched)
+        aiUpdate(1);
     ExitThread(0);
 }
 
