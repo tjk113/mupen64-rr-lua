@@ -548,17 +548,13 @@ void update_pif_read(bool stcheck)
 							}
 						}
 					}
-					if (stcheck) {
-						if (!input_delay) {
-							if (savestates_job & SAVESTATE && stAllowed)
-							{
-								savestates_save();
-								savestates_job &= ~SAVESTATE;
-							}
+					if (stcheck && !input_delay) {
+						if (savestates_job & SAVESTATE && stAllowed)
+						{
+							savestates_save();
+							savestates_job &= ~SAVESTATE;
 						}
-					}
-					if (savestates_job & LOADSTATE && stAllowed)
-					{
+					} else if (savestates_job & LOADSTATE && stAllowed) {
 						savestates_load(false);
 						savestates_job &= ~LOADSTATE;
 					}
