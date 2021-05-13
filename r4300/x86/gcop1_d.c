@@ -201,6 +201,7 @@ void genround_l_d()
    gencheck_cop1_unusable();
    fldcw_m16((unsigned short*)&round_mode);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fd]));
    fistp_preg32_qword(EAX);
@@ -216,6 +217,7 @@ void gentrunc_l_d()
    gencheck_cop1_unusable();
    fldcw_m16((unsigned short*)&trunc_mode);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fd]));
    fistp_preg32_qword(EAX);
@@ -231,6 +233,7 @@ void genceil_l_d()
    gencheck_cop1_unusable();
    fldcw_m16((unsigned short*)&ceil_mode);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fd]));
    fistp_preg32_qword(EAX);
@@ -246,6 +249,7 @@ void genfloor_l_d()
    gencheck_cop1_unusable();
    fldcw_m16((unsigned short*)&floor_mode);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fd]));
    fistp_preg32_qword(EAX);
@@ -261,6 +265,7 @@ void genround_w_d()
    gencheck_cop1_unusable();
    fldcw_m16((unsigned short*)&round_mode);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
    fistp_preg32_dword(EAX);
@@ -276,6 +281,7 @@ void gentrunc_w_d()
    gencheck_cop1_unusable();
    fldcw_m16((unsigned short*)&trunc_mode);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
    fistp_preg32_dword(EAX);
@@ -291,6 +297,7 @@ void genceil_w_d()
    gencheck_cop1_unusable();
    fldcw_m16((unsigned short*)&ceil_mode);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
    fistp_preg32_dword(EAX);
@@ -306,6 +313,7 @@ void genfloor_w_d()
    gencheck_cop1_unusable();
    fldcw_m16((unsigned short*)&floor_mode);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
    fistp_preg32_dword(EAX);
@@ -323,6 +331,7 @@ void gencvt_s_d()
 	   fldcw_m16((unsigned short*)&trunc_mode);
    }
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
    fstp_preg32_dword(EAX);
@@ -339,6 +348,7 @@ void gencvt_w_d()
 #else
    gencheck_cop1_unusable();
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
    fistp_preg32_dword(EAX);
@@ -352,6 +362,7 @@ void gencvt_l_d()
 #else
    gencheck_cop1_unusable();
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
+   gencheck_eax_valid();
    fld_preg32_qword(EAX);
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fd]));
    fistp_preg32_qword(EAX);
