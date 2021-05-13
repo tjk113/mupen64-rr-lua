@@ -2103,6 +2103,7 @@ static void CTC1()
      }
    //if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n",
 //				   (int)((FCR31 >> 7) & 0x1F));
+   set_rounding();
    interp_addr+=4;
 }
 
