@@ -60,7 +60,6 @@
 void ADD_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
    CHECK_INPUT(*reg_cop1_simple[cffs]);
    CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] +
@@ -72,7 +71,6 @@ void ADD_S()
 void SUB_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
    CHECK_INPUT(*reg_cop1_simple[cffs]);
    CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] -
@@ -84,7 +82,6 @@ void SUB_S()
 void MUL_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
    CHECK_INPUT(*reg_cop1_simple[cffs]);
    CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] *
@@ -96,7 +93,6 @@ void MUL_S()
 void DIV_S()
 {  
    if (check_cop1_unusable()) return;
-   set_rounding();
    CHECK_INPUT(*reg_cop1_simple[cffs]);
    CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] /
@@ -108,7 +104,6 @@ void DIV_S()
 void SQRT_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
    CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = sqrt(*reg_cop1_simple[cffs]);
    CHECK_OUTPUT(*reg_cop1_simple[cffd]);
@@ -223,7 +218,6 @@ void CVT_D_S()
 void CVT_W_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
    PC++;
 }
@@ -231,7 +225,6 @@ void CVT_W_S()
 void CVT_L_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
    PC++;
 }
