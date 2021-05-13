@@ -3072,22 +3072,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     GetModuleFileName(NULL, procName, MAX_PATH);
                     _splitpath(procName, 0, 0, procName, 0);
 
-                    // yea this is very gross but i cant get sprintf work at all in this case
-                    // apparently you cant do something like this:
+                    sprintf(stroopConfigLine, "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>", procName, buf);
+                    
 
-                    //char* a = (char*)malloc(20);
-                    //char* b = (char*)malloc(20);
-                    //strcpy(a, "hi, %s");
-                    //strcpy(b, "person");
-                    //sprintf(a, b);
-                    //printf(a);
 
-                    // --- "a" will not be "hi, person"
-                    strcpy(stroopConfigLine, "<Emulator name=\"Mupen 5.0 RR\" processName=\"");
-                    strcat(stroopConfigLine, (char*)procName);
-                    strcat(stroopConfigLine, "\" ramStart=\"");
-                    strcat(stroopConfigLine, buf);
-                    strcat(stroopConfigLine, "\" endianness=\"little\"/>");
                 }
                 std::string stdstr_buf = stroopConfigLine;
 #ifdef _WIN32
