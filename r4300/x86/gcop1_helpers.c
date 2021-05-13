@@ -79,7 +79,7 @@ void gencheck_float_output_valid()
 
     // A:
     patch_jump(jump2, code_length);
-    // replace the (denormal or zero) result by zero
+    // replace the (denormal or zero) result by zero (see CHECK_OUTPUT for reasoning)
     fldz();
 
     // B:
