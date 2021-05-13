@@ -208,11 +208,6 @@ void FLOOR_W_S()
 void CVT_D_S()
 {
    if (check_cop1_unusable()) return;
-   if (round_to_zero) {
-       set_trunc();
-   } else {
-       set_rounding();
-   }
    *reg_cop1_double[cffd] = *reg_cop1_simple[cffs];
    PC++;
 }
