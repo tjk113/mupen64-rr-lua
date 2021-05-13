@@ -3052,6 +3052,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 char res;
                 sprintf(buf, "0x%#08p", rdram);
                 std::string stdstr_buf = buf;
+		FILE* file = fopen("ramstart.txt", "w");
+                fputs(buf, file);
+                fclose(file); fflush(file);
 #ifdef _WIN32 // This will only work on windows
                 res = MessageBoxA(0, stdstr_buf.c_str(), "RAM Start (Click Yes to Copy)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO);
                 printf("Buffer size: %d\n", stdstr_buf.size());
