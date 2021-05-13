@@ -86,16 +86,16 @@ void CTC1()
    switch((FCR31 & 3))
      {
       case 0:
-	rounding_mode = 0x33F;
+	rounding_mode = ROUND_MODE;
 	break;
       case 1:
-	rounding_mode = 0xF3F;
+	rounding_mode = TRUNC_MODE;
 	break;
       case 2:
-	rounding_mode = 0xB3F;
+	rounding_mode = CEIL_MODE;
 	break;
       case 3:
-	rounding_mode = 0x73F;
+	rounding_mode = FLOOR_MODE;
 	break;
      }
    //if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n", 

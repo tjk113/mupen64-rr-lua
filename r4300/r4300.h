@@ -74,6 +74,12 @@ int check_cop1_unusable();
 
 #define jump_to(a) { jump_to_address = a; jump_to_func(); }
 
+// Mask all exceptions, and set precision to 53 bits
+#define TRUNC_MODE 0xE3F
+#define ROUND_MODE 0x23F
+#define CEIL_MODE 0xA3F
+#define FLOOR_MODE 0x63F
+
 // profiling
 
 #define GFX_SECTION 1

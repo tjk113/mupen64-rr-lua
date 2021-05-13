@@ -119,20 +119,20 @@ void genctc1()
    
    cmp_eax_imm32(0);
    jne_rj(12);
-   mov_m32_imm32((unsigned long*)&rounding_mode, 0x33F); // 10
+   mov_m32_imm32((unsigned long*)&rounding_mode, ROUND_MODE); // 10
    jmp_imm_short(48); // 2
    
    cmp_eax_imm32(1); // 5
    jne_rj(12); // 2
-   mov_m32_imm32((unsigned long*)&rounding_mode, 0xF3F); // 10
+   mov_m32_imm32((unsigned long*)&rounding_mode, TRUNC_MODE); // 10
    jmp_imm_short(29); // 2
    
    cmp_eax_imm32(2); // 5
    jne_rj(12); // 2
-   mov_m32_imm32((unsigned long*)&rounding_mode, 0xB3F); // 10
+   mov_m32_imm32((unsigned long*)&rounding_mode, CEIL_MODE); // 10
    jmp_imm_short(10); // 2
    
-   mov_m32_imm32((unsigned long*)&rounding_mode, 0x73F); // 10
+   mov_m32_imm32((unsigned long*)&rounding_mode, FLOOR_MODE); // 10
    
    fldcw_m16((unsigned short*)&rounding_mode);
 #endif

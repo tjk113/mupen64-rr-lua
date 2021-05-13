@@ -71,8 +71,8 @@ precomp_instr *PC;
 char invalid_code[0x100000];
 
 precomp_block *blocks[0x100000], *actual;
-int rounding_mode = 0x33F, trunc_mode = 0xF3F, round_mode = 0x33F,
-    ceil_mode = 0xB3F, floor_mode = 0x73F;
+int rounding_mode = ROUND_MODE;
+int trunc_mode = TRUNC_MODE, round_mode = ROUND_MODE, ceil_mode = CEIL_MODE, floor_mode = FLOOR_MODE;
 void (*code)();
 
 /*#define check_memory() \
@@ -1717,7 +1717,7 @@ void go()
       break;
    }
    
-   rounding_mode = 0x33F;
+   rounding_mode = ROUND_MODE;
 
    last_addr = 0xa4000040;
    //next_interupt = 624999; //this is later overwritten with different value so what's the point...
