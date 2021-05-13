@@ -12,3 +12,4 @@ commit.txt
 plugins/
 winproject/save
 winproject/plugin
+*.o
