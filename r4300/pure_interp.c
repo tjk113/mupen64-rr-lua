@@ -40,11 +40,31 @@
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "../../lua/LuaConsole.h"
+#include "../lua/LuaConsole.h"
 
-#ifdef _MSC_VER
-#define isnan _isnan
-#endif
+#define CHECK_INPUT(x) \
+    do { if (emulate_float_crashes && !isnormal(x) && (x) != 0 && !isinf(x)) { \
+        printf("Operation on denormal/nan: %lf; PC = 0x%lx\n", x, interp_addr); \
+        stop=1; \
+        interp_addr+=4; \
+        return; \
+    } } while (0)
+
+#define CHECK_OUTPUT(x) \
+    do { if (emulate_float_crashes && !isnormal(x) && !isinf(x)) { \
+        if (isnan(x)) { \
+            printf("Invalid float operation; PC = 0x%lx\n", interp_addr); \
+            stop=1; \
+            interp_addr+=4; \
+            return; \
+        } else { \
+            /* Flush denormals to zero manually, since x87 doesn't have a built-in */ \
+            /* way to do it. Typically this doesn't matter, because denormals are */ \
+            /* too small to cause visible console/emu divergences, but since we */ \
+            /* check for them on entry to each operation this becomes important.. */ \
+            x = 0; \
+        } \
+    } } while (0)
 
 #ifdef DBG
 extern int debugger_mode;
@@ -1285,24 +1305,33 @@ static void (*interp_cop1_bc[4])(void) =
 static void ADD_S()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] +
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void SUB_S()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] -
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void MUL_S()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] *
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
@@ -1313,35 +1342,39 @@ static void DIV_S()
 	printf("div_s by 0\n");
      }
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] /
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void SQRT_S()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = sqrt(*reg_cop1_simple[cffs]);
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void ABS_S()
 {
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = fabs(*reg_cop1_simple[cffs]);
    interp_addr+=4;
 }
 
 static void MOV_S()
 {
-   set_rounding();
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs];
    interp_addr+=4;
 }
 
 static void NEG_S()
 {
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = -(*reg_cop1_simple[cffs]);
    interp_addr+=4;
 }
@@ -1610,24 +1643,33 @@ C_SF_S   ,C_NGLE_S ,C_SEQ_S ,C_NGL_S  ,C_LT_S   ,C_NGE_S  ,C_LE_S  ,C_NGT_S
 static void ADD_D()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] +
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void SUB_D()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] -
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void MUL_D()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] *
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
@@ -1643,35 +1685,39 @@ static void DIV_D()
 	//return;
      }
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] /
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void SQRT_D()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = sqrt(*reg_cop1_double[cffs]);
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void ABS_D()
 {
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = fabs(*reg_cop1_double[cffs]);
    interp_addr+=4;
 }
 
 static void MOV_D()
 {
-   set_rounding();
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs];
    interp_addr+=4;
 }
 
 static void NEG_D()
 {
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = -(*reg_cop1_double[cffs]);
    interp_addr+=4;
 }

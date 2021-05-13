@@ -34,16 +34,39 @@
 #include "ops.h"
 #include "macros.h"
 
-#ifdef _MSC_VER
-#define isnan _isnan
-#endif
+#define CHECK_INPUT(x) \
+    do { if (emulate_float_crashes && !isnormal(x) && (x) != 0 && !isinf(x)) { \
+        printf("Operation on denormal/nan: %lf; PC = 0x%lx\n", x, PC->addr); \
+        stop=1; \
+        PC++; \
+        return; \
+    } } while (0)
+
+#define CHECK_OUTPUT(x) \
+    do { if (emulate_float_crashes && !isnormal(x) && !isinf(x)) { \
+        if (isnan(x)) { \
+            printf("Invalid float operation; PC = 0x%lx\n", PC->addr); \
+            stop=1; \
+            PC++; \
+            return; \
+        } else { \
+            /* Flush denormals to zero manually, since x87 doesn't have a built-in */ \
+            /* way to do it. Typically this doesn't matter, because denormals are */ \
+            /* too small to cause visible console/emu divergences, but since we */ \
+            /* check for them on entry to each operation this becomes important.. */ \
+            x = 0; \
+        } \
+    } } while (0)
 
 void ADD_D()
 {
    if (check_cop1_unusable()) return;
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] +
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    PC++;
 }
 
@@ -51,8 +74,11 @@ void SUB_D()
 {
    if (check_cop1_unusable()) return;
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] -
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    PC++;
 }
 
@@ -60,8 +86,11 @@ void MUL_D()
 {
    if (check_cop1_unusable()) return;
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] *
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    PC++;
 }
 
@@ -69,8 +98,11 @@ void DIV_D()
 {
    if (check_cop1_unusable()) return;
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] /
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    PC++;
 }
 
@@ -78,22 +110,25 @@ void SQRT_D()
 {
    if (check_cop1_unusable()) return;
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = sqrt(*reg_cop1_double[cffs]);
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    PC++;
 }
 
 void ABS_D()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = fabs(*reg_cop1_double[cffs]);
+   // ABS cannot fail
    PC++;
 }
 
 void MOV_D()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   // MOV is not an arithmetic instruction, no check needed
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs];
    PC++;
 }
@@ -101,8 +136,9 @@ void MOV_D()
 void NEG_D()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = -(*reg_cop1_double[cffs]);
+   // NEG cannot fail
    PC++;
 }
 
