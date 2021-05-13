@@ -1381,8 +1381,9 @@ static void NEG_S()
 
 static void ROUND_L_S()
 {
-   set_round();
+   set_round_to_nearest();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1390,6 +1391,7 @@ static void TRUNC_L_S()
 {
    set_trunc();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1397,6 +1399,7 @@ static void CEIL_L_S()
 {
    set_ceil();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1404,13 +1407,15 @@ static void FLOOR_L_S()
 {
    set_floor();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
 static void ROUND_W_S()
 {
-   set_round();
+   set_round_to_nearest();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1418,6 +1423,7 @@ static void TRUNC_W_S()
 {
    set_trunc();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1425,6 +1431,7 @@ static void CEIL_W_S()
 {
    set_ceil();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1432,6 +1439,7 @@ static void FLOOR_W_S()
 {
    set_floor();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1719,8 +1727,9 @@ static void NEG_D()
 
 static void ROUND_L_D()
 {
-   set_round();
+   set_round_to_nearest();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1728,6 +1737,7 @@ static void TRUNC_L_D()
 {
    set_trunc();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1735,6 +1745,7 @@ static void CEIL_L_D()
 {
    set_ceil();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1742,13 +1753,15 @@ static void FLOOR_L_D()
 {
    set_floor();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
 static void ROUND_W_D()
 {
-   set_round();
+   set_round_to_nearest();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1756,6 +1769,7 @@ static void TRUNC_W_D()
 {
    set_trunc();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1763,6 +1777,7 @@ static void CEIL_W_D()
 {
    set_ceil();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1770,6 +1785,7 @@ static void FLOOR_W_D()
 {
    set_floor();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -1781,6 +1797,7 @@ static void CVT_S_D()
        set_rounding();
    }
    *reg_cop1_simple[cffd] = *reg_cop1_double[cffs];
+   set_rounding();
    interp_addr+=4;
 }
 

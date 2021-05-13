@@ -1719,6 +1719,7 @@ void go()
    }
    
    rounding_mode = ROUND_MODE;
+   set_rounding();
 
    last_addr = 0xa4000040;
    //next_interupt = 624999; //this is later overwritten with different value so what's the point...

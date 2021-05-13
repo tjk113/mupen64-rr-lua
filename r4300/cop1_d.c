@@ -145,8 +145,9 @@ void NEG_D()
 void ROUND_L_D()
 {
    if (check_cop1_unusable()) return;
-   set_round();
+   set_round_to_nearest();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
@@ -155,6 +156,7 @@ void TRUNC_L_D()
    if (check_cop1_unusable()) return;
    set_trunc();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
@@ -163,6 +165,7 @@ void CEIL_L_D()
    if (check_cop1_unusable()) return;
    set_ceil();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
@@ -171,14 +174,16 @@ void FLOOR_L_D()
    if (check_cop1_unusable()) return;
    set_floor();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
 void ROUND_W_D()
 {
    if (check_cop1_unusable()) return;
-   set_round();
+   set_round_to_nearest();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
@@ -187,6 +192,7 @@ void TRUNC_W_D()
    if (check_cop1_unusable()) return;
    set_trunc();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
@@ -195,6 +201,7 @@ void CEIL_W_D()
    if (check_cop1_unusable()) return;
    set_ceil();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
@@ -203,6 +210,7 @@ void FLOOR_W_D()
    if (check_cop1_unusable()) return;
    set_floor();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
@@ -215,6 +223,7 @@ void CVT_S_D()
        set_rounding();
    }
    *reg_cop1_simple[cffd] = *reg_cop1_double[cffs];
+   set_rounding();
    PC++;
 }
 
