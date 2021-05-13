@@ -20,6 +20,7 @@ void ReadCfgString    (char *Section,char *Key,char *DefaultValue,char *retValue
 int ReadCfgInt        (char *Section,char *Key,int DefaultValue) ;
 
 extern int round_to_zero;
+extern int emulate_float_crashes;
 extern int input_delay;
 extern int LUA_double_buffered; 
 

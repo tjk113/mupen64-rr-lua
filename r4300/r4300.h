@@ -64,6 +64,7 @@ extern unsigned long jump_to_address;
 extern int no_audio_delay;
 extern int no_compiled_jump;
 extern int round_to_zero;
+extern int emulate_float_crashes;
 
 void go();
 void pure_interpreter();

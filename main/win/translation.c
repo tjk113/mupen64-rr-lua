@@ -522,6 +522,7 @@ void TranslateAdvancedDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_NO_AUDIO_DELAY,"No audio delay (desyncs A/V)");
     SetItemTranslatedString(hwnd,IDC_NO_COMPILED_JUMP,"No compiled jump (EXPERIMENTAL)");
 	SetItemTranslatedString(hwnd,IDC_SUPPRESS_LOAD_ST_PROMPT, "Suppress non-movie snapshot warnings");
+    SetItemTranslatedString(hwnd,IDC_EMULATEFLOATCRASHES, "Emulate Float Crashes");
         
     SetItemTranslatedString(hwnd,IDC_ROMBROWSERCOLUMNS,"Rombrowser Columns");
     SetItemTranslatedString(hwnd,IDC_COLUMN_GOODNAME,"GoodName");

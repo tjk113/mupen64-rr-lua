@@ -888,6 +888,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          WriteCheckBoxValue( hwnd, IDC_GUI_STATUSBAR, Config.GuiStatusbar);
          WriteCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT, Config.AutoIncSaveSlot);
          WriteCheckBoxValue( hwnd, IDC_ROUNDTOZERO, round_to_zero);
+         WriteCheckBoxValue( hwnd, IDC_EMULATEFLOATCRASHES, emulate_float_crashes);
          WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, input_delay);
          EnableWindow(GetDlgItem(hwnd, IDC_INPUTDELAY), false); //disable for now
          WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, LUA_double_buffered);
@@ -921,6 +922,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 Config.GuiStatusbar = ReadCheckBoxValue( hwnd, IDC_GUI_STATUSBAR);
 	            Config.AutoIncSaveSlot = ReadCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT);
                 round_to_zero = ReadCheckBoxValue( hwnd, IDC_ROUNDTOZERO);
+                emulate_float_crashes = ReadCheckBoxValue( hwnd, IDC_EMULATEFLOATCRASHES);
                 input_delay = ReadCheckBoxValue(hwnd, IDC_INPUTDELAY);
                 
                 LUA_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);

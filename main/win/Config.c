@@ -177,6 +177,7 @@ void LoadConfig()
     Config.GuiStatusbar = ReadCfgInt("Advanced", "Use Statusbar", 1);
     Config.AutoIncSaveSlot = ReadCfgInt("Advanced", "Auto Increment Save Slot", 0);
     round_to_zero = ReadCfgInt("Advanced", "Round To Zero", 0);
+    emulate_float_crashes = ReadCfgInt("Advanced", "Emulate Float Crashes", 0);
     input_delay = ReadCfgInt("Advanced", "Old Input Delay", 0);
     LUA_double_buffered = ReadCfgInt("Advanced", "LUA Double Buffer", 1);
 	Config.IgnoreStWarnings = ReadCfgInt("Advanced", "Ignore non-movie st warning", 0);
@@ -347,6 +348,7 @@ void SaveConfig()
     WriteCfgInt("Advanced", "Use Statusbar", Config.GuiStatusbar);
     WriteCfgInt("Advanced", "Auto Increment Save Slot", Config.AutoIncSaveSlot);
     WriteCfgInt("Advanced", "Round To Zero", round_to_zero);
+    WriteCfgInt("Advanced", "Emulate Float Crashes", emulate_float_crashes);
     WriteCfgInt("Advanced", "Old Input Delay", input_delay);
 	WriteCfgInt("Advanced", "LUA Double Buffer", LUA_double_buffered);
     WriteCfgInt("Advanced", "Ignore non-movie st warning", Config.IgnoreStWarnings);
