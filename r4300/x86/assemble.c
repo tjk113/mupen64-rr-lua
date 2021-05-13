@@ -1137,6 +1137,12 @@ void fldcw_m16(unsigned short *m16)
    put32((unsigned long)(m16));
 }
 
+void fld_fpreg(int fpreg)
+{
+   put8(0xD9);
+   put8(0xC0 + fpreg);
+}
+
 void fld_preg32_dword(int reg32)
 {
    put8(0xD9);
@@ -1149,10 +1155,22 @@ void fdiv_preg32_dword(int reg32)
    put8(0x30 + reg32);
 }
 
+void fstp_fpreg(int fpreg)
+{
+    put8(0xDD);
+    put8(0xD8 + fpreg);
+}
+
 void fstp_preg32_dword(int reg32)
 {
    put8(0xD9);
    put8(0x18 + reg32);
+}
+
+void fldz()
+{
+   put8(0xD9);
+   put8(0xEE);
 }
 
 void fchs()
@@ -1278,6 +1296,12 @@ void fcomip_fpreg(int fpreg)
    put8(0xF0 + fpreg);
 }
 
+void fucomi_fpreg(int fpreg)
+{
+   put8(0xDF);
+   put8(0xE8 + fpreg);
+}
+
 void fucomip_fpreg(int fpreg)
 {
    put8(0xDF);
@@ -1290,3 +1314,9 @@ void ffree_fpreg(int fpreg)
    put8(0xC0 + fpreg);
 }
 
+void fclex()
+{
+   put8(0x9B);
+   put8(0xDB);
+   put8(0xE2);
+}
