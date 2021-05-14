@@ -265,6 +265,12 @@ void test_m32_imm32(void *_m32, unsigned long imm32)
    put32(imm32);
 }
 
+void test_al_imm8(unsigned char imm8)
+{
+   put8(0xA8);
+   put8(imm8);
+}
+
 void cmp_al_imm8(unsigned char imm8)
 {
    put8(0x3C);
@@ -1319,4 +1325,11 @@ void fclex()
    put8(0x9B);
    put8(0xDB);
    put8(0xE2);
+}
+
+void fstsw_ax()
+{
+   put8(0x9B);
+   put8(0xDF);
+   put8(0xE0);
 }

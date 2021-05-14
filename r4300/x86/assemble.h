@@ -217,6 +217,7 @@ void cmp_reg32_reg32(int reg1, int reg2);
 void or_reg32_imm32(int reg32, unsigned long imm32);
 void adc_reg32_imm32(unsigned long reg32, unsigned long imm32);
 void and_al_imm8(unsigned char imm8);
+void test_al_imm8(unsigned char imm8);
 void cmp_al_imm8(unsigned char imm8);
 void movsx_reg32_8preg32pimm32(int reg1, int reg2, unsigned long imm32);
 void movsx_reg32_16preg32pimm32(int reg1, int reg2, unsigned long imm32);
@@ -248,5 +249,6 @@ void jae_rj(unsigned char saut);
 void fild_preg32_qword(int reg32);
 void fild_preg32_dword(int reg32);
 void fclex();
+void fstsw_ax();
 
 #endif // ASSEMBLE_H

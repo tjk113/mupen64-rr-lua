@@ -19,6 +19,12 @@ static void post_check_failed()
     stop=1;
 }
 
+static void conversion_failed()
+{
+    printf("Out-of-range float conversion; PC = 0x%lx\n", PC->addr);
+    stop=1;
+}
+
 static void patch_jump(unsigned long addr, unsigned long target) {
     (*inst_pointer)[addr - 1] = (unsigned char)(target - addr);
 }
@@ -83,5 +89,23 @@ void gencheck_float_output_valid()
     fldz();
 
     // B:
+    patch_jump(jump1, code_length);
+}
+
+/**
+ * Assert that the last x87 operation did not result in a (masked) Invalid
+ * Operation exception. fclex must be called immediately before the operation.
+ *
+ * Clobbers eax.
+ */
+void gencheck_float_conversion_valid()
+{
+    fstsw_ax();
+    test_al_imm8(1); // Invalid Operation bit
+    je_rj(0); // jump if not set (i.e. ZF = 1)
+    unsigned long jump1 = code_length;
+
+    gencallinterp((unsigned long)conversion_failed, 0);
+
     patch_jump(jump1, code_length);
 }
