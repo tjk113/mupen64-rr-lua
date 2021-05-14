@@ -56,6 +56,16 @@ static void gencheck_result_valid()
     gencheck_float_output_valid();
 }
 
+static void gencheck_result_valid_s()
+{
+    if (!emulate_float_crashes)
+        return;
+
+    mov_reg32_imm32(EBX, (unsigned long)&largest_denormal_float);
+    fld_preg32_dword(EBX);
+    gencheck_float_output_valid();
+}
+
 void genadd_d()
 {
 #ifdef INTERPRET_ADD_D
@@ -344,14 +354,13 @@ void gencvt_s_d()
    }
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fs]));
    gencheck_eax_valid();
-   fclex();
    fld_preg32_qword(EAX);
+   gencheck_result_valid_s();
    mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
    fstp_preg32_dword(EAX);
    if (round_to_zero) {
 	   fldcw_m16((unsigned short*)&rounding_mode);
    }
-   gencheck_float_conversion_valid();
 #endif
 }
 

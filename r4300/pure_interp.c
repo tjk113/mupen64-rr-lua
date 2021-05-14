@@ -1793,6 +1793,7 @@ static void CVT_S_D()
    }
    *reg_cop1_simple[cffd] = *reg_cop1_double[cffs];
    set_rounding();
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 

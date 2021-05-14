@@ -196,6 +196,7 @@ void CVT_S_D()
    if (round_to_zero) {
        set_rounding();
    }
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    PC++;
 }
 
