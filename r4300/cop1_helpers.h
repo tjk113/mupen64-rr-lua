@@ -20,4 +20,10 @@
         x = 0; \
     } } while (0)
 
+#define CHECK_CONVERT_EXCEPTIONS() \
+    do { read_x87_status_word(); if (x87_status_word & 1) { \
+        printf("Out-of-range float conversion; PC = 0x%lx\n", PC->addr); \
+        stop=1; \
+    } } while (0)
+
 #endif /* COP1_HELPERS_H */

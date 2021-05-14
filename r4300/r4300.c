@@ -74,6 +74,7 @@ char invalid_code[0x100000];
 precomp_block *blocks[0x100000], *actual;
 int rounding_mode = ROUND_MODE;
 int trunc_mode = TRUNC_MODE, round_mode = ROUND_MODE, ceil_mode = CEIL_MODE, floor_mode = FLOOR_MODE;
+short x87_status_word;
 void (*code)();
 
 /*#define check_memory() \

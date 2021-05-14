@@ -108,17 +108,21 @@ stop=1; \
 
 #ifdef X86
 #ifdef _MSC_VER
-#define set_rounding() __asm fldcw rounding_mode
-#define set_trunc() __asm fldcw trunc_mode
-#define set_round_to_nearest() __asm fldcw round_mode
-#define set_ceil() __asm fldcw ceil_mode
-#define set_floor() __asm fldcw floor_mode
+#define set_rounding() __asm { fldcw rounding_mode }
+#define set_trunc() __asm { fldcw trunc_mode }
+#define set_round_to_nearest() __asm { fldcw round_mode }
+#define set_ceil() __asm { fldcw ceil_mode }
+#define set_floor() __asm { fldcw floor_mode }
+#define clear_x87_exceptions() __asm { fclex }
+#define read_x87_status_word() __asm { fstsw x87_status_word }
 #else
-#define set_rounding() __asm__ __volatile__("fldcw %0" : : "m" (rounding_mode))
-#define set_trunc() __asm__ __volatile__("fldcw %0" : : "m" (trunc_mode))
-#define set_round_to_nearest() __asm__ __volatile__("fldcw %0" : : "m" (round_mode))
-#define set_ceil() __asm__ __volatile__("fldcw %0" : : "m" (ceil_mode))
-#define set_floor() __asm__ __volatile__("fldcw %0" : : "m" (floor_mode))
+#define set_rounding() __asm__ __volatile__("fldcw %0" : : "m" (rounding_mode) : "memory")
+#define set_trunc() __asm__ __volatile__("fldcw %0" : : "m" (trunc_mode) : "memory")
+#define set_round_to_nearest() __asm__ __volatile__("fldcw %0" : : "m" (round_mode) : "memory")
+#define set_ceil() __asm__ __volatile__("fldcw %0" : : "m" (ceil_mode) : "memory")
+#define set_floor() __asm__ __volatile__("fldcw %0" : : "m" (floor_mode) : "memory")
+#define clear_x87_exceptions() __asm__ __volatile__("fclex" : : : "memory")
+#define read_x87_status_word() __asm__ __volatile__("fstsw %0" : "=m" (x87_status_word) : : "memory")
 #endif // _MSC_VER
 #else
 #define set_rounding() ((void) 0)
@@ -126,6 +130,7 @@ stop=1; \
 #define set_round_to_nearest() ((void) 0)
 #define set_ceil() ((void) 0)
 #define set_floor() ((void) 0)
+#define clear_x87_exceptions() ((void) 0)
 #endif
 
 #endif
