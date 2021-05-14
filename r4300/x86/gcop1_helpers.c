@@ -10,19 +10,22 @@ const unsigned long long largest_denormal_double = (1ULL << 52) - 1;
 static void check_failed()
 {
     printf("Operation on denormal/nan; PC = 0x%lx\n", PC->addr);
-    stop=1;
+    Cause = 15 << 2;
+    exception_general();
 }
 
 static void post_check_failed()
 {
     printf("Operation resulted in nan; PC = 0x%lx\n", PC->addr);
-    stop=1;
+    Cause = 15 << 2;
+    exception_general();
 }
 
 static void conversion_failed()
 {
     printf("Out-of-range float conversion; PC = 0x%lx\n", PC->addr);
-    stop=1;
+    Cause = 15 << 2;
+    exception_general();
 }
 
 static void patch_jump(unsigned long addr, unsigned long target) {
