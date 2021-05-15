@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "../recomph.h"
 #include "../r4300.h"
+#include "../exception.h"
+#include "../macros.h"
 #include "assemble.h"
 #include "gcop1_helpers.h"
 

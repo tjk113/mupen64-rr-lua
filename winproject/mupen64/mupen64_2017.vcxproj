@@ -295,6 +295,7 @@
     <ClInclude Include="..\..\memory\pif.h" />
     <ClInclude Include="..\..\memory\pif2.h" />
     <ClInclude Include="..\..\memory\tlb.h" />
+    <ClInclude Include="..\..\r4300\cop1_helpers.h" />
     <ClInclude Include="..\..\r4300\exception.h" />
     <ClInclude Include="..\..\r4300\interupt.h" />
     <ClInclude Include="..\..\r4300\macros.h" />
@@ -303,6 +304,7 @@
     <ClInclude Include="..\..\r4300\recomp.h" />
     <ClInclude Include="..\..\r4300\recomph.h" />
     <ClInclude Include="..\..\r4300\x86\assemble.h" />
+    <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h" />
     <ClInclude Include="..\..\r4300\x86\interpret.h" />
     <ClInclude Include="..\..\r4300\x86\regcache.h" />
     <ClInclude Include="..\..\lua\LuaConsole.h" />
@@ -665,6 +667,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\..\r4300\x86\gcop1_helpers.c" />
     <ClCompile Include="..\..\r4300\x86\gcop1_l.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
