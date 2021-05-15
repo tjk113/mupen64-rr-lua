@@ -206,6 +206,9 @@
     <ClInclude Include="..\..\main\win\CrashHandler.h">
       <Filter>Source Files\main\win</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\main\debughook.h">
+      <Filter>Source Files\main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main\adler32.c">
@@ -447,6 +450,9 @@
     </ClCompile>
     <ClCompile Include="..\..\main\win\CrashHandler.cpp">
       <Filter>Source Files\main\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\debughook.c">
+      <Filter>Source Files\main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

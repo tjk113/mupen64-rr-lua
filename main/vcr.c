@@ -352,7 +352,7 @@ static void truncateMovie()
 {
 	// truncate movie controller data to header.length_samples length
 
-	long truncLen = MUP_HEADER_SIZE + sizeof(BUTTONS)*(m_header.length_samples+1);
+	long truncLen = MUP_HEADER_SIZE + sizeof(BUTTONS)*(m_header.length_samples);
 
 #ifdef __WIN32__
 	HANDLE fileHandle = CreateFile(m_filename, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0);
@@ -478,7 +478,7 @@ void flush_movie()
 	
 		// (over-)write the controller data
 		fseek(m_file, MUP_HEADER_SIZE, SEEK_SET);
-		fwrite(m_inputBuffer, 1, sizeof(BUTTONS)*(m_header.length_samples+1), m_file);
+		fwrite(m_inputBuffer, 1, sizeof(BUTTONS)*(m_header.length_samples), m_file);
 	
 		fflush(m_file);
 	}

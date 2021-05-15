@@ -15,18 +15,18 @@ int FindModuleName(char *error, void* addr, int len)
     HMODULE hMods[1024];
     HANDLE hProcess = GetCurrentProcess();
     DWORD cbNeeded;
-    //printf("addr: %p\n", addr);
+    printf("addr: %p\n", addr);
     if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
     {
         HMODULE maxbase = 0;
         for (int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
         {
             //find closest addr
-            if (hMods[i] > maxbase && hMods[i] < addr)
+            if (hMods[i] > maxbase && hMods[i] < addr){
                 maxbase = hMods[i];
-                //char modname[MAX_PATH];
-                //GetModuleBaseName(hProcess, maxbase, modname, sizeof(modname) / sizeof(char));
-                //printf("%s: %p\n", modname, maxbase);
+                char modname[MAX_PATH];
+                GetModuleBaseName(hProcess, maxbase, modname, sizeof(modname) / sizeof(char));
+                printf("%s: %p\n", modname, maxbase);}
         }
         // Get the full path to the module's file.
         char modname[MAX_PATH];

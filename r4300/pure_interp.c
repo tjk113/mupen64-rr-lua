@@ -3049,6 +3049,7 @@ void (*interp_ops[64])(void) =
    SC     , SWC1  , NI  , NI   , NI  , SDC1, NI   , SD
 };
 
+//Get opcode from address (interp_address)
 void prefetch()
 {
    //static FILE *f = NULL;
@@ -3096,7 +3097,8 @@ void prefetch()
 	  }
 	else
 	  {
-	     printf("execution ÅEl'addresse :%x\n", (int)interp_addr);
+		//unmapped memory exception
+	     printf("Exception, attempt to prefetch unmapped memory at: %x\n", (int)interp_addr);
 	     stop=1;
 	  }
      }
