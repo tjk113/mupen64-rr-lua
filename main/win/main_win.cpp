@@ -1259,7 +1259,7 @@ void pauseEmu(BOOL quiet)
 
 BOOL StartRom(char *fullRomPath)
 {
-     if (romBrowserbusy) {
+     if (romBrowserRefreshThread) {
         display_status("Rom browser busy!");
         return TRUE;
      }
@@ -2384,7 +2384,8 @@ if(!continue_vcr_on_restart_mode)
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
 {
-    while (emu_launched) aiUpdate(1);
+    while (emu_launched)
+        aiUpdate(1);
     ExitThread(0);
 }
 
@@ -2827,6 +2828,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 //			return 0;
     case WM_WINDOWPOSCHANGING:  //allow gfx plugin to set arbitrary size 
         return 0;
+    case WM_GETMINMAXINFO:
+    {
+        LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+        lpMMI->ptMinTrackSize.x = MIN_WINDOW_W;
+        lpMMI->ptMinTrackSize.y = MIN_WINDOW_H;
+        // this might break small res with gfx plugin!!!
+    }
+
 	case WM_ENTERMENULOOP:       
              AutoPause = emu_paused;
              if (!emu_paused)
@@ -3063,22 +3072,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     GetModuleFileName(NULL, procName, MAX_PATH);
                     _splitpath(procName, 0, 0, procName, 0);
 
-                    // yea this is very gross but i cant get sprintf work at all in this case
-                    // apparently you cant do something like this:
+                    sprintf(stroopConfigLine, "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>", procName, buf);
+                    
 
-                    //char* a = (char*)malloc(20);
-                    //char* b = (char*)malloc(20);
-                    //strcpy(a, "hi, %s");
-                    //strcpy(b, "person");
-                    //sprintf(a, b);
-                    //printf(a);
 
-                    // --- "a" will not be "hi, person"
-                    strcpy(stroopConfigLine, "<Emulator name=\"Mupen 5.0 RR\" processName=\"");
-                    strcat(stroopConfigLine, (char*)procName);
-                    strcat(stroopConfigLine, "\" ramStart=\"");
-                    strcat(stroopConfigLine, buf);
-                    strcat(stroopConfigLine, "\" endianness=\"little\"/>");
                 }
                 std::string stdstr_buf = stroopConfigLine;
 #ifdef _WIN32

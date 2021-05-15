@@ -167,7 +167,7 @@ BEGIN
     PUSHBUTTON      "Website",IDC_WEBSITE,134,197,60,14
     GROUPBOX        "About this program",IDC_STATIC,5,65,189,127
     LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanks to the many others who helped",IDC_STATIC,13,82,173,104
-    CONTROL         "",133,"Static",SS_BITMAP,0,0,200,100
+    LTEXT           MUPEN_VERSION,IDC_STATIC,0,0,200,100
 END
 
 IDD_ADVANCED_OPTIONS DIALOGEX 0, 0, 231, 262
