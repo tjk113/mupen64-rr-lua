@@ -533,7 +533,7 @@ void TranslateAdvancedDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_COLUMN_FILENAME,"File Name");
     SetItemTranslatedString(hwnd,IDC_COLUMN_MD5,"MD5");
     
-    SetItemTranslatedString(hwnd,WARNING_OPTIONS, "Warning Options");
+    SetItemTranslatedString(hwnd,IDC_WARNING_OPTIONS, "Warning Options");
     SetItemTranslatedString(hwnd,IDC_SUPPRESS_LOAD_ST_PROMPT, "Suppress non-movie snapshot warnings");
 }
 
