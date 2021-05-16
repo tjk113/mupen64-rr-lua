@@ -250,5 +250,6 @@ void fild_preg32_qword(int reg32);
 void fild_preg32_dword(int reg32);
 void fclex();
 void fstsw_ax();
+void ud2();
 
 #endif // ASSEMBLE_H

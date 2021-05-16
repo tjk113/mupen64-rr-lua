@@ -1333,3 +1333,9 @@ void fstsw_ax()
    put8(0xDF);
    put8(0xE0);
 }
+
+void ud2()
+{
+   put8(0x0F);
+   put8(0x0B);
+}

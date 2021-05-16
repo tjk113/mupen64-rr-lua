@@ -57,7 +57,7 @@ void gencheck_float_input_valid()
 
     fstp_fpreg(0); // pop
     gencallinterp((unsigned long)check_failed, 0);
-    fldz(); // push zero to balance stack (immediately popped below)
+    ud2(); // crash (check_failed should not return)
 
     // A:
     patch_jump(jump1, code_length);
@@ -87,6 +87,7 @@ void gencheck_float_output_valid()
     unsigned long jump2 = code_length;
 
     gencallinterp((unsigned long)post_check_failed, 0);
+    ud2(); // crash (post_check_failed should not return)
 
     // A:
     patch_jump(jump2, code_length);
