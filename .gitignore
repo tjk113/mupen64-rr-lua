@@ -13,3 +13,4 @@ plugins/
 winproject/save
 winproject/plugin
 *.o
+*.aps

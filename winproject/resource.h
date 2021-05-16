@@ -232,7 +232,7 @@
 #define IDC_NO_COMPILED_JUMP            5516
 #define IDC_AUTOINCSAVESLOT             5517
 #define IDD_HOTKEY_CONFIG               5518
-#define IDC_WIIVC_OPTIONS               5519
+#define IDC_WARNING_OPTIONS             5519
 #define IDC_RECORDINGOPT				5520
 
 #define ID_RECENTROMS_RESET             6000
