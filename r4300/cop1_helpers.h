@@ -27,7 +27,7 @@
             /* way to do it. Typically this doesn't matter, because denormals are */ \
             /* too small to cause visible console/emu divergences, but since we */ \
             /* check for them on entry to each operation this becomes important... */ \
-            x = 0; \
+            x = copysign(0, x); \
         } \
     } } while (0)
 
