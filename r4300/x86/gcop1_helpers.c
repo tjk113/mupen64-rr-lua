@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 #include "../recomph.h"
 #include "../r4300.h"
 #include "../exception.h"
@@ -31,7 +32,9 @@ static void conversion_failed()
 }
 
 static void patch_jump(unsigned long addr, unsigned long target) {
-    (*inst_pointer)[addr - 1] = (unsigned char)(target - addr);
+    long diff = target - addr;
+    assert(-128 <= diff && diff < 128);
+    (*inst_pointer)[addr - 1] = (unsigned char)(diff & 0xFF);
 }
 
 /**
