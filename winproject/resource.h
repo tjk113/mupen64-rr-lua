@@ -232,7 +232,7 @@
 #define IDC_NO_COMPILED_JUMP            5516
 #define IDC_AUTOINCSAVESLOT             5517
 #define IDD_HOTKEY_CONFIG               5518
-#define IDC_WIIVC_OPTIONS               5519
+#define IDC_WARNING_OPTIONS             5519
 #define IDC_RECORDINGOPT				5520
 
 #define ID_RECENTROMS_RESET             6000
@@ -403,6 +403,7 @@
 #define IDC_NORESET                     10003
 #define IDC_FORCEINTERNAL				10004
 #define IDC_SUPPRESS_LOAD_ST_PROMPT		10005
+#define IDC_EMULATEFLOATCRASHES         10006
 #define IDC_ROMLIST                     12347
 #define ID_EMULATOR_EXIT                40001
 #define ID_LANG_INFO_MENU               40002

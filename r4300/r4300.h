@@ -58,12 +58,14 @@ extern unsigned long dynacore;
 extern unsigned long interpcore;
 extern unsigned int next_interupt, CIC_Chip;
 extern int rounding_mode, trunc_mode, round_mode, ceil_mode, floor_mode;
+extern short x87_status_word;
 extern unsigned long last_addr, interp_addr;
 extern char invalid_code[0x100000];
 extern unsigned long jump_to_address;
 extern int no_audio_delay;
 extern int no_compiled_jump;
 extern int round_to_zero;
+extern int emulate_float_crashes;
 
 void go();
 void pure_interpreter();
@@ -73,6 +75,12 @@ void update_count();
 int check_cop1_unusable();
 
 #define jump_to(a) { jump_to_address = a; jump_to_func(); }
+
+// Mask all exceptions, and set precision to 53 bits
+#define TRUNC_MODE 0xE3F
+#define ROUND_MODE 0x23F
+#define CEIL_MODE 0xA3F
+#define FLOOR_MODE 0x63F
 
 // profiling
 

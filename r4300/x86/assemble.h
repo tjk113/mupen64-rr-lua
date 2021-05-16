@@ -180,10 +180,13 @@ void mov_preg32preg32pimm32_reg8(int reg1, int reg2, unsigned long imm32, int re
 void mov_preg32pimm32_reg16(int reg32, unsigned long imm32, int reg16);
 void cmp_reg32_imm32(int reg32, unsigned long imm32);
 void mov_preg32pimm32_reg32(int reg1, unsigned long imm32, int reg2);
+void fld_fpreg(int fpreg);
 void fld_preg32_dword(int reg32);
 void fdiv_preg32_dword(int reg32);
+void fstp_fpreg(int fpreg);
 void fstp_preg32_dword(int reg32);
 void mov_preg32_reg32(int reg1, int reg2);
+void fldz();
 void fchs();
 void fstp_preg32_qword(int reg32);
 void fadd_preg32_dword(int reg32);
@@ -214,6 +217,7 @@ void cmp_reg32_reg32(int reg1, int reg2);
 void or_reg32_imm32(int reg32, unsigned long imm32);
 void adc_reg32_imm32(unsigned long reg32, unsigned long imm32);
 void and_al_imm8(unsigned char imm8);
+void test_al_imm8(unsigned char imm8);
 void cmp_al_imm8(unsigned char imm8);
 void movsx_reg32_8preg32pimm32(int reg1, int reg2, unsigned long imm32);
 void movsx_reg32_16preg32pimm32(int reg1, int reg2, unsigned long imm32);
@@ -237,11 +241,15 @@ void fabs_();
 void fistp_preg32_qword(int reg32);
 void fistp_preg32_dword(int reg32);
 void fcomip_fpreg(int fpreg);
+void fucomi_fpreg(int fpreg);
 void fucomip_fpreg(int fpreg);
 void ffree_fpreg(int fpreg);
 void jp_rj(unsigned char saut);
 void jae_rj(unsigned char saut);
 void fild_preg32_qword(int reg32);
 void fild_preg32_dword(int reg32);
+void fclex();
+void fstsw_ax();
+void ud2();
 
 #endif // ASSEMBLE_H
