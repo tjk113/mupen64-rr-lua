@@ -8,27 +8,6 @@
 #include "assemble.h"
 #include "gcop1_helpers.h"
 
-static void check_failed()
-{
-    printf("Operation on denormal/nan; PC = 0x%lx\n", PC->addr);
-    Cause = 15 << 2;
-    exception_general();
-}
-
-static void post_check_failed()
-{
-    printf("Float operation resulted in nan; PC = 0x%lx\n", PC->addr);
-    Cause = 15 << 2;
-    exception_general();
-}
-
-static void conversion_failed()
-{
-    printf("Out-of-range float conversion; PC = 0x%lx\n", PC->addr);
-    Cause = 15 << 2;
-    exception_general();
-}
-
 static void patch_jump(unsigned long addr, unsigned long target) {
     long diff = target - addr;
     assert(-128 <= diff && diff < 128);
@@ -64,7 +43,7 @@ void gencheck_float_input_valid()
     unsigned long jump2 = code_length;
 
     fstp_fpreg(0); // pop
-    gencall_noret(check_failed);
+    gencall_noret(fail_float_input);
 
     // A:
     patch_jump(jump1, code_length);
@@ -113,7 +92,7 @@ void gencheck_float_output_valid()
     // FAIL:
     patch_jump(jump2, code_length);
     fstp_fpreg(0); // pop
-    gencall_noret(post_check_failed);
+    gencall_noret(fail_float_output);
 
     // NEGATIVE:
     patch_jump(jump4, code_length);
@@ -143,7 +122,7 @@ void gencheck_float_conversion_valid()
     je_rj(0); // jump if not set (i.e. ZF = 1)
     unsigned long jump1 = code_length;
 
-    gencall_noret(conversion_failed);
+    gencall_noret(fail_float_convert);
 
     patch_jump(jump1, code_length);
 }

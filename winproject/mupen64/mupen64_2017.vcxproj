@@ -577,6 +577,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\..\r4300\cop1_helpers.c" />
     <ClCompile Include="..\..\r4300\cop1_l.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
