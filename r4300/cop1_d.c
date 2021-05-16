@@ -117,7 +117,7 @@ void NEG_D()
 void ROUND_L_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_round_to_nearest();
    clear_x87_exceptions();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
@@ -128,7 +128,7 @@ void ROUND_L_D()
 void TRUNC_L_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_trunc();
    clear_x87_exceptions();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
@@ -139,7 +139,7 @@ void TRUNC_L_D()
 void CEIL_L_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_ceil();
    clear_x87_exceptions();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
@@ -150,7 +150,7 @@ void CEIL_L_D()
 void FLOOR_L_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_floor();
    clear_x87_exceptions();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
@@ -161,7 +161,7 @@ void FLOOR_L_D()
 void ROUND_W_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_round_to_nearest();
    clear_x87_exceptions();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
@@ -172,7 +172,7 @@ void ROUND_W_D()
 void TRUNC_W_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_trunc();
    clear_x87_exceptions();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
@@ -183,7 +183,7 @@ void TRUNC_W_D()
 void CEIL_W_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_ceil();
    clear_x87_exceptions();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
@@ -194,7 +194,7 @@ void CEIL_W_D()
 void FLOOR_W_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_floor();
    clear_x87_exceptions();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
@@ -205,7 +205,7 @@ void FLOOR_W_D()
 void CVT_S_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    if (round_to_zero) {
        set_trunc();
    }
@@ -220,7 +220,7 @@ void CVT_S_D()
 void CVT_W_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    clear_x87_exceptions();
    *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
    PC++;
@@ -229,7 +229,7 @@ void CVT_W_D()
 void CVT_L_D()
 {
    if (check_cop1_unusable()) return;
-   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    clear_x87_exceptions();
    *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
    PC++;
