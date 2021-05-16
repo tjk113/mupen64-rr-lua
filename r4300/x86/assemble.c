@@ -1304,7 +1304,7 @@ void fcomip_fpreg(int fpreg)
 
 void fucomi_fpreg(int fpreg)
 {
-   put8(0xDF);
+   put8(0xDB);
    put8(0xE8 + fpreg);
 }
 
