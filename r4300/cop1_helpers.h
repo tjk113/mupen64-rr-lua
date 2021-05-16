@@ -7,8 +7,8 @@
 #include "exception.h"
 #include "macros.h"
 
-extern const float largest_denormal_float;
-extern const double largest_denormal_double;
+extern float largest_denormal_float;
+extern double largest_denormal_double;
 
 #define LARGEST_DENORMAL(x) (sizeof(x) == 4 ? largest_denormal_float : largest_denormal_double)
 
