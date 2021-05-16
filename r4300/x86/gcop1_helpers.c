@@ -4,11 +4,9 @@
 #include "../r4300.h"
 #include "../exception.h"
 #include "../macros.h"
+#include "../cop1_helpers.h"
 #include "assemble.h"
 #include "gcop1_helpers.h"
-
-const unsigned int largest_denormal_float = (1U << 23) - 1;
-const unsigned long long largest_denormal_double = (1ULL << 52) - 1;
 
 static void check_failed()
 {

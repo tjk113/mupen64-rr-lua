@@ -7,8 +7,13 @@
 #include "exception.h"
 #include "macros.h"
 
+extern const float largest_denormal_float;
+extern const double largest_denormal_double;
+
+#define LARGEST_DENORMAL(x) (sizeof(x) == 4 ? largest_denormal_float : largest_denormal_double)
+
 #define CHECK_INPUT(x) \
-    do { if (emulate_float_crashes && !isnormal(x) && (x) != 0 && !isinf(x)) { \
+    do { if (emulate_float_crashes && !(fabs(x) > LARGEST_DENORMAL(x)) && x != 0) { \
         printf("Operation on denormal/nan: %lf; PC = 0x%lx\n", x, interpcore ? interp_addr : PC->addr); \
         Cause = 15 << 2; \
         exception_general(); \
@@ -16,7 +21,7 @@
     } } while (0)
 
 #define CHECK_OUTPUT(x) \
-    do { if (emulate_float_crashes && !isnormal(x) && !isinf(x)) { \
+    do { if (emulate_float_crashes && !(fabs(x) > LARGEST_DENORMAL(x))) { \
         if (isnan(x)) { \
             printf("Invalid float operation; PC = 0x%lx\n", interpcore ? interp_addr : PC->addr); \
             Cause = 15 << 2; \

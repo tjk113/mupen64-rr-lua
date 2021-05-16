@@ -33,6 +33,9 @@
 #include "exception.h"
 #include "../memory/memory.h"
 
+const float largest_denormal_float = 1.1754942106924411e-38f; // (1U << 23) - 1
+const double largest_denormal_double = 2.225073858507201e-308; // (1ULL << 52) - 1
+
 void MFC1()
 {
    if (check_cop1_unusable()) return;
