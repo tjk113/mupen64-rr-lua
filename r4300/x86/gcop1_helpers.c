@@ -17,7 +17,7 @@ static void check_failed()
 
 static void post_check_failed()
 {
-    printf("Operation resulted in nan; PC = 0x%lx\n", PC->addr);
+    printf("Float operation resulted in nan; PC = 0x%lx\n", PC->addr);
     Cause = 15 << 2;
     exception_general();
 }

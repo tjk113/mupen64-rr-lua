@@ -14,7 +14,7 @@ extern const double largest_denormal_double;
 
 #define CHECK_INPUT(x) \
     do { if (emulate_float_crashes && !(fabs(x) > LARGEST_DENORMAL(x)) && x != 0) { \
-        printf("Operation on denormal/nan: %lf; PC = 0x%lx\n", x, interpcore ? interp_addr : PC->addr); \
+        printf("Operation on denormal/nan: %lg; PC = 0x%lx\n", x, interpcore ? interp_addr : PC->addr); \
         Cause = 15 << 2; \
         exception_general(); \
         return; \
@@ -23,7 +23,7 @@ extern const double largest_denormal_double;
 #define CHECK_OUTPUT(x) \
     do { if (emulate_float_crashes && !(fabs(x) > LARGEST_DENORMAL(x))) { \
         if (isnan(x)) { \
-            printf("Invalid float operation; PC = 0x%lx\n", interpcore ? interp_addr : PC->addr); \
+            printf("Float operation resulted in nan; PC = 0x%lx\n", interpcore ? interp_addr : PC->addr); \
             Cause = 15 << 2; \
             exception_general(); \
             return; \
