@@ -75,7 +75,7 @@ void gencheck_float_input_valid()
  */
 void gencheck_float_output_valid()
 {
-    // if abs(x) > largest denormal, goto B
+    // if abs(x) > largest denormal, goto DONE
     fld_fpreg(1); // duplicate ST(1)
     fabs_(); // ST(0) = abs(ST(0))
     fucomip_fpreg(1); // compare ST(0) <=> ST(1), pop
@@ -83,22 +83,43 @@ void gencheck_float_output_valid()
     ja_rj(0);
     unsigned long jump1 = code_length;
 
-    fucomip_fpreg(0); // compare ST(0) <=> ST(0), pop
-    je_rj(0); // if equal (i.e. x was not nan), goto A
+    jp_rj(0); // if unordered (i.e. x is nan), goto FAIL
     unsigned long jump2 = code_length;
 
+    // Replace the (denormal or zero) result by zero (see CHECK_OUTPUT in
+    // cop1_helpers.h for reasoning)
+
+    fldz(); // push zero
+    fucomip_fpreg(1); // compare ST(0) <=> ST(1), pop
+
+    je_rj(0); // if equal (x = 0 or -0), goto DONE
+    unsigned long jump3 = code_length;
+
+    ja_rj(0); // if 0 > x, goto NEGATIVE
+    unsigned long jump4 = code_length;
+
+    // POSITIVE:
+    fstp_fpreg(0); // pop
+    fldz(); // push zero
+    jmp_imm_short(0); // goto DONE
+    unsigned long jump5 = code_length;
+
+    // FAIL:
+    patch_jump(jump2, code_length);
+    fstp_fpreg(0); // pop
     gencallinterp((unsigned long)post_check_failed, 0);
     ud2(); // crash (post_check_failed should not return)
 
-    // A:
-    patch_jump(jump2, code_length);
-    // replace the (denormal or zero) result by zero (see CHECK_OUTPUT in
-    // cop1_helpers.h for reasoning)
-    // TODO: negative zero :(
-    fldz();
+    // NEGATIVE:
+    patch_jump(jump4, code_length);
+    fstp_fpreg(0); // pop
+    fldz(); // push zero
+    fchs(); // negate it
 
-    // B:
+    // DONE:
     patch_jump(jump1, code_length);
+    patch_jump(jump3, code_length);
+    patch_jump(jump5, code_length);
 }
 
 /**
@@ -115,6 +136,7 @@ void gencheck_float_conversion_valid()
     unsigned long jump1 = code_length;
 
     gencallinterp((unsigned long)conversion_failed, 0);
+    ud2(); // crash (conversion_failed should not return)
 
     patch_jump(jump1, code_length);
 }
