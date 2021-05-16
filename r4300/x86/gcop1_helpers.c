@@ -35,6 +35,13 @@ static void patch_jump(unsigned long addr, unsigned long target) {
     (*inst_pointer)[addr - 1] = (unsigned char)(diff & 0xFF);
 }
 
+static void gencall_noret(void (*fn)()) {
+    mov_m32_imm32((unsigned long*)(&PC), (unsigned long)(dst));
+    mov_reg32_imm32(EAX, (unsigned int)fn);
+    call_reg32(EAX);
+    ud2();
+}
+
 /**
  * Given the fp stack:
  * ST(0) = x
@@ -57,8 +64,7 @@ void gencheck_float_input_valid()
     unsigned long jump2 = code_length;
 
     fstp_fpreg(0); // pop
-    gencallinterp((unsigned long)check_failed, 0);
-    ud2(); // crash (check_failed should not return)
+    gencall_noret(check_failed);
 
     // A:
     patch_jump(jump1, code_length);
@@ -107,8 +113,7 @@ void gencheck_float_output_valid()
     // FAIL:
     patch_jump(jump2, code_length);
     fstp_fpreg(0); // pop
-    gencallinterp((unsigned long)post_check_failed, 0);
-    ud2(); // crash (post_check_failed should not return)
+    gencall_noret(post_check_failed);
 
     // NEGATIVE:
     patch_jump(jump4, code_length);
@@ -135,8 +140,7 @@ void gencheck_float_conversion_valid()
     je_rj(0); // jump if not set (i.e. ZF = 1)
     unsigned long jump1 = code_length;
 
-    gencallinterp((unsigned long)conversion_failed, 0);
-    ud2(); // crash (conversion_failed should not return)
+    gencall_noret(conversion_failed);
 
     patch_jump(jump1, code_length);
 }
