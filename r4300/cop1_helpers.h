@@ -37,12 +37,12 @@ extern double largest_denormal_double;
     } } while (0)
 
 #define CHECK_CONVERT_EXCEPTIONS() \
-    do { read_x87_status_word(); if (x87_status_word & 1) { \
+    do { if (emulate_float_crashes) { read_x87_status_word(); if (x87_status_word & 1) { \
         printf("Out-of-range float conversion; PC = 0x%lx\n", interpcore ? interp_addr : PC->addr); \
         Cause = 15 << 2; \
         exception_general(); \
         return; \
-    } } while (0)
+    } } } while (0)
 
 
 #endif /* COP1_HELPERS_H */

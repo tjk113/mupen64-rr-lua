@@ -135,6 +135,9 @@ void gencheck_float_output_valid()
  */
 void gencheck_float_conversion_valid()
 {
+    if (!emulate_float_crashes)
+        return;
+
     fstsw_ax();
     test_al_imm8(1); // Invalid Operation bit
     je_rj(0); // jump if not set (i.e. ZF = 1)
