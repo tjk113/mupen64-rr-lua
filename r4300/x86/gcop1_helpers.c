@@ -25,9 +25,11 @@ static void gencall_noret(void (*fn)()) {
  * Given the fp stack:
  * ST(0) = x
  * ST(1) = largest denormal (float/double)
- * Assert that x is not denormal or nan, ending with a cleared stack.
+ * Assert that x is not denormal or nan, ending with ST(0) and ST(1) popped.
+ *
+ * If the assert fires, an additional 'stackBase' values are popped.
  */
-void gencheck_float_input_valid()
+void gencheck_float_input_valid(int stackBase)
 {
     // if abs(x) > largest denormal, goto A
     fabs_(); // ST(0) = abs(ST(0))
@@ -42,7 +44,8 @@ void gencheck_float_input_valid()
     je_rj(0);
     unsigned long jump2 = code_length;
 
-    fstp_fpreg(0); // pop
+    for (int i = 0; i < stackBase + 1; i++)
+        fstp_fpreg(0); // pop
     gencall_noret(fail_float_input);
 
     // A:
