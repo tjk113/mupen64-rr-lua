@@ -91,8 +91,8 @@ extern void VCR_movieFreeze (char** buf, unsigned long* size);
 extern int VCR_movieUnfreeze (const char* buf, unsigned long size);
 extern void VCR_clearAllSaveData();
 
-extern int VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8 );
-extern int VCR_stopRecord();
+extern int VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8, int defExt);
+extern int VCR_stopRecord(int defExt);
 extern int VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8 );
 extern int VCR_restartPlayback();
 extern int VCR_stopPlayback();

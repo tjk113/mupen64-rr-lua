@@ -1992,7 +1992,9 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 			if(Controls[3].Present && Controls[3].Plugin == PLUGIN_RUMBLE_PAK)
 				strcat(tempbuf, " with rumble pak");
 			SetDlgItemText(hwnd,IDC_MOVIE_CONTROLLER4_TEXT2,tempbuf);
-			
+
+            EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0); // workaround because initial selected button is "Start"
+
 			SetFocus(GetDlgItem(hwnd,IDC_INI_AUTHOR));
 
              return FALSE;
@@ -2028,7 +2030,10 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 					
 					GetDlgItemText(hwnd,IDC_INI_MOVIEFILE,tempbuf,MAX_PATH);
                     unsigned short flag = IsDlgButtonChecked(hwnd, IDC_FROMSNAPSHOT_RADIO) ? MOVIE_START_FROM_SNAPSHOT : IsDlgButtonChecked(hwnd, IDC_FROMSTART_RADIO) ? MOVIE_START_FROM_NOTHING : MOVIE_START_FROM_EEPROM;
-                    if (strlen(tempbuf) == 0 || VCR_startRecord( tempbuf, flag, authorUTF8, descriptionUTF8 ) < 0)
+                    
+                    
+
+                    if (strlen(tempbuf) == 0 || VCR_startRecord( tempbuf, flag, authorUTF8, descriptionUTF8, !IsDlgButtonChecked(hwnd, IDC_EXTSAVESTATE)) < 0)
                     {
 					   sprintf(tempbuf2, "Couldn't start recording\nof \"%s\".", tempbuf);
                        MessageBox(hwnd, tempbuf2, "VCR", MB_OK);
@@ -2082,7 +2087,18 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 							strcat(path_buffer, ".m64");
 						SetDlgItemText(hwnd,IDC_INI_MOVIEFILE,path_buffer);
                      }
-				}	break;
+				}	
+                break;
+
+                case IDC_FROMEEPROM_RADIO:
+                    EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
+                    break;
+                case IDC_FROMSNAPSHOT_RADIO:
+                    EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 1);
+                    break;
+                case IDC_FROMSTART_RADIO:
+                    EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
+                    break;
             }
         break;
     }
@@ -3230,7 +3246,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                    break;
  
                 case ID_STOP_RECORD:
-                     if (VCR_stopRecord() < 0)
+                     if (VCR_stopRecord(1) < 0) // seems ok (no)
                      	; // fail quietly
 //                        MessageBox(NULL, "Couldn't stop recording.", "VCR", MB_OK);
                      else {

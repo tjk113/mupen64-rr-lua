@@ -1073,7 +1073,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 
 
 int
-VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8 )
+VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8, int defExt )
 {
 	VCR_coreStopped();
 	
@@ -1135,7 +1135,11 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 				break;
 		}
 
-    	strncat( buf, ".st", PATH_MAX );
+		if(defExt)
+    	strncat(buf,".st",PATH_MAX);
+		else
+		strncat(buf, ".savestate", PATH_MAX);
+
     	savestates_select_filename( buf );
     	savestates_job |= SAVESTATE;
      	m_task = StartRecordingFromSnapshot;
@@ -1170,7 +1174,7 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 
 
 int
-VCR_stopRecord()
+VCR_stopRecord(int defExt)
 {
 	int retVal = -1;
 	
@@ -1187,7 +1191,12 @@ VCR_stopRecord()
 		printf( "[VCR]: Removing files (nothing recorded)\n" );
 
 		strcpy( buf, m_filename );
-		strncat( m_filename, ".st", PATH_MAX );
+
+		if (defExt)
+			strncat(m_filename, ".st", PATH_MAX);
+		else
+			strncat(m_filename, ".savestate", PATH_MAX);
+
 		if (_unlink( buf ) < 0)
 			fprintf( stderr, "[VCR]: Couldn't remove save state: %s\n", strerror( errno ) );
 
@@ -2072,7 +2081,7 @@ VCR_coreStopped()
 		case StartRecording:
 		case StartRecordingFromSnapshot:
 		case Recording:
-			VCR_stopRecord();
+			VCR_stopRecord(1);
 			break;
 		case StartPlayback:
 		case StartPlaybackFromSnapshot:
