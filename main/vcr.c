@@ -1958,6 +1958,14 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 	}
     init_readScreen();
 #endif
+
+	FILE* tmpf = fopen(aviFilename, "ab+");
+	
+	if (!tmpf && MessageBox(0, "AVI capture might break because the file is inaccessible. Try anyway?", "File inaccessible", MB_TASKMODAL | MB_ICONERROR | MB_YESNO) == IDNO)
+		return -1;
+	
+	fclose(tmpf);
+
 	if (readScreen == 0)
 	{
 		printError("AVI capture failed because the active video plugin does not support ReadScreen()!");

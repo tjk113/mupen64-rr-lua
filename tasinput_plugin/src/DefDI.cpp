@@ -62,6 +62,7 @@ bool romIsOpen = false;
 HMENU hMenu;
 
 HANDLE fakeStatusThread = NULL; // fake! used for testing plugin
+HANDLE spamThread = NULL;
 bool validatedhTxtbox = FALSE;
 UINT systemDPI;
 
@@ -247,6 +248,7 @@ int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 EXPORT void CALL CloseDLL (void)
 {
 	//Stop and Close Direct Input
+	if(spamThread) TerminateThread(spamThread, 0);
 	FreeDirectInput();
 }
 
@@ -1346,8 +1348,8 @@ EXPORT void CALL ReadController ( int Control, BYTE * Command )
 	if(Control == -1)
 		Status::frameCounter++;
 
-	for (char i = 0; i < 4; i++)
-		SendMessage(status[i].statusDlg, WM_SETCURSOR, 0, 0);
+	//for (char i = 0; i < 4; i++)
+	//	SendMessage(status[i].statusDlg, WM_SETCURSOR, 0, 0);
 }
 
 EXPORT void CALL RomClosed (void) {
@@ -1570,7 +1572,20 @@ void Status::RefreshAnalogPicture ()
 	}
 }
 
+DWORD WINAPI SpamThread(LPVOID lpParameter) {
+	while (TRUE) {
 
+		for (char i=0;i<4;i++)
+			if(status[i].statusDlg)
+				SendMessage(status[i].statusDlg,WM_SETCURSOR,0,0);
+
+		// windows isnt rtos so timer granularity is bad and sleeping for less than 20 miliseconds doesnt reallllyy work....
+		
+		// cope! lol
+		Sleep(13);
+	}
+	return 0;
+}
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter)
 {
 	int Control = LOBYTE(*(int*)lpParameter);
@@ -1898,6 +1913,12 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			if(IsWindowFromEmulatorProcessActive())
 				ActivateEmulatorWindow();
 
+			// create thread which spams SETCURSOR message... is this thread safe?
+			if (!spamThread) {
+				DWORD dwThreadParam = 0, dwThreadId;
+				spamThread = CreateThread(0, 0, SpamThread, &dwThreadParam, 0, &dwThreadId);
+			}
+
 		}	break;
 
 		case WM_ACTIVATE:
@@ -1922,7 +1943,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 
 		// too bad we don't get useful events like WM_MOUSEMOVE or WM_LBUTTONDOWN...
 		case WM_SETCURSOR:
-		
+#ifdef DEBUG
+			//printf("tasinput setcursor message!\n");
+#endif
 			POINT pt;
 			GetCursorPos(&pt);
 

@@ -2123,7 +2123,7 @@ void OpenMovieRecordDialog()
 	if (emu_launched&&!emu_paused)
 		pauseEmu(FALSE) ; 
 
-    DialogBox(GetModuleHandle(NULL), 
+    DialogBox(GetModuleHandle(NULL),
         MAKEINTRESOURCE(IDD_MOVIE_RECORD_DIALOG), mainHWND, (DLGPROC)RecordMovieProc);
 	
 	if (emu_launched&&emu_paused&&!wasPaused)
@@ -3089,7 +3089,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     _splitpath(procName, 0, 0, procName, 0);
 
                     sprintf(stroopConfigLine, "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>", procName, buf);
-                    
+
 
 
                 }
