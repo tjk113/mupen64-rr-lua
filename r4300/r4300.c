@@ -1430,7 +1430,7 @@ inline void jump_to_func()
 		   blocks[addr>>12]);
      }
    PC=actual->block+((addr-actual->start)>>2);
-   
+
    if (dynacore) dyna_jump();
 }
 #undef addr

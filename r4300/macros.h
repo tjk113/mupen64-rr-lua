@@ -115,6 +115,9 @@ stop=1; \
 #define set_floor() __asm { fldcw floor_mode }
 #define clear_x87_exceptions() __asm { fclex }
 #define read_x87_status_word() __asm { fstsw x87_status_word }
+
+//asm converter that respects rounding modes
+#define FLOAT_CONVERT(input_width, output_width) __asm {mov eax, src __asm fld input_width ptr [eax] __asm mov ebx, dest __asm  fistp output_width ptr[ebx]}
 #else
 #define set_rounding() __asm__ __volatile__("fldcw %0" : : "m" (rounding_mode) : "memory")
 #define set_trunc() __asm__ __volatile__("fldcw %0" : : "m" (trunc_mode) : "memory")
@@ -123,6 +126,9 @@ stop=1; \
 #define set_floor() __asm__ __volatile__("fldcw %0" : : "m" (floor_mode) : "memory")
 #define clear_x87_exceptions() __asm__ __volatile__("fclex" : : : "memory")
 #define read_x87_status_word() __asm__ __volatile__("fstsw %0" : "=m" (x87_status_word) : : "memory")
+
+//gcc version
+#define FLOAT_CONVERT(input_width, output_width) __asm__ __volatile__(???)
 #endif // _MSC_VER
 #else
 #define set_rounding() ((void) 0)
@@ -132,5 +138,19 @@ stop=1; \
 #define set_floor() ((void) 0)
 #define clear_x87_exceptions() ((void) 0)
 #endif
+
+//this should work cross platrofm (although size types are suspicious)
+//float
+#define FLOAT_CONVERT_L_S(s,d) { float* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(dword, qword); }
+#define FLOAT_CONVERT_W_S(s,d) { float* src = s; long* dest = (long*)d; FLOAT_CONVERT(dword, dword); }
+//round,trunc,floor,ceil
+#define FLOAT_L_S(s,d) { float* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(dword, qword)}
+#define FLOAT_W_S(s,d) { float* src = s; long* dest = (long*)d; FLOAT_CONVERT(dword, dword)}
+//double
+#define FLOAT_CONVERT_L_D(s,d) { double* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(qword, dword); }
+#define FLOAT_CONVERT_W_D(s,d) { double* src = s; long* dest = (long*)d; FLOAT_CONVERT(qword, qword); }
+//double round,trunc,floor,ceil
+#define FLOAT_L_D(s,d) { double* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(qword, dword)}
+#define FLOAT_W_D(s,d) { double* src = s; long* dest = (long*)d; FLOAT_CONVERT(qword, qword)}
 
 #endif
