@@ -120,7 +120,7 @@ void ROUND_L_D()
    CHECK_INPUT(*reg_cop1_double[cffs]);
    set_round_to_nearest();
    clear_x87_exceptions();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
    set_rounding();
    PC++;
 }
@@ -131,7 +131,7 @@ void TRUNC_L_D()
    CHECK_INPUT(*reg_cop1_double[cffs]);
    set_trunc();
    clear_x87_exceptions();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
    set_rounding();
    PC++;
 }
@@ -142,7 +142,7 @@ void CEIL_L_D()
    CHECK_INPUT(*reg_cop1_double[cffs]);
    set_ceil();
    clear_x87_exceptions();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
    set_rounding();
    PC++;
 }
@@ -153,7 +153,7 @@ void FLOOR_L_D()
    CHECK_INPUT(*reg_cop1_double[cffs]);
    set_floor();
    clear_x87_exceptions();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
    set_rounding();
    PC++;
 }
@@ -164,7 +164,7 @@ void ROUND_W_D()
    CHECK_INPUT(*reg_cop1_double[cffs]);
    set_round_to_nearest();
    clear_x87_exceptions();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
    set_rounding();
    PC++;
 }
@@ -175,7 +175,7 @@ void TRUNC_W_D()
    CHECK_INPUT(*reg_cop1_double[cffs]);
    set_trunc();
    clear_x87_exceptions();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
    set_rounding();
    PC++;
 }
@@ -186,7 +186,7 @@ void CEIL_W_D()
    CHECK_INPUT(*reg_cop1_double[cffs]);
    set_ceil();
    clear_x87_exceptions();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
    set_rounding();
    PC++;
 }
@@ -197,7 +197,7 @@ void FLOOR_W_D()
    CHECK_INPUT(*reg_cop1_double[cffs]);
    set_floor();
    clear_x87_exceptions();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
    set_rounding();
    PC++;
 }
@@ -222,7 +222,7 @@ void CVT_W_D()
    if (check_cop1_unusable()) return;
    CHECK_INPUT(*reg_cop1_double[cffs]);
    clear_x87_exceptions();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
    PC++;
 }
 
@@ -231,7 +231,7 @@ void CVT_L_D()
    if (check_cop1_unusable()) return;
    CHECK_INPUT(*reg_cop1_double[cffs]);
    clear_x87_exceptions();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
    PC++;
 }
 
