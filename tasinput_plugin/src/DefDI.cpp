@@ -1628,6 +1628,11 @@ static bool IsMouseOverControl (HWND hDlg, int dialogItemID)
 void Status::ActivateEmulatorWindow ()
 {
 	if (lock) return;
+	if (prevHWnd)
+	{
+		SetForegroundWindow(prevHWnd);
+		return;
+	}
 	SetFocus(NULL);
 
 	SetActiveWindow(NULL); // activates whatever the previous window was
