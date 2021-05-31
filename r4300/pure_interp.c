@@ -2215,22 +2215,25 @@ static void REGIMM()
    interp_regimm[((op >> 16) & 0x1F)]();
 }
 
+//skips idle loop and advances to next interrupt
+#define SKIP_IDLE() \
+if (probe_nop(interp_addr+4)) {\
+	update_count();\
+	skip = next_interupt - Count; \
+	if (skip > 3)\
+	{\
+		Count += (skip & 0xFFFFFFFC);\
+		return;\
+	}\
+}
+
 static void J()
 {
-   unsigned long naddr = (PC->f.j.inst_index<<2) | (interp_addr & 0xF0000000);
-   if (naddr == interp_addr)
-     {
-	if (probe_nop(interp_addr+4))
-	  {
-	     update_count();
-	     skip = next_interupt - Count;
-	     if (skip > 3) 
-	       {
-		  Count += (skip & 0xFFFFFFFC);
-		  return;
-	       }
-	  }
-     }
+	unsigned long naddr = (PC->f.j.inst_index<<2) | (interp_addr & 0xF0000000);
+	if (naddr == interp_addr)
+	{
+		SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2244,20 +2247,11 @@ static void J()
 
 static void JAL()
 {
-   unsigned long naddr = (PC->f.j.inst_index<<2) | (interp_addr & 0xF0000000);
-   if (naddr == interp_addr)
-     {
-	if (probe_nop(interp_addr+4))
-	  {
-	     update_count();
-	     skip = next_interupt - Count;
-	     if (skip > 3) 
-	       {
-		  Count += (skip & 0xFFFFFFFC);
-		  return;
-	       }
-	  }
-     }
+	unsigned long naddr = (PC->f.j.inst_index<<2) | (interp_addr & 0xF0000000);
+	if (naddr == interp_addr)
+	{
+	   SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2277,23 +2271,13 @@ static void JAL()
 
 static void BEQ()
 {
-   short local_immediate = iimmediate;
-   local_rs = irs;
-   local_rt = irt;
-   if ((interp_addr + (local_immediate+1)*4) == interp_addr)
-     if (local_rs == local_rt)
-       {
-	  if (probe_nop(interp_addr+4))
-	    {
-	       update_count();
-	       skip = next_interupt - Count;
-	       if (skip > 3) 
-		 {
-		    Count += (skip & 0xFFFFFFFC);
-		    return;
-		 }
-	    }
-       }
+	short local_immediate = iimmediate;
+	local_rs = irs;
+	local_rt = irt;
+	if ((interp_addr + (local_immediate+1)*4) == interp_addr && local_rs == local_rt)
+	{
+		 SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2308,23 +2292,13 @@ static void BEQ()
 
 static void BNE()
 {
-   short local_immediate = iimmediate;
-   local_rs = irs;
-   local_rt = irt;
-   if ((interp_addr + (local_immediate+1)*4) == interp_addr)
-     if (local_rs != local_rt)
-       {
-	  if (probe_nop(interp_addr+4))
-	    {
-	       update_count();
-	       skip = next_interupt - Count;
-	       if (skip > 3) 
-		 {
-		    Count += (skip & 0xFFFFFFFC);
-		    return;
-		 }
-	    }
-       }
+	short local_immediate = iimmediate;
+	local_rs = irs;
+	local_rt = irt;
+	if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs != local_rt)
+	{
+		SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2339,22 +2313,12 @@ static void BNE()
 
 static void BLEZ()
 {
-   short local_immediate = iimmediate;
-   local_rs = irs;
-   if ((interp_addr + (local_immediate+1)*4) == interp_addr)
-     if (local_rs <= 0)
-       {
-	  if (probe_nop(interp_addr+4))
-	    {
-	       update_count();
-	       skip = next_interupt - Count;
-	       if (skip > 3) 
-		 {
-		    Count += (skip & 0xFFFFFFFC);
-		    return;
-		 }
-	    }
-       }
+	short local_immediate = iimmediate;
+	local_rs = irs;
+	if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs <= 0)
+	{
+		SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2369,22 +2333,12 @@ static void BLEZ()
 
 static void BGTZ()
 {
-   short local_immediate = iimmediate;
-   local_rs = irs;
-   if ((interp_addr + (local_immediate+1)*4) == interp_addr)
-     if (local_rs > 0)
-       {
-	  if (probe_nop(interp_addr+4))
-	    {
-	       update_count();
-	       skip = next_interupt - Count;
-	       if (skip > 3) 
-		 {
-		    Count += (skip & 0xFFFFFFFC);
-		    return;
-		 }
-	    }
-       }
+	short local_immediate = iimmediate;
+	local_rs = irs;
+	if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs <= 0)
+	{
+		SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2396,6 +2350,8 @@ static void BGTZ()
    last_addr = interp_addr;
    if (next_interupt <= Count) gen_interupt();
 }
+
+#undef SKIP_IDLE()
 
 static void ADDI()
 {
