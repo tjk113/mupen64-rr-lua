@@ -2405,6 +2405,13 @@ static DWORD WINAPI SoundThread(LPVOID lpParam)
     ExitThread(0);
 }
 
+static DWORD WINAPI StartMoviesThread(LPVOID lpParam)
+{
+    Sleep(2000);
+    StartMovies();
+    ExitThread(0);
+}
+
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 {
@@ -2444,7 +2451,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
     SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
 	ThreadFuncState = TFS_EMULATING;
     ShowInfo("Emu thread: Emulation started....");
-    StartMovies(); // check commandline args
+    CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL);
+    //StartMovies(); // check commandline args
 	StartLuaScripts();
 	StartSavestate();
     AtResetCallback();
