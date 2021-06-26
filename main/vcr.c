@@ -128,7 +128,7 @@ static int soundBufPos = 0;
 long lastSound = 0;
 volatile BOOL captureFrameValid = FALSE;
 static int AVIBreakMovie = 0;
-int AVIIncrement = 1;
+int AVIIncrement = 0;
 int titleLength;
 
 extern void resetEmu();
@@ -1726,16 +1726,14 @@ VCR_updateScreen()
 		{
 			strncpy(AVIName, AVIFileName, fnlen - 5 - (int)(log10(AVIIncrement)));
 			AVIName[fnlen - 5 - (int)(log10(AVIIncrement))] = 0;
-			sprintf(AVIFileName, "%s%d.avi", AVIName, AVIIncrement + 1);
-			AVIIncrement++;
 		}
 		else
 		{
-			strncpy(AVIName, AVIFileName, fnlen - 4 - (int)(log10(AVIIncrement)));
-			AVIName[fnlen - 4 - (int)(log10(AVIIncrement))] = 0;
-			sprintf(AVIFileName, "%s%d.avi", AVIName, AVIIncrement + 1);
-			AVIIncrement++;
+			strncpy(AVIName, AVIFileName, fnlen - 4);
+			AVIName[fnlen - 4] = 0;
 		}
+		sprintf(AVIFileName, "%s%d.avi", AVIName, AVIIncrement + 1);
+		AVIIncrement++;
 		VCRComp_startFile( AVIFileName, width, height, visByCountrycode(), 0);
 	}
 
@@ -2071,7 +2069,7 @@ VCR_stopCapture()
 #endif
 //	VCR_stopPlayback();
 	VCRComp_finishFile(0);
-	AVIBreakMovie = 0;
+	AVIBreakMovie = 0; AVIIncrement = 0;
 	printf( "[VCR]: Capture finished.\n" );
 //	ShowInfo("VCR_stopCapture() done");
 	return 0;
