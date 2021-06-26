@@ -128,7 +128,7 @@ static int soundBufPos = 0;
 long lastSound = 0;
 volatile BOOL captureFrameValid = FALSE;
 static int AVIBreakMovie = 0;
-
+int AVIIncrement = 1;
 int titleLength;
 
 extern void resetEmu();
@@ -1705,6 +1705,8 @@ VCR_updateScreen()
 		return;
 	}
 
+
+
 	if(VCRComp_GetSize() > 0x7B9ACA00)
 	{
 		if(AVIBreakMovie)
@@ -1717,21 +1719,22 @@ VCR_updateScreen()
 			VCRComp_finishFile(1);
 			AVIBreakMovie=1;
 		}
-		int	fnlen=strlen(AVIFileName);
+		char* AVIName = AVIFileName;
+		int fnlen = strlen(AVIFileName);
+		
 		if(AVIBreakMovie==2)
 		{
-			AVIFileName[fnlen-5]++;
-			if(AVIFileName[fnlen-5]==90)
-				AVIBreakMovie=1;
+			strncpy(AVIName, AVIFileName, fnlen - 5 - (int)(log10(AVIIncrement)));
+			AVIName[fnlen - 5 - (int)(log10(AVIIncrement))] = 0;
+			sprintf(AVIFileName, "%s%d.avi", AVIName, AVIIncrement + 1);
+			AVIIncrement++;
 		}
 		else
 		{
-			AVIFileName[fnlen+1]=AVIFileName[fnlen];
-			AVIFileName[fnlen]=AVIFileName[fnlen-1];
-			AVIFileName[fnlen-1]=AVIFileName[fnlen-2];
-			AVIFileName[fnlen-2]=AVIFileName[fnlen-3];
-			AVIFileName[fnlen-3]=AVIFileName[fnlen-4];
-			AVIFileName[fnlen-4]=65;
+			strncpy(AVIName, AVIFileName, fnlen - 4 - (int)(log10(AVIIncrement)));
+			AVIName[fnlen - 4 - (int)(log10(AVIIncrement))] = 0;
+			sprintf(AVIFileName, "%s%d.avi", AVIName, AVIIncrement + 1);
+			AVIIncrement++;
 		}
 		VCRComp_startFile( AVIFileName, width, height, visByCountrycode(), 0);
 	}
