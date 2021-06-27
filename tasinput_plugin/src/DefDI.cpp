@@ -2170,9 +2170,10 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				SelectObject(memDC, hBM);
 
 				Gdiplus::Graphics g(memDC);
+				g.SetPixelOffsetMode(Gdiplus::PixelOffsetMode::PixelOffsetModeNone);
 
-				Gdiplus::RectF rectF(rect.top, rect.left, w, h);
-				Gdiplus::Point pMiddle(w / 2, h / 2);
+				Gdiplus::Rect rectF(rect.top, rect.left, w, h);
+				Gdiplus::Point pMiddle((rect.left + rect.right) >> 1, (rect.top + rect.bottom) >> 1);
 				Gdiplus::Point pJoystick(joyx, joyy);
 				
 				Gdiplus::Pen penEllipse(Gdiplus::Color(255, 0, 0, 0), 1.0F);
@@ -2194,7 +2195,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				
 				BitBlt(hdcmain, rect.left, rect.top, w, h, memDC, rect.left, rect.top, SRCCOPY);
 
-				EndPaint (statusDlg, &ps);
+				EndPaint(statusDlg, &ps);
 				
 				DeleteObject(hBM);
 				DeleteDC(memDC);
