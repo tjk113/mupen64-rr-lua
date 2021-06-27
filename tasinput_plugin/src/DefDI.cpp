@@ -863,7 +863,7 @@ BOOL AdjustForDPI(HWND parent, UINT dpi) {
 	GetWindowRect(GetDlgItem(parent, IDC_STATICX), &ctl_gp_pos);
 
 	ctl_gp_pos.left -= 3; // adjust for border
-
+	
 	if (STICKPIC_SIZE == 131) {
 		// prevent infinitely increasing size
 
@@ -873,11 +873,14 @@ BOOL AdjustForDPI(HWND parent, UINT dpi) {
 
 
 		// check for overlap with gpbox and try to fix it
-		if (ctl_pos.right > ctl_gp_pos.left) {
+		if (ctl_pos.right+1 > ctl_gp_pos.left) {
 			printf("overlap with groupbox (%d/%d)", ctl_pos.right, ctl_gp_pos.left);
-			STICKPIC_SIZE = ctl_gp_pos.left;
+			STICKPIC_SIZE = ctl_gp_pos.left-2;
 		}
 	}
+
+	STICKPIC_SIZE -= 1;
+
 	//STICKPIC_SIZE = (UINT)STICKPIC_SIZE; // ensure no double
 	printf("stickpic size: %d\ndpi: %d", STICKPIC_SIZE, dpi);
 	return dpi != 96;
