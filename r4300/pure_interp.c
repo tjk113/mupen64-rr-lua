@@ -36,15 +36,12 @@
 #include "../memory/memory.h"
 #include "macros.h"
 #include "interupt.h"
+#include "cop1_helpers.h"
 
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "../../lua/LuaConsole.h"
-
-#ifdef _MSC_VER
-#define isnan _isnan
-#endif
+#include "../lua/LuaConsole.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -1285,24 +1282,33 @@ static void (*interp_cop1_bc[4])(void) =
 static void ADD_S()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] +
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void SUB_S()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] -
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void MUL_S()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] *
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
@@ -1313,117 +1319,155 @@ static void DIV_S()
 	printf("div_s by 0\n");
      }
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] /
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void SQRT_S()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = sqrt(*reg_cop1_simple[cffs]);
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void ABS_S()
 {
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = fabs(*reg_cop1_simple[cffs]);
    interp_addr+=4;
 }
 
 static void MOV_S()
 {
-   set_rounding();
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs];
    interp_addr+=4;
 }
 
 static void NEG_S()
 {
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = -(*reg_cop1_simple[cffs]);
    interp_addr+=4;
 }
 
 static void ROUND_L_S()
 {
-   set_round();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   set_round_to_nearest();
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void TRUNC_L_S()
 {
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_trunc();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void CEIL_L_S()
 {
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_ceil();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void FLOOR_L_S()
 {
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_floor();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void ROUND_W_S()
 {
-   set_round();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   set_round_to_nearest();
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void TRUNC_W_S()
 {
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_trunc();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void CEIL_W_S()
 {
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_ceil();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void FLOOR_W_S()
 {
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_floor();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void CVT_D_S()
 {
-   if (round_to_zero) {
-       set_trunc();
-   } else {
-       set_rounding();
-   }
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_double[cffd] = *reg_cop1_simple[cffs];
    interp_addr+=4;
 }
 
 static void CVT_W_S()
 {
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_rounding();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void CVT_L_S()
 {
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_rounding();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
@@ -1610,24 +1654,33 @@ C_SF_S   ,C_NGLE_S ,C_SEQ_S ,C_NGL_S  ,C_LT_S   ,C_NGE_S  ,C_LE_S  ,C_NGT_S
 static void ADD_D()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] +
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    interp_addr+=4;
 }
 
 static void SUB_D()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] -
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    interp_addr+=4;
 }
 
 static void MUL_D()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] *
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    interp_addr+=4;
 }
 
@@ -1643,117 +1696,162 @@ static void DIV_D()
 	//return;
      }
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   CHECK_INPUT(*reg_cop1_double[cfft]);
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] /
      *reg_cop1_double[cfft];
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    interp_addr+=4;
 }
 
 static void SQRT_D()
 {
    set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = sqrt(*reg_cop1_double[cffs]);
+   CHECK_OUTPUT(*reg_cop1_double[cffd]);
    interp_addr+=4;
 }
 
 static void ABS_D()
 {
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = fabs(*reg_cop1_double[cffs]);
    interp_addr+=4;
 }
 
 static void MOV_D()
 {
-   set_rounding();
    *reg_cop1_double[cffd] = *reg_cop1_double[cffs];
    interp_addr+=4;
 }
 
 static void NEG_D()
 {
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    *reg_cop1_double[cffd] = -(*reg_cop1_double[cffs]);
    interp_addr+=4;
 }
 
 static void ROUND_L_D()
 {
-   set_round();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   set_round_to_nearest();
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void TRUNC_L_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_trunc();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   CHECK_CONVERT_EXCEPTIONS();
+   set_rounding();
    interp_addr+=4;
 }
 
 static void CEIL_L_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_ceil();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void FLOOR_L_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_floor();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void ROUND_W_D()
 {
-   set_round();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   CHECK_INPUT(*reg_cop1_double[cffs]);
+   set_round_to_nearest();
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void TRUNC_W_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_trunc();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void CEIL_W_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_ceil();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void FLOOR_W_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_floor();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void CVT_S_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    if (round_to_zero) {
        set_trunc();
    } else {
        set_rounding();
    }
    *reg_cop1_simple[cffd] = *reg_cop1_double[cffs];
+   set_rounding();
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    interp_addr+=4;
 }
 
 static void CVT_W_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_rounding();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_double[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
 static void CVT_L_D()
 {
+   CHECK_INPUT(*reg_cop1_double[cffs]);
    set_rounding();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_double[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+   CHECK_CONVERT_EXCEPTIONS();
    interp_addr+=4;
 }
 
@@ -2036,20 +2134,21 @@ static void CTC1()
    switch((FCR31 & 3))
      {
       case 0:
-	rounding_mode = 0x33F;
+	rounding_mode = ROUND_MODE;
 	break;
       case 1:
-	rounding_mode = 0xF3F;
+	rounding_mode = TRUNC_MODE;
 	break;
       case 2:
-	rounding_mode = 0xB3F;
+	rounding_mode = CEIL_MODE;
 	break;
       case 3:
-	rounding_mode = 0x73F;
+	rounding_mode = FLOOR_MODE;
 	break;
      }
    //if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n",
 //				   (int)((FCR31 >> 7) & 0x1F));
+   set_rounding();
    interp_addr+=4;
 }
 
@@ -2096,22 +2195,25 @@ static void REGIMM()
    interp_regimm[((op >> 16) & 0x1F)]();
 }
 
+//skips idle loop and advances to next interrupt
+#define SKIP_IDLE() \
+if (probe_nop(interp_addr+4)) {\
+	update_count();\
+	skip = next_interupt - Count; \
+	if (skip > 3)\
+	{\
+		Count += (skip & 0xFFFFFFFC);\
+		return;\
+	}\
+}
+
 static void J()
 {
-   unsigned long naddr = (PC->f.j.inst_index<<2) | (interp_addr & 0xF0000000);
-   if (naddr == interp_addr)
-     {
-	if (probe_nop(interp_addr+4))
-	  {
-	     update_count();
-	     skip = next_interupt - Count;
-	     if (skip > 3) 
-	       {
-		  Count += (skip & 0xFFFFFFFC);
-		  return;
-	       }
-	  }
-     }
+	unsigned long naddr = (PC->f.j.inst_index<<2) | (interp_addr & 0xF0000000);
+	if (naddr == interp_addr)
+	{
+		SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2125,20 +2227,11 @@ static void J()
 
 static void JAL()
 {
-   unsigned long naddr = (PC->f.j.inst_index<<2) | (interp_addr & 0xF0000000);
-   if (naddr == interp_addr)
-     {
-	if (probe_nop(interp_addr+4))
-	  {
-	     update_count();
-	     skip = next_interupt - Count;
-	     if (skip > 3) 
-	       {
-		  Count += (skip & 0xFFFFFFFC);
-		  return;
-	       }
-	  }
-     }
+	unsigned long naddr = (PC->f.j.inst_index<<2) | (interp_addr & 0xF0000000);
+	if (naddr == interp_addr)
+	{
+	   SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2158,23 +2251,13 @@ static void JAL()
 
 static void BEQ()
 {
-   short local_immediate = iimmediate;
-   local_rs = irs;
-   local_rt = irt;
-   if ((interp_addr + (local_immediate+1)*4) == interp_addr)
-     if (local_rs == local_rt)
-       {
-	  if (probe_nop(interp_addr+4))
-	    {
-	       update_count();
-	       skip = next_interupt - Count;
-	       if (skip > 3) 
-		 {
-		    Count += (skip & 0xFFFFFFFC);
-		    return;
-		 }
-	    }
-       }
+	short local_immediate = iimmediate;
+	local_rs = irs;
+	local_rt = irt;
+	if ((interp_addr + (local_immediate+1)*4) == interp_addr && local_rs == local_rt)
+	{
+		 SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2189,23 +2272,13 @@ static void BEQ()
 
 static void BNE()
 {
-   short local_immediate = iimmediate;
-   local_rs = irs;
-   local_rt = irt;
-   if ((interp_addr + (local_immediate+1)*4) == interp_addr)
-     if (local_rs != local_rt)
-       {
-	  if (probe_nop(interp_addr+4))
-	    {
-	       update_count();
-	       skip = next_interupt - Count;
-	       if (skip > 3) 
-		 {
-		    Count += (skip & 0xFFFFFFFC);
-		    return;
-		 }
-	    }
-       }
+	short local_immediate = iimmediate;
+	local_rs = irs;
+	local_rt = irt;
+	if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs != local_rt)
+	{
+		SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2220,22 +2293,12 @@ static void BNE()
 
 static void BLEZ()
 {
-   short local_immediate = iimmediate;
-   local_rs = irs;
-   if ((interp_addr + (local_immediate+1)*4) == interp_addr)
-     if (local_rs <= 0)
-       {
-	  if (probe_nop(interp_addr+4))
-	    {
-	       update_count();
-	       skip = next_interupt - Count;
-	       if (skip > 3) 
-		 {
-		    Count += (skip & 0xFFFFFFFC);
-		    return;
-		 }
-	    }
-       }
+	short local_immediate = iimmediate;
+	local_rs = irs;
+	if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs <= 0)
+	{
+		SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2250,22 +2313,12 @@ static void BLEZ()
 
 static void BGTZ()
 {
-   short local_immediate = iimmediate;
-   local_rs = irs;
-   if ((interp_addr + (local_immediate+1)*4) == interp_addr)
-     if (local_rs > 0)
-       {
-	  if (probe_nop(interp_addr+4))
-	    {
-	       update_count();
-	       skip = next_interupt - Count;
-	       if (skip > 3) 
-		 {
-		    Count += (skip & 0xFFFFFFFC);
-		    return;
-		 }
-	    }
-       }
+	short local_immediate = iimmediate;
+	local_rs = irs;
+	if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs <= 0)
+	{
+		SKIP_IDLE()
+	}
    interp_addr+=4;
    delay_slot=1;
    prefetch();
@@ -2277,6 +2330,8 @@ static void BGTZ()
    last_addr = interp_addr;
    if (next_interupt <= Count) gen_interupt();
 }
+
+#undef SKIP_IDLE()
 
 static void ADDI()
 {

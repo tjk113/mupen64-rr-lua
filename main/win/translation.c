@@ -521,7 +521,8 @@ void TranslateAdvancedDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_COMPATIBILITY,"Compatibility Options");
     SetItemTranslatedString(hwnd,IDC_NO_AUDIO_DELAY,"No audio delay (desyncs A/V)");
     SetItemTranslatedString(hwnd,IDC_NO_COMPILED_JUMP,"No compiled jump (EXPERIMENTAL)");
-	SetItemTranslatedString(hwnd,IDC_SUPPRESS_LOAD_ST_PROMPT, "Suppress non-movie snapshot warnings");
+    SetItemTranslatedString(hwnd,IDC_EMULATEFLOATCRASHES, "Emulate float crashes");
+    SetItemTranslatedString(hwnd,IDC_ROUNDTOZERO, "WiiVC Round To Zero");
         
     SetItemTranslatedString(hwnd,IDC_ROMBROWSERCOLUMNS,"Rombrowser Columns");
     SetItemTranslatedString(hwnd,IDC_COLUMN_GOODNAME,"GoodName");
@@ -532,8 +533,7 @@ void TranslateAdvancedDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_COLUMN_FILENAME,"File Name");
     SetItemTranslatedString(hwnd,IDC_COLUMN_MD5,"MD5");
     
-    SetItemTranslatedString(hwnd, IDC_WIIVC_OPTIONS, "Wii VC Options");
-    SetItemTranslatedString(hwnd, IDC_ROUNDTOZERO, "Round To Zero");
-         
+    SetItemTranslatedString(hwnd,IDC_WARNING_OPTIONS, "Warning Options");
+    SetItemTranslatedString(hwnd,IDC_SUPPRESS_LOAD_ST_PROMPT, "Suppress non-movie snapshot warnings");
 }
 

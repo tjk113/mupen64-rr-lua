@@ -108,24 +108,50 @@ stop=1; \
 
 #ifdef X86
 #ifdef _MSC_VER
-#define set_rounding() __asm fldcw rounding_mode
-#define set_trunc() __asm fldcw trunc_mode
-#define set_round() __asm fldcw round_mode
-#define set_ceil() __asm fldcw ceil_mode
-#define set_floor() __asm fldcw floor_mode
+#define set_rounding() __asm { fldcw rounding_mode }
+#define set_trunc() __asm { fldcw trunc_mode }
+#define set_round_to_nearest() __asm { fldcw round_mode }
+#define set_ceil() __asm { fldcw ceil_mode }
+#define set_floor() __asm { fldcw floor_mode }
+#define clear_x87_exceptions() __asm { fclex }
+#define read_x87_status_word() __asm { fstsw x87_status_word }
+
+//asm converter that respects rounding modes
+#define FLOAT_CONVERT(input_width, output_width) __asm { \
+    __asm mov eax, src \
+    __asm fld input_width ptr [eax] \
+    __asm mov eax, dest \
+    __asm fistp output_width ptr [eax] \
+}
 #else
-#define set_rounding() __asm__ __volatile__("fldcw %0" : : "m" (rounding_mode))
-#define set_trunc() __asm__ __volatile__("fldcw %0" : : "m" (trunc_mode))
-#define set_round() __asm__ __volatile__("fldcw %0" : : "m" (round_mode))
-#define set_ceil() __asm__ __volatile__("fldcw %0" : : "m" (ceil_mode))
-#define set_floor() __asm__ __volatile__("fldcw %0" : : "m" (floor_mode))
+#define set_rounding() __asm__ __volatile__("fldcw %0" : : "m" (rounding_mode) : "memory")
+#define set_trunc() __asm__ __volatile__("fldcw %0" : : "m" (trunc_mode) : "memory")
+#define set_round_to_nearest() __asm__ __volatile__("fldcw %0" : : "m" (round_mode) : "memory")
+#define set_ceil() __asm__ __volatile__("fldcw %0" : : "m" (ceil_mode) : "memory")
+#define set_floor() __asm__ __volatile__("fldcw %0" : : "m" (floor_mode) : "memory")
+#define clear_x87_exceptions() __asm__ __volatile__("fclex" : : : "memory")
+#define read_x87_status_word() __asm__ __volatile__("fstsw %0" : "=m" (x87_status_word) : : "memory")
+
+#define FLOAT_CONVERT(input_width, output_width) __asm__ __volatile__( \
+    ".intel_syntax\n\t" \
+    "fld " #input_width " ptr [%V0]\n\t" \
+    "fistp " #output_width " ptr [%V1]\n\t" \
+    ".att_syntax" \
+    : : "r" (src), "r" (dest) : "memory")
 #endif // _MSC_VER
 #else
 #define set_rounding() ((void) 0)
 #define set_trunc() ((void) 0)
-#define set_round() ((void) 0)
+#define set_round_to_nearest() ((void) 0)
 #define set_ceil() ((void) 0)
 #define set_floor() ((void) 0)
+#define clear_x87_exceptions() ((void) 0)
+#define read_x87_status_word()
+#define FLOAT_CONVERT(input_width, output_width) *dest = *src
 #endif
 
+#define FLOAT_CONVERT_L_S(s,d) { float* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(dword, qword); }
+#define FLOAT_CONVERT_W_S(s,d) { float* src = s; long* dest = (long*)d; FLOAT_CONVERT(dword, dword); }
+#define FLOAT_CONVERT_L_D(s,d) { double* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(qword, dword); }
+#define FLOAT_CONVERT_W_D(s,d) { double* src = s; long* dest = (long*)d; FLOAT_CONVERT(qword, qword); }
 #endif

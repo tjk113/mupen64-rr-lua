@@ -52,6 +52,7 @@ unsigned long i, dynacore = 0, interpcore = 0;
 int no_audio_delay = 0;
 int no_compiled_jump = 0;
 int round_to_zero = 0;
+int emulate_float_crashes = 0;
 int stop, llbit;
 long long int reg[32], hi, lo;
 long long int local_rs, local_rt;
@@ -71,8 +72,9 @@ precomp_instr *PC;
 char invalid_code[0x100000];
 
 precomp_block *blocks[0x100000], *actual;
-int rounding_mode = 0x33F, trunc_mode = 0xF3F, round_mode = 0x33F,
-    ceil_mode = 0xB3F, floor_mode = 0x73F;
+int rounding_mode = ROUND_MODE;
+int trunc_mode = TRUNC_MODE, round_mode = ROUND_MODE, ceil_mode = CEIL_MODE, floor_mode = FLOOR_MODE;
+short x87_status_word;
 void (*code)();
 
 /*#define check_memory() \
@@ -1428,7 +1430,7 @@ inline void jump_to_func()
 		   blocks[addr>>12]);
      }
    PC=actual->block+((addr-actual->start)>>2);
-   
+
    if (dynacore) dyna_jump();
 }
 #undef addr
@@ -1717,7 +1719,8 @@ void go()
       break;
    }
    
-   rounding_mode = 0x33F;
+   rounding_mode = ROUND_MODE;
+   set_rounding();
 
    last_addr = 0xa4000040;
    //next_interupt = 624999; //this is later overwritten with different value so what's the point...

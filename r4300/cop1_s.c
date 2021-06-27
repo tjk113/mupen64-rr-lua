@@ -27,72 +27,80 @@
  *
 **/
 
-#include "r4300.h"
-#include "ops.h"
-#include "macros.h"
 #include <math.h>
 #include <float.h>
 
-#ifdef _MSC_VER
-#define isnan _isnan
-#endif
+#include "r4300.h"
+#include "ops.h"
+#include "macros.h"
+#include "cop1_helpers.h"
 
 void ADD_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] +
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    PC++;
 }
 
 void SUB_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] -
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    PC++;
 }
 
 void MUL_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] *
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    PC++;
 }
 
 void DIV_S()
 {  
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   CHECK_INPUT(*reg_cop1_simple[cfft]);
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] /
      *reg_cop1_simple[cfft];
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    PC++;
 }
 
 void SQRT_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = sqrt(*reg_cop1_simple[cffs]);
+   CHECK_OUTPUT(*reg_cop1_simple[cffd]);
    PC++;
 }
 
 void ABS_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = fabs(*reg_cop1_simple[cffs]);
+   // ABS cannot fail
    PC++;
 }
 
 void MOV_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   // MOV is not an arithmetic instruction, no check needed
    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs];
    PC++;
 }
@@ -100,83 +108,112 @@ void MOV_S()
 void NEG_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_simple[cffd] = -(*reg_cop1_simple[cffs]);
+   // NEG cannot fail
    PC++;
 }
 
 void ROUND_L_S()
 {
    if (check_cop1_unusable()) return;
-   set_round();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   set_round_to_nearest();
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void TRUNC_L_S()
 {
    if (check_cop1_unusable()) return;
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_trunc();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void CEIL_L_S()
 {
    if (check_cop1_unusable()) return;
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_ceil();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void FLOOR_L_S()
 {
    if (check_cop1_unusable()) return;
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_floor();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void ROUND_W_S()
 {
    if (check_cop1_unusable()) return;
-   set_round();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   set_round_to_nearest();
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void TRUNC_W_S()
 {
    if (check_cop1_unusable()) return;
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_trunc();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void CEIL_W_S()
 {
    if (check_cop1_unusable()) return;
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_ceil();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void FLOOR_W_S()
 {
    if (check_cop1_unusable()) return;
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    set_floor();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+   set_rounding();
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void CVT_D_S()
 {
    if (check_cop1_unusable()) return;
-   if (round_to_zero) {
-       set_trunc();
-   } else {
-       set_rounding();
-   }
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
    *reg_cop1_double[cffd] = *reg_cop1_simple[cffs];
    PC++;
 }
@@ -184,16 +221,20 @@ void CVT_D_S()
 void CVT_W_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
-   *((long*)reg_cop1_simple[cffd]) = *reg_cop1_simple[cffs];
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   clear_x87_exceptions();
+   FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 
 void CVT_L_S()
 {
    if (check_cop1_unusable()) return;
-   set_rounding();
-   *((long long*)(reg_cop1_double[cffd])) = *reg_cop1_simple[cffs];
+   CHECK_INPUT(*reg_cop1_simple[cffs]);
+   clear_x87_exceptions();
+   FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+   CHECK_CONVERT_EXCEPTIONS();
    PC++;
 }
 

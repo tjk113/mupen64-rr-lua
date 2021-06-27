@@ -3103,7 +3103,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                 char buf[12]; // ram start
                 sprintf(buf, "0x%#08p", rdram);
-
+              
                 if (!stroopConfigLine[0]) {
                     TCHAR procName[MAX_PATH];
                     GetModuleFileName(NULL, procName, MAX_PATH);

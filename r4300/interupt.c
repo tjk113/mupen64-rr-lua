@@ -536,17 +536,7 @@ void gen_interupt()
 		break;
 	}
 	exception_general();
-	//printf((char*)input_delay);
-	// This is a disgusting workaround.
-	// 1f input delay enabled, not null
-	// 1f input delay disabled, null
-	//if (input_delay != NULL) {
-	//	printf("Input delay 1f");
-	//}
-	//else {
-	//	printf("Input delay 0f");
-	//}
-	if (input_delay != NULL) {
+	if (input_delay) {
 		if (savestates_job & SAVESTATE/* && stAllowed*/)
 		{
 			savestates_save();
