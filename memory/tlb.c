@@ -38,7 +38,7 @@ unsigned long tlb_LUT_w[0x100000];
 extern unsigned long interp_addr;
 unsigned long virtual_to_physical_address(unsigned long addresse, int w)
 {
-   if (addresse >= 0x7f000000 && addresse < 0x80000000) // golden eye hack
+   if (addresse >= 0x7f000000 && addresse < 0x80000000) // golden eye hack (it uses TLB a lot)
      {
 	if (ROM_HEADER->CRC1 == sl(0xDCBC50D1)) // US
 	  return 0xb0034b30 + (addresse & 0xFFFFFF);

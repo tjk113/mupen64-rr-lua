@@ -61,7 +61,7 @@ extern bool traceLogMode;
 extern bool enablePCBreak;
 extern bool maximumSpeedMode;
 extern bool anyLuaRunning;
-
+extern unsigned long gdiPlusToken;
 
 #endif
 

@@ -128,11 +128,11 @@ static int soundBufPos = 0;
 long lastSound = 0;
 volatile BOOL captureFrameValid = FALSE;
 static int AVIBreakMovie = 0;
-
+int AVIIncrement = 0;
 int titleLength;
 
 extern void resetEmu();
-void SetActiveMovie(char* buf, int maxlen);
+void SetActiveMovie(char* buf);
 
 static int startPlayback(const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting);
 static int restartPlayback();
@@ -352,7 +352,7 @@ static void truncateMovie()
 {
 	// truncate movie controller data to header.length_samples length
 
-	long truncLen = MUP_HEADER_SIZE + sizeof(BUTTONS)*(m_header.length_samples+1);
+	long truncLen = MUP_HEADER_SIZE + sizeof(BUTTONS)*(m_header.length_samples);
 
 #ifdef __WIN32__
 	HANDLE fileHandle = CreateFile(m_filename, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0);
@@ -478,7 +478,7 @@ void flush_movie()
 	
 		// (over-)write the controller data
 		fseek(m_file, MUP_HEADER_SIZE, SEEK_SET);
-		fwrite(m_inputBuffer, 1, sizeof(BUTTONS)*(m_header.length_samples+1), m_file);
+		fwrite(m_inputBuffer, 1, sizeof(BUTTONS)*(m_header.length_samples), m_file);
 	
 		fflush(m_file);
 	}
@@ -1073,7 +1073,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 
 
 int
-VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8 )
+VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8, int defExt )
 {
 	VCR_coreStopped();
 	
@@ -1135,14 +1135,18 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 				break;
 		}
 
-    	strncat( buf, ".st", PATH_MAX );
+		if(defExt)
+    	strncat(buf,".st",PATH_MAX);
+		else
+		strncat(buf, ".savestate", PATH_MAX);
+
     	savestates_select_filename( buf );
     	savestates_job |= SAVESTATE;
      	m_task = StartRecordingFromSnapshot;
     } else{
      	m_task = StartRecording;
     }
-	SetActiveMovie(buf, MAX_PATH);
+	SetActiveMovie(buf);
 	setROMInfo(&m_header);
 
 	// utf8 strings are also null-terminated so this method still works
@@ -1170,7 +1174,7 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 
 
 int
-VCR_stopRecord()
+VCR_stopRecord(int defExt)
 {
 	int retVal = -1;
 	
@@ -1187,7 +1191,12 @@ VCR_stopRecord()
 		printf( "[VCR]: Removing files (nothing recorded)\n" );
 
 		strcpy( buf, m_filename );
-		strncat( m_filename, ".st", PATH_MAX );
+
+		if (defExt)
+			strncat(m_filename, ".st", PATH_MAX);
+		else
+			strncat(m_filename, ".savestate", PATH_MAX);
+
 		if (_unlink( buf ) < 0)
 			fprintf( stderr, "[VCR]: Couldn't remove save state: %s\n", strerror( errno ) );
 
@@ -1247,32 +1256,24 @@ VCR_stopRecord()
 
 //on titlebar, modifies passed buffer!!
 //if buffer == NULL, remove current active
-void SetActiveMovie(char* buf,int maxlen)
+void SetActiveMovie(char* buf)
 {
 	static bool active = false;
 	char title[MAX_PATH];
-	if (buf == NULL && titleLength)
-	{
-		GetWindowText(mainHWND, title, MAX_PATH);
-		title[titleLength] = '\0'; //remove movie being played part
-		SetWindowText(mainHWND, title);
-	}
-	else if(buf != NULL)
-	{
-		if (!buf) return;
-		//original length
-		titleLength = GetWindowText(mainHWND, title, MAX_PATH);
-		_splitpath(buf, 0, 0, buf, 0);
-		//trim trailing spaces because it looks weird
-		while (title[--titleLength] == ' ');
-		title[++titleLength] = '\0';
 
-		strcat(title, " | ");
-		strcat(title, buf);
-		strcat(title, ".m64");
-		SetWindowText(mainHWND, title);
+	if (!buf)
+	{
+		sprintf(title, MUPEN_VERSION " - %s", ROM_HEADER->nom);
 	}
+	else if (buf)
+	{
+
+		_splitpath(buf, 0, 0, buf, 0);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64", ROM_HEADER->nom, buf);
+	}
+	SetWindowText(mainHWND, title);
 }
+
 
 int
 VCR_startPlayback(const char *filename, const char *authorUTF8, const char *descriptionUTF8) {
@@ -1314,7 +1315,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
     		return -1;
         }
 	}
-	if (!restarting) SetActiveMovie(buf, MAX_PATH); // can crash when looping + fast forward, no need to change this
+	if (!restarting) SetActiveMovie(buf); // can crash when looping + fast forward, no need to change this
     {
         int code = read_movie_header(m_file, &m_header);
         
@@ -1594,7 +1595,7 @@ stopPlayback(bool bypassLoopSetting)
 	}
 #ifdef __WIN32__
 	extern HWND mainHWND;
-	SetActiveMovie(NULL, 0); //remove from title
+	SetActiveMovie(NULL); //remove from title
 #endif
 	if (m_file && m_task != StartRecording && m_task != Recording)
 	{
@@ -1704,6 +1705,8 @@ VCR_updateScreen()
 		return;
 	}
 
+
+
 	if(VCRComp_GetSize() > 0x7B9ACA00)
 	{
 		if(AVIBreakMovie)
@@ -1716,22 +1719,21 @@ VCR_updateScreen()
 			VCRComp_finishFile(1);
 			AVIBreakMovie=1;
 		}
-		int	fnlen=strlen(AVIFileName);
+		char* AVIName = AVIFileName;
+		int fnlen = strlen(AVIFileName);
+		
 		if(AVIBreakMovie==2)
 		{
-			AVIFileName[fnlen-5]++;
-			if(AVIFileName[fnlen-5]==90)
-				AVIBreakMovie=1;
+			strncpy(AVIName, AVIFileName, fnlen - 5 - (int)(log10(AVIIncrement)));
+			AVIName[fnlen - 5 - (int)(log10(AVIIncrement))] = 0;
 		}
 		else
 		{
-			AVIFileName[fnlen+1]=AVIFileName[fnlen];
-			AVIFileName[fnlen]=AVIFileName[fnlen-1];
-			AVIFileName[fnlen-1]=AVIFileName[fnlen-2];
-			AVIFileName[fnlen-2]=AVIFileName[fnlen-3];
-			AVIFileName[fnlen-3]=AVIFileName[fnlen-4];
-			AVIFileName[fnlen-4]=65;
+			strncpy(AVIName, AVIFileName, fnlen - 4);
+			AVIName[fnlen - 4] = 0;
 		}
+		sprintf(AVIFileName, "%s%d.avi", AVIName, AVIIncrement + 1);
+		AVIIncrement++;
 		VCRComp_startFile( AVIFileName, width, height, visByCountrycode(), 0);
 	}
 
@@ -1957,6 +1959,14 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 	}
     init_readScreen();
 #endif
+
+	FILE* tmpf = fopen(aviFilename, "ab+");
+	
+	if (!tmpf && MessageBox(0, "AVI capture might break because the file is inaccessible. Try anyway?", "File inaccessible", MB_TASKMODAL | MB_ICONERROR | MB_YESNO) == IDNO)
+		return -1;
+	
+	fclose(tmpf);
+
 	if (readScreen == 0)
 	{
 		printError("AVI capture failed because the active video plugin does not support ReadScreen()!");
@@ -2025,6 +2035,8 @@ void
 VCR_toggleLoopMovie()
 {
 	m_loopMovie = !m_loopMovie;
+	extern bool lockNoStWarn;
+	lockNoStWarn = m_loopMovie;
 
 #ifdef __WIN32__
 	extern HWND mainHWND;
@@ -2057,7 +2069,7 @@ VCR_stopCapture()
 #endif
 //	VCR_stopPlayback();
 	VCRComp_finishFile(0);
-	AVIBreakMovie = 0;
+	AVIBreakMovie = 0; AVIIncrement = 0;
 	printf( "[VCR]: Capture finished.\n" );
 //	ShowInfo("VCR_stopCapture() done");
 	return 0;
@@ -2078,7 +2090,7 @@ VCR_coreStopped()
 		case StartRecording:
 		case StartRecordingFromSnapshot:
 		case Recording:
-			VCR_stopRecord();
+			VCR_stopRecord(1);
 			break;
 		case StartPlayback:
 		case StartPlaybackFromSnapshot:

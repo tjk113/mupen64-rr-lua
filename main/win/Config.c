@@ -143,8 +143,8 @@ void LoadConfig()
     Config.WindowPosX = ReadCfgInt("Window", "X", (GetSystemMetrics(SM_CXSCREEN) - Config.WindowWidth) / 2);
     Config.WindowPosY = ReadCfgInt("Window", "Y", (GetSystemMetrics(SM_CYSCREEN) - Config.WindowHeight) / 2);
     //if mupen was closed by minimising
-    if (Config.WindowPosX < 0 || Config.WindowWidth < 0) {
-        printf("\nWindow size too small");
+    if (Config.WindowPosX < MIN_WINDOW_W-1 || Config.WindowWidth < MIN_WINDOW_H-1) {
+        printf("window too small. attempting to fix\n");
         Config.WindowWidth = 800;
         Config.WindowHeight = 600;
         Config.WindowPosX = (GetSystemMetrics(SM_CXSCREEN) - Config.WindowWidth) / 2;

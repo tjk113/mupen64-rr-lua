@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define PI 3.14159265358979f
 #define BUFFER_CHUNK 128
 
+#undef List // look at line 32 for cause
 #define aCombo ComboList.at(activeCombo) //so it's a bit cleaner
 
 HINSTANCE g_hInstance;
@@ -61,6 +62,9 @@ bool romIsOpen = false;
 HMENU hMenu;
 
 HANDLE fakeStatusThread = NULL; // fake! used for testing plugin
+HANDLE spamThread = NULL;
+bool validatedhTxtbox = FALSE;
+UINT systemDPI;
 
 bool lock; //don't focus mupen
 FILE* cFile; /*combo file conains list of combos in format:
@@ -219,11 +223,14 @@ int Status::frameCounter = 0;
 
 Status status [NUMBER_OF_CONTROLS];
 
+//#define STICKPIC_SIZE (131) 
 
-#define STICKPIC_SIZE (131)
+// todo split into x y
+UINT STICKPIC_SIZE = 131;
 
 int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
-{    
+{
+
 	switch (fdwReason)
 	{
 		case DLL_PROCESS_ATTACH:
@@ -241,6 +248,7 @@ int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 EXPORT void CALL CloseDLL (void)
 {
 	//Stop and Close Direct Input
+	if(spamThread) TerminateThread(spamThread, 0);
 	FreeDirectInput();
 }
 
@@ -831,16 +839,49 @@ void Status::GetKeys(BUTTONS * Keys)
 
 	gettingKeys = false;
 }
+
 VOID SetXYTextFast(HWND parent, BOOL x, char* str) {
 	// Optimized setdlgitemtext: explanation:
 	// GetDlgItem is very slow because of the many controls and this may limit the speed of emulator in some cases(?)
 	// Instead of using SetDlgItemText every time and (internally) calling GetDlgItem, we precompute the handles to x and y textboxes the first time and re-use them
-	// NOTE: this may break when extending dialogs because handle changes (will fix in future)
-	if (!textXHWND) textXHWND = GetDlgItem(parent, IDC_EDITX);
-	if (!textYHWND) textYHWND = GetDlgItem(parent, IDC_EDITY);
+	if (!textXHWND || !validatedhTxtbox) textXHWND = GetDlgItem(parent, IDC_EDITX);
+	if (!textYHWND || !validatedhTxtbox) textYHWND = GetDlgItem(parent, IDC_EDITY);
 
-	if (x) SetWindowText(textXHWND, str); // Is there implicit char* -> long pointer string happening?
-	else SetWindowText(textYHWND, str);
+	if (x) SetWindowText(textXHWND, str); 
+	else   SetWindowText(textYHWND, str);
+}
+
+BOOL AdjustForDPI(HWND parent, UINT dpi) {
+
+	// Adjust for system scaling
+	// todo: more scaling checks
+	// 96 - 100%
+	// 120 - 125%
+
+	RECT ctl_pos, ctl_gp_pos;
+	GetWindowRect(GetDlgItem(parent, IDC_STICKPIC), &ctl_pos);
+	GetWindowRect(GetDlgItem(parent, IDC_STATICX), &ctl_gp_pos);
+
+	ctl_gp_pos.left -= 3; // adjust for border
+
+	if (STICKPIC_SIZE == 131) {
+		// prevent infinitely increasing size
+
+		if (dpi == 120) { 
+			STICKPIC_SIZE = STICKPIC_SIZE*125/100; // * 1.25 works too
+		}
+
+
+		// check for overlap with gpbox and try to fix it
+		if (ctl_pos.right > ctl_gp_pos.left) {
+			printf("overlap with groupbox (%d/%d)", ctl_pos.right, ctl_gp_pos.left);
+			STICKPIC_SIZE = ctl_gp_pos.left;
+		}
+	}
+	//STICKPIC_SIZE = (UINT)STICKPIC_SIZE; // ensure no double
+	printf("stickpic size: %d\ndpi: %d", STICKPIC_SIZE, dpi);
+	return dpi != 96;
+
 }
 void Status::SetKeys(BUTTONS ControllerInput)
 {
@@ -856,7 +897,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 		//true if physical controller state is changed (because logical is handled in GetKeys)
 		if (buttonDisplayed.Value != ControllerInput.Value && HasPanel(2))
 		{
-#define UPDATECHECK(idc,field) {if(buttonDisplayed.field != ControllerInput.field) CheckDlgButton(statusDlg, idc, ControllerInput.field^(buttonAutofire2.field|buttonAutofire.field));}
+#define UPDATECHECK(idc,field) {if(buttonDisplayed.field != ControllerInput.field) CheckDlgButton(statusDlg, idc, ControllerInput.field);}
 			UPDATECHECK(IDC_CHECK_A, A_BUTTON);
 			UPDATECHECK(IDC_CHECK_B, B_BUTTON);
 			UPDATECHECK(IDC_CHECK_START, START_BUTTON);
@@ -871,7 +912,6 @@ void Status::SetKeys(BUTTONS ControllerInput)
 			UPDATECHECK(IDC_CHECK_DLEFT, L_DPAD);
 			UPDATECHECK(IDC_CHECK_DRIGHT, R_DPAD);
 			UPDATECHECK(IDC_CHECK_DDOWN, D_DPAD);
-#undef UPDATECHECK
 			buttonDisplayed.Value = ControllerInput.Value;
 		}
 		if(relativeXOn == 3 && radialRecalc)
@@ -1307,9 +1347,9 @@ EXPORT void CALL ReadController ( int Control, BYTE * Command )
 	//      (The frame counter is used only for autofire and combo progression.)
 	if(Control == -1)
 		Status::frameCounter++;
-//		for(Control = 0; Control < NUMBER_OF_CONTROLS; Control++)
-//			if(Controller[Control].bActive)
-//				status[Control].frameCounter++;
+
+	//for (char i = 0; i < 4; i++)
+	//	SendMessage(status[i].statusDlg, WM_SETCURSOR, 0, 0);
 }
 
 EXPORT void CALL RomClosed (void) {
@@ -1329,7 +1369,9 @@ EXPORT void CALL RomClosed (void) {
 }
 void StartFake() {
 	if (fakeStatusThread) {
-		MessageBox(0, "You can only have 1 testing TASInput running at a time", "Too many instances", MB_TOPMOST); 
+		if (MessageBox(0, "You can only have 1 testing TASInput running at a time. Do you want to kill current TASInput instance?", "Too many instances", MB_TOPMOST | MB_YESNO) == IDNO)return;
+		// kill tasinput
+		RomClosed();
 		return;
 	}
 
@@ -1530,7 +1572,20 @@ void Status::RefreshAnalogPicture ()
 	}
 }
 
+DWORD WINAPI SpamThread(LPVOID lpParameter) {
+	while (TRUE) {
 
+		for (char i=0;i<4;i++)
+			if(status[i].statusDlg)
+				SendMessage(status[i].statusDlg,WM_SETCURSOR,0,0);
+
+		// windows isnt rtos so timer granularity is bad and sleeping for less than 20 miliseconds doesnt reallllyy work....
+		
+		// cope! lol
+		Sleep(13);
+	}
+	return 0;
+}
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter)
 {
 	int Control = LOBYTE(*(int*)lpParameter);
@@ -1573,6 +1628,11 @@ static bool IsMouseOverControl (HWND hDlg, int dialogItemID)
 void Status::ActivateEmulatorWindow ()
 {
 	if (lock) return;
+	if (prevHWnd)
+	{
+		SetForegroundWindow(prevHWnd);
+		return;
+	}
 	SetFocus(NULL);
 
 	SetActiveWindow(NULL); // activates whatever the previous window was
@@ -1641,12 +1701,13 @@ void RefreshChanges(HWND hwnd)
 
 bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 {
-	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(VK_LBUTTON) & 0x8000) != 0) return TRUE;
+	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(VK_LBUTTON) & 0x8000)) return TRUE;
 	RefreshChanges(hwnd);
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
 	hMenu = CreatePopupMenu();
 	AppendMenu(hMenu, menuConfig.onTop ? MF_CHECKED : 0, OnTop, "Stay on Top");
 	AppendMenu(hMenu, menuConfig.floatFromParent ? MF_CHECKED : 0, Float, "Show in Taskbar");
+	AppendMenu(hMenu, menuConfig.movable ? MF_CHECKED : 0, Movable, "Movable");
 	lock = true;
 	int res = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, x, y, hwnd, 0);
 	lock = false;
@@ -1657,6 +1718,9 @@ bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 		break;
 	case Float:
 		menuConfig.floatFromParent ^= 1;
+		break;
+	case Movable:
+		menuConfig.movable ^= 1;
 		break;
 	}
 	RefreshChanges(hwnd);
@@ -1716,6 +1780,13 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			return TRUE; 
         case WM_INITDIALOG:
 		{
+			//SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+			// sure... did i think it is that easy
+
+			systemDPI = GetDpiForSystem();
+
+			AdjustForDPI(statusDlg, systemDPI);
+
 			// reset some dialog state
 			dragging = false;
 			lastXDrag = 0;
@@ -1831,7 +1902,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// initial x/y text field values
 			sprintf(str, "%d", initialStickX);
-			SetDlgItemText(statusDlg, IDC_EDITX, str);
+			SetDlgItemText(statusDlg, IDC_EDITX, str); // no need for "fast" version here this only happens one time
 			sprintf(str, "%d", -initialStickY);
 			SetDlgItemText(statusDlg, IDC_EDITY, str);
 
@@ -1846,6 +1917,12 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			// switch to emulator
 			if(IsWindowFromEmulatorProcessActive())
 				ActivateEmulatorWindow();
+
+			// create thread which spams SETCURSOR message... is this thread safe?
+			if (!spamThread) {
+				DWORD dwThreadParam = 0, dwThreadId;
+				spamThread = CreateThread(0, 0, SpamThread, &dwThreadParam, 0, &dwThreadId);
+			}
 
 		}	break;
 
@@ -1871,80 +1948,49 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 
 		// too bad we don't get useful events like WM_MOUSEMOVE or WM_LBUTTONDOWN...
 		case WM_SETCURSOR:
+#ifdef DEBUG
+			//printf("tasinput setcursor message!\n");
+#endif
+			POINT pt;
+			GetCursorPos(&pt);
+
+
+			//is any mouse button pressed?
 			nextClick = ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000));
-			lastWasRight = 0!=(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+
+			//used for sliders (rightclick reset), remembers if rightclick was pressed
+			//!! turns it into bool
+			lastWasRight = !!(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+			//if not dragging, previous interacion wasn't click with R or L, and current one (nextClick) is R or L
 			if(!dragging && !lastClick && nextClick)
 			{
 				if(IsMouseOverControl(statusDlg,IDC_STICKPIC))
 				{
+					//if clicked RMB and permadrag was active, disable it
 					if(draggingPermaStick || GetAsyncKeyState(VK_RBUTTON) & 0x8000)
 					{
 						draggingPermaStick = !draggingPermaStick;
 						draggingStick = draggingPermaStick;
 					}
+					//otherwise just drag stick
 					else
 						draggingStick = true;
 				}
-				else if((!HasPanel(1) || // Any non-control area of the window is draggable.
-					     (!IsMouseOverControl(statusDlg,IDC_XABS) && // This is done partly out of necessity,
-				          !IsMouseOverControl(statusDlg,IDC_XSEM) && // because normal automatic window movement
-				          !IsMouseOverControl(statusDlg,IDC_XREL) && // would not work (don't get messages for it),
-				          !IsMouseOverControl(statusDlg,IDC_XRAD) && // and partly because the result occupies
-				          !IsMouseOverControl(statusDlg,IDC_YABS) && // less space and is more convenient
-				          !IsMouseOverControl(statusDlg,IDC_YSEM) &&
-				          !IsMouseOverControl(statusDlg,IDC_YREL) &&
-				          !IsMouseOverControl(statusDlg,IDC_EDITX) &&
-				          !IsMouseOverControl(statusDlg,IDC_EDITY) &&
-					      !IsMouseOverControl(statusDlg, IDC_CLEARJOY) &&
-				          !IsMouseOverControl(statusDlg,IDC_SPINX) &&
-				          !IsMouseOverControl(statusDlg,IDC_SPINY) &&
-				          !IsMouseOverControl(statusDlg,IDC_SLIDERX) &&
-				          !IsMouseOverControl(statusDlg,IDC_SLIDERY) &&
-							 !IsMouseOverControl(statusDlg, IDC_CHECK_ANGDISP) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON0) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON1))) &&
-					    (!HasPanel(2) ||
-					     (!IsMouseOverControl(statusDlg,IDC_CLEARBUTTONS) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON2) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON3) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON4))) &&
-					    (!HasPanel(3) ||
-					     (!IsMouseOverControl(statusDlg,IDC_MACROBOX) &&
-				          !IsMouseOverControl(statusDlg,IDC_MACROLIST) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON5) &&
-				          !IsMouseOverControl(statusDlg,IDC_MOREBUTTON6))))
+				// no else if... you cant be over stickpic AND not on it (schrödingers mouse wtf)
+				//If mouse over any of the labels and not over joystick, start dragging or autofire
+				else if(IsMouseOverControl(statusDlg,IDC_BUTTONSLABEL) || IsMouseOverControl(statusDlg, IDC_ANALOGSTICKLABEL))
 				{
-					if(HasPanel(2) &&
-					   (IsMouseOverControl(statusDlg,IDC_CHECK_A) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_B) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_L) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_R) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_Z) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_START) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_CUP) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_CDOWN) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_CLEFT) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_CRIGHT) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_DUP) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_DDOWN) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_DLEFT) ||
-				        IsMouseOverControl(statusDlg,IDC_CHECK_DRIGHT)))
+#ifdef DEBUG
+					printf("HWND hit: %d\n", ChildWindowFromPoint(statusDlg, pt));
+					printf("HWND deeper 1: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt));
+					printf("HWND deeper 2: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt), pt));
+#endif
+					//if we are over buttons area and right is clicked, look for autofire candidates
+					if(lastWasRight && IsMouseOverControl(statusDlg, IDC_BUTTONSLABEL))
 					{
 						overrideOn = true; //clicking on buttons counts as override
 						if(GetAsyncKeyState(VK_RBUTTON) & 0x8000) // right click on a button to autofire it
 						{
-#define UPDATEAUTO(idc,field) \
-{ \
-	if(IsMouseOverControl(statusDlg,idc)) \
-	{ \
-		CheckDlgButton(statusDlg,idc,buttonAutofire.field|buttonAutofire2.field ? 0 : 1); \
-		BUTTONS &autoFire1 = (frameCounter%2 == 0) ? buttonAutofire : buttonAutofire2; \
-		BUTTONS &autoFire2 = (frameCounter%2 == 0) ? buttonAutofire2 : buttonAutofire; \
-		autoFire1.field = !(autoFire1.field|autoFire2.field); \
-		autoFire2.field = 0; \
-		buttonOverride.field = 0; \
-	} \
-}
 							UPDATEAUTO(IDC_CHECK_A, A_BUTTON);
 							UPDATEAUTO(IDC_CHECK_B, B_BUTTON);
 							UPDATEAUTO(IDC_CHECK_START, START_BUTTON);
@@ -1959,22 +2005,23 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 							UPDATEAUTO(IDC_CHECK_DLEFT, L_DPAD);
 							UPDATEAUTO(IDC_CHECK_DRIGHT, R_DPAD);
 							UPDATEAUTO(IDC_CHECK_DDOWN, D_DPAD);
-#undef UPDATEAUTO
+
 							ActivateEmulatorWindow();
 						}
 					}
 					else
 					{
-						dragging = true;
-						POINT pt;
-						GetCursorPos(&pt);
-						dragXStart = pt.x;
-						dragYStart = pt.y;
+						if (menuConfig.movable) {
+							dragging = true;
+							GetCursorPos(&pt);
+							dragXStart = pt.x;
+							dragYStart = pt.y;
 
-						RECT rect;
-						GetWindowRect(statusDlg, &rect);
-						dragXStart -= rect.left;
-						dragYStart -= rect.top;
+							RECT rect;
+							GetWindowRect(statusDlg, &rect);
+							dragXStart -= rect.left;
+							dragYStart -= rect.top;
+						}
 					}
 				}
 			}
@@ -2010,7 +2057,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					lastXDrag = newDragX-dragXStart;
 					lastYDrag = newDragY-dragYStart;
-					SetWindowPos(statusDlg,0, lastXDrag, lastYDrag, 0,0, SWP_NOZORDER|SWP_NOSIZE|SWP_SHOWWINDOW);
+																		// do not
+					SetWindowPos(statusDlg,0, lastXDrag, lastYDrag, 0,0,/*SWP_NOZORDER|*/SWP_NOSIZE|SWP_SHOWWINDOW);
 				}
 			}
 			else if(draggingStick)
@@ -2018,8 +2066,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				POINT pt;
 				GetCursorPos(&pt);
 				ScreenToClient(GetDlgItem(statusDlg, IDC_STICKPIC), &pt);
-				overrideX =  (pt.x*256/STICKPIC_SIZE - 128 + 1);
-				overrideY = -(pt.y*256/STICKPIC_SIZE - 128 + 1);
+				overrideX =  (pt.x*256/(signed)STICKPIC_SIZE - 128 + 1);
+				overrideY = -(pt.y*256/(signed)STICKPIC_SIZE - 128 + 1);
 				
 				// normalize out-of-bounds clicks
 				if(overrideX > 127 || overrideY > 127 || overrideX < -128 || overrideY < -129)
@@ -2045,7 +2093,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					sprintf(str, "%d", (int)(angle2 + (angle2>0 ? 0.5f : -0.5f)));
 					skipEditX = true;
 				}
-				SetDlgItemText(statusDlg, IDC_EDITX, str);
+				SetXYTextFast(statusDlg, true, str);
 				if(!AngDisp)
 					sprintf(str, "%d", -overrideY);
 				else
@@ -2054,8 +2102,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					sprintf(str, "%d", (int)(0.5f + radialDistance));
 					skipEditY = true;
 				}
-				SetDlgItemText(statusDlg, IDC_EDITY, str);
-
+				SetXYTextFast(statusDlg, false, str);
 				radialRecalc = true;
 				overrideOn = true; //joystick dragged with mouse
 				RefreshAnalogPicture();
@@ -2208,7 +2255,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 							if(newOverrideX > 127) newOverrideX = 127;
 							if(newOverrideX < -128) newOverrideX = -128;
 							sprintf(str, "%d", newOverrideX);
-							SetDlgItemText(statusDlg, IDC_EDITX, str);
+							SetXYTextFast(statusDlg, true, str);
 						}
 					}
 					else
@@ -2219,12 +2266,12 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 							if(newAng >= 360)
 							{
 								sprintf(str, "%d", newAng-360);
-								SetDlgItemText(statusDlg, IDC_EDITX, str);
+								SetXYTextFast(statusDlg, true, str);
 							}
 							else if(newAng < 0)
 							{
 								sprintf(str, "%d", newAng+360);
-								SetDlgItemText(statusDlg, IDC_EDITX, str);
+								SetXYTextFast(statusDlg, true, str);
 							}
 							float newAngF = (newAng - 90) * (PI/180.0f);
 							newOverrideX =  (int)(xScale * radialDistance * cosf((float)newAngF));
@@ -2263,7 +2310,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 							if(newOverrideY > 127) newOverrideY = 127;
 							if(newOverrideY < -128) newOverrideY = -128;
 							sprintf(str, "%d", -newOverrideY);
-							SetDlgItemText(statusDlg, IDC_EDITY, str);
+							SetXYTextFast(statusDlg, false, str);
 						}
 					}
 					else
@@ -2361,21 +2408,20 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				}	break;
 
 				//on checkbox click set buttonOverride and buttonDisplayed field and reset autofire
-				#define DISP_UPDATE(field) buttonDisplayed.field = buttonOverride.field = IsDlgButtonChecked(statusDlg, LOWORD(wParam))?1:0; buttonAutofire.field=buttonAutofire2.field =0; ActivateEmulatorWindow(); break;
-				case IDC_CHECK_A:      DISP_UPDATE(A_BUTTON);
-				case IDC_CHECK_B:      DISP_UPDATE(B_BUTTON);
-				case IDC_CHECK_START:  DISP_UPDATE(START_BUTTON);
-				case IDC_CHECK_Z:      DISP_UPDATE(Z_TRIG);
-				case IDC_CHECK_L:      DISP_UPDATE(L_TRIG);
-				case IDC_CHECK_R:      DISP_UPDATE(R_TRIG);
-				case IDC_CHECK_CLEFT:  DISP_UPDATE(L_CBUTTON);
-				case IDC_CHECK_CUP:    DISP_UPDATE(U_CBUTTON);
-				case IDC_CHECK_CRIGHT: DISP_UPDATE(R_CBUTTON);
-				case IDC_CHECK_CDOWN:  DISP_UPDATE(D_CBUTTON);
-				case IDC_CHECK_DLEFT:  DISP_UPDATE(L_DPAD);
-				case IDC_CHECK_DUP:    DISP_UPDATE(U_DPAD);
-				case IDC_CHECK_DRIGHT: DISP_UPDATE(R_DPAD);
-				case IDC_CHECK_DDOWN:  DISP_UPDATE(D_DPAD); 
+				case IDC_CHECK_A:      buttonOverride.A_BUTTON = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.A_BUTTON = buttonAutofire2.A_BUTTON = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_B:      buttonOverride.B_BUTTON = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.B_BUTTON = buttonAutofire2.B_BUTTON = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_START:  buttonOverride.START_BUTTON = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.START_BUTTON = buttonAutofire2.START_BUTTON = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_Z:      buttonOverride.Z_TRIG = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.Z_TRIG = buttonAutofire2.Z_TRIG = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_L:      buttonOverride.L_TRIG = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.L_TRIG = buttonAutofire2.L_TRIG = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_R:      buttonOverride.R_TRIG = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.R_TRIG = buttonAutofire2.R_TRIG = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_CLEFT:  buttonOverride.L_CBUTTON = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.L_CBUTTON = buttonAutofire2.L_CBUTTON = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_CUP:    buttonOverride.U_CBUTTON = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.U_CBUTTON = buttonAutofire2.U_CBUTTON = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_CRIGHT: buttonOverride.R_CBUTTON = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.R_CBUTTON = buttonAutofire2.R_CBUTTON = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_CDOWN:  buttonOverride.D_CBUTTON = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.D_CBUTTON = buttonAutofire2.D_CBUTTON = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_DLEFT:  buttonOverride.L_DPAD = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.L_DPAD = buttonAutofire2.L_DPAD = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_DUP:    buttonOverride.U_DPAD = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.U_DPAD = buttonAutofire2.U_DPAD = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_DRIGHT: buttonOverride.R_DPAD = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.R_DPAD = buttonAutofire2.R_DPAD = 0; ActivateEmulatorWindow(); break;
+				case IDC_CHECK_DDOWN:  buttonOverride.D_DPAD = IsDlgButtonChecked(statusDlg, LOWORD(wParam)) ? 1 : 0; buttonAutofire.D_DPAD = buttonAutofire2.D_DPAD = 0; ActivateEmulatorWindow(); break;
 				case IDC_CLEARJOY: overrideAllowed = true; overrideOn = true; overrideX = 0; overrideY = 0; SetDlgItemText(statusDlg, IDC_EDITY, "0"); SetDlgItemText(statusDlg, IDC_EDITX, "0"); RefreshAnalogPicture(); ActivateEmulatorWindow(); break;
 				case IDC_CLEARBUTTONS: buttonOverride.Value = buttonAutofire.Value = buttonAutofire2.Value = 0; GetKeys(0); ActivateEmulatorWindow(); break;
 				case IDC_MOREBUTTON0:
@@ -2418,6 +2464,10 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					// Resizing wouldn't work, because any resizing causes visible damage to the dialog's background
 					// due to some messages not getting through to repair it
 					StartThread(Control);
+
+					// Invalidate cache
+					validatedhTxtbox = FALSE;
+
 				}	break;
 				case IDC_PLAY:
 					activeCombo = ListBox_GetCurSel(GetDlgItem(statusDlg, IDC_MACROLIST));
