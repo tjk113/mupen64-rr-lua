@@ -62,6 +62,9 @@ extern "C" {
 #include "../../memory/pif.h"
 #undef EMULATOR_MAIN_CPP_DEF
 
+#include <gdiplus.h>
+#pragma comment (lib,"Gdiplus.lib")
+
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 void StartMovies();
@@ -2508,6 +2511,8 @@ void exit_emu(int postquit)
 	   freeRomDirList(); 
 	   freeRomList();
 	   freeLanguages();
+       Gdiplus::GdiplusShutdown(gdiPlusToken);
+       //printf("free gdiplus\n");
 	   PostQuitMessage (0);
 	}
 }

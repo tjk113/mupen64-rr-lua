@@ -51,6 +51,7 @@ bool enablePCBreak;
 bool maximumSpeedMode;
 bool anyLuaRunning = false;
 bool gdiPlusInitialized = false;
+ULONG_PTR gdiPlusToken;
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
@@ -2076,19 +2077,19 @@ int FillRectAlpha(lua_State* L)
 		// we could do this only once at program startup but what if user doesnt use lua or gdi+
 		printf("lua initialize gdiplus\n");
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		ULONG_PTR gdiplusToken;
-		Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
 		gdiPlusInitialized = true;
 	}
 
 	Lua* lua = GetLuaClass(L);
-	RECT rect;
-	int a, r, g, b;
+	
+	int left, top, right, bottom;
+	byte a, r, g, b;
 
-	rect.bottom = luaL_checknumber(L, 1);
-	rect.left = luaL_checknumber(L, 2);
-	rect.right = luaL_checknumber(L, 3);
-	rect.top = luaL_checknumber(L, 4);
+	bottom = luaL_checknumber(L, 1);
+	left = luaL_checknumber(L, 2);
+	right = luaL_checknumber(L, 3);
+	top = luaL_checknumber(L, 4);
 
 	a = luaL_checknumber(L, 5);
 	r = luaL_checknumber(L, 6);
@@ -2096,12 +2097,15 @@ int FillRectAlpha(lua_State* L)
 	b = luaL_checknumber(L, 8);
 
 	Gdiplus::Graphics gfx(luaDC);
-
 	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+	
+	// vi sitter här i venten och spelar lite dota
+	// activate these for more speed and bad transparency
+	//gfx.SetInterpolationMode(Gdiplus::InterpolationModeDefault);
+	//gfx.SetSmoothingMode(	 Gdiplus::SmoothingModeNone);
+	//gfx.SetPixelOffsetMode(	 Gdiplus::PixelOffsetModeHalf);
 
-
-	gfx.FillRectangle(&brush, rect.left, rect.top, rect.right, rect.bottom);
-	gfx.FillRectangle(&brush, rect.left, rect.top, rect.right, rect.bottom);
+	gfx.FillRectangle(&brush, left, top, right, bottom);
 
 	return 0;
 }
