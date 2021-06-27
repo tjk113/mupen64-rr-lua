@@ -2563,7 +2563,15 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
                 lpttt->lpszText = TempMessage;
 			break;
 		case EMU_PLAY:
-                TranslateDefault("Start/Resume Emulation", "Start/Resume Emulation", TempMessage);
+                if (!emu_launched) {
+                    TranslateDefault("Start Emulation", "Start Emulation", TempMessage);
+                    }
+                else if (emu_paused) {
+                    TranslateDefault("Resume Emulation", "Resume Emulation", TempMessage);
+                }
+                else {
+                    TranslateDefault("Emulating", "Emulating", TempMessage);
+                }
                 lpttt->lpszText = TempMessage;
 			break; 
   		case EMU_PAUSE:
