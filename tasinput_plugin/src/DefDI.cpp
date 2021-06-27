@@ -41,6 +41,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define PLUGIN_NAME "TAS Input"
 #endif
 
+#include <gdiplus.h>
+//using namespace Gdiplus; dont
+#pragma comment (lib,"Gdiplus.lib")
+
 #define PI 3.14159265358979f
 #define BUFFER_CHUNK 128
 
@@ -65,8 +69,9 @@ HANDLE fakeStatusThread = NULL; // fake! used for testing plugin
 HANDLE spamThread = NULL;
 bool validatedhTxtbox = FALSE;
 UINT systemDPI;
-
+ULONG_PTR gdiplusToken;
 bool lock; //don't focus mupen
+
 FILE* cFile; /*combo file conains list of combos in format:
 				n bytes - null terminated name string,
 				4 bytes - combo length (little endian),
@@ -233,13 +238,16 @@ int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 
 	switch (fdwReason)
 	{
-		case DLL_PROCESS_ATTACH:
-			g_hInstance = hInstance;
-			break;
+	case DLL_PROCESS_ATTACH: {
+		g_hInstance = hInstance;
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+		break; }
 
-		case DLL_PROCESS_DETACH:
-			FreeDirectInput();
-			break;
+	case DLL_PROCESS_DETACH: {
+		FreeDirectInput();
+		Gdiplus::GdiplusShutdown(gdiplusToken);
+		break; }
 	}
 
 	return TRUE;
@@ -2140,53 +2148,57 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
+
 				HDC hdcmain = BeginPaint(statusDlg, &ps);
-				HDC hdc = CreateCompatibleDC(hdcmain); //buffer 
+				HDC memDC = CreateCompatibleDC(hdcmain); //buffer 
+
 				RECT rect, rect2;
+
 				GetWindowRect(GetDlgItem(statusDlg,IDC_STICKPIC), &rect);
 				GetWindowRect(statusDlg, &rect2);
+
 				//move to relative of whole window, adjusted because ellipse sucks and because bottom right is exclusive
 				rect.left -= rect2.left+2; rect.right  -= rect2.left+4;
 				rect.top  -= rect2.top+2;  rect.bottom -= rect2.top+4;
 
 				int w = rect.right;
 				int h = rect.bottom;
-				HBITMAP hBmp = CreateCompatibleBitmap(hdcmain, w, h);   //!!! it has to be compatible with  main dc, not buffer!
-				SelectObject(hdc, hBmp); //use the bmp to draw
+				int joyx = rect.left + (overrideX + 128) * (rect.right - rect.left) / 256;
+				int joyy = rect.top + (-overrideY + 128) * (rect.bottom - rect.top) / 256;
 
-				FillRect(hdc, &rect, GetSysColorBrush(COLOR_BTNFACE)); //I clear background on my own
-				Ellipse(hdc, rect.left, rect.top, rect.right, rect.bottom);
+				HBITMAP hBM = CreateCompatibleBitmap(hdcmain, w, h);
+				SelectObject(memDC, hBM);
 
-				HPEN hpenOld, hpenBlue, hpenRed;
-				hpenBlue = CreatePen(PS_SOLID, 3, RGB(0, 0, 255)); // these need to be re-created every time...
-				hpenRed = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
-				hpenOld = (HPEN)SelectObject(hdc, hpenBlue);
+				Gdiplus::Graphics g(memDC);
 
-				MoveToEx(hdc, (rect.left+rect.right)>>1, (rect.top+rect.bottom)>>1, NULL);
-				int x = rect.left + ( overrideX+128)*(rect.right-rect.left)/256;
-				int y = rect.top  + (-overrideY+128)*(rect.bottom-rect.top)/256;
-				LineTo(hdc, x,y);
+				Gdiplus::RectF rectF(rect.top, rect.left, w, h);
+				Gdiplus::Point pMiddle(w / 2, h / 2);
+				Gdiplus::Point pJoystick(joyx, joyy);
+				
+				Gdiplus::Pen penEllipse(Gdiplus::Color(255, 0, 0, 0), 1.0F);
+				Gdiplus::Pen penLine(Gdiplus::Color(255, 255, 0, 0), 3.0F);
+				Gdiplus::Pen penBlack(Gdiplus::Color(255, 0, 0, 0), 1.0F);
+				Gdiplus::SolidBrush brushDot(Gdiplus::Color(255, 0, 0, 255));
+				Gdiplus::SolidBrush brushCtl(Gdiplus::Color(255, 255, 255, 255));
 
-				SelectObject(hdc, hpenOld);
-				DeleteObject(hpenBlue);
+				HBITMAP hBmp = CreateCompatibleBitmap(hdcmain, w, h);
 
-				MoveToEx(hdc, rect.left, (rect.top+rect.bottom)>>1, NULL);
-				LineTo(hdc, rect.right, (rect.top+rect.bottom)>>1);
-				MoveToEx(hdc, (rect.left+rect.right)>>1, rect.top, NULL);
-				LineTo(hdc, (rect.left+rect.right)>>1, rect.bottom);
+				
 
-				hpenOld = (HPEN)SelectObject(hdc, hpenRed);
-				MoveToEx(hdc, x,y, NULL);
-				LineTo(hdc, x,y);
-				SelectObject(hdc, hpenOld);
-				DeleteObject(hpenRed);
-				BitBlt(hdcmain, rect.left, rect.top, w, h, hdc, rect.left, rect.top, SRCCOPY);
-				EndPaint (statusDlg, &ps) ;
-				//free everything to avoid memory leak
-				DeleteDC(hdc);
+				g.FillRectangle(&brushCtl, rectF);
+				g.DrawEllipse(&penEllipse, rectF);
+				g.DrawLine(&penLine, pMiddle, pJoystick);
+				g.FillEllipse(&brushDot, pJoystick.X - 4, pJoystick.Y - 4, 8, 8);
+				g.DrawLine(&penBlack, 0, pMiddle.Y, w, pMiddle.Y);
+				g.DrawLine(&penBlack, pMiddle.X, h, pMiddle.X, -h);
+				
+				BitBlt(hdcmain, rect.left, rect.top, w, h, memDC, rect.left, rect.top, SRCCOPY);
+
+				EndPaint (statusDlg, &ps);
+				
+				DeleteObject(hBM);
+				DeleteDC(memDC);
 				DeleteDC(hdcmain);
-				DeleteObject(hBmp);
-				DeleteObject(hpenOld);
 
 			}
 
