@@ -22,12 +22,13 @@
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
 #include <vcr.h>
-
+#include <gdiplus.h>
 
 #ifdef LUA_CONSOLE
 
 //nice msvc pragma smh
 #pragma comment(lib, "lua54.lib")
+#pragma comment (lib,"Gdiplus.lib")
 
 
 extern unsigned long op;
@@ -49,6 +50,7 @@ bool traceLogMode;
 bool enablePCBreak;
 bool maximumSpeedMode;
 bool anyLuaRunning = false;
+bool gdiPlusInitialized = false;
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
@@ -2067,6 +2069,42 @@ int DrawRect(lua_State *L) {
 		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
+int FillRectAlpha(lua_State* L) 
+{
+	// lol this is so bad.. branching in drawing code but idc
+	if (!gdiPlusInitialized) {
+		// we could do this only once at program startup but what if user doesnt use lua or gdi+
+		printf("lua initialize gdiplus\n");
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		ULONG_PTR gdiplusToken;
+		Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+		gdiPlusInitialized = true;
+	}
+
+	Lua* lua = GetLuaClass(L);
+	RECT rect;
+	int a, r, g, b;
+
+	rect.bottom = luaL_checknumber(L, 1);
+	rect.left = luaL_checknumber(L, 2);
+	rect.right = luaL_checknumber(L, 3);
+	rect.top = luaL_checknumber(L, 4);
+
+	a = luaL_checknumber(L, 5);
+	r = luaL_checknumber(L, 6);
+	g = luaL_checknumber(L, 7);
+	b = luaL_checknumber(L, 8);
+
+	Gdiplus::Graphics gfx(luaDC);
+
+	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+
+
+	gfx.FillRectangle(&brush, rect.left, rect.top, rect.right, rect.bottom);
+	gfx.FillRectangle(&brush, rect.left, rect.top, rect.right, rect.bottom);
+
+	return 0;
+}
 int FillRect(lua_State* L) {
 	/*
 	(Info)
@@ -2994,7 +3032,8 @@ const luaL_Reg wguiFuncs[] = {
 	{"text", TextOut},
 	{"drawtext", DrawText},
 	{"rect", DrawRect},
-	{"fillrect", FillRect}, // Experimental
+	{"fillrect", FillRect},
+	{"fillrecta", FillRectAlpha}, // Experimental
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
 	{"line", DrawLine},
