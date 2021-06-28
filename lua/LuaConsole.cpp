@@ -2070,16 +2070,80 @@ int DrawRect(lua_State *L) {
 		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
-int FillRectAlpha(lua_State* L) 
-{
-	// lol this is so bad.. branching in drawing code but idc
+
+VOID checkGDIPlusInitialized() {
+	// will be inlined by compiler
 	if (!gdiPlusInitialized) {
-		// we could do this only once at program startup but what if user doesnt use lua or gdi+
 		printf("lua initialize gdiplus\n");
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
 		gdiPlusInitialized = true;
 	}
+}
+
+int FillPolygonAlpha(lua_State* L) {
+
+	checkGDIPlusInitialized();
+	Lua* lua = GetLuaClass(L);
+
+	Gdiplus::PointF pt1;
+	Gdiplus::PointF pt2;
+	Gdiplus::PointF pt3;
+	byte a, r, g, b;
+
+	pt1.X = luaL_checknumber(L, 1);
+	pt1.Y = luaL_checknumber(L, 2);
+
+	pt2.X = luaL_checknumber(L, 3);
+	pt2.Y = luaL_checknumber(L, 4);
+
+	pt3.X = luaL_checknumber(L, 5);
+	pt3.Y = luaL_checknumber(L, 6);
+
+	a = luaL_checknumber(L, 7);
+	r = luaL_checknumber(L, 8);
+	g = luaL_checknumber(L, 9);
+	b = luaL_checknumber(L, 10);
+
+	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+
+	Gdiplus::PointF pts[3] = {pt1,pt2,pt3};
+	gfx.FillPolygon(&brush, pts, 1);
+	
+	delete[] pts; // i think
+
+	return 0;
+}
+
+
+int FillEllipseAlpha(lua_State* L) {
+	checkGDIPlusInitialized();
+	Lua* lua = GetLuaClass(L);
+
+	int left, top, right, bottom;
+	byte a, r, g, b;
+
+	bottom = luaL_checknumber(L, 1);
+	left = luaL_checknumber(L, 2);
+	right = luaL_checknumber(L, 3);
+	top = luaL_checknumber(L, 4);
+
+	a = luaL_checknumber(L, 5);
+	r = luaL_checknumber(L, 6);
+	g = luaL_checknumber(L, 7);
+	b = luaL_checknumber(L, 8);
+
+	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+
+	gfx.FillEllipse(&brush, left, top, right, bottom);
+
+	return 0;
+}
+int FillRectAlpha(lua_State* L) 
+{
+	checkGDIPlusInitialized();
 
 	Lua* lua = GetLuaClass(L);
 	
@@ -2098,12 +2162,6 @@ int FillRectAlpha(lua_State* L)
 
 	Gdiplus::Graphics gfx(luaDC);
 	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
-	
-	// vi sitter här i venten och spelar lite dota
-	// activate these for more speed and bad transparency
-	//gfx.SetInterpolationMode(Gdiplus::InterpolationModeDefault);
-	//gfx.SetSmoothingMode(	 Gdiplus::SmoothingModeNone);
-	//gfx.SetPixelOffsetMode(	 Gdiplus::PixelOffsetModeHalf);
 
 	gfx.FillRectangle(&brush, left, top, right, bottom);
 
@@ -3037,7 +3095,12 @@ const luaL_Reg wguiFuncs[] = {
 	{"drawtext", DrawText},
 	{"rect", DrawRect},
 	{"fillrect", FillRect},
-	{"fillrecta", FillRectAlpha}, // Experimental
+	/*<GDIPlus>*/
+	// GDIPlus functions marked with "a" suffix
+	{"fillrecta", FillRectAlpha},
+	{"fillellipsea", FillEllipseAlpha},
+	{"fillpolygona", FillPolygonAlpha},
+	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
 	{"line", DrawLine},
