@@ -2115,9 +2115,10 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if(!IsAnyStatusDialogActive())
 				{
-					if(gettingKeys)
+					if (gettingKeys)
+						printf("getting?!\n");
 						Sleep(0);
-					ActivateEmulatorWindow();
+					//ActivateEmulatorWindow();
 					if(!gettingKeys && !(comboTask & (C_RUNNING | C_LOOP)) && !copyButtons)
 					{
 						BUTTONS Keys;
@@ -2126,7 +2127,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 						GetKeys(&Keys); //used in radial mode I think
 						fakeInput = false;
 						relativeControlNow = false;
-						ActivateEmulatorWindow();
+						//ActivateEmulatorWindow();
 					}
 				}
 				else
