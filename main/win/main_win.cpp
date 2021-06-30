@@ -2871,7 +2871,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         lpMMI->ptMinTrackSize.y = MIN_WINDOW_H;
         // this might break small res with gfx plugin!!!
     }
-
+    break;
 	case WM_ENTERMENULOOP:       
              AutoPause = emu_paused;
              if (!emu_paused)
