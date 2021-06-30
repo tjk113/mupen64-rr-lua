@@ -2415,14 +2415,6 @@ static DWORD WINAPI StartMoviesThread(LPVOID lpParam)
     ExitThread(0);
 }
 
-static DWORD WINAPI StartMoviesThread(LPVOID lpParam)
-{
-    Sleep(2000);
-    StartMovies();
-    ExitThread(0);
-}
-
-
 static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 {
 	ThreadFuncState = TFS_NONE;
