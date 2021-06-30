@@ -55,6 +55,7 @@
 #define MUP_HEADER_SIZE_OLD (512) // bytes
 #define MUP_HEADER_SIZE (sizeof(SMovieHeader))
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? MUP_HEADER_SIZE_OLD : MUP_HEADER_SIZE)
+#define MAX_AVI_SIZE 0x80000000
 
 extern CONFIG Config;
 
@@ -1709,7 +1710,7 @@ VCR_updateScreen()
 
 
 
-	if(VCRComp_GetSize() > 0x7B9ACA00)
+	if(VCRComp_GetSize() > MAX_AVI_SIZE)
 	{
 		if(AVIBreakMovie)
 		{
