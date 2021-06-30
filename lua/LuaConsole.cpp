@@ -2111,7 +2111,6 @@ int FillPolygonAlpha(lua_State* L) {
 	Gdiplus::PointF pts[3] = {pt1,pt2,pt3};
 	gfx.FillPolygon(&brush, pts, 1);
 	
-	delete[] pts; // i think
 
 	return 0;
 }
