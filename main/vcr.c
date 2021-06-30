@@ -1315,7 +1315,9 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
     		return -1;
         }
 	}
-	if (!restarting) SetActiveMovie(buf); // can crash when looping + fast forward, no need to change this
+	SetActiveMovie(buf); 
+	// can crash when looping + fast forward, no need to change this
+	// this creates a bug, so i changed it -auru
     {
         int code = read_movie_header(m_file, &m_header);
         
