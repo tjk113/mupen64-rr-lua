@@ -55,6 +55,7 @@
 #define MUP_HEADER_SIZE_OLD (512) // bytes
 #define MUP_HEADER_SIZE (sizeof(SMovieHeader))
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? MUP_HEADER_SIZE_OLD : MUP_HEADER_SIZE)
+#define MAX_AVI_SIZE 0x7B9ACA00
 
 extern CONFIG Config;
 
@@ -1315,7 +1316,9 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
     		return -1;
         }
 	}
-	if (!restarting) SetActiveMovie(buf); // can crash when looping + fast forward, no need to change this
+	SetActiveMovie(buf); 
+	// can crash when looping + fast forward, no need to change this
+	// this creates a bug, so i changed it -auru
     {
         int code = read_movie_header(m_file, &m_header);
         
@@ -1707,7 +1710,7 @@ VCR_updateScreen()
 
 
 
-	if(VCRComp_GetSize() > 0x7B9ACA00)
+	if(VCRComp_GetSize() > MAX_AVI_SIZE)
 	{
 		static char* endptr;
 		VCRComp_finishFile(1);
