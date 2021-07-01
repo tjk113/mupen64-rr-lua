@@ -1713,31 +1713,12 @@ VCR_updateScreen()
 
 	if(VCRComp_GetSize() > MAX_AVI_SIZE)
 	{
-		if(AVIBreakMovie)
-		{
-			VCRComp_finishFile(1);
-			AVIBreakMovie=2;
-		}
-		else
-		{
-			VCRComp_finishFile(1);
-			AVIBreakMovie=1;
-		}
-		char* AVIName = AVIFileName;
-		int fnlen = strlen(AVIFileName);
-		
-		if(AVIBreakMovie==2)
-		{
-			strncpy(AVIName, AVIFileName, fnlen - 5 - (int)(log10(AVIIncrement)));
-			AVIName[fnlen - 5 - (int)(log10(AVIIncrement))] = 0;
-		}
-		else
-		{
-			strncpy(AVIName, AVIFileName, fnlen - 4);
-			AVIName[fnlen - 4] = 0;
-		}
-		sprintf(AVIFileName, "%s%d.avi", AVIName, AVIIncrement + 1);
-		AVIIncrement++;
+		static char* endptr;
+		VCRComp_finishFile(1);
+		if (!AVIIncrement)
+			endptr = AVIFileName + strlen(AVIFileName) -4;
+		//AVIIncrement
+		sprintf(endptr, "%d.avi", ++AVIIncrement);
 		VCRComp_startFile( AVIFileName, width, height, visByCountrycode(), 0);
 	}
 
@@ -2073,7 +2054,7 @@ VCR_stopCapture()
 #endif
 //	VCR_stopPlayback();
 	VCRComp_finishFile(0);
-	AVIBreakMovie = 0; AVIIncrement = 0;
+	AVIIncrement = 0;
 	printf( "[VCR]: Capture finished.\n" );
 //	ShowInfo("VCR_stopCapture() done");
 	return 0;
