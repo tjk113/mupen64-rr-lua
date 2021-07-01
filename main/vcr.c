@@ -869,6 +869,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 	if (m_task == Idle)
 		return;
 
+
 	if (m_task == StartRecording)
 	{
 		if(!continue_vcr_on_restart_mode)
