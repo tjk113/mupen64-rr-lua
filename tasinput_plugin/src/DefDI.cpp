@@ -188,6 +188,7 @@ struct Status
 	BUTTONS buttonOverride, buttonAutofire, buttonAutofire2;
 	BUTTONS buttonDisplayed;
 	BUTTONS	LastControllerInput;
+	BUTTONS	LastPureControllerInput; //without overrides/combo
 	HWND statusDlg;
 	HWND prevHWnd;
 	HWND lBox;
@@ -803,7 +804,15 @@ void Status::GetKeys(BUTTONS * Keys)
 	}
 	else if (comboTask == C_PAUSE) comboStart++;
 
-	continue_controller:
+continue_controller:
+	//Allow unpressing with real controller low iq:
+	//1. realChanged has 1 where something changed
+	//2. mask out presses, leave releases
+	//3. remove the releases from override
+	DWORD realChanged = ControllerInput.Value ^ LastPureControllerInput.Value;
+	buttonOverride.Value &= ~(realChanged&LastPureControllerInput.Value);
+
+	LastPureControllerInput.Value = ControllerInput.Value;
 	ControllerInput.Value |= buttonOverride.Value;
 	//if((frameCounter/2)%2 == 0)
 	if (frameCounter % 2 == 0) //autofire stuff
@@ -823,7 +832,7 @@ void Status::GetKeys(BUTTONS * Keys)
 	ControllerInput.Y_AXIS = overrideY;
 	//Pass Button Info to Emulator
 	Keys->Value = ControllerInput.Value;
-	buttonOverride.Value = oldOverride;
+	//buttonOverride.Value = oldOverride;
 	//copy fetched data to combo too
 	if (comboTask == C_RECORD && !fakeInput)
 	{
