@@ -660,7 +660,9 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return FALSE;
 }
 std::string OpenLuaFileDialog() {
-	EmulationLock lock;
+	
+	int storePaused = emu_paused;
+	pauseEmu(1);
 
 	OPENFILENAME ofn;
 	char filename[MAX_PATH] = "";
@@ -679,8 +681,13 @@ std::string OpenLuaFileDialog() {
 	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
 	
-	if(!GetOpenFileName(&ofn))
+	if (!GetOpenFileName(&ofn)) {
+		if (!storePaused) resumeEmu(1);
 		return "";
+	}
+
+	if (!storePaused) resumeEmu(1);
+
 	return ofn.lpstrFile;
 }
 void SetButtonState(HWND wnd, bool state) {
