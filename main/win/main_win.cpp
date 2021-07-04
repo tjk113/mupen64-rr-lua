@@ -226,6 +226,9 @@ char sound_name[255];
 char rsp_name[255];
 
 char stroopConfigLine[150] = {0};
+#define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
+char incompatiblePluginNames[INCOMPATIBLE_PLUGINS_AMOUNT][256] = { "Azi" };
+
 
 enum EThreadFuncState {
 	TFS_INITMEM,
@@ -498,11 +501,32 @@ static plugins *liste_plugins = NULL, *current;
 void insert_plugin(plugins *p, char *file_name,
 		   char *plugin_name, void *handle, int type,int num)
 {
+
+    for (int i = 0; i < INCOMPATIBLE_PLUGINS_AMOUNT; i++)
+    {
+        if (strstr(plugin_name, incompatiblePluginNames[i])) {
+            char* msg = (char*)malloc(sizeof(incompatiblePluginNames[i]));
+
+            sprintf(msg, "A incompatible plugin with the name \"%s\" was detected.\
+                \nIt is highly recommended to skip loading this plugin as not doing so might cause instability.\
+                \nAre you sure you want to load this plugin?", plugin_name);
+
+            int res = MessageBox(0, msg, "Incompatible plugin", MB_YESNO | MB_TOPMOST | MB_ICONWARNING);
+            
+            free(msg);
+
+            if(res == IDNO)
+            return;
+        }
+    }
+    
+
     if (p->next)
         insert_plugin(p->next, file_name, plugin_name, handle, type, 
                                (p->type == type) ? num+1 : num);
     else
     {
+        
         p->next = (plugins*)malloc(sizeof(plugins));
         p->next->type = type;
         p->next->handle = (HMODULE)handle;
