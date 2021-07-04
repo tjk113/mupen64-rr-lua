@@ -502,23 +502,7 @@ void insert_plugin(plugins *p, char *file_name,
 		   char *plugin_name, void *handle, int type,int num)
 {
 
-    for (int i = 0; i < INCOMPATIBLE_PLUGINS_AMOUNT; i++)
-    {
-        if (strstr(plugin_name, incompatiblePluginNames[i])) {
-            char* msg = (char*)malloc(sizeof(incompatiblePluginNames[i]));
-
-            sprintf(msg, "A incompatible plugin with the name \"%s\" was detected.\
-                \nIt is highly recommended to skip loading this plugin as not doing so might cause instability.\
-                \nAre you sure you want to load this plugin?", plugin_name);
-
-            int res = MessageBox(0, msg, "Incompatible plugin", MB_YESNO | MB_TOPMOST | MB_ICONWARNING);
-            
-            free(msg);
-
-            if(res == IDNO)
-            return;
-        }
-    }
+    
     
 
     if (p->next)
@@ -526,7 +510,23 @@ void insert_plugin(plugins *p, char *file_name,
                                (p->type == type) ? num+1 : num);
     else
     {
-        
+        for (int i = 0; i < INCOMPATIBLE_PLUGINS_AMOUNT; i++)
+        {
+            if (strstr(plugin_name, incompatiblePluginNames[i])) {
+                char* msg = (char*)malloc(sizeof(incompatiblePluginNames[i]));
+
+                sprintf(msg, "A incompatible plugin with the name \"%s\" was detected.\
+                \nIt is highly recommended to skip loading this plugin as not doing so might cause instability.\
+                \nAre you sure you want to load this plugin?", plugin_name);
+
+                int res = MessageBox(0, msg, "Incompatible plugin", MB_YESNO | MB_TOPMOST | MB_ICONWARNING);
+
+                free(msg);
+
+                if (res == IDNO)
+                    return;
+            }
+        }
         p->next = (plugins*)malloc(sizeof(plugins));
         p->next->type = type;
         p->next->handle = (HMODULE)handle;
