@@ -62,7 +62,6 @@ bool romIsOpen = false;
 HMENU hMenu;
 
 HANDLE fakeStatusThread = NULL; // fake! used for testing plugin
-HANDLE spamThread = NULL;
 bool validatedhTxtbox = FALSE;
 UINT systemDPI;
 
@@ -189,6 +188,7 @@ struct Status
 	BUTTONS buttonOverride, buttonAutofire, buttonAutofire2;
 	BUTTONS buttonDisplayed;
 	BUTTONS	LastControllerInput;
+	BUTTONS	LastPureControllerInput; //without overrides/combo
 	HWND statusDlg;
 	HWND prevHWnd;
 	HWND lBox;
@@ -215,6 +215,7 @@ struct Status
 	bool IsWindowFromEmulatorProcessActive ();
 	static bool IsAnyStatusDialogActive ();
 	LRESULT StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam);
+	void UpdateVisuals(BUTTONS ControllerInput);
 	void GetKeys(BUTTONS * Keys);
 	void SetKeys(BUTTONS ControllerInput);
 };
@@ -248,7 +249,6 @@ int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 EXPORT void CALL CloseDLL (void)
 {
 	//Stop and Close Direct Input
-	if(spamThread) TerminateThread(spamThread, 0);
 	FreeDirectInput();
 }
 
@@ -804,19 +804,27 @@ void Status::GetKeys(BUTTONS * Keys)
 	}
 	else if (comboTask == C_PAUSE) comboStart++;
 
-	continue_controller:
+continue_controller:
+	//Allow unpressing with real controller low iq:
+	//1. realChanged has 1 where something changed
+	//2. mask out presses, leave releases
+	//3. remove the releases from override
+	DWORD realChanged = ControllerInput.Value ^ LastPureControllerInput.Value;
+	buttonOverride.Value &= ~(realChanged&LastPureControllerInput.Value);
+
+	LastPureControllerInput.Value = ControllerInput.Value;
 	ControllerInput.Value |= buttonOverride.Value;
 	//if((frameCounter/2)%2 == 0)
 	if (frameCounter % 2 == 0) //autofire stuff
 		ControllerInput.Value ^= buttonAutofire.Value;
 	else
 		ControllerInput.Value ^= buttonAutofire2.Value;
-
+	
 	bool prevOverrideAllowed = overrideAllowed;
 	overrideAllowed = true;
 	if (comboTask != C_PAUSE)
 	{
-		if (!copyButtons) SetKeys(ControllerInput); //don't overwrite after switching to read write
+		if (!copyButtons && !fakeInput) SetKeys(ControllerInput); //don't overwrite after switching to read write
 		else LastControllerInput = ControllerInput;
 		copyButtons = false;
 	}
@@ -824,7 +832,7 @@ void Status::GetKeys(BUTTONS * Keys)
 	ControllerInput.Y_AXIS = overrideY;
 	//Pass Button Info to Emulator
 	Keys->Value = ControllerInput.Value;
-	buttonOverride.Value = oldOverride;
+	//buttonOverride.Value = oldOverride;
 	//copy fetched data to combo too
 	if (comboTask == C_RECORD && !fakeInput)
 	{
@@ -886,6 +894,28 @@ BOOL AdjustForDPI(HWND parent, UINT dpi) {
 	return dpi != 96;
 
 }
+
+//updates buttons
+void Status::UpdateVisuals(BUTTONS ControllerInput)
+{
+#define UPDATECHECK(idc,field) {if(buttonDisplayed.field != ControllerInput.field) CheckDlgButton(statusDlg, idc, ControllerInput.field);}
+	UPDATECHECK(IDC_CHECK_A, A_BUTTON);
+	UPDATECHECK(IDC_CHECK_B, B_BUTTON);
+	UPDATECHECK(IDC_CHECK_START, START_BUTTON);
+	UPDATECHECK(IDC_CHECK_L, L_TRIG);
+	UPDATECHECK(IDC_CHECK_R, R_TRIG);
+	UPDATECHECK(IDC_CHECK_Z, Z_TRIG);
+	UPDATECHECK(IDC_CHECK_CUP, U_CBUTTON);
+	UPDATECHECK(IDC_CHECK_CLEFT, L_CBUTTON);
+	UPDATECHECK(IDC_CHECK_CRIGHT, R_CBUTTON);
+	UPDATECHECK(IDC_CHECK_CDOWN, D_CBUTTON);
+	UPDATECHECK(IDC_CHECK_DUP, U_DPAD);
+	UPDATECHECK(IDC_CHECK_DLEFT, L_DPAD);
+	UPDATECHECK(IDC_CHECK_DRIGHT, R_DPAD);
+	UPDATECHECK(IDC_CHECK_DDOWN, D_DPAD);
+	buttonDisplayed.Value = ControllerInput.Value&0xFFFF; //fuck off
+}
+
 void Status::SetKeys(BUTTONS ControllerInput)
 {
 	if (copyButtons) //copy m64 data to current input
@@ -900,21 +930,7 @@ void Status::SetKeys(BUTTONS ControllerInput)
 		//true if physical controller state is changed (because logical is handled in GetKeys)
 		if (buttonDisplayed.Value != ControllerInput.Value && HasPanel(2))
 		{
-#define UPDATECHECK(idc,field) {if(buttonDisplayed.field != ControllerInput.field) CheckDlgButton(statusDlg, idc, ControllerInput.field);}
-			UPDATECHECK(IDC_CHECK_A, A_BUTTON);
-			UPDATECHECK(IDC_CHECK_B, B_BUTTON);
-			UPDATECHECK(IDC_CHECK_START, START_BUTTON);
-			UPDATECHECK(IDC_CHECK_L, L_TRIG);
-			UPDATECHECK(IDC_CHECK_R, R_TRIG);
-			UPDATECHECK(IDC_CHECK_Z, Z_TRIG);
-			UPDATECHECK(IDC_CHECK_CUP, U_CBUTTON);
-			UPDATECHECK(IDC_CHECK_CLEFT, L_CBUTTON);
-			UPDATECHECK(IDC_CHECK_CRIGHT, R_CBUTTON);
-			UPDATECHECK(IDC_CHECK_CDOWN, D_CBUTTON);
-			UPDATECHECK(IDC_CHECK_DUP, U_DPAD);
-			UPDATECHECK(IDC_CHECK_DLEFT, L_DPAD);
-			UPDATECHECK(IDC_CHECK_DRIGHT, R_DPAD);
-			UPDATECHECK(IDC_CHECK_DDOWN, D_DPAD);
+			UpdateVisuals(ControllerInput);
 			buttonDisplayed.Value = ControllerInput.Value;
 		}
 		if(relativeXOn == 3 && radialRecalc)
@@ -1575,20 +1591,6 @@ void Status::RefreshAnalogPicture ()
 	}
 }
 
-DWORD WINAPI SpamThread(LPVOID lpParameter) {
-	while (TRUE) {
-
-		for (char i=0;i<4;i++)
-			if(status[i].statusDlg)
-				SendMessage(status[i].statusDlg,WM_SETCURSOR,0,0);
-
-		// windows isnt rtos so timer granularity is bad and sleeping for less than 20 miliseconds doesnt reallllyy work....
-		
-		// cope! lol
-		Sleep(13);
-	}
-	return 0;
-}
 DWORD WINAPI StatusDlgThreadProc (LPVOID lpParameter)
 {
 	int Control = LOBYTE(*(int*)lpParameter);
@@ -1791,7 +1793,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			AdjustForDPI(statusDlg, systemDPI);
 
 			// reset some dialog state
-			dragging = false;
 			lastXDrag = 0;
 			lastYDrag = 0;
 			dragging = false, draggingStick = false, draggingPermaStick = false;
@@ -1921,12 +1922,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			if(IsWindowFromEmulatorProcessActive())
 				ActivateEmulatorWindow();
 
-			// create thread which spams SETCURSOR message... is this thread safe?
-			if (!spamThread) {
-				DWORD dwThreadParam = 0, dwThreadId;
-				spamThread = CreateThread(0, 0, SpamThread, &dwThreadParam, 0, &dwThreadId);
-			}
-
 		}	break;
 
 		case WM_ACTIVATE:
@@ -1969,6 +1964,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if(IsMouseOverControl(statusDlg,IDC_STICKPIC))
 				{
+					SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC)NULL); //start timer during dragging to allow out of bounds drag
 					//if clicked RMB and permadrag was active, disable it
 					if(draggingPermaStick || GetAsyncKeyState(VK_RBUTTON) & 0x8000)
 					{
@@ -1984,9 +1980,9 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				else if(IsMouseOverControl(statusDlg,IDC_BUTTONSLABEL) || IsMouseOverControl(statusDlg, IDC_ANALOGSTICKLABEL))
 				{
 #ifdef DEBUG
-					printf("HWND hit: %d\n", ChildWindowFromPoint(statusDlg, pt));
-					printf("HWND deeper 1: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt));
-					printf("HWND deeper 2: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt), pt));
+					//printf("HWND hit: %d\n", ChildWindowFromPoint(statusDlg, pt));
+					//printf("HWND deeper 1: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt));
+					//printf("HWND deeper 2: %d\n", ChildWindowFromPoint(ChildWindowFromPoint(ChildWindowFromPoint(statusDlg, pt), pt), pt));
 #endif
 					//if we are over buttons area and right is clicked, look for autofire candidates
 					if(lastWasRight && IsMouseOverControl(statusDlg, IDC_BUTTONSLABEL))
@@ -2047,6 +2043,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				draggingStick = false;
 				draggingPermaStick = false;
+				KillTimer(statusDlg, IDT_TIMER3);
 				if(IsWindowFromEmulatorProcessActive())
 					ActivateEmulatorWindow();
 			}
@@ -2116,7 +2113,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				if(!IsAnyStatusDialogActive())
 				{
 					if (gettingKeys)
-						printf("getting?!\n");
 						Sleep(0);
 					//ActivateEmulatorWindow();
 					if(!gettingKeys && !(comboTask & (C_RUNNING | C_LOOP)) && !copyButtons)
@@ -2242,6 +2238,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			EndEdit(activeCombo, (char*)lParam);
 			break;
 		case WM_COMMAND:
+			dragging = false; //any interaction with controls means we don't want to drag
 			switch (LOWORD(wParam)) 
             {
 				case IDC_EDITX:
