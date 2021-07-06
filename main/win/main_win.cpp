@@ -227,7 +227,7 @@ char rsp_name[255];
 
 char stroopConfigLine[150] = {0};
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
-char incompatiblePluginNames[INCOMPATIBLE_PLUGINS_AMOUNT][256] = { "Azi" };
+const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = { "Azimer\'s Audio v0.7" };
 
 
 enum EThreadFuncState {
@@ -512,8 +512,8 @@ void insert_plugin(plugins *p, char *file_name,
     {
         for (int i = 0; i < INCOMPATIBLE_PLUGINS_AMOUNT; i++)
         {
-            if (strstr(plugin_name, incompatiblePluginNames[i])) {
-                char* msg = (char*)malloc(sizeof(incompatiblePluginNames[i]));
+            if (strstr(plugin_name, pluginBlacklist[i])) {
+                char* msg = (char*)malloc(sizeof(pluginBlacklist[i]));
 
                 sprintf(msg, "A incompatible plugin with the name \"%s\" was detected.\
                 \nIt is highly recommended to skip loading this plugin as not doing so might cause instability.\
@@ -525,6 +525,9 @@ void insert_plugin(plugins *p, char *file_name,
 
                 if (res == IDNO)
                     return;
+                else
+                    ; // todo: punch user in the face
+                
             }
         }
         p->next = (plugins*)malloc(sizeof(plugins));
@@ -2743,6 +2746,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_DROPFILES:
         //HDROP hFile = (HDROP) wParam;
 		char fname[MAX_PATH];
+        char fname2[MAX_PATH];
 		LPSTR fext;
 		DragQueryFile((HDROP)wParam, 0, fname, sizeof(fname));
 		fext = CharUpper(PathFindExtension(fname));
@@ -2752,9 +2756,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		else if (lstrcmp(fext, ".M64") == 0) {
 			if (rom) {
 				if (!VCR_getReadOnly())	VCR_toggleReadOnly();
-				VCR_startPlayback(fname, 0, 0);
-				EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-				EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+
+                if (VCR_startPlayback(fname, 0, 0) < 0) {
+                    sprintf(fname2, "Couldn't start playback\nof \"%s\".", fname);
+                    MessageBox(hwnd, fname2, "VCR", MB_OK);
+                    break; // this will introduce a bug:
+                }
+                else {
+                    HMENU hMenu = GetMenu(mainHWND);
+                    EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
+                    EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+                    if (!emu_paused || !emu_launched)
+                        SetStatusTranslatedString(hStatus, 0, "Playback started...");
+                    else
+                        SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+                }
+                
 			}
 		}
 		else if (strcmp(fext, ".ST") ==0 || strcmp(fext, ".SAVESTATE") == 0) {
@@ -2766,7 +2783,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		else if (strcmp(fext, ".LUA")==0) {
 			if (rom) {
                 for (; *fext; ++fext) *fext = tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
-				LuaOpenAndRun(fname);
+                // even this hack will fail under special circumstances
+                LuaOpenAndRun(fname);
 			}
 		}
 		
