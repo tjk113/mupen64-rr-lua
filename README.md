@@ -9,7 +9,7 @@
 [comment]: <> (Second image has to be inline so another approach is used)
 [**__\>\> Latest Release \<\<__**](https://github.com/mkdasher/mupen64-rr-lua-/releases/latest/)<br>
 
-This repository contains the latest source code for continued development of Mupen64 - Nintendo 64 emulator with TAS support, and TASinput plugin. 
+This repository contains the latest source code for continued development of Mupen64 - Nintendo 64 emulator with TAS support, and TASInput plugin. 
 
 This version includes <a href="https://imgur.com/a/SA2CgEB" target="_blank">new Features such as: AVISplit, Reset recording, WiiVC and Backwards Compatibility</a> options all in one.
 
