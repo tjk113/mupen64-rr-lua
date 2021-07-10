@@ -2759,8 +2759,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                 if (VCR_startPlayback(fname, 0, 0) < 0) {
                     sprintf(fname2, "Couldn't start playback\nof \"%s\".", fname);
-                    MessageBox(hwnd, fname2, "VCR", MB_OK);
-                    break; // this will introduce a bug:
+                    MessageBox(hwnd, fname2, "VCR", MB_OK|MB_ICONERROR);
+                    break;
                 }
                 else {
                     HMENU hMenu = GetMenu(mainHWND);
