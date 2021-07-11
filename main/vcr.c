@@ -1475,6 +1475,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 				if (dontPlay) {
 					SetWindowText(mainHWND, MUPEN_VERSION);
+					RESET_TITLEBAR
 					if(m_file != NULL)
 					fclose(m_file);
 					return -1;
