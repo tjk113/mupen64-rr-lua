@@ -1519,16 +1519,16 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 	    if(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 	    {
 			// we cant wait for this function to return and then get check in emu(?) thread (savestates_load)
-			FILE* stBuf;
-			if ((stBuf = fopen(m_filename, "r"))) fclose(stBuf);
-			else
-			{
-				printf("[VCR]: Early Savestate exist check failed...\n");
-				RESET_TITLEBAR;
-				if (m_file != NULL)
-					fclose(m_file);
-				return -1;
-			}
+			//FILE* stBuf;
+			//if ((stBuf = fopen(m_filename, "r"))) fclose(stBuf);
+			//else
+			//{
+			//	printf("[VCR]: Early Savestate exist check failed...\n");
+			//	RESET_TITLEBAR;
+			//	if (m_file != NULL)
+			//		fclose(m_file);
+			//	return -1;
+			//}
 
 	    	// load state
 	    	printf( "[VCR]: Loading state...\n" );
