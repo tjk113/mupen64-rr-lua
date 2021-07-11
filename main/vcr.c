@@ -1315,6 +1315,8 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
     	{
     		fprintf( stderr, "[VCR]: Cannot start playback, could not open .m64 file '%s': %s\n", filename, strerror( errno ) );
 			RESET_TITLEBAR
+				if (m_file != NULL)
+					fclose(m_file);
 			return -1;
         }
 	}
@@ -1473,6 +1475,8 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 				if (dontPlay) {
 					SetWindowText(mainHWND, MUPEN_VERSION);
+					if(m_file != NULL)
+					fclose(m_file);
 					return -1;
 				}
 
@@ -1521,6 +1525,8 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 			{
 				printf("[VCR]: Early Savestate exist check failed...\n");
 				RESET_TITLEBAR;
+				if (m_file != NULL)
+					fclose(m_file);
 				return -1;
 			}
 
