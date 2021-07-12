@@ -62,6 +62,7 @@ extern CONFIG Config;
 //stop AVI at m64 end, set by command line avi
 bool gStopAVI = false;
 bool captureMarkedStop;
+BOOL dontPlay = false;
 
 #define BUFFER_GROWTH_SIZE (4096)
 
@@ -943,11 +944,12 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 				//sprintf(str, "Couldn't find or load this movie's snapshot,\n\"%s\".\nMake sure that file is where Mupen64 can find it.", savestates_get_selected_filename());
 				//printError(str);
 				m_task = Idle;
-				extern HWND mainHWND;
-				char title[MAX_PATH];
-				GetWindowText(mainHWND, title, MAX_PATH);
-				title[titleLength] = '\0'; //remove movie being played part
-				SetWindowText(mainHWND, title);
+				if (!dontPlay) {
+					char title[MAX_PATH];
+					GetWindowText(mainHWND, title, MAX_PATH);
+					title[titleLength] = '\0'; //remove movie being played part
+					SetWindowText(mainHWND, title);
+				}
 				getKeys( Control, Keys );
 				return;
 			}
@@ -1273,6 +1275,7 @@ void SetActiveMovie(char* buf)
 		_splitpath(buf, 0, 0, buf, 0);
 		sprintf(title, MUPEN_VERSION " - %s | %s.m64", ROM_HEADER->nom, buf);
 	}
+	printf("title %s\n", title);
 	SetWindowText(mainHWND, title);
 }
 
@@ -1333,7 +1336,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 				char warningStr [8092];
 				warningStr[0] = '\0';
 
-				BOOL dontPlay = FALSE;
+				dontPlay = FALSE;
 				
 				if(!Controls[0].Present && (m_header.controllerFlags & CONTROLLER_1_PRESENT))
 				{
@@ -1409,6 +1412,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
                 {
 				    sprintf(str, "The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n", m_header.romNom, ROM_HEADER->nom);
 					strcat(warningStr, str);
+					dontPlay = TRUE;
 				}
 				else 
 				{
@@ -1416,22 +1420,24 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 	                {
 					    sprintf(str, "The movie was recorded with a ROM with country code \"%d\",\nbut you are using a ROM with country code \"%d\",\nso the movie may not play properly.\n", m_header.romCountry, ROM_HEADER->Country_code);
 						strcat(warningStr, str);
+						dontPlay = TRUE;
 					}
 					else if(ROM_HEADER && m_header.romCRC != ROM_HEADER->CRC1)
 	                {
-					    sprintf(str, "The movie was recorded with a ROM that has CRC \"0x%x\",\nbut you are using a ROM with CRC \"0x%x\",\nso the movie may not play properly.\n", (unsigned int)m_header.romCRC, (unsigned int)ROM_HEADER->CRC1);
+					    sprintf(str, "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\",\nso the movie may not play properly.\n", (unsigned int)m_header.romCRC, (unsigned int)ROM_HEADER->CRC1);
 						strcat(warningStr, str);
+						dontPlay = TRUE;
 					}
 				}
 				
 				if(strlen(warningStr) > 0)
 				{
-					
 					if(dontPlay)
 						printError(warningStr);
 					else
 						printWarning(warningStr);
 				}
+
 				extern char gfx_name[255];
 				extern char input_name[255];
 				extern char sound_name[255];
@@ -1474,7 +1480,6 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 
 				if (dontPlay) {
-					SetWindowText(mainHWND, MUPEN_VERSION);
 					RESET_TITLEBAR
 					if(m_file != NULL)
 					fclose(m_file);
@@ -1502,7 +1507,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 				#ifdef _WIN32
 				char buf[50];
 				sprintf(buf, "%d rr", m_header.rerecord_count);
-
+				
 				extern HWND hStatus;
 				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
 				#endif
@@ -1578,6 +1583,7 @@ int VCR_restartPlayback() {
 
 int restartPlayback()
 {
+
 	VCR_setReadOnly(true); // force read only
 	int ret = startPlayback(m_filename, "", "", true);
 
@@ -1620,7 +1626,8 @@ stopPlayback(bool bypassLoopSetting)
 	}
 #ifdef __WIN32__
 	extern HWND mainHWND;
-	SetActiveMovie(NULL); //remove from title
+	//SetActiveMovie(NULL); //remove from title
+	RESET_TITLEBAR // maybe
 #endif
 	if (m_file && m_task != StartRecording && m_task != Recording)
 	{

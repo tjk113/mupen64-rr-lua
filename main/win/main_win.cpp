@@ -2758,8 +2758,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!VCR_getReadOnly())	VCR_toggleReadOnly();
 
                 if (VCR_startPlayback(fname, 0, 0) < 0) {
-                    sprintf(fname2, "Couldn't start playback\nof \"%s\".", fname);
-                    MessageBox(hwnd, fname2, "VCR", MB_OK|MB_ICONERROR);
+                    //sprintf(fname2, "Couldn't start playback\nof \"%s\".", fname);
+                    //MessageBox(hwnd, fname2, "VCR", MB_OK|MB_ICONERROR);
+                    printf("[VCR]: Drag drop Failed to start playback of %s", fname);
                     break;
                 }
                 else {
@@ -2770,6 +2771,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         SetStatusTranslatedString(hStatus, 0, "Playback started...");
                     else
                         SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+
                 }
                 
 			}

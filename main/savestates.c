@@ -253,8 +253,10 @@ void savestates_load(bool silenceNotFoundError)
 	{
 		if (f == NULL)
 		{
-			if (silenceNotFoundError) return;
-
+			if (silenceNotFoundError) {
+				printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
+				return;
+			}
 			if (slot > 9)
 			{
 				//print .st not .savestate because
