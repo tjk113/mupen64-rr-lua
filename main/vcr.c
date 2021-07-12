@@ -1516,6 +1516,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 				char buf[100];
 				sprintf(buf, "[VCR]: Error playing movie: %s.\n", m_errCodeName[code]);
 				printError(buf);
+				dontPlay = code != 0; // should be stable enough
 				break;
         }
 
