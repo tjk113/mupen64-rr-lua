@@ -226,6 +226,9 @@ char sound_name[255];
 char rsp_name[255];
 
 char stroopConfigLine[150] = {0};
+#define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
+const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = { "Azimer\'s Audio v0.7" };
+
 
 enum EThreadFuncState {
 	TFS_INITMEM,
@@ -498,11 +501,35 @@ static plugins *liste_plugins = NULL, *current;
 void insert_plugin(plugins *p, char *file_name,
 		   char *plugin_name, void *handle, int type,int num)
 {
+
+    
+    
+
     if (p->next)
         insert_plugin(p->next, file_name, plugin_name, handle, type, 
                                (p->type == type) ? num+1 : num);
     else
     {
+        for (int i = 0; i < INCOMPATIBLE_PLUGINS_AMOUNT; i++)
+        {
+            if (strstr(plugin_name, pluginBlacklist[i])) {
+                char* msg = (char*)malloc(sizeof(pluginBlacklist[i]));
+
+                sprintf(msg, "A incompatible plugin with the name \"%s\" was detected.\
+                \nIt is highly recommended to skip loading this plugin as not doing so might cause instability.\
+                \nAre you sure you want to load this plugin?", plugin_name);
+
+                int res = MessageBox(0, msg, "Incompatible plugin", MB_YESNO | MB_TOPMOST | MB_ICONWARNING);
+
+                free(msg);
+
+                if (res == IDNO)
+                    return;
+                else
+                    ; // todo: punch user in the face
+                
+            }
+        }
         p->next = (plugins*)malloc(sizeof(plugins));
         p->next->type = type;
         p->next->handle = (HMODULE)handle;
@@ -2719,6 +2746,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_DROPFILES:
         //HDROP hFile = (HDROP) wParam;
 		char fname[MAX_PATH];
+        char fname2[MAX_PATH];
 		LPSTR fext;
 		DragQueryFile((HDROP)wParam, 0, fname, sizeof(fname));
 		fext = CharUpper(PathFindExtension(fname));
@@ -2728,9 +2756,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		else if (lstrcmp(fext, ".M64") == 0) {
 			if (rom) {
 				if (!VCR_getReadOnly())	VCR_toggleReadOnly();
-				VCR_startPlayback(fname, 0, 0);
-				EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-				EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+
+                if (VCR_startPlayback(fname, 0, 0) < 0) {
+                    //sprintf(fname2, "Couldn't start playback\nof \"%s\".", fname);
+                    //MessageBox(hwnd, fname2, "VCR", MB_OK|MB_ICONERROR);
+                    printf("[VCR]: Drag drop Failed to start playback of %s", fname);
+                    break;
+                }
+                else {
+                    HMENU hMenu = GetMenu(mainHWND);
+                    EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
+                    EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+                    if (!emu_paused || !emu_launched)
+                        SetStatusTranslatedString(hStatus, 0, "Playback started...");
+                    else
+                        SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+
+                }
+                
 			}
 		}
 		else if (strcmp(fext, ".ST") ==0 || strcmp(fext, ".SAVESTATE") == 0) {
@@ -2742,7 +2785,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		else if (strcmp(fext, ".LUA")==0) {
 			if (rom) {
                 for (; *fext; ++fext) *fext = tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
-				LuaOpenAndRun(fname);
+                // even this hack will fail under special circumstances
+                LuaOpenAndRun(fname);
 			}
 		}
 		
