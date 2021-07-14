@@ -163,6 +163,7 @@ void LoadConfig()
     Config.FPSmodifier = ReadCfgInt("General", "Fps Modifier", 100);
 	Config.skipFrequency = ReadCfgInt("General", "Skip Frequency", 8);
 	Config.loopMovie = ReadCfgInt("General", "Loop Movie", 0);
+    Config.zeroIndex = ReadCfgInt("General", "Zero index", 0);
 
 
     Config.guiDynacore = ReadCfgInt("CPU", "Core", 1);
@@ -339,6 +340,7 @@ void SaveConfig()
     WriteCfgInt("General", "Use Fps Modifier", Config.UseFPSmodifier);
 	WriteCfgInt("General", "Skip Frequency", Config.skipFrequency);
 	WriteCfgInt("General", "Loop Movie", Config.loopMovie);
+    WriteCfgInt("General", "Zero Index", Config.zeroIndex);
 
     //Advanced Vars
     WriteCfgInt("Advanced", "Start Full Screen", Config.StartFullScreen);
