@@ -94,6 +94,7 @@ typedef struct _CONFIG {
     int FPSmodifier;
     int skipFrequency;
 	BOOL loopMovie;
+    BOOL zeroIndex;
     
     // Advanced vars
     BOOL StartFullScreen;
