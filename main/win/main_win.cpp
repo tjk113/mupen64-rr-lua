@@ -1289,7 +1289,7 @@ void pauseEmu(BOOL quiet)
 
 BOOL StartRom(char *fullRomPath)
 {
-     if (romBrowserRefreshThread) {
+     if (romBrowserBusy) {
         display_status("Rom browser busy!");
         return TRUE;
      }

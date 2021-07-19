@@ -53,6 +53,7 @@ int RomBrowserFieldsWidth[ROM_COLUMN_FIELDS] = {250,150,70,70,200,100,100};
 int RealColumn[ROM_COLUMN_FIELDS] = {0,2,3,4,-1,-1,-1};
 static DWORD Id;
 HANDLE romBrowserRefreshThread = NULL;
+int romBrowserBusy = 0;
 
 char *getFieldName(int col)
 {
@@ -989,6 +990,7 @@ void FastRefreshBrowser()
     ListViewSort();
 }
 DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
+    romBrowserBusy = TRUE;
     remove(get_cachepath());
     SaveRomBrowserDirs();
     TOTAL_ROMS_NUMBER = 0;
@@ -996,6 +998,7 @@ DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
     ListView_DeleteAllItems(hRomList);
     freeRomList();
     LoadRomList();
+    romBrowserBusy = FALSE;
     ExitThread(0);
     return 0;
 }
