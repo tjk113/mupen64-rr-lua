@@ -46,7 +46,7 @@ HWND CreateGridCtl()
         return NULL;
     }
 
-    studioControlhWnd = CreateWindowA("ZeeGrid", "TAS Studio Grid", WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 600, 400, hWnd, (HMENU)0, hInstt, NULL);
+    studioControlhWnd = CreateWindowA("ZeeGrid", "TAS Studio Grid", WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 600, 350, hWnd, (HMENU)0, hInstt, NULL);
     
     SendMessage(studioControlhWnd, ZGM_EMPTYGRID, 1, 0);
     SendMessage(studioControlhWnd, ZGM_DIMGRID, 18, 0);
@@ -177,15 +177,9 @@ DWORD WINAPI TASStudioThread(LPVOID tParam) {
 
     TASStudioWindow(m_task == ETask::Playback);
 
-    for (int i = 0; i < 18; i++)
-    {
-        
-    }
-
     TASStudioBuild();
 
 
-    messagepump:
     while (GetMessage(&Msg, NULL, 0, 0))
     {
         if (!IsDialogMessage(hWnd, &Msg))
@@ -193,9 +187,7 @@ DWORD WINAPI TASStudioThread(LPVOID tParam) {
             TranslateMessage(&Msg);
             DispatchMessage(&Msg);
         }
-
     }
-    goto messagepump; // dont let the thread exit even if no windows messages ?
 }
 
 
