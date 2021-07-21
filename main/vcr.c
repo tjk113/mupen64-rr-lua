@@ -28,7 +28,7 @@
 //#include <zlib.h>
 #include <stdio.h>
 #include <time.h>
-
+#include "../../main/win/tasstudio.h"
 #ifndef __WIN32__
 #include <gtk/gtk.h> // for getting callback_startEmulation and callback_stopEmulation
 #include <unistd.h> // for truncate
@@ -42,6 +42,7 @@
 #include <WinUser.h>
 
 #endif
+#include "../winproject/mupen64/tasstudio.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
@@ -79,16 +80,16 @@ static const char *m_errCodeName[] =
 };
 
 
-enum ETask
-{
-	Idle = 0,
-	StartRecording,
-	StartRecordingFromSnapshot,
-	Recording,
-	StartPlayback,
-	StartPlaybackFromSnapshot,
-	Playback
-};
+//enum ETask
+//{
+//	Idle = 0,
+//	StartRecording,
+//	StartRecordingFromSnapshot,
+//	Recording,
+//	StartPlayback,
+//	StartPlaybackFromSnapshot,
+//	Playback
+//};
 /*
 static const char *m_taskName[] =
 {
@@ -1502,7 +1503,10 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 				// read "baseline" controller data
 ///				read_frame_controller_data(0); // correct if we can assume the first controller is active, which we can on all GBx/xGB systems
 //				m_currentSample = 0;
+				//fseek(m_file, 1024, SEEK_SET);
+				//fread(&tasStudioinputbuffer, 1, m_header.length_samples, m_file);
 				
+
 				fseek(m_file, 0, SEEK_END);
 				#ifdef _WIN32
 				char buf[50];
@@ -1569,6 +1573,24 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 		if(descriptionUTF8)
 			strncpy(m_header.description, descriptionUTF8, MOVIE_DESCRIPTION_DATA_SIZE);
 		m_header.description[MOVIE_DESCRIPTION_DATA_SIZE-1] = '\0';
+
+		//long headerEndPos = 1024;
+		//
+		//if (m_header.version != 3)
+		//	headerEndPos = 0x200;
+		//
+		//if (!m_file) m_file = fopen(m_filename, "rb+");
+		//
+		//fseek(m_file, 0, SEEK_END);
+		//long eofpos = ftell(m_file);
+		//fseek(m_file, headerEndPos, SEEK_SET);
+		//fread(&tasStudioinputbuffer, 1, eofpos - headerEndPos, m_file);
+
+		// fclose
+		//TASStudioWindow(1);
+		curMovie = m_header; // workaround
+		tasStudioinputbuffer = m_inputBufferPtr;
+		TASStudioBuild();
 
         return code;
 	}

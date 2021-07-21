@@ -418,6 +418,11 @@
 #define IDC_CLUADOUBLEBUFFER			40010
 #define IDC_GITREPO						40011
 #define IDC_EXTSAVESTATE				40012
+#define IDD_TASSTUDIO_DIALOG			40013
+#define IDC_STUDIOCONTROL			    40014
+#define IDC_REBUILD						40015
+#define ID_TASSTUDIOMENUITEM			40016
+#define IDC_CLOSETASSTUDIO				40017
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

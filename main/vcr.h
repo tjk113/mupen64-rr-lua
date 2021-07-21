@@ -44,6 +44,7 @@
 #define MOVIE_DESCRIPTION_DATA_SIZE (256)
 #define MOVIE_MAX_METADATA_SIZE (MOVIE_DESCRIPTION_DATA_SIZE > MOVIE_AUTHOR_DATA_SIZE ? MOVIE_DESCRIPTION_DATA_SIZE : MOVIE_AUTHOR_DATA_SIZE)
 
+
 /*
 	(0x0001)	Directional Right
 	(0x0002)	Directional Left
@@ -141,9 +142,19 @@ typedef struct
 } SMovieHeader; // should be exactly 1024 bytes
 #pragma pack(pop)
 	
-
+enum ETask
+{
+	Idle = 0,
+	StartRecording,
+	StartRecordingFromSnapshot,
+	Recording,
+	StartPlayback,
+	StartPlaybackFromSnapshot,
+	Playback
+};
+extern int m_task;
+extern long m_currentSample;
 extern SMovieHeader VCR_getHeaderInfo(const char* filename);
-
 #endif // VCR_SUPPORT
 
 #endif // __VCR_H__

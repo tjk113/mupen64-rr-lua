@@ -242,6 +242,8 @@
     <ClInclude Include="..\..\main\win\timers.h" />
     <ClInclude Include="..\..\main\win\translation.h" />
     <ClInclude Include="..\..\main\win\vfw.h" />
+    <ClInclude Include="..\..\main\win\tasstudio.h" />
+    <ClInclude Include="ops_helper.h" />
     <CustomBuildStep Include="..\..\main\gui_gtk\aboutdialog.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
@@ -319,6 +321,7 @@
     <ClInclude Include="..\resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\library\BabyGrid.cpp" />
     <ClCompile Include="..\..\main\adler32.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>
@@ -725,6 +728,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="..\..\lua\LuaConsole.cpp" />
+    <ClCompile Include="..\..\main\win\tasstudio.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\rsrc.rc" />

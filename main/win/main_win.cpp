@@ -53,9 +53,9 @@ extern "C" {
 #include "GUI_logwindow.h"
 #include "commandline.h"
 #include "CrashHandler.h"
-
 #include "../vcr.h"
 #include "../../r4300/recomph.h"
+#include "../winproject/mupen64/tasstudio.h"
 
 #define EMULATOR_MAIN_CPP_DEF
 #include "kaillera.h"
@@ -2339,6 +2339,7 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
+      EnableMenuItem(hMenu, ID_TASSTUDIOMENUITEM, MF_ENABLED);
       if (dynacore) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
           SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
@@ -2389,7 +2390,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
-
+      EnableMenuItem(hMenu, ID_TASSTUDIOMENUITEM, MF_GRAYED);
 
       if (!dynacore) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
@@ -2972,6 +2973,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     ::CloseAllLuaScript();
 #endif
 				} break;
+            case ID_TASSTUDIOMENUITEM:
+                TASStudioWindow(1);
+                break;
 			case ID_TRACELOG:
 #ifdef LUA_TRACELOG
 #ifdef LUA_TRACEINTERP
@@ -3753,7 +3757,8 @@ int WINAPI WinMain(
 		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
 
 		LoadConfigExternals();
-
+        LoadTASStudio();
+        //TASStudioWindow(0);
         //warning, this is ignored when debugger is attached (like visual studio)
         SetUnhandledExceptionFilter(ExceptionReleaseTarget); 
         //example

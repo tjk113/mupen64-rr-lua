@@ -44,3 +44,5 @@ void warn_savestate(char* messageCaption, char* message);
 void warn_savestate(char* messageCaption, char* message, bool modal); // Overload
 
 void display_status(const char* status);
+
+#define MBOX_ERROR(str) MessageBoxA(0, str, "Error", MB_ICONERROR|MB_OK)

@@ -30,6 +30,12 @@
     <Filter Include="Source Files\memory">
       <UniqueIdentifier>{352b1079-a128-48b6-934f-03fb115ed9ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\library">
+      <UniqueIdentifier>{031222a4-9a98-48b8-b2df-cc69f8f64630}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\main\helper">
+      <UniqueIdentifier>{8f99665e-4ff8-4de9-9ce6-45eddc6506ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config.h">
@@ -208,6 +214,14 @@
     </ClInclude>
     <ClInclude Include="..\..\main\debughook.h">
       <Filter>Source Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\r4300\cop1_helpers.h" />
+    <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h" />
+    <ClInclude Include="..\..\main\win\tasstudio.h">
+      <Filter>Source Files\main\win</Filter>
+    </ClInclude>
+    <ClInclude Include="ops_helper.h">
+      <Filter>Source Files\main\helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -453,6 +467,18 @@
     </ClCompile>
     <ClCompile Include="..\..\main\debughook.c">
       <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\r4300\cop1_helpers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\r4300\x86\gcop1_helpers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\win\tasstudio.cpp">
+      <Filter>Source Files\main\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\library\BabyGrid.cpp">
+      <Filter>Source Files\library</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
