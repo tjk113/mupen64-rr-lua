@@ -57,7 +57,9 @@ HWND CreateGridCtl()
     SendMessage(studioControlhWnd, ZGM_SETDEFAULTTYPE, 2, 0);
     SendMessage(studioControlhWnd, ZGM_SETDEFAULTNUMPRECISION, 0, 0);
     SendMessage(studioControlhWnd, ZGM_SHOWROWNUMBERS, TRUE, 0);
-
+    SendMessage(studioControlhWnd, ZGM_SHOWTOOLBAR, FALSE, 0);
+    //SendMessage(studioControlhWnd, ZGM_ENABLEROWSELECT, FALSE, 0);
+    
     for (char i = 0; i < 18; i++)
         SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, i+1, (LPARAM)iStructName[i]);
 
@@ -67,6 +69,9 @@ HWND CreateGridCtl()
 void TASStudioSeek(int targetFrame) {
     // ahead - turn on fast mode and wait until frame is reached, then pause
     // behind - restart movie, turn on fast mode and wait until frame is reached, then pause
+
+    TS_STATUS("Seeking...");
+
     if (targetFrame > m_currentSample) {
             
     }
@@ -85,8 +90,7 @@ void TASStudioBuild() {
 
     TS_STATUS("Loading...");
 
-    SendMessage(studioControlhWnd, ZGM_EMPTYGRID, 1, 0);
-    SendMessage(studioControlhWnd, ZGM_ALLOCATEROWS, curMovie.length_samples, 0);
+    SendMessage(studioControlhWnd, ZGM_EMPTYGRID, TRUE, 0);
 
     for (UINT i = 0; i < curMovie.length_samples; i++)
     {
@@ -108,12 +112,17 @@ void TASStudioBuild() {
 
         }
 
-        snprintf(name, sizeof(name), "%d", (signed char)BYTE_GET(tasStudioinputbuffer[i], 2));
+
+        sprintf(name, "%d", (int)BYTE_GET(tasStudioinputbuffer[i], 2));
+        //SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 17), (LPARAM)name);
+        SendMessage(studioControlhWnd, ZGM_SETCELLTYPE, GETCELL(studioControlhWnd, i, 17), (LPARAM)3);
         SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 17), (LPARAM)name);
 
-
-        snprintf(name, sizeof(name), "%d", (signed char)BYTE_GET(tasStudioinputbuffer[i], 3));
+        sprintf(name, "%d", (int)BYTE_GET(tasStudioinputbuffer[i], 3));
+        //SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 18), (LPARAM)name);
+        SendMessage(studioControlhWnd, ZGM_SETCELLTYPE, GETCELL(studioControlhWnd, i, 18), (LPARAM)3);
         SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 18), (LPARAM)name);
+
     }
 
     for (char i = 0; i < 18; i++)
@@ -135,8 +144,24 @@ LRESULT CALLBACK TASStudioWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM
             TASStudioBuild();
             break;
         case IDC_CLOSETASSTUDIO:
-            TASStudioWindow(0); // dont close
+            TASStudioWindow(0); // dont close just hide
             break;
+
+        case WM_COMMAND: {
+            switch (wParam) {
+            case ZGN_ROWSELECTED:
+                TASStudioSeek(SendMessage(studioControlhWnd, ZGM_GETSELECTEDROW, 0, 0));
+                break;
+                
+
+
+
+
+
+            }
+            break;
+        }
+        
         }
         break;
     default:
