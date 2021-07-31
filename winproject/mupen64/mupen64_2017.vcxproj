@@ -729,6 +729,7 @@
     </ClCompile>
     <ClCompile Include="..\..\lua\LuaConsole.cpp" />
     <ClCompile Include="..\..\main\win\tasstudio.cpp" />
+    <ClCompile Include="ops_helper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\rsrc.rc" />

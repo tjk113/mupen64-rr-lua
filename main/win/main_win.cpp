@@ -2974,6 +2974,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 #endif
 				} break;
             case ID_TASSTUDIOMENUITEM:
+
+                if (!tasStudioInitialised)
+                    LoadTASStudio();
+
                 TASStudioWindow(1);
                 break;
 			case ID_TRACELOG:
@@ -3757,7 +3761,7 @@ int WINAPI WinMain(
 		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
 
 		LoadConfigExternals();
-        LoadTASStudio();
+        //LoadTASStudio();
         //TASStudioWindow(0);
         //warning, this is ignored when debugger is attached (like visual studio)
         SetUnhandledExceptionFilter(ExceptionReleaseTarget); 

@@ -587,12 +587,13 @@ BEGIN
 END
 
 IDD_TASSTUDIO_DIALOG DIALOGEX 0, 0, 300, 180
-STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "TAS Studio"
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION
+CAPTION ""
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 PUSHBUTTON      "Refresh", IDC_REBUILD, 250, 166, 50, 14
 PUSHBUTTON      "Close", IDC_CLOSETASSTUDIO, 200, 166, 50, 14
+LTEXT           "Dame tu cosita", IDC_TASSTUDIOSTAT, 6, 168, 180, 8
 END
 
 /////////////////////////////////////////////////////////////////////////////

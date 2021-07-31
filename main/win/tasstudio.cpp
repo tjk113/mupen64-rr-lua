@@ -29,6 +29,7 @@ HINSTANCE hInstt;
 HMODULE hGridMod       = NULL;
 HWND hWnd              = NULL;
 HWND studioControlhWnd = NULL;
+HWND statusControlhWnd = NULL;
 SMovieHeader curMovie;
 static DWORD tasStudioThreadID;
 HANDLE tasStudioThread;
@@ -36,28 +37,30 @@ char iStructName[18][3] = { "D>", "D<", "Dv", "D^", "S", "Z", "B", "A", "C>", "C
 const char* classname = "tasStudioWindow"; // "fuckOff"
 char* tasStudioinputbuffer;
 int pendingData;
+int tasStudioInitialised;
 
 HWND CreateGridCtl()
 {
+    
     hGridMod = LoadLibrary("zeegrid.dll");
     if (!hGridMod)
     {
-        MBOX_ERROR("Failed to load TAS Studio grid control. Is zeegrid.dll in this directory?");
+        MBOX_ERROR("Failed to load TAS Studio dependencies. zeegrid.dll in this directory might be missing.");
         return NULL;
     }
 
-    studioControlhWnd = CreateWindowA("ZeeGrid", "TAS Studio Grid", WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 600, 350, hWnd, (HMENU)0, hInstt, NULL);
+    studioControlhWnd = CreateWindowA("ZeeGrid", "TAS Studio", WS_CHILD | WS_VISIBLE, 0, 0, STUDIOCONTROL_W, STUDIOCONTROL_H, hWnd, (HMENU)0, hInstt, NULL);
     
     SendMessage(studioControlhWnd, ZGM_EMPTYGRID, 1, 0);
     SendMessage(studioControlhWnd, ZGM_DIMGRID, 18, 0);
     SendMessage(studioControlhWnd, ZGM_SHOWROWNUMBERS, TRUE, 0);
     SendMessage(studioControlhWnd, ZGM_SETDEFAULTTYPE, 2, 0);
     SendMessage(studioControlhWnd, ZGM_SETDEFAULTNUMPRECISION, 0, 0);
+    SendMessage(studioControlhWnd, ZGM_SHOWROWNUMBERS, TRUE, 0);
 
-    for (size_t i = 0; i < 18; i++)
-    {
+    for (char i = 0; i < 18; i++)
         SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, i+1, (LPARAM)iStructName[i]);
-    }
+
     return studioControlhWnd;
 }
 
@@ -74,14 +77,15 @@ void TASStudioSeek(int targetFrame) {
 void TASStudioBuild() {
 
     if (m_task != ETask::Playback) {
-        //MBOX_ERROR("Movie isn\'t playing.");
+        TS_STATUS("No movie is playing");
         return;
     }
 
     printf("rebuild!\n");
 
-    SetWindowText(hWnd, TAS_STUDIO_NAME " Loading...");    
-    //SendMessage(studioControlhWnd, ZGM_EMPTYGRID, 1, 0);
+    TS_STATUS("Loading...");
+
+    SendMessage(studioControlhWnd, ZGM_EMPTYGRID, 1, 0);
     SendMessage(studioControlhWnd, ZGM_ALLOCATEROWS, curMovie.length_samples, 0);
 
     for (UINT i = 0; i < curMovie.length_samples; i++)
@@ -90,6 +94,7 @@ void TASStudioBuild() {
 
         char name[15] = { 0 };
 
+        ZeroMemory(name, strlen(name)); // paranoia
 
         for (char j = 0; j < 18-2; j++)
         {
@@ -102,18 +107,20 @@ void TASStudioBuild() {
             SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, j), (LPARAM)name);
 
         }
-        
-        // unroll small loop
-        itoa(BYTE_GET(tasStudioinputbuffer[i], 2), name, 10);
+
+        snprintf(name, sizeof(name), "%d", (signed char)BYTE_GET(tasStudioinputbuffer[i], 2));
         SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 17), (LPARAM)name);
 
-        itoa(BYTE_GET(tasStudioinputbuffer[i], 3), name, 10);
-        SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 18), (LPARAM)name);
 
+        snprintf(name, sizeof(name), "%d", (signed char)BYTE_GET(tasStudioinputbuffer[i], 3));
+        SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 18), (LPARAM)name);
     }
 
+    for (char i = 0; i < 18; i++)
+        SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, i + 1, (LPARAM)iStructName[i]);
+
     UpdateWindow(hWnd);
-    SetWindowText(hWnd, TAS_STUDIO_NAME);
+    TS_STATUS("Idle");
 }
 
 LRESULT CALLBACK TASStudioWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam){
@@ -138,22 +145,23 @@ LRESULT CALLBACK TASStudioWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM
     return FALSE;
 }
 
-void TASStudioNotify(int flag) {
-    if (studioControlhWnd == NULL)
+void TASStudioRebuildHandlesCache() {
+
+    if (!studioControlhWnd)
         studioControlhWnd = GetDlgItem(hWnd, IDC_STUDIOCONTROL);
-   // EnableWindow(studioControlhWnd, flag);
+
+    if(!statusControlhWnd)
+        statusControlhWnd = GetDlgItem(hWnd, IDC_TASSTUDIOSTAT);
 }
+
 void TASStudioWindow(int flag) {
 
-
-    if (flag)
-        ShowWindow(hWnd, SW_SHOW);
-    else
-        ShowWindow(hWnd, SW_HIDE);
+    
+    ShowWindow(hWnd, flag ? SW_SHOW : SW_HIDE);
 
     UpdateWindow(hWnd);
 
-    TASStudioNotify(m_task == ETask::Playback);
+    TASStudioRebuildHandlesCache();
 
 }
 
@@ -175,10 +183,13 @@ DWORD WINAPI TASStudioThread(LPVOID tParam) {
 
     studioControlhWnd = CreateGridCtl();
 
-    TASStudioWindow(m_task == ETask::Playback);
-
+    TASStudioRebuildHandlesCache();
+    
     TASStudioBuild();
 
+    TS_STATUS("Idle");
+
+    tasStudioInitialised = TRUE;
 
     while (GetMessage(&Msg, NULL, 0, 0))
     {
@@ -188,6 +199,7 @@ DWORD WINAPI TASStudioThread(LPVOID tParam) {
             DispatchMessage(&Msg);
         }
     }
+
 }
 
 

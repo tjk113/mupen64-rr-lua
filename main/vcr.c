@@ -1041,7 +1041,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 			setKeys(Control, *Keys);
 			//printf("setKeys done\n\n");
 
-			if (Keys->Value==0xC000) //no readable code because 120 star tas can't get this right >:(
+			if (Keys->Value==0b1100000000000000) //no readable code because 120 star tas can't get this right >:(
 			{
 				continue_vcr_on_restart_mode = true;
 				resetEmu();
@@ -1574,22 +1574,27 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 			strncpy(m_header.description, descriptionUTF8, MOVIE_DESCRIPTION_DATA_SIZE);
 		m_header.description[MOVIE_DESCRIPTION_DATA_SIZE-1] = '\0';
 
-		//long headerEndPos = 1024;
-		//
-		//if (m_header.version != 3)
-		//	headerEndPos = 0x200;
-		//
-		//if (!m_file) m_file = fopen(m_filename, "rb+");
-		//
-		//fseek(m_file, 0, SEEK_END);
-		//long eofpos = ftell(m_file);
-		//fseek(m_file, headerEndPos, SEEK_SET);
-		//fread(&tasStudioinputbuffer, 1, eofpos - headerEndPos, m_file);
+		
+		long headerEndPos = 1024;
+		if (m_header.version != 3) headerEndPos = 0x200;
+		
 
-		// fclose
+		if (!m_file) m_file = fopen(m_filename, "rb+");
+		
+		fseek(m_file, 0L, SEEK_END);
+		long eofpos = ftell(m_file);
+
+		tasStudioinputbuffer = (char*)malloc(eofpos-headerEndPos);
+
+		fseek(m_file, headerEndPos, SEEK_SET);
+		fread(tasStudioinputbuffer, 1, eofpos - headerEndPos, m_file);
+
+		fclose(m_file);
+
 		//TASStudioWindow(1);
 		curMovie = m_header; // workaround
-		tasStudioinputbuffer = m_inputBufferPtr;
+		//tasStudioinputbuffer = m_inputBufferPtr;
+		
 		TASStudioBuild();
 
         return code;

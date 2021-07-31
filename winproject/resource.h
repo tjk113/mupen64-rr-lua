@@ -423,6 +423,7 @@
 #define IDC_REBUILD						40015
 #define ID_TASSTUDIOMENUITEM			40016
 #define IDC_CLOSETASSTUDIO				40017
+#define IDC_TASSTUDIOSTAT				40018
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
