@@ -1583,7 +1583,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 		
 		fseek(m_file, 0L, SEEK_END);
 		long eofpos = ftell(m_file);
-
+		
 		tasStudioinputbuffer = (char*)malloc(eofpos-headerEndPos);
 
 		fseek(m_file, headerEndPos, SEEK_SET);
@@ -2014,8 +2014,8 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 		return -1;
 	}
 
-	memset(soundBufEmpty, 0, 44100*2);
-	memset(soundBuf, 0, 44100*2);
+	memset(soundBufEmpty, 0, sizeof(soundBufEmpty));
+	memset(soundBuf, 0, sizeof(soundBuf));
 	lastSound = 0;
 
 	m_videoFrame = 0.0;

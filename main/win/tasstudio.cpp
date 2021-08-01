@@ -147,20 +147,6 @@ LRESULT CALLBACK TASStudioWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM
             TASStudioWindow(0); // dont close just hide
             break;
 
-        case WM_COMMAND: {
-            switch (wParam) {
-            case ZGN_ROWSELECTED:
-                TASStudioSeek(SendMessage(studioControlhWnd, ZGM_GETSELECTEDROW, 0, 0));
-                break;
-                
-
-
-
-
-
-            }
-            break;
-        }
         
         }
         break;
@@ -225,6 +211,7 @@ DWORD WINAPI TASStudioThread(LPVOID tParam) {
         }
     }
 
+    ExitThread(0);
 }
 
 

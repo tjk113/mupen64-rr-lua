@@ -154,6 +154,7 @@ enum ETask
 };
 extern int m_task;
 extern long m_currentSample;
+extern bool captureMarkedStop;
 extern SMovieHeader VCR_getHeaderInfo(const char* filename);
 #endif // VCR_SUPPORT
 

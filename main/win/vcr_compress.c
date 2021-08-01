@@ -50,10 +50,10 @@ static int frame;
 static BITMAPINFOHEADER infoHeader;
 static PAVIFILE avi_file;
 static AVISTREAMINFO video_stream_header;
-static PAVISTREAM video_stream;
+ PAVISTREAM video_stream;
 static PAVISTREAM compressed_video_stream;
-static AVICOMPRESSOPTIONS video_options;
-static AVICOMPRESSOPTIONS *pvideo_options[1];
+ AVICOMPRESSOPTIONS video_options;
+ AVICOMPRESSOPTIONS *pvideo_options[1];
 
 static int sample;
 static unsigned int AVIFileSize;

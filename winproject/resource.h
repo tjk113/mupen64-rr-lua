@@ -424,6 +424,11 @@
 #define ID_TASSTUDIOMENUITEM			40016
 #define IDC_CLOSETASSTUDIO				40017
 #define IDC_TASSTUDIOSTAT				40018
+#define IDC_AVIGP                       40019
+#define IDC_AVI_FASTENCODE              40020
+#define IDC_CONFIGUREAVICODEC           40021
+#define IDD_AVICONFIGDIALOG             40022
+#define IDC_CONFIGUREAVIPATH			40023
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
