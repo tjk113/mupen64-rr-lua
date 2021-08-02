@@ -2718,7 +2718,7 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
             if (VCR_startCapture(NULL, aviRecPathBuffer, !VRComp_loadOptions()) < 0)
             {
                 //MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK | MB_TOPMOST | MB_ICONERROR);
-                SetWindowText(aviRecDialoghWnd, "ERROR Couldn\'t start capturing");
+                SetWindowText(aviRecDialoghWnd, "ERROR Couldn\'t start dumping");
                 recording = FALSE;
             }
             else {
@@ -2729,7 +2729,7 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
                     EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);           //Disables fullscreen menu
                     SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE); //Disables fullscreen button
                 }
-                SetStatusTranslatedString(hStatus, 0, "Recording avi...");
+                SetStatusTranslatedString(hStatus, 0, "Dumping avi...");
                 recording = TRUE;
             }
 
@@ -2768,7 +2768,7 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
 
             SetActiveWindow(aviRecDialoghWnd);
             aviRecordingConfigureFinished = GetSaveFileName(&oifn);
-            SetWindowText(aviRecDialoghWnd, "AVI Encoding");
+            SetWindowText(aviRecDialoghWnd, "AVI Dumping");
 
             break;
         }

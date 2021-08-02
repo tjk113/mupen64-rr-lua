@@ -598,13 +598,13 @@ END
 
 IDD_AVICONFIGDIALOG DIALOGEX 0, 0, 341, 90
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "AVI Encoding"
+CAPTION "AVI Dumping"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 DEFPUSHBUTTON   "Go", IDOK, 234, 70, 50, 14
 PUSHBUTTON      "Cancel", IDCANCEL, 285, 70, 50, 14
-GROUPBOX        "AVI Encoding Options", IDC_AVIGP, 6, 6, 329, 59
-CONTROL         "Max speed encoding (Uncap emulator speed limits when encoding)", IDC_AVI_FASTENCODE,
+GROUPBOX        "AVI Dumping Options", IDC_AVIGP, 6, 6, 329, 59
+CONTROL         "Max speed capture (Uncap emulator speed limits when encoding)", IDC_AVI_FASTENCODE,
 "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 17, 19, 234, 10
 CONTROL         "Record lag frames", IDC_AVI_LAGSKIP,
 "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 17, 41, 234, 10
