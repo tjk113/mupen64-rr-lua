@@ -1714,7 +1714,7 @@ VCR_updateScreen()
 	static int frame = 0;
 	int redraw = 1;
 
-	if (captureMarkedStop && VCR_isCapturing()) {
+	if (captureMarkedStop && VCR_isCapturing() || (recordAVITo > 0 && (recordAVITo > m_videoFrame))) {
 		// Stop capture.
 		VCR_stopCapture();
 		// If it crashes here, let me know (auru) because this is bad code

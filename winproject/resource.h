@@ -429,6 +429,9 @@
 #define IDC_CONFIGUREAVICODEC           40021
 #define IDD_AVICONFIGDIALOG             40022
 #define IDC_CONFIGUREAVIPATH			40023
+#define IDC_AVIREC_STOPATTXT			40024
+#define IDC_AVIREC_STOPATLBL			40025
+#define IDC_AVI_LAGSKIP					40026
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

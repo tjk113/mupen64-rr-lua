@@ -1545,11 +1545,26 @@ void Status::SaveCombos()
 	fclose(cFile);
 }
 
+int fpeek(FILE* stream)
+{
+	int c;
+
+	c = fgetc(stream);
+	ungetc(c, stream);
+
+	return c;
+}
+
 //load combos to listBox
 void Status::InitialiseCombos(char* path) {
 	char c; //used to read name of combo
 	char name[MAX_PATH] = "Empty"; //cap of 260 characters!
 	cFile = fopen(path, "a+"); //file used to store combos is in .exe location
+
+	fseek(cFile, 0, SEEK_END);
+	LONG fLen = ftell(cFile);
+	fseek(cFile, 0, SEEK_SET);
+
 	c = fgetc(cFile);
 	if (c==-1) { //file empty
 		//ListBox_AddString(lBox, name); //maybe let's not create a ghost combo that crashes everything 
@@ -1559,14 +1574,30 @@ void Status::InitialiseCombos(char* path) {
 			COMBO combo;
 			int i = 0;
 			while (c > 0) {  //read name until \0
+				
 				name[i] = c;
 				c = fgetc(cFile);
+				if (c == EOF)
+				{
+					// ran through entire file but no NUL terminator...
+					fclose(cFile);
+					return;
+				}
 				i++;
 			}
 			name[i++] = '\0';
 			//todo: use CreateNewCombo() here?
 			ListBox_InsertString(lBox,-1, name);
+
 			fread(&combo.length, 4, 1, cFile); //reads 4 bytes - length
+			printf("combo length %d\nfile length %d\n", combo.length, fLen);
+			if (combo.length > fLen) {
+				// combo length bigger than file...
+				// this is unreliable 
+				fclose(cFile);
+				return;
+			}
+
 			combo.data = (BUTTONS*) malloc(combo.length*4);
 			fread(combo.data, 4, combo.length, cFile);
 			ComboList.push_back(combo); //this calls destructor

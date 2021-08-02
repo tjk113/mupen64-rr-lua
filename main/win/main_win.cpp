@@ -225,6 +225,9 @@ BOOL aviRecordingConfigureFinished = FALSE;
 char statusmsg[800];
 static DWORD aviRecDialogThreadID;
 HANDLE aviRecDialogThread;
+int recordAVITo;
+BOOL recordLagFrames;
+
 
 char gfx_name[255];
 char input_name[255];
@@ -2691,7 +2694,7 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
     switch (Message)
     {
     case WM_INITDIALOG:
-        EnableWindow(GetDlgItem(aviRecDialoghWnd, IDC_CONFIGUREAVICODEC), FALSE);
+        
         break;
     case WM_COMMAND:
         switch (LOWORD(wParam))
@@ -2700,7 +2703,7 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
             hMenu = GetMenu(mainHWND);
             // go
             if (!aviRecordingConfigureFinished) {
-                MessageBox(NULL, "Please configure AVI first.", "VCR", MB_OK | MB_TOPMOST | MB_ICONERROR);
+                SetWindowText(aviRecDialoghWnd, "ERROR Please configure AVI first (Choose path)");
                 break;
             }
 
@@ -2712,10 +2715,10 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
                 aviRecPathBuffer[len - 4] != '.')
                 strcat(aviRecPathBuffer, ".avi");
             extern bool VRComp_loadOptions();
-            VRComp_loadOptions();
-            if (VCR_startCapture(NULL, aviRecPathBuffer, FALSE) < 0)
+            if (VCR_startCapture(NULL, aviRecPathBuffer, !VRComp_loadOptions()) < 0)
             {
-                MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK | MB_TOPMOST | MB_ICONERROR);
+                //MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK | MB_TOPMOST | MB_ICONERROR);
+                SetWindowText(aviRecDialoghWnd, "ERROR Couldn\'t start capturing");
                 recording = FALSE;
             }
             else {
@@ -2730,8 +2733,12 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
                 recording = TRUE;
             }
 
-            if(IsDlgButtonChecked(aviRecDialoghWnd, IDC_AVI_FASTENCODE))
-            maximumSpeedMode = 1;
+            if (IsDlgButtonChecked(aviRecDialoghWnd, IDC_AVI_FASTENCODE)) manualFPSLimit = 0; //maximumSpeedMode = 1;
+            
+            char stopAtBuf[50];
+            GetDlgItemText(aviRecDialoghWnd, IDC_AVIREC_STOPATTXT, stopAtBuf, sizeof(stopAtBuf));
+            recordAVITo = StrToInt(stopAtBuf);
+            recordLagFrames = IsDlgButtonChecked(aviRecDialoghWnd, IDC_AVI_LAGSKIP);
 
 
             SetFocus(mainHWND);
@@ -2741,7 +2748,7 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
             break;
         }
         case IDCANCEL:
-            captureMarkedStop = TRUE;
+            //captureMarkedStop = TRUE;
             ShowWindow(aviRecDialoghWnd, SW_HIDE);
             break;
         case IDC_CONFIGUREAVIPATH: {
@@ -2756,10 +2763,13 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
             oifn.lpstrFileTitle = "";
             oifn.nMaxFileTitle = 0;
             oifn.lpstrInitialDir = "";
-            oifn.Flags = OFN_NOREADONLYRETURN;
+            oifn.Flags = OFN_NOREADONLYRETURN /* | OFN_OVERWRITEPROMPT */ ; // nuh uh
+                                                                            // mboxes spawned from this dialog thread will permanently block the dialog and mupen ui thread
 
             SetActiveWindow(aviRecDialoghWnd);
             aviRecordingConfigureFinished = GetSaveFileName(&oifn);
+            SetWindowText(aviRecDialoghWnd, "AVI Encoding");
+
             break;
         }
         case IDC_CONFIGUREAVICODEC: {
@@ -2778,30 +2788,8 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
 DWORD WINAPI AviRecordingDialogThread(LPVOID tParam) {
 
     //if (aviRecDialoghWnd) return 0;
-    WNDCLASSEX wc;
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = 0;
-    wc.lpfnWndProc = AviRecordingDialogWndProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = aviDiag_hInstance;
-    wc.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONBIG));
-    wc.hIconSm = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONSMALL));
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);//(HBRUSH)(COLOR_WINDOW+11);
-    wc.lpszMenuName = 0;
-    wc.lpszClassName = MAKEINTRESOURCE(IDD_AVICONFIGDIALOG); 
-
-    if (!RegisterClassEx(&wc))
-        return 0;
-
-    aviRecDialoghWnd = CreateWindowEx(
-        0,
-        MAKEINTRESOURCE(IDD_AVICONFIGDIALOG),
-        "AVI Encoding",
-        WS_VISIBLE | WS_CAPTION | WS_OVERLAPPEDWINDOW,
-        Config.WindowPosX, Config.WindowPosY, Config.WindowWidth, Config.WindowHeight,
-        NULL, NULL, aviDiag_hInstance, NULL);
+    
+    aviRecDialoghWnd = CreateDialog(app_hInstance, MAKEINTRESOURCE(IDD_AVICONFIGDIALOG), 0, (DLGPROC)AviRecordingDialogWndProc);
 
     if (aviRecDialoghWnd == NULL)
     {
@@ -2810,6 +2798,8 @@ DWORD WINAPI AviRecordingDialogThread(LPVOID tParam) {
     }
 
     ShowWindow(aviRecDialoghWnd, SW_SHOW);
+    EnableWindow(GetDlgItem(aviRecDialoghWnd, IDC_CONFIGUREAVICODEC), FALSE);
+    SetWindowText(GetDlgItem(aviRecDialoghWnd, IDC_AVIREC_STOPATTXT), "0");
 
     MSG Msg;
     while (GetMessage(&Msg, NULL, 0, 0))
