@@ -113,12 +113,12 @@ void TASStudioBuild() {
         }
 
 
-        sprintf(name, "%d", (int)BYTE_GET(tasStudioinputbuffer[i], 2));
+        sprintf(name, "%hi", (signed char)BYTE_GET(tasStudioinputbuffer[i], 2));
         //SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 17), (LPARAM)name);
         SendMessage(studioControlhWnd, ZGM_SETCELLTYPE, GETCELL(studioControlhWnd, i, 17), (LPARAM)3);
         SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 17), (LPARAM)name);
 
-        sprintf(name, "%d", (int)BYTE_GET(tasStudioinputbuffer[i], 3));
+        sprintf(name, "%hi", (signed char)BYTE_GET(tasStudioinputbuffer[i], 3));
         //SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 18), (LPARAM)name);
         SendMessage(studioControlhWnd, ZGM_SETCELLTYPE, GETCELL(studioControlhWnd, i, 18), (LPARAM)3);
         SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, 18), (LPARAM)name);
