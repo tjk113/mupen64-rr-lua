@@ -205,6 +205,7 @@ BOOL clear_sram_on_restart_mode = 0;
 BOOL continue_vcr_on_restart_mode = 0;
 BOOL just_restarted_flag = 0;
 static int InputPluginVersion;
+ int InputPluginRawData;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
 char aviRecPathBuffer[MAX_PATH];
@@ -1003,14 +1004,21 @@ int load_input(HMODULE handle_input)
 	Controls[i].RawData = FALSE;
 	Controls[i].Plugin = PLUGIN_NONE;
      }
+
    if (PluginInfo.Version == 0x0101)
       {
         initiateControllers(control_info);
-      } 
+      }
    else
       {
         old_initiateControllers(mainHWND, Controls);
       } 
+
+
+     for (i = 0; i < 4; i++)
+     {
+         if (Controls[i].RawData) InputPluginRawData++;
+     }
      InputPluginVersion = PluginInfo.Version;
   }
   else
@@ -2788,7 +2796,9 @@ LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wPara
 DWORD WINAPI AviRecordingDialogThread(LPVOID tParam) {
 
     //if (aviRecDialoghWnd) return 0;
+
     
+
     aviRecDialoghWnd = CreateDialog(app_hInstance, MAKEINTRESOURCE(IDD_AVICONFIGDIALOG), 0, (DLGPROC)AviRecordingDialogWndProc);
 
     if (aviRecDialoghWnd == NULL)

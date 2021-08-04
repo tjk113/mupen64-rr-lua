@@ -1090,6 +1090,12 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 		return -1;
 	}
 */
+	if (InputPluginRawData) // aka if input plugin raw data != 0
+	{
+		MessageBox(NULL, "Raw input is not allowed with movie recording. Change your input plugin settings or choose another one", "Error", MB_ICONERROR | MB_OK);
+		return -1;
+	}
+
 	strncpy( m_filename, filename, PATH_MAX );
 
 	// open record file
