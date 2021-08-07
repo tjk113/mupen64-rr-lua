@@ -218,6 +218,7 @@ int recording;
 HWND hTool, mainHWND, hStatus, hRomList, hStatusProgress;
 HINSTANCE app_hInstance;
 BOOL manualFPSLimit = TRUE;
+BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
 
 char gfx_name[255];
