@@ -3293,7 +3293,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      strcpy(path_buffer,"");
                      oifn.lpstrFile = path_buffer,
                      oifn.nMaxFile = sizeof(path_buffer);
-                     oifn.lpstrFilter = "Mupen 64 Saves(*.st)\0*.st;*.st?\0All Files\0*.*\0";
+                     oifn.lpstrFilter = "Mupen 64 Saves(*.st;*.savestate)\0*.st;*.st?;*.savestate\0All Files\0*.*\0";
                      oifn.lpstrFileTitle = "";
                      oifn.nMaxFileTitle = 0;
                      oifn.lpstrInitialDir = "";
