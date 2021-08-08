@@ -53,9 +53,9 @@ extern "C" {
 #include "GUI_logwindow.h"
 #include "commandline.h"
 #include "CrashHandler.h"
+
 #include "../vcr.h"
 #include "../../r4300/recomph.h"
-#include "../winproject/mupen64/tasstudio.h"
 
 #define EMULATOR_MAIN_CPP_DEF
 #include "kaillera.h"
@@ -63,7 +63,6 @@ extern "C" {
 #undef EMULATOR_MAIN_CPP_DEF
 
 #include <gdiplus.h>
-#include <win/vfw.h>
 #pragma comment (lib,"Gdiplus.lib")
 
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
@@ -205,10 +204,8 @@ BOOL clear_sram_on_restart_mode = 0;
 BOOL continue_vcr_on_restart_mode = 0;
 BOOL just_restarted_flag = 0;
 static int InputPluginVersion;
- int InputPluginRawData;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
-char aviRecPathBuffer[MAX_PATH];
 //extern int recording;
 //static HICON hStatusIcon;                                  //Icon Handle for statusbar
 static HWND hStaticHandle;                                 //Handle for static place
@@ -218,17 +215,11 @@ char TempMessage[200];
 int emu_launched; // emu_emulating
 int emu_paused;
 int recording;
-HWND hTool, mainHWND, hStatus, hRomList, hStatusProgress, aviRecDialoghWnd;
+HWND hTool, mainHWND, hStatus, hRomList, hStatusProgress;
 HINSTANCE app_hInstance;
-HINSTANCE aviDiag_hInstance;
 BOOL manualFPSLimit = TRUE;
-BOOL aviRecordingConfigureFinished = FALSE;
+BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
-static DWORD aviRecDialogThreadID;
-HANDLE aviRecDialogThread;
-int recordAVITo;
-BOOL recordLagFrames;
-
 
 char gfx_name[255];
 char input_name[255];
@@ -1004,21 +995,14 @@ int load_input(HMODULE handle_input)
 	Controls[i].RawData = FALSE;
 	Controls[i].Plugin = PLUGIN_NONE;
      }
-
    if (PluginInfo.Version == 0x0101)
       {
         initiateControllers(control_info);
-      }
+      } 
    else
       {
         old_initiateControllers(mainHWND, Controls);
       } 
-
-
-     for (i = 0; i < 4; i++)
-     {
-         if (Controls[i].RawData) InputPluginRawData++;
-     }
      InputPluginVersion = PluginInfo.Version;
   }
   else
@@ -2356,7 +2340,6 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
-      EnableMenuItem(hMenu, ID_TASSTUDIOMENUITEM, MF_ENABLED);
       if (dynacore) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
           SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
@@ -2407,7 +2390,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
-      EnableMenuItem(hMenu, ID_TASSTUDIOMENUITEM, MF_GRAYED);
+
 
       if (!dynacore) {
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
@@ -2696,133 +2679,6 @@ void EnableToolbar()
 	}
 }
 
-LRESULT CALLBACK AviRecordingDialogWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
-    OPENFILENAME oifn; // dame tu cosita
-    HMENU hMenu;
-    switch (Message)
-    {
-    case WM_INITDIALOG:
-        
-        break;
-    case WM_COMMAND:
-        switch (LOWORD(wParam))
-        {
-        case IDOK:{
-            hMenu = GetMenu(mainHWND);
-            // go
-            if (!aviRecordingConfigureFinished) {
-                SetWindowText(aviRecDialoghWnd, "ERROR Please configure AVI first (Choose path)");
-                break;
-            }
-
-            int len = strlen(aviRecPathBuffer);
-            if (len < 5 ||
-                (aviRecPathBuffer[len - 1] != 'i' && aviRecPathBuffer[len - 1] != 'I') ||
-                (aviRecPathBuffer[len - 2] != 'v' && aviRecPathBuffer[len - 2] != 'V') ||
-                (aviRecPathBuffer[len - 3] != 'a' && aviRecPathBuffer[len - 3] != 'A') ||
-                aviRecPathBuffer[len - 4] != '.')
-                strcat(aviRecPathBuffer, ".avi");
-            extern bool VRComp_loadOptions();
-            if (VCR_startCapture(NULL, aviRecPathBuffer, !VRComp_loadOptions()) < 0)
-            {
-                //MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK | MB_TOPMOST | MB_ICONERROR);
-                SetWindowText(aviRecDialoghWnd, "ERROR Couldn\'t start dumping");
-                recording = FALSE;
-            }
-            else {
-                EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
-                EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
-                if (!externalReadScreen)
-                {
-                    EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);           //Disables fullscreen menu
-                    SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE); //Disables fullscreen button
-                }
-                SetStatusTranslatedString(hStatus, 0, "Dumping avi...");
-                recording = TRUE;
-            }
-
-            if (IsDlgButtonChecked(aviRecDialoghWnd, IDC_AVI_FASTENCODE)) manualFPSLimit = 0; //maximumSpeedMode = 1;
-            
-            char stopAtBuf[50];
-            GetDlgItemText(aviRecDialoghWnd, IDC_AVIREC_STOPATTXT, stopAtBuf, sizeof(stopAtBuf));
-            recordAVITo = StrToInt(stopAtBuf);
-            recordLagFrames = IsDlgButtonChecked(aviRecDialoghWnd, IDC_AVI_LAGSKIP);
-
-
-            SetFocus(mainHWND);
-            SetForegroundWindow(mainHWND);
-
-            EndDialog(aviRecDialoghWnd, (int)aviRecDialoghWnd);
-            break;
-        }
-        case IDCANCEL:
-            //captureMarkedStop = TRUE;
-            ShowWindow(aviRecDialoghWnd, SW_HIDE);
-            break;
-        case IDC_CONFIGUREAVIPATH: {
-
-            ZeroMemory(&oifn, sizeof(OPENFILENAME));
-            oifn.lStructSize = sizeof(OPENFILENAME);
-            oifn.hwndOwner = 0;
-            strcpy(aviRecPathBuffer, "");
-            oifn.lpstrFile = aviRecPathBuffer;
-            oifn.nMaxFile = sizeof(aviRecPathBuffer);
-            oifn.lpstrFilter = "AVI files (*.avi)\0*.avi\0All Files\0*.*\0";
-            oifn.lpstrFileTitle = "";
-            oifn.nMaxFileTitle = 0;
-            oifn.lpstrInitialDir = "";
-            oifn.Flags = OFN_NOREADONLYRETURN /* | OFN_OVERWRITEPROMPT */ ; // nuh uh
-                                                                            // mboxes spawned from this dialog thread will permanently block the dialog and mupen ui thread
-
-            SetActiveWindow(aviRecDialoghWnd);
-            aviRecordingConfigureFinished = GetSaveFileName(&oifn);
-            SetWindowText(aviRecDialoghWnd, "AVI Dumping");
-
-            break;
-        }
-        case IDC_CONFIGUREAVICODEC: {
-            //extern bool captureMarkedStop;
-            // TODO: show avi codec config dialog
-
-            break;
-        }
-        }
-        break;
-    default:
-        return DefWindowProc(hwnd, Message, wParam, lParam);
-    }
-    return FALSE;
-}
-DWORD WINAPI AviRecordingDialogThread(LPVOID tParam) {
-
-    //if (aviRecDialoghWnd) return 0;
-
-    
-
-    aviRecDialoghWnd = CreateDialog(app_hInstance, MAKEINTRESOURCE(IDD_AVICONFIGDIALOG), 0, (DLGPROC)AviRecordingDialogWndProc);
-
-    if (aviRecDialoghWnd == NULL)
-    {
-        MessageBox(NULL, "AVI recording dialog failed to initialize", "Error!", MB_ICONERROR | MB_OK);
-        return 0;
-    }
-
-    ShowWindow(aviRecDialoghWnd, SW_SHOW);
-    EnableWindow(GetDlgItem(aviRecDialoghWnd, IDC_CONFIGUREAVICODEC), FALSE);
-    SetWindowText(GetDlgItem(aviRecDialoghWnd, IDC_AVIREC_STOPATTXT), "0");
-
-    MSG Msg;
-    while (GetMessage(&Msg, NULL, 0, 0))
-    {
-        if (!IsDialogMessage(aviRecDialoghWnd, &Msg))
-        {
-            TranslateMessage(&Msg);
-            DispatchMessage(&Msg);
-        }
-    }
-
-    return 0;
-}
 
 LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -3117,13 +2973,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     ::CloseAllLuaScript();
 #endif
 				} break;
-            case ID_TASSTUDIOMENUITEM:
-
-                if (!tasStudioInitialised)
-                    LoadTASStudio();
-
-                TASStudioWindow(1);
-                break;
 			case ID_TRACELOG:
 #ifdef LUA_TRACELOG
 #ifdef LUA_TRACEINTERP
@@ -3431,8 +3280,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if(emu_launched)
                     {
                         savestates_job = LOADSTATE;
-						// Saving/loading in quick succession will cause extremely weird behaviour ranging from
-                        // hotkey issues and audio cutoff to crashes and emu stuckness
+						// setting st job (for emu thread) and then calling savestatesload on ui thread will completely nuke mupen
                         //savestates_load();
 					}
                     break;
@@ -3444,7 +3292,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      strcpy(path_buffer,"");
                      oifn.lpstrFile = path_buffer,
                      oifn.nMaxFile = sizeof(path_buffer);
-                     oifn.lpstrFilter = "Mupen 64 Saves(*.st)\0*.st;*.st?\0All Files\0*.*\0";
+                     oifn.lpstrFilter = "Mupen 64 Saves(*.st;*.savestate)\0*.st;*.st?;*.savestate\0All Files\0*.*\0";
                      oifn.lpstrFileTitle = "";
                      oifn.nMaxFileTitle = 0;
                      oifn.lpstrInitialDir = "";
@@ -3493,14 +3341,47 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						BOOL wasPaused = emu_paused;
 						if (emu_launched&&!emu_paused)
 							pauseEmu(FALSE) ; 
-                        
-                        
 
-                        aviRecDialogThread = CreateThread(NULL, 0, AviRecordingDialogThread, NULL, 0, &aviRecDialogThreadID);
+                        char rec_buffer[MAX_PATH];
                         
-
-
-                        
+                        ZeroMemory(&oifn, sizeof(OPENFILENAME));
+                        oifn.lStructSize = sizeof(OPENFILENAME);
+                        oifn.hwndOwner = NULL;
+                        strcpy(path_buffer,"");
+                        oifn.lpstrFile = path_buffer;
+                        oifn.nMaxFile = sizeof(path_buffer);
+                        oifn.lpstrFilter = "Avi files (*.avi)\0*.avi\0All Files\0*.*\0";
+                        oifn.lpstrFileTitle = "";
+                        oifn.nMaxFileTitle = 0;
+                        oifn.lpstrInitialDir = "";
+                        oifn.Flags = OFN_NOREADONLYRETURN | OFN_OVERWRITEPROMPT;
+                        if (GetSaveFileName(&oifn)) {
+                           int len = strlen(path_buffer);
+                           if (len < 5 ||
+                               (path_buffer[len-1] != 'i' && path_buffer[len-1] != 'I') ||
+                               (path_buffer[len-2] != 'v' && path_buffer[len-2] != 'V') ||
+                               (path_buffer[len-3] != 'a' && path_buffer[len-3] != 'A') ||
+                               path_buffer[len-4] != '.')
+                               strcat(path_buffer, ".avi");
+                           //Sleep(1000);
+                           if (VCR_startCapture( rec_buffer, path_buffer , true) < 0)
+                           {   
+                              MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
+                              recording = FALSE;
+                           }
+                           else {
+                              //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
+                              EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
+                              EnableMenuItem(hMenu,ID_END_CAPTURE,MF_ENABLED);
+                              if(!externalReadScreen)
+                              {
+                               EnableMenuItem( hMenu, FULL_SCREEN, MF_GRAYED );           //Disables fullscreen menu
+                               SendMessage( hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE ); //Disables fullscreen button
+                              }
+                              SetStatusTranslatedString(hStatus,0,"Recording avi...");
+                              recording = TRUE;
+                           }
+                        }
 						if (emu_launched&&emu_paused&&!wasPaused)
 							resumeEmu(FALSE);
                     }
@@ -3872,8 +3753,7 @@ int WINAPI WinMain(
 		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
 
 		LoadConfigExternals();
-        //LoadTASStudio();
-        //TASStudioWindow(0);
+
         //warning, this is ignored when debugger is attached (like visual studio)
         SetUnhandledExceptionFilter(ExceptionReleaseTarget); 
         //example
