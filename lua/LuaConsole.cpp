@@ -663,7 +663,7 @@ std::string OpenLuaFileDialog() {
 	
 	int storePaused = emu_paused;
 	pauseEmu(1);
-
+	
 	OPENFILENAME ofn;
 	char filename[MAX_PATH] = "";
 

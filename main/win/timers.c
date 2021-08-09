@@ -107,7 +107,7 @@ void new_vi() {
 
 	// fps wont update when emu is stuck so we must check vi/s
 	// vi/s shouldn't go over 300 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
-	if (!ignoreErrorEmulation && emu_launched && frame_advancing || emu_paused /*uh is this good?*/ && VIs > 300) {
+	if (!ignoreErrorEmulation && emu_launched && frame_advancing && VIs > 300) {
 		int res = MessageBox(NULL, "Emulation problem detected\nPress Abort to close the rom\nPress Retry to continue emulation\nPress ignore to not show this again", "Error", MB_ICONERROR | MB_ABORTRETRYIGNORE | MB_TOPMOST | MB_TASKMODAL);
 		switch (res)
 		{
