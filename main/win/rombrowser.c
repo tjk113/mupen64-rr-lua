@@ -1156,6 +1156,9 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
     HMENU hMenu;
 	
     hMenu = GetMenu(hwnd);
+    //apparently not needed because windows still is able to find the correct items
+    //hMenu = GetSubMenu(hMenu, 0);
+    //hMenu = GetSubMenu(hMenu, 5);
 	for (i = 0; i < MAX_RECENT_ROMS; i ++ ) {
 		DeleteMenu(hMenu, ID_RECENTROMS_FIRST + i, MF_BYCOMMAND);
 	}
@@ -1167,22 +1170,21 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
 
 void SetRecentList(HWND hwnd) {
     int i;
-    HMENU hMenu, hSubMenu ;
     MENUITEMINFO menuinfo;
     FreezeRecentRoms( hwnd, FALSE ) ;
+    HMENU hMenu = GetMenu(hwnd);
+    HMENU hSubMenu = GetSubMenu(hMenu, 0);
+    hSubMenu = GetSubMenu(hSubMenu, 5);
+
+    menuinfo.cbSize = sizeof(MENUITEMINFO);
+    menuinfo.fMask = MIIM_TYPE | MIIM_ID;
+    menuinfo.fType = MFT_STRING;
+    menuinfo.fState = MFS_ENABLED;
     for ( i = 0 ; i < MAX_RECENT_ROMS  ; i++)   {
               if ( strcmp( Config.RecentRoms[i], "")==0 ) continue;
     
-              hMenu = GetMenu(hwnd) ;
-              hSubMenu = GetSubMenu(hMenu,0);
-	          hSubMenu = GetSubMenu(hSubMenu,5);
-	
-              menuinfo.cbSize = sizeof(MENUITEMINFO);
-	          menuinfo.fMask = MIIM_TYPE|MIIM_ID;
-	          menuinfo.fType = MFT_STRING;
-	          menuinfo.fState = MFS_ENABLED;
 	          menuinfo.dwTypeData = ParseName( Config.RecentRoms[i]);
-	          menuinfo.cch = sizeof( hSubMenu);
+              menuinfo.cch = strlen(menuinfo.dwTypeData);
 	          menuinfo.wID = ID_RECENTROMS_FIRST + i;
               InsertMenuItem( hSubMenu, 3 + i, TRUE, &menuinfo);
              

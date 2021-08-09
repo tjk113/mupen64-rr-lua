@@ -136,6 +136,11 @@ BEGIN
     POPUP "Lua Script"
     BEGIN
         MENUITEM "New Instance",                ID_MENU_LUASCRIPT_NEW
+        POPUP "Recent scripts"
+        BEGIN
+            MENUITEM "No recent scripts"        ID_LUA_RECENT, GRAYED
+        END
+            MENUITEM "Clear recent"             ID_LUA_CLEAR_RECENT
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END
 END
@@ -167,7 +172,7 @@ BEGIN
     PUSHBUTTON      "Website",IDC_WEBSITE,134,197,60,14
     GROUPBOX        "About this program",IDC_STATIC,5,65,189,127
     LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanks to the many others who helped",IDC_STATIC,13,82,173,104
-    LTEXT           MUPEN_VERSION,IDC_STATIC,0,0,200,100
+    LTEXT           "Mupen 64 1.0.9",IDC_STATIC,0,0,200,100
 END
 
 IDD_ADVANCED_OPTIONS DIALOGEX 0, 0, 231, 273
@@ -758,7 +763,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Neutral (Default) resources
+#endif    // Neutralny (Domyœlny) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

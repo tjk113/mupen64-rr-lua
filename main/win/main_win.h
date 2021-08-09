@@ -14,6 +14,9 @@
  *                                                                         *
  ***************************************************************************/
 
+ //for max recent
+#include "../lua/Recent.h"
+
 #ifndef MAIN_WIN_H
 #define MAIN_WIN_H
 
@@ -150,8 +153,9 @@ typedef struct _CONFIG {
     bool captureOtherWindows;
     HOTKEY hotkey [NUM_HOTKEYS];
 
-		//Lua
-		char LuaScriptPath[MAX_PATH];
+    //Lua
+    char LuaScriptPath[MAX_PATH];
+    char RecentScripts[LUA_MAX_RECENT][MAX_PATH];
 } CONFIG;
 
 extern "C" CONFIG Config;

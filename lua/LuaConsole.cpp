@@ -153,7 +153,6 @@ struct EmulationLock{
 	}
 };
 
-void runLUA(HWND wnd, char path[]); // bad solution
 void ConsoleWrite(HWND, const char*);
 void SetWindowLua(HWND wnd, Lua *lua);
 void SetButtonState(HWND wnd, bool state);
@@ -208,8 +207,12 @@ public:
 		hMutex = CreateMutex(0, 0, 0);
 		newLuaState();
 		runFile(path);
-		if(isrunning())
+		if (isrunning())
+		{
 			SetButtonState(ownWnd, true);
+			AddToRecentScripts(path);
+			strcpy(Config.LuaScriptPath, path);
+		}
 		ShowInfo("Lua run");
 	}
 	void stop() {
@@ -338,7 +341,6 @@ private:
 	void runFile(char *path) {
 		//int GetErrorMessage(lua_State *L);
 		int result;
-		SetButtonState(ownWnd, true);
 		//lua_pushcfunction(L, GetErrorMessage);
 		result = luaL_dofile(L, path);
 		if(result) {
@@ -642,8 +644,6 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		DestroyWindow(wnd);
 		return TRUE;
 	case WM_DESTROY:{
-		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			Config.LuaScriptPath, MAX_PATH);
 		LuaMessage::Msg *msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::DestroyLua;
 		msg->destroyLua.wnd = wnd;
@@ -720,6 +720,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		//strcpy(Config.LuaScriptPath, msg->runPath.path);
 		anyLuaRunning = true;
 		luaMessage.post(msg);
+		shouldSave = true;
 		return TRUE;
 	}
 	case IDC_BUTTON_LUASTOP: {

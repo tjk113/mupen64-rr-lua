@@ -189,6 +189,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\config.h" />
     <ClInclude Include="..\..\lua\luaDefine.h" />
+    <ClInclude Include="..\..\lua\Recent.h" />
     <ClInclude Include="..\..\main\Audio_#1.1.h" />
     <ClInclude Include="..\..\main\Controller_#1.1.h" />
     <ClInclude Include="..\..\main\crypt.h">
@@ -319,6 +320,7 @@
     <ClInclude Include="..\resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lua\Recent.cpp" />
     <ClCompile Include="..\..\main\adler32.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>

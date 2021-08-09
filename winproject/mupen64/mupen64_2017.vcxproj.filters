@@ -209,6 +209,11 @@
     <ClInclude Include="..\..\main\debughook.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\r4300\cop1_helpers.h" />
+    <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h" />
+    <ClInclude Include="..\..\lua\Recent.h">
+      <Filter>Source Files\lua</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main\adler32.c">
@@ -453,6 +458,15 @@
     </ClCompile>
     <ClCompile Include="..\..\main\debughook.c">
       <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\r4300\cop1_helpers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\r4300\x86\gcop1_helpers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lua\Recent.cpp">
+      <Filter>Source Files\lua</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

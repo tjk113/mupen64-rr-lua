@@ -17,6 +17,7 @@
 
 
 #include "LuaConsole.h"
+#include "Recent.h"
 #include "win/DebugInfo.hpp"
 	
 #if defined(__cplusplus) && !defined(_MSC_VER)
@@ -2747,7 +2748,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_DROPFILES:
         //HDROP hFile = (HDROP) wParam;
 		char fname[MAX_PATH];
-        char fname2[MAX_PATH];
 		LPSTR fext;
 		DragQueryFile((HDROP)wParam, 0, fname, sizeof(fname));
 		fext = CharUpper(PathFindExtension(fname));
@@ -2873,6 +2873,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             TranslateMenu(GetMenu( hwnd), hwnd);
             CreateRomListControl( hwnd);
             SetRecentList( hwnd);
+            BuildRecentScriptsMenu(hwnd);
             EnableToolbar();
             EnableStatusbar();
             ////////////////////////////
@@ -2966,6 +2967,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					::NewLuaScript((void(*)())lParam);
 #endif
 				} break;
+            case ID_LUA_CLEAR_RECENT: {
+                ClearRecent(hwnd, TRUE);
+                BuildRecentScriptsMenu(hwnd);
+                break;
+            }
 			case ID_MENU_LUASCRIPT_CLOSEALL:
 				{
 #ifdef LUA_CONSOLE
@@ -3494,6 +3500,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      }
                      else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST && LOWORD(wParam) < (ID_RECENTROMS_FIRST + MAX_RECENT_ROMS))  {
                           RunRecentRom(LOWORD(wParam));              
+                     }
+                     else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (ID_LUA_RECENT + LUA_MAX_RECENT)) {
+                         RunRecentScript(LOWORD(wParam));
                      }
 			         break;    
             }

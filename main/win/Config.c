@@ -29,6 +29,8 @@
 #include "commandline.h"
 #include "../../winproject/resource.h"
 
+#include "../lua/Recent.h"
+
 #define CfgFileName "mupen64.cfg"
 
 extern int no_audio_delay;
@@ -87,7 +89,7 @@ int ReadCfgInt(char* Section, char* Key, int DefaultValue)
 void LoadRecentRoms()
 {
     int i;
-    char tempStr[50];
+    char tempStr[32];
 
     Config.RecentRomsFreeze = ReadCfgInt("Recent Roms", "Freeze", 0);
     for (i = 0; i < MAX_RECENT_ROMS; i++)
@@ -98,6 +100,20 @@ void LoadRecentRoms()
         //        FILE* f = fopen(tempStr, "wb");
         //        fputs(Config.RecentRoms[i], f);
         //        fclose(f);
+    }
+
+}
+
+//Loads recent scripts from .cfg
+void LoadRecentScripts()
+{
+    char tempStr[32];
+
+    for (unsigned i = 0; i < LUA_MAX_RECENT; i++)
+    {
+
+        sprintf(tempStr, "RecentLua%d", i);
+        ReadCfgString("Recent Scripts", tempStr, "", Config.RecentScripts[i]);
     }
 
 }
@@ -133,6 +149,7 @@ void WriteHotkeyConfig(int n, char* name) {
 void LoadConfig()
 {
     LoadRecentRoms();
+    LoadRecentScripts();
 
     // Language
     ReadCfgString("Language", "Default", "English", Config.DefaultLanguage);
@@ -316,6 +333,17 @@ void SaveRecentRoms()
     }
 }
 
+void SaveRecentScripts()
+{
+    char tempStr[32];
+
+    for (unsigned i = 0; i < LUA_MAX_RECENT; i++)
+    {
+        sprintf(tempStr, "RecentLua%d", i);
+        WriteCfgString("Recent Scripts", tempStr, Config.RecentScripts[i]);
+    }
+}
+
 void SaveConfig()
 {
     saveWindowSettings();
@@ -323,6 +351,7 @@ void SaveConfig()
     if (!cmdlineNoGui) {
         saveBrowserSettings();
         SaveRecentRoms();
+        SaveRecentScripts();
     }
 
     //Language
