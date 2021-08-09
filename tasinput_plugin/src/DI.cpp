@@ -98,6 +98,11 @@ BOOL CALLBACK DIEnumDevicesCallback( LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef) {
 				bOK = FALSE;
 		}
 	}
+	if (DInputDev[nCurrentDevices].lpDIDevice == NULL)
+	{
+		MessageBox(0, "Fatal device error, please report issue on github", "error", MB_ICONERROR);
+		return DIENUM_CONTINUE;
+	}
 
 	if (bOK == TRUE) {
 		DInputDev[nCurrentDevices].lpDIDevice->Acquire();
