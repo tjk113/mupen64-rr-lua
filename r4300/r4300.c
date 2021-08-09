@@ -1409,6 +1409,9 @@ static inline unsigned long update_invalid_addr(unsigned long addr)
 unsigned long jump_to_address;
 inline void jump_to_func()
 {
+//#ifdef _DEBUG
+//	printf("dyna jump: %p\n", addr);
+//#endif
    unsigned long paddr;
    if (skip_jump) return;
    paddr = update_invalid_addr(addr);

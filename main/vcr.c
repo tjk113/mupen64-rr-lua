@@ -1884,7 +1884,7 @@ void VCR_aiLenChanged()
 	short *p = (short *)((char*)rdram + (ai_register.ai_dram_addr & 0xFFFFFF));
 	char* buf = (char*)p;
 	int aiLen = ai_register.ai_len;
-
+	//printf("ailenchanged %p %d\n", p, aiLen);
 	aiLenChanged();
 	if (m_capture == 0)
 		return;
