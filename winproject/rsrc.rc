@@ -138,9 +138,11 @@ BEGIN
         MENUITEM "New Instance",                ID_MENU_LUASCRIPT_NEW
         POPUP "Recent scripts"
         BEGIN
-            MENUITEM "No recent scripts"        ID_LUA_RECENT, GRAYED
+            MENUITEM "Reset", ID_LUA_RECENT_RESET
+            MENUITEM "Freeze", ID_LUA_RECENT_FREEZE
+            MENUITEM SEPARATOR
+            MENUITEM ""        ID_LUA_RECENT, GRAYED
         END
-            MENUITEM "Clear recent"             ID_LUA_CLEAR_RECENT
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END
 END

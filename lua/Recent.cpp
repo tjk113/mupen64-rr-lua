@@ -8,16 +8,18 @@
 #include "../winproject/resource.h" //for menu id
 #endif
 
+BOOL freezeRecentScript;
+
 //takes config and puts the entries to menu
 void BuildRecentScriptsMenu(HWND hwnd) {
 	int i;
 	bool empty = false;
-	MENUITEMINFO menuinfo;
+	MENUITEMINFO menuinfo = { 0 };
 	HMENU hMenu = GetMenu(hwnd);
 	HMENU hSubMenu = GetSubMenu(hMenu, 5);
 	hSubMenu = GetSubMenu(hSubMenu, 1);
-	DeleteMenu(hSubMenu, ID_LUA_RECENT, MF_BYCOMMAND); //remove the "no recent scripts" entry, add later if in fact no recent
-
+	//DeleteMenu(hSubMenu, ID_LUA_RECENT, MF_BYCOMMAND); //remove the "no recent scripts" entry, add later if in fact no recent
+	
 	menuinfo.cbSize = sizeof(MENUITEMINFO);
 	menuinfo.fMask = MIIM_TYPE | MIIM_ID;
 	menuinfo.fType = MFT_STRING;
@@ -28,21 +30,22 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 			if (i == 0)
 			{
 				menuinfo.dwTypeData = "No recent scripts";
-				//menuinfo.fState = MFS_DISABLED; //doesnt work :)
 				empty = true;
 			}
 			else break;
 		}
 		else
 			menuinfo.dwTypeData = Config.RecentScripts[i];
+
+		
 		menuinfo.cch = strlen(menuinfo.dwTypeData);
-		menuinfo.wID = ID_LUA_RECENT + i;
-		InsertMenuItem(hSubMenu, i, TRUE, &menuinfo);
-		if (empty) EnableMenuItem(hSubMenu, ID_LUA_RECENT, MF_DISABLED);
+		menuinfo.wID = ID_LUA_RECENT + i+3;
+		InsertMenuItem(hSubMenu, i+3, TRUE, &menuinfo);
+		if (empty)  EnableMenuItem(hSubMenu, ID_LUA_RECENT, MF_DISABLED);
 	}
 }
 
-void ClearRecent(HWND hwnd, BOOL clear_array) {
+void ClearRecent(BOOL clear_array) {
 	int i;
 	HMENU hMenu;
 
@@ -59,7 +62,7 @@ void ClearRecent(HWND hwnd, BOOL clear_array) {
 void RefreshRecent()
 {
 	//nuke the menu 
-	ClearRecent(mainHWND,FALSE);
+	ClearRecent(FALSE);
 	//rebuild
 	BuildRecentScriptsMenu(mainHWND);
 
@@ -71,6 +74,8 @@ void RefreshRecent()
 //newer scripts are earlier in array
 void AddToRecentScripts(char* path)
 {
+	if (Config.RecentScriptsFreeze) return; // fuck off?
+
 	int i = 0;
 	//Either finds index of path in recent list, or stops at last one
 	//notice how it doesn't matter if last==path or not, we do same swapping later

@@ -108,7 +108,7 @@ void LoadRecentRoms()
 void LoadRecentScripts()
 {
     char tempStr[32];
-
+    Config.RecentScriptsFreeze = ReadCfgInt("Recent Scripts", "Freeze", 0);
     for (unsigned i = 0; i < LUA_MAX_RECENT; i++)
     {
 
@@ -336,7 +336,7 @@ void SaveRecentRoms()
 void SaveRecentScripts()
 {
     char tempStr[32];
-
+    WriteCfgInt("Recent Scripts", "Freeze", Config.RecentScriptsFreeze);
     for (unsigned i = 0; i < LUA_MAX_RECENT; i++)
     {
         sprintf(tempStr, "RecentLua%d", i);

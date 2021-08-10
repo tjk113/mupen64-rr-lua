@@ -2967,8 +2967,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					::NewLuaScript((void(*)())lParam);
 #endif
 				} break;
-            case ID_LUA_CLEAR_RECENT: {
-                ClearRecent(hwnd, TRUE);
+            case ID_LUA_RECENT_FREEZE: {
+                HMENU hMenu;
+                hMenu = GetMenu(mainHWND);
+                CheckMenuItem(hMenu, ID_LUA_RECENT_FREEZE, (Config.RecentScriptsFreeze ^= 1) ? MF_CHECKED : MF_UNCHECKED);
+                shouldSave = TRUE;
+                break;
+            }
+            case ID_LUA_RECENT_RESET: {
+                ClearRecent(TRUE);
                 BuildRecentScriptsMenu(hwnd);
                 break;
             }
@@ -3502,6 +3509,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                           RunRecentRom(LOWORD(wParam));              
                      }
                      else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (ID_LUA_RECENT + LUA_MAX_RECENT)) {
+                         printf("run recent script\n");
                          RunRecentScript(LOWORD(wParam));
                      }
 			         break;    

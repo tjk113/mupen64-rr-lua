@@ -421,6 +421,8 @@
 #define IDC_CLUADOUBLEBUFFER			40010
 #define IDC_GITREPO						40011
 #define IDC_EXTSAVESTATE				40012
+#define ID_LUA_RECENT_RESET				40013
+#define ID_LUA_RECENT_FREEZE			40014
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
