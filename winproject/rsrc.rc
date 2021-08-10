@@ -136,6 +136,7 @@ BEGIN
     POPUP "Lua Script"
     BEGIN
         MENUITEM "New Instance",                ID_MENU_LUASCRIPT_NEW
+        MENUITEM SEPARATOR
         POPUP "Recent scripts"
         BEGIN
             MENUITEM "Reset", ID_LUA_RECENT_RESET
@@ -143,6 +144,7 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM ""        ID_LUA_RECENT, GRAYED
         END
+        MENUITEM SEPARATOR
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END
 END
