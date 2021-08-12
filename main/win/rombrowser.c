@@ -14,6 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -876,11 +877,9 @@ void AddDirToList(char RomBrowserDir[MAX_PATH],BOOL sortflag)
      strcpy(FullPath,RomBrowserDir);
      if (FullPath[strlen(RomBrowserDir) - 1] != '\\') { strcat(FullPath,"\\"); }
      strcat(FullPath,fd.cFileName);
-     std::string strfileName = FullPath;
-     if (strfileName.find_last_of(".") != std::string::npos
-         && !validRomExt(strfileName.substr(strfileName.find_last_of(".") + 1)) && Config.alertBAD) {
-         continue;
-     }
+
+     if ((Config.alertBAD||Config.alertHACK) && !validRomExt(FullPath)) continue;
+
      if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
             if (Config.RomBrowserRecursion) { 
               		AddDirToList(FullPath,FALSE); }
