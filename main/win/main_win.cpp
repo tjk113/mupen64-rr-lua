@@ -1535,8 +1535,8 @@ void CreateToolBarWindow(HWND hwnd)
     };
 
             hTool = CreateToolbarEx (hwnd, 
-                WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT |
-                /*WS_CLIPCHILDREN | WS_CLIPSIBLINGS | CCS_NODIVIDER | CCS_NORESIZE |*/ CCS_ADJUSTABLE, 
+                WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS /* | */
+                /*CS_ADJUSTABLE    no this causes a bug...*/,
                 IDC_TOOLBAR, 10, app_hInstance, IDB_TOOLBAR, 
                 (LPCTBBUTTON)&tbButtons, 13, 16, 16, 200, 25,  sizeof (TBBUTTON)); 
                                 
