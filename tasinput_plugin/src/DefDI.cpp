@@ -110,6 +110,8 @@ struct Status
 		positioned = false;
 		comboTask = C_IDLE;
 		once = true;
+		setcursortimer = 0;
+		dragcounter = 0;
 	}
 
 	void StartThread(int ControllerNumber)
@@ -197,6 +199,8 @@ struct Status
 	int comboTask;
 	int activeCombo;
 	bool fakeInput;
+	int setcursortimer; //increases every setcursor
+	int dragcounter; //holds setcursor count when dragging started
 
 	bool once;
 	
@@ -1947,6 +1951,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 		// too bad we don't get useful events like WM_MOUSEMOVE or WM_LBUTTONDOWN...
 		case WM_SETCURSOR:
 #ifdef DEBUG
+			setcursortimer++;
 			//printf("tasinput setcursor message!\n");
 #endif
 			POINT pt;
@@ -2012,6 +2017,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						if (menuConfig.movable) {
 							dragging = true;
+							dragcounter = setcursortimer;
 							GetCursorPos(&pt);
 							dragXStart = pt.x;
 							dragYStart = pt.y;
@@ -2037,7 +2043,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			if(dragging && !nextClick)
 			{
 				dragging = false;
-				ActivateEmulatorWindow();
+				KillTimer(statusDlg, IDT_TIMER3);
+				//ActivateEmulatorWindow(); //not needed
 			}
 			if(draggingStick && ((!nextClick && !draggingPermaStick ) || !IsWindowFromEmulatorProcessActive()))
 			{
@@ -2047,18 +2054,31 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				if(IsWindowFromEmulatorProcessActive())
 					ActivateEmulatorWindow();
 			}
-			if(dragging)
+			if (dragging)
 			{
-				POINT pt;
-				GetCursorPos(&pt);
-				int newDragX = pt.x;
-				int newDragY = pt.y;
-				if(lastXDrag != newDragX-dragXStart || lastYDrag != newDragY-dragYStart)
+				//because the WM_COMMAND check is fired after 1 setcursor, it would falsely start drag timer,
+				//this small workaround checks if at least 2 messages have passed, however I dont think
+				//WM_COMMAND is ensured to be sent in order after setcursor, so I made it start after 3 messages instead,
+				//I never observed 2 setcursors go before wm_command
+				int cntdelta = setcursortimer - dragcounter;
+				//printf("drag delta: %d\n", cntdelta);
+				if (cntdelta == 2)
 				{
-					lastXDrag = newDragX-dragXStart;
-					lastYDrag = newDragY-dragYStart;
-																		// do not
-					SetWindowPos(statusDlg,0, lastXDrag, lastYDrag, 0,0,/*SWP_NOZORDER|*/SWP_NOSIZE|SWP_SHOWWINDOW);
+					SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC)NULL); //!!VERY SUS!!
+				}
+				if (cntdelta > 1) //shouldn't be visible, helps fight teleports after aggresive text select
+				{
+					POINT pt;
+					GetCursorPos(&pt);
+					int newDragX = pt.x;
+					int newDragY = pt.y;
+					if (lastXDrag != newDragX - dragXStart || lastYDrag != newDragY - dragYStart)
+					{
+						lastXDrag = newDragX - dragXStart;
+						lastYDrag = newDragY - dragYStart;
+						// do not
+						SetWindowPos(statusDlg, 0, lastXDrag, lastYDrag, 0, 0,/*SWP_NOZORDER|*/SWP_NOSIZE | SWP_SHOWWINDOW);
+					}
 				}
 			}
 			else if(draggingStick)
