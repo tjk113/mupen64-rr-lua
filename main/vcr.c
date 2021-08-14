@@ -1542,18 +1542,33 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 					break;
 			}
 
+			// TODO: FIXME: One should never fear threats. It's like with a dog. 
+			// A dog senses when somebody wrote bad code, and bites.
+			char* bufnExt = (char*)malloc(strlen(buf)+11);
+			strcpy(bufnExt, buf);
+
 	    	strncat( buf, ".st", 4);
 
 			FILE* stBuf;
+
 			if ((stBuf = fopen(buf, "r"))) fclose(stBuf);
 			else
 			{
-				printf("[VCR]: Early Savestate exist check failed...\n");
-				RESET_TITLEBAR;
-				if (m_file != NULL)
-					fclose(m_file);
-				return -1;
+				// try .savestate
+				strncat(bufnExt, ".savestate", 11);
+
+				if ((stBuf = fopen(bufnExt, "r"))) fclose(stBuf);
+				else {
+					printf("[VCR]: Early Savestate exist check failed...\n");
+					RESET_TITLEBAR;
+					if (m_file != NULL)
+						fclose(m_file);
+					free(bufnExt);
+					return -1;
+				}
 			}
+
+			free(bufnExt);
 
 	    	savestates_select_filename( buf );
 			savestates_job |= LOADSTATE;
