@@ -1950,10 +1950,10 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 
 		// too bad we don't get useful events like WM_MOUSEMOVE or WM_LBUTTONDOWN...
 		case WM_SETCURSOR:
-#ifdef DEBUG
-			setcursortimer++;
+#ifdef _DEBUG
 			//printf("tasinput setcursor message!\n");
 #endif
+			setcursortimer++;
 			POINT pt;
 			GetCursorPos(&pt);
 
@@ -2061,7 +2061,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				//WM_COMMAND is ensured to be sent in order after setcursor, so I made it start after 3 messages instead,
 				//I never observed 2 setcursors go before wm_command
 				int cntdelta = setcursortimer - dragcounter;
-				//printf("drag delta: %d\n", cntdelta);
+				printf("drag delta: %d\n", cntdelta);
 				if (cntdelta == 2)
 				{
 					SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC)NULL); //!!VERY SUS!!
