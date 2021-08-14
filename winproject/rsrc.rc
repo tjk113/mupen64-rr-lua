@@ -142,7 +142,6 @@ BEGIN
             MENUITEM "Reset", ID_LUA_RECENT_RESET
             MENUITEM "Freeze", ID_LUA_RECENT_FREEZE
             MENUITEM SEPARATOR
-            MENUITEM ""        ID_LUA_RECENT, GRAYED
         END
         MENUITEM SEPARATOR
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
