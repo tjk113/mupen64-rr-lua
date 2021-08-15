@@ -1969,7 +1969,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if(IsMouseOverControl(statusDlg,IDC_STICKPIC))
 				{
-					SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC)NULL); //start timer during dragging to allow out of bounds drag
+					SetTimer(statusDlg, IDT_TIMER3, 50/2/2, (TIMERPROC)NULL); //start timer during dragging to allow out of bounds drag
 					//if clicked RMB and permadrag was active, disable it
 					if(draggingPermaStick || GetAsyncKeyState(VK_RBUTTON) & 0x8000)
 					{
@@ -2044,6 +2044,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				dragging = false;
 				KillTimer(statusDlg, IDT_TIMER3);
+				//if (setcursortimer - dragcounter > 1)
 				//ActivateEmulatorWindow(); //not needed
 			}
 			if(draggingStick && ((!nextClick && !draggingPermaStick ) || !IsWindowFromEmulatorProcessActive()))
