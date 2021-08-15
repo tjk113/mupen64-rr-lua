@@ -641,6 +641,11 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		return TRUE;
 	}
 	case WM_CLOSE:
+
+		if (Config.LuaWarnOnClose
+			&& (MessageBox(0, "Are you sure you want to close this dialog and terminate this lua script instance?", "Confirm closing", MB_TASKMODAL | MB_TOPMOST | MB_YESNO | MB_ICONQUESTION) == IDNO))
+			return TRUE;
+
 		DestroyWindow(wnd);
 		return TRUE;
 	case WM_DESTROY:{
@@ -766,9 +771,13 @@ void CreateLuaWindow(void(*callback)()) {
 	if(!luaDC) {
 		InitializeLuaDC(mainHWND);
 	}
+
+	int LuaWndId = Config.LuaSimpleDialog ? IDD_LUAWINDOW_SIMPLIFIED : IDD_LUAWINDOW;
+
 	HWND wnd = CreateDialogParam(app_hInstance,
-		MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND, DialogProc,
+		MAKEINTRESOURCE(LuaWndId), mainHWND, DialogProc,
 		(LPARAM)callback);
+
 	ShowWindow(wnd, SW_SHOW);	//タブストップ利かないのと同じ原因だと思う
 }
 void ConsoleWrite(HWND wnd, const char *str) {

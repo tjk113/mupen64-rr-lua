@@ -423,6 +423,11 @@
 #define IDC_EXTSAVESTATE				40012
 #define ID_LUA_RECENT_RESET				40013
 #define ID_LUA_RECENT_FREEZE			40014
+#define IDD_OTHER_OPTIONS_DIALOG		40015
+#define IDC_OTHEROPTIONS				40016
+#define IDC_LUA_WARNONCLOSE				40017
+#define IDC_LUA_SIMPLEDIALOG			40018
+#define IDD_LUAWINDOW_SIMPLIFIED	    40019
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

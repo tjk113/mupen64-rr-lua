@@ -157,6 +157,8 @@ typedef struct _CONFIG {
     char LuaScriptPath[MAX_PATH];
     char RecentScripts[LUA_MAX_RECENT][MAX_PATH];
     BOOL RecentScriptsFreeze;
+    BOOL LuaSimpleDialog;
+    BOOL LuaWarnOnClose;
 } CONFIG;
 
 extern "C" CONFIG Config;
