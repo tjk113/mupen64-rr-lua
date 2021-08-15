@@ -1949,9 +1949,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 #ifdef _DEBUG
 			//printf("tasinput setcursor message!\n");
 #endif
-			POINT pt;
-			GetCursorPos(&pt);
-
 
 			//is any mouse button pressed?
 			nextClick = ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000));
@@ -1961,7 +1958,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			lastWasRight = !!(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
 			//if we are over buttons area and right is clicked, look for autofire candidates
 			//sadly wm_rbuttondown doesnt work here
-			if (IsMouseOverControl(statusDlg, IDC_BUTTONSLABEL))
+			if (IsMouseOverControl(statusDlg, IDC_BUTTONSLABEL) && lastWasRight)
 			{
 				overrideOn = true; //clicking on buttons counts as override
 				if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) // right click on a button to autofire it
@@ -2054,8 +2051,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				radialRecalc = true;
 				overrideOn = true; //joystick dragged with mouse
 				RefreshAnalogPicture();
-				ActivateEmulatorWindow();
-				SetCapture(statusDlg);
 			}
 			else if(IsWindowFromEmulatorProcessActive() &&!lock)
 			{
@@ -2192,21 +2187,26 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				ReleaseCapture();
 				ActivateEmulatorWindow();
 			}
-			if (draggingStick && (!draggingPermaStick || !IsWindowFromEmulatorProcessActive()))
+			if (draggingStick)
 			{
 				draggingStick = false;
-				draggingPermaStick = false;
 				ReleaseCapture();
 				if (IsWindowFromEmulatorProcessActive())
 					ActivateEmulatorWindow();
 			}
+			if (draggingPermaStick)
+			{
+				draggingPermaStick = false;
+				KillTimer(statusDlg, IDT_TIMER3);
+			}
 			break;
 
 		case WM_LBUTTONDOWN: //this message is only sent when clicking on non-controls, which is perfect for dragging right
-			SetCapture(statusDlg); //let mouse escape window
+			printf("ld\n");
 			if (!IsMouseOverControl(statusDlg,IDC_STICKPIC)) {
 				if (menuConfig.movable)
 				{
+					POINT pt;
 					printf("drag start\n");
 					dragging = true;
 					GetCursorPos(&pt);
@@ -2219,15 +2219,26 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 					dragYStart -= rect.top;
 				}
 			}
-			else draggingStick = true;
+			else
+			{
+				draggingStick = true;
+				SendMessage(statusDlg, WM_MOUSEMOVE, 0, 0); //updates stick
+				ActivateEmulatorWindow();
+			}
+			SetCapture(statusDlg); //let mouse escape window
+
 			break;
 		case WM_RBUTTONDOWN:
-
+			printf("rd\n");
 			//flip permadrag state and update dragging stick accordingly
 			if (IsMouseOverControl(statusDlg, IDC_STICKPIC))
 			{
 				draggingPermaStick = !draggingPermaStick;
-				if (draggingStick = draggingPermaStick) SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC)NULL);
+				if (draggingStick = draggingPermaStick)
+				{
+					ActivateEmulatorWindow();
+					SetTimer(statusDlg, IDT_TIMER3, 50, (TIMERPROC)NULL);
+				}
 				else KillTimer(statusDlg, IDT_TIMER3);
 			}
 			break;
@@ -2235,7 +2246,6 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			EndEdit(activeCombo, (char*)lParam);
 			break;
 		case WM_COMMAND:
-			//printf("wmcommand\n");
 			switch (LOWORD(wParam)) 
             {
 				case IDC_EDITX:
