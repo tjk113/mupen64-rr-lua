@@ -2259,7 +2259,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			EndEdit(activeCombo, (char*)lParam);
 			break;
 		case WM_COMMAND:
-			dragging = false; //any interaction with controls means we don't want to drag
+			if (HIWORD(wParam) < 0x300) dragging = false; //any interaction with controls means we don't want to drag
 			switch (LOWORD(wParam)) 
             {
 				case IDC_EDITX:
