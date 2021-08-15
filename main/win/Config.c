@@ -29,6 +29,8 @@
 #include "commandline.h"
 #include "../../winproject/resource.h"
 
+#include "../lua/Recent.h"
+
 #define CfgFileName "mupen64.cfg"
 
 extern int no_audio_delay;
@@ -87,7 +89,7 @@ int ReadCfgInt(char* Section, char* Key, int DefaultValue)
 void LoadRecentRoms()
 {
     int i;
-    char tempStr[50];
+    char tempStr[32];
 
     Config.RecentRomsFreeze = ReadCfgInt("Recent Roms", "Freeze", 0);
     for (i = 0; i < MAX_RECENT_ROMS; i++)
@@ -98,6 +100,20 @@ void LoadRecentRoms()
         //        FILE* f = fopen(tempStr, "wb");
         //        fputs(Config.RecentRoms[i], f);
         //        fclose(f);
+    }
+
+}
+
+//Loads recent scripts from .cfg
+void LoadRecentScripts()
+{
+    char tempStr[32];
+    Config.RecentScriptsFreeze = ReadCfgInt("Recent Scripts", "Freeze", 0);
+    for (unsigned i = 0; i < LUA_MAX_RECENT; i++)
+    {
+
+        sprintf(tempStr, "RecentLua%d", i);
+        ReadCfgString("Recent Scripts", tempStr, "", Config.RecentScripts[i]);
     }
 
 }
@@ -133,6 +149,7 @@ void WriteHotkeyConfig(int n, char* name) {
 void LoadConfig()
 {
     LoadRecentRoms();
+    LoadRecentScripts();
 
     // Language
     ReadCfgString("Language", "Default", "English", Config.DefaultLanguage);
@@ -143,8 +160,8 @@ void LoadConfig()
     Config.WindowPosX = ReadCfgInt("Window", "X", (GetSystemMetrics(SM_CXSCREEN) - Config.WindowWidth) / 2);
     Config.WindowPosY = ReadCfgInt("Window", "Y", (GetSystemMetrics(SM_CYSCREEN) - Config.WindowHeight) / 2);
     //if mupen was closed by minimising
-    if (Config.WindowPosX < 0 || Config.WindowWidth < 0) {
-        printf("\nWindow size too small");
+    if (Config.WindowPosX < MIN_WINDOW_W-1 || Config.WindowWidth < MIN_WINDOW_H-1) {
+        printf("window too small. attempting to fix\n");
         Config.WindowWidth = 800;
         Config.WindowHeight = 600;
         Config.WindowPosX = (GetSystemMetrics(SM_CXSCREEN) - Config.WindowWidth) / 2;
@@ -163,6 +180,7 @@ void LoadConfig()
     Config.FPSmodifier = ReadCfgInt("General", "Fps Modifier", 100);
 	Config.skipFrequency = ReadCfgInt("General", "Skip Frequency", 8);
 	Config.loopMovie = ReadCfgInt("General", "Loop Movie", 0);
+    Config.zeroIndex = ReadCfgInt("General", "Zero index", 0);
 
 
     Config.guiDynacore = ReadCfgInt("CPU", "Core", 1);
@@ -315,6 +333,17 @@ void SaveRecentRoms()
     }
 }
 
+void SaveRecentScripts()
+{
+    char tempStr[32];
+    WriteCfgInt("Recent Scripts", "Freeze", Config.RecentScriptsFreeze);
+    for (unsigned i = 0; i < LUA_MAX_RECENT; i++)
+    {
+        sprintf(tempStr, "RecentLua%d", i);
+        WriteCfgString("Recent Scripts", tempStr, Config.RecentScripts[i]);
+    }
+}
+
 void SaveConfig()
 {
     saveWindowSettings();
@@ -322,6 +351,7 @@ void SaveConfig()
     if (!cmdlineNoGui) {
         saveBrowserSettings();
         SaveRecentRoms();
+        SaveRecentScripts();
     }
 
     //Language
@@ -339,6 +369,7 @@ void SaveConfig()
     WriteCfgInt("General", "Use Fps Modifier", Config.UseFPSmodifier);
 	WriteCfgInt("General", "Skip Frequency", Config.skipFrequency);
 	WriteCfgInt("General", "Loop Movie", Config.loopMovie);
+    WriteCfgInt("General", "Zero Index", Config.zeroIndex);
 
     //Advanced Vars
     WriteCfgInt("Advanced", "Start Full Screen", Config.StartFullScreen);

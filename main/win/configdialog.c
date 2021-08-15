@@ -53,6 +53,37 @@ HWND hwndTrack ;
 extern int no_audio_delay;
 extern int no_compiled_jump;
 
+BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+    switch (Message) {
+    case WM_INITDIALOG:
+        WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
+        WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
+        return TRUE;
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+
+        }
+        break;
+
+    case WM_NOTIFY:
+        if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
+            Config.LuaSimpleDialog = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
+            Config.LuaWarnOnClose = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
+            EnableToolbar();
+            EnableStatusbar();
+            FastRefreshBrowser();
+            LoadConfigExternals();
+        }   
+        break;
+
+    default:
+        return FALSE;
+    }
+    return TRUE;
+}
+
 void WriteCheckBoxValue( HWND hwnd, int resourceID , int value)
 {
     if  (value) {
@@ -90,10 +121,10 @@ void ReadComboBoxValue(HWND hwnd,int ResourceID,char *ret)
 }
 
 void ChangeSettings(HWND hwndOwner) {
-    PROPSHEETPAGE psp[5];
+    PROPSHEETPAGE psp[6];
     PROPSHEETHEADER psh;
 	char ConfigStr[200],DirectoriesStr[200],titleStr[200],settingsStr[200];
-    char AdvSettingsStr[200], HotkeysStr[200];
+    char AdvSettingsStr[200], HotkeysStr[200], OtherStr[200];
     psp[0].dwSize = sizeof(PROPSHEETPAGE);
     psp[0].dwFlags = PSP_USETITLE;
     psp[0].hInstance = app_hInstance;
@@ -144,6 +175,16 @@ void ChangeSettings(HWND hwndOwner) {
     psp[4].lParam = 0;
     psp[4].pfnCallback = NULL;
  
+    psp[5].dwSize = sizeof(PROPSHEETPAGE);
+    psp[5].dwFlags = PSP_USETITLE;
+    psp[5].hInstance = app_hInstance;
+    psp[5].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
+    psp[5].pfnDlgProc = OtherOptionsProc;
+    TranslateDefault("Other", "Other", OtherStr);
+    psp[5].pszTitle = OtherStr;
+    psp[5].lParam = 0;
+    psp[5].pfnCallback = NULL;
+
     psh.dwSize = sizeof(PROPSHEETHEADER);
     psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
     psh.hwndParent = hwndOwner;
@@ -685,6 +726,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
          WriteCheckBoxValue( hwnd, IDC_LIMITFPS, Config.limitFps);  
          WriteCheckBoxValue( hwnd, IDC_INI_COMPRESSED, Config.compressedIni);
          WriteCheckBoxValue( hwnd, IDC_SPEEDMODIFIER, Config.UseFPSmodifier  );
+         WriteCheckBoxValue(hwnd, IDC_0INDEX, Config.zeroIndex);
          SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.skipFrequency,0);
                
          CreateToolTip(IDC_SKIPFREQ, hwnd, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame");
@@ -758,6 +800,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                               Config.FPSmodifier = SendMessage( hwndTrack , TBM_GETPOS, 0, 0);
                               Config.UseFPSmodifier = ReadCheckBoxValue( hwnd , IDC_SPEEDMODIFIER );
                               Config.skipFrequency = GetDlgItemInt(hwnd, IDC_SKIPFREQ,0,0);
+                              Config.zeroIndex = ReadCheckBoxValue(hwnd, IDC_0INDEX);
                               if (emu_launched) SetStatusMode( 2 );
                               else SetStatusMode( 0 );
                               InitTimer();
@@ -1268,6 +1311,8 @@ inithotkeysdialog:
     }
     return TRUE;            
 }
+
+
 
 HWND WINAPI CreateTrackbar( 
     HWND hwndDlg,  // handle of dialog box (parent window) 

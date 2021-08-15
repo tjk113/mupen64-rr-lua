@@ -60,10 +60,15 @@ AUDIO_INFO audio_info;
 static CONTROL_INFO control_info;
 static RSP_INFO rsp_info;
 
+
 void (__cdecl*getDllInfo)(PLUGIN_INFO *PluginInfo);
 void (__cdecl*dllConfig)(HWND hParent);
 void (__cdecl*dllTest)(HWND hParent);
 void (__cdecl*dllAbout)(HWND hParent);
+
+
+
+
 
 /* dummy functions to prevent mupen from crashing if a plugin is missing */
 static void __cdecl dummy_void() {}

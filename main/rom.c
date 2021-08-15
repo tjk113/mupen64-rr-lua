@@ -45,7 +45,9 @@
 #include "md5.h"
 #include "mupenIniApi.h"
 #include "guifuncs.h"
+#include "../main/win/Config.h"
 #include <win/rombrowser.h>
+#include <win/main_win.h>
 
 static FILE *rom_file;
 static gzFile z_rom_file;
@@ -90,14 +92,25 @@ static int findsize()
    // divide through 131072 works too but im sure compiler is smart enough
 }
 
-bool validRomExt(std::string str) {
-	// z64,n64,v64,rom
-	const char* cstr = str.c_str();
-	return stricmp(cstr, "z64") ||
-		   stricmp(cstr, "n64") ||
-		   stricmp(cstr, "v64") ||
-		   stricmp(cstr, "rom");
+const char* getExt(const char* filename) {
+	const char* dot = strrchr(filename, '.');
+	if (!dot || dot == filename) return "";
+	return dot + 1;
 }
+
+bool validRomExt(const char* filename) {
+//#ifdef _DEBUG
+//	printf("%s\n", filename);
+//#endif
+	const char* str = getExt(filename);
+	if (str == "\0" || str == "0") return 0;
+	// z64,n64,v64,rom
+	return !stricmp(str, "z64") ||
+		   !stricmp(str, "n64") ||
+		   !stricmp(str, "v64") ||
+		   !stricmp(str, "rom");
+}
+
 static int find_file(char *argv)
 {
    z=0;
@@ -165,10 +178,9 @@ int rom_read(const char *argv)
    char buf[1024], arg[1024], *s;
    
    strncpy(arg, argv, 1000);
-   std::string strfileName = argv;
-   if (strfileName.find_last_of(".") != std::string::npos 
-	   && !validRomExt(strfileName.substr(strfileName.find_last_of(".") + 1))
-	   && !ask_extension()) {goto killRom;}
+
+   if (!validRomExt(argv) && !ask_extension())
+	   goto killRom;
 	   
    if (find_file(arg))
      {
@@ -187,9 +199,12 @@ int rom_read(const char *argv)
 	       }
 	  }
      }
+
+
    printf ("file found\n");
 /*------------------------------------------------------------------------*/   
-   if (findsize() > 64 && !ask_hack())goto killRom;
+   if (findsize() > 64 && !ask_hack()) goto killRom;
+
    if (rom) free(rom);
    rom = (unsigned char*)malloc(taille_rom);
 
@@ -394,7 +409,7 @@ int fill_header(const char *argv)
 {
    char arg[1024];
    strncpy(arg, argv, 1000);
-   if (find_file(arg))
+   if (find_file(arg)/* || !validRomExt(argv) && Config.alertBAD */)
      {
 	printf ("file not found or wrong path\n");
 	return 0;

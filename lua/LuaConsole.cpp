@@ -22,12 +22,13 @@
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
 #include <vcr.h>
-
+#include <gdiplus.h>
 
 #ifdef LUA_CONSOLE
 
 //nice msvc pragma smh
 #pragma comment(lib, "lua54.lib")
+#pragma comment (lib,"Gdiplus.lib")
 
 
 extern unsigned long op;
@@ -49,6 +50,8 @@ bool traceLogMode;
 bool enablePCBreak;
 bool maximumSpeedMode;
 bool anyLuaRunning = false;
+bool gdiPlusInitialized = false;
+ULONG_PTR gdiPlusToken;
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
@@ -150,7 +153,6 @@ struct EmulationLock{
 	}
 };
 
-void runLUA(HWND wnd, char path[]); // bad solution
 void ConsoleWrite(HWND, const char*);
 void SetWindowLua(HWND wnd, Lua *lua);
 void SetButtonState(HWND wnd, bool state);
@@ -205,8 +207,12 @@ public:
 		hMutex = CreateMutex(0, 0, 0);
 		newLuaState();
 		runFile(path);
-		if(isrunning())
+		if (isrunning())
+		{
 			SetButtonState(ownWnd, true);
+			AddToRecentScripts(path);
+			strcpy(Config.LuaScriptPath, path);
+		}
 		ShowInfo("Lua run");
 	}
 	void stop() {
@@ -335,7 +341,6 @@ private:
 	void runFile(char *path) {
 		//int GetErrorMessage(lua_State *L);
 		int result;
-		SetButtonState(ownWnd, true);
 		//lua_pushcfunction(L, GetErrorMessage);
 		result = luaL_dofile(L, path);
 		if(result) {
@@ -636,11 +641,14 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		return TRUE;
 	}
 	case WM_CLOSE:
+
+		if (Config.LuaWarnOnClose
+			&& (MessageBox(0, "Are you sure you want to close this dialog and terminate this lua script instance?", "Confirm closing", MB_TASKMODAL | MB_TOPMOST | MB_YESNO | MB_ICONQUESTION) == IDNO))
+			return TRUE;
+
 		DestroyWindow(wnd);
 		return TRUE;
 	case WM_DESTROY:{
-		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			Config.LuaScriptPath, MAX_PATH);
 		LuaMessage::Msg *msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::DestroyLua;
 		msg->destroyLua.wnd = wnd;
@@ -657,8 +665,10 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return FALSE;
 }
 std::string OpenLuaFileDialog() {
-	EmulationLock lock;
-
+	
+	int storePaused = emu_paused;
+	pauseEmu(1);
+	
 	OPENFILENAME ofn;
 	char filename[MAX_PATH] = "";
 
@@ -676,8 +686,13 @@ std::string OpenLuaFileDialog() {
 	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
 	
-	if(!GetOpenFileName(&ofn))
+	if (!GetOpenFileName(&ofn)) {
+		if (!storePaused) resumeEmu(1);
 		return "";
+	}
+
+	if (!storePaused) resumeEmu(1);
+
 	return ofn.lpstrFile;
 }
 void SetButtonState(HWND wnd, bool state) {
@@ -710,6 +725,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		//strcpy(Config.LuaScriptPath, msg->runPath.path);
 		anyLuaRunning = true;
 		luaMessage.post(msg);
+		shouldSave = true;
 		return TRUE;
 	}
 	case IDC_BUTTON_LUASTOP: {
@@ -755,9 +771,13 @@ void CreateLuaWindow(void(*callback)()) {
 	if(!luaDC) {
 		InitializeLuaDC(mainHWND);
 	}
+
+	int LuaWndId = Config.LuaSimpleDialog ? IDD_LUAWINDOW_SIMPLIFIED : IDD_LUAWINDOW;
+
 	HWND wnd = CreateDialogParam(app_hInstance,
-		MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND, DialogProc,
+		MAKEINTRESOURCE(LuaWndId), mainHWND, DialogProc,
 		(LPARAM)callback);
+
 	ShowWindow(wnd, SW_SHOW);	//タブストップ利かないのと同じ原因だと思う
 }
 void ConsoleWrite(HWND wnd, const char *str) {
@@ -2067,6 +2087,102 @@ int DrawRect(lua_State *L) {
 		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
+
+VOID checkGDIPlusInitialized() {
+	// will be inlined by compiler
+	if (!gdiPlusInitialized) {
+		printf("lua initialize gdiplus\n");
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
+		gdiPlusInitialized = true;
+	}
+}
+
+int FillPolygonAlpha(lua_State* L) {
+
+	checkGDIPlusInitialized();
+	Lua* lua = GetLuaClass(L);
+
+	Gdiplus::PointF pt1;
+	Gdiplus::PointF pt2;
+	Gdiplus::PointF pt3;
+	byte a, r, g, b;
+
+	pt1.X = luaL_checknumber(L, 1);
+	pt1.Y = luaL_checknumber(L, 2);
+
+	pt2.X = luaL_checknumber(L, 3);
+	pt2.Y = luaL_checknumber(L, 4);
+
+	pt3.X = luaL_checknumber(L, 5);
+	pt3.Y = luaL_checknumber(L, 6);
+
+	a = luaL_checknumber(L, 7);
+	r = luaL_checknumber(L, 8);
+	g = luaL_checknumber(L, 9);
+	b = luaL_checknumber(L, 10);
+
+	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+
+	Gdiplus::PointF pts[3] = {pt1,pt2,pt3};
+	gfx.FillPolygon(&brush, pts, 1);
+	
+
+	return 0;
+}
+
+
+int FillEllipseAlpha(lua_State* L) {
+	checkGDIPlusInitialized();
+	Lua* lua = GetLuaClass(L);
+
+	int left, top, right, bottom;
+	byte a, r, g, b;
+
+	bottom = luaL_checknumber(L, 1);
+	left = luaL_checknumber(L, 2);
+	right = luaL_checknumber(L, 3);
+	top = luaL_checknumber(L, 4);
+
+	a = luaL_checknumber(L, 5);
+	r = luaL_checknumber(L, 6);
+	g = luaL_checknumber(L, 7);
+	b = luaL_checknumber(L, 8);
+
+	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+
+	gfx.FillEllipse(&brush, left, top, right, bottom);
+
+	return 0;
+}
+int FillRectAlpha(lua_State* L) 
+{
+	checkGDIPlusInitialized();
+
+	Lua* lua = GetLuaClass(L);
+	
+	int left, top, right, bottom;
+	byte a, r, g, b;
+
+	bottom = luaL_checknumber(L, 1);
+	left = luaL_checknumber(L, 2);
+	right = luaL_checknumber(L, 3);
+	top = luaL_checknumber(L, 4);
+
+	a = luaL_checknumber(L, 5);
+	r = luaL_checknumber(L, 6);
+	g = luaL_checknumber(L, 7);
+	b = luaL_checknumber(L, 8);
+
+	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+
+	gfx.FillRectangle(&brush, left, top, right, bottom);
+
+	return 0;
+}
 int FillRect(lua_State* L) {
 	/*
 	(Info)
@@ -2994,7 +3110,13 @@ const luaL_Reg wguiFuncs[] = {
 	{"text", TextOut},
 	{"drawtext", DrawText},
 	{"rect", DrawRect},
-	{"fillrect", FillRect}, // Experimental
+	{"fillrect", FillRect},
+	/*<GDIPlus>*/
+	// GDIPlus functions marked with "a" suffix
+	{"fillrecta", FillRectAlpha},
+	{"fillellipsea", FillEllipseAlpha},
+	{"fillpolygona", FillPolygonAlpha},
+	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
 	{"line", DrawLine},

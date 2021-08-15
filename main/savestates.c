@@ -253,8 +253,10 @@ void savestates_load(bool silenceNotFoundError)
 	{
 		if (f == NULL)
 		{
-			if (silenceNotFoundError) return;
-
+			if (silenceNotFoundError) {
+				printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
+				return;
+			}
 			if (slot > 9)
 			{
 				//print .st not .savestate because
@@ -283,7 +285,7 @@ void savestates_load(bool silenceNotFoundError)
 
 		gzclose(f);
 		savestates_job_success = FALSE;
-		if (VCR_isRecording()) VCR_stopRecord();
+		if (VCR_isRecording()) VCR_stopRecord(1);
 		else VCR_stopPlayback();
 		return;
 	}
@@ -405,7 +407,7 @@ void savestates_load(bool silenceNotFoundError)
 			}
 			else {
 				printWarning(errStr);
-				if (stop && VCR_isRecording()) VCR_stopRecord();
+				if (stop && VCR_isRecording()) VCR_stopRecord(1);
 				else if (stop) VCR_stopPlayback();
 				savestates_job_success = FALSE;
 				goto failedLoad;
@@ -424,7 +426,7 @@ void savestates_load(bool silenceNotFoundError)
 			if (VCR_isPlaying())
 				VCR_stopPlayback();
 			else
-				VCR_stopRecord();
+				VCR_stopRecord(1);
 			}
 			lockNoStWarn = false; //reset
 		}

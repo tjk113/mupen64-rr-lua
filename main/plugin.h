@@ -1,3 +1,4 @@
+#pragma once
 /**
  * Mupen64 - plugin.h
  * Copyright (C) 2002 Hacktarux
@@ -50,6 +51,7 @@ char *plugin_name_by_filename(const char *filename);
 void  plugin_exec_config(const char *name);
 void  plugin_exec_test(const char *name);
 void  plugin_exec_about(const char *name);
+
 
 /* Plugin types */
 #define PLUGIN_TYPE_RSP			1

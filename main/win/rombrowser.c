@@ -14,6 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,8 +53,8 @@ int RomBrowserFieldsWidth[ROM_COLUMN_FIELDS] = {250,150,70,70,200,100,100};
 
 int RealColumn[ROM_COLUMN_FIELDS] = {0,2,3,4,-1,-1,-1};
 static DWORD Id;
-HANDLE romBrowserRefreshThread;
-bool romBrowserbusy;
+HANDLE romBrowserRefreshThread = NULL;
+int romBrowserBusy = 0;
 
 char *getFieldName(int col)
 {
@@ -876,11 +877,9 @@ void AddDirToList(char RomBrowserDir[MAX_PATH],BOOL sortflag)
      strcpy(FullPath,RomBrowserDir);
      if (FullPath[strlen(RomBrowserDir) - 1] != '\\') { strcat(FullPath,"\\"); }
      strcat(FullPath,fd.cFileName);
-     std::string strfileName = FullPath;
-     if (strfileName.find_last_of(".") != std::string::npos
-         && !validRomExt(strfileName.substr(strfileName.find_last_of(".") + 1)) && Config.alertBAD) {
-         continue;
-     }
+
+     if ((Config.alertBAD||Config.alertHACK) && !validRomExt(FullPath)) continue;
+
      if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
             if (Config.RomBrowserRecursion) { 
               		AddDirToList(FullPath,FALSE); }
@@ -990,6 +989,7 @@ void FastRefreshBrowser()
     ListViewSort();
 }
 DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
+    romBrowserBusy = TRUE;
     remove(get_cachepath());
     SaveRomBrowserDirs();
     TOTAL_ROMS_NUMBER = 0;
@@ -997,15 +997,13 @@ DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
     ListView_DeleteAllItems(hRomList);
     freeRomList();
     LoadRomList();
-    romBrowserbusy = false;
-    TerminateThread(romBrowserRefreshThread,0); // is it a good idea for thread to kill itself
-                                                // vs is warning too about this... better way?
+    romBrowserBusy = FALSE;
+    ExitThread(0);
     return 0;
 }
 
 void RefreshRomBrowser()
 {
-    romBrowserbusy = true;
     romBrowserRefreshThread = CreateThread(NULL, 0, RefreshRomBrowserInternal, NULL, 0, &Id);
 }
 
@@ -1157,6 +1155,9 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
     HMENU hMenu;
 	
     hMenu = GetMenu(hwnd);
+    //apparently not needed because windows still is able to find the correct items
+    //hMenu = GetSubMenu(hMenu, 0);
+    //hMenu = GetSubMenu(hMenu, 5);
 	for (i = 0; i < MAX_RECENT_ROMS; i ++ ) {
 		DeleteMenu(hMenu, ID_RECENTROMS_FIRST + i, MF_BYCOMMAND);
 	}
@@ -1168,22 +1169,21 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
 
 void SetRecentList(HWND hwnd) {
     int i;
-    HMENU hMenu, hSubMenu ;
     MENUITEMINFO menuinfo;
     FreezeRecentRoms( hwnd, FALSE ) ;
+    HMENU hMenu = GetMenu(hwnd);
+    HMENU hSubMenu = GetSubMenu(hMenu, 0);
+    hSubMenu = GetSubMenu(hSubMenu, 5);
+
+    menuinfo.cbSize = sizeof(MENUITEMINFO);
+    menuinfo.fMask = MIIM_TYPE | MIIM_ID;
+    menuinfo.fType = MFT_STRING;
+    menuinfo.fState = MFS_ENABLED;
     for ( i = 0 ; i < MAX_RECENT_ROMS  ; i++)   {
               if ( strcmp( Config.RecentRoms[i], "")==0 ) continue;
     
-              hMenu = GetMenu(hwnd) ;
-              hSubMenu = GetSubMenu(hMenu,0);
-	          hSubMenu = GetSubMenu(hSubMenu,5);
-	
-              menuinfo.cbSize = sizeof(MENUITEMINFO);
-	          menuinfo.fMask = MIIM_TYPE|MIIM_ID;
-	          menuinfo.fType = MFT_STRING;
-	          menuinfo.fState = MFS_ENABLED;
 	          menuinfo.dwTypeData = ParseName( Config.RecentRoms[i]);
-	          menuinfo.cch = sizeof( hSubMenu);
+              menuinfo.cch = strlen(menuinfo.dwTypeData);
 	          menuinfo.wID = ID_RECENTROMS_FIRST + i;
               InsertMenuItem( hSubMenu, 3 + i, TRUE, &menuinfo);
              

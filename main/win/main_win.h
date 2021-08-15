@@ -14,6 +14,9 @@
  *                                                                         *
  ***************************************************************************/
 
+ //for max recent
+#include "../lua/Recent.h"
+
 #ifndef MAIN_WIN_H
 #define MAIN_WIN_H
 
@@ -94,6 +97,7 @@ typedef struct _CONFIG {
     int FPSmodifier;
     int skipFrequency;
 	BOOL loopMovie;
+    BOOL zeroIndex;
     
     // Advanced vars
     BOOL StartFullScreen;
@@ -149,14 +153,21 @@ typedef struct _CONFIG {
     bool captureOtherWindows;
     HOTKEY hotkey [NUM_HOTKEYS];
 
-		//Lua
-		char LuaScriptPath[MAX_PATH];
+    //Lua
+    char LuaScriptPath[MAX_PATH];
+    char RecentScripts[LUA_MAX_RECENT][MAX_PATH];
+    BOOL RecentScriptsFreeze;
+    BOOL LuaSimpleDialog;
+    BOOL LuaWarnOnClose;
 } CONFIG;
 
 extern "C" CONFIG Config;
 
 extern BOOL forceIgnoreRSP;
 extern BOOL continue_vcr_on_restart_mode;
+extern BOOL ignoreErrorEmulation;
 #define IGNORE_RSP (((!Config.limitFps || !manualFPSLimit) && (!Config.skipFrequency || (frame++ % Config.skipFrequency)))) //if frame advancing and either skipfreq is 0 or modulo is 0
+
+#define RESET_TITLEBAR char tmpwndtitle[200]; sprintf(tmpwndtitle, MUPEN_VERSION " - %s", ROM_HEADER->nom); SetWindowText(mainHWND, tmpwndtitle);
 
 #endif

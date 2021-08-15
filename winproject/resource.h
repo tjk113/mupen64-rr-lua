@@ -2,7 +2,10 @@
 // Plik do³¹czany wygenerowany przez œrodowisko Microsoft Visual C++.
 // U¿ywany przez: rsrc.rc
 //
-#define MUPEN_VERSION     "Mupen 64 1.0.8"
+#define MUPEN_VERSION     "Mupen 64 1.0.9"
+
+#define MIN_WINDOW_W 500
+#define MIN_WINDOW_H 250
 
 #define IDR_MYMENU 101
 #define IDR_ACCEL 103
@@ -145,6 +148,7 @@
 #define IDC_DECREASE_MODIFIER       2263
 #define IDC_RESET_MODIFIER          2264
 #define IDC_SKIPFREQ                2265
+#define IDC_0INDEX                  2266
 
 
 #define STATE_SAVE                  3000
@@ -242,6 +246,9 @@
 #define ID_MENU_LUASCRIPT_NEW           6020
 #define ID_MENU_LUASCRIPT_CLOSEALL      6021
 #define ID_TRACELOG                     6022
+#define ID_LUA_CLEAR_RECENT             6023
+#define ID_LUA_RECENT					6024
+//6024+5 reserved for recent, unless changed to more
 
 #define IDC_HOTKEYS_FLOWGROUP           6101
 #define IDC_HOT_SCREENSHOT              6103
@@ -413,6 +420,14 @@
 #define IDC_INPUTDELAY					40009
 #define IDC_CLUADOUBLEBUFFER			40010
 #define IDC_GITREPO						40011
+#define IDC_EXTSAVESTATE				40012
+#define ID_LUA_RECENT_RESET				40013
+#define ID_LUA_RECENT_FREEZE			40014
+#define IDD_OTHER_OPTIONS_DIALOG		40015
+#define IDC_OTHEROPTIONS				40016
+#define IDC_LUA_WARNONCLOSE				40017
+#define IDC_LUA_SIMPLEDIALOG			40018
+#define IDD_LUAWINDOW_SIMPLIFIED	    40019
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

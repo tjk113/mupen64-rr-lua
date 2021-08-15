@@ -35,12 +35,14 @@
 
 extern unsigned long interp_addr;
 
+//Unused, this seems to be handled in pure_interp.c prefetch()
 void address_error_exception()
 {
    printf("address_error_exception\n");
    stop=1;
 }
 
+//Unused, an TLB entry is marked as invalid
 void TLB_invalid_exception()
 {
    if (delay_slot)
@@ -53,12 +55,14 @@ void TLB_invalid_exception()
    stop=1;
 }
 
+//Unused, 64-bit miss (is this even used on n64?)
 void XTLB_refill_exception(unsigned long long int addresse)
 {
    printf("XTLB refill exception\n");
    stop=1;
 }
 
+//Means no such virtual->physical translation exists
 void TLB_refill_exception(unsigned long address, int w)
 {
    int usual_handler = 0, i;
@@ -144,32 +148,43 @@ void TLB_refill_exception(unsigned long address, int w)
      }
 }
 
+//Unused, aka TLB modified Exception, entry is not writable
 void TLB_mod_exception()
 {
    printf("TLB mod exception\n");
    stop=1;
 }
 
+//Unused
 void integer_overflow_exception()
 {
    printf("integer overflow exception\n");
    stop=1;
 }
 
+//Unused, handled somewhere else
 void coprocessor_unusable_exception()
 {
    printf("coprocessor_unusable_exception\n");
    stop=1;
 }
 
+//General handler, passes execution to default n64 handler
 void exception_general()
 {
    update_count();
+   //EXL bit, 1 = exception level
    Status |= 2;
    
+   //Exception return address
    if (!interpcore) EPC = PC->addr;
    else EPC = interp_addr;
    
+   //printf("exception, Cause: %x EPC: %x \n", Cause, EPC);
+
+   //Highest bit of Cause tells if exception has been executed in branch delay slot
+   //delay_slot seems to always be 0 or 1, why is there reference to 3 ?
+   //if delay_slot, arrange the registers as it should be on n64 (emu uses a variable)
    if(delay_slot==1 || delay_slot==3)
      {
 	Cause |= 0x80000000;
@@ -177,8 +192,10 @@ void exception_general()
      }
    else
      {
-	Cause &= 0x7FFFFFFF;
+	Cause &= 0x7FFFFFFF; //make sure its cleared?
      }
+
+   //exception handler is always at 0x80000180, continue there
    if (interpcore)
      {
 	interp_addr = 0x80000180;
