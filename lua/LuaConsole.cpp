@@ -608,6 +608,7 @@ void SizingControl(HWND wnd, RECT *p, int x, int y, int w, int h) {
 		p->right-p->left+w, p->bottom-p->top+h, SWP_NOZORDER);
 }
 void SizingControls(HWND wnd, WORD width, WORD height) {
+	if (Config.LuaSimpleDialog)return;
 	int xa = width - (InitalWindowRect[0].right - InitalWindowRect[0].left),
 		ya = height - (InitalWindowRect[0].bottom - InitalWindowRect[0].top);
 	SizingControl(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -720,9 +721,14 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		LuaMessage::Msg* msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::RunPath;
 		msg->runPath.wnd = wnd;
+
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			msg->runPath.path, MAX_PATH);
+		msg->runPath.path, MAX_PATH);
 		//strcpy(Config.LuaScriptPath, msg->runPath.path);
+
+		if (Config.LuaSimpleDialog)
+			SetWindowText(wnd, msg->runPath.path);
+
 		anyLuaRunning = true;
 		luaMessage.post(msg);
 		shouldSave = true;

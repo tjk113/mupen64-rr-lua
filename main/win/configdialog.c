@@ -61,10 +61,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
         return TRUE;
     case WM_COMMAND:
-        switch (LOWORD(wParam))
-        {
-
-        }
+        // dame tu xorita mamacita
         break;
 
     case WM_NOTIFY:
