@@ -21,6 +21,7 @@
 #include "../main/disasm.h"
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
+#include "../main/win/configdialog.h"
 #include <vcr.h>
 #include <gdiplus.h>
 
@@ -774,6 +775,9 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 }
 
 void CreateLuaWindow(void(*callback)()) {
+
+	if (LuaCriticalSettingChangePending)return;
+
 	if(!luaDC) {
 		InitializeLuaDC(mainHWND);
 	}

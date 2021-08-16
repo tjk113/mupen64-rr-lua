@@ -37,7 +37,6 @@ void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
 
-
 //無理やりinline関数に
 namespace LuaEngine {
 void PCBreak(void*,unsigned long);

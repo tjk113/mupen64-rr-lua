@@ -166,6 +166,9 @@ extern "C" CONFIG Config;
 extern BOOL forceIgnoreRSP;
 extern BOOL continue_vcr_on_restart_mode;
 extern BOOL ignoreErrorEmulation;
+
+void exit_emu(int postquit);
+
 #define IGNORE_RSP (((!Config.limitFps || !manualFPSLimit) && (!Config.skipFrequency || (frame++ % Config.skipFrequency)))) //if frame advancing and either skipfreq is 0 or modulo is 0
 
 #define RESET_TITLEBAR char tmpwndtitle[200]; sprintf(tmpwndtitle, MUPEN_VERSION " - %s", ROM_HEADER->nom); SetWindowText(mainHWND, tmpwndtitle);
