@@ -64,6 +64,8 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
     case WM_INITDIALOG:
         WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
         WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
+        WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.movieBackups);
+
         return TRUE;
 
     case WM_COMMAND: {
@@ -90,6 +92,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
             Config.LuaSimpleDialog = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
             Config.LuaWarnOnClose = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
+            Config.movieBackups = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
             EnableToolbar();
             EnableStatusbar();
             FastRefreshBrowser();

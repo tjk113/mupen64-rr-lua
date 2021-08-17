@@ -98,7 +98,8 @@ typedef struct _CONFIG {
     int skipFrequency;
 	BOOL loopMovie;
     BOOL zeroIndex;
-    
+    BOOL movieBackups;
+
     // Advanced vars
     BOOL StartFullScreen;
     BOOL PauseWhenNotActive;
