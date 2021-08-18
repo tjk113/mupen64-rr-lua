@@ -108,67 +108,71 @@ bool validRomExt(const char* filename) {
 	return !stricmp(str, "z64") ||
 		   !stricmp(str, "n64") ||
 		   !stricmp(str, "v64") ||
-		   !stricmp(str, "rom") ||
-		   !stricmp(str, "zip") ; // unknown contents: i dont care
+		   !stricmp(str, "rom");
 }
 
-static int find_file(char *argv)
+static int find_file(char* argv)
 {
-   z=0;
-   i=strlen(argv);
-     {
-	unsigned char buf[4];
-	char szFileName[255], extraField[255], szComment[255];
-	zip = unzOpen(argv);
-	if (zip != NULL) 
-	  {
-	     unzGoToFirstFile(zip);
-	     do
-	       {
-		  unzGetCurrentFileInfo(zip, &pfile_info, szFileName, 255,
+	z = 0;
+	i = strlen(argv);
+	{
+		unsigned char buf[4];
+		char szFileName[255], extraField[255], szComment[255];
+		zip = unzOpen(argv);
+		if (zip != NULL)
+		{
+			unzGoToFirstFile(zip);
+			do
+			{
+				unzGetCurrentFileInfo(zip, &pfile_info, szFileName, 255,
 					extraField, 255, szComment, 255);
-		  unzOpenCurrentFile(zip);
-		  if (pfile_info.uncompressed_size >= 4)
-		    {
-		       unzReadCurrentFile(zip, buf, 4);
-		       if ((*((unsigned long*)buf) != 0x40123780) &&
-			   (*((unsigned long*)buf) != 0x12408037) &&
-			   (*((unsigned long*)buf) != 0x80371240))
-			 {
-			    unzCloseCurrentFile(zip);
-			 }
-		       else
-			 {
-			    taille_rom = pfile_info.uncompressed_size;
-			    unzCloseCurrentFile(zip);
-			    z = 2;
-			    return 0;
-			 }
-		    }
-	       }
-	     while (unzGoToNextFile(zip) != UNZ_END_OF_LIST_OF_FILE);
-	     unzClose(zip);
-	     return 1;
-	  }
-     }
-   if((i>3) && (argv[i-3]=='.') && 
-      (tolower(argv[i-2])=='g') && (tolower(argv[i-1])=='z'))
-     argv[i-3]=0;
-   rom_file=NULL;
-   z_rom_file=NULL;
-   rom_file=fopen(argv, "rb");
-   if (rom_file == NULL)
-     {
-	z_rom_file=gzopen(strcat(argv, ".gz"), "rb");
-	if (z_rom_file == NULL)
-	  {
-	     argv[i-3]=0;
-	     z_rom_file=gzopen(strcat(argv, ".GZ"), "rb");
-	     if (z_rom_file == NULL) return 1;
-	  }
-	z = 1;
-     }
-   return 0;
+
+				if (!validRomExt(szFileName)) { 
+					printf("skipping zipped invalid extension file %s\n", szFileName);
+					continue; 
+				}// is this how to do?
+
+				unzOpenCurrentFile(zip);
+				if (pfile_info.uncompressed_size >= 4)
+				{
+					unzReadCurrentFile(zip, buf, 4);
+					if ((*((unsigned long*)buf) != 0x40123780) &&
+						(*((unsigned long*)buf) != 0x12408037) &&
+						(*((unsigned long*)buf) != 0x80371240))
+					{
+						unzCloseCurrentFile(zip);
+					}
+					else
+					{
+						taille_rom = pfile_info.uncompressed_size;
+						unzCloseCurrentFile(zip);
+						z = 2;
+						return 0;
+					}
+				}
+			} while (unzGoToNextFile(zip) != UNZ_END_OF_LIST_OF_FILE);
+			unzClose(zip);
+			return 1;
+		}
+	}
+	if ((i > 3) && (argv[i - 3] == '.') &&
+		(tolower(argv[i - 2]) == 'g') && (tolower(argv[i - 1]) == 'z'))
+		argv[i - 3] = 0;
+	rom_file = NULL;
+	z_rom_file = NULL;
+	rom_file = fopen(argv, "rb");
+	if (rom_file == NULL)
+	{
+		z_rom_file = gzopen(strcat(argv, ".gz"), "rb");
+		if (z_rom_file == NULL)
+		{
+			argv[i - 3] = 0;
+			z_rom_file = gzopen(strcat(argv, ".GZ"), "rb");
+			if (z_rom_file == NULL) return 1;
+		}
+		z = 1;
+	}
+	return 0;
 }
 
 int rom_read(const char *argv)
