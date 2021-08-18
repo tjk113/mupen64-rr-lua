@@ -217,9 +217,6 @@
     </ClInclude>
     <ClInclude Include="..\..\r4300\cop1_helpers.h" />
     <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h" />
-    <ClInclude Include="..\..\main\win\tasstudio.h">
-      <Filter>Source Files\main\win</Filter>
-    </ClInclude>
     <ClInclude Include="ops_helper.h">
       <Filter>Source Files\main\helper</Filter>
     </ClInclude>

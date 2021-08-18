@@ -42,8 +42,7 @@
 #include <WinUser.h>
 
 #endif
-#include "../winproject/mupen64/tasstudio.h"
-
+#include "../main/win/tasstudio.h"
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
 #endif

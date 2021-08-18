@@ -55,7 +55,7 @@ extern "C" {
 #include "CrashHandler.h"
 #include "../vcr.h"
 #include "../../r4300/recomph.h"
-#include "../winproject/mupen64/tasstudio.h"
+#include "../main/win/tasstudio.h"
 
 #define EMULATOR_MAIN_CPP_DEF
 #include "kaillera.h"

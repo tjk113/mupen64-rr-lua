@@ -242,7 +242,6 @@
     <ClInclude Include="..\..\main\win\timers.h" />
     <ClInclude Include="..\..\main\win\translation.h" />
     <ClInclude Include="..\..\main\win\vfw.h" />
-    <ClInclude Include="..\..\main\win\tasstudio.h" />
     <ClInclude Include="ops_helper.h" />
     <CustomBuildStep Include="..\..\main\gui_gtk\aboutdialog.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

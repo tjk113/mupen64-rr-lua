@@ -19,7 +19,7 @@ Mupen64 TAS Studio
 #include "../main/vcr.h"
 #include "tasstudio.h"
 #include <CommCtrl.h>
-#include "../../winproject/mupen64/tasstudio.h"
+#include "tasstudio.h"
 #include "../../library/zeegrid.h"
 #include <guifuncs.h>
 #include <tchar.h>
