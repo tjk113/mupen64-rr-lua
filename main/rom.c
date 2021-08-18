@@ -108,7 +108,8 @@ bool validRomExt(const char* filename) {
 	return !stricmp(str, "z64") ||
 		   !stricmp(str, "n64") ||
 		   !stricmp(str, "v64") ||
-		   !stricmp(str, "rom");
+		   !stricmp(str, "rom") ||
+		   !stricmp(str, "zip") ; // unknown contents: i dont care
 }
 
 static int find_file(char *argv)

@@ -1213,7 +1213,7 @@ retrynew:
 	strncat(m_filenameBackup, ".m64", 5);
 
 	FILE* fileBackup = fopen(m_filenameBackup, "w+");
-
+	
 	write_movie_header(fileBackup, MUP_HEADER_SIZE);
 	fseek(fileBackup, MUP_HEADER_SIZE, SEEK_SET);
 	fwrite(m_inputBuffer, 1, sizeof(BUTTONS) * (m_header.length_samples), fileBackup);
