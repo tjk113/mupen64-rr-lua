@@ -1203,12 +1203,14 @@ int movieBackup() {
 retrynew:
 	// todo: fix this
 	// only works for one backup
-	strncat(m_filenameBackup, "-b.m64", 7);
+	strncat(m_filenameBackup, "-b", 7);
 	tmpFile = fopen(m_filenameBackup, "w+");
 	if (tmpFile == NULL)
 		goto retrynew;
 	else
 		fclose(tmpFile);
+
+	strncat(m_filenameBackup, ".m64", 5);
 
 	FILE* fileBackup = fopen(m_filenameBackup, "w+");
 
