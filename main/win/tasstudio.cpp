@@ -23,7 +23,7 @@ Mupen64 TAS Studio
 #include "../../library/zeegrid.h"
 #include <guifuncs.h>
 #include <tchar.h>
-#include "../../winproject/mupen64/ops_helper.h"
+#include "../main/ops_helper.h"
 
 HINSTANCE hInstt;
 HMODULE hGridMod       = NULL;
