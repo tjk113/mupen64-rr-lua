@@ -33,9 +33,6 @@
     <Filter Include="Source Files\library">
       <UniqueIdentifier>{031222a4-9a98-48b8-b2df-cc69f8f64630}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\main\helper">
-      <UniqueIdentifier>{8f99665e-4ff8-4de9-9ce6-45eddc6506ac}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config.h">
@@ -217,9 +214,6 @@
     </ClInclude>
     <ClInclude Include="..\..\r4300\cop1_helpers.h" />
     <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h" />
-    <ClInclude Include="ops_helper.h">
-      <Filter>Source Files\main\helper</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main\adler32.c">
@@ -476,9 +470,6 @@
     </ClCompile>
     <ClCompile Include="..\..\library\BabyGrid.cpp">
       <Filter>Source Files\library</Filter>
-    </ClCompile>
-    <ClCompile Include="ops_helper.cpp">
-      <Filter>Source Files\main\helper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

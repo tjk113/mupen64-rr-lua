@@ -25,7 +25,6 @@ Mupen64 TAS Studio
 #include <tchar.h>
 #include "../main/ops_helper.h"
 
-HINSTANCE hInstt;
 HMODULE hGridMod       = NULL;
 HWND hWnd              = NULL;
 HWND studioControlhWnd = NULL;
@@ -49,7 +48,7 @@ HWND CreateGridCtl()
         return NULL;
     }
 
-    studioControlhWnd = CreateWindowA("ZeeGrid", "TAS Studio", WS_CHILD | WS_VISIBLE, 0, 0, STUDIOCONTROL_W, STUDIOCONTROL_H, hWnd, (HMENU)0, hInstt, NULL);
+    studioControlhWnd = CreateWindowA("ZeeGrid", "TAS Studio", WS_CHILD | WS_VISIBLE, 0, 0, STUDIOCONTROL_W, STUDIOCONTROL_H, hWnd, (HMENU)0, GetModuleHandle(0), NULL);
     
     SendMessage(studioControlhWnd, ZGM_EMPTYGRID, 1, 0);
     SendMessage(studioControlhWnd, ZGM_DIMGRID, 18, 0);
@@ -181,7 +180,7 @@ DWORD WINAPI TASStudioThread(LPVOID tParam) {
     
     MSG Msg;
 
-    hWnd = CreateDialog(hInstt, MAKEINTRESOURCE(IDD_TASSTUDIO_DIALOG), NULL, (DLGPROC)TASStudioWndProc);
+    hWnd = CreateDialog(GetModuleHandle(0), MAKEINTRESOURCE(IDD_TASSTUDIO_DIALOG), NULL, (DLGPROC)TASStudioWndProc);
 
     if (hWnd == NULL)
     {
