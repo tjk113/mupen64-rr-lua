@@ -3536,6 +3536,7 @@ void StartMovies()
         char file[MAX_PATH];
         GetCmdLineParameter(CMDLINE_PLAY_M64, file);
         //not reading author nor description atm
+        VCR_setReadOnly(TRUE);
         VCR_startPlayback(file, 0, 0);
         if (CmdLineParameterExist(CMDLINE_CAPTURE_AVI)) {
             GetCmdLineParameter(CMDLINE_CAPTURE_AVI, file);
