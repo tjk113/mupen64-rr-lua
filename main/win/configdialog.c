@@ -33,6 +33,7 @@
 #include "Config.h"
 #include "../rom.h"
 #include "inifunctions.h"
+#include "../lua/LuaConsole.h"
 
 #include "configdialog.h"
 
@@ -53,36 +54,61 @@ HWND hwndTrack ;
 extern int no_audio_delay;
 extern int no_compiled_jump;
 
+BOOL LuaCriticalSettingChangePending; // other options proc
+
 BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-    switch (Message) {
+    switch (Message)
+    {
+
     case WM_INITDIALOG:
         WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
         WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
+        WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.movieBackups);
+
         return TRUE;
-    case WM_COMMAND:
+
+    case WM_COMMAND: {
+        // dame tu xorita mamacita
         switch (LOWORD(wParam))
         {
+        case IDC_LUA_SIMPLEDIALOG: {
 
+            if (MessageBox(0, "Changing this option requires a restart.\nPress Yes to confirm that you want to change this setting. (You won\'t be able to use lua until a restart)\nPress No to revert changes.", "Restart required", MB_TOPMOST | MB_TASKMODAL | MB_ICONWARNING | MB_YESNO) == IDYES) {
+                LuaCriticalSettingChangePending = 1;
+                CloseAllLuaScript();
+            }
+            else
+                CheckDlgButton(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
+
+            break;
+        }
         }
         break;
+    }
 
     case WM_NOTIFY:
+    {
         if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
             Config.LuaSimpleDialog = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
             Config.LuaWarnOnClose = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
+            Config.movieBackups = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
             EnableToolbar();
             EnableStatusbar();
             FastRefreshBrowser();
             LoadConfigExternals();
-        }   
-        break;
+
+        }
+
+    }
+    break;
 
     default:
         return FALSE;
     }
     return TRUE;
 }
+
 
 void WriteCheckBoxValue( HWND hwnd, int resourceID , int value)
 {

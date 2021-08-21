@@ -1176,6 +1176,54 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 
 }
 
+char* strtrimext(char* myStr) {
+	char* retStr;
+	char* lastExt;
+	if (myStr == NULL) return NULL;
+	if ((retStr = (char*)malloc(strlen(myStr) + 1)) == NULL) return NULL;
+	strcpy(retStr, myStr);
+	lastExt = strrchr(retStr, '.');
+	if (lastExt != NULL)
+		*lastExt = '\0';
+	return retStr;
+}
+
+int movieBackup() {
+
+	if (!Config.movieBackups) return 0xED; // :(
+
+	char* m_filenameBackup = (char*) malloc(strlen(m_filename) + 100);
+
+	strcpy(m_filenameBackup, m_filename);
+
+	strcpy(m_filenameBackup, strtrimext(m_filenameBackup));
+
+	FILE* tmpFile;
+
+retrynew:
+	// todo: fix this
+	// only works for one backup
+	strncat(m_filenameBackup, "-b", 7);
+	tmpFile = fopen(m_filenameBackup, "w+");
+	if (tmpFile == NULL)
+		goto retrynew;
+	else
+		fclose(tmpFile);
+
+	strncat(m_filenameBackup, ".m64", 5);
+
+	FILE* fileBackup = fopen(m_filenameBackup, "w+");
+	
+	write_movie_header(fileBackup, MUP_HEADER_SIZE);
+	fseek(fileBackup, MUP_HEADER_SIZE, SEEK_SET);
+	fwrite(m_inputBuffer, 1, sizeof(BUTTONS) * (m_header.length_samples), fileBackup);
+	fflush(fileBackup);
+	fclose(fileBackup);
+
+	free(m_filenameBackup);
+
+	return 0xDE; // :)
+}
 
 int
 VCR_stopRecord(int defExt)
@@ -1225,6 +1273,10 @@ VCR_stopRecord(int defExt)
 //		fwrite( &end, 1, sizeof (long), m_file );
 //		fwrite( &m_header.length_samples, 1, sizeof (long), m_file );
 		fclose( m_file );
+
+
+		movieBackup();
+
 		m_file = NULL;
 
 		truncateMovie();
@@ -1523,6 +1575,8 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 		m_currentSample = 0;
 		m_currentVI = 0;
 	
+		movieBackup();
+
 	    if(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 	    {
 			// we cant wait for this function to return and then get check in emu(?) thread (savestates_load)
