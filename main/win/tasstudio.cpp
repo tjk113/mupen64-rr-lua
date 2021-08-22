@@ -91,13 +91,14 @@ void TASStudioBuild() {
 
     SendMessage(studioControlhWnd, ZGM_EMPTYGRID, TRUE, 0);
 
+    char name[15] = { 0 };
+
     for (UINT i = 0; i < curMovie.length_samples; i++)
     {
+        printf("Frame %d: 0x%08x\n", i, tasStudioinputbuffer[i]);
         //SendMessage(studioControlhWnd, ZGM_APPENDROW, 0, 0);
 
-        char name[15] = { 0 };
-
-        ZeroMemory(name, strlen(name)); // paranoia
+        ZeroMemory(name, strlen(name));
 
         for (char j = 0; j < 18-2; j++)
         {
@@ -188,8 +189,8 @@ DWORD WINAPI TASStudioThread(LPVOID tParam) {
         return 0;
     }
 
-    SetWindowLong(hWnd, GWL_STYLE,
-        GetWindowLong(hWnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+    //SetWindowLong(hWnd, GWL_STYLE,
+    //    GetWindowLong(hWnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
 
     studioControlhWnd = CreateGridCtl();
 
