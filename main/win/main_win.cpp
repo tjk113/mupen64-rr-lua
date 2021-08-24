@@ -483,7 +483,7 @@ void LoadTheState(HWND hWnd, int StateID)
     }
     //don't
     //if(emu_paused){
-        //update_pif_read(FALSE); // pass in true and it will stuck
+        update_pif_read(FALSE); // pass in true and it will stuck
     //}
 }
 
@@ -518,7 +518,7 @@ void insert_plugin(plugins *p, char *file_name,
             if (strstr(plugin_name, pluginBlacklist[i])) {
                 char* msg = (char*)malloc(sizeof(pluginBlacklist[i]));
 
-                sprintf(msg, "A incompatible plugin with the name \"%s\" was detected.\
+                sprintf(msg, "An incompatible plugin with the name \"%s\" was detected.\
                 \nIt is highly recommended to skip loading this plugin as not doing so might cause instability.\
                 \nAre you sure you want to load this plugin?", plugin_name);
 
@@ -3313,8 +3313,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if(emu_launched)
                     {
                         savestates_job = LOADSTATE;
-						// Saving/loading in quick succession will cause extremely weird behaviour ranging from
-                        // hotkey issues and audio cutoff to crashes and emu stuckness
+						// dont call savestatesload from ui thread right after setting flag for emu thread
                         //savestates_load();
 					}
                     break;
