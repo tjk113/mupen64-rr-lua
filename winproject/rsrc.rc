@@ -126,6 +126,7 @@ BEGIN
         END
         MENUITEM SEPARATOR
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
+        MENUITEM "Save Config",                 ID_FORCESAVE
     END
     POPUP "Help"
     BEGIN

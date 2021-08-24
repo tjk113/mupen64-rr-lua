@@ -429,6 +429,7 @@
 #define IDC_LUA_SIMPLEDIALOG			40018
 #define IDD_LUAWINDOW_SIMPLIFIED	    40019
 #define IDC_MOVIEBACKUPS				40020
+#define ID_FORCESAVE					40021
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

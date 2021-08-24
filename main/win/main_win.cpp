@@ -2987,6 +2987,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     ::CloseAllLuaScript();
 #endif
 				} break;
+            case ID_FORCESAVE:
+                shouldSave = TRUE;
+                ini_updateFile(Config.compressedIni);
+                SaveRomBrowserCache();
+                SaveConfig();
+                ini_closeFile();
+                break;
 			case ID_TRACELOG:
 #ifdef LUA_TRACELOG
 #ifdef LUA_TRACEINTERP
