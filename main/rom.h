@@ -39,6 +39,10 @@ void calculateMD5(const char *argv, unsigned char digest[16]);
 extern unsigned char *rom;
 extern int taille_rom;
 
+const char* getExt(const char* filename);
+void stripExt(char* fname);
+bool validRomExt(const char* filename);
+
 typedef struct _rom_header
 {
    unsigned char init_PI_BSB_DOM1_LAT_REG;

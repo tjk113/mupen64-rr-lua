@@ -228,6 +228,7 @@ char sound_name[255];
 char rsp_name[255];
 
 char stroopConfigLine[150] = {0};
+char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
 const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = { "Azimer\'s Audio v0.7" };
 
@@ -3271,23 +3272,42 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     break;                 
                 case STATE_SAVEAS:
 //                    if(!emu_paused)  
-                    {
-                     ZeroMemory(&oifn, sizeof(OPENFILENAME));
-                     oifn.lStructSize = sizeof(OPENFILENAME);
-                     oifn.hwndOwner = NULL;
-                     strcpy(path_buffer,"");
-                     oifn.lpstrFile = path_buffer,
-                     oifn.nMaxFile = sizeof(path_buffer);
-                     oifn.lpstrFilter = "Mupen 64 Saves(*.st)\0*.st;*.st?\0All Files\0*.*\0";
-                     oifn.lpstrFileTitle = "";
-                     oifn.nMaxFileTitle = 0;
-                     oifn.lpstrInitialDir = "";
-                     oifn.lpstrDefExt = "st";
-                    if (GetSaveFileName (&oifn)) {
-                     savestates_select_filename(path_buffer);
-                     savestates_job = SAVESTATE;
-                    }                       
+                {
+                    ZeroMemory(&oifn, sizeof(OPENFILENAME));
+                    oifn.lStructSize = sizeof(OPENFILENAME);
+                    oifn.hwndOwner = NULL;
+                    strcpy(path_buffer, "");
+                    oifn.lpstrFile = path_buffer,
+                        oifn.nMaxFile = sizeof(path_buffer);
+                    oifn.lpstrFilter = "Mupen64 Savestate (*.st)\0*.st;*.st?\0All Files\0*.*\0";
+                    oifn.lpstrFileTitle = "";
+                    oifn.nMaxFileTitle = 0;
+                    oifn.lpstrInitialDir = "";
+                    //oifn.lpstrDefExt = "st";
+                    if (GetSaveFileName(&oifn)) {
+
+                        // HACK: allow .savestate and .st
+                        // by creating another buffer, copying original into it and stripping its' extension
+                        // and putting it back sanitized
+
+                        // if no extension inputted by user, fallback to .st
+
+
+                        strcpy(correctedPath, path_buffer);
+                        stripExt(correctedPath);
+
+                        
+                        if (!stricmp(getExt(path_buffer), "savestate")) {
+                            strcat(correctedPath, ".savestate");
+                        }
+                        else /*if (stricmp(getExt(path_buffer), ".st"))*/ {
+                            strcat(correctedPath, ".st");
+                        }
+
+                        savestates_select_filename(correctedPath);
+                        savestates_job = SAVESTATE;
                     }
+                }
                     break;
                 case STATE_RESTORE:
                     if(emu_launched)
@@ -3314,7 +3334,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      if (GetOpenFileName(&oifn)) {
                           savestates_select_filename(path_buffer);
                           savestates_job = LOADSTATE;                
-                        }
+                        }       
 //                     }
                     break;
                 case ID_START_RECORD:
