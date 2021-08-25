@@ -39,9 +39,9 @@ void calculateMD5(const char *argv, unsigned char digest[16]);
 extern unsigned char *rom;
 extern int taille_rom;
 
-const char* getExt(const char* filename);
-void stripExt(char* fname);
-bool validRomExt(const char* filename);
+extern const char* getExt(const char* filename);
+extern void stripExt(char* fname);
+extern bool validRomExt(const char* filename);
 
 typedef struct _rom_header
 {

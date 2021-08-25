@@ -2982,6 +2982,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             }
 			case ID_MENU_LUASCRIPT_CLOSEALL:
 				{
+                
 #ifdef LUA_CONSOLE
                 
                     ::CloseAllLuaScript();
@@ -3803,6 +3804,8 @@ int WINAPI WinMain(
         SetUnhandledExceptionFilter(ExceptionReleaseTarget); 
         //example
         //RaiseException(1, 0, 0, 0); //shows messagebox from wntdll
+        
+
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
 			if (!TranslateAccelerator(mainHWND,Accel,&Msg)

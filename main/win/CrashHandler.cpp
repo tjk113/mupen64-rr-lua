@@ -5,12 +5,18 @@
 #include "../../winproject/resource.h" //MUPEN_VERSION
 #include "vcr.h"
 
+char GUICrashMessage[260];
+BYTE ValueStatus;
+
+_EXCEPTION_POINTERS* ExceptionInfoG;
+BOOL actualCrash;
+
 //Attempt to find crashing module, finds closest base address to crash point which should be the module (right?)
 //error - points to the error msg buffer
 //addr - where did it crash
 //len - current error length so it can append properly
 //returns length of appended text
-int FindModuleName(char *error, void* addr, int len)
+int FindModuleName(char* error, void* addr, int len)
 {
     HMODULE hMods[1024];
     HANDLE hProcess = GetCurrentProcess();
@@ -22,24 +28,23 @@ int FindModuleName(char *error, void* addr, int len)
         for (int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
         {
             //find closest addr
-            if (hMods[i] > maxbase && hMods[i] < addr){
+            if (hMods[i] > maxbase && hMods[i] < addr) {
                 maxbase = hMods[i];
                 char modname[MAX_PATH];
                 GetModuleBaseName(hProcess, maxbase, modname, sizeof(modname) / sizeof(char));
-                printf("%s: %p\n", modname, maxbase);}
+                printf("%s: %p\n", modname, maxbase);
+            }
         }
         // Get the full path to the module's file.
         char modname[MAX_PATH];
-        if (GetModuleBaseName(hProcess, maxbase, modname,sizeof(modname) / sizeof(char)))
+        if (GetModuleBaseName(hProcess, maxbase, modname, sizeof(modname) / sizeof(char)))
             // write the address with module
-            return sprintf(error+len,"Addr:0x%p (%s 0x%p)\n", addr,modname,maxbase);
+            return sprintf(error + len, "Addr:0x%p (%s 0x%p)\n", addr, modname, maxbase);
     }
     return 0; //what
 }
 
-//builds da error message
-LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
-{
+VOID CrashLog(_EXCEPTION_POINTERS* ExceptionInfo) {
     int len = 0;
     char error[2048];
     void* addr = ExceptionInfo->ExceptionRecord->ExceptionAddress;
@@ -60,7 +65,77 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
     FILE* f = fopen(CRASH_LOG, "w+"); //overwrite
     fprintf(f, error);
     fclose(f);
+}
 
-    int code = MessageBox(0, "Emulator crashed, press OK to try to continue\nCrash log saved to " CRASH_LOG, "Exception", MB_OKCANCEL | MB_ICONERROR);
-    return code == IDOK ? EXCEPTION_CONTINUE_EXECUTION : EXCEPTION_EXECUTE_HANDLER;
+BOOL CALLBACK ErrorDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
+    switch (Message) {
+    case WM_INITDIALOG: {
+
+        
+
+        //SendDlgItemMessage(hwnd, IDB_LOGO_BW, STM_SETIMAGE, IMAGE_BITMAP,
+        //    (LPARAM)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_LOGO_BW),
+        //        IMAGE_BITMAP, 0, 0, 0));
+
+        char TitleBar[300];
+        sprintf(TitleBar, "%s - %s", MUPEN_VERSION, GUICrashMessage);
+        SetWindowText(hwnd, TitleBar);
+
+        strcat(GUICrashMessage, "\r\nPress \'Stop Emulation\' to close the current rom\r\nPress \'Dump crash log\' to generate a crash log.\r\nPress \'Exit\' to kill the emulator.\r\nPress \'Continue\' to attempt to continue.");
+        SetWindowText(GetDlgItem(hwnd, IDC_ERRORTEXT), GUICrashMessage);
+
+
+        EnableWindow(GetDlgItem(hwnd, IDC_ERROR_PANIC_CLOSEMUPEN), actualCrash);
+        EnableWindow(GetDlgItem(hwnd, IDC_CRASHREPORT), actualCrash);
+
+        HBITMAP hBitmap = LoadBitmap(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_LOGO_BW));
+        SendMessage(GetDlgItem(hwnd, IDC_ERROR_PICTUREBOX), STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)hBitmap);
+        //DeleteObject((HBITMAP)hBitmap);
+
+        return TRUE;
+    }
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDC_ERROR_CONTINUE:
+            ValueStatus = EMU_STATUS_CONTINUE;
+            EndDialog(hwnd, 0);
+            break;
+        case IDC_ERROR_PANIC_CLOSEMUPEN:
+            ValueStatus = EMU_STATUS_KILL;
+            EndDialog(hwnd, 0);
+            break;
+        case IDC_ERROR_PANIC_CLOSEROM:
+            ValueStatus = EMU_STATUS_ROMCLOSE;
+            EndDialog(hwnd, 0);
+            break;
+        case IDC_CRASHREPORT:
+            CrashLog(ExceptionInfoG);
+            break;
+        }
+    case WM_PAINT: {
+
+        
+        break;
+    }
+    default:
+        return FALSE;
+    }
+}
+
+
+
+
+//builds da error message
+LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
+{
+    actualCrash = TRUE;
+
+    ExceptionInfoG = ExceptionInfo;
+
+    strcpy(GUICrashMessage, "An exception has been thrown");
+
+    DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_MUPENERROR), 0, ErrorDialogProc);
+
+    return GETBIT(ValueStatus, 1) ? EXCEPTION_CONTINUE_EXECUTION : EXCEPTION_EXECUTE_HANDLER;
 }

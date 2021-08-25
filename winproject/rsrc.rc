@@ -30,6 +30,7 @@ IDB_TOOLBAR             BITMAP                  "icons\\toolbar.bmp"
 
 IDB_UP_ARROW            BITMAP                  "icons\\up_arrow.bmp"
 
+IDB_LOGO_BW             BITMAP                  "icons\\logobw.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -615,6 +616,18 @@ BEGIN
     EDITTEXT        IDC_TEXTBOX_LUAPROMPT,7,7,236,161,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN
 END
 
+IDD_MUPENERROR DIALOGEX 0, 0, 341, 90
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
+CAPTION "Mupen64 Error"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+PUSHBUTTON      "Close Rom", IDC_ERROR_PANIC_CLOSEROM, 206, 70, 61, 14
+DEFPUSHBUTTON   "Dump Crash Log", IDC_CRASHREPORT, 6, 70, 67, 14
+PUSHBUTTON      "Continue", IDC_ERROR_CONTINUE, 270, 70, 65, 14
+CONTROL         "An exception has been thrown.", IDC_ERRORTEXT, "Static", SS_LEFTNOWORDWRAP | WS_GROUP, 73, 6, 262, 40
+CONTROL         "", IDC_ERROR_PICTUREBOX, "Static", SS_BITMAP, 6, 6, 67, 53
+PUSHBUTTON      "Close", IDC_ERROR_PANIC_CLOSEMUPEN, 154, 70, 50, 14
+END
 
 /////////////////////////////////////////////////////////////////////////////
 //
