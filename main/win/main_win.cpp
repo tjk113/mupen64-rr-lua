@@ -2526,7 +2526,7 @@ void exit_emu(int postquit)
 	      if (!cmdlineNoGui)
 	          SaveRomBrowserCache();
 	   } 
-       if (shouldSave)
+       //if (shouldSave)
        SaveConfig();
 	   ini_closeFile();
 	}
