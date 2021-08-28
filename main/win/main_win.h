@@ -99,6 +99,7 @@ typedef struct _CONFIG {
 	BOOL loopMovie;
     BOOL zeroIndex;
     BOOL movieBackups;
+    int movieBackupsLevel;
 
     // Advanced vars
     BOOL StartFullScreen;

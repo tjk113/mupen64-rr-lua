@@ -140,6 +140,80 @@ static int startPlayback(const char *filename, const char *authorUTF8, const cha
 static int restartPlayback();
 static int stopPlayback(const bool bypassLoopSetting);
 
+static void write_movie_header(FILE* file, int numBytes)
+{
+	//	assert(ftell(file) == 0); // we assume file points to beginning of movie file
+	fseek(file, 0L, SEEK_SET);
+
+	m_header.version = MUP_VERSION; // make sure to update the version!
+///	m_header.length_vis = m_header.length_samples / m_header.num_controllers; // wrong
+
+	fwrite(&m_header, 1, MUP_HEADER_SIZE, file);
+
+	fseek(file, 0L, SEEK_END);
+}
+char* strtrimext(char* myStr) {
+	char* retStr;
+	char* lastExt;
+	if (myStr == NULL) return NULL;
+	if ((retStr = (char*)malloc(strlen(myStr) + 1)) == NULL) return NULL;
+	strcpy(retStr, myStr);
+	lastExt = strrchr(retStr, '.');
+	if (lastExt != NULL)
+		*lastExt = '\0';
+	return retStr;
+}
+
+int movieBackup() {
+
+	if (!Config.movieBackups) return 0; // :(
+
+	//if (VCR_isIdle()) {
+	//	// ??? um
+	//	return 0xAAAAAAA;
+	//}
+
+	char* m_filenameBackup = (char*)malloc(strlen(m_filename) + 150);
+
+	strcpy(m_filenameBackup, m_filename);
+
+	strcpy(m_filenameBackup, strtrimext(m_filenameBackup));
+
+	while (TRUE) {
+		// loop until we find file with name that doesnt exist
+		strncat(m_filenameBackup, "-b", 3);
+		FILE* tmpFile = fopen(m_filenameBackup, "w+");
+		if (tmpFile == NULL)
+			; // and again
+		else {
+			fclose(tmpFile);
+			break;
+		}
+	}
+
+	strncat(m_filenameBackup, ".m64", 5);
+
+	FILE* fileBackup = fopen(m_filenameBackup, "w+");
+
+	write_movie_header(fileBackup, MUP_HEADER_SIZE);
+	fseek(fileBackup, MUP_HEADER_SIZE, SEEK_SET);
+
+	if (m_inputBuffer == NULL || m_inputBufferPtr == NULL) {
+		// ???
+		fclose(fileBackup);
+		free(m_filenameBackup);
+		return 1984;
+	}
+
+	fwrite(m_inputBuffer, 1, sizeof(BUTTONS) * (m_header.length_samples), fileBackup);
+	fflush(fileBackup);
+	fclose(fileBackup);
+
+	free(m_filenameBackup);
+
+	return 0xDE; // :)
+}
+
 void printWarning (char* str)
 {
 #ifdef __WIN32__
@@ -457,18 +531,7 @@ static int read_movie_header(FILE * file, SMovieHeader * header)
 }
 
 
-static void write_movie_header(FILE * file, int numBytes)
-{
-//	assert(ftell(file) == 0); // we assume file points to beginning of movie file
-	fseek(file, 0L, SEEK_SET);
 
-	m_header.version = MUP_VERSION; // make sure to update the version!
-///	m_header.length_vis = m_header.length_samples / m_header.num_controllers; // wrong
-
-	fwrite(&m_header, 1, MUP_HEADER_SIZE, file);
-
-	fseek(file, 0L, SEEK_END);
-}
 
 
 void flush_movie()
@@ -653,6 +716,9 @@ void
 VCR_setReadOnly(BOOL val)
 {
 #ifdef __WIN32__
+
+	//if (Config.movieBackupsLevel > 2) movieBackup();
+	
 	extern HWND mainHWND;
 	if(m_readOnly != val)
 		CheckMenuItem( GetMenu(mainHWND), EMU_VCRTOGGLEREADONLY, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
@@ -1176,54 +1242,9 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 
 }
 
-char* strtrimext(char* myStr) {
-	char* retStr;
-	char* lastExt;
-	if (myStr == NULL) return NULL;
-	if ((retStr = (char*)malloc(strlen(myStr) + 1)) == NULL) return NULL;
-	strcpy(retStr, myStr);
-	lastExt = strrchr(retStr, '.');
-	if (lastExt != NULL)
-		*lastExt = '\0';
-	return retStr;
-}
 
-int movieBackup() {
 
-	if (!Config.movieBackups) return 0xED; // :(
 
-	char* m_filenameBackup = (char*) malloc(strlen(m_filename) + 100);
-
-	strcpy(m_filenameBackup, m_filename);
-
-	strcpy(m_filenameBackup, strtrimext(m_filenameBackup));
-
-	FILE* tmpFile;
-
-retrynew:
-	// todo: fix this
-	// only works for one backup
-	strncat(m_filenameBackup, "-b", 7);
-	tmpFile = fopen(m_filenameBackup, "w+");
-	if (tmpFile == NULL)
-		goto retrynew;
-	else
-		fclose(tmpFile);
-
-	strncat(m_filenameBackup, ".m64", 5);
-
-	FILE* fileBackup = fopen(m_filenameBackup, "w+");
-	
-	write_movie_header(fileBackup, MUP_HEADER_SIZE);
-	fseek(fileBackup, MUP_HEADER_SIZE, SEEK_SET);
-	fwrite(m_inputBuffer, 1, sizeof(BUTTONS) * (m_header.length_samples), fileBackup);
-	fflush(fileBackup);
-	fclose(fileBackup);
-
-	free(m_filenameBackup);
-
-	return 0xDE; // :)
-}
 
 int
 VCR_stopRecord(int defExt)
@@ -1575,7 +1596,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 		m_currentSample = 0;
 		m_currentVI = 0;
 	
-		movieBackup();
+		if(Config.movieBackupsLevel > 1) movieBackup();
 
 	    if(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 	    {

@@ -98,6 +98,19 @@ const char* getExt(const char* filename) {
 	return dot + 1;
 }
 
+void stripExt(char* fname)
+{
+	char* end = fname + strlen(fname);
+
+	while (end > fname && *end != '.' && *end != '\\' && *end != '/') {
+		--end;
+	}
+	if ((end > fname && *end == '.') &&
+		(*(end - 1) != '\\' && *(end - 1) != '/')) {
+		*end = '\0';
+	}
+}
+
 bool validRomExt(const char* filename) {
 //#ifdef _DEBUG
 //	printf("%s\n", filename);

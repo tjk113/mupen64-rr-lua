@@ -429,6 +429,15 @@
 #define IDC_LUA_SIMPLEDIALOG			40018
 #define IDD_LUAWINDOW_SIMPLIFIED	    40019
 #define IDC_MOVIEBACKUPS				40020
+#define ID_FORCESAVE					40021
+#define IDD_MUPENERROR					40022
+#define IDC_ERROR_PANIC_CLOSEROM		40023
+#define IDC_CRASHREPORT					40024
+#define IDC_ERROR_CONTINUE				40025
+#define IDC_ERRORTEXT					40026
+#define IDC_ERROR_PICTUREBOX			40027
+#define IDC_ERROR_PANIC_CLOSEMUPEN		40028
+#define IDB_LOGO_BW						40029
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

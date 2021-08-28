@@ -48,8 +48,10 @@
 static DWORD dwExitCode;
 static DWORD Id;
 BOOL stopScan = FALSE;
-HWND __stdcall CreateTrackbar( HWND hwndDlg, UINT iMin, UINT iMax,  UINT iSelMin, UINT iSelMax); // winapi macro was very confusing
+HWND __stdcall CreateTrackbar(HWND hwndDlg, UINT iMin, UINT iMax, UINT iSelMin, UINT iSelMax, UINT x, UINT y, UINT w); // winapi macro was very confusing
+
 HWND hwndTrack ; 
+HWND hwndTrackOther;
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
@@ -65,6 +67,9 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
         WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
         WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.movieBackups);
+
+
+        hwndTrackOther = CreateTrackbar(hwnd, 1, 3, Config.movieBackupsLevel, 3, 200, 79, 100);
 
         return TRUE;
 
@@ -89,10 +94,15 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 
     case WM_NOTIFY:
     {
+        if (((NMHDR FAR*) lParam)->code == NM_RELEASEDCAPTURE) {
+            Config.movieBackupsLevel = SendMessage(hwndTrackOther, TBM_GETPOS, 0, 0);
+        }
+
         if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
             Config.LuaSimpleDialog = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
             Config.LuaWarnOnClose = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
             Config.movieBackups = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
+            Config.FPSmodifier = SendMessage(hwndTrackOther, TBM_GETPOS, 0, 0);
             EnableToolbar();
             EnableStatusbar();
             FastRefreshBrowser();
@@ -776,7 +786,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                   EnableWindow( GetDlgItem(hwnd,IDC_PURE_INTERP), FALSE );
          }
          
-         CreateTrackbar(hwnd,1,200,Config.FPSmodifier,200) ; 
+         CreateTrackbar(hwnd,1,200,Config.FPSmodifier,200, 30, 184, 300) ; 
          
          SwitchLimitFPS(hwnd);
          FillModifierValue( hwnd, Config.FPSmodifier);        
@@ -814,7 +824,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_NOTIFY:
 		       if (((NMHDR FAR *) lParam)->code == NM_RELEASEDCAPTURE)  {
                     FillModifierValue( hwnd, SendMessage( hwndTrack , TBM_GETPOS, 0, 0));        
-               }     
+               }
                if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
                               Config.showFPS = ReadCheckBoxValue( hwnd, IDC_SHOWFPS);
                               Config.showVIS = ReadCheckBoxValue( hwnd, IDC_SHOWVIS);
@@ -1345,8 +1355,12 @@ HWND WINAPI CreateTrackbar(
     UINT iMin,     // minimum value in trackbar range 
     UINT iMax,     // maximum value in trackbar range 
     UINT iSelMin,  // minimum value in trackbar selection 
-    UINT iSelMax)  // maximum value in trackbar selection 
-{ 
+    UINT iSelMax, // maximum value in trackbar selection 
+    UINT x, // x pos
+    UINT y, // y pos
+    UINT w
+    )// width
+{  
 
     
     hwndTrack = CreateWindowEx( 
@@ -1355,8 +1369,8 @@ HWND WINAPI CreateTrackbar(
         "Trackbar Control",            // title (caption) 
         WS_CHILD | WS_VISIBLE | 
          /*TBS_TOOLTIPS |*/ TBS_FIXEDLENGTH ,  // style 
-        30, 184,                        // position 
-        300, 30,                       // size 
+        x, y,                        // position 
+        w, 30,                       // size 
         hwndDlg,                       // parent window 
         (HMENU)ID_FPSTRACKBAR,               // control identifier 
         app_hInstance,                 // instance 

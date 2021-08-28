@@ -2459,6 +2459,10 @@ int GetMupenVersion(lua_State* L) {
 	lua_pushstring(L, version);
 	return 1;
 }
+int GetVCRReadOnly(lua_State* L) {
+	lua_pushboolean(L, VCR_getReadOnly());
+	return 1;
+}
 int SetGFX(lua_State* L) {
 	// Ignore or update gfx
 	int state = luaL_checknumber(L, 1);
@@ -3021,6 +3025,8 @@ const luaL_Reg emuFuncs[] = {
 	
 	{"getaddress", GetAddress},
 	
+	{"isreadonly", GetVCRReadOnly},
+
 	{NULL, NULL}
 };
 const luaL_Reg memoryFuncs[] = {

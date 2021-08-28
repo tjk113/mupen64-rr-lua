@@ -241,6 +241,11 @@ void LoadConfig()
     Config.forceInternalCapture = ReadCfgInt("Avi Options", "Force internal capture", 0);
     Config.captureOtherWindows = ReadCfgInt("Avi Options", "Capture other windows", 0);
 
+    Config.LuaWarnOnClose = ReadCfgInt("Other", "Ask on lua close", 0);
+    Config.LuaSimpleDialog = ReadCfgInt("Other", "Simplified lua", 0);
+    Config.movieBackups = ReadCfgInt("Other", "Autobackup", 0);
+    Config.movieBackupsLevel = ReadCfgInt("Other", "Autobackup level", 0);
+
     // Load A Whole Whackton Of Hotkeys:
 
     ReadHotkeyConfig(0, "Fast Forward", 0, VK_TAB);	// handled specially
@@ -411,6 +416,11 @@ void SaveConfig()
 
     WriteCfgInt("Avi Options", "Force internal capture", Config.forceInternalCapture);
     WriteCfgInt("Avi Options", "Capture other windows", Config.captureOtherWindows);
+
+    WriteCfgInt("Other", "Ask on lua close", Config.LuaWarnOnClose);
+    WriteCfgInt("Other", "Simplified lua", Config.LuaSimpleDialog);
+    WriteCfgInt("Other", "Autobackup", Config.movieBackups);
+    WriteCfgInt("Other", "Autobackup level", Config.movieBackupsLevel);
 
     // Save A Whole Whackton Of Hotkeys:
 
