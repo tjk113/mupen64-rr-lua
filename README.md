@@ -1,4 +1,3 @@
-### ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) **Experimental - Expect instability**
 # Mupen64 Lua
 
 [![Release](https://img.shields.io/github/v/release/mkdasher/mupen64-rr-lua-?label=Release)](https://github.com/mkdasher/mupen64-rr-lua-/releases)
