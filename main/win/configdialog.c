@@ -232,7 +232,7 @@ void ChangeSettings(HWND hwndOwner) {
     psh.ppsp = (LPCPROPSHEETPAGE) &psp;
     psh.pfnCallback = NULL;
 
-	PropertySheet(&psh);
+    if (PropertySheet(&psh)) SaveConfig();
 	return;
 }
 

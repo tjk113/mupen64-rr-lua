@@ -4,8 +4,8 @@
 //
 #define MUPEN_VERSION     "Mupen 64 1.0.9"
 
-#define MIN_WINDOW_W 500
-#define MIN_WINDOW_H 250
+#define MIN_WINDOW_W -500
+#define MIN_WINDOW_H -100
 
 #define IDR_MYMENU 101
 #define IDR_ACCEL 103
