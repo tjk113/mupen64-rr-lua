@@ -1315,6 +1315,8 @@ VCR_stopRecord(int defExt)
 #ifdef __WIN32__
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
+		//RESET_TITLEBAR;
+		SetActiveMovie(0); // ?
 #else
 		// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
 #endif
