@@ -876,7 +876,7 @@ BOOL AdjustForDPI(HWND parent, UINT dpi) {
 		// prevent infinitely increasing size
 
 		if (dpi == 120) { 
-			STICKPIC_SIZE = STICKPIC_SIZE*125/100; // * 1.25 works too
+			STICKPIC_SIZE = STICKPIC_SIZE*(125/100); // * 1.25 works too
 		}
 
 
