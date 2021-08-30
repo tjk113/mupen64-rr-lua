@@ -883,7 +883,7 @@ BOOL AdjustForDPI(HWND parent, UINT dpi) {
 		// check for overlap with gpbox and try to fix it
 		if (ctl_pos.right+1 > ctl_gp_pos.left) {
 			printf("overlap with groupbox (%d/%d)", ctl_pos.right, ctl_gp_pos.left);
-			STICKPIC_SIZE = ctl_gp_pos.left-2;
+			STICKPIC_SIZE -= 1;
 		}
 	}
 
