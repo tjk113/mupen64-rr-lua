@@ -88,7 +88,14 @@ BOOL CALLBACK ErrorDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
         EnableWindow(GetDlgItem(hwnd, IDC_ERROR_PANIC_CLOSEMUPEN), actualCrash);
         EnableWindow(GetDlgItem(hwnd, IDC_CRASHREPORT), actualCrash);
 
-        HBITMAP hBitmap = LoadBitmap(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_LOGO_BW));
+        DWORD exStyle = ::GetWindowLong(GetDlgItem(hwnd, IDC_ERROR_PICTUREBOX), GWL_EXSTYLE);
+
+        SetWindowLong(GetDlgItem(hwnd, IDC_ERROR_PICTUREBOX), GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+
+        HBITMAP hBitmap = reinterpret_cast<HBITMAP>(::LoadImage(
+            GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_LOGO_BW), IMAGE_BITMAP,
+            0, 0, LR_CREATEDIBSECTION));
+
         SendMessage(GetDlgItem(hwnd, IDC_ERROR_PICTUREBOX), STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)hBitmap);
         //DeleteObject((HBITMAP)hBitmap);
 

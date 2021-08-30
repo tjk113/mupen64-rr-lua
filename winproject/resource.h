@@ -438,6 +438,7 @@
 #define IDC_ERROR_PICTUREBOX			40027
 #define IDC_ERROR_PANIC_CLOSEMUPEN		40028
 #define IDB_LOGO_BW						40029
+#define ID_CRASHHANDLERDIALOGSHOW	    40030
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

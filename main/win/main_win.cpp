@@ -2326,6 +2326,11 @@ void EnableEmulationMenuItems(BOOL flag)
      
    HMENU hMenu, hSubMenu;
    hMenu = GetMenu(mainHWND);
+
+    #ifdef _DEBUG
+       EnableMenuItem(hMenu, ID_CRASHHANDLERDIALOGSHOW, MF_ENABLED);
+    #endif
+
    if (flag) {
       EnableMenuItem(hMenu,EMU_STOP,MF_ENABLED);
       //EnableMenuItem(hMenu,IDLOAD,MF_GRAYED);
@@ -2342,17 +2347,12 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
-      if (dynacore) {
+
+      if (dynacore)
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
-      }
-      else {
+      else
           EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, true);
-      }
-      
-      
-      
+    
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
       EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_ENABLED);    //Record Menu
 if(!continue_vcr_on_restart_mode)
@@ -2393,11 +2393,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
 
-
-      if (!dynacore) {
-          EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
-      }
+      EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
      
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
 //      EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_GRAYED);    //Record Menu
@@ -3158,6 +3154,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      ret = DialogBox(GetModuleHandle(NULL), 
                      MAKEINTRESOURCE(IDD_ABOUT), hwnd, AboutDlgProc);
                      break;
+            case ID_CRASHHANDLERDIALOGSHOW:
+                ErrorDialogEmuError();
+                break;
             case ID_RAMSTART:
             {
                 BOOL temppaused = !emu_paused;
