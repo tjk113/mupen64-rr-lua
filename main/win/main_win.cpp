@@ -483,7 +483,7 @@ void LoadTheState(HWND hWnd, int StateID)
     }
     //don't
     //if(emu_paused){
-        update_pif_read(FALSE); // pass in true and it will stuck
+        //update_pif_read(FALSE); // pass in true and it will stuck
     //}
 }
 

@@ -123,7 +123,16 @@ BOOL CALLBACK ErrorDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
     }
 }
 
+// returns: close rom?
+BOOL ErrorDialogEmuError() {
+    actualCrash = FALSE;
 
+    strcpy(GUICrashMessage, "An emulation problem has occured");
+
+    DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_MUPENERROR), 0, ErrorDialogProc);
+
+    return GETBIT(ValueStatus, 2);
+}
 
 
 //builds da error message
