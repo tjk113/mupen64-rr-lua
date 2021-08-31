@@ -64,6 +64,7 @@ extern "C" {
 #undef EMULATOR_MAIN_CPP_DEF
 
 #include <gdiplus.h>
+#include "../../winproject/mupen64/GameDebugger.h"
 #pragma comment (lib,"Gdiplus.lib")
 
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
@@ -3156,6 +3157,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      break;
             case ID_CRASHHANDLERDIALOGSHOW:
                 ErrorDialogEmuError();
+                break;
+            case ID_GAMEDEBUGGER:
+                DebuggerDialog();
                 break;
             case ID_RAMSTART:
             {

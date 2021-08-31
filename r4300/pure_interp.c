@@ -42,6 +42,7 @@
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include "../lua/LuaConsole.h"
+#include "../../winproject/mupen64/GameDebugger.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -3181,6 +3182,11 @@ void prefetch()
 }
 void pure_interpreter()
 {
+
+#ifdef N64DEBUGGER_ALLOWED
+	while (!debugger_cpuAllowed) { _sleep(1); printf("pure interp wait...\n"); }
+#endif
+
    interp_addr = 0xa4000040;
    stop=0;
    PC = (precomp_instr*)malloc(sizeof(precomp_instr));

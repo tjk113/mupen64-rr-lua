@@ -34,11 +34,15 @@
 #include "../macros.h"
 #include "../ops.h"
 #include "../recomph.h"
-
 #include <csetjmp>
+#include "../../winproject/mupen64/GameDebugger.h"
 
 void dyna_jump()
 {
+#ifdef N64DEBUGGER_ALLOWED
+	while (!debugger_cpuAllowed) { _sleep(1); printf("dynarec wait...\n"); }
+#endif
+
    if (PC->reg_cache_infos.need_map)
      *return_address = (unsigned long)(PC->reg_cache_infos.jump_wrapper);
    else
@@ -58,6 +62,9 @@ void dyna_start(void (*code)())
 	// レジスタ ebx, esi, edi, ebp の保存と復元が必要だが、setjmp() がやってくれる
 	if(setjmp(g_jmp_state) == 0)
 	{
+#ifdef N64DEBUGGER_ALLOWED
+		while (!debugger_cpuAllowed) { _sleep(1); }
+#endif
 		code();
 	}
 }
