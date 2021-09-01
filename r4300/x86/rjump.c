@@ -38,10 +38,32 @@
 #include "../../winproject/mupen64/GameDebugger.h"
 #include <win/GameDebugger.h>
 
+int timesSinceLast = 0;
+
+
 void dyna_jump()
 {
+
 #ifdef N64DEBUGGER_ALLOWED
-	while (!debugger_cpuAllowed) { _sleep(1); printf("dynarec wait...\n"); }
+
+	timesSinceLast++;
+
+	if (debugger_step) {
+		if (timesSinceLast > N64_DEBUG_STEP_DURATION) {
+			debugger_cpuAllowed = 0;
+			timesSinceLast = 0;
+			debugger_step = 0;
+			DebuggerSet(N64DEBUG_PAUSE);
+		}
+		else {
+			debugger_cpuAllowed = 1;
+		}
+	}
+
+	while (!debugger_cpuAllowed) {
+		_sleep(1);
+	}
+
 #endif
 
    if (PC->reg_cache_infos.need_map)
@@ -56,7 +78,6 @@ void dyna_jump()
 }
 
 jmp_buf g_jmp_state;
-int stopOnNext = 0;
 void dyna_start(void (*code)())
 {
 	// code() ‚Ì‚Ç‚±‚©‚Å stop ‚ª true ‚É‚È‚Á‚½ŽžAdyna_stop() ‚ªŒÄ‚Î‚êAlongjmp() ‚Å setjmp() ‚µ‚½‚Æ‚±‚ë‚É–ß‚é
@@ -66,16 +87,17 @@ void dyna_start(void (*code)())
 	{
 #ifdef N64DEBUGGER_ALLOWED
 
-		if (stopOnNext) {
-			stopOnNext = 0;
-			debugger_cpuAllowed = 0;
-			debugger_step = 0;
-			DebuggerSet(N64DEBUG_PAUSE);
-		}
+		timesSinceLast++;
 
-		if (debugger_step == 1) {
-			stopOnNext = 1;
-			debugger_cpuAllowed = 1;
+		if (debugger_step) {
+			if (timesSinceLast > N64_DEBUG_STEP_DURATION) {
+				debugger_cpuAllowed = 0;
+				timesSinceLast = 0;
+				DebuggerSet(N64DEBUG_PAUSE);
+			}
+			else {
+				debugger_cpuAllowed = 1;
+			}
 		}
 
 		while (!debugger_cpuAllowed) {

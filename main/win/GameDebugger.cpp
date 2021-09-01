@@ -46,6 +46,8 @@ void DebuggerSet(int debuggerFlag) {
 
     debugger_cpuAllowed = debuggerFlag;
 
+    if (debuggerFlag == N64DEBUG_RESUME) debugger_step = 0;
+
     if (debuggerFlag == N64DEBUG_PAUSE) {
         
         char* instrstr = (char*)calloc(100, sizeof(char));
@@ -101,7 +103,6 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
         {
         case IDC_DEBUGGER_STEP:
             if (!debugger_cpuAllowed) {
-                debugger_cpuAllowed = 0;
                 debugger_step = 1;
             }
             break;
