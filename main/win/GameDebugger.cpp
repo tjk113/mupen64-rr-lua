@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include "../../r4300/r4300.h"
 #include <LuaConsole.h>
+#include "../../memory/memory.h"
 
 // shitty crappy n64 debugger* by aurumaker 
 
@@ -100,19 +101,30 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
         //    (LPARAM)LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_RESUME)));
         //
 
+        SetWindowText(hwnd, N64DEBUG_NAME " - " MUPEN_VERSION);
+
         return TRUE;
     }
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
-        case IDC_DEBUGGER_RSP:
+        case IDC_DEBUGGER_DUMPRDRAM:
+            N64DEBUG_MBOX("You are about to write 32 megabytes to a file.");
+            FILE* f;
+            f = fopen("rdram.bin", "wb");
+            fwrite(&rdram, sizeof(unsigned long), sizeof(rdram), f);
+            fflush(f); fclose(f);
+            break;
+        case IDC_DEBUGGER_RSP_TOGGLE:
+            printf("dame tu %d\n", IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE));
             if (!ORIGINAL_doRspCycles) {
                 ORIGINAL_doRspCycles = doRspCycles;
             }
-            if (IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP))
+            if (IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE))
                 doRspCycles = ORIGINAL_doRspCycles;
             else
                 doRspCycles = fake_doRspCycles;
+
             break;
         case IDC_DEBUGGER_STEP:
             if (!debugger_cpuAllowed) {

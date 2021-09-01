@@ -1,7 +1,7 @@
 #pragma once
 
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 
 #define N64DEBUG_NAME "N64 Debugger"
 
@@ -13,7 +13,7 @@
 #define N64_DEBUG_STEP_DURATION 10
 
 #define N64DEBUG_MBOX(str) MessageBox(0,str,N64DEBUG_NAME,MB_ICONASTERISK)
-#endif
+//#endif
 
 extern int debugger_cpuAllowed;
 extern int debugger_step;
