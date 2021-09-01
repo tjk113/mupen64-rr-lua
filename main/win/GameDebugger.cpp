@@ -84,6 +84,9 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
+        case IDC_DEBUGGER_INSTDECODEMODE:
+            if (!debugger_cpuAllowed) DebuggerSet(0);
+            break;
         case IDC_DEBUGGER_PAUSE:
             DebuggerSet(N64DEBUG_PAUSE);
 
