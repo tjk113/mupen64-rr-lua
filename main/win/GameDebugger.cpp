@@ -29,6 +29,10 @@ HWND hwndd;
 extern unsigned long op;
 BOOL diecdmode;
 
+DWORD(__cdecl* ORIGINAL_doRspCycles)(DWORD Cycles) = NULL;
+static DWORD __cdecl fake_doRspCycles(DWORD Cycles) { return Cycles; };
+
+
 int _gaddr() {
     return Config.guiDynacore ? PC->addr : interp_addr;
 }
@@ -101,6 +105,15 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
+        case IDC_DEBUGGER_RSP:
+            if (!ORIGINAL_doRspCycles) {
+                ORIGINAL_doRspCycles = doRspCycles;
+            }
+            if (IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP))
+                doRspCycles = ORIGINAL_doRspCycles;
+            else
+                doRspCycles = fake_doRspCycles;
+            break;
         case IDC_DEBUGGER_STEP:
             if (!debugger_cpuAllowed) {
                 debugger_step = 1;
