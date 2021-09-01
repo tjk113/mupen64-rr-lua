@@ -24,6 +24,7 @@ struct _DebuggedData
     
 DebuggerData* debuggerData = NULL;
 int debugger_cpuAllowed = 1;
+int debugger_step = 0;
 HWND hwndd;
 extern unsigned long op;
 BOOL diecdmode;
@@ -37,7 +38,7 @@ int _gsrc() {
 
 
 
-VOID DebuggerSet(INT debuggerFlag) {
+void DebuggerSet(int debuggerFlag) {
 
     if (!Config.guiDynacore) {
         MessageBox(0, "The debugger might not work correctly with (pure) interp.", "Debugger warning", MB_ICONASTERISK);
@@ -98,6 +99,12 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
+        case IDC_DEBUGGER_STEP:
+            if (!debugger_cpuAllowed) {
+                debugger_cpuAllowed = 0;
+                debugger_step = 1;
+            }
+            break;
         case IDC_DEBUGGER_INSTDECODEMODE:
             if (!debugger_cpuAllowed) DebuggerSet(0);
             break;

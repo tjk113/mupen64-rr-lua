@@ -10,6 +10,8 @@
 
 
 extern int debugger_cpuAllowed;
+extern int debugger_step;
 
+extern void DebuggerSet(int debuggerFlag);
 extern void DebuggerDialog();
 

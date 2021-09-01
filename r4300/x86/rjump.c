@@ -36,6 +36,7 @@
 #include "../recomph.h"
 #include <csetjmp>
 #include "../../winproject/mupen64/GameDebugger.h"
+#include <win/GameDebugger.h>
 
 void dyna_jump()
 {
@@ -55,6 +56,7 @@ void dyna_jump()
 }
 
 jmp_buf g_jmp_state;
+int stopOnNext = 0;
 void dyna_start(void (*code)())
 {
 	// code() ÇÃÇ«Ç±Ç©Ç≈ stop Ç™ true Ç…Ç»Ç¡ÇΩéûÅAdyna_stop() Ç™åƒÇŒÇÍÅAlongjmp() Ç≈ setjmp() ÇµÇΩÇ∆Ç±ÇÎÇ…ñﬂÇÈ
@@ -63,7 +65,23 @@ void dyna_start(void (*code)())
 	if(setjmp(g_jmp_state) == 0)
 	{
 #ifdef N64DEBUGGER_ALLOWED
-		while (!debugger_cpuAllowed) { _sleep(1); }
+
+		if (stopOnNext) {
+			stopOnNext = 0;
+			debugger_cpuAllowed = 0;
+			debugger_step = 0;
+			DebuggerSet(N64DEBUG_PAUSE);
+		}
+
+		if (debugger_step == 1) {
+			stopOnNext = 1;
+			debugger_cpuAllowed = 1;
+		}
+
+		while (!debugger_cpuAllowed) {
+			_sleep(1);
+		}
+
 #endif
 		code();
 	}
