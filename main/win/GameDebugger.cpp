@@ -41,7 +41,7 @@ int _gsrc() {
 void DebuggerSet(int debuggerFlag) {
 
     if (!Config.guiDynacore) {
-        MessageBox(0, "The debugger might not work correctly with (pure) interp.", "Debugger warning", MB_ICONASTERISK);
+        N64DEBUG_MBOX(N64DEBUG_NAME " might not work with (pure) interpreter cpu core.");
     }
 
     debugger_cpuAllowed = debuggerFlag;
@@ -121,7 +121,7 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
             break;
         case IDOK:
             if (!debugger_cpuAllowed) {
-                MessageBox(0, "The debugger still paused cpu. Unpause it and then close this.", "No", MB_ICONASTERISK);
+                N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
                 break;
             }
             EndDialog(hwnd,0);
