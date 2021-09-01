@@ -450,6 +450,7 @@
 #define ID_GAMEDEBUGGER					40039
 #define IDB_PAUSE						40040
 #define IDB_RESUME						40041
+#define IDC_DEBUGGER_INSTDECODEMODE     40042
 
 
 #define IDC_STATIC                      -1

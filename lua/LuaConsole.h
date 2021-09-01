@@ -6,10 +6,9 @@
 #ifdef LUA_CONSOLE
 
 
-#include "../r4300/r4300.h"
-
 //識別子衝突対策
 //本当はヘッダ分割すべきか
+#include "../r4300/r4300.h"
 
 #ifndef LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include <Windows.h>
@@ -18,6 +17,7 @@ void InitializeLuaDC(HWND mainWnd);
 void NewLuaScript(void(*callback)());
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 #endif
+
 void LuaReload();
 void LuaOpenAndRun(const char *path);
 void CloseAllLuaScript();
@@ -36,6 +36,9 @@ void LuaDCUpdate(int redraw);
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
+
+char* instrStr1(unsigned long pc, unsigned long w, char* buffer);
+char* instrStr2(unsigned long pc, unsigned long w, char* buffer);
 
 //無理やりinline関数に
 namespace LuaEngine {

@@ -6,12 +6,35 @@
 #include <Psapi.h>
 #include "vcr.h"
 #include <Windows.h>
+#include "../../r4300/r4300.h"
+#include <LuaConsole.h>
 
-
-int debugger_cpuAllowed = 1;
 // shitty crappy n64 debugger* by aurumaker 
 
+
+typedef struct _DebuggedData DebuggerData;
+struct _DebuggedData
+{
+    unsigned long Address;
+    unsigned long Source;
+
+
+    char* DecodedInstructionText;
+};
+    
+DebuggerData* debuggerData = NULL;
+int debugger_cpuAllowed = 1;
 HWND hwndd;
+extern unsigned long op;
+BOOL diecdmode;
+
+int _gaddr() {
+    return Config.guiDynacore ? PC->addr : interp_addr;
+}
+int _gsrc() {
+    return Config.guiDynacore ? PC->src : op;
+}
+
 
 
 VOID DebuggerSet(INT debuggerFlag) {
@@ -20,13 +43,30 @@ VOID DebuggerSet(INT debuggerFlag) {
 
     if (debuggerFlag == N64DEBUG_PAUSE) {
         
+        char* instrstr = (char*)calloc(100, sizeof(char));
+
+        diecdmode = IsDlgButtonChecked(hwndd, IDC_DEBUGGER_INSTDECODEMODE);
+
+        if(diecdmode)
+            instrStr1(_gaddr(), _gsrc(), instrstr);
+        else
+            instrStr2(_gaddr(), _gsrc(), instrstr);
+        
+
+        SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_INSTRUCTION), instrstr);
+
+
+        //if(Config.guiDynacore)
+        //PC->s_ops();
     }
+
 }
+
 BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
     switch (Message) {
     case WM_INITDIALOG: {
 
-        
+        hwndd = hwnd;
             
         //SendMessage(GetDlgItem(hwnd, IDC_DEBUGGER_PAUSE),
         //    (UINT)BM_SETIMAGE,
