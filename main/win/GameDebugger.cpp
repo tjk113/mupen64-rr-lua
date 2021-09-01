@@ -95,6 +95,10 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
             
             break;
         case IDOK:
+            if (!debugger_cpuAllowed) {
+                MessageBox(0, "The debugger still paused cpu. Unpause it and then close this.", "No", MB_ICONASTERISK);
+                break;
+            }
             EndDialog(hwnd,0);
             break;
         }
