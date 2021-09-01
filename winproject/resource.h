@@ -451,6 +451,8 @@
 #define IDB_PAUSE						40040
 #define IDB_RESUME						40041
 #define IDC_DEBUGGER_INSTDECODEMODE     40042
+#define IDC_DEBUGGER_PRECOMPADDR		40043
+#define IDC_DEBUGGER_PRECOMPOP			40044
 
 
 #define IDC_STATIC                      -1

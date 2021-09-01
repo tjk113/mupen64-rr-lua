@@ -39,11 +39,18 @@ int _gsrc() {
 
 VOID DebuggerSet(INT debuggerFlag) {
 
+    if (!Config.guiDynacore) {
+        MessageBox(0, "The debugger might not work correctly with (pure) interp.", "Debugger warning", MB_ICONASTERISK);
+    }
+
     debugger_cpuAllowed = debuggerFlag;
 
     if (debuggerFlag == N64DEBUG_PAUSE) {
         
         char* instrstr = (char*)calloc(100, sizeof(char));
+        char* precomp_addr = (char*)calloc(100, sizeof(char)); // fuck you pure interpreter
+        char* precomp_op = (char*)calloc(100, sizeof(char));
+
 
         diecdmode = IsDlgButtonChecked(hwndd, IDC_DEBUGGER_INSTDECODEMODE);
 
@@ -52,8 +59,15 @@ VOID DebuggerSet(INT debuggerFlag) {
         else
             instrStr2(_gaddr(), _gsrc(), instrstr);
         
+        
+        sprintf(precomp_addr, "0x%lx", PC->addr);
+        sprintf(precomp_op, "0x%lx", PC->ops); // idk how to represent this exactly hm
 
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_INSTRUCTION), instrstr);
+
+        SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPADDR), precomp_addr);
+
+        SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPOP), precomp_op);
 
 
         //if(Config.guiDynacore)
