@@ -42,7 +42,7 @@
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include "../lua/LuaConsole.h"
-#include "../../winproject/mupen64/GameDebugger.h"
+#include "../../main/win/GameDebugger.h"
 
 #ifdef DBG
 extern int debugger_mode;

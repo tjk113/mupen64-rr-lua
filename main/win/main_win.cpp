@@ -66,7 +66,7 @@ extern "C" {
 #include <gdiplus.h>
 #include "../../winproject/mupen64/GameDebugger.h"
 #pragma comment (lib,"Gdiplus.lib")
-
+    
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 void StartMovies();
