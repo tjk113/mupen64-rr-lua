@@ -2645,6 +2645,8 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 
 void EnableStatusbar()
 {
+    shouldSave = TRUE;
+
 	if (Config.GuiStatusbar)
 	{
 		if (!IsWindow( hStatus ))
@@ -2663,6 +2665,8 @@ void EnableStatusbar()
 
 void EnableToolbar()
 {
+    shouldSave = TRUE;
+
 	if (Config.GuiToolbar && !VCR_isCapturing())
 	{
 		if(!hTool || !IsWindow(hTool))
