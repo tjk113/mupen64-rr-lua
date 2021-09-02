@@ -78,6 +78,8 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
         hwndd = hwnd;
             
+        CheckDlgButton(hwndd, IDC_DEBUGGER_RSP_TOGGLE, 1);
+
         //SendMessage(GetDlgItem(hwnd, IDC_DEBUGGER_PAUSE),
         //    (UINT)BM_SETIMAGE,
         //    (WPARAM)IMAGE_BITMAP,
@@ -146,7 +148,7 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
                 N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
                 break;
             }
-            if (!IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE) || debugger_cartridgeTilt) {
+            if (IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE) || debugger_cartridgeTilt) {
                 N64DEBUG_MBOX("The debugger has changed the original game. Undo your changed settings before closing the debugger.");
                 break;
             }
