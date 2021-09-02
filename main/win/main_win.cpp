@@ -64,7 +64,8 @@ extern "C" {
 #undef EMULATOR_MAIN_CPP_DEF
 
 #include <gdiplus.h>
-#include "../../winproject/mupen64/GameDebugger.h"
+#include "../main/win/GameDebugger.h"
+
 #pragma comment (lib,"Gdiplus.lib")
     
 extern void CountryCodeToCountryName(int countrycode,char *countryname);

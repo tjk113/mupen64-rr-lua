@@ -35,8 +35,7 @@
 #include "../ops.h"
 #include "../recomph.h"
 #include <csetjmp>
-#include "../../winproject/mupen64/GameDebugger.h"
-#include <win/GameDebugger.h>
+#include "../main/win/GameDebugger.h"
 
 int timesSinceLast = 0;
 
