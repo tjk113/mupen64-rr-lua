@@ -2349,7 +2349,9 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
-
+#ifdef N64DEBUGGER_ALLOWED
+      EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
+#endif
       if (dynacore)
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
       else
@@ -2394,6 +2396,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
+      EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_GRAYED);
 
       EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
      

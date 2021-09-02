@@ -1,5 +1,8 @@
 #pragma once
 
+#ifdef _DEBUG
+#define N64DEBUGGER_ALLOWED
+#endif
 
 //#ifdef _DEBUG
 
@@ -15,6 +18,8 @@
 #define N64DEBUG_MBOX(str) MessageBox(0,str,N64DEBUG_NAME,MB_ICONASTERISK)
 
 //#endif
+
+
 
 extern int debugger_cpuAllowed;
 extern int debugger_step;
