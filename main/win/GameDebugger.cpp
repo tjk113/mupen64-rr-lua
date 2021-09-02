@@ -135,10 +135,22 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
             
             break;
         case IDOK:
-            if (!debugger_cpuAllowed) {
+
+            // some shitty slower checks for everything
+
+            if (!debugger_cpuAllowed || debugger_step) {
                 N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
                 break;
             }
+            if (debugger_step) {
+                N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
+                break;
+            }
+            if (!IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE) || debugger_cartridgeTilt) {
+                N64DEBUG_MBOX("The debugger has changed the original game. Undo your changed settings before closing the debugger.");
+                break;
+            }
+
             EndDialog(hwnd,0);
             break;
         }
