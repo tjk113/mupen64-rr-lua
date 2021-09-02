@@ -3183,9 +3183,7 @@ void prefetch()
 void pure_interpreter()
 {
 
-#ifdef N64DEBUGGER_ALLOWED
-	while (!debugger_cpuAllowed) { _sleep(1); printf("pure interp wait...\n"); }
-#endif
+
 
    interp_addr = 0xa4000040;
    stop=0;
@@ -3193,6 +3191,9 @@ void pure_interpreter()
    last_addr = interp_addr;
    while (!stop)
      {
+#ifdef N64DEBUGGER_ALLOWED
+	   while (!debugger_cpuAllowed) { _sleep(1); printf("pure interp wait...\n"); }
+#endif
 	//if (interp_addr == 0x10022d08) stop = 1;
     //printf("addr: %x\n", interp_addr);
 	prefetch();
