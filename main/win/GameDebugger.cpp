@@ -12,20 +12,9 @@
 
 // shitty crappy n64 debugger* by aurumaker 
 
-
-typedef struct _DebuggedData DebuggerData;
-struct _DebuggedData
-{
-    unsigned long Address;
-    unsigned long Source;
-
-
-    char* DecodedInstructionText;
-};
-    
-DebuggerData* debuggerData = NULL;
 int debugger_cpuAllowed = 1;
 int debugger_step = 0;
+int debugger_cartridgeTilt = 0;
 HWND hwndd;
 extern unsigned long op;
 BOOL diecdmode;
@@ -46,7 +35,7 @@ int _gsrc() {
 void DebuggerSet(int debuggerFlag) {
 
     if (!Config.guiDynacore) {
-        N64DEBUG_MBOX(N64DEBUG_NAME " might not work with (pure) interpreter cpu core.");
+        //N64DEBUG_MBOX(N64DEBUG_NAME " might not work with (pure) interpreter cpu core.");
     }
 
     debugger_cpuAllowed = debuggerFlag;
@@ -66,7 +55,6 @@ void DebuggerSet(int debuggerFlag) {
             instrStr1(_gaddr(), _gsrc(), instrstr);
         else
             instrStr2(_gaddr(), _gsrc(), instrstr);
-        
         
         sprintf(precomp_addr, "0x%lx", PC->addr);
         sprintf(precomp_op, "0x%lx", PC->ops); // idk how to represent this exactly hm
@@ -108,6 +96,9 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
+        case IDC_DEBUGGER_DMA_R_TOGGLE:
+            debugger_cartridgeTilt = IsDlgButtonChecked(hwnd, IDC_DEBUGGER_DMA_R_TOGGLE);
+            break;
         case IDC_DEBUGGER_DUMPRDRAM:
             N64DEBUG_MBOX("You are about to write 32 megabytes to a file.");
             FILE* f;
@@ -116,7 +107,6 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
             fflush(f); fclose(f);
             break;
         case IDC_DEBUGGER_RSP_TOGGLE:
-            printf("dame tu %d\n", IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE));
             if (!ORIGINAL_doRspCycles) {
                 ORIGINAL_doRspCycles = doRspCycles;
             }

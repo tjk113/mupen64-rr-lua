@@ -13,10 +13,12 @@
 #define N64_DEBUG_STEP_DURATION 10
 
 #define N64DEBUG_MBOX(str) MessageBox(0,str,N64DEBUG_NAME,MB_ICONASTERISK)
+
 //#endif
 
 extern int debugger_cpuAllowed;
 extern int debugger_step;
+extern int debugger_cartridgeTilt;
 
 extern void DebuggerSet(int debuggerFlag);
 extern void DebuggerDialog();

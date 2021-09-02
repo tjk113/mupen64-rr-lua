@@ -455,6 +455,7 @@
 #define IDC_DEBUGGER_PRECOMPOP			40044
 #define IDC_DEBUGGER_STEP				40045
 #define IDC_DEBUGGER_DUMPRDRAM			40046
+#define IDC_DEBUGGER_DMA_R_TOGGLE	    40047
 
 #define IDC_STATIC                      -1
 

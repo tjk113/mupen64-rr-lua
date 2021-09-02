@@ -860,7 +860,7 @@ DWORD WINAPI ScanThread(LPVOID lpParam) {
      for (i=0;i<ItemList.ListCount;i++)
         {
           if (stopScan) break;
-          pRomInfo = &ItemList.List[i];
+          pRomInfo = &ItemList.List[i]; 
           sprintf(TempMessage,"%d",i+1);
           SetDlgItemText(romInfoHWND,IDC_CURRENT_ROM,TempMessage);
           SetDlgItemText(romInfoHWND,IDC_ROM_FULLPATH,pRomInfo->szFullFileName);
