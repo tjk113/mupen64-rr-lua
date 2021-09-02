@@ -37,8 +37,8 @@ void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
 
-char* instrStr1(unsigned long pc, unsigned long w, char* buffer);
-char* instrStr2(unsigned long pc, unsigned long w, char* buffer);
+void instrStr1(unsigned long pc, unsigned long w, char* buffer);
+void instrStr2(unsigned long pc, unsigned long w, char* buffer);
 
 //無理やりinline関数に
 namespace LuaEngine {

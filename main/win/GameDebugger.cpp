@@ -23,10 +23,10 @@ DWORD(__cdecl* ORIGINAL_doRspCycles)(DWORD Cycles) = NULL;
 static DWORD __cdecl fake_doRspCycles(DWORD Cycles) { return Cycles; };
 
 
-int _gaddr() {
+unsigned long _gaddr() {
     return Config.guiDynacore ? PC->addr : interp_addr;
 }
-int _gsrc() {
+unsigned long _gsrc() {
     return Config.guiDynacore ? PC->src : op;
 }
 
@@ -43,29 +43,32 @@ void DebuggerSet(int debuggerFlag) {
     if (debuggerFlag == N64DEBUG_RESUME) debugger_step = 0;
 
     if (debuggerFlag == N64DEBUG_PAUSE) {
-        
-        char* instrstr = (char*)calloc(100, sizeof(char));
-        char* addr = (char*)calloc(100, sizeof(char)); // fuck you pure interpreter
-        char* op = (char*)calloc(100, sizeof(char));
 
+        // MEMORY LEAK: this leaks instrstr string and more inside instrstr functions and also crashes after some iterations
+        // FIXME 
+        // i dont have time or care about this so i fix it later?
 
         diecdmode = IsDlgButtonChecked(hwndd, IDC_DEBUGGER_INSTDECODEMODE);
 
-        if(diecdmode)
-            instrStr1(_gaddr(), _gsrc(), instrstr);
-        else
-            instrStr2(_gaddr(), _gsrc(), instrstr);
-        
-        sprintf(addr, "0x%lx", _gaddr());
-        sprintf(op, "0x%lx", _gsrc()); // idk how to represent this exactly hm
+        char* instrstr = (char*)calloc(100, sizeof(char));
+
+        char addr[100];
+        char op[100];
+
+
+        diecdmode ? instrStr1(_gaddr(), _gsrc(), instrstr) : instrStr2(_gaddr(), _gsrc(), instrstr);
+
+
+        sprintf(addr, "%lu", _gaddr());
+        sprintf(op, "%lu", _gsrc());
+
 
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_INSTRUCTION), instrstr);
-
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPADDR), addr);
-
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPOP), op);
 
 
+        //free(instrstr);
         //if(Config.guiDynacore)
         //PC->s_ops();
     }
