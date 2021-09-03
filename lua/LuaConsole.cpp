@@ -2118,14 +2118,11 @@ int DrawImageAlpha(lua_State* L) {
 
 	char* patha = (char*)lua_tostring(L, 5);
 
+	// disk operation in draw procedure...
 
 	int output_size = MultiByteToWideChar(CP_ACP, 0, patha, -1, NULL, 0);
 	wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
 	int size = MultiByteToWideChar(CP_ACP, 0, patha, -1, pathw, output_size);
-
-
-	// disk operation in draw procedure...
-	mbstowcs(&pathw[0], patha, strlen(patha));
 
 	printf("PATH: %ws\n", pathw);
 
