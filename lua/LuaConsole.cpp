@@ -2108,6 +2108,43 @@ VOID checkGDIPlusInitialized() {
 	}
 }
 
+int DrawImageAlpha(lua_State* L) {
+
+	checkGDIPlusInitialized();
+	Lua* lua = GetLuaClass(L);
+
+
+	int left, top, right, bottom;
+
+	char* patha = (char*)lua_tostring(L, 5);
+
+
+	int output_size = MultiByteToWideChar(CP_ACP, 0, patha, -1, NULL, 0);
+	wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
+	int size = MultiByteToWideChar(CP_ACP, 0, patha, -1, pathw, output_size);
+
+
+	// disk operation in draw procedure...
+	mbstowcs(&pathw[0], patha, strlen(patha));
+
+	printf("PATH: %ws\n", pathw);
+
+	bottom = luaL_checknumber(L, 1);
+	left = luaL_checknumber(L, 2);
+	right = luaL_checknumber(L, 3);
+	top = luaL_checknumber(L, 4);
+
+
+	Gdiplus::Graphics gfx(luaDC);
+
+	Gdiplus::Image img ((pathw));
+
+	gfx.DrawImage(&img, left, top, right, bottom);
+	
+	free(pathw);
+	
+	return 0;
+}
 int FillPolygonAlpha(lua_State* L) {
 
 	checkGDIPlusInitialized();
@@ -3132,6 +3169,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"fillrecta", FillRectAlpha},
 	{"fillellipsea", FillEllipseAlpha},
 	{"fillpolygona", FillPolygonAlpha},
+	{"drawimagea", DrawImageAlpha},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
