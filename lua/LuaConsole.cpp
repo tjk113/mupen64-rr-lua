@@ -2277,10 +2277,10 @@ int FillRect(lua_State* L) {
 		luaL_checknumber(L, 7)
 	);
 	COLORREF colorold = SetBkColor(luaDC, color);
-	rect.bottom = luaL_checknumber(L, 1);
-	rect.left = luaL_checknumber(L, 2);
+	rect.left = luaL_checknumber(L, 1);
+	rect.top = luaL_checknumber(L, 2);
 	rect.right = luaL_checknumber(L, 3);
-	rect.top = luaL_checknumber(L, 4);
+	rect.bottom = luaL_checknumber(L, 4);
 	ExtTextOut(luaDC, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
 	SetBkColor(luaDC, colorold);
 	return 0;
