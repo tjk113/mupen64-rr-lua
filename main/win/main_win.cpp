@@ -2894,18 +2894,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
         
-	case WM_PAINT:
-			
+	case WM_PAINT: //todo, work with updatescreen to use wmpaint
+    {
 
-		BeginPaint(hwnd, &ps);
+        BeginPaint(hwnd, &ps);
+        EndPaint(hwnd, &ps);
 
-			
-		EndPaint(hwnd, &ps);
-
-
-        
-		return 0;
-
+        return 0;
+    }
 //		case WM_SETCURSOR:
 //			SetCursor(FALSE);
 //			return 0;

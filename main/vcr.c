@@ -1791,7 +1791,7 @@ VCR_updateScreen()
 		if (IGNORE_RSP || forceIgnoreRSP) redraw = 0;
 #endif
 #ifdef LUA_SPEEDMODE
-		if(maximumSpeedMode)redraw = 1;
+		if(maximumSpeedMode)redraw = 0;
 #endif
 		//printf("Screen update!\n");
 		if(redraw) {
@@ -1799,16 +1799,11 @@ VCR_updateScreen()
 		#ifdef LUA_GUI
 			LuaDCUpdate(redraw);
 		#endif
-		redraw = 0;
 		}
 //		captureFrameValid = TRUE;
 		return;
 	}
 
-//  // skip every other frame
-//	frame ^= 1;
-//	if (!frame)
-//		return;
 
 #ifdef LUA_SPEEDMODE
 	if(maximumSpeedMode)redraw=0;
@@ -2061,7 +2056,7 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 		extern void pauseEmu(BOOL quiet);
 		pauseEmu(TRUE);
 	}
-    init_readScreen();
+    init_readScreen(); //readScreen always not null here
 #endif
 
 	FILE* tmpf = fopen(aviFilename, "ab+");
@@ -2070,12 +2065,6 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 		return -1;
 	
 	fclose(tmpf);
-
-	if (readScreen == 0)
-	{
-		printError("AVI capture failed because the active video plugin does not support ReadScreen()!");
-		return -1;
-	}
 
 	memset(soundBufEmpty, 0, 44100*2);
 	memset(soundBuf, 0, 44100*2);

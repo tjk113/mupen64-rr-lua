@@ -465,6 +465,7 @@ void update_pif_write()
 #endif*/
 }
 
+//used with 1f input delay (not usable)
 void sleep_while_emu_paused()
 {
 	extern int emu_paused;

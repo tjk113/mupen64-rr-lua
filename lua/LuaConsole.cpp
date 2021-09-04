@@ -446,6 +446,18 @@ int AtWindowMessage(lua_State *L);
 void CreateLuaWindow(void(*callback)());
 //#define EnterCriticalSection(a) EnterCriticalSection((ShowInfo("Enter thread:%d line:%d",GetCurrentThreadId(),__LINE__),a))
 //#define LeaveCriticalSection(a) LeaveCriticalSection((ShowInfo("Leave thread:%d line:%d",GetCurrentThreadId(),__LINE__),a))
+
+
+void checkGDIPlusInitialized() {
+	// will be inlined by compiler
+	if (!gdiPlusInitialized) {
+		printf("lua initialize gdiplus\n");
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
+		gdiPlusInitialized = true;
+	}
+}
+
 class LuaMessage {
 public:
 	struct Msg;
@@ -630,6 +642,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
 INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch(msg) {
 	case WM_INITDIALOG:{
+		checkGDIPlusInitialized();
 		LuaMessage::Msg *msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::NewLua;
 		msg->newLua.wnd = wnd;
@@ -1883,8 +1896,8 @@ typedef struct COLORNAME {
 	char *name;
 	COLORREF value;
 } COLORNAME;
-COLORREF StrToColorA(const char *s, bool alpha = false, COLORREF def = 0) {
-	const int hex[256] = {
+
+const int hexTable[256] = {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1892,45 +1905,47 @@ COLORREF StrToColorA(const char *s, bool alpha = false, COLORREF def = 0) {
 		0,10,11,12,13,14,15,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,10,11,12,13,14,15,0,0,0,0,0,0,0,0,
-	};
-	const COLORNAME colors[] = {
-		{"white", 0xFFFFFFFF},
-		{"black", 0xFF000000},
-		{"clear", 0x00000000},
-		{"gray", 0xFF808080},
-		{"red", 0xFF0000FF},
-		{"orange", 0xFF0080FF},
-		{"yellow", 0xFF00FFFF},
-		{"chartreuse", 0xFF00FF80},
-		{"green", 0xFF00FF00},
-		{"teal", 0xFF80FF00},
-		{"cyan", 0xFFFFFF00},
-		{"blue", 0xFFFF0000},
-		{"purple", 0xFFFF0080},
-		{NULL}
-	};
+};
+const COLORNAME colors[] = {
+	{"white", 0xFFFFFFFF},
+	{"black", 0xFF000000},
+	{"clear", 0x00000000},
+	{"gray", 0xFF808080},
+	{"red", 0xFF0000FF},
+	{"orange", 0xFF0080FF},
+	{"yellow", 0xFF00FFFF},
+	{"chartreuse", 0xFF00FF80},
+	{"green", 0xFF00FF00},
+	{"teal", 0xFF80FF00},
+	{"cyan", 0xFFFFFF00},
+	{"blue", 0xFFFF0000},
+	{"purple", 0xFFFF0080},
+	{NULL}
+};
+
+COLORREF StrToColorA(const char *s, bool alpha = false, COLORREF def = 0) {
 	if(s[0] == '#') {
 		int l = lstrlen(s);
 		if(l == 4) {
-			return (hex[s[1]]*0x10+hex[s[1]])|
-						 ((hex[s[2]]*0x10+hex[s[2]])<<8)|
- 						 ((hex[s[3]]*0x10+hex[s[3]])<<16)|
+			return (hexTable[s[1]]*0x10+hexTable[s[1]])|
+						 ((hexTable[s[2]]*0x10+hexTable[s[2]])<<8)|
+ 						 ((hexTable[s[3]]*0x10+hexTable[s[3]])<<16)|
 						 (alpha ? 0xFF000000 : 0);
 		}else if(alpha && l == 5) {
-			return (hex[s[1]]*0x10+hex[s[1]])|
-						 ((hex[s[2]]*0x10+hex[s[2]])<<8)|
- 						 ((hex[s[3]]*0x10+hex[s[3]])<<16)|
-						 ((hex[s[4]]*0x10+hex[s[4]])<<24);
+			return (hexTable[s[1]]*0x10+hexTable[s[1]])|
+						 ((hexTable[s[2]]*0x10+hexTable[s[2]])<<8)|
+ 						 ((hexTable[s[3]]*0x10+hexTable[s[3]])<<16)|
+						 ((hexTable[s[4]]*0x10+hexTable[s[4]])<<24);
 		}else if(l == 7){
-			return (hex[s[1]]*0x10+hex[s[2]])|
-						 ((hex[s[3]]*0x10+hex[s[4]])<<8)|
- 						 ((hex[s[5]]*0x10+hex[s[6]])<<16)|
+			return (hexTable[s[1]]*0x10+hexTable[s[2]])|
+						 ((hexTable[s[3]]*0x10+hexTable[s[4]])<<8)|
+ 						 ((hexTable[s[5]]*0x10+hexTable[s[6]])<<16)|
 						 (alpha ? 0xFF000000 : 0);
 		}else if(alpha && l == 9){
-			return (hex[s[1]]*0x10+hex[s[2]])|
-						 ((hex[s[3]]*0x10+hex[s[4]])<<8)|
- 						 ((hex[s[5]]*0x10+hex[s[6]])<<16)|
-						 ((hex[s[7]]*0x10+hex[s[8]])<<24);
+			return (hexTable[s[1]]*0x10+hexTable[s[2]])|
+						 ((hexTable[s[3]]*0x10+hexTable[s[4]])<<8)|
+ 						 ((hexTable[s[5]]*0x10+hexTable[s[6]])<<16)|
+						 ((hexTable[s[7]]*0x10+hexTable[s[8]])<<24);
 		}
 	}else {
 		const COLORNAME *p = colors;
@@ -1952,18 +1967,6 @@ COLORREF StrToColor(const char *s, bool alpha = false, COLORREF def = 0) {
 	}
 */
 	return c;
-}
-COLORREF GetColorLua(lua_State *L, int i, COLORREF defColor, bool alpha = true) {
-	switch(lua_type(L, i)) {
-	case LUA_TNUMBER:
-		return CheckIntegerU(L, i);
-	case LUA_TSTRING:
-		return StrToColor(lua_tostring(L, i), alpha, defColor);
-	case LUA_TNIL:
-		return defColor;
-	default:
-		return defColor;
-	}
 }
 
 //wgui
@@ -2098,19 +2101,8 @@ int DrawRect(lua_State *L) {
 	return 0;
 }
 
-VOID checkGDIPlusInitialized() {
-	// will be inlined by compiler
-	if (!gdiPlusInitialized) {
-		printf("lua initialize gdiplus\n");
-		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
-		gdiPlusInitialized = true;
-	}
-}
-
-int FillPolygonAlpha(lua_State* L) {
-
-	checkGDIPlusInitialized();
+int FillPolygonAlpha(lua_State* L) 
+{
 	Lua* lua = GetLuaClass(L);
 
 	Gdiplus::PointF pt1;
@@ -2144,52 +2136,41 @@ int FillPolygonAlpha(lua_State* L) {
 
 
 int FillEllipseAlpha(lua_State* L) {
-	checkGDIPlusInitialized();
 	Lua* lua = GetLuaClass(L);
 
-	int left, top, right, bottom;
-	byte a, r, g, b;
+	int x, y, w, h;
+	const char* col;
 
-	bottom = luaL_checknumber(L, 1);
-	left = luaL_checknumber(L, 2);
-	right = luaL_checknumber(L, 3);
-	top = luaL_checknumber(L, 4);
-
-	a = luaL_checknumber(L, 5);
-	r = luaL_checknumber(L, 6);
-	g = luaL_checknumber(L, 7);
-	b = luaL_checknumber(L, 8);
+	x = luaL_checknumber(L, 1);
+	y = luaL_checknumber(L, 2);
+	h = luaL_checknumber(L, 3);
+	w = luaL_checknumber(L, 4);
+	col = luaL_checkstring(L, 5); //color string
 
 	Gdiplus::Graphics gfx(luaDC);
-	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
 
-	gfx.FillEllipse(&brush, left, top, right, bottom);
+	gfx.FillEllipse(&brush, x, y, w, h);
 
 	return 0;
 }
 int FillRectAlpha(lua_State* L) 
 {
-	checkGDIPlusInitialized();
-
 	Lua* lua = GetLuaClass(L);
 	
-	int left, top, right, bottom;
-	byte a, r, g, b;
+	int x, y, w, h;
+	const char* col;
 
-	bottom = luaL_checknumber(L, 1);
-	left = luaL_checknumber(L, 2);
-	right = luaL_checknumber(L, 3);
-	top = luaL_checknumber(L, 4);
-
-	a = luaL_checknumber(L, 5);
-	r = luaL_checknumber(L, 6);
-	g = luaL_checknumber(L, 7);
-	b = luaL_checknumber(L, 8);
+	x = luaL_checknumber(L, 1);
+	y = luaL_checknumber(L, 2);
+	h = luaL_checknumber(L, 3);
+	w = luaL_checknumber(L, 4);
+	col = luaL_checkstring(L, 5); //color string
 
 	Gdiplus::Graphics gfx(luaDC);
-	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
 
-	gfx.FillRectangle(&brush, left, top, right, bottom);
+	gfx.FillRectangle(&brush, x, y, h, w);
 
 	return 0;
 }
@@ -2203,8 +2184,7 @@ int FillRect(lua_State* L) {
 	*/
 	Lua* lua = GetLuaClass(L);
 	RECT rect;
-	COLORREF color;
-	color = RGB(
+	COLORREF color = RGB(
 		luaL_checknumber(L, 5),
 		luaL_checknumber(L, 6),
 		luaL_checknumber(L, 7)
@@ -3274,6 +3254,9 @@ void InitializeLuaDC(HWND mainWnd) {
 	LuaEngine::InitializeLuaDC_(mainWnd);
 }
 
+//Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
+//Next and DrawLuaDC are only used with double buffering
+//otherwise calls vi callback and updatescreen callback
 void LuaDCUpdate(int redraw){
 	if(LuaEngine::luaDC && redraw) {
 		LuaEngine::NextLuaDC();
