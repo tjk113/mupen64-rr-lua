@@ -2101,19 +2101,8 @@ int DrawRect(lua_State *L) {
 	return 0;
 }
 
-VOID checkGDIPlusInitialized() {
-	// will be inlined by compiler
-	if (!gdiPlusInitialized) {
-		printf("lua initialize gdiplus\n");
-		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
-		gdiPlusInitialized = true;
-	}
-}
-
 int DrawImageAlpha(lua_State* L) {
 
-	checkGDIPlusInitialized();
 	Lua* lua = GetLuaClass(L);
 
 
@@ -2145,37 +2134,67 @@ int DrawImageAlpha(lua_State* L) {
 	
 	return 0;
 }
-int FillPolygonAlpha(lua_State* L) {
-
-	checkGDIPlusInitialized();
+//1st arg is table of points
+//2nd arg is color #xxxxxxxx
+int FillPolygonAlpha(lua_State* L)
+{
+	//Get lua instance stored in script class
 	Lua* lua = GetLuaClass(L);
+	
+	//stack should look like
+	//--------
+	//2: color string
+	//--------
+	//1: table of points
+	//--------
+	//assert that first argument is table
+	luaL_checktype(L, 1, LUA_TTABLE);
 
-	Gdiplus::PointF pt1;
-	Gdiplus::PointF pt2;
-	Gdiplus::PointF pt3;
-	byte a, r, g, b;
 
-	pt1.X = luaL_checknumber(L, 1);
-	pt1.Y = luaL_checknumber(L, 2);
+	const char* col; //color string
 
-	pt2.X = luaL_checknumber(L, 3);
-	pt2.Y = luaL_checknumber(L, 4);
+	int n = luaL_len(L, 1); //length of the table, doesnt modify stack
+	if (n > 255) { //hard cap, the vector can handle more but dont try
+		lua_pushfstring(L, "wgui.polygon: too many points (%d > %d)",
+			n, 255);
+		return lua_error(L);
+	}
 
-	pt3.X = luaL_checknumber(L, 5);
-	pt3.Y = luaL_checknumber(L, 6);
+	std::vector<Gdiplus::PointF> pts(n); //list of points that make the poly
 
-	a = luaL_checknumber(L, 7);
-	r = luaL_checknumber(L, 8);
-	g = luaL_checknumber(L, 9);
-	b = luaL_checknumber(L, 10);
+	//do n times
+	for (int i = 0; i < n; i++) {
+		//push current index +1 because lua
+		lua_pushinteger(L, i + 1);
+		//get index i+1 from table at the bottom of the stack (index 1 is bottom, 2 is next etc, -1 is top)
+		//pops the index and places the element inside table on top, which again is a table [x,y]
+		lua_gettable(L, 1);
+		//make sure its a table
+		luaL_checktype(L, -1, LUA_TTABLE);
+		//push '1'
+		lua_pushinteger(L, 1);
+		//get index 1 from table that is second from top, because '1' is on top right now
+		//then remove '1' and put table contents, its the X coord
+		lua_gettable(L, -2);
+		//read it
+		pts[i].X = lua_tointeger(L, -1);
+		//remove X coord
+		lua_pop(L, 1);
+		//push '2'
+		lua_pushinteger(L, 2);
+		//same thing
+		lua_gettable(L, -2);
+		pts[i].Y = lua_tointeger(L, -1);
+		lua_pop(L, 2);
+		//now stack again has only table at the bottom and color string on top, repeat
+	}
+
+	col = luaL_checkstring(L, 2); //get string at index 2
 
 	Gdiplus::Graphics gfx(luaDC);
-	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
-
-	Gdiplus::PointF pts[3] = {pt1,pt2,pt3};
-	gfx.FillPolygon(&brush, pts, 1);
+	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
+	gfx.FillPolygon(&brush, pts.data(), n);
 	
-
 	return 0;
 }
 
