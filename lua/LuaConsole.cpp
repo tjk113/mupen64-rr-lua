@@ -2645,8 +2645,8 @@ int LuaFileDialog(lua_State* L) {
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
-	if(!type) GetOpenFileName(&ofn);
-	else GetSaveFileName(&ofn);
+	if(type) GetSaveFileName(&ofn);
+	else  GetOpenFileName(&ofn);
 	lua_pushstring(L, ofn.lpstrFile);
 	return 1;
 }
