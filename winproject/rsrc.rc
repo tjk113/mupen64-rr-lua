@@ -32,6 +32,10 @@ IDB_UP_ARROW            BITMAP                  "icons\\up_arrow.bmp"
 
 IDB_LOGO_BW             BITMAP                  "icons\\logobw.bmp"
 
+IDB_LOGO_PAUSE          BITMAP                  "icons\\pause.bmp"
+
+IDB_LOGO_RESUME         BITMAP                  "icons\\resume.bmp"
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
@@ -128,10 +132,12 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
         MENUITEM "Save Config",                 ID_FORCESAVE
+        MENUITEM "Game Debugger",               ID_GAMEDEBUGGER
     END
     POPUP "Help"
     BEGIN
         MENUITEM "Show RAM Start",              ID_RAMSTART
+        MENUITEM "Crash Handler",               ID_CRASHHANDLERDIALOGSHOW, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&About Mupen64...",           ID_HELP_ABOUT
     END
@@ -627,6 +633,30 @@ PUSHBUTTON      "Continue", IDC_ERROR_CONTINUE, 270, 70, 65, 14
 CONTROL         "An exception has been thrown.", IDC_ERRORTEXT, "Static", SS_LEFTNOWORDWRAP | WS_GROUP, 73, 6, 262, 40
 CONTROL         "", IDC_ERROR_PICTUREBOX, "Static", SS_BITMAP, 6, 6, 67, 53
 PUSHBUTTON      "Close", IDC_ERROR_PANIC_CLOSEMUPEN, 154, 70, 50, 14
+END
+
+IDD_GAMEDEBUGGERDIALOG DIALOGEX 0, 0, 310, 177
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
+CAPTION "N64 Debugger"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+GROUPBOX        "N64 Debugger Toolkit", IDC_DEBUGGER_GROUPBOX, 7, 7, 296, 149
+PUSHBUTTON      "Pause", IDC_DEBUGGER_PAUSE, 14, 23, 55, 14
+PUSHBUTTON      "Resume", IDC_DEBUGGER_RESUME, 14, 37, 55, 14
+PUSHBUTTON      "RDRAM Dump", IDC_DEBUGGER_DUMPRDRAM, 70, 23, 55, 14
+PUSHBUTTON      "Step", IDC_DEBUGGER_STEP, 70, 37, 55, 14,WS_DISABLED
+DEFPUSHBUTTON   "Quit Debugger", IDOK, 253, 156, 50, 14
+GROUPBOX        "", IDC_STATIC, 158, 15, 145, 141
+LTEXT           "Instruction:", IDC_STATIC, 166, 25, 38, 12
+LTEXT           "Address", IDC_STATIC, 166, 37, 38, 14
+LTEXT           "Op", IDC_STATIC, 166, 51, 38, 14
+EDITTEXT        IDC_DEBUGGER_INSTRUCTION, 214, 23, 89, 14, ES_AUTOHSCROLL | ES_READONLY
+EDITTEXT        IDC_DEBUGGER_PRECOMPADDR, 214, 37, 89, 14, ES_AUTOHSCROLL
+EDITTEXT        IDC_DEBUGGER_PRECOMPOP, 214, 51, 89, 14, ES_AUTOHSCROLL
+CONTROL         "Mode", IDC_DEBUGGER_INSTDECODEMODE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 51, 55, 14
+CONTROL         "RSP", IDC_DEBUGGER_RSP_TOGGLE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 65, 53, 14
+CONTROL         "Cartridge Tilt", IDC_DEBUGGER_DMA_R_TOGGLE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 79, 53, 14
+
 END
 
 /////////////////////////////////////////////////////////////////////////////

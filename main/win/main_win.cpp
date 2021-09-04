@@ -64,8 +64,10 @@ extern "C" {
 #undef EMULATOR_MAIN_CPP_DEF
 
 #include <gdiplus.h>
-#pragma comment (lib,"Gdiplus.lib")
+#include "../main/win/GameDebugger.h"
 
+#pragma comment (lib,"Gdiplus.lib")
+    
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 void StartMovies();
@@ -483,7 +485,7 @@ void LoadTheState(HWND hWnd, int StateID)
     }
     //don't
     //if(emu_paused){
-        update_pif_read(FALSE); // pass in true and it will stuck
+        //update_pif_read(FALSE); // pass in true and it will stuck
     //}
 }
 
@@ -2326,6 +2328,11 @@ void EnableEmulationMenuItems(BOOL flag)
      
    HMENU hMenu, hSubMenu;
    hMenu = GetMenu(mainHWND);
+
+    #ifdef _DEBUG
+       EnableMenuItem(hMenu, ID_CRASHHANDLERDIALOGSHOW, MF_ENABLED);
+    #endif
+
    if (flag) {
       EnableMenuItem(hMenu,EMU_STOP,MF_ENABLED);
       //EnableMenuItem(hMenu,IDLOAD,MF_GRAYED);
@@ -2342,17 +2349,14 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
-      if (dynacore) {
+#ifdef N64DEBUGGER_ALLOWED
+      EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
+#endif
+      if (dynacore)
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
-      }
-      else {
+      else
           EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, true);
-      }
-      
-      
-      
+    
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
       EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_ENABLED);    //Record Menu
 if(!continue_vcr_on_restart_mode)
@@ -2392,12 +2396,9 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
+      EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_GRAYED);
 
-
-      if (!dynacore) {
-          EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
-      }
+      EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
      
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
 //      EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_GRAYED);    //Record Menu
@@ -2644,6 +2645,8 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 
 void EnableStatusbar()
 {
+    shouldSave = TRUE;
+
 	if (Config.GuiStatusbar)
 	{
 		if (!IsWindow( hStatus ))
@@ -2662,6 +2665,8 @@ void EnableStatusbar()
 
 void EnableToolbar()
 {
+    shouldSave = TRUE;
+
 	if (Config.GuiToolbar && !VCR_isCapturing())
 	{
 		if(!hTool || !IsWindow(hTool))
@@ -3154,6 +3159,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      ret = DialogBox(GetModuleHandle(NULL), 
                      MAKEINTRESOURCE(IDD_ABOUT), hwnd, AboutDlgProc);
                      break;
+            case ID_CRASHHANDLERDIALOGSHOW:
+                ErrorDialogEmuError();
+                break;
+            case ID_GAMEDEBUGGER:
+                DebuggerDialog();
+                break;
             case ID_RAMSTART:
             {
                 BOOL temppaused = !emu_paused;

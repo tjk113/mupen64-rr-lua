@@ -18,6 +18,7 @@ extern char GUICrashMessage[260];
 
 LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo);
 BOOL CALLBACK ErrorDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
+BOOL ErrorDialogEmuError();
 
 extern BYTE ValueStatus;
 extern BOOL actualCrash;

@@ -1004,6 +1004,7 @@ DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
 
 void RefreshRomBrowser()
 {
+    shouldSave = TRUE;
     romBrowserRefreshThread = CreateThread(NULL, 0, RefreshRomBrowserInternal, NULL, 0, &Id);
 }
 

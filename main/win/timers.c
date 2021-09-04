@@ -111,22 +111,14 @@ void new_vi() {
 	// vi/s shouldn't go over 300 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
 	if (!ignoreErrorEmulation && emu_launched && frame_advancing && VIs > 300) {
 
-
-		actualCrash = FALSE;
-		strcpy(GUICrashMessage, "An emulation problem has occured");
-		DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_MUPENERROR), 0, ErrorDialogProc);
-
-		if (GETBIT(ValueStatus, 2)) {
+		BOOL stop = ErrorDialogEmuError();
+		
+		if (stop) {
 
 			frame_advancing = false; //don't pause at next open
 			CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, 0);
 		}
-		if(!GETBIT(ValueStatus, 2)) { // macro fails otherwise.. we need this
-			ignoreErrorEmulation = TRUE; // dame tu
-		}
-
-
-
+		
 	}
 //#endif
    DWORD Dif;

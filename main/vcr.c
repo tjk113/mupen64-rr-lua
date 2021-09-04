@@ -1173,7 +1173,15 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 		fprintf( stderr, "[VCR]: Cannot start recording, could not open file '%s': %s\n", filename, strerror( errno ) );
 		return -1;
     }
-    
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (Controls[i].Present && Controls[i].RawData) {
+			if (MessageBox(NULL, "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?", "VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO) return -1;
+			break; //
+		}
+	}
+
     VCR_setReadOnly(FALSE);
 
 	memset(&m_header, 0, MUP_HEADER_SIZE);
@@ -1307,6 +1315,8 @@ VCR_stopRecord(int defExt)
 #ifdef __WIN32__
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
+		//RESET_TITLEBAR;
+		SetActiveMovie(0); // ?
 #else
 		// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
 #endif
@@ -1410,7 +1420,15 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 				warningStr[0] = '\0';
 
 				dontPlay = FALSE;
-				
+
+				for (int i = 0; i < 4; i++)
+				{
+					if (Controls[i].Present && Controls[i].RawData) {
+						if (MessageBox(NULL, "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?", "VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO) dontPlay = TRUE;
+						break; //
+					}
+				}
+
 				if(!Controls[0].Present && (m_header.controllerFlags & CONTROLLER_1_PRESENT))
 				{
 					strcat(warningStr, "Error: You have controller 1 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n");

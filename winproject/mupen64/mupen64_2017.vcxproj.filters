@@ -214,6 +214,7 @@
     <ClInclude Include="..\..\lua\Recent.h">
       <Filter>Source Files\lua</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\main\win\GameDebugger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main\adler32.c">
@@ -467,6 +468,9 @@
     </ClCompile>
     <ClCompile Include="..\..\lua\Recent.cpp">
       <Filter>Source Files\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\win\GameDebugger.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

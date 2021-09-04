@@ -347,9 +347,11 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     //Help menu
     submenu = GetSubMenu(hMenu,4);
     SetMenuTranslatedString(submenu,0,"Show RAM start","");
-    SetMenuTranslatedString(submenu,2,"About","");
-    DrawMenuBar(mainHWND);
+    SetMenuTranslatedString(submenu,1,"Show Crash Handler", "");
+    SetMenuTranslatedString(submenu,3,"About","");
     
+    DrawMenuBar(mainHWND);
+    // unecessary?
     
     
 
