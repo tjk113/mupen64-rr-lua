@@ -172,6 +172,20 @@ int movieBackup() {
 	//	// ??? um
 	//	return 0xAAAAAAA;
 	//}
+	
+	if (Config.movieBackupsLevel > 1) {
+		char* stPath = m_filename;
+		stripExt(stPath);
+		char* newPath = stPath;
+		strcat(newPath, "-b.st");
+		strcat(stPath, ".st");
+
+		FILE* tmpstFile = fopen(stPath, "w+");
+		if (tmpstFile) {
+			fclose(tmpstFile);
+			CopyFile(stPath, newPath, FALSE);
+		}
+	}
 
 	char* m_filenameBackup = (char*)malloc(strlen(m_filename) + 150);
 
