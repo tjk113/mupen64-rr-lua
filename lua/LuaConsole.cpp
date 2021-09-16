@@ -63,6 +63,8 @@ HANDLE TraceLogFile;
 
 class Lua;
 
+std::vector<Gdiplus::Image*> imagePool;
+
 struct AddrBreakFunc{
 	lua_State *lua;
 	int idx;
@@ -226,6 +228,11 @@ public:
 		deleteGDIObject(pen, BLACK_PEN);
 		deleteGDIObject(font, SYSTEM_FONT);
 		deleteLuaState();
+		for (auto x : imagePool)
+		{
+			delete x;
+		}
+		imagePool.clear();
 		SetButtonState(ownWnd, false);
 		ShowInfo("Lua stop");
 	}
@@ -2101,36 +2108,52 @@ int DrawRect(lua_State *L) {
 	return 0;
 }
 
-int DrawImageAlpha(lua_State* L) {
+int LoadImage(lua_State* L)
+{
 
-	Lua* lua = GetLuaClass(L);
-
-
-	int left, top, right, bottom;
-
-	char* patha = (char*)lua_tostring(L, 5);
-
-	// disk operation in draw procedure...
-
-	int output_size = MultiByteToWideChar(CP_ACP, 0, patha, -1, NULL, 0);
+	const char* path = luaL_checkstring(L,1);
+	int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
 	wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
-	int size = MultiByteToWideChar(CP_ACP, 0, patha, -1, pathw, output_size);
+	int size = MultiByteToWideChar(CP_ACP, 0, path, -1, pathw, output_size);
 
-	printf("PATH: %ws\n", pathw);
+	printf("LoadImage: %ws\n", pathw);
+	Gdiplus::Image *a = new Gdiplus::Image(pathw);
+	free(pathw);
 
-	bottom = luaL_checknumber(L, 1);
-	left = luaL_checknumber(L, 2);
-	right = luaL_checknumber(L, 3);
-	top = luaL_checknumber(L, 4);
+	if (a->GetLastStatus())
+	{
+		char error[512];
+		sprintf(error, "Couldn't find image '%s'", path);
+		luaL_error(L, error);
+		return 1;
+	}
+	imagePool.push_back(a);
+	lua_pushinteger(L, imagePool.size()); //return the identifier (index+1)
+	return 1;
+}
 
-
+int DrawImage(lua_State* L)
+{
+	int left, top, right, bottom;
+	unsigned imgIndex;
 	Gdiplus::Graphics gfx(luaDC);
 
-	Gdiplus::Image img ((pathw));
+	imgIndex = luaL_checkinteger(L, 1) - 1;
+	if (imgIndex > imagePool.size() - 1)
+	{
+		luaL_error(L, "Argument #1: Invalid image identifier");
+		return 0;
+	}
+	left = luaL_checknumber(L, 2);
+	top = luaL_checknumber(L, 3);
 
-	gfx.DrawImage(&img, left, top, right, bottom);
-	
-	free(pathw);
+	if (lua_gettop(L) == 3) gfx.DrawImage(imagePool[imgIndex], left, top);
+	else //optional args, resize image
+	{
+		right = luaL_checknumber(L, 4);
+		bottom = luaL_checknumber(L, 5);
+		gfx.DrawImage(imagePool[imgIndex], left, top, right, bottom);
+	}
 	
 	return 0;
 }
@@ -2254,10 +2277,10 @@ int FillRect(lua_State* L) {
 		luaL_checknumber(L, 7)
 	);
 	COLORREF colorold = SetBkColor(luaDC, color);
-	rect.bottom = luaL_checknumber(L, 1);
-	rect.left = luaL_checknumber(L, 2);
+	rect.left = luaL_checknumber(L, 1);
+	rect.top = luaL_checknumber(L, 2);
 	rect.right = luaL_checknumber(L, 3);
-	rect.top = luaL_checknumber(L, 4);
+	rect.bottom = luaL_checknumber(L, 4);
 	ExtTextOut(luaDC, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
 	SetBkColor(luaDC, colorold);
 	return 0;
@@ -2622,8 +2645,8 @@ int LuaFileDialog(lua_State* L) {
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
-	if(!type) GetOpenFileName(&ofn);
-	else GetSaveFileName(&ofn);
+	if(type) GetSaveFileName(&ofn);
+	else  GetOpenFileName(&ofn);
 	lua_pushstring(L, ofn.lpstrFile);
 	return 1;
 }
@@ -3176,7 +3199,8 @@ const luaL_Reg wguiFuncs[] = {
 	{"fillrecta", FillRectAlpha},
 	{"fillellipsea", FillEllipseAlpha},
 	{"fillpolygona", FillPolygonAlpha},
-	{"drawimagea", DrawImageAlpha},
+	{"drawimage", DrawImage},
+	{"loadimage", LoadImage},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
