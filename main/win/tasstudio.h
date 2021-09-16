@@ -6,7 +6,7 @@ extern void TASStudioWindow(int flag);
 extern void LoadTASStudio();
 extern void TASStudioBuild();
 extern SMovieHeader curMovie;
-extern char* tasStudioinputbuffer;
+extern int* tasStudioinputbuffer;
 extern int pendingData;
 extern int tasStudioInitialised;
 

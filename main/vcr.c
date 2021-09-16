@@ -1583,23 +1583,17 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 		long headerEndPos = 1024;
 		if (m_header.version != 3) headerEndPos = 0x200;
 		
-		//if(m_file) fclose(m_file);
-		//
-		//m_file = fopen(m_filename, "rb+");
-		
 		fseek(m_file, 0L, SEEK_END);
 		long eofpos = ftell(m_file);
 		
-		tasStudioinputbuffer = (char*)malloc(m_header.length_samples);
-		ZeroMemory(tasStudioinputbuffer, sizeof(tasStudioinputbuffer));
+		tasStudioinputbuffer = (int*)malloc(m_header.length_samples*sizeof(int));
 
 		fseek(m_file, headerEndPos, SEEK_SET);
 
 		for (int i = 0; i < m_header.length_samples; i++)
 		{
-			if (i + 1 > m_header.length_samples) break; // fuck you
-			fread(tasStudioinputbuffer, sizeof(int), 1, m_file);
-			printf("TASSTUDIO buffer Copy %d: 0x%08x\n", i, m_inputBuffer[i]);
+			if (i + sizeof(int) > m_header.length_samples) break;
+			fread(&tasStudioinputbuffer, sizeof(int), 1, m_file);
 		}
 
 		fclose(m_file);

@@ -34,7 +34,7 @@ static DWORD tasStudioThreadID;
 HANDLE tasStudioThread;
 char iStructName[18][3] = { "D>", "D<", "Dv", "D^", "S", "Z", "B", "A", "C>", "C<", "Cv", "C^", "R", "L", "R1", "R2", "X", "Y" };
 const char* classname = "tasStudioWindow"; // "fuckOff"
-char* tasStudioinputbuffer;
+int* tasStudioinputbuffer;
 int pendingData;
 int tasStudioInitialised;
 
@@ -93,7 +93,7 @@ void TASStudioBuild() {
 
     char name[15] = { 0 };
 
-    for (UINT i = 0; i < curMovie.length_samples; i++)
+    for (UINT i = 0; i < curMovie.length_samples-4; i++)
     {
         printf("Frame %d: 0x%08x\n", i, tasStudioinputbuffer[i]);
         //SendMessage(studioControlhWnd, ZGM_APPENDROW, 0, 0);
@@ -105,8 +105,9 @@ void TASStudioBuild() {
             
             if (BIT_GET(tasStudioinputbuffer[i], j)) 
                 strcpy(name, iStructName[j]);
-            else
-                strcpy(name, " ");
+            //else
+            //    strcpy(name, " ");
+            // zeromemory already affected this
             
             SendMessage(studioControlhWnd, ZGM_SETCELLTEXT, GETCELL(studioControlhWnd, i, j), (LPARAM)name);
 
