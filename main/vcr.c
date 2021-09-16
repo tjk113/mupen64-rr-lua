@@ -1667,7 +1667,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 				if ((stBuf = fopen(bufnExt, "r"))) fclose(stBuf);
 				else {
-					printf("[VCR]: Early Savestate exist check failed. No .savestate or .st found for movie!\n");
+					printf("[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
 					RESET_TITLEBAR;
 					if (m_file != NULL)
 						fclose(m_file);
