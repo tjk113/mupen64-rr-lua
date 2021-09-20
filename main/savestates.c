@@ -148,6 +148,7 @@ void savestates_save()
 		update_count();
 		add_interupt_event(SI_INT, /*0x100*/0x900);
 		rdram_register.rdram_device_manuf |= MUPEN64NEW_ST_FIXED;
+		st_skip_dma = true;
 		//hack end
 	}
 	gzwrite(f, &rdram_register, sizeof(RDRAM_register));
