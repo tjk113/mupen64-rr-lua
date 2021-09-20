@@ -132,6 +132,7 @@ volatile BOOL captureFrameValid = FALSE;
 static int AVIBreakMovie = 0;
 int AVIIncrement = 0;
 int titleLength;
+char VCR_Lastpath[MAX_PATH];
 
 extern void resetEmu();
 void SetActiveMovie(char* buf);
@@ -168,10 +169,22 @@ int movieBackup() {
 
 	if (!Config.movieBackups) return 0; // :(
 
-	//if (VCR_isIdle()) {
-	//	// ??? um
-	//	return 0xAAAAAAA;
-	//}
+	char* original_m_filename = (char*)malloc(strlen(m_filename));
+	strcpy(original_m_filename, m_filename);
+
+	if (Config.movieBackupsLevel > 1) {
+		char* stPath = m_filename;
+		stripExt(stPath);
+		char* newPath = stPath;
+		strcat(newPath, "-b.st");
+		strcat(stPath, ".st");
+
+		FILE* tmpstFile = fopen(stPath, "w+");
+		if (tmpstFile) {
+			fclose(tmpstFile);
+			CopyFile(stPath, newPath, FALSE);
+		}
+	}
 
 	char* m_filenameBackup = (char*)malloc(strlen(m_filename) + 150);
 
@@ -202,16 +215,17 @@ int movieBackup() {
 		// ???
 		fclose(fileBackup);
 		free(m_filenameBackup);
-		return 1984;
+		return 0;
 	}
 
 	fwrite(m_inputBuffer, 1, sizeof(BUTTONS) * (m_header.length_samples), fileBackup);
+
 	fflush(fileBackup);
 	fclose(fileBackup);
-
 	free(m_filenameBackup);
 
-	return 0xDE; // :)
+	strcpy(m_filename,original_m_filename); // revert
+	return 1;
 }
 
 void printWarning (char* str)
@@ -1613,7 +1627,8 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 		m_currentSample = 0;
 		m_currentVI = 0;
-	
+		strcpy(VCR_Lastpath, m_filename);
+
 		if(Config.movieBackupsLevel > 1) movieBackup();
 
 	    if(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
@@ -1652,7 +1667,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 				if ((stBuf = fopen(bufnExt, "r"))) fclose(stBuf);
 				else {
-					printf("[VCR]: Early Savestate exist check failed. No .savestate or .st found for movie!\n");
+					printf("[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
 					RESET_TITLEBAR;
 					if (m_file != NULL)
 						fclose(m_file);

@@ -289,6 +289,11 @@ void LoadConfig()
     ReadHotkeyConfig(40, "Lua Script Reload", ID_LUA_RELOAD, VK_F3 | 0x200);
     ReadHotkeyConfig(41, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4 | 0x200);
 
+    // some new misc ones
+    ReadHotkeyConfig(42, "Start From Beginning", ID_RESTART_MOVIE, 'H' | 0x300);
+    ReadHotkeyConfig(43, "Replay Latest", ID_REPLAY_LATEST, 'G' | 0x300);
+
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -452,6 +457,10 @@ void SaveConfig()
     WriteCfgString("Lua", "Script Path", Config.LuaScriptPath);
     WriteHotkeyConfig(40, "Lua Script Reload");
     WriteHotkeyConfig(41, "Lua Script CloseAll");
+
+    // some new misc ones
+    WriteHotkeyConfig(42, "Start From Beginning");
+    WriteHotkeyConfig(43, "Replay Latest");
 }
 
 
