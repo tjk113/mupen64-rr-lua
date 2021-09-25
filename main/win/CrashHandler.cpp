@@ -51,7 +51,11 @@ VOID CrashLog(_EXCEPTION_POINTERS* ExceptionInfo) {
     len += FindModuleName(error, addr, len); //appends to error as well
 
     //emu info
+#ifdef _DEBUG
+    len += sprintf(error + len, "Version:" MUPEN_VERSION " DEBUG\n");
+#else
     len += sprintf(error + len, "Version:" MUPEN_VERSION "\n");
+#endif
     len += sprintf(error + len, "Gfx:%s\n", gfx_name);
     len += sprintf(error + len, "Input:%s\n", input_name);
     len += sprintf(error + len, "Audio:%s\n", sound_name);
