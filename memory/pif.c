@@ -57,7 +57,6 @@ unsigned char mempack[4][0x8000];
 
 void check_input_sync(unsigned char* value);
 
-//#define DEBUG_PIF
 #ifdef DEBUG_PIF
 void print_pif()
 {

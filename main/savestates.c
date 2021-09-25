@@ -55,6 +55,12 @@ bool old_st; //.st that comes from no delay fix mupen, it has some differences c
 			 //- execution continues at exception handler (after input poll) at 0x80000180.
 bool lockNoStWarn;
 
+bool fix_new_st = true; //this is a switch to enable/disable fixing .st to work for old mupen (and m64plus)
+						//read savestate save function for more info
+						//right now its hardcoded to enabled
+bool st_skip_dma = false;
+#define MUPEN64NEW_ST_FIXED (1<<31) //last bit seems to be free
+
 static unsigned int slot = 0;
 static char fname[MAX_PATH] = {0,};
 
@@ -126,6 +132,25 @@ void savestates_save()
    
 	gzwrite(f, ROM_SETTINGS.MD5, 32);
    
+	//if fixing enabled...
+	if (fix_new_st)
+	{
+		//this is code taken from dma.c:dma_si_read(), it finishes up the dma.
+		//it copies data from pif (should contain commands and controller states), updates count reg and adds SI interrupt to queue
+		//so why does old mupen and mupen64plus dislike savestates without doing this? well in case of mario 64 it leaves pif command buffer uninitialised
+		//and it never can poll input properly (hence the inability to frame advance which is handled inside controller read).
+		
+		//But we dont want to do this then load such .st and dma again... so I notify mupen about this in .st,
+		//since .st is filled up to the brim with data (not even a single unused offset) I have to store one bit in... rdram manufacturer register
+		//this 99.999% wont break on any game, and that bit will be cleared by mupen64plus converter as well, so only old old mupen ever sees this trick.
+		for (i = 0; i < (64 / 4); i++)
+			rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
+		update_count();
+		add_interupt_event(SI_INT, /*0x100*/0x900);
+		rdram_register.rdram_device_manuf |= MUPEN64NEW_ST_FIXED;
+		st_skip_dma = true;
+		//hack end
+	}
 	gzwrite(f, &rdram_register, sizeof(RDRAM_register));
 	gzwrite(f, &MI_register, sizeof(mips_register));
 	gzwrite(f, &pi_register, sizeof(PI_register));
@@ -291,6 +316,11 @@ void savestates_load(bool silenceNotFoundError)
 	}
    
 	gzread(f, &rdram_register, sizeof(RDRAM_register));
+	if (rdram_register.rdram_device_manuf & MUPEN64NEW_ST_FIXED)
+	{
+		rdram_register.rdram_device_manuf &= ~MUPEN64NEW_ST_FIXED; //remove the trick
+		st_skip_dma = true; //tell dma.c to skip it
+	}
 	gzread(f, &MI_register, sizeof(mips_register));
 	gzread(f, &pi_register, sizeof(PI_register));
 	gzread(f, &sp_register, sizeof(SP_register));

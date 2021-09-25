@@ -40,6 +40,7 @@
 #include "../main/guifuncs.h"
 #include "../r4300/ops.h"
 #include "../main/win/GameDebugger.h"
+#include "savestates.h"
 
 unsigned char sram[0x8000];
 
@@ -270,7 +271,11 @@ void dma_si_read()
      }
    update_pif_read(true);
    for (i=0; i<(64/4); i++)
-     rdram[si_register.si_dram_addr/4+i] = sl(PIF_RAM[i]);
-   update_count();
-   add_interupt_event(SI_INT, /*0x100*/0x900);
+	   rdram[si_register.si_dram_addr/4+i] = sl(PIF_RAM[i]);
+   if (!st_skip_dma) //st already did this, see savestates.c, we still copy pif ram tho because it has new inputs
+   {
+	   update_count();
+	   add_interupt_event(SI_INT, /*0x100*/0x900);
+   }
+   st_skip_dma = false;
 }
