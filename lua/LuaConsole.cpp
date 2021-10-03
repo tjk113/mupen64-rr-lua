@@ -3378,8 +3378,7 @@ inline void TraceLoggingWriteBuf() {
 	}
 }
 
-void instrStr2(r4300word pc, r4300word w, char* buffer) {
-	char* p = (char*)malloc(260);
+void instrStr2(r4300word pc, r4300word w, char* p) {
 	INSTDECODE decode;
 	//little endian
 #define HEX8(n) 	*(r4300word*)p = n; p += 4
@@ -3472,7 +3471,6 @@ void instrStr2(r4300word pc, r4300word w, char* buffer) {
 	}
 	//*(p++) = '\n';
 	// no need to fuck up pointer and break malloc
-	strcpy(buffer, p);
 #undef HEX8
 #undef REGCPU
 #undef REGFPU
@@ -3480,9 +3478,7 @@ void instrStr2(r4300word pc, r4300word w, char* buffer) {
 #undef REGFPU2
 }
 
-void instrStr1(unsigned long pc, unsigned long w, char* buffer) {
-	char* p = (char*)malloc(260);
-
+void instrStr1(unsigned long pc, unsigned long w, char* p) {
 	INSTDECODE decode;
 	const char* const x = "0123456789abcdef";
 #define HEX8(n) 	p[0] = x[(r4300word)(n)>>28&0xF];\
@@ -3604,7 +3600,6 @@ void instrStr1(unsigned long pc, unsigned long w, char* buffer) {
 	}
 	//*(p++) = '\n';
 	// no need to fuck up pointer and break malloc
-	strcpy(buffer, p);
 #undef HEX8
 #undef REGCPU
 #undef REGFPU

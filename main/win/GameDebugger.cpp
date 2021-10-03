@@ -50,17 +50,16 @@ void DebuggerSet(int debuggerFlag) {
 
         diecdmode = IsDlgButtonChecked(hwndd, IDC_DEBUGGER_INSTDECODEMODE);
 
-        char* instrstr = (char*)calloc(100, sizeof(char));
-
+        char* instrStr = (char*)malloc(255);
         char addr[100];
         char op[100];
 
-        diecdmode ? instrStr1(_gaddr(), _gsrc(), instrstr) : instrStr2(_gaddr(), _gsrc(), instrstr);
+        diecdmode ? instrStr1(_gaddr(), _gsrc(), instrStr) : instrStr2(_gaddr(), _gsrc(), instrStr);
 
         sprintf(addr, "%lu", _gaddr());
         sprintf(op, "%lu", _gsrc());
 
-        SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_INSTRUCTION), instrstr);
+        SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_INSTRUCTION), instrStr);
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPADDR), addr);
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPOP), op);
 
