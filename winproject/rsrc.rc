@@ -131,7 +131,9 @@ BEGIN
             MENUITEM "Replay Latest",               ID_REPLAY_LATEST
         END
         MENUITEM SEPARATOR
+#ifdef LUA_MODULEIMPL
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
+#endif
         MENUITEM "Save Config",                 ID_FORCESAVE
         MENUITEM "Game Debugger",               ID_GAMEDEBUGGER
     END
