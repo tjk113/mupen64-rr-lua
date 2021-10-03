@@ -2967,7 +2967,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 			case ID_MENU_LUASCRIPT_NEW:
 				{
-#ifdef LUA_CONSOLE
+#ifdef LUA_MODULEIMPL
 					MUPEN64RR_DEBUGINFO("LuaScript New");
 					::NewLuaScript((void(*)())lParam);
 #endif
@@ -2987,7 +2987,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_MENU_LUASCRIPT_CLOSEALL:
 				{
                 
-#ifdef LUA_CONSOLE
+#ifdef LUA_MODULEIMPL
                 
                     ::CloseAllLuaScript();
 #endif
@@ -3538,7 +3538,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      InitTimer();
                      break;                                                 
 								case ID_LUA_RELOAD:
-#ifdef LUA_CONSOLE
+#ifdef LUA_MODULEIMPL
 									LuaReload();
 #endif
 									break;
@@ -3836,7 +3836,7 @@ int WINAPI WinMain(
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
 			if (!TranslateAccelerator(mainHWND,Accel,&Msg)
-#ifdef LUA_CONSOLE
+#ifdef LUA_MODULEIMPL
 			&& !::IsLuaConsoleMessage(&Msg)
 #endif
 			)

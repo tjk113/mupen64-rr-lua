@@ -2,6 +2,9 @@
 // Plik do³¹czany wygenerowany przez œrodowisko Microsoft Visual C++.
 // U¿ywany przez: rsrc.rc
 //
+
+// no ifdef switch here for lua
+
 #define MUPEN_VERSION     "Mupen 64 1.0.9"
 
 #define MIN_WINDOW_W -500

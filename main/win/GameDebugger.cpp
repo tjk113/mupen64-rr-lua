@@ -55,18 +55,14 @@ void DebuggerSet(int debuggerFlag) {
         char addr[100];
         char op[100];
 
-
         diecdmode ? instrStr1(_gaddr(), _gsrc(), instrstr) : instrStr2(_gaddr(), _gsrc(), instrstr);
-
 
         sprintf(addr, "%lu", _gaddr());
         sprintf(op, "%lu", _gsrc());
 
-
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_INSTRUCTION), instrstr);
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPADDR), addr);
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPOP), op);
-
 
         //free(instrstr);
         //if(Config.guiDynacore)

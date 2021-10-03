@@ -3,7 +3,7 @@
 
 #include "luaDefine.h"
 
-#ifdef LUA_CONSOLE
+//#ifdef LUA_MODULEIMPL
 
 
 //識別子衝突対策
@@ -67,4 +67,4 @@ extern unsigned long gdiPlusToken;
 
 #endif
 
-#endif
+//#endif

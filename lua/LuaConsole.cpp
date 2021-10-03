@@ -3,6 +3,7 @@
 */
 
 
+
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -25,12 +26,12 @@
 #include <vcr.h>
 #include <gdiplus.h>
 
-#ifdef LUA_CONSOLE
 
+#ifdef LUA_MODULEIMPL
 //nice msvc pragma smh
 #pragma comment(lib, "lua54.lib")
 #pragma comment (lib,"Gdiplus.lib")
-
+#endif
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
@@ -54,12 +55,16 @@ bool anyLuaRunning = false;
 bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
 
+#ifdef LUA_MODULEIMPL
+
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
 namespace LuaEngine {
 std::vector<HWND> luaWindows;
 RECT InitalWindowRect[3] = {0};
 HANDLE TraceLogFile;
+
+
 
 class Lua;
 
@@ -3609,6 +3614,7 @@ void instrStr1(unsigned long pc, unsigned long w, char* buffer) {
 
 
 }
+
 void TraceLogging(r4300word pc, r4300word w) {
 	char *&p = traceLoggingPointer;
 	INSTDECODE decode;
@@ -3902,6 +3908,23 @@ void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 }
 
 
+
 #endif
 
+#else
+// bad: empty dummy functions
+void AtUpdateScreenLuaCallback(){};
+void AtVILuaCallback()			{};
+void AtInputLuaCallback(int n)	{};
+void AtIntervalLuaCallback()	{};
+void AtLoadStateLuaCallback()	{};
+void AtSaveStateLuaCallback()	{};
+void AtResetCallback()			{};
+void GetLuaMessage()			{};
+void LuaBreakpointSyncPure()	{};
+void LuaBreakpointSyncInterp()	{};
+void LuaOpenAndRun(char const* n) {};
+void CloseAllLuaScript(void) {};
+void instrStr1(r4300word pc, r4300word w, char* buffer){};
+void instrStr2(r4300word pc, r4300word w, char* buffer){};
 #endif
