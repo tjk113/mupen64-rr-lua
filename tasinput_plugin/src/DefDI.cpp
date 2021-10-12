@@ -249,8 +249,8 @@ int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 	// HACK: perform windows left handed mode check 
 	// and adjust accordingly
 	if (!GetSystemMetrics(SM_SWAPBUTTON)) {
-		MOUSE_LBUTTONREDEFINITION = VK_RBUTTON;
-		MOUSE_RBUTTONREDEFINITION = VK_LBUTTON;
+		MOUSE_LBUTTONREDEFINITION = VK_LBUTTON;
+		MOUSE_RBUTTONREDEFINITION = VK_RBUTTON;
 	}
 
 	return TRUE;
@@ -886,14 +886,14 @@ BOOL AdjustForDPI(HWND parent, UINT dpi) {
 		// prevent infinitely increasing size
 
 		if (dpi == 120) { 
-			STICKPIC_SIZE = STICKPIC_SIZE*(125/100); // * 1.25 works too
+			STICKPIC_SIZE = STICKPIC_SIZE * 125 / 100;
 		}
 
 
 		// check for overlap with gpbox and try to fix it
 		if (ctl_pos.right+1 > ctl_gp_pos.left) {
 			printf("overlap with groupbox (%d/%d)", ctl_pos.right, ctl_gp_pos.left);
-			STICKPIC_SIZE -= 1;
+			STICKPIC_SIZE = ctl_gp_pos.left - 2;
 		}
 	}
 
@@ -1971,6 +1971,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			if (IsMouseOverControl(statusDlg, IDC_BUTTONSLABEL) && lastWasRight)
 			{
 				overrideOn = true; //clicking on buttons counts as override
+
 				if (GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000) // right click on a button to autofire it
 				{
 					UPDATEAUTO(IDC_CHECK_A, A_BUTTON);
