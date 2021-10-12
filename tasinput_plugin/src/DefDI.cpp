@@ -46,6 +46,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 int MOUSE_LBUTTONREDEFINITION = VK_LBUTTON;
 int MOUSE_RBUTTONREDEFINITION = VK_RBUTTON;
+BOOL lHandedMode = FALSE;
 
 #undef List // look at line 32 for cause
 #define aCombo ComboList.at(activeCombo) //so it's a bit cleaner
@@ -248,9 +249,10 @@ int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 
 	// HACK: perform windows left handed mode check 
 	// and adjust accordingly
-	if (!GetSystemMetrics(SM_SWAPBUTTON)) {
-		MOUSE_LBUTTONREDEFINITION = VK_LBUTTON;
-		MOUSE_RBUTTONREDEFINITION = VK_RBUTTON;
+	if (GetSystemMetrics(SM_SWAPBUTTON)) {
+		MOUSE_LBUTTONREDEFINITION = VK_RBUTTON;
+		MOUSE_RBUTTONREDEFINITION = VK_LBUTTON;
+		lHandedMode = TRUE;
 	}
 
 	return TRUE;
@@ -1966,6 +1968,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			//used for sliders (rightclick reset), remembers if rightclick was pressed
 			//!! turns it into bool
 			lastWasRight = !!(GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000);
+			// logical compromise for l handed mode
 			//if we are over buttons area and right is clicked, look for autofire candidates
 			//sadly wm_rbuttondown doesnt work here
 			if (IsMouseOverControl(statusDlg, IDC_BUTTONSLABEL) && lastWasRight)
