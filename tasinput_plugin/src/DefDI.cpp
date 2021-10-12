@@ -44,6 +44,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define PI 3.14159265358979f
 #define BUFFER_CHUNK 128
 
+int MOUSE_LBUTTONREDEFINITION = VK_LBUTTON;
+int MOUSE_RBUTTONREDEFINITION = VK_RBUTTON;
+
 #undef List // look at line 32 for cause
 #define aCombo ComboList.at(activeCombo) //so it's a bit cleaner
 
@@ -241,6 +244,13 @@ int WINAPI DllMain ( HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 		case DLL_PROCESS_DETACH:
 			FreeDirectInput();
 			break;
+	}
+
+	// HACK: perform windows left handed mode check 
+	// and adjust accordingly
+	if (!GetSystemMetrics(SM_SWAPBUTTON)) {
+		MOUSE_LBUTTONREDEFINITION = VK_RBUTTON;
+		MOUSE_RBUTTONREDEFINITION = VK_LBUTTON;
 	}
 
 	return TRUE;
@@ -1706,7 +1716,7 @@ void RefreshChanges(HWND hwnd)
 
 bool ShowContextMenu(HWND hwnd,HWND hitwnd, int x, int y)
 {
-	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(VK_LBUTTON) & 0x8000)) return TRUE;
+	if (hitwnd != hwnd || IsMouseOverControl(hwnd, IDC_STICKPIC) || (GetKeyState(MOUSE_LBUTTONREDEFINITION) & 0x8000)) return TRUE;
 	RefreshChanges(hwnd);
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); //disable topmost for a second
 	hMenu = CreatePopupMenu();
@@ -1802,8 +1812,8 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 			yScale = 1.0f;
 			nextClick = false;
 			deactivateAfterClick = false;
-			lastClick = ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000));
-			lastWasRight = 0!=(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+			lastClick = ((GetAsyncKeyState(MOUSE_LBUTTONREDEFINITION) & 0x8000) || (GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000));
+			lastWasRight = 0!=(GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000);
 			int initialStickX = overrideX;
 			int initialStickY = overrideY;
 
@@ -1951,17 +1961,17 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 #endif
 
 			//is any mouse button pressed?
-			nextClick = ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000));
+			nextClick = ((GetAsyncKeyState(MOUSE_LBUTTONREDEFINITION) & 0x8000) || (GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000));
 
 			//used for sliders (rightclick reset), remembers if rightclick was pressed
 			//!! turns it into bool
-			lastWasRight = !!(GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+			lastWasRight = !!(GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000);
 			//if we are over buttons area and right is clicked, look for autofire candidates
 			//sadly wm_rbuttondown doesnt work here
 			if (IsMouseOverControl(statusDlg, IDC_BUTTONSLABEL) && lastWasRight)
 			{
 				overrideOn = true; //clicking on buttons counts as override
-				if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) // right click on a button to autofire it
+				if (GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000) // right click on a button to autofire it
 				{
 					UPDATEAUTO(IDC_CHECK_A, A_BUTTON);
 					UPDATEAUTO(IDC_CHECK_B, B_BUTTON);
@@ -2072,7 +2082,7 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				else
 				{
-					if(((GetKeyState(VK_ESCAPE) & 0x8000) || (GetKeyState(VK_RETURN) & 0x8000) || (deactivateAfterClick && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000))))
+					if(((GetKeyState(VK_ESCAPE) & 0x8000) || (GetKeyState(VK_RETURN) & 0x8000) || (deactivateAfterClick && !(GetAsyncKeyState(MOUSE_LBUTTONREDEFINITION) & 0x8000))))
 					{
 						ActivateEmulatorWindow();
 						deactivateAfterClick = false;
@@ -2146,34 +2156,34 @@ LRESULT Status::StatusDlgMethod (UINT msg, WPARAM wParam, LPARAM lParam)
 				case IDC_SPINX:
 				case IDC_SPINY:
 				{
-					if(GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+					if(GetAsyncKeyState(MOUSE_LBUTTONREDEFINITION) & 0x8000)
 						deactivateAfterClick = true;
 						overrideOn = true;
 				}	break;
 
 				case IDC_SLIDERX:
 				{
-					if(lastWasRight || GetAsyncKeyState(VK_RBUTTON) & 0x8000)
+					if(lastWasRight || GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000)
 					{
 						resetXScale = true; // right-click resets to 100% scale (defer setpos until later because it would ruin the the control to do it during a WM_NOTIFY)
 						deactivateAfterClick = true;
 					}
 					int pos = SendDlgItemMessage(statusDlg, IDC_SLIDERX, TBM_GETPOS, 0, 0);
 					xScale = pos / 1000.0f;
-					if(GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+					if(GetAsyncKeyState(MOUSE_LBUTTONREDEFINITION) & 0x8000)
 						deactivateAfterClick = true;
 				}	break;
 
 				case IDC_SLIDERY:
 				{
-					if(lastWasRight || GetAsyncKeyState(VK_RBUTTON) & 0x8000)
+					if(lastWasRight || GetAsyncKeyState(MOUSE_RBUTTONREDEFINITION) & 0x8000)
 					{
 						resetYScale = true;
 						deactivateAfterClick = true;
 					}
 					int pos = SendDlgItemMessage(statusDlg, IDC_SLIDERY, TBM_GETPOS, 0, 0);
 					yScale = pos / 1000.0f;
-					if(GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+					if(GetAsyncKeyState(MOUSE_LBUTTONREDEFINITION) & 0x8000)
 						deactivateAfterClick = true;
 				}	break;
 			}
