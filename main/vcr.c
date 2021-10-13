@@ -1584,7 +1584,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 
 
-				if (dontPlay) {
+				if (dontPlay && !Config.savesERRORS) {
 					RESET_TITLEBAR
 					if(m_file != NULL)
 					fclose(m_file);
