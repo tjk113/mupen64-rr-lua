@@ -30,8 +30,8 @@
 #ifndef RECOMP_H
 #define RECOMP_H
 
-#include "x86/assemble.h"
 #include "../lua/luaDefine.h"
+#include "x86/assemble.h"
 
 typedef struct _precomp_instr
 {

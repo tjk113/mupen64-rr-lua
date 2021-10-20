@@ -15,6 +15,8 @@
  ***************************************************************************/
 
 #define _WIN32_IE 0x0500
+#include <LuaConsole.h>
+
 #include <windows.h>
 #include <commctrl.h>
 #include <stdio.h>
@@ -24,7 +26,6 @@
 #include "rombrowser.h"
 #include "../../winproject/resource.h"
 #include <vcr.h>
-#include <LuaConsole.h>
 
 char *get_currentpath()
 {

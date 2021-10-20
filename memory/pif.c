@@ -32,6 +32,8 @@
 //#define DEBUG_PIF //don't define if you don't need spam
 #endif
 
+#include "../lua/LuaConsole.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef __WIN32__
@@ -50,7 +52,6 @@
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
-#include "../lua/LuaConsole.h"
 
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];

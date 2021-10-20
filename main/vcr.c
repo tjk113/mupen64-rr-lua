@@ -1,6 +1,8 @@
 //#include "../config.h"
 #ifdef VCR_SUPPORT
 
+#include "../lua/LuaConsole.h"
+
 #include "vcr.h"
 #include "vcr_compress.h"
 #include "vcr_resample.h"
@@ -9,7 +11,6 @@
 #include "rom.h"
 #include "savestates.h"
 #include "../memory/memory.h"
-#include "../lua/LuaConsole.h"
 
 #include <errno.h>
 #include <limits.h>

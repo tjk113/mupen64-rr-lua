@@ -27,6 +27,9 @@
  *
 **/
 
+#include "../lua/LuaConsole.h"
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -41,7 +44,6 @@
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "../lua/LuaConsole.h"
 #include "../../main/win/GameDebugger.h"
 
 #ifdef DBG

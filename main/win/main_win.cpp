@@ -17,6 +17,7 @@
 
 
 #include "LuaConsole.h"
+
 #include "Recent.h"
 #include "win/DebugInfo.hpp"
 	

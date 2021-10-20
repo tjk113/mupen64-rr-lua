@@ -1,3 +1,5 @@
+#include <LuaConsole.h>
+
 #include "../resource.h"
 #include "../main/win/CrashHandler.h"
 #include "../main/win/main_win.h"
@@ -7,7 +9,6 @@
 #include "vcr.h"
 #include <Windows.h>
 #include "../../r4300/r4300.h"
-#include <LuaConsole.h>
 #include "../../memory/memory.h"
 
 // shitty crappy n64 debugger* by aurumaker 

@@ -1,13 +1,10 @@
 #ifndef LUA_DEFINE_H
 #define LUA_DEFINE_H
 
-#ifdef WIN32
-
-
-// --- LUA
 // Comment this define to exclude LUA extension from compile
-#define LUA_MODULEIMPL 1
-// ---
+#define LUA_MODULEIMPL
+
+#ifdef WIN32
 
 #ifdef LUA_MODULEIMPL
 

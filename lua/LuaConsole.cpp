@@ -3,6 +3,7 @@
 */
 
 
+#include "LuaConsole.h"
 
 #include <vector>
 #include <algorithm>
@@ -10,7 +11,6 @@
 #include <map>
 #include <list>
 #include <filesystem>
-#include "LuaConsole.h"
 #include "../../winproject/resource.h"
 #include "win/DebugInfo.hpp"
 #include "win/main_win.h"

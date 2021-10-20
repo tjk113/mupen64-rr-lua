@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../lua/LuaConsole.h"
+
 #include "vcr.h"
 
 #include "savestates.h"
@@ -41,7 +43,6 @@
 #include "../r4300/r4300.h"
 #include "../r4300/interupt.h"
 
-#include "../lua/LuaConsole.h"
 
 extern unsigned long interp_addr;
 extern int *autoinc_save_slot;

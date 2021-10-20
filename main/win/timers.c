@@ -13,6 +13,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "../../lua/LuaConsole.h"
 
 #include <windows.h>
 #include <stdio.h>
@@ -25,7 +26,6 @@
 #include "../rom.h"
 #include "translation.h"
 #include "../vcr.h"
-#include "../../lua/LuaConsole.h"
 #include "../../winproject/resource.h"
 #include <win/CrashHandler.h>
 

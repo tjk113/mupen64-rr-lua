@@ -22,6 +22,7 @@
 
 #include <shlobj.h>
 #include <stdio.h>
+#include "../lua/LuaConsole.h"
 #include "main_win.h"
 #include "../../winproject/resource.h"
 #include "../plugin.h"
@@ -33,7 +34,6 @@
 #include "Config.h"
 #include "../rom.h"
 #include "inifunctions.h"
-#include "../lua/LuaConsole.h"
 
 #include "configdialog.h"
 
