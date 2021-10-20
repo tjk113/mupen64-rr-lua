@@ -102,6 +102,8 @@ void new_frame() {
 }
 
 extern int m_currentVI;
+extern long m_currentSample;
+
 void new_vi() {
 //#ifdef WIN32// this is windows only already
 	extern DWORD WINAPI closeRom(LPVOID lpParam);
@@ -149,11 +151,11 @@ void new_vi() {
 	if(VCR_isPlaying())
 	{
 		extern int pauseAtFrame;
-		if(m_currentVI >= pauseAtFrame && pauseAtFrame >= 0)
+		// use jg not jge due to off-by-one error inherited by cancerous code
+		if(m_currentSample > pauseAtFrame && pauseAtFrame >= 0)
 		{
 			extern void pauseEmu(BOOL quiet);
 			pauseEmu(TRUE); // maybe this is multithreading unsafe?
-
 			pauseAtFrame = -1; // don't pause again
 		}
 	}
