@@ -460,6 +460,7 @@
 #define IDC_DEBUGGER_DUMPRDRAM			40046
 #define IDC_DEBUGGER_DMA_R_TOGGLE	    40047
 #define ID_REPLAY_LATEST				40048
+#define IDC_FREQUENTVCRREFRESH			40049
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

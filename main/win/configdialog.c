@@ -67,7 +67,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
         WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
         WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.movieBackups);
-
+        WriteCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH, Config.FrequentVCRUIRefresh);
 
         hwndTrackOther = CreateTrackbar(hwnd, 1, 3, Config.movieBackupsLevel, 3, 200, 79, 100);
 
@@ -102,6 +102,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
             Config.LuaSimpleDialog = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
             Config.LuaWarnOnClose = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
             Config.movieBackups = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
+            Config.FrequentVCRUIRefresh = ReadCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH);
             Config.FPSmodifier = SendMessage(hwndTrackOther, TBM_GETPOS, 0, 0);
             EnableToolbar();
             EnableStatusbar();

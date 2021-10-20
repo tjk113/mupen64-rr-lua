@@ -143,10 +143,13 @@ void new_vi() {
 #else
 	extern int frame_advancing;
 	extern BOOL manualFPSLimit;
-	if(/*VCR_isActive() &&*/ (frame_advancing || (m_currentVI % (manualFPSLimit ? 10 : 80)) == 0))
-	{
+	if (!Config.FrequentVCRUIRefresh) {
+		if ((frame_advancing || (m_currentVI % (manualFPSLimit ? 10 : 80)) == 0))
+		{
+			VCR_updateFrameCounter();
+		}
+	}else
 		VCR_updateFrameCounter();
-	}
 
 	if(VCR_isPlaying())
 	{

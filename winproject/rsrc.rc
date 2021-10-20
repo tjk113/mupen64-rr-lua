@@ -240,6 +240,7 @@ CONTROL         "Ask on lua close", IDC_LUA_WARNONCLOSE, "Button", BS_AUTOCHECKB
 CONTROL         "Simplified lua dialog", IDC_LUA_SIMPLEDIALOG, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 30, 100, 10
 #endif
 CONTROL         "Automatic movie backups", IDC_MOVIEBACKUPS, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 40, 100, 10
+CONTROL         "Frequent statusbar updates", IDC_FREQUENTVCRREFRESH, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 50, 120, 10
 END
 
 IDD_AUDIT_ROMS_DIALOG DIALOGEX 0, 0, 183, 138

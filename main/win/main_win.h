@@ -161,6 +161,7 @@ typedef struct _CONFIG {
     BOOL RecentScriptsFreeze;
     BOOL LuaSimpleDialog;
     BOOL LuaWarnOnClose;
+    BOOL FrequentVCRUIRefresh;
 } CONFIG;
 
 extern "C" CONFIG Config;

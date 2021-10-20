@@ -6,7 +6,7 @@
 
 // --- LUA
 // Comment this define to exclude LUA extension from compile
-#define LUA_MODULEIMPL
+#define LUA_MODULEIMPL 1
 // ---
 
 #ifdef LUA_MODULEIMPL

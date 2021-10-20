@@ -245,6 +245,7 @@ void LoadConfig()
     Config.LuaSimpleDialog = ReadCfgInt("Other", "Simplified lua", 0);
     Config.movieBackups = ReadCfgInt("Other", "Autobackup", 0);
     Config.movieBackupsLevel = ReadCfgInt("Other", "Autobackup level", 0);
+    Config.FrequentVCRUIRefresh = ReadCfgInt("Other", "Fast statusbar updates", 0);
 
     // Load A Whole Whackton Of Hotkeys:
 
@@ -426,6 +427,7 @@ void SaveConfig()
     WriteCfgInt("Other", "Simplified lua", Config.LuaSimpleDialog);
     WriteCfgInt("Other", "Autobackup", Config.movieBackups);
     WriteCfgInt("Other", "Autobackup level", Config.movieBackupsLevel);
+    WriteCfgInt("Other", "Fast statusbar updates", Config.FrequentVCRUIRefresh);
 
     // Save A Whole Whackton Of Hotkeys:
 
