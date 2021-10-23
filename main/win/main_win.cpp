@@ -3086,6 +3086,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                
 			case EMU_FRAMEADVANCE:
                 {
+                    if (!manualFPSLimit) break;
 					extern int frame_advancing;
                     frame_advancing = 1;
                     resumeEmu(TRUE); // maybe multithreading unsafe
@@ -3863,16 +3864,19 @@ int WINAPI WinMain(
 					}
 					else // fast-forward 
 					{
-						if(((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.hotkey[i].shift
-						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.hotkey[i].ctrl
-						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkey[i].alt)
-						{
-							manualFPSLimit = 0 ; 
-						}
-						else
-						{
-							manualFPSLimit = 1 ; 
-						}
+                        extern int frame_advancing;
+                        if (!frame_advancing) { // dont allow fastforward+frameadvance
+                            if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.hotkey[i].shift
+                                && ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.hotkey[i].ctrl
+                                && ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkey[i].alt)
+                            {
+                                manualFPSLimit = 0;
+                            }
+                            else
+                            {
+                                manualFPSLimit = 1;
+                            }
+                        }
 					}
 				}
 			}

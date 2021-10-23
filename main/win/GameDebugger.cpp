@@ -64,7 +64,7 @@ void DebuggerSet(int debuggerFlag) {
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPADDR), addr);
         SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPOP), op);
 
-        //free(instrstr);
+        free(instrStr);
         //if(Config.guiDynacore)
         //PC->s_ops();
     }
