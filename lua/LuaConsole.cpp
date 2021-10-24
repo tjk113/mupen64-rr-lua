@@ -1907,7 +1907,7 @@ int GetSystemMetricsLua(lua_State* L)
 	int ret = GetSystemMetrics(param); // we have to store intermediate value because of calling convention? i dont know
 	lua_pushinteger(L, ret);
 	
-	return 0;
+	return 1;
 }
 //Gui
 //�v���O�C���ɕ�����Ă邩�玩�R�ɏo���Ȃ��H
