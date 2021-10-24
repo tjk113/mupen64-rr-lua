@@ -1899,7 +1899,16 @@ int WriteMemT(lua_State *L) {
 	g_T = g_T_s;
 	return 0;
 }
+int GetSystemMetricsLua(lua_State* L)
+{
+	Lua* lua = GetLuaClass(L);
 
+	long param = luaL_checknumber(L, 1);
+	int ret = GetSystemMetrics(param); // we have to store intermediate value because of calling convention? i dont know
+	lua_pushinteger(L, ret);
+	
+	return 0;
+}
 //Gui
 //�v���O�C���ɕ�����Ă邩�玩�R�ɏo���Ȃ��H
 //�Ƃ������E�B���h�E�ɒ��ڏ����Ă���
@@ -3098,6 +3107,8 @@ const luaL_Reg emuFuncs[] = {
 	{"getaddress", GetAddress},
 	
 	{"isreadonly", GetVCRReadOnly},
+
+	{"getsystemmetrics", GetSystemMetricsLua}, // irrelevant to core but i dont give a 
 
 	{NULL, NULL}
 };
