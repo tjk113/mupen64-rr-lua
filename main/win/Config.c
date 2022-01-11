@@ -262,20 +262,20 @@ void LoadConfig()
         int i;
         char str[128];
 
-        for (i = 1; i <= 9; i++)
+        for (i = 1; i <= 10; i++)
         {
             sprintf(str, "Save %d", i);
             ReadHotkeyConfig(12 + i, str, (ID_SAVE_1 - 1) + i, ((VK_F1 - 1) + i) | 0x100);
         }
-        for (i = 1; i <= 9; i++)
+        for (i = 1; i <= 10; i++)
         {
             sprintf(str, "Load %d", i);
-            ReadHotkeyConfig(21 + i, str, (ID_LOAD_1 - 1) + i, (VK_F1 - 1) + i);
+            ReadHotkeyConfig(22 + i, str, (ID_LOAD_1 - 1) + i, (VK_F1 - 1) + i);
         }
-        for (i = 1; i <= 9; i++)
+        for (i = 1; i <= 10; i++)
         {
             sprintf(str, "Select %d", i);
-            ReadHotkeyConfig(30 + i, str, (ID_CURRENTSAVE_1 - 1) + i, '0' + i);
+            ReadHotkeyConfig(32 + i, str, (ID_CURRENTSAVE_1 - 1) + i, '0' + i);
         }
     }
     //Lua
@@ -428,14 +428,14 @@ void SaveConfig()
         int i;
         char str[128];
 
-        for (i = 1; i <= 9; i++)
+        for (i = 1; i <= 10; i++)
         {
             sprintf(str, "Save %d", i);
             WriteHotkeyConfig(12 + i, str);
             sprintf(str, "Load %d", i);
-            WriteHotkeyConfig(21 + i, str);
+            WriteHotkeyConfig(22 + i, str);
             sprintf(str, "Select %d", i);
-            WriteHotkeyConfig(30 + i, str);
+            WriteHotkeyConfig(32 + i, str);
         }
         // 2 miliseconds faster
     //Lua

@@ -164,9 +164,9 @@ static int filter(const SDL_Event *event)
 	   default:
 	     switch (event->key.keysym.unicode)
 	       {
-		case '0':
-		  savestates_select_slot(0);
-		  break;
+		//case '0':
+		//  savestates_select_slot(0);
+		//  break;
 		case '1':
 		  savestates_select_slot(1);
 		  break;
@@ -193,6 +193,9 @@ static int filter(const SDL_Event *event)
 		  break;
 		case '9':
 		  savestates_select_slot(9);
+		  break;
+		case '0':
+		  savestates_select_slot(10);
 		  break;
 		default:
 		  keyDown(0, event->key.keysym.sym);

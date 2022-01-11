@@ -1219,26 +1219,29 @@ inithotkeysdialog:
 		SetDlgItemHotkey(hwnd, IDC_7SAVE, &Config.hotkey[19]);
 		SetDlgItemHotkey(hwnd, IDC_8SAVE, &Config.hotkey[20]);
 		SetDlgItemHotkey(hwnd, IDC_9SAVE, &Config.hotkey[21]);
+        SetDlgItemHotkey(hwnd, IDC_10SAVE, &Config.hotkey[22]);
 
-		SetDlgItemHotkey(hwnd, IDC_1LOAD, &Config.hotkey[22]);
-		SetDlgItemHotkey(hwnd, IDC_2LOAD, &Config.hotkey[23]);
-		SetDlgItemHotkey(hwnd, IDC_3LOAD, &Config.hotkey[24]);
-		SetDlgItemHotkey(hwnd, IDC_4LOAD, &Config.hotkey[25]);
-		SetDlgItemHotkey(hwnd, IDC_5LOAD, &Config.hotkey[26]);
-		SetDlgItemHotkey(hwnd, IDC_6LOAD, &Config.hotkey[27]);
-		SetDlgItemHotkey(hwnd, IDC_7LOAD, &Config.hotkey[28]);
-		SetDlgItemHotkey(hwnd, IDC_8LOAD, &Config.hotkey[29]);
-		SetDlgItemHotkey(hwnd, IDC_9LOAD, &Config.hotkey[30]);
+		SetDlgItemHotkey(hwnd, IDC_1LOAD, &Config.hotkey[23]);
+		SetDlgItemHotkey(hwnd, IDC_2LOAD, &Config.hotkey[24]);
+		SetDlgItemHotkey(hwnd, IDC_3LOAD, &Config.hotkey[25]);
+		SetDlgItemHotkey(hwnd, IDC_4LOAD, &Config.hotkey[26]);
+		SetDlgItemHotkey(hwnd, IDC_5LOAD, &Config.hotkey[27]);
+		SetDlgItemHotkey(hwnd, IDC_6LOAD, &Config.hotkey[28]);
+		SetDlgItemHotkey(hwnd, IDC_7LOAD, &Config.hotkey[29]);
+		SetDlgItemHotkey(hwnd, IDC_8LOAD, &Config.hotkey[30]);
+		SetDlgItemHotkey(hwnd, IDC_9LOAD, &Config.hotkey[31]);
+        SetDlgItemHotkey(hwnd, IDC_10LOAD, &Config.hotkey[32]);
 
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_1SEL, &Config.hotkey[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 0);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_2SEL, &Config.hotkey[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 1);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_3SEL, &Config.hotkey[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 2);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_4SEL, &Config.hotkey[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 3);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_5SEL, &Config.hotkey[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 4);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_6SEL, &Config.hotkey[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 5);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_7SEL, &Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_8SEL, &Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_9SEL, &Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_1SEL, &Config.hotkey[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 0);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_2SEL, &Config.hotkey[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 1);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_3SEL, &Config.hotkey[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 2);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_4SEL, &Config.hotkey[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 3);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_5SEL, &Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 4);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_6SEL, &Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 5);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_7SEL, &Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_8SEL, &Config.hotkey[40], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_9SEL, &Config.hotkey[41], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
+        SetDlgItemHotkeyAndMenu(hwnd, IDC_10SEL, &Config.hotkey[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 9);
 
 		memcpy(tempHotkeys, Config.hotkey, NUM_HOTKEYS * sizeof(HOTKEY));
 
@@ -1276,24 +1279,27 @@ inithotkeysdialog:
 			HOTKEY_MACRO(IDC_7SAVE, 19);
 			HOTKEY_MACRO(IDC_8SAVE, 20);
 			HOTKEY_MACRO(IDC_9SAVE, 21);
-			HOTKEY_MACRO(IDC_1LOAD, 22);
-			HOTKEY_MACRO(IDC_2LOAD, 23);
-			HOTKEY_MACRO(IDC_3LOAD, 24);
-			HOTKEY_MACRO(IDC_4LOAD, 25);
-			HOTKEY_MACRO(IDC_5LOAD, 26);
-			HOTKEY_MACRO(IDC_6LOAD, 27);
-			HOTKEY_MACRO(IDC_7LOAD, 28);
-			HOTKEY_MACRO(IDC_8LOAD, 29);
-			HOTKEY_MACRO(IDC_9LOAD, 30);
-			HOTKEY_MACRO(IDC_1SEL, 31);
-			HOTKEY_MACRO(IDC_2SEL, 32);
-			HOTKEY_MACRO(IDC_3SEL, 33);
-			HOTKEY_MACRO(IDC_4SEL, 34);
-			HOTKEY_MACRO(IDC_5SEL, 35);
-			HOTKEY_MACRO(IDC_6SEL, 36);
-			HOTKEY_MACRO(IDC_7SEL, 37);
-			HOTKEY_MACRO(IDC_8SEL, 38);
-			HOTKEY_MACRO(IDC_9SEL, 39);
+            HOTKEY_MACRO(IDC_10SAVE, 22);
+			HOTKEY_MACRO(IDC_1LOAD, 23);
+			HOTKEY_MACRO(IDC_2LOAD, 24);
+			HOTKEY_MACRO(IDC_3LOAD, 25);
+			HOTKEY_MACRO(IDC_4LOAD, 26);
+			HOTKEY_MACRO(IDC_5LOAD, 27);
+			HOTKEY_MACRO(IDC_6LOAD, 28);
+			HOTKEY_MACRO(IDC_7LOAD, 29);
+			HOTKEY_MACRO(IDC_8LOAD, 30);
+			HOTKEY_MACRO(IDC_9LOAD, 31);
+            HOTKEY_MACRO(IDC_10LOAD, 32);
+			HOTKEY_MACRO(IDC_1SEL, 33);
+			HOTKEY_MACRO(IDC_2SEL, 34);
+			HOTKEY_MACRO(IDC_3SEL, 35);
+			HOTKEY_MACRO(IDC_4SEL, 36);
+			HOTKEY_MACRO(IDC_5SEL, 37);
+			HOTKEY_MACRO(IDC_6SEL, 38);
+			HOTKEY_MACRO(IDC_7SEL, 39);
+			HOTKEY_MACRO(IDC_8SEL, 40);
+			HOTKEY_MACRO(IDC_9SEL, 41);
+            HOTKEY_MACRO(IDC_10SEL, 42);
 				
 #undef HOTKEY_MACRO
         }

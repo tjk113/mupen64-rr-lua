@@ -60,7 +60,7 @@ static char fname[MAX_PATH] = {0,};
 
 void savestates_select_slot(unsigned int s)
 {
-   if (s > 9) 
+   if (s > 10) 
 		 return;
    slot = s;
 }
@@ -88,16 +88,16 @@ void savestates_save()
    
 	if (*autoinc_save_slot)
 	{
-		if (++slot == 10)
+		if (++slot == 11)
 		{
 			slot = 0;
 		}
 	}
    
-	if (slot <= 9)
+	if (slot <= 10)
 	{
 		filename = (char*)malloc(strlen(get_savespath())+
-		strlen(ROM_SETTINGS.goodname)+4+1);
+		strlen(ROM_SETTINGS.goodname)+4+3); // this is where i need to allocate the proper memory. "+4+2" doesn't work.
 		strcpy(filename, get_savespath());
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".st");
@@ -206,11 +206,11 @@ void savestates_load(bool silenceNotFoundError)
 
 	savestates_job_success = TRUE;
    
-	//construct .st name for 1-9 slots based on rom name and number
-	if (slot <= 9)
+	//construct .st name for 1-10 slots based on rom name and number
+	if (slot <= 10)
 	{
 		filename = (char*)malloc(strlen(get_savespath())+
-		strlen(ROM_SETTINGS.goodname)+4+1);
+		strlen(ROM_SETTINGS.goodname)+4+3);
 		strcpy(filename, get_savespath());
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".st");
@@ -221,14 +221,14 @@ void savestates_load(bool silenceNotFoundError)
 	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
-		filename = (char*)malloc(strlen(fname)+11);
+		filename = (char*)malloc(strlen(fname)+12);
 		strcpy(filename, fname);
 		//slot -= 10;
 	}
 	char str[256];
 
 	//print info about loading slot to console,
-	if (slot > 9)
+	if (slot > 10)
 	{
 		_splitpath(filename, 0, 0, fname,0);
 		strcat(fname, ".st");
@@ -241,7 +241,7 @@ void savestates_load(bool silenceNotFoundError)
 	f = gzopen(filename, "rb");
 
 	//try loading .savestate, workaround for discord...
-	if (f == NULL && slot > 9)
+	if (f == NULL && slot > 10)
 	{
 		filename[strlen(filename) - 3] = '\0';
 		strcat(filename, ".savestate");
@@ -257,10 +257,10 @@ void savestates_load(bool silenceNotFoundError)
 				printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
 				return;
 			}
-			if (slot > 9)
+			if (slot > 10)
 			{
 				//print .st not .savestate because
-				filename[strlen(filename) - 10] = '\0';
+				filename[strlen(filename) - 11] = '\0';
 				strcat(filename, ".st");
 			}
 			printf("Savestate \"%s\" not found.\n", filename); //full path for debug
