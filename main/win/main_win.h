@@ -74,7 +74,7 @@ typedef struct _HOTKEY {
     BOOL alt;
     int command;
 } HOTKEY;
-#define NUM_HOTKEYS (42)
+#define NUM_HOTKEYS (43)
 
 typedef struct _CONFIG {
     unsigned char ConfigVersion ;
