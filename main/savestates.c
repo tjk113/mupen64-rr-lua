@@ -67,7 +67,7 @@ void savestates_select_slot(unsigned int s)
 
 void savestates_select_filename(const char *fn)
 {
-   slot += 10;
+   slot += 11; //if not working, change back to 10
    if (strlen((const char *)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
 		 return;
    strcpy(fname, (const char *)fn);
