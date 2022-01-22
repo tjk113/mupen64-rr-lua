@@ -29,7 +29,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "DefDI.h"
 #include "Config.h"
 #include "resource.h"
-
+#define RESET_SELECTION Controller[NController].Input[NControl].Device = 0;\
+Controller[NController].Input[NControl].type = INPUT_TYPE_NOT_USED;\
+Controller[NController].Input[NControl].vkey = 0;\
+SetDlgItemText(hDlg, ControlValue, " ");\
+KillTimer(hDlg, IDT_TIMER1);\
+KillTimer(hDlg, IDT_TIMER2);\
+SetWindowText(hDlg, Controller[NController].szName);\
+Dis_En_AbleApply(hDlg, bApply[NController] = TRUE)
 
 LRESULT CALLBACK ConfigDlgProc (HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -82,14 +89,7 @@ LRESULT CALLBACK ConfigDlgProc (HWND hDlg, UINT Message, WPARAM wParam, LPARAM l
 
 		case WM_TIMER:
 			if ( GetKeyState(VK_ESCAPE) & 0x8000 ) {
-				Controller[NController].Input[NControl].Device = 0;
-				Controller[NController].Input[NControl].type = INPUT_TYPE_NOT_USED;
-				Controller[NController].Input[NControl].vkey = 0;			
-				SetDlgItemText(hDlg,ControlValue," ");
-				KillTimer(hDlg, IDT_TIMER1); 
-				KillTimer(hDlg, IDT_TIMER2);
-				SetWindowText(hDlg, Controller[NController].szName);
-				Dis_En_AbleApply(hDlg, bApply[NController]=TRUE);
+				RESET_SELECTION;
 			}
 			else {
 				switch (wParam)
@@ -133,6 +133,7 @@ LRESULT CALLBACK ConfigDlgProc (HWND hDlg, UINT Message, WPARAM wParam, LPARAM l
 
 				case IDC_CHECKACTIVE:
 				{
+					RESET_SELECTION;
 					LRESULT lActive = SendDlgItemMessage(hDlg, IDC_CHECKACTIVE, BM_GETCHECK, 0, 0);
 					if ( lActive == BST_CHECKED) {
 						Controller[NController].bActive = TRUE;
