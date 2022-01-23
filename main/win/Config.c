@@ -30,6 +30,7 @@
 #include "../../winproject/resource.h"
 
 #include "../lua/Recent.h"
+#include <vcr.h>
 
 #define CfgFileName "mupen64.cfg"
 
@@ -246,6 +247,7 @@ void LoadConfig()
     Config.movieBackups = ReadCfgInt("Other", "Autobackup", 0);
     Config.movieBackupsLevel = ReadCfgInt("Other", "Autobackup level", 0);
     Config.FrequentVCRUIRefresh = ReadCfgInt("Other", "Fast statusbar updates", 0);
+    Config.SyncMode = ReadCfgInt("Other", "Synchronisation Mode", VCR_SYNC_AUDIO_DUPL);
 
     // Load A Whole Whackton Of Hotkeys:
 
@@ -428,6 +430,7 @@ void SaveConfig()
     WriteCfgInt("Other", "Autobackup", Config.movieBackups);
     WriteCfgInt("Other", "Autobackup level", Config.movieBackupsLevel);
     WriteCfgInt("Other", "Fast statusbar updates", Config.FrequentVCRUIRefresh);
+    WriteCfgInt("Other", "Synchronisation Mode", Config.SyncMode);
 
     // Save A Whole Whackton Of Hotkeys:
 
@@ -439,7 +442,6 @@ void SaveConfig()
     {
         WriteHotkeyConfig(i, settingStrings[i]);
     }
-    // 0.001s faster 
 
     // Save/Load Hotkeys
         int i;
@@ -454,7 +456,6 @@ void SaveConfig()
             sprintf(str, "Select %d", i);
             WriteHotkeyConfig(30 + i, str);
         }
-        // 2 miliseconds faster
     //Lua
     WriteCfgString("Lua", "Script Path", Config.LuaScriptPath);
     WriteHotkeyConfig(40, "Lua Script Reload");
@@ -463,6 +464,7 @@ void SaveConfig()
     // some new misc ones
     WriteHotkeyConfig(42, "Start From Beginning");
     WriteHotkeyConfig(43, "Replay Latest");
+    
 }
 
 

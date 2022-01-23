@@ -463,6 +463,9 @@
 #define IDC_DEBUGGER_DMA_R_TOGGLE	    40047
 #define ID_REPLAY_LATEST				40048
 #define IDC_FREQUENTVCRREFRESH			40049
+#define IDC_AV_NOSYNC					40050
+#define IDC_AV_AUDIOSYNC				40051
+#define IDC_AV_VIDEOSYNC				40052
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

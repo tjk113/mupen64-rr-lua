@@ -162,6 +162,7 @@ typedef struct _CONFIG {
     BOOL LuaSimpleDialog;
     BOOL LuaWarnOnClose;
     BOOL FrequentVCRUIRefresh;
+    int SyncMode;
 } CONFIG;
 
 extern "C" CONFIG Config;

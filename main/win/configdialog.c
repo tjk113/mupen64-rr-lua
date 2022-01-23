@@ -36,6 +36,7 @@
 #include "inifunctions.h"
 
 #include "configdialog.h"
+#include <vcr.h>
 
 #ifdef _MSC_VER
 #define snprintf	_snprintf
@@ -62,7 +63,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 {
     switch (Message)
     {
-
     case WM_INITDIALOG:
         WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
         WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
@@ -71,12 +71,38 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 
         hwndTrackOther = CreateTrackbar(hwnd, 1, 3, Config.movieBackupsLevel, 3, 200, 79, 100);
 
+        switch (Config.SyncMode)
+        {
+        case VCR_SYNC_AUDIO_DUPL:
+            CheckDlgButton(hwnd, IDC_AV_AUDIOSYNC, BST_CHECKED);
+            break;
+        case VCR_SYNC_VIDEO_SNDROP:
+            CheckDlgButton(hwnd, IDC_AV_VIDEOSYNC, BST_CHECKED);
+            break;
+        case VCR_SYNC_NONE:
+            CheckDlgButton(hwnd, IDC_AV_NOSYNC, BST_CHECKED);
+            break;
+        }
+
+
         return TRUE;
 
     case WM_COMMAND: {
         // dame tu xorita mamacita
         switch (LOWORD(wParam))
         {
+        case IDC_AV_AUDIOSYNC:
+            if (!VCR_isCapturing())
+            Config.SyncMode = VCR_SYNC_AUDIO_DUPL;
+            break;
+        case IDC_AV_VIDEOSYNC:
+            if (!VCR_isCapturing())
+            Config.SyncMode = VCR_SYNC_VIDEO_SNDROP;
+            break;
+        case IDC_AV_NOSYNC:
+            if (!VCR_isCapturing())
+            Config.SyncMode = VCR_SYNC_NONE;
+            break;
         case IDC_LUA_SIMPLEDIALOG: {
 
             if (MessageBox(0, "Changing this option requires a restart.\nPress Yes to confirm that you want to change this setting. (You won\'t be able to use lua until a restart)\nPress No to revert changes.", "Restart required", MB_TOPMOST | MB_TASKMODAL | MB_ICONWARNING | MB_YESNO) == IDYES) {
