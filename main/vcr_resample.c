@@ -2,31 +2,24 @@
 #ifdef VCR_SUPPORT
 
 #include "vcr_resample.h"
+#include "speex/speex_resampler.h"
 
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-static const volatile unsigned char Four2Eight[16] =
+static SpeexResamplerState* speex_ctx = NULL;
+static short out_samps[44100 * 2 * 2]; // big enough i guess?
+static int err = 0;
+
+static int rates_changed(int cur_in, int cur_out)
 {
-	  0, // 0000 = 00000000
-	 17, // 0001 = 00010001
-	 34, // 0010 = 00100010
-	 51, // 0011 = 00110011
-	 68, // 0100 = 01000100
-	 85, // 0101 = 01010101
-	102, // 0110 = 01100110
-	119, // 0111 = 01110111
-	136, // 1000 = 10001000
-	153, // 1001 = 10011001
-	170, // 1010 = 10101010
-	187, // 1011 = 10111011
-	204, // 1100 = 11001100
-	221, // 1101 = 11011101
-	238, // 1110 = 11101110
-	255  // 1111 = 11111111
-};
+	static spx_uint32_t in;
+	static spx_uint32_t out;
+	speex_resampler_get_rate(speex_ctx, &in, &out);
+	return in != cur_in || out != cur_out;
+}
 
 int
 VCR_getResampleLen(int dst_freq, int src_freq, int src_bitrate, int src_len)
@@ -49,129 +42,28 @@ VCR_getResampleLen(int dst_freq, int src_freq, int src_bitrate, int src_len)
 	return dst_len;
 }
 
-static void staticMalloc(short** buf, int size, int* prevSize)
-{
-	if(size <= *prevSize)
-		return;
-	if(*buf)
-		free(*buf);
-	*buf = (short*)malloc(size);
-	*prevSize = size;
-}
-
 int
 VCR_resample( short **dst, int dst_freq,
               const short *src, int src_freq, int src_bitrate, int src_len )
 {
-	int dst_len, i;
-	float ratio;
-	int buf_len;
-	static short *buf = 0, *left = 0, *right = 0;
-	static int bufSize=0, leftSize=0, rightSize=0, dstSize=0;
+	if (src_bitrate != 16) abort();
 
-	// convert bitrate to 16 bits
-	if (src_bitrate != 16)
+	if (!speex_ctx)
 	{
-		buf_len = src_len * (16 / src_bitrate);
-		staticMalloc(&buf, buf_len, &bufSize);
-		if (src_bitrate == 4)
-		{
-			for (i = 0; i < (src_len*2); i++)
-			{
-				short s = ((char *)src)[i>>1];
-				if (i & 1)
-				{
-					s &= 0xF0;
-					s |= (s >> 4);
-					s |= (s << 8);
-				}
-				else
-				{
-					s &= 0x0F;
-					s |= (s << 4);
-					s |= (s << 8);
-				}
-				((short *)buf)[i] = s;
-			}
-		}
-		else if (src_bitrate == 8)
-		{
-			for (i = 0; i < src_len; i++)
-			{
-				short s = ((char *)src)[i];
-				s |= (s << 8);
-				((short *)buf)[i] = s;
-			}
-		}
-		else
-		{
-			printf( "[VCR]: resample: Cannot convert sample size from %d to 16 bits\n", src_bitrate );
-//			free( buf );
-			return -1;	// unknown result
-		}
-		src = buf;
-		src_len = buf_len;
+		speex_ctx = speex_resampler_init(2, src_freq, dst_freq, 6, &err);
 	}
 
-	ratio = src_freq / (float)dst_freq;
-	dst_len = src_len / ratio;
-
-	// de-interlace
-	staticMalloc(&left, dst_len>>1, &leftSize);
-	staticMalloc(&right, dst_len>>1, &rightSize);
-//	left = malloc( dst_len>>1 );
-//	right = malloc( dst_len>>1 );
-	for (i = 0; i < (src_len/2); i += 2)
+	if (rates_changed(src_freq, dst_freq))
 	{
-		left[i>>1] = src[i];
-		right[i>>1] = src[i+1];
-	}
-//	if (buf)
-//		free( buf );
-
-//	*dst = malloc( dst_len );
-	staticMalloc(dst, dst_len, &dstSize);
-
-	// convert sample rate/re-interlace
-/*	// very simple algorithm (nearest sample/sample duplication)
-	for (i = 0; i < (dst_len/2); i += 2)
-	{
-		short l, r;
-		int pos = i*ratio;
-		l = left[pos];
-		r = right[pos];
-		(*dst)[i  ] = l;
-		(*dst)[i+1] = r;
-	}*/
-
-	// linear interpolation
-	for (i = 0; i < (dst_len/2); i += 2)
-	{
-		short l1, l2, r1, r2, l, r;
-		float pos = (i/2.0)*ratio;
-		l1 = left[(int)pos+0];
-		r1 = right[(int)pos+0];
-		if (pos+1 < (src_len/2))
-		{
-			l2 = left[(int)pos+1];
-			r2 = right[(int)pos+1];
-		}
-		else
-		{
-			l2 = l1;
-			r2 = r1;
-		}
-		pos = pos-((float)(int)pos);
-		l = (l1 * (1.0-pos)) + (l2 * pos);
-		r = (r1 * (1.0-pos)) + (r2 * pos);
-		(*dst)[i  ] = l;
-		(*dst)[i+1] = r;
+		speex_resampler_set_rate(speex_ctx, src_freq, dst_freq);
 	}
 
-//	free( left );
-//	free( right );
+	spx_uint32_t in_pos = (spx_uint32_t)src_len * 2;
+	spx_uint32_t out_pos = sizeof (out_samps);
+	speex_resampler_process_interleaved_int(speex_ctx, src, &in_pos, out_samps, &out_pos);
 
-	return dst_len;
+	*dst = out_samps;
+	return (int)out_pos / 2;
 }
 
 #endif // VCR_SUPPORT
