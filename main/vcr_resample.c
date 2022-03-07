@@ -58,12 +58,12 @@ VCR_resample( short **dst, int dst_freq,
 		speex_resampler_set_rate(speex_ctx, src_freq, dst_freq);
 	}
 
-	spx_uint32_t in_pos = (spx_uint32_t)src_len * 2;
-	spx_uint32_t out_pos = sizeof (out_samps);
+	spx_uint32_t in_pos = (spx_uint32_t)src_len / 4;
+	spx_uint32_t out_pos = sizeof (out_samps) / 4;
 	speex_resampler_process_interleaved_int(speex_ctx, src, &in_pos, out_samps, &out_pos);
 
 	*dst = out_samps;
-	return (int)out_pos / 2;
+	return (int)out_pos * 4;
 }
 
 #endif // VCR_SUPPORT
