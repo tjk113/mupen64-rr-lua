@@ -37,6 +37,10 @@
 
 #include "configdialog.h"
 #include <vcr.h>
+// ughh msvc-only code once again
+#pragma comment(lib,"comctl32.lib") 
+#pragma comment(lib,"propsys.lib")
+#pragma comment(lib,"shlwapi.lib") 
 
 #ifdef _MSC_VER
 #define snprintf	_snprintf
@@ -336,6 +340,68 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
     return TRUE;
 }
 
+bool folderDiag(char* out, int max_size, const char* starting_dir)
+{
+    bool ret = false;
+    IFileDialog* pfd;
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
+    {
+        if (starting_dir)
+        {
+            PIDLIST_ABSOLUTE pidl;
+            WCHAR wstarting_dir[MAX_PATH];
+            WCHAR* wc = wstarting_dir;
+            for (const char* c = starting_dir; *c && wc - wstarting_dir < MAX_PATH - 1; ++c, ++wc)
+            {
+                *wc = *c == '/' ? '\\' : *c;
+            }
+            *wc = 0;
+
+            HRESULT hresult = ::SHParseDisplayName(wstarting_dir, 0, &pidl, SFGAO_FOLDER, 0);
+            if (SUCCEEDED(hresult))
+            {
+                IShellItem* psi;
+                hresult = ::SHCreateShellItem(NULL, NULL, pidl, &psi);
+                if (SUCCEEDED(hresult))
+                {
+                    pfd->SetFolder(psi);
+                }
+                ILFree(pidl);
+            }
+        }
+
+        DWORD dwOptions;
+        if (SUCCEEDED(pfd->GetOptions(&dwOptions)))
+        {
+            pfd->SetOptions(dwOptions | FOS_PICKFOLDERS);
+        }
+        if (SUCCEEDED(pfd->Show(NULL)))
+        {
+            IShellItem* psi;
+            if (SUCCEEDED(pfd->GetResult(&psi)))
+            {
+                WCHAR* tmp;
+                if (SUCCEEDED(psi->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &tmp)))
+                {
+                    char* c = out;
+                    while (*tmp && c - out < max_size - 1)
+                    {
+                        *c = (char)*tmp;
+                        ++c;
+                        ++tmp;
+                    }
+                    *c = '\0';
+                    ret = true;
+                }
+                psi->Release();
+            }
+        }
+        pfd->Release();
+    }
+    return ret;
+}
+
+
 BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
   char Buffer[MAX_PATH], Directory[MAX_PATH];
@@ -405,96 +471,72 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                 }
                 break;
         case WM_COMMAND:
-		        switch (LOWORD(wParam)) 
-                { 
-		         case IDC_RECURSION :
-		               Config.RomBrowserRecursion = SendDlgItemMessage(hwnd,IDC_RECURSION,BM_GETCHECK , 0,0) == BST_CHECKED?TRUE:FALSE;
-                       break;      
-                 case IDC_ADD_BROWSER_DIR : 
-		               bi.hwndOwner = hwnd;
-					   bi.pidlRoot = NULL;
-				       bi.pszDisplayName = Buffer;
-				       Translate("Select Current Rom Browser Directory",TempMessage);
-				       bi.lpszTitle = TempMessage;
-				       bi.ulFlags = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS;
-				       bi.lpfn = NULL;
-				       bi.lParam = 0;
-                       if ((pidl = SHBrowseForFolder(&bi)) != NULL) {
-                                        
-					   if (SHGetPathFromIDList(pidl, Directory)) {
-					     int len = strlen(Directory);
-                		 if (Directory[len - 1] != '\\') 
-                              { 
-                                strcat(Directory,"\\"); 
-                              }
-                                if (addDirectoryToLinkedList(Directory)) {
-                                      SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)Directory);  
-			                          AddDirToList(Directory,TRUE);
-			                          }
-                              
-                        }
-                       }       
-				  break; 
-				  
-				  case IDC_REMOVE_BROWSER_DIR :
-                  	RomBrowserDirListBox = GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST);
-					count = SendMessage(RomBrowserDirListBox, LB_GETSELCOUNT, 0, 0);
-					if(count != 0)
-						{
-							selected = SendMessage(RomBrowserDirListBox, LB_GETCURSEL , 0, 0);
-	        				SendMessage(RomBrowserDirListBox, LB_GETTEXT, selected, (LPARAM)RomBrowserDir);		
-                            removeDirectoryFromLinkedList(RomBrowserDir);
-                            SendMessage(RomBrowserDirListBox, LB_DELETESTRING, selected, 0);
-						    RefreshRomBrowser();
-                   		}
-						else 
-						{
-							MessageBox(hwnd, "No items selected.", "Warning", MB_OK);
-						}
- 				  break;
-				  
-				  case IDC_REMOVE_BROWSER_ALL :
-				        SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_RESETCONTENT, 0, 0);
-				        freeRomDirList();
-				        RefreshRomBrowser();
-				  break;
-				  
-				  case IDC_DEFAULT_PLUGINS_CHECK:
-				  {      
-                        selected = SendMessage( GetDlgItem(hwnd,IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0 );
-				        if (!selected)
-				        {
-                            MessageBox(NULL, "Warning: changing the plugin folder can introduce bugs in many plugins", "Warning", MB_OK);
-                            EnableWindow( GetDlgItem(hwnd,IDC_PLUGINS_DIR), TRUE );
-                            EnableWindow( GetDlgItem(hwnd,IDC_CHOOSE_PLUGINS_DIR), TRUE );
-                        }else
-                        {
-                            EnableWindow( GetDlgItem(hwnd,IDC_PLUGINS_DIR), FALSE );
-                            EnableWindow( GetDlgItem(hwnd,IDC_CHOOSE_PLUGINS_DIR), FALSE );
-                        }
-                  }
-                  break;
-                  case IDC_CHOOSE_PLUGINS_DIR:
-                  {
-                       bi.hwndOwner = hwnd;
-					   bi.pidlRoot = NULL;
-				       bi.pszDisplayName = Buffer;
-				       bi.lpszTitle = TempMessage;
-				       bi.ulFlags = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS;
-				       bi.lpfn = NULL;
-				       bi.lParam = 0;
-                       if ((pidl = SHBrowseForFolder(&bi)) != NULL) {
-					    if (SHGetPathFromIDList(pidl, Directory)) {
-						 int len = strlen(Directory);
-                		 if (Directory[len - 1] != '\\') 
-                              { strcat(Directory,"\\"); }
-                                                           
-                               SetDlgItemText( hwnd, IDC_PLUGINS_DIR, Directory );
-                                                        
-                          }
-                       }
-                        
-                  }
+            switch (LOWORD(wParam))
+            {
+            case IDC_RECURSION:
+                Config.RomBrowserRecursion = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
+                break;
+            case IDC_ADD_BROWSER_DIR: {
+
+                folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
+                int len = strlen(Directory);
+                if (addDirectoryToLinkedList(Directory)) {
+                    SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)Directory);
+                    AddDirToList(Directory, TRUE);
+                }
+                break;
+            }
+            case IDC_REMOVE_BROWSER_DIR:
+                RomBrowserDirListBox = GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST);
+                count = SendMessage(RomBrowserDirListBox, LB_GETSELCOUNT, 0, 0);
+                if (count != 0)
+                {
+                    selected = SendMessage(RomBrowserDirListBox, LB_GETCURSEL, 0, 0);
+                    SendMessage(RomBrowserDirListBox, LB_GETTEXT, selected, (LPARAM)RomBrowserDir);
+                    removeDirectoryFromLinkedList(RomBrowserDir);
+                    SendMessage(RomBrowserDirListBox, LB_DELETESTRING, selected, 0);
+                    RefreshRomBrowser();
+                }
+                else
+                {
+                    MessageBox(hwnd, "No items selected.", "Warning", MB_OK);
+                }
+                break;
+
+            case IDC_REMOVE_BROWSER_ALL:
+                SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_RESETCONTENT, 0, 0);
+                freeRomDirList();
+                RefreshRomBrowser();
+                break;
+
+            case IDC_DEFAULT_PLUGINS_CHECK:
+            {
+                selected = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0);
+                if (!selected)
+                {
+                    MessageBox(NULL, "Warning: changing the plugin folder can introduce bugs in many plugins", "Warning", MB_OK);
+                    EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), TRUE);
+                    EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), TRUE);
+                }
+                else
+                {
+                    EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), FALSE);
+                    EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), FALSE);
+                }
+            }
+            break;
+            case IDC_CHOOSE_PLUGINS_DIR:
+            {
+                // Lol why is vs indenting this one block down
+                folderDiag(Directory, sizeof(Directory)/sizeof(char), "");
+                int len = strlen(Directory);
+                if (Directory[len - 1] != '\\')
+                    strcat(Directory, "\\");
+                SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Directory);
+
+            }
+            
+            
                   break;
 				  case IDC_DEFAULT_SAVES_CHECK:
 				  {      
@@ -512,21 +554,11 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                   break;
                   case IDC_CHOOSE_SAVES_DIR:
                   {
-                       bi.hwndOwner = hwnd;
-					   bi.pidlRoot = NULL;
-				       bi.pszDisplayName = Buffer;
-				       bi.lpszTitle = TempMessage;
-				       bi.ulFlags = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS;
-				       bi.lpfn = NULL;
-				       bi.lParam = 0;
-                       if ((pidl = SHBrowseForFolder(&bi)) != NULL) {
-					    if (SHGetPathFromIDList(pidl, Directory)) {
-						 int len = strlen(Directory);
-                		 if (Directory[len - 1] != '\\') 
-                              { strcat(Directory,"\\"); 
-                                SetDlgItemText( hwnd, IDC_SAVES_DIR, Directory );
-                              }
-                          }
+                       folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
+                       if (Directory[strlen(Directory) - 1] != '\\')
+                       {
+                           strcat(Directory, "\\");
+                           SetDlgItemText(hwnd, IDC_SAVES_DIR, Directory);
                        }
                   }
                   break;
@@ -546,22 +578,11 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                   break;                
                   case IDC_CHOOSE_SCREENSHOTS_DIR:
                   {
-                       bi.hwndOwner = hwnd;
-					   bi.pidlRoot = NULL;
-				       bi.pszDisplayName = Buffer;
-				       bi.lpszTitle = TempMessage;
-				       bi.ulFlags = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS;
-				       bi.lpfn = NULL;
-				       bi.lParam = 0;
-                       if ((pidl = SHBrowseForFolder(&bi)) != NULL) {
-					    if (SHGetPathFromIDList(pidl, Directory)) {
-						 int len = strlen(Directory);
-                		 if (Directory[len - 1] != '\\') 
-                              { strcat(Directory,"\\"); 
-                                SetDlgItemText( hwnd, IDC_SCREENSHOTS_DIR, Directory );
-                              }
-                          }
-                       }
+                      folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
+                      int len = strlen(Directory);
+                      if (Directory[len - 1] != '\\')
+                          strcat(Directory, "\\");
+                      SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Directory);
                   }
                   break;
                 }
