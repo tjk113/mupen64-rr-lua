@@ -1823,7 +1823,7 @@ VCR_updateScreen()
 		extern HWND mainHWND;
 		extern BOOL manualFPSLimit;
 		// skip frames according to skipFrequency if fast-forwarding and not capturing to AVI
-		if (IGNORE_RSP || forceIgnoreRSP) redraw = 0;
+		if ((IGNORE_RSP || forceIgnoreRSP) && m_capture==0) redraw = 0;
 #endif
 #ifdef LUA_SPEEDMODE
 		if(maximumSpeedMode)redraw = 0;

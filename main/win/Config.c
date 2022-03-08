@@ -175,7 +175,7 @@ void LoadConfig()
     Config.alertBAD = ReadCfgInt("General", "Alert Bad roms", 1);
     Config.alertHACK = ReadCfgInt("General", "Alert Hacked roms", 1);
     Config.savesERRORS = ReadCfgInt("General", "Alert Saves errors", 1);
-    Config.limitFps = ReadCfgInt("General", "Alert Saves errors", 1);
+    Config.limitFps = ReadCfgInt("General", "Limit Fps", 1);
     Config.compressedIni = ReadCfgInt("General", "Compressed Ini", 1);
     Config.UseFPSmodifier = ReadCfgInt("General", "Use Fps Modifier", 1);
     Config.FPSmodifier = ReadCfgInt("General", "Fps Modifier", 100);
@@ -376,7 +376,7 @@ void SaveConfig()
     WriteCfgInt("General", "Alert Bad roms", Config.alertBAD);
     WriteCfgInt("General", "Alert Hacked roms", Config.alertHACK);
     WriteCfgInt("General", "Alert Saves errors", Config.savesERRORS);
-    WriteCfgInt("General", "Alert Saves errors", Config.limitFps);
+    WriteCfgInt("General", "Limit Fps", Config.limitFps);
     WriteCfgInt("General", "Compressed Ini", Config.compressedIni);
     WriteCfgInt("General", "Fps Modifier", Config.FPSmodifier);
     WriteCfgInt("General", "Use Fps Modifier", Config.UseFPSmodifier);
