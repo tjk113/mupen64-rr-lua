@@ -1887,14 +1887,14 @@ VCR_updateScreen()
 
 		int audio_frames = m_audioFrame - m_videoFrame;
 
-		if (audio_frames < 0)
-		{
-			printError("Audio frames became negative!");
-			VCR_stopCapture();
-		}
-
 		if (Config.SyncMode == VCR_SYNC_AUDIO_DUPL)
 		{
+			if (audio_frames < 0)
+			{
+				printError("Audio frames became negative!");
+				VCR_stopCapture();
+			}
+
 			if (audio_frames == 0)
 			{
 				printf("\nDropped Frame! a/v: %f/%f", m_videoFrame, m_audioFrame);
