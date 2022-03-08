@@ -1889,7 +1889,7 @@ VCR_updateScreen()
 
 		if (audio_frames < 0)
 		{
-			printError("Audio frames became negative!\n");
+			printError("Audio frames became negative!");
 			VCR_stopCapture();
 		}
 
@@ -1897,7 +1897,7 @@ VCR_updateScreen()
 		{
 			if (audio_frames == 0)
 			{
-				printf("\Dropped Frame! a/v: %f/%f\n", m_videoFrame, m_audioFrame);
+				printf("\nDropped Frame! a/v: %f/%f", m_videoFrame, m_audioFrame);
 			}
 			else if (audio_frames > 0)
 			{
@@ -1923,7 +1923,7 @@ VCR_updateScreen()
 				}
 				else
 				{
-					printf("\Duped Frame! a/v: %f/%f\n", m_videoFrame, m_audioFrame);
+					printf("\nDuped Frame! a/v: %f/%f", m_videoFrame, m_audioFrame);
 					m_videoFrame += 1.0;
 					audio_frames--;
 				}
