@@ -123,8 +123,8 @@ static unsigned long m_lastController1Keys = 0; // for input display
 static int    m_capture = 0;			// capture movie
 static int    m_audioFreq = 33000;		//0x30018;
 static int    m_audioBitrate = 16;		// 16 bits
-static float  m_videoFrame = 0;
-static float  m_audioFrame = 0;
+static long double  m_videoFrame = 0;
+static long double  m_audioFrame = 0;
 #define SOUND_BUF_SIZE 44100*2*2 // 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
 static char soundBuf[SOUND_BUF_SIZE];
 static char soundBufEmpty[SOUND_BUF_SIZE]; 
@@ -1884,25 +1884,52 @@ VCR_updateScreen()
 		// it as possible. Some games stop updating the screen entirely at certain points, such as loading zones, which will cause
 		// audio to drift away by default. This method of syncing prevents this, at the cost of the video feed possibly freezing or jumping
 		// (though in practice this rarely happens - usually a loading scene just appears shorter or something).
-		float tA = (m_audioFrame + 1.0);
 
-		if (Config.SyncMode != VCR_SYNC_NONE) {
-			if (m_videoFrame > tA)
+		int audio_frames = m_audioFrame - m_videoFrame;
+
+		if (Config.SyncMode == VCR_SYNC_AUDIO_DUPL)
+		{
+			if (audio_frames < 0)
+			{
+				printError("Audio frames became negative!");
+				VCR_stopCapture();
+			}
+
+			if (audio_frames == 0)
 			{
 				printf("\nDropped Frame! a/v: %f/%f", m_videoFrame, m_audioFrame);
 			}
-			else
+			else if (audio_frames > 0)
 			{
 				if (!VCRComp_addVideoFrame((unsigned char*)image))
 				{
 					printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
 					VCR_stopCapture();
 				}
+				else
+				{
+					m_videoFrame += 1.0;
+					audio_frames--;
+				}
+			}
 
-				m_videoFrame += 1.0;
+			// can this actually happen?
+			while (audio_frames > 0)
+			{
+				if (!VCRComp_addVideoFrame((unsigned char*)image))
+				{
+					printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+					VCR_stopCapture();
+				}
+				else
+				{
+					printf("\nDuped Frame! a/v: %f/%f", m_videoFrame, m_audioFrame);
+					m_videoFrame += 1.0;
+					audio_frames--;
+				}
 			}
 		}
-		while (m_audioFrame > (m_videoFrame + 1.0))
+		else /*if (Config.SyncMode == VCR_SYNC_NONE)*/
 		{
 			if (!VCRComp_addVideoFrame((unsigned char*)image))
 			{
@@ -1911,7 +1938,6 @@ VCR_updateScreen()
 			}
 			else
 			{
-				printf("\nDupped Frame! a/v: %f/%f", m_videoFrame, m_audioFrame);
 				m_videoFrame += 1.0;
 			}
 		}
@@ -2003,14 +2029,14 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 #ifdef _DEBUG
 		else
 		{
-			float pro = (float)(soundBufPos + len) * 100 / (SOUND_BUF_SIZE * sizeof(char));
+			long double pro = (long double)(soundBufPos + len) * 100 / (SOUND_BUF_SIZE * sizeof(char));
 			if (pro > 75) printf("---!!!---");
 			printf("sound buffer: %.2f%%\n", pro);
 		}
 #endif
 		memcpy(soundBuf + soundBufPos, (char*)buf, len);
-		m_audioFrame += ((len/4)/(float)m_audioFreq)*visByCountrycode();
 		soundBufPos += len;
+		m_audioFrame += ((len/4)/(long double)m_audioFreq)*visByCountrycode();
 	}
 //	ShowInfo("writeSound() done");
 }
@@ -2059,7 +2085,7 @@ void VCR_aiLenChanged()
 			// over time. Checking if desync is not 0 causes the audio stream to to get thrashed which results in clicks
 			// and pops.
 
-			float desync = m_videoFrame - m_audioFrame;
+			long double desync = m_videoFrame - m_audioFrame;
 
 			if (Config.SyncMode == VCR_SYNC_NONE) // HACK
 				desync = 0;
@@ -2068,7 +2094,7 @@ void VCR_aiLenChanged()
 			{
 				int len3;
 				printf( "[VCR]: Correcting for A/V desynchronization of %+f frames\n", desync );
-				len3 = (m_audioFreq/(float)visByCountrycode()) * desync;
+				len3 = (m_audioFreq/(long double)visByCountrycode()) * desync;
 				len3 <<= 2;
 
 				int emptySize = len3 > writeSize ? writeSize : len3;
@@ -2358,7 +2384,7 @@ void VCR_updateFrameCounter ()
 
 // // oops, this control isn't even visible during emulation...
 //	if(VCR_isPlaying())
-//		SendMessage( hStatusProgress, PBM_SETPOS, (int)(100.0f * (float)m_currentSample / (float)VCR_getLengthFrames() + 0.5f), 0 );
+//		SendMessage( hStatusProgress, PBM_SETPOS, (int)(100.0f * (long double)m_currentSample / (long double)VCR_getLengthFrames() + 0.5f), 0 );
 
 //	if(m_intro && m_currentSample < 60 && VCR_isPlaying())
 //		sprintf(str, "%d re-records, %d frames", (int)m_header.rerecord_count, (int)m_header.length_vis);
