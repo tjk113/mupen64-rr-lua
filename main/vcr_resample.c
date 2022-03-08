@@ -25,7 +25,7 @@ int
 VCR_getResampleLen(int dst_freq, int src_freq, int src_bitrate, int src_len)
 {
 	int dst_len;
-	float ratio;
+	long double ratio;
 
 	// convert bitrate to 16 bits
 	if (src_bitrate != 16)
@@ -36,7 +36,7 @@ VCR_getResampleLen(int dst_freq, int src_freq, int src_bitrate, int src_len)
 		src_len = src_len * (16 / src_bitrate);
 	}
 
-	ratio = src_freq / (float)dst_freq;
+	ratio = src_freq / (long double)dst_freq;
 	dst_len = src_len / ratio;
 
 	return dst_len;
