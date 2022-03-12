@@ -29,6 +29,8 @@
 
 //#include "../config.h"
 
+#include "../lua/LuaConsole.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef __WIN32__
@@ -47,7 +49,6 @@
 #include "../main/guifuncs.h"
 #include "../main/savestates.h"
 #include "../main/vcr.h"
-#include "../lua/LuaConsole.h"
 #include "../main/win/Config.h"
 
 unsigned long next_vi;

@@ -2,10 +2,15 @@
 // Plik do³¹czany wygenerowany przez œrodowisko Microsoft Visual C++.
 // U¿ywany przez: rsrc.rc
 //
+
+// no ifdef switch here for lua
+
+#include "../lua/luaDefine.h" // this is very very bad but the header guard inside that header does allow for this
+
 #define MUPEN_VERSION     "Mupen 64 1.0.9"
 
-#define MIN_WINDOW_W 500
-#define MIN_WINDOW_H 250
+#define MIN_WINDOW_W -500
+#define MIN_WINDOW_H -100
 
 #define IDR_MYMENU 101
 #define IDR_ACCEL 103
@@ -324,6 +329,7 @@
 #define ID_END_CAPTURE                  9206
 #define ID_LOOP_MOVIE                   9207
 #define ID_RESTART_MOVIE				9208
+#define ID_START_CAPTURE_PRESET			9209
 
 #define IDC_CONTROLLER1                 9247
 #define IDC_CONTROLLER2                 9248
@@ -428,6 +434,39 @@
 #define IDC_LUA_WARNONCLOSE				40017
 #define IDC_LUA_SIMPLEDIALOG			40018
 #define IDD_LUAWINDOW_SIMPLIFIED	    40019
+#define IDC_MOVIEBACKUPS				40020
+#define ID_FORCESAVE					40021
+#define IDD_MUPENERROR					40022
+#define IDC_ERROR_PANIC_CLOSEROM		40023
+#define IDC_CRASHREPORT					40024
+#define IDC_ERROR_CONTINUE				40025
+#define IDC_ERRORTEXT					40026
+#define IDC_ERROR_PICTUREBOX			40027
+#define IDC_ERROR_PANIC_CLOSEMUPEN		40028
+#define IDB_LOGO_BW						40029
+#define ID_CRASHHANDLERDIALOGSHOW	    40030
+#define IDD_GAMEDEBUGGERDIALOG			40031
+#define IDC_DEBUGGER_GROUPBOX           40032
+#define IDC_DEBUGGER_PAUSE              40033
+#define IDC_DEBUGGER_RESUME             40034
+#define IDC_DEBUGGER_INSTRUCTION        40035
+#define IDC_DEBUGGER_VI                 40036
+#define IDC_DEBUGGER_RSP                40037
+#define IDC_DEBUGGER_RSP_TOGGLE         40038
+#define ID_GAMEDEBUGGER					40039
+#define IDB_PAUSE						40040
+#define IDB_RESUME						40041
+#define IDC_DEBUGGER_INSTDECODEMODE     40042
+#define IDC_DEBUGGER_PRECOMPADDR		40043
+#define IDC_DEBUGGER_PRECOMPOP			40044
+#define IDC_DEBUGGER_STEP				40045
+#define IDC_DEBUGGER_DUMPRDRAM			40046
+#define IDC_DEBUGGER_DMA_R_TOGGLE	    40047
+#define ID_REPLAY_LATEST				40048
+#define IDC_FREQUENTVCRREFRESH			40049
+#define IDC_AV_NOSYNC					40050
+#define IDC_AV_AUDIOSYNC				40051
+#define IDC_AV_VIDEOSYNC				40052
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

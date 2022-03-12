@@ -30,6 +30,9 @@
     <Filter Include="Source Files\memory">
       <UniqueIdentifier>{352b1079-a128-48b6-934f-03fb115ed9ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\main\speex">
+      <UniqueIdentifier>{e9d66cf9-9f6a-4611-bb7b-bec0a5103c88}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config.h">
@@ -209,10 +212,23 @@
     <ClInclude Include="..\..\main\debughook.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\r4300\cop1_helpers.h" />
-    <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h" />
     <ClInclude Include="..\..\lua\Recent.h">
       <Filter>Source Files\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\main\speex\speex_resampler.h">
+      <Filter>Source Files\main\speex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h">
+      <Filter>Source Files\r4300</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\r4300\cop1_helpers.h">
+      <Filter>Source Files\r4300</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\main\speex\arch.h">
+      <Filter>Source Files\main\speex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\main\win\GameDebugger.h">
+      <Filter>Source Files\main</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -459,14 +475,20 @@
     <ClCompile Include="..\..\main\debughook.c">
       <Filter>Source Files\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\r4300\cop1_helpers.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\r4300\x86\gcop1_helpers.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\lua\Recent.cpp">
       <Filter>Source Files\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\r4300\cop1_helpers.c">
+      <Filter>Source Files\r4300</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\r4300\x86\gcop1_helpers.c">
+      <Filter>Source Files\r4300</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\speex\speex_resampler.c">
+      <Filter>Source Files\main\speex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\win\GameDebugger.cpp">
+      <Filter>Source Files\main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -574,6 +596,15 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\icons\usa.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\logobw.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\pause.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\resume.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

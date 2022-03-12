@@ -30,6 +30,7 @@
 #include "../../winproject/resource.h"
 
 #include "../lua/Recent.h"
+#include <vcr.h>
 
 #define CfgFileName "mupen64.cfg"
 
@@ -174,7 +175,7 @@ void LoadConfig()
     Config.alertBAD = ReadCfgInt("General", "Alert Bad roms", 1);
     Config.alertHACK = ReadCfgInt("General", "Alert Hacked roms", 1);
     Config.savesERRORS = ReadCfgInt("General", "Alert Saves errors", 1);
-    Config.limitFps = ReadCfgInt("General", "Alert Saves errors", 1);
+    Config.limitFps = ReadCfgInt("General", "Limit Fps", 1);
     Config.compressedIni = ReadCfgInt("General", "Compressed Ini", 1);
     Config.UseFPSmodifier = ReadCfgInt("General", "Use Fps Modifier", 1);
     Config.FPSmodifier = ReadCfgInt("General", "Fps Modifier", 100);
@@ -241,6 +242,13 @@ void LoadConfig()
     Config.forceInternalCapture = ReadCfgInt("Avi Options", "Force internal capture", 0);
     Config.captureOtherWindows = ReadCfgInt("Avi Options", "Capture other windows", 0);
 
+    Config.LuaWarnOnClose = ReadCfgInt("Other", "Ask on lua close", 0);
+    Config.LuaSimpleDialog = ReadCfgInt("Other", "Simplified lua", 0);
+    Config.movieBackups = ReadCfgInt("Other", "Autobackup", 0);
+    Config.movieBackupsLevel = ReadCfgInt("Other", "Autobackup level", 0);
+    Config.FrequentVCRUIRefresh = ReadCfgInt("Other", "Fast statusbar updates", 0);
+    Config.SyncMode = ReadCfgInt("Other", "Synchronisation Mode", VCR_SYNC_AUDIO_DUPL);
+
     // Load A Whole Whackton Of Hotkeys:
 
     ReadHotkeyConfig(0, "Fast Forward", 0, VK_TAB);	// handled specially
@@ -283,6 +291,11 @@ void LoadConfig()
     ReadCfgString("Lua", "Script Path", "", Config.LuaScriptPath);
     ReadHotkeyConfig(40, "Lua Script Reload", ID_LUA_RELOAD, VK_F3 | 0x200);
     ReadHotkeyConfig(41, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4 | 0x200);
+
+    // some new misc ones
+    ReadHotkeyConfig(42, "Start From Beginning", ID_RESTART_MOVIE, 'H' | 0x300);
+    ReadHotkeyConfig(43, "Replay Latest", ID_REPLAY_LATEST, 'G' | 0x300);
+
 
 }
 
@@ -363,7 +376,7 @@ void SaveConfig()
     WriteCfgInt("General", "Alert Bad roms", Config.alertBAD);
     WriteCfgInt("General", "Alert Hacked roms", Config.alertHACK);
     WriteCfgInt("General", "Alert Saves errors", Config.savesERRORS);
-    WriteCfgInt("General", "Alert Saves errors", Config.limitFps);
+    WriteCfgInt("General", "Limit Fps", Config.limitFps);
     WriteCfgInt("General", "Compressed Ini", Config.compressedIni);
     WriteCfgInt("General", "Fps Modifier", Config.FPSmodifier);
     WriteCfgInt("General", "Use Fps Modifier", Config.UseFPSmodifier);
@@ -412,6 +425,13 @@ void SaveConfig()
     WriteCfgInt("Avi Options", "Force internal capture", Config.forceInternalCapture);
     WriteCfgInt("Avi Options", "Capture other windows", Config.captureOtherWindows);
 
+    WriteCfgInt("Other", "Ask on lua close", Config.LuaWarnOnClose);
+    WriteCfgInt("Other", "Simplified lua", Config.LuaSimpleDialog);
+    WriteCfgInt("Other", "Autobackup", Config.movieBackups);
+    WriteCfgInt("Other", "Autobackup level", Config.movieBackupsLevel);
+    WriteCfgInt("Other", "Fast statusbar updates", Config.FrequentVCRUIRefresh);
+    WriteCfgInt("Other", "Synchronisation Mode", Config.SyncMode);
+
     // Save A Whole Whackton Of Hotkeys:
 
     char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
@@ -422,7 +442,6 @@ void SaveConfig()
     {
         WriteHotkeyConfig(i, settingStrings[i]);
     }
-    // 0.001s faster 
 
     // Save/Load Hotkeys
         int i;
@@ -437,11 +456,15 @@ void SaveConfig()
             sprintf(str, "Select %d", i);
             WriteHotkeyConfig(30 + i, str);
         }
-        // 2 miliseconds faster
     //Lua
     WriteCfgString("Lua", "Script Path", Config.LuaScriptPath);
     WriteHotkeyConfig(40, "Lua Script Reload");
     WriteHotkeyConfig(41, "Lua Script CloseAll");
+
+    // some new misc ones
+    WriteHotkeyConfig(42, "Start From Beginning");
+    WriteHotkeyConfig(43, "Replay Latest");
+    
 }
 
 

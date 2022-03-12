@@ -32,6 +32,8 @@
 //#define DEBUG_PIF //don't define if you don't need spam
 #endif
 
+#include "../lua/LuaConsole.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef __WIN32__
@@ -50,14 +52,12 @@
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
-#include "../lua/LuaConsole.h"
 
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];
 
 void check_input_sync(unsigned char* value);
 
-//#define DEBUG_PIF
 #ifdef DEBUG_PIF
 void print_pif()
 {
@@ -465,6 +465,7 @@ void update_pif_write()
 #endif*/
 }
 
+//used with 1f input delay (not usable)
 void sleep_while_emu_paused()
 {
 	extern int emu_paused;

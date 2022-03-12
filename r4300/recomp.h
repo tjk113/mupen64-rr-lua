@@ -30,8 +30,8 @@
 #ifndef RECOMP_H
 #define RECOMP_H
 
-#include "x86/assemble.h"
 #include "../lua/luaDefine.h"
+#include "x86/assemble.h"
 
 typedef struct _precomp_instr
 {
@@ -75,10 +75,10 @@ typedef struct _precomp_instr
    unsigned long addr;
    unsigned long local_addr;
    reg_cache_struct reg_cache_infos;
-#ifdef LUA_TRACEINTERP
+//#ifdef LUA_TRACEINTERP
 	 void (*s_ops)();
 	 unsigned long src;
-#endif
+//#endif
 } precomp_instr;
 
 typedef struct _precomp_block

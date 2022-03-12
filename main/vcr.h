@@ -44,6 +44,10 @@
 #define MOVIE_DESCRIPTION_DATA_SIZE (256)
 #define MOVIE_MAX_METADATA_SIZE (MOVIE_DESCRIPTION_DATA_SIZE > MOVIE_AUTHOR_DATA_SIZE ? MOVIE_DESCRIPTION_DATA_SIZE : MOVIE_AUTHOR_DATA_SIZE)
 
+#define VCR_SYNC_AUDIO_DUPL 0
+#define VCR_SYNC_VIDEO_SNDROP 1
+#define VCR_SYNC_NONE 2
+
 /*
 	(0x0001)	Directional Right
 	(0x0002)	Directional Left
@@ -143,6 +147,7 @@ typedef struct
 	
 
 extern SMovieHeader VCR_getHeaderInfo(const char* filename);
+extern char VCR_Lastpath[MAX_PATH];
 
 #endif // VCR_SUPPORT
 

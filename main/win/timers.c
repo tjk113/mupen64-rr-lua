@@ -13,6 +13,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "../../lua/LuaConsole.h"
 
 #include <windows.h>
 #include <stdio.h>
@@ -25,7 +26,8 @@
 #include "../rom.h"
 #include "translation.h"
 #include "../vcr.h"
-#include "../../lua/LuaConsole.h"
+#include "../../winproject/resource.h"
+#include <win/CrashHandler.h>
 
 extern bool ffup;
 
@@ -100,6 +102,8 @@ void new_frame() {
 }
 
 extern int m_currentVI;
+extern long m_currentSample;
+
 void new_vi() {
 //#ifdef WIN32// this is windows only already
 	extern DWORD WINAPI closeRom(LPVOID lpParam);
@@ -108,22 +112,15 @@ void new_vi() {
 	// fps wont update when emu is stuck so we must check vi/s
 	// vi/s shouldn't go over 300 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
 	if (!ignoreErrorEmulation && emu_launched && frame_advancing && VIs > 300) {
-		int res = MessageBox(NULL, "Emulation problem detected\nPress Abort to close the rom\nPress Retry to continue emulation\nPress ignore to not show this again", "Error", MB_ICONERROR | MB_ABORTRETRYIGNORE | MB_TOPMOST | MB_TASKMODAL);
-		switch (res)
-		{
-		case IDABORT:
+
+		BOOL stop = ErrorDialogEmuError();
+		
+		if (stop) {
+
 			frame_advancing = false; //don't pause at next open
 			CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, 0);
-			break;
-		case IDIGNORE:
-			ignoreErrorEmulation = TRUE;
-			break;
-		default: 
-			// dame tu cosita uh ay
-			break;
 		}
 		
-
 	}
 //#endif
    DWORD Dif;
@@ -146,19 +143,22 @@ void new_vi() {
 #else
 	extern int frame_advancing;
 	extern BOOL manualFPSLimit;
-	if(/*VCR_isActive() &&*/ (frame_advancing || (m_currentVI % (manualFPSLimit ? 10 : 80)) == 0))
-	{
+	if (!Config.FrequentVCRUIRefresh) {
+		if ((frame_advancing || (m_currentVI % (manualFPSLimit ? 10 : 80)) == 0))
+		{
+			VCR_updateFrameCounter();
+		}
+	}else
 		VCR_updateFrameCounter();
-	}
 
 	if(VCR_isPlaying())
 	{
 		extern int pauseAtFrame;
-		if(m_currentVI >= pauseAtFrame && pauseAtFrame >= 0)
+		// use jg not jge due to off-by-one error inherited by cancerous code
+		if(m_currentSample > pauseAtFrame && pauseAtFrame >= 0)
 		{
 			extern void pauseEmu(BOOL quiet);
 			pauseEmu(TRUE); // maybe this is multithreading unsafe?
-
 			pauseAtFrame = -1; // don't pause again
 		}
 	}

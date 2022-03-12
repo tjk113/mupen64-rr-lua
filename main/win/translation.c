@@ -342,14 +342,17 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     SetMenuTranslatedString(subsubmenu,4,"Stop Movie Playback","");
     SetMenuTranslatedString(subsubmenu,5,"Toggle Read-Only","");
     SetMenuTranslatedString(subsubmenu,7,"Start AVI Capture...","");
-    SetMenuTranslatedString(subsubmenu,8,"Stop AVI Capture","");
+    SetMenuTranslatedString(subsubmenu,8,"Start AVI From Preset...", "");
+    SetMenuTranslatedString(subsubmenu,9,"Stop AVI Capture","");
             
     //Help menu
     submenu = GetSubMenu(hMenu,4);
     SetMenuTranslatedString(submenu,0,"Show RAM start","");
-    SetMenuTranslatedString(submenu,2,"About","");
-    DrawMenuBar(mainHWND);
+    SetMenuTranslatedString(submenu,1,"Show Crash Handler", "");
+    SetMenuTranslatedString(submenu,3,"About","");
     
+    DrawMenuBar(mainHWND);
+    // unecessary?
     
     
 
@@ -372,6 +375,10 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
 	SetHotkeyMenuAccelerators(&Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
 	SetHotkeyMenuAccelerators(&Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
 	SetHotkeyMenuAccelerators(&Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
+
+    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 11);
+    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 12);
+
 }
 
 void TranslateConfigDialog(HWND hwnd)

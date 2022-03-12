@@ -22,6 +22,7 @@
 
 #include <shlobj.h>
 #include <stdio.h>
+#include "../lua/LuaConsole.h"
 #include "main_win.h"
 #include "../../winproject/resource.h"
 #include "../plugin.h"
@@ -35,6 +36,11 @@
 #include "inifunctions.h"
 
 #include "configdialog.h"
+#include <vcr.h>
+// ughh msvc-only code once again
+#pragma comment(lib,"comctl32.lib") 
+#pragma comment(lib,"propsys.lib")
+#pragma comment(lib,"shlwapi.lib") 
 
 #ifdef _MSC_VER
 #define snprintf	_snprintf
@@ -47,42 +53,103 @@
 static DWORD dwExitCode;
 static DWORD Id;
 BOOL stopScan = FALSE;
-HWND __stdcall CreateTrackbar( HWND hwndDlg, UINT iMin, UINT iMax,  UINT iSelMin, UINT iSelMax); // winapi macro was very confusing
+HWND __stdcall CreateTrackbar(HWND hwndDlg, UINT iMin, UINT iMax, UINT iSelMin, UINT iSelMax, UINT x, UINT y, UINT w); // winapi macro was very confusing
+
 HWND hwndTrack ; 
+HWND hwndTrackOther;
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
 
+BOOL LuaCriticalSettingChangePending; // other options proc
+
 BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-    switch (Message) {
+    switch (Message)
+    {
     case WM_INITDIALOG:
         WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
         WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
+        WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.movieBackups);
+        WriteCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH, Config.FrequentVCRUIRefresh);
+
+        hwndTrackOther = CreateTrackbar(hwnd, 1, 3, Config.movieBackupsLevel, 3, 200, 79, 100);
+
+        switch (Config.SyncMode)
+        {
+        case VCR_SYNC_AUDIO_DUPL:
+            CheckDlgButton(hwnd, IDC_AV_AUDIOSYNC, BST_CHECKED);
+            break;
+        case VCR_SYNC_VIDEO_SNDROP:
+            CheckDlgButton(hwnd, IDC_AV_VIDEOSYNC, BST_CHECKED);
+            break;
+        case VCR_SYNC_NONE:
+            CheckDlgButton(hwnd, IDC_AV_NOSYNC, BST_CHECKED);
+            break;
+        }
+
+
         return TRUE;
-    case WM_COMMAND:
+
+    case WM_COMMAND: {
+        // dame tu xorita mamacita
         switch (LOWORD(wParam))
         {
+        case IDC_AV_AUDIOSYNC:
+            if (!VCR_isCapturing())
+            Config.SyncMode = VCR_SYNC_AUDIO_DUPL;
+            break;
+        case IDC_AV_VIDEOSYNC:
+            if (!VCR_isCapturing())
+            Config.SyncMode = VCR_SYNC_VIDEO_SNDROP;
+            break;
+        case IDC_AV_NOSYNC:
+            if (!VCR_isCapturing())
+            Config.SyncMode = VCR_SYNC_NONE;
+            break;
+        case IDC_LUA_SIMPLEDIALOG: {
 
+            if (MessageBox(0, "Changing this option requires a restart.\nPress Yes to confirm that you want to change this setting. (You won\'t be able to use lua until a restart)\nPress No to revert changes.", "Restart required", MB_TOPMOST | MB_TASKMODAL | MB_ICONWARNING | MB_YESNO) == IDYES) {
+                LuaCriticalSettingChangePending = 1;
+                CloseAllLuaScript();
+            }
+            else
+                CheckDlgButton(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
+
+            break;
+        }
         }
         break;
+    }
 
     case WM_NOTIFY:
+    {
+        if (((NMHDR FAR*) lParam)->code == NM_RELEASEDCAPTURE) {
+            Config.movieBackupsLevel = SendMessage(hwndTrackOther, TBM_GETPOS, 0, 0);
+        }
+
         if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
             Config.LuaSimpleDialog = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
             Config.LuaWarnOnClose = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
+            Config.movieBackups = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
+            Config.FrequentVCRUIRefresh = ReadCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH);
+            Config.FPSmodifier = SendMessage(hwndTrackOther, TBM_GETPOS, 0, 0);
             EnableToolbar();
             EnableStatusbar();
             FastRefreshBrowser();
             LoadConfigExternals();
-        }   
-        break;
+
+        }
+
+    }
+    break;
 
     default:
         return FALSE;
     }
     return TRUE;
 }
+
 
 void WriteCheckBoxValue( HWND hwnd, int resourceID , int value)
 {
@@ -196,7 +263,7 @@ void ChangeSettings(HWND hwndOwner) {
     psh.ppsp = (LPCPROPSHEETPAGE) &psp;
     psh.pfnCallback = NULL;
 
-	PropertySheet(&psh);
+    if (PropertySheet(&psh)) SaveConfig();
 	return;
 }
 
@@ -273,6 +340,68 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
     return TRUE;
 }
 
+bool folderDiag(char* out, int max_size, const char* starting_dir)
+{
+    bool ret = false;
+    IFileDialog* pfd;
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
+    {
+        if (starting_dir)
+        {
+            PIDLIST_ABSOLUTE pidl;
+            WCHAR wstarting_dir[MAX_PATH];
+            WCHAR* wc = wstarting_dir;
+            for (const char* c = starting_dir; *c && wc - wstarting_dir < MAX_PATH - 1; ++c, ++wc)
+            {
+                *wc = *c == '/' ? '\\' : *c;
+            }
+            *wc = 0;
+
+            HRESULT hresult = ::SHParseDisplayName(wstarting_dir, 0, &pidl, SFGAO_FOLDER, 0);
+            if (SUCCEEDED(hresult))
+            {
+                IShellItem* psi;
+                hresult = ::SHCreateShellItem(NULL, NULL, pidl, &psi);
+                if (SUCCEEDED(hresult))
+                {
+                    pfd->SetFolder(psi);
+                }
+                ILFree(pidl);
+            }
+        }
+
+        DWORD dwOptions;
+        if (SUCCEEDED(pfd->GetOptions(&dwOptions)))
+        {
+            pfd->SetOptions(dwOptions | FOS_PICKFOLDERS);
+        }
+        if (SUCCEEDED(pfd->Show(NULL)))
+        {
+            IShellItem* psi;
+            if (SUCCEEDED(pfd->GetResult(&psi)))
+            {
+                WCHAR* tmp;
+                if (SUCCEEDED(psi->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &tmp)))
+                {
+                    char* c = out;
+                    while (*tmp && c - out < max_size - 1)
+                    {
+                        *c = (char)*tmp;
+                        ++c;
+                        ++tmp;
+                    }
+                    *c = '\0';
+                    ret = true;
+                }
+                psi->Release();
+            }
+        }
+        pfd->Release();
+    }
+    return ret;
+}
+
+
 BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
   char Buffer[MAX_PATH], Directory[MAX_PATH];
@@ -342,96 +471,72 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                 }
                 break;
         case WM_COMMAND:
-		        switch (LOWORD(wParam)) 
-                { 
-		         case IDC_RECURSION :
-		               Config.RomBrowserRecursion = SendDlgItemMessage(hwnd,IDC_RECURSION,BM_GETCHECK , 0,0) == BST_CHECKED?TRUE:FALSE;
-                       break;      
-                 case IDC_ADD_BROWSER_DIR : 
-		               bi.hwndOwner = hwnd;
-					   bi.pidlRoot = NULL;
-				       bi.pszDisplayName = Buffer;
-				       Translate("Select Current Rom Browser Directory",TempMessage);
-				       bi.lpszTitle = TempMessage;
-				       bi.ulFlags = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS;
-				       bi.lpfn = NULL;
-				       bi.lParam = 0;
-                       if ((pidl = SHBrowseForFolder(&bi)) != NULL) {
-                                        
-					   if (SHGetPathFromIDList(pidl, Directory)) {
-					     int len = strlen(Directory);
-                		 if (Directory[len - 1] != '\\') 
-                              { 
-                                strcat(Directory,"\\"); 
-                              }
-                                if (addDirectoryToLinkedList(Directory)) {
-                                      SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)Directory);  
-			                          AddDirToList(Directory,TRUE);
-			                          }
-                              
-                        }
-                       }       
-				  break; 
-				  
-				  case IDC_REMOVE_BROWSER_DIR :
-                  	RomBrowserDirListBox = GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST);
-					count = SendMessage(RomBrowserDirListBox, LB_GETSELCOUNT, 0, 0);
-					if(count != 0)
-						{
-							selected = SendMessage(RomBrowserDirListBox, LB_GETCURSEL , 0, 0);
-	        				SendMessage(RomBrowserDirListBox, LB_GETTEXT, selected, (LPARAM)RomBrowserDir);		
-                            removeDirectoryFromLinkedList(RomBrowserDir);
-                            SendMessage(RomBrowserDirListBox, LB_DELETESTRING, selected, 0);
-						    RefreshRomBrowser();
-                   		}
-						else 
-						{
-							MessageBox(hwnd, "No items selected.", "Warning", MB_OK);
-						}
- 				  break;
-				  
-				  case IDC_REMOVE_BROWSER_ALL :
-				        SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_RESETCONTENT, 0, 0);
-				        freeRomDirList();
-				        RefreshRomBrowser();
-				  break;
-				  
-				  case IDC_DEFAULT_PLUGINS_CHECK:
-				  {      
-                        selected = SendMessage( GetDlgItem(hwnd,IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0 );
-				        if (!selected)
-				        {
-                            MessageBox(NULL, "Warning: changing the plugin folder can introduce bugs in many plugins", "Warning", MB_OK);
-                            EnableWindow( GetDlgItem(hwnd,IDC_PLUGINS_DIR), TRUE );
-                            EnableWindow( GetDlgItem(hwnd,IDC_CHOOSE_PLUGINS_DIR), TRUE );
-                        }else
-                        {
-                            EnableWindow( GetDlgItem(hwnd,IDC_PLUGINS_DIR), FALSE );
-                            EnableWindow( GetDlgItem(hwnd,IDC_CHOOSE_PLUGINS_DIR), FALSE );
-                        }
-                  }
-                  break;
-                  case IDC_CHOOSE_PLUGINS_DIR:
-                  {
-                       bi.hwndOwner = hwnd;
-					   bi.pidlRoot = NULL;
-				       bi.pszDisplayName = Buffer;
-				       bi.lpszTitle = TempMessage;
-				       bi.ulFlags = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS;
-				       bi.lpfn = NULL;
-				       bi.lParam = 0;
-                       if ((pidl = SHBrowseForFolder(&bi)) != NULL) {
-					    if (SHGetPathFromIDList(pidl, Directory)) {
-						 int len = strlen(Directory);
-                		 if (Directory[len - 1] != '\\') 
-                              { strcat(Directory,"\\"); }
-                                                           
-                               SetDlgItemText( hwnd, IDC_PLUGINS_DIR, Directory );
-                                                        
-                          }
-                       }
-                        
-                  }
+            switch (LOWORD(wParam))
+            {
+            case IDC_RECURSION:
+                Config.RomBrowserRecursion = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
+                break;
+            case IDC_ADD_BROWSER_DIR: {
+
+                folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
+                int len = strlen(Directory);
+                if (addDirectoryToLinkedList(Directory)) {
+                    SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)Directory);
+                    AddDirToList(Directory, TRUE);
+                }
+                break;
+            }
+            case IDC_REMOVE_BROWSER_DIR:
+                RomBrowserDirListBox = GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST);
+                count = SendMessage(RomBrowserDirListBox, LB_GETSELCOUNT, 0, 0);
+                if (count != 0)
+                {
+                    selected = SendMessage(RomBrowserDirListBox, LB_GETCURSEL, 0, 0);
+                    SendMessage(RomBrowserDirListBox, LB_GETTEXT, selected, (LPARAM)RomBrowserDir);
+                    removeDirectoryFromLinkedList(RomBrowserDir);
+                    SendMessage(RomBrowserDirListBox, LB_DELETESTRING, selected, 0);
+                    RefreshRomBrowser();
+                }
+                else
+                {
+                    MessageBox(hwnd, "No items selected.", "Warning", MB_OK);
+                }
+                break;
+
+            case IDC_REMOVE_BROWSER_ALL:
+                SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_RESETCONTENT, 0, 0);
+                freeRomDirList();
+                RefreshRomBrowser();
+                break;
+
+            case IDC_DEFAULT_PLUGINS_CHECK:
+            {
+                selected = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0);
+                if (!selected)
+                {
+                    MessageBox(NULL, "Warning: changing the plugin folder can introduce bugs in many plugins", "Warning", MB_OK);
+                    EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), TRUE);
+                    EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), TRUE);
+                }
+                else
+                {
+                    EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), FALSE);
+                    EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), FALSE);
+                }
+            }
+            break;
+            case IDC_CHOOSE_PLUGINS_DIR:
+            {
+                // Lol why is vs indenting this one block down
+                folderDiag(Directory, sizeof(Directory)/sizeof(char), "");
+                int len = strlen(Directory);
+                if (Directory[len - 1] != '\\')
+                    strcat(Directory, "\\");
+                SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Directory);
+
+            }
+            
+            
                   break;
 				  case IDC_DEFAULT_SAVES_CHECK:
 				  {      
@@ -449,21 +554,11 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                   break;
                   case IDC_CHOOSE_SAVES_DIR:
                   {
-                       bi.hwndOwner = hwnd;
-					   bi.pidlRoot = NULL;
-				       bi.pszDisplayName = Buffer;
-				       bi.lpszTitle = TempMessage;
-				       bi.ulFlags = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS;
-				       bi.lpfn = NULL;
-				       bi.lParam = 0;
-                       if ((pidl = SHBrowseForFolder(&bi)) != NULL) {
-					    if (SHGetPathFromIDList(pidl, Directory)) {
-						 int len = strlen(Directory);
-                		 if (Directory[len - 1] != '\\') 
-                              { strcat(Directory,"\\"); 
-                                SetDlgItemText( hwnd, IDC_SAVES_DIR, Directory );
-                              }
-                          }
+                       folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
+                       if (Directory[strlen(Directory) - 1] != '\\')
+                       {
+                           strcat(Directory, "\\");
+                           SetDlgItemText(hwnd, IDC_SAVES_DIR, Directory);
                        }
                   }
                   break;
@@ -483,22 +578,11 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                   break;                
                   case IDC_CHOOSE_SCREENSHOTS_DIR:
                   {
-                       bi.hwndOwner = hwnd;
-					   bi.pidlRoot = NULL;
-				       bi.pszDisplayName = Buffer;
-				       bi.lpszTitle = TempMessage;
-				       bi.ulFlags = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS;
-				       bi.lpfn = NULL;
-				       bi.lParam = 0;
-                       if ((pidl = SHBrowseForFolder(&bi)) != NULL) {
-					    if (SHGetPathFromIDList(pidl, Directory)) {
-						 int len = strlen(Directory);
-                		 if (Directory[len - 1] != '\\') 
-                              { strcat(Directory,"\\"); 
-                                SetDlgItemText( hwnd, IDC_SCREENSHOTS_DIR, Directory );
-                              }
-                          }
-                       }
+                      folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
+                      int len = strlen(Directory);
+                      if (Directory[len - 1] != '\\')
+                          strcat(Directory, "\\");
+                      SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Directory);
                   }
                   break;
                 }
@@ -750,7 +834,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                   EnableWindow( GetDlgItem(hwnd,IDC_PURE_INTERP), FALSE );
          }
          
-         CreateTrackbar(hwnd,1,200,Config.FPSmodifier,200) ; 
+         CreateTrackbar(hwnd,1,200,Config.FPSmodifier,200, 30, 184, 300) ; 
          
          SwitchLimitFPS(hwnd);
          FillModifierValue( hwnd, Config.FPSmodifier);        
@@ -788,7 +872,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_NOTIFY:
 		       if (((NMHDR FAR *) lParam)->code == NM_RELEASEDCAPTURE)  {
                     FillModifierValue( hwnd, SendMessage( hwndTrack , TBM_GETPOS, 0, 0));        
-               }     
+               }
                if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
                               Config.showFPS = ReadCheckBoxValue( hwnd, IDC_SHOWFPS);
                               Config.showVIS = ReadCheckBoxValue( hwnd, IDC_SHOWVIS);
@@ -824,7 +908,7 @@ DWORD WINAPI ScanThread(LPVOID lpParam) {
      for (i=0;i<ItemList.ListCount;i++)
         {
           if (stopScan) break;
-          pRomInfo = &ItemList.List[i];
+          pRomInfo = &ItemList.List[i]; 
           sprintf(TempMessage,"%d",i+1);
           SetDlgItemText(romInfoHWND,IDC_CURRENT_ROM,TempMessage);
           SetDlgItemText(romInfoHWND,IDC_ROM_FULLPATH,pRomInfo->szFullFileName);
@@ -1319,8 +1403,12 @@ HWND WINAPI CreateTrackbar(
     UINT iMin,     // minimum value in trackbar range 
     UINT iMax,     // maximum value in trackbar range 
     UINT iSelMin,  // minimum value in trackbar selection 
-    UINT iSelMax)  // maximum value in trackbar selection 
-{ 
+    UINT iSelMax, // maximum value in trackbar selection 
+    UINT x, // x pos
+    UINT y, // y pos
+    UINT w
+    )// width
+{  
 
     
     hwndTrack = CreateWindowEx( 
@@ -1329,8 +1417,8 @@ HWND WINAPI CreateTrackbar(
         "Trackbar Control",            // title (caption) 
         WS_CHILD | WS_VISIBLE | 
          /*TBS_TOOLTIPS |*/ TBS_FIXEDLENGTH ,  // style 
-        30, 184,                        // position 
-        300, 30,                       // size 
+        x, y,                        // position 
+        w, 30,                       // size 
         hwndDlg,                       // parent window 
         (HMENU)ID_FPSTRACKBAR,               // control identifier 
         app_hInstance,                 // instance 

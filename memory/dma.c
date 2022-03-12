@@ -39,6 +39,8 @@
 #include "flashram.h"
 #include "../main/guifuncs.h"
 #include "../r4300/ops.h"
+#include "../main/win/GameDebugger.h"
+#include "savestates.h"
 
 unsigned char sram[0x8000];
 
@@ -65,9 +67,8 @@ void dma_pi_read()
 		  fclose(f);
 	       }
 	     else for (i=0; i<0x8000; i++) sram[i] = 0;
-	     for (i=0; i<(pi_register.pi_rd_len_reg & 0xFFFFFF)+1; i++)
-	       sram[((pi_register.pi_cart_addr_reg-0x08000000)+i)^S8]=
-	       ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg+i)^S8];
+		 for (i = 0; i < (pi_register.pi_rd_len_reg & 0xFFFFFF) + 1; i++)
+			 sram[((pi_register.pi_cart_addr_reg - 0x08000000) + i) ^ S8] = ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8];
 	     f = fopen(filename, "wb");
 	     fwrite(sram, 1, 0x8000, f);
 	     fclose(f);
@@ -115,7 +116,7 @@ void dma_pi_write()
 		  free(filename);
 		  for (i=0; i<(pi_register.pi_wr_len_reg & 0xFFFFFF)+1; i++)
 		    ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg+i)^S8]=
-		    sram[(((pi_register.pi_cart_addr_reg-0x08000000)&0xFFFF)+i)^S8];
+			  sram[(((pi_register.pi_cart_addr_reg-0x08000000)&0xFFFF)+i)^S8];
 		  use_flashram = -1;
 	       }
 	     else
@@ -166,7 +167,7 @@ void dma_pi_write()
 	     unsigned long rdram_address2 = pi_register.pi_dram_addr_reg+i+0xa0000000;
 	     
 	     ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg+i)^S8]=
-	       rom[(((pi_register.pi_cart_addr_reg-0x10000000)&0x3FFFFFF)+i)^S8];
+			 debugger_cartridgeTilt ? (255) : rom[(((pi_register.pi_cart_addr_reg-0x10000000)&0x3FFFFFF)+i)^S8];
 	     
 	     if(!invalid_code[rdram_address1>>12])
 	       if(blocks[rdram_address1>>12]->block[(rdram_address1&0xFFF)/4].ops != NOTCOMPILED)
@@ -182,7 +183,7 @@ void dma_pi_write()
 	for (i=0; i<longueur; i++)
 	  {
 	     ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg+i)^S8]=
-	       rom[(((pi_register.pi_cart_addr_reg-0x10000000)&0x3FFFFFF)+i)^S8];
+			 debugger_cartridgeTilt ? (255) : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
 	  }
      }
    
@@ -270,7 +271,11 @@ void dma_si_read()
      }
    update_pif_read(true);
    for (i=0; i<(64/4); i++)
-     rdram[si_register.si_dram_addr/4+i] = sl(PIF_RAM[i]);
-   update_count();
-   add_interupt_event(SI_INT, /*0x100*/0x900);
+	   rdram[si_register.si_dram_addr/4+i] = sl(PIF_RAM[i]);
+   if (!st_skip_dma) //st already did this, see savestates.c, we still copy pif ram tho because it has new inputs
+   {
+	   update_count();
+	   add_interupt_event(SI_INT, /*0x100*/0x900);
+   }
+   st_skip_dma = false;
 }

@@ -17,6 +17,7 @@
 
 
 #include "LuaConsole.h"
+
 #include "Recent.h"
 #include "win/DebugInfo.hpp"
 	
@@ -64,8 +65,10 @@ extern "C" {
 #undef EMULATOR_MAIN_CPP_DEF
 
 #include <gdiplus.h>
-#pragma comment (lib,"Gdiplus.lib")
+#include "../main/win/GameDebugger.h"
 
+#pragma comment (lib,"Gdiplus.lib")
+    
 extern void CountryCodeToCountryName(int countrycode,char *countryname);
 
 void StartMovies();
@@ -228,6 +231,7 @@ char sound_name[255];
 char rsp_name[255];
 
 char stroopConfigLine[150] = {0};
+char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
 const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = { "Azimer\'s Audio v0.7" };
 
@@ -517,7 +521,7 @@ void insert_plugin(plugins *p, char *file_name,
             if (strstr(plugin_name, pluginBlacklist[i])) {
                 char* msg = (char*)malloc(sizeof(pluginBlacklist[i]));
 
-                sprintf(msg, "A incompatible plugin with the name \"%s\" was detected.\
+                sprintf(msg, "An incompatible plugin with the name \"%s\" was detected.\
                 \nIt is highly recommended to skip loading this plugin as not doing so might cause instability.\
                 \nAre you sure you want to load this plugin?", plugin_name);
 
@@ -2325,6 +2329,11 @@ void EnableEmulationMenuItems(BOOL flag)
      
    HMENU hMenu, hSubMenu;
    hMenu = GetMenu(mainHWND);
+
+    #ifdef _DEBUG
+       EnableMenuItem(hMenu, ID_CRASHHANDLERDIALOGSHOW, MF_ENABLED);
+    #endif
+
    if (flag) {
       EnableMenuItem(hMenu,EMU_STOP,MF_ENABLED);
       //EnableMenuItem(hMenu,IDLOAD,MF_GRAYED);
@@ -2341,17 +2350,16 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
-      if (dynacore) {
+      EnableMenuItem(hMenu, ID_REPLAY_LATEST, MF_ENABLED);
+
+#ifdef N64DEBUGGER_ALLOWED
+      EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
+#endif
+      if (dynacore)
           EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
-      }
-      else {
+      else
           EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, true);
-      }
-      
-      
-      
+    
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
       EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_ENABLED);    //Record Menu
 if(!continue_vcr_on_restart_mode)
@@ -2361,6 +2369,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
       EnableMenuItem(hMenu,ID_STOP_PLAYBACK, VCR_isPlaying() ? MF_ENABLED : MF_GRAYED);
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
+      EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
       EnableMenuItem(hMenu,ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
 }
       
@@ -2391,12 +2400,10 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
+      EnableMenuItem(hMenu, ID_REPLAY_LATEST, MF_GRAYED);
+      EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_GRAYED);
 
-
-      if (!dynacore) {
-          EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
-          SendMessageA(hTool, TB_ENABLEBUTTON, ID_TRACELOG, false);
-      }
+      EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
      
       hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
 //      EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_GRAYED);    //Record Menu
@@ -2407,6 +2414,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_STOP_RECORD,MF_GRAYED);
       EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
+      EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
       EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
       LONG winstyle;
       winstyle = GetWindowLong(mainHWND, GWL_STYLE);
@@ -2526,7 +2534,7 @@ void exit_emu(int postquit)
 	      if (!cmdlineNoGui)
 	          SaveRomBrowserCache();
 	   } 
-       if (shouldSave)
+       //if (shouldSave)
        SaveConfig();
 	   ini_closeFile();
 	}
@@ -2643,6 +2651,8 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 
 void EnableStatusbar()
 {
+    shouldSave = TRUE;
+
 	if (Config.GuiStatusbar)
 	{
 		if (!IsWindow( hStatus ))
@@ -2661,6 +2671,8 @@ void EnableStatusbar()
 
 void EnableToolbar()
 {
+    shouldSave = TRUE;
+
 	if (Config.GuiToolbar && !VCR_isCapturing())
 	{
 		if(!hTool || !IsWindow(hTool))
@@ -2893,18 +2905,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
         
-	case WM_PAINT:
-			
+	case WM_PAINT: //todo, work with updatescreen to use wmpaint
+    {
 
-		BeginPaint(hwnd, &ps);
+        BeginPaint(hwnd, &ps);
+        EndPaint(hwnd, &ps);
 
-			
-		EndPaint(hwnd, &ps);
-
-
-        
-		return 0;
-
+        return 0;
+    }
 //		case WM_SETCURSOR:
 //			SetCursor(FALSE);
 //			return 0;
@@ -2962,7 +2970,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 			case ID_MENU_LUASCRIPT_NEW:
 				{
-#ifdef LUA_CONSOLE
+#ifdef LUA_MODULEIMPL
 					MUPEN64RR_DEBUGINFO("LuaScript New");
 					::NewLuaScript((void(*)())lParam);
 #endif
@@ -2981,11 +2989,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             }
 			case ID_MENU_LUASCRIPT_CLOSEALL:
 				{
-#ifdef LUA_CONSOLE
+                
+#ifdef LUA_MODULEIMPL
                 
                     ::CloseAllLuaScript();
 #endif
 				} break;
+            case ID_FORCESAVE:
+                shouldSave = TRUE;
+                ini_updateFile(Config.compressedIni);
+                SaveRomBrowserCache();
+                SaveConfig();
+                ini_closeFile();
+                break;
 			case ID_TRACELOG:
 #ifdef LUA_TRACELOG
 #ifdef LUA_TRACEINTERP
@@ -3072,6 +3088,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                
 			case EMU_FRAMEADVANCE:
                 {
+                    if (!manualFPSLimit) break;
 					extern int frame_advancing;
                     frame_advancing = 1;
                     resumeEmu(TRUE); // maybe multithreading unsafe
@@ -3091,10 +3108,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
             case ID_RESTART_MOVIE:
                 if (VCR_isPlaying()) {
+                    VCR_setReadOnly(TRUE);
                     extern bool lockNoStWarn;
                     lockNoStWarn = true;
                     VCR_restartPlayback(); // todo: make this not show the nonmovie st warning
                 }
+                break;
+            case ID_REPLAY_LATEST:
+                // Overwrite prevention? Path sanity check (Leave to internal handling)?
+
+                if (VCR_startPlayback(VCR_Lastpath, 0, 0) < 0)
+                    break;
+                else {
+                    HMENU hMenu = GetMenu(mainHWND);
+                    EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
+                    EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+                    if (!emu_paused || !emu_launched)
+                        SetStatusTranslatedString(hStatus, 0, "Playback started...");
+                    else
+                        SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+                }
+
                 break;
 			case EMU_PLAY:
                  if (emu_launched) 
@@ -3149,6 +3183,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      ret = DialogBox(GetModuleHandle(NULL), 
                      MAKEINTRESOURCE(IDD_ABOUT), hwnd, AboutDlgProc);
                      break;
+            case ID_CRASHHANDLERDIALOGSHOW:
+                ErrorDialogEmuError();
+                break;
+            case ID_GAMEDEBUGGER:
+                DebuggerDialog();
+                break;
             case ID_RAMSTART:
             {
                 BOOL temppaused = !emu_paused;
@@ -3271,30 +3311,48 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     break;                 
                 case STATE_SAVEAS:
 //                    if(!emu_paused)  
-                    {
-                     ZeroMemory(&oifn, sizeof(OPENFILENAME));
-                     oifn.lStructSize = sizeof(OPENFILENAME);
-                     oifn.hwndOwner = NULL;
-                     strcpy(path_buffer,"");
-                     oifn.lpstrFile = path_buffer,
-                     oifn.nMaxFile = sizeof(path_buffer);
-                     oifn.lpstrFilter = "Mupen 64 Saves(*.st)\0*.st;*.st?\0All Files\0*.*\0";
-                     oifn.lpstrFileTitle = "";
-                     oifn.nMaxFileTitle = 0;
-                     oifn.lpstrInitialDir = "";
-                     oifn.lpstrDefExt = "st";
-                    if (GetSaveFileName (&oifn)) {
-                     savestates_select_filename(path_buffer);
-                     savestates_job = SAVESTATE;
-                    }                       
+                {
+                    ZeroMemory(&oifn, sizeof(OPENFILENAME));
+                    oifn.lStructSize = sizeof(OPENFILENAME);
+                    oifn.hwndOwner = NULL;
+                    strcpy(path_buffer, "");
+                    oifn.lpstrFile = path_buffer,
+                        oifn.nMaxFile = sizeof(path_buffer);
+                    oifn.lpstrFilter = "Mupen64 Savestate (*.st)\0*.st;*.st?\0All Files\0*.*\0";
+                    oifn.lpstrFileTitle = "";
+                    oifn.nMaxFileTitle = 0;
+                    oifn.lpstrInitialDir = "";
+                    //oifn.lpstrDefExt = "st";
+                    if (GetSaveFileName(&oifn)) {
+
+                        // HACK: allow .savestate and .st
+                        // by creating another buffer, copying original into it and stripping its' extension
+                        // and putting it back sanitized
+
+                        // if no extension inputted by user, fallback to .st
+
+
+                        strcpy(correctedPath, path_buffer);
+                        stripExt(correctedPath);
+
+                        
+                        if (!stricmp(getExt(path_buffer), "savestate")) {
+                            strcat(correctedPath, ".savestate");
+                        }
+                        else /*if (stricmp(getExt(path_buffer), ".st"))*/ {
+                            strcat(correctedPath, ".st");
+                        }
+
+                        savestates_select_filename(correctedPath);
+                        savestates_job = SAVESTATE;
                     }
+                }
                     break;
                 case STATE_RESTORE:
                     if(emu_launched)
                     {
                         savestates_job = LOADSTATE;
-						// Saving/loading in quick succession will cause extremely weird behaviour ranging from
-                        // hotkey issues and audio cutoff to crashes and emu stuckness
+						// dont call savestatesload from ui thread right after setting flag for emu thread
                         //savestates_load();
 					}
                     break;
@@ -3314,7 +3372,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      if (GetOpenFileName(&oifn)) {
                           savestates_select_filename(path_buffer);
                           savestates_job = LOADSTATE;                
-                        }
+                        }       
 //                     }
                     break;
                 case ID_START_RECORD:
@@ -3350,6 +3408,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         SetStatusTranslatedString(hStatus,0,"Playback stopped");
                      }
                 break;
+                case ID_START_CAPTURE_PRESET:
                 case ID_START_CAPTURE:
                    if(emu_launched) {
 						BOOL wasPaused = emu_paused;
@@ -3378,7 +3437,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                                path_buffer[len-4] != '.')
                                strcat(path_buffer, ".avi");
                            //Sleep(1000);
-                           if (VCR_startCapture( rec_buffer, path_buffer , true) < 0)
+                           // pass false to startCapture when "last preset" option was choosen
+                           if (VCR_startCapture( rec_buffer, path_buffer , LOWORD(wParam) == ID_START_CAPTURE) < 0)
                            {   
                               MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
                               recording = FALSE;
@@ -3386,6 +3446,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                            else {
                               //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
                               EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
+                              EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
                               EnableMenuItem(hMenu,ID_END_CAPTURE,MF_ENABLED);
                               if(!externalReadScreen)
                               {
@@ -3408,6 +3469,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
                         EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
                         EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
+                        EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
                         SetStatusTranslatedString(hStatus,0,"Stopped AVI capture");
                         recording = FALSE;
                      }
@@ -3484,7 +3546,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      InitTimer();
                      break;                                                 
 								case ID_LUA_RELOAD:
-#ifdef LUA_CONSOLE
+#ifdef LUA_MODULEIMPL
 									LuaReload();
 #endif
 									break;
@@ -3536,6 +3598,7 @@ void StartMovies()
         char file[MAX_PATH];
         GetCmdLineParameter(CMDLINE_PLAY_M64, file);
         //not reading author nor description atm
+        VCR_setReadOnly(TRUE);
         VCR_startPlayback(file, 0, 0);
         if (CmdLineParameterExist(CMDLINE_CAPTURE_AVI)) {
             GetCmdLineParameter(CMDLINE_CAPTURE_AVI, file);
@@ -3548,6 +3611,7 @@ void StartMovies()
                 gStopAVI = true;
                 SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top
                 EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
+                EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
                 EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
                 if (!externalReadScreen)
                 {
@@ -3776,10 +3840,12 @@ int WINAPI WinMain(
         SetUnhandledExceptionFilter(ExceptionReleaseTarget); 
         //example
         //RaiseException(1, 0, 0, 0); //shows messagebox from wntdll
+        
+
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
 			if (!TranslateAccelerator(mainHWND,Accel,&Msg)
-#ifdef LUA_CONSOLE
+#ifdef LUA_MODULEIMPL
 			&& !::IsLuaConsoleMessage(&Msg)
 #endif
 			)
@@ -3805,16 +3871,19 @@ int WINAPI WinMain(
 					}
 					else // fast-forward 
 					{
-						if(((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.hotkey[i].shift
-						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.hotkey[i].ctrl
-						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkey[i].alt)
-						{
-							manualFPSLimit = 0 ; 
-						}
-						else
-						{
-							manualFPSLimit = 1 ; 
-						}
+                        extern int frame_advancing;
+                        if (!frame_advancing) { // dont allow fastforward+frameadvance
+                            if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.hotkey[i].shift
+                                && ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.hotkey[i].ctrl
+                                && ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkey[i].alt)
+                            {
+                                manualFPSLimit = 0;
+                            }
+                            else
+                            {
+                                manualFPSLimit = 1;
+                            }
+                        }
 					}
 				}
 			}

@@ -1,7 +1,9 @@
-/*
+ï»¿/*
 	
 */
 
+
+#include "LuaConsole.h"
 
 #include <vector>
 #include <algorithm>
@@ -9,7 +11,6 @@
 #include <map>
 #include <list>
 #include <filesystem>
-#include "LuaConsole.h"
 #include "../../winproject/resource.h"
 #include "win/DebugInfo.hpp"
 #include "win/main_win.h"
@@ -21,15 +22,16 @@
 #include "../main/disasm.h"
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
+#include "../main/win/configdialog.h"
 #include <vcr.h>
 #include <gdiplus.h>
 
-#ifdef LUA_CONSOLE
 
+#ifdef LUA_MODULEIMPL
 //nice msvc pragma smh
 #pragma comment(lib, "lua54.lib")
 #pragma comment (lib,"Gdiplus.lib")
-
+#endif
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
@@ -53,6 +55,8 @@ bool anyLuaRunning = false;
 bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
 
+#ifdef LUA_MODULEIMPL
+
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
 namespace LuaEngine {
@@ -60,7 +64,11 @@ std::vector<HWND> luaWindows;
 RECT InitalWindowRect[3] = {0};
 HANDLE TraceLogFile;
 
+
+
 class Lua;
+
+std::vector<Gdiplus::Image*> imagePool;
 
 struct AddrBreakFunc{
 	lua_State *lua;
@@ -95,7 +103,7 @@ MemoryHashInfo *writeHashMap[0x10000];
 void *pcBreakMap_[0x800000/4];
 unsigned pcBreakCount = 0;
 #define pcBreakMap ((AddrBreakFuncVec**)pcBreakMap_)
-ULONGLONG break_value;	//read/writeŒ“—p
+ULONGLONG break_value;	//read/writeï¿½ï¿½ï¿½p
 bool break_value_flag;
 HDC luaDC;
 int luaDCBufWidth, luaDCBufHeight;
@@ -225,6 +233,11 @@ public:
 		deleteGDIObject(pen, BLACK_PEN);
 		deleteGDIObject(font, SYSTEM_FONT);
 		deleteLuaState();
+		for (auto x : imagePool)
+		{
+			delete x;
+		}
+		imagePool.clear();
 		SetButtonState(ownWnd, false);
 		ShowInfo("Lua stop");
 	}
@@ -318,7 +331,7 @@ private:
 
 	void registerFunctions(){
 		luaL_openlibs(L);
-		//‚È‚ñ‚©luaL_register(L, NULL, globalFuncs)‚·‚é‚Æ—‚¿‚é
+		//ï¿½È‚ï¿½luaL_register(L, NULL, globalFuncs)ï¿½ï¿½ï¿½ï¿½Æ—ï¿½ï¿½ï¿½ï¿½ï¿½
 		const luaL_Reg *p = globalFuncs;
 		do{
 			lua_register(L, p->name, p->func);
@@ -432,10 +445,10 @@ int AtPanic(lua_State *L) {
 	MessageBox(mainHWND, lua_tostring(L, -1), "Lua Panic", 0);
 	return 0;
 }
-//ƒEƒBƒ“ƒhƒE‚ÌƒXƒŒƒbƒh‚©‚ç‚¾‚Æ‚ ‚ê‚È‚Ì‚Å
-//ƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚ÌƒXƒŒƒbƒh‚©‚ç‚Ì‚İLua‚ğ˜M‚é‚Æ‚¢‚¤‚±‚Æ‚Å
-//‹t‚ÉƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“ƒXƒŒƒbƒh‚©‚çƒEƒBƒ“ƒhƒEƒXƒŒƒbƒh‚ğ“®‚©‚·‚±‚Æ‚Í‚ ‚é
-//ConsoleWrite‚Æ‚©
+//ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ÌƒXï¿½ï¿½ï¿½bï¿½hï¿½ï¿½ï¿½ç‚¾ï¿½Æ‚ï¿½ï¿½ï¿½È‚Ì‚ï¿½
+//ï¿½Gï¿½~ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ÌƒXï¿½ï¿½ï¿½bï¿½hï¿½ï¿½ï¿½ï¿½Ì‚ï¿½Luaï¿½ï¿½Mï¿½ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½
+//ï¿½tï¿½ÉƒGï¿½~ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½bï¿½hï¿½ï¿½ï¿½ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½Xï¿½ï¿½ï¿½bï¿½hï¿½ğ“®‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚Í‚ï¿½ï¿½ï¿½
+//ConsoleWriteï¿½Æ‚ï¿½
 void SetWindowLua(HWND,Lua*);
 Lua *GetWindowLua(HWND);
 void FinalizeLuaDC();
@@ -445,6 +458,18 @@ int AtWindowMessage(lua_State *L);
 void CreateLuaWindow(void(*callback)());
 //#define EnterCriticalSection(a) EnterCriticalSection((ShowInfo("Enter thread:%d line:%d",GetCurrentThreadId(),__LINE__),a))
 //#define LeaveCriticalSection(a) LeaveCriticalSection((ShowInfo("Leave thread:%d line:%d",GetCurrentThreadId(),__LINE__),a))
+
+
+void checkGDIPlusInitialized() {
+	// will be inlined by compiler
+	if (!gdiPlusInitialized) {
+		printf("lua initialize gdiplus\n");
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
+		gdiPlusInitialized = true;
+	}
+}
+
 class LuaMessage {
 public:
 	struct Msg;
@@ -608,6 +633,7 @@ void SizingControl(HWND wnd, RECT *p, int x, int y, int w, int h) {
 		p->right-p->left+w, p->bottom-p->top+h, SWP_NOZORDER);
 }
 void SizingControls(HWND wnd, WORD width, WORD height) {
+	if (Config.LuaSimpleDialog)return;
 	int xa = width - (InitalWindowRect[0].right - InitalWindowRect[0].left),
 		ya = height - (InitalWindowRect[0].bottom - InitalWindowRect[0].top);
 	SizingControl(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -628,12 +654,13 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
 INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch(msg) {
 	case WM_INITDIALOG:{
+		checkGDIPlusInitialized();
 		LuaMessage::Msg *msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::NewLua;
 		msg->newLua.wnd = wnd;
 		msg->newLua.callback = (void(*)())lParam;
 		luaMessage.post(msg);
-		if(InitalWindowRect[0].right == 0) {	//è”²‚«‚ÈAÅ‰‚Å‚ ‚é‚±‚Æ‚Ì”»’è
+		if(InitalWindowRect[0].right == 0) {	//ï¿½è”²ï¿½ï¿½ï¿½ÈAï¿½Åï¿½ï¿½Å‚ï¿½ï¿½é‚±ï¿½Æ‚Ì”ï¿½ï¿½ï¿½
 			GetInitalWindowRect(wnd);
 		}
 		SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -720,9 +747,14 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 		LuaMessage::Msg* msg = new LuaMessage::Msg();
 		msg->type = LuaMessage::RunPath;
 		msg->runPath.wnd = wnd;
+
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			msg->runPath.path, MAX_PATH);
+		msg->runPath.path, MAX_PATH);
 		//strcpy(Config.LuaScriptPath, msg->runPath.path);
+
+		if (Config.LuaSimpleDialog)
+			SetWindowText(wnd, msg->runPath.path);
+
 		anyLuaRunning = true;
 		luaMessage.post(msg);
 		shouldSave = true;
@@ -768,6 +800,9 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 }
 
 void CreateLuaWindow(void(*callback)()) {
+
+	if (LuaCriticalSettingChangePending)return;
+
 	if(!luaDC) {
 		InitializeLuaDC(mainHWND);
 	}
@@ -778,7 +813,7 @@ void CreateLuaWindow(void(*callback)()) {
 		MAKEINTRESOURCE(LuaWndId), mainHWND, DialogProc,
 		(LPARAM)callback);
 
-	ShowWindow(wnd, SW_SHOW);	//ƒ^ƒuƒXƒgƒbƒv—˜‚©‚È‚¢‚Ì‚Æ“¯‚¶Œ´ˆö‚¾‚Æv‚¤
+	ShowWindow(wnd, SW_SHOW);	//ï¿½^ï¿½uï¿½Xï¿½gï¿½bï¿½vï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½Ì‚Æ“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ævï¿½ï¿½
 }
 void ConsoleWrite(HWND wnd, const char *str) {
 	HWND console = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
@@ -885,7 +920,7 @@ void TraceLogStop(){
 	TraceLoggingBufFlush();
 }
 
-//‚±‚±‚ç‚Ö‚ñ‚©‚çEmuLua‚Á‚ÄŠ´‚¶‚Å
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö‚ñ‚©‚ï¿½EmuLuaï¿½ï¿½ï¿½ÄŠï¿½ï¿½ï¿½ï¿½ï¿½
 
 const char * const REG_LUACLASS = "C";
 const char * const REG_ATUPDATESCREEN = "S";
@@ -923,7 +958,7 @@ int getn(lua_State* L)
 	return 1;
 }
 
-//lua‚Ì•â•ŠÖ”‚Æ‚©
+//luaï¿½Ì•â•ï¿½Öï¿½ï¿½Æ‚ï¿½
 DWORD CheckIntegerU(lua_State *L, int i = -1) {
 	return (DWORD)luaL_checknumber(L, i);
 }
@@ -969,7 +1004,7 @@ void UnregisterFunction(lua_State *L, const char *key) {
 	lua_getfield(L, LUA_REGISTRYINDEX, key);
 	if(lua_isnil(L, -1)){
 		lua_pop(L, 1);
-		lua_newtable(L);	//‚Æ‚è‚ ‚¦‚¸
+		lua_newtable(L);	//ï¿½Æ‚è‚ ï¿½ï¿½ï¿½ï¿½
 	}
 	int n = luaL_len(L, -1);
 	for(LUA_INTEGER i = 0; i < n; i ++) {
@@ -1019,7 +1054,7 @@ void registerFuncEach(int(*f)(lua_State*), const char *key) {
 }
 
 
-//‚±‚±‚ç‚Ö‚ñ‚©‚çŠÖ”
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö‚ñ‚©‚ï¿½Öï¿½
 int ToStringExs(lua_State *L);
 int Print(lua_State *L) {
 	lua_pushcfunction(L, ToStringExs);
@@ -1252,8 +1287,8 @@ int LoadWordSigned(lua_State *L) {
 	lua_pushinteger(L, value);
 	return 1;
 }
-//64bit’l‚Í‚Æ‚è‚ ‚¦‚¸hi,lo‚Ìƒe[ƒuƒ‹‚Å
-//signed‚Á‚Ä‚Ç‚¤‚¢‚¤‚Ó‚¤‚ÉŠi”[‚µ‚½‚ç‚¢‚¢‚ñ‚¾‚ë(¡‚Í—¼•ûunsigned)
+//64bitï¿½lï¿½Í‚Æ‚è‚ ï¿½ï¿½ï¿½ï¿½hi,loï¿½Ìƒeï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½
+//signedï¿½ï¿½ï¿½Ä‚Ç‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó‚ï¿½ï¿½ÉŠiï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ç‚¢ï¿½ï¿½ï¿½ñ‚¾‚ï¿½(ï¿½ï¿½ï¿½Í—ï¿½ï¿½ï¿½unsigned)
 int LoadDwordUnsigned(lua_State *L) {
 	ULONGLONG value = LoadRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1));
 	PushDword(L, value);
@@ -1483,7 +1518,7 @@ void SetMemoryBreak(lua_State *L) {
 		}
 		if(dynacore) {
 			if(fast_memory) {
-				fast_memory = 0;	//‚Ç‚±‚©‚Å•œŠˆ‚³‚¹‚½‚Ù‚¤‚ª‚¢‚¢‚©B‚Ç‚±‚ÅH
+				fast_memory = 0;	//ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½Å•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Bï¿½Ç‚ï¿½ï¿½ÅH
 				RecompileNextAll();
 			}
 		}
@@ -1512,7 +1547,7 @@ void SetMemoryBreak(lua_State *L) {
 		luaL_error(L, "SetMemoryBreak: not found registry function");
 	}
 }
-//dynacore‚Ìê‡‚Írecompile‚·‚é‚Ü‚ÅŒø‰Ê‚ª”½‰f‚³‚ê‚È‚¢
+//dynacoreï¿½Ìê‡ï¿½ï¿½recompileï¿½ï¿½ï¿½ï¿½Ü‚ÅŒï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ï¿½È‚ï¿½
 int SetReadBreak(lua_State *L){
 	SetMemoryBreak<false>(L);
 	return 0;
@@ -1592,20 +1627,20 @@ const char * const RegName[] = {
 	"fcr0", "fcr31",	//cop1 control register
 	"pc",
 	//not register
-	"break_value",	//ƒƒ‚ƒŠbreak‚ÌA
-	//‘€ì‚Ì’l‚ğ•ÏX‚Å‚«‚é(readbreak/writebreak)A‘‚«‚İê—pA1‰ñ‚Ì‚İ
-	"writebreak_value",	//writebreak‚Ì‚İA‘‚«‚±‚à‚¤‚Æ‚µ‚Ä‚¢‚é’l‚ğ“¾‚é‚Í‚±‚Á‚¿
-	//readbreak‚Å“Ç‚İ‚±‚à‚¤‚Æ‚µ‚Ä‚¢‚é’l‚ğ“¾‚é‚É‚Íreadsize(addr, size)‚Å(addr,size‚ÍŠÖ”‚Ìˆø”)
+	"break_value",	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½breakï¿½Ìï¿½ï¿½A
+	//ï¿½ï¿½ï¿½ï¿½Ì’lï¿½ï¿½ÏXï¿½Å‚ï¿½ï¿½ï¿½(readbreak/writebreak)ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İï¿½pï¿½A1ï¿½ï¿½Ì‚ï¿½
+	"writebreak_value",	//writebreakï¿½Ì‚İAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½lï¿½ğ“¾‚éï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½
+	//readbreakï¿½Å“Ç‚İ‚ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½lï¿½ğ“¾‚ï¿½É‚ï¿½readsize(addr, size)ï¿½ï¿½(addr,sizeï¿½ÍŠÖï¿½ï¿½Ìˆï¿½ï¿½ï¿½)
 
 	//COP1: "f"+N
 };
 int SelectRegister(lua_State *L, void **r, int *arg) {
 	//InterpreterCoreCheck(L);
 	/*
-		dynacore‚¾‚ÆƒŒƒWƒXƒ^Š„‚è“–‚Ä‚É‚æ‚Á‚Äˆá‚¤Œ‹‰Ê‚ğ•Ô‚·‚±‚Æ‚Í‚ ‚é‚ªA
-		í‚ÉƒCƒ“ƒ^ƒvƒŠƒ^‚Æ“¯‚¶Œ‹‰Ê‚ğ•Ô‚·ƒŒƒWƒXƒ^‚à‚ ‚é‚µ
-		‚Ü‚ A‚Å‚«‚È‚¢‚æ‚èo—ˆ‚½‚Ù‚¤‚ª‚¢‚¢‚Ì‚ÅB
-		dynacore‚Å‚Í’ˆÓ‚Æ‚¢‚¤‚±‚Æ‚Å
+		dynacoreï¿½ï¿½ï¿½Æƒï¿½ï¿½Wï¿½Xï¿½^ï¿½ï¿½ï¿½è“–ï¿½Ä‚É‚ï¿½ï¿½ï¿½Äˆá‚¤ï¿½ï¿½ï¿½Ê‚ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½Æ‚Í‚ï¿½ï¿½é‚ªï¿½A
+		ï¿½ï¿½ÉƒCï¿½ï¿½ï¿½^ï¿½vï¿½ï¿½ï¿½^ï¿½Æ“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½Wï¿½Xï¿½^ï¿½ï¿½ï¿½ï¿½é‚µ
+		ï¿½Ü‚ï¿½ï¿½Aï¿½Å‚ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½oï¿½ï¿½ï¿½ï¿½ï¿½Ù‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ÅB
+		dynacoreï¿½Å‚Í’ï¿½ï¿½Ó‚Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½
 	*/
 	int t = lua_type(L, 1);
 	int size = 32;
@@ -1659,7 +1694,7 @@ int SelectRegister(lua_State *L, void **r, int *arg) {
 			break;
 		case 68:
 			InterpreterCoreCheck(L, "(get PC)");
-			//MemoryBreak‚Å‚ÍPC++‚µ‚½Œã‚Éˆ—‚·‚é‚İ‚½‚¢‚¾‚©‚çA1ƒ[ƒh‚¸‚ê‚é
+			//MemoryBreakï¿½Å‚ï¿½PC++ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½A1ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½
 			if(interpcore == 0) {
 				*r = &PC->addr;
 			}else {
@@ -1668,14 +1703,14 @@ int SelectRegister(lua_State *L, void **r, int *arg) {
 			break;
 		case 69:
 			if(!break_value_flag) {
-				//2‰ñ–Ú‚Æ‚©break‚ÌŠO‚Æ‚©
+				//2ï¿½ï¿½Ú‚Æ‚ï¿½breakï¿½ÌŠOï¿½Æ‚ï¿½
 				luaL_error(L, "break_value");
 			}
 			break_value_flag = false;
 			*r = &break_value;
 			break;
 		case 70:
-			//“Ç‚İ‚İ‚Ì‚İ
+			//ï¿½Ç‚İï¿½ï¿½İ‚Ì‚ï¿½
 			switch(current_break_value_size) {
 			case 1: *r = &g_byte; break;
 			case 2: *r = &hword; break;
@@ -1689,7 +1724,7 @@ int SelectRegister(lua_State *L, void **r, int *arg) {
 			break;
 		}
 	}else {
-		//Status‚É‚©‚©‚í‚ç‚¸“¯‚¶Œ‹‰Ê‚É‚È‚é•û‚ª‚¢‚¢‚©H(cop0‚æ‚­‚í‚©‚Á‚Ä‚È‚¢‚Ì‚¾‚¯‚ê‚Ç‚à)
+		//Statusï¿½É‚ï¿½ï¿½ï¿½ï¿½ï¿½ç‚¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê‚É‚È‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½H(cop0ï¿½æ‚­ï¿½í‚©ï¿½ï¿½ï¿½Ä‚È‚ï¿½ï¿½Ì‚ï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½)
 		if(size == 32) {
 			*r = reg_cop1_simple[n-cop1index];
 			size = -32;
@@ -1773,7 +1808,7 @@ unsigned long PAddr(unsigned long addr){
 	}
 }
 void RecompileNow(ULONG addr) {
-	//NOTCOMPILED‚æ‚èB’¼‚¿‚ÉƒRƒ“ƒpƒCƒ‹Œ‹‰Ê‚Ìops‚È‚Ç‚ª—~‚µ‚¢‚Ég‚¤
+	//NOTCOMPILEDï¿½ï¿½ï¿½Bï¿½ï¿½ï¿½ï¿½ï¿½ÉƒRï¿½ï¿½ï¿½pï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½opsï¿½È‚Ç‚ï¿½ï¿½~ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Égï¿½ï¿½
 	if ((addr>>16) == 0xa400)
 		recompile_block((long*)SP_DMEM, blocks[0xa4000000>>12], addr);
 	else {
@@ -1790,8 +1825,8 @@ void RecompileNow(ULONG addr) {
 	}
 }
 void Recompile(ULONG addr) {
-	//jump_to‚æ‚è
-	//•’Ê‚ÉƒŠƒRƒ“ƒpƒCƒ‹‚µ‚½‚¢‚Æ‚«‚Í‚±‚ê‚Å‚¨‚‹
+	//jump_toï¿½ï¿½ï¿½
+	//ï¿½ï¿½ï¿½Ê‚Éƒï¿½ï¿½Rï¿½ï¿½ï¿½pï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Í‚ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½
 	ULONG block = addr >> 12;
 	ULONG paddr = PAddr(addr);
 	if(!blocks[block]) {
@@ -1807,8 +1842,8 @@ void Recompile(ULONG addr) {
 		   blocks[block]);
 }
 void RecompileNext(ULONG addr) {
-	//jump_to‚Ì(ƒuƒƒbƒN‚ğ‚Ü‚½‚¢‚¾ƒWƒƒƒ“ƒv)‚Éƒ`ƒFƒbƒN‚³‚ê‚éH
-	//¡‚¢‚éƒuƒƒbƒN‚ğ’¼‚®‚ÉC³‚µ‚½‚¢ˆÈŠO‚Í‚±‚ê‚Å‚¨‚‹
+	//jump_toï¿½Ìï¿½(ï¿½uï¿½ï¿½ï¿½bï¿½Nï¿½ï¿½Ü‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½v)ï¿½Éƒ`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½ï¿½ï¿½H
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½bï¿½Nï¿½ğ’¼‚ï¿½ï¿½ÉCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÈŠOï¿½Í‚ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½
 	invalid_code[addr>>12]=1;
 }
 void RecompileNextAll() {
@@ -1864,17 +1899,26 @@ int WriteMemT(lua_State *L) {
 	g_T = g_T_s;
 	return 0;
 }
+int GetSystemMetricsLua(lua_State* L)
+{
+	Lua* lua = GetLuaClass(L);
 
+	long param = luaL_checknumber(L, 1);
+	int ret = GetSystemMetrics(param); // we have to store intermediate value because of calling convention? i dont know
+	lua_pushinteger(L, ret);
+	
+	return 1;
+}
 //Gui
-//ƒvƒ‰ƒOƒCƒ“‚É•ª‚©‚ê‚Ä‚é‚©‚ç©—R‚Éo—ˆ‚È‚¢H
-//‚Æ‚¢‚¤‚©ƒEƒBƒ“ƒhƒE‚É’¼Ú‘‚¢‚Ä‚é‚â‚ñ
-//‚Æ‚è‚ ‚¦‚¸‚±‚Á‚¿‚àƒEƒBƒ“ƒhƒE‚É’¼‘‚«‚Å
+//ï¿½vï¿½ï¿½ï¿½Oï¿½Cï¿½ï¿½ï¿½É•ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚é‚©ï¿½ç©ï¿½Rï¿½Éoï¿½ï¿½ï¿½È‚ï¿½ï¿½H
+//ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½É’ï¿½ï¿½Úï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
+//ï¿½Æ‚è‚ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½É’ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 typedef struct COLORNAME {
 	char *name;
 	COLORREF value;
 } COLORNAME;
-COLORREF StrToColorA(const char *s, bool alpha = false, COLORREF def = 0) {
-	const int hex[256] = {
+
+const int hexTable[256] = {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1882,45 +1926,47 @@ COLORREF StrToColorA(const char *s, bool alpha = false, COLORREF def = 0) {
 		0,10,11,12,13,14,15,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,10,11,12,13,14,15,0,0,0,0,0,0,0,0,
-	};
-	const COLORNAME colors[] = {
-		{"white", 0xFFFFFFFF},
-		{"black", 0xFF000000},
-		{"clear", 0x00000000},
-		{"gray", 0xFF808080},
-		{"red", 0xFF0000FF},
-		{"orange", 0xFF0080FF},
-		{"yellow", 0xFF00FFFF},
-		{"chartreuse", 0xFF00FF80},
-		{"green", 0xFF00FF00},
-		{"teal", 0xFF80FF00},
-		{"cyan", 0xFFFFFF00},
-		{"blue", 0xFFFF0000},
-		{"purple", 0xFFFF0080},
-		{NULL}
-	};
+};
+const COLORNAME colors[] = {
+	{"white", 0xFFFFFFFF},
+	{"black", 0xFF000000},
+	{"clear", 0x00000000},
+	{"gray", 0xFF808080},
+	{"red", 0xFF0000FF},
+	{"orange", 0xFF0080FF},
+	{"yellow", 0xFF00FFFF},
+	{"chartreuse", 0xFF00FF80},
+	{"green", 0xFF00FF00},
+	{"teal", 0xFF80FF00},
+	{"cyan", 0xFFFFFF00},
+	{"blue", 0xFFFF0000},
+	{"purple", 0xFFFF0080},
+	{NULL}
+};
+
+COLORREF StrToColorA(const char *s, bool alpha = false, COLORREF def = 0) {
 	if(s[0] == '#') {
 		int l = lstrlen(s);
 		if(l == 4) {
-			return (hex[s[1]]*0x10+hex[s[1]])|
-						 ((hex[s[2]]*0x10+hex[s[2]])<<8)|
- 						 ((hex[s[3]]*0x10+hex[s[3]])<<16)|
+			return (hexTable[s[1]]*0x10+hexTable[s[1]])|
+						 ((hexTable[s[2]]*0x10+hexTable[s[2]])<<8)|
+ 						 ((hexTable[s[3]]*0x10+hexTable[s[3]])<<16)|
 						 (alpha ? 0xFF000000 : 0);
 		}else if(alpha && l == 5) {
-			return (hex[s[1]]*0x10+hex[s[1]])|
-						 ((hex[s[2]]*0x10+hex[s[2]])<<8)|
- 						 ((hex[s[3]]*0x10+hex[s[3]])<<16)|
-						 ((hex[s[4]]*0x10+hex[s[4]])<<24);
+			return (hexTable[s[1]]*0x10+hexTable[s[1]])|
+						 ((hexTable[s[2]]*0x10+hexTable[s[2]])<<8)|
+ 						 ((hexTable[s[3]]*0x10+hexTable[s[3]])<<16)|
+						 ((hexTable[s[4]]*0x10+hexTable[s[4]])<<24);
 		}else if(l == 7){
-			return (hex[s[1]]*0x10+hex[s[2]])|
-						 ((hex[s[3]]*0x10+hex[s[4]])<<8)|
- 						 ((hex[s[5]]*0x10+hex[s[6]])<<16)|
+			return (hexTable[s[1]]*0x10+hexTable[s[2]])|
+						 ((hexTable[s[3]]*0x10+hexTable[s[4]])<<8)|
+ 						 ((hexTable[s[5]]*0x10+hexTable[s[6]])<<16)|
 						 (alpha ? 0xFF000000 : 0);
 		}else if(alpha && l == 9){
-			return (hex[s[1]]*0x10+hex[s[2]])|
-						 ((hex[s[3]]*0x10+hex[s[4]])<<8)|
- 						 ((hex[s[5]]*0x10+hex[s[6]])<<16)|
-						 ((hex[s[7]]*0x10+hex[s[8]])<<24);
+			return (hexTable[s[1]]*0x10+hexTable[s[2]])|
+						 ((hexTable[s[3]]*0x10+hexTable[s[4]])<<8)|
+ 						 ((hexTable[s[5]]*0x10+hexTable[s[6]])<<16)|
+						 ((hexTable[s[7]]*0x10+hexTable[s[8]])<<24);
 		}
 	}else {
 		const COLORNAME *p = colors;
@@ -1942,18 +1988,6 @@ COLORREF StrToColor(const char *s, bool alpha = false, COLORREF def = 0) {
 	}
 */
 	return c;
-}
-COLORREF GetColorLua(lua_State *L, int i, COLORREF defColor, bool alpha = true) {
-	switch(lua_type(L, i)) {
-	case LUA_TNUMBER:
-		return CheckIntegerU(L, i);
-	case LUA_TSTRING:
-		return StrToColor(lua_tostring(L, i), alpha, defColor);
-	case LUA_TNIL:
-		return defColor;
-	default:
-		return defColor;
-	}
 }
 
 //wgui
@@ -2088,98 +2122,156 @@ int DrawRect(lua_State *L) {
 	return 0;
 }
 
-VOID checkGDIPlusInitialized() {
-	// will be inlined by compiler
-	if (!gdiPlusInitialized) {
-		printf("lua initialize gdiplus\n");
-		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
-		gdiPlusInitialized = true;
+int LoadImage(lua_State* L)
+{
+
+	const char* path = luaL_checkstring(L,1);
+	int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
+	wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
+	int size = MultiByteToWideChar(CP_ACP, 0, path, -1, pathw, output_size);
+
+	printf("LoadImage: %ws\n", pathw);
+	Gdiplus::Image *a = new Gdiplus::Image(pathw);
+	free(pathw);
+
+	if (a->GetLastStatus())
+	{
+		char error[512];
+		sprintf(error, "Couldn't find image '%s'", path);
+		luaL_error(L, error);
+		return 1;
 	}
+	imagePool.push_back(a);
+	lua_pushinteger(L, imagePool.size()); //return the identifier (index+1)
+	return 1;
 }
 
-int FillPolygonAlpha(lua_State* L) {
+int DrawImage(lua_State* L)
+{
+	int left, top, right, bottom;
+	unsigned imgIndex;
+	Gdiplus::Graphics gfx(luaDC);
 
-	checkGDIPlusInitialized();
+	imgIndex = luaL_checkinteger(L, 1) - 1;
+	if (imgIndex > imagePool.size() - 1)
+	{
+		luaL_error(L, "Argument #1: Invalid image identifier");
+		return 0;
+	}
+	left = luaL_checknumber(L, 2);
+	top = luaL_checknumber(L, 3);
+
+	if (lua_gettop(L) == 3) gfx.DrawImage(imagePool[imgIndex], left, top);
+	else //optional args, resize image
+	{
+		right = luaL_checknumber(L, 4);
+		bottom = luaL_checknumber(L, 5);
+		gfx.DrawImage(imagePool[imgIndex], left, top, right, bottom);
+	}
+	
+	return 0;
+}
+//1st arg is table of points
+//2nd arg is color #xxxxxxxx
+int FillPolygonAlpha(lua_State* L)
+{
+	//Get lua instance stored in script class
 	Lua* lua = GetLuaClass(L);
+	
+	//stack should look like
+	//--------
+	//2: color string
+	//--------
+	//1: table of points
+	//--------
+	//assert that first argument is table
+	luaL_checktype(L, 1, LUA_TTABLE);
 
-	Gdiplus::PointF pt1;
-	Gdiplus::PointF pt2;
-	Gdiplus::PointF pt3;
-	byte a, r, g, b;
 
-	pt1.X = luaL_checknumber(L, 1);
-	pt1.Y = luaL_checknumber(L, 2);
+	const char* col; //color string
 
-	pt2.X = luaL_checknumber(L, 3);
-	pt2.Y = luaL_checknumber(L, 4);
+	int n = luaL_len(L, 1); //length of the table, doesnt modify stack
+	if (n > 255) { //hard cap, the vector can handle more but dont try
+		lua_pushfstring(L, "wgui.polygon: too many points (%d > %d)",
+			n, 255);
+		return lua_error(L);
+	}
 
-	pt3.X = luaL_checknumber(L, 5);
-	pt3.Y = luaL_checknumber(L, 6);
+	std::vector<Gdiplus::PointF> pts(n); //list of points that make the poly
 
-	a = luaL_checknumber(L, 7);
-	r = luaL_checknumber(L, 8);
-	g = luaL_checknumber(L, 9);
-	b = luaL_checknumber(L, 10);
+	//do n times
+	for (int i = 0; i < n; i++) {
+		//push current index +1 because lua
+		lua_pushinteger(L, i + 1);
+		//get index i+1 from table at the bottom of the stack (index 1 is bottom, 2 is next etc, -1 is top)
+		//pops the index and places the element inside table on top, which again is a table [x,y]
+		lua_gettable(L, 1);
+		//make sure its a table
+		luaL_checktype(L, -1, LUA_TTABLE);
+		//push '1'
+		lua_pushinteger(L, 1);
+		//get index 1 from table that is second from top, because '1' is on top right now
+		//then remove '1' and put table contents, its the X coord
+		lua_gettable(L, -2);
+		//read it
+		pts[i].X = lua_tointeger(L, -1);
+		//remove X coord
+		lua_pop(L, 1);
+		//push '2'
+		lua_pushinteger(L, 2);
+		//same thing
+		lua_gettable(L, -2);
+		pts[i].Y = lua_tointeger(L, -1);
+		lua_pop(L, 2);
+		//now stack again has only table at the bottom and color string on top, repeat
+	}
+
+	col = luaL_checkstring(L, 2); //get string at index 2
 
 	Gdiplus::Graphics gfx(luaDC);
-	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
-
-	Gdiplus::PointF pts[3] = {pt1,pt2,pt3};
-	gfx.FillPolygon(&brush, pts, 1);
+	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
+	gfx.FillPolygon(&brush, pts.data(), n);
 	
-
 	return 0;
 }
 
 
 int FillEllipseAlpha(lua_State* L) {
-	checkGDIPlusInitialized();
 	Lua* lua = GetLuaClass(L);
 
-	int left, top, right, bottom;
-	byte a, r, g, b;
+	int x, y, w, h;
+	const char* col;
 
-	bottom = luaL_checknumber(L, 1);
-	left = luaL_checknumber(L, 2);
-	right = luaL_checknumber(L, 3);
-	top = luaL_checknumber(L, 4);
-
-	a = luaL_checknumber(L, 5);
-	r = luaL_checknumber(L, 6);
-	g = luaL_checknumber(L, 7);
-	b = luaL_checknumber(L, 8);
+	x = luaL_checknumber(L, 1);
+	y = luaL_checknumber(L, 2);
+	h = luaL_checknumber(L, 3);
+	w = luaL_checknumber(L, 4);
+	col = luaL_checkstring(L, 5); //color string
 
 	Gdiplus::Graphics gfx(luaDC);
-	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
 
-	gfx.FillEllipse(&brush, left, top, right, bottom);
+	gfx.FillEllipse(&brush, x, y, w, h);
 
 	return 0;
 }
 int FillRectAlpha(lua_State* L) 
 {
-	checkGDIPlusInitialized();
-
 	Lua* lua = GetLuaClass(L);
 	
-	int left, top, right, bottom;
-	byte a, r, g, b;
+	int x, y, w, h;
+	const char* col;
 
-	bottom = luaL_checknumber(L, 1);
-	left = luaL_checknumber(L, 2);
-	right = luaL_checknumber(L, 3);
-	top = luaL_checknumber(L, 4);
-
-	a = luaL_checknumber(L, 5);
-	r = luaL_checknumber(L, 6);
-	g = luaL_checknumber(L, 7);
-	b = luaL_checknumber(L, 8);
+	x = luaL_checknumber(L, 1);
+	y = luaL_checknumber(L, 2);
+	h = luaL_checknumber(L, 3);
+	w = luaL_checknumber(L, 4);
+	col = luaL_checkstring(L, 5); //color string
 
 	Gdiplus::Graphics gfx(luaDC);
-	Gdiplus::SolidBrush brush(Gdiplus::Color(a, r, g, b));
+	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
 
-	gfx.FillRectangle(&brush, left, top, right, bottom);
+	gfx.FillRectangle(&brush, x, y, h, w);
 
 	return 0;
 }
@@ -2193,17 +2285,16 @@ int FillRect(lua_State* L) {
 	*/
 	Lua* lua = GetLuaClass(L);
 	RECT rect;
-	COLORREF color;
-	color = RGB(
+	COLORREF color = RGB(
 		luaL_checknumber(L, 5),
 		luaL_checknumber(L, 6),
 		luaL_checknumber(L, 7)
 	);
 	COLORREF colorold = SetBkColor(luaDC, color);
-	rect.bottom = luaL_checknumber(L, 1);
-	rect.left = luaL_checknumber(L, 2);
+	rect.left = luaL_checknumber(L, 1);
+	rect.top = luaL_checknumber(L, 2);
 	rect.right = luaL_checknumber(L, 3);
-	rect.top = luaL_checknumber(L, 4);
+	rect.bottom = luaL_checknumber(L, 4);
 	ExtTextOut(luaDC, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
 	SetBkColor(luaDC, colorold);
 	return 0;
@@ -2449,6 +2540,10 @@ int GetMupenVersion(lua_State* L) {
 	lua_pushstring(L, version);
 	return 1;
 }
+int GetVCRReadOnly(lua_State* L) {
+	lua_pushboolean(L, VCR_getReadOnly());
+	return 1;
+}
 int SetGFX(lua_State* L) {
 	// Ignore or update gfx
 	int state = luaL_checknumber(L, 1);
@@ -2535,7 +2630,7 @@ int SetSpeedMode(lua_State *L) {
 }
 
 //savestate
-//è”²‚«
+//ï¿½è”²ï¿½ï¿½
 int SaveFileSavestate(lua_State *L) {
   savestates_select_filename(lua_tostring(L, 1));
   savestates_job = SAVESTATE;
@@ -2564,8 +2659,8 @@ int LuaFileDialog(lua_State* L) {
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
 	ofn.lpstrInitialDir = NULL;
-	if(!type) GetOpenFileName(&ofn);
-	else GetSaveFileName(&ofn);
+	if(type) GetSaveFileName(&ofn);
+	else  GetOpenFileName(&ofn);
 	lua_pushstring(L, ofn.lpstrFile);
 	return 1;
 }
@@ -2590,7 +2685,7 @@ BOOL fileexists(const char* path) {
 	return (stat(path, &buffer) == 0);
 }
 
-//callback‚È‚Ç
+//callbackï¿½È‚ï¿½
 bool BreakpointSync(SyncBreakMap::iterator it, ULONG addr){
 	AddrBreakFuncVec &f = it->second.func;
 	for(AddrBreakFuncVec::iterator itt = f.begin();
@@ -2615,7 +2710,7 @@ void BreakpointSyncPure(){
 	SyncBreakMap::iterator it = syncBreakMap.find(interp_addr);
 	if(it != syncBreakMap.end()) {
 		if(BreakpointSync(it, interp_addr)) {
-			//ƒCƒeƒŒ[ƒ^‚ª–³Œø‚É‚È‚Á‚½‚è‚µ‚Ä‚é
+			//ï¿½Cï¿½eï¿½ï¿½ï¿½[ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É‚È‚ï¿½ï¿½ï¿½ï¿½è‚µï¿½Ä‚ï¿½
 			it = syncBreakMap.find(interp_addr);
 			if(it==syncBreakMap.end()){
 				BreakpointSyncPure();
@@ -2624,7 +2719,7 @@ void BreakpointSyncPure(){
 		}
 		op = it->second.op;
 		prefetch_opcode(op);
-		if(op != BREAKPOINTSYNC_MAGIC)	//–³ŒÀÄ‹A‘Îô
+		if(op != BREAKPOINTSYNC_MAGIC)	//ï¿½ï¿½ï¿½ï¿½ï¿½Ä‹Aï¿½Îï¿½
 			interp_ops[((op >> 26) & 0x3F)]();
 	}
 }
@@ -2637,7 +2732,7 @@ void BreakpointSyncInterp(){
 	SyncBreakMap::iterator it = syncBreakMap.find(addr);
 	if(it != syncBreakMap.end()) {
 		if(BreakpointSync(it, addr)) {
-			//ƒCƒeƒŒ[ƒ^‚ª–³Œø‚É‚È‚Á‚½‚è‚µ‚Ä‚é
+			//ï¿½Cï¿½eï¿½ï¿½ï¿½[ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É‚È‚ï¿½ï¿½ï¿½ï¿½è‚µï¿½Ä‚ï¿½
 			it = syncBreakMap.find(addr);
 			if(it==syncBreakMap.end()){
 				BreakpointSyncInterp();
@@ -2920,8 +3015,8 @@ int GetJoypad(lua_State *L) {
 //	A(Reserved1,"reserved1");
 //	A(Reserved2,"reserved2");
 	lua_pushinteger(L, b.X_AXIS);
-	lua_setfield(L, -2, "Y");			//X‚ÆY‚ª‹tAã‰º‚à‹t(ã‚ª³)
-	lua_pushinteger(L, b.Y_AXIS);	//X‚ÆY‚Í’¼‚·‚ªAã‰º‚Í’¼‚³‚È‚¢(-128‚Æ‚©“ü—Í‚µ‚½‚ç¬—‚ÌŒ³)
+	lua_setfield(L, -2, "Y");			//Xï¿½ï¿½Yï¿½ï¿½ï¿½tï¿½Aï¿½ã‰ºï¿½ï¿½t(ï¿½ã‚ªï¿½ï¿½)
+	lua_pushinteger(L, b.Y_AXIS);	//Xï¿½ï¿½Yï¿½Í’ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½ã‰ºï¿½Í’ï¿½ï¿½ï¿½ï¿½È‚ï¿½(-128ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½ï¿½ï¿½ç¬ï¿½ï¿½ï¿½ÌŒï¿½)
 	lua_setfield(L, -2, "X");
 #undef A
 	return 1;
@@ -2980,7 +3075,7 @@ const luaL_Reg globalFuncs[] = {
 	{"CVT_D_L", ConvertDwordToNumber},
 	{NULL, NULL}
 };
-//G‘½‚ÈŠÖ”
+//ï¿½Gï¿½ï¿½ï¿½ÈŠÖï¿½
 const luaL_Reg emuFuncs[] = {
 	{"console", ConsoleWriteLua},
 	{"debugview", DebugviewWrite},
@@ -3011,10 +3106,14 @@ const luaL_Reg emuFuncs[] = {
 	
 	{"getaddress", GetAddress},
 	
+	{"isreadonly", GetVCRReadOnly},
+
+	{"getsystemmetrics", GetSystemMetricsLua}, // irrelevant to core but i dont give a 
+
 	{NULL, NULL}
 };
 const luaL_Reg memoryFuncs[] = {
-	//D‚«‚È–¼‘O
+	//ï¿½Dï¿½ï¿½ï¿½È–ï¿½ï¿½O
 	{"LBU", LoadByteUnsigned},
 	{"LB", LoadByteSigned},
 	{"LHU", LoadHalfUnsigned},
@@ -3038,8 +3137,8 @@ const luaL_Reg memoryFuncs[] = {
 	{"SDC1", StoreDouble},
 	{"storesize", StoreSize},
 
-	{"syncbreak", SetSyncBreak},	//SyncBreak‚ÍPCBreak‚É”ä‚×‚ÄA
-	{"pcbreak", SetPCBreak},			//”ñ“o˜^‚Ì‚Æ‚±‚ë‚Ì‚Å‚Ìˆ—‚ª­‚È‚¢‚Æv‚¤
+	{"syncbreak", SetSyncBreak},	//SyncBreakï¿½ï¿½PCBreakï¿½É”ï¿½×‚ÄA
+	{"pcbreak", SetPCBreak},			//ï¿½ï¿½oï¿½^ï¿½Ì‚Æ‚ï¿½ï¿½ï¿½Ì‚Å‚Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½Ævï¿½ï¿½
 	{"readbreak", SetReadBreak},
 	{"writebreak", SetWriteBreak},
 	{"reg", GetRegister},
@@ -3053,7 +3152,7 @@ const luaL_Reg memoryFuncs[] = {
 	{"recompilenext", RecompileNextLua},
 	{"recompilenextall", RecompileNextAllLua},
 
-	//IO‚à’¼ƒAƒNƒZƒX
+	//IOï¿½ï¿½ï¿½ï¿½Aï¿½Nï¿½Zï¿½X
 	{"readmemb", ReadMemT<UCHAR,readmemb>},
 	{"readmemh", ReadMemT<USHORT,readmemh>},
 	{"readmem", ReadMemT<ULONG,readmem>},
@@ -3063,7 +3162,7 @@ const luaL_Reg memoryFuncs[] = {
 	{"writemem", ReadMemT<ULONG,writemem>},
 	{"writememd", ReadMemT<ULONGLONG,writememd>},
 
-	//ˆê”Ê“I‚È–¼‘O(word=2byte)
+	//ï¿½ï¿½Ê“Iï¿½È–ï¿½ï¿½O(word=2byte)
 	{"readbytesigned", LoadByteSigned},
 	{"readbyte", LoadByteUnsigned},
 	{"readwordsigned", LoadHalfSigned},
@@ -3100,7 +3199,7 @@ const luaL_Reg guiFuncs[] = {
 	{NULL, NULL}
 };
 
-//winAPI GDIŠÖ”‚ğ
+//winAPI GDIï¿½Öï¿½ï¿½ï¿½
 const luaL_Reg wguiFuncs[] = {
 	{"setbrush", SetBrush},
 	{"setpen", SetPen},
@@ -3116,6 +3215,8 @@ const luaL_Reg wguiFuncs[] = {
 	{"fillrecta", FillRectAlpha},
 	{"fillellipsea", FillEllipseAlpha},
 	{"fillpolygona", FillPolygonAlpha},
+	{"drawimage", DrawImage},
+	{"loadimage", LoadImage},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
@@ -3258,6 +3359,9 @@ void InitializeLuaDC(HWND mainWnd) {
 	LuaEngine::InitializeLuaDC_(mainWnd);
 }
 
+//Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
+//Next and DrawLuaDC are only used with double buffering
+//otherwise calls vi callback and updatescreen callback
 void LuaDCUpdate(int redraw){
 	if(LuaEngine::luaDC && redraw) {
 		LuaEngine::NextLuaDC();
@@ -3269,7 +3373,7 @@ void LuaDCUpdate(int redraw){
 	}
 }
 
-//‚Æ‚è‚ ‚¦‚¸lua‚É“ü‚ê‚Æ‚­
+//ï¿½Æ‚è‚ ï¿½ï¿½ï¿½ï¿½luaï¿½É“ï¿½ï¿½ï¿½Æ‚ï¿½
 char traceLoggingBuf[0x10000];
 char *traceLoggingPointer = traceLoggingBuf;
 inline void TraceLoggingBufFlush() {
@@ -3284,6 +3388,238 @@ inline void TraceLoggingWriteBuf() {
 		TraceLoggingBufFlush();
 	}
 }
+
+void instrStr2(r4300word pc, r4300word w, char* p1) {
+	char*& p = p1;
+	INSTDECODE decode;
+	//little endian
+#define HEX8(n) 	*(r4300word*)p = n; p += 4
+	DecodeInstruction(w, &decode);
+	HEX8(pc);
+	HEX8(w);
+	INSTOPERAND& o = decode.operand;
+	//nï¿½ÍŒã‚©ï¿½ï¿½fï¿½Rï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½Î‚í‚©ï¿½ï¿½
+#define REGCPU(n) \
+	HEX8(reg[n])
+#define REGCPU2(n,m) \
+		REGCPU(n);\
+		REGCPU(m);
+//10ï¿½iï¿½ï¿½
+#define REGFPU(n) \
+	HEX8(*(r4300word*)reg_cop1_simple[n])
+#define REGFPU2(n,m) REGFPU(n);REGFPU(m)
+#define NONE *(r4300word*)p=0;p+=4
+#define NONE2 NONE;NONE
+
+	switch (decode.format) {
+	case INSTF_NONE:
+		NONE2;
+		break;
+	case INSTF_J:
+	case INSTF_0BRANCH:
+		NONE2;
+		break;
+	case INSTF_LUI:
+		NONE2;
+		break;
+	case INSTF_1BRANCH:
+	case INSTF_JR:
+	case INSTF_ISIGN:
+	case INSTF_IUNSIGN:
+		REGCPU(o.i.rs);
+		NONE;
+		break;
+	case INSTF_2BRANCH:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_ADDRW:
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		REGCPU(o.i.rt);
+		break;
+	case INSTF_ADDRR:
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		NONE;
+		break;
+	case INSTF_LFW:
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		REGFPU(o.lf.ft);
+		break;
+	case INSTF_LFR:
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		NONE;
+		break;
+	case INSTF_R1:
+		REGCPU(o.r.rd);
+		NONE;
+		break;
+	case INSTF_R2:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_R3:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_MTC0:
+	case INSTF_MTC1:
+	case INSTF_SA:
+		REGCPU(o.r.rt);
+		NONE;
+		break;
+	case INSTF_R2F:
+		REGFPU(o.cf.fs);
+		NONE;
+		break;
+	case INSTF_R3F:
+	case INSTF_C:
+		REGFPU2(o.cf.fs, o.cf.ft);
+		break;
+	case INSTF_MFC0:
+		NONE2;
+		break;
+	case INSTF_MFC1:
+		REGFPU(((FPUREG)o.r.rs));
+		NONE;
+		break;
+	}
+	p1[strlen(p1)] = '\0';
+#undef HEX8
+#undef REGCPU
+#undef REGFPU
+#undef REGCPU2
+#undef REGFPU2
+}
+
+void instrStr1(unsigned long pc, unsigned long w, char* p1) {
+	char*& p = p1;
+	INSTDECODE decode;
+	const char* const x = "0123456789abcdef";
+#define HEX8(n) 	p[0] = x[(r4300word)(n)>>28&0xF];\
+	p[1] = x[(r4300word)(n)>>24&0xF];\
+	p[2] = x[(r4300word)(n)>>20&0xF];\
+	p[3] = x[(r4300word)(n)>>16&0xF];\
+	p[4] = x[(r4300word)(n)>>12&0xF];\
+	p[5] = x[(r4300word)(n)>>8&0xF];\
+	p[6] = x[(r4300word)(n)>>4&0xF];\
+	p[7] = x[(r4300word)(n)&0xF];\
+	p+=8;
+
+	DecodeInstruction(w, &decode);
+	HEX8(pc);
+	*(p++) = ':';
+	*(p++) = ' ';
+	HEX8(w);
+	*(p++) = ' ';
+	const char* ps = p;
+	if (w == 0x00000000) {
+		*(p++) = 'n';
+		*(p++) = 'o';
+		*(p++) = 'p';
+	}
+	else {
+		for (const char* q = GetOpecodeString(&decode); *q; q++) {
+			*(p++) = *q;
+		}
+		*(p++) = ' ';
+		p = GetOperandString(p, &decode, pc);
+	}
+	for (int i = p - ps + 3; i < 24; i += 4) {
+		*(p++) = '\t';
+	}
+	*(p++) = ';';
+	INSTOPERAND& o = decode.operand;
+#define REGCPU(n) if((n)!=0){\
+			for(const char *l = CPURegisterName[n]; *l; l++){\
+				*(p++) = *l;\
+			}\
+			*(p++) = '=';\
+			HEX8(reg[n]);\
+	}
+#define REGCPU2(n,m) \
+		REGCPU(n);\
+		if((n)!=(m)&&(m)!=0){C;REGCPU(m);}
+	//10ï¿½iï¿½ï¿½
+#define REGFPU(n) *(p++)='f';\
+			*(p++)=x[(n)/10];\
+			*(p++)=x[(n)%10];\
+			*(p++) = '=';\
+			p+=sprintf(p,"%f",*reg_cop1_simple[n])
+#define REGFPU2(n,m) REGFPU(n);\
+		if((n)!=(m)){C;REGFPU(m);}
+#define C *(p++) = ','
+
+	if (delay_slot) {
+		*(p++) = '#';
+	}
+	switch (decode.format) {
+	case INSTF_NONE:
+		break;
+	case INSTF_J:
+	case INSTF_0BRANCH:
+		break;
+	case INSTF_LUI:
+		break;
+	case INSTF_1BRANCH:
+	case INSTF_JR:
+	case INSTF_ISIGN:
+	case INSTF_IUNSIGN:
+		REGCPU(o.i.rs);
+		break;
+	case INSTF_2BRANCH:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_ADDRW:
+		REGCPU(o.i.rt);
+		if (o.i.rt != 0) { C; }
+	case INSTF_ADDRR:
+		*(p++) = '@';
+		*(p++) = '=';
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		break;
+	case INSTF_LFW:
+		REGFPU(o.lf.ft);
+		C;
+	case INSTF_LFR:
+		*(p++) = '@';
+		*(p++) = '=';
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		break;
+	case INSTF_R1:
+		REGCPU(o.r.rd);
+		break;
+	case INSTF_R2:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_R3:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_MTC0:
+	case INSTF_MTC1:
+	case INSTF_SA:
+		REGCPU(o.r.rt);
+		break;
+	case INSTF_R2F:
+		REGFPU(o.cf.fs);
+		break;
+	case INSTF_R3F:
+	case INSTF_C:
+		REGFPU2(o.cf.fs, o.cf.ft);
+		break;
+	case INSTF_MFC0:
+		break;
+	case INSTF_MFC1:
+		REGFPU(((FPUREG)o.r.rs));
+		break;
+	}
+	p1[strlen(p1)] = '\0';
+#undef HEX8
+#undef REGCPU
+#undef REGFPU
+#undef REGCPU2
+#undef REGFPU2
+#undef C
+
+
+}
+
 void TraceLogging(r4300word pc, r4300word w) {
 	char *&p = traceLoggingPointer;
 	INSTDECODE decode;
@@ -3331,7 +3667,7 @@ void TraceLogging(r4300word pc, r4300word w) {
 #define REGCPU2(n,m) \
 		REGCPU(n);\
 		if((n)!=(m)&&(m)!=0){C;REGCPU(m);}
-//10i”
+//10ï¿½iï¿½ï¿½
 #define REGFPU(n) *(p++)='f';\
 			*(p++)=x[(n)/10];\
 			*(p++)=x[(n)%10];\
@@ -3405,6 +3741,7 @@ void TraceLogging(r4300word pc, r4300word w) {
 		break;
 	}
 	*(p++) = '\n';
+
 	TraceLoggingWriteBuf();
 #undef HEX8
 #undef REGCPU
@@ -3425,13 +3762,13 @@ void TraceLoggingBin(r4300word pc, r4300word w){
 	HEX8(pc);
 	HEX8(w);
 	INSTOPERAND &o = decode.operand;
-	//n‚ÍŒã‚©‚çƒfƒR[ƒh‚·‚ê‚Î‚í‚©‚é
+	//nï¿½ÍŒã‚©ï¿½ï¿½fï¿½Rï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½Î‚í‚©ï¿½ï¿½
 #define REGCPU(n) \
 	HEX8(reg[n])
 #define REGCPU2(n,m) \
 		REGCPU(n);\
 		REGCPU(m);
-//10i”
+//10ï¿½iï¿½ï¿½
 #define REGFPU(n) \
 	HEX8(*(r4300word*)reg_cop1_simple[n])
 #define REGFPU2(n,m) REGFPU(n);REGFPU(m)
@@ -3576,6 +3913,23 @@ void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 }
 
 
+
 #endif
 
+#else
+// bad: empty dummy functions
+void AtUpdateScreenLuaCallback(){};
+void AtVILuaCallback()			{};
+void AtInputLuaCallback(int n)	{};
+void AtIntervalLuaCallback()	{};
+void AtLoadStateLuaCallback()	{};
+void AtSaveStateLuaCallback()	{};
+void AtResetCallback()			{};
+void GetLuaMessage()			{};
+void LuaBreakpointSyncPure()	{};
+void LuaBreakpointSyncInterp()	{};
+void LuaOpenAndRun(char const* n) {};
+void CloseAllLuaScript(void) {};
+void instrStr1(r4300word pc, r4300word w, char* buffer){};
+void instrStr2(r4300word pc, r4300word w, char* buffer){};
 #endif

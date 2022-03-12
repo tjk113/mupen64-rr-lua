@@ -27,6 +27,9 @@
  *
 **/
 
+#include "../lua/LuaConsole.h"
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -41,7 +44,7 @@
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "../lua/LuaConsole.h"
+#include "../../main/win/GameDebugger.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -3181,12 +3184,18 @@ void prefetch()
 }
 void pure_interpreter()
 {
+
+
+
    interp_addr = 0xa4000040;
    stop=0;
    PC = (precomp_instr*)malloc(sizeof(precomp_instr));
    last_addr = interp_addr;
    while (!stop)
      {
+#ifdef N64DEBUGGER_ALLOWED
+	   while (!debugger_cpuAllowed) { _sleep(1); printf("pure interp wait...\n"); }
+#endif
 	//if (interp_addr == 0x10022d08) stop = 1;
     //printf("addr: %x\n", interp_addr);
 	prefetch();

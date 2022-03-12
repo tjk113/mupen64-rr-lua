@@ -1,6 +1,8 @@
 //#include "../config.h"
 #ifdef VCR_SUPPORT
 
+#include "../lua/LuaConsole.h"
+
 #include "vcr.h"
 #include "vcr_compress.h"
 #include "vcr_resample.h"
@@ -9,7 +11,6 @@
 #include "rom.h"
 #include "savestates.h"
 #include "../memory/memory.h"
-#include "../lua/LuaConsole.h"
 
 #include <errno.h>
 #include <limits.h>
@@ -122,16 +123,18 @@ static unsigned long m_lastController1Keys = 0; // for input display
 static int    m_capture = 0;			// capture movie
 static int    m_audioFreq = 33000;		//0x30018;
 static int    m_audioBitrate = 16;		// 16 bits
-static float  m_videoFrame = 0;
-static float  m_audioFrame = 0;
-static char soundBuf [44100*2*2];
-static char soundBufEmpty [44100*2];
+static long double  m_videoFrame = 0;
+static long double  m_audioFrame = 0;
+#define SOUND_BUF_SIZE 44100*2*2 // 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
+static char soundBuf[SOUND_BUF_SIZE];
+static char soundBufEmpty[SOUND_BUF_SIZE]; 
 static int soundBufPos = 0;
 long lastSound = 0;
 volatile BOOL captureFrameValid = FALSE;
 static int AVIBreakMovie = 0;
 int AVIIncrement = 0;
 int titleLength;
+char VCR_Lastpath[MAX_PATH];
 
 extern void resetEmu();
 void SetActiveMovie(char* buf);
@@ -139,6 +142,93 @@ void SetActiveMovie(char* buf);
 static int startPlayback(const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting);
 static int restartPlayback();
 static int stopPlayback(const bool bypassLoopSetting);
+
+static void write_movie_header(FILE* file, int numBytes)
+{
+	//	assert(ftell(file) == 0); // we assume file points to beginning of movie file
+	fseek(file, 0L, SEEK_SET);
+
+	m_header.version = MUP_VERSION; // make sure to update the version!
+///	m_header.length_vis = m_header.length_samples / m_header.num_controllers; // wrong
+
+	fwrite(&m_header, 1, MUP_HEADER_SIZE, file);
+
+	fseek(file, 0L, SEEK_END);
+}
+char* strtrimext(char* myStr) {
+	char* retStr;
+	char* lastExt;
+	if (myStr == NULL) return NULL;
+	if ((retStr = (char*)malloc(strlen(myStr) + 1)) == NULL) return NULL;
+	strcpy(retStr, myStr);
+	lastExt = strrchr(retStr, '.');
+	if (lastExt != NULL)
+		*lastExt = '\0';
+	return retStr;
+}
+
+int movieBackup() {
+
+	if (!Config.movieBackups) return 0; // :(
+
+	char* original_m_filename = (char*)malloc(strlen(m_filename));
+	strcpy(original_m_filename, m_filename);
+
+	if (Config.movieBackupsLevel > 1) {
+		char* stPath = m_filename;
+		stripExt(stPath);
+		char* newPath = stPath;
+		strcat(newPath, "-b.st");
+		strcat(stPath, ".st");
+
+		FILE* tmpstFile = fopen(stPath, "w+");
+		if (tmpstFile) {
+			fclose(tmpstFile);
+			CopyFile(stPath, newPath, FALSE);
+		}
+	}
+
+	char* m_filenameBackup = (char*)malloc(strlen(m_filename) + 150);
+
+	strcpy(m_filenameBackup, m_filename);
+
+	strcpy(m_filenameBackup, strtrimext(m_filenameBackup));
+
+	while (TRUE) {
+		// loop until we find file with name that doesnt exist
+		strncat(m_filenameBackup, "-b", 3);
+		FILE* tmpFile = fopen(m_filenameBackup, "w+");
+		if (tmpFile == NULL)
+			; // and again
+		else {
+			fclose(tmpFile);
+			break;
+		}
+	}
+
+	strncat(m_filenameBackup, ".m64", 5);
+
+	FILE* fileBackup = fopen(m_filenameBackup, "w+");
+
+	write_movie_header(fileBackup, MUP_HEADER_SIZE);
+	fseek(fileBackup, MUP_HEADER_SIZE, SEEK_SET);
+
+	if (m_inputBuffer == NULL || m_inputBufferPtr == NULL) {
+		// ???
+		fclose(fileBackup);
+		free(m_filenameBackup);
+		return 0;
+	}
+
+	fwrite(m_inputBuffer, 1, sizeof(BUTTONS) * (m_header.length_samples), fileBackup);
+
+	fflush(fileBackup);
+	fclose(fileBackup);
+	free(m_filenameBackup);
+
+	strcpy(m_filename,original_m_filename); // revert
+	return 1;
+}
 
 void printWarning (char* str)
 {
@@ -457,18 +547,7 @@ static int read_movie_header(FILE * file, SMovieHeader * header)
 }
 
 
-static void write_movie_header(FILE * file, int numBytes)
-{
-//	assert(ftell(file) == 0); // we assume file points to beginning of movie file
-	fseek(file, 0L, SEEK_SET);
 
-	m_header.version = MUP_VERSION; // make sure to update the version!
-///	m_header.length_vis = m_header.length_samples / m_header.num_controllers; // wrong
-
-	fwrite(&m_header, 1, MUP_HEADER_SIZE, file);
-
-	fseek(file, 0L, SEEK_END);
-}
 
 
 void flush_movie()
@@ -653,6 +732,9 @@ void
 VCR_setReadOnly(BOOL val)
 {
 #ifdef __WIN32__
+
+	//if (Config.movieBackupsLevel > 2) movieBackup();
+	
 	extern HWND mainHWND;
 	if(m_readOnly != val)
 		CheckMenuItem( GetMenu(mainHWND), EMU_VCRTOGGLEREADONLY, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
@@ -1107,7 +1189,15 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 		fprintf( stderr, "[VCR]: Cannot start recording, could not open file '%s': %s\n", filename, strerror( errno ) );
 		return -1;
     }
-    
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (Controls[i].Present && Controls[i].RawData) {
+			if (MessageBox(NULL, "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?", "VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO) return -1;
+			break; //
+		}
+	}
+
     VCR_setReadOnly(FALSE);
 
 	memset(&m_header, 0, MUP_HEADER_SIZE);
@@ -1177,6 +1267,9 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 }
 
 
+
+
+
 int
 VCR_stopRecord(int defExt)
 {
@@ -1225,6 +1318,10 @@ VCR_stopRecord(int defExt)
 //		fwrite( &end, 1, sizeof (long), m_file );
 //		fwrite( &m_header.length_samples, 1, sizeof (long), m_file );
 		fclose( m_file );
+
+
+		movieBackup();
+
 		m_file = NULL;
 
 		truncateMovie();
@@ -1234,6 +1331,8 @@ VCR_stopRecord(int defExt)
 #ifdef __WIN32__
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
+		//RESET_TITLEBAR;
+		SetActiveMovie(0); // ?
 #else
 		// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
 #endif
@@ -1337,7 +1436,15 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 				warningStr[0] = '\0';
 
 				dontPlay = FALSE;
-				
+
+				for (int i = 0; i < 4; i++)
+				{
+					if (Controls[i].Present && Controls[i].RawData) {
+						if (MessageBox(NULL, "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?", "VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO) dontPlay = TRUE;
+						break; //
+					}
+				}
+
 				if(!Controls[0].Present && (m_header.controllerFlags & CONTROLLER_1_PRESENT))
 				{
 					strcat(warningStr, "Error: You have controller 1 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n");
@@ -1479,7 +1586,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 
 
-				if (dontPlay) {
+				if (dontPlay && !Config.savesERRORS) {
 					RESET_TITLEBAR
 					if(m_file != NULL)
 					fclose(m_file);
@@ -1522,7 +1629,10 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 		m_currentSample = 0;
 		m_currentVI = 0;
-	
+		strcpy(VCR_Lastpath, m_filename);
+
+		if(Config.movieBackupsLevel > 1) movieBackup();
+
 	    if(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 	    {
 			// we cant wait for this function to return and then get check in emu(?) thread (savestates_load)
@@ -1559,7 +1669,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 				if ((stBuf = fopen(bufnExt, "r"))) fclose(stBuf);
 				else {
-					printf("[VCR]: Early Savestate exist check failed. No .savestate or .st found for movie!\n");
+					printf("[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
 					RESET_TITLEBAR;
 					if (m_file != NULL)
 						fclose(m_file);
@@ -1713,10 +1823,10 @@ VCR_updateScreen()
 		extern HWND mainHWND;
 		extern BOOL manualFPSLimit;
 		// skip frames according to skipFrequency if fast-forwarding and not capturing to AVI
-		if (IGNORE_RSP || forceIgnoreRSP) redraw = 0;
+		if ((IGNORE_RSP || forceIgnoreRSP) && m_capture==0) redraw = 0;
 #endif
 #ifdef LUA_SPEEDMODE
-		if(maximumSpeedMode)redraw = 1;
+		if(maximumSpeedMode)redraw = 0;
 #endif
 		//printf("Screen update!\n");
 		if(redraw) {
@@ -1724,16 +1834,11 @@ VCR_updateScreen()
 		#ifdef LUA_GUI
 			LuaDCUpdate(redraw);
 		#endif
-		redraw = 0;
 		}
 //		captureFrameValid = TRUE;
 		return;
 	}
 
-//  // skip every other frame
-//	frame ^= 1;
-//	if (!frame)
-//		return;
 
 #ifdef LUA_SPEEDMODE
 	if(maximumSpeedMode)redraw=0;
@@ -1766,36 +1871,78 @@ VCR_updateScreen()
 		VCRComp_startFile( AVIFileName, width, height, visByCountrycode(), 0);
 	}
 
-//char str[256];
-//sprintf(str, "[VCR]: width = %d, height = %d, image = 0x%x", (int)width, (int)height, image);
-//ShowInfo(str);
+	//if (!VCRComp_addVideoFrame((unsigned char*)image))
+	//{
+	//	//ShowInfo("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+	//	printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+	//	VCR_stopCapture();
+	//}
 
-//	if(captureFrameValid || externalReadScreen)
-//	{
-//		if(image)
-//		{
-			if(!VCRComp_addVideoFrame((unsigned char*)image))
+	if (Config.SyncMode == VCR_SYNC_AUDIO_DUPL || Config.SyncMode == VCR_SYNC_NONE) {
+		// AUDIO SYNC
+		// This type of syncing assumes the audio is authoratative, and drops or duplicates frames to keep the video as close to
+		// it as possible. Some games stop updating the screen entirely at certain points, such as loading zones, which will cause
+		// audio to drift away by default. This method of syncing prevents this, at the cost of the video feed possibly freezing or jumping
+		// (though in practice this rarely happens - usually a loading scene just appears shorter or something).
+
+		int audio_frames = m_audioFrame - m_videoFrame;
+
+		if (Config.SyncMode == VCR_SYNC_AUDIO_DUPL)
+		{
+			if (audio_frames < 0)
 			{
-//				ShowInfo("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+				printError("Audio frames became negative!");
+				VCR_stopCapture();
+			}
+
+			if (audio_frames == 0)
+			{
+				printf("\nDropped Frame! a/v: %f/%f", m_videoFrame, m_audioFrame);
+			}
+			else if (audio_frames > 0)
+			{
+				if (!VCRComp_addVideoFrame((unsigned char*)image))
+				{
+					printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+					VCR_stopCapture();
+				}
+				else
+				{
+					m_videoFrame += 1.0;
+					audio_frames--;
+				}
+			}
+
+			// can this actually happen?
+			while (audio_frames > 0)
+			{
+				if (!VCRComp_addVideoFrame((unsigned char*)image))
+				{
+					printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+					VCR_stopCapture();
+				}
+				else
+				{
+					printf("\nDuped Frame! a/v: %f/%f", m_videoFrame, m_audioFrame);
+					m_videoFrame += 1.0;
+					audio_frames--;
+				}
+			}
+		}
+		else /*if (Config.SyncMode == VCR_SYNC_NONE)*/
+		{
+			if (!VCRComp_addVideoFrame((unsigned char*)image))
+			{
 				printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
 				VCR_stopCapture();
 			}
-//		}
-//	}
-//	else
-//	{
-//		if(lastImage)
-//		{
-//			image = lastImage;
-//			if(!VCRComp_addVideoFrame(image);)
-//			{
-//				printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
-//				VCR_stopCapture();
-//			}
-//		}
-//	}
-	
-	m_videoFrame += 1.0;
+			else
+			{
+				m_videoFrame += 1.0;
+			}
+		}
+	}
+
 
 	if(externalReadScreen /*|| (!captureFrameValid && lastImage != image)*/)
 	{
@@ -1871,7 +2018,7 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 	
 	if(len > 0)
 	{
-		if (soundBufPos + len > 44100 * 2 * 2 * sizeof(char))
+		if (soundBufPos + len > SOUND_BUF_SIZE * sizeof(char))
 		{
 #ifdef WIN32
 			MessageBox(0, "Fatal error", "Sound buffer overflow", MB_ICONERROR);
@@ -1882,14 +2029,14 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 #ifdef _DEBUG
 		else
 		{
-			float pro = (float)(soundBufPos + len) * 100 / (44100 * 2 * 2 * sizeof(char));
+			long double pro = (long double)(soundBufPos + len) * 100 / (SOUND_BUF_SIZE * sizeof(char));
 			if (pro > 75) printf("---!!!---");
 			printf("sound buffer: %.2f%%\n", pro);
 		}
 #endif
 		memcpy(soundBuf + soundBufPos, (char*)buf, len);
-		m_audioFrame += ((len/4)/(float)m_audioFreq)*visByCountrycode();
 		soundBufPos += len;
+		m_audioFrame += ((len/4)/(long double)m_audioFreq)*visByCountrycode();
 	}
 //	ShowInfo("writeSound() done");
 }
@@ -1926,20 +2073,36 @@ void VCR_aiLenChanged()
 		}
 */
 		
-		
-		{
-			float desync = m_videoFrame - m_audioFrame;
-			if (desync >= 0.0)
+		if (Config.SyncMode == VCR_SYNC_VIDEO_SNDROP || Config.SyncMode == VCR_SYNC_NONE) {
+			// VIDEO SYNC
+			// This is the original syncing code, which adds silence to the audio track to get it to line up with video.
+			// The N64 appears to have the ability to arbitrarily disable its sound processing facilities and no audio samples
+			// are generated. When this happens, the video track will drift away from the audio. This can happen at load boundaries
+			// in some games, for example.
+			//
+			// The only new difference here is that the desync flag is checked for being greater than 1.0 instead of 0.
+			// This is because the audio and video in mupen tend to always be diverged just a little bit, but stay in sync
+			// over time. Checking if desync is not 0 causes the audio stream to to get thrashed which results in clicks
+			// and pops.
+
+			long double desync = m_videoFrame - m_audioFrame;
+
+			if (Config.SyncMode == VCR_SYNC_NONE) // HACK
+				desync = 0;
+
+			if (desync > 1.0)
 			{
 				int len3;
 				printf( "[VCR]: Correcting for A/V desynchronization of %+f frames\n", desync );
-				len3 = (m_audioFreq/(float)visByCountrycode()) * desync;
+				len3 = (m_audioFreq/(long double)visByCountrycode()) * desync;
 				len3 <<= 2;
 
 				int emptySize = len3 > writeSize ? writeSize : len3;
 				int i;
+
 				for(i = 0 ; i < emptySize ; i += 4)
 					*((long*)(soundBufEmpty + i)) = lastSound;
+
 				while(len3 > writeSize)
 				{
 					writeSound(soundBufEmpty, writeSize, m_audioFreq, writeSize, FALSE);
@@ -1951,8 +2114,7 @@ void VCR_aiLenChanged()
 			{
 				printf( "[VCR]: Waiting from A/V desynchronization of %+f frames\n", desync );
 			}
-		}	
-
+		}
 
 		writeSound(buf, len, m_audioFreq, writeSize, FALSE);
 		
@@ -1986,7 +2148,7 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 		extern void pauseEmu(BOOL quiet);
 		pauseEmu(TRUE);
 	}
-    init_readScreen();
+    init_readScreen(); //readScreen always not null here
 #endif
 
 	FILE* tmpf = fopen(aviFilename, "ab+");
@@ -1995,12 +2157,6 @@ int VCR_startCapture( const char *recFilename, const char *aviFilename, bool cod
 		return -1;
 	
 	fclose(tmpf);
-
-	if (readScreen == 0)
-	{
-		printError("AVI capture failed because the active video plugin does not support ReadScreen()!");
-		return -1;
-	}
 
 	memset(soundBufEmpty, 0, 44100*2);
 	memset(soundBuf, 0, 44100*2);
@@ -2228,7 +2384,7 @@ void VCR_updateFrameCounter ()
 
 // // oops, this control isn't even visible during emulation...
 //	if(VCR_isPlaying())
-//		SendMessage( hStatusProgress, PBM_SETPOS, (int)(100.0f * (float)m_currentSample / (float)VCR_getLengthFrames() + 0.5f), 0 );
+//		SendMessage( hStatusProgress, PBM_SETPOS, (int)(100.0f * (long double)m_currentSample / (long double)VCR_getLengthFrames() + 0.5f), 0 );
 
 //	if(m_intro && m_currentSample < 60 && VCR_isPlaying())
 //		sprintf(str, "%d re-records, %d frames", (int)m_header.rerecord_count, (int)m_header.length_vis);
