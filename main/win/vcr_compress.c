@@ -174,7 +174,7 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 BOOL VCRComp_addVideoFrame( unsigned char *data )
 {
 	extern int m_task;
-	if (m_task == 4 || m_task == 5) return 1; //don't record frames that are during emu loading (black frames)
+	//if (m_task == 4 || m_task == 5) return 1; //don't record frames that are during emu loading (black frames)
     long int TempLen;
     BOOL ret = AVIStreamWrite(compressed_video_stream, frame++, 1, data, infoHeader.biSizeImage, AVIIF_KEYFRAME, NULL, &TempLen);
     AVIFileSize += TempLen; 
@@ -308,6 +308,7 @@ void VCRComp_finishFile(int split)
 	   hMenu = GetMenu(mainHWND);         
 	   EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
 	   EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
+	   EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
 	   EnableMenuItem(hMenu,FULL_SCREEN,MF_ENABLED);               //Enables fullscreen menu
 	   SendMessage( hTool, TB_ENABLEBUTTON, FULL_SCREEN, TRUE );   //Enables fullscreen button
 	   SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Remove the always on top flag

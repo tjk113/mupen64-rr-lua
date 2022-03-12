@@ -342,7 +342,8 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     SetMenuTranslatedString(subsubmenu,4,"Stop Movie Playback","");
     SetMenuTranslatedString(subsubmenu,5,"Toggle Read-Only","");
     SetMenuTranslatedString(subsubmenu,7,"Start AVI Capture...","");
-    SetMenuTranslatedString(subsubmenu,8,"Stop AVI Capture","");
+    SetMenuTranslatedString(subsubmenu,8,"Start AVI From Preset...", "");
+    SetMenuTranslatedString(subsubmenu,9,"Stop AVI Capture","");
             
     //Help menu
     submenu = GetSubMenu(hMenu,4);

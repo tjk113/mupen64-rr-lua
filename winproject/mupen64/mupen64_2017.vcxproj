@@ -223,8 +223,8 @@
     <ClInclude Include="..\..\main\vcr.h" />
     <ClInclude Include="..\..\main\vcr_compress.h" />
     <ClInclude Include="..\..\main\vcr_resample.h" />
-	<ClInclude Include="..\..\main\speex\speex_resampler.h" />
-	<ClInclude Include="..\..\main\speex\arch.h" />
+    <ClInclude Include="..\..\main\speex\speex_resampler.h" />
+    <ClInclude Include="..\..\main\speex\arch.h" />
     <ClInclude Include="..\..\main\winlnxdefs.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </ClInclude>
@@ -756,8 +756,11 @@
     <Image Include="..\icons\italy.ico" />
     <Image Include="..\icons\japan.ico" />
     <Image Include="..\icons\logo.bmp" />
+    <Image Include="..\icons\logobw.bmp" />
     <Image Include="..\icons\m64big.ico" />
     <Image Include="..\icons\m64small.ico" />
+    <Image Include="..\icons\pause.bmp" />
+    <Image Include="..\icons\resume.bmp" />
     <Image Include="..\icons\RSP.bmp" />
     <Image Include="..\icons\Sound.bmp" />
     <Image Include="..\icons\spain.ico" />

@@ -124,6 +124,7 @@ BEGIN
             MENUITEM "Toggle Read-Only",            EMU_VCRTOGGLEREADONLY
             MENUITEM SEPARATOR
             MENUITEM "Start AVI Capture...",        ID_START_CAPTURE, GRAYED
+            MENUITEM "Start AVI From Preset...",       ID_START_CAPTURE_PRESET, GRAYED
             MENUITEM "Stop AVI Capture",            ID_END_CAPTURE, GRAYED
             MENUITEM SEPARATOR
             MENUITEM "Loop Movie Playback",         ID_LOOP_MOVIE
@@ -134,7 +135,7 @@ BEGIN
 #ifdef LUA_MODULEIMPL
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
 #endif
-        MENUITEM "Save Config",                 ID_FORCESAVE
+    MENUITEM "Save Config",                 ID_FORCESAVE
         MENUITEM "Game Debugger",               ID_GAMEDEBUGGER
     END
     POPUP "Help"
@@ -144,21 +145,21 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&About Mupen64...",           ID_HELP_ABOUT
     END
-    #ifdef LUA_MODULEIMPL
+#ifdef LUA_MODULEIMPL
     POPUP "Lua Script"
     BEGIN
         MENUITEM "New Instance",                ID_MENU_LUASCRIPT_NEW
         MENUITEM SEPARATOR
         POPUP "Recent scripts"
         BEGIN
-            MENUITEM "Reset", ID_LUA_RECENT_RESET
-            MENUITEM "Freeze", ID_LUA_RECENT_FREEZE
+            MENUITEM "Reset",                       ID_LUA_RECENT_RESET
+            MENUITEM "Freeze",                      ID_LUA_RECENT_FREEZE
             MENUITEM SEPARATOR
         END
         MENUITEM SEPARATOR
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END
-  #endif
+#endif
 END
 
 ROM_POPUP_MENU MENU
@@ -234,17 +235,18 @@ IDD_OTHER_OPTIONS_DIALOG DIALOGEX 0, 0, 231, 273
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
-GROUPBOX        "Other Options", IDC_OTHEROPTIONS, 7, 7, 224, 200
+    GROUPBOX        "Other Options",IDC_OTHEROPTIONS,7,7,224,200
 #ifdef LUA_MODULEIMPL
-CONTROL         "Ask on lua close", IDC_LUA_WARNONCLOSE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 20, 100, 10
-CONTROL         "Simplified lua dialog", IDC_LUA_SIMPLEDIALOG, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 30, 100, 10
+    CONTROL         "Ask on lua close",IDC_LUA_WARNONCLOSE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,100,10
+    CONTROL         "Simplified lua dialog",IDC_LUA_SIMPLEDIALOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,30,100,10
 #endif
-CONTROL         "Automatic movie backups", IDC_MOVIEBACKUPS, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 40, 100, 10
-CONTROL         "Frequent statusbar updates", IDC_FREQUENTVCRREFRESH, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 50, 120, 10
-CONTROL         "No Synchronisation", IDC_AV_NOSYNC, "Button", BS_AUTORADIOBUTTON, 16, 60, 150, 12
-CONTROL         "Audio-Authoritative Synchronisation", IDC_AV_AUDIOSYNC, "Button", BS_AUTORADIOBUTTON, 16, 72, 150, 12
-CONTROL         "Old Video Synchronisation", IDC_AV_VIDEOSYNC, "Button", BS_AUTORADIOBUTTON, 16, 84, 150, 12
-
+    CONTROL         "Automatic movie backups",IDC_MOVIEBACKUPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,40,100,10
+    CONTROL         "Frequent statusbar updates",IDC_FREQUENTVCRREFRESH,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,50,120,10
+    CONTROL         "No Synchronisation",IDC_AV_NOSYNC,"Button",BS_AUTORADIOBUTTON,16,60,150,12
+    CONTROL         "Audio-Authoritative Synchronisation",IDC_AV_AUDIOSYNC,
+                    "Button",BS_AUTORADIOBUTTON,16,72,150,12
+    CONTROL         "Old Video Synchronisation",IDC_AV_VIDEOSYNC,"Button",BS_AUTORADIOBUTTON,16,84,150,12
 END
 
 IDD_AUDIT_ROMS_DIALOG DIALOGEX 0, 0, 183, 138
@@ -287,10 +289,10 @@ STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_VISIBLE | WS_CAPTION | W
 CAPTION "LUA Instance"
 FONT 8, "Ms Shell Dlg", 0, 0, 0x1
 BEGIN
-PUSHBUTTON      "Run", IDC_BUTTON_LUASTATE, 10, 10, 40, 18
-PUSHBUTTON      "Browse", IDC_BUTTON_LUABROWSE, 50, 10, 40, 18
-PUSHBUTTON      "Stop", IDC_BUTTON_LUASTOP, 90, 10, 40, 18, WS_DISABLED
-EDITTEXT        IDC_TEXTBOX_LUASCRIPTPATH, 10, 28, 119, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Run",IDC_BUTTON_LUASTATE,10,10,40,18
+    PUSHBUTTON      "Browse",IDC_BUTTON_LUABROWSE,50,10,40,18
+    PUSHBUTTON      "Stop",IDC_BUTTON_LUASTOP,90,10,40,18,WS_DISABLED
+    EDITTEXT        IDC_TEXTBOX_LUASCRIPTPATH,10,28,119,14,ES_AUTOHSCROLL
 END
 
 #endif
@@ -643,12 +645,12 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
 CAPTION "Mupen64 Error"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-PUSHBUTTON      "Close Rom", IDC_ERROR_PANIC_CLOSEROM, 206, 70, 61, 14
-DEFPUSHBUTTON   "Dump Crash Log", IDC_CRASHREPORT, 6, 70, 67, 14
-PUSHBUTTON      "Continue", IDC_ERROR_CONTINUE, 270, 70, 65, 14
-CONTROL         "An exception has been thrown.", IDC_ERRORTEXT, "Static", SS_LEFTNOWORDWRAP | WS_GROUP, 73, 6, 262, 40
-CONTROL         "", IDC_ERROR_PICTUREBOX, "Static", SS_BITMAP, 6, 6, 67, 53
-PUSHBUTTON      "Close", IDC_ERROR_PANIC_CLOSEMUPEN, 154, 70, 50, 14
+    PUSHBUTTON      "Close Rom",IDC_ERROR_PANIC_CLOSEROM,206,70,61,14
+    DEFPUSHBUTTON   "Dump Crash Log",IDC_CRASHREPORT,6,70,67,14
+    PUSHBUTTON      "Continue",IDC_ERROR_CONTINUE,270,70,65,14
+    CONTROL         "An exception has been thrown.",IDC_ERRORTEXT,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,73,6,262,40
+    CONTROL         "",IDC_ERROR_PICTUREBOX,"Static",SS_BITMAP,6,6,67,53
+    PUSHBUTTON      "Close",IDC_ERROR_PANIC_CLOSEMUPEN,154,70,50,14
 END
 
 IDD_GAMEDEBUGGERDIALOG DIALOGEX 0, 0, 310, 177
@@ -656,24 +658,24 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
 CAPTION "N64 Debugger"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-GROUPBOX        "N64 Debugger Toolkit", IDC_DEBUGGER_GROUPBOX, 7, 7, 296, 149
-PUSHBUTTON      "Pause", IDC_DEBUGGER_PAUSE, 14, 23, 55, 14
-PUSHBUTTON      "Resume", IDC_DEBUGGER_RESUME, 14, 37, 55, 14
-PUSHBUTTON      "RDRAM Dump", IDC_DEBUGGER_DUMPRDRAM, 70, 23, 55, 14
-PUSHBUTTON      "Step", IDC_DEBUGGER_STEP, 70, 37, 55, 14,WS_DISABLED
-DEFPUSHBUTTON   "Quit Debugger", IDOK, 253, 156, 50, 14
-GROUPBOX        "", IDC_STATIC, 158, 15, 145, 141
-LTEXT           "Instruction:", IDC_STATIC, 166, 25, 38, 12
-LTEXT           "Address", IDC_STATIC, 166, 37, 38, 14
-LTEXT           "Op", IDC_STATIC, 166, 51, 38, 14
-EDITTEXT        IDC_DEBUGGER_INSTRUCTION, 214, 23, 89, 14, ES_AUTOHSCROLL | ES_READONLY
-EDITTEXT        IDC_DEBUGGER_PRECOMPADDR, 214, 37, 89, 14, ES_AUTOHSCROLL
-EDITTEXT        IDC_DEBUGGER_PRECOMPOP, 214, 51, 89, 14, ES_AUTOHSCROLL
-CONTROL         "Mode", IDC_DEBUGGER_INSTDECODEMODE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 51, 55, 14
-CONTROL         "RSP", IDC_DEBUGGER_RSP_TOGGLE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 65, 53, 14
-CONTROL         "Cartridge Tilt", IDC_DEBUGGER_DMA_R_TOGGLE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 79, 53, 14
-
+    GROUPBOX        "N64 Debugger Toolkit",IDC_DEBUGGER_GROUPBOX,7,7,296,149
+    PUSHBUTTON      "Pause",IDC_DEBUGGER_PAUSE,14,23,55,14
+    PUSHBUTTON      "Resume",IDC_DEBUGGER_RESUME,14,37,55,14
+    PUSHBUTTON      "RDRAM Dump",IDC_DEBUGGER_DUMPRDRAM,70,23,55,14
+    PUSHBUTTON      "Step",IDC_DEBUGGER_STEP,70,37,55,14,WS_DISABLED
+    DEFPUSHBUTTON   "Quit Debugger",IDOK,253,156,50,14
+    GROUPBOX        "",IDC_STATIC,158,15,145,141
+    LTEXT           "Instruction:",IDC_STATIC,166,25,38,12
+    LTEXT           "Address",IDC_STATIC,166,37,38,14
+    LTEXT           "Op",IDC_STATIC,166,51,38,14
+    EDITTEXT        IDC_DEBUGGER_INSTRUCTION,214,23,89,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_DEBUGGER_PRECOMPADDR,214,37,89,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_DEBUGGER_PRECOMPOP,214,51,89,14,ES_AUTOHSCROLL
+    CONTROL         "Mode",IDC_DEBUGGER_INSTDECODEMODE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,51,55,14
+    CONTROL         "RSP",IDC_DEBUGGER_RSP_TOGGLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,65,53,14
+    CONTROL         "Cartridge Tilt",IDC_DEBUGGER_DMA_R_TOGGLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,79,53,14
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -853,7 +855,18 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Neutralny (Domyœlny) resources
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_START_CAPTURE_PRESET "Starts AVI capture with previous codec and preset (avi.cfg)"
+END
+
+#endif    // Neutral (Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

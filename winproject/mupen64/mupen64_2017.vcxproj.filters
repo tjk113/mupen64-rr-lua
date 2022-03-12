@@ -598,6 +598,15 @@
     <Image Include="..\icons\usa.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\icons\logobw.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\pause.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\icons\resume.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\mupen64.exe.manifest" />

@@ -2369,6 +2369,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
       EnableMenuItem(hMenu,ID_STOP_PLAYBACK, VCR_isPlaying() ? MF_ENABLED : MF_GRAYED);
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
+      EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
       EnableMenuItem(hMenu,ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
 }
       
@@ -2413,6 +2414,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_STOP_RECORD,MF_GRAYED);
       EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
+      EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
       EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
       LONG winstyle;
       winstyle = GetWindowLong(mainHWND, GWL_STYLE);
@@ -3406,6 +3408,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         SetStatusTranslatedString(hStatus,0,"Playback stopped");
                      }
                 break;
+                case ID_START_CAPTURE_PRESET:
                 case ID_START_CAPTURE:
                    if(emu_launched) {
 						BOOL wasPaused = emu_paused;
@@ -3434,7 +3437,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                                path_buffer[len-4] != '.')
                                strcat(path_buffer, ".avi");
                            //Sleep(1000);
-                           if (VCR_startCapture( rec_buffer, path_buffer , true) < 0)
+                           // pass false to startCapture when "last preset" option was choosen
+                           if (VCR_startCapture( rec_buffer, path_buffer , LOWORD(wParam) == ID_START_CAPTURE) < 0)
                            {   
                               MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
                               recording = FALSE;
@@ -3442,6 +3446,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                            else {
                               //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
                               EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
+                              EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
                               EnableMenuItem(hMenu,ID_END_CAPTURE,MF_ENABLED);
                               if(!externalReadScreen)
                               {
@@ -3464,6 +3469,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
                         EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
                         EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
+                        EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
                         SetStatusTranslatedString(hStatus,0,"Stopped AVI capture");
                         recording = FALSE;
                      }
@@ -3605,6 +3611,7 @@ void StartMovies()
                 gStopAVI = true;
                 SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top
                 EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
+                EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
                 EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
                 if (!externalReadScreen)
                 {
