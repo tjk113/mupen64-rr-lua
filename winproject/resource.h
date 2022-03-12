@@ -7,7 +7,7 @@
 
 #include "../lua/luaDefine.h" // this is very very bad but the header guard inside that header does allow for this
 
-#define MUPEN_VERSION     "Mupen 64 1.0.9"
+#define MUPEN_VERSION     "Mupen 64 1.0.10"
 
 #define MIN_WINDOW_W -500
 #define MIN_WINDOW_H -100
