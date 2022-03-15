@@ -76,6 +76,7 @@ extern void VCR_aiLenChanged();
 
 extern BOOL VCR_isActive();
 extern BOOL VCR_isIdle(); // not the same as !isActive()
+extern BOOL VCR_isStartingAndJustRestarted();
 extern BOOL VCR_isPlaying();
 extern BOOL VCR_isRecording();
 extern BOOL VCR_isCapturing();

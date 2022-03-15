@@ -706,6 +706,22 @@ VCR_isIdle( )
 }
 
 BOOL
+VCR_isStartingAndJustRestarted()
+{
+	extern BOOL just_restarted_flag;
+	if (m_task == StartPlayback && !continue_vcr_on_restart_mode && just_restarted_flag)
+	{
+		just_restarted_flag = FALSE;
+		m_currentSample = 0;
+		m_currentVI = 0;
+		m_task = Playback;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+BOOL
 VCR_isPlaying( )
 {
 	return (m_task == Playback) ? TRUE : FALSE;
@@ -1885,7 +1901,7 @@ VCR_updateScreen()
 		// audio to drift away by default. This method of syncing prevents this, at the cost of the video feed possibly freezing or jumping
 		// (though in practice this rarely happens - usually a loading scene just appears shorter or something).
 
-		int audio_frames = m_audioFrame - m_videoFrame;
+		int audio_frames = m_audioFrame - m_videoFrame + 0.1; // i've seen a few games only do ~0.98 frames of audio for a frame, let's account for that here
 
 		if (Config.SyncMode == VCR_SYNC_AUDIO_DUPL)
 		{
@@ -1893,6 +1909,7 @@ VCR_updateScreen()
 			{
 				printError("Audio frames became negative!");
 				VCR_stopCapture();
+				goto cleanup;
 			}
 
 			if (audio_frames == 0)
@@ -1905,6 +1922,7 @@ VCR_updateScreen()
 				{
 					printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
 					VCR_stopCapture();
+					goto cleanup;
 				}
 				else
 				{
@@ -1920,6 +1938,7 @@ VCR_updateScreen()
 				{
 					printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
 					VCR_stopCapture();
+					goto cleanup;
 				}
 				else
 				{
@@ -1935,6 +1954,7 @@ VCR_updateScreen()
 			{
 				printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
 				VCR_stopCapture();
+				goto cleanup;
 			}
 			else
 			{
@@ -1943,7 +1963,7 @@ VCR_updateScreen()
 		}
 	}
 
-
+cleanup:
 	if(externalReadScreen /*|| (!captureFrameValid && lastImage != image)*/)
 	{
 		if (image)
