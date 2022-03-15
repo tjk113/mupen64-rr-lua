@@ -2497,7 +2497,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
     AtResetCallback();
     if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
     {
-        emu_paused = 0;
+        emu_paused = TRUE;
         while (emu_paused)
         {
             Sleep(10);
