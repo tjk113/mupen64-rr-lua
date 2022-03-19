@@ -10,6 +10,7 @@
 #include <string.h>
 
 static SpeexResamplerState* speex_ctx = NULL;
+static short in_samps[44100 * 2 * 2]; // big enough i guess?
 static short out_samps[44100 * 2 * 2]; // big enough i guess?
 static int err = 0;
 
@@ -46,7 +47,19 @@ int
 VCR_resample( short **dst, int dst_freq,
               const short *src, int src_freq, int src_bitrate, int src_len )
 {
-	if (src_bitrate != 16) abort();
+	if (src_bitrate != 16)
+	{
+		puts("[VCR]: resample: Bitrate is not 16 bits");
+		return -1;
+	}
+
+	// for some reason channels are swapped in src (endianess weirdness?)
+	// fix it here
+	for (unsigned i = 0, samps = src_len >> 1; i < samps; i += 2)
+	{
+		in_samps[i + 1] = src[i + 0];
+		in_samps[i + 0] = src[i + 1];
+	}
 
 	if (!speex_ctx)
 	{
@@ -60,7 +73,7 @@ VCR_resample( short **dst, int dst_freq,
 
 	spx_uint32_t in_pos = (spx_uint32_t)src_len / 4;
 	spx_uint32_t out_pos = sizeof (out_samps) / 4;
-	speex_resampler_process_interleaved_int(speex_ctx, src, &in_pos, out_samps, &out_pos);
+	speex_resampler_process_interleaved_int(speex_ctx, in_samps, &in_pos, out_samps, &out_pos);
 
 	*dst = out_samps;
 	return (int)out_pos * 4;
