@@ -2138,39 +2138,49 @@ void init_readScreen();
 //aviFIlename - name of the avi file that will be created, intrestingly you can capture to another file,
 //				even to mp4 if compressor supports that, but audio will always be put inside avi.
 //codecDialog - displays codec dialog if true, otherwise uses last used settings
-int VCR_startCapture( const char *recFilename, const char *aviFilename, bool codecDialog )
+int VCR_startCapture(const char* recFilename, const char* aviFilename, bool codecDialog)
 {
 #ifdef __WIN32__
 	extern BOOL emu_paused;
 	BOOL wasPaused = emu_paused;
-	if(!emu_paused)
+	if (!emu_paused)
 	{
 		extern void pauseEmu(BOOL quiet);
 		pauseEmu(TRUE);
 	}
-    init_readScreen(); //readScreen always not null here
+	init_readScreen(); //readScreen always not null here
 #endif
 
 	FILE* tmpf = fopen(aviFilename, "ab+");
-	
+
 	if (!tmpf && MessageBox(0, "AVI capture might break because the file is inaccessible. Try anyway?", "File inaccessible", MB_TASKMODAL | MB_ICONERROR | MB_YESNO) == IDNO)
 		return -1;
-	
+
 	fclose(tmpf);
 
-	memset(soundBufEmpty, 0, 44100*2);
-	memset(soundBuf, 0, 44100*2);
+	memset(soundBufEmpty, 0, 44100 * 2);
+	memset(soundBuf, 0, 44100 * 2);
 	lastSound = 0;
 
 	m_videoFrame = 0.0;
 	m_audioFrame = 0.0;
-	void* dest = (void*)1; //trick, this tells readscreen() that it's initialisation phase
 	long width, height;
-	readScreen( &dest, &width, &height ); //if you see this crash, you're using GlideN64, not much can be done atm,
+	if (false) //debug
+	{
+		void* dest = (void*)1; //trick, this tells readscreen() that it's initialisation phase
+		readScreen(&dest, &width, &height); //if you see this crash, you're using GlideN64, not much can be done atm,
 										  //unknown issue...
-	if (dest)
-		DllCrtFree(dest); //if you see this crash, then the graphics plugin has mismatched crt
+		if (dest)
+			DllCrtFree(dest); //if you see this crash, then the graphics plugin has mismatched crt
 						  //and doesn't export DllCrtFree(), you're out of luck
+	}
+	else
+	{
+		SWindowInfo sInfo = { 0 };
+		CalculateWindowDimensions(mainHWND, sInfo);
+		width = sInfo.width & ~3;
+		height = sInfo.height & ~3;
+	}
 	VCRComp_startFile( aviFilename, width, height, visByCountrycode(), codecDialog);
 	m_capture = 1;
 	strncpy( AVIFileName, aviFilename, PATH_MAX );

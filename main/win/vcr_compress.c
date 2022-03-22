@@ -64,11 +64,39 @@ static PAVISTREAM sound_stream;
 //static AVICOMPRESSOPTIONS sound_options;
 //static AVICOMPRESSOPTIONS *psound_options[1];
 
+
+void CalculateWindowDimensions(HWND hWindow, SWindowInfo& infoStruct)
+{
+	RECT rect, rectS, rectT;
+	// retrieve the dimension of the picture
+	GetClientRect(hWindow, &rect);
+	infoStruct.width = rect.right - rect.left;
+	infoStruct.height = rect.bottom - rect.top;
+
+	//get size of toolbar and statusbar
+	if (hTool)
+		GetClientRect(hTool, &rectT);
+	infoStruct.toolbarHeight = hTool ? (rectT.bottom - rectT.top) : 0;
+	if (hStatus)
+		GetClientRect(hStatus, &rectS);
+	infoStruct.statusbarHeight = hStatus ? (rectS.bottom - rectS.top) : 0;
+
+	//subtract size of toolbar and statusbar from buffer dimensions
+	//if video plugin knows about this, whole game screen should be captured. Most of the plugins do.
+	infoStruct.height -= (infoStruct.toolbarHeight + infoStruct.statusbarHeight);
+
+	//round size to multiple of 4 (avi needs that iirc), not sure why it saves orig dimensions
+	//const int origWidth = infoStruct.width;
+	//const int origHeight = infoStruct.height;
+	//*width = (origWidth) & ~3;
+	//*height = (origHeight) & ~3;
+}
+
 // "internal" readScreen, used when plugin doesn't implement it
 void __cdecl win_readScreen(void **dest, long *width, long *height)
 {
 	HDC mupendc, all, copy; //all - screen; copy - buffer
-	RECT rect, rectS, rectT;
+	//RECT rect, rectS, rectT;
 	POINT cli_tl{ 0,0 }; //mupen client x y 
 	HBITMAP bitmap, oldbitmap;
 
@@ -80,29 +108,13 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 		all = GetDC(NULL);
 		ClientToScreen(mainHWND, &cli_tl);
 	}
+	SWindowInfo sInfo = { 0 };
+	CalculateWindowDimensions(mainHWND, sInfo);
 	
-	// retrieve the dimension of the picture
-	GetClientRect(mainHWND, &rect);
-	*width = rect.right - rect.left;
-	*height = rect.bottom - rect.top;
-	
-	//get size of toolbar and statusbar
-	if(hTool)
-		GetClientRect(hTool, &rectT);
-	int heightT = hTool ? (rectT.bottom - rectT.top) : 0;
-	if(hStatus)
-		GetClientRect(hStatus, &rectS);
-	int heightS = hStatus ? (rectS.bottom - rectS.top) : 0;
+	//floor down to multiple of 4 (for avi?)
+	*width = sInfo.width & ~3;
+	*height = sInfo.height & ~3;
 
-	//subtract size of toolbar and statusbar from buffer dimensions
-	//if video plugin knows about this, whole game screen should be captured. Most of the plugins do.
-	*height -= (heightT + heightS);
-	
-	//round size to multiple of 4 (avi needs that iirc), not sure why it saves orig dimensions
-	const int origWidth = *width;
-	const int origHeight = *height;
-	*width = (origWidth) & ~3;
-	*height =(origHeight) & ~3;
 	
 	// copy to a context in memory to speed up process
 	copy = CreateCompatibleDC(mupendc);
@@ -112,9 +124,9 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 	if (copy)
 	{
 		if (Config.captureOtherWindows)
-			BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x, cli_tl.y + heightT + (origHeight - *height), SRCCOPY);
+			BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x, cli_tl.y + sInfo.toolbarHeight + (sInfo.height - *height), SRCCOPY);
 		else
-			BitBlt(copy, 0, 0, *width, *height, mupendc, 0, heightT + (origHeight - *height), SRCCOPY);
+			BitBlt(copy, 0, 0, *width, *height, mupendc, 0, sInfo.toolbarHeight + (sInfo.height - *height), SRCCOPY);
 	}
 	
 	if (!avi_opened || !copy || !bitmap)

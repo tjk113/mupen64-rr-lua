@@ -14,6 +14,15 @@ extern "C" {
 #define ATTRIB_SELECT		3
 #define ATTRIB_FLOAT		4
 
+
+//real width and height of emulated area might not be a multiple of 4, which is apparently important for avi
+typedef struct {
+	long height;
+	long width;
+	long toolbarHeight;
+	long statusbarHeight;
+} SWindowInfo;
+
 void VCRComp_init();
 
 void VCRComp_startFile( const char *filename, long width, long height, int fps, int New);
@@ -43,6 +52,7 @@ int         VCRComp_numAudioCodecAttribOptions( int cindex, int aindex );
 const char *VCRComp_audioCodecAttribOption( int cindex, int aindex, int oindex );
 void        VCRComp_selectAudioCodec( int index );
 unsigned int VCRComp_GetSize ( );
+void CalculateWindowDimensions(HWND hWindow, SWindowInfo& infoStruct);
 
 #if defined(__cplusplus) && !defined(_MSC_VER)
 } // extern "C"
