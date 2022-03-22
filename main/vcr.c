@@ -2176,7 +2176,9 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	}
 	else
 	{
-		SWindowInfo sInfo = { 0 };
+		// fill in window size at avi start, which can't change
+		// scrap whatever was written there even if window didnt change, for safety
+		sInfo = { 0 };
 		CalculateWindowDimensions(mainHWND, sInfo);
 		width = sInfo.width & ~3;
 		height = sInfo.height & ~3;

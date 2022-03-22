@@ -93,6 +93,7 @@ void CalculateWindowDimensions(HWND hWindow, SWindowInfo& infoStruct)
 }
 
 // "internal" readScreen, used when plugin doesn't implement it
+// sInfo struct is filled during VCR_startCapture 
 void __cdecl win_readScreen(void **dest, long *width, long *height)
 {
 	HDC mupendc, all, copy; //all - screen; copy - buffer
@@ -108,8 +109,6 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 		all = GetDC(NULL);
 		ClientToScreen(mainHWND, &cli_tl);
 	}
-	SWindowInfo sInfo = { 0 };
-	CalculateWindowDimensions(mainHWND, sInfo);
 	
 	//floor down to multiple of 4 (for avi?)
 	*width = sInfo.width & ~3;
@@ -297,7 +296,7 @@ void VCRComp_startFile( const char *filename, long width, long height, int fps, 
    sound_stream_header.dwSampleSize = sound_format.nBlockAlign;
    AVIFileCreateStream(avi_file, &sound_stream, &sound_stream_header);
    AVIStreamSetFormat(sound_stream, 0, &sound_format, sizeof(WAVEFORMATEX));
-   
+
    /*ZeroMemory(&sound_options, sizeof(AVICOMPRESSOPTIONS));
    psound_options[0] = &sound_options;
    AVISaveOptions(mainHWND, 0, 1, &sound_stream, psound_options);

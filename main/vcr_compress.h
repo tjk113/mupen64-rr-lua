@@ -23,6 +23,8 @@ typedef struct {
 	long statusbarHeight;
 } SWindowInfo;
 
+SWindowInfo sInfo = {0};
+
 void VCRComp_init();
 
 void VCRComp_startFile( const char *filename, long width, long height, int fps, int New);
