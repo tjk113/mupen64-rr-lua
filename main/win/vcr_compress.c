@@ -64,6 +64,7 @@ static PAVISTREAM sound_stream;
 //static AVICOMPRESSOPTIONS sound_options;
 //static AVICOMPRESSOPTIONS *psound_options[1];
 
+SWindowInfo sInfo = { 0 };
 
 void CalculateWindowDimensions(HWND hWindow, SWindowInfo& infoStruct)
 {

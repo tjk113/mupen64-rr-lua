@@ -23,7 +23,7 @@ typedef struct {
 	long statusbarHeight;
 } SWindowInfo;
 
-SWindowInfo sInfo = {0};
+extern SWindowInfo sInfo;
 
 void VCRComp_init();
 
