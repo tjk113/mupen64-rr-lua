@@ -20,6 +20,7 @@
 #include "../r4300/recomp.h"
 #include "../main/plugin.h"
 #include "../main/disasm.h"
+#include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
 #include "../main/win/configdialog.h"
@@ -177,6 +178,7 @@ extern const luaL_Reg wguiFuncs[];
 extern const luaL_Reg memoryFuncs[];
 extern const luaL_Reg inputFuncs[];
 extern const luaL_Reg joypadFuncs[];
+extern const luaL_Reg movieFuncs[];
 extern const luaL_Reg savestateFuncs[];
 extern const luaL_Reg ioHelperFuncs[];
 extern const char * const REG_ATSTOP;
@@ -342,6 +344,7 @@ private:
 		registerAsPackage(L, "wgui", wguiFuncs);
 		registerAsPackage(L, "input", inputFuncs);
 		registerAsPackage(L, "joypad", joypadFuncs);
+		registerAsPackage(L, "movie", movieFuncs);
 		registerAsPackage(L, "savestate", savestateFuncs);
 		registerAsPackage(L, "iohelper", ioHelperFuncs);
 
@@ -933,6 +936,7 @@ const char * const REG_READBREAK = "R";
 const char * const REG_WRITEBREAK = "W";
 const char * const REG_WINDOWMESSAGE = "M";
 const char * const REG_ATINTERVAL = "N";
+const char* const REG_ATPLAYBACK = "PB";
 const char* const REG_ATLOADSTATE = "LS";
 const char* const REG_ATSAVESTATE = "SS";
 const char* const REG_ATRESET = "RE";
@@ -2469,6 +2473,19 @@ int RegisterInterval(lua_State *L) {
 	return 0;
 }
 
+int RegisterPlaybackMovie(lua_State* L) {
+	if (lua_toboolean(L, 2)) {
+		lua_pop(L, 1);
+		UnregisterFunction(L, REG_ATPLAYBACK);
+	}
+	else {
+		if (lua_gettop(L) == 2)
+			lua_pop(L, 1);
+		RegisterFunction(L, REG_ATPLAYBACK);
+	}
+	return 0;
+}
+
 int RegisterLoadState(lua_State* L) {
 	if (lua_toboolean(L, 2)) {
 		lua_pop(L, 1);
@@ -2626,6 +2643,14 @@ int SetSpeedMode(lua_State *L) {
 	}else if(lstrcmpi(s, "maximum")==0){
 		maximumSpeedMode = true;
 	}
+	return 0;
+}
+
+// Movie
+int PlaybackMovie(lua_State* L) {
+	const char* fname = lua_tostring(L, 1);
+	VCR_setReadOnly(true);
+	VCR_startPlayback(fname, "", "");
 	return 0;
 }
 
@@ -3087,6 +3112,7 @@ const luaL_Reg emuFuncs[] = {
 	{"atstop", RegisterStop},
 	{"atwindowmessage", RegisterWindowMessage},
 	{"atinterval", RegisterInterval},
+	{"atplaymovie", RegisterPlaybackMovie},
 	{"atloadstate", RegisterLoadState},
 	{"atsavestate", RegisterSaveState},
 	{"atreset", RegisterReset},
@@ -3239,6 +3265,12 @@ const luaL_Reg joypadFuncs[] = {
 	{"count", GetInputCount},
 	{NULL, NULL}
 };
+
+const luaL_Reg movieFuncs[] = {
+	{"playmovie", PlaybackMovie},
+	{NULL, NULL}
+};
+
 const luaL_Reg savestateFuncs[] = {
 	{"savefile", SaveFileSavestate},
 	{"loadfile", LoadFileSavestate},
