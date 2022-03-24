@@ -936,7 +936,8 @@ const char * const REG_READBREAK = "R";
 const char * const REG_WRITEBREAK = "W";
 const char * const REG_WINDOWMESSAGE = "M";
 const char * const REG_ATINTERVAL = "N";
-const char* const REG_ATPLAYBACK = "PB";
+const char* const REG_ATPLAYMOVIE = "PM";
+const char* const REG_ATSTOPMOVIE = "SM";
 const char* const REG_ATLOADSTATE = "LS";
 const char* const REG_ATSAVESTATE = "SS";
 const char* const REG_ATRESET = "RE";
@@ -2473,15 +2474,28 @@ int RegisterInterval(lua_State *L) {
 	return 0;
 }
 
-int RegisterPlaybackMovie(lua_State* L) {
+int RegisterPlayMovie(lua_State* L) {
 	if (lua_toboolean(L, 2)) {
 		lua_pop(L, 1);
-		UnregisterFunction(L, REG_ATPLAYBACK);
+		UnregisterFunction(L, REG_ATPLAYMOVIE);
 	}
 	else {
 		if (lua_gettop(L) == 2)
 			lua_pop(L, 1);
-		RegisterFunction(L, REG_ATPLAYBACK);
+		RegisterFunction(L, REG_ATPLAYMOVIE);
+	}
+	return 0;
+}
+
+int RegisterStopMovie(lua_State* L) {
+	if (lua_toboolean(L, 2)) {
+		lua_pop(L, 1);
+		UnregisterFunction(L, REG_ATSTOPMOVIE);
+	}
+	else {
+		if (lua_gettop(L) == 2)
+			lua_pop(L, 1);
+		RegisterFunction(L, REG_ATSTOPMOVIE);
 	}
 	return 0;
 }
@@ -2647,10 +2661,14 @@ int SetSpeedMode(lua_State *L) {
 }
 
 // Movie
-int PlaybackMovie(lua_State* L) {
+int PlayMovie(lua_State* L) {
 	const char* fname = lua_tostring(L, 1);
 	VCR_setReadOnly(true);
 	VCR_startPlayback(fname, "", "");
+	return 0;
+}
+int StopMovie(lua_State* L) {
+	VCR_stopPlayback();
 	return 0;
 }
 
@@ -3112,7 +3130,8 @@ const luaL_Reg emuFuncs[] = {
 	{"atstop", RegisterStop},
 	{"atwindowmessage", RegisterWindowMessage},
 	{"atinterval", RegisterInterval},
-	{"atplaymovie", RegisterPlaybackMovie},
+	{"atplaymovie", RegisterPlayMovie},
+	{"atstopmovie", RegisterStopMovie},
 	{"atloadstate", RegisterLoadState},
 	{"atsavestate", RegisterSaveState},
 	{"atreset", RegisterReset},
@@ -3267,7 +3286,8 @@ const luaL_Reg joypadFuncs[] = {
 };
 
 const luaL_Reg movieFuncs[] = {
-	{"playmovie", PlaybackMovie},
+	{"playmovie", PlayMovie},
+	{"stopmovie", StopMovie},
 	{NULL, NULL}
 };
 
