@@ -2495,6 +2495,15 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	StartLuaScripts();
 	StartSavestate();
     AtResetCallback();
+    if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
+    {
+        emu_paused = TRUE;
+        while (emu_paused)
+        {
+            Sleep(10);
+        }
+        pauseAtFrame = -1;
+    }
     go();
     ShowInfo("Emu thread: Core stopped...");
 	ThreadFuncState = TFS_CLOSEINPUT;
