@@ -114,6 +114,7 @@ static bool m_loopMovie = false;
 
 long m_currentSample = -1;	// should = length_samples when recording, and be < length_samples when playing
 int m_currentVI = -1;
+static int m_visPerSecond = -1;
 static char* m_inputBuffer = NULL;
 static unsigned long m_inputBufferSize = 0;
 static char* m_inputBufferPtr = NULL;
@@ -290,28 +291,34 @@ static void hardResetAndClearAllSaveData (bool clear)
 
 static int visByCountrycode()
 {
-	switch(ROM_HEADER ? (ROM_HEADER->Country_code&0xFF) : -1)
-	{
-	case 0x44:
-	case 0x46:
-	case 0x49:
-	case 0x50:
-	case 0x53:
-	case 0x55:
-	case 0x58:
-	case 0x59:
-		return 50;
-		break;
+	if (m_visPerSecond == -1) {
+		switch (ROM_HEADER ? (ROM_HEADER->Country_code & 0xFF) : -1)
+		{
+		case 0x44:
+		case 0x46:
+		case 0x49:
+		case 0x50:
+		case 0x53:
+		case 0x55:
+		case 0x58:
+		case 0x59:
+			m_visPerSecond = 50;
+			break;
 
-	case 0x37:
-	case 0x41:
-	case 0x45:
-	case 0x4a:
-		return 60;
-		break;
+		case 0x37:
+		case 0x41:
+		case 0x45:
+		case 0x4a:
+			m_visPerSecond = 60;
+			break;
+		default:
+			printWarning("[VCR]: Warning - unknown country code, using 60 FPS for video.\n");
+			m_visPerSecond = 60;
+			break;
+		}
 	}
-	printWarning("[VCR]: Warning - unknown country code, using 60 FPS for video.\n");
-	return 60;
+
+	return m_visPerSecond;
 }
 
 static void setROMInfo (SMovieHeader* header)
@@ -2253,6 +2260,7 @@ VCR_stopCapture()
 {
 //	ShowInfo("VCR_stopCapture()");
 	m_capture = 0;
+	m_visPerSecond = -1;
 	writeSound(NULL, 0, m_audioFreq, m_audioFreq*2, TRUE);
 	VCR_invalidatedCaptureFrame();
 
