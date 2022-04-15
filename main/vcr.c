@@ -1112,7 +1112,7 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 //				VCR_stopCapture();
 //			else
 				stopPlayback(false);
-				if (gStopAVI)
+				if (gStopAVI && VCR_isCapturing())
 				{
 					VCR_stopCapture();
 					extern BOOL GuiDisabled();
