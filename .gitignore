@@ -14,3 +14,8 @@ winproject/save
 winproject/plugin
 *.o
 *.aps
+/winproject/stdout.txt
+/winproject/stderr.txt
+/winproject/mupen64.cfg
+/winproject/mupen64.cache
+/winproject/debugview.ini

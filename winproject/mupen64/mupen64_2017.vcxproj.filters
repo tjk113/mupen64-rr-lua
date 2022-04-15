@@ -33,6 +33,9 @@
     <Filter Include="Source Files\main\speex">
       <UniqueIdentifier>{e9d66cf9-9f6a-4611-bb7b-bec0a5103c88}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\main\win\wrapper">
+      <UniqueIdentifier>{d466fa5d-4877-46e1-8b94-1c3a68c0158d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config.h">
@@ -229,6 +232,9 @@
     </ClInclude>
     <ClInclude Include="..\..\main\win\GameDebugger.h">
       <Filter>Source Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\main\win\wrapper\ReassociatingFileDialog.h">
+      <Filter>Source Files\main\win\wrapper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -489,6 +495,9 @@
     </ClCompile>
     <ClCompile Include="..\..\main\win\GameDebugger.cpp">
       <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\win\wrapper\ReassociatingFileDialog.cpp">
+      <Filter>Source Files\main\win\wrapper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
