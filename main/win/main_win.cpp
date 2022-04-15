@@ -55,7 +55,7 @@ extern "C" {
 #include "GUI_logwindow.h"
 #include "commandline.h"
 #include "CrashHandler.h"
-
+#include "wrapper/ReassociatingFileDialog.h"
 #include "../vcr.h"
 #include "../../r4300/recomph.h"
 
@@ -104,7 +104,6 @@ HANDLE EmuThreadHandle;
 HWND hwnd_plug;
 //int manualFPSLimit = 1 ;
 static void gui_ChangeWindow();
-
 
 static GFX_INFO dummy_gfx_info;
 static GFX_INFO gfx_info;
@@ -235,6 +234,12 @@ char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
 const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = { "Azimer\'s Audio v0.7" };
 
+ReassociatingFileDialog fdBrowseMovie;
+ReassociatingFileDialog fdBrowseMovie2;
+ReassociatingFileDialog fdLoadRom;
+ReassociatingFileDialog fdSaveLoadAs;
+ReassociatingFileDialog fdSaveStateAs;
+ReassociatingFileDialog fdStartCapture;
 
 enum EThreadFuncState {
 	TFS_INITMEM,
@@ -1791,21 +1796,8 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                 	break;
                 case IDC_MOVIE_BROWSE:
 					{
-				     OPENFILENAME oifn;
-                     ZeroMemory(&oifn, sizeof(OPENFILENAME));
-                     oifn.lStructSize = sizeof(OPENFILENAME);
-                     oifn.hwndOwner = hwnd;
-                     strcpy(path_buffer,"");
-                     oifn.lpstrFile = path_buffer,
-                     oifn.nMaxFile = sizeof(path_buffer);
-                     oifn.lpstrFilter = "Mupen 64 movies(*.m64)\0*.m64\0All Files\0*.*\0";
-                     oifn.lpstrFileTitle = "";
-                     oifn.nMaxFileTitle = 0;
-                     oifn.lpstrInitialDir = "";
-                     oifn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-                     if (GetOpenFileName(&oifn)) {
-						SetDlgItemText(hwnd,IDC_INI_MOVIEFILE,path_buffer);
-                     }
+                     if(fdBrowseMovie.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd))
+                     SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
 					}
 					goto refresh;
 					break;
@@ -2096,34 +2088,14 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
                     EndDialog(hwnd, IDOK);
                 break;
                 case IDC_MOVIE_BROWSE:
-				{
-				   OPENFILENAME oifn;
-				   char path_buffer [MAX_PATH];
-/*                    if((Controls[0].Present && Controls[0].RawData) ||
-                       (Controls[1].Present && Controls[1].RawData) ||
-                       (Controls[2].Present && Controls[2].RawData) ||
-                       (Controls[3].Present && Controls[3].RawData))
-                       {
-                          MessageBox(NULL, "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".", "VCR", MB_OK);
-                       }*/
-//                    if(!emu_paused) {
-                     ZeroMemory(&oifn, sizeof(OPENFILENAME));
-                     oifn.lStructSize = sizeof(OPENFILENAME);
-                     oifn.hwndOwner = hwnd;
-                     strcpy(path_buffer,"");
-                     oifn.lpstrFile = path_buffer,
-                     oifn.nMaxFile = sizeof(path_buffer);
-                     oifn.lpstrFilter = "Mupen 64 movies(*.m64)\0*.m64\0All Files\0*.*\0";
-                     oifn.lpstrFileTitle = "";
-                     oifn.nMaxFileTitle = 0;
-                     oifn.lpstrInitialDir = "";
-                     oifn.Flags = OFN_PATHMUSTEXIST | OFN_NOREADONLYRETURN;
-                     if (GetSaveFileName(&oifn)) {
-						if(strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
-							strcat(path_buffer, ".m64");
-						SetDlgItemText(hwnd,IDC_INI_MOVIEFILE,path_buffer);
-                     }
-				}	
+                {
+                    char path_buffer[MAX_PATH];
+                    if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd)) {
+                        if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
+                            strcat(path_buffer, ".m64");
+                        SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
+                    }
+                }
                 break;
 
                 case IDC_FROMEEPROM_RADIO:
@@ -2753,7 +2725,6 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
-	OPENFILENAME oifn;
 	int ret;
 	int i;
 	static PAINTSTRUCT	ps;
@@ -3246,38 +3217,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
                 break;
             }
-			case IDLOAD:   
-                     ZeroMemory(&oifn, sizeof(OPENFILENAME));
-                     oifn.lStructSize = sizeof(OPENFILENAME);
-                     oifn.hwndOwner = NULL;
-                     strcpy(path_buffer,"");
-                     oifn.lpstrFile = path_buffer,
-                     oifn.nMaxFile = sizeof(path_buffer);
-                     oifn.lpstrFilter = ".n64 Files\0*.n64\0.rom Files\0*.rom\0.v64 Files\0*.v64\0.z64 Files\0*.z64\0Nintendo 64 Rom Files\0*.v64;*.rom;*.bin;*.z64;*n64;*.zip;*.usa;*.jap;*.eur\0All files\0*.*\0";
-                     oifn.nFilterIndex = 5;
-                     oifn.lpstrFileTitle = "";
-                     oifn.nMaxFileTitle = 0;
-                     oifn.lpstrInitialDir = "";
-                     oifn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-                     if (GetOpenFileName(&oifn) ) {
-                        // before starting the ROM, also add enclosing directory to ROM list directories, because people are lazy
-						    char temp_buffer [_MAX_PATH];
-						    strcpy(temp_buffer, path_buffer);
-							unsigned int i; for(i = 0 ; i < strlen(temp_buffer) ; i++)
-							           if(temp_buffer[i] == '/')
-							               temp_buffer[i] = '\\';
-	                        char* slash = strrchr(temp_buffer, '\\');
-							if(slash) {
-								slash[1] = '\0';
-	                            if (addDirectoryToLinkedList(temp_buffer)) {
-	                            	SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)temp_buffer);  
-			                        AddDirToList(temp_buffer,TRUE);
-				                    SaveRomBrowserDirs();
-			                        SaveConfig();
-		                        }
-							}
-                        StartRom(path_buffer);
-                     }
+            case IDLOAD: 
+            {
+                if (fdLoadRom.ShowFileDialog(path_buffer, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap", TRUE, FALSE, hwnd)) {
+                    char temp_buffer[_MAX_PATH];
+                    strcpy(temp_buffer, path_buffer);
+                    unsigned int i; for (i = 0; i < strlen(temp_buffer); i++)
+                        if (temp_buffer[i] == '/')
+                            temp_buffer[i] = '\\';
+                    char* slash = strrchr(temp_buffer, '\\');
+                    if (slash) {
+                        slash[1] = '\0';
+                        if (addDirectoryToLinkedList(temp_buffer)) {
+                            SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)temp_buffer);
+                            AddDirToList(temp_buffer, TRUE);
+                            SaveRomBrowserDirs();
+                            SaveConfig();
+                        }
+                    }
+                    StartRom(path_buffer);
+                }
+            }
                      break;
                 case ID_EMULATOR_EXIT:
                     if (warn_recording())break;
@@ -3319,38 +3279,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
                     break;                 
                 case STATE_SAVEAS:
-//                    if(!emu_paused)  
                 {
-                    ZeroMemory(&oifn, sizeof(OPENFILENAME));
-                    oifn.lStructSize = sizeof(OPENFILENAME);
-                    oifn.hwndOwner = NULL;
-                    strcpy(path_buffer, "");
-                    oifn.lpstrFile = path_buffer,
-                        oifn.nMaxFile = sizeof(path_buffer);
-                    oifn.lpstrFilter = "Mupen64 Savestate (*.st)\0*.st;*.st?\0All Files\0*.*\0";
-                    oifn.lpstrFileTitle = "";
-                    oifn.nMaxFileTitle = 0;
-                    oifn.lpstrInitialDir = "";
-                    //oifn.lpstrDefExt = "st";
-                    if (GetSaveFileName(&oifn)) {
+                    if (fdSaveStateAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", FALSE, FALSE, hwnd)) {
 
                         // HACK: allow .savestate and .st
                         // by creating another buffer, copying original into it and stripping its' extension
                         // and putting it back sanitized
-
                         // if no extension inputted by user, fallback to .st
-
-
                         strcpy(correctedPath, path_buffer);
                         stripExt(correctedPath);
-
-                        
-                        if (!stricmp(getExt(path_buffer), "savestate")) {
+                        if (!stricmp(getExt(path_buffer), "savestate"))
                             strcat(correctedPath, ".savestate");
-                        }
-                        else /*if (stricmp(getExt(path_buffer), ".st"))*/ {
+                        else
                             strcat(correctedPath, ".st");
-                        }
 
                         savestates_select_filename(correctedPath);
                         savestates_job = SAVESTATE;
@@ -3366,23 +3307,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
                     break;
                 case STATE_LOAD:
-//                    if(!emu_paused) {
-                     ZeroMemory(&oifn, sizeof(OPENFILENAME));
-                     oifn.lStructSize = sizeof(OPENFILENAME);
-                     oifn.hwndOwner = NULL;
-                     strcpy(path_buffer,"");
-                     oifn.lpstrFile = path_buffer,
-                     oifn.nMaxFile = sizeof(path_buffer);
-                     oifn.lpstrFilter = "Mupen 64 Saves(*.st;*.savestate)\0*.st;*.st?;*.savestate\0All Files\0*.*\0";
-                     oifn.lpstrFileTitle = "";
-                     oifn.nMaxFileTitle = 0;
-                     oifn.lpstrInitialDir = "";
-                     oifn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-                     if (GetOpenFileName(&oifn)) {
-                          savestates_select_filename(path_buffer);
-                          savestates_job = LOADSTATE;                
-                        }       
-//                     }
+                    
+                    if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
+                        savestates_select_filename(path_buffer);
+                        savestates_job = LOADSTATE;
+                    }
                     break;
                 case ID_START_RECORD:
                     if(emu_launched)
@@ -3426,46 +3355,39 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                         char rec_buffer[MAX_PATH];
                         
-                        ZeroMemory(&oifn, sizeof(OPENFILENAME));
-                        oifn.lStructSize = sizeof(OPENFILENAME);
-                        oifn.hwndOwner = NULL;
-                        strcpy(path_buffer,"");
-                        oifn.lpstrFile = path_buffer;
-                        oifn.nMaxFile = sizeof(path_buffer);
-                        oifn.lpstrFilter = "Avi files (*.avi)\0*.avi\0All Files\0*.*\0";
-                        oifn.lpstrFileTitle = "";
-                        oifn.nMaxFileTitle = 0;
-                        oifn.lpstrInitialDir = "";
-                        oifn.Flags = OFN_NOREADONLYRETURN | OFN_OVERWRITEPROMPT;
-                        if (GetSaveFileName(&oifn)) {
-                           int len = strlen(path_buffer);
-                           if (len < 5 ||
-                               (path_buffer[len-1] != 'i' && path_buffer[len-1] != 'I') ||
-                               (path_buffer[len-2] != 'v' && path_buffer[len-2] != 'V') ||
-                               (path_buffer[len-3] != 'a' && path_buffer[len-3] != 'A') ||
-                               path_buffer[len-4] != '.')
-                               strcat(path_buffer, ".avi");
-                           //Sleep(1000);
-                           // pass false to startCapture when "last preset" option was choosen
-                           if (VCR_startCapture( rec_buffer, path_buffer , LOWORD(wParam) == ID_START_CAPTURE) < 0)
-                           {   
-                              MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
-                              recording = FALSE;
-                           }
-                           else {
-                              //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
-                              EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
-                              EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
-                              EnableMenuItem(hMenu,ID_END_CAPTURE,MF_ENABLED);
-                              if(!externalReadScreen)
-                              {
-                               EnableMenuItem( hMenu, FULL_SCREEN, MF_GRAYED );           //Disables fullscreen menu
-                               SendMessage( hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE ); //Disables fullscreen button
-                              }
-                              SetStatusTranslatedString(hStatus,0,"Recording avi...");
-                              recording = TRUE;
-                           }
+                        if (fdStartCapture.ShowFileDialog(path_buffer, L"*.avi", FALSE, FALSE, hwnd)) {
+
+
+
+                            int len = strlen(path_buffer);
+                            if (len < 5 ||
+                                (path_buffer[len - 1] != 'i' && path_buffer[len - 1] != 'I') ||
+                                (path_buffer[len - 2] != 'v' && path_buffer[len - 2] != 'V') ||
+                                (path_buffer[len - 3] != 'a' && path_buffer[len - 3] != 'A') ||
+                                path_buffer[len - 4] != '.')
+                                strcat(path_buffer, ".avi");
+                            //Sleep(1000);
+                            // pass false to startCapture when "last preset" option was choosen
+                            if (VCR_startCapture(rec_buffer, path_buffer, LOWORD(wParam) == ID_START_CAPTURE) < 0)
+                            {
+                                MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
+                                recording = FALSE;
+                            }
+                            else {
+                                //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
+                                EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
+                                EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
+                                EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
+                                if (!externalReadScreen)
+                                {
+                                    EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);           //Disables fullscreen menu
+                                    SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE); //Disables fullscreen button
+                                }
+                                SetStatusTranslatedString(hStatus, 0, "Recording avi...");
+                                recording = TRUE;
+                            }
                         }
+
 						if (emu_launched&&emu_paused&&!wasPaused)
 							resumeEmu(FALSE);
                     }

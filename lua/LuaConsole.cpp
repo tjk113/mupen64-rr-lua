@@ -24,6 +24,7 @@
 #include "../main/savestates.h"
 #include "../main/win/Config.h"
 #include "../main/win/configdialog.h"
+#include "../main/win/wrapper/ReassociatingFileDialog.h"
 #include <vcr.h>
 #include <gdiplus.h>
 
@@ -59,6 +60,11 @@ ULONG_PTR gdiPlusToken;
 #ifdef LUA_MODULEIMPL
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
+
+ReassociatingFileDialog fdOpenLuaScript; // internal picker
+ReassociatingFileDialog fdOpenLua; // api picker
+ReassociatingFileDialog fdLuaTraceLog;
+
 
 namespace LuaEngine {
 std::vector<HWND> luaWindows;
@@ -698,32 +704,17 @@ std::string OpenLuaFileDialog() {
 	
 	int storePaused = emu_paused;
 	pauseEmu(1);
-	
-	OPENFILENAME ofn;
+
 	char filename[MAX_PATH] = "";
 
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = mainHWND;
-
-	ofn.lpstrFilter = 
-		"Lua Script Files (*.lua)\0*.lua\0All Files (*.*)\0*.*\0";
-
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFile =  filename;
-	ofn.nMaxFile = MAX_PATH;
-	ofn.lpstrDefExt = "lua";
-	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
-	ofn.lpstrInitialDir = NULL;
-	
-	if (!GetOpenFileName(&ofn)) {
+	if (!fdOpenLuaScript.ShowFileDialog(filename, L"*.lua", TRUE, FALSE, mainHWND)) {
 		if (!storePaused) resumeEmu(1);
 		return "";
 	}
 
 	if (!storePaused) resumeEmu(1);
 
-	return ofn.lpstrFile;
+	return std::string(filename); // umm fuck you
 }
 void SetButtonState(HWND wnd, bool state) {
 	if(!IsWindow(wnd)) return;
@@ -2688,23 +2679,16 @@ int LoadFileSavestate(lua_State *L) {
 // IO
 int LuaFileDialog(lua_State* L) {
 	EmulationLock lock;
-	OPENFILENAME ofn;
-	char filename[MAX_PATH] = "";
+	char filename[MAX_PATH]; 
 	const char* filter = luaL_checkstring(L, 1);
+	wchar_t filterW[MAX_PATH];
 	int type = luaL_checkinteger(L, 2);
-	if (!filter[0])filter = "All Files (*.*)\0*.*\0";
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = mainHWND;
-	ofn.lpstrFilter = filter;
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFile = filename;
-	ofn.nMaxFile = MAX_PATH;
-	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
-	ofn.lpstrInitialDir = NULL;
-	if(type) GetSaveFileName(&ofn);
-	else  GetOpenFileName(&ofn);
-	lua_pushstring(L, ofn.lpstrFile);
+	if (!filter[0] || strlen(filter)>MAX_PATH) filter = "*.*"; // fucking catastrophe
+	mbstowcs(filterW, filter, MAX_PATH);
+
+	fdOpenLua.ShowFileDialog(filename, filterW, type ? FALSE : TRUE, mainHWND);
+
+	lua_pushstring(L, filename);
 	return 1;
 }
 
@@ -3927,26 +3911,11 @@ void LuaTraceLoggingInterpOps(){
 
 
 void LuaTraceLogState() {
-	if(!enableTraceLog) {
+	if (!enableTraceLog) return;
 	LuaEngine::EmulationLock lock;
-
-	OPENFILENAME ofn = {};
 	char filename[MAX_PATH] = "trace.log";
-
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = mainHWND;
-	ofn.lpstrFilter = "Tracelog Files\0*.log\0All Files\0*.*\0";
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFile =  filename;
-	ofn.nMaxFile = MAX_PATH;
-	ofn.lpstrDefExt = "log";
-	ofn.Flags = OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-	ofn.lpstrInitialDir = NULL;
-	
-	if (GetSaveFileName(&ofn)) {
-		LuaEngine::TraceLogStart(ofn.lpstrFile);
-	}
-
+	if (fdLuaTraceLog.ShowFileDialog(filename, L"*.log", FALSE, FALSE, mainHWND)) {
+		LuaEngine::TraceLogStart(filename);
 	}
 	else {
 		LuaEngine::TraceLogStop();

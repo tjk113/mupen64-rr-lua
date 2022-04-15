@@ -246,6 +246,7 @@
     <ClInclude Include="..\..\main\win\translation.h" />
     <ClInclude Include="..\..\main\win\vfw.h" />
     <ClInclude Include="..\..\main\win\GameDebugger.h" />
+    <ClInclude Include="..\..\main\win\wrapper\ReassociatingFileDialog.h" />
     <CustomBuildStep Include="..\..\main\gui_gtk\aboutdialog.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
@@ -736,6 +737,7 @@
     </ClCompile>
     <ClCompile Include="..\..\lua\LuaConsole.cpp" />
     <ClCompile Include="..\..\main\win\GameDebugger.cpp" />
+    <ClCompile Include="..\..\main\win\wrapper\ReassociatingFileDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\rsrc.rc" />
