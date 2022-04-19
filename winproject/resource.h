@@ -1,6 +1,6 @@
-//{{NO_DEPENDENCIES}}
-// Plik do³¹czany wygenerowany przez œrodowisko Microsoft Visual C++.
-// U¿ywany przez: rsrc.rc
+ï»¿//{{NO_DEPENDENCIES}}
+// Plik doï¿½ï¿½czany wygenerowany przez ï¿½rodowisko Microsoft Visual C++.
+// Uï¿½ywany przez: rsrc.rc
 //
 
 // no ifdef switch here for lua
@@ -468,6 +468,7 @@
 #define IDC_AV_NOSYNC					40050
 #define IDC_AV_AUDIOSYNC				40051
 #define IDC_AV_VIDEOSYNC				40052
+#define ID_LOAD_LATEST					40053
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
