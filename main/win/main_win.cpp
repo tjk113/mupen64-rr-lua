@@ -1439,14 +1439,12 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
          EnableEmulationMenuItems(FALSE);
          SaveGlobalPlugins(FALSE);
          ShowRomBrowser(!really_restart_mode,!!lpParam);
-         if (!lpParam)
+         
+         extern int m_task;
+         if (m_task == 0)
          {
-             extern int m_task;
-             if (m_task == 0)
-             {
-                 SetWindowText(mainHWND, MUPEN_VERSION);
-                 SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)" ");
-             }
+             SetWindowText(mainHWND, MUPEN_VERSION);
+             SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)" ");
          }
       }
       ShowInfo("Rom closed.");
