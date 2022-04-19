@@ -3427,7 +3427,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      break;   
                 case ID_RECENTROMS_FREEZE: 
                      FreezeRecentRoms(hwnd, TRUE);                                                                      
-                     break; 
+                     break;
+                case ID_LOAD_LATEST:
+                     RunRecentRom(ID_RECENTROMS_FIRST);
                 case ID_LOG_WINDOW:
                      ShowHideLogWindow();
                      break; 
