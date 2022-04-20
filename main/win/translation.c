@@ -376,8 +376,8 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
 	SetHotkeyMenuAccelerators(&Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
 	SetHotkeyMenuAccelerators(&Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
 
-    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 11);
-    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 12);
+    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 12);
+    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 13);
 
 }
 
