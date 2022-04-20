@@ -296,10 +296,11 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     subsubmenu = GetSubMenu(submenu,5) ;
     SetMenuTranslatedString(subsubmenu,0,"Reset","");
     SetMenuTranslatedString(subsubmenu,1,"Freeze","");
-    
-    SetMenuTranslatedString(submenu,7,"Language","");
-    SetMenuTranslatedString(submenu,8,"Language Information...","");
-    SetMenuTranslatedString(submenu,10,"Exit","Alt F4");
+    SetMenuTranslatedString(submenu,6,"Load Latest ROM", "Ctrl Shift L");
+
+    SetMenuTranslatedString(submenu,8,"Language","");
+    SetMenuTranslatedString(submenu,9,"Language Information...","");
+    SetMenuTranslatedString(submenu,11,"Exit","Alt F4");
     
     //Run menu
     submenu = GetSubMenu(hMenu,1);
@@ -358,6 +359,7 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
 
 	SetHotkeyMenuAccelerators(&Config.hotkey[3], GetSubMenu(GetMenu(mainHWND),1), 1);
 	SetHotkeyMenuAccelerators(&Config.hotkey[4], GetSubMenu(GetMenu(mainHWND),1), 0);
+    SetHotkeyMenuAccelerators(&Config.hotkey[44], GetSubMenu(GetMenu(mainHWND),1), 3);
 	SetHotkeyMenuAccelerators(&Config.hotkey[5], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 5);
 	SetHotkeyMenuAccelerators(&Config.hotkey[6], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 3);
 	SetHotkeyMenuAccelerators(&Config.hotkey[7], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 4);
@@ -376,8 +378,8 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
 	SetHotkeyMenuAccelerators(&Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
 	SetHotkeyMenuAccelerators(&Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
 
-    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 11);
-    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 12);
+    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 12);
+    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 13);
 
 }
 

@@ -252,6 +252,14 @@ void LoadConfig()
     Config.moviesERRORS = ReadCfgInt("General", "Alert Movies errors", 1); //moviesERRORS == 1 -> the errors are shown
 
     // Load A Whole Whackton Of Hotkeys:
+    /*
+    OR'd Hex Codes Legend:
+    0x100 = Ctrl
+    0x200 = Shift
+    0x400 = Alt
+    0x300 = Ctrl + Shift
+    0x600 = Ctrl + Alt
+    */
 
     ReadHotkeyConfig(0, "Fast Forward", 0, VK_TAB);	// handled specially
     ReadHotkeyConfig(1, "Speed Up", IDC_INCREASE_MODIFIER, /*VK_OEM_PLUS*/0xBB);
@@ -293,8 +301,9 @@ void LoadConfig()
     ReadCfgString("Lua", "Script Path", "", Config.LuaScriptPath);
     ReadHotkeyConfig(40, "Lua Script Reload", ID_LUA_RELOAD, VK_F3 | 0x200);
     ReadHotkeyConfig(41, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4 | 0x200);
+    ReadHotkeyConfig(45, "Load Latest Lua Script", ID_LUA_LOAD_LATEST, 'L' | 0x600);
 
-    // some new misc ones; 0x300 is CRTL+SHIFT
+    // some new misc ones
     ReadHotkeyConfig(42, "Start From Beginning", ID_RESTART_MOVIE, 'H' | 0x300);
     ReadHotkeyConfig(43, "Replay Latest", ID_REPLAY_LATEST, 'G' | 0x300);
     ReadHotkeyConfig(44, "Load Latest ROM", ID_LOAD_LATEST, 'L' | 0x300);
@@ -464,6 +473,7 @@ void SaveConfig()
     WriteCfgString("Lua", "Script Path", Config.LuaScriptPath);
     WriteHotkeyConfig(40, "Lua Script Reload");
     WriteHotkeyConfig(41, "Lua Script CloseAll");
+    WriteHotkeyConfig(45, "Load Latest Lua Script");
 
     // some new misc ones
     WriteHotkeyConfig(42, "Start From Beginning");

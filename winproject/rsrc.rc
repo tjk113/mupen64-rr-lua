@@ -146,7 +146,7 @@ BEGIN
     END
     POPUP "Lua Script"
     BEGIN
-        MENUITEM "New Instance",                ID_MENU_LUASCRIPT_NEW
+        MENUITEM "New Instance",                            ID_MENU_LUASCRIPT_NEW
         MENUITEM SEPARATOR
         POPUP "Recent scripts"
         BEGIN
@@ -154,6 +154,7 @@ BEGIN
             MENUITEM "Freeze",                      ID_LUA_RECENT_FREEZE
             MENUITEM SEPARATOR
         END
+        MENUITEM "Load Latest Lua Script\tCtrl Alt L"       ID_LUA_LOAD_LATEST
         MENUITEM SEPARATOR
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END
