@@ -2968,6 +2968,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 BuildRecentScriptsMenu(hwnd);
                 break;
             }
+            case ID_LUA_LOAD_LATEST: {
+                RunRecentScript(ID_LUA_RECENT);
+                break;
+            }
 			case ID_MENU_LUASCRIPT_CLOSEALL:
 				{
                 

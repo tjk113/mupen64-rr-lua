@@ -19,7 +19,7 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 	HMENU hSubMenu = GetSubMenu(hMenu, 5);
 	hSubMenu = GetSubMenu(hSubMenu, 2);
 	//DeleteMenu(hSubMenu, ID_LUA_RECENT, MF_BYCOMMAND); //remove the "no recent scripts" entry, add later if in fact no recent
-	
+
 	menuinfo.cbSize = sizeof(MENUITEMINFO);
 	menuinfo.fMask = MIIM_TYPE | MIIM_ID;
 	menuinfo.fType = MFT_STRING;
@@ -37,10 +37,10 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 		else
 			menuinfo.dwTypeData = Config.RecentScripts[i];
 
-		
+
 		menuinfo.cch = strlen(menuinfo.dwTypeData);
 		menuinfo.wID = ID_LUA_RECENT + i;
-		InsertMenuItem(hSubMenu, i+3, TRUE, &menuinfo);
+		InsertMenuItem(hSubMenu, i + 3, TRUE, &menuinfo);
 		if (empty)  EnableMenuItem(hSubMenu, ID_LUA_RECENT, MF_DISABLED);
 	}
 }

@@ -253,8 +253,9 @@
 #define ID_MENU_LUASCRIPT_CLOSEALL      6021
 #define ID_TRACELOG                     6022
 #define ID_LUA_CLEAR_RECENT             6023
-#define ID_LUA_RECENT					6024
-//6024+5 reserved for recent, unless changed to more
+#define ID_LUA_LOAD_LATEST				6024
+#define ID_LUA_RECENT					6025 // if this is broken, change this back to 6024
+//6025+5 reserved for recent, unless changed to more
 
 #define IDC_HOTKEYS_FLOWGROUP           6101
 #define IDC_HOT_SCREENSHOT              6103
