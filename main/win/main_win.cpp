@@ -2323,6 +2323,7 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
       EnableMenuItem(hMenu, ID_REPLAY_LATEST, MF_ENABLED);
+      EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_ENABLED);
 
 #ifdef N64DEBUGGER_ALLOWED
       EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
