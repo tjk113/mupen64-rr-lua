@@ -178,6 +178,12 @@ void LoadConfig()
     Config.limitFps = ReadCfgInt("General", "Limit Fps", 1);
     Config.compressedIni = ReadCfgInt("General", "Compressed Ini", 1);
     Config.UseFPSmodifier = ReadCfgInt("General", "Use Fps Modifier", 1);
+    if (Config.FPSmodifier < 5) {
+        Config.FPSmodifier = 5;
+    }
+    if (Config.FPSmodifier > 1000) {
+        Config.FPSmodifier = 1000;
+    }
     Config.FPSmodifier = ReadCfgInt("General", "Fps Modifier", 100);
 	Config.skipFrequency = ReadCfgInt("General", "Skip Frequency", 8);
 	Config.loopMovie = ReadCfgInt("General", "Loop Movie", 0);
