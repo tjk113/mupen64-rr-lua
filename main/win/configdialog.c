@@ -1287,12 +1287,11 @@ inithotkeysdialog:
 		SetDlgItemHotkey(hwnd, IDC_HOT_SPEEDDOWN, &Config.hotkey[2]);
 		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_FRAMEADVANCE, &Config.hotkey[3], GetSubMenu(GetMenu(mainHWND),1), 1);
 		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_PAUSE, &Config.hotkey[4], GetSubMenu(GetMenu(mainHWND),1), 0);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_READONLY, &Config.hotkey[5], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 5);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_PLAY, &Config.hotkey[6], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 3);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_PLAYSTOP, &Config.hotkey[7], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 4);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_RECORD, &Config.hotkey[8], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 0);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_RECORDSTOP, &Config.hotkey[9], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 1);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_SCREENSHOT, &Config.hotkey[10], GetSubMenu(GetMenu(mainHWND),1), 2);
+        SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_READONLY, &Config.hotkey[5], GetSubMenu(GetMenu(mainHWND),3), 5);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_PLAY, &Config.hotkey[6], GetSubMenu(GetMenu(mainHWND),3), 3);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_PLAYSTOP, &Config.hotkey[7], GetSubMenu(GetMenu(mainHWND),3), 4);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_RECORD, &Config.hotkey[8], GetSubMenu(GetMenu(mainHWND),3), 0);
+		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_RECORDSTOP, &Config.hotkey[9], GetSubMenu(GetMenu(mainHWND),3), 1);		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_SCREENSHOT, &Config.hotkey[10], GetSubMenu(GetMenu(mainHWND),1), 2);
 		SetDlgItemHotkeyAndMenu(hwnd, IDC_CSAVE, &Config.hotkey[11], GetSubMenu(GetMenu(mainHWND),1), 4);
 		SetDlgItemHotkeyAndMenu(hwnd, IDC_CLOAD, &Config.hotkey[12], GetSubMenu(GetMenu(mainHWND),1), 6);
 

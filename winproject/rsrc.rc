@@ -107,6 +107,23 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Settings...\tCtrl S",        ID_LOAD_CONFIG
     END
+    POPUP "Movie"
+    BEGIN
+        MENUITEM "Start Movie Recording...",    ID_START_RECORD, GRAYED
+        MENUITEM "Stop Movie Recording",        ID_STOP_RECORD, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "Start Movie Playback...",     ID_START_PLAYBACK, GRAYED
+        MENUITEM "Stop Movie Playback",         ID_STOP_PLAYBACK, GRAYED
+        MENUITEM "Toggle Read-Only",            EMU_VCRTOGGLEREADONLY
+        MENUITEM SEPARATOR
+        MENUITEM "Start AVI Capture...",        ID_START_CAPTURE, GRAYED
+        MENUITEM "Start AVI From Preset...",    ID_START_CAPTURE_PRESET, GRAYED
+        MENUITEM "Stop AVI Capture",            ID_END_CAPTURE, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "Loop Movie Playback",         ID_LOOP_MOVIE
+        MENUITEM "Start From Beginning",        ID_RESTART_MOVIE
+        MENUITEM "Replay Latest",               ID_REPLAY_LATEST
+    END
     POPUP "Utilities"
     BEGIN
         MENUITEM "Rom Properties...\tCtrl P",   ID_POPUP_ROM_SETTING, GRAYED
@@ -114,24 +131,6 @@ BEGIN
         MENUITEM "&Audit ROMs...",              ID_AUDIT_ROMS
         MENUITEM "&Generate ROM Info...",       ID_GENERATE_ROM_INFO
         MENUITEM "&Show Log Window",            ID_LOG_WINDOW
-        MENUITEM SEPARATOR
-        POPUP "Movie"
-        BEGIN
-            MENUITEM "Start Movie Recording...",    ID_START_RECORD, GRAYED
-            MENUITEM "Stop Movie Recording",        ID_STOP_RECORD, GRAYED
-            MENUITEM SEPARATOR
-            MENUITEM "Start Movie Playback...",     ID_START_PLAYBACK, GRAYED
-            MENUITEM "Stop Movie Playback",         ID_STOP_PLAYBACK, GRAYED
-            MENUITEM "Toggle Read-Only",            EMU_VCRTOGGLEREADONLY
-            MENUITEM SEPARATOR
-            MENUITEM "Start AVI Capture...",        ID_START_CAPTURE, GRAYED
-            MENUITEM "Start AVI From Preset...",    ID_START_CAPTURE_PRESET, GRAYED
-            MENUITEM "Stop AVI Capture",            ID_END_CAPTURE, GRAYED
-            MENUITEM SEPARATOR
-            MENUITEM "Loop Movie Playback",         ID_LOOP_MOVIE
-            MENUITEM "Start From Beginning",        ID_RESTART_MOVIE
-            MENUITEM "Replay Latest",               ID_REPLAY_LATEST
-        END
         MENUITEM SEPARATOR
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
         MENUITEM "Save Config",                 ID_FORCESAVE
