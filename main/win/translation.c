@@ -283,8 +283,9 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     SetMenuTranslatedString(hMenu,0,"File","");
     SetMenuTranslatedString(hMenu,1,"Run","");
     SetMenuTranslatedString(hMenu,2,"Options","");
-    SetMenuTranslatedString(hMenu,3,"Utilities","");
-    SetMenuTranslatedString(hMenu,4,"Help","");
+    SetMenuTranslatedString(hMenu,3,"Movie","");
+    SetMenuTranslatedString(hMenu,4,"Utilities", "");
+    SetMenuTranslatedString(hMenu,5,"Help","");
     
     //File menu
     submenu = GetSubMenu(hMenu,0) ;
@@ -326,28 +327,28 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     SetMenuTranslatedString(submenu, 5, "Show Statusbar", "Alt S");
     SetMenuTranslatedString(submenu, 7, "Settings", "Ctrl S  ");
 
+    //Movie menu
+    submenu = GetSubMenu(hMenu, 3);
+    SetMenuTranslatedString(submenu, 0, "Start Movie Recording...", "");
+    SetMenuTranslatedString(submenu, 1, "Stop Movie Recording", "");
+    SetMenuTranslatedString(submenu, 3, "Start Movie Playback...", "");
+    SetMenuTranslatedString(submenu, 4, "Stop Movie Playback", "");
+    SetMenuTranslatedString(submenu, 5, "Toggle Read-Only", "");
+    SetMenuTranslatedString(submenu, 7, "Start AVI Capture...", "");
+    SetMenuTranslatedString(submenu, 8, "Start AVI From Preset...", "");
+    SetMenuTranslatedString(submenu, 9, "Stop AVI Capture", "");
+
     //Utility menu
-    submenu = GetSubMenu(hMenu,3);
+    submenu = GetSubMenu(hMenu,4);
     SetMenuTranslatedString(submenu,0,"ROM Properties","Ctrl P");
     SetMenuTranslatedString(submenu,2,"Audit ROMs...","");
     //SetMenuTranslatedString(submenu,3,"Benchmark...","");
     SetMenuTranslatedString(submenu,3,"Generate ROM Info...","");
     SetMenuTranslatedString(submenu,4,"Show Log Window","");
     //SetMenuTranslatedString(submenu,5,"Kaillera...","");
-    SetMenuTranslatedString(submenu,6,"Movie","");
-    subsubmenu = GetSubMenu(submenu,6);
-
-    SetMenuTranslatedString(subsubmenu,0,"Start Movie Recording...","");
-    SetMenuTranslatedString(subsubmenu,1,"Stop Movie Recording","");
-    SetMenuTranslatedString(subsubmenu,3,"Start Movie Playback...","");
-    SetMenuTranslatedString(subsubmenu,4,"Stop Movie Playback","");
-    SetMenuTranslatedString(subsubmenu,5,"Toggle Read-Only","");
-    SetMenuTranslatedString(subsubmenu,7,"Start AVI Capture...","");
-    SetMenuTranslatedString(subsubmenu,8,"Start AVI From Preset...", "");
-    SetMenuTranslatedString(subsubmenu,9,"Stop AVI Capture","");
             
     //Help menu
-    submenu = GetSubMenu(hMenu,4);
+    submenu = GetSubMenu(hMenu,5);
     SetMenuTranslatedString(submenu,0,"Show RAM start","");
     SetMenuTranslatedString(submenu,1,"Show Crash Handler", "");
     SetMenuTranslatedString(submenu,3,"About","");
@@ -359,12 +360,11 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
 
 	SetHotkeyMenuAccelerators(&Config.hotkey[3], GetSubMenu(GetMenu(mainHWND),1), 1);
 	SetHotkeyMenuAccelerators(&Config.hotkey[4], GetSubMenu(GetMenu(mainHWND),1), 0);
-    SetHotkeyMenuAccelerators(&Config.hotkey[44], GetSubMenu(GetMenu(mainHWND),1), 3);
-	SetHotkeyMenuAccelerators(&Config.hotkey[5], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 5);
-	SetHotkeyMenuAccelerators(&Config.hotkey[6], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 3);
-	SetHotkeyMenuAccelerators(&Config.hotkey[7], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkey[8], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 0);
-	SetHotkeyMenuAccelerators(&Config.hotkey[9], GetSubMenu(GetSubMenu(GetMenu(mainHWND),3),6), 1);
+	SetHotkeyMenuAccelerators(&Config.hotkey[5], GetSubMenu(GetMenu(mainHWND),3), 5);
+	SetHotkeyMenuAccelerators(&Config.hotkey[6], GetSubMenu(GetMenu(mainHWND),3), 3);
+	SetHotkeyMenuAccelerators(&Config.hotkey[7], GetSubMenu(GetMenu(mainHWND),3), 4);
+	SetHotkeyMenuAccelerators(&Config.hotkey[8], GetSubMenu(GetMenu(mainHWND),3), 0);
+	SetHotkeyMenuAccelerators(&Config.hotkey[9], GetSubMenu(GetMenu(mainHWND),3), 1);
 	SetHotkeyMenuAccelerators(&Config.hotkey[10], GetSubMenu(GetMenu(mainHWND),1), 2);
 	SetHotkeyMenuAccelerators(&Config.hotkey[11], GetSubMenu(GetMenu(mainHWND),1), 4);
 	SetHotkeyMenuAccelerators(&Config.hotkey[12], GetSubMenu(GetMenu(mainHWND),1), 6);
@@ -378,8 +378,8 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
 	SetHotkeyMenuAccelerators(&Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
 	SetHotkeyMenuAccelerators(&Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
 
-    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 12);
-    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 3), 6), 13);
+    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetMenu(mainHWND), 3), 12);
+    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetMenu(mainHWND), 3), 13);
 
 }
 

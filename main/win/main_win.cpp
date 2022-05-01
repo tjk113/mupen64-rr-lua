@@ -2297,7 +2297,7 @@ void EnableEmulationMenuItems(BOOL flag)
 {
    extern BOOL continue_vcr_on_restart_mode;
      
-   HMENU hMenu, hSubMenu;
+   HMENU hMenu;
    hMenu = GetMenu(mainHWND);
 
     #ifdef _DEBUG
@@ -2331,8 +2331,6 @@ void EnableEmulationMenuItems(BOOL flag)
       else
           EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
     
-      hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
-      EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_ENABLED);    //Record Menu
 if(!continue_vcr_on_restart_mode)
 {
       EnableMenuItem(hMenu,ID_START_RECORD,MF_ENABLED);
@@ -2376,9 +2374,6 @@ if(!continue_vcr_on_restart_mode)
 
       EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
      
-      hSubMenu = GetSubMenu( hMenu, 3 );                        //Utilities menu
-//      EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_GRAYED);    //Record Menu
-      EnableMenuItem(hSubMenu,6,MF_BYPOSITION | MF_ENABLED);    //Record Menu
 if(!continue_vcr_on_restart_mode)
 {
       EnableMenuItem(hMenu,ID_START_RECORD,MF_GRAYED);
