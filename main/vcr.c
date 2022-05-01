@@ -1105,8 +1105,9 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 //		fread( &cont, 1, sizeof (long), m_file );
 //		if (cont == -1)	// end
 
-		if(m_currentSample >= m_header.length_samples
-		|| m_currentVI >= m_header.length_vis)
+		// This if previously also checked for if the VI is over the amount specified in the header,
+		// but that can cause movies to end playback early on laggy plugins.
+		if (m_currentSample >= m_header.length_samples)
 		{
 //			if (m_capture != 0)
 //				VCR_stopCapture();
