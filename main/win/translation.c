@@ -141,7 +141,7 @@ void SetupLanguages( HWND hWnd )
 	search_languages();
 	p = lang_list->next;
 	hSubMenu = GetSubMenu(hMenu,0);
-	hSubMenu = GetSubMenu(hSubMenu,7);
+	hSubMenu = GetSubMenu(hSubMenu,8);
 	menuinfo.cbSize = sizeof(MENUITEMINFO);
 	menuinfo.fMask = MIIM_TYPE|MIIM_ID;
 	menuinfo.fType = MFT_STRING;
