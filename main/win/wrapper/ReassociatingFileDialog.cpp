@@ -13,6 +13,7 @@ bool ReassociatingFileDialog::ShowFileDialog(char* path, const wchar_t* fTypes, 
 	IShellItem* pShellItem = nullptr;
 	PWSTR pFilePath = nullptr;
 	DWORD dwFlags;
+	bool succeeded = false;
 	
 	// fighting with "almost-managed-but-not-quite-this-sucks" winapi
 	// technically IFileOpenDialog/IFileSaveDialog should be used in case but they inherit from same base class and thus allow us to do this unsafe monstrosity
@@ -43,11 +44,13 @@ bool ReassociatingFileDialog::ShowFileDialog(char* path, const wchar_t* fTypes, 
 
 	wcstombs(path, pFilePath, MAX_PATH);
 	wcsncpy(lastPath, pFilePath, MAX_PATH);
+	
+	succeeded = true;
 
 cleanUp:
 	if (pFilePath) CoTaskMemFree(pFilePath);
 	if (pShellItem) pShellItem->Release();
 	if (pFileDialog) pFileDialog->Release();
 
-	return strlen(path) > 0;
+	return succeeded && strlen(path) > 0;
 }
