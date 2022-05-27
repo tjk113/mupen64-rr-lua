@@ -16,6 +16,7 @@
 
  //for max recent
 #include "../lua/Recent.h"
+#include "vcr.h"
 
 #ifndef MAIN_WIN_H
 #define MAIN_WIN_H
@@ -50,6 +51,7 @@ extern HANDLE EmuThreadHandle;
 extern char AppPath[MAX_PATH];
 
 extern void EnableEmulationMenuItems(BOOL flag);
+BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
 extern BOOL StartRom(char *fullRomPath);
 extern void resetEmu() ;
 extern void resumeEmu(BOOL quiet);
@@ -136,6 +138,10 @@ typedef struct _CONFIG {
     // Recent Roms
     char RecentRoms[10][MAX_PATH];
     BOOL RecentRomsFreeze;
+
+    // Recent Movies
+    char RecentMovies[5][MAX_PATH];
+    BOOL RecentMoviesFreeze;
     
     //Window
     int WindowWidth;

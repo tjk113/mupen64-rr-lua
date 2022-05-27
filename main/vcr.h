@@ -47,6 +47,7 @@
 #define VCR_SYNC_AUDIO_DUPL 0
 #define VCR_SYNC_VIDEO_SNDROP 1
 #define VCR_SYNC_NONE 2
+#define MAX_RECENT_MOVIE 5
 
 /*
 	(0x0001)	Directional Right
@@ -108,6 +109,14 @@ extern void VCR_coreStopped();
 
 extern void printWarning(char*);
 extern void printError(char*);
+
+extern void BuildRecentMoviesMenu(HWND hwnd);
+extern void ClearRecentMovies(BOOL cleararray);
+extern void RefreshRecentMovies();
+extern void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable);
+extern void AddToRecentMovies(const char* path);
+extern void RunRecentMovie(WORD menuItem);
+extern void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag);
 
 #pragma pack(push, 1)
 //#pragms pack(1)

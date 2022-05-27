@@ -56,7 +56,7 @@ BEGIN
             MENUITEM "Freeze",                      ID_RECENTROMS_FREEZE
             MENUITEM SEPARATOR
         END
-        MENUITEM "&Load Latest ROM\tCtrl Shift L", ID_LOAD_LATEST
+        MENUITEM "&Load Latest ROM\tCtrl Shift L", ID_LOAD_LATEST, GRAYED
         MENUITEM SEPARATOR
         POPUP "Language"
         BEGIN
@@ -114,7 +114,14 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Start Movie Playback...",     ID_START_PLAYBACK, GRAYED
         MENUITEM "Stop Movie Playback",         ID_STOP_PLAYBACK, GRAYED
-        MENUITEM "Toggle Read-Only",            EMU_VCRTOGGLEREADONLY
+        MENUITEM SEPARATOR
+        POPUP "Recent Movies",
+        BEGIN
+            MENUITEM "Reset",                   ID_RECENTMOVIES_RESET
+            MENUITEM "Freeze",                  ID_RECENTMOVIES_FREEZE
+            MENUITEM SEPARATOR
+        END
+        MENUITEM "Load Latest Movie",           ID_REPLAY_LATEST
         MENUITEM SEPARATOR
         MENUITEM "Start AVI Capture...",        ID_START_CAPTURE, GRAYED
         MENUITEM "Start AVI From Preset...",    ID_START_CAPTURE_PRESET, GRAYED
@@ -122,7 +129,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Loop Movie Playback",         ID_LOOP_MOVIE
         MENUITEM "Start From Beginning",        ID_RESTART_MOVIE
-        MENUITEM "Replay Latest",               ID_REPLAY_LATEST
+        MENUITEM "Toggle Read-Only",            EMU_VCRTOGGLEREADONLY
     END
     POPUP "Utilities"
     BEGIN
@@ -146,14 +153,14 @@ BEGIN
     POPUP "Lua Script"
     BEGIN
         MENUITEM "New Instance",                            ID_MENU_LUASCRIPT_NEW
+		MENUITEM "Load Latest Lua Script\tCtrl Alt L"       ID_LUA_LOAD_LATEST
         MENUITEM SEPARATOR
-        POPUP "Recent scripts"
+        POPUP "Recent Scripts"
         BEGIN
             MENUITEM "Reset",                       ID_LUA_RECENT_RESET
             MENUITEM "Freeze",                      ID_LUA_RECENT_FREEZE
             MENUITEM SEPARATOR
         END
-        MENUITEM "Load Latest Lua Script\tCtrl Alt L"       ID_LUA_LOAD_LATEST
         MENUITEM SEPARATOR
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END

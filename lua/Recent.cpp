@@ -9,15 +9,15 @@
 #endif
 
 BOOL freezeRecentScript;
+bool emptyRecentScripts = false;
 
 //takes config and puts the entries to menu
 void BuildRecentScriptsMenu(HWND hwnd) {
 	int i;
-	bool empty = false;
 	MENUITEMINFO menuinfo = { 0 };
 	HMENU hMenu = GetMenu(hwnd);
-	HMENU hSubMenu = GetSubMenu(hMenu, 5);
-	hSubMenu = GetSubMenu(hSubMenu, 2);
+	HMENU hSubMenu = GetSubMenu(hMenu, 6);
+	hSubMenu = GetSubMenu(hSubMenu, 3);
 	//DeleteMenu(hSubMenu, ID_LUA_RECENT, MF_BYCOMMAND); //remove the "no recent scripts" entry, add later if in fact no recent
 
 	menuinfo.cbSize = sizeof(MENUITEMINFO);
@@ -27,22 +27,43 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 	for (i = 0; i < LUA_MAX_RECENT; i++) {
 		if (strcmp(Config.RecentScripts[i], "") == 0)
 		{
-			if (i == 0)
+			if (i == 0 && !emptyRecentScripts)
 			{
-				menuinfo.dwTypeData = "No recent scripts";
-				empty = true;
+				menuinfo.dwTypeData = "No Recent Scripts";
+				emptyRecentScripts = true;
 			}
 			else break;
 		}
-		else
+		else {
 			menuinfo.dwTypeData = Config.RecentScripts[i];
-
+			emptyRecentScripts = false;
+		}
 
 		menuinfo.cch = strlen(menuinfo.dwTypeData);
 		menuinfo.wID = ID_LUA_RECENT + i;
 		InsertMenuItem(hSubMenu, i + 3, TRUE, &menuinfo);
-		if (empty)  EnableMenuItem(hSubMenu, ID_LUA_RECENT, MF_DISABLED);
+		if (emptyRecentScripts) {
+			EnableMenuItem(hSubMenu, ID_LUA_RECENT + i, MF_DISABLED);
+			EnableMenuItem(hMenu, ID_LUA_LOAD_LATEST, MF_DISABLED);
+		}
 	}
+	//if (IsMenuItemEnabled(hMovieMenu, 0))
+	//{
+	//	EnableMenuItem(hMenu, ID_MENU_LUASCRIPT_NEW, MF_ENABLED);
+	//}
+	//else {
+	//	EnableMenuItem(hMenu, ID_MENU_LUASCRIPT_NEW, MF_DISABLED);
+	//}
+}
+
+void EnableRecentScriptsMenu(HMENU hMenu, BOOL flag) {
+	if (!emptyRecentScripts) {
+		for (int i = 0; i < LUA_MAX_RECENT; i++) {
+			EnableMenuItem(hMenu, ID_LUA_RECENT + i, flag ? MF_ENABLED : MF_DISABLED);
+		}
+		EnableMenuItem(hMenu, ID_LUA_LOAD_LATEST, flag ? MF_ENABLED : MF_DISABLED);
+	}
+	EnableMenuItem(hMenu, ID_MENU_LUASCRIPT_NEW, !IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER) ? MF_ENABLED : MF_DISABLED);
 }
 
 void ClearRecent(BOOL clear_array) {
@@ -56,7 +77,7 @@ void ClearRecent(BOOL clear_array) {
 	if (clear_array) {
 		memset(Config.RecentScripts, 0, LUA_MAX_RECENT * sizeof(Config.RecentScripts[0]));
 	}
-
+	emptyRecentScripts = false;
 }
 
 void RefreshRecent()

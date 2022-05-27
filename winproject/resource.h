@@ -249,13 +249,17 @@
 #define ID_RECENTROMS_FREEZE            6001
 #define ID_RECENTROMS_FIRST             6002
 //reserved till 6020
-#define ID_MENU_LUASCRIPT_NEW           6020
-#define ID_MENU_LUASCRIPT_CLOSEALL      6021
-#define ID_TRACELOG                     6022
-#define ID_LUA_CLEAR_RECENT             6023
-#define ID_LUA_LOAD_LATEST				6024
-#define ID_LUA_RECENT					6025 // if this is broken, change this back to 6024
-//6025+5 reserved for recent, unless changed to more
+#define ID_RECENTMOVIES_RESET			6020
+#define ID_RECENTMOVIES_FREEZE			6021
+#define ID_RECENTMOVIES_FIRST			6022
+//6022+5 reserved for recent movies
+#define ID_MENU_LUASCRIPT_NEW           6028
+#define ID_MENU_LUASCRIPT_CLOSEALL      6029
+#define ID_TRACELOG                     6030
+#define ID_LUA_CLEAR_RECENT             6031
+#define ID_LUA_LOAD_LATEST				6032
+#define ID_LUA_RECENT					6033
+//6033+5 reserved for recent, unless changed to more
 
 #define IDC_HOTKEYS_FLOWGROUP           6101
 #define IDC_HOT_SCREENSHOT              6103
