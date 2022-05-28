@@ -1796,7 +1796,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                 	break;
                 case IDC_MOVIE_BROWSE:
 					{
-                     if(fdBrowseMovie.ShowFileDialog(path_buffer, L"*.m64;*.rec,*.*", TRUE, FALSE, hwnd))
+                     if(fdBrowseMovie.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd))
                      SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
 					}
 					goto refresh;
@@ -2090,7 +2090,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
                 case IDC_MOVIE_BROWSE:
                 {
                     char path_buffer[MAX_PATH];
-                    if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.m64;*.rec,*.*", TRUE, FALSE, hwnd)) {
+                    if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd)) {
                         if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
                             strcat(path_buffer, ".m64");
                         SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
@@ -3292,7 +3292,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     break;                 
                 case STATE_SAVEAS:
                 {
-                    if (fdSaveStateAs.ShowFileDialog(path_buffer, L"*.st;*.savestate,*.*", FALSE, FALSE, hwnd)) {
+                    if (fdSaveStateAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", FALSE, FALSE, hwnd)) {
 
                         // HACK: allow .savestate and .st
                         // by creating another buffer, copying original into it and stripping its' extension
@@ -3320,7 +3320,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     break;
                 case STATE_LOAD:
                     
-                    if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate,*.*", TRUE, FALSE, hwnd)) {
+                    if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
                         savestates_select_filename(path_buffer);
                         savestates_job = LOADSTATE;
                     }
@@ -3367,7 +3367,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                         char rec_buffer[MAX_PATH];
                         
-                        if (fdStartCapture.ShowFileDialog(path_buffer, L"*.avi,*.*", FALSE, FALSE, hwnd)) {
+                        if (fdStartCapture.ShowFileDialog(path_buffer, L"*.avi", FALSE, FALSE, hwnd)) {
 
 
 
