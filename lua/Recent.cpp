@@ -47,13 +47,6 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 			EnableMenuItem(hMenu, ID_LUA_LOAD_LATEST, MF_DISABLED);
 		}
 	}
-	//if (IsMenuItemEnabled(hMovieMenu, 0))
-	//{
-	//	EnableMenuItem(hMenu, ID_MENU_LUASCRIPT_NEW, MF_ENABLED);
-	//}
-	//else {
-	//	EnableMenuItem(hMenu, ID_MENU_LUASCRIPT_NEW, MF_DISABLED);
-	//}
 }
 
 void EnableRecentScriptsMenu(HMENU hMenu, BOOL flag) {
@@ -64,6 +57,7 @@ void EnableRecentScriptsMenu(HMENU hMenu, BOOL flag) {
 		EnableMenuItem(hMenu, ID_LUA_LOAD_LATEST, flag ? MF_ENABLED : MF_DISABLED);
 	}
 	EnableMenuItem(hMenu, ID_MENU_LUASCRIPT_NEW, !IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER) ? MF_ENABLED : MF_DISABLED);
+	EnableMenuItem(hMenu, ID_MENU_LUASCRIPT_CLOSEALL, !IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER) ? MF_ENABLED : MF_DISABLED);
 }
 
 void ClearRecent(BOOL clear_array) {

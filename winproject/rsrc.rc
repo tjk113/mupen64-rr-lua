@@ -7,7 +7,7 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
-#pragma code_page(1250)
+#pragma code_page(1252)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -115,10 +115,10 @@ BEGIN
         MENUITEM "Start Movie Playback...",     ID_START_PLAYBACK, GRAYED
         MENUITEM "Stop Movie Playback",         ID_STOP_PLAYBACK, GRAYED
         MENUITEM SEPARATOR
-        POPUP "Recent Movies",
+        POPUP "Recent Movies"
         BEGIN
-            MENUITEM "Reset",                   ID_RECENTMOVIES_RESET
-            MENUITEM "Freeze",                  ID_RECENTMOVIES_FREEZE
+            MENUITEM "Reset",                       ID_RECENTMOVIES_RESET
+            MENUITEM "Freeze",                      ID_RECENTMOVIES_FREEZE
             MENUITEM SEPARATOR
         END
         MENUITEM "Load Latest Movie",           ID_REPLAY_LATEST
@@ -152,8 +152,8 @@ BEGIN
     END
     POPUP "Lua Script"
     BEGIN
-        MENUITEM "New Instance",                            ID_MENU_LUASCRIPT_NEW
-		MENUITEM "Load Latest Lua Script\tCtrl Alt L"       ID_LUA_LOAD_LATEST
+        MENUITEM "New Instance",                ID_MENU_LUASCRIPT_NEW
+        MENUITEM "Load Latest Lua Script\tCtrl Alt L", ID_LUA_LOAD_LATEST
         MENUITEM SEPARATOR
         POPUP "Recent Scripts"
         BEGIN
@@ -193,7 +193,7 @@ BEGIN
     PUSHBUTTON      "Website",IDC_WEBSITE,134,197,60,14
     GROUPBOX        "About this program",IDC_STATIC,5,65,189,127
     LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanks to the many others who helped",IDC_STATIC,13,82,173,104
-    LTEXT           MUPEN_VERSION,IDC_STATIC,0,0,200,100
+    LTEXT           "Mupen 64 1.0.10",IDC_STATIC,0,0,200,100
 END
 
 IDD_ADVANCED_OPTIONS DIALOGEX 0, 0, 231, 273
@@ -203,10 +203,8 @@ BEGIN
     GROUPBOX        "Common Options",IDC_COMMON,7,7,215,60
     CONTROL         "Start game in full screen",IDC_STARTFULLSCREEN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,100,10
     CONTROL         "1f Input Delay",IDC_INPUTDELAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,83,90,18
-#ifdef LUA_MODULEIMPL
-                CONTROL         "LUA Double Buffer",IDC_CLUADOUBLEBUFFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,104,89,18
-#endif 
-                CONTROL         "Pause emulation when window is not active",IDC_PAUSENOTACTIVE,
+    CONTROL         "LUA Double Buffer",IDC_CLUADOUBLEBUFFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,104,89,18
+    CONTROL         "Pause emulation when window is not active",IDC_PAUSENOTACTIVE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,100,10
     CONTROL         "Use global plugins settings",IDC_PLUGIN_OVERWRITE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,50,100,10
@@ -232,7 +230,7 @@ BEGIN
     CONTROL         "Record resets",IDC_NORESET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,235,87,10
     CONTROL         "Force internal avi capture",IDC_FORCEINTERNAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,251,99,10
     CONTROL         "Suppress non-movie snapshot warnings",IDC_SUPPRESS_LOAD_ST_PROMPT,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,16,233,78,16
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,16,234,78,25
 END
 
 IDD_OTHER_OPTIONS_DIALOG DIALOGEX 0, 0, 231, 273
@@ -240,10 +238,8 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Other Options",IDC_OTHEROPTIONS,7,7,224,200
-#ifdef LUA_MODULEIMPL
     CONTROL         "Ask on lua close",IDC_LUA_WARNONCLOSE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,100,10
     CONTROL         "Simplified lua dialog",IDC_LUA_SIMPLEDIALOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,30,100,10
-#endif
     CONTROL         "Automatic movie backups",IDC_MOVIEBACKUPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,40,100,10
     CONTROL         "Frequent statusbar updates",IDC_FREQUENTVCRREFRESH,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,50,120,10
@@ -275,7 +271,7 @@ BEGIN
     GROUPBOX        "",IDC_STATIC,5,60,174,46
     CONTROL         "",IDC_TOTAL_ROMS_PROGRESS,"msctls_progress32",PBS_SMOOTH,11,84,160,14,WS_EX_STATICEDGE
 END
-#ifdef LUA_MODULEIMPL
+
 IDD_LUAWINDOW DIALOGEX 0, 0, 240, 166
 STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "LUA Instance"
@@ -301,7 +297,6 @@ BEGIN
     EDITTEXT        IDC_TEXTBOX_LUASCRIPTPATH,10,28,119,14,ES_AUTOHSCROLL
 END
 
-#endif
 IDD_DIRECTORIES DIALOGEX 0, 0, 231, 262
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP
 FONT 8, "Tahoma", 0, 0, 0x0
@@ -338,12 +333,12 @@ BEGIN
     PUSHBUTTON      "\\|",IDC_HOT_FRAMEADVANCE,78,52,76,11
     PUSHBUTTON      "Pause / Break",IDC_HOT_PAUSE,78,64,76,11
     PUSHBUTTON      "Shift 8",IDC_HOT_READONLY,78,76,76,11
-    LTEXT           "Fast-Forward:",IDC_STATIC,18,16,57,8,0,WS_EX_RIGHT
+    LTEXT           "Fast-Forward:",IDC_FASTFORWARD,18,16,57,8,0,WS_EX_RIGHT
     GROUPBOX        "Save",IDC_HOTKEYS_SAVEGROUP2,10,110,212,144
-    LTEXT           "Select",IDC_STATIC,62,122,33,8
-    LTEXT           "Save",IDC_STATIC,123,122,33,8
-    LTEXT           "Load",IDC_STATIC,181,122,36,8
-    LTEXT           "Current:",IDC_STATIC,14,134,29,8
+    LTEXT           "Select",IDC_SELECT,60,122,35,8
+    LTEXT           "Save",IDC_SAVE,121,122,35,8
+    LTEXT           "Load",IDC_LOAD,181,122,36,8
+    LTEXT           "Current:",IDC_CURRENT,14,134,29,8
     LTEXT           "1:",IDC_STATIC,35,145,11,8
     LTEXT           "2:",IDC_STATIC,35,156,11,8
     LTEXT           "3:",IDC_STATIC,35,167,11,8
@@ -382,20 +377,20 @@ BEGIN
     PUSHBUTTON      "Shift F9",IDC_9SAVE,103,234,57,11
     PUSHBUTTON      "F9",IDC_9LOAD,162,234,57,11
     PUSHBUTTON      "Ctrl F7",IDC_CLOAD,162,133,57,11
-    LTEXT           "Speed Up:",IDC_STATIC,18,28,57,8,0,WS_EX_RIGHT
-    LTEXT           "Speed Down:",IDC_STATIC,18,40,57,8,0,WS_EX_RIGHT
-    LTEXT           "Frame Advance:",IDC_STATIC,18,52,57,8,0,WS_EX_RIGHT
-    LTEXT           "Pause / Resume:",IDC_STATIC,17,64,58,8,0,WS_EX_RIGHT
-    LTEXT           "Toggle Read-Only:",IDC_STATIC,14,76,61,8,0,WS_EX_RIGHT
-    LTEXT           "Play Movie:",IDC_STATIC,163,10,49,8
+    LTEXT           "Speed Up:",IDC_SPDUP,18,28,57,8,0,WS_EX_RIGHT
+    LTEXT           "Speed Down:",IDC_SPDDOWN,18,40,57,8,0,WS_EX_RIGHT
+    LTEXT           "Frame Advance:",IDC_FRAMEADVANCE,18,52,57,8,0,WS_EX_RIGHT
+    LTEXT           "Pause / Resume:",IDC_PAUSE,11,64,64,8,0,WS_EX_RIGHT
+    LTEXT           "Toggle Read-Only:",IDC_READONLY,12,76,62,8,0,WS_EX_RIGHT
+    LTEXT           "Play Movie:",IDC_PLAYMOVIE,160,10,60,8
     PUSHBUTTON      "Ctrl Shift P",IDC_HOT_PLAY,160,19,60,11
-    LTEXT           "Stop Playing:",IDC_STATIC,162,32,49,8
-    LTEXT           "Record Movie:",IDC_STATIC,162,56,50,8
+    LTEXT           "Stop Playing:",IDC_STOPPLAY,160,32,60,8
+    LTEXT           "Record Movie:",IDC_RECORDMOVIE,160,56,60,8
     PUSHBUTTON      "F12",IDC_HOT_SCREENSHOT,78,88,76,11
-    LTEXT           "Take Screenshot:",IDC_STATIC,18,88,57,8,0,WS_EX_RIGHT
+    LTEXT           "Take Screenshot:",IDC_SCREENSHOT,11,88,64,8,0,WS_EX_RIGHT
     PUSHBUTTON      "Ctrl Shift S",IDC_HOT_PLAYSTOP,160,42,60,11
     PUSHBUTTON      "Ctrl Shift R",IDC_HOT_RECORD,160,65,60,11
-    LTEXT           "Stop Recording:",IDC_STATIC,161,80,54,8
+    LTEXT           "Stop Recording:",IDC_STOPRECORD,159,80,61,8
     PUSHBUTTON      "Ctrl Shift S",IDC_HOT_RECORDSTOP,159,88,60,11
 END
 
@@ -464,7 +459,7 @@ BEGIN
     CONTROL         "Use compressed file",IDC_INI_COMPRESSED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,240,150,12
     GROUPBOX        "Ini file",IDC_INIFILE,7,230,215,26
     EDITTEXT        IDC_SKIPFREQ,162,138,45,12,ES_AUTOHSCROLL
-    LTEXT           "Fast forward skip frequency:",IDC_STATIC,108,133,49,19
+    LTEXT           "Fast forward skip frequency:",IDC_FASTFORWARDSKIPFREQ,108,133,49,19
     CONTROL         "0-index statusbar",IDC_0INDEX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,144,86,69,10
 END
 
@@ -761,17 +756,19 @@ BEGIN
     IDD_AUDIT_ROMS_DIALOG, DIALOG
     BEGIN
     END
-#ifdef LUA_MODULEIMPL
+
     IDD_LUAWINDOW, DIALOG
     BEGIN
     END
-#endif
+
     IDD_DIRECTORIES, DIALOG
     BEGIN
     END
 
     IDD_HOTKEY_CONFIG, DIALOG
     BEGIN
+        RIGHTMARGIN, 185
+        BOTTOMMARGIN, 210
     END
 
     IDD_LANG_INFO, DIALOG
@@ -797,12 +794,11 @@ BEGIN
     IDD_ROM_SETTING_DIALOG, DIALOG
     BEGIN
     END
-#ifdef LUA_MODULEIMPL
+
     IDD_LUAINPUTPROMPT, DIALOG
     BEGIN
     END
-#endif
-    END
+END
 #endif    // APSTUDIO_INVOKED
 
 
@@ -827,6 +823,11 @@ BEGIN
 END
 
 IDD_OTHER_OPTIONS_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_HOTKEY_CONFIG AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

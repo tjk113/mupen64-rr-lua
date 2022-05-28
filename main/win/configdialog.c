@@ -1328,6 +1328,8 @@ inithotkeysdialog:
 
 		memcpy(tempHotkeys, Config.hotkey, NUM_HOTKEYS * sizeof(HOTKEY));
 
+        TranslateHotkeyDialog(hwnd);
+
          return TRUE;
       case WM_COMMAND:
         switch(LOWORD(wParam))

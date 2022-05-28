@@ -318,6 +318,7 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     //Options menu
     submenu = GetSubMenu(hMenu,2);
     SetMenuTranslatedString(submenu,0,"Full Screen","Alt Enter");
+    SetMenuTranslatedString(submenu, 2, "Plugin Settings", "");
     subsubmenu = GetSubMenu(submenu, 2);
     SetMenuTranslatedString(subsubmenu, 0, "Video", "");
     SetMenuTranslatedString(subsubmenu, 1, "Input", "");
@@ -337,9 +338,12 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     subsubmenu = GetSubMenu(submenu, 6);
     SetMenuTranslatedString(subsubmenu, 0, "Reset", "");
     SetMenuTranslatedString(subsubmenu, 1, "Freeze", "");
+    SetMenuTranslatedString(submenu, 7, "Load Latest Movie", "");
     SetMenuTranslatedString(submenu, 9, "Start AVI Capture...", "");
     SetMenuTranslatedString(submenu, 10, "Start AVI From Preset...", "");
     SetMenuTranslatedString(submenu, 11, "Stop AVI Capture", "");
+    SetMenuTranslatedString(submenu, 13, "Loop Movie Playback", "");
+    SetMenuTranslatedString(submenu, 14, "Start from Beginning", "");
     SetMenuTranslatedString(submenu, 15, "Toggle Read-Only", "");
 
     //Utility menu
@@ -350,13 +354,26 @@ void TranslateMenu(HMENU hMenu,HWND mainHWND)
     SetMenuTranslatedString(submenu,3,"Generate ROM Info...","");
     SetMenuTranslatedString(submenu,4,"Show Log Window","");
     //SetMenuTranslatedString(submenu,5,"Kaillera...","");
+    SetMenuTranslatedString(submenu, 6, "Start Trace Logger", "");
+    SetMenuTranslatedString(submenu, 7, "Save Config", "");
+    SetMenuTranslatedString(submenu, 8, "Game Debugger", "");
             
     //Help menu
     submenu = GetSubMenu(hMenu,5);
     SetMenuTranslatedString(submenu,0,"Show RAM start","");
     SetMenuTranslatedString(submenu,1,"Show Crash Handler", "");
     SetMenuTranslatedString(submenu,3,"About","");
-    
+
+    //Lua Script menu
+    submenu = GetSubMenu(hMenu, 6);
+    SetMenuTranslatedString(submenu, 0, "New Instance", "");
+    SetMenuTranslatedString(submenu, 1, "Load Latest Lua Script", "");
+    SetMenuTranslatedString(submenu, 3, "Recent Scripts", "");
+    subsubmenu = GetSubMenu(submenu, 3);
+    SetMenuTranslatedString(subsubmenu, 0, "Reset", "");
+    SetMenuTranslatedString(subsubmenu, 1, "Freeze", "");
+    SetMenuTranslatedString(submenu, 5, "Close All", "");
+
     DrawMenuBar(mainHWND);
     // unecessary?
     
@@ -446,6 +463,7 @@ void TranslateGeneralDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_SPEEDMODIFIER,"Use Speed Modifier");
     SetItemTranslatedString(hwnd,IDC_SHOWFPS,"Show FPS");
     SetItemTranslatedString(hwnd,IDC_SHOWVIS,"Show VIs");
+    SetItemTranslatedString(hwnd,IDC_FASTFORWARDSKIPFREQ, "Fast forward skip frequency:");
     
     SetItemTranslatedString(hwnd,IDC_INTERP,"Interpreter");
     SetItemTranslatedString(hwnd,IDC_RECOMP,"Dynamic Recompiler");
@@ -548,5 +566,32 @@ void TranslateAdvancedDialog(HWND hwnd)
     
     SetItemTranslatedString(hwnd,IDC_WARNING_OPTIONS, "Warning Options");
     SetItemTranslatedString(hwnd,IDC_SUPPRESS_LOAD_ST_PROMPT, "Suppress non-movie snapshot warnings");
+
+    SetItemTranslatedString(hwnd, IDC_RECORDINGOPT, "Recording Options");
+    SetItemTranslatedString(hwnd, IDC_NORESET, "Record resets");
+    SetItemTranslatedString(hwnd, IDC_FORCEINTERNAL, "Force internal avi capture");
+}
+
+void TranslateHotkeyDialog(HWND hwnd)
+{
+    SetItemTranslatedString(hwnd, IDC_HOTKEYS_FLOWGROUP, "Speed / Flow / Movie / Other");
+    SetItemTranslatedString(hwnd, IDC_FASTFORWARD, "Fast-Forward:");
+	SetItemTranslatedString(hwnd, IDC_FRAMEADVANCE, "Frame Advance:");
+    SetItemTranslatedString(hwnd, IDC_SPDUP, "Speed Up:");
+    SetItemTranslatedString(hwnd, IDC_SPDDOWN, "Speed Down:");
+    SetItemTranslatedString(hwnd, IDC_PAUSE, "Pause / Resume:");
+    SetItemTranslatedString(hwnd, IDC_READONLY, "Toggle Read-Only:");
+    SetItemTranslatedString(hwnd, IDC_SCREENSHOT, "Take Screenshot:");
+
+    SetItemTranslatedString(hwnd, IDC_PLAYMOVIE, "Play Movie:");
+    SetItemTranslatedString(hwnd, IDC_STOPPLAY, "Stop Playing:");
+    SetItemTranslatedString(hwnd, IDC_RECORDMOVIE, "Record Movie:");
+    SetItemTranslatedString(hwnd, IDC_STOPRECORD, "Stop Recording:");
+
+    SetItemTranslatedString(hwnd, IDC_HOTKEYS_SAVEGROUP2, "Save");
+    SetItemTranslatedString(hwnd, IDC_SAVE, "Save");
+    SetItemTranslatedString(hwnd, IDC_LOAD, "Load");
+    SetItemTranslatedString(hwnd, IDC_SELECT, "Select");
+    SetItemTranslatedString(hwnd, IDC_CURRENT, "Current:");
 }
 

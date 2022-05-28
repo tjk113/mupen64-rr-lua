@@ -7,7 +7,7 @@
 
 #include "../lua/luaDefine.h" // this is very very bad but the header guard inside that header does allow for this
 
-#define MUPEN_VERSION     "Mupen 64 1.0.10"
+#define MUPEN_VERSION     "Mupen 64 1.0.11"
 
 #define MIN_WINDOW_W -500
 #define MIN_WINDOW_H -100
@@ -155,6 +155,7 @@
 #define IDC_SKIPFREQ                2265
 #define IDC_0INDEX                  2266
 #define IDC_ALERTMOVIESERRORS       2267
+#define IDC_FASTFORWARDSKIPFREQ		2268
 
 
 #define STATE_SAVE                  3000
@@ -273,6 +274,14 @@
 #define IDC_HOT_PLAYSTOP                6111
 #define IDC_HOT_RECORD                  6112
 #define IDC_HOT_RECORDSTOP              6113
+// config text
+#define IDC_FASTFORWARD					6114
+#define IDC_FRAMEADVANCE				6115
+#define IDC_SPDUP						6116
+#define IDC_SPDDOWN						6117
+#define IDC_PAUSE						6118
+#define IDC_READONLY					6119
+#define IDC_SCREENSHOT					6120
 
 #define IDC_HOTKEYS_SAVEGROUP2          6124
 #define IDC_CSAVE                       6138
@@ -304,6 +313,15 @@
 #define IDC_9SEL                        6173
 #define IDC_9SAVE                       6174
 #define IDC_9LOAD                       6175
+// config text
+#define IDC_PLAYMOVIE					6176
+#define IDC_STOPPLAY					6177
+#define IDC_RECORDMOVIE					6178
+#define IDC_STOPRECORD					6179
+#define IDC_SAVE						6180
+#define IDC_LOAD						6181
+#define IDC_SELECT						6182
+#define IDC_CURRENT						6183
 
 #define IDD_LANG_INFO                   7000
 #define IDC_PAUSE_EMULATION_FOCUS       7002
