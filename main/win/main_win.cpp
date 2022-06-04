@@ -3101,7 +3101,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case ID_REPLAY_LATEST:
                 // Overwrite prevention? Path sanity check (Leave to internal handling)?
-                if (VCR_startPlayback(Config.RecentMovies[0], 0, 0) < 0)
+                if (VCR_startPlayback(Config.RecentMovies[0], "", "") < 0)
                     break;
                 else {
                     HMENU hMenu = GetMenu(mainHWND);
@@ -3116,7 +3116,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                 break;
             case ID_RECENTMOVIES_FREEZE:
-                 FreezeRecentMovies(mainHWND, TRUE);
+                 HMENU hMenu;
+                 hMenu = GetMenu(mainHWND);
+                 CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, (Config.RecentMoviesFreeze ^= 1) ? MF_CHECKED : MF_UNCHECKED);
+                 shouldSave = TRUE;
+                 break;
+                 //FreezeRecentMovies(mainHWND, TRUE);
                  break;
             case ID_RECENTMOVIES_RESET:
                  ClearRecentMovies(TRUE);
@@ -3558,7 +3563,7 @@ void StartMovies()
         GetCmdLineParameter(CMDLINE_PLAY_M64, file);
         //not reading author nor description atm
         VCR_setReadOnly(TRUE);
-        VCR_startPlayback(file, 0, 0);
+        VCR_startPlayback(file, "", "");
         if (CmdLineParameterExist(CMDLINE_CAPTURE_AVI)) {
             GetCmdLineParameter(CMDLINE_CAPTURE_AVI, file);
             if (VCR_startCapture(0, file, false) < 0)

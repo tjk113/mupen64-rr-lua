@@ -2477,7 +2477,7 @@ void BuildRecentMoviesMenu(HWND hwnd) {
 		menuinfo.wID = ID_RECENTMOVIES_FIRST + i;
 		InsertMenuItem(hSubMenu, i + 3, TRUE, &menuinfo);
 
-		if (empty || IsMenuItemEnabled(hMenu, ID_START_PLAYBACK)) {
+		if (empty || IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
 			EnableMenuItem(hSubMenu, ID_RECENTMOVIES_FIRST + i, MF_DISABLED);
 			EnableMenuItem(hMovieMenu, ID_REPLAY_LATEST, MF_DISABLED);
 		}
@@ -2505,8 +2505,8 @@ void ClearRecentMovies(BOOL clear_array) {
 		memset(Config.RecentMovies, 0, MAX_RECENT_MOVIE * sizeof(Config.RecentMovies[0]));
 		/* unintuitive, but if empty is true then the "if (i == 0 && !empty)" check will fail in BuildRecentMoviesMenu,
 		meaning "No Recent Movies" will never be added to the list */
+		empty = false;
 	}
-	empty = false;
 }
 
 // Adapted Code from Recent.cpp
@@ -2522,7 +2522,7 @@ void AddToRecentMovies(const char* path) {
 	int i = 0;
 	//Either finds index of path in recent list, or stops at last one
 	//notice how it doesn't matter if last==path or not, we do same swapping later
-	for (; i < MAX_RECENT_MOVIE; ++i)
+	for (; i < MAX_RECENT_MOVIE - 1; ++i)
 	{
 		//if matches or empty (list is not full), break
 		if (Config.RecentMovies[i][0] == 0 || !strcmp(Config.RecentMovies[i], path)) break;
@@ -2553,6 +2553,6 @@ void RunRecentMovie(WORD menuItem) {
 	char path[MAX_PATH];
 	int index = menuItem - ID_RECENTMOVIES_FIRST;
 	sprintf(path, Config.RecentMovies[index]);
-	VCR_startPlayback(path, 0, 0);
+	VCR_startPlayback(path, "", "");
 }
 #endif // VCR_SUPPORT
