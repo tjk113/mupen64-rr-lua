@@ -3401,6 +3401,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                                     SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE); //Disables fullscreen button
                                 }
                                 SetStatusTranslatedString(hStatus, 0, "Recording avi...");
+                                EnableEmulationMenuItems(TRUE);
                                 recording = TRUE;
                             }
                         }
