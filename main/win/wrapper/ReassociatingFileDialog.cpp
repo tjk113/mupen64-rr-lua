@@ -24,7 +24,7 @@ bool ReassociatingFileDialog::ShowFileDialog(char* path, const wchar_t* fTypes, 
 		FAILSAFE(CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pFileDialog))); // nope
 	}
 	FAILSAFE(pFileDialog->GetOptions(&dwFlags));
-	FAILSAFE(pFileDialog->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | (allowMultiSelect ? FOS_ALLOWMULTISELECT : 0)));
+	FAILSAFE(pFileDialog->SetOptions((allowMultiSelect ? FOS_ALLOWMULTISELECT : 0))); //dwFlags | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | 
 	COMDLG_FILTERSPEC fileTypes[] =
 	{
 		{ L"Supported files", fTypes },
