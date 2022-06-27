@@ -77,11 +77,13 @@ extern void VCR_aiLenChanged();
 
 extern BOOL VCR_isActive();
 extern BOOL VCR_isIdle(); // not the same as !isActive()
+extern BOOL VCR_isStarting();
 extern BOOL VCR_isStartingAndJustRestarted();
 extern BOOL VCR_isPlaying();
 extern BOOL VCR_isRecording();
 extern BOOL VCR_isCapturing();
 extern void VCR_invalidatedCaptureFrame();
+extern const char* VCR_getMovieFilename();
 extern BOOL VCR_getReadOnly();
 extern bool VCR_isLooping();
 extern void VCR_setReadOnly(BOOL val);

@@ -2662,6 +2662,13 @@ int StopMovie(lua_State* L) {
 	VCR_stopPlayback();
 	return 0;
 }
+int GetMovieFilename(lua_State* L) {
+	if (VCR_isStarting() || VCR_isPlaying())
+		lua_pushstring(L, VCR_getMovieFilename());
+	else
+		lua_pushstring(L, "No movie is currently playing");
+	return 1;
+}
 
 //savestate
 //�蔲��
@@ -3272,6 +3279,7 @@ const luaL_Reg joypadFuncs[] = {
 const luaL_Reg movieFuncs[] = {
 	{"playmovie", PlayMovie},
 	{"stopmovie", StopMovie},
+	{"getmoviefilename", GetMovieFilename},
 	{NULL, NULL}
 };
 

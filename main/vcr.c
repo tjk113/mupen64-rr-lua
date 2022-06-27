@@ -713,6 +713,12 @@ VCR_isIdle( )
 }
 
 BOOL
+VCR_isStarting()
+{
+	return (m_task == StartPlayback || m_task == StartPlaybackFromSnapshot) ? TRUE : FALSE;
+}
+
+BOOL
 VCR_isStartingAndJustRestarted()
 {
 	extern BOOL just_restarted_flag;
@@ -751,6 +757,11 @@ VCR_getReadOnly( )
 {
 	return m_readOnly;
 }
+// Returns the filename of the last-played movie
+const char* VCR_getMovieFilename() {
+	return m_filename;
+}
+
 void
 VCR_setReadOnly(BOOL val)
 {
@@ -1188,6 +1199,7 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 	VCR_coreStopped();
 	
 	char buf[PATH_MAX];
+	AddToRecentMovies(filename);
 /*
 	if (m_task != Idle)
 	{
@@ -1425,6 +1437,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 	}
 */
 	strncpy( m_filename, filename, PATH_MAX );
+	printf("m_filename = %s\n", m_filename);
 	char *p = strrchr( m_filename, '.' );
 	if (p)
 	{
