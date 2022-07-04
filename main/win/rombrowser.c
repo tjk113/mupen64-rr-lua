@@ -1230,11 +1230,8 @@ void RunRecentRom(int id) {
 }
 
 void DisableRecentRoms(HMENU hMenu, BOOL disable) {
-    // this is cool but why
-    if (!Config.RecentRomsFreeze) return; // only disable rom loading if freeze enabled
     for (int i = 0; i < MAX_RECENT_ROMS; i++)
-        EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, (disable ? MF_ENABLED : MF_DISABLED));
-
+        EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, (disable ? MF_DISABLED : MF_ENABLED));
 }
 
 void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable) {
