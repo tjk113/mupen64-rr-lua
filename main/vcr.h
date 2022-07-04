@@ -47,6 +47,7 @@
 #define VCR_SYNC_AUDIO_DUPL 0
 #define VCR_SYNC_VIDEO_SNDROP 1
 #define VCR_SYNC_NONE 2
+#define MAX_RECENT_MOVIE 5
 
 /*
 	(0x0001)	Directional Right
@@ -76,11 +77,13 @@ extern void VCR_aiLenChanged();
 
 extern BOOL VCR_isActive();
 extern BOOL VCR_isIdle(); // not the same as !isActive()
+extern BOOL VCR_isStarting();
 extern BOOL VCR_isStartingAndJustRestarted();
 extern BOOL VCR_isPlaying();
 extern BOOL VCR_isRecording();
 extern BOOL VCR_isCapturing();
 extern void VCR_invalidatedCaptureFrame();
+extern const char* VCR_getMovieFilename();
 extern BOOL VCR_getReadOnly();
 extern bool VCR_isLooping();
 extern void VCR_setReadOnly(BOOL val);
@@ -108,6 +111,14 @@ extern void VCR_coreStopped();
 
 extern void printWarning(char*);
 extern void printError(char*);
+
+extern void BuildRecentMoviesMenu(HWND hwnd);
+extern void ClearRecentMovies(BOOL cleararray);
+extern void RefreshRecentMovies();
+extern void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable);
+extern void AddToRecentMovies(const char* path);
+extern void RunRecentMovie(WORD menuItem);
+extern void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag);
 
 #pragma pack(push, 1)
 //#pragms pack(1)

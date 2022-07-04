@@ -7,7 +7,7 @@
 
 #include "../lua/luaDefine.h" // this is very very bad but the header guard inside that header does allow for this
 
-#define MUPEN_VERSION     "Mupen 64 1.0.10"
+#define MUPEN_VERSION     "Mupen 64 1.0.11"
 
 #define MIN_WINDOW_W -500
 #define MIN_WINDOW_H -100
@@ -34,30 +34,30 @@
 #define IDC_GFXPLUGIN 144
 #define IDC_INPUTPLUGIN 145
 #define IDC_SOUNDPLUGIN 146
-#define IDI_AUSTRALIA 147
-#define IDI_USA       148
-#define IDI_JAPAN     149
-#define IDI_GERMANY   150
-#define IDI_EUROPE    151
-#define IDI_N64CART   152
-#define IDI_ITALIA    153
-#define IDI_SPAIN    154
-#define IDI_FRANCE    155
-#define IDI_UNKNOWN   156
-#define IDI_DEMO      157
-#define IDI_BETA      158
-#define ID_HELP_ABOUT 160
-#define ID_HELP_CONTENS 161
-#define ID_RAMSTART 162
-#define IDC_COMBO_SOUND 163
-#define IDSOUNDCONFIG 164
-#define IDSOUNDTEST 165
-#define IDSOUNDABOUT 166
-#define IDB_UP_ARROW 167
-#define IDB_DOWN_ARROW 168
-#define IDI_SIF        169 
+#define IDI_M64ICONBIG 147 
+#define IDI_AUSTRALIA 148
+#define IDI_USA       149
+#define IDI_JAPAN     150
+#define IDI_GERMANY   151
+#define IDI_EUROPE    152
+#define IDI_N64CART   153
+#define IDI_ITALIA    154
+#define IDI_SPAIN     155
+#define IDI_FRANCE    156
+#define IDI_UNKNOWN   157
+#define IDI_DEMO      158
+#define IDI_BETA      159
+#define ID_HELP_ABOUT 161
+#define ID_HELP_CONTENS 162
+#define ID_RAMSTART 163
+#define IDC_COMBO_SOUND 164
+#define IDSOUNDCONFIG 165
+#define IDSOUNDTEST 166
+#define IDSOUNDABOUT 167
+#define IDB_UP_ARROW 168
+#define IDB_DOWN_ARROW 169
+#define IDI_SIF        170 
 #define IDI_M64ICONSMALL 180
-#define IDI_M64ICONBIG   181 
 //Lua
 #define IDD_LUAWINDOW 182
 #define IDD_LUAINPUTPROMPT 183
@@ -155,6 +155,7 @@
 #define IDC_SKIPFREQ                2265
 #define IDC_0INDEX                  2266
 #define IDC_ALERTMOVIESERRORS       2267
+#define IDC_FASTFORWARDSKIPFREQ		2268
 
 
 #define STATE_SAVE                  3000
@@ -249,13 +250,17 @@
 #define ID_RECENTROMS_FREEZE            6001
 #define ID_RECENTROMS_FIRST             6002
 //reserved till 6020
-#define ID_MENU_LUASCRIPT_NEW           6020
-#define ID_MENU_LUASCRIPT_CLOSEALL      6021
-#define ID_TRACELOG                     6022
-#define ID_LUA_CLEAR_RECENT             6023
-#define ID_LUA_LOAD_LATEST				6024
-#define ID_LUA_RECENT					6025 // if this is broken, change this back to 6024
-//6025+5 reserved for recent, unless changed to more
+#define ID_RECENTMOVIES_RESET			6020
+#define ID_RECENTMOVIES_FREEZE			6021
+#define ID_RECENTMOVIES_FIRST			6022
+//6022+5 reserved for recent movies
+#define ID_MENU_LUASCRIPT_NEW           6028
+#define ID_MENU_LUASCRIPT_CLOSEALL      6029
+#define ID_TRACELOG                     6030
+#define ID_LUA_CLEAR_RECENT             6031
+#define ID_LUA_LOAD_LATEST				6032
+#define ID_LUA_RECENT					6033
+//6033+5 reserved for recent, unless changed to more
 
 #define IDC_HOTKEYS_FLOWGROUP           6101
 #define IDC_HOT_SCREENSHOT              6103
@@ -269,6 +274,14 @@
 #define IDC_HOT_PLAYSTOP                6111
 #define IDC_HOT_RECORD                  6112
 #define IDC_HOT_RECORDSTOP              6113
+// config text
+#define IDC_FASTFORWARD					6114
+#define IDC_FRAMEADVANCE				6115
+#define IDC_SPDUP						6116
+#define IDC_SPDDOWN						6117
+#define IDC_PAUSE						6118
+#define IDC_READONLY					6119
+#define IDC_SCREENSHOT					6120
 
 #define IDC_HOTKEYS_SAVEGROUP2          6124
 #define IDC_CSAVE                       6138
@@ -300,6 +313,15 @@
 #define IDC_9SEL                        6173
 #define IDC_9SAVE                       6174
 #define IDC_9LOAD                       6175
+// config text
+#define IDC_PLAYMOVIE					6176
+#define IDC_STOPPLAY					6177
+#define IDC_RECORDMOVIE					6178
+#define IDC_STOPRECORD					6179
+#define IDC_SAVE						6180
+#define IDC_LOAD						6181
+#define IDC_SELECT						6182
+#define IDC_CURRENT						6183
 
 #define IDD_LANG_INFO                   7000
 #define IDC_PAUSE_EMULATION_FOCUS       7002

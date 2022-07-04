@@ -713,6 +713,12 @@ VCR_isIdle( )
 }
 
 BOOL
+VCR_isStarting()
+{
+	return (m_task == StartPlayback || m_task == StartPlaybackFromSnapshot) ? TRUE : FALSE;
+}
+
+BOOL
 VCR_isStartingAndJustRestarted()
 {
 	extern BOOL just_restarted_flag;
@@ -751,6 +757,11 @@ VCR_getReadOnly( )
 {
 	return m_readOnly;
 }
+// Returns the filename of the last-played movie
+const char* VCR_getMovieFilename() {
+	return m_filename;
+}
+
 void
 VCR_setReadOnly(BOOL val)
 {
@@ -1188,6 +1199,7 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 	VCR_coreStopped();
 	
 	char buf[PATH_MAX];
+	AddToRecentMovies(filename);
 /*
 	if (m_task != Idle)
 	{
@@ -1405,6 +1417,7 @@ void SetActiveMovie(char* buf)
 
 int
 VCR_startPlayback(const char *filename, const char *authorUTF8, const char *descriptionUTF8) {
+	AddToRecentMovies(filename);
 	return startPlayback(filename, authorUTF8, descriptionUTF8, false);
 }
 
@@ -1424,6 +1437,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 	}
 */
 	strncpy( m_filename, filename, PATH_MAX );
+	printf("m_filename = %s\n", m_filename);
 	char *p = strrchr( m_filename, '.' );
 	if (p)
 	{
@@ -2438,6 +2452,120 @@ void VCR_updateFrameCounter ()
 #endif
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////////// Recent Movies //////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
+bool empty = false;
 
+// Adapted Code from Recent.cpp
+void BuildRecentMoviesMenu(HWND hwnd) {
+	int i;
+	MENUITEMINFO menuinfo = { 0 };
+	HMENU hMenu = GetMenu(hwnd);
+	HMENU hMovieMenu = GetSubMenu(hMenu, 3);
+	HMENU hSubMenu = GetSubMenu(hMenu, 3);
+	hSubMenu = GetSubMenu(hSubMenu, 6);
+
+	menuinfo.cbSize = sizeof(MENUITEMINFO);
+	menuinfo.fMask = MIIM_TYPE | MIIM_ID;
+	menuinfo.fType = MFT_STRING;
+	menuinfo.fState = MFS_ENABLED;
+
+	for (i = 0; i < MAX_RECENT_MOVIE; i++) {
+		if (strcmp(Config.RecentMovies[i], "") == 0) {
+			// the !empty check here prevents unlimited "No Recent Movies" items being added to the menu by repeatedly pressing Reset
+			if (i == 0 && !empty) {
+				menuinfo.dwTypeData = "No Recent Movies";
+				empty = true;
+			}
+			else break;
+		}
+		else {
+			menuinfo.dwTypeData = Config.RecentMovies[i];
+			empty = false;
+		}
+
+		menuinfo.cch = strlen(menuinfo.dwTypeData);
+		menuinfo.wID = ID_RECENTMOVIES_FIRST + i;
+		InsertMenuItem(hSubMenu, i + 3, TRUE, &menuinfo);
+
+		if (empty || IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
+			EnableMenuItem(hSubMenu, ID_RECENTMOVIES_FIRST + i, MF_DISABLED);
+			EnableMenuItem(hMovieMenu, ID_REPLAY_LATEST, MF_DISABLED);
+		}
+	}
+}
+
+void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag) {
+	if (!empty) {
+		for (int i = 0; i < MAX_RECENT_MOVIE; i++) {
+			EnableMenuItem(hMenu, ID_RECENTMOVIES_FIRST + i, flag ? MF_ENABLED : MF_DISABLED);
+		}
+		EnableMenuItem(hMenu, ID_REPLAY_LATEST, flag ? MF_ENABLED : MF_DISABLED);
+	}
+}
+
+// Adapted Code from Recent.cpp
+void ClearRecentMovies(BOOL clear_array) {
+	int i;
+	HMENU hMenu = GetMenu(mainHWND);
+
+	for (i = 0; i < MAX_RECENT_MOVIE; i++) {
+		DeleteMenu(hMenu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
+	}
+	if (clear_array) {
+		memset(Config.RecentMovies, 0, MAX_RECENT_MOVIE * sizeof(Config.RecentMovies[0]));
+		/* unintuitive, but if empty is true then the "if (i == 0 && !empty)" check will fail in BuildRecentMoviesMenu,
+		meaning "No Recent Movies" will never be added to the list */
+		empty = false;
+	}
+}
+
+// Adapted Code from Recent.cpp
+void RefreshRecentMovies() {
+	ClearRecentMovies(FALSE);
+	BuildRecentMoviesMenu(mainHWND);
+}
+
+// Adapted Code from Recent.cpp
+void AddToRecentMovies(const char* path) {
+	if (Config.RecentMoviesFreeze) return;
+
+	int i = 0;
+	//Either finds index of path in recent list, or stops at last one
+	//notice how it doesn't matter if last==path or not, we do same swapping later
+	for (; i < MAX_RECENT_MOVIE - 1; ++i)
+	{
+		//if matches or empty (list is not full), break
+		if (Config.RecentMovies[i][0] == 0 || !strcmp(Config.RecentMovies[i], path)) break;
+	}
+	//now swap all elements backwards starting from `i`
+	for (int j = i; j > 0; --j)
+	{
+		strcpy(Config.RecentMovies[j], Config.RecentMovies[j - 1]);
+	}
+	//now write to top
+	strcpy(Config.RecentMovies[0], path);
+	//rebuild menu
+	RefreshRecentMovies();
+}
+
+// Adapted Code from rombrowser.c
+void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable) {
+	HMENU hMenu = GetMenu(hWnd);
+	if (ChangeConfigVariable) {
+		shouldSave = 1;
+		Config.RecentMoviesFreeze = 1 - Config.RecentMoviesFreeze;
+	}
+	CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, MF_BYCOMMAND | (Config.RecentMoviesFreeze ? MFS_CHECKED : MFS_UNCHECKED));
+}
+
+// Adapted Code from Recent.cpp
+void RunRecentMovie(WORD menuItem) {
+	char path[MAX_PATH];
+	int index = menuItem - ID_RECENTMOVIES_FIRST;
+	sprintf(path, Config.RecentMovies[index]);
+	VCR_startPlayback(path, "", "");
+}
 #endif // VCR_SUPPORT

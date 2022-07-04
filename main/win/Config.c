@@ -87,6 +87,7 @@ int ReadCfgInt(char* Section, char* Key, int DefaultValue)
 
 //////////////////////////// Load and Save Config //////////////////////////////
 
+// Loads recent roms from .cfg
 void LoadRecentRoms()
 {
     int i;
@@ -117,6 +118,18 @@ void LoadRecentScripts()
         ReadCfgString("Recent Scripts", tempStr, "", Config.RecentScripts[i]);
     }
 
+}
+
+// Loads recent movies from .cfg
+void LoadRecentMovies()
+{
+    char tempStr[32];
+    Config.RecentMoviesFreeze = ReadCfgInt("Recent Movies", "Freeze", 0);
+    for (unsigned i = 0; i < MAX_RECENT_MOVIE; i++)
+    {
+        sprintf(tempStr, "RecentMovie%d", i);
+        ReadCfgString("Recent Movies", tempStr, "", Config.RecentMovies[i]);
+    }
 }
 
 void ReadHotkeyConfig(int n, char* name, int cmd, int def) {
@@ -151,6 +164,7 @@ void LoadConfig()
 {
     LoadRecentRoms();
     LoadRecentScripts();
+    LoadRecentMovies();
 
     // Language
     ReadCfgString("Language", "Default", "English", Config.DefaultLanguage);
@@ -311,7 +325,7 @@ void LoadConfig()
 
     // some new misc ones
     ReadHotkeyConfig(42, "Start From Beginning", ID_RESTART_MOVIE, 'H' | 0x300);
-    ReadHotkeyConfig(43, "Replay Latest", ID_REPLAY_LATEST, 'G' | 0x300);
+    ReadHotkeyConfig(43, "Load Latest Movie", ID_REPLAY_LATEST, 'G' | 0x300);
     ReadHotkeyConfig(44, "Load Latest ROM", ID_LOAD_LATEST, 'L' | 0x300);
 
 
@@ -375,6 +389,17 @@ void SaveRecentScripts()
     }
 }
 
+void SaveRecentMovies()
+{
+	char tempStr[32];
+	WriteCfgInt("Recent Movies", "Freeze", Config.RecentMoviesFreeze);
+	for (unsigned i = 0; i < MAX_RECENT_MOVIE; i++)
+	{
+		sprintf(tempStr, "RecentMovie%d", i);
+		WriteCfgString("Recent Movies", tempStr, Config.RecentMovies[i]);
+	}
+}
+
 void SaveConfig()
 {
     saveWindowSettings();
@@ -383,6 +408,7 @@ void SaveConfig()
         saveBrowserSettings();
         SaveRecentRoms();
         SaveRecentScripts();
+        SaveRecentMovies();
     }
 
     //Language

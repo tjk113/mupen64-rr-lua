@@ -1170,6 +1170,7 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
 
 void SetRecentList(HWND hwnd) {
     int i;
+    bool empty = false;
     MENUITEMINFO menuinfo;
     FreezeRecentRoms( hwnd, FALSE ) ;
     HMENU hMenu = GetMenu(hwnd);
@@ -1181,12 +1182,29 @@ void SetRecentList(HWND hwnd) {
     menuinfo.fType = MFT_STRING;
     menuinfo.fState = MFS_ENABLED;
     for ( i = 0 ; i < MAX_RECENT_ROMS  ; i++)   {
-              if ( strcmp( Config.RecentRoms[i], "")==0 ) continue;
+              if (strcmp(Config.RecentRoms[i], "")==0) {
+                  if (i == 0) {
+                      menuinfo.dwTypeData = "No Recent ROMs";
+                      empty = true;
+                  }
+                  else break;
+              }
+              else {
+                  menuinfo.dwTypeData = ParseName(Config.RecentRoms[i]);
+              }
     
-	          menuinfo.dwTypeData = ParseName( Config.RecentRoms[i]);
+	          //menuinfo.dwTypeData = ParseName( Config.RecentRoms[i]);
               menuinfo.cch = strlen(menuinfo.dwTypeData);
 	          menuinfo.wID = ID_RECENTROMS_FIRST + i;
               InsertMenuItem( hSubMenu, 3 + i, TRUE, &menuinfo);
+              if (empty) {
+                  EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_DISABLED);
+                  EnableMenuItem(hSubMenu, ID_RECENTROMS_FIRST, MF_DISABLED);
+              }
+              else {
+                  EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_ENABLED);
+                  EnableMenuItem(hSubMenu, ID_RECENTROMS_FIRST, MF_ENABLED);
+              }
              
      }
    

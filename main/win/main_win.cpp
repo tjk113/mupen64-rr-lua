@@ -1768,6 +1768,8 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 						HMENU hMenu = GetMenu(mainHWND);
 						EnableMenuItem(hMenu,ID_STOP_RECORD,MF_GRAYED);
 						EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_ENABLED);
+                        //AddToRecentMovies(tempbuf);
+                        EnableRecentMoviesMenu(hMenu, TRUE);
 						if(!emu_paused || !emu_launched)
 							SetStatusTranslatedString(hStatus,0,"Playback started...");
 						else
@@ -2320,8 +2322,6 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
-      EnableMenuItem(hMenu, ID_REPLAY_LATEST, MF_ENABLED);
-      EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_ENABLED);
 
 #ifdef N64DEBUGGER_ALLOWED
       EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
@@ -2340,6 +2340,8 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
       EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
       EnableMenuItem(hMenu,ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
+      EnableRecentMoviesMenu(hMenu, TRUE);
+      EnableRecentScriptsMenu(hMenu, TRUE);
 }
       
       if (Config.GuiToolbar)
@@ -2369,9 +2371,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
-      EnableMenuItem(hMenu, ID_REPLAY_LATEST, MF_GRAYED);
       EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_GRAYED);
-
       EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
      
 if(!continue_vcr_on_restart_mode)
@@ -2382,6 +2382,8 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
       EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
       EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
+      EnableRecentMoviesMenu(hMenu, FALSE);
+      EnableRecentScriptsMenu(hMenu, FALSE);
       LONG winstyle;
       winstyle = GetWindowLong(mainHWND, GWL_STYLE);
       winstyle |= WS_MAXIMIZEBOX;
@@ -2859,6 +2861,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             TranslateMenu(GetMenu( hwnd), hwnd);
             CreateRomListControl( hwnd);
             SetRecentList( hwnd);
+            BuildRecentMoviesMenu(hwnd);
             BuildRecentScriptsMenu(hwnd);
             EnableToolbar();
             EnableStatusbar();
@@ -2944,6 +2947,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 			case ID_MENU_LUASCRIPT_NEW:
 				{
+                HMENU hMenu;
+                hMenu = GetMenu(mainHWND);
+                //if (!IsMenuItemEnabled(hMenu, ID_LUA_LOAD_LATEST))
+                EnableRecentScriptsMenu(hMenu, TRUE);
 #ifdef LUA_MODULEIMPL
 					MUPEN64RR_DEBUGINFO("LuaScript New");
 					::NewLuaScript((void(*)())lParam);
@@ -3094,13 +3101,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case ID_REPLAY_LATEST:
                 // Overwrite prevention? Path sanity check (Leave to internal handling)?
-
-                if (VCR_startPlayback(VCR_Lastpath, 0, 0) < 0)
+                if (VCR_startPlayback(Config.RecentMovies[0], "", "") < 0)
                     break;
                 else {
                     HMENU hMenu = GetMenu(mainHWND);
                     EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
                     EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+
                     if (!emu_paused || !emu_launched)
                         SetStatusTranslatedString(hStatus, 0, "Playback started...");
                     else
@@ -3108,6 +3115,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
 
                 break;
+            case ID_RECENTMOVIES_FREEZE:
+                 HMENU hMenu;
+                 hMenu = GetMenu(mainHWND);
+                 CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, (Config.RecentMoviesFreeze ^= 1) ? MF_CHECKED : MF_UNCHECKED);
+                 shouldSave = TRUE;
+                 break;
+                 //FreezeRecentMovies(mainHWND, TRUE);
+                 break;
+            case ID_RECENTMOVIES_RESET:
+                 ClearRecentMovies(TRUE);
+                 BuildRecentMoviesMenu(mainHWND);
+                 break;
 			case EMU_PLAY:
                  if (emu_launched) 
                  {
@@ -3382,6 +3401,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                                     SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE); //Disables fullscreen button
                                 }
                                 SetStatusTranslatedString(hStatus, 0, "Recording avi...");
+                                EnableEmulationMenuItems(TRUE);
                                 recording = TRUE;
                             }
                         }
@@ -3421,8 +3441,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                       }   
                      break; 
                 case ID_RECENTROMS_RESET:
-                     ClearRecentList(hwnd,TRUE);           
-                     break;   
+                     ClearRecentList(hwnd,TRUE);
+                     SetRecentList(hwnd);
+                     break;
                 case ID_RECENTROMS_FREEZE: 
                      FreezeRecentRoms(hwnd, TRUE);                                                                      
                      break;
@@ -3501,6 +3522,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST && LOWORD(wParam) < (ID_RECENTROMS_FIRST + MAX_RECENT_ROMS))  {
                           RunRecentRom(LOWORD(wParam));              
                      }
+                     else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + MAX_RECENT_MOVIE)) {
+                         RunRecentMovie(LOWORD(wParam));
+                         // should probably make this code from the ID_REPLAY_LATEST case into a function on its own
+                         // because now it's used here too
+                         HMENU hMenu = GetMenu(mainHWND);
+                         EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
+                         EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+
+                         if (!emu_paused || !emu_launched)
+                             SetStatusTranslatedString(hStatus, 0, "Playback started...");
+                         else
+                             SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+                     }
                      else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (ID_LUA_RECENT + LUA_MAX_RECENT)) {
                          printf("run recent script\n");
                          RunRecentScript(LOWORD(wParam));
@@ -3530,7 +3564,7 @@ void StartMovies()
         GetCmdLineParameter(CMDLINE_PLAY_M64, file);
         //not reading author nor description atm
         VCR_setReadOnly(TRUE);
-        VCR_startPlayback(file, 0, 0);
+        VCR_startPlayback(file, "", "");
         if (CmdLineParameterExist(CMDLINE_CAPTURE_AVI)) {
             GetCmdLineParameter(CMDLINE_CAPTURE_AVI, file);
             if (VCR_startCapture(0, file, false) < 0)

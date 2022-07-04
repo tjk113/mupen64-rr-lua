@@ -187,6 +187,7 @@ extern const luaL_Reg joypadFuncs[];
 extern const luaL_Reg movieFuncs[];
 extern const luaL_Reg savestateFuncs[];
 extern const luaL_Reg ioHelperFuncs[];
+extern const luaL_Reg aviFuncs[];
 extern const char * const REG_ATSTOP;
 int AtStop(lua_State *L); 
 
@@ -353,6 +354,7 @@ private:
 		registerAsPackage(L, "movie", movieFuncs);
 		registerAsPackage(L, "savestate", savestateFuncs);
 		registerAsPackage(L, "iohelper", ioHelperFuncs);
+		registerAsPackage(L, "avi", aviFuncs);
 
 		//this makes old scripts backward compatible, new syntax for table length is '#'
 		lua_getglobal(L, "table");
@@ -2662,6 +2664,15 @@ int StopMovie(lua_State* L) {
 	VCR_stopPlayback();
 	return 0;
 }
+int GetMovieFilename(lua_State* L) {
+	if (VCR_isStarting() || VCR_isPlaying()) {
+		lua_pushstring(L, VCR_getMovieFilename());
+	} else {
+		luaL_error(L, "No movie is currently playing");
+		lua_pushstring(L, "");
+	}
+	return 1;
+}
 
 //savestate
 //�蔲��
@@ -2710,6 +2721,24 @@ BOOL validType(const char* type) {
 BOOL fileexists(const char* path) {
 	struct stat buffer;
 	return (stat(path, &buffer) == 0);
+}
+
+// AVI
+int StartCapture(lua_State* L) {
+	const char* fname = lua_tostring(L, 1);
+	if (!VCR_isCapturing())
+		VCR_startCapture("", fname, false);
+	else
+		luaL_error(L, "Tried to start AVI capture when one was already in progress");
+	return 0;
+}
+
+int StopCapture(lua_State* L) {
+	if (VCR_isCapturing())
+		VCR_stopCapture();
+	else
+		luaL_error(L, "Tried to end AVI capture when none was in progress");
+	return 0;
 }
 
 //callback�Ȃ�
@@ -3272,6 +3301,7 @@ const luaL_Reg joypadFuncs[] = {
 const luaL_Reg movieFuncs[] = {
 	{"playmovie", PlayMovie},
 	{"stopmovie", StopMovie},
+	{"getmoviefilename", GetMovieFilename},
 	{NULL, NULL}
 };
 
@@ -3284,7 +3314,11 @@ const luaL_Reg ioHelperFuncs[] = {
 		{"filediag", LuaFileDialog},
 		{NULL, NULL}
 };
-
+const luaL_Reg aviFuncs[] = {
+	{"startcapture", StartCapture},
+	{"stopcapture", StopCapture},
+	{NULL, NULL}
+};
 
 }	//namespace
 
