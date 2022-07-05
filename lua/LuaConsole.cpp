@@ -3370,6 +3370,14 @@ void AtIntervalLuaCallback() {
 	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATINTERVAL);
 }
 
+void AtPlayMovieLuaCallback() {
+	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATPLAYMOVIE);
+}
+
+void AtStopMovieLuaCallback() {
+	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATSTOPMOVIE);
+}
+
 void AtLoadStateLuaCallback() {
 	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATLOADSTATE);
 }
@@ -3977,6 +3985,8 @@ void AtUpdateScreenLuaCallback(){};
 void AtVILuaCallback()			{};
 void AtInputLuaCallback(int n)	{};
 void AtIntervalLuaCallback()	{};
+void AtPlayMovieLuaCallback()	{};
+void AtStopMovieLuaCallback()	{};
 void AtLoadStateLuaCallback()	{};
 void AtSaveStateLuaCallback()	{};
 void AtResetCallback()			{};

@@ -1463,228 +1463,228 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 	SetActiveMovie(buf); 
 	// can crash when looping + fast forward, no need to change this
 	// this creates a bug, so i changed it -auru
-    {
-        int code = read_movie_header(m_file, &m_header);
-        
-        switch(code)
-        {
-            case SUCCESS:
+	{
+		int code = read_movie_header(m_file, &m_header);
+
+		switch (code)
+		{
+		case SUCCESS:
+		{
+			char warningStr[8092];
+			warningStr[0] = '\0';
+
+			dontPlay = FALSE;
+
+			for (int i = 0; i < 4; i++)
 			{
-				char warningStr [8092];
-				warningStr[0] = '\0';
+				if (Controls[i].Present && Controls[i].RawData) {
+					if (MessageBox(NULL, "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?", "VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO) dontPlay = TRUE;
+					break; //
+				}
+			}
 
-				dontPlay = FALSE;
+			if (!Controls[0].Present && (m_header.controllerFlags & CONTROLLER_1_PRESENT))
+			{
+				strcat(warningStr, "Error: You have controller 1 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n");
+				dontPlay = TRUE;
+			}
+			if (Controls[0].Present && !(m_header.controllerFlags & CONTROLLER_1_PRESENT))
+				strcat(warningStr, "Warning: You have controller 1 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n");
+			else
+			{
+				if (Controls[0].Present && (Controls[0].Plugin != PLUGIN_MEMPAK) && (m_header.controllerFlags & CONTROLLER_1_MEMPAK))
+					strcat(warningStr, "Warning: Controller 1 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+				if (Controls[0].Present && (Controls[0].Plugin != PLUGIN_RUMBLE_PAK) && (m_header.controllerFlags & CONTROLLER_1_RUMBLE))
+					strcat(warningStr, "Warning: Controller 1 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+				if (Controls[0].Present && (Controls[0].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_1_MEMPAK | CONTROLLER_1_RUMBLE)))
+					strcat(warningStr, "Warning: Controller 1 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+			}
 
-				for (int i = 0; i < 4; i++)
-				{
-					if (Controls[i].Present && Controls[i].RawData) {
-						if (MessageBox(NULL, "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?", "VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO) dontPlay = TRUE;
-						break; //
-					}
-				}
+			if (!Controls[1].Present && (m_header.controllerFlags & CONTROLLER_2_PRESENT))
+			{
+				strcat(warningStr, "Error: You have controller 2 disabled, but it is enabled in the movie file.\nIt cannot back correctly unless you change this first (in your input settings).\n");
+				dontPlay = TRUE;
+			}
+			if (Controls[1].Present && !(m_header.controllerFlags & CONTROLLER_2_PRESENT))
+				strcat(warningStr, "Warning: You have controller 2 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
+			else
+			{
+				if (Controls[1].Present && (Controls[1].Plugin != PLUGIN_MEMPAK) && (m_header.controllerFlags & CONTROLLER_2_MEMPAK))
+					strcat(warningStr, "Warning: Controller 2 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+				if (Controls[1].Present && (Controls[1].Plugin != PLUGIN_RUMBLE_PAK) && (m_header.controllerFlags & CONTROLLER_2_RUMBLE))
+					strcat(warningStr, "Warning: Controller 2 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+				if (Controls[1].Present && (Controls[1].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_2_MEMPAK | CONTROLLER_2_RUMBLE)))
+					strcat(warningStr, "Warning: Controller 2 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+			}
 
-				if(!Controls[0].Present && (m_header.controllerFlags & CONTROLLER_1_PRESENT))
-				{
-					strcat(warningStr, "Error: You have controller 1 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n");
-					dontPlay = TRUE;
-				}
-				if(Controls[0].Present && !(m_header.controllerFlags & CONTROLLER_1_PRESENT))
-					strcat(warningStr, "Warning: You have controller 1 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n");
-				else
-				{
-					if(Controls[0].Present && (Controls[0].Plugin != PLUGIN_MEMPAK) && (m_header.controllerFlags & CONTROLLER_1_MEMPAK))
-						strcat(warningStr, "Warning: Controller 1 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if(Controls[0].Present && (Controls[0].Plugin != PLUGIN_RUMBLE_PAK) && (m_header.controllerFlags & CONTROLLER_1_RUMBLE))
-						strcat(warningStr, "Warning: Controller 1 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if(Controls[0].Present && (Controls[0].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_1_MEMPAK|CONTROLLER_1_RUMBLE)))
-						strcat(warningStr, "Warning: Controller 1 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-				}
+			if (!Controls[2].Present && (m_header.controllerFlags & CONTROLLER_3_PRESENT))
+			{
+				strcat(warningStr, "Error: You have controller 3 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you change this first (in your input settings).\n");
+				dontPlay = TRUE;
+			}
+			if (Controls[2].Present && !(m_header.controllerFlags & CONTROLLER_3_PRESENT))
+				strcat(warningStr, "Warning: You have controller 3 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
+			else
+			{
+				if (Controls[2].Present && (Controls[2].Plugin != PLUGIN_MEMPAK) && !(m_header.controllerFlags & CONTROLLER_3_MEMPAK))
+					strcat(warningStr, "Warning: Controller 3 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+				if (Controls[2].Present && (Controls[2].Plugin != PLUGIN_RUMBLE_PAK) && !(m_header.controllerFlags & CONTROLLER_3_RUMBLE))
+					strcat(warningStr, "Warning: Controller 3 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+				if (Controls[2].Present && (Controls[2].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_3_MEMPAK | CONTROLLER_3_RUMBLE)))
+					strcat(warningStr, "Warning: Controller 3 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+			}
 
-				if(!Controls[1].Present && (m_header.controllerFlags & CONTROLLER_2_PRESENT))
-				{
-					strcat(warningStr, "Error: You have controller 2 disabled, but it is enabled in the movie file.\nIt cannot back correctly unless you change this first (in your input settings).\n");
-					dontPlay = TRUE;
-				}
-				if(Controls[1].Present && !(m_header.controllerFlags & CONTROLLER_2_PRESENT))
-					strcat(warningStr, "Warning: You have controller 2 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
-				else
-				{
-					if(Controls[1].Present && (Controls[1].Plugin != PLUGIN_MEMPAK) && (m_header.controllerFlags & CONTROLLER_2_MEMPAK))
-						strcat(warningStr, "Warning: Controller 2 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if(Controls[1].Present && (Controls[1].Plugin != PLUGIN_RUMBLE_PAK) && (m_header.controllerFlags & CONTROLLER_2_RUMBLE))
-						strcat(warningStr, "Warning: Controller 2 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if(Controls[1].Present && (Controls[1].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_2_MEMPAK|CONTROLLER_2_RUMBLE)))
-						strcat(warningStr, "Warning: Controller 2 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-				}
+			if (!Controls[3].Present && (m_header.controllerFlags & CONTROLLER_4_PRESENT))
+			{
+				strcat(warningStr, "Error: You have controller 4 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you change this first (in your input settings).\n");
+				dontPlay = TRUE;
+			}
+			if (Controls[3].Present && !(m_header.controllerFlags & CONTROLLER_4_PRESENT))
+				strcat(warningStr, "Error: You have controller 4 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
+			else
+			{
+				if (Controls[3].Present && (Controls[3].Plugin != PLUGIN_MEMPAK) && !(m_header.controllerFlags & CONTROLLER_4_MEMPAK))
+					strcat(warningStr, "Warning: Controller 4 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+				if (Controls[3].Present && (Controls[3].Plugin != PLUGIN_RUMBLE_PAK) && !(m_header.controllerFlags & CONTROLLER_4_RUMBLE))
+					strcat(warningStr, "Warning: Controller 4 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+				if (Controls[3].Present && (Controls[3].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_4_MEMPAK | CONTROLLER_4_RUMBLE)))
+					strcat(warningStr, "Warning: Controller 4 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
+			}
 
-				if(!Controls[2].Present && (m_header.controllerFlags & CONTROLLER_3_PRESENT))
+			char str[512], name[512];
+			extern rom_header* ROM_HEADER;
+			if (ROM_HEADER && _stricmp(m_header.romNom, (const char*)ROM_HEADER->nom) != 0)
+			{
+				sprintf(str, "The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n", m_header.romNom, ROM_HEADER->nom);
+				strcat(warningStr, str);
+				dontPlay = Config.moviesERRORS ? dontPlay : TRUE;
+			}
+			else
+			{
+				if (ROM_HEADER && m_header.romCountry != ROM_HEADER->Country_code)
 				{
-					strcat(warningStr, "Error: You have controller 3 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you change this first (in your input settings).\n");
-					dontPlay = TRUE;
-				}
-				if(Controls[2].Present && !(m_header.controllerFlags & CONTROLLER_3_PRESENT))
-					strcat(warningStr, "Warning: You have controller 3 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
-				else
-				{
-					if(Controls[2].Present && (Controls[2].Plugin != PLUGIN_MEMPAK) && !(m_header.controllerFlags & CONTROLLER_3_MEMPAK))
-						strcat(warningStr, "Warning: Controller 3 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if(Controls[2].Present && (Controls[2].Plugin != PLUGIN_RUMBLE_PAK) && !(m_header.controllerFlags & CONTROLLER_3_RUMBLE))
-						strcat(warningStr, "Warning: Controller 3 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if(Controls[2].Present && (Controls[2].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_3_MEMPAK|CONTROLLER_3_RUMBLE)))
-						strcat(warningStr, "Warning: Controller 3 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-				}
-
-				if(!Controls[3].Present && (m_header.controllerFlags & CONTROLLER_4_PRESENT))
-				{
-					strcat(warningStr, "Error: You have controller 4 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you change this first (in your input settings).\n");
-					dontPlay = TRUE;
-				}
-				if(Controls[3].Present && !(m_header.controllerFlags & CONTROLLER_4_PRESENT))
-					strcat(warningStr, "Error: You have controller 4 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
-				else
-				{
-					if(Controls[3].Present && (Controls[3].Plugin != PLUGIN_MEMPAK) && !(m_header.controllerFlags & CONTROLLER_4_MEMPAK))
-						strcat(warningStr, "Warning: Controller 4 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if(Controls[3].Present && (Controls[3].Plugin != PLUGIN_RUMBLE_PAK) && !(m_header.controllerFlags & CONTROLLER_4_RUMBLE))
-						strcat(warningStr, "Warning: Controller 4 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if(Controls[3].Present && (Controls[3].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_4_MEMPAK|CONTROLLER_4_RUMBLE)))
-						strcat(warningStr, "Warning: Controller 4 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-				}
-
-				char str [512], name [512];
-				extern rom_header *ROM_HEADER;
-                if(ROM_HEADER && _stricmp(m_header.romNom, (const char*)ROM_HEADER->nom) != 0)
-                {
-				    sprintf(str, "The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n", m_header.romNom, ROM_HEADER->nom);
+					sprintf(str, "The movie was recorded with a ROM with country code \"%d\",\nbut you are using a ROM with country code \"%d\",\nso the movie may not play properly.\n", m_header.romCountry, ROM_HEADER->Country_code);
 					strcat(warningStr, str);
 					dontPlay = Config.moviesERRORS ? dontPlay : TRUE;
 				}
-				else 
+				else if (ROM_HEADER && m_header.romCRC != ROM_HEADER->CRC1)
 				{
-	                if(ROM_HEADER && m_header.romCountry != ROM_HEADER->Country_code)
-	                {
-					    sprintf(str, "The movie was recorded with a ROM with country code \"%d\",\nbut you are using a ROM with country code \"%d\",\nso the movie may not play properly.\n", m_header.romCountry, ROM_HEADER->Country_code);
-						strcat(warningStr, str);
-						dontPlay = Config.moviesERRORS ? dontPlay : TRUE;
-					}
-					else if(ROM_HEADER && m_header.romCRC != ROM_HEADER->CRC1)
-	                {
-					    sprintf(str, "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\",\nso the movie may not play properly.\n", (unsigned int)m_header.romCRC, (unsigned int)ROM_HEADER->CRC1);
-						strcat(warningStr, str);
-						dontPlay = Config.moviesERRORS ? dontPlay : TRUE;
-					}
+					sprintf(str, "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\",\nso the movie may not play properly.\n", (unsigned int)m_header.romCRC, (unsigned int)ROM_HEADER->CRC1);
+					strcat(warningStr, str);
+					dontPlay = Config.moviesERRORS ? dontPlay : TRUE;
 				}
-				
-				if(strlen(warningStr) > 0)
-				{
-					if(dontPlay)
-						printError(warningStr);
-					else
-						printWarning(warningStr);
-				}
+			}
 
-				extern char gfx_name[255];
-				extern char input_name[255];
-				extern char sound_name[255];
-				extern char rsp_name[255];
-//			    ROM_INFO* pRomInfo = getSelectedRom(); // FIXME
-//			    DEFAULT_ROM_SETTINGS TempRomSettings = GetDefaultRomSettings( pRomInfo->InternalName);
-//				if(TempRomSettings.InputPluginName[0])
-//					strncpy(name, TempRomSettings.InputPluginName, 64);
-//				else
-					strncpy(name, input_name, 64);
-                if(name[0] && m_header.inputPluginName[0] && _stricmp(m_header.inputPluginName, name) != 0)
-                {
-				    printf("Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.\n", m_header.inputPluginName, name);
-				}
-//				if(TempRomSettings.GfxPluginName[0])
-//					strncpy(name, TempRomSettings.GfxPluginName, 64);
-//				else
-					strncpy(name, gfx_name, 64);
-                if(name[0] && m_header.videoPluginName[0] && _stricmp(m_header.videoPluginName, name) != 0)
-                {
-				    printf("Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.\n", m_header.videoPluginName, name);
-				}
-//				if(TempRomSettings.SoundPluginName[0])
-//					strncpy(name, TempRomSettings.SoundPluginName, 64);
-//				else
-					strncpy(name, sound_name, 64);
-                if(name[0] && m_header.soundPluginName[0] && _stricmp(m_header.soundPluginName, name) != 0)
-                {
-				    printf("Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.\n", m_header.soundPluginName, name);
-				}
-//				if(TempRomSettings.RspPluginName[0])
-//					strncpy(name, TempRomSettings.RspPluginName, 64);
-//				else
-					strncpy(name, rsp_name, 64);
-                if(name[0] && m_header.rspPluginName[0] && _stricmp(m_header.rspPluginName, name) != 0)
-                {
-				    printf("Warning: The movie was recorded with the RSP plugin \"%s\",\nbut you are using the RSP plugin \"%s\",\nso the movie probably won't play properly.\n", m_header.rspPluginName, name);
-				}
+			if (strlen(warningStr) > 0)
+			{
+				if (dontPlay)
+					printError(warningStr);
+				else
+					printWarning(warningStr);
+			}
+
+			extern char gfx_name[255];
+			extern char input_name[255];
+			extern char sound_name[255];
+			extern char rsp_name[255];
+			//			    ROM_INFO* pRomInfo = getSelectedRom(); // FIXME
+			//			    DEFAULT_ROM_SETTINGS TempRomSettings = GetDefaultRomSettings( pRomInfo->InternalName);
+			//				if(TempRomSettings.InputPluginName[0])
+			//					strncpy(name, TempRomSettings.InputPluginName, 64);
+			//				else
+			strncpy(name, input_name, 64);
+			if (name[0] && m_header.inputPluginName[0] && _stricmp(m_header.inputPluginName, name) != 0)
+			{
+				printf("Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.\n", m_header.inputPluginName, name);
+			}
+			//				if(TempRomSettings.GfxPluginName[0])
+			//					strncpy(name, TempRomSettings.GfxPluginName, 64);
+			//				else
+			strncpy(name, gfx_name, 64);
+			if (name[0] && m_header.videoPluginName[0] && _stricmp(m_header.videoPluginName, name) != 0)
+			{
+				printf("Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.\n", m_header.videoPluginName, name);
+			}
+			//				if(TempRomSettings.SoundPluginName[0])
+			//					strncpy(name, TempRomSettings.SoundPluginName, 64);
+			//				else
+			strncpy(name, sound_name, 64);
+			if (name[0] && m_header.soundPluginName[0] && _stricmp(m_header.soundPluginName, name) != 0)
+			{
+				printf("Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.\n", m_header.soundPluginName, name);
+			}
+			//				if(TempRomSettings.RspPluginName[0])
+			//					strncpy(name, TempRomSettings.RspPluginName, 64);
+			//				else
+			strncpy(name, rsp_name, 64);
+			if (name[0] && m_header.rspPluginName[0] && _stricmp(m_header.rspPluginName, name) != 0)
+			{
+				printf("Warning: The movie was recorded with the RSP plugin \"%s\",\nbut you are using the RSP plugin \"%s\",\nso the movie probably won't play properly.\n", m_header.rspPluginName, name);
+			}
 
 
 
-				if (dontPlay) {
-					RESET_TITLEBAR
-					if(m_file != NULL)
-					fclose(m_file);
-					return -1;
-				}
+			if (dontPlay) {
+				RESET_TITLEBAR
+					if (m_file != NULL)
+						fclose(m_file);
+				return -1;
+			}
 
-				// recalculate length of movie from the file size
+			// recalculate length of movie from the file size
 //				fseek(m_file, 0, SEEK_END);
 //				int fileSize = ftell(m_file);
 //				m_header.length_samples = (fileSize - MUP_HEADER_SIZE) / sizeof(BUTTONS) - 1;
 
-				fseek(m_file, MUP_HEADER_SIZE_CUR, SEEK_SET);
+			fseek(m_file, MUP_HEADER_SIZE_CUR, SEEK_SET);
 
-				// read controller data
-				m_inputBufferPtr = m_inputBuffer;
-				unsigned long to_read = sizeof(BUTTONS) * (m_header.length_samples+1);
-				reserve_buffer_space(to_read);
-				fread(m_inputBufferPtr, 1, to_read, m_file);
+			// read controller data
+			m_inputBufferPtr = m_inputBuffer;
+			unsigned long to_read = sizeof(BUTTONS) * (m_header.length_samples + 1);
+			reserve_buffer_space(to_read);
+			fread(m_inputBufferPtr, 1, to_read, m_file);
 
-				// read "baseline" controller data
+			// read "baseline" controller data
 ///				read_frame_controller_data(0); // correct if we can assume the first controller is active, which we can on all GBx/xGB systems
 //				m_currentSample = 0;
-				
-				fseek(m_file, 0, SEEK_END);
-				#ifdef _WIN32
-				char buf[50];
-				sprintf(buf, "%d rr", m_header.rerecord_count);
-				
-				extern HWND hStatus;
-				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
-				#endif
-			}	break;
-            default:
-				char buf[100];
-				sprintf(buf, "[VCR]: Error playing movie: %s.\n", m_errCodeName[code]);
-				printError(buf);
-				dontPlay = code != 0; // should be stable enough
-				break;
-        }
+
+			fseek(m_file, 0, SEEK_END);
+#ifdef _WIN32
+			char buf[50];
+			sprintf(buf, "%d rr", m_header.rerecord_count);
+
+			extern HWND hStatus;
+			SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
+#endif
+		}	break;
+		default:
+			char buf[100];
+			sprintf(buf, "[VCR]: Error playing movie: %s.\n", m_errCodeName[code]);
+			printError(buf);
+			dontPlay = code != 0; // should be stable enough
+			break;
+		}
 
 		m_currentSample = 0;
 		m_currentVI = 0;
 		strcpy(VCR_Lastpath, m_filename);
 
-		if(Config.movieBackupsLevel > 1) movieBackup();
+		if (Config.movieBackupsLevel > 1) movieBackup();
 
-	    if(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
-	    {
+		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
+		{
 			// we cant wait for this function to return and then get check in emu(?) thread (savestates_load)
-			
 
-	    	// load state
-	    	printf( "[VCR]: Loading state...\n" );
-	    	strcpy( buf, m_filename );
+
+			// load state
+			printf("[VCR]: Loading state...\n");
+			strcpy(buf, m_filename);
 
 			// remove extension
-			for(;;)
+			for (;;)
 			{
-		    	char* dot = strrchr(buf, '.');
-		    	if(dot && (dot > strrchr(buf, '\\') && dot > strrchr(buf, '/')))
+				char* dot = strrchr(buf, '.');
+				if (dot && (dot > strrchr(buf, '\\') && dot > strrchr(buf, '/')))
 					*dot = '\0';
 				else
 					break;
@@ -1692,10 +1692,10 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 			// TODO: FIXME: One should never fear threats. It's like with a dog. 
 			// A dog senses when somebody wrote bad code, and bites.
-			char* bufnExt = (char*)malloc(strlen(buf)+11);
+			char* bufnExt = (char*)malloc(strlen(buf) + 11);
 			strcpy(bufnExt, buf);
 
-	    	strncat( buf, ".st", 4);
+			strncat(buf, ".st", 4);
 
 			FILE* stBuf;
 
@@ -1718,22 +1718,23 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 			free(bufnExt);
 
-	    	savestates_select_filename( buf );
+			savestates_select_filename(buf);
 			savestates_job |= LOADSTATE;
-	    	m_task = StartPlaybackFromSnapshot;
-	    } else {
-	    	m_task = StartPlayback;
-	    }
+			m_task = StartPlaybackFromSnapshot;
+		}
+		else {
+			m_task = StartPlayback;
+		}
 
 		// utf8 strings are also null-terminated so this method still works
-		if(authorUTF8)
+		if (authorUTF8)
 			strncpy(m_header.authorInfo, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
-		m_header.authorInfo[MOVIE_AUTHOR_DATA_SIZE-1] = '\0';
-		if(descriptionUTF8)
+		m_header.authorInfo[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
+		if (descriptionUTF8)
 			strncpy(m_header.description, descriptionUTF8, MOVIE_DESCRIPTION_DATA_SIZE);
-		m_header.description[MOVIE_DESCRIPTION_DATA_SIZE-1] = '\0';
-
-        return code;
+		m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
+		AtPlayMovieLuaCallback();
+		return code;
 	}
 }
 
@@ -1828,6 +1829,7 @@ stopPlayback(bool bypassLoopSetting)
 			m_inputBufferSize = 0;
 		}
 
+		AtStopMovieLuaCallback();
 		return 0;
 	}
 
