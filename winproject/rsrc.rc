@@ -36,6 +36,7 @@ IDB_LOGO_PAUSE          BITMAP                  "icons\\pause.bmp"
 
 IDB_LOGO_RESUME         BITMAP                  "icons\\resume.bmp"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
@@ -207,7 +208,7 @@ BEGIN
     CONTROL         "Pause emulation when window is not active",IDC_PAUSENOTACTIVE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,100,10
     CONTROL         "Use global plugins settings",IDC_PLUGIN_OVERWRITE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,50,100,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,50,102,10
     CONTROL         "Show toolbar",IDC_GUI_TOOLBAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,20,100,10
     CONTROL         "Show statusbar",IDC_GUI_STATUSBAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,35,100,10
     CONTROL         "Auto Increment save slot",IDC_AUTOINCSAVESLOT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,50,100,10
@@ -248,7 +249,7 @@ BEGIN
                     "Button",BS_AUTORADIOBUTTON,16,89,150,12
     CONTROL         "Old Video Synchronisation",IDC_AV_VIDEOSYNC,"Button",BS_AUTORADIOBUTTON,16,101,150,12
     CONTROL         "Allow loading movies on wrong roms",IDC_ALERTMOVIESERRORS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,61,120,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,61,126,10
 END
 
 IDD_AUDIT_ROMS_DIALOG DIALOGEX 0, 0, 183, 138
@@ -459,7 +460,7 @@ BEGIN
     CONTROL         "Use compressed file",IDC_INI_COMPRESSED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,240,150,12
     GROUPBOX        "Ini file",IDC_INIFILE,7,230,215,26
     EDITTEXT        IDC_SKIPFREQ,162,138,45,12,ES_AUTOHSCROLL
-    LTEXT           "Fast forward skip frequency:",IDC_FASTFORWARDSKIPFREQ,108,133,49,19
+    LTEXT           "Fast forward skip frequency:",IDC_FASTFORWARDSKIPFREQ,108,131,53,25
     CONTROL         "0-index statusbar",IDC_0INDEX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,144,86,69,10
 END
 
@@ -761,6 +762,10 @@ BEGIN
     BEGIN
     END
 
+    IDD_LUAWINDOW_SIMPLIFIED, DIALOG
+    BEGIN
+    END
+
     IDD_DIRECTORIES, DIALOG
     BEGIN
     END
@@ -796,6 +801,10 @@ BEGIN
     END
 
     IDD_LUAINPUTPROMPT, DIALOG
+    BEGIN
+    END
+
+    IDD_MUPENERROR, DIALOG
     BEGIN
     END
 END
