@@ -509,7 +509,7 @@ void SaveConfig()
 
     // some new misc ones
     WriteHotkeyConfig(42, "Start From Beginning");
-    WriteHotkeyConfig(43, "Replay Latest");
+    WriteHotkeyConfig(43, "Load Latest Movie");
     WriteHotkeyConfig(44, "Load Latest ROM");
     
 }
