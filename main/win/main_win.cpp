@@ -3100,18 +3100,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
                 break;
             case ID_REPLAY_LATEST:
-                // Overwrite prevention? Path sanity check (Leave to internal handling)?
-                if (VCR_startPlayback(Config.RecentMovies[0], "", "") < 0)
-                    break;
-                else {
-                    HMENU hMenu = GetMenu(mainHWND);
-                    EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-                    EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+                // Don't try to load a recent movie if not emulating!
+                if (rom) {
+                    // Overwrite prevention? Path sanity check (Leave to internal handling)?
+                    if (VCR_startPlayback(Config.RecentMovies[0], "", "") < 0)
+                        break;
+                    else {
+                        HMENU hMenu = GetMenu(mainHWND);
+                        EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
+                        EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
 
-                    if (!emu_paused || !emu_launched)
-                        SetStatusTranslatedString(hStatus, 0, "Playback started...");
-                    else
-                        SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+                        if (!emu_paused || !emu_launched)
+                            SetStatusTranslatedString(hStatus, 0, "Playback started...");
+                        else
+                            SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+                    }
+                }
+                else {
+                    SetStatusTranslatedString(hStatus, 0, "Cannot load a movie while not emulating!");
                 }
 
                 break;
@@ -3523,7 +3529,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                           RunRecentRom(LOWORD(wParam));              
                      }
                      else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + MAX_RECENT_MOVIE)) {
-                         RunRecentMovie(LOWORD(wParam));
+						 RunRecentMovie(LOWORD(wParam));
                          // should probably make this code from the ID_REPLAY_LATEST case into a function on its own
                          // because now it's used here too
                          HMENU hMenu = GetMenu(mainHWND);
