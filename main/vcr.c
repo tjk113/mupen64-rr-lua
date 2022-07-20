@@ -2230,6 +2230,24 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	VCRComp_startFile( aviFilename, width, height, visByCountrycode(), codecDialog);
 	m_capture = 1;
 	strncpy( AVIFileName, aviFilename, PATH_MAX );
+
+	// Setting titlebar to include currently capturing AVI file
+	char title[PATH_MAX];
+	char avi[PATH_MAX];
+	strncpy(avi, AVIFileName, PATH_MAX);
+	_splitpath(avi, 0, 0, avi, 0);
+
+	if (VCR_isPlaying()) {
+		char m64[PATH_MAX];
+		strncpy(m64, m_filename, PATH_MAX);
+		_splitpath(m64, 0, 0, m64, 0);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s.avi", ROM_HEADER->nom, m64, avi);
+	}
+	else {
+		sprintf(title, MUPEN_VERSION " - %s | %s.avi", ROM_HEADER->nom, avi);
+	}
+	printf("title %s\n", title);
+	SetWindowText(mainHWND, title);
 /*	if (VCR_startPlayback( recFilename ) < 0)
 	{
 		printError("Cannot start capture; could not play movie file!\n" );
@@ -2306,6 +2324,18 @@ VCR_stopCapture()
 	extern void EnableToolbar();
 	EnableToolbar();
 	SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	if (VCR_isPlaying()) {
+		char title[PATH_MAX];
+		char m64[PATH_MAX];
+		strncpy(m64, m_filename, PATH_MAX);
+		_splitpath(m64, 0, 0, m64, 0);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64", ROM_HEADER->nom, m64);
+		SetWindowText(mainHWND, title);
+	}
+	else { //atme
+		RESET_TITLEBAR
+	}
+
 #else
 	usleep( 100000 ); // HACK - is this really necessary?
 #endif
