@@ -103,6 +103,7 @@ typedef struct _CONFIG {
     BOOL zeroIndex;
     BOOL movieBackups;
     int movieBackupsLevel;
+    int CPUClockSpeedMultiplier;
 
     // Advanced vars
     BOOL StartFullScreen;

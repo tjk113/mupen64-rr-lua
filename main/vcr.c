@@ -2230,6 +2230,9 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	VCRComp_startFile( aviFilename, width, height, visByCountrycode(), codecDialog);
 	m_capture = 1;
 	strncpy( AVIFileName, aviFilename, PATH_MAX );
+
+	char title[1024];
+	//right here 
 /*	if (VCR_startPlayback( recFilename ) < 0)
 	{
 		printError("Cannot start capture; could not play movie file!\n" );

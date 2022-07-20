@@ -270,6 +270,7 @@ void LoadConfig()
     Config.FrequentVCRUIRefresh = ReadCfgInt("Other", "Fast statusbar updates", 0);
     Config.SyncMode = ReadCfgInt("Other", "Synchronisation Mode", VCR_SYNC_AUDIO_DUPL);
     Config.moviesERRORS = ReadCfgInt("General", "Alert Movies errors", 1); //moviesERRORS == 1 -> the errors are shown
+    Config.CPUClockSpeedMultiplier = ReadCfgInt("Other", "CPU Clock Speed Multiplier", 1);
 
     // Load A Whole Whackton Of Hotkeys:
     /*
@@ -476,6 +477,7 @@ void SaveConfig()
     WriteCfgInt("Other", "Autobackup level", Config.movieBackupsLevel);
     WriteCfgInt("Other", "Fast statusbar updates", Config.FrequentVCRUIRefresh);
     WriteCfgInt("Other", "Synchronisation Mode", Config.SyncMode);
+    WriteCfgInt("Other", "CPU Clock Speed Multiplier", Config.CPUClockSpeedMultiplier);
 
     // Save A Whole Whackton Of Hotkeys:
 

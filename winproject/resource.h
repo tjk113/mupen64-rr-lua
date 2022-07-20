@@ -492,6 +492,10 @@
 #define IDC_AV_AUDIOSYNC				40051
 #define IDC_AV_VIDEOSYNC				40052
 #define ID_LOAD_LATEST					40053
+#define IDC_LAG_EMULATION				40054
+#define IDC_CLOCK_SPD_MULT				40055
+#define IDC_COMBO_CLOCK_SPD_MULT		40056
+#define IDC_CLOCK_SPD_MULT_TEXT			40057
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
