@@ -190,8 +190,8 @@ void ReadComboBoxValue(HWND hwnd,int ResourceID,char *ret)
 }
 
 void ChangeSettings(HWND hwndOwner) {
-    PROPSHEETPAGE psp[6];
-    PROPSHEETHEADER psh;
+    PROPSHEETPAGE psp[6]{};
+    PROPSHEETHEADER psh{};
 	char ConfigStr[200],DirectoriesStr[200],titleStr[200],settingsStr[200];
     char AdvSettingsStr[200], HotkeysStr[200], OtherStr[200];
     psp[0].dwSize = sizeof(PROPSHEETPAGE);
@@ -259,7 +259,7 @@ void ChangeSettings(HWND hwndOwner) {
     psh.hwndParent = hwndOwner;
     psh.hInstance = app_hInstance;
     TranslateDefault("Settings","Settings",titleStr);
-    psh.pszCaption = (LPSTR) titleStr;
+    psh.pszCaption = (LPTSTR) titleStr;
     psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
     psh.nStartPage = 0;
     psh.ppsp = (LPCPROPSHEETPAGE) &psp;
@@ -407,8 +407,8 @@ bool folderDiag(char* out, int max_size, const char* starting_dir)
 BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
   char Buffer[MAX_PATH], Directory[MAX_PATH];
-    LPITEMIDLIST pidl;
-	BROWSEINFO bi;
+  LPITEMIDLIST pidl{};
+  BROWSEINFO bi{};
     char RomBrowserDir[_MAX_PATH]; 
     HWND RomBrowserDirListBox;
     int count;
@@ -815,7 +815,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
          WriteCheckBoxValue(hwnd, IDC_0INDEX, Config.zeroIndex);
          SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.skipFrequency,0);
                
-         CreateToolTip(IDC_SKIPFREQ, hwnd, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame");
+         CreateToolTip(IDC_SKIPFREQ, hwnd, (PTSTR)"0 = Skip all frames, 1 = Show all frames, n = show every nth frame");
 
          switch (Config.guiDynacore)    
             {        

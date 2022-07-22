@@ -377,7 +377,7 @@ void savestates_load(bool silenceNotFoundError)
 			}
 			printf("Savestate \"%s\" not found.\n", filename); //full path for debug
 			free(filename);
-			warn_savestate(0, "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
+			warn_savestate("", "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
 												  // by moving the warn function it doesn't do this anymore 
 			savestates_job_success = FALSE;
 			return;

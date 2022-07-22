@@ -1517,7 +1517,7 @@ void setDefaultPlugins()
       rewind_plugin();
 }           
 
-void ShowMessage(char *lpszMessage) 
+void ShowMessage(const char *lpszMessage) 
 { 
    MessageBox(NULL, lpszMessage, "Info", MB_OK); 
 } 

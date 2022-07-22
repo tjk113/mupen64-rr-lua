@@ -22,7 +22,7 @@
 
 #ifndef EMULATOR_MAIN_CPP_DEF
   typedef struct {
-    char *appName;
+    const char *appName;
     char *gameList;
 
     int (WINAPI *gameCallback)(char *game, int player, int numplayers);

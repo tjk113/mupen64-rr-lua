@@ -150,7 +150,7 @@ static void stackDump(lua_State* L) {
 	printf("--------------- Stack Dump Finished ---------------\n");
 }
 #endif
-void ASSERT(bool e, char *s = "assert"){
+void ASSERT(bool e, const char *s = "assert"){
 	if(!e) {
 		DebugBreak();
 	}
@@ -212,7 +212,7 @@ public:
 	void run(char *path){
 		stopping = false;
 		std::string pathStr(path);
-		if (&path == NULL || (&pathStr.substr(pathStr.find_last_of(".") + 1))->compare("lua"))
+		if (&path == NULL || pathStr.substr(pathStr.find_last_of(".") + 1).compare("lua"))
 			return;
 
 		ASSERT(!isrunning());
@@ -898,7 +898,7 @@ void TraceLogStart(const char *name, BOOL append = FALSE){
 		MENUITEMINFO mii = {};
 		mii.cbSize = sizeof(MENUITEMINFO);
 		mii.fMask = MIIM_STRING;
-		mii.dwTypeData = "Stop &Trace Logger";
+		mii.dwTypeData = (LPTSTR)"Stop &Trace Logger";
 		SetMenuItemInfo(GetMenu(mainHWND), ID_TRACELOG,
 			FALSE, &mii);
 	}
@@ -910,7 +910,7 @@ void TraceLogStop(){
 	MENUITEMINFO mii = {};
 	mii.cbSize = sizeof(MENUITEMINFO);
 	mii.fMask = MIIM_STRING;
-	mii.dwTypeData = "Start &Trace Logger";
+	mii.dwTypeData = (LPTSTR)"Start &Trace Logger";
 	SetMenuItemInfo(GetMenu(mainHWND), ID_TRACELOG,
 		FALSE, &mii);
 	TraceLoggingBufFlush();
@@ -1407,7 +1407,7 @@ int SetSyncBreak(lua_State *L) {
 	luaL_checktype(L, 2, LUA_TFUNCTION);
 	if(!lua_toboolean(L, 3)) {
 		lua_pushvalue(L, 2);
-		AddrBreakFunc s;
+		AddrBreakFunc s{};
 		SyncBreakMap::iterator it = syncBreakMap.find(addr);
 		if(it == syncBreakMap.end()) {
 			SyncBreak b;
@@ -1488,7 +1488,7 @@ void SetMemoryBreak(lua_State *L) {
 	if(!lua_toboolean(L, 3)) {
 		lua_pushvalue(L, 2);
 		{
-			AddrBreakFunc s;
+			AddrBreakFunc s{};
 			AddrBreakMap::iterator it = breakMap.find(addr);
 			if(it == breakMap.end()) {
 				AddrBreak b;
@@ -1574,7 +1574,7 @@ int SetPCBreak(lua_State *L) {
 		if(!pcBreakMap[a]) {
 			pcBreakMap[a] = new AddrBreakFuncVec();
 		}
-		AddrBreakFunc s;
+		AddrBreakFunc s{};
 		s.lua = L;
 		s.idx = RegisterFunction(L, REG_PCBREAK);
 		pcBreakMap[a]->push_back(s);
@@ -1912,7 +1912,7 @@ int GetSystemMetricsLua(lua_State* L)
 //�Ƃ������E�B���h�E�ɒ��ڏ����Ă���
 //�Ƃ肠������������E�B���h�E�ɒ�������
 typedef struct COLORNAME {
-	char *name;
+	const char *name;
 	COLORREF value;
 } COLORNAME;
 
@@ -2282,7 +2282,7 @@ int FillRect(lua_State* L) {
 
 	*/
 	Lua* lua = GetLuaClass(L);
-	RECT rect;
+	RECT rect{};
 	COLORREF color = RGB(
 		luaL_checknumber(L, 5),
 		luaL_checknumber(L, 6),

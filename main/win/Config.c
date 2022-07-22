@@ -60,13 +60,13 @@ char* CfgFilePath()
 }
 
 
-void WriteCfgString(char* Section, char* Key, char* Value)
+void WriteCfgString(const char* Section, const char* Key, char* Value)
 {
     WritePrivateProfileString(Section, Key, Value, CfgFilePath());
 }
 
 
-void WriteCfgInt(char* Section, char* Key, int Value)
+void WriteCfgInt(const char* Section, const char* Key, int Value)
 {
     static char TempStr[20];
     sprintf(TempStr, "%d", Value);
@@ -74,13 +74,13 @@ void WriteCfgInt(char* Section, char* Key, int Value)
 }
 
 
-void ReadCfgString(char* Section, char* Key, char* DefaultValue, char* retValue)
+void ReadCfgString(const char* Section, const char* Key, const char* DefaultValue, char* retValue)
 {
     GetPrivateProfileString(Section, Key, DefaultValue, retValue, MAX_PATH, CfgFilePath());
 }
 
 
-int ReadCfgInt(char* Section, char* Key, int DefaultValue)
+int ReadCfgInt(const char* Section, const char* Key, int DefaultValue)
 {
     return GetPrivateProfileInt(Section, Key, DefaultValue, CfgFilePath());
 }
@@ -132,7 +132,7 @@ void LoadRecentMovies()
     }
 }
 
-void ReadHotkeyConfig(int n, char* name, int cmd, int def) {
+void ReadHotkeyConfig(int n, const  char* name, int cmd, int def) {
     HOTKEY* h;
     char t[128];
     h = &Config.hotkey[n];
@@ -146,7 +146,7 @@ void ReadHotkeyConfig(int n, char* name, int cmd, int def) {
     h->alt = ReadCfgInt("Hotkeys", t, def & 0x400 ? 1 : 0);
     h->command = cmd;
 }
-void WriteHotkeyConfig(int n, char* name) {
+void WriteHotkeyConfig(int n, const char* name) {
     HOTKEY* h;
     char t[128];
     h = &Config.hotkey[n];
@@ -479,7 +479,7 @@ void SaveConfig()
 
     // Save A Whole Whackton Of Hotkeys:
 
-    char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
+    const char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
         "ReadOnly", "Play", "PlayStop", "Record",
         "RecordStop", "Screenshot", "Save Current", "Load Current" };
 

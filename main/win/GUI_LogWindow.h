@@ -23,9 +23,9 @@
 extern int extLogger ;
 int  GUI_CreateLogWindow( HWND hwnd );
 
-void ShowWarning(char *Str, ...);
-void ShowError(char *Str, ...);
-void ShowInfo(char *Str, ...);
+void ShowWarning(const char *Str, ...);
+void ShowError(const char *Str, ...);
+void ShowInfo(const char *Str, ...);
 void ShowHideLogWindow();
 void ShowLogWindow();
 void HideLogWindow();

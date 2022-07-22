@@ -185,12 +185,12 @@ void freeLanguages()
     }
 }
 
-void Translate(char* GuiWord,char* Ret)
+void Translate(const char* GuiWord,char* Ret)
 {
    TranslateDefault( GuiWord, GuiWord, Ret);
 }
 
-void TranslateDefault(char* GuiWord,char *Default,char* Ret)
+void TranslateDefault(const char* GuiWord,const char *Default,char* Ret)
 {
    if (current_lang) {
       GetPrivateProfileString(current_lang->language_name,GuiWord,Default,Ret,200,current_lang->file_name); 
@@ -200,14 +200,14 @@ void TranslateDefault(char* GuiWord,char *Default,char* Ret)
    }
 }
 
-void SetItemTranslatedString(HWND hwnd,int ElementID,char* Str)
+void SetItemTranslatedString(HWND hwnd,int ElementID,const char* Str)
 {
     char String[800];
     Translate(Str,String);  
     SetDlgItemText( hwnd, ElementID, String );
 }
 
-void SetItemTranslatedStringDefault(HWND hwnd,int ElementID,char* Str,char*Def)
+void SetItemTranslatedStringDefault(HWND hwnd,int ElementID,const char* Str,const char*Def)
 {
     char String[800];
     TranslateDefault(Str,Def,String);
@@ -215,7 +215,7 @@ void SetItemTranslatedStringDefault(HWND hwnd,int ElementID,char* Str,char*Def)
 }
 
 
-void SetStatusTranslatedString(HWND hStatus,int section,char* Str)
+void SetStatusTranslatedString(HWND hStatus,int section,const char* Str)
 {
     char String[800];
     Translate(Str,String);  
@@ -223,7 +223,7 @@ void SetStatusTranslatedString(HWND hStatus,int section,char* Str)
     SendMessage( hStatus, SB_SETTEXT, section, (LPARAM)String ); 
 }
 
-void SetMenuTranslatedString(HMENU hMenu,int elementID,char* Str,char* Acc)
+void SetMenuTranslatedString(HMENU hMenu,int elementID,const char* Str,const char* Acc)
 {
     char String[800];
     MENUITEMINFO menuinfo;
@@ -240,7 +240,7 @@ void SetMenuTranslatedString(HMENU hMenu,int elementID,char* Str,char* Acc)
 }
 
 
-void SetMenuAccelerator(HMENU hMenu,int elementID,char* Acc)
+void SetMenuAccelerator(HMENU hMenu,int elementID,const char* Acc)
 {
     char String[800];
     MENUITEMINFO menuinfo;
