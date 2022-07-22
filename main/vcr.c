@@ -2229,6 +2229,7 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	}
 	VCRComp_startFile( aviFilename, width, height, visByCountrycode(), codecDialog);
 	m_capture = 1;
+	EnableEmulationMenuItems(TRUE);
 	strncpy( AVIFileName, aviFilename, PATH_MAX );
 
 	// Setting titlebar to include currently capturing AVI file
