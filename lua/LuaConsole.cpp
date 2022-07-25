@@ -1888,10 +1888,10 @@ template<>ULONGLONG CheckT<ULONGLONG>(lua_State *L, int i) {
 }
 template<typename T, void(**writemem_func)(), T &g_T>
 int WriteMemT(lua_State *L) {
-	ULONGLONG *rdword_s = rdword;
+	ULONGLONG *rdword_s = rdword, address_s = address;
 	T g_T_s = g_T;
 	address = CheckIntegerU(L, 1);
-	g_T = CheckT(L, 2);
+	g_T = CheckT<T>(L, 2);
 	writemem_func[address>>16]();
 	address = address_s;
 	g_T = g_T_s;

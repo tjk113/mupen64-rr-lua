@@ -371,6 +371,7 @@
 #define IDC_MOVIE_REFRESH               9301
 #define IDC_MOVIE_READONLY              9302
 #define IDC_FROMSNAPSHOT_LABEL          9303
+//#define IDC_EXISTINGSAVESTATE_BROWSE	9304
 #define IDC_ROM_INFO_TEXT               9409
 #define IDC_ROM_HEADER_INFO_TEXT2       9410
 #define IDC_ROM_INFO_TEXT2              9411
@@ -417,8 +418,9 @@
 #define IDC_MOVIE_CONTROLLERS2          9503
 #define IDC_STARTSFROM_LABEL            9504
 #define IDC_FROMSNAPSHOT_RADIO          9505
-#define IDC_FROMSTART_RADIO             9506
-#define IDC_FROMEEPROM_RADIO					9516
+#define IDC_FROMEXISTINGSNAPSHOT_RADIO	9506
+#define IDC_FROMSTART_RADIO             9507
+#define IDC_FROMEEPROM_RADIO			9516
 #define IDC_PAUSEAT_LABEL               9507
 #define IDC_PAUSEAT_FIELD               9508
 //Lua

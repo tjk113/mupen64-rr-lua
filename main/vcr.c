@@ -1207,6 +1207,9 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 		return -1;
 	}
 */
+	// m_filename will be overwritten later in the function if
+	// MOVIE_START_FROM_EXISTING_SNAPSHOT is true, but it doesn't
+	// matter enough to make this a conditional thing
 	strncpy( m_filename, filename, PATH_MAX );
 
 	// open record file
@@ -1273,7 +1276,17 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
     	savestates_select_filename( buf );
     	savestates_job |= SAVESTATE;
      	m_task = StartRecordingFromSnapshot;
-    } else{
+	}
+	else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT) {
+		printf("[VCR]: Loading state...\n");
+		strncpy(m_filename, (const char*)savestates_get_selected_filename(), MAX_PATH);
+		strncpy(buf, m_filename, MAX_PATH);
+
+		savestates_select_filename(buf);
+		savestates_job |= LOADSTATE;
+		m_task = StartRecordingFromSnapshot;
+	}
+	else {
      	m_task = StartRecording;
     }
 	SetActiveMovie(buf);

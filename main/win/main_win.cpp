@@ -33,6 +33,7 @@ extern "C" {
 #include <commctrl.h>
 #include <stdlib.h>
 #include <math.h>
+#include <filesystem>
 #ifndef _MSC_VER
 #include <dirent.h>
 #endif
@@ -1865,7 +1866,7 @@ ShowInfo("[VCR]:refreshing movie info...");
 
 //ShowInfo("refreshing movie start/frames...\n");
 
-	SetDlgItemText(hwnd,IDC_FROMSNAPSHOT_TEXT,(m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) ? "Savestate" : "Start");
+    SetDlgItemText(hwnd, IDC_FROMSNAPSHOT_TEXT, (m_header.startFlags & (MOVIE_START_FROM_SNAPSHOT | MOVIE_START_FROM_EXISTING_SNAPSHOT)) ? "Savestate" : "Start");
     if (m_header.startFlags & MOVIE_START_FROM_EEPROM) {
         SetDlgItemTextA(hwnd, IDC_FROMSNAPSHOT_TEXT, "EEPROM");
     }
@@ -2034,51 +2035,63 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
               EndDialog(hwnd, IDOK);
         break; 
         case WM_COMMAND:
-            switch(LOWORD(wParam))
+            switch (LOWORD(wParam))
             {
-                case IDC_OK:
-                case IDOK:
-				{
-	
-					// turn WCHAR into UTF8
-					WCHAR authorWC [MOVIE_AUTHOR_DATA_SIZE];
-					char authorUTF8 [MOVIE_AUTHOR_DATA_SIZE * 4];
-					if(GetDlgItemTextW(hwnd,IDC_INI_AUTHOR,authorWC,MOVIE_AUTHOR_DATA_SIZE))
-						WideCharToMultiByte(CP_UTF8, 0, authorWC, -1, authorUTF8, sizeof(authorUTF8), NULL, NULL);
-					else
-						GetDlgItemTextA(hwnd,IDC_INI_AUTHOR,authorUTF8,MOVIE_AUTHOR_DATA_SIZE);
+            case IDC_OK:
+            case IDOK:
+            {
 
-					WCHAR descriptionWC [MOVIE_DESCRIPTION_DATA_SIZE];
-					char descriptionUTF8 [MOVIE_DESCRIPTION_DATA_SIZE * 4];
-					if(GetDlgItemTextW(hwnd,IDC_INI_DESCRIPTION,descriptionWC,MOVIE_DESCRIPTION_DATA_SIZE))
-						WideCharToMultiByte(CP_UTF8, 0, descriptionWC, -1, descriptionUTF8, sizeof(descriptionUTF8), NULL, NULL);
-					else
-						GetDlgItemTextA(hwnd,IDC_INI_DESCRIPTION,descriptionUTF8,MOVIE_DESCRIPTION_DATA_SIZE);
+                // turn WCHAR into UTF8
+                WCHAR authorWC[MOVIE_AUTHOR_DATA_SIZE];
+                char authorUTF8[MOVIE_AUTHOR_DATA_SIZE * 4];
+                if (GetDlgItemTextW(hwnd, IDC_INI_AUTHOR, authorWC, MOVIE_AUTHOR_DATA_SIZE))
+                    WideCharToMultiByte(CP_UTF8, 0, authorWC, -1, authorUTF8, sizeof(authorUTF8), NULL, NULL);
+                else
+                    GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
 
-					
-					GetDlgItemText(hwnd,IDC_INI_MOVIEFILE,tempbuf,MAX_PATH);
-                    unsigned short flag = IsDlgButtonChecked(hwnd, IDC_FROMSNAPSHOT_RADIO) ? MOVIE_START_FROM_SNAPSHOT : IsDlgButtonChecked(hwnd, IDC_FROMSTART_RADIO) ? MOVIE_START_FROM_NOTHING : MOVIE_START_FROM_EEPROM;
-                    
-                    
+                WCHAR descriptionWC[MOVIE_DESCRIPTION_DATA_SIZE];
+                char descriptionUTF8[MOVIE_DESCRIPTION_DATA_SIZE * 4];
+                if (GetDlgItemTextW(hwnd, IDC_INI_DESCRIPTION, descriptionWC, MOVIE_DESCRIPTION_DATA_SIZE))
+                    WideCharToMultiByte(CP_UTF8, 0, descriptionWC, -1, descriptionUTF8, sizeof(descriptionUTF8), NULL, NULL);
+                else
+                    GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, descriptionUTF8, MOVIE_DESCRIPTION_DATA_SIZE);
 
-                    if (strlen(tempbuf) == 0 || VCR_startRecord( tempbuf, flag, authorUTF8, descriptionUTF8, !IsDlgButtonChecked(hwnd, IDC_EXTSAVESTATE)) < 0)
-                    {
-					   sprintf(tempbuf2, "Couldn't start recording\nof \"%s\".", tempbuf);
-                       MessageBox(hwnd, tempbuf2, "VCR", MB_OK);
-                       break;
-					}
-                    else {
-					   HMENU hMenu = GetMenu(mainHWND);
-                       EnableMenuItem(hMenu,ID_STOP_RECORD,MF_ENABLED);
-                       EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
-                       SetStatusTranslatedString(hStatus,0,"Recording replay...");
+
+                GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf, MAX_PATH);
+                unsigned short flag = IsDlgButtonChecked(hwnd, IDC_FROMSNAPSHOT_RADIO) ? MOVIE_START_FROM_SNAPSHOT : IsDlgButtonChecked(hwnd, IDC_FROMSTART_RADIO) ? MOVIE_START_FROM_NOTHING : MOVIE_START_FROM_EEPROM;
+                flag |= IsDlgButtonChecked(hwnd, IDC_FROMEXISTINGSNAPSHOT_RADIO); // was too weird to add this into that giant ternary expression lol
+
+                if (IsDlgButtonChecked(hwnd, IDC_FROMEXISTINGSNAPSHOT_RADIO)) {
+                    char path_buffer[MAX_PATH];
+                    //std::filesystem::path path = Config.SaveLoadAsDirectory;
+
+                    if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
+
+                        if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
+                            strcat(path_buffer, ".m64");
                     }
-                    if (!emu_launched) {                    //Refreshes the ROM Browser
-                        ShowWindow( hRomList, FALSE ); 
-                        ShowWindow( hRomList, TRUE );
-                    }
-                    EndDialog(hwnd, IDOK);
-                }	break;
+                    savestates_select_filename(path_buffer);
+                }
+
+
+                if (strlen(tempbuf) == 0 || VCR_startRecord(tempbuf, flag, authorUTF8, descriptionUTF8, !IsDlgButtonChecked(hwnd, IDC_EXTSAVESTATE)) < 0)
+                {
+                    sprintf(tempbuf2, "Couldn't start recording\nof \"%s\".", tempbuf);
+                        MessageBox(hwnd, tempbuf2, "VCR", MB_OK);
+                        break;
+                }
+                else {
+                    HMENU hMenu = GetMenu(mainHWND);
+                    EnableMenuItem(hMenu, ID_STOP_RECORD, MF_ENABLED);
+                    EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
+                    SetStatusTranslatedString(hStatus, 0, "Recording replay...");
+                }
+                if (!emu_launched) {                    //Refreshes the ROM Browser
+                    ShowWindow(hRomList, FALSE);
+                    ShowWindow(hRomList, TRUE);
+                }
+                EndDialog(hwnd, IDOK);
+            } break;
                 case IDC_CANCEL:
                 case IDCANCEL:
                     if (!emu_launched) {
@@ -2100,12 +2113,27 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
                 case IDC_FROMEEPROM_RADIO:
                     EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
+                    EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 1);
+                    EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 1);
+                    EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 1);
                     break;
                 case IDC_FROMSNAPSHOT_RADIO:
                     EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 1);
+                    EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 1);
+                    EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 1);
+                    EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 1);
+                    break;
+                case IDC_FROMEXISTINGSNAPSHOT_RADIO:
+                    EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
+                    EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 0);
+                    EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 0);
+                    EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 0);
                     break;
                 case IDC_FROMSTART_RADIO:
                     EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
+                    EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 1);
+                    EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 1);
+                    EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 1);
                     break;
             }
         break;
