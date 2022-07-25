@@ -36,6 +36,7 @@
 #include "../plugin.h"
 #include "../../winproject/resource.h"
 #include "vfw.h"
+#include "GUI_LogWindow.h"
 
 #ifndef _MSC_VER
 void (*readScreen)(void **dest, long *width, long *height);
@@ -213,9 +214,12 @@ bool VRComp_loadOptions() {
 
 	pvideo_options[0] =(AVICOMPRESSOPTIONS*) malloc(sizeof(AVICOMPRESSOPTIONS));
 	fread(pvideo_options[0], sizeof(AVICOMPRESSOPTIONS), 1, f);
-	void* moreOptions = malloc(pvideo_options[0]->cbParms);
-	fread(moreOptions, pvideo_options[0]->cbParms, 1, f);
-	pvideo_options[0]->lpParms = moreOptions;
+
+	{
+		void* moreOptions = malloc(pvideo_options[0]->cbParms);
+		fread(moreOptions, pvideo_options[0]->cbParms, 1, f);
+		pvideo_options[0]->lpParms = moreOptions;
+	}
 	fclose(f);
 	return true;
 error:
@@ -334,7 +338,6 @@ void VCRComp_finishFile(int split)
 void init_readScreen()
 {
 #ifdef __WIN32__
-	void ShowInfo(char *Str, ...);
 	ShowInfo((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin." : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...");
 #endif	
 

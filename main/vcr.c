@@ -231,7 +231,7 @@ int movieBackup() {
 	return 1;
 }
 
-void printWarning (char* str)
+void printWarning (const char* str)
 {
 #ifdef __WIN32__
 	extern BOOL cmdlineNoGui;
@@ -248,7 +248,7 @@ void printWarning (char* str)
 #endif
 }
 
-void printError (char* str)
+void printError (const char* str)
 {
 #ifdef __WIN32__
 	extern BOOL cmdlineNoGui;
@@ -2509,7 +2509,7 @@ void BuildRecentMoviesMenu(HWND hwnd) {
 		if (strcmp(Config.RecentMovies[i], "") == 0) {
 			// the !empty check here prevents unlimited "No Recent Movies" items being added to the menu by repeatedly pressing Reset
 			if (i == 0 && !empty) {
-				menuinfo.dwTypeData = "No Recent Movies";
+				menuinfo.dwTypeData = (LPTSTR)"No Recent Movies";
 				empty = true;
 			}
 			else break;

@@ -14,10 +14,10 @@
  *                                                                         *
  ***************************************************************************/ 
 
-void WriteCfgString   (char *Section,char *Key,char *Value) ;
-void WriteCfgInt      (char *Section,char *Key,int Value) ;
-void ReadCfgString    (char *Section,char *Key,char *DefaultValue,char *retValue) ;
-int ReadCfgInt        (char *Section,char *Key,int DefaultValue) ;
+void WriteCfgString   (const char *Section, const char *Key,char *Value) ;
+void WriteCfgInt      (const char *Section, const char *Key,int Value) ;
+void ReadCfgString    (const char *Section, const char *Key, const char *DefaultValue,char *retValue) ;
+int ReadCfgInt        (const char *Section, const char *Key,int DefaultValue) ;
 
 extern int round_to_zero;
 extern int emulate_float_crashes;

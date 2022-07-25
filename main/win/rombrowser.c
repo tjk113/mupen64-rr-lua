@@ -663,7 +663,7 @@ LRESULT CALLBACK RomPropertiesProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
             switch(LOWORD(wParam))
             {
                 case IDC_OK:
-                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPSTR) TempMessage, 128 );
+                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPTSTR) TempMessage, 128 );
                     setIniComments(pRomInfo,TempMessage);
                     strncpy(pRomInfo->UserNotes,TempMessage,sizeof(pRomInfo->UserNotes));
                     if (!emu_launched) {                    //Refreshes the ROM Browser
@@ -899,7 +899,7 @@ void AddDirToList(char RomBrowserDir[MAX_PATH],BOOL sortflag)
 
 void CreateRomListControl (HWND hParent) {
    RECT rcl,rtool,rstatus; 
-   INITCOMMONCONTROLSEX icex;
+   INITCOMMONCONTROLSEX icex{};
    HIMAGELIST hSmall;               // List View Images
    HICON hIcon;                     // Icon Handle
    icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -1010,7 +1010,7 @@ void RefreshRomBrowser()
 
 void drawSortArrow(int SubItem)
 {
-    HDITEM HeaderItem; 
+    HDITEM HeaderItem{};
     HWND HeaderCtrl = ListView_GetHeader(hRomList); 
     HeaderItem.mask = HDI_FORMAT | HDI_BITMAP; 
     Header_GetItem(HeaderCtrl,SubItem, &HeaderItem); 
@@ -1171,7 +1171,7 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
 void SetRecentList(HWND hwnd) {
     int i;
     bool empty = false;
-    MENUITEMINFO menuinfo;
+    MENUITEMINFO menuinfo{};
     FreezeRecentRoms( hwnd, FALSE ) ;
     HMENU hMenu = GetMenu(hwnd);
     HMENU hSubMenu = GetSubMenu(hMenu, 0);
@@ -1184,7 +1184,7 @@ void SetRecentList(HWND hwnd) {
     for ( i = 0 ; i < MAX_RECENT_ROMS  ; i++)   {
               if (strcmp(Config.RecentRoms[i], "")==0) {
                   if (i == 0) {
-                      menuinfo.dwTypeData = "No Recent ROMs";
+                      menuinfo.dwTypeData = (LPTSTR)"No Recent ROMs";
                       empty = true;
                   }
                   else break;
@@ -1248,11 +1248,8 @@ void RunRecentRom(int id) {
 }
 
 void DisableRecentRoms(HMENU hMenu, BOOL disable) {
-    // this is cool but why
-    if (!Config.RecentRomsFreeze) return; // only disable rom loading if freeze enabled
     for (int i = 0; i < MAX_RECENT_ROMS; i++)
-        EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, (disable ? MF_ENABLED : MF_DISABLED));
-
+        EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, (disable ? MF_DISABLED : MF_ENABLED));
 }
 
 void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable) {

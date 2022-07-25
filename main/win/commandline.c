@@ -63,7 +63,7 @@ void SaveCmdLineParameter(char *cmdline)
 //  "-avi"  -> capture m64 to avi, requires -m64
 //  "-lua"  -> play a lua script from path, requires -g
 //  "-st"   -> load a savestate from path, requires -g, cant have -m64
-char *CmdLineArgFlags[] =
+const char *CmdLineArgFlags[] =
 {
 	"-a",
 	"-v",

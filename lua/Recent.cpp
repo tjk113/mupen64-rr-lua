@@ -29,7 +29,7 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 		{
 			if (i == 0 && !emptyRecentScripts)
 			{
-				menuinfo.dwTypeData = "No Recent Scripts";
+				menuinfo.dwTypeData = (LPTSTR)"No Recent Scripts";
 				emptyRecentScripts = true;
 			}
 			else break;

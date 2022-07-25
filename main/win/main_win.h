@@ -22,7 +22,7 @@
 #define MAIN_WIN_H
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-extern void ShowMessage(LPSTR lpszMessage) ;
+extern void ShowMessage(const char* lpszMessage) ;
 extern void EnableToolbar();
 extern void CreateStatusBarWindow( HWND hwnd );
 extern void SetStatusMode( int mode );

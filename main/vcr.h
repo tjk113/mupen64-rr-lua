@@ -109,8 +109,8 @@ extern int VCR_stopCapture();
 
 extern void VCR_coreStopped();
 
-extern void printWarning(char*);
-extern void printError(char*);
+extern void printWarning(const char*);
+extern void printError(const char*);
 
 extern void BuildRecentMoviesMenu(HWND hwnd);
 extern void ClearRecentMovies(BOOL cleararray);

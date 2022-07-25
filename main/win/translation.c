@@ -185,12 +185,12 @@ void freeLanguages()
     }
 }
 
-void Translate(char* GuiWord,char* Ret)
+void Translate(const char* GuiWord,char* Ret)
 {
    TranslateDefault( GuiWord, GuiWord, Ret);
 }
 
-void TranslateDefault(char* GuiWord,char *Default,char* Ret)
+void TranslateDefault(const char* GuiWord,const char *Default,char* Ret)
 {
    if (current_lang) {
       GetPrivateProfileString(current_lang->language_name,GuiWord,Default,Ret,200,current_lang->file_name); 
@@ -200,14 +200,14 @@ void TranslateDefault(char* GuiWord,char *Default,char* Ret)
    }
 }
 
-void SetItemTranslatedString(HWND hwnd,int ElementID,char* Str)
+void SetItemTranslatedString(HWND hwnd,int ElementID,const char* Str)
 {
     char String[800];
     Translate(Str,String);  
     SetDlgItemText( hwnd, ElementID, String );
 }
 
-void SetItemTranslatedStringDefault(HWND hwnd,int ElementID,char* Str,char*Def)
+void SetItemTranslatedStringDefault(HWND hwnd,int ElementID,const char* Str,const char*Def)
 {
     char String[800];
     TranslateDefault(Str,Def,String);
@@ -215,7 +215,7 @@ void SetItemTranslatedStringDefault(HWND hwnd,int ElementID,char* Str,char*Def)
 }
 
 
-void SetStatusTranslatedString(HWND hStatus,int section,char* Str)
+void SetStatusTranslatedString(HWND hStatus,int section,const char* Str)
 {
     char String[800];
     Translate(Str,String);  
@@ -223,7 +223,7 @@ void SetStatusTranslatedString(HWND hStatus,int section,char* Str)
     SendMessage( hStatus, SB_SETTEXT, section, (LPARAM)String ); 
 }
 
-void SetMenuTranslatedString(HMENU hMenu,int elementID,char* Str,char* Acc)
+void SetMenuTranslatedString(HMENU hMenu,int elementID,const char* Str,const char* Acc)
 {
     char String[800];
     MENUITEMINFO menuinfo;
@@ -240,7 +240,7 @@ void SetMenuTranslatedString(HMENU hMenu,int elementID,char* Str,char* Acc)
 }
 
 
-void SetMenuAccelerator(HMENU hMenu,int elementID,char* Acc)
+void SetMenuAccelerator(HMENU hMenu,int elementID,const char* Acc)
 {
     char String[800];
     MENUITEMINFO menuinfo;
@@ -477,24 +477,24 @@ void TranslateGeneralDialog(HWND hwnd)
 void TranslateRomInfoDialog(HWND hwnd)
 {
     char tmp[200];
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_HEADER_INFO_TEXT,"RP ROM Information","ROM Information:");
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_FULLPATH_TEXT,"RP File Location","File Location:");
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_GOODNAME_TEXT,"RP Good Name","Good Name:");
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_INTERNAL_NAME_TEXT,"RP Internal Name","Internal Name:");
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_SIZE_TEXT,"RP Size","Size:");
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_COUNTRY_TEXT,"RP Country","Country:");
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_INICODE_TEXT,"RP Ini Code","Ini Code:");
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_MD5_TEXT,"RP MD5 Checksum","MD5 Checksum:");
-    SetItemTranslatedStringDefault(hwnd,IDC_MD5_CALCULATE,"RP Calculate","Calculate");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_HEADER_INFO_TEXT,"ROM Information","RP ROM Information");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_FULLPATH_TEXT,"File Location: ","RP File Location");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_GOODNAME_TEXT,"Good Name: ","RP Good Name");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_INTERNAL_NAME_TEXT,"Internal Name: ","RP Internal Name");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_SIZE_TEXT,"Size: ","RP Size");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_COUNTRY_TEXT,"Country: ","RP Country:");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_INICODE_TEXT,"Ini Code: ","RP Ini Code");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_MD5_TEXT,"MD5 Checksum: ","RP MD5 Checksum");
+    SetItemTranslatedStringDefault(hwnd,IDC_MD5_CALCULATE,"Calculate","RP Calculate");
 
-    SetItemTranslatedStringDefault(hwnd,IDC_ROM_PLUGINS,"RP Plugins","Plugins:");
-    SetItemTranslatedStringDefault(hwnd,IDC_GFXPLUGIN,"RP Video Plugin","Video  Plugin:");
-    SetItemTranslatedStringDefault(hwnd,IDC_SOUNDPLUGIN,"RP Sound Plugin","Sound Plugin:");
-    SetItemTranslatedStringDefault(hwnd,IDC_INPUTPLUGIN,"RP Input Plugin","Input Plugin:");
-    SetItemTranslatedStringDefault(hwnd,IDC_RSPPLUGIN,"RP RSP Plugin","RSP Plugin:");
-    SetItemTranslatedStringDefault(hwnd,IDC_SAVE_PROFILE,"RP Save Plugins","Save Plugins");
+    SetItemTranslatedStringDefault(hwnd,IDC_ROM_PLUGINS,"Plugins","RP Plugins");
+    SetItemTranslatedStringDefault(hwnd,IDC_GFXPLUGIN,"Video Plugin","RP Video Plugin");
+    SetItemTranslatedStringDefault(hwnd,IDC_SOUNDPLUGIN,"Sound Plugin","RP Sound Plugin");
+    SetItemTranslatedStringDefault(hwnd,IDC_INPUTPLUGIN,"Input Plugin","RP Input Plugin");
+    SetItemTranslatedStringDefault(hwnd,IDC_RSPPLUGIN,"RSP Plugin","RP RSP Plugin");
+    SetItemTranslatedStringDefault(hwnd,IDC_SAVE_PROFILE,"Save Plugins","RP Save Plugins");
     
-    SetItemTranslatedStringDefault(hwnd,IDC_INI_COMMENTS_TEXT,"RP Comments","Comments:");
+    SetItemTranslatedStringDefault(hwnd,IDC_INI_COMMENTS_TEXT,"Comments","RP Comments");
 
     SetItemTranslatedString(hwnd,IDC_OK,"Ok");
     SetItemTranslatedString(hwnd,IDC_CANCEL,"Cancel");

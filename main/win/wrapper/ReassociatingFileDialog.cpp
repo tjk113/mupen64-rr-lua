@@ -25,12 +25,13 @@ bool ReassociatingFileDialog::ShowFileDialog(char* path, const wchar_t* fTypes, 
 	}
 	FAILSAFE(pFileDialog->GetOptions(&dwFlags));
 	FAILSAFE(pFileDialog->SetOptions((allowMultiSelect ? FOS_ALLOWMULTISELECT : 0))); //dwFlags | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | 
-	COMDLG_FILTERSPEC fileTypes[] =
 	{
-		{ L"Supported files", fTypes },
-	};
-	FAILSAFE(pFileDialog->SetFileTypes(ARRAYSIZE(fileTypes), fileTypes));
-
+		COMDLG_FILTERSPEC fileTypes[] =
+		{
+			{ L"Supported files", fTypes },
+		};
+		FAILSAFE(pFileDialog->SetFileTypes(ARRAYSIZE(fileTypes), fileTypes));
+	}
 	if (lastPath) {
 		printf("found path \"%s\"\n", lastPath);
 		IShellItem* shlPtr;
