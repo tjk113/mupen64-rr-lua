@@ -268,7 +268,7 @@ void buildRomList() {
 void KailleraPlay(void)
 {
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-	kailleraInfos	kInfos;
+    kailleraInfos	kInfos{};
 	
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 

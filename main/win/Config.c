@@ -60,13 +60,13 @@ char* CfgFilePath()
 }
 
 
-void WriteCfgString(char* Section, char* Key, char* Value)
+void WriteCfgString(const char* Section, const char* Key, char* Value)
 {
     WritePrivateProfileString(Section, Key, Value, CfgFilePath());
 }
 
 
-void WriteCfgInt(char* Section, char* Key, int Value)
+void WriteCfgInt(const char* Section, const char* Key, int Value)
 {
     static char TempStr[20];
     sprintf(TempStr, "%d", Value);
@@ -74,13 +74,13 @@ void WriteCfgInt(char* Section, char* Key, int Value)
 }
 
 
-void ReadCfgString(char* Section, char* Key, char* DefaultValue, char* retValue)
+void ReadCfgString(const char* Section, const char* Key, const char* DefaultValue, char* retValue)
 {
     GetPrivateProfileString(Section, Key, DefaultValue, retValue, MAX_PATH, CfgFilePath());
 }
 
 
-int ReadCfgInt(char* Section, char* Key, int DefaultValue)
+int ReadCfgInt(const char* Section, const char* Key, int DefaultValue)
 {
     return GetPrivateProfileInt(Section, Key, DefaultValue, CfgFilePath());
 }
@@ -132,7 +132,7 @@ void LoadRecentMovies()
     }
 }
 
-void ReadHotkeyConfig(int n, char* name, int cmd, int def) {
+void ReadHotkeyConfig(int n, const  char* name, int cmd, int def) {
     HOTKEY* h;
     char t[128];
     h = &Config.hotkey[n];
@@ -146,7 +146,7 @@ void ReadHotkeyConfig(int n, char* name, int cmd, int def) {
     h->alt = ReadCfgInt("Hotkeys", t, def & 0x400 ? 1 : 0);
     h->command = cmd;
 }
-void WriteHotkeyConfig(int n, char* name) {
+void WriteHotkeyConfig(int n, const char* name) {
     HOTKEY* h;
     char t[128];
     h = &Config.hotkey[n];
@@ -247,8 +247,7 @@ void LoadConfig()
 
     sprintf(Config.ScreenshotsDir, "%sScreenShots\\", AppPath);
     ReadCfgString("Directories", "Screenshots Directory", Config.ScreenshotsDir, Config.ScreenshotsDir);
-
-
+    ReadCfgString("Directories", "SaveLoadAsandSaveStateAsPath", Config.SaveLoadAsandSaveStateAsPath, Config.SaveLoadAsandSaveStateAsPath);
 
     // Rom Browser
     Config.RomBrowserSortColumn = ReadCfgInt("Rom Browser", "Sort Column", 0);
@@ -261,6 +260,7 @@ void LoadConfig()
     //avi options
     Config.forceInternalCapture = ReadCfgInt("Avi Options", "Force internal capture", 0);
     Config.captureOtherWindows = ReadCfgInt("Avi Options", "Capture other windows", 0);
+    ReadCfgString("Avi Options", "Avi Capture Path", "", Config.AviCapturePath);
 
     // other
     Config.LuaWarnOnClose = ReadCfgInt("Other", "Ask on lua close", 0);
@@ -465,11 +465,13 @@ void SaveConfig()
     WriteCfgString("Directories", "Saves Directory", Config.SavesDir);
     WriteCfgInt("Directories", "Default Screenshots Directory", Config.DefaultScreenshotsDir);
     WriteCfgString("Directories", "Screenshots Directory", Config.ScreenshotsDir);
+    WriteCfgString("Directories", "SaveLoadAsandSaveStateAsPath", Config.SaveLoadAsandSaveStateAsPath);
 
     WriteCfgInt("Recording Options", "No reset recording", Config.NoReset);
 
     WriteCfgInt("Avi Options", "Force internal capture", Config.forceInternalCapture);
     WriteCfgInt("Avi Options", "Capture other windows", Config.captureOtherWindows);
+    WriteCfgString("Avi Options", "Avi Capture Path", Config.AviCapturePath);
 
     WriteCfgInt("Other", "Ask on lua close", Config.LuaWarnOnClose);
     WriteCfgInt("Other", "Simplified lua", Config.LuaSimpleDialog);
@@ -481,7 +483,7 @@ void SaveConfig()
 
     // Save A Whole Whackton Of Hotkeys:
 
-    char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
+    const char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
         "ReadOnly", "Play", "PlayStop", "Record",
         "RecordStop", "Screenshot", "Save Current", "Load Current" };
 

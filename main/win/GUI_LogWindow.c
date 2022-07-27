@@ -74,7 +74,7 @@ void ShowHideLogWindow()
 
 
 /* Add Text to Log */
-void ShowInfo(char* Str, ...)
+void ShowInfo(const char* Str, ...)
 {
     int i;
     char Msg[800];
@@ -99,7 +99,7 @@ void ShowInfo(char* Str, ...)
 #endif
 }
 
-void ShowWarning(char *Str, ...)
+void ShowWarning(const char *Str, ...)
 {
    int i;
    char Msg[800];
@@ -119,7 +119,7 @@ void ShowWarning(char *Str, ...)
    if (DVMsg) DVMsg( DV_WARNING, Msg) ;
 }
 
-void ShowError( char *Str, ...)
+void ShowError(const char *Str, ...)
 {
    int i;
    char Msg[800];

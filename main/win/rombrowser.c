@@ -663,7 +663,7 @@ LRESULT CALLBACK RomPropertiesProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
             switch(LOWORD(wParam))
             {
                 case IDC_OK:
-                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPSTR) TempMessage, 128 );
+                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPTSTR) TempMessage, 128 );
                     setIniComments(pRomInfo,TempMessage);
                     strncpy(pRomInfo->UserNotes,TempMessage,sizeof(pRomInfo->UserNotes));
                     if (!emu_launched) {                    //Refreshes the ROM Browser
@@ -899,7 +899,7 @@ void AddDirToList(char RomBrowserDir[MAX_PATH],BOOL sortflag)
 
 void CreateRomListControl (HWND hParent) {
    RECT rcl,rtool,rstatus; 
-   INITCOMMONCONTROLSEX icex;
+   INITCOMMONCONTROLSEX icex{};
    HIMAGELIST hSmall;               // List View Images
    HICON hIcon;                     // Icon Handle
    icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -1010,7 +1010,7 @@ void RefreshRomBrowser()
 
 void drawSortArrow(int SubItem)
 {
-    HDITEM HeaderItem; 
+    HDITEM HeaderItem{};
     HWND HeaderCtrl = ListView_GetHeader(hRomList); 
     HeaderItem.mask = HDI_FORMAT | HDI_BITMAP; 
     Header_GetItem(HeaderCtrl,SubItem, &HeaderItem); 
@@ -1168,10 +1168,11 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
    
 }
 
+bool emptyRecentROMs = false;
+
 void SetRecentList(HWND hwnd) {
     int i;
-    bool empty = false;
-    MENUITEMINFO menuinfo;
+    MENUITEMINFO menuinfo{};
     FreezeRecentRoms( hwnd, FALSE ) ;
     HMENU hMenu = GetMenu(hwnd);
     HMENU hSubMenu = GetSubMenu(hMenu, 0);
@@ -1183,21 +1184,22 @@ void SetRecentList(HWND hwnd) {
     menuinfo.fState = MFS_ENABLED;
     for ( i = 0 ; i < MAX_RECENT_ROMS  ; i++)   {
               if (strcmp(Config.RecentRoms[i], "")==0) {
-                  if (i == 0) {
-                      menuinfo.dwTypeData = "No Recent ROMs";
-                      empty = true;
+                  if (i == 0 && !emptyRecentROMs) {
+                      menuinfo.dwTypeData = (LPTSTR)"No Recent ROMs";
+                      emptyRecentROMs = true;
                   }
                   else break;
               }
               else {
                   menuinfo.dwTypeData = ParseName(Config.RecentRoms[i]);
+                  emptyRecentROMs = false;
               }
     
 	          //menuinfo.dwTypeData = ParseName( Config.RecentRoms[i]);
               menuinfo.cch = strlen(menuinfo.dwTypeData);
 	          menuinfo.wID = ID_RECENTROMS_FIRST + i;
               InsertMenuItem( hSubMenu, 3 + i, TRUE, &menuinfo);
-              if (empty) {
+              if (emptyRecentROMs || IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
                   EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_DISABLED);
                   EnableMenuItem(hSubMenu, ID_RECENTROMS_FIRST, MF_DISABLED);
               }
@@ -1208,6 +1210,16 @@ void SetRecentList(HWND hwnd) {
              
      }
    
+}
+
+// Adapted code from vcr.c
+void EnableRecentROMsMenu(HMENU hMenu, BOOL flag) {
+    if (!emptyRecentROMs) {
+        for (int i = 0; i < MAX_RECENT_ROMS; i++) {
+            EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, flag ? MF_ENABLED : MF_DISABLED);
+        }
+        EnableMenuItem(hMenu, ID_LOAD_LATEST, flag ? MF_ENABLED : MF_DISABLED);
+    }
 }
 
 void AddToRecentList(HWND hwnd,char *rompath) {
@@ -1248,11 +1260,8 @@ void RunRecentRom(int id) {
 }
 
 void DisableRecentRoms(HMENU hMenu, BOOL disable) {
-    // this is cool but why
-    if (!Config.RecentRomsFreeze) return; // only disable rom loading if freeze enabled
     for (int i = 0; i < MAX_RECENT_ROMS; i++)
-        EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, (disable ? MF_ENABLED : MF_DISABLED));
-
+        EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, (disable ? MF_DISABLED : MF_ENABLED));
 }
 
 void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable) {

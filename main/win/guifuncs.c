@@ -78,7 +78,7 @@ bool warn_recording() {
 
     return res == 7;
 }
-void internal_warnsavestate(char* messageCaption, char* message, bool modal) {
+void internal_warnsavestate(const char* messageCaption, const char* message, bool modal) {
     if (!Config.savesERRORS) return;
     TranslateDefault(message, messageCaption, TempMessage);
     if (modal) 
@@ -86,8 +86,8 @@ void internal_warnsavestate(char* messageCaption, char* message, bool modal) {
     else 
         display_status(TempMessage);
 }
-void warn_savestate(char* messageCaption, char* message){internal_warnsavestate(messageCaption, message, false);}
-void warn_savestate(char* messageCaption, char* message, bool modal){internal_warnsavestate(messageCaption, message, modal);}
+void warn_savestate(const char* messageCaption, const char* message){internal_warnsavestate(messageCaption, message, false);}
+void warn_savestate(const char* messageCaption, const char* message, bool modal){internal_warnsavestate(messageCaption, message, modal);}
 
 void display_MD5calculating_progress(int p )
 {

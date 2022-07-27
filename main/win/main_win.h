@@ -22,7 +22,7 @@
 #define MAIN_WIN_H
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-extern void ShowMessage(LPSTR lpszMessage) ;
+extern void ShowMessage(const char* lpszMessage) ;
 extern void EnableToolbar();
 extern void CreateStatusBarWindow( HWND hwnd );
 extern void SetStatusMode( int mode );
@@ -134,7 +134,8 @@ typedef struct _CONFIG {
     BOOL DefaultScreenshotsDir;
     char PluginsDir[MAX_PATH];
     char SavesDir[MAX_PATH];
-    char ScreenshotsDir[MAX_PATH];    
+    char ScreenshotsDir[MAX_PATH];
+    char SaveLoadAsandSaveStateAsPath[MAX_PATH];
     
     // Recent Roms
     char RecentRoms[10][MAX_PATH];
@@ -162,6 +163,7 @@ typedef struct _CONFIG {
     bool forceInternalCapture;
     bool captureOtherWindows;
     HOTKEY hotkey [NUM_HOTKEYS];
+    char AviCapturePath[MAX_PATH];
 
     //Lua
     char LuaScriptPath[MAX_PATH];

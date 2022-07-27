@@ -90,6 +90,7 @@
       <UseFullPaths>false</UseFullPaths>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AdditionalOptions>/FI "../main/debughook.h" %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -134,6 +135,7 @@
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Strict</FloatingPointModel>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>

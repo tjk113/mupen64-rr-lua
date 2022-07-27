@@ -50,7 +50,7 @@ extern unsigned long interp_addr;
 static unsigned long old_op;
 int compare_core_mode = 0;
 
-void display_error(char *txt)
+void display_error(const char *txt)
 {
    int i;
    unsigned long *comp_reg2 = (unsigned long *)comp_reg;

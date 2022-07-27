@@ -137,7 +137,7 @@ uLong* bytesRecovered)
         /* Central directory entry */
         {
           char header[46];
-          char* comment = "";
+          const char* comment = "";
           int comsize = (int) strlen(comment);
           WRITE_32(header, 0x02014b50);
           WRITE_16(header + 4, version);
@@ -212,7 +212,7 @@ uLong* bytesRecovered)
     {
       int entriesZip = entries;
       char header[22];
-      char* comment = ""; // "ZIP File recovered by zlib/minizip/mztools";
+      const char* comment = ""; // "ZIP File recovered by zlib/minizip/mztools";
       int comsize = (int) strlen(comment);
       if (entriesZip > 0xffff) {
         entriesZip = 0xffff;

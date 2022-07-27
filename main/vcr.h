@@ -22,9 +22,10 @@
 #define INVALID_FRAME (6)
 #define UNKNOWN_ERROR (7)
 
-#define MOVIE_START_FROM_SNAPSHOT	(1<<0)
-#define MOVIE_START_FROM_NOTHING	(1<<1)
-#define MOVIE_START_FROM_EEPROM     (1<<2)
+#define MOVIE_START_FROM_SNAPSHOT			(1<<0)
+#define MOVIE_START_FROM_NOTHING			(1<<1)
+#define MOVIE_START_FROM_EEPROM				(1<<2)
+#define MOVIE_START_FROM_EXISTING_SNAPSHOT	(1<<3)
 
 #define CONTROLLER_X_PRESENT(x)	(1<<(x))
 #define CONTROLLER_1_PRESENT	(1<<0)
@@ -109,8 +110,8 @@ extern int VCR_stopCapture();
 
 extern void VCR_coreStopped();
 
-extern void printWarning(char*);
-extern void printError(char*);
+extern void printWarning(const char*);
+extern void printError(const char*);
 
 extern void BuildRecentMoviesMenu(HWND hwnd);
 extern void ClearRecentMovies(BOOL cleararray);

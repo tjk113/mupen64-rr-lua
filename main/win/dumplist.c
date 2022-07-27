@@ -31,7 +31,7 @@ void OpenRomListFile() {
 }
 
 
-void PrintToRomListFile ( char * ftext  , ...   ) {
+void PrintToRomListFile (const char * ftext  , ...   ) {
     va_list ap;
     va_start (ap, ftext);
     vfprintf (dumpfile, ftext, ap);
