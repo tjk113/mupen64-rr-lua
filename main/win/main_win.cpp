@@ -1348,6 +1348,7 @@ BOOL StartRom(char *fullRomPath)
                              sprintf( LastSelectedRom, fullRomPath);
                              saveMD5toCache(ROM_SETTINGS.MD5);
                              AddToRecentList( mainHWND, fullRomPath) ; 
+
                              InitTimer();
 
                              EnableEmulationMenuItems(TRUE);
@@ -1797,8 +1798,13 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                 	break;
                 case IDC_MOVIE_BROWSE:
 					{
+                     // The default directory we open the file dialog window in is
+                     // the parent directory of the last movie that the user ran
+                     std::filesystem::path moviePath = Config.RecentMovies[0];
+                     strncpy(path_buffer, moviePath.parent_path().string().c_str(), MAX_PATH);
+
                      if(fdBrowseMovie.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd))
-                     SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
+						 SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
 					}
 					goto refresh;
 					break;
@@ -2058,58 +2064,88 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
 
                 GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf, MAX_PATH);
-                unsigned short flag = IsDlgButtonChecked(hwnd, IDC_FROMSNAPSHOT_RADIO) ? MOVIE_START_FROM_SNAPSHOT : IsDlgButtonChecked(hwnd, IDC_FROMSTART_RADIO) ? MOVIE_START_FROM_NOTHING : MOVIE_START_FROM_EEPROM;
-                flag |= IsDlgButtonChecked(hwnd, IDC_FROMEXISTINGSNAPSHOT_RADIO); // was too weird to add this into that giant ternary expression lol
+                unsigned short flag = IsDlgButtonChecked(hwnd, IDC_FROMSNAPSHOT_RADIO) ? MOVIE_START_FROM_SNAPSHOT : IsDlgButtonChecked(hwnd, IDC_FROMSTART_RADIO)
+                    ? MOVIE_START_FROM_NOTHING : IsDlgButtonChecked(hwnd, IDC_FROMEEPROM_RADIO) ? MOVIE_START_FROM_EEPROM : MOVIE_START_FROM_EXISTING_SNAPSHOT; // big
 
-                if (IsDlgButtonChecked(hwnd, IDC_FROMEXISTINGSNAPSHOT_RADIO)) {
+                bool allowClosing = true;
+                if (flag == MOVIE_START_FROM_EXISTING_SNAPSHOT) {
+                    // The default directory we open the file dialog window in is the 
+                    // parent directory of the last savestate that the user saved or loaded
                     char path_buffer[MAX_PATH];
-                    //std::filesystem::path path = Config.SaveLoadAsDirectory;
+                    std::filesystem::path path = Config.SaveLoadAsandSaveStateAsPath; // give this a unique default dir?
+                    std::string filename = path.parent_path().string();
+                    strncpy(path_buffer, filename.c_str(), MAX_PATH);
 
                     if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
+                        savestates_select_filename(path_buffer);
+                        path = path_buffer;
+                        path.replace_extension("m64");
+                        strncpy(tempbuf, path.string().c_str(), MAX_PATH);
 
-                        if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
-                            strcat(path_buffer, ".m64");
+                        if (std::filesystem::exists(path)) {
+                            sprintf(tempbuf2, "\"%s\" already exists. Are you sure want to overwrite this movie?", tempbuf);
+                            if (MessageBox(hwnd, tempbuf2, "VCR", MB_YESNO) == IDNO)
+                                break;
+                        }
                     }
-                    savestates_select_filename(path_buffer);
+                    else
+                        allowClosing = false;
                 }
 
-
-                if (strlen(tempbuf) == 0 || VCR_startRecord(tempbuf, flag, authorUTF8, descriptionUTF8, !IsDlgButtonChecked(hwnd, IDC_EXTSAVESTATE)) < 0)
-                {
-                    sprintf(tempbuf2, "Couldn't start recording\nof \"%s\".", tempbuf);
+                if (allowClosing) {
+                    if (strlen(tempbuf) == 0 || VCR_startRecord(tempbuf, flag, authorUTF8, descriptionUTF8, !IsDlgButtonChecked(hwnd, IDC_EXTSAVESTATE)) < 0)
+                    {
+                        sprintf(tempbuf2, "Couldn't start recording\nof \"%s\".", tempbuf);
                         MessageBox(hwnd, tempbuf2, "VCR", MB_OK);
                         break;
+                    }
+                    else {
+                        HMENU hMenu = GetMenu(mainHWND);
+                        EnableMenuItem(hMenu, ID_STOP_RECORD, MF_ENABLED);
+                        EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
+                        SetStatusTranslatedString(hStatus, 0, "Recording replay...");
+                    }
+
+                    if (!emu_launched) {                    //Refreshes the ROM Browser
+                        ShowWindow(hRomList, FALSE);
+                        ShowWindow(hRomList, TRUE);
+                    }
+                    EndDialog(hwnd, IDOK);
                 }
-                else {
-                    HMENU hMenu = GetMenu(mainHWND);
-                    EnableMenuItem(hMenu, ID_STOP_RECORD, MF_ENABLED);
-                    EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
-                    SetStatusTranslatedString(hStatus, 0, "Recording replay...");
-                }
-                if (!emu_launched) {                    //Refreshes the ROM Browser
+            } break;
+            case IDC_CANCEL:
+            case IDCANCEL:
+                if (!emu_launched) {
                     ShowWindow(hRomList, FALSE);
                     ShowWindow(hRomList, TRUE);
                 }
                 EndDialog(hwnd, IDOK);
-            } break;
-                case IDC_CANCEL:
-                case IDCANCEL:
-                    if (!emu_launched) {
-                        ShowWindow( hRomList, FALSE ); 
-                        ShowWindow( hRomList, TRUE );
-                    }
-                    EndDialog(hwnd, IDOK);
                 break;
-                case IDC_MOVIE_BROWSE:
-                {
-                    char path_buffer[MAX_PATH];
-                    if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd)) {
-                        if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
-                            strcat(path_buffer, ".m64");
-                        SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
-                    }
+            case IDC_MOVIE_BROWSE:
+            {
+                // The default directory we open the file dialog window in is
+                // the parent directory of the last movie that the user ran
+                char path_buffer[MAX_PATH];
+                std::filesystem::path moviePath = Config.RecentMovies[0]; // if the first movie ends up being deleted this is fucked
+                strncpy(path_buffer, moviePath.parent_path().string().c_str(), MAX_PATH);
+
+                if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd)) {
+                    if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
+                        strcat(path_buffer, ".m64");
+                    SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
                 }
-                break;
+            }
+            break;
+            //case IDC_EXISTINGSAVESTATE_BROWSE:
+            //{
+            //    char path_buffer[MAX_PATH];
+            //    if (defExt)
+            //    if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
+            //        if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
+            //            strcat(path_buffer, ".m64");
+            //        SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
+            //    }
+            //}
 
                 case IDC_FROMEEPROM_RADIO:
                     EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
@@ -2124,7 +2160,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
                     EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 1);
                     break;
                 case IDC_FROMEXISTINGSNAPSHOT_RADIO:
-                    EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
+                    EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 1);
                     EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 0);
                     EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 0);
                     EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 0);
@@ -2139,6 +2175,13 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
         break;
     }
     return FALSE;
+}
+
+static char* GetDefaultFileDialogPath(char* path) {
+    static char path_buffer[MAX_PATH];
+    std::filesystem::path fullPath = path;
+    strncpy(path_buffer, fullPath.parent_path().string().c_str(), MAX_PATH);
+    return path_buffer;
 }
 
 void OpenMoviePlaybackDialog()
@@ -2346,7 +2389,7 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,STATE_RESTORE,MF_ENABLED);
       EnableMenuItem(hMenu,STATE_LOAD,MF_ENABLED);
       EnableMenuItem(hMenu,GENERATE_BITMAP,MF_ENABLED);
-      DisableRecentRoms(hMenu, FALSE);
+      EnableRecentROMsMenu(hMenu, TRUE);
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
@@ -2368,6 +2411,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
       EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
       EnableMenuItem(hMenu,ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
+      EnableRecentROMsMenu(hMenu, TRUE);
       EnableRecentMoviesMenu(hMenu, TRUE);
       EnableRecentScriptsMenu(hMenu, TRUE);
 }
@@ -2395,7 +2439,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,STATE_RESTORE,MF_GRAYED);
       EnableMenuItem(hMenu,STATE_LOAD,MF_GRAYED);
       EnableMenuItem(hMenu,GENERATE_BITMAP,MF_GRAYED);
-      DisableRecentRoms(hMenu,FALSE);
+      EnableRecentROMsMenu(hMenu, TRUE);
       EnableMenuItem(hMenu,EMU_RESET,MF_GRAYED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_ENABLED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
@@ -2410,6 +2454,7 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
       EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
       EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
+      EnableRecentROMsMenu(hMenu, TRUE);
       EnableRecentMoviesMenu(hMenu, FALSE);
       EnableRecentScriptsMenu(hMenu, FALSE);
       LONG winstyle;
@@ -2971,6 +3016,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			break;
 	case WM_COMMAND:
 		{
+            // The default directory we open the file dialog window in is
+            // the parent directory of the last savestate that the user saved or loaded
+		    std::filesystem::path savestatePath = Config.SaveLoadAsandSaveStateAsPath; // this one is initialized up here bc compiler wasn't happy when i initialized it in the cases it's used in
+
 			switch(LOWORD(wParam))
 			{
 			case ID_MENU_LUASCRIPT_NEW:
@@ -3270,6 +3319,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             }
             case IDLOAD: 
             {
+                // The default directory we open the file dialog window in is
+                // the parent directory of the last rom that the user ran
+                std::filesystem::path romPath = Config.RecentRoms[0];
+                strncpy(path_buffer, romPath.parent_path().string().c_str(), MAX_PATH);
+
                 if (fdLoadRom.ShowFileDialog(path_buffer, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap", TRUE, FALSE, hwnd)) {
                     char temp_buffer[_MAX_PATH];
                     strcpy(temp_buffer, path_buffer);
@@ -3331,6 +3385,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     break;                 
                 case STATE_SAVEAS:
                 {
+                    strncpy(path_buffer, savestatePath.parent_path().string().c_str(), MAX_PATH);
+
                     if (fdSaveStateAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", FALSE, FALSE, hwnd)) {
 
                         // HACK: allow .savestate and .st
@@ -3358,7 +3414,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
                     break;
                 case STATE_LOAD:
-                    
+                    strncpy(path_buffer, savestatePath.parent_path().string().c_str(), MAX_PATH);
+
                     if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
                         savestates_select_filename(path_buffer);
                         savestates_job = LOADSTATE;
@@ -3406,6 +3463,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                         char rec_buffer[MAX_PATH];
                         
+                        // The default directory we open the file dialog window in is
+                        // the parent directory of the last avi that the user captured
+                        std::filesystem::path aviPath = Config.AviCapturePath;
+                        strncpy(path_buffer, aviPath.parent_path().string().c_str(), MAX_PATH);
+
                         if (fdStartCapture.ShowFileDialog(path_buffer, L"*.avi", FALSE, FALSE, hwnd)) {
 
 

@@ -247,8 +247,7 @@ void LoadConfig()
 
     sprintf(Config.ScreenshotsDir, "%sScreenShots\\", AppPath);
     ReadCfgString("Directories", "Screenshots Directory", Config.ScreenshotsDir, Config.ScreenshotsDir);
-
-
+    ReadCfgString("Directories", "SaveLoadAsandSaveStateAsPath", Config.SaveLoadAsandSaveStateAsPath, Config.SaveLoadAsandSaveStateAsPath);
 
     // Rom Browser
     Config.RomBrowserSortColumn = ReadCfgInt("Rom Browser", "Sort Column", 0);
@@ -261,6 +260,7 @@ void LoadConfig()
     //avi options
     Config.forceInternalCapture = ReadCfgInt("Avi Options", "Force internal capture", 0);
     Config.captureOtherWindows = ReadCfgInt("Avi Options", "Capture other windows", 0);
+    ReadCfgString("Avi Options", "Avi Capture Path", "", Config.AviCapturePath);
 
     // other
     Config.LuaWarnOnClose = ReadCfgInt("Other", "Ask on lua close", 0);
@@ -464,11 +464,13 @@ void SaveConfig()
     WriteCfgString("Directories", "Saves Directory", Config.SavesDir);
     WriteCfgInt("Directories", "Default Screenshots Directory", Config.DefaultScreenshotsDir);
     WriteCfgString("Directories", "Screenshots Directory", Config.ScreenshotsDir);
+    WriteCfgString("Directories", "SaveLoadAsandSaveStateAsPath", Config.SaveLoadAsandSaveStateAsPath);
 
     WriteCfgInt("Recording Options", "No reset recording", Config.NoReset);
 
     WriteCfgInt("Avi Options", "Force internal capture", Config.forceInternalCapture);
     WriteCfgInt("Avi Options", "Capture other windows", Config.captureOtherWindows);
+    WriteCfgString("Avi Options", "Avi Capture Path", Config.AviCapturePath);
 
     WriteCfgInt("Other", "Ask on lua close", Config.LuaWarnOnClose);
     WriteCfgInt("Other", "Simplified lua", Config.LuaSimpleDialog);

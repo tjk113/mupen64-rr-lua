@@ -707,16 +707,20 @@ std::string OpenLuaFileDialog() {
 	int storePaused = emu_paused;
 	pauseEmu(1);
 
-	char filename[MAX_PATH] = "";
+	// The default directory we open the file dialog window in is
+	// the parent directory of the last script that the user ran
+	char scriptParentDir[MAX_PATH] = "";
+	std::filesystem::path scriptPath = Config.LuaScriptPath;
+	strncpy(scriptParentDir, scriptPath.parent_path().string().c_str(), MAX_PATH); // monstrosity
 
-	if (!fdOpenLuaScript.ShowFileDialog(filename, L"*.lua", TRUE, FALSE, mainHWND)) {
+	if (!fdOpenLuaScript.ShowFileDialog(scriptParentDir, L"*.lua", TRUE, FALSE, mainHWND)) {
 		if (!storePaused) resumeEmu(1);
 		return "";
 	}
 
 	if (!storePaused) resumeEmu(1);
 
-	return std::string(filename); // umm fuck you
+	return std::string(scriptParentDir); // umm fuck you
 }
 void SetButtonState(HWND wnd, bool state) {
 	if(!IsWindow(wnd)) return;

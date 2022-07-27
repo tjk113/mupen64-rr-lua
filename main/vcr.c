@@ -85,6 +85,7 @@ enum ETask
 	Idle = 0,
 	StartRecording,
 	StartRecordingFromSnapshot,
+	StartRecordingFromExistingSnapshot,
 	Recording,
 	StartPlayback,
 	StartPlaybackFromSnapshot,
@@ -559,7 +560,7 @@ static int read_movie_header(FILE * file, SMovieHeader * header)
 
 void flush_movie()
 {
-	if(m_file && (m_task == Recording || m_task == StartRecording || m_task == StartRecordingFromSnapshot))
+	if(m_file && (m_task == Recording || m_task == StartRecording || m_task == StartRecordingFromSnapshot || m_task == StartRecordingFromExistingSnapshot))
 	{
 		// (over-)write the header
 	    write_movie_header(m_file, MUP_HEADER_SIZE);
@@ -1020,6 +1021,13 @@ VCR_getKeys( int Control, BUTTONS *Keys )
 ///		return;
 	}
 
+	if (m_task == StartRecordingFromExistingSnapshot)
+		if ((savestates_job & LOADSTATE) == 0) {
+			printf("[VCR]: Starting recording from Existing Snapshot...\n");
+			m_task = Recording;
+			memset(Keys, 0, sizeof(BUTTONS));
+		}
+
 	if (m_task == StartPlayback)
 	{
 #ifdef __WIN32__
@@ -1269,9 +1277,9 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 		}
 
 		if(defExt)
-    	strncat(buf,".st",PATH_MAX);
+    	strncat(buf,".st", 4);
 		else
-		strncat(buf, ".savestate", PATH_MAX);
+		strncat(buf, ".savestate", 12);
 
     	savestates_select_filename( buf );
     	savestates_job |= SAVESTATE;
@@ -1279,12 +1287,18 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 	}
 	else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT) {
 		printf("[VCR]: Loading state...\n");
-		strncpy(m_filename, (const char*)savestates_get_selected_filename(), MAX_PATH);
+		strncpy(m_filename, filename, MAX_PATH);
 		strncpy(buf, m_filename, MAX_PATH);
+		stripExt(buf);
+		if (defExt)
+			strncat(buf, ".st", 4);
+		else
+			strncat(buf, ".savestate", 12);
 
 		savestates_select_filename(buf);
 		savestates_job |= LOADSTATE;
-		m_task = StartRecordingFromSnapshot;
+
+		m_task = StartRecordingFromExistingSnapshot;
 	}
 	else {
      	m_task = StartRecording;
@@ -1684,7 +1698,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 		if (Config.movieBackupsLevel > 1) movieBackup();
 
-		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
+		if (m_header.startFlags & (MOVIE_START_FROM_SNAPSHOT ^ MOVIE_START_FROM_EXISTING_SNAPSHOT))
 		{
 			// we cant wait for this function to return and then get check in emu(?) thread (savestates_load)
 
@@ -2244,6 +2258,7 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	m_capture = 1;
 	EnableEmulationMenuItems(TRUE);
 	strncpy( AVIFileName, aviFilename, PATH_MAX );
+	strncpy(Config.AviCapturePath, aviFilename, PATH_MAX);
 
 	// Setting titlebar to include currently capturing AVI file
 	char title[PATH_MAX];
@@ -2502,7 +2517,7 @@ void VCR_updateFrameCounter ()
 /////////////////////////// Recent Movies //////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-bool empty = false;
+bool emptyRecentMovies = false;
 
 // Adapted Code from Recent.cpp
 void BuildRecentMoviesMenu(HWND hwnd) {
@@ -2520,23 +2535,23 @@ void BuildRecentMoviesMenu(HWND hwnd) {
 
 	for (i = 0; i < MAX_RECENT_MOVIE; i++) {
 		if (strcmp(Config.RecentMovies[i], "") == 0) {
-			// the !empty check here prevents unlimited "No Recent Movies" items being added to the menu by repeatedly pressing Reset
-			if (i == 0 && !empty) {
+			// the !emptyRecentMovies check here prevents unlimited "No Recent Movies" items being added to the menu by repeatedly pressing Reset
+			if (i == 0 && !emptyRecentMovies) {
 				menuinfo.dwTypeData = (LPTSTR)"No Recent Movies";
-				empty = true;
+				emptyRecentMovies = true;
 			}
 			else break;
 		}
 		else {
 			menuinfo.dwTypeData = Config.RecentMovies[i];
-			empty = false;
+			emptyRecentMovies = false;
 		}
 
 		menuinfo.cch = strlen(menuinfo.dwTypeData);
 		menuinfo.wID = ID_RECENTMOVIES_FIRST + i;
 		InsertMenuItem(hSubMenu, i + 3, TRUE, &menuinfo);
 
-		if (empty || IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
+		if (emptyRecentMovies || IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
 			EnableMenuItem(hSubMenu, ID_RECENTMOVIES_FIRST + i, MF_DISABLED);
 			EnableMenuItem(hMovieMenu, ID_REPLAY_LATEST, MF_DISABLED);
 		}
@@ -2544,7 +2559,7 @@ void BuildRecentMoviesMenu(HWND hwnd) {
 }
 
 void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag) {
-	if (!empty) {
+	if (!emptyRecentMovies) {
 		for (int i = 0; i < MAX_RECENT_MOVIE; i++) {
 			EnableMenuItem(hMenu, ID_RECENTMOVIES_FIRST + i, flag ? MF_ENABLED : MF_DISABLED);
 		}
@@ -2562,9 +2577,9 @@ void ClearRecentMovies(BOOL clear_array) {
 	}
 	if (clear_array) {
 		memset(Config.RecentMovies, 0, MAX_RECENT_MOVIE * sizeof(Config.RecentMovies[0]));
-		/* unintuitive, but if empty is true then the "if (i == 0 && !empty)" check will fail in BuildRecentMoviesMenu,
+		/* unintuitive, but if emptyRecentMovies is true then the "if (i == 0 && !emptyRecentMovies)" check will fail in BuildRecentMoviesMenu,
 		meaning "No Recent Movies" will never be added to the list */
-		empty = false;
+		emptyRecentMovies = false;
 	}
 }
 

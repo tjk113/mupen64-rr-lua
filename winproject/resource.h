@@ -371,7 +371,6 @@
 #define IDC_MOVIE_REFRESH               9301
 #define IDC_MOVIE_READONLY              9302
 #define IDC_FROMSNAPSHOT_LABEL          9303
-//#define IDC_EXISTINGSAVESTATE_BROWSE	9304
 #define IDC_ROM_INFO_TEXT               9409
 #define IDC_ROM_HEADER_INFO_TEXT2       9410
 #define IDC_ROM_INFO_TEXT2              9411

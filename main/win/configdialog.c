@@ -406,7 +406,7 @@ bool folderDiag(char* out, int max_size, const char* starting_dir)
 
 BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-  char Buffer[MAX_PATH], Directory[MAX_PATH];
+  char Directory[MAX_PATH];
   LPITEMIDLIST pidl{};
   BROWSEINFO bi{};
     char RomBrowserDir[_MAX_PATH]; 
