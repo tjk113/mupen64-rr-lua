@@ -1907,6 +1907,12 @@ int GetSystemMetricsLua(lua_State* L)
 	
 	return 1;
 }
+int IsMainWindowInForeground(lua_State* L) 
+{
+	Lua* lua = GetLuaClass(L);
+	lua_pushboolean(L, GetForegroundWindow() == mainHWND || GetActiveWindow() == mainHWND);
+	return 1;
+}
 //Gui
 //�v���O�C���ɕ�����Ă邩�玩�R�ɏo���Ȃ��H
 //�Ƃ������E�B���h�E�ɒ��ڏ����Ă���
@@ -3167,6 +3173,7 @@ const luaL_Reg emuFuncs[] = {
 	{"isreadonly", GetVCRReadOnly},
 
 	{"getsystemmetrics", GetSystemMetricsLua}, // irrelevant to core but i dont give a 
+	{"ismainwindowinforeground", IsMainWindowInForeground},
 
 	{NULL, NULL}
 };
