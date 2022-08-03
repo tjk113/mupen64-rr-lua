@@ -26,6 +26,8 @@ void AtVILuaCallback();
 void GetLuaMessage();
 void AtInputLuaCallback(int n);
 void AtIntervalLuaCallback();
+void AtPlayMovieLuaCallback();
+void AtStopMovieLuaCallback();
 void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
 void AtResetCallback();

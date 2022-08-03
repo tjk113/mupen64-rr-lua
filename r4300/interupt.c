@@ -50,6 +50,7 @@
 #include "../main/savestates.h"
 #include "../main/vcr.h"
 #include "../main/win/Config.h"
+#include "../main/win/main_win.h"
 
 unsigned long next_vi;
 int vi_field = 0;
@@ -397,7 +398,7 @@ void gen_interupt()
 #endif
 		new_vi();
 		if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
-		else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * 1500);
+		else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * Config.CPUClockSpeedMultiplier)); // this is the place
 		next_vi += vi_register.vi_delay;
 		if (vi_register.vi_status & 0x40) vi_field = 1 - vi_field;
 		else vi_field = 0;

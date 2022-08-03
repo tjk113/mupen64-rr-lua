@@ -417,8 +417,9 @@
 #define IDC_MOVIE_CONTROLLERS2          9503
 #define IDC_STARTSFROM_LABEL            9504
 #define IDC_FROMSNAPSHOT_RADIO          9505
-#define IDC_FROMSTART_RADIO             9506
-#define IDC_FROMEEPROM_RADIO					9516
+#define IDC_FROMEXISTINGSNAPSHOT_RADIO	9506
+#define IDC_FROMSTART_RADIO             9507
+#define IDC_FROMEEPROM_RADIO			9516
 #define IDC_PAUSEAT_LABEL               9507
 #define IDC_PAUSEAT_FIELD               9508
 //Lua
@@ -492,6 +493,10 @@
 #define IDC_AV_AUDIOSYNC				40051
 #define IDC_AV_VIDEOSYNC				40052
 #define ID_LOAD_LATEST					40053
+#define IDC_LAG_EMULATION				40054
+#define IDC_CLOCK_SPD_MULT				40055
+#define IDC_COMBO_CLOCK_SPD_MULT		40056
+#define IDC_CLOCK_SPD_MULT_TEXT			40057
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

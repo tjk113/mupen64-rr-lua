@@ -1168,9 +1168,10 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
    
 }
 
+bool emptyRecentROMs = false;
+
 void SetRecentList(HWND hwnd) {
     int i;
-    bool empty = false;
     MENUITEMINFO menuinfo{};
     FreezeRecentRoms( hwnd, FALSE ) ;
     HMENU hMenu = GetMenu(hwnd);
@@ -1183,21 +1184,22 @@ void SetRecentList(HWND hwnd) {
     menuinfo.fState = MFS_ENABLED;
     for ( i = 0 ; i < MAX_RECENT_ROMS  ; i++)   {
               if (strcmp(Config.RecentRoms[i], "")==0) {
-                  if (i == 0) {
+                  if (i == 0 && !emptyRecentROMs) {
                       menuinfo.dwTypeData = (LPTSTR)"No Recent ROMs";
-                      empty = true;
+                      emptyRecentROMs = true;
                   }
                   else break;
               }
               else {
                   menuinfo.dwTypeData = ParseName(Config.RecentRoms[i]);
+                  emptyRecentROMs = false;
               }
     
 	          //menuinfo.dwTypeData = ParseName( Config.RecentRoms[i]);
               menuinfo.cch = strlen(menuinfo.dwTypeData);
 	          menuinfo.wID = ID_RECENTROMS_FIRST + i;
               InsertMenuItem( hSubMenu, 3 + i, TRUE, &menuinfo);
-              if (empty) {
+              if (emptyRecentROMs || IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
                   EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_DISABLED);
                   EnableMenuItem(hSubMenu, ID_RECENTROMS_FIRST, MF_DISABLED);
               }
@@ -1208,6 +1210,16 @@ void SetRecentList(HWND hwnd) {
              
      }
    
+}
+
+// Adapted code from vcr.c
+void EnableRecentROMsMenu(HMENU hMenu, BOOL flag) {
+    if (!emptyRecentROMs) {
+        for (int i = 0; i < MAX_RECENT_ROMS; i++) {
+            EnableMenuItem(hMenu, ID_RECENTROMS_FIRST + i, flag ? MF_ENABLED : MF_DISABLED);
+        }
+        EnableMenuItem(hMenu, ID_LOAD_LATEST, flag ? MF_ENABLED : MF_DISABLED);
+    }
 }
 
 void AddToRecentList(HWND hwnd,char *rompath) {

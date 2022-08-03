@@ -103,6 +103,7 @@ typedef struct _CONFIG {
     BOOL zeroIndex;
     BOOL movieBackups;
     int movieBackupsLevel;
+    int CPUClockSpeedMultiplier;
 
     // Advanced vars
     BOOL StartFullScreen;
@@ -133,7 +134,8 @@ typedef struct _CONFIG {
     BOOL DefaultScreenshotsDir;
     char PluginsDir[MAX_PATH];
     char SavesDir[MAX_PATH];
-    char ScreenshotsDir[MAX_PATH];    
+    char ScreenshotsDir[MAX_PATH];
+    char SaveLoadAsandSaveStateAsPath[MAX_PATH];
     
     // Recent Roms
     char RecentRoms[10][MAX_PATH];
@@ -161,6 +163,7 @@ typedef struct _CONFIG {
     bool forceInternalCapture;
     bool captureOtherWindows;
     HOTKEY hotkey [NUM_HOTKEYS];
+    char AviCapturePath[MAX_PATH];
 
     //Lua
     char LuaScriptPath[MAX_PATH];

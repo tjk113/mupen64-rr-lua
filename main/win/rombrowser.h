@@ -122,6 +122,7 @@ void AddToRecentList(HWND hwnd,char *rompath);
 void RunRecentRom(int i);
 void DisableRecentRoms(HMENU hMenu,BOOL disable);
 void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable);
+void EnableRecentROMsMenu(HMENU hMenu, BOOL flag);
 
 #endif
 

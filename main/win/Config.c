@@ -247,8 +247,7 @@ void LoadConfig()
 
     sprintf(Config.ScreenshotsDir, "%sScreenShots\\", AppPath);
     ReadCfgString("Directories", "Screenshots Directory", Config.ScreenshotsDir, Config.ScreenshotsDir);
-
-
+    ReadCfgString("Directories", "SaveLoadAsandSaveStateAsPath", Config.SaveLoadAsandSaveStateAsPath, Config.SaveLoadAsandSaveStateAsPath);
 
     // Rom Browser
     Config.RomBrowserSortColumn = ReadCfgInt("Rom Browser", "Sort Column", 0);
@@ -261,6 +260,7 @@ void LoadConfig()
     //avi options
     Config.forceInternalCapture = ReadCfgInt("Avi Options", "Force internal capture", 0);
     Config.captureOtherWindows = ReadCfgInt("Avi Options", "Capture other windows", 0);
+    ReadCfgString("Avi Options", "Avi Capture Path", "", Config.AviCapturePath);
 
     // other
     Config.LuaWarnOnClose = ReadCfgInt("Other", "Ask on lua close", 0);
@@ -270,6 +270,7 @@ void LoadConfig()
     Config.FrequentVCRUIRefresh = ReadCfgInt("Other", "Fast statusbar updates", 0);
     Config.SyncMode = ReadCfgInt("Other", "Synchronisation Mode", VCR_SYNC_AUDIO_DUPL);
     Config.moviesERRORS = ReadCfgInt("General", "Alert Movies errors", 1); //moviesERRORS == 1 -> the errors are shown
+    Config.CPUClockSpeedMultiplier = ReadCfgInt("Other", "CPU Clock Speed Multiplier", 1);
 
     // Load A Whole Whackton Of Hotkeys:
     /*
@@ -464,11 +465,13 @@ void SaveConfig()
     WriteCfgString("Directories", "Saves Directory", Config.SavesDir);
     WriteCfgInt("Directories", "Default Screenshots Directory", Config.DefaultScreenshotsDir);
     WriteCfgString("Directories", "Screenshots Directory", Config.ScreenshotsDir);
+    WriteCfgString("Directories", "SaveLoadAsandSaveStateAsPath", Config.SaveLoadAsandSaveStateAsPath);
 
     WriteCfgInt("Recording Options", "No reset recording", Config.NoReset);
 
     WriteCfgInt("Avi Options", "Force internal capture", Config.forceInternalCapture);
     WriteCfgInt("Avi Options", "Capture other windows", Config.captureOtherWindows);
+    WriteCfgString("Avi Options", "Avi Capture Path", Config.AviCapturePath);
 
     WriteCfgInt("Other", "Ask on lua close", Config.LuaWarnOnClose);
     WriteCfgInt("Other", "Simplified lua", Config.LuaSimpleDialog);
@@ -476,6 +479,7 @@ void SaveConfig()
     WriteCfgInt("Other", "Autobackup level", Config.movieBackupsLevel);
     WriteCfgInt("Other", "Fast statusbar updates", Config.FrequentVCRUIRefresh);
     WriteCfgInt("Other", "Synchronisation Mode", Config.SyncMode);
+    WriteCfgInt("Other", "CPU Clock Speed Multiplier", Config.CPUClockSpeedMultiplier);
 
     // Save A Whole Whackton Of Hotkeys:
 
@@ -509,7 +513,7 @@ void SaveConfig()
 
     // some new misc ones
     WriteHotkeyConfig(42, "Start From Beginning");
-    WriteHotkeyConfig(43, "Replay Latest");
+    WriteHotkeyConfig(43, "Load Latest Movie");
     WriteHotkeyConfig(44, "Load Latest ROM");
     
 }

@@ -707,16 +707,20 @@ std::string OpenLuaFileDialog() {
 	int storePaused = emu_paused;
 	pauseEmu(1);
 
-	char filename[MAX_PATH] = "";
+	// The default directory we open the file dialog window in is
+	// the parent directory of the last script that the user ran
+	char scriptParentDir[MAX_PATH] = "";
+	std::filesystem::path scriptPath = Config.LuaScriptPath;
+	strncpy(scriptParentDir, scriptPath.parent_path().string().c_str(), MAX_PATH); // monstrosity
 
-	if (!fdOpenLuaScript.ShowFileDialog(filename, L"*.lua", TRUE, FALSE, mainHWND)) {
+	if (!fdOpenLuaScript.ShowFileDialog(scriptParentDir, L"*.lua", TRUE, FALSE, mainHWND)) {
 		if (!storePaused) resumeEmu(1);
 		return "";
 	}
 
 	if (!storePaused) resumeEmu(1);
 
-	return std::string(filename); // umm fuck you
+	return std::string(scriptParentDir); // umm fuck you
 }
 void SetButtonState(HWND wnd, bool state) {
 	if(!IsWindow(wnd)) return;
@@ -1888,10 +1892,10 @@ template<>ULONGLONG CheckT<ULONGLONG>(lua_State *L, int i) {
 }
 template<typename T, void(**writemem_func)(), T &g_T>
 int WriteMemT(lua_State *L) {
-	ULONGLONG *rdword_s = rdword;
+	ULONGLONG *rdword_s = rdword, address_s = address;
 	T g_T_s = g_T;
 	address = CheckIntegerU(L, 1);
-	g_T = CheckT(L, 2);
+	g_T = CheckT<T>(L, 2);
 	writemem_func[address>>16]();
 	address = address_s;
 	g_T = g_T_s;
@@ -3377,6 +3381,14 @@ void AtIntervalLuaCallback() {
 	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATINTERVAL);
 }
 
+void AtPlayMovieLuaCallback() {
+	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATPLAYMOVIE);
+}
+
+void AtStopMovieLuaCallback() {
+	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATSTOPMOVIE);
+}
+
 void AtLoadStateLuaCallback() {
 	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATLOADSTATE);
 }
@@ -3984,6 +3996,8 @@ void AtUpdateScreenLuaCallback(){};
 void AtVILuaCallback()			{};
 void AtInputLuaCallback(int n)	{};
 void AtIntervalLuaCallback()	{};
+void AtPlayMovieLuaCallback()	{};
+void AtStopMovieLuaCallback()	{};
 void AtLoadStateLuaCallback()	{};
 void AtSaveStateLuaCallback()	{};
 void AtResetCallback()			{};

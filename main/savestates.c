@@ -82,6 +82,7 @@ void savestates_select_filename(const char *fn)
    if (strlen((const char *)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
 		 return;
    strcpy(fname, (const char *)fn);
+   strncpy(Config.SaveLoadAsandSaveStateAsPath, fname, MAX_PATH);
 }
 
 unsigned const char * savestates_get_selected_filename()
