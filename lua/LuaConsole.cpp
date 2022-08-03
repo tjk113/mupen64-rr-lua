@@ -2154,15 +2154,15 @@ int LoadImage(lua_State* L)
 	return 1;
 }
 
-int ClearImage(lua_State* L) { // Clears one or all images from imagePool
+int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 	unsigned int clearIndex = luaL_checkinteger(L, 1);
 	if (clearIndex == 0) { // If clearIndex is 0, clear all images
-		printf("Clearing all images\n");
+		printf("Deleting all images\n");
 		imagePool.clear();
 	}
 	else { // If clear index is not 0, clear 1 image
 		if (clearIndex <= imagePool.size()) {
-			printf("Clearing image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
+			printf("Deleting image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
 			imagePool.erase(imagePool.begin() + clearIndex - 1);
 		}
 		else { // Error if the images doesn't exist
@@ -3324,7 +3324,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"fillellipsea", FillEllipseAlpha},
 	{"fillpolygona", FillPolygonAlpha},
 	{"loadimage", LoadImage},
-	{"clearimage", ClearImage},
+	{"deleteimage", DeleteImage},
 	{"drawimage", DrawImage},
 	{"drawimagescale", DrawImageScale},
 	/*</GDIPlus*/
