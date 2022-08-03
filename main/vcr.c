@@ -1456,13 +1456,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 	
 	extern HWND mainHWND;
 	char buf[PATH_MAX];
-/*
-	if (m_task != Idle)
-	{
-		fprintf( stderr, "[VCR]: Cannot start playback, current task is \"%s\"\n", m_taskName[m_task] );
-		return -1;
-	}
-*/
+
 	strncpy( m_filename, filename, PATH_MAX );
 	printf("m_filename = %s\n", m_filename);
 	char *p = strrchr( m_filename, '.' );
@@ -1484,7 +1478,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 			RESET_TITLEBAR
 				if (m_file != NULL)
 					fclose(m_file);
-			return -1;
+			return VCR_PLAYBACK_FILE_BUSY;
         }
 	}
 	SetActiveMovie(buf); 
@@ -1655,7 +1649,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 				RESET_TITLEBAR
 					if (m_file != NULL)
 						fclose(m_file);
-				return -1;
+				return VCR_PLAYBACK_INCOMPATIBLE;
 			}
 
 			// recalculate length of movie from the file size
@@ -1739,7 +1733,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 					if (m_file != NULL)
 						fclose(m_file);
 					free(bufnExt);
-					return -1;
+					return VCR_PLAYBACK_SAVESTATE_MISSING;
 				}
 			}
 

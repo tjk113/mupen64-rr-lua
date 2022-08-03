@@ -1733,59 +1733,83 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
             {
                 case IDC_OK:
                 case IDOK:
+                {
 
-					{
-						BOOL success;
-						unsigned int num = GetDlgItemInt(hwnd, IDC_PAUSEAT_FIELD, &success, TRUE);
-						if(((signed int)num) >= 0 && success)
-							pauseAtFrame = num;
-						else
-							pauseAtFrame = -1;
-					}
-					GetDlgItemText(hwnd,IDC_INI_MOVIEFILE,tempbuf,MAX_PATH);
-
-					// turn WCHAR into UTF8
-					WCHAR authorWC [MOVIE_AUTHOR_DATA_SIZE];
-					char authorUTF8 [MOVIE_AUTHOR_DATA_SIZE * 4];
-					if(GetDlgItemTextW(hwnd,IDC_INI_AUTHOR,authorWC,MOVIE_AUTHOR_DATA_SIZE))
-						WideCharToMultiByte(CP_UTF8, 0, authorWC, -1, authorUTF8, sizeof(authorUTF8), NULL, NULL);
-					else
-						GetDlgItemTextA(hwnd,IDC_INI_AUTHOR,authorUTF8,MOVIE_AUTHOR_DATA_SIZE);
-
-					WCHAR descriptionWC [MOVIE_DESCRIPTION_DATA_SIZE];
-					char descriptionUTF8 [MOVIE_DESCRIPTION_DATA_SIZE * 4];
-					if(GetDlgItemTextW(hwnd,IDC_INI_DESCRIPTION,descriptionWC,MOVIE_DESCRIPTION_DATA_SIZE))
-						WideCharToMultiByte(CP_UTF8, 0, descriptionWC, -1, descriptionUTF8, sizeof(descriptionUTF8), NULL, NULL);
-					else
-						GetDlgItemTextA(hwnd,IDC_INI_DESCRIPTION,descriptionUTF8,MOVIE_DESCRIPTION_DATA_SIZE);
-
-					VCR_setReadOnly(IsDlgButtonChecked(hwnd,IDC_MOVIE_READONLY));
-                    if (strlen(tempbuf) == 0 || VCR_startPlayback( tempbuf, authorUTF8, descriptionUTF8 ) < 0)
                     {
-						sprintf(tempbuf2, "Couldn't start playback\nof \"%s\".", tempbuf);
-                       MessageBox(hwnd, tempbuf2, "VCR", MB_OK);
-                       break;
-					}
+                        BOOL success;
+                        unsigned int num = GetDlgItemInt(hwnd, IDC_PAUSEAT_FIELD, &success, TRUE);
+                        if (((signed int)num) >= 0 && success)
+                            pauseAtFrame = num;
+                        else
+                            pauseAtFrame = -1;
+                    }
+                    GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf, MAX_PATH);
+
+                    // turn WCHAR into UTF8
+                    WCHAR authorWC[MOVIE_AUTHOR_DATA_SIZE];
+                    char authorUTF8[MOVIE_AUTHOR_DATA_SIZE * 4];
+                    if (GetDlgItemTextW(hwnd, IDC_INI_AUTHOR, authorWC, MOVIE_AUTHOR_DATA_SIZE))
+                        WideCharToMultiByte(CP_UTF8, 0, authorWC, -1, authorUTF8, sizeof(authorUTF8), NULL, NULL);
+                    else
+                        GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
+
+                    WCHAR descriptionWC[MOVIE_DESCRIPTION_DATA_SIZE];
+                    char descriptionUTF8[MOVIE_DESCRIPTION_DATA_SIZE * 4];
+                    if (GetDlgItemTextW(hwnd, IDC_INI_DESCRIPTION, descriptionWC, MOVIE_DESCRIPTION_DATA_SIZE))
+                        WideCharToMultiByte(CP_UTF8, 0, descriptionWC, -1, descriptionUTF8, sizeof(descriptionUTF8), NULL, NULL);
+                    else
+                        GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, descriptionUTF8, MOVIE_DESCRIPTION_DATA_SIZE);
+
+                    VCR_setReadOnly(IsDlgButtonChecked(hwnd, IDC_MOVIE_READONLY));
+
+                    auto playbackResult = VCR_startPlayback(tempbuf, authorUTF8, descriptionUTF8);
+
+                    if (strlen(tempbuf) == 0 || playbackResult != VCR_PLAYBACK_SUCCESS)
+                    {
+                        char errorString[MAX_PATH];
+
+                        sprintf(errorString, "Failed to start movie \"%s\" ", tempbuf);
+
+                        switch (playbackResult)
+                        {
+                        case VCR_PLAYBACK_ERROR:
+                            strcat(errorString, " - unknown error");
+                            break;
+                        case VCR_PLAYBACK_SAVESTATE_MISSING:
+                            strcat(errorString, " - savestate is missing");
+                            break;
+                        case VCR_PLAYBACK_FILE_BUSY:
+                            strcat(errorString, " - file is locked");
+                            break;
+                        case VCR_PLAYBACK_INCOMPATIBLE:
+                            strcat(errorString, " - configuration incompatibility");
+                            break;
+                        }
+
+                        MessageBox(hwnd, errorString, "VCR", MB_OK);
+                        break;
+                    }
                     else {
-						HMENU hMenu = GetMenu(mainHWND);
-						EnableMenuItem(hMenu,ID_STOP_RECORD,MF_GRAYED);
-						EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_ENABLED);
+                        HMENU hMenu = GetMenu(mainHWND);
+                        EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
+                        EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
                         //AddToRecentMovies(tempbuf);
                         EnableRecentMoviesMenu(hMenu, TRUE);
-						if(!emu_paused || !emu_launched)
-							SetStatusTranslatedString(hStatus,0,"Playback started...");
-						else
-							SetStatusTranslatedString(hStatus,0,"Playback started. (Paused)");
+                        if (!emu_paused || !emu_launched)
+                            SetStatusTranslatedString(hStatus, 0, "Playback started...");
+                        else
+                            SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
                     }
-//                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPSTR) TempMessage, 128 );
-//                    setIniComments(pRomInfo,TempMessage);
-//                    strncpy(pRomInfo->UserNotes,TempMessage,sizeof(pRomInfo->UserNotes));
+                    //                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPSTR) TempMessage, 128 );
+                    //                    setIniComments(pRomInfo,TempMessage);
+                    //                    strncpy(pRomInfo->UserNotes,TempMessage,sizeof(pRomInfo->UserNotes));
                     if (!emu_launched) {                    //Refreshes the ROM Browser
-                        ShowWindow( hRomList, FALSE ); 
-                        ShowWindow( hRomList, TRUE );
+                        ShowWindow(hRomList, FALSE);
+                        ShowWindow(hRomList, TRUE);
                     }
                     EndDialog(hwnd, IDOK);
-//                    romInfoHWND = NULL; 
+                    //                    romInfoHWND = NULL; 
+                }
 	                break;
                 case IDC_CANCEL:
                 case IDCANCEL:
