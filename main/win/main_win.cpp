@@ -1800,8 +1800,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 					{
                      // The default directory we open the file dialog window in is
                      // the parent directory of the last movie that the user ran
-                     std::filesystem::path moviePath = Config.RecentMovies[0];
-                     strncpy(path_buffer, moviePath.parent_path().string().c_str(), MAX_PATH);
+                    GetDefaultFileDialogPath(path_buffer, Config.RecentMovies[0]);
 
                      if(fdBrowseMovie.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd))
 						 SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
@@ -2071,14 +2070,12 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
                 if (flag == MOVIE_START_FROM_EXISTING_SNAPSHOT) {
                     // The default directory we open the file dialog window in is the 
                     // parent directory of the last savestate that the user saved or loaded
-                    char path_buffer[MAX_PATH];
-                    std::filesystem::path path = Config.SaveLoadAsandSaveStateAsPath; // give this a unique default dir?
-                    std::string filename = path.parent_path().string();
-                    strncpy(path_buffer, filename.c_str(), MAX_PATH);
+                    std::filesystem::path path = Config.SaveLoadAsandSaveStateAsPath;
+                    GetDefaultFileDialogPath(tempbuf, Config.SaveLoadAsandSaveStateAsPath);
 
-                    if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
-                        savestates_select_filename(path_buffer);
-                        path = path_buffer;
+                    if (fdBrowseMovie2.ShowFileDialog(tempbuf, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
+                        savestates_select_filename(tempbuf);
+                        path = tempbuf;
                         path.replace_extension("m64");
                         strncpy(tempbuf, path.string().c_str(), MAX_PATH);
 
@@ -2125,14 +2122,12 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
             {
                 // The default directory we open the file dialog window in is
                 // the parent directory of the last movie that the user ran
-                char path_buffer[MAX_PATH];
-                std::filesystem::path moviePath = Config.RecentMovies[0]; // if the first movie ends up being deleted this is fucked
-                strncpy(path_buffer, moviePath.parent_path().string().c_str(), MAX_PATH);
+                GetDefaultFileDialogPath(tempbuf, Config.RecentMovies[0]); // if the first movie ends up being deleted this is fucked
 
-                if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd)) {
-                    if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
-                        strcat(path_buffer, ".m64");
-                    SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
+                if (fdBrowseMovie2.ShowFileDialog(tempbuf, L"*.m64;*.rec", TRUE, FALSE, hwnd)) {
+                    if (strlen(tempbuf) > 0 && (strlen(tempbuf) < 4 || _stricmp(tempbuf + strlen(tempbuf) - 4, ".m64") != 0))
+                        strcat(tempbuf, ".m64");
+                    SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
                 }
             }
             break;
@@ -2175,13 +2170,6 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
         break;
     }
     return FALSE;
-}
-
-static char* GetDefaultFileDialogPath(char* path) {
-    static char path_buffer[MAX_PATH];
-    std::filesystem::path fullPath = path;
-    strncpy(path_buffer, fullPath.parent_path().string().c_str(), MAX_PATH);
-    return path_buffer;
 }
 
 void OpenMoviePlaybackDialog()
@@ -3016,10 +3004,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			break;
 	case WM_COMMAND:
 		{
-            // The default directory we open the file dialog window in is
-            // the parent directory of the last savestate that the user saved or loaded
-		    std::filesystem::path savestatePath = Config.SaveLoadAsandSaveStateAsPath; // this one is initialized up here bc compiler wasn't happy when i initialized it in the cases it's used in
-
 			switch(LOWORD(wParam))
 			{
 			case ID_MENU_LUASCRIPT_NEW:
@@ -3321,8 +3305,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 // The default directory we open the file dialog window in is
                 // the parent directory of the last rom that the user ran
-                std::filesystem::path romPath = Config.RecentRoms[0];
-                strncpy(path_buffer, romPath.parent_path().string().c_str(), MAX_PATH);
+                GetDefaultFileDialogPath(path_buffer, Config.RecentRoms[0]);
 
                 if (fdLoadRom.ShowFileDialog(path_buffer, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap", TRUE, FALSE, hwnd)) {
                     char temp_buffer[_MAX_PATH];
@@ -3385,7 +3368,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     break;                 
                 case STATE_SAVEAS:
                 {
-                    strncpy(path_buffer, savestatePath.parent_path().string().c_str(), MAX_PATH);
+                    GetDefaultFileDialogPath(path_buffer, Config.SaveLoadAsandSaveStateAsPath);
 
                     if (fdSaveStateAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", FALSE, FALSE, hwnd)) {
 
@@ -3414,7 +3397,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
                     break;
                 case STATE_LOAD:
-                    strncpy(path_buffer, savestatePath.parent_path().string().c_str(), MAX_PATH);
+                    GetDefaultFileDialogPath(path_buffer, Config.SaveLoadAsandSaveStateAsPath);
 
                     if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
                         savestates_select_filename(path_buffer);
@@ -3465,8 +3448,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         
                         // The default directory we open the file dialog window in is
                         // the parent directory of the last avi that the user captured
-                        std::filesystem::path aviPath = Config.AviCapturePath;
-                        strncpy(path_buffer, aviPath.parent_path().string().c_str(), MAX_PATH);
+                        GetDefaultFileDialogPath(path_buffer, Config.AviCapturePath);
 
                         if (fdStartCapture.ShowFileDialog(path_buffer, L"*.avi", FALSE, FALSE, hwnd)) {
 

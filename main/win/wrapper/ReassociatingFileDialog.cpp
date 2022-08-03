@@ -64,6 +64,12 @@ cleanUp:
 	return succeeded && strlen(path) > 0;
 }
 
+char* GetDefaultFileDialogPath(char* buf, char* path) { // buf must be MAX_PATH or greater
+	std::filesystem::path fullPath = path;
+	strncpy(buf, fullPath.parent_path().string().c_str(), MAX_PATH);
+	return buf;
+}
+
 // https://gist.github.com/jsxinvivo/11f383ac61a56c1c0c25
 wchar_t* ReassociatingFileDialog::convertCharArrayToLPCWSTR(const char* charArray) {
 	wchar_t* wString = new wchar_t[4096];
