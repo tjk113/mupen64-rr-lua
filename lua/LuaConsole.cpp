@@ -2154,6 +2154,25 @@ int LoadImage(lua_State* L)
 	return 1;
 }
 
+int ClearImage(lua_State* L) { // Clears one or all images from imagePool
+	unsigned int clearIndex = luaL_checkinteger(L, 1);
+	if (clearIndex == 0) { // If clearIndex is 0, clear all images
+		printf("Clearing all images\n");
+		imagePool.clear();
+	}
+	else { // If clear index is not 0, clear 1 image
+		if (clearIndex <= imagePool.size()) {
+			printf("Clearing image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
+			imagePool.erase(imagePool.begin() + clearIndex - 1);
+		}
+		else { // Error if the images doesn't exist
+			luaL_error(L, "Argument #1: Invalid image identifier");
+			return 0;
+		}
+	}
+	return 0;
+}
+
 int DrawImage(lua_State* L)
 {
 	int left, top, right, bottom;
@@ -2176,9 +2195,29 @@ int DrawImage(lua_State* L)
 		bottom = luaL_checknumber(L, 5);
 		gfx.DrawImage(imagePool[imgIndex], left, top, right, bottom);
 	}
-	
 	return 0;
 }
+
+int DrawImageScale(lua_State* L) {
+	int left, top;
+	float xscale, yscale;
+	unsigned int imgIndex;
+	Gdiplus::Graphics gfx(luaDC);
+
+	imgIndex = luaL_checkinteger(L, 1) - 1;
+	if (imgIndex > imagePool.size() - 1) {
+		luaL_error(L, "Argument #1: Invalid image identifier");
+		return 0;
+	}
+	left = luaL_checkinteger(L, 2);
+	top = luaL_checkinteger(L, 3);
+	xscale = luaL_checknumber(L, 4);
+	yscale = luaL_checknumber(L, 5);
+
+	Gdiplus::Rect scale(left, top, xscale * imagePool[imgIndex]->GetWidth(), yscale * imagePool[imgIndex]->GetHeight());
+	gfx.DrawImage(imagePool[imgIndex], scale);
+}
+
 //1st arg is table of points
 //2nd arg is color #xxxxxxxx
 int FillPolygonAlpha(lua_State* L)
@@ -3284,8 +3323,10 @@ const luaL_Reg wguiFuncs[] = {
 	{"fillrecta", FillRectAlpha},
 	{"fillellipsea", FillEllipseAlpha},
 	{"fillpolygona", FillPolygonAlpha},
-	{"drawimage", DrawImage},
 	{"loadimage", LoadImage},
+	{"clearimage", ClearImage},
+	{"drawimage", DrawImage},
+	{"drawimagescale", DrawImageScale},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
