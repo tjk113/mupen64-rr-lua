@@ -45,6 +45,7 @@ void SYNC();
 void NOTCOMPILED();
 void InitTimer();
 inline void TraceLoggingBufFlush();
+extern void(__cdecl* CaptureScreen) (char* Directory);// for lua screenshot
 
 unsigned long lastInputLua[4];
 unsigned long rewriteInputLua[4];
@@ -2218,6 +2219,11 @@ int DrawImageScale(lua_State* L) {
 	gfx.DrawImage(imagePool[imgIndex], scale);
 }
 
+int Screenshot(lua_State* L) {
+	CaptureScreen((char*)luaL_checkstring(L, 1));
+	return 0;
+}
+
 //1st arg is table of points
 //2nd arg is color #xxxxxxxx
 int FillPolygonAlpha(lua_State* L)
@@ -3217,6 +3223,8 @@ const luaL_Reg emuFuncs[] = {
 
 	{"getsystemmetrics", GetSystemMetricsLua}, // irrelevant to core but i dont give a 
 	{"ismainwindowinforeground", IsMainWindowInForeground},
+
+	{"screenshot", Screenshot},
 
 	{NULL, NULL}
 };
