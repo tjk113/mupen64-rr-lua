@@ -2159,11 +2159,15 @@ int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 	unsigned int clearIndex = luaL_checkinteger(L, 1);
 	if (clearIndex == 0) { // If clearIndex is 0, clear all images
 		printf("Deleting all images\n");
+		for (auto x : imagePool) {
+			delete x;
+		}
 		imagePool.clear();
 	}
-	else { // If clear index is not 0, clear 1 image
+	else { // If clear index is not 0, clear 1 image MEMORY LEAK
 		if (clearIndex <= imagePool.size()) {
 			printf("Deleting image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
+			//delete imagePool[clearIndex];
 			imagePool.erase(imagePool.begin() + clearIndex - 1);
 		}
 		else { // Error if the images doesn't exist
@@ -2181,7 +2185,7 @@ int DrawImage(lua_State* L)
 	Gdiplus::Graphics gfx(luaDC);
 
 	imgIndex = luaL_checkinteger(L, 1) - 1;
-	if (imgIndex > imagePool.size() - 1)
+	if (imgIndex + 1 > imagePool.size())
 	{
 		luaL_error(L, "Argument #1: Invalid image identifier");
 		return 0;
@@ -2221,6 +2225,86 @@ int DrawImageScale(lua_State* L) {
 
 int Screenshot(lua_State* L) {
 	CaptureScreen((char*)luaL_checkstring(L, 1));
+	return 0;
+}
+
+BITMAPINFOHEADER createBitmapHeader(int width, int height)
+{
+	BITMAPINFOHEADER  bi;
+
+	// create a bitmap
+	bi.biSize = sizeof(BITMAPINFOHEADER);
+	bi.biWidth = width;
+	bi.biHeight = -height;  //this is the line that makes it draw upside down or not
+	bi.biPlanes = 1;
+	bi.biBitCount = 32;
+	bi.biCompression = BI_RGB;
+	bi.biSizeImage = 0;
+	bi.biXPelsPerMeter = 0;
+	bi.biYPelsPerMeter = 0;
+	bi.biClrUsed = 0;
+	bi.biClrImportant = 0;
+
+	return bi;
+}
+
+HBITMAP GdiPlusScreenCapture(HWND hWnd)
+{
+	// get handles to a device context (DC)
+	HDC hwindowDC = GetDC(hWnd);
+	HDC hwindowCompatibleDC = CreateCompatibleDC(hwindowDC);
+	SetStretchBltMode(hwindowCompatibleDC, COLORONCOLOR);
+
+	RECT size;
+	GetWindowRect(hWnd, &size);
+
+	// define scale, height and width
+	int scale = 1;
+	int screenx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	int screeny = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	//int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	//int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	int width = size.right - size.left;
+	int height = size.bottom - size.top;
+	printf("%d x %d\n", width, height);
+
+	// create a bitmap
+	HBITMAP hbwindow = CreateCompatibleBitmap(hwindowDC, width, height);
+	BITMAPINFOHEADER bi = createBitmapHeader(width, height);
+
+	// use the previously created device context with the bitmap
+	SelectObject(hwindowCompatibleDC, hbwindow);
+
+	// copy from the window device context to the bitmap device context
+	StretchBlt(hwindowCompatibleDC, 0, 0, width, height, hwindowDC, screenx, screeny, width, height, SRCCOPY);   //change SRCCOPY to NOTSRCCOPY for wacky colors !
+
+	// avoid memory leak
+	ReleaseDC(hWnd, hwindowDC);
+	DeleteDC(hwindowCompatibleDC);
+
+	return hbwindow;
+}
+
+int LoadScreen(lua_State* L) {
+	HBITMAP screen = GdiPlusScreenCapture(mainHWND);
+	//HBITMAP screen = CreateCompatibleBitmap(GetDC(mainHWND), GetSystemMetrics(SM_CXVIRTUALSCREEN), GetSystemMetrics(SM_CYVIRTUALSCREEN));
+	Gdiplus::Bitmap bmp(screen, nullptr);
+
+	IStream* istream = nullptr;
+	CreateStreamOnHGlobal(NULL, TRUE, &istream);
+
+	CLSID clsid;
+	CLSIDFromString(L"{557cf401-1a04-11d3-9a73-0000f81ef32e}", &clsid); // bmp encoding
+	bmp.Save(istream, &clsid);
+
+	Gdiplus::Image* out_im = new Gdiplus::Image(istream);
+
+	imagePool.push_back(out_im);
+
+	istream->Release();
+
+	//delete out_im;
+	
 	return 0;
 }
 
@@ -3335,6 +3419,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"deleteimage", DeleteImage},
 	{"drawimage", DrawImage},
 	{"drawimagescale", DrawImageScale},
+	{"loadscreen", LoadScreen},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
