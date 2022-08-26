@@ -2230,7 +2230,7 @@ int Screenshot(lua_State* L) {
 
 BITMAPINFOHEADER createBitmapHeader(int width, int height)
 {
-	BITMAPINFOHEADER  bi;
+	BITMAPINFOHEADER bi;
 
 	// create a bitmap
 	bi.biSize = sizeof(BITMAPINFOHEADER);
@@ -2262,8 +2262,6 @@ HBITMAP GdiPlusScreenCapture(HWND hWnd)
 	int scale = 1;
 	int screenx = GetSystemMetrics(SM_XVIRTUALSCREEN);
 	int screeny = GetSystemMetrics(SM_YVIRTUALSCREEN);
-	//int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-	//int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	int width = size.right - size.left - 16;
 	int height = size.bottom - size.top - 83;
 	printf("%d x %d\n", width, height);
@@ -2287,7 +2285,6 @@ HBITMAP GdiPlusScreenCapture(HWND hWnd)
 
 int LoadScreen(lua_State* L) {
 	HBITMAP screen = GdiPlusScreenCapture(mainHWND);
-	//HBITMAP screen = CreateCompatibleBitmap(GetDC(mainHWND), GetSystemMetrics(SM_CXVIRTUALSCREEN), GetSystemMetrics(SM_CYVIRTUALSCREEN));
 	Gdiplus::Bitmap bmp(screen, nullptr);
 
 	IStream* istream = nullptr;
@@ -2303,8 +2300,6 @@ int LoadScreen(lua_State* L) {
 
 	istream->Release();
 
-	//delete out_im;
-	
 	return 0;
 }
 
