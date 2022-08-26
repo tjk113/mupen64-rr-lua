@@ -2264,8 +2264,8 @@ HBITMAP GdiPlusScreenCapture(HWND hWnd)
 	int screeny = GetSystemMetrics(SM_YVIRTUALSCREEN);
 	//int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 	//int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-	int width = size.right - size.left;
-	int height = size.bottom - size.top;
+	int width = size.right - size.left - 16;
+	int height = size.bottom - size.top - 83;
 	printf("%d x %d\n", width, height);
 
 	// create a bitmap
@@ -2294,7 +2294,7 @@ int LoadScreen(lua_State* L) {
 	CreateStreamOnHGlobal(NULL, TRUE, &istream);
 
 	CLSID clsid;
-	CLSIDFromString(L"{557cf401-1a04-11d3-9a73-0000f81ef32e}", &clsid); // bmp encoding
+	CLSIDFromString(L"{557cf400-1a04-11d3-9a73-0000f81ef32e}", &clsid); // bmp encoding
 	bmp.Save(istream, &clsid);
 
 	Gdiplus::Image* out_im = new Gdiplus::Image(istream);
