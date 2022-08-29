@@ -150,6 +150,9 @@ void savestates_save()
 		//But we dont want to do this then load such .st and dma again... so I notify mupen about this in .st,
 		//since .st is filled up to the brim with data (not even a single unused offset) I have to store one bit in... rdram manufacturer register
 		//this 99.999% wont break on any game, and that bit will be cleared by mupen64plus converter as well, so only old old mupen ever sees this trick.
+		
+		//update: I stumbled upon a .st that had the bit set, but didn't have SI_INT in queue,
+		//so it froze game, so there exists a way to cause that somehow
 		for (i = 0; i < (64 / 4); i++)
 			rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
 		update_count();

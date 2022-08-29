@@ -91,6 +91,13 @@ void print_queue()
 
 static int SPECIAL_done = 0;
 
+/// <summary>
+/// Checks if evt1 will happen before evt2
+/// </summary>
+/// <param name="evt1"></param>
+/// <param name="evt2"></param>
+/// <param name="type2"></param>
+/// <returns></returns>
 int before_event(unsigned long evt1, unsigned long evt2, int type2)
 {
 	if (evt1 - Count < 0x80000000)
@@ -120,6 +127,11 @@ int before_event(unsigned long evt1, unsigned long evt2, int type2)
 	else return 0;
 }
 
+/// <summary>
+/// Adds interrupt to queue that will fire after certain amount of time (Count register cycles)
+/// </summary>
+/// <param name="type">type of interrupt</param>
+/// <param name="delay">how much to wait</param>
 void add_interupt_event(int type, unsigned long delay)
 {
 	unsigned long count = Count + delay/**2*/;
@@ -151,6 +163,7 @@ void add_interupt_event(int type, unsigned long delay)
 		return;
 	}
 
+// finds place in queue to insert the interrupt ( its sorted )
 	if (before_event(count, q->count, q->type) && !special)
 	{
 		q = (interupt_queue*)malloc(sizeof(interupt_queue));
@@ -194,6 +207,12 @@ void add_interupt_event(int type, unsigned long delay)
 	  //print_queue();
 }
 
+/// <summary>
+/// Add new interrupt that will fire when Count register reaches given value
+/// See add_interrupt_event for simmilar function
+/// </summary>
+/// <param name="type">type of interrupt</param>
+/// <param name="count">when to make this interrupt happen</param>
 void add_interupt_event_count(int type, unsigned long count)
 {
 	add_interupt_event(type, (count - Count)/*/2*/);
@@ -211,6 +230,11 @@ void remove_interupt_event()
 		next_interupt = 0;
 }
 
+/// <summary>
+/// Check if event of this type already exists in queue (for some reason this is forbidden)
+/// </summary>
+/// <param name="type">type of interrupt, see interupt.h</param>
+/// <returns></returns>
 unsigned long get_event(int type)
 {
 	interupt_queue* aux = q;
@@ -224,6 +248,10 @@ unsigned long get_event(int type)
 	return 0;
 }
 
+/// <summary>
+/// finds and removes this type of event from queue
+/// </summary>
+/// <param name="type">interrupt type to find</param>
 void remove_event(int type)
 {
 	interupt_queue* aux = q;
@@ -262,6 +290,12 @@ void translate_event_queue(unsigned long base)
 
 int save_eventqueue_infos(char* buf)
 {
+#ifdef _DEBUG
+	if (get_event(SI_INT))
+		printf("SI_INT in queue, good\n");
+	else
+		printf("SI_INT not found\n");
+#endif
 	int len = 0;
 	interupt_queue* aux = q;
 	if (q == NULL)
