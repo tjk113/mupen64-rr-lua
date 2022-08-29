@@ -58,7 +58,8 @@ bool savestates_ignore_nonmovie_warnings = false;
 bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
 			 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
 			 //- execution continues at exception handler (after input poll) at 0x80000180.
-bool lockNoStWarn;
+bool lockNoStWarn;	// I wont remove this variable for now, it should be used how the name suggests
+					// right now it's big mess and some other variable is used instead
 
 bool fix_new_st = true; //this is a switch to enable/disable fixing .st to work for old mupen (and m64plus)
 						//read savestate save function for more info
@@ -788,7 +789,7 @@ void savestates_load_old(bool silenceNotFoundError)
 		if (VCR_isActive() && savestates_ignore_nonmovie_warnings) {
 			display_status("Warning: non-movie savestate\n");
 		}
-		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn)
+		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn) //@TODO: lockNoStWarn is not used anywhere!!!
 		{
 			if (MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING)== 7) {
 			printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");

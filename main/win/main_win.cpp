@@ -1585,6 +1585,20 @@ void CreateStatusBarWindow(HWND hwnd)
 
 int pauseAtFrame = -1;
 
+/// <summary>
+/// Helper function because this is repeated multiple times
+/// </summary>
+void SetStatusPlaybackStarted()
+{
+    HMENU hMenu = GetMenu(mainHWND);
+    EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
+    EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+
+    if (!emu_paused || !emu_launched)
+        SetStatusTranslatedString(hStatus, 0, "Playback started...");
+    else
+        SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+}
 
 LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -1790,15 +1804,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                         break;
                     }
                     else {
-                        HMENU hMenu = GetMenu(mainHWND);
-                        EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-                        EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
-                        //AddToRecentMovies(tempbuf);
-                        EnableRecentMoviesMenu(hMenu, TRUE);
-                        if (!emu_paused || !emu_launched)
-                            SetStatusTranslatedString(hStatus, 0, "Playback started...");
-                        else
-                            SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+                        SetStatusPlaybackStarted();
                     }
                     //                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPSTR) TempMessage, 128 );
                     //                    setIniComments(pRomInfo,TempMessage);
@@ -2382,8 +2388,7 @@ void EnableEmulationMenuItems(BOOL flag)
 {
    extern BOOL continue_vcr_on_restart_mode;
      
-   HMENU hMenu;
-   hMenu = GetMenu(mainHWND);
+   HMENU hMenu = GetMenu(mainHWND);
 
     #ifdef _DEBUG
        EnableMenuItem(hMenu, ID_CRASHHANDLERDIALOGSHOW, MF_ENABLED);
@@ -2810,8 +2815,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	int i;
 	static PAINTSTRUCT	ps;
 	BOOL	minimize ;
-	HMENU hMenu;
-	hMenu = GetMenu(hwnd);
+    HMENU hMenu = GetMenu(hwnd);
 	
 #ifdef LUA_WINDOWMESSAGE
 			LuaWindowMessage(hwnd, Message, wParam, lParam);
@@ -2832,22 +2836,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!VCR_getReadOnly())	VCR_toggleReadOnly();
 
                 if (VCR_startPlayback(fname, 0, 0) < 0) {
-                    //sprintf(fname2, "Couldn't start playback\nof \"%s\".", fname);
-                    //MessageBox(hwnd, fname2, "VCR", MB_OK|MB_ICONERROR);
                     printf("[VCR]: Drag drop Failed to start playback of %s", fname);
                     break;
                 }
-                else {
-                    HMENU hMenu = GetMenu(mainHWND);
-                    EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-                    EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
-                    if (!emu_paused || !emu_launched)
-                        SetStatusTranslatedString(hStatus, 0, "Playback started...");
-                    else
-                        SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
-
-                }
-                
+                else
+                    SetStatusPlaybackStarted();
 			}
 		}
 		else if (strcmp(fext, ".ST") ==0 || strcmp(fext, ".SAVESTATE") == 0) {
@@ -3032,8 +3025,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 			case ID_MENU_LUASCRIPT_NEW:
 				{
-                HMENU hMenu;
-                hMenu = GetMenu(mainHWND);
                 //if (!IsMenuItemEnabled(hMenu, ID_LUA_LOAD_LATEST))
                 EnableRecentScriptsMenu(hMenu, TRUE);
 #ifdef LUA_MODULEIMPL
@@ -3042,8 +3033,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 #endif
 				} break;
             case ID_LUA_RECENT_FREEZE: {
-                HMENU hMenu;
-                hMenu = GetMenu(mainHWND);
                 CheckMenuItem(hMenu, ID_LUA_RECENT_FREEZE, (Config.RecentScriptsFreeze ^= 1) ? MF_CHECKED : MF_UNCHECKED);
                 shouldSave = TRUE;
                 break;
@@ -3166,49 +3155,37 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
                
 			case EMU_VCRTOGGLEREADONLY:
-				{
-					VCR_toggleReadOnly();
-				}
+				VCR_toggleReadOnly();
 				break;
 
 			case ID_LOOP_MOVIE:
 				VCR_toggleLoopMovie();
-				Config.loopMovie = VCR_isLooping();
 				shouldSave = TRUE;
 				break;
             case ID_RESTART_MOVIE:
                 if (VCR_isPlaying()) {
                     VCR_setReadOnly(TRUE);
-                    extern bool lockNoStWarn;
-                    lockNoStWarn = true;
-                    VCR_restartPlayback(); // todo: make this not show the nonmovie st warning
+                    bool err = VCR_startPlayback(Config.RecentMovies[0], 0, 0);
+                    if (err == VCR_PLAYBACK_SUCCESS)
+                        SetStatusPlaybackStarted();
+                    else
+                        SetStatusTranslatedString(hStatus, 0, "Couldn't start latest movie");
                 }
                 break;
             case ID_REPLAY_LATEST:
                 // Don't try to load a recent movie if not emulating!
                 if (rom) {
                     // Overwrite prevention? Path sanity check (Leave to internal handling)?
-                    if (VCR_startPlayback(Config.RecentMovies[0], "", "") < 0)
-                        break;
-                    else {
-                        HMENU hMenu = GetMenu(mainHWND);
-                        EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-                        EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
-
-                        if (!emu_paused || !emu_launched)
-                            SetStatusTranslatedString(hStatus, 0, "Playback started...");
-                        else
-                            SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
-                    }
+                    bool err = VCR_startPlayback(Config.RecentMovies[0], 0, 0);
+                    if (err == VCR_PLAYBACK_SUCCESS)
+                        SetStatusPlaybackStarted();
+                    else
+                        SetStatusTranslatedString(hStatus, 0, "Couldn't start latest movie");
                 }
-                else {
+                else
                     SetStatusTranslatedString(hStatus, 0, "Cannot load a movie while not emulating!");
-                }
-
                 break;
             case ID_RECENTMOVIES_FREEZE:
-                 HMENU hMenu;
-                 hMenu = GetMenu(mainHWND);
                  CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, (Config.RecentMoviesFreeze ^= 1) ? MF_CHECKED : MF_UNCHECKED);
                  shouldSave = TRUE;
                  break;
@@ -3628,7 +3605,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						 RunRecentMovie(LOWORD(wParam));
                          // should probably make this code from the ID_REPLAY_LATEST case into a function on its own
                          // because now it's used here too
-                         HMENU hMenu = GetMenu(mainHWND);
                          EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
                          EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
 
