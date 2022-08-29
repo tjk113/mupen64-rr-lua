@@ -854,7 +854,7 @@ int VCR_movieUnfreeze (const char* buf, unsigned long size)
 	// sanity check
 	if(VCR_isIdle())
 	{
-		return NOT_FROM_A_MOVIE; // probably wrong error code
+		return -1; // doesn't make sense to do that
 	}
 
 	const char* ptr = buf;
