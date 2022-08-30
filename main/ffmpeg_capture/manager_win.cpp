@@ -1,6 +1,7 @@
 // manager_win.cpp
 // windows definition of the manager class
 #include <string>
+//#include <format>
 #include <Windows.h>
 
 #include "ffmpeg_capture.hpp"
@@ -8,33 +9,25 @@
 class FFMPEGManager
 {
 public:
-    FFMPEGManager(std::string cmdOptions = defaultOptions) //wide char version can modify it so copy it first
+
+    /// <summary>
+    /// Object used to communicate with ffmpeg process
+    /// </summary>
+    /// <param name="videoX">input video resolution</param>
+    /// <param name="videoY">input video resolution</param>
+    /// <param name="framerate">framerate (depends whether PAL or not)</param>
+    /// <param name="cmdOptions">additional ffmpeg options (compression, output name, effects and shit)</param>
+    FFMPEGManager(unsigned videoX, unsigned videoY, unsigned framerate, std::string cmdOptions = defaultOptions) //wide char version can modify it so copy it first
     {
         // partially copied from msdn
 #ifdef _DEBUG
-        char buf[MAX_PATH];
-        GetCurrentDirectory(sizeof(buf), buf);
-        printf("Looking for ffmpeg.exe in %s", buf);
+        {
+            char buf[MAX_PATH];
+            GetCurrentDirectory(sizeof(buf), buf);
+            printf("Looking for ffmpeg.exe in %s", buf);
+        }
 #endif
         si.cb = sizeof(si);
-
-        // Start the child process. 
-        if (!CreateProcess("ffmpeg/bin/ffmpeg.exe",
-            cmdOptions.data(),  //non-const
-            NULL,           // Process handle not inheritable
-            NULL,           // Thread handle not inheritable
-            FALSE,          // Set handle inheritance to FALSE
-            0,              // No creation flags
-            NULL,           // Use parent's environment block
-            NULL,           // Use parent's starting directory 
-            &si,            // Pointer to STARTUPINFO structure
-            &pi)           // Pointer to PROCESS_INFORMATION structure
-            )
-        {
-            printf("CreateProcess failed (%d).\n", GetLastError());
-            initError = INIT_CREATEPROCESS_ERROR;
-            return;
-        }
 
         // Create named pipes
         //@TODO: calculate good bufsize? how
@@ -76,8 +69,37 @@ public:
             return;
         }
 
+        // construct commandline
+        // when micrisoft fixes c++20 this will use std::format instead
+        {
+            char buf[256];
+            //@TODO: set audio format
+            snprintf(buf, sizeof(buf), "-video_size %dx%d -framerate %d -pixel_format rgb -i \\\\.\\pipe\\mupenvideo -i \\\\.\\pipe\\mupenaudio ", videoX, videoY, framerate);
+
+            //prepend
+            cmdOptions = buf + cmdOptions;
+        }
+        // Start the child process. 
+        if (!CreateProcess("ffmpeg/bin/ffmpeg.exe",
+            cmdOptions.data(),  //non-const
+            NULL,           // Process handle not inheritable
+            NULL,           // Thread handle not inheritable
+            FALSE,          // Set handle inheritance to FALSE
+            0,              // No creation flags
+            NULL,           // Use parent's environment block
+            NULL,           // Use parent's starting directory 
+            &si,            // Pointer to STARTUPINFO structure
+            &pi)           // Pointer to PROCESS_INFORMATION structure
+            )
+        {
+            printf("CreateProcess failed (%d).\n", GetLastError());
+            initError = INIT_CREATEPROCESS_ERROR;
+            return;
+        }
+
         initError = INIT_SUCCESS;
     }
+
     ~FFMPEGManager()
     {
         TerminateProcess(pi.hProcess, 0);
@@ -85,6 +107,17 @@ public:
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
     }
+
+    int WriteVideoData(char* buffer, unsigned bufferSize)
+    {
+        return WritePipe(videoPipe, buffer, bufferSize);
+    }
+
+    int WriteAudioData(char* buffer, unsigned bufferSize)
+    {
+        return WritePipe(audioPipe, buffer, bufferSize);
+    }
+
     // don't copy this object (why would you want to???)
     FFMPEGManager(const FFMPEGManager&) = delete;
     FFMPEGManager& operator=(const FFMPEGManager&) = delete;
@@ -92,6 +125,17 @@ public:
     initErrors initError{};
 
 private:
+    int WritePipe(HANDLE pipe, char* buffer, unsigned bufferSize)
+    {
+        DWORD written{};
+        auto res = WriteFile(pipe, buffer, bufferSize, &written, NULL);
+        if (written != bufferSize or res != TRUE)
+        {
+            return 1;
+        }
+        return 0;
+    }
+
     STARTUPINFO si{};
     PROCESS_INFORMATION pi{};
     HANDLE videoPipe{};
@@ -101,6 +145,6 @@ private:
 // test default constructor, also this can be externed to C
 initErrors InitFFMPEGTest()
 {
-    FFMPEGManager manager;
+    FFMPEGManager manager(100,100,60);
     return manager.initError;
 }

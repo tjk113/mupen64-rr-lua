@@ -1,6 +1,6 @@
 #include <string>
 
-const std::string defaultOptions = "test"; // idk what default is good
+const std::string defaultOptions = "out.mp4";
 
 enum initErrors
 {
