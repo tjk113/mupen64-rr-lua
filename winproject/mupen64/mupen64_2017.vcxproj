@@ -199,6 +199,7 @@
     </ClInclude>
     <ClInclude Include="..\..\main\debughook.h" />
     <ClInclude Include="..\..\main\disasm.h" />
+    <ClInclude Include="..\..\main\ffmpeg_capture\ffmpeg_capture.hpp" />
     <ClInclude Include="..\..\main\Gfx_#1.3.h" />
     <ClInclude Include="..\..\main\guifuncs.h" />
     <ClInclude Include="..\..\main\ioapi.h">
@@ -335,6 +336,7 @@
     </ClCompile>
     <ClCompile Include="..\..\main\debughook.c" />
     <ClCompile Include="..\..\main\disasm.c" />
+    <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp" />
     <ClCompile Include="..\..\main\ioapi.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>

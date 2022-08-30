@@ -20,7 +20,8 @@
 
 #include "Recent.h"
 #include "win/DebugInfo.hpp"
-	
+#include "ffmpeg_capture/ffmpeg_capture.hpp"
+
 #if defined(__cplusplus) && !defined(_MSC_VER)
 extern "C" {
 #endif
@@ -3848,6 +3849,10 @@ int WINAPI WinMain(
 		}
 		mainHWND = hwnd ;
 		ShowWindow(hwnd, nCmdShow);
+        
+        // init FFmpeg
+        auto err = InitFFMPEGTest();
+
         // This fixes offscreen recording issue
         SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED); //this can't be applied before ShowWindow(), otherwise you must use some fancy function
         BringWindowToTop(hRomList);
