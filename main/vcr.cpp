@@ -7,6 +7,10 @@
 #include "vcr_compress.h"
 #include "vcr_resample.h"
 
+//ffmpeg
+#include "ffmpeg_capture/ffmpeg_capture.hpp"
+#include <memory>
+
 #include "plugin.h"
 #include "rom.h"
 #include "savestates.h"
@@ -136,6 +140,9 @@ static int AVIBreakMovie = 0;
 int AVIIncrement = 0;
 int titleLength;
 char VCR_Lastpath[MAX_PATH];
+
+bool captureWithFFmpeg = false;
+std::unique_ptr<FFmpegManager> captureManager;
 
 extern void resetEmu();
 void SetActiveMovie(char* buf);
@@ -1831,7 +1838,7 @@ VCR_updateScreen()
 	extern int externalReadScreen;
 	void *image = NULL; 
 //	static void* lastImage = NULL;
-	long width, height;
+	long width=0, height=0;
 	static int frame = 0;
 	int redraw = 1;
 
@@ -1840,40 +1847,38 @@ VCR_updateScreen()
 		VCR_stopCapture();
 		// If it crashes here, let me know (auru) because this is bad code
 	}
-	if (m_capture == 0 || readScreen == 0)
+
+	if (VCR_isCapturing() == 0)
 	{
+		// only update screen if not capturing
 #ifdef __WIN32__
-		extern HWND mainHWND;
-		extern BOOL manualFPSLimit;
-		// skip frames according to skipFrequency if fast-forwarding and not capturing to AVI
-		if ((IGNORE_RSP || forceIgnoreRSP) && m_capture==0) redraw = 0;
+		// skip frames according to skipFrequency if fast-forwarding
+		if ((IGNORE_RSP || forceIgnoreRSP)) redraw = 0;
 #endif
 #ifdef LUA_SPEEDMODE
 		if(maximumSpeedMode)redraw = 0;
 #endif
-		//printf("Screen update!\n");
 		if(redraw) {
 			updateScreen();
 		#ifdef LUA_GUI
 			LuaDCUpdate(redraw);
 		#endif
 		}
-//		captureFrameValid = TRUE;
 		return;
 	}
 
+	// capturing, update screen and call readscreen, call avi/ffmpeg stuff
 
 #ifdef LUA_SPEEDMODE
 	if(maximumSpeedMode)redraw=0;
 #endif
 
-		if(redraw) {
-	updateScreen();
+	if(redraw) {
+		updateScreen();
 #ifdef LUA_GUI
 		LuaDCUpdate(redraw);
 #endif
-		}
-//	captureFrameValid = TRUE;
+	}
 	readScreen( &image, &width, &height );
 	if (image == NULL)
 	{
@@ -1881,19 +1886,24 @@ VCR_updateScreen()
 		return;
 	}
 
-
-
-	if(VCRComp_GetSize() > MAX_AVI_SIZE)
+	if (captureWithFFmpeg)
 	{
-		static char* endptr;
-		VCRComp_finishFile(1);
-		if (!AVIIncrement)
-			endptr = AVIFileName + strlen(AVIFileName) -4;
-		//AVIIncrement
-		sprintf(endptr, "%d.avi", ++AVIIncrement);
-		VCRComp_startFile( AVIFileName, width, height, visByCountrycode(), 0);
+		captureManager->WriteVideoFrame((unsigned char*)image, width*height*3);
 	}
+	else
+	{
 
+		if (VCRComp_GetSize() > MAX_AVI_SIZE)
+		{
+			static char* endptr;
+			VCRComp_finishFile(1);
+			if (!AVIIncrement)
+				endptr = AVIFileName + strlen(AVIFileName) - 4;
+			//AVIIncrement
+			sprintf(endptr, "%d.avi", ++AVIIncrement);
+			VCRComp_startFile(AVIFileName, width, height, visByCountrycode(), 0);
+		}
+	}
 	//if (!VCRComp_addVideoFrame((unsigned char*)image))
 	//{
 	//	//ShowInfo("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
@@ -1976,15 +1986,6 @@ cleanup:
 		if (image)
 			DllCrtFree(image);
 	}
-/*	else
-	{
-		if(lastImage != image)
-		{
-			if(lastImage)
-				free(lastImage);
-			lastImage = image;
-		}
-	}*/
 //	ShowInfo("VCR_updateScreen() done");
 }
 
@@ -2159,6 +2160,28 @@ void VCR_aiLenChanged()
 void init_readScreen();
 #endif
 
+void UpdateTitleBarCapture(const char* filename)
+{
+	// Setting titlebar to include currently capturing AVI file
+	char title[PATH_MAX];
+	char avi[PATH_MAX];
+	char ext[PATH_MAX];
+	strncpy(avi, AVIFileName, PATH_MAX);
+	_splitpath(avi, 0, 0, avi, ext);
+
+	if (VCR_isPlaying()) {
+		char m64[PATH_MAX];
+		strncpy(m64, m_filename, PATH_MAX);
+		_splitpath(m64, 0, 0, m64, 0);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s.%s", ROM_HEADER->nom, m64, avi,ext);
+	}
+	else {
+		sprintf(title, MUPEN_VERSION " - %s | %s.%s", ROM_HEADER->nom, avi, ext);
+	}
+	printf("title %s\n", title);
+	SetWindowText(mainHWND, title);
+}
+
 //starts avi capture, creates avi file
 
 //recFilename - unused, this was supposed to be the m64 to capture, preciously it had .rec extension
@@ -2216,23 +2239,7 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	strncpy( AVIFileName, aviFilename, PATH_MAX );
 	strncpy(Config.AviCapturePath, aviFilename, PATH_MAX);
 
-	// Setting titlebar to include currently capturing AVI file
-	char title[PATH_MAX];
-	char avi[PATH_MAX];
-	strncpy(avi, AVIFileName, PATH_MAX);
-	_splitpath(avi, 0, 0, avi, 0);
-
-	if (VCR_isPlaying()) {
-		char m64[PATH_MAX];
-		strncpy(m64, m_filename, PATH_MAX);
-		_splitpath(m64, 0, 0, m64, 0);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s.avi", ROM_HEADER->nom, m64, avi);
-	}
-	else {
-		sprintf(title, MUPEN_VERSION " - %s | %s.avi", ROM_HEADER->nom, avi);
-	}
-	printf("title %s\n", title);
-	SetWindowText(mainHWND, title);
+	UpdateTitleBarCapture(AVIFileName);
 /*	if (VCR_startPlayback( recFilename ) < 0)
 	{
 		printError("Cannot start capture; could not play movie file!\n" );
@@ -2257,6 +2264,50 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	printf( "[VCR]: Starting capture...\n" );
 
 	return 0;
+}
+
+/// <summary>
+/// Start capture using ffmpeg, if this function fails, manager (process and pipes) isn't created and error is returned.
+/// </summary>
+/// <param name="outputName">name of video file output</param>
+/// <param name="arguments">additional ffmpeg params (output stream only)</param>
+/// <returns></returns>
+int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arguments)
+{
+	if (captureManager != nullptr)
+	{
+#ifdef _DEBUG
+		printf("[VCR] Attempted to start ffmpeg capture when it was already started\n");
+#endif
+		return INIT_ALREADY_RUNNING;
+
+	}
+	SWindowInfo sInfo{};
+	CalculateWindowDimensions(mainHWND, sInfo);
+	captureManager = std::make_unique<FFmpegManager>(sInfo.height,sInfo.width, visByCountrycode(),arguments+outputName);
+	
+	auto err = captureManager->initError;
+	if (err != INIT_SUCCESS)
+		captureManager.reset();
+	else
+	{
+		UpdateTitleBarCapture(outputName.data());
+		m_capture = 1;
+	}
+#ifdef _DEBUG
+	printf("[VCR] ffmpeg capture started\n");
+#endif
+	return err;
+}
+
+void VCR_StopFFmpegCapture()
+{
+	if (captureManager == nullptr) return; // no error code but its no big deal
+	captureManager.reset(); //apparently closing the pipes is enough to tell ffmpeg the movie ended.
+	m_capture = 0;
+#ifdef _DEBUG
+	printf("[VCR] ffmpeg capture stopped\n");
+#endif
 }
 
 void
