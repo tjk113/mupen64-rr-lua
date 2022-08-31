@@ -3443,7 +3443,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                  case ID_FFMPEG_START:
                  {
-                     auto err = VCR_StartFFmpegCapture("ffmpeg_out.mp4", "");
+                     auto err = VCR_StartFFmpegCapture("ffmpeg_out.mp4", "-loglevel debug");
 
                     {
                         //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg

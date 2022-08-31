@@ -22,14 +22,14 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
 
     // Create named pipes
     //@TODO: calculate good bufsize? how
-    unsigned int BUFSIZE = 1234;
+    unsigned int BUFSIZE = videoX*videoY*3;
 
     videoPipe = CreateNamedPipe(
         "\\\\.\\pipe\\mupenvideo",             // pipe name 
         PIPE_ACCESS_OUTBOUND,       // read/write access 
         PIPE_TYPE_BYTE |       // message type pipe 
         PIPE_READMODE_BYTE |   // message-read mode 
-        PIPE_NOWAIT,                // blocking mode @TODO: what to choose here?
+        PIPE_WAIT,                // blocking mode @TODO: what to choose here?
         PIPE_UNLIMITED_INSTANCES, // max. instances  
         BUFSIZE,                  // output buffer size 
         0,                  // input buffer size 
@@ -47,7 +47,7 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
         PIPE_ACCESS_OUTBOUND,       // read/write access 
         PIPE_TYPE_BYTE |       // message type pipe 
         PIPE_READMODE_BYTE |   // message-read mode 
-        PIPE_NOWAIT,                // blocking mode @TODO: what to choose here?
+        PIPE_WAIT,                // blocking mode @TODO: what to choose here?
         PIPE_UNLIMITED_INSTANCES, // max. instances  
         BUFSIZE,                  // output buffer size 
         0,                  // input buffer size 
@@ -65,7 +65,7 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
     {
         char buf[256];
         //@TODO: set audio format
-        snprintf(buf, sizeof(buf), "-v debug -video_size %dx%d -framerate %d -pixel_format rgb -i \\\\.\\pipe\\mupenvideo -i \\\\.\\pipe\\mupenaudio ", videoX, videoY, framerate);
+        snprintf(buf, sizeof(buf), " -f rawvideo -video_size %dx%d -framerate %d -pixel_format rgb24 -i \\\\.\\pipe\\mupenvideo ", videoX, videoY, framerate);
 
         //prepend
         cmdOptions = buf + cmdOptions;
@@ -93,10 +93,9 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
 
 FFmpegManager::~FFmpegManager()
 {
-    TerminateProcess(pi.hProcess, 0);
-    //WaitForSingleObject(pi.hProcess, INFINITE); // I don't really care if the process is a zombie at this point
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
+    //WaitForSingleObject(pi.hProcess, INFINITE); // I don't really care if the process is a zombie at this point
 }
 
 int FFmpegManager::WriteVideoFrame(unsigned char* buffer, unsigned bufferSize)

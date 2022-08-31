@@ -2288,7 +2288,7 @@ int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arg
 	CalculateWindowDimensions(mainHWND, sInfo);
 
 	InitReadScreenFFmpeg(sInfo);
-	captureManager = std::make_unique<FFmpegManager>(sInfo.height,sInfo.width, visByCountrycode(),arguments+outputName);
+	captureManager = std::make_unique<FFmpegManager>(sInfo.height,sInfo.width, visByCountrycode(),arguments+" "+outputName);
 	
 	auto err = captureManager->initError;
 	if (err != INIT_SUCCESS)
