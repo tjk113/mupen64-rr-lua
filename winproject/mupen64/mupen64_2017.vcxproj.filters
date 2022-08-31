@@ -277,7 +277,7 @@
     <ClCompile Include="..\..\main\unzip.c">
       <Filter>Source Files\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main\vcr.c">
+    <ClCompile Include="..\..\main\vcr.cpp">
       <Filter>Source Files\main</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\vcr_compress.cpp">

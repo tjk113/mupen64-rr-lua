@@ -3851,7 +3851,7 @@ int WINAPI WinMain(
 		ShowWindow(hwnd, nCmdShow);
         
         // init FFmpeg
-        auto err = InitFFMPEGTest();
+        //auto err = InitFFMPEGTest();
 
         // This fixes offscreen recording issue
         SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED); //this can't be applied before ShowWindow(), otherwise you must use some fancy function
