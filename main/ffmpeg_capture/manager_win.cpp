@@ -93,9 +93,12 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
 
 FFmpegManager::~FFmpegManager()
 {
+    DisconnectNamedPipe(videoPipe);
+    DisconnectNamedPipe(audioPipe);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
-    //WaitForSingleObject(pi.hProcess, INFINITE); // I don't really care if the process is a zombie at this point
+    TerminateProcess(pi.hProcess, 0);
+    WaitForSingleObject(pi.hProcess, INFINITE); // I don't really care if the process is a zombie at this point
 }
 
 int FFmpegManager::WriteVideoFrame(unsigned char* buffer, unsigned bufferSize)
