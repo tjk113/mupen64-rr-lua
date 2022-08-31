@@ -65,7 +65,7 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
     {
         char buf[256];
         //@TODO: set audio format
-        snprintf(buf, sizeof(buf), " -f rawvideo -video_size %dx%d -framerate %d -pixel_format rgb24 -i \\\\.\\pipe\\mupenvideo ", videoX, videoY, framerate);
+        snprintf(buf, sizeof(buf), " -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 -i \\\\.\\pipe\\mupenvideo ", videoX, videoY, framerate);
 
         //prepend
         cmdOptions = buf + cmdOptions;
