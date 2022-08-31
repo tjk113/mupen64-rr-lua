@@ -141,7 +141,7 @@ int AVIIncrement = 0;
 int titleLength;
 char VCR_Lastpath[MAX_PATH];
 
-bool captureWithFFmpeg = false;
+bool captureWithFFmpeg = true;
 std::unique_ptr<FFmpegManager> captureManager;
 
 extern void resetEmu();
@@ -2349,6 +2349,12 @@ VCR_toggleLoopMovie()
 int
 VCR_stopCapture()
 {
+	if (captureWithFFmpeg)
+	{
+		VCR_StopFFmpegCapture();
+		return 0;
+	}
+
 //	ShowInfo("VCR_stopCapture()");
 	m_capture = 0;
 	m_visPerSecond = -1;

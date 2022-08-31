@@ -2938,6 +2938,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             CreateStatusBarWindow( hwnd);
             SetupLanguages( hwnd);
             TranslateMenu(GetMenu( hwnd), hwnd);
+            SetMenuAcceleratorsFromUser(hwnd);
             CreateRomListControl( hwnd);
             SetRecentList( hwnd);
             BuildRecentMoviesMenu(hwnd);
@@ -3439,6 +3440,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         SetStatusTranslatedString(hStatus,0,"Playback stopped");
                      }
                 break;
+
+                 case ID_FFMPEG_START:
+                     break;
+
                 case ID_START_CAPTURE_PRESET:
                 case ID_START_CAPTURE:
                    if(emu_launched) {
@@ -3499,7 +3504,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         EnableMenuItem(hMenu,ID_END_CAPTURE,MF_GRAYED);
                         EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
                         EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
-                        SetStatusTranslatedString(hStatus,0,"Stopped AVI capture");
+                        SetStatusTranslatedString(hStatus,0,"Stopped video capture");
                         recording = FALSE;
                      }
                 break;    
