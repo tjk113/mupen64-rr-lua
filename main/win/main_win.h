@@ -16,7 +16,6 @@
 
  //for max recent
 #include "../lua/Recent.h"
-#include "vcr.h"
 
 #ifndef MAIN_WIN_H
 #define MAIN_WIN_H

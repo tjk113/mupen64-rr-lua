@@ -508,6 +508,9 @@
     <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp">
       <Filter>Source Files\main\ffmpeg_capture</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp">
+      <Filter>Source Files\main\ffmpeg_capture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\rsrc.rc">

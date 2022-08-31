@@ -13,6 +13,10 @@
 
 #include "plugin.h"
 
+#ifdef __cplusplus	//don't include cpp headers when .c compilation unit includes the file
+#include <string>	//(also done later for ffmpeg functions)
+#endif
+
 #define SUCCESS (0)
 #define WRONG_FORMAT (1)
 #define WRONG_VERSION (2)
@@ -112,6 +116,12 @@ extern int VCR_startPlayback( const char *filename, const char *authorUTF8, cons
 extern int VCR_stopPlayback();
 extern int VCR_startCapture( const char *recFilename, const char *aviFilename, bool codecDialog );
 extern int VCR_stopCapture();
+
+//ffmpeg
+#ifdef __cplusplus
+int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arguments);
+void VCR_StopFFmpegCapture();
+#endif
 
 extern void VCR_coreStopped();
 

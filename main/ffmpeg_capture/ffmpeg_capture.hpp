@@ -1,6 +1,9 @@
 #include <string>
+#include "vcr_compress.h"
 
 const std::string defaultOptions = "out.mp4";
+
+void InitReadScreenFFmpeg(const SWindowInfo& info);
 
 enum initErrors
 {
@@ -9,6 +12,7 @@ enum initErrors
 	INIT_CREATEPROCESS_ERROR,
 	INIT_PIPE_ERROR,
     INIT_ALREADY_RUNNING,
+    INIT_EMU_NOT_LAUNCHED,
 };
 
 initErrors InitFFMPEGTest();
@@ -24,7 +28,8 @@ public:
     /// <param name="videoY">input video resolution</param>
     /// <param name="framerate">framerate (depends whether PAL or not)</param>
     /// <param name="cmdOptions">additional ffmpeg options (compression, output name, effects and shit)</param>
-    FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate, std::string cmdOptions = defaultOptions);
+    FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate,
+        std::string cmdOptions = defaultOptions);
 
     ~FFmpegManager();
 
@@ -37,6 +42,7 @@ public:
     FFmpegManager& operator=(const FFmpegManager&) = delete;
 
     initErrors initError{};
+    unsigned videoX, videoY;
 
 private:
     int WritePipe(HANDLE pipe, unsigned char* buffer, unsigned bufferSize);
@@ -45,4 +51,5 @@ private:
     PROCESS_INFORMATION pi{};
     HANDLE videoPipe{};
     HANDLE audioPipe{};
+    
 };

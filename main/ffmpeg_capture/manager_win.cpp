@@ -8,7 +8,7 @@
 
 
 FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate,
-                             std::string cmdOptions)
+                             std::string cmdOptions) : videoX{ videoX }, videoY{ videoY }
 {
     // partially copied from msdn
 #ifdef _DEBUG
@@ -65,7 +65,7 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
     {
         char buf[256];
         //@TODO: set audio format
-        snprintf(buf, sizeof(buf), "-video_size %dx%d -framerate %d -pixel_format rgb -i \\\\.\\pipe\\mupenvideo -i \\\\.\\pipe\\mupenaudio ", videoX, videoY, framerate);
+        snprintf(buf, sizeof(buf), "-v debug -video_size %dx%d -framerate %d -pixel_format rgb -i \\\\.\\pipe\\mupenvideo -i \\\\.\\pipe\\mupenaudio ", videoX, videoY, framerate);
 
         //prepend
         cmdOptions = buf + cmdOptions;

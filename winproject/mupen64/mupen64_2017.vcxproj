@@ -337,6 +337,7 @@
     <ClCompile Include="..\..\main\debughook.c" />
     <ClCompile Include="..\..\main\disasm.c" />
     <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp" />
+    <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp" />
     <ClCompile Include="..\..\main\ioapi.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>

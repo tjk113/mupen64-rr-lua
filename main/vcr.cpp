@@ -1889,6 +1889,7 @@ VCR_updateScreen()
 	if (captureWithFFmpeg)
 	{
 		captureManager->WriteVideoFrame((unsigned char*)image, width*height*3);
+		return;
 	}
 	else
 	{
@@ -2031,12 +2032,12 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 					printf("[VCR]: Warning: Possible stereo sound error detected.\n");
 					fprintf(stderr, "[VCR]: Warning: Possible stereo sound error detected.\n");
 				}
-				if(!VCRComp_addAudioData((unsigned char*)buf2, len2))
-				{
-//					ShowInfo("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
-					printError("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
-					VCR_stopCapture();
-				}
+//				if(!VCRComp_addAudioData((unsigned char*)buf2, len2))
+//				{
+////					ShowInfo("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+//					printError("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+//					VCR_stopCapture();
+//				}
 			}
 //			if(buf2)
 //				free(buf2);
@@ -2274,6 +2275,7 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 /// <returns></returns>
 int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arguments)
 {
+	if (!emu_launched) return INIT_EMU_NOT_LAUNCHED;
 	if (captureManager != nullptr)
 	{
 #ifdef _DEBUG
@@ -2284,6 +2286,8 @@ int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arg
 	}
 	SWindowInfo sInfo{};
 	CalculateWindowDimensions(mainHWND, sInfo);
+
+	InitReadScreenFFmpeg(sInfo);
 	captureManager = std::make_unique<FFmpegManager>(sInfo.height,sInfo.width, visByCountrycode(),arguments+outputName);
 	
 	auto err = captureManager->initError;

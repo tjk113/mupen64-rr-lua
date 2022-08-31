@@ -130,7 +130,7 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 			BitBlt(copy, 0, 0, *width, *height, mupendc, 0, sInfo.toolbarHeight + (sInfo.height - *height), SRCCOPY);
 	}
 	
-	if (!avi_opened || !copy || !bitmap)
+	if ((!avi_opened || !copy || !bitmap))
 	{
 		if (!*dest) //don't show warning, this is initialisation phase
 			MessageBox(0, "Unexpected AVI error 1", "Error", MB_ICONERROR);
@@ -183,6 +183,8 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 		ReleaseDC(mainHWND,mupendc);
 //	ShowInfo("win_readScreen() done");
 }
+
+
 
 BOOL VCRComp_addVideoFrame( unsigned char *data )
 {
