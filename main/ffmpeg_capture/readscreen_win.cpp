@@ -16,6 +16,7 @@ void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap)
 	GetDIBits(hdc, bitmap, 0, 0, NULL, &gBMPInfo, DIB_RGB_COLORS);
 	gBMPInfo.bmiHeader.biCompression = BI_RGB; //idk if needed
 	gBMPInfo.bmiHeader.biBitCount = 24;
+	gBMPInfo.bmiHeader.biHeight = -gBMPInfo.bmiHeader.biHeight; // to get upside down output
 
 }
 

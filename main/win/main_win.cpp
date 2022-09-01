@@ -3444,21 +3444,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                  case ID_FFMPEG_START:
                  {
                      auto err = VCR_StartFFmpegCapture("ffmpeg_out.mp4", "-loglevel debug");
-
-                    {
-                        //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
-                        EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
-                        EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
-                        EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
-                        EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
-                        if (!externalReadScreen)
-                        {
-                            EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);           //Disables fullscreen menu
-                            SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE); //Disables fullscreen button
-                        }
-                        SetStatusTranslatedString(hStatus, 0, "Recording avi...");
-                        EnableEmulationMenuItems(TRUE);
-                    }
+                     if (err == INIT_SUCCESS)
+                     {
+                         //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
+                         EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
+                         EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
+                         EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
+                         EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
+                         if (!externalReadScreen)
+                         {
+                             EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);           //Disables fullscreen menu
+                             SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE); //Disables fullscreen button
+                         }
+                         SetStatusTranslatedString(hStatus, 0, "Recording avi...");
+                         EnableEmulationMenuItems(TRUE);
+                     }
+                     else
+                         ShowInfo("Start capture error: %d", err);
                      break;
                  }
 
