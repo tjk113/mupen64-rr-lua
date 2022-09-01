@@ -9,6 +9,7 @@
 
 //ffmpeg
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
+#include "ffmpeg_capture/benchmark.hpp"
 #include <memory>
 
 #include "plugin.h"
@@ -33,6 +34,7 @@
 //#include <zlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <chrono>
 
 #ifndef __WIN32__
 #include <gtk/gtk.h> // for getting callback_startEmulation and callback_stopEmulation
@@ -45,6 +47,7 @@
 #include <../../winproject/resource.h> // for EMU_RESET
 #include "win/main_win.h" //config struct
 #include <WinUser.h>
+#include "win/DebugInfo.hpp"
 
 #endif
 
@@ -1879,7 +1882,15 @@ VCR_updateScreen()
 		LuaDCUpdate(redraw);
 #endif
 	}
+#ifdef FFMPEG_BENCHMARK
+	auto start = std::chrono::high_resolution_clock::now();
+#endif
 	readScreen( &image, &width, &height );
+#ifdef FFMPEG_BENCHMARK
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double, std::milli> time = (end - start);
+	ShowInfo("ReadScreen (ffmpeg): %lf ms", time);
+#endif
 	if (image == NULL)
 	{
 		fprintf( stderr, "[VCR]: Couldn't read screen (out of memory?)\n" );

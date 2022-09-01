@@ -1,6 +1,10 @@
 #include <string>
 #include "vcr_compress.h"
 
+#ifdef _DEBUG
+#define FFMPEG_BENCHMARK
+#endif
+
 const std::string defaultOptions = "out.mp4";
 
 void InitReadScreenFFmpeg(const SWindowInfo& info);
