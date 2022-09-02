@@ -85,7 +85,27 @@ void InitTimer() {
 }
 
 
-void new_frame() {
+void new_frame()
+{
+	char mes[32];
+	static std::chrono::high_resolution_clock::time_point prevTime;
+	static std::chrono::high_resolution_clock::time_point lastStatusbarUpdateTime = std::chrono::high_resolution_clock::now();
+	static int frameCount = 0;
+	++frameCount;
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	if (currentTime-lastStatusbarUpdateTime > std::chrono::seconds(1))
+	{
+		auto timeTaken = std::chrono::duration<double>(currentTime - lastStatusbarUpdateTime);
+		sprintf(mes, "FPS: %.1f", frameCount/timeTaken.count());
+		SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)mes);
+		lastStatusbarUpdateTime = std::chrono::high_resolution_clock::now();
+		frameCount = 0;
+	}
+
+	prevTime = currentTime;
+}
+
+void new_frame_old() {
    
    DWORD CurrentFPSTime;
    char mes[100];
@@ -134,6 +154,7 @@ void new_vi()
 	char mes[100];
 	static timePoint LastFPSTime{}; //time point when previous VI happened
 	static timePoint CounterTime{}; //time point when last statusbar update happened
+	static std::chrono::duration<double,std::nano> lastSleepError{};
 	static unsigned int VI_Counter = 0;
    
 	m_currentVI++;
@@ -188,16 +209,23 @@ void new_vi()
 			}
 			if (time.count() > 0 && time < std::chrono::milliseconds(700)) //700ms
 			{
-				std::this_thread::sleep_for(VILimitMilliseconds - Dif);
+				auto goalSleep = VILimitMilliseconds - Dif -lastSleepError;
+				auto startSleep = std::chrono::high_resolution_clock::now();
+				std::this_thread::sleep_for(goalSleep);
+				auto endSleep = std::chrono::high_resolution_clock::now();
+				lastSleepError = (endSleep-startSleep)-goalSleep;
+#ifdef _DEBUG
+				//auto miliError = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(lastSleepError);
+				//std::cout << "Sleep error:" << miliError << std::endl;
+#endif
 			}
 			else
 			{
 				auto casted = std::chrono::duration_cast<std::chrono::milliseconds>(time).count();
 				printf("Invalid timer: %lld ms\n", casted);
 				//reset values?
-				time = time.zero(); CounterTime = std::chrono::high_resolution_clock::now();; ffup = false;
+				time = time.zero(); CounterTime = std::chrono::high_resolution_clock::now(); ffup = false;
 			}
-			CurrentFPSTime = std::chrono::high_resolution_clock::now();
 		}
     }
     if ( Config.showVIS )
@@ -205,7 +233,8 @@ void new_vi()
 		if (CurrentFPSTime - CounterTime >= std::chrono::seconds(1))
 		{
 			//count is in nanoseconds, but statusbar in seconds
-			VIs = VI_Counter * std::chrono::duration<double>(CurrentFPSTime - CounterTime).count();
+			VIs = VI_Counter/std::chrono::duration<double>(CurrentFPSTime - CounterTime).count();
+			//std::cout << VI_Counter << " in " << std::chrono::duration<double>(CurrentFPSTime - CounterTime) << std::endl;
 			if (VIs > 1) //if after fast forwarding pretend statusbar lagged idk
 			{
 				sprintf(mes, "VI/s: %.1f", VIs);
@@ -216,5 +245,5 @@ void new_vi()
             VI_Counter = 0;
         }
 	}
-   LastFPSTime = CurrentFPSTime ;
+   LastFPSTime = std::chrono::high_resolution_clock::now();
 }

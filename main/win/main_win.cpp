@@ -3751,7 +3751,7 @@ void LoadConfigExternals() {
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    timeBeginPeriod(1);
+    //timeBeginPeriod(1);
 #ifdef _DEBUG
     AllocConsole();
     FILE* f = 0;
