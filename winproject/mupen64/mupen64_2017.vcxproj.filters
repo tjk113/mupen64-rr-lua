@@ -322,7 +322,7 @@
     <ClCompile Include="..\..\main\win\RomSettings.c">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\timers.c">
+    <ClCompile Include="..\..\main\win\timers.cpp">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\win\translation.c">

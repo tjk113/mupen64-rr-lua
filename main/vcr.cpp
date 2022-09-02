@@ -9,7 +9,6 @@
 
 //ffmpeg
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
-#include "ffmpeg_capture/benchmark.hpp"
 #include <memory>
 
 #include "plugin.h"

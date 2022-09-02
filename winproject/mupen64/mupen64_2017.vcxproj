@@ -475,7 +475,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\timers.c">
+    <ClCompile Include="..\..\main\win\timers.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>

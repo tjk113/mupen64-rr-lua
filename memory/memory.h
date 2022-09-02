@@ -181,12 +181,12 @@ typedef struct _VI_register
 
 typedef struct _AI_register
 {
-   unsigned long ai_dram_addr;
-   unsigned long ai_len;
+   unsigned long ai_dram_addr;	//source address (in rdram) of sound sample to be played
+   unsigned long ai_len;		//amount of bytes(?) to be played
    unsigned long ai_control;
-   unsigned long ai_status;
-   unsigned long ai_dacrate;
-   unsigned long ai_bitrate;
+   unsigned long ai_status;		//info about whether dma active and is fifo full
+   unsigned long ai_dacrate;	//clock rate / audio rate, tells sound controller how to interpret the audio samples
+   unsigned long ai_bitrate;	//possible values 2 to 16, bits per sample?, this is always (dacRate / 66)-1 (by libultra)
    unsigned long next_delay;
    unsigned long next_len;
    unsigned long current_delay;

@@ -3443,7 +3443,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                  case ID_FFMPEG_START:
                  {
-                     auto err = VCR_StartFFmpegCapture("ffmpeg_out.mp4", "-loglevel debug");
+                     auto err = VCR_StartFFmpegCapture("ffmpeg_out.mp4", "-loglevel debug -y");
                      if (err == INIT_SUCCESS)
                      {
                          //SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
@@ -3751,6 +3751,7 @@ void LoadConfigExternals() {
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+    timeBeginPeriod(1);
 #ifdef _DEBUG
     AllocConsole();
     FILE* f = 0;

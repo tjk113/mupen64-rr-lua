@@ -6,6 +6,12 @@
 #endif
 
 const std::string defaultOptions = "out.mp4";
+// this is C string for now
+// rawvideo demuxer,
+// video size and framerate prepared in manager constructor when values are known
+// pixel format is bgr24, because that's what windows uses
+// input pipes are opened in manager
+const char baseOptions[] = " -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 -i \\\\.\\pipe\\mupenvideo -i \\\\.\\pipe\\mupenaudio ";
 
 void InitReadScreenFFmpeg(const SWindowInfo& info);
 
