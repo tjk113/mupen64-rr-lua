@@ -416,7 +416,7 @@ void gen_interupt()
 	switch (q->type)
 	{
 	case SPECIAL_INT: // does nothing, spammed when Count is close to rolling over
-		printf("SPECIAL, count: %x\n", q->count);
+		//printf("SPECIAL, count: %x\n", q->count);
 		if (Count > 0x10000000) return;
 		remove_interupt_event();
 		add_interupt_event_count(SPECIAL_INT, 0);
@@ -424,7 +424,7 @@ void gen_interupt()
 		break;
 
 	case VI_INT:
-		printf("VI, count: %x\n", q->count);
+		//printf("VI, count: %x\n", q->count);
 #ifdef LUA_EMUPAUSED_WORK
 		AtIntervalLuaCallback();
 #endif
