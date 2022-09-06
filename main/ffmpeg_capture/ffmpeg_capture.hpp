@@ -67,5 +67,10 @@ private:
     PROCESS_INFORMATION pi{};
     HANDLE videoPipe{};
     HANDLE audioPipe{};
+
+    unsigned int audiorate{}; //bytes of audio needed to play 1 frame
+    char* silenceBuffer{};
+
+    bool lastWriteWasVideo{};
     
 };

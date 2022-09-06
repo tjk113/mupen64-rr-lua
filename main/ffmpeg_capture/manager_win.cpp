@@ -8,7 +8,7 @@
 
 
 FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate, unsigned audiorate,
-                             std::string cmdOptions) : videoX{ videoX }, videoY{ videoY }
+                             std::string cmdOptions) : videoX{ videoX }, videoY{ videoY }, audiorate{ audiorate }
 {
     // partially copied from msdn
 #ifdef _DEBUG
@@ -93,11 +93,14 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
     }
     printf("sleep after process start...\n");
     Sleep(1000);
+    
+    silenceBuffer = (char*)calloc(audiorate,1); // I like old C functions more
     initError = INIT_SUCCESS;
 }
 
 FFmpegManager::~FFmpegManager()
 {
+    free(silenceBuffer);
     DisconnectNamedPipe(videoPipe);
     DisconnectNamedPipe(audioPipe);
     CloseHandle(pi.hProcess);
@@ -109,11 +112,24 @@ FFmpegManager::~FFmpegManager()
 
 int FFmpegManager::WriteVideoFrame(unsigned char* buffer, unsigned bufferSize)
 {
+    if (lastWriteWasVideo)
+    {
+        // write frame of silence (I don't know if there's a way to do this without buffer)
+        //printf("Writing silence...\n");
+        if (WriteAudioFrame(silenceBuffer, audiorate))
+            return 1;
+    }
+     
+    lastWriteWasVideo = true;
+    return 0;
+    //printf("writing video frame\n");
     return WritePipe(videoPipe, (char*)buffer, bufferSize);
 }
 
 int FFmpegManager::WriteAudioFrame(char* buffer, unsigned bufferSize) //samples are signed
 {
+    lastWriteWasVideo = false;
+    //printf("writing audio frame: %d len\n", bufferSize);
     return WritePipe(audioPipe, buffer, bufferSize);
 }
 
