@@ -50,6 +50,10 @@
 
 #endif
 
+#ifdef _DEBUG
+#include "../r4300/macros.h"
+#endif
+
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
 #endif
@@ -1862,6 +1866,7 @@ VCR_updateScreen()
 #endif
 		if(redraw) {
 			updateScreen();
+			//ShowInfo("screen has been updated, count: %x\n",Count);
 		#ifdef LUA_GUI
 			LuaDCUpdate(redraw);
 		#endif
@@ -2004,6 +2009,12 @@ cleanup:
 void
 VCR_aiDacrateChanged( int SystemType )
 {
+	if (VCR_isCapturing())
+	{
+		ShowInfo("Fatal error, audio frequency changed during capture\n");
+		VCR_stopCapture();
+		return;
+	}
 	aiDacrateChanged( SystemType );
 
 	m_audioBitrate = ai_register.ai_bitrate+1;
@@ -2080,18 +2091,35 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 //	ShowInfo("writeSound() done");
 }
 
+// calculates how long the audio data will last
+float GetPercentOfFrame(int aiLen, int audioFreq, int audioBitrate)
+{
+	int limit = visByCountrycode();
+	float viLen = 1.f / limit; //how much seconds one VI lasts
+	float time = (aiLen*8) / (audioFreq * 2.f * audioBitrate); //how long the buffer can play for
+	return time / viLen; //ratio
+}
+
 void VCR_aiLenChanged()
 {
 	short *p = (short *)((char*)rdram + (ai_register.ai_dram_addr & 0xFFFFFF));
 	char* buf = (char*)p;
 	int aiLen = ai_register.ai_len;
-	//printf("ailenchanged %p %d\n", p, aiLen);
 	aiLenChanged();
-	if (m_capture == 0)
-		return;
 
 	// hack - mupen64 updates bitrate after calling aiDacrateChanged
 	m_audioBitrate = ai_register.ai_bitrate+1;
+
+	//ShowInfo("ailenchanged %p %d (%f% of VI limit), count: %x", p, aiLen, GetPercentOfFrame(aiLen, m_audioFreq, m_audioBitrate), Count);
+
+	if (m_capture == 0)
+		return;
+
+	if (captureWithFFmpeg)
+	{
+		captureManager->WriteAudioFrame(buf, aiLen);
+		return;
+	}
 
 	if (aiLen > 0)
 	{
@@ -2298,7 +2326,7 @@ int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arg
 	CalculateWindowDimensions(mainHWND, sInfo);
 
 	InitReadScreenFFmpeg(sInfo);
-	captureManager = std::make_unique<FFmpegManager>(sInfo.width,sInfo.height, visByCountrycode(),arguments+" "+outputName);
+	captureManager = std::make_unique<FFmpegManager>(sInfo.width,sInfo.height, visByCountrycode(), m_audioFreq, arguments+" "+outputName);
 	
 	auto err = captureManager->initError;
 	if (err != INIT_SUCCESS)

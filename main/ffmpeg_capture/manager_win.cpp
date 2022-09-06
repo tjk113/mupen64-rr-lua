@@ -7,7 +7,7 @@
 #include "ffmpeg_capture.hpp"
 
 
-FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate,
+FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate, unsigned audiorate,
                              std::string cmdOptions) : videoX{ videoX }, videoY{ videoY }
 {
     // partially copied from msdn
@@ -22,16 +22,17 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
 
     // Create named pipes
     //@TODO: calculate good bufsize? how
-    unsigned int BUFSIZE = videoX*videoY*3;
+    unsigned int BUFSIZEvideo = videoX * videoY * 3;    //one frame size
+    unsigned int BUFSIZEaudio = audiorate; //bytes per second, maybe good
 
     videoPipe = CreateNamedPipe(
         "\\\\.\\pipe\\mupenvideo",             // pipe name 
         PIPE_ACCESS_OUTBOUND,       // read/write access 
         PIPE_TYPE_BYTE |       // message type pipe 
         PIPE_READMODE_BYTE |   // message-read mode 
-        PIPE_WAIT,                // blocking mode @TODO: what to choose here?
+        PIPE_NOWAIT,                // blocking mode @TODO: what to choose here?
         PIPE_UNLIMITED_INSTANCES, // max. instances  
-        BUFSIZE,                  // output buffer size 
+        BUFSIZEvideo,                  // output buffer size 
         0,                  // input buffer size 
         0,                        // client time-out 
         NULL);                    // default security attribute 
@@ -47,9 +48,9 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
         PIPE_ACCESS_OUTBOUND,       // read/write access 
         PIPE_TYPE_BYTE |       // message type pipe 
         PIPE_READMODE_BYTE |   // message-read mode 
-        PIPE_WAIT,                // blocking mode @TODO: what to choose here?
+        PIPE_NOWAIT,                // blocking mode @TODO: what to choose here?
         PIPE_UNLIMITED_INSTANCES, // max. instances  
-        BUFSIZE,                  // output buffer size 
+        BUFSIZEaudio,                  // output buffer size 
         0,                  // input buffer size 
         0,                        // client time-out 
         NULL);
@@ -65,11 +66,14 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
     {
         char buf[256];
         //@TODO: set audio format
-        snprintf(buf, sizeof(buf), baseOptions, videoX, videoY, framerate);
+        snprintf(buf, sizeof(buf), baseOptions, videoX, videoY, framerate, audiorate);
 
         //prepend
         cmdOptions = buf + cmdOptions;
     }
+
+    printf("sleep before process start...\n");
+    Sleep(1000);
     // Start the child process. 
     if (!CreateProcess("ffmpeg/bin/ffmpeg.exe",
         cmdOptions.data(),  //non-const
@@ -87,7 +91,8 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
         initError = INIT_CREATEPROCESS_ERROR;
         return;
     }
-
+    printf("sleep after process start...\n");
+    Sleep(1000);
     initError = INIT_SUCCESS;
 }
 
@@ -103,15 +108,15 @@ FFmpegManager::~FFmpegManager()
 
 int FFmpegManager::WriteVideoFrame(unsigned char* buffer, unsigned bufferSize)
 {
-    return WritePipe(videoPipe, buffer, bufferSize);
+    return WritePipe(videoPipe, (char*)buffer, bufferSize);
 }
 
-int FFmpegManager::WriteAudioFrame(unsigned char* buffer, unsigned bufferSize)
+int FFmpegManager::WriteAudioFrame(char* buffer, unsigned bufferSize) //samples are signed
 {
     return WritePipe(audioPipe, buffer, bufferSize);
 }
 
-int FFmpegManager::WritePipe(HANDLE pipe, unsigned char* buffer, unsigned bufferSize)
+int FFmpegManager::WritePipe(HANDLE pipe, char* buffer, unsigned bufferSize)
 {
     DWORD written{};
     auto res = WriteFile(pipe, buffer, bufferSize, &written, NULL);
@@ -125,6 +130,6 @@ int FFmpegManager::WritePipe(HANDLE pipe, unsigned char* buffer, unsigned buffer
 // test default constructor, also this can be externed to C
 initErrors InitFFMPEGTest()
 {
-    FFmpegManager manager(100,100,60);
+    FFmpegManager manager(100,100,60,32000);
     return manager.initError;
 }

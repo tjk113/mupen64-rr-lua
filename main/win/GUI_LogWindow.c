@@ -76,6 +76,9 @@ void ShowHideLogWindow()
 /* Add Text to Log */
 void ShowInfo(const char* Str, ...)
 {
+#ifndef _DEBUG
+    return;
+#endif
     int i;
     char Msg[800];
 
