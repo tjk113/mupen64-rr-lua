@@ -6,12 +6,17 @@
 #endif
 
 const std::string defaultOptions = "out.mp4";
-// this is C string for now
+
+//format signed 16 bit samples little endian
+//rate taken from m_audioFreq
+//two channels (always like that on n64)
+#define audioOptions " -f s16le -ar %d -ac 2 "
+
 // rawvideo demuxer,
 // video size and framerate prepared in manager constructor when values are known
 // pixel format is bgr24, because that's what windows uses
-// input pipes are opened in manager
-const char baseOptions[] = " -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 -i \\\\.\\pipe\\mupenvideo -i \\\\.\\pipe\\mupenaudio ";
+#define videoOptions " -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 "
+const char baseOptions[] = videoOptions "-i \\\\.\\pipe\\mupenvideo" audioOptions "-i \\\\.\\pipe\\mupenaudio ";
 
 void InitReadScreenFFmpeg(const SWindowInfo& info);
 
@@ -38,14 +43,14 @@ public:
     /// <param name="videoY">input video resolution</param>
     /// <param name="framerate">framerate (depends whether PAL or not)</param>
     /// <param name="cmdOptions">additional ffmpeg options (compression, output name, effects and shit)</param>
-    FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate,
+    FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate, unsigned audiorate,
         std::string cmdOptions = defaultOptions);
 
     ~FFmpegManager();
 
     int WriteVideoFrame(unsigned char* buffer, unsigned bufferSize);
 
-    int WriteAudioFrame(unsigned char* buffer, unsigned bufferSize);
+    int WriteAudioFrame(char* buffer, unsigned bufferSize);
 
     // don't copy this object (why would you want to???)
     FFmpegManager(const FFmpegManager&) = delete;
@@ -55,7 +60,7 @@ public:
     unsigned videoX, videoY;
 
 private:
-    int WritePipe(HANDLE pipe, unsigned char* buffer, unsigned bufferSize);
+    int WritePipe(HANDLE pipe, char* buffer, unsigned bufferSize);
 
     STARTUPINFO si{};
     PROCESS_INFORMATION pi{};

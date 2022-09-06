@@ -3915,7 +3915,7 @@ int WINAPI WinMain(
         //warning, this is ignored when debugger is attached (like visual studio)
         SetUnhandledExceptionFilter(ExceptionReleaseTarget); 
         //example
-        RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL); //shows messagebox from wntdll
+        //RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL); //shows messagebox from wntdll
         
 
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
