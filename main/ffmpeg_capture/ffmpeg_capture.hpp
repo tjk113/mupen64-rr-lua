@@ -19,6 +19,7 @@ const std::string defaultOptions = "out.mp4";
 const char baseOptions[] = videoOptions "-i \\\\.\\pipe\\mupenvideo" audioOptions "-i \\\\.\\pipe\\mupenaudio ";
 
 void InitReadScreenFFmpeg(const SWindowInfo& info);
+void FFMpegCleanup();
 
 enum initErrors
 {

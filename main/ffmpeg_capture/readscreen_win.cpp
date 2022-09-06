@@ -8,6 +8,17 @@
 SWindowInfo gSInfo{};
 BITMAPINFO gBMPInfo{}; //Needed for GetDIBits
 
+static unsigned char* buffer = NULL;
+static unsigned int bufferSize = 0;
+
+/// <summary>
+/// Call this after finishing capture
+/// </summary>
+void FFMpegCleanup()
+{
+	DllCrtFree(buffer);
+	bufferSize = 0;
+}
 
 void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap)
 {
@@ -68,8 +79,6 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 	}
 
 	// read the context
-	static unsigned char* buffer = NULL;
-	static unsigned int bufferSize = 0;
 	if (!buffer || bufferSize < *width * *height * 3 + 1) //if buffer doesn't exist yet or changed size somehow
 	{
 		if (buffer) free(buffer);

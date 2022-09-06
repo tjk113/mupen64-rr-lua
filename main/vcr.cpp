@@ -1904,6 +1904,8 @@ VCR_updateScreen()
 	if (captureWithFFmpeg)
 	{
 		captureManager->WriteVideoFrame((unsigned char*)image, width*height*3);
+		if (externalReadScreen)
+			DllCrtFree(image); //free only with external capture, since plugin can't reuse same buffer...
 		return;
 	}
 	else

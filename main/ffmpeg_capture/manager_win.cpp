@@ -104,6 +104,7 @@ FFmpegManager::~FFmpegManager()
     CloseHandle(pi.hThread);
     TerminateProcess(pi.hProcess, 0);
     WaitForSingleObject(pi.hProcess, INFINITE); // I don't really care if the process is a zombie at this point
+    FFMpegCleanup(); // free buffer used by readscreen (starting two captures at once would break this way because buffer is global)
 }
 
 int FFmpegManager::WriteVideoFrame(unsigned char* buffer, unsigned bufferSize)
