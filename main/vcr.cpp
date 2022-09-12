@@ -2347,8 +2347,8 @@ int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arg
 void VCR_StopFFmpegCapture()
 {
 	if (captureManager == nullptr) return; // no error code but its no big deal
+	m_capture = 0; //this must be first in case object is being destroyed and other thread still sees m_capture=1
 	captureManager.reset(); //apparently closing the pipes is enough to tell ffmpeg the movie ended.
-	m_capture = 0;
 #ifdef _DEBUG
 	printf("[VCR] ffmpeg capture stopped\n");
 #endif
