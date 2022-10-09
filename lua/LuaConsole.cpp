@@ -2167,7 +2167,7 @@ int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 	else { // If clear index is not 0, clear 1 image MEMORY LEAK
 		if (clearIndex <= imagePool.size()) {
 			printf("Deleting image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
-			//delete imagePool[clearIndex];
+			delete imagePool[clearIndex - 1];
 			imagePool.erase(imagePool.begin() + clearIndex - 1);
 		}
 		else { // Error if the images doesn't exist
@@ -2264,7 +2264,6 @@ HBITMAP GdiPlusScreenCapture(HWND hWnd)
 	int screeny = GetSystemMetrics(SM_YVIRTUALSCREEN);
 	int width = size.right - size.left - 16;
 	int height = size.bottom - size.top - 83;
-	printf("%d x %d\n", width, height);
 
 	// create a bitmap
 	HBITMAP hbwindow = CreateCompatibleBitmap(hwindowDC, width, height);
@@ -2861,7 +2860,7 @@ BOOL fileexists(const char* path) {
 int StartCapture(lua_State* L) {
 	const char* fname = lua_tostring(L, 1);
 	if (!VCR_isCapturing())
-		VCR_startCapture("", fname, false);
+		VCR_startCapture("", fname, true);
 	else
 		luaL_error(L, "Tried to start AVI capture when one was already in progress");
 	return 0;
