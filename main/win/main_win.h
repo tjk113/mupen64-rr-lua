@@ -20,7 +20,7 @@
 #ifndef MAIN_WIN_H
 #define MAIN_WIN_H
 
-#define MUPEN_VERSION     "Mupen 64 1.0.11"
+#define MUPEN_VERSION     "Mupen 64 1.1.0"
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
 extern void ShowMessage(const char* lpszMessage) ;
