@@ -1605,6 +1605,9 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 {
     char tempbuf [MAX_PATH];
     char tempbuf2 [MAX_PATH];
+
+    HWND descriptionDialog;
+    HWND authorDialog;
 	
 //    md5_byte_t digest[16];
 //    ROM_INFO *pRomInfo;
@@ -1622,7 +1625,12 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
     switch(Message)
     {
         case WM_INITDIALOG:
-			
+			descriptionDialog = GetDlgItem(hwnd, IDC_INI_DESCRIPTION);
+            authorDialog = GetDlgItem(hwnd, IDC_INI_AUTHOR);
+
+            SendMessage(descriptionDialog, EM_SETLIMITTEXT, MOVIE_DESCRIPTION_DATA_SIZE, 0);
+            SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
+
 			CountryCodeToCountryName(ROM_HEADER->Country_code,tempbuf2);
 			sprintf(tempbuf, "%s (%s)", ROM_HEADER->nom, tempbuf2);
 			strcat(tempbuf, ".m64");
@@ -2003,12 +2011,21 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 {    
     char tempbuf [MAX_PATH];
     char tempbuf2 [MAX_PATH];
+    HWND descriptionDialog;
+    HWND authorDialog;
+
     switch(Message)
     {
         case WM_INITDIALOG:
 
-			SetDlgItemText(hwnd,IDC_INI_AUTHOR,"");
-			SetDlgItemText(hwnd,IDC_INI_DESCRIPTION,"");
+			descriptionDialog = GetDlgItem(hwnd, IDC_INI_DESCRIPTION);
+            authorDialog = GetDlgItem(hwnd, IDC_INI_AUTHOR);
+
+            SendMessage(descriptionDialog, EM_SETLIMITTEXT, MOVIE_DESCRIPTION_DATA_SIZE, 0);
+            SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
+
+            SetDlgItemText(hwnd, IDC_INI_AUTHOR, "");
+            SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, "");
 
 			CheckRadioButton(hwnd,IDC_FROMSNAPSHOT_RADIO,IDC_FROMSTART_RADIO,IDC_FROMSTART_RADIO); // check "From Start"
 			
