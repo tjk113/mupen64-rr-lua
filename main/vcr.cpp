@@ -287,6 +287,7 @@ static void hardResetAndClearAllSaveData (bool clear)
 	extern HWND mainHWND;
 	clear_sram_on_restart_mode = clear;
 	continue_vcr_on_restart_mode = TRUE;
+	m_lastController1Keys = 0;
 	if (clear)
 		printf("Clearing save data...\n");
 	else

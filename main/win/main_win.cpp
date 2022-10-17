@@ -2512,6 +2512,8 @@ if(!continue_vcr_on_restart_mode)
    else CheckMenuItem( hMenu, IDC_GUI_TOOLBAR,  MF_BYCOMMAND | MF_UNCHECKED );
    if (Config.GuiStatusbar) CheckMenuItem( hMenu, IDC_GUI_STATUSBAR,  MF_BYCOMMAND | MF_CHECKED );
    else CheckMenuItem( hMenu, IDC_GUI_STATUSBAR,  MF_BYCOMMAND | MF_UNCHECKED );
+   if (Config.loopMovie) CheckMenuItem( hMenu, ID_LOOP_MOVIE,  MF_BYCOMMAND | MF_CHECKED );
+   else CheckMenuItem( hMenu, ID_LOOP_MOVIE,  MF_BYCOMMAND | MF_UNCHECKED );
 }
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
