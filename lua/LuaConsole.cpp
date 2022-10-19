@@ -2178,7 +2178,84 @@ int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 	return 0;
 }
 
-int DrawImage(lua_State* L)
+int DrawImage(lua_State* L) {
+	unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
+
+	if (imgIndex > imagePool.size() - 1) {
+		luaL_error(L, "Argument #1: Invalid image index");
+		return 0;
+	}
+
+	unsigned int args = lua_gettop(L);
+
+	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::Image* img = imagePool[imgIndex];
+
+	if (args == 3) {
+		int x = luaL_checkinteger(L, 2);// need to check if negative numbers break
+		int y = luaL_checkinteger(L, 3);
+
+		gfx.DrawImage(img, x, y);
+		return 0;
+	}
+	else if (args == 4) {
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+		float scale = luaL_checknumber(L, 4);
+		if (scale == 0) return 0; // save time
+
+		// Create a Rect at x and y and scale the image's width and height
+		Gdiplus::Rect dest(x, y, img->GetWidth() * scale, img->GetHeight() * scale);
+
+		gfx.DrawImage(img, dest);
+		return 0;
+	}
+	else if (args == 5) {
+		// basically the same thing as the last one
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+		int w = luaL_checkinteger(L, 4);
+		int h = luaL_checkinteger(L, 5);
+		if (w == 0 or h == 0) return 0;
+
+		Gdiplus::Rect dest(x, y, w, h);
+
+		gfx.DrawImage(img, dest);
+		return 0;
+	}
+	else if (args == 10) {
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+		int w = luaL_checkinteger(L, 4);
+		int h = luaL_checkinteger(L, 5);
+		int srcx = luaL_checkinteger(L, 6);
+		int srcy = luaL_checkinteger(L, 7);
+		int srcw = luaL_checkinteger(L, 8);
+		int srch = luaL_checkinteger(L, 9);
+		float rotate = luaL_checknumber(L, 10);
+		if (w == 0 or h == 0 or srcw == 0 or srch == 0) return 0;
+		bool shouldrotate = ((int)rotate & 360) == 0; // Modulo only works with int
+
+		Gdiplus::Rect dest(x, y, w, h);
+
+		// Rotate
+		if (shouldrotate) {
+			Gdiplus::PointF center(x + (w / 2), y + (h / 2));// The center of dest
+			Gdiplus::Matrix matrix;
+			matrix.RotateAt(rotate, center);// rotate "rotate" number of degrees around "center"
+			gfx.SetTransform(&matrix);
+		}
+
+		gfx.DrawImage(img, dest, srcx, srcy, srcw, srch, Gdiplus::UnitPixel);
+
+		if (shouldrotate) gfx.ResetTransform();
+		return 0;
+	}
+	luaL_error(L, "Incorrect number of arguments");
+	return 0;
+}
+
+int DrawImage_old(lua_State* L)// Deprecated drawimage function
 {
 	int left, top, right, bottom;
 	unsigned imgIndex;
@@ -2201,26 +2278,6 @@ int DrawImage(lua_State* L)
 		gfx.DrawImage(imagePool[imgIndex], left, top, right, bottom);
 	}
 	return 0;
-}
-
-int DrawImageScale(lua_State* L) {
-	int left, top;
-	float xscale, yscale;
-	unsigned int imgIndex;
-	Gdiplus::Graphics gfx(luaDC);
-
-	imgIndex = luaL_checkinteger(L, 1) - 1;
-	if (imgIndex > imagePool.size() - 1) {
-		luaL_error(L, "Argument #1: Invalid image identifier");
-		return 0;
-	}
-	left = luaL_checkinteger(L, 2);
-	top = luaL_checkinteger(L, 3);
-	xscale = luaL_checknumber(L, 4);
-	yscale = luaL_checknumber(L, 5);
-
-	Gdiplus::Rect scale(left, top, xscale * imagePool[imgIndex]->GetWidth(), yscale * imagePool[imgIndex]->GetHeight());
-	gfx.DrawImage(imagePool[imgIndex], scale);
 }
 
 int Screenshot(lua_State* L) {
@@ -2248,15 +2305,15 @@ BITMAPINFOHEADER createBitmapHeader(int width, int height)
 	return bi;
 }
 
-HBITMAP GdiPlusScreenCapture(HWND hWnd)
-{
+int LoadScreen(lua_State* L) {
+	// SETUP
 	// get handles to a device context (DC)
-	HDC hwindowDC = GetDC(hWnd);
+	HDC hwindowDC = GetDC(mainHWND);
 	HDC hwindowCompatibleDC = CreateCompatibleDC(hwindowDC);
 	SetStretchBltMode(hwindowCompatibleDC, COLORONCOLOR);
 
 	RECT size;
-	GetWindowRect(hWnd, &size);
+	GetWindowRect(mainHWND, &size);
 
 	// define scale, height and width
 	int scale = 1;
@@ -2271,20 +2328,12 @@ HBITMAP GdiPlusScreenCapture(HWND hWnd)
 
 	// use the previously created device context with the bitmap
 	SelectObject(hwindowCompatibleDC, hbwindow);
-
+	// COPY
 	// copy from the window device context to the bitmap device context
 	StretchBlt(hwindowCompatibleDC, 0, 0, width, height, hwindowDC, screenx, screeny, width, height, SRCCOPY);   //change SRCCOPY to NOTSRCCOPY for wacky colors !
 
-	// avoid memory leak
-	ReleaseDC(hWnd, hwindowDC);
-	DeleteDC(hwindowCompatibleDC);
-
-	return hbwindow;
-}
-
-int LoadScreen(lua_State* L) {
-	HBITMAP screen = GdiPlusScreenCapture(mainHWND);
-	Gdiplus::Bitmap bmp(screen, nullptr);
+	//HBITMAP screen = GdiPlusScreenCapture(mainHWND);
+	Gdiplus::Bitmap bmp(hbwindow, nullptr);
 
 	IStream* istream = nullptr;
 	CreateStreamOnHGlobal(NULL, TRUE, &istream);
@@ -2298,6 +2347,11 @@ int LoadScreen(lua_State* L) {
 	imagePool.push_back(out_im);
 
 	istream->Release();
+
+	// DELETE
+	// avoid memory leak
+	ReleaseDC(mainHWND, hwindowDC);
+	DeleteDC(hwindowCompatibleDC);
 
 	return 0;
 }
@@ -3412,7 +3466,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"loadimage", LoadImage},
 	{"deleteimage", DeleteImage},
 	{"drawimage", DrawImage},
-	{"drawimagescale", DrawImageScale},
+	{"drawimageold", DrawImage_old},
 	{"loadscreen", LoadScreen},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
