@@ -2122,12 +2122,14 @@ int DrawText(lua_State *L) {
 	return 0;
 }
 int DrawRect(lua_State *L) {
+	auto cornerW = luaL_optinteger(L, 5, 0), cornerH = luaL_optinteger(L, 6, 0);
+
 	Lua *lua = GetLuaClass(L);
 	lua->selectBrush();
 	lua->selectPen();
-	::Rectangle(luaDC,
+	RoundRect(luaDC,
 		luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+		luaL_checknumber(L, 3), luaL_checknumber(L, 4), cornerW, cornerH);
 	return 0;
 }
 

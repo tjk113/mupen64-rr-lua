@@ -36,6 +36,9 @@
     <Filter Include="Source Files\main\win\wrapper">
       <UniqueIdentifier>{d466fa5d-4877-46e1-8b94-1c3a68c0158d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\main\ffmpeg_capture">
+      <UniqueIdentifier>{b84fb3bf-fac6-4e80-947b-a20a7446dd89}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config.h">
@@ -236,6 +239,9 @@
     <ClInclude Include="..\..\main\win\wrapper\ReassociatingFileDialog.h">
       <Filter>Source Files\main\win\wrapper</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\main\ffmpeg_capture\ffmpeg_capture.hpp">
+      <Filter>Source Files\main\ffmpeg_capture</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main\adler32.c">
@@ -271,7 +277,7 @@
     <ClCompile Include="..\..\main\unzip.c">
       <Filter>Source Files\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main\vcr.c">
+    <ClCompile Include="..\..\main\vcr.cpp">
       <Filter>Source Files\main</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\vcr_compress.cpp">
@@ -316,7 +322,7 @@
     <ClCompile Include="..\..\main\win\RomSettings.c">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\timers.c">
+    <ClCompile Include="..\..\main\win\timers.cpp">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\win\translation.c">
@@ -498,6 +504,12 @@
     </ClCompile>
     <ClCompile Include="..\..\main\win\wrapper\ReassociatingFileDialog.cpp">
       <Filter>Source Files\main\win\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp">
+      <Filter>Source Files\main\ffmpeg_capture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp">
+      <Filter>Source Files\main\ffmpeg_capture</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

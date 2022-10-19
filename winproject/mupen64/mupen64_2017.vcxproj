@@ -199,6 +199,7 @@
     </ClInclude>
     <ClInclude Include="..\..\main\debughook.h" />
     <ClInclude Include="..\..\main\disasm.h" />
+    <ClInclude Include="..\..\main\ffmpeg_capture\ffmpeg_capture.hpp" />
     <ClInclude Include="..\..\main\Gfx_#1.3.h" />
     <ClInclude Include="..\..\main\guifuncs.h" />
     <ClInclude Include="..\..\main\ioapi.h">
@@ -335,6 +336,8 @@
     </ClCompile>
     <ClCompile Include="..\..\main\debughook.c" />
     <ClCompile Include="..\..\main\disasm.c" />
+    <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp" />
+    <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp" />
     <ClCompile Include="..\..\main\ioapi.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>
@@ -389,7 +392,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Default</CompileAs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\main\vcr.c">
+    <ClCompile Include="..\..\main\vcr.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
@@ -472,7 +475,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\timers.c">
+    <ClCompile Include="..\..\main\win\timers.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>

@@ -58,7 +58,8 @@ bool savestates_ignore_nonmovie_warnings = false;
 bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
 			 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
 			 //- execution continues at exception handler (after input poll) at 0x80000180.
-bool lockNoStWarn;
+bool lockNoStWarn;	// I wont remove this variable for now, it should be used how the name suggests
+					// right now it's big mess and some other variable is used instead
 
 bool fix_new_st = true; //this is a switch to enable/disable fixing .st to work for old mupen (and m64plus)
 						//read savestate save function for more info
@@ -149,6 +150,9 @@ void savestates_save()
 		//But we dont want to do this then load such .st and dma again... so I notify mupen about this in .st,
 		//since .st is filled up to the brim with data (not even a single unused offset) I have to store one bit in... rdram manufacturer register
 		//this 99.999% wont break on any game, and that bit will be cleared by mupen64plus converter as well, so only old old mupen ever sees this trick.
+		
+		//update: I stumbled upon a .st that had the bit set, but didn't have SI_INT in queue,
+		//so it froze game, so there exists a way to cause that somehow
 		for (i = 0; i < (64 / 4); i++)
 			rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
 		update_count();
@@ -788,7 +792,7 @@ void savestates_load_old(bool silenceNotFoundError)
 		if (VCR_isActive() && savestates_ignore_nonmovie_warnings) {
 			display_status("Warning: non-movie savestate\n");
 		}
-		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn)
+		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn) //@TODO: lockNoStWarn is not used anywhere!!!
 		{
 			if (MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING)== 7) {
 			printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");

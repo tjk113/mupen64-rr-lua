@@ -35,4 +35,5 @@ void TranslateLangInfoDialog( HWND hwnd );
 void TranslateAdvancedDialog(HWND hwnd) ; 
 void TranslateHotkeyDialog(HWND hwnd);
 void freeLanguages();
+void SetMenuAcceleratorsFromUser(HWND hwnd);
 

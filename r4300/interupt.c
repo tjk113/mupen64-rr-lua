@@ -91,6 +91,13 @@ void print_queue()
 
 static int SPECIAL_done = 0;
 
+/// <summary>
+/// Checks if evt1 will happen before evt2
+/// </summary>
+/// <param name="evt1"></param>
+/// <param name="evt2"></param>
+/// <param name="type2"></param>
+/// <returns></returns>
 int before_event(unsigned long evt1, unsigned long evt2, int type2)
 {
 	if (evt1 - Count < 0x80000000)
@@ -120,6 +127,11 @@ int before_event(unsigned long evt1, unsigned long evt2, int type2)
 	else return 0;
 }
 
+/// <summary>
+/// Adds interrupt to queue that will fire after certain amount of time (Count register cycles)
+/// </summary>
+/// <param name="type">type of interrupt</param>
+/// <param name="delay">how much to wait</param>
 void add_interupt_event(int type, unsigned long delay)
 {
 	unsigned long count = Count + delay/**2*/;
@@ -151,6 +163,7 @@ void add_interupt_event(int type, unsigned long delay)
 		return;
 	}
 
+// finds place in queue to insert the interrupt ( its sorted )
 	if (before_event(count, q->count, q->type) && !special)
 	{
 		q = (interupt_queue*)malloc(sizeof(interupt_queue));
@@ -194,6 +207,12 @@ void add_interupt_event(int type, unsigned long delay)
 	  //print_queue();
 }
 
+/// <summary>
+/// Add new interrupt that will fire when Count register reaches given value
+/// See add_interrupt_event for simmilar function
+/// </summary>
+/// <param name="type">type of interrupt</param>
+/// <param name="count">when to make this interrupt happen</param>
 void add_interupt_event_count(int type, unsigned long count)
 {
 	add_interupt_event(type, (count - Count)/*/2*/);
@@ -211,6 +230,11 @@ void remove_interupt_event()
 		next_interupt = 0;
 }
 
+/// <summary>
+/// Check if event of this type already exists in queue (for some reason this is forbidden)
+/// </summary>
+/// <param name="type">type of interrupt, see interupt.h</param>
+/// <returns></returns>
 unsigned long get_event(int type)
 {
 	interupt_queue* aux = q;
@@ -224,6 +248,10 @@ unsigned long get_event(int type)
 	return 0;
 }
 
+/// <summary>
+/// finds and removes this type of event from queue
+/// </summary>
+/// <param name="type">interrupt type to find</param>
 void remove_event(int type)
 {
 	interupt_queue* aux = q;
@@ -262,6 +290,12 @@ void translate_event_queue(unsigned long base)
 
 int save_eventqueue_infos(char* buf)
 {
+#ifdef _DEBUG
+	if (get_event(SI_INT))
+		printf("SI_INT in queue, good\n");
+	else
+		printf("SI_INT not found\n");
+#endif
 	int len = 0;
 	interupt_queue* aux = q;
 	if (q == NULL)
@@ -306,12 +340,18 @@ void init_interupt()
 
 void check_interupt()
 {
+	// checks if MI register has any bit set (after masking)
+	// if yes, sets the pending RCP bit
+	
+	// same thing is done in gen_interrupt, but this is needed so that the bit is cleared properly
 	if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-		Cause = (Cause | 0x400) & 0xFFFFFF83;
+		Cause = (Cause | 0x400) & 0xFFFFFF83; //0x400 is CAUSE_IP3 (rcp interrupt pending)
 	else
 		Cause &= ~0x400;
 	if ((Status & 7) != 1) return;
-	if (Status & Cause & 0xFF00)
+	// if any of the interrupts is pending, add a check interrupt
+	// (which does nothing itself but makes cpu jump to general exception vector)
+	if (Status & Cause & 0xFF00) 
 	{
 		if (q == NULL)
 		{
@@ -372,10 +412,11 @@ void gen_interupt()
 		skip_jump = 0;
 		return;
 	}
-
+	auto type = q->type;
 	switch (q->type)
 	{
-	case SPECIAL_INT:
+	case SPECIAL_INT: // does nothing, spammed when Count is close to rolling over
+		//printf("SPECIAL, count: %x\n", q->count);
 		if (Count > 0x10000000) return;
 		remove_interupt_event();
 		add_interupt_event_count(SPECIAL_INT, 0);
@@ -407,63 +448,44 @@ void gen_interupt()
 		add_interupt_event_count(VI_INT, next_vi);
 
 		MI_register.mi_intr_reg |= 0x08;
-		if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-			Cause = (Cause | 0x400) & 0xFFFFFF83;
-		else
-			return;
-		if ((Status & 7) != 1) return;
-		if (!(Status & Cause & 0xFF00)) return;
 		break;
 
-	case COMPARE_INT:
-		//printf("CMP_INT\n");
+	case COMPARE_INT: // game can set Compare register to some value, and make a timer like that
+		//printf("COMPARE, count: %x\n", q->count);
 		remove_interupt_event();
 		Count += 2;
 		add_interupt_event_count(COMPARE_INT, Compare);
 		Count -= 2;
-
-		Cause = (Cause | 0x8000) & 0xFFFFFF83;
-		if ((Status & 7) != 1) return;
-		if (!(Status & Cause & 0xFF00)) return;
 		break;
 
-	case CHECK_INT:
-		//printf("CHECK_INT\n");
+	case CHECK_INT: //fake interrupt used to trigger exception handler (when interrupt is pending)
+		//printf("CHECK, count: %x\n", q->count);
 		remove_interupt_event();
 		break;
 
-	case SI_INT:
+		//serial interface, means that PIF copy/write happened (controllers)
+		//notice this is spammed a lot during loading
+	case SI_INT: 
 #ifndef __WIN32__
 		SDL_PumpEvents();
 #endif
-		//printf("SI\n");
+		//printf("SI, count: %x\n", q->count);
 		PIF_RAMb[0x3F] = 0x0;
 		remove_interupt_event();
 		MI_register.mi_intr_reg |= 0x02;
 		si_register.si_status |= 0x1000;
-		if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-			Cause = (Cause | 0x400) & 0xFFFFFF83;
-		else
-			return;
-		if ((Status & 7) != 1) return;
-		if (!(Status & Cause & 0xFF00)) return;
 		break;
 
-	case PI_INT:
-		//printf("PI\n");
+		//peripherial interface, dma between cartridge and rdram finished
+	case PI_INT: 
+		//printf("PI, count: %x\n", q->count);
 		remove_interupt_event();
 		MI_register.mi_intr_reg |= 0x10;
-		pi_register.read_pi_status_reg &= ~3;
-		if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-			Cause = (Cause | 0x400) & 0xFFFFFF83;
-		else
-			return;
-		if ((Status & 7) != 1) return;
-		if (!(Status & Cause & 0xFF00)) return;
+		pi_register.read_pi_status_reg &= ~3; //PI_STATUS_DMA_BUSY | PI_STATUS_IO_BUSY clear
 		break;
 
 	case AI_INT:
-		//printf("AI\n");
+		//printf("AI, count: %x\n", q->count);
 		if (ai_register.ai_status & 0x80000000) // full
 		{
 			unsigned long ai_event = get_event(AI_INT);
@@ -474,13 +496,7 @@ void gen_interupt()
 			//add_interupt_event(AI_INT, ai_register.next_delay/**2*/);
 			add_interupt_event_count(AI_INT, ai_event + ai_register.next_delay);
 
-			MI_register.mi_intr_reg |= 0x04;
-			if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-				Cause = (Cause | 0x400) & 0xFFFFFF83;
-			else
-				return;
-			if ((Status & 7) != 1) return;
-			if (!(Status & Cause & 0xFF00)) return;
+			MI_register.mi_intr_reg |= 0x04;	//apparently this should be moved to when AIlen is changed (when sound start splaying)
 		}
 		else
 		{
@@ -488,19 +504,13 @@ void gen_interupt()
 			ai_register.ai_status &= ~0x40000000;
 
 			//-------
-			MI_register.mi_intr_reg |= 0x04;
-			if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-				Cause = (Cause | 0x400) & 0xFFFFFF83;
-			else
-				return;
-			if ((Status & 7) != 1) return;
-			if (!(Status & Cause & 0xFF00)) return;
+			MI_register.mi_intr_reg |= 0x04;	//this too
 			//return;
 		}
 		break;
 
-	case SP_INT:
-		//printf("SP\n");
+	case SP_INT: //related to rsp
+		//printf("SP, count: %x\n", q->count);
 		remove_interupt_event();
 		sp_register.sp_status_reg |= 0x303;
 		//sp_register.signal1 = 1;
@@ -510,33 +520,35 @@ void gen_interupt()
 
 		if (!sp_register.intr_break) return;
 		MI_register.mi_intr_reg |= 0x01;
-		if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-			Cause = (Cause | 0x400) & 0xFFFFFF83;
-		else
-			return;
-		if ((Status & 7) != 1) return;
-		if (!(Status & Cause & 0xFF00)) return;
 		break;
 
 	case DP_INT:
-		//printf("DP\n");
+		//printf("DP, count: %x\n", q->count);
 		remove_interupt_event();
 		dpc_register.dpc_status &= ~2;
 		dpc_register.dpc_status |= 0x81;
 		MI_register.mi_intr_reg |= 0x20;
-		if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-			Cause = (Cause | 0x400) & 0xFFFFFF83;
-		else
-			return;
-		if ((Status & 7) != 1) return;
-		if (!(Status & Cause & 0xFF00)) return;
 		break;
 
 	default:
-		//printf("DEFAULT\n");
+		//printf("!!!!!!!!!!DEFAULT\n");
 		remove_interupt_event();
 		break;
 	}
+
+	if (type == COMPARE_INT)
+		Cause = (Cause | 0x8000) & 0xFFFFFF83;	// COMPARE interrupt to be pending
+	if (type!=CHECK_INT)
+	{
+		if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
+			Cause = (Cause | 0x400) & 0xFFFFFF83;	//RCP interrupt is pending
+		else
+			return;
+		if ((Status & 7) != 1) return;			// if interrupts shouldn't be handled, return
+		if (!(Status & Cause & 0xFF00)) return;	// check if there is any pending interrupt that isn't masked away
+	}
+	
+
 	exception_general();
 	if (input_delay) {
 		if (savestates_job & SAVESTATE/* && stAllowed*/)
