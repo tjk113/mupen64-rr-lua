@@ -58,6 +58,37 @@ bool anyLuaRunning = false;
 bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
 
+// LoadScreen variables
+HDC hwindowDC, hsrcDC;
+RECT LS_size;
+int LS_width, LS_height;
+HBITMAP hbitmap;
+bool LoadScreenInitialized = false;
+void LoadScreenDelete() {
+	ReleaseDC(mainHWND, hwindowDC);
+	DeleteDC(hsrcDC);
+
+	LoadScreenInitialized = false;
+}
+
+void LoadScreenInit() {
+	if (LoadScreenInitialized) LoadScreenDelete();
+
+	hwindowDC = GetDC(mainHWND);// Create a handle to the main window Device Context
+	hsrcDC = CreateCompatibleDC(hwindowDC);// Create a DC to copy the screen to
+
+	// Get screen size
+	GetWindowRect(mainHWND, &LS_size);
+
+	LS_width = LS_size.right - LS_size.left - 16;// Don't know if these numbers work on different resolutions and scaless
+	LS_height = LS_size.bottom - LS_size.top - 83;
+
+	// create an hbitmap
+	hbitmap = CreateCompatibleBitmap(hwindowDC, LS_width, LS_height);
+
+	LoadScreenInitialized = true;
+}
+
 #ifdef LUA_MODULEIMPL
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
@@ -76,7 +107,7 @@ HANDLE TraceLogFile;
 
 class Lua;
 
-std::vector<Gdiplus::Image*> imagePool;
+std::vector<Gdiplus::Bitmap*> imagePool;
 
 struct AddrBreakFunc{
 	lua_State *lua;
@@ -231,6 +262,7 @@ public:
 			AddToRecentScripts(path);
 			strcpy(Config.LuaScriptPath, path);
 		}
+		LoadScreenInit();
 		ShowInfo("Lua run");
 	}
 	void stop() {
@@ -248,6 +280,7 @@ public:
 			delete x;
 		}
 		imagePool.clear();
+		LoadScreenDelete();
 		SetButtonState(ownWnd, false);
 		ShowInfo("Lua stop");
 	}
@@ -2142,7 +2175,7 @@ int LoadImage(lua_State* L)
 	int size = MultiByteToWideChar(CP_ACP, 0, path, -1, pathw, output_size);
 
 	printf("LoadImage: %ws\n", pathw);
-	Gdiplus::Image *a = new Gdiplus::Image(pathw);
+	Gdiplus::Bitmap *a = new Gdiplus::Bitmap(pathw);
 	free(pathw);
 
 	if (a->GetLastStatus())
@@ -2191,7 +2224,7 @@ int DrawImage(lua_State* L) {
 	unsigned int args = lua_gettop(L);
 
 	Gdiplus::Graphics gfx(luaDC);
-	Gdiplus::Image* img = imagePool[imgIndex];
+	Gdiplus::Bitmap* img = imagePool[imgIndex];
 
 	if (args == 3) {
 		int x = luaL_checkinteger(L, 2);// need to check if negative numbers break
@@ -2288,47 +2321,24 @@ int Screenshot(lua_State* L) {
 }
 
 int LoadScreen(lua_State* L) {
-	// SETUP
-	// get handles to a device context (DC)
-	HDC hwindowDC = GetDC(mainHWND);
-	HDC hwindowCompatibleDC = CreateCompatibleDC(hwindowDC);
-
-	RECT size;
-	GetWindowRect(mainHWND, &size);
-
-	int width = size.right - size.left - 16;// Don't know if these numbers work on different resolutions and scaless
-	int height = size.bottom - size.top - 83;
-
-	// create a bitmap
-	HBITMAP hbwindow = CreateCompatibleBitmap(hwindowDC, width, height);
-
-	// use the previously created device context with the bitmap
-	SelectObject(hwindowCompatibleDC, hbwindow);
-	// COPY
+	if (!LoadScreenInitialized) {
+		luaL_error(L, "LoadScreen not initialized! Something has gone wrong.");
+		return 0;
+	}
+	// set the selected object of hsrcDC to hbwindow
+	SelectObject(hsrcDC, hbitmap);
 	// copy from the window device context to the bitmap device context
-	//StretchBlt(hwindowCompatibleDC, 0, 0, width, height, hwindowDC, screenx, screeny, width, height, SRCCOPY);   //change SRCCOPY to NOTSRCCOPY for wacky colors !
-	BitBlt(hwindowCompatibleDC, 0, 0, width, height, hwindowDC, 0, 0, SRCCOPY);
+	BitBlt(hsrcDC, 0, 0, LS_width, LS_height, hwindowDC, 0, 0, SRCCOPY);
 
-	Gdiplus::Bitmap bmp(hbwindow, nullptr);
+	Gdiplus::Bitmap* out = new Gdiplus::Bitmap(hbitmap, nullptr);
 
-	IStream* istream = nullptr;
-	CreateStreamOnHGlobal(NULL, TRUE, &istream);
+	imagePool.push_back(out);
 
-	CLSID clsid;
-	CLSIDFromString(L"{557cf400-1a04-11d3-9a73-0000f81ef32e}", &clsid); // bmp encoding
-	bmp.Save(istream, &clsid);
+	return 0;
+}
 
-	Gdiplus::Image* out_im = new Gdiplus::Image(istream);
-
-	imagePool.push_back(out_im);
-
-	// DELETE
-	// avoid memory leak
-	istream->Release();
-
-	ReleaseDC(mainHWND, hwindowDC);
-	DeleteDC(hwindowCompatibleDC);
-
+int LoadScreenReset(lua_State* L) {
+	LoadScreenInit();
 	return 0;
 }
 
@@ -3444,6 +3454,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"drawimage", DrawImage},
 	{"drawimageold", DrawImage_old},
 	{"loadscreen", LoadScreen},
+	{"loadscreenreset", LoadScreenReset},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
