@@ -2199,7 +2199,7 @@ int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 		}
 		imagePool.clear();
 	}
-	else { // If clear index is not 0, clear 1 image MEMORY LEAK
+	else { // If clear index is not 0, clear 1 image
 		if (clearIndex <= imagePool.size()) {
 			printf("Deleting image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
 			delete imagePool[clearIndex - 1];
@@ -2900,7 +2900,7 @@ BOOL fileexists(const char* path) {
 int StartCapture(lua_State* L) {
 	const char* fname = lua_tostring(L, 1);
 	if (!VCR_isCapturing())
-		VCR_startCapture("", fname, true);
+		VCR_startCapture("", fname, false);
 	else
 		luaL_error(L, "Tried to start AVI capture when one was already in progress");
 	return 0;
