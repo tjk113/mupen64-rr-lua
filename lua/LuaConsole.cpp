@@ -2287,54 +2287,28 @@ int Screenshot(lua_State* L) {
 	return 0;
 }
 
-BITMAPINFOHEADER createBitmapHeader(int width, int height)
-{
-	BITMAPINFOHEADER bi;
-
-	// create a bitmap
-	bi.biSize = sizeof(BITMAPINFOHEADER);
-	bi.biWidth = width;
-	bi.biHeight = -height;  //this is the line that makes it draw upside down or not
-	bi.biPlanes = 1;
-	bi.biBitCount = 32;
-	bi.biCompression = BI_RGB;
-	bi.biSizeImage = 0;
-	bi.biXPelsPerMeter = 0;
-	bi.biYPelsPerMeter = 0;
-	bi.biClrUsed = 0;
-	bi.biClrImportant = 0;
-
-	return bi;
-}
-
 int LoadScreen(lua_State* L) {
 	// SETUP
 	// get handles to a device context (DC)
 	HDC hwindowDC = GetDC(mainHWND);
 	HDC hwindowCompatibleDC = CreateCompatibleDC(hwindowDC);
-	SetStretchBltMode(hwindowCompatibleDC, COLORONCOLOR);
 
 	RECT size;
 	GetWindowRect(mainHWND, &size);
 
-	// define scale, height and width
-	int scale = 1;
-	int screenx = GetSystemMetrics(SM_XVIRTUALSCREEN);
-	int screeny = GetSystemMetrics(SM_YVIRTUALSCREEN);
-	int width = size.right - size.left - 16;
+	int width = size.right - size.left - 16;// Don't know if these numbers work on different resolutions and scaless
 	int height = size.bottom - size.top - 83;
 
 	// create a bitmap
 	HBITMAP hbwindow = CreateCompatibleBitmap(hwindowDC, width, height);
-	BITMAPINFOHEADER bi = createBitmapHeader(width, height);
 
 	// use the previously created device context with the bitmap
 	SelectObject(hwindowCompatibleDC, hbwindow);
 	// COPY
 	// copy from the window device context to the bitmap device context
-	StretchBlt(hwindowCompatibleDC, 0, 0, width, height, hwindowDC, screenx, screeny, width, height, SRCCOPY);   //change SRCCOPY to NOTSRCCOPY for wacky colors !
+	//StretchBlt(hwindowCompatibleDC, 0, 0, width, height, hwindowDC, screenx, screeny, width, height, SRCCOPY);   //change SRCCOPY to NOTSRCCOPY for wacky colors !
+	BitBlt(hwindowCompatibleDC, 0, 0, width, height, hwindowDC, 0, 0, SRCCOPY);
 
-	//HBITMAP screen = GdiPlusScreenCapture(mainHWND);
 	Gdiplus::Bitmap bmp(hbwindow, nullptr);
 
 	IStream* istream = nullptr;
@@ -2348,10 +2322,10 @@ int LoadScreen(lua_State* L) {
 
 	imagePool.push_back(out_im);
 
-	istream->Release();
-
 	// DELETE
 	// avoid memory leak
+	istream->Release();
+
 	ReleaseDC(mainHWND, hwindowDC);
 	DeleteDC(hwindowCompatibleDC);
 
