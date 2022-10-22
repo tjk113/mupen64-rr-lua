@@ -64,6 +64,8 @@ RECT LS_size;
 int LS_width, LS_height;
 HBITMAP hbitmap;
 bool LoadScreenInitialized = false;
+
+// Deletes all the variables used in LoadScreen (avoid memory leaks)
 void LoadScreenDelete() {
 	ReleaseDC(mainHWND, hwindowDC);
 	DeleteDC(hsrcDC);
@@ -71,6 +73,7 @@ void LoadScreenDelete() {
 	LoadScreenInitialized = false;
 }
 
+// Initializes everything needed for LoadScreen
 void LoadScreenInit() {
 	if (LoadScreenInitialized) LoadScreenDelete();
 
@@ -2166,26 +2169,21 @@ int DrawRect(lua_State *L) {
 	return 0;
 }
 
-int LoadImage(lua_State* L)
-{
-
+int LoadImage(lua_State* L) {
 	const char* path = luaL_checkstring(L,1);
 	int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
 	wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
 	int size = MultiByteToWideChar(CP_ACP, 0, path, -1, pathw, output_size);
 
 	printf("LoadImage: %ws\n", pathw);
-	Gdiplus::Bitmap *a = new Gdiplus::Bitmap(pathw);
+	Gdiplus::Bitmap *img = new Gdiplus::Bitmap(pathw);
 	free(pathw);
 
-	if (a->GetLastStatus())
-	{
-		char error[512];
-		sprintf(error, "Couldn't find image '%s'", path);
-		luaL_error(L, error);
-		return 1;
+	if (img->GetLastStatus()) {
+		luaL_error(L, "Couldn't find image '%s'", path);
+		return 0;
 	}
-	imagePool.push_back(a);
+	imagePool.push_back(img);
 	lua_pushinteger(L, imagePool.size()); //return the identifier (index+1)
 	return 1;
 }
@@ -2205,8 +2203,8 @@ int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 			delete imagePool[clearIndex - 1];
 			imagePool.erase(imagePool.begin() + clearIndex - 1);
 		}
-		else { // Error if the images doesn't exist
-			luaL_error(L, "Argument #1: Invalid image identifier");
+		else { // Error if the image doesn't exist
+			luaL_error(L, "Argument #1: Invalid image index");
 			return 0;
 		}
 	}
@@ -2216,37 +2214,40 @@ int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 int DrawImage(lua_State* L) {
 	unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
 
+	// Error if the image doesn't exist
 	if (imgIndex > imagePool.size() - 1) {
 		luaL_error(L, "Argument #1: Invalid image index");
 		return 0;
 	}
-
+	
+	// Gets the number of arguments
 	unsigned int args = lua_gettop(L);
 
 	Gdiplus::Graphics gfx(luaDC);
 	Gdiplus::Bitmap* img = imagePool[imgIndex];
 
+	// In original DrawImage
 	if (args == 3) {
-		int x = luaL_checkinteger(L, 2);// need to check if negative numbers break
+		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
 
-		gfx.DrawImage(img, x, y);
+		gfx.DrawImage(img, x, y);// Gdiplus::Image *image, int x, int y
 		return 0;
 	}
 	else if (args == 4) {
 		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
 		float scale = luaL_checknumber(L, 4);
-		if (scale == 0) return 0; // save time
+		if (scale == 0) return 0;
 
 		// Create a Rect at x and y and scale the image's width and height
 		Gdiplus::Rect dest(x, y, img->GetWidth() * scale, img->GetHeight() * scale);
 
-		gfx.DrawImage(img, dest);
+		gfx.DrawImage(img, dest);// Gdiplus::Image *image, const Gdiplus::Rect &rect
 		return 0;
 	}
+	// In original DrawImage
 	else if (args == 5) {
-		// basically the same thing as the last one
 		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
 		int w = luaL_checkinteger(L, 4);
@@ -2255,7 +2256,7 @@ int DrawImage(lua_State* L) {
 
 		Gdiplus::Rect dest(x, y, w, h);
 
-		gfx.DrawImage(img, dest);
+		gfx.DrawImage(img, dest);// Gdiplus::Image *image, const Gdiplus::Rect &rect
 		return 0;
 	}
 	else if (args == 10) {
@@ -2281,7 +2282,7 @@ int DrawImage(lua_State* L) {
 			gfx.SetTransform(&matrix);
 		}
 
-		gfx.DrawImage(img, dest, srcx, srcy, srcw, srch, Gdiplus::UnitPixel);
+		gfx.DrawImage(img, dest, srcx, srcy, srcw, srch, Gdiplus::UnitPixel);// Gdiplus::Image *image, const Gdiplus::Rect &destRect, int srcx, int srcy, int srcheight, Gdiplus::srcUnit
 
 		if (shouldrotate) gfx.ResetTransform();
 		return 0;
