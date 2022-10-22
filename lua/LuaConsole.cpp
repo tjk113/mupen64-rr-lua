@@ -2290,31 +2290,6 @@ int DrawImage(lua_State* L) {
 	return 0;
 }
 
-int DrawImage_old(lua_State* L)// Deprecated drawimage function
-{
-	int left, top, right, bottom;
-	unsigned imgIndex;
-	Gdiplus::Graphics gfx(luaDC);
-
-	imgIndex = luaL_checkinteger(L, 1) - 1;
-	if (imgIndex + 1 > imagePool.size())
-	{
-		luaL_error(L, "Argument #1: Invalid image identifier");
-		return 0;
-	}
-	left = luaL_checknumber(L, 2);
-	top = luaL_checknumber(L, 3);
-
-	if (lua_gettop(L) == 3) gfx.DrawImage(imagePool[imgIndex], left, top);
-	else //optional args, resize image
-	{
-		right = luaL_checknumber(L, 4);
-		bottom = luaL_checknumber(L, 5);
-		gfx.DrawImage(imagePool[imgIndex], left, top, right, bottom);
-	}
-	return 0;
-}
-
 int Screenshot(lua_State* L) {
 	CaptureScreen((char*)luaL_checkstring(L, 1));
 	return 0;
@@ -3452,7 +3427,6 @@ const luaL_Reg wguiFuncs[] = {
 	{"loadimage", LoadImage},
 	{"deleteimage", DeleteImage},
 	{"drawimage", DrawImage},
-	{"drawimageold", DrawImage_old},
 	{"loadscreen", LoadScreen},
 	{"loadscreenreset", LoadScreenReset},
 	/*</GDIPlus*/
