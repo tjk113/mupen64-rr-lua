@@ -2268,7 +2268,7 @@ int DrawImage(lua_State* L) {
 		int srch = luaL_checkinteger(L, 9);
 		float rotate = luaL_checknumber(L, 10);
 		if (w == 0 or h == 0 or srcw == 0 or srch == 0) return 0;
-		bool shouldrotate = ((int)rotate & 360) == 0; // Modulo only works with int
+		bool shouldrotate = ((int)rotate % 360) != 0; // Only rotate if the angle isn't a multiple of 360 Modulo only works with int
 
 		Gdiplus::Rect dest(x, y, w, h);
 
@@ -2308,12 +2308,26 @@ int LoadScreen(lua_State* L) {
 
 	imagePool.push_back(out);
 
-	return 0;
+	lua_pushinteger(L, imagePool.size());
+
+	return 1;
 }
 
 int LoadScreenReset(lua_State* L) {
 	LoadScreenInit();
 	return 0;
+}
+
+int GetImageInfo(lua_State* L) {
+	Gdiplus::Bitmap* img = imagePool[luaL_checkinteger(L, 1) - 1];
+
+	lua_newtable(L);
+	lua_pushinteger(L, img->GetWidth());
+	lua_setfield(L, -2, "width");
+	lua_pushinteger(L, img->GetHeight());
+	lua_setfield(L, -2, "height");
+
+	return 1;
 }
 
 //1st arg is table of points
@@ -3428,6 +3442,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"drawimage", DrawImage},
 	{"loadscreen", LoadScreen},
 	{"loadscreenreset", LoadScreenReset},
+	{"getimageinfo", GetImageInfo},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
