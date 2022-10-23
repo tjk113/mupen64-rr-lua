@@ -255,6 +255,7 @@ public:
 		col = bkcol = 0;
 		bkmode = TRANSPARENT;
 		hMutex = CreateMutex(0, 0, 0);
+		LoadScreenInit();
 		newLuaState();
 		runFile(path);
 		if (isrunning())
@@ -263,7 +264,6 @@ public:
 			AddToRecentScripts(path);
 			strcpy(Config.LuaScriptPath, path);
 		}
-		LoadScreenInit();
 		ShowInfo("Lua run");
 	}
 	void stop() {
@@ -2319,7 +2319,14 @@ int LoadScreenReset(lua_State* L) {
 }
 
 int GetImageInfo(lua_State* L) {
-	Gdiplus::Bitmap* img = imagePool[luaL_checkinteger(L, 1) - 1];
+	unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
+
+	if (imgIndex > imagePool.size() - 1) {
+		luaL_error(L, "Argument #1: Invalid image index");
+		return 0;
+	}
+
+	Gdiplus::Bitmap* img = imagePool[imgIndex];
 
 	lua_newtable(L);
 	lua_pushinteger(L, img->GetWidth());
