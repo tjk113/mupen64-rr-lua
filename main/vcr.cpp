@@ -2339,7 +2339,10 @@ int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arg
 		m_capture = 1;
 	}
 #ifdef _DEBUG
-	printf("[VCR] ffmpeg capture started\n");
+	if (err == INIT_SUCCESS)
+		printf("[VCR] ffmpeg capture started\n");
+	else
+		printf("[VCR] Could not start ffmpeg capture\n");
 #endif
 	return err;
 }
