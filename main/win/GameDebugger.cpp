@@ -71,6 +71,33 @@ void DebuggerSet(int debuggerFlag) {
 
 }
 
+void closeDebugger(HWND hwnd) {
+    // some shitty slower checks for everything
+
+    printf(" --- N64 Debugger End ---\n");
+    printf("cpu allowed: %d\n", debugger_cpuAllowed);
+    printf("step: %d\n", debugger_step);
+    printf("rsp allowed: %d\n", IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE));
+    printf("dma read allowed: %d\n", debugger_cartridgeTilt);
+    printf(" ------------------------\n");
+
+    if (!debugger_cpuAllowed) {
+        N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
+        return;
+    }
+    if (debugger_step) {
+        N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
+        return;
+    }
+    if (!IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE) || debugger_cartridgeTilt) {
+        N64DEBUG_MBOX("The debugger has changed the original game. Undo your changed settings before closing the debugger.");
+        return;
+    }
+
+    EndDialog(hwnd, 0);
+    return;
+}
+
 BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
     switch (Message) {
     case WM_INITDIALOG: {
@@ -94,6 +121,9 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
         return TRUE;
     }
+    case WM_CLOSE:
+        closeDebugger(hwnd);
+        return TRUE;
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
@@ -136,31 +166,8 @@ BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
             
             break;
         case IDOK:
-
-            // some shitty slower checks for everything
-
-            printf(" --- N64 Debugger End ---\n");
-            printf("cpu allowed: %d\n", debugger_cpuAllowed);
-            printf("step: %d\n", debugger_step);
-            printf("rsp allowed: %d\n", IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE));
-            printf("dma read allowed: %d\n", debugger_cartridgeTilt);
-            printf(" ------------------------\n");
-
-            if (!debugger_cpuAllowed) {
-                N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
-                break;
-            }
-            if (debugger_step) {
-                N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
-                break;
-            }
-            if (!IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE) || debugger_cartridgeTilt) {
-                N64DEBUG_MBOX("The debugger has changed the original game. Undo your changed settings before closing the debugger.");
-                break;
-            }
-
-            EndDialog(hwnd,0);
-            break;
+            closeDebugger(hwnd);
+            return TRUE;
         }
     default:
         return FALSE;

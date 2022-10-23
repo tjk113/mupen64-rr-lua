@@ -918,9 +918,9 @@ DWORD WINAPI ScanThread(LPVOID lpParam) {
     ROM_INFO *pRomInfo;
     md5_byte_t digest[16];
     char tempname[100];
-    EnableWindow(GetDlgItem(romInfoHWND,IDC_STOP),TRUE);
-    EnableWindow(GetDlgItem(romInfoHWND,IDC_START),FALSE);
-    EnableWindow(GetDlgItem(romInfoHWND,IDC_CLOSE),FALSE);
+    EnableWindow(GetDlgItem(romInfoHWND,IDC_AUDIT_STOP),TRUE);
+    EnableWindow(GetDlgItem(romInfoHWND,IDC_AUDIT_START),FALSE);
+    EnableWindow(GetDlgItem(romInfoHWND,IDC_AUDIT_CLOSE),FALSE);
      for (i=0;i<ItemList.ListCount;i++)
         {
           if (stopScan) break;
@@ -943,9 +943,9 @@ DWORD WINAPI ScanThread(LPVOID lpParam) {
 	          sprintf(pRomInfo->GoodName,"%s (not found in INI file)", pRomInfo->InternalName);
         }
      //SendMessage( GetDlgItem(romInfoHWND, IDC_TOTAL_ROMS_PROGRESS), PBM_SETPOS, 0, 0 );
-     EnableWindow(GetDlgItem(romInfoHWND,IDC_STOP),FALSE);
-     EnableWindow(GetDlgItem(romInfoHWND,IDC_START),TRUE);
-     EnableWindow(GetDlgItem(romInfoHWND,IDC_CLOSE),TRUE);
+     EnableWindow(GetDlgItem(romInfoHWND,IDC_AUDIT_STOP),FALSE);
+     EnableWindow(GetDlgItem(romInfoHWND,IDC_AUDIT_START),TRUE);
+     EnableWindow(GetDlgItem(romInfoHWND,IDC_AUDIT_CLOSE),TRUE);
     ExitThread(dwExitCode);
 }
 
@@ -974,16 +974,16 @@ BOOL CALLBACK AuditDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
     case WM_COMMAND:
           switch(LOWORD(wParam))
             {
-                case IDC_START:
+                case IDC_AUDIT_START:
                     romInfoHWND = hwnd;
                     stopScan = FALSE;
                     EmuThreadHandle = CreateThread(NULL, 0, ScanThread, NULL, 0, &Id);
                 break;
-                case IDC_STOP:
+                case IDC_AUDIT_STOP:
                      stopScan = TRUE; 
                 break;
                 case IDCANCEL:
-                case IDC_CLOSE:
+                case IDC_AUDIT_CLOSE:
                      stopScan = TRUE;
                      romInfoHWND = NULL;
                      //FastRefreshBrowser();
@@ -1009,7 +1009,7 @@ BOOL CALLBACK LangInfoProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
             {
                 case IDOK:
                 case IDCANCEL:
-                case IDC_CLOSE:
+                case IDC_AUDIT_CLOSE:
                      EndDialog(hwnd, IDOK);
                 break;
             }             

@@ -568,9 +568,9 @@ void TranslateAuditDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_TOTAL_ROMS_TEXT,"Audit Total ROMs");
     SetItemTranslatedString(hwnd,IDC_CURRENT_ROM_TEXT,"Audit Current ROM");
     SetItemTranslatedString(hwnd,IDC_ROM_FULLPATH_TEXT,"Audit File Location");
-    SetItemTranslatedString(hwnd,IDC_START,"Start");
-    SetItemTranslatedString(hwnd,IDC_STOP,"Stop");
-    SetItemTranslatedString(hwnd,IDC_CLOSE,"Close");
+    SetItemTranslatedString(hwnd,IDC_AUDIT_START,"Start");
+    SetItemTranslatedString(hwnd,IDC_AUDIT_STOP,"Stop");
+    SetItemTranslatedString(hwnd,IDC_AUDIT_CLOSE,"Close");
     TranslateDefault("Audit ROMs","Audit ROMs",tmp);
     SetWindowText(hwnd,tmp);
 }
