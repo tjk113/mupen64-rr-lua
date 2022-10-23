@@ -27,6 +27,7 @@
 #include "../main/win/wrapper/ReassociatingFileDialog.h"
 #include <vcr.h>
 #include <gdiplus.h>
+#include "../main/vcr_compress.h"
 
 
 #ifdef LUA_MODULEIMPL
@@ -60,8 +61,7 @@ ULONG_PTR gdiPlusToken;
 
 // LoadScreen variables
 HDC hwindowDC, hsrcDC;
-RECT LS_size;
-int LS_width, LS_height;
+SWindowInfo windowSize{};
 HBITMAP hbitmap;
 bool LoadScreenInitialized = false;
 
@@ -80,14 +80,12 @@ void LoadScreenInit() {
 	hwindowDC = GetDC(mainHWND);// Create a handle to the main window Device Context
 	hsrcDC = CreateCompatibleDC(hwindowDC);// Create a DC to copy the screen to
 
-	// Get screen size
-	GetWindowRect(mainHWND, &LS_size);
-
-	LS_width = LS_size.right - LS_size.left - 16;// Don't know if these numbers work on different resolutions and scaless
-	LS_height = LS_size.bottom - LS_size.top - 83;
+	CalculateWindowDimensions(mainHWND, windowSize);
+	windowSize.height -= 1; // ¯\_(ツ)_/¯
+	printf("LoadScreen Size: %d x %d\n", windowSize.width, windowSize.height);
 
 	// create an hbitmap
-	hbitmap = CreateCompatibleBitmap(hwindowDC, LS_width, LS_height);
+	hbitmap = CreateCompatibleBitmap(hwindowDC, windowSize.width, windowSize.height);
 
 	LoadScreenInitialized = true;
 }
@@ -2304,7 +2302,7 @@ int LoadScreen(lua_State* L) {
 	// set the selected object of hsrcDC to hbwindow
 	SelectObject(hsrcDC, hbitmap);
 	// copy from the window device context to the bitmap device context
-	BitBlt(hsrcDC, 0, 0, LS_width, LS_height, hwindowDC, 0, 0, SRCCOPY);
+	BitBlt(hsrcDC, 0, 0, windowSize.width, windowSize.height, hwindowDC, 0, 0, SRCCOPY);
 
 	Gdiplus::Bitmap* out = new Gdiplus::Bitmap(hbitmap, nullptr);
 
