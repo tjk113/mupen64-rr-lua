@@ -113,9 +113,9 @@
 #define ID_START_ROM_ENTER              2051
 #define ID_AUDIT_ROMS                   2100
 #define IDD_AUDIT_ROMS_DIALOG           2101
-#define IDC_STOP                        2102
-#define IDC_CLOSE                       2103
-#define IDC_START                       2104
+#define IDC_AUDIT_STOP                  2102
+#define IDC_AUDIT_CLOSE                 2103
+#define IDC_AUDIT_START                 2104
 #define IDC_TOTAL_ROMS_TEXT             2105
 #define IDC_TOTAL_ROMS                  2106
 #define IDC_CURRENT_ROM_TEXT            2107
