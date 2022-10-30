@@ -1295,7 +1295,7 @@ void pauseEmu(BOOL quiet)
         CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
 	}
 
-	if(emu_paused != wasPaused && !quiet && !MenuPaused)
+	if(emu_paused != wasPaused && !MenuPaused)
 		CheckMenuItem( GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
 }
 
