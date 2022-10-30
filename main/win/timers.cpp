@@ -179,8 +179,7 @@ void new_vi()
 	if(VCR_isPlaying())
 	{
 		extern int pauseAtFrame;
-		// use jg not jge due to off-by-one error inherited by cancerous code
-		if(m_currentSample > pauseAtFrame && pauseAtFrame >= 0)
+		if(m_currentSample >= pauseAtFrame && pauseAtFrame >= 0)
 		{
 			extern void pauseEmu(BOOL quiet);
 			pauseEmu(TRUE); // maybe this is multithreading unsafe?

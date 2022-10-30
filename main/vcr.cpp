@@ -146,6 +146,7 @@ static int AVIBreakMovie = 0;
 int AVIIncrement = 0;
 int titleLength;
 char VCR_Lastpath[MAX_PATH];
+bool is_restarting_flag = false;
 
 bool captureWithFFmpeg = true;
 std::unique_ptr<FFmpegManager> captureManager;
@@ -792,6 +793,10 @@ VCR_setReadOnly(BOOL val)
 
 bool VCR_isLooping() {
 	return Config.loopMovie;
+}
+
+bool VCR_isRestarting() {
+	return is_restarting_flag;
 }
 
 void VCR_setLoopMovie(bool val) {
@@ -1464,6 +1469,7 @@ static int
 startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting )
 {
 	VCR_coreStopped();
+	is_restarting_flag = false;
 //	m_intro = TRUE;
 	
 	extern HWND mainHWND;
@@ -1773,7 +1779,8 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 int restartPlayback()
 {
-	return VCR_startPlayback(Config.RecentMovies[0], 0, 0);
+	is_restarting_flag = true;
+	return VCR_startPlayback(VCR_Lastpath, 0, 0);
 }
 
 int VCR_stopPlayback() {

@@ -97,6 +97,7 @@ extern void VCR_invalidatedCaptureFrame();
 extern const char* VCR_getMovieFilename();
 extern BOOL VCR_getReadOnly();
 extern bool VCR_isLooping();
+extern bool VCR_isRestarting();
 extern void VCR_setReadOnly(BOOL val);
 extern unsigned long VCR_getLengthVIs();
 extern unsigned long VCR_getLengthSamples();
