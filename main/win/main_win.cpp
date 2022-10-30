@@ -2402,7 +2402,7 @@ void SetStatusMode( int mode )
      }        //If
 }
 
-void EnableEmulationMenuItems(BOOL flag)
+void EnableEmulationMenuItems(BOOL emulationRunning)
 {
    extern BOOL continue_vcr_on_restart_mode;
      
@@ -2412,7 +2412,7 @@ void EnableEmulationMenuItems(BOOL flag)
        EnableMenuItem(hMenu, ID_CRASHHANDLERDIALOGSHOW, MF_ENABLED);
     #endif
 
-   if (flag) {
+   if (emulationRunning) {
       EnableMenuItem(hMenu,EMU_STOP,MF_ENABLED);
       //EnableMenuItem(hMenu,IDLOAD,MF_GRAYED);
       EnableMenuItem(hMenu,EMU_PAUSE,MF_ENABLED);
@@ -2428,6 +2428,8 @@ void EnableEmulationMenuItems(BOOL flag)
       EnableMenuItem(hMenu,EMU_RESET,MF_ENABLED);
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
+      EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_GRAYED);
+      EnableMenuItem(hMenu, ID_FFMPEG_START, MF_ENABLED);
 
 #ifdef N64DEBUGGER_ALLOWED
       EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
@@ -2437,19 +2439,20 @@ void EnableEmulationMenuItems(BOOL flag)
       else
           EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
     
-if(!continue_vcr_on_restart_mode)
-{
-      EnableMenuItem(hMenu,ID_START_RECORD,MF_ENABLED);
-      EnableMenuItem(hMenu,ID_STOP_RECORD, VCR_isRecording() ? MF_ENABLED : MF_GRAYED);
-      EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
-      EnableMenuItem(hMenu,ID_STOP_PLAYBACK, (VCR_isRestarting() || VCR_isPlaying()) ? MF_ENABLED : MF_GRAYED);
-      EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
-      EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
-      EnableMenuItem(hMenu,ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
-      EnableRecentROMsMenu(hMenu, TRUE);
-      EnableRecentMoviesMenu(hMenu, TRUE);
-      EnableRecentScriptsMenu(hMenu, TRUE);
-}
+
+      if(!continue_vcr_on_restart_mode)
+      {
+         EnableMenuItem(hMenu,ID_START_RECORD,MF_ENABLED);
+         EnableMenuItem(hMenu,ID_STOP_RECORD, VCR_isRecording() ? MF_ENABLED : MF_GRAYED);
+         EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
+         EnableMenuItem(hMenu,ID_STOP_PLAYBACK, (VCR_isRestarting() || VCR_isPlaying()) ? MF_ENABLED : MF_GRAYED);
+         EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
+         EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
+         EnableMenuItem(hMenu,ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
+         EnableRecentROMsMenu(hMenu, TRUE);
+         EnableRecentMoviesMenu(hMenu, TRUE);
+         EnableRecentScriptsMenu(hMenu, TRUE);
+      }
       
       if (Config.GuiToolbar)
       {
@@ -2480,11 +2483,14 @@ if(!continue_vcr_on_restart_mode)
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
       EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_GRAYED);
       EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
+      EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_ENABLED);
+      EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
      
 if(!continue_vcr_on_restart_mode)
 {
       EnableMenuItem(hMenu,ID_START_RECORD,MF_GRAYED);
       EnableMenuItem(hMenu,ID_STOP_RECORD,MF_GRAYED);
+      EnableMenuItem(hMenu, ID_START_PLAYBACK, MF_GRAYED);
       EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
       EnableMenuItem(hMenu,ID_START_CAPTURE,MF_GRAYED);
       EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);

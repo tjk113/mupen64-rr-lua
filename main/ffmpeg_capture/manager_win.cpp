@@ -18,7 +18,7 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
     {
         char buf[MAX_PATH];
         GetCurrentDirectory(sizeof(buf), buf);
-        printf("Looking for ffmpeg.exe in %s", buf);
+        printf("Looking for ffmpeg.exe in %s\n", buf);
     }
 #endif
     si.cb = sizeof(si);
@@ -60,6 +60,7 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
 
     if (!audioPipe)
     {
+        CloseHandle(videoPipe);
         initError = INIT_PIPE_ERROR;
         return;
     }
@@ -88,7 +89,10 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerat
         &pi)           // Pointer to PROCESS_INFORMATION structure
         )
     {
+        MessageBox(NULL, "Could not start ffmpeg process! Does ffmpeg exist on disk?", "Error", MB_ICONERROR);
         printf("CreateProcess failed (%d).\n", GetLastError());
+        CloseHandle(videoPipe);
+        CloseHandle(audioPipe);
         initError = INIT_CREATEPROCESS_ERROR;
         return;
     }
@@ -207,7 +211,7 @@ void FFmpegManager::WriteAudioThread()
         }
     }
 
-    printf(">>>Remaining audio queue stuff: %d", this->audioQueue.size());
+    printf(">>>Remaining audio queue stuff: %d\n", this->audioQueue.size());
 }
 
 void FFmpegManager::WriteVideoThread()
