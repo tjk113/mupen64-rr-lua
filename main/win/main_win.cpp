@@ -680,7 +680,8 @@ void exec_config(char *name)
    PLUGIN_INFO PluginInfo;
    handle = (HMODULE)get_handle(liste_plugins, name);
    int i ;
-   BOOL wasPaused = emu_paused;
+   BOOL wasPaused = emu_paused && !MenuPaused;
+   MenuPaused = FALSE;
    if (emu_launched&&!emu_paused) {
                   pauseEmu(FALSE);
      };
@@ -1390,6 +1391,7 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
    
    if (emu_launched)  {
       if (emu_paused)  {
+           MenuPaused = FALSE;
            resumeEmu(FALSE);
       }
 
@@ -1506,6 +1508,7 @@ void resetEmu()
         ShowInfo("Restart Rom");
         restart_mode = 0;
         really_restart_mode = TRUE;
+        MenuPaused = FALSE;
         CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
     }
                        
@@ -2093,7 +2096,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
             case IDC_OK:
             case IDOK:
             {
-
+                
                 // turn WCHAR into UTF8
                 WCHAR authorWC[MOVIE_AUTHOR_DATA_SIZE];
                 char authorUTF8[MOVIE_AUTHOR_DATA_SIZE * 4];
@@ -2222,8 +2225,9 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
 void OpenMoviePlaybackDialog()
 {
-	BOOL wasPaused = emu_paused;
-	if (emu_launched&&!emu_paused)
+    BOOL wasPaused = emu_paused && !MenuPaused;
+    MenuPaused = FALSE;
+    if (emu_launched&&!emu_paused)
 		pauseEmu(FALSE) ; 
 	
 	DialogBox(GetModuleHandle(NULL), 
@@ -2234,7 +2238,8 @@ void OpenMoviePlaybackDialog()
 }
 void OpenMovieRecordDialog()
 {
-	BOOL wasPaused = emu_paused;
+	BOOL wasPaused = emu_paused && !MenuPaused;
+    MenuPaused = FALSE;
 	if (emu_launched&&!emu_paused)
 		pauseEmu(FALSE) ; 
 
@@ -2831,6 +2836,18 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
     return TRUE;                
 }
 
+
+DWORD WINAPI UnpauseEmuAfterMenu(LPVOID lpParam) {
+    Sleep(60); // Wait for another thread to clear MenuPaused
+
+    if (emu_paused && !AutoPause && MenuPaused)
+    {
+        resumeEmu(FALSE);
+    }
+    return 0;
+}
+
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
@@ -3015,11 +3032,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
              break;
         
 	case WM_EXITMENULOOP:
-			 MenuPaused = FALSE;
-             if (emu_paused&&!AutoPause)
-             {
-                resumeEmu(FALSE) ;
-             }
+             CreateThread(NULL, 0, UnpauseEmuAfterMenu, NULL, 0, NULL);
              break;
 	case WM_ACTIVATE:
         UpdateWindow(hwnd);
@@ -3036,9 +3049,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             break;
 			
 			case WA_INACTIVE:
-				  AutoPause = emu_paused;
-                  if ( Config.PauseWhenNotActive && !emu_paused /*&& minimize*/ && !FullScreenMode) { 
-                    pauseEmu(FALSE) ;
+                  AutoPause = emu_paused && !MenuPaused;
+                  if ( Config.PauseWhenNotActive && !emu_paused /*(&& minimize*/ && !FullScreenMode) {
+                      MenuPaused = FALSE;
+                      pauseEmu(FALSE) ;
+                  }
+                  else if (Config.PauseWhenNotActive && MenuPaused) {
+                      MenuPaused = FALSE;
                   }
 			break;
 			}
@@ -3101,9 +3118,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDGFXCONFIG:
 				{
-				 BOOL wasPaused = emu_paused;
+				 BOOL wasPaused = emu_paused && !MenuPaused;
+                 MenuPaused = FALSE;
                  if (emu_launched&&!emu_paused)
-                    pauseEmu(FALSE) ; 
+                     pauseEmu(FALSE) ;
                  
                  hwnd_plug = hwnd;
                  exec_config(gfx_name);
@@ -3113,8 +3131,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}	break;
 			case IDINPUTCONFIG:
 				{
-				 BOOL wasPaused = emu_paused;
-                 if (emu_launched&&!emu_paused)
+                BOOL wasPaused = emu_paused && !MenuPaused;
+                MenuPaused = FALSE;
+                if (emu_launched&&!emu_paused)
                     pauseEmu(FALSE) ; 
 
                  hwnd_plug = hwnd;
@@ -3125,8 +3144,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}	break;
 			case IDSOUNDCONFIG:
 				{
-				 BOOL wasPaused = emu_paused;
-                 if (emu_launched&&!emu_paused)
+                BOOL wasPaused = emu_paused && !MenuPaused;
+                MenuPaused = FALSE;
+                if (emu_launched&&!emu_paused)
                     pauseEmu(FALSE) ; 
 
                  hwnd_plug = hwnd;
@@ -3137,8 +3157,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}	break;
 			case IDRSPCONFIG:
 				{
-				 BOOL wasPaused = emu_paused;
-                 if (emu_launched&&!emu_paused)
+                BOOL wasPaused = emu_paused && !MenuPaused;
+                MenuPaused = FALSE;
+                if (emu_launched&&!emu_paused)
                     pauseEmu(FALSE) ; 
 
                  hwnd_plug = hwnd;
@@ -3148,6 +3169,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     resumeEmu(FALSE);
 				}	break;  
 			case EMU_STOP:
+                MenuPaused = FALSE;
                 if (warn_recording())break;
                  if (emu_launched) {
                        //if (warn_recording())break;
@@ -3160,17 +3182,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      }
                  break;
                 
-			case EMU_PAUSE:
-                 if (!emu_paused) {
-                   pauseEmu(VCR_isActive()) ; 
-                 }
-                 else {
-                   resumeEmu(VCR_isActive());               
-                 }
+            case EMU_PAUSE: {
+                if (!emu_paused) {
+                    pauseEmu(VCR_isActive());
+                }
+                else if (MenuPaused) {
+                    MenuPaused = FALSE;
+                    CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_CHECKED);
+                }
+                else {
+                    resumeEmu(VCR_isActive());
+                }
                 break;
+            }
                
 			case EMU_FRAMEADVANCE:
                 {
+                    MenuPaused = FALSE;
                     if (!manualFPSLimit) break;
 					extern int frame_advancing;
                     frame_advancing = 1;
@@ -3252,7 +3280,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                
 			case ID_LOAD_CONFIG:
 				{
-				 BOOL wasPaused = emu_paused;
+				 BOOL wasPaused = emu_paused && !MenuPaused;
+                 MenuPaused = FALSE;
                  if (emu_launched&&!emu_paused) {
                     pauseEmu(FALSE) ; 
                  }
@@ -3269,8 +3298,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                      MAKEINTRESOURCE(IDD_AUDIT_ROMS_DIALOG), hwnd, AuditDlgProc);
                      break;
 			case ID_HELP_ABOUT:
-                     ret = DialogBox(GetModuleHandle(NULL), 
-                     MAKEINTRESOURCE(IDD_ABOUT), hwnd, AboutDlgProc);
+            {
+                BOOL wasMenuPaused = MenuPaused;
+                MenuPaused = FALSE;
+                ret = DialogBox(GetModuleHandle(NULL),
+                    MAKEINTRESOURCE(IDD_ABOUT), hwnd, AboutDlgProc);
+                if (wasMenuPaused) {
+                    resumeEmu(TRUE);
+                }
+            }
                      break;
             case ID_CRASHHANDLERDIALOGSHOW:
                 ErrorDialogEmuError();
@@ -3280,7 +3316,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case ID_RAMSTART:
             {
-                BOOL temppaused = !emu_paused;
+                
+                BOOL wasMenuPaused = MenuPaused;
+                MenuPaused = FALSE;
+
                 pauseEmu(TRUE);
 
                 // todo: simplify
@@ -3320,14 +3359,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 #endif
 
 
-                if (temppaused) {
+                if (wasMenuPaused) {
                     resumeEmu(TRUE);
-                    CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
                 }
                 break;
             }
             case IDLOAD: 
             {
+                BOOL wasMenuPaused = MenuPaused;
+                MenuPaused = FALSE;
                 // The default directory we open the file dialog window in is
                 // the parent directory of the last rom that the user ran
                 GetDefaultFileDialogPath(path_buffer, Config.RecentRoms[0]);
@@ -3349,6 +3389,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         }
                     }
                     StartRom(path_buffer);
+                }
+                if (wasMenuPaused) {
+                    resumeEmu(TRUE);
                 }
             }
                      break;
@@ -3393,6 +3436,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     break;                 
                 case STATE_SAVEAS:
                 {
+                    BOOL wasMenuPaused = MenuPaused;
+                    MenuPaused = FALSE;
+
                     GetDefaultFileDialogPath(path_buffer, Config.SaveLoadAsandSaveStateAsPath);
 
                     if (fdSaveStateAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", FALSE, FALSE, hwnd)) {
@@ -3411,6 +3457,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         savestates_select_filename(correctedPath);
                         savestates_job = SAVESTATE;
                     }
+                    if (wasMenuPaused) {
+                        resumeEmu(TRUE);
+                    }
                 }
                     break;
                 case STATE_RESTORE:
@@ -3422,12 +3471,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
                     break;
                 case STATE_LOAD:
+                {
+                    BOOL wasMenuPaused = MenuPaused;
+                    MenuPaused = FALSE;
                     GetDefaultFileDialogPath(path_buffer, Config.SaveLoadAsandSaveStateAsPath);
 
                     if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
                         savestates_select_filename(path_buffer);
                         savestates_job = LOADSTATE;
                     }
+                    if (wasMenuPaused) {
+                        resumeEmu(TRUE);
+                    }
+                }
+
                     break;
                 case ID_START_RECORD:
                     if(emu_launched)
@@ -3489,7 +3546,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 case ID_START_CAPTURE_PRESET:
                 case ID_START_CAPTURE:
                    if(emu_launched) {
-						BOOL wasPaused = emu_paused;
+						BOOL wasPaused = emu_paused && !MenuPaused;
+                        MenuPaused = FALSE;
 						if (emu_launched&&!emu_paused)
 							pauseEmu(FALSE) ; 
 
@@ -3555,9 +3613,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 case ID_GENERATE_ROM_INFO:
                      generateRomInfo();
                      break; 
-                case ID_LANG_INFO_MENU:
-                     ret = DialogBox(GetModuleHandle(NULL), 
-                           MAKEINTRESOURCE(IDD_LANG_INFO), hwnd, LangInfoProc);
+                case ID_LANG_INFO_MENU: 
+                {
+                    BOOL wasMenuPaused = MenuPaused;
+                    MenuPaused = FALSE;
+                    ret = DialogBox(GetModuleHandle(NULL),
+                        MAKEINTRESOURCE(IDD_LANG_INFO), hwnd, LangInfoProc);
+                    if (wasMenuPaused) {
+                        resumeEmu(TRUE);
+                    }
+                }
+                     
                      break;
                 case GENERATE_BITMAP: // take/capture a screenshot
                      
