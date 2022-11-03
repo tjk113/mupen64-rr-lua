@@ -1706,7 +1706,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 		m_currentSample = 0;
 		m_currentVI = 0;
-		strcpy(VCR_Lastpath, m_filename);
+		strcpy(VCR_Lastpath, filename);
 
 		if (Config.movieBackupsLevel > 1) movieBackup();
 
