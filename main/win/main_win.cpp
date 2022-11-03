@@ -2844,6 +2844,7 @@ DWORD WINAPI UnpauseEmuAfterMenu(LPVOID lpParam) {
     {
         resumeEmu(FALSE);
     }
+    MenuPaused = FALSE;
     return 0;
 }
 
@@ -3189,6 +3190,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 else if (MenuPaused) {
                     MenuPaused = FALSE;
                     CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_CHECKED);
+                    SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, TRUE);
                 }
                 else {
                     resumeEmu(VCR_isActive());
