@@ -1757,7 +1757,6 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                 case IDOK:
                 {
                     VCR_coreStopped();
-                    resumeEmu(TRUE); // Unpause emu if it was paused before
                     {
                         BOOL success;
                         unsigned int num = GetDlgItemInt(hwnd, IDC_PAUSEAT_FIELD, &success, TRUE);
@@ -1814,6 +1813,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                     }
                     else {
                         SetStatusPlaybackStarted();
+                        resumeEmu(TRUE); // Unpause emu if it was paused before
                     }
                     //                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPSTR) TempMessage, 128 );
                     //                    setIniComments(pRomInfo,TempMessage);
