@@ -423,7 +423,8 @@
 #define IDC_LUA_SIMPLEDIALOG            40018
 #define IDD_LUAWINDOW_SIMPLIFIED        40019
 #define IDC_MOVIEBACKUPS                40020
-#define ID_FORCESAVE                    40021
+#define ID_MOVIEBACKUP_TRACKBAR         40021
+#define ID_FORCESAVE                    40022
 #define IDB_LOGO_BW                     40029
 #define ID_CRASHHANDLERDIALOGSHOW       40030
 #define IDD_GAMEDEBUGGERDIALOG          40031
