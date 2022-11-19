@@ -146,6 +146,7 @@ static int AVIBreakMovie = 0;
 int AVIIncrement = 0;
 int titleLength;
 char VCR_Lastpath[MAX_PATH];
+bool is_restarting_flag = false;
 
 bool captureWithFFmpeg = true;
 std::unique_ptr<FFmpegManager> captureManager;
@@ -287,6 +288,7 @@ static void hardResetAndClearAllSaveData (bool clear)
 	extern HWND mainHWND;
 	clear_sram_on_restart_mode = clear;
 	continue_vcr_on_restart_mode = TRUE;
+	m_lastController1Keys = 0;
 	if (clear)
 		printf("Clearing save data...\n");
 	else
@@ -791,6 +793,10 @@ VCR_setReadOnly(BOOL val)
 
 bool VCR_isLooping() {
 	return Config.loopMovie;
+}
+
+bool VCR_isRestarting() {
+	return is_restarting_flag;
 }
 
 void VCR_setLoopMovie(bool val) {
@@ -1463,6 +1469,7 @@ static int
 startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8, const bool restarting )
 {
 	VCR_coreStopped();
+	is_restarting_flag = false;
 //	m_intro = TRUE;
 	
 	extern HWND mainHWND;
@@ -1699,7 +1706,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 		m_currentSample = 0;
 		m_currentVI = 0;
-		strcpy(VCR_Lastpath, m_filename);
+		strcpy(VCR_Lastpath, filename);
 
 		if (Config.movieBackupsLevel > 1) movieBackup();
 
@@ -1772,7 +1779,8 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 int restartPlayback()
 {
-	return VCR_startPlayback(Config.RecentMovies[0], 0, 0);
+	is_restarting_flag = true;
+	return VCR_startPlayback(VCR_Lastpath, 0, 0);
 }
 
 int VCR_stopPlayback() {
@@ -2683,10 +2691,10 @@ void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable) {
 }
 
 // Adapted Code from Recent.cpp
-void RunRecentMovie(WORD menuItem) {
+int RunRecentMovie(WORD menuItem) {
 	char path[MAX_PATH];
 	int index = menuItem - ID_RECENTMOVIES_FIRST;
 	sprintf(path, Config.RecentMovies[index]);
-	VCR_startPlayback(path, "", "");
+	return VCR_startPlayback(path, "", "");
 }
 #endif // VCR_SUPPORT

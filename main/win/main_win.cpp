@@ -1287,7 +1287,6 @@ void pauseEmu(BOOL quiet)
 			SetStatusTranslatedString(hStatus,0,"Emulation paused");
        
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
-        CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_CHECKED);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_STOP, 0);
 	}
@@ -1297,7 +1296,7 @@ void pauseEmu(BOOL quiet)
         CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | MFS_UNCHECKED);
 	}
 
-	if(emu_paused != wasPaused && !quiet && !MenuPaused)
+	if(emu_paused != wasPaused && !MenuPaused)
 		CheckMenuItem( GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
 }
 
@@ -1760,7 +1759,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                 case IDC_OK:
                 case IDOK:
                 {
-
+                    VCR_coreStopped();
                     {
                         BOOL success;
                         unsigned int num = GetDlgItemInt(hwnd, IDC_PAUSEAT_FIELD, &success, TRUE);
@@ -1817,6 +1816,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                     }
                     else {
                         SetStatusPlaybackStarted();
+                        resumeEmu(TRUE); // Unpause emu if it was paused before
                     }
                     //                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPSTR) TempMessage, 128 );
                     //                    setIniComments(pRomInfo,TempMessage);
@@ -2444,12 +2444,13 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
       else
           EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
     
+
       if(!continue_vcr_on_restart_mode)
       {
          EnableMenuItem(hMenu,ID_START_RECORD,MF_ENABLED);
          EnableMenuItem(hMenu,ID_STOP_RECORD, VCR_isRecording() ? MF_ENABLED : MF_GRAYED);
          EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
-         EnableMenuItem(hMenu,ID_STOP_PLAYBACK, VCR_isPlaying() ? MF_ENABLED : MF_GRAYED);
+         EnableMenuItem(hMenu,ID_STOP_PLAYBACK, (VCR_isRestarting() || VCR_isPlaying()) ? MF_ENABLED : MF_GRAYED);
          EnableMenuItem(hMenu,ID_START_CAPTURE,MF_ENABLED);
          EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
          EnableMenuItem(hMenu,ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
@@ -2522,6 +2523,10 @@ if(!continue_vcr_on_restart_mode)
    else CheckMenuItem( hMenu, IDC_GUI_TOOLBAR,  MF_BYCOMMAND | MF_UNCHECKED );
    if (Config.GuiStatusbar) CheckMenuItem( hMenu, IDC_GUI_STATUSBAR,  MF_BYCOMMAND | MF_CHECKED );
    else CheckMenuItem( hMenu, IDC_GUI_STATUSBAR,  MF_BYCOMMAND | MF_UNCHECKED );
+   if (Config.loopMovie) CheckMenuItem( hMenu, ID_LOOP_MOVIE,  MF_BYCOMMAND | MF_CHECKED );
+   else CheckMenuItem( hMenu, ID_LOOP_MOVIE,  MF_BYCOMMAND | MF_UNCHECKED );
+   if (Config.RecentMoviesFreeze) CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, MF_BYCOMMAND | MF_CHECKED);
+   if (Config.RecentScriptsFreeze) CheckMenuItem(hMenu, ID_LUA_RECENT_FREEZE, MF_BYCOMMAND | MF_CHECKED);
 }
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
@@ -2583,11 +2588,11 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
     AtResetCallback();
     if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
     {
-        emu_paused = TRUE;
         while (emu_paused)
         {
             Sleep(10);
         }
+        pauseEmu(FALSE);
         pauseAtFrame = -1;
     }
     go();
@@ -3720,7 +3725,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                           RunRecentRom(LOWORD(wParam));              
                      }
                      else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + MAX_RECENT_MOVIE)) {
-						 RunRecentMovie(LOWORD(wParam));
+                         if (RunRecentMovie(LOWORD(wParam)) != SUCCESS) {
+                             SetStatusTranslatedString(hStatus, 0, "Could not load movie!");
+                             break;
+                         }
                          // should probably make this code from the ID_REPLAY_LATEST case into a function on its own
                          // because now it's used here too
                          EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
