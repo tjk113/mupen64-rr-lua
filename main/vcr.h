@@ -134,7 +134,7 @@ extern void ClearRecentMovies(BOOL cleararray);
 extern void RefreshRecentMovies();
 extern void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable);
 extern void AddToRecentMovies(const char* path);
-extern void RunRecentMovie(WORD menuItem);
+extern int  RunRecentMovie(WORD menuItem);
 extern void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag);
 
 #pragma pack(push, 1)

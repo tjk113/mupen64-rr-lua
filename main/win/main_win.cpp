@@ -3725,7 +3725,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                           RunRecentRom(LOWORD(wParam));              
                      }
                      else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + MAX_RECENT_MOVIE)) {
-						 RunRecentMovie(LOWORD(wParam));
+                         if (RunRecentMovie(LOWORD(wParam)) != SUCCESS) {
+                             SetStatusTranslatedString(hStatus, 0, "Could not load movie!");
+                             break;
+                         }
                          // should probably make this code from the ID_REPLAY_LATEST case into a function on its own
                          // because now it's used here too
                          EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
