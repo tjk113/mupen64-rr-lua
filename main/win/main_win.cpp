@@ -3483,7 +3483,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     MenuPaused = FALSE;
                     GetDefaultFileDialogPath(path_buffer, Config.SaveLoadAsandSaveStateAsPath);
 
-                    if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
+                    if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate;*.st0;*.st1;*.st2;*.st3;*.st4;*.st5;*.st6;*.st7;*.st8;*.st9", TRUE, FALSE, hwnd)) {
                         savestates_select_filename(path_buffer);
                         savestates_job = LOADSTATE;
                     }
