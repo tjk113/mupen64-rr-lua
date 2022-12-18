@@ -477,7 +477,7 @@ void SaveTheState(HWND hWnd, int StateID)
 	SelectState(hWnd, (StateID - ID_SAVE_1) + ID_CURRENTSAVE_1);
 
 //	SendMessage(hWnd, WM_COMMAND, STATE_SAVE, 0);
-    if(!emu_paused)
+    if(!emu_paused || MenuPaused)
 		savestates_job = SAVESTATE;
     else if(emu_launched)
 		savestates_save();
@@ -3433,7 +3433,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                       if (!emu_launched) RomList_OpenRom();
                     break;
                 case STATE_SAVE:
-                    if(!emu_paused) {
+                    if(!emu_paused || MenuPaused) {
                      savestates_job = SAVESTATE;       
                     }
                     else if(emu_launched)
