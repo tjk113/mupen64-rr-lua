@@ -477,7 +477,7 @@ void SaveTheState(HWND hWnd, int StateID)
 	SelectState(hWnd, (StateID - ID_SAVE_1) + ID_CURRENTSAVE_1);
 
 //	SendMessage(hWnd, WM_COMMAND, STATE_SAVE, 0);
-    if(!emu_paused)
+    if(!emu_paused || MenuPaused)
 		savestates_job = SAVESTATE;
     else if(emu_launched)
 		savestates_save();
@@ -3433,7 +3433,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                       if (!emu_launched) RomList_OpenRom();
                     break;
                 case STATE_SAVE:
-                    if(!emu_paused) {
+                    if(!emu_paused || MenuPaused) {
                      savestates_job = SAVESTATE;       
                     }
                     else if(emu_launched)
@@ -3483,7 +3483,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     MenuPaused = FALSE;
                     GetDefaultFileDialogPath(path_buffer, Config.SaveLoadAsandSaveStateAsPath);
 
-                    if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
+                    if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate;*.st0;*.st1;*.st2;*.st3;*.st4;*.st5;*.st6;*.st7;*.st8;*.st9", TRUE, FALSE, hwnd)) {
                         savestates_select_filename(path_buffer);
                         savestates_job = LOADSTATE;
                     }
