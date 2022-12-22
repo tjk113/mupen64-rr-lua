@@ -73,18 +73,29 @@ void GetExceptionCodeFriendlyName(char* str, _EXCEPTION_POINTERS* ExceptionInfo)
 VOID CrashLog(_EXCEPTION_POINTERS* ExceptionInfo) {
     int len = 0;
     char error[2048];
-    void* addr = ExceptionInfo->ExceptionRecord->ExceptionAddress;
-    len += FindModuleName(error, addr, len); //appends to error as well
     
-    //emu info
+    if (ExceptionInfo != nullptr) {
+        void* addr = ExceptionInfo->ExceptionRecord->ExceptionAddress;
+        len += FindModuleName(error, addr, len); //appends to error as well
+        
+        //emu info
 #ifdef _DEBUG
-    len += sprintf(error + len, "Version:" MUPEN_VERSION " DEBUG\n");
+        len += sprintf(error + len, "Version:" MUPEN_VERSION " DEBUG\n");
 #else
-    len += sprintf(error + len, "Version:" MUPEN_VERSION "\n");
+        len += sprintf(error + len, "Version:" MUPEN_VERSION "\n");
 #endif
-    char exceptionCodeFriendly[2048] = { 0 };
-    GetExceptionCodeFriendlyName(exceptionCodeFriendly, ExceptionInfo);
-    len += sprintf(error + len, "Exception code: %s (0x%08x)\n", exceptionCodeFriendly, ExceptionInfo->ExceptionRecord->ExceptionCode);
+        char exceptionCodeFriendly[2048] = { 0 };
+        GetExceptionCodeFriendlyName(exceptionCodeFriendly, ExceptionInfo);
+        len += sprintf(error + len, "Exception code: %s (0x%08x)\n", exceptionCodeFriendly, ExceptionInfo->ExceptionRecord->ExceptionCode);
+    } else {
+        //emu info
+#ifdef _DEBUG
+        len += sprintf(error + len, "Version:" MUPEN_VERSION " DEBUG\n");
+#else
+        len += sprintf(error + len, "Version:" MUPEN_VERSION "\n");
+#endif
+        len += sprintf(error + len, "Exception code: unknown (no exception thrown, was crash log called manually?)\n");
+    }
     len += sprintf(error + len, "Gfx:%s\n", gfx_name);
     len += sprintf(error + len, "Input:%s\n", input_name);
     len += sprintf(error + len, "Audio:%s\n", sound_name);
