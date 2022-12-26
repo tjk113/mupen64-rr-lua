@@ -3851,6 +3851,15 @@ void LoadConfigExternals() {
 // kaboom
 LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 {
+    // generate crash log
+
+    char crashLog[1024 * 4] = { 0 };
+    CrashHelper::GenerateLog(ExceptionInfo, crashLog);
+
+    FILE* f = fopen("crash.log", "w+");
+    fwrite2(crashLog, sizeof(crashLog), 1, f);
+    fclose(f);
+
     bool isIgnorable = !(ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE);
 
     printf("exception occured! creating crash dialog...\n");
@@ -4041,7 +4050,7 @@ int WINAPI WinMain(
         //RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
         // 
         // raise continuable exception
-        //RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
+        //RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
 
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)

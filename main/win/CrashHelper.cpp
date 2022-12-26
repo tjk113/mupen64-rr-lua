@@ -60,44 +60,41 @@ void CrashHelper::GetExceptionCodeFriendlyName(_EXCEPTION_POINTERS* exceptionPoi
 
 void CrashHelper::GenerateLog(_EXCEPTION_POINTERS* exceptionPointersPtr, char* logPtr) {
     int len = 0;
-    const int maxLength = 1024 * 4;
-
-    char error[maxLength] = {0};
 
     if (exceptionPointersPtr != nullptr) {
         void* addr = exceptionPointersPtr->ExceptionRecord->ExceptionAddress;
-        len += FindModuleName(error, addr, len); //appends to error as well
+        len += FindModuleName(logPtr, addr, len); //appends to error as well
 
         //emu info
 #ifdef _DEBUG
-        len += sprintf(error + len, "Version:" MUPEN_VERSION " DEBUG\n");
+        len += sprintf(logPtr + len, "Version:" MUPEN_VERSION " DEBUG\n");
 #else
-        len += sprintf(error + len, "Version:" MUPEN_VERSION "\n");
+        len += sprintf(logPtr + len, "Version:" MUPEN_VERSION "\n");
 #endif
-        char exceptionCodeFriendly[maxLength] = { 0 };
+        char exceptionCodeFriendly[1024] = { 0 };
         GetExceptionCodeFriendlyName(exceptionPointersPtr, exceptionCodeFriendly);
-        len += sprintf(error + len, "Exception code: %s (0x%08x)\n", exceptionCodeFriendly, exceptionPointersPtr->ExceptionRecord->ExceptionCode);
+        len += sprintf(logPtr + len, "Exception code: %s (0x%08x)\n", exceptionCodeFriendly, exceptionPointersPtr->ExceptionRecord->ExceptionCode);
     }
     else {
         //emu info
 #ifdef _DEBUG
-        len += sprintf(error + len, "Version:" MUPEN_VERSION " DEBUG\n");
+        len += sprintf(logPtr + len, "Version:" MUPEN_VERSION " DEBUG\n");
 #else
-        len += sprintf(error + len, "Version:" MUPEN_VERSION "\n");
+        len += sprintf(logPtr + len, "Version:" MUPEN_VERSION "\n");
 #endif
-        len += sprintf(error + len, "Exception code: unknown (no exception thrown, was crash log called manually?)\n");
+        len += sprintf(logPtr + len, "Exception code: unknown (no exception thrown, was crash log called manually?)\n");
     }
-    len += sprintf(error + len, "Gfx:%s\n", gfx_name);
-    len += sprintf(error + len, "Input:%s\n", input_name);
-    len += sprintf(error + len, "Audio:%s\n", sound_name);
-    len += sprintf(error + len, "rsp:%s\n", rsp_name);
+    len += sprintf(logPtr + len, "Gfx:%s\n", gfx_name);
+    len += sprintf(logPtr + len, "Input:%s\n", input_name);
+    len += sprintf(logPtr + len, "Audio:%s\n", sound_name);
+    len += sprintf(logPtr + len, "rsp:%s\n", rsp_name);
     extern int m_task;
     //some flags
-    len += sprintf(error + len, "m_task:%d\n", m_task);
-    len += sprintf(error + len, "emu_launched:%d\n", emu_launched);
-    len += sprintf(error + len, "is_capturing_avi:%d\n", VCR_isCapturing());
+    len += sprintf(logPtr + len, "m_task:%d\n", m_task);
+    len += sprintf(logPtr + len, "emu_launched:%d\n", emu_launched);
+    len += sprintf(logPtr + len, "is_capturing_avi:%d\n", VCR_isCapturing());
 
-    strcpy(logPtr, error);
+    strcpy(logPtr, logPtr);
 }
 
 
