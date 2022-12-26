@@ -1,7 +1,6 @@
 #include <LuaConsole.h>
 
 #include "../resource.h"
-#include "../main/win/CrashHandler.h"
 #include "../main/win/main_win.h"
 #include "GameDebugger.h"
 #include <stdio.h>

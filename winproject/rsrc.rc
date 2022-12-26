@@ -161,8 +161,8 @@ BEGIN
     END
     POPUP "Help"
     BEGIN
-        MENUITEM "Show RAM Start",              ID_RAMSTART
-        MENUITEM "Crash Handler",               ID_CRASHHANDLERDIALOGSHOW, GRAYED
+        MENUITEM "Show RAM start info",              ID_RAMSTART
+        MENUITEM "Show Crash Dialog",               ID_CRASHHANDLERDIALOGSHOW, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&About Mupen64...",           ID_HELP_ABOUT
     END

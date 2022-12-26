@@ -56,7 +56,8 @@ extern "C" {
 #include "RomSettings.h"
 #include "GUI_logwindow.h"
 #include "commandline.h"
-#include "CrashHandler.h"
+#include "CrashHandlerDialog.h"
+#include "CrashHelper.h"
 #include "wrapper/ReassociatingFileDialog.h"
 #include "../vcr.h"
 #include "../../r4300/recomph.h"
@@ -3315,9 +3316,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
             }
                      break;
-            case ID_CRASHHANDLERDIALOGSHOW:
-                ErrorDialogEmuError();
+            case ID_CRASHHANDLERDIALOGSHOW: {
+                CrashHandlerDialog crashHandlerDialog(CrashHandlerDialog::Types::Ignorable, "This is a mock crash.");
+                crashHandlerDialog.Show();
                 break;
+            }
             case ID_GAMEDEBUGGER:
                 DebuggerDialog();
                 break;
@@ -3845,6 +3848,27 @@ void LoadConfigExternals() {
 	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
 }
 
+// kaboom
+LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
+{
+    bool isIgnorable = !(ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE);
+
+    printf("exception occured! creating crash dialog...\n");
+    CrashHandlerDialog crashHandlerDialog(isIgnorable ? CrashHandlerDialog::Types::Ignorable : (CrashHandlerDialog::Types)0, "An exception has been thrown and a crash log has been automatically generated.\r\nPlease choose a way to proceed.");
+
+    auto result = crashHandlerDialog.Show();
+
+    switch (result)
+    {
+    case CrashHandlerDialog::Choices::Ignore:
+        return EXCEPTION_CONTINUE_EXECUTION;
+    case CrashHandlerDialog::Choices::Exit:
+        return EXCEPTION_EXECUTE_HANDLER;
+    }
+
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
 
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -4012,9 +4036,13 @@ int WINAPI WinMain(
 
         //warning, this is ignored when debugger is attached (like visual studio)
         SetUnhandledExceptionFilter(ExceptionReleaseTarget); 
-        //example
-        //RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL); //shows messagebox from wntdll
-        
+
+        // raise noncontinuable exception (impossible to recover from it)
+        //RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
+        // 
+        // raise continuable exception
+        //RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
+
 
 		while(GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
