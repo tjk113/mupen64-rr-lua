@@ -3857,7 +3857,7 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
     CrashHelper::GenerateLog(ExceptionInfo, crashLog);
 
     FILE* f = fopen("crash.log", "w+");
-    fwrite2(crashLog, sizeof(crashLog), 1, f);
+    fwrite(crashLog, sizeof(crashLog), 1, f);
     fclose(f);
 
     bool isIgnorable = !(ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE);
