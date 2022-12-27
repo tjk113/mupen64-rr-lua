@@ -1713,7 +1713,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 
 		if (Config.movieBackupsLevel > 1) movieBackup();
 
-		if (m_header.startFlags & (MOVIE_START_FROM_SNAPSHOT ^ MOVIE_START_FROM_EXISTING_SNAPSHOT))
+		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 		{
 			// we cant wait for this function to return and then get check in emu(?) thread (savestates_load)
 
