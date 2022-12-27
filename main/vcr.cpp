@@ -1315,6 +1315,9 @@ VCR_startRecord( const char *filename, unsigned short flags, const char *authorU
 		savestates_select_filename(buf);
 		savestates_job |= LOADSTATE;
 
+		// set this to the normal snapshot flag to maintain compatibility
+		m_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
+
 		m_task = StartRecordingFromExistingSnapshot;
 	}
 	else {
