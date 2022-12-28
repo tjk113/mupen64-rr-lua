@@ -306,7 +306,7 @@ void SetMenuAcceleratorsFromUser(HWND mainHWND)
     SetHotkeyMenuAccelerators(&Config.hotkey[12], GetSubMenu(GetMenu(mainHWND), 1), 4);  // load current slot
     SetHotkeyMenuAccelerators(&Config.hotkey[11], GetSubMenu(GetMenu(mainHWND), 1), 6);  // save current slot
 
-    SetHotkeyMenuAccelerators(&Config.hotkey[5], GetSubMenu(GetMenu(mainHWND), 3), 15); // toggle read-only
+    SetHotkeyMenuAccelerators(&Config.hotkey[5], GetSubMenu(GetMenu(mainHWND), 3), 13); // toggle read-only
     SetHotkeyMenuAccelerators(&Config.hotkey[6], GetSubMenu(GetMenu(mainHWND), 3), 3); // 
     SetHotkeyMenuAccelerators(&Config.hotkey[7], GetSubMenu(GetMenu(mainHWND), 3), 4);
     SetHotkeyMenuAccelerators(&Config.hotkey[8], GetSubMenu(GetMenu(mainHWND), 3), 0); // start recording
