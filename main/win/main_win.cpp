@@ -2437,7 +2437,7 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
       EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_GRAYED);
       EnableMenuItem(hMenu, ID_FFMPEG_START, MF_ENABLED);
 
-#ifdef N64DEBUGGER_ALLOWED
+#ifdef GAME_DEBUGGER
       EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
 #endif
       if (dynacore)
@@ -3246,33 +3246,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     SetStatusTranslatedString(hStatus, 0, "Cannot load a movie while not emulating!");
                 break;
             case ID_RECENTMOVIES_FREEZE:
-                 CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, (Config.RecentMoviesFreeze ^= 1) ? MF_CHECKED : MF_UNCHECKED);
-                 shouldSave = TRUE;
-                 break;
-                 //FreezeRecentMovies(mainHWND, TRUE);
-                 break;
+                CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, (Config.RecentMoviesFreeze ^= 1) ? MF_CHECKED : MF_UNCHECKED);
+                shouldSave = TRUE;
+                break;
+                //FreezeRecentMovies(mainHWND, TRUE);
+                break;
             case ID_RECENTMOVIES_RESET:
-                 ClearRecentMovies(TRUE);
-                 BuildRecentMoviesMenu(mainHWND);
-                 break;
-			case EMU_PLAY:
-                 if (emu_launched) 
-                 {
-                   if (emu_paused) {
-                      resumeEmu(FALSE);
-                   }
-                   else{
-                      SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);  
-                      //The button is always checked when started and not on pause
-                   }
-                 }
-				 else
-                 {
+                ClearRecentMovies(TRUE);
+                BuildRecentMoviesMenu(mainHWND);
+                break;
+            case EMU_PLAY:
+                if (emu_launched)
+                {
+                    if (emu_paused) {
+                        resumeEmu(FALSE);
+                    }
+                    else {
+                        SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
+                        //The button is always checked when started and not on pause
+                    }
+                }
+                else
+                {
                     RomList_OpenRom();
-                 }
-                 break;
-                
-			case EMU_RESET:
+                }
+                break;
+
+            case EMU_RESET:
                 if (Config.NoReset && warn_recording())break;
                 extern int m_task;
                 if (m_task == 3 && !Config.NoReset) //recording
@@ -3285,27 +3285,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 //resttart_mode = 1; //has issues
                 resetEmu();
                 break;
-               
-			case ID_LOAD_CONFIG:
-				{
-				 BOOL wasPaused = emu_paused && !MenuPaused;
-                 MenuPaused = FALSE;
-                 if (emu_launched&&!emu_paused) {
-                    pauseEmu(FALSE) ; 
-                 }
-                 shouldSave = TRUE;
-                 ChangeSettings(hwnd);
-		         ini_updateFile(Config.compressedIni);
-                 if (emu_launched&&emu_paused&&!wasPaused) {
+
+            case ID_LOAD_CONFIG:
+            {
+                BOOL wasPaused = emu_paused && !MenuPaused;
+                MenuPaused = FALSE;
+                if (emu_launched && !emu_paused) {
+                    pauseEmu(FALSE);
+                }
+                shouldSave = TRUE;
+                ChangeSettings(hwnd);
+                ini_updateFile(Config.compressedIni);
+                if (emu_launched && emu_paused && !wasPaused) {
                     resumeEmu(FALSE);
-                 }
-				}
-                 break;
-			case ID_AUDIT_ROMS:
-                     ret = DialogBox(GetModuleHandle(NULL), 
-                     MAKEINTRESOURCE(IDD_AUDIT_ROMS_DIALOG), hwnd, AuditDlgProc);
-                     break;
-			case ID_HELP_ABOUT:
+                }
+            }
+            break;
+            case ID_AUDIT_ROMS:
+                ret = DialogBox(GetModuleHandle(NULL),
+                    MAKEINTRESOURCE(IDD_AUDIT_ROMS_DIALOG), hwnd, AuditDlgProc);
+                break;
+            case ID_HELP_ABOUT:
             {
                 BOOL wasMenuPaused = MenuPaused;
                 MenuPaused = FALSE;
@@ -3315,14 +3315,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     resumeEmu(TRUE);
                 }
             }
-                     break;
+            break;
             case ID_CRASHHANDLERDIALOGSHOW: {
                 CrashHandlerDialog crashHandlerDialog(CrashHandlerDialog::Types::Ignorable, "This is a mock crash.");
                 crashHandlerDialog.Show();
                 break;
             }
             case ID_GAMEDEBUGGER:
-                DebuggerDialog();
+                extern unsigned long op;
+
+                GameDebuggerStart([]() {
+                        return Config.guiDynacore == 2 ? op : -1;
+                    }, []() {
+                        return Config.guiDynacore == 2 ? interp_addr : -1;
+                    });
                 break;
             case ID_RAMSTART:
             {
@@ -3345,8 +3351,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     _splitpath(procName, 0, 0, procName, 0);
 
                     sprintf(stroopConfigLine, "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>", procName, buf);
-
-
 
                 }
                 std::string stdstr_buf = stroopConfigLine;

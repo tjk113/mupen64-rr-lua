@@ -1,30 +1,30 @@
 #pragma once
+#include <functional>
 
 #ifdef _DEBUG
-#define N64DEBUGGER_ALLOWED
+
+#define GAME_DEBUGGER 1
+
 #endif
 
-//#ifdef _DEBUG
+/// <summary>
+/// Whether the game debugger is resuming the game
+/// </summary>
+extern int gameDebuggerIsResumed;
 
-#define N64DEBUG_NAME "N64 Debugger"
+/// <summary>
+/// Whether DMA read operations are performed
+/// </summary>
+extern int gameDebuggerIsDmaReadEnabled;
 
-#define N64DEBUG_ALLOWED 1
+/// <summary>
+/// Starts the game debugger on a separate thread
+/// </summary>
+/// <param name="getOpcode">A callback which returns the processor's current opcode</param>
+/// <param name="getAddress">A callback which returns the processor's current operating address</param>
+extern void GameDebuggerStart(std::function<unsigned long(void)> getOpcode, std::function<unsigned long(void)> getAddress);
 
-#define N64DEBUG_PAUSE 0
-#define N64DEBUG_RESUME 1
-
-#define N64_DEBUG_STEP_DURATION 10
-
-#define N64DEBUG_MBOX(str) MessageBox(0,str,N64DEBUG_NAME,MB_ICONASTERISK)
-
-//#endif
-
-
-
-extern int debugger_cpuAllowed;
-extern int debugger_step;
-extern int debugger_cartridgeTilt;
-
-extern void DebuggerSet(int debuggerFlag);
-extern void DebuggerDialog();
-
+/// <summary>
+/// A function which shall be called by the r4300 core when a cycle ends
+/// </summary>
+extern void GameDebuggerOnLateCycle();

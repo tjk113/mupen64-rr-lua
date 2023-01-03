@@ -3193,9 +3193,6 @@ void pure_interpreter()
    last_addr = interp_addr;
    while (!stop)
      {
-#ifdef N64DEBUGGER_ALLOWED
-	   while (!debugger_cpuAllowed) { _sleep(1); printf("pure interp wait...\n"); }
-#endif
 	//if (interp_addr == 0x10022d08) stop = 1;
     //printf("addr: %x\n", interp_addr);
 	prefetch();
@@ -3213,6 +3210,11 @@ void pure_interpreter()
 	PC->addr = interp_addr;
 	if (debugger_mode) update_debugger();
 #endif
+#ifdef GAME_DEBUGGER
+	while (!gameDebuggerIsResumed) { _sleep(10); }
+	GameDebuggerOnLateCycle();
+#endif
+
      }
    PC->addr = interp_addr;
 }

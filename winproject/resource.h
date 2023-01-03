@@ -3,6 +3,8 @@
 // Used by rsrc.rc
 //
 #define MAX_LUA_OPEN_AND_RUN_INSTANCES  100
+#define MIN_WINDOW_H                    100
+#define MIN_WINDOW_W                    100
 #define IDR_MYMENU                      101
 #define IDR_ACCEL                       103
 #define ID_LOAD_CONFIG                  105
@@ -429,8 +431,7 @@
 #define ID_CRASHHANDLERDIALOGSHOW       40030
 #define IDD_GAMEDEBUGGERDIALOG          40031
 #define IDC_DEBUGGER_GROUPBOX           40032
-#define IDC_DEBUGGER_PAUSE              40033
-#define IDC_DEBUGGER_RESUME             40034
+#define IDC_DEBUGGER_TOGGLEPAUSE        40033
 #define IDC_DEBUGGER_INSTRUCTION        40035
 #define IDC_DEBUGGER_VI                 40036
 #define IDC_DEBUGGER_RSP                40037
@@ -454,23 +455,19 @@
 #define IDC_CLOCK_SPD_MULT              40055
 #define IDC_COMBO_CLOCK_SPD_MULT        40056
 #define IDC_CLOCK_SPD_MULT_TEXT         40057
-
 #define IDD_MUPENERROR                  40058
-#define IDC_ERROR_PANIC_IGNORE		    40059
-#define IDC_ERROR_PANIC_CLOSE		    40060
+#define IDC_ERROR_PANIC_IGNORE          40059
+#define IDC_ERROR_PANIC_CLOSE           40060
 #define IDC_CRASHREPORT                 40061
 #define IDC_ERRORTEXT                   40062
 #define IDC_ERROR_PICTUREBOX            40063
-
-#define MIN_WINDOW_H                    100
-#define MIN_WINDOW_W                    100
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        102
+#define _APS_NEXT_RESOURCE_VALUE        103
 #define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           104
