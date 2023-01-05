@@ -2688,66 +2688,57 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
     // text for the given button. 
     HMENU hMenu = GetMenu(hWnd);
 
-    if (!IsMenuItemEnabled(hMenu, lpttt->hdr.idFrom) && lpttt->hdr.idFrom != EMU_PLAY /*This button never is disabled so this... fails?*/)
+    switch (lpttt->hdr.idFrom)
     {
-        printf("(Toolbar) Ignoring Tooltip of Control with ID %d\n", lpttt->hdr.idFrom);
-        return;
+    case IDLOAD:
+        TranslateDefault("Load ROM...", "Load ROM...", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
+    case EMU_PLAY:
+        if (!emu_launched) {
+            TranslateDefault("Start Emulation", "Start Emulation", TempMessage);
+        }
+        else if (emu_paused) {
+            TranslateDefault("Resume Emulation", "Resume Emulation", TempMessage);
+        }
+        else {
+            TranslateDefault("Emulating", "Emulating", TempMessage);
+        }
+        lpttt->lpszText = TempMessage;
+        break;
+    case EMU_PAUSE:
+        TranslateDefault("Pause Emulation", "Pause Emulation", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
+    case EMU_STOP:
+        TranslateDefault("Stop Emulation", "Stop Emulation", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
+    case FULL_SCREEN:
+        TranslateDefault("Full Screen", "Full Screen", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
+    case IDGFXCONFIG:
+        TranslateDefault("Video Settings...", "Video Settings...", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
+    case IDSOUNDCONFIG:
+        TranslateDefault("Audio Settings...", "Audio Settings...", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
+    case IDINPUTCONFIG:
+        TranslateDefault("Input Settings...", "Input Settings...", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
+    case IDRSPCONFIG:
+        TranslateDefault("RSP Settings...", "RSP Settings...", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
+    case ID_LOAD_CONFIG:
+        TranslateDefault("Settings...", "Settings...", TempMessage);
+        lpttt->lpszText = TempMessage;
+        break;
     }
-    switch (lpttt->hdr.idFrom) 
-	{
-		case IDLOAD:
-                TranslateDefault("Load ROM...", "Load ROM...", TempMessage);
-                lpttt->lpszText = TempMessage;
-			break;
-		case EMU_PLAY:
-                if (!emu_launched) {
-                    TranslateDefault("Start Emulation", "Start Emulation", TempMessage);
-                    }
-                else if (emu_paused) {
-                    TranslateDefault("Resume Emulation", "Resume Emulation", TempMessage);
-                }
-                else {
-                    TranslateDefault("Emulating", "Emulating", TempMessage);
-                }
-                lpttt->lpszText = TempMessage;
-			break; 
-  		case EMU_PAUSE:
-                TranslateDefault("Pause Emulation", "Pause Emulation", TempMessage);
-                lpttt->lpszText = TempMessage;
-			break; 	
-		case EMU_STOP:
-            if (IsMenuItemEnabled(hMenu, EMU_STOP)) {
-                TranslateDefault("Stop Emulation", "Stop Emulation", TempMessage);
-                lpttt->lpszText = TempMessage;
-            }
-			break; 
-       case FULL_SCREEN:
-           if (IsMenuItemEnabled(hMenu, FULL_SCREEN)) {
-               TranslateDefault("Full Screen", "Full Screen", TempMessage);
-               lpttt->lpszText = TempMessage;
-           }
-			break;
-        case IDGFXCONFIG:
-             TranslateDefault("Video Settings...","Video Settings...",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
-			break;
-        case IDSOUNDCONFIG:
-             TranslateDefault("Audio Settings...","Audio Settings...",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
-			break;
-        case IDINPUTCONFIG:
-             TranslateDefault("Input Settings...","Input Settings...",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
-			break;
-        case IDRSPCONFIG:
-             TranslateDefault("RSP Settings...","RSP Settings...",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
-			break;
-		case ID_LOAD_CONFIG:
-             TranslateDefault("Settings...","Settings...",TempMessage) ;
-             lpttt->lpszText = TempMessage; 
-			break;
-   }
 }
 
 void EnableStatusbar()
