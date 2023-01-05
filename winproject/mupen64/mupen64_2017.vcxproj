@@ -231,7 +231,8 @@
     <ClInclude Include="..\..\main\winlnxdefs.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="..\..\main\win\CrashHandler.h" />
+    <ClInclude Include="..\..\main\win\CrashHandlerDialog.h" />
+    <ClInclude Include="..\..\main\win\CrashHelper.h" />
     <ClInclude Include="..\..\main\zip.h" />
     <ClInclude Include="..\..\main\win\commandline.h" />
     <ClInclude Include="..\..\main\win\Config.h" />
@@ -415,7 +416,8 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\CrashHandler.cpp" />
+    <ClCompile Include="..\..\main\win\CrashHandlerDialog.cpp" />
+    <ClCompile Include="..\..\main\win\CrashHelper.cpp" />
     <ClCompile Include="..\..\main\zip.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Default</CompileAs>

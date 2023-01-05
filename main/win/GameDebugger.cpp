@@ -1,190 +1,126 @@
 #include <LuaConsole.h>
 
 #include "../resource.h"
-#include "../main/win/CrashHandler.h"
 #include "../main/win/main_win.h"
 #include "GameDebugger.h"
 #include <stdio.h>
-#include <Psapi.h>
 #include "vcr.h"
 #include <Windows.h>
 #include "../../r4300/r4300.h"
 #include "../../memory/memory.h"
 
-// shitty crappy n64 debugger* by aurumaker 
+int gameDebuggerIsResumed = true;
+int gameDebuggerIsDmaReadEnabled = true; 
+int gameDebuggerIsStepping = false;
 
-int debugger_cpuAllowed = 1;
-int debugger_step = 0;
-int debugger_cartridgeTilt = 0;
-HWND hwndd;
-extern unsigned long op;
-BOOL diecdmode;
+DWORD(__cdecl* original_doRspCycles)(DWORD Cycles) = NULL;
+static DWORD __cdecl dummy_doRspCycles(DWORD Cycles) { return Cycles; };
 
-DWORD(__cdecl* ORIGINAL_doRspCycles)(DWORD Cycles) = NULL;
-static DWORD __cdecl fake_doRspCycles(DWORD Cycles) { return Cycles; };
+// instead of implementing a dispatcher queue, we set this simple flag
+BOOL gameDebuggerIsUpdateQueued = FALSE;
 
+std::function<unsigned long(void)> gameDebuggerGetOpcode;
+std::function<unsigned long(void)> gameDebuggerGetAddress;
 
-unsigned long _gaddr() {
-    return Config.guiDynacore ? PC->addr : interp_addr;
-}
-unsigned long _gsrc() {
-    return Config.guiDynacore ? PC->src : op;
-}
+struct {
+    unsigned long opcode;
+    unsigned long address;
+} typedef ProcessorState;
 
+// TODO: make this a vector and push to it upon explicitly stepping over any cycles
+ProcessorState gameDebuggerProcessorState;
 
+void GameDebuggerUpdate(HWND hwnd) {
 
-void DebuggerSet(int debuggerFlag) {
+    gameDebuggerProcessorState.opcode = gameDebuggerGetOpcode();
+    gameDebuggerProcessorState.address = gameDebuggerGetAddress();
 
-    if (!Config.guiDynacore) {
-        //N64DEBUG_MBOX(N64DEBUG_NAME " might not work with (pure) interpreter cpu core.");
-    }
+    char opcodeStr[255] = { 0 };
+    sprintf(opcodeStr, "0x%lx", gameDebuggerProcessorState.opcode);
 
-    debugger_cpuAllowed = debuggerFlag;
+    char addressStr[255] = { 0 };
+    sprintf(addressStr, "0x%lx", gameDebuggerProcessorState.address);
 
-    if (debuggerFlag == N64DEBUG_RESUME) debugger_step = 0;
-
-    if (debuggerFlag == N64DEBUG_PAUSE) {
-
-        // MEMORY LEAK: this leaks instrstr string and more inside instrstr functions and also crashes after some iterations
-        // FIXME 
-        // i dont have time or care about this so i fix it later?
-
-        diecdmode = IsDlgButtonChecked(hwndd, IDC_DEBUGGER_INSTDECODEMODE);
-
-        char* instrStr = (char*)malloc(255);
-        char addr[100];
-        char op[100];
-
-        diecdmode ? instrStr1(_gaddr(), _gsrc(), instrStr) : instrStr2(_gaddr(), _gsrc(), instrStr);
-
-        sprintf(addr, "%lu", _gaddr());
-        sprintf(op, "%lu", _gsrc());
-
-        SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_INSTRUCTION), instrStr);
-        SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPADDR), addr);
-        SetWindowText(GetDlgItem(hwndd, IDC_DEBUGGER_PRECOMPOP), op);
-
-        free(instrStr);
-        //if(Config.guiDynacore)
-        //PC->s_ops();
-    }
-
+    SetWindowText(GetDlgItem(hwnd, IDC_DEBUGGER_PRECOMPADDR), opcodeStr);
+    SetWindowText(GetDlgItem(hwnd, IDC_DEBUGGER_PRECOMPOP), addressStr);
+    SetWindowText(GetDlgItem(hwnd, IDC_DEBUGGER_TOGGLEPAUSE), gameDebuggerIsResumed ? "Pause" : "Resume");
 }
 
-void closeDebugger(HWND hwnd) {
-    // some shitty slower checks for everything
 
-    printf(" --- N64 Debugger End ---\n");
-    printf("cpu allowed: %d\n", debugger_cpuAllowed);
-    printf("step: %d\n", debugger_step);
-    printf("rsp allowed: %d\n", IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE));
-    printf("dma read allowed: %d\n", debugger_cartridgeTilt);
-    printf(" ------------------------\n");
+BOOL CALLBACK GameDebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
 
-    if (!debugger_cpuAllowed) {
-        N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
-        return;
-    }
-    if (debugger_step) {
-        N64DEBUG_MBOX("The debugger paused the r4300. Unpause it before quitting the Debugger.");
-        return;
-    }
-    if (!IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE) || debugger_cartridgeTilt) {
-        N64DEBUG_MBOX("The debugger has changed the original game. Undo your changed settings before closing the debugger.");
-        return;
+    if (gameDebuggerIsUpdateQueued)
+    {
+        // set this before UI calls which might dispatch additional messages
+        gameDebuggerIsUpdateQueued = false;
+        printf("Updating game debugger state...\n");
+        GameDebuggerUpdate(hwnd);
     }
 
-    EndDialog(hwnd, 0);
-    return;
-}
-
-BOOL CALLBACK DebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
     switch (Message) {
-    case WM_INITDIALOG: {
-
-        hwndd = hwnd;
-            
-        CheckDlgButton(hwndd, IDC_DEBUGGER_RSP_TOGGLE, 1);
-
-        //SendMessage(GetDlgItem(hwnd, IDC_DEBUGGER_PAUSE),
-        //    (UINT)BM_SETIMAGE,
-        //    (WPARAM)IMAGE_BITMAP,
-        //    (LPARAM)LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_PAUSE)));
-        //
-        //SendMessage(GetDlgItem(hwnd, IDC_DEBUGGER_RESUME),
-        //    (UINT)BM_SETIMAGE,
-        //    (WPARAM)IMAGE_BITMAP,
-        //    (LPARAM)LoadBitmap(GetModuleHandle(0), MAKEINTRESOURCE(IDB_RESUME)));
-        //
-
-        SetWindowText(hwnd, N64DEBUG_NAME " - " MUPEN_VERSION);
-
-        return TRUE;
-    }
-    case WM_CLOSE:
-        closeDebugger(hwnd);
+    case WM_INITDIALOG:
+        CheckDlgButton(hwnd, IDC_DEBUGGER_RSP_TOGGLE, 1);
+        gameDebuggerIsUpdateQueued = true;
         return TRUE;
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
+        case WM_DESTROY:
+            EndDialog(hwnd, LOWORD(wParam));
+            return TRUE;
         case IDC_DEBUGGER_DMA_R_TOGGLE:
-            debugger_cartridgeTilt = IsDlgButtonChecked(hwnd, IDC_DEBUGGER_DMA_R_TOGGLE);
-            break;
-        case IDC_DEBUGGER_DUMPRDRAM:
-            N64DEBUG_MBOX("You are about to write 32 megabytes to a file.");
-            FILE* f;
-            f = fopen("rdram.bin", "wb");
-            fwrite(&rdram, sizeof(unsigned long), sizeof(rdram), f);
-            fflush(f); fclose(f);
+            gameDebuggerIsDmaReadEnabled = !IsDlgButtonChecked(hwnd, IDC_DEBUGGER_DMA_R_TOGGLE);
             break;
         case IDC_DEBUGGER_RSP_TOGGLE:
-            if (!ORIGINAL_doRspCycles) {
-                ORIGINAL_doRspCycles = doRspCycles;
+
+            // if real doRspCycles pointer hasnt been stored yet, cache it
+            if (!original_doRspCycles) {
+                original_doRspCycles = doRspCycles;
             }
+
+            // if rsp is disabled, we swap out the real doRspCycles function for the dummy one, effectively disabling the rsp unit
             if (IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE))
-                doRspCycles = ORIGINAL_doRspCycles;
+                doRspCycles = original_doRspCycles;
             else
-                doRspCycles = fake_doRspCycles;
+                doRspCycles = dummy_doRspCycles;
 
             break;
         case IDC_DEBUGGER_STEP:
-            if (!debugger_cpuAllowed) {
-                debugger_step = 1;
-            }
+            // set step flag and resume
+            // the flag is cleared at the end of the current cycle
+            gameDebuggerIsStepping = true;
+            gameDebuggerIsResumed = true;
             break;
-        case IDC_DEBUGGER_INSTDECODEMODE:
-            if (!debugger_cpuAllowed) DebuggerSet(0);
+        case IDC_DEBUGGER_TOGGLEPAUSE:
+            gameDebuggerIsResumed ^= true;
+            gameDebuggerIsUpdateQueued = true;
             break;
-        case IDC_DEBUGGER_PAUSE:
-            DebuggerSet(N64DEBUG_PAUSE);
-
-            
-            break;
-        case IDC_DEBUGGER_RESUME:
-            DebuggerSet(N64DEBUG_RESUME);
-
-            
-            break;
-        case IDOK:
-            closeDebugger(hwnd);
-            return TRUE;
         }
     default:
         return FALSE;
-
-        return DebuggerDialogProc(hwnd, Message, wParam, lParam);
     }
+    return TRUE;
 }
 
-DWORD WINAPI DebuggerThread(LPVOID lpParam) {
-    DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_GAMEDEBUGGERDIALOG), 0, DebuggerDialogProc);
+DWORD WINAPI GameDebuggerThread(LPVOID lpParam) {
+    DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_GAMEDEBUGGERDIALOG), 0, GameDebuggerDialogProc);
     ExitThread(0);
 }
-void DebuggerDialog() {
 
-    DWORD troll;
-    CreateThread(NULL, 0, DebuggerThread, NULL, 0, &troll);
 
-    
+void GameDebuggerStart(std::function<unsigned long(void)> getOpcode, std::function<unsigned long(void)> getAddress) {
 
+    gameDebuggerGetOpcode = getOpcode;
+    gameDebuggerGetAddress = getAddress;
+    DWORD gameDebuggerThreadId;
+    CreateThread(NULL, 0, GameDebuggerThread, NULL, 0, &gameDebuggerThreadId);
+}
+
+void GameDebuggerOnLateCycle() {
+    if (gameDebuggerIsStepping)
+    {
+        gameDebuggerIsStepping = false;
+        gameDebuggerIsResumed = false;
+        gameDebuggerIsUpdateQueued = true;
+    }
 }

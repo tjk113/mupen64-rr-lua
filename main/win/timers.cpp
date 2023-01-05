@@ -27,7 +27,7 @@
 #include "translation.h"
 #include "../vcr.h"
 #include "../../winproject/resource.h"
-#include <win/CrashHandler.h>
+#include <win/CrashHandlerDialog.h>
 
 //c++!!!
 #include <chrono>
@@ -138,12 +138,13 @@ void new_vi()
 	extern int frame_advancing;
 
 	// fps wont update when emu is stuck so we must check vi/s
-	// vi/s shouldn't go over 300 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
-	if (!ignoreErrorEmulation && emu_launched && frame_advancing && VIs > 300)
+	// vi/s shouldn't go over 1000 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
+	if (!ignoreErrorEmulation && emu_launched && frame_advancing && VIs > 1000)
 	{
-		BOOL stop = ErrorDialogEmuError();
-		
-		if (stop)
+		CrashHandlerDialog crashHandlerDialog(CrashHandlerDialog::Types::Ignorable, "An emulator core timing inaccuracy or game crash has been detected.\nPlease choose a way to proceed.");
+		auto result = crashHandlerDialog.Show();
+
+		if (result == CrashHandlerDialog::Choices::Exit)
 		{
 			frame_advancing = false; //don't pause at next open
 			CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, 0);
@@ -179,8 +180,7 @@ void new_vi()
 	if(VCR_isPlaying())
 	{
 		extern int pauseAtFrame;
-		// use jg not jge due to off-by-one error inherited by cancerous code
-		if(m_currentSample > pauseAtFrame && pauseAtFrame >= 0)
+		if(m_currentSample >= pauseAtFrame && pauseAtFrame >= 0)
 		{
 			extern void pauseEmu(BOOL quiet);
 			pauseEmu(TRUE); // maybe this is multithreading unsafe?

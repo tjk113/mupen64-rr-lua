@@ -53,16 +53,26 @@
 static DWORD dwExitCode;
 static DWORD Id;
 BOOL stopScan = FALSE;
-HWND __stdcall CreateTrackbar(HWND hwndDlg, UINT iMin, UINT iMax, UINT iSelMin, UINT iSelMax, UINT x, UINT y, UINT w); // winapi macro was very confusing
+HWND __stdcall CreateTrackbar(HWND hwndDlg, HMENU hMenu, UINT iMin, UINT iMax, UINT iSelMin, UINT iSelMax, UINT x, UINT y, UINT w); // winapi macro was very confusing
 
-HWND hwndTrack ; 
-HWND hwndTrackOther;
+HWND hwndTrackFps ; 
+HWND hwndTrackMovieBackup;
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
 
 BOOL LuaCriticalSettingChangePending; // other options proc
 const char* nums[7] = { "dummy slot to make this array 1-indexed", "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6" };
+
+
+void SwitchMovieBackupModifier(HWND hwnd) {
+    if (ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS)) {
+        EnableWindow(hwndTrackMovieBackup, TRUE);
+    }
+    else {
+        EnableWindow(hwndTrackMovieBackup, FALSE);
+    }
+}
 
 BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -83,7 +93,8 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1, (LPARAM)nums[Config.CPUClockSpeedMultiplier]);
         SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
 
-        hwndTrackOther = CreateTrackbar(hwnd, 1, 3, Config.movieBackupsLevel, 3, 200, 79, 100);
+        hwndTrackMovieBackup = CreateTrackbar(hwnd, (HMENU)ID_MOVIEBACKUP_TRACKBAR, 1, 3, Config.movieBackupsLevel, 3, 200, 55, 100);
+        SwitchMovieBackupModifier(hwnd);
 
         switch (Config.SyncMode)
         {
@@ -133,14 +144,17 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
             ReadComboBoxValue(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
             Config.CPUClockSpeedMultiplier = atoi(&buf[0]);
             break;
+        case IDC_MOVIEBACKUPS:
+            SwitchMovieBackupModifier(hwnd);
         }
+
         break;
     }
 
     case WM_NOTIFY:
     {
         if (((NMHDR FAR*) lParam)->code == NM_RELEASEDCAPTURE) {
-            Config.movieBackupsLevel = SendMessage(hwndTrackOther, TBM_GETPOS, 0, 0);
+            // could potentially show value here, if necessary
         }
 
         if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
@@ -149,7 +163,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
             Config.movieBackups = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
             Config.moviesERRORS = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
             Config.FrequentVCRUIRefresh = ReadCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH);
-            Config.FPSmodifier = SendMessage(hwndTrackOther, TBM_GETPOS, 0, 0);
+            Config.movieBackupsLevel = SendMessage(hwndTrackMovieBackup, TBM_GETPOS, 0, 0);
             EnableToolbar();
             EnableStatusbar();
             FastRefreshBrowser();
@@ -789,21 +803,21 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 void SwitchModifier(HWND hwnd) {
     if ( ReadCheckBoxValue(hwnd,IDC_SPEEDMODIFIER)) {  
-                   EnableWindow(hwndTrack,TRUE);             
+                   EnableWindow(hwndTrackFps,TRUE);       
                 }
                 else {
-                   EnableWindow(hwndTrack,FALSE);
+                   EnableWindow(hwndTrackFps,FALSE);
                 } 
 }
 
 void SwitchLimitFPS(HWND hwnd) {
     if ( ReadCheckBoxValue(hwnd,IDC_LIMITFPS)) {
                   EnableWindow(GetDlgItem(hwnd,IDC_SPEEDMODIFIER), TRUE);
-                  SwitchModifier(hwnd) ;               
+                  SwitchModifier(hwnd) ;
                 }
                 else {
                   EnableWindow(GetDlgItem(hwnd,IDC_SPEEDMODIFIER), FALSE); 
-                  EnableWindow(hwndTrack,FALSE); 
+                  EnableWindow(hwndTrackFps,FALSE); 
                 }  
 }
 
@@ -850,7 +864,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                   EnableWindow( GetDlgItem(hwnd,IDC_PURE_INTERP), FALSE );
          }
          
-         CreateTrackbar(hwnd,5,200,Config.FPSmodifier,200, 30, 184, 300) ; 
+         hwndTrackFps = CreateTrackbar(hwnd, (HMENU) ID_FPSTRACKBAR,5,200,Config.FPSmodifier,200, 30, 184, 300) ;
          
          SwitchLimitFPS(hwnd);
          FillModifierValue( hwnd, Config.FPSmodifier);        
@@ -887,9 +901,9 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
     case WM_NOTIFY:
 		       if (((NMHDR FAR *) lParam)->code == NM_RELEASEDCAPTURE)  {
-                    FillModifierValue( hwnd, SendMessage( hwndTrack , TBM_GETPOS, 0, 0));        
+                    FillModifierValue( hwnd, SendMessage( hwndTrackFps , TBM_GETPOS, 0, 0));        
                }
-               if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
+               else if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
                               Config.showFPS = ReadCheckBoxValue( hwnd, IDC_SHOWFPS);
                               Config.showVIS = ReadCheckBoxValue( hwnd, IDC_SHOWVIS);
                               Config.alertBAD = ReadCheckBoxValue(hwnd,IDC_ALERTBADROM);
@@ -897,14 +911,14 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                               Config.savesERRORS = ReadCheckBoxValue(hwnd,IDC_ALERTSAVESERRORS);
                               Config.limitFps = ReadCheckBoxValue(hwnd,IDC_LIMITFPS);
                               Config.compressedIni = ReadCheckBoxValue(hwnd,IDC_INI_COMPRESSED);
-                              Config.FPSmodifier = SendMessage( hwndTrack , TBM_GETPOS, 0, 0);
+                              Config.FPSmodifier = SendMessage( hwndTrackFps , TBM_GETPOS, 0, 0);
                               Config.UseFPSmodifier = ReadCheckBoxValue( hwnd , IDC_SPEEDMODIFIER );
                               Config.skipFrequency = GetDlgItemInt(hwnd, IDC_SKIPFREQ,0,0);
                               Config.zeroIndex = ReadCheckBoxValue(hwnd, IDC_0INDEX);
                               if (emu_launched) SetStatusMode( 2 );
                               else SetStatusMode( 0 );
                               InitTimer();
-                              }
+               }
             break;                     
      default:
             return FALSE;       
@@ -1417,7 +1431,8 @@ inithotkeysdialog:
 
 
 HWND WINAPI CreateTrackbar( 
-    HWND hwndDlg,  // handle of dialog box (parent window) 
+    HWND hwndDlg,  // handle of dialog box (parent window)
+    HMENU hMenu,   // handle of trackbar to use as identifier
     UINT iMin,     // minimum value in trackbar range 
     UINT iMax,     // maximum value in trackbar range 
     UINT iSelMin,  // minimum value in trackbar selection 
@@ -1429,40 +1444,50 @@ HWND WINAPI CreateTrackbar(
 {  
 
     
-    hwndTrack = CreateWindowEx( 
+    HWND hwndTrack = CreateWindowEx( 
         0,                             // no extended styles 
         TRACKBAR_CLASS,                // class name 
         "Trackbar Control",            // title (caption) 
         WS_CHILD | WS_VISIBLE | 
-         /*TBS_TOOLTIPS |*/ TBS_FIXEDLENGTH ,  // style 
+         /*TBS_TOOLTIPS |*/ TBS_FIXEDLENGTH | TBS_TOOLTIPS,  // style 
         x, y,                        // position 
         w, 30,                       // size 
         hwndDlg,                       // parent window 
-        (HMENU)ID_FPSTRACKBAR,               // control identifier 
+        hMenu,               // control identifier 
         app_hInstance,                 // instance 
         NULL) ;                          // no WM_CREATE parameter 
          
 
-    SendMessage(hwndTrack, TBM_SETRANGE, 
+    SendMessage(hwndTrack, TBM_SETRANGE,
         (WPARAM) TRUE,                   // redraw flag 
         (LPARAM) MAKELONG(iMin, iMax));  // min. & max. positions 
-    SendMessage(hwndTrack, TBM_SETPAGESIZE, 
-        0, (LPARAM) 10);                  // new page size 
-    SendMessage(hwndTrack, TBM_SETLINESIZE, 
-        0, (LPARAM) 10);
-    SendMessage(hwndTrack, TBM_SETTIC, 
-        0, (LPARAM) 100);              
+
+    LPARAM pageSize;
+    if (iMax < 10) {
+        pageSize = 1;
+        SendMessage(hwndTrack, TBM_SETTIC,
+            0, 2);
+    }
+    else {
+        pageSize = 10;
+        SendMessage(hwndTrack, TBM_SETTIC,
+            0, 100);
+    }
+    SendMessage(hwndTrack, TBM_SETPAGESIZE,
+        0, pageSize);                  // new page size 
+    SendMessage(hwndTrack, TBM_SETLINESIZE,
+        0, pageSize);
 /*
     SendMessage(hwndTrack, TBM_SETSEL, 
         (WPARAM) FALSE,                  // redraw flag 
         (LPARAM) MAKELONG(iSelMin, iSelMax)); 
 */        
-    SendMessage(hwndTrack, TBM_SETPOS, 
+    SendMessage(hwndTrack, TBM_SETPOS,
         (WPARAM) TRUE,                   // redraw flag 
         (LPARAM) iSelMin); 
 
-    SetFocus(hwndTrack); 
+    SetFocus(hwndTrack);
 
-    return hwndTrack; 
+    return hwndTrack;
 } 
 

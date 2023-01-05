@@ -160,32 +160,32 @@ void dma_pi_write()
      }
    
    if(!interpcore)
-     {
-	for (i=0; i<longueur; i++)
-	  {
+   {
+	   for (i=0; i<longueur; i++)
+	   {
 	     unsigned long rdram_address1 = pi_register.pi_dram_addr_reg+i+0x80000000;
 	     unsigned long rdram_address2 = pi_register.pi_dram_addr_reg+i+0xa0000000;
-	     
-	     ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg+i)^S8]=
-			 debugger_cartridgeTilt ? (255) : rom[(((pi_register.pi_cart_addr_reg-0x10000000)&0x3FFFFFF)+i)^S8];
-	     
+
+		   ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
+			   !gameDebuggerIsDmaReadEnabled ? (255) : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
+
 	     if(!invalid_code[rdram_address1>>12])
 	       if(blocks[rdram_address1>>12]->block[(rdram_address1&0xFFF)/4].ops != NOTCOMPILED)
 		 invalid_code[rdram_address1>>12] = 1;
-	     
+
 	     if(!invalid_code[rdram_address2>>12])
 	       if(blocks[rdram_address2>>12]->block[(rdram_address2&0xFFF)/4].ops != NOTCOMPILED)
 		 invalid_code[rdram_address2>>12] = 1;
-	  }
-     }
+	   }
+   }
    else
-     {
+   {
 	for (i=0; i<longueur; i++)
-	  {
-	     ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg+i)^S8]=
-			 debugger_cartridgeTilt ? (255) : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
-	  }
-     }
+	   {
+		   ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
+			   !gameDebuggerIsDmaReadEnabled ? (255) : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
+	   }
+   }
    
    /*for (i=0; i<=((longueur+0x800)>>12); i++)
      invalid_code[(((pi_register.pi_dram_addr_reg&0xFFFFFF)|0x80000000)>>12)+i] = 1;*/

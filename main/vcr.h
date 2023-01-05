@@ -97,6 +97,7 @@ extern void VCR_invalidatedCaptureFrame();
 extern const char* VCR_getMovieFilename();
 extern BOOL VCR_getReadOnly();
 extern bool VCR_isLooping();
+extern bool VCR_isRestarting();
 extern void VCR_setReadOnly(BOOL val);
 extern unsigned long VCR_getLengthVIs();
 extern unsigned long VCR_getLengthSamples();
@@ -133,7 +134,7 @@ extern void ClearRecentMovies(BOOL cleararray);
 extern void RefreshRecentMovies();
 extern void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable);
 extern void AddToRecentMovies(const char* path);
-extern void RunRecentMovie(WORD menuItem);
+extern int  RunRecentMovie(WORD menuItem);
 extern void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag);
 
 #pragma pack(push, 1)
