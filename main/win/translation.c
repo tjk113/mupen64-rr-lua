@@ -470,7 +470,7 @@ void TranslateConfigDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDINPUTTEST,"Test");
     SetItemTranslatedString(hwnd,IDINPUTABOUT,"About");
     
-    SetItemTranslatedString(hwnd,IDC_SOUNDPLUGIN,"Sound Plugin");
+    SetItemTranslatedString(hwnd,IDC_SOUNDPLUGIN,"Audio Plugin");
     SetItemTranslatedString(hwnd,IDSOUNDCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDSOUNDTEST,"Test");
     SetItemTranslatedString(hwnd,IDSOUNDABOUT,"About");

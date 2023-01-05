@@ -1530,15 +1530,15 @@ void ShowMessage(const char *lpszMessage)
 
 void CreateToolBarWindow(HWND hwnd)
 {
-    TBBUTTON tbButtons[ ] =
+    TBBUTTON tbButtons[] =
     {
         {0, IDLOAD, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
         {0,  0,           TBSTATE_ENABLED, TBSTYLE_SEP,    {0,0}, 0, 0},
         {1, EMU_PLAY, TBSTATE_ENABLED, TBSTYLE_CHECK | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
-		{2, EMU_PAUSE, TBSTATE_ENABLED, TBSTYLE_CHECK | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
-        {3, EMU_STOP, TBSTATE_ENABLED, TBSTYLE_BUTTON  | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
+        {2, EMU_PAUSE, TBSTATE_ENABLED, TBSTYLE_CHECK | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
+        {3, EMU_STOP, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
         {0,  0,           TBSTATE_ENABLED, TBSTYLE_SEP,    {0,0}, 0, 0},
-        {4, FULL_SCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON  | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
+        {4, FULL_SCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
         {0,  0,           TBSTATE_ENABLED, TBSTYLE_SEP,    {0,0}, 0, 0},
         {5, IDGFXCONFIG, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
         {6, IDSOUNDCONFIG, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
@@ -1546,12 +1546,12 @@ void CreateToolBarWindow(HWND hwnd)
         {8, IDRSPCONFIG, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
         {9, ID_LOAD_CONFIG, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0,0}, 0, 0},
     };
-
+    auto tbButtonsCount = sizeof(tbButtons) / sizeof(TBBUTTON);
             hTool = CreateToolbarEx (hwnd, 
                 WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS /* | */
                 /*CS_ADJUSTABLE    no this causes a bug...*/,
-                IDC_TOOLBAR, 10, app_hInstance, IDB_TOOLBAR, 
-                (LPCTBBUTTON)&tbButtons, 13, 16, 16, 200, 25,  sizeof (TBBUTTON)); 
+                IDC_TOOLBAR, 10, app_hInstance, IDB_TOOLBAR,
+                tbButtons, tbButtonsCount, 16, 16, tbButtonsCount * 16, 16, sizeof(TBBUTTON));
                                 
 			if(hTool == NULL)
 				MessageBox(hwnd, "Could not create tool bar.", "Error", MB_OK | MB_ICONERROR);
