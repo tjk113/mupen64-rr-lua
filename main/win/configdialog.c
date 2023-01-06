@@ -387,7 +387,6 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
     char RomBrowserDir[_MAX_PATH]; 
     HWND RomBrowserDirListBox;
     int count;
-    int selected;
     switch(Message)
     {
         case WM_INITDIALOG:
@@ -424,7 +423,7 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
         case WM_NOTIFY:
                 if (((NMHDR FAR *) lParam)->code == PSN_APPLY) {
                     SaveRomBrowserDirs();
-                    selected = SendDlgItemMessage( hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED?TRUE:FALSE;    
+                    int selected = SendDlgItemMessage( hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED?TRUE:FALSE;    
                     GetDlgItemText( hwnd, IDC_PLUGINS_DIR, TempMessage, 200 );
                     if (strcasecmp(TempMessage,Config.PluginsDir)!=0 || Config.DefaultPluginsDir !=selected)  
                                   //if plugin dir changed,search for plugins in new dir
@@ -465,21 +464,20 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                 break;
             }
             case IDC_REMOVE_BROWSER_DIR:
+            {
                 RomBrowserDirListBox = GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST);
-                count = SendMessage(RomBrowserDirListBox, LB_GETSELCOUNT, 0, 0);
-                if (count != 0)
+
+                int selected = SendMessage(RomBrowserDirListBox, LB_GETCURSEL, 0, 0);
+                if (selected != -1)
                 {
-                    selected = SendMessage(RomBrowserDirListBox, LB_GETCURSEL, 0, 0);
                     SendMessage(RomBrowserDirListBox, LB_GETTEXT, selected, (LPARAM)RomBrowserDir);
                     removeDirectoryFromLinkedList(RomBrowserDir);
                     SendMessage(RomBrowserDirListBox, LB_DELETESTRING, selected, 0);
                     RefreshRomBrowser();
                 }
-                else
-                {
-                    MessageBox(hwnd, "No items selected.", "Warning", MB_OK);
-                }
-                break;
+                
+
+                break; }
 
             case IDC_REMOVE_BROWSER_ALL:
                 SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_RESETCONTENT, 0, 0);
@@ -489,7 +487,7 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 
             case IDC_DEFAULT_PLUGINS_CHECK:
             {
-                selected = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0);
+                int selected = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0);
                 if (!selected)
                 {
                     MessageBox(NULL, "Warning: changing the plugin folder can introduce bugs in many plugins", "Warning", MB_OK);
@@ -522,7 +520,7 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                   break;
 				  case IDC_DEFAULT_SAVES_CHECK:
 				  {      
-                        selected = SendMessage( GetDlgItem(hwnd,IDC_DEFAULT_SAVES_CHECK), BM_GETCHECK, 0, 0 );
+                        int selected = SendMessage( GetDlgItem(hwnd,IDC_DEFAULT_SAVES_CHECK), BM_GETCHECK, 0, 0 );
 				        if (!selected)
 				        {
                             EnableWindow( GetDlgItem(hwnd,IDC_SAVES_DIR), TRUE );
@@ -548,7 +546,7 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                   break;
 				  case IDC_DEFAULT_SCREENSHOTS_CHECK:
 				  {      
-                        selected = SendMessage( GetDlgItem(hwnd,IDC_DEFAULT_SCREENSHOTS_CHECK), BM_GETCHECK, 0, 0 );
+                        int selected = SendMessage( GetDlgItem(hwnd,IDC_DEFAULT_SCREENSHOTS_CHECK), BM_GETCHECK, 0, 0 );
 				        if (!selected)
 				        {
                             EnableWindow( GetDlgItem(hwnd,IDC_SCREENSHOTS_DIR), TRUE );
