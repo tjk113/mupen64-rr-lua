@@ -197,7 +197,7 @@ int rom_read(const char *argv)
    
    strncpy(arg, argv, 1000);
 
-   if (!validRomExt(argv) && !ask_extension())
+   if (Config.manageBadRoms && !validRomExt(argv))
 	   goto killRom;
 	   
    if (find_file(arg))
@@ -221,7 +221,7 @@ int rom_read(const char *argv)
 
    printf ("file found\n");
 /*------------------------------------------------------------------------*/   
-   if (findsize() > 64 && !ask_hack()) goto killRom;
+   if (Config.manageBadRoms && findsize() > 64) goto killRom;
 
    if (rom) free(rom);
    rom = (unsigned char*)malloc(taille_rom);
@@ -370,7 +370,7 @@ int rom_read(const char *argv)
 	  }
 	else
 	  {
-	     if (!ask_bad())
+	     if (Config.manageBadRoms)
 	       {
 		  free(rom);
 		  rom = NULL;
@@ -392,7 +392,7 @@ int rom_read(const char *argv)
      {
 	if (s[i] == 'T' || s[i] == 't' || s[i] == 'h' || s[i] == 'f' || s[i] == 'o')
 	  {
-	     if (!ask_hack())
+	     if (Config.manageBadRoms)
 	     {
 		  killRom: 
 		  free(rom);
@@ -404,7 +404,7 @@ int rom_read(const char *argv)
 	  }
 	if (s[i] == 'b')
 	  {
-	     if (!ask_bad())
+	     if (Config.manageBadRoms)
 	       {
 		  free(rom);
 		  rom = NULL;

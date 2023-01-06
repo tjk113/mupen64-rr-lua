@@ -3840,7 +3840,6 @@ void StartSavestate() {
 // Loads various variables from the current config state
 void LoadConfigExternals() {
 	if (VCR_isLooping() != Config.loopMovie) VCR_toggleLoopMovie();
-	savestates_ignore_nonmovie_warnings = Config.IgnoreStWarnings;
 }
 
 // kaboom

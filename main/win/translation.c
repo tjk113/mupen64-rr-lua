@@ -484,7 +484,7 @@ void TranslateConfigDialog(HWND hwnd)
 
 void TranslateDirectoriesConfig(HWND hwnd)
 {
-    SetItemTranslatedString(hwnd,IDC_ROMS_DIRECTORIES,"ROMs Directories");
+    SetItemTranslatedString(hwnd,IDC_ROMS_DIRECTORIES,"ROM Directories");
     SetItemTranslatedString(hwnd,IDC_RECURSION,"Use directory recursion");
     SetItemTranslatedString(hwnd,IDC_ADD_BROWSER_DIR,"Add");
     SetItemTranslatedString(hwnd,IDC_REMOVE_BROWSER_DIR,"Remove");
@@ -492,25 +492,25 @@ void TranslateDirectoriesConfig(HWND hwnd)
     
     SetItemTranslatedString(hwnd,IDC_PLUGINS_GROUP,"Plugins Directory");
     //SetItemTranslatedString(hwnd,IDC_DEFAULT_PLUGINS_CHECK,"Default Plugins Check");
-    SetItemTranslatedString(hwnd,IDC_CHOOSE_PLUGINS_DIR, "Choose" );
+    SetItemTranslatedString(hwnd,IDC_CHOOSE_PLUGINS_DIR, "Browse" );
         
     SetItemTranslatedString(hwnd,IDC_SAVES_GROUP,"Saves Directory");
     //SetItemTranslatedString(hwnd,IDC_DEFAULT_SAVES_CHECK,"Default Saves Check");
-    SetItemTranslatedString(hwnd,IDC_CHOOSE_SAVES_DIR,"Choose");
+    SetItemTranslatedString(hwnd,IDC_CHOOSE_SAVES_DIR,"Browse");
      
     SetItemTranslatedString(hwnd,IDC_SCREENSHOTS_GROUP,"Screenshots Directory");
     //SetItemTranslatedString(hwnd,IDC_DEFAULT_SCREENSHOTS_CHECK,"Default Screenshots Check");
-    SetItemTranslatedString(hwnd,IDC_CHOOSE_SCREENSHOTS_DIR,"Choose");
+    SetItemTranslatedString(hwnd,IDC_CHOOSE_SCREENSHOTS_DIR,"Browse");
 }
 
 void TranslateGeneralDialog(HWND hwnd)
 {
-    SetItemTranslatedString(hwnd,IDC_MESSAGES,"Alerts");
-    SetItemTranslatedString(hwnd,IDC_ALERTBADROM,"Manage Bad ROMs");
-    SetItemTranslatedString(hwnd,IDC_ALERTHACKEDROM,"Alert Hacked ROMs");
-    SetItemTranslatedString(hwnd,IDC_ALERTSAVESERRORS,"Alert Save Error");
+    SetItemTranslatedString(hwnd,IDC_MESSAGES,"Safety");
+    SetItemTranslatedString(hwnd,IDC_MANAGEBADROM,"Manage Bad ROMs");
+    SetItemTranslatedString(hwnd,IDC_ALERTSAVESTATEWARNINGS,"Alert Save Error");
+    SetItemTranslatedString(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, "Allow arbitrary savestate loading");
 
-    SetItemTranslatedString(hwnd,IDC_FPSTITLE,"FPS / VIs");
+    SetItemTranslatedString(hwnd,IDC_FPSTITLE,"FPS and VIs");
 
     SetItemTranslatedString(hwnd,IDC_LIMITFPS,"Limit FPS (auto)");
     SetItemTranslatedString(hwnd,IDC_SPEEDMODIFIER,"Use Speed Modifier");
@@ -521,9 +521,7 @@ void TranslateGeneralDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_INTERP,"Interpreter");
     SetItemTranslatedString(hwnd,IDC_RECOMP,"Dynamic Recompiler");
     SetItemTranslatedString(hwnd,IDC_PURE_INTERP,"Pure Interpreter");
-    SetItemTranslatedString(hwnd,IDC_CPUCORE,"CPU Core");
-    SetItemTranslatedString(hwnd,IDC_INIFILE,"Ini File");
-    SetItemTranslatedString(hwnd,IDC_INI_COMPRESSED,"Use compressed file");
+    SetItemTranslatedString(hwnd,IDC_CPUCORE,"Core");
     
 }
 
@@ -596,17 +594,17 @@ void TranslateLangInfoDialog( HWND hwnd )
 void TranslateAdvancedDialog(HWND hwnd) 
 {
     SetItemTranslatedString(hwnd,IDC_COMMON,"Common Options");
-    SetItemTranslatedString(hwnd,IDC_STARTFULLSCREEN,"Start game in full screen");
-    SetItemTranslatedString(hwnd,IDC_PAUSENOTACTIVE,"Pause when not active");
-    SetItemTranslatedString(hwnd,IDC_PLUGIN_OVERWRITE,"Use global plugins settings");
+    SetItemTranslatedString(hwnd,IDC_STARTFULLSCREEN,"Fullscreen start");
+    SetItemTranslatedString(hwnd,IDC_PAUSENOTACTIVE,"Pause when unfocused");
+    SetItemTranslatedString(hwnd,IDC_PLUGIN_OVERWRITE,"Use global plugin config");
     SetItemTranslatedString(hwnd,IDC_GUI_TOOLBAR,"Show toolbar");
     SetItemTranslatedString(hwnd,IDC_GUI_STATUSBAR,"Show statusbar");
         
     SetItemTranslatedString(hwnd,IDC_COMPATIBILITY,"Compatibility Options");
-    SetItemTranslatedString(hwnd,IDC_NO_AUDIO_DELAY,"No audio delay (desyncs A/V)");
-    SetItemTranslatedString(hwnd,IDC_NO_COMPILED_JUMP,"No compiled jump (EXPERIMENTAL)");
+    SetItemTranslatedString(hwnd,IDC_NO_AUDIO_DELAY,"No audio delay");
+    SetItemTranslatedString(hwnd,IDC_NO_COMPILED_JUMP,"No compiled jump");
     SetItemTranslatedString(hwnd,IDC_EMULATEFLOATCRASHES, "Emulate float crashes");
-    SetItemTranslatedString(hwnd,IDC_ROUNDTOZERO, "WiiVC Round To Zero");
+    SetItemTranslatedString(hwnd,IDC_ROUNDTOZERO, "WiiVC Rounding");
         
     SetItemTranslatedString(hwnd,IDC_ROMBROWSERCOLUMNS,"Rombrowser Columns");
     SetItemTranslatedString(hwnd,IDC_COLUMN_GOODNAME,"GoodName");
@@ -618,7 +616,6 @@ void TranslateAdvancedDialog(HWND hwnd)
     SetItemTranslatedString(hwnd,IDC_COLUMN_MD5,"MD5");
     
     SetItemTranslatedString(hwnd,IDC_WARNING_OPTIONS, "Warning Options");
-    SetItemTranslatedString(hwnd,IDC_SUPPRESS_LOAD_ST_PROMPT, "Suppress non-movie snapshot warnings");
 
     SetItemTranslatedString(hwnd, IDC_RECORDINGOPT, "Recording Options");
     SetItemTranslatedString(hwnd, IDC_NORESET, "Record resets");
@@ -644,7 +641,7 @@ void TranslateHotkeyDialog(HWND hwnd)
     SetItemTranslatedString(hwnd, IDC_HOTKEYS_SAVEGROUP2, "Save");
     SetItemTranslatedString(hwnd, IDC_SAVE, "Save");
     SetItemTranslatedString(hwnd, IDC_LOAD, "Load");
-    SetItemTranslatedString(hwnd, IDC_SELECT, "Select");
+    SetItemTranslatedString(hwnd, IDC_SELECT, "Select (1-9)");
     SetItemTranslatedString(hwnd, IDC_CURRENT, "Current:");
 }
 

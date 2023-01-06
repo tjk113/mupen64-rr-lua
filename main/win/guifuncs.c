@@ -79,7 +79,7 @@ bool warn_recording() {
     return res == 7;
 }
 void internal_warnsavestate(const char* messageCaption, const char* message, bool modal) {
-    if (!Config.savesERRORS) return;
+    if (!Config.savestateWarnings) return;
     TranslateDefault(message, messageCaption, TempMessage);
     if (modal) 
         MessageBox(mainHWND, TempMessage, messageCaption, MB_ICONERROR);
@@ -105,34 +105,6 @@ void display_MD5calculating_progress(int p )
         SendMessage( GetDlgItem(romInfoHWND, IDC_MD5_PROGRESS_BAR), PBM_SETPOS, 0, 0 );
        }   
    }    
-}
-int ask_extension()
-{
-    if (!Config.alertBAD) /*technically a bad rom, right?*/return 1;
-
-    if (MessageBox(NULL, "This rom has an invalid extension, do you want to continue? (May cause instability)", "Warning", MB_YESNO | MB_ICONWARNING) != IDNO)
-        return 1;
-    else
-        return 0;
-}
-int ask_bad()
-{
-    if (!Config.alertBAD) return 1;
-    
-    if (MessageBox(NULL,"This rom is a bad dump, do you want to continue?","Warning",MB_YESNO | MB_ICONWARNING) != IDNO)
-            return 1;
-    else 
-            return 0;            
-}
-
-int ask_hack()
-{   
-    if (!Config.alertHACK) return 1;
-    
-    if (MessageBox(NULL,"This rom is a hacked or too large dump, do you want to continue?","Question",MB_YESNO | MB_ICONQUESTION) != IDNO)
-            return 1;
-    else
-            return 0;
 }
 
 //Shows text in the first sector of statusbar

@@ -60,9 +60,8 @@ ReassociatingFileDialog fdSelectScreenshotsFolder;
 static DWORD dwExitCode;
 static DWORD Id;
 BOOL stopScan = FALSE;
-HWND __stdcall CreateTrackbar(HWND hwndDlg, HMENU hMenu, UINT iMin, UINT iMax, UINT iSelMin, UINT iSelMax, UINT x, UINT y, UINT w); // winapi macro was very confusing
+//HWND __stdcall CreateTrackbar(HWND hwndDlg, HMENU hMenu, UINT iMin, UINT iMax, UINT iSelMin, UINT iSelMax, UINT x, UINT y, UINT w); // winapi macro was very confusing
 
-HWND hwndTrackFps ; 
 HWND hwndTrackMovieBackup;
 
 extern int no_audio_delay;
@@ -100,7 +99,8 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1, (LPARAM)nums[Config.CPUClockSpeedMultiplier]);
         SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
 
-        hwndTrackMovieBackup = CreateTrackbar(hwnd, (HMENU)ID_MOVIEBACKUP_TRACKBAR, 1, 3, Config.movieBackupsLevel, 3, 200, 55, 100);
+        // todo
+        //hwndTrackMovieBackup = CreateTrackbar(hwnd, (HMENU)ID_MOVIEBACKUP_TRACKBAR, 1, 3, Config.movieBackupsLevel, 3, 200, 55, 100);
         SwitchMovieBackupModifier(hwnd);
 
         switch (Config.SyncMode)
@@ -304,40 +304,40 @@ void ChangeSettings(HWND hwndOwner) {
 	return;
 }
 
-//Taken from windows docs
-HWND CreateToolTip(int toolID, HWND hDlg, PTSTR pszText)
-{
-    if (!toolID || !hDlg || !pszText)
-    {
-        return FALSE;
-    }
-    // Get the window of the tool.
-    HWND hwndTool = GetDlgItem(hDlg, toolID);
-
-    // Create the tooltip. g_hInst is the global instance handle.
-    HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
-        WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        hDlg, NULL,
-        GetModuleHandle(NULL), NULL);
-
-    if (!hwndTool || !hwndTip)
-    {
-        return (HWND)NULL;
-    }
-
-    // Associate the tooltip with the tool.
-    TOOLINFO toolInfo = { 0 };
-    toolInfo.cbSize = sizeof(toolInfo);
-    toolInfo.hwnd = hDlg;
-    toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-    toolInfo.uId = (UINT_PTR)hwndTool;
-    toolInfo.lpszText = pszText;
-    SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
-
-    return hwndTip;
-}
+////Taken from windows docs
+//HWND CreateToolTip(int toolID, HWND hDlg, PTSTR pszText)
+//{
+//    if (!toolID || !hDlg || !pszText)
+//    {
+//        return FALSE;
+//    }
+//    // Get the window of the tool.
+//    HWND hwndTool = GetDlgItem(hDlg, toolID);
+//
+//    // Create the tooltip. g_hInst is the global instance handle.
+//    HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+//        WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+//        CW_USEDEFAULT, CW_USEDEFAULT,
+//        CW_USEDEFAULT, CW_USEDEFAULT,
+//        hDlg, NULL,
+//        GetModuleHandle(NULL), NULL);
+//
+//    if (!hwndTool || !hwndTip)
+//    {
+//        return (HWND)NULL;
+//    }
+//
+//    // Associate the tooltip with the tool.
+//    TOOLINFO toolInfo = { 0 };
+//    toolInfo.cbSize = sizeof(toolInfo);
+//    toolInfo.hwnd = hDlg;
+//    toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+//    toolInfo.uId = (UINT_PTR)hwndTool;
+//    toolInfo.lpszText = pszText;
+//    SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+//
+//    return hwndTip;
+//}
 
 
 BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -759,10 +759,10 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 void SwitchModifier(HWND hwnd) {
     if ( ReadCheckBoxValue(hwnd,IDC_SPEEDMODIFIER)) {  
-                   EnableWindow(hwndTrackFps,TRUE);       
+                   EnableWindow(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TRUE);
                 }
                 else {
-                   EnableWindow(hwndTrackFps,FALSE);
+                   EnableWindow(GetDlgItem(hwnd, IDC_FPSTRACKBAR),FALSE);
                 } 
 }
 
@@ -773,7 +773,7 @@ void SwitchLimitFPS(HWND hwnd) {
                 }
                 else {
                   EnableWindow(GetDlgItem(hwnd,IDC_SPEEDMODIFIER), FALSE); 
-                  EnableWindow(hwndTrackFps,FALSE); 
+                  EnableWindow(GetDlgItem(hwnd, IDC_FPSTRACKBAR),FALSE);
                 }  
 }
 
@@ -790,16 +790,15 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_INITDIALOG:
          WriteCheckBoxValue( hwnd, IDC_SHOWFPS, Config.showFPS) ;
          WriteCheckBoxValue( hwnd, IDC_SHOWVIS, Config.showVIS) ;       
-         WriteCheckBoxValue( hwnd, IDC_ALERTBADROM, Config.alertBAD);
-         WriteCheckBoxValue( hwnd, IDC_ALERTHACKEDROM, Config.alertHACK);  
-         WriteCheckBoxValue( hwnd, IDC_ALERTSAVESERRORS, Config.savesERRORS);  
+         WriteCheckBoxValue( hwnd, IDC_MANAGEBADROM, Config.manageBadRoms);
+         WriteCheckBoxValue( hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.savestateWarnings);  
          WriteCheckBoxValue( hwnd, IDC_LIMITFPS, Config.limitFps);  
-         WriteCheckBoxValue( hwnd, IDC_INI_COMPRESSED, Config.compressedIni);
          WriteCheckBoxValue( hwnd, IDC_SPEEDMODIFIER, Config.UseFPSmodifier  );
          WriteCheckBoxValue(hwnd, IDC_0INDEX, Config.zeroIndex);
+         SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_SETPOS, TRUE, Config.FPSmodifier);
          SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.skipFrequency,0);
-               
-         CreateToolTip(IDC_SKIPFREQ, hwnd, (PTSTR)"0 = Skip all frames, 1 = Show all frames, n = show every nth frame");
+         WriteCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, Config.allowArbitrarySavestateLoading);
+
 
          switch (Config.guiDynacore)    
             {        
@@ -820,8 +819,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                   EnableWindow( GetDlgItem(hwnd,IDC_PURE_INTERP), FALSE );
          }
          
-         hwndTrackFps = CreateTrackbar(hwnd, (HMENU) ID_FPSTRACKBAR,5,200,Config.FPSmodifier,200, 30, 184, 300) ;
-         
          SwitchLimitFPS(hwnd);
          FillModifierValue( hwnd, Config.FPSmodifier);        
          TranslateGeneralDialog(hwnd) ;                           
@@ -830,6 +827,9 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
         switch(LOWORD(wParam))
         {
+        case IDC_SKIPFREQUENCY_HELP: 
+            MessageBox(hwnd, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame", "Info", MB_OK | MB_ICONINFORMATION);
+            break;
            case IDC_INTERP:
                 if (!emu_launched) {
                    Config.guiDynacore = 0;
@@ -856,25 +856,25 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_NOTIFY:
-		       if (((NMHDR FAR *) lParam)->code == NM_RELEASEDCAPTURE)  {
-                    FillModifierValue( hwnd, SendMessage( hwndTrackFps , TBM_GETPOS, 0, 0));        
-               }
-               else if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
-                              Config.showFPS = ReadCheckBoxValue( hwnd, IDC_SHOWFPS);
-                              Config.showVIS = ReadCheckBoxValue( hwnd, IDC_SHOWVIS);
-                              Config.alertBAD = ReadCheckBoxValue(hwnd,IDC_ALERTBADROM);
-                              Config.alertHACK = ReadCheckBoxValue(hwnd,IDC_ALERTHACKEDROM);
-                              Config.savesERRORS = ReadCheckBoxValue(hwnd,IDC_ALERTSAVESERRORS);
-                              Config.limitFps = ReadCheckBoxValue(hwnd,IDC_LIMITFPS);
-                              Config.compressedIni = ReadCheckBoxValue(hwnd,IDC_INI_COMPRESSED);
-                              Config.FPSmodifier = SendMessage( hwndTrackFps , TBM_GETPOS, 0, 0);
-                              Config.UseFPSmodifier = ReadCheckBoxValue( hwnd , IDC_SPEEDMODIFIER );
-                              Config.skipFrequency = GetDlgItemInt(hwnd, IDC_SKIPFREQ,0,0);
-                              Config.zeroIndex = ReadCheckBoxValue(hwnd, IDC_0INDEX);
-                              if (emu_launched) SetStatusMode( 2 );
-                              else SetStatusMode( 0 );
-                              InitTimer();
-               }
+		       //if (((NMHDR FAR *) lParam)->code == NM_RELEASEDCAPTURE)  {
+         //           FillModifierValue( hwnd, SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0));
+         //      }
+        if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
+            Config.showFPS = ReadCheckBoxValue(hwnd, IDC_SHOWFPS);
+            Config.showVIS = ReadCheckBoxValue(hwnd, IDC_SHOWVIS);
+            Config.manageBadRoms = ReadCheckBoxValue(hwnd, IDC_MANAGEBADROM);
+            Config.savestateWarnings = ReadCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS);
+            Config.limitFps = ReadCheckBoxValue(hwnd, IDC_LIMITFPS);
+            Config.FPSmodifier = SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0);
+            Config.UseFPSmodifier = ReadCheckBoxValue(hwnd, IDC_SPEEDMODIFIER);
+            Config.skipFrequency = GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
+            Config.zeroIndex = ReadCheckBoxValue(hwnd, IDC_0INDEX);
+            Config.allowArbitrarySavestateLoading = ReadCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
+
+            if (emu_launched) SetStatusMode(2);
+            else SetStatusMode(0);
+            InitTimer();
+        }
             break;                     
      default:
             return FALSE;       
@@ -1007,7 +1007,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
          WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, LUA_double_buffered);
          WriteCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
          WriteCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
-		 WriteCheckBoxValue( hwnd, IDC_SUPPRESS_LOAD_ST_PROMPT, Config.IgnoreStWarnings);
          
          WriteCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME, Config.Column_GoodName);
          WriteCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME, Config.Column_InternalName);
@@ -1046,7 +1045,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 }
                 no_audio_delay = ReadCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY);
                 no_compiled_jump = ReadCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP);
-				Config.IgnoreStWarnings = ReadCheckBoxValue( hwnd, IDC_SUPPRESS_LOAD_ST_PROMPT);
                 
                 Config.Column_GoodName = ReadCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME);
                 Config.Column_InternalName = ReadCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME);
@@ -1321,7 +1319,7 @@ inithotkeysdialog:
 
 #define HOTKEY_MACRO(IDC,i) \
 	case IDC: \
-		SetDlgItemText(hwnd, IDC, "...type hotkey..."); \
+		SetDlgItemText(hwnd, IDC, "..."); \
 		GetUserHotkey(&tempHotkeys[i]); \
 		SetDlgItemHotkey(hwnd, IDC, &tempHotkeys[i]); \
 		break

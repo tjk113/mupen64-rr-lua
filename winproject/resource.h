@@ -63,6 +63,7 @@
 #define IDB_TOOLBAR                     1001
 #define IDC_MAIN_STATUS                 1002
 #define IDC_PLUGIN_DEFAULT              1003
+#define IDC_SKIPFREQUENCY_HELP          1003
 #define IDD_DIRECTORIES                 1004
 #define IDC_ROMBROWSER_DIR_LIST         1006
 #define IDC_ADD_BROWSER_DIR             1007
@@ -126,13 +127,12 @@
 #define IDD_MESSAGES                    2250
 #define IDC_SHOWFPS                     2251
 #define IDC_SHOWVIS                     2252
-#define IDC_ALERTBADROM                 2253
-#define IDC_ALERTHACKEDROM              2254
+#define IDC_MANAGEBADROM                2253
 #define IDC_MESSAGES                    2255
-#define IDC_ALERTSAVESERRORS            2256
+#define IDC_ALERTSAVESTATEWARNINGS      2256
 #define IDC_LIMITFPS                    2257
 #define IDC_FPSTITLE                    2258
-#define ID_FPSTRACKBAR                  2259
+#define IDC_FPSTRACKBAR                 2259
 #define IDC_SPEEDMODIFIER               2260
 #define IDC_SPEEDMODIFIER_VALUE         2261
 #define IDC_INCREASE_MODIFIER           2262
@@ -174,8 +174,6 @@
 #define ID_LOAD_7                       3029
 #define ID_LOAD_8                       3030
 #define ID_LOAD_9                       3031
-#define IDC_INIFILE                     3100
-#define IDC_INI_COMPRESSED              3101
 #define IDC_DEFAULT_PLUGINS_CHECK       4000
 #define IDC_DEFAULT_SCREENSHOTS_CHECK   4001
 #define IDC_DEFAULT_SAVES_CHECK         4002
@@ -399,7 +397,7 @@
 #define IDC_ROUNDTOZERO                 10002
 #define IDC_NORESET                     10003
 #define IDC_FORCEINTERNAL               10004
-#define IDC_SUPPRESS_LOAD_ST_PROMPT     10005
+#define IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING 10005
 #define IDC_EMULATEFLOATCRASHES         10006
 #define IDC_ROMLIST                     12347
 #define IDH_NO_HELP                     28440
@@ -469,7 +467,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        103
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1001
+#define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

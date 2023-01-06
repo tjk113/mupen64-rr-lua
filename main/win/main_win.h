@@ -88,9 +88,8 @@ typedef struct _CONFIG {
     // Alert Messages variables
     BOOL showFPS;
     BOOL showVIS;
-    BOOL alertBAD;
-    BOOL alertHACK;
-    BOOL savesERRORS; // warnings about savestates
+    BOOL manageBadRoms;
+    BOOL savestateWarnings; // warnings about savestates
     BOOL moviesERRORS; // warnings about m64<->current rom issues
     
     // General vars
@@ -114,7 +113,7 @@ typedef struct _CONFIG {
     BOOL GuiStatusbar;
     BOOL AutoIncSaveSlot;
     //BOOL RoundToZero;
-	BOOL IgnoreStWarnings;
+	BOOL allowArbitrarySavestateLoading;
     
     //Compatibility Options
     //BOOL NoAudioDelay;

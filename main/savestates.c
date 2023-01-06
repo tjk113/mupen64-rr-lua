@@ -53,7 +53,6 @@ extern int *autoinc_save_slot;
 
 int savestates_job = 0;
 int savestates_job_success = 1;
-bool savestates_ignore_nonmovie_warnings = false;
 
 bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
 			 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
@@ -450,9 +449,7 @@ void savestates_load(bool silenceNotFoundError)
 	{
 		if (VCR_isActive())
 		{
-			if (savestates_ignore_nonmovie_warnings)
-				display_status("Warning: non-movie savestate\n");
-			else
+			if (!Config.allowArbitrarySavestateLoading)
 			{
 				fprintf(stderr, "Can't load a non-movie snapshot while a movie is active.\n");
 				warn_savestate("Savestate error", "Can't load a non-movie snapshot while a movie is active.\n");
@@ -460,6 +457,9 @@ void savestates_load(bool silenceNotFoundError)
 				free(firstBlock);
 				savestates_job_success = FALSE;
 				return;
+			}
+			else {
+				display_status("Warning: loading non-movie savestate can desync playback");
 			}
 
 		}
@@ -512,15 +512,16 @@ void savestates_load(bool silenceNotFoundError)
 				stop = true;
 				break;
 			}
-			if (savestates_ignore_nonmovie_warnings) {
-				display_status("Warning: mismatched savestate\n");
-			}
-			else {
+			if (!Config.allowArbitrarySavestateLoading)
+			{
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord(1);
 				else if (stop) VCR_stopPlayback();
 				savestates_job_success = FALSE;
 				goto failedLoad;
+			}
+			else {
+				display_status("Warning: loading non-movie savestate can break recording");
 			}
 		}
 	}
@@ -775,21 +776,23 @@ void savestates_load_old(bool silenceNotFoundError)
 					stop = true;
 					break;
 			}
-			if (savestates_ignore_nonmovie_warnings) {
-				display_status("Warning: mismatched savestate\n");
-			}
-			else {
+
+			if (!Config.allowArbitrarySavestateLoading)
+			{
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord(1);
 				else if (stop) VCR_stopPlayback();
 				savestates_job_success = FALSE;
 				goto failedLoad;
 			}
+			else {
+				display_status("Warning: this savestate is mismatched");
+			}
 		}
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if (VCR_isActive() && savestates_ignore_nonmovie_warnings) {
+		if (VCR_isActive() && Config.allowArbitrarySavestateLoading) {
 			display_status("Warning: non-movie savestate\n");
 		}
 		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn) //@TODO: lockNoStWarn is not used anywhere!!!

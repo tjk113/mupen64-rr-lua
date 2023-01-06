@@ -186,9 +186,8 @@ void LoadConfig()
     //General Vars
     Config.showFPS = ReadCfgInt("General", "Show FPS", 1);
     Config.showVIS = ReadCfgInt("General", "Show VIS", 1);
-    Config.alertBAD = ReadCfgInt("General", "Alert Bad roms", 1);
-    Config.alertHACK = ReadCfgInt("General", "Alert Hacked roms", 1);
-    Config.savesERRORS = ReadCfgInt("General", "Alert Saves errors", 1);
+    Config.manageBadRoms = ReadCfgInt("General", "Manage Bad ROMs", 1);
+    Config.savestateWarnings = ReadCfgInt("General", "Alert Saves errors", 1);
     Config.limitFps = ReadCfgInt("General", "Limit Fps", 1);
     Config.compressedIni = ReadCfgInt("General", "Compressed Ini", 1);
     Config.UseFPSmodifier = ReadCfgInt("General", "Use Fps Modifier", 1);
@@ -219,7 +218,7 @@ void LoadConfig()
     emulate_float_crashes = ReadCfgInt("Advanced", "Emulate Float Crashes", 0);
     input_delay = ReadCfgInt("Advanced", "Old Input Delay", 0);
     LUA_double_buffered = ReadCfgInt("Advanced", "LUA Double Buffer", 1);
-	Config.IgnoreStWarnings = ReadCfgInt("Advanced", "Ignore non-movie st warning", 0);
+	Config.allowArbitrarySavestateLoading = ReadCfgInt("Advanced", "Allow arbitrary savestate loading", 0);
 
     //Compatibility Settings
     no_audio_delay = ReadCfgInt("Compatibility", "No Audio Delay", 0);
@@ -418,9 +417,8 @@ void SaveConfig()
     //General Vars
     WriteCfgInt("General", "Show FPS", Config.showFPS);
     WriteCfgInt("General", "Show VIS", Config.showVIS);
-    WriteCfgInt("General", "Alert Bad roms", Config.alertBAD);
-    WriteCfgInt("General", "Alert Hacked roms", Config.alertHACK);
-    WriteCfgInt("General", "Alert Saves errors", Config.savesERRORS);
+    WriteCfgInt("General", "Manage Bad ROMs", Config.manageBadRoms);
+    WriteCfgInt("General", "Alert Saves errors", Config.savestateWarnings);
     WriteCfgInt("General", "Alert Movies errors", Config.moviesERRORS);
     WriteCfgInt("General", "Limit Fps", Config.limitFps);
     WriteCfgInt("General", "Compressed Ini", Config.compressedIni);
@@ -441,7 +439,7 @@ void SaveConfig()
     WriteCfgInt("Advanced", "Emulate Float Crashes", emulate_float_crashes);
     WriteCfgInt("Advanced", "Old Input Delay", input_delay);
 	WriteCfgInt("Advanced", "LUA Double Buffer", LUA_double_buffered);
-    WriteCfgInt("Advanced", "Ignore non-movie st warning", Config.IgnoreStWarnings);
+    WriteCfgInt("Advanced", "Allow arbitrary savestate loading", Config.allowArbitrarySavestateLoading);
     
     WriteCfgInt("CPU", "Core", Config.guiDynacore);
 

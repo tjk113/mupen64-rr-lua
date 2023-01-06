@@ -878,7 +878,7 @@ void AddDirToList(char RomBrowserDir[MAX_PATH],BOOL sortflag)
      if (FullPath[strlen(RomBrowserDir) - 1] != '\\') { strcat(FullPath,"\\"); }
      strcat(FullPath,fd.cFileName);
 
-     if ((Config.alertBAD||Config.alertHACK) && !validRomExt(FullPath)) continue;
+     if (Config.manageBadRoms && !validRomExt(FullPath)) continue;
 
      if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
             if (Config.RomBrowserRecursion) { 
