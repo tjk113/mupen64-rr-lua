@@ -27,6 +27,7 @@
 #include "../main/win/wrapper/ReassociatingFileDialog.h"
 #include <vcr.h>
 #include <gdiplus.h>
+#include "../main/vcr_compress.h"
 
 
 #ifdef LUA_MODULEIMPL
@@ -45,6 +46,7 @@ void SYNC();
 void NOTCOMPILED();
 void InitTimer();
 inline void TraceLoggingBufFlush();
+extern void(__cdecl* CaptureScreen) (char* Directory);// for lua screenshot
 
 unsigned long lastInputLua[4];
 unsigned long rewriteInputLua[4];
@@ -56,6 +58,37 @@ bool maximumSpeedMode;
 bool anyLuaRunning = false;
 bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
+
+// LoadScreen variables
+HDC hwindowDC, hsrcDC;
+SWindowInfo windowSize{};
+HBITMAP hbitmap;
+bool LoadScreenInitialized = false;
+
+// Deletes all the variables used in LoadScreen (avoid memory leaks)
+void LoadScreenDelete() {
+	ReleaseDC(mainHWND, hwindowDC);
+	DeleteDC(hsrcDC);
+
+	LoadScreenInitialized = false;
+}
+
+// Initializes everything needed for LoadScreen
+void LoadScreenInit() {
+	if (LoadScreenInitialized) LoadScreenDelete();
+
+	hwindowDC = GetDC(mainHWND);// Create a handle to the main window Device Context
+	hsrcDC = CreateCompatibleDC(hwindowDC);// Create a DC to copy the screen to
+
+	CalculateWindowDimensions(mainHWND, windowSize);
+	windowSize.height -= 1; // ¯\_(ツ)_/¯
+	printf("LoadScreen Size: %d x %d\n", windowSize.width, windowSize.height);
+
+	// create an hbitmap
+	hbitmap = CreateCompatibleBitmap(hwindowDC, windowSize.width, windowSize.height);
+
+	LoadScreenInitialized = true;
+}
 
 #ifdef LUA_MODULEIMPL
 
@@ -75,7 +108,7 @@ HANDLE TraceLogFile;
 
 class Lua;
 
-std::vector<Gdiplus::Image*> imagePool;
+std::vector<Gdiplus::Bitmap*> imagePool;
 
 struct AddrBreakFunc{
 	lua_State *lua;
@@ -222,6 +255,7 @@ public:
 		col = bkcol = 0;
 		bkmode = TRANSPARENT;
 		hMutex = CreateMutex(0, 0, 0);
+		LoadScreenInit();
 		newLuaState();
 		runFile(path);
 		if (isrunning())
@@ -247,6 +281,7 @@ public:
 			delete x;
 		}
 		imagePool.clear();
+		LoadScreenDelete();
 		SetButtonState(ownWnd, false);
 		ShowInfo("Lua stop");
 	}
@@ -2132,26 +2167,21 @@ int DrawRect(lua_State *L) {
 	return 0;
 }
 
-int LoadImage(lua_State* L)
-{
-
+int LoadImage(lua_State* L) {
 	const char* path = luaL_checkstring(L,1);
 	int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
 	wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
 	int size = MultiByteToWideChar(CP_ACP, 0, path, -1, pathw, output_size);
 
 	printf("LoadImage: %ws\n", pathw);
-	Gdiplus::Image *a = new Gdiplus::Image(pathw);
+	Gdiplus::Bitmap *img = new Gdiplus::Bitmap(pathw);
 	free(pathw);
 
-	if (a->GetLastStatus())
-	{
-		char error[512];
-		sprintf(error, "Couldn't find image '%s'", path);
-		luaL_error(L, error);
-		return 1;
+	if (img->GetLastStatus()) {
+		luaL_error(L, "Couldn't find image '%s'", path);
+		return 0;
 	}
-	imagePool.push_back(a);
+	imagePool.push_back(img);
 	lua_pushinteger(L, imagePool.size()); //return the identifier (index+1)
 	return 1;
 }
@@ -2160,64 +2190,151 @@ int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 	unsigned int clearIndex = luaL_checkinteger(L, 1);
 	if (clearIndex == 0) { // If clearIndex is 0, clear all images
 		printf("Deleting all images\n");
+		for (auto x : imagePool) {
+			delete x;
+		}
 		imagePool.clear();
 	}
 	else { // If clear index is not 0, clear 1 image
 		if (clearIndex <= imagePool.size()) {
 			printf("Deleting image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
+			delete imagePool[clearIndex - 1];
 			imagePool.erase(imagePool.begin() + clearIndex - 1);
 		}
-		else { // Error if the images doesn't exist
-			luaL_error(L, "Argument #1: Invalid image identifier");
+		else { // Error if the image doesn't exist
+			luaL_error(L, "Argument #1: Invalid image index");
 			return 0;
 		}
 	}
 	return 0;
 }
 
-int DrawImage(lua_State* L)
-{
-	int left, top, right, bottom;
-	unsigned imgIndex;
-	Gdiplus::Graphics gfx(luaDC);
+int DrawImage(lua_State* L) {
+	unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
 
-	imgIndex = luaL_checkinteger(L, 1) - 1;
-	if (imgIndex > imagePool.size() - 1)
-	{
-		luaL_error(L, "Argument #1: Invalid image identifier");
+	// Error if the image doesn't exist
+	if (imgIndex > imagePool.size() - 1) {
+		luaL_error(L, "Argument #1: Invalid image index");
 		return 0;
 	}
-	left = luaL_checknumber(L, 2);
-	top = luaL_checknumber(L, 3);
+	
+	// Gets the number of arguments
+	unsigned int args = lua_gettop(L);
 
-	if (lua_gettop(L) == 3) gfx.DrawImage(imagePool[imgIndex], left, top);
-	else //optional args, resize image
-	{
-		right = luaL_checknumber(L, 4);
-		bottom = luaL_checknumber(L, 5);
-		gfx.DrawImage(imagePool[imgIndex], left, top, right, bottom);
+	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::Bitmap* img = imagePool[imgIndex];
+
+	// In original DrawImage
+	if (args == 3) {
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+
+		gfx.DrawImage(img, x, y);// Gdiplus::Image *image, int x, int y
+		return 0;
 	}
+	else if (args == 4) {
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+		float scale = luaL_checknumber(L, 4);
+		if (scale == 0) return 0;
+
+		// Create a Rect at x and y and scale the image's width and height
+		Gdiplus::Rect dest(x, y, img->GetWidth() * scale, img->GetHeight() * scale);
+
+		gfx.DrawImage(img, dest);// Gdiplus::Image *image, const Gdiplus::Rect &rect
+		return 0;
+	}
+	// In original DrawImage
+	else if (args == 5) {
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+		int w = luaL_checkinteger(L, 4);
+		int h = luaL_checkinteger(L, 5);
+		if (w == 0 or h == 0) return 0;
+
+		Gdiplus::Rect dest(x, y, w, h);
+
+		gfx.DrawImage(img, dest);// Gdiplus::Image *image, const Gdiplus::Rect &rect
+		return 0;
+	}
+	else if (args == 10) {
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+		int w = luaL_checkinteger(L, 4);
+		int h = luaL_checkinteger(L, 5);
+		int srcx = luaL_checkinteger(L, 6);
+		int srcy = luaL_checkinteger(L, 7);
+		int srcw = luaL_checkinteger(L, 8);
+		int srch = luaL_checkinteger(L, 9);
+		float rotate = luaL_checknumber(L, 10);
+		if (w == 0 or h == 0 or srcw == 0 or srch == 0) return 0;
+		bool shouldrotate = ((int)rotate % 360) != 0; // Only rotate if the angle isn't a multiple of 360 Modulo only works with int
+
+		Gdiplus::Rect dest(x, y, w, h);
+
+		// Rotate
+		if (shouldrotate) {
+			Gdiplus::PointF center(x + (w / 2), y + (h / 2));// The center of dest
+			Gdiplus::Matrix matrix;
+			matrix.RotateAt(rotate, center);// rotate "rotate" number of degrees around "center"
+			gfx.SetTransform(&matrix);
+		}
+
+		gfx.DrawImage(img, dest, srcx, srcy, srcw, srch, Gdiplus::UnitPixel);// Gdiplus::Image *image, const Gdiplus::Rect &destRect, int srcx, int srcy, int srcheight, Gdiplus::srcUnit
+
+		if (shouldrotate) gfx.ResetTransform();
+		return 0;
+	}
+	luaL_error(L, "Incorrect number of arguments");
 	return 0;
 }
 
-int DrawImageScale(lua_State* L) {
-	int left, top;
-	float xscale, yscale;
-	unsigned int imgIndex;
-	Gdiplus::Graphics gfx(luaDC);
+int Screenshot(lua_State* L) {
+	CaptureScreen((char*)luaL_checkstring(L, 1));
+	return 0;
+}
 
-	imgIndex = luaL_checkinteger(L, 1) - 1;
-	if (imgIndex > imagePool.size() - 1) {
-		luaL_error(L, "Argument #1: Invalid image identifier");
+int LoadScreen(lua_State* L) {
+	if (!LoadScreenInitialized) {
+		luaL_error(L, "LoadScreen not initialized! Something has gone wrong.");
 		return 0;
 	}
-	left = luaL_checkinteger(L, 2);
-	top = luaL_checkinteger(L, 3);
-	xscale = luaL_checknumber(L, 4);
-	yscale = luaL_checknumber(L, 5);
+	// set the selected object of hsrcDC to hbwindow
+	SelectObject(hsrcDC, hbitmap);
+	// copy from the window device context to the bitmap device context
+	BitBlt(hsrcDC, 0, 0, windowSize.width, windowSize.height, hwindowDC, 0, 0, SRCCOPY);
 
-	Gdiplus::Rect scale(left, top, xscale * imagePool[imgIndex]->GetWidth(), yscale * imagePool[imgIndex]->GetHeight());
-	gfx.DrawImage(imagePool[imgIndex], scale);
+	Gdiplus::Bitmap* out = new Gdiplus::Bitmap(hbitmap, nullptr);
+
+	imagePool.push_back(out);
+
+	lua_pushinteger(L, imagePool.size());
+
+	return 1;
+}
+
+int LoadScreenReset(lua_State* L) {
+	LoadScreenInit();
+	return 0;
+}
+
+int GetImageInfo(lua_State* L) {
+	unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
+
+	if (imgIndex > imagePool.size() - 1) {
+		luaL_error(L, "Argument #1: Invalid image index");
+		return 0;
+	}
+
+	Gdiplus::Bitmap* img = imagePool[imgIndex];
+
+	lua_newtable(L);
+	lua_pushinteger(L, img->GetWidth());
+	lua_setfield(L, -2, "width");
+	lua_pushinteger(L, img->GetHeight());
+	lua_setfield(L, -2, "height");
+
+	return 1;
 }
 
 //1st arg is table of points
@@ -3220,6 +3337,8 @@ const luaL_Reg emuFuncs[] = {
 	{"getsystemmetrics", GetSystemMetricsLua}, // irrelevant to core but i dont give a 
 	{"ismainwindowinforeground", IsMainWindowInForeground},
 
+	{"screenshot", Screenshot},
+
 	{NULL, NULL}
 };
 const luaL_Reg memoryFuncs[] = {
@@ -3328,7 +3447,9 @@ const luaL_Reg wguiFuncs[] = {
 	{"loadimage", LoadImage},
 	{"deleteimage", DeleteImage},
 	{"drawimage", DrawImage},
-	{"drawimagescale", DrawImageScale},
+	{"loadscreen", LoadScreen},
+	{"loadscreenreset", LoadScreenReset},
+	{"getimageinfo", GetImageInfo},
 	/*</GDIPlus*/
 	{"ellipse", DrawEllipse},
 	{"polygon", DrawPolygon},
