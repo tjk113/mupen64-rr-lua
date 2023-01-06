@@ -34,6 +34,9 @@
 #include "Config.h"
 #include "../rom.h"
 #include "inifunctions.h"
+// its a hpp header
+#include "../main/win/wrapper/ReassociatingFileDialog.h"
+
 
 #include "configdialog.h"
 #include <vcr.h>
@@ -48,6 +51,10 @@
 #define strncasecmp	_strnicmp
 #endif
 
+ReassociatingFileDialog fdSelectRomFolder;
+ReassociatingFileDialog fdSelectPluginsFolder;
+ReassociatingFileDialog fdSelectSavesFolder;
+ReassociatingFileDialog fdSelectScreenshotsFolder;
 
 //HWND romInfoHWND;
 static DWORD dwExitCode;
@@ -370,66 +377,6 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
     return TRUE;
 }
 
-bool folderDiag(char* out, int max_size, const char* starting_dir)
-{
-    bool ret = false;
-    IFileDialog* pfd;
-    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
-    {
-        if (starting_dir)
-        {
-            PIDLIST_ABSOLUTE pidl;
-            WCHAR wstarting_dir[MAX_PATH];
-            WCHAR* wc = wstarting_dir;
-            for (const char* c = starting_dir; *c && wc - wstarting_dir < MAX_PATH - 1; ++c, ++wc)
-            {
-                *wc = *c == '/' ? '\\' : *c;
-            }
-            *wc = 0;
-
-            HRESULT hresult = ::SHParseDisplayName(wstarting_dir, 0, &pidl, SFGAO_FOLDER, 0);
-            if (SUCCEEDED(hresult))
-            {
-                IShellItem* psi;
-                hresult = ::SHCreateShellItem(NULL, NULL, pidl, &psi);
-                if (SUCCEEDED(hresult))
-                {
-                    pfd->SetFolder(psi);
-                }
-                ILFree(pidl);
-            }
-        }
-
-        DWORD dwOptions;
-        if (SUCCEEDED(pfd->GetOptions(&dwOptions)))
-        {
-            pfd->SetOptions(dwOptions | FOS_PICKFOLDERS);
-        }
-        if (SUCCEEDED(pfd->Show(NULL)))
-        {
-            IShellItem* psi;
-            if (SUCCEEDED(pfd->GetResult(&psi)))
-            {
-                WCHAR* tmp;
-                if (SUCCEEDED(psi->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &tmp)))
-                {
-                    char* c = out;
-                    while (*tmp && c - out < max_size - 1)
-                    {
-                        *c = (char)*tmp;
-                        ++c;
-                        ++tmp;
-                    }
-                    *c = '\0';
-                    ret = true;
-                }
-                psi->Release();
-            }
-        }
-        pfd->Release();
-    }
-    return ret;
-}
 
 
 BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -507,12 +454,13 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                 Config.RomBrowserRecursion = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
                 break;
             case IDC_ADD_BROWSER_DIR: {
-
-                folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
-                int len = strlen(Directory);
-                if (addDirectoryToLinkedList(Directory)) {
-                    SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)Directory);
-                    AddDirToList(Directory, TRUE);
+                if (fdSelectRomFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
+                {
+                    int len = strlen(Directory);
+                    if (addDirectoryToLinkedList(Directory)) {
+                        SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)Directory);
+                        AddDirToList(Directory, TRUE);
+                    }
                 }
                 break;
             }
@@ -558,11 +506,15 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
             case IDC_CHOOSE_PLUGINS_DIR:
             {
                 // Lol why is vs indenting this one block down
-                folderDiag(Directory, sizeof(Directory)/sizeof(char), "");
-                int len = strlen(Directory);
-                if (Directory[len - 1] != '\\')
-                    strcat(Directory, "\\");
-                SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Directory);
+                //folderDiag(Directory, sizeof(Directory)/sizeof(char), "");
+                if (fdSelectPluginsFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
+                {
+                    int len = strlen(Directory);
+                        if (Directory[len - 1] != '\\')
+                            strcat(Directory, "\\");
+                        SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Directory);
+                }
+                
 
             }
             
@@ -584,12 +536,14 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                   break;
                   case IDC_CHOOSE_SAVES_DIR:
                   {
-                       folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
-                       if (Directory[strlen(Directory) - 1] != '\\')
-                       {
-                           strcat(Directory, "\\");
-                           SetDlgItemText(hwnd, IDC_SAVES_DIR, Directory);
-                       }
+                      if (fdSelectSavesFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
+                      {
+                          if (Directory[strlen(Directory) - 1] != '\\')
+                          {
+                              strcat(Directory, "\\");
+                              SetDlgItemText(hwnd, IDC_SAVES_DIR, Directory);
+                          }
+                      }                       
                   }
                   break;
 				  case IDC_DEFAULT_SCREENSHOTS_CHECK:
@@ -608,11 +562,13 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                   break;                
                   case IDC_CHOOSE_SCREENSHOTS_DIR:
                   {
-                      folderDiag(Directory, sizeof(Directory) / sizeof(char), "");
-                      int len = strlen(Directory);
-                      if (Directory[len - 1] != '\\')
-                          strcat(Directory, "\\");
-                      SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Directory);
+                      if (fdSelectScreenshotsFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
+                      {
+                          int len = strlen(Directory);
+                          if (Directory[len - 1] != '\\')
+                              strcat(Directory, "\\");
+                          SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Directory);
+                      }
                   }
                   break;
                 }
