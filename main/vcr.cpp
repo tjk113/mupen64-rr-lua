@@ -2698,6 +2698,7 @@ int RunRecentMovie(WORD menuItem) {
 	char path[MAX_PATH];
 	int index = menuItem - ID_RECENTMOVIES_FIRST;
 	sprintf(path, Config.RecentMovies[index]);
+	VCR_setReadOnly(TRUE);
 	return VCR_startPlayback(path, "", "");
 }
 #endif // VCR_SUPPORT
