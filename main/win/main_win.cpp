@@ -3227,6 +3227,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 // Don't try to load a recent movie if not emulating!
                 if (rom) {
                     // Overwrite prevention? Path sanity check (Leave to internal handling)?
+                    VCR_setReadOnly(TRUE);
                     bool err = VCR_startPlayback(Config.RecentMovies[0], 0, 0);
                     if (err == VCR_PLAYBACK_SUCCESS)
                         SetStatusPlaybackStarted();
