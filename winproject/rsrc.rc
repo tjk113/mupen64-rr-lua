@@ -660,14 +660,14 @@ BEGIN
 END
 
 IDD_MUPENERROR DIALOGEX 0, 0, 341, 90
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
 CAPTION "Mupen64 Error"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Exit",IDC_ERROR_PANIC_CLOSE,205,70,65,14
-    PUSHBUTTON      "Ignore",IDC_ERROR_PANIC_IGNORE,270,70,61,14
-    CONTROL         "An exception has been thrown.",IDC_ERRORTEXT,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,73,6,262,40
-    CONTROL         "",IDC_ERROR_PICTUREBOX,"Static",SS_BITMAP,6,6,67,53
+    PUSHBUTTON      "Exit",IDC_ERROR_PANIC_CLOSE,276,72,60,12
+    PUSHBUTTON      "Ignore",IDC_ERROR_PANIC_IGNORE,216,72,60,12
+    LTEXT           "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vulputate ut pharetra sit amet aliquam id diam maecenas ultricies. Accumsan sit amet nulla facilisi morbi tempus. Et ultrices neque",IDC_ERRORTEXT,102,6,234,24
+    CONTROL         "",IDC_ERROR_PICTUREBOX,"Static",SS_OWNERDRAW,6,6,42,36
 END
 
 IDD_GAMEDEBUGGERDIALOG DIALOGEX 0, 0, 311, 62
@@ -868,6 +868,11 @@ BEGIN
 END
 
 IDD_DIRECTORIES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_MUPENERROR AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

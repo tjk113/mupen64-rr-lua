@@ -1,6 +1,9 @@
 #include "CrashHandlerDialog.h"
 #include "main_win.h"
 #include "../../winproject/resource.h"
+#include <wingdi.h>
+#pragma comment(lib, "Msimg32.lib") // TransparentBlt
+HBITMAP bitmapHandle;
 
 inline CrashHandlerDialog::Types operator&(CrashHandlerDialog::Types a, CrashHandlerDialog::Types b)
 {
@@ -20,24 +23,30 @@ BOOL CALLBACK CrashHandlerDialogProcedure(HWND hwnd, UINT Message, WPARAM wParam
         
         SetWindowText(GetDlgItem(hwnd, IDC_ERRORTEXT), CrashHandlerDialog::Caption);
 
-        DWORD exStyle = ::GetWindowLong(GetDlgItem(hwnd, IDC_ERROR_PICTUREBOX), GWL_EXSTYLE);
-
-        SetWindowLong(GetDlgItem(hwnd, IDC_ERROR_PICTUREBOX), GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
-
-        HBITMAP hBitmap = reinterpret_cast<HBITMAP>(::LoadImage(
+        bitmapHandle = reinterpret_cast<HBITMAP>(::LoadImage(
             GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_LOGO_BW), IMAGE_BITMAP,
             0, 0, LR_CREATEDIBSECTION));
-
-        SendMessage(GetDlgItem(hwnd, IDC_ERROR_PICTUREBOX), STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)hBitmap);
-
+        
         EnableWindow(GetDlgItem(hwnd, IDC_ERROR_PANIC_IGNORE), (BOOL)(CrashHandlerDialog::Type & CrashHandlerDialog::Types::Ignorable));
-
-        // for some reason windows holds pointer to this so cant dispose it now
-        // this, of course, causes a memory leak because we should free upon calling EndDialog()
-        //DeleteObject((HBITMAP)hBitmap);
 
         return TRUE;
     }
+    case WM_DRAWITEM:
+        if (wParam == IDC_ERROR_PICTUREBOX) // Draw transparent bitmap in IDC_IMG3
+        {
+            LPDRAWITEMSTRUCT lpDrawItem = (LPDRAWITEMSTRUCT)lParam;
+            HDC hMemoryDc = CreateCompatibleDC(lpDrawItem->hDC);
+            HGDIOBJ hOldBitmap = SelectObject(hMemoryDc, bitmapHandle);
+            BITMAP bitmap;
+            GetObject(bitmapHandle, sizeof(BITMAP), &bitmap);
+            TransparentBlt(lpDrawItem->hDC, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemoryDc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, RGB(255, 255, 255));
+            SelectObject(hMemoryDc, hOldBitmap);
+            SetWindowPos(lpDrawItem->hwndItem, NULL, NULL, NULL, bitmap.bmWidth, bitmap.bmHeight, SWP_NOMOVE);
+            DeleteDC(hMemoryDc);
+            DeleteObject(hOldBitmap);
+            return TRUE;
+        }
+        break;
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
@@ -50,6 +59,9 @@ BOOL CALLBACK CrashHandlerDialogProcedure(HWND hwnd, UINT Message, WPARAM wParam
             EndDialog(hwnd, 0);
             break;
         }
+        break;
+    case WM_DESTROY:
+        DeleteObject(bitmapHandle);
         break;
     default:
         return FALSE;
