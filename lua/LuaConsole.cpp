@@ -2725,7 +2725,7 @@ int GetMupenVersion(lua_State* L) {
 	// 0 = name + version number
 	// 1 = version number
 	version = MUPEN_VERSION;
-	if (type > 1) 
+	if (type > 0)
 		version = { &MUPEN_VERSION[strlen("Mupen 64 ")] };
 
 	
