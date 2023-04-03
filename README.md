@@ -32,4 +32,3 @@ You can debug Mupen straight away by running it and placing breakpoints in Visua
 Discord: https://discord.gg/eZXbmguKEq<br>
 Releases: https://github.com/mkdasher/mupen64-rr-lua-/releases
 
-
