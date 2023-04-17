@@ -813,21 +813,20 @@ int check_plugins()
 
            finalMessage.append(pluginNames[i]);
            pluginsMissing++;
-           //strcat(finalMessage, pluginNames[i]);
        }
    }
 
-   if (finalMessage != "Plugin(s) missing: ") {  // not calling strcmp.. 
+   if (pluginsMissing != 0) { 
        // strdup seems like a bad idea... this too :)
        if (pluginsMissing == 1) { 
            /*finalMessage.pop_back();*/ 
            finalMessage.resize(finalMessage.size() - 2);
            /* HACK: instead of doing better programming, just trim last letter (whitespace too)*/
        }
-#ifdef _WIN32
-       MessageBox(mainHWND, finalMessage.c_str(), "Plugin(s) Missing", MB_TASKMODAL);
-       //ShowMessage(strdup(finalMessage.c_str())); return(0);
-#endif
+       if (MessageBox(mainHWND, (finalMessage + "\nDo you want to select plugins?").c_str(), "Error", MB_TASKMODAL | MB_ICONERROR | MB_YESNO) == IDYES) {
+           ChangeSettings(mainHWND);
+           ini_updateFile(Config.compressedIni);
+       }
        return 0;
    }
    
