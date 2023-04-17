@@ -460,22 +460,22 @@ void TranslateMenuOld(HMENU hMenu,HWND mainHWND)
 void TranslateConfigDialog(HWND hwnd)
 {
        
-    SetItemTranslatedString(hwnd,IDC_GFXPLUGIN,"Video Plugin");
+    SetItemTranslatedString(hwnd,IDC_GFXPLUGIN,"Video");
     SetItemTranslatedString(hwnd,IDGFXCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDGFXTEST,"Test");
     SetItemTranslatedString(hwnd,IDGFXABOUT, "About");
     
-    SetItemTranslatedString(hwnd,IDC_INPUTPLUGIN,"Input Plugin");
+    SetItemTranslatedString(hwnd,IDC_INPUTPLUGIN,"Input");
     SetItemTranslatedString(hwnd,IDINPUTCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDINPUTTEST,"Test");
     SetItemTranslatedString(hwnd,IDINPUTABOUT,"About");
     
-    SetItemTranslatedString(hwnd,IDC_SOUNDPLUGIN,"Audio Plugin");
+    SetItemTranslatedString(hwnd,IDC_SOUNDPLUGIN,"Audio");
     SetItemTranslatedString(hwnd,IDSOUNDCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDSOUNDTEST,"Test");
     SetItemTranslatedString(hwnd,IDSOUNDABOUT,"About");
     
-    SetItemTranslatedString(hwnd,IDC_RSPPLUGIN,"RSP Plugin");
+    SetItemTranslatedString(hwnd,IDC_RSPPLUGIN,"RSP");
     SetItemTranslatedString(hwnd,IDRSPCONFIG,"Config");
     SetItemTranslatedString(hwnd,IDRSPTEST,"Test");
     SetItemTranslatedString(hwnd,IDRSPABOUT,"About");

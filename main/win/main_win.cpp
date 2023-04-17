@@ -803,44 +803,45 @@ int check_plugins()
     // Bad implementation... i forgot this is C++ and not C so
     // i went with a low-level implementation at first...
     // But hey this works 
-    void *handle_gfx, *handle_input, *handle_sound,*handle_rsp;
-   handle_gfx = get_handle(liste_plugins, gfx_name);
-   handle_input = get_handle(liste_plugins, input_name);
-   handle_sound = get_handle(liste_plugins, sound_name);
-   handle_rsp = get_handle(liste_plugins, rsp_name);
-   
-   void* pluginHandles[4] = { handle_gfx, handle_input, handle_sound,handle_rsp }; // can probably be done in one line
-   char pluginsMissing = 0;
-   std::string pluginNames[] = { "Video","Input","Sound","RSP" };
-   std::string finalMessage = "Plugin(s) missing: ";
-   for (char i = 0; i <= 3; i++)
-   {
-       if (!pluginHandles[i]) {
-           printf("Plugin missing: %s\n", pluginNames[i].c_str());
-           if (i != 3)
-               pluginNames[i].append(", ");
+    void* handle_gfx, * handle_input, * handle_sound, * handle_rsp;
+    handle_gfx = get_handle(liste_plugins, gfx_name);
+    handle_input = get_handle(liste_plugins, input_name);
+    handle_sound = get_handle(liste_plugins, sound_name);
+    handle_rsp = get_handle(liste_plugins, rsp_name);
 
-           finalMessage.append(pluginNames[i]);
-           pluginsMissing++;
-           //strcat(finalMessage, pluginNames[i]);
-       }
-   }
+    void* pluginHandles[4] = { handle_gfx, handle_input, handle_sound,handle_rsp }; // can probably be done in one line
+    char pluginsMissing = 0;
+    std::string pluginNames[] = { "Video","Input","Sound","RSP" };
+    std::string finalMessage = "Plugin(s) missing: ";
+    for (char i = 0; i <= 3; i++)
+    {
+        if (!pluginHandles[i]) {
+            printf("Plugin missing: %s\n", pluginNames[i].c_str());
+            if (i != 3)
+                pluginNames[i].append(", ");
 
-   if (finalMessage != "Plugin(s) missing: ") {  // not calling strcmp.. 
-       // strdup seems like a bad idea... this too :)
-       if (pluginsMissing == 1) { 
-           /*finalMessage.pop_back();*/ 
-           finalMessage.resize(finalMessage.size() - 2);
-           /* HACK: instead of doing better programming, just trim last letter (whitespace too)*/
-       }
-#ifdef _WIN32
-       MessageBox(mainHWND, finalMessage.c_str(), "Plugin(s) Missing", MB_TASKMODAL);
-       //ShowMessage(strdup(finalMessage.c_str())); return(0);
-#endif
-       return 0;
-   }
-   
-   return 1;
+            finalMessage.append(pluginNames[i]);
+            pluginsMissing++;
+            //strcat(finalMessage, pluginNames[i]);
+        }
+    }
+
+    if (pluginsMissing != 0) {
+        // strdup seems like a bad idea... this too :)
+        if (pluginsMissing == 1) {
+            /*finalMessage.pop_back();*/
+            finalMessage.resize(finalMessage.size() - 2);
+            /* HACK: instead of doing better programming, just trim last letter (whitespace too)*/
+        }
+        if (MessageBox(mainHWND, (finalMessage + "\nDo you want to select plugins?").c_str(), "Error", MB_TASKMODAL | MB_ICONERROR | MB_YESNO) == IDYES) {
+            ChangeSettings(mainHWND);
+            ini_updateFile(Config.compressedIni);
+        }
+
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 int load_gfx(HMODULE handle_gfx)
@@ -1330,7 +1331,7 @@ BOOL StartRom(char *fullRomPath)
                          if (!restart_mode) {
                              if (!check_plugins()) 
                              {
-                                return TRUE;                  
+                                return TRUE;           
                              }
                              
                              SetStatusMode( 1 );
