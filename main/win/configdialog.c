@@ -488,17 +488,13 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
             case IDC_DEFAULT_PLUGINS_CHECK:
             {
                 int selected = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0);
-                if (!selected)
-                {
-                    MessageBox(NULL, "Warning: changing the plugin folder can introduce bugs in many plugins", "Warning", MB_OK);
-                    EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), TRUE);
-                    EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), TRUE);
-                }
-                else
-                {
-                    EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), FALSE);
-                    EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), FALSE);
-                }
+                EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), !selected);
+                EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), !selected);
+            }
+            break;
+            case IDC_PLUGIN_DIRECTORY_HELP:
+            {
+                MessageBox(hwnd, "Changing the plugin directory may introduce bugs to some plugins.", "Info", MB_ICONINFORMATION | MB_OK);
             }
             break;
             case IDC_CHOOSE_PLUGINS_DIR:

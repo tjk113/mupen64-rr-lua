@@ -73,6 +73,7 @@
 #define IDC_RECURSION                   1011
 #define IDC_GUI_TOOLBAR                 1012
 #define IDC_GUI_STATUSBAR               1013
+#define IDC_PLUGIN_DIRECTORY_HELP       1014
 #define IDD_ABOUT                       1020
 #define FULL_SCREEN                     1061
 #define EMU_PAUSE                       1062
@@ -467,7 +468,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1011
+#define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
