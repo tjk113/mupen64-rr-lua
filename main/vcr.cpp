@@ -2287,6 +2287,7 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	}
 	VCRComp_startFile( aviFilename, width, height, visByCountrycode(), codecDialog);
 	m_capture = 1;
+	captureWithFFmpeg = 0;
 	EnableEmulationMenuItems(TRUE);
 	strncpy( AVIFileName, aviFilename, PATH_MAX );
 	strncpy(Config.AviCapturePath, aviFilename, PATH_MAX);
@@ -2348,6 +2349,7 @@ int VCR_StartFFmpegCapture(const std::string& outputName, const std::string& arg
 	{
 		UpdateTitleBarCapture(outputName.data());
 		m_capture = 1;
+		captureWithFFmpeg = 1;
 	}
 #ifdef _DEBUG
 	if (err == INIT_SUCCESS)
