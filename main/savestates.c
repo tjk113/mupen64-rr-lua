@@ -341,7 +341,8 @@ void savestates_load(bool silenceNotFoundError)
 	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
-		filename = (char*)malloc(strlen(fname) + 1);
+		// -3+10 to account for possible ".savestate" ending, +1 for null terminator
+		filename = (char*)malloc(strlen(fname) - 3 + 10 + 1);
 		strcpy(filename, fname);
 		//slot -= 10;
 #ifdef WIN32
