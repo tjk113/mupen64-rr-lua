@@ -44,7 +44,8 @@
 #include <commctrl.h> // for SendMessage, SB_SETTEXT
 #include <windows.h> // for truncate functions
 #include <../../winproject/resource.h> // for EMU_RESET
-#include "win/main_win.h" //config struct
+#include "win/Config.h" //config struct
+#include "win/main_win.h" // mainHWND
 #include <WinUser.h>
 #include "win/DebugInfo.hpp"
 
@@ -67,8 +68,6 @@
 #define MUP_HEADER_SIZE (sizeof(SMovieHeader))
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? MUP_HEADER_SIZE_OLD : MUP_HEADER_SIZE)
 #define MAX_AVI_SIZE 0x7B9ACA00
-
-extern CONFIG Config;
 
 //stop AVI at m64 end, set by command line avi
 bool gStopAVI = false;

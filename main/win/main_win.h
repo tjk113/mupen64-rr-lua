@@ -16,6 +16,7 @@
 
  //for max recent
 #include "../lua/Recent.h"
+#include "Config.h"
 
 #ifndef MAIN_WIN_H
 #define MAIN_WIN_H
@@ -70,112 +71,6 @@ extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
 extern void LoadConfigExternals();
 
-typedef struct _HOTKEY {
-    int key;
-    BOOL shift;
-    BOOL ctrl;
-    BOOL alt;
-    int command;
-} HOTKEY;
-#define NUM_HOTKEYS (46)
-
-typedef struct _CONFIG {
-    unsigned char ConfigVersion ;
-    
-    //Language
-    char DefaultLanguage[100];
-    
-    // Alert Messages variables
-    BOOL showFPS;
-    BOOL showVIS;
-    BOOL manageBadRoms;
-    BOOL savestateWarnings; // warnings about savestates
-    BOOL moviesERRORS; // warnings about m64<->current rom issues
-    
-    // General vars
-    BOOL limitFps;
-    BOOL compressedIni;
-    int guiDynacore;
-    BOOL UseFPSmodifier;
-    int FPSmodifier;
-    int skipFrequency;
-	BOOL loopMovie;
-    BOOL zeroIndex;
-    BOOL movieBackups;
-    int movieBackupsLevel;
-    int CPUClockSpeedMultiplier;
-
-    // Advanced vars
-    BOOL StartFullScreen;
-    BOOL PauseWhenNotActive;
-    BOOL OverwritePluginSettings;
-    BOOL GuiToolbar;
-    BOOL GuiStatusbar;
-    BOOL AutoIncSaveSlot;
-    //BOOL RoundToZero;
-	BOOL allowArbitrarySavestateLoading;
-    
-    //Compatibility Options
-    //BOOL NoAudioDelay;
-    //BOOL NoCompiledJump;
-    
-    //Rom Browser Columns
-    BOOL Column_GoodName;
-    BOOL Column_InternalName;
-    BOOL Column_Country;
-    BOOL Column_Size;
-    BOOL Column_Comments;
-    BOOL Column_FileName;
-    BOOL Column_MD5;
-                                             
-    // Directories
-    BOOL DefaultPluginsDir;
-    BOOL DefaultSavesDir;
-    BOOL DefaultScreenshotsDir;
-    char PluginsDir[MAX_PATH];
-    char SavesDir[MAX_PATH];
-    char ScreenshotsDir[MAX_PATH];
-    char SaveLoadAsandSaveStateAsPath[MAX_PATH];
-    
-    // Recent Roms
-    char RecentRoms[10][MAX_PATH];
-    BOOL RecentRomsFreeze;
-
-    // Recent Movies
-    char RecentMovies[5][MAX_PATH];
-    BOOL RecentMoviesFreeze;
-    
-    //Window
-    int WindowWidth;
-    int WindowHeight;
-    int WindowPosX;
-    int WindowPosY;
-        
-    //Rom Browser
-    int RomBrowserSortColumn;
-    char RomBrowserSortMethod[10];
-    BOOL RomBrowserRecursion;
-    
-    //Recording options
-    bool NoReset;
-
-    //avi options
-    bool forceInternalCapture;
-    bool captureOtherWindows;
-    HOTKEY hotkey [NUM_HOTKEYS];
-    char AviCapturePath[MAX_PATH];
-
-    //Lua
-    char LuaScriptPath[MAX_PATH];
-    char RecentScripts[LUA_MAX_RECENT][MAX_PATH];
-    BOOL RecentScriptsFreeze;
-    BOOL LuaSimpleDialog;
-    BOOL LuaWarnOnClose;
-    BOOL FrequentVCRUIRefresh;
-    int SyncMode;
-} CONFIG;
-
-extern "C" CONFIG Config;
 
 extern BOOL forceIgnoreRSP;
 extern BOOL continue_vcr_on_restart_mode;

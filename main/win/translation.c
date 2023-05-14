@@ -39,6 +39,8 @@ struct _languages
 };
 static languages *lang_list = NULL, *current_lang = NULL;
 
+
+
 void insert_lang( languages *p, char *file_name, char *language_name)
 {
     while (p->next) 

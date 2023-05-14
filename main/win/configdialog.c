@@ -272,7 +272,7 @@ void ChangeSettings(HWND hwndOwner) {
     psp[4].dwSize = sizeof(PROPSHEETPAGE);
     psp[4].dwFlags = PSP_USETITLE;
     psp[4].hInstance = app_hInstance;
-    psp[4].pszTemplate = MAKEINTRESOURCE(IDD_HOTKEY_CONFIG);
+    psp[4].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
     psp[4].pfnDlgProc = HotkeysProc;
 	TranslateDefault("Hotkeys","Hotkeys",HotkeysStr);
     psp[4].pszTitle = HotkeysStr;
@@ -1064,102 +1064,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
     return TRUE;            
 }
 
-void hotkeyToString(HOTKEY* hotkey, char* buf)
-{
-	int k = hotkey->key;
-	buf[0] = 0;
-	
-	if(!hotkey->ctrl && !hotkey->shift && !hotkey->alt && !hotkey->key)
-	{
-		strcpy(buf, "(nothing)");
-		return;
-	}
-	
-	if(hotkey->ctrl)
-		strcat(buf, "Ctrl ");
-	if(hotkey->shift)
-		strcat(buf, "Shift ");
-	if(hotkey->alt)
-		strcat(buf, "Alt ");
-	if(k)
-	{
-		char buf2 [32];
-		if((k >= '0' && k <= '9') || (k >= 'A' && k <= 'Z'))
-			sprintf(buf2, "%c", (char)k);
-		else if((k >= VK_F1 && k <= VK_F24))
-			sprintf(buf2, "F%d", k - (VK_F1-1));
-		else if((k >= VK_NUMPAD0 && k <= VK_NUMPAD9))
-			sprintf(buf2, "Num%d", k - VK_NUMPAD0);
-		else switch(k)
-		{
-			case VK_SPACE: strcpy(buf2, "Space"); break;
-			case VK_BACK: strcpy(buf2, "Backspace"); break;
-			case VK_TAB: strcpy(buf2, "Tab"); break;
-			case VK_CLEAR: strcpy(buf2, "Clear"); break;
-			case VK_RETURN: strcpy(buf2, "Enter"); break;
-			case VK_PAUSE: strcpy(buf2, "Pause"); break;
-			case VK_CAPITAL: strcpy(buf2, "Caps"); break;
-			case VK_PRIOR: strcpy(buf2, "PageUp"); break;
-			case VK_NEXT: strcpy(buf2, "PageDn"); break;
-			case VK_END: strcpy(buf2, "End"); break;
-			case VK_HOME: strcpy(buf2, "Home"); break;
-			case VK_LEFT: strcpy(buf2, "Left"); break;
-			case VK_UP: strcpy(buf2, "Up"); break;
-			case VK_RIGHT: strcpy(buf2, "Right"); break;
-			case VK_DOWN: strcpy(buf2, "Down"); break;
-			case VK_SELECT: strcpy(buf2, "Select"); break;
-			case VK_PRINT: strcpy(buf2, "Print"); break;
-			case VK_SNAPSHOT: strcpy(buf2, "PrintScrn"); break;
-			case VK_INSERT: strcpy(buf2, "Insert"); break;
-			case VK_DELETE: strcpy(buf2, "Delete"); break;
-			case VK_HELP: strcpy(buf2, "Help"); break;
-			case VK_MULTIPLY: strcpy(buf2, "Num*"); break;
-			case VK_ADD: strcpy(buf2, "Num+"); break;
-			case VK_SUBTRACT: strcpy(buf2, "Num-"); break;
-			case VK_DECIMAL: strcpy(buf2, "Num."); break;
-			case VK_DIVIDE: strcpy(buf2, "Num/"); break;
-			case VK_NUMLOCK: strcpy(buf2, "NumLock"); break;
-			case VK_SCROLL: strcpy(buf2, "ScrollLock"); break;
-			case /*VK_OEM_PLUS*/0xBB: strcpy(buf2, "=+"); break;
-			case /*VK_OEM_MINUS*/0xBD: strcpy(buf2, "-_"); break;
-			case /*VK_OEM_COMMA*/0xBC: strcpy(buf2, ","); break;
-			case /*VK_OEM_PERIOD*/0xBE: strcpy(buf2, "."); break;
-			case VK_OEM_7: strcpy(buf2, "'\""); break;
-			case VK_OEM_6: strcpy(buf2, "]}"); break;
-			case VK_OEM_5: strcpy(buf2, "\\|"); break;
-			case VK_OEM_4: strcpy(buf2, "[{"); break;
-			case VK_OEM_3: strcpy(buf2, "`~"); break;
-			case VK_OEM_2: strcpy(buf2, "/?"); break;
-			case VK_OEM_1: strcpy(buf2, ";:"); break;
-			default:
-				sprintf(buf2, "(%d)", k);
-				break;
-		}
-		strcat(buf, buf2);
-	}
-}
 
-static void SetDlgItemHotkey(HWND hwnd, int idc, HOTKEY* hotkey)
-{
-    char buf [64];
-	hotkeyToString(hotkey, buf);
-    SetDlgItemText(hwnd, idc, buf);
-}
 
-static void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, HOTKEY* hotkey, HMENU hmenu, int menuItemID)
-{
-    char buf [64];
-	hotkeyToString(hotkey, buf);
-    SetDlgItemText(hwnd, idc, buf);
-
-	if(hmenu && menuItemID >= 0)
-	{
-		if(strcmp(buf, "(nothing)"))
-			SetMenuAccelerator(hmenu,menuItemID,buf);
-		else
-			SetMenuAccelerator(hmenu,menuItemID,"");
-	}
-}
 
 static void KillMessages()
 {
@@ -1188,7 +1094,7 @@ static void GetUserHotkey(HOTKEY * hotkey)
 			if(GetAsyncKeyState(j) & 0x8000)
 			{
 				// HACK to avoid exiting all the way out of the dialog on pressing escape to clear a hotkey
-				//               or continually re-activating the button on trying to assign space as a hotkey
+				// or continually re-activating the button on trying to assign space as a hotkey
 				if(j == VK_ESCAPE || j == VK_SPACE)
 					KillMessages();
 
@@ -1253,129 +1159,80 @@ static void GetUserHotkey(HOTKEY * hotkey)
 
 HOTKEY tempHotkeys [NUM_HOTKEYS];
 
+void UpdateSelectedHotkeyTextBox(HWND dialogHwnd) {
+    HWND listHwnd = GetDlgItem(dialogHwnd, IDC_HOTKEY_LIST);
+    HWND selectedHotkeyEditHwnd = GetDlgItem(dialogHwnd, IDC_SELECTED_HOTKEY_TEXT);
+
+    int selectedIndex = SendMessage(listHwnd, LB_GETCURSEL, 0, 0);
+
+    if (selectedIndex >= 0 && selectedIndex < namedHotkeyCount)
+    {
+        char hotkeyText[MAX_PATH];
+
+        hotkeyToString(namedHotkeys[selectedIndex].hotkey, hotkeyText);
+
+        SetWindowText(selectedHotkeyEditHwnd, hotkeyText);
+    }
+}
+
 BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-    switch(Message) {
-      case WM_INITDIALOG:
-inithotkeysdialog:
-		SetDlgItemHotkey(hwnd, IDC_HOT_FASTFORWARD, &Config.hotkey[0]);
-		SetDlgItemHotkey(hwnd, IDC_HOT_SPEEDUP, &Config.hotkey[1]);
-		SetDlgItemHotkey(hwnd, IDC_HOT_SPEEDDOWN, &Config.hotkey[2]);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_FRAMEADVANCE, &Config.hotkey[3], GetSubMenu(GetMenu(mainHWND),1), 1);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_PAUSE, &Config.hotkey[4], GetSubMenu(GetMenu(mainHWND),1), 0);
-        	SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_READONLY, &Config.hotkey[5], GetSubMenu(GetMenu(mainHWND),3), 15);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_PLAY, &Config.hotkey[6], GetSubMenu(GetMenu(mainHWND),3), 3);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_PLAYSTOP, &Config.hotkey[7], GetSubMenu(GetMenu(mainHWND),3), 4);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_RECORD, &Config.hotkey[8], GetSubMenu(GetMenu(mainHWND),3), 0);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_RECORDSTOP, &Config.hotkey[9], GetSubMenu(GetMenu(mainHWND),3), 1);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_HOT_SCREENSHOT, &Config.hotkey[10], GetSubMenu(GetMenu(mainHWND),1), 2);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_CSAVE, &Config.hotkey[11], GetSubMenu(GetMenu(mainHWND),1), 4);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_CLOAD, &Config.hotkey[12], GetSubMenu(GetMenu(mainHWND),1), 6);
+    switch (Message) {
+    case WM_INITDIALOG:
+    {
+        HWND listHwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
 
-		SetDlgItemHotkey(hwnd, IDC_1SAVE, &Config.hotkey[13]);
-		SetDlgItemHotkey(hwnd, IDC_2SAVE, &Config.hotkey[14]);
-		SetDlgItemHotkey(hwnd, IDC_3SAVE, &Config.hotkey[15]);
-		SetDlgItemHotkey(hwnd, IDC_4SAVE, &Config.hotkey[16]);
-		SetDlgItemHotkey(hwnd, IDC_5SAVE, &Config.hotkey[17]);
-		SetDlgItemHotkey(hwnd, IDC_6SAVE, &Config.hotkey[18]);
-		SetDlgItemHotkey(hwnd, IDC_7SAVE, &Config.hotkey[19]);
-		SetDlgItemHotkey(hwnd, IDC_8SAVE, &Config.hotkey[20]);
-		SetDlgItemHotkey(hwnd, IDC_9SAVE, &Config.hotkey[21]);
-
-		SetDlgItemHotkey(hwnd, IDC_1LOAD, &Config.hotkey[22]);
-		SetDlgItemHotkey(hwnd, IDC_2LOAD, &Config.hotkey[23]);
-		SetDlgItemHotkey(hwnd, IDC_3LOAD, &Config.hotkey[24]);
-		SetDlgItemHotkey(hwnd, IDC_4LOAD, &Config.hotkey[25]);
-		SetDlgItemHotkey(hwnd, IDC_5LOAD, &Config.hotkey[26]);
-		SetDlgItemHotkey(hwnd, IDC_6LOAD, &Config.hotkey[27]);
-		SetDlgItemHotkey(hwnd, IDC_7LOAD, &Config.hotkey[28]);
-		SetDlgItemHotkey(hwnd, IDC_8LOAD, &Config.hotkey[29]);
-		SetDlgItemHotkey(hwnd, IDC_9LOAD, &Config.hotkey[30]);
-
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_1SEL, &Config.hotkey[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 0);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_2SEL, &Config.hotkey[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 1);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_3SEL, &Config.hotkey[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 2);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_4SEL, &Config.hotkey[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 3);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_5SEL, &Config.hotkey[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 4);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_6SEL, &Config.hotkey[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 5);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_7SEL, &Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_8SEL, &Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
-		SetDlgItemHotkeyAndMenu(hwnd, IDC_9SEL, &Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
-
-		memcpy(tempHotkeys, Config.hotkey, NUM_HOTKEYS * sizeof(HOTKEY));
-
-        TranslateHotkeyDialog(hwnd);
-
-         return TRUE;
-      case WM_COMMAND:
-        switch(LOWORD(wParam))
+        for (size_t i = 0; i < namedHotkeyCount; i++)
         {
+            SendMessage(listHwnd, LB_ADDSTRING, 0,
+                (LPARAM)namedHotkeys[i].name);
+        }
+        
+        return TRUE;
+    }
+    case WM_COMMAND: {
+        int id = LOWORD(wParam);
+        int event = HIWORD(wParam);
 
-#define HOTKEY_MACRO(IDC,i) \
-	case IDC: \
-		SetDlgItemText(hwnd, IDC, "..."); \
-		GetUserHotkey(&tempHotkeys[i]); \
-		SetDlgItemHotkey(hwnd, IDC, &tempHotkeys[i]); \
-		break
+        if (id == IDC_HOTKEY_LIST && event == LBN_SELCHANGE)
+        {
+            UpdateSelectedHotkeyTextBox(hwnd);
+        }
 
-			HOTKEY_MACRO(IDC_HOT_FASTFORWARD, 0);
-			HOTKEY_MACRO(IDC_HOT_SPEEDUP, 1);
-			HOTKEY_MACRO(IDC_HOT_SPEEDDOWN, 2);
-			HOTKEY_MACRO(IDC_HOT_FRAMEADVANCE, 3);
-			HOTKEY_MACRO(IDC_HOT_PAUSE, 4);
-			HOTKEY_MACRO(IDC_HOT_READONLY, 5);
-			HOTKEY_MACRO(IDC_HOT_PLAY, 6);
-			HOTKEY_MACRO(IDC_HOT_PLAYSTOP, 7);
-			HOTKEY_MACRO(IDC_HOT_RECORD, 8);
-			HOTKEY_MACRO(IDC_HOT_RECORDSTOP, 9);
-			HOTKEY_MACRO(IDC_HOT_SCREENSHOT, 10);
-			HOTKEY_MACRO(IDC_CSAVE, 11);
-			HOTKEY_MACRO(IDC_CLOAD, 12);
-			HOTKEY_MACRO(IDC_1SAVE, 13);
-			HOTKEY_MACRO(IDC_2SAVE, 14);
-			HOTKEY_MACRO(IDC_3SAVE, 15);
-			HOTKEY_MACRO(IDC_4SAVE, 16);
-			HOTKEY_MACRO(IDC_5SAVE, 17);
-			HOTKEY_MACRO(IDC_6SAVE, 18);
-			HOTKEY_MACRO(IDC_7SAVE, 19);
-			HOTKEY_MACRO(IDC_8SAVE, 20);
-			HOTKEY_MACRO(IDC_9SAVE, 21);
-			HOTKEY_MACRO(IDC_1LOAD, 22);
-			HOTKEY_MACRO(IDC_2LOAD, 23);
-			HOTKEY_MACRO(IDC_3LOAD, 24);
-			HOTKEY_MACRO(IDC_4LOAD, 25);
-			HOTKEY_MACRO(IDC_5LOAD, 26);
-			HOTKEY_MACRO(IDC_6LOAD, 27);
-			HOTKEY_MACRO(IDC_7LOAD, 28);
-			HOTKEY_MACRO(IDC_8LOAD, 29);
-			HOTKEY_MACRO(IDC_9LOAD, 30);
-			HOTKEY_MACRO(IDC_1SEL, 31);
-			HOTKEY_MACRO(IDC_2SEL, 32);
-			HOTKEY_MACRO(IDC_3SEL, 33);
-			HOTKEY_MACRO(IDC_4SEL, 34);
-			HOTKEY_MACRO(IDC_5SEL, 35);
-			HOTKEY_MACRO(IDC_6SEL, 36);
-			HOTKEY_MACRO(IDC_7SEL, 37);
-			HOTKEY_MACRO(IDC_8SEL, 38);
-			HOTKEY_MACRO(IDC_9SEL, 39);
-				
-#undef HOTKEY_MACRO
+        if (id == IDC_HOTKEY_ASSIGN_SELECTED)
+        {
+            
+
+            HWND listHwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
+            int selectedIndex = SendMessage(listHwnd, LB_GETCURSEL, 0, 0);
+
+
+            if (selectedIndex >= 0 && selectedIndex < namedHotkeyCount)
+            {
+                char buttonText[MAX_PATH];
+                GetDlgItemText(hwnd, id, buttonText, MAX_PATH);
+                SetDlgItemText(hwnd, id, "...");
+
+                GetUserHotkey(namedHotkeys[selectedIndex].hotkey);
+                UpdateSelectedHotkeyTextBox(hwnd);
+
+                SetDlgItemText(hwnd, id, buttonText);
+            }
+        }
+    }
+        break;
+
+    case WM_NOTIFY:
+        if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
+            ApplyHotkeys();
         }
         break;
 
-       case WM_NOTIFY:
-           if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
-				memcpy(Config.hotkey, tempHotkeys, NUM_HOTKEYS * sizeof(HOTKEY));
-				goto inithotkeysdialog;
-           }
-       break;
-                            
-       default:
-           return FALSE;       
+    default:
+        return FALSE;
     }
-    return TRUE;            
+    return TRUE;
 }
-
 
 
 HWND WINAPI CreateTrackbar( 

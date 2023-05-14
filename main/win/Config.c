@@ -20,19 +20,24 @@
   #define _WIN32_WINNT 0x0500
   #endif
   */
-#include <windows.h>
+
+#include <Windows.h>
 #include <winuser.h>
 #include <stdio.h>
-#include "config.h"
-#include "main_win.h"
 #include "rombrowser.h"
 #include "commandline.h"
 #include "../../winproject/resource.h"
+#include "config.h"
 
 #include "../lua/Recent.h"
 #include <vcr.h>
+#include "translation.h"
 
 #define CfgFileName "mupen64.cfg"
+
+extern char AppPath[];
+extern HWND mainHWND;
+extern HWND hRomList;
 
 extern int no_audio_delay;
 extern int no_compiled_jump;
@@ -40,12 +45,330 @@ extern int no_compiled_jump;
 int input_delay;
 int LUA_double_buffered;
 
+NamedHotkey namedHotkeys[] = {
+    {
+        .name = "Fast-forward",
+        .hotkey = &Config.hotkey[0],
+    },
+    {
+        .name = "Speed up",
+        .hotkey = &Config.hotkey[1],
+    },
+    {
+        .name = "Speed down",
+        .hotkey = &Config.hotkey[2],
+    },
+    {
+        .name = "Frame advance",
+        .hotkey = &Config.hotkey[3],
+    },
+    {
+        .name = "Pause",
+        .hotkey = &Config.hotkey[4],
+    },
+    {
+        .name = "Toggle read-only mode",
+        .hotkey = &Config.hotkey[5],
+    },
+    {
+        .name = "Start movie playback",
+        .hotkey = &Config.hotkey[6],
+    },
+    {
+        .name = "Stop movie playback",
+        .hotkey = &Config.hotkey[7],
+    },
+    {
+        .name = "Start movie recording",
+        .hotkey = &Config.hotkey[8],
+    },
+    {
+        .name = "Stop movie recording",
+        .hotkey = &Config.hotkey[9],
+    },
+    {
+        .name = "Take screenshot",
+        .hotkey = &Config.hotkey[10],
+    },
+    {
+        .name = "Save to current slot",
+        .hotkey = &Config.hotkey[11],
+    },
+    {
+        .name = "Load from current slot",
+        .hotkey = &Config.hotkey[12],
+    },
+    {
+        .name = "Save to slot 1",
+        .hotkey = &Config.hotkey[13],
+    },
+    {
+        .name = "Save to slot 2",
+        .hotkey = &Config.hotkey[14],
+    },
+    {
+        .name = "Save to slot 3",
+        .hotkey = &Config.hotkey[15],
+    },
+    {
+        .name = "Save to slot 4",
+        .hotkey = &Config.hotkey[16],
+    },
+    {
+        .name = "Save to slot 5",
+        .hotkey = &Config.hotkey[17],
+    },
+    {
+        .name = "Save to slot 6",
+        .hotkey = &Config.hotkey[18],
+    },
+    {
+        .name = "Save to slot 7",
+        .hotkey = &Config.hotkey[19],
+    },
+    {
+        .name = "Save to slot 8",
+        .hotkey = &Config.hotkey[20],
+    },
+    {
+        .name = "Save to slot 9",
+        .hotkey = &Config.hotkey[21],
+    },
+    {
+        .name = "Save to slot 9",
+        .hotkey = &Config.hotkey[21],
+    },
+
+    {
+        .name = "Load from slot 1",
+        .hotkey = &Config.hotkey[22],
+    },
+    {
+        .name = "Load from slot 2",
+        .hotkey = &Config.hotkey[23],
+    },
+    {
+        .name = "Load from slot 3",
+        .hotkey = &Config.hotkey[24],
+    },
+    {
+        .name = "Load from slot 4",
+        .hotkey = &Config.hotkey[25],
+    },
+    {
+        .name = "Load from slot 5",
+        .hotkey = &Config.hotkey[26],
+    },
+    {
+        .name = "Load from slot 6",
+        .hotkey = &Config.hotkey[27],
+    },
+    {
+        .name = "Load from slot 7",
+        .hotkey = &Config.hotkey[28],
+    },
+    {
+        .name = "Load from slot 8",
+        .hotkey = &Config.hotkey[29],
+    },
+    {
+        .name = "Load from slot 9",
+        .hotkey = &Config.hotkey[30],
+    },
+
+
+    {
+        .name = "Select slot 1",
+        .hotkey = &Config.hotkey[31],
+    },
+    {
+        .name = "Select slot 2",
+        .hotkey = &Config.hotkey[32],
+    },
+    {
+        .name = "Select slot 3",
+        .hotkey = &Config.hotkey[33],
+    },
+    {
+        .name = "Select slot 4",
+        .hotkey = &Config.hotkey[34],
+    },
+    {
+        .name = "Select slot 5",
+        .hotkey = &Config.hotkey[35],
+    },
+    {
+        .name = "Select slot 6",
+        .hotkey = &Config.hotkey[36],
+    },
+    {
+        .name = "Select slot 7",
+        .hotkey = &Config.hotkey[37],
+    },
+    {
+        .name = "Select slot 8",
+        .hotkey = &Config.hotkey[38],
+    },
+    {
+        .name = "Select slot 9",
+        .hotkey = &Config.hotkey[39],
+    },
+
+};
+const int namedHotkeyCount = sizeof(namedHotkeys) / sizeof(NamedHotkey);
+
 ////////////////////// Service functions and structures ////////////////////////
 
 CONFIG Config;
 
 // is this the best way to handle this?
 int* autoinc_save_slot = &Config.AutoIncSaveSlot;
+
+
+void hotkeyToString(HOTKEY* hotkey, char* buf)
+{
+    int k = hotkey->key;
+    buf[0] = 0;
+
+    if (!hotkey->ctrl && !hotkey->shift && !hotkey->alt && !hotkey->key)
+    {
+        strcpy(buf, "(nothing)");
+        return;
+    }
+
+    if (hotkey->ctrl)
+        strcat(buf, "Ctrl ");
+    if (hotkey->shift)
+        strcat(buf, "Shift ");
+    if (hotkey->alt)
+        strcat(buf, "Alt ");
+    if (k)
+    {
+        char buf2[32];
+        if ((k >= '0' && k <= '9') || (k >= 'A' && k <= 'Z'))
+            sprintf(buf2, "%c", (char)k);
+        else if ((k >= VK_F1 && k <= VK_F24))
+            sprintf(buf2, "F%d", k - (VK_F1 - 1));
+        else if ((k >= VK_NUMPAD0 && k <= VK_NUMPAD9))
+            sprintf(buf2, "Num%d", k - VK_NUMPAD0);
+        else switch (k)
+        {
+        case VK_SPACE: strcpy(buf2, "Space"); break;
+        case VK_BACK: strcpy(buf2, "Backspace"); break;
+        case VK_TAB: strcpy(buf2, "Tab"); break;
+        case VK_CLEAR: strcpy(buf2, "Clear"); break;
+        case VK_RETURN: strcpy(buf2, "Enter"); break;
+        case VK_PAUSE: strcpy(buf2, "Pause"); break;
+        case VK_CAPITAL: strcpy(buf2, "Caps"); break;
+        case VK_PRIOR: strcpy(buf2, "PageUp"); break;
+        case VK_NEXT: strcpy(buf2, "PageDn"); break;
+        case VK_END: strcpy(buf2, "End"); break;
+        case VK_HOME: strcpy(buf2, "Home"); break;
+        case VK_LEFT: strcpy(buf2, "Left"); break;
+        case VK_UP: strcpy(buf2, "Up"); break;
+        case VK_RIGHT: strcpy(buf2, "Right"); break;
+        case VK_DOWN: strcpy(buf2, "Down"); break;
+        case VK_SELECT: strcpy(buf2, "Select"); break;
+        case VK_PRINT: strcpy(buf2, "Print"); break;
+        case VK_SNAPSHOT: strcpy(buf2, "PrintScrn"); break;
+        case VK_INSERT: strcpy(buf2, "Insert"); break;
+        case VK_DELETE: strcpy(buf2, "Delete"); break;
+        case VK_HELP: strcpy(buf2, "Help"); break;
+        case VK_MULTIPLY: strcpy(buf2, "Num*"); break;
+        case VK_ADD: strcpy(buf2, "Num+"); break;
+        case VK_SUBTRACT: strcpy(buf2, "Num-"); break;
+        case VK_DECIMAL: strcpy(buf2, "Num."); break;
+        case VK_DIVIDE: strcpy(buf2, "Num/"); break;
+        case VK_NUMLOCK: strcpy(buf2, "NumLock"); break;
+        case VK_SCROLL: strcpy(buf2, "ScrollLock"); break;
+        case /*VK_OEM_PLUS*/0xBB: strcpy(buf2, "=+"); break;
+        case /*VK_OEM_MINUS*/0xBD: strcpy(buf2, "-_"); break;
+        case /*VK_OEM_COMMA*/0xBC: strcpy(buf2, ","); break;
+        case /*VK_OEM_PERIOD*/0xBE: strcpy(buf2, "."); break;
+        case VK_OEM_7: strcpy(buf2, "'\""); break;
+        case VK_OEM_6: strcpy(buf2, "]}"); break;
+        case VK_OEM_5: strcpy(buf2, "\\|"); break;
+        case VK_OEM_4: strcpy(buf2, "[{"); break;
+        case VK_OEM_3: strcpy(buf2, "`~"); break;
+        case VK_OEM_2: strcpy(buf2, "/?"); break;
+        case VK_OEM_1: strcpy(buf2, ";:"); break;
+        default:
+            sprintf(buf2, "(%d)", k);
+            break;
+        }
+        strcat(buf, buf2);
+    }
+}
+
+void SetDlgItemHotkey(HWND hwnd, int idc, HOTKEY* hotkey)
+{
+    char buf[64];
+    hotkeyToString(hotkey, buf);
+    SetDlgItemText(hwnd, idc, buf);
+}
+
+void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, HOTKEY* hotkey, HMENU hmenu, int menuItemID)
+{
+    char buf[64];
+    hotkeyToString(hotkey, buf);
+    SetDlgItemText(hwnd, idc, buf);
+
+    if (hmenu && menuItemID >= 0)
+    {
+        if (strcmp(buf, "(nothing)"))
+            SetMenuAccelerator(hmenu, menuItemID, buf);
+        else
+            SetMenuAccelerator(hmenu, menuItemID, "");
+    }
+}
+
+void ApplyHotkeys() {
+
+    SetDlgItemHotkey(mainHWND, IDC_HOT_FASTFORWARD, &Config.hotkey[0]);
+    SetDlgItemHotkey(mainHWND, IDC_HOT_SPEEDUP, &Config.hotkey[1]);
+    SetDlgItemHotkey(mainHWND, IDC_HOT_SPEEDDOWN, &Config.hotkey[2]);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_FRAMEADVANCE, &Config.hotkey[3], GetSubMenu(GetMenu(mainHWND), 1), 1);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PAUSE, &Config.hotkey[4], GetSubMenu(GetMenu(mainHWND), 1), 0);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_READONLY, &Config.hotkey[5], GetSubMenu(GetMenu(mainHWND), 3), 15);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PLAY, &Config.hotkey[6], GetSubMenu(GetMenu(mainHWND), 3), 3);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PLAYSTOP, &Config.hotkey[7], GetSubMenu(GetMenu(mainHWND), 3), 4);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_RECORD, &Config.hotkey[8], GetSubMenu(GetMenu(mainHWND), 3), 0);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_RECORDSTOP, &Config.hotkey[9], GetSubMenu(GetMenu(mainHWND), 3), 1);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_SCREENSHOT, &Config.hotkey[10], GetSubMenu(GetMenu(mainHWND), 1), 2);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_CSAVE, &Config.hotkey[11], GetSubMenu(GetMenu(mainHWND), 1), 4);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_CLOAD, &Config.hotkey[12], GetSubMenu(GetMenu(mainHWND), 1), 6);
+
+    SetDlgItemHotkey(mainHWND, IDC_1SAVE, &Config.hotkey[13]);
+    SetDlgItemHotkey(mainHWND, IDC_2SAVE, &Config.hotkey[14]);
+    SetDlgItemHotkey(mainHWND, IDC_3SAVE, &Config.hotkey[15]);
+    SetDlgItemHotkey(mainHWND, IDC_4SAVE, &Config.hotkey[16]);
+    SetDlgItemHotkey(mainHWND, IDC_5SAVE, &Config.hotkey[17]);
+    SetDlgItemHotkey(mainHWND, IDC_6SAVE, &Config.hotkey[18]);
+    SetDlgItemHotkey(mainHWND, IDC_7SAVE, &Config.hotkey[19]);
+    SetDlgItemHotkey(mainHWND, IDC_8SAVE, &Config.hotkey[20]);
+    SetDlgItemHotkey(mainHWND, IDC_9SAVE, &Config.hotkey[21]);
+
+    SetDlgItemHotkey(mainHWND, IDC_1LOAD, &Config.hotkey[22]);
+    SetDlgItemHotkey(mainHWND, IDC_2LOAD, &Config.hotkey[23]);
+    SetDlgItemHotkey(mainHWND, IDC_3LOAD, &Config.hotkey[24]);
+    SetDlgItemHotkey(mainHWND, IDC_4LOAD, &Config.hotkey[25]);
+    SetDlgItemHotkey(mainHWND, IDC_5LOAD, &Config.hotkey[26]);
+    SetDlgItemHotkey(mainHWND, IDC_6LOAD, &Config.hotkey[27]);
+    SetDlgItemHotkey(mainHWND, IDC_7LOAD, &Config.hotkey[28]);
+    SetDlgItemHotkey(mainHWND, IDC_8LOAD, &Config.hotkey[29]);
+    SetDlgItemHotkey(mainHWND, IDC_9LOAD, &Config.hotkey[30]);
+
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_1SEL, &Config.hotkey[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_2SEL, &Config.hotkey[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_3SEL, &Config.hotkey[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_4SEL, &Config.hotkey[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_5SEL, &Config.hotkey[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_6SEL, &Config.hotkey[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_7SEL, &Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_8SEL, &Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_9SEL, &Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+
+}
 
 char* CfgFilePath()
 {

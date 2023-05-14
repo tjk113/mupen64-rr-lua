@@ -36,6 +36,7 @@
 #else
 #include <windows.h>
 #include "../main/win/main_win.h"
+#include "../main/win/Config.h"
 #endif
 
 #include "memory.h"
@@ -53,7 +54,6 @@
 
 extern BOOL manualFPSLimit; //0 = ff enabled
 static int frame;
-extern CONFIG Config;
 
 /* definitions of the rcp's structures and memory area */
 RDRAM_register rdram_register;

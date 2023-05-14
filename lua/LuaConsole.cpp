@@ -14,6 +14,7 @@
 #include "../../winproject/resource.h"
 #include "win/DebugInfo.hpp"
 #include "win/main_win.h"
+#include "win/Config.h"
 #include "include/lua.hpp"
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"

@@ -16,6 +16,8 @@
 
 #include <Windows.h>
 
+
+
 void SelectLang(HWND hWnd, int LangMenuID); 
 void SetupLanguages ( HWND hWnd ) ;
 void Translate(const char* GuiWord,char* Ret);

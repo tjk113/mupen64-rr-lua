@@ -398,7 +398,6 @@ void savestates_load(bool silenceNotFoundError)
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
 #ifdef WIN32
-		extern CONFIG Config;
 		if (Config.moviesERRORS)	// if true, allows loading
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
 #endif
@@ -642,7 +641,6 @@ void savestates_load_old(bool silenceNotFoundError)
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
 #ifdef WIN32
-		extern CONFIG Config;
 		if (Config.moviesERRORS)
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
 #endif
