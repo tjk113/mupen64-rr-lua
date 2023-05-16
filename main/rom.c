@@ -307,6 +307,9 @@ int rom_read(const char *argv)
   
    if (!ROM_HEADER) ROM_HEADER = (rom_header*)malloc(sizeof(rom_header));
    memcpy(ROM_HEADER, rom, sizeof(rom_header));
+   ROM_HEADER->unknown = 0; // Clean up ROMs that accidentally set the unused bytes (ensuring previous fields are null terminated)
+   ROM_HEADER->Unknown[0] = 0;
+   ROM_HEADER->Unknown[1] = 0;
    display_loading_progress(100);
    printf ("%x %x %x %x\n", ROM_HEADER->init_PI_BSB_DOM1_LAT_REG,
 	   ROM_HEADER->init_PI_BSB_DOM1_PGS_REG,
