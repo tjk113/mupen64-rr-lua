@@ -36,6 +36,7 @@
 #include "inifunctions.h"
 // its a hpp header
 #include "../main/win/wrapper/ReassociatingFileDialog.h"
+#include "../main/helpers/string_helpers.h"
 
 
 #include "configdialog.h"
@@ -1156,23 +1157,58 @@ static void GetUserHotkey(HOTKEY * hotkeys)
 	}
 }
 
+int GetIndexInHotkeyArrayFromHotkeyListBoxSelection(HWND hwnd) {
+    char nameAtSelection[MAX_PATH];
+    SendMessage(hwnd, LB_GETTEXT, SendMessage(hwnd, LB_GETCURSEL, 0, 0), (LPARAM)nameAtSelection);
 
-
-HOTKEY tempHotkeys [NUM_HOTKEYS];
+    int indexInHotkeyArray = -1;
+    for (size_t i = 0; i < namedHotkeyCount; i++)
+    {
+        if (!strcmp(namedHotkeys[i].name, nameAtSelection))
+        {
+            indexInHotkeyArray = i;
+            break;
+        }
+    }
+    return indexInHotkeyArray;
+}
 
 void UpdateSelectedHotkeyTextBox(HWND dialogHwnd) {
     HWND listHwnd = GetDlgItem(dialogHwnd, IDC_HOTKEY_LIST);
     HWND selectedHotkeyEditHwnd = GetDlgItem(dialogHwnd, IDC_SELECTED_HOTKEY_TEXT);
 
-    int selectedIndex = SendMessage(listHwnd, LB_GETCURSEL, 0, 0);
+    
+    int indexInHotkeyArray = GetIndexInHotkeyArrayFromHotkeyListBoxSelection(listHwnd);
 
-    if (selectedIndex >= 0 && selectedIndex < namedHotkeyCount)
+    if (indexInHotkeyArray >= 0 && indexInHotkeyArray < namedHotkeyCount)
     {
         char hotkeyText[MAX_PATH];
 
-        hotkeyToString(namedHotkeys[selectedIndex].hotkeys, hotkeyText);
+        hotkeyToString(namedHotkeys[indexInHotkeyArray].hotkeys, hotkeyText);
 
         SetWindowText(selectedHotkeyEditHwnd, hotkeyText);
+    }
+}
+
+
+
+void BuildHotkeyListItems(HWND hwnd, char* searchQuery) {
+    SendMessage(hwnd, LB_RESETCONTENT, 0, 0);
+    
+    for (size_t i = 0; i < namedHotkeyCount; i++)
+    {
+        if (strlen(searchQuery) != 0)
+        {
+            char hotkeyString[MAX_PATH];
+            hotkeyToString(namedHotkeys[i].hotkeys, hotkeyString);
+
+            if (!stristr(hotkeyString, searchQuery) && !stristr(namedHotkeys[i].name, searchQuery))
+            {
+                continue;
+            }
+        }
+        SendMessage(hwnd, LB_ADDSTRING, 0,
+            (LPARAM)namedHotkeys[i].name);
     }
 }
 
@@ -1181,13 +1217,8 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     switch (Message) {
     case WM_INITDIALOG:
     {
-        HWND listHwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
-
-        for (size_t i = 0; i < namedHotkeyCount; i++)
-        {
-            SendMessage(listHwnd, LB_ADDSTRING, 0,
-                (LPARAM)namedHotkeys[i].name);
-        }
+        
+        SetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, "");
         
         return TRUE;
     }
@@ -1205,20 +1236,26 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             
 
             HWND listHwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
-            int selectedIndex = SendMessage(listHwnd, LB_GETCURSEL, 0, 0);
+            int indexInHotkeyArray = GetIndexInHotkeyArrayFromHotkeyListBoxSelection(listHwnd);
 
-
-            if (selectedIndex >= 0 && selectedIndex < namedHotkeyCount)
+            if (indexInHotkeyArray >= 0 && indexInHotkeyArray < namedHotkeyCount)
             {
                 char buttonText[MAX_PATH];
                 GetDlgItemText(hwnd, id, buttonText, MAX_PATH);
                 SetDlgItemText(hwnd, id, "...");
 
-                GetUserHotkey(namedHotkeys[selectedIndex].hotkeys);
+                GetUserHotkey(namedHotkeys[indexInHotkeyArray].hotkeys);
                 UpdateSelectedHotkeyTextBox(hwnd);
 
                 SetDlgItemText(hwnd, id, buttonText);
             }
+        }
+
+        if (id == IDC_HOTKEY_SEARCH)
+        {
+            static char hotkeySearchQuery[MAX_PATH] = { 0 };
+            GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, hotkeySearchQuery, sizeof(hotkeySearchQuery) / sizeof(hotkeySearchQuery[0]));
+            BuildHotkeyListItems(GetDlgItem(hwnd, IDC_HOTKEY_LIST), hotkeySearchQuery);
         }
     }
         break;
