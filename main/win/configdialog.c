@@ -68,7 +68,6 @@ extern int no_audio_delay;
 extern int no_compiled_jump;
 
 BOOL LuaCriticalSettingChangePending; // other options proc
-const char* nums[7] = { "dummy slot to make this array 1-indexed", "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6" };
 
 
 void SwitchMovieBackupModifier(HWND hwnd) {
@@ -85,18 +84,20 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
     int index;
     switch (Message)
     {
-    case WM_INITDIALOG:
+    case WM_INITDIALOG: {
         WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
         WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
         WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.movieBackups);
         WriteCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS, Config.moviesERRORS);
         WriteCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH, Config.FrequentVCRUIRefresh);
-        
+
+        static const char* clockSpeedMultiplierNames[] = { "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6" };
+
         // Populate CPU Clock Speed Multiplier Dropdown Menu
-        for (int i = 1; i < 7; i++) {
-            SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0, (LPARAM)nums[i]);
+        for (int i = 0; i < sizeof(clockSpeedMultiplierNames) / sizeof(clockSpeedMultiplierNames[0]); i++) {
+            SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0, (LPARAM)clockSpeedMultiplierNames[i]);
         }
-        index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1, (LPARAM)nums[Config.CPUClockSpeedMultiplier]);
+        index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1, (LPARAM)clockSpeedMultiplierNames[Config.CPUClockSpeedMultiplier - 1]);
         SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
 
         // todo
@@ -118,7 +119,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 
 
         return TRUE;
-
+    }
     case WM_COMMAND: {
         char buf[50];
         // dame tu xorita mamacita
