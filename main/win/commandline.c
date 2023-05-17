@@ -169,7 +169,7 @@ BOOL StartGameByCommandLine()
 	if( CmdLineParameterExist(CMDLINE_FULL_SCREEN_FLAG))
 	{
 		ShowInfo("Command Line: Fullscreen mode on");
-		Config.StartFullScreen = 1;
+		Config.is_fullscreen_start_enabled = 1;
 	}
 	
 	if( CmdLineParameterExist(CMDLINE_SAVE_OPTIONS) )

@@ -25,7 +25,7 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 	menuinfo.fType = MFT_STRING;
 	menuinfo.fState = MFS_ENABLED;
 	for (i = 0; i < LUA_MAX_RECENT; i++) {
-		if (strcmp(Config.RecentScripts[i], "") == 0)
+		if (strcmp(Config.recent_lua_script_paths[i], "") == 0)
 		{
 			if (i == 0 && !emptyRecentScripts)
 			{
@@ -35,7 +35,7 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 			else break;
 		}
 		else {
-			menuinfo.dwTypeData = Config.RecentScripts[i];
+			menuinfo.dwTypeData = Config.recent_lua_script_paths[i];
 			emptyRecentScripts = false;
 		}
 
@@ -69,7 +69,7 @@ void ClearRecent(BOOL clear_array) {
 		DeleteMenu(hMenu, ID_LUA_RECENT + i, MF_BYCOMMAND);
 	}
 	if (clear_array) {
-		memset(Config.RecentScripts, 0, LUA_MAX_RECENT * sizeof(Config.RecentScripts[0]));
+		memset(Config.recent_lua_script_paths, 0, LUA_MAX_RECENT * sizeof(Config.recent_lua_script_paths[0]));
 	}
 	emptyRecentScripts = false;
 }
@@ -89,7 +89,7 @@ void RefreshRecent()
 //newer scripts are earlier in array
 void AddToRecentScripts(char* path)
 {
-	if (Config.RecentScriptsFreeze) return; // fuck off?
+	if (Config.is_recent_scripts_frozen) return; // fuck off?
 
 	int i = 0;
 	//Either finds index of path in recent list, or stops at last one
@@ -97,15 +97,15 @@ void AddToRecentScripts(char* path)
 	for (; i<LUA_MAX_RECENT-1; ++i)
 	{
 		//if matches or empty (list is not full), break
-		if (Config.RecentScripts[i][0]==0 || !strcmp(Config.RecentScripts[i], path)) break;
+		if (Config.recent_lua_script_paths[i][0]==0 || !strcmp(Config.recent_lua_script_paths[i], path)) break;
 	}
 	//now swap all elements backwards starting from `i`
 	for (int j = i; j>0; --j)
 	{
-		strcpy(Config.RecentScripts[j], Config.RecentScripts[j-1]);
+		strcpy(Config.recent_lua_script_paths[j], Config.recent_lua_script_paths[j-1]);
 	}
 	//now write to top
-	strcpy(Config.RecentScripts[0], path);
+	strcpy(Config.recent_lua_script_paths[0], path);
 	//rebuild menu
 	RefreshRecent();
 }
@@ -114,6 +114,6 @@ void RunRecentScript(WORD menuItem)
 {
 		char path[MAX_PATH];
 		int index = menuItem - ID_LUA_RECENT;
-		sprintf(path, Config.RecentScripts[index]);
+		sprintf(path, Config.recent_lua_script_paths[index]);
 		LuaOpenAndRun(path);
 }

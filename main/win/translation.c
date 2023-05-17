@@ -122,14 +122,14 @@ void SelectLang(HWND hWnd, int LangMenuID) {
 	menuinfo.cch = sizeof(String);
 	GetMenuItemInfo(hMenu,LangMenuID,FALSE,&menuinfo);
 
-	sprintf(Config.DefaultLanguage,String);
+	sprintf(Config.language,String);
     //WritePrivateProfileString("Default","Language",String,LngFilePath());
 	if (LastLang != -1) {
 		CheckMenuItem( hMenu, LastLang, MF_BYCOMMAND | MFS_UNCHECKED );
 	}
 	LastLang = LangMenuID;
 	CheckMenuItem( hMenu, LastLang, MF_BYCOMMAND | MFS_CHECKED );
-	SetCurrentLangByName( Config.DefaultLanguage);
+	SetCurrentLangByName( Config.language);
 }
 
 void SetupLanguages( HWND hWnd )
@@ -153,7 +153,7 @@ void SetupLanguages( HWND hWnd )
 	while ( p ) 
     {
 		if (strcmp(p->language_name,"English") == 0) { 
-		    if (strcmp(Config.DefaultLanguage, "English") == 0) {
+		    if (strcmp(Config.language, "English") == 0) {
 		  		    CheckMenuItem(hSubMenu, ID_LANG_ENGLISH, MF_BYCOMMAND | MFS_CHECKED );
 		            LastLang = ID_LANG_ENGLISH;
 		            current_lang = p;
@@ -164,7 +164,7 @@ void SetupLanguages( HWND hWnd )
 		        menuinfo.cch = strlen(p->language_name) + 1;
 		        menuinfo.wID = ID_LANG_ENGLISH + count;
 		        InsertMenuItem(hSubMenu, count++, TRUE, &menuinfo);
-		        if (strcmp(Config.DefaultLanguage, p->language_name) == 0) {
+		        if (strcmp(Config.language, p->language_name) == 0) {
 		              CheckMenuItem(hSubMenu, menuinfo.wID, MF_BYCOMMAND | MFS_CHECKED );
 		              LastLang = menuinfo.wID;
 		              current_lang = p;
@@ -172,7 +172,7 @@ void SetupLanguages( HWND hWnd )
        }
           p = p->next ;
      }
-     SetCurrentLangByName( Config.DefaultLanguage);  
+     SetCurrentLangByName( Config.language);  
 }
 
 void freeLanguages()
@@ -263,11 +263,11 @@ void SetMenuAccelerator(HMENU hMenu,int elementID,const char* Acc)
     SetMenuItemInfo(hMenu,elementID,TRUE,&menuinfo);
 }
 
-static void SetHotkeyMenuAccelerators(HOTKEY* hotkey, HMENU hmenu, int menuItemID)
+static void SetHotkeyMenuAccelerators(HOTKEY* hotkeys, HMENU hmenu, int menuItemID)
 {
     char buf [64];
-	extern void hotkeyToString(HOTKEY* hotkey, char* buf);
-	hotkeyToString(hotkey, buf);
+	extern void hotkeyToString(HOTKEY* hotkeys, char* buf);
+	hotkeyToString(hotkeys, buf);
 
 	if(hmenu && menuItemID >= 0)
 	{
@@ -303,31 +303,31 @@ void TranslateMenu(HMENU hMenu, HWND mainHWND)
 
 void SetMenuAcceleratorsFromUser(HWND mainHWND)
 {
-    SetHotkeyMenuAccelerators(&Config.hotkey[4], GetSubMenu(GetMenu(mainHWND), 1), 0);  // pause
-    SetHotkeyMenuAccelerators(&Config.hotkey[3], GetSubMenu(GetMenu(mainHWND), 1), 1);  // frame advance
-    SetHotkeyMenuAccelerators(&Config.hotkey[12], GetSubMenu(GetMenu(mainHWND), 1), 4);  // load current slot
-    SetHotkeyMenuAccelerators(&Config.hotkey[11], GetSubMenu(GetMenu(mainHWND), 1), 6);  // save current slot
+    SetHotkeyMenuAccelerators(&Config.hotkeys[4], GetSubMenu(GetMenu(mainHWND), 1), 0);  // pause
+    SetHotkeyMenuAccelerators(&Config.hotkeys[3], GetSubMenu(GetMenu(mainHWND), 1), 1);  // frame advance
+    SetHotkeyMenuAccelerators(&Config.hotkeys[12], GetSubMenu(GetMenu(mainHWND), 1), 4);  // load current slot
+    SetHotkeyMenuAccelerators(&Config.hotkeys[11], GetSubMenu(GetMenu(mainHWND), 1), 6);  // save current slot
 
-    SetHotkeyMenuAccelerators(&Config.hotkey[5], GetSubMenu(GetMenu(mainHWND), 3), 13); // toggle read-only
-    SetHotkeyMenuAccelerators(&Config.hotkey[6], GetSubMenu(GetMenu(mainHWND), 3), 3); // 
-    SetHotkeyMenuAccelerators(&Config.hotkey[7], GetSubMenu(GetMenu(mainHWND), 3), 4);
-    SetHotkeyMenuAccelerators(&Config.hotkey[8], GetSubMenu(GetMenu(mainHWND), 3), 0); // start recording
-    SetHotkeyMenuAccelerators(&Config.hotkey[9], GetSubMenu(GetMenu(mainHWND), 3), 1); // stop recording
-    SetHotkeyMenuAccelerators(&Config.hotkey[10], GetSubMenu(GetMenu(mainHWND), 1), 2);
-    SetHotkeyMenuAccelerators(&Config.hotkey[11], GetSubMenu(GetMenu(mainHWND), 1), 4);
-    SetHotkeyMenuAccelerators(&Config.hotkey[12], GetSubMenu(GetMenu(mainHWND), 1), 6);
-    SetHotkeyMenuAccelerators(&Config.hotkey[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
-    SetHotkeyMenuAccelerators(&Config.hotkey[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
-    SetHotkeyMenuAccelerators(&Config.hotkey[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
-    SetHotkeyMenuAccelerators(&Config.hotkey[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
-    SetHotkeyMenuAccelerators(&Config.hotkey[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
-    SetHotkeyMenuAccelerators(&Config.hotkey[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
-    SetHotkeyMenuAccelerators(&Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
-    SetHotkeyMenuAccelerators(&Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
-    SetHotkeyMenuAccelerators(&Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[5], GetSubMenu(GetMenu(mainHWND), 3), 13); // toggle read-only
+    SetHotkeyMenuAccelerators(&Config.hotkeys[6], GetSubMenu(GetMenu(mainHWND), 3), 3); // 
+    SetHotkeyMenuAccelerators(&Config.hotkeys[7], GetSubMenu(GetMenu(mainHWND), 3), 4);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[8], GetSubMenu(GetMenu(mainHWND), 3), 0); // start recording
+    SetHotkeyMenuAccelerators(&Config.hotkeys[9], GetSubMenu(GetMenu(mainHWND), 3), 1); // stop recording
+    SetHotkeyMenuAccelerators(&Config.hotkeys[10], GetSubMenu(GetMenu(mainHWND), 1), 2);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[11], GetSubMenu(GetMenu(mainHWND), 1), 4);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[12], GetSubMenu(GetMenu(mainHWND), 1), 6);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
 
-    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetMenu(mainHWND), 3), 12); // start from beginning
-    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
+    SetHotkeyMenuAccelerators(&Config.hotkeys[42], GetSubMenu(GetMenu(mainHWND), 3), 12); // start from beginning
+    SetHotkeyMenuAccelerators(&Config.hotkeys[43], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
 
 }
 /*
@@ -434,28 +434,28 @@ void TranslateMenuOld(HMENU hMenu,HWND mainHWND)
     
     
 
-	SetHotkeyMenuAccelerators(&Config.hotkey[3], GetSubMenu(GetMenu(mainHWND),1), 1);
-	SetHotkeyMenuAccelerators(&Config.hotkey[4], GetSubMenu(GetMenu(mainHWND),1), 0);
-	SetHotkeyMenuAccelerators(&Config.hotkey[5], GetSubMenu(GetMenu(mainHWND),3), 15); // toggle read-only
-	SetHotkeyMenuAccelerators(&Config.hotkey[6], GetSubMenu(GetMenu(mainHWND),3), 3); // 
-	SetHotkeyMenuAccelerators(&Config.hotkey[7], GetSubMenu(GetMenu(mainHWND),3), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkey[8], GetSubMenu(GetMenu(mainHWND),3), 0); // start recording
-	SetHotkeyMenuAccelerators(&Config.hotkey[9], GetSubMenu(GetMenu(mainHWND),3), 1); // stop recording
-	SetHotkeyMenuAccelerators(&Config.hotkey[10], GetSubMenu(GetMenu(mainHWND),1), 2);
-	SetHotkeyMenuAccelerators(&Config.hotkey[11], GetSubMenu(GetMenu(mainHWND),1), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkey[12], GetSubMenu(GetMenu(mainHWND),1), 6);
-	SetHotkeyMenuAccelerators(&Config.hotkey[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 0);
-	SetHotkeyMenuAccelerators(&Config.hotkey[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 1);
-	SetHotkeyMenuAccelerators(&Config.hotkey[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 2);
-	SetHotkeyMenuAccelerators(&Config.hotkey[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 3);
-	SetHotkeyMenuAccelerators(&Config.hotkey[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkey[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 5);
-	SetHotkeyMenuAccelerators(&Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
-	SetHotkeyMenuAccelerators(&Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
-	SetHotkeyMenuAccelerators(&Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[3], GetSubMenu(GetMenu(mainHWND),1), 1);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[4], GetSubMenu(GetMenu(mainHWND),1), 0);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[5], GetSubMenu(GetMenu(mainHWND),3), 15); // toggle read-only
+	SetHotkeyMenuAccelerators(&Config.hotkeys[6], GetSubMenu(GetMenu(mainHWND),3), 3); // 
+	SetHotkeyMenuAccelerators(&Config.hotkeys[7], GetSubMenu(GetMenu(mainHWND),3), 4);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[8], GetSubMenu(GetMenu(mainHWND),3), 0); // start recording
+	SetHotkeyMenuAccelerators(&Config.hotkeys[9], GetSubMenu(GetMenu(mainHWND),3), 1); // stop recording
+	SetHotkeyMenuAccelerators(&Config.hotkeys[10], GetSubMenu(GetMenu(mainHWND),1), 2);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[11], GetSubMenu(GetMenu(mainHWND),1), 4);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[12], GetSubMenu(GetMenu(mainHWND),1), 6);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 0);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 1);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 2);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 3);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 4);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 5);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
 
-    SetHotkeyMenuAccelerators(&Config.hotkey[42], GetSubMenu(GetMenu(mainHWND), 3), 14); // start from beginning
-    SetHotkeyMenuAccelerators(&Config.hotkey[43], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
+    SetHotkeyMenuAccelerators(&Config.hotkeys[42], GetSubMenu(GetMenu(mainHWND), 3), 14); // start from beginning
+    SetHotkeyMenuAccelerators(&Config.hotkeys[43], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
 
 }
 */

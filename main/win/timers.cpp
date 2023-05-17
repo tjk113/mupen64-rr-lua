@@ -72,8 +72,8 @@ int GetVILimit()
 void InitTimer() {
    int temp;
    VILimit = GetVILimit();
-   if (Config.UseFPSmodifier) {
-       temp = Config.FPSmodifier ; 
+   if (Config.is_fps_modifier_enabled) {
+       temp = Config.fps_modifier ; 
       }  
    else {
        temp = 100;
@@ -113,7 +113,7 @@ void new_frame_old() {
    static DWORD CounterTime;
    static int Fps_Counter=0;
 
-   if (!Config.showFPS) return;
+   if (!Config.show_fps) return;
    Fps_Counter++;
    
    CurrentFPSTime = timeGetTime();
@@ -169,7 +169,7 @@ void new_vi()
 #else
 	extern int frame_advancing;
 	extern BOOL manualFPSLimit;
-	if (!Config.FrequentVCRUIRefresh) {
+	if (!Config.is_statusbar_frequent_refresh_enabled) {
 		if ((frame_advancing || (m_currentVI % (manualFPSLimit ? 10 : 80)) == 0))
 		{
 			VCR_updateFrameCounter();
@@ -189,13 +189,13 @@ void new_vi()
 	}
 #endif
 
-   if ( (!Config.showVIS) && (!Config.limitFps) ) return;
+   if ( (!Config.show_vis_per_second) && (!Config.is_fps_limited) ) return;
    VI_Counter++;
          
    auto CurrentFPSTime = std::chrono::high_resolution_clock::now(); //nanosecond precosion is kept up to the sleep
 
    auto Dif = CurrentFPSTime - LastFPSTime;
-	if (Config.limitFps && manualFPSLimit && !frame_advancing
+	if (Config.is_fps_limited && manualFPSLimit && !frame_advancing
 #ifdef LUA_SPEEDMODE
 		 && !maximumSpeedMode
 #endif
@@ -228,7 +228,7 @@ void new_vi()
 			}
 		}
     }
-    if ( Config.showVIS )
+    if ( Config.show_vis_per_second )
 	{
 		if (CurrentFPSTime - CounterTime >= std::chrono::seconds(1))
 		{
@@ -238,7 +238,7 @@ void new_vi()
 			if (VIs > 1) //if after fast forwarding pretend statusbar lagged idk
 			{
 				sprintf(mes, "VI/s: %.1f", VIs);
-				if (Config.showFPS) SendMessage(hStatus, SB_SETTEXT, 3, (LPARAM)mes);
+				if (Config.show_fps) SendMessage(hStatus, SB_SETTEXT, 3, (LPARAM)mes);
 				else SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)mes);
 			}
             CounterTime = std::chrono::high_resolution_clock::now();

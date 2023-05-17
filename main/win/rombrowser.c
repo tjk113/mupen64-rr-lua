@@ -66,25 +66,25 @@ int isFieldInBrowser(int index)
     switch (index)
     {
         case 0:
-        return Config.Column_GoodName; 
+        return Config.is_good_name_column_enabled; 
 
         case 1:
-        return Config.Column_InternalName;
+        return Config.is_internal_name_column_enabled;
 
         case 2:
-        return Config.Column_Country;
+        return Config.is_country_column_enabled;
 
         case 3:
-        return Config.Column_Size;
+        return Config.is_size_column_enabled;
 
         case 4:
-        return Config.Column_Comments;
+        return Config.is_comments_column_enabled;
 
         case 5:
-        return Config.Column_FileName;
+        return Config.is_filename_column_enabled;
 
         case 6:
-        return Config.Column_MD5;
+        return Config.is_md5_column_enabled;
 
         default:
         return 0;
@@ -433,7 +433,7 @@ BOOL romInList(char *RomLocation)
 {
     ROM_INFO *pRomInfo;
 	int i;
-	if (!Config.RomBrowserRecursion) return FALSE;
+	if (!Config.is_rom_browser_recursion_enabled) return FALSE;
     for (i=0;i<ItemList.ListCount;i++)
     {
         pRomInfo = &ItemList.List[i];
@@ -629,7 +629,7 @@ LRESULT CALLBACK RomPropertiesProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
              WriteComboBoxValue( hwnd, IDC_COMBO_SOUND, TempRomSettings.SoundPluginName, sound_name);
              WriteComboBoxValue( hwnd, IDC_COMBO_RSP, TempRomSettings.RspPluginName, rsp_name);
              
-             if (Config.OverwritePluginSettings) {
+             if (Config.use_global_plugins) {
                  EnableWindow( GetDlgItem(hwnd,IDC_COMBO_GFX), FALSE );
                  EnableWindow( GetDlgItem(hwnd,IDC_COMBO_INPUT), FALSE );
                  EnableWindow( GetDlgItem(hwnd,IDC_COMBO_SOUND), FALSE );
@@ -824,12 +824,12 @@ void TranslateBrowserHeader(HWND hwnd)
 
 int getSortColumn()
 {
-   return  Config.RomBrowserSortColumn ; 
+   return  Config.rom_browser_sorted_column ; 
 }
 
 void ListViewSort()
 {
-    SortAscending = strcmp(Config.RomBrowserSortMethod,"ASC")?FALSE:TRUE;
+    SortAscending = strcmp(Config.rom_browser_sort_method,"ASC")?FALSE:TRUE;
     drawSortArrow(getSortColumn());
     ListView_SortItems(hRomList, RomList_CompareItems, getSortColumn());  
 }
@@ -878,10 +878,10 @@ void AddDirToList(char RomBrowserDir[MAX_PATH],BOOL sortflag)
      if (FullPath[strlen(RomBrowserDir) - 1] != '\\') { strcat(FullPath,"\\"); }
      strcat(FullPath,fd.cFileName);
 
-     if (Config.manageBadRoms && !validRomExt(FullPath)) continue;
+     if (Config.prevent_suspicious_rom_loading && !validRomExt(FullPath)) continue;
 
      if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-            if (Config.RomBrowserRecursion) { 
+            if (Config.is_rom_browser_recursion_enabled) { 
               		AddDirToList(FullPath,FALSE); }
 			continue;
 		}
@@ -1035,9 +1035,9 @@ void RomList_ColoumnSortList(LPNMLISTVIEW pnmv)
 {
     if (getSortColumn()==pnmv->iSubItem) {
         SortAscending = SortAscending?FALSE:TRUE;
-        sprintf(Config.RomBrowserSortMethod,SortAscending?"ASC":"DESC");
+        sprintf(Config.rom_browser_sort_method,SortAscending?"ASC":"DESC");
     }
-    Config.RomBrowserSortColumn = pnmv->iSubItem;
+    Config.rom_browser_sorted_column = pnmv->iSubItem;
     ListViewSort();
 }
 
@@ -1146,7 +1146,7 @@ void ShiftRecentRoms()
     int i;
     for ( i = MAX_RECENT_ROMS - 1; i > 0; i--)
             {
-                 sprintf( Config.RecentRoms[i], Config.RecentRoms[i-1] );     
+                 sprintf( Config.recent_rom_paths[i], Config.recent_rom_paths[i-1] );     
             }
 }
 
@@ -1163,7 +1163,7 @@ void ClearRecentList (HWND hwnd,BOOL clear_array) {
 		DeleteMenu(hMenu, ID_RECENTROMS_FIRST + i, MF_BYCOMMAND);
 	}
 	if (clear_array) {
-	    memset( Config.RecentRoms, 0, MAX_RECENT_ROMS * sizeof(Config.RecentRoms[0]));
+	    memset( Config.recent_rom_paths, 0, MAX_RECENT_ROMS * sizeof(Config.recent_rom_paths[0]));
     }
    
 }
@@ -1183,7 +1183,7 @@ void SetRecentList(HWND hwnd) {
     menuinfo.fType = MFT_STRING;
     menuinfo.fState = MFS_ENABLED;
     for ( i = 0 ; i < MAX_RECENT_ROMS  ; i++)   {
-              if (strcmp(Config.RecentRoms[i], "")==0) {
+              if (strcmp(Config.recent_rom_paths[i], "")==0) {
                   if (i == 0 && !emptyRecentROMs) {
                       menuinfo.dwTypeData = (LPTSTR)"No Recent ROMs";
                       emptyRecentROMs = true;
@@ -1191,11 +1191,11 @@ void SetRecentList(HWND hwnd) {
                   else break;
               }
               else {
-                  menuinfo.dwTypeData = ParseName(Config.RecentRoms[i]);
+                  menuinfo.dwTypeData = ParseName(Config.recent_rom_paths[i]);
                   emptyRecentROMs = false;
               }
     
-	          //menuinfo.dwTypeData = ParseName( Config.RecentRoms[i]);
+	          //menuinfo.dwTypeData = ParseName( Config.recent_rom_paths[i]);
               menuinfo.cch = strlen(menuinfo.dwTypeData);
 	          menuinfo.wID = ID_RECENTROMS_FIRST + i;
               InsertMenuItem( hSubMenu, 3 + i, TRUE, &menuinfo);
@@ -1225,23 +1225,23 @@ void EnableRecentROMsMenu(HMENU hMenu, BOOL flag) {
 void AddToRecentList(HWND hwnd,char *rompath) {
     
     int i,j;
-    if ( Config.RecentRomsFreeze ) return;
+    if ( Config.is_recent_rom_paths_frozen ) return;
     
     for (i=0;i<MAX_RECENT_ROMS-1 ;i++) {
           
-          if ( strcmp(Config.RecentRoms[i],rompath)==0) 
+          if ( strcmp(Config.recent_rom_paths[i],rompath)==0) 
           { // Shifting Array up
               for (j=i;j<MAX_RECENT_ROMS-1;j++) 
               {
-                  sprintf( Config.RecentRoms[j], Config.RecentRoms[j+1] ); 
+                  sprintf( Config.recent_rom_paths[j], Config.recent_rom_paths[j+1] ); 
               }
-              Config.RecentRoms[MAX_RECENT_ROMS-1][0] = '\0';
+              Config.recent_rom_paths[MAX_RECENT_ROMS-1][0] = '\0';
           }
     }
     
     ShiftRecentRoms();
     
-    sprintf( Config.RecentRoms[0], rompath);
+    sprintf( Config.recent_rom_paths[0], rompath);
      
     ClearRecentList ( hwnd, FALSE) ;
     SetRecentList( hwnd) ;
@@ -1253,8 +1253,8 @@ void RunRecentRom(int id) {
     static char rompath[MAX_PATH];
     i = id - ID_RECENTROMS_FIRST;
     if (i >= 0 && i<MAX_RECENT_ROMS) {
-        if (strcmp(Config.RecentRoms[i],"")==0) return;
-        sprintf( rompath,Config.RecentRoms[i]);
+        if (strcmp(Config.recent_rom_paths[i],"")==0) return;
+        sprintf( rompath,Config.recent_rom_paths[i]);
         StartRom( rompath );
     }
 }
@@ -1268,7 +1268,7 @@ void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable) {
 	HMENU hMenu = GetMenu(hWnd);
 	if (ChangeConfigVariable) {
        shouldSave = 1;
-	   Config.RecentRomsFreeze = 1 - Config.RecentRomsFreeze ;
+	   Config.is_recent_rom_paths_frozen = 1 - Config.is_recent_rom_paths_frozen ;
 	}
-    CheckMenuItem(hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | (Config.RecentRomsFreeze ? MFS_CHECKED : MFS_UNCHECKED));
+    CheckMenuItem(hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | (Config.is_recent_rom_paths_frozen ? MFS_CHECKED : MFS_UNCHECKED));
 }

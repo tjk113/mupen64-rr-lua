@@ -183,12 +183,12 @@ char* strtrimext(char* myStr) {
 
 int movieBackup() {
 
-	if (!Config.movieBackups) return 0; // :(
+	if (!Config.is_movie_backup_enabled) return 0; // :(
 
 	char* original_m_filename = (char*)malloc(strlen(m_filename));
 	strcpy(original_m_filename, m_filename);
 
-	if (Config.movieBackupsLevel > 1) {
+	if (Config.movie_backup_level > 1) {
 		char* stPath = m_filename;
 		stripExt(stPath);
 		char* newPath = stPath;
@@ -791,7 +791,7 @@ VCR_setReadOnly(BOOL val)
 }
 
 bool VCR_isLooping() {
-	return Config.loopMovie;
+	return Config.is_movie_loop_enabled;
 }
 
 bool VCR_isRestarting() {
@@ -804,7 +804,7 @@ void VCR_setLoopMovie(bool val) {
 	if (VCR_isLooping() != val)
 		CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
 #endif
-	Config.loopMovie = val;
+	Config.is_movie_loop_enabled = val;
 }
 
 unsigned long VCR_getLengthVIs()
@@ -1598,7 +1598,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 			{
 				sprintf(str, "The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n", m_header.romNom, ROM_HEADER->nom);
 				strcat(warningStr, str);
-				dontPlay = Config.moviesERRORS ? dontPlay : TRUE;
+				dontPlay = Config.is_rom_movie_compatibility_check_enabled ? dontPlay : TRUE;
 			}
 			else
 			{
@@ -1606,13 +1606,13 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 				{
 					sprintf(str, "The movie was recorded with a ROM with country code \"%d\",\nbut you are using a ROM with country code \"%d\",\nso the movie may not play properly.\n", m_header.romCountry, ROM_HEADER->Country_code);
 					strcat(warningStr, str);
-					dontPlay = Config.moviesERRORS ? dontPlay : TRUE;
+					dontPlay = Config.is_rom_movie_compatibility_check_enabled ? dontPlay : TRUE;
 				}
 				else if (ROM_HEADER && m_header.romCRC != ROM_HEADER->CRC1)
 				{
 					sprintf(str, "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\",\nso the movie may not play properly.\n", (unsigned int)m_header.romCRC, (unsigned int)ROM_HEADER->CRC1);
 					strcat(warningStr, str);
-					dontPlay = Config.moviesERRORS ? dontPlay : TRUE;
+					dontPlay = Config.is_rom_movie_compatibility_check_enabled ? dontPlay : TRUE;
 				}
 			}
 
@@ -1710,7 +1710,7 @@ startPlayback( const char *filename, const char *authorUTF8, const char *descrip
 		m_currentVI = 0;
 		strcpy(VCR_Lastpath, filename);
 
-		if (Config.movieBackupsLevel > 1) movieBackup();
+		if (Config.movie_backup_level > 1) movieBackup();
 
 		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 		{
@@ -1939,7 +1939,7 @@ VCR_updateScreen()
 	//	VCR_stopCapture();
 	//}
 
-	if (Config.SyncMode == VCR_SYNC_AUDIO_DUPL || Config.SyncMode == VCR_SYNC_NONE) {
+	if (Config.synchronization_mode == VCR_SYNC_AUDIO_DUPL || Config.synchronization_mode == VCR_SYNC_NONE) {
 		// AUDIO SYNC
 		// This type of syncing assumes the audio is authoratative, and drops or duplicates frames to keep the video as close to
 		// it as possible. Some games stop updating the screen entirely at certain points, such as loading zones, which will cause
@@ -1948,7 +1948,7 @@ VCR_updateScreen()
 
 		int audio_frames = m_audioFrame - m_videoFrame + 0.1; // i've seen a few games only do ~0.98 frames of audio for a frame, let's account for that here
 
-		if (Config.SyncMode == VCR_SYNC_AUDIO_DUPL)
+		if (Config.synchronization_mode == VCR_SYNC_AUDIO_DUPL)
 		{
 			if (audio_frames < 0)
 			{
@@ -1993,7 +1993,7 @@ VCR_updateScreen()
 				}
 			}
 		}
-		else /*if (Config.SyncMode == VCR_SYNC_NONE)*/
+		else /*if (Config.synchronization_mode == VCR_SYNC_NONE)*/
 		{
 			if (!VCRComp_addVideoFrame((unsigned char*)image))
 			{
@@ -2152,7 +2152,7 @@ void VCR_aiLenChanged()
 		}
 */
 		
-		if (Config.SyncMode == VCR_SYNC_VIDEO_SNDROP || Config.SyncMode == VCR_SYNC_NONE) {
+		if (Config.synchronization_mode == VCR_SYNC_VIDEO_SNDROP || Config.synchronization_mode == VCR_SYNC_NONE) {
 			// VIDEO SYNC
 			// This is the original syncing code, which adds silence to the audio track to get it to line up with video.
 			// The N64 appears to have the ability to arbitrarily disable its sound processing facilities and no audio samples
@@ -2166,7 +2166,7 @@ void VCR_aiLenChanged()
 
 			long double desync = m_videoFrame - m_audioFrame;
 
-			if (Config.SyncMode == VCR_SYNC_NONE) // HACK
+			if (Config.synchronization_mode == VCR_SYNC_NONE) // HACK
 				desync = 0;
 
 			if (desync > 1.0)
@@ -2289,7 +2289,7 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	captureWithFFmpeg = 0;
 	EnableEmulationMenuItems(TRUE);
 	strncpy( AVIFileName, aviFilename, PATH_MAX );
-	strncpy(Config.AviCapturePath, aviFilename, PATH_MAX);
+	strncpy(Config.avi_capture_path, aviFilename, PATH_MAX);
 
 	UpdateTitleBarCapture(AVIFileName);
 /*	if (VCR_startPlayback( recFilename ) < 0)
@@ -2388,17 +2388,17 @@ VCR_toggleReadOnly ()
 void
 VCR_toggleLoopMovie()
 {
-	Config.loopMovie ^= 1;
+	Config.is_movie_loop_enabled ^= 1;
 	//extern bool lockNoStWarn;
 	//lockNoStWarn = Config.loopMovie; // not needed now I think
 
 #ifdef __WIN32__
 	extern HWND mainHWND;
-	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (Config.loopMovie ? MFS_CHECKED : MFS_UNCHECKED));
+	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (Config.is_movie_loop_enabled ? MFS_CHECKED : MFS_UNCHECKED));
 
 	extern HWND hStatus/*, hStatusProgress*/;
 	if(emu_launched)
-	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(Config.loopMovie ? "loop movie enabled" : "loop movie disabled"));
+	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(Config.is_movie_loop_enabled ? "loop movie enabled" : "loop movie disabled"));
 #else
 	printf("%s\n", Config.loopMovie ? "loop movie enabled" : "loop movie disabled");
 #endif
@@ -2544,7 +2544,7 @@ void VCR_updateFrameCounter ()
 	char rr[50];
 	if (VCR_isRecording())
 	{
-		if (Config.zeroIndex)
+		if (Config.is_frame_count_visual_zero_index)
 			sprintf(str, "%d (%d) %s", (int)m_currentVI-2, (int)m_currentSample-1, inputDisplay);
 		else
 			sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, inputDisplay);
@@ -2555,7 +2555,7 @@ void VCR_updateFrameCounter ()
 	}
 	else if (VCR_isPlaying())
 	{
-		if (Config.zeroIndex)
+		if (Config.is_frame_count_visual_zero_index)
 			sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI-2, (int)VCR_getLengthVIs()-2, (int)m_currentSample-1, (int)VCR_getLengthSamples()-1, inputDisplay);
 		else
 			sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), inputDisplay);
@@ -2606,7 +2606,7 @@ void BuildRecentMoviesMenu(HWND hwnd) {
 	menuinfo.fState = MFS_ENABLED;
 
 	for (i = 0; i < MAX_RECENT_MOVIE; i++) {
-		if (strcmp(Config.RecentMovies[i], "") == 0) {
+		if (strcmp(Config.recent_movie_paths[i], "") == 0) {
 			// the !emptyRecentMovies check here prevents unlimited "No Recent Movies" items being added to the menu by repeatedly pressing Reset
 			if (i == 0 && !emptyRecentMovies) {
 				menuinfo.dwTypeData = (LPTSTR)"No Recent Movies";
@@ -2615,7 +2615,7 @@ void BuildRecentMoviesMenu(HWND hwnd) {
 			else break;
 		}
 		else {
-			menuinfo.dwTypeData = Config.RecentMovies[i];
+			menuinfo.dwTypeData = Config.recent_movie_paths[i];
 			emptyRecentMovies = false;
 		}
 
@@ -2648,7 +2648,7 @@ void ClearRecentMovies(BOOL clear_array) {
 		DeleteMenu(hMenu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
 	}
 	if (clear_array) {
-		memset(Config.RecentMovies, 0, MAX_RECENT_MOVIE * sizeof(Config.RecentMovies[0]));
+		memset(Config.recent_movie_paths, 0, MAX_RECENT_MOVIE * sizeof(Config.recent_movie_paths[0]));
 		/* unintuitive, but if emptyRecentMovies is true then the "if (i == 0 && !emptyRecentMovies)" check will fail in BuildRecentMoviesMenu,
 		meaning "No Recent Movies" will never be added to the list */
 		emptyRecentMovies = false;
@@ -2663,7 +2663,7 @@ void RefreshRecentMovies() {
 
 // Adapted Code from Recent.cpp
 void AddToRecentMovies(const char* path) {
-	if (Config.RecentMoviesFreeze) return;
+	if (Config.is_recent_movie_paths_frozen) return;
 
 	int i = 0;
 	//Either finds index of path in recent list, or stops at last one
@@ -2671,15 +2671,15 @@ void AddToRecentMovies(const char* path) {
 	for (; i < MAX_RECENT_MOVIE - 1; ++i)
 	{
 		//if matches or empty (list is not full), break
-		if (Config.RecentMovies[i][0] == 0 || !strcmp(Config.RecentMovies[i], path)) break;
+		if (Config.recent_movie_paths[i][0] == 0 || !strcmp(Config.recent_movie_paths[i], path)) break;
 	}
 	//now swap all elements backwards starting from `i`
 	for (int j = i; j > 0; --j)
 	{
-		strcpy(Config.RecentMovies[j], Config.RecentMovies[j - 1]);
+		strcpy(Config.recent_movie_paths[j], Config.recent_movie_paths[j - 1]);
 	}
 	//now write to top
-	strcpy(Config.RecentMovies[0], path);
+	strcpy(Config.recent_movie_paths[0], path);
 	//rebuild menu
 	RefreshRecentMovies();
 }
@@ -2689,16 +2689,16 @@ void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable) {
 	HMENU hMenu = GetMenu(hWnd);
 	if (ChangeConfigVariable) {
 		shouldSave = 1;
-		Config.RecentMoviesFreeze = 1 - Config.RecentMoviesFreeze;
+		Config.is_recent_movie_paths_frozen = 1 - Config.is_recent_movie_paths_frozen;
 	}
-	CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, MF_BYCOMMAND | (Config.RecentMoviesFreeze ? MFS_CHECKED : MFS_UNCHECKED));
+	CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, MF_BYCOMMAND | (Config.is_recent_movie_paths_frozen ? MFS_CHECKED : MFS_UNCHECKED));
 }
 
 // Adapted Code from Recent.cpp
 int RunRecentMovie(WORD menuItem) {
 	char path[MAX_PATH];
 	int index = menuItem - ID_RECENTMOVIES_FIRST;
-	sprintf(path, Config.RecentMovies[index]);
+	sprintf(path, Config.recent_movie_paths[index]);
 	VCR_setReadOnly(TRUE);
 	return VCR_startPlayback(path, "", "");
 }

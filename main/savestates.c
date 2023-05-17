@@ -82,7 +82,7 @@ void savestates_select_filename(const char *fn)
    if (strlen((const char *)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
 		 return;
    strcpy(fname, (const char *)fn);
-   strncpy(Config.SaveLoadAsandSaveStateAsPath, fname, MAX_PATH);
+   strncpy(Config.states_path, fname, MAX_PATH);
 }
 
 unsigned const char * savestates_get_selected_filename()
@@ -398,7 +398,7 @@ void savestates_load(bool silenceNotFoundError)
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
 #ifdef WIN32
-		if (Config.moviesERRORS)	// if true, allows loading
+		if (Config.is_rom_movie_compatibility_check_enabled)	// if true, allows loading
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
 #endif
 		else
@@ -449,7 +449,7 @@ void savestates_load(bool silenceNotFoundError)
 	{
 		if (VCR_isActive())
 		{
-			if (!Config.allowArbitrarySavestateLoading)
+			if (!Config.is_state_independent_state_loading_allowed)
 			{
 				fprintf(stderr, "Can't load a non-movie snapshot while a movie is active.\n");
 				warn_savestate("Savestate error", "Can't load a non-movie snapshot while a movie is active.\n");
@@ -512,7 +512,7 @@ void savestates_load(bool silenceNotFoundError)
 				stop = true;
 				break;
 			}
-			if (!Config.allowArbitrarySavestateLoading)
+			if (!Config.is_state_independent_state_loading_allowed)
 			{
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord(1);
@@ -641,7 +641,7 @@ void savestates_load_old(bool silenceNotFoundError)
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
 #ifdef WIN32
-		if (Config.moviesERRORS)
+		if (Config.is_rom_movie_compatibility_check_enabled)
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
 #endif
 		else
@@ -776,7 +776,7 @@ void savestates_load_old(bool silenceNotFoundError)
 					break;
 			}
 
-			if (!Config.allowArbitrarySavestateLoading)
+			if (!Config.is_state_independent_state_loading_allowed)
 			{
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord(1);
@@ -791,7 +791,7 @@ void savestates_load_old(bool silenceNotFoundError)
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if (VCR_isActive() && Config.allowArbitrarySavestateLoading) {
+		if (VCR_isActive() && Config.is_state_independent_state_loading_allowed) {
 			display_status("Warning: non-movie savestate\n");
 		}
 		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn) //@TODO: lockNoStWarn is not used anywhere!!!

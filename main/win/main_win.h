@@ -78,7 +78,7 @@ extern BOOL ignoreErrorEmulation;
 
 void exit_emu(int postquit);
 
-#define IGNORE_RSP (((!Config.limitFps || !manualFPSLimit) && !VCR_isCapturing() && (!Config.skipFrequency || (frame++ % Config.skipFrequency)))) //if frame advancing and either skipfreq is 0 or modulo is 0
+#define IGNORE_RSP (((!Config.is_fps_limited || !manualFPSLimit) && !VCR_isCapturing() && (!Config.frame_skip_frequency || (frame++ % Config.frame_skip_frequency)))) //if frame advancing and either skipfreq is 0 or modulo is 0
 
 #define RESET_TITLEBAR char tmpwndtitle[200]; sprintf(tmpwndtitle, MUPEN_VERSION " - %s", ROM_HEADER->nom); SetWindowText(mainHWND, tmpwndtitle);
 

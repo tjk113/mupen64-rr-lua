@@ -85,11 +85,11 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
     switch (Message)
     {
     case WM_INITDIALOG: {
-        WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
-        WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.LuaWarnOnClose);
-        WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.movieBackups);
-        WriteCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS, Config.moviesERRORS);
-        WriteCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH, Config.FrequentVCRUIRefresh);
+        WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.is_lua_simple_dialog_enabled);
+        WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.is_lua_exit_confirm_enabled);
+        WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.is_movie_backup_enabled);
+        WriteCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
+        WriteCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH, Config.is_statusbar_frequent_refresh_enabled);
 
         static const char* clockSpeedMultiplierNames[] = { "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6" };
 
@@ -97,14 +97,14 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         for (int i = 0; i < sizeof(clockSpeedMultiplierNames) / sizeof(clockSpeedMultiplierNames[0]); i++) {
             SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0, (LPARAM)clockSpeedMultiplierNames[i]);
         }
-        index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1, (LPARAM)clockSpeedMultiplierNames[Config.CPUClockSpeedMultiplier - 1]);
+        index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1, (LPARAM)clockSpeedMultiplierNames[Config.cpu_clock_speed_multiplier - 1]);
         SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
 
         // todo
         //hwndTrackMovieBackup = CreateTrackbar(hwnd, (HMENU)ID_MOVIEBACKUP_TRACKBAR, 1, 3, Config.movieBackupsLevel, 3, 200, 55, 100);
         SwitchMovieBackupModifier(hwnd);
 
-        switch (Config.SyncMode)
+        switch (Config.synchronization_mode)
         {
         case VCR_SYNC_AUDIO_DUPL:
             CheckDlgButton(hwnd, IDC_AV_AUDIOSYNC, BST_CHECKED);
@@ -127,15 +127,15 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         {
         case IDC_AV_AUDIOSYNC:
             if (!VCR_isCapturing())
-            Config.SyncMode = VCR_SYNC_AUDIO_DUPL;
+            Config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
             break;
         case IDC_AV_VIDEOSYNC:
             if (!VCR_isCapturing())
-            Config.SyncMode = VCR_SYNC_VIDEO_SNDROP;
+            Config.synchronization_mode = VCR_SYNC_VIDEO_SNDROP;
             break;
         case IDC_AV_NOSYNC:
             if (!VCR_isCapturing())
-            Config.SyncMode = VCR_SYNC_NONE;
+            Config.synchronization_mode = VCR_SYNC_NONE;
             break;
         case IDC_LUA_SIMPLEDIALOG: {
 
@@ -144,13 +144,13 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                 CloseAllLuaScript();
             }
             else
-                CheckDlgButton(hwnd, IDC_LUA_SIMPLEDIALOG, Config.LuaSimpleDialog);
+                CheckDlgButton(hwnd, IDC_LUA_SIMPLEDIALOG, Config.is_lua_simple_dialog_enabled);
 
             break;
         }
         case IDC_COMBO_CLOCK_SPD_MULT:
             ReadComboBoxValue(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
-            Config.CPUClockSpeedMultiplier = atoi(&buf[0]);
+            Config.cpu_clock_speed_multiplier = atoi(&buf[0]);
             break;
         case IDC_MOVIEBACKUPS:
             SwitchMovieBackupModifier(hwnd);
@@ -166,12 +166,12 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
         }
 
         if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
-            Config.LuaSimpleDialog = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
-            Config.LuaWarnOnClose = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
-            Config.movieBackups = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
-            Config.moviesERRORS = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
-            Config.FrequentVCRUIRefresh = ReadCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH);
-            Config.movieBackupsLevel = SendMessage(hwndTrackMovieBackup, TBM_GETPOS, 0, 0);
+            Config.is_lua_simple_dialog_enabled = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
+            Config.is_lua_exit_confirm_enabled = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
+            Config.is_movie_backup_enabled = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
+            Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
+            Config.is_statusbar_frequent_refresh_enabled = ReadCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH);
+            Config.movie_backup_level = SendMessage(hwndTrackMovieBackup, TBM_GETPOS, 0, 0);
             EnableToolbar();
             EnableStatusbar();
             FastRefreshBrowser();
@@ -393,32 +393,32 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
         case WM_INITDIALOG:
                 FillRomBrowserDirBox(hwnd);
                 TranslateDirectoriesConfig(hwnd);
-                if  (Config.RomBrowserRecursion) {
+                if  (Config.is_rom_browser_recursion_enabled) {
                   SendMessage(GetDlgItem(hwnd,IDC_RECURSION),BM_SETCHECK, BST_CHECKED,0);
                 }
                 
-                if (Config.DefaultPluginsDir)
+                if (Config.is_default_plugins_directory_used)
                 {
                      SendMessage(GetDlgItem(hwnd,IDC_DEFAULT_PLUGINS_CHECK),BM_SETCHECK, BST_CHECKED,0);
                      EnableWindow( GetDlgItem(hwnd,IDC_PLUGINS_DIR), FALSE );
                      EnableWindow( GetDlgItem(hwnd,IDC_CHOOSE_PLUGINS_DIR), FALSE );           
                 }
-                if (Config.DefaultSavesDir)
+                if (Config.is_default_saves_directory_used)
                 {
                      SendMessage(GetDlgItem(hwnd,IDC_DEFAULT_SAVES_CHECK),BM_SETCHECK, BST_CHECKED,0);            
                      EnableWindow( GetDlgItem(hwnd,IDC_SAVES_DIR), FALSE );
                      EnableWindow( GetDlgItem(hwnd,IDC_CHOOSE_SAVES_DIR), FALSE );                
                 }
-                if (Config.DefaultScreenshotsDir)
+                if (Config.is_default_screenshots_directory_used)
                 {
                      SendMessage(GetDlgItem(hwnd,IDC_DEFAULT_SCREENSHOTS_CHECK),BM_SETCHECK, BST_CHECKED,0);            
                      EnableWindow( GetDlgItem(hwnd,IDC_SCREENSHOTS_DIR), FALSE );
                      EnableWindow( GetDlgItem(hwnd,IDC_CHOOSE_SCREENSHOTS_DIR), FALSE );                
                 }                
                 
-                SetDlgItemText( hwnd, IDC_PLUGINS_DIR, Config.PluginsDir );
-                SetDlgItemText( hwnd, IDC_SAVES_DIR, Config.SavesDir );
-                SetDlgItemText( hwnd, IDC_SCREENSHOTS_DIR, Config.ScreenshotsDir );
+                SetDlgItemText( hwnd, IDC_PLUGINS_DIR, Config.plugins_directory );
+                SetDlgItemText( hwnd, IDC_SAVES_DIR, Config.saves_directory );
+                SetDlgItemText( hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory );
                               
                 break;                 
         case WM_NOTIFY:
@@ -426,32 +426,32 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                     SaveRomBrowserDirs();
                     int selected = SendDlgItemMessage( hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED?TRUE:FALSE;    
                     GetDlgItemText( hwnd, IDC_PLUGINS_DIR, TempMessage, 200 );
-                    if (strcasecmp(TempMessage,Config.PluginsDir)!=0 || Config.DefaultPluginsDir !=selected)  
+                    if (strcasecmp(TempMessage,Config.plugins_directory)!=0 || Config.is_default_plugins_directory_used !=selected)  
                                   //if plugin dir changed,search for plugins in new dir
 					           {
-					   		        sprintf(Config.PluginsDir,TempMessage);
-                                    Config.DefaultPluginsDir =  selected ;       
+					   		        sprintf(Config.plugins_directory,TempMessage);
+                                    Config.is_default_plugins_directory_used =  selected ;       
                                     search_plugins();		                         
                                } 
                     else       {            
-                                    sprintf(Config.PluginsDir,TempMessage);
-                                    Config.DefaultPluginsDir =  selected ;                                                
+                                    sprintf(Config.plugins_directory,TempMessage);
+                                    Config.is_default_plugins_directory_used =  selected ;                                                
                                 } 
                                                    
                     selected = SendDlgItemMessage( hwnd, IDC_DEFAULT_SAVES_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED?TRUE:FALSE;    
-                    GetDlgItemText( hwnd, IDC_SAVES_DIR, Config.SavesDir, MAX_PATH );
-                    Config.DefaultSavesDir =  selected ;
+                    GetDlgItemText( hwnd, IDC_SAVES_DIR, Config.saves_directory, MAX_PATH );
+                    Config.is_default_saves_directory_used =  selected ;
                     
                     selected = SendDlgItemMessage( hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED?TRUE:FALSE;    
-                    GetDlgItemText( hwnd, IDC_SCREENSHOTS_DIR, Config.ScreenshotsDir, MAX_PATH );
-                    Config.DefaultScreenshotsDir =  selected ;                
+                    GetDlgItemText( hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory, MAX_PATH );
+                    Config.is_default_screenshots_directory_used =  selected ;                
                 }
                 break;
         case WM_COMMAND:
             switch (LOWORD(wParam))
             {
             case IDC_RECURSION:
-                Config.RomBrowserRecursion = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
+                Config.is_rom_browser_recursion_enabled = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
                 break;
             case IDC_ADD_BROWSER_DIR: {
                 if (fdSelectRomFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
@@ -783,19 +783,19 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
     switch(Message) {
     case WM_INITDIALOG:
-         WriteCheckBoxValue( hwnd, IDC_SHOWFPS, Config.showFPS) ;
-         WriteCheckBoxValue( hwnd, IDC_SHOWVIS, Config.showVIS) ;       
-         WriteCheckBoxValue( hwnd, IDC_MANAGEBADROM, Config.manageBadRoms);
-         WriteCheckBoxValue( hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.savestateWarnings);  
-         WriteCheckBoxValue( hwnd, IDC_LIMITFPS, Config.limitFps);  
-         WriteCheckBoxValue( hwnd, IDC_SPEEDMODIFIER, Config.UseFPSmodifier  );
-         WriteCheckBoxValue(hwnd, IDC_0INDEX, Config.zeroIndex);
-         SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_SETPOS, TRUE, Config.FPSmodifier);
-         SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.skipFrequency,0);
-         WriteCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, Config.allowArbitrarySavestateLoading);
+         WriteCheckBoxValue( hwnd, IDC_SHOWFPS, Config.show_fps) ;
+         WriteCheckBoxValue( hwnd, IDC_SHOWVIS, Config.show_vis_per_second) ;       
+         WriteCheckBoxValue( hwnd, IDC_MANAGEBADROM, Config.prevent_suspicious_rom_loading);
+         WriteCheckBoxValue( hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);  
+         WriteCheckBoxValue( hwnd, IDC_LIMITFPS, Config.is_fps_limited);  
+         WriteCheckBoxValue( hwnd, IDC_SPEEDMODIFIER, Config.is_fps_modifier_enabled  );
+         WriteCheckBoxValue(hwnd, IDC_0INDEX, Config.is_frame_count_visual_zero_index);
+         SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_SETPOS, TRUE, Config.fps_modifier);
+         SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency,0);
+         WriteCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, Config.is_state_independent_state_loading_allowed);
 
 
-         switch (Config.guiDynacore)    
+         switch (Config.core_type)    
             {        
                case 0:
                      CheckDlgButton(hwnd, IDC_INTERP, BST_CHECKED);
@@ -815,7 +815,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
          }
          
          SwitchLimitFPS(hwnd);
-         FillModifierValue( hwnd, Config.FPSmodifier);        
+         FillModifierValue( hwnd, Config.fps_modifier);        
          TranslateGeneralDialog(hwnd) ;                           
          return TRUE;
          
@@ -827,17 +827,17 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             break;
            case IDC_INTERP:
                 if (!emu_launched) {
-                   Config.guiDynacore = 0;
+                   Config.core_type = 0;
                    }
            break;
            case IDC_RECOMP:
                 if (!emu_launched) {
-                   Config.guiDynacore = 1;
+                   Config.core_type = 1;
                    }
            break;
            case IDC_PURE_INTERP:
                 if (!emu_launched) {
-                   Config.guiDynacore = 2;
+                   Config.core_type = 2;
                    }
            break;
            case IDC_LIMITFPS:
@@ -855,16 +855,16 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
          //           FillModifierValue( hwnd, SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0));
          //      }
         if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
-            Config.showFPS = ReadCheckBoxValue(hwnd, IDC_SHOWFPS);
-            Config.showVIS = ReadCheckBoxValue(hwnd, IDC_SHOWVIS);
-            Config.manageBadRoms = ReadCheckBoxValue(hwnd, IDC_MANAGEBADROM);
-            Config.savestateWarnings = ReadCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS);
-            Config.limitFps = ReadCheckBoxValue(hwnd, IDC_LIMITFPS);
-            Config.FPSmodifier = SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0);
-            Config.UseFPSmodifier = ReadCheckBoxValue(hwnd, IDC_SPEEDMODIFIER);
-            Config.skipFrequency = GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
-            Config.zeroIndex = ReadCheckBoxValue(hwnd, IDC_0INDEX);
-            Config.allowArbitrarySavestateLoading = ReadCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
+            Config.show_fps = ReadCheckBoxValue(hwnd, IDC_SHOWFPS);
+            Config.show_vis_per_second = ReadCheckBoxValue(hwnd, IDC_SHOWVIS);
+            Config.prevent_suspicious_rom_loading = ReadCheckBoxValue(hwnd, IDC_MANAGEBADROM);
+            Config.is_savestate_warning_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS);
+            Config.is_fps_limited = ReadCheckBoxValue(hwnd, IDC_LIMITFPS);
+            Config.fps_modifier = SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0);
+            Config.is_fps_modifier_enabled = ReadCheckBoxValue(hwnd, IDC_SPEEDMODIFIER);
+            Config.frame_skip_frequency = GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
+            Config.is_frame_count_visual_zero_index = ReadCheckBoxValue(hwnd, IDC_0INDEX);
+            Config.is_state_independent_state_loading_allowed = ReadCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
 
             if (emu_launched) SetStatusMode(2);
             else SetStatusMode(0);
@@ -989,31 +989,31 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
     switch(Message) {
     
       case WM_INITDIALOG:
-         WriteCheckBoxValue( hwnd, IDC_STARTFULLSCREEN, Config.StartFullScreen);
-         WriteCheckBoxValue( hwnd, IDC_PAUSENOTACTIVE, Config.PauseWhenNotActive);
-         WriteCheckBoxValue( hwnd, IDC_PLUGIN_OVERWRITE, Config.OverwritePluginSettings);      
-         WriteCheckBoxValue( hwnd, IDC_GUI_TOOLBAR, Config.GuiToolbar);
-         WriteCheckBoxValue( hwnd, IDC_GUI_STATUSBAR, Config.GuiStatusbar);
-         WriteCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT, Config.AutoIncSaveSlot);
-         WriteCheckBoxValue( hwnd, IDC_ROUNDTOZERO, round_to_zero);
-         WriteCheckBoxValue( hwnd, IDC_EMULATEFLOATCRASHES, emulate_float_crashes);
-         WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, input_delay);
+         WriteCheckBoxValue( hwnd, IDC_STARTFULLSCREEN, Config.is_fullscreen_start_enabled);
+         WriteCheckBoxValue( hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
+         WriteCheckBoxValue( hwnd, IDC_PLUGIN_OVERWRITE, Config.use_global_plugins);      
+         WriteCheckBoxValue( hwnd, IDC_GUI_TOOLBAR, Config.is_toolbar_enabled);
+         WriteCheckBoxValue( hwnd, IDC_GUI_STATUSBAR, Config.is_statusbar_enabled);
+         WriteCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT, Config.is_slot_autoincrement_enabled);
+         WriteCheckBoxValue( hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
+         WriteCheckBoxValue( hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
+         WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, Config.is_input_delay_enabled);
          EnableWindow(GetDlgItem(hwnd, IDC_INPUTDELAY), false); //disable for now
          WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, LUA_double_buffered);
          WriteCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
          WriteCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
          
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME, Config.Column_GoodName);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME, Config.Column_InternalName);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_COUNTRY, Config.Column_Country);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_SIZE, Config.Column_Size);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_COMMENTS, Config.Column_Comments);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_FILENAME, Config.Column_FileName);
-         WriteCheckBoxValue( hwnd, IDC_COLUMN_MD5, Config.Column_MD5);
+         WriteCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME, Config.is_good_name_column_enabled);
+         WriteCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME, Config.is_internal_name_column_enabled);
+         WriteCheckBoxValue( hwnd, IDC_COLUMN_COUNTRY, Config.is_country_column_enabled);
+         WriteCheckBoxValue( hwnd, IDC_COLUMN_SIZE, Config.is_size_column_enabled);
+         WriteCheckBoxValue( hwnd, IDC_COLUMN_COMMENTS, Config.is_comments_column_enabled);
+         WriteCheckBoxValue( hwnd, IDC_COLUMN_FILENAME, Config.is_filename_column_enabled);
+         WriteCheckBoxValue( hwnd, IDC_COLUMN_MD5, Config.is_md5_column_enabled);
          
-         WriteCheckBoxValue(hwnd, IDC_NORESET, !Config.NoReset);
+         WriteCheckBoxValue(hwnd, IDC_NORESET, !Config.is_reset_recording_disabled);
 
-         WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.forceInternalCapture);
+         WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
 
          TranslateAdvancedDialog(hwnd) ;                           
          return TRUE;
@@ -1022,15 +1022,15 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 
        case WM_NOTIFY:
            if (((NMHDR FAR *) lParam)->code == PSN_APPLY)  {
-                Config.StartFullScreen = ReadCheckBoxValue( hwnd, IDC_STARTFULLSCREEN);
-                Config.PauseWhenNotActive =  ReadCheckBoxValue( hwnd, IDC_PAUSENOTACTIVE); 
-                Config.OverwritePluginSettings =  ReadCheckBoxValue( hwnd, IDC_PLUGIN_OVERWRITE);
-                Config.GuiToolbar =  ReadCheckBoxValue( hwnd, IDC_GUI_TOOLBAR);
-                Config.GuiStatusbar = ReadCheckBoxValue( hwnd, IDC_GUI_STATUSBAR);
-	            Config.AutoIncSaveSlot = ReadCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT);
-                round_to_zero = ReadCheckBoxValue( hwnd, IDC_ROUNDTOZERO);
-                emulate_float_crashes = ReadCheckBoxValue( hwnd, IDC_EMULATEFLOATCRASHES);
-                input_delay = ReadCheckBoxValue(hwnd, IDC_INPUTDELAY);
+                Config.is_fullscreen_start_enabled = ReadCheckBoxValue( hwnd, IDC_STARTFULLSCREEN);
+                Config.is_unfocused_pause_enabled =  ReadCheckBoxValue( hwnd, IDC_PAUSENOTACTIVE); 
+                Config.use_global_plugins =  ReadCheckBoxValue( hwnd, IDC_PLUGIN_OVERWRITE);
+                Config.is_toolbar_enabled =  ReadCheckBoxValue( hwnd, IDC_GUI_TOOLBAR);
+                Config.is_statusbar_enabled = ReadCheckBoxValue( hwnd, IDC_GUI_STATUSBAR);
+	            Config.is_slot_autoincrement_enabled = ReadCheckBoxValue( hwnd, IDC_AUTOINCSAVESLOT);
+                Config.is_round_towards_zero_enabled = ReadCheckBoxValue( hwnd, IDC_ROUNDTOZERO);
+                Config.is_float_exception_propagation_enabled = ReadCheckBoxValue( hwnd, IDC_EMULATEFLOATCRASHES);
+                Config.is_input_delay_enabled = ReadCheckBoxValue(hwnd, IDC_INPUTDELAY);
                 
                 LUA_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
                 if (LUA_double_buffered && gfx_name[0] != 0 && strstr(gfx_name, "Jabo") == 0 && strstr(gfx_name, "Rice") == 0) {
@@ -1041,16 +1041,16 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
                 no_audio_delay = ReadCheckBoxValue( hwnd, IDC_NO_AUDIO_DELAY);
                 no_compiled_jump = ReadCheckBoxValue( hwnd, IDC_NO_COMPILED_JUMP);
                 
-                Config.Column_GoodName = ReadCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME);
-                Config.Column_InternalName = ReadCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME);
-                Config.Column_Country = ReadCheckBoxValue( hwnd, IDC_COLUMN_COUNTRY);
-                Config.Column_Size = ReadCheckBoxValue( hwnd, IDC_COLUMN_SIZE);
-                Config.Column_Comments = ReadCheckBoxValue( hwnd, IDC_COLUMN_COMMENTS);
-                Config.Column_FileName = ReadCheckBoxValue( hwnd, IDC_COLUMN_FILENAME);
-                Config.Column_MD5 = ReadCheckBoxValue( hwnd, IDC_COLUMN_MD5); 
+                Config.is_good_name_column_enabled = ReadCheckBoxValue( hwnd, IDC_COLUMN_GOODNAME);
+                Config.is_internal_name_column_enabled = ReadCheckBoxValue( hwnd, IDC_COLUMN_INTERNALNAME);
+                Config.is_country_column_enabled = ReadCheckBoxValue( hwnd, IDC_COLUMN_COUNTRY);
+                Config.is_size_column_enabled = ReadCheckBoxValue( hwnd, IDC_COLUMN_SIZE);
+                Config.is_comments_column_enabled = ReadCheckBoxValue( hwnd, IDC_COLUMN_COMMENTS);
+                Config.is_filename_column_enabled = ReadCheckBoxValue( hwnd, IDC_COLUMN_FILENAME);
+                Config.is_md5_column_enabled = ReadCheckBoxValue( hwnd, IDC_COLUMN_MD5); 
 
-                Config.NoReset = !ReadCheckBoxValue(hwnd, IDC_NORESET);
-                Config.forceInternalCapture = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
+                Config.is_reset_recording_disabled = !ReadCheckBoxValue(hwnd, IDC_NORESET);
+                Config.is_internal_capture_forced = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
                 
                 EnableToolbar(); 
                 EnableStatusbar();
@@ -1080,7 +1080,7 @@ static void KillMessages()
 	}
 }   
 
-static void GetUserHotkey(HOTKEY * hotkey)
+static void GetUserHotkey(HOTKEY * hotkeys)
 {
 	int i, j;
 	int lc=0, ls=0, la=0;
@@ -1094,8 +1094,8 @@ static void GetUserHotkey(HOTKEY * hotkey)
 			
 			if(GetAsyncKeyState(j) & 0x8000)
 			{
-				// HACK to avoid exiting all the way out of the dialog on pressing escape to clear a hotkey
-				// or continually re-activating the button on trying to assign space as a hotkey
+				// HACK to avoid exiting all the way out of the dialog on pressing escape to clear a hotkeys
+				// or continually re-activating the button on trying to assign space as a hotkeys
 				if(j == VK_ESCAPE || j == VK_SPACE)
 					KillMessages();
 
@@ -1116,39 +1116,39 @@ static void GetUserHotkey(HOTKEY * hotkey)
 				}
 				else if(j != VK_ESCAPE)
 				{
-					hotkey->key = j;
-					hotkey->shift = GetAsyncKeyState(VK_SHIFT) ? 1 : 0;
-					hotkey->ctrl = GetAsyncKeyState(VK_CONTROL) ? 1 : 0;
-					hotkey->alt = GetAsyncKeyState(VK_MENU) ? 1 : 0;
+					hotkeys->key = j;
+					hotkeys->shift = GetAsyncKeyState(VK_SHIFT) ? 1 : 0;
+					hotkeys->ctrl = GetAsyncKeyState(VK_CONTROL) ? 1 : 0;
+					hotkeys->alt = GetAsyncKeyState(VK_MENU) ? 1 : 0;
 					return;
 				}
-				memset(hotkey, 0, sizeof(HOTKEY)); // clear key on escape
+				memset(hotkeys, 0, sizeof(HOTKEY)); // clear key on escape
 				return;
 			}
 			else
 			{
 				if(j == VK_CONTROL && lc)
 				{
-					hotkey->key = 0;
-					hotkey->shift = 0;
-					hotkey->ctrl = 1;
-					hotkey->alt = 0;
+					hotkeys->key = 0;
+					hotkeys->shift = 0;
+					hotkeys->ctrl = 1;
+					hotkeys->alt = 0;
 					return;
 				}
 				else if(j == VK_SHIFT && ls)
 				{
-					hotkey->key = 0;
-					hotkey->shift = 1;
-					hotkey->ctrl = 0;
-					hotkey->alt = 0;
+					hotkeys->key = 0;
+					hotkeys->shift = 1;
+					hotkeys->ctrl = 0;
+					hotkeys->alt = 0;
 					return;
 				}
 				else if(j == VK_MENU && la)
 				{
-					hotkey->key = 0;
-					hotkey->shift = 0;
-					hotkey->ctrl = 0;
-					hotkey->alt = 1;
+					hotkeys->key = 0;
+					hotkeys->shift = 0;
+					hotkeys->ctrl = 0;
+					hotkeys->alt = 1;
 					return;
 				}
 			}
@@ -1170,7 +1170,7 @@ void UpdateSelectedHotkeyTextBox(HWND dialogHwnd) {
     {
         char hotkeyText[MAX_PATH];
 
-        hotkeyToString(namedHotkeys[selectedIndex].hotkey, hotkeyText);
+        hotkeyToString(namedHotkeys[selectedIndex].hotkeys, hotkeyText);
 
         SetWindowText(selectedHotkeyEditHwnd, hotkeyText);
     }
@@ -1214,7 +1214,7 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 GetDlgItemText(hwnd, id, buttonText, MAX_PATH);
                 SetDlgItemText(hwnd, id, "...");
 
-                GetUserHotkey(namedHotkeys[selectedIndex].hotkey);
+                GetUserHotkey(namedHotkeys[selectedIndex].hotkeys);
                 UpdateSelectedHotkeyTextBox(hwnd);
 
                 SetDlgItemText(hwnd, id, buttonText);

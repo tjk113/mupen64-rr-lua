@@ -105,7 +105,7 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 
 //	ShowInfo("win_readScreen()");
 	mupendc = GetDC(mainHWND);  //only client area
-	if (Config.captureOtherWindows)
+	if (Config.is_capture_cropped_screen_dc)
 	{
 		//get whole screen dc and find out where is mupen's client area
 		all = GetDC(NULL);
@@ -124,7 +124,7 @@ void __cdecl win_readScreen(void **dest, long *width, long *height)
 	Sleep(0);
 	if (copy)
 	{
-		if (Config.captureOtherWindows)
+		if (Config.is_capture_cropped_screen_dc)
 			BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x, cli_tl.y + sInfo.toolbarHeight + (sInfo.height - *height), SRCCOPY);
 		else
 			BitBlt(copy, 0, 0, *width, *height, mupendc, 0, sInfo.toolbarHeight + (sInfo.height - *height), SRCCOPY);
