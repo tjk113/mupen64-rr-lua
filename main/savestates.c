@@ -71,7 +71,7 @@ static char fname[MAX_PATH] = {0,};
 
 void savestates_select_slot(unsigned int s)
 {
-   if (s > 9) 
+   if (s > 10) 
 		 return;
    slot = s;
 }
@@ -100,16 +100,16 @@ void savestates_save()
    
 	if (*autoinc_save_slot)
 	{
-		if (++slot == 10)
+		if (++slot == 11)
 		{
 			slot = 0;
 		}
 	}
    
-	if (slot <= 9)
+	if (slot <= 10)
 	{
 		filename = (char*)malloc(strlen(get_savespath())+
-		strlen(ROM_SETTINGS.goodname)+4+1);
+		strlen(ROM_SETTINGS.goodname)+4+2);
 		strcpy(filename, get_savespath());
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".st");
@@ -118,9 +118,9 @@ void savestates_save()
 	}
 	else
 	{
-		filename = (char*)malloc(strlen(fname)+1);
+		filename = (char*)malloc(strlen(fname)+2);
 		strcpy(filename, fname);
-		slot -= 10;
+		slot -= 11;
 		filename_f = 1;
 	}
 
@@ -322,12 +322,12 @@ void savestates_load(bool silenceNotFoundError)
 
 	savestates_job_success = TRUE;
 
-	//construct .st name for 1-9 slots based on rom name and number
+	//construct .st name for 1-10 slots based on rom name and number
 	//fname buffer will hold something that user can read, either just filename or Slot #
-	if (slot <= 9)
+	if (slot <= 10)
 	{
 		filename = (char*)malloc(strlen(get_savespath()) +
-			sizeof(ROM_SETTINGS.goodname) + sizeof(".st#"));
+			sizeof(ROM_SETTINGS.goodname) + sizeof(".st##"));
 		strcpy(filename, get_savespath());
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".st");
@@ -338,7 +338,7 @@ void savestates_load(bool silenceNotFoundError)
 		sprintf(fname, "Slot %d", slot);
 	}
 
-	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
+	//tricky method, slot is greater than 10, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
 		// -3+10 to account for possible ".savestate" ending, +1 for null terminator
@@ -568,8 +568,8 @@ void savestates_load_old(bool silenceNotFoundError)
 
 	savestates_job_success = TRUE;
    
-	//construct .st name for 1-9 slots based on rom name and number
-	if (slot <= 9)
+	//construct .st name for 1-10 slots based on rom name and number
+	if (slot <= 10)
 	{
 		filename = (char*)malloc(strlen(get_savespath())+
 		strlen(ROM_SETTINGS.goodname)+4+1);
@@ -580,7 +580,7 @@ void savestates_load_old(bool silenceNotFoundError)
 		strcat(filename, buf);
 	}
 
-	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
+	//tricky method, slot is greater than 10, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
 		filename = (char*)malloc(strlen(fname)+11);
