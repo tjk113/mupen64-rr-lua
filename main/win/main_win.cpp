@@ -2378,7 +2378,7 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
       EnableMenuItem(hMenu,REFRESH_ROM_BROWSER,MF_GRAYED);
       EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
       EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_GRAYED);
-      EnableMenuItem(hMenu, ID_FFMPEG_START, MF_ENABLED);
+      EnableMenuItem(hMenu, ID_FFMPEG_START, MF_DISABLED);
 
 #ifdef GAME_DEBUGGER
       EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
@@ -3442,15 +3442,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                    break;
  
                 case ID_STOP_RECORD:
-                     if (VCR_stopRecord(1) < 0) // seems ok (no)
-                     	; // fail quietly
-//                        MessageBox(NULL, "Couldn't stop recording.", "VCR", MB_OK);
-                     else {
-                         ClearButtons();
-                        EnableMenuItem(hMenu,ID_STOP_RECORD,MF_GRAYED);
-                        EnableMenuItem(hMenu,ID_START_RECORD,MF_ENABLED);
-                        SetStatusTranslatedString(hStatus,0,"Recording stopped");            
-                     }
+					 if (VCR_isRecording()) {
+						 if (VCR_stopRecord(1) < 0) // seems ok (no)
+                     		; // fail quietly
+	//                        MessageBox(NULL, "Couldn't stop recording.", "VCR", MB_OK);
+						 else {
+							 ClearButtons();
+							EnableMenuItem(hMenu,ID_STOP_RECORD,MF_GRAYED);
+							EnableMenuItem(hMenu,ID_START_RECORD,MF_ENABLED);
+							SetStatusTranslatedString(hStatus,0,"Recording stopped");            
+						 }
+					 }
                 break;
                 case ID_START_PLAYBACK:
 					if(emu_launched)
@@ -3458,15 +3460,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
       
                 break;
 				 case ID_STOP_PLAYBACK:
-                     if (VCR_stopPlayback() < 0)
-                     	; // fail quietly
-//                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
-					 else {
-                         ClearButtons();
-                        EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
-                        EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
-                        SetStatusTranslatedString(hStatus,0,"Playback stopped");
-                     }
+					 if (VCR_isPlaying()) {
+						 if (VCR_stopPlayback() < 0)
+                     		; // fail quietly
+	//                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
+						 else {
+							 ClearButtons();
+							EnableMenuItem(hMenu,ID_STOP_PLAYBACK,MF_GRAYED);
+							EnableMenuItem(hMenu,ID_START_PLAYBACK,MF_ENABLED);
+							SetStatusTranslatedString(hStatus,0,"Playback stopped");
+						 }
+					 }
                 break;
 
                  case ID_FFMPEG_START:
@@ -3654,13 +3658,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         TranslateBrowserHeader(hRomList);
                         ShowTotalRoms();
                      }
-                     else if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam) <= ID_CURRENTSAVE_9) {
+                     else if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam) <= ID_CURRENTSAVE_10) {
 		                SelectState(hwnd,LOWORD(wParam));		     
                      }
-                     else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <= ID_SAVE_9) {
+                     else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <= ID_SAVE_10) {
 		                SaveTheState(hwnd,LOWORD(wParam));		     
                      }
-                     else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_9) {
+                     else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_10) {
 		                LoadTheState(hwnd,LOWORD(wParam));		     
                      }
                      else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST && LOWORD(wParam) < (ID_RECENTROMS_FIRST + MAX_RECENT_ROMS))  {

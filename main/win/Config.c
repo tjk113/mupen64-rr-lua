@@ -135,84 +135,92 @@ NamedHotkey namedHotkeys[] = {
         .hotkeys = &Config.hotkeys[21],
     },
     {
-        .name = "Save to slot 9",
-        .hotkeys = &Config.hotkeys[21],
+        .name = "Save to slot 10",
+        .hotkeys = &Config.hotkeys[22],
     },
 
     {
         .name = "Load from slot 1",
-        .hotkeys = &Config.hotkeys[22],
-    },
-    {
-        .name = "Load from slot 2",
         .hotkeys = &Config.hotkeys[23],
     },
     {
-        .name = "Load from slot 3",
+        .name = "Load from slot 2",
         .hotkeys = &Config.hotkeys[24],
     },
     {
-        .name = "Load from slot 4",
+        .name = "Load from slot 3",
         .hotkeys = &Config.hotkeys[25],
     },
     {
-        .name = "Load from slot 5",
+        .name = "Load from slot 4",
         .hotkeys = &Config.hotkeys[26],
     },
     {
-        .name = "Load from slot 6",
+        .name = "Load from slot 5",
         .hotkeys = &Config.hotkeys[27],
     },
     {
-        .name = "Load from slot 7",
+        .name = "Load from slot 6",
         .hotkeys = &Config.hotkeys[28],
     },
     {
-        .name = "Load from slot 8",
+        .name = "Load from slot 7",
         .hotkeys = &Config.hotkeys[29],
     },
     {
-        .name = "Load from slot 9",
+        .name = "Load from slot 8",
         .hotkeys = &Config.hotkeys[30],
     },
+    {
+        .name = "Load from slot 9",
+        .hotkeys = &Config.hotkeys[31],
+    },
+	{
+		.name = "Load from slot 10",
+		.hotkeys = &Config.hotkeys[32],
+	},
 
 
     {
         .name = "Select slot 1",
-        .hotkeys = &Config.hotkeys[31],
-    },
-    {
-        .name = "Select slot 2",
-        .hotkeys = &Config.hotkeys[32],
-    },
-    {
-        .name = "Select slot 3",
         .hotkeys = &Config.hotkeys[33],
     },
     {
-        .name = "Select slot 4",
+        .name = "Select slot 2",
         .hotkeys = &Config.hotkeys[34],
     },
     {
-        .name = "Select slot 5",
-        .hotkeys = &Config.hotkeys[35],
-    },
-    {
-        .name = "Select slot 6",
+        .name = "Select slot 3",
         .hotkeys = &Config.hotkeys[36],
     },
     {
-        .name = "Select slot 7",
+        .name = "Select slot 4",
         .hotkeys = &Config.hotkeys[37],
     },
     {
-        .name = "Select slot 8",
+        .name = "Select slot 5",
         .hotkeys = &Config.hotkeys[38],
     },
     {
-        .name = "Select slot 9",
+        .name = "Select slot 6",
         .hotkeys = &Config.hotkeys[39],
     },
+    {
+        .name = "Select slot 7",
+        .hotkeys = &Config.hotkeys[40],
+    },
+    {
+        .name = "Select slot 8",
+        .hotkeys = &Config.hotkeys[41],
+    },
+    {
+        .name = "Select slot 9",
+        .hotkeys = &Config.hotkeys[42],
+    },
+	{
+		.name = "Select slot 10",
+		.hotkeys = &Config.hotkeys[43],
+	},
 
 };
 const int namedHotkeyCount = sizeof(namedHotkeys) / sizeof(NamedHotkey);
@@ -347,26 +355,29 @@ void ApplyHotkeys() {
     SetDlgItemHotkey(mainHWND, IDC_7SAVE, &Config.hotkeys[19]);
     SetDlgItemHotkey(mainHWND, IDC_8SAVE, &Config.hotkeys[20]);
     SetDlgItemHotkey(mainHWND, IDC_9SAVE, &Config.hotkeys[21]);
+	SetDlgItemHotkey(mainHWND, IDC_10SAVE,&Config.hotkeys[22]);
 
-    SetDlgItemHotkey(mainHWND, IDC_1LOAD, &Config.hotkeys[22]);
-    SetDlgItemHotkey(mainHWND, IDC_2LOAD, &Config.hotkeys[23]);
-    SetDlgItemHotkey(mainHWND, IDC_3LOAD, &Config.hotkeys[24]);
-    SetDlgItemHotkey(mainHWND, IDC_4LOAD, &Config.hotkeys[25]);
-    SetDlgItemHotkey(mainHWND, IDC_5LOAD, &Config.hotkeys[26]);
-    SetDlgItemHotkey(mainHWND, IDC_6LOAD, &Config.hotkeys[27]);
-    SetDlgItemHotkey(mainHWND, IDC_7LOAD, &Config.hotkeys[28]);
-    SetDlgItemHotkey(mainHWND, IDC_8LOAD, &Config.hotkeys[29]);
-    SetDlgItemHotkey(mainHWND, IDC_9LOAD, &Config.hotkeys[30]);
+    SetDlgItemHotkey(mainHWND, IDC_1LOAD, &Config.hotkeys[23]);
+    SetDlgItemHotkey(mainHWND, IDC_2LOAD, &Config.hotkeys[24]);
+    SetDlgItemHotkey(mainHWND, IDC_3LOAD, &Config.hotkeys[25]);
+    SetDlgItemHotkey(mainHWND, IDC_4LOAD, &Config.hotkeys[26]);
+    SetDlgItemHotkey(mainHWND, IDC_5LOAD, &Config.hotkeys[27]);
+    SetDlgItemHotkey(mainHWND, IDC_6LOAD, &Config.hotkeys[28]);
+    SetDlgItemHotkey(mainHWND, IDC_7LOAD, &Config.hotkeys[29]);
+    SetDlgItemHotkey(mainHWND, IDC_8LOAD, &Config.hotkeys[30]);
+    SetDlgItemHotkey(mainHWND, IDC_9LOAD, &Config.hotkeys[31]);
+	SetDlgItemHotkey(mainHWND, IDC_10LOAD,&Config.hotkeys[32]);
 
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_1SEL, &Config.hotkeys[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_2SEL, &Config.hotkeys[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_3SEL, &Config.hotkeys[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_4SEL, &Config.hotkeys[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_5SEL, &Config.hotkeys[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_6SEL, &Config.hotkeys[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_7SEL, &Config.hotkeys[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_8SEL, &Config.hotkeys[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
-    SetDlgItemHotkeyAndMenu(mainHWND, IDC_9SEL, &Config.hotkeys[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_1SEL, &Config.hotkeys[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_2SEL, &Config.hotkeys[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_3SEL, &Config.hotkeys[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_4SEL, &Config.hotkeys[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_5SEL, &Config.hotkeys[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_6SEL, &Config.hotkeys[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_7SEL, &Config.hotkeys[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_8SEL, &Config.hotkeys[40], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+    SetDlgItemHotkeyAndMenu(mainHWND, IDC_9SEL, &Config.hotkeys[41], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_10SEL,&Config.hotkeys[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 9);
 
 }
 
@@ -626,33 +637,33 @@ void LoadConfig()
         int i;
         char str[128];
 
-        for (i = 1; i <= 9; i++)
+        for (i = 1; i <= 10; i++)
         {
             sprintf(str, "Save %d", i);
             ReadHotkeyConfig(12 + i, str, (ID_SAVE_1 - 1) + i, ((VK_F1 - 1) + i) | 0x100);
         }
-        for (i = 1; i <= 9; i++)
+        for (i = 1; i <= 10; i++)
         {
             sprintf(str, "Load %d", i);
-            ReadHotkeyConfig(21 + i, str, (ID_LOAD_1 - 1) + i, (VK_F1 - 1) + i);
+            ReadHotkeyConfig(22 + i, str, (ID_LOAD_1 - 1) + i, (VK_F1 - 1) + i);
         }
-        for (i = 1; i <= 9; i++)
+        for (i = 1; i <= 10; i++)
         {
             sprintf(str, "Select %d", i);
-            ReadHotkeyConfig(30 + i, str, (ID_CURRENTSAVE_1 - 1) + i, '0' + i);
+            ReadHotkeyConfig(32 + i, str, (ID_CURRENTSAVE_1 - 1) + i, '0' + i);
         }
     }
     //Lua
     //ダイアログに追加するの面倒くさい
     ReadCfgString("Lua", "Script Path", "", Config.lua_script_path);
-    ReadHotkeyConfig(40, "Lua Script Reload", ID_LUA_RELOAD, VK_F3 | 0x200);
-    ReadHotkeyConfig(41, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4 | 0x200);
-    ReadHotkeyConfig(45, "Load Latest Lua Script", ID_LUA_LOAD_LATEST, 'L' | 0x600);
+    ReadHotkeyConfig(43, "Lua Script Reload", ID_LUA_RELOAD, VK_F3 | 0x200);
+    ReadHotkeyConfig(44, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4 | 0x200);
+    ReadHotkeyConfig(48, "Load Latest Lua Script", ID_LUA_LOAD_LATEST, 'L' | 0x600);
 
     // some new misc ones
-    ReadHotkeyConfig(42, "Start From Beginning", ID_RESTART_MOVIE, 'H' | 0x300);
-    ReadHotkeyConfig(43, "Load Latest Movie", ID_REPLAY_LATEST, 'G' | 0x300);
-    ReadHotkeyConfig(44, "Load Latest ROM", ID_LOAD_LATEST, 'L' | 0x300);
+    ReadHotkeyConfig(45, "Start From Beginning", ID_RESTART_MOVIE, 'H' | 0x300);
+    ReadHotkeyConfig(46, "Load Latest Movie", ID_REPLAY_LATEST, 'G' | 0x300);
+    ReadHotkeyConfig(47, "Load Latest ROM", ID_LOAD_LATEST, 'L' | 0x300);
 
 
 }
@@ -820,25 +831,25 @@ void SaveConfig()
         int i;
         char str[128];
 
-        for (i = 1; i <= 9; i++)
+        for (i = 1; i <= 10; i++)
         {
             sprintf(str, "Save %d", i);
             WriteHotkeyConfig(12 + i, str);
             sprintf(str, "Load %d", i);
-            WriteHotkeyConfig(21 + i, str);
+            WriteHotkeyConfig(22 + i, str);
             sprintf(str, "Select %d", i);
-            WriteHotkeyConfig(30 + i, str);
+            WriteHotkeyConfig(32 + i, str);
         }
     //Lua
     WriteCfgString("Lua", "Script Path", Config.lua_script_path);
-    WriteHotkeyConfig(40, "Lua Script Reload");
-    WriteHotkeyConfig(41, "Lua Script CloseAll");
-    WriteHotkeyConfig(45, "Load Latest Lua Script");
+    WriteHotkeyConfig(43, "Lua Script Reload");
+    WriteHotkeyConfig(44, "Lua Script CloseAll");
+    WriteHotkeyConfig(48, "Load Latest Lua Script");
 
     // some new misc ones
-    WriteHotkeyConfig(42, "Start From Beginning");
-    WriteHotkeyConfig(43, "Load Latest Movie");
-    WriteHotkeyConfig(44, "Load Latest ROM");
+    WriteHotkeyConfig(45, "Start From Beginning");
+    WriteHotkeyConfig(46, "Load Latest Movie");
+    WriteHotkeyConfig(47, "Load Latest ROM");
     
 }
 

@@ -26,7 +26,7 @@ typedef struct _HOTKEY {
     int command;
 } HOTKEY;
 
-#define NUM_HOTKEYS (46)
+#define NUM_HOTKEYS (49)
 
 typedef struct _NamedHotkey
 {

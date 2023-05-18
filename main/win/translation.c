@@ -316,18 +316,19 @@ void SetMenuAcceleratorsFromUser(HWND mainHWND)
     SetHotkeyMenuAccelerators(&Config.hotkeys[10], GetSubMenu(GetMenu(mainHWND), 1), 2);
     SetHotkeyMenuAccelerators(&Config.hotkeys[11], GetSubMenu(GetMenu(mainHWND), 1), 4);
     SetHotkeyMenuAccelerators(&Config.hotkeys[12], GetSubMenu(GetMenu(mainHWND), 1), 6);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
-    SetHotkeyMenuAccelerators(&Config.hotkeys[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[40], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+    SetHotkeyMenuAccelerators(&Config.hotkeys[41], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+	SetHotkeyMenuAccelerators(&Config.hotkeys[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 9);
 
-    SetHotkeyMenuAccelerators(&Config.hotkeys[42], GetSubMenu(GetMenu(mainHWND), 3), 12); // start from beginning
-    SetHotkeyMenuAccelerators(&Config.hotkeys[43], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
+    SetHotkeyMenuAccelerators(&Config.hotkeys[43], GetSubMenu(GetMenu(mainHWND), 3), 12); // start from beginning
+    SetHotkeyMenuAccelerators(&Config.hotkeys[44], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
 
 }
 /*

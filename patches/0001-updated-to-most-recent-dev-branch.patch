@@ -1,0 +1,448 @@
+From 0cd9004900c6981c3327682bf33460646dbf82d2 Mon Sep 17 00:00:00 2001
+From: tjk113 <tjkuhl1@live.com>
+Date: Mon, 9 Jan 2023 20:36:10 -0500
+Subject: [PATCH] updated to most recent dev branch
+
+---
+ .gitignore              |  2 +
+ main/savestates.c       | 16 ++++----
+ main/win/Config.c       | 40 ++++++++++----------
+ main/win/configdialog.c | 82 ++++++++++++++++++++++-------------------
+ main/win/main_win.cpp   |  6 +--
+ main/win/main_win.h     |  2 +-
+ main/win/translation.c  |  2 +-
+ winproject/resource.h   | 58 ++++++++++++++++-------------
+ winproject/rsrc.rc      |  9 ++++-
+ 9 files changed, 118 insertions(+), 99 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 7e4f983..4d4327e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -19,3 +19,5 @@ winproject/plugin
+ /winproject/mupen64.cfg
+ /winproject/mupen64.cache
+ /winproject/debugview.ini
++/patches
++*.rej
+diff --git a/main/savestates.c b/main/savestates.c
+index a37aabd..15bdd75 100755
+--- a/main/savestates.c
++++ b/main/savestates.c
+@@ -71,7 +71,7 @@ static char fname[MAX_PATH] = {0,};
+ 
+ void savestates_select_slot(unsigned int s)
+ {
+-   if (s > 9) 
++   if (s > 10)
+ 		 return;
+    slot = s;
+ }
+@@ -106,7 +106,7 @@ void savestates_save()
+ 		}
+ 	}
+    
+-	if (slot <= 9)
++	if (slot <= 10)
+ 	{
+ 		filename = (char*)malloc(strlen(get_savespath())+
+ 		strlen(ROM_SETTINGS.goodname)+4+1);
+@@ -322,9 +322,9 @@ void savestates_load(bool silenceNotFoundError)
+ 
+ 	savestates_job_success = TRUE;
+ 
+-	//construct .st name for 1-9 slots based on rom name and number
++	//construct .st name for 1-10 slots based on rom name and number
+ 	//fname buffer will hold something that user can read, either just filename or Slot #
+-	if (slot <= 9)
++	if (slot <= 10)
+ 	{
+ 		filename = (char*)malloc(strlen(get_savespath()) +
+ 			sizeof(ROM_SETTINGS.goodname) + sizeof(".st#"));
+@@ -338,7 +338,7 @@ void savestates_load(bool silenceNotFoundError)
+ 		sprintf(fname, "Slot %d", slot);
+ 	}
+ 
+-	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
++	//tricky method, slot is greater than 10, so it uses a global fname array, imo bad programming there but whatever
+ 	else
+ 	{
+ 		filename = (char*)malloc(strlen(fname) + 1);
+@@ -357,7 +357,7 @@ void savestates_load(bool silenceNotFoundError)
+ 	f = gzopen(filename, "rb");
+ 
+ 	//try loading .savestate, workaround for discord...
+-	if (f == NULL && slot > 9)
++	if (f == NULL && slot > 10)
+ 	{
+ 		char* filename_end = filename+strlen(filename)-3;
+ 		strcpy(filename_end, ".savestate");
+@@ -373,7 +373,7 @@ void savestates_load(bool silenceNotFoundError)
+ 				printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
+ 				return;
+ 			}
+-			if (slot > 9)
++			if (slot > 10)
+ 			{
+ 				//print .st not .savestate because
+ 				filename[strlen(filename) - 10] = '\0';
+@@ -619,7 +619,7 @@ void savestates_load_old(bool silenceNotFoundError)
+ 				printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
+ 				return;
+ 			}
+-			if (slot > 9)
++			if (slot > 10)
+ 			{
+ 				//print .st not .savestate because
+ 				filename[strlen(filename) - 10] = '\0';
+diff --git a/main/win/Config.c b/main/win/Config.c
+index ad9cec4..8b0b1b0 100644
+--- a/main/win/Config.c
++++ b/main/win/Config.c
+@@ -300,33 +300,33 @@ void LoadConfig()
+         int i;
+         char str[128];
+ 
+-        for (i = 1; i <= 9; i++)
++        for (i = 1; i <= 10; i++)
+         {
+             sprintf(str, "Save %d", i);
+             ReadHotkeyConfig(12 + i, str, (ID_SAVE_1 - 1) + i, ((VK_F1 - 1) + i) | 0x100);
+         }
+-        for (i = 1; i <= 9; i++)
++        for (i = 1; i <= 10; i++)
+         {
+             sprintf(str, "Load %d", i);
+-            ReadHotkeyConfig(21 + i, str, (ID_LOAD_1 - 1) + i, (VK_F1 - 1) + i);
++            ReadHotkeyConfig(22 + i, str, (ID_LOAD_1 - 1) + i, (VK_F1 - 1) + i);
+         }
+-        for (i = 1; i <= 9; i++)
++        for (i = 1; i <= 10; i++)
+         {
+             sprintf(str, "Select %d", i);
+-            ReadHotkeyConfig(30 + i, str, (ID_CURRENTSAVE_1 - 1) + i, '0' + i);
++            ReadHotkeyConfig(32 + i, str, (ID_CURRENTSAVE_1 - 1) + i, '0' + i);
+         }
+     }
+     //Lua
+     //ダイアログに追加するの面倒くさい
+     ReadCfgString("Lua", "Script Path", "", Config.LuaScriptPath);
+-    ReadHotkeyConfig(40, "Lua Script Reload", ID_LUA_RELOAD, VK_F3 | 0x200);
+-    ReadHotkeyConfig(41, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4 | 0x200);
+-    ReadHotkeyConfig(45, "Load Latest Lua Script", ID_LUA_LOAD_LATEST, 'L' | 0x600);
++    ReadHotkeyConfig(43, "Lua Script Reload", ID_LUA_RELOAD, VK_F3 | 0x200);
++    ReadHotkeyConfig(44, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4 | 0x200);
++    ReadHotkeyConfig(48, "Load Latest Lua Script", ID_LUA_LOAD_LATEST, 'L' | 0x600);
+ 
+     // some new misc ones
+-    ReadHotkeyConfig(42, "Start From Beginning", ID_RESTART_MOVIE, 'H' | 0x300);
+-    ReadHotkeyConfig(43, "Load Latest Movie", ID_REPLAY_LATEST, 'G' | 0x300);
+-    ReadHotkeyConfig(44, "Load Latest ROM", ID_LOAD_LATEST, 'L' | 0x300);
++    ReadHotkeyConfig(45, "Start From Beginning", ID_RESTART_MOVIE, 'H' | 0x300);
++    ReadHotkeyConfig(46, "Load Latest Movie", ID_REPLAY_LATEST, 'G' | 0x300);
++    ReadHotkeyConfig(47, "Load Latest ROM", ID_LOAD_LATEST, 'L' | 0x300);
+ 
+ 
+ }
+@@ -494,25 +494,25 @@ void SaveConfig()
+         int i;
+         char str[128];
+ 
+-        for (i = 1; i <= 9; i++)
++        for (i = 1; i <= 10; i++)
+         {
+             sprintf(str, "Save %d", i);
+             WriteHotkeyConfig(12 + i, str);
+             sprintf(str, "Load %d", i);
+-            WriteHotkeyConfig(21 + i, str);
++            WriteHotkeyConfig(22 + i, str);
+             sprintf(str, "Select %d", i);
+-            WriteHotkeyConfig(30 + i, str);
++            WriteHotkeyConfig(32 + i, str);
+         }
+     //Lua
+     WriteCfgString("Lua", "Script Path", Config.LuaScriptPath);
+-    WriteHotkeyConfig(40, "Lua Script Reload");
+-    WriteHotkeyConfig(41, "Lua Script CloseAll");
+-    WriteHotkeyConfig(45, "Load Latest Lua Script");
++    WriteHotkeyConfig(43, "Lua Script Reload");
++    WriteHotkeyConfig(44, "Lua Script CloseAll");
++    WriteHotkeyConfig(48, "Load Latest Lua Script");
+ 
+     // some new misc ones
+-    WriteHotkeyConfig(42, "Start From Beginning");
+-    WriteHotkeyConfig(43, "Load Latest Movie");
+-    WriteHotkeyConfig(44, "Load Latest ROM");
++    WriteHotkeyConfig(45, "Start From Beginning");
++    WriteHotkeyConfig(46, "Load Latest Movie");
++    WriteHotkeyConfig(47, "Load Latest ROM");
+     
+ }
+ 
+diff --git a/main/win/configdialog.c b/main/win/configdialog.c
+index e30627f..a2173a5 100755
+--- a/main/win/configdialog.c
++++ b/main/win/configdialog.c
+@@ -1285,26 +1285,29 @@ inithotkeysdialog:
+ 		SetDlgItemHotkey(hwnd, IDC_7SAVE, &Config.hotkey[19]);
+ 		SetDlgItemHotkey(hwnd, IDC_8SAVE, &Config.hotkey[20]);
+ 		SetDlgItemHotkey(hwnd, IDC_9SAVE, &Config.hotkey[21]);
+-
+-		SetDlgItemHotkey(hwnd, IDC_1LOAD, &Config.hotkey[22]);
+-		SetDlgItemHotkey(hwnd, IDC_2LOAD, &Config.hotkey[23]);
+-		SetDlgItemHotkey(hwnd, IDC_3LOAD, &Config.hotkey[24]);
+-		SetDlgItemHotkey(hwnd, IDC_4LOAD, &Config.hotkey[25]);
+-		SetDlgItemHotkey(hwnd, IDC_5LOAD, &Config.hotkey[26]);
+-		SetDlgItemHotkey(hwnd, IDC_6LOAD, &Config.hotkey[27]);
+-		SetDlgItemHotkey(hwnd, IDC_7LOAD, &Config.hotkey[28]);
+-		SetDlgItemHotkey(hwnd, IDC_8LOAD, &Config.hotkey[29]);
+-		SetDlgItemHotkey(hwnd, IDC_9LOAD, &Config.hotkey[30]);
+-
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_1SEL, &Config.hotkey[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 0);
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_2SEL, &Config.hotkey[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 1);
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_3SEL, &Config.hotkey[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 2);
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_4SEL, &Config.hotkey[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 3);
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_5SEL, &Config.hotkey[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 4);
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_6SEL, &Config.hotkey[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 5);
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_7SEL, &Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_8SEL, &Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
+-		SetDlgItemHotkeyAndMenu(hwnd, IDC_9SEL, &Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
++        SetDlgItemHotkey(hwnd, IDC_10SAVE, &Config.hotkey[22]);
++
++		SetDlgItemHotkey(hwnd, IDC_1LOAD, &Config.hotkey[23]);
++		SetDlgItemHotkey(hwnd, IDC_2LOAD, &Config.hotkey[24]);
++		SetDlgItemHotkey(hwnd, IDC_3LOAD, &Config.hotkey[25]);
++		SetDlgItemHotkey(hwnd, IDC_4LOAD, &Config.hotkey[26]);
++		SetDlgItemHotkey(hwnd, IDC_5LOAD, &Config.hotkey[27]);
++		SetDlgItemHotkey(hwnd, IDC_6LOAD, &Config.hotkey[28]);
++		SetDlgItemHotkey(hwnd, IDC_7LOAD, &Config.hotkey[29]);
++		SetDlgItemHotkey(hwnd, IDC_8LOAD, &Config.hotkey[30]);
++		SetDlgItemHotkey(hwnd, IDC_9LOAD, &Config.hotkey[31]);
++        SetDlgItemHotkey(hwnd, IDC_10LOAD, &Config.hotkey[32]);
++
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_1SEL, &Config.hotkey[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 0);
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_2SEL, &Config.hotkey[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 1);
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_3SEL, &Config.hotkey[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 2);
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_4SEL, &Config.hotkey[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 3);
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_5SEL, &Config.hotkey[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 4);
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_6SEL, &Config.hotkey[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 5);
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_7SEL, &Config.hotkey[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_8SEL, &Config.hotkey[40], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
++		SetDlgItemHotkeyAndMenu(hwnd, IDC_9SEL, &Config.hotkey[41], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
++        SetDlgItemHotkeyAndMenu(hwnd, IDC_10SEL, &Config.hotkey[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 9);
+ 
+ 		memcpy(tempHotkeys, Config.hotkey, NUM_HOTKEYS * sizeof(HOTKEY));
+ 
+@@ -1344,24 +1347,27 @@ inithotkeysdialog:
+ 			HOTKEY_MACRO(IDC_7SAVE, 19);
+ 			HOTKEY_MACRO(IDC_8SAVE, 20);
+ 			HOTKEY_MACRO(IDC_9SAVE, 21);
+-			HOTKEY_MACRO(IDC_1LOAD, 22);
+-			HOTKEY_MACRO(IDC_2LOAD, 23);
+-			HOTKEY_MACRO(IDC_3LOAD, 24);
+-			HOTKEY_MACRO(IDC_4LOAD, 25);
+-			HOTKEY_MACRO(IDC_5LOAD, 26);
+-			HOTKEY_MACRO(IDC_6LOAD, 27);
+-			HOTKEY_MACRO(IDC_7LOAD, 28);
+-			HOTKEY_MACRO(IDC_8LOAD, 29);
+-			HOTKEY_MACRO(IDC_9LOAD, 30);
+-			HOTKEY_MACRO(IDC_1SEL, 31);
+-			HOTKEY_MACRO(IDC_2SEL, 32);
+-			HOTKEY_MACRO(IDC_3SEL, 33);
+-			HOTKEY_MACRO(IDC_4SEL, 34);
+-			HOTKEY_MACRO(IDC_5SEL, 35);
+-			HOTKEY_MACRO(IDC_6SEL, 36);
+-			HOTKEY_MACRO(IDC_7SEL, 37);
+-			HOTKEY_MACRO(IDC_8SEL, 38);
+-			HOTKEY_MACRO(IDC_9SEL, 39);
++            HOTKEY_MACRO(IDC_10SAVE, 22);
++			HOTKEY_MACRO(IDC_1LOAD, 23);
++			HOTKEY_MACRO(IDC_2LOAD, 24);
++			HOTKEY_MACRO(IDC_3LOAD, 25);
++			HOTKEY_MACRO(IDC_4LOAD, 26);
++			HOTKEY_MACRO(IDC_5LOAD, 27);
++			HOTKEY_MACRO(IDC_6LOAD, 28);
++			HOTKEY_MACRO(IDC_7LOAD, 29);
++			HOTKEY_MACRO(IDC_8LOAD, 30);
++			HOTKEY_MACRO(IDC_9LOAD, 31);
++            HOTKEY_MACRO(IDC_10LOAD, 32);
++			HOTKEY_MACRO(IDC_1SEL, 33);
++			HOTKEY_MACRO(IDC_2SEL, 34);
++			HOTKEY_MACRO(IDC_3SEL, 35);
++			HOTKEY_MACRO(IDC_4SEL, 36);
++			HOTKEY_MACRO(IDC_5SEL, 37);
++			HOTKEY_MACRO(IDC_6SEL, 38);
++			HOTKEY_MACRO(IDC_7SEL, 39);
++			HOTKEY_MACRO(IDC_8SEL, 40);
++			HOTKEY_MACRO(IDC_9SEL, 41);
++            HOTKEY_MACRO(IDC_10SEL, 42);
+ 				
+ #undef HOTKEY_MACRO
+         }
+diff --git a/main/win/main_win.cpp b/main/win/main_win.cpp
+index 6dc4a89..54daaa2 100644
+--- a/main/win/main_win.cpp
++++ b/main/win/main_win.cpp
+@@ -3710,13 +3710,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
+                         TranslateBrowserHeader(hRomList);
+                         ShowTotalRoms();
+                      }
+-                     else if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam) <= ID_CURRENTSAVE_9) {
++                     else if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam) <= ID_CURRENTSAVE_10) {
+ 		                SelectState(hwnd,LOWORD(wParam));		     
+                      }
+-                     else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <= ID_SAVE_9) {
++                     else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <= ID_SAVE_10) {
+ 		                SaveTheState(hwnd,LOWORD(wParam));		     
+                      }
+-                     else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_9) {
++                     else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_10) {
+ 		                LoadTheState(hwnd,LOWORD(wParam));		     
+                      }
+                      else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST && LOWORD(wParam) < (ID_RECENTROMS_FIRST + MAX_RECENT_ROMS))  {
+diff --git a/main/win/main_win.h b/main/win/main_win.h
+index 6e84b34..8045cc8 100755
+--- a/main/win/main_win.h
++++ b/main/win/main_win.h
+@@ -77,7 +77,7 @@ typedef struct _HOTKEY {
+     BOOL alt;
+     int command;
+ } HOTKEY;
+-#define NUM_HOTKEYS (46)
++#define NUM_HOTKEYS (49)
+ 
+ typedef struct _CONFIG {
+     unsigned char ConfigVersion ;
+diff --git a/main/win/translation.c b/main/win/translation.c
+index 31b11e1..43b6908 100644
+--- a/main/win/translation.c
++++ b/main/win/translation.c
+@@ -641,7 +641,7 @@ void TranslateHotkeyDialog(HWND hwnd)
+     SetItemTranslatedString(hwnd, IDC_HOTKEYS_SAVEGROUP2, "Save");
+     SetItemTranslatedString(hwnd, IDC_SAVE, "Save");
+     SetItemTranslatedString(hwnd, IDC_LOAD, "Load");
+-    SetItemTranslatedString(hwnd, IDC_SELECT, "Select (1-9)");
++    SetItemTranslatedString(hwnd, IDC_SELECT, "Select (1-10)");
+     SetItemTranslatedString(hwnd, IDC_CURRENT, "Current:");
+ }
+ 
+diff --git a/winproject/resource.h b/winproject/resource.h
+index 9ef6499..e6a16db 100644
+--- a/winproject/resource.h
++++ b/winproject/resource.h
+@@ -156,24 +156,27 @@
+ #define ID_CURRENTSAVE_7                3011
+ #define ID_CURRENTSAVE_8                3012
+ #define ID_CURRENTSAVE_9                3013
+-#define ID_SAVE_1                       3014
+-#define ID_SAVE_2                       3015
+-#define ID_SAVE_3                       3016
+-#define ID_SAVE_4                       3017
+-#define ID_SAVE_5                       3018
+-#define ID_SAVE_6                       3019
+-#define ID_SAVE_7                       3020
+-#define ID_SAVE_8                       3021
+-#define ID_SAVE_9                       3022
+-#define ID_LOAD_1                       3023
+-#define ID_LOAD_2                       3024
+-#define ID_LOAD_3                       3025
+-#define ID_LOAD_4                       3026
+-#define ID_LOAD_5                       3027
+-#define ID_LOAD_6                       3028
+-#define ID_LOAD_7                       3029
+-#define ID_LOAD_8                       3030
+-#define ID_LOAD_9                       3031
++#define ID_CURRENTSAVE_10				3014
++#define ID_SAVE_1                       3015
++#define ID_SAVE_2                       3016
++#define ID_SAVE_3                       3017
++#define ID_SAVE_4                       3018
++#define ID_SAVE_5                       3019
++#define ID_SAVE_6                       3020
++#define ID_SAVE_7                       3021
++#define ID_SAVE_8                       3022
++#define ID_SAVE_9                       3023
++#define ID_SAVE_10						3024
++#define ID_LOAD_1                       3025
++#define ID_LOAD_2                       3026
++#define ID_LOAD_3                       3027
++#define ID_LOAD_4                       3028
++#define ID_LOAD_5                       3029
++#define ID_LOAD_6                       3030
++#define ID_LOAD_7                       3031
++#define ID_LOAD_8                       3032
++#define ID_LOAD_9                       3033
++#define ID_LOAD_10						3034
+ #define IDC_DEFAULT_PLUGINS_CHECK       4000
+ #define IDC_DEFAULT_SCREENSHOTS_CHECK   4001
+ #define IDC_DEFAULT_SAVES_CHECK         4002
+@@ -282,14 +285,17 @@
+ #define IDC_9SEL                        6173
+ #define IDC_9SAVE                       6174
+ #define IDC_9LOAD                       6175
+-#define IDC_PLAYMOVIE                   6176
+-#define IDC_STOPPLAY                    6177
+-#define IDC_RECORDMOVIE                 6178
+-#define IDC_STOPRECORD                  6179
+-#define IDC_SAVE                        6180
+-#define IDC_LOAD                        6181
+-#define IDC_SELECT                      6182
+-#define IDC_CURRENT                     6183
++#define IDC_10SEL						6176
++#define IDC_10SAVE						6177
++#define IDC_10LOAD						6178
++#define IDC_PLAYMOVIE                   6179
++#define IDC_STOPPLAY                    6180
++#define IDC_RECORDMOVIE                 6181
++#define IDC_STOPRECORD                  6182
++#define IDC_SAVE                        6183
++#define IDC_LOAD                        6184
++#define IDC_SELECT                      6185
++#define IDC_CURRENT                     6186
+ #define IDD_LANG_INFO                   7000
+ #define IDC_PAUSE_EMULATION_FOCUS       7002
+ #define IDC_FULLSCREEN_ON_LOADING       7003
+diff --git a/winproject/rsrc.rc b/winproject/rsrc.rc
+index af9ebd7..0e8efe7 100644
+--- a/winproject/rsrc.rc
++++ b/winproject/rsrc.rc
+@@ -99,6 +99,7 @@ BEGIN
+             MENUITEM "Slot 7",                      ID_CURRENTSAVE_7
+             MENUITEM "Slot 8",                      ID_CURRENTSAVE_8
+             MENUITEM "Slot 9",                      ID_CURRENTSAVE_9
++	        MENUITEM "Slot 10",                     ID_CURRENTSAVE_10
+         END
+     END
+     POPUP "Options"
+@@ -352,8 +353,8 @@ BEGIN
+     PUSHBUTTON      "Pause / Break",IDC_HOT_PAUSE,72,66,48,12
+     PUSHBUTTON      "Shift 8",IDC_HOT_READONLY,72,78,48,12
+     LTEXT           "Fast-Forward:",IDC_FASTFORWARD,12,18,60,8
+-    GROUPBOX        "Save",IDC_HOTKEYS_SAVEGROUP2,6,114,216,144
+-    LTEXT           "Slot selection (1-9)",IDC_SELECT,18,150,54,8
++    GROUPBOX        "Save",IDC_HOTKEYS_SAVEGROUP2,6,114,216,155
++    LTEXT           "Slot selection (1-10)",IDC_SELECT,18,150,54,8
+     LTEXT           "Save",IDC_SAVE,144,120,36,8
+     LTEXT           "Load",IDC_LOAD,180,120,36,8
+     LTEXT           "Current:",IDC_CURRENT,108,132,30,12
+@@ -366,6 +367,7 @@ BEGIN
+     LTEXT           "7:",IDC_STATIC,126,216,11,12
+     LTEXT           "8:",IDC_STATIC,126,228,11,12
+     LTEXT           "9:",IDC_STATIC,126,240,11,11
++    LTEXT           "10:",IDC_STATIC,122,252,11,12
+     PUSHBUTTON      "Ctrl F5",IDC_CSAVE,144,132,36,12
+     PUSHBUTTON      "1",IDC_1SEL,18,162,18,18
+     PUSHBUTTON      "Shift F1",IDC_1SAVE,144,144,36,12
+@@ -394,6 +396,9 @@ BEGIN
+     PUSHBUTTON      "9",IDC_9SEL,54,198,18,18
+     PUSHBUTTON      "Shift F9",IDC_9SAVE,144,240,36,12
+     PUSHBUTTON      "F9",IDC_9LOAD,180,240,36,12
++    PUSHBUTTON      "10",IDC_10SEL,72,216,18,18
++    PUSHBUTTON      "Shift F10",IDC_10SAVE,144,252,36,12
++    PUSHBUTTON      "F10",IDC_10LOAD,180,252,36,12
+     PUSHBUTTON      "Ctrl F7",IDC_CLOAD,180,132,36,12
+     LTEXT           "Speed Up:",IDC_SPDUP,12,30,60,8
+     LTEXT           "Speed Down:",IDC_SPDDOWN,12,42,60,8
+-- 
+2.39.0.windows.2
+

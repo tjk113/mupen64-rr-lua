@@ -99,6 +99,7 @@ BEGIN
             MENUITEM "Slot 7",                      ID_CURRENTSAVE_7
             MENUITEM "Slot 8",                      ID_CURRENTSAVE_8
             MENUITEM "Slot 9",                      ID_CURRENTSAVE_9
+			MENUITEM "Slot 10",                     ID_CURRENTSAVE_10
         END
     END
     POPUP "Options"
