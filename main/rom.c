@@ -222,7 +222,8 @@ int rom_read(const char *argv)
    printf ("file found\n");
 /*------------------------------------------------------------------------*/   
    // 512 is what findsize returns for an extended sm64 rom (65,536kb)
-   if (Config.prevent_suspicious_rom_loading && findsize() > 512) goto killRom;
+   // findsize() needs to be called first because it has side effects
+   if (findsize() > 512 && Config.prevent_suspicious_rom_loading) goto killRom;
 
    if (rom) free(rom);
    rom = (unsigned char*)malloc(taille_rom);
