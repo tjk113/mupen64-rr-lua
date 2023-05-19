@@ -191,37 +191,36 @@ NamedHotkey namedHotkeys[] = {
     },
     {
         .name = "Select slot 3",
-        .hotkeys = &Config.hotkeys[36],
+        .hotkeys = &Config.hotkeys[35],
     },
     {
         .name = "Select slot 4",
-        .hotkeys = &Config.hotkeys[37],
+        .hotkeys = &Config.hotkeys[36],
     },
     {
         .name = "Select slot 5",
-        .hotkeys = &Config.hotkeys[38],
+        .hotkeys = &Config.hotkeys[37],
     },
     {
         .name = "Select slot 6",
-        .hotkeys = &Config.hotkeys[39],
+        .hotkeys = &Config.hotkeys[38],
     },
     {
         .name = "Select slot 7",
-        .hotkeys = &Config.hotkeys[40],
+        .hotkeys = &Config.hotkeys[39],
     },
     {
         .name = "Select slot 8",
-        .hotkeys = &Config.hotkeys[41],
+        .hotkeys = &Config.hotkeys[40],
     },
     {
         .name = "Select slot 9",
+        .hotkeys = &Config.hotkeys[41],
+    },
+    {
+        .name = "Select slot 10",
         .hotkeys = &Config.hotkeys[42],
     },
-	{
-		.name = "Select slot 10",
-		.hotkeys = &Config.hotkeys[43],
-	},
-
 };
 const int namedHotkeyCount = sizeof(namedHotkeys) / sizeof(NamedHotkey);
 
