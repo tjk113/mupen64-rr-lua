@@ -2065,15 +2065,15 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 					printf("[VCR]: Warning: Possible stereo sound error detected.\n");
 					fprintf(stderr, "[VCR]: Warning: Possible stereo sound error detected.\n");
 				}
-//				if(!VCRComp_addAudioData((unsigned char*)buf2, len2))
-//				{
-////					ShowInfo("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
-//					printError("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
-//					VCR_stopCapture();
-//				}
+				if(!VCRComp_addAudioData((unsigned char*)buf2, len2))
+				{
+//					ShowInfo("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+					printError("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+					VCR_stopCapture();
+				}
 			}
-//			if(buf2)
-//				free(buf2);
+			//if(buf2)
+			//	free(buf2);
 			soundBufPos = 0;
 		}
 	}
