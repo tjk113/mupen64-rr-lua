@@ -39,6 +39,9 @@
     <Filter Include="Source Files\main\ffmpeg_capture">
       <UniqueIdentifier>{b84fb3bf-fac6-4e80-947b-a20a7446dd89}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\main\helpers">
+      <UniqueIdentifier>{054e8a3a-bccc-4d38-8568-59d733f12758}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config.h">
@@ -212,9 +215,6 @@
     <ClInclude Include="..\..\lua\luaDefine.h">
       <Filter>Source Files\lua</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\main\win\CrashHandler.h">
-      <Filter>Source Files\main\win</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\main\debughook.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
@@ -241,6 +241,14 @@
     </ClInclude>
     <ClInclude Include="..\..\main\ffmpeg_capture\ffmpeg_capture.hpp">
       <Filter>Source Files\main\ffmpeg_capture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\main\win\CrashHandlerDialog.h" />
+    <ClInclude Include="..\..\main\win\CrashHelper.h" />
+    <ClInclude Include="string_helpers.h">
+      <Filter>Source Files\main\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="numeric_helpers.h">
+      <Filter>Source Files\main\helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -481,9 +489,6 @@
     <ClCompile Include="..\..\main\disasm.c">
       <Filter>Source Files\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\CrashHandler.cpp">
-      <Filter>Source Files\main\win</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\main\debughook.c">
       <Filter>Source Files\main</Filter>
     </ClCompile>
@@ -510,6 +515,12 @@
     </ClCompile>
     <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp">
       <Filter>Source Files\main\ffmpeg_capture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\win\CrashHandlerDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\win\CrashHelper.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

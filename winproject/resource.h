@@ -73,6 +73,11 @@
 #define IDC_RECURSION                   1011
 #define IDC_GUI_TOOLBAR                 1012
 #define IDC_GUI_STATUSBAR               1013
+#define IDC_PLUGIN_DIRECTORY_HELP       1014
+#define IDC_HOTKEY_LIST                 1015
+#define IDC_HOTKEY_ASSIGN_SELECTED      1016
+#define IDC_SELECTED_HOTKEY_TEXT        1017
+#define IDC_HOTKEY_SEARCH               1018
 #define IDD_ABOUT                       1020
 #define FULL_SCREEN                     1061
 #define EMU_PAUSE                       1062
@@ -156,24 +161,27 @@
 #define ID_CURRENTSAVE_7                3011
 #define ID_CURRENTSAVE_8                3012
 #define ID_CURRENTSAVE_9                3013
-#define ID_SAVE_1                       3014
-#define ID_SAVE_2                       3015
-#define ID_SAVE_3                       3016
-#define ID_SAVE_4                       3017
-#define ID_SAVE_5                       3018
-#define ID_SAVE_6                       3019
-#define ID_SAVE_7                       3020
-#define ID_SAVE_8                       3021
-#define ID_SAVE_9                       3022
-#define ID_LOAD_1                       3023
-#define ID_LOAD_2                       3024
-#define ID_LOAD_3                       3025
-#define ID_LOAD_4                       3026
-#define ID_LOAD_5                       3027
-#define ID_LOAD_6                       3028
-#define ID_LOAD_7                       3029
-#define ID_LOAD_8                       3030
-#define ID_LOAD_9                       3031
+#define ID_CURRENTSAVE_10               3014
+#define ID_SAVE_1                       3015
+#define ID_SAVE_2                       3016
+#define ID_SAVE_3                       3017
+#define ID_SAVE_4                       3018
+#define ID_SAVE_5                       3019
+#define ID_SAVE_6                       3020
+#define ID_SAVE_7                       3021
+#define ID_SAVE_8                       3022
+#define ID_SAVE_9                       3023
+#define ID_SAVE_10                      3024
+#define ID_LOAD_1                       3025
+#define ID_LOAD_2                       3026
+#define ID_LOAD_3                       3027
+#define ID_LOAD_4                       3028
+#define ID_LOAD_5                       3029
+#define ID_LOAD_6                       3030
+#define ID_LOAD_7                       3031
+#define ID_LOAD_8                       3032
+#define ID_LOAD_9                       3033
+#define ID_LOAD_10                      3034
 #define IDC_DEFAULT_PLUGINS_CHECK       4000
 #define IDC_DEFAULT_SCREENSHOTS_CHECK   4001
 #define IDC_DEFAULT_SAVES_CHECK         4002
@@ -282,14 +290,17 @@
 #define IDC_9SEL                        6173
 #define IDC_9SAVE                       6174
 #define IDC_9LOAD                       6175
-#define IDC_PLAYMOVIE                   6176
-#define IDC_STOPPLAY                    6177
-#define IDC_RECORDMOVIE                 6178
-#define IDC_STOPRECORD                  6179
-#define IDC_SAVE                        6180
-#define IDC_LOAD                        6181
-#define IDC_SELECT                      6182
-#define IDC_CURRENT                     6183
+#define IDC_10SEL                       6176
+#define IDC_10SAVE                      6177
+#define IDC_10LOAD                      6178
+#define IDC_PLAYMOVIE                   6179
+#define IDC_STOPPLAY                    6180
+#define IDC_RECORDMOVIE                 6181
+#define IDC_STOPRECORD                  6182
+#define IDC_SAVE                        6183
+#define IDC_LOAD                        6184
+#define IDC_SELECT                      6185
+#define IDC_CURRENT                     6186
 #define IDD_LANG_INFO                   7000
 #define IDC_PAUSE_EMULATION_FOCUS       7002
 #define IDC_FULLSCREEN_ON_LOADING       7003
@@ -435,6 +446,8 @@
 #define IDC_DEBUGGER_RSP                40037
 #define IDC_DEBUGGER_RSP_TOGGLE         40038
 #define ID_GAMEDEBUGGER                 40039
+#define IDC_DEBUGGER_RSP_TOGGLE2        40039
+#define IDC_DEBUGGER_ALWAYS_UPDATE      40039
 #define IDB_PAUSE                       40040
 #define IDB_RESUME                      40041
 #define IDC_DEBUGGER_INSTDECODEMODE     40042
@@ -442,6 +455,7 @@
 #define IDC_DEBUGGER_PRECOMPOP          40044
 #define IDC_DEBUGGER_STEP               40045
 #define IDC_DEBUGGER_DUMPRDRAM          40046
+#define IDC_DEBUGGER_DISASSEMBLED       40046
 #define IDC_DEBUGGER_DMA_R_TOGGLE       40047
 #define ID_REPLAY_LATEST                40048
 #define IDC_FREQUENTVCRREFRESH          40049
@@ -459,15 +473,16 @@
 #define IDC_CRASHREPORT                 40061
 #define IDC_ERRORTEXT                   40062
 #define IDC_ERROR_PICTUREBOX            40063
+#define IDD_NEW_HOTKEY_DIALOG           40064
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        104
+#define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1011
+#define _APS_NEXT_CONTROL_VALUE         1019
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

@@ -529,7 +529,7 @@ void update_pif_read(bool stcheck)
 						extern void pauseEmu(BOOL quiet);
 						frame_advancing = 0;
 						pauseEmu(TRUE);
-						if (!input_delay)
+						if (!Config.is_input_delay_enabled)
 						{
 							while (emu_paused)
 							{
@@ -549,7 +549,7 @@ void update_pif_read(bool stcheck)
 							}
 						}
 					}
-					if (stcheck && !input_delay) {
+					if (stcheck && !Config.is_input_delay_enabled) {
 						if (savestates_job & SAVESTATE && stAllowed)
 						{
 							savestates_save();

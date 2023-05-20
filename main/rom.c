@@ -197,7 +197,7 @@ int rom_read(const char *argv)
    
    strncpy(arg, argv, 1000);
 
-   if (Config.manageBadRoms && !validRomExt(argv))
+   if (Config.prevent_suspicious_rom_loading && !validRomExt(argv))
 	   goto killRom;
 	   
    if (find_file(arg))
@@ -222,7 +222,8 @@ int rom_read(const char *argv)
    printf ("file found\n");
 /*------------------------------------------------------------------------*/   
    // 512 is what findsize returns for an extended sm64 rom (65,536kb)
-   if (Config.manageBadRoms && findsize() > 512) goto killRom;
+   // findsize() needs to be called first because it has side effects
+   if (findsize() > 512 && Config.prevent_suspicious_rom_loading) goto killRom;
 
    if (rom) free(rom);
    rom = (unsigned char*)malloc(taille_rom);
@@ -307,6 +308,9 @@ int rom_read(const char *argv)
   
    if (!ROM_HEADER) ROM_HEADER = (rom_header*)malloc(sizeof(rom_header));
    memcpy(ROM_HEADER, rom, sizeof(rom_header));
+   ROM_HEADER->unknown = 0; // Clean up ROMs that accidentally set the unused bytes (ensuring previous fields are null terminated)
+   ROM_HEADER->Unknown[0] = 0;
+   ROM_HEADER->Unknown[1] = 0;
    display_loading_progress(100);
    printf ("%x %x %x %x\n", ROM_HEADER->init_PI_BSB_DOM1_LAT_REG,
 	   ROM_HEADER->init_PI_BSB_DOM1_PGS_REG,
@@ -371,7 +375,7 @@ int rom_read(const char *argv)
 	  }
 	else
 	  {
-	     if (Config.manageBadRoms)
+	     if (Config.prevent_suspicious_rom_loading)
 	       {
 		  free(rom);
 		  rom = NULL;
@@ -393,7 +397,7 @@ int rom_read(const char *argv)
      {
 	if (s[i] == 'T' || s[i] == 't' || s[i] == 'h' || s[i] == 'f' || s[i] == 'o')
 	  {
-	     if (Config.manageBadRoms)
+	     if (Config.prevent_suspicious_rom_loading)
 	     {
 		  killRom: 
 		  free(rom);
@@ -405,7 +409,7 @@ int rom_read(const char *argv)
 	  }
 	if (s[i] == 'b')
 	  {
-	     if (Config.manageBadRoms)
+	     if (Config.prevent_suspicious_rom_loading)
 	       {
 		  free(rom);
 		  rom = NULL;

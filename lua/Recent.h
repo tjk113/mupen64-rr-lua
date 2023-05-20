@@ -3,7 +3,6 @@
 #include <windows.h> //linux trolled
 					 // lol
 #endif
-#define LUA_MAX_RECENT 5
 
 //functions
 void AddToRecentScripts(char* path);

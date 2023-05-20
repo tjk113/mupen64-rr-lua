@@ -35,11 +35,11 @@ char *get_currentpath()
 char *get_savespath()
 {
     static char defDir[MAX_PATH];
-    if (Config.DefaultSavesDir) {
+    if (Config.is_default_saves_directory_used) {
         sprintf(defDir,"%sSave\\",AppPath);
         return defDir;
     }
-    else return Config.SavesDir;
+    else return Config.saves_directory;
 }
 
 void display_loading_progress(int p)
@@ -79,7 +79,7 @@ bool warn_recording() {
     return res == 7;
 }
 void internal_warnsavestate(const char* messageCaption, const char* message, bool modal) {
-    if (!Config.savestateWarnings) return;
+    if (!Config.is_savestate_warning_enabled) return;
     TranslateDefault(message, messageCaption, TempMessage);
     if (modal) 
         MessageBox(mainHWND, TempMessage, messageCaption, MB_ICONERROR);

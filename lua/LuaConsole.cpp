@@ -14,6 +14,7 @@
 #include "../../winproject/resource.h"
 #include "win/DebugInfo.hpp"
 #include "win/main_win.h"
+#include "win/Config.h"
 #include "include/lua.hpp"
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
@@ -262,7 +263,7 @@ public:
 		{
 			SetButtonState(ownWnd, true);
 			AddToRecentScripts(path);
-			strcpy(Config.LuaScriptPath, path);
+			strcpy(Config.lua_script_path, path);
 		}
 		ShowInfo("Lua run");
 	}
@@ -679,7 +680,7 @@ void SizingControl(HWND wnd, RECT *p, int x, int y, int w, int h) {
 		p->right-p->left+w, p->bottom-p->top+h, SWP_NOZORDER);
 }
 void SizingControls(HWND wnd, WORD width, WORD height) {
-	if (Config.LuaSimpleDialog)return;
+	if (Config.is_lua_simple_dialog_enabled)return;
 	int xa = width - (InitalWindowRect[0].right - InitalWindowRect[0].left),
 		ya = height - (InitalWindowRect[0].bottom - InitalWindowRect[0].top);
 	SizingControl(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -710,12 +711,12 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			GetInitalWindowRect(wnd);
 		}
 		SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			Config.LuaScriptPath);
+			Config.lua_script_path);
 		return TRUE;
 	}
 	case WM_CLOSE:
 
-		if (Config.LuaWarnOnClose
+		if (Config.is_lua_exit_confirm_enabled
 			&& (MessageBox(0, "Are you sure you want to close this dialog and terminate this lua script instance?", "Confirm closing", MB_TASKMODAL | MB_TOPMOST | MB_YESNO | MB_ICONQUESTION) == IDNO))
 			return TRUE;
 
@@ -745,7 +746,7 @@ std::string OpenLuaFileDialog() {
 	// The default directory we open the file dialog window in is
 	// the parent directory of the last script that the user ran
 	char scriptParentDir[MAX_PATH] = "";
-	std::filesystem::path scriptPath = Config.LuaScriptPath;
+	std::filesystem::path scriptPath = Config.lua_script_path;
 	strncpy(scriptParentDir, scriptPath.parent_path().string().c_str(), MAX_PATH); // monstrosity
 
 	if (!fdOpenLuaScript.ShowFileDialog(scriptParentDir, L"*.lua", TRUE, FALSE, mainHWND)) {
@@ -785,9 +786,9 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control){
 
 		GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 		msg->runPath.path, MAX_PATH);
-		//strcpy(Config.LuaScriptPath, msg->runPath.path);
+		//strcpy(Config.lua_script_path, msg->runPath.path);
 
-		if (Config.LuaSimpleDialog)
+		if (Config.is_lua_simple_dialog_enabled)
 			SetWindowText(wnd, msg->runPath.path);
 
 		anyLuaRunning = true;
@@ -842,7 +843,7 @@ void CreateLuaWindow(void(*callback)()) {
 		InitializeLuaDC(mainHWND);
 	}
 
-	int LuaWndId = Config.LuaSimpleDialog ? IDD_LUAWINDOW_SIMPLIFIED : IDD_LUAWINDOW;
+	int LuaWndId = Config.is_lua_simple_dialog_enabled ? IDD_LUAWINDOW_SIMPLIFIED : IDD_LUAWINDOW;
 
 	HWND wnd = CreateDialogParam(app_hInstance,
 		MAKEINTRESOURCE(LuaWndId), mainHWND, DialogProc,
@@ -2807,11 +2808,11 @@ int GetEmuPause(lua_State *L) {
 	return 1;
 }
 int GetSpeed(lua_State *L) {
-	lua_pushinteger(L, Config.FPSmodifier); 
+	lua_pushinteger(L, Config.fps_modifier); 
 	return 1;
 }
 int SetSpeed(lua_State *L) {
-	Config.FPSmodifier = luaL_checkinteger(L, 1);
+	Config.fps_modifier = luaL_checkinteger(L, 1);
 	InitTimer();
 	return 0;
 }

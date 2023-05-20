@@ -71,7 +71,7 @@ static char fname[MAX_PATH] = {0,};
 
 void savestates_select_slot(unsigned int s)
 {
-   if (s > 9) 
+   if (s > 10) 
 		 return;
    slot = s;
 }
@@ -82,7 +82,7 @@ void savestates_select_filename(const char *fn)
    if (strlen((const char *)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
 		 return;
    strcpy(fname, (const char *)fn);
-   strncpy(Config.SaveLoadAsandSaveStateAsPath, fname, MAX_PATH);
+   strncpy(Config.states_path, fname, MAX_PATH);
 }
 
 unsigned const char * savestates_get_selected_filename()
@@ -100,16 +100,16 @@ void savestates_save()
    
 	if (*autoinc_save_slot)
 	{
-		if (++slot == 10)
+		if (++slot == 11)
 		{
 			slot = 0;
 		}
 	}
    
-	if (slot <= 9)
+	if (slot <= 10)
 	{
 		filename = (char*)malloc(strlen(get_savespath())+
-		strlen(ROM_SETTINGS.goodname)+4+1);
+		strlen(ROM_SETTINGS.goodname)+4+2);
 		strcpy(filename, get_savespath());
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".st");
@@ -118,9 +118,9 @@ void savestates_save()
 	}
 	else
 	{
-		filename = (char*)malloc(strlen(fname)+1);
+		filename = (char*)malloc(strlen(fname)+2);
 		strcpy(filename, fname);
-		slot -= 10;
+		slot -= 11;
 		filename_f = 1;
 	}
 
@@ -322,12 +322,12 @@ void savestates_load(bool silenceNotFoundError)
 
 	savestates_job_success = TRUE;
 
-	//construct .st name for 1-9 slots based on rom name and number
+	//construct .st name for 1-10 slots based on rom name and number
 	//fname buffer will hold something that user can read, either just filename or Slot #
-	if (slot <= 9)
+	if (slot <= 10)
 	{
 		filename = (char*)malloc(strlen(get_savespath()) +
-			sizeof(ROM_SETTINGS.goodname) + sizeof(".st#"));
+			sizeof(ROM_SETTINGS.goodname) + sizeof(".st##"));
 		strcpy(filename, get_savespath());
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".st");
@@ -338,10 +338,11 @@ void savestates_load(bool silenceNotFoundError)
 		sprintf(fname, "Slot %d", slot);
 	}
 
-	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
+	//tricky method, slot is greater than 10, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
-		filename = (char*)malloc(strlen(fname) + 1);
+		// -3+10 to account for possible ".savestate" ending, +1 for null terminator
+		filename = (char*)malloc(strlen(fname) - 3 + 10 + 1);
 		strcpy(filename, fname);
 		//slot -= 10;
 #ifdef WIN32
@@ -397,8 +398,7 @@ void savestates_load(bool silenceNotFoundError)
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
 #ifdef WIN32
-		extern CONFIG Config;
-		if (Config.moviesERRORS)	// if true, allows loading
+		if (Config.is_rom_movie_compatibility_check_enabled)	// if true, allows loading
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
 #endif
 		else
@@ -449,7 +449,7 @@ void savestates_load(bool silenceNotFoundError)
 	{
 		if (VCR_isActive())
 		{
-			if (!Config.allowArbitrarySavestateLoading)
+			if (!Config.is_state_independent_state_loading_allowed)
 			{
 				fprintf(stderr, "Can't load a non-movie snapshot while a movie is active.\n");
 				warn_savestate("Savestate error", "Can't load a non-movie snapshot while a movie is active.\n");
@@ -512,7 +512,7 @@ void savestates_load(bool silenceNotFoundError)
 				stop = true;
 				break;
 			}
-			if (!Config.allowArbitrarySavestateLoading)
+			if (!Config.is_state_independent_state_loading_allowed)
 			{
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord(1);
@@ -568,8 +568,8 @@ void savestates_load_old(bool silenceNotFoundError)
 
 	savestates_job_success = TRUE;
    
-	//construct .st name for 1-9 slots based on rom name and number
-	if (slot <= 9)
+	//construct .st name for 1-10 slots based on rom name and number
+	if (slot <= 10)
 	{
 		filename = (char*)malloc(strlen(get_savespath())+
 		strlen(ROM_SETTINGS.goodname)+4+1);
@@ -580,7 +580,7 @@ void savestates_load_old(bool silenceNotFoundError)
 		strcat(filename, buf);
 	}
 
-	//tricky method, slot is greater than 9, so it uses a global fname array, imo bad programming there but whatever
+	//tricky method, slot is greater than 10, so it uses a global fname array, imo bad programming there but whatever
 	else
 	{
 		filename = (char*)malloc(strlen(fname)+11);
@@ -641,8 +641,7 @@ void savestates_load_old(bool silenceNotFoundError)
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
 	{
 #ifdef WIN32
-		extern CONFIG Config;
-		if (Config.moviesERRORS)
+		if (Config.is_rom_movie_compatibility_check_enabled)
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
 #endif
 		else
@@ -777,7 +776,7 @@ void savestates_load_old(bool silenceNotFoundError)
 					break;
 			}
 
-			if (!Config.allowArbitrarySavestateLoading)
+			if (!Config.is_state_independent_state_loading_allowed)
 			{
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord(1);
@@ -792,7 +791,7 @@ void savestates_load_old(bool silenceNotFoundError)
 	}
 	else // loading a non-movie snapshot from a movie
 	{
-		if (VCR_isActive() && Config.allowArbitrarySavestateLoading) {
+		if (VCR_isActive() && Config.is_state_independent_state_loading_allowed) {
 			display_status("Warning: non-movie savestate\n");
 		}
 		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn) //@TODO: lockNoStWarn is not used anywhere!!!
