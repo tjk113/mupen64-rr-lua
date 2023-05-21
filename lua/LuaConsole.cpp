@@ -2035,64 +2035,69 @@ COLORREF StrToColor(const char *s, bool alpha = false, COLORREF def = 0) {
 }
 
 //wgui
-int SetBrush(lua_State *L) {
-	const char *s = lua_tostring(L, 1);
-	if(lstrcmpi(s,"null")==0)
-		GetLuaClass(L)->setBrush((HBRUSH)GetStockObject(NULL_BRUSH));
+int SetBrush(lua_State* L) {
+	Lua* lua = GetLuaClass(L);
+	const char* s = lua_tostring(L, 1);
+	if (lstrcmpi(s, "null") == 0)
+		lua->setBrush((HBRUSH)GetStockObject(NULL_BRUSH));
 	else
-		GetLuaClass(L)->setBrush(::CreateSolidBrush(StrToColor(s)));
+		lua->setBrush(::CreateSolidBrush(StrToColor(s)));
 	return 0;
 }
-int SetPen(lua_State *L) {
-	const char *s = lua_tostring(L, 1);
-	if(lstrcmpi(s,"null")==0)
-		GetLuaClass(L)->setPen((HPEN)GetStockObject(NULL_PEN));
+int SetPen(lua_State* L) {
+	Lua* lua = GetLuaClass(L);
+	const char* s = lua_tostring(L, 1);
+	if (lstrcmpi(s, "null") == 0)
+		lua->setPen((HPEN)GetStockObject(NULL_PEN));
 	else
-		GetLuaClass(L)->setPen(::CreatePen(
-			PS_SOLID, luaL_optinteger(L, 2, 1), StrToColor(s)));
+		// optional pen width defaults to 1
+		lua->setPen(::CreatePen(PS_SOLID, luaL_optnumber(L, 2, 1), StrToColor(s)));
 	return 0;
 }
 int SetTextColor(lua_State *L) {
 	GetLuaClass(L)->setTextColor(StrToColor(lua_tostring(L, 1)));
 	return 0;
 }
-int SetBackgroundColor(lua_State *L) {
-	const char *s = lua_tostring(L, 1);
-	if(lstrcmpi(s,"null")==0)
-		GetLuaClass(L)->setBackgroundColor(0, TRANSPARENT);
+int SetBackgroundColor(lua_State* L) {
+	Lua* lua = GetLuaClass(L);
+	const char* s = lua_tostring(L, 1);
+	if (lstrcmpi(s, "null") == 0)
+		lua->setBackgroundColor(0, TRANSPARENT);
 	else
-		GetLuaClass(L)->setBackgroundColor(StrToColor(s));
+		lua->setBackgroundColor(StrToColor(s));
 	return 0;
 }
-int SetFont(lua_State *L) {
-	Lua *lua = GetLuaClass(L);
+int SetFont(lua_State* L) {
 	LOGFONT font = {0};
-	font.lfHeight = -MulDiv(luaL_optinteger(L, 1, 0),
-		GetDeviceCaps(luaDC, LOGPIXELSY), 72);
-	lstrcpyn(font.lfFaceName, luaL_optstring(L, 2, "MS Gothic"),
-		LF_FACESIZE);
+	
+	// set the size of the font
+	font.lfHeight = -MulDiv(luaL_checknumber(L, 1), GetDeviceCaps(luaDC, LOGPIXELSY), 72);
+	lstrcpyn(font.lfFaceName, luaL_optstring(L, 2, "MS Gothic"), LF_FACESIZE);
 	font.lfCharSet = DEFAULT_CHARSET;
-	const char *style = luaL_optstring(L, 3, "");
-	for(const char *p = style; *p; p++) {
-		switch(*p) {
-		case 'b': font.lfWeight = FW_BOLD; break;
-		case 'i': font.lfItalic = TRUE; break;
-		case 'u': font.lfUnderline = TRUE; break;
-		case 's': font.lfStrikeOut = TRUE; break;
-		case 'a': font.lfQuality = ANTIALIASED_QUALITY; break;
+	const char* style = luaL_optstring(L, 3, "");
+	for (const char* p = style; *p; p++) {
+		switch (*p) {
+			case 'b': font.lfWeight = FW_BOLD; break;
+			case 'i': font.lfItalic = TRUE; break;
+			case 'u': font.lfUnderline = TRUE; break;
+			case 's': font.lfStrikeOut = TRUE; break;
+			case 'a': font.lfQuality = ANTIALIASED_QUALITY; break;
 		}
 	}
-	lua->setFont(CreateFontIndirect(&font));
+	GetLuaClass(L)->setFont(CreateFontIndirect(&font));
 	return 0;
 }
-int TextOut(lua_State *L) {
-	Lua *lua = GetLuaClass(L);
+int LuaTextOut(lua_State *L) {
+	Lua* lua = GetLuaClass(L);
 	lua->selectTextColor();
 	lua->selectBackgroundColor();
 	lua->selectFont();
-	::TextOut(luaDC,
-		luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-		lua_tostring(L, 3), lstrlen(lua_tostring(L, 3)));
+
+	int x = luaL_checknumber(L, 1);
+	int y = luaL_checknumber(L, 2);
+	const char* text = lua_tostring(L, 3);
+
+	::TextOut(luaDC, x, y, text, lstrlen(text));
 	return 0;
 }
 bool GetRectLua(lua_State *L, int idx, RECT *rect) {
@@ -2128,7 +2133,7 @@ bool GetRectLua(lua_State *L, int idx, RECT *rect) {
 		return false;
 	}
 }
-int DrawText(lua_State *L) {
+int LuaDrawText(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	lua->selectTextColor();
 	lua->selectBackgroundColor();
@@ -2156,19 +2161,23 @@ int DrawText(lua_State *L) {
 	::DrawText(luaDC, lua_tostring(L, 1), -1, &rect, format);
 	return 0;
 }
-int DrawRect(lua_State *L) {
-	auto cornerW = luaL_optinteger(L, 5, 0), cornerH = luaL_optinteger(L, 6, 0);
+int DrawRect(lua_State* L) {
+	Lua* lua = GetLuaClass(L);
 
-	Lua *lua = GetLuaClass(L);
+	int left = luaL_checknumber(L, 1);
+	int top = luaL_checknumber(L, 2);
+	int right = luaL_checknumber(L, 3);
+	int bottom = luaL_checknumber(L, 4);
+	int cornerW = luaL_optnumber(L, 5, 0);
+	int cornerH = luaL_optnumber(L, 6, 0);
+
 	lua->selectBrush();
 	lua->selectPen();
-	RoundRect(luaDC,
-		luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-		luaL_checknumber(L, 3), luaL_checknumber(L, 4), cornerW, cornerH);
+	RoundRect(luaDC, left, top, right, bottom, cornerW, cornerH);
 	return 0;
 }
 
-int LoadImage(lua_State* L) {
+int LuaLoadImage(lua_State* L) {
 	const char* path = luaL_checkstring(L,1);
 	int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
 	wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
@@ -2211,7 +2220,7 @@ int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
 }
 
 int DrawImage(lua_State* L) {
-	unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
+	unsigned int imgIndex = luaL_checkinteger(L, 1) - 1; // because lua
 
 	// Error if the image doesn't exist
 	if (imgIndex > imagePool.size() - 1) {
@@ -2225,17 +2234,17 @@ int DrawImage(lua_State* L) {
 	Gdiplus::Graphics gfx(luaDC);
 	Gdiplus::Bitmap* img = imagePool[imgIndex];
 
-	// In original DrawImage
+	// Original DrawImage
 	if (args == 3) {
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
+		int x = luaL_checknumber(L, 2);
+		int y = luaL_checknumber(L, 3);
 
 		gfx.DrawImage(img, x, y);// Gdiplus::Image *image, int x, int y
 		return 0;
 	}
 	else if (args == 4) {
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
+		int x = luaL_checknumber(L, 2);
+		int y = luaL_checknumber(L, 3);
 		float scale = luaL_checknumber(L, 4);
 		if (scale == 0) return 0;
 
@@ -2247,10 +2256,10 @@ int DrawImage(lua_State* L) {
 	}
 	// In original DrawImage
 	else if (args == 5) {
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
-		int w = luaL_checkinteger(L, 4);
-		int h = luaL_checkinteger(L, 5);
+		int x = luaL_checknumber(L, 2);
+		int y = luaL_checknumber(L, 3);
+		int w = luaL_checknumber(L, 4);
+		int h = luaL_checknumber(L, 5);
 		if (w == 0 or h == 0) return 0;
 
 		Gdiplus::Rect dest(x, y, w, h);
@@ -2259,14 +2268,14 @@ int DrawImage(lua_State* L) {
 		return 0;
 	}
 	else if (args == 10) {
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
-		int w = luaL_checkinteger(L, 4);
-		int h = luaL_checkinteger(L, 5);
-		int srcx = luaL_checkinteger(L, 6);
-		int srcy = luaL_checkinteger(L, 7);
-		int srcw = luaL_checkinteger(L, 8);
-		int srch = luaL_checkinteger(L, 9);
+		int x = luaL_checknumber(L, 2);
+		int y = luaL_checknumber(L, 3);
+		int w = luaL_checknumber(L, 4);
+		int h = luaL_checknumber(L, 5);
+		int srcx = luaL_checknumber(L, 6);
+		int srcy = luaL_checknumber(L, 7);
+		int srcw = luaL_checknumber(L, 8);
+		int srch = luaL_checknumber(L, 9);
 		float rotate = luaL_checknumber(L, 10);
 		if (w == 0 or h == 0 or srcw == 0 or srch == 0) return 0;
 		bool shouldrotate = ((int)rotate % 360) != 0; // Only rotate if the angle isn't a multiple of 360 Modulo only works with int
@@ -2354,9 +2363,6 @@ int FillPolygonAlpha(lua_State* L)
 	//assert that first argument is table
 	luaL_checktype(L, 1, LUA_TTABLE);
 
-
-	const char* col; //color string
-
 	int n = luaL_len(L, 1); //length of the table, doesnt modify stack
 	if (n > 255) { //hard cap, the vector can handle more but dont try
 		lua_pushfstring(L, "wgui.polygon: too many points (%d > %d)",
@@ -2393,7 +2399,7 @@ int FillPolygonAlpha(lua_State* L)
 		//now stack again has only table at the bottom and color string on top, repeat
 	}
 
-	col = luaL_checkstring(L, 2); //get string at index 2
+	const char* col = luaL_checkstring(L, 2); //get string at index 2
 
 	Gdiplus::Graphics gfx(luaDC);
 	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
@@ -2406,14 +2412,11 @@ int FillPolygonAlpha(lua_State* L)
 int FillEllipseAlpha(lua_State* L) {
 	Lua* lua = GetLuaClass(L);
 
-	int x, y, w, h;
-	const char* col;
-
-	x = luaL_checknumber(L, 1);
-	y = luaL_checknumber(L, 2);
-	h = luaL_checknumber(L, 3);
-	w = luaL_checknumber(L, 4);
-	col = luaL_checkstring(L, 5); //color string
+	int x = luaL_checknumber(L, 1);
+	int y = luaL_checknumber(L, 2);
+	int w = luaL_checknumber(L, 3);
+	int h = luaL_checknumber(L, 4);
+	const char* col = luaL_checkstring(L, 5); //color string
 
 	Gdiplus::Graphics gfx(luaDC);
 	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
@@ -2425,20 +2428,17 @@ int FillEllipseAlpha(lua_State* L) {
 int FillRectAlpha(lua_State* L) 
 {
 	Lua* lua = GetLuaClass(L);
-	
-	int x, y, w, h;
-	const char* col;
 
-	x = luaL_checknumber(L, 1);
-	y = luaL_checknumber(L, 2);
-	h = luaL_checknumber(L, 3);
-	w = luaL_checknumber(L, 4);
-	col = luaL_checkstring(L, 5); //color string
+	int x = luaL_checknumber(L, 1);
+	int y = luaL_checknumber(L, 2);
+	int w = luaL_checknumber(L, 3);
+	int h = luaL_checknumber(L, 4);
+	const char* col = luaL_checkstring(L, 5); //color string
 
 	Gdiplus::Graphics gfx(luaDC);
 	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
 
-	gfx.FillRectangle(&brush, x, y, h, w);
+	gfx.FillRectangle(&brush, x, y, w, h);
 
 	return 0;
 }
@@ -2470,9 +2470,13 @@ int DrawEllipse(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	lua->selectBrush();
 	lua->selectPen();
-	::Ellipse(luaDC,
-		luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-		luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+
+	int left = luaL_checknumber(L, 1);
+	int top = luaL_checknumber(L, 2);
+	int right = luaL_checknumber(L, 3);
+	int bottom = luaL_checknumber(L, 4);
+
+	::Ellipse(luaDC, left, top, right, bottom);
 	return 0;
 }
 int DrawPolygon(lua_State *L) {
@@ -2726,7 +2730,7 @@ int GetMupenVersion(lua_State* L) {
 	// 0 = name + version number
 	// 1 = version number
 	version = MUPEN_VERSION;
-	if (type > 1) 
+	if (type > 0)
 		version = { &MUPEN_VERSION[strlen("Mupen 64 ")] };
 
 	
@@ -3436,8 +3440,8 @@ const luaL_Reg wguiFuncs[] = {
 	{"setcolor", SetTextColor},
 	{"setbk", SetBackgroundColor},
 	{"setfont", SetFont},
-	{"text", TextOut},
-	{"drawtext", DrawText},
+	{"text", LuaTextOut},
+	{"drawtext", LuaDrawText},
 	{"rect", DrawRect},
 	{"fillrect", FillRect},
 	/*<GDIPlus>*/
@@ -3445,7 +3449,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"fillrecta", FillRectAlpha},
 	{"fillellipsea", FillEllipseAlpha},
 	{"fillpolygona", FillPolygonAlpha},
-	{"loadimage", LoadImage},
+	{"loadimage", LuaLoadImage},
 	{"deleteimage", DeleteImage},
 	{"drawimage", DrawImage},
 	{"loadscreen", LoadScreen},
