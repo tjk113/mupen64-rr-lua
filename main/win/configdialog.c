@@ -1250,7 +1250,19 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 SetDlgItemText(hwnd, id, buttonText);
             }
         }
-
+        if (id == IDC_HOTKEY_CLEAR)
+        {
+            HWND listHwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
+            int indexInHotkeyArray = GetIndexInHotkeyArrayFromHotkeyListBoxSelection(listHwnd);
+            if (indexInHotkeyArray >= 0 && indexInHotkeyArray < namedHotkeyCount)
+            {
+                namedHotkeys[indexInHotkeyArray].hotkeys->key = 0;
+                namedHotkeys[indexInHotkeyArray].hotkeys->ctrl = 0;
+                namedHotkeys[indexInHotkeyArray].hotkeys->alt = 0;
+                namedHotkeys[indexInHotkeyArray].hotkeys->shift = 0;
+            }
+            UpdateSelectedHotkeyTextBox(hwnd);
+        }
         if (id == IDC_HOTKEY_SEARCH)
         {
             static char hotkeySearchQuery[MAX_PATH] = { 0 };

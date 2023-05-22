@@ -78,6 +78,7 @@
 #define IDC_HOTKEY_ASSIGN_SELECTED      1016
 #define IDC_SELECTED_HOTKEY_TEXT        1017
 #define IDC_HOTKEY_SEARCH               1018
+#define IDC_HOTKEY_CLEAR                1019
 #define IDD_ABOUT                       1020
 #define FULL_SCREEN                     1061
 #define EMU_PAUSE                       1062
