@@ -221,6 +221,30 @@ NamedHotkey namedHotkeys[] = {
         .name = "Select slot 10",
         .hotkeys = &Config.hotkeys[42],
     },
+    {
+        .name = "Reload Lua Script",
+        .hotkeys = &Config.hotkeys[43],
+    },
+    {
+        .name = "Close All Lua Scripts",
+        .hotkeys = &Config.hotkeys[44],
+    },
+    {
+        .name = "Start From Beginning",
+        .hotkeys = &Config.hotkeys[45],
+    },
+    {
+        .name = "Load Latest Movie",
+        .hotkeys = &Config.hotkeys[46],
+    },
+    {
+        .name = "Load Latest Rom",
+        .hotkeys = &Config.hotkeys[47],
+    },
+    {
+        .name = "Load Latest Lua Script",
+        .hotkeys = &Config.hotkeys[48],
+    },
 };
 const int namedHotkeyCount = sizeof(namedHotkeys) / sizeof(NamedHotkey);
 
