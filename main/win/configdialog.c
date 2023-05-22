@@ -870,6 +870,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             if (emu_launched) SetStatusMode(2);
             else SetStatusMode(0);
             InitTimer();
+            SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"");
         }
             break;                     
      default:
