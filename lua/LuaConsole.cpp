@@ -885,7 +885,7 @@ void InitializeLuaDC_(HWND mainWnd){
 	GetClientRect(mainWnd, &r);
 	luaDC = GetDC(mainWnd);
 
-	if (LUA_double_buffered) {
+	if (Config.is_lua_double_buffered) {
 		mainDC = GetDC(mainWnd);
 		luaDC = CreateCompatibleDC(mainDC);
 		HBITMAP bmp = CreateCompatibleBitmap(mainDC, r.right, r.bottom);
@@ -893,11 +893,11 @@ void InitializeLuaDC_(HWND mainWnd){
 	}
 
 	luaDCBufWidth = r.right; luaDCBufHeight = r.bottom;
-	if(LUA_double_buffered)
-	ReleaseDC(mainWnd, mainDC);
+	if(Config.is_lua_double_buffered)
+		ReleaseDC(mainWnd, mainDC);
 }
 void DrawLuaDC(){
-	if (LUA_double_buffered) {
+	if (Config.is_lua_double_buffered) {
 		HDC luaGUIDC = GetDC(mainHWND);
 		//DEBUG_GETLASTERROR;
 		BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
@@ -907,7 +907,7 @@ void DrawLuaDC(){
 	}
 }
 void NextLuaDC(){
-	if (LUA_double_buffered) {
+	if (Config.is_lua_double_buffered) {
 		HDC mainDC = GetDC(mainHWND);
 		DEBUG_GETLASTERROR;
 		BitBlt(luaDC, 0, 0, luaDCBufWidth, luaDCBufHeight, mainDC, 0, 0, SRCCOPY);

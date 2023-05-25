@@ -411,7 +411,6 @@ void WriteCfgInt      (const char *Section, const char *Key,int Value) ;
 void ReadCfgString    (const char *Section, const char *Key, const char *DefaultValue,char *retValue) ;
 int ReadCfgInt        (const char *Section, const char *Key,int DefaultValue) ;
 
-extern int LUA_double_buffered; 
 extern NamedHotkey namedHotkeys[];
 extern const int namedHotkeyCount;
 

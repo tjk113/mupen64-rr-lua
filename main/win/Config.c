@@ -42,9 +42,6 @@ extern HWND hRomList;
 extern int no_audio_delay;
 extern int no_compiled_jump;
 
-int input_delay;
-int LUA_double_buffered;
-
 NamedHotkey namedHotkeys[] = {
     {
         .name = "Fast-forward",
