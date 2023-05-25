@@ -34,7 +34,7 @@ void AtResetCallback();
 
 void LuaBreakpointSyncPure();
 void LuaBreakpointSyncInterp();
-void LuaDCUpdate(int redraw);
+void lua_new_vi(int redraw);
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();

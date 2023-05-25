@@ -1878,7 +1878,7 @@ VCR_updateScreen()
 			updateScreen();
 			//ShowInfo("screen has been updated, count: %x\n",Count);
 		#ifdef LUA_GUI
-			LuaDCUpdate(redraw);
+			lua_new_vi(redraw);
 		#endif
 		}
 		return;
@@ -1893,7 +1893,7 @@ VCR_updateScreen()
 	if(redraw) {
 		updateScreen();
 #ifdef LUA_GUI
-		LuaDCUpdate(redraw);
+		lua_new_vi(redraw);
 #endif
 	}
 #ifdef FFMPEG_BENCHMARK

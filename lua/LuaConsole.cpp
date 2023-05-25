@@ -146,12 +146,14 @@ unsigned pcBreakCount = 0;
 #define pcBreakMap ((AddrBreakFuncVec**)pcBreakMap_)
 ULONGLONG break_value;	//read/write���p
 bool break_value_flag;
-HDC luaDC;
-int luaDCBufWidth, luaDCBufHeight;
 unsigned inputCount = 0;
 size_t current_break_value_size = 1;
 std::map<HWND, Lua*> luaWindowMap;
 int getn(lua_State*);
+
+HDC lua_dc;
+int lua_dc_width, lua_dc_height;
+
 //improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
 static void stackDump(lua_State* L) {
@@ -311,15 +313,15 @@ public:
 		col = c;
 	}
 	void selectTextColor() {
-		::SetTextColor(luaDC, col);
+		::SetTextColor(lua_dc, col);
 	}
 	void setBackgroundColor(COLORREF c, int mode = OPAQUE) {
 		bkcol = c;
 		bkmode = mode;
 	}
 	void selectBackgroundColor() {
-		::SetBkMode(luaDC, bkmode);
-		::SetBkColor(luaDC, bkcol);
+		::SetBkMode(lua_dc, bkmode);
+		::SetBkColor(lua_dc, bkcol);
 	}
 	//calls all functions that lua script has defined as callbacks, reads them from registry
 	//returns true at fail
@@ -424,11 +426,11 @@ private:
 		*save = newobj;
 	}
 	void selectGDIObject(HGDIOBJ p) {
-		SelectObject(luaDC, p);
+		SelectObject(lua_dc, p);
 		DEBUG_GETLASTERROR;
 	}
 	void deleteGDIObject(HGDIOBJ p, int stockobj) {
-		SelectObject(luaDC, GetStockObject(stockobj));
+		SelectObject(lua_dc, GetStockObject(stockobj));
 		DeleteObject(p);
 	}
 	template<typename T>
@@ -498,7 +500,7 @@ int AtPanic(lua_State *L) {
 //ConsoleWrite�Ƃ�
 void SetWindowLua(HWND,Lua*);
 Lua *GetWindowLua(HWND);
-void FinalizeLuaDC();
+void destroy_lua_dc();
 void registerFuncEach(int(*f)(lua_State*), const char *key);
 extern const char * const REG_WINDOWMESSAGE;
 int AtWindowMessage(lua_State *L);
@@ -604,7 +606,7 @@ public:
 					luaWindows.begin(), luaWindows.end(), wnd));
 				if (lua) { lua->stop(); }
 				if(luaWindows.empty()) {
-					FinalizeLuaDC();
+					destroy_lua_dc();
 					anyLuaRunning = false;
 				}
 				delete lua;
@@ -839,7 +841,7 @@ void CreateLuaWindow(void(*callback)()) {
 
 	if (LuaCriticalSettingChangePending)return;
 
-	if(!luaDC) {
+	if(!lua_dc) {
 		InitializeLuaDC(mainHWND);
 	}
 
@@ -877,47 +879,47 @@ LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 }
 void InitializeLuaDC_(HWND mainWnd){
-	if (luaDC) {
-		FinalizeLuaDC();
-	}
-	HDC mainDC;
-	RECT r;
-	GetClientRect(mainWnd, &r);
-	luaDC = GetDC(mainWnd);
-
-	if (Config.is_lua_double_buffered) {
-		mainDC = GetDC(mainWnd);
-		luaDC = CreateCompatibleDC(mainDC);
-		HBITMAP bmp = CreateCompatibleBitmap(mainDC, r.right, r.bottom);
-		SelectObject(luaDC, bmp);
+	if (lua_dc) {
+		destroy_lua_dc();
 	}
 
-	luaDCBufWidth = r.right; luaDCBufHeight = r.bottom;
-	if(Config.is_lua_double_buffered)
-		ReleaseDC(mainWnd, mainDC);
-}
-void DrawLuaDC(){
+	RECT window_rect;
+	GetClientRect(mainWnd, &window_rect);
+	lua_dc_width = window_rect.right;
+	lua_dc_height = window_rect.bottom;
+
 	if (Config.is_lua_double_buffered) {
-		HDC luaGUIDC = GetDC(mainHWND);
-		//DEBUG_GETLASTERROR;
-		BitBlt(luaGUIDC, 0, 0, luaDCBufWidth, luaDCBufHeight, luaDC, 0, 0, SRCCOPY);
-		//DEBUG_GETLASTERROR;
-		ReleaseDC(mainHWND, luaGUIDC);
+		HDC main_dc = GetDC(mainWnd);
+		lua_dc = CreateCompatibleDC(main_dc);
+		HBITMAP bmp = CreateCompatibleBitmap(main_dc, window_rect.right, window_rect.bottom);
+		SelectObject(lua_dc, bmp);
+		ReleaseDC(mainWnd, main_dc);
+	}
+	else {
+		lua_dc = GetDC(mainWnd);
+	}
+
+}
+
+void copy_lua_dc_to_window(){
+	if (Config.is_lua_double_buffered) {
+		HDC main_dc = GetDC(mainHWND);
+		BitBlt(main_dc, 0, 0, lua_dc_width, lua_dc_height, lua_dc, 0, 0, SRCCOPY);
+		ReleaseDC(mainHWND, main_dc);
 		DEBUG_GETLASTERROR;
 	}
 }
-void NextLuaDC(){
+void copy_window_to_lua_dc(){
 	if (Config.is_lua_double_buffered) {
-		HDC mainDC = GetDC(mainHWND);
+		HDC main_dc = GetDC(mainHWND);
+		BitBlt(lua_dc, 0, 0, lua_dc_width, lua_dc_height, main_dc, 0, 0, SRCCOPY);
+		ReleaseDC(mainHWND, main_dc);
 		DEBUG_GETLASTERROR;
-		BitBlt(luaDC, 0, 0, luaDCBufWidth, luaDCBufHeight, mainDC, 0, 0, SRCCOPY);
-		DEBUG_GETLASTERROR;
-		ReleaseDC(mainHWND, mainDC);
 	}
 }
-void FinalizeLuaDC() {
-	ReleaseDC(mainHWND, luaDC);
-	luaDC = NULL;
+void destroy_lua_dc() {
+	ReleaseDC(mainHWND, lua_dc);
+	lua_dc = NULL;
 }
 
 void RecompileNextAll();
@@ -2071,7 +2073,7 @@ int SetFont(lua_State* L) {
 	LOGFONT font = {0};
 	
 	// set the size of the font
-	font.lfHeight = -MulDiv(luaL_checknumber(L, 1), GetDeviceCaps(luaDC, LOGPIXELSY), 72);
+	font.lfHeight = -MulDiv(luaL_checknumber(L, 1), GetDeviceCaps(lua_dc, LOGPIXELSY), 72);
 	lstrcpyn(font.lfFaceName, luaL_optstring(L, 2, "MS Gothic"), LF_FACESIZE);
 	font.lfCharSet = DEFAULT_CHARSET;
 	const char* style = luaL_optstring(L, 3, "");
@@ -2097,7 +2099,7 @@ int LuaTextOut(lua_State *L) {
 	int y = luaL_checknumber(L, 2);
 	const char* text = lua_tostring(L, 3);
 
-	::TextOut(luaDC, x, y, text, lstrlen(text));
+	::TextOut(lua_dc, x, y, text, lstrlen(text));
 	return 0;
 }
 bool GetRectLua(lua_State *L, int idx, RECT *rect) {
@@ -2158,7 +2160,7 @@ int LuaDrawText(lua_State *L) {
 			}
 		}
 	}
-	::DrawText(luaDC, lua_tostring(L, 1), -1, &rect, format);
+	::DrawText(lua_dc, lua_tostring(L, 1), -1, &rect, format);
 	return 0;
 }
 int DrawRect(lua_State* L) {
@@ -2173,7 +2175,7 @@ int DrawRect(lua_State* L) {
 
 	lua->selectBrush();
 	lua->selectPen();
-	RoundRect(luaDC, left, top, right, bottom, cornerW, cornerH);
+	::RoundRect(lua_dc, left, top, right, bottom, cornerW, cornerH);
 	return 0;
 }
 
@@ -2231,7 +2233,7 @@ int DrawImage(lua_State* L) {
 	// Gets the number of arguments
 	unsigned int args = lua_gettop(L);
 
-	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::Graphics gfx(lua_dc);
 	Gdiplus::Bitmap* img = imagePool[imgIndex];
 
 	// Original DrawImage
@@ -2401,7 +2403,7 @@ int FillPolygonAlpha(lua_State* L)
 
 	const char* col = luaL_checkstring(L, 2); //get string at index 2
 
-	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::Graphics gfx(lua_dc);
 	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
 	gfx.FillPolygon(&brush, pts.data(), n);
 	
@@ -2418,7 +2420,7 @@ int FillEllipseAlpha(lua_State* L) {
 	int h = luaL_checknumber(L, 4);
 	const char* col = luaL_checkstring(L, 5); //color string
 
-	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::Graphics gfx(lua_dc);
 	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
 
 	gfx.FillEllipse(&brush, x, y, w, h);
@@ -2435,7 +2437,7 @@ int FillRectAlpha(lua_State* L)
 	int h = luaL_checknumber(L, 4);
 	const char* col = luaL_checkstring(L, 5); //color string
 
-	Gdiplus::Graphics gfx(luaDC);
+	Gdiplus::Graphics gfx(lua_dc);
 	Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
 
 	gfx.FillRectangle(&brush, x, y, w, h);
@@ -2457,13 +2459,13 @@ int FillRect(lua_State* L) {
 		luaL_checknumber(L, 6),
 		luaL_checknumber(L, 7)
 	);
-	COLORREF colorold = SetBkColor(luaDC, color);
+	COLORREF colorold = SetBkColor(lua_dc, color);
 	rect.left = luaL_checknumber(L, 1);
 	rect.top = luaL_checknumber(L, 2);
 	rect.right = luaL_checknumber(L, 3);
 	rect.bottom = luaL_checknumber(L, 4);
-	ExtTextOut(luaDC, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
-	SetBkColor(luaDC, colorold);
+	ExtTextOut(lua_dc, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
+	SetBkColor(lua_dc, colorold);
 	return 0;
 }
 int DrawEllipse(lua_State *L) {
@@ -2476,7 +2478,7 @@ int DrawEllipse(lua_State *L) {
 	int right = luaL_checknumber(L, 3);
 	int bottom = luaL_checknumber(L, 4);
 
-	::Ellipse(luaDC, left, top, right, bottom);
+	::Ellipse(lua_dc, left, top, right, bottom);
 	return 0;
 }
 int DrawPolygon(lua_State *L) {
@@ -2504,23 +2506,23 @@ int DrawPolygon(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	lua->selectBrush();
 	lua->selectPen();
-	::Polygon(luaDC, p, n);
+	::Polygon(lua_dc, p, n);
 	return 0;
 }
 int DrawLine(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	lua->selectPen();
-	::MoveToEx(luaDC, luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+	::MoveToEx(lua_dc, luaL_checknumber(L, 1), luaL_checknumber(L, 2),
 		NULL);
-	::LineTo(luaDC, luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+	::LineTo(lua_dc, luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
 int GetGUIInfo(lua_State *L) {
 	InitializeLuaDC(mainHWND);
 	lua_newtable(L);
-	lua_pushinteger(L, luaDCBufWidth);
+	lua_pushinteger(L, lua_dc_width);
 	lua_setfield(L, -2, "width");
-	lua_pushinteger(L, luaDCBufHeight);
+	lua_pushinteger(L, lua_dc_height);
 	lua_setfield(L, -2, "height");
 	return 1;
 }
@@ -3620,14 +3622,29 @@ void InitializeLuaDC(HWND mainWnd) {
 //Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
 //Next and DrawLuaDC are only used with double buffering
 //otherwise calls vi callback and updatescreen callback
-void LuaDCUpdate(int redraw){
-	if(LuaEngine::luaDC && redraw) {
-		LuaEngine::NextLuaDC();
+void lua_new_vi(int redraw){
+
+	
+	int can_repaint = (LuaEngine::lua_dc && redraw) ? 1 : 0;
+
+	// we copy window front buffer to the lua dc, 
+	if(can_repaint) {
+		LuaEngine::copy_window_to_lua_dc();
 	}
+
+	// then let user draw crap over it,
 	AtVILuaCallback();
-	if(LuaEngine::luaDC && redraw) {
+
+	// and finally we push it back directly to the window
+
+	// FIXME:
+	// (somewhat unrealistic, as it requires a spec change)
+	// don't give video plugin window handle, instead let it perform
+	// hardware-accelerated drawing on a bitmap with some additional info (w, h, pixel format) provided by the emulator
+	// this way, the video plugin can't overwrite our window contents whenever it wants, thereby causing flicker
+	if(can_repaint) {
 		AtUpdateScreenLuaCallback();
-		LuaEngine::DrawLuaDC();
+		LuaEngine::copy_lua_dc_to_window();
 	}
 }
 
