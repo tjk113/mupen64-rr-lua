@@ -2135,6 +2135,19 @@ bool GetRectLua(lua_State *L, int idx, RECT *rect) {
 		return false;
 	}
 }
+
+int GetTextExtent(lua_State* L) {
+	const char* string = luaL_checkstring(L, 1);
+	SIZE size = { 0 };
+	GetTextExtentPoint32(lua_dc, string, strlen(string), &size);
+	lua_newtable(L);
+	lua_pushinteger(L, size.cx);
+	lua_setfield(L, -2, "width");
+	lua_pushinteger(L, size.cy);
+	lua_setfield(L, -2, "height");
+	return 1;
+}
+
 int LuaDrawText(lua_State *L) {
 	Lua *lua = GetLuaClass(L);
 	lua->selectTextColor();
@@ -3444,6 +3457,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"setfont", SetFont},
 	{"text", LuaTextOut},
 	{"drawtext", LuaDrawText},
+	{"gettextextent", GetTextExtent},
 	{"rect", DrawRect},
 	{"fillrect", FillRect},
 	/*<GDIPlus>*/
