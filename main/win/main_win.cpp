@@ -1484,11 +1484,15 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
         	clear_sram_on_restart_mode = FALSE;
 		}
 
-       really_restart_mode = FALSE;
-       extern int m_task;
-       if (m_task!=0)
-        just_restarted_flag = TRUE;
-       StartRom(LastSelectedRom);
+        really_restart_mode = FALSE;
+        extern int m_task;
+        if (m_task!=0)
+           just_restarted_flag = TRUE;
+        if (StartRom(LastSelectedRom)) { // If rom loading fails
+           closeRom(lpParam);
+           ShowRomBrowser(TRUE, TRUE);
+           SetStatusTranslatedString(hStatus, 0, "Failed to open rom");
+        }
       }
    }
 
