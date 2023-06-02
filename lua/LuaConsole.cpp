@@ -2531,6 +2531,19 @@ int DrawLine(lua_State *L) {
 	::LineTo(lua_dc, luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 	return 0;
 }
+int SetClip(lua_State* L) {
+	auto lua = GetLuaClass(L);
+	auto rgn = CreateRectRgn(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2), luaL_checkinteger(L, 1) + luaL_checkinteger(L, 3), luaL_checkinteger(L, 2) + luaL_checkinteger(L, 4));
+	SelectClipRgn(lua_dc, rgn);
+	DeleteObject(rgn);
+	return 0;
+}
+int ResetClip(lua_State* L) {
+	Lua* lua = GetLuaClass(L);
+	SelectClipRgn(lua_dc, NULL);
+	return 0;
+}
+
 int GetGUIInfo(lua_State *L) {
 	InitializeLuaDC(mainHWND);
 	lua_newtable(L);
@@ -3478,6 +3491,8 @@ const luaL_Reg wguiFuncs[] = {
 	{"line", DrawLine},
 	{"info", GetGUIInfo},
 	{"resize", ResizeWindow},
+	{"setclip", SetClip},
+	{"resetclip", ResetClip},
 	{NULL, NULL}
 };
 
