@@ -327,8 +327,8 @@ void SetMenuAcceleratorsFromUser(HWND mainHWND)
     SetHotkeyMenuAccelerators(&Config.hotkeys[41], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
 	SetHotkeyMenuAccelerators(&Config.hotkeys[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 9);
 
-    SetHotkeyMenuAccelerators(&Config.hotkeys[43], GetSubMenu(GetMenu(mainHWND), 3), 12); // start from beginning
-    SetHotkeyMenuAccelerators(&Config.hotkeys[44], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
+    SetHotkeyMenuAccelerators(&Config.hotkeys[45], GetSubMenu(GetMenu(mainHWND), 3), 12); // start from beginning
+    SetHotkeyMenuAccelerators(&Config.hotkeys[46], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
 
 }
 /*
