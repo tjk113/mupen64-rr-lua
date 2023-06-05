@@ -2148,20 +2148,20 @@ int GetTextExtent(lua_State* L) {
 	return 1;
 }
 
-int LuaDrawText(lua_State *L) {
-	Lua *lua = GetLuaClass(L);
+int LuaDrawText(lua_State* L) {
+	Lua* lua = GetLuaClass(L);
 	lua->selectTextColor();
 	lua->selectBackgroundColor();
 	lua->selectFont();
-	RECT rect = {0};
+	RECT rect = { 0 };
 	UINT format = DT_NOPREFIX | DT_WORDBREAK;
-	if(!GetRectLua(L, 2, &rect)) {
+	if (!GetRectLua(L, 2, &rect)) {
 		format |= DT_NOCLIP;
 	}
-	if(!lua_isnil(L, 3)) {
-		const char *p = lua_tostring(L, 3);
-		for(; p && *p; p ++) {
-			switch(*p) {
+	if (!lua_isnil(L, 3)) {
+		const char* p = lua_tostring(L, 3);
+		for (; p && *p; p++) {
+			switch (*p) {
 			case 'l':format |= DT_LEFT; break;
 			case 'r':format |= DT_RIGHT; break;
 			case 't':format |= DT_TOP; break;
@@ -2177,6 +2177,27 @@ int LuaDrawText(lua_State *L) {
 	::DrawText(lua_dc, lua_tostring(L, 1), -1, &rect, format);
 	return 0;
 }
+
+int LuaDrawTextAlt(lua_State *L) {
+
+	Lua *lua = GetLuaClass(L);
+	
+	lua->selectTextColor();
+	lua->selectBackgroundColor();
+	lua->selectFont();
+
+	RECT rect = { 0 };
+	LPSTR string = (LPSTR)lua_tostring(L, 1);
+	UINT format = luaL_checkinteger(L, 2);
+	rect.left = luaL_checkinteger(L, 3);
+	rect.top = luaL_checkinteger(L, 4);
+	rect.right = luaL_checkinteger(L, 5);
+	rect.bottom = luaL_checkinteger(L, 6);
+
+	DrawTextEx(lua_dc, string, -1, &rect, format, NULL);
+	return 0;
+}
+
 int DrawRect(lua_State* L) {
 	Lua* lua = GetLuaClass(L);
 
@@ -3471,6 +3492,7 @@ const luaL_Reg wguiFuncs[] = {
 	{"setfont", SetFont},
 	{"text", LuaTextOut},
 	{"drawtext", LuaDrawText},
+	{"drawtextalt", LuaDrawTextAlt},
 	{"gettextextent", GetTextExtent},
 	{"rect", DrawRect},
 	{"fillrect", FillRect},
