@@ -17,7 +17,7 @@
 #include <string>
 #include <sstream>
 bool IsLuaConsoleMessage(MSG* msg);
-void InitializeLuaDC(HWND mainWnd);
+void InitializeLuaDC();
 void NewLuaScript(void(*callback)());
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 #endif

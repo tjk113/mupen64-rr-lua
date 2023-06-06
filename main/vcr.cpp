@@ -1876,10 +1876,22 @@ VCR_updateScreen()
 #endif
 		if(redraw) {
 			updateScreen();
-			//ShowInfo("screen has been updated, count: %x\n",Count);
 		#ifdef LUA_GUI
 			lua_new_vi(redraw);
 		#endif
+
+			HDC main_dc = GetDC(mainHWND);
+			HDC game_dc = GetDC(game_hwnd);
+			RECT game_rect = {};
+			GetClientRect(game_hwnd, &game_rect);
+
+			printf("Blitting %d %d...\n", game_rect.right, game_rect.bottom);
+			BitBlt(main_dc, 0, 0, game_rect.right, game_rect.bottom, game_dc, 0, 0, SRCCOPY);
+
+			ReleaseDC(mainHWND, main_dc);
+			ReleaseDC(game_hwnd, game_dc);
+
+			
 		}
 		return;
 	}

@@ -36,7 +36,7 @@ extern char TempMessage[200];
 extern int emu_launched; // emu_emulating
 extern int emu_paused;
 extern int recording;
-extern HWND hTool, mainHWND, hStatus, hRomList, hStatusProgress;
+extern HWND hTool, mainHWND, hStatus, hRomList, hStatusProgress, game_hwnd;
 extern HINSTANCE app_hInstance;
 extern BOOL manualFPSLimit;
 extern char statusmsg[800];

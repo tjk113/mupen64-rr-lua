@@ -857,7 +857,7 @@ namespace LuaEngine {
 		if (LuaCriticalSettingChangePending)return;
 
 		if (!lua_dc) {
-			InitializeLuaDC(mainHWND);
+			InitializeLuaDC();
 		}
 
 		int LuaWndId = Config.is_lua_simple_dialog_enabled ? IDD_LUAWINDOW_SIMPLIFIED : IDD_LUAWINDOW;
@@ -893,14 +893,14 @@ namespace LuaEngine {
 		return DefWindowProc(wnd, msg, wParam, lParam);
 
 	}
-	void InitializeLuaDC_(HWND mainWnd) {
+	void InitializeLuaDC_() {
 
 		if (lua_dc) {
 			destroy_lua_dc();
 		}
 
 		RECT window_rect;
-		GetClientRect(mainWnd, &window_rect);
+		GetClientRect(game_hwnd, &window_rect);
 		lua_dc_width = window_rect.right;
 		lua_dc_height = window_rect.bottom;
 
@@ -920,14 +920,14 @@ namespace LuaEngine {
 		);
 
 		if (Config.is_lua_double_buffered) {
-			HDC main_dc = GetDC(mainWnd);
-			lua_dc = CreateCompatibleDC(main_dc);
-			HBITMAP bmp = CreateCompatibleBitmap(main_dc, window_rect.right, window_rect.bottom);
+			HDC game_dc = GetDC(game_hwnd);
+			lua_dc = CreateCompatibleDC(game_dc);
+			HBITMAP bmp = CreateCompatibleBitmap(game_dc, window_rect.right, window_rect.bottom);
 			SelectObject(lua_dc, bmp);
-			ReleaseDC(mainWnd, main_dc);
+			ReleaseDC(game_hwnd, game_dc);
 		}
 		else {
-			lua_dc = GetDC(mainWnd);
+			lua_dc = GetDC(game_hwnd);
 		}
 
 		RECT dc_rect = { 0, 0, lua_dc_width, lua_dc_height };
@@ -942,8 +942,8 @@ namespace LuaEngine {
 			// HACK: fake transparency by using color mask with obscure color
 			const uint32_t color_mask = RGB(1, 0, 1);
 
-			HDC main_dc = GetDC(mainHWND);
-			TransparentBlt(lua_dc, 0, 0, lua_dc_width, lua_dc_height, main_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
+			HDC game_dc = GetDC(game_hwnd);
+			TransparentBlt(lua_dc, 0, 0, lua_dc_width, lua_dc_height, game_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
 
 
 			d2d_render_target->BeginDraw();
@@ -954,8 +954,8 @@ namespace LuaEngine {
 			
 			d2d_render_target->EndDraw();
 
-			TransparentBlt(main_dc, 0, 0, lua_dc_width, lua_dc_height, lua_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
-			ReleaseDC(mainHWND, main_dc);
+			TransparentBlt(game_dc, 0, 0, lua_dc_width, lua_dc_height, lua_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
+			ReleaseDC(game_hwnd, game_dc);
 		}
 	}
 
@@ -970,7 +970,7 @@ namespace LuaEngine {
 
 		d2d_brush_cache.clear();
 
-		ReleaseDC(mainHWND, lua_dc);
+		ReleaseDC(game_hwnd, lua_dc);
 		lua_dc = NULL;
 	}
 
@@ -2872,7 +2872,7 @@ namespace LuaEngine {
 	}
 
 	int GetGUIInfo(lua_State* L) {
-		InitializeLuaDC(mainHWND);
+		InitializeLuaDC();
 		lua_newtable(L);
 		lua_pushinteger(L, lua_dc_width);
 		lua_setfield(L, -2, "width");
@@ -2882,17 +2882,17 @@ namespace LuaEngine {
 	}
 	int ResizeWindow(lua_State* L) {
 		RECT clientRect, wndRect;
-		GetWindowRect(mainHWND, &wndRect);
-		GetClientRect(mainHWND, &clientRect);
+		GetWindowRect(game_hwnd, &wndRect);
+		GetClientRect(game_hwnd, &clientRect);
 		wndRect.bottom -= wndRect.top;
 		wndRect.right -= wndRect.left;
 		int w = luaL_checkinteger(L, 1),
 			h = luaL_checkinteger(L, 2);
-		SetWindowPos(mainHWND, 0, 0, 0,
+		SetWindowPos(game_hwnd, 0, 0, 0,
 			w + (wndRect.right - clientRect.right),
 			h + (wndRect.bottom - clientRect.bottom),
 			SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
-		InitializeLuaDC(mainHWND);
+		InitializeLuaDC();
 		return 0;
 	}
 	//emu
@@ -3985,8 +3985,8 @@ void LuaOpenAndRun(const char* path) {
 	PostMessage(mainHWND, WM_COMMAND, ID_MENU_LUASCRIPT_NEW, (LPARAM)RunExternallyLoadedPath);
 }
 
-void InitializeLuaDC(HWND mainWnd) {
-	LuaEngine::InitializeLuaDC_(mainWnd);
+void InitializeLuaDC() {
+	LuaEngine::InitializeLuaDC_();
 }
 
 //Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
