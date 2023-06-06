@@ -71,64 +71,67 @@ void print_pif() {
 
 void EepromCommand(BYTE* Command) {
 	switch (Command[2]) {
-		case 0: // check
-			if (Command[1] != 3) {
-				Command[1] |= 0x40;
-				if ((Command[1] & 3) > 0)
-					Command[3] = 0;
-				if ((Command[1] & 3) > 1)
-					Command[4] = ROM_SETTINGS.eeprom_16kb == 0 ? 0x80 : 0xc0;
-				if ((Command[1] & 3) > 2)
-					Command[5] = 0;
-			} else {
+	case 0: // check
+		if (Command[1] != 3) {
+			Command[1] |= 0x40;
+			if ((Command[1] & 3) > 0)
 				Command[3] = 0;
+			if ((Command[1] & 3) > 1)
 				Command[4] = ROM_SETTINGS.eeprom_16kb == 0 ? 0x80 : 0xc0;
+			if ((Command[1] & 3) > 2)
 				Command[5] = 0;
-			}
-			break;
-		case 4: // read
-		{
-			char* filename;
-			FILE* f;
-			int i;
-			filename = (char*)malloc(strlen(get_savespath()) +
-				strlen(ROM_SETTINGS.goodname) + 4 + 1);
-			strcpy(filename, get_savespath());
-			strcat(filename, ROM_SETTINGS.goodname);
-			strcat(filename, ".eep");
-			f = fopen(filename, "rb");
-			if (f) {
-				fread(eeprom, 1, 0x800, f);
-				fclose(f);
-			} else for (i = 0; i < 0x800; i++) eeprom[i] = 0;
-			free(filename);
-			memcpy(&Command[4], eeprom + Command[3] * 8, 8);
+		}
+		else {
+			Command[3] = 0;
+			Command[4] = ROM_SETTINGS.eeprom_16kb == 0 ? 0x80 : 0xc0;
+			Command[5] = 0;
 		}
 		break;
-		case 5: // write
-		{
-			char* filename;
-			FILE* f;
-			int i;
-			filename = (char*)malloc(strlen(get_savespath()) +
-				strlen(ROM_SETTINGS.goodname) + 4 + 1);
-			strcpy(filename, get_savespath());
-			strcat(filename, ROM_SETTINGS.goodname);
-			strcat(filename, ".eep");
-			f = fopen(filename, "rb");
-			if (f) {
-				fread(eeprom, 1, 0x800, f);
-				fclose(f);
-			} else for (i = 0; i < 0x800; i++) eeprom[i] = 0;
-			memcpy(eeprom + Command[3] * 8, &Command[4], 8);
-			f = fopen(filename, "wb");
-			fwrite(eeprom, 1, 0x800, f);
+	case 4: // read
+	{
+		char* filename;
+		FILE* f;
+		int i;
+		filename = (char*)malloc(strlen(get_savespath()) +
+			strlen(ROM_SETTINGS.goodname) + 4 + 1);
+		strcpy(filename, get_savespath());
+		strcat(filename, ROM_SETTINGS.goodname);
+		strcat(filename, ".eep");
+		f = fopen(filename, "rb");
+		if (f) {
+			fread(eeprom, 1, 0x800, f);
 			fclose(f);
-			free(filename);
 		}
-		break;
-		default:
-			printf("unknown command in EepromCommand : %x\n", Command[2]);
+		else for (i = 0; i < 0x800; i++) eeprom[i] = 0;
+		free(filename);
+		memcpy(&Command[4], eeprom + Command[3] * 8, 8);
+	}
+	break;
+	case 5: // write
+	{
+		char* filename;
+		FILE* f;
+		int i;
+		filename = (char*)malloc(strlen(get_savespath()) +
+			strlen(ROM_SETTINGS.goodname) + 4 + 1);
+		strcpy(filename, get_savespath());
+		strcat(filename, ROM_SETTINGS.goodname);
+		strcat(filename, ".eep");
+		f = fopen(filename, "rb");
+		if (f) {
+			fread(eeprom, 1, 0x800, f);
+			fclose(f);
+		}
+		else for (i = 0; i < 0x800; i++) eeprom[i] = 0;
+		memcpy(eeprom + Command[3] * 8, &Command[4], 8);
+		f = fopen(filename, "wb");
+		fwrite(eeprom, 1, 0x800, f);
+		fclose(f);
+		free(filename);
+	}
+	break;
+	default:
+		printf("unknown command in EepromCommand : %x\n", Command[2]);
 	}
 }
 
@@ -182,244 +185,231 @@ int frame_advancing = 0;
 
 void internal_ReadController(int Control, BYTE* Command) {
 	switch (Command[2]) {
-		case 1:
-			if (Controls[Control].Present) {
-				BUTTONS Keys;
-			#ifdef VCR_SUPPORT
-				VCR_getKeys(Control, &Keys);
-			#else
-				getKeys(Control, &Keys);
-			#endif
-				* ((unsigned long*)(Command + 3)) = Keys.Value;
-			#ifdef COMPARE_CORE
-				check_input_sync(Command + 3);
-			#endif
-			}
-			break;
-		case 2: // read controller pack
-			if (Controls[Control].Present) {
-				if (Controls[Control].Plugin == PLUGIN_RAW)
-					if (controllerCommand) readController(Control, Command);
-			}
-			break;
-		case 3: // write controller pack
-			if (Controls[Control].Present) {
-				if (Controls[Control].Plugin == PLUGIN_RAW)
-					if (controllerCommand) readController(Control, Command);
-			}
-			break;
+	case 1:
+		if (Controls[Control].Present) {
+			BUTTONS Keys;
+#ifdef VCR_SUPPORT
+			VCR_getKeys(Control, &Keys);
+#else
+			getKeys(Control, &Keys);
+#endif
+			* ((unsigned long*)(Command + 3)) = Keys.Value;
+#ifdef COMPARE_CORE
+			check_input_sync(Command + 3);
+#endif
+		}
+		break;
+	case 2: // read controller pack
+		if (Controls[Control].Present) {
+			if (Controls[Control].Plugin == PLUGIN_RAW)
+				if (controllerCommand) readController(Control, Command);
+		}
+		break;
+	case 3: // write controller pack
+		if (Controls[Control].Present) {
+			if (Controls[Control].Plugin == PLUGIN_RAW)
+				if (controllerCommand) readController(Control, Command);
+		}
+		break;
 	}
 }
 
 void internal_ControllerCommand(int Control, BYTE* Command) {
 	switch (Command[2]) {
-		case 0x00: // check
-		case 0xFF:
-			if ((Command[1] & 0x80))
+	case 0x00: // check
+	case 0xFF:
+		if ((Command[1] & 0x80))
+			break;
+		if (Controls[Control].Present) {
+			Command[3] = 0x05;
+			Command[4] = 0x00;
+			switch (Controls[Control].Plugin) {
+			case PLUGIN_MEMPAK:
+				Command[5] = 1;
 				break;
-			if (Controls[Control].Present) {
-				Command[3] = 0x05;
-				Command[4] = 0x00;
-				switch (Controls[Control].Plugin) {
-					case PLUGIN_MEMPAK:
-						Command[5] = 1;
-						break;
-					case PLUGIN_RAW:
-						Command[5] = 1;
-						break;
-					default:
-						Command[5] = 0;
-						break;
+			case PLUGIN_RAW:
+				Command[5] = 1;
+				break;
+			default:
+				Command[5] = 0;
+				break;
+			}
+		}
+		else
+			Command[1] |= 0x80;
+		break;
+	case 0x01:
+		if (!Controls[Control].Present)
+			Command[1] |= 0x80;
+		break;
+	case 0x02: // read controller pack
+		if (Controls[Control].Present) {
+			switch (Controls[Control].Plugin) {
+			case PLUGIN_MEMPAK:
+			{
+				int address = (Command[3] << 8) | Command[4];
+				if (address == 0x8001) {
+					memset(&Command[5], 0, 0x20);
+					Command[0x25] = mempack_crc(&Command[5]);
 				}
-			} else
-				Command[1] |= 0x80;
-			break;
-		case 0x01:
-			if (!Controls[Control].Present)
-				Command[1] |= 0x80;
-			break;
-		case 0x02: // read controller pack
-			if (Controls[Control].Present) {
-				switch (Controls[Control].Plugin) {
-					case PLUGIN_MEMPAK:
-					{
-						int address = (Command[3] << 8) | Command[4];
-						if (address == 0x8001) {
-							memset(&Command[5], 0, 0x20);
-							Command[0x25] = mempack_crc(&Command[5]);
-						} else {
-							address &= 0xFFE0;
-							if (address <= 0x7FE0) {
-								char* filename;
-								FILE* f;
-								filename = (char*)malloc(strlen(get_savespath()) +
-									strlen(ROM_SETTINGS.goodname) + 4 + 1);
-								strcpy(filename, get_savespath());
-								strcat(filename, ROM_SETTINGS.goodname);
-								strcat(filename, ".mpk");
-								f = fopen(filename, "rb");
-								if (f) {
-									fread(mempack[0], 1, 0x8000, f);
-									fread(mempack[1], 1, 0x8000, f);
-									fread(mempack[2], 1, 0x8000, f);
-									fread(mempack[3], 1, 0x8000, f);
-									fclose(f);
-								} else format_mempacks();
-								free(filename);
-								memcpy(&Command[5], &mempack[Control][address], 0x20);
-							} else {
-								memset(&Command[5], 0, 0x20);
-							}
-							Command[0x25] = mempack_crc(&Command[5]);
+				else {
+					address &= 0xFFE0;
+					if (address <= 0x7FE0) {
+						char* filename;
+						FILE* f;
+						filename = (char*)malloc(strlen(get_savespath()) +
+							strlen(ROM_SETTINGS.goodname) + 4 + 1);
+						strcpy(filename, get_savespath());
+						strcat(filename, ROM_SETTINGS.goodname);
+						strcat(filename, ".mpk");
+						f = fopen(filename, "rb");
+						if (f) {
+							fread(mempack[0], 1, 0x8000, f);
+							fread(mempack[1], 1, 0x8000, f);
+							fread(mempack[2], 1, 0x8000, f);
+							fread(mempack[3], 1, 0x8000, f);
+							fclose(f);
 						}
+						else format_mempacks();
+						free(filename);
+						memcpy(&Command[5], &mempack[Control][address], 0x20);
 					}
-					break;
-					case PLUGIN_RAW:
-						if (controllerCommand) controllerCommand(Control, Command);
-						break;
-					default:
+					else {
 						memset(&Command[5], 0, 0x20);
-						Command[0x25] = 0;
-				}
-			} else
-				Command[1] |= 0x80;
-			break;
-		case 0x03: // write controller pack
-			if (Controls[Control].Present) {
-				switch (Controls[Control].Plugin) {
-					case PLUGIN_MEMPAK:
-					{
-						int address = (Command[3] << 8) | Command[4];
-						if (address == 0x8001)
-							Command[0x25] = mempack_crc(&Command[5]);
-						else {
-							address &= 0xFFE0;
-							if (address <= 0x7FE0) {
-								char* filename;
-								FILE* f;
-								filename = (char*)malloc(strlen(get_savespath()) +
-									strlen(ROM_SETTINGS.goodname) + 4 + 1);
-								strcpy(filename, get_savespath());
-								strcat(filename, ROM_SETTINGS.goodname);
-								strcat(filename, ".mpk");
-								f = fopen(filename, "rb");
-								if (f) {
-									fread(mempack[0], 1, 0x8000, f);
-									fread(mempack[1], 1, 0x8000, f);
-									fread(mempack[2], 1, 0x8000, f);
-									fread(mempack[3], 1, 0x8000, f);
-									fclose(f);
-								} else format_mempacks();
-								memcpy(&mempack[Control][address], &Command[5], 0x20);
-								f = fopen(filename, "wb");
-								fwrite(mempack[0], 1, 0x8000, f);
-								fwrite(mempack[1], 1, 0x8000, f);
-								fwrite(mempack[2], 1, 0x8000, f);
-								fwrite(mempack[3], 1, 0x8000, f);
-								fclose(f);
-								free(filename);
-							}
-							Command[0x25] = mempack_crc(&Command[5]);
-						}
 					}
-					break;
-					case PLUGIN_RAW:
-						if (controllerCommand) controllerCommand(Control, Command);
-						break;
-					default:
-						Command[0x25] = mempack_crc(&Command[5]);
+					Command[0x25] = mempack_crc(&Command[5]);
 				}
-			} else
-				Command[1] |= 0x80;
+			}
 			break;
+			case PLUGIN_RAW:
+				if (controllerCommand) controllerCommand(Control, Command);
+				break;
+			default:
+				memset(&Command[5], 0, 0x20);
+				Command[0x25] = 0;
+			}
+		}
+		else
+			Command[1] |= 0x80;
+		break;
+	case 0x03: // write controller pack
+		if (Controls[Control].Present) {
+			switch (Controls[Control].Plugin) {
+			case PLUGIN_MEMPAK:
+			{
+				int address = (Command[3] << 8) | Command[4];
+				if (address == 0x8001)
+					Command[0x25] = mempack_crc(&Command[5]);
+				else {
+					address &= 0xFFE0;
+					if (address <= 0x7FE0) {
+						char* filename;
+						FILE* f;
+						filename = (char*)malloc(strlen(get_savespath()) +
+							strlen(ROM_SETTINGS.goodname) + 4 + 1);
+						strcpy(filename, get_savespath());
+						strcat(filename, ROM_SETTINGS.goodname);
+						strcat(filename, ".mpk");
+						f = fopen(filename, "rb");
+						if (f) {
+							fread(mempack[0], 1, 0x8000, f);
+							fread(mempack[1], 1, 0x8000, f);
+							fread(mempack[2], 1, 0x8000, f);
+							fread(mempack[3], 1, 0x8000, f);
+							fclose(f);
+						}
+						else format_mempacks();
+						memcpy(&mempack[Control][address], &Command[5], 0x20);
+						f = fopen(filename, "wb");
+						fwrite(mempack[0], 1, 0x8000, f);
+						fwrite(mempack[1], 1, 0x8000, f);
+						fwrite(mempack[2], 1, 0x8000, f);
+						fwrite(mempack[3], 1, 0x8000, f);
+						fclose(f);
+						free(filename);
+					}
+					Command[0x25] = mempack_crc(&Command[5]);
+				}
+			}
+			break;
+			case PLUGIN_RAW:
+				if (controllerCommand) controllerCommand(Control, Command);
+				break;
+			default:
+				Command[0x25] = mempack_crc(&Command[5]);
+			}
+		}
+		else
+			Command[1] |= 0x80;
+		break;
 	}
 }
 
 void update_pif_write() {
 	int i = 0, channel = 0;
-/*#ifdef DEBUG_PIF
-	if (input_delay) {
-		printf("------------- write -------------\n");
-	}
-	else {
-		printf("---------- before write ---------\n");
-	}
-	print_pif();
-	printf("---------------------------------\n");
-#endif*/
 	if (PIF_RAMb[0x3F] > 1) {
 		switch (PIF_RAMb[0x3F]) {
-			case 0x02:
-				for (i = 0; i < sizeof(pif2_lut) / 32; i++) {
-					if (!memcmp(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][0], 16)) {
-						memcpy(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][1], 16);
-						return;
-					}
+		case 0x02:
+			for (i = 0; i < sizeof(pif2_lut) / 32; i++) {
+				if (!memcmp(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][0], 16)) {
+					memcpy(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][1], 16);
+					return;
 				}
-				printf("unknown pif2 code:\n");
-				for (i = (64 - 2 * 8) / 8; i < (64 / 8); i++)
-					printf("%x %x %x %x | %x %x %x %x\n",
-						PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
-						PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
-				break;
-			case 0x08:
-				PIF_RAMb[0x3F] = 0;
-				break;
-			default:
-				printf("error in update_pif_write : %x\n", PIF_RAMb[0x3F]);
+			}
+			printf("unknown pif2 code:\n");
+			for (i = (64 - 2 * 8) / 8; i < (64 / 8); i++)
+				printf("%x %x %x %x | %x %x %x %x\n",
+					PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
+					PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
+			break;
+		case 0x08:
+			PIF_RAMb[0x3F] = 0;
+			break;
+		default:
+			printf("error in update_pif_write : %x\n", PIF_RAMb[0x3F]);
 		}
 		return;
 	}
 	while (i < 0x40) {
 		switch (PIF_RAMb[i]) {
-			case 0x00:
-				channel++;
-				if (channel > 6) i = 0x40;
-				break;
-			case 0xFF:
-				break;
-			default:
-				if (!(PIF_RAMb[i] & 0xC0)) {
-					if (channel < 4) {
-						if (Controls[channel].Present &&
-							Controls[channel].RawData)
-							controllerCommand(channel, &PIF_RAMb[i]);
-						else
-							internal_ControllerCommand(channel, &PIF_RAMb[i]);
-					} else if (channel == 4)
-						EepromCommand(&PIF_RAMb[i]);
+		case 0x00:
+			channel++;
+			if (channel > 6) i = 0x40;
+			break;
+		case 0xFF:
+			break;
+		default:
+			if (!(PIF_RAMb[i] & 0xC0)) {
+				if (channel < 4) {
+					if (Controls[channel].Present &&
+						Controls[channel].RawData)
+						controllerCommand(channel, &PIF_RAMb[i]);
 					else
-						printf("channel >= 4 in update_pif_write\n");
-					i += PIF_RAMb[i] + (PIF_RAMb[(i + 1)] & 0x3F) + 1;
-					channel++;
-				} else
-					i = 0x40;
+						internal_ControllerCommand(channel, &PIF_RAMb[i]);
+				}
+				else if (channel == 4)
+					EepromCommand(&PIF_RAMb[i]);
+				else
+					printf("channel >= 4 in update_pif_write\n");
+				i += PIF_RAMb[i] + (PIF_RAMb[(i + 1)] & 0x3F) + 1;
+				channel++;
+			}
+			else
+				i = 0x40;
 		}
 		i++;
 	}
-	//PIF_RAMb[0x3F] = 0;
 	controllerCommand(-1, NULL);
-/*#ifdef DEBUG_PIF
-	if (!one_frame_delay) {
-		printf("---------- after write ----------\n");
-	}
-	print_pif();
-	if (!one_frame_delay) {
-		printf("---------------------------------\n");
-	}
-#endif*/
 }
 
 //used with 1f input delay (not usable)
 void sleep_while_emu_paused() {
 	extern int emu_paused;
 	while (emu_paused) {
-	#ifdef LUA_EMUPAUSED_WORK	
 		Sleep(10);
 		AtIntervalLuaCallback();
 		GetLuaMessage();
 		VCR_updateScreen();
-		#endif
 	}
 }
 
@@ -427,8 +417,8 @@ void update_pif_read(bool stcheck) {
 	//printf("pif entry\n");
 	int i = 0, channel = 0;
 	extern int emu_paused; //if you get error here, this means you're compiling for linux, and linux version 
-						   //doesn't have pausing. But this also means linux version is unusable for tasing.
-						   //If you really want it for some reason, define emu_paused.
+	//doesn't have pausing. But this also means linux version is unusable for tasing.
+	//If you really want it for some reason, define emu_paused.
 	bool once = emu_paused | frame_advancing; //used to pause only once during controller routine
 	bool stAllowed = true; //used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
@@ -438,25 +428,25 @@ void update_pif_read(bool stcheck) {
 #endif
 	while (i < 0x40) {
 		switch (PIF_RAMb[i]) {
-			case 0x00:
-				channel++;
-				if (channel > 6) i = 0x40;
-				break;
-			case 0xFE:
-				i = 0x40;
-				break;
-			case 0xFF:
-				break;
-			case 0xB4:
-			case 0x56:
-			case 0xB8:
-				break;
-			default:
-				//01 04 01 is read controller 4 bytes
-				if (!(PIF_RAMb[i] & 0xC0)) //mask error bits (isn't this wrong? error bits are on i+1???)
-				{
-					if (channel < 4) {
-						static int controllerRead = 999;
+		case 0x00:
+			channel++;
+			if (channel > 6) i = 0x40;
+			break;
+		case 0xFE:
+			i = 0x40;
+			break;
+		case 0xFF:
+			break;
+		case 0xB4:
+		case 0x56:
+		case 0xB8:
+			break;
+		default:
+			//01 04 01 is read controller 4 bytes
+			if (!(PIF_RAMb[i] & 0xC0)) //mask error bits (isn't this wrong? error bits are on i+1???)
+			{
+				if (channel < 4) {
+					static int controllerRead = 999;
 
 					// frame advance - pause before every 'frame of input',
 					// which is manually resumed to enter 1 input and emulate until being
@@ -505,12 +495,12 @@ void update_pif_read(bool stcheck) {
 						controllerRead = channel;
 						if (Controls[channel].Present &&
 							Controls[channel].RawData
-						#ifdef VCR_SUPPORT
+#ifdef VCR_SUPPORT
 							&& VCR_isIdle()
-						#endif
+#endif
 							) {
 							readController(channel, &PIF_RAMb[i]);
-						#ifdef LUA_JOYPAD
+#ifdef LUA_JOYPAD
 							lastInputLua[channel] = *(DWORD*)&PIF_RAMb[i + 3];
 							AtInputLuaCallback(channel);
 							if (0 <= channel && channel < 4) {
@@ -521,24 +511,27 @@ void update_pif_read(bool stcheck) {
 									rewriteInputFlagLua[channel] = false;
 								}
 							}
-						#endif
+#endif
 
-						} else
+						}
+						else
 							internal_ReadController(channel, &PIF_RAMb[i]);
 					}
 					i += PIF_RAMb[i] + (PIF_RAMb[(i + 1)] & 0x3F) + 1;
 					channel++;
-				} else
+				}
+				else
 					i = 0x40;
+			}
+			i++;
 		}
-		i++;
-	}
-	readController(-1, NULL);
+		readController(-1, NULL);
 
 #ifdef DEBUG_PIF
-	printf("---------- after read -----------\n");
-	print_pif();
-	printf("---------------------------------\n");
+		printf("---------- after read -----------\n");
+		print_pif();
+		printf("---------------------------------\n");
 #endif
-	//printf("pif exit\n");
+		//printf("pif exit\n");
+	}
 }
