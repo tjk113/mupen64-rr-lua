@@ -163,7 +163,7 @@ namespace LuaEngine {
 	ID2D1Factory* d2d_factory;
 	ID2D1DCRenderTarget* d2d_render_target;
 	IDWriteFactory* dw_factory;
-
+	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	//improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
 	static void stackDump(lua_State* L) {
@@ -894,6 +894,7 @@ namespace LuaEngine {
 
 	}
 	void InitializeLuaDC_(HWND mainWnd) {
+
 		if (lua_dc) {
 			destroy_lua_dc();
 		}
@@ -908,12 +909,7 @@ namespace LuaEngine {
 			D2D1_RENDER_TARGET_TYPE_DEFAULT,
 			D2D1::PixelFormat(
 				DXGI_FORMAT_B8G8R8A8_UNORM,
-				D2D1_ALPHA_MODE_PREMULTIPLIED),
-			0,
-			0,
-			D2D1_RENDER_TARGET_USAGE_NONE,
-			D2D1_FEATURE_LEVEL_DEFAULT
-		);
+				D2D1_ALPHA_MODE_PREMULTIPLIED));
 
 		D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2d_factory);
 		d2d_factory->CreateDCRenderTarget(&props, &d2d_render_target);
@@ -934,6 +930,9 @@ namespace LuaEngine {
 			lua_dc = GetDC(mainWnd);
 		}
 
+		RECT dc_rect = { 0, 0, lua_dc_width, lua_dc_height };
+		d2d_render_target->BindDC(lua_dc, &dc_rect);
+
 	}
 
 	void draw_lua(std::function<void()> draw_callback) {
@@ -946,10 +945,7 @@ namespace LuaEngine {
 			HDC main_dc = GetDC(mainHWND);
 			TransparentBlt(lua_dc, 0, 0, lua_dc_width, lua_dc_height, main_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
 
-			RECT dc_rect = {
-				0, 0, lua_dc_width, lua_dc_height
-			};
-			d2d_render_target->BindDC(lua_dc, &dc_rect);
+
 			d2d_render_target->BeginDraw();
 			d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 			d2d_render_target->Clear(D2D1::ColorF(color_mask));
@@ -963,9 +959,17 @@ namespace LuaEngine {
 	}
 
 	void destroy_lua_dc() {
-		ReleaseDC(mainHWND, lua_dc);
 		d2d_factory->Release();
 		d2d_render_target->Release();
+
+		for (auto const& [key, val] : d2d_brush_cache)
+		{
+			val->Release();
+		}
+
+		d2d_brush_cache.clear();
+
+		ReleaseDC(mainHWND, lua_dc);
 		lua_dc = NULL;
 	}
 
@@ -2560,92 +2564,60 @@ namespace LuaEngine {
 
 		return 0;
 	}
-	int FillRect(lua_State* L) {
-		/*
-		(Info)
-		Drawing for 1 frame only with double buffering enabled is impossible due to the way double buffering works.
-		This applies to all wgui functions that only run once, but this shouldn't be a problem for scripts like Input Direction which
-		repaint at every input.
 
-		*/
-		Lua* lua = GetLuaClass(L);
-		RECT rect{};
-		COLORREF color = RGB(
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6),
-			luaL_checknumber(L, 7)
-		);
-		COLORREF colorold = SetBkColor(lua_dc, color);
-		rect.left = luaL_checknumber(L, 1);
-		rect.top = luaL_checknumber(L, 2);
-		rect.right = luaL_checknumber(L, 3);
-		rect.bottom = luaL_checknumber(L, 4);
-		ExtTextOut(lua_dc, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
-		SetBkColor(lua_dc, colorold);
-		return 0;
-	}
-	int DrawEllipse(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-		lua->selectBrush();
-		lua->selectPen();
 
-		int left = luaL_checknumber(L, 1);
-		int top = luaL_checknumber(L, 2);
-		int right = luaL_checknumber(L, 3);
-		int bottom = luaL_checknumber(L, 4);
+	uint32_t jenkins_hash(const void* key, size_t length)
+	{
+		const uint8_t* data = (const uint8_t*)key;
+		uint32_t hash = 0;
 
-		::Ellipse(lua_dc, left, top, right, bottom);
-		return 0;
-	}
-	int DrawPolygon(lua_State* L) {
-		POINT p[0x100];
-		luaL_checktype(L, 1, LUA_TTABLE);
-		int n = luaL_len(L, 1);
-		if (n >= sizeof(p) / sizeof(p[0])) {
-			lua_pushfstring(L, "wgui.polygon: too many points (%d < %d)",
-				sizeof(p) / sizeof(p[0]), n);
-			return lua_error(L);
+		for (size_t i = 0; i < length; ++i)
+		{
+			hash += data[i];
+			hash += (hash << 10);
+			hash ^= (hash >> 6);
 		}
-		for (int i = 0; i < n; i++) {
-			lua_pushinteger(L, i + 1);
-			lua_gettable(L, 1);
-			luaL_checktype(L, -1, LUA_TTABLE);
-			lua_pushinteger(L, 1);
-			lua_gettable(L, -2);
-			p[i].x = lua_tointeger(L, -1);
-			lua_pop(L, 1);
-			lua_pushinteger(L, 2);
-			lua_gettable(L, -2);
-			p[i].y = lua_tointeger(L, -1);
-			lua_pop(L, 2);
-		}
-		Lua* lua = GetLuaClass(L);
-		lua->selectBrush();
-		lua->selectPen();
-		::Polygon(lua_dc, p, n);
-		return 0;
+
+		hash += (hash << 3);
+		hash ^= (hash >> 11);
+		hash += (hash << 15);
+
+		return hash;
 	}
-	int DrawLine(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-		lua->selectPen();
-		::MoveToEx(lua_dc, luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-			NULL);
-		::LineTo(lua_dc, luaL_checknumber(L, 3), luaL_checknumber(L, 4));
-		return 0;
-	}
-	int SetClip(lua_State* L) {
-		auto lua = GetLuaClass(L);
-		auto rgn = CreateRectRgn(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2), luaL_checkinteger(L, 1) + luaL_checkinteger(L, 3), luaL_checkinteger(L, 2) + luaL_checkinteger(L, 4));
-		SelectClipRgn(lua_dc, rgn);
-		DeleteObject(rgn);
-		return 0;
-	}
-	int ResetClip(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-		SelectClipRgn(lua_dc, NULL);
-		return 0;
+	uint32_t hash_floats(float a, float b, float c, float d)
+	{
+		uint32_t hash = 0;
+		uint32_t* float_ptr = (uint32_t*)&a;
+
+		hash ^= jenkins_hash(float_ptr, sizeof(float));
+		float_ptr = (uint32_t*)&b;
+		hash ^= jenkins_hash(float_ptr, sizeof(float));
+		float_ptr = (uint32_t*)&c;
+		hash ^= jenkins_hash(float_ptr, sizeof(float));
+		float_ptr = (uint32_t*)&d;
+		hash ^= jenkins_hash(float_ptr, sizeof(float));
+
+		return hash;
 	}
 
+	ID2D1SolidColorBrush* d2d_get_cached_brush(D2D1::ColorF color) {
+		auto key = hash_floats(color.r, color.g, color.b, color.a);
+
+		if (!d2d_brush_cache.contains(key))
+		{
+			printf("Cached brush %d\n", key);
+
+			ID2D1SolidColorBrush* brush;
+			d2d_render_target->CreateSolidColorBrush(
+				color,
+				&brush
+			);
+			d2d_brush_cache[key] = brush;
+		}
+
+		return d2d_brush_cache[key];
+
+	}
 
 	int LuaD2DFillRectangle(lua_State* L) {
 		Lua* lua = GetLuaClass(L);
@@ -2656,21 +2628,16 @@ namespace LuaEngine {
 			luaL_checknumber(L, 3),
 			luaL_checknumber(L, 4)
 		);
-
-		ID2D1SolidColorBrush* brush;
-		d2d_render_target->CreateSolidColorBrush(
-			D2D1::ColorF(
-				luaL_checknumber(L, 5),
-				luaL_checknumber(L, 6),
-				luaL_checknumber(L, 7),
-				luaL_checknumber(L, 8)
-			),
-			&brush
+		auto color = D2D1::ColorF(
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6),
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8)
 		);
+		
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
 		d2d_render_target->FillRectangle(&rectangle, brush);
-
-		brush->Release();
 
 		return 0;
 	}
@@ -2684,21 +2651,15 @@ namespace LuaEngine {
 			luaL_checknumber(L, 3),
 			luaL_checknumber(L, 4)
 		);
-
-		ID2D1SolidColorBrush* brush;
-		d2d_render_target->CreateSolidColorBrush(
-			D2D1::ColorF(
-				luaL_checknumber(L, 5),
-				luaL_checknumber(L, 6),
-				luaL_checknumber(L, 7),
-				luaL_checknumber(L, 8)
-			),
-			&brush
+		auto color = D2D1::ColorF(
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6),
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8)
 		);
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
 		d2d_render_target->DrawRectangle(&rectangle, brush, luaL_checknumber(L, 9));
-
-		brush->Release();
 
 		return 0;
 	}
@@ -2715,21 +2676,16 @@ namespace LuaEngine {
 			.radiusY = (float)luaL_checknumber(L, 4),
 		};
 
-		ID2D1SolidColorBrush* brush;
-		d2d_render_target->CreateSolidColorBrush(
-			D2D1::ColorF(
-				luaL_checknumber(L, 5),
-				luaL_checknumber(L, 6),
-				luaL_checknumber(L, 7),
-				luaL_checknumber(L, 8)
-			),
-			&brush
+		auto color = D2D1::ColorF(
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6),
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8)
 		);
 
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
 		d2d_render_target->FillEllipse(&ellipse, brush);
-
-		brush->Release();
 
 		return 0;
 	}
@@ -2746,21 +2702,17 @@ namespace LuaEngine {
 			.radiusY = (float)luaL_checknumber(L, 4),
 		};
 
-		ID2D1SolidColorBrush* brush;
-		d2d_render_target->CreateSolidColorBrush(
-			D2D1::ColorF(
-				luaL_checknumber(L, 5),
-				luaL_checknumber(L, 6),
-				luaL_checknumber(L, 7),
-				luaL_checknumber(L, 8)
-			),
-			&brush
+		auto color = D2D1::ColorF(
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6),
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8)
 		);
+
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
 
 		d2d_render_target->DrawEllipse(&ellipse, brush);
-
-		brush->Release();
 
 		return 0;
 	}
@@ -2777,21 +2729,17 @@ namespace LuaEngine {
 			.y = (float)luaL_checknumber(L, 4),
 		};
 
-		ID2D1SolidColorBrush* brush;
-		d2d_render_target->CreateSolidColorBrush(
-			D2D1::ColorF(
-				luaL_checknumber(L, 5),
-				luaL_checknumber(L, 6),
-				luaL_checknumber(L, 7),
-				luaL_checknumber(L, 8)
-			),
-			&brush
+		auto color = D2D1::ColorF(
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6),
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8)
 		);
+
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
 
 		d2d_render_target->DrawLine(point_a, point_b, brush, luaL_checknumber(L, 9));
-
-		brush->Release();
 
 		return 0;
 	}
@@ -2806,16 +2754,14 @@ namespace LuaEngine {
 			luaL_checknumber(L, 4)
 		);
 
-		ID2D1SolidColorBrush* brush;
-		d2d_render_target->CreateSolidColorBrush(
-			D2D1::ColorF(
-				luaL_checknumber(L, 5),
-				luaL_checknumber(L, 6),
-				luaL_checknumber(L, 7),
-				luaL_checknumber(L, 8)
-			),
-			&brush
+		auto color = D2D1::ColorF(
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6),
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8)
 		);
+
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
 		auto text = std::string(luaL_checkstring(L, 9));
 		auto font_name = std::string(luaL_checkstring(L, 10));
@@ -2853,7 +2799,6 @@ namespace LuaEngine {
 			 .y = rectangle.top,
 			}, text_layout, brush);
 
-		brush->Release();
 		text_format->Release();
 		text_layout->Release();
 
@@ -2884,6 +2829,45 @@ namespace LuaEngine {
 		d2d_render_target->PopAxisAlignedClip();
 
 		return 0;
+	}
+
+	int LuaD2DGetTextSize(lua_State* L) {
+		Lua* lua = GetLuaClass(L);
+
+		auto text = widen(std::string(luaL_checkstring(L, 1)));
+		auto font_name = std::string(luaL_checkstring(L, 2));
+		auto font_size = luaL_checknumber(L, 3);
+
+		IDWriteTextFormat* text_format;
+
+		dw_factory->CreateTextFormat(
+			widen(font_name).c_str(),
+			NULL,
+			DWRITE_FONT_WEIGHT_NORMAL,
+			DWRITE_FONT_STYLE_NORMAL,
+			DWRITE_FONT_STRETCH_NORMAL,
+			font_size,
+			L"",
+			&text_format
+		);
+
+		IDWriteTextLayout* text_layout;
+
+		dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, 0.0f, 0.0f, &text_layout);
+
+		DWRITE_TEXT_METRICS text_metrics;
+		text_layout->GetMetrics(&text_metrics);
+
+		lua_newtable(L);
+		lua_pushinteger(L, text_metrics.widthIncludingTrailingWhitespace);
+		lua_setfield(L, -2, "width");
+		lua_pushinteger(L, text_metrics.height);
+		lua_setfield(L, -2, "height");
+
+		text_format->Release();
+		text_layout->Release();
+
+		return 1;
 	}
 
 	int GetGUIInfo(lua_State* L) {
@@ -3833,6 +3817,7 @@ namespace LuaEngine {
 		{"d2d_draw_text", LuaD2DDrawText},
 		{"d2d_push_clip", LuaD2DPushClip},
 		{"d2d_pop_clip", LuaD2DPopClip},
+		{"d2d_get_text_size", LuaD2DGetTextSize},
 
 		// GDIPlus-backed functions
 		{"fillrecta", FillRectAlpha},
@@ -3847,8 +3832,6 @@ namespace LuaEngine {
 
 		{"info", GetGUIInfo},
 		{"resize", ResizeWindow},
-		{"setclip", SetClip},
-		{"resetclip", ResetClip},
 		{NULL, NULL}
 	};
 
