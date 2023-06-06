@@ -1,8 +1,8 @@
 /***************************************************************************
-						  main_win.h  -  description
-							 -------------------
-	copyright            : (C) 2003 by ShadowPrince
-	email                : shadow@emulation64.com
+                          main_win.h  -  description
+                             -------------------
+    copyright            : (C) 2003 by ShadowPrince
+    email                : shadow@emulation64.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -24,19 +24,19 @@
 #define MUPEN_VERSION     "Mupen 64 1.1.2"
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-extern void ShowMessage(const char* lpszMessage);
+extern void ShowMessage(const char* lpszMessage) ;
 extern void EnableToolbar();
-extern void CreateStatusBarWindow(HWND hwnd);
-extern void SetStatusMode(int mode);
-extern char* getPluginName(char* pluginpath, int plugintype);
-extern char* getExtension(char* str);
+extern void CreateStatusBarWindow( HWND hwnd );
+extern void SetStatusMode( int mode );
+extern char *getPluginName( char *pluginpath, int plugintype);
+extern char* getExtension(char *str);
 
 /********* Global Variables **********/
 extern char TempMessage[200];
 extern int emu_launched; // emu_emulating
 extern int emu_paused;
 extern int recording;
-extern HWND hTool, mainHWND, hStatus, hRomList, hStatusProgress, game_hwnd;
+extern HWND hTool, mainHWND, hStatus, hRomList, hStatusProgress;
 extern HINSTANCE app_hInstance;
 extern BOOL manualFPSLimit;
 extern char statusmsg[800];
@@ -54,18 +54,18 @@ extern char AppPath[MAX_PATH];
 
 extern void EnableEmulationMenuItems(BOOL flag);
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
-extern BOOL StartRom(char* fullRomPath);
-extern void resetEmu();
+extern BOOL StartRom(char *fullRomPath);
+extern void resetEmu() ;
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
 //extern void closeRom();
 extern void search_plugins();
 extern void rewind_plugin();
 extern int get_plugin_type();
-extern char* next_plugin();
-extern void exec_config(char* name);
-extern void exec_test(char* name);
-extern void exec_about(char* name);
+extern char *next_plugin();
+extern void exec_config(char *name);
+extern void exec_test(char *name);
+extern void exec_about(char *name);
 extern void EnableStatusbar();
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();

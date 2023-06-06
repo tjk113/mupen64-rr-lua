@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- *
+ * 
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -30,19 +30,20 @@
 #ifndef MUPENINIAPI_H
 #define MUPENINIAPI_H
 
-typedef struct {
-	char goodname[100];
-	int eeprom16kb;
-	char MD5[33];
-	char CRC[22];
-	char refMD5[33];
-	char comments[200];
+typedef struct
+{
+   char goodname[100];
+   int eeprom16kb;
+   char MD5[33];
+   char CRC[22];
+   char refMD5[33];
+   char comments[200];
 } mupenEntry;
 
 void ini_openFile();
 void ini_closeFile();
 void ini_updateFile(int compress);
-mupenEntry* ini_search_by_md5(const char* md5);
-mupenEntry* ini_search_by_CRC(const char* CRC);
+mupenEntry* ini_search_by_md5(const char *md5);
+mupenEntry* ini_search_by_CRC(const char *CRC);
 
 #endif

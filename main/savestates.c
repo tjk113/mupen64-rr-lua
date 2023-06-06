@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- *
+ * 
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -49,7 +49,7 @@
 
 
 extern unsigned long interp_addr;
-extern int* autoinc_save_slot;
+extern int *autoinc_save_slot;
 
 int savestates_job = 0;
 int savestates_job_success = 1;
@@ -67,79 +67,89 @@ bool st_skip_dma = false;
 #define MUPEN64NEW_ST_FIXED (1<<31) //last bit seems to be free
 
 static unsigned int slot = 1;
-static char fname[MAX_PATH] = {0, };
+static char fname[MAX_PATH] = {0,};
 
-void savestates_select_slot(unsigned int s) {
-	if (s > 10)
-		return;
-	slot = s;
+void savestates_select_slot(unsigned int s)
+{
+   if (s > 10) 
+		 return;
+   slot = s;
 }
 
-void savestates_select_filename(const char* fn) {
-	slot += 10;
-	if (strlen((const char*)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
-		return;
-	strcpy(fname, (const char*)fn);
-	strncpy(Config.states_path, fname, MAX_PATH);
+void savestates_select_filename(const char *fn)
+{
+   slot += 10;
+   if (strlen((const char *)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
+		 return;
+   strcpy(fname, (const char *)fn);
+   strncpy(Config.states_path, fname, MAX_PATH);
 }
 
-unsigned const char* savestates_get_selected_filename() {
-	return (unsigned const char*)fname;
+unsigned const char * savestates_get_selected_filename()
+{
+	return (unsigned const char *) fname;
 }
 
-void savestates_save() {
-	char* filename, buf[1024];
+void savestates_save()
+{
+	char *filename, buf[1024];
 	gzFile f;
 	int len, i, filename_f = 0;
-
+   
 	savestates_job_success = TRUE;
-
-	if (*autoinc_save_slot) {
-		if (++slot == 11) {
+   
+	if (*autoinc_save_slot)
+	{
+		if (++slot == 11)
+		{
 			slot = 0;
 		}
 	}
-
-	if (slot <= 10) {
-		filename = (char*)malloc(strlen(get_savespath()) +
-			strlen(ROM_SETTINGS.goodname) + 4 + 2);
+   
+	if (slot <= 10)
+	{
+		filename = (char*)malloc(strlen(get_savespath())+
+		strlen(ROM_SETTINGS.goodname)+4+2);
 		strcpy(filename, get_savespath());
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".st");
 		sprintf(buf, "%d", slot);
 		strcat(filename, buf);
-	} else {
-		filename = (char*)malloc(strlen(fname) + 2);
+	}
+	else
+	{
+		filename = (char*)malloc(strlen(fname)+2);
 		strcpy(filename, fname);
 		slot -= 11;
 		filename_f = 1;
 	}
 
 	{
-		char str[256];
-		if (filename_f)
+		char str [256];
+		if(filename_f)
 			sprintf(str, "saving %-200s", filename);
 		else
 			sprintf(str, "saving slot %d", slot);
 		display_status(str);
 	}
-
+   	
 	f = gzopen(filename, "wb");
 	free(filename);
-
+   
 	gzwrite(f, ROM_SETTINGS.MD5, 32);
-
+   
 	//if fixing enabled...
-	if (fix_new_st) {
+	if (fix_new_st)
+	{
 		//this is code taken from dma.c:dma_si_read(), it finishes up the dma.
 		//it copies data from pif (should contain commands and controller states), updates count reg and adds SI interrupt to queue
 		//so why does old mupen and mupen64plus dislike savestates without doing this? well in case of mario 64 it leaves pif command buffer uninitialised
 		//and it never can poll input properly (hence the inability to frame advance which is handled inside controller read).
-
+		
 		//But we dont want to do this then load such .st and dma again... so I notify mupen about this in .st,
 		//since .st is filled up to the brim with data (not even a single unused offset) I have to store one bit in... rdram manufacturer register
 		//this 99.999% wont break on any game, and that bit will be cleared by mupen64plus converter as well, so only old old mupen ever sees this trick.
-
+		
 		//update: I stumbled upon a .st that had the bit set, but didn't have SI_INT in queue,
 		//so it froze game, so there exists a way to cause that somehow
 		for (i = 0; i < (64 / 4); i++)
@@ -168,45 +178,49 @@ void savestates_save() {
 
 	save_flashram_infos(buf);
 	gzwrite(f, buf, 24);
-
+   
 	gzwrite(f, tlb_LUT_r, 0x100000);
 	gzwrite(f, tlb_LUT_w, 0x100000);
-
+   
 	gzwrite(f, &llbit, 4);
-	gzwrite(f, reg, 32 * 8);
-	for (i = 0; i < 32; i++)
-		gzwrite(f, reg_cop0 + i, 8); // *8 for compatibility with old versions purpose
+	gzwrite(f, reg, 32*8);
+	for (i=0; i<32; i++)
+		gzwrite(f, reg_cop0+i, 8); // *8 for compatibility with old versions purpose
 	gzwrite(f, &lo, 8);
 	gzwrite(f, &hi, 8);
-	gzwrite(f, reg_cop1_fgr_64, 32 * 8);
+	gzwrite(f, reg_cop1_fgr_64, 32*8);
 	gzwrite(f, &FCR0, 4);
 	gzwrite(f, &FCR31, 4);
-	gzwrite(f, tlb_e, 32 * sizeof(tlb));
-	if (!dynacore && interpcore)
+	gzwrite(f, tlb_e, 32*sizeof(tlb));
+	if (!dynacore && interpcore) 
 		gzwrite(f, &interp_addr, 4);
-	else
+	else 
 		gzwrite(f, &PC->addr, 4);
-
+   
 	gzwrite(f, &next_interupt, 4);
 	gzwrite(f, &next_vi, 4);
 	gzwrite(f, &vi_field, 4);
-
+   
 	len = save_eventqueue_infos(buf);
 	gzwrite(f, buf, len);
 
 	// re-recording
 	BOOL movieActive = VCR_isActive();
 	gzwrite(f, &movieActive, sizeof(movieActive));
-	if (movieActive) {
+	if(movieActive)
+	{
 		char* movie_freeze_buf = NULL;
 		unsigned long movie_freeze_size = 0;
 
 		VCR_movieFreeze(&movie_freeze_buf, &movie_freeze_size);
-		if (movie_freeze_buf) {
+		if(movie_freeze_buf)
+		{
 			gzwrite(f, &movie_freeze_size, sizeof(movie_freeze_size));
 			gzwrite(f, movie_freeze_buf, movie_freeze_size);
 			free(movie_freeze_buf);
-		} else {
+		}
+		else
+		{
 			fprintf(stderr, "Failed to save movie snapshot.\n");
 			savestates_job_success = FALSE;
 		}
@@ -218,7 +232,8 @@ void savestates_save() {
 }
 
 // reads memory like a file
-void memread(char** src, void* dest, unsigned int len) {
+void memread(char** src, void* dest, unsigned int len)
+{
 	memcpy(dest, *src, len);
 	*src += len;
 }
@@ -227,10 +242,12 @@ void memread(char** src, void* dest, unsigned int len) {
 /// overwrites emu memory with given data. Make sure to call load_eventqueue_infos as well!!!
 /// </summary>
 /// <param name="firstBlock"></param>
-void load_memory_from_buffer(char* p) {
+void load_memory_from_buffer(char* p)
+{
 
 	memread(&p, &rdram_register, sizeof(RDRAM_register));
-	if (rdram_register.rdram_device_manuf & MUPEN64NEW_ST_FIXED) {
+	if (rdram_register.rdram_device_manuf & MUPEN64NEW_ST_FIXED)
+	{
 		rdram_register.rdram_device_manuf &= ~MUPEN64NEW_ST_FIXED; //remove the trick
 		st_skip_dma = true; //tell dma.c to skip it
 	}
@@ -249,7 +266,7 @@ void load_memory_from_buffer(char* p) {
 	memread(&p, SP_IMEM, 0x1000);
 	memread(&p, PIF_RAM, 0x40);
 
-	char buf[4 * 32];
+	char buf[4*32];
 	memread(&p, buf, 24);
 	load_flashram_infos(buf);
 
@@ -258,7 +275,8 @@ void load_memory_from_buffer(char* p) {
 
 	memread(&p, &llbit, 4);
 	memread(&p, reg, 32 * 8);
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < 32; i++)
+	{
 		memread(&p, reg_cop0 + i, 4);
 		memread(&p, buf, 4); // for compatibility with old versions purpose
 	}
@@ -270,7 +288,8 @@ void load_memory_from_buffer(char* p) {
 	memread(&p, tlb_e, 32 * sizeof(tlb));
 	if (!dynacore && interpcore)
 		memread(&p, &interp_addr, 4);
-	else {
+	else
+	{
 		uint32_t target_addr;
 		memread(&p, &target_addr, 4);
 		for (int i = 0; i < 0x100000; i++)
@@ -287,7 +306,8 @@ void load_memory_from_buffer(char* p) {
 /// First decompresses file into buffer, then before overwriting emulator memory checks if its good
 /// </summary>
 /// <param name="silenceNotFoundError"></param>
-void savestates_load(bool silenceNotFoundError) {
+void savestates_load(bool silenceNotFoundError)
+{
 	/*rough .st format :
 	0x0 - 0xA02BB0 : memory, registers, stuff like that, known size
 	0xA02BB4 - ??? : interrupt queue, dynamic size (cap 1kB)
@@ -304,7 +324,8 @@ void savestates_load(bool silenceNotFoundError) {
 
 	//construct .st name for 1-10 slots based on rom name and number
 	//fname buffer will hold something that user can read, either just filename or Slot #
-	if (slot <= 10) {
+	if (slot <= 10)
+	{
 		filename = (char*)malloc(strlen(get_savespath()) +
 			sizeof(ROM_SETTINGS.goodname) + sizeof(".st##"));
 		strcpy(filename, get_savespath());
@@ -318,38 +339,43 @@ void savestates_load(bool silenceNotFoundError) {
 	}
 
 	//tricky method, slot is greater than 10, so it uses a global fname array, imo bad programming there but whatever
-	else {
+	else
+	{
 		// -3+10 to account for possible ".savestate" ending, +1 for null terminator
 		filename = (char*)malloc(strlen(fname) - 3 + 10 + 1);
 		strcpy(filename, fname);
 		//slot -= 10;
-	#ifdef WIN32
+#ifdef WIN32
 		_splitpath(filename, 0, 0, fname, 0);
 		strcat(fname, ".st");
 		sprintf(buf, "Loading %s", fname);
-	#else
+#else
 		sprintf(buf, "Loading %s", filename);
-	#endif
+#endif
 	}
 
-
+	
 	f = gzopen(filename, "rb");
 
 	//try loading .savestate, workaround for discord...
-	if (f == NULL && slot > 9) {
-		char* filename_end = filename + strlen(filename) - 3;
+	if (f == NULL && slot > 9)
+	{
+		char* filename_end = filename+strlen(filename)-3;
 		strcpy(filename_end, ".savestate");
 		f = gzopen(filename, "rb");
 	}
 
 	//failed opening st
-	if (f == NULL) {
-		if (f == NULL) {
+	if (f == NULL)
+	{
+		if (f == NULL)
+		{
 			if (silenceNotFoundError) {
 				printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
 				return;
 			}
-			if (slot > 9) {
+			if (slot > 9)
+			{
 				//print .st not .savestate because
 				filename[strlen(filename) - 10] = '\0';
 				strcat(filename, ".st");
@@ -366,15 +392,17 @@ void savestates_load(bool silenceNotFoundError) {
 	free(filename);
 
 	//printf("--------st start---------\n");
-
+	
 	// compare current rom hash with one stored in state
 	gzread(f, buf, 32);
-	if (memcmp(buf, ROM_SETTINGS.MD5, 32)) {
-	#ifdef WIN32
+	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
+	{
+#ifdef WIN32
 		if (Config.is_rom_movie_compatibility_check_enabled)	// if true, allows loading
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
-	#endif
-		else {
+#endif
+		else
+		{
 			warn_savestate("Wrong ROM error", "This savestate is from another ROM or version.", TRUE);
 			gzclose(f);
 			savestates_job_success = FALSE;
@@ -384,7 +412,8 @@ void savestates_load(bool silenceNotFoundError) {
 
 	// new version does one bigass gzread for first part of .st (static size)
 	char* firstBlock = (char*)malloc(firstBlockSize);
-	if (!firstBlock) {
+	if (!firstBlock)
+	{
 		// out of memory
 		fprintf(stderr, "Out of memory while loading .st\n");
 		savestates_job_success = FALSE;
@@ -393,7 +422,8 @@ void savestates_load(bool silenceNotFoundError) {
 	}
 	gzread(f, firstBlock, firstBlockSize);
 	// now read interrupt queue into buf
-	for (len = 0; len < BUFLEN; len += 8) {
+	for (len = 0; len < BUFLEN; len += 8)
+	{
 		gzread(f, buf + len, 4);
 		if (*((unsigned long*)&buf[len]) == 0xFFFFFFFF)
 			break;
@@ -417,22 +447,27 @@ void savestates_load(bool silenceNotFoundError) {
 
 	if (!isMovie) // this .st is not part of a movie
 	{
-		if (VCR_isActive()) {
-			if (!Config.is_state_independent_state_loading_allowed) {
+		if (VCR_isActive())
+		{
+			if (!Config.is_state_independent_state_loading_allowed)
+			{
 				fprintf(stderr, "Can't load a non-movie snapshot while a movie is active.\n");
 				warn_savestate("Savestate error", "Can't load a non-movie snapshot while a movie is active.\n");
 				gzclose(f);
 				free(firstBlock);
 				savestates_job_success = FALSE;
 				return;
-			} else {
+			}
+			else {
 				display_status("Warning: loading non-movie savestate can desync playback");
 			}
 
 		}
 
 		// at this point we know the savestate is safe to be loaded (done after else block)
-	} else {
+	}
+	else
+	{
 		// this .st is part of a movie
 		// rest of the file can be gzreaded now
 
@@ -440,13 +475,15 @@ void savestates_load(bool silenceNotFoundError) {
 		unsigned long movieInputDataSize = 0;
 		gzread(f, &movieInputDataSize, sizeof(movieInputDataSize));
 		char* local_movie_data = (char*)malloc(movieInputDataSize * sizeof(char));
-		if (!local_movie_data) {
+		if (!local_movie_data)
+		{
 			fprintf(stderr, "Out of memory while loading .st\n");
 			savestates_job_success = FALSE;
 			goto failedLoad;
 		}
 		int readBytes = gzread(f, local_movie_data, movieInputDataSize);
-		if (readBytes != movieInputDataSize) {
+		if (readBytes != movieInputDataSize)
+		{
 			fprintf(stderr, "Error while loading .st, file was too short.\n");
 			free(local_movie_data);
 			savestates_job_success = FALSE;
@@ -454,32 +491,36 @@ void savestates_load(bool silenceNotFoundError) {
 		}
 		int code = VCR_movieUnfreeze(local_movie_data, movieInputDataSize);
 		free(local_movie_data);
-		if (code != SUCCESS && !VCR_isIdle()) {
+		if (code != SUCCESS && !VCR_isIdle())
+		{
 			bool stop = false;
 			char errStr[1024];
 			strcpy(errStr, "Failed to load movie snapshot,\n");
-			switch (code) {
-				case NOT_FROM_THIS_MOVIE:
-					strcat(errStr, "snapshot not from this movie\n");
-					break;
-				case NOT_FROM_A_MOVIE:
-					strcat(errStr, "not a movie snapshot\n");
-					break;// shouldn't get here...
-				case INVALID_FRAME:
-					strcat(errStr, "invalid frame number\n");
-					break;
-				case WRONG_FORMAT:
-					strcat(errStr, "wrong format\n");
-					stop = true;
-					break;
+			switch (code)
+			{
+			case NOT_FROM_THIS_MOVIE:
+				strcat(errStr, "snapshot not from this movie\n");
+				break;
+			case NOT_FROM_A_MOVIE:
+				strcat(errStr, "not a movie snapshot\n");
+				break;// shouldn't get here...
+			case INVALID_FRAME:
+				strcat(errStr, "invalid frame number\n");
+				break;
+			case WRONG_FORMAT:
+				strcat(errStr, "wrong format\n");
+				stop = true;
+				break;
 			}
-			if (!Config.is_state_independent_state_loading_allowed) {
+			if (!Config.is_state_independent_state_loading_allowed)
+			{
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord(1);
 				else if (stop) VCR_stopPlayback();
 				savestates_job_success = FALSE;
 				goto failedLoad;
-			} else {
+			}
+			else {
 				display_status("Warning: loading non-movie savestate can break recording");
 			}
 		}
@@ -502,10 +543,13 @@ failedLoad:
 	//doubled because can't just reuse this variable
 	if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && !dynacore))
 		ignore = true;
-	if (!dynacore && interpcore) {
+	if (!dynacore && interpcore)
+	{
 		//printf(".st jump: %x, stopped here:%x\n", interp_addr, last_addr);
 		last_addr = interp_addr;
-	} else {
+	}
+	else
+	{
 		//printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
 		last_addr = PC->addr;
 	}
@@ -515,18 +559,20 @@ failedLoad:
 /// directly overwries emulator memory, impossible to detect movie header early
 /// </summary>
 /// <param name="silenceNotFoundError">something/</param>
-void savestates_load_old(bool silenceNotFoundError) {
+void savestates_load_old(bool silenceNotFoundError)
+{
 #define BUFLEN 1024
-	char* filename, buf[BUFLEN];
+	char *filename, buf[BUFLEN];
 	gzFile f; //handle to st
 	int len, i;
 
 	savestates_job_success = TRUE;
-
+   
 	//construct .st name for 1-10 slots based on rom name and number
-	if (slot <= 10) {
-		filename = (char*)malloc(strlen(get_savespath()) +
-			strlen(ROM_SETTINGS.goodname) + 4 + 1);
+	if (slot <= 10)
+	{
+		filename = (char*)malloc(strlen(get_savespath())+
+		strlen(ROM_SETTINGS.goodname)+4+1);
 		strcpy(filename, get_savespath());
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".st");
@@ -535,39 +581,46 @@ void savestates_load_old(bool silenceNotFoundError) {
 	}
 
 	//tricky method, slot is greater than 10, so it uses a global fname array, imo bad programming there but whatever
-	else {
-		filename = (char*)malloc(strlen(fname) + 11);
+	else
+	{
+		filename = (char*)malloc(strlen(fname)+11);
 		strcpy(filename, fname);
 		//slot -= 10;
 	}
 	char str[256];
 
 	//print info about loading slot to console,
-	if (slot > 9) {
-		_splitpath(filename, 0, 0, fname, 0);
+	if (slot > 9)
+	{
+		_splitpath(filename, 0, 0, fname,0);
 		strcat(fname, ".st");
 		sprintf(str, "Loading %s", fname);
-	} else {
+	}
+	else{
 		sprintf(str, "Loading slot %d", slot);
 		sprintf(fname, "Slot %d", slot);
 	}
 	f = gzopen(filename, "rb");
 
 	//try loading .savestate, workaround for discord...
-	if (f == NULL && slot > 9) {
+	if (f == NULL && slot > 9)
+	{
 		filename[strlen(filename) - 3] = '\0';
 		strcat(filename, ".savestate");
 		f = gzopen(filename, "rb");
 	}
 
-	//failed opening st
-	if (f == NULL) {
-		if (f == NULL) {
+    //failed opening st
+	if (f == NULL)
+	{
+		if (f == NULL)
+		{
 			if (silenceNotFoundError) {
 				printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
 				return;
 			}
-			if (slot > 9) {
+			if (slot > 9)
+			{
 				//print .st not .savestate because
 				filename[strlen(filename) - 10] = '\0';
 				strcat(filename, ".st");
@@ -585,12 +638,14 @@ void savestates_load_old(bool silenceNotFoundError) {
 
 	//printf("--------st start---------\n");
 	gzread(f, buf, 32);
-	if (memcmp(buf, ROM_SETTINGS.MD5, 32)) {
-	#ifdef WIN32
+	if (memcmp(buf, ROM_SETTINGS.MD5, 32))
+	{
+#ifdef WIN32
 		if (Config.is_rom_movie_compatibility_check_enabled)
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
-	#endif
-		else {
+#endif
+		else
+		{
 			if (!VCR_isRecording())
 				warn_savestate("Savestates Wrong Region", "Savestate Wrong Region");
 			else
@@ -602,9 +657,10 @@ void savestates_load_old(bool silenceNotFoundError) {
 			return;
 		}
 	}
-
+   
 	gzread(f, &rdram_register, sizeof(RDRAM_register));
-	if (rdram_register.rdram_device_manuf & MUPEN64NEW_ST_FIXED) {
+	if (rdram_register.rdram_device_manuf & MUPEN64NEW_ST_FIXED)
+	{
 		rdram_register.rdram_device_manuf &= ~MUPEN64NEW_ST_FIXED; //remove the trick
 		st_skip_dma = true; //tell dma.c to skip it
 	}
@@ -625,41 +681,44 @@ void savestates_load_old(bool silenceNotFoundError) {
 
 	gzread(f, buf, 24);
 	load_flashram_infos(buf);
-
+   
 	gzread(f, tlb_LUT_r, 0x100000);
 	gzread(f, tlb_LUT_w, 0x100000);
-
+   
 	gzread(f, &llbit, 4);
-	gzread(f, reg, 32 * 8);
-	for (i = 0; i < 32; i++) {
-		gzread(f, reg_cop0 + i, 4);
+	gzread(f, reg, 32*8);
+	for (i=0; i<32; i++) 
+	{
+		gzread(f, reg_cop0+i, 4);
 		gzread(f, buf, 4); // for compatibility with old versions purpose
 	}
 	gzread(f, &lo, 8);
 	gzread(f, &hi, 8);
-	gzread(f, reg_cop1_fgr_64, 32 * 8);
+	gzread(f, reg_cop1_fgr_64, 32*8);
 	gzread(f, &FCR0, 4);
 	gzread(f, &FCR31, 4);
-	gzread(f, tlb_e, 32 * sizeof(tlb));
+	gzread(f, tlb_e, 32*sizeof(tlb));
 	if (!dynacore && interpcore)
 		gzread(f, &interp_addr, 4);
-	else {
+	else
+	{
 		int i;
 		gzread(f, &len, 4);
-		for (i = 0; i < 0x100000; i++)
+		for (i=0; i<0x100000; i++) 
 			invalid_code[i] = 1;
 		jump_to(len);
 	}
-
+   
 	gzread(f, &next_interupt, 4);
 	gzread(f, &next_vi, 4);
 	gzread(f, &vi_field, 4);
-
-	for (len = 0; len < BUFLEN; len += 8) {
-		gzread(f, buf + len, 4);
-		if (*((unsigned long*)&buf[len]) == 0xFFFFFFFF)
+   
+	for (len = 0; len < BUFLEN; len += 8)
+	{
+		gzread(f, buf+len, 4);
+		if (*((unsigned long*)&buf[len]) == 0xFFFFFFFF) 
 			break;
-		gzread(f, buf + len + 4, 4);
+		gzread(f, buf+len+4, 4);
 	}
 	if (len == BUFLEN) { // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
 		fprintf(stderr, "Snapshot event queue terminator not reached.\n");
@@ -668,73 +727,81 @@ void savestates_load_old(bool silenceNotFoundError) {
 		return;
 	}
 	load_eventqueue_infos(buf);
-
+      
 	BOOL movieSnapshot;
 	gzread(f, &movieSnapshot, sizeof(movieSnapshot));
-	if (VCR_isActive() && !movieSnapshot) {
+	if(VCR_isActive() && !movieSnapshot)
+	{
 		fprintf(stderr, "Can't load a non-movie snapshot while a movie is active.\n");
 		savestates_job_success = FALSE;
 		//goto failedLoad;
 	}
-
-	if (movieSnapshot) // even if a movie isn't active we still want to parse through this in case other stuff is added later on in the save format
+   
+	if(movieSnapshot) // even if a movie isn't active we still want to parse through this in case other stuff is added later on in the save format
 	{
 		unsigned long movieInputDataSize = 0;
 		gzread(f, &movieInputDataSize, sizeof(movieInputDataSize));
 		char* local_movie_data = (char*)malloc(movieInputDataSize * sizeof(char));
 		int readBytes = gzread(f, local_movie_data, movieInputDataSize);
-		if (readBytes != movieInputDataSize) {
+		if(readBytes != movieInputDataSize)
+		{
 			fprintf(stderr, "Corrupt movie snapshot.\n");
-			if (local_movie_data)
+			if(local_movie_data)
 				free(local_movie_data);
 			savestates_job_success = FALSE;
 			goto failedLoad;
 		}
 		int code = VCR_movieUnfreeze(local_movie_data, movieInputDataSize);
-		if (local_movie_data)
+		if(local_movie_data) 
 			free(local_movie_data);
-		if (code != SUCCESS && !VCR_isIdle()) {
+		if(code != SUCCESS && !VCR_isIdle())
+		{
 			bool stop = false;
-			char errStr[1024];
+			char errStr [1024];
 			strcpy(errStr, "Failed to load movie snapshot,\n");
-			switch (code) {
-				case NOT_FROM_THIS_MOVIE:
-					strcat(errStr, "snapshot not from this movie\n");
+			switch(code)
+			{
+				case NOT_FROM_THIS_MOVIE: 
+					strcat(errStr, "snapshot not from this movie\n"); 
 					break;
 				case NOT_FROM_A_MOVIE:
-					strcat(errStr, "not a movie snapshot\n");
+					strcat(errStr, "not a movie snapshot\n"); 
 					break;// shouldn't get here...
 				case INVALID_FRAME:
 					strcat(errStr, "invalid frame number\n");
 					break;
-				case WRONG_FORMAT:
+				case WRONG_FORMAT: 
 					strcat(errStr, "wrong format\n");
 					stop = true;
 					break;
 			}
 
-			if (!Config.is_state_independent_state_loading_allowed) {
+			if (!Config.is_state_independent_state_loading_allowed)
+			{
 				printWarning(errStr);
 				if (stop && VCR_isRecording()) VCR_stopRecord(1);
 				else if (stop) VCR_stopPlayback();
 				savestates_job_success = FALSE;
 				goto failedLoad;
-			} else {
+			}
+			else {
 				display_status("Warning: this savestate is mismatched");
 			}
 		}
-	} else // loading a non-movie snapshot from a movie
+	}
+	else // loading a non-movie snapshot from a movie
 	{
 		if (VCR_isActive() && Config.is_state_independent_state_loading_allowed) {
 			display_status("Warning: non-movie savestate\n");
-		} else if (VCR_isActive() && !silenceNotFoundError && !lockNoStWarn) //@TODO: lockNoStWarn is not used anywhere!!!
+		}
+		else if (VCR_isActive()&&!silenceNotFoundError&&!lockNoStWarn) //@TODO: lockNoStWarn is not used anywhere!!!
 		{
-			if (MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING) == 7) {
-				printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
-				if (VCR_isPlaying())
-					VCR_stopPlayback();
-				else
-					VCR_stopRecord(1);
+			if (MessageBox(NULL, "This savestate isn't from this movie, do you want to load it? (will desync your movie)", "Warning", MB_YESNO | MB_ICONWARNING)== 7) {
+			printf("[VCR]: Warning: The movie has been stopped to load this non-movie snapshot.\n");
+			if (VCR_isPlaying())
+				VCR_stopPlayback();
+			else
+				VCR_stopRecord(1);
 			}
 			lockNoStWarn = false; //reset
 		}
@@ -746,7 +813,7 @@ void savestates_load_old(bool silenceNotFoundError) {
 failedLoad:
 
 	gzclose(f);
-	extern bool ignore, old_st;
+	extern bool ignore,old_st;
 	//legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
 	//This should cause issues anyway but libultra seems to be flexible (this means there's a chance it fails).
 	//For safety, load .sts in dynarec because it completely avoids this issue by being differently coded
@@ -754,10 +821,13 @@ failedLoad:
 	//doubled because can't just reuse this variable
 	if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && !dynacore))
 		ignore = true;
-	if (!dynacore && interpcore) {
+	if (!dynacore && interpcore)
+	{
 		//printf(".st jump: %x, stopped here:%x\n", interp_addr, last_addr);
 		last_addr = interp_addr;
-	} else {
+	}
+	else
+	{
 		//printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
 		last_addr = PC->addr;
 	}

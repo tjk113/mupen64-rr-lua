@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <filesystem>
 
-class ReassociatingFileDialog {
+class ReassociatingFileDialog
+{
 public:
 	/// <summary>
 	/// Shows a file dialog with the specified flags

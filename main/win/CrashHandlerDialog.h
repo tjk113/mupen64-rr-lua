@@ -5,13 +5,15 @@
 /// <summary>
 /// A WinAPI dialog for displaying crash-related actions and information
 /// </summary>
-class CrashHandlerDialog {
+class CrashHandlerDialog
+{
 public:
 
 	/// <summary>
 	/// Choices specifying how the program shall proceed after the crash
 	/// </summary>
-	enum class Choices {
+	enum class Choices
+	{
 		/// <summary>
 		/// Attempt to recover and proceed
 		/// </summary>
@@ -25,7 +27,8 @@ public:
 	/// <summary>
 	/// Types specifying what choices the dialog provides
 	/// </summary>
-	enum class Types {
+	enum class Types
+	{
 		/// <summary>
 		/// The crash can be ignored
 		/// </summary>

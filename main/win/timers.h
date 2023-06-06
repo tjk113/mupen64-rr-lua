@@ -1,8 +1,8 @@
 /***************************************************************************
-						  timers.c  -  description
-							 -------------------
-	copyright            : (C) 2003 by ShadowPrince
-	email                : shadow@emulation64.com
+                          timers.c  -  description
+                             -------------------
+    copyright            : (C) 2003 by ShadowPrince
+    email                : shadow@emulation64.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -13,7 +13,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+ 
 void InitTimer();
 extern float VIs;
 extern float FPS;

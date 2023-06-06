@@ -12,7 +12,7 @@ typedef r4300byte FPUREG;
 
 typedef enum {
 	INST_UNDEF,
-
+	
 	INST_LB, INST_LBU, INST_LD, INST_LDL,
 	INST_LDR, INST_LH, INST_LHU, INST_LL,
 	INST_LLD, INST_LW, INST_LWL, INST_LWR,
@@ -54,7 +54,7 @@ typedef enum {
 	INST_MFC1, INST_DMFC1, INST_CFC1, INST_MTC1,
 	INST_DMTC1, INST_CTC1, INST_BC1F, INST_BC1T,
 	INST_BC1FL, INST_BC1TL,
-
+	
 	INST_ADD_S, INST_SUB_S, INST_MUL_S, INST_DIV_S,
 	INST_SQRT_S, INST_ABS_S, INST_MOV_S, INST_NEG_S,
 	INST_ROUND_L_S, INST_TRUNC_L_S, INST_CEIL_L_S, INST_FLOOR_L_S,
@@ -65,7 +65,7 @@ typedef enum {
 	INST_C_OLT_S, INST_C_ULT_S, INST_C_OLE_S, INST_C_ULE_S,
 	INST_C_SF_S, INST_C_NGLE_S, INST_C_SEQ_S, INST_C_NGL_S,
 	INST_C_LT_S, INST_C_NGE_S, INST_C_LE_S, INST_C_NGT_S,
-
+	
 	INST_ADD_D, INST_SUB_D, INST_MUL_D, INST_DIV_D,
 	INST_SQRT_D, INST_ABS_D, INST_MOV_D, INST_NEG_D,
 	INST_ROUND_L_D, INST_TRUNC_L_D, INST_CEIL_L_D, INST_FLOOR_L_D,
@@ -162,16 +162,16 @@ typedef struct {
 } INSTDECODE;
 
 INST GetInstruction(r4300word w);
-void DecodeInstruction(r4300word w, INSTDECODE* d);
-const char* GetOpecodeString(INSTDECODE* d);
-char* GetOperandString(char* buf, INSTDECODE* d, r4300word pc);
-char* DisassembleInstruction(char* buf, r4300word w, r4300word pc);	//buf size:27
+void DecodeInstruction(r4300word w, INSTDECODE *d);
+const char *GetOpecodeString(INSTDECODE *d);
+char *GetOperandString(char *buf, INSTDECODE *d, r4300word pc);
+char *DisassembleInstruction(char *buf, r4300word w, r4300word pc);	//buf size:27
 
 extern const INSTFMT InstFormat[INST_COUNT];
 extern const INSTFTYPE InstFormatType[INSTF_COUNT];
-extern const char* const OpecodeName[INST_COUNT];
+extern const char * const OpecodeName[INST_COUNT];
 extern void (*InstFormatTypeFunc[INSTFTYPE_COUNT])(r4300word, INSTOPERAND*);
-extern const char* const CPURegisterName[32];
-extern const char* const COP0RegisterName[32];
+extern const char * const CPURegisterName[32];
+extern const char * const COP0RegisterName[32];
 
 #endif

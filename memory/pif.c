@@ -59,7 +59,8 @@ unsigned char mempack[4][0x8000];
 void check_input_sync(unsigned char* value);
 
 #ifdef DEBUG_PIF
-void print_pif() {
+void print_pif()
+{
 	int i;
 	for (i = 0; i < (64 / 8); i++)
 		printf("%x %x %x %x | %x %x %x %x\n",
@@ -69,10 +70,13 @@ void print_pif() {
 }
 #endif
 
-void EepromCommand(BYTE* Command) {
-	switch (Command[2]) {
+void EepromCommand(BYTE* Command)
+{
+	switch (Command[2])
+	{
 	case 0: // check
-		if (Command[1] != 3) {
+		if (Command[1] != 3)
+		{
 			Command[1] |= 0x40;
 			if ((Command[1] & 3) > 0)
 				Command[3] = 0;
@@ -81,7 +85,8 @@ void EepromCommand(BYTE* Command) {
 			if ((Command[1] & 3) > 2)
 				Command[5] = 0;
 		}
-		else {
+		else
+		{
 			Command[3] = 0;
 			Command[4] = ROM_SETTINGS.eeprom_16kb == 0 ? 0x80 : 0xc0;
 			Command[5] = 0;
@@ -98,7 +103,8 @@ void EepromCommand(BYTE* Command) {
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".eep");
 		f = fopen(filename, "rb");
-		if (f) {
+		if (f)
+		{
 			fread(eeprom, 1, 0x800, f);
 			fclose(f);
 		}
@@ -118,7 +124,8 @@ void EepromCommand(BYTE* Command) {
 		strcat(filename, ROM_SETTINGS.goodname);
 		strcat(filename, ".eep");
 		f = fopen(filename, "rb");
-		if (f) {
+		if (f)
+		{
 			fread(eeprom, 1, 0x800, f);
 			fclose(f);
 		}
@@ -135,30 +142,33 @@ void EepromCommand(BYTE* Command) {
 	}
 }
 
-void format_mempacks() {
+void format_mempacks()
+{
 	unsigned char init[] =
 	{
-		0x81, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-		0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
-		0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
-		0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x71, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03
+   0x81,0x01,0x02,0x03, 0x04,0x05,0x06,0x07, 0x08,0x09,0x0a,0x0b, 0x0c,0x0d,0x0e,0x0f,
+   0x10,0x11,0x12,0x13, 0x14,0x15,0x16,0x17, 0x18,0x19,0x1a,0x1b, 0x1c,0x1d,0x1e,0x1f,
+   0xff,0xff,0xff,0xff, 0x05,0x1a,0x5f,0x13, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0x01,0xff, 0x66,0x25,0x99,0xcd,
+   0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0xff,0xff,0xff,0xff, 0x05,0x1a,0x5f,0x13, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0x01,0xff, 0x66,0x25,0x99,0xcd,
+   0xff,0xff,0xff,0xff, 0x05,0x1a,0x5f,0x13, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0x01,0xff, 0x66,0x25,0x99,0xcd,
+   0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0xff,0xff,0xff,0xff, 0x05,0x1a,0x5f,0x13, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0x01,0xff, 0x66,0x25,0x99,0xcd,
+   0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+   0x00,0x71,0x00,0x03, 0x00,0x03,0x00,0x03, 0x00,0x03,0x00,0x03, 0x00,0x03,0x00,0x03
 	};
 	int i, j;
-	for (i = 0; i < 4; i++) {
-		for (j = 0; j < 0x8000; j += 2) {
+	for (i = 0; i < 4; i++)
+	{
+		for (j = 0; j < 0x8000; j += 2)
+		{
 			mempack[i][j] = 0;
 			mempack[i][j + 1] = 0x03;
 		}
@@ -166,12 +176,15 @@ void format_mempacks() {
 	}
 }
 
-unsigned char mempack_crc(unsigned char* data) {
+unsigned char mempack_crc(unsigned char* data)
+{
 	int i;
 	unsigned char CRC = 0;
-	for (i = 0; i <= 0x20; i++) {
+	for (i = 0; i <= 0x20; i++)
+	{
 		int mask;
-		for (mask = 0x80; mask >= 1; mask >>= 1) {
+		for (mask = 0x80; mask >= 1; mask >>= 1)
+		{
 			int xor_tap = (CRC & 0x80) ? 0x85 : 0x00;
 			CRC <<= 1;
 			if (i != 0x20 && (data[i] & mask)) CRC |= 1;
@@ -183,10 +196,13 @@ unsigned char mempack_crc(unsigned char* data) {
 
 int frame_advancing = 0;
 
-void internal_ReadController(int Control, BYTE* Command) {
-	switch (Command[2]) {
+void internal_ReadController(int Control, BYTE* Command)
+{
+	switch (Command[2])
+	{
 	case 1:
-		if (Controls[Control].Present) {
+		if (Controls[Control].Present)
+		{
 			BUTTONS Keys;
 #ifdef VCR_SUPPORT
 			VCR_getKeys(Control, &Keys);
@@ -200,13 +216,15 @@ void internal_ReadController(int Control, BYTE* Command) {
 		}
 		break;
 	case 2: // read controller pack
-		if (Controls[Control].Present) {
+		if (Controls[Control].Present)
+		{
 			if (Controls[Control].Plugin == PLUGIN_RAW)
 				if (controllerCommand) readController(Control, Command);
 		}
 		break;
 	case 3: // write controller pack
-		if (Controls[Control].Present) {
+		if (Controls[Control].Present)
+		{
 			if (Controls[Control].Plugin == PLUGIN_RAW)
 				if (controllerCommand) readController(Control, Command);
 		}
@@ -214,16 +232,20 @@ void internal_ReadController(int Control, BYTE* Command) {
 	}
 }
 
-void internal_ControllerCommand(int Control, BYTE* Command) {
-	switch (Command[2]) {
+void internal_ControllerCommand(int Control, BYTE* Command)
+{
+	switch (Command[2])
+	{
 	case 0x00: // check
 	case 0xFF:
 		if ((Command[1] & 0x80))
 			break;
-		if (Controls[Control].Present) {
+		if (Controls[Control].Present)
+		{
 			Command[3] = 0x05;
 			Command[4] = 0x00;
-			switch (Controls[Control].Plugin) {
+			switch (Controls[Control].Plugin)
+			{
 			case PLUGIN_MEMPAK:
 				Command[5] = 1;
 				break;
@@ -243,18 +265,23 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 			Command[1] |= 0x80;
 		break;
 	case 0x02: // read controller pack
-		if (Controls[Control].Present) {
-			switch (Controls[Control].Plugin) {
+		if (Controls[Control].Present)
+		{
+			switch (Controls[Control].Plugin)
+			{
 			case PLUGIN_MEMPAK:
 			{
 				int address = (Command[3] << 8) | Command[4];
-				if (address == 0x8001) {
+				if (address == 0x8001)
+				{
 					memset(&Command[5], 0, 0x20);
 					Command[0x25] = mempack_crc(&Command[5]);
 				}
-				else {
+				else
+				{
 					address &= 0xFFE0;
-					if (address <= 0x7FE0) {
+					if (address <= 0x7FE0)
+					{
 						char* filename;
 						FILE* f;
 						filename = (char*)malloc(strlen(get_savespath()) +
@@ -263,7 +290,8 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 						strcat(filename, ROM_SETTINGS.goodname);
 						strcat(filename, ".mpk");
 						f = fopen(filename, "rb");
-						if (f) {
+						if (f)
+						{
 							fread(mempack[0], 1, 0x8000, f);
 							fread(mempack[1], 1, 0x8000, f);
 							fread(mempack[2], 1, 0x8000, f);
@@ -274,7 +302,8 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 						free(filename);
 						memcpy(&Command[5], &mempack[Control][address], 0x20);
 					}
-					else {
+					else
+					{
 						memset(&Command[5], 0, 0x20);
 					}
 					Command[0x25] = mempack_crc(&Command[5]);
@@ -293,16 +322,20 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 			Command[1] |= 0x80;
 		break;
 	case 0x03: // write controller pack
-		if (Controls[Control].Present) {
-			switch (Controls[Control].Plugin) {
+		if (Controls[Control].Present)
+		{
+			switch (Controls[Control].Plugin)
+			{
 			case PLUGIN_MEMPAK:
 			{
 				int address = (Command[3] << 8) | Command[4];
 				if (address == 0x8001)
 					Command[0x25] = mempack_crc(&Command[5]);
-				else {
+				else
+				{
 					address &= 0xFFE0;
-					if (address <= 0x7FE0) {
+					if (address <= 0x7FE0)
+					{
 						char* filename;
 						FILE* f;
 						filename = (char*)malloc(strlen(get_savespath()) +
@@ -311,7 +344,8 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 						strcat(filename, ROM_SETTINGS.goodname);
 						strcat(filename, ".mpk");
 						f = fopen(filename, "rb");
-						if (f) {
+						if (f)
+						{
 							fread(mempack[0], 1, 0x8000, f);
 							fread(mempack[1], 1, 0x8000, f);
 							fread(mempack[2], 1, 0x8000, f);
@@ -345,13 +379,28 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 	}
 }
 
-void update_pif_write() {
+void update_pif_write()
+{
 	int i = 0, channel = 0;
-	if (PIF_RAMb[0x3F] > 1) {
-		switch (PIF_RAMb[0x3F]) {
+/*#ifdef DEBUG_PIF
+	if (input_delay) {
+		printf("------------- write -------------\n");
+	}
+	else {
+		printf("---------- before write ---------\n");
+	}
+	print_pif();
+	printf("---------------------------------\n");
+#endif*/
+	if (PIF_RAMb[0x3F] > 1)
+	{
+		switch (PIF_RAMb[0x3F])
+		{
 		case 0x02:
-			for (i = 0; i < sizeof(pif2_lut) / 32; i++) {
-				if (!memcmp(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][0], 16)) {
+			for (i = 0; i < sizeof(pif2_lut) / 32; i++)
+			{
+				if (!memcmp(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][0], 16))
+				{
 					memcpy(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][1], 16);
 					return;
 				}
@@ -370,8 +419,10 @@ void update_pif_write() {
 		}
 		return;
 	}
-	while (i < 0x40) {
-		switch (PIF_RAMb[i]) {
+	while (i < 0x40)
+	{
+		switch (PIF_RAMb[i])
+		{
 		case 0x00:
 			channel++;
 			if (channel > 6) i = 0x40;
@@ -379,8 +430,10 @@ void update_pif_write() {
 		case 0xFF:
 			break;
 		default:
-			if (!(PIF_RAMb[i] & 0xC0)) {
-				if (channel < 4) {
+			if (!(PIF_RAMb[i] & 0xC0))
+			{
+				if (channel < 4)
+				{
 					if (Controls[channel].Present &&
 						Controls[channel].RawData)
 						controllerCommand(channel, &PIF_RAMb[i]);
@@ -399,26 +452,42 @@ void update_pif_write() {
 		}
 		i++;
 	}
+	//PIF_RAMb[0x3F] = 0;
 	controllerCommand(-1, NULL);
+/*#ifdef DEBUG_PIF
+	if (!one_frame_delay) {
+		printf("---------- after write ----------\n");
+	}
+	print_pif();
+	if (!one_frame_delay) {
+		printf("---------------------------------\n");
+	}
+#endif*/
 }
 
 //used with 1f input delay (not usable)
-void sleep_while_emu_paused() {
+void sleep_while_emu_paused()
+{
 	extern int emu_paused;
-	while (emu_paused) {
-		Sleep(10);
+	while (emu_paused)
+	{
+		#ifdef LUA_EMUPAUSED_WORK	
+		Sleep(10);	
 		AtIntervalLuaCallback();
 		GetLuaMessage();
-		VCR_updateScreen();
+		if (Config.is_lua_double_buffered)
+			lua_new_vi(1);
+		#endif
 	}
 }
 
-void update_pif_read(bool stcheck) {
+void update_pif_read(bool stcheck)
+{
 	//printf("pif entry\n");
 	int i = 0, channel = 0;
 	extern int emu_paused; //if you get error here, this means you're compiling for linux, and linux version 
-	//doesn't have pausing. But this also means linux version is unusable for tasing.
-	//If you really want it for some reason, define emu_paused.
+						   //doesn't have pausing. But this also means linux version is unusable for tasing.
+						   //If you really want it for some reason, define emu_paused.
 	bool once = emu_paused | frame_advancing; //used to pause only once during controller routine
 	bool stAllowed = true; //used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
@@ -426,8 +495,10 @@ void update_pif_read(bool stcheck) {
 	print_pif();
 	printf("---------------------------------\n");
 #endif
-	while (i < 0x40) {
-		switch (PIF_RAMb[i]) {
+	while (i < 0x40)
+	{
+		switch (PIF_RAMb[i])
+		{
 		case 0x00:
 			channel++;
 			if (channel > 6) i = 0x40;
@@ -445,7 +516,8 @@ void update_pif_read(bool stcheck) {
 			//01 04 01 is read controller 4 bytes
 			if (!(PIF_RAMb[i] & 0xC0)) //mask error bits (isn't this wrong? error bits are on i+1???)
 			{
-				if (channel < 4) {
+				if (channel < 4)
+				{
 					static int controllerRead = 999;
 
 					// frame advance - pause before every 'frame of input',
@@ -465,7 +537,8 @@ void update_pif_read(bool stcheck) {
 								Sleep(10);
 								AtIntervalLuaCallback();
 								GetLuaMessage();
-								VCR_updateScreen();
+								if(Config.is_lua_double_buffered)
+								lua_new_vi(1);
 #endif
 								//should this be before or after? idk
 								if (savestates_job & LOADSTATE && stAllowed)
@@ -475,63 +548,64 @@ void update_pif_read(bool stcheck) {
 								}
 							}
 						}
-						if (stcheck && !Config.is_input_delay_enabled) {
-							if (savestates_job & SAVESTATE && stAllowed) {
-								savestates_save();
-								savestates_job &= ~SAVESTATE;
-							}
+					}
+					if (stcheck && !Config.is_input_delay_enabled) {
+						if (savestates_job & SAVESTATE && stAllowed)
+						{
+							savestates_save();
+							savestates_job &= ~SAVESTATE;
 						}
-						if (savestates_job & LOADSTATE && stAllowed) {
-							savestates_load(false);
-							savestates_job &= ~LOADSTATE;
-						}
-						extern bool old_st;
-						if (old_st) { //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
-							printf("old st detected\n");
-							old_st = false;
-							return;
-						}
-						stAllowed = false;
-						controllerRead = channel;
-						if (Controls[channel].Present &&
-							Controls[channel].RawData
+					}
+					if (savestates_job & LOADSTATE && stAllowed) {
+						savestates_load(false);
+						savestates_job &= ~LOADSTATE;
+					}
+					extern bool old_st;
+					if (old_st) { //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
+						printf("old st detected\n");
+						old_st = false;
+						return;
+					}
+					stAllowed = false;
+					controllerRead = channel;
+					if (Controls[channel].Present &&
+						Controls[channel].RawData
 #ifdef VCR_SUPPORT
-							&& VCR_isIdle()
+						&& VCR_isIdle()
 #endif
-							) {
-							readController(channel, &PIF_RAMb[i]);
+						) {
+						readController(channel, &PIF_RAMb[i]);
 #ifdef LUA_JOYPAD
-							lastInputLua[channel] = *(DWORD*)&PIF_RAMb[i + 3];
-							AtInputLuaCallback(channel);
-							if (0 <= channel && channel < 4) {
-								if (rewriteInputFlagLua[channel]) {
-									*(DWORD*)&PIF_RAMb[i + 3] =
-										lastInputLua[channel] =
-										rewriteInputLua[channel];
-									rewriteInputFlagLua[channel] = false;
-								}
+						lastInputLua[channel] = *(DWORD*)&PIF_RAMb[i + 3];
+						AtInputLuaCallback(channel);
+						if (0 <= channel && channel < 4) {
+							if (rewriteInputFlagLua[channel]) {
+								*(DWORD*)&PIF_RAMb[i + 3] =
+									lastInputLua[channel] =
+									rewriteInputLua[channel];
+								rewriteInputFlagLua[channel] = false;
 							}
+						}
 #endif
 
-						}
-						else
-							internal_ReadController(channel, &PIF_RAMb[i]);
 					}
-					i += PIF_RAMb[i] + (PIF_RAMb[(i + 1)] & 0x3F) + 1;
-					channel++;
+					else
+						internal_ReadController(channel, &PIF_RAMb[i]);
 				}
-				else
-					i = 0x40;
+				i += PIF_RAMb[i] + (PIF_RAMb[(i + 1)] & 0x3F) + 1;
+				channel++;
 			}
-			i++;
+			else
+				i = 0x40;
 		}
-		readController(-1, NULL);
+		i++;
+	}
+	readController(-1, NULL);
 
 #ifdef DEBUG_PIF
-		printf("---------- after read -----------\n");
-		print_pif();
-		printf("---------------------------------\n");
+	printf("---------- after read -----------\n");
+	print_pif();
+	printf("---------------------------------\n");
 #endif
-		//printf("pif exit\n");
-	}
+	//printf("pif exit\n");
 }

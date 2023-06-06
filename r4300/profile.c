@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- *
+ * 
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -38,41 +38,45 @@ static unsigned int time_in_section[5];
 static unsigned int last_start[5];
 static unsigned int last_refresh;
 
-void start_section(int section_type) {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	last_start[section_type] =
-		((tv.tv_sec % 1000000) * 1000) + (tv.tv_usec / 1000);
+void start_section(int section_type)
+{
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+   last_start[section_type] = 
+     ((tv.tv_sec % 1000000) * 1000) + (tv.tv_usec / 1000);
 }
 
-void end_section(int section_type) {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
+void end_section(int section_type)
+{
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+   unsigned int end =
+     ((tv.tv_sec % 1000000) * 1000) + (tv.tv_usec / 1000);
+   time_in_section[section_type] += end - last_start[section_type];
+}
+
+void refresh_stat()
+{
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+   if(tv.tv_sec - last_refresh >= 2)
+     {
 	unsigned int end =
-		((tv.tv_sec % 1000000) * 1000) + (tv.tv_usec / 1000);
-	time_in_section[section_type] += end - last_start[section_type];
-}
-
-void refresh_stat() {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	if (tv.tv_sec - last_refresh >= 2) {
-		unsigned int end =
-			((tv.tv_sec % 1000000) * 1000) + (tv.tv_usec / 1000);
-		time_in_section[0] = end - last_start[0];
-		printf("gfx=%f%% - audio=%f%% - compiler=%f%%, idle=%f%%\r",
-			100.0f * (float)time_in_section[1] / (float)time_in_section[0],
-			100.0f * (float)time_in_section[2] / (float)time_in_section[0],
-			100.0f * (float)time_in_section[3] / (float)time_in_section[0],
-			100.0f * (float)time_in_section[4] / (float)time_in_section[0]);
-		fflush(stdout);
-		time_in_section[1] = 0;
-		time_in_section[2] = 0;
-		time_in_section[3] = 0;
-		time_in_section[4] = 0;
-		last_start[0] = end;
-		last_refresh = tv.tv_sec;
-	}
+	  ((tv.tv_sec % 1000000) * 1000) + (tv.tv_usec / 1000);
+	time_in_section[0] = end - last_start[0];
+	printf("gfx=%f%% - audio=%f%% - compiler=%f%%, idle=%f%%\r",
+	       100.0f * (float)time_in_section[1] / (float)time_in_section[0],
+	       100.0f * (float)time_in_section[2] / (float)time_in_section[0],
+	       100.0f * (float)time_in_section[3] / (float)time_in_section[0],
+	       100.0f * (float)time_in_section[4] / (float)time_in_section[0]);
+	fflush(stdout);
+	time_in_section[1] = 0;
+	time_in_section[2] = 0;
+	time_in_section[3] = 0;
+	time_in_section[4] = 0;
+	last_start[0] = end;
+	last_refresh = tv.tv_sec;
+     }
 }
 
 #endif

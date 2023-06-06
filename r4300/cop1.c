@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- *
+ * 
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -33,64 +33,73 @@
 #include "exception.h"
 #include "../memory/memory.h"
 
-void MFC1() {
-	if (check_cop1_unusable()) return;
-	rrt32 = *((long*)reg_cop1_simple[rfs]);
+void MFC1()
+{
+   if (check_cop1_unusable()) return;
+   rrt32 = *((long*)reg_cop1_simple[rfs]);
+   sign_extended(rrt);
+   PC++;
+}
+
+void DMFC1()
+{
+   if (check_cop1_unusable()) return;
+   rrt = *((long long*)reg_cop1_double[rfs]);
+   PC++;
+}
+
+void CFC1()
+{  
+   if (check_cop1_unusable()) return;
+   if (rfs==31)
+     {
+	rrt32 = FCR31;
 	sign_extended(rrt);
-	PC++;
+     }
+   if (rfs==0)
+     {
+	rrt32 = FCR0;
+	sign_extended(rrt);
+     }
+   PC++;
 }
 
-void DMFC1() {
-	if (check_cop1_unusable()) return;
-	rrt = *((long long*)reg_cop1_double[rfs]);
-	PC++;
+void MTC1()
+{
+   if (check_cop1_unusable()) return;
+   *((long*)reg_cop1_simple[rfs]) = rrt32;
+   PC++;
 }
 
-void CFC1() {
-	if (check_cop1_unusable()) return;
-	if (rfs == 31) {
-		rrt32 = FCR31;
-		sign_extended(rrt);
-	}
-	if (rfs == 0) {
-		rrt32 = FCR0;
-		sign_extended(rrt);
-	}
-	PC++;
+void DMTC1()
+{
+   if (check_cop1_unusable()) return;
+   *((long long*)reg_cop1_double[rfs]) = rrt;
+   PC++;
 }
 
-void MTC1() {
-	if (check_cop1_unusable()) return;
-	*((long*)reg_cop1_simple[rfs]) = rrt32;
-	PC++;
-}
-
-void DMTC1() {
-	if (check_cop1_unusable()) return;
-	*((long long*)reg_cop1_double[rfs]) = rrt;
-	PC++;
-}
-
-void CTC1() {
-	if (check_cop1_unusable()) return;
-	if (rfs == 31)
-		FCR31 = rrt32;
-	switch ((FCR31 & 3)) {
-		case 0:
-			rounding_mode = ROUND_MODE;
-			break;
-		case 1:
-			rounding_mode = TRUNC_MODE;
-			break;
-		case 2:
-			rounding_mode = CEIL_MODE;
-			break;
-		case 3:
-			rounding_mode = FLOOR_MODE;
-			break;
-	}
-	set_rounding();
-	//if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n", 
- //				   (int)((FCR31 >> 7) & 0x1F));
-	PC++;
+void CTC1()
+{
+   if (check_cop1_unusable()) return;
+   if (rfs==31)
+     FCR31 = rrt32;
+   switch((FCR31 & 3))
+     {
+      case 0:
+	rounding_mode = ROUND_MODE;
+	break;
+      case 1:
+	rounding_mode = TRUNC_MODE;
+	break;
+      case 2:
+	rounding_mode = CEIL_MODE;
+	break;
+      case 3:
+	rounding_mode = FLOOR_MODE;
+	break;
+     }
+   set_rounding();
+   //if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n", 
+//				   (int)((FCR31 >> 7) & 0x1F));
+   PC++;
 }

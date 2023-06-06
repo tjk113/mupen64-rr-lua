@@ -81,9 +81,9 @@
 
 extern bool gStopAVI;
 
-extern void VCR_getKeys(int Control, BUTTONS* Keys);
+extern void VCR_getKeys( int Control, BUTTONS *Keys );
 extern void VCR_updateScreen();
-extern void VCR_aiDacrateChanged(int SystemType);
+extern void VCR_aiDacrateChanged( int SystemType );
 extern void VCR_aiLenChanged();
 
 extern BOOL VCR_isActive();
@@ -104,18 +104,18 @@ extern unsigned long VCR_getLengthSamples();
 extern void VCR_setLengthVIs(unsigned long val);
 extern void VCR_setLengthSamples(unsigned long val);
 extern void VCR_updateFrameCounter();
-extern void VCR_toggleReadOnly();
+extern void VCR_toggleReadOnly ();
 extern void VCR_toggleLoopMovie();
 
-extern void VCR_movieFreeze(char** buf, unsigned long* size);
-extern int VCR_movieUnfreeze(const char* buf, unsigned long size);
+extern void VCR_movieFreeze (char** buf, unsigned long* size);
+extern int VCR_movieUnfreeze (const char* buf, unsigned long size);
 extern void VCR_clearAllSaveData();
 
-extern int VCR_startRecord(const char* filename, unsigned short flags, const char* authorUTF8, const char* descriptionUTF8, int defExt);
+extern int VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8, int defExt);
 extern int VCR_stopRecord(int defExt);
-extern int VCR_startPlayback(const char* filename, const char* authorUTF8, const char* descriptionUTF8);
+extern int VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8 );
 extern int VCR_stopPlayback();
-extern int VCR_startCapture(const char* recFilename, const char* aviFilename, bool codecDialog);
+extern int VCR_startCapture( const char *recFilename, const char *aviFilename, bool codecDialog );
 extern int VCR_stopCapture();
 
 //ffmpeg
@@ -139,7 +139,8 @@ extern void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag);
 
 #pragma pack(push, 1)
 //#pragms pack(1)
-typedef struct {
+typedef struct 
+{
 	unsigned long	magic;		// M64\0x1a
 	unsigned long	version;	// 3
 	unsigned long	uid;		// used to match savestates to a particular movie
@@ -154,25 +155,25 @@ typedef struct {
 	unsigned short	startFlags; // should equal 2 if the movie is from a clean start
 	unsigned short  reserved2;
 	unsigned long	controllerFlags;
-	unsigned long	reservedFlags[8];
+	unsigned long	reservedFlags [8];
 
-	char	oldAuthorInfo[48];
-	char	oldDescription[80];
-	char	romNom[32]; // internal rom name
+	char	oldAuthorInfo [48];
+	char	oldDescription [80];
+	char	romNom [32]; // internal rom name
 	unsigned long	romCRC;
 	unsigned short	romCountry;
-	char	reservedBytes[56];
-	char	videoPluginName[64];
-	char	soundPluginName[64];
-	char	inputPluginName[64];
-	char	rspPluginName[64];
-	char	authorInfo[MOVIE_AUTHOR_DATA_SIZE]; // utf8-encoded
-	char	description[MOVIE_DESCRIPTION_DATA_SIZE]; // utf8-encoded
-
+	char	reservedBytes [56];
+	char	videoPluginName [64];
+	char	soundPluginName [64];
+	char	inputPluginName [64];
+	char	rspPluginName [64];
+	char	authorInfo [MOVIE_AUTHOR_DATA_SIZE]; // utf8-encoded
+	char	description [MOVIE_DESCRIPTION_DATA_SIZE]; // utf8-encoded
+	
 
 } SMovieHeader; // should be exactly 1024 bytes
 #pragma pack(pop)
-
+	
 
 extern SMovieHeader VCR_getHeaderInfo(const char* filename);
 extern char VCR_Lastpath[MAX_PATH];

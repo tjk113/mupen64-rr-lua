@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- *
+ * 
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -36,5 +36,5 @@ unsigned long flashram_status();
 void dma_read_flashram();
 void dma_write_flashram();
 
-void save_flashram_infos(char* buf);
-void load_flashram_infos(char* buf);
+void save_flashram_infos(char *buf);
+void load_flashram_infos(char *buf);
