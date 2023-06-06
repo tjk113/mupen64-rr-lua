@@ -12,6 +12,10 @@
 
 #ifndef LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include <Windows.h>
+#include <locale>
+#include <iostream>
+#include <string>
+#include <sstream>
 bool IsLuaConsoleMessage(MSG* msg);
 void InitializeLuaDC(HWND mainWnd);
 void NewLuaScript(void(*callback)());
@@ -66,6 +70,16 @@ extern bool enablePCBreak;
 extern bool maximumSpeedMode;
 extern bool anyLuaRunning;
 extern unsigned long gdiPlusToken;
+
+
+// https://stackoverflow.com/questions/2573834/c-convert-string-or-char-to-wstring-or-wchar-t
+inline static std::wstring widen(const std::string& str)
+{
+	std::wstring ws(str.size(), L' ');
+	ws.resize(std::mbstowcs(&ws[0], str.c_str(), str.size()));
+	return ws;
+}
+
 
 #endif
 
