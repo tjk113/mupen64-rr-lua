@@ -418,9 +418,8 @@ void sleep_while_emu_paused() {
 		Sleep(10);
 		AtIntervalLuaCallback();
 		GetLuaMessage();
-		if (Config.is_lua_double_buffered)
-			lua_new_vi(1);
-	#endif
+		VCR_updateScreen();
+		#endif
 	}
 }
 
@@ -459,28 +458,30 @@ void update_pif_read(bool stcheck) {
 					if (channel < 4) {
 						static int controllerRead = 999;
 
-						// frame advance - pause before every 'frame of input',
-						// which is manually resumed to enter 1 input and emulate until being
-						// paused here again before the next input
-						if (once && channel <= controllerRead && (&PIF_RAMb[i])[2] == 1) {
-							once = false;
-							extern void pauseEmu(BOOL quiet);
-							frame_advancing = 0;
-							pauseEmu(TRUE);
-							if (!Config.is_input_delay_enabled) {
-								while (emu_paused) {
-								#ifdef LUA_EMUPAUSED_WORK	
-									Sleep(10);
-									AtIntervalLuaCallback();
-									GetLuaMessage();
-									if (Config.is_lua_double_buffered)
-										lua_new_vi(1);
-								#endif
-																//should this be before or after? idk
-									if (savestates_job & LOADSTATE && stAllowed) {
-										savestates_load(false);
-										savestates_job &= ~LOADSTATE;
-									}
+					// frame advance - pause before every 'frame of input',
+					// which is manually resumed to enter 1 input and emulate until being
+					// paused here again before the next input
+					if (once && channel <= controllerRead && (&PIF_RAMb[i])[2] == 1)
+					{
+						once = false;
+						extern void pauseEmu(BOOL quiet);
+						frame_advancing = 0;
+						pauseEmu(TRUE);
+						if (!Config.is_input_delay_enabled)
+						{
+							while (emu_paused)
+							{
+#ifdef LUA_EMUPAUSED_WORK	
+								Sleep(10);
+								AtIntervalLuaCallback();
+								GetLuaMessage();
+								VCR_updateScreen();
+#endif
+								//should this be before or after? idk
+								if (savestates_job & LOADSTATE && stAllowed)
+								{
+									savestates_load(false);
+									savestates_job &= ~LOADSTATE;
 								}
 							}
 						}

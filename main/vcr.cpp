@@ -1712,12 +1712,11 @@ void VCR_invalidatedCaptureFrame() {
 }
 
 void
-VCR_updateScreen() {
-//	ShowInfo("VCR_updateScreen()");
+VCR_updateScreen()
+{
 	extern int externalReadScreen;
-	void* image = NULL;
-//	static void* lastImage = NULL;
-	long width = 0, height = 0;
+	void *image = NULL; 
+	long width=0, height=0;
 	static int frame = 0;
 	int redraw = 1;
 
@@ -1732,29 +1731,24 @@ VCR_updateScreen() {
 	#ifdef __WIN32__
 			// skip frames according to skipFrequency if fast-forwarding
 		if ((IGNORE_RSP || forceIgnoreRSP)) redraw = 0;
-	#endif
-	#ifdef LUA_SPEEDMODE
-		if (maximumSpeedMode)redraw = 0;
-	#endif
-		if (redraw) {
+#endif
+		if(maximumSpeedMode) redraw = 0;
+
+		if(redraw) {
 			updateScreen();
 		#ifdef LUA_GUI
 			lua_new_vi(redraw);
 		#endif
 
 			HDC main_dc = GetDC(mainHWND);
-			HDC game_dc = GetDC(game_hwnd);
-			RECT game_rect = {};
-			GetClientRect(game_hwnd, &game_rect);
 
-			printf("Blitting %d %d...\n", game_rect.right, game_rect.bottom);
-			BitBlt(main_dc, 0, 0, game_rect.right, game_rect.bottom, game_dc, 0, 0, SRCCOPY);
+			PrintWindow(game_hwnd, main_dc, PW_CLIENTONLY);
 
 			ReleaseDC(mainHWND, main_dc);
-			ReleaseDC(game_hwnd, game_dc);
 
 
 		}
+		
 		return;
 	}
 
@@ -1866,7 +1860,6 @@ cleanup:
 		if (image)
 			DllCrtFree(image);
 	}
-//	ShowInfo("VCR_updateScreen() done");
 }
 
 

@@ -748,114 +748,239 @@ int check_plugins() {
 	return TRUE;
 }
 
-int load_gfx(HMODULE handle_gfx) {
-	if (handle_gfx) {
-		changeWindow = (void(__cdecl*)())GetProcAddress(handle_gfx, "ChangeWindow");
-		closeDLL_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "CloseDLL");
-		dllAbout = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllAbout");
-		dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllConfig");
-		dllTest = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllTest");
-		initiateGFX = (BOOL(__cdecl*)(GFX_INFO Gfx_Info))GetProcAddress(handle_gfx, "InitiateGFX");
-		processDList = (void(__cdecl*)())GetProcAddress(handle_gfx, "ProcessDList");
-		processRDPList = (void(__cdecl*)())GetProcAddress(handle_gfx, "ProcessRDPList");
-		romClosed_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "RomClosed");
-		romOpen_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "RomOpen");
-		showCFB = (void(__cdecl*)())GetProcAddress(handle_gfx, "ShowCFB");
-		updateScreen = (void(__cdecl*)())GetProcAddress(handle_gfx, "UpdateScreen");
-		viStatusChanged = (void(__cdecl*)())GetProcAddress(handle_gfx, "ViStatusChanged");
-		viWidthChanged = (void(__cdecl*)())GetProcAddress(handle_gfx, "ViWidthChanged");
-		moveScreen = (void(__cdecl*)(int, int))GetProcAddress(handle_gfx, "MoveScreen");
-		CaptureScreen = (void(__cdecl*)(char* Directory))GetProcAddress(handle_gfx, "CaptureScreen");
-		if (Config.is_internal_capture_forced) {
-			readScreen = NULL;
-			externalReadScreen = 0;
-			DllCrtFree = free;
-		} else {
-			readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen");
-			if (readScreen == NULL) {
-				//try to find readscreen2 instead (gln64)
-				readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen2");
-				if (readScreen == NULL) {
-					externalReadScreen = 0;
-					DllCrtFree = free;
-				}
+int load_gfx(HMODULE handle_gfx)
+{
+   if (handle_gfx)
+   {
+   changeWindow = (void(__cdecl*)())GetProcAddress(handle_gfx, "ChangeWindow");
+   closeDLL_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "CloseDLL");
+   dllAbout = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllAbout");
+   dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllConfig");
+   dllTest = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllTest");
+   initiateGFX = (BOOL(__cdecl*)(GFX_INFO Gfx_Info))GetProcAddress(handle_gfx, "InitiateGFX");
+   processDList = (void(__cdecl*)())GetProcAddress(handle_gfx, "ProcessDList");
+   processRDPList = (void(__cdecl*)())GetProcAddress(handle_gfx, "ProcessRDPList");
+   romClosed_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "RomClosed");
+   romOpen_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "RomOpen");
+   showCFB = (void(__cdecl*)())GetProcAddress(handle_gfx, "ShowCFB");
+   updateScreen = (void(__cdecl*)())GetProcAddress(handle_gfx, "UpdateScreen");
+   viStatusChanged = (void(__cdecl*)())GetProcAddress(handle_gfx, "ViStatusChanged");
+   viWidthChanged = (void(__cdecl*)())GetProcAddress(handle_gfx, "ViWidthChanged");
+   moveScreen = (void(__cdecl*)(int, int))GetProcAddress(handle_gfx, "MoveScreen");
+   CaptureScreen = (void(__cdecl*)(char *Directory))GetProcAddress(handle_gfx, "CaptureScreen");
+   if (Config.is_internal_capture_forced)
+   {
+	   readScreen = NULL;
+	   externalReadScreen = 0;
+	   DllCrtFree = free;
+   }
+   else
+   {
+	   readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen");
+	   if (readScreen == NULL)
+	   {
+		   //try to find readscreen2 instead (gln64)
+		   readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen2");
+		   if (readScreen == NULL)
+		   {
+			   externalReadScreen = 0;
+			   DllCrtFree = free;
+		   }
 
-			}
-			if (readScreen) {
-				externalReadScreen = 1;
-				DllCrtFree = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "DllCrtFree");
-				if (DllCrtFree == NULL) DllCrtFree = free; //attempt to match the crt, avi capture will probably crash without this
-			}
+	   }
+	   if(readScreen)
+	   {
+		   externalReadScreen = 1;
+		   DllCrtFree = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "DllCrtFree");
+		   if ( DllCrtFree == NULL) DllCrtFree = free; //attempt to match the crt, avi capture will probably crash without this
+	   }
 
-		}
+   }
 
-		fBRead = (void(__cdecl*)(DWORD))GetProcAddress(handle_gfx, "FBRead");
-		fBWrite = (void(__cdecl*)(DWORD, DWORD))GetProcAddress(handle_gfx, "FBWrite");
-		fBGetFrameBufferInfo = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "FBGetFrameBufferInfo");
+   fBRead = (void(__cdecl*)(DWORD))GetProcAddress(handle_gfx, "FBRead");
+   fBWrite = (void(__cdecl*)(DWORD, DWORD))GetProcAddress(handle_gfx, "FBWrite");
+   fBGetFrameBufferInfo = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "FBGetFrameBufferInfo");
+   
+	if (changeWindow == NULL) changeWindow = dummy_void;
+	if (closeDLL_gfx == NULL) closeDLL_gfx = dummy_void;
+	if (initiateGFX == NULL) initiateGFX = dummy_initiateGFX;
+	if (processDList == NULL) processDList = dummy_void;
+	if (processRDPList == NULL) processRDPList = dummy_void;
+	if (romClosed_gfx == NULL) romClosed_gfx = dummy_void;
+	if (romOpen_gfx == NULL) romOpen_gfx = dummy_void;
+	if (showCFB == NULL) showCFB = dummy_void;
+	if (updateScreen == NULL) updateScreen = dummy_void;
+	if (viStatusChanged == NULL) viStatusChanged = dummy_void;
+	if (viWidthChanged == NULL) viWidthChanged = dummy_void;
+	if (CaptureScreen == NULL) CaptureScreen = (void(__cdecl*)(char*))dummy_void;
+	if (moveScreen == NULL) moveScreen = (void(__cdecl*)(int, int))dummy_void;
 
-		if (changeWindow == NULL) changeWindow = dummy_void;
-		if (closeDLL_gfx == NULL) closeDLL_gfx = dummy_void;
-		if (initiateGFX == NULL) initiateGFX = dummy_initiateGFX;
-		if (processDList == NULL) processDList = dummy_void;
-		if (processRDPList == NULL) processRDPList = dummy_void;
-		if (romClosed_gfx == NULL) romClosed_gfx = dummy_void;
-		if (romOpen_gfx == NULL) romOpen_gfx = dummy_void;
-		if (showCFB == NULL) showCFB = dummy_void;
-		if (updateScreen == NULL) updateScreen = dummy_void;
-		if (viStatusChanged == NULL) viStatusChanged = dummy_void;
-		if (viWidthChanged == NULL) viWidthChanged = dummy_void;
-		if (CaptureScreen == NULL) CaptureScreen = (void(__cdecl*)(char*))dummy_void;
-		if (moveScreen == NULL) moveScreen = (void(__cdecl*)(int, int))dummy_void;
+
+   gfx_info.hWnd = game_hwnd;
+	gfx_info.hStatusBar = NULL ;
+   gfx_info.MemoryBswaped = TRUE;
+   gfx_info.HEADER = rom;
+   gfx_info.RDRAM = (BYTE*)rdram;
+   gfx_info.DMEM = (BYTE*)SP_DMEM;
+   gfx_info.IMEM = (BYTE*)SP_IMEM;
+   gfx_info.MI_INTR_REG = &(MI_register.mi_intr_reg);
+   gfx_info.DPC_START_REG = &(dpc_register.dpc_start);
+   gfx_info.DPC_END_REG = &(dpc_register.dpc_end);
+   gfx_info.DPC_CURRENT_REG = &(dpc_register.dpc_current);
+   gfx_info.DPC_STATUS_REG = &(dpc_register.dpc_status);
+   gfx_info.DPC_CLOCK_REG = &(dpc_register.dpc_clock);
+   gfx_info.DPC_BUFBUSY_REG = &(dpc_register.dpc_bufbusy);
+   gfx_info.DPC_PIPEBUSY_REG = &(dpc_register.dpc_pipebusy);
+   gfx_info.DPC_TMEM_REG = &(dpc_register.dpc_tmem);
+   gfx_info.VI_STATUS_REG = &(vi_register.vi_status);
+   gfx_info.VI_ORIGIN_REG = &(vi_register.vi_origin);
+   gfx_info.VI_WIDTH_REG = &(vi_register.vi_width);
+   gfx_info.VI_INTR_REG = &(vi_register.vi_v_intr);
+   gfx_info.VI_V_CURRENT_LINE_REG = &(vi_register.vi_current);
+   gfx_info.VI_TIMING_REG = &(vi_register.vi_burst);
+   gfx_info.VI_V_SYNC_REG = &(vi_register.vi_v_sync);
+   gfx_info.VI_H_SYNC_REG = &(vi_register.vi_h_sync);
+   gfx_info.VI_LEAP_REG = &(vi_register.vi_leap);
+   gfx_info.VI_H_START_REG = &(vi_register.vi_h_start);
+   gfx_info.VI_V_START_REG = &(vi_register.vi_v_start);
+   gfx_info.VI_V_BURST_REG = &(vi_register.vi_v_burst);
+   gfx_info.VI_X_SCALE_REG = &(vi_register.vi_x_scale);
+   gfx_info.VI_Y_SCALE_REG = &(vi_register.vi_y_scale);
+   gfx_info.CheckInterrupts = sucre;
+   initiateGFX(gfx_info);
+   }
+   else
+   {
+	changeWindow = dummy_void;
+	closeDLL_gfx = dummy_void;
+	initiateGFX = dummy_initiateGFX;
+	processDList = dummy_void;
+	processRDPList = dummy_void;
+	romClosed_gfx = dummy_void;
+	romOpen_gfx = dummy_void;
+	showCFB = dummy_void;
+	updateScreen = dummy_void;
+	viStatusChanged = dummy_void;
+	viWidthChanged = dummy_void;
+   }
+   return 0;
+}
+int load_input(HMODULE handle_input)
+{
+   int i ;
+   PLUGIN_INFO PluginInfo;
+   if (handle_input)
+   {
+   getDllInfo = (void(__cdecl*)(PLUGIN_INFO *PluginInfo))GetProcAddress(handle_input, "GetDllInfo");
+   getDllInfo(&PluginInfo);
+   
+   closeDLL_input = (void(__cdecl*)())GetProcAddress(handle_input, "CloseDLL");
+   controllerCommand = (void(__cdecl*)(int Control, BYTE * Command))GetProcAddress(handle_input, "ControllerCommand");
+   getKeys = (void(__cdecl*)(int Control, BUTTONS *Keys))GetProcAddress(handle_input, "GetKeys");
+   setKeys = (void(__cdecl*)(int Control, BUTTONS  Keys))GetProcAddress(handle_input, "SetKeys");
+   if (PluginInfo.Version == 0x0101)
+	   initiateControllers = (void(__cdecl*)(CONTROL_INFO ControlInfo))GetProcAddress(handle_input, "InitiateControllers");
+   else
+	   old_initiateControllers = (void(__cdecl*)(HWND hMainWindow, CONTROL Controls[4]))GetProcAddress(handle_input, "InitiateControllers");
+   readController = (void(__cdecl*)(int Control, BYTE *Command))GetProcAddress(handle_input, "ReadController");
+   romClosed_input = (void(__cdecl*)())GetProcAddress(handle_input, "RomClosed");
+   romOpen_input = (void(__cdecl*)())GetProcAddress(handle_input, "RomOpen");
+   keyDown = (void(__cdecl*)(WPARAM wParam, LPARAM lParam))GetProcAddress(handle_input, "WM_KeyDown");
+   keyUp = (void(__cdecl*)(WPARAM wParam, LPARAM lParam))GetProcAddress(handle_input, "WM_KeyUp");
+   
+   if (closeDLL_input == NULL) closeDLL_input = dummy_void;
+	if (controllerCommand == NULL) controllerCommand = dummy_controllerCommand;
+	if (getKeys == NULL) getKeys = dummy_getKeys;
+	if (setKeys == NULL) setKeys = dummy_setKeys;
+	if (initiateControllers == NULL) initiateControllers = dummy_initiateControllers;
+	if (readController == NULL) readController = dummy_readController;
+	if (romClosed_input == NULL) romClosed_input = dummy_void;
+	if (romOpen_input == NULL) romOpen_input = dummy_void;
+	if (keyDown == NULL) keyDown = dummy_keyDown;
+	if (keyUp == NULL) keyUp = dummy_keyUp;
+   
+   control_info.hMainWindow = mainHWND;
+   control_info.hinst = app_hInstance;
+   control_info.MemoryBswaped = TRUE;
+   control_info.HEADER = rom;
+   control_info.Controls = Controls;
+   for (i=0; i<4; i++)
+	 {
+	Controls[i].Present = FALSE;
+	Controls[i].RawData = FALSE;
+	Controls[i].Plugin = PLUGIN_NONE;
+	 }
+   if (PluginInfo.Version == 0x0101)
+	  {
+		initiateControllers(control_info);
+	  } 
+   else
+	  {
+		old_initiateControllers(mainHWND, Controls);
+	  } 
+	 InputPluginVersion = PluginInfo.Version;
+  }
+  else
+  {
+	closeDLL_input = dummy_void;
+	controllerCommand = dummy_controllerCommand;
+	getKeys = dummy_getKeys;
+	setKeys = dummy_setKeys;
+	initiateControllers = dummy_initiateControllers;
+	readController = dummy_readController;
+	romClosed_input = dummy_void;
+	romOpen_input = dummy_void;
+	keyDown = dummy_keyDown;
+	keyUp = dummy_keyUp;
+  }
+  return 0;
+}
 
 
-		gfx_info.hWnd = game_hwnd;
-		if (Config.is_statusbar_enabled) {
-			gfx_info.hStatusBar = hStatus;
-		} else {
-			gfx_info.hStatusBar = NULL;
-		}
-		gfx_info.MemoryBswaped = TRUE;
-		gfx_info.HEADER = rom;
-		gfx_info.RDRAM = (BYTE*)rdram;
-		gfx_info.DMEM = (BYTE*)SP_DMEM;
-		gfx_info.IMEM = (BYTE*)SP_IMEM;
-		gfx_info.MI_INTR_REG = &(MI_register.mi_intr_reg);
-		gfx_info.DPC_START_REG = &(dpc_register.dpc_start);
-		gfx_info.DPC_END_REG = &(dpc_register.dpc_end);
-		gfx_info.DPC_CURRENT_REG = &(dpc_register.dpc_current);
-		gfx_info.DPC_STATUS_REG = &(dpc_register.dpc_status);
-		gfx_info.DPC_CLOCK_REG = &(dpc_register.dpc_clock);
-		gfx_info.DPC_BUFBUSY_REG = &(dpc_register.dpc_bufbusy);
-		gfx_info.DPC_PIPEBUSY_REG = &(dpc_register.dpc_pipebusy);
-		gfx_info.DPC_TMEM_REG = &(dpc_register.dpc_tmem);
-		gfx_info.VI_STATUS_REG = &(vi_register.vi_status);
-		gfx_info.VI_ORIGIN_REG = &(vi_register.vi_origin);
-		gfx_info.VI_WIDTH_REG = &(vi_register.vi_width);
-		gfx_info.VI_INTR_REG = &(vi_register.vi_v_intr);
-		gfx_info.VI_V_CURRENT_LINE_REG = &(vi_register.vi_current);
-		gfx_info.VI_TIMING_REG = &(vi_register.vi_burst);
-		gfx_info.VI_V_SYNC_REG = &(vi_register.vi_v_sync);
-		gfx_info.VI_H_SYNC_REG = &(vi_register.vi_h_sync);
-		gfx_info.VI_LEAP_REG = &(vi_register.vi_leap);
-		gfx_info.VI_H_START_REG = &(vi_register.vi_h_start);
-		gfx_info.VI_V_START_REG = &(vi_register.vi_v_start);
-		gfx_info.VI_V_BURST_REG = &(vi_register.vi_v_burst);
-		gfx_info.VI_X_SCALE_REG = &(vi_register.vi_x_scale);
-		gfx_info.VI_Y_SCALE_REG = &(vi_register.vi_y_scale);
-		gfx_info.CheckInterrupts = sucre;
-		initiateGFX(gfx_info);
-	} else {
-		changeWindow = dummy_void;
-		closeDLL_gfx = dummy_void;
-		initiateGFX = dummy_initiateGFX;
-		processDList = dummy_void;
-		processRDPList = dummy_void;
-		romClosed_gfx = dummy_void;
-		romOpen_gfx = dummy_void;
-		showCFB = dummy_void;
-		updateScreen = dummy_void;
-		viStatusChanged = dummy_void;
-		viWidthChanged = dummy_void;
+int load_sound(HMODULE handle_sound )
+{
+	if (handle_sound)
+	 {
+	closeDLL_audio = (void (__cdecl *)(void))GetProcAddress(handle_sound, "CloseDLL" );
+	aiDacrateChanged = (void (__cdecl *)(int))GetProcAddress(handle_sound, "AiDacrateChanged" );
+	aiLenChanged = (void (__cdecl *)(void))GetProcAddress(handle_sound, "AiLenChanged" );
+	aiReadLength = (DWORD (__cdecl *)(void))GetProcAddress(handle_sound, "AiReadLength" );
+	initiateAudio = (BOOL (__cdecl *)(AUDIO_INFO))GetProcAddress(handle_sound, "InitiateAudio" );
+	romClosed_audio = (void (__cdecl *)(void))GetProcAddress(handle_sound, "RomClosed" );
+	romOpen_audio = (void (__cdecl *)(void))GetProcAddress(handle_sound, "RomOpen" );
+	processAList = (void (__cdecl *)(void))GetProcAddress(handle_sound, "ProcessAList" );	
+	aiUpdate = (void (__cdecl *)(BOOL))GetProcAddress(handle_sound, "AiUpdate" );
+	
+	if (aiDacrateChanged == NULL) aiDacrateChanged = dummy_aiDacrateChanged;
+	if (aiLenChanged == NULL) aiLenChanged = dummy_void;
+	if (aiReadLength == NULL) aiReadLength = dummy_aiReadLength;
+	//if (aiUpdate == NULL) aiUpdate = dummy_aiUpdate;
+	if (closeDLL_audio == NULL) closeDLL_audio = dummy_void;
+	if (initiateAudio == NULL) initiateAudio = dummy_initiateAudio;
+	if (processAList == NULL) processAList = dummy_void;
+	if (romClosed_audio == NULL) romClosed_audio = dummy_void;
+	if (romOpen_audio == NULL) romOpen_audio = dummy_void;
+	
+	audio_info.hwnd = mainHWND;
+	audio_info.hinst = app_hInstance;
+	audio_info.MemoryBswaped = TRUE;
+	audio_info.HEADER = rom;
+		
+	audio_info.RDRAM = (BYTE*)rdram;
+	audio_info.DMEM = (BYTE*)SP_DMEM;
+	audio_info.IMEM = (BYTE*)SP_IMEM;
+	
+	audio_info.MI_INTR_REG = &dummy;//&(MI_register.mi_intr_reg);
+	
+	audio_info.AI_DRAM_ADDR_REG = &(ai_register.ai_dram_addr);
+	audio_info.AI_LEN_REG = &(ai_register.ai_len); 
+	audio_info.AI_CONTROL_REG = &(ai_register.ai_control);
+	audio_info.AI_STATUS_REG = &dummy;//&(ai_register.ai_status);
+	audio_info.AI_DACRATE_REG = &(ai_register.ai_dacrate);
+	audio_info.AI_BITRATE_REG = &(ai_register.ai_bitrate);
+	
+	audio_info.CheckInterrupts = sucre;
+	initiateAudio(audio_info);
 	}
 	return 0;
 }
@@ -1164,20 +1289,23 @@ void pauseEmu(BOOL quiet) {
 		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
 }
 LRESULT CALLBACK GameWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	switch (uMsg) {
-		case WM_SIZE:
-		case WM_SIZING:
-		case WM_WINDOWPOSCHANGED:
+	switch (uMsg)
+	{
+	case WM_SIZE:
+	case WM_SIZING:
+	case WM_WINDOWPOSCHANGED: {
+		RECT rect = {};
+		GetClientRect(hwnd, &rect);
+		int width = rect.right - rect.left;
+		int height = rect.bottom - rect.top;
+
+		if (rect.right > 10 && rect.bottom > 10)
 		{
-			RECT rect = {};
-			GetClientRect(hwnd, &rect);
+			RECT statusbar_rect = { 0 }, menubar_rect = { 0 };
+			GetClientRect(hStatus, &statusbar_rect);
 
-			if (rect.right > 10 && rect.bottom > 10) {
-
-				printf("Child window sized to (%d, %d)... Resizing parent too\n", rect.right, rect.bottom);
-				SetWindowPos(mainHWND, NULL, 0, 0, rect.right, rect.bottom, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE);
-			}
-			break;
+			printf("Child window sized to (%d, %d)... Resizing parent too\n", rect.right, rect.bottom);
+			SetWindowPos(mainHWND, NULL, 0, 0, width, height + (statusbar_rect.bottom - statusbar_rect.top) * 2, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE);
 		}
 		default:
 			return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -1196,23 +1324,104 @@ BOOL StartRom(char* fullRomPath) {
 	if (romBrowserBusy) {
 		display_status("Rom browser busy!");
 		return TRUE;
-	}
-	LONG winstyle;
-	if (emu_launched) {
-		really_restart_mode = TRUE;
-		strcpy(LastSelectedRom, fullRomPath);
-		CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
-	} else {
-						//Makes window not resizable                         
-		winstyle = GetWindowLong(mainHWND, GWL_STYLE);
-		winstyle = winstyle & ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
-		SetWindowLong(mainHWND, GWL_STYLE, winstyle);
-		SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);  //Set on top
+	 }
+	 LONG winstyle;
+	 if (emu_launched) {
+	   really_restart_mode = TRUE;
+	   strcpy(LastSelectedRom, fullRomPath);
+			CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
+	 }
+	 else{
+						 //Makes window not resizable                         
+						 winstyle = GetWindowLong( mainHWND, GWL_STYLE );
+						 winstyle = winstyle & ~(WS_THICKFRAME|WS_MAXIMIZEBOX);
+						 SetWindowLong(mainHWND, GWL_STYLE, winstyle );
+						 SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED );  //Set on top
+						
+						 if (!restart_mode) {
+							 if (!check_plugins()) 
+							 {
+								return TRUE;           
+							 }
+							 
+							 SetStatusMode( 1 );
+																					 
+							 SetStatusTranslatedString(hStatus,0,"Loading ROM...");
+							 SendMessage( hStatus, SB_SETTEXT, 2, (LPARAM)fullRomPath );
 
-		if (!restart_mode) {
-			if (!check_plugins()) {
-				return TRUE;
-			}
+							 if (rom_read(fullRomPath))
+							 {
+								emu_launched = 0;
+								saveMD5toCache(ROM_SETTINGS.MD5);
+								SetStatusMode( 0 );
+								SetStatusTranslatedString(hStatus,0,"Failed to open rom");
+								return TRUE;
+							 }
+							  
+							 sprintf( LastSelectedRom, fullRomPath);
+							 saveMD5toCache(ROM_SETTINGS.MD5);
+							 AddToRecentList( mainHWND, fullRomPath) ; 
+
+							 InitTimer();
+
+							 EnableEmulationMenuItems(TRUE);
+							 ShowRomBrowser(FALSE,FALSE);
+							 SaveGlobalPlugins(TRUE);
+						  }
+						 ShowInfo("");
+						 ShowWarning("Starting ROM: %s ",ROM_SETTINGS.goodname);
+						 
+						 SetStatusMode( 2 );
+						 
+						 // create off-screen game window for hosting video buffer
+
+						 DestroyGameWindow();
+
+						 WNDCLASSEX wc = { 0 };
+						 wc.cbSize = sizeof(WNDCLASSEX);
+						 wc.style = 0;
+						 wc.lpfnWndProc = GameWindowProc;
+						 wc.cbClsExtra = 0;
+						 wc.cbWndExtra = 0;
+						 wc.hInstance = GetModuleHandle(NULL);
+						 wc.lpszClassName = "mupenGameWindow";
+
+						 RegisterClassEx(&wc);
+
+						 game_hwnd = CreateWindowEx(
+							 0,
+							 "mupenGameWindow",
+							 "Mupen64 Game Window",
+							 (WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED) & ~WS_VISIBLE,
+							 0, 0, 1, 1, // random value, maybe it gets resized?
+							 NULL, NULL, GetModuleHandle(NULL), NULL);
+
+						 ShowWindow(game_hwnd, SW_SHOW);
+
+						 SetWindowLong(game_hwnd, GWL_EXSTYLE, WS_EX_LAYERED);
+
+						 if (!game_hwnd)
+						 {
+							 MessageBox(mainHWND, "Failed to create game window\n", 0, 0);
+						 }
+
+						 ShowInfo("Creating emulation thread...");    
+						 EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
+
+						 extern int m_task;
+						 if (m_task == 0)
+						 {
+							 sprintf(TempMessage, MUPEN_VERSION " - %s", ROM_HEADER->nom);
+							 SetWindowText(mainHWND, TempMessage);
+						 }
+						 SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
+						 SetStatusTranslatedString(hStatus,0,"Emulation started");
+						 printf("Thread created\n");
+						 EnableEmulationMenuItems(TRUE);
+						 return FALSE;
+					 }
+					 return 0;
+}
 
 			SetStatusMode(1);
 
