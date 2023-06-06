@@ -936,7 +936,7 @@ namespace LuaEngine {
 	}
 
 	void draw_lua(std::function<void()> draw_callback) {
-
+		
 		if (Config.is_lua_double_buffered) {
 
 			// HACK: fake transparency by using color mask with obscure color
@@ -949,12 +949,13 @@ namespace LuaEngine {
 			d2d_render_target->BeginDraw();
 			d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 			d2d_render_target->Clear(D2D1::ColorF(color_mask));
-
+			
 			draw_callback();
-
+			
 			d2d_render_target->EndDraw();
 
 			TransparentBlt(main_dc, 0, 0, lua_dc_width, lua_dc_height, lua_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
+			ReleaseDC(mainHWND, main_dc);
 		}
 	}
 
@@ -2605,7 +2606,7 @@ namespace LuaEngine {
 
 		if (!d2d_brush_cache.contains(key))
 		{
-			printf("Cached brush %d\n", key);
+			printf("Cached brush (%f, %f, %f, %f) = %d\n", color.r, color.g, color.b, color.a, key);
 
 			ID2D1SolidColorBrush* brush;
 			d2d_render_target->CreateSolidColorBrush(
