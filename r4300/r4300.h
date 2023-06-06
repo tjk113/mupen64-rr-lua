@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -36,9 +36,9 @@
 #include "recomp.h"
 #include "../memory/tlb.h"
 
-extern precomp_instr *PC;
+extern precomp_instr* PC;
 
-extern precomp_block *blocks[0x100000], *actual;
+extern precomp_block* blocks[0x100000], * actual;
 
 extern int stop, llbit;
 extern long long int reg[32], hi, lo;
@@ -46,8 +46,8 @@ extern long long int local_rs, local_rt;
 extern unsigned long reg_cop0[32];
 extern long local_rs32, local_rt32;
 extern unsigned long jump_target;
-extern double *reg_cop1_double[32];
-extern float *reg_cop1_simple[32];
+extern double* reg_cop1_double[32];
+extern float* reg_cop1_simple[32];
 extern long reg_cop1_fgr_32[32];
 extern long long int reg_cop1_fgr_64[32];
 extern long FCR0, FCR31;

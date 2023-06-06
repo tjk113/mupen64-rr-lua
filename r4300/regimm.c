@@ -29,6 +29,7 @@
 
 #include "r4300.h"
 #include "interupt.h"
+#include "interupt.h"
 #include "../memory/memory.h"
 #include "ops.h"
 #include "macros.h"

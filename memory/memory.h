@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -40,16 +40,16 @@ void free_memory();
 #define write_byte_in_memory() writememb[address >>16]()
 #define write_hword_in_memory() writememh[address >>16]()
 #define write_dword_in_memory() writememd[address >>16]()
-extern unsigned long SP_DMEM[0x1000/4*2];
-extern unsigned char *SP_DMEMb;
-extern unsigned long *SP_IMEM;
-extern unsigned long PIF_RAM[0x40/4];
-extern unsigned char *PIF_RAMb;
-extern unsigned long rdram[0x800000/4];
+extern unsigned long SP_DMEM[0x1000 / 4 * 2];
+extern unsigned char* SP_DMEMb;
+extern unsigned long* SP_IMEM;
+extern unsigned long PIF_RAM[0x40 / 4];
+extern unsigned char* PIF_RAMb;
+extern unsigned long rdram[0x800000 / 4];
 extern unsigned long address, word;
 extern unsigned char g_byte;
 extern unsigned short hword;
-extern unsigned long long int dword, *rdword;
+extern unsigned long long int dword, * rdword;
 
 extern void (*readmem[0xFFFF])();
 extern void (*readmemb[0xFFFF])();
@@ -60,174 +60,163 @@ extern void (*writememb[0xFFFF])();
 extern void (*writememh[0xFFFF])();
 extern void (*writememd[0xFFFF])();
 
-typedef struct _RDRAM_register
-{
-   unsigned long rdram_config;
-   unsigned long rdram_device_id;
-   unsigned long rdram_delay;
-   unsigned long rdram_mode;
-   unsigned long rdram_ref_interval;
-   unsigned long rdram_ref_row;
-   unsigned long rdram_ras_interval;
-   unsigned long rdram_min_interval;
-   unsigned long rdram_addr_select;
-   unsigned long rdram_device_manuf;
+typedef struct _RDRAM_register {
+	unsigned long rdram_config;
+	unsigned long rdram_device_id;
+	unsigned long rdram_delay;
+	unsigned long rdram_mode;
+	unsigned long rdram_ref_interval;
+	unsigned long rdram_ref_row;
+	unsigned long rdram_ras_interval;
+	unsigned long rdram_min_interval;
+	unsigned long rdram_addr_select;
+	unsigned long rdram_device_manuf;
 } RDRAM_register;
 
-typedef struct _SP_register
-{
-   unsigned long sp_mem_addr_reg;
-   unsigned long sp_dram_addr_reg;
-   unsigned long sp_rd_len_reg;
-   unsigned long sp_wr_len_reg;
-   unsigned long w_sp_status_reg;
-   unsigned long sp_status_reg;
-   char halt;
-   char broke;
-   char dma_busy;
-   char dma_full;
-   char io_full;
-   char single_step;
-   char intr_break;
-   char signal0;
-   char signal1;
-   char signal2;
-   char signal3;
-   char signal4;
-   char signal5;
-   char signal6;
-   char signal7;
-   unsigned long sp_dma_full_reg;
-   unsigned long sp_dma_busy_reg;
-   unsigned long sp_semaphore_reg;
+typedef struct _SP_register {
+	unsigned long sp_mem_addr_reg;
+	unsigned long sp_dram_addr_reg;
+	unsigned long sp_rd_len_reg;
+	unsigned long sp_wr_len_reg;
+	unsigned long w_sp_status_reg;
+	unsigned long sp_status_reg;
+	char halt;
+	char broke;
+	char dma_busy;
+	char dma_full;
+	char io_full;
+	char single_step;
+	char intr_break;
+	char signal0;
+	char signal1;
+	char signal2;
+	char signal3;
+	char signal4;
+	char signal5;
+	char signal6;
+	char signal7;
+	unsigned long sp_dma_full_reg;
+	unsigned long sp_dma_busy_reg;
+	unsigned long sp_semaphore_reg;
 } SP_register;
 
-typedef struct _RSP_register
-{
-   unsigned long rsp_pc;
-   unsigned long rsp_ibist;
+typedef struct _RSP_register {
+	unsigned long rsp_pc;
+	unsigned long rsp_ibist;
 } RSP_register;
 
-typedef struct _DPC_register
-{
-   unsigned long dpc_start;
-   unsigned long dpc_end;
-   unsigned long dpc_current;
-   unsigned long w_dpc_status;
-   unsigned long dpc_status;
-   char xbus_dmem_dma;
-   char freeze;
-   char flush;
-   char start_glck;
-   char tmem_busy;
-   char pipe_busy;
-   char cmd_busy;
-   char cbuf_busy;
-   char dma_busy;
-   char end_valid;
-   char start_valid;
-   unsigned long dpc_clock;
-   unsigned long dpc_bufbusy;
-   unsigned long dpc_pipebusy;
-   unsigned long dpc_tmem;
+typedef struct _DPC_register {
+	unsigned long dpc_start;
+	unsigned long dpc_end;
+	unsigned long dpc_current;
+	unsigned long w_dpc_status;
+	unsigned long dpc_status;
+	char xbus_dmem_dma;
+	char freeze;
+	char flush;
+	char start_glck;
+	char tmem_busy;
+	char pipe_busy;
+	char cmd_busy;
+	char cbuf_busy;
+	char dma_busy;
+	char end_valid;
+	char start_valid;
+	unsigned long dpc_clock;
+	unsigned long dpc_bufbusy;
+	unsigned long dpc_pipebusy;
+	unsigned long dpc_tmem;
 } DPC_register;
 
-typedef struct _DPS_register
-{
-   unsigned long dps_tbist;
-   unsigned long dps_test_mode;
-   unsigned long dps_buftest_addr;
-   unsigned long dps_buftest_data;
+typedef struct _DPS_register {
+	unsigned long dps_tbist;
+	unsigned long dps_test_mode;
+	unsigned long dps_buftest_addr;
+	unsigned long dps_buftest_data;
 } DPS_register;
 
-typedef struct _mips_register
-{
-   unsigned long w_mi_init_mode_reg;
-   unsigned long mi_init_mode_reg;
-   char init_length;
-   char init_mode;
-   char ebus_test_mode;
-   char RDRAM_reg_mode;
-   unsigned long mi_version_reg;
-   unsigned long mi_intr_reg;
-   unsigned long mi_intr_mask_reg;
-   unsigned long w_mi_intr_mask_reg;
-   char SP_intr_mask;
-   char SI_intr_mask;
-   char AI_intr_mask;
-   char VI_intr_mask;
-   char PI_intr_mask;
-   char DP_intr_mask;
+typedef struct _mips_register {
+	unsigned long w_mi_init_mode_reg;
+	unsigned long mi_init_mode_reg;
+	char init_length;
+	char init_mode;
+	char ebus_test_mode;
+	char RDRAM_reg_mode;
+	unsigned long mi_version_reg;
+	unsigned long mi_intr_reg;
+	unsigned long mi_intr_mask_reg;
+	unsigned long w_mi_intr_mask_reg;
+	char SP_intr_mask;
+	char SI_intr_mask;
+	char AI_intr_mask;
+	char VI_intr_mask;
+	char PI_intr_mask;
+	char DP_intr_mask;
 } mips_register;
 
-typedef struct _VI_register
-{
-   unsigned long vi_status;
-   unsigned long vi_origin;
-   unsigned long vi_width;
-   unsigned long vi_v_intr;
-   unsigned long vi_current;
-   unsigned long vi_burst;
-   unsigned long vi_v_sync;
-   unsigned long vi_h_sync;
-   unsigned long vi_leap;
-   unsigned long vi_h_start;
-   unsigned long vi_v_start;
-   unsigned long vi_v_burst;
-   unsigned long vi_x_scale;
-   unsigned long vi_y_scale;
-   unsigned long vi_delay;
+typedef struct _VI_register {
+	unsigned long vi_status;
+	unsigned long vi_origin;
+	unsigned long vi_width;
+	unsigned long vi_v_intr;
+	unsigned long vi_current;
+	unsigned long vi_burst;
+	unsigned long vi_v_sync;
+	unsigned long vi_h_sync;
+	unsigned long vi_leap;
+	unsigned long vi_h_start;
+	unsigned long vi_v_start;
+	unsigned long vi_v_burst;
+	unsigned long vi_x_scale;
+	unsigned long vi_y_scale;
+	unsigned long vi_delay;
 } VI_register;
 
-typedef struct _AI_register
-{
-   unsigned long ai_dram_addr;	//source address (in rdram) of sound sample to be played
-   unsigned long ai_len;		//amount of bytes(?) to be played
-   unsigned long ai_control;
-   unsigned long ai_status;		//info about whether dma active and is fifo full
-   unsigned long ai_dacrate;	//clock rate / audio rate, tells sound controller how to interpret the audio samples
-   unsigned long ai_bitrate;	//possible values 2 to 16, bits per sample?, this is always (dacRate / 66)-1 (by libultra)
-   unsigned long next_delay;
-   unsigned long next_len;
-   unsigned long current_delay;
-   unsigned long current_len;
+typedef struct _AI_register {
+	unsigned long ai_dram_addr;	//source address (in rdram) of sound sample to be played
+	unsigned long ai_len;		//amount of bytes(?) to be played
+	unsigned long ai_control;
+	unsigned long ai_status;		//info about whether dma active and is fifo full
+	unsigned long ai_dacrate;	//clock rate / audio rate, tells sound controller how to interpret the audio samples
+	unsigned long ai_bitrate;	//possible values 2 to 16, bits per sample?, this is always (dacRate / 66)-1 (by libultra)
+	unsigned long next_delay;
+	unsigned long next_len;
+	unsigned long current_delay;
+	unsigned long current_len;
 } AI_register;
 
-typedef struct _PI_register
-{
-   unsigned long pi_dram_addr_reg;
-   unsigned long pi_cart_addr_reg;
-   unsigned long pi_rd_len_reg;
-   unsigned long pi_wr_len_reg;
-   unsigned long read_pi_status_reg;
-   unsigned long pi_bsd_dom1_lat_reg;
-   unsigned long pi_bsd_dom1_pwd_reg;
-   unsigned long pi_bsd_dom1_pgs_reg;
-   unsigned long pi_bsd_dom1_rls_reg;
-   unsigned long pi_bsd_dom2_lat_reg;
-   unsigned long pi_bsd_dom2_pwd_reg;
-   unsigned long pi_bsd_dom2_pgs_reg;
-   unsigned long pi_bsd_dom2_rls_reg;
+typedef struct _PI_register {
+	unsigned long pi_dram_addr_reg;
+	unsigned long pi_cart_addr_reg;
+	unsigned long pi_rd_len_reg;
+	unsigned long pi_wr_len_reg;
+	unsigned long read_pi_status_reg;
+	unsigned long pi_bsd_dom1_lat_reg;
+	unsigned long pi_bsd_dom1_pwd_reg;
+	unsigned long pi_bsd_dom1_pgs_reg;
+	unsigned long pi_bsd_dom1_rls_reg;
+	unsigned long pi_bsd_dom2_lat_reg;
+	unsigned long pi_bsd_dom2_pwd_reg;
+	unsigned long pi_bsd_dom2_pgs_reg;
+	unsigned long pi_bsd_dom2_rls_reg;
 } PI_register;
 
-typedef struct _RI_register
-{
-   unsigned long ri_mode;
-   unsigned long ri_config;
-   unsigned long ri_current_load;
-   unsigned long ri_select;
-   unsigned long ri_refresh;
-   unsigned long ri_latency;
-   unsigned long ri_error;
-   unsigned long ri_werror;
+typedef struct _RI_register {
+	unsigned long ri_mode;
+	unsigned long ri_config;
+	unsigned long ri_current_load;
+	unsigned long ri_select;
+	unsigned long ri_refresh;
+	unsigned long ri_latency;
+	unsigned long ri_error;
+	unsigned long ri_werror;
 } RI_register;
 
-typedef struct _SI_register
-{
-   unsigned long si_dram_addr;
-   unsigned long si_pif_addr_rd64b;
-   unsigned long si_pif_addr_wr64b;
-   unsigned long si_status;
+typedef struct _SI_register {
+	unsigned long si_dram_addr;
+	unsigned long si_pif_addr_rd64b;
+	unsigned long si_pif_addr_wr64b;
+	unsigned long si_status;
 } SI_register;
 
 extern RDRAM_register rdram_register;
