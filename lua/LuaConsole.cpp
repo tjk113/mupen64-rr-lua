@@ -4011,7 +4011,13 @@ void lua_new_vi(int redraw) {
 		LuaEngine::draw_lua([]
 			{
 				AtUpdateScreenLuaCallback();
+
+				
+
 			});
+
+		// we do it here for some reason, not somewhere else
+		
 	}
 }
 

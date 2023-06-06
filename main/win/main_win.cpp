@@ -865,12 +865,7 @@ int load_gfx(HMODULE handle_gfx)
 
 
    gfx_info.hWnd = game_hwnd;
-   if (Config.is_statusbar_enabled) {
-	  gfx_info.hStatusBar = hStatus ;
-   }
-   else {
-	  gfx_info.hStatusBar = NULL ;
-   }
+	gfx_info.hStatusBar = NULL ;
    gfx_info.MemoryBswaped = TRUE;
    gfx_info.HEADER = rom;
    gfx_info.RDRAM = (BYTE*)rdram;
@@ -1259,12 +1254,16 @@ LRESULT CALLBACK GameWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	case WM_WINDOWPOSCHANGED: {
 		RECT rect = {};
 		GetClientRect(hwnd, &rect);
+		int width = rect.right - rect.left;
+		int height = rect.bottom - rect.top;
 
 		if (rect.right > 10 && rect.bottom > 10)
 		{
+			RECT statusbar_rect = { 0 }, menubar_rect = { 0 };
+			GetClientRect(hStatus, &statusbar_rect);
 
-		printf("Child window sized to (%d, %d)... Resizing parent too\n", rect.right, rect.bottom);
-		SetWindowPos(mainHWND, NULL, 0, 0, rect.right, rect.bottom, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE);
+			printf("Child window sized to (%d, %d)... Resizing parent too\n", rect.right, rect.bottom);
+			SetWindowPos(mainHWND, NULL, 0, 0, width, height + (statusbar_rect.bottom - statusbar_rect.top) * 2, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE);
 		}
 		break; }
 	default:
@@ -1346,10 +1345,6 @@ BOOL StartRom(char *fullRomPath)
 						 wc.cbClsExtra = 0;
 						 wc.cbWndExtra = 0;
 						 wc.hInstance = GetModuleHandle(NULL);
-						 wc.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONBIG));
-						 wc.hIconSm = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONSMALL));
-						 wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-						 wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 						 wc.lpszClassName = "mupenGameWindow";
 
 						 RegisterClassEx(&wc);
