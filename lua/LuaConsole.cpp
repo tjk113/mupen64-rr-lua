@@ -1049,31 +1049,31 @@ namespace LuaEngine {
 	}
 
 	//lua�̕⏕�֐��Ƃ�
-	DWORD CheckIntegerU(lua_State* L, int i = -1) {
+	DWORD LuaCheckIntegerU(lua_State* L, int i = -1) {
 		return (DWORD)luaL_checknumber(L, i);
 	}
-	void PushIntU(lua_State* L, unsigned int x) {
+	void LuaPushIntU(lua_State* L, unsigned int x) {
 		lua_pushinteger(L, x);
 	}
-	void PushDword(lua_State* L, ULONGLONG x) {
-		lua_newtable(L);
-		lua_pushinteger(L, 1);
-		PushIntU(L, x >> 32);
-		lua_settable(L, -3);
-		lua_pushinteger(L, 2);
-		PushIntU(L, x & 0xFFFFFFFF);
-		lua_settable(L, -3);
-	}
-	ULONGLONG CheckDword(lua_State* L, int i) {
+	ULONGLONG LuaCheckQWord(lua_State* L, int i) {
 		ULONGLONG n;
 		lua_pushinteger(L, 1);
 		lua_gettable(L, i);
-		n = (ULONGLONG)CheckIntegerU(L) << 32;
+		n = (ULONGLONG)LuaCheckIntegerU(L) << 32;
 		lua_pop(L, 1);
 		lua_pushinteger(L, 2);
 		lua_gettable(L, i);
-		n |= CheckIntegerU(L);
+		n |= LuaCheckIntegerU(L);
 		return n;
+	}
+	void LuaPushQword(lua_State* L, ULONGLONG x) {
+		lua_newtable(L);
+		lua_pushinteger(L, 1);
+		LuaPushIntU(L, x >> 32);
+		lua_settable(L, -3);
+		lua_pushinteger(L, 2);
+		LuaPushIntU(L, x & 0xFFFFFFFF);
+		lua_settable(L, -3);
 	}
 	int RegisterFunction(lua_State* L, const char* key) {
 		lua_getfield(L, LUA_REGISTRYINDEX, key);
@@ -1263,7 +1263,7 @@ namespace LuaEngine {
 		for (int i = 0; i < len; i++) {
 			lua_pushvalue(L, 1 + i);
 			if (lua_type(L, -1) == LUA_TNUMBER) {
-				int n = CheckIntegerU(L, -1);
+				int n = LuaCheckIntegerU(L, -1);
 				lua_pop(L, 1);
 				lua_getglobal(L, "string");
 				lua_getfield(L, -1, "format");	//string,string.format
@@ -1286,33 +1286,35 @@ namespace LuaEngine {
 	}
 
 	int MoveToSingle(lua_State* L) {
-		ULONG n = CheckIntegerU(L, 1);
+		ULONG n = luaL_checknumber(L, 1);
 		lua_pushnumber(L, *(FLOAT*)&n);
 		return 1;
 	}
 	int MoveToDouble(lua_State* L) {
-		ULONGLONG n = CheckDword(L, 1);
+		ULONGLONG n = LuaCheckQWord(L, 1);
 		lua_pushnumber(L, *(DOUBLE*)&n);
 		return 1;
 	}
 	int MoveFromSingle(lua_State* L) {
 		FLOAT n = luaL_checknumber(L, 1);
-		PushIntU(L, *(ULONG*)&n);
+		LuaPushIntU(L, *(ULONG*)&n);
 		return 1;
 	}
 	int MoveFromDouble(lua_State* L) {
 		DOUBLE n = luaL_checknumber(L, 1);
-		PushDword(L, *(ULONGLONG*)&n);
+		LuaPushQword(L, *(ULONGLONG*)&n);
 		return 1;
 	}
 	int ConvertDwordToNumber(lua_State* L) {
-		lua_pushnumber(L, CheckDword(L, 1));
+		ULONGLONG n = LuaCheckQWord(L, 1);
+		lua_pushnumber(L, n);
 		return 1;
 	}
 
 	//memory
 	unsigned char* const rdramb = (unsigned char*)rdram;
 	const unsigned long AddrMask = 0x7FFFFF;
+
 	template<typename T>
 	ULONG ToAddr(ULONG addr) {
 		return sizeof(T) == 4 ?
@@ -1324,6 +1326,8 @@ namespace LuaEngine {
 	T LoadRDRAMSafe(unsigned long addr) {
 		return *((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask))));
 	}
+	// I don't think these are required, but I'm keeping them here just in case
+	/*
 	template<>
 	ULONGLONG LoadRDRAMSafe(unsigned long addr) {
 		return ((ULONGLONG)(*(ULONG*)(rdramb + (addr & AddrMask))) << 32) |
@@ -1334,10 +1338,13 @@ namespace LuaEngine {
 		return ((LONGLONG)(*(ULONG*)(rdramb + (addr & AddrMask))) << 32) |
 			((*(ULONG*)(rdramb + (addr & AddrMask) + 4)));
 	}
+	*/
 	template<typename T>
 	void StoreRDRAMSafe(unsigned long addr, T value) {
 		*((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask)))) = value;
 	}
+	// Same with these
+	/*
 	template<>
 	void StoreRDRAMSafe(unsigned long addr, ULONGLONG value) {
 		*((unsigned long*)(rdramb + (addr & AddrMask))) = value >> 32;
@@ -1348,123 +1355,121 @@ namespace LuaEngine {
 		*((unsigned long*)(rdramb + (addr & AddrMask))) = value >> 32;
 		*((unsigned long*)(rdramb + (addr & AddrMask) + 4)) = value & 0xFFFFFFFF;
 	}
+	*/
+
+	// Read functions
 
 	int LuaReadByteUnsigned(lua_State* L) {
-		UCHAR value = LoadRDRAMSafe<UCHAR>(CheckIntegerU(L, 1));
-		PushIntU(L, value);
+		UCHAR value = LoadRDRAMSafe<UCHAR>(luaL_checkinteger(L, 1));
+		lua_pushinteger(L, value);
 		return 1;
 	}
 	int LuaReadByteSigned(lua_State* L) {
-		CHAR value = LoadRDRAMSafe<CHAR>(CheckIntegerU(L, 1));
+		CHAR value = LoadRDRAMSafe<CHAR>(luaL_checkinteger(L, 1));
 		lua_pushinteger(L, value);
 		return 1;
 	}
 	int LuaReadWordUnsigned(lua_State* L) {
-		USHORT value = LoadRDRAMSafe<USHORT>(CheckIntegerU(L, 1));
-		PushIntU(L, value);
+		USHORT value = LoadRDRAMSafe<USHORT>(luaL_checkinteger(L, 1));
+		lua_pushinteger(L, value);
 		return 1;
 	}
 	int LuaReadWordSigned(lua_State* L) {
-		SHORT value = LoadRDRAMSafe<SHORT>(CheckIntegerU(L, 1));
+		SHORT value = LoadRDRAMSafe<SHORT>(luaL_checkinteger(L, 1));
 		lua_pushinteger(L, value);
 		return 1;
 	}
 	int LuaReadDWorldUnsigned(lua_State* L) {
-		ULONG value = LoadRDRAMSafe<ULONG>(CheckIntegerU(L, 1));
-		PushIntU(L, value);
-		return 1;
-	}
-	int LuaReadDWordSigned(lua_State* L) {
-		LONG value = LoadRDRAMSafe<LONG>(CheckIntegerU(L, 1));
+		ULONG value = LoadRDRAMSafe<ULONG>(luaL_checkinteger(L, 1));
 		lua_pushinteger(L, value);
 		return 1;
 	}
-	//64bit�l�͂Ƃ肠����hi,lo�̃e�[�u����
-	//signed���Ăǂ������ӂ��Ɋi�[�����炢���񂾂�(���͗���unsigned)
+	int LuaReadDWordSigned(lua_State* L) {
+		LONG value = LoadRDRAMSafe<LONG>(luaL_checkinteger(L, 1));
+		lua_pushinteger(L, value);
+		return 1;
+	}
 	int LuaReadQWordUnsigned(lua_State* L) {
-		ULONGLONG value = LoadRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1));
-		PushDword(L, value);
+		ULONGLONG value = LoadRDRAMSafe<ULONGLONG>(luaL_checkinteger(L, 1));
+		LuaPushQword(L, value);
 		return 1;
 	}
 	int LuaReadQWordSigned(lua_State* L) {
-		LONGLONG value = LoadRDRAMSafe<LONGLONG>(CheckIntegerU(L, 1));
-		PushDword(L, value);
+		LONGLONG value = LoadRDRAMSafe<LONGLONG>(luaL_checkinteger(L, 1));
+		LuaPushQword(L, value);
 		return 1;
 	}
 	int LuaReadFloat(lua_State* L) {
-		ULONG value = LoadRDRAMSafe<ULONG>(CheckIntegerU(L, 1));
+		ULONG value = LoadRDRAMSafe<ULONG>(luaL_checkinteger(L, 1));
 		lua_pushnumber(L, *(FLOAT*)&value);
 		return 1;
 	}
 	int LuaReadDouble(lua_State* L) {
-		ULONGLONG value = LoadRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1));
+		ULONGLONG value = LoadRDRAMSafe<ULONGLONG>(luaL_checkinteger(L, 1));
 		lua_pushnumber(L, *(DOUBLE*)value);
 		return 1;
 	}
+
+	// Write functions
+
 	int LuaWriteByteUnsigned(lua_State* L) {
-		StoreRDRAMSafe<UCHAR>(CheckIntegerU(L, 1), CheckIntegerU(L, 2));
+		StoreRDRAMSafe<UCHAR>(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
 		return 0;
 	}
 	int LuaWriteWordUnsigned(lua_State* L) {
-		StoreRDRAMSafe<USHORT>(CheckIntegerU(L, 1), CheckIntegerU(L, 2));
+		StoreRDRAMSafe<USHORT>(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
 		return 0;
 	}
 	int LuaWriteDWordUnsigned(lua_State* L) {
-		StoreRDRAMSafe<ULONG>(CheckIntegerU(L, 1), CheckIntegerU(L, 2));
+		StoreRDRAMSafe<ULONG>(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
 		return 0;
 	}
 	int LuaWriteQWordUnsigned(lua_State* L) {
-		StoreRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1), CheckDword(L, 2));
+		StoreRDRAMSafe<ULONGLONG>(luaL_checkinteger(L, 1), LuaCheckQWord(L, 2));
 		return 0;
 	}
 	int LuaWriteFloatUnsigned(lua_State* L) {
-		FLOAT f = lua_tonumber(L, -1);
-		StoreRDRAMSafe<ULONG>(CheckIntegerU(L, 1), *(ULONG*)&f);
+		FLOAT f = luaL_checknumber(L, -1);
+		StoreRDRAMSafe<ULONG>(luaL_checkinteger(L, 1), *(ULONG*)&f);
 		return 0;
 	}
 	int LuaWriteDoubleUnsigned(lua_State* L) {
-		DOUBLE f = lua_tonumber(L, -1);
-		StoreRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1), *(ULONGLONG*)&f);
+		DOUBLE f = luaL_checknumber(L, -1);
+		StoreRDRAMSafe<ULONGLONG>(luaL_checkinteger(L, 1), *(ULONGLONG*)&f);
 		return 0;
 	}
-	int LuaReadSizeUnsigned(lua_State* L) {
-		ULONG addr = CheckIntegerU(L, 1);
+	int LuaReadSize(lua_State* L) {
+		ULONG addr = luaL_checkinteger(L, 1);
 		int size = luaL_checkinteger(L, 2);
 		switch (size) {
-			case 1: PushIntU(L, LoadRDRAMSafe<UCHAR>(addr)); break;
-			case 2: PushIntU(L, LoadRDRAMSafe<USHORT>(addr)); break;
-			case 4: PushIntU(L, LoadRDRAMSafe<ULONG>(addr)); break;
-			case 8: PushDword(L, LoadRDRAMSafe<ULONGLONG>(addr)); break;
-			default: luaL_error(L, "size: 1,2,4,8");
+			// unsigned
+			case 1: lua_pushinteger(L, LoadRDRAMSafe<UCHAR>(addr)); break;
+			case 2: lua_pushinteger(L, LoadRDRAMSafe<USHORT>(addr)); break;
+			case 4: lua_pushinteger(L, LoadRDRAMSafe<ULONG>(addr)); break;
+			case 8: LuaPushQword(L, LoadRDRAMSafe<ULONGLONG>(addr)); break;
+			// signed
+			case -1: lua_pushinteger(L, LoadRDRAMSafe<CHAR>(addr)); break;
+			case -2: lua_pushinteger(L, LoadRDRAMSafe<SHORT>(addr)); break;
+			case -4: lua_pushinteger(L, LoadRDRAMSafe<LONG>(addr)); break;
+			case -8: LuaPushQword(L, LoadRDRAMSafe<LONGLONG>(addr)); break;
+			default: luaL_error(L, "size must be 1, 2, 4, 8, -1, -2, -4, -8");
 		}
 		return 1;
 	}
-	template<typename T>
-	int LoadTs(lua_State* L) {
-		ULONG addr = CheckIntegerU(L, 1);
-		ULONG size = CheckIntegerU(L, 2);
-		addr |= 0x80000000;
-		if (addr + size * sizeof(T) > 0x80800000) {
-			luaL_error(L, "range: 0x80000000 <= n + l < 0x80800000");
-		}
-		lua_newtable(L);
-		T* p = (T*)((unsigned char*)rdram + addr);
-		for (ULONG i = 0; i < size; i++) {
-			lua_pushinteger(L, i + 1);
-			PushIntU(L, *(p++));
-			lua_settable(L, -3);
-		}
-		return 1;
-	}
-	int LuaWriteSizeUnsigned(lua_State* L) {
-		ULONG addr = CheckIntegerU(L, 1);
+
+	int LuaWriteSize(lua_State* L) {
+		ULONG addr = luaL_checkinteger(L, 1);
 		int size = luaL_checkinteger(L, 2);
 		switch (size) {
-			case 1: StoreRDRAMSafe<UCHAR>(addr, CheckIntegerU(L, 3)); break;
-			case 2: StoreRDRAMSafe<USHORT>(addr, CheckIntegerU(L, 3)); break;
-			case 4: StoreRDRAMSafe<ULONG>(addr, CheckIntegerU(L, 3)); break;
-			case 8: StoreRDRAMSafe<ULONGLONG>(addr, CheckDword(L, 3)); break;
-			default: luaL_error(L, "size: 1,2,4,8");
+			case 1: StoreRDRAMSafe<UCHAR>(addr, luaL_checkinteger(L, 3)); break;
+			case 2: StoreRDRAMSafe<USHORT>(addr, luaL_checkinteger(L, 3)); break;
+			case 4: StoreRDRAMSafe<ULONG>(addr, luaL_checkinteger(L, 3)); break;
+			case 8: StoreRDRAMSafe<ULONGLONG>(addr, LuaCheckQWord(L, 3)); break;
+			case -1: StoreRDRAMSafe<CHAR>(addr, luaL_checkinteger(L, 3)); break;
+			case -2: StoreRDRAMSafe<SHORT>(addr, luaL_checkinteger(L, 3)); break;
+			case -4: StoreRDRAMSafe<LONG>(addr, luaL_checkinteger(L, 3)); break;
+			case -8: StoreRDRAMSafe<LONGLONG>(addr, LuaCheckQWord(L, 3)); break;
+			default: luaL_error(L, "size must be 1, 2, 4, 8, -1, -2, -4, -8");
 		}
 		return 0;
 	}
@@ -1497,7 +1502,7 @@ namespace LuaEngine {
 	void RecompileNow(ULONG addr);
 	int SetSyncBreak(lua_State* L) {
 		InterpreterCoreCheck(L);
-		ULONG addr = CheckIntegerU(L, 1) | 0x80000000;
+		ULONG addr = LuaCheckIntegerU(L, 1) | 0x80000000;
 		luaL_checktype(L, 2, LUA_TFUNCTION);
 		if (!lua_toboolean(L, 3)) {
 			lua_pushvalue(L, 2);
@@ -1573,7 +1578,7 @@ namespace LuaEngine {
 	template <bool rw>
 	void SetMemoryBreak(lua_State* L) {
 		//	PureInterpreterCoreCheck(L);
-		ULONG addr = CheckIntegerU(L, 1) | 0x80000000;
+		ULONG addr = LuaCheckIntegerU(L, 1) | 0x80000000;
 		luaL_checktype(L, 2, LUA_TFUNCTION);
 
 		AddrBreakMap& breakMap = rw ? writeBreakMap : readBreakMap;
@@ -1658,7 +1663,7 @@ namespace LuaEngine {
 	}
 	int SetPCBreak(lua_State* L) {
 		InterpreterCoreCheck(L);
-		ULONG addr = CheckIntegerU(L, 1) | 0x80000000;
+		ULONG addr = LuaCheckIntegerU(L, 1) | 0x80000000;
 		luaL_checktype(L, 2, LUA_TFUNCTION);
 		if (!(0x80000000 <= addr && addr < 0x80800000 && addr % 4 == 0)) {
 			luaL_error(L, "SetPCBreak: 0x80000000 <= addr && addr < 0x80800000 && addr%4 == 0");
@@ -1842,9 +1847,9 @@ namespace LuaEngine {
 			ULONGLONG n = *(ULONGLONG*)r;
 			if (size != 64)
 				n &= (1ULL << size) - 1;
-			PushDword(L, n);
+			LuaPushQword(L, n);
 		} else {
-			PushIntU(L, *(ULONGLONG*)r & ((1ULL << size) - 1));
+			LuaPushIntU(L, *(ULONGLONG*)r & ((1ULL << size) - 1));
 		}
 		return 1;
 	}
@@ -1857,7 +1862,7 @@ namespace LuaEngine {
 		} else if (size == -64) {
 			*(double*)r = lua_tonumber(L, arg);
 		} else if (size > 32) {
-			ULONGLONG n = CheckDword(L, arg);
+			ULONGLONG n = LuaCheckQWord(L, arg);
 			ULONGLONG mask;
 			if (size == 64)
 				mask = ~0;
@@ -1869,7 +1874,7 @@ namespace LuaEngine {
 		} else {
 			ULONG mask = (1ULL << size) - 1;
 			*(ULONG*)r &= ~mask;
-			*(ULONG*)r |= CheckIntegerU(L, arg) & mask;
+			*(ULONG*)r |= LuaCheckIntegerU(L, arg) & mask;
 		}
 		return 0;
 	}
@@ -1942,15 +1947,15 @@ namespace LuaEngine {
 		memset(invalid_code, 1, 0x100000);
 	}
 	int RecompileNowLua(lua_State* L) {
-		Recompile(CheckIntegerU(L, 1));
+		Recompile(LuaCheckIntegerU(L, 1));
 		return 0;
 	}
 	int RecompileLua(lua_State* L) {
-		Recompile(CheckIntegerU(L, 1));
+		Recompile(LuaCheckIntegerU(L, 1));
 		return 0;
 	}
 	int RecompileNextLua(lua_State* L) {
-		Recompile(CheckIntegerU(L, 1));
+		Recompile(LuaCheckIntegerU(L, 1));
 		return 0;
 	}
 	int RecompileNextAllLua(lua_State* L) {
@@ -1958,15 +1963,15 @@ namespace LuaEngine {
 		return 0;
 	}
 	template<typename T>void PushT(lua_State* L, T value) {
-		PushIntU(L, value);
+		LuaPushIntU(L, value);
 	}
 	template<>void PushT<ULONGLONG>(lua_State* L, ULONGLONG value) {
-		PushDword(L, value);
+		LuaPushQword(L, value);
 	}
 	template<typename T, void(**readmem_func)()>
 	int ReadMemT(lua_State* L) {
 		ULONGLONG* rdword_s = rdword, tmp, address_s = address;
-		address = CheckIntegerU(L, 1);
+		address = LuaCheckIntegerU(L, 1);
 		rdword = &tmp;
 		readmem_func[address >> 16]();
 		PushT<T>(L, tmp);
@@ -1975,16 +1980,16 @@ namespace LuaEngine {
 		return 1;
 	}
 	template<typename T>T CheckT(lua_State* L, int i) {
-		return CheckIntegerU(L, i);
+		return LuaCheckIntegerU(L, i);
 	}
 	template<>ULONGLONG CheckT<ULONGLONG>(lua_State* L, int i) {
-		return CheckDword(L, i);
+		return LuaCheckQWord(L, i);
 	}
 	template<typename T, void(**writemem_func)(), T& g_T>
 	int WriteMemT(lua_State* L) {
 		ULONGLONG* rdword_s = rdword, address_s = address;
 		T g_T_s = g_T;
-		address = CheckIntegerU(L, 1);
+		address = LuaCheckIntegerU(L, 1);
 		g_T = CheckT<T>(L, 2);
 		writemem_func[address >> 16]();
 		address = address_s;
@@ -2916,10 +2921,10 @@ namespace LuaEngine {
 		return 0;
 	}
 	int AtWindowMessage(lua_State* L) {
-		PushIntU(L, (unsigned)luaMessage.current_msg->windowMessage.wnd);
-		PushIntU(L, luaMessage.current_msg->windowMessage.msg);
-		PushIntU(L, luaMessage.current_msg->windowMessage.wParam);
-		PushIntU(L, luaMessage.current_msg->windowMessage.lParam);
+		LuaPushIntU(L, (unsigned)luaMessage.current_msg->windowMessage.wnd);
+		LuaPushIntU(L, luaMessage.current_msg->windowMessage.msg);
+		LuaPushIntU(L, luaMessage.current_msg->windowMessage.wParam);
+		LuaPushIntU(L, luaMessage.current_msg->windowMessage.lParam);
 		return lua_pcall(L, 4, 0, 0);
 	}
 	int RegisterInterval(lua_State* L) {
@@ -3078,7 +3083,7 @@ namespace LuaEngine {
 		const char* s = lua_tostring(L, 1);
 		for (const NameAndVariable* p = list; p->name; p++) {
 			if (lstrcmpi(p->name, s) == 0) {
-				PushIntU(L, (unsigned)p->pointer);
+				LuaPushIntU(L, (unsigned)p->pointer);
 				return 1;
 			}
 		}
@@ -3211,7 +3216,7 @@ namespace LuaEngine {
 			lua_getfield(L, LUA_REGISTRYINDEX, REG_SYNCBREAK);
 			lua_pushinteger(L, itt->idx);
 			lua_gettable(L, -2);
-			PushIntU(L, addr);
+			LuaPushIntU(L, addr);
 			if (GetLuaClass(L)->errorPCall(1, 0)) {
 				return true;
 			}
@@ -3273,7 +3278,7 @@ namespace LuaEngine {
 			lua_getfield(L, LUA_REGISTRYINDEX, REG_PCBREAK);
 			lua_pushinteger(L, itt->idx);
 			lua_gettable(L, -2);
-			PushIntU(L, addr);
+			LuaPushIntU(L, addr);
 			if (GetLuaClass(L)->errorPCall(1, 0)) {
 				PCBreak(p, addr);
 				return;
@@ -3306,8 +3311,8 @@ namespace LuaEngine {
 					rw ? REG_WRITEBREAK : REG_READBREAK);
 				lua_pushinteger(L, itt->idx);
 				lua_gettable(L, -2);
-				PushIntU(L, address);
-				PushIntU(L, sizeof(T));
+				LuaPushIntU(L, address);
+				LuaPushIntU(L, sizeof(T));
 				if (GetLuaClass(L)->errorPCall(2, 0)) {
 					if (hashMap[address >> 16] != NULL)
 						AtMemoryRW<T, rw>();
@@ -3638,9 +3643,11 @@ namespace LuaEngine {
 	};
 	const luaL_Reg memoryFuncs[] = {
 		//pretty sure these are broken
+		/*
 		{"loadbytes", LoadTs<UCHAR>},
 		{"loadhalfs", LoadTs<USHORT>},
 		{"loadwords", LoadTs<ULONG>},
+		*/
 
 		// not sure what any of these do
 		{"syncbreak", SetSyncBreak},
@@ -3674,9 +3681,9 @@ namespace LuaEngine {
 		{"readqword", LuaReadQWordUnsigned},
 		{"readfloat", LuaReadFloat},
 		{"readdouble", LuaReadDouble},
-		{"readsize", LuaReadSizeUnsigned},
+		{"readsize", LuaReadSize},
 		// planning to add read size signed, or merge signed into unsigned using negative sizes for signed
-		{"readbyterange", LoadTs<UCHAR>},
+		/*{"readbyterange", LoadTs<UCHAR>},*/
 
 		// all of these are assumed to be unsigned
 		{"writebyte", LuaWriteByteUnsigned},
@@ -3685,7 +3692,7 @@ namespace LuaEngine {
 		{"writeqword", LuaWriteQWordUnsigned},
 		{"writefloat", LuaWriteFloatUnsigned},
 		{"writedouble", LuaWriteDoubleUnsigned},
-		{"writesize", LuaWriteSizeUnsigned},
+		{"writesize", LuaWriteSize},
 
 		{NULL, NULL}
 	};
