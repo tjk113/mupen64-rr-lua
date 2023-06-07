@@ -3148,6 +3148,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if (!manualFPSLimit) break;
 					extern int frame_advancing;
                     frame_advancing = 1;
+                    VIs = 0; // prevent old VI value from showing error if running at super fast speeds
                     resumeEmu(TRUE); // maybe multithreading unsafe
                 }
                 break;
