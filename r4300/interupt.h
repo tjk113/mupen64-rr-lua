@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -43,8 +43,8 @@ void add_interupt_event_count(int type, unsigned long count);
 void add_interupt_event(int type, unsigned long delay);
 unsigned long get_event(int type);
 
-int save_eventqueue_infos(char *buf);
-void load_eventqueue_infos(char *buf);
+int save_eventqueue_infos(char* buf);
+void load_eventqueue_infos(char* buf);
 
 #define VI_INT      0x001
 #define COMPARE_INT 0x002

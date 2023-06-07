@@ -14,14 +14,14 @@ void OpenDV( HINSTANCE hInst );
 void DVMsg( int icon, char *Message, ...);
 void CloseDV( void );*/
 
-void (__cdecl* FileLog)( char *fmt, ... );
-HWND (__cdecl* OpenDV)( HINSTANCE hInst, int mode );
-void (__cdecl* DVMsg)( int icon, char *Message, ... );
-void (__cdecl* CloseDV)( void );
-void (__cdecl* ShowDV)( int mode );
-void (__cdecl* SetUserIcon)( int iconnum, HICON hIcon );
-void (__cdecl* SetUserIconName)( int iconnum, char *messagetype );
-void (__cdecl* DVClear)( void );
+void(__cdecl* FileLog)(char* fmt, ...);
+HWND(__cdecl* OpenDV)(HINSTANCE hInst, int mode);
+void(__cdecl* DVMsg)(int icon, char* Message, ...);
+void(__cdecl* CloseDV)(void);
+void(__cdecl* ShowDV)(int mode);
+void(__cdecl* SetUserIcon)(int iconnum, HICON hIcon);
+void(__cdecl* SetUserIconName)(int iconnum, char* messagetype);
+void(__cdecl* DVClear)(void);
 
 /**************************************************************************
    Icon types
