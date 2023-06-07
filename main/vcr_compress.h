@@ -1,4 +1,4 @@
-//#include "../config.h"
+#include <Windows.h>
 
 #ifdef VCR_SUPPORT
 
