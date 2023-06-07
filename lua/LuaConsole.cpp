@@ -2567,46 +2567,28 @@ namespace LuaEngine {
 	}
 
 
-	uint32_t jenkins_hash(const void* key, size_t length)
+
+	uint32_t get_hash(D2D1::ColorF color)
 	{
-		const uint8_t* data = (const uint8_t*)key;
-		uint32_t hash = 0;
+		ASSERT(color.r >= 0.0f && color.r <= 1.0f);
+		ASSERT(color.g >= 0.0f && color.g <= 1.0f);
+		ASSERT(color.b >= 0.0f && color.b <= 1.0f);
+		ASSERT(color.a >= 0.0f && color.a <= 1.0f);
+		
+		uint32_t r = static_cast<uint32_t>(color.r * 255.0f);
+		uint32_t g = static_cast<uint32_t>(color.g * 255.0f);
+		uint32_t b = static_cast<uint32_t>(color.b * 255.0f);
+		uint32_t a = static_cast<uint32_t>(color.a * 255.0f);
 
-		for (size_t i = 0; i < length; ++i)
-		{
-			hash += data[i];
-			hash += (hash << 10);
-			hash ^= (hash >> 6);
-		}
-
-		hash += (hash << 3);
-		hash ^= (hash >> 11);
-		hash += (hash << 15);
-
-		return hash;
-	}
-	uint32_t hash_floats(float a, float b, float c, float d)
-	{
-		uint32_t hash = 0;
-		uint32_t* float_ptr = (uint32_t*)&a;
-
-		hash ^= jenkins_hash(float_ptr, sizeof(float));
-		float_ptr = (uint32_t*)&b;
-		hash ^= jenkins_hash(float_ptr, sizeof(float));
-		float_ptr = (uint32_t*)&c;
-		hash ^= jenkins_hash(float_ptr, sizeof(float));
-		float_ptr = (uint32_t*)&d;
-		hash ^= jenkins_hash(float_ptr, sizeof(float));
-
-		return hash;
+		return (r << 24) | (g << 16) | (b << 8) | a;
 	}
 
 	ID2D1SolidColorBrush* d2d_get_cached_brush(D2D1::ColorF color) {
-		auto key = hash_floats(color.r, color.g, color.b, color.a);
+		auto key = get_hash(color);
 
 		if (!d2d_brush_cache.contains(key))
 		{
-			printf("Cached brush (%f, %f, %f, %f) = %d\n", color.r, color.g, color.b, color.a, key);
+			printf("Creating ID2D1SolidColorBrush (%f, %f, %f, %f) = %d\n", color.r, color.g, color.b, color.a, key);
 
 			ID2D1SolidColorBrush* brush;
 			d2d_render_target->CreateSolidColorBrush(
