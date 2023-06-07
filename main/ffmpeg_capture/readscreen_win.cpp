@@ -14,14 +14,12 @@ static unsigned int bufferSize = 0;
 /// <summary>
 /// Call this after finishing capture
 /// </summary>
-void FFMpegCleanup()
-{
+void FFMpegCleanup() {
 	DllCrtFree(buffer);
 	bufferSize = 0;
 }
 
-void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap)
-{
+void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap) {
 	HDC hdc = GetDC(hMain);
 	gBMPInfo.bmiHeader.biSize = sizeof(gBMPInfo.bmiHeader);
 	GetDIBits(hdc, bitmap, 0, 0, NULL, &gBMPInfo, DIB_RGB_COLORS);
@@ -32,11 +30,10 @@ void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap)
 }
 
 //based on original one for AVI
-void FFMpegReadScreen(void** dest, long* width, long* height)
-{
+void FFMpegReadScreen(void** dest, long* width, long* height) {
 	HDC mupendc, all, copy; //all - screen; copy - buffer
 	//RECT rect, rectS, rectT;
-	POINT cli_tl{ 0,0 }; //mupen client x y 
+	POINT cli_tl{0, 0}; //mupen client x y 
 	HBITMAP bitmap, oldbitmap;
 
 	*width = gSInfo.width;
@@ -44,8 +41,7 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 
 	//	ShowInfo("win_readScreen()");
 	mupendc = GetDC(mainHWND);  //only client area
-	if (Config.is_capture_cropped_screen_dc)
-	{
+	if (Config.is_capture_cropped_screen_dc) {
 		//get whole screen dc and find out where is mupen's client area
 		all = GetDC(NULL);
 		ClientToScreen(mainHWND, &cli_tl);
@@ -56,16 +52,14 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 	bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
 	oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
 	Sleep(0);
-	if (copy)
-	{
+	if (copy) {
 		if (Config.is_capture_cropped_screen_dc)
 			BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x, cli_tl.y + gSInfo.toolbarHeight + (gSInfo.height - *height), SRCCOPY);
 		else
 			BitBlt(copy, 0, 0, *width, *height, mupendc, 0, gSInfo.toolbarHeight + (gSInfo.height - *height), SRCCOPY);
 	}
 
-	if (!copy || !bitmap)
-	{
+	if (!copy || !bitmap) {
 		MessageBox(0, "Unexpected AVI error 1", "Error", MB_ICONERROR);
 		*dest = NULL;
 		SelectObject(copy, oldbitmap); //apparently this leaks 1 pixel bitmap if not used
@@ -100,10 +94,9 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 		return;
 	}
 
-	if (gBMPInfo.bmiHeader.biSize==0)
+	if (gBMPInfo.bmiHeader.biSize == 0)
 		PrepareBitmapHeader(mainHWND, bitmap);
-	if (auto res = GetDIBits(copy, bitmap, 0, *height, buffer, &gBMPInfo, DIB_RGB_COLORS) == 0)
-	{
+	if (auto res = GetDIBits(copy, bitmap, 0, *height, buffer, &gBMPInfo, DIB_RGB_COLORS) == 0) {
 		ShowInfo("GetDIBits error");
 	}
 
@@ -118,14 +111,12 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 	//	ShowInfo("win_readScreen() done");
 }
 
-void InitReadScreenFFmpeg(const SWindowInfo& info)
-{
+void InitReadScreenFFmpeg(const SWindowInfo& info) {
 #ifdef __WIN32__
 	ShowInfo((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin." : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...");
 #endif	
 
-	if (readScreen == NULL)
-	{
+	if (readScreen == NULL) {
 		readScreen = FFMpegReadScreen;
 		gSInfo = info;
 	}

@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -34,28 +34,26 @@
 #include "../ops.h"
 #include "interpret.h"
 
-void gencvt_s_w()
-{
+void gencvt_s_w() {
 #ifdef INTERPRET_CVT_S_W
-   gencallinterp((unsigned long)CVT_S_W, 0);
+	gencallinterp((unsigned long)CVT_S_W, 0);
 #else
-   gencheck_cop1_unusable();
-   mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fs]));
-   fild_preg32_dword(EAX);
-   mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
-   fstp_preg32_dword(EAX);
+	gencheck_cop1_unusable();
+	mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fs]));
+	fild_preg32_dword(EAX);
+	mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
+	fstp_preg32_dword(EAX);
 #endif
 }
 
-void gencvt_d_w()
-{
+void gencvt_d_w() {
 #ifdef INTERPRET_CVT_D_W
-   gencallinterp((unsigned long)CVT_D_W, 0);
+	gencallinterp((unsigned long)CVT_D_W, 0);
 #else
-   gencheck_cop1_unusable();
-   mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fs]));
-   fild_preg32_dword(EAX);
-   mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fd]));
-   fstp_preg32_qword(EAX);
+	gencheck_cop1_unusable();
+	mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fs]));
+	fild_preg32_dword(EAX);
+	mov_eax_memoffs32((unsigned long*)(&reg_cop1_double[dst->f.cf.fd]));
+	fstp_preg32_qword(EAX);
 #endif
 }

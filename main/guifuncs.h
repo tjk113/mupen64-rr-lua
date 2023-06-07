@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -27,8 +27,8 @@
  *
 **/
 
-char *get_currentpath();
-char *get_savespath();
+char* get_currentpath();
+char* get_savespath();
 void display_loading_progress(int p);
 void display_MD5calculating_progress(int p);
 
