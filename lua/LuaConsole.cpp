@@ -1349,85 +1349,85 @@ namespace LuaEngine {
 		*((unsigned long*)(rdramb + (addr & AddrMask) + 4)) = value & 0xFFFFFFFF;
 	}
 
-	int LoadByteUnsigned(lua_State* L) {
+	int LuaReadByteUnsigned(lua_State* L) {
 		UCHAR value = LoadRDRAMSafe<UCHAR>(CheckIntegerU(L, 1));
 		PushIntU(L, value);
 		return 1;
 	}
-	int LoadByteSigned(lua_State* L) {
+	int LuaReadByteSigned(lua_State* L) {
 		CHAR value = LoadRDRAMSafe<CHAR>(CheckIntegerU(L, 1));
 		lua_pushinteger(L, value);
 		return 1;
 	}
-	int LoadHalfUnsigned(lua_State* L) {
+	int LuaReadWordUnsigned(lua_State* L) {
 		USHORT value = LoadRDRAMSafe<USHORT>(CheckIntegerU(L, 1));
 		PushIntU(L, value);
 		return 1;
 	}
-	int LoadHalfSigned(lua_State* L) {
+	int LuaReadWordSigned(lua_State* L) {
 		SHORT value = LoadRDRAMSafe<SHORT>(CheckIntegerU(L, 1));
 		lua_pushinteger(L, value);
 		return 1;
 	}
-	int LoadWordUnsigned(lua_State* L) {
+	int LuaReadDWorldUnsigned(lua_State* L) {
 		ULONG value = LoadRDRAMSafe<ULONG>(CheckIntegerU(L, 1));
 		PushIntU(L, value);
 		return 1;
 	}
-	int LoadWordSigned(lua_State* L) {
+	int LuaReadDWordSigned(lua_State* L) {
 		LONG value = LoadRDRAMSafe<LONG>(CheckIntegerU(L, 1));
 		lua_pushinteger(L, value);
 		return 1;
 	}
 	//64bit�l�͂Ƃ肠����hi,lo�̃e�[�u����
 	//signed���Ăǂ������ӂ��Ɋi�[�����炢���񂾂�(���͗���unsigned)
-	int LoadDwordUnsigned(lua_State* L) {
+	int LuaReadQWordUnsigned(lua_State* L) {
 		ULONGLONG value = LoadRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1));
 		PushDword(L, value);
 		return 1;
 	}
-	int LoadDwordSigned(lua_State* L) {
+	int LuaReadQWordSigned(lua_State* L) {
 		LONGLONG value = LoadRDRAMSafe<LONGLONG>(CheckIntegerU(L, 1));
 		PushDword(L, value);
 		return 1;
 	}
-	int LoadFloat(lua_State* L) {
+	int LuaReadFloat(lua_State* L) {
 		ULONG value = LoadRDRAMSafe<ULONG>(CheckIntegerU(L, 1));
 		lua_pushnumber(L, *(FLOAT*)&value);
 		return 1;
 	}
-	int LoadDouble(lua_State* L) {
+	int LuaReadDouble(lua_State* L) {
 		ULONGLONG value = LoadRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1));
 		lua_pushnumber(L, *(DOUBLE*)value);
 		return 1;
 	}
-	int StoreByte(lua_State* L) {
+	int LuaWriteByteUnsigned(lua_State* L) {
 		StoreRDRAMSafe<UCHAR>(CheckIntegerU(L, 1), CheckIntegerU(L, 2));
 		return 0;
 	}
-	int StoreHalf(lua_State* L) {
+	int LuaWriteWordUnsigned(lua_State* L) {
 		StoreRDRAMSafe<USHORT>(CheckIntegerU(L, 1), CheckIntegerU(L, 2));
 		return 0;
 	}
-	int StoreWord(lua_State* L) {
+	int LuaWriteDWordUnsigned(lua_State* L) {
 		StoreRDRAMSafe<ULONG>(CheckIntegerU(L, 1), CheckIntegerU(L, 2));
 		return 0;
 	}
-	int StoreDword(lua_State* L) {
+	int LuaWriteQWordUnsigned(lua_State* L) {
 		StoreRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1), CheckDword(L, 2));
 		return 0;
 	}
-	int StoreFloat(lua_State* L) {
+	int LuaWriteFloatUnsigned(lua_State* L) {
 		FLOAT f = lua_tonumber(L, -1);
 		StoreRDRAMSafe<ULONG>(CheckIntegerU(L, 1), *(ULONG*)&f);
 		return 0;
 	}
-	int StoreDouble(lua_State* L) {
+	int LuaWriteDoubleUnsigned(lua_State* L) {
 		DOUBLE f = lua_tonumber(L, -1);
 		StoreRDRAMSafe<ULONGLONG>(CheckIntegerU(L, 1), *(ULONGLONG*)&f);
 		return 0;
 	}
-	int LoadSizeUnsigned(lua_State* L) {
+	int LuaReadSizeUnsigned(lua_State* L) {
 		ULONG addr = CheckIntegerU(L, 1);
 		int size = luaL_checkinteger(L, 2);
 		switch (size) {
@@ -1456,7 +1456,7 @@ namespace LuaEngine {
 		}
 		return 1;
 	}
-	int StoreSize(lua_State* L) {
+	int LuaWriteSizeUnsigned(lua_State* L) {
 		ULONG addr = CheckIntegerU(L, 1);
 		int size = luaL_checkinteger(L, 2);
 		switch (size) {
@@ -3637,37 +3637,24 @@ namespace LuaEngine {
 		{NULL, NULL}
 	};
 	const luaL_Reg memoryFuncs[] = {
-		//�D���Ȗ��O
-		{"LBU", LoadByteUnsigned},
-		{"LB", LoadByteSigned},
-		{"LHU", LoadHalfUnsigned},
-		{"LH", LoadHalfSigned},
-		{"LWU", LoadWordUnsigned},
-		{"LW", LoadWordSigned},
-		{"LDU", LoadDwordUnsigned},
-		{"LD", LoadDwordSigned},
-		{"LWC1", LoadFloat},
-		{"LDC1", LoadDouble},
-		{"loadsize", LoadSizeUnsigned},
+		//pretty sure these are broken
 		{"loadbytes", LoadTs<UCHAR>},
 		{"loadhalfs", LoadTs<USHORT>},
 		{"loadwords", LoadTs<ULONG>},
 
-		{"SB", StoreByte},
-		{"SH", StoreHalf},
-		{"SW", StoreWord},
-		{"SD", StoreDword},
-		{"SWC1", StoreFloat},
-		{"SDC1", StoreDouble},
-		{"storesize", StoreSize},
-
-		{"syncbreak", SetSyncBreak},	//SyncBreak��PCBreak�ɔ�ׂāA
-		{"pcbreak", SetPCBreak},			//��o�^�̂Ƃ���̂ł̏��������Ȃ��Ǝv��
+		// not sure what any of these do
+		{"syncbreak", SetSyncBreak},
+		{"registerexec", SetSyncBreak},
+		{"pcbreak", SetPCBreak},
 		{"readbreak", SetReadBreak},
+		{"registerread", SetReadBreak},
 		{"writebreak", SetWriteBreak},
+		{"registerwrite", SetWriteBreak},
 		{"reg", GetRegister},
 		{"getreg", GetRegister},
+		{"getregister", GetRegister},
 		{"setreg", SetRegister},
+		{"setregister", SetRegister},
 		{"trace", TraceLog},
 		{"tracemode", TraceLogMode},
 		{"getcore", GetCore},
@@ -3676,44 +3663,29 @@ namespace LuaEngine {
 		{"recompilenext", RecompileNextLua},
 		{"recompilenextall", RecompileNextAllLua},
 
-		//IO����A�N�Z�X
-		{"readmemb", ReadMemT<UCHAR, readmemb>},
-		{"readmemh", ReadMemT<USHORT, readmemh>},
-		{"readmem", ReadMemT<ULONG, readmem>},
-		{"readmemd", ReadMemT<ULONGLONG, readmemd>},
-		{"writememb", ReadMemT<UCHAR, writememb>},
-		{"writememh", ReadMemT<USHORT, writememh>},
-		{"writemem", ReadMemT<ULONG, writemem>},
-		{"writememd", ReadMemT<ULONGLONG, writememd>},
-
-		//��ʓI�Ȗ��O(word=2byte)
-		{"readbytesigned", LoadByteSigned},
-		{"readbyte", LoadByteUnsigned},
-		{"readwordsigned", LoadHalfSigned},
-		{"readword", LoadHalfUnsigned},
-		{"readdwordsigned", LoadWordSigned},
-		{"readdword", LoadWordUnsigned},
-		{"readqwordsigned", LoadDwordSigned},
-		{"readqword", LoadDwordUnsigned},
-		{"readfloat", LoadFloat},
-		{"readdouble", LoadDouble},
-		{"readsize", LoadSizeUnsigned},
+		// word = 2 bytes
+		{"readbytesigned", LuaReadByteSigned},
+		{"readbyte", LuaReadByteUnsigned},
+		{"readwordsigned", LuaReadWordSigned},
+		{"readword", LuaReadWordUnsigned},
+		{"readdwordsigned", LuaReadDWordSigned},
+		{"readdword", LuaReadDWorldUnsigned},
+		{"readqwordsigned", LuaReadQWordSigned},
+		{"readqword", LuaReadQWordUnsigned},
+		{"readfloat", LuaReadFloat},
+		{"readdouble", LuaReadDouble},
+		{"readsize", LuaReadSizeUnsigned},
+		// planning to add read size signed, or merge signed into unsigned using negative sizes for signed
 		{"readbyterange", LoadTs<UCHAR>},
 
-		{"writebyte", StoreByte},
-		{"writeword", StoreHalf},
-		{"writedword", StoreWord},
-		{"writelong", StoreWord},
-		{"writeqword", StoreDword},
-		{"writefloat", StoreFloat},
-		{"writedouble", StoreDouble},
-		{"writesize", StoreSize},
-
-		{"registerread", SetReadBreak},
-		{"registerwrite", SetWriteBreak},
-		{"registerexec", SetSyncBreak},
-		{"getregister", GetRegister},
-		{"setregister", SetRegister},
+		// all of these are assumed to be unsigned
+		{"writebyte", LuaWriteByteUnsigned},
+		{"writeword", LuaWriteWordUnsigned},
+		{"writedword", LuaWriteDWordUnsigned},
+		{"writeqword", LuaWriteQWordUnsigned},
+		{"writefloat", LuaWriteFloatUnsigned},
+		{"writedouble", LuaWriteDoubleUnsigned},
+		{"writesize", LuaWriteSizeUnsigned},
 
 		{NULL, NULL}
 	};
