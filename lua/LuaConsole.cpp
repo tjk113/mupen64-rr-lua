@@ -2836,7 +2836,7 @@ namespace LuaEngine {
 
 		IDWriteTextLayout* text_layout;
 
-		dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, 0.0f, 0.0f, &text_layout);
+		dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, luaL_checknumber(L, 4), luaL_checknumber(L, 5), &text_layout);
 
 		DWRITE_TEXT_METRICS text_metrics;
 		text_layout->GetMetrics(&text_metrics);
