@@ -1,8 +1,8 @@
 /***************************************************************************
-                          dumplist.c  -  description
-                             -------------------
-    copyright            : (C) 2003 by ShadowPrince
-    email                : shadow@emulation64.com
+						  dumplist.c  -  description
+							 -------------------
+	copyright            : (C) 2003 by ShadowPrince
+	email                : shadow@emulation64.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -12,7 +12,7 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
 
 
 #include <stdio.h>
@@ -23,54 +23,51 @@
 #include "main_win.h"
 //#include "process.h"
 
-FILE  *dumpfile;
+FILE* dumpfile;
 
 void OpenRomListFile() {
-    dumpfile = fopen(RomListFileName, "w");
+	dumpfile = fopen(RomListFileName, "w");
 
 }
 
 
-void PrintToRomListFile (const char * ftext  , ...   ) {
-    va_list ap;
-    va_start (ap, ftext);
-    vfprintf (dumpfile, ftext, ap);
-    va_end (ap);
- 
+void PrintToRomListFile(const char* ftext, ...) {
+	va_list ap;
+	va_start(ap, ftext);
+	vfprintf(dumpfile, ftext, ap);
+	va_end(ap);
+
 }
 
 
 void CloseRomListFile() {
-    fclose( dumpfile ) ;
+	fclose(dumpfile);
 
 }
 
 
-void generateRomInfo()
-{
-    int i;   
-    ROM_INFO *pRomInfo;
-    int itemsNum;
-    LV_ITEM lvItem;
-    memset(&lvItem, 0, sizeof(LV_ITEM));
-    OpenRomListFile();
-       PrintToRomListFile("%s\n----------------------------------\n\n",MUPEN_VERSION);
- 
-    itemsNum = ListView_GetItemCount(hRomList);
-    for(i=0;i<itemsNum;i++)
-    {
-        lvItem.mask = LVIF_PARAM;
-        lvItem.iItem = i;
-        ListView_GetItem(hRomList,&lvItem);
-        pRomInfo = &ItemList.List[lvItem.lParam];
-        PrintToRomListFile("%-60s %s\n",pRomInfo->GoodName,pRomInfo->UserNotes);
-    } 
-        
-    CloseRomListFile();
-    //ShowMessage("File romlist.txt created");
-    if (MessageBox(NULL,"File romlist.txt created. Do you want to open it?","ROM Info",MB_YESNO | MB_ICONQUESTION) != IDNO)
-    {    
-        ShellExecute(0, 0, "romlist.txt", 0, 0, SW_SHOW); // local path
-    }
+void generateRomInfo() {
+	int i;
+	ROM_INFO* pRomInfo;
+	int itemsNum;
+	LV_ITEM lvItem;
+	memset(&lvItem, 0, sizeof(LV_ITEM));
+	OpenRomListFile();
+	PrintToRomListFile("%s\n----------------------------------\n\n", MUPEN_VERSION);
+
+	itemsNum = ListView_GetItemCount(hRomList);
+	for (i = 0; i < itemsNum; i++) {
+		lvItem.mask = LVIF_PARAM;
+		lvItem.iItem = i;
+		ListView_GetItem(hRomList, &lvItem);
+		pRomInfo = &ItemList.List[lvItem.lParam];
+		PrintToRomListFile("%-60s %s\n", pRomInfo->GoodName, pRomInfo->UserNotes);
+	}
+
+	CloseRomListFile();
+	//ShowMessage("File romlist.txt created");
+	if (MessageBox(NULL, "File romlist.txt created. Do you want to open it?", "ROM Info", MB_YESNO | MB_ICONQUESTION) != IDNO) {
+		ShellExecute(0, 0, "romlist.txt", 0, 0, SW_SHOW); // local path
+	}
 
 }
