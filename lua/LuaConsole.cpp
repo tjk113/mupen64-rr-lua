@@ -2558,6 +2558,64 @@ namespace LuaEngine {
 
 	}
 
+	int LuaD2DFillRoundedRectangle(lua_State* L) {
+		Lua* lua = GetLuaClass(L);
+
+		D2D1_RECT_F rectangle = D2D1::RectF(
+			luaL_checknumber(L, 1),
+			luaL_checknumber(L, 2),
+			luaL_checknumber(L, 3),
+			luaL_checknumber(L, 4)
+		);
+
+		D2D1_ROUNDED_RECT rounded_rectangle = D2D1::RoundedRect(
+			rectangle,
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6)
+		);
+		auto color = D2D1::ColorF(
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8),
+			luaL_checknumber(L, 9),
+			luaL_checknumber(L, 10)
+		);
+
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
+
+		d2d_render_target->FillRoundedRectangle(&rounded_rectangle, brush);
+
+		return 0;
+	}
+
+	int LuaD2DDrawRoundedRectangle(lua_State* L) {
+		Lua* lua = GetLuaClass(L);
+
+		D2D1_RECT_F rectangle = D2D1::RectF(
+			luaL_checknumber(L, 1),
+			luaL_checknumber(L, 2),
+			luaL_checknumber(L, 3),
+			luaL_checknumber(L, 4)
+		);
+
+		D2D1_ROUNDED_RECT rounded_rectangle = D2D1::RoundedRect(
+			rectangle,
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6)
+		);
+		auto color = D2D1::ColorF(
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8),
+			luaL_checknumber(L, 9),
+			luaL_checknumber(L, 10)
+		);
+
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
+
+		d2d_render_target->DrawRoundedRectangle(&rounded_rectangle, brush, luaL_checknumber(L, 11));
+
+		return 0;
+	}
+
 	int LuaD2DFillRectangle(lua_State* L) {
 		Lua* lua = GetLuaClass(L);
 
@@ -3739,6 +3797,8 @@ namespace LuaEngine {
 		{"d2d_push_clip", LuaD2DPushClip},
 		{"d2d_pop_clip", LuaD2DPopClip},
 		{"d2d_get_text_size", LuaD2DGetTextSize},
+		{"d2d_fill_rounded_rectangle", LuaD2DFillRoundedRectangle},
+		{"d2d_draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
 
 		// GDIPlus-backed functions
 		{"fillrecta", FillRectAlpha},
