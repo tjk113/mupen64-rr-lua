@@ -1048,13 +1048,12 @@ namespace LuaEngine {
 		return 1;
 	}
 
+
 	//lua�̕⏕�֐��Ƃ�
 	DWORD LuaCheckIntegerU(lua_State* L, int i = -1) {
 		return (DWORD)luaL_checknumber(L, i);
 	}
-	void LuaPushIntU(lua_State* L, unsigned int x) {
-		lua_pushinteger(L, x);
-	}
+
 	ULONGLONG LuaCheckQWord(lua_State* L, int i) {
 		ULONGLONG n;
 		lua_pushinteger(L, 1);
@@ -1069,10 +1068,10 @@ namespace LuaEngine {
 	void LuaPushQword(lua_State* L, ULONGLONG x) {
 		lua_newtable(L);
 		lua_pushinteger(L, 1);
-		LuaPushIntU(L, x >> 32);
+		lua_pushinteger(L, x >> 32);
 		lua_settable(L, -3);
 		lua_pushinteger(L, 2);
-		LuaPushIntU(L, x & 0xFFFFFFFF);
+		lua_pushinteger(L, x & 0xFFFFFFFF);
 		lua_settable(L, -3);
 	}
 	int RegisterFunction(lua_State* L, const char* key) {
@@ -1285,27 +1284,27 @@ namespace LuaEngine {
 		return 1;
 	}
 
-	int MoveToSingle(lua_State* L) {
+	int LuaIntToFloat(lua_State* L) {
 		ULONG n = luaL_checknumber(L, 1);
 		lua_pushnumber(L, *(FLOAT*)&n);
 		return 1;
 	}
-	int MoveToDouble(lua_State* L) {
+	int LuaIntToDouble(lua_State* L) {
 		ULONGLONG n = LuaCheckQWord(L, 1);
 		lua_pushnumber(L, *(DOUBLE*)&n);
 		return 1;
 	}
-	int MoveFromSingle(lua_State* L) {
+	int LuaFloatToInt(lua_State* L) {
 		FLOAT n = luaL_checknumber(L, 1);
-		LuaPushIntU(L, *(ULONG*)&n);
+		lua_pushinteger(L, *(ULONG*)&n);
 		return 1;
 	}
-	int MoveFromDouble(lua_State* L) {
+	int LuaDoubleToInt(lua_State* L) {
 		DOUBLE n = luaL_checknumber(L, 1);
 		LuaPushQword(L, *(ULONGLONG*)&n);
 		return 1;
 	}
-	int ConvertDwordToNumber(lua_State* L) {
+	int LuaQWordToNumber(lua_State* L) {
 		ULONGLONG n = LuaCheckQWord(L, 1);
 		lua_pushnumber(L, n);
 		return 1;
@@ -1849,7 +1848,7 @@ namespace LuaEngine {
 				n &= (1ULL << size) - 1;
 			LuaPushQword(L, n);
 		} else {
-			LuaPushIntU(L, *(ULONGLONG*)r & ((1ULL << size) - 1));
+			lua_pushinteger(L, *(ULONGLONG*)r & ((1ULL << size) - 1));
 		}
 		return 1;
 	}
@@ -2921,10 +2920,10 @@ namespace LuaEngine {
 		return 0;
 	}
 	int AtWindowMessage(lua_State* L) {
-		LuaPushIntU(L, (unsigned)luaMessage.current_msg->windowMessage.wnd);
-		LuaPushIntU(L, luaMessage.current_msg->windowMessage.msg);
-		LuaPushIntU(L, luaMessage.current_msg->windowMessage.wParam);
-		LuaPushIntU(L, luaMessage.current_msg->windowMessage.lParam);
+		lua_pushinteger(L, (unsigned)luaMessage.current_msg->windowMessage.wnd);
+		lua_pushinteger(L, luaMessage.current_msg->windowMessage.msg);
+		lua_pushinteger(L, luaMessage.current_msg->windowMessage.wParam);
+		lua_pushinteger(L, luaMessage.current_msg->windowMessage.lParam);
 		return lua_pcall(L, 4, 0, 0);
 	}
 	int RegisterInterval(lua_State* L) {
@@ -3083,7 +3082,7 @@ namespace LuaEngine {
 		const char* s = lua_tostring(L, 1);
 		for (const NameAndVariable* p = list; p->name; p++) {
 			if (lstrcmpi(p->name, s) == 0) {
-				LuaPushIntU(L, (unsigned)p->pointer);
+				lua_pushinteger(L, (unsigned)p->pointer);
 				return 1;
 			}
 		}
@@ -3216,7 +3215,7 @@ namespace LuaEngine {
 			lua_getfield(L, LUA_REGISTRYINDEX, REG_SYNCBREAK);
 			lua_pushinteger(L, itt->idx);
 			lua_gettable(L, -2);
-			LuaPushIntU(L, addr);
+			lua_pushinteger(L, addr);
 			if (GetLuaClass(L)->errorPCall(1, 0)) {
 				return true;
 			}
@@ -3278,7 +3277,7 @@ namespace LuaEngine {
 			lua_getfield(L, LUA_REGISTRYINDEX, REG_PCBREAK);
 			lua_pushinteger(L, itt->idx);
 			lua_gettable(L, -2);
-			LuaPushIntU(L, addr);
+			lua_pushinteger(L, addr);
 			if (GetLuaClass(L)->errorPCall(1, 0)) {
 				PCBreak(p, addr);
 				return;
@@ -3591,12 +3590,6 @@ namespace LuaEngine {
 		{"printx", PrintX},
 		{"tostringex", ToStringExs},
 		{"stop", StopScript},
-		//floating number
-		{"MTC1", MoveToSingle},
-		{"DMTC1", MoveToDouble},
-		{"MFC1", MoveFromSingle},
-		{"DMFC1", MoveFromDouble},
-		{"CVT_D_L", ConvertDwordToNumber},
 		{NULL, NULL}
 	};
 	//�G���Ȋ֐�
@@ -3649,6 +3642,12 @@ namespace LuaEngine {
 		{"loadwords", LoadTs<ULONG>},
 		*/
 
+		{"inttofloat", LuaIntToFloat},
+		{"inttodouble", LuaIntToDouble},
+		{"floattoint", LuaFloatToInt},
+		{"doubletoint", LuaDoubleToInt},
+		{"qwordtonumber", LuaQWordToNumber},
+
 		// not sure what any of these do
 		{"syncbreak", SetSyncBreak},
 		{"registerexec", SetSyncBreak},
@@ -3682,7 +3681,6 @@ namespace LuaEngine {
 		{"readfloat", LuaReadFloat},
 		{"readdouble", LuaReadDouble},
 		{"readsize", LuaReadSize},
-		// planning to add read size signed, or merge signed into unsigned using negative sizes for signed
 		/*{"readbyterange", LoadTs<UCHAR>},*/
 
 		// all of these are assumed to be unsigned
