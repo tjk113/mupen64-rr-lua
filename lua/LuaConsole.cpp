@@ -3368,8 +3368,8 @@ namespace LuaEngine {
 					rw ? REG_WRITEBREAK : REG_READBREAK);
 				lua_pushinteger(L, itt->idx);
 				lua_gettable(L, -2);
-				LuaPushIntU(L, address);
-				LuaPushIntU(L, sizeof(T));
+				lua_pushinteger(L, address);
+				lua_pushinteger(L, sizeof(T));
 				if (GetLuaClass(L)->errorPCall(2, 0)) {
 					if (hashMap[address >> 16] != NULL)
 						AtMemoryRW<T, rw>();
@@ -3748,6 +3748,7 @@ namespace LuaEngine {
 		{"writeqword", LuaWriteQWordUnsigned},
 		{"writefloat", LuaWriteFloatUnsigned},
 		{"writedouble", LuaWriteDoubleUnsigned},
+
 		{"writesize", LuaWriteSize},
 
 		{NULL, NULL}
