@@ -1498,63 +1498,7 @@ namespace LuaEngine {
 		syncBreakMap.erase(it++);
 		return it;
 	}
-	void RecompileNow(ULONG addr);
-	int SetSyncBreak(lua_State* L) {
-		InterpreterCoreCheck(L);
-		ULONG addr = LuaCheckIntegerU(L, 1) | 0x80000000;
-		luaL_checktype(L, 2, LUA_TFUNCTION);
-		if (!lua_toboolean(L, 3)) {
-			lua_pushvalue(L, 2);
-			AddrBreakFunc s{};
-			SyncBreakMap::iterator it = syncBreakMap.find(addr);
-			if (it == syncBreakMap.end()) {
-				SyncBreak b;
-				std::pair<SyncBreakMap::iterator, bool> p;
-				ULONG op = LoadRDRAMSafe<ULONG>(addr);
-				b.op = op;
-				if (interpcore == 0) {
-					precomp_instr* s_PC = PC;
-					RecompileNow(addr);
-					jump_to(addr);
-					b.pc = *PC;
-					PC->ops = NOTCOMPILED;
-					StoreRDRAMSafe<ULONG>(addr, BREAKPOINTSYNC_MAGIC);
-					PC = s_PC;
-				} else {
-					StoreRDRAMSafe<ULONG>(addr, BREAKPOINTSYNC_MAGIC);
-				}
-				p = syncBreakMap.insert(std::pair<ULONG, SyncBreak>(addr, b));
-				it = p.first;
-			}
-			s.lua = L;
-			s.idx = RegisterFunction(L, REG_SYNCBREAK);
-			it->second.func.push_back(s);
-		} else {
-			lua_pushvalue(L, 2);
-			SyncBreakMap::iterator it = syncBreakMap.find(addr);
-			if (it != syncBreakMap.end()) {
-				AddrBreakFuncVec& f = it->second.func;
-				AddrBreakFuncVec::iterator itt = f.begin();
-				for (; itt != f.end(); itt++) {
-					if (itt->lua == L) {
-						lua_getglobal(L, "table");
-						lua_getfield(L, -1, "remove");
-						lua_getfield(L, LUA_REGISTRYINDEX, REG_SYNCBREAK);
-						lua_pushinteger(L, itt->idx);
-						lua_call(L, 2, 0);
-						lua_pop(L, 1);
-						f.erase(itt);
-						if (f.size() == 0) {
-							RemoveSyncBreak(it);
-						}
-						return 0;
-					}
-				}
-			}
-			luaL_error(L, "SetSyncBreak: not found registry function");
-		}
-		return 0;
-	}
+
 	template<bool rw>
 	AddrBreakMap::iterator RemoveMemoryBreak(AddrBreakMap::iterator it) {
 		USHORT hash = it->first >> 16;
@@ -1644,14 +1588,7 @@ namespace LuaEngine {
 		}
 	}
 	//dynacore�̏ꍇ��recompile����܂Ō��ʂ����f����Ȃ�
-	int SetReadBreak(lua_State* L) {
-		SetMemoryBreak<false>(L);
-		return 0;
-	}
-	int SetWriteBreak(lua_State* L) {
-		SetMemoryBreak<true>(L);
-		return 0;
-	}
+
 	AddrBreakFuncVec::iterator RemovePCBreak(AddrBreakFuncVec& f, AddrBreakFuncVec::iterator it) {
 		it = f.erase(it);
 		pcBreakCount--;
@@ -1660,50 +1597,7 @@ namespace LuaEngine {
 		}
 		return it;
 	}
-	int SetPCBreak(lua_State* L) {
-		InterpreterCoreCheck(L);
-		ULONG addr = LuaCheckIntegerU(L, 1) | 0x80000000;
-		luaL_checktype(L, 2, LUA_TFUNCTION);
-		if (!(0x80000000 <= addr && addr < 0x80800000 && addr % 4 == 0)) {
-			luaL_error(L, "SetPCBreak: 0x80000000 <= addr && addr < 0x80800000 && addr%4 == 0");
-		}
-		ULONG a = (addr - 0x80000000) >> 2;
-		if (!lua_toboolean(L, 3)) {
-			if (!pcBreakMap[a]) {
-				pcBreakMap[a] = new AddrBreakFuncVec();
-			}
-			AddrBreakFunc s{};
-			s.lua = L;
-			s.idx = RegisterFunction(L, REG_PCBREAK);
-			pcBreakMap[a]->push_back(s);
-			enablePCBreak = true;
-			pcBreakCount++;
-		} else {
-			lua_pushvalue(L, 2);
-			if (pcBreakMap[a]) {
-				AddrBreakFuncVec& f = *pcBreakMap[a];
-				AddrBreakFuncVec::iterator itt = f.begin();
-				for (; itt != f.end(); itt++) {
-					if (itt->lua == L) {
-						lua_getglobal(L, "table");
-						lua_getfield(L, -1, "remove");
-						lua_getfield(L, LUA_REGISTRYINDEX, REG_PCBREAK);
-						lua_pushinteger(L, itt->idx);
-						lua_call(L, 2, 0);
-						lua_pop(L, 1);
-						RemovePCBreak(f, itt);
-						if (f.size() == 0) {
-							delete pcBreakMap[a];
-							pcBreakMap[a] = NULL;
-						}
-						return 0;
-					}
-				}
-			}
-			luaL_error(L, "SetPCBreak: not found registry function");
-		}
-		return 0;
-	}
+
 	const char* const RegName[] = {
 		//CPU
 		"r0", "at", "v0", "v1", "a0", "a1", "a2", "a3",
@@ -1834,68 +1728,6 @@ namespace LuaEngine {
 		return size;
 	}
 
-	int GetRegister(lua_State* L) {
-		void* r;
-		int size, arg = 0;
-		size = SelectRegister(L, &r, &arg);
-		if (size == -32) {
-			lua_pushnumber(L, *(float*)r);
-		} else if (size == -64) {
-			lua_pushnumber(L, *(double*)r);
-		} else if (size > 32) {
-			ULONGLONG n = *(ULONGLONG*)r;
-			if (size != 64)
-				n &= (1ULL << size) - 1;
-			LuaPushQword(L, n);
-		} else {
-			lua_pushinteger(L, *(ULONGLONG*)r & ((1ULL << size) - 1));
-		}
-		return 1;
-	}
-	int SetRegister(lua_State* L) {
-		void* r;
-		int size, arg = 1;
-		size = SelectRegister(L, &r, &arg);
-		if (size == -32) {
-			*(float*)r = lua_tonumber(L, arg);
-		} else if (size == -64) {
-			*(double*)r = lua_tonumber(L, arg);
-		} else if (size > 32) {
-			ULONGLONG n = LuaCheckQWord(L, arg);
-			ULONGLONG mask;
-			if (size == 64)
-				mask = ~0;
-			else
-				mask = (1ULL << size) - 1;
-			*(ULONGLONG*)r &= ~mask;
-			*(ULONGLONG*)r |= n & mask;
-
-		} else {
-			ULONG mask = (1ULL << size) - 1;
-			*(ULONG*)r &= ~mask;
-			*(ULONG*)r |= LuaCheckIntegerU(L, arg) & mask;
-		}
-		return 0;
-	}
-	int TraceLog(lua_State* L) {
-		if (lua_toboolean(L, 1)) {
-			const char* path = lua_tostring(L, 1);
-			if (!path)path = "tracelog.txt";
-			TraceLogStart(path, lua_toboolean(L, 2));
-		} else {
-			TraceLogStop();
-		}
-		return 0;
-	}
-	int TraceLogMode(lua_State* L) {
-		traceLogMode = !!lua_toboolean(L, 1);
-		return 0;
-	}
-	int GetCore(lua_State* L) {
-		lua_pushinteger(L, dynacore ? 0 : 1 + interpcore);
-		return 1;
-	}
-
 	unsigned long PAddr(unsigned long addr) {
 		if (addr >= 0x80000000 && addr < 0xC0000000) {
 			return addr;
@@ -1945,22 +1777,7 @@ namespace LuaEngine {
 	void RecompileNextAll() {
 		memset(invalid_code, 1, 0x100000);
 	}
-	int RecompileNowLua(lua_State* L) {
-		Recompile(LuaCheckIntegerU(L, 1));
-		return 0;
-	}
-	int RecompileLua(lua_State* L) {
-		Recompile(LuaCheckIntegerU(L, 1));
-		return 0;
-	}
-	int RecompileNextLua(lua_State* L) {
-		Recompile(LuaCheckIntegerU(L, 1));
-		return 0;
-	}
-	int RecompileNextAllLua(lua_State* L) {
-		RecompileNextAll();
-		return 0;
-	}
+
 	template<typename T>void PushT(lua_State* L, T value) {
 		LuaPushIntU(L, value);
 	}
@@ -3693,41 +3510,15 @@ namespace LuaEngine {
 		{NULL, NULL}
 	};
 	const luaL_Reg memoryFuncs[] = {
-		//pretty sure these are broken
-		/*
-		{"loadbytes", LoadTs<UCHAR>},
-		{"loadhalfs", LoadTs<USHORT>},
-		{"loadwords", LoadTs<ULONG>},
-		*/
-
+		// memory conversion functions
 		{"inttofloat", LuaIntToFloat},
 		{"inttodouble", LuaIntToDouble},
 		{"floattoint", LuaFloatToInt},
 		{"doubletoint", LuaDoubleToInt},
 		{"qwordtonumber", LuaQWordToNumber},
 
-		// not sure what any of these do
-		{"syncbreak", SetSyncBreak},
-		{"registerexec", SetSyncBreak},
-		{"pcbreak", SetPCBreak},
-		{"readbreak", SetReadBreak},
-		{"registerread", SetReadBreak},
-		{"writebreak", SetWriteBreak},
-		{"registerwrite", SetWriteBreak},
-		{"reg", GetRegister},
-		{"getreg", GetRegister},
-		{"getregister", GetRegister},
-		{"setreg", SetRegister},
-		{"setregister", SetRegister},
-		{"trace", TraceLog},
-		{"tracemode", TraceLogMode},
-		{"getcore", GetCore},
-		{"recompilenow", RecompileNowLua},
-		{"recompile", RecompileLua},
-		{"recompilenext", RecompileNextLua},
-		{"recompilenextall", RecompileNextAllLua},
-
 		// word = 2 bytes
+		// reading functions
 		{"readbytesigned", LuaReadByteSigned},
 		{"readbyte", LuaReadByteUnsigned},
 		{"readwordsigned", LuaReadWordSigned},
@@ -3738,9 +3529,8 @@ namespace LuaEngine {
 		{"readqword", LuaReadQWordUnsigned},
 		{"readfloat", LuaReadFloat},
 		{"readdouble", LuaReadDouble},
-		{"readsize", LuaReadSize},
-		/*{"readbyterange", LoadTs<UCHAR>},*/
 
+		// writing functions
 		// all of these are assumed to be unsigned
 		{"writebyte", LuaWriteByteUnsigned},
 		{"writeword", LuaWriteWordUnsigned},
