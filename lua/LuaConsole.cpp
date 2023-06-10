@@ -937,6 +937,13 @@ namespace LuaEngine {
 
 	void draw_lua(std::function<void()> draw_callback) {
 
+		if (!lua_dc)
+		{
+			// can happen sometimes
+			printf("Attempted to draw without lua dc\n");
+			return;
+		}
+
 		if (Config.is_lua_double_buffered) {
 
 			// HACK: fake transparency by using color mask with obscure color
@@ -1994,9 +2001,7 @@ namespace LuaEngine {
 	int GetSystemMetricsLua(lua_State* L) {
 		Lua* lua = GetLuaClass(L);
 
-		long param = luaL_checknumber(L, 1);
-		int ret = GetSystemMetrics(param); // we have to store intermediate value because of calling convention? i dont know
-		lua_pushinteger(L, ret);
+		lua_pushinteger(L, GetSystemMetrics(luaL_checkinteger(L, 1)));
 
 		return 1;
 	}
@@ -2005,265 +2010,7 @@ namespace LuaEngine {
 		lua_pushboolean(L, GetForegroundWindow() == mainHWND || GetActiveWindow() == mainHWND);
 		return 1;
 	}
-	//Gui
-	//�v���O�C���ɕ�����Ă邩�玩�R�ɏo���Ȃ��H
-	//�Ƃ������E�B���h�E�ɒ��ڏ����Ă���
-	//�Ƃ肠������������E�B���h�E�ɒ�������
-	typedef struct COLORNAME {
-		const char* name;
-		COLORREF value;
-	} COLORNAME;
-
-	const int hexTable[256] = {
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0,
-		0, 10, 11, 12, 13, 14, 15, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 10, 11, 12, 13, 14, 15, 0, 0, 0, 0, 0, 0, 0, 0,
-	};
-	const COLORNAME colors[] = {
-		{"white", 0xFFFFFFFF},
-		{"black", 0xFF000000},
-		{"clear", 0x00000000},
-		{"gray", 0xFF808080},
-		{"red", 0xFF0000FF},
-		{"orange", 0xFF0080FF},
-		{"yellow", 0xFF00FFFF},
-		{"chartreuse", 0xFF00FF80},
-		{"green", 0xFF00FF00},
-		{"teal", 0xFF80FF00},
-		{"cyan", 0xFFFFFF00},
-		{"blue", 0xFFFF0000},
-		{"purple", 0xFFFF0080},
-		{NULL}
-	};
-
-	COLORREF StrToColorA(const char* s, bool alpha = false, COLORREF def = 0) {
-		if (s[0] == '#') {
-			int l = lstrlen(s);
-			if (l == 4) {
-				return (hexTable[s[1]] * 0x10 + hexTable[s[1]]) |
-					((hexTable[s[2]] * 0x10 + hexTable[s[2]]) << 8) |
-					((hexTable[s[3]] * 0x10 + hexTable[s[3]]) << 16) |
-					(alpha ? 0xFF000000 : 0);
-			} else if (alpha && l == 5) {
-				return (hexTable[s[1]] * 0x10 + hexTable[s[1]]) |
-					((hexTable[s[2]] * 0x10 + hexTable[s[2]]) << 8) |
-					((hexTable[s[3]] * 0x10 + hexTable[s[3]]) << 16) |
-					((hexTable[s[4]] * 0x10 + hexTable[s[4]]) << 24);
-			} else if (l == 7) {
-				return (hexTable[s[1]] * 0x10 + hexTable[s[2]]) |
-					((hexTable[s[3]] * 0x10 + hexTable[s[4]]) << 8) |
-					((hexTable[s[5]] * 0x10 + hexTable[s[6]]) << 16) |
-					(alpha ? 0xFF000000 : 0);
-			} else if (alpha && l == 9) {
-				return (hexTable[s[1]] * 0x10 + hexTable[s[2]]) |
-					((hexTable[s[3]] * 0x10 + hexTable[s[4]]) << 8) |
-					((hexTable[s[5]] * 0x10 + hexTable[s[6]]) << 16) |
-					((hexTable[s[7]] * 0x10 + hexTable[s[8]]) << 24);
-			}
-		} else {
-			const COLORNAME* p = colors;
-			do {
-				if (lstrcmpi(s, p->name) == 0) {
-					return (alpha ? 0xFFFFFFFF : 0xFFFFFF) & p->value;
-				}
-			} while ((++p)->name);
-		}
-		return (alpha ? 0xFF000000 : 0x00000000) | def;
-	}
-	COLORREF StrToColor(const char* s, bool alpha = false, COLORREF def = 0) {
-		COLORREF c = StrToColorA(s, alpha, def);
-		/*
-			if((c&0xFFFFFF) == LUADC_BG_COLOR) {
-				return LUADC_BG_COLOR_A|(alpha?0xFF000000:0);
-			}else {
-				return c;
-			}
-		*/
-		return c;
-	}
-
-	//wgui
-	int SetBrush(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-		const char* s = lua_tostring(L, 1);
-		if (lstrcmpi(s, "null") == 0)
-			lua->setBrush((HBRUSH)GetStockObject(NULL_BRUSH));
-		else
-			lua->setBrush(::CreateSolidBrush(StrToColor(s)));
-		return 0;
-	}
-	int SetPen(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-		const char* s = lua_tostring(L, 1);
-		if (lstrcmpi(s, "null") == 0)
-			lua->setPen((HPEN)GetStockObject(NULL_PEN));
-		else
-			// optional pen width defaults to 1
-			lua->setPen(::CreatePen(PS_SOLID, luaL_optnumber(L, 2, 1), StrToColor(s)));
-		return 0;
-	}
-	int SetTextColor(lua_State* L) {
-		GetLuaClass(L)->setTextColor(StrToColor(lua_tostring(L, 1)));
-		return 0;
-	}
-	int SetBackgroundColor(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-		const char* s = lua_tostring(L, 1);
-		if (lstrcmpi(s, "null") == 0)
-			lua->setBackgroundColor(0, TRANSPARENT);
-		else
-			lua->setBackgroundColor(StrToColor(s));
-		return 0;
-	}
-	int SetFont(lua_State* L) {
-		LOGFONT font = {0};
-
-		// set the size of the font
-		font.lfHeight = -MulDiv(luaL_checknumber(L, 1), GetDeviceCaps(lua_dc, LOGPIXELSY), 72);
-		lstrcpyn(font.lfFaceName, luaL_optstring(L, 2, "MS Gothic"), LF_FACESIZE);
-		font.lfCharSet = DEFAULT_CHARSET;
-		const char* style = luaL_optstring(L, 3, "");
-		for (const char* p = style; *p; p++) {
-			switch (*p) {
-				case 'b': font.lfWeight = FW_BOLD; break;
-				case 'i': font.lfItalic = TRUE; break;
-				case 'u': font.lfUnderline = TRUE; break;
-				case 's': font.lfStrikeOut = TRUE; break;
-				case 'a': font.lfQuality = ANTIALIASED_QUALITY; break;
-			}
-		}
-		GetLuaClass(L)->setFont(CreateFontIndirect(&font));
-		return 0;
-	}
-	int LuaTextOut(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-		lua->selectTextColor();
-		lua->selectBackgroundColor();
-		lua->selectFont();
-
-		int x = luaL_checknumber(L, 1);
-		int y = luaL_checknumber(L, 2);
-		const char* text = lua_tostring(L, 3);
-
-		::TextOut(lua_dc, x, y, text, lstrlen(text));
-		return 0;
-	}
-	bool GetRectLua(lua_State* L, int idx, RECT* rect) {
-		switch (lua_type(L, idx)) {
-			case LUA_TTABLE:
-				lua_getfield(L, idx, "l");
-				rect->left = lua_tointeger(L, -1);
-				lua_pop(L, 1);
-				lua_getfield(L, idx, "t");
-				rect->top = lua_tointeger(L, -1);
-				lua_pop(L, 1);
-				lua_getfield(L, idx, "r");
-				if (lua_isnil(L, -1)) {
-					lua_pop(L, 1);
-					lua_getfield(L, idx, "w");
-					if (lua_isnil(L, -1)) {
-						return false;
-					}
-					rect->right = rect->left + lua_tointeger(L, -1);
-					lua_pop(L, 1);
-					lua_getfield(L, idx, "h");
-					rect->bottom = rect->top + lua_tointeger(L, -1);
-					lua_pop(L, 1);
-				} else {
-					rect->right = lua_tointeger(L, -1);
-					lua_pop(L, 1);
-					lua_getfield(L, idx, "b");
-					rect->bottom = lua_tointeger(L, -1);
-					lua_pop(L, 1);
-				}
-				return true;
-			default:
-				return false;
-		}
-	}
-
-	int GetTextExtent(lua_State* L) {
-		const char* string = luaL_checkstring(L, 1);
-		SIZE size = {0};
-		GetTextExtentPoint32(lua_dc, string, strlen(string), &size);
-		lua_newtable(L);
-		lua_pushinteger(L, size.cx);
-		lua_setfield(L, -2, "width");
-		lua_pushinteger(L, size.cy);
-		lua_setfield(L, -2, "height");
-		return 1;
-	}
-
-	int LuaDrawText(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-		lua->selectTextColor();
-		lua->selectBackgroundColor();
-		lua->selectFont();
-		RECT rect = {0};
-		UINT format = DT_NOPREFIX | DT_WORDBREAK;
-		if (!GetRectLua(L, 2, &rect)) {
-			format |= DT_NOCLIP;
-		}
-		if (!lua_isnil(L, 3)) {
-			const char* p = lua_tostring(L, 3);
-			for (; p && *p; p++) {
-				switch (*p) {
-					case 'l':format |= DT_LEFT; break;
-					case 'r':format |= DT_RIGHT; break;
-					case 't':format |= DT_TOP; break;
-					case 'b':format |= DT_BOTTOM; break;
-					case 'c':format |= DT_CENTER; break;
-					case 'v':format |= DT_VCENTER; break;
-					case 'e':format |= DT_WORD_ELLIPSIS; break;
-					case 's':format |= DT_SINGLELINE; break;
-					case 'n':format &= ~DT_WORDBREAK; break;
-				}
-			}
-		}
-		::DrawText(lua_dc, lua_tostring(L, 1), -1, &rect, format);
-		return 0;
-	}
-
-	int LuaDrawTextAlt(lua_State* L) {
-
-		Lua* lua = GetLuaClass(L);
-
-		lua->selectTextColor();
-		lua->selectBackgroundColor();
-		lua->selectFont();
-
-		RECT rect = {0};
-		LPSTR string = (LPSTR)lua_tostring(L, 1);
-		UINT format = luaL_checkinteger(L, 2);
-		rect.left = luaL_checkinteger(L, 3);
-		rect.top = luaL_checkinteger(L, 4);
-		rect.right = luaL_checkinteger(L, 5);
-		rect.bottom = luaL_checkinteger(L, 6);
-
-		DrawTextEx(lua_dc, string, -1, &rect, format, NULL);
-		return 0;
-	}
-
-	int DrawRect(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-
-		int left = luaL_checknumber(L, 1);
-		int top = luaL_checknumber(L, 2);
-		int right = luaL_checknumber(L, 3);
-		int bottom = luaL_checknumber(L, 4);
-		int cornerW = luaL_optnumber(L, 5, 0);
-		int cornerH = luaL_optnumber(L, 6, 0);
-
-		lua->selectBrush();
-		lua->selectPen();
-		::RoundRect(lua_dc, left, top, right, bottom, cornerW, cornerH);
-		return 0;
-	}
-
+	
 	int LuaLoadImage(lua_State* L) {
 		const char* path = luaL_checkstring(L, 1);
 		int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
@@ -2481,45 +2228,9 @@ namespace LuaEngine {
 			//now stack again has only table at the bottom and color string on top, repeat
 		}
 
-		const char* col = luaL_checkstring(L, 2); //get string at index 2
-
 		Gdiplus::Graphics gfx(lua_dc);
-		Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
+		Gdiplus::SolidBrush brush(Gdiplus::Color(luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5)));
 		gfx.FillPolygon(&brush, pts.data(), n);
-
-		return 0;
-	}
-
-
-	int FillEllipseAlpha(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-
-		int x = luaL_checknumber(L, 1);
-		int y = luaL_checknumber(L, 2);
-		int w = luaL_checknumber(L, 3);
-		int h = luaL_checknumber(L, 4);
-		const char* col = luaL_checkstring(L, 5); //color string
-
-		Gdiplus::Graphics gfx(lua_dc);
-		Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
-
-		gfx.FillEllipse(&brush, x, y, w, h);
-
-		return 0;
-	}
-	int FillRectAlpha(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
-
-		int x = luaL_checknumber(L, 1);
-		int y = luaL_checknumber(L, 2);
-		int w = luaL_checknumber(L, 3);
-		int h = luaL_checknumber(L, 4);
-		const char* col = luaL_checkstring(L, 5); //color string
-
-		Gdiplus::Graphics gfx(lua_dc);
-		Gdiplus::SolidBrush brush(Gdiplus::Color(StrToColorA(col, true)));
-
-		gfx.FillRectangle(&brush, x, y, w, h);
 
 		return 0;
 	}
@@ -3801,8 +3512,6 @@ namespace LuaEngine {
 		{"d2d_draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
 
 		// GDIPlus-backed functions
-		{"fillrecta", FillRectAlpha},
-		{"fillellipsea", FillEllipseAlpha},
 		{"fillpolygona", FillPolygonAlpha},
 		{"loadimage", LuaLoadImage},
 		{"deleteimage", DeleteImage},
