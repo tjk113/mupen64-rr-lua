@@ -2361,6 +2361,7 @@ namespace LuaEngine {
 			w + (wndRect.right - clientRect.right),
 			h + (wndRect.bottom - clientRect.bottom),
 			SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
+		LuaEngine::destroy_lua_dc();
 		LuaEngine::initialize_lua_dc();
 		return 0;
 	}
