@@ -3434,9 +3434,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					Config.fps_modifier = 100;
 					InitTimer();
 					break;
-				case ID_LUA_RELOAD:
-					LuaReload();
-					break;
 				default:
 					 //Language Support  from ID_LANG_ENGLISH to ID_LANG_ENGLISH+100
 					if (LOWORD(wParam) >= ID_LANG_ENGLISH && LOWORD(wParam) <= (ID_LANG_ENGLISH + 100)) {

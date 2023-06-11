@@ -649,7 +649,6 @@ void LoadConfig() {
 	//Lua
 	//ダイアログに追加するの面倒くさい
 	ReadCfgString("Lua", "Script Path", "", Config.lua_script_path);
-	ReadHotkeyConfig(43, "Lua Script Reload", ID_LUA_RELOAD, VK_F3 | 0x200);
 	ReadHotkeyConfig(44, "Lua Script CloseAll", ID_MENU_LUASCRIPT_CLOSEALL, VK_F4 | 0x200);
 	ReadHotkeyConfig(48, "Load Latest Lua Script", ID_LUA_LOAD_LATEST, 'L' | 0x600);
 

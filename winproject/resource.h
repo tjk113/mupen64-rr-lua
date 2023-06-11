@@ -403,7 +403,6 @@
 #define IDC_BUTTON_LUASTOP              9515
 #define IDC_FROMEEPROM_RADIO            9516
 #define IDC_TEXTBOX_LUAPROMPT           9520
-#define ID_LUA_RELOAD                   9600
 #define ID_LANG_ENGLISH                 10000
 #define IDC_ROUNDTOZERO                 10002
 #define IDC_NORESET                     10003

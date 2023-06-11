@@ -335,7 +335,6 @@ void check_interupt() {
 }
 
 
-extern void sleep_while_emu_paused();
 void gen_interupt() {
 	//if (!skip_jump)
 	  //printf("interrupt:%x (%x)\n", q->type, Count);

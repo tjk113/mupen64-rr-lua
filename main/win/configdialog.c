@@ -68,9 +68,6 @@ HWND hwndTrackMovieBackup;
 extern int no_audio_delay;
 extern int no_compiled_jump;
 
-BOOL LuaCriticalSettingChangePending; // other options proc
-
-
 void SwitchMovieBackupModifier(HWND hwnd) {
 	if (ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS)) {
 		EnableWindow(hwndTrackMovieBackup, TRUE);

@@ -16,7 +16,6 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-void InitializeLuaDC(HWND mainWnd);
 void NewLuaScript(void(*callback)());
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 #endif
@@ -26,7 +25,7 @@ void LuaOpenAndRun(const char* path);
 void CloseAllLuaScript();
 void AtUpdateScreenLuaCallback();
 void AtVILuaCallback();
-void GetLuaMessage();
+void LuaProcessMessages();
 void AtInputLuaCallback(int n);
 void AtIntervalLuaCallback();
 void AtPlayMovieLuaCallback();
@@ -67,7 +66,6 @@ extern bool enableTraceLog;
 extern bool traceLogMode;
 extern bool enablePCBreak;
 extern bool maximumSpeedMode;
-extern bool anyLuaRunning;
 extern unsigned long gdiPlusToken;
 
 

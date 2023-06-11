@@ -34,6 +34,7 @@
 #include <dwrite.h>
 #include <wincodec.h>
 #include <functional>
+#include <queue>
 
 
 #pragma comment(lib, "lua54.lib")
@@ -61,7 +62,6 @@ bool enableTraceLog;
 bool traceLogMode;
 bool enablePCBreak;
 bool maximumSpeedMode;
-bool anyLuaRunning = false;
 bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
 
@@ -104,14 +104,15 @@ ReassociatingFileDialog fdLuaTraceLog;
 
 
 namespace LuaEngine {
-	std::vector<HWND> luaWindows;
-	RECT InitalWindowRect[3] = {0};
+
+	class LuaEnvironment;
+	RECT InitalWindowRect[3] = { 0 };
 	HANDLE TraceLogFile;
 
 
 
-	class Lua;
 
+	std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 	std::vector<Gdiplus::Bitmap*> imagePool;
 
 	struct AddrBreakFunc {
@@ -151,7 +152,7 @@ namespace LuaEngine {
 	bool break_value_flag;
 	unsigned inputCount = 0;
 	size_t current_break_value_size = 1;
-	std::map<HWND, Lua*> luaWindowMap;
+
 	int getn(lua_State*);
 
 	HDC lua_dc;
@@ -168,23 +169,23 @@ namespace LuaEngine {
 		while (i) {
 			int t = lua_type(L, i);
 			switch (t) {
-				case LUA_TSTRING:
-					printf("%d:`%s'", i, lua_tostring(L, i));
-					break;
-				case LUA_TBOOLEAN:
-					printf("%d: %s", i, lua_toboolean(L, i) ? "true" : "false");
-					break;
-				case LUA_TNUMBER:
-					printf("%d: %g", i, lua_tonumber(L, i));
-					break;
-				case LUA_TFUNCTION:
-					lua_Debug ar;
-					lua_getstack(L, 0, &ar);
-					lua_pushvalue(L, -1);
-					lua_getinfo(L, ">S", &ar);
-					printf("%d: %s %p, type: %s", i, "function at", lua_topointer(L, -1), ar.what);
-					break;
-				default: printf("%d: %s", i, lua_typename(L, t)); break;
+			case LUA_TSTRING:
+				printf("%d:`%s'", i, lua_tostring(L, i));
+				break;
+			case LUA_TBOOLEAN:
+				printf("%d: %s", i, lua_toboolean(L, i) ? "true" : "false");
+				break;
+			case LUA_TNUMBER:
+				printf("%d: %g", i, lua_tonumber(L, i));
+				break;
+			case LUA_TFUNCTION:
+				lua_Debug ar;
+				lua_getstack(L, 0, &ar);
+				lua_pushvalue(L, -1);
+				lua_getinfo(L, ">S", &ar);
+				printf("%d: %s %p, type: %s", i, "function at", lua_topointer(L, -1), ar.what);
+				break;
+			default: printf("%d: %s", i, lua_typename(L, t)); break;
 			}
 			printf("\n");
 			i--;
@@ -209,7 +210,7 @@ namespace LuaEngine {
 	};
 
 	void ConsoleWrite(HWND, const char*);
-	void SetWindowLua(HWND wnd, Lua* lua);
+	void SetWindowLua(HWND wnd, LuaEnvironment* lua);
 	void SetButtonState(HWND wnd, bool state);
 	void SetLuaClass(lua_State* L, void* lua);
 	int AtPanic(lua_State* L);
@@ -231,18 +232,21 @@ namespace LuaEngine {
 	extern const char* const REG_ATSTOP;
 	int AtStop(lua_State* L);
 
-	class Lua {
+
+
+
+	class LuaEnvironment {
 	private:
 		bool stopping = false;
 
 	public:
-		Lua(HWND wnd) :
+		LuaEnvironment(HWND wnd) :
 			L(NULL),
 			ownWnd(wnd) {
 			SetWindowLua(wnd, this);
 			ShowInfo("Lua construct");
 		}
-		~Lua() {
+		~LuaEnvironment() {
 			if (isrunning()) {
 				stop();
 			}
@@ -256,11 +260,6 @@ namespace LuaEngine {
 				return;
 
 			ASSERT(!isrunning());
-			brush = (HBRUSH)GetStockObject(WHITE_BRUSH);
-			pen = (HPEN)GetStockObject(BLACK_PEN);
-			font = (HFONT)GetStockObject(SYSTEM_FONT);
-			col = bkcol = 0;
-			bkmode = TRANSPARENT;
 			hMutex = CreateMutex(0, 0, 0);
 			LoadScreenInit();
 			newLuaState();
@@ -277,10 +276,7 @@ namespace LuaEngine {
 				return;
 
 			stopping = true;
-			registerFuncEach(AtStop, REG_ATSTOP);
-			deleteGDIObject(brush, WHITE_BRUSH);
-			deleteGDIObject(pen, BLACK_PEN);
-			deleteGDIObject(font, SYSTEM_FONT);
+			invoke_callbacks_with_key(AtStop, REG_ATSTOP);
 			deleteLuaState();
 			for (auto x : imagePool) {
 				delete x;
@@ -293,41 +289,10 @@ namespace LuaEngine {
 		bool isrunning() {
 			return L != NULL && !stopping;
 		}
-		void setBrush(HBRUSH h) {
-			setGDIObject((HGDIOBJ*)&brush, h);
-		}
-		void selectBrush() {
-			selectGDIObject(brush);
-		}
-		void setPen(HPEN h) {
-			setGDIObject((HGDIOBJ*)&pen, h);
-		}
-		void selectPen() {
-			selectGDIObject(pen);
-		}
-		void setFont(HFONT h) {
-			setGDIObject((HGDIOBJ*)&font, h);
-		}
-		void selectFont() {
-			selectGDIObject(font);
-		}
-		void setTextColor(COLORREF c) {
-			col = c;
-		}
-		void selectTextColor() {
-			::SetTextColor(lua_dc, col);
-		}
-		void setBackgroundColor(COLORREF c, int mode = OPAQUE) {
-			bkcol = c;
-			bkmode = mode;
-		}
-		void selectBackgroundColor() {
-			::SetBkMode(lua_dc, bkmode);
-			::SetBkColor(lua_dc, bkcol);
-		}
+
 		//calls all functions that lua script has defined as callbacks, reads them from registry
 		//returns true at fail
-		bool registerFuncEach(int(*f)(lua_State*), const char* key) {
+		bool invoke_callbacks_with_key(std::function<int(lua_State*)> function, const char* key) {
 			lua_getfield(L, LUA_REGISTRYINDEX, key);
 			//shouldn't ever happen but could cause kernel panic
 			if lua_isnil(L, -1) { lua_pop(L, 1); return false; }
@@ -335,11 +300,7 @@ namespace LuaEngine {
 			for (LUA_INTEGER i = 0; i < n; i++) {
 				lua_pushinteger(L, 1 + i);
 				lua_gettable(L, -2);
-			#ifdef _DEBUG
-							//printf("Load state...\n");
-							//stackDump(L);
-			#endif
-				if (f(L)) {
+				if (function(L)) {
 					error();
 					return true;
 				}
@@ -347,6 +308,7 @@ namespace LuaEngine {
 			lua_pop(L, 1);
 			return false;
 		}
+
 		bool errorPCall(int a, int r) {
 			if (lua_pcall(L, a, r, 0)) {
 				error();
@@ -444,13 +406,15 @@ namespace LuaEngine {
 					itt != f.end(); ) {
 					if (itt->lua == L) {
 						itt = f.erase(itt);
-					} else {
+					}
+					else {
 						itt++;
 					}
 				}
 				if (f.empty()) {
 					it = removeFunc(it);
-				} else {
+				}
+				else {
 					it++;
 				}
 			}
@@ -465,7 +429,8 @@ namespace LuaEngine {
 						it != f.end(); ) {
 						if (it->lua == L) {
 							it = RemovePCBreak(f, it);
-						} else {
+						}
+						else {
 							it++;
 						}
 					}
@@ -483,78 +448,96 @@ namespace LuaEngine {
 			correctPCBreak();
 		}
 		lua_State* L;
-		//DCobjects
-		HBRUSH brush;
-		HPEN pen;
-		HFONT font;
-		COLORREF col, bkcol;
-		int bkmode;
 	};
+
+
 	int AtPanic(lua_State* L) {
 		printf("Lua panic: %s\n", lua_tostring(L, -1));
 		MessageBox(mainHWND, lua_tostring(L, -1), "Lua Panic", 0);
 		return 0;
 	}
-	//�E�B���h�E�̃X���b�h���炾�Ƃ���Ȃ̂�
-	//�G�~�����[�V�����̃X���b�h����̂�Lua��M��Ƃ������Ƃ�
-	//�t�ɃG�~�����[�V�����X���b�h����E�B���h�E�X���b�h�𓮂������Ƃ͂���
-	//ConsoleWrite�Ƃ�
-	void SetWindowLua(HWND, Lua*);
-	Lua* GetWindowLua(HWND);
-	void destroy_lua_dc();
-	void registerFuncEach(int(*f)(lua_State*), const char* key);
+
+	void SetWindowLua(HWND, LuaEnvironment*);
 	extern const char* const REG_WINDOWMESSAGE;
 	int AtWindowMessage(lua_State* L);
 	void CreateLuaWindow(void(*callback)());
-	//#define EnterCriticalSection(a) EnterCriticalSection((ShowInfo("Enter thread:%d line:%d",GetCurrentThreadId(),__LINE__),a))
-	//#define LeaveCriticalSection(a) LeaveCriticalSection((ShowInfo("Leave thread:%d line:%d",GetCurrentThreadId(),__LINE__),a))
 
+	void invoke_callbacks_with_key_on_all_instances(std::function<int(lua_State*)> function, const char* key) {
 
-	void checkGDIPlusInitialized() {
-		// will be inlined by compiler
-		if (!gdiPlusInitialized) {
-			printf("lua initialize gdiplus\n");
-			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-			Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
-			gdiPlusInitialized = true;
+		for (auto pair : hwnd_lua_map)
+		{
+			if (!pair.second)
+			{
+				continue;
+			}
+			if (pair.second && pair.second->isrunning()) {
+				//ensure thread safety (load and savestate callbacks for example)
+				DWORD waitResult = WaitForSingleObject(pair.second->hMutex, INFINITE);
+				switch (waitResult) {
+				case WAIT_OBJECT_0:
+					if (pair.second->invoke_callbacks_with_key(function, key)) {
+						printf("!ERRROR, RETRY\n");
+						//if error happened, try again (but what if it fails again and again?)
+						invoke_callbacks_with_key_on_all_instances(function, key);
+						return;
+					}
+					ReleaseMutex(pair.second->hMutex);
+				}
+			}
 		}
 	}
 
-	class LuaMessage {
+	void checkGDIPlusInitialized() {
+		if (gdiPlusInitialized)
+			return;
+		printf("Initializing GDI+\n");
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
+		gdiPlusInitialized = true;
+
+	}
+
+	class LuaMessenger {
 	public:
-		struct Msg;
+		struct LuaMessage;
 	private:
-		Msg* get() {
+		LuaMessage* pop_message() {
 			EnterCriticalSection(&cs);
-			if (msgs.empty()) {
+
+			if (message_queue.empty()) {
 				LeaveCriticalSection(&cs);
 				return NULL;
 			}
-			Msg* msg = msgs.front();
-			msgs.pop_front();
+
+			LuaMessage* msg = message_queue.front();
+			message_queue.pop();
+
 			LeaveCriticalSection(&cs);
 			return msg;
 		}
 		CRITICAL_SECTION cs;
-		std::list<Msg*> msgs;
+		std::queue<LuaMessage*> message_queue;
+		LuaMessage* current_message;
 	public:
-		LuaMessage() {
+		LuaMessenger() {
 			InitializeCriticalSection(&cs);
 		}
-		~LuaMessage() {
+		~LuaMessenger() {
 			DeleteCriticalSection(&cs);
 		}
-		enum MSGTYPE {
-			NewLua,
-			DestroyLua,
-			RunPath,
-			StopCurrent,
-			CloseAll,
-			ReloadFirst,
-			WindowMessage,
-		};
-		struct Msg {
-			MSGTYPE type;
+		auto get_current_message() {
+			return this->current_message;
+		}
+		struct LuaMessage {
+			enum class Types {
+				NewLua,
+				DestroyLua,
+				RunPath,
+				StopCurrent,
+				CloseAll,
+				WindowMessage,
+			};
+			Types type;
 			union {
 				struct {
 					HWND wnd;
@@ -578,111 +561,173 @@ namespace LuaEngine {
 				} windowMessage;
 			};
 		};
-		void post(Msg* msg) {
+		void send_message(LuaMessage* msg) {
 			EnterCriticalSection(&cs);
-			msgs.push_back(msg);
+			message_queue.push(msg);
 			LeaveCriticalSection(&cs);
 		}
-		//#define post(msg) post((ShowInfo("type: %d, line:%d",msg->type,__LINE__), msg))
-		void getMessages() {
-			//		ShowInfo("getMessages");
-			Msg* msg;
-			while (msg = get()) {
-				//		ShowInfo("msg: type: %d", msg->type);
-				current_msg = msg;
+		void process_messages() {
+
+			LuaMessage* msg;
+			while (msg = pop_message()) {
+				current_message = msg;
 				switch (msg->type) {
-					case NewLua:
-					{
-						HWND wnd = msg->newLua.wnd;
-						Lua* lua = new Lua(wnd);
-						SetWindowLua(wnd, lua);
-						luaWindows.push_back(wnd);
-						if (msg->newLua.callback)
-							msg->newLua.callback();
-						break;
+				case LuaMessenger::LuaMessage::Types::NewLua:
+				{
+					HWND wnd = msg->newLua.wnd;
+					LuaEnvironment* lua = new LuaEnvironment(wnd);
+					SetWindowLua(wnd, lua);
+					if (msg->newLua.callback)
+						msg->newLua.callback();
+					break;
+				}
+				case LuaMessenger::LuaMessage::Types::DestroyLua:
+				{
+					auto wnd = msg->destroyLua.wnd;
+					auto lua = hwnd_lua_map[wnd];
+
+					hwnd_lua_map.erase(wnd);
+
+					if (lua) {
+						lua->stop();
 					}
-					case DestroyLua:
-					{
-						HWND wnd = msg->destroyLua.wnd;
-						Lua* lua = GetWindowLua(wnd);
-						luaWindows.erase(std::find(
-							luaWindows.begin(), luaWindows.end(), wnd));
-						if (lua) { lua->stop(); }
-						if (luaWindows.empty()) {
-							destroy_lua_dc();
-							anyLuaRunning = false;
-						}
-						delete lua;
-						break;
+					delete lua;
+					break;
+				}
+				case LuaMessenger::LuaMessage::Types::RunPath:
+				{
+					if (msg->runPath.wnd == NULL) {
+						// FIXME: what the hell is this? when does this even happen?
+						printf("RunPath message sent without hwnd\n");
 					}
-					case RunPath:
-					{
-						HWND wnd;
-						if (msg->runPath.wnd == NULL) {
-							if (luaWindows.size() == 0) {
-								break; // silently skip the message if it can't be run
-							}
-							wnd = luaWindows.back();
-							SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), msg->runPath.path);
-						} else {
-							wnd = msg->runPath.wnd;
-						}
-						Lua* lua = GetWindowLua(wnd);
-						if (lua) {
-							lua->stop();
-							lua->run(msg->runPath.path);
-						}
-						break;
+					auto lua = hwnd_lua_map[msg->runPath.wnd];
+					if (lua) {
+						lua->stop();
+						lua->run(msg->runPath.path);
 					}
-					case StopCurrent:
-						GetWindowLua(msg->stopCurrent.wnd)->stop();
-						break;
-					case CloseAll:
+					break;
+				}
+				case LuaMessenger::LuaMessage::Types::StopCurrent:
+					hwnd_lua_map[msg->stopCurrent.wnd]->stop();
+					break;
+				case LuaMessenger::LuaMessage::Types::CloseAll:
+				{
+					for (auto& pair : hwnd_lua_map)
 					{
-						std::vector<HWND>::iterator it;
-						std::vector<HWND> copy(luaWindows);
-						for (it = copy.begin(); it != copy.end(); it++) {
-							PostMessage(*it, WM_CLOSE, 0, 0);
-						}
-						anyLuaRunning = false;
-						break;
+						PostMessage(pair.first, WM_CLOSE, 0, 0);
 					}
-					case ReloadFirst:
-					{
-						if (luaWindows.empty()) {
-							PostMessage(mainHWND, WM_COMMAND,
-								ID_MENU_LUASCRIPT_NEW, (LPARAM)LuaReload);
-						} else {
-							HWND wnd = luaWindows[0];
-							PostMessage(wnd,
-								WM_COMMAND, IDC_BUTTON_LUASTATE | (0 << 16),
-								(LPARAM)GetDlgItem(wnd, IDC_BUTTON_LUASTATE));
-						}
-						break;
-					}
-					case WindowMessage:
-					{
-						registerFuncEach(AtWindowMessage, REG_WINDOWMESSAGE);
-						break;
-					}
+					break;
+				}
+				case LuaMessenger::LuaMessage::Types::WindowMessage:
+				{
+					invoke_callbacks_with_key_on_all_instances(AtWindowMessage, REG_WINDOWMESSAGE);
+					break;
+				}
 				}
 				delete msg;
 			}
-			current_msg = NULL;
+			current_message = NULL;
 		}
-		Msg* current_msg;
 	};
-	LuaMessage luaMessage;
+	LuaMessenger lua_messenger;
 
-	Lua* GetWindowLua(HWND wnd) {
-		return luaWindowMap.find(wnd)->second;
+
+	void destroy_lua_dc() {
+		printf("Destroying Lua DC...\n");
+		d2d_factory->Release();
+		d2d_render_target->Release();
+
+		for (auto const& [key, val] : d2d_brush_cache) {
+			val->Release();
+		}
+
+		d2d_brush_cache.clear();
+
+		ReleaseDC(mainHWND, lua_dc);
+		lua_dc = NULL;
+		d2d_factory = NULL;
+		d2d_render_target = NULL;
 	}
-	void SetWindowLua(HWND wnd, Lua* lua) {
+
+	void initialize_lua_dc() {
+
+		if (lua_dc) {
+			LuaEngine::destroy_lua_dc();
+		}
+		printf("Initializing Lua DC...\n");
+
+		RECT window_rect;
+		GetClientRect(mainHWND, &window_rect);
+		lua_dc_width = window_rect.right;
+		lua_dc_height = window_rect.bottom;
+
+
+		D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(
+				DXGI_FORMAT_B8G8R8A8_UNORM,
+				D2D1_ALPHA_MODE_PREMULTIPLIED));
+
+		D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2d_factory);
+		d2d_factory->CreateDCRenderTarget(&props, &d2d_render_target);
+		DWriteCreateFactory(
+			DWRITE_FACTORY_TYPE_SHARED,
+			__uuidof(dw_factory),
+			reinterpret_cast<IUnknown**>(&dw_factory)
+		);
+
+		if (Config.is_lua_double_buffered) {
+			HDC main_dc = GetDC(mainHWND);
+			lua_dc = CreateCompatibleDC(main_dc);
+			HBITMAP bmp = CreateCompatibleBitmap(main_dc, window_rect.right, window_rect.bottom);
+			SelectObject(lua_dc, bmp);
+			ReleaseDC(mainHWND, main_dc);
+		}
+		else {
+			lua_dc = GetDC(mainHWND);
+		}
+
+		RECT dc_rect = { 0, 0, lua_dc_width, lua_dc_height };
+		d2d_render_target->BindDC(lua_dc, &dc_rect);
+
+	}
+
+	void draw_lua(std::function<void()> draw_callback) {
+
+		if (!lua_dc || !d2d_render_target || hwnd_lua_map.empty())
+		{
+			// improper state
+			return;
+		}
+
+		if (Config.is_lua_double_buffered) {
+
+			// HACK: fake transparency by using color mask with obscure color
+			const uint32_t color_mask = RGB(1, 0, 1);
+
+			HDC main_dc = GetDC(mainHWND);
+			TransparentBlt(lua_dc, 0, 0, lua_dc_width, lua_dc_height, main_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
+
+			d2d_render_target->BeginDraw();
+			d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
+			d2d_render_target->Clear(D2D1::ColorF(color_mask));
+
+			draw_callback();
+
+			d2d_render_target->EndDraw();
+
+			TransparentBlt(main_dc, 0, 0, lua_dc_width, lua_dc_height, lua_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
+			ReleaseDC(mainHWND, main_dc);
+		}
+	}
+
+	void SetWindowLua(HWND wnd, LuaEnvironment* lua) {
 		if (lua)
-			luaWindowMap[wnd] = lua;
+			hwnd_lua_map[wnd] = lua;
 		else
-			luaWindowMap.erase(wnd);
+			hwnd_lua_map.erase(wnd);
 	}
+
 	void SizingControl(HWND wnd, RECT* p, int x, int y, int w, int h) {
 		SetWindowPos(wnd, NULL, p->left + x, p->top + y,
 			p->right - p->left + w, p->bottom - p->top + h, SWP_NOZORDER);
@@ -707,38 +752,39 @@ namespace LuaEngine {
 	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
 	INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		switch (msg) {
-			case WM_INITDIALOG:
-			{
-				checkGDIPlusInitialized();
-				LuaMessage::Msg* msg = new LuaMessage::Msg();
-				msg->type = LuaMessage::NewLua;
-				msg->newLua.wnd = wnd;
-				msg->newLua.callback = (void(*)())lParam;
-				luaMessage.post(msg);
-				if (InitalWindowRect[0].right == 0) {	//�蔲���ȁA�ŏ��ł��邱�Ƃ̔���
-					GetInitalWindowRect(wnd);
-				}
-				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-					Config.lua_script_path);
-				return TRUE;
+		case WM_INITDIALOG:
+		{
+			checkGDIPlusInitialized();
+			LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
+			msg->type = LuaMessenger::LuaMessage::Types::NewLua;
+			msg->newLua.wnd = wnd;
+			msg->newLua.callback = (void(*)())lParam;
+			lua_messenger.send_message(msg);
+			if (InitalWindowRect[0].right == 0) {	//�蔲���ȁA�ŏ��ł��邱�Ƃ̔���
+				GetInitalWindowRect(wnd);
 			}
-			case WM_CLOSE:
-				DestroyWindow(wnd);
-				return TRUE;
-			case WM_DESTROY:
-			{
-				LuaMessage::Msg* msg = new LuaMessage::Msg();
-				msg->type = LuaMessage::DestroyLua;
-				msg->destroyLua.wnd = wnd;
-				luaMessage.post(msg);
-				return TRUE;
-			}
-			case WM_COMMAND:
-				return WmCommand(wnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
-			case WM_SIZE:
-				SizingControls(wnd, LOWORD(lParam), HIWORD(lParam));
-				if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
-				break;
+			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+				Config.lua_script_path);
+			return TRUE;
+		}
+		case WM_CLOSE:
+			DestroyWindow(wnd);
+			return TRUE;
+		case WM_DESTROY:
+		{
+			LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
+			msg->type = LuaMessenger::LuaMessage::Types::DestroyLua;
+			msg->destroyLua.wnd = wnd;
+			lua_messenger.send_message(msg);
+
+			return TRUE;
+		}
+		case WM_COMMAND:
+			return WmCommand(wnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
+		case WM_SIZE:
+			SizingControls(wnd, LOWORD(lParam), HIWORD(lParam));
+			if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
+			break;
 		}
 		return FALSE;
 	}
@@ -770,7 +816,8 @@ namespace LuaEngine {
 			SetWindowText(stateButton, "Restart");
 			SetWindowLongPtr(stopButton, GWL_STYLE,
 				GetWindowLongPtr(stopButton, GWL_STYLE) & ~WS_DISABLED);
-		} else {
+		}
+		else {
 			SetWindowText(stateButton, "Run");
 			SetWindowLongPtr(stopButton, GWL_STYLE,
 				GetWindowLongPtr(stopButton, GWL_STYLE) | WS_DISABLED);
@@ -781,71 +828,70 @@ namespace LuaEngine {
 	}
 
 
+
+
+
+
 	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control) {
 		switch (id) {
-			case IDC_BUTTON_LUASTATE:
-			{
-				LuaMessage::Msg* msg = new LuaMessage::Msg();
-				msg->type = LuaMessage::RunPath;
-				msg->runPath.wnd = wnd;
+		case IDC_BUTTON_LUASTATE:
+		{
+			LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
+			msg->type = LuaMessenger::LuaMessage::Types::RunPath;
+			msg->runPath.wnd = wnd;
 
-				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-					msg->runPath.path, MAX_PATH);
+			GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+				msg->runPath.path, MAX_PATH);
 
-				anyLuaRunning = true;
-				luaMessage.post(msg);
-				shouldSave = true;
+			lua_messenger.send_message(msg);
+			shouldSave = true;
+			return TRUE;
+		}
+		case IDC_BUTTON_LUASTOP:
+		{
+			LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
+			msg->type = LuaMessenger::LuaMessage::Types::StopCurrent;
+			msg->stopCurrent.wnd = wnd;
+			lua_messenger.send_message(msg);
+			// save config?
+			return TRUE;
+		}
+		case IDC_BUTTON_LUABROWSE:
+		{
+			std::string newPath = OpenLuaFileDialog();
+			if (!newPath.empty())
+				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+					newPath.c_str());
+			shouldSave = true;
+			return TRUE;
+		}
+		case IDC_BUTTON_LUAEDIT:
+		{
+			CHAR buf[MAX_PATH];
+			GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+				buf, MAX_PATH);
+			if (buf == NULL || strlen(buf) == 0)/* || strlen(buf)>MAX_PATH*/
+				return FALSE; // previously , clicking edit with empty path will open current directory in explorer, which is very bad
+
+			ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
+			return TRUE;
+		}
+		case IDC_BUTTON_LUACLEAR:
+			if (GetAsyncKeyState(VK_MENU)) {
+				// clear path
+				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
 				return TRUE;
 			}
-			case IDC_BUTTON_LUASTOP:
-			{
-				LuaMessage::Msg* msg = new LuaMessage::Msg();
-				msg->type = LuaMessage::StopCurrent;
-				msg->stopCurrent.wnd = wnd;
-				luaMessage.post(msg);
-				// save config?
-				return TRUE;
-			}
-			case IDC_BUTTON_LUABROWSE:
-			{
-				std::string newPath = OpenLuaFileDialog();
-				if (!newPath.empty())
-					SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-						newPath.c_str());
-				shouldSave = true;
-				return TRUE;
-			}
-			case IDC_BUTTON_LUAEDIT:
-			{
-				CHAR buf[MAX_PATH];
-				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-					buf, MAX_PATH);
-				if (buf == NULL || strlen(buf) == 0)/* || strlen(buf)>MAX_PATH*/
-					return FALSE; // previously , clicking edit with empty path will open current directory in explorer, which is very bad
 
-				ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
-				return TRUE;
-			}
-			case IDC_BUTTON_LUACLEAR:
-				if (GetAsyncKeyState(VK_MENU)) {
-					// clear path
-					SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
-					return TRUE;
-				}
-
-				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
-				return TRUE;
+			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
+			return TRUE;
 		}
 		return FALSE;
 	}
 
 	void CreateLuaWindow(void(*callback)()) {
 
-		if (LuaCriticalSettingChangePending)return;
-
-		if (!lua_dc) {
-			InitializeLuaDC(mainHWND);
-		}
+		LuaEngine::initialize_lua_dc();
 
 		HWND wnd = CreateDialogParam(app_hInstance,
 			MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND, DialogProc,
@@ -868,98 +914,16 @@ namespace LuaEngine {
 
 	LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		switch (msg) {
-			case WM_CREATE:
-			case WM_DESTROY:
-				return 0;
+		case WM_CREATE:
+		case WM_DESTROY:
+			return 0;
 		}
 		return DefWindowProc(wnd, msg, wParam, lParam);
 
 	}
-	void InitializeLuaDC_(HWND mainWnd) {
-
-		if (lua_dc) {
-			destroy_lua_dc();
-		}
-
-		RECT window_rect;
-		GetClientRect(mainWnd, &window_rect);
-		lua_dc_width = window_rect.right;
-		lua_dc_height = window_rect.bottom;
 
 
-		D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
-			D2D1_RENDER_TARGET_TYPE_DEFAULT,
-			D2D1::PixelFormat(
-				DXGI_FORMAT_B8G8R8A8_UNORM,
-				D2D1_ALPHA_MODE_PREMULTIPLIED));
 
-		D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2d_factory);
-		d2d_factory->CreateDCRenderTarget(&props, &d2d_render_target);
-		DWriteCreateFactory(
-			DWRITE_FACTORY_TYPE_SHARED,
-			__uuidof(dw_factory),
-			reinterpret_cast<IUnknown**>(&dw_factory)
-		);
-
-		if (Config.is_lua_double_buffered) {
-			HDC main_dc = GetDC(mainWnd);
-			lua_dc = CreateCompatibleDC(main_dc);
-			HBITMAP bmp = CreateCompatibleBitmap(main_dc, window_rect.right, window_rect.bottom);
-			SelectObject(lua_dc, bmp);
-			ReleaseDC(mainWnd, main_dc);
-		} else {
-			lua_dc = GetDC(mainWnd);
-		}
-
-		RECT dc_rect = {0, 0, lua_dc_width, lua_dc_height};
-		d2d_render_target->BindDC(lua_dc, &dc_rect);
-
-	}
-
-	void draw_lua(std::function<void()> draw_callback) {
-
-		if (!lua_dc)
-		{
-			// can happen sometimes
-			printf("Attempted to draw without lua dc\n");
-			return;
-		}
-
-		if (Config.is_lua_double_buffered) {
-
-			// HACK: fake transparency by using color mask with obscure color
-			const uint32_t color_mask = RGB(1, 0, 1);
-
-			HDC main_dc = GetDC(mainHWND);
-			TransparentBlt(lua_dc, 0, 0, lua_dc_width, lua_dc_height, main_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
-
-
-			d2d_render_target->BeginDraw();
-			d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
-			d2d_render_target->Clear(D2D1::ColorF(color_mask));
-
-			draw_callback();
-
-			d2d_render_target->EndDraw();
-
-			TransparentBlt(main_dc, 0, 0, lua_dc_width, lua_dc_height, lua_dc, 0, 0, lua_dc_width, lua_dc_height, color_mask);
-			ReleaseDC(mainHWND, main_dc);
-		}
-	}
-
-	void destroy_lua_dc() {
-		d2d_factory->Release();
-		d2d_render_target->Release();
-
-		for (auto const& [key, val] : d2d_brush_cache) {
-			val->Release();
-		}
-
-		d2d_brush_cache.clear();
-
-		ReleaseDC(mainHWND, lua_dc);
-		lua_dc = NULL;
-	}
 
 	void RecompileNextAll();
 	void RecompileNow(ULONG);
@@ -1016,9 +980,9 @@ namespace LuaEngine {
 	const char* const REG_ATSAVESTATE = "SS";
 	const char* const REG_ATRESET = "RE";
 
-	Lua* GetLuaClass(lua_State* L) {
+	LuaEnvironment* GetLuaClass(lua_State* L) {
 		lua_getfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
-		Lua* lua = (Lua*)lua_topointer(L, -1);
+		LuaEnvironment* lua = (LuaEnvironment*)lua_topointer(L, -1);
 		lua_pop(L, 1);
 		return lua;
 	}
@@ -1104,30 +1068,7 @@ namespace LuaEngine {
 			key);
 		lua_error(L);
 	}
-	void registerFuncEach(int(*f)(lua_State*), const char* key) {
-		for (std::vector<HWND>::iterator it = luaWindows.begin();
-			it != luaWindows.end(); it++) {
-			Lua* lua = GetWindowLua(*it);
-			if (lua && lua->isrunning()) {
-			#ifdef WIN32
-							//ensure thread safety (load and savestate callbacks for example)
-				DWORD waitResult = WaitForSingleObject(lua->hMutex, INFINITE);
-				switch (waitResult) {
-					case WAIT_OBJECT_0:
-					#endif
-						if (lua->registerFuncEach(f, key)) {
-							printf("!ERRROR, RETRY\n");
-							//if error happened, try again (but what if it fails again and again?)
-							registerFuncEach(f, key);
-							return;
-						}
-					#ifdef WIN32
-						ReleaseMutex(lua->hMutex);
-					#endif
-				}
-			}
-		}
-	}
+
 
 
 	//������ւ񂩂�֐�
@@ -1144,82 +1085,84 @@ namespace LuaEngine {
 	}
 	int StopScript(lua_State* L) {
 		HWND wnd = GetLuaClass(L)->ownWnd;
-		GetWindowLua(wnd)->stop();
+		hwnd_lua_map[wnd]->stop();
 		return 0;
 	}
 	int ToStringEx(lua_State* L) {
 		switch (lua_type(L, -1)) {
-			case LUA_TNIL:
-			case LUA_TBOOLEAN:
-			case LUA_TFUNCTION:
-			case LUA_TUSERDATA:
-			case LUA_TTHREAD:
-			case LUA_TLIGHTUSERDATA:
-			case LUA_TNUMBER:
-				lua_getglobal(L, "tostring");
-				lua_pushvalue(L, -2);
-				lua_call(L, 1, 1);
-				lua_insert(L, lua_gettop(L) - 1);
-				lua_pop(L, 1);
-				break;
-			case LUA_TSTRING:
-				lua_getglobal(L, "string");
-				lua_getfield(L, -1, "format");
-				lua_pushstring(L, "%q");
-				lua_pushvalue(L, -4);
-				lua_call(L, 2, 1);
-				lua_insert(L, lua_gettop(L) - 2);
+		case LUA_TNIL:
+		case LUA_TBOOLEAN:
+		case LUA_TFUNCTION:
+		case LUA_TUSERDATA:
+		case LUA_TTHREAD:
+		case LUA_TLIGHTUSERDATA:
+		case LUA_TNUMBER:
+			lua_getglobal(L, "tostring");
+			lua_pushvalue(L, -2);
+			lua_call(L, 1, 1);
+			lua_insert(L, lua_gettop(L) - 1);
+			lua_pop(L, 1);
+			break;
+		case LUA_TSTRING:
+			lua_getglobal(L, "string");
+			lua_getfield(L, -1, "format");
+			lua_pushstring(L, "%q");
+			lua_pushvalue(L, -4);
+			lua_call(L, 2, 1);
+			lua_insert(L, lua_gettop(L) - 2);
+			lua_pop(L, 2);
+			break;
+		case LUA_TTABLE:
+		{
+			lua_pushvalue(L, -1);
+			lua_rawget(L, 1);
+			if (lua_toboolean(L, -1)) {
 				lua_pop(L, 2);
-				break;
-			case LUA_TTABLE:
-			{
-				lua_pushvalue(L, -1);
-				lua_rawget(L, 1);
-				if (lua_toboolean(L, -1)) {
-					lua_pop(L, 2);
-					lua_pushstring(L, "{...}");
-					return 1;
-				}
-				lua_pop(L, 1);
-				lua_pushvalue(L, -1);
-				lua_pushboolean(L, TRUE);
-				lua_rawset(L, 1);
-				int isArray = 0;
-				std::string s("{");
-				lua_pushnil(L);
-				if (lua_next(L, -2)) {
-					while (1) {
-						lua_pushvalue(L, -2);
-						if (lua_type(L, -1) == LUA_TNUMBER &&
-							isArray + 1 == lua_tonumber(L, -1)) {
-							lua_pop(L, 1);
-							isArray++;
-						} else {
-							isArray = -1;
-							if (lua_type(L, -1) == LUA_TSTRING) {
-								s.append(lua_tostring(L, -1));
-								lua_pop(L, 1);
-							} else {
-								ToStringEx(L);
-								s.append("[").append(lua_tostring(L, -1)).append("]");
-								lua_pop(L, 1);
-							}
-						}
-						ToStringEx(L);
-						if (isArray == -1) {
-							s.append("=");
-						}
-						s.append(lua_tostring(L, -1));
-						lua_pop(L, 1);
-						if (!lua_next(L, -2))break;
-						s.append(", ");
-					}
-				}
-				lua_pop(L, 1);
-				s.append("}");
-				lua_pushstring(L, s.c_str());
-				break;
+				lua_pushstring(L, "{...}");
+				return 1;
 			}
+			lua_pop(L, 1);
+			lua_pushvalue(L, -1);
+			lua_pushboolean(L, TRUE);
+			lua_rawset(L, 1);
+			int isArray = 0;
+			std::string s("{");
+			lua_pushnil(L);
+			if (lua_next(L, -2)) {
+				while (1) {
+					lua_pushvalue(L, -2);
+					if (lua_type(L, -1) == LUA_TNUMBER &&
+						isArray + 1 == lua_tonumber(L, -1)) {
+						lua_pop(L, 1);
+						isArray++;
+					}
+					else {
+						isArray = -1;
+						if (lua_type(L, -1) == LUA_TSTRING) {
+							s.append(lua_tostring(L, -1));
+							lua_pop(L, 1);
+						}
+						else {
+							ToStringEx(L);
+							s.append("[").append(lua_tostring(L, -1)).append("]");
+							lua_pop(L, 1);
+						}
+					}
+					ToStringEx(L);
+					if (isArray == -1) {
+						s.append("=");
+					}
+					s.append(lua_tostring(L, -1));
+					lua_pop(L, 1);
+					if (!lua_next(L, -2))break;
+					s.append(", ");
+				}
+			}
+			lua_pop(L, 1);
+			s.append("}");
+			lua_pushstring(L, s.c_str());
+			break;
+		}
 		}
 		return 1;
 	}
@@ -1259,9 +1202,11 @@ namespace LuaEngine {
 				lua_call(L, 2, 1);	//s,r
 				lua_insert(L, lua_gettop(L) - 1);	//
 				lua_pop(L, 1);
-			} else if (lua_type(L, -1) == LUA_TSTRING) {
+			}
+			else if (lua_type(L, -1) == LUA_TSTRING) {
 				//do nothing
-			} else {
+			}
+			else {
 				ToStringExInit(L);
 			}
 			str.append(lua_tostring(L, -1));
@@ -1430,16 +1375,16 @@ namespace LuaEngine {
 		int size = luaL_checkinteger(L, 2);
 		switch (size) {
 			// unsigned
-			case 1: lua_pushinteger(L, LoadRDRAMSafe<UCHAR>(addr)); break;
-			case 2: lua_pushinteger(L, LoadRDRAMSafe<USHORT>(addr)); break;
-			case 4: lua_pushinteger(L, LoadRDRAMSafe<ULONG>(addr)); break;
-			case 8: LuaPushQword(L, LoadRDRAMSafe<ULONGLONG>(addr)); break;
+		case 1: lua_pushinteger(L, LoadRDRAMSafe<UCHAR>(addr)); break;
+		case 2: lua_pushinteger(L, LoadRDRAMSafe<USHORT>(addr)); break;
+		case 4: lua_pushinteger(L, LoadRDRAMSafe<ULONG>(addr)); break;
+		case 8: LuaPushQword(L, LoadRDRAMSafe<ULONGLONG>(addr)); break;
 			// signed
-			case -1: lua_pushinteger(L, LoadRDRAMSafe<CHAR>(addr)); break;
-			case -2: lua_pushinteger(L, LoadRDRAMSafe<SHORT>(addr)); break;
-			case -4: lua_pushinteger(L, LoadRDRAMSafe<LONG>(addr)); break;
-			case -8: LuaPushQword(L, LoadRDRAMSafe<LONGLONG>(addr)); break;
-			default: luaL_error(L, "size must be 1, 2, 4, 8, -1, -2, -4, -8");
+		case -1: lua_pushinteger(L, LoadRDRAMSafe<CHAR>(addr)); break;
+		case -2: lua_pushinteger(L, LoadRDRAMSafe<SHORT>(addr)); break;
+		case -4: lua_pushinteger(L, LoadRDRAMSafe<LONG>(addr)); break;
+		case -8: LuaPushQword(L, LoadRDRAMSafe<LONGLONG>(addr)); break;
+		default: luaL_error(L, "size must be 1, 2, 4, 8, -1, -2, -4, -8");
 		}
 		return 1;
 	}
@@ -1448,15 +1393,15 @@ namespace LuaEngine {
 		ULONG addr = luaL_checkinteger(L, 1);
 		int size = luaL_checkinteger(L, 2);
 		switch (size) {
-			case 1: StoreRDRAMSafe<UCHAR>(addr, luaL_checkinteger(L, 3)); break;
-			case 2: StoreRDRAMSafe<USHORT>(addr, luaL_checkinteger(L, 3)); break;
-			case 4: StoreRDRAMSafe<ULONG>(addr, luaL_checkinteger(L, 3)); break;
-			case 8: StoreRDRAMSafe<ULONGLONG>(addr, LuaCheckQWord(L, 3)); break;
-			case -1: StoreRDRAMSafe<CHAR>(addr, luaL_checkinteger(L, 3)); break;
-			case -2: StoreRDRAMSafe<SHORT>(addr, luaL_checkinteger(L, 3)); break;
-			case -4: StoreRDRAMSafe<LONG>(addr, luaL_checkinteger(L, 3)); break;
-			case -8: StoreRDRAMSafe<LONGLONG>(addr, LuaCheckQWord(L, 3)); break;
-			default: luaL_error(L, "size must be 1, 2, 4, 8, -1, -2, -4, -8");
+		case 1: StoreRDRAMSafe<UCHAR>(addr, luaL_checkinteger(L, 3)); break;
+		case 2: StoreRDRAMSafe<USHORT>(addr, luaL_checkinteger(L, 3)); break;
+		case 4: StoreRDRAMSafe<ULONG>(addr, luaL_checkinteger(L, 3)); break;
+		case 8: StoreRDRAMSafe<ULONGLONG>(addr, LuaCheckQWord(L, 3)); break;
+		case -1: StoreRDRAMSafe<CHAR>(addr, luaL_checkinteger(L, 3)); break;
+		case -2: StoreRDRAMSafe<SHORT>(addr, luaL_checkinteger(L, 3)); break;
+		case -4: StoreRDRAMSafe<LONG>(addr, luaL_checkinteger(L, 3)); break;
+		case -8: StoreRDRAMSafe<LONGLONG>(addr, LuaCheckQWord(L, 3)); break;
+		default: luaL_error(L, "size must be 1, 2, 4, 8, -1, -2, -4, -8");
 		}
 		return 0;
 	}
@@ -1550,7 +1495,8 @@ namespace LuaEngine {
 					RecompileNextAll();
 				}
 			}
-		} else {
+		}
+		else {
 			lua_pushvalue(L, 2);
 			AddrBreakMap::iterator it = breakMap.find(addr);
 			if (it != breakMap.end()) {
@@ -1627,7 +1573,8 @@ namespace LuaEngine {
 		if (lua_gettop(L) == *arg + 2) {
 			size = lua_tointeger(L, 2);
 			*arg += 2;
-		} else {
+		}
+		else {
 			*arg += 1;
 		}
 		if (size < 0 || size > 64) {
@@ -1639,7 +1586,8 @@ namespace LuaEngine {
 				sscanf(s + 1, "%u", &n);
 				if (n >= 32) n = -1;
 				else n += 66;
-			} else {
+			}
+			else {
 				for (int i = 0; i < sizeof(RegName) / sizeof(RegName[0]); i++) {
 					if (lstrcmpi(s, RegName[i]) == 0) {
 						n = i;
@@ -1647,69 +1595,77 @@ namespace LuaEngine {
 					}
 				}
 			}
-		} else if (t == LUA_TNUMBER) {
+		}
+		else if (t == LUA_TNUMBER) {
 			n = lua_tointeger(L, 1);
 		}
 		if (n < 0 || n > cop1index + 32) {
 			luaL_error(L, "unknown register");
-		} else if (n < 32) {
+		}
+		else if (n < 32) {
 			*r = &reg[n];
-		} else if (n < 64) {
+		}
+		else if (n < 64) {
 			*r = &reg_cop0[n - 32];
-		} else if (n < cop1index) {
+		}
+		else if (n < cop1index) {
 			switch (n) {
-				case 64:
-					*r = &hi; break;
-				case 65:
-					*r = &lo; break;
-				case 66:
-					*r = &FCR0;
-					if (size > 32) size = 32;
-					break;
-				case 67:
-					*r = &FCR31;
-					if (size > 32) size = 32;
-					break;
-				case 68:
-					InterpreterCoreCheck(L, "(get PC)");
-					//MemoryBreak�ł�PC++������ɏ�������݂���������A1���[�h�����
-					if (interpcore == 0) {
-						*r = &PC->addr;
-					} else {
-						*r = &interp_addr;
-					}
-					break;
-				case 69:
-					if (!break_value_flag) {
-						//2��ڂƂ�break�̊O�Ƃ�
-						luaL_error(L, "break_value");
-					}
-					break_value_flag = false;
-					*r = &break_value;
-					break;
-				case 70:
-					//�ǂݍ��݂̂�
-					switch (current_break_value_size) {
-						case 1: *r = &g_byte; break;
-						case 2: *r = &hword; break;
-						case 4: *r = &word; break;
-						case 8: *r = &dword; break;
-						default: ASSERT(0);
-					}
-					if (size > current_break_value_size * 8) {
-						size = current_break_value_size * 8;
-					}
-					break;
+			case 64:
+				*r = &hi; break;
+			case 65:
+				*r = &lo; break;
+			case 66:
+				*r = &FCR0;
+				if (size > 32) size = 32;
+				break;
+			case 67:
+				*r = &FCR31;
+				if (size > 32) size = 32;
+				break;
+			case 68:
+				InterpreterCoreCheck(L, "(get PC)");
+				//MemoryBreak�ł�PC++������ɏ�������݂���������A1���[�h�����
+				if (interpcore == 0) {
+					*r = &PC->addr;
+				}
+				else {
+					*r = &interp_addr;
+				}
+				break;
+			case 69:
+				if (!break_value_flag) {
+					//2��ڂƂ�break�̊O�Ƃ�
+					luaL_error(L, "break_value");
+				}
+				break_value_flag = false;
+				*r = &break_value;
+				break;
+			case 70:
+				//�ǂݍ��݂̂�
+				switch (current_break_value_size) {
+				case 1: *r = &g_byte; break;
+				case 2: *r = &hword; break;
+				case 4: *r = &word; break;
+				case 8: *r = &dword; break;
+				default: ASSERT(0);
+				}
+				if (size > current_break_value_size * 8) {
+					size = current_break_value_size * 8;
+				}
+				break;
 			}
-		} else {
+		}
+		else {
 			//Status�ɂ�����炸�������ʂɂȂ�����������H(cop0�悭�킩���ĂȂ��̂�����ǂ�)
 			if (size == 32) {
 				*r = reg_cop1_simple[n - cop1index];
 				size = -32;
-			} else if (size == 64) {
+			}
+			else if (size == 64) {
 				*r = reg_cop1_double[n - cop1index];
 				size = -64;
-			} else {
+			}
+			else {
 				luaL_error(L, "get cop1 register size must be 32 or 64");
 			}
 		}
@@ -1719,7 +1675,8 @@ namespace LuaEngine {
 	unsigned long PAddr(unsigned long addr) {
 		if (addr >= 0x80000000 && addr < 0xC0000000) {
 			return addr;
-		} else {
+		}
+		else {
 			return virtual_to_physical_address(addr, 2);
 		}
 	}
@@ -1733,7 +1690,8 @@ namespace LuaEngine {
 				if ((paddr & 0x1FFFFFFF) >= 0x10000000) {
 					recompile_block((long*)rom + ((((paddr - (addr - blocks[addr >> 12]->start)) & 0x1FFFFFFF) - 0x10000000) >> 2),
 						blocks[addr >> 12], addr);
-				} else {
+				}
+				else {
 					recompile_block((long*)(rdram + (((paddr - (addr - blocks[addr >> 12]->start)) & 0x1FFFFFFF) >> 2)),
 						blocks[addr >> 12], addr);
 				}
@@ -1801,18 +1759,18 @@ namespace LuaEngine {
 		return 0;
 	}
 	int GetSystemMetricsLua(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		lua_pushinteger(L, GetSystemMetrics(luaL_checkinteger(L, 1)));
 
 		return 1;
 	}
 	int IsMainWindowInForeground(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 		lua_pushboolean(L, GetForegroundWindow() == mainHWND || GetActiveWindow() == mainHWND);
 		return 1;
 	}
-	
+
 	int LuaLoadImage(lua_State* L) {
 		const char* path = luaL_checkstring(L, 1);
 		int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
@@ -1840,12 +1798,14 @@ namespace LuaEngine {
 				delete x;
 			}
 			imagePool.clear();
-		} else { // If clear index is not 0, clear 1 image
+		}
+		else { // If clear index is not 0, clear 1 image
 			if (clearIndex <= imagePool.size()) {
 				printf("Deleting image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
 				delete imagePool[clearIndex - 1];
 				imagePool.erase(imagePool.begin() + clearIndex - 1);
-			} else { // Error if the image doesn't exist
+			}
+			else { // Error if the image doesn't exist
 				luaL_error(L, "Argument #1: Invalid image index");
 				return 0;
 			}
@@ -1875,7 +1835,8 @@ namespace LuaEngine {
 
 			gfx.DrawImage(img, x, y);// Gdiplus::Image *image, int x, int y
 			return 0;
-		} else if (args == 4) {
+		}
+		else if (args == 4) {
 			int x = luaL_checknumber(L, 2);
 			int y = luaL_checknumber(L, 3);
 			float scale = luaL_checknumber(L, 4);
@@ -1899,7 +1860,8 @@ namespace LuaEngine {
 
 			gfx.DrawImage(img, dest);// Gdiplus::Image *image, const Gdiplus::Rect &rect
 			return 0;
-		} else if (args == 10) {
+		}
+		else if (args == 10) {
 			int x = luaL_checknumber(L, 2);
 			int y = luaL_checknumber(L, 3);
 			int w = luaL_checknumber(L, 4);
@@ -1983,7 +1945,7 @@ namespace LuaEngine {
 	//2nd arg is color #xxxxxxxx
 	int FillPolygonAlpha(lua_State* L) {
 		//Get lua instance stored in script class
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		//stack should look like
 		//--------
@@ -2072,7 +2034,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DFillRoundedRectangle(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D1::RectF(
 			luaL_checknumber(L, 1),
@@ -2101,7 +2063,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawRoundedRectangle(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D1::RectF(
 			luaL_checknumber(L, 1),
@@ -2130,7 +2092,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DFillRectangle(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D1::RectF(
 			luaL_checknumber(L, 1),
@@ -2153,7 +2115,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawRectangle(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D1::RectF(
 			luaL_checknumber(L, 1),
@@ -2175,7 +2137,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DFillEllipse(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_ELLIPSE ellipse = {
 			.point = {
@@ -2201,7 +2163,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawEllipse(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_ELLIPSE ellipse = {
 			.point = {
@@ -2228,7 +2190,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawLine(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_POINT_2F point_a = {
 			.x = (float)luaL_checknumber(L, 1),
@@ -2255,7 +2217,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawText(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D1::RectF(
 			luaL_checknumber(L, 1),
@@ -2316,7 +2278,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DPushClip(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D1::RectF(
 			luaL_checknumber(L, 1),
@@ -2334,7 +2296,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DPopClip(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		d2d_render_target->PopAxisAlignedClip();
 
@@ -2342,7 +2304,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DGetTextSize(lua_State* L) {
-		Lua* lua = GetLuaClass(L);
+		LuaEnvironment* lua = GetLuaClass(L);
 
 		auto text = widen(std::string(luaL_checkstring(L, 1)));
 		auto font_name = std::string(luaL_checkstring(L, 2));
@@ -2381,7 +2343,6 @@ namespace LuaEngine {
 	}
 
 	int GetGUIInfo(lua_State* L) {
-		InitializeLuaDC(mainHWND);
 		lua_newtable(L);
 		lua_pushinteger(L, lua_dc_width);
 		lua_setfield(L, -2, "width");
@@ -2401,7 +2362,7 @@ namespace LuaEngine {
 			w + (wndRect.right - clientRect.right),
 			h + (wndRect.bottom - clientRect.bottom),
 			SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
-		InitializeLuaDC(mainHWND);
+		LuaEngine::initialize_lua_dc();
 		return 0;
 	}
 	//emu
@@ -2421,7 +2382,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATUPDATESCREEN);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATUPDATESCREEN);
@@ -2435,7 +2397,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATVI);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATVI);
@@ -2449,7 +2412,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATINPUT);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATINPUT);
@@ -2465,7 +2429,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATSTOP);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATSTOP);
@@ -2479,7 +2444,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_WINDOWMESSAGE);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_WINDOWMESSAGE);
@@ -2487,17 +2453,22 @@ namespace LuaEngine {
 		return 0;
 	}
 	int AtWindowMessage(lua_State* L) {
-		lua_pushinteger(L, (unsigned)luaMessage.current_msg->windowMessage.wnd);
-		lua_pushinteger(L, luaMessage.current_msg->windowMessage.msg);
-		lua_pushinteger(L, luaMessage.current_msg->windowMessage.wParam);
-		lua_pushinteger(L, luaMessage.current_msg->windowMessage.lParam);
+		auto message = lua_messenger.get_current_message();
+
+		lua_pushinteger(L, (unsigned)message->windowMessage.wnd);
+		lua_pushinteger(L, message->windowMessage.msg);
+		lua_pushinteger(L, message->windowMessage.wParam);
+		lua_pushinteger(L, message->windowMessage.lParam);
+
+
 		return lua_pcall(L, 4, 0, 0);
 	}
 	int RegisterInterval(lua_State* L) {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATINTERVAL);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATINTERVAL);
@@ -2509,7 +2480,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATPLAYMOVIE);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATPLAYMOVIE);
@@ -2521,7 +2493,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATSTOPMOVIE);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATSTOPMOVIE);
@@ -2533,7 +2506,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATLOADSTATE);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATLOADSTATE);
@@ -2545,7 +2519,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATSAVESTATE);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATSAVESTATE);
@@ -2557,7 +2532,8 @@ namespace LuaEngine {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
 			UnregisterFunction(L, REG_ATRESET);
-		} else {
+		}
+		else {
 			if (lua_gettop(L) == 2)
 				lua_pop(L, 1);
 			RegisterFunction(L, REG_ATRESET);
@@ -2591,7 +2567,7 @@ namespace LuaEngine {
 		// 1 = version number
 		version = MUPEN_VERSION;
 		if (type > 0)
-			version = {&MUPEN_VERSION[strlen("Mupen 64 ")]};
+			version = { &MUPEN_VERSION[strlen("Mupen 64 ")] };
 
 
 		lua_pushstring(L, version);
@@ -2625,8 +2601,8 @@ namespace LuaEngine {
 			const char* name;
 			void* pointer;
 		};
-	#define A(n) {#n, &n}
-	#define B(n) {#n, n}
+#define A(n) {#n, &n}
+#define B(n) {#n, n}
 		const NameAndVariable list[] = {
 			A(rdram),
 			A(rdram_register),
@@ -2644,8 +2620,8 @@ namespace LuaEngine {
 			B(PIF_RAM),
 			{NULL, NULL}
 		};
-	#undef A
-	#undef B
+#undef A
+#undef B
 		const char* s = lua_tostring(L, 1);
 		for (const NameAndVariable* p = list; p->name; p++) {
 			if (lstrcmpi(p->name, s) == 0) {
@@ -2658,7 +2634,8 @@ namespace LuaEngine {
 	int EmuPause(lua_State* L) {
 		if (!lua_toboolean(L, 1)) {
 			pauseEmu(FALSE);
-		} else {
+		}
+		else {
 			resumeEmu(TRUE);
 		}
 		return 0;
@@ -2680,7 +2657,8 @@ namespace LuaEngine {
 		const char* s = lua_tostring(L, 1);
 		if (lstrcmpi(s, "normal") == 0) {
 			maximumSpeedMode = false;
-		} else if (lstrcmpi(s, "maximum") == 0) {
+		}
+		else if (lstrcmpi(s, "maximum") == 0) {
 			maximumSpeedMode = true;
 		}
 		return 0;
@@ -2700,7 +2678,8 @@ namespace LuaEngine {
 	int GetMovieFilename(lua_State* L) {
 		if (VCR_isStarting() || VCR_isPlaying()) {
 			lua_pushstring(L, VCR_getMovieFilename());
-		} else {
+		}
+		else {
 			luaL_error(L, "No movie is currently playing");
 			lua_pushstring(L, "");
 		}
@@ -2740,7 +2719,7 @@ namespace LuaEngine {
 
 	BOOL validType(const char* type) {
 		printf("Type: %s\n", type);
-		const char* validTypes[15] = {"r", "rb", "w", "wb", "a", "ab", "r+", "rb+", "r+b", "w+", "wb+", "w+b", "a+", "ab+", "a+b"};
+		const char* validTypes[15] = { "r", "rb", "w", "wb", "a", "ab", "r+", "rb+", "r+b", "w+", "wb+", "w+b", "a+", "ab+", "a+b" };
 		for (int i = 0; i <= 15; i++) {
 			if (strcmp(validTypes[i], type))
 				return TRUE;
@@ -2866,7 +2845,8 @@ namespace LuaEngine {
 		if (it == breakMap.end()) {
 			hashMap[address >> 16]->func[TypeIndex<T>::v]();
 			return;
-		} else {
+		}
+		else {
 			break_value_flag = true;
 			current_break_value_size = sizeof(T);
 			AddrBreakFuncVec& f = it->second.func;
@@ -2889,11 +2869,14 @@ namespace LuaEngine {
 			if (rw && !break_value_flag) {
 				if (sizeof(T) == 1) {
 					g_byte = (T)break_value;
-				} else if (sizeof(T) == 2) {
+				}
+				else if (sizeof(T) == 2) {
 					hword = (T)break_value;
-				} else if (sizeof(T) == 4) {
+				}
+				else if (sizeof(T) == 4) {
 					word = (T)break_value;
-				} else if (sizeof(T) == 8) {
+				}
+				else if (sizeof(T) == 8) {
 					dword = (T)break_value;
 				}
 			}
@@ -3028,47 +3011,47 @@ namespace LuaEngine {
 	INT_PTR CALLBACK InputPromptProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		static lua_State* L;
 		switch (msg) {
-			case WM_INITDIALOG:
+		case WM_INITDIALOG:
+		{
+			L = (lua_State*)lParam;
+			std::string str(luaL_optstring(L, 2, ""));
+			SetWindowText(wnd,
+				luaL_optstring(L, 1, "input:"));
+			std::string::size_type p = 0;
+			while ((p = str.find('\n', p)) != std::string::npos) {
+				str.replace(p, 1, "\r\n");
+				p += 2;
+			}
+			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT),
+				str.c_str());
+			SetFocus(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT));
+			break;
+		}
+		case WM_COMMAND:
+			switch (LOWORD(wParam)) {
+			case IDOK:
 			{
-				L = (lua_State*)lParam;
-				std::string str(luaL_optstring(L, 2, ""));
-				SetWindowText(wnd,
-					luaL_optstring(L, 1, "input:"));
+				HWND inp = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
+				int size = GetWindowTextLength(inp) + 1;
+				char* buf = new char[size];
+				GetWindowText(inp, buf, size);
+				std::string str(buf);
+				delete buf;
 				std::string::size_type p = 0;
-				while ((p = str.find('\n', p)) != std::string::npos) {
-					str.replace(p, 1, "\r\n");
-					p += 2;
+				while ((p = str.find("\r\n", p)) != std::string::npos) {
+					str.replace(p, 2, "\n");
+					p += 1;
 				}
-				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT),
-					str.c_str());
-				SetFocus(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT));
+				lua_pushstring(L, str.c_str());
+				EndDialog(wnd, 0);
 				break;
 			}
-			case WM_COMMAND:
-				switch (LOWORD(wParam)) {
-					case IDOK:
-					{
-						HWND inp = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
-						int size = GetWindowTextLength(inp) + 1;
-						char* buf = new char[size];
-						GetWindowText(inp, buf, size);
-						std::string str(buf);
-						delete buf;
-						std::string::size_type p = 0;
-						while ((p = str.find("\r\n", p)) != std::string::npos) {
-							str.replace(p, 2, "\n");
-							p += 1;
-						}
-						lua_pushstring(L, str.c_str());
-						EndDialog(wnd, 0);
-						break;
-					}
-					case IDCANCEL:
-						lua_pushnil(L);
-						EndDialog(wnd, 1);
-						break;
-				}
+			case IDCANCEL:
+				lua_pushnil(L);
+				EndDialog(wnd, 1);
 				break;
+			}
+			break;
 		}
 		return FALSE;
 	}
@@ -3087,7 +3070,7 @@ namespace LuaEngine {
 		}
 		BUTTONS b = *(BUTTONS*)&lastInputLua[i];
 		lua_newtable(L);
-	#define A(a,s) lua_pushboolean(L,b.a);lua_setfield(L, -2, s)
+#define A(a,s) lua_pushboolean(L,b.a);lua_setfield(L, -2, s)
 		A(R_DPAD, "right");
 		A(L_DPAD, "left");
 		A(D_DPAD, "down");
@@ -3108,7 +3091,7 @@ namespace LuaEngine {
 		lua_setfield(L, -2, "Y");			//X��Y���t�A�㉺��t(�オ��)
 		lua_pushinteger(L, b.Y_AXIS);	//X��Y�͒������A�㉺�͒����Ȃ�(-128�Ƃ����͂����獬���̌�)
 		lua_setfield(L, -2, "X");
-	#undef A
+#undef A
 		return 1;
 	}
 
@@ -3118,7 +3101,8 @@ namespace LuaEngine {
 		if (lua_type(L, 1) == LUA_TTABLE) {
 			a_2 = 1;
 			i = 0;
-		} else {
+		}
+		else {
 			i = luaL_optinteger(L, 1, 1) - 1;
 		}
 		if (i < 0 || i >= 4) {
@@ -3126,7 +3110,7 @@ namespace LuaEngine {
 		}
 		BUTTONS* b = (BUTTONS*)&rewriteInputLua[i];
 		lua_pushvalue(L, a_2);
-	#define A(a,s) lua_getfield(L, -1, s);b->a=lua_toboolean(L,-1);lua_pop(L,1);
+#define A(a,s) lua_getfield(L, -1, s);b->a=lua_toboolean(L,-1);lua_pop(L,1);
 		A(R_DPAD, "right");
 		A(L_DPAD, "left");
 		A(D_DPAD, "down");
@@ -3148,7 +3132,7 @@ namespace LuaEngine {
 		lua_getfield(L, -1, "X");
 		b->Y_AXIS = lua_tointeger(L, -1); lua_pop(L, 1);
 		rewriteInputFlagLua[i] = true;
-	#undef A
+#undef A
 		return 1;
 	}
 
@@ -3318,57 +3302,51 @@ void NewLuaScript(void(*callback)()) {
 }
 
 void CloseAllLuaScript(void) {
-	if (LuaEngine::luaWindowMap.empty() || LuaEngine::luaWindows.empty()) {
-		MUPEN64RR_DEBUGINFO("No scripts running");
-		anyLuaRunning = false;
-		return;
-	}
-	MUPEN64RR_DEBUGINFO("Close all scripts");
-	LuaEngine::LuaMessage::Msg* msg = new LuaEngine::LuaMessage::Msg();
-	msg->type = LuaEngine::LuaMessage::CloseAll;
-	LuaEngine::luaMessage.post(msg);
+	LuaEngine::LuaMessenger::LuaMessage* msg = new LuaEngine::LuaMessenger::LuaMessage();
+	msg->type = LuaEngine::LuaMessenger::LuaMessage::Types::CloseAll;
+	LuaEngine::lua_messenger.send_message(msg);
 }
 void AtUpdateScreenLuaCallback() {
-	GetLuaMessage();
-	LuaEngine::registerFuncEach(LuaEngine::AtUpdateScreen, LuaEngine::REG_ATUPDATESCREEN);
+	LuaProcessMessages();
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::AtUpdateScreen, LuaEngine::REG_ATUPDATESCREEN);
 }
 void AtVILuaCallback() {
-	GetLuaMessage();
-	LuaEngine::registerFuncEach(LuaEngine::AtVI, LuaEngine::REG_ATVI);
+	LuaProcessMessages();
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::AtVI, LuaEngine::REG_ATVI);
 }
 void AtInputLuaCallback(int n) {
-	GetLuaMessage();
+	LuaProcessMessages();
 	LuaEngine::current_input_n = n;
-	LuaEngine::registerFuncEach(LuaEngine::AtInput, LuaEngine::REG_ATINPUT);
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::AtInput, LuaEngine::REG_ATINPUT);
 	LuaEngine::inputCount++;
 }
 void AtIntervalLuaCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATINTERVAL);
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::CallTop, LuaEngine::REG_ATINTERVAL);
 }
 
 void AtPlayMovieLuaCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATPLAYMOVIE);
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::CallTop, LuaEngine::REG_ATPLAYMOVIE);
 }
 
 void AtStopMovieLuaCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATSTOPMOVIE);
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::CallTop, LuaEngine::REG_ATSTOPMOVIE);
 }
 
 void AtLoadStateLuaCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATLOADSTATE);
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::CallTop, LuaEngine::REG_ATLOADSTATE);
 }
 
 void AtSaveStateLuaCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATSAVESTATE);
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::CallTop, LuaEngine::REG_ATSAVESTATE);
 }
 
 //called after reset, when emulation ready
 void AtResetCallback() {
-	LuaEngine::registerFuncEach(LuaEngine::CallTop, LuaEngine::REG_ATRESET);
+	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::CallTop, LuaEngine::REG_ATRESET);
 }
 
-void GetLuaMessage() {
-	LuaEngine::luaMessage.getMessages();
+void LuaProcessMessages() {
+	LuaEngine::lua_messenger.process_messages();
 }
 void LuaBreakpointSyncPure() {
 	LuaEngine::BreakpointSyncPure();
@@ -3378,39 +3356,8 @@ void LuaBreakpointSyncInterp() {
 }
 
 
-void LuaReload() {
-	LuaEngine::LuaMessage::Msg* msg = new LuaEngine::LuaMessage::Msg();
-	msg->type = LuaEngine::LuaMessage::ReloadFirst;
-	LuaEngine::luaMessage.post(msg);
-}
-
-// allow loading multiple lua scripts at a time
-static char ExternallyLoadedPaths[MAX_LUA_OPEN_AND_RUN_INSTANCES][MAX_PATH];
-static int elpLoadIndex = 0; // increment after runPath message has been sent
-static int elpSaveIndex = 0; // increment after new console created
-
-// Send a lua message to run a path on the last lua window.
-// This works off the assumption that no new windows were made between
-// the time the desired window was created, and the time this callback
-// is run (practically safe, theoretically not good)
-static void RunExternallyLoadedPath() {
-	LuaEngine::LuaMessage::Msg* msg = new LuaEngine::LuaMessage::Msg();
-	msg->type = LuaEngine::LuaMessage::RunPath;
-	strcpy(msg->runPath.path, ExternallyLoadedPaths[elpLoadIndex]);
-	elpLoadIndex = (elpLoadIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
-	msg->runPath.wnd = NULL;
-	LuaEngine::luaMessage.post(msg);
-}
-
-// Stores the path to be used after a new lua window is created
 void LuaOpenAndRun(const char* path) {
-	strcpy(ExternallyLoadedPaths[elpSaveIndex], path);
-	elpSaveIndex = (elpSaveIndex + 1) % MAX_LUA_OPEN_AND_RUN_INSTANCES;
-	PostMessage(mainHWND, WM_COMMAND, ID_MENU_LUASCRIPT_NEW, (LPARAM)RunExternallyLoadedPath);
-}
 
-void InitializeLuaDC(HWND mainWnd) {
-	LuaEngine::InitializeLuaDC_(mainWnd);
 }
 
 //Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
@@ -3477,73 +3424,73 @@ void instrStr2(r4300word pc, r4300word w, char* p1) {
 #define NONE2 NONE;NONE
 
 	switch (decode.format) {
-		case INSTF_NONE:
-			NONE2;
-			break;
-		case INSTF_J:
-		case INSTF_0BRANCH:
-			NONE2;
-			break;
-		case INSTF_LUI:
-			NONE2;
-			break;
-		case INSTF_1BRANCH:
-		case INSTF_JR:
-		case INSTF_ISIGN:
-		case INSTF_IUNSIGN:
-			REGCPU(o.i.rs);
-			NONE;
-			break;
-		case INSTF_2BRANCH:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_ADDRW:
-			HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-			REGCPU(o.i.rt);
-			break;
-		case INSTF_ADDRR:
-			HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-			NONE;
-			break;
-		case INSTF_LFW:
-			HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-			REGFPU(o.lf.ft);
-			break;
-		case INSTF_LFR:
-			HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-			NONE;
-			break;
-		case INSTF_R1:
-			REGCPU(o.r.rd);
-			NONE;
-			break;
-		case INSTF_R2:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_R3:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_MTC0:
-		case INSTF_MTC1:
-		case INSTF_SA:
-			REGCPU(o.r.rt);
-			NONE;
-			break;
-		case INSTF_R2F:
-			REGFPU(o.cf.fs);
-			NONE;
-			break;
-		case INSTF_R3F:
-		case INSTF_C:
-			REGFPU2(o.cf.fs, o.cf.ft);
-			break;
-		case INSTF_MFC0:
-			NONE2;
-			break;
-		case INSTF_MFC1:
-			REGFPU(((FPUREG)o.r.rs));
-			NONE;
-			break;
+	case INSTF_NONE:
+		NONE2;
+		break;
+	case INSTF_J:
+	case INSTF_0BRANCH:
+		NONE2;
+		break;
+	case INSTF_LUI:
+		NONE2;
+		break;
+	case INSTF_1BRANCH:
+	case INSTF_JR:
+	case INSTF_ISIGN:
+	case INSTF_IUNSIGN:
+		REGCPU(o.i.rs);
+		NONE;
+		break;
+	case INSTF_2BRANCH:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_ADDRW:
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		REGCPU(o.i.rt);
+		break;
+	case INSTF_ADDRR:
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		NONE;
+		break;
+	case INSTF_LFW:
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		REGFPU(o.lf.ft);
+		break;
+	case INSTF_LFR:
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		NONE;
+		break;
+	case INSTF_R1:
+		REGCPU(o.r.rd);
+		NONE;
+		break;
+	case INSTF_R2:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_R3:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_MTC0:
+	case INSTF_MTC1:
+	case INSTF_SA:
+		REGCPU(o.r.rt);
+		NONE;
+		break;
+	case INSTF_R2F:
+		REGFPU(o.cf.fs);
+		NONE;
+		break;
+	case INSTF_R3F:
+	case INSTF_C:
+		REGFPU2(o.cf.fs, o.cf.ft);
+		break;
+	case INSTF_MFC0:
+		NONE2;
+		break;
+	case INSTF_MFC1:
+		REGFPU(((FPUREG)o.r.rs));
+		NONE;
+		break;
 	}
 	p1[strlen(p1)] = '\0';
 #undef HEX8
@@ -3578,7 +3525,8 @@ void instrStr1(unsigned long pc, unsigned long w, char* p1) {
 		*(p++) = 'n';
 		*(p++) = 'o';
 		*(p++) = 'p';
-	} else {
+	}
+	else {
 		for (const char* q = GetOpecodeString(&decode); *q; q++) {
 			*(p++) = *q;
 		}
@@ -3614,64 +3562,64 @@ void instrStr1(unsigned long pc, unsigned long w, char* p1) {
 		*(p++) = '#';
 	}
 	switch (decode.format) {
-		case INSTF_NONE:
-			break;
-		case INSTF_J:
-		case INSTF_0BRANCH:
-			break;
-		case INSTF_LUI:
-			break;
-		case INSTF_1BRANCH:
-		case INSTF_JR:
-		case INSTF_ISIGN:
-		case INSTF_IUNSIGN:
-			REGCPU(o.i.rs);
-			break;
-		case INSTF_2BRANCH:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_ADDRW:
-			REGCPU(o.i.rt);
-			if (o.i.rt != 0) { C; }
-		case INSTF_ADDRR:
-			*(p++) = '@';
-			*(p++) = '=';
-			HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-			break;
-		case INSTF_LFW:
-			REGFPU(o.lf.ft);
-			C;
-		case INSTF_LFR:
-			*(p++) = '@';
-			*(p++) = '=';
-			HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-			break;
-		case INSTF_R1:
-			REGCPU(o.r.rd);
-			break;
-		case INSTF_R2:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_R3:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_MTC0:
-		case INSTF_MTC1:
-		case INSTF_SA:
-			REGCPU(o.r.rt);
-			break;
-		case INSTF_R2F:
-			REGFPU(o.cf.fs);
-			break;
-		case INSTF_R3F:
-		case INSTF_C:
-			REGFPU2(o.cf.fs, o.cf.ft);
-			break;
-		case INSTF_MFC0:
-			break;
-		case INSTF_MFC1:
-			REGFPU(((FPUREG)o.r.rs));
-			break;
+	case INSTF_NONE:
+		break;
+	case INSTF_J:
+	case INSTF_0BRANCH:
+		break;
+	case INSTF_LUI:
+		break;
+	case INSTF_1BRANCH:
+	case INSTF_JR:
+	case INSTF_ISIGN:
+	case INSTF_IUNSIGN:
+		REGCPU(o.i.rs);
+		break;
+	case INSTF_2BRANCH:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_ADDRW:
+		REGCPU(o.i.rt);
+		if (o.i.rt != 0) { C; }
+	case INSTF_ADDRR:
+		*(p++) = '@';
+		*(p++) = '=';
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		break;
+	case INSTF_LFW:
+		REGFPU(o.lf.ft);
+		C;
+	case INSTF_LFR:
+		*(p++) = '@';
+		*(p++) = '=';
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		break;
+	case INSTF_R1:
+		REGCPU(o.r.rd);
+		break;
+	case INSTF_R2:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_R3:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_MTC0:
+	case INSTF_MTC1:
+	case INSTF_SA:
+		REGCPU(o.r.rt);
+		break;
+	case INSTF_R2F:
+		REGFPU(o.cf.fs);
+		break;
+	case INSTF_R3F:
+	case INSTF_C:
+		REGFPU2(o.cf.fs, o.cf.ft);
+		break;
+	case INSTF_MFC0:
+		break;
+	case INSTF_MFC1:
+		REGFPU(((FPUREG)o.r.rs));
+		break;
 	}
 	p1[strlen(p1)] = '\0';
 #undef HEX8
@@ -3709,7 +3657,8 @@ void TraceLogging(r4300word pc, r4300word w) {
 		*(p++) = 'n';
 		*(p++) = 'o';
 		*(p++) = 'p';
-	} else {
+	}
+	else {
 		for (const char* q = GetOpecodeString(&decode); *q; q++) {
 			*(p++) = *q;
 		}
@@ -3745,64 +3694,64 @@ void TraceLogging(r4300word pc, r4300word w) {
 		*(p++) = '#';
 	}
 	switch (decode.format) {
-		case INSTF_NONE:
-			break;
-		case INSTF_J:
-		case INSTF_0BRANCH:
-			break;
-		case INSTF_LUI:
-			break;
-		case INSTF_1BRANCH:
-		case INSTF_JR:
-		case INSTF_ISIGN:
-		case INSTF_IUNSIGN:
-			REGCPU(o.i.rs);
-			break;
-		case INSTF_2BRANCH:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_ADDRW:
-			REGCPU(o.i.rt);
-			if (o.i.rt != 0) { C; }
-		case INSTF_ADDRR:
-			*(p++) = '@';
-			*(p++) = '=';
-			HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-			break;
-		case INSTF_LFW:
-			REGFPU(o.lf.ft);
-			C;
-		case INSTF_LFR:
-			*(p++) = '@';
-			*(p++) = '=';
-			HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-			break;
-		case INSTF_R1:
-			REGCPU(o.r.rd);
-			break;
-		case INSTF_R2:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_R3:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_MTC0:
-		case INSTF_MTC1:
-		case INSTF_SA:
-			REGCPU(o.r.rt);
-			break;
-		case INSTF_R2F:
-			REGFPU(o.cf.fs);
-			break;
-		case INSTF_R3F:
-		case INSTF_C:
-			REGFPU2(o.cf.fs, o.cf.ft);
-			break;
-		case INSTF_MFC0:
-			break;
-		case INSTF_MFC1:
-			REGFPU(((FPUREG)o.r.rs));
-			break;
+	case INSTF_NONE:
+		break;
+	case INSTF_J:
+	case INSTF_0BRANCH:
+		break;
+	case INSTF_LUI:
+		break;
+	case INSTF_1BRANCH:
+	case INSTF_JR:
+	case INSTF_ISIGN:
+	case INSTF_IUNSIGN:
+		REGCPU(o.i.rs);
+		break;
+	case INSTF_2BRANCH:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_ADDRW:
+		REGCPU(o.i.rt);
+		if (o.i.rt != 0) { C; }
+	case INSTF_ADDRR:
+		*(p++) = '@';
+		*(p++) = '=';
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		break;
+	case INSTF_LFW:
+		REGFPU(o.lf.ft);
+		C;
+	case INSTF_LFR:
+		*(p++) = '@';
+		*(p++) = '=';
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		break;
+	case INSTF_R1:
+		REGCPU(o.r.rd);
+		break;
+	case INSTF_R2:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_R3:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_MTC0:
+	case INSTF_MTC1:
+	case INSTF_SA:
+		REGCPU(o.r.rt);
+		break;
+	case INSTF_R2F:
+		REGFPU(o.cf.fs);
+		break;
+	case INSTF_R3F:
+	case INSTF_C:
+		REGFPU2(o.cf.fs, o.cf.ft);
+		break;
+	case INSTF_MFC0:
+		break;
+	case INSTF_MFC1:
+		REGFPU(((FPUREG)o.r.rs));
+		break;
 	}
 	*(p++) = '\n';
 
@@ -3840,73 +3789,73 @@ void TraceLoggingBin(r4300word pc, r4300word w) {
 #define NONE2 NONE;NONE
 
 	switch (decode.format) {
-		case INSTF_NONE:
-			NONE2;
-			break;
-		case INSTF_J:
-		case INSTF_0BRANCH:
-			NONE2;
-			break;
-		case INSTF_LUI:
-			NONE2;
-			break;
-		case INSTF_1BRANCH:
-		case INSTF_JR:
-		case INSTF_ISIGN:
-		case INSTF_IUNSIGN:
-			REGCPU(o.i.rs);
-			NONE;
-			break;
-		case INSTF_2BRANCH:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_ADDRW:
-			HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-			REGCPU(o.i.rt);
-			break;
-		case INSTF_ADDRR:
-			HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-			NONE;
-			break;
-		case INSTF_LFW:
-			HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-			REGFPU(o.lf.ft);
-			break;
-		case INSTF_LFR:
-			HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-			NONE;
-			break;
-		case INSTF_R1:
-			REGCPU(o.r.rd);
-			NONE;
-			break;
-		case INSTF_R2:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_R3:
-			REGCPU2(o.i.rs, o.i.rt);
-			break;
-		case INSTF_MTC0:
-		case INSTF_MTC1:
-		case INSTF_SA:
-			REGCPU(o.r.rt);
-			NONE;
-			break;
-		case INSTF_R2F:
-			REGFPU(o.cf.fs);
-			NONE;
-			break;
-		case INSTF_R3F:
-		case INSTF_C:
-			REGFPU2(o.cf.fs, o.cf.ft);
-			break;
-		case INSTF_MFC0:
-			NONE2;
-			break;
-		case INSTF_MFC1:
-			REGFPU(((FPUREG)o.r.rs));
-			NONE;
-			break;
+	case INSTF_NONE:
+		NONE2;
+		break;
+	case INSTF_J:
+	case INSTF_0BRANCH:
+		NONE2;
+		break;
+	case INSTF_LUI:
+		NONE2;
+		break;
+	case INSTF_1BRANCH:
+	case INSTF_JR:
+	case INSTF_ISIGN:
+	case INSTF_IUNSIGN:
+		REGCPU(o.i.rs);
+		NONE;
+		break;
+	case INSTF_2BRANCH:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_ADDRW:
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		REGCPU(o.i.rt);
+		break;
+	case INSTF_ADDRR:
+		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+		NONE;
+		break;
+	case INSTF_LFW:
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		REGFPU(o.lf.ft);
+		break;
+	case INSTF_LFR:
+		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+		NONE;
+		break;
+	case INSTF_R1:
+		REGCPU(o.r.rd);
+		NONE;
+		break;
+	case INSTF_R2:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_R3:
+		REGCPU2(o.i.rs, o.i.rt);
+		break;
+	case INSTF_MTC0:
+	case INSTF_MTC1:
+	case INSTF_SA:
+		REGCPU(o.r.rt);
+		NONE;
+		break;
+	case INSTF_R2F:
+		REGFPU(o.cf.fs);
+		NONE;
+		break;
+	case INSTF_R3F:
+	case INSTF_C:
+		REGFPU2(o.cf.fs, o.cf.ft);
+		break;
+	case INSTF_MFC0:
+		NONE2;
+		break;
+	case INSTF_MFC1:
+		REGFPU(((FPUREG)o.r.rs));
+		NONE;
+		break;
 	}
 	TraceLoggingWriteBuf();
 #undef HEX8
@@ -3919,7 +3868,8 @@ void TraceLoggingBin(r4300word pc, r4300word w) {
 void LuaTraceLoggingPure() {
 	if (!traceLogMode) {
 		TraceLogging(interp_addr, op);
-	} else {
+	}
+	else {
 		TraceLoggingBin(interp_addr, op);
 	}
 }
@@ -3929,7 +3879,8 @@ void LuaTraceLoggingInterpOps() {
 	if (enableTraceLog) {
 		if (!traceLogMode) {
 			TraceLogging(PC->addr, PC->src);
-		} else {
+		}
+		else {
 			TraceLoggingBin(PC->addr, PC->src);
 		}
 	}
@@ -3944,18 +3895,19 @@ void LuaTraceLogState() {
 	char filename[MAX_PATH] = "trace.log";
 	if (fdLuaTraceLog.ShowFileDialog(filename, L"*.log", FALSE, FALSE, mainHWND)) {
 		LuaEngine::TraceLogStart(filename);
-	} else {
+	}
+	else {
 		LuaEngine::TraceLogStop();
 	}
 }
 
 
 void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
-	LuaEngine::LuaMessage::Msg* m = new LuaEngine::LuaMessage::Msg();
-	m->type = LuaEngine::LuaMessage::WindowMessage;
-	m->windowMessage.wnd = mainHWND;
-	m->windowMessage.msg = msg;
-	m->windowMessage.wParam = w;
-	m->windowMessage.lParam = l;
-	LuaEngine::luaMessage.post(m);
+	auto message = new LuaEngine::LuaMessenger::LuaMessage();
+	message->type = LuaEngine::LuaMessenger::LuaMessage::Types::WindowMessage;
+	message->windowMessage.wnd = mainHWND;
+	message->windowMessage.msg = msg;
+	message->windowMessage.wParam = w;
+	message->windowMessage.lParam = l;
+	LuaEngine::lua_messenger.send_message(message);
 }
