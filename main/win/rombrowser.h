@@ -33,7 +33,7 @@ typedef struct {
 	char     GoodName[200];
 	char     CartID[3];
 	char     PluginNotes[250];
-	char     CoreNotes[250];
+	char     CoreNotes[250]; 
 	char     UserNotes[250];
 	char     Developer[30];
 	char     ReleaseDate[30];
