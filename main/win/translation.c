@@ -560,7 +560,6 @@ void TranslateLangInfoDialog(HWND hwnd) {
 
 void TranslateAdvancedDialog(HWND hwnd) {
 	SetItemTranslatedString(hwnd, IDC_COMMON, "Common Options");
-	SetItemTranslatedString(hwnd, IDC_STARTFULLSCREEN, "Fullscreen start");
 	SetItemTranslatedString(hwnd, IDC_PAUSENOTACTIVE, "Pause when unfocused");
 	SetItemTranslatedString(hwnd, IDC_PLUGIN_OVERWRITE, "Use global plugin config");
 	SetItemTranslatedString(hwnd, IDC_GUI_TOOLBAR, "Show toolbar");

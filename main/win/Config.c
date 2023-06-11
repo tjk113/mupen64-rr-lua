@@ -545,7 +545,6 @@ void LoadConfig() {
 	// TODO: make config section and entry r/w automatic
 
 	//Advanced vars
-	Config.is_fullscreen_start_enabled = ReadCfgInt("Advanced", "Start Full Screen", 0);
 	Config.is_unfocused_pause_enabled = ReadCfgInt("Advanced", "Pause when not active", 1);
 	Config.use_global_plugins = ReadCfgInt("Advanced", "Overwrite Plugins Settings", 0);
 	Config.is_toolbar_enabled = ReadCfgInt("Advanced", "Use Toolbar", 0);
@@ -553,7 +552,6 @@ void LoadConfig() {
 	Config.is_slot_autoincrement_enabled = ReadCfgInt("Advanced", "Auto Increment Save Slot", 0);
 	Config.is_round_towards_zero_enabled = ReadCfgInt("Advanced", "Round To Zero", 0);
 	Config.is_float_exception_propagation_enabled = ReadCfgInt("Advanced", "Emulate Float Crashes", 0);
-	Config.is_input_delay_enabled = ReadCfgInt("Advanced", "Old Input Delay", 0);
 	Config.is_lua_double_buffered = ReadCfgInt("Advanced", "LUA Double Buffer", 1);
 	Config.is_state_independent_state_loading_allowed = ReadCfgInt("Advanced", "Allow arbitrary savestate loading", 0);
 
@@ -599,8 +597,6 @@ void LoadConfig() {
 	ReadCfgString("Avi Options", "Avi Capture Path", "", Config.avi_capture_path);
 
 	// other
-	Config.is_lua_exit_confirm_enabled = ReadCfgInt("Other", "Ask on lua close", 0);
-	Config.is_lua_simple_dialog_enabled = ReadCfgInt("Other", "Simplified lua", 0);
 	Config.is_movie_backup_enabled = ReadCfgInt("Other", "Autobackup", 0);
 	Config.movie_backup_level = ReadCfgInt("Other", "Autobackup level", 0);
 	Config.is_statusbar_frequent_refresh_enabled = ReadCfgInt("Other", "Fast statusbar updates", 0);
@@ -754,7 +750,6 @@ void SaveConfig() {
 	WriteCfgInt("General", "Zero Index", Config.is_frame_count_visual_zero_index);
 
 	//Advanced Vars
-	WriteCfgInt("Advanced", "Start Full Screen", Config.is_fullscreen_start_enabled);
 	WriteCfgInt("Advanced", "Pause when not active", Config.is_unfocused_pause_enabled);
 	WriteCfgInt("Advanced", "Overwrite Plugins Settings", Config.use_global_plugins);
 	WriteCfgInt("Advanced", "Use Toolbar", Config.is_toolbar_enabled);
@@ -762,7 +757,6 @@ void SaveConfig() {
 	WriteCfgInt("Advanced", "Auto Increment Save Slot", Config.is_slot_autoincrement_enabled);
 	WriteCfgInt("Advanced", "Round To Zero", Config.is_round_towards_zero_enabled);
 	WriteCfgInt("Advanced", "Emulate Float Crashes", Config.is_float_exception_propagation_enabled);
-	WriteCfgInt("Advanced", "Old Input Delay", Config.is_input_delay_enabled);
 	WriteCfgInt("Advanced", "LUA Double Buffer", Config.is_lua_double_buffered);
 	WriteCfgInt("Advanced", "Allow arbitrary savestate loading", Config.is_state_independent_state_loading_allowed);
 
@@ -796,8 +790,6 @@ void SaveConfig() {
 	WriteCfgInt("Avi Options", "Capture other windows", Config.is_capture_cropped_screen_dc);
 	WriteCfgString("Avi Options", "Avi Capture Path", Config.avi_capture_path);
 
-	WriteCfgInt("Other", "Ask on lua close", Config.is_lua_exit_confirm_enabled);
-	WriteCfgInt("Other", "Simplified lua", Config.is_lua_simple_dialog_enabled);
 	WriteCfgInt("Other", "Autobackup", Config.is_movie_backup_enabled);
 	WriteCfgInt("Other", "Autobackup level", Config.movie_backup_level);
 	WriteCfgInt("Other", "Fast statusbar updates", Config.is_statusbar_frequent_refresh_enabled);

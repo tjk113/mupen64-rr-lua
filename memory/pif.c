@@ -467,7 +467,6 @@ void update_pif_read(bool stcheck) {
 							extern void pauseEmu(BOOL quiet);
 							frame_advancing = 0;
 							pauseEmu(TRUE);
-							if (!Config.is_input_delay_enabled) {
 								while (emu_paused) {
 								#ifdef LUA_EMUPAUSED_WORK	
 									Sleep(10);
@@ -482,9 +481,8 @@ void update_pif_read(bool stcheck) {
 										savestates_job &= ~LOADSTATE;
 									}
 								}
-							}
 						}
-						if (stcheck && !Config.is_input_delay_enabled) {
+						if (stcheck) {
 							if (savestates_job & SAVESTATE && stAllowed) {
 								savestates_save();
 								savestates_job &= ~SAVESTATE;

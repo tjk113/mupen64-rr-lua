@@ -211,7 +211,6 @@
 #define IDC_CHOOSE_SAVES_DIR            5014
 #define GENERATE_BITMAP                 5015
 #define IDD_ADVANCED_OPTIONS            5501
-#define IDC_STARTFULLSCREEN             5502
 #define IDC_PAUSENOTACTIVE              5503
 #define IDC_ROMBROWSERCOLUMNS           5504
 #define IDC_COLUMN_GOODNAME             5505
@@ -423,7 +422,6 @@
 #define ID_FFMPEG_START                 40006
 #define EMU_RESET                       40007
 #define IDC_STARTFROM2                  40008
-#define IDC_INPUTDELAY                  40009
 #define IDC_CLUADOUBLEBUFFER            40010
 #define IDC_GITREPO                     40011
 #define IDC_EXTSAVESTATE                40012
@@ -431,9 +429,6 @@
 #define ID_LUA_RECENT_FREEZE            40014
 #define IDD_OTHER_OPTIONS_DIALOG        40015
 #define IDC_OTHEROPTIONS                40016
-#define IDC_LUA_WARNONCLOSE             40017
-#define IDC_LUA_SIMPLEDIALOG            40018
-#define IDD_LUAWINDOW_SIMPLIFIED        40019
 #define IDC_MOVIEBACKUPS                40020
 #define ID_MOVIEBACKUP_TRACKBAR         40021
 #define ID_FORCESAVE                    40022

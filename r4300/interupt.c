@@ -502,11 +502,4 @@ void gen_interupt() {
 
 
 	exception_general();
-	if (Config.is_input_delay_enabled) {
-		if (savestates_job & SAVESTATE/* && stAllowed*/) {
-			savestates_save();
-			savestates_job &= ~SAVESTATE;
-		}
-		sleep_while_emu_paused();
-	}
 }

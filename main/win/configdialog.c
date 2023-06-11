@@ -84,8 +84,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 	switch (Message) {
 		case WM_INITDIALOG:
 		{
-			WriteCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG, Config.is_lua_simple_dialog_enabled);
-			WriteCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE, Config.is_lua_exit_confirm_enabled);
 			WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.is_movie_backup_enabled);
 			WriteCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
 			WriteCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH, Config.is_statusbar_frequent_refresh_enabled);
@@ -135,17 +133,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 					if (!VCR_isCapturing())
 						Config.synchronization_mode = VCR_SYNC_NONE;
 					break;
-				case IDC_LUA_SIMPLEDIALOG:
-				{
-
-					if (MessageBox(0, "Changing this option requires a restart.\nPress Yes to confirm that you want to change this setting. (You won\'t be able to use lua until a restart)\nPress No to revert changes.", "Restart required", MB_TOPMOST | MB_TASKMODAL | MB_ICONWARNING | MB_YESNO) == IDYES) {
-						LuaCriticalSettingChangePending = 1;
-						CloseAllLuaScript();
-					} else
-						CheckDlgButton(hwnd, IDC_LUA_SIMPLEDIALOG, Config.is_lua_simple_dialog_enabled);
-
-					break;
-				}
 				case IDC_COMBO_CLOCK_SPD_MULT:
 					ReadComboBoxValue(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
 					Config.cpu_clock_speed_multiplier = atoi(&buf[0]);
@@ -164,8 +151,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 			}
 
 			if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
-				Config.is_lua_simple_dialog_enabled = ReadCheckBoxValue(hwnd, IDC_LUA_SIMPLEDIALOG);
-				Config.is_lua_exit_confirm_enabled = ReadCheckBoxValue(hwnd, IDC_LUA_WARNONCLOSE);
 				Config.is_movie_backup_enabled = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
 				Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
 				Config.is_statusbar_frequent_refresh_enabled = ReadCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH);
@@ -949,7 +934,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 	switch (Message) {
 
 		case WM_INITDIALOG:
-			WriteCheckBoxValue(hwnd, IDC_STARTFULLSCREEN, Config.is_fullscreen_start_enabled);
 			WriteCheckBoxValue(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
 			WriteCheckBoxValue(hwnd, IDC_PLUGIN_OVERWRITE, Config.use_global_plugins);
 			WriteCheckBoxValue(hwnd, IDC_GUI_TOOLBAR, Config.is_toolbar_enabled);
@@ -957,8 +941,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 			WriteCheckBoxValue(hwnd, IDC_AUTOINCSAVESLOT, Config.is_slot_autoincrement_enabled);
 			WriteCheckBoxValue(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
 			WriteCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
-			WriteCheckBoxValue(hwnd, IDC_INPUTDELAY, Config.is_input_delay_enabled);
-			EnableWindow(GetDlgItem(hwnd, IDC_INPUTDELAY), false); //disable for now
 			WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, Config.is_lua_double_buffered);
 			WriteCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
 			WriteCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
@@ -982,7 +964,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 
 		case WM_NOTIFY:
 			if (((NMHDR FAR*) lParam)->code == PSN_APPLY) {
-				Config.is_fullscreen_start_enabled = ReadCheckBoxValue(hwnd, IDC_STARTFULLSCREEN);
 				Config.is_unfocused_pause_enabled = ReadCheckBoxValue(hwnd, IDC_PAUSENOTACTIVE);
 				Config.use_global_plugins = ReadCheckBoxValue(hwnd, IDC_PLUGIN_OVERWRITE);
 				Config.is_toolbar_enabled = ReadCheckBoxValue(hwnd, IDC_GUI_TOOLBAR);
@@ -990,7 +971,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 				Config.is_slot_autoincrement_enabled = ReadCheckBoxValue(hwnd, IDC_AUTOINCSAVESLOT);
 				Config.is_round_towards_zero_enabled = ReadCheckBoxValue(hwnd, IDC_ROUNDTOZERO);
 				Config.is_float_exception_propagation_enabled = ReadCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES);
-				Config.is_input_delay_enabled = ReadCheckBoxValue(hwnd, IDC_INPUTDELAY);
 
 				Config.is_lua_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
 				no_audio_delay = ReadCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY);

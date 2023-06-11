@@ -146,12 +146,6 @@ typedef struct _CONFIG {
 	int cpu_clock_speed_multiplier;
 
 	/// <summary>
-	/// Whether the game will start in full-screen mode
-	/// TODO: Deprecate, analyze usage
-	/// </summary>
-	BOOL is_fullscreen_start_enabled;
-
-	/// <summary>
 	/// Whether emulation will pause when the main window loses focus
 	/// </summary>
 	BOOL is_unfocused_pause_enabled;
@@ -362,18 +356,6 @@ typedef struct _CONFIG {
 	BOOL is_recent_scripts_frozen;
 
 	/// <summary>
-	/// Whether the lua script dialog is simplified
-	/// TODO: Deprecate, analyze usage
-	/// </summary>
-	BOOL is_lua_simple_dialog_enabled;
-
-	/// <summary>
-	/// Whether the lua script dialog will ask for confirmation before closing
-	/// TODO: Deprecate, analyze usage
-	/// </summary>
-	BOOL is_lua_exit_confirm_enabled;
-
-	/// <summary>
 	/// Whether the statusbar will refresh every frame
 	/// </summary>
 	BOOL is_statusbar_frequent_refresh_enabled;
@@ -387,12 +369,6 @@ typedef struct _CONFIG {
 	/// Whether floating point exceptions will propagate and crash the emulator
 	/// </summary>
 	BOOL is_float_exception_propagation_enabled;
-
-	/// <summary>
-	/// Whether the input will be delayed by 1f
-	/// TODO: Obsolete, remove (not implemented)
-	/// </summary>
-	BOOL is_input_delay_enabled;
 
 	/// <summary>
 	/// Whether lua drawing is double-buffered

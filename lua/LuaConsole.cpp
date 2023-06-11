@@ -35,14 +35,12 @@
 #include <wincodec.h>
 #include <functional>
 
-#ifdef LUA_MODULEIMPL
 
 #pragma comment(lib, "lua54.lib")
 #pragma comment (lib,"Gdiplus.lib")
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
 
-#endif
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
@@ -97,8 +95,6 @@ void LoadScreenInit() {
 
 	LoadScreenInitialized = true;
 }
-
-#ifdef LUA_MODULEIMPL
 
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
@@ -692,7 +688,6 @@ namespace LuaEngine {
 			p->right - p->left + w, p->bottom - p->top + h, SWP_NOZORDER);
 	}
 	void SizingControls(HWND wnd, WORD width, WORD height) {
-		if (Config.is_lua_simple_dialog_enabled)return;
 		int xa = width - (InitalWindowRect[0].right - InitalWindowRect[0].left),
 			ya = height - (InitalWindowRect[0].bottom - InitalWindowRect[0].top);
 		SizingControl(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -728,11 +723,6 @@ namespace LuaEngine {
 				return TRUE;
 			}
 			case WM_CLOSE:
-
-				if (Config.is_lua_exit_confirm_enabled
-					&& (MessageBox(0, "Are you sure you want to close this dialog and terminate this lua script instance?", "Confirm closing", MB_TASKMODAL | MB_TOPMOST | MB_YESNO | MB_ICONQUESTION) == IDNO))
-					return TRUE;
-
 				DestroyWindow(wnd);
 				return TRUE;
 			case WM_DESTROY:
@@ -801,10 +791,6 @@ namespace LuaEngine {
 
 				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 					msg->runPath.path, MAX_PATH);
-				//strcpy(Config.lua_script_path, msg->runPath.path);
-
-				if (Config.is_lua_simple_dialog_enabled)
-					SetWindowText(wnd, msg->runPath.path);
 
 				anyLuaRunning = true;
 				luaMessage.post(msg);
@@ -861,10 +847,8 @@ namespace LuaEngine {
 			InitializeLuaDC(mainHWND);
 		}
 
-		int LuaWndId = Config.is_lua_simple_dialog_enabled ? IDD_LUAWINDOW_SIMPLIFIED : IDD_LUAWINDOW;
-
 		HWND wnd = CreateDialogParam(app_hInstance,
-			MAKEINTRESOURCE(LuaWndId), mainHWND, DialogProc,
+			MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND, DialogProc,
 			(LPARAM)callback);
 
 		ShowWindow(wnd, SW_SHOW);	//�^�u�X�g�b�v�����Ȃ��̂Ɠ����������Ǝv��
@@ -881,10 +865,7 @@ namespace LuaEngine {
 		SendMessage(console, EM_SETSEL, length, length);
 		SendMessage(console, EM_REPLACESEL, false, (LPARAM)str);
 	}
-	/*
-	const COLORREF LUADC_BG_COLOR = 0x000000;
-	const COLORREF LUADC_BG_COLOR_A = 0x010101;
-	*/
+
 	LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		switch (msg) {
 			case WM_CREATE:
@@ -3332,8 +3313,6 @@ namespace LuaEngine {
 
 }	//namespace
 
-#if 1
-
 void NewLuaScript(void(*callback)()) {
 	LuaEngine::CreateLuaWindow(callback);
 }
@@ -3348,18 +3327,6 @@ void CloseAllLuaScript(void) {
 	LuaEngine::LuaMessage::Msg* msg = new LuaEngine::LuaMessage::Msg();
 	msg->type = LuaEngine::LuaMessage::CloseAll;
 	LuaEngine::luaMessage.post(msg);
-}
-bool IsLuaConsoleMessage(MSG* msg) {
-	/*
-	if(std::find(
-		(std::vector<HWND>::const_iterator)LuaEngine::luaWindows.begin(),
-		(std::vector<HWND>::const_iterator)LuaEngine::luaWindows.end(),
-		msg->hwnd) != LuaEngine::luaWindows.end()) {
-		IsDialogMessage(msg->hwnd, msg);
-		return true;
-	}
-	*/
-	return false;
 }
 void AtUpdateScreenLuaCallback() {
 	GetLuaMessage();
@@ -3992,27 +3959,3 @@ void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 	m->windowMessage.lParam = l;
 	LuaEngine::luaMessage.post(m);
 }
-
-
-
-#endif
-
-#else
-// bad: empty dummy functions
-void AtUpdateScreenLuaCallback() {};
-void AtVILuaCallback() {};
-void AtInputLuaCallback(int n) {};
-void AtIntervalLuaCallback() {};
-void AtPlayMovieLuaCallback() {};
-void AtStopMovieLuaCallback() {};
-void AtLoadStateLuaCallback() {};
-void AtSaveStateLuaCallback() {};
-void AtResetCallback() {};
-void GetLuaMessage() {};
-void LuaBreakpointSyncPure() {};
-void LuaBreakpointSyncInterp() {};
-void LuaOpenAndRun(char const* n) {};
-void CloseAllLuaScript(void) {};
-void instrStr1(r4300word pc, r4300word w, char* buffer) {};
-void instrStr2(r4300word pc, r4300word w, char* buffer) {};
-#endif

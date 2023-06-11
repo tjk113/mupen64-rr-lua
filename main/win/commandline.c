@@ -145,12 +145,6 @@ BOOL StartGameByCommandLine() {
 
 	cmdlineMode = 1;
 
-	/// Reading command line params
-	if (CmdLineParameterExist(CMDLINE_FULL_SCREEN_FLAG)) {
-		ShowInfo("Command Line: Fullscreen mode on");
-		Config.is_fullscreen_start_enabled = 1;
-	}
-
 	if (CmdLineParameterExist(CMDLINE_SAVE_OPTIONS)) {
 		ShowInfo("Command Line: Save mode on");
 		cmdlineSave = 1;

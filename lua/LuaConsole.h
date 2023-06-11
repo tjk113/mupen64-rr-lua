@@ -3,20 +3,19 @@
 
 #include "luaDefine.h"
 
-//#ifdef LUA_MODULEIMPL
-
 
 //識別子衝突対策
 //本当はヘッダ分割すべきか
+// ^ no
 #include "../r4300/r4300.h"
 
 #ifndef LUACONSOLE_H_NOINCLUDE_WINDOWS_H
+
 #include <Windows.h>
 #include <locale>
 #include <iostream>
 #include <string>
 #include <sstream>
-bool IsLuaConsoleMessage(MSG* msg);
 void InitializeLuaDC(HWND mainWnd);
 void NewLuaScript(void(*callback)());
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);

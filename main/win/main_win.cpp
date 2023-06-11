@@ -2376,10 +2376,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam) {
 	emu_launched = 1;
 	restart_mode = 0;
 
-	if (Config.is_fullscreen_start_enabled) {
-		FullScreenMode = 1;
-		gui_ChangeWindow();
-	}
 	ThreadFuncState = TFS_CREATESOUND;
 	ShowInfo("Emu thread: Creating sound thread...");
 	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
@@ -2822,12 +2818,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			switch (LOWORD(wParam)) {
 				case ID_MENU_LUASCRIPT_NEW:
 				{
-				//if (!IsMenuItemEnabled(hMenu, ID_LUA_LOAD_LATEST))
 					EnableRecentScriptsMenu(hMenu, TRUE);
-				#ifdef LUA_MODULEIMPL
-					MUPEN64RR_DEBUGINFO("LuaScript New");
 					::NewLuaScript((void(*)())lParam);
-				#endif
 				} break;
 				case ID_LUA_RECENT_FREEZE:
 				{
@@ -2848,11 +2840,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				}
 				case ID_MENU_LUASCRIPT_CLOSEALL:
 				{
-
-				#ifdef LUA_MODULEIMPL
-
 					::CloseAllLuaScript();
-				#endif
 				} break;
 				case ID_FORCESAVE:
 					shouldSave = TRUE;
@@ -3447,9 +3435,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					InitTimer();
 					break;
 				case ID_LUA_RELOAD:
-				#ifdef LUA_MODULEIMPL
 					LuaReload();
-				#endif
 					break;
 				default:
 					 //Language Support  from ID_LANG_ENGLISH to ID_LANG_ENGLISH+100
@@ -3773,11 +3759,7 @@ int WINAPI WinMain(
 
 
 		while (GetMessage(&Msg, NULL, 0, 0) > 0) {
-			if (!TranslateAccelerator(mainHWND, Accel, &Msg)
-			#ifdef LUA_MODULEIMPL
-				&& !::IsLuaConsoleMessage(&Msg)
-			#endif
-				) {
+			if (!TranslateAccelerator(mainHWND, Accel, &Msg)) {
 				TranslateMessage(&Msg);
 				DispatchMessage(&Msg);
 			}
