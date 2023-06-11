@@ -253,23 +253,25 @@ namespace LuaEngine {
 			SetWindowLua(ownWnd, NULL);
 			ShowInfo("Lua destruct");
 		}
-		void run(char* path) {
+		bool run(char* path) {
+			if (!path)
+			{
+				return false;
+			}
 			stopping = false;
-			std::string pathStr(path);
-			if (&path == NULL || pathStr.substr(pathStr.find_last_of(".") + 1).compare("lua"))
-				return;
 
 			ASSERT(!isrunning());
 			hMutex = CreateMutex(0, 0, 0);
 			LoadScreenInit();
 			newLuaState();
-			runFile(path);
+			auto status = runFile(path);
 			if (isrunning()) {
 				SetButtonState(ownWnd, true);
 				AddToRecentScripts(path);
 				strcpy(Config.lua_script_path, path);
 			}
 			ShowInfo("Lua run");
+			return status;
 		}
 		void stop() {
 			if (!isrunning())
@@ -363,16 +365,14 @@ namespace LuaEngine {
 			lua_setfield(L, -2, "getn");
 			lua_pop(L, 1);
 		}
-		void runFile(char* path) {
-			//int GetErrorMessage(lua_State *L);
+		bool runFile(char* path) {
 			int result;
-			//lua_pushcfunction(L, GetErrorMessage);
 			result = luaL_dofile(L, path);
 			if (result) {
 				error();
-				return;
+				return false;
 			}
-			return;
+			return true;
 		}
 
 		void error() {
