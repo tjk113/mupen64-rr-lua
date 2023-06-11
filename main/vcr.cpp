@@ -1738,10 +1738,7 @@ VCR_updateScreen() {
 	#endif
 		if (redraw) {
 			updateScreen();
-			//ShowInfo("screen has been updated, count: %x\n",Count);
-		#ifdef LUA_GUI
 			lua_new_vi(redraw);
-		#endif
 		}
 		return;
 	}
@@ -1754,9 +1751,7 @@ VCR_updateScreen() {
 
 	if (redraw) {
 		updateScreen();
-	#ifdef LUA_GUI
 		lua_new_vi(redraw);
-	#endif
 	}
 #ifdef FFMPEG_BENCHMARK
 	auto start = std::chrono::high_resolution_clock::now();

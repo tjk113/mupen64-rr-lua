@@ -466,11 +466,11 @@ namespace LuaEngine {
 
 		for (auto pair : hwnd_lua_map)
 		{
-			if (!pair.second)
+			if (!pair.second || !pair.first)
 			{
 				continue;
 			}
-			if (pair.second && pair.second->isrunning()) {
+			if (pair.second->isrunning()) {
 				//ensure thread safety (load and savestate callbacks for example)
 				DWORD waitResult = WaitForSingleObject(pair.second->hMutex, INFINITE);
 				switch (waitResult) {
@@ -634,6 +634,7 @@ namespace LuaEngine {
 
 	void destroy_lua_dc() {
 		printf("Destroying Lua DC...\n");
+
 		d2d_factory->Release();
 		d2d_render_target->Release();
 
@@ -652,7 +653,7 @@ namespace LuaEngine {
 	void initialize_lua_dc() {
 
 		if (lua_dc) {
-			LuaEngine::destroy_lua_dc();
+			return;
 		}
 		printf("Initializing Lua DC...\n");
 
@@ -827,11 +828,6 @@ namespace LuaEngine {
 		InvalidateRect(stopButton, NULL, FALSE);
 	}
 
-
-
-
-
-
 	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control) {
 		switch (id) {
 		case IDC_BUTTON_LUASTATE:
@@ -889,7 +885,7 @@ namespace LuaEngine {
 		return FALSE;
 	}
 
-	void CreateLuaWindow(void(*callback)()) {
+	void CreateLuaWindow(void(*callback)(), std::function<void(HWND)> post_creation_callback) {
 
 		LuaEngine::initialize_lua_dc();
 
@@ -897,8 +893,11 @@ namespace LuaEngine {
 			MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND, DialogProc,
 			(LPARAM)callback);
 
-		ShowWindow(wnd, SW_SHOW);	//�^�u�X�g�b�v�����Ȃ��̂Ɠ����������Ǝv��
+		ShowWindow(wnd, SW_SHOW);
+
+		post_creation_callback(wnd);
 	}
+
 	void ConsoleWrite(HWND wnd, const char* str) {
 		HWND console = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
 
@@ -3298,24 +3297,31 @@ namespace LuaEngine {
 }	//namespace
 
 void NewLuaScript(void(*callback)()) {
-	LuaEngine::CreateLuaWindow(callback);
-}
+	LuaEngine::CreateLuaWindow(callback, [](HWND hwnd) {
 
+		});
+}
+void dummy_function() {
+
+}
+void LuaOpenAndRun(const char* path) {
+	LuaEngine::CreateLuaWindow(&dummy_function, [](HWND hwnd) {
+		// simulate button click
+		SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED), (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+	});
+}
 void CloseAllLuaScript(void) {
 	LuaEngine::LuaMessenger::LuaMessage* msg = new LuaEngine::LuaMessenger::LuaMessage();
 	msg->type = LuaEngine::LuaMessenger::LuaMessage::Types::CloseAll;
 	LuaEngine::lua_messenger.send_message(msg);
 }
 void AtUpdateScreenLuaCallback() {
-	LuaProcessMessages();
 	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::AtUpdateScreen, LuaEngine::REG_ATUPDATESCREEN);
 }
 void AtVILuaCallback() {
-	LuaProcessMessages();
 	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::AtVI, LuaEngine::REG_ATVI);
 }
 void AtInputLuaCallback(int n) {
-	LuaProcessMessages();
 	LuaEngine::current_input_n = n;
 	LuaEngine::invoke_callbacks_with_key_on_all_instances(LuaEngine::AtInput, LuaEngine::REG_ATINPUT);
 	LuaEngine::inputCount++;
@@ -3356,14 +3362,14 @@ void LuaBreakpointSyncInterp() {
 }
 
 
-void LuaOpenAndRun(const char* path) {
 
-}
 
 //Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
 //Next and DrawLuaDC are only used with double buffering
 //otherwise calls vi callback and updatescreen callback
 void lua_new_vi(int redraw) {
+
+	LuaProcessMessages();
 
 	// FIXME:
 	// (somewhat unrealistic, as it requires a spec change)
@@ -3381,7 +3387,7 @@ void lua_new_vi(int redraw) {
 	if (can_repaint) {
 		LuaEngine::draw_lua([] {
 			AtUpdateScreenLuaCallback();
-			});
+		});
 	}
 }
 

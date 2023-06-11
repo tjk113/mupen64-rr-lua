@@ -468,10 +468,8 @@ void update_pif_read(bool stcheck) {
 						pauseEmu(TRUE);
 						while (emu_paused) {
 							Sleep(10);
-							LuaProcessMessages();
 							AtIntervalLuaCallback();
-							if (Config.is_lua_double_buffered)
-								lua_new_vi(1);
+							lua_new_vi(1);
 							//should this be before or after? idk
 							if (savestates_job & LOADSTATE && stAllowed) {
 								savestates_load(false);
