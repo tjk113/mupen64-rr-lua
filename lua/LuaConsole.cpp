@@ -3529,6 +3529,7 @@ namespace LuaEngine {
 		{"readqword", LuaReadQWordUnsigned},
 		{"readfloat", LuaReadFloat},
 		{"readdouble", LuaReadDouble},
+		{"readsize", LuaReadSize},
 
 		// writing functions
 		// all of these are assumed to be unsigned
