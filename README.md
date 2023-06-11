@@ -1,6 +1,7 @@
 <p align="center">
-  <img width="128" align="center" src="https://github.com/mkdasher/mupen64-rr-lua-/assets/48759429/7e6c248f-8ea3-4855-bb79-fbbc68705ed3">
+  <img width="128" align="center" src="https://github.com/mkdasher/mupen64-rr-lua-/assets/48759429/45351707-be77-4daf-987c-0bdb712891ab">
 </p>
+
 
 
 <h1 align="center">
