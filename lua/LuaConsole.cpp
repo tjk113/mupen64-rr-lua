@@ -1,4 +1,4 @@
-﻿/*
+/*
 
 */
 
@@ -220,7 +220,6 @@ namespace LuaEngine {
 	AddrBreakFuncVec::iterator RemovePCBreak(AddrBreakFuncVec& f, AddrBreakFuncVec::iterator it);
 	extern const luaL_Reg globalFuncs[];
 	extern const luaL_Reg emuFuncs[];
-	extern const luaL_Reg guiFuncs[];
 	extern const luaL_Reg wguiFuncs[];
 	extern const luaL_Reg memoryFuncs[];
 	extern const luaL_Reg inputFuncs[];
@@ -349,7 +348,6 @@ namespace LuaEngine {
 			} while ((++p)->func);
 			registerAsPackage(L, "emu", emuFuncs);
 			registerAsPackage(L, "memory", memoryFuncs);
-			registerAsPackage(L, "gui", guiFuncs);
 			registerAsPackage(L, "wgui", wguiFuncs);
 			registerAsPackage(L, "input", inputFuncs);
 			registerAsPackage(L, "joypad", joypadFuncs);
@@ -3168,11 +3166,6 @@ namespace LuaEngine {
 
 		{"writesize", LuaWriteSize},
 
-		{NULL, NULL}
-	};
-
-	const luaL_Reg guiFuncs[] = {
-		{"register", RegisterUpdateScreen},
 		{NULL, NULL}
 	};
 
