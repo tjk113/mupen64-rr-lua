@@ -2206,9 +2206,15 @@ namespace LuaEngine {
 		auto text = std::string(luaL_checkstring(L, 9));
 		auto font_name = std::string(luaL_checkstring(L, 10));
 		auto font_size = luaL_checknumber(L, 11);
-		auto horizontal_alignment = luaL_checkinteger(L, 12);
-		auto vertical_alignment = luaL_checkinteger(L, 13);
+		auto font_style_str = std::string(luaL_checkstring(L, 12));
+		auto horizontal_alignment = luaL_checkinteger(L, 13);
+		auto vertical_alignment = luaL_checkinteger(L, 14);
 		auto wide_text = widen(text);
+
+		enum DWRITE_FONT_WEIGHT font_weight = (font_style_str == "bold" || font_style_str == "bold-italic")
+											   ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL;
+		enum DWRITE_FONT_STYLE font_style   = (font_style_str == "italic" || font_style_str == "bold-italic")
+											   ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL;
 
 		// FIXME: use DrawTextLayout
 		// i just whipped this up quickly for testing
@@ -2218,8 +2224,8 @@ namespace LuaEngine {
 		dw_factory->CreateTextFormat(
 			widen(font_name).c_str(),
 			NULL,
-			DWRITE_FONT_WEIGHT_NORMAL,
-			DWRITE_FONT_STYLE_NORMAL,
+			font_weight,
+			font_style,
 			DWRITE_FONT_STRETCH_NORMAL,
 			font_size,
 			L"",
