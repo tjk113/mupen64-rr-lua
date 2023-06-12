@@ -2206,15 +2206,16 @@ namespace LuaEngine {
 		auto text = std::string(luaL_checkstring(L, 9));
 		auto font_name = std::string(luaL_checkstring(L, 10));
 		auto font_size = luaL_checknumber(L, 11);
-		auto font_style_str = std::string(luaL_checkstring(L, 12));
+		auto font_opts = luaL_checkinteger(L, 12);
 		auto horizontal_alignment = luaL_checkinteger(L, 13);
 		auto vertical_alignment = luaL_checkinteger(L, 14);
 		auto wide_text = widen(text);
 
-		enum DWRITE_FONT_WEIGHT font_weight = (font_style_str == "bold" || font_style_str == "bold-italic")
-											   ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL;
-		enum DWRITE_FONT_STYLE font_style   = (font_style_str == "italic" || font_style_str == "bold-italic")
-											   ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL;
+		// Checks if a given bit is set
+		#define CHECK_BIT(var, offset) (var >> offset) & 1
+		
+		enum DWRITE_FONT_WEIGHT font_weight = CHECK_BIT(font_opts, 0) ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL;
+		enum DWRITE_FONT_STYLE font_style   = CHECK_BIT(font_opts, 1) ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL;
 
 		// FIXME: use DrawTextLayout
 		// i just whipped this up quickly for testing
