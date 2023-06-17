@@ -2089,8 +2089,9 @@ namespace LuaEngine {
 
 #define D2D_GET_ROUNDED_RECT(L, idx) D2D1_ROUNDED_RECT( \
 	D2D_GET_RECT(L, idx), \
-	luaL_checknumber(L, 5), \
-	luaL_checknumber(L, 6))
+	luaL_checknumber(L, idx + 5), \
+	luaL_checknumber(L, idx + 6) \
+)
 
 	int LuaD2DFillRectangle(lua_State* L) {
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
@@ -2261,14 +2262,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DFillRoundedRectangle(lua_State* L) {
-		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-
-		D2D1_ROUNDED_RECT rounded_rectangle = D2D1::RoundedRect(
-			rectangle,
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6)
-		);
-
+		D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 7);
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
@@ -2279,14 +2273,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawRoundedRectangle(lua_State* L) {
-		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-
-		D2D1_ROUNDED_RECT rounded_rectangle = D2D1::RoundedRect(
-			rectangle,
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6)
-		);
-
+		D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 7);
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
@@ -2298,7 +2285,6 @@ namespace LuaEngine {
 
 	int LuaD2DDrawImage(lua_State* L) {
 		D2D1_RECT_F destination_rectangle = D2D_GET_RECT(L, 1);
-
 		D2D1_RECT_F source_rectangle = D2D_GET_RECT(L, 5);
 
 		d2d_render_target->DrawBitmap(d2d_get_cached_bitmap(std::string(luaL_checkstring(L, 9))), destination_rectangle, luaL_checknumber(L, 10), (D2D1_BITMAP_INTERPOLATION_MODE)luaL_checknumber(L, 11), source_rectangle);
@@ -2308,6 +2294,9 @@ namespace LuaEngine {
 
 #undef D2D_GET_RECT
 #undef D2D_GET_COLOR
+#undef D2D_GET_POINT
+#undef D2D_GET_ELLIPS
+#undef D2D_GET_ROUNDED_RECT
 
 	int GetGUIInfo(lua_State* L) {
 		lua_newtable(L);
