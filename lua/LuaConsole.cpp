@@ -161,6 +161,7 @@ namespace LuaEngine {
 	ID2D1DCRenderTarget* d2d_render_target;
 	IDWriteFactory* dw_factory;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
+	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
 	//improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
 	static void stackDump(lua_State* L) {
@@ -632,8 +633,12 @@ namespace LuaEngine {
 		for (auto const& [key, val] : d2d_brush_cache) {
 			val->Release();
 		}
-
 		d2d_brush_cache.clear();
+
+		for (auto const& [key, val] : d2d_bitmap_cache) {
+			val->Release();
+		}
+		d2d_bitmap_cache.clear();
 
 		ReleaseDC(mainHWND, lua_dc);
 		lua_dc = NULL;
@@ -1996,7 +2001,65 @@ namespace LuaEngine {
 		}
 
 		return d2d_brush_cache[key];
+	}
 
+	ID2D1Bitmap* d2d_get_cached_bitmap(std::string path) {
+		if (!d2d_bitmap_cache.contains(path)) {
+			printf("Creating ID2D1Bitmap %s\n", path.c_str());
+
+
+			IWICImagingFactory* pIWICFactory = NULL;
+			IWICBitmapDecoder* pDecoder = NULL;
+			IWICBitmapFrameDecode* pSource = NULL;
+			IWICFormatConverter* pConverter = NULL;
+			ID2D1Bitmap* bmp = NULL;
+
+			CoCreateInstance(
+				CLSID_WICImagingFactory,
+				NULL,
+				CLSCTX_INPROC_SERVER,
+				IID_PPV_ARGS(&pIWICFactory)
+			);
+
+			auto hr = pIWICFactory->CreateDecoderFromFilename(
+				widen(path).c_str(),
+				NULL,
+				GENERIC_READ,
+				WICDecodeMetadataCacheOnLoad,
+				&pDecoder
+			);
+
+			if (!SUCCEEDED(hr)) {
+				printf("D2D image fail HRESULT %d\n", hr);
+				pIWICFactory->Release();
+				return 0;
+			}
+
+			pIWICFactory->CreateFormatConverter(&pConverter);
+			pDecoder->GetFrame(0, &pSource);
+			pConverter->Initialize(
+				pSource,
+				GUID_WICPixelFormat32bppPBGRA,
+				WICBitmapDitherTypeNone,
+				NULL,
+				0.f,
+				WICBitmapPaletteTypeMedianCut
+			);
+
+			d2d_render_target->CreateBitmapFromWicBitmap(
+				pConverter,
+				NULL,
+				&bmp
+			);
+
+			pIWICFactory->Release();
+			pDecoder->Release();
+			pSource->Release();
+			pConverter->Release();
+
+			d2d_bitmap_cache[path] = bmp;
+		}
+		return d2d_bitmap_cache[path];
 	}
 
 	int LuaD2DFillRoundedRectangle(lua_State* L) {
@@ -2204,9 +2267,16 @@ namespace LuaEngine {
 		auto text = std::string(luaL_checkstring(L, 9));
 		auto font_name = std::string(luaL_checkstring(L, 10));
 		auto font_size = luaL_checknumber(L, 11);
-		auto horizontal_alignment = luaL_checkinteger(L, 12);
-		auto vertical_alignment = luaL_checkinteger(L, 13);
+		auto font_opts = luaL_checkinteger(L, 12);
+		auto horizontal_alignment = luaL_checkinteger(L, 13);
+		auto vertical_alignment = luaL_checkinteger(L, 14);
 		auto wide_text = widen(text);
+
+		// Checks if a given bit is set
+	#define CHECK_BIT(var, offset) (var >> offset) & 1
+
+		enum DWRITE_FONT_WEIGHT font_weight = CHECK_BIT(font_opts, 0) ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL;
+		enum DWRITE_FONT_STYLE font_style = CHECK_BIT(font_opts, 1) ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL;
 
 		// FIXME: use DrawTextLayout
 		// i just whipped this up quickly for testing
@@ -2216,8 +2286,8 @@ namespace LuaEngine {
 		dw_factory->CreateTextFormat(
 			widen(font_name).c_str(),
 			NULL,
-			DWRITE_FONT_WEIGHT_NORMAL,
-			DWRITE_FONT_STYLE_NORMAL,
+			font_weight,
+			font_style,
 			DWRITE_FONT_STRETCH_NORMAL,
 			font_size,
 			L"",
@@ -2306,6 +2376,27 @@ namespace LuaEngine {
 		text_layout->Release();
 
 		return 1;
+	}
+
+	int LuaD2DDrawImage(lua_State* L) {
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		D2D1_RECT_F destination_rectangle = D2D1::RectF(
+			luaL_checknumber(L, 1),
+			luaL_checknumber(L, 2),
+			luaL_checknumber(L, 3),
+			luaL_checknumber(L, 4)
+		);
+		D2D1_RECT_F source_rectangle = D2D1::RectF(
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6),
+			luaL_checknumber(L, 7),
+			luaL_checknumber(L, 8)
+		);
+
+		d2d_render_target->DrawBitmap(d2d_get_cached_bitmap(std::string(luaL_checkstring(L, 9))), destination_rectangle, luaL_checknumber(L, 10), (D2D1_BITMAP_INTERPOLATION_MODE)luaL_checknumber(L, 11), source_rectangle);
+
+		return 0;
 	}
 
 	int GetGUIInfo(lua_State* L) {
@@ -3187,12 +3278,13 @@ namespace LuaEngine {
 		{"d2d_get_text_size", LuaD2DGetTextSize},
 		{"d2d_fill_rounded_rectangle", LuaD2DFillRoundedRectangle},
 		{"d2d_draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
+		{"d2d_draw_image", LuaD2DDrawImage},
 
 		// GDIPlus-backed functions
 		{"fillpolygona", FillPolygonAlpha},
-		{"loadimage", LuaLoadImage},
-		{"deleteimage", DeleteImage},
-		{"drawimage", DrawImage},
+		{"loadimage", LuaLoadImage}, // deprecated, use d2d_draw_image
+		{"deleteimage", DeleteImage}, // deprecated, use d2d_draw_image
+		{"drawimage", DrawImage}, // deprecated, use d2d_draw_image
 		{"loadscreen", LoadScreen},
 		{"loadscreenreset", LoadScreenReset},
 		{"getimageinfo", GetImageInfo},
