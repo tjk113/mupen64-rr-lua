@@ -1987,7 +1987,7 @@ namespace LuaEngine {
 	}
 
 	ID2D1SolidColorBrush* d2d_get_cached_brush(D2D1::ColorF color) {
-		auto key = get_hash(color);
+		uint32_t key = get_hash(color);
 
 		if (!d2d_brush_cache.contains(key)) {
 			printf("Creating ID2D1SolidColorBrush (%f, %f, %f, %f) = %d\n", color.r, color.g, color.b, color.a, key);
@@ -2021,7 +2021,7 @@ namespace LuaEngine {
 				IID_PPV_ARGS(&pIWICFactory)
 			);
 
-			auto hr = pIWICFactory->CreateDecoderFromFilename(
+			HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
 				widen(path).c_str(),
 				NULL,
 				GENERIC_READ,
@@ -2062,79 +2062,39 @@ namespace LuaEngine {
 		return d2d_bitmap_cache[path];
 	}
 
-	int LuaD2DFillRoundedRectangle(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
+#define D2D_GET_RECT(L, idx) D2D1::RectF( \
+	luaL_checknumber(L, idx), \
+	luaL_checknumber(L, idx + 1), \
+	luaL_checknumber(L, idx + 2), \
+	luaL_checknumber(L, idx + 3) \
+)
 
-		D2D1_RECT_F rectangle = D2D1::RectF(
-			luaL_checknumber(L, 1),
-			luaL_checknumber(L, 2),
-			luaL_checknumber(L, 3),
-			luaL_checknumber(L, 4)
-		);
+#define D2D_GET_COLOR(L, idx) D2D1::ColorF( \
+	luaL_checknumber(L, idx), \
+	luaL_checknumber(L, idx + 1), \
+	luaL_checknumber(L, idx + 2), \
+	luaL_checknumber(L, idx + 3) \
+)
 
-		D2D1_ROUNDED_RECT rounded_rectangle = D2D1::RoundedRect(
-			rectangle,
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6)
-		);
-		auto color = D2D1::ColorF(
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8),
-			luaL_checknumber(L, 9),
-			luaL_checknumber(L, 10)
-		);
+#define D2D_GET_POINT(L, idx) D2D1_POINT_2F{ \
+	.x = (float)luaL_checknumber(L, idx), \
+	.y = (float)luaL_checknumber(L, idx + 1) \
+}
 
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
+#define D2D_GET_ELLIPSE(L, idx) D2D1_ELLIPSE{ \
+	.point = D2D_GET_POINT(L, idx), \
+	.radiusX = (float)luaL_checknumber(L, idx + 2), \
+	.radiusY = (float)luaL_checknumber(L, idx + 3) \
+}
 
-		d2d_render_target->FillRoundedRectangle(&rounded_rectangle, brush);
-
-		return 0;
-	}
-
-	int LuaD2DDrawRoundedRectangle(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		D2D1_RECT_F rectangle = D2D1::RectF(
-			luaL_checknumber(L, 1),
-			luaL_checknumber(L, 2),
-			luaL_checknumber(L, 3),
-			luaL_checknumber(L, 4)
-		);
-
-		D2D1_ROUNDED_RECT rounded_rectangle = D2D1::RoundedRect(
-			rectangle,
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6)
-		);
-		auto color = D2D1::ColorF(
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8),
-			luaL_checknumber(L, 9),
-			luaL_checknumber(L, 10)
-		);
-
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
-
-		d2d_render_target->DrawRoundedRectangle(&rounded_rectangle, brush, luaL_checknumber(L, 11));
-
-		return 0;
-	}
+#define D2D_GET_ROUNDED_RECT(L, idx) D2D1_ROUNDED_RECT( \
+	D2D_GET_RECT(L, idx), \
+	luaL_checknumber(L, 5), \
+	luaL_checknumber(L, 6))
 
 	int LuaD2DFillRectangle(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		D2D1_RECT_F rectangle = D2D1::RectF(
-			luaL_checknumber(L, 1),
-			luaL_checknumber(L, 2),
-			luaL_checknumber(L, 3),
-			luaL_checknumber(L, 4)
-		);
-		auto color = D2D1::ColorF(
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6),
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8)
-		);
+		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
+		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
@@ -2144,20 +2104,9 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawRectangle(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
+		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
+		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 
-		D2D1_RECT_F rectangle = D2D1::RectF(
-			luaL_checknumber(L, 1),
-			luaL_checknumber(L, 2),
-			luaL_checknumber(L, 3),
-			luaL_checknumber(L, 4)
-		);
-		auto color = D2D1::ColorF(
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6),
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8)
-		);
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
 		d2d_render_target->DrawRectangle(&rectangle, brush, luaL_checknumber(L, 9));
@@ -2166,23 +2115,8 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DFillEllipse(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		D2D1_ELLIPSE ellipse = {
-			.point = {
-				.x = (float)luaL_checknumber(L, 1),
-				.y = (float)luaL_checknumber(L, 2),
-		},
-		.radiusX = (float)luaL_checknumber(L, 3),
-		.radiusY = (float)luaL_checknumber(L, 4),
-		};
-
-		auto color = D2D1::ColorF(
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6),
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8)
-		);
+		D2D1_ELLIPSE ellipse = D2D_GET_ELLIPSE(L, 1);
+		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
@@ -2192,26 +2126,10 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawEllipse(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		D2D1_ELLIPSE ellipse = {
-			.point = {
-				.x = (float)luaL_checknumber(L, 1),
-				.y = (float)luaL_checknumber(L, 2),
-		},
-		.radiusX = (float)luaL_checknumber(L, 3),
-		.radiusY = (float)luaL_checknumber(L, 4),
-		};
-
-		auto color = D2D1::ColorF(
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6),
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8)
-		);
+		D2D1_ELLIPSE ellipse = D2D_GET_ELLIPSE(L, 1);
+		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
-
 
 		d2d_render_target->DrawEllipse(&ellipse, brush);
 
@@ -2219,26 +2137,11 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawLine(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		D2D1_POINT_2F point_a = {
-			.x = (float)luaL_checknumber(L, 1),
-			.y = (float)luaL_checknumber(L, 2),
-		};
-		D2D1_POINT_2F point_b = {
-			.x = (float)luaL_checknumber(L, 3),
-			.y = (float)luaL_checknumber(L, 4),
-		};
-
-		auto color = D2D1::ColorF(
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6),
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8)
-		);
+		D2D1_POINT_2F point_a = D2D_GET_POINT(L, 1);
+		D2D1_POINT_2F point_b = D2D_GET_POINT(L, 3);
+		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
-
 
 		d2d_render_target->DrawLine(point_a, point_b, brush, luaL_checknumber(L, 9));
 
@@ -2246,37 +2149,25 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DDrawText(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		D2D1_RECT_F rectangle = D2D1::RectF(
-			luaL_checknumber(L, 1),
-			luaL_checknumber(L, 2),
-			luaL_checknumber(L, 3),
-			luaL_checknumber(L, 4)
-		);
-
-		auto color = D2D1::ColorF(
-			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6),
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8)
-		);
+		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
+		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
-		auto text = std::string(luaL_checkstring(L, 9));
-		auto font_name = std::string(luaL_checkstring(L, 10));
-		auto font_size = luaL_checknumber(L, 11);
-		auto font_opts = luaL_checkinteger(L, 12);
-		auto horizontal_alignment = luaL_checkinteger(L, 13);
-		auto vertical_alignment = luaL_checkinteger(L, 14);
-		auto wide_text = widen(text);
+		std::wstring text = widen(std::string(luaL_checkstring(L, 9)));
+		std::string font_name(luaL_checkstring(L, 10));
+		float font_size = luaL_checknumber(L, 11);
+		int font_opts = luaL_checkinteger(L, 12);
+		int horizontal_alignment = luaL_checkinteger(L, 13);
+		int vertical_alignment = luaL_checkinteger(L, 14);
 
 		// Checks if a given bit is set
 	#define CHECK_BIT(var, offset) (var >> offset) & 1
 
 		enum DWRITE_FONT_WEIGHT font_weight = CHECK_BIT(font_opts, 0) ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL;
 		enum DWRITE_FONT_STYLE font_style = CHECK_BIT(font_opts, 1) ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL;
+
+	#undef CHECK_BIT
 
 		// FIXME: use DrawTextLayout
 		// i just whipped this up quickly for testing
@@ -2299,7 +2190,7 @@ namespace LuaEngine {
 
 		IDWriteTextLayout* text_layout;
 
-		dw_factory->CreateTextLayout(wide_text.c_str(), wide_text.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
+		dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
 
 
 		d2d_render_target->DrawTextLayout({
@@ -2313,38 +2204,12 @@ namespace LuaEngine {
 		return 0;
 	}
 
-	int LuaD2DPushClip(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		D2D1_RECT_F rectangle = D2D1::RectF(
-			luaL_checknumber(L, 1),
-			luaL_checknumber(L, 2),
-			luaL_checknumber(L, 3),
-			luaL_checknumber(L, 4)
-		);
-
-		d2d_render_target->PushAxisAlignedClip(
-			rectangle,
-			D2D1_ANTIALIAS_MODE_PER_PRIMITIVE
-		);
-
-		return 0;
-	}
-
-	int LuaD2DPopClip(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		d2d_render_target->PopAxisAlignedClip();
-
-		return 0;
-	}
-
 	int LuaD2DGetTextSize(lua_State* L) {
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		auto text = widen(std::string(luaL_checkstring(L, 1)));
-		auto font_name = std::string(luaL_checkstring(L, 2));
-		auto font_size = luaL_checknumber(L, 3);
+		std::wstring text = widen(std::string(luaL_checkstring(L, 1)));
+		std::string font_name = std::string(luaL_checkstring(L, 2));
+		float font_size = luaL_checknumber(L, 3);
 
 		IDWriteTextFormat* text_format;
 
@@ -2378,26 +2243,71 @@ namespace LuaEngine {
 		return 1;
 	}
 
-	int LuaD2DDrawImage(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
+	int LuaD2DPushClip(lua_State* L) {
+		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
 
-		D2D1_RECT_F destination_rectangle = D2D1::RectF(
-			luaL_checknumber(L, 1),
-			luaL_checknumber(L, 2),
-			luaL_checknumber(L, 3),
-			luaL_checknumber(L, 4)
+		d2d_render_target->PushAxisAlignedClip(
+			rectangle,
+			D2D1_ANTIALIAS_MODE_PER_PRIMITIVE
 		);
-		D2D1_RECT_F source_rectangle = D2D1::RectF(
+
+		return 0;
+	}
+
+	int LuaD2DPopClip(lua_State* L) {
+		d2d_render_target->PopAxisAlignedClip();
+
+		return 0;
+	}
+
+	int LuaD2DFillRoundedRectangle(lua_State* L) {
+		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
+
+		D2D1_ROUNDED_RECT rounded_rectangle = D2D1::RoundedRect(
+			rectangle,
 			luaL_checknumber(L, 5),
-			luaL_checknumber(L, 6),
-			luaL_checknumber(L, 7),
-			luaL_checknumber(L, 8)
+			luaL_checknumber(L, 6)
 		);
+
+		D2D1::ColorF color = D2D_GET_COLOR(L, 7);
+
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
+
+		d2d_render_target->FillRoundedRectangle(&rounded_rectangle, brush);
+
+		return 0;
+	}
+
+	int LuaD2DDrawRoundedRectangle(lua_State* L) {
+		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
+
+		D2D1_ROUNDED_RECT rounded_rectangle = D2D1::RoundedRect(
+			rectangle,
+			luaL_checknumber(L, 5),
+			luaL_checknumber(L, 6)
+		);
+
+		D2D1::ColorF color = D2D_GET_COLOR(L, 7);
+
+		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
+
+		d2d_render_target->DrawRoundedRectangle(&rounded_rectangle, brush, luaL_checknumber(L, 11));
+
+		return 0;
+	}
+
+	int LuaD2DDrawImage(lua_State* L) {
+		D2D1_RECT_F destination_rectangle = D2D_GET_RECT(L, 1);
+
+		D2D1_RECT_F source_rectangle = D2D_GET_RECT(L, 5);
 
 		d2d_render_target->DrawBitmap(d2d_get_cached_bitmap(std::string(luaL_checkstring(L, 9))), destination_rectangle, luaL_checknumber(L, 10), (D2D1_BITMAP_INTERPOLATION_MODE)luaL_checknumber(L, 11), source_rectangle);
 
 		return 0;
 	}
+
+#undef D2D_GET_RECT
+#undef D2D_GET_COLOR
 
 	int GetGUIInfo(lua_State* L) {
 		lua_newtable(L);
@@ -3273,9 +3183,9 @@ namespace LuaEngine {
 		{"d2d_draw_ellipse", LuaD2DDrawEllipse},
 		{"d2d_draw_line", LuaD2DDrawLine},
 		{"d2d_draw_text", LuaD2DDrawText},
+		{"d2d_get_text_size", LuaD2DGetTextSize},
 		{"d2d_push_clip", LuaD2DPushClip},
 		{"d2d_pop_clip", LuaD2DPopClip},
-		{"d2d_get_text_size", LuaD2DGetTextSize},
 		{"d2d_fill_rounded_rectangle", LuaD2DFillRoundedRectangle},
 		{"d2d_draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
 		{"d2d_draw_image", LuaD2DDrawImage},
