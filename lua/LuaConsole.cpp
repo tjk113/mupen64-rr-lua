@@ -65,37 +65,6 @@ bool maximumSpeedMode;
 bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
 
-// LoadScreen variables
-HDC hwindowDC, hsrcDC;
-SWindowInfo windowSize{};
-HBITMAP hbitmap;
-bool LoadScreenInitialized = false;
-
-// Deletes all the variables used in LoadScreen (avoid memory leaks)
-void LoadScreenDelete() {
-	ReleaseDC(mainHWND, hwindowDC);
-	DeleteDC(hsrcDC);
-
-	LoadScreenInitialized = false;
-}
-
-// Initializes everything needed for LoadScreen
-void LoadScreenInit() {
-	if (LoadScreenInitialized) LoadScreenDelete();
-
-	hwindowDC = GetDC(mainHWND);// Create a handle to the main window Device Context
-	hsrcDC = CreateCompatibleDC(hwindowDC);// Create a DC to copy the screen to
-
-	CalculateWindowDimensions(mainHWND, windowSize);
-	windowSize.height -= 1; // ¯\_(ツ)_/¯
-	printf("LoadScreen Size: %d x %d\n", windowSize.width, windowSize.height);
-
-	// create an hbitmap
-	hbitmap = CreateCompatibleBitmap(hwindowDC, windowSize.width, windowSize.height);
-
-	LoadScreenInitialized = true;
-}
-
 #define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
 
 ReassociatingFileDialog fdOpenLuaScript; // internal picker
@@ -105,6 +74,35 @@ ReassociatingFileDialog fdLuaTraceLog;
 
 namespace LuaEngine {
 
+	// LoadScreen
+	HDC ls_hWindowDC;
+	int ls_width;
+	int ls_height;
+	BITMAPINFO ls_bitmapData;
+	D2D1_BITMAP_PROPERTIES ls_d2dBmpProp;
+	D2D1_SIZE_U ls_bmpSize;
+	bool ls_initialized = false;
+
+
+	void LoadScreenInit() {
+		ls_hWindowDC = GetDC(mainHWND);
+		ls_width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		ls_height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		ls_bitmapData = {};
+		ls_bitmapData.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		ls_bitmapData.bmiHeader.biWidth = ls_width;
+		ls_bitmapData.bmiHeader.biHeight = ls_height;
+		ls_d2dBmpProp = {};
+		ls_d2dBmpProp.dpiX = 0.0f;
+		ls_d2dBmpProp.dpiY = 0.0f;
+		ls_d2dBmpProp.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		ls_d2dBmpProp.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
+		ls_bmpSize = {};
+		ls_bmpSize.width = ls_width;
+		ls_bmpSize.height = ls_height;
+		ls_initialized = true;
+	}
+
 	class LuaEnvironment;
 	RECT InitalWindowRect[3] = {0};
 	HANDLE TraceLogFile;
@@ -113,7 +111,7 @@ namespace LuaEngine {
 
 
 	std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-	std::vector<Gdiplus::Bitmap*> imagePool;
+	//std::vector<Gdiplus::Bitmap*> imagePool;
 
 	struct AddrBreakFunc {
 		lua_State* lua;
@@ -279,11 +277,11 @@ namespace LuaEngine {
 			stopping = true;
 			invoke_callbacks_with_key(AtStop, REG_ATSTOP);
 			deleteLuaState();
-			for (auto x : imagePool) {
+			/*for (auto x : imagePool) {
 				delete x;
 			}
-			imagePool.clear();
-			LoadScreenDelete();
+			imagePool.clear();*/
+			//LoadScreenDelete();
 			SetButtonState(ownWnd, false);
 			ShowInfo("Lua stop");
 		}
@@ -1746,7 +1744,7 @@ namespace LuaEngine {
 		return 1;
 	}
 
-	int LuaLoadImage(lua_State* L) {
+	/*int LuaLoadImage(lua_State* L) {
 		const char* path = luaL_checkstring(L, 1);
 		int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
 		wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
@@ -1862,14 +1860,14 @@ namespace LuaEngine {
 		}
 		luaL_error(L, "Incorrect number of arguments");
 		return 0;
-	}
+	*/
 
 	int Screenshot(lua_State* L) {
 		CaptureScreen((char*)luaL_checkstring(L, 1));
 		return 0;
 	}
 
-	int LoadScreen(lua_State* L) {
+	/*int LoadScreen(lua_State* L) {
 		if (!LoadScreenInitialized) {
 			luaL_error(L, "LoadScreen not initialized! Something has gone wrong.");
 			return 0;
@@ -1891,9 +1889,9 @@ namespace LuaEngine {
 	int LoadScreenReset(lua_State* L) {
 		LoadScreenInit();
 		return 0;
-	}
+	}*/
 
-	int GetImageInfo(lua_State* L) {
+	/*int GetImageInfo(lua_State* L) {
 		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
 
 		if (imgIndex > imagePool.size() - 1) {
@@ -1910,7 +1908,7 @@ namespace LuaEngine {
 		lua_setfield(L, -2, "height");
 
 		return 1;
-	}
+	}*/
 
 	//1st arg is table of points
 	//2nd arg is color #xxxxxxxx
@@ -2001,65 +1999,6 @@ namespace LuaEngine {
 		}
 
 		return d2d_brush_cache[key];
-	}
-
-	ID2D1Bitmap* d2d_get_cached_bitmap(std::string path) {
-		if (!d2d_bitmap_cache.contains(path)) {
-			printf("Creating ID2D1Bitmap %s\n", path.c_str());
-
-
-			IWICImagingFactory* pIWICFactory = NULL;
-			IWICBitmapDecoder* pDecoder = NULL;
-			IWICBitmapFrameDecode* pSource = NULL;
-			IWICFormatConverter* pConverter = NULL;
-			ID2D1Bitmap* bmp = NULL;
-
-			CoCreateInstance(
-				CLSID_WICImagingFactory,
-				NULL,
-				CLSCTX_INPROC_SERVER,
-				IID_PPV_ARGS(&pIWICFactory)
-			);
-
-			HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
-				widen(path).c_str(),
-				NULL,
-				GENERIC_READ,
-				WICDecodeMetadataCacheOnLoad,
-				&pDecoder
-			);
-
-			if (!SUCCEEDED(hr)) {
-				printf("D2D image fail HRESULT %d\n", hr);
-				pIWICFactory->Release();
-				return 0;
-			}
-
-			pIWICFactory->CreateFormatConverter(&pConverter);
-			pDecoder->GetFrame(0, &pSource);
-			pConverter->Initialize(
-				pSource,
-				GUID_WICPixelFormat32bppPBGRA,
-				WICBitmapDitherTypeNone,
-				NULL,
-				0.f,
-				WICBitmapPaletteTypeMedianCut
-			);
-
-			d2d_render_target->CreateBitmapFromWicBitmap(
-				pConverter,
-				NULL,
-				&bmp
-			);
-
-			pIWICFactory->Release();
-			pDecoder->Release();
-			pSource->Release();
-			pConverter->Release();
-
-			d2d_bitmap_cache[path] = bmp;
-		}
-		return d2d_bitmap_cache[path];
 	}
 
 #define D2D_GET_RECT(L, idx) D2D1::RectF( \
@@ -2283,14 +2222,126 @@ namespace LuaEngine {
 		return 0;
 	}
 
+	int LuaD2DLoadImage(lua_State* L) {
+		std::string path(luaL_checkstring(L, 2));
+		std::string identifier(luaL_checkstring(L, 2));
+
+		IWICImagingFactory* pIWICFactory = NULL;
+		IWICBitmapDecoder* pDecoder = NULL;
+		IWICBitmapFrameDecode* pSource = NULL;
+		IWICFormatConverter* pConverter = NULL;
+		ID2D1Bitmap* bmp = NULL;
+
+		CoCreateInstance(
+			CLSID_WICImagingFactory,
+			NULL,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&pIWICFactory)
+		);
+
+		HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
+			widen(path).c_str(),
+			NULL,
+			GENERIC_READ,
+			WICDecodeMetadataCacheOnLoad,
+			&pDecoder
+		);
+
+		if (!SUCCEEDED(hr)) {
+			printf("D2D image fail HRESULT %d\n", hr);
+			pIWICFactory->Release();
+			return 0;
+		}
+
+		pIWICFactory->CreateFormatConverter(&pConverter);
+		pDecoder->GetFrame(0, &pSource);
+		pConverter->Initialize(
+			pSource,
+			GUID_WICPixelFormat32bppPBGRA,
+			WICBitmapDitherTypeNone,
+			NULL,
+			0.0f,
+			WICBitmapPaletteTypeMedianCut
+		);
+
+		d2d_render_target->CreateBitmapFromWicBitmap(
+			pConverter,
+			NULL,
+			&bmp
+		);
+
+		pIWICFactory->Release();
+		pDecoder->Release();
+		pSource->Release();
+		pConverter->Release();
+
+		d2d_bitmap_cache[identifier] = bmp;
+
+		return 0;
+	}
+
 	int LuaD2DDrawImage(lua_State* L) {
 		D2D1_RECT_F destination_rectangle = D2D_GET_RECT(L, 1);
 		D2D1_RECT_F source_rectangle = D2D_GET_RECT(L, 5);
 
-		d2d_render_target->DrawBitmap(d2d_get_cached_bitmap(std::string(luaL_checkstring(L, 9))), destination_rectangle, luaL_checknumber(L, 10), (D2D1_BITMAP_INTERPOLATION_MODE)luaL_checknumber(L, 11), source_rectangle);
+		d2d_render_target->DrawBitmap(
+			d2d_bitmap_cache[std::string(luaL_checkstring(L, 9))],
+			destination_rectangle,
+			luaL_checknumber(L, 10),
+			(D2D1_BITMAP_INTERPOLATION_MODE)luaL_checknumber(L, 11),
+			source_rectangle
+		);
 
 		return 0;
 	}
+
+	int LuaD2DLoadScreen(lua_State* L) {
+		if (!ls_initialized) {
+			luaL_error(L, "loadscreen isn't initialized. Something has gone wrong\n");
+			return 0;
+		}
+
+		HDC test = GetDC(mainHWND);
+
+		void* ls_pixelbuffer = nullptr;
+
+		HBITMAP hBmp = CreateDIBSection(test, &ls_bitmapData, DIB_RGB_COLORS, &ls_pixelbuffer, NULL, 0);
+
+		if (hBmp == NULL) {
+			printf("%d\n", GetLastError());
+			luaL_error(L, "Error in loadscreen: HBITMAP is NULL\n");
+			return 0;
+		}
+
+		if (ls_pixelbuffer == NULL) {
+			luaL_error(L, "Error in loadscreen: pixel buffer is NULL\n");
+			return 0;
+		}
+
+		if (GetDIBits(ls_hWindowDC, hBmp, 0, ls_height, ls_pixelbuffer, &ls_bitmapData, DIB_RGB_COLORS) == 0) {
+			luaL_error(L, "Error in loadscreen: error copying image data\n");
+			return 0;
+		}
+
+		ID2D1Bitmap* d2d_bmp = nullptr;
+
+		if (d2d_render_target->CreateBitmap(ls_bmpSize, ls_pixelbuffer, ls_bitmapData.bmiHeader.biWidth * 4, ls_d2dBmpProp, &d2d_bmp) != S_OK) {
+			luaL_error(L, "Error in loadscreen: error creating d2d bitmap\n");
+			return 0;
+		}
+
+		if (d2d_bmp == 0) {
+			luaL_error(L, "Error in loadscreen: d2d bitmap is 0\n");
+			return 0;
+		}
+
+		d2d_bitmap_cache[std::string(luaL_checkstring(L, 1))] = d2d_bmp;
+
+		DeleteObject(hBmp);
+
+		return 1;
+	}
+
 
 #undef D2D_GET_RECT
 #undef D2D_GET_COLOR
@@ -3178,15 +3229,16 @@ namespace LuaEngine {
 		{"d2d_fill_rounded_rectangle", LuaD2DFillRoundedRectangle},
 		{"d2d_draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
 		{"d2d_draw_image", LuaD2DDrawImage},
+		{"loadimage2", LuaD2DLoadScreen},
 
 		// GDIPlus-backed functions
 		{"fillpolygona", FillPolygonAlpha},
-		{"loadimage", LuaLoadImage}, // deprecated, use d2d_draw_image
-		{"deleteimage", DeleteImage}, // deprecated, use d2d_draw_image
-		{"drawimage", DrawImage}, // deprecated, use d2d_draw_image
-		{"loadscreen", LoadScreen},
-		{"loadscreenreset", LoadScreenReset},
-		{"getimageinfo", GetImageInfo},
+		//{"loadimage", LuaLoadImage}, // deprecated, use d2d_draw_image
+		//{"deleteimage", DeleteImage}, // deprecated, use d2d_draw_image
+		//{"drawimage", DrawImage}, // deprecated, use d2d_draw_image
+		/*{"loadscreen", LoadScreen},
+		{"loadscreenreset", LoadScreenReset},*/
+		//{"getimageinfo", GetImageInfo},
 
 		{"info", GetGUIInfo},
 		{"resize", ResizeWindow},
