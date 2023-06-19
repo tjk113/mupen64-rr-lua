@@ -2281,7 +2281,7 @@ namespace LuaEngine {
 		BITMAPINFO bitmapData = {};
 		bitmapData.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		bitmapData.bmiHeader.biWidth = width;
-		bitmapData.bmiHeader.biHeight = height;
+		bitmapData.bmiHeader.biHeight = -height;
 
 		D2D1_BITMAP_PROPERTIES d2dBmpProp = {};
 		d2dBmpProp.dpiX = 0.0f;
