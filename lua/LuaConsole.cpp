@@ -74,35 +74,6 @@ ReassociatingFileDialog fdLuaTraceLog;
 
 namespace LuaEngine {
 
-	// LoadScreen
-	HDC ls_hWindowDC;
-	int ls_width;
-	int ls_height;
-	BITMAPINFO ls_bitmapData;
-	D2D1_BITMAP_PROPERTIES ls_d2dBmpProp;
-	D2D1_SIZE_U ls_bmpSize;
-	bool ls_initialized = false;
-
-
-	void LoadScreenInit() {
-		ls_hWindowDC = GetDC(mainHWND);
-		ls_width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-		ls_height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-		ls_bitmapData = {};
-		ls_bitmapData.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		ls_bitmapData.bmiHeader.biWidth = ls_width;
-		ls_bitmapData.bmiHeader.biHeight = ls_height;
-		ls_d2dBmpProp = {};
-		ls_d2dBmpProp.dpiX = 0.0f;
-		ls_d2dBmpProp.dpiY = 0.0f;
-		ls_d2dBmpProp.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		ls_d2dBmpProp.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
-		ls_bmpSize = {};
-		ls_bmpSize.width = ls_width;
-		ls_bmpSize.height = ls_height;
-		ls_initialized = true;
-	}
-
 	class LuaEnvironment;
 	RECT InitalWindowRect[3] = {0};
 	HANDLE TraceLogFile;
@@ -259,7 +230,7 @@ namespace LuaEngine {
 
 			ASSERT(!isrunning());
 			hMutex = CreateMutex(0, 0, 0);
-			LoadScreenInit();
+			//LoadScreenInit();
 			newLuaState();
 			auto status = runFile(path);
 			if (isrunning()) {
@@ -2223,7 +2194,7 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DLoadImage(lua_State* L) {
-		std::string path(luaL_checkstring(L, 2));
+		std::string path(luaL_checkstring(L, 1));
 		std::string identifier(luaL_checkstring(L, 2));
 
 		IWICImagingFactory* pIWICFactory = NULL;
@@ -2296,36 +2267,49 @@ namespace LuaEngine {
 	}
 
 	int LuaD2DLoadScreen(lua_State* L) {
-		if (!ls_initialized) {
-			luaL_error(L, "loadscreen isn't initialized. Something has gone wrong\n");
-			return 0;
-		}
+		HDC hWindowDC = GetDC(mainHWND);
 
-		HDC test = GetDC(mainHWND);
+		int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-		void* ls_pixelbuffer = nullptr;
+		BITMAPINFO bitmapData = {};
+		bitmapData.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bitmapData.bmiHeader.biWidth = width;
+		bitmapData.bmiHeader.biHeight = height;
 
-		HBITMAP hBmp = CreateDIBSection(test, &ls_bitmapData, DIB_RGB_COLORS, &ls_pixelbuffer, NULL, 0);
+		D2D1_BITMAP_PROPERTIES d2dBmpProp = {};
+		d2dBmpProp.dpiX = 0.0f;
+		d2dBmpProp.dpiY = 0.0f;
+		d2dBmpProp.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		d2dBmpProp.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
 
-		if (hBmp == NULL) {
+		D2D1_SIZE_U bmpSize = {};
+		bmpSize.width = width;
+		bmpSize.height = height;
+
+		void* pixelbuffer = nullptr;
+
+		HBITMAP hBmp = CreateDIBSection(hWindowDC, &bitmapData, DIB_RGB_COLORS, &pixelbuffer, NULL, 0);
+
+		/*if (hBmp == NULL) {
 			printf("%d\n", GetLastError());
 			luaL_error(L, "Error in loadscreen: HBITMAP is NULL\n");
 			return 0;
-		}
+		}*/
 
-		if (ls_pixelbuffer == NULL) {
+		/*if (pixelbuffer == NULL) {
 			luaL_error(L, "Error in loadscreen: pixel buffer is NULL\n");
 			return 0;
-		}
+		}*/
 
-		if (GetDIBits(ls_hWindowDC, hBmp, 0, ls_height, ls_pixelbuffer, &ls_bitmapData, DIB_RGB_COLORS) == 0) {
+		if (GetDIBits(hWindowDC, hBmp, 0, height, pixelbuffer, &bitmapData, DIB_RGB_COLORS) == 0) {
 			luaL_error(L, "Error in loadscreen: error copying image data\n");
 			return 0;
 		}
 
 		ID2D1Bitmap* d2d_bmp = nullptr;
 
-		if (d2d_render_target->CreateBitmap(ls_bmpSize, ls_pixelbuffer, ls_bitmapData.bmiHeader.biWidth * 4, ls_d2dBmpProp, &d2d_bmp) != S_OK) {
+		if (d2d_render_target->CreateBitmap(bmpSize, pixelbuffer, bitmapData.bmiHeader.biWidth * 4, d2dBmpProp, &d2d_bmp) != S_OK) {
 			luaL_error(L, "Error in loadscreen: error creating d2d bitmap\n");
 			return 0;
 		}
@@ -2339,7 +2323,7 @@ namespace LuaEngine {
 
 		DeleteObject(hBmp);
 
-		return 1;
+		return 0;
 	}
 
 
@@ -3228,8 +3212,9 @@ namespace LuaEngine {
 		{"d2d_pop_clip", LuaD2DPopClip},
 		{"d2d_fill_rounded_rectangle", LuaD2DFillRoundedRectangle},
 		{"d2d_draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
+		{"d2d_load_image", LuaD2DLoadImage},
 		{"d2d_draw_image", LuaD2DDrawImage},
-		{"loadimage2", LuaD2DLoadScreen},
+		{"d2d_load_screen", LuaD2DLoadScreen},
 
 		// GDIPlus-backed functions
 		{"fillpolygona", FillPolygonAlpha},
