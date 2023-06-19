@@ -2291,16 +2291,16 @@ namespace LuaEngine {
 
 		HBITMAP hBmp = CreateDIBSection(hWindowDC, &bitmapData, DIB_RGB_COLORS, &pixelbuffer, NULL, 0);
 
-		/*if (hBmp == NULL) {
+		if (hBmp == NULL) {
 			printf("%d\n", GetLastError());
 			luaL_error(L, "Error in loadscreen: HBITMAP is NULL\n");
 			return 0;
-		}*/
+		}
 
-		/*if (pixelbuffer == NULL) {
+		if (pixelbuffer == NULL) {
 			luaL_error(L, "Error in loadscreen: pixel buffer is NULL\n");
 			return 0;
-		}*/
+		}
 
 		if (GetDIBits(hWindowDC, hBmp, 0, height, pixelbuffer, &bitmapData, DIB_RGB_COLORS) == 0) {
 			luaL_error(L, "Error in loadscreen: error copying image data\n");
