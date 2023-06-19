@@ -2255,6 +2255,7 @@ namespace LuaEngine {
 		std::string identifier(luaL_checkstring(L, 1));
 		d2d_bitmap_cache[identifier]->Release();
 		d2d_bitmap_cache.erase(identifier);
+		return 0;
 	}
 
 	int LuaD2DDrawImage(lua_State* L) {
