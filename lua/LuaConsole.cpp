@@ -2251,6 +2251,12 @@ namespace LuaEngine {
 		return 0;
 	}
 
+	int LuaD2DFreeImage(lua_State* L) {
+		std::string identifier(luaL_checkstring(L, 1));
+		d2d_bitmap_cache[identifier]->Release();
+		d2d_bitmap_cache.erase(identifier);
+	}
+
 	int LuaD2DDrawImage(lua_State* L) {
 		D2D1_RECT_F destination_rectangle = D2D_GET_RECT(L, 1);
 		D2D1_RECT_F source_rectangle = D2D_GET_RECT(L, 5);
@@ -3213,6 +3219,7 @@ namespace LuaEngine {
 		{"d2d_fill_rounded_rectangle", LuaD2DFillRoundedRectangle},
 		{"d2d_draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
 		{"d2d_load_image", LuaD2DLoadImage},
+		{"d2d_free_image", LuaD2DFreeImage},
 		{"d2d_draw_image", LuaD2DDrawImage},
 		{"d2d_load_screen", LuaD2DLoadScreen},
 
