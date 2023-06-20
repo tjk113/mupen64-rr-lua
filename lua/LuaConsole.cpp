@@ -2273,11 +2273,57 @@ namespace LuaEngine {
 		return 0;
 	}
 
+	int LuaD2DLoadScreen2(lua_State* L) {
+		HDC hdc = GetDC(mainHWND);
+
+		int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+
+		BITMAPINFO bmpData = {};
+		bmpData.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmpData.bmiHeader.biWidth = width;
+		bmpData.bmiHeader.biHeight = -height; // Negative height to ensure top-down DIB
+
+		void* pBuff = nullptr;
+		HBITMAP hBitmap = CreateDIBSection(hdc, &bmpData, DIB_RGB_COLORS, &pBuff, NULL, 0);
+
+		if (!hBitmap) {
+			printf("failed");
+			ReleaseDC(mainHWND, hdc);
+			return -1; // Failed to create DIB section
+		}
+
+		::GetDIBits(hdc, hBitmap, 0, height, pBuff, &bmpData, DIB_RGB_COLORS);
+
+		D2D1_BITMAP_PROPERTIES bmpProp;
+		bmpProp.dpiX = 0.0f;
+		bmpProp.dpiY = 0.0f;
+		bmpProp.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		bmpProp.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
+
+		ID2D1Bitmap* pBmpFromH = nullptr;
+		D2D1_SIZE_U bmpSize;
+		bmpSize.width = width;
+		bmpSize.height = height;
+
+		printf("drawing");
+
+		d2d_render_target->CreateBitmap(bmpSize, pBuff, bmpData.bmiHeader.biWidth * 4, bmpProp, &pBmpFromH);
+		d2d_render_target->DrawBitmap(pBmpFromH);
+
+		DeleteObject(hBitmap);
+		ReleaseDC(mainHWND, hdc);
+
+		return 0;
+	}
+
 	int LuaD2DLoadScreen(lua_State* L) {
 		HDC hWindowDC = GetDC(mainHWND);
 
-		int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-		int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		int width = lua_dc_width;
+		int height = lua_dc_height;
+
+		printf("%d x %d\n", width, height);
 
 		BITMAPINFO bitmapData = {};
 		bitmapData.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -2298,31 +2344,25 @@ namespace LuaEngine {
 
 		HBITMAP hBmp = CreateDIBSection(hWindowDC, &bitmapData, DIB_RGB_COLORS, &pixelbuffer, NULL, 0);
 
-		if (hBmp == NULL) {
-			printf("%d\n", GetLastError());
-			luaL_error(L, "Error in loadscreen: HBITMAP is NULL\n");
-			return 0;
-		}
-
-		if (pixelbuffer == NULL) {
-			luaL_error(L, "Error in loadscreen: pixel buffer is NULL\n");
+		if (hBmp == nullptr || pixelbuffer == nullptr) {
+			luaL_error(L, "Error in loadscreen: Failed to create DIB section or pixel buffer is null");
 			return 0;
 		}
 
 		if (GetDIBits(hWindowDC, hBmp, 0, height, pixelbuffer, &bitmapData, DIB_RGB_COLORS) == 0) {
-			luaL_error(L, "Error in loadscreen: error copying image data\n");
+			luaL_error(L, "Error in loadscreen: Failed to copy image data");
 			return 0;
 		}
 
 		ID2D1Bitmap* d2d_bmp = nullptr;
 
 		if (d2d_render_target->CreateBitmap(bmpSize, pixelbuffer, bitmapData.bmiHeader.biWidth * 4, d2dBmpProp, &d2d_bmp) != S_OK) {
-			luaL_error(L, "Error in loadscreen: error creating d2d bitmap\n");
+			luaL_error(L, "Error in loadscreen: error creating d2d bitmap");
 			return 0;
 		}
 
-		if (d2d_bmp == 0) {
-			luaL_error(L, "Error in loadscreen: d2d bitmap is 0\n");
+		if (d2d_bmp == nullptr) {
+			luaL_error(L, "Error in loadscreen: d2d bitmap is nullptr");
 			return 0;
 		}
 
@@ -2332,7 +2372,6 @@ namespace LuaEngine {
 
 		return 0;
 	}
-
 
 #undef D2D_GET_RECT
 #undef D2D_GET_COLOR
@@ -3222,7 +3261,7 @@ namespace LuaEngine {
 		{"d2d_load_image", LuaD2DLoadImage},
 		{"d2d_free_image", LuaD2DFreeImage},
 		{"d2d_draw_image", LuaD2DDrawImage},
-		{"d2d_load_screen", LuaD2DLoadScreen},
+		{"d2d_load_screen", LuaD2DLoadScreen2},
 
 		// GDIPlus-backed functions
 		{"fillpolygona", FillPolygonAlpha},
