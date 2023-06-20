@@ -2273,50 +2273,6 @@ namespace LuaEngine {
 		return 0;
 	}
 
-	int LuaD2DLoadScreen2(lua_State* L) {
-		HDC hdc = GetDC(mainHWND);
-
-		int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-		int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-
-		BITMAPINFO bmpData = {};
-		bmpData.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmpData.bmiHeader.biWidth = width;
-		bmpData.bmiHeader.biHeight = -height; // Negative height to ensure top-down DIB
-
-		void* pBuff = nullptr;
-		HBITMAP hBitmap = CreateDIBSection(hdc, &bmpData, DIB_RGB_COLORS, &pBuff, NULL, 0);
-
-		if (!hBitmap) {
-			printf("failed");
-			ReleaseDC(mainHWND, hdc);
-			return -1; // Failed to create DIB section
-		}
-
-		::GetDIBits(hdc, hBitmap, 0, height, pBuff, &bmpData, DIB_RGB_COLORS);
-
-		D2D1_BITMAP_PROPERTIES bmpProp;
-		bmpProp.dpiX = 0.0f;
-		bmpProp.dpiY = 0.0f;
-		bmpProp.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		bmpProp.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
-
-		ID2D1Bitmap* pBmpFromH = nullptr;
-		D2D1_SIZE_U bmpSize;
-		bmpSize.width = width;
-		bmpSize.height = height;
-
-		printf("drawing");
-
-		d2d_render_target->CreateBitmap(bmpSize, pBuff, bmpData.bmiHeader.biWidth * 4, bmpProp, &pBmpFromH);
-		d2d_render_target->DrawBitmap(pBmpFromH);
-
-		DeleteObject(hBitmap);
-		ReleaseDC(mainHWND, hdc);
-
-		return 0;
-	}
-
 	int LuaD2DLoadScreen(lua_State* L) {
 		HDC hWindowDC = GetDC(mainHWND);
 
