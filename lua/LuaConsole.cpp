@@ -2983,7 +2983,6 @@ namespace LuaEngine {
 
 		// GDIPlus-backed functions
 		{"gdip_fillpolygona", FillPolygonAlpha},
-		//{"getimageinfo", GetImageInfo},
 
 		{"info", GetGUIInfo},
 		{"resize", ResizeWindow},
