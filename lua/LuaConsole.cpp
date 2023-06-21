@@ -2004,6 +2004,10 @@ namespace LuaEngine {
 		std::string path(luaL_checkstring(L, 1));
 		std::string identifier(luaL_checkstring(L, 2));
 
+		if (d2d_bitmap_cache.contains(identifier)) {
+			d2d_bitmap_cache[identifier]->Release();
+		}
+
 		IWICImagingFactory* pIWICFactory = NULL;
 		IWICBitmapDecoder* pDecoder = NULL;
 		IWICBitmapFrameDecode* pSource = NULL;
