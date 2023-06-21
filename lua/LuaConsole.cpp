@@ -3040,10 +3040,14 @@ void dummy_function() {
 
 }
 void LuaOpenAndRun(const char* path) {
-	LuaEngine::CreateLuaWindow(&dummy_function, [](HWND hwnd) {
-		// simulate button click
+	LuaEngine::CreateLuaWindow(&dummy_function, [path](HWND hwnd) {
+		// UI automation:
+		// set textbox path
+		SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
+
+		// click run button
 		SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED), (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-		});
+	});
 }
 void CloseAllLuaScript(void) {
 	LuaEngine::LuaMessenger::LuaMessage* msg = new LuaEngine::LuaMessenger::LuaMessage();
