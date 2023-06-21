@@ -2080,6 +2080,17 @@ namespace LuaEngine {
 		return 0;
 	}
 
+	int LuaD2DGetImageInfo(lua_State* L) {
+		std::string identifier(luaL_checkstring(L, 1));
+		D2D1_SIZE_U size = d2d_bitmap_cache[identifier]->GetPixelSize();
+		lua_newtable(L);
+		lua_pushinteger(L, size.width);
+		lua_setfield(L, -2, "width");
+		lua_pushinteger(L, size.height);
+		lua_setfield(L, -2, "height");
+		return 1;
+	}
+
 #undef D2D_GET_RECT
 #undef D2D_GET_COLOR
 #undef D2D_GET_POINT
@@ -2968,6 +2979,7 @@ namespace LuaEngine {
 		{"d2d_load_image", LuaD2DLoadImage},
 		{"d2d_free_image", LuaD2DFreeImage},
 		{"d2d_draw_image", LuaD2DDrawImage},
+		{"d2d_get_image_info", LuaD2DGetImageInfo},
 
 		// GDIPlus-backed functions
 		{"fillpolygona", FillPolygonAlpha},
