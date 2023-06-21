@@ -1208,36 +1208,11 @@ namespace LuaEngine {
 	T LoadRDRAMSafe(unsigned long addr) {
 		return *((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask))));
 	}
-	// I don't think these are required, but I'm keeping them here just in case
-	/*
-	template<>
-	ULONGLONG LoadRDRAMSafe(unsigned long addr) {
-		return ((ULONGLONG)(*(ULONG*)(rdramb + (addr & AddrMask))) << 32) |
-			((*(ULONG*)(rdramb + (addr & AddrMask) + 4)));
-	}
-	template<>
-	LONGLONG LoadRDRAMSafe(unsigned long addr) {
-		return ((LONGLONG)(*(ULONG*)(rdramb + (addr & AddrMask))) << 32) |
-			((*(ULONG*)(rdramb + (addr & AddrMask) + 4)));
-	}
-	*/
+
 	template<typename T>
 	void StoreRDRAMSafe(unsigned long addr, T value) {
 		*((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask)))) = value;
 	}
-	// Same with these
-	/*
-	template<>
-	void StoreRDRAMSafe(unsigned long addr, ULONGLONG value) {
-		*((unsigned long*)(rdramb + (addr & AddrMask))) = value >> 32;
-		*((unsigned long*)(rdramb + (addr & AddrMask) + 4)) = value & 0xFFFFFFFF;
-	}
-	template<>
-	void StoreRDRAMSafe(unsigned long addr, LONGLONG value) {
-		*((unsigned long*)(rdramb + (addr & AddrMask))) = value >> 32;
-		*((unsigned long*)(rdramb + (addr & AddrMask) + 4)) = value & 0xFFFFFFFF;
-	}
-	*/
 
 	// Read functions
 
@@ -1708,171 +1683,10 @@ namespace LuaEngine {
 		return 1;
 	}
 
-	/*int LuaLoadImage(lua_State* L) {
-		const char* path = luaL_checkstring(L, 1);
-		int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
-		wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
-		int size = MultiByteToWideChar(CP_ACP, 0, path, -1, pathw, output_size);
-
-		printf("LoadImage: %ws\n", pathw);
-		Gdiplus::Bitmap* img = new Gdiplus::Bitmap(pathw);
-		free(pathw);
-
-		if (img->GetLastStatus()) {
-			luaL_error(L, "Couldn't find image '%s'", path);
-			return 0;
-		}
-		imagePool.push_back(img);
-		lua_pushinteger(L, imagePool.size()); //return the identifier (index+1)
-		return 1;
-	}
-
-	int DeleteImage(lua_State* L) { // Clears one or all images from imagePool
-		unsigned int clearIndex = luaL_checkinteger(L, 1);
-		if (clearIndex == 0) { // If clearIndex is 0, clear all images
-			printf("Deleting all images\n");
-			for (auto x : imagePool) {
-				delete x;
-			}
-			imagePool.clear();
-		} else { // If clear index is not 0, clear 1 image
-			if (clearIndex <= imagePool.size()) {
-				printf("Deleting image index %d (%d in lua)\n", clearIndex - 1, clearIndex);
-				delete imagePool[clearIndex - 1];
-				imagePool.erase(imagePool.begin() + clearIndex - 1);
-			} else { // Error if the image doesn't exist
-				luaL_error(L, "Argument #1: Invalid image index");
-				return 0;
-			}
-		}
-		return 0;
-	}
-
-	int DrawImage(lua_State* L) {
-		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1; // because lua
-
-		// Error if the image doesn't exist
-		if (imgIndex > imagePool.size() - 1) {
-			luaL_error(L, "Argument #1: Invalid image index");
-			return 0;
-		}
-
-		// Gets the number of arguments
-		unsigned int args = lua_gettop(L);
-
-		Gdiplus::Graphics gfx(lua_dc);
-		Gdiplus::Bitmap* img = imagePool[imgIndex];
-
-		// Original DrawImage
-		if (args == 3) {
-			int x = luaL_checknumber(L, 2);
-			int y = luaL_checknumber(L, 3);
-
-			gfx.DrawImage(img, x, y);// Gdiplus::Image *image, int x, int y
-			return 0;
-		} else if (args == 4) {
-			int x = luaL_checknumber(L, 2);
-			int y = luaL_checknumber(L, 3);
-			float scale = luaL_checknumber(L, 4);
-			if (scale == 0) return 0;
-
-			// Create a Rect at x and y and scale the image's width and height
-			Gdiplus::Rect dest(x, y, img->GetWidth() * scale, img->GetHeight() * scale);
-
-			gfx.DrawImage(img, dest);// Gdiplus::Image *image, const Gdiplus::Rect &rect
-			return 0;
-		}
-		// In original DrawImage
-		else if (args == 5) {
-			int x = luaL_checknumber(L, 2);
-			int y = luaL_checknumber(L, 3);
-			int w = luaL_checknumber(L, 4);
-			int h = luaL_checknumber(L, 5);
-			if (w == 0 or h == 0) return 0;
-
-			Gdiplus::Rect dest(x, y, w, h);
-
-			gfx.DrawImage(img, dest);// Gdiplus::Image *image, const Gdiplus::Rect &rect
-			return 0;
-		} else if (args == 10) {
-			int x = luaL_checknumber(L, 2);
-			int y = luaL_checknumber(L, 3);
-			int w = luaL_checknumber(L, 4);
-			int h = luaL_checknumber(L, 5);
-			int srcx = luaL_checknumber(L, 6);
-			int srcy = luaL_checknumber(L, 7);
-			int srcw = luaL_checknumber(L, 8);
-			int srch = luaL_checknumber(L, 9);
-			float rotate = luaL_checknumber(L, 10);
-			if (w == 0 or h == 0 or srcw == 0 or srch == 0) return 0;
-			bool shouldrotate = ((int)rotate % 360) != 0; // Only rotate if the angle isn't a multiple of 360 Modulo only works with int
-
-			Gdiplus::Rect dest(x, y, w, h);
-
-			// Rotate
-			if (shouldrotate) {
-				Gdiplus::PointF center(x + (w / 2), y + (h / 2));// The center of dest
-				Gdiplus::Matrix matrix;
-				matrix.RotateAt(rotate, center);// rotate "rotate" number of degrees around "center"
-				gfx.SetTransform(&matrix);
-			}
-
-			gfx.DrawImage(img, dest, srcx, srcy, srcw, srch, Gdiplus::UnitPixel);// Gdiplus::Image *image, const Gdiplus::Rect &destRect, int srcx, int srcy, int srcheight, Gdiplus::srcUnit
-
-			if (shouldrotate) gfx.ResetTransform();
-			return 0;
-		}
-		luaL_error(L, "Incorrect number of arguments");
-		return 0;
-	*/
-
 	int Screenshot(lua_State* L) {
 		CaptureScreen((char*)luaL_checkstring(L, 1));
 		return 0;
 	}
-
-	/*int LoadScreen(lua_State* L) {
-		if (!LoadScreenInitialized) {
-			luaL_error(L, "LoadScreen not initialized! Something has gone wrong.");
-			return 0;
-		}
-		// set the selected object of hsrcDC to hbwindow
-		SelectObject(hsrcDC, hbitmap);
-		// copy from the window device context to the bitmap device context
-		BitBlt(hsrcDC, 0, 0, windowSize.width, windowSize.height, hwindowDC, 0, 0, SRCCOPY);
-
-		Gdiplus::Bitmap* out = new Gdiplus::Bitmap(hbitmap, nullptr);
-
-		imagePool.push_back(out);
-
-		lua_pushinteger(L, imagePool.size());
-
-		return 1;
-	}
-
-	int LoadScreenReset(lua_State* L) {
-		LoadScreenInit();
-		return 0;
-	}*/
-
-	/*int GetImageInfo(lua_State* L) {
-		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
-
-		if (imgIndex > imagePool.size() - 1) {
-			luaL_error(L, "Argument #1: Invalid image index");
-			return 0;
-		}
-
-		Gdiplus::Bitmap* img = imagePool[imgIndex];
-
-		lua_newtable(L);
-		lua_pushinteger(L, img->GetWidth());
-		lua_setfield(L, -2, "width");
-		lua_pushinteger(L, img->GetHeight());
-		lua_setfield(L, -2, "height");
-
-		return 1;
-	}*/
 
 	//1st arg is table of points
 	//2nd arg is color #xxxxxxxx
@@ -2262,62 +2076,6 @@ namespace LuaEngine {
 			(D2D1_BITMAP_INTERPOLATION_MODE)luaL_checknumber(L, 11),
 			source_rectangle
 		);
-
-		return 0;
-	}
-
-	int LuaD2DLoadScreen(lua_State* L) {
-		HDC hWindowDC = GetDC(mainHWND);
-
-		int width = lua_dc_width;
-		int height = lua_dc_height;
-
-		printf("%d x %d\n", width, height);
-
-		BITMAPINFO bitmapData = {};
-		bitmapData.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bitmapData.bmiHeader.biWidth = width;
-		bitmapData.bmiHeader.biHeight = -height;
-
-		D2D1_BITMAP_PROPERTIES d2dBmpProp = {};
-		d2dBmpProp.dpiX = 0.0f;
-		d2dBmpProp.dpiY = 0.0f;
-		d2dBmpProp.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		d2dBmpProp.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
-
-		D2D1_SIZE_U bmpSize = {};
-		bmpSize.width = width;
-		bmpSize.height = height;
-
-		void* pixelbuffer = nullptr;
-
-		HBITMAP hBmp = CreateDIBSection(hWindowDC, &bitmapData, DIB_RGB_COLORS, &pixelbuffer, NULL, 0);
-
-		if (hBmp == nullptr || pixelbuffer == nullptr) {
-			luaL_error(L, "Error in loadscreen: Failed to create DIB section or pixel buffer is null");
-			return 0;
-		}
-
-		if (GetDIBits(hWindowDC, hBmp, 0, height, pixelbuffer, &bitmapData, DIB_RGB_COLORS) == 0) {
-			luaL_error(L, "Error in loadscreen: Failed to copy image data");
-			return 0;
-		}
-
-		ID2D1Bitmap* d2d_bmp = nullptr;
-
-		if (d2d_render_target->CreateBitmap(bmpSize, pixelbuffer, bitmapData.bmiHeader.biWidth * 4, d2dBmpProp, &d2d_bmp) != S_OK) {
-			luaL_error(L, "Error in loadscreen: error creating d2d bitmap");
-			return 0;
-		}
-
-		if (d2d_bmp == nullptr) {
-			luaL_error(L, "Error in loadscreen: d2d bitmap is nullptr");
-			return 0;
-		}
-
-		d2d_bitmap_cache[std::string(luaL_checkstring(L, 1))] = d2d_bmp;
-
-		DeleteObject(hBmp);
 
 		return 0;
 	}
@@ -3213,11 +2971,6 @@ namespace LuaEngine {
 
 		// GDIPlus-backed functions
 		{"fillpolygona", FillPolygonAlpha},
-		//{"loadimage", LuaLoadImage}, // deprecated, use d2d_draw_image
-		//{"deleteimage", DeleteImage}, // deprecated, use d2d_draw_image
-		//{"drawimage", DrawImage}, // deprecated, use d2d_draw_image
-		/*{"loadscreen", LoadScreen},
-		{"loadscreenreset", LoadScreenReset},*/
 		//{"getimageinfo", GetImageInfo},
 
 		{"info", GetGUIInfo},
