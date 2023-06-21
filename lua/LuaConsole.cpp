@@ -82,7 +82,6 @@ namespace LuaEngine {
 
 
 	std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-	//std::vector<Gdiplus::Bitmap*> imagePool;
 
 	struct AddrBreakFunc {
 		lua_State* lua;
@@ -230,7 +229,6 @@ namespace LuaEngine {
 
 			ASSERT(!isrunning());
 			hMutex = CreateMutex(0, 0, 0);
-			//LoadScreenInit();
 			newLuaState();
 			auto status = runFile(path);
 			if (isrunning()) {
@@ -248,11 +246,6 @@ namespace LuaEngine {
 			stopping = true;
 			invoke_callbacks_with_key(AtStop, REG_ATSTOP);
 			deleteLuaState();
-			/*for (auto x : imagePool) {
-				delete x;
-			}
-			imagePool.clear();*/
-			//LoadScreenDelete();
 			SetButtonState(ownWnd, false);
 			ShowInfo("Lua stop");
 		}
@@ -3217,7 +3210,6 @@ namespace LuaEngine {
 		{"d2d_load_image", LuaD2DLoadImage},
 		{"d2d_free_image", LuaD2DFreeImage},
 		{"d2d_draw_image", LuaD2DDrawImage},
-		{"d2d_load_screen", LuaD2DLoadScreen2},
 
 		// GDIPlus-backed functions
 		{"fillpolygona", FillPolygonAlpha},
