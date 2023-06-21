@@ -2080,6 +2080,17 @@ namespace LuaEngine {
 		return 0;
 	}
 
+	int LuaD2DGetImageInfo(lua_State* L) {
+		std::string identifier(luaL_checkstring(L, 1));
+		D2D1_SIZE_U size = d2d_bitmap_cache[identifier]->GetPixelSize();
+		lua_newtable(L);
+		lua_pushinteger(L, size.width);
+		lua_setfield(L, -2, "width");
+		lua_pushinteger(L, size.height);
+		lua_setfield(L, -2, "height");
+		return 1;
+	}
+
 #undef D2D_GET_RECT
 #undef D2D_GET_COLOR
 #undef D2D_GET_POINT
@@ -2954,23 +2965,24 @@ namespace LuaEngine {
 		//	rectangle, ellipse, rounded rectangle, polygon, line
 		// 
 		// text, images, clipping
-		{"d2d_fill_rectangle", LuaD2DFillRectangle},
-		{"d2d_draw_rectangle", LuaD2DDrawRectangle},
-		{"d2d_fill_ellipse", LuaD2DFillEllipse},
-		{"d2d_draw_ellipse", LuaD2DDrawEllipse},
-		{"d2d_draw_line", LuaD2DDrawLine},
-		{"d2d_draw_text", LuaD2DDrawText},
-		{"d2d_get_text_size", LuaD2DGetTextSize},
-		{"d2d_push_clip", LuaD2DPushClip},
-		{"d2d_pop_clip", LuaD2DPopClip},
-		{"d2d_fill_rounded_rectangle", LuaD2DFillRoundedRectangle},
-		{"d2d_draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
-		{"d2d_load_image", LuaD2DLoadImage},
-		{"d2d_free_image", LuaD2DFreeImage},
-		{"d2d_draw_image", LuaD2DDrawImage},
+		{"fill_rectangle", LuaD2DFillRectangle},
+		{"draw_rectangle", LuaD2DDrawRectangle},
+		{"fill_ellipse", LuaD2DFillEllipse},
+		{"draw_ellipse", LuaD2DDrawEllipse},
+		{"draw_line", LuaD2DDrawLine},
+		{"draw_text", LuaD2DDrawText},
+		{"get_text_size", LuaD2DGetTextSize},
+		{"push_clip", LuaD2DPushClip},
+		{"pop_clip", LuaD2DPopClip},
+		{"fill_rounded_rectangle", LuaD2DFillRoundedRectangle},
+		{"draw_rounded_rectangle", LuaD2DDrawRoundedRectangle},
+		{"load_image", LuaD2DLoadImage},
+		{"free_image", LuaD2DFreeImage},
+		{"draw_image", LuaD2DDrawImage},
+		{"get_image_info", LuaD2DGetImageInfo},
 
 		// GDIPlus-backed functions
-		{"fillpolygona", FillPolygonAlpha},
+		{"gdip_fillpolygona", FillPolygonAlpha},
 		//{"getimageinfo", GetImageInfo},
 
 		{"info", GetGUIInfo},
