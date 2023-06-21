@@ -185,9 +185,9 @@ void new_vi() {
 
 	auto Dif = CurrentFPSTime - LastFPSTime;
 	if (Config.is_fps_limited && manualFPSLimit && !frame_advancing
-	#ifdef LUA_SPEEDMODE
+#ifdef LUA_SPEEDMODE
 		&& !maximumSpeedMode
-	#endif
+#endif
 		) {
 		if (Dif < VILimitMilliseconds) {
 			auto time = VILimitMilliseconds - Dif;

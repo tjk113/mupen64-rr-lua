@@ -25,7 +25,8 @@ class StringBuilder {
 	stringstream_type _ss;
 public:
 	StringBuilder()
-		: _ss() {}
+		: _ss() {
+	}
 
 	~StringBuilder() {}
 
