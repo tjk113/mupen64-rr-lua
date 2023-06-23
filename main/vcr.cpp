@@ -2038,9 +2038,9 @@ void UpdateTitleBarCapture(const char* filename) {
 		char m64[PATH_MAX];
 		strncpy(m64, m_filename, PATH_MAX);
 		_splitpath(m64, 0, 0, m64, 0);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s.%s", ROM_HEADER->nom, m64, avi, ext);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s%s", ROM_HEADER->nom, m64, avi, ext);
 	} else {
-		sprintf(title, MUPEN_VERSION " - %s | %s.%s", ROM_HEADER->nom, avi, ext);
+		sprintf(title, MUPEN_VERSION " - %s | %s%s", ROM_HEADER->nom, avi, ext);
 	}
 	printf("title %s\n", title);
 	SetWindowText(mainHWND, title);
