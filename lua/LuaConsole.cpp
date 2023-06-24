@@ -2759,6 +2759,19 @@ namespace LuaEngine {
 		}
 		return 1;
 	}
+	int LuaGetKeyNameText(lua_State* L) {
+		char name[100] = {0};
+		auto vk = luaL_checkinteger(L, 1);
+		GetKeyNameText(vk, name, sizeof(name) / sizeof(name[0]));
+		lua_pushstring(L, name);
+		return 1;
+	}
+	int LuaMapVirtualKeyEx(lua_State* L) {
+		auto u_code = luaL_checkinteger(L, 1);
+		auto u_map_type = luaL_checkinteger(L, 2);
+		lua_pushinteger(L, MapVirtualKeyEx(u_code, u_map_type, GetKeyboardLayout(0)));
+		return 1;
+	}
 	INT_PTR CALLBACK InputPromptProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		static lua_State* L;
 		switch (msg) {
@@ -3006,6 +3019,8 @@ namespace LuaEngine {
 		{"get", GetKeys},
 		{"diff", GetKeyDifference},
 		{"prompt", InputPrompt},
+		{"get_key_name_text", LuaGetKeyNameText},
+		{"map_virtual_key_ex", LuaMapVirtualKeyEx},
 		{NULL, NULL}
 	};
 	const luaL_Reg joypadFuncs[] = {
