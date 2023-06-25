@@ -1878,28 +1878,19 @@ namespace LuaEngine {
 		std::wstring text = widen(std::string(luaL_checkstring(L, 9)));
 		std::string font_name(luaL_checkstring(L, 10));
 		float font_size = luaL_checknumber(L, 11);
-		int font_opts = luaL_checkinteger(L, 12);
-		int horizontal_alignment = luaL_checkinteger(L, 13);
-		int vertical_alignment = luaL_checkinteger(L, 14);
-
-		// Checks if a given bit is set
-	#define CHECK_BIT(var, offset) (var >> offset) & 1
-
-		enum DWRITE_FONT_WEIGHT font_weight = CHECK_BIT(font_opts, 0) ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL;
-		enum DWRITE_FONT_STYLE font_style = CHECK_BIT(font_opts, 1) ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL;
-
-	#undef CHECK_BIT
-
-		// FIXME: use DrawTextLayout
-		// i just whipped this up quickly for testing
-
+		int font_weight = luaL_checkinteger(L, 12);
+		int font_style = luaL_checkinteger(L, 13);
+		int horizontal_alignment = luaL_checkinteger(L, 14);
+		int vertical_alignment = luaL_checkinteger(L, 15);
+		int options = luaL_checkinteger(L, 16);
+		
 		IDWriteTextFormat* text_format;
 
 		dw_factory->CreateTextFormat(
 			widen(font_name).c_str(),
 			NULL,
-			font_weight,
-			font_style,
+			(DWRITE_FONT_WEIGHT)font_weight,
+			(DWRITE_FONT_STYLE)font_style,
 			DWRITE_FONT_STRETCH_NORMAL,
 			font_size,
 			L"",
@@ -1917,7 +1908,7 @@ namespace LuaEngine {
 		d2d_render_target->DrawTextLayout({
 			.x = rectangle.left,
 			.y = rectangle.top,
-			}, text_layout, brush);
+			}, text_layout, brush, (D2D1_DRAW_TEXT_OPTIONS)options);
 
 		text_format->Release();
 		text_layout->Release();
