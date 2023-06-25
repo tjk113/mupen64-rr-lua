@@ -1904,7 +1904,6 @@ namespace LuaEngine {
 
 		dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
 
-
 		d2d_render_target->DrawTextLayout({
 			.x = rectangle.left,
 			.y = rectangle.top,
@@ -1916,9 +1915,17 @@ namespace LuaEngine {
 		return 0;
 	}
 
+	int LuaD2DSetTextAntialiasMode(lua_State* L) {
+		float mode = luaL_checkinteger(L, 1);
+		d2d_render_target->SetTextAntialiasMode((D2D1_TEXT_ANTIALIAS_MODE)mode);
+		return 0;
+	}
+	int LuaD2DSetAntialiasMode(lua_State* L) {
+		float mode = luaL_checkinteger(L, 1);
+		d2d_render_target->SetAntialiasMode((D2D1_ANTIALIAS_MODE)mode);
+		return 0;
+	}
 	int LuaD2DGetTextSize(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
 		std::wstring text = widen(std::string(luaL_checkstring(L, 1)));
 		std::string font_name = std::string(luaL_checkstring(L, 2));
 		float font_size = luaL_checknumber(L, 3);
@@ -2997,6 +3004,8 @@ namespace LuaEngine {
 		{"free_image", LuaD2DFreeImage},
 		{"draw_image", LuaD2DDrawImage},
 		{"get_image_info", LuaD2DGetImageInfo},
+		{"set_text_antialias_mode", LuaD2DSetTextAntialiasMode},
+		{"set_antialias_mode", LuaD2DSetAntialiasMode},
 
 		// GDIPlus-backed functions
 		{"gdip_fillpolygona", FillPolygonAlpha},
