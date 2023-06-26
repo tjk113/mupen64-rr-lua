@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
 						  main_win.cpp  -  description
 							 -------------------
 	copyright C) 2003    : ShadowPrince (shadow@emulation64.com)
@@ -1841,22 +1841,24 @@ refresh:
 LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
 	char tempbuf[MAX_PATH];
 	char tempbuf2[MAX_PATH];
+	int checked_movie_type;
 	HWND descriptionDialog;
 	HWND authorDialog;
 
 	switch (Message) {
 		case WM_INITDIALOG:
 
+			checked_movie_type = Config.last_movie_type;
 			descriptionDialog = GetDlgItem(hwnd, IDC_INI_DESCRIPTION);
 			authorDialog = GetDlgItem(hwnd, IDC_INI_AUTHOR);
 
 			SendMessage(descriptionDialog, EM_SETLIMITTEXT, MOVIE_DESCRIPTION_DATA_SIZE, 0);
 			SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
 
-			SetDlgItemText(hwnd, IDC_INI_AUTHOR, "");
+			SetDlgItemText(hwnd, IDC_INI_AUTHOR, Config.last_movie_author);
 			SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, "");
 
-			CheckRadioButton(hwnd, IDC_FROMSNAPSHOT_RADIO, IDC_FROMSTART_RADIO, IDC_FROMSTART_RADIO); // check "From Start"
+			CheckRadioButton(hwnd, IDC_FROMSNAPSHOT_RADIO, IDC_FROMSTART_RADIO, checked_movie_type);
 
 			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf2);
 			sprintf(tempbuf, "%s (%s)", ROM_HEADER->nom, tempbuf2);
@@ -1930,6 +1932,8 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 					else
 						GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
 
+					strncpy_s(Config.last_movie_author, authorUTF8, strlen(authorUTF8));
+
 					WCHAR descriptionWC[MOVIE_DESCRIPTION_DATA_SIZE];
 					char descriptionUTF8[MOVIE_DESCRIPTION_DATA_SIZE * 4];
 					if (GetDlgItemTextW(hwnd, IDC_INI_DESCRIPTION, descriptionWC, MOVIE_DESCRIPTION_DATA_SIZE))
@@ -1939,8 +1943,13 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
 
 					GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf, MAX_PATH);
-					unsigned short flag = IsDlgButtonChecked(hwnd, IDC_FROMSNAPSHOT_RADIO) ? MOVIE_START_FROM_SNAPSHOT : IsDlgButtonChecked(hwnd, IDC_FROMSTART_RADIO)
-						? MOVIE_START_FROM_NOTHING : IsDlgButtonChecked(hwnd, IDC_FROMEEPROM_RADIO) ? MOVIE_START_FROM_EEPROM : MOVIE_START_FROM_EXISTING_SNAPSHOT; // big
+
+					// big
+					checked_movie_type = IsDlgButtonChecked(hwnd, IDC_FROMSNAPSHOT_RADIO) ? IDC_FROMSNAPSHOT_RADIO : IsDlgButtonChecked(hwnd, IDC_FROMSTART_RADIO)
+						? IDC_FROMSTART_RADIO : IsDlgButtonChecked(hwnd, IDC_FROMEEPROM_RADIO) ? IDC_FROMEEPROM_RADIO : IDC_FROMEXISTINGSNAPSHOT_RADIO;
+					unsigned short flag = checked_movie_type == IDC_FROMSNAPSHOT_RADIO ? MOVIE_START_FROM_SNAPSHOT : checked_movie_type == IDC_FROMSTART_RADIO
+						? MOVIE_START_FROM_NOTHING : checked_movie_type == IDC_FROMEEPROM_RADIO ? MOVIE_START_FROM_EEPROM : MOVIE_START_FROM_EXISTING_SNAPSHOT;
+					Config.last_movie_type = checked_movie_type;
 
 					bool allowClosing = true;
 					if (flag == MOVIE_START_FROM_EXISTING_SNAPSHOT) {
