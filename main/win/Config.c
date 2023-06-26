@@ -590,6 +590,8 @@ void LoadConfig() {
 
 	// Recording Options
 	Config.is_reset_recording_disabled = ReadCfgInt("Recording Options", "No reset recording", 1);
+	ReadCfgString("Recording Options", "Last movie author", "(too lazy to type name)", Config.last_movie_author);
+	Config.last_movie_type = ReadCfgInt("Recording Options", "Last movie type", 0);
 
 	//avi options
 	Config.is_internal_capture_forced = ReadCfgInt("Avi Options", "Force internal capture", 0);
@@ -783,12 +785,17 @@ void SaveConfig() {
 	WriteCfgString("Directories", "Screenshots Directory", Config.screenshots_directory);
 	WriteCfgString("Directories", "SaveLoadAsandSaveStateAsPath", Config.states_path);
 
+	// Recording Options
 	WriteCfgInt("Recording Options", "No reset recording", Config.is_reset_recording_disabled);
+	WriteCfgString("Recording Options", "Last movie author", Config.last_movie_author);
+	WriteCfgInt("Recording Options", "Last movie type", Config.last_movie_type);
 
+	// AVI Options
 	WriteCfgInt("Avi Options", "Force internal capture", Config.is_internal_capture_forced);
 	WriteCfgInt("Avi Options", "Capture other windows", Config.is_capture_cropped_screen_dc);
 	WriteCfgString("Avi Options", "Avi Capture Path", Config.avi_capture_path);
 
+	// Other
 	WriteCfgInt("Other", "Autobackup", Config.is_movie_backup_enabled);
 	WriteCfgInt("Other", "Autobackup level", Config.movie_backup_level);
 	WriteCfgInt("Other", "Fast statusbar updates", Config.is_statusbar_frequent_refresh_enabled);
