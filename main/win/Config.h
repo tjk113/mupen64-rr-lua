@@ -310,6 +310,16 @@ typedef struct _CONFIG {
 	bool is_reset_recording_disabled;
 
 	/// <summary>
+	/// The last string typed into the movie author field when creating a new movie
+	/// </summary>
+	char last_movie_author[MAX_PATH];
+
+	/// <summary>
+	/// The last movie type (from start, from savestate, etc.) used when creating a new movie
+	/// </summary>
+	int last_movie_type;
+
+	/// <summary>
 	/// Whether video will forcibly be captured by mupen itself
 	/// <para/>
 	/// false = video capture might be performed by video plugin
