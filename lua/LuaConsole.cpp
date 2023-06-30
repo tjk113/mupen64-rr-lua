@@ -130,6 +130,7 @@ namespace LuaEngine {
 	IDWriteFactory* dw_factory;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
+	std::unordered_map<std::tuple<std::wstring, int, int, float, float, float, float, float, int, int, int>, IDWriteTextLayout*> dw_text_layout_cache;
 	//improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
 	static void stackDump(lua_State* L) {
@@ -592,15 +593,21 @@ namespace LuaEngine {
 		d2d_factory->Release();
 		d2d_render_target->Release();
 
-		for (auto const& [key, val] : d2d_brush_cache) {
+		for (auto const& [_, val] : d2d_brush_cache) {
 			val->Release();
 		}
 		d2d_brush_cache.clear();
 
-		for (auto const& [key, val] : d2d_bitmap_cache) {
+		for (auto const& [_, val] : d2d_bitmap_cache) {
 			val->Release();
 		}
 		d2d_bitmap_cache.clear();
+
+		for (auto const& [_, val] : dw_text_layout_cache) {
+			val->Release();
+		}
+		dw_text_layout_cache.clear();
+		
 
 		ReleaseDC(mainHWND, lua_dc);
 		lua_dc = NULL;
@@ -1883,34 +1890,52 @@ namespace LuaEngine {
 		int horizontal_alignment = luaL_checkinteger(L, 14);
 		int vertical_alignment = luaL_checkinteger(L, 15);
 		int options = luaL_checkinteger(L, 16);
-		
-		IDWriteTextFormat* text_format;
 
-		dw_factory->CreateTextFormat(
-			widen(font_name).c_str(),
-			NULL,
-			(DWRITE_FONT_WEIGHT)font_weight,
-			(DWRITE_FONT_STYLE)font_style,
-			DWRITE_FONT_STRETCH_NORMAL,
+		auto tuple = std::make_tuple(
+			text,
+			font_weight,
+			font_style,
 			font_size,
-			L"",
-			&text_format
+			rectangle.left,
+			rectangle.top,
+			rectangle.right,
+			rectangle.bottom,
+			horizontal_alignment,
+			vertical_alignment,
+			options
 		);
 
-		text_format->SetTextAlignment((DWRITE_TEXT_ALIGNMENT)horizontal_alignment);
-		text_format->SetParagraphAlignment((DWRITE_PARAGRAPH_ALIGNMENT)vertical_alignment);
+		if (!dw_text_layout_cache.contains(tuple)) {
+			IDWriteTextFormat* text_format;
 
-		IDWriteTextLayout* text_layout;
+			dw_factory->CreateTextFormat(
+				widen(font_name).c_str(),
+				NULL,
+				(DWRITE_FONT_WEIGHT)font_weight,
+				(DWRITE_FONT_STYLE)font_style,
+				DWRITE_FONT_STRETCH_NORMAL,
+				font_size,
+				L"",
+				&text_format
+			);
 
-		dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
+			text_format->SetTextAlignment((DWRITE_TEXT_ALIGNMENT)horizontal_alignment);
+			text_format->SetParagraphAlignment((DWRITE_PARAGRAPH_ALIGNMENT)vertical_alignment);
+
+			IDWriteTextLayout* text_layout;
+
+			dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
+
+			text_format->Release();
+
+			dw_text_layout_cache[tuple] = text_layout;
+		}
+		
 
 		d2d_render_target->DrawTextLayout({
 			.x = rectangle.left,
 			.y = rectangle.top,
-			}, text_layout, brush, (D2D1_DRAW_TEXT_OPTIONS)options);
-
-		text_format->Release();
-		text_layout->Release();
+			}, dw_text_layout_cache[tuple], brush, (D2D1_DRAW_TEXT_OPTIONS)options);
 
 		return 0;
 	}
