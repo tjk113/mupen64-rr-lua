@@ -2117,6 +2117,10 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 		extern void resumeEmu(BOOL quiet);
 		resumeEmu(TRUE);
 	}
+
+	// disable minimize titlebar button
+	SetWindowLong(mainHWND, GWL_STYLE,
+			   GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
 #endif
 
 	VCR_invalidatedCaptureFrame();
@@ -2234,6 +2238,8 @@ VCR_stopCapture() {
 	} else { //atme
 		RESET_TITLEBAR
 	}
+	SetWindowLong(mainHWND, GWL_STYLE,
+			   GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
 
 #else
 	usleep(100000); // HACK - is this really necessary?
