@@ -35,6 +35,7 @@
 #include <wincodec.h>
 #include <functional>
 #include <queue>
+#include <md5.h>
 
 
 #pragma comment(lib, "lua54.lib")
@@ -123,6 +124,17 @@ namespace LuaEngine {
 
 	int getn(lua_State*);
 
+	typedef struct t_text_layout_key {
+		const char* text;
+		const char* font_name;
+		float font_size;
+		int font_weight;
+		int font_style;
+		int horizontal_alignment;
+		int vertical_alignment;
+		int options;
+	} t_text_layout_key;
+
 	HDC lua_dc;
 	int lua_dc_width, lua_dc_height;
 	ID2D1Factory* d2d_factory;
@@ -130,6 +142,8 @@ namespace LuaEngine {
 	IDWriteFactory* dw_factory;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
+	std::unordered_map<uint16_t, IDWriteTextLayout*> dw_text_layout_cache;
+	
 	//improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
 	static void stackDump(lua_State* L) {
@@ -592,15 +606,20 @@ namespace LuaEngine {
 		d2d_factory->Release();
 		d2d_render_target->Release();
 
-		for (auto const& [key, val] : d2d_brush_cache) {
+		for (auto const& [_, val] : d2d_brush_cache) {
 			val->Release();
 		}
 		d2d_brush_cache.clear();
 
-		for (auto const& [key, val] : d2d_bitmap_cache) {
+		for (auto const& [_, val] : d2d_bitmap_cache) {
 			val->Release();
 		}
 		d2d_bitmap_cache.clear();
+
+		for (auto const& [_, val] : dw_text_layout_cache) {
+			val->Release();
+		}
+		dw_text_layout_cache.clear();
 
 		ReleaseDC(mainHWND, lua_dc);
 		lua_dc = NULL;
@@ -1875,42 +1894,58 @@ namespace LuaEngine {
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
-		std::wstring text = widen(std::string(luaL_checkstring(L, 9)));
-		std::string font_name(luaL_checkstring(L, 10));
-		float font_size = luaL_checknumber(L, 11);
-		int font_weight = luaL_checkinteger(L, 12);
-		int font_style = luaL_checkinteger(L, 13);
-		int horizontal_alignment = luaL_checkinteger(L, 14);
-		int vertical_alignment = luaL_checkinteger(L, 15);
-		int options = luaL_checkinteger(L, 16);
-		
-		IDWriteTextFormat* text_format;
+		t_text_layout_key text_layout_key = {
+			.text = luaL_checkstring(L, 9),
+			.font_name = luaL_checkstring(L, 10),
+			.font_size = (float)luaL_checknumber(L, 11),
+			.font_weight = (int)luaL_checkinteger(L, 12),
+			.font_style = (int)luaL_checkinteger(L, 13),
+			.horizontal_alignment = (int)luaL_checkinteger(L, 14),
+			.vertical_alignment = (int)luaL_checkinteger(L, 15),
+			.options = (int)luaL_checkinteger(L, 16),
+		};
 
-		dw_factory->CreateTextFormat(
-			widen(font_name).c_str(),
-			NULL,
-			(DWRITE_FONT_WEIGHT)font_weight,
-			(DWRITE_FONT_STYLE)font_style,
-			DWRITE_FONT_STRETCH_NORMAL,
-			font_size,
-			L"",
-			&text_format
-		);
+		unsigned char digest[16] = {0};
+		md5_state_t context = {0};
+		md5_init(&context);
+		md5_append(&context, (uint8_t*)&text_layout_key, sizeof(text_layout_key));
+		md5_finish(&context, digest);
+		uint16_t hash = *(uint16_t*)digest;
 
-		text_format->SetTextAlignment((DWRITE_TEXT_ALIGNMENT)horizontal_alignment);
-		text_format->SetParagraphAlignment((DWRITE_PARAGRAPH_ALIGNMENT)vertical_alignment);
+		if (!dw_text_layout_cache.contains(hash)) {
+			printf("Creating text layout cache %d\n", hash);
 
-		IDWriteTextLayout* text_layout;
+			IDWriteTextFormat* text_format;
 
-		dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
+			dw_factory->CreateTextFormat(
+				widen(text_layout_key.font_name).c_str(),
+				NULL,
+				(DWRITE_FONT_WEIGHT)text_layout_key.font_weight,
+				(DWRITE_FONT_STYLE)text_layout_key.font_style,
+				DWRITE_FONT_STRETCH_NORMAL,
+				text_layout_key.font_size,
+				L"",
+				&text_format
+			);
+
+			text_format->SetTextAlignment((DWRITE_TEXT_ALIGNMENT)text_layout_key.horizontal_alignment);
+			text_format->SetParagraphAlignment((DWRITE_PARAGRAPH_ALIGNMENT)text_layout_key.vertical_alignment);
+
+			IDWriteTextLayout* text_layout;
+
+			auto text = widen(std::string(text_layout_key.text));
+			dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
+
+			text_format->Release();
+
+			dw_text_layout_cache[hash] = text_layout;
+		}
 
 		d2d_render_target->DrawTextLayout({
 			.x = rectangle.left,
 			.y = rectangle.top,
-			}, text_layout, brush, (D2D1_DRAW_TEXT_OPTIONS)options);
+			}, dw_text_layout_cache[hash], brush, (D2D1_DRAW_TEXT_OPTIONS)text_layout_key.options);
 
-		text_format->Release();
-		text_layout->Release();
 
 		return 0;
 	}
