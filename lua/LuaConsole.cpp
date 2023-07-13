@@ -132,7 +132,6 @@ namespace LuaEngine {
 		int font_style;
 		int horizontal_alignment;
 		int vertical_alignment;
-		int options;
 	} t_text_layout_key;
 
 	HDC lua_dc;
@@ -142,7 +141,7 @@ namespace LuaEngine {
 	IDWriteFactory* dw_factory;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
-	std::unordered_map<uint16_t, IDWriteTextLayout*> dw_text_layout_cache;
+	std::unordered_map<uint64_t, IDWriteTextLayout*> dw_text_layout_cache;
 	
 	//improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
@@ -1894,6 +1893,8 @@ namespace LuaEngine {
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(color);
 
+		int options = luaL_checkinteger(L, 16);
+
 		t_text_layout_key text_layout_key = {
 			.text = luaL_checkstring(L, 9),
 			.font_name = luaL_checkstring(L, 10),
@@ -1902,16 +1903,10 @@ namespace LuaEngine {
 			.font_style = (int)luaL_checkinteger(L, 13),
 			.horizontal_alignment = (int)luaL_checkinteger(L, 14),
 			.vertical_alignment = (int)luaL_checkinteger(L, 15),
-			.options = (int)luaL_checkinteger(L, 16),
 		};
 
-		unsigned char digest[16] = {0};
-		md5_state_t context = {0};
-		md5_init(&context);
-		md5_append(&context, (uint8_t*)&text_layout_key, sizeof(text_layout_key));
-		md5_finish(&context, digest);
-		uint16_t hash = *(uint16_t*)digest;
-
+		uint64_t hash = djb2_hash((const unsigned char*) & text_layout_key, sizeof(text_layout_key));
+		
 		if (!dw_text_layout_cache.contains(hash)) {
 			printf("Creating text layout cache %d\n", hash);
 
@@ -1944,7 +1939,7 @@ namespace LuaEngine {
 		d2d_render_target->DrawTextLayout({
 			.x = rectangle.left,
 			.y = rectangle.top,
-			}, dw_text_layout_cache[hash], brush, (D2D1_DRAW_TEXT_OPTIONS)text_layout_key.options);
+			}, dw_text_layout_cache[hash], brush, (D2D1_DRAW_TEXT_OPTIONS)options);
 
 
 		return 0;
