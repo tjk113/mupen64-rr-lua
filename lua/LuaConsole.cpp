@@ -124,15 +124,7 @@ namespace LuaEngine {
 
 	int getn(lua_State*);
 
-	typedef struct t_text_layout_key {
-		const char* text;
-		const char* font_name;
-		float font_size;
-		int font_weight;
-		int font_style;
-		int horizontal_alignment;
-		int vertical_alignment;
-	} t_text_layout_key;
+	
 
 	HDC lua_dc;
 	int lua_dc_width, lua_dc_height;
@@ -141,7 +133,7 @@ namespace LuaEngine {
 	IDWriteFactory* dw_factory;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
-	std::unordered_map<uint64_t, IDWriteTextLayout*> dw_text_layout_cache;
+	std::unordered_map<uint32_t, IDWriteTextLayout*> dw_text_layout_cache;
 	
 	//improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
@@ -1887,6 +1879,7 @@ namespace LuaEngine {
 		return 0;
 	}
 
+
 	int LuaD2DDrawText(lua_State* L) {
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
@@ -1895,41 +1888,45 @@ namespace LuaEngine {
 
 		int options = luaL_checkinteger(L, 16);
 
-		t_text_layout_key text_layout_key = {
-			.text = luaL_checkstring(L, 9),
-			.font_name = luaL_checkstring(L, 10),
-			.font_size = (float)luaL_checknumber(L, 11),
-			.font_weight = (int)luaL_checkinteger(L, 12),
-			.font_style = (int)luaL_checkinteger(L, 13),
-			.horizontal_alignment = (int)luaL_checkinteger(L, 14),
-			.vertical_alignment = (int)luaL_checkinteger(L, 15),
-		};
+		auto text = std::string(luaL_checkstring(L, 9));
+		auto font_name = std::string(luaL_checkstring(L, 10));
+		auto font_size = (float)luaL_checknumber(L, 11);
+		auto font_weight = (int)luaL_checknumber(L, 12);
+		auto font_style = (int)luaL_checkinteger(L, 13);
+		auto horizontal_alignment = (int)luaL_checkinteger(L, 14);
+		auto vertical_alignment = (int)luaL_checkinteger(L, 15);
 
-		uint64_t hash = djb2_hash((const unsigned char*) & text_layout_key, sizeof(text_layout_key));
+		uint32_t hash = std::hash<std::string>{}(text) ^
+			std::hash<std::string>{}(font_name) ^
+			std::hash <float>{}(font_size) ^
+			std::hash <int>{}(font_weight) ^
+			std::hash <int>{}(font_style) ^
+			std::hash <int>{}(horizontal_alignment) ^
+			std::hash <int>{}(vertical_alignment);
 		
 		if (!dw_text_layout_cache.contains(hash)) {
-			printf("Creating text layout cache %d\n", hash);
+			printf("Creating text layout cache %ul\n", hash);
 
 			IDWriteTextFormat* text_format;
 
 			dw_factory->CreateTextFormat(
-				widen(text_layout_key.font_name).c_str(),
+				widen(font_name).c_str(),
 				NULL,
-				(DWRITE_FONT_WEIGHT)text_layout_key.font_weight,
-				(DWRITE_FONT_STYLE)text_layout_key.font_style,
+				(DWRITE_FONT_WEIGHT)font_weight,
+				(DWRITE_FONT_STYLE)font_style,
 				DWRITE_FONT_STRETCH_NORMAL,
-				text_layout_key.font_size,
+				font_size,
 				L"",
 				&text_format
 			);
 
-			text_format->SetTextAlignment((DWRITE_TEXT_ALIGNMENT)text_layout_key.horizontal_alignment);
-			text_format->SetParagraphAlignment((DWRITE_PARAGRAPH_ALIGNMENT)text_layout_key.vertical_alignment);
+			text_format->SetTextAlignment((DWRITE_TEXT_ALIGNMENT)horizontal_alignment);
+			text_format->SetParagraphAlignment((DWRITE_PARAGRAPH_ALIGNMENT)vertical_alignment);
 
 			IDWriteTextLayout* text_layout;
 
-			auto text = widen(std::string(text_layout_key.text));
-			dw_factory->CreateTextLayout(text.c_str(), text.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
+			auto wtext = widen(text);
+			dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(), text_format, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, &text_layout);
 
 			text_format->Release();
 
@@ -1940,7 +1937,6 @@ namespace LuaEngine {
 			.x = rectangle.left,
 			.y = rectangle.top,
 			}, dw_text_layout_cache[hash], brush, (D2D1_DRAW_TEXT_OPTIONS)options);
-
 
 		return 0;
 	}

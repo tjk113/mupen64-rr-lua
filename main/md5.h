@@ -88,13 +88,5 @@ extern "C"
 }  /* end extern "C" */
 #endif
 
-static inline unsigned long djb2_hash(const unsigned char* data, size_t length) {
-	unsigned long hash = 5381;
-	for (size_t i = 0; i < length; ++i) {
-		hash = ((hash << 5) + hash) + data[i];
-	}
-	return hash;
-
-}
 #endif /* md5_INCLUDED */
 
