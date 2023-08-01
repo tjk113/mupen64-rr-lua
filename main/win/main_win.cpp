@@ -2458,9 +2458,6 @@ void exit_emu(int postquit) {
 }
 
 void exit_emu2() {
-	if (warn_recording())
-		return;
-
 	if ((!cmdlineMode) || (cmdlineSave)) {
 		ini_updateFile(Config.is_ini_compressed);
 		SaveConfig();
@@ -2928,8 +2925,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					MenuPaused = FALSE;
 					if (warn_recording())break;
 					if (emu_launched) {
-						  //if (warn_recording())break;
-						  //closeRom();
 						stop_it();
 						//SleepEx(1000, TRUE); //todo check if can remove
 						CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, &Id);
