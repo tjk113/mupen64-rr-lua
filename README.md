@@ -28,6 +28,6 @@ You can debug Mupen straight away by running it and placing breakpoints in Visua
 [comment]: <> (TODO: ADD PROJECT STRUCTURE EXPLANATION)
 
 # Links
-Discord: https://discord.gg/eZXbmguKEq<br>
+Discord: https://discord.gg/bxvZpwdFmW<br>
 Releases: https://github.com/mkdasher/mupen64-rr-lua-/releases
 
