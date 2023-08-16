@@ -16,6 +16,7 @@
 #include "savestates.h"
 #include "../memory/memory.h"
 
+#include <filesystem>
 #include <errno.h>
 #include <limits.h>
 #include <memory.h>
@@ -1360,6 +1361,29 @@ void SetActiveMovie(char* buf) {
 	SetWindowText(mainHWND, title);
 }
 
+bool getSavestatePath(const char* filename, char* outBuffer) {
+	char* bufnExt = (char*)malloc(strlen(filename) + 11);
+	strcpy(bufnExt, filename);
+
+	strncat(bufnExt, ".st", 4);
+
+	std::filesystem::path stPath = bufnExt;
+
+	if (std::filesystem::exists(stPath))
+		strcpy(outBuffer, bufnExt);
+	else {
+		// try .savestate (old extension created bc of discord trying to display a preview of .st data when uploaded)
+		strcpy(bufnExt, filename);
+		strncat(bufnExt, ".savestate", 11);
+		stPath = bufnExt;
+		if (std::filesystem::exists(stPath))
+			strcpy(outBuffer, bufnExt);
+		else
+			return false;
+	}
+	free(bufnExt);
+	return true;
+}
 
 int
 VCR_startPlayback(const char* filename, const char* authorUTF8, const char* descriptionUTF8) {
@@ -1378,7 +1402,8 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 
 	strncpy(m_filename, filename, PATH_MAX);
 	printf("m_filename = %s\n", m_filename);
-	char* p = strrchr(m_filename, '.');
+	char* p = strrchr(m_filename, '.'); // gets a string slice from the final "." to the end
+
 	if (p) {
 		if (!strcasecmp(p, ".m64") || !strcasecmp(p, ".st"))
 			*p = '\0';
@@ -1595,7 +1620,9 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 			printf("[VCR]: Loading state...\n");
 			strcpy(buf, m_filename);
 
-			// remove extension
+			char* untruncatedName = (char*)malloc(strlen(buf));
+			strcpy(untruncatedName, buf);
+			// remove everything after the first `.` (dot)
 			for (;;) {
 				char* dot = strrchr(buf, '.');
 				if (dot && (dot > strrchr(buf, '\\') && dot > strrchr(buf, '/')))
@@ -1603,33 +1630,13 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 				else
 					break;
 			}
-
-			// TODO: FIXME: One should never fear threats. It's like with a dog. 
-			// A dog senses when somebody wrote bad code, and bites.
-			char* bufnExt = (char*)malloc(strlen(buf) + 11);
-			strcpy(bufnExt, buf);
-
-			strncat(buf, ".st", 4);
-
-			FILE* stBuf;
-
-			if ((stBuf = fopen(buf, "r"))) fclose(stBuf);
-			else {
-				// try .savestate
-				strncat(bufnExt, ".savestate", 11);
-
-				if ((stBuf = fopen(bufnExt, "r"))) fclose(stBuf);
-				else {
-					printf("[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
-					RESET_TITLEBAR;
-					if (m_file != NULL)
-						fclose(m_file);
-					free(bufnExt);
-					return VCR_PLAYBACK_SAVESTATE_MISSING;
-				}
+			if (!getSavestatePath(buf, buf) && !getSavestatePath(untruncatedName, buf)) {
+				printf("[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
+				RESET_TITLEBAR;
+				if (m_file != NULL)
+					fclose(m_file);
+				return VCR_PLAYBACK_SAVESTATE_MISSING;
 			}
-
-			free(bufnExt);
 
 			savestates_select_filename(buf);
 			savestates_job |= LOADSTATE;
