@@ -2656,17 +2656,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 #ifdef LUA_WINDOWMESSAGE
 	LuaWindowMessage(hwnd, Message, wParam, lParam);
 #endif
-	HDROP h_file = static_cast<HDROP>(LocalAlloc(LPTR, sizeof(HDROP)));
-	memcpy(&h_file, &wParam, sizeof(*h_file));
+	
 	switch (Message) {
 
 		case WM_DROPFILES:
+		{
+			HDROP h_drop = {0};
+			memcpy(&h_drop, &wParam, sizeof(*h_drop));
 
-			//HDROP hFile = (HDROP) wParam;
 			char fname[MAX_PATH];
 			LPSTR fext;
-			DragQueryFile(h_file, 0, fname, sizeof(fname));
-			LocalFree(h_file);
+			DragQueryFile(h_drop, 0, fname, sizeof(fname));
+			
 			fext = CharUpper(PathFindExtension(fname));
 			if (lstrcmp(fext, ".N64") == 0 || lstrcmp(fext, ".V64") == 0 || lstrcmp(fext, ".Z64") == 0 || lstrcmp(fext, ".ROM") == 0) {
 				StartRom(fname);
@@ -2694,6 +2695,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			}
 
 			break;
+		}
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		{

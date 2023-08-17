@@ -111,7 +111,7 @@ bool validRomExt(const char* filename) {
 	//	printf("%s\n", filename);
 	//#endif
 	const char* str = getExt(filename);
-	if (strcmp(str, "\0") != 0 || strcmp(str, "0") != 0) return 0;
+	if (str == "\0" || str == "0") return 0;
 	// z64,n64,v64,rom
 	return !_stricmp(str, "z64") ||
 		!_stricmp(str, "n64") ||
