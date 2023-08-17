@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
 						  main_win.cpp  -  description
 							 -------------------
 	copyright C) 2003    : ShadowPrince (shadow@emulation64.com)
@@ -1281,7 +1281,7 @@ BOOL StartRom(char* fullRomPath) {
 
 		extern int m_task;
 		if (m_task == 0) {
-			sprintf(TempMessage, MUPEN_VERSION " - %s", (char*)ROM_HEADER->nom);
+			sprintf(TempMessage, MUPEN_VERSION " - %s", (char *) ROM_HEADER->nom);
 			SetWindowText(mainHWND, TempMessage);
 		}
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
@@ -1458,7 +1458,7 @@ void CreateToolBarWindow(HWND hwnd) {
 		WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS /* | */
 		/*CS_ADJUSTABLE    no this causes a bug...*/,
 		IDC_TOOLBAR, 10, app_hInstance, IDB_TOOLBAR,
-		tbButtons, (int)tbButtonsCount, 16, 16, (int)tbButtonsCount * 16, 16, sizeof(TBBUTTON));
+		tbButtons, (int) tbButtonsCount, 16, 16, (int) tbButtonsCount * 16, 16, sizeof(TBBUTTON));
 
 	if (hTool == NULL)
 		MessageBox(hwnd, "Could not create tool bar.", "Error", MB_OK | MB_ICONERROR);
@@ -1535,7 +1535,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 			SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
 
 			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf2);
-			sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, tempbuf2);
+			sprintf(tempbuf, "%s (%s)", (char *) ROM_HEADER->nom, tempbuf2);
 			strcat(tempbuf, ".m64");
 			SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
@@ -1605,7 +1605,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 						BOOL success;
 						unsigned int num = GetDlgItemInt(hwnd, IDC_PAUSEAT_FIELD, &success, TRUE);
 						if (((signed int)num) >= 0 && success)
-							pauseAtFrame = (int)num;
+							pauseAtFrame = (int) num;
 						else
 							pauseAtFrame = -1;
 					}
@@ -1626,7 +1626,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 					else
 						GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, descriptionUTF8, MOVIE_DESCRIPTION_DATA_SIZE);
 
-					VCR_setReadOnly((BOOL)IsDlgButtonChecked(hwnd, IDC_MOVIE_READONLY));
+					VCR_setReadOnly((BOOL) IsDlgButtonChecked(hwnd, IDC_MOVIE_READONLY));
 
 					auto playbackResult = VCR_startPlayback(tempbuf, authorUTF8, descriptionUTF8);
 
@@ -1689,8 +1689,8 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 				goto refresh;
 				case IDC_MOVIE_REFRESH:
 					goto refresh;
-				default:
-					break;
+			default:
+				break;
 			}
 			break;
 		default:
@@ -1769,10 +1769,10 @@ refresh:
 
 	double seconds = (double)m_header.length_vis / (double)m_header.vis_per_second;
 	double minutes = seconds / 60.0;
-	if ((bool)seconds)
+	if ((bool) seconds)
 		seconds = fmod(seconds, 60.0);
 	double hours = minutes / 60.0;
-	if ((bool)minutes)
+	if ((bool) minutes)
 		minutes = fmod(minutes, 60.0);
 
 //ShowInfo("refreshing movie length...\n");
@@ -1866,11 +1866,11 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 			CheckRadioButton(hwnd, IDC_FROMSNAPSHOT_RADIO, IDC_FROMSTART_RADIO, checked_movie_type);
 
 			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf2);
-			sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, tempbuf2);
+			sprintf(tempbuf, "%s (%s)", (char *) ROM_HEADER->nom, tempbuf2);
 			strcat(tempbuf, ".m64");
 			SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
-			SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*)ROM_HEADER->nom);
+			SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*) ROM_HEADER->nom);
 
 			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf);
 			SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, tempbuf);
@@ -2234,8 +2234,8 @@ void SetStatusMode(int mode) {
 				SendMessage( hStaticHandle, STM_SETICON, (WPARAM) hStatusIcon, 0 );
    */
 				break;
-			default:
-				break;
+default:
+	break;
 		}        //Switch
 	}        //If
 }
@@ -2489,7 +2489,7 @@ BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId) {
 
 void ProcessToolTips(LPARAM lParam, HWND hWnd) {
 
-	LPTOOLTIPTEXT lpttt = reinterpret_cast<LPTOOLTIPTEXT>(LocalAlloc(LPTR, sizeof(TOOLTIPTEXT)));
+	LPTOOLTIPTEXT lpttt = {nullptr};
 	// Use memcpy to copy data from lParam to lpttt
 	memcpy(lpttt, &lParam, sizeof(TOOLTIPTEXT));
 
@@ -2612,7 +2612,7 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 			break;
 		case WM_MOVE:
 			if (emu_launched && !FullScreenMode) {
-				moveScreen((int)wParam, lParam);
+				moveScreen((int) wParam, lParam);
 			}
 			break;
 		case WM_USER + 17:  SetFocus(mainHWND);
@@ -2656,18 +2656,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 #ifdef LUA_WINDOWMESSAGE
 	LuaWindowMessage(hwnd, Message, wParam, lParam);
 #endif
-	
+	HDROP h_file = nullptr;
+	LPNMHDR l_header = nullptr;
+	memcpy(&h_file, &wParam, sizeof(*h_file));
+	memcpy(&l_header, &lParam, sizeof(LPNMHDR));
 	switch (Message) {
 
 		case WM_DROPFILES:
-		{
-			HDROP h_drop = {0};
-			memcpy(&h_drop, &wParam, sizeof(*h_drop));
 
+			//HDROP hFile = (HDROP) wParam;
 			char fname[MAX_PATH];
 			LPSTR fext;
-			DragQueryFile(h_drop, 0, fname, sizeof(fname));
-			
+			DragQueryFile(h_file, 0, fname, sizeof(fname));
+			LocalFree(h_file);
 			fext = CharUpper(PathFindExtension(fname));
 			if (lstrcmp(fext, ".N64") == 0 || lstrcmp(fext, ".V64") == 0 || lstrcmp(fext, ".Z64") == 0 || lstrcmp(fext, ".ROM") == 0) {
 				StartRom(fname);
@@ -2688,14 +2689,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				}
 			} else if (strcmp(fext, ".LUA") == 0) {
 				if (rom) {
-					for (; *fext; ++fext) *fext = (CHAR)tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
+					for (; *fext; ++fext) *fext = (CHAR) tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
 					// even this hack will fail under special circumstances
 					LuaOpenAndRun(fname);
 				}
 			}
 
 			break;
-		}
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		{
@@ -2738,9 +2738,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			return DefWindowProc(hwnd, Message, wParam, lParam);
 		case WM_NOTIFY:
 			if (wParam == IDC_ROMLIST) {
-				RomListNotify((LPNMHDR)lParam);
+				RomListNotify(l_header);
 			}
-			switch (((LPNMHDR)lParam)->code) {
+			switch ((l_header)->code) {
 				case TTN_NEEDTEXT:
 					ProcessToolTips(lParam, hwnd);
 					break;
@@ -2748,7 +2748,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			return 0;
 		case WM_MOVE:
 			if (emu_launched && !FullScreenMode) {
-				moveScreen((int)wParam, lParam);
+				moveScreen((int) wParam, lParam);
 			}
 			break;
 		case WM_SIZE:
@@ -2804,7 +2804,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			return 0;
 		case WM_GETMINMAXINFO:
 		{
-			LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+			LPMINMAXINFO lpMMI = nullptr;
+			memcpy(&lpMMI, &lParam, sizeof(LPMINMAXINFO));
 			lpMMI->ptMinTrackSize.x = MIN_WINDOW_W;
 			lpMMI->ptMinTrackSize.y = MIN_WINDOW_H;
 			// this might break small res with gfx plugin!!!
@@ -3111,7 +3112,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					// maybe pack formatted and buffer and result into one long char array where you only read necessary part
 
 					char buf[12]; // ram start
-					sprintf(buf, "0x%p", (void*)(rdram));
+					sprintf(buf, "0x%p", (void *) (rdram));
 
 					if (!stroopConfigLine[0]) {
 						TCHAR procName[MAX_PATH];
@@ -3338,7 +3339,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 
 
 
-							int len = (int)strlen(path_buffer);
+							int len = (int) strlen(path_buffer);
 							if (len < 5 ||
 								(path_buffer[len - 1] != 'i' && path_buffer[len - 1] != 'I') ||
 								(path_buffer[len - 2] != 'v' && path_buffer[len - 2] != 'V') ||
@@ -3551,7 +3552,7 @@ void StartLuaScripts() {
 	if (CmdLineParameterExist(CMDLINE_LUA) && CmdLineParameterExist(CMDLINE_GAME_FILENAME)) {
 		char files[MAX_PATH];
 		GetCmdLineParameter(CMDLINE_LUA, files);
-		int len = (int)strlen(files);
+		int len = (int) strlen(files);
 		int numScripts = 1;
 		int scriptStartPositions[MAX_LUA_OPEN_AND_RUN_INSTANCES] = {0};
 		for (int i = 0; i < len; ++i) {
@@ -3586,7 +3587,7 @@ void StartSavestate() {
 
 // Loads various variables from the current config state
 void LoadConfigExternals() {
-	if (VCR_isLooping() != (bool)Config.is_movie_loop_enabled) VCR_toggleLoopMovie();
+	if (VCR_isLooping() != (bool) Config.is_movie_loop_enabled) VCR_toggleLoopMovie();
 }
 
 // kaboom
@@ -3811,5 +3812,5 @@ int WINAPI WinMain(
 	}
 
 	CloseLogWindow();
-	return (int)Msg.wParam;
+	return (int) Msg.wParam;
 }

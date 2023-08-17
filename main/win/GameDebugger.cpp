@@ -102,7 +102,9 @@ BOOL CALLBACK GameDebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam, LPA
 					gameDebuggerIsResumed ^= true;
 					gameDebuggerIsUpdateQueued = true;
 					break;
-			}
+				default:
+					break;
+			} break;
 		default:
 			return FALSE;
 	}

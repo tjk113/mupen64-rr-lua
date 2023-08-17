@@ -13,6 +13,9 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifndef DUMPLIST_H
+#define DUMPLIST_H
 
 #define RomListFileName "romlist.txt"
 void generateRomInfo();
+#endif // DUMPLIST_H

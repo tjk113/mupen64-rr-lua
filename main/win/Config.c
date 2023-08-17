@@ -277,48 +277,48 @@ void hotkeyToString(HOTKEY* hotkeys, char* buf) {
 		else if ((k >= VK_NUMPAD0 && k <= VK_NUMPAD9))
 			sprintf(buf2, "Num%d", k - VK_NUMPAD0);
 		else switch (k) {
-			case VK_SPACE: strcpy(buf2, "Space"); break;
-			case VK_BACK: strcpy(buf2, "Backspace"); break;
-			case VK_TAB: strcpy(buf2, "Tab"); break;
-			case VK_CLEAR: strcpy(buf2, "Clear"); break;
-			case VK_RETURN: strcpy(buf2, "Enter"); break;
-			case VK_PAUSE: strcpy(buf2, "Pause"); break;
-			case VK_CAPITAL: strcpy(buf2, "Caps"); break;
-			case VK_PRIOR: strcpy(buf2, "PageUp"); break;
-			case VK_NEXT: strcpy(buf2, "PageDn"); break;
-			case VK_END: strcpy(buf2, "End"); break;
-			case VK_HOME: strcpy(buf2, "Home"); break;
-			case VK_LEFT: strcpy(buf2, "Left"); break;
-			case VK_UP: strcpy(buf2, "Up"); break;
-			case VK_RIGHT: strcpy(buf2, "Right"); break;
-			case VK_DOWN: strcpy(buf2, "Down"); break;
-			case VK_SELECT: strcpy(buf2, "Select"); break;
-			case VK_PRINT: strcpy(buf2, "Print"); break;
-			case VK_SNAPSHOT: strcpy(buf2, "PrintScrn"); break;
-			case VK_INSERT: strcpy(buf2, "Insert"); break;
-			case VK_DELETE: strcpy(buf2, "Delete"); break;
-			case VK_HELP: strcpy(buf2, "Help"); break;
-			case VK_MULTIPLY: strcpy(buf2, "Num*"); break;
-			case VK_ADD: strcpy(buf2, "Num+"); break;
-			case VK_SUBTRACT: strcpy(buf2, "Num-"); break;
-			case VK_DECIMAL: strcpy(buf2, "Num."); break;
-			case VK_DIVIDE: strcpy(buf2, "Num/"); break;
-			case VK_NUMLOCK: strcpy(buf2, "NumLock"); break;
-			case VK_SCROLL: strcpy(buf2, "ScrollLock"); break;
-			case /*VK_OEM_PLUS*/0xBB: strcpy(buf2, "=+"); break;
-			case /*VK_OEM_MINUS*/0xBD: strcpy(buf2, "-_"); break;
-			case /*VK_OEM_COMMA*/0xBC: strcpy(buf2, ","); break;
-			case /*VK_OEM_PERIOD*/0xBE: strcpy(buf2, "."); break;
-			case VK_OEM_7: strcpy(buf2, "'\""); break;
-			case VK_OEM_6: strcpy(buf2, "]}"); break;
-			case VK_OEM_5: strcpy(buf2, "\\|"); break;
-			case VK_OEM_4: strcpy(buf2, "[{"); break;
-			case VK_OEM_3: strcpy(buf2, "`~"); break;
-			case VK_OEM_2: strcpy(buf2, "/?"); break;
-			case VK_OEM_1: strcpy(buf2, ";:"); break;
-			default:
-				sprintf(buf2, "(%d)", k);
-				break;
+		case VK_SPACE: strcpy(buf2, "Space"); break;
+		case VK_BACK: strcpy(buf2, "Backspace"); break;
+		case VK_TAB: strcpy(buf2, "Tab"); break;
+		case VK_CLEAR: strcpy(buf2, "Clear"); break;
+		case VK_RETURN: strcpy(buf2, "Enter"); break;
+		case VK_PAUSE: strcpy(buf2, "Pause"); break;
+		case VK_CAPITAL: strcpy(buf2, "Caps"); break;
+		case VK_PRIOR: strcpy(buf2, "PageUp"); break;
+		case VK_NEXT: strcpy(buf2, "PageDn"); break;
+		case VK_END: strcpy(buf2, "End"); break;
+		case VK_HOME: strcpy(buf2, "Home"); break;
+		case VK_LEFT: strcpy(buf2, "Left"); break;
+		case VK_UP: strcpy(buf2, "Up"); break;
+		case VK_RIGHT: strcpy(buf2, "Right"); break;
+		case VK_DOWN: strcpy(buf2, "Down"); break;
+		case VK_SELECT: strcpy(buf2, "Select"); break;
+		case VK_PRINT: strcpy(buf2, "Print"); break;
+		case VK_SNAPSHOT: strcpy(buf2, "PrintScrn"); break;
+		case VK_INSERT: strcpy(buf2, "Insert"); break;
+		case VK_DELETE: strcpy(buf2, "Delete"); break;
+		case VK_HELP: strcpy(buf2, "Help"); break;
+		case VK_MULTIPLY: strcpy(buf2, "Num*"); break;
+		case VK_ADD: strcpy(buf2, "Num+"); break;
+		case VK_SUBTRACT: strcpy(buf2, "Num-"); break;
+		case VK_DECIMAL: strcpy(buf2, "Num."); break;
+		case VK_DIVIDE: strcpy(buf2, "Num/"); break;
+		case VK_NUMLOCK: strcpy(buf2, "NumLock"); break;
+		case VK_SCROLL: strcpy(buf2, "ScrollLock"); break;
+		case /*VK_OEM_PLUS*/0xBB: strcpy(buf2, "=+"); break;
+		case /*VK_OEM_MINUS*/0xBD: strcpy(buf2, "-_"); break;
+		case /*VK_OEM_COMMA*/0xBC: strcpy(buf2, ","); break;
+		case /*VK_OEM_PERIOD*/0xBE: strcpy(buf2, "."); break;
+		case VK_OEM_7: strcpy(buf2, "'\""); break;
+		case VK_OEM_6: strcpy(buf2, "]}"); break;
+		case VK_OEM_5: strcpy(buf2, "\\|"); break;
+		case VK_OEM_4: strcpy(buf2, "[{"); break;
+		case VK_OEM_3: strcpy(buf2, "`~"); break;
+		case VK_OEM_2: strcpy(buf2, "/?"); break;
+		case VK_OEM_1: strcpy(buf2, ";:"); break;
+		default:
+			sprintf(buf2, "(%d)", k);
+			break;
 		}
 		strcat(buf, buf2);
 	}
@@ -336,7 +336,7 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, HOTKEY* hotkeys, HMENU hmenu, i
 	SetDlgItemText(hwnd, idc, buf);
 
 	if (hmenu && menuItemID >= 0) {
-		if (strcmp(buf, "(nothing)"))
+		if (strcmp(buf, "(nothing)") != 0)
 			SetMenuAccelerator(hmenu, menuItemID, buf);
 		else
 			SetMenuAccelerator(hmenu, menuItemID, "");
@@ -540,7 +540,7 @@ void LoadConfig() {
 	Config.core_type = ReadCfgInt("CPU", "Core", 1);
 
 
-#define NAMEOF(v) ((void*)&v, #v)
+#define NAMEOF(v) ((void*)&(v), #v)
 	printf("%s\n", NAMEOF(Config.is_capture_cropped_screen_dc));
 	// TODO: make config section and entry r/w automatic
 
@@ -804,9 +804,9 @@ void SaveConfig() {
 
 	// Save A Whole Whackton Of Hotkeys:
 
-	const char* settingStrings[13] = {"Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
+	const char* settingStrings[13] = { "Fast Forward", "Speed Up", "Slow Down", "Frame Advance", "Pause Resume",
 		"ReadOnly", "Play", "PlayStop", "Record",
-		"RecordStop", "Screenshot", "Save Current", "Load Current"};
+		"RecordStop", "Screenshot", "Save Current", "Load Current" };
 
 	for (int i = 0; i <= 12; i++) {
 		WriteHotkeyConfig(i, settingStrings[i]);
@@ -824,7 +824,7 @@ void SaveConfig() {
 		sprintf(str, "Select %d", i);
 		WriteHotkeyConfig(32 + i, str);
 	}
-//Lua
+	//Lua
 	WriteCfgString("Lua", "Script Path", Config.lua_script_path);
 	WriteHotkeyConfig(43, "Lua Script Reload");
 	WriteHotkeyConfig(44, "Lua Script CloseAll");

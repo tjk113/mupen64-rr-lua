@@ -42,7 +42,7 @@ int CreateExtLogger() {
 		ShowDV = (void(__cdecl*)(int)) GetProcAddress(DVHandle, "ShowDV");
 		SetUserIcon = (void(__cdecl*)(int, HICON)) GetProcAddress(DVHandle, "SetUserIcon");
 		SetUserIconName = (void(__cdecl*)(int, char*)) GetProcAddress(DVHandle, "SetUserIconName");
-		DVClear = (void(__cdecl*)(void)) GetProcAddress(DVHandle, "DVClear");;
+		DVClear = (void(__cdecl*)(void)) GetProcAddress(DVHandle, "DVClear");
 
 
 		OpenDV(DVHandle, DV_HIDE);
@@ -94,7 +94,7 @@ void ShowInfo(const char* Str, ...) {
 	OutputDebugString("\n");
 #else
 	if (DVMsg) DVMsg(DV_INFO, Msg); //logger disabled
-	else { printf(Msg); printf("\n"); }
+	else { printf("%s", Msg); printf("\n"); }
 #endif
 }
 
@@ -108,7 +108,7 @@ void ShowWarning(const char* Str, ...) {
 	va_end(ap);
 
 
-	for (i = 0; i < strlen(Msg); i++) {
+	for (i = 0; i < (int) strlen(Msg); i++) {
 		if (Msg[i] == '\n') Msg[i] = ' ';		//carrier retirn
 		if (Msg[i] == '\r') Msg[i] = ' ';
 		if (Msg[i] == '\t') Msg[i] = ' ';		//tab
@@ -127,7 +127,7 @@ void ShowError(const char* Str, ...) {
 	va_end(ap);
 
 
-	for (i = 0; i < strlen(Msg); i++) {
+	for (i = 0; i < (int) strlen(Msg); i++) {
 		if (Msg[i] == '\n') Msg[i] = ' ';		//carrier retirn
 		if (Msg[i] == '\r') Msg[i] = ' ';
 		if (Msg[i] == '\t') Msg[i] = ' ';		//tab

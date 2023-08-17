@@ -11,20 +11,20 @@ int CrashHelper::FindModuleName(char* error, void* addr, int len) {
 	printf("addr: %p\n", addr);
 	if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded)) {
 		HMODULE maxbase = 0;
-		for (int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++) {
+		for (int i = 0; i < (int)(cbNeeded / sizeof(HMODULE)); i++) {
 			//find closest addr
 			if (hMods[i] > maxbase && hMods[i] < addr) {
 				maxbase = hMods[i];
 				char modname[MAX_PATH];
 				GetModuleBaseName(hProcess, maxbase, modname, sizeof(modname) / sizeof(char));
-				printf("%s: %p\n", modname, maxbase);
+				printf("%s: %p\n", modname, (void *) maxbase);
 			}
 		}
 		// Get the full path to the module's file.
 		char modname[MAX_PATH];
 		if (GetModuleBaseName(hProcess, maxbase, modname, sizeof(modname) / sizeof(char)))
 			// write the address with module
-			return sprintf(error + len, "Addr:0x%p (%s 0x%p)\n", addr, modname, maxbase);
+			return sprintf(error + len, "Addr:0x%p (%s 0x%p)\n", addr, modname, (void *) maxbase);
 	}
 	return 0; //what
 }
@@ -48,7 +48,7 @@ void CrashHelper::GetExceptionCodeFriendlyName(_EXCEPTION_POINTERS* exceptionPoi
 			strcpy(exceptionCodeStringPtr, "Stack overflow");
 			break;
 		default:
-			sprintf(exceptionCodeStringPtr, "%d", exceptionPointersPtr->ExceptionRecord->ExceptionCode);
+			sprintf(exceptionCodeStringPtr, "%d", (int) exceptionPointersPtr->ExceptionRecord->ExceptionCode);
 			break;
 	}
 }
@@ -69,7 +69,7 @@ void CrashHelper::GenerateLog(_EXCEPTION_POINTERS* exceptionPointersPtr, char* l
 	#endif
 		char exceptionCodeFriendly[1024] = {0};
 		GetExceptionCodeFriendlyName(exceptionPointersPtr, exceptionCodeFriendly);
-		len += sprintf(logPtr + len, "Exception code: %s (0x%08x)\n", exceptionCodeFriendly, exceptionPointersPtr->ExceptionRecord->ExceptionCode);
+		len += sprintf(logPtr + len, "Exception code: %s (0x%08x)\n", exceptionCodeFriendly, (int) exceptionPointersPtr->ExceptionRecord->ExceptionCode);
 	} else {
 		//emu info
 	#ifdef _DEBUG

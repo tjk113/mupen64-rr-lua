@@ -6,17 +6,17 @@
 	email                : shadow@emulation64.com
  ***************************************************************************/
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+ /***************************************************************************
+  *                                                                         *
+  *   This program is free software; you can redistribute it and/or modify  *
+  *   it under the terms of the GNU General Public License as published by  *
+  *   the Free Software Foundation; either version 2 of the License, or     *
+  *   (at your option) any later version.                                   *
+  *                                                                         *
+  ***************************************************************************/
 
-// Based on code from 1964 by Schibo and Rice
-// Slightly improved command line params parsing function to work with spaced arguments
+  // Based on code from 1964 by Schibo and Rice
+  // Slightly improved command line params parsing function to work with spaced arguments
 
 #include <stdlib.h>
 #include <ctype.h>
@@ -30,15 +30,15 @@
 BOOL cmdlineMode = 0;
 BOOL cmdlineSave = 0;
 BOOL cmdlineNoGui = 0;
-char cmdLineParameterBuf[512] = {0};
+char cmdLineParameterBuf[512] = { 0 };
 void SaveCmdLineParameter(char* cmdline) {
 	strcpy(cmdLineParameterBuf, cmdline);
 	if (strlen(cmdLineParameterBuf) > 0) {
 		int i;
-		int len = strlen(cmdLineParameterBuf);
+		int len = (int)strlen(cmdLineParameterBuf);
 		for (i = 0; i < len; i++) {
 			if (isupper(cmdLineParameterBuf[i])) {
-				cmdLineParameterBuf[i] = tolower(cmdLineParameterBuf[i]);
+				cmdLineParameterBuf[i] = (char)tolower(cmdLineParameterBuf[i]);
 			}
 		}
 	}
@@ -113,10 +113,11 @@ void GetCmdLineParameter(CmdLineParameterType arg, char* buf) {
 		while (!(strncmp(ptr1, "\"", 1) == 0) && (*ptr1 != 0)) {
 			*ptr2++ = *ptr1++;
 		}
-	} else {
+	}
+	else {
 		while (!isspace(*ptr1) && *ptr1 != 0) {
 			*ptr2++ = *ptr1++;
-		};
+		}
 	}
 	*ptr2 = 0;
 }
@@ -129,7 +130,7 @@ void setPluginFromCmndLine(CmdLineParameterType plugintype, char* PluginVar, int
 		ShowInfo("Command Line: Checking plugin name: %s", tempstr);
 		tempPluginStr = getPluginName(tempstr, spec_type);
 		if (tempPluginStr) {
-			sprintf(PluginVar, tempPluginStr);
+			sprintf(PluginVar, "%s", tempPluginStr);
 			ShowInfo("Command Line: Loaded Plugin : %s", PluginVar);
 		}
 	}
@@ -159,14 +160,16 @@ BOOL StartGameByCommandLine() {
 	if (!CmdLineParameterExist(CMDLINE_GAME_FILENAME)) {
 		ShowInfo("Command Line: Rom name not specified");
 		return FALSE;
-	} else {
+	}
+	else {
 		GetCmdLineParameter(CMDLINE_GAME_FILENAME, szFileName);
 		ShowInfo("Command Line: Rom Name :%s", szFileName);
 	}
 
 	if (!StartRom(szFileName)) {
 		return TRUE;
-	} else {
+	}
+	else {
 		ShowInfo("Command Line: Rom not found");
 		return FALSE;
 	}

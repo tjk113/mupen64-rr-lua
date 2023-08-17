@@ -55,13 +55,11 @@ int GetVILimit() {
 		case 0x58:
 		case 0x59:
 			return 50;
-			break;
 		case 0x37:
 		case 0x41:
 		case 0x45:
 		case 0x4a:
 			return 60;
-			break;
 		default:
 			return 60;
 	}
@@ -69,13 +67,13 @@ int GetVILimit() {
 
 void InitTimer() {
 	int temp;
-	VILimit = GetVILimit();
+	VILimit = (float) GetVILimit();
 	if (Config.is_fps_modifier_enabled) {
 		temp = Config.fps_modifier;
 	} else {
 		temp = 100;
 	}
-	VILimitMilliseconds = std::chrono::duration<double, std::milli>(1000.0 / (VILimit * temp / 100));
+	VILimitMilliseconds = std::chrono::duration<double, std::milli>(1000.0 / (VILimit * (float) temp / 100));
 	Translate("Speed Limit", TempMessage);
 	sprintf(TempMessage, "%s: %d%%", TempMessage, temp);
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)TempMessage);
@@ -155,7 +153,7 @@ void new_vi() {
 		VCR_setLengthVIs(m_currentVI/*VCR_getLengthVIs() + 1*/);
 
 // frame display / frame counter / framecount
-#ifndef __WIN32__   
+#ifndef __WIN32__
 	if ((m_currentVI % 10) == 0)
 		VCR_updateFrameCounter();
 #else
@@ -216,7 +214,7 @@ void new_vi() {
 	if (Config.show_vis_per_second) {
 		if (CurrentFPSTime - CounterTime >= std::chrono::seconds(1)) {
 			//count is in nanoseconds, but statusbar in seconds
-			VIs = VI_Counter / std::chrono::duration<double>(CurrentFPSTime - CounterTime).count();
+			VIs = (float) ((double) VI_Counter / std::chrono::duration<double>(CurrentFPSTime - CounterTime).count());
 			//std::cout << VI_Counter << " in " << std::chrono::duration<double>(CurrentFPSTime - CounterTime) << std::endl;
 			if (VIs > 1) //if after fast forwarding pretend statusbar lagged idk
 			{

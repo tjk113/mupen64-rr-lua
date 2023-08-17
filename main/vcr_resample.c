@@ -18,7 +18,7 @@ static int rates_changed(int cur_in, int cur_out) {
 	static spx_uint32_t in;
 	static spx_uint32_t out;
 	speex_resampler_get_rate(speex_ctx, &in, &out);
-	return in != cur_in || out != cur_out;
+	return in != (unsigned int) cur_in || out != (unsigned int) cur_out;
 }
 
 int

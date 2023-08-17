@@ -219,14 +219,14 @@ ROM_DIRECTORY_PTR LoadRomBrowserDirs() {
 			return NULL;
 		}
 		RomBrowserDir[strlen(RomBrowserDir) - 1] = '\0';
-		if (strcmp(RomBrowserDir, "")) {
+		if (strcmp(RomBrowserDir, "") != 0) {
 			head = (ROM_DIRECTORY_LIST*)malloc(sizeof(ROM_DIRECTORY_LIST));
 			sprintf(head->RomDirectory, "%s", RomBrowserDir);
 			head->next = NULL;
 		}
 		prev = head;
 		gzgets(cacheFile, RomBrowserDir, MAX_PATH);
-		while (strcmp(RomBrowserDir, "")) {
+		while (strcmp(RomBrowserDir, "") != 0) {
 			RomBrowserDir[strlen(RomBrowserDir) - 1] = '\0';
 			tmp = (ROM_DIRECTORY_LIST*)malloc(sizeof(ROM_DIRECTORY_LIST));
 			if (tmp) {
@@ -432,7 +432,15 @@ void AddRomToList(char* RomLocation) {
 		ItemList.ListAlloc = 100;
 	} else if (ItemList.ListAlloc == ItemList.ListCount) {
 		ItemList.ListAlloc += 100;
-		ItemList.List = (ROM_INFO*)realloc(ItemList.List, ItemList.ListAlloc * sizeof(ROM_INFO));
+		ROM_INFO* tempList = (ROM_INFO*)realloc(ItemList.List, ItemList.ListAlloc * sizeof(ROM_INFO));
+		if(tempList == NULL)
+		{
+			free(tempList);
+			free(ItemList.List);
+		} else
+		{
+			ItemList.List = tempList;
+		}
 		if (ItemList.List == NULL) {
 			ShowMessage("Failed");
 			ExitThread(0);
@@ -447,7 +455,7 @@ void AddRomToList(char* RomLocation) {
 	strncpy(pRomInfo->szFullFileName, RomLocation, MAX_PATH);
 	_splitpath(RomLocation, 0, 0, pRomInfo->FileName, 0);
 	strncpy(pRomInfo->InternalName, (const char*)ROM_HEADER->nom, sizeof(ROM_HEADER->nom));
-	pRomInfo->Country = ROM_HEADER->Country_code;
+	pRomInfo->Country = (BYTE) ROM_HEADER->Country_code;
 	pRomInfo->RomSize = ROM_SIZE;
 	pRomInfo->CRC1 = sl(ROM_HEADER->CRC1);
 	pRomInfo->CRC2 = sl(ROM_HEADER->CRC2);
@@ -543,6 +551,8 @@ void RomList_GetDispInfo(LPNMHDR pnmh) {
 
 		case 6:
 			strncpy(lpdi->item.pszText, pRomInfo->MD5, lpdi->item.cchTextMax);
+			break;
+		default:
 			break;
 	}
 }
@@ -678,7 +688,11 @@ LRESULT CALLBACK RomPropertiesProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 					ReadComboBoxValue(hwnd, IDC_COMBO_RSP, TempRomSettings.RspPluginName);
 					saveDefaultRomSettings(pRomInfo->InternalName, TempRomSettings);
 					break;
+				default:
+					break;
 			}
+			break;
+		default:
 			break;
 	}
 	return FALSE;
@@ -729,6 +743,8 @@ void RomListNotify(LPNMHDR pnmh) {
 		case LVN_COLUMNCLICK: RomList_ColoumnSortList((LPNMLISTVIEW)pnmh); break;
 		case NM_RCLICK:       RomList_RightClick(pnmh); break;
 		case NM_CLICK:        getSelectedRom(); break;
+	default:
+		break;
 	}
 }
 
@@ -957,7 +973,6 @@ DWORD WINAPI RefreshRomBrowserInternal(LPVOID tParam) {
 	LoadRomList();
 	romBrowserBusy = FALSE;
 	ExitThread(0);
-	return 0;
 }
 
 void RefreshRomBrowser() {
@@ -1002,25 +1017,17 @@ int CALLBACK RomList_CompareItems(LPARAM lParam1, LPARAM lParam2, LPARAM lParamS
 	ROM_INFO* pRomInfo2 = &ItemList.List[SortAscending ? lParam2 : lParam1];
 	switch (RealColumn[lParamSort]) {
 		case 0: return (int)lstrcmpi(pRomInfo1->GoodName, pRomInfo2->GoodName);
-			break;
 		case 1: return (int)lstrcmpi(pRomInfo1->InternalName, pRomInfo2->InternalName);
-			break;
 		case 2:
 			CountryCodeToCountryName(pRomInfo1->Country, country1);
 			CountryCodeToCountryName(pRomInfo2->Country, country2);
 			return (int)lstrcmpi(country1, country2);
-			break;
 		case 3: return (int)pRomInfo1->RomSize - (int)pRomInfo2->RomSize;
-			break;
 		case 4: return (int)lstrcmpi(pRomInfo1->UserNotes, pRomInfo2->UserNotes);
-			break;
 		case 5: return (int)lstrcmpi(pRomInfo1->szFullFileName, pRomInfo2->szFullFileName);
-			break;
 		case 6: return (int)lstrcmpi(pRomInfo1->MD5, pRomInfo2->MD5);
-			break;
 		default:
 			return 0;
-			break;
 	}
 }
 
@@ -1031,8 +1038,8 @@ void ResizeRomListControl() {
 	if (!emu_launched) {
 		if (IsWindow(hRomList)) {
 			GetClientRect(mainHWND, &rcMain);
-			nWidth = rcMain.right - rcMain.left;
-			nHeight = rcMain.bottom - rcMain.top;
+			nWidth = (WORD) (rcMain.right - rcMain.left);
+			nHeight = (WORD) (rcMain.bottom - rcMain.top);
 			if (IsWindow(hStatus)) {
 
 				GetWindowRect(hStatus, &rc);
@@ -1097,7 +1104,7 @@ char* ParseName(char* rompath) {
 void ShiftRecentRoms() {
 	int i;
 	for (i = MAX_RECENT_ROMS - 1; i > 0; i--) {
-		sprintf(Config.recent_rom_paths[i], Config.recent_rom_paths[i - 1]);
+		sprintf(Config.recent_rom_paths[i], "%s", Config.recent_rom_paths[i - 1]);
 	}
 }
 
@@ -1179,7 +1186,7 @@ void AddToRecentList(HWND hwnd, char* rompath) {
 
 		if (strcmp(Config.recent_rom_paths[i], rompath) == 0) { // Shifting Array up
 			for (j = i; j < MAX_RECENT_ROMS - 1; j++) {
-				sprintf(Config.recent_rom_paths[j], Config.recent_rom_paths[j + 1]);
+				sprintf(Config.recent_rom_paths[j], "%s", Config.recent_rom_paths[j + 1]);
 			}
 			Config.recent_rom_paths[MAX_RECENT_ROMS - 1][0] = '\0';
 		}
@@ -1187,7 +1194,7 @@ void AddToRecentList(HWND hwnd, char* rompath) {
 
 	ShiftRecentRoms();
 
-	sprintf(Config.recent_rom_paths[0], rompath);
+	sprintf(Config.recent_rom_paths[0], "%s", rompath);
 
 	ClearRecentList(hwnd, FALSE);
 	SetRecentList(hwnd);
@@ -1200,7 +1207,7 @@ void RunRecentRom(int id) {
 	i = id - ID_RECENTROMS_FIRST;
 	if (i >= 0 && i < MAX_RECENT_ROMS) {
 		if (strcmp(Config.recent_rom_paths[i], "") == 0) return;
-		sprintf(rompath, Config.recent_rom_paths[i]);
+		sprintf(rompath, "%s", Config.recent_rom_paths[i]);
 		StartRom(rompath);
 	}
 }

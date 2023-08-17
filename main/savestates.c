@@ -275,7 +275,7 @@ void load_memory_from_buffer(char* p) {
 		memread(&p, &target_addr, 4);
 		for (int i = 0; i < 0x100000; i++)
 			invalid_code[i] = 1;
-		jump_to(target_addr);
+		jump_to(target_addr)
 	}
 
 	memread(&p, &next_interupt, 4);
@@ -369,7 +369,7 @@ void savestates_load(bool silenceNotFoundError) {
 
 	// compare current rom hash with one stored in state
 	gzread(f, buf, 32);
-	if (memcmp(buf, ROM_SETTINGS.MD5, 32)) {
+	if (memcmp(buf, ROM_SETTINGS.MD5, 32) != 0) {
 	#ifdef WIN32
 		if (Config.is_rom_movie_compatibility_check_enabled)	// if true, allows loading
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
@@ -395,7 +395,7 @@ void savestates_load(bool silenceNotFoundError) {
 	// now read interrupt queue into buf
 	for (len = 0; len < BUFLEN; len += 8) {
 		gzread(f, buf + len, 4);
-		if (*((unsigned long*)&buf[len]) == 0xFFFFFFFF)
+		if (*reinterpret_cast<unsigned long*>(&buf[len]) == 0xFFFFFFFF)
 			break;
 		gzread(f, buf + len + 4, 4);
 	}
@@ -446,7 +446,7 @@ void savestates_load(bool silenceNotFoundError) {
 			goto failedLoad;
 		}
 		int readBytes = gzread(f, local_movie_data, movieInputDataSize);
-		if (readBytes != movieInputDataSize) {
+		if ((unsigned long) readBytes != movieInputDataSize) {
 			fprintf(stderr, "Error while loading .st, file was too short.\n");
 			free(local_movie_data);
 			savestates_job_success = FALSE;
@@ -471,6 +471,8 @@ void savestates_load(bool silenceNotFoundError) {
 				case WRONG_FORMAT:
 					strcat(errStr, "wrong format\n");
 					stop = true;
+					break;
+				default:
 					break;
 			}
 			if (!Config.is_state_independent_state_loading_allowed) {
@@ -585,7 +587,7 @@ void savestates_load_old(bool silenceNotFoundError) {
 
 	//printf("--------st start---------\n");
 	gzread(f, buf, 32);
-	if (memcmp(buf, ROM_SETTINGS.MD5, 32)) {
+	if (memcmp(buf, ROM_SETTINGS.MD5, 32) != 0) {
 	#ifdef WIN32
 		if (Config.is_rom_movie_compatibility_check_enabled)
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
@@ -648,7 +650,7 @@ void savestates_load_old(bool silenceNotFoundError) {
 		gzread(f, &len, 4);
 		for (i = 0; i < 0x100000; i++)
 			invalid_code[i] = 1;
-		jump_to(len);
+		jump_to(len)
 	}
 
 	gzread(f, &next_interupt, 4);
@@ -657,7 +659,7 @@ void savestates_load_old(bool silenceNotFoundError) {
 
 	for (len = 0; len < BUFLEN; len += 8) {
 		gzread(f, buf + len, 4);
-		if (*((unsigned long*)&buf[len]) == 0xFFFFFFFF)
+		if (*reinterpret_cast<unsigned long*>(&buf[len]) == 0xFFFFFFFF)
 			break;
 		gzread(f, buf + len + 4, 4);
 	}
@@ -683,7 +685,7 @@ void savestates_load_old(bool silenceNotFoundError) {
 		gzread(f, &movieInputDataSize, sizeof(movieInputDataSize));
 		char* local_movie_data = (char*)malloc(movieInputDataSize * sizeof(char));
 		int readBytes = gzread(f, local_movie_data, movieInputDataSize);
-		if (readBytes != movieInputDataSize) {
+		if ((unsigned long) readBytes != movieInputDataSize) {
 			fprintf(stderr, "Corrupt movie snapshot.\n");
 			if (local_movie_data)
 				free(local_movie_data);
@@ -710,6 +712,8 @@ void savestates_load_old(bool silenceNotFoundError) {
 				case WRONG_FORMAT:
 					strcat(errStr, "wrong format\n");
 					stop = true;
+					break;
+				default:
 					break;
 			}
 

@@ -13,6 +13,8 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifndef INIFUNCTIONS_H
+#define INIFUNCTIONS_H
 
 #include <windows.h>
 #include "../../memory/memory.h"
@@ -24,3 +26,4 @@ void getIniGoodName(rom_header* HEADER, char* result);
 void getIniComments(ROM_INFO* pRomInfo, char* result);
 void setIniComments(ROM_INFO* pRomInfo, char* result);
 BOOL getIniGoodNameByMD5(char* md5str, char* result);
+#endif // INIFUNCTIONS_H

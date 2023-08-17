@@ -33,7 +33,8 @@ BOOL CALLBACK CrashHandlerDialogProcedure(HWND hwnd, UINT Message, WPARAM wParam
 		case WM_DRAWITEM:
 			if (wParam == IDC_ERROR_PICTUREBOX) // Draw transparent bitmap in IDC_IMG3
 			{
-				LPDRAWITEMSTRUCT lpDrawItem = (LPDRAWITEMSTRUCT)lParam;
+				LPDRAWITEMSTRUCT lpDrawItem = nullptr;
+				memcpy(&lpDrawItem, &lParam, sizeof(LPDRAWITEMSTRUCT));
 				HDC hMemoryDc = CreateCompatibleDC(lpDrawItem->hDC);
 				HGDIOBJ hOldBitmap = SelectObject(hMemoryDc, bitmapHandle);
 				BITMAP bitmap;
@@ -55,6 +56,8 @@ BOOL CALLBACK CrashHandlerDialogProcedure(HWND hwnd, UINT Message, WPARAM wParam
 				case IDC_ERROR_PANIC_CLOSE:
 					CrashHandlerDialog::CrashHandlerDialogChoice = CrashHandlerDialog::Choices::Exit;
 					EndDialog(hwnd, 0);
+					break;
+				default:
 					break;
 			}
 			break;

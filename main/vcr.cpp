@@ -861,9 +861,9 @@ int VCR_movieUnfreeze(const char* buf, unsigned long size) {
 		if (lastTask == Playback)
 			setROMInfo(&m_header);
 
-		m_currentSample = (long)current_sample;
+		m_currentSample = (long) current_sample;
 		m_header.length_samples = current_sample;
-		m_currentVI = (int)current_vi;
+		m_currentVI = (int) current_vi;
 
 		m_header.rerecord_count++;
 
@@ -896,8 +896,8 @@ int VCR_movieUnfreeze(const char* buf, unsigned long size) {
 			// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
 	#endif
 
-		m_currentSample = (long)current_sample;
-		m_currentVI = (int)current_vi;
+		m_currentSample = (long) current_sample;
+		m_currentVI = (int) current_vi;
 	}
 
 	m_inputBufferPtr = m_inputBuffer + (sizeof(BUTTONS) * m_currentSample);
@@ -1057,7 +1057,7 @@ VCR_getKeys(int Control, BUTTONS* Keys) {
 
 		// This if previously also checked for if the VI is over the amount specified in the header,
 		// but that can cause movies to end playback early on laggy plugins.
-		if (m_currentSample >= (long)m_header.length_samples) {
+		if (m_currentSample >= (long) m_header.length_samples) {
 //			if (m_capture != 0)
 //				VCR_stopCapture();
 //			else
@@ -1343,11 +1343,11 @@ void SetActiveMovie(char* buf) {
 	char title[MAX_PATH];
 
 	if (!buf) {
-		sprintf(title, MUPEN_VERSION " - %s", (char*)ROM_HEADER->nom);
+		sprintf(title, MUPEN_VERSION " - %s", (char *) ROM_HEADER->nom);
 	} else if (buf) {
 
 		_splitpath(buf, 0, 0, buf, 0);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER->nom, buf);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char *) ROM_HEADER->nom, buf);
 	}
 	printf("title %s\n", title);
 	SetWindowText(mainHWND, title);
@@ -1498,7 +1498,7 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 				char str[512], name[512];
 				extern rom_header* ROM_HEADER;
 				if (ROM_HEADER && _stricmp(m_header.romNom, (const char*)ROM_HEADER->nom) != 0) {
-					sprintf(str, "The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n", m_header.romNom, (char*)ROM_HEADER->nom);
+					sprintf(str, "The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n", m_header.romNom, (char *) ROM_HEADER->nom);
 					strcat(warningStr, str);
 					dontPlay = Config.is_rom_movie_compatibility_check_enabled ? dontPlay : TRUE;
 				} else {
@@ -1625,8 +1625,8 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 			if (!getSavestatePath(buf, buf) && !getSavestatePath(untruncatedName, buf)) {
 				printf("[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
 				RESET_TITLEBAR
-					if (m_file != NULL)
-						fclose(m_file);
+				if (m_file != NULL)
+					fclose(m_file);
 				return VCR_PLAYBACK_SAVESTATE_MISSING;
 			}
 
@@ -1797,7 +1797,7 @@ VCR_updateScreen() {
 		// audio to drift away by default. This method of syncing prevents this, at the cost of the video feed possibly freezing or jumping
 		// (though in practice this rarely happens - usually a loading scene just appears shorter or something).
 
-		int audio_frames = (int)(m_audioFrame - m_videoFrame + 0.1); // i've seen a few games only do ~0.98 frames of audio for a frame, let's account for that here
+		int audio_frames = (int) (m_audioFrame - m_videoFrame + 0.1); // i've seen a few games only do ~0.98 frames of audio for a frame, let's account for that here
 
 		if (Config.synchronization_mode == VCR_SYNC_AUDIO_DUPL) {
 			if (audio_frames < 0) {
@@ -1861,16 +1861,16 @@ VCR_aiDacrateChanged(int SystemType) {
 	}
 	aiDacrateChanged(SystemType);
 
-	m_audioBitrate = (int)ai_register.ai_bitrate + 1;
+	m_audioBitrate = (int) ai_register.ai_bitrate + 1;
 	switch (SystemType) {
 		case SYSTEM_NTSC:
-			m_audioFreq = (int)(48681812 / (ai_register.ai_dacrate + 1));
+			m_audioFreq = (int) (48681812 / (ai_register.ai_dacrate + 1));
 			break;
 		case SYSTEM_PAL:
-			m_audioFreq = (int)(49656530 / (ai_register.ai_dacrate + 1));
+			m_audioFreq = (int) (49656530 / (ai_register.ai_dacrate + 1));
 			break;
 		case SYSTEM_MPAL:
-			m_audioFreq = (int)(48628316 / (ai_register.ai_dacrate + 1));
+			m_audioFreq = (int) (48628316 / (ai_register.ai_dacrate + 1));
 			break;
 	}
 }
@@ -1904,7 +1904,7 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 	}
 
 	if (len > 0) {
-		if ((unsigned int)(soundBufPos + len) > SOUND_BUF_SIZE * sizeof(char)) {
+		if ((unsigned int) (soundBufPos + len)> SOUND_BUF_SIZE * sizeof(char)) {
 		#ifdef WIN32
 			MessageBox(0, "Fatal error", "Sound buffer overflow", MB_ICONERROR);
 		#endif
@@ -1928,19 +1928,19 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 // calculates how long the audio data will last
 float GetPercentOfFrame(int aiLen, int audioFreq, int audioBitrate) {
 	int limit = visByCountrycode();
-	float viLen = 1.f / (float)limit; //how much seconds one VI lasts
-	float time = (float)(aiLen * 8) / ((float)audioFreq * 2.f * (float)audioBitrate); //how long the buffer can play for
+	float viLen = 1.f / (float) limit; //how much seconds one VI lasts
+	float time = (float)(aiLen * 8) / ((float) audioFreq * 2.f * (float)audioBitrate); //how long the buffer can play for
 	return time / viLen; //ratio
 }
 
 void VCR_aiLenChanged() {
 	short* p = reinterpret_cast<short*>((char*)rdram + (ai_register.ai_dram_addr & 0xFFFFFF));
 	char* buf = (char*)p;
-	int aiLen = (int)ai_register.ai_len;
+	int aiLen = (int) ai_register.ai_len;
 	aiLenChanged();
 
 	// hack - mupen64 updates bitrate after calling aiDacrateChanged
-	m_audioBitrate = (int)ai_register.ai_bitrate + 1;
+	m_audioBitrate = (int) ai_register.ai_bitrate + 1;
 
 	//ShowInfo("ailenchanged %p %d (%f% of VI limit), count: %x", p, aiLen, GetPercentOfFrame(aiLen, m_audioFreq, m_audioBitrate), Count);
 
@@ -1990,7 +1990,7 @@ void VCR_aiLenChanged() {
 			if (desync > 1.0) {
 				int len3;
 				printf("[VCR]: Correcting for A/V desynchronization of %+Lf frames\n", desync);
-				len3 = (int)(m_audioFreq / (long double)visByCountrycode()) * (int)desync;
+				len3 = (int) (m_audioFreq / (long double)visByCountrycode()) * (int) desync;
 				len3 <<= 2;
 
 				int emptySize = len3 > writeSize ? writeSize : len3;
@@ -2037,9 +2037,9 @@ void UpdateTitleBarCapture(const char* filename) {
 		char m64[PATH_MAX];
 		strncpy(m64, m_filename, PATH_MAX);
 		_splitpath(m64, 0, 0, m64, 0);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s%s", (char*)ROM_HEADER->nom, m64, avi, ext);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s%s", (char *) ROM_HEADER->nom, m64, avi, ext);
 	} else {
-		sprintf(title, MUPEN_VERSION " - %s | %s%s", (char*)ROM_HEADER->nom, avi, ext);
+		sprintf(title, MUPEN_VERSION " - %s | %s%s", (char *) ROM_HEADER->nom, avi, ext);
 	}
 	printf("title %s\n", title);
 	SetWindowText(mainHWND, title);
@@ -2232,7 +2232,7 @@ VCR_stopCapture() {
 		char m64[PATH_MAX];
 		strncpy(m64, m_filename, PATH_MAX);
 		_splitpath(m64, 0, 0, m64, 0);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER->nom, m64);
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char *) ROM_HEADER->nom, m64);
 		SetWindowText(mainHWND, title);
 	} else { //atme
 		RESET_TITLEBAR
@@ -2299,8 +2299,8 @@ void VCR_updateFrameCounter() {
 		cu = (m_lastController1Keys & (0x0800)) != 0;
 		r = (m_lastController1Keys & (0x1000)) != 0;
 		l = (m_lastController1Keys & (0x2000)) != 0;
-		x = (char)((m_lastController1Keys & (0x00FF0000)) >> 16);
-		y = (char)((m_lastController1Keys & (0xFF000000)) >> 24);
+		x = (char) ((m_lastController1Keys & (0x00FF0000)) >> 16);
+		y = (char) ((m_lastController1Keys & (0xFF000000)) >> 24);
 
 		if (!x && !y)
 			strcpy(inputDisplay, "");

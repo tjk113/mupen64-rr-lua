@@ -80,7 +80,7 @@ extern int errno;
 #endif
 #endif
 const char zip_copyright[] =
-" zip 1.01 Copyright 1998-2004 Gilles Vollant - http://www.winimage.com/zLibDll";
+" zip 1.01 Copyright 1998-2004 Gilles Vollant - https://www.winimage.com/zLibDll";
 
 
 #define SIZEDATA_INDATABLOCK (4096-(4*4))
@@ -154,7 +154,7 @@ typedef struct {
 #include "crypt.h"
 #endif
 
-local linkedlist_datablock_internal* allocate_new_datablock() {
+local linkedlist_datablock_internal* allocate_new_datablock(void) {
 	linkedlist_datablock_internal* ldi;
 	ldi = (linkedlist_datablock_internal*)
 		ALLOC(sizeof(linkedlist_datablock_internal));
@@ -169,7 +169,7 @@ local linkedlist_datablock_internal* allocate_new_datablock() {
 local void free_datablock(linkedlist_datablock_internal* ldi) {
 	while (ldi != NULL) {
 		linkedlist_datablock_internal* ldinext = ldi->next_datablock;
-		TRYFREE(ldi);
+		TRYFREE(ldi)
 		ldi = ldinext;
 	}
 }
@@ -205,7 +205,7 @@ local int add_data_in_datablock(
 	}
 
 	ldi = ll->last_block;
-	from_copy = (unsigned char*)buf;
+	from_copy = (const unsigned char*)buf;
 
 	while (len > 0) {
 		uInt copy_this;
@@ -460,7 +460,7 @@ local uLong ziplocal_SearchCentralDir(
 		if (uPosFound != 0)
 			break;
 	}
-	TRYFREE(buf);
+	TRYFREE(buf)
 	return uPosFound;
 }
 #endif /* !NO_ADDFILEINEXISTINGZIP*/
@@ -612,7 +612,7 @@ extern zipFile ZEXPORT zipOpen2(
 						(uLong)read_this);
 				size_central_dir_to_read -= read_this;
 			}
-			TRYFREE(buf_read);
+			TRYFREE(buf_read)
 		}
 		ziinit.begin_pos = byte_before_the_zipfile;
 		ziinit.number_entry = number_entry_CD;
@@ -629,9 +629,9 @@ extern zipFile ZEXPORT zipOpen2(
 
 	if (err != ZIP_OK) {
 	#    ifndef NO_ADDFILEINEXISTINGZIP
-		TRYFREE(ziinit.globalcomment);
+		TRYFREE(ziinit.globalcomment)
 	#    endif /* !NO_ADDFILEINEXISTINGZIP*/
-		TRYFREE(zi);
+		TRYFREE(zi)
 		return NULL;
 	} else {
 		*zi = ziinit;
@@ -826,13 +826,13 @@ extern int ZEXPORT zipOpenNewFileInZip3(
 	zi->ci.crypt_header_size = 0;
 	if ((err == Z_OK) && (password != NULL)) {
 		unsigned char bufHead[RAND_HEAD_LEN];
-		unsigned int sizeHead;
 		zi->ci.encrypt = 1;
 		zi->ci.pcrc_32_tab = get_crc_table();
 		/*init_keys(password,zi->ci.keys,zi->ci.pcrc_32_tab);*/
 
-		sizeHead = crypthead(password, bufHead, RAND_HEAD_LEN, zi->ci.keys, zi->ci.pcrc_32_tab, crcForCrypting);
-		zi->ci.crypt_header_size = sizeHead;
+		unsigned int sizeHead = crypthead(password, bufHead, RAND_HEAD_LEN, zi->ci.keys, zi->ci.pcrc_32_tab,
+		                                  crcForCrypting);
+		zi->ci.crypt_header_size = (int) sizeHead;
 
 		if (ZWRITE(zi->z_filefunc, zi->filestream, bufHead, sizeHead) != sizeHead)
 			err = ZIP_ERRNO;
@@ -915,7 +915,7 @@ extern int ZEXPORT zipWriteInFileInZip(
 	if (zi->in_opened_file_inzip == 0)
 		return ZIP_PARAMERROR;
 
-	zi->ci.stream.next_in = (Bytef*)(void*)buf;
+	zi->ci.stream.next_in = (Bytef*)(const void*)buf;
 	zi->ci.stream.avail_in = len;
 	zi->ci.crc32 = crc32(zi->ci.crc32, (const Bytef*)buf, len);
 
@@ -1132,9 +1132,9 @@ extern int ZEXPORT zipClose(
 			err = ZIP_ERRNO;
 
 #ifndef NO_ADDFILEINEXISTINGZIP
-	TRYFREE(zi->globalcomment);
+	TRYFREE(zi->globalcomment)
 #endif
-	TRYFREE(zi);
+	TRYFREE(zi)
 
 	return err;
 }

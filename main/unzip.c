@@ -365,7 +365,7 @@ local uLong unzlocal_SearchCentralDir(
 		if (uPosFound != 0)
 			break;
 	}
-	TRYFREE(buf);
+	TRYFREE(buf)
 	return uPosFound;
 }
 
@@ -500,7 +500,7 @@ extern int ZEXPORT unzClose(
 		unzCloseCurrentFile(file);
 
 	ZCLOSE(s->z_filefunc, s->filestream);
-	TRYFREE(s);
+	TRYFREE(s)
 	return UNZ_OK;
 }
 
@@ -634,7 +634,7 @@ local int unzlocal_GetCurrentFileInfoInternal(
 	if (unzlocal_getLong(&s->z_filefunc, s->filestream, &file_info_internal.offset_curfile) != UNZ_OK)
 		err = UNZ_ERRNO;
 
-	lSeek += file_info.size_filename;
+	lSeek += (long) file_info.size_filename;
 	if ((err == UNZ_OK) && (szFileName != NULL)) {
 		uLong uSizeRead;
 		if (file_info.size_filename < fileNameBufferSize) {
@@ -646,7 +646,7 @@ local int unzlocal_GetCurrentFileInfoInternal(
 		if ((file_info.size_filename > 0) && (fileNameBufferSize > 0))
 			if (ZREAD(s->z_filefunc, s->filestream, szFileName, uSizeRead) != uSizeRead)
 				err = UNZ_ERRNO;
-		lSeek -= uSizeRead;
+		lSeek -= (long) uSizeRead;
 	}
 
 
@@ -667,9 +667,9 @@ local int unzlocal_GetCurrentFileInfoInternal(
 		if ((file_info.size_file_extra > 0) && (extraFieldBufferSize > 0))
 			if (ZREAD(s->z_filefunc, s->filestream, extraField, uSizeRead) != uSizeRead)
 				err = UNZ_ERRNO;
-		lSeek += file_info.size_file_extra - uSizeRead;
+		lSeek += (long) (file_info.size_file_extra - uSizeRead);
 	} else
-		lSeek += file_info.size_file_extra;
+		lSeek += (long) file_info.size_file_extra;
 
 
 	if ((err == UNZ_OK) && (szComment != NULL)) {
@@ -690,9 +690,9 @@ local int unzlocal_GetCurrentFileInfoInternal(
 		if ((file_info.size_file_comment > 0) && (commentBufferSize > 0))
 			if (ZREAD(s->z_filefunc, s->filestream, szComment, uSizeRead) != uSizeRead)
 				err = UNZ_ERRNO;
-		lSeek += file_info.size_file_comment - uSizeRead;
+		lSeek += (long) (file_info.size_file_comment - uSizeRead);
 	} else
-		lSeek += file_info.size_file_comment;
+		lSeek += (long) file_info.size_file_comment;
 
 	if ((err == UNZ_OK) && (pfile_info != NULL))
 		*pfile_info = file_info;
@@ -1043,7 +1043,7 @@ extern int ZEXPORT unzOpenCurrentFile3(
 	pfile_in_zip_read_info->raw = raw;
 
 	if (pfile_in_zip_read_info->read_buffer == NULL) {
-		TRYFREE(pfile_in_zip_read_info);
+		TRYFREE(pfile_in_zip_read_info)
 		return UNZ_INTERNALERROR;
 	}
 
@@ -1058,6 +1058,8 @@ extern int ZEXPORT unzOpenCurrentFile3(
 			case 6: *level = 1; break;
 			case 4: *level = 2; break;
 			case 2: *level = 9; break;
+		default:
+			break;
 		}
 	}
 
@@ -1087,7 +1089,7 @@ extern int ZEXPORT unzOpenCurrentFile3(
 		if (err == Z_OK)
 			pfile_in_zip_read_info->stream_initialised = 1;
 		else {
-			TRYFREE(pfile_in_zip_read_info);
+			TRYFREE(pfile_in_zip_read_info)
 			return err;
 		}
 		  /* windowBits is passed < 0 to tell that there is no zlib header.
@@ -1250,7 +1252,7 @@ extern int ZEXPORT unzReadCurrentFile(
 
 			if ((pfile_in_zip_read_info->stream.avail_in == 0) &&
 				(pfile_in_zip_read_info->rest_read_compressed == 0))
-				return (iRead == 0) ? UNZ_EOF : iRead;
+				return (iRead == 0) ? UNZ_EOF : (int) iRead;
 
 			if (pfile_in_zip_read_info->stream.avail_out <
 				pfile_in_zip_read_info->stream.avail_in)
@@ -1305,14 +1307,14 @@ extern int ZEXPORT unzReadCurrentFile(
 			iRead += (uInt)(uTotalOutAfter - uTotalOutBefore);
 
 			if (err == Z_STREAM_END)
-				return (iRead == 0) ? UNZ_EOF : iRead;
+				return (iRead == 0) ? UNZ_EOF : (int) iRead;
 			if (err != Z_OK)
 				break;
 		}
 	}
 
 	if (err == Z_OK)
-		return iRead;
+		return (int) iRead;
 	return err;
 }
 
@@ -1443,13 +1445,13 @@ extern int ZEXPORT unzCloseCurrentFile(
 	}
 
 
-	TRYFREE(pfile_in_zip_read_info->read_buffer);
+	TRYFREE(pfile_in_zip_read_info->read_buffer)
 	pfile_in_zip_read_info->read_buffer = NULL;
 	if (pfile_in_zip_read_info->stream_initialised)
 		inflateEnd(&pfile_in_zip_read_info->stream);
 
 	pfile_in_zip_read_info->stream_initialised = 0;
-	TRYFREE(pfile_in_zip_read_info);
+	TRYFREE(pfile_in_zip_read_info)
 
 	s->pfile_in_zip_read = NULL;
 

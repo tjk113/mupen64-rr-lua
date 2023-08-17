@@ -1,9 +1,10 @@
+#ifndef __VCR_COMPRESS_H__
+#define __VCR_COMPRESS_H__
 #include <Windows.h>
 
 #ifdef VCR_SUPPORT
 
-#ifndef __VCR_COMPRESS_H__
-#define __VCR_COMPRESS_H__
+
 
 #if defined(__cplusplus) && !defined(_MSC_VER)
 extern "C" {

@@ -40,7 +40,7 @@ void getIniGoodName(rom_header* HEADER, char* result) {
 	char crccode[200];
 	mupenEntry* entry;
 	strcpy(result, "");
-	intCrcCode(HEADER->CRC1, HEADER->CRC2, HEADER->Country_code, crccode);
+	intCrcCode(HEADER->CRC1, HEADER->CRC2, (BYTE) HEADER->Country_code, crccode);
 	entry = ini_search_by_CRC(crccode);
 	if (entry) {
 		strcpy(result, entry->goodname);
@@ -51,7 +51,7 @@ void getIniComments(ROM_INFO* pRomInfo, char* result) {
 	char tmp[300];
 	mupenEntry* entry;
 	result[0] = '\0';
-	sprintf(tmp, pRomInfo->MD5);
+	sprintf(tmp, "%s", pRomInfo->MD5);
 	if (strcmp(tmp, "") == 0) {
 		sprintf(tmp, "%08X-%08X-C%02X", (int)pRomInfo->CRC1, (int)pRomInfo->CRC2, pRomInfo->Country);
 		entry = ini_search_by_CRC(tmp);
@@ -70,9 +70,9 @@ void setIniComments(ROM_INFO* pRomInfo, char* result) {
 	if (strcmp(result, "") == 0) {
 		return;
 	}
-	sprintf(tmp, pRomInfo->MD5);
+	sprintf(tmp, "%s", pRomInfo->MD5);
 	if (strcmp(tmp, "") == 0) {
-		sprintf(tmp, "%08X-%08X-C%02X", (int)pRomInfo->CRC1, (int)pRomInfo->CRC2, pRomInfo->Country);
+		sprintf(tmp, "%08X-%08X-C%02X", (int) pRomInfo->CRC1, (int) pRomInfo->CRC2, pRomInfo->Country);
 		entry = ini_search_by_CRC(tmp);
 	} else {
 		entry = ini_search_by_md5(tmp);
