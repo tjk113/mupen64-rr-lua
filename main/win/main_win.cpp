@@ -63,7 +63,6 @@ extern "C" {
 #include "../../r4300/recomph.h"
 
 #define EMULATOR_MAIN_CPP_DEF
-#include "kaillera.h"
 #include "../../memory/pif.h"
 #undef EMULATOR_MAIN_CPP_DEF
 
@@ -438,16 +437,16 @@ void SaveGlobalPlugins(BOOL method) {
 
 	if (method)  //Saving
 	{
-		sprintf(gfx_temp, gfx_name);
-		sprintf(input_temp, input_name);
-		sprintf(sound_temp, sound_name);
-		sprintf(rsp_temp, rsp_name);
+		sprintf(gfx_temp, "%s", gfx_name);
+		sprintf(input_temp, "%s", input_name);
+		sprintf(sound_temp, "%s", sound_name);
+		sprintf(rsp_temp, "%s", rsp_name);
 	} else         //Loading
 	{
-		sprintf(gfx_name, gfx_temp);
-		sprintf(input_name, input_temp);
-		sprintf(sound_name, sound_temp);
-		sprintf(rsp_name, rsp_temp);
+		sprintf(gfx_name, "%s", gfx_temp);
+		sprintf(input_name, "%s", input_temp);
+		sprintf(sound_name, "%s", sound_temp);
+		sprintf(rsp_name, "%s", rsp_temp);
 	}
 }
 
@@ -591,7 +590,12 @@ struct ProcAddress {
 	}
 	template<class T>
 	operator T() const {
-		return reinterpret_cast<T>(_fp);
+		union {
+			FARPROC fp;
+			T func;
+		} converter;
+		converter.fp = _fp;
+		return converter.func;
 	}
 };
 
@@ -647,7 +651,7 @@ void exec_config(char* name) {
 	MenuPaused = FALSE;
 	if (emu_launched && !emu_paused) {
 		pauseEmu(FALSE);
-	};
+	}
 
 	if (handle) {
 
@@ -755,7 +759,7 @@ void exec_about(char* name) {
 int check_plugins() {
 	// Bad implementation... i forgot this is C++ and not C so
 	// i went with a low-level implementation at first...
-	// But hey this works 
+	// But hey this works
 	void* handle_gfx, * handle_input, * handle_sound, * handle_rsp;
 	handle_gfx = get_handle(liste_plugins, gfx_name);
 	handle_input = get_handle(liste_plugins, input_name);
@@ -1084,19 +1088,19 @@ int load_plugins() {
 	TempRomSettings = GetDefaultRomSettings((char*)ROM_HEADER->nom);
 	if (!Config.use_global_plugins) {
 		handle_gfx = get_handle(liste_plugins, TempRomSettings.GfxPluginName);
-		if (handle_gfx == NULL) { handle_gfx = get_handle(liste_plugins, gfx_name); } else { sprintf(gfx_name, TempRomSettings.GfxPluginName); }
+		if (handle_gfx == NULL) { handle_gfx = get_handle(liste_plugins, gfx_name); } else { sprintf(gfx_name, "%s", TempRomSettings.GfxPluginName); }
 
 		handle_input = get_handle(liste_plugins, TempRomSettings.InputPluginName);
 		if (handle_input == NULL) handle_input = get_handle(liste_plugins, input_name);
-		else { sprintf(input_name, TempRomSettings.InputPluginName); }
+		else { sprintf(input_name, "%s", TempRomSettings.InputPluginName); }
 
 		handle_sound = get_handle(liste_plugins, TempRomSettings.SoundPluginName);
 		if (handle_sound == NULL) handle_sound = get_handle(liste_plugins, sound_name);
-		else { sprintf(sound_name, TempRomSettings.SoundPluginName); }
+		else { sprintf(sound_name, "%s", TempRomSettings.SoundPluginName); }
 
 		handle_rsp = get_handle(liste_plugins, TempRomSettings.RspPluginName);
 		if (handle_rsp == NULL) handle_rsp = get_handle(liste_plugins, rsp_name);
-		else { sprintf(rsp_name, TempRomSettings.RspPluginName); }
+		else { sprintf(rsp_name, "%s", TempRomSettings.RspPluginName); }
 	} else {
 		handle_gfx = get_handle(liste_plugins, gfx_name);
 		handle_input = get_handle(liste_plugins, input_name);
@@ -1185,7 +1189,7 @@ void resumeEmu(BOOL quiet) {
 //                resumeEmu(FALSE);
 //        }
 //        AutoPause = 0;
-//    }    
+//    }
 //}
 
 
@@ -1231,7 +1235,7 @@ BOOL StartRom(char* fullRomPath) {
 //		SleepEx(10, TRUE);
 //	 }
 	else {
-						//Makes window not resizable                         
+						//Makes window not resizable
 						//ShowWindow(mainHWND, FALSE);
 		winstyle = GetWindowLong(mainHWND, GWL_STYLE);
 		winstyle = winstyle & ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
@@ -1257,7 +1261,7 @@ BOOL StartRom(char* fullRomPath) {
 				return TRUE;
 			}
 
-			sprintf(LastSelectedRom, fullRomPath);
+			sprintf(LastSelectedRom, "%s", fullRomPath);
 			saveMD5toCache(ROM_SETTINGS.MD5);
 			AddToRecentList(mainHWND, fullRomPath);
 
@@ -1277,7 +1281,7 @@ BOOL StartRom(char* fullRomPath) {
 
 		extern int m_task;
 		if (m_task == 0) {
-			sprintf(TempMessage, MUPEN_VERSION " - %s", ROM_HEADER->nom);
+			sprintf(TempMessage, MUPEN_VERSION " - %s", (char*)ROM_HEADER->nom);
 			SetWindowText(mainHWND, TempMessage);
 		}
 		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
@@ -1293,7 +1297,7 @@ void exit_emu2();
 static int shut_window = 0;
 
 //void closeRom()
-DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist? 
+DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 {
 	LONG winstyle;                                //Used for setting new style to the window
  //   int browserwidths[] = {400, -1};              //Rombrowser statusbar
@@ -1321,7 +1325,6 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 
 		WaitEmuThread();
 
-		EndGameKaillera();
 
 	  /*romClosed_input();
 	  ShowInfo("Emu thread: romClosed (input plugin)");
@@ -1372,7 +1375,7 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 	SetStatusMode(0);
 	SetStatusTranslatedString(hStatus, 0, "Rom Closed");
 
-	//Makes window resizable                         
+	//Makes window resizable
 	winstyle = GetWindowLong(mainHWND, GWL_STYLE);
 	winstyle |= WS_THICKFRAME;
 	SetWindowLong(mainHWND, GWL_STYLE, winstyle);
@@ -1455,7 +1458,7 @@ void CreateToolBarWindow(HWND hwnd) {
 		WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS /* | */
 		/*CS_ADJUSTABLE    no this causes a bug...*/,
 		IDC_TOOLBAR, 10, app_hInstance, IDB_TOOLBAR,
-		tbButtons, tbButtonsCount, 16, 16, tbButtonsCount * 16, 16, sizeof(TBBUTTON));
+		tbButtons, (int)tbButtonsCount, 16, 16, (int)tbButtonsCount * 16, 16, sizeof(TBBUTTON));
 
 	if (hTool == NULL)
 		MessageBox(hwnd, "Could not create tool bar.", "Error", MB_OK | MB_ICONERROR);
@@ -1513,15 +1516,15 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 //    md5_byte_t digest[16];
 //    ROM_INFO *pRomInfo;
 //    char tempname[100];
-//    HWND hwndPB;    
+//    HWND hwndPB;
 //    pRomInfo = getSelectedRom();
 //    DEFAULT_ROM_SETTINGS TempRomSettings;
 
 	static char path_buffer[_MAX_PATH];
 
-//    if (pRomInfo==NULL) { 
+//    if (pRomInfo==NULL) {
 //       EndDialog(hwnd, IDOK);
-//       return FALSE; 
+//       return FALSE;
 //      }
 	switch (Message) {
 		case WM_INITDIALOG:
@@ -1532,7 +1535,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 			SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
 
 			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf2);
-			sprintf(tempbuf, "%s (%s)", ROM_HEADER->nom, tempbuf2);
+			sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, tempbuf2);
 			strcat(tempbuf, ".m64");
 			SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
@@ -1585,7 +1588,6 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 
 			goto refresh; // better than making it a macro or zillion-argument function
 
-			return FALSE;
 		case WM_CLOSE:
 			if (!emu_launched) {
 				ShowWindow(hRomList, FALSE);
@@ -1603,7 +1605,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 						BOOL success;
 						unsigned int num = GetDlgItemInt(hwnd, IDC_PAUSEAT_FIELD, &success, TRUE);
 						if (((signed int)num) >= 0 && success)
-							pauseAtFrame = num;
+							pauseAtFrame = (int)num;
 						else
 							pauseAtFrame = -1;
 					}
@@ -1624,7 +1626,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 					else
 						GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, descriptionUTF8, MOVIE_DESCRIPTION_DATA_SIZE);
 
-					VCR_setReadOnly(IsDlgButtonChecked(hwnd, IDC_MOVIE_READONLY));
+					VCR_setReadOnly((BOOL)IsDlgButtonChecked(hwnd, IDC_MOVIE_READONLY));
 
 					auto playbackResult = VCR_startPlayback(tempbuf, authorUTF8, descriptionUTF8);
 
@@ -1646,6 +1648,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 							case VCR_PLAYBACK_INCOMPATIBLE:
 								strcat(errorString, " - configuration incompatibility");
 								break;
+							default: break;
 						}
 
 						MessageBox(hwnd, errorString, "VCR", MB_OK);
@@ -1662,7 +1665,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 						ShowWindow(hRomList, TRUE);
 					}
 					EndDialog(hwnd, IDOK);
-					//                    romInfoHWND = NULL; 
+					//                    romInfoHWND = NULL;
 				}
 				break;
 				case IDC_CANCEL:
@@ -1684,11 +1687,13 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 						SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
 				}
 				goto refresh;
-				break;
 				case IDC_MOVIE_REFRESH:
 					goto refresh;
+				default:
 					break;
 			}
+			break;
+		default:
 			break;
 	}
 	return FALSE;
@@ -1764,10 +1769,10 @@ refresh:
 
 	double seconds = (double)m_header.length_vis / (double)m_header.vis_per_second;
 	double minutes = seconds / 60.0;
-	if (seconds)
+	if ((bool)seconds)
 		seconds = fmod(seconds, 60.0);
 	double hours = minutes / 60.0;
-	if (minutes)
+	if ((bool)minutes)
 		minutes = fmod(minutes, 60.0);
 
 //ShowInfo("refreshing movie length...\n");
@@ -1784,7 +1789,7 @@ refresh:
 
 //ShowInfo("refreshing movie rerecords...\n");
 
-	sprintf(tempbuf, "%u", m_header.rerecord_count);
+	sprintf(tempbuf, "%lu", m_header.rerecord_count);
 	SetDlgItemText(hwnd, IDC_MOVIE_RERECORDS, tempbuf);
 
 	ShowInfo("[VCR]:refreshing movie author and description...");
@@ -1861,7 +1866,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 			CheckRadioButton(hwnd, IDC_FROMSNAPSHOT_RADIO, IDC_FROMSTART_RADIO, checked_movie_type);
 
 			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf2);
-			sprintf(tempbuf, "%s (%s)", ROM_HEADER->nom, tempbuf2);
+			sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, tempbuf2);
 			strcat(tempbuf, ".m64");
 			SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
@@ -1953,7 +1958,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
 					bool allowClosing = true;
 					if (flag == MOVIE_START_FROM_EXISTING_SNAPSHOT) {
-						// The default directory we open the file dialog window in is the 
+						// The default directory we open the file dialog window in is the
 						// parent directory of the last savestate that the user saved or loaded
 						std::filesystem::path path = Config.states_path;
 						GetDefaultFileDialogPath(tempbuf, Config.states_path);
@@ -2048,7 +2053,11 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 					EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 1);
 					EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 1);
 					break;
+				default:
+					break;
 			}
+			break;
+		default:
 			break;
 	}
 	return FALSE;
@@ -2081,7 +2090,7 @@ void OpenMovieRecordDialog() {
 
 
 void SetStatusMode(int mode) {
-	RECT rcClient;                                    //Client area of parent window 
+	RECT rcClient;                                    //Client area of parent window
 	const int loadingwidths[] = {200, 300, -1};       //Initial statusbar
 	const int emulatewidthsFPSVIS[] = {230, 300, 370, 440, -1};//Emulating statusbar with FPS and VIS
 	const int emulatewidthsFPS[] = {230, 300, 370, -1};    //Emulating statusbar with FPS
@@ -2224,6 +2233,8 @@ void SetStatusMode(int mode) {
 								   0, 0, hStatus, (HMENU) 0, app_hInstance, NULL);
 				SendMessage( hStaticHandle, STM_SETICON, (WPARAM) hStatusIcon, 0 );
    */
+				break;
+			default:
 				break;
 		}        //Switch
 	}        //If
@@ -2477,13 +2488,15 @@ BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId) {
 }
 
 void ProcessToolTips(LPARAM lParam, HWND hWnd) {
-	LPTOOLTIPTEXT lpttt;
 
-	lpttt = (LPTOOLTIPTEXT)lParam;
+	LPTOOLTIPTEXT lpttt = reinterpret_cast<LPTOOLTIPTEXT>(LocalAlloc(LPTR, sizeof(TOOLTIPTEXT)));
+	// Use memcpy to copy data from lParam to lpttt
+	memcpy(lpttt, &lParam, sizeof(TOOLTIPTEXT));
+
 	lpttt->hinst = app_hInstance;
 
-	// Specify the resource identifier of the descriptive 
-	// text for the given button. 
+	// Specify the resource identifier of the descriptive
+	// text for the given button.
 	HMENU hMenu = GetMenu(hWnd);
 
 	switch (lpttt->hdr.idFrom) {
@@ -2533,7 +2546,10 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd) {
 			TranslateDefault("Settings...", "Settings...", TempMessage);
 			lpttt->lpszText = TempMessage;
 			break;
+		default:
+			break;
 	}
+	LocalFree(lpttt);
 }
 
 void EnableStatusbar() {
@@ -2576,6 +2592,8 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 				case VK_TAB:
 					manualFPSLimit = 0;
 					break;
+				default:
+					break;
 			}
 			if (emu_launched) keyDown(wParam, lParam);
 			break;
@@ -2587,12 +2605,14 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 				case VK_ESCAPE:
 					exit_emu(1);
 					break;
+				default:
+					break;
 			}
 			if (emu_launched) keyUp(wParam, lParam);
 			break;
 		case WM_MOVE:
 			if (emu_launched && !FullScreenMode) {
-				moveScreen(wParam, lParam);
+				moveScreen((int)wParam, lParam);
 			}
 			break;
 		case WM_USER + 17:  SetFocus(mainHWND);
@@ -2636,12 +2656,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 #ifdef LUA_WINDOWMESSAGE
 	LuaWindowMessage(hwnd, Message, wParam, lParam);
 #endif
+	HDROP h_file = static_cast<HDROP>(LocalAlloc(LPTR, sizeof(HDROP)));
+	memcpy(&h_file, &wParam, sizeof(*h_file));
 	switch (Message) {
+
 		case WM_DROPFILES:
+
 			//HDROP hFile = (HDROP) wParam;
 			char fname[MAX_PATH];
 			LPSTR fext;
-			DragQueryFile((HDROP)wParam, 0, fname, sizeof(fname));
+			DragQueryFile(h_file, 0, fname, sizeof(fname));
+			LocalFree(h_file);
 			fext = CharUpper(PathFindExtension(fname));
 			if (lstrcmp(fext, ".N64") == 0 || lstrcmp(fext, ".V64") == 0 || lstrcmp(fext, ".Z64") == 0 || lstrcmp(fext, ".ROM") == 0) {
 				StartRom(fname);
@@ -2662,7 +2687,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				}
 			} else if (strcmp(fext, ".LUA") == 0) {
 				if (rom) {
-					for (; *fext; ++fext) *fext = tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
+					for (; *fext; ++fext) *fext = (CHAR)tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
 					// even this hack will fail under special circumstances
 					LuaOpenAndRun(fname);
 				}
@@ -2709,7 +2734,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			if (emu_launched)
 				keyUp(wParam, lParam);
 			return DefWindowProc(hwnd, Message, wParam, lParam);
-			break;
 		case WM_NOTIFY:
 			if (wParam == IDC_ROMLIST) {
 				RomListNotify((LPNMHDR)lParam);
@@ -2722,7 +2746,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			return 0;
 		case WM_MOVE:
 			if (emu_launched && !FullScreenMode) {
-				moveScreen(wParam, lParam);
+				moveScreen((int)wParam, lParam);
 			}
 			break;
 		case WM_SIZE:
@@ -2774,7 +2798,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 	//		case WM_SETCURSOR:
 	//			SetCursor(FALSE);
 	//			return 0;
-		case WM_WINDOWPOSCHANGING:  //allow gfx plugin to set arbitrary size 
+		case WM_WINDOWPOSCHANGING:  //allow gfx plugin to set arbitrary size
 			return 0;
 		case WM_GETMINMAXINFO:
 		{
@@ -2816,6 +2840,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					} else if (Config.is_unfocused_pause_enabled && MenuPaused) {
 						MenuPaused = FALSE;
 					}
+					break;
+				default:
 					break;
 			}
 			break;
@@ -2994,7 +3020,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					shouldSave = TRUE;
 					break;
 					//FreezeRecentMovies(mainHWND, TRUE);
-					break;
 				case ID_RECENTMOVIES_RESET:
 					ClearRecentMovies(TRUE);
 					BuildRecentMoviesMenu(mainHWND);
@@ -3084,7 +3109,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					// maybe pack formatted and buffer and result into one long char array where you only read necessary part
 
 					char buf[12]; // ram start
-					sprintf(buf, "0x%#08p", rdram);
+					sprintf(buf, "0x%p", (void*)(rdram));
 
 					if (!stroopConfigLine[0]) {
 						TCHAR procName[MAX_PATH];
@@ -3199,7 +3224,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						// if no extension inputted by user, fallback to .st
 						strcpy(correctedPath, path_buffer);
 						stripExt(correctedPath);
-						if (!stricmp(getExt(path_buffer), "savestate"))
+						if (!_stricmp(getExt(path_buffer), "savestate"))
 							strcat(correctedPath, ".savestate");
 						else
 							strcat(correctedPath, ".st");
@@ -3311,7 +3336,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 
 
 
-							int len = strlen(path_buffer);
+							int len = (int)strlen(path_buffer);
 							if (len < 5 ||
 								(path_buffer[len - 1] != 'i' && path_buffer[len - 1] != 'I') ||
 								(path_buffer[len - 2] != 'v' && path_buffer[len - 2] != 'V') ||
@@ -3392,9 +3417,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					RunRecentRom(ID_RECENTROMS_FIRST);
 				case ID_LOG_WINDOW:
 					ShowHideLogWindow();
-					break;
-				case ID_KAILLERA:
-					CreateThread(NULL, 0, KailleraThread, NULL, 0, &SOUNDTHREADID);
 					break;
 				case IDC_GUI_TOOLBAR:
 					Config.is_toolbar_enabled = 1 - Config.is_toolbar_enabled;
@@ -3527,7 +3549,7 @@ void StartLuaScripts() {
 	if (CmdLineParameterExist(CMDLINE_LUA) && CmdLineParameterExist(CMDLINE_GAME_FILENAME)) {
 		char files[MAX_PATH];
 		GetCmdLineParameter(CMDLINE_LUA, files);
-		int len = strlen(files);
+		int len = (int)strlen(files);
 		int numScripts = 1;
 		int scriptStartPositions[MAX_LUA_OPEN_AND_RUN_INSTANCES] = {0};
 		for (int i = 0; i < len; ++i) {
@@ -3562,7 +3584,7 @@ void StartSavestate() {
 
 // Loads various variables from the current config state
 void LoadConfigExternals() {
-	if (VCR_isLooping() != Config.is_movie_loop_enabled) VCR_toggleLoopMovie();
+	if (VCR_isLooping() != (bool)Config.is_movie_loop_enabled) VCR_toggleLoopMovie();
 }
 
 // kaboom
@@ -3731,13 +3753,6 @@ int WINAPI WinMain(
 		if (GUI_CreateLogWindow(mainHWND)) EnableMenuItem(GetMenu(hwnd), ID_LOG_WINDOW, MF_ENABLED);
 	#endif
 
-
-
-
-		if (!isKailleraExist()) {
-			DeleteMenu(GetMenu(hwnd), ID_KAILLERA, MF_BYCOMMAND);
-		}
-
 		SetupDummyInfo();
 
 		EnableEmulationMenuItems(0);
@@ -3754,7 +3769,7 @@ int WINAPI WinMain(
 
 		// raise noncontinuable exception (impossible to recover from it)
 		//RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
-		// 
+		//
 		// raise continuable exception
 		//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
@@ -3775,7 +3790,7 @@ int WINAPI WinMain(
 							&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkeys[i].alt) {
 							SendMessage(hwnd, WM_COMMAND, Config.hotkeys[i].command, 0);
 						}
-					} else // fast-forward 
+					} else // fast-forward
 					{
 						extern int frame_advancing;
 						if (!frame_advancing) { // dont allow fastforward+frameadvance
@@ -3794,6 +3809,5 @@ int WINAPI WinMain(
 	}
 
 	CloseLogWindow();
-	CloseKaillera();
-	return Msg.wParam;
+	return (int)Msg.wParam;
 }

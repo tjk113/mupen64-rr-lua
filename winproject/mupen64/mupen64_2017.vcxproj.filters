@@ -44,19 +44,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\config.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\main\Audio_#1.1.h">
-      <Filter>Source Files\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\main\Controller_#1.1.h">
-      <Filter>Source Files\main</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\main\crypt.h">
-      <Filter>Source Files\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\main\Gfx_#1.3.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\guifuncs.h">
@@ -66,9 +54,6 @@
       <Filter>Source Files\main</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\iowin32.h">
-      <Filter>Source Files\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\main\main.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\md5.h">
@@ -86,9 +71,6 @@
     <ClInclude Include="..\..\main\rom.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\main\Rsp_#1.1.h">
-      <Filter>Source Files\main</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\main\savestates.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
@@ -102,9 +84,6 @@
       <Filter>Source Files\main</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\vcr_resample.h">
-      <Filter>Source Files\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\main\winlnxdefs.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\zip.h">
@@ -132,9 +111,6 @@
       <Filter>Source Files\main\win</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\win\inifunctions.h">
-      <Filter>Source Files\main\win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\main\win\kaillera.h">
       <Filter>Source Files\main\win</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\win\main_win.h">
@@ -244,12 +220,7 @@
     </ClInclude>
     <ClInclude Include="..\..\main\win\CrashHandlerDialog.h" />
     <ClInclude Include="..\..\main\win\CrashHelper.h" />
-    <ClInclude Include="string_helpers.h">
-      <Filter>Source Files\main\helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="numeric_helpers.h">
-      <Filter>Source Files\main\helpers</Filter>
-    </ClInclude>
+    <ClInclude Include="..\..\main\helpers\string_helpers.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main\adler32.c">
@@ -259,9 +230,6 @@
       <Filter>Source Files\main</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\iowin32.c">
-      <Filter>Source Files\main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\main.c">
       <Filter>Source Files\main</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\md5.c">
@@ -286,9 +254,6 @@
       <Filter>Source Files\main</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\vcr.cpp">
-      <Filter>Source Files\main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\vcr_compress.cpp">
       <Filter>Source Files\main</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\vcr_resample.c">
@@ -318,9 +283,6 @@
     <ClCompile Include="..\..\main\win\inifunctions.c">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\kaillera.c">
-      <Filter>Source Files\main\win</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\main\win\main_win.cpp">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
@@ -335,39 +297,6 @@
     </ClCompile>
     <ClCompile Include="..\..\main\win\translation.c">
       <Filter>Source Files\main\win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\aboutdialog.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\config.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\configdialog.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\dirbrowser.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\main_gtk.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\messagebox.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\rombrowser.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\romproperties.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\support.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\translate.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\gui_gtk\vcrcomp_dialog.c">
-      <Filter>Source Files\main\gui_gtk</Filter>
     </ClCompile>
     <ClCompile Include="..\..\r4300\bc.c">
       <Filter>Source Files\r4300</Filter>
@@ -527,44 +456,6 @@
     <ResourceCompile Include="..\rsrc.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuildStep Include="..\..\main\gui_gtk\aboutdialog.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\config.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\configdialog.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\dirbrowser.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\main_gtk.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\messagebox.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\rombrowser.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\romproperties.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\support.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\translate.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="..\..\main\gui_gtk\vcrcomp_dialog.h">
-      <Filter>Source Files\main\gui_gtk</Filter>
-    </CustomBuildStep>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Makefile" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\icons\Control.bmp">

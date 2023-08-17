@@ -229,7 +229,6 @@
     <ClInclude Include="..\..\main\win\dumplist.h" />
     <ClInclude Include="..\..\main\win\GUI_LogWindow.h" />
     <ClInclude Include="..\..\main\win\inifunctions.h" />
-    <ClInclude Include="..\..\main\win\kaillera.h" />
     <ClInclude Include="..\..\main\win\main_win.h" />
     <ClInclude Include="..\..\main\win\rombrowser.h" />
     <ClInclude Include="..\..\main\win\RomSettings.h" />
@@ -370,11 +369,6 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="..\..\main\win\inifunctions.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="..\..\main\win\kaillera.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>

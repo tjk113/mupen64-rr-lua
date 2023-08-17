@@ -65,7 +65,7 @@ static PAVISTREAM sound_stream;
 //static AVICOMPRESSOPTIONS sound_options;
 //static AVICOMPRESSOPTIONS *psound_options[1];
 
-SWindowInfo sInfo = {0};
+SWindowInfo sInfo = { 0 };
 
 void CalculateWindowDimensions(HWND hWindow, SWindowInfo& infoStruct) {
 	RECT rect, rectS, rectT;
@@ -96,12 +96,12 @@ void CalculateWindowDimensions(HWND hWindow, SWindowInfo& infoStruct) {
 // "internal" readScreen, used when plugin doesn't implement it
 // sInfo struct is filled during VCR_startCapture 
 void __cdecl win_readScreen(void** dest, long* width, long* height) {
-	HDC mupendc, all, copy; //all - screen; copy - buffer
+	HDC mupendc, all = nullptr, copy; //all - screen; copy - buffer
 	//RECT rect, rectS, rectT;
-	POINT cli_tl{0, 0}; //mupen client x y 
+	POINT cli_tl{ 0, 0 }; //mupen client x y 
 	HBITMAP bitmap, oldbitmap;
 
-//	ShowInfo("win_readScreen()");
+	//	ShowInfo("win_readScreen()");
 	mupendc = GetDC(mainHWND);  //only client area
 	if (Config.is_capture_cropped_screen_dc) {
 		//get whole screen dc and find out where is mupen's client area
@@ -176,7 +176,7 @@ void __cdecl win_readScreen(void** dest, long* width, long* height) {
 		DeleteDC(copy);
 	if (mupendc)
 		ReleaseDC(mainHWND, mupendc);
-//	ShowInfo("win_readScreen() done");
+	//	ShowInfo("win_readScreen() done");
 }
 
 
@@ -275,7 +275,7 @@ void VCRComp_startFile(const char* filename, long width, long height, int fps, i
 	AVIStreamSetFormat(compressed_video_stream, 0, &infoHeader,
 		infoHeader.biSize + infoHeader.biClrUsed * sizeof(RGBQUAD));
 
-// sound
+	// sound
 	sample = 0;
 	sound_format.wFormatTag = WAVE_FORMAT_PCM;
 	sound_format.nChannels = 2;
@@ -303,10 +303,10 @@ void VCRComp_startFile(const char* filename, long width, long height, int fps, i
 }
 
 void VCRComp_finishFile(int split) {
-   //SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // why is this being set when recording is stopped...
+	//SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // why is this being set when recording is stopped...
 	AVIStreamClose(compressed_video_stream);
 	AVIStreamRelease(video_stream);
-   // AVIStreamClose(compressed_video_stream);
+	// AVIStreamClose(compressed_video_stream);
 	AVIStreamClose(sound_stream);
 	AVIFileClose(avi_file);
 	AVIFileExit();
