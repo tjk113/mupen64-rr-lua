@@ -1,4 +1,4 @@
-﻿//{{NO_DEPENDENCIES}}
+//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by rsrc.rc
 //
@@ -314,7 +314,6 @@
 #define IDC_CRC1CRC2                    7029
 #define IDC_ROM_PLUGINS                 8000
 #define IDC_SAVE_PROFILE                8001
-#define ID_LOG_WINDOW                   9000
 #define IDD_MOVIE_PLAYBACK_DIALOG       9000
 #define IDD_MOVIE_RECORD_DIALOG         9001
 #define ID_KAILLERA                     9100

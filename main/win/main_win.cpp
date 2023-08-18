@@ -19,7 +19,6 @@
 #include "LuaConsole.h"
 
 #include "Recent.h"
-#include "win/DebugInfo.hpp"
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
 
 #if defined(__cplusplus) && !defined(_MSC_VER)
@@ -54,7 +53,6 @@ extern "C" {
 #include "timers.h"
 #include "config.h"
 #include "RomSettings.h"
-#include "GUI_logwindow.h"
 #include "commandline.h"
 #include "CrashHandlerDialog.h"
 #include "CrashHelper.h"
@@ -624,7 +622,6 @@ void search_plugins() {
 			String pluginPath;
 			pluginPath.assign(pluginDir)
 				.append("\\").append(entry.cFileName);
-			MUPEN64RR_DEBUGINFO(pluginPath);
 
 			HMODULE pluginHandle = LoadLibrary(pluginPath.c_str());
 			if (pluginHandle != NULL
@@ -1108,16 +1105,13 @@ int load_plugins() {
 		handle_rsp = get_handle(liste_plugins, rsp_name);
 	}
 	ThreadFuncState = TFS_LOADGFX;
-	ShowInfo("Loading gfx -  %s", gfx_name);
+	printf("Loading plugins... \n", gfx_name);
 	load_gfx(handle_gfx);
 	ThreadFuncState = TFS_LOADINPUT;
-	ShowInfo("Loading input -  %s", input_name);
 	load_input(handle_input);
 	ThreadFuncState = TFS_LOADAUDIO;
-	ShowInfo("Loading sound - %s", sound_name);
 	load_sound(handle_sound);
 	ThreadFuncState = TFS_LOADRSP;
-	ShowInfo("Loading RSP - %s", rsp_name);
 	load_rsp(handle_rsp);
 
 	return (1);
@@ -1140,15 +1134,13 @@ void WaitEmuThread() {
 	if (EmuThreadHandle != NULL || ExitCode != 0) {
 
 		if (EmuThreadHandle != NULL) {
-			ShowError("Abnormal emu thread termination!");
+			printf("Abnormal emu thread termination!\n");
 			TerminateThread(EmuThreadHandle, 0);
 			EmuThreadHandle = NULL;
 		}
 
 		char str[256];
-		sprintf(str, "There was a problem with %s.", ThreadFuncStateDescription[ThreadFuncState]);
-		ShowError(str);
-		sprintf(str, "%s\nYou should quit and re-open the emulator before doing anything else,\nor you may encounter serious errors.", str);
+		sprintf(str, "There was a problem with %s.\nYou should quit and re-open the emulator before doing anything else,\nor you may encounter serious errors.", ThreadFuncStateDescription[ThreadFuncState]);
 		MessageBox(NULL, str, "Warning", MB_OK);
 	}
 	emu_launched = 0;
@@ -1159,10 +1151,7 @@ void WaitEmuThread() {
 void resumeEmu(BOOL quiet) {
 	BOOL wasPaused = emu_paused;
 	if (emu_launched) {
-		if (!quiet)
-			ShowInfo("Resume emulation");
 		emu_paused = 0;
-		//		ResumeThread(EmuThreadHandle);
 		ResumeThread(SoundThreadHandle);
 		if (!quiet)
 			SetStatusTranslatedString(hStatus, 0, "Emulation started");
@@ -1176,31 +1165,12 @@ void resumeEmu(BOOL quiet) {
 		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
 }
 
-//void autoPauseEmu(flag)
-//{
-//    if (flag) {  //Auto Pause emulator
-//        AutoPause = 1;
-//        if (!emu_paused) {
-//                pauseEmu(FALSE);
-//        }
-//    }
-//    else {
-//        if (AutoPause&&emu_paused) {
-//                resumeEmu(FALSE);
-//        }
-//        AutoPause = 0;
-//    }
-//}
-
 
 void pauseEmu(BOOL quiet) {
 	BOOL wasPaused = emu_paused;
 	if (emu_launched) {
 		VCR_updateFrameCounter();
-		if (!quiet)
-			ShowInfo("Pause emulation");
 		emu_paused = 1;
-//		SuspendThread(EmuThreadHandle);
 		if (!quiet) // HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
 			SuspendThread(SoundThreadHandle);
 		if (!quiet)
@@ -1271,12 +1241,10 @@ BOOL StartRom(char* fullRomPath) {
 			ShowRomBrowser(FALSE, FALSE);
 			SaveGlobalPlugins(TRUE);
 		}
-		ShowInfo("");
-		ShowWarning("Starting ROM: %s ", ROM_SETTINGS.goodname);
 
 		SetStatusMode(2);
 
-		ShowInfo("Creating emulation thread...");
+		printf("Creating emulation thread...\n");
 		EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
 
 		extern int m_task;
@@ -1320,38 +1288,18 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 		}
 
 
-		ShowInfo("Closing emulation thread...");
+		printf("Closing emulation thread...\n");
 		stop_it();
 
 		WaitEmuThread();
 
-
-	  /*romClosed_input();
-	  ShowInfo("Emu thread: romClosed (input plugin)");
-	  romClosed_gfx();
-	  ShowInfo("Emu thread: romClosed (gfx plugin)");
-	  romClosed_audio();
-	  ShowInfo("Emu thread: romClosed (audio plugin)");
-	  romClosed_RSP();
-	  ShowInfo("Emu thread: romClosed (RSP plugin)");
-	  closeDLL_RSP();
-	  ShowInfo("Emu thread: RSP plugin closed");
-	  closeDLL_input();
-	  ShowInfo("Emu thread: input plugin closed");
-	  closeDLL_gfx();
-	  ShowInfo("Emu thread: gfx plugin closed");
-	  closeDLL_audio();
-	  ShowInfo("Emu thread: audio plugin closed");*/
-
 		if (!restart_mode) {
-			ShowInfo("Free rom and memory....");
 			free(rom);
 			rom = NULL;
 			free(ROM_HEADER);
 			ROM_HEADER = NULL;
 			free_memory();
 
-			ShowInfo("Init emulation menu items....");
 			EnableEmulationMenuItems(FALSE);
 			SaveGlobalPlugins(FALSE);
 			ShowRomBrowser(!really_restart_mode, !!lpParam);
@@ -1362,11 +1310,8 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)" ");
 			}
 		}
-		ShowInfo("Rom closed.");
 
 		if (shut_window) {
-		  //exit_emu2();
-		  //SleepEx(100,TRUE);
 			SendMessage(mainHWND, WM_CLOSE, 0, 0);
 			return 0;
 		}
@@ -1415,7 +1360,6 @@ void resetEmu() {
 	if (emu_launched) {
 		extern int frame_advancing;
 		frame_advancing = false;
-		ShowInfo("Restart Rom");
 		restart_mode = 0;
 		really_restart_mode = TRUE;
 		MenuPaused = FALSE;
@@ -1700,10 +1644,6 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 
 refresh:
 
-
-	ShowInfo("[VCR]:refreshing movie info...");
-
-
 	GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf, MAX_PATH);
 	SMovieHeader m_header = VCR_getHeaderInfo(tempbuf);
 
@@ -1715,14 +1655,10 @@ refresh:
 	sprintf(tempbuf, "%X", (unsigned int)m_header.romCRC);
 	SetDlgItemText(hwnd, IDC_ROM_CRC, tempbuf);
 
-//ShowInfo("refreshing movie plugins...\n");
-
 	SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT, m_header.videoPluginName);
 	SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT, m_header.inputPluginName);
 	SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT, m_header.soundPluginName);
 	SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT, m_header.rspPluginName);
-
-//ShowInfo("refreshing movie controllers...\n");
 
 	strcpy(tempbuf, (m_header.controllerFlags & CONTROLLER_1_PRESENT) ? "Present" : "Disconnected");
 	if (m_header.controllerFlags & CONTROLLER_1_MEMPAK)
@@ -1752,8 +1688,6 @@ refresh:
 		strcat(tempbuf, " with rumble");
 	SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER4_TEXT, tempbuf);
 
-//ShowInfo("refreshing movie start/frames...\n");
-
 	SetDlgItemText(hwnd, IDC_FROMSNAPSHOT_TEXT, (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) ? "Savestate" : "Start");
 	if (m_header.startFlags & MOVIE_START_FROM_EEPROM) {
 		SetDlgItemTextA(hwnd, IDC_FROMSNAPSHOT_TEXT, "EEPROM");
@@ -1761,8 +1695,6 @@ refresh:
 
 	sprintf(tempbuf, "%u  (%u input)", (int)m_header.length_vis, (int)m_header.length_samples);
 	SetDlgItemText(hwnd, IDC_MOVIE_FRAMES, tempbuf);
-
-//ShowInfo("calculating movie length...\n");
 
 	if (m_header.vis_per_second == 0)
 		m_header.vis_per_second = 60;
@@ -1775,8 +1707,6 @@ refresh:
 	if ((bool) minutes)
 		minutes = fmod(minutes, 60.0);
 
-//ShowInfo("refreshing movie length...\n");
-
 	if (hours >= 1.0)
 		sprintf(tempbuf, "%d hours and %.1f minutes", (unsigned int)hours, (float)minutes);
 	else if (minutes >= 1.0)
@@ -1787,15 +1717,8 @@ refresh:
 		strcpy(tempbuf, "0 seconds");
 	SetDlgItemText(hwnd, IDC_MOVIE_LENGTH, tempbuf);
 
-//ShowInfo("refreshing movie rerecords...\n");
-
 	sprintf(tempbuf, "%lu", m_header.rerecord_count);
 	SetDlgItemText(hwnd, IDC_MOVIE_RERECORDS, tempbuf);
-
-	ShowInfo("[VCR]:refreshing movie author and description...");
-
-	//	SetDlgItemText(hwnd,IDC_INI_AUTHOR,m_header.authorInfo);
-	//	SetDlgItemText(hwnd,IDC_INI_DESCRIPTION,m_header.description);
 
 	{
 
@@ -1837,8 +1760,6 @@ refresh:
 			}
 		}
 	}
-
-	ShowInfo("[VCR]:done refreshing");
 
 	return FALSE;
 }
@@ -2370,39 +2291,38 @@ static DWORD WINAPI StartMoviesThread(LPVOID lpParam) {
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam) {
 	ThreadFuncState = TFS_NONE;
-	ShowInfo("Emu thread: Start");
+	printf("Emu thread preparing for launch\n");
 
 	ThreadFuncState = TFS_INITMEM;
-	ShowInfo("Init memory....");
+	printf("Init memory....\n");
 	init_memory();
 	ThreadFuncState = TFS_LOADPLUGINS;
-	ShowInfo("Loading plugins....");
+	printf("Loading plugins....\n");
 	load_plugins();
 	ThreadFuncState = TFS_OPENGFX;
-	ShowInfo("Rom open gfx....");
+	printf("Rom open gfx...\n");
 	romOpen_gfx();
 	ThreadFuncState = TFS_OPENINPUT;
-	ShowInfo("Rom open input....");
+	printf("Rom open input....\n");
 	romOpen_input();
 	ThreadFuncState = TFS_OPENAUDIO;
-	ShowInfo("Rom open audio....");
+	printf("Rom open audio....\n");
 	romOpen_audio();
 
 	ThreadFuncState = TFS_DISPLAYMODE;
 	dynacore = Config.core_type;
-	ShowInfo("Core = %s", CoreNames[dynacore]);
+	printf("Core = %s\n", CoreNames[dynacore]);
 
 	emu_paused = 0;
 	emu_launched = 1;
 	restart_mode = 0;
 
 	ThreadFuncState = TFS_CREATESOUND;
-	ShowInfo("Emu thread: Creating sound thread...");
+	printf("Emu thread: Creating sound thread...\n");
 	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
 	ThreadFuncState = TFS_EMULATING;
-	ShowInfo("Emu thread: Emulation started....");
+	printf("Emu thread: Emulation started....\n");
 	CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL);
-	//StartMovies(); // check commandline args
 	StartLuaScripts();
 	StartSavestate();
 	AtResetCallback();
@@ -2414,31 +2334,31 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam) {
 		pauseAtFrame = -1;
 	}
 	go();
-	ShowInfo("Emu thread: Core stopped...");
+	printf("Emu thread: Core stopped...\n");
 	ThreadFuncState = TFS_CLOSEINPUT;
 	romClosed_input();
-	ShowInfo("Emu thread: romClosed (input plugin)");
+	printf("Emu thread: romClosed (input plugin)\n");
 	ThreadFuncState = TFS_CLOSEAUDIO;
 	romClosed_audio();
-	ShowInfo("Emu thread: romClosed (audio plugin)");
+	printf("Emu thread: romClosed (audio plugin)\n");
 	ThreadFuncState = TFS_CLOSERSP;
 	romClosed_RSP();
-	ShowInfo("Emu thread: romClosed (RSP plugin)");
+	printf("Emu thread: romClosed (RSP plugin)\n");
 	ThreadFuncState = TFS_UNLOADRSP;
 	closeDLL_RSP();
-	ShowInfo("Emu thread: RSP plugin closed");
+	printf("Emu thread: RSP plugin closed\n");
 	ThreadFuncState = TFS_UNLOADINPUT;
 	closeDLL_input();
-	ShowInfo("Emu thread: input plugin closed");
+	printf("Emu thread: input plugin closed\n");
 	ThreadFuncState = TFS_UNLOADAUDIO;
 	closeDLL_audio();
-	ShowInfo("Emu thread: audio plugin closed");
+	printf("Emu thread: audio plugin closed\n");
 	ThreadFuncState = TFS_CLOSEGFX;
 	romClosed_gfx();
-	ShowInfo("Emu thread: romClosed (gfx plugin)");
+	printf("Emu thread: romClosed (gfx plugin)\n");
 	ThreadFuncState = TFS_UNLOADGFX;
 	closeDLL_gfx();
-	ShowInfo("Emu thread: gfx plugin closed");
+	printf("Emu thread: gfx plugin closed\n");
 	ThreadFuncState = TFS_NONE;
 	ExitThread(0);
 }
@@ -3314,7 +3234,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						SetStatusTranslatedString(hStatus, 0, "Recording avi...");
 						EnableEmulationMenuItems(TRUE);
 					} else
-						ShowInfo("Start capture error: %d", err);
+						printf("Start capture error: %d\n", err);
 					break;
 				}
 
@@ -3415,9 +3335,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					break;
 				case ID_LOAD_LATEST:
 					RunRecentRom(ID_RECENTROMS_FIRST);
-				case ID_LOG_WINDOW:
-					ShowHideLogWindow();
-					break;
 				case IDC_GUI_TOOLBAR:
 					Config.is_toolbar_enabled = 1 - Config.is_toolbar_enabled;
 					EnableToolbar();
@@ -3683,16 +3600,11 @@ int WINAPI WinMain(
 			Config.window_x, Config.window_y, Config.window_width, Config.window_height,
 			NULL, NULL, hInstance, NULL);
 
-	#ifdef _DEBUG
-		GUI_CreateLogWindow(hwnd);
-	#endif
 		mainHWND = hwnd;
 		ShowWindow(hwnd, nCmdShow);
 		UpdateWindow(hwnd);
 
 		StartGameByCommandLine();
-
-		ShowInfo(MUPEN_VERSION " - Nintendo 64 emulator - Guiless mode");
 
 		while (GetMessage(&Msg, NULL, 0, 0) > 0) {
 			TranslateMessage(&Msg);
@@ -3700,7 +3612,7 @@ int WINAPI WinMain(
 		}
 	} else {
 	//window initialize
-	#if 1
+
 		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.style = 0;
 		wc.lpfnWndProc = WndProc;
@@ -3747,11 +3659,6 @@ int WINAPI WinMain(
 		ListView_SetExtendedListViewStyleEx(hRomList, LVS_EX_DOUBLEBUFFER, LVS_EX_DOUBLEBUFFER);
 
 		UpdateWindow(hwnd);
-	#endif
-		EnableMenuItem(GetMenu(hwnd), ID_LOG_WINDOW, MF_DISABLED);
-	#ifdef _DEBUG
-		if (GUI_CreateLogWindow(mainHWND)) EnableMenuItem(GetMenu(hwnd), ID_LOG_WINDOW, MF_ENABLED);
-	#endif
 
 		SetupDummyInfo();
 
@@ -3759,8 +3666,6 @@ int WINAPI WinMain(
 		if (!StartGameByCommandLine()) {
 			cmdlineMode = 0;
 		}
-
-		ShowInfo(MUPEN_VERSION " - Mupen64 - Nintendo 64 emulator - GUI mode");
 
 		LoadConfigExternals();
 
@@ -3807,7 +3712,5 @@ int WINAPI WinMain(
 			}
 		}
 	}
-
-	CloseLogWindow();
 	return (int) Msg.wParam;
 }

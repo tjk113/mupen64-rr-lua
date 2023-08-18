@@ -33,8 +33,7 @@ BOOL CALLBACK CrashHandlerDialogProcedure(HWND hwnd, UINT Message, WPARAM wParam
 		case WM_DRAWITEM:
 			if (wParam == IDC_ERROR_PICTUREBOX) // Draw transparent bitmap in IDC_IMG3
 			{
-				LPDRAWITEMSTRUCT lpDrawItem = nullptr;
-				memcpy(&lpDrawItem, &lParam, sizeof(LPDRAWITEMSTRUCT));
+				LPDRAWITEMSTRUCT lpDrawItem = (LPDRAWITEMSTRUCT)lParam;
 				HDC hMemoryDc = CreateCompatibleDC(lpDrawItem->hDC);
 				HGDIOBJ hOldBitmap = SelectObject(hMemoryDc, bitmapHandle);
 				BITMAP bitmap;

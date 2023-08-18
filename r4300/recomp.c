@@ -1927,8 +1927,6 @@ void init_block(long* source, precomp_block* block) {
  ********************* recompile a block of code **********************
  **********************************************************************/
 void recompile_block(long* source, precomp_block* block, unsigned long func) {
-//void ShowInfo(char *Str, ...);
-//	ShowInfo("Recompile block %08X-%08X",block->start,block->end);
 	int i, length, finished = 0;
 	start_section(COMPILER_SECTION);
 	length = (block->end - block->start) / 4;

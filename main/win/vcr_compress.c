@@ -36,7 +36,6 @@
 #include "../plugin.h"
 #include "../../winproject/resource.h"
 #include "vfw.h"
-#include "GUI_LogWindow.h"
 
 #ifndef _MSC_VER
 void (*readScreen)(void** dest, long* width, long* height);
@@ -101,7 +100,6 @@ void __cdecl win_readScreen(void** dest, long* width, long* height) {
 	POINT cli_tl{0, 0}; //mupen client x y 
 	HBITMAP bitmap, oldbitmap;
 
-//	ShowInfo("win_readScreen()");
 	mupendc = GetDC(mainHWND);  //only client area
 	if (Config.is_capture_cropped_screen_dc) {
 		//get whole screen dc and find out where is mupen's client area
@@ -176,7 +174,6 @@ void __cdecl win_readScreen(void** dest, long* width, long* height) {
 		DeleteDC(copy);
 	if (mupendc)
 		ReleaseDC(mainHWND, mupendc);
-//	ShowInfo("win_readScreen() done");
 }
 
 
@@ -328,7 +325,7 @@ void VCRComp_finishFile(int split) {
 
 void init_readScreen() {
 #ifdef __WIN32__
-	ShowInfo((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin." : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...");
+	printf((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin.\n" : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n");
 #endif	
 
 	if (readScreen == NULL)

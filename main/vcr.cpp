@@ -48,7 +48,6 @@
 #include "win/Config.h" //config struct
 #include "win/main_win.h" // mainHWND
 #include <WinUser.h>
-#include "win/DebugInfo.hpp"
 
 #endif
 
@@ -59,9 +58,6 @@
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
 #endif
-
-//void ShowInfo(char*, ...);
-//#define printf ShowInfo // temporary debuggification
 
 #define MUP_MAGIC (0x1a34364d) // M64\0x1a
 #define MUP_VERSION (3)
@@ -468,10 +464,6 @@ static void truncateMovie() {
 }
 
 static int read_movie_header(FILE* file, SMovieHeader* header) {
-//	assert(file != NULL);
-//	assert(MUP_HEADER_SIZE == sizeof(SMovieHeader)); // sanity check on the header type definition
-
-//		ShowInfo("SIZE = %d",sizeof(SMovieHeader));
 
 	fseek(file, 0L, SEEK_SET);
 
@@ -798,11 +790,6 @@ VCR_movieFreeze(char** buf, unsigned long* size) {
 	ptr += sizeof(m_currentVI);
 	*reinterpret_cast<unsigned long*>(ptr) = m_header.length_samples;
 	ptr += sizeof(m_header.length_samples);
-
-/// // temp debugging check
-///char str [1024];
-///sprintf(str, "size_needed=%d, ptr=0x%x, m_inputBuffer=0x%x, m_header.uid=%d, m_currentSample=%d, m_header.length_samples=%d\n", size_needed, ptr, m_inputBuffer, m_header.uid, m_currentSample, m_header.length_samples);
-///ShowInfo(str);
 
 	memcpy(ptr, m_inputBuffer, sizeof(BUTTONS) * (m_header.length_samples + 1));
 }
@@ -1235,12 +1222,6 @@ VCR_startRecord(const char* filename, unsigned short flags, const char* authorUT
 	if (descriptionUTF8)
 		strncpy(m_header.description, descriptionUTF8, MOVIE_DESCRIPTION_DATA_SIZE);
 	m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
-
-//int i;
-//for(i = 0 ; i < MOVIE_AUTHOR_DATA_SIZE*4 ; i++)
-//  ShowInfo("authorUTF8[%d] = %c", i, authorUTF8[i]);
-//for(i = 0 ; i < MOVIE_AUTHOR_DATA_SIZE ; i++)
-//  ShowInfo("authorWC[%d] = %lc", i, authorWC[i]);
 
 	write_movie_header(m_file, MUP_HEADER_SIZE);
 
@@ -1718,10 +1699,8 @@ void VCR_invalidatedCaptureFrame() {
 
 void
 VCR_updateScreen() {
-//	ShowInfo("VCR_updateScreen()");
 	extern int externalReadScreen;
 	void* image = NULL;
-//	static void* lastImage = NULL;
 	long width = 0, height = 0;
 	static int frame = 0;
 	int redraw = 1;
@@ -1765,7 +1744,7 @@ VCR_updateScreen() {
 #ifdef FFMPEG_BENCHMARK
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> time = (end - start);
-	ShowInfo("ReadScreen (ffmpeg): %lf ms", time);
+	printf("ReadScreen (ffmpeg): %lf ms\n", time);
 #endif
 	if (image == NULL) {
 		fprintf(stderr, "[VCR]: Couldn't read screen (out of memory?)\n");
@@ -1789,12 +1768,6 @@ VCR_updateScreen() {
 			VCRComp_startFile(AVIFileName, width, height, visByCountrycode(), 0);
 		}
 	}
-	//if (!VCRComp_addVideoFrame((unsigned char*)image))
-	//{
-	//	//ShowInfo("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
-	//	printError("Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
-	//	VCR_stopCapture();
-	//}
 
 	if (Config.synchronization_mode == VCR_SYNC_AUDIO_DUPL || Config.synchronization_mode == VCR_SYNC_NONE) {
 		// AUDIO SYNC
@@ -1854,14 +1827,13 @@ cleanup:
 		if (image)
 			DllCrtFree(image);
 	}
-//	ShowInfo("VCR_updateScreen() done");
 }
 
 
 void
 VCR_aiDacrateChanged(int SystemType) {
 	if (VCR_isCapturing()) {
-		ShowInfo("Fatal error, audio frequency changed during capture\n");
+		printf("Fatal error, audio frequency changed during capture\n");
 		VCR_stopCapture();
 		return;
 	}
@@ -1885,7 +1857,6 @@ VCR_aiDacrateChanged(int SystemType) {
 static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, BOOL force) {
 	if ((len <= 0 && !force) || len > maxWriteSize)
 		return;
-//	ShowInfo("writeSound()");
 
 	if (soundBufPos + len > minWriteSize || force) {
 		int len2 = VCR_getResampleLen(44100, m_audioFreq, m_audioBitrate, soundBufPos);
@@ -1898,13 +1869,10 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 					fprintf(stderr, "[VCR]: Warning: Possible stereo sound error detected.\n");
 				}
 				if (!VCRComp_addAudioData((unsigned char*)buf2, len2)) {
-//					ShowInfo("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
 					printError("Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
 					VCR_stopCapture();
 				}
 			}
-			//if(buf2)
-			//	free(buf2);
 			soundBufPos = 0;
 		}
 	}
@@ -1928,7 +1896,6 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 		soundBufPos += len;
 		m_audioFrame += ((len / 4) / (long double)m_audioFreq) * visByCountrycode();
 	}
-//	ShowInfo("writeSound() done");
 }
 
 // calculates how long the audio data will last
@@ -1947,8 +1914,6 @@ void VCR_aiLenChanged() {
 
 	// hack - mupen64 updates bitrate after calling aiDacrateChanged
 	m_audioBitrate = (int) ai_register.ai_bitrate + 1;
-
-	//ShowInfo("ailenchanged %p %d (%f% of VI limit), count: %x", p, aiLen, GetPercentOfFrame(aiLen, m_audioFreq, m_audioBitrate), Count);
 
 	if (m_capture == 0)
 		return;
@@ -2222,7 +2187,6 @@ VCR_stopCapture() {
 		return 0;
 	}
 
-//	ShowInfo("VCR_stopCapture()");
 	m_capture = 0;
 	m_visPerSecond = -1;
 	writeSound(NULL, 0, m_audioFreq, m_audioFreq * 2, TRUE);
@@ -2253,7 +2217,6 @@ VCR_stopCapture() {
 	VCRComp_finishFile(0);
 	AVIIncrement = 0;
 	printf("[VCR]: Capture finished.\n");
-//	ShowInfo("VCR_stopCapture() done");
 	return 0;
 }
 

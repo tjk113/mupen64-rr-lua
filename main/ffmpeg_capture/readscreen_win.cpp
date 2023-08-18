@@ -2,7 +2,6 @@
 
 #include "win/main_win.h"
 #include "ffmpeg_capture.hpp"
-#include "win/GUI_LogWindow.h"
 #include "plugin.h"
 
 SWindowInfo gSInfo{};
@@ -39,7 +38,6 @@ void FFMpegReadScreen(void** dest, long* width, long* height) {
 	*width = gSInfo.width;
 	*height = gSInfo.height;
 
-	//	ShowInfo("win_readScreen()");
 	mupendc = GetDC(mainHWND);  //only client area
 	if (Config.is_capture_cropped_screen_dc) {
 		//get whole screen dc and find out where is mupen's client area
@@ -97,7 +95,7 @@ void FFMpegReadScreen(void** dest, long* width, long* height) {
 	if (gBMPInfo.bmiHeader.biSize == 0)
 		PrepareBitmapHeader(mainHWND, bitmap);
 	if (auto res = GetDIBits(copy, bitmap, 0, *height, buffer, &gBMPInfo, DIB_RGB_COLORS) == 0) {
-		ShowInfo("GetDIBits error");
+		printf("GetDIBits error\n");
 	}
 
 	*dest = buffer;
@@ -108,12 +106,11 @@ void FFMpegReadScreen(void** dest, long* width, long* height) {
 		DeleteDC(copy);
 	if (mupendc)
 		ReleaseDC(mainHWND, mupendc);
-	//	ShowInfo("win_readScreen() done");
 }
 
 void InitReadScreenFFmpeg(const SWindowInfo& info) {
 #ifdef __WIN32__
-	ShowInfo((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin." : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...");
+	printf((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin.\n" : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n");
 #endif	
 
 	if (readScreen == NULL) {

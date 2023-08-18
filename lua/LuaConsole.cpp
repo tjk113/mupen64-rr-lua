@@ -12,7 +12,6 @@
 #include <list>
 #include <filesystem>
 #include "../../winproject/resource.h"
-#include "win/DebugInfo.hpp"
 #include "win/main_win.h"
 #include "win/Config.h"
 #include "include/lua.hpp"
@@ -96,7 +95,7 @@ void LoadScreenInit() {
 	LoadScreenInitialized = true;
 }
 
-#define DEBUG_GETLASTERROR 0//if(GetLastError()){ShowInfo("Line:%d GetLastError:%d",__LINE__,GetLastError());SetLastError(0);}
+#define DEBUG_GETLASTERROR 0
 
 ReassociatingFileDialog fdOpenLuaScript; // internal picker
 ReassociatingFileDialog fdOpenLua; // api picker
@@ -199,12 +198,12 @@ namespace LuaEngine {
 	}
 	struct EmulationLock {
 		EmulationLock() {
-			ShowInfo("Emulation Lock");
+			printf("Emulation Lock\n");
 			pauseEmu(FALSE);
 		}
 		~EmulationLock() {
 			resumeEmu(FALSE);
-			ShowInfo("Emulation Unlock");
+			printf("Emulation Unlock\n");
 		}
 	};
 
@@ -415,14 +414,14 @@ namespace LuaEngine {
 			L(NULL),
 			ownWnd(wnd) {
 			SetWindowLua(wnd, this);
-			ShowInfo("Lua construct");
+			printf("Lua construct\n");
 		}
 		~LuaEnvironment() {
 			if (isrunning()) {
 				stop();
 			}
 			SetWindowLua(ownWnd, NULL);
-			ShowInfo("Lua destruct");
+			printf("Lua destruct\n");
 		}
 		bool run(char* path) {
 			if (!path) {
@@ -446,7 +445,7 @@ namespace LuaEngine {
 				AddToRecentScripts(path);
 				strcpy(Config.lua_script_path, path);
 			}
-			ShowInfo("Lua run");
+			printf("Lua run\n");
 			return status;
 		}
 		void stop() {
@@ -464,7 +463,7 @@ namespace LuaEngine {
 			}
 			image_pool.clear();
 			SetButtonState(ownWnd, false);
-			ShowInfo("Lua stop");
+			printf("Lua stop\n");
 		}
 		void setBrush(HBRUSH h) {
 			setGDIObject((HGDIOBJ*)&brush, h);
@@ -589,7 +588,7 @@ namespace LuaEngine {
 			const char* str = lua_tostring(L, -1);
 			ConsoleWrite(ownWnd, str);
 			ConsoleWrite(ownWnd, "\r\n");
-			ShowInfo("Lua error: %s", str);
+			printf("Lua error: %s\n", str);
 			stop();
 		}
 		void setGDIObject(HGDIOBJ* save, HGDIOBJ newobj) {
@@ -2886,7 +2885,7 @@ namespace LuaEngine {
 		return 0;
 	}
 	int DebugviewWrite(lua_State* L) {
-		ShowInfo((char*)lua_tostring(L, 1));
+		printf("%s\n", (char*)lua_tostring(L, 1));
 		return 0;
 	}
 	int StatusbarWrite(lua_State* L) {

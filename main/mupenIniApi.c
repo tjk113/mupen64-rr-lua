@@ -26,6 +26,8 @@
  * USA.
  *
 **/
+// gzprintf
+#pragma comment(lib, "legacy_stdio_definitions.lib")
 
 #include "mupenIniApi.h"
 #include "guifuncs.h"

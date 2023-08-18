@@ -24,7 +24,6 @@
 #include "commandline.h"
 #include "main_win.h"
 #include "../plugin.h"
-#include "GUI_LogWindow.h"
 
 
 BOOL cmdlineMode = 0;
@@ -127,11 +126,11 @@ void setPluginFromCmndLine(CmdLineParameterType plugintype, char* PluginVar, int
 	char* tempPluginStr;
 	GetCmdLineParameter(plugintype, tempstr);
 	if (strlen(tempstr) > 0) {
-		ShowInfo("Command Line: Checking plugin name: %s", tempstr);
+		printf("Command Line: Checking plugin name: %s\n", tempstr);
 		tempPluginStr = getPluginName(tempstr, spec_type);
 		if (tempPluginStr) {
 			sprintf(PluginVar, "%s", tempPluginStr);
-			ShowInfo("Command Line: Loaded Plugin : %s", PluginVar);
+			printf("Command Line: Loaded Plugin : %s\n", PluginVar);
 		}
 	}
 }
@@ -140,14 +139,14 @@ BOOL StartGameByCommandLine() {
 	char szFileName[MAX_PATH];
 
 	if (strlen(cmdLineParameterBuf) == 0) {
-		ShowInfo("No command line params specified");
+		printf("No command line params specified\n");
 		return FALSE;
 	}
 
 	cmdlineMode = 1;
 
 	if (CmdLineParameterExist(CMDLINE_SAVE_OPTIONS)) {
-		ShowInfo("Command Line: Save mode on");
+		printf("Command Line: Save mode on\n");
 		cmdlineSave = 1;
 	}
 
@@ -158,19 +157,19 @@ BOOL StartGameByCommandLine() {
 	setPluginFromCmndLine(CMDLINE_RSP_PLUGIN, rsp_name, PLUGIN_TYPE_RSP);
 
 	if (!CmdLineParameterExist(CMDLINE_GAME_FILENAME)) {
-		ShowInfo("Command Line: Rom name not specified");
+		printf("Command Line: Rom name not specified\n");
 		return FALSE;
 	}
 	else {
 		GetCmdLineParameter(CMDLINE_GAME_FILENAME, szFileName);
-		ShowInfo("Command Line: Rom Name :%s", szFileName);
+		printf("Command Line: Rom Name :%s\n", szFileName);
 	}
 
 	if (!StartRom(szFileName)) {
 		return TRUE;
 	}
 	else {
-		ShowInfo("Command Line: Rom not found");
+		printf("Command Line: Rom not found\n");
 		return FALSE;
 	}
 }

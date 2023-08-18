@@ -65,10 +65,5 @@ public:
 #else
 #define MUPEN64_RR_FUNCTION_SIG __PRETTY_FUNCTION__
 #endif
-#define MUPEN64RR_DEBUGINFO(message) \
-	ShowInfo(const_cast<TCHAR*>(StringBuilder().Append(message).ToString().c_str())); \
-	ShowInfo(const_cast<TCHAR*>(StringBuilder() \
-		.Append("at: ").Append(MUPEN64_RR_FUNCTION_SIG).Append(" ") \
-		.Append(__LINE__).Append(": ").Append(__FILE__).ToString().c_str()))
 
 #endif
