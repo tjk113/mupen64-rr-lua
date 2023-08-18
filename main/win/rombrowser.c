@@ -432,15 +432,7 @@ void AddRomToList(char* RomLocation) {
 		ItemList.ListAlloc = 100;
 	} else if (ItemList.ListAlloc == ItemList.ListCount) {
 		ItemList.ListAlloc += 100;
-		ROM_INFO* tempList = (ROM_INFO*)realloc(ItemList.List, ItemList.ListAlloc * sizeof(ROM_INFO));
-		if(tempList == NULL)
-		{
-			free(tempList);
-			free(ItemList.List);
-		} else
-		{
-			ItemList.List = tempList;
-		}
+		ItemList.List = (ROM_INFO*)realloc(ItemList.List, ItemList.ListAlloc * sizeof(ROM_INFO));
 		if (ItemList.List == NULL) {
 			ShowMessage("Failed");
 			ExitThread(0);
@@ -1224,4 +1216,34 @@ void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable) {
 		Config.is_recent_rom_paths_frozen = 1 - Config.is_recent_rom_paths_frozen;
 	}
 	CheckMenuItem(hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | (Config.is_recent_rom_paths_frozen ? MFS_CHECKED : MFS_UNCHECKED));
+}
+
+/// <summary>
+/// Audits all roms currently contained in the rom browser
+/// </summary>
+void audit_roms() {
+
+	ROM_INFO* pRomInfo;
+	md5_byte_t digest[16];
+	char tempname[100];
+	int i = 0;
+	for (i = 0; i < ItemList.ListCount; i++) {
+		pRomInfo = &ItemList.List[i];
+		sprintf(TempMessage, "%d", i + 1);
+
+		strcpy(TempMessage, pRomInfo->MD5);
+		if (!strcmp(TempMessage, "")) {
+			calculateMD5(pRomInfo->szFullFileName, digest);
+			MD5toString(digest, TempMessage);
+		}
+		strcpy(pRomInfo->MD5, TempMessage);
+		if (getIniGoodNameByMD5(TempMessage, tempname))
+			strcpy(pRomInfo->GoodName, tempname);
+		else
+			sprintf(pRomInfo->GoodName, "%s (not found in INI file)", pRomInfo->InternalName);
+	}
+	
+	char msg[1024] = { 0 };
+	sprintf(msg, "Successfully audited %d roms", i);
+	MessageBox(mainHWND, msg, "Info", MB_OK | MB_ICONINFORMATION);
 }

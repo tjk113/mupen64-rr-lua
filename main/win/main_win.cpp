@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
 						  main_win.cpp  -  description
 							 -------------------
 	copyright C) 2003    : ShadowPrince (shadow@emulation64.com)
@@ -2488,10 +2488,8 @@ BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId) {
 }
 
 void ProcessToolTips(LPARAM lParam, HWND hWnd) {
-
-	LPTOOLTIPTEXT lpttt = {nullptr};
-	// Use memcpy to copy data from lParam to lpttt
-	memcpy(lpttt, &lParam, sizeof(TOOLTIPTEXT));
+		
+	LPTOOLTIPTEXT lpttt = (LPTOOLTIPTEXT)lParam;
 
 	lpttt->hinst = app_hInstance;
 
@@ -2656,15 +2654,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 #ifdef LUA_WINDOWMESSAGE
 	LuaWindowMessage(hwnd, Message, wParam, lParam);
 #endif
-	HDROP h_file = nullptr;
-	LPNMHDR l_header = nullptr;
-	memcpy(&h_file, &wParam, sizeof(*h_file));
-	memcpy(&l_header, &lParam, sizeof(LPNMHDR));
 	switch (Message) {
 
 		case WM_DROPFILES:
-
-			//HDROP hFile = (HDROP) wParam;
+		{
+			HDROP h_file = (HDROP) wParam;
 			char fname[MAX_PATH];
 			LPSTR fext;
 			DragQueryFile(h_file, 0, fname, sizeof(fname));
@@ -2689,13 +2683,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				}
 			} else if (strcmp(fext, ".LUA") == 0) {
 				if (rom) {
-					for (; *fext; ++fext) *fext = (CHAR) tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
+					for (; *fext; ++fext) *fext = (CHAR)tolower(*fext); // Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
 					// even this hack will fail under special circumstances
 					LuaOpenAndRun(fname);
 				}
 			}
 
 			break;
+		}
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		{
@@ -2737,6 +2732,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				keyUp(wParam, lParam);
 			return DefWindowProc(hwnd, Message, wParam, lParam);
 		case WM_NOTIFY:
+		{
+			LPNMHDR l_header = (LPNMHDR)lParam;
+
 			if (wParam == IDC_ROMLIST) {
 				RomListNotify(l_header);
 			}
@@ -2746,6 +2744,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					break;
 			}
 			return 0;
+		}
 		case WM_MOVE:
 			if (emu_launched && !FullScreenMode) {
 				moveScreen((int) wParam, lParam);
@@ -2804,8 +2803,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			return 0;
 		case WM_GETMINMAXINFO:
 		{
-			LPMINMAXINFO lpMMI = nullptr;
-			memcpy(&lpMMI, &lParam, sizeof(LPMINMAXINFO));
+			LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
 			lpMMI->ptMinTrackSize.x = MIN_WINDOW_W;
 			lpMMI->ptMinTrackSize.y = MIN_WINDOW_H;
 			// this might break small res with gfx plugin!!!
@@ -3070,8 +3068,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				}
 				break;
 				case ID_AUDIT_ROMS:
-					ret = DialogBox(GetModuleHandle(NULL),
-						MAKEINTRESOURCE(IDD_AUDIT_ROMS_DIALOG), hwnd, AuditDlgProc);
+					audit_roms();
 					break;
 				case ID_HELP_ABOUT:
 				{

@@ -39,12 +39,6 @@ char* get_savespath() {
 	} else return Config.saves_directory;
 }
 
-void display_loading_progress(int p) {
-	sprintf(TempMessage, "%d%%", p);
-	//SendMessage( hStatus, SB_SETTEXT, 1, (LPARAM)TempMessage );  
-	SendMessage(hStatusProgress, PBM_SETPOS, p + 1, 0);
-}
-
 bool warn_recording() {
 
 	int res = 0, warnings = res; // red eared slider
@@ -82,21 +76,6 @@ void internal_warnsavestate(const char* messageCaption, const char* message, boo
 }
 void warn_savestate(const char* messageCaption, const char* message) { internal_warnsavestate(messageCaption, message, false); }
 void warn_savestate(const char* messageCaption, const char* message, bool modal) { internal_warnsavestate(messageCaption, message, modal); }
-
-void display_MD5calculating_progress(int p) {
-	if (romInfoHWND != NULL) {
-		if (p > 0) {
-			sprintf(TempMessage, "%d%%", p);
-			SetDlgItemText(romInfoHWND, IDC_MD5_PROGRESS, TempMessage);
-			SendMessage(GetDlgItem(romInfoHWND, IDC_CURRENT_ROM_PROGRESS), PBM_SETPOS, p + 1, 0);
-			SendMessage(GetDlgItem(romInfoHWND, IDC_MD5_PROGRESS_BAR), PBM_SETPOS, p + 1, 0);
-		} else {
-			SetDlgItemText(romInfoHWND, IDC_MD5_PROGRESS, "");
-			SendMessage(GetDlgItem(romInfoHWND, IDC_CURRENT_ROM_PROGRESS), PBM_SETPOS, 0, 0);
-			SendMessage(GetDlgItem(romInfoHWND, IDC_MD5_PROGRESS_BAR), PBM_SETPOS, 0, 0);
-		}
-	}
-}
 
 //Shows text in the first sector of statusbar
 void display_status(const char* status) {

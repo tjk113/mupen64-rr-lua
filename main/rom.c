@@ -214,14 +214,12 @@ int rom_read(const char* argv) {
 		for (i = 0; i < taille_rom; i += (int) fread(rom + i, 1, 1000, rom_file)) {
 			if (tmp != (int)(((float) i / (float)taille_rom) * 100)) {
 				tmp = (int)( (float) i / (float)(taille_rom) * 100);
-				display_loading_progress(tmp);
 			}
 		}
 	} else if (z == 1) {
 		for (i = 0; i < taille_rom; i += gzread(z_rom_file, rom + i, 1000)) {
 			if (tmp != (int)(((float) i / (float)taille_rom) * 100)) {
 				tmp = (int)((float) i / (float)(taille_rom) * 100);
-				display_loading_progress(tmp);
 			}
 		}
 	} else {
@@ -229,7 +227,6 @@ int rom_read(const char* argv) {
 		for (i = 0; i < taille_rom; i += unzReadCurrentFile(zip, rom + i, 1000)) {
 			if (tmp != (int)(((float) i / (float)taille_rom) * 100)) {
 				tmp = (int)((float) i / (float)(taille_rom) * 100);
-				display_loading_progress(tmp);
 			}
 		}
 		unzCloseCurrentFile(zip);
@@ -275,7 +272,6 @@ int rom_read(const char* argv) {
 	ROM_HEADER->unknown = 0; // Clean up ROMs that accidentally set the unused bytes (ensuring previous fields are null terminated)
 	ROM_HEADER->Unknown[0] = 0;
 	ROM_HEADER->Unknown[1] = 0;
-	display_loading_progress(100);
 	printf("%x %x %x %x\n", ROM_HEADER->init_PI_BSB_DOM1_LAT_REG,
 		ROM_HEADER->init_PI_BSB_DOM1_PGS_REG,
 		ROM_HEADER->init_PI_BSB_DOM1_PWD_REG,
@@ -456,14 +452,12 @@ void calculateMD5(const char* argv, unsigned char digest[16]) {
 		for (i = 0; i < taille_rom; i += (int) fread(rom + i, 1, 1000, rom_file)) {
 			if (tmp != (int)(((float) i / (float)taille_rom) * 100)) {
 				tmp = (int)((float) i / (float)(taille_rom) * 100);
-				display_MD5calculating_progress(tmp);
 			}
 		}
 	} else if (z == 1) {
 		for (i = 0; i < taille_rom; i += gzread(z_rom_file, rom + i, 1000)) {
 			if (tmp != (int)((i / (float)taille_rom) * 100)) {
 				tmp = (int)(i / (float)(taille_rom) * 100);
-				display_MD5calculating_progress(tmp);
 			}
 		}
 	} else {
@@ -471,7 +465,6 @@ void calculateMD5(const char* argv, unsigned char digest[16]) {
 		for (i = 0; i < taille_rom; i += unzReadCurrentFile(zip, rom + i, 1000)) {
 			if (tmp != (int)((i / (float)taille_rom) * 100)) {
 				tmp = (int)(i / (float)(taille_rom) * 100);
-				display_MD5calculating_progress(tmp);
 			}
 		}
 		unzCloseCurrentFile(zip);
@@ -479,8 +472,6 @@ void calculateMD5(const char* argv, unsigned char digest[16]) {
 	if (!z) fclose(rom_file);
 	else if (z == 1) gzclose(z_rom_file);
 	else unzClose(zip);
-
-	display_MD5calculating_progress(100);
 
 	if (rom[0] == 0x37) {
 		printf("byteswaping rom...\n");
@@ -510,7 +501,6 @@ void calculateMD5(const char* argv, unsigned char digest[16]) {
 	md5_init(&state);
 	md5_append(&state, (const md5_byte_t*)rom, taille_rom);
 	md5_finish(&state, digest);
-	display_MD5calculating_progress(-1);
 	free(rom);
 	rom = NULL;
 }

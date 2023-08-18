@@ -123,6 +123,7 @@ void RunRecentRom(int i);
 void DisableRecentRoms(HMENU hMenu, BOOL disable);
 void FreezeRecentRoms(HWND hWnd, BOOL ChangeConfigVariable);
 void EnableRecentROMsMenu(HMENU hMenu, BOOL flag);
+void audit_roms();
 
 #endif
 
