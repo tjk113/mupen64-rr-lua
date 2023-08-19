@@ -45,7 +45,7 @@
 #include <commctrl.h> // for SendMessage, SB_SETTEXT
 #include <windows.h> // for truncate functions
 #include <../../winproject/resource.h> // for EMU_RESET
-#include "win/Config.h" //config struct
+#include "win/Config.hpp" //config struct
 #include "win/main_win.h" // mainHWND
 #include <WinUser.h>
 
@@ -173,69 +173,6 @@ char* strtrimext(char* myStr) {
 	if (lastExt != NULL)
 		*lastExt = '\0';
 	return retStr;
-}
-
-int movieBackup() {
-
-	if (!Config.is_movie_backup_enabled) return 0; // :(
-
-	char* original_m_filename = (char*)malloc(strlen(m_filename));
-	strcpy(original_m_filename, m_filename);
-
-	if (Config.movie_backup_level > 1) {
-		char* stPath = m_filename;
-		stripExt(stPath);
-		char* newPath = stPath;
-		strcat(newPath, "-b.st");
-		strcat(stPath, ".st");
-
-		FILE* tmpstFile = fopen(stPath, "w+");
-		if (tmpstFile) {
-			fclose(tmpstFile);
-			CopyFile(stPath, newPath, FALSE);
-		}
-	}
-
-	char* m_filenameBackup = (char*)malloc(strlen(m_filename) + 150);
-
-	strcpy(m_filenameBackup, m_filename);
-
-	strcpy(m_filenameBackup, strtrimext(m_filenameBackup));
-
-	while (TRUE) {
-		// loop until we find file with name that doesnt exist
-		strncat(m_filenameBackup, "-b", 3);
-		FILE* tmpFile = fopen(m_filenameBackup, "w+");
-		if (tmpFile == NULL)
-			; // and again
-		else {
-			fclose(tmpFile);
-			break;
-		}
-	}
-
-	strncat(m_filenameBackup, ".m64", 5);
-
-	FILE* fileBackup = fopen(m_filenameBackup, "w+");
-
-	write_movie_header(fileBackup, MUP_HEADER_SIZE);
-	fseek(fileBackup, MUP_HEADER_SIZE, SEEK_SET);
-
-	if (m_inputBuffer == NULL || m_inputBufferPtr == NULL) {
-		// ???
-		fclose(fileBackup);
-		free(m_filenameBackup);
-		return 0;
-	}
-
-	fwrite(m_inputBuffer, 1, sizeof(BUTTONS) * (m_header.length_samples), fileBackup);
-
-	fflush(fileBackup);
-	fclose(fileBackup);
-	free(m_filenameBackup);
-
-	strcpy(m_filename, original_m_filename); // revert
-	return 1;
 }
 
 void printWarning(const char* str) {
@@ -587,7 +524,7 @@ SMovieHeader VCR_getHeaderInfo(const char* filename) {
 // clear all SRAM, EEPROM, and mempaks
 void VCR_clearAllSaveData() {
 	int i;
-	extern char* get_savespath(); // defined in either win\guifuncs.c or gui_gtk/main_gtk.c
+	extern const char* get_savespath(); // defined in either win\guifuncs.c or gui_gtk/main_gtk.c
 
 	// clear SRAM
 	{
@@ -1281,9 +1218,6 @@ VCR_stopRecord(int defExt) {
 //		fwrite( &m_header.length_samples, 1, sizeof (long), m_file );
 		fclose(m_file);
 
-
-		movieBackup();
-
 		m_file = NULL;
 
 		truncateMovie();
@@ -1588,8 +1522,6 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 		m_currentSample = 0;
 		m_currentVI = 0;
 		strcpy(VCR_Lastpath, filename);
-
-		if (Config.movie_backup_level > 1) movieBackup();
 
 		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) {
 			// we cant wait for this function to return and then get check in emu(?) thread (savestates_load)
@@ -2068,7 +2000,7 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	captureWithFFmpeg = 0;
 	EnableEmulationMenuItems(TRUE);
 	strncpy(AVIFileName, aviFilename, PATH_MAX);
-	strncpy(Config.avi_capture_path, aviFilename, PATH_MAX);
+	Config.avi_capture_path = std::string(aviFilename);
 
 	UpdateTitleBarCapture(AVIFileName);
 /*	if (VCR_startPlayback( recFilename ) < 0)
@@ -2326,12 +2258,6 @@ void VCR_updateFrameCounter() {
 #ifdef __WIN32__
 	extern HWND hStatus/*, hStatusProgress*/;
 
-// // oops, this control isn't even visible during emulation...
-//	if(VCR_isPlaying())
-//		SendMessage( hStatusProgress, PBM_SETPOS, (int)(100.0f * (long double)m_currentSample / (long double)VCR_getLengthFrames() + 0.5f), 0 );
-
-//	if(m_intro && m_currentSample < 60 && VCR_isPlaying())
-//		sprintf(str, "%d re-records, %d frames", (int)m_header.rerecord_count, (int)m_header.length_vis);
 	if (VCR_isRecording() || VCR_isPlaying())
 		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)rr);
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)str);
@@ -2361,23 +2287,13 @@ void BuildRecentMoviesMenu(HWND hwnd) {
 	menuinfo.fType = MFT_STRING;
 	menuinfo.fState = MFS_ENABLED;
 
-	for (i = 0; i < MAX_RECENT_MOVIE; i++) {
-		if (strcmp(Config.recent_movie_paths[i], "") == 0) {
-			// the !emptyRecentMovies check here prevents unlimited "No Recent Movies" items being added to the menu by repeatedly pressing Reset
-			if (i == 0 && !emptyRecentMovies) {
-				menuinfo.dwTypeData = (LPTSTR)"No Recent Movies";
-				emptyRecentMovies = true;
-			} else break;
-		} else {
-			menuinfo.dwTypeData = Config.recent_movie_paths[i];
-			emptyRecentMovies = false;
-		}
-
+	for (i = 0; i < Config.recent_movie_paths.size(); i++) {
+		menuinfo.dwTypeData = (LPSTR)Config.recent_movie_paths[i].c_str();
 		menuinfo.cch = strlen(menuinfo.dwTypeData);
 		menuinfo.wID = ID_RECENTMOVIES_FIRST + i;
 		InsertMenuItem(hSubMenu, i + 3, TRUE, &menuinfo);
 
-		if (emptyRecentMovies || IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
+		if (IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
 			EnableMenuItem(hSubMenu, ID_RECENTMOVIES_FIRST + i, MF_DISABLED);
 			EnableMenuItem(hMovieMenu, ID_REPLAY_LATEST, MF_DISABLED);
 		}
@@ -2398,14 +2314,11 @@ void ClearRecentMovies(BOOL clear_array) {
 	int i;
 	HMENU hMenu = GetMenu(mainHWND);
 
-	for (i = 0; i < MAX_RECENT_MOVIE; i++) {
+	for (i = 0; i < Config.recent_movie_paths.size(); i++) {
 		DeleteMenu(hMenu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
 	}
 	if (clear_array) {
-		memset(Config.recent_movie_paths, 0, MAX_RECENT_MOVIE * sizeof(Config.recent_movie_paths[0]));
-		/* unintuitive, but if emptyRecentMovies is true then the "if (i == 0 && !emptyRecentMovies)" check will fail in BuildRecentMoviesMenu,
-		meaning "No Recent Movies" will never be added to the list */
-		emptyRecentMovies = false;
+		Config.recent_movie_paths.clear();
 	}
 }
 
@@ -2422,16 +2335,16 @@ void AddToRecentMovies(const char* path) {
 	int i = 0;
 	//Either finds index of path in recent list, or stops at last one
 	//notice how it doesn't matter if last==path or not, we do same swapping later
-	for (; i < MAX_RECENT_MOVIE - 1; ++i) {
+	for (; i < Config.recent_movie_paths.size() - 1; ++i) {
 		//if matches or empty (list is not full), break
-		if (Config.recent_movie_paths[i][0] == 0 || !strcmp(Config.recent_movie_paths[i], path)) break;
+		if (Config.recent_movie_paths[i][0] == 0 || Config.recent_movie_paths[i] == path) break;
 	}
 	//now swap all elements backwards starting from `i`
 	for (int j = i; j > 0; --j) {
-		strcpy(Config.recent_movie_paths[j], Config.recent_movie_paths[j - 1]);
+		Config.recent_movie_paths[j] = Config.recent_movie_paths[j - 1];
 	}
 	//now write to top
-	strcpy(Config.recent_movie_paths[0], path);
+	Config.recent_movie_paths[0] = path;
 	//rebuild menu
 	RefreshRecentMovies();
 }
@@ -2450,7 +2363,7 @@ void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable) {
 int RunRecentMovie(WORD menuItem) {
 	char path[MAX_PATH];
 	int index = menuItem - ID_RECENTMOVIES_FIRST;
-	sprintf(path, Config.recent_movie_paths[index]);
+	Config.recent_movie_paths[index].copy(path, MAX_PATH);
 	VCR_setReadOnly(TRUE);
 	return VCR_startPlayback(path, "", "");
 }

@@ -89,7 +89,7 @@ void search_languages() {
 	FindClose(hFind);
 }
 
-void SetCurrentLangByName(char* language_name) {
+void SetCurrentLangByName(const char* language_name) {
 	languages* p;
 	p = lang_list->next;
 	while (p) {
@@ -112,14 +112,14 @@ void SelectLang(HWND hWnd, int LangMenuID) {
 	menuinfo.cch = sizeof(String);
 	GetMenuItemInfo(hMenu, LangMenuID, FALSE, &menuinfo);
 
-	sprintf(Config.language, String);
-	//WritePrivateProfileString("Default","Language",String,LngFilePath());
+	Config.language = std::string(String);
+
 	if (LastLang != -1) {
 		CheckMenuItem(hMenu, LastLang, MF_BYCOMMAND | MFS_UNCHECKED);
 	}
 	LastLang = LangMenuID;
 	CheckMenuItem(hMenu, LastLang, MF_BYCOMMAND | MFS_CHECKED);
-	SetCurrentLangByName(Config.language);
+	SetCurrentLangByName(Config.language.c_str());
 }
 
 void SetupLanguages(HWND hWnd) {
@@ -141,7 +141,7 @@ void SetupLanguages(HWND hWnd) {
 	menuinfo.cch = sizeof(hSubMenu);
 	while (p) {
 		if (strcmp(p->language_name, "English") == 0) {
-			if (strcmp(Config.language, "English") == 0) {
+			if (Config.language == "English") {
 				CheckMenuItem(hSubMenu, ID_LANG_ENGLISH, MF_BYCOMMAND | MFS_CHECKED);
 				LastLang = ID_LANG_ENGLISH;
 				current_lang = p;
@@ -151,7 +151,7 @@ void SetupLanguages(HWND hWnd) {
 			menuinfo.cch = strlen(p->language_name) + 1;
 			menuinfo.wID = ID_LANG_ENGLISH + count;
 			InsertMenuItem(hSubMenu, count++, TRUE, &menuinfo);
-			if (strcmp(Config.language, p->language_name) == 0) {
+			if (Config.language == p->language_name) {
 				CheckMenuItem(hSubMenu, menuinfo.wID, MF_BYCOMMAND | MFS_CHECKED);
 				LastLang = menuinfo.wID;
 				current_lang = p;
@@ -159,7 +159,7 @@ void SetupLanguages(HWND hWnd) {
 		}
 		p = p->next;
 	}
-	SetCurrentLangByName(Config.language);
+	SetCurrentLangByName(Config.language.c_str());
 }
 
 void freeLanguages() {
@@ -240,10 +240,9 @@ void SetMenuAccelerator(HMENU hMenu, int elementID, const char* Acc) {
 	SetMenuItemInfo(hMenu, elementID, TRUE, &menuinfo);
 }
 
-static void SetHotkeyMenuAccelerators(HOTKEY* hotkeys, HMENU hmenu, int menuItemID) {
-	char buf[64];
-	extern void hotkeyToString(HOTKEY * hotkeys, char* buf);
-	hotkeyToString(hotkeys, buf);
+static void SetHotkeyMenuAccelerators(t_hotkey* hotkey, HMENU hmenu, int menuItemID) {
+	char buf[64] = { 0 };
+	hotkey_to_string(hotkey, buf);
 
 	if (hmenu && menuItemID >= 0) {
 		if (strcmp(buf, "(nothing)"))
@@ -274,163 +273,33 @@ void TranslateMenu(HMENU hMenu, HWND mainHWND) {
 }
 
 void SetMenuAcceleratorsFromUser(HWND mainHWND) {
-	SetHotkeyMenuAccelerators(&Config.hotkeys[4], GetSubMenu(GetMenu(mainHWND), 1), 0);  // pause
-	SetHotkeyMenuAccelerators(&Config.hotkeys[3], GetSubMenu(GetMenu(mainHWND), 1), 1);  // frame advance
-	SetHotkeyMenuAccelerators(&Config.hotkeys[12], GetSubMenu(GetMenu(mainHWND), 1), 4);  // load current slot
-	SetHotkeyMenuAccelerators(&Config.hotkeys[11], GetSubMenu(GetMenu(mainHWND), 1), 6);  // save current slot
+	SetHotkeyMenuAccelerators(&Config.pause_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 0);
+	SetHotkeyMenuAccelerators(&Config.frame_advance_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 1);
+	SetHotkeyMenuAccelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+	SetHotkeyMenuAccelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
 
-	SetHotkeyMenuAccelerators(&Config.hotkeys[5], GetSubMenu(GetMenu(mainHWND), 3), 13); // toggle read-only
-	SetHotkeyMenuAccelerators(&Config.hotkeys[6], GetSubMenu(GetMenu(mainHWND), 3), 3); // 
-	SetHotkeyMenuAccelerators(&Config.hotkeys[7], GetSubMenu(GetMenu(mainHWND), 3), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[8], GetSubMenu(GetMenu(mainHWND), 3), 0); // start recording
-	SetHotkeyMenuAccelerators(&Config.hotkeys[9], GetSubMenu(GetMenu(mainHWND), 3), 1); // stop recording
-	SetHotkeyMenuAccelerators(&Config.hotkeys[10], GetSubMenu(GetMenu(mainHWND), 1), 2);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[11], GetSubMenu(GetMenu(mainHWND), 1), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[12], GetSubMenu(GetMenu(mainHWND), 1), 6);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[40], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[41], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[42], GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 9);
+	SetHotkeyMenuAccelerators(&Config.toggle_read_only_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 13);
+	SetHotkeyMenuAccelerators(&Config.start_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 3);
+	SetHotkeyMenuAccelerators(&Config.stop_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 4);
+	SetHotkeyMenuAccelerators(&Config.start_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 0);
+	SetHotkeyMenuAccelerators(&Config.stop_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 1);
+	SetHotkeyMenuAccelerators(&Config.take_screenshot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 2);
+	SetHotkeyMenuAccelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+	SetHotkeyMenuAccelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+	SetHotkeyMenuAccelerators(&Config.select_slot_1_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+	SetHotkeyMenuAccelerators(&Config.select_slot_2_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+	SetHotkeyMenuAccelerators(&Config.select_slot_3_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+	SetHotkeyMenuAccelerators(&Config.select_slot_4_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+	SetHotkeyMenuAccelerators(&Config.select_slot_5_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+	SetHotkeyMenuAccelerators(&Config.select_slot_6_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+	SetHotkeyMenuAccelerators(&Config.select_slot_7_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+	SetHotkeyMenuAccelerators(&Config.select_slot_8_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+	SetHotkeyMenuAccelerators(&Config.select_slot_9_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
 
-	SetHotkeyMenuAccelerators(&Config.hotkeys[45], GetSubMenu(GetMenu(mainHWND), 3), 12); // start from beginning
-	SetHotkeyMenuAccelerators(&Config.hotkeys[46], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
-
+	SetHotkeyMenuAccelerators(&Config.restart_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 12);
+	SetHotkeyMenuAccelerators(&Config.play_latest_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 7);
 }
-/*
-void TranslateMenuOld(HMENU hMenu,HWND mainHWND)
-{
-	HMENU submenu,subsubmenu;
-	//Main menu
-	SetMenuTranslatedString(hMenu,0,"File","");
-	SetMenuTranslatedString(hMenu,1,"Run","");
-	SetMenuTranslatedString(hMenu,2,"Options","");
-	SetMenuTranslatedString(hMenu,3,"Movie","");
-	SetMenuTranslatedString(hMenu,4,"Utilities", "");
-	SetMenuTranslatedString(hMenu,5,"Help","");
 
-	//File menu
-	submenu = GetSubMenu(hMenu,0) ;
-	SetMenuTranslatedString(submenu,0,"Load ROM...","Ctrl O");
-	SetMenuTranslatedString(submenu,1,"Close ROM","Ctrl F4");
-	SetMenuTranslatedString(submenu,2,"Reset ROM","Ctrl R");
-	SetMenuTranslatedString(submenu,3,"Refresh ROM List","Ctrl Alt R");
-	SetMenuTranslatedString(submenu,5,"Recent ROMs","");
-	subsubmenu = GetSubMenu(submenu,5) ;
-	SetMenuTranslatedString(subsubmenu,0,"Reset","");
-	SetMenuTranslatedString(subsubmenu,1,"Freeze","");
-	SetMenuTranslatedString(submenu,6,"Load Latest ROM", "Ctrl Shift L");
-
-	SetMenuTranslatedString(submenu,8,"Language","");
-	SetMenuTranslatedString(submenu,9,"Language Information...","");
-	SetMenuTranslatedString(submenu,11,"Exit","Alt F4");
-
-	//Run menu
-	submenu = GetSubMenu(hMenu,1);
-	//SetMenuTranslatedString(submenu,0,"Reset","F1");
-	SetMenuTranslatedString(submenu,0,"Pause","");
-	SetMenuTranslatedString(submenu,1,"Frame Advance","");
-	SetMenuTranslatedString(submenu,2,"Take Screenshot","");
-	SetMenuTranslatedString(submenu,4,"Save State","");
-	SetMenuTranslatedString(submenu,5,"Save As","Ctrl A");
-	SetMenuTranslatedString(submenu,6,"Load State","");
-	SetMenuTranslatedString(submenu,7,"Load As","Ctrl L");
-	SetMenuTranslatedString(submenu,9,"Selected Save State","");
-
-	//Options menu
-	submenu = GetSubMenu(hMenu,2);
-	SetMenuTranslatedString(submenu,0,"Full Screen","Alt Enter");
-	SetMenuTranslatedString(submenu, 2, "Plugin Settings", "");
-	subsubmenu = GetSubMenu(submenu, 2);
-	SetMenuTranslatedString(subsubmenu, 0, "Video", "");
-	SetMenuTranslatedString(subsubmenu, 1, "Input", "");
-	SetMenuTranslatedString(subsubmenu, 2, "Audio", "");
-	SetMenuTranslatedString(subsubmenu, 3, "RSP", "");
-	SetMenuTranslatedString(submenu, 4, "Show Toolbar", "Alt T");
-	SetMenuTranslatedString(submenu, 5, "Show Statusbar", "Alt S");
-	SetMenuTranslatedString(submenu, 7, "Settings", "Ctrl S  ");
-
-	//Movie menu
-	submenu = GetSubMenu(hMenu, 3);
-	SetMenuTranslatedString(submenu, 0, "Start Movie Recording...", "");
-	SetMenuTranslatedString(submenu, 1, "Stop Movie Recording", "");
-	SetMenuTranslatedString(submenu, 3, "Start Movie Playback...", "");
-	SetMenuTranslatedString(submenu, 4, "Stop Movie Playback", "");
-	SetMenuTranslatedString(submenu, 6, "Recent Movies", "");
-	subsubmenu = GetSubMenu(submenu, 6);
-	SetMenuTranslatedString(subsubmenu, 0, "Reset", "");
-	SetMenuTranslatedString(subsubmenu, 1, "Freeze", "");
-	SetMenuTranslatedString(submenu, 7, "Load Latest Movie", "");
-	SetMenuTranslatedString(submenu, 9, "Start AVI Capture...", "");
-	SetMenuTranslatedString(submenu, 10, "Start AVI From Preset...", "");
-	SetMenuTranslatedString(submenu, 11, "Stop AVI Capture", "");
-	SetMenuTranslatedString(submenu, 13, "Loop Movie Playback", "");
-	SetMenuTranslatedString(submenu, 14, "Start from Beginning", "");
-	SetMenuTranslatedString(submenu, 15, "Toggle Read-Only", "");
-
-	//Utility menu
-	submenu = GetSubMenu(hMenu,4);
-	SetMenuTranslatedString(submenu,0,"ROM Properties","Ctrl P");
-	SetMenuTranslatedString(submenu,2,"Audit ROMs...","");
-	//SetMenuTranslatedString(submenu,3,"Benchmark...","");
-	SetMenuTranslatedString(submenu,3,"Generate ROM Info...","");
-	SetMenuTranslatedString(submenu,4,"Show Log Window","");
-	//SetMenuTranslatedString(submenu,5,"Kaillera...","");
-	SetMenuTranslatedString(submenu, 6, "Start Trace Logger", "");
-	SetMenuTranslatedString(submenu, 7, "Save Config", "");
-	SetMenuTranslatedString(submenu, 8, "Game Debugger", "");
-
-	//Help menu
-	submenu = GetSubMenu(hMenu,5);
-	SetMenuTranslatedString(submenu,0,"Show RAM start","");
-	SetMenuTranslatedString(submenu,1,"Show Crash Handler", "");
-	SetMenuTranslatedString(submenu,3,"About","");
-
-	//Lua Script menu
-	submenu = GetSubMenu(hMenu, 6);
-	SetMenuTranslatedString(submenu, 0, "New Instance", "");
-	SetMenuTranslatedString(submenu, 1, "Load Latest Lua Script", "");
-	SetMenuTranslatedString(submenu, 3, "Recent Scripts", "");
-	subsubmenu = GetSubMenu(submenu, 3);
-	SetMenuTranslatedString(subsubmenu, 0, "Reset", "");
-	SetMenuTranslatedString(subsubmenu, 1, "Freeze", "");
-	SetMenuTranslatedString(submenu, 5, "Close All", "");
-
-	DrawMenuBar(mainHWND);
-	// unecessary?
-
-
-
-	SetHotkeyMenuAccelerators(&Config.hotkeys[3], GetSubMenu(GetMenu(mainHWND),1), 1);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[4], GetSubMenu(GetMenu(mainHWND),1), 0);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[5], GetSubMenu(GetMenu(mainHWND),3), 15); // toggle read-only
-	SetHotkeyMenuAccelerators(&Config.hotkeys[6], GetSubMenu(GetMenu(mainHWND),3), 3); //
-	SetHotkeyMenuAccelerators(&Config.hotkeys[7], GetSubMenu(GetMenu(mainHWND),3), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[8], GetSubMenu(GetMenu(mainHWND),3), 0); // start recording
-	SetHotkeyMenuAccelerators(&Config.hotkeys[9], GetSubMenu(GetMenu(mainHWND),3), 1); // stop recording
-	SetHotkeyMenuAccelerators(&Config.hotkeys[10], GetSubMenu(GetMenu(mainHWND),1), 2);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[11], GetSubMenu(GetMenu(mainHWND),1), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[12], GetSubMenu(GetMenu(mainHWND),1), 6);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[31], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 0);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[32], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 1);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[33], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 2);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[34], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 3);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[35], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 4);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[36], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 5);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[37], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 6);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[38], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 7);
-	SetHotkeyMenuAccelerators(&Config.hotkeys[39], GetSubMenu(GetSubMenu(GetMenu(mainHWND),1),9), 8);
-
-	SetHotkeyMenuAccelerators(&Config.hotkeys[42], GetSubMenu(GetMenu(mainHWND), 3), 14); // start from beginning
-	SetHotkeyMenuAccelerators(&Config.hotkeys[43], GetSubMenu(GetMenu(mainHWND), 3), 7); // load latest movie
-
-}
-*/
 void TranslateConfigDialog(HWND hwnd) {
 
 	SetItemTranslatedString(hwnd, IDC_GFXPLUGIN, "Video");
@@ -484,7 +353,6 @@ void TranslateGeneralDialog(HWND hwnd) {
 	SetItemTranslatedString(hwnd, IDC_FPSTITLE, "FPS and VIs");
 
 	SetItemTranslatedString(hwnd, IDC_LIMITFPS, "Limit FPS (auto)");
-	SetItemTranslatedString(hwnd, IDC_SPEEDMODIFIER, "Use Speed Modifier");
 	SetItemTranslatedString(hwnd, IDC_SHOWFPS, "Show FPS");
 	SetItemTranslatedString(hwnd, IDC_SHOWVIS, "Show VIs");
 	SetItemTranslatedString(hwnd, IDC_FASTFORWARDSKIPFREQ, "Fast forward skip frequency:");
@@ -561,7 +429,6 @@ void TranslateLangInfoDialog(HWND hwnd) {
 void TranslateAdvancedDialog(HWND hwnd) {
 	SetItemTranslatedString(hwnd, IDC_COMMON, "Common Options");
 	SetItemTranslatedString(hwnd, IDC_PAUSENOTACTIVE, "Pause when unfocused");
-	SetItemTranslatedString(hwnd, IDC_PLUGIN_OVERWRITE, "Use global plugin config");
 	SetItemTranslatedString(hwnd, IDC_GUI_TOOLBAR, "Show toolbar");
 	SetItemTranslatedString(hwnd, IDC_GUI_STATUSBAR, "Show statusbar");
 

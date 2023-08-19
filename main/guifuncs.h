@@ -28,7 +28,7 @@
 **/
 
 char* get_currentpath();
-char* get_savespath();
+const char* get_savespath();
 
 void new_frame();
 void new_vi();

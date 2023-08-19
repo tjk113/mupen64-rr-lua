@@ -139,7 +139,6 @@
 #define IDC_LIMITFPS                    2257
 #define IDC_FPSTITLE                    2258
 #define IDC_FPSTRACKBAR                 2259
-#define IDC_SPEEDMODIFIER               2260
 #define IDC_SPEEDMODIFIER_VALUE         2261
 #define IDC_INCREASE_MODIFIER           2262
 #define IDC_DECREASE_MODIFIER           2263
@@ -220,12 +219,10 @@
 #define IDC_COLUMN_FILENAME             5509
 #define IDC_COLUMN_MD5                  5510
 #define IDC_COLUMN_COMMENTS             5511
-#define IDC_PLUGIN_OVERWRITE            5512
 #define IDC_COMMON                      5513
 #define IDC_COMPATIBILITY               5514
 #define IDC_NO_AUDIO_DELAY              5515
 #define IDC_NO_COMPILED_JUMP            5516
-#define IDC_AUTOINCSAVESLOT             5517
 #define IDD_HOTKEY_CONFIG               5518
 #define IDC_WARNING_OPTIONS             5519
 #define IDC_RECORDINGOPT                5520
@@ -452,7 +449,6 @@
 #define IDC_DEBUGGER_DISASSEMBLED       40046
 #define IDC_DEBUGGER_DMA_R_TOGGLE       40047
 #define ID_REPLAY_LATEST                40048
-#define IDC_FREQUENTVCRREFRESH          40049
 #define IDC_AV_NOSYNC                   40050
 #define IDC_AV_AUDIOSYNC                40051
 #define IDC_AV_VIDEOSYNC                40052

@@ -49,7 +49,6 @@
 
 
 extern unsigned long interp_addr;
-extern int* autoinc_save_slot;
 
 int savestates_job = 0;
 int savestates_job_success = 1;
@@ -80,7 +79,7 @@ void savestates_select_filename(const char* fn) {
 	if (strlen((const char*)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
 		return;
 	strcpy(fname, (const char*)fn);
-	strncpy(Config.states_path, fname, MAX_PATH);
+	Config.states_path = fname;
 }
 
 unsigned const char* savestates_get_selected_filename() {
@@ -93,12 +92,6 @@ void savestates_save() {
 	int len, i, filename_f = 0;
 
 	savestates_job_success = TRUE;
-
-	if (*autoinc_save_slot) {
-		if (++slot == 11) {
-			slot = 0;
-		}
-	}
 
 	if (slot <= 10) {
 		filename = (char*)malloc(strlen(get_savespath()) +

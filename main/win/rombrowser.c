@@ -30,7 +30,7 @@
 #include "configdialog.h"
 #include "RomSettings.h"
 #include "translation.h"
-#include "Config.h"
+#include "Config.hpp"
 #include <string>
 
 static int TOTAL_ROMS_NUMBER = 0;
@@ -49,7 +49,6 @@ TEXT("Comments"),
 TEXT("File Name"),
 TEXT("MD5")
 };
-int RomBrowserFieldsWidth[ROM_COLUMN_FIELDS] = {250, 150, 70, 70, 200, 100, 100};
 
 int RealColumn[ROM_COLUMN_FIELDS] = {0, 2, 3, 4, -1, -1, -1};
 static DWORD Id;
@@ -603,17 +602,10 @@ LRESULT CALLBACK RomPropertiesProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 			WriteComboBoxValue(hwnd, IDC_COMBO_SOUND, TempRomSettings.SoundPluginName, sound_name);
 			WriteComboBoxValue(hwnd, IDC_COMBO_RSP, TempRomSettings.RspPluginName, rsp_name);
 
-			if (Config.use_global_plugins) {
-				EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), FALSE);
-			}
-
-			//Disables the button because of a bug in the emulator:
-			//Sound gets distorted if you push the button while ingame
-			//Hack: you should check this
-			if (emu_launched) EnableWindow(GetDlgItem(hwnd, IDC_MD5_CALCULATE), FALSE);
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), FALSE);
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), FALSE);
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), FALSE);
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), FALSE);
 
 			SetDlgItemText(hwnd, IDC_ROM_FULLPATH, pRomInfo->szFullFileName);
 			SetDlgItemText(hwnd, IDC_ROM_GOODNAME, pRomInfo->GoodName);
@@ -742,23 +734,16 @@ void RomListNotify(LPNMHDR pnmh) {
 
 void ResetRomBrowserColomuns(void) {
 	int Column, index;
-	LV_COLUMN lvColumn;
-	char szString[300];
+	LV_COLUMN lvColumn = { 0 };
+	char szString[300] = { 0 };
 	BOOL Deleted = TRUE;
-
-	for (Column = 0; Column < ROM_COLUMN_FIELDS; Column++) {
-		RomBrowserFieldsWidth[Column] = ReadCfgInt("Rom Browser", RomBrowserFields[Column], RomBrowserFieldsWidth[Column]);
-	}
-	memset(&lvColumn, 0, sizeof(lvColumn));
-
-
 
 	while (Deleted == TRUE) {
 		Deleted = ListView_DeleteColumn(hRomList, 0);
 	}
 
 	//Add Colomuns
-	lvColumn.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+	lvColumn.mask = LVCF_FMT | LVCF_TEXT | LVCF_SUBITEM | LVCF_WIDTH;
 	lvColumn.fmt = LVCFMT_LEFT;
 	lvColumn.pszText = szString;
 
@@ -766,8 +751,7 @@ void ResetRomBrowserColomuns(void) {
 	for (Column = 0; Column < ROM_COLUMN_FIELDS; Column++) {
 		if (isFieldInBrowser(Column)) {
 			lvColumn.iSubItem = Column;
-			lvColumn.cx = RomBrowserFieldsWidth[Column];
-			TranslateDefault(RomBrowserFields[Column], RomBrowserFields[Column], TempMessage);
+			lvColumn.cx = Config.rombrowser_column_widths[Column];
 			strncpy(szString, TempMessage, sizeof(szString));
 			ListView_InsertColumn(hRomList, index, &lvColumn);
 			index++;
@@ -803,7 +787,7 @@ int getSortColumn() {
 }
 
 void ListViewSort() {
-	SortAscending = strcmp(Config.rom_browser_sort_method, "ASC") ? FALSE : TRUE;
+	SortAscending = Config.rom_browser_sort_method == "ASC";
 	drawSortArrow(getSortColumn());
 	ListView_SortItems(hRomList, RomList_CompareItems, getSortColumn());
 }
@@ -840,29 +824,31 @@ void AddDirToList(char RomBrowserDir[MAX_PATH], BOOL sortflag) {
 	if (SearchSpec[strlen(RomBrowserDir) - 1] != '\\') { strcat(SearchSpec, "\\"); }
 	strcat(SearchSpec, "*.*");
 	hFind = FindFirstFile(SearchSpec, &fd);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do {
+			if (strcmp(fd.cFileName, ".") == 0) { continue; }
+			if (strcmp(fd.cFileName, "..") == 0) { continue; }
+			strcpy(FullPath, RomBrowserDir);
+			if (FullPath[strlen(RomBrowserDir) - 1] != '\\') { strcat(FullPath, "\\"); }
+			strcat(FullPath, fd.cFileName);
 
-	do {
-		if (strcmp(fd.cFileName, ".") == 0) { continue; }
-		if (strcmp(fd.cFileName, "..") == 0) { continue; }
-		strcpy(FullPath, RomBrowserDir);
-		if (FullPath[strlen(RomBrowserDir) - 1] != '\\') { strcat(FullPath, "\\"); }
-		strcat(FullPath, fd.cFileName);
+			if (Config.prevent_suspicious_rom_loading && !validRomExt(FullPath)) continue;
 
-		if (Config.prevent_suspicious_rom_loading && !validRomExt(FullPath)) continue;
-
-		if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-			if (Config.is_rom_browser_recursion_enabled) {
-				AddDirToList(FullPath, FALSE);
+			if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+				if (Config.is_rom_browser_recursion_enabled) {
+					AddDirToList(FullPath, FALSE);
+				}
+				continue;
 			}
-			continue;
-		}
-		ROM_SIZE = fill_header(FullPath);
-		if (ROM_SIZE > 10) {
-			AddRomToList(FullPath);
-			sprintf(TempMessage, "Adding ROM to list: %s", fd.cFileName);
-			SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)TempMessage);
-		}
-	} while (FindNextFile(hFind, &fd));
+			ROM_SIZE = fill_header(FullPath);
+			if (ROM_SIZE > 10) {
+				AddRomToList(FullPath);
+				sprintf(TempMessage, "Adding ROM to list: %s", fd.cFileName);
+				SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)TempMessage);
+			}
+		} while (FindNextFile(hFind, &fd) != 0);
+	}
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"");
 	if (sortflag) ListViewSort();
 	SaveRomBrowserCache();
@@ -996,8 +982,8 @@ void drawSortArrow(int SubItem) {
 
 void RomList_ColoumnSortList(LPNMLISTVIEW pnmv) {
 	if (getSortColumn() == pnmv->iSubItem) {
-		SortAscending = SortAscending ? FALSE : TRUE;
-		sprintf(Config.rom_browser_sort_method, SortAscending ? "ASC" : "DESC");
+		SortAscending ^= true;
+		Config.rom_browser_sort_method = SortAscending ? "ASC" : "DESC";
 	}
 	Config.rom_browser_sorted_column = pnmv->iSubItem;
 	ListViewSort();
@@ -1085,7 +1071,7 @@ void saveMD5toCache(char md5str[33]) {
 /////////////////////////// Recent Roms code ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-char* ParseName(char* rompath) {
+char* ParseName(const char* rompath) {
 	char drive[_MAX_DRIVE], dirn[_MAX_DIR];
 	static char fname[_MAX_FNAME], ext[_MAX_EXT];
 
@@ -1096,7 +1082,7 @@ char* ParseName(char* rompath) {
 void ShiftRecentRoms() {
 	int i;
 	for (i = MAX_RECENT_ROMS - 1; i > 0; i--) {
-		sprintf(Config.recent_rom_paths[i], "%s", Config.recent_rom_paths[i - 1]);
+		Config.recent_rom_paths[i] = Config.recent_rom_paths[i - 1];
 	}
 }
 
@@ -1113,7 +1099,7 @@ void ClearRecentList(HWND hwnd, BOOL clear_array) {
 		DeleteMenu(hMenu, ID_RECENTROMS_FIRST + i, MF_BYCOMMAND);
 	}
 	if (clear_array) {
-		memset(Config.recent_rom_paths, 0, MAX_RECENT_ROMS * sizeof(Config.recent_rom_paths[0]));
+		Config.recent_rom_paths.clear();
 	}
 
 }
@@ -1133,13 +1119,13 @@ void SetRecentList(HWND hwnd) {
 	menuinfo.fType = MFT_STRING;
 	menuinfo.fState = MFS_ENABLED;
 	for (i = 0; i < MAX_RECENT_ROMS; i++) {
-		if (strcmp(Config.recent_rom_paths[i], "") == 0) {
+		if (Config.recent_rom_paths[i] == "") {
 			if (i == 0 && !emptyRecentROMs) {
 				menuinfo.dwTypeData = (LPTSTR)"No Recent ROMs";
 				emptyRecentROMs = true;
 			} else break;
 		} else {
-			menuinfo.dwTypeData = ParseName(Config.recent_rom_paths[i]);
+			menuinfo.dwTypeData = ParseName(Config.recent_rom_paths[i].c_str());
 			emptyRecentROMs = false;
 		}
 
@@ -1171,22 +1157,21 @@ void EnableRecentROMsMenu(HMENU hMenu, BOOL flag) {
 
 void AddToRecentList(HWND hwnd, char* rompath) {
 
-	int i, j;
 	if (Config.is_recent_rom_paths_frozen) return;
 
-	for (i = 0; i < MAX_RECENT_ROMS - 1; i++) {
-
-		if (strcmp(Config.recent_rom_paths[i], rompath) == 0) { // Shifting Array up
-			for (j = i; j < MAX_RECENT_ROMS - 1; j++) {
-				sprintf(Config.recent_rom_paths[j], "%s", Config.recent_rom_paths[j + 1]);
-			}
-			Config.recent_rom_paths[MAX_RECENT_ROMS - 1][0] = '\0';
-		}
+	int i = 0;
+	//Either finds index of path in recent list, or stops at last one
+	//notice how it doesn't matter if last==path or not, we do same swapping later
+	for (; i < Config.recent_rom_paths.size() - 1; ++i) {
+		//if matches or empty (list is not full), break
+		if (Config.recent_rom_paths[i][0] == 0 || Config.recent_rom_paths[i] == rompath) break;
 	}
-
-	ShiftRecentRoms();
-
-	sprintf(Config.recent_rom_paths[0], "%s", rompath);
+	//now swap all elements backwards starting from `i`
+	for (int j = i; j > 0; --j) {
+		Config.recent_rom_paths[j] = Config.recent_rom_paths[j - 1];
+	}
+	//now write to top
+	Config.recent_rom_paths[0] = rompath;
 
 	ClearRecentList(hwnd, FALSE);
 	SetRecentList(hwnd);
@@ -1197,8 +1182,8 @@ void RunRecentRom(int id) {
 	int i;
 	static char rompath[MAX_PATH];
 	i = id - ID_RECENTROMS_FIRST;
-	if (i >= 0 && i < MAX_RECENT_ROMS) {
-		if (strcmp(Config.recent_rom_paths[i], "") == 0) return;
+	if (i >= 0 && i < MAX_RECENT_ROMS && i < Config.recent_rom_paths.size()) {
+		if (Config.recent_rom_paths[i] == "") return;
 		sprintf(rompath, "%s", Config.recent_rom_paths[i]);
 		StartRom(rompath);
 	}

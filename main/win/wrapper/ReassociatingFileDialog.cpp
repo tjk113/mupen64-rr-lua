@@ -135,7 +135,7 @@ bool ReassociatingFileDialog::ShowFolderDialog(char* path, int maxSize, HWND hWn
 }
 
 
-char* GetDefaultFileDialogPath(char* buf, char* path) { // buf must be MAX_PATH or greater
+char* GetDefaultFileDialogPath(char* buf, const char* path) { // buf must be MAX_PATH or greater
 	std::filesystem::path fullPath = path;
 	strncpy(buf, fullPath.parent_path().string().c_str(), MAX_PATH);
 	return buf;

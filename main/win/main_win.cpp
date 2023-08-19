@@ -51,7 +51,7 @@ extern "C" {
 #include "../savestates.h"
 #include "dumplist.h"
 #include "timers.h"
-#include "config.h"
+#include "config.hpp"
 #include "RomSettings.h"
 #include "commandline.h"
 #include "CrashHandlerDialog.h"
@@ -218,7 +218,7 @@ char TempMessage[200];
 int emu_launched; // emu_emulating
 int emu_paused;
 int recording;
-HWND hTool, mainHWND, hStatus, hRomList, hStatusProgress;
+HWND hTool, mainHWND, hStatus, hRomList;
 HINSTANCE app_hInstance;
 BOOL manualFPSLimit = TRUE;
 BOOL ignoreErrorEmulation = FALSE;
@@ -788,7 +788,7 @@ int check_plugins() {
 		}
 		if (MessageBox(mainHWND, (finalMessage + "\nDo you want to select plugins?").c_str(), "Error", MB_TASKMODAL | MB_ICONERROR | MB_YESNO) == IDYES) {
 			ChangeSettings(mainHWND);
-			ini_updateFile(Config.is_ini_compressed);
+			ini_updateFile();
 		}
 
 		return FALSE;
@@ -1080,30 +1080,10 @@ int load_rsp(HMODULE handle_RSP) {
 int load_plugins() {
 	HMODULE handle_gfx, handle_input, handle_sound, handle_rsp;
 
-	DEFAULT_ROM_SETTINGS TempRomSettings;
-
-	TempRomSettings = GetDefaultRomSettings((char*)ROM_HEADER->nom);
-	if (!Config.use_global_plugins) {
-		handle_gfx = get_handle(liste_plugins, TempRomSettings.GfxPluginName);
-		if (handle_gfx == NULL) { handle_gfx = get_handle(liste_plugins, gfx_name); } else { sprintf(gfx_name, "%s", TempRomSettings.GfxPluginName); }
-
-		handle_input = get_handle(liste_plugins, TempRomSettings.InputPluginName);
-		if (handle_input == NULL) handle_input = get_handle(liste_plugins, input_name);
-		else { sprintf(input_name, "%s", TempRomSettings.InputPluginName); }
-
-		handle_sound = get_handle(liste_plugins, TempRomSettings.SoundPluginName);
-		if (handle_sound == NULL) handle_sound = get_handle(liste_plugins, sound_name);
-		else { sprintf(sound_name, "%s", TempRomSettings.SoundPluginName); }
-
-		handle_rsp = get_handle(liste_plugins, TempRomSettings.RspPluginName);
-		if (handle_rsp == NULL) handle_rsp = get_handle(liste_plugins, rsp_name);
-		else { sprintf(rsp_name, "%s", TempRomSettings.RspPluginName); }
-	} else {
-		handle_gfx = get_handle(liste_plugins, gfx_name);
-		handle_input = get_handle(liste_plugins, input_name);
-		handle_sound = get_handle(liste_plugins, sound_name);
-		handle_rsp = get_handle(liste_plugins, rsp_name);
-	}
+	handle_gfx = get_handle(liste_plugins, gfx_name);
+	handle_input = get_handle(liste_plugins, input_name);
+	handle_sound = get_handle(liste_plugins, sound_name);
+	handle_rsp = get_handle(liste_plugins, rsp_name);
 	ThreadFuncState = TFS_LOADGFX;
 	printf("Loading plugins... \n", gfx_name);
 	load_gfx(handle_gfx);
@@ -1368,14 +1348,6 @@ void resetEmu() {
 
 }
 
-void setDefaultPlugins() {
-	ReadCfgString("Plugins", "Graphics", "", gfx_name);
-	ReadCfgString("Plugins", "Sound", "", sound_name);
-	ReadCfgString("Plugins", "Input", "", input_name);
-	ReadCfgString("Plugins", "RSP", "", rsp_name);
-	rewind_plugin();
-}
-
 void ShowMessage(const char* lpszMessage) {
 	MessageBox(NULL, lpszMessage, "Info", MB_OK);
 }
@@ -1623,9 +1595,9 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 					break;
 				case IDC_MOVIE_BROWSE:
 				{
-				 // The default directory we open the file dialog window in is
-				 // the parent directory of the last movie that the user ran
-					GetDefaultFileDialogPath(path_buffer, Config.recent_movie_paths[0]);
+				    // The default directory we open the file dialog window in is
+				    // the parent directory of the last movie that the user ran
+					GetDefaultFileDialogPath(path_buffer, Config.recent_movie_paths[0].c_str());
 
 					if (fdBrowseMovie.ShowFileDialog(path_buffer, L"*.m64;*.rec", TRUE, FALSE, hwnd))
 						SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
@@ -1781,7 +1753,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 			SendMessage(descriptionDialog, EM_SETLIMITTEXT, MOVIE_DESCRIPTION_DATA_SIZE, 0);
 			SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
 
-			SetDlgItemText(hwnd, IDC_INI_AUTHOR, Config.last_movie_author);
+			SetDlgItemText(hwnd, IDC_INI_AUTHOR, Config.last_movie_author.c_str());
 			SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, "");
 
 			CheckRadioButton(hwnd, IDC_FROMSNAPSHOT_RADIO, IDC_FROMSTART_RADIO, checked_movie_type);
@@ -1858,7 +1830,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 					else
 						GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
 
-					strncpy_s(Config.last_movie_author, authorUTF8, strlen(authorUTF8));
+					Config.last_movie_author = std::string(authorUTF8);
 
 					WCHAR descriptionWC[MOVIE_DESCRIPTION_DATA_SIZE];
 					char descriptionUTF8[MOVIE_DESCRIPTION_DATA_SIZE * 4];
@@ -1882,7 +1854,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 						// The default directory we open the file dialog window in is the
 						// parent directory of the last savestate that the user saved or loaded
 						std::filesystem::path path = Config.states_path;
-						GetDefaultFileDialogPath(tempbuf, Config.states_path);
+						GetDefaultFileDialogPath(tempbuf, Config.states_path.c_str());
 
 						if (fdBrowseMovie2.ShowFileDialog(tempbuf, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
 							savestates_select_filename(tempbuf);
@@ -1930,7 +1902,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 				{
 					// The default directory we open the file dialog window in is
 					// the parent directory of the last movie that the user ran
-					GetDefaultFileDialogPath(tempbuf, Config.recent_movie_paths[0]); // if the first movie ends up being deleted this is fucked
+					GetDefaultFileDialogPath(tempbuf, Config.recent_movie_paths[0].c_str()); // if the first movie ends up being deleted this is fucked
 
 					if (fdBrowseMovie2.ShowFileDialog(tempbuf, L"*.m64;*.rec", TRUE, FALSE, hwnd)) {
 						if (strlen(tempbuf) > 0 && (strlen(tempbuf) < 4 || _stricmp(tempbuf + strlen(tempbuf) - 4, ".m64") != 0))
@@ -1939,16 +1911,6 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 					}
 				}
 				break;
-				//case IDC_EXISTINGSAVESTATE_BROWSE:
-				//{
-				//    char path_buffer[MAX_PATH];
-				//    if (defExt)
-				//    if (fdBrowseMovie2.ShowFileDialog(path_buffer, L"*.st;*.savestate", TRUE, FALSE, hwnd)) {
-				//        if (strlen(path_buffer) > 0 && (strlen(path_buffer) < 4 || _stricmp(path_buffer + strlen(path_buffer) - 4, ".m64") != 0))
-				//            strcat(path_buffer, ".m64");
-				//        SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path_buffer);
-				//    }
-				//}
 
 				case IDC_FROMEEPROM_RADIO:
 					EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
@@ -2020,51 +1982,24 @@ void SetStatusMode(int mode) {
 	int parts;
 
 
-	if (hStatusProgress) DestroyWindow(hStatusProgress);
-	//if (hStatusIcon)     DeleteObject( (HGDIOBJ) hStatusIcon );
 	if (hStaticHandle)   DestroyWindow(hStaticHandle);
 
 	//Setting status widths
 	if (Config.is_statusbar_enabled) {
 		switch (mode) {
 			case 0:                 //Rombrowser Statusbar
-	/*             //Adds sizing grid
-				 statusstyle = GetWindowLong( hStatus, GWL_STYLE );
-				 statusstyle = statusstyle | SBARS_SIZEGRIP;
-				 SetWindowLong( hStatus, GWL_STYLE, statusstyle );
-				 SetWindowPos( hStatus, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED );  //Set on top
-	*/
 				SendMessage(hStatus, SB_SETPARTS, sizeof(browserwidths) / sizeof(int), (LPARAM)browserwidths);
 				SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)statusmsg);
 				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
-				//ShowTotalRoms();
 				break;
 
 			case 1:                 //Loading Statusbar
-	/*             //Removes the sizing grid
-				 statusstyle = GetWindowLong( hStatus, GWL_STYLE );
-				 statusstyle = statusstyle & ~SBARS_SIZEGRIP;
-				 SetWindowLong( hStatus, GWL_STYLE, statusstyle );
-				 SetWindowPos( hStatus, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED );  //Set on top
-	*/
 				SendMessage(hStatus, SB_SETPARTS, sizeof(loadingwidths) / sizeof(int), (LPARAM)loadingwidths);
 				SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)statusmsg);
 				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
 				SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)"");
 
 				GetClientRect(hStatus, &rcClient);
-
-				hStatusProgress = CreateWindowEx(0, PROGRESS_CLASS,
-					(LPSTR)NULL, WS_CHILD | WS_VISIBLE | PBS_SMOOTH,
-					204, 4, 89, rcClient.bottom - 6,
-					hStatus, (HMENU)0, app_hInstance, NULL);
-					/*hStatusProgress = CreateWindowEx(0, PROGRESS_CLASS,
-							  (LPSTR) NULL, WS_CHILD | WS_VISIBLE | PBS_SMOOTH,
-							  201, 2, 99, rcClient.bottom-2,
-							  hStatus, (HMENU) 0, app_hInstance, NULL);
-					*/
-				SendMessage(hStatusProgress, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
-				SendMessage(hStatusProgress, PBM_SETBARCOLOR, 0, RGB(90, 0, 100));
 				break;
 
 			case 2:                    //Emulating Statusbar
@@ -2365,14 +2300,14 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam) {
 
 void exit_emu(int postquit) {
 
+	save_config();
+
 	if (postquit) {
 		if (!cmdlineMode || cmdlineSave) {
-			ini_updateFile(Config.is_ini_compressed);
+			ini_updateFile();
 			if (!cmdlineNoGui)
 				SaveRomBrowserCache();
 		}
-		//if (shouldSave)
-		SaveConfig();
 		ini_closeFile();
 	} else {
 		CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
@@ -2383,15 +2318,15 @@ void exit_emu(int postquit) {
 		freeRomList();
 		freeLanguages();
 		Gdiplus::GdiplusShutdown(gdiPlusToken);
-		//printf("free gdiplus\n");
 		PostQuitMessage(0);
 	}
 }
 
 void exit_emu2() {
+	save_config();
+
 	if ((!cmdlineMode) || (cmdlineSave)) {
-		ini_updateFile(Config.is_ini_compressed);
-		SaveConfig();
+		ini_updateFile();
 		if (!cmdlineNoGui) {
 			SaveRomBrowserCache();
 		}
@@ -2538,7 +2473,7 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 		case WM_CREATE:
 			// searching the plugins...........
 			search_plugins();
-			setDefaultPlugins();
+			rewind_plugin();
 			////////////////////////////
 			return TRUE;
 		case WM_CLOSE:
@@ -2616,22 +2551,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		{
 			BOOL hit = FALSE;
 			if (manualFPSLimit) {
-				if ((int)wParam == Config.hotkeys[0].key) // fast-forward on
+				if ((int)wParam == Config.fast_forward_hotkey.key) // fast-forward on
 				{
-					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.hotkeys[0].shift
-						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.hotkeys[0].ctrl
-						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkeys[0].alt) {
+					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.fast_forward_hotkey.shift
+						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.fast_forward_hotkey.ctrl
+						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.fast_forward_hotkey.alt) {
 						manualFPSLimit = 0;
 						hit = TRUE;
 					}
 				}
 			}
-			for (i = 1; i < NUM_HOTKEYS; i++) {
-				if ((int)wParam == Config.hotkeys[i].key) {
-					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.hotkeys[i].shift
-						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.hotkeys[i].ctrl
-						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkeys[i].alt) {
-						SendMessage(hwnd, WM_COMMAND, Config.hotkeys[i].command, 0);
+			for (i = 1; i < hotkeys.size(); i++) {
+				if ((int)wParam == hotkeys[i]->key) {
+					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == hotkeys[i]->shift
+						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == hotkeys[i]->ctrl
+						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkeys[i]->alt) {
+						SendMessage(hwnd, WM_COMMAND, hotkeys[i]->command, 0);
 						hit = TRUE;
 					}
 				}
@@ -2643,7 +2578,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		}	break;
 		case WM_SYSKEYUP:
 		case WM_KEYUP:
-			if ((int)wParam == Config.hotkeys[0].key) // fast-forward off
+			if ((int)wParam == Config.fast_forward_hotkey.key) // fast-forward off
 			{
 				manualFPSLimit = 1;
 				ffup = true; //fuck it, timers.c is too weird
@@ -2666,23 +2601,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			return 0;
 		}
 		case WM_MOVE:
+		{
 			if (emu_launched && !FullScreenMode) {
-				moveScreen((int) wParam, lParam);
+				moveScreen((int)wParam, lParam);
 			}
+			RECT rect = {0};
+			GetWindowRect(mainHWND, &rect);
+			Config.window_x = rect.left;
+			Config.window_y = rect.top;
+			Config.window_width = rect.right - rect.left;
+			Config.window_height = rect.bottom - rect.top;
 			break;
+		}
 		case WM_SIZE:
+		{
 			if (!FullScreenMode) {
 				SendMessage(hTool, TB_AUTOSIZE, 0, 0);
 				SendMessage(hStatus, WM_SIZE, 0, 0);
 				ResizeRomListControl();
 			}
 			break;
+		}
 		case WM_USER + 17:  SetFocus(mainHWND); break;
 		case WM_CREATE:
 				// searching the plugins...........
 			GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 			search_plugins();
-			setDefaultPlugins();
+			rewind_plugin();
 			CreateToolBarWindow(hwnd);
 			CreateStatusBarWindow(hwnd);
 			SetupLanguages(hwnd);
@@ -2697,6 +2642,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			////////////////////////////
 			return TRUE;
 		case WM_CLOSE:
+		{
 			if (warn_recording())break;
 			if (emu_launched) {
 				shut_window = 1;
@@ -2707,7 +2653,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				//DestroyWindow(hwnd);
 			}
 			break;
-
+		}
 		case WM_PAINT: //todo, work with updatescreen to use wmpaint
 		{
 
@@ -2797,9 +2743,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				} break;
 				case ID_FORCESAVE:
 					shouldSave = TRUE;
-					ini_updateFile(Config.is_ini_compressed);
+					ini_updateFile();
 					SaveRomBrowserCache();
-					SaveConfig();
+					save_config();
 					ini_closeFile();
 					break;
 				case ID_TRACELOG:
@@ -2916,7 +2862,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				case ID_RESTART_MOVIE:
 					if (VCR_isPlaying()) {
 						VCR_setReadOnly(TRUE);
-						bool err = VCR_startPlayback(Config.recent_movie_paths[0], 0, 0);
+						bool err = VCR_startPlayback(Config.recent_movie_paths[0].c_str(), 0, 0);
 						if (err == VCR_PLAYBACK_SUCCESS)
 							SetStatusPlaybackStarted();
 						else
@@ -2928,7 +2874,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					if (rom) {
 						// Overwrite prevention? Path sanity check (Leave to internal handling)?
 						VCR_setReadOnly(TRUE);
-						bool err = VCR_startPlayback(Config.recent_movie_paths[0], 0, 0);
+						bool err = VCR_startPlayback(Config.recent_movie_paths[0].c_str(), 0, 0);
 						if (err == VCR_PLAYBACK_SUCCESS)
 							SetStatusPlaybackStarted();
 						else
@@ -2981,7 +2927,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					}
 					shouldSave = TRUE;
 					ChangeSettings(hwnd);
-					ini_updateFile(Config.is_ini_compressed);
+					ini_updateFile();
 					if (emu_launched && emu_paused && !wasPaused) {
 						resumeEmu(FALSE);
 					}
@@ -3069,7 +3015,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					MenuPaused = FALSE;
 					// The default directory we open the file dialog window in is
 					// the parent directory of the last rom that the user ran
-					GetDefaultFileDialogPath(path_buffer, Config.recent_rom_paths[0]);
+					GetDefaultFileDialogPath(path_buffer, Config.recent_rom_paths[0].c_str());
 
 					if (fdLoadRom.ShowFileDialog(path_buffer, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap", TRUE, FALSE, hwnd)) {
 						char temp_buffer[_MAX_PATH];
@@ -3084,7 +3030,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 								SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)temp_buffer);
 								AddDirToList(temp_buffer, TRUE);
 								SaveRomBrowserDirs();
-								SaveConfig();
+								save_config(); // TODO: investigate why this is needed
 							}
 						}
 						StartRom(path_buffer);
@@ -3134,7 +3080,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
 
-					GetDefaultFileDialogPath(path_buffer, Config.states_path);
+					GetDefaultFileDialogPath(path_buffer, Config.states_path.c_str());
 
 					if (fdSaveStateAs.ShowFileDialog(path_buffer, L"*.st;*.savestate", FALSE, FALSE, hwnd)) {
 
@@ -3168,7 +3114,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				{
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
-					GetDefaultFileDialogPath(path_buffer, Config.states_path);
+					GetDefaultFileDialogPath(path_buffer, Config.states_path.c_str());
 
 					if (fdSaveLoadAs.ShowFileDialog(path_buffer, L"*.st;*.savestate;*.st0;*.st1;*.st2;*.st3;*.st4;*.st5;*.st6;*.st7;*.st8;*.st9,*.st10", TRUE, FALSE, hwnd)) {
 						savestates_select_filename(path_buffer);
@@ -3250,7 +3196,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 
 						// The default directory we open the file dialog window in is
 						// the parent directory of the last avi that the user captured
-						GetDefaultFileDialogPath(path_buffer, Config.avi_capture_path);
+						GetDefaultFileDialogPath(path_buffer, Config.avi_capture_path.c_str());
 
 						if (fdStartCapture.ShowFileDialog(path_buffer, L"*.avi", FALSE, FALSE, hwnd)) {
 
@@ -3323,7 +3269,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						sprintf(path_buffer, "%sScreenShots\\", AppPath);
 						CaptureScreen(path_buffer);
 					} else {
-						CaptureScreen(Config.screenshots_directory);
+						sprintf(path_buffer, "%s", Config.screenshots_directory);
+						CaptureScreen(path_buffer);
 					}
 					break;
 				case ID_RECENTROMS_RESET:
@@ -3563,9 +3510,8 @@ int WINAPI WinMain(
 	}
 	emu_launched = 0;
 	emu_paused = 1;
-	/************    Loading Config  *******/
-	LoadConfig();
-  /************************************************************************/
+
+	load_config();
 
 	WNDCLASSEX wc;
 	HWND hwnd;
@@ -3686,22 +3632,21 @@ int WINAPI WinMain(
 			}
 
 			// modifier-only checks, cannot be obtained through windows messaging...
-			int i;
-			for (i = 0; i < NUM_HOTKEYS; i++) {
-				if (!Config.hotkeys[i].key && (Config.hotkeys[i].shift || Config.hotkeys[i].ctrl || Config.hotkeys[i].alt)) {
+			for (int i = 0; i < hotkeys.size(); i++) {
+				if (!hotkeys[i]->key && (hotkeys[i]->shift || hotkeys[i]->ctrl || hotkeys[i]->alt)) {
 					if (i != 0) {
-						if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.hotkeys[i].shift
-							&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.hotkeys[i].ctrl
-							&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkeys[i].alt) {
-							SendMessage(hwnd, WM_COMMAND, Config.hotkeys[i].command, 0);
+						if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == hotkeys[i]->shift
+							&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == hotkeys[i]->ctrl
+							&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkeys[i]->alt) {
+							SendMessage(hwnd, WM_COMMAND, hotkeys[i]->command, 0);
 						}
 					} else // fast-forward
 					{
 						extern int frame_advancing;
 						if (!frame_advancing) { // dont allow fastforward+frameadvance
-							if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.hotkeys[i].shift
-								&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == Config.hotkeys[i].ctrl
-								&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.hotkeys[i].alt) {
+							if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == hotkeys[i]->shift
+								&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) == hotkeys[i]->ctrl
+								&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkeys[i]->alt) {
 								manualFPSLimit = 0;
 							} else {
 								manualFPSLimit = 1;

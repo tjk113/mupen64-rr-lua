@@ -45,7 +45,7 @@
 #include "md5.h"
 #include "mupenIniApi.h"
 #include "guifuncs.h"
-#include "../main/win/Config.h"
+#include "../main/win/Config.hpp"
 #include <win/rombrowser.h>
 #include <win/main_win.h>
 

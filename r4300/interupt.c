@@ -49,7 +49,7 @@
 #include "../main/guifuncs.h"
 #include "../main/savestates.h"
 #include "../main/vcr.h"
-#include "../main/win/Config.h"
+#include "../main/win/Config.hpp"
 #include "../main/win/main_win.h"
 
 unsigned long next_vi;

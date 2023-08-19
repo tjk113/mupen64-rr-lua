@@ -42,6 +42,9 @@
     <Filter Include="Source Files\main\helpers">
       <UniqueIdentifier>{054e8a3a-bccc-4d38-8568-59d733f12758}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\main\lib">
+      <UniqueIdentifier>{c9505817-d9a7-4985-aea2-7963f403a3c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\main\crypt.h">
@@ -92,22 +95,13 @@
     <ClInclude Include="..\..\main\win\commandline.h">
       <Filter>Source Files\main\win</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\main\win\Config.h">
+    <ClInclude Include="..\..\main\win\Config.hpp">
       <Filter>Source Files\main\win</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\win\configdialog.h">
       <Filter>Source Files\main\win</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\main\win\DebugInfo.hpp">
-      <Filter>Source Files\main\win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\main\win\DebugView.h">
-      <Filter>Source Files\main\win</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\main\win\dumplist.h">
-      <Filter>Source Files\main\win</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\main\win\GUI_LogWindow.h">
       <Filter>Source Files\main\win</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\win\inifunctions.h">
@@ -221,6 +215,9 @@
     <ClInclude Include="..\..\main\win\CrashHandlerDialog.h" />
     <ClInclude Include="..\..\main\win\CrashHelper.h" />
     <ClInclude Include="..\..\main\helpers\string_helpers.h" />
+    <ClInclude Include="..\..\..\..\..\Desktop\ini.h">
+      <Filter>Source Files\main\lib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main\adler32.c">
@@ -265,16 +262,13 @@
     <ClCompile Include="..\..\main\win\commandline.c">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\Config.c">
+    <ClCompile Include="..\..\main\win\Config.cpp">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\win\configdialog.c">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\win\dumplist.c">
-      <Filter>Source Files\main\win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\win\GUI_LogWindow.c">
       <Filter>Source Files\main\win</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\win\guifuncs.c">

@@ -189,6 +189,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\Desktop\ini.h" />
     <ClInclude Include="..\..\lua\luaDefine.h" />
     <ClInclude Include="..\..\lua\Recent.h" />
     <ClInclude Include="..\..\main\crypt.h">
@@ -222,7 +223,7 @@
     <ClInclude Include="..\..\main\win\CrashHelper.h" />
     <ClInclude Include="..\..\main\zip.h" />
     <ClInclude Include="..\..\main\win\commandline.h" />
-    <ClInclude Include="..\..\main\win\Config.h" />
+    <ClInclude Include="..\..\main\win\Config.hpp" />
     <ClInclude Include="..\..\main\win\configdialog.h" />
     <ClInclude Include="..\..\main\win\dumplist.h" />
     <ClInclude Include="..\..\main\win\inifunctions.h" />
@@ -340,7 +341,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\Config.c">
+    <ClCompile Include="..\..\main\win\Config.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">CompileAsCpp</CompileAs>

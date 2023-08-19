@@ -36,7 +36,7 @@
 #else
 #include <windows.h>
 #include "../main/win/main_win.h"
-#include "../main/win/Config.h"
+#include "../main/win/Config.hpp"
 #endif
 
 #include "memory.h"

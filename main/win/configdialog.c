@@ -31,7 +31,7 @@
 #include "../md5.h"
 #include "timers.h"
 #include "translation.h"
-#include "Config.h"
+#include "Config.hpp"
 #include "../rom.h"
 #include "inifunctions.h"
   // its a hpp header
@@ -86,7 +86,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 	{
 		WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.is_movie_backup_enabled);
 		WriteCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
-		WriteCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH, Config.is_statusbar_frequent_refresh_enabled);
 
 		static const char* clockSpeedMultiplierNames[] = { "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6" };
 
@@ -158,8 +157,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 		if (l_nmhdr->code == PSN_APPLY) {
 			Config.is_movie_backup_enabled = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
 			Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
-			Config.is_statusbar_frequent_refresh_enabled = ReadCheckBoxValue(hwnd, IDC_FREQUENTVCRREFRESH);
-			Config.movie_backup_level = SendMessage(hwndTrackMovieBackup, TBM_GETPOS, 0, 0);
 			EnableToolbar();
 			EnableStatusbar();
 			FastRefreshBrowser();
@@ -285,44 +282,9 @@ void ChangeSettings(HWND hwndOwner) {
 	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback = NULL;
 
-	if (PropertySheet(&psh)) SaveConfig();
+	if (PropertySheet(&psh)) save_config();
 	return;
 }
-
-////Taken from windows docs
-//HWND CreateToolTip(int toolID, HWND hDlg, PTSTR pszText)
-//{
-//    if (!toolID || !hDlg || !pszText)
-//    {
-//        return FALSE;
-//    }
-//    // Get the window of the tool.
-//    HWND hwndTool = GetDlgItem(hDlg, toolID);
-//
-//    // Create the tooltip. g_hInst is the global instance handle.
-//    HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
-//        WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
-//        CW_USEDEFAULT, CW_USEDEFAULT,
-//        CW_USEDEFAULT, CW_USEDEFAULT,
-//        hDlg, NULL,
-//        GetModuleHandle(NULL), NULL);
-//
-//    if (!hwndTool || !hwndTip)
-//    {
-//        return (HWND)NULL;
-//    }
-//
-//    // Associate the tooltip with the tool.
-//    TOOLINFO toolInfo = { 0 };
-//    toolInfo.cbSize = sizeof(toolInfo);
-//    toolInfo.hwnd = hDlg;
-//    toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-//    toolInfo.uId = (UINT_PTR)hwndTool;
-//    toolInfo.lpszText = pszText;
-//    SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
-//
-//    return hwndTip;
-//}
 
 
 BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
@@ -395,9 +357,9 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 			EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SCREENSHOTS_DIR), FALSE);
 		}
 
-		SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Config.plugins_directory);
-		SetDlgItemText(hwnd, IDC_SAVES_DIR, Config.saves_directory);
-		SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory);
+		SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Config.plugins_directory.c_str());
+		SetDlgItemText(hwnd, IDC_SAVES_DIR, Config.saves_directory.c_str());
+		SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory.c_str());
 
 		break;
 	case WM_NOTIFY:
@@ -405,24 +367,18 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 			SaveRomBrowserDirs();
 			int selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
 			GetDlgItemText(hwnd, IDC_PLUGINS_DIR, TempMessage, 200);
-			if (strcasecmp(TempMessage, Config.plugins_directory) != 0 || Config.is_default_plugins_directory_used != selected)
-				//if plugin dir changed,search for plugins in new dir
-			{
-				sprintf(Config.plugins_directory, "%s", TempMessage);
-				Config.is_default_plugins_directory_used = selected;
-				search_plugins();
-			}
-			else {
-				sprintf(Config.plugins_directory, "%s", TempMessage);
-				Config.is_default_plugins_directory_used = selected;
-			}
+			Config.plugins_directory = std::string(TempMessage);
+			Config.is_default_plugins_directory_used = selected;
+			search_plugins();
 
 			selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SAVES_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
-			GetDlgItemText(hwnd, IDC_SAVES_DIR, Config.saves_directory, MAX_PATH);
+			GetDlgItemText(hwnd, IDC_SAVES_DIR, TempMessage, MAX_PATH);
+			Config.saves_directory = std::string(TempMessage);
 			Config.is_default_saves_directory_used = selected;
 
 			selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
-			GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory, MAX_PATH);
+			GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, TempMessage, MAX_PATH);
+			Config.screenshots_directory = std::string(TempMessage);
 			Config.is_default_screenshots_directory_used = selected;
 		}
 		break;
@@ -705,18 +661,18 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		break;
 	case WM_NOTIFY:
 		if (l_nmhdr->code == PSN_APPLY) {
-
+				
 			ReadComboBoxValue(hwnd, IDC_COMBO_GFX, gfx_name);
-			WriteCfgString("Plugins", "Graphics", gfx_name);
-
-			ReadComboBoxValue(hwnd, IDC_COMBO_INPUT, input_name);
-			WriteCfgString("Plugins", "Input", input_name);
+			Config.selected_video_plugin_name = std::string(gfx_name);
 
 			ReadComboBoxValue(hwnd, IDC_COMBO_SOUND, sound_name);
-			WriteCfgString("Plugins", "Sound", sound_name);
+			Config.selected_audio_plugin_name = std::string(sound_name);
+
+			ReadComboBoxValue(hwnd, IDC_COMBO_INPUT, input_name);
+			Config.selected_input_plugin_name = std::string(input_name);
 
 			ReadComboBoxValue(hwnd, IDC_COMBO_RSP, rsp_name);
-			WriteCfgString("Plugins", "RSP", rsp_name);
+			Config.selected_rsp_plugin_name = std::string(rsp_name);
 		}
 		break;
 	default:
@@ -725,26 +681,6 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 	return TRUE;
 }
 
-
-void SwitchModifier(HWND hwnd) {
-	if (ReadCheckBoxValue(hwnd, IDC_SPEEDMODIFIER)) {
-		EnableWindow(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TRUE);
-	}
-	else {
-		EnableWindow(GetDlgItem(hwnd, IDC_FPSTRACKBAR), FALSE);
-	}
-}
-
-void SwitchLimitFPS(HWND hwnd) {
-	if (ReadCheckBoxValue(hwnd, IDC_LIMITFPS)) {
-		EnableWindow(GetDlgItem(hwnd, IDC_SPEEDMODIFIER), TRUE);
-		SwitchModifier(hwnd);
-	}
-	else {
-		EnableWindow(GetDlgItem(hwnd, IDC_SPEEDMODIFIER), FALSE);
-		EnableWindow(GetDlgItem(hwnd, IDC_FPSTRACKBAR), FALSE);
-	}
-}
 
 void FillModifierValue(HWND hwnd, int value) {
 	char temp[10];
@@ -763,7 +699,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		WriteCheckBoxValue(hwnd, IDC_MANAGEBADROM, Config.prevent_suspicious_rom_loading);
 		WriteCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
 		WriteCheckBoxValue(hwnd, IDC_LIMITFPS, Config.is_fps_limited);
-		WriteCheckBoxValue(hwnd, IDC_SPEEDMODIFIER, Config.is_fps_modifier_enabled);
 		WriteCheckBoxValue(hwnd, IDC_0INDEX, Config.is_frame_count_visual_zero_index);
 		SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_SETPOS, TRUE, Config.fps_modifier);
 		SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
@@ -790,7 +725,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), FALSE);
 		}
 
-		SwitchLimitFPS(hwnd);
 		FillModifierValue(hwnd, Config.fps_modifier);
 		TranslateGeneralDialog(hwnd);
 		return TRUE;
@@ -815,12 +749,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				Config.core_type = 2;
 			}
 			break;
-		case IDC_LIMITFPS:
-			SwitchLimitFPS(hwnd);
-			break;
-		case  IDC_SPEEDMODIFIER:
-			SwitchModifier(hwnd);
-			break;
 		default:
 			break;
 		}
@@ -837,7 +765,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			Config.is_savestate_warning_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS);
 			Config.is_fps_limited = ReadCheckBoxValue(hwnd, IDC_LIMITFPS);
 			Config.fps_modifier = SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0);
-			Config.is_fps_modifier_enabled = ReadCheckBoxValue(hwnd, IDC_SPEEDMODIFIER);
 			Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
 			Config.is_frame_count_visual_zero_index = ReadCheckBoxValue(hwnd, IDC_0INDEX);
 			Config.is_state_independent_state_loading_allowed = ReadCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
@@ -881,10 +808,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 
 	case WM_INITDIALOG:
 		WriteCheckBoxValue(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
-		WriteCheckBoxValue(hwnd, IDC_PLUGIN_OVERWRITE, Config.use_global_plugins);
 		WriteCheckBoxValue(hwnd, IDC_GUI_TOOLBAR, Config.is_toolbar_enabled);
 		WriteCheckBoxValue(hwnd, IDC_GUI_STATUSBAR, Config.is_statusbar_enabled);
-		WriteCheckBoxValue(hwnd, IDC_AUTOINCSAVESLOT, Config.is_slot_autoincrement_enabled);
 		WriteCheckBoxValue(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
 		WriteCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
 		WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, Config.is_lua_double_buffered);
@@ -911,10 +836,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 	case WM_NOTIFY:
 		if (l_nmhdr->code == PSN_APPLY) {
 			Config.is_unfocused_pause_enabled = ReadCheckBoxValue(hwnd, IDC_PAUSENOTACTIVE);
-			Config.use_global_plugins = ReadCheckBoxValue(hwnd, IDC_PLUGIN_OVERWRITE);
 			Config.is_toolbar_enabled = ReadCheckBoxValue(hwnd, IDC_GUI_TOOLBAR);
 			Config.is_statusbar_enabled = ReadCheckBoxValue(hwnd, IDC_GUI_STATUSBAR);
-			Config.is_slot_autoincrement_enabled = ReadCheckBoxValue(hwnd, IDC_AUTOINCSAVESLOT);
 			Config.is_round_towards_zero_enabled = ReadCheckBoxValue(hwnd, IDC_ROUNDTOZERO);
 			Config.is_float_exception_propagation_enabled = ReadCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES);
 
@@ -930,7 +853,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 			Config.is_filename_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_FILENAME);
 			Config.is_md5_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_MD5);
 
-			Config.is_reset_recording_disabled = !ReadCheckBoxValue(hwnd, IDC_NORESET);
+			Config.is_reset_recording_disabled = ReadCheckBoxValue(hwnd, IDC_NORESET) == 0;
 			Config.is_internal_capture_forced = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
 
 			EnableToolbar();
@@ -959,78 +882,14 @@ static void KillMessages() {
 	}
 }
 
-static void GetUserHotkey(HOTKEY* hotkeys) {
-	int i, j;
-	int lc = 0, ls = 0, la = 0;
-	for (i = 0; i < 500; i++) {
-		SleepEx(10, TRUE);
-		for (j = 8; j < 254; j++) {
-			if (j == VK_LCONTROL || j == VK_RCONTROL || j == VK_LMENU || j == VK_RMENU || j == VK_LSHIFT || j == VK_RSHIFT)
-				continue;
 
-			if (GetAsyncKeyState(j) & 0x8000) {
-				// HACK to avoid exiting all the way out of the dialog on pressing escape to clear a hotkeys
-				// or continually re-activating the button on trying to assign space as a hotkeys
-				if (j == VK_ESCAPE || j == VK_SPACE)
-					KillMessages();
-
-				if (j == VK_CONTROL) {
-					lc = 1;
-					continue;
-				}
-				else if (j == VK_SHIFT) {
-					ls = 1;
-					continue;
-				}
-				else if (j == VK_MENU) {
-					la = 1;
-					continue;
-				}
-				else if (j != VK_ESCAPE) {
-					hotkeys->key = j;
-					hotkeys->shift = GetAsyncKeyState(VK_SHIFT) ? 1 : 0;
-					hotkeys->ctrl = GetAsyncKeyState(VK_CONTROL) ? 1 : 0;
-					hotkeys->alt = GetAsyncKeyState(VK_MENU) ? 1 : 0;
-					return;
-				}
-				memset(hotkeys, 0, sizeof(HOTKEY)); // clear key on escape
-				return;
-			}
-			else {
-				if (j == VK_CONTROL && lc) {
-					hotkeys->key = 0;
-					hotkeys->shift = 0;
-					hotkeys->ctrl = 1;
-					hotkeys->alt = 0;
-					return;
-				}
-				else if (j == VK_SHIFT && ls) {
-					hotkeys->key = 0;
-					hotkeys->shift = 1;
-					hotkeys->ctrl = 0;
-					hotkeys->alt = 0;
-					return;
-				}
-				else if (j == VK_MENU && la) {
-					hotkeys->key = 0;
-					hotkeys->shift = 0;
-					hotkeys->ctrl = 0;
-					hotkeys->alt = 1;
-					return;
-				}
-			}
-		}
-	}
-}
-
-int GetIndexInHotkeyArrayFromHotkeyListBoxSelection(HWND hwnd) {
-	char nameAtSelection[MAX_PATH];
-	SendMessage(hwnd, LB_GETTEXT, SendMessage(hwnd, LB_GETCURSEL, 0, 0), (LPARAM)nameAtSelection);
-
+int get_hotkey_array_index_from_selected_identifier(std::string selected_identifier) {
 	int indexInHotkeyArray = -1;
-	for (size_t i = 0; (int)i < namedHotkeyCount; i++) {
-		if (!strcmp(namedHotkeys[i].name, nameAtSelection)) {
-			indexInHotkeyArray = (int)i;
+	for (size_t i = 0; i < hotkeys.size(); i++)
+	{
+		if (selected_identifier == hotkeys[i]->identifier)
+		{
+			indexInHotkeyArray = i;
 			break;
 		}
 	}
@@ -1042,39 +901,43 @@ void UpdateSelectedHotkeyTextBox(HWND dialogHwnd) {
 	HWND selectedHotkeyEditHwnd = GetDlgItem(dialogHwnd, IDC_SELECTED_HOTKEY_TEXT);
 
 
-	int indexInHotkeyArray = GetIndexInHotkeyArrayFromHotkeyListBoxSelection(listHwnd);
+	char selected_identifier[MAX_PATH];
+	SendMessage(listHwnd, LB_GETTEXT, SendMessage(listHwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
 
-	if (indexInHotkeyArray >= 0 && indexInHotkeyArray < namedHotkeyCount) {
+	int indexInHotkeyArray = get_hotkey_array_index_from_selected_identifier(std::string(selected_identifier));
+
+	if (indexInHotkeyArray >= 0 && indexInHotkeyArray < hotkeys.size())
+	{
 		char hotkeyText[MAX_PATH];
 
-		hotkeyToString(namedHotkeys[indexInHotkeyArray].hotkeys, hotkeyText);
+		hotkey_to_string(hotkeys[indexInHotkeyArray], hotkeyText);
 
 		SetWindowText(selectedHotkeyEditHwnd, hotkeyText);
 	}
 }
 
-
-
-void BuildHotkeyListItems(HWND hwnd, char* searchQuery) {
+void build_hotkey_list(HWND hwnd, char* searchQuery) {
 	SendMessage(hwnd, LB_RESETCONTENT, 0, 0);
 
-	for (size_t i = 0; (int)i < namedHotkeyCount; i++) {
-		if (strlen(searchQuery) != 0) {
+	for (size_t i = 0; i < hotkeys.size(); i++)
+	{
+		if (strlen(searchQuery) != 0)
+		{
 			char hotkeyString[MAX_PATH];
-			hotkeyToString(namedHotkeys[i].hotkeys, hotkeyString);
+			hotkey_to_string(hotkeys[i], hotkeyString);
 
-			if (!stristr(hotkeyString, searchQuery) && !stristr(namedHotkeys[i].name, searchQuery)) {
+			if (!stristr(hotkeyString, searchQuery) && !stristr(hotkeys[i]->identifier.c_str(), searchQuery))
+			{
 				continue;
 			}
 		}
 		SendMessage(hwnd, LB_ADDSTRING, 0,
-			(LPARAM)namedHotkeys[i].name);
+			(LPARAM)hotkeys[i]->identifier.c_str());
 	}
 }
 
-BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
-	NMHDR FAR* l_nmhdr = nullptr;
-	memcpy(&l_nmhdr, &lParam, sizeof(NMHDR FAR*));
+BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
+{
 	switch (Message) {
 	case WM_INITDIALOG:
 	{
@@ -1083,62 +946,51 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 		return TRUE;
 	}
-	case WM_COMMAND:
-	{
+	case WM_COMMAND: {
 		int id = LOWORD(wParam);
 		int event = HIWORD(wParam);
 
-		if (id == IDC_HOTKEY_LIST && event == LBN_SELCHANGE) {
+		if (id == IDC_HOTKEY_LIST && event == LBN_SELCHANGE)
+		{
 			UpdateSelectedHotkeyTextBox(hwnd);
 		}
 
-		if (id == IDC_HOTKEY_ASSIGN_SELECTED) {
-
-
+		if (id == IDC_HOTKEY_ASSIGN_SELECTED)
+		{
 			HWND listHwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
-			int indexInHotkeyArray = GetIndexInHotkeyArrayFromHotkeyListBoxSelection(listHwnd);
+			char selected_identifier[MAX_PATH];
+			SendMessage(listHwnd, LB_GETTEXT, SendMessage(listHwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
 
-			if (indexInHotkeyArray >= 0 && indexInHotkeyArray < namedHotkeyCount) {
+			int index = get_hotkey_array_index_from_selected_identifier(std::string(selected_identifier));
+
+			if (index >= 0 && index < hotkeys.size())
+			{
 				char buttonText[MAX_PATH];
 				GetDlgItemText(hwnd, id, buttonText, MAX_PATH);
 				SetDlgItemText(hwnd, id, "...");
 
-				GetUserHotkey(namedHotkeys[indexInHotkeyArray].hotkeys);
+				get_user_hotkey(hotkeys[index]);
 				UpdateSelectedHotkeyTextBox(hwnd);
 
 				SetDlgItemText(hwnd, id, buttonText);
 			}
 		}
-		if (id == IDC_HOTKEY_CLEAR) {
-			HWND listHwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
-			int indexInHotkeyArray = GetIndexInHotkeyArrayFromHotkeyListBoxSelection(listHwnd);
-			if (indexInHotkeyArray >= 0 && indexInHotkeyArray < namedHotkeyCount) {
-				namedHotkeys[indexInHotkeyArray].hotkeys->key = 0;
-				namedHotkeys[indexInHotkeyArray].hotkeys->ctrl = 0;
-				namedHotkeys[indexInHotkeyArray].hotkeys->alt = 0;
-				namedHotkeys[indexInHotkeyArray].hotkeys->shift = 0;
-			}
-			UpdateSelectedHotkeyTextBox(hwnd);
-		}
-		if (id == IDC_HOTKEY_SEARCH) {
+
+		if (id == IDC_HOTKEY_SEARCH)
+		{
 			static char hotkeySearchQuery[MAX_PATH] = { 0 };
 			GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, hotkeySearchQuery, sizeof(hotkeySearchQuery) / sizeof(hotkeySearchQuery[0]));
-			BuildHotkeyListItems(GetDlgItem(hwnd, IDC_HOTKEY_LIST), hotkeySearchQuery);
+			build_hotkey_list(GetDlgItem(hwnd, IDC_HOTKEY_LIST), hotkeySearchQuery);
 		}
 	}
-	break;
-
-	case WM_NOTIFY:
-		if (l_nmhdr->code == PSN_APPLY) {
-			ApplyHotkeys();
-		}
-		break;
-
+				   break;
 	default:
 		return FALSE;
 	}
 	return TRUE;
 }
+
+
 
 
 HWND WINAPI CreateTrackbar(

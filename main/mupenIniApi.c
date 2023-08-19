@@ -51,7 +51,7 @@ typedef struct {
 	iniElem* list;
 } iniFile;
 
-static iniFile ini = {NULL};
+static iniFile ini = { NULL };
 
 mupenEntry* emptyEntry;
 
@@ -93,7 +93,8 @@ void ini_openFile() {
 			if (ini.comment == NULL) {
 				ini.comment = (char*)malloc(i + 1);
 				strcpy(ini.comment, buf);
-			} else {
+			}
+			else {
 				ini.comment = (char*)realloc(ini.comment, i + 1);
 				strcat(ini.comment, buf);
 			}
@@ -113,7 +114,8 @@ void ini_openFile() {
 				ini.list->next_crc = NULL;
 				ini.list->next_MD5 = NULL;
 				cur = ini.list;
-			} else {
+			}
+			else {
 				cur->next_entry = (iniElem*)malloc(sizeof(iniElem));
 				cur = cur->next_entry;
 				cur->next_entry = NULL;
@@ -138,7 +140,8 @@ void ini_openFile() {
 			cur->entry.eeprom16kb = 0;
 			strcpy(cur->entry.refMD5, "");
 			strcpy(cur->entry.comments, "");
-		} else {
+		}
+		else {
 			i = split_property(buf);
 			if (i != -1) {
 				if (!strcmp(buf, "Good Name")) {
@@ -147,7 +150,8 @@ void ini_openFile() {
 					if (buf[i + 1 + strlen(buf + i + 1) - 1] == '\r')
 						buf[i + 1 + strlen(buf + i + 1) - 1] = '\0';
 					strncpy(cur->entry.goodname, buf + i + 1, 99);
-				} else if (!strcmp(buf, "Header Code")) {
+				}
+				else if (!strcmp(buf, "Header Code")) {
 					strncpy(cur->entry.CRC, buf + i + 1, 21);
 					cur->entry.CRC[21] = '\0';
 					buf[i + 3] = 0;
@@ -160,13 +164,16 @@ void ini_openFile() {
 						cur->next_crc = aux;
 						ini.CRC_lists[i] = cur;
 					}
-				} else if (!strcmp(buf, "Reference")) {
+				}
+				else if (!strcmp(buf, "Reference")) {
 					strncpy(cur->entry.refMD5, buf + i + 1, 32);
 					cur->entry.refMD5[32] = '\0';
-				} else if (!strcmp(buf, "Eeprom")) {
+				}
+				else if (!strcmp(buf, "Eeprom")) {
 					if (!strncmp(buf + i + 1, "16k", 3))
 						cur->entry.eeprom16kb = 1;
-				} else if (!strcmp(buf, "Comments")) {
+				}
+				else if (!strcmp(buf, "Comments")) {
 					if (buf[i + 1 + strlen(buf + i + 1) - 1] == '\n')
 						buf[i + 1 + strlen(buf + i + 1) - 1] = '\0';
 					if (buf[i + 1 + strlen(buf + i + 1) - 1] == '\r')
@@ -194,52 +201,35 @@ void ini_closeFile() {
 	}
 }
 
-void ini_updateFile(int compress) {
+void ini_updateFile() {
 	gzFile zf = NULL;
 	FILE* f = NULL;
 	iniElem* aux;
 
 	if (ini.comment == NULL) return;
 
-	if (compress) {
-		zf = gzopen(get_ini_path(), "wb");
-		gzprintf(zf, "%s", ini.comment);
-	} else {
-		f = fopen(get_ini_path(), "wb");
-		fprintf(f, "%s", ini.comment);
-	}
+	f = fopen(get_ini_path(), "wb");
+	fprintf(f, "%s", ini.comment);
 
 	aux = ini.list;
 	while (aux != NULL) {
-		if (compress) {
-			gzprintf(zf, "[%s]\n", aux->entry.MD5);
-			gzprintf(zf, "Good Name=%s\n", aux->entry.goodname);
-			gzprintf(zf, "Header Code=%s\n", aux->entry.CRC);
-			if (strcmp(aux->entry.refMD5, ""))
-				gzprintf(zf, "Reference=%s\n", aux->entry.refMD5);
-			if (aux->entry.eeprom16kb == 1)
-				gzprintf(zf, "Eeprom=16k\n");
-			if (strcmp(aux->entry.comments, ""))
-				gzprintf(zf, "Comments=%s\n", aux->entry.comments);
-			gzprintf(zf, "\n");
-		} else {
-			fprintf(f, "[%s]\n", aux->entry.MD5);
-			fprintf(f, "Good Name=%s\n", aux->entry.goodname);
-			fprintf(f, "Header Code=%s\n", aux->entry.CRC);
-			if (strcmp(aux->entry.refMD5, ""))
-				fprintf(f, "Reference=%s\n", aux->entry.refMD5);
-			if (aux->entry.eeprom16kb == 1)
-				fprintf(f, "Eeprom=16k\n");
-			if (strcmp(aux->entry.comments, ""))
-				fprintf(f, "Comments=%s\n", aux->entry.comments);
-			fprintf(f, "\n");
-		}
+
+		fprintf(f, "[%s]\n", aux->entry.MD5);
+		fprintf(f, "Good Name=%s\n", aux->entry.goodname);
+		fprintf(f, "Header Code=%s\n", aux->entry.CRC);
+		if (strcmp(aux->entry.refMD5, ""))
+			fprintf(f, "Reference=%s\n", aux->entry.refMD5);
+		if (aux->entry.eeprom16kb == 1)
+			fprintf(f, "Eeprom=16k\n");
+		if (strcmp(aux->entry.comments, ""))
+			fprintf(f, "Comments=%s\n", aux->entry.comments);
+		fprintf(f, "\n");
+
 
 		aux = aux->next_entry;
 	}
 
-	if (compress) gzclose(zf);
-	else fclose(f);
+	fclose(f);
 }
 
 mupenEntry* ini_search_by_md5(const char* md5) {
@@ -281,6 +271,7 @@ mupenEntry* ini_search_by_CRC(const char* crc) {
 			return &(aux->entry);
 		else
 			return temp;
-	} else
+	}
+	else
 		return &(aux->entry);
 }

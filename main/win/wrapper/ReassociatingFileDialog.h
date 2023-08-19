@@ -42,4 +42,4 @@ private:
 	wchar_t* convertCharArrayToLPCWSTR(const char* charArray);
 };
 
-char* GetDefaultFileDialogPath(char* buf, char* path);
+char* GetDefaultFileDialogPath(char* buf, const char* path);

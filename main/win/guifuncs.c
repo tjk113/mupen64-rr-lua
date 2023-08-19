@@ -31,12 +31,12 @@ char* get_currentpath() {
 	return AppPath;
 }
 
-char* get_savespath() {
+const char* get_savespath() {
 	static char defDir[MAX_PATH];
 	if (Config.is_default_saves_directory_used) {
 		sprintf(defDir, "%sSave\\", AppPath);
 		return defDir;
-	} else return Config.saves_directory;
+	} else return Config.saves_directory.c_str();
 }
 
 bool warn_recording() {

@@ -51,7 +51,7 @@
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"
 #include "../main/savestates.h"
-#include "../main/win/Config.h"
+#include "../main/win/Config.hpp"
 
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];

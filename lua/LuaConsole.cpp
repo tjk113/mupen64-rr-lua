@@ -13,7 +13,7 @@
 #include <filesystem>
 #include "../../winproject/resource.h"
 #include "win/main_win.h"
-#include "win/Config.h"
+#include "win/Config.hpp"
 #include "include/lua.hpp"
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
@@ -22,7 +22,6 @@
 #include "../main/disasm.h"
 #include "../main/vcr.h"
 #include "../main/savestates.h"
-#include "../main/win/Config.h"
 #include "../main/win/configdialog.h"
 #include "../main/win/wrapper/ReassociatingFileDialog.h"
 #include "../main/vcr_compress.h"
@@ -443,7 +442,7 @@ namespace LuaEngine {
 			if (isrunning()) {
 				SetButtonState(ownWnd, true);
 				AddToRecentScripts(path);
-				strcpy(Config.lua_script_path, path);
+				Config.lua_script_path = std::string(path);
 			}
 			printf("Lua run\n");
 			return status;
@@ -890,7 +889,7 @@ namespace LuaEngine {
 					GetInitalWindowRect(wnd);
 				}
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-					Config.lua_script_path);
+					Config.lua_script_path.c_str());
 				return TRUE;
 			}
 			case WM_CLOSE:
