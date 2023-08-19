@@ -238,6 +238,27 @@ typedef struct {
 
 extern CONTROL Controls[4];
 
+/* dummy functions to prevent mupen from crashing if a plugin is missing */
+inline static void __cdecl dummy_void() {}
+inline static BOOL __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info) { return TRUE; }
+inline static BOOL __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info) { return TRUE; }
+inline static void __cdecl dummy_initiateControllers(CONTROL_INFO Control_Info) {}
+inline static void __cdecl dummy_aiDacrateChanged(int SystemType) {}
+inline static DWORD __cdecl dummy_aiReadLength() { return 0; }
+inline static void __cdecl dummy_controllerCommand(int Control, BYTE* Command) {}
+inline static void __cdecl dummy_getKeys(int Control, BUTTONS* Keys) {}
+inline static void __cdecl dummy_setKeys(int Control, BUTTONS Keys) {}
+inline static void __cdecl dummy_readController(int Control, BYTE* Command) {}
+inline static void __cdecl dummy_keyDown(WPARAM wParam, LPARAM lParam) {}
+inline static void __cdecl dummy_keyUp(WPARAM wParam, LPARAM lParam) {}
+inline static unsigned long dummy;
+inline static DWORD __cdecl dummy_doRspCycles(DWORD Cycles) { return Cycles; };
+inline static void __cdecl dummy_initiateRSP(RSP_INFO Rsp_Info, DWORD* CycleCount) {};
+inline static void __cdecl dummy_fBRead(DWORD addr) {};
+inline static void __cdecl dummy_fBWrite(DWORD addr, DWORD size) {};
+inline static void __cdecl dummy_fBGetFrameBufferInfo(void* p) {};
+
+
 extern void(__cdecl* getDllInfo)(PLUGIN_INFO* PluginInfo);
 extern void(__cdecl* dllConfig)(HWND hParent);
 extern void(__cdecl* dllTest)(HWND hParent);

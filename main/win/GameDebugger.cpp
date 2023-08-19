@@ -16,7 +16,6 @@ int gameDebuggerIsStepping = false;
 UINT gameDebuggerTimerId;
 
 DWORD(__cdecl* original_doRspCycles)(DWORD Cycles) = NULL;
-static DWORD __cdecl dummy_doRspCycles(DWORD Cycles) { return Cycles; };
 
 // instead of implementing a dispatcher queue, we set this simple flag
 BOOL gameDebuggerIsUpdateQueued = FALSE;

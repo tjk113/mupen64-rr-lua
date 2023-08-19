@@ -42,11 +42,6 @@ extern BOOL manualFPSLimit;
 extern char statusmsg[800];
 extern int shouldSave;
 
-extern char gfx_name[255];
-extern char input_name[255];
-extern char sound_name[255];
-extern char rsp_name[255];
-
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
 
@@ -63,7 +58,7 @@ extern void search_plugins();
 extern void rewind_plugin();
 extern int get_plugin_type();
 extern char* next_plugin();
-extern void exec_config(char* name);
+extern void exec_config(const char* name);
 extern void exec_test(char* name);
 extern void exec_about(char* name);
 extern void EnableStatusbar();

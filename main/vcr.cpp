@@ -324,53 +324,10 @@ static void setROMInfo(SMovieHeader* header) {
 	header->soundPluginName[0] = '\0';
 	header->rspPluginName[0] = '\0';
 
-#ifdef __WIN32__
-/*	ROM_INFO* pRomInfo = NULL;//getSelectedRom(); // FIXME - what if the user selected one ROM and File->Opened a different one?
-	if(pRomInfo)
-	{
-		DEFAULT_ROM_SETTINGS TempRomSettings = GetDefaultRomSettings( pRomInfo->InternalName);
-		strncpy(header->inputPluginName, TempRomSettings.InputPluginName, 64);
-		strncpy(header->videoPluginName, TempRomSettings.GfxPluginName, 64);
-		strncpy(header->soundPluginName, TempRomSettings.SoundPluginName, 64);
-		strncpy(header->rspPluginName, TempRomSettings.RspPluginName, 64);
-	}*/
-
-	extern char gfx_name[255];
-	extern char input_name[255];
-	extern char sound_name[255];
-	extern char rsp_name[255];
-
-//	if(!header->videoPluginName[0])
-	strncpy(header->videoPluginName, gfx_name, 64);
-//	if(!header->inputPluginName[0])
-	strncpy(header->inputPluginName, input_name, 64);
-//	if(!header->soundPluginName[0])
-	strncpy(header->soundPluginName, sound_name, 64);
-//	if(!header->rspPluginName[0])
-	strncpy(header->rspPluginName, rsp_name, 64);
-#else
-	{
-		char* name;
-		extern char* plugin_name_by_filename(const char* filename); // from main_gtk.c
-		extern const char* config_get_string(const char* key, const char* def); // from config.c
-
-		name = plugin_name_by_filename(config_get_string("Gfx Plugin", ""));
-		if (name)
-			strncpy(header->videoPluginName, name, 64);
-
-		name = plugin_name_by_filename(config_get_string("Input Plugin", ""));
-		if (name)
-			strncpy(header->inputPluginName, name, 64);
-
-		name = plugin_name_by_filename(config_get_string("Audio Plugin", ""));
-		if (name)
-			strncpy(header->soundPluginName, name, 64);
-
-		name = plugin_name_by_filename(config_get_string("RSP Plugin", ""));
-		if (name)
-			strncpy(header->rspPluginName, name, 64);
-	}
-#endif
+	strncpy(header->videoPluginName, Config.selected_video_plugin_name.c_str(), 64);
+	strncpy(header->inputPluginName, Config.selected_input_plugin_name.c_str(), 64);
+	strncpy(header->soundPluginName, Config.selected_audio_plugin_name.c_str(), 64);
+	strncpy(header->rspPluginName, Config.selected_rsp_plugin_name.c_str(), 64);
 }
 
 static void reserve_buffer_space(unsigned long space_needed) {
@@ -1441,37 +1398,19 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 						printWarning(warningStr);
 				}
 
-				extern char gfx_name[255];
-				extern char input_name[255];
-				extern char sound_name[255];
-				extern char rsp_name[255];
-				//			    ROM_INFO* pRomInfo = getSelectedRom(); // FIXME
-				//			    DEFAULT_ROM_SETTINGS TempRomSettings = GetDefaultRomSettings( pRomInfo->InternalName);
-				//				if(TempRomSettings.InputPluginName[0])
-				//					strncpy(name, TempRomSettings.InputPluginName, 64);
-				//				else
-				strncpy(name, input_name, 64);
+				strncpy(name, Config.selected_input_plugin_name.c_str(), 64);
 				if (name[0] && m_header.inputPluginName[0] && _stricmp(m_header.inputPluginName, name) != 0) {
 					printf("Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.\n", m_header.inputPluginName, name);
 				}
-				//				if(TempRomSettings.GfxPluginName[0])
-				//					strncpy(name, TempRomSettings.GfxPluginName, 64);
-				//				else
-				strncpy(name, gfx_name, 64);
+				strncpy(name, Config.selected_video_plugin_name.c_str(), 64);
 				if (name[0] && m_header.videoPluginName[0] && _stricmp(m_header.videoPluginName, name) != 0) {
 					printf("Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.\n", m_header.videoPluginName, name);
 				}
-				//				if(TempRomSettings.SoundPluginName[0])
-				//					strncpy(name, TempRomSettings.SoundPluginName, 64);
-				//				else
-				strncpy(name, sound_name, 64);
+				strncpy(name, Config.selected_audio_plugin_name.c_str(), 64);
 				if (name[0] && m_header.soundPluginName[0] && _stricmp(m_header.soundPluginName, name) != 0) {
 					printf("Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.\n", m_header.soundPluginName, name);
 				}
-				//				if(TempRomSettings.RspPluginName[0])
-				//					strncpy(name, TempRomSettings.RspPluginName, 64);
-				//				else
-				strncpy(name, rsp_name, 64);
+				strncpy(name, Config.selected_rsp_plugin_name.c_str(), 64);
 				if (name[0] && m_header.rspPluginName[0] && _stricmp(m_header.rspPluginName, name) != 0) {
 					printf("Warning: The movie was recorded with the RSP plugin \"%s\",\nbut you are using the RSP plugin \"%s\",\nso the movie probably won't play properly.\n", m_header.rspPluginName, name);
 				}

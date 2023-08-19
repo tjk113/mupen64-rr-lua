@@ -122,80 +122,6 @@ void(__cdecl* CaptureScreen) (char* Directory);
 void(__cdecl* old_initiateControllers)(HWND hMainWindow, CONTROL Controls[4]);
 void(__cdecl* aiUpdate)(BOOL Wait);
 
-
-#ifndef _MSC_VER
-
-CONTROL Controls[4];
-
-void(__cdecl* getDllInfo)(PLUGIN_INFO* PluginInfo);
-void(__cdecl* dllConfig)(HWND hParent);
-void(__cdecl* dllTest)(HWND hParent);
-void(__cdecl* dllAbout)(HWND hParent);
-
-void(__cdecl* changeWindow)();
-void(__cdecl* closeDLL_gfx)();
-BOOL(__cdecl* initiateGFX)(GFX_INFO Gfx_Info);
-void(__cdecl* processDList)();
-void(__cdecl* processRDPList)();
-void(__cdecl* romClosed_gfx)();
-void(__cdecl* romOpen_gfx)();
-void(__cdecl* showCFB)();
-void(__cdecl* updateScreen)();
-void(__cdecl* viStatusChanged)();
-void(__cdecl* viWidthChanged)();
-
-
-void(__cdecl* closeDLL_input)();
-void(__cdecl* controllerCommand)(int Control, BYTE* Command);
-void(__cdecl* getKeys)(int Control, BUTTONS* Keys);
-void(__cdecl* setKeys)(int Control, BUTTONS  Keys);
-void(__cdecl* initiateControllers)(CONTROL_INFO ControlInfo);
-void(__cdecl* readController)(int Control, BYTE* Command);
-void(__cdecl* romClosed_input)();
-void(__cdecl* romOpen_input)();
-void(__cdecl* keyDown)(WPARAM wParam, LPARAM lParam);
-void(__cdecl* keyUp)(WPARAM wParam, LPARAM lParam);
-
-
-void(__cdecl* aiDacrateChanged)(int SystemType);
-void(__cdecl* aiLenChanged)();
-DWORD(__cdecl* aiReadLength)();
-void(__cdecl* closeDLL_audio)();
-BOOL(__cdecl* initiateAudio)(AUDIO_INFO Audio_Info);
-void(__cdecl* processAList)();
-void(__cdecl* romClosed_audio)();
-void(__cdecl* romOpen_audio)();
-
-void(__cdecl* closeDLL_RSP)();
-DWORD(__cdecl* doRspCycles)(DWORD Cycles);
-void(__cdecl* initiateRSP)(RSP_INFO Rsp_Info, DWORD* CycleCount);
-void(__cdecl* romClosed_RSP)();
-
-void(__cdecl* fBRead)(DWORD addr);
-void(__cdecl* fBWrite)(DWORD addr, DWORD size);
-void(__cdecl* fBGetFrameBufferInfo)(void* p);
-extern void(__cdecl* readScreen)(void** dest, long* width, long* height);
-
-#endif // !_MSC_VER
-
-/* dummy functions to prevent mupen from crashing if a plugin is missing */
-static void __cdecl dummy_void() {}
-static BOOL __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info) { return TRUE; }
-static BOOL __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info) { return TRUE; }
-static void __cdecl dummy_initiateControllers(CONTROL_INFO Control_Info) {}
-static void __cdecl dummy_aiDacrateChanged(int SystemType) {}
-static DWORD __cdecl dummy_aiReadLength() { return 0; }
-//static void dummy_aiUpdate(BOOL Wait) {}
-static void __cdecl dummy_controllerCommand(int Control, BYTE* Command) {}
-static void __cdecl dummy_getKeys(int Control, BUTTONS* Keys) {}
-static void __cdecl dummy_setKeys(int Control, BUTTONS  Keys) {}
-static void __cdecl dummy_readController(int Control, BYTE* Command) {}
-static void __cdecl dummy_keyDown(WPARAM wParam, LPARAM lParam) {}
-static void __cdecl dummy_keyUp(WPARAM wParam, LPARAM lParam) {}
-static unsigned long dummy;
-static DWORD __cdecl dummy_doRspCycles(DWORD Cycles) { return Cycles; };
-static void __cdecl dummy_initiateRSP(RSP_INFO Rsp_Info, DWORD* CycleCount) {};
-
 static DWORD WINAPI ThreadFunc(LPVOID lpParam);
 
 const char g_szClassName[] = "myWindowClass";
@@ -209,9 +135,7 @@ BOOL just_restarted_flag = 0;
 static int InputPluginVersion;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
-//extern int recording;
-//static HICON hStatusIcon;                                  //Icon Handle for statusbar
-static HWND hStaticHandle;                                 //Handle for static place
+static HWND hStaticHandle; //Handle for static place
 int externalReadScreen;
 
 char TempMessage[200];
@@ -223,11 +147,6 @@ HINSTANCE app_hInstance;
 BOOL manualFPSLimit = TRUE;
 BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
-
-char gfx_name[255];
-char input_name[255];
-char sound_name[255];
-char rsp_name[255];
 
 char stroopConfigLine[150] = {0};
 char correctedPath[260];
@@ -430,24 +349,6 @@ void SetupDummyInfo() {
 
 }
 
-void SaveGlobalPlugins(BOOL method) {
-	static char gfx_temp[100], input_temp[100], sound_temp[100], rsp_temp[100];
-
-	if (method)  //Saving
-	{
-		sprintf(gfx_temp, "%s", gfx_name);
-		sprintf(input_temp, "%s", input_name);
-		sprintf(sound_temp, "%s", sound_name);
-		sprintf(rsp_temp, "%s", rsp_name);
-	} else         //Loading
-	{
-		sprintf(gfx_name, "%s", gfx_temp);
-		sprintf(input_name, "%s", input_temp);
-		sprintf(sound_name, "%s", sound_temp);
-		sprintf(rsp_name, "%s", rsp_temp);
-	}
-}
-
 static int LastState = ID_CURRENTSAVE_1;
 void SelectState(HWND hWnd, int StateID) {
 	HMENU hMenu = GetMenu(hWnd);
@@ -562,7 +463,7 @@ char* getPluginName(char* pluginpath, int plugintype) {
 
 }
 
-HMODULE get_handle(plugins* p, char* name) {
+HMODULE get_handle(plugins* p, const char* name) {
 	if (!p->next) return NULL;
 
 	while (p->next->plugin_name[strlen(p->next->plugin_name) - 1] == ' ')
@@ -639,7 +540,7 @@ void search_plugins() {
 
 }
 
-void exec_config(char* name) {
+void exec_config(const char* name) {
 	HMODULE handle;
 	PLUGIN_INFO PluginInfo;
 	handle = (HMODULE)get_handle(liste_plugins, name);
@@ -758,10 +659,10 @@ int check_plugins() {
 	// i went with a low-level implementation at first...
 	// But hey this works
 	void* handle_gfx, * handle_input, * handle_sound, * handle_rsp;
-	handle_gfx = get_handle(liste_plugins, gfx_name);
-	handle_input = get_handle(liste_plugins, input_name);
-	handle_sound = get_handle(liste_plugins, sound_name);
-	handle_rsp = get_handle(liste_plugins, rsp_name);
+	handle_gfx = get_handle(liste_plugins, Config.selected_video_plugin_name.c_str());
+	handle_sound = get_handle(liste_plugins, Config.selected_audio_plugin_name.c_str());
+	handle_input = get_handle(liste_plugins, Config.selected_input_plugin_name.c_str());
+	handle_rsp = get_handle(liste_plugins, Config.selected_rsp_plugin_name.c_str());
 
 	void* pluginHandles[4] = {handle_gfx, handle_input, handle_sound, handle_rsp}; // can probably be done in one line
 	char pluginsMissing = 0;
@@ -1080,12 +981,12 @@ int load_rsp(HMODULE handle_RSP) {
 int load_plugins() {
 	HMODULE handle_gfx, handle_input, handle_sound, handle_rsp;
 
-	handle_gfx = get_handle(liste_plugins, gfx_name);
-	handle_input = get_handle(liste_plugins, input_name);
-	handle_sound = get_handle(liste_plugins, sound_name);
-	handle_rsp = get_handle(liste_plugins, rsp_name);
+	handle_gfx = get_handle(liste_plugins, Config.selected_video_plugin_name.c_str());
+	handle_sound = get_handle(liste_plugins, Config.selected_audio_plugin_name.c_str());
+	handle_input = get_handle(liste_plugins, Config.selected_input_plugin_name.c_str());
+	handle_rsp = get_handle(liste_plugins, Config.selected_rsp_plugin_name.c_str());
+
 	ThreadFuncState = TFS_LOADGFX;
-	printf("Loading plugins... \n", gfx_name);
 	load_gfx(handle_gfx);
 	ThreadFuncState = TFS_LOADINPUT;
 	load_input(handle_input);
@@ -1219,7 +1120,6 @@ BOOL StartRom(char* fullRomPath) {
 
 			EnableEmulationMenuItems(TRUE);
 			ShowRomBrowser(FALSE, FALSE);
-			SaveGlobalPlugins(TRUE);
 		}
 
 		SetStatusMode(2);
@@ -1281,7 +1181,6 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 			free_memory();
 
 			EnableEmulationMenuItems(FALSE);
-			SaveGlobalPlugins(FALSE);
 			ShowRomBrowser(!really_restart_mode, !!lpParam);
 
 			extern int m_task;
@@ -1463,10 +1362,10 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 			sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER->CRC1);
 			SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
 
-			SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2, gfx_name);
-			SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT2, input_name);
-			SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT2, sound_name);
-			SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2, rsp_name);
+			SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2, Config.selected_video_plugin_name.c_str());
+			SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT2, Config.selected_input_plugin_name.c_str());
+			SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT2, Config.selected_audio_plugin_name.c_str());
+			SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2, Config.selected_rsp_plugin_name.c_str());
 
 			strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
 			if (Controls[0].Present && Controls[0].Plugin == PLUGIN_MEMPAK)
@@ -1771,10 +1670,10 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 			sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER->CRC1);
 			SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
 
-			SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2, gfx_name);
-			SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT2, input_name);
-			SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT2, sound_name);
-			SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2, rsp_name);
+			SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2, Config.selected_video_plugin_name.c_str());
+			SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT2, Config.selected_input_plugin_name.c_str());
+			SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT2, Config.selected_audio_plugin_name.c_str());
+			SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2, Config.selected_rsp_plugin_name.c_str());
 
 			strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
 			if (Controls[0].Present && Controls[0].Plugin == PLUGIN_MEMPAK)
@@ -2770,7 +2669,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						pauseEmu(FALSE);
 
 					hwnd_plug = hwnd;
-					exec_config(gfx_name);
+					exec_config(Config.selected_video_plugin_name.c_str());
 
 					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);
@@ -2783,7 +2682,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						pauseEmu(FALSE);
 
 					hwnd_plug = hwnd;
-					exec_config(input_name);
+					exec_config(Config.selected_input_plugin_name.c_str());
 
 					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);
@@ -2796,7 +2695,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						pauseEmu(FALSE);
 
 					hwnd_plug = hwnd;
-					exec_config(sound_name);
+					exec_config(Config.selected_audio_plugin_name.c_str());
 
 					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);
@@ -2809,7 +2708,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						pauseEmu(FALSE);
 
 					hwnd_plug = hwnd;
-					exec_config(rsp_name);
+					exec_config(Config.selected_rsp_plugin_name.c_str());
 
 					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);

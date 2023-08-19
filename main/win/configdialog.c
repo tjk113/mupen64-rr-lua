@@ -504,6 +504,19 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 	return FALSE;
 }
 
+void sync_plugin_option(HWND hwnd, int32_t id, std::string &selected_plugin_name) {
+	size_t index = SendDlgItemMessage(hwnd, id, CB_FINDSTRINGEXACT, 0, (LPARAM)selected_plugin_name.c_str());
+	if (index != CB_ERR) {
+		SendDlgItemMessage(hwnd, id, CB_SETCURSEL, index, 0);
+	}
+	else {
+		SendDlgItemMessage(hwnd, id, CB_SETCURSEL, 0, 0);
+		char str[260] = { 0 };
+		SendDlgItemMessage(hwnd, id, CB_GETLBTEXT, 0, (LPARAM)str);
+		selected_plugin_name = std::string(str);
+	}
+}
+
 BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
 	char path_buffer[_MAX_PATH];
 	int index;
@@ -533,43 +546,11 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				next_plugin();
 			}
 		}
-		// Set gfx plugin
-		index = SendDlgItemMessage(hwnd, IDC_COMBO_GFX, CB_FINDSTRINGEXACT, 0, (LPARAM)gfx_name);
-		if (index != CB_ERR) {
-			SendDlgItemMessage(hwnd, IDC_COMBO_GFX, CB_SETCURSEL, index, 0);
-		}
-		else {
-			SendDlgItemMessage(hwnd, IDC_COMBO_GFX, CB_SETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_COMBO_GFX, CB_GETLBTEXT, 0, (LPARAM)gfx_name);
-		}
-		// Set input plugin
-		index = SendDlgItemMessage(hwnd, IDC_COMBO_INPUT, CB_FINDSTRINGEXACT, 0, (LPARAM)input_name);
-		if (index != CB_ERR) {
-			SendDlgItemMessage(hwnd, IDC_COMBO_INPUT, CB_SETCURSEL, index, 0);
-		}
-		else {
-			SendDlgItemMessage(hwnd, IDC_COMBO_INPUT, CB_SETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_COMBO_INPUT, CB_GETLBTEXT, 0, (LPARAM)input_name);
-		}
-		// Set sound plugin
-		index = SendDlgItemMessage(hwnd, IDC_COMBO_SOUND, CB_FINDSTRINGEXACT, 0, (LPARAM)sound_name);
-		if (index != CB_ERR) {
-			SendDlgItemMessage(hwnd, IDC_COMBO_SOUND, CB_SETCURSEL, index, 0);
-		}
-		else {
-			SendDlgItemMessage(hwnd, IDC_COMBO_SOUND, CB_SETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_COMBO_SOUND, CB_GETLBTEXT, 0, (LPARAM)sound_name);
-		}
-		// Set RSP plugin
-		index = SendDlgItemMessage(hwnd, IDC_COMBO_RSP, CB_FINDSTRINGEXACT, 0, (LPARAM)rsp_name);
-		if (index != CB_ERR) {
-			SendDlgItemMessage(hwnd, IDC_COMBO_RSP, CB_SETCURSEL, index, 0);
-		}
-		else {
-			SendDlgItemMessage(hwnd, IDC_COMBO_RSP, CB_SETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_COMBO_RSP, CB_GETLBTEXT, 0, (LPARAM)rsp_name);
-		}
 
+		sync_plugin_option(hwnd, IDC_COMBO_GFX, Config.selected_video_plugin_name);
+		sync_plugin_option(hwnd, IDC_COMBO_SOUND, Config.selected_audio_plugin_name);
+		sync_plugin_option(hwnd, IDC_COMBO_INPUT, Config.selected_input_plugin_name);
+		sync_plugin_option(hwnd, IDC_COMBO_RSP, Config.selected_rsp_plugin_name);
 
 		TranslateConfigDialog(hwnd);
 		if (emu_launched) {
@@ -661,18 +642,20 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		break;
 	case WM_NOTIFY:
 		if (l_nmhdr->code == PSN_APPLY) {
-				
-			ReadComboBoxValue(hwnd, IDC_COMBO_GFX, gfx_name);
-			Config.selected_video_plugin_name = std::string(gfx_name);
+			
+			char str[260] = { 0 };
 
-			ReadComboBoxValue(hwnd, IDC_COMBO_SOUND, sound_name);
-			Config.selected_audio_plugin_name = std::string(sound_name);
+			ReadComboBoxValue(hwnd, IDC_COMBO_GFX, str);
+			Config.selected_video_plugin_name = std::string(str);
 
-			ReadComboBoxValue(hwnd, IDC_COMBO_INPUT, input_name);
-			Config.selected_input_plugin_name = std::string(input_name);
+			ReadComboBoxValue(hwnd, IDC_COMBO_SOUND, str);
+			Config.selected_audio_plugin_name = std::string(str);
 
-			ReadComboBoxValue(hwnd, IDC_COMBO_RSP, rsp_name);
-			Config.selected_rsp_plugin_name = std::string(rsp_name);
+			ReadComboBoxValue(hwnd, IDC_COMBO_INPUT, str);
+			Config.selected_input_plugin_name = std::string(str);
+
+			ReadComboBoxValue(hwnd, IDC_COMBO_RSP, str);
+			Config.selected_rsp_plugin_name = std::string(str);
 		}
 		break;
 	default:

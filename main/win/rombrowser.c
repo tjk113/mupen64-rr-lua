@@ -597,11 +597,6 @@ LRESULT CALLBACK RomPropertiesProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 
 			TempRomSettings = GetDefaultRomSettings(pRomInfo->InternalName);
 
-			WriteComboBoxValue(hwnd, IDC_COMBO_GFX, TempRomSettings.GfxPluginName, gfx_name);
-			WriteComboBoxValue(hwnd, IDC_COMBO_INPUT, TempRomSettings.InputPluginName, input_name);
-			WriteComboBoxValue(hwnd, IDC_COMBO_SOUND, TempRomSettings.SoundPluginName, sound_name);
-			WriteComboBoxValue(hwnd, IDC_COMBO_RSP, TempRomSettings.RspPluginName, rsp_name);
-
 			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), FALSE);
 			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), FALSE);
 			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), FALSE);

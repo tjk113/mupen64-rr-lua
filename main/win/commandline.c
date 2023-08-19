@@ -121,7 +121,7 @@ void GetCmdLineParameter(CmdLineParameterType arg, char* buf) {
 	*ptr2 = 0;
 }
 
-void setPluginFromCmndLine(CmdLineParameterType plugintype, char* PluginVar, int spec_type) {
+std::string setPluginFromCmndLine(CmdLineParameterType plugintype, int spec_type) {
 	char tempstr[100];
 	char* tempPluginStr;
 	GetCmdLineParameter(plugintype, tempstr);
@@ -129,8 +129,7 @@ void setPluginFromCmndLine(CmdLineParameterType plugintype, char* PluginVar, int
 		printf("Command Line: Checking plugin name: %s\n", tempstr);
 		tempPluginStr = getPluginName(tempstr, spec_type);
 		if (tempPluginStr) {
-			sprintf(PluginVar, "%s", tempPluginStr);
-			printf("Command Line: Loaded Plugin : %s\n", PluginVar);
+			return tempPluginStr;
 		}
 	}
 }
@@ -151,10 +150,10 @@ BOOL StartGameByCommandLine() {
 	}
 
 	//Plugins
-	setPluginFromCmndLine(CMDLINE_AUDIO_PLUGIN, sound_name, PLUGIN_TYPE_AUDIO);
-	setPluginFromCmndLine(CMDLINE_VIDEO_PLUGIN, gfx_name, PLUGIN_TYPE_GFX);
-	setPluginFromCmndLine(CMDLINE_CONTROLLER_PLUGIN, input_name, PLUGIN_TYPE_CONTROLLER);
-	setPluginFromCmndLine(CMDLINE_RSP_PLUGIN, rsp_name, PLUGIN_TYPE_RSP);
+	Config.selected_video_plugin_name = setPluginFromCmndLine(CMDLINE_VIDEO_PLUGIN, PLUGIN_TYPE_GFX);
+	Config.selected_audio_plugin_name = setPluginFromCmndLine(CMDLINE_AUDIO_PLUGIN, PLUGIN_TYPE_AUDIO);
+	Config.selected_input_plugin_name = setPluginFromCmndLine(CMDLINE_CONTROLLER_PLUGIN, PLUGIN_TYPE_CONTROLLER);
+	Config.selected_rsp_plugin_name = setPluginFromCmndLine(CMDLINE_RSP_PLUGIN, PLUGIN_TYPE_RSP);
 
 	if (!CmdLineParameterExist(CMDLINE_GAME_FILENAME)) {
 		printf("Command Line: Rom name not specified\n");
