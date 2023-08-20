@@ -432,6 +432,11 @@ void destroy_plugins();
 /// </summary>
 void setup_dummy_info();
 
+/// <summary>
+/// Gets a vector of plugin types with no current configuration
+/// </summary>
+std::vector<plugin_type> get_missing_plugin_types();
+
 inline static t_plugin* get_plugin_by_name(std::string name) {
 	for (auto& plugin : plugins) {
 		if (plugin->name == name) {

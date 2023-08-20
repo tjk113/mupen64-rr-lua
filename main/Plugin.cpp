@@ -680,6 +680,23 @@ void load_plugins()
 	load_rsp(rsp_plugin->handle);
 }
 
+std::vector<plugin_type> get_missing_plugin_types() {
+	std::vector<plugin_type> plugin_types;
+
+	if (get_plugin_by_name(Config.selected_video_plugin_name) == nullptr) {
+		plugin_types.push_back(plugin_type::video);
+	}
+	if (get_plugin_by_name(Config.selected_audio_plugin_name) == nullptr) {
+		plugin_types.push_back(plugin_type::audio);
+	}
+	if (get_plugin_by_name(Config.selected_input_plugin_name) == nullptr) {
+		plugin_types.push_back(plugin_type::input);
+	}
+	if (get_plugin_by_name(Config.selected_rsp_plugin_name) == nullptr) {
+		plugin_types.push_back(plugin_type::rsp);
+	}
+	return plugin_types;
+}
 
 void setup_dummy_info()
 {

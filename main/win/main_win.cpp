@@ -286,31 +286,29 @@ BOOL StartRom(char* fullRomPath) {
 		display_status("Rom browser busy!");
 		return TRUE;
 	}
+
 	LONG winstyle;
 	if (emu_launched) {
-		   /*closeRom();*/
 		really_restart_mode = TRUE;
 		strcpy(LastSelectedRom, fullRomPath);
 		CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
 	}
-	//if (emu_paused) resumeEmu(1);
-//     while (emu_launched) {
-//		SleepEx(10, TRUE);
-//	 }
 	else {
-						//Makes window not resizable
-						//ShowWindow(mainHWND, FALSE);
 		winstyle = GetWindowLong(mainHWND, GWL_STYLE);
 		winstyle = winstyle & ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
 		SetWindowLong(mainHWND, GWL_STYLE, winstyle);
 		SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);  //Set on top
-		//ShowWindow(mainHWND, TRUE);
 
 		if (!restart_mode) {
-			// TODO: reimplement
-			//if (!check_plugins()) {
-			//	return TRUE;
-			//}
+			std::vector<plugin_type> missing_plugin_types = get_missing_plugin_types();
+
+			if (missing_plugin_types.size() > 0) {
+
+				if (MessageBox(mainHWND, "Can't start emulation prior to selecting plugins.\nDo you want to select plugins in the settings?", "Question", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+					ChangeSettings(mainHWND);
+				}
+				return 1;
+			}
 
 			SetStatusMode(1);
 
