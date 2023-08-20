@@ -32,7 +32,7 @@
 #include <sys/stat.h>
 #include "r4300.h"
 #include "../memory/memory.h"
-#include "../main/plugin.h"
+#include "../main/plugin.hpp"
 #include "../r4300/recomph.h"
 
 #ifdef _MSC_VER

@@ -1578,7 +1578,7 @@ void go() {
 				 (unsigned int)hi,
 				 (unsigned int)(lo >> 32),
 				 (unsigned int)lo);
-			  printf("après %d instructions soit %x\n",(unsigned int)(debug_count+Count)
+			  printf("aprÃ¨s %d instructions soit %x\n",(unsigned int)(debug_count+Count)
 				 ,(unsigned int)(debug_count+Count));
 			  getchar();
 			   }*/
@@ -1636,7 +1636,7 @@ void go() {
 		(unsigned int)hi,
 		(unsigned int)(lo >> 32),
 		(unsigned int)lo);
-	printf("après %d instructions soit %x\n", (unsigned int)debug_count
+	printf("aprÃ¨s %d instructions soit %x\n", (unsigned int)debug_count
 		, (unsigned int)debug_count);
 	for (i = 0; i < 0x100000; i++) {
 		if (blocks[i] != NULL) {

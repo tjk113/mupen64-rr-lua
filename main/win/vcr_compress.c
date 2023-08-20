@@ -33,7 +33,7 @@
 #include "../win/main_win.h"
 
 #include "../vcr_compress.h"
-#include "../plugin.h"
+#include "../plugin.hpp"
 #include "../../winproject/resource.h"
 #include "vfw.h"
 

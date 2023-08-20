@@ -68,7 +68,7 @@
     <ClInclude Include="..\..\main\mztools.h">
       <Filter>Source Files\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\main\plugin.h">
+    <ClInclude Include="..\..\main\Plugin.hpp">
       <Filter>Source Files\main</Filter>
     </ClInclude>
     <ClInclude Include="..\..\main\rom.h">
@@ -238,7 +238,7 @@
     <ClCompile Include="..\..\main\mztools.c">
       <Filter>Source Files\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main\plugin.c">
+    <ClCompile Include="..\..\main\Plugin.cpp">
       <Filter>Source Files\main</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main\rom.c">

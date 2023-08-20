@@ -1,4 +1,5 @@
 //#include "../config.h"
+#include <assert.h>
 #ifdef VCR_SUPPORT
 
 #include "../lua/LuaConsole.h"
@@ -11,7 +12,7 @@
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
 #include <memory>
 
-#include "plugin.h"
+#include "plugin.hpp"
 #include "rom.h"
 #include "savestates.h"
 #include "../memory/memory.h"
@@ -294,21 +295,21 @@ static void setROMInfo(SMovieHeader* header) {
 		header->controllerFlags |= CONTROLLER_3_PRESENT, header->num_controllers++;
 	if (Controls[3].Present)
 		header->controllerFlags |= CONTROLLER_4_PRESENT, header->num_controllers++;
-	if (Controls[0].Plugin == PLUGIN_MEMPAK)
+	if (Controls[0].Plugin == controller_extension::mempak)
 		header->controllerFlags |= CONTROLLER_1_MEMPAK;
-	if (Controls[1].Plugin == PLUGIN_MEMPAK)
+	if (Controls[1].Plugin == controller_extension::mempak)
 		header->controllerFlags |= CONTROLLER_2_MEMPAK;
-	if (Controls[2].Plugin == PLUGIN_MEMPAK)
+	if (Controls[2].Plugin == controller_extension::mempak)
 		header->controllerFlags |= CONTROLLER_3_MEMPAK;
-	if (Controls[3].Plugin == PLUGIN_MEMPAK)
+	if (Controls[3].Plugin == controller_extension::mempak)
 		header->controllerFlags |= CONTROLLER_4_MEMPAK;
-	if (Controls[0].Plugin == PLUGIN_RUMBLE_PAK)
+	if (Controls[0].Plugin == controller_extension::rumblepak)
 		header->controllerFlags |= CONTROLLER_1_RUMBLE;
-	if (Controls[1].Plugin == PLUGIN_RUMBLE_PAK)
+	if (Controls[1].Plugin == controller_extension::rumblepak)
 		header->controllerFlags |= CONTROLLER_2_RUMBLE;
-	if (Controls[2].Plugin == PLUGIN_RUMBLE_PAK)
+	if (Controls[2].Plugin == controller_extension::rumblepak)
 		header->controllerFlags |= CONTROLLER_3_RUMBLE;
-	if (Controls[3].Plugin == PLUGIN_RUMBLE_PAK)
+	if (Controls[3].Plugin == controller_extension::rumblepak)
 		header->controllerFlags |= CONTROLLER_4_RUMBLE;
 
 	extern rom_header* ROM_HEADER;
@@ -1320,11 +1321,11 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 				if (Controls[0].Present && !(m_header.controllerFlags & CONTROLLER_1_PRESENT))
 					strcat(warningStr, "Warning: You have controller 1 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n");
 				else {
-					if (Controls[0].Present && (Controls[0].Plugin != PLUGIN_MEMPAK) && (m_header.controllerFlags & CONTROLLER_1_MEMPAK))
+					if (Controls[0].Present && (Controls[0].Plugin != controller_extension::mempak) && (m_header.controllerFlags & CONTROLLER_1_MEMPAK))
 						strcat(warningStr, "Warning: Controller 1 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[0].Present && (Controls[0].Plugin != PLUGIN_RUMBLE_PAK) && (m_header.controllerFlags & CONTROLLER_1_RUMBLE))
+					if (Controls[0].Present && (Controls[0].Plugin != controller_extension::rumblepak) && (m_header.controllerFlags & CONTROLLER_1_RUMBLE))
 						strcat(warningStr, "Warning: Controller 1 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[0].Present && (Controls[0].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_1_MEMPAK | CONTROLLER_1_RUMBLE)))
+					if (Controls[0].Present && (Controls[0].Plugin != controller_extension::none) && !(m_header.controllerFlags & (CONTROLLER_1_MEMPAK | CONTROLLER_1_RUMBLE)))
 						strcat(warningStr, "Warning: Controller 1 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 				}
 
@@ -1335,11 +1336,11 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 				if (Controls[1].Present && !(m_header.controllerFlags & CONTROLLER_2_PRESENT))
 					strcat(warningStr, "Warning: You have controller 2 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
 				else {
-					if (Controls[1].Present && (Controls[1].Plugin != PLUGIN_MEMPAK) && (m_header.controllerFlags & CONTROLLER_2_MEMPAK))
+					if (Controls[1].Present && (Controls[1].Plugin != controller_extension::mempak) && (m_header.controllerFlags & CONTROLLER_2_MEMPAK))
 						strcat(warningStr, "Warning: Controller 2 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[1].Present && (Controls[1].Plugin != PLUGIN_RUMBLE_PAK) && (m_header.controllerFlags & CONTROLLER_2_RUMBLE))
+					if (Controls[1].Present && (Controls[1].Plugin != controller_extension::rumblepak) && (m_header.controllerFlags & CONTROLLER_2_RUMBLE))
 						strcat(warningStr, "Warning: Controller 2 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[1].Present && (Controls[1].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_2_MEMPAK | CONTROLLER_2_RUMBLE)))
+					if (Controls[1].Present && (Controls[1].Plugin != controller_extension::none) && !(m_header.controllerFlags & (CONTROLLER_2_MEMPAK | CONTROLLER_2_RUMBLE)))
 						strcat(warningStr, "Warning: Controller 2 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 				}
 
@@ -1350,11 +1351,11 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 				if (Controls[2].Present && !(m_header.controllerFlags & CONTROLLER_3_PRESENT))
 					strcat(warningStr, "Warning: You have controller 3 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
 				else {
-					if (Controls[2].Present && (Controls[2].Plugin != PLUGIN_MEMPAK) && !(m_header.controllerFlags & CONTROLLER_3_MEMPAK))
+					if (Controls[2].Present && (Controls[2].Plugin != controller_extension::mempak) && !(m_header.controllerFlags & CONTROLLER_3_MEMPAK))
 						strcat(warningStr, "Warning: Controller 3 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[2].Present && (Controls[2].Plugin != PLUGIN_RUMBLE_PAK) && !(m_header.controllerFlags & CONTROLLER_3_RUMBLE))
+					if (Controls[2].Present && (Controls[2].Plugin != controller_extension::rumblepak) && !(m_header.controllerFlags & CONTROLLER_3_RUMBLE))
 						strcat(warningStr, "Warning: Controller 3 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[2].Present && (Controls[2].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_3_MEMPAK | CONTROLLER_3_RUMBLE)))
+					if (Controls[2].Present && (Controls[2].Plugin != controller_extension::none) && !(m_header.controllerFlags & (CONTROLLER_3_MEMPAK | CONTROLLER_3_RUMBLE)))
 						strcat(warningStr, "Warning: Controller 3 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 				}
 
@@ -1365,11 +1366,11 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 				if (Controls[3].Present && !(m_header.controllerFlags & CONTROLLER_4_PRESENT))
 					strcat(warningStr, "Error: You have controller 4 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
 				else {
-					if (Controls[3].Present && (Controls[3].Plugin != PLUGIN_MEMPAK) && !(m_header.controllerFlags & CONTROLLER_4_MEMPAK))
+					if (Controls[3].Present && (Controls[3].Plugin != controller_extension::mempak) && !(m_header.controllerFlags & CONTROLLER_4_MEMPAK))
 						strcat(warningStr, "Warning: Controller 4 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[3].Present && (Controls[3].Plugin != PLUGIN_RUMBLE_PAK) && !(m_header.controllerFlags & CONTROLLER_4_RUMBLE))
+					if (Controls[3].Present && (Controls[3].Plugin != controller_extension::rumblepak) && !(m_header.controllerFlags & CONTROLLER_4_RUMBLE))
 						strcat(warningStr, "Warning: Controller 4 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[3].Present && (Controls[3].Plugin != PLUGIN_NONE) && !(m_header.controllerFlags & (CONTROLLER_4_MEMPAK | CONTROLLER_4_RUMBLE)))
+					if (Controls[3].Present && (Controls[3].Plugin != controller_extension::none) && !(m_header.controllerFlags & (CONTROLLER_4_MEMPAK | CONTROLLER_4_RUMBLE)))
 						strcat(warningStr, "Warning: Controller 4 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 				}
 
@@ -1702,25 +1703,28 @@ cleanup:
 
 
 void
-VCR_aiDacrateChanged(int SystemType) {
+VCR_aiDacrateChanged(system_type type) {
 	if (VCR_isCapturing()) {
 		printf("Fatal error, audio frequency changed during capture\n");
 		VCR_stopCapture();
 		return;
 	}
-	aiDacrateChanged(SystemType);
+	aiDacrateChanged(type);
 
 	m_audioBitrate = (int) ai_register.ai_bitrate + 1;
-	switch (SystemType) {
-		case SYSTEM_NTSC:
-			m_audioFreq = (int) (48681812 / (ai_register.ai_dacrate + 1));
-			break;
-		case SYSTEM_PAL:
-			m_audioFreq = (int) (49656530 / (ai_register.ai_dacrate + 1));
-			break;
-		case SYSTEM_MPAL:
-			m_audioFreq = (int) (48628316 / (ai_register.ai_dacrate + 1));
-			break;
+	switch (type) {
+	case ntsc:
+		m_audioFreq = (int) (48681812 / (ai_register.ai_dacrate + 1));
+		break;
+	case pal:
+		m_audioFreq = (int) (49656530 / (ai_register.ai_dacrate + 1));
+		break;
+	case mpal:
+		m_audioFreq = (int) (48628316 / (ai_register.ai_dacrate + 1));
+		break;
+	default:
+		assert(false);
+		break;
 	}
 }
 

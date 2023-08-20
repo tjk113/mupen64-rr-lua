@@ -26,7 +26,7 @@
 #include <zlib.h>
 #include "inifunctions.h"
 #include "../guifuncs.h"
-#include "../plugin.h"
+#include "../plugin.hpp"
 #include "configdialog.h"
 #include "RomSettings.h"
 #include "translation.h"
@@ -574,26 +574,26 @@ LRESULT CALLBACK RomPropertiesProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 	switch (Message) {
 		case WM_INITDIALOG:
 			romInfoHWND = hwnd;
-
-			rewind_plugin();
-			while (get_plugin_type() != -1) {
-				switch (get_plugin_type()) {
-					case PLUGIN_TYPE_GFX:
-						SendDlgItemMessage(hwnd, IDC_COMBO_GFX, CB_ADDSTRING, 0, (LPARAM)next_plugin());
-						break;
-					case PLUGIN_TYPE_CONTROLLER:
-						SendDlgItemMessage(hwnd, IDC_COMBO_INPUT, CB_ADDSTRING, 0, (LPARAM)next_plugin());
-						break;
-					case PLUGIN_TYPE_AUDIO:
-						SendDlgItemMessage(hwnd, IDC_COMBO_SOUND, CB_ADDSTRING, 0, (LPARAM)next_plugin());
-						break;
-					case PLUGIN_TYPE_RSP:
-						SendDlgItemMessage(hwnd, IDC_COMBO_RSP, CB_ADDSTRING, 0, (LPARAM)next_plugin());
-						break;
-					default:
-						next_plugin();
-				}
-			}
+			// TODO: reimplement
+			// rewind_plugin();
+			// while (get_plugin_type() != -1) {
+			// 	switch (get_plugin_type()) {
+			// 		case PLUGIN_TYPE_GFX:
+			// 			SendDlgItemMessage(hwnd, IDC_COMBO_GFX, CB_ADDSTRING, 0, (LPARAM)next_plugin());
+			// 			break;
+			// 		case PLUGIN_TYPE_CONTROLLER:
+			// 			SendDlgItemMessage(hwnd, IDC_COMBO_INPUT, CB_ADDSTRING, 0, (LPARAM)next_plugin());
+			// 			break;
+			// 		case PLUGIN_TYPE_AUDIO:
+			// 			SendDlgItemMessage(hwnd, IDC_COMBO_SOUND, CB_ADDSTRING, 0, (LPARAM)next_plugin());
+			// 			break;
+			// 		case PLUGIN_TYPE_RSP:
+			// 			SendDlgItemMessage(hwnd, IDC_COMBO_RSP, CB_ADDSTRING, 0, (LPARAM)next_plugin());
+			// 			break;
+			// 		default:
+			// 			next_plugin();
+			// 	}
+			// }
 
 			TempRomSettings = GetDefaultRomSettings(pRomInfo->InternalName);
 

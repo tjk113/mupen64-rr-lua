@@ -47,7 +47,7 @@
 #include "pif2.h"
 #include "../r4300/r4300.h"
 #include "../r4300/interupt.h"
-#include "../main/plugin.h"
+#include "../main/plugin.hpp"
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"
 #include "../main/savestates.h"
@@ -198,13 +198,13 @@ void internal_ReadController(int Control, BYTE* Command) {
 			break;
 		case 2: // read controller pack
 			if (Controls[Control].Present) {
-				if (Controls[Control].Plugin == PLUGIN_RAW)
+				if (Controls[Control].Plugin == controller_extension::raw)
 					if (controllerCommand) readController(Control, Command);
 			}
 			break;
 		case 3: // write controller pack
 			if (Controls[Control].Present) {
-				if (Controls[Control].Plugin == PLUGIN_RAW)
+				if (Controls[Control].Plugin == controller_extension::raw)
 					if (controllerCommand) readController(Control, Command);
 			}
 			break;
@@ -221,10 +221,10 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 				Command[3] = 0x05;
 				Command[4] = 0x00;
 				switch (Controls[Control].Plugin) {
-					case PLUGIN_MEMPAK:
+					case controller_extension::mempak:
 						Command[5] = 1;
 						break;
-					case PLUGIN_RAW:
+					case controller_extension::raw:
 						Command[5] = 1;
 						break;
 					default:
@@ -241,7 +241,7 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 		case 0x02: // read controller pack
 			if (Controls[Control].Present) {
 				switch (Controls[Control].Plugin) {
-					case PLUGIN_MEMPAK:
+					case controller_extension::mempak:
 					{
 						int address = (Command[3] << 8) | Command[4];
 						if (address == 0x8001) {
@@ -274,7 +274,7 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 						}
 					}
 					break;
-					case PLUGIN_RAW:
+					case controller_extension::raw:
 						if (controllerCommand) controllerCommand(Control, Command);
 						break;
 					default:
@@ -287,7 +287,7 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 		case 0x03: // write controller pack
 			if (Controls[Control].Present) {
 				switch (Controls[Control].Plugin) {
-					case PLUGIN_MEMPAK:
+					case controller_extension::mempak:
 					{
 						int address = (Command[3] << 8) | Command[4];
 						if (address == 0x8001)
@@ -323,7 +323,7 @@ void internal_ControllerCommand(int Control, BYTE* Command) {
 						}
 					}
 					break;
-					case PLUGIN_RAW:
+					case controller_extension::raw:
 						if (controllerCommand) controllerCommand(Control, Command);
 						break;
 					default:

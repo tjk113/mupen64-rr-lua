@@ -25,7 +25,7 @@
 #include "../lua/LuaConsole.h"
 #include "main_win.h"
 #include "../../winproject/resource.h"
-#include "../plugin.h"
+#include "../plugin.hpp"
 #include "rombrowser.h"
 #include "../guifuncs.h"
 #include "../md5.h"
@@ -41,6 +41,7 @@
 
 #include "configdialog.h"
 #include <vcr.h>
+#include <cassert>
 // ughh msvc-only code once again
 #pragma comment(lib,"comctl32.lib") 
 #pragma comment(lib,"propsys.lib")
@@ -369,7 +370,6 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 			GetDlgItemText(hwnd, IDC_PLUGINS_DIR, TempMessage, 200);
 			Config.plugins_directory = std::string(TempMessage);
 			Config.is_default_plugins_directory_used = selected;
-			search_plugins();
 
 			selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SAVES_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
 			GetDlgItemText(hwnd, IDC_SAVES_DIR, TempMessage, MAX_PATH);
@@ -380,6 +380,8 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 			GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, TempMessage, MAX_PATH);
 			Config.screenshots_directory = std::string(TempMessage);
 			Config.is_default_screenshots_directory_used = selected;
+
+			search_plugins();
 		}
 		break;
 	case WM_COMMAND:
@@ -504,7 +506,7 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 	return FALSE;
 }
 
-void sync_plugin_option(HWND hwnd, int32_t id, std::string &selected_plugin_name) {
+void sync_plugin_option(HWND hwnd, int32_t id, std::string& selected_plugin_name) {
 	size_t index = SendDlgItemMessage(hwnd, id, CB_FINDSTRINGEXACT, 0, (LPARAM)selected_plugin_name.c_str());
 	if (index != CB_ERR) {
 		SendDlgItemMessage(hwnd, id, CB_SETCURSEL, index, 0);
@@ -527,24 +529,32 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		EndDialog(hwnd, IDOK);
 		break;
 	case WM_INITDIALOG:
-		rewind_plugin();
-		while (get_plugin_type() != -1) {
-			switch (get_plugin_type()) {
-			case PLUGIN_TYPE_GFX:
-				SendDlgItemMessage(hwnd, IDC_COMBO_GFX, CB_ADDSTRING, 0, (LPARAM)next_plugin());
+
+		search_plugins();
+
+		for (auto& plugin : plugins)
+		{
+			int32_t id = 0;
+
+			switch (plugin->type)
+			{
+			case plugin_type::video:
+				id = IDC_COMBO_GFX;
 				break;
-			case PLUGIN_TYPE_CONTROLLER:
-				SendDlgItemMessage(hwnd, IDC_COMBO_INPUT, CB_ADDSTRING, 0, (LPARAM)next_plugin());
+			case plugin_type::audio:
+				id = IDC_COMBO_SOUND;
 				break;
-			case PLUGIN_TYPE_AUDIO:
-				SendDlgItemMessage(hwnd, IDC_COMBO_SOUND, CB_ADDSTRING, 0, (LPARAM)next_plugin());
+			case plugin_type::input:
+				id = IDC_COMBO_INPUT;
 				break;
-			case PLUGIN_TYPE_RSP:
-				SendDlgItemMessage(hwnd, IDC_COMBO_RSP, CB_ADDSTRING, 0, (LPARAM)next_plugin());
+			case plugin_type::rsp:
+				id = IDC_COMBO_RSP;
 				break;
 			default:
-				next_plugin();
+				assert(false);
+				break;
 			}
+			SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, (LPARAM)plugin->name.c_str());
 		}
 
 		sync_plugin_option(hwnd, IDC_COMBO_GFX, Config.selected_video_plugin_name);
@@ -579,62 +589,62 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		case IDGFXCONFIG:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_GFX, path_buffer);
-			exec_config(path_buffer);
+			plugin_config(get_plugin_by_name(path_buffer));
 			break;
 		case IDGFXTEST:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_GFX, path_buffer);
-			exec_test(path_buffer);
+			plugin_test(get_plugin_by_name(path_buffer));
 			break;
 		case IDGFXABOUT:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_GFX, path_buffer);
-			exec_about(path_buffer);
+			plugin_about(get_plugin_by_name(path_buffer));
 			break;
 		case IDINPUTCONFIG:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_INPUT, path_buffer);
-			exec_config(path_buffer);
+			plugin_config(get_plugin_by_name(path_buffer));
 			break;
 		case IDINPUTTEST:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_INPUT, path_buffer);
-			exec_test(path_buffer);
+			plugin_test(get_plugin_by_name(path_buffer));
 			break;
 		case IDINPUTABOUT:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_INPUT, path_buffer);
-			exec_about(path_buffer);
+			plugin_about(get_plugin_by_name(path_buffer));
 			break;
 		case IDSOUNDCONFIG:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_SOUND, path_buffer);
-			exec_config(path_buffer);
+			plugin_config(get_plugin_by_name(path_buffer));
 			break;
 		case IDSOUNDTEST:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_SOUND, path_buffer);
-			exec_test(path_buffer);
+			plugin_test(get_plugin_by_name(path_buffer));
 			break;
 		case IDSOUNDABOUT:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_SOUND, path_buffer);
-			exec_about(path_buffer);
+			plugin_about(get_plugin_by_name(path_buffer));
 			break;
 		case IDRSPCONFIG:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_RSP, path_buffer);
-			exec_config(path_buffer);
+			plugin_config(get_plugin_by_name(path_buffer));
 			break;
 		case IDRSPTEST:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_RSP, path_buffer);
-			exec_test(path_buffer);
+			plugin_test(get_plugin_by_name(path_buffer));
 			break;
 		case IDRSPABOUT:
 			hwnd_plug = hwnd;
 			ReadComboBoxValue(hwnd, IDC_COMBO_RSP, path_buffer);
-			exec_about(path_buffer);
+			plugin_about(get_plugin_by_name(path_buffer));
 			break;
 		default:
 			break;
@@ -642,7 +652,7 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		break;
 	case WM_NOTIFY:
 		if (l_nmhdr->code == PSN_APPLY) {
-			
+
 			char str[260] = { 0 };
 
 			ReadComboBoxValue(hwnd, IDC_COMBO_GFX, str);

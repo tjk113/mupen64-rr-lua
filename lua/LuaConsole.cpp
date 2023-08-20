@@ -18,7 +18,7 @@
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
 #include "../r4300/recomp.h"
-#include "../main/plugin.h"
+#include "../main/plugin.hpp"
 #include "../main/disasm.h"
 #include "../main/vcr.h"
 #include "../main/savestates.h"

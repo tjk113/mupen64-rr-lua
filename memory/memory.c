@@ -48,7 +48,7 @@
 #include "../r4300/ops.h"
 #include "pif.h"
 #include "flashram.h"
-#include "../main/plugin.h"
+#include "../main/plugin.hpp"
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"
 
@@ -2481,9 +2481,9 @@ void write_ai() {
 					case 0x58:
 					case 0x59:
 					#ifndef VCR_SUPPORT
-						aiDacrateChanged(SYSTEM_PAL);
+						aiDacrateChanged(system_type::pal);
 					#else
-						VCR_aiDacrateChanged(SYSTEM_PAL);
+						VCR_aiDacrateChanged(system_type::pal);
 					#endif
 						break;
 					case 0x37:
@@ -2491,9 +2491,9 @@ void write_ai() {
 					case 0x45:
 					case 0x4a:
 					#ifndef VCR_SUPPORT
-						aiDacrateChanged(SYSTEM_NTSC);
+						aiDacrateChanged(system_type::ntsc);
 					#else
-						VCR_aiDacrateChanged(SYSTEM_NTSC);
+						VCR_aiDacrateChanged(system_type::ntsc);
 					#endif
 						break;
 				}
@@ -2583,9 +2583,9 @@ void write_aib() {
 					case 0x58:
 					case 0x59:
 					#ifndef VCR_SUPPORT
-						aiDacrateChanged(SYSTEM_PAL);
+						aiDacrateChanged(system_type::pal);
 					#else
-						VCR_aiDacrateChanged(SYSTEM_PAL);
+						VCR_aiDacrateChanged(system_type::pal);
 					#endif
 						break;
 					case 0x37:
@@ -2593,9 +2593,9 @@ void write_aib() {
 					case 0x45:
 					case 0x4a:
 					#ifndef VCR_SUPPORT
-						aiDacrateChanged(SYSTEM_NTSC);
+						aiDacrateChanged(system_type::ntsc);
 					#else
-						VCR_aiDacrateChanged(SYSTEM_NTSC);
+						VCR_aiDacrateChanged(system_type::ntsc);
 					#endif
 						break;
 				}
@@ -2680,9 +2680,9 @@ void write_aih() {
 					case 0x58:
 					case 0x59:
 					#ifndef VCR_SUPPORT
-						aiDacrateChanged(SYSTEM_PAL);
+						aiDacrateChanged(system_type::pal);
 					#else
-						VCR_aiDacrateChanged(SYSTEM_PAL);
+						VCR_aiDacrateChanged(system_type::pal);
 					#endif
 						break;
 					case 0x37:
@@ -2690,9 +2690,9 @@ void write_aih() {
 					case 0x45:
 					case 0x4a:
 					#ifndef VCR_SUPPORT
-						aiDacrateChanged(SYSTEM_NTSC);
+						aiDacrateChanged(system_type::ntsc);
 					#else
-						VCR_aiDacrateChanged(SYSTEM_NTSC);
+						VCR_aiDacrateChanged(system_type::ntsc);
 					#endif
 						break;
 				}
@@ -2769,9 +2769,9 @@ void write_aid() {
 					case 0x58:
 					case 0x59:
 					#ifndef VCR_SUPPORT
-						aiDacrateChanged(SYSTEM_PAL);
+						aiDacrateChanged(system_type::pal);
 					#else
-						VCR_aiDacrateChanged(SYSTEM_PAL);
+						VCR_aiDacrateChanged(system_type::pal);
 					#endif
 						break;
 					case 0x37:
@@ -2779,9 +2779,9 @@ void write_aid() {
 					case 0x45:
 					case 0x4a:
 					#ifndef VCR_SUPPORT
-						aiDacrateChanged(SYSTEM_NTSC);
+						aiDacrateChanged(system_type::ntsc);
 					#else
-						VCR_aiDacrateChanged(SYSTEM_NTSC);
+						VCR_aiDacrateChanged(system_type::ntsc);
 					#endif
 						break;
 				}

@@ -11,7 +11,7 @@
 # include <windows.h>
 #endif
 
-#include "plugin.h"
+#include "plugin.hpp"
 
 #ifdef __cplusplus	//don't include cpp headers when .c compilation unit includes the file
 #include <string>	//(also done later for ffmpeg functions)
@@ -83,7 +83,7 @@ extern bool gStopAVI;
 
 extern void VCR_getKeys(int Control, BUTTONS* Keys);
 extern void VCR_updateScreen();
-extern void VCR_aiDacrateChanged(int SystemType);
+extern void VCR_aiDacrateChanged(system_type type);
 extern void VCR_aiLenChanged();
 
 extern BOOL VCR_isActive();

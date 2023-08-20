@@ -38,7 +38,7 @@ extern "C" {
 #include <dirent.h>
 #endif
 #include "../../winproject/resource.h"
-#include "../plugin.h"
+#include "../plugin.hpp"
 #include "../rom.h"
 #include "../../r4300/r4300.h"
 #include "../../memory/memory.h"
@@ -102,25 +102,8 @@ DWORD WINAPI closeRom(LPVOID lpParam);
 
 HANDLE EmuThreadHandle;
 HWND hwnd_plug;
-//int manualFPSLimit = 1 ;
-static void gui_ChangeWindow();
 
-static GFX_INFO dummy_gfx_info;
-static GFX_INFO gfx_info;
-static CONTROL_INFO dummy_control_info;
-static CONTROL_INFO control_info;
-static AUDIO_INFO dummy_audio_info;
-static AUDIO_INFO audio_info;
-static RSP_INFO dummy_rsp_info;
-static RSP_INFO rsp_info;
 static int currentSaveState = 1;
-static unsigned char DummyHeader[0x40];
-
-
-void(__cdecl* moveScreen)(int xpos, int ypos);
-void(__cdecl* CaptureScreen) (char* Directory);
-void(__cdecl* old_initiateControllers)(HWND hMainWindow, CONTROL Controls[4]);
-void(__cdecl* aiUpdate)(BOOL Wait);
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam);
 
@@ -132,11 +115,9 @@ BOOL really_restart_mode = 0;
 BOOL clear_sram_on_restart_mode = 0;
 BOOL continue_vcr_on_restart_mode = 0;
 BOOL just_restarted_flag = 0;
-static int InputPluginVersion;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
 static HWND hStaticHandle; //Handle for static place
-int externalReadScreen;
 
 char TempMessage[200];
 int emu_launched; // emu_emulating
@@ -160,55 +141,6 @@ ReassociatingFileDialog fdSaveLoadAs;
 ReassociatingFileDialog fdSaveStateAs;
 ReassociatingFileDialog fdStartCapture;
 
-enum EThreadFuncState {
-	TFS_INITMEM,
-	TFS_LOADPLUGINS,
-	TFS_LOADGFX,
-	TFS_LOADINPUT,
-	TFS_LOADAUDIO,
-	TFS_LOADRSP,
-	TFS_OPENGFX,
-	TFS_OPENINPUT,
-	TFS_OPENAUDIO,
-	TFS_DISPLAYMODE,
-	TFS_CREATESOUND,
-	TFS_EMULATING,
-	TFS_CLOSEINPUT,
-	TFS_CLOSEAUDIO,
-	TFS_CLOSERSP,
-	TFS_UNLOADRSP,
-	TFS_UNLOADINPUT,
-	TFS_UNLOADAUDIO,
-	TFS_CLOSEGFX,
-	TFS_UNLOADGFX,
-	TFS_NONE
-};
-const char* const ThreadFuncStateDescription[] = {
-	"initializing memory",
-	"loading plugins",
-	"loading graphics plugin",
-	"loading input plugin",
-	"loading audio plugin",
-	"loading RSP plugin",
-	"opening graphics",
-	"opening input",
-	"opening audio",
-	"setting display mode",
-	"creating sound thread",
-	"emulating",
-	"closing the input plugin",
-	"closing the audio plugin",
-	"closing the RSP plugin",
-	"unloading the RSP plugin DLL",
-	"unloading the input plugin DLL",
-	"unloading the audio plugin DLL",
-	"closing the graphics plugin",
-	"unloading the graphics plugin DLL",
-	"(unknown)"
-};
-static int ThreadFuncState = TFS_NONE;
-
-
 TCHAR CoreNames[3][30] = {TEXT("Interpreter"), TEXT("Dynamic Recompiler"), TEXT("Pure Interpreter")};
 
 char AppPath[MAX_PATH];
@@ -230,9 +162,7 @@ void getAppFullPath(char* ret) {
 	strcat(ret, dirn);
 }
 
-static void __cdecl sucre() {
-   //printf("sucre\n");
-}
+
 
 static void gui_ChangeWindow() {
 	if (FullScreenMode) {
@@ -249,103 +179,6 @@ static void gui_ChangeWindow() {
 		ShowWindow(hStatus, SW_SHOW);
 		ShowCursor(TRUE);
 	}
-
-}
-
-void SetupDummyInfo() {
-	int i;
-
-	/////// GFX ///////////////////////////
-	//dummy_gfx_info.hWnd = mainHWND;
-	dummy_gfx_info.hWnd = hStatus;
-	dummy_gfx_info.hStatusBar = hStatus;
-	dummy_gfx_info.MemoryBswaped = TRUE;
-	dummy_gfx_info.HEADER = (BYTE*)DummyHeader;
-	dummy_gfx_info.RDRAM = (BYTE*)rdram;
-	dummy_gfx_info.DMEM = (BYTE*)SP_DMEM;
-	dummy_gfx_info.IMEM = (BYTE*)SP_IMEM;
-	dummy_gfx_info.MI_INTR_REG = &(MI_register.mi_intr_reg);
-	dummy_gfx_info.DPC_START_REG = &(dpc_register.dpc_start);
-	dummy_gfx_info.DPC_END_REG = &(dpc_register.dpc_end);
-	dummy_gfx_info.DPC_CURRENT_REG = &(dpc_register.dpc_current);
-	dummy_gfx_info.DPC_STATUS_REG = &(dpc_register.dpc_status);
-	dummy_gfx_info.DPC_CLOCK_REG = &(dpc_register.dpc_clock);
-	dummy_gfx_info.DPC_BUFBUSY_REG = &(dpc_register.dpc_bufbusy);
-	dummy_gfx_info.DPC_PIPEBUSY_REG = &(dpc_register.dpc_pipebusy);
-	dummy_gfx_info.DPC_TMEM_REG = &(dpc_register.dpc_tmem);
-	dummy_gfx_info.VI_STATUS_REG = &(vi_register.vi_status);
-	dummy_gfx_info.VI_ORIGIN_REG = &(vi_register.vi_origin);
-	dummy_gfx_info.VI_WIDTH_REG = &(vi_register.vi_width);
-	dummy_gfx_info.VI_INTR_REG = &(vi_register.vi_v_intr);
-	dummy_gfx_info.VI_V_CURRENT_LINE_REG = &(vi_register.vi_current);
-	dummy_gfx_info.VI_TIMING_REG = &(vi_register.vi_burst);
-	dummy_gfx_info.VI_V_SYNC_REG = &(vi_register.vi_v_sync);
-	dummy_gfx_info.VI_H_SYNC_REG = &(vi_register.vi_h_sync);
-	dummy_gfx_info.VI_LEAP_REG = &(vi_register.vi_leap);
-	dummy_gfx_info.VI_H_START_REG = &(vi_register.vi_h_start);
-	dummy_gfx_info.VI_V_START_REG = &(vi_register.vi_v_start);
-	dummy_gfx_info.VI_V_BURST_REG = &(vi_register.vi_v_burst);
-	dummy_gfx_info.VI_X_SCALE_REG = &(vi_register.vi_x_scale);
-	dummy_gfx_info.VI_Y_SCALE_REG = &(vi_register.vi_y_scale);
-	dummy_gfx_info.CheckInterrupts = sucre;
-
-	/////// AUDIO /////////////////////////
-	dummy_audio_info.hwnd = mainHWND;
-	dummy_audio_info.hinst = app_hInstance;
-	dummy_audio_info.MemoryBswaped = TRUE;
-	dummy_audio_info.HEADER = (BYTE*)DummyHeader;
-	dummy_audio_info.RDRAM = (BYTE*)rdram;
-	dummy_audio_info.DMEM = (BYTE*)SP_DMEM;
-	dummy_audio_info.IMEM = (BYTE*)SP_IMEM;
-	dummy_audio_info.MI_INTR_REG = &(MI_register.mi_intr_reg);
-	dummy_audio_info.AI_DRAM_ADDR_REG = &(ai_register.ai_dram_addr);
-	dummy_audio_info.AI_LEN_REG = &(ai_register.ai_len);
-	dummy_audio_info.AI_CONTROL_REG = &(ai_register.ai_control);
-	dummy_audio_info.AI_STATUS_REG = &(ai_register.ai_status);
-	dummy_audio_info.AI_DACRATE_REG = &(ai_register.ai_dacrate);
-	dummy_audio_info.AI_BITRATE_REG = &(ai_register.ai_bitrate);
-	dummy_audio_info.CheckInterrupts = sucre;
-
-	///// CONTROLS ///////////////////////////
-	dummy_control_info.hMainWindow = mainHWND;
-	dummy_control_info.hinst = app_hInstance;
-	dummy_control_info.MemoryBswaped = TRUE;
-	dummy_control_info.HEADER = (BYTE*)DummyHeader;
-	dummy_control_info.Controls = Controls;
-	for (i = 0; i < 4; i++) {
-		Controls[i].Present = FALSE;
-		Controls[i].RawData = FALSE;
-		Controls[i].Plugin = PLUGIN_NONE;
-	}
-
-	//////// RSP /////////////////////////////
-	dummy_rsp_info.MemoryBswaped = TRUE;
-	dummy_rsp_info.RDRAM = (BYTE*)rdram;
-	dummy_rsp_info.DMEM = (BYTE*)SP_DMEM;
-	dummy_rsp_info.IMEM = (BYTE*)SP_IMEM;
-	dummy_rsp_info.MI_INTR_REG = &MI_register.mi_intr_reg;
-	dummy_rsp_info.SP_MEM_ADDR_REG = &sp_register.sp_mem_addr_reg;
-	dummy_rsp_info.SP_DRAM_ADDR_REG = &sp_register.sp_dram_addr_reg;
-	dummy_rsp_info.SP_RD_LEN_REG = &sp_register.sp_rd_len_reg;
-	dummy_rsp_info.SP_WR_LEN_REG = &sp_register.sp_wr_len_reg;
-	dummy_rsp_info.SP_STATUS_REG = &sp_register.sp_status_reg;
-	dummy_rsp_info.SP_DMA_FULL_REG = &sp_register.sp_dma_full_reg;
-	dummy_rsp_info.SP_DMA_BUSY_REG = &sp_register.sp_dma_busy_reg;
-	dummy_rsp_info.SP_PC_REG = &rsp_register.rsp_pc;
-	dummy_rsp_info.SP_SEMAPHORE_REG = &sp_register.sp_semaphore_reg;
-	dummy_rsp_info.DPC_START_REG = &dpc_register.dpc_start;
-	dummy_rsp_info.DPC_END_REG = &dpc_register.dpc_end;
-	dummy_rsp_info.DPC_CURRENT_REG = &dpc_register.dpc_current;
-	dummy_rsp_info.DPC_STATUS_REG = &dpc_register.dpc_status;
-	dummy_rsp_info.DPC_CLOCK_REG = &dpc_register.dpc_clock;
-	dummy_rsp_info.DPC_BUFBUSY_REG = &dpc_register.dpc_bufbusy;
-	dummy_rsp_info.DPC_PIPEBUSY_REG = &dpc_register.dpc_pipebusy;
-	dummy_rsp_info.DPC_TMEM_REG = &dpc_register.dpc_tmem;
-	dummy_rsp_info.CheckInterrupts = sucre;
-	dummy_rsp_info.ProcessDlistList = processDList;
-	dummy_rsp_info.ProcessAlistList = processAList;
-	dummy_rsp_info.ProcessRdpList = processRDPList;
-	dummy_rsp_info.ShowCFB = showCFB;
 
 }
 
@@ -371,633 +204,15 @@ void SaveTheState(HWND hWnd, int StateID) {
 
 void LoadTheState(HWND hWnd, int StateID) {
 	SelectState(hWnd, (StateID - ID_LOAD_1) + ID_CURRENTSAVE_1);
-
-//	SendMessage(hWnd, WM_COMMAND, STATE_RESTORE, 0);
 	if (emu_launched) {
 		savestates_job = LOADSTATE;
 	}
-	//don't
-	//if(emu_paused){
-		//update_pif_read(FALSE); // pass in true and it will stuck
-	//}
-}
-
-
-
-//--------------------- plugin storage type ----------------
-typedef struct _plugins plugins;
-struct _plugins {
-	char* file_name;
-	char* plugin_name;
-	HMODULE handle;
-	int type;
-	plugins* next;
-};
-static plugins* liste_plugins = NULL, * current;
-
-void insert_plugin(plugins* p, char* file_name,
-	char* plugin_name, void* handle, int type, int num) {
-
-
-
-
-	if (p->next)
-		insert_plugin(p->next, file_name, plugin_name, handle, type,
-			(p->type == type) ? num + 1 : num);
-	else {
-		for (int i = 0; i < INCOMPATIBLE_PLUGINS_AMOUNT; i++) {
-			if (strstr(plugin_name, pluginBlacklist[i])) {
-				char* msg = (char*)malloc(sizeof(pluginBlacklist[i]));
-
-				sprintf(msg, "An incompatible plugin with the name \"%s\" was detected.\
-                \nIt is highly recommended to skip loading this plugin as not doing so might cause instability.\
-                \nAre you sure you want to load this plugin?", plugin_name);
-
-				int res = MessageBox(0, msg, "Incompatible plugin", MB_YESNO | MB_TOPMOST | MB_ICONWARNING);
-
-				free(msg);
-
-				if (res == IDNO)
-					return;
-				else
-					; // todo: punch user in the face
-
-			}
-		}
-		p->next = (plugins*)malloc(sizeof(plugins));
-		p->next->type = type;
-		p->next->handle = (HMODULE)handle;
-		p->next->file_name = (char*)malloc(strlen(file_name) + 1);
-		strcpy(p->next->file_name, file_name);
-		p->next->plugin_name = (char*)malloc(strlen(plugin_name) + 7);
-		sprintf(p->next->plugin_name, "%s", plugin_name);
-		p->next->next = NULL;
-	}
-}
-
-void rewind_plugin() {
-	current = liste_plugins;
-}
-
-char* next_plugin() {
-	if (!current->next) return NULL;
-	current = current->next;
-	return current->plugin_name;
-}
-
-int get_plugin_type() {
-	if (!current->next) return -1;
-	return current->next->type;
-}
-
-char* getPluginNameInner(plugins* p, char* pluginpath, int plugintype) {
-	if (!p->next) return NULL;
-	if ((plugintype == p->next->type) && (_stricmp(p->next->file_name, pluginpath) == 0))
-		return p->next->plugin_name;
-	else
-		return getPluginNameInner(p->next, pluginpath, plugintype);
-}
-
-char* getPluginName(char* pluginpath, int plugintype) {
-	return getPluginNameInner(liste_plugins, pluginpath, plugintype);
-
-}
-
-HMODULE get_handle(plugins* p, const char* name) {
-	if (!p->next) return NULL;
-
-	while (p->next->plugin_name[strlen(p->next->plugin_name) - 1] == ' ')
-		p->next->plugin_name[strlen(p->next->plugin_name) - 1] = '\0';
-
-	if (!strcmp(p->next->plugin_name, name))
-		return p->next->handle;
-	else
-		return (HMODULE)get_handle(p->next, name);
 }
 
 char* getExtension(char* str) {
 	if (strlen(str) > 3) return str + strlen(str) - 3;
 	else return NULL;
 }
-
-
-
-struct ProcAddress {
-	FARPROC _fp;
-	ProcAddress(HMODULE module, LPCSTR name) : _fp(NULL) {
-		_fp = ::GetProcAddress(module, name);
-	}
-	template<class T>
-	operator T() const {
-		union {
-			FARPROC fp;
-			T func;
-		} converter;
-		converter.fp = _fp;
-		return converter.func;
-	}
-};
-
-void search_plugins() {
-	// TODO: ���̕ӂ�Ȃɂ��Ă邩�悭���ĂȂ�
-	liste_plugins = (plugins*)malloc(sizeof(plugins));
-	liste_plugins->type = -1;
-	liste_plugins->next = NULL;
-	current = liste_plugins;
-
-	String pluginDir;
-	if (Config.is_default_plugins_directory_used) {
-		pluginDir.assign(AppPath).append("\\plugin");
-	} else {
-		pluginDir.assign(Config.plugins_directory);
-	}
-
-	WIN32_FIND_DATA entry;
-	HANDLE dirHandle = ::FindFirstFile((pluginDir + "\\*.dll").c_str(), &entry);
-	if (dirHandle == INVALID_HANDLE_VALUE) {
-		return;
-	}
-
-	do { //plugin�f�B���N�g����ǂ�ŁA�v���O�C�����X�g�𐶐�
-		if (String(::getExtension(entry.cFileName)) == "dll") {
-			String pluginPath;
-			pluginPath.assign(pluginDir)
-				.append("\\").append(entry.cFileName);
-
-			HMODULE pluginHandle = LoadLibrary(pluginPath.c_str());
-			if (pluginHandle != NULL
-				&& (getDllInfo = ProcAddress(pluginHandle, "GetDllInfo")) != NULL) {
-				PLUGIN_INFO pluginInfo;
-				getDllInfo(&pluginInfo);
-				while (pluginInfo.Name[strlen(pluginInfo.Name) - 1] == ' ') {
-					pluginInfo.Name[strlen(pluginInfo.Name) - 1] = '\0';
-				}
-				insert_plugin(liste_plugins, entry.cFileName, pluginInfo.Name,
-					pluginHandle, pluginInfo.Type, 0);
-			}
-		}
-	} while (!!FindNextFile(dirHandle, &entry));
-
-}
-
-void exec_config(const char* name) {
-	HMODULE handle;
-	PLUGIN_INFO PluginInfo;
-	handle = (HMODULE)get_handle(liste_plugins, name);
-	int i;
-	BOOL wasPaused = emu_paused && !MenuPaused;
-	MenuPaused = FALSE;
-	if (emu_launched && !emu_paused) {
-		pauseEmu(FALSE);
-	}
-
-	if (handle) {
-
-		getDllInfo = (void(__cdecl*)(PLUGIN_INFO * PluginInfo))GetProcAddress(handle, "GetDllInfo");
-
-		getDllInfo(&PluginInfo);
-		switch (PluginInfo.Type) {
-			case PLUGIN_TYPE_AUDIO:
-				if (!emu_launched) {
-					initiateAudio = (BOOL(__cdecl*)(AUDIO_INFO))GetProcAddress(handle, "InitiateAudio");
-					if (!initiateAudio(dummy_audio_info)) {
-						ShowMessage("Failed to initialize audio plugin.");
-					}
-				}
-
-				dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllConfig");
-				if (dllConfig) dllConfig(hwnd_plug);
-				if (!emu_launched) {
-					closeDLL_audio = (void(__cdecl*)())GetProcAddress(handle, "CloseDLL");
-					if (closeDLL_audio) closeDLL_audio();
-				}
-				break;
-
-			case PLUGIN_TYPE_GFX:
-				if (!emu_launched) {
-					initiateGFX = (BOOL(__cdecl*)(GFX_INFO Gfx_Info))GetProcAddress(handle, "InitiateGFX");
-					if (!initiateGFX(dummy_gfx_info)) {
-						ShowMessage("Failed to initiate gfx plugin.");
-					}
-				}
-
-				dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllConfig");
-				if (dllConfig) dllConfig(hwnd_plug);
-				if (!emu_launched) {
-					closeDLL_gfx = (void(__cdecl*)())GetProcAddress(handle, "CloseDLL");
-					if (closeDLL_gfx) closeDLL_gfx();
-				}
-				break;
-
-			case PLUGIN_TYPE_CONTROLLER:
-				if (!emu_launched) {
-					if (PluginInfo.Version == 0x0101) {
-						initiateControllers = (void(__cdecl*)(CONTROL_INFO ControlInfo))GetProcAddress(handle, "InitiateControllers");
-						initiateControllers(dummy_control_info);
-					} else {
-						old_initiateControllers = (void(__cdecl*)(HWND hMainWindow, CONTROL Controls[4]))GetProcAddress(handle, "InitiateControllers");
-						old_initiateControllers(mainHWND, Controls);
-					}
-				}
-
-				dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllConfig");
-				if (dllConfig) dllConfig(hwnd_plug);
-
-				if (!emu_launched) {
-					closeDLL_input = (void(__cdecl*)())GetProcAddress(handle, "CloseDLL");
-					if (closeDLL_input) closeDLL_input();
-				}
-				break;
-			case PLUGIN_TYPE_RSP:
-				if (!emu_launched) {
-					initiateRSP = (void(__cdecl*)(RSP_INFO, DWORD*))GetProcAddress(handle, "InitiateRSP");
-					initiateRSP(dummy_rsp_info, (DWORD*)&i);
-				}
-
-				dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllConfig");
-				if (dllConfig) dllConfig(hwnd_plug);
-				if (!emu_launched) {
-					closeDLL_RSP = (void(__cdecl*)())GetProcAddress(handle, "CloseDLL");
-					if (closeDLL_RSP) closeDLL_RSP();
-				}
-				break;
-			default:
-				dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllConfig");
-				if (dllConfig) dllConfig(hwnd_plug);
-				break;
-		}
-
-
-	}
-
-	if (emu_launched && emu_paused && !wasPaused) {
-		resumeEmu(FALSE);
-	}
-}
-
-void exec_test(char* name) {
-	HMODULE handle;
-
-	handle = (HMODULE)get_handle(liste_plugins, name);
-	if (handle) {
-		dllTest = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllTest");
-		if (dllTest) dllTest(hwnd_plug);
-	}
-}
-
-void exec_about(char* name) {
-	HMODULE handle;
-
-	handle = (HMODULE)get_handle(liste_plugins, name);
-	if (handle) {
-		dllAbout = (void(__cdecl*)(HWND hParent))GetProcAddress(handle, "DllAbout");
-		if (dllAbout) dllAbout(hwnd_plug);
-	}
-}
-int check_plugins() {
-	// Bad implementation... i forgot this is C++ and not C so
-	// i went with a low-level implementation at first...
-	// But hey this works
-	void* handle_gfx, * handle_input, * handle_sound, * handle_rsp;
-	handle_gfx = get_handle(liste_plugins, Config.selected_video_plugin_name.c_str());
-	handle_sound = get_handle(liste_plugins, Config.selected_audio_plugin_name.c_str());
-	handle_input = get_handle(liste_plugins, Config.selected_input_plugin_name.c_str());
-	handle_rsp = get_handle(liste_plugins, Config.selected_rsp_plugin_name.c_str());
-
-	void* pluginHandles[4] = {handle_gfx, handle_input, handle_sound, handle_rsp}; // can probably be done in one line
-	char pluginsMissing = 0;
-	std::string pluginNames[] = {"Video", "Input", "Sound", "RSP"};
-	std::string finalMessage = "Plugin(s) missing: ";
-	for (char i = 0; i <= 3; i++) {
-		if (!pluginHandles[i]) {
-			printf("Plugin missing: %s\n", pluginNames[i].c_str());
-			if (i != 3)
-				pluginNames[i].append(", ");
-
-			finalMessage.append(pluginNames[i]);
-			pluginsMissing++;
-			//strcat(finalMessage, pluginNames[i]);
-		}
-	}
-
-	if (pluginsMissing != 0) {
-		// strdup seems like a bad idea... this too :)
-		if (pluginsMissing == 1) {
-			/*finalMessage.pop_back();*/
-			finalMessage.resize(finalMessage.size() - 2);
-			/* HACK: instead of doing better programming, just trim last letter (whitespace too)*/
-		}
-		if (MessageBox(mainHWND, (finalMessage + "\nDo you want to select plugins?").c_str(), "Error", MB_TASKMODAL | MB_ICONERROR | MB_YESNO) == IDYES) {
-			ChangeSettings(mainHWND);
-			ini_updateFile();
-		}
-
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-int load_gfx(HMODULE handle_gfx) {
-	if (handle_gfx) {
-		changeWindow = (void(__cdecl*)())GetProcAddress(handle_gfx, "ChangeWindow");
-		closeDLL_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "CloseDLL");
-		dllAbout = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllAbout");
-		dllConfig = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllConfig");
-		dllTest = (void(__cdecl*)(HWND hParent))GetProcAddress(handle_gfx, "DllTest");
-		initiateGFX = (BOOL(__cdecl*)(GFX_INFO Gfx_Info))GetProcAddress(handle_gfx, "InitiateGFX");
-		processDList = (void(__cdecl*)())GetProcAddress(handle_gfx, "ProcessDList");
-		processRDPList = (void(__cdecl*)())GetProcAddress(handle_gfx, "ProcessRDPList");
-		romClosed_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "RomClosed");
-		romOpen_gfx = (void(__cdecl*)())GetProcAddress(handle_gfx, "RomOpen");
-		showCFB = (void(__cdecl*)())GetProcAddress(handle_gfx, "ShowCFB");
-		updateScreen = (void(__cdecl*)())GetProcAddress(handle_gfx, "UpdateScreen");
-		viStatusChanged = (void(__cdecl*)())GetProcAddress(handle_gfx, "ViStatusChanged");
-		viWidthChanged = (void(__cdecl*)())GetProcAddress(handle_gfx, "ViWidthChanged");
-		moveScreen = (void(__cdecl*)(int, int))GetProcAddress(handle_gfx, "MoveScreen");
-		CaptureScreen = (void(__cdecl*)(char* Directory))GetProcAddress(handle_gfx, "CaptureScreen");
-		if (Config.is_internal_capture_forced) {
-			readScreen = NULL;
-			externalReadScreen = 0;
-			DllCrtFree = free;
-		} else {
-			readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen");
-			if (readScreen == NULL) {
-				//try to find readscreen2 instead (gln64)
-				readScreen = (void(__cdecl*)(void** dest, long* width, long* height))GetProcAddress(handle_gfx, "ReadScreen2");
-				if (readScreen == NULL) {
-					externalReadScreen = 0;
-					DllCrtFree = free;
-				}
-
-			}
-			if (readScreen) {
-				externalReadScreen = 1;
-				DllCrtFree = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "DllCrtFree");
-				if (DllCrtFree == NULL) DllCrtFree = free; //attempt to match the crt, avi capture will probably crash without this
-			}
-
-		}
-
-		fBRead = (void(__cdecl*)(DWORD))GetProcAddress(handle_gfx, "FBRead");
-		fBWrite = (void(__cdecl*)(DWORD, DWORD))GetProcAddress(handle_gfx, "FBWrite");
-		fBGetFrameBufferInfo = (void(__cdecl*)(void*))GetProcAddress(handle_gfx, "FBGetFrameBufferInfo");
-
-		if (changeWindow == NULL) changeWindow = dummy_void;
-		if (closeDLL_gfx == NULL) closeDLL_gfx = dummy_void;
-		if (initiateGFX == NULL) initiateGFX = dummy_initiateGFX;
-		if (processDList == NULL) processDList = dummy_void;
-		if (processRDPList == NULL) processRDPList = dummy_void;
-		if (romClosed_gfx == NULL) romClosed_gfx = dummy_void;
-		if (romOpen_gfx == NULL) romOpen_gfx = dummy_void;
-		if (showCFB == NULL) showCFB = dummy_void;
-		if (updateScreen == NULL) updateScreen = dummy_void;
-		if (viStatusChanged == NULL) viStatusChanged = dummy_void;
-		if (viWidthChanged == NULL) viWidthChanged = dummy_void;
-		if (CaptureScreen == NULL) CaptureScreen = (void(__cdecl*)(char*))dummy_void;
-		if (moveScreen == NULL) moveScreen = (void(__cdecl*)(int, int))dummy_void;
-
-		gfx_info.hWnd = mainHWND;
-		if (Config.is_statusbar_enabled) {
-			gfx_info.hStatusBar = hStatus;
-		} else {
-			gfx_info.hStatusBar = NULL;
-		}
-		gfx_info.MemoryBswaped = TRUE;
-		gfx_info.HEADER = rom;
-		gfx_info.RDRAM = (BYTE*)rdram;
-		gfx_info.DMEM = (BYTE*)SP_DMEM;
-		gfx_info.IMEM = (BYTE*)SP_IMEM;
-		gfx_info.MI_INTR_REG = &(MI_register.mi_intr_reg);
-		gfx_info.DPC_START_REG = &(dpc_register.dpc_start);
-		gfx_info.DPC_END_REG = &(dpc_register.dpc_end);
-		gfx_info.DPC_CURRENT_REG = &(dpc_register.dpc_current);
-		gfx_info.DPC_STATUS_REG = &(dpc_register.dpc_status);
-		gfx_info.DPC_CLOCK_REG = &(dpc_register.dpc_clock);
-		gfx_info.DPC_BUFBUSY_REG = &(dpc_register.dpc_bufbusy);
-		gfx_info.DPC_PIPEBUSY_REG = &(dpc_register.dpc_pipebusy);
-		gfx_info.DPC_TMEM_REG = &(dpc_register.dpc_tmem);
-		gfx_info.VI_STATUS_REG = &(vi_register.vi_status);
-		gfx_info.VI_ORIGIN_REG = &(vi_register.vi_origin);
-		gfx_info.VI_WIDTH_REG = &(vi_register.vi_width);
-		gfx_info.VI_INTR_REG = &(vi_register.vi_v_intr);
-		gfx_info.VI_V_CURRENT_LINE_REG = &(vi_register.vi_current);
-		gfx_info.VI_TIMING_REG = &(vi_register.vi_burst);
-		gfx_info.VI_V_SYNC_REG = &(vi_register.vi_v_sync);
-		gfx_info.VI_H_SYNC_REG = &(vi_register.vi_h_sync);
-		gfx_info.VI_LEAP_REG = &(vi_register.vi_leap);
-		gfx_info.VI_H_START_REG = &(vi_register.vi_h_start);
-		gfx_info.VI_V_START_REG = &(vi_register.vi_v_start);
-		gfx_info.VI_V_BURST_REG = &(vi_register.vi_v_burst);
-		gfx_info.VI_X_SCALE_REG = &(vi_register.vi_x_scale);
-		gfx_info.VI_Y_SCALE_REG = &(vi_register.vi_y_scale);
-		gfx_info.CheckInterrupts = sucre;
-		initiateGFX(gfx_info);
-	} else {
-		changeWindow = dummy_void;
-		closeDLL_gfx = dummy_void;
-		initiateGFX = dummy_initiateGFX;
-		processDList = dummy_void;
-		processRDPList = dummy_void;
-		romClosed_gfx = dummy_void;
-		romOpen_gfx = dummy_void;
-		showCFB = dummy_void;
-		updateScreen = dummy_void;
-		viStatusChanged = dummy_void;
-		viWidthChanged = dummy_void;
-	}
-	return 0;
-}
-int load_input(HMODULE handle_input) {
-	int i;
-	PLUGIN_INFO PluginInfo;
-	if (handle_input) {
-		getDllInfo = (void(__cdecl*)(PLUGIN_INFO * PluginInfo))GetProcAddress(handle_input, "GetDllInfo");
-		getDllInfo(&PluginInfo);
-
-		closeDLL_input = (void(__cdecl*)())GetProcAddress(handle_input, "CloseDLL");
-		controllerCommand = (void(__cdecl*)(int Control, BYTE * Command))GetProcAddress(handle_input, "ControllerCommand");
-		getKeys = (void(__cdecl*)(int Control, BUTTONS * Keys))GetProcAddress(handle_input, "GetKeys");
-		setKeys = (void(__cdecl*)(int Control, BUTTONS  Keys))GetProcAddress(handle_input, "SetKeys");
-		if (PluginInfo.Version == 0x0101)
-			initiateControllers = (void(__cdecl*)(CONTROL_INFO ControlInfo))GetProcAddress(handle_input, "InitiateControllers");
-		else
-			old_initiateControllers = (void(__cdecl*)(HWND hMainWindow, CONTROL Controls[4]))GetProcAddress(handle_input, "InitiateControllers");
-		readController = (void(__cdecl*)(int Control, BYTE * Command))GetProcAddress(handle_input, "ReadController");
-		romClosed_input = (void(__cdecl*)())GetProcAddress(handle_input, "RomClosed");
-		romOpen_input = (void(__cdecl*)())GetProcAddress(handle_input, "RomOpen");
-		keyDown = (void(__cdecl*)(WPARAM wParam, LPARAM lParam))GetProcAddress(handle_input, "WM_KeyDown");
-		keyUp = (void(__cdecl*)(WPARAM wParam, LPARAM lParam))GetProcAddress(handle_input, "WM_KeyUp");
-
-		if (closeDLL_input == NULL) closeDLL_input = dummy_void;
-		if (controllerCommand == NULL) controllerCommand = dummy_controllerCommand;
-		if (getKeys == NULL) getKeys = dummy_getKeys;
-		if (setKeys == NULL) setKeys = dummy_setKeys;
-		if (initiateControllers == NULL) initiateControllers = dummy_initiateControllers;
-		if (readController == NULL) readController = dummy_readController;
-		if (romClosed_input == NULL) romClosed_input = dummy_void;
-		if (romOpen_input == NULL) romOpen_input = dummy_void;
-		if (keyDown == NULL) keyDown = dummy_keyDown;
-		if (keyUp == NULL) keyUp = dummy_keyUp;
-
-		control_info.hMainWindow = mainHWND;
-		control_info.hinst = app_hInstance;
-		control_info.MemoryBswaped = TRUE;
-		control_info.HEADER = rom;
-		control_info.Controls = Controls;
-		for (i = 0; i < 4; i++) {
-			Controls[i].Present = FALSE;
-			Controls[i].RawData = FALSE;
-			Controls[i].Plugin = PLUGIN_NONE;
-		}
-		if (PluginInfo.Version == 0x0101) {
-			initiateControllers(control_info);
-		} else {
-			old_initiateControllers(mainHWND, Controls);
-		}
-		InputPluginVersion = PluginInfo.Version;
-	} else {
-		closeDLL_input = dummy_void;
-		controllerCommand = dummy_controllerCommand;
-		getKeys = dummy_getKeys;
-		setKeys = dummy_setKeys;
-		initiateControllers = dummy_initiateControllers;
-		readController = dummy_readController;
-		romClosed_input = dummy_void;
-		romOpen_input = dummy_void;
-		keyDown = dummy_keyDown;
-		keyUp = dummy_keyUp;
-	}
-	return 0;
-}
-
-
-int load_sound(HMODULE handle_sound) {
-	if (handle_sound) {
-		closeDLL_audio = (void(__cdecl*)(void))GetProcAddress(handle_sound, "CloseDLL");
-		aiDacrateChanged = (void(__cdecl*)(int))GetProcAddress(handle_sound, "AiDacrateChanged");
-		aiLenChanged = (void(__cdecl*)(void))GetProcAddress(handle_sound, "AiLenChanged");
-		aiReadLength = (DWORD(__cdecl*)(void))GetProcAddress(handle_sound, "AiReadLength");
-		initiateAudio = (BOOL(__cdecl*)(AUDIO_INFO))GetProcAddress(handle_sound, "InitiateAudio");
-		romClosed_audio = (void(__cdecl*)(void))GetProcAddress(handle_sound, "RomClosed");
-		romOpen_audio = (void(__cdecl*)(void))GetProcAddress(handle_sound, "RomOpen");
-		processAList = (void(__cdecl*)(void))GetProcAddress(handle_sound, "ProcessAList");
-		aiUpdate = (void(__cdecl*)(BOOL))GetProcAddress(handle_sound, "AiUpdate");
-
-		if (aiDacrateChanged == NULL) aiDacrateChanged = dummy_aiDacrateChanged;
-		if (aiLenChanged == NULL) aiLenChanged = dummy_void;
-		if (aiReadLength == NULL) aiReadLength = dummy_aiReadLength;
-		//if (aiUpdate == NULL) aiUpdate = dummy_aiUpdate;
-		if (closeDLL_audio == NULL) closeDLL_audio = dummy_void;
-		if (initiateAudio == NULL) initiateAudio = dummy_initiateAudio;
-		if (processAList == NULL) processAList = dummy_void;
-		if (romClosed_audio == NULL) romClosed_audio = dummy_void;
-		if (romOpen_audio == NULL) romOpen_audio = dummy_void;
-
-		audio_info.hwnd = mainHWND;
-		audio_info.hinst = app_hInstance;
-		audio_info.MemoryBswaped = TRUE;
-		audio_info.HEADER = rom;
-
-		audio_info.RDRAM = (BYTE*)rdram;
-		audio_info.DMEM = (BYTE*)SP_DMEM;
-		audio_info.IMEM = (BYTE*)SP_IMEM;
-
-		audio_info.MI_INTR_REG = &dummy;//&(MI_register.mi_intr_reg);
-
-		audio_info.AI_DRAM_ADDR_REG = &(ai_register.ai_dram_addr);
-		audio_info.AI_LEN_REG = &(ai_register.ai_len);
-		audio_info.AI_CONTROL_REG = &(ai_register.ai_control);
-		audio_info.AI_STATUS_REG = &dummy;//&(ai_register.ai_status);
-		audio_info.AI_DACRATE_REG = &(ai_register.ai_dacrate);
-		audio_info.AI_BITRATE_REG = &(ai_register.ai_bitrate);
-
-		audio_info.CheckInterrupts = sucre;
-		initiateAudio(audio_info);
-	} else {
-		aiDacrateChanged = dummy_aiDacrateChanged;
-		aiLenChanged = dummy_void;
-		aiReadLength = dummy_aiReadLength;
-		//aiUpdate = dummy_aiUpdate;
-		closeDLL_audio = dummy_void;
-		initiateAudio = dummy_initiateAudio;
-		processAList = dummy_void;
-		romClosed_audio = dummy_void;
-		romOpen_audio = dummy_void;
-	}
-	return 0;
-}
-
-int load_rsp(HMODULE handle_RSP) {
-	int i = 4;
-	if (handle_RSP) {
-		closeDLL_RSP = (void(__cdecl*)(void))GetProcAddress(handle_RSP, "CloseDLL");
-		doRspCycles = (DWORD(__cdecl*)(DWORD))GetProcAddress(handle_RSP, "DoRspCycles");
-		initiateRSP = (void(__cdecl*)(RSP_INFO, DWORD*))GetProcAddress(handle_RSP, "InitiateRSP");
-		romClosed_RSP = (void(__cdecl*)(void))GetProcAddress(handle_RSP, "RomClosed");
-
-		if (closeDLL_RSP == NULL) closeDLL_RSP = dummy_void;
-		if (doRspCycles == NULL) doRspCycles = dummy_doRspCycles;
-		if (initiateRSP == NULL) initiateRSP = dummy_initiateRSP;
-		if (romClosed_RSP == NULL) romClosed_RSP = dummy_void;
-
-		rsp_info.MemoryBswaped = TRUE;
-		rsp_info.RDRAM = (BYTE*)rdram;
-		rsp_info.DMEM = (BYTE*)SP_DMEM;
-		rsp_info.IMEM = (BYTE*)SP_IMEM;
-		rsp_info.MI_INTR_REG = &MI_register.mi_intr_reg;
-		rsp_info.SP_MEM_ADDR_REG = &sp_register.sp_mem_addr_reg;
-		rsp_info.SP_DRAM_ADDR_REG = &sp_register.sp_dram_addr_reg;
-		rsp_info.SP_RD_LEN_REG = &sp_register.sp_rd_len_reg;
-		rsp_info.SP_WR_LEN_REG = &sp_register.sp_wr_len_reg;
-		rsp_info.SP_STATUS_REG = &sp_register.sp_status_reg;
-		rsp_info.SP_DMA_FULL_REG = &sp_register.sp_dma_full_reg;
-		rsp_info.SP_DMA_BUSY_REG = &sp_register.sp_dma_busy_reg;
-		rsp_info.SP_PC_REG = &rsp_register.rsp_pc;
-		rsp_info.SP_SEMAPHORE_REG = &sp_register.sp_semaphore_reg;
-		rsp_info.DPC_START_REG = &dpc_register.dpc_start;
-		rsp_info.DPC_END_REG = &dpc_register.dpc_end;
-		rsp_info.DPC_CURRENT_REG = &dpc_register.dpc_current;
-		rsp_info.DPC_STATUS_REG = &dpc_register.dpc_status;
-		rsp_info.DPC_CLOCK_REG = &dpc_register.dpc_clock;
-		rsp_info.DPC_BUFBUSY_REG = &dpc_register.dpc_bufbusy;
-		rsp_info.DPC_PIPEBUSY_REG = &dpc_register.dpc_pipebusy;
-		rsp_info.DPC_TMEM_REG = &dpc_register.dpc_tmem;
-		rsp_info.CheckInterrupts = sucre;
-		rsp_info.ProcessDlistList = processDList;
-		rsp_info.ProcessAlistList = processAList;
-		rsp_info.ProcessRdpList = processRDPList;
-		rsp_info.ShowCFB = showCFB;
-		initiateRSP(rsp_info, (DWORD*)&i);
-	} else {
-		closeDLL_RSP = dummy_void;
-		doRspCycles = dummy_doRspCycles;
-		initiateRSP = dummy_initiateRSP;
-		romClosed_RSP = dummy_void;
-	}
-	return 0;
-}
-
-int load_plugins() {
-	HMODULE handle_gfx, handle_input, handle_sound, handle_rsp;
-
-	handle_gfx = get_handle(liste_plugins, Config.selected_video_plugin_name.c_str());
-	handle_sound = get_handle(liste_plugins, Config.selected_audio_plugin_name.c_str());
-	handle_input = get_handle(liste_plugins, Config.selected_input_plugin_name.c_str());
-	handle_rsp = get_handle(liste_plugins, Config.selected_rsp_plugin_name.c_str());
-
-	ThreadFuncState = TFS_LOADGFX;
-	load_gfx(handle_gfx);
-	ThreadFuncState = TFS_LOADINPUT;
-	load_input(handle_input);
-	ThreadFuncState = TFS_LOADAUDIO;
-	load_sound(handle_sound);
-	ThreadFuncState = TFS_LOADRSP;
-	load_rsp(handle_rsp);
-
-	return (1);
-}
-
 
 void WaitEmuThread() {
 	DWORD ExitCode;
@@ -1008,7 +223,6 @@ void WaitEmuThread() {
 		GetExitCodeThread(EmuThreadHandle, &ExitCode);
 		if (ExitCode != STILL_ACTIVE) {
 			EmuThreadHandle = NULL;
-//			count = 100;
 			break;
 		}
 	}
@@ -1020,9 +234,7 @@ void WaitEmuThread() {
 			EmuThreadHandle = NULL;
 		}
 
-		char str[256];
-		sprintf(str, "There was a problem with %s.\nYou should quit and re-open the emulator before doing anything else,\nor you may encounter serious errors.", ThreadFuncStateDescription[ThreadFuncState]);
-		MessageBox(NULL, str, "Warning", MB_OK);
+		MessageBox(NULL, "There was a problem with emulating.", "Warning", MB_OK);
 	}
 	emu_launched = 0;
 	emu_paused = 1;
@@ -1095,9 +307,10 @@ BOOL StartRom(char* fullRomPath) {
 		//ShowWindow(mainHWND, TRUE);
 
 		if (!restart_mode) {
-			if (!check_plugins()) {
-				return TRUE;
-			}
+			// TODO: reimplement
+			//if (!check_plugins()) {
+			//	return TRUE;
+			//}
 
 			SetStatusMode(1);
 
@@ -1368,30 +581,30 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 			SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2, Config.selected_rsp_plugin_name.c_str());
 
 			strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
-			if (Controls[0].Present && Controls[0].Plugin == PLUGIN_MEMPAK)
+			if (Controls[0].Present && Controls[0].Plugin == controller_extension::mempak)
 				strcat(tempbuf, " with mempak");
-			if (Controls[0].Present && Controls[0].Plugin == PLUGIN_RUMBLE_PAK)
+			if (Controls[0].Present && Controls[0].Plugin == controller_extension::rumblepak)
 				strcat(tempbuf, " with rumble");
 			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER1_TEXT2, tempbuf);
 
 			strcpy(tempbuf, Controls[1].Present ? "Present" : "Disconnected");
-			if (Controls[1].Present && Controls[1].Plugin == PLUGIN_MEMPAK)
+			if (Controls[1].Present && Controls[1].Plugin == controller_extension::mempak)
 				strcat(tempbuf, " with mempak");
-			if (Controls[1].Present && Controls[1].Plugin == PLUGIN_RUMBLE_PAK)
+			if (Controls[1].Present && Controls[1].Plugin == controller_extension::rumblepak)
 				strcat(tempbuf, " with rumble pak");
 			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER2_TEXT2, tempbuf);
 
 			strcpy(tempbuf, Controls[2].Present ? "Present" : "Disconnected");
-			if (Controls[2].Present && Controls[2].Plugin == PLUGIN_MEMPAK)
+			if (Controls[2].Present && Controls[2].Plugin == controller_extension::mempak)
 				strcat(tempbuf, " with mempak");
-			if (Controls[2].Present && Controls[2].Plugin == PLUGIN_RUMBLE_PAK)
+			if (Controls[2].Present && Controls[2].Plugin == controller_extension::rumblepak)
 				strcat(tempbuf, " with rumble pak");
 			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER3_TEXT2, tempbuf);
 
 			strcpy(tempbuf, Controls[3].Present ? "Present" : "Disconnected");
-			if (Controls[3].Present && Controls[3].Plugin == PLUGIN_MEMPAK)
+			if (Controls[3].Present && Controls[3].Plugin == controller_extension::mempak)
 				strcat(tempbuf, " with mempak");
-			if (Controls[3].Present && Controls[3].Plugin == PLUGIN_RUMBLE_PAK)
+			if (Controls[3].Present && Controls[3].Plugin == controller_extension::rumblepak)
 				strcat(tempbuf, " with rumble pak");
 			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER4_TEXT2, tempbuf);
 
@@ -1676,30 +889,30 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 			SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2, Config.selected_rsp_plugin_name.c_str());
 
 			strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
-			if (Controls[0].Present && Controls[0].Plugin == PLUGIN_MEMPAK)
+			if (Controls[0].Present && Controls[0].Plugin == controller_extension::mempak)
 				strcat(tempbuf, " with mempak");
-			if (Controls[0].Present && Controls[0].Plugin == PLUGIN_RUMBLE_PAK)
+			if (Controls[0].Present && Controls[0].Plugin == controller_extension::rumblepak)
 				strcat(tempbuf, " with rumble");
 			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER1_TEXT2, tempbuf);
 
 			strcpy(tempbuf, Controls[1].Present ? "Present" : "Disconnected");
-			if (Controls[1].Present && Controls[1].Plugin == PLUGIN_MEMPAK)
+			if (Controls[1].Present && Controls[1].Plugin == controller_extension::mempak)
 				strcat(tempbuf, " with mempak");
-			if (Controls[1].Present && Controls[1].Plugin == PLUGIN_RUMBLE_PAK)
+			if (Controls[1].Present && Controls[1].Plugin == controller_extension::rumblepak)
 				strcat(tempbuf, " with rumble pak");
 			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER2_TEXT2, tempbuf);
 
 			strcpy(tempbuf, Controls[2].Present ? "Present" : "Disconnected");
-			if (Controls[2].Present && Controls[2].Plugin == PLUGIN_MEMPAK)
+			if (Controls[2].Present && Controls[2].Plugin == controller_extension::mempak)
 				strcat(tempbuf, " with mempak");
-			if (Controls[2].Present && Controls[2].Plugin == PLUGIN_RUMBLE_PAK)
+			if (Controls[2].Present && Controls[2].Plugin == controller_extension::rumblepak)
 				strcat(tempbuf, " with rumble pak");
 			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER3_TEXT2, tempbuf);
 
 			strcpy(tempbuf, Controls[3].Present ? "Present" : "Disconnected");
-			if (Controls[3].Present && Controls[3].Plugin == PLUGIN_MEMPAK)
+			if (Controls[3].Present && Controls[3].Plugin == controller_extension::mempak)
 				strcat(tempbuf, " with mempak");
-			if (Controls[3].Present && Controls[3].Plugin == PLUGIN_RUMBLE_PAK)
+			if (Controls[3].Present && Controls[3].Plugin == controller_extension::rumblepak)
 				strcat(tempbuf, " with rumble pak");
 			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER4_TEXT2, tempbuf);
 
@@ -1927,67 +1140,6 @@ void SetStatusMode(int mode) {
 				SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)statusmsg);
 				sprintf(TempMessage, "%s", ROM_SETTINGS.goodname);
 				SendMessage(hStatus, SB_SETTEXT, parts - 1, (LPARAM)TempMessage);
-   /*
-				switch( ROM_HEADER->Country_code&0xFF )             //Choosing icon
-				{
-				   case 0:
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_DEMO),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                         //IDI_DEMO
-				   case '7':
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_BETA),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                         //IDI_BETA
-				   case 0x44:
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_GERMANY),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                         //IDI_GERMANY
-				   case 0x45:
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_USA),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                         //IDI_USA
-				   case 0x4A:
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_JAPAN),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                         //IDI_JAPAN
-				   case 0x20:
-				   case 0x21:
-				   case 0x38:
-				   case 0x70:
-				   case 0x50:
-				   case 0x58:
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_EUROPE),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                         //IDI_EUROPE
-				   case 0x55:
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_AUSTRALIA),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                        //IDI_AUSTRALIA
-				   case 'I':
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_ITALIA),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				  break;                         //IDI_ITALIA
-				   case 0x46:
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_FRANCE),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                        //IDI_FRANCE
-				   case 'S':
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_SPAIN),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;                         //IDI_SPAIN
-				   default:
-					  hStatusIcon = LoadImage( app_hInstance, MAKEINTRESOURCE(IDI_USA),
-										 IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_SHARED );
-				   break;
-				}
-
-				GetClientRect(hStatus, &rcClient);
-				hStaticHandle = CreateWindowEx(0, "Static", (LPCTSTR) "ROMIcon",
-								   WS_CHILD | WS_VISIBLE | SS_ICON,
-								   347, ((rcClient.bottom - rcClient.top) - 16)/2 + 1,
-								   0, 0, hStatus, (HMENU) 0, app_hInstance, NULL);
-				SendMessage( hStaticHandle, STM_SETICON, (WPARAM) hStatusIcon, 0 );
-   */
 				break;
 default:
 	break;
@@ -2112,8 +1264,9 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 }
 
 static DWORD WINAPI SoundThread(LPVOID lpParam) {
-	while (emu_launched)
+	while (emu_launched) {
 		aiUpdate(1);
+	}
 	ExitThread(0);
 }
 
@@ -2124,37 +1277,19 @@ static DWORD WINAPI StartMoviesThread(LPVOID lpParam) {
 }
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam) {
-	ThreadFuncState = TFS_NONE;
-	printf("Emu thread preparing for launch\n");
-
-	ThreadFuncState = TFS_INITMEM;
-	printf("Init memory....\n");
 	init_memory();
-	ThreadFuncState = TFS_LOADPLUGINS;
-	printf("Loading plugins....\n");
 	load_plugins();
-	ThreadFuncState = TFS_OPENGFX;
-	printf("Rom open gfx...\n");
 	romOpen_gfx();
-	ThreadFuncState = TFS_OPENINPUT;
-	printf("Rom open input....\n");
 	romOpen_input();
-	ThreadFuncState = TFS_OPENAUDIO;
-	printf("Rom open audio....\n");
 	romOpen_audio();
 
-	ThreadFuncState = TFS_DISPLAYMODE;
 	dynacore = Config.core_type;
-	printf("Core = %s\n", CoreNames[dynacore]);
 
 	emu_paused = 0;
 	emu_launched = 1;
 	restart_mode = 0;
 
-	ThreadFuncState = TFS_CREATESOUND;
-	printf("Emu thread: Creating sound thread...\n");
 	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0, &SOUNDTHREADID);
-	ThreadFuncState = TFS_EMULATING;
 	printf("Emu thread: Emulation started....\n");
 	CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL);
 	StartLuaScripts();
@@ -2168,32 +1303,20 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam) {
 		pauseAtFrame = -1;
 	}
 	go();
-	printf("Emu thread: Core stopped...\n");
-	ThreadFuncState = TFS_CLOSEINPUT;
-	romClosed_input();
-	printf("Emu thread: romClosed (input plugin)\n");
-	ThreadFuncState = TFS_CLOSEAUDIO;
-	romClosed_audio();
-	printf("Emu thread: romClosed (audio plugin)\n");
-	ThreadFuncState = TFS_CLOSERSP;
-	romClosed_RSP();
-	printf("Emu thread: romClosed (RSP plugin)\n");
-	ThreadFuncState = TFS_UNLOADRSP;
-	closeDLL_RSP();
-	printf("Emu thread: RSP plugin closed\n");
-	ThreadFuncState = TFS_UNLOADINPUT;
-	closeDLL_input();
-	printf("Emu thread: input plugin closed\n");
-	ThreadFuncState = TFS_UNLOADAUDIO;
-	closeDLL_audio();
-	printf("Emu thread: audio plugin closed\n");
-	ThreadFuncState = TFS_CLOSEGFX;
+
 	romClosed_gfx();
-	printf("Emu thread: romClosed (gfx plugin)\n");
-	ThreadFuncState = TFS_UNLOADGFX;
+	romClosed_audio();
+	romClosed_input();
+	romClosed_RSP();
+
 	closeDLL_gfx();
-	printf("Emu thread: gfx plugin closed\n");
-	ThreadFuncState = TFS_NONE;
+	closeDLL_audio();
+	closeDLL_input();
+	closeDLL_RSP();
+
+	destroy_plugins();
+	search_plugins();
+
 	ExitThread(0);
 }
 
@@ -2242,7 +1365,7 @@ BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId) {
 }
 
 void ProcessToolTips(LPARAM lParam, HWND hWnd) {
-		
+
 	LPTOOLTIPTEXT lpttt = (LPTOOLTIPTEXT)lParam;
 
 	lpttt->hinst = app_hInstance;
@@ -2301,7 +1424,6 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd) {
 		default:
 			break;
 	}
-	LocalFree(lpttt);
 }
 
 void EnableStatusbar() {
@@ -2371,8 +1493,9 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 			break;
 		case WM_CREATE:
 			// searching the plugins...........
-			search_plugins();
-			rewind_plugin();
+			// TODO: reimplement
+			//search_plugins();
+			//rewind_plugin();
 			////////////////////////////
 			return TRUE;
 		case WM_CLOSE:
@@ -2525,8 +1648,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		case WM_CREATE:
 				// searching the plugins...........
 			GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
-			search_plugins();
-			rewind_plugin();
+			// TODO: reimplement
+			// search_plugins();
+			// rewind_plugin();
 			CreateToolBarWindow(hwnd);
 			CreateStatusBarWindow(hwnd);
 			SetupLanguages(hwnd);
@@ -2669,8 +1793,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						pauseEmu(FALSE);
 
 					hwnd_plug = hwnd;
-					exec_config(Config.selected_video_plugin_name.c_str());
-
+					plugin_config(get_plugin_by_name(Config.selected_video_plugin_name));
 					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);
 				}	break;
@@ -2682,8 +1805,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						pauseEmu(FALSE);
 
 					hwnd_plug = hwnd;
-					exec_config(Config.selected_input_plugin_name.c_str());
-
+					plugin_config(get_plugin_by_name(Config.selected_input_plugin_name));
 					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);
 				}	break;
@@ -2695,8 +1817,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						pauseEmu(FALSE);
 
 					hwnd_plug = hwnd;
-					exec_config(Config.selected_audio_plugin_name.c_str());
-
+					plugin_config(get_plugin_by_name(Config.selected_audio_plugin_name));
 					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);
 				}	break;
@@ -2708,8 +1829,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						pauseEmu(FALSE);
 
 					hwnd_plug = hwnd;
-					exec_config(Config.selected_rsp_plugin_name.c_str());
-
+					plugin_config(get_plugin_by_name(Config.selected_rsp_plugin_name));
 					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);
 				}	break;
@@ -3495,9 +2615,6 @@ int WINAPI WinMain(
 		mainHWND = hwnd;
 		ShowWindow(hwnd, nCmdShow);
 
-		// init FFmpeg
-		//auto err = InitFFMPEGTest();
-
 		// This fixes offscreen recording issue
 		SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED); //this can't be applied before ShowWindow(), otherwise you must use some fancy function
 		BringWindowToTop(hRomList);
@@ -3505,7 +2622,8 @@ int WINAPI WinMain(
 
 		UpdateWindow(hwnd);
 
-		SetupDummyInfo();
+		setup_dummy_info();
+		search_plugins();
 
 		EnableEmulationMenuItems(0);
 		if (!StartGameByCommandLine()) {

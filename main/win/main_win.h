@@ -28,7 +28,6 @@ extern void ShowMessage(const char* lpszMessage);
 extern void EnableToolbar();
 extern void CreateStatusBarWindow(HWND hwnd);
 extern void SetStatusMode(int mode);
-extern char* getPluginName(char* pluginpath, int plugintype);
 extern char* getExtension(char* str);
 
 /********* Global Variables **********/
@@ -53,14 +52,6 @@ extern BOOL StartRom(char* fullRomPath);
 extern void resetEmu();
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
-//extern void closeRom();
-extern void search_plugins();
-extern void rewind_plugin();
-extern int get_plugin_type();
-extern char* next_plugin();
-extern void exec_config(const char* name);
-extern void exec_test(char* name);
-extern void exec_about(char* name);
 extern void EnableStatusbar();
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();

@@ -45,7 +45,7 @@
 #include "r4300.h"
 #include "macros.h"
 #include "exception.h"
-#include "../main/plugin.h"
+#include "../main/plugin.hpp"
 #include "../main/guifuncs.h"
 #include "../main/savestates.h"
 #include "../main/vcr.h"
