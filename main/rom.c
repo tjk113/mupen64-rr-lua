@@ -118,6 +118,71 @@ bool validRomExt(const char* filename) {
 		!_stricmp(str, "rom");
 }
 
+void country_code_to_country_name(int country_code, char* country_name)
+{
+	switch (country_code & 0xFF) {
+		case 0:
+			strcpy(country_name, "Demo");
+		break;
+
+	case '7':
+		strcpy(country_name, "Beta");
+		break;
+
+	case 0x41:
+		strcpy(country_name, "USA/Japan");
+		break;
+
+		/* Germany */
+		case 0x44:
+			strcpy(country_name, "German");
+		break;
+
+		/* USA */
+		case 0x45:
+			strcpy(country_name, "USA");
+		break;
+
+		/* France */
+		case 0x46:
+			strcpy(country_name, "France");
+		break;
+
+		/* Italy */
+		case 'I':
+			strcpy(country_name, "Italy");
+		break;
+
+		/* Japan */
+		case 0x4A:
+			strcpy(country_name, "Japan");
+		break;
+
+	case 'S':	/* Spain */
+		strcpy(country_name, "Spain");
+		break;
+
+		/* Australia */
+		case 0x55:
+		case 0x59:
+			strcpy(country_name, "Australia");
+		break;
+
+	case 0x50:
+	case 0x58:
+	case 0x20:
+	case 0x21:
+	case 0x38:
+	case 0x70:
+		sprintf(country_name, "Europe");
+		break;
+
+	default:
+		sprintf(country_name, "Unknown (%d)", (int)(country_code & 0xFF));
+		break;
+	}
+}
+
 static int find_file(char* argv) {
 	z = 0;
 	i = (int) strlen(argv);

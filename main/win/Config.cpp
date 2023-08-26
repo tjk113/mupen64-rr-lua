@@ -506,9 +506,11 @@ CONFIG get_default_config() {
 	config.states_path = "";
 	config.recent_rom_paths = std::vector<std::string>(10);
 	config.is_recent_movie_paths_frozen = 0;
-	config.rom_browser_sorted_column = 0;
-	config.rom_browser_sort_method = "ASC";
-	config.is_rom_browser_recursion_enabled = 0;
+	config.rombrowser_sorted_column = 0;
+	config.rombrowser_sort_method = "ASC";
+	config.rombrowser_column_widths = {250, 150, 70, 70, 200, 100, 100};
+	config.rombrowser_rom_paths = std::vector<std::string>();
+	config.is_rombrowser_recursion_enabled = 0;
 	config.is_reset_recording_disabled = 1;
 	config.is_internal_capture_forced = 0;
 	config.is_capture_cropped_screen_dc = 0;
@@ -531,7 +533,6 @@ CONFIG get_default_config() {
 	config.window_y = CW_USEDEFAULT;
 	config.window_width = CW_USEDEFAULT;
 	config.window_height = CW_USEDEFAULT;
-	config.rombrowser_column_widths = {250, 150, 70, 70, 200, 100, 100};
 
 	return config;
 }
@@ -622,10 +623,10 @@ std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config) {
 	// i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
 	for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1; i++) {
 		auto hotkey = &arr[i];
-		printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
+		// printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
 		hotkeys.push_back(hotkey);
 	}
-	printf("---\n");
+	// printf("---\n");
 
 	return hotkeys;
 }
@@ -693,9 +694,9 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini) {
 		HANDLE_INT_VALUE(is_recent_rom_paths_frozen)
 		HANDLE_VALUE(recent_movie_paths)
 		HANDLE_INT_VALUE(is_recent_movie_paths_frozen)
-		HANDLE_INT_VALUE(rom_browser_sorted_column)
-		HANDLE_VALUE(rom_browser_sort_method)
-		HANDLE_INT_VALUE(is_rom_browser_recursion_enabled)
+		HANDLE_INT_VALUE(rombrowser_sorted_column)
+		HANDLE_VALUE(rombrowser_sort_method)
+		HANDLE_INT_VALUE(is_rombrowser_recursion_enabled)
 		HANDLE_INT_VALUE(is_reset_recording_disabled)
 		HANDLE_INT_VALUE(is_unknown_hotkey_selection_allowed)
 		HANDLE_VALUE(avi_capture_path)
@@ -749,7 +750,6 @@ void load_config() {
 	file.read(ini);
 
 	ini = handle_config_ini(true, ini);
-	printf("Restored tb: %d", Config.is_toolbar_enabled);
 }
 
 int32_t get_user_hotkey(t_hotkey* hotkey) {

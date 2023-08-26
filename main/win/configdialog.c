@@ -33,8 +33,6 @@
 #include "translation.h"
 #include "Config.hpp"
 #include "../rom.h"
-#include "inifunctions.h"
-  // its a hpp header
 #include "../main/win/wrapper/ReassociatingFileDialog.h"
 #include "../main/helpers/string_helpers.h"
 
@@ -160,7 +158,8 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 			Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
 			EnableToolbar();
 			EnableStatusbar();
-			FastRefreshBrowser();
+			// TODO: reimplement
+			// FastRefreshBrowser();
 			LoadConfigExternals();
 
 		}
@@ -283,7 +282,8 @@ void ChangeSettings(HWND hwndOwner) {
 	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback = NULL;
 
-	if (PropertySheet(&psh)) save_config();
+	if (PropertySheet(&psh))
+		save_config();
 	return;
 }
 
@@ -324,7 +324,18 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
 	return TRUE;
 }
 
+void build_rom_browser_path_list(HWND dialog_hwnd)
+{
+	HWND hwnd = GetDlgItem(dialog_hwnd, IDC_ROMBROWSER_DIR_LIST);
 
+	SendMessage(hwnd, LB_RESETCONTENT, 0, 0);
+
+	for (std::string str : Config.rombrowser_rom_paths)
+	{
+		SendMessage(hwnd, LB_ADDSTRING, 0,
+			(LPARAM)str.c_str());
+	}
+}
 
 BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
 	char Directory[MAX_PATH];
@@ -332,15 +343,15 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 	BROWSEINFO bi{};
 	char RomBrowserDir[_MAX_PATH];
 	HWND RomBrowserDirListBox;
-	NMHDR FAR* l_nmhdr = nullptr;
-	memcpy(&l_nmhdr, &lParam, sizeof(NMHDR FAR*));
+	auto l_nmhdr = (NMHDR*)&lParam;
 	switch (Message) {
 	case WM_INITDIALOG:
-		FillRomBrowserDirBox(hwnd);
+
+		build_rom_browser_path_list(hwnd);
+		
 		TranslateDirectoriesConfig(hwnd);
-		if (Config.is_rom_browser_recursion_enabled) {
-			SendMessage(GetDlgItem(hwnd, IDC_RECURSION), BM_SETCHECK, BST_CHECKED, 0);
-		}
+		
+		SendMessage(GetDlgItem(hwnd, IDC_RECURSION), BM_SETCHECK, Config.is_rombrowser_recursion_enabled ? BST_CHECKED : BST_UNCHECKED, 0);
 
 		if (Config.is_default_plugins_directory_used) {
 			SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK), BM_SETCHECK, BST_CHECKED, 0);
@@ -365,7 +376,6 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 		break;
 	case WM_NOTIFY:
 		if (l_nmhdr->code == PSN_APPLY) {
-			SaveRomBrowserDirs();
 			int selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
 			GetDlgItemText(hwnd, IDC_PLUGINS_DIR, TempMessage, 200);
 			Config.plugins_directory = std::string(TempMessage);
@@ -387,46 +397,38 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case IDC_RECURSION:
-			Config.is_rom_browser_recursion_enabled = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
+			Config.is_rombrowser_recursion_enabled = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) == BST_CHECKED;
 			break;
 		case IDC_ADD_BROWSER_DIR:
 		{
 			if (fdSelectRomFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd)) {
 				int len = (int)strlen(Directory);
-				if (addDirectoryToLinkedList(Directory)) {
-					SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)Directory);
-					AddDirToList(Directory, TRUE);
-				}
+				Config.rombrowser_rom_paths.push_back(std::string(Directory));
 			}
+			build_rom_browser_path_list(hwnd);
 			break;
 		}
 		case IDC_REMOVE_BROWSER_DIR:
 		{
-			RomBrowserDirListBox = GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST);
-
-			int selected = SendMessage(RomBrowserDirListBox, LB_GETCURSEL, 0, 0);
-			if (selected != -1) {
-				SendMessage(RomBrowserDirListBox, LB_GETTEXT, selected, (LPARAM)RomBrowserDir);
-				removeDirectoryFromLinkedList(RomBrowserDir);
-				SendMessage(RomBrowserDirListBox, LB_DELETESTRING, selected, 0);
-				RefreshRomBrowser();
+			int32_t selected_index = SendMessage(GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST), LB_GETCURSEL, 0, 0);
+			if (selected_index != -1) {
+				Config.rombrowser_rom_paths.erase(Config.rombrowser_rom_paths.begin() + selected_index);
 			}
-
+			build_rom_browser_path_list(hwnd);
 
 			break;
 		}
 
 		case IDC_REMOVE_BROWSER_ALL:
-			SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_RESETCONTENT, 0, 0);
-			freeRomDirList();
-			RefreshRomBrowser();
+			Config.rombrowser_rom_paths.clear();
+			build_rom_browser_path_list(hwnd);
 			break;
 
 		case IDC_DEFAULT_PLUGINS_CHECK:
 		{
-			int selected = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0);
-			EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), !selected);
-			EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), !selected);
+			Config.is_default_plugins_directory_used = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK), BM_GETCHECK, 0, 0);
+			EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), !Config.is_default_plugins_directory_used);
+			EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), !Config.is_default_plugins_directory_used);
 		}
 		break;
 		case IDC_PLUGIN_DIRECTORY_HELP:
@@ -436,15 +438,10 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 		break;
 		case IDC_CHOOSE_PLUGINS_DIR:
 		{
-			// Lol why is vs indenting this one block down
-			//folderDiag(Directory, sizeof(Directory)/sizeof(char), "");
 			if (fdSelectPluginsFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd)) {
-				int len = (int)strlen(Directory);
-				if (Directory[len - 1] != '\\')
-					strcat(Directory, "\\");
-				SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Directory);
+				Config.plugins_directory = std::string(Directory) + "\\";
 			}
-
+				SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Config.plugins_directory.c_str());
 
 		}
 
@@ -452,47 +449,31 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 		break;
 		case IDC_DEFAULT_SAVES_CHECK:
 		{
-			int selected = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_SAVES_CHECK), BM_GETCHECK, 0, 0);
-			if (!selected) {
-				EnableWindow(GetDlgItem(hwnd, IDC_SAVES_DIR), TRUE);
-				EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SAVES_DIR), TRUE);
-			}
-			else {
-				EnableWindow(GetDlgItem(hwnd, IDC_SAVES_DIR), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SAVES_DIR), FALSE);
-			}
+			Config.is_default_saves_directory_used = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_SAVES_CHECK), BM_GETCHECK, 0, 0);
+			EnableWindow(GetDlgItem(hwnd, IDC_SAVES_DIR), !Config.is_default_saves_directory_used);
+			EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SAVES_DIR), !Config.is_default_saves_directory_used);
 		}
 		break;
 		case IDC_CHOOSE_SAVES_DIR:
 		{
 			if (fdSelectSavesFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd)) {
-				if (Directory[strlen(Directory) - 1] != '\\') {
-					strcat(Directory, "\\");
-					SetDlgItemText(hwnd, IDC_SAVES_DIR, Directory);
-				}
+					Config.saves_directory = std::string(Directory) + "\\";
+					SetDlgItemText(hwnd, IDC_SAVES_DIR, Config.saves_directory.c_str());
 			}
 		}
 		break;
 		case IDC_DEFAULT_SCREENSHOTS_CHECK:
 		{
-			int selected = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK), BM_GETCHECK, 0, 0);
-			if (!selected) {
-				EnableWindow(GetDlgItem(hwnd, IDC_SCREENSHOTS_DIR), TRUE);
-				EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SCREENSHOTS_DIR), TRUE);
-			}
-			else {
-				EnableWindow(GetDlgItem(hwnd, IDC_SCREENSHOTS_DIR), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SCREENSHOTS_DIR), FALSE);
-			}
+			Config.is_default_screenshots_directory_used = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK), BM_GETCHECK, 0, 0);
+			EnableWindow(GetDlgItem(hwnd, IDC_SCREENSHOTS_DIR), !Config.is_default_screenshots_directory_used);
+			EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SCREENSHOTS_DIR), !Config.is_default_screenshots_directory_used);
 		}
 		break;
 		case IDC_CHOOSE_SCREENSHOTS_DIR:
 		{
 			if (fdSelectScreenshotsFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd)) {
-				int len = (int)strlen(Directory);
-				if (Directory[len - 1] != '\\')
-					strcat(Directory, "\\");
-				SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Directory);
+				Config.screenshots_directory = std::string(Directory) + "\\";
+				SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory.c_str());
 			}
 		}
 		break;
@@ -851,7 +832,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 
 			EnableToolbar();
 			EnableStatusbar();
-			FastRefreshBrowser();
+			// TODO: reimplement
+			//FastRefreshBrowser();
 			LoadConfigExternals();
 		}
 		break;

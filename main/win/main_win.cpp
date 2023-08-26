@@ -49,7 +49,6 @@ extern "C" {
 #include "../guifuncs.h"
 #include "../mupenIniApi.h"
 #include "../savestates.h"
-#include "dumplist.h"
 #include "timers.h"
 #include "config.hpp"
 #include "RomSettings.h"
@@ -68,8 +67,6 @@ extern "C" {
 #include "../main/win/GameDebugger.h"
 
 #pragma comment (lib,"Gdiplus.lib")
-
-	extern void CountryCodeToCountryName(int countrycode, char* countryname);
 
 	void StartMovies();
 	void StartLuaScripts();
@@ -282,11 +279,6 @@ void pauseEmu(BOOL quiet) {
 }
 
 BOOL StartRom(char* fullRomPath) {
-	if (romBrowserBusy) {
-		display_status("Rom browser busy!");
-		return TRUE;
-	}
-
 	LONG winstyle;
 	if (emu_launched) {
 		really_restart_mode = TRUE;
@@ -317,20 +309,21 @@ BOOL StartRom(char* fullRomPath) {
 
 			if (rom_read(fullRomPath)) {
 				emu_launched = 0;
-				saveMD5toCache(ROM_SETTINGS.MD5);
 				SetStatusMode(0);
 				SetStatusTranslatedString(hStatus, 0, "Failed to open rom");
 				return TRUE;
 			}
 
 			sprintf(LastSelectedRom, "%s", fullRomPath);
-			saveMD5toCache(ROM_SETTINGS.MD5);
-			AddToRecentList(mainHWND, fullRomPath);
+			// TODO: reimplement
+			// AddToRecentList(mainHWND, fullRomPath);
 
 			InitTimer();
 
 			EnableEmulationMenuItems(TRUE);
-			ShowRomBrowser(FALSE, FALSE);
+
+			// TODO: reimplement
+			//ShowRomBrowser(FALSE, FALSE);
 		}
 
 		SetStatusMode(2);
@@ -392,7 +385,8 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 			free_memory();
 
 			EnableEmulationMenuItems(FALSE);
-			ShowRomBrowser(!really_restart_mode, !!lpParam);
+			// TODO: reimplement
+			// ShowRomBrowser(!really_restart_mode, !!lpParam);
 
 			extern int m_task;
 			if (m_task == 0) {
@@ -431,7 +425,8 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 				just_restarted_flag = TRUE;
 			if (StartRom(LastSelectedRom)) { // If rom loading fails
 				closeRom(lpParam);
-				ShowRomBrowser(TRUE, TRUE);
+				// TODO: reimplement
+				// ShowRomBrowser(TRUE, TRUE);
 				SetStatusTranslatedString(hStatus, 0, "Failed to open rom");
 			}
 		}
@@ -497,8 +492,8 @@ void CreateToolBarWindow(HWND hwnd) {
 			SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
 		}
 	} else {
-		getSelectedRom();     //Used for enabling/disabling the play button
-		//SendMessage( hTool, TB_ENABLEBUTTON, EMU_PLAY, FALSE );
+		// TODO: reimplement
+		// getSelectedRom();
 		SendMessage(hTool, TB_ENABLEBUTTON, EMU_STOP, FALSE);
 		SendMessage(hTool, TB_ENABLEBUTTON, EMU_PAUSE, FALSE);
 		SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE);
@@ -560,14 +555,14 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 			SendMessage(descriptionDialog, EM_SETLIMITTEXT, MOVIE_DESCRIPTION_DATA_SIZE, 0);
 			SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
 
-			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf2);
+			country_code_to_country_name(ROM_HEADER->Country_code, tempbuf2);
 			sprintf(tempbuf, "%s (%s)", (char *) ROM_HEADER->nom, tempbuf2);
 			strcat(tempbuf, ".m64");
 			SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
 			SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*)ROM_HEADER->nom);
 
-			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf);
+			country_code_to_country_name(ROM_HEADER->Country_code, tempbuf);
 			SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, tempbuf);
 
 			sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER->CRC1);
@@ -731,7 +726,7 @@ refresh:
 
 	SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME, m_header.romNom);
 
-	CountryCodeToCountryName(m_header.romCountry, tempbuf);
+	country_code_to_country_name(m_header.romCountry, tempbuf);
 	SetDlgItemText(hwnd, IDC_ROM_COUNTRY, tempbuf);
 
 	sprintf(tempbuf, "%X", (unsigned int)m_header.romCRC);
@@ -868,14 +863,14 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
 			CheckRadioButton(hwnd, IDC_FROMSNAPSHOT_RADIO, IDC_FROMSTART_RADIO, checked_movie_type);
 
-			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf2);
+			country_code_to_country_name(ROM_HEADER->Country_code, tempbuf2);
 			sprintf(tempbuf, "%s (%s)", (char *) ROM_HEADER->nom, tempbuf2);
 			strcat(tempbuf, ".m64");
 			SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
 			SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*) ROM_HEADER->nom);
 
-			CountryCodeToCountryName(ROM_HEADER->Country_code, tempbuf);
+			country_code_to_country_name(ROM_HEADER->Country_code, tempbuf);
 			SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, tempbuf);
 
 			sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER->CRC1);
@@ -1166,7 +1161,8 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 		EnableMenuItem(hMenu, STATE_RESTORE, MF_ENABLED);
 		EnableMenuItem(hMenu, STATE_LOAD, MF_ENABLED);
 		EnableMenuItem(hMenu, GENERATE_BITMAP, MF_ENABLED);
-		EnableRecentROMsMenu(hMenu, TRUE);
+		// TODO: reimplement
+		// EnableRecentROMsMenu(hMenu, TRUE);
 		EnableMenuItem(hMenu, EMU_RESET, MF_ENABLED);
 		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_GRAYED);
 		EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
@@ -1190,7 +1186,8 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
 			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
 			EnableMenuItem(hMenu, ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
-			EnableRecentROMsMenu(hMenu, TRUE);
+			// TODO: reimplement
+			// EnableRecentROMsMenu(hMenu, TRUE);
 			EnableRecentMoviesMenu(hMenu, TRUE);
 			EnableRecentScriptsMenu(hMenu, TRUE);
 		}
@@ -1216,7 +1213,8 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 		EnableMenuItem(hMenu, STATE_RESTORE, MF_GRAYED);
 		EnableMenuItem(hMenu, STATE_LOAD, MF_GRAYED);
 		EnableMenuItem(hMenu, GENERATE_BITMAP, MF_GRAYED);
-		EnableRecentROMsMenu(hMenu, TRUE);
+		// TODO: reimplement
+		// EnableRecentROMsMenu(hMenu, TRUE);
 		EnableMenuItem(hMenu, EMU_RESET, MF_GRAYED);
 		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
@@ -1233,7 +1231,8 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
-			EnableRecentROMsMenu(hMenu, TRUE);
+			// TODO: reimplement
+			// EnableRecentROMsMenu(hMenu, TRUE);
 			EnableRecentMoviesMenu(hMenu, FALSE);
 			EnableRecentScriptsMenu(hMenu, FALSE);
 			LONG winstyle;
@@ -1243,7 +1242,8 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 			SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);  //Set on top
 		}
 		if (Config.is_toolbar_enabled) {
-			getSelectedRom(); //Used to check if the play button should be enabled or not
+			// TODO: reimplement
+			// getSelectedRom();
 			//SendMessage( hTool, TB_ENABLEBUTTON, EMU_PLAY, FALSE );
 			SendMessage(hTool, TB_ENABLEBUTTON, EMU_STOP, FALSE);
 			SendMessage(hTool, TB_ENABLEBUTTON, EMU_PAUSE, FALSE);
@@ -1325,8 +1325,9 @@ void exit_emu(int postquit) {
 	if (postquit) {
 		if (!cmdlineMode || cmdlineSave) {
 			ini_updateFile();
-			if (!cmdlineNoGui)
-				SaveRomBrowserCache();
+			// TODO: reimplement
+			// if (!cmdlineNoGui)
+			// 	SaveRomBrowserCache();
 		}
 		ini_closeFile();
 	} else {
@@ -1334,8 +1335,9 @@ void exit_emu(int postquit) {
 	}
 
 	if (postquit) {
-		freeRomDirList();
-		freeRomList();
+		// TODO: reimplement
+		// freeRomDirList();
+		// freeRomList();
 		freeLanguages();
 		Gdiplus::GdiplusShutdown(gdiPlusToken);
 		PostQuitMessage(0);
@@ -1347,13 +1349,15 @@ void exit_emu2() {
 
 	if ((!cmdlineMode) || (cmdlineSave)) {
 		ini_updateFile();
-		if (!cmdlineNoGui) {
-			SaveRomBrowserCache();
-		}
+		// TODO: reimplement
+		// if (!cmdlineNoGui) {
+		// 	SaveRomBrowserCache();
+		// }
 	}
 	ini_closeFile();
-	freeRomDirList();
-	freeRomList();
+	// TODO: reimplement
+	// freeRomDirList();
+	// freeRomList();
 	freeLanguages();
 	PostQuitMessage(0);
 }
@@ -1430,12 +1434,14 @@ void EnableStatusbar() {
 	if (Config.is_statusbar_enabled) {
 		if (!IsWindow(hStatus)) {
 			CreateStatusBarWindow(mainHWND);
-			ResizeRomListControl();
+			// TODO: reimplement
+			// ResizeRomListControl();
 		}
 	} else {
 		DestroyWindow(hStatus);
 		hStatus = NULL;
-		ResizeRomListControl();
+		// TODO: reimplement
+		// ResizeRomListControl();
 	}
 }
 
@@ -1445,13 +1451,15 @@ void EnableToolbar() {
 	if (Config.is_toolbar_enabled && !VCR_isCapturing()) {
 		if (!hTool || !IsWindow(hTool)) {
 			CreateToolBarWindow(mainHWND);
-			ResizeRomListControl();
+			// TODO: reimplement
+			// ResizeRomListControl();
 		}
 	} else {
 		if (hTool && IsWindow(hTool)) {
 			DestroyWindow(hTool);
 			hTool = NULL;
-			ResizeRomListControl();
+			// TODO: reimplement
+			// ResizeRomListControl();
 		}
 	}
 }
@@ -1611,7 +1619,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			LPNMHDR l_header = (LPNMHDR)lParam;
 
 			if (wParam == IDC_ROMLIST) {
-				RomListNotify(l_header);
+				// TODO: reimplement
+				// RomListNotify(l_header);
 			}
 			switch ((l_header)->code) {
 				case TTN_NEEDTEXT:
@@ -1638,7 +1647,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			if (!FullScreenMode) {
 				SendMessage(hTool, TB_AUTOSIZE, 0, 0);
 				SendMessage(hStatus, WM_SIZE, 0, 0);
-				ResizeRomListControl();
+				// TODO: reimplement
+				// ResizeRomListControl();
 			}
 			break;
 		}
@@ -1654,8 +1664,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			SetupLanguages(hwnd);
 			TranslateMenu(GetMenu(hwnd), hwnd);
 			SetMenuAcceleratorsFromUser(hwnd);
-			CreateRomListControl(hwnd);
-			SetRecentList(hwnd);
+			// TODO: reimplement
+			// CreateRomListControl(hwnd);
+			// SetRecentList(hwnd);
 			BuildRecentMoviesMenu(hwnd);
 			BuildRecentScriptsMenu(hwnd);
 			EnableToolbar();
@@ -1765,7 +1776,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				case ID_FORCESAVE:
 					shouldSave = TRUE;
 					ini_updateFile();
-					SaveRomBrowserCache();
+					// TODO: reimplement
+					// SaveRomBrowserCache();
 					save_config();
 					ini_closeFile();
 					break;
@@ -1917,7 +1929,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 							//The button is always checked when started and not on pause
 						}
 					} else {
-						RomList_OpenRom();
+						// TODO: reimplement
+						// RomList_OpenRom();
 					}
 					break;
 
@@ -1951,7 +1964,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				}
 				break;
 				case ID_AUDIT_ROMS:
-					audit_roms();
+					// TODO: reimplement
+					// audit_roms();
 					break;
 				case ID_HELP_ABOUT:
 				{
@@ -2043,12 +2057,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						char* slash = strrchr(temp_buffer, '\\');
 						if (slash) {
 							slash[1] = '\0';
-							if (addDirectoryToLinkedList(temp_buffer)) {
-								SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)temp_buffer);
-								AddDirToList(temp_buffer, TRUE);
-								SaveRomBrowserDirs();
-								save_config(); // TODO: investigate why this is needed
-							}
+							// TODO: reimplement
+							// if (addDirectoryToLinkedList(temp_buffer)) {
+							// SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)temp_buffer);
+							// AddDirToList(temp_buffer, TRUE);
+							// SaveRomBrowserDirs();
+							// save_config(); // TODO: investigate why this is needed
+							// }
 						}
 						StartRom(path_buffer);
 					}
@@ -2073,17 +2088,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					break;
 				case REFRESH_ROM_BROWSER:
 					if (!emu_launched) {
-						RefreshRomBrowser();
+						// TODO: reimplement
+						// RefreshRomBrowser();
 					}
 					break;
 				case ID_POPUP_ROM_SETTING:
-					OpenRomProperties();
+					// TODO: reimplement
+					// OpenRomProperties();
 					break;
 				case ID_START_ROM:
-					RomList_OpenRom();
+					// TODO: reimplement
+					// RomList_OpenRom();
 					break;
 				case ID_START_ROM_ENTER:
-					if (!emu_launched) RomList_OpenRom();
+					// TODO: reimplement
+					// if (!emu_launched) RomList_OpenRom();
 					break;
 				case STATE_SAVE:
 					if (!emu_paused || MenuPaused) {
@@ -2266,7 +2285,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					}
 					break;
 				case ID_GENERATE_ROM_INFO:
-					generateRomInfo();
+					// TODO: reimplement
+					// generateRomInfo();
 					break;
 				case ID_LANG_INFO_MENU:
 				{
@@ -2291,14 +2311,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					}
 					break;
 				case ID_RECENTROMS_RESET:
-					ClearRecentList(hwnd, TRUE);
-					SetRecentList(hwnd);
+					// TODO: reimplement
+					// ClearRecentList(hwnd, TRUE);
+					// SetRecentList(hwnd);
 					break;
 				case ID_RECENTROMS_FREEZE:
-					FreezeRecentRoms(hwnd, TRUE);
+					// TODO: reimplement
+					// FreezeRecentRoms(hwnd, TRUE);
 					break;
 				case ID_LOAD_LATEST:
-					RunRecentRom(ID_RECENTROMS_FIRST);
+					// TODO: reimplement
+					// RunRecentRom(ID_RECENTROMS_FIRST);
 				case IDC_GUI_TOOLBAR:
 					Config.is_toolbar_enabled = 1 - Config.is_toolbar_enabled;
 					EnableToolbar();
@@ -2346,8 +2369,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					if (LOWORD(wParam) >= ID_LANG_ENGLISH && LOWORD(wParam) <= (ID_LANG_ENGLISH + 100)) {
 						SelectLang(hwnd, LOWORD(wParam));
 						TranslateMenu(GetMenu(hwnd), hwnd);
-						TranslateBrowserHeader(hRomList);
-						ShowTotalRoms();
+						// TODO: reimplement
+						// TranslateBrowserHeader(hRomList);
+						// ShowTotalRoms();
 					} else if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam) <= ID_CURRENTSAVE_10) {
 						SelectState(hwnd, LOWORD(wParam));
 					} else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <= ID_SAVE_10) {
@@ -2355,7 +2379,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					} else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_10) {
 						LoadTheState(hwnd, LOWORD(wParam));
 					} else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST && LOWORD(wParam) < (ID_RECENTROMS_FIRST + MAX_RECENT_ROMS)) {
-						RunRecentRom(LOWORD(wParam));
+						// TODO: reimplement
+						// RunRecentRom(LOWORD(wParam));
 					} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + MAX_RECENT_MOVIE)) {
 						if (RunRecentMovie(LOWORD(wParam)) != SUCCESS) {
 							SetStatusTranslatedString(hStatus, 0, "Could not load movie!");

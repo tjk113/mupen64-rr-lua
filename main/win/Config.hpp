@@ -74,7 +74,7 @@ typedef struct _CONFIG {
 	int32_t show_fps;
 
 	/// <summary>
-	/// Whether VI/s are shown to the user 
+	/// Whether VI/s are shown to the user
 	/// TODO: fix disabling this breaking emulation
 	/// </summary>
 	int32_t show_vis_per_second;
@@ -110,7 +110,7 @@ typedef struct _CONFIG {
 	int32_t core_type;
 
 	/// <summary>
-	/// The target FPS modifier as a percentage 
+	/// The target FPS modifier as a percentage
 	/// <para/>
 	/// (100 = default)
 	/// </summary>
@@ -261,17 +261,22 @@ typedef struct _CONFIG {
 	/// <summary>
 	/// The rom browser column index to sort by
 	/// </summary>
-	int32_t rom_browser_sorted_column;
+	int32_t rombrowser_sorted_column;
 
 	/// <summary>
-	/// The method to sort <see cref="rom_browser_sorted_column"/> by
+	/// The method to sort <see cref="rombrowser_sorted_column"/> by
 	/// </summary>
-	std::string rom_browser_sort_method;
+	std::string rombrowser_sort_method;
 
 	/// <summary>
 	/// Whether the rom browser will recursively search for roms beginning in the specified directories
 	/// </summary>
-	int32_t is_rom_browser_recursion_enabled;
+	int32_t is_rombrowser_recursion_enabled;
+
+	/// <summary>
+	/// The paths to directories which are searched for roms
+	/// </summary>
+	std::vector<std::string> rombrowser_rom_paths;
 
 	/// <summary>
 	/// Whether rom resets are not recorded in movies
