@@ -14,6 +14,11 @@ std::vector<t_rombrowser_entry*> rombrowser_entries;
 
 void rombrowser_create()
 {
+	if (rombrowser_hwnd)
+	{
+		DestroyWindow(rombrowser_hwnd);
+	}
+
 	RECT rcl, rtool, rstatus;
 	GetClientRect(mainHWND, &rcl);
 	GetWindowRect(hTool, &rtool);

@@ -1403,15 +1403,13 @@ void EnableStatusbar() {
 	if (Config.is_statusbar_enabled) {
 		if (!IsWindow(hStatus)) {
 			CreateStatusBarWindow(mainHWND);
-			// TODO: reimplement
-			// ResizeRomListControl();
 		}
 	} else {
 		DestroyWindow(hStatus);
 		hStatus = NULL;
-		// TODO: reimplement
-		// ResizeRomListControl();
 	}
+
+	rombrowser_update_size();
 }
 
 void EnableToolbar() {
@@ -1420,17 +1418,15 @@ void EnableToolbar() {
 	if (Config.is_toolbar_enabled && !VCR_isCapturing()) {
 		if (!hTool || !IsWindow(hTool)) {
 			CreateToolBarWindow(mainHWND);
-			// TODO: reimplement
-			// ResizeRomListControl();
 		}
 	} else {
 		if (hTool && IsWindow(hTool)) {
 			DestroyWindow(hTool);
 			hTool = NULL;
-			// TODO: reimplement
-			// ResizeRomListControl();
 		}
 	}
+
+	rombrowser_update_size();
 }
 
 
@@ -2298,7 +2294,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					else CheckMenuItem(hMenu, IDC_GUI_TOOLBAR, MF_BYCOMMAND | MF_UNCHECKED);
 					break;
 				case IDC_GUI_STATUSBAR:
-					Config.is_statusbar_enabled = 1 - Config.is_statusbar_enabled;
+					Config.is_statusbar_enabled ^= true;
 					EnableStatusbar();
 					if (Config.is_statusbar_enabled) CheckMenuItem(hMenu, IDC_GUI_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
 					else CheckMenuItem(hMenu, IDC_GUI_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
