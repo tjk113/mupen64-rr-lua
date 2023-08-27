@@ -345,9 +345,7 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
 	case WM_INITDIALOG:
 
 		build_rom_browser_path_list(hwnd);
-		
-		TranslateDirectoriesConfig(hwnd);
-		
+				
 		SendMessage(GetDlgItem(hwnd, IDC_RECURSION), BM_SETCHECK, Config.is_rombrowser_recursion_enabled ? BST_CHECKED : BST_UNCHECKED, 0);
 
 		if (Config.is_default_plugins_directory_used) {
@@ -540,13 +538,10 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		sync_plugin_option(hwnd, IDC_COMBO_INPUT, Config.selected_input_plugin_name);
 		sync_plugin_option(hwnd, IDC_COMBO_RSP, Config.selected_rsp_plugin_name);
 
-		TranslateConfigDialog(hwnd);
-		if (emu_launched) {
-			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), FALSE);
-			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), FALSE);
-			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), FALSE);
-			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), FALSE);
-		}
+		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), !emu_launched);
+		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), !emu_launched);
+		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), !emu_launched);
+		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
 
 		//Show the images
 		SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
@@ -652,13 +647,6 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 	return TRUE;
 }
 
-
-void FillModifierValue(HWND hwnd, int value) {
-	char temp[10];
-	sprintf(temp, "%d%%", value);
-	SetDlgItemText(hwnd, IDC_SPEEDMODIFIER_VALUE, temp);
-}
-
 BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
 	NMHDR FAR* l_nmhdr = nullptr;
 	memcpy(&l_nmhdr, &lParam, sizeof(NMHDR FAR*));
@@ -669,7 +657,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		WriteCheckBoxValue(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
 		WriteCheckBoxValue(hwnd, IDC_MANAGEBADROM, Config.prevent_suspicious_rom_loading);
 		WriteCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
-		SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_SETPOS, TRUE, Config.fps_modifier);
 		SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
 		WriteCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, Config.is_state_independent_state_loading_allowed);
 
@@ -694,7 +681,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), FALSE);
 		}
 
-		FillModifierValue(hwnd, Config.fps_modifier);
 		TranslateGeneralDialog(hwnd);
 		return TRUE;
 
@@ -724,15 +710,11 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		break;
 
 	case WM_NOTIFY:
-		//if (((NMHDR FAR *) lParam)->code == NM_RELEASEDCAPTURE)  {
-  //           FillModifierValue( hwnd, SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0));
-  //      }
 		if (l_nmhdr->code == PSN_APPLY) {
 			Config.show_fps = ReadCheckBoxValue(hwnd, IDC_SHOWFPS);
 			Config.show_vis_per_second = ReadCheckBoxValue(hwnd, IDC_SHOWVIS);
 			Config.prevent_suspicious_rom_loading = ReadCheckBoxValue(hwnd, IDC_MANAGEBADROM);
 			Config.is_savestate_warning_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS);
-			Config.fps_modifier = SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0);
 			Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
 			Config.is_state_independent_state_loading_allowed = ReadCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
 

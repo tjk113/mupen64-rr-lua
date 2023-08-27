@@ -159,7 +159,6 @@ void new_vi() {
 	}
 
 
-	if ((!Config.show_vis_per_second)) return;
 	VI_Counter++;
 
 	auto CurrentFPSTime = std::chrono::high_resolution_clock::now(); //nanosecond precosion is kept up to the sleep

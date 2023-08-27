@@ -17,9 +17,6 @@ BOOL CALLBACK CrashHandlerDialogProcedure(HWND hwnd, UINT Message, WPARAM wParam
 	switch (Message) {
 		case WM_INITDIALOG:
 		{
-
-			SetWindowText(hwnd, MUPEN_VERSION);
-
 			SetWindowText(GetDlgItem(hwnd, IDC_ERRORTEXT), CrashHandlerDialog::Caption);
 
 			bitmapHandle = reinterpret_cast<HBITMAP>(::LoadImage(

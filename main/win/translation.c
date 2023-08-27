@@ -300,49 +300,6 @@ void SetMenuAcceleratorsFromUser(HWND mainHWND) {
 	SetHotkeyMenuAccelerators(&Config.play_latest_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 7);
 }
 
-void TranslateConfigDialog(HWND hwnd) {
-
-	SetItemTranslatedString(hwnd, IDC_GFXPLUGIN, "Video");
-	SetItemTranslatedString(hwnd, IDGFXCONFIG, "Config");
-	SetItemTranslatedString(hwnd, IDGFXTEST, "Test");
-	SetItemTranslatedString(hwnd, IDGFXABOUT, "About");
-
-	SetItemTranslatedString(hwnd, IDC_INPUTPLUGIN, "Input");
-	SetItemTranslatedString(hwnd, IDINPUTCONFIG, "Config");
-	SetItemTranslatedString(hwnd, IDINPUTTEST, "Test");
-	SetItemTranslatedString(hwnd, IDINPUTABOUT, "About");
-
-	SetItemTranslatedString(hwnd, IDC_SOUNDPLUGIN, "Audio");
-	SetItemTranslatedString(hwnd, IDSOUNDCONFIG, "Config");
-	SetItemTranslatedString(hwnd, IDSOUNDTEST, "Test");
-	SetItemTranslatedString(hwnd, IDSOUNDABOUT, "About");
-
-	SetItemTranslatedString(hwnd, IDC_RSPPLUGIN, "RSP");
-	SetItemTranslatedString(hwnd, IDRSPCONFIG, "Config");
-	SetItemTranslatedString(hwnd, IDRSPTEST, "Test");
-	SetItemTranslatedString(hwnd, IDRSPABOUT, "About");
-
-}
-
-void TranslateDirectoriesConfig(HWND hwnd) {
-	SetItemTranslatedString(hwnd, IDC_ROMS_DIRECTORIES, "ROM Directories");
-	SetItemTranslatedString(hwnd, IDC_RECURSION, "Use directory recursion");
-	SetItemTranslatedString(hwnd, IDC_ADD_BROWSER_DIR, "Add");
-	SetItemTranslatedString(hwnd, IDC_REMOVE_BROWSER_DIR, "Remove");
-	SetItemTranslatedString(hwnd, IDC_REMOVE_BROWSER_ALL, "Remove All");
-
-	SetItemTranslatedString(hwnd, IDC_PLUGINS_GROUP, "Plugins Directory");
-	//SetItemTranslatedString(hwnd,IDC_DEFAULT_PLUGINS_CHECK,"Default Plugins Check");
-	SetItemTranslatedString(hwnd, IDC_CHOOSE_PLUGINS_DIR, "Browse");
-
-	SetItemTranslatedString(hwnd, IDC_SAVES_GROUP, "Saves Directory");
-	//SetItemTranslatedString(hwnd,IDC_DEFAULT_SAVES_CHECK,"Default Saves Check");
-	SetItemTranslatedString(hwnd, IDC_CHOOSE_SAVES_DIR, "Browse");
-
-	SetItemTranslatedString(hwnd, IDC_SCREENSHOTS_GROUP, "Screenshots Directory");
-	//SetItemTranslatedString(hwnd,IDC_DEFAULT_SCREENSHOTS_CHECK,"Default Screenshots Check");
-	SetItemTranslatedString(hwnd, IDC_CHOOSE_SCREENSHOTS_DIR, "Browse");
-}
 
 void TranslateGeneralDialog(HWND hwnd) {
 	SetItemTranslatedString(hwnd, IDC_MESSAGES, "Safety");
