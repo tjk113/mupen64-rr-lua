@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <winuser.h>
 #include <stdio.h>
-#include "rombrowser.h"
+#include "RomBrowser.hpp"
 #include "commandline.h"
 #include "../../winproject/resource.h"
 #include "config.hpp"
@@ -718,6 +718,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini) {
 		HANDLE_INT_VALUE(window_width)
 		HANDLE_INT_VALUE(window_height)
 		HANDLE_VALUE(rombrowser_column_widths)
+		HANDLE_VALUE(rombrowser_rom_paths)
 
 		return ini;
 }

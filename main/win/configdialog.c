@@ -26,7 +26,7 @@
 #include "main_win.h"
 #include "../../winproject/resource.h"
 #include "../plugin.hpp"
-#include "rombrowser.h"
+#include "RomBrowser.hpp"
 #include "../guifuncs.h"
 #include "../md5.h"
 #include "timers.h"
@@ -158,8 +158,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 			Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
 			EnableToolbar();
 			EnableStatusbar();
-			// TODO: reimplement
-			// FastRefreshBrowser();
+			rombrowser_build();
 			LoadConfigExternals();
 
 		}
@@ -832,8 +831,7 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 
 			EnableToolbar();
 			EnableStatusbar();
-			// TODO: reimplement
-			//FastRefreshBrowser();
+			rombrowser_build();
 			LoadConfigExternals();
 		}
 		break;

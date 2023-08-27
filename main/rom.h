@@ -43,7 +43,8 @@ extern const char* getExt(const char* filename);
 extern void stripExt(char* fname);
 extern bool validRomExt(const char* filename);
 
-typedef struct _rom_header {
+typedef struct s_rom_header
+{
 	unsigned char init_PI_BSB_DOM1_LAT_REG;
 	unsigned char init_PI_BSB_DOM1_PGS_REG;
 	unsigned char init_PI_BSB_DOM1_PWD_REG;
@@ -60,18 +61,47 @@ typedef struct _rom_header {
 	unsigned short Cartridge_ID;
 	unsigned short Country_code;
 	unsigned long Boot_Code[1008];
-} rom_header;
-extern rom_header* ROM_HEADER;
+} t_rom_header;
+
+extern t_rom_header* ROM_HEADER;
 
 
-
-typedef struct _rom_settings {
+typedef struct _rom_settings
+{
 	char goodname[256];
 	int eeprom_16kb;
 	char MD5[33];
 } rom_settings;
+
 extern rom_settings ROM_SETTINGS;
 
 void country_code_to_country_name(int country_code, char* country_name);
+
+inline static void rom_byteswap(uint8_t* rom)
+{
+	uint8_t tmp = 0;
+
+	if (rom[0] == 0x37)
+	{
+		for (size_t i = 0; i<(0x40 / 2); i++)
+		{
+			tmp = rom[i * 2];
+			rom[i * 2] = rom[i * 2 + 1];
+			rom[i * 2 + 1] = tmp;
+		}
+	}
+	if (rom[0] == 0x40)
+	{
+		for (size_t i = 0; i<(0x40 / 4); i++)
+		{
+			tmp = rom[i * 4];
+			rom[i * 4] = rom[i * 4 + 3];
+			rom[i * 4 + 3] = tmp;
+			tmp = rom[i * 4 + 1];
+			rom[i * 4 + 1] = rom[i * 4 + 2];
+			rom[i * 4 + 2] = tmp;
+		}
+	}
+}
 
 #endif

@@ -23,7 +23,7 @@
 #include "../guifuncs.h"
 #include "main_win.h"
 #include "translation.h"
-#include "rombrowser.h"
+#include "RomBrowser.hpp"
 #include "../../winproject/resource.h"
 #include <vcr.h>
 

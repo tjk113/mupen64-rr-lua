@@ -312,7 +312,7 @@ static void setROMInfo(SMovieHeader* header) {
 	if (Controls[3].Plugin == controller_extension::rumblepak)
 		header->controllerFlags |= CONTROLLER_4_RUMBLE;
 
-	extern rom_header* ROM_HEADER;
+	extern t_rom_header* ROM_HEADER;
 	if (ROM_HEADER)
 		strncpy(header->romNom, (const char*)ROM_HEADER->nom, 32);
 	else
@@ -1375,7 +1375,7 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 				}
 
 				char str[512], name[512];
-				extern rom_header* ROM_HEADER;
+				extern t_rom_header* ROM_HEADER;
 				if (ROM_HEADER && _stricmp(m_header.romNom, (const char*)ROM_HEADER->nom) != 0) {
 					sprintf(str, "The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n", m_header.romNom, (char *) ROM_HEADER->nom);
 					strcat(warningStr, str);
@@ -2292,7 +2292,7 @@ void AddToRecentMovies(const char* path) {
 	RefreshRecentMovies();
 }
 
-// Adapted Code from rombrowser.c
+// Adapted Code from RomBrowser.cpp
 void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable) {
 	HMENU hMenu = GetMenu(hWnd);
 	if (ChangeConfigVariable) {

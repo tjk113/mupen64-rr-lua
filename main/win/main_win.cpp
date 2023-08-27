@@ -43,7 +43,7 @@ extern "C" {
 #include "../../r4300/r4300.h"
 #include "../../memory/memory.h"
 #include "translation.h"
-#include "rombrowser.h"
+#include "RomBrowser.hpp"
 #include "main_win.h"
 #include "configdialog.h"
 #include "../guifuncs.h"
@@ -120,7 +120,7 @@ char TempMessage[200];
 int emu_launched; // emu_emulating
 int emu_paused;
 int recording;
-HWND hTool, mainHWND, hStatus, hRomList;
+HWND hTool, mainHWND, hStatus;
 HINSTANCE app_hInstance;
 BOOL manualFPSLimit = TRUE;
 BOOL ignoreErrorEmulation = FALSE;
@@ -322,8 +322,7 @@ BOOL StartRom(char* fullRomPath) {
 
 			EnableEmulationMenuItems(TRUE);
 
-			// TODO: reimplement
-			//ShowRomBrowser(FALSE, FALSE);
+			rombrowser_set_visibility(0);
 		}
 
 		SetStatusMode(2);
@@ -385,8 +384,7 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 			free_memory();
 
 			EnableEmulationMenuItems(FALSE);
-			// TODO: reimplement
-			// ShowRomBrowser(!really_restart_mode, !!lpParam);
+			rombrowser_set_visibility(!really_restart_mode);
 
 			extern int m_task;
 			if (m_task == 0) {
@@ -609,11 +607,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 
 			goto refresh; // better than making it a macro or zillion-argument function
 
-		case WM_CLOSE:
-			if (!emu_launched) {
-				ShowWindow(hRomList, FALSE);
-				ShowWindow(hRomList, TRUE);
-			}
+	case WM_CLOSE:
 			EndDialog(hwnd, IDOK);
 			break;
 		case WM_COMMAND:
@@ -678,25 +672,12 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 						SetStatusPlaybackStarted();
 						resumeEmu(TRUE); // Unpause emu if it was paused before
 					}
-					//                    GetDlgItemText(hwnd, IDC_INI_COMMENTS, (LPSTR) TempMessage, 128 );
-					//                    setIniComments(pRomInfo,TempMessage);
-					//                    strncpy(pRomInfo->UserNotes,TempMessage,sizeof(pRomInfo->UserNotes));
-					if (!emu_launched) {                    //Refreshes the ROM Browser
-						ShowWindow(hRomList, FALSE);
-						ShowWindow(hRomList, TRUE);
-					}
 					EndDialog(hwnd, IDOK);
-					//                    romInfoHWND = NULL;
 				}
 				break;
 				case IDC_CANCEL:
 				case IDCANCEL:
-					if (!emu_launched) {
-						ShowWindow(hRomList, FALSE);
-						ShowWindow(hRomList, TRUE);
-					}
 					EndDialog(hwnd, IDOK);
-//                    romInfoHWND = NULL;
 					break;
 				case IDC_MOVIE_BROWSE:
 				{
@@ -915,10 +896,6 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 
 			return FALSE;
 		case WM_CLOSE:
-			if (!emu_launched) {
-				ShowWindow(hRomList, FALSE);
-				ShowWindow(hRomList, TRUE);
-			}
 			EndDialog(hwnd, IDOK);
 			break;
 		case WM_COMMAND:
@@ -988,19 +965,11 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 							SetStatusTranslatedString(hStatus, 0, "Recording replay...");
 						}
 
-						if (!emu_launched) {                    //Refreshes the ROM Browser
-							ShowWindow(hRomList, FALSE);
-							ShowWindow(hRomList, TRUE);
-						}
 						EndDialog(hwnd, IDOK);
 					}
 				} break;
 				case IDC_CANCEL:
 				case IDCANCEL:
-					if (!emu_launched) {
-						ShowWindow(hRomList, FALSE);
-						ShowWindow(hRomList, TRUE);
-					}
 					EndDialog(hwnd, IDOK);
 					break;
 				case IDC_MOVIE_BROWSE:
@@ -1494,6 +1463,7 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 			if (emu_launched && !FullScreenMode) {
 				moveScreen((int) wParam, lParam);
 			}
+		rombrowser_update_size();
 			break;
 		case WM_USER + 17:  SetFocus(mainHWND);
 			break;
@@ -1619,8 +1589,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			LPNMHDR l_header = (LPNMHDR)lParam;
 
 			if (wParam == IDC_ROMLIST) {
-				// TODO: reimplement
-				// RomListNotify(l_header);
+				rombrowser_notify(lParam);
 			}
 			switch ((l_header)->code) {
 				case TTN_NEEDTEXT:
@@ -1650,6 +1619,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				// TODO: reimplement
 				// ResizeRomListControl();
 			}
+				rombrowser_update_size();
 			break;
 		}
 		case WM_USER + 17:  SetFocus(mainHWND); break;
@@ -2088,8 +2058,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					break;
 				case REFRESH_ROM_BROWSER:
 					if (!emu_launched) {
-						// TODO: reimplement
-						// RefreshRomBrowser();
+						rombrowser_build();
 					}
 					break;
 				case ID_POPUP_ROM_SETTING:
@@ -2640,14 +2609,14 @@ int WINAPI WinMain(
 
 		// This fixes offscreen recording issue
 		SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED); //this can't be applied before ShowWindow(), otherwise you must use some fancy function
-		BringWindowToTop(hRomList);
-		ListView_SetExtendedListViewStyleEx(hRomList, LVS_EX_DOUBLEBUFFER, LVS_EX_DOUBLEBUFFER);
 
 		UpdateWindow(hwnd);
 
 		setup_dummy_info();
 		search_plugins();
-
+		rombrowser_create();
+		rombrowser_build();
+		
 		EnableEmulationMenuItems(0);
 		if (!StartGameByCommandLine()) {
 			cmdlineMode = 0;

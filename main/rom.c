@@ -46,7 +46,7 @@
 #include "mupenIniApi.h"
 #include "guifuncs.h"
 #include "../main/win/Config.hpp"
-#include <win/rombrowser.h>
+#include <win\RomBrowser.hpp>
 #include <win/main_win.h>
 
 static FILE* rom_file;
@@ -57,7 +57,7 @@ static int i, tmp, z;
 
 int taille_rom;
 unsigned char* rom;
-rom_header* ROM_HEADER;
+t_rom_header* ROM_HEADER;
 rom_settings ROM_SETTINGS;
 
 static int findsize() {
@@ -332,8 +332,8 @@ int rom_read(const char* argv) {
 	}
 	printf("rom loaded succesfully\n");
 
-	if (!ROM_HEADER) ROM_HEADER = (rom_header*)malloc(sizeof(rom_header));
-	memcpy(ROM_HEADER, rom, sizeof(rom_header));
+	if (!ROM_HEADER) ROM_HEADER = (t_rom_header*)malloc(sizeof(t_rom_header));
+	memcpy(ROM_HEADER, rom, sizeof(t_rom_header));
 	ROM_HEADER->unknown = 0; // Clean up ROMs that accidentally set the unused bytes (ensuring previous fields are null terminated)
 	ROM_HEADER->Unknown[0] = 0;
 	ROM_HEADER->Unknown[1] = 0;
@@ -366,7 +366,7 @@ int rom_read(const char* argv) {
 		default:
 			printf("Country Code : %x\n", ROM_HEADER->Country_code);
 	}
-	printf("size: %d\n", (unsigned int)(sizeof(rom_header)));
+	printf("size: %d\n", (unsigned int)(sizeof(t_rom_header)));
 	printf("PC= %x\n", sl((unsigned int)ROM_HEADER->PC));
 
 	// loading rom settings and checking if it's a good dump
@@ -468,30 +468,15 @@ int fill_header(const char* argv) {
 	if (!z) fclose(rom_file);
 	else if (z == 1) gzclose(z_rom_file);
 	else unzClose(zip);
-
-	if (rom[0] == 0x37) {
-		for (i = 0; i < (0x40 / 2); i++) {
-			tmp = rom[i * 2];
-			rom[i * 2] = rom[i * 2 + 1];
-			rom[i * 2 + 1] = (unsigned char) tmp;
-		}
-	}
-	if (rom[0] == 0x40) {
-		for (i = 0; i < (0x40 / 4); i++) {
-			tmp = rom[i * 4];
-			rom[i * 4] = rom[i * 4 + 3];
-			rom[i * 4 + 3] = (unsigned char) tmp;
-			tmp = rom[i * 4 + 1];
-			rom[i * 4 + 1] = rom[i * 4 + 2];
-			rom[i * 4 + 2] = (unsigned char) tmp;
-		}
-	} else if ((rom[0] != 0x80) || (rom[1] != 0x37) || (rom[2] != 0x12) || (rom[3] != 0x40)) {
+	
+	if ((rom[0] != 0x80) || (rom[1] != 0x37) || (rom[2] != 0x12) || (rom[3] != 0x40)) {
 		free(rom);
 		rom = NULL;
 		return 0;
 	}
+	rom_byteswap(rom);
 
-	if (ROM_HEADER == NULL) ROM_HEADER = (rom_header*)malloc(sizeof(rom_header));
+	if (ROM_HEADER == NULL) ROM_HEADER = (t_rom_header*)malloc(sizeof(t_rom_header));
 	memcpy(ROM_HEADER, rom, 0x40);
 	free(rom);
 	rom = NULL;

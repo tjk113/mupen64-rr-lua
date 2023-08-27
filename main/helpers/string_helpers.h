@@ -38,3 +38,13 @@ inline static int is_string_alpha_only(const char* str) {
 	}
 	return 1;
 }
+
+// https://stackoverflow.com/a/4119881
+inline static bool iequals(const std::string& a, const std::string& b)
+{
+	return std::equal(a.begin(), a.end(),
+					  b.begin(), b.end(),
+					  [](char a, char b) {
+						  return tolower(a) == tolower(b);
+					  });
+}
