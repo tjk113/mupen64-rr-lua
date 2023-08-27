@@ -69,12 +69,6 @@ BEGIN
         END
         MENUITEM "&Load Latest ROM\tCtrl Shift L", ID_LOAD_LATEST, GRAYED
         MENUITEM SEPARATOR
-        POPUP "Language"
-        BEGIN
-            MENUITEM "English",                     ID_LANG_ENGLISH
-        END
-        MENUITEM "Language information...",     ID_LANG_INFO_MENU
-        MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt F4",               ID_EMULATOR_EXIT
     END
     POPUP "Emulation"
@@ -151,21 +145,21 @@ BEGIN
     END
     POPUP "Utilities"
     BEGIN
+        MENUITEM "Show RAM start...", ID_RAMSTART
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
         MENUITEM "Save Config",                 ID_FORCESAVE
-        MENUITEM "Game Debugger",               ID_GAMEDEBUGGER
+        MENUITEM "Game Debugger...",               ID_GAMEDEBUGGER
     END
     POPUP "Help"
     BEGIN
-        MENUITEM "Show RAM start info",         ID_RAMSTART
-        MENUITEM "Show Crash Dialog",           ID_CRASHHANDLERDIALOGSHOW, GRAYED
+        MENUITEM "Show Crash Dialog...",           ID_CRASHHANDLERDIALOGSHOW, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&About Mupen64...",           ID_HELP_ABOUT
     END
     POPUP "Lua Script"
     BEGIN
-        MENUITEM "New Instance",                ID_MENU_LUASCRIPT_NEW
-        MENUITEM "Load Latest Lua Script\tCtrl Alt L", ID_LUA_LOAD_LATEST
+        MENUITEM "New Instance...",                ID_MENU_LUASCRIPT_NEW
+        MENUITEM "Load Latest Lua Script...\tCtrl Alt L", ID_LUA_LOAD_LATEST
         MENUITEM SEPARATOR
         POPUP "Recent Scripts"
         BEGIN

@@ -51,3 +51,18 @@ inline static std::vector<std::string> get_files_in_subdirectories(std::string d
 
 	return paths;
 }
+
+
+inline static void copy_to_clipboard(HWND owner, std::string str)
+{
+	OpenClipboard(owner);
+	EmptyClipboard();
+	HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, str.size() + 1);
+	if (hg) {
+		memcpy(GlobalLock(hg), str.c_str(), str.size() + 1);
+		GlobalUnlock(hg);
+		SetClipboardData(CF_TEXT, hg);
+		CloseClipboard();
+		GlobalFree(hg);
+	} else { printf("Failed to copy\n"); CloseClipboard(); }
+}

@@ -279,8 +279,14 @@ void ChangeSettings(HWND hwndOwner) {
 	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback = NULL;
 
+	CONFIG old_config = Config;
+
 	if (PropertySheet(&psh))
 		save_config();
+	else {
+		Config = old_config;
+	}
+
 	return;
 }
 
@@ -660,26 +666,13 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
 		WriteCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, Config.is_state_independent_state_loading_allowed);
 
+		CheckDlgButton(hwnd, IDC_INTERP, Config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
+		CheckDlgButton(hwnd, IDC_RECOMP, Config.core_type == 1 ? BST_CHECKED : BST_UNCHECKED);
+		CheckDlgButton(hwnd, IDC_PURE_INTERP, Config.core_type == 2 ? BST_CHECKED : BST_UNCHECKED);
 
-		switch (Config.core_type) {
-		case 0:
-			CheckDlgButton(hwnd, IDC_INTERP, BST_CHECKED);
-			break;
-		case 1:
-			CheckDlgButton(hwnd, IDC_RECOMP, BST_CHECKED);
-			break;
-		case 2:
-			CheckDlgButton(hwnd, IDC_PURE_INTERP, BST_CHECKED);
-			break;
-		default:
-			break;
-		}
-
-		if (emu_launched) {
-			EnableWindow(GetDlgItem(hwnd, IDC_INTERP), FALSE);
-			EnableWindow(GetDlgItem(hwnd, IDC_RECOMP), FALSE);
-			EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), FALSE);
-		}
+		EnableWindow(GetDlgItem(hwnd, IDC_INTERP), !emu_launched);
+		EnableWindow(GetDlgItem(hwnd, IDC_RECOMP), !emu_launched);
+		EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
 
 		TranslateGeneralDialog(hwnd);
 		return TRUE;
@@ -730,25 +723,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 	return TRUE;
 }
 
-BOOL CALLBACK LangInfoProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
-	switch (Message) {
-	case WM_INITDIALOG:
-		TranslateLangInfoDialog(hwnd);
-		return TRUE;
-	case WM_COMMAND:
-		switch (LOWORD(wParam)) {
-		case IDOK:
-		case IDCANCEL:
-		case IDC_AUDIT_CLOSE:
-			EndDialog(hwnd, IDOK);
-			break;
-		default:
-			break;
-		}
-	default:
-		return FALSE;
-	}
-}
 
 BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
 	NMHDR FAR* l_nmhdr = nullptr;

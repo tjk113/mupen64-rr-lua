@@ -125,7 +125,6 @@ BOOL manualFPSLimit = TRUE;
 BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
 
-char stroopConfigLine[150] = {0};
 char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
 const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {"Azimer\'s Audio v0.7"};
@@ -1923,33 +1922,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 
 					pauseEmu(TRUE);
 
-					// todo: simplify
+					char ram_start[20] = {0};
+					sprintf(ram_start, "0x%p", static_cast<void*>(rdram));
 
-					// maybe pack formatted and buffer and result into one long char array where you only read necessary part
+					char proc_name[MAX_PATH] = {0};
+					GetModuleFileName(NULL, proc_name, MAX_PATH);
+					_splitpath(proc_name, 0, 0, proc_name, 0);
 
-					char buf[12]; // ram start
-					sprintf(buf, "0x%p", (void *) (rdram));
+					char stroop_c[1024] = {0};
+					sprintf(stroop_c, "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>", proc_name, ram_start);
 
-					if (!stroopConfigLine[0]) {
-						TCHAR procName[MAX_PATH];
-						GetModuleFileName(NULL, procName, MAX_PATH);
-						_splitpath(procName, 0, 0, procName, 0);
-
-						sprintf(stroopConfigLine, "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>", procName, buf);
-
-					}
-					std::string stdstr_buf = stroopConfigLine;
-					if (MessageBoxA(0, buf, "RAM Start (Click Yes to Copy STROOP config line)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO) == IDYES) {
-						OpenClipboard(mainHWND);
-						EmptyClipboard();
-						HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, stdstr_buf.size() + 1);
-						if (hg) {
-							memcpy(GlobalLock(hg), stdstr_buf.c_str(), stdstr_buf.size() + 1);
-							GlobalUnlock(hg);
-							SetClipboardData(CF_TEXT, hg);
-							CloseClipboard();
-							GlobalFree(hg);
-						} else { printf("Failed to copy"); CloseClipboard(); }
+					auto stroop_str = std::string(stroop_c);
+					if (MessageBoxA(mainHWND, "Do you want to copy the generated STROOP config line to your clipboard?", "STROOP", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO) == IDYES) {
+						copy_to_clipboard(mainHWND, stroop_str);
 					}
 					if (wasMenuPaused) {
 						resumeEmu(TRUE);
@@ -1973,13 +1958,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						char* slash = strrchr(temp_buffer, '\\');
 						if (slash) {
 							slash[1] = '\0';
-							// TODO: reimplement
-							// if (addDirectoryToLinkedList(temp_buffer)) {
-							// SendDlgItemMessage(hwnd, IDC_ROMBROWSER_DIR_LIST, LB_ADDSTRING, 0, (LPARAM)temp_buffer);
-							// AddDirToList(temp_buffer, TRUE);
-							// SaveRomBrowserDirs();
-							// save_config(); // TODO: investigate why this is needed
-							// }
 						}
 						StartRom(path_buffer);
 					}
@@ -2203,25 +2181,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					// TODO: reimplement
 					// generateRomInfo();
 					break;
-				case ID_LANG_INFO_MENU:
-				{
-					BOOL wasMenuPaused = MenuPaused;
-					MenuPaused = FALSE;
-					ret = DialogBox(GetModuleHandle(NULL),
-						MAKEINTRESOURCE(IDD_LANG_INFO), hwnd, LangInfoProc);
-					if (wasMenuPaused) {
-						resumeEmu(TRUE);
-					}
-				}
-
 				break;
 				case GENERATE_BITMAP: // take/capture a screenshot
-
 					if (Config.is_default_screenshots_directory_used) {
 						sprintf(path_buffer, "%sScreenShots\\", AppPath);
 						CaptureScreen(path_buffer);
 					} else {
-						sprintf(path_buffer, "%s", Config.screenshots_directory);
+						sprintf(path_buffer, "%s", Config.screenshots_directory.c_str());
 						CaptureScreen(path_buffer);
 					}
 					break;

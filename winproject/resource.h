@@ -414,7 +414,6 @@
 #define IDH_CANCEL                      28444
 #define IDH_HELP                        28445
 #define ID_EMULATOR_EXIT                40001
-#define ID_LANG_INFO_MENU               40002
 #define ID_FFMPEG_START                 40006
 #define EMU_RESET                       40007
 #define IDC_STARTFROM2                  40008
