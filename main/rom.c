@@ -47,6 +47,7 @@
 #include "guifuncs.h"
 #include "../main/win/Config.hpp"
 #include <win\RomBrowser.hpp>
+#include <win\RomSettings.h>
 #include <win/main_win.h>
 
 static FILE* rom_file;
@@ -344,7 +345,11 @@ int rom_read(const char* argv) {
 	printf("ClockRate=%x\n", sl((unsigned int)ROM_HEADER->ClockRate));
 	printf("Version:%x\n", sl((unsigned int)ROM_HEADER->Release));
 	printf("CRC: %x %x\n", sl((unsigned int)ROM_HEADER->CRC1), sl((unsigned int)ROM_HEADER->CRC2));
+	//trim header
+	memcpy(ROM_HEADER->nom, trim((char*)ROM_HEADER->nom), sizeof(ROM_HEADER->nom));
 	printf("name: %s\n", (char *) ROM_HEADER->nom);
+
+
 	if (sl(ROM_HEADER->Manufacturer_ID) == 'N') printf("Manufacturer: Nintendo\n");
 	else printf("Manufacturer: %x\n", (unsigned int)(ROM_HEADER->Manufacturer_ID));
 	printf("Cartridge_ID: %x\n", ROM_HEADER->Cartridge_ID);

@@ -31,8 +31,8 @@ extern "C" {
 #define _WIN32_IE 0x0500
 #endif
 #include <commctrl.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
 #include <filesystem>
 #ifndef _MSC_VER
 #include <dirent.h>
@@ -1908,7 +1908,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				case ID_GAMEDEBUGGER:
 					extern unsigned long op;
 
-					GameDebuggerStart([]() {
+					GameDebuggerStart([=]() {
 						return Config.core_type == 2 ? op : -1;
 						}, []() {
 							return Config.core_type == 2 ? interp_addr : -1;

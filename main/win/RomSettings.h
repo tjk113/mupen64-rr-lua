@@ -23,5 +23,6 @@ typedef struct _DEFAULT_ROM_SETTINGS {
 
 } DEFAULT_ROM_SETTINGS;
 
+char* trim(char* str);
 DEFAULT_ROM_SETTINGS GetDefaultRomSettings(char* Section);
 void saveDefaultRomSettings(char* Section, DEFAULT_ROM_SETTINGS DefaultRomSettings);
