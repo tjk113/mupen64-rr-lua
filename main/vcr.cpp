@@ -2074,16 +2074,10 @@ void VCR_updateFrameCounter() {
 	char str[128];
 	char rr[50];
 	if (VCR_isRecording()) {
-		if (Config.is_frame_count_visual_zero_index)
-			sprintf(str, "%d (%d) %s", (int)m_currentVI - 2, (int)m_currentSample - 1, inputDisplay);
-		else
-			sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, inputDisplay);
+		sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, inputDisplay);
 		sprintf(rr, "%lu rr", m_header.rerecord_count);
 	} else if (VCR_isPlaying()) {
-		if (Config.is_frame_count_visual_zero_index)
-			sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI - 2, (int)VCR_getLengthVIs() - 2, (int)m_currentSample - 1, (int)VCR_getLengthSamples() - 1, inputDisplay);
-		else
-			sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), inputDisplay);
+		sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), inputDisplay);
 		sprintf(rr, "%lu rr", m_header.rerecord_count);
 	} else
 		strcpy(str, inputDisplay);

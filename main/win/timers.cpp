@@ -159,13 +159,13 @@ void new_vi() {
 	}
 
 
-	if ((!Config.show_vis_per_second) && (!Config.is_fps_limited)) return;
+	if ((!Config.show_vis_per_second)) return;
 	VI_Counter++;
 
 	auto CurrentFPSTime = std::chrono::high_resolution_clock::now(); //nanosecond precosion is kept up to the sleep
 
 	auto Dif = CurrentFPSTime - LastFPSTime;
-	if (Config.is_fps_limited && manualFPSLimit && !frame_advancing
+	if (manualFPSLimit && !frame_advancing
 #ifdef LUA_SPEEDMODE
 		&& !maximumSpeedMode
 #endif

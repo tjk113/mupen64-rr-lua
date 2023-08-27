@@ -477,26 +477,15 @@ CONFIG get_default_config() {
 	config.prevent_suspicious_rom_loading = 0;
 	config.is_savestate_warning_enabled = 1;
 	config.is_rom_movie_compatibility_check_enabled = 1;
-	config.is_fps_limited = 1;
 	config.core_type = 1;
 	config.fps_modifier = 100;
 	config.frame_skip_frequency = 1;
 	config.is_movie_loop_enabled = 0;
-	config.is_frame_count_visual_zero_index = 0;
-	config.is_movie_backup_enabled = 0;
 	config.cpu_clock_speed_multiplier = 1;
 	config.is_unfocused_pause_enabled = 0;
 	config.is_toolbar_enabled = 1;
 	config.is_statusbar_enabled = 1;
 	config.is_state_independent_state_loading_allowed = 0;
-	config.is_good_name_column_enabled = 1;
-	config.is_internal_name_column_enabled = 0;
-	config.is_internal_name_column_enabled = 0;
-	config.is_country_column_enabled = 1;
-	config.is_size_column_enabled = 0;
-	config.is_comments_column_enabled = 0;
-	config.is_filename_column_enabled = 1;
-	config.is_md5_column_enabled = 0;
 	config.is_default_plugins_directory_used = 1;
 	config.is_default_saves_directory_used = 1;
 	config.is_default_screenshots_directory_used = 1;
@@ -666,24 +655,15 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini) {
 		HANDLE_INT_VALUE(show_vis_per_second)
 		HANDLE_INT_VALUE(is_savestate_warning_enabled)
 		HANDLE_INT_VALUE(is_rom_movie_compatibility_check_enabled)
-		HANDLE_INT_VALUE(is_fps_limited)
 		HANDLE_INT_VALUE(core_type)
 		HANDLE_INT_VALUE(fps_modifier)
 		HANDLE_INT_VALUE(frame_skip_frequency)
 		HANDLE_INT_VALUE(is_movie_loop_enabled)
-		HANDLE_INT_VALUE(is_frame_count_visual_zero_index)
-		HANDLE_INT_VALUE(is_movie_backup_enabled)
 		HANDLE_INT_VALUE(cpu_clock_speed_multiplier)
 		HANDLE_INT_VALUE(is_unfocused_pause_enabled)
 		HANDLE_INT_VALUE(is_toolbar_enabled)
 		HANDLE_INT_VALUE(is_statusbar_enabled)
 		HANDLE_INT_VALUE(is_state_independent_state_loading_allowed)
-		HANDLE_INT_VALUE(is_good_name_column_enabled)
-		HANDLE_INT_VALUE(is_internal_name_column_enabled)
-		HANDLE_INT_VALUE(is_country_column_enabled)
-		HANDLE_INT_VALUE(is_size_column_enabled)
-		HANDLE_INT_VALUE(is_filename_column_enabled)
-		HANDLE_INT_VALUE(is_md5_column_enabled)
 		HANDLE_INT_VALUE(is_default_plugins_directory_used)
 		HANDLE_INT_VALUE(is_default_saves_directory_used)
 		HANDLE_INT_VALUE(is_default_screenshots_directory_used)

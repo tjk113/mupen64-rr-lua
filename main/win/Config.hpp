@@ -96,11 +96,6 @@ typedef struct _CONFIG {
 	int32_t is_rom_movie_compatibility_check_enabled;
 
 	/// <summary>
-	/// Whether the FPS are limited to the rom's specified FPS
-	/// </summary>
-	int32_t is_fps_limited;
-
-	/// <summary>
 	/// The currently selected core type
 	/// <para/>
 	/// 0 - Cached Interpreter
@@ -130,16 +125,6 @@ typedef struct _CONFIG {
 	int32_t is_movie_loop_enabled;
 
 	/// <summary>
-	/// Whether the visual frame count is indexed relative to zero
-	/// </summary>
-	int32_t is_frame_count_visual_zero_index;
-
-	/// <summary>
-	/// Whether backups of the currently active movie will be created
-	/// </summary>
-	int32_t is_movie_backup_enabled;
-
-	/// <summary>
 	/// The emulated CPU's clock speed multiplier
 	/// <para/>
 	/// 1 = original clock speed
@@ -167,41 +152,6 @@ typedef struct _CONFIG {
 	/// TODO: better represent how dangerous this is in the view layer
 	/// </summary>
 	int32_t is_state_independent_state_loading_allowed;
-
-	/// <summary>
-	/// Whether the rom "GoodName" rombrowser column is enabled
-	/// </summary>
-	int32_t is_good_name_column_enabled;
-
-	/// <summary>
-	/// Whether the internal rom name rombrowser column is enabled
-	/// </summary>
-	int32_t is_internal_name_column_enabled;
-
-	/// <summary>
-	/// Whether the rom country rombrowser column is enabled
-	/// </summary>
-	int32_t is_country_column_enabled;
-
-	/// <summary>
-	/// Whether the rom size rombrowser column is enabled
-	/// </summary>
-	int32_t is_size_column_enabled;
-
-	/// <summary>
-	/// Whether the rom comments rombrowser column is enabled
-	/// </summary>
-	int32_t is_comments_column_enabled;
-
-	/// <summary>
-	/// Whether the rom filename rombrowser column is enabled
-	/// </summary>
-	int32_t is_filename_column_enabled;
-
-	/// <summary>
-	/// Whether the rom md5 checksum rombrowser column is enabled
-	/// </summary>
-	int32_t is_md5_column_enabled;
 
 	/// <summary>
 	/// Whether the default plugins directory will be used (otherwise, falls back to <see cref="plugins_directory"/>)

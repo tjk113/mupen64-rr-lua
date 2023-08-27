@@ -83,7 +83,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 	switch (Message) {
 	case WM_INITDIALOG:
 	{
-		WriteCheckBoxValue(hwnd, IDC_MOVIEBACKUPS, Config.is_movie_backup_enabled);
 		WriteCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
 
 		static const char* clockSpeedMultiplierNames[] = { "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6" };
@@ -154,7 +153,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 		}
 
 		if (l_nmhdr->code == PSN_APPLY) {
-			Config.is_movie_backup_enabled = ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS);
 			Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
 			EnableToolbar();
 			EnableStatusbar();
@@ -671,8 +669,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		WriteCheckBoxValue(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
 		WriteCheckBoxValue(hwnd, IDC_MANAGEBADROM, Config.prevent_suspicious_rom_loading);
 		WriteCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
-		WriteCheckBoxValue(hwnd, IDC_LIMITFPS, Config.is_fps_limited);
-		WriteCheckBoxValue(hwnd, IDC_0INDEX, Config.is_frame_count_visual_zero_index);
 		SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_SETPOS, TRUE, Config.fps_modifier);
 		SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
 		WriteCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, Config.is_state_independent_state_loading_allowed);
@@ -736,10 +732,8 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			Config.show_vis_per_second = ReadCheckBoxValue(hwnd, IDC_SHOWVIS);
 			Config.prevent_suspicious_rom_loading = ReadCheckBoxValue(hwnd, IDC_MANAGEBADROM);
 			Config.is_savestate_warning_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS);
-			Config.is_fps_limited = ReadCheckBoxValue(hwnd, IDC_LIMITFPS);
 			Config.fps_modifier = SendMessage(GetDlgItem(hwnd, IDC_FPSTRACKBAR), TBM_GETPOS, 0, 0);
 			Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
-			Config.is_frame_count_visual_zero_index = ReadCheckBoxValue(hwnd, IDC_0INDEX);
 			Config.is_state_independent_state_loading_allowed = ReadCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
 
 			if (emu_launched) SetStatusMode(2);
@@ -789,14 +783,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 		WriteCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
 		WriteCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
 
-		WriteCheckBoxValue(hwnd, IDC_COLUMN_GOODNAME, Config.is_good_name_column_enabled);
-		WriteCheckBoxValue(hwnd, IDC_COLUMN_INTERNALNAME, Config.is_internal_name_column_enabled);
-		WriteCheckBoxValue(hwnd, IDC_COLUMN_COUNTRY, Config.is_country_column_enabled);
-		WriteCheckBoxValue(hwnd, IDC_COLUMN_SIZE, Config.is_size_column_enabled);
-		WriteCheckBoxValue(hwnd, IDC_COLUMN_COMMENTS, Config.is_comments_column_enabled);
-		WriteCheckBoxValue(hwnd, IDC_COLUMN_FILENAME, Config.is_filename_column_enabled);
-		WriteCheckBoxValue(hwnd, IDC_COLUMN_MD5, Config.is_md5_column_enabled);
-
 		WriteCheckBoxValue(hwnd, IDC_NORESET, !Config.is_reset_recording_disabled);
 
 		WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
@@ -817,14 +803,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
 			Config.is_lua_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
 			no_audio_delay = ReadCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY);
 			no_compiled_jump = ReadCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP);
-
-			Config.is_good_name_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_GOODNAME);
-			Config.is_internal_name_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_INTERNALNAME);
-			Config.is_country_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_COUNTRY);
-			Config.is_size_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_SIZE);
-			Config.is_comments_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_COMMENTS);
-			Config.is_filename_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_FILENAME);
-			Config.is_md5_column_enabled = ReadCheckBoxValue(hwnd, IDC_COLUMN_MD5);
 
 			Config.is_reset_recording_disabled = ReadCheckBoxValue(hwnd, IDC_NORESET) == 0;
 			Config.is_internal_capture_forced = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
