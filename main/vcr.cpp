@@ -2097,6 +2097,10 @@ void vcr_recent_movies_build()
 {
 	HMENU h_menu = GetMenu(mainHWND);
 	for (size_t i = 0; i < Config.recent_movie_paths.size(); i++) {
+		if (Config.recent_movie_paths[i].empty())
+		{
+			continue;
+		}
 		DeleteMenu(h_menu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
 	}
 

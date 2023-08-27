@@ -1151,7 +1151,6 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
 			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
 			EnableMenuItem(hMenu, ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
-			EnableRecentScriptsMenu(hMenu, TRUE);
 		}
 
 		if (Config.is_toolbar_enabled) {
@@ -1193,7 +1192,6 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
-			EnableRecentScriptsMenu(hMenu, FALSE);
 			LONG winstyle;
 			winstyle = GetWindowLong(mainHWND, GWL_STYLE);
 			winstyle |= WS_MAXIMIZEBOX;
@@ -1684,7 +1682,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			switch (LOWORD(wParam)) {
 				case ID_MENU_LUASCRIPT_NEW:
 				{
-					EnableRecentScriptsMenu(hMenu, TRUE);
 					::NewLuaScript((void(*)())lParam);
 				} break;
 				case ID_LUA_RECENT_FREEZE:
@@ -1694,13 +1691,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				}
 				case ID_LUA_RECENT_RESET:
 				{
-					ClearRecent(TRUE);
-					BuildRecentScriptsMenu(hwnd);
+					lua_recent_scripts_reset();
 					break;
 				}
 				case ID_LUA_LOAD_LATEST:
 				{
-					RunRecentScript(ID_LUA_RECENT);
+					lua_recent_scripts_run(ID_LUA_RECENT);
 					break;
 				}
 				case ID_MENU_LUASCRIPT_CLOSEALL:
@@ -2316,7 +2312,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 							SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
 					} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (ID_LUA_RECENT + LUA_MAX_RECENT)) {
 						printf("run recent script\n");
-						RunRecentScript(LOWORD(wParam));
+						lua_recent_scripts_run(LOWORD(wParam));
 					}
 					break;
 			}
@@ -2568,7 +2564,7 @@ int WINAPI WinMain(
 		rombrowser_build();
 
 		vcr_recent_movies_build();
-		BuildRecentScriptsMenu(hwnd);
+		lua_recent_scripts_build();
 
 		EnableEmulationMenuItems(0);
 		if (!StartGameByCommandLine()) {

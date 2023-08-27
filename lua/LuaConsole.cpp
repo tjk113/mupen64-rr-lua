@@ -440,7 +440,7 @@ namespace LuaEngine {
 			auto status = runFile(path);
 			if (isrunning()) {
 				SetButtonState(ownWnd, true);
-				AddToRecentScripts(path);
+				lua_recent_scripts_add(path);
 				Config.lua_script_path = std::string(path);
 			}
 			printf("Lua run\n");
