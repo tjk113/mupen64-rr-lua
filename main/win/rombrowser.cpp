@@ -208,8 +208,8 @@ void rombrowser_build()
 			char filename[MAX_PATH] = {0};
 			_splitpath(path.c_str(), NULL, NULL,
 			           filename, NULL);
+			rombrowser_entry->path = path;
 			rombrowser_entry->filename = std::string(filename);
-
 			rombrowser_entry->size = std::to_string(len / (1024 * 1024)) +
 				" MB";
 
@@ -256,16 +256,13 @@ void rombrowser_update_size()
 
 void rombrowser_notify(LPARAM lparam)
 {
-	NMLVDISPINFO* plvdi;
-
 	switch (((LPNMHDR)lparam)->code)
 	{
 	case LVN_GETDISPINFO:
 		{
-			plvdi = (NMLVDISPINFO*)lparam;
+			NMLVDISPINFO* plvdi = (NMLVDISPINFO*)lparam;
 			t_rombrowser_entry* rombrowser_entry = rombrowser_entries[plvdi->
 				item.iItem];
-
 			switch (plvdi->item.iSubItem)
 			{
 			case 1:
@@ -283,5 +280,15 @@ void rombrowser_notify(LPARAM lparam)
 
 			break;
 		}
+		break;
+	case NM_DBLCLK:
+		{
+			int i = ListView_GetNextItem(rombrowser_hwnd, -1, LVNI_SELECTED);
+			if (i != -1)
+			{
+				StartRom(rombrowser_entries[i]->path.c_str());
+			}
+		}
+		break;
 	}
 }

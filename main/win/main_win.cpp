@@ -278,7 +278,7 @@ void pauseEmu(BOOL quiet) {
 		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE, MF_BYCOMMAND | (emu_paused ? MFS_CHECKED : MFS_UNCHECKED));
 }
 
-BOOL StartRom(char* fullRomPath) {
+BOOL StartRom(const char* fullRomPath) {
 	LONG winstyle;
 	if (emu_launched) {
 		really_restart_mode = TRUE;
@@ -2616,7 +2616,7 @@ int WINAPI WinMain(
 		search_plugins();
 		rombrowser_create();
 		rombrowser_build();
-		
+
 		EnableEmulationMenuItems(0);
 		if (!StartGameByCommandLine()) {
 			cmdlineMode = 0;

@@ -27,6 +27,7 @@
 
 typedef struct s_rombrowser_entry
 {
+	std::string path;
 	std::string filename;
 	std::string size;
 	t_rom_header rom_header;

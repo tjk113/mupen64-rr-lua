@@ -48,7 +48,7 @@ extern char AppPath[MAX_PATH];
 
 extern void EnableEmulationMenuItems(BOOL flag);
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
-extern BOOL StartRom(char* fullRomPath);
+BOOL StartRom(const char* fullRomPath);
 extern void resetEmu();
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
@@ -56,7 +56,6 @@ extern void EnableStatusbar();
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
 extern void LoadConfigExternals();
-
 
 extern BOOL forceIgnoreRSP;
 extern BOOL continue_vcr_on_restart_mode;
