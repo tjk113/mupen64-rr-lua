@@ -1,9 +1,6 @@
 #ifndef LUA_DEFINE_H
 #define LUA_DEFINE_H
 
-#ifdef WIN32
-
-
 #define LUA_TRACEINTERP
 #define LUA_GUI
 #define LUA_SPEEDMODE
@@ -20,7 +17,5 @@
 #define LUA_WINDOWMESSAGE
 
 #define LUA_LIB
-
-#endif
 
 #endif

@@ -1970,7 +1970,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 
 					}
 					std::string stdstr_buf = stroopConfigLine;
-				#ifdef _WIN32
 					if (MessageBoxA(0, buf, "RAM Start (Click Yes to Copy STROOP config line)", MB_ICONINFORMATION | MB_TASKMODAL | MB_YESNO) == IDYES) {
 						OpenClipboard(mainHWND);
 						EmptyClipboard();
@@ -1983,11 +1982,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 							GlobalFree(hg);
 						} else { printf("Failed to copy"); CloseClipboard(); }
 					}
-
-
-				#endif
-
-
 					if (wasMenuPaused) {
 						resumeEmu(TRUE);
 					}

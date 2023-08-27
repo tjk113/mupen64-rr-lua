@@ -17,9 +17,6 @@
 
 #include <windows.h>
 #include <stdio.h>
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0500
-#endif
 #include <commctrl.h>
 #include "../guifuncs.h"
 #include "main_win.h"
@@ -148,10 +145,7 @@ void new_vi() {
 		VCR_setLengthVIs(m_currentVI/*VCR_getLengthVIs() + 1*/);
 
 // frame display / frame counter / framecount
-#ifndef __WIN32__
-	if ((m_currentVI % 10) == 0)
-		VCR_updateFrameCounter();
-#else
+
 	extern int frame_advancing;
 	extern BOOL manualFPSLimit;
 	VCR_updateFrameCounter();
@@ -163,7 +157,7 @@ void new_vi() {
 			pauseAtFrame = -1; // don't pause again
 		}
 	}
-#endif
+
 
 	if ((!Config.show_vis_per_second) && (!Config.is_fps_limited)) return;
 	VI_Counter++;

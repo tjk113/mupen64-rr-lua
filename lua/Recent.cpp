@@ -1,12 +1,9 @@
 //Based on recent roms but better
 #include "LuaConsole.h"
 #include "Recent.h"
-
-#ifdef _WIN32
 #include <windows.h>
 #include "win/main_win.h"
 #include "../winproject/resource.h" //for menu id
-#endif
 
 BOOL freezeRecentScript;
 bool emptyRecentScripts = false;
@@ -24,7 +21,7 @@ void BuildRecentScriptsMenu(HWND hwnd) {
 	menuinfo.fMask = MIIM_TYPE | MIIM_ID;
 	menuinfo.fType = MFT_STRING;
 	menuinfo.fState = MFS_ENABLED;
-	
+
 	for (i = 0; i < Config.recent_lua_script_paths.size(); i++) {
 		auto& str = Config.recent_lua_script_paths[i];
 		if (str == "") {
@@ -67,7 +64,7 @@ void ClearRecent(BOOL clear_array) {
 }
 
 void RefreshRecent() {
-	//nuke the menu 
+	//nuke the menu
 	ClearRecent(FALSE);
 	//rebuild
 	BuildRecentScriptsMenu(mainHWND);

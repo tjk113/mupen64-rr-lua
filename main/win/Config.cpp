@@ -505,6 +505,7 @@ CONFIG get_default_config() {
 	config.screenshots_directory = "";
 	config.states_path = "";
 	config.recent_rom_paths = std::vector<std::string>(10);
+	config.recent_movie_paths = std::vector<std::string>(10);
 	config.is_recent_movie_paths_frozen = 0;
 	config.rombrowser_sorted_column = 0;
 	config.rombrowser_sort_method = "ASC";
@@ -531,8 +532,8 @@ CONFIG get_default_config() {
 	config.last_movie_author = "Unknown Author";
 	config.window_x = CW_USEDEFAULT;
 	config.window_y = CW_USEDEFAULT;
-	config.window_width = CW_USEDEFAULT;
-	config.window_height = CW_USEDEFAULT;
+	config.window_width = 640;
+	config.window_height = 480;
 
 	return config;
 }

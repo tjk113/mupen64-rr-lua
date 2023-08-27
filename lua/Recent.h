@@ -1,8 +1,5 @@
 #pragma once
-#ifdef _WIN32
-#include <windows.h> //linux trolled
-					 // lol
-#endif
+#include <windows.h>
 #define LUA_MAX_RECENT 5
 //functions
 void AddToRecentScripts(char* path);

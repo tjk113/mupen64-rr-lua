@@ -42,11 +42,7 @@
 #include "../memory/flashram.h"
 #include "../r4300/r4300.h"
 #include "../r4300/interupt.h"
-
-#ifdef WIN32
 #include "win/main_win.h"
-#endif
-
 
 extern unsigned long interp_addr;
 
@@ -315,14 +311,9 @@ void savestates_load(bool silenceNotFoundError) {
 		// -3+10 to account for possible ".savestate" ending, +1 for null terminator
 		filename = (char*)malloc(strlen(fname) - 3 + 10 + 1);
 		strcpy(filename, fname);
-		//slot -= 10;
-	#ifdef WIN32
 		_splitpath(filename, 0, 0, fname, 0);
 		strcat(fname, ".st");
 		sprintf(buf, "Loading %s", fname);
-	#else
-		sprintf(buf, "Loading %s", filename);
-	#endif
 	}
 
 
@@ -363,10 +354,8 @@ void savestates_load(bool silenceNotFoundError) {
 	// compare current rom hash with one stored in state
 	gzread(f, buf, 32);
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32) != 0) {
-	#ifdef WIN32
 		if (Config.is_rom_movie_compatibility_check_enabled)	// if true, allows loading
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
-	#endif
 		else {
 			warn_savestate("Wrong ROM error", "This savestate is from another ROM or version.", TRUE);
 			gzclose(f);
@@ -581,10 +570,8 @@ void savestates_load_old(bool silenceNotFoundError) {
 	//printf("--------st start---------\n");
 	gzread(f, buf, 32);
 	if (memcmp(buf, ROM_SETTINGS.MD5, 32) != 0) {
-	#ifdef WIN32
 		if (Config.is_rom_movie_compatibility_check_enabled)
 			warn_savestate("Savestate Warning", "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded", TRUE);
-	#endif
 		else {
 			if (!VCR_isRecording())
 				warn_savestate("Savestates Wrong Region", "Savestate Wrong Region");

@@ -37,12 +37,6 @@
 #include <time.h>
 #include <chrono>
 
-#ifndef __WIN32__
-#include <gtk/gtk.h> // for getting callback_startEmulation and callback_stopEmulation
-#include <unistd.h> // for truncate
-#include <gui_gtk/messagebox.h>
-#define stricmp strcasecmp
-#else
 #include <commctrl.h> // for SendMessage, SB_SETTEXT
 #include <windows.h> // for truncate functions
 #include <../../winproject/resource.h> // for EMU_RESET
@@ -50,7 +44,6 @@
 #include "win/main_win.h" // mainHWND
 #include <WinUser.h>
 
-#endif
 
 #ifdef _DEBUG
 #include "../r4300/macros.h"
@@ -177,40 +170,22 @@ char* strtrimext(char* myStr) {
 }
 
 void printWarning(const char* str) {
-#ifdef __WIN32__
 	extern BOOL cmdlineNoGui;
 	if (cmdlineNoGui)
 		printf("Warning: %s\n", str);
 	else
 		MessageBox(NULL, str, "Warning", MB_OK | MB_ICONWARNING);
-#else
-	extern int g_GuiEnabled;
-	if (!g_GuiEnabled)
-		printf("Warning: %s\n", str);
-	else
-		messagebox(tr("Warning"), MB_OK, str);
-#endif
 }
 
 void printError(const char* str) {
-#ifdef __WIN32__
 	extern BOOL cmdlineNoGui;
 	if (cmdlineNoGui)
 		fprintf(stderr, "Error: %s\n", str);
 	else
 		MessageBox(NULL, str, "Error", MB_OK | MB_ICONERROR);
-#else
-	extern int g_GuiEnabled;
-	if (!g_GuiEnabled)
-		fprintf(stderr, "Error: %s\n", str);
-	else
-		messagebox(tr("Error"), MB_OK, str);
-#endif
 }
 
 static void hardResetAndClearAllSaveData(bool clear) {
-#ifdef __WIN32__
-//	extern void resetEmu();
 	extern BOOL clear_sram_on_restart_mode;
 	extern BOOL continue_vcr_on_restart_mode;
 	extern HWND mainHWND;
@@ -221,15 +196,7 @@ static void hardResetAndClearAllSaveData(bool clear) {
 		printf("Clearing save data...\n");
 	else
 		printf("Playing movie without clearing save data\n");
-//	resetEmu();
 	SendMessage(mainHWND, WM_COMMAND, EMU_RESET, 0);
-#else
-	extern void callback_startEmulation(GtkWidget * widget, gpointer data);
-	extern void callback_stopEmulation(GtkWidget * widget, gpointer data);
-	callback_stopEmulation(NULL, NULL);
-	VCR_clearAllSaveData();
-	callback_startEmulation(NULL, NULL);
-#endif
 }
 
 static int visByCountrycode() {
@@ -346,16 +313,12 @@ static void truncateMovie() {
 
 	long truncLen = MUP_HEADER_SIZE + sizeof(BUTTONS) * (m_header.length_samples);
 
-#ifdef __WIN32__
 	HANDLE fileHandle = CreateFile(m_filename, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0);
 	if (fileHandle != NULL) {
 		SetFilePointer(fileHandle, truncLen, 0, FILE_BEGIN);
 		SetEndOfFile(fileHandle);
 		CloseHandle(fileHandle);
 	}
-#else
-	truncate(m_filename, truncLen);
-#endif
 }
 
 static int read_movie_header(FILE* file, SMovieHeader* header) {
@@ -615,14 +578,9 @@ const char* VCR_getMovieFilename() {
 
 void
 VCR_setReadOnly(BOOL val) {
-#ifdef __WIN32__
-
-	//if (Config.movieBackupsLevel > 2) movieBackup();
-
 	extern HWND mainHWND;
 	if (m_readOnly != val)
 		CheckMenuItem(GetMenu(mainHWND), EMU_VCRTOGGLEREADONLY, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
-#endif
 	m_readOnly = val;
 }
 
@@ -635,11 +593,9 @@ bool VCR_isRestarting() {
 }
 
 void VCR_setLoopMovie(bool val) {
-#ifdef __WIN32__
 	extern HWND mainHWND;
 	if (VCR_isLooping() != val)
 		CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
-#endif
 	Config.is_movie_loop_enabled = val;
 }
 
@@ -732,13 +688,9 @@ int VCR_movieUnfreeze(const char* buf, unsigned long size) {
 		flush_movie();
 ///		systemScreenMessage("Movie re-record");
 
-	#ifdef __WIN32__
 		extern void EnableEmulationMenuItems(BOOL flag);
 		if (lastTask == Playback)
 			EnableEmulationMenuItems(TRUE);
-	#else
-			// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
-	#endif
 			// update header with new ROM info
 		if (lastTask == Playback)
 			setROMInfo(&m_header);
@@ -770,13 +722,9 @@ int VCR_movieUnfreeze(const char* buf, unsigned long size) {
 //		change_state(MOVIE_STATE_PLAY);
 ///		systemScreenMessage("Movie rewind");
 
-	#ifdef __WIN32__
 		extern void EnableEmulationMenuItems(BOOL flag);
 		if (lastTask == Recording)
 			EnableEmulationMenuItems(TRUE);
-	#else
-			// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
-	#endif
 
 		m_currentSample = (long) current_sample;
 		m_currentVI = (int) current_vi;
@@ -855,7 +803,6 @@ VCR_getKeys(int Control, BUTTONS* Keys) {
 		}
 
 	if (m_task == StartPlayback) {
-	#ifdef __WIN32__
 		if (!continue_vcr_on_restart_mode) {
 			if (just_restarted_flag) {
 				just_restarted_flag = FALSE;
@@ -867,14 +814,7 @@ VCR_getKeys(int Control, BUTTONS* Keys) {
 				hardResetAndClearAllSaveData(!(m_header.startFlags & MOVIE_START_FROM_EEPROM));
 			}
 		}
-	#else
-		printf("[VCR]: Starting playback...\n");
-		m_currentSample = 0;
-		m_currentVI = 0;
-		m_task = Playback;
-		hardResetAndClearAllSaveData();
-	#endif
-	///		return;
+
 	}
 
 	if (m_task == StartPlaybackFromSnapshot) {
@@ -1182,20 +1122,15 @@ VCR_stopRecord(int defExt) {
 
 		printf("[VCR]: Record stopped. Recorded %ld input samples\n", m_header.length_samples);
 
-	#ifdef __WIN32__
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
 		//RESET_TITLEBAR;
 		SetActiveMovie(0); // ?
-	#else
-			// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
-	#endif
 
-	#ifdef __WIN32__
+
 		extern HWND hStatus/*, hStatusProgress*/;
 		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
 		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped recording.");
-	#endif
 
 		retVal = 0;
 	}
@@ -1438,18 +1373,12 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 				reserve_buffer_space(to_read);
 				fread(m_inputBufferPtr, 1, to_read, m_file);
 
-				// read "baseline" controller data
-	///				read_frame_controller_data(0); // correct if we can assume the first controller is active, which we can on all GBx/xGB systems
-	//				m_currentSample = 0;
-
 				fseek(m_file, 0, SEEK_END);
-			#ifdef _WIN32
 				char buf[50];
 				sprintf(buf, "%lu rr", m_header.rerecord_count);
 
 				extern HWND hStatus;
 				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
-			#endif
 			}	break;
 			default:
 				char buf[100];
@@ -1522,11 +1451,9 @@ stopPlayback(bool bypassLoopSetting) {
 	if (!bypassLoopSetting && VCR_isLooping()) {
 		return restartPlayback();
 	}
-#ifdef __WIN32__
 	extern HWND mainHWND;
 	//SetActiveMovie(NULL); //remove from title
 	RESET_TITLEBAR // maybe
-	#endif
 		if (m_file && m_task != StartRecording && m_task != Recording) {
 			fclose(m_file);
 			m_file = 0;
@@ -1541,16 +1468,12 @@ stopPlayback(bool bypassLoopSetting) {
 		m_task = Idle;
 		printf("[VCR]: Playback stopped (%ld samples played)\n", m_currentSample);
 
-	#ifdef __WIN32__
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
 
 		extern HWND hStatus;
 		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
 		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped playback.");
-	#else
-			// FIXME: how to update enable/disable state of StopPlayback and StopRecord with gtk GUI?
-	#endif
 		if (m_inputBuffer) {
 			free(m_inputBuffer);
 			m_inputBuffer = NULL;
@@ -1585,10 +1508,8 @@ VCR_updateScreen() {
 
 	if (VCR_isCapturing() == 0) {
 		// only update screen if not capturing
-	#ifdef __WIN32__
 			// skip frames according to skipFrequency if fast-forwarding
 		if ((IGNORE_RSP || forceIgnoreRSP)) redraw = 0;
-	#endif
 	#ifdef LUA_SPEEDMODE
 		if (maximumSpeedMode)redraw = 0;
 	#endif
@@ -1754,9 +1675,7 @@ static void writeSound(char* buf, int len, int minWriteSize, int maxWriteSize, B
 
 	if (len > 0) {
 		if ((unsigned int) (soundBufPos + len)> SOUND_BUF_SIZE * sizeof(char)) {
-		#ifdef WIN32
 			MessageBox(0, "Fatal error", "Sound buffer overflow", MB_ICONERROR);
-		#endif
 			printf("SOUND BUFFER OVERFLOW\n");
 			return;
 		}
@@ -1862,15 +1781,7 @@ void VCR_aiLenChanged() {
 	}
 }
 
-
-
-
-
-
-#ifdef __WIN32__
 void init_readScreen();
-#endif
-
 void UpdateTitleBarCapture(const char* filename) {
 	// Setting titlebar to include currently capturing AVI file
 	char title[PATH_MAX];
@@ -1898,7 +1809,6 @@ void UpdateTitleBarCapture(const char* filename) {
 //				even to mp4 if compressor supports that, but audio will always be put inside avi.
 //codecDialog - displays codec dialog if true, otherwise uses last used settings
 int VCR_startCapture(const char* recFilename, const char* aviFilename, bool codecDialog) {
-#ifdef __WIN32__
 	extern BOOL emu_paused;
 	BOOL wasPaused = emu_paused;
 	if (!emu_paused) {
@@ -1906,7 +1816,6 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 		pauseEmu(TRUE);
 	}
 	init_readScreen(); //readScreen always not null here
-#endif
 
 	FILE* tmpf = fopen(aviFilename, "ab+");
 
@@ -1952,7 +1861,6 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 		return -1;
 	}*/
 
-#ifdef __WIN32__
 	// disable the toolbar (m_capture==1 causes this call to do that)
 	// because a bug means part of it could get captured into the AVI
 	extern void EnableToolbar();
@@ -1966,7 +1874,6 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename, bool code
 	// disable minimize titlebar button
 	SetWindowLong(mainHWND, GWL_STYLE,
 			   GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
-#endif
 
 	VCR_invalidatedCaptureFrame();
 
@@ -2029,12 +1936,8 @@ VCR_toggleReadOnly() {
 	}
 	VCR_setReadOnly(!m_readOnly);
 
-#ifdef __WIN32__
 	extern HWND hStatus/*, hStatusProgress*/;
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(m_readOnly ? "read-only" : "read+write"));
-#else
-	printf("%s\n", m_readOnly ? "read-only" : "read+write");
-#endif
 }
 void
 VCR_toggleLoopMovie() {
@@ -2042,16 +1945,12 @@ VCR_toggleLoopMovie() {
 	//extern bool lockNoStWarn;
 	//lockNoStWarn = Config.loopMovie; // not needed now I think
 
-#ifdef __WIN32__
 	extern HWND mainHWND;
 	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE, MF_BYCOMMAND | (Config.is_movie_loop_enabled ? MFS_CHECKED : MFS_UNCHECKED));
 
 	extern HWND hStatus/*, hStatusProgress*/;
 	if (emu_launched)
 		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)(Config.is_movie_loop_enabled ? "loop movie enabled" : "loop movie disabled"));
-#else
-	printf("%s\n", Config.loopMovie ? "loop movie enabled" : "loop movie disabled");
-#endif
 }
 
 
@@ -2067,7 +1966,6 @@ VCR_stopCapture() {
 	writeSound(NULL, 0, m_audioFreq, m_audioFreq * 2, TRUE);
 	VCR_invalidatedCaptureFrame();
 
-#ifdef __WIN32__
 	// re-enable the toolbar (m_capture==0 causes this call to do that)
 	extern void EnableToolbar();
 	EnableToolbar();
@@ -2084,11 +1982,7 @@ VCR_stopCapture() {
 	}
 	SetWindowLong(mainHWND, GWL_STYLE,
 			   GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
-
-#else
-	usleep(100000); // HACK - is this really necessary?
-#endif
-//	VCR_stopPlayback();
+	//	VCR_stopPlayback();
 	VCRComp_finishFile(0);
 	AVIIncrement = 0;
 	printf("[VCR]: Capture finished.\n");
@@ -2198,16 +2092,11 @@ void VCR_updateFrameCounter() {
 	} else
 		strcpy(str, inputDisplay);
 
-#ifdef __WIN32__
 	extern HWND hStatus/*, hStatusProgress*/;
 
 	if (VCR_isRecording() || VCR_isPlaying())
 		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)rr);
 	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)str);
-
-#else
-	fprintf(stderr, "%s\r", str);
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2303,7 +2192,7 @@ void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable) {
 
 // Adapted Code from Recent.cpp
 int RunRecentMovie(WORD menuItem) {
-	char path[MAX_PATH];
+	char path[MAX_PATH] = {0};
 	int index = menuItem - ID_RECENTMOVIES_FIRST;
 	Config.recent_movie_paths[index].copy(path, MAX_PATH);
 	VCR_setReadOnly(TRUE);

@@ -32,7 +32,7 @@ void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap) {
 void FFMpegReadScreen(void** dest, long* width, long* height) {
 	HDC mupendc, all, copy; //all - screen; copy - buffer
 	//RECT rect, rectS, rectT;
-	POINT cli_tl{0, 0}; //mupen client x y 
+	POINT cli_tl{0, 0}; //mupen client x y
 	HBITMAP bitmap, oldbitmap;
 
 	*width = gSInfo.width;
@@ -109,9 +109,7 @@ void FFMpegReadScreen(void** dest, long* width, long* height) {
 }
 
 void InitReadScreenFFmpeg(const SWindowInfo& info) {
-#ifdef __WIN32__
 	printf((readScreen != NULL) ? (char*)"ReadScreen is implemented by this graphics plugin.\n" : (char*)"ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n");
-#endif	
 
 	if (readScreen == NULL) {
 		readScreen = FFMpegReadScreen;

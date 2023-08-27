@@ -33,12 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __WIN32__
-#include <SDL.h>
-#include "../main/winlnxdefs.h"
-#else
 #include <windows.h>
-#endif
 
 #include "interupt.h"
 #include "../memory/memory.h"
@@ -378,19 +373,10 @@ void gen_interupt() {
 			break;
 
 		case VI_INT:
-			//printf("VI, count: %x\n", q->count);
 		#ifdef LUA_EMUPAUSED_WORK
 			AtIntervalLuaCallback();
 		#endif
-		#ifdef VCR_SUPPORT
 			VCR_updateScreen();
-		#else
-			updateScreen();
-		#endif
-		#ifndef __WIN32__
-			SDL_PumpEvents();
-			refresh_stat();
-		#endif
 			new_vi();
 			if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
 			else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * Config.cpu_clock_speed_multiplier)); // this is the place
@@ -420,9 +406,6 @@ void gen_interupt() {
 			//serial interface, means that PIF copy/write happened (controllers)
 			//notice this is spammed a lot during loading
 		case SI_INT:
-		#ifndef __WIN32__
-			SDL_PumpEvents();
-		#endif
 				//printf("SI, count: %x\n", q->count);
 			PIF_RAMb[0x3F] = 0x0;
 			remove_interupt_event();

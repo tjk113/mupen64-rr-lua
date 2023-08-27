@@ -31,13 +31,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __WIN32__
-#include "../main/winlnxdefs.h"
-#else
 #include <windows.h>
 #include "../main/win/main_win.h"
 #include "../main/win/Config.hpp"
-#endif
 
 #include "memory.h"
 #include "dma.h"
