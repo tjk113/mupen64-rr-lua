@@ -47,7 +47,6 @@ extern void (*interp_ops[64])(void);
 extern int m_currentVI;
 extern long m_currentSample;
 extern int fast_memory;
-extern int shouldSave;
 void SYNC();
 void NOTCOMPILED();
 void InitTimer();
@@ -155,8 +154,8 @@ namespace LuaEngine {
 
 
 
-	
-	
+
+
 	//improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
 	static void stackDump(lua_State* L) {
@@ -236,7 +235,7 @@ namespace LuaEngine {
 		Direct2D
 	};
 
-	
+
 
 	//������ւ񂩂�EmuLua���Ċ�����
 
@@ -257,7 +256,7 @@ namespace LuaEngine {
 	const char* const REG_ATSAVESTATE = "SS";
 	const char* const REG_ATRESET = "RE";
 
-	
+
 	int AtUpdateScreen(lua_State* L);
 
 	class LuaEnvironment {
@@ -327,9 +326,9 @@ namespace LuaEngine {
 				RECT dc_rect = {0, 0, dc_width, dc_height};
 				d2d_render_target->BindDC(dc, &dc_rect);
 			}
-			
 
-			
+
+
 		}
 
 		void destroy_renderer() {
@@ -368,7 +367,7 @@ namespace LuaEngine {
 		// HACK: fake transparency by using color mask with obscure color
 		const uint32_t d2d_color_mask = RGB(1, 0, 1);
 
-		
+
 		void early_draw() {
 			// NOTE: it's important to check for `stopping`, since it's set after the lua message processor is invoked on the emu thread, and draw functions are also called on emu thread
 			if (!dc || stopping) {
@@ -699,7 +698,7 @@ namespace LuaEngine {
 		}
 	}
 
-	
+
 
 	void checkGDIPlusInitialized() {
 		if (gdiPlusInitialized)
@@ -842,7 +841,7 @@ namespace LuaEngine {
 			current_message = NULL;
 		}
 	};
-	
+
 	LuaMessenger lua_messenger;
 
 
@@ -963,7 +962,6 @@ namespace LuaEngine {
 					msg->runPath.path, MAX_PATH);
 
 				lua_messenger.send_message(msg);
-				shouldSave = true;
 				return TRUE;
 			}
 			case IDC_BUTTON_LUASTOP:
@@ -981,7 +979,6 @@ namespace LuaEngine {
 				if (!newPath.empty())
 					SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 						newPath.c_str());
-				shouldSave = true;
 				return TRUE;
 			}
 			case IDC_BUTTON_LUAEDIT:
@@ -1081,7 +1078,7 @@ namespace LuaEngine {
 		TraceLoggingBufFlush();
 	}
 
-	
+
 
 	LuaEnvironment* GetLuaClass(lua_State* L) {
 		lua_getfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
@@ -2594,7 +2591,7 @@ namespace LuaEngine {
 			std::hash <int>{}(font_style) ^
 			std::hash <int>{}(horizontal_alignment) ^
 			std::hash <int>{}(vertical_alignment);
-		
+
 		//if (!dw_text_layout_cache.contains(hash)) {
 		// FIXME: hash collisions!!!
 		if(true) {
@@ -2927,7 +2924,7 @@ namespace LuaEngine {
 		}
 		return 0;
 	}
-	
+
 	int RegisterVI(lua_State* L) {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
@@ -2939,7 +2936,7 @@ namespace LuaEngine {
 		}
 		return 0;
 	}
-	
+
 	int RegisterInput(lua_State* L) {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
@@ -2951,7 +2948,7 @@ namespace LuaEngine {
 		}
 		return 0;
 	}
-	
+
 	int RegisterStop(lua_State* L) {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
@@ -2963,7 +2960,7 @@ namespace LuaEngine {
 		}
 		return 0;
 	}
-	
+
 	int RegisterWindowMessage(lua_State* L) {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
@@ -2975,7 +2972,7 @@ namespace LuaEngine {
 		}
 		return 0;
 	}
-	
+
 	int RegisterInterval(lua_State* L) {
 		if (lua_toboolean(L, 2)) {
 			lua_pop(L, 1);
@@ -3097,7 +3094,7 @@ namespace LuaEngine {
 
 		lua->destroy_renderer();
 		lua->create_renderer(static_cast<Renderer>(luaL_checknumber(L, 1)));
-		
+
 		return 1;
 	}
 
@@ -3688,7 +3685,7 @@ namespace LuaEngine {
 
 		{"isreadonly", GetVCRReadOnly},
 
-		{"getsystemmetrics", GetSystemMetricsLua}, // irrelevant to core but i dont give a 
+		{"getsystemmetrics", GetSystemMetricsLua}, // irrelevant to core but i dont give a
 		{"ismainwindowinforeground", IsMainWindowInForeground},
 
 		{"screenshot", Screenshot},

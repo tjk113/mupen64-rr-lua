@@ -2296,7 +2296,6 @@ void AddToRecentMovies(const char* path) {
 void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable) {
 	HMENU hMenu = GetMenu(hWnd);
 	if (ChangeConfigVariable) {
-		shouldSave = 1;
 		Config.is_recent_movie_paths_frozen = 1 - Config.is_recent_movie_paths_frozen;
 	}
 	CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, MF_BYCOMMAND | (Config.is_recent_movie_paths_frozen ? MFS_CHECKED : MFS_UNCHECKED));

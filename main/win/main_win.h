@@ -39,7 +39,6 @@ extern HWND hTool, mainHWND, hStatus;
 extern HINSTANCE app_hInstance;
 extern BOOL manualFPSLimit;
 extern char statusmsg[800];
-extern int shouldSave;
 
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;

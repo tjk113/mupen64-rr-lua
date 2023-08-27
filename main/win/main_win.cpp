@@ -73,7 +73,6 @@ extern "C" {
 	void StartSavestate();
 
 	typedef std::string String;
-	int shouldSave = FALSE;
 
 	bool ffup = false;
 	BOOL forceIgnoreRSP = false;
@@ -1398,8 +1397,6 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd) {
 }
 
 void EnableStatusbar() {
-	shouldSave = TRUE;
-
 	if (Config.is_statusbar_enabled) {
 		if (!IsWindow(hStatus)) {
 			CreateStatusBarWindow(mainHWND);
@@ -1413,8 +1410,6 @@ void EnableStatusbar() {
 }
 
 void EnableToolbar() {
-	shouldSave = TRUE;
-
 	if (Config.is_toolbar_enabled && !VCR_isCapturing()) {
 		if (!hTool || !IsWindow(hTool)) {
 			CreateToolBarWindow(mainHWND);
@@ -1721,7 +1716,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				case ID_LUA_RECENT_FREEZE:
 				{
 					CheckMenuItem(hMenu, ID_LUA_RECENT_FREEZE, (Config.is_recent_scripts_frozen ^= 1) ? MF_CHECKED : MF_UNCHECKED);
-					shouldSave = TRUE;
 					break;
 				}
 				case ID_LUA_RECENT_RESET:
@@ -1740,10 +1734,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					::CloseAllLuaScript();
 				} break;
 				case ID_FORCESAVE:
-					shouldSave = TRUE;
 					ini_updateFile();
-					// TODO: reimplement
-					// SaveRomBrowserCache();
 					save_config();
 					ini_closeFile();
 					break;
@@ -1852,7 +1843,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 
 				case ID_LOOP_MOVIE:
 					VCR_toggleLoopMovie();
-					shouldSave = TRUE;
 					break;
 				case ID_RESTART_MOVIE:
 					if (VCR_isPlaying()) {
@@ -1879,9 +1869,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					break;
 				case ID_RECENTMOVIES_FREEZE:
 					CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, (Config.is_recent_movie_paths_frozen ^= 1) ? MF_CHECKED : MF_UNCHECKED);
-					shouldSave = TRUE;
 					break;
-					//FreezeRecentMovies(mainHWND, TRUE);
 				case ID_RECENTMOVIES_RESET:
 					ClearRecentMovies(TRUE);
 					BuildRecentMoviesMenu(mainHWND);
@@ -1921,7 +1909,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					if (emu_launched && !emu_paused) {
 						pauseEmu(FALSE);
 					}
-					shouldSave = TRUE;
 					ChangeSettings(hwnd);
 					ini_updateFile();
 					if (emu_launched && emu_paused && !wasPaused) {
