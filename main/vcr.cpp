@@ -185,6 +185,8 @@ void printError(const char* str) {
 		MessageBox(NULL, str, "Error", MB_OK | MB_ICONERROR);
 }
 
+
+
 static void hardResetAndClearAllSaveData(bool clear) {
 	extern BOOL clear_sram_on_restart_mode;
 	extern BOOL continue_vcr_on_restart_mode;
@@ -954,14 +956,8 @@ VCR_startRecord(const char* filename, unsigned short flags, const char* authorUT
 	VCR_coreStopped();
 
 	char buf[PATH_MAX];
-	AddToRecentMovies(filename);
-/*
-	if (m_task != Idle)
-	{
-		fprintf( stderr, "[VCR]: Cannot start recording, current task is \"%s\"\n", m_taskName[m_task] );
-		return -1;
-	}
-*/
+	vcr_recent_movies_add(std::string(filename));
+
 	// m_filename will be overwritten later in the function if
 	// MOVIE_START_FROM_EXISTING_SNAPSHOT is true, but it doesn't
 	// matter enough to make this a conditional thing
@@ -1192,9 +1188,9 @@ bool getSavestatePath(const char* filename, char* outBuffer) {
 }
 
 int
-VCR_startPlayback(const char* filename, const char* authorUTF8, const char* descriptionUTF8) {
-	AddToRecentMovies(filename);
-	return startPlayback(filename, authorUTF8, descriptionUTF8, false);
+VCR_startPlayback(std::string filename, const char* authorUTF8, const char* descriptionUTF8) {
+	vcr_recent_movies_add(filename);
+	return startPlayback(filename.c_str(), authorUTF8, descriptionUTF8, false);
 }
 
 static int
@@ -2103,99 +2099,53 @@ void VCR_updateFrameCounter() {
 /////////////////////////// Recent Movies //////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-bool emptyRecentMovies = false;
+void vcr_recent_movies_build()
+{
+	HMENU h_menu = GetMenu(mainHWND);
+	for (size_t i = 0; i < Config.recent_movie_paths.size(); i++) {
+		DeleteMenu(h_menu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
+	}
 
-// Adapted Code from Recent.cpp
-void BuildRecentMoviesMenu(HWND hwnd) {
-	int i;
-	MENUITEMINFO menuinfo = {0};
-	HMENU hMenu = GetMenu(hwnd);
-	HMENU hMovieMenu = GetSubMenu(hMenu, 3);
-	HMENU hSubMenu = GetSubMenu(hMenu, 3);
-	hSubMenu = GetSubMenu(hSubMenu, 6);
+	HMENU h_movie_menu = GetSubMenu(h_menu, 3);
+	HMENU h_sub_menu = GetSubMenu(h_menu, 3);
+	h_sub_menu = GetSubMenu(h_sub_menu, 6);
 
-	menuinfo.cbSize = sizeof(MENUITEMINFO);
-	menuinfo.fMask = MIIM_TYPE | MIIM_ID;
-	menuinfo.fType = MFT_STRING;
-	menuinfo.fState = MFS_ENABLED;
+	MENUITEMINFO menu_info = {0};
+	menu_info.cbSize = sizeof(MENUITEMINFO);
+	menu_info.fMask = MIIM_TYPE | MIIM_ID;
+	menu_info.fType = MFT_STRING;
+	menu_info.fState = MFS_ENABLED;
 
-	for (i = 0; i < Config.recent_movie_paths.size(); i++) {
-		menuinfo.dwTypeData = (LPSTR)Config.recent_movie_paths[i].c_str();
-		menuinfo.cch = strlen(menuinfo.dwTypeData);
-		menuinfo.wID = ID_RECENTMOVIES_FIRST + i;
-		InsertMenuItem(hSubMenu, i + 3, TRUE, &menuinfo);
-
-		if (IsMenuItemEnabled(hMenu, REFRESH_ROM_BROWSER)) {
-			EnableMenuItem(hSubMenu, ID_RECENTMOVIES_FIRST + i, MF_DISABLED);
-			EnableMenuItem(hMovieMenu, ID_REPLAY_LATEST, MF_DISABLED);
+	for (size_t i = 0; i < Config.recent_movie_paths.size(); i++) {
+		if (Config.recent_movie_paths[i].empty())
+		{
+			continue;
 		}
+		menu_info.dwTypeData = (LPSTR)Config.recent_movie_paths[i].c_str();
+		menu_info.cch = strlen(menu_info.dwTypeData);
+		menu_info.wID = ID_RECENTMOVIES_FIRST + i;
+		InsertMenuItem(h_sub_menu, i + 3, TRUE, &menu_info);
 	}
 }
 
-void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag) {
-	if (!emptyRecentMovies) {
-		for (int i = 0; i < MAX_RECENT_MOVIE; i++) {
-			EnableMenuItem(hMenu, ID_RECENTMOVIES_FIRST + i, flag ? MF_ENABLED : MF_DISABLED);
-		}
-		EnableMenuItem(hMenu, ID_REPLAY_LATEST, flag ? MF_ENABLED : MF_DISABLED);
-	}
+void vcr_recent_movies_reset()
+{
+	Config.recent_movie_paths = get_default_config().recent_movie_paths;
+	vcr_recent_movies_build();
 }
 
-// Adapted Code from Recent.cpp
-void ClearRecentMovies(BOOL clear_array) {
-	int i;
-	HMENU hMenu = GetMenu(mainHWND);
-
-	for (i = 0; i < Config.recent_movie_paths.size(); i++) {
-		DeleteMenu(hMenu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
-	}
-	if (clear_array) {
-		Config.recent_movie_paths.clear();
-	}
+void vcr_recent_movies_add(std::string path)
+{
+	std::remove(Config.recent_movie_paths.begin(), Config.recent_movie_paths.end(), path);
+	Config.recent_movie_paths.insert(Config.recent_movie_paths.begin(), path);
+	vcr_recent_movies_build();
 }
 
-// Adapted Code from Recent.cpp
-void RefreshRecentMovies() {
-	ClearRecentMovies(FALSE);
-	BuildRecentMoviesMenu(mainHWND);
-}
-
-// Adapted Code from Recent.cpp
-void AddToRecentMovies(const char* path) {
-	if (Config.is_recent_movie_paths_frozen) return;
-
-	int i = 0;
-	//Either finds index of path in recent list, or stops at last one
-	//notice how it doesn't matter if last==path or not, we do same swapping later
-	for (; i < Config.recent_movie_paths.size() - 1; ++i) {
-		//if matches or empty (list is not full), break
-		if (Config.recent_movie_paths[i][0] == 0 || Config.recent_movie_paths[i] == path) break;
-	}
-	//now swap all elements backwards starting from `i`
-	for (int j = i; j > 0; --j) {
-		Config.recent_movie_paths[j] = Config.recent_movie_paths[j - 1];
-	}
-	//now write to top
-	Config.recent_movie_paths[0] = path;
-	//rebuild menu
-	RefreshRecentMovies();
-}
-
-// Adapted Code from RomBrowser.cpp
-void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable) {
-	HMENU hMenu = GetMenu(hWnd);
-	if (ChangeConfigVariable) {
-		Config.is_recent_movie_paths_frozen = 1 - Config.is_recent_movie_paths_frozen;
-	}
-	CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, MF_BYCOMMAND | (Config.is_recent_movie_paths_frozen ? MFS_CHECKED : MFS_UNCHECKED));
-}
-
-// Adapted Code from Recent.cpp
-int RunRecentMovie(WORD menuItem) {
-	char path[MAX_PATH] = {0};
-	int index = menuItem - ID_RECENTMOVIES_FIRST;
-	Config.recent_movie_paths[index].copy(path, MAX_PATH);
+int32_t vcr_recent_movies_play(uint16_t menu_item_id)
+{
+	int index = menu_item_id - ID_RECENTMOVIES_FIRST;
 	VCR_setReadOnly(TRUE);
-	return VCR_startPlayback(path, "", "");
+	return VCR_startPlayback(Config.recent_movie_paths[index].c_str(), "", "");
 }
+
 #endif // VCR_SUPPORT

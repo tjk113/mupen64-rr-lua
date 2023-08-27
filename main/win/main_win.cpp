@@ -1119,7 +1119,6 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 
 	if (emulationRunning) {
 		EnableMenuItem(hMenu, EMU_STOP, MF_ENABLED);
-		//EnableMenuItem(hMenu,IDLOAD,MF_GRAYED);
 		EnableMenuItem(hMenu, EMU_PAUSE, MF_ENABLED);
 		EnableMenuItem(hMenu, EMU_FRAMEADVANCE, MF_ENABLED);
 		EnableMenuItem(hMenu, EMU_PLAY, MF_ENABLED);
@@ -1129,8 +1128,6 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 		EnableMenuItem(hMenu, STATE_RESTORE, MF_ENABLED);
 		EnableMenuItem(hMenu, STATE_LOAD, MF_ENABLED);
 		EnableMenuItem(hMenu, GENERATE_BITMAP, MF_ENABLED);
-		// TODO: reimplement
-		// EnableRecentROMsMenu(hMenu, TRUE);
 		EnableMenuItem(hMenu, EMU_RESET, MF_ENABLED);
 		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_GRAYED);
 		EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
@@ -1154,9 +1151,6 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
 			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
 			EnableMenuItem(hMenu, ID_END_CAPTURE, VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
-			// TODO: reimplement
-			// EnableRecentROMsMenu(hMenu, TRUE);
-			EnableRecentMoviesMenu(hMenu, TRUE);
 			EnableRecentScriptsMenu(hMenu, TRUE);
 		}
 
@@ -1199,9 +1193,6 @@ void EnableEmulationMenuItems(BOOL emulationRunning) {
 			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
-			// TODO: reimplement
-			// EnableRecentROMsMenu(hMenu, TRUE);
-			EnableRecentMoviesMenu(hMenu, FALSE);
 			EnableRecentScriptsMenu(hMenu, FALSE);
 			LONG winstyle;
 			winstyle = GetWindowLong(mainHWND, GWL_STYLE);
@@ -1458,13 +1449,6 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 			break;
 		case WM_USER + 17:  SetFocus(mainHWND);
 			break;
-		case WM_CREATE:
-			// searching the plugins...........
-			// TODO: reimplement
-			//search_plugins();
-			//rewind_plugin();
-			////////////////////////////
-			return TRUE;
 		case WM_CLOSE:
 			exit_emu(1);
 			break;
@@ -1615,24 +1599,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		}
 		case WM_USER + 17:  SetFocus(mainHWND); break;
 		case WM_CREATE:
-				// searching the plugins...........
 			GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
-			// TODO: reimplement
-			// search_plugins();
-			// rewind_plugin();
 			CreateToolBarWindow(hwnd);
 			CreateStatusBarWindow(hwnd);
 			SetupLanguages(hwnd);
 			TranslateMenu(GetMenu(hwnd), hwnd);
 			SetMenuAcceleratorsFromUser(hwnd);
-			// TODO: reimplement
-			// CreateRomListControl(hwnd);
-			// SetRecentList(hwnd);
-			BuildRecentMoviesMenu(hwnd);
-			BuildRecentScriptsMenu(hwnd);
 			EnableToolbar();
 			EnableStatusbar();
-			////////////////////////////
 			return TRUE;
 		case WM_CLOSE:
 		{
@@ -1871,8 +1845,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, (Config.is_recent_movie_paths_frozen ^= 1) ? MF_CHECKED : MF_UNCHECKED);
 					break;
 				case ID_RECENTMOVIES_RESET:
-					ClearRecentMovies(TRUE);
-					BuildRecentMoviesMenu(mainHWND);
+					vcr_recent_movies_reset();
 					break;
 				case EMU_PLAY:
 					if (emu_launched) {
@@ -2328,7 +2301,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						// TODO: reimplement
 						// RunRecentRom(LOWORD(wParam));
 					} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + MAX_RECENT_MOVIE)) {
-						if (RunRecentMovie(LOWORD(wParam)) != SUCCESS) {
+						if (vcr_recent_movies_play(LOWORD(wParam)) != SUCCESS) {
 							SetStatusTranslatedString(hStatus, 0, "Could not load movie!");
 							break;
 						}
@@ -2593,6 +2566,9 @@ int WINAPI WinMain(
 		search_plugins();
 		rombrowser_create();
 		rombrowser_build();
+
+		vcr_recent_movies_build();
+		BuildRecentScriptsMenu(hwnd);
 
 		EnableEmulationMenuItems(0);
 		if (!StartGameByCommandLine()) {

@@ -109,7 +109,7 @@ extern void VCR_clearAllSaveData();
 
 extern int VCR_startRecord(const char* filename, unsigned short flags, const char* authorUTF8, const char* descriptionUTF8, int defExt);
 extern int VCR_stopRecord(int defExt);
-extern int VCR_startPlayback(const char* filename, const char* authorUTF8, const char* descriptionUTF8);
+extern int VCR_startPlayback(std::string filename, const char* authorUTF8, const char* descriptionUTF8);
 extern int VCR_stopPlayback();
 extern int VCR_startCapture(const char* recFilename, const char* aviFilename, bool codecDialog);
 extern int VCR_stopCapture();
@@ -125,13 +125,10 @@ extern void VCR_coreStopped();
 extern void printWarning(const char*);
 extern void printError(const char*);
 
-extern void BuildRecentMoviesMenu(HWND hwnd);
-extern void ClearRecentMovies(BOOL cleararray);
-extern void RefreshRecentMovies();
-extern void FreezeRecentMovies(HWND hWnd, BOOL ChangeConfigVariable);
-extern void AddToRecentMovies(const char* path);
-extern int  RunRecentMovie(WORD menuItem);
-extern void EnableRecentMoviesMenu(HMENU hMenu, BOOL flag);
+void vcr_recent_movies_build();
+void vcr_recent_movies_reset();
+void vcr_recent_movies_add(std::string path);
+int32_t vcr_recent_movies_play(uint16_t menu_item_id);
 
 #pragma pack(push, 1)
 //#pragms pack(1)
