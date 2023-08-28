@@ -397,7 +397,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-winproject/mupen64/
 commit.txt
 .gitignore
 /tasinput_plugin/bin/
@@ -409,15 +408,8 @@ commit.txt
 /tasinput_plugin/src/config.aps
 .vs/
 plugins/
-winproject/save
-winproject/plugin
 *.o
 *.aps
-/winproject/stdout.txt
-/winproject/stderr.txt
-/winproject/mupen64.cfg
-/winproject/mupen64.cache
-/winproject/debugview.ini
-/winproject/mupen64/mupen64_2017.vcxproj.user
+/winproject/crash.log
 *.rej
 /patches

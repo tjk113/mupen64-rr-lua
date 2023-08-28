@@ -1,5 +1,3 @@
-
-
 #include <Windows.h>
 #include <winuser.h>
 #include <stdio.h>
@@ -17,11 +15,13 @@
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
 
-void hotkey_to_string(t_hotkey* hotkeys, char* buf) {
+void hotkey_to_string(t_hotkey* hotkeys, char* buf)
+{
 	int k = hotkeys->key;
 	buf[0] = 0;
 
-	if (!hotkeys->ctrl && !hotkeys->shift && !hotkeys->alt && !hotkeys->key) {
+	if (!hotkeys->ctrl && !hotkeys->shift && !hotkeys->alt && !hotkeys->key)
+	{
 		strcpy(buf, "(nothing)");
 		return;
 	}
@@ -32,7 +32,8 @@ void hotkey_to_string(t_hotkey* hotkeys, char* buf) {
 		strcat(buf, "Shift ");
 	if (hotkeys->alt)
 		strcat(buf, "Alt ");
-	if (k) {
+	if (k)
+	{
 		char buf2[32];
 		if ((k >= '0' && k <= '9') || (k >= 'A' && k <= 'Z'))
 			sprintf(buf2, "%c", (char)k);
@@ -40,57 +41,98 @@ void hotkey_to_string(t_hotkey* hotkeys, char* buf) {
 			sprintf(buf2, "F%d", k - (VK_F1 - 1));
 		else if ((k >= VK_NUMPAD0 && k <= VK_NUMPAD9))
 			sprintf(buf2, "Num%d", k - VK_NUMPAD0);
-		else switch (k) {
-			case VK_SPACE: strcpy(buf2, "Space"); break;
-			case VK_BACK: strcpy(buf2, "Backspace"); break;
-			case VK_TAB: strcpy(buf2, "Tab"); break;
-			case VK_CLEAR: strcpy(buf2, "Clear"); break;
-			case VK_RETURN: strcpy(buf2, "Enter"); break;
-			case VK_PAUSE: strcpy(buf2, "Pause"); break;
-			case VK_CAPITAL: strcpy(buf2, "Caps"); break;
-			case VK_PRIOR: strcpy(buf2, "PageUp"); break;
-			case VK_NEXT: strcpy(buf2, "PageDn"); break;
-			case VK_END: strcpy(buf2, "End"); break;
-			case VK_HOME: strcpy(buf2, "Home"); break;
-			case VK_LEFT: strcpy(buf2, "Left"); break;
-			case VK_UP: strcpy(buf2, "Up"); break;
-			case VK_RIGHT: strcpy(buf2, "Right"); break;
-			case VK_DOWN: strcpy(buf2, "Down"); break;
-			case VK_SELECT: strcpy(buf2, "Select"); break;
-			case VK_PRINT: strcpy(buf2, "Print"); break;
-			case VK_SNAPSHOT: strcpy(buf2, "PrintScrn"); break;
-			case VK_INSERT: strcpy(buf2, "Insert"); break;
-			case VK_DELETE: strcpy(buf2, "Delete"); break;
-			case VK_HELP: strcpy(buf2, "Help"); break;
-			case VK_MULTIPLY: strcpy(buf2, "Num*"); break;
-			case VK_ADD: strcpy(buf2, "Num+"); break;
-			case VK_SUBTRACT: strcpy(buf2, "Num-"); break;
-			case VK_DECIMAL: strcpy(buf2, "Num."); break;
-			case VK_DIVIDE: strcpy(buf2, "Num/"); break;
-			case VK_NUMLOCK: strcpy(buf2, "NumLock"); break;
-			case VK_SCROLL: strcpy(buf2, "ScrollLock"); break;
-			case /*VK_OEM_PLUS*/0xBB: strcpy(buf2, "=+"); break;
-			case /*VK_OEM_MINUS*/0xBD: strcpy(buf2, "-_"); break;
-			case /*VK_OEM_COMMA*/0xBC: strcpy(buf2, ","); break;
-			case /*VK_OEM_PERIOD*/0xBE: strcpy(buf2, "."); break;
-			case VK_OEM_7: strcpy(buf2, "'\""); break;
-			case VK_OEM_6: strcpy(buf2, "]}"); break;
-			case VK_OEM_5: strcpy(buf2, "\\|"); break;
-			case VK_OEM_4: strcpy(buf2, "[{"); break;
-			case VK_OEM_3: strcpy(buf2, "`~"); break;
-			case VK_OEM_2: strcpy(buf2, "/?"); break;
-			case VK_OEM_1: strcpy(buf2, ";:"); break;
+		else
+			switch (k)
+			{
+			case VK_SPACE: strcpy(buf2, "Space");
+				break;
+			case VK_BACK: strcpy(buf2, "Backspace");
+				break;
+			case VK_TAB: strcpy(buf2, "Tab");
+				break;
+			case VK_CLEAR: strcpy(buf2, "Clear");
+				break;
+			case VK_RETURN: strcpy(buf2, "Enter");
+				break;
+			case VK_PAUSE: strcpy(buf2, "Pause");
+				break;
+			case VK_CAPITAL: strcpy(buf2, "Caps");
+				break;
+			case VK_PRIOR: strcpy(buf2, "PageUp");
+				break;
+			case VK_NEXT: strcpy(buf2, "PageDn");
+				break;
+			case VK_END: strcpy(buf2, "End");
+				break;
+			case VK_HOME: strcpy(buf2, "Home");
+				break;
+			case VK_LEFT: strcpy(buf2, "Left");
+				break;
+			case VK_UP: strcpy(buf2, "Up");
+				break;
+			case VK_RIGHT: strcpy(buf2, "Right");
+				break;
+			case VK_DOWN: strcpy(buf2, "Down");
+				break;
+			case VK_SELECT: strcpy(buf2, "Select");
+				break;
+			case VK_PRINT: strcpy(buf2, "Print");
+				break;
+			case VK_SNAPSHOT: strcpy(buf2, "PrintScrn");
+				break;
+			case VK_INSERT: strcpy(buf2, "Insert");
+				break;
+			case VK_DELETE: strcpy(buf2, "Delete");
+				break;
+			case VK_HELP: strcpy(buf2, "Help");
+				break;
+			case VK_MULTIPLY: strcpy(buf2, "Num*");
+				break;
+			case VK_ADD: strcpy(buf2, "Num+");
+				break;
+			case VK_SUBTRACT: strcpy(buf2, "Num-");
+				break;
+			case VK_DECIMAL: strcpy(buf2, "Num.");
+				break;
+			case VK_DIVIDE: strcpy(buf2, "Num/");
+				break;
+			case VK_NUMLOCK: strcpy(buf2, "NumLock");
+				break;
+			case VK_SCROLL: strcpy(buf2, "ScrollLock");
+				break;
+			case /*VK_OEM_PLUS*/0xBB: strcpy(buf2, "=+");
+				break;
+			case /*VK_OEM_MINUS*/0xBD: strcpy(buf2, "-_");
+				break;
+			case /*VK_OEM_COMMA*/0xBC: strcpy(buf2, ",");
+				break;
+			case /*VK_OEM_PERIOD*/0xBE: strcpy(buf2, ".");
+				break;
+			case VK_OEM_7: strcpy(buf2, "'\"");
+				break;
+			case VK_OEM_6: strcpy(buf2, "]}");
+				break;
+			case VK_OEM_5: strcpy(buf2, "\\|");
+				break;
+			case VK_OEM_4: strcpy(buf2, "[{");
+				break;
+			case VK_OEM_3: strcpy(buf2, "`~");
+				break;
+			case VK_OEM_2: strcpy(buf2, "/?");
+				break;
+			case VK_OEM_1: strcpy(buf2, ";:");
+				break;
 			default:
 				sprintf(buf2, "(%d)", k);
 				break;
-		}
+			}
 		strcat(buf, buf2);
 	}
 }
 
 
-
-CONFIG get_default_config() {
+CONFIG get_default_config()
+{
 	CONFIG config = {};
 
 	config.fast_forward_hotkey = {
@@ -493,8 +535,8 @@ CONFIG get_default_config() {
 	config.saves_directory = "";
 	config.screenshots_directory = "";
 	config.states_path = "";
-	config.recent_rom_paths = std::vector<std::string>(MAX_RECENT_ROMS);
-	config.recent_movie_paths = std::vector<std::string>(MAX_RECENT_MOVIE);
+	config.recent_rom_paths = {};
+	config.recent_movie_paths = {};
 	config.is_recent_movie_paths_frozen = 0;
 	config.rombrowser_sorted_column = 0;
 	config.rombrowser_sort_method = "ASC";
@@ -508,7 +550,7 @@ CONFIG get_default_config() {
 	config.avi_capture_path = "";
 	config.synchronization_mode = 1;
 	config.lua_script_path = "";
-	config.recent_lua_script_paths = std::vector<std::string>(10);
+	config.recent_lua_script_paths = {};
 	config.is_recent_scripts_frozen = 0;
 	config.is_round_towards_zero_enabled = 0;
 	config.is_float_exception_propagation_enabled = 0;
@@ -527,74 +569,107 @@ CONFIG get_default_config() {
 	return config;
 }
 
-void handle_config_value(mINI::INIStructure& ini, std::string field_name, int32_t is_reading, t_hotkey* hotkey) {
-	if (is_reading) {
+void handle_config_value(mINI::INIStructure& ini, std::string field_name,
+                         int32_t is_reading, t_hotkey* hotkey)
+{
+	if (is_reading)
+	{
 		hotkey->key = std::stoi(ini["Config"][field_name + "_key"]);
 		hotkey->ctrl = std::stoi(ini["Config"][field_name + "_ctrl"]);
 		hotkey->shift = std::stoi(ini["Config"][field_name + "_shift"]);
 		hotkey->alt = std::stoi(ini["Config"][field_name + "_alt"]);
-	} else {
+	} else
+	{
 		ini["Config"][field_name + "_key"] = std::to_string(hotkey->key);
 		ini["Config"][field_name + "_ctrl"] = std::to_string(hotkey->ctrl);
 		ini["Config"][field_name + "_shift"] = std::to_string(hotkey->shift);
 		ini["Config"][field_name + "_alt"] = std::to_string(hotkey->alt);
 	}
 }
-void handle_config_value(mINI::INIStructure& ini, std::string field_name, int32_t is_reading, int32_t* value) {
-	if (is_reading) {
+
+void handle_config_value(mINI::INIStructure& ini, std::string field_name,
+                         int32_t is_reading, int32_t* value)
+{
+	if (is_reading)
+	{
 		*value = std::stoi(ini["Config"][field_name]);
-	} else {
+	} else
+	{
 		ini["Config"][field_name] = std::to_string(*value);
 	}
 }
-void handle_config_value(mINI::INIStructure& ini, std::string field_name, int32_t is_reading, std::string& value) {
-	if (is_reading) {
+
+void handle_config_value(mINI::INIStructure& ini, std::string field_name,
+                         int32_t is_reading, std::string& value)
+{
+	if (is_reading)
+	{
 		value = ini["Config"][field_name];
-	} else {
+	} else
+	{
 		ini["Config"][field_name] = value;
 	}
 }
-void handle_config_value(mINI::INIStructure& ini, std::string field_name, int32_t is_reading, std::vector<std::string>& value) {
-	if (is_reading) {
+
+void handle_config_value(mINI::INIStructure& ini, std::string field_name,
+                         int32_t is_reading, std::vector<std::string>& value)
+{
+	if (is_reading)
+	{
 		// find all elements under key
 		// TODO: use size()
 		int vector_length = 0;
-		for (size_t i = 0; i < INT32_MAX; i++) {
-			if (!ini["Config"].has(field_name + "_" + std::to_string(i))) {
+		for (size_t i = 0; i < INT32_MAX; i++)
+		{
+			if (!ini["Config"].has(field_name + "_" + std::to_string(i)))
+			{
 				vector_length = i;
 				break;
 			}
 		}
 		value.clear();
-		for (size_t i = 0; i < vector_length; i++) {
-			value.push_back(ini["Config"][field_name + "_" + std::to_string(i)]);
+		for (size_t i = 0; i < vector_length; i++)
+		{
+			value.push_back(
+				ini["Config"][field_name + "_" + std::to_string(i)]);
 		}
-	} else {
-
-		for (size_t i = 0; i < value.size(); i++) {
+	} else
+	{
+		for (size_t i = 0; i < value.size(); i++)
+		{
 			ini["Config"][field_name + "_" + std::to_string(i)] = value[i];
 		}
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, std::string field_name, int32_t is_reading, std::vector<int32_t>& value) {
-	if (is_reading) {
+void handle_config_value(mINI::INIStructure& ini, std::string field_name,
+                         int32_t is_reading, std::vector<int32_t>& value)
+{
+	if (is_reading)
+	{
 		// find all elements under key
 		// TODO: use size()
 		int vector_length = 0;
-		for (size_t i = 0; i < INT32_MAX; i++) {
-			if (!ini["Config"].has(field_name + "_" + std::to_string(i))) {
+		for (size_t i = 0; i < INT32_MAX; i++)
+		{
+			if (!ini["Config"].has(field_name + "_" + std::to_string(i)))
+			{
 				vector_length = i;
 				break;
 			}
 		}
 		value.clear();
-		for (size_t i = 0; i < vector_length; i++) {
-			value.push_back(std::stoi(ini["Config"][field_name + "_" + std::to_string(i)]));
+		for (size_t i = 0; i < vector_length; i++)
+		{
+			value.push_back(
+				std::stoi(ini["Config"][field_name + "_" + std::to_string(i)]));
 		}
-	} else {
-		for (size_t i = 0; i < value.size(); i++) {
-			ini["Config"][field_name + "_" + std::to_string(i)] = std::to_string(value[i]);
+	} else
+	{
+		for (size_t i = 0; i < value.size(); i++)
+		{
+			ini["Config"][field_name + "_" + std::to_string(i)] =
+				std::to_string(value[i]);
 		}
 	}
 }
@@ -604,14 +679,17 @@ const auto first_offset = offsetof(CONFIG, fast_forward_hotkey);
 const auto last_offset = offsetof(CONFIG, select_slot_9_hotkey);
 const CONFIG default_config = get_default_config();
 
-std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config) {
+std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
+{
 	std::vector<t_hotkey*> hotkeys;
 	t_hotkey* arr = (t_hotkey*)config;
 	// NOTE:
 	// last_offset should contain the offset of the last hotkey
 	// this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
 	// i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
-	for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1; i++) {
+	for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1
+	     ; i++)
+	{
 		auto hotkey = &arr[i];
 		// printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
 		hotkeys.push_back(hotkey);
@@ -621,12 +699,13 @@ std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config) {
 	return hotkeys;
 }
 
-mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini) {
-
+mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
+{
 #define HANDLE_INT_VALUE(x) handle_config_value(ini, #x, is_reading, &Config.x);
 #define HANDLE_VALUE(x) handle_config_value(ini, #x, is_reading, Config.x);
 
-	if (is_reading) {
+	if (is_reading)
+	{
 		// our config is empty, so hotkeys are missing identifiers
 		// we need to copy the identifiers from a default config
 		// FIXME: this assumes that the loaded config's hotkeys map 1:1 to the current hotkeys, which may not be the case
@@ -634,8 +713,10 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini) {
 		auto base_config_hotkey_pointers = collect_hotkeys(&default_config);
 		auto hotkey_pointers = collect_hotkeys(&Config);
 
-		for (size_t i = 0; i < hotkey_pointers.size(); i++) {
-			hotkey_pointers[i]->identifier = std::string(base_config_hotkey_pointers[i]->identifier);
+		for (size_t i = 0; i < hotkey_pointers.size(); i++)
+		{
+			hotkey_pointers[i]->identifier = std::string(
+				base_config_hotkey_pointers[i]->identifier);
 		}
 	}
 
@@ -643,74 +724,79 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini) {
 	auto hotkey_pointers = collect_hotkeys(&Config);
 
 	hotkeys.clear();
-	for (size_t i = 0; i < hotkey_pointers.size(); i++) {
-		handle_config_value(ini, hotkey_pointers[i]->identifier, is_reading, hotkey_pointers[i]);
+	for (size_t i = 0; i < hotkey_pointers.size(); i++)
+	{
+		handle_config_value(ini, hotkey_pointers[i]->identifier, is_reading,
+		                    hotkey_pointers[i]);
 		hotkeys.push_back(hotkey_pointers[i]);
 	}
 
 
-
 	HANDLE_VALUE(language)
-		HANDLE_INT_VALUE(show_fps)
-		HANDLE_INT_VALUE(show_vis_per_second)
-		HANDLE_INT_VALUE(is_savestate_warning_enabled)
-		HANDLE_INT_VALUE(is_rom_movie_compatibility_check_enabled)
-		HANDLE_INT_VALUE(core_type)
-		HANDLE_INT_VALUE(fps_modifier)
-		HANDLE_INT_VALUE(frame_skip_frequency)
-		HANDLE_INT_VALUE(is_movie_loop_enabled)
-		HANDLE_INT_VALUE(cpu_clock_speed_multiplier)
-		HANDLE_INT_VALUE(is_unfocused_pause_enabled)
-		HANDLE_INT_VALUE(is_toolbar_enabled)
-		HANDLE_INT_VALUE(is_statusbar_enabled)
-		HANDLE_INT_VALUE(is_state_independent_state_loading_allowed)
-		HANDLE_INT_VALUE(is_default_plugins_directory_used)
-		HANDLE_INT_VALUE(is_default_saves_directory_used)
-		HANDLE_INT_VALUE(is_default_screenshots_directory_used)
-		HANDLE_VALUE(plugins_directory)
-		HANDLE_VALUE(saves_directory)
-		HANDLE_VALUE(screenshots_directory)
-		HANDLE_VALUE(states_path)
-		HANDLE_VALUE(recent_rom_paths)
-		HANDLE_INT_VALUE(is_recent_rom_paths_frozen)
-		HANDLE_VALUE(recent_movie_paths)
-		HANDLE_INT_VALUE(is_recent_movie_paths_frozen)
-		HANDLE_INT_VALUE(rombrowser_sorted_column)
-		HANDLE_VALUE(rombrowser_sort_method)
-		HANDLE_INT_VALUE(is_rombrowser_recursion_enabled)
-		HANDLE_INT_VALUE(is_reset_recording_disabled)
-		HANDLE_INT_VALUE(is_unknown_hotkey_selection_allowed)
-		HANDLE_VALUE(avi_capture_path)
-		HANDLE_INT_VALUE(synchronization_mode)
-		HANDLE_VALUE(lua_script_path)
-		HANDLE_VALUE(recent_lua_script_paths)
-		HANDLE_INT_VALUE(is_recent_scripts_frozen)
-		HANDLE_INT_VALUE(is_round_towards_zero_enabled)
-		HANDLE_INT_VALUE(is_float_exception_propagation_enabled)
-		HANDLE_INT_VALUE(is_lua_double_buffered)
-		HANDLE_VALUE(selected_video_plugin_name)
-		HANDLE_VALUE(selected_audio_plugin_name)
-		HANDLE_VALUE(selected_input_plugin_name)
-		HANDLE_VALUE(selected_rsp_plugin_name)
-		HANDLE_INT_VALUE(last_movie_type)
-		HANDLE_VALUE(last_movie_author)
-		HANDLE_INT_VALUE(window_x)
-		HANDLE_INT_VALUE(window_y)
-		HANDLE_INT_VALUE(window_width)
-		HANDLE_INT_VALUE(window_height)
-		HANDLE_VALUE(rombrowser_column_widths)
-		HANDLE_VALUE(rombrowser_rom_paths)
+	HANDLE_INT_VALUE(show_fps)
+	HANDLE_INT_VALUE(show_vis_per_second)
+	HANDLE_INT_VALUE(is_savestate_warning_enabled)
+	HANDLE_INT_VALUE(is_rom_movie_compatibility_check_enabled)
+	HANDLE_INT_VALUE(core_type)
+	HANDLE_INT_VALUE(fps_modifier)
+	HANDLE_INT_VALUE(frame_skip_frequency)
+	HANDLE_INT_VALUE(is_movie_loop_enabled)
+	HANDLE_INT_VALUE(cpu_clock_speed_multiplier)
+	HANDLE_INT_VALUE(is_unfocused_pause_enabled)
+	HANDLE_INT_VALUE(is_toolbar_enabled)
+	HANDLE_INT_VALUE(is_statusbar_enabled)
+	HANDLE_INT_VALUE(is_state_independent_state_loading_allowed)
+	HANDLE_INT_VALUE(is_default_plugins_directory_used)
+	HANDLE_INT_VALUE(is_default_saves_directory_used)
+	HANDLE_INT_VALUE(is_default_screenshots_directory_used)
+	HANDLE_VALUE(plugins_directory)
+	HANDLE_VALUE(saves_directory)
+	HANDLE_VALUE(screenshots_directory)
+	HANDLE_VALUE(states_path)
+	HANDLE_VALUE(recent_rom_paths)
+	HANDLE_INT_VALUE(is_recent_rom_paths_frozen)
+	HANDLE_VALUE(recent_movie_paths)
+	HANDLE_INT_VALUE(is_recent_movie_paths_frozen)
+	HANDLE_INT_VALUE(rombrowser_sorted_column)
+	HANDLE_VALUE(rombrowser_sort_method)
+	HANDLE_INT_VALUE(is_rombrowser_recursion_enabled)
+	HANDLE_INT_VALUE(is_reset_recording_disabled)
+	HANDLE_INT_VALUE(is_unknown_hotkey_selection_allowed)
+	HANDLE_VALUE(avi_capture_path)
+	HANDLE_INT_VALUE(synchronization_mode)
+	HANDLE_VALUE(lua_script_path)
+	HANDLE_VALUE(recent_lua_script_paths)
+	HANDLE_INT_VALUE(is_recent_scripts_frozen)
+	HANDLE_INT_VALUE(is_round_towards_zero_enabled)
+	HANDLE_INT_VALUE(is_float_exception_propagation_enabled)
+	HANDLE_INT_VALUE(is_lua_double_buffered)
+	HANDLE_VALUE(selected_video_plugin_name)
+	HANDLE_VALUE(selected_audio_plugin_name)
+	HANDLE_VALUE(selected_input_plugin_name)
+	HANDLE_VALUE(selected_rsp_plugin_name)
+	HANDLE_INT_VALUE(last_movie_type)
+	HANDLE_VALUE(last_movie_author)
+	HANDLE_INT_VALUE(window_x)
+	HANDLE_INT_VALUE(window_y)
+	HANDLE_INT_VALUE(window_width)
+	HANDLE_INT_VALUE(window_height)
+	HANDLE_VALUE(rombrowser_column_widths)
+	HANDLE_VALUE(rombrowser_rom_paths)
 
-		return ini;
+	return ini;
 }
 
 extern char AppPath[];
 
-const std::string get_config_path() {
+std::string get_config_path()
+{
 	return std::string(AppPath) + "config.ini";
 }
 
-void save_config() {
+void save_config()
+{
+	std::remove(get_config_path().c_str());
+
 	mINI::INIFile file(get_config_path());
 	mINI::INIStructure ini;
 
@@ -719,9 +805,11 @@ void save_config() {
 	file.write(ini, true);
 }
 
-void load_config() {
+void load_config()
+{
 	struct stat buf;
-	if (stat(get_config_path().c_str(), &buf) != 0) {
+	if (stat(get_config_path().c_str(), &buf) != 0)
+	{
 		printf("[CONFIG] Default config file does not exist. Generating...\n");
 		Config = get_default_config();
 		save_config();
@@ -734,31 +822,40 @@ void load_config() {
 	ini = handle_config_ini(true, ini);
 }
 
-int32_t get_user_hotkey(t_hotkey* hotkey) {
+int32_t get_user_hotkey(t_hotkey* hotkey)
+{
 	int i, j;
 	int lc = 0, ls = 0, la = 0;
-	for (i = 0; i < 500; i++) {
+	for (i = 0; i < 500; i++)
+	{
 		SleepEx(10, TRUE);
-		for (j = 8; j < 254; j++) {
-			if (j == VK_LCONTROL || j == VK_RCONTROL || j == VK_LMENU || j == VK_RMENU || j == VK_LSHIFT || j == VK_RSHIFT)
+		for (j = 8; j < 254; j++)
+		{
+			if (j == VK_LCONTROL || j == VK_RCONTROL || j == VK_LMENU || j ==
+				VK_RMENU || j == VK_LSHIFT || j == VK_RSHIFT)
 				continue;
 
-			if (GetAsyncKeyState(j) & 0x8000) {
+			if (GetAsyncKeyState(j) & 0x8000)
+			{
 				// HACK to avoid exiting all the way out of the dialog on pressing escape to clear a hotkeys
 				// or continually re-activating the button on trying to assign space as a hotkeys
 				if (j == VK_ESCAPE || j == VK_SPACE)
 					return 0;
 
-				if (j == VK_CONTROL) {
+				if (j == VK_CONTROL)
+				{
 					lc = 1;
 					continue;
-				} else if (j == VK_SHIFT) {
+				} else if (j == VK_SHIFT)
+				{
 					ls = 1;
 					continue;
-				} else if (j == VK_MENU) {
+				} else if (j == VK_MENU)
+				{
 					la = 1;
 					continue;
-				} else if (j != VK_ESCAPE) {
+				} else if (j != VK_ESCAPE)
+				{
 					hotkey->key = j;
 					hotkey->shift = GetAsyncKeyState(VK_SHIFT) ? 1 : 0;
 					hotkey->ctrl = GetAsyncKeyState(VK_CONTROL) ? 1 : 0;
@@ -767,20 +864,24 @@ int32_t get_user_hotkey(t_hotkey* hotkey) {
 				}
 				memset(hotkey, 0, sizeof(t_hotkey)); // clear key on escape
 				return 0;
-			} else {
-				if (j == VK_CONTROL && lc) {
+			} else
+			{
+				if (j == VK_CONTROL && lc)
+				{
 					hotkey->key = 0;
 					hotkey->shift = 0;
 					hotkey->ctrl = 1;
 					hotkey->alt = 0;
 					return 1;
-				} else if (j == VK_SHIFT && ls) {
+				} else if (j == VK_SHIFT && ls)
+				{
 					hotkey->key = 0;
 					hotkey->shift = 1;
 					hotkey->ctrl = 0;
 					hotkey->alt = 0;
 					return 1;
-				} else if (j == VK_MENU && la) {
+				} else if (j == VK_MENU && la)
+				{
 					hotkey->key = 0;
 					hotkey->shift = 0;
 					hotkey->ctrl = 0;
@@ -792,18 +893,22 @@ int32_t get_user_hotkey(t_hotkey* hotkey) {
 	}
 }
 
-void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkeys) {
+void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkeys)
+{
 	char buf[MAX_PATH];
 	hotkey_to_string(hotkeys, buf);
 	SetDlgItemText(hwnd, idc, buf);
 }
 
-void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkeys, HMENU hmenu, int menuItemID) {
+void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkeys, HMENU hmenu,
+                             int menuItemID)
+{
 	char buf[MAX_PATH];
 	hotkey_to_string(hotkeys, buf);
 	SetDlgItemText(hwnd, idc, buf);
 
-	if (hmenu && menuItemID >= 0) {
+	if (hmenu && menuItemID >= 0)
+	{
 		if (strcmp(buf, "(nothing)"))
 			SetMenuAccelerator(hmenu, menuItemID, buf);
 		else
@@ -811,24 +916,44 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkeys, HMENU hmenu,
 	}
 }
 
-void ApplyHotkeys() {
-
+void ApplyHotkeys()
+{
 	// TODO: get rid of this garbage and find another way
 
 	extern HWND mainHWND;
-	SetDlgItemHotkey(mainHWND, IDC_HOT_FASTFORWARD, &Config.fast_forward_hotkey);
+	SetDlgItemHotkey(mainHWND, IDC_HOT_FASTFORWARD,
+	                 &Config.fast_forward_hotkey);
 	SetDlgItemHotkey(mainHWND, IDC_HOT_SPEEDUP, &Config.speed_up_hotkey);
 	SetDlgItemHotkey(mainHWND, IDC_HOT_SPEEDDOWN, &Config.speed_down_hotkey);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_FRAMEADVANCE, &Config.frame_advance_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 1);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PAUSE, &Config.pause_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 0);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_READONLY, &Config.toggle_read_only_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 15);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PLAY, &Config.start_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 3);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PLAYSTOP, &Config.stop_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 4);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_RECORD, &Config.start_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 0);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_RECORDSTOP, &Config.stop_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 1);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_SCREENSHOT, &Config.take_screenshot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 2);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_CSAVE, &Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_CLOAD, &Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_FRAMEADVANCE,
+	                        &Config.frame_advance_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 1), 1);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PAUSE, &Config.pause_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 1), 0);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_READONLY,
+	                        &Config.toggle_read_only_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 3), 15);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PLAY,
+	                        &Config.start_movie_playback_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 3), 3);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_PLAYSTOP,
+	                        &Config.stop_movie_playback_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 3), 4);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_RECORD,
+	                        &Config.start_movie_recording_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 3), 0);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_RECORDSTOP,
+	                        &Config.stop_movie_recording_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 3), 1);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_HOT_SCREENSHOT,
+	                        &Config.take_screenshot_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 1), 2);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_CSAVE,
+	                        &Config.save_to_current_slot_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 1), 4);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_CLOAD,
+	                        &Config.load_from_current_slot_hotkey,
+	                        GetSubMenu(GetMenu(mainHWND), 1), 6);
 
 	SetDlgItemHotkey(mainHWND, IDC_1SAVE, &Config.save_to_slot_1_hotkey);
 	SetDlgItemHotkey(mainHWND, IDC_2SAVE, &Config.save_to_slot_2_hotkey);
@@ -850,15 +975,22 @@ void ApplyHotkeys() {
 	SetDlgItemHotkey(mainHWND, IDC_8LOAD, &Config.load_from_slot_8_hotkey);
 	SetDlgItemHotkey(mainHWND, IDC_9LOAD, &Config.load_from_slot_9_hotkey);
 
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_1SEL, &Config.select_slot_1_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_2SEL, &Config.select_slot_2_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_3SEL, &Config.select_slot_3_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_4SEL, &Config.select_slot_4_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_5SEL, &Config.select_slot_5_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_6SEL, &Config.select_slot_6_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_7SEL, &Config.select_slot_7_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_8SEL, &Config.select_slot_8_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
-	SetDlgItemHotkeyAndMenu(mainHWND, IDC_9SEL, &Config.select_slot_9_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
-
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_1SEL, &Config.select_slot_1_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_2SEL, &Config.select_slot_2_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_3SEL, &Config.select_slot_3_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_4SEL, &Config.select_slot_4_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_5SEL, &Config.select_slot_5_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_6SEL, &Config.select_slot_6_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_7SEL, &Config.select_slot_7_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_8SEL, &Config.select_slot_8_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+	SetDlgItemHotkeyAndMenu(mainHWND, IDC_9SEL, &Config.select_slot_9_hotkey,
+	                        GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
 }
-

@@ -1,18 +1,25 @@
 #include "LuaConsole.h"
 #include "Recent.h"
+#include <algorithm>
 #include <windows.h>
 #include "win/main_win.h"
-#include "../winproject/resource.h" //for menu id
+#include "../winproject/resource.h"
 
-void lua_recent_scripts_build()
+void lua_recent_scripts_build(int32_t reset)
 {
 	HMENU h_menu = GetMenu(mainHWND);
-	for (size_t i = 0; i < Config.recent_lua_script_paths.size(); i++) {
+	for (size_t i = 0; i < Config.recent_lua_script_paths.size(); i++)
+	{
 		if (Config.recent_lua_script_paths[i].empty())
 		{
 			continue;
 		}
-		 DeleteMenu(h_menu, ID_LUA_RECENT + i, MF_BYCOMMAND);
+		DeleteMenu(h_menu, ID_LUA_RECENT + i, MF_BYCOMMAND);
+	}
+
+	if (reset)
+	{
+		Config.recent_lua_script_paths.clear();
 	}
 
 	HMENU h_sub_menu = GetSubMenu(h_menu, 6);
@@ -24,7 +31,8 @@ void lua_recent_scripts_build()
 	menu_info.fType = MFT_STRING;
 	menu_info.fState = MFS_ENABLED;
 
-	for (size_t i = 0; i < Config.recent_lua_script_paths.size(); i++) {
+	for (size_t i = 0; i < Config.recent_lua_script_paths.size(); i++)
+	{
 		if (Config.recent_lua_script_paths[i].empty())
 		{
 			continue;
@@ -36,23 +44,16 @@ void lua_recent_scripts_build()
 	}
 }
 
-void lua_recent_scripts_reset()
+void lua_recent_scripts_add(const std::string& path)
 {
-	Config.recent_lua_script_paths = get_default_config().recent_lua_script_paths;
-	lua_recent_scripts_build();
-}
-
-void lua_recent_scripts_add(std::string path)
-{
-	std::remove(Config.recent_lua_script_paths.begin(), Config.recent_lua_script_paths.end(), path);
+    std::erase(Config.recent_lua_script_paths, path);
 	Config.recent_lua_script_paths.insert(Config.recent_lua_script_paths.begin(), path);
 	lua_recent_scripts_build();
 }
 
 int32_t lua_recent_scripts_run(uint16_t menu_item_id)
 {
-	int index = menu_item_id - ID_LUA_RECENT;
+	const int index = menu_item_id - ID_LUA_RECENT;
 	LuaOpenAndRun(Config.recent_lua_script_paths[index].c_str());
 	return 1;
 }
-

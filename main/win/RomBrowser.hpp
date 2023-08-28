@@ -23,8 +23,6 @@
 #include "rom.h"
 #include "../md5.h"
 
-#define MAX_RECENT_ROMS 10
-
 typedef struct s_rombrowser_entry
 {
 	std::string path;

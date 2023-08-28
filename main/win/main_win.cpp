@@ -1684,23 +1684,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					::NewLuaScript((void(*)())lParam);
 				} break;
 				case ID_LUA_RECENT_FREEZE:
-				{
 					CheckMenuItem(hMenu, ID_LUA_RECENT_FREEZE, (Config.is_recent_scripts_frozen ^= 1) ? MF_CHECKED : MF_UNCHECKED);
 					break;
-				}
 				case ID_LUA_RECENT_RESET:
-				{
-					lua_recent_scripts_reset();
+					lua_recent_scripts_build(1);
 					break;
-				}
 				case ID_LUA_LOAD_LATEST:
-				{
 					lua_recent_scripts_run(ID_LUA_RECENT);
 					break;
-				}
 				case ID_MENU_LUASCRIPT_CLOSEALL:
 				{
-					::CloseAllLuaScript();
+					CloseAllLuaScript();
 				} break;
 				case ID_FORCESAVE:
 					ini_updateFile();
@@ -1840,7 +1834,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE, (Config.is_recent_movie_paths_frozen ^= 1) ? MF_CHECKED : MF_UNCHECKED);
 					break;
 				case ID_RECENTMOVIES_RESET:
-					vcr_recent_movies_reset();
+					vcr_recent_movies_build(1);
 					break;
 				case EMU_PLAY:
 					if (emu_launched) {
@@ -2259,10 +2253,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						SaveTheState(hwnd, LOWORD(wParam));
 					} else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_10) {
 						LoadTheState(hwnd, LOWORD(wParam));
-					} else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST && LOWORD(wParam) < (ID_RECENTROMS_FIRST + MAX_RECENT_ROMS)) {
+					} else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST && LOWORD(wParam) < (ID_RECENTROMS_FIRST + Config.recent_rom_paths.size())) {
 						// TODO: reimplement
 						// RunRecentRom(LOWORD(wParam));
-					} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + MAX_RECENT_MOVIE)) {
+					} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + Config.recent_movie_paths.size())) {
 						if (vcr_recent_movies_play(LOWORD(wParam)) != SUCCESS) {
 							SetStatusTranslatedString(hStatus, 0, "Could not load movie!");
 							break;
@@ -2276,7 +2270,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 							SetStatusTranslatedString(hStatus, 0, "Playback started...");
 						else
 							SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
-					} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (ID_LUA_RECENT + LUA_MAX_RECENT)) {
+					} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (ID_LUA_RECENT + Config.recent_lua_script_paths.size())) {
 						printf("run recent script\n");
 						lua_recent_scripts_run(LOWORD(wParam));
 					}

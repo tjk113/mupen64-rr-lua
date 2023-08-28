@@ -2093,9 +2093,10 @@ void VCR_updateFrameCounter() {
 /////////////////////////// Recent Movies //////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void vcr_recent_movies_build()
+void vcr_recent_movies_build(int32_t reset)
 {
 	HMENU h_menu = GetMenu(mainHWND);
+
 	for (size_t i = 0; i < Config.recent_movie_paths.size(); i++) {
 		if (Config.recent_movie_paths[i].empty())
 		{
@@ -2104,7 +2105,11 @@ void vcr_recent_movies_build()
 		DeleteMenu(h_menu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
 	}
 
-	HMENU h_movie_menu = GetSubMenu(h_menu, 3);
+	if (reset)
+	{
+		Config.recent_movie_paths.clear();
+	}
+
 	HMENU h_sub_menu = GetSubMenu(h_menu, 3);
 	h_sub_menu = GetSubMenu(h_sub_menu, 6);
 
@@ -2126,24 +2131,9 @@ void vcr_recent_movies_build()
 	}
 }
 
-void vcr_recent_movies_reset()
+void vcr_recent_movies_add(const std::string& path)
 {
-	HMENU h_menu = GetMenu(mainHWND);
-	for (size_t i = 0; i < Config.recent_movie_paths.size(); i++) {
-		if (Config.recent_movie_paths[i].empty())
-		{
-			continue;
-		}
-		DeleteMenu(h_menu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
-	}
-	Config.recent_movie_paths.clear();
-	vcr_recent_movies_build();
-}
-
-void vcr_recent_movies_add(std::string path)
-{
-	std::ranges::remove(Config.recent_movie_paths, path);
-	if (Config.recent_movie_paths.size() >= 10){Config.recent_movie_paths.pop_back();}
+	std::erase(Config.recent_movie_paths, path);
 	Config.recent_movie_paths.insert(Config.recent_movie_paths.begin(), path);
 	vcr_recent_movies_build();
 }
