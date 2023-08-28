@@ -141,7 +141,6 @@ std::unique_ptr<FFmpegManager> captureManager;
 
 extern void resetEmu();
 void SetActiveMovie(char* buf);
-
 static int startPlayback(const char* filename, const char* authorUTF8, const char* descriptionUTF8, const bool restarting);
 static int restartPlayback();
 static int stopPlayback(const bool bypassLoopSetting);
@@ -1360,7 +1359,7 @@ startPlayback(const char* filename, const char* authorUTF8, const char* descript
 	//				fseek(m_file, 0, SEEK_END);
 	//				int fileSize = ftell(m_file);
 	//				m_header.length_samples = (fileSize - MUP_HEADER_SIZE) / sizeof(BUTTONS) - 1;
-
+				if (m_file == NULL) return 0;
 				fseek(m_file, MUP_HEADER_SIZE_CUR, SEEK_SET);
 
 				// read controller data
