@@ -493,8 +493,8 @@ CONFIG get_default_config() {
 	config.saves_directory = "";
 	config.screenshots_directory = "";
 	config.states_path = "";
-	config.recent_rom_paths = std::vector<std::string>(10);
-	config.recent_movie_paths = std::vector<std::string>(10);
+	config.recent_rom_paths = std::vector<std::string>(MAX_RECENT_ROMS);
+	config.recent_movie_paths = std::vector<std::string>(MAX_RECENT_MOVIE);
 	config.is_recent_movie_paths_frozen = 0;
 	config.rombrowser_sorted_column = 0;
 	config.rombrowser_sort_method = "ASC";

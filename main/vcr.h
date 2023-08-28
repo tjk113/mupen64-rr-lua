@@ -54,7 +54,7 @@
 #define VCR_SYNC_AUDIO_DUPL 0
 #define VCR_SYNC_VIDEO_SNDROP 1
 #define VCR_SYNC_NONE 2
-#define MAX_RECENT_MOVIE 5
+#define MAX_RECENT_MOVIE 10
 
 /*
 	(0x0001)	Directional Right

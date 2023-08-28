@@ -955,6 +955,7 @@ VCR_startRecord(const char* filename, unsigned short flags, const char* authorUT
 	VCR_coreStopped();
 
 	char buf[PATH_MAX];
+
 	vcr_recent_movies_add(std::string(filename));
 
 	// m_filename will be overwritten later in the function if
@@ -2127,13 +2128,22 @@ void vcr_recent_movies_build()
 
 void vcr_recent_movies_reset()
 {
-	Config.recent_movie_paths = get_default_config().recent_movie_paths;
+	HMENU h_menu = GetMenu(mainHWND);
+	for (size_t i = 0; i < Config.recent_movie_paths.size(); i++) {
+		if (Config.recent_movie_paths[i].empty())
+		{
+			continue;
+		}
+		DeleteMenu(h_menu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
+	}
+	Config.recent_movie_paths.clear();
 	vcr_recent_movies_build();
 }
 
 void vcr_recent_movies_add(std::string path)
 {
-	std::remove(Config.recent_movie_paths.begin(), Config.recent_movie_paths.end(), path);
+	std::ranges::remove(Config.recent_movie_paths, path);
+	if (Config.recent_movie_paths.size() >= 10){Config.recent_movie_paths.pop_back();}
 	Config.recent_movie_paths.insert(Config.recent_movie_paths.begin(), path);
 	vcr_recent_movies_build();
 }
@@ -2142,7 +2152,7 @@ int32_t vcr_recent_movies_play(uint16_t menu_item_id)
 {
 	int index = menu_item_id - ID_RECENTMOVIES_FIRST;
 	VCR_setReadOnly(TRUE);
-	return VCR_startPlayback(Config.recent_movie_paths[index].c_str(), "", "");
+	return VCR_startPlayback(Config.recent_movie_paths[index], "", "");
 }
 
 #endif // VCR_SUPPORT
