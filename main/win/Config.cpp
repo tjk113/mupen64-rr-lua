@@ -516,7 +516,7 @@ CONFIG get_default_config()
 	config.language = "English";
 	config.show_fps = 1;
 	config.show_vis_per_second = 1;
-	config.prevent_suspicious_rom_loading = 0;
+	config.allow_suspicious_rom_loading = 0;
 	config.is_savestate_warning_enabled = 1;
 	config.is_rom_movie_compatibility_check_enabled = 1;
 	config.core_type = 1;

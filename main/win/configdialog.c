@@ -661,7 +661,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 	case WM_INITDIALOG:
 		WriteCheckBoxValue(hwnd, IDC_SHOWFPS, Config.show_fps);
 		WriteCheckBoxValue(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
-		WriteCheckBoxValue(hwnd, IDC_MANAGEBADROM, Config.prevent_suspicious_rom_loading);
+		WriteCheckBoxValue(hwnd, IDC_MANAGEBADROM, Config.allow_suspicious_rom_loading);
 		WriteCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
 		SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
 		WriteCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, Config.is_state_independent_state_loading_allowed);
@@ -706,7 +706,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		if (l_nmhdr->code == PSN_APPLY) {
 			Config.show_fps = ReadCheckBoxValue(hwnd, IDC_SHOWFPS);
 			Config.show_vis_per_second = ReadCheckBoxValue(hwnd, IDC_SHOWVIS);
-			Config.prevent_suspicious_rom_loading = ReadCheckBoxValue(hwnd, IDC_MANAGEBADROM);
+			Config.allow_suspicious_rom_loading = ReadCheckBoxValue(hwnd, IDC_MANAGEBADROM);
 			Config.is_savestate_warning_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS);
 			Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
 			Config.is_state_independent_state_loading_allowed = ReadCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);

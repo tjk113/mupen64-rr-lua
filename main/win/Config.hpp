@@ -82,7 +82,7 @@ typedef struct _CONFIG {
 	/// <summary>
 	/// Whether large or presumably hacked roms will not be loaded
 	/// </summary>
-	int32_t prevent_suspicious_rom_loading;
+	int32_t allow_suspicious_rom_loading;
 
 	/// <summary>
 	/// Whether the user will be notified of savestate errors

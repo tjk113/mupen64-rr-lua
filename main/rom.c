@@ -242,11 +242,12 @@ int rom_read(const char* argv) {
 	md5_state_t state;
 	md5_byte_t digest[16];
 	mupenEntry* entry;
+	bool invalidSize;
 	char buf[1024], arg[1024], * s;
 
 	strncpy(arg, argv, 1000);
 
-	if (Config.prevent_suspicious_rom_loading && !validRomExt(argv))
+	if (!Config.allow_suspicious_rom_loading && !validRomExt(argv))
 		goto killRom;
 
 	if (find_file(arg)) {
@@ -267,9 +268,10 @@ int rom_read(const char* argv) {
 
 	printf("file found\n");
  /*------------------------------------------------------------------------*/
-	// 512 is what findsize returns for an extended sm64 rom (65,536kb)
-	// findsize() needs to be called first because it has side effects
-	if (findsize() > 512 && Config.prevent_suspicious_rom_loading) goto killRom;
+	findsize(); // findsize() needs to be called first because it has side effects
+	// rom sizes that make sense are 1kB (at least boot code) to 64Mb (extended roms)
+	invalidSize = (romByteCount > 0x400'0000 || romByteCount < 0x1000);
+	if (invalidSize && !Config.allow_suspicious_rom_loading) goto killRom;
 
 	if (rom) free(rom);
 	rom = (unsigned char*)malloc(romByteCount);
@@ -399,7 +401,7 @@ int rom_read(const char* argv) {
 			ROM_SETTINGS.eeprom_16kb = 0;
 			return 0;
 		} else {
-			if (Config.prevent_suspicious_rom_loading) {
+			if (!Config.allow_suspicious_rom_loading) {
 				free(rom);
 				rom = NULL;
 				free(ROM_HEADER);
@@ -418,7 +420,7 @@ int rom_read(const char* argv) {
 	for (i = (int) strlen(s); i > 0 && s[i - 1] != '['; i--)
 	if (i != 0) {
 		if (s[i] == 'T' || s[i] == 't' || s[i] == 'h' || s[i] == 'f' || s[i] == 'o') {
-			if (Config.prevent_suspicious_rom_loading) {
+			if (!Config.allow_suspicious_rom_loading) {
 			killRom:
 				free(rom);
 				rom = NULL;
@@ -428,7 +430,7 @@ int rom_read(const char* argv) {
 			}
 		}
 		if (s[i] == 'b') {
-			if (Config.prevent_suspicious_rom_loading) {
+			if (!Config.allow_suspicious_rom_loading) {
 				free(rom);
 				rom = NULL;
 				free(ROM_HEADER);
