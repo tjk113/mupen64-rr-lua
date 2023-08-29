@@ -303,7 +303,7 @@ void SetMenuAcceleratorsFromUser(HWND mainHWND) {
 
 void TranslateGeneralDialog(HWND hwnd) {
 	SetItemTranslatedString(hwnd, IDC_MESSAGES, "Safety");
-	SetItemTranslatedString(hwnd, IDC_MANAGEBADROM, "Manage Bad ROMs");
+	SetItemTranslatedString(hwnd, IDC_MANAGEBADROM, "Allow bad ROMs");
 	SetItemTranslatedString(hwnd, IDC_ALERTSAVESTATEWARNINGS, "Alert Save Error");
 	SetItemTranslatedString(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING, "State-independent savestate loading");
 
