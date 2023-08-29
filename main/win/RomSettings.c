@@ -22,20 +22,20 @@
 #define ROM_SETIINGS_FILE "romsettings.ini"
 
 char* trim(char* str) {
-	char* ibuf, * obuf;
+	unsigned char* ibuf, * obuf;
 
 	if (str) {
-		for (ibuf = obuf = str; *ibuf; ) {
+		for (ibuf = obuf = (unsigned char*)str; *ibuf; ) {
 			while (*ibuf && (isspace(*ibuf)))
 				ibuf++;
-			if (*ibuf && (obuf != str))
+			if (*ibuf && (obuf != (unsigned char*)str))
 				*(obuf++) = ' ';
 			while (*ibuf && (!isspace(*ibuf)))
 				*(obuf++) = *(ibuf++);
 		}
 		*obuf = 0;
 	}
-	return (str);
+	return (char*)(str);
 }
 
 

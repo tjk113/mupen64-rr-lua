@@ -131,7 +131,7 @@ int init_memory() {
 	//swap rom
 	unsigned long* roml;
 	roml = (unsigned long*)rom;
-	for (i = 0; i < (taille_rom / 4); i++)
+	for (i = 0; i < (romByteCount / 4); i++)
 		roml[i] = sl(roml[i]);
 
   //init hash tables
@@ -918,7 +918,7 @@ int init_memory() {
 	}
 
   //init rom area
-	for (i = 0; i < (taille_rom >> 16); i++) {
+	for (i = 0; i < (romByteCount >> 16); i++) {
 		readmem[0x9000 + i] = read_rom;
 		readmem[0xb000 + i] = read_rom;
 		readmemb[0x9000 + i] = read_romb;
@@ -936,7 +936,7 @@ int init_memory() {
 		writememd[0x9000 + i] = write_nothingd;
 		writememd[0xb000 + i] = write_nothingd;
 	}
-	for (i = (taille_rom >> 16); i < 0xfc0; i++) {
+	for (i = (romByteCount >> 16); i < 0xfc0; i++) {
 		readmem[0x9000 + i] = read_nothing;
 		readmem[0xb000 + i] = read_nothing;
 		readmemb[0x9000 + i] = read_nothingb;

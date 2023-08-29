@@ -37,7 +37,7 @@ bool iequals(const std::string& a, const std::string& b);
 bool validRomExt(const char* filename);
 void calculateMD5(const char* argv, unsigned char digest[16]);
 extern unsigned char* rom;
-extern int taille_rom;
+extern int romByteCount;
 
 extern const char* getExt(const char* filename);
 extern void stripExt(char* fname);

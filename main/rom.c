@@ -56,35 +56,34 @@ static unzFile zip;
 static unz_file_info pfile_info;
 static int i, tmp, z;
 
-int taille_rom;
+int romByteCount;
 unsigned char* rom;
 t_rom_header* ROM_HEADER;
 rom_settings ROM_SETTINGS;
 
+// updates global rom size variable and returns the size in megabits
 static int findsize() {
 	if (!z) {
 		fseek(rom_file, 0L, SEEK_END);
-		taille_rom = ftell(rom_file);
+		romByteCount = ftell(rom_file);
 		printf("rom size: %d bytes (or %d Mb or %d Megabits)\n",
-			taille_rom, taille_rom / 1024 / 1024, taille_rom / 1024 / 1024 * 8);
+			romByteCount, romByteCount / 1024 / 1024, romByteCount / 1024 / 1024 * 8);
 		fseek(rom_file, 0L, SEEK_SET);
 	} else if (z == 1) {
-		taille_rom = 0;
+		romByteCount = 0;
 		rom = (unsigned char*)malloc(100000);
 		for (;;) {
 			i = gzread(z_rom_file, rom, 100000);
-			taille_rom += i;
-			printf("rom size: %d bytes (or %d Mb or %d Megabits)\r",
-				taille_rom, taille_rom / 1024 / 1024, taille_rom / 1024 / 1024 * 8);
-			fflush(stdout);
+			romByteCount += i;
+			printf("rom size: %d bytes (or %d Mb or %d Megabits)\n",
+				romByteCount, romByteCount / 1024 / 1024, romByteCount / 1024 / 1024 * 8);
 			if (!i) break;
 		}
 		free(rom);
 		rom = NULL;
-		printf("\n");
 		gzseek(z_rom_file, 0L, SEEK_SET);
 	}
-	return taille_rom / 1024 / 1024 * 8;
+	return romByteCount / 1024 / 1024 * 8;
 	// divide through 131072 works too but im sure compiler is smart enough
 }
 
@@ -210,7 +209,7 @@ static int find_file(char* argv) {
 						(*reinterpret_cast<unsigned long*>(buf) != 0x80371240)) {
 						unzCloseCurrentFile(zip);
 					} else {
-						taille_rom = (int) pfile_info.uncompressed_size;
+						romByteCount = (int) pfile_info.uncompressed_size;
 						unzCloseCurrentFile(zip);
 						z = 2;
 						return 0;
@@ -273,26 +272,26 @@ int rom_read(const char* argv) {
 	if (findsize() > 512 && Config.prevent_suspicious_rom_loading) goto killRom;
 
 	if (rom) free(rom);
-	rom = (unsigned char*)malloc(taille_rom);
+	rom = (unsigned char*)malloc(romByteCount);
 
 	tmp = 0;
 	if (!z) {
-		for (i = 0; i < taille_rom; i += (int) fread(rom + i, 1, 1000, rom_file)) {
-			if (tmp != (int)(((float) i / (float)taille_rom) * 100)) {
-				tmp = (int)( (float) i / (float)(taille_rom) * 100);
+		for (i = 0; i < romByteCount; i += (int) fread(rom + i, 1, 1000, rom_file)) {
+			if (tmp != (int)(((float) i / (float)romByteCount) * 100)) {
+				tmp = (int)( (float) i / (float)(romByteCount) * 100);
 			}
 		}
 	} else if (z == 1) {
-		for (i = 0; i < taille_rom; i += gzread(z_rom_file, rom + i, 1000)) {
-			if (tmp != (int)(((float) i / (float)taille_rom) * 100)) {
-				tmp = (int)((float) i / (float)(taille_rom) * 100);
+		for (i = 0; i < romByteCount; i += gzread(z_rom_file, rom + i, 1000)) {
+			if (tmp != (int)(((float) i / (float)romByteCount) * 100)) {
+				tmp = (int)((float) i / (float)(romByteCount) * 100);
 			}
 		}
 	} else {
 		unzOpenCurrentFile(zip);
-		for (i = 0; i < taille_rom; i += unzReadCurrentFile(zip, rom + i, 1000)) {
-			if (tmp != (int)(((float) i / (float)taille_rom) * 100)) {
-				tmp = (int)((float) i / (float)(taille_rom) * 100);
+		for (i = 0; i < romByteCount; i += unzReadCurrentFile(zip, rom + i, 1000)) {
+			if (tmp != (int)(((float) i / (float)romByteCount) * 100)) {
+				tmp = (int)((float) i / (float)(romByteCount) * 100);
 			}
 		}
 		unzCloseCurrentFile(zip);
@@ -303,7 +302,7 @@ int rom_read(const char* argv) {
 
 	if (rom[0] == 0x37) {
 		printf("byteswaping rom...\n");
-		for (i = 0; i < (taille_rom / 2); i++) {
+		for (i = 0; i < (romByteCount / 2); i++) {
 			tmp = rom[i * 2];
 			rom[i * 2] = rom[i * 2 + 1];
 			rom[i * 2 + 1] = (unsigned char) tmp;
@@ -311,7 +310,7 @@ int rom_read(const char* argv) {
 		printf("rom byteswaped\n");
 	}
 	if (rom[0] == 0x40) {
-		for (i = 0; i < (taille_rom / 4); i++) {
+		for (i = 0; i < (romByteCount / 4); i++) {
 			tmp = rom[i * 4];
 			rom[i * 4] = rom[i * 4 + 3];
 			rom[i * 4 + 3] = (unsigned char) tmp;
@@ -376,7 +375,7 @@ int rom_read(const char* argv) {
 
 	// loading rom settings and checking if it's a good dump
 	md5_init(&state);
-	md5_append(&state, (const md5_byte_t*)rom, taille_rom);
+	md5_append(&state, (const md5_byte_t*)rom, romByteCount);
 	md5_finish(&state, digest);
 	printf("md5 code:");
 	for (i = 0; i < 16; i++) printf("%02X", digest[i]);
@@ -485,7 +484,7 @@ int fill_header(const char* argv) {
 	memcpy(ROM_HEADER, rom, 0x40);
 	free(rom);
 	rom = NULL;
-	return taille_rom;
+	return romByteCount;
 }
 
 void calculateMD5(const char* argv, unsigned char digest[16]) {
@@ -500,26 +499,26 @@ void calculateMD5(const char* argv, unsigned char digest[16]) {
 /*------------------------------------------------------------------------*/
 	findsize();
 	if (rom) free(rom);
-	rom = (unsigned char*)malloc(taille_rom);
+	rom = (unsigned char*)malloc(romByteCount);
 
 	tmp = 0;
 	if (!z) {
-		for (i = 0; i < taille_rom; i += (int) fread(rom + i, 1, 1000, rom_file)) {
-			if (tmp != (int)(((float) i / (float)taille_rom) * 100)) {
-				tmp = (int)((float) i / (float)(taille_rom) * 100);
+		for (i = 0; i < romByteCount; i += (int) fread(rom + i, 1, 1000, rom_file)) {
+			if (tmp != (int)(((float) i / (float)romByteCount) * 100)) {
+				tmp = (int)((float) i / (float)(romByteCount) * 100);
 			}
 		}
 	} else if (z == 1) {
-		for (i = 0; i < taille_rom; i += gzread(z_rom_file, rom + i, 1000)) {
-			if (tmp != (int)((i / (float)taille_rom) * 100)) {
-				tmp = (int)(i / (float)(taille_rom) * 100);
+		for (i = 0; i < romByteCount; i += gzread(z_rom_file, rom + i, 1000)) {
+			if (tmp != (int)((i / (float)romByteCount) * 100)) {
+				tmp = (int)(i / (float)(romByteCount) * 100);
 			}
 		}
 	} else {
 		unzOpenCurrentFile(zip);
-		for (i = 0; i < taille_rom; i += unzReadCurrentFile(zip, rom + i, 1000)) {
-			if (tmp != (int)((i / (float)taille_rom) * 100)) {
-				tmp = (int)(i / (float)(taille_rom) * 100);
+		for (i = 0; i < romByteCount; i += unzReadCurrentFile(zip, rom + i, 1000)) {
+			if (tmp != (int)((i / (float)romByteCount) * 100)) {
+				tmp = (int)(i / (float)(romByteCount) * 100);
 			}
 		}
 		unzCloseCurrentFile(zip);
@@ -530,7 +529,7 @@ void calculateMD5(const char* argv, unsigned char digest[16]) {
 
 	if (rom[0] == 0x37) {
 		printf("byteswaping rom...\n");
-		for (i = 0; i < (taille_rom / 2); i++) {
+		for (i = 0; i < (romByteCount / 2); i++) {
 			tmp = rom[i * 2];
 			rom[i * 2] = rom[i * 2 + 1];
 			rom[i * 2 + 1] = (unsigned char) tmp;
@@ -538,7 +537,7 @@ void calculateMD5(const char* argv, unsigned char digest[16]) {
 		printf("rom byteswaped\n");
 	}
 	if (rom[0] == 0x40) {
-		for (i = 0; i < (taille_rom / 4); i++) {
+		for (i = 0; i < (romByteCount / 4); i++) {
 			tmp = rom[i * 4];
 			rom[i * 4] = rom[i * 4 + 3];
 			rom[i * 4 + 3] = (unsigned char) tmp;
@@ -554,7 +553,7 @@ void calculateMD5(const char* argv, unsigned char digest[16]) {
 		return;
 	}
 	md5_init(&state);
-	md5_append(&state, (const md5_byte_t*)rom, taille_rom);
+	md5_append(&state, (const md5_byte_t*)rom, romByteCount);
 	md5_finish(&state, digest);
 	free(rom);
 	rom = NULL;

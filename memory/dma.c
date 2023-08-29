@@ -129,12 +129,12 @@ void dma_pi_write() {
 
 	longueur = (pi_register.pi_wr_len_reg & 0xFFFFFF) + 1;
 	i = (pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF;
-	longueur = (i + longueur) > taille_rom ?
-		(taille_rom - i) : longueur;
+	longueur = (i + longueur) > romByteCount ?
+		(romByteCount - i) : longueur;
 	longueur = (pi_register.pi_dram_addr_reg + longueur) > 0x7FFFFF ?
 		(0x7FFFFF - pi_register.pi_dram_addr_reg) : longueur;
 
-	if (i > taille_rom || pi_register.pi_dram_addr_reg > 0x7FFFFF) {
+	if (i > romByteCount || pi_register.pi_dram_addr_reg > 0x7FFFFF) {
 		pi_register.read_pi_status_reg |= 3;
 		update_count();
 		add_interupt_event(PI_INT, longueur / 8);
