@@ -1268,9 +1268,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam) {
 	closeDLL_input();
 	closeDLL_RSP();
 
-	destroy_plugins();
-	search_plugins();
-
 	ExitThread(0);
 }
 

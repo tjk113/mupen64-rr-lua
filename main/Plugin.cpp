@@ -674,6 +674,13 @@ void destroy_plugins()
 
 void search_plugins()
 {
+	// double loadlibrary calls are not allowed
+	if (emu_launched)
+	{
+		printf("search_plugins() called while emu running\n");
+		return;
+	}
+
 	if (!plugins.empty())
 	{
 		destroy_plugins();

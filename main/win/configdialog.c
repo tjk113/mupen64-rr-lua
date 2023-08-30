@@ -511,7 +511,6 @@ BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		EndDialog(hwnd, IDOK);
 		break;
 	case WM_INITDIALOG:
-
 		search_plugins();
 
 		for (auto& plugin : plugins)
