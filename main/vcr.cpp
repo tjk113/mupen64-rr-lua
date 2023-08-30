@@ -2013,74 +2013,45 @@ VCR_coreStopped() {
 
 // update frame counter
 void VCR_updateFrameCounter() {
-	// input display
-	char inputDisplay[64];
-	inputDisplay[0] = '\0';
+
+	char input_display[128] = {0};
 	{
-		BOOL a, b, z, l, r, s, cl, cu, cr, cd, dl, du, dr, dd;
-		signed char x, y;
-		dr = (m_lastController1Keys & (0x0001)) != 0;
-		dl = (m_lastController1Keys & (0x0002)) != 0;
-		dd = (m_lastController1Keys & (0x0004)) != 0;
-		du = (m_lastController1Keys & (0x0008)) != 0;
-		s = (m_lastController1Keys & (0x0010)) != 0; // start button
-		z = (m_lastController1Keys & (0x0020)) != 0;
-		b = (m_lastController1Keys & (0x0040)) != 0;
-		a = (m_lastController1Keys & (0x0080)) != 0;
-		cr = (m_lastController1Keys & (0x0100)) != 0;
-		cl = (m_lastController1Keys & (0x0200)) != 0;
-		cd = (m_lastController1Keys & (0x0400)) != 0;
-		cu = (m_lastController1Keys & (0x0800)) != 0;
-		r = (m_lastController1Keys & (0x1000)) != 0;
-		l = (m_lastController1Keys & (0x2000)) != 0;
-		x = (char) ((m_lastController1Keys & (0x00FF0000)) >> 16);
-		y = (char) ((m_lastController1Keys & (0xFF000000)) >> 24);
+		auto buttons = static_cast<BUTTONS>(m_lastController1Keys);
 
-		if (!x && !y)
-			strcpy(inputDisplay, "");
-		else {
-			int xamt = (x < 0 ? -x : x) * 99 / 127; if (!xamt && x) xamt = 1;
-			int yamt = (y < 0 ? -y : y) * 99 / 127; if (!yamt && y) yamt = 1;
-			if (x && y)
-				sprintf(inputDisplay, "%c%d %c%d ", x < 0 ? '<' : '>', xamt, y < 0 ? 'v' : '^', yamt);
-			else if (x)
-				sprintf(inputDisplay, "%c%d ", x < 0 ? '<' : '>', xamt);
-			else //if(y)
-				sprintf(inputDisplay, "%c%d ", y < 0 ? 'v' : '^', yamt);
-		}
+		sprintf(input_display, "(%d, %d) ", buttons.Y_AXIS, buttons.X_AXIS);
 
-		if (s) strcat(inputDisplay, "S");
-		if (z) strcat(inputDisplay, "Z");
-		if (a) strcat(inputDisplay, "A");
-		if (b) strcat(inputDisplay, "B");
-		if (l) strcat(inputDisplay, "L");
-		if (r) strcat(inputDisplay, "R");
-		if (cu || cd || cl || cr) {
-			strcat(inputDisplay, " C");
-			if (cu) strcat(inputDisplay, "^");
-			if (cd) strcat(inputDisplay, "v");
-			if (cl) strcat(inputDisplay, "<");
-			if (cr) strcat(inputDisplay, ">");
+		if (buttons.START_BUTTON) strcat(input_display, "S");
+		if (buttons.Z_TRIG) strcat(input_display, "Z");
+		if (buttons.A_BUTTON) strcat(input_display, "A");
+		if (buttons.B_BUTTON) strcat(input_display, "B");
+		if (buttons.L_TRIG) strcat(input_display, "L");
+		if (buttons.R_TRIG) strcat(input_display, "R");
+		if (buttons.U_CBUTTON || buttons.D_CBUTTON || buttons.L_CBUTTON || buttons.R_CBUTTON) {
+			strcat(input_display, " C");
+			if (buttons.U_CBUTTON) strcat(input_display, "^");
+			if (buttons.D_CBUTTON) strcat(input_display, "v");
+			if (buttons.L_CBUTTON) strcat(input_display, "<");
+			if (buttons.R_CBUTTON) strcat(input_display, ">");
 		}
-		if (du || dd || dl || dr) {
-			strcat(inputDisplay, " D");
-			if (du) strcat(inputDisplay, "^");
-			if (dd) strcat(inputDisplay, "v");
-			if (dl) strcat(inputDisplay, "<");
-			if (dr) strcat(inputDisplay, ">");
+		if (buttons.U_DPAD || buttons.D_DPAD || buttons.L_DPAD || buttons.R_DPAD) {
+			strcat(input_display, " D");
+			if (buttons.U_DPAD) strcat(input_display, "^");
+			if (buttons.D_DPAD) strcat(input_display, "v");
+			if (buttons.L_DPAD) strcat(input_display, "<");
+			if (buttons.R_DPAD) strcat(input_display, ">");
 		}
 	}
 
 	char str[128];
 	char rr[50];
 	if (VCR_isRecording()) {
-		sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, inputDisplay);
+		sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample, input_display);
 		sprintf(rr, "%lu rr", m_header.rerecord_count);
 	} else if (VCR_isPlaying()) {
-		sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), inputDisplay);
+		sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI, (int)VCR_getLengthVIs(), (int)m_currentSample, (int)VCR_getLengthSamples(), input_display);
 		sprintf(rr, "%lu rr", m_header.rerecord_count);
 	} else
-		strcpy(str, inputDisplay);
+		strcpy(str, input_display);
 
 	extern HWND hStatus/*, hStatusProgress*/;
 
