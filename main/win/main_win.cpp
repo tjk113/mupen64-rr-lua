@@ -1938,7 +1938,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					MenuPaused = FALSE;
 					// The default directory we open the file dialog window in is
 					// the parent directory of the last rom that the user ran
-					GetDefaultFileDialogPath(path_buffer, Config.recent_rom_paths[0].c_str());
+					//GetDefaultFileDialogPath(path_buffer, Config.recent_rom_paths[0].c_str());
 
 					if (fdLoadRom.ShowFileDialog(path_buffer, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap", TRUE, FALSE, hwnd)) {
 						char temp_buffer[_MAX_PATH];
