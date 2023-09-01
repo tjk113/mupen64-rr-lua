@@ -973,8 +973,11 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM 
 				case IDC_MOVIE_BROWSE:
 				{
 					// The default directory we open the file dialog window in is
-					// the parent directory of the last movie that the user ran
-					GetDefaultFileDialogPath(tempbuf, Config.recent_movie_paths[0].c_str()); // if the first movie ends up being deleted this is fucked
+					// the parent directory of the last movie that the user
+					if (Config.recent_movie_paths.size() > 0)
+						GetDefaultFileDialogPath(tempbuf, Config.recent_movie_paths[0].c_str()); // if the first movie ends up being deleted this is fucked
+					else
+						tempbuf[0] = '/0';
 
 					if (fdBrowseMovie2.ShowFileDialog(tempbuf, L"*.m64;*.rec", TRUE, FALSE, hwnd)) {
 						if (strlen(tempbuf) > 0 && (strlen(tempbuf) < 4 || _stricmp(tempbuf + strlen(tempbuf) - 4, ".m64") != 0))
