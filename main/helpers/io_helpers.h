@@ -42,8 +42,16 @@ inline static std::vector<std::string> get_files_in_subdirectories(std::string d
 	std::vector<std::string> paths;
 
 	do {
-		if (!(find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-			paths.push_back(directory + find_file_data.cFileName);
+		if (strcmp(find_file_data.cFileName, ".") != 0 && strcmp(find_file_data.cFileName, "..") != 0) {
+			std::string full_path = directory + find_file_data.cFileName;
+			if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+				for (const auto& path : get_files_in_subdirectories(full_path + "\\"))
+				{
+					paths.push_back(path);
+				}
+			} else {
+				paths.push_back(full_path);
+			}
 		}
 	} while (FindNextFile(h_find, &find_file_data) != 0);
 
