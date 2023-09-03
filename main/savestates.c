@@ -62,16 +62,15 @@ bool st_skip_dma = false;
 #define MUPEN64NEW_ST_FIXED (1<<31) //last bit seems to be free
 
 static unsigned int slot = 1;
+static bool useFilename = false;
 static char fname[MAX_PATH] = {0, };
 
 void savestates_select_slot(unsigned int s) {
-	if (s > 10)
-		return;
 	slot = s;
 }
 
 void savestates_select_filename(const char* fn) {
-	slot += 10;
+	useFilename = true;
 	if (strlen((const char*)fn) >= MAX_PATH) //don't remove, this could happen when saving st with lua probably
 		return;
 	strcpy(fname, (const char*)fn);
@@ -85,11 +84,12 @@ unsigned const char* savestates_get_selected_filename() {
 void savestates_save() {
 	char* filename, buf[1024];
 	gzFile f;
-	int len, i, filename_f = 0;
+	int len, i;
 
 	savestates_job_success = TRUE;
 
-	if (slot <= 10) {
+	char statusString[256];
+	if (!useFilename) {
 		filename = (char*)malloc(strlen(get_savespath()) +
 			strlen(ROM_SETTINGS.goodname) + 4 + 2);
 		strcpy(filename, get_savespath());
@@ -97,21 +97,14 @@ void savestates_save() {
 		strcat(filename, ".st");
 		sprintf(buf, "%d", slot);
 		strcat(filename, buf);
+		sprintf(statusString, "saving slot %d", slot);
 	} else {
 		filename = (char*)malloc(strlen(fname) + 2);
 		strcpy(filename, fname);
-		slot -= 11;
-		filename_f = 1;
+		sprintf(statusString, "saving %-200s", filename);
 	}
-
-	{
-		char str[256];
-		if (filename_f)
-			sprintf(str, "saving %-200s", filename);
-		else
-			sprintf(str, "saving slot %d", slot);
-		display_status(str);
-	}
+	display_status(statusString);
+	useFilename = false;
 
 	f = gzopen(filename, "wb");
 	free(filename);
@@ -293,7 +286,7 @@ void savestates_load(bool silenceNotFoundError) {
 
 	//construct .st name for 1-10 slots based on rom name and number
 	//fname buffer will hold something that user can read, either just filename or Slot #
-	if (slot <= 10) {
+	if (!useFilename) {
 		filename = (char*)malloc(strlen(get_savespath()) +
 			sizeof(ROM_SETTINGS.goodname) + sizeof(".st##"));
 		strcpy(filename, get_savespath());
@@ -320,7 +313,7 @@ void savestates_load(bool silenceNotFoundError) {
 	f = gzopen(filename, "rb");
 
 	//try loading .savestate, workaround for discord...
-	if (f == NULL && slot > 9) {
+	if (f == NULL && useFilename) {
 		char* filename_end = filename + strlen(filename) - 3;
 		strcpy(filename_end, ".savestate");
 		f = gzopen(filename, "rb");
@@ -328,26 +321,26 @@ void savestates_load(bool silenceNotFoundError) {
 
 	//failed opening st
 	if (f == NULL) {
-		if (f == NULL) {
-			if (silenceNotFoundError) {
-				printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
-				return;
-			}
-			if (slot > 9) {
-				//print .st not .savestate because
-				filename[strlen(filename) - 10] = '\0';
-				strcat(filename, ".st");
-			}
-			printf("Savestate \"%s\" not found.\n", filename); //full path for debug
-			free(filename);
-			warn_savestate("", "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
-												  // by moving the warn function it doesn't do this anymore 
-			savestates_job_success = FALSE;
+		if (silenceNotFoundError) {
+			printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
 			return;
 		}
+		if (useFilename) {
+			//print .st not .savestate because
+			filename[strlen(filename) - 10] = '\0';
+			strcat(filename, ".st");
+		}
+		printf("Savestate \"%s\" not found.\n", filename); //full path for debug
+		free(filename);
+		warn_savestate("", "Savestate not found"); // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
+												// by moving the warn function it doesn't do this anymore 
+		savestates_job_success = FALSE;
+		useFilename = false;
+		return;
 	}
 	display_status(buf);
 	free(filename);
+	useFilename = false;
 
 	//printf("--------st start---------\n");
 
