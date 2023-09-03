@@ -14,15 +14,16 @@
  *                                                                         *
  ***************************************************************************/
 
-typedef struct _DEFAULT_ROM_SETTINGS {
+typedef struct _DEFAULT_ROM_SETTINGS
+{
 	unsigned char Version;
 	char GfxPluginName[100];
 	char InputPluginName[100];
 	char SoundPluginName[100];
 	char RspPluginName[100];
-
 } DEFAULT_ROM_SETTINGS;
 
 char* trim(char* str);
 DEFAULT_ROM_SETTINGS GetDefaultRomSettings(char* Section);
-void saveDefaultRomSettings(char* Section, DEFAULT_ROM_SETTINGS DefaultRomSettings);
+void saveDefaultRomSettings(char* Section,
+                            DEFAULT_ROM_SETTINGS DefaultRomSettings);

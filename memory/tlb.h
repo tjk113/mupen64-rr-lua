@@ -30,7 +30,8 @@
 #ifndef TLB_H
 #define TLB_H
 
-typedef struct _tlb {
+typedef struct _tlb
+{
 	short mask;
 	long vpn2;
 	char g;

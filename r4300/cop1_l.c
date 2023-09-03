@@ -30,16 +30,18 @@
 #include "r4300.h"
 #include "macros.h"
 
-void CVT_S_L() {
-	if (check_cop1_unusable()) return;
-	set_rounding();
-	*reg_cop1_simple[cffd] = *((long long*)reg_cop1_double[cffs]);
-	PC++;
+void CVT_S_L()
+{
+    if (check_cop1_unusable()) return;
+    set_rounding();
+    *reg_cop1_simple[cffd] = *((long long*)reg_cop1_double[cffs]);
+    PC++;
 }
 
-void CVT_D_L() {
-	if (check_cop1_unusable()) return;
-	set_rounding();
-	*reg_cop1_double[cffd] = *((long long*)reg_cop1_double[cffs]);
-	PC++;
+void CVT_D_L()
+{
+    if (check_cop1_unusable()) return;
+    set_rounding();
+    *reg_cop1_double[cffd] = *((long long*)reg_cop1_double[cffs]);
+    PC++;
 }

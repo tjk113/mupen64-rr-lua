@@ -37,16 +37,20 @@
 #include <functional>
 #include "helpers/io_helpers.h"
 
-struct ProcAddress {
+struct ProcAddress
+{
 	FARPROC _fp;
 
-	ProcAddress(HMODULE module, LPCSTR name) : _fp(NULL) {
+	ProcAddress(HMODULE module, LPCSTR name) : _fp(NULL)
+	{
 		_fp = ::GetProcAddress(module, name);
 	}
 
 	template <class T>
-	operator T() const {
-		union {
+	operator T() const
+	{
+		union
+		{
 			FARPROC fp;
 			T func;
 		} converter;
@@ -55,14 +59,16 @@ struct ProcAddress {
 	}
 };
 
-enum plugin_type {
+enum plugin_type
+{
 	video = 2,
 	audio = 3,
 	input = 4,
 	rsp = 1,
 };
 
-enum controller_extension {
+enum controller_extension
+{
 	none = 1,
 	mempak = 2,
 	rumblepak = 3,
@@ -70,7 +76,8 @@ enum controller_extension {
 	raw = 5
 };
 
-enum system_type {
+enum system_type
+{
 	ntsc,
 	pal,
 	mpal
@@ -78,7 +85,8 @@ enum system_type {
 
 // ReSharper disable CppInconsistentNaming
 
-typedef struct {
+typedef struct
+{
 	WORD Version;
 	WORD Type;
 	char Name[100];
@@ -90,7 +98,8 @@ typedef struct {
 							 bswap on a dword (32 bits) boundry */
 } PLUGIN_INFO;
 
-typedef struct {
+typedef struct
+{
 	HINSTANCE hInst;
 	// Whether the memory has been pre-byteswapped on a DWORD boundary
 	BOOL MemoryBswaped;
@@ -119,14 +128,15 @@ typedef struct {
 	DWORD* DPC_PIPEBUSY_REG;
 	DWORD* DPC_TMEM_REG;
 
-	void(__cdecl* CheckInterrupts)(void);
-	void(__cdecl* ProcessDlistList)(void);
-	void(__cdecl* ProcessAlistList)(void);
-	void(__cdecl* ProcessRdpList)(void);
-	void(__cdecl* ShowCFB)(void);
+	void (__cdecl*CheckInterrupts)(void);
+	void (__cdecl*ProcessDlistList)(void);
+	void (__cdecl*ProcessAlistList)(void);
+	void (__cdecl*ProcessRdpList)(void);
+	void (__cdecl*ShowCFB)(void);
 } RSP_INFO;
 
-typedef struct {
+typedef struct
+{
 	HWND hWnd; /* Render window */
 	HWND hStatusBar;
 	/* if render window does not have a status bar then this is NULL */
@@ -168,10 +178,11 @@ typedef struct {
 	DWORD* VI_X_SCALE_REG;
 	DWORD* VI_Y_SCALE_REG;
 
-	void(__cdecl* CheckInterrupts)(void);
+	void (__cdecl*CheckInterrupts)(void);
 } GFX_INFO;
 
-typedef struct {
+typedef struct
+{
 	HWND hwnd;
 	HINSTANCE hinst;
 
@@ -194,19 +205,22 @@ typedef struct {
 	DWORD* AI_DACRATE_REG;
 	DWORD* AI_BITRATE_REG;
 
-	void(__cdecl* CheckInterrupts)(void);
+	void (__cdecl*CheckInterrupts)(void);
 } AUDIO_INFO;
 
-typedef struct {
+typedef struct
+{
 	BOOL Present;
 	BOOL RawData;
 	int Plugin;
 } CONTROL;
 
-typedef union {
+typedef union
+{
 	DWORD Value;
 
-	struct {
+	struct
+	{
 		unsigned R_DPAD : 1;
 		unsigned L_DPAD : 1;
 		unsigned D_DPAD : 1;
@@ -231,7 +245,8 @@ typedef union {
 	};
 } BUTTONS;
 
-typedef struct {
+typedef struct
+{
 	HWND hMainWindow;
 	HINSTANCE hinst;
 
@@ -247,118 +262,137 @@ typedef struct {
 extern CONTROL Controls[4];
 
 /* dummy functions to prevent mupen from crashing if a plugin is missing */
-static void __cdecl dummy_void() {
+static void __cdecl dummy_void()
+{
 }
 
 static BOOL __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info) { return TRUE; }
 
-static BOOL __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info) {
+static BOOL __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info)
+{
 	return TRUE;
 }
 
-static void __cdecl dummy_initiateControllers(CONTROL_INFO Control_Info) {
+static void __cdecl dummy_initiateControllers(CONTROL_INFO Control_Info)
+{
 }
 
-static void __cdecl dummy_aiDacrateChanged(int SystemType) {
+static void __cdecl dummy_aiDacrateChanged(int SystemType)
+{
 }
 
 static DWORD __cdecl dummy_aiReadLength() { return 0; }
-static void __cdecl dummy_aiUpdate(BOOL) {}
 
-static void __cdecl dummy_controllerCommand(int Control, BYTE* Command) {
+static void __cdecl dummy_aiUpdate(BOOL)
+{
 }
 
-static void __cdecl dummy_getKeys(int Control, BUTTONS* Keys) {
+static void __cdecl dummy_controllerCommand(int Control, BYTE* Command)
+{
 }
 
-static void __cdecl dummy_setKeys(int Control, BUTTONS Keys) {
+static void __cdecl dummy_getKeys(int Control, BUTTONS* Keys)
+{
 }
 
-static void __cdecl dummy_readController(int Control, BYTE* Command) {
+static void __cdecl dummy_setKeys(int Control, BUTTONS Keys)
+{
 }
 
-static void __cdecl dummy_keyDown(WPARAM wParam, LPARAM lParam) {
+static void __cdecl dummy_readController(int Control, BYTE* Command)
+{
 }
 
-static void __cdecl dummy_keyUp(WPARAM wParam, LPARAM lParam) {
+static void __cdecl dummy_keyDown(WPARAM wParam, LPARAM lParam)
+{
+}
+
+static void __cdecl dummy_keyUp(WPARAM wParam, LPARAM lParam)
+{
 }
 
 static unsigned long dummy;
 static DWORD __cdecl dummy_doRspCycles(DWORD Cycles) { return Cycles; };
 
 static void __cdecl dummy_initiateRSP(RSP_INFO Rsp_Info,
-											DWORD* CycleCount) {
+                                      DWORD* CycleCount)
+{
 };
 
-static void __cdecl dummy_fBRead(DWORD addr) {
+static void __cdecl dummy_fBRead(DWORD addr)
+{
 };
 
-static void __cdecl dummy_fBWrite(DWORD addr, DWORD size) {
+static void __cdecl dummy_fBWrite(DWORD addr, DWORD size)
+{
 };
 
-static void __cdecl dummy_fBGetFrameBufferInfo(void* p) {
+static void __cdecl dummy_fBGetFrameBufferInfo(void* p)
+{
 };
 
 static int externalReadScreen = 0;
 
 
-extern void(__cdecl* getDllInfo)(PLUGIN_INFO* PluginInfo);
-extern void(__cdecl* dllConfig)(HWND hParent);
-extern void(__cdecl* dllTest)(HWND hParent);
-extern void(__cdecl* dllAbout)(HWND hParent);
+extern void (__cdecl*getDllInfo)(PLUGIN_INFO* PluginInfo);
+extern void (__cdecl*dllConfig)(HWND hParent);
+extern void (__cdecl*dllTest)(HWND hParent);
+extern void (__cdecl*dllAbout)(HWND hParent);
 
-extern void(__cdecl* changeWindow)();
-extern void(__cdecl* closeDLL_gfx)();
-extern BOOL(__cdecl* initiateGFX)(GFX_INFO Gfx_Info);
-extern void(__cdecl* processDList)();
-extern void(__cdecl* processRDPList)();
-extern void(__cdecl* romClosed_gfx)();
-extern void(__cdecl* romOpen_gfx)();
-extern void(__cdecl* showCFB)();
-extern void(__cdecl* updateScreen)();
-extern void(__cdecl* viStatusChanged)();
-extern void(__cdecl* viWidthChanged)();
-extern void(__cdecl* readScreen)(void** dest, long* width, long* height);
-extern void(__cdecl* DllCrtFree)(void* block);
+extern void (__cdecl*changeWindow)();
+extern void (__cdecl*closeDLL_gfx)();
+extern BOOL (__cdecl*initiateGFX)(GFX_INFO Gfx_Info);
+extern void (__cdecl*processDList)();
+extern void (__cdecl*processRDPList)();
+extern void (__cdecl*romClosed_gfx)();
+extern void (__cdecl*romOpen_gfx)();
+extern void (__cdecl*showCFB)();
+extern void (__cdecl*updateScreen)();
+extern void (__cdecl*viStatusChanged)();
+extern void (__cdecl*viWidthChanged)();
+extern void (__cdecl*readScreen)(void** dest, long* width, long* height);
+extern void (__cdecl*DllCrtFree)(void* block);
 
-extern void(__cdecl* aiDacrateChanged)(int SystemType);
-extern void(__cdecl* aiLenChanged)();
-extern DWORD(__cdecl* aiReadLength)();
-extern void(__cdecl* closeDLL_audio)();
-extern BOOL(__cdecl* initiateAudio)(AUDIO_INFO Audio_Info);
-extern void(__cdecl* processAList)();
-extern void(__cdecl* romClosed_audio)();
-extern void(__cdecl* romOpen_audio)();
+extern void (__cdecl*aiDacrateChanged)(int SystemType);
+extern void (__cdecl*aiLenChanged)();
+extern DWORD (__cdecl*aiReadLength)();
+extern void (__cdecl*closeDLL_audio)();
+extern BOOL (__cdecl*initiateAudio)(AUDIO_INFO Audio_Info);
+extern void (__cdecl*processAList)();
+extern void (__cdecl*romClosed_audio)();
+extern void (__cdecl*romOpen_audio)();
 
-extern void(__cdecl* closeDLL_input)();
-extern void(__cdecl* controllerCommand)(int Control, BYTE* Command);
-extern void(__cdecl* getKeys)(int Control, BUTTONS* Keys);
-extern void(__cdecl* setKeys)(int Control, BUTTONS Keys);
-extern void(__cdecl* initiateControllers)(CONTROL_INFO ControlInfo);
-extern void(__cdecl* readController)(int Control, BYTE* Command);
-extern void(__cdecl* romClosed_input)();
-extern void(__cdecl* romOpen_input)();
-extern void(__cdecl* keyDown)(WPARAM wParam, LPARAM lParam);
-extern void(__cdecl* keyUp)(WPARAM wParam, LPARAM lParam);
+extern void (__cdecl*closeDLL_input)();
+extern void (__cdecl*controllerCommand)(int Control, BYTE* Command);
+extern void (__cdecl*getKeys)(int Control, BUTTONS* Keys);
+extern void (__cdecl*setKeys)(int Control, BUTTONS Keys);
+extern void (__cdecl*initiateControllers)(CONTROL_INFO ControlInfo);
+extern void (__cdecl*readController)(int Control, BYTE* Command);
+extern void (__cdecl*romClosed_input)();
+extern void (__cdecl*romOpen_input)();
+extern void (__cdecl*keyDown)(WPARAM wParam, LPARAM lParam);
+extern void (__cdecl*keyUp)(WPARAM wParam, LPARAM lParam);
 
-extern void(__cdecl* closeDLL_RSP)();
-extern DWORD(__cdecl* doRspCycles)(DWORD Cycles);
-extern void(__cdecl* initiateRSP)(RSP_INFO Rsp_Info, DWORD* CycleCount);
-extern void(__cdecl* romClosed_RSP)();
+extern void (__cdecl*closeDLL_RSP)();
+extern DWORD (__cdecl*doRspCycles)(DWORD Cycles);
+extern void (__cdecl*initiateRSP)(RSP_INFO Rsp_Info, DWORD* CycleCount);
+extern void (__cdecl*romClosed_RSP)();
 
-extern void(__cdecl* fBRead)(DWORD addr);
-extern void(__cdecl* fBWrite)(DWORD addr, DWORD size);
-extern void(__cdecl* fBGetFrameBufferInfo)(void* p);
+extern void (__cdecl*fBRead)(DWORD addr);
+extern void (__cdecl*fBWrite)(DWORD addr, DWORD size);
+extern void (__cdecl*fBGetFrameBufferInfo)(void* p);
 
-extern void(__cdecl* moveScreen)(int xpos, int ypos);
-extern void(__cdecl* CaptureScreen) (char* Directory);
-extern void(__cdecl* old_initiateControllers)(HWND hMainWindow, CONTROL Controls[4]);
-extern void(__cdecl* aiUpdate)(BOOL Wait);
+extern void (__cdecl*moveScreen)(int xpos, int ypos);
+extern void (__cdecl*CaptureScreen)(char* Directory);
+extern void (__cdecl*old_initiateControllers)(HWND hMainWindow,
+                                              CONTROL Controls[4]);
+extern void (__cdecl*aiUpdate)(BOOL Wait);
 
 // ReSharper restore CppInconsistentNaming
 
 // frame buffer plugin spec extension
-typedef struct {
+typedef struct
+{
 	DWORD addr;
 	DWORD size;
 	DWORD width;
@@ -366,7 +400,8 @@ typedef struct {
 } FrameBufferInfo;
 
 
-typedef struct s_plugin {
+typedef struct s_plugin
+{
 	std::string path;
 	std::string name;
 	HMODULE handle;
@@ -416,9 +451,12 @@ void setup_dummy_info();
 /// </summary>
 std::vector<plugin_type> get_missing_plugin_types();
 
-inline static t_plugin* get_plugin_by_name(std::string name) {
-	for (auto& plugin : plugins) {
-		if (plugin->name == name) {
+inline static t_plugin* get_plugin_by_name(std::string name)
+{
+	for (auto& plugin : plugins)
+	{
+		if (plugin->name == name)
+		{
 			return plugin;
 		}
 	}

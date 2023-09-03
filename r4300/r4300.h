@@ -38,7 +38,7 @@
 
 extern precomp_instr* PC;
 
-extern precomp_block* blocks[0x100000], * actual;
+extern precomp_block *blocks[0x100000], *actual;
 
 extern int stop, llbit;
 extern long long int reg[32], hi, lo;
@@ -119,4 +119,3 @@ void refresh_stat();
 
 //#define COMPARE_CORE
 extern int compare_core_mode;
-

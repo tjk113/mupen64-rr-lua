@@ -30,7 +30,8 @@
 #ifndef MUPENINIAPI_H
 #define MUPENINIAPI_H
 
-typedef struct {
+typedef struct
+{
 	char goodname[100];
 	int eeprom16kb;
 	char MD5[33];

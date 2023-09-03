@@ -365,468 +365,538 @@ extern "C" {
 #endif
 
 #ifndef RC_INVOKED
-	DECLARE_HANDLE(HIC);
-	DECLARE_HANDLE(HDRAWDIB);
-	typedef WORD TWOCC;
-	typedef BOOL(CALLBACK* AVISAVECALLBACK)(INT);
-	typedef struct {
-		DWORD dwSize;
-		DWORD fccType;
-		DWORD fccHandler;
-		DWORD dwVersion;
-		DWORD dwFlags;
-		LRESULT dwError;
-		LPVOID pV1Reserved;
-		LPVOID pV2Reserved;
-		DWORD dnDevNode;
-	} ICOPEN, * LPICOPEN;
-	typedef struct {
-		DWORD dwFlags;
-		LPBITMAPINFOHEADER lpbiOutput;
-		LPVOID lpOutput;
-		LPBITMAPINFOHEADER lpbiInput;
-		LPVOID lpInput;
-		LPDWORD lpckid;
-		LPDWORD lpdwFlags;
-		LONG lFrameNum;
-		DWORD dwFrameSize;
-		DWORD dwQuality;
-		LPBITMAPINFOHEADER lpbiPrev;
-		LPVOID lpPrev;
-	} ICCOMPRESS;
-	typedef struct {
-		DWORD dwFlags;
-		LPBITMAPINFOHEADER lpbiOutput;
-		LPARAM lOutput;
-		LPBITMAPINFOHEADER lpbiInput;
-		LPARAM lInput;
-		LONG lStartFrame;
-		LONG lFrameCount;
-		LONG lQuality;
-		LONG lDataRate;
-		LONG lKeyRate;
-		DWORD dwRate;
-		DWORD dwScale;
-		DWORD dwOverheadPerFrame;
-		DWORD dwReserved2;
-		LONG(CALLBACK* GetData)(LPARAM, LONG, LPVOID, LONG);
-		LONG(CALLBACK* PutData)(LPARAM, LONG, LPVOID, LONG);
-	} ICCOMPRESSFRAMES;
-	typedef struct {
-		DWORD dwFlags;
-		LPARAM lParam;
-		LONG(CALLBACK* Status)(LPARAM, UINT, LONG);
-	} ICSETSTATUSPROC;
-	typedef struct {
-		DWORD dwSize;
-		DWORD fccType;
-		DWORD fccHandler;
-		DWORD dwFlags;
-		DWORD dwVersion;
-		DWORD dwVersionICM;
-		WCHAR szName[16];
-		WCHAR szDescription[128];
-		WCHAR szDriver[128];
-	} ICINFO;
-	typedef struct {
-		DWORD dwFlags;
-		LPBITMAPINFOHEADER lpbiInput;
-		LPVOID lpInput;
-		LPBITMAPINFOHEADER lpbiOutput;
-		LPVOID lpOutput;
-		DWORD ckid;
-	} ICDECOMPRESS;
-	typedef struct {
-		DWORD dwFlags;
-		LPBITMAPINFOHEADER lpbiSrc;
-		LPVOID lpSrc;
-		LPBITMAPINFOHEADER lpbiDst;
-		LPVOID lpDst;
-		INT xDst;
-		INT yDst;
-		INT dxDst;
-		INT dyDst;
-		INT xSrc;
-		INT ySrc;
-		INT dxSrc;
-		INT dySrc;
-	} ICDECOMPRESSEX;
-	typedef struct {
-		DWORD dwFlags;
-		LPBITMAPINFOHEADER lpbiIn;
-		LPBITMAPINFOHEADER lpbiSuggest;
-		INT dxSrc;
-		INT dySrc;
-		INT dxDst;
-		INT dyDst;
-		HIC hicDecompressor;
-	} ICDRAWSUGGEST;
-	typedef struct {
-		DWORD dwFlags;
-		INT iStart;
-		INT iLen;
-		LPPALETTEENTRY lppe;
-	} ICPALETTE;
-	typedef struct {
-		DWORD dwFlags;
-		HPALETTE hpal;
-		HWND hwnd;
-		HDC hdc;
-		INT xDst;
-		INT yDst;
-		INT dxDst;
-		INT dyDst;
-		LPBITMAPINFOHEADER lpbi;
-		INT xSrc;
-		INT ySrc;
-		INT dxSrc;
-		INT dySrc;
-		DWORD dwRate;
-		DWORD dwScale;
-	} ICDRAWBEGIN;
-	typedef struct {
-		DWORD dwFlags;
-		LPVOID lpFormat;
-		LPVOID lpData;
-		DWORD cbData;
-		LONG lTime;
-	} ICDRAW;
-	typedef struct {
-		LONG cbSize;
-		DWORD dwFlags;
-		HIC hic;
-		DWORD fccType;
-		DWORD fccHandler;
-		LPBITMAPINFO lpbiIn;
-		LPBITMAPINFO lpbiOut;
-		LPVOID lpBitsOut;
-		LPVOID lpBitsPrev;
-		LONG lFrame;
-		LONG lKey;
-		LONG lDataRate;
-		LONG lQ;
-		LONG lKeyCount;
-		LPVOID lpState;
-		LONG cbState;
-	} COMPVARS, * PCOMPVARS;
-	typedef struct _MainAVIHeader {
-		DWORD dwMicroSecPerFrame;
-		DWORD dwMaxBytesPerSec;
-		DWORD dwPaddingGranularity;
-		DWORD dwFlags;
-		DWORD dwTotalFrames;
-		DWORD dwInitialFrames;
-		DWORD dwStreams;
-		DWORD dwSuggestedBufferSize;
-		DWORD dwWidth;
-		DWORD dwHeight;
-		DWORD dwReserved[4];
-	} MainAVIHeader;
-	typedef struct {
-		FOURCC fccType;
-		FOURCC fccHandler;
-		DWORD dwFlags;
-		WORD wPriority;
-		WORD wLanguage;
-		DWORD dwInitialFrames;
-		DWORD dwScale;
-		DWORD dwRate;
-		DWORD dwStart;
-		DWORD dwLength;
-		DWORD dwSuggestedBufferSize;
-		DWORD dwQuality;
-		DWORD dwSampleSize;
-		RECT rcFrame;
-	} AVIStreamHeader;
-	typedef struct _AVIINDEXENTRY {
-		DWORD ckid;
-		DWORD dwFlags;
-		DWORD dwChunkOffset;
-		DWORD dwChunkLength;
-	} AVIINDEXENTRY;
-	typedef struct _AVIPALCHANGE {
-		BYTE bFirstEntry;
-		BYTE bNumEntries;
-		WORD wFlags;
-		PALETTEENTRY peNew[1];
-	} AVIPALCHANGE;
-	typedef struct _AVISTREAMINFOA {
-		DWORD fccType;
-		DWORD fccHandler;
-		DWORD dwFlags;
-		DWORD dwCaps;
-		WORD wPriority;
-		WORD wLanguage;
-		DWORD dwScale;
-		DWORD dwRate;
-		DWORD dwStart;
-		DWORD dwLength;
-		DWORD dwInitialFrames;
-		DWORD dwSuggestedBufferSize;
-		DWORD dwQuality;
-		DWORD dwSampleSize;
-		RECT rcFrame;
-		DWORD dwEditCount;
-		DWORD dwFormatChangeCount;
-		CHAR szName[64];
-	} AVISTREAMINFOA, * LPAVISTREAMINFOA, * PAVISTREAMINFOA;
-	typedef struct _AVISTREAMINFOW {
-		DWORD fccType;
-		DWORD fccHandler;
-		DWORD dwFlags;
-		DWORD dwCaps;
-		WORD wPriority;
-		WORD wLanguage;
-		DWORD dwScale;
-		DWORD dwRate;
-		DWORD dwStart;
-		DWORD dwLength;
-		DWORD dwInitialFrames;
-		DWORD dwSuggestedBufferSize;
-		DWORD dwQuality;
-		DWORD dwSampleSize;
-		RECT rcFrame;
-		DWORD dwEditCount;
-		DWORD dwFormatChangeCount;
-		WCHAR szName[64];
-	} AVISTREAMINFOW, * LPAVISTREAMINFOW, * PAVISTREAMINFOW;
-	typedef struct _AVIFILEINFOW {
-		DWORD dwMaxBytesPerSec;
-		DWORD dwFlags;
-		DWORD dwCaps;
-		DWORD dwStreams;
-		DWORD dwSuggestedBufferSize;
-		DWORD dwWidth;
-		DWORD dwHeight;
-		DWORD dwScale;
-		DWORD dwRate;
-		DWORD dwLength;
-		DWORD dwEditCount;
-		WCHAR szFileType[64];
-	} AVIFILEINFOW, * LPAVIFILEINFOW, * PAVIFILEINFOW;
-	typedef struct _AVIFILEINFOA {
-		DWORD dwMaxBytesPerSec;
-		DWORD dwFlags;
-		DWORD dwCaps;
-		DWORD dwStreams;
-		DWORD dwSuggestedBufferSize;
-		DWORD dwWidth;
-		DWORD dwHeight;
-		DWORD dwScale;
-		DWORD dwRate;
-		DWORD dwLength;
-		DWORD dwEditCount;
-		CHAR szFileType[64];
-	} AVIFILEINFOA, * LPAVIFILEINFOA, * PAVIFILEINFOA;
-	typedef struct _AVICOMPRESSOPTIONS {
-		DWORD fccType;
-		DWORD fccHandler;
-		DWORD dwKeyFrameEvery;
-		DWORD dwQuality;
-		DWORD dwBytesPerSecond;
-		DWORD dwFlags;
-		LPVOID lpFormat;
-		DWORD cbFormat;
-		LPVOID lpParms;
-		DWORD cbParms;
-		DWORD dwInterleaveEvery;
-	} AVICOMPRESSOPTIONS, * LPAVICOMPRESSOPTIONS, * PAVICOMPRESSOPTIONS;
+DECLARE_HANDLE(HIC);
+DECLARE_HANDLE(HDRAWDIB);
+typedef WORD TWOCC;
+typedef BOOL (CALLBACK*AVISAVECALLBACK)(INT);
+
+typedef struct
+{
+	DWORD dwSize;
+	DWORD fccType;
+	DWORD fccHandler;
+	DWORD dwVersion;
+	DWORD dwFlags;
+	LRESULT dwError;
+	LPVOID pV1Reserved;
+	LPVOID pV2Reserved;
+	DWORD dnDevNode;
+} ICOPEN, *LPICOPEN;
+
+typedef struct
+{
+	DWORD dwFlags;
+	LPBITMAPINFOHEADER lpbiOutput;
+	LPVOID lpOutput;
+	LPBITMAPINFOHEADER lpbiInput;
+	LPVOID lpInput;
+	LPDWORD lpckid;
+	LPDWORD lpdwFlags;
+	LONG lFrameNum;
+	DWORD dwFrameSize;
+	DWORD dwQuality;
+	LPBITMAPINFOHEADER lpbiPrev;
+	LPVOID lpPrev;
+} ICCOMPRESS;
+
+typedef struct
+{
+	DWORD dwFlags;
+	LPBITMAPINFOHEADER lpbiOutput;
+	LPARAM lOutput;
+	LPBITMAPINFOHEADER lpbiInput;
+	LPARAM lInput;
+	LONG lStartFrame;
+	LONG lFrameCount;
+	LONG lQuality;
+	LONG lDataRate;
+	LONG lKeyRate;
+	DWORD dwRate;
+	DWORD dwScale;
+	DWORD dwOverheadPerFrame;
+	DWORD dwReserved2;
+	LONG (CALLBACK*GetData)(LPARAM, LONG, LPVOID, LONG);
+	LONG (CALLBACK*PutData)(LPARAM, LONG, LPVOID, LONG);
+} ICCOMPRESSFRAMES;
+
+typedef struct
+{
+	DWORD dwFlags;
+	LPARAM lParam;
+	LONG (CALLBACK*Status)(LPARAM, UINT, LONG);
+} ICSETSTATUSPROC;
+
+typedef struct
+{
+	DWORD dwSize;
+	DWORD fccType;
+	DWORD fccHandler;
+	DWORD dwFlags;
+	DWORD dwVersion;
+	DWORD dwVersionICM;
+	WCHAR szName[16];
+	WCHAR szDescription[128];
+	WCHAR szDriver[128];
+} ICINFO;
+
+typedef struct
+{
+	DWORD dwFlags;
+	LPBITMAPINFOHEADER lpbiInput;
+	LPVOID lpInput;
+	LPBITMAPINFOHEADER lpbiOutput;
+	LPVOID lpOutput;
+	DWORD ckid;
+} ICDECOMPRESS;
+
+typedef struct
+{
+	DWORD dwFlags;
+	LPBITMAPINFOHEADER lpbiSrc;
+	LPVOID lpSrc;
+	LPBITMAPINFOHEADER lpbiDst;
+	LPVOID lpDst;
+	INT xDst;
+	INT yDst;
+	INT dxDst;
+	INT dyDst;
+	INT xSrc;
+	INT ySrc;
+	INT dxSrc;
+	INT dySrc;
+} ICDECOMPRESSEX;
+
+typedef struct
+{
+	DWORD dwFlags;
+	LPBITMAPINFOHEADER lpbiIn;
+	LPBITMAPINFOHEADER lpbiSuggest;
+	INT dxSrc;
+	INT dySrc;
+	INT dxDst;
+	INT dyDst;
+	HIC hicDecompressor;
+} ICDRAWSUGGEST;
+
+typedef struct
+{
+	DWORD dwFlags;
+	INT iStart;
+	INT iLen;
+	LPPALETTEENTRY lppe;
+} ICPALETTE;
+
+typedef struct
+{
+	DWORD dwFlags;
+	HPALETTE hpal;
+	HWND hwnd;
+	HDC hdc;
+	INT xDst;
+	INT yDst;
+	INT dxDst;
+	INT dyDst;
+	LPBITMAPINFOHEADER lpbi;
+	INT xSrc;
+	INT ySrc;
+	INT dxSrc;
+	INT dySrc;
+	DWORD dwRate;
+	DWORD dwScale;
+} ICDRAWBEGIN;
+
+typedef struct
+{
+	DWORD dwFlags;
+	LPVOID lpFormat;
+	LPVOID lpData;
+	DWORD cbData;
+	LONG lTime;
+} ICDRAW;
+
+typedef struct
+{
+	LONG cbSize;
+	DWORD dwFlags;
+	HIC hic;
+	DWORD fccType;
+	DWORD fccHandler;
+	LPBITMAPINFO lpbiIn;
+	LPBITMAPINFO lpbiOut;
+	LPVOID lpBitsOut;
+	LPVOID lpBitsPrev;
+	LONG lFrame;
+	LONG lKey;
+	LONG lDataRate;
+	LONG lQ;
+	LONG lKeyCount;
+	LPVOID lpState;
+	LONG cbState;
+} COMPVARS, *PCOMPVARS;
+
+typedef struct _MainAVIHeader
+{
+	DWORD dwMicroSecPerFrame;
+	DWORD dwMaxBytesPerSec;
+	DWORD dwPaddingGranularity;
+	DWORD dwFlags;
+	DWORD dwTotalFrames;
+	DWORD dwInitialFrames;
+	DWORD dwStreams;
+	DWORD dwSuggestedBufferSize;
+	DWORD dwWidth;
+	DWORD dwHeight;
+	DWORD dwReserved[4];
+} MainAVIHeader;
+
+typedef struct
+{
+	FOURCC fccType;
+	FOURCC fccHandler;
+	DWORD dwFlags;
+	WORD wPriority;
+	WORD wLanguage;
+	DWORD dwInitialFrames;
+	DWORD dwScale;
+	DWORD dwRate;
+	DWORD dwStart;
+	DWORD dwLength;
+	DWORD dwSuggestedBufferSize;
+	DWORD dwQuality;
+	DWORD dwSampleSize;
+	RECT rcFrame;
+} AVIStreamHeader;
+
+typedef struct _AVIINDEXENTRY
+{
+	DWORD ckid;
+	DWORD dwFlags;
+	DWORD dwChunkOffset;
+	DWORD dwChunkLength;
+} AVIINDEXENTRY;
+
+typedef struct _AVIPALCHANGE
+{
+	BYTE bFirstEntry;
+	BYTE bNumEntries;
+	WORD wFlags;
+	PALETTEENTRY peNew[1];
+} AVIPALCHANGE;
+
+typedef struct _AVISTREAMINFOA
+{
+	DWORD fccType;
+	DWORD fccHandler;
+	DWORD dwFlags;
+	DWORD dwCaps;
+	WORD wPriority;
+	WORD wLanguage;
+	DWORD dwScale;
+	DWORD dwRate;
+	DWORD dwStart;
+	DWORD dwLength;
+	DWORD dwInitialFrames;
+	DWORD dwSuggestedBufferSize;
+	DWORD dwQuality;
+	DWORD dwSampleSize;
+	RECT rcFrame;
+	DWORD dwEditCount;
+	DWORD dwFormatChangeCount;
+	CHAR szName[64];
+} AVISTREAMINFOA, *LPAVISTREAMINFOA, *PAVISTREAMINFOA;
+
+typedef struct _AVISTREAMINFOW
+{
+	DWORD fccType;
+	DWORD fccHandler;
+	DWORD dwFlags;
+	DWORD dwCaps;
+	WORD wPriority;
+	WORD wLanguage;
+	DWORD dwScale;
+	DWORD dwRate;
+	DWORD dwStart;
+	DWORD dwLength;
+	DWORD dwInitialFrames;
+	DWORD dwSuggestedBufferSize;
+	DWORD dwQuality;
+	DWORD dwSampleSize;
+	RECT rcFrame;
+	DWORD dwEditCount;
+	DWORD dwFormatChangeCount;
+	WCHAR szName[64];
+} AVISTREAMINFOW, *LPAVISTREAMINFOW, *PAVISTREAMINFOW;
+
+typedef struct _AVIFILEINFOW
+{
+	DWORD dwMaxBytesPerSec;
+	DWORD dwFlags;
+	DWORD dwCaps;
+	DWORD dwStreams;
+	DWORD dwSuggestedBufferSize;
+	DWORD dwWidth;
+	DWORD dwHeight;
+	DWORD dwScale;
+	DWORD dwRate;
+	DWORD dwLength;
+	DWORD dwEditCount;
+	WCHAR szFileType[64];
+} AVIFILEINFOW, *LPAVIFILEINFOW, *PAVIFILEINFOW;
+
+typedef struct _AVIFILEINFOA
+{
+	DWORD dwMaxBytesPerSec;
+	DWORD dwFlags;
+	DWORD dwCaps;
+	DWORD dwStreams;
+	DWORD dwSuggestedBufferSize;
+	DWORD dwWidth;
+	DWORD dwHeight;
+	DWORD dwScale;
+	DWORD dwRate;
+	DWORD dwLength;
+	DWORD dwEditCount;
+	CHAR szFileType[64];
+} AVIFILEINFOA, *LPAVIFILEINFOA, *PAVIFILEINFOA;
+
+typedef struct _AVICOMPRESSOPTIONS
+{
+	DWORD fccType;
+	DWORD fccHandler;
+	DWORD dwKeyFrameEvery;
+	DWORD dwQuality;
+	DWORD dwBytesPerSecond;
+	DWORD dwFlags;
+	LPVOID lpFormat;
+	DWORD cbFormat;
+	LPVOID lpParms;
+	DWORD cbParms;
+	DWORD dwInterleaveEvery;
+} AVICOMPRESSOPTIONS, *LPAVICOMPRESSOPTIONS, *PAVICOMPRESSOPTIONS;
 
 #if !defined (__OBJC__)
 #define DEFINE_AVIGUID(name,l,w1,w2) DEFINE_GUID(name,l,w1,w2,0xC0,0,0,0,0,0,0,0x46)
-	DEFINE_AVIGUID(IID_IAVIFile, 0x00020020, 0, 0);
-	DEFINE_AVIGUID(IID_IAVIStream, 0x00020021, 0, 0);
-	DEFINE_AVIGUID(IID_IAVIStreaming, 0x00020022, 0, 0);
-	DEFINE_AVIGUID(IID_IGetFrame, 0x00020023, 0, 0);
-	DEFINE_AVIGUID(IID_IAVIEditStream, 0x00020024, 0, 0);
-	DEFINE_AVIGUID(CLSID_AVIFile, 0x00020000, 0, 0);
+DEFINE_AVIGUID(IID_IAVIFile, 0x00020020, 0, 0);
+DEFINE_AVIGUID(IID_IAVIStream, 0x00020021, 0, 0);
+DEFINE_AVIGUID(IID_IAVIStreaming, 0x00020022, 0, 0);
+DEFINE_AVIGUID(IID_IGetFrame, 0x00020023, 0, 0);
+DEFINE_AVIGUID(IID_IAVIEditStream, 0x00020024, 0, 0);
+DEFINE_AVIGUID(CLSID_AVIFile, 0x00020000, 0, 0);
 
 #undef INTERFACE
 #define INTERFACE IAVIStream
-	DECLARE_INTERFACE_(IAVIStream, IUnknown) {
-		STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
-		STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-		STDMETHOD_(ULONG, Release)(THIS) PURE;
-		STDMETHOD(Create)(THIS_ LPARAM, LPARAM) PURE;
-		STDMETHOD(Info)(THIS_ AVISTREAMINFOW*, LONG) PURE;
-		STDMETHOD_(LONG, FindSample)(THIS_ LONG, LONG) PURE;
-		STDMETHOD(ReadFormat)(THIS_ LONG, LPVOID, LONG*) PURE;
-		STDMETHOD(SetFormat)(THIS_ LONG, LPVOID, LONG) PURE;
-		STDMETHOD(Read)(THIS_ LONG, LONG, LPVOID, LONG, LONG*, LONG*) PURE;
-		STDMETHOD(Write)(THIS_ LONG, LONG, LPVOID, LONG, DWORD, LONG*, LONG*) PURE;
-		STDMETHOD(Delete)(THIS_ LONG, LONG) PURE;
-		STDMETHOD(ReadData)(THIS_ DWORD, LPVOID, LONG*) PURE;
-		STDMETHOD(WriteData)(THIS_ DWORD, LPVOID, LONG) PURE;
-		STDMETHOD(SetInfo)(THIS_ AVISTREAMINFOW*, LONG) PURE;
-	};
-	typedef IAVIStream* PAVISTREAM;
+DECLARE_INTERFACE_(IAVIStream, IUnknown)
+{
+	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
+	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG, Release)(THIS) PURE;
+	STDMETHOD(Create)(THIS_ LPARAM, LPARAM) PURE;
+	STDMETHOD(Info)(THIS_ AVISTREAMINFOW*, LONG) PURE;
+	STDMETHOD_(LONG, FindSample)(THIS_ LONG, LONG) PURE;
+	STDMETHOD(ReadFormat)(THIS_ LONG, LPVOID, LONG*) PURE;
+	STDMETHOD(SetFormat)(THIS_ LONG, LPVOID, LONG) PURE;
+	STDMETHOD(Read)(THIS_ LONG, LONG, LPVOID, LONG, LONG*, LONG*) PURE;
+	STDMETHOD(Write)(THIS_ LONG, LONG, LPVOID, LONG, DWORD, LONG*, LONG*) PURE;
+	STDMETHOD(Delete)(THIS_ LONG, LONG) PURE;
+	STDMETHOD(ReadData)(THIS_ DWORD, LPVOID, LONG*) PURE;
+	STDMETHOD(WriteData)(THIS_ DWORD, LPVOID, LONG) PURE;
+	STDMETHOD(SetInfo)(THIS_ AVISTREAMINFOW*, LONG) PURE;
+};
+
+typedef IAVIStream* PAVISTREAM;
 
 #undef INTERFACE
 #define INTERFACE IAVIStreaming
-	DECLARE_INTERFACE_(IAVIStreaming, IUnknown) {
-		STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
-		STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-		STDMETHOD_(ULONG, Release)(THIS) PURE;
-		STDMETHOD(Begin)(THIS_ LONG, LONG, LONG) PURE;
-		STDMETHOD(End)(THIS) PURE;
-	};
-	typedef IAVIStreaming* PAVISTREAMING;
+DECLARE_INTERFACE_(IAVIStreaming, IUnknown)
+{
+	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
+	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG, Release)(THIS) PURE;
+	STDMETHOD(Begin)(THIS_ LONG, LONG, LONG) PURE;
+	STDMETHOD(End)(THIS) PURE;
+};
+
+typedef IAVIStreaming* PAVISTREAMING;
 
 #undef INTERFACE
 #define INTERFACE IAVIEditStream
-	DECLARE_INTERFACE_(IAVIEditStream, IUnknown) {
-		STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
-		STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-		STDMETHOD_(ULONG, Release)(THIS) PURE;
-		STDMETHOD(Cut)(THIS_ LONG*, LONG*, PAVISTREAM*) PURE;
-		STDMETHOD(Copy)(THIS_ LONG*, LONG*, PAVISTREAM*) PURE;
-		STDMETHOD(Paste)(THIS_ LONG*, LONG*, PAVISTREAM, LONG, LONG) PURE;
-		STDMETHOD(Clone)(THIS_ PAVISTREAM*) PURE;
-		STDMETHOD(SetInfo)(THIS_ LPAVISTREAMINFOW, LONG) PURE;
-	};
-	typedef IAVIEditStream* PAVIEDITSTREAM;
+DECLARE_INTERFACE_(IAVIEditStream, IUnknown)
+{
+	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
+	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG, Release)(THIS) PURE;
+	STDMETHOD(Cut)(THIS_ LONG*, LONG*, PAVISTREAM*) PURE;
+	STDMETHOD(Copy)(THIS_ LONG*, LONG*, PAVISTREAM*) PURE;
+	STDMETHOD(Paste)(THIS_ LONG*, LONG*, PAVISTREAM, LONG, LONG) PURE;
+	STDMETHOD(Clone)(THIS_ PAVISTREAM*) PURE;
+	STDMETHOD(SetInfo)(THIS_ LPAVISTREAMINFOW, LONG) PURE;
+};
+
+typedef IAVIEditStream* PAVIEDITSTREAM;
 
 #undef INTERFACE
 #define INTERFACE IAVIFile
-	DECLARE_INTERFACE_(IAVIFile, IUnknown) {
-		STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
-		STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-		STDMETHOD_(ULONG, Release)(THIS) PURE;
-		STDMETHOD(Info)(THIS_ AVIFILEINFOW*, LONG) PURE;
-		STDMETHOD(GetStream)(THIS_ PAVISTREAM*, DWORD, LONG) PURE;
-		STDMETHOD(CreateStream)(THIS_ PAVISTREAM*, AVISTREAMINFOW*) PURE;
-		STDMETHOD(WriteData)(THIS_ DWORD, LPVOID, LONG) PURE;
-		STDMETHOD(ReadData)(THIS_ DWORD, LPVOID, LONG*) PURE;
-		STDMETHOD(EndRecord)(THIS) PURE;
-		STDMETHOD(DeleteStream)(THIS_ DWORD, LONG) PURE;
-	};
-	typedef IAVIFile* PAVIFILE;
+DECLARE_INTERFACE_(IAVIFile, IUnknown)
+{
+	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
+	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG, Release)(THIS) PURE;
+	STDMETHOD(Info)(THIS_ AVIFILEINFOW*, LONG) PURE;
+	STDMETHOD(GetStream)(THIS_ PAVISTREAM*, DWORD, LONG) PURE;
+	STDMETHOD(CreateStream)(THIS_ PAVISTREAM*, AVISTREAMINFOW*) PURE;
+	STDMETHOD(WriteData)(THIS_ DWORD, LPVOID, LONG) PURE;
+	STDMETHOD(ReadData)(THIS_ DWORD, LPVOID, LONG*) PURE;
+	STDMETHOD(EndRecord)(THIS) PURE;
+	STDMETHOD(DeleteStream)(THIS_ DWORD, LONG) PURE;
+};
+
+typedef IAVIFile* PAVIFILE;
 
 #undef INTERFACE
 #define INTERFACE IGetFrame
-	DECLARE_INTERFACE_(IGetFrame, IUnknown) {
-		STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
-		STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-		STDMETHOD_(ULONG, Release)(THIS) PURE;
-		STDMETHOD_(LPVOID, GetFrame)(THIS_ LONG) PURE;
-		STDMETHOD(Begin)(THIS_ LONG, LONG, LONG) PURE;
-		STDMETHOD(End)(THIS) PURE;
-		STDMETHOD(SetFormat)(THIS_ LPBITMAPINFOHEADER, LPVOID, INT, INT, INT, INT) PURE;
-	};
-	typedef IGetFrame* PGETFRAME;
+DECLARE_INTERFACE_(IGetFrame, IUnknown)
+{
+	STDMETHOD(QueryInterface)(THIS_ REFIID, PVOID*) PURE;
+	STDMETHOD_(ULONG, AddRef)(THIS) PURE;
+	STDMETHOD_(ULONG, Release)(THIS) PURE;
+	STDMETHOD_(LPVOID, GetFrame)(THIS_ LONG) PURE;
+	STDMETHOD(Begin)(THIS_ LONG, LONG, LONG) PURE;
+	STDMETHOD(End)(THIS) PURE;
+	STDMETHOD(SetFormat)(THIS_ LPBITMAPINFOHEADER, LPVOID, INT, INT, INT, INT)
+	PURE;
+};
+
+typedef IGetFrame* PGETFRAME;
 #endif /* !defined (__OBJC__) */
 
-	DWORD VFWAPI VideoForWindowsVersion(VOID);
-	LONG VFWAPI InitVFW(VOID);
-	LONG VFWAPI TermVFW(VOID);
-	DWORD VFWAPIV ICCompress(HIC, DWORD, LPBITMAPINFOHEADER, LPVOID, LPBITMAPINFOHEADER, LPVOID, LPDWORD, LPDWORD, LONG, DWORD, DWORD, LPBITMAPINFOHEADER, LPVOID);
-	DWORD VFWAPIV ICDecompress(HIC, DWORD, LPBITMAPINFOHEADER, LPVOID, LPBITMAPINFOHEADER, LPVOID);
-	LRESULT	VFWAPI ICSendMessage(HIC, UINT, DWORD, DWORD);
-	HANDLE VFWAPI ICImageCompress(HIC, UINT, LPBITMAPINFO, LPVOID, LPBITMAPINFO, LONG, LONG*);
-	HANDLE VFWAPI ICImageDecompress(HIC, UINT, LPBITMAPINFO, LPVOID, LPBITMAPINFO);
-	BOOL VFWAPI ICInfo(DWORD, DWORD, ICINFO*);
-	BOOL VFWAPI ICInstall(DWORD, DWORD, LPARAM, LPSTR, UINT);
-	BOOL VFWAPI ICRemove(DWORD, DWORD, UINT);
-	LRESULT VFWAPI ICGetInfo(HIC, ICINFO*, DWORD);
-	HIC VFWAPI ICOpen(DWORD, DWORD, UINT);
-	HIC VFWAPI ICOpenFunction(DWORD, DWORD, UINT, FARPROC);
-	LRESULT VFWAPI ICClose(HIC hic);
-	HIC VFWAPI ICLocate(DWORD, DWORD, LPBITMAPINFOHEADER, LPBITMAPINFOHEADER, WORD);
-	HIC VFWAPI ICGetDisplayFormat(HIC, LPBITMAPINFOHEADER, LPBITMAPINFOHEADER, INT, INT, INT);
-	DWORD VFWAPIV ICDrawBegin(HIC, DWORD, HPALETTE, HWND, HDC, INT, INT, INT, INT, LPBITMAPINFOHEADER, INT, INT, INT, INT, DWORD, DWORD);
-	DWORD VFWAPIV ICDraw(HIC, DWORD, LPVOID, LPVOID, DWORD, LONG);
-	BOOL VFWAPI ICCompressorChoose(HWND, UINT, LPVOID, LPVOID, PCOMPVARS, LPSTR);
-	BOOL VFWAPI ICSeqCompressFrameStart(PCOMPVARS, LPBITMAPINFO);
-	void VFWAPI ICSeqCompressFrameEnd(PCOMPVARS);
-	LPVOID VFWAPI ICSeqCompressFrame(PCOMPVARS, UINT, LPVOID, BOOL*, LONG*);
-	void VFWAPI ICCompressorFree(PCOMPVARS);
+DWORD VFWAPI VideoForWindowsVersion(VOID);
+LONG VFWAPI InitVFW(VOID);
+LONG VFWAPI TermVFW(VOID);
+DWORD VFWAPIV ICCompress(HIC, DWORD, LPBITMAPINFOHEADER, LPVOID,
+                         LPBITMAPINFOHEADER, LPVOID, LPDWORD, LPDWORD, LONG,
+                         DWORD, DWORD, LPBITMAPINFOHEADER, LPVOID);
+DWORD VFWAPIV ICDecompress(HIC, DWORD, LPBITMAPINFOHEADER, LPVOID,
+                           LPBITMAPINFOHEADER, LPVOID);
+LRESULT VFWAPI ICSendMessage(HIC, UINT, DWORD, DWORD);
+HANDLE VFWAPI ICImageCompress(HIC, UINT, LPBITMAPINFO, LPVOID, LPBITMAPINFO,
+                              LONG, LONG*);
+HANDLE VFWAPI ICImageDecompress(HIC, UINT, LPBITMAPINFO, LPVOID, LPBITMAPINFO);
+BOOL VFWAPI ICInfo(DWORD, DWORD, ICINFO*);
+BOOL VFWAPI ICInstall(DWORD, DWORD, LPARAM, LPSTR, UINT);
+BOOL VFWAPI ICRemove(DWORD, DWORD, UINT);
+LRESULT VFWAPI ICGetInfo(HIC, ICINFO*, DWORD);
+HIC VFWAPI ICOpen(DWORD, DWORD, UINT);
+HIC VFWAPI ICOpenFunction(DWORD, DWORD, UINT, FARPROC);
+LRESULT VFWAPI ICClose(HIC hic);
+HIC VFWAPI ICLocate(DWORD, DWORD, LPBITMAPINFOHEADER, LPBITMAPINFOHEADER, WORD);
+HIC VFWAPI ICGetDisplayFormat(HIC, LPBITMAPINFOHEADER, LPBITMAPINFOHEADER, INT,
+                              INT, INT);
+DWORD VFWAPIV ICDrawBegin(HIC, DWORD, HPALETTE, HWND, HDC, INT, INT, INT, INT,
+                          LPBITMAPINFOHEADER, INT, INT, INT, INT, DWORD, DWORD);
+DWORD VFWAPIV ICDraw(HIC, DWORD, LPVOID, LPVOID, DWORD, LONG);
+BOOL VFWAPI ICCompressorChoose(HWND, UINT, LPVOID, LPVOID, PCOMPVARS, LPSTR);
+BOOL VFWAPI ICSeqCompressFrameStart(PCOMPVARS, LPBITMAPINFO);
+void VFWAPI ICSeqCompressFrameEnd(PCOMPVARS);
+LPVOID VFWAPI ICSeqCompressFrame(PCOMPVARS, UINT, LPVOID, BOOL*, LONG*);
+void VFWAPI ICCompressorFree(PCOMPVARS);
 #if !defined (__OBJC__)
-	ULONG WINAPI AVIStreamAddRef(PAVISTREAM);
-	ULONG WINAPI AVIStreamRelease(PAVISTREAM);
-	HRESULT WINAPI AVIStreamCreate(PAVISTREAM*, LONG, LONG, CLSID*);
-	HRESULT WINAPI AVIStreamInfoA(PAVISTREAM, AVISTREAMINFOA*, LONG);
-	HRESULT WINAPI AVIStreamInfoW(PAVISTREAM, AVISTREAMINFOW*, LONG);
-	HRESULT WINAPI AVIStreamFindSample(PAVISTREAM, LONG, DWORD);
-	HRESULT WINAPI AVIStreamReadFormat(PAVISTREAM, LONG, LPVOID, LONG*);
-	HRESULT WINAPI AVIStreamSetFormat(PAVISTREAM, LONG, LPVOID, LONG);
-	HRESULT WINAPI AVIStreamRead(PAVISTREAM, LONG, LONG, LPVOID, LONG, LONG*, LONG*);
-	HRESULT WINAPI AVIStreamWrite(PAVISTREAM, LONG, LONG, LPVOID, LONG, DWORD, LONG*, LONG*);
-	HRESULT WINAPI AVIStreamReadData(PAVISTREAM, DWORD, LPVOID, LONG*);
-	HRESULT WINAPI AVIStreamWriteData(PAVISTREAM, DWORD, LPVOID, LONG);
-	PGETFRAME WINAPI AVIStreamGetFrameOpen(PAVISTREAM, LPBITMAPINFOHEADER);
-	LPVOID WINAPI AVIStreamGetFrame(PGETFRAME, LONG);
-	HRESULT WINAPI AVIStreamGetFrameClose(PGETFRAME);
-	HRESULT WINAPI AVIMakeCompressedStream(PAVISTREAM*, PAVISTREAM, AVICOMPRESSOPTIONS*, CLSID*);
-	HRESULT WINAPI AVIMakeFileFromStreams(PAVIFILE*, INT, PAVISTREAM*);
-	HRESULT WINAPI AVIStreamOpenFromFileA(PAVISTREAM*, LPCSTR, DWORD, LONG, UINT, CLSID*);
-	HRESULT WINAPI AVIStreamOpenFromFileW(PAVISTREAM*, LPCWSTR, DWORD, LONG, UINT, CLSID*);
-	HRESULT WINAPI AVIBuildFilterA(LPSTR, LONG, BOOL);
-	HRESULT WINAPI AVIBuildFilterW(LPWSTR, LONG, BOOL);
-	BOOL WINAPI AVISaveOptions(HWND, UINT, INT, PAVISTREAM*, LPAVICOMPRESSOPTIONS*);
-	HRESULT WINAPI AVISaveOptionsFree(INT, LPAVICOMPRESSOPTIONS*);
-	HRESULT WINAPI AVISaveVA(LPCSTR, CLSID*, AVISAVECALLBACK, INT, PAVISTREAM*, LPAVICOMPRESSOPTIONS*);
-	HRESULT WINAPI AVISaveVW(LPCWSTR, CLSID*, AVISAVECALLBACK, INT, PAVISTREAM*, LPAVICOMPRESSOPTIONS*);
-	LONG WINAPI AVIStreamStart(PAVISTREAM);
-	LONG WINAPI AVIStreamLength(PAVISTREAM);
-	LONG WINAPI AVIStreamSampleToTime(PAVISTREAM, LONG);
-	LONG WINAPI AVIStreamTimeToSample(PAVISTREAM, LONG);
-	HRESULT WINAPI CreateEditableStream(PAVISTREAM*, PAVISTREAM);
-	HRESULT WINAPI EditStreamClone(PAVISTREAM, PAVISTREAM*);
-	HRESULT WINAPI EditStreamCopy(PAVISTREAM, LONG*, LONG*, PAVISTREAM*);
-	HRESULT WINAPI EditStreamCut(PAVISTREAM, LONG*, LONG*, PAVISTREAM*);
-	HRESULT WINAPI EditStreamPaste(PAVISTREAM, LONG*, LONG*, PAVISTREAM, LONG, LONG);
-	HRESULT WINAPI EditStreamSetInfoA(PAVISTREAM, LPAVISTREAMINFOA, LONG);
-	HRESULT WINAPI EditStreamSetInfoW(PAVISTREAM, LPAVISTREAMINFOW, LONG);
-	HRESULT WINAPI EditStreamSetNameA(PAVISTREAM, LPCSTR);
-	HRESULT WINAPI EditStreamSetNameW(PAVISTREAM, LPCWSTR);
-	HRESULT WINAPI CreateEditableStream(PAVISTREAM*, PAVISTREAM);
-	HRESULT WINAPI EditStreamClone(PAVISTREAM, PAVISTREAM*);
-	HRESULT WINAPI EditStreamCopy(PAVISTREAM, LONG*, LONG*, PAVISTREAM*);
-	HRESULT WINAPI EditStreamCut(PAVISTREAM, LONG*, LONG*, PAVISTREAM*);
-	HRESULT WINAPI EditStreamPaste(PAVISTREAM, LONG*, LONG*, PAVISTREAM, LONG, LONG);
-	HRESULT WINAPI EditStreamSetInfoA(PAVISTREAM, LPAVISTREAMINFOA, LONG);
-	HRESULT WINAPI EditStreamSetInfoW(PAVISTREAM, LPAVISTREAMINFOW, LONG);
-	HRESULT WINAPI EditStreamSetNameA(PAVISTREAM, LPCSTR);
-	HRESULT WINAPI EditStreamSetNameW(PAVISTREAM, LPCWSTR);
-	VOID WINAPI AVIFileInit(void);
-	VOID WINAPI AVIFileExit(void);
-	HRESULT WINAPI AVIFileOpenA(PAVIFILE*, LPCSTR, UINT, LPCLSID);
-	HRESULT WINAPI AVIFileOpenW(PAVIFILE*, LPCWSTR, UINT, LPCLSID);
-	ULONG WINAPI AVIFileAddRef(PAVIFILE);
-	ULONG WINAPI AVIFileRelease(PAVIFILE);
-	HRESULT WINAPI AVIFileInfoA(PAVIFILE, PAVIFILEINFOA, LONG);
-	HRESULT WINAPI AVIFileInfoW(PAVIFILE, PAVIFILEINFOW, LONG);
-	HRESULT WINAPI AVIFileGetStream(PAVIFILE, PAVISTREAM*, DWORD, LONG);
-	HRESULT WINAPI AVIFileCreateStreamA(PAVIFILE, PAVISTREAM*, AVISTREAMINFOA*);
-	HRESULT WINAPI AVIFileCreateStreamW(PAVIFILE, PAVISTREAM*, AVISTREAMINFOW*);
-	HRESULT WINAPI AVIFileWriteData(PAVIFILE, DWORD, LPVOID, LONG);
-	HRESULT WINAPI AVIFileReadData(PAVIFILE, DWORD, LPVOID, LPLONG);
-	HRESULT WINAPI AVIFileEndRecord(PAVIFILE);
-	HRESULT WINAPI AVIClearClipboard(VOID);
-	HRESULT WINAPI AVIGetFromClipboard(PAVIFILE*);
-	HRESULT WINAPI AVIPutFileOnClipboard(PAVIFILE);
+ULONG WINAPI AVIStreamAddRef(PAVISTREAM);
+ULONG WINAPI AVIStreamRelease(PAVISTREAM);
+HRESULT WINAPI AVIStreamCreate(PAVISTREAM*, LONG, LONG, CLSID*);
+HRESULT WINAPI AVIStreamInfoA(PAVISTREAM, AVISTREAMINFOA*, LONG);
+HRESULT WINAPI AVIStreamInfoW(PAVISTREAM, AVISTREAMINFOW*, LONG);
+HRESULT WINAPI AVIStreamFindSample(PAVISTREAM, LONG, DWORD);
+HRESULT WINAPI AVIStreamReadFormat(PAVISTREAM, LONG, LPVOID, LONG*);
+HRESULT WINAPI AVIStreamSetFormat(PAVISTREAM, LONG, LPVOID, LONG);
+HRESULT WINAPI AVIStreamRead(PAVISTREAM, LONG, LONG, LPVOID, LONG, LONG*,
+                             LONG*);
+HRESULT WINAPI AVIStreamWrite(PAVISTREAM, LONG, LONG, LPVOID, LONG, DWORD,
+                              LONG*, LONG*);
+HRESULT WINAPI AVIStreamReadData(PAVISTREAM, DWORD, LPVOID, LONG*);
+HRESULT WINAPI AVIStreamWriteData(PAVISTREAM, DWORD, LPVOID, LONG);
+PGETFRAME WINAPI AVIStreamGetFrameOpen(PAVISTREAM, LPBITMAPINFOHEADER);
+LPVOID WINAPI AVIStreamGetFrame(PGETFRAME, LONG);
+HRESULT WINAPI AVIStreamGetFrameClose(PGETFRAME);
+HRESULT WINAPI AVIMakeCompressedStream(PAVISTREAM*, PAVISTREAM,
+                                       AVICOMPRESSOPTIONS*, CLSID*);
+HRESULT WINAPI AVIMakeFileFromStreams(PAVIFILE*, INT, PAVISTREAM*);
+HRESULT WINAPI AVIStreamOpenFromFileA(PAVISTREAM*, LPCSTR, DWORD, LONG, UINT,
+                                      CLSID*);
+HRESULT WINAPI AVIStreamOpenFromFileW(PAVISTREAM*, LPCWSTR, DWORD, LONG, UINT,
+                                      CLSID*);
+HRESULT WINAPI AVIBuildFilterA(LPSTR, LONG, BOOL);
+HRESULT WINAPI AVIBuildFilterW(LPWSTR, LONG, BOOL);
+BOOL WINAPI AVISaveOptions(HWND, UINT, INT, PAVISTREAM*, LPAVICOMPRESSOPTIONS*);
+HRESULT WINAPI AVISaveOptionsFree(INT, LPAVICOMPRESSOPTIONS*);
+HRESULT WINAPI AVISaveVA(LPCSTR, CLSID*, AVISAVECALLBACK, INT, PAVISTREAM*,
+                         LPAVICOMPRESSOPTIONS*);
+HRESULT WINAPI AVISaveVW(LPCWSTR, CLSID*, AVISAVECALLBACK, INT, PAVISTREAM*,
+                         LPAVICOMPRESSOPTIONS*);
+LONG WINAPI AVIStreamStart(PAVISTREAM);
+LONG WINAPI AVIStreamLength(PAVISTREAM);
+LONG WINAPI AVIStreamSampleToTime(PAVISTREAM, LONG);
+LONG WINAPI AVIStreamTimeToSample(PAVISTREAM, LONG);
+HRESULT WINAPI CreateEditableStream(PAVISTREAM*, PAVISTREAM);
+HRESULT WINAPI EditStreamClone(PAVISTREAM, PAVISTREAM*);
+HRESULT WINAPI EditStreamCopy(PAVISTREAM, LONG*, LONG*, PAVISTREAM*);
+HRESULT WINAPI EditStreamCut(PAVISTREAM, LONG*, LONG*, PAVISTREAM*);
+HRESULT WINAPI
+EditStreamPaste(PAVISTREAM, LONG*, LONG*, PAVISTREAM, LONG, LONG);
+HRESULT WINAPI EditStreamSetInfoA(PAVISTREAM, LPAVISTREAMINFOA, LONG);
+HRESULT WINAPI EditStreamSetInfoW(PAVISTREAM, LPAVISTREAMINFOW, LONG);
+HRESULT WINAPI EditStreamSetNameA(PAVISTREAM, LPCSTR);
+HRESULT WINAPI EditStreamSetNameW(PAVISTREAM, LPCWSTR);
+HRESULT WINAPI CreateEditableStream(PAVISTREAM*, PAVISTREAM);
+HRESULT WINAPI EditStreamClone(PAVISTREAM, PAVISTREAM*);
+HRESULT WINAPI EditStreamCopy(PAVISTREAM, LONG*, LONG*, PAVISTREAM*);
+HRESULT WINAPI EditStreamCut(PAVISTREAM, LONG*, LONG*, PAVISTREAM*);
+HRESULT WINAPI
+EditStreamPaste(PAVISTREAM, LONG*, LONG*, PAVISTREAM, LONG, LONG);
+HRESULT WINAPI EditStreamSetInfoA(PAVISTREAM, LPAVISTREAMINFOA, LONG);
+HRESULT WINAPI EditStreamSetInfoW(PAVISTREAM, LPAVISTREAMINFOW, LONG);
+HRESULT WINAPI EditStreamSetNameA(PAVISTREAM, LPCSTR);
+HRESULT WINAPI EditStreamSetNameW(PAVISTREAM, LPCWSTR);
+VOID WINAPI AVIFileInit(void);
+VOID WINAPI AVIFileExit(void);
+HRESULT WINAPI AVIFileOpenA(PAVIFILE*, LPCSTR, UINT, LPCLSID);
+HRESULT WINAPI AVIFileOpenW(PAVIFILE*, LPCWSTR, UINT, LPCLSID);
+ULONG WINAPI AVIFileAddRef(PAVIFILE);
+ULONG WINAPI AVIFileRelease(PAVIFILE);
+HRESULT WINAPI AVIFileInfoA(PAVIFILE, PAVIFILEINFOA, LONG);
+HRESULT WINAPI AVIFileInfoW(PAVIFILE, PAVIFILEINFOW, LONG);
+HRESULT WINAPI AVIFileGetStream(PAVIFILE, PAVISTREAM*, DWORD, LONG);
+HRESULT WINAPI AVIFileCreateStreamA(PAVIFILE, PAVISTREAM*, AVISTREAMINFOA*);
+HRESULT WINAPI AVIFileCreateStreamW(PAVIFILE, PAVISTREAM*, AVISTREAMINFOW*);
+HRESULT WINAPI AVIFileWriteData(PAVIFILE, DWORD, LPVOID, LONG);
+HRESULT WINAPI AVIFileReadData(PAVIFILE, DWORD, LPVOID, LPLONG);
+HRESULT WINAPI AVIFileEndRecord(PAVIFILE);
+HRESULT WINAPI AVIClearClipboard(VOID);
+HRESULT WINAPI AVIGetFromClipboard(PAVIFILE*);
+HRESULT WINAPI AVIPutFileOnClipboard(PAVIFILE);
 #endif /* __OBJC__ */
 #ifdef OFN_READONLY
-	BOOL WINAPI GetOpenFileNamePreviewA(LPOPENFILENAMEA);
-	BOOL WINAPI GetOpenFileNamePreviewW(LPOPENFILENAMEW);
-	BOOL WINAPI GetSaveFileNamePreviewA(LPOPENFILENAMEA);
-	BOOL WINAPI GetSaveFileNamePreviewW(LPOPENFILENAMEW);
+BOOL WINAPI GetOpenFileNamePreviewA(LPOPENFILENAMEA);
+BOOL WINAPI GetOpenFileNamePreviewW(LPOPENFILENAMEW);
+BOOL WINAPI GetSaveFileNamePreviewA(LPOPENFILENAMEA);
+BOOL WINAPI GetSaveFileNamePreviewW(LPOPENFILENAMEW);
 #endif
-	HWND VFWAPIV MCIWndCreateA(HWND, HINSTANCE, DWORD, LPCSTR);
-	HWND VFWAPIV MCIWndCreateW(HWND, HINSTANCE, DWORD, LPCWSTR);
-	HDRAWDIB VFWAPI DrawDibOpen(VOID);
-	UINT VFWAPI DrawDibRealize(HDRAWDIB, HDC, BOOL);
-	BOOL VFWAPI DrawDibBegin(HDRAWDIB, HDC, INT, INT, LPBITMAPINFOHEADER, INT, INT, UINT);
-	BOOL VFWAPI DrawDibDraw(HDRAWDIB, HDC, INT, INT, INT, INT, LPBITMAPINFOHEADER, LPVOID, INT, INT, INT, INT, UINT);
-	BOOL VFWAPI DrawDibSetPalette(HDRAWDIB, HPALETTE);
-	HPALETTE VFWAPI DrawDibGetPalette(HDRAWDIB);
-	BOOL VFWAPI DrawDibChangePalette(HDRAWDIB, int, int, LPPALETTEENTRY);
-	LPVOID VFWAPI DrawDibGetBuffer(HDRAWDIB, LPBITMAPINFOHEADER, DWORD, DWORD);
-	BOOL VFWAPI DrawDibStart(HDRAWDIB, DWORD);
-	BOOL VFWAPI DrawDibStop(HDRAWDIB);
-	BOOL VFWAPI DrawDibEnd(HDRAWDIB);
-	BOOL VFWAPI DrawDibClose(HDRAWDIB);
-	DWORD VFWAPI DrawDibProfileDisplay(LPBITMAPINFOHEADER);
+HWND VFWAPIV MCIWndCreateA(HWND, HINSTANCE, DWORD, LPCSTR);
+HWND VFWAPIV MCIWndCreateW(HWND, HINSTANCE, DWORD, LPCWSTR);
+HDRAWDIB VFWAPI DrawDibOpen(VOID);
+UINT VFWAPI DrawDibRealize(HDRAWDIB, HDC, BOOL);
+BOOL VFWAPI DrawDibBegin(HDRAWDIB, HDC, INT, INT, LPBITMAPINFOHEADER, INT, INT,
+                         UINT);
+BOOL VFWAPI DrawDibDraw(HDRAWDIB, HDC, INT, INT, INT, INT, LPBITMAPINFOHEADER,
+                        LPVOID, INT, INT, INT, INT, UINT);
+BOOL VFWAPI DrawDibSetPalette(HDRAWDIB, HPALETTE);
+HPALETTE VFWAPI DrawDibGetPalette(HDRAWDIB);
+BOOL VFWAPI DrawDibChangePalette(HDRAWDIB, int, int, LPPALETTEENTRY);
+LPVOID VFWAPI DrawDibGetBuffer(HDRAWDIB, LPBITMAPINFOHEADER, DWORD, DWORD);
+BOOL VFWAPI DrawDibStart(HDRAWDIB, DWORD);
+BOOL VFWAPI DrawDibStop(HDRAWDIB);
+BOOL VFWAPI DrawDibEnd(HDRAWDIB);
+BOOL VFWAPI DrawDibClose(HDRAWDIB);
+DWORD VFWAPI DrawDibProfileDisplay(LPBITMAPINFOHEADER);
 
 #define ICCompressGetFormat(hic,lpbiInput,lpbiOutput) ICSendMessage(hic,ICM_COMPRESS_GET_FORMAT,(DWORD)(lpbiInput),(DWORD)(lpbiOutput))
 #define ICCompressGetFormatSize(hic,lpbi) ICCompressGetFormat(hic,lpbi,NULL)
@@ -957,92 +1027,120 @@ extern "C" {
 #define MCIWndOpenInterface(hWnd,pUnk) (LONG)MCIWndSM(hWnd,MCIWNDM_OPENINTERFACE,0,(LPARAM)(LPUNKNOWN)(pUnk))
 #define MCIWndSetOwner(hWnd,hWndP) (LONG)MCIWndSM(hWnd,MCIWNDM_SETOWNER,(WPARAM)(hWndP),0)
 #define DrawDibUpdate(hdd,hdc,x,y) DrawDibDraw(hdd,hdc,x,y,0,0,NULL,NULL,0,0,0,0,DDF_UPDATE)
-	static __inline DWORD
-		ICGetDefaultQuality(HIC hic) {
-		DWORD dwICValue;
-		ICSendMessage(hic, ICM_GETDEFAULTQUALITY, (DWORD)(LPVOID)&dwICValue, sizeof(DWORD));
-		return dwICValue;
-	}
-	static __inline DWORD
-		ICGetDefaultKeyFrameRate(HIC hic) {
-		DWORD dwICValue;
-		ICSendMessage(hic, ICM_GETDEFAULTKEYFRAMERATE, (DWORD)(LPVOID)&dwICValue, sizeof(DWORD));
-		return dwICValue;
-	}
-	static __inline LRESULT
-		ICDrawSuggestFormat(HIC hic, LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER lpbiOut, INT dxSrc, INT dySrc, INT dxDst, INT dyDst, HIC hicDecomp) {
-		ICDRAWSUGGEST ic;
-		ic.lpbiIn = lpbiIn;
-		ic.lpbiSuggest = lpbiOut;
-		ic.dxSrc = dxSrc;
-		ic.dySrc = dySrc;
-		ic.dxDst = dxDst;
-		ic.dyDst = dyDst;
-		ic.hicDecompressor = hicDecomp;
-		return ICSendMessage(hic, ICM_DRAW_SUGGESTFORMAT, (DWORD)&ic, sizeof(ic));
-	}
-	static __inline LRESULT
-		ICSetStatusProc(HIC hic, DWORD dwFlags, LRESULT lParam, LONG(CALLBACK* fpfnStatus)(LPARAM, UINT, LONG)) {
-		ICSETSTATUSPROC ic;
-		ic.dwFlags = dwFlags;
-		ic.lParam = lParam;
-		ic.Status = fpfnStatus;
-		return ICSendMessage(hic, ICM_SET_STATUS_PROC, (DWORD)&ic, sizeof(ic));
-	}
-	static __inline LRESULT
-		ICDecompressEx(HIC hic, DWORD dwFlags, LPBITMAPINFOHEADER lpbiSrc, LPVOID lpSrc, INT xSrc, INT ySrc, INT dxSrc, INT dySrc, LPBITMAPINFOHEADER lpbiDst, LPVOID lpDst, INT xDst, INT yDst, INT dxDst, INT dyDst) {
-		ICDECOMPRESSEX ic;
-		ic.dwFlags = dwFlags;
-		ic.lpbiSrc = lpbiSrc;
-		ic.lpSrc = lpSrc;
-		ic.xSrc = xSrc;
-		ic.ySrc = ySrc;
-		ic.dxSrc = dxSrc;
-		ic.dySrc = dySrc;
-		ic.lpbiDst = lpbiDst;
-		ic.lpDst = lpDst;
-		ic.xDst = xDst;
-		ic.yDst = yDst;
-		ic.dxDst = dxDst;
-		ic.dyDst = dyDst;
-		return ICSendMessage(hic, ICM_DECOMPRESSEX, (DWORD)&ic, sizeof(ic));
-	}
-	static __inline LRESULT
-		ICDecompressExBegin(HIC hic, DWORD dwFlags, LPBITMAPINFOHEADER lpbiSrc, LPVOID lpSrc, INT xSrc, INT ySrc, INT dxSrc, INT dySrc, LPBITMAPINFOHEADER lpbiDst, LPVOID lpDst, INT xDst, INT yDst, INT dxDst, INT dyDst) {
-		ICDECOMPRESSEX ic;
-		ic.dwFlags = dwFlags;
-		ic.lpbiSrc = lpbiSrc;
-		ic.lpSrc = lpSrc;
-		ic.xSrc = xSrc;
-		ic.ySrc = ySrc;
-		ic.dxSrc = dxSrc;
-		ic.dySrc = dySrc;
-		ic.lpbiDst = lpbiDst;
-		ic.lpDst = lpDst;
-		ic.xDst = xDst;
-		ic.yDst = yDst;
-		ic.dxDst = dxDst;
-		ic.dyDst = dyDst;
-		return ICSendMessage(hic, ICM_DECOMPRESSEX_BEGIN, (DWORD)&ic, sizeof(ic));
-	}
-	static __inline LRESULT
-		ICDecompressExQuery(HIC hic, DWORD dwFlags, LPBITMAPINFOHEADER lpbiSrc, LPVOID lpSrc, INT xSrc, INT ySrc, INT dxSrc, INT dySrc, LPBITMAPINFOHEADER lpbiDst, LPVOID lpDst, INT xDst, INT yDst, INT dxDst, INT dyDst) {
-		ICDECOMPRESSEX ic;
-		ic.dwFlags = dwFlags;
-		ic.lpbiSrc = lpbiSrc;
-		ic.lpSrc = lpSrc;
-		ic.xSrc = xSrc;
-		ic.ySrc = ySrc;
-		ic.dxSrc = dxSrc;
-		ic.dySrc = dySrc;
-		ic.lpbiDst = lpbiDst;
-		ic.lpDst = lpDst;
-		ic.xDst = xDst;
-		ic.yDst = yDst;
-		ic.dxDst = dxDst;
-		ic.dyDst = dyDst;
-		return ICSendMessage(hic, ICM_DECOMPRESSEX_QUERY, (DWORD)&ic, sizeof(ic));
-	}
+
+static __inline DWORD
+ICGetDefaultQuality(HIC hic)
+{
+	DWORD dwICValue;
+	ICSendMessage(hic, ICM_GETDEFAULTQUALITY, (DWORD)(LPVOID)&dwICValue,
+	              sizeof(DWORD));
+	return dwICValue;
+}
+
+static __inline DWORD
+ICGetDefaultKeyFrameRate(HIC hic)
+{
+	DWORD dwICValue;
+	ICSendMessage(hic, ICM_GETDEFAULTKEYFRAMERATE, (DWORD)(LPVOID)&dwICValue,
+	              sizeof(DWORD));
+	return dwICValue;
+}
+
+static __inline LRESULT
+ICDrawSuggestFormat(HIC hic, LPBITMAPINFOHEADER lpbiIn,
+                    LPBITMAPINFOHEADER lpbiOut, INT dxSrc, INT dySrc, INT dxDst,
+                    INT dyDst, HIC hicDecomp)
+{
+	ICDRAWSUGGEST ic;
+	ic.lpbiIn = lpbiIn;
+	ic.lpbiSuggest = lpbiOut;
+	ic.dxSrc = dxSrc;
+	ic.dySrc = dySrc;
+	ic.dxDst = dxDst;
+	ic.dyDst = dyDst;
+	ic.hicDecompressor = hicDecomp;
+	return ICSendMessage(hic, ICM_DRAW_SUGGESTFORMAT, (DWORD)&ic, sizeof(ic));
+}
+
+static __inline LRESULT
+ICSetStatusProc(HIC hic, DWORD dwFlags, LRESULT lParam,
+                LONG (CALLBACK*fpfnStatus)(LPARAM, UINT, LONG))
+{
+	ICSETSTATUSPROC ic;
+	ic.dwFlags = dwFlags;
+	ic.lParam = lParam;
+	ic.Status = fpfnStatus;
+	return ICSendMessage(hic, ICM_SET_STATUS_PROC, (DWORD)&ic, sizeof(ic));
+}
+
+static __inline LRESULT
+ICDecompressEx(HIC hic, DWORD dwFlags, LPBITMAPINFOHEADER lpbiSrc, LPVOID lpSrc,
+               INT xSrc, INT ySrc, INT dxSrc, INT dySrc,
+               LPBITMAPINFOHEADER lpbiDst, LPVOID lpDst, INT xDst, INT yDst,
+               INT dxDst, INT dyDst)
+{
+	ICDECOMPRESSEX ic;
+	ic.dwFlags = dwFlags;
+	ic.lpbiSrc = lpbiSrc;
+	ic.lpSrc = lpSrc;
+	ic.xSrc = xSrc;
+	ic.ySrc = ySrc;
+	ic.dxSrc = dxSrc;
+	ic.dySrc = dySrc;
+	ic.lpbiDst = lpbiDst;
+	ic.lpDst = lpDst;
+	ic.xDst = xDst;
+	ic.yDst = yDst;
+	ic.dxDst = dxDst;
+	ic.dyDst = dyDst;
+	return ICSendMessage(hic, ICM_DECOMPRESSEX, (DWORD)&ic, sizeof(ic));
+}
+
+static __inline LRESULT
+ICDecompressExBegin(HIC hic, DWORD dwFlags, LPBITMAPINFOHEADER lpbiSrc,
+                    LPVOID lpSrc, INT xSrc, INT ySrc, INT dxSrc, INT dySrc,
+                    LPBITMAPINFOHEADER lpbiDst, LPVOID lpDst, INT xDst,
+                    INT yDst, INT dxDst, INT dyDst)
+{
+	ICDECOMPRESSEX ic;
+	ic.dwFlags = dwFlags;
+	ic.lpbiSrc = lpbiSrc;
+	ic.lpSrc = lpSrc;
+	ic.xSrc = xSrc;
+	ic.ySrc = ySrc;
+	ic.dxSrc = dxSrc;
+	ic.dySrc = dySrc;
+	ic.lpbiDst = lpbiDst;
+	ic.lpDst = lpDst;
+	ic.xDst = xDst;
+	ic.yDst = yDst;
+	ic.dxDst = dxDst;
+	ic.dyDst = dyDst;
+	return ICSendMessage(hic, ICM_DECOMPRESSEX_BEGIN, (DWORD)&ic, sizeof(ic));
+}
+
+static __inline LRESULT
+ICDecompressExQuery(HIC hic, DWORD dwFlags, LPBITMAPINFOHEADER lpbiSrc,
+                    LPVOID lpSrc, INT xSrc, INT ySrc, INT dxSrc, INT dySrc,
+                    LPBITMAPINFOHEADER lpbiDst, LPVOID lpDst, INT xDst,
+                    INT yDst, INT dxDst, INT dyDst)
+{
+	ICDECOMPRESSEX ic;
+	ic.dwFlags = dwFlags;
+	ic.lpbiSrc = lpbiSrc;
+	ic.lpSrc = lpSrc;
+	ic.xSrc = xSrc;
+	ic.ySrc = ySrc;
+	ic.dxSrc = dxSrc;
+	ic.dySrc = dySrc;
+	ic.lpbiDst = lpbiDst;
+	ic.lpDst = lpDst;
+	ic.xDst = xDst;
+	ic.yDst = yDst;
+	ic.dxDst = dxDst;
+	ic.dyDst = dyDst;
+	return ICSendMessage(hic, ICM_DECOMPRESSEX_QUERY, (DWORD)&ic, sizeof(ic));
+}
 
 #ifdef UNICODE
 #define AVISTREAMINFO AVISTREAMINFOW

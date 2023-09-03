@@ -31,16 +31,18 @@
 #include "ops.h"
 #include "macros.h"
 
-void CVT_S_W() {
-	if (check_cop1_unusable()) return;
-	set_rounding();
-	*reg_cop1_simple[cffd] = *((long*)reg_cop1_simple[cffs]);
-	PC++;
+void CVT_S_W()
+{
+    if (check_cop1_unusable()) return;
+    set_rounding();
+    *reg_cop1_simple[cffd] = *((long*)reg_cop1_simple[cffs]);
+    PC++;
 }
 
-void CVT_D_W() {
-	if (check_cop1_unusable()) return;
-	set_rounding();
-	*reg_cop1_double[cffd] = *((long*)reg_cop1_simple[cffs]);
-	PC++;
+void CVT_D_W()
+{
+    if (check_cop1_unusable()) return;
+    set_rounding();
+    *reg_cop1_double[cffd] = *((long*)reg_cop1_simple[cffs]);
+    PC++;
 }

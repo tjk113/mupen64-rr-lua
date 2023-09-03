@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <stdint.h>
@@ -7,7 +6,8 @@
 #include <Windows.h>
 #define IDENTIFIER_LENGTH 260
 
-typedef struct t_hotkey {
+typedef struct t_hotkey
+{
 	std::string identifier;
 	int32_t key;
 	int32_t ctrl;
@@ -16,7 +16,8 @@ typedef struct t_hotkey {
 	int32_t command;
 } t_hotkey;
 
-typedef struct _CONFIG {
+typedef struct _CONFIG
+{
 #pragma region Hotkeys
 	t_hotkey fast_forward_hotkey;
 	t_hotkey speed_up_hotkey;
@@ -368,4 +369,3 @@ void load_config();
 /// Whether a hotkey has successfully been picked
 /// </returns>
 int32_t get_user_hotkey(t_hotkey* hotkey);
-

@@ -14,7 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 
- //for max recent
+//for max recent
 #include "../lua/Recent.h"
 #include "Config.hpp"
 
@@ -23,7 +23,8 @@
 
 #define MUPEN_VERSION     "Mupen 64 1.1.4"
 
-extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
+extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
+                                LPARAM lParam);
 extern void ShowMessage(const char* lpszMessage);
 extern void EnableToolbar();
 extern void CreateStatusBarWindow(HWND hwnd);
@@ -68,6 +69,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id);
 
 
 #define IGNORE_RSP (((!manualFPSLimit) && !VCR_isCapturing() && (!Config.frame_skip_frequency || (frame++ % Config.frame_skip_frequency)))) //if frame advancing and either skipfreq is 0 or modulo is 0
+
 
 #define RESET_TITLEBAR char tmpwndtitle[200]; sprintf(tmpwndtitle, MUPEN_VERSION " - %s", ROM_HEADER->nom); SetWindowText(mainHWND, tmpwndtitle);
 

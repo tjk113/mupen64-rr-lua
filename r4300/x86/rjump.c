@@ -39,29 +39,33 @@
 
 // NOTE: dynarec isn't compatible with the game debugger
 
-void dyna_jump() {
-
-	if (PC->reg_cache_infos.need_map)
-		*return_address = (unsigned long)(PC->reg_cache_infos.jump_wrapper);
-	else
-		*return_address = (unsigned long)(actual->code + PC->local_addr);
-	  /*asm("mov return_address, %%esp \n"
-		  "ret                       \n"
-		  :
-		  :
-		  : "memory");*/
+void dyna_jump()
+{
+    if (PC->reg_cache_infos.need_map)
+        *return_address = (unsigned long)(PC->reg_cache_infos.jump_wrapper);
+    else
+        *return_address = (unsigned long)(actual->code + PC->local_addr);
+    /*asm("mov return_address, %%esp \n"
+        "ret                       \n"
+        :
+        :
+        : "memory");*/
 }
 
 jmp_buf g_jmp_state;
-void dyna_start(void (*code)()) {
-	// code() ‚Ì‚Ç‚±‚©‚Å stop ‚ª true ‚É‚È‚Á‚½Adyna_stop() ‚ªŒÄ‚Î‚êAlongjmp() ‚Å setjmp() ‚µ‚½‚Æ‚±‚ë‚É–ß‚é
-	// –ß‚Á‚Ä‚«‚½ setjmp() ‚Í 1 ‚ğ•Ô‚·‚Ì‚ÅAdyna_start() I—¹
-	// ƒŒƒWƒXƒ^ ebx, esi, edi, ebp ‚Ì•Û‘¶‚Æ•œŒ³‚ª•K—v‚¾‚ªAsetjmp() ‚ª‚â‚Á‚Ä‚­‚ê‚é
-	if (setjmp(g_jmp_state) == 0) {
-		code();
-	}
+
+void dyna_start(void (*code)())
+{
+    // code() â€šÃŒâ€šÃ‡â€šÂ±â€šÂ©â€šÃ… stop â€šÂª true â€šÃ‰â€šÃˆâ€šÃâ€šÂ½Å½Å¾ÂAdyna_stop() â€šÂªÅ’Ã„â€šÃâ€šÃªÂAlongjmp() â€šÃ… setjmp() â€šÂµâ€šÂ½â€šÃ†â€šÂ±â€šÃ«â€šÃ‰â€“ÃŸâ€šÃ©
+    // â€“ÃŸâ€šÃâ€šÃ„â€šÂ«â€šÂ½ setjmp() â€šÃ 1 â€šÃ°â€¢Ã”â€šÂ·â€šÃŒâ€šÃ…ÂAdyna_start() ÂIâ€”Â¹
+    // Æ’Å’Æ’WÆ’XÆ’^ ebx, esi, edi, ebp â€šÃŒâ€¢Ã›â€˜Â¶â€šÃ†â€¢Å“Å’Â³â€šÂªâ€¢Kâ€”vâ€šÂ¾â€šÂªÂAsetjmp() â€šÂªâ€šÃ¢â€šÃâ€šÃ„â€šÂ­â€šÃªâ€šÃ©
+    if (setjmp(g_jmp_state) == 0)
+    {
+        code();
+    }
 }
 
-void dyna_stop() {
-	longjmp(g_jmp_state, 1); // goto dyna_start()
+void dyna_stop()
+{
+    longjmp(g_jmp_state, 1); // goto dyna_start()
 }

@@ -21,50 +21,57 @@
 
 #define ROM_SETIINGS_FILE "romsettings.ini"
 
-char* trim(char* str) {
-	unsigned char* ibuf, * obuf;
+char* trim(char* str)
+{
+    unsigned char *ibuf, *obuf;
 
-	if (str) {
-		for (ibuf = obuf = (unsigned char*)str; *ibuf; ) {
-			while (*ibuf && (isspace(*ibuf)))
-				ibuf++;
-			if (*ibuf && (obuf != (unsigned char*)str))
-				*(obuf++) = ' ';
-			while (*ibuf && (!isspace(*ibuf)))
-				*(obuf++) = *(ibuf++);
-		}
-		*obuf = 0;
-	}
-	return (char*)(str);
+    if (str)
+    {
+        for (ibuf = obuf = (unsigned char*)str; *ibuf;)
+        {
+            while (*ibuf && (isspace(*ibuf)))
+                ibuf++;
+            if (*ibuf && (obuf != (unsigned char*)str))
+                *(obuf++) = ' ';
+            while (*ibuf && (!isspace(*ibuf)))
+                *(obuf++) = *(ibuf++);
+        }
+        *obuf = 0;
+    }
+    return (char*)(str);
 }
 
 
-char* RomSettingsFilePath() {
-	static char* cfgpath = NULL;
-	if (cfgpath == NULL) {
-		cfgpath = (char*)malloc(strlen(AppPath) + 1 + strlen(ROM_SETIINGS_FILE));
-		strcpy(cfgpath, AppPath);
-		strcat(cfgpath, ROM_SETIINGS_FILE);
-	}
-	return cfgpath;
+char* RomSettingsFilePath()
+{
+    static char* cfgpath = NULL;
+    if (cfgpath == NULL)
+    {
+        cfgpath = (char*)malloc(strlen(AppPath) + 1 + strlen(ROM_SETIINGS_FILE));
+        strcpy(cfgpath, AppPath);
+        strcat(cfgpath, ROM_SETIINGS_FILE);
+    }
+    return cfgpath;
 }
 
-DEFAULT_ROM_SETTINGS GetDefaultRomSettings(char* Section) {
-	static DEFAULT_ROM_SETTINGS DefaultRomSettings;
+DEFAULT_ROM_SETTINGS GetDefaultRomSettings(char* Section)
+{
+    static DEFAULT_ROM_SETTINGS DefaultRomSettings;
 
-	trim(Section);
-	GetPrivateProfileString(Section, "Graphics", "", DefaultRomSettings.GfxPluginName, 100, RomSettingsFilePath());
-	GetPrivateProfileString(Section, "Input", "", DefaultRomSettings.InputPluginName, 100, RomSettingsFilePath());
-	GetPrivateProfileString(Section, "Sound", "", DefaultRomSettings.SoundPluginName, 100, RomSettingsFilePath());
-	GetPrivateProfileString(Section, "RSP", "", DefaultRomSettings.RspPluginName, 100, RomSettingsFilePath());
+    trim(Section);
+    GetPrivateProfileString(Section, "Graphics", "", DefaultRomSettings.GfxPluginName, 100, RomSettingsFilePath());
+    GetPrivateProfileString(Section, "Input", "", DefaultRomSettings.InputPluginName, 100, RomSettingsFilePath());
+    GetPrivateProfileString(Section, "Sound", "", DefaultRomSettings.SoundPluginName, 100, RomSettingsFilePath());
+    GetPrivateProfileString(Section, "RSP", "", DefaultRomSettings.RspPluginName, 100, RomSettingsFilePath());
 
-	return DefaultRomSettings;
+    return DefaultRomSettings;
 }
 
-void saveDefaultRomSettings(char* Section, DEFAULT_ROM_SETTINGS DefaultRomSettings) {
-	trim(Section);
-	WritePrivateProfileString(Section, "Graphics", DefaultRomSettings.GfxPluginName, RomSettingsFilePath());
-	WritePrivateProfileString(Section, "Input", DefaultRomSettings.InputPluginName, RomSettingsFilePath());
-	WritePrivateProfileString(Section, "Sound", DefaultRomSettings.SoundPluginName, RomSettingsFilePath());
-	WritePrivateProfileString(Section, "RSP", DefaultRomSettings.RspPluginName, RomSettingsFilePath());
+void saveDefaultRomSettings(char* Section, DEFAULT_ROM_SETTINGS DefaultRomSettings)
+{
+    trim(Section);
+    WritePrivateProfileString(Section, "Graphics", DefaultRomSettings.GfxPluginName, RomSettingsFilePath());
+    WritePrivateProfileString(Section, "Input", DefaultRomSettings.InputPluginName, RomSettingsFilePath());
+    WritePrivateProfileString(Section, "Sound", DefaultRomSettings.SoundPluginName, RomSettingsFilePath());
+    WritePrivateProfileString(Section, "RSP", DefaultRomSettings.RspPluginName, RomSettingsFilePath());
 }

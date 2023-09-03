@@ -50,8 +50,9 @@ void lua_recent_scripts_add(const std::string& path)
 	{
 		Config.recent_lua_script_paths.pop_back();
 	}
-    std::erase(Config.recent_lua_script_paths, path);
-	Config.recent_lua_script_paths.insert(Config.recent_lua_script_paths.begin(), path);
+	std::erase(Config.recent_lua_script_paths, path);
+	Config.recent_lua_script_paths.insert(
+		Config.recent_lua_script_paths.begin(), path);
 	lua_recent_scripts_build();
 }
 

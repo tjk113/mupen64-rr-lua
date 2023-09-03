@@ -17,7 +17,8 @@
 #define COMMANDLINE_H
 #include <windows.h>
 
-typedef enum {
+typedef enum
+{
 	CMDLINE_AUDIO_PLUGIN,
 	CMDLINE_VIDEO_PLUGIN,
 	CMDLINE_CONTROLLER_PLUGIN,
@@ -32,7 +33,7 @@ typedef enum {
 	CMDLINE_LUA,
 	CMDLINE_SAVESTATE,
 	CMDLINE_MAX_NUMBER
-}CmdLineParameterType;
+} CmdLineParameterType;
 
 void SaveCmdLineParameter(char* cmdline);
 void GetCmdLineParameter(CmdLineParameterType arg, char* buf);

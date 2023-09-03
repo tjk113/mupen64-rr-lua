@@ -184,7 +184,8 @@ void rombrowser_build()
 
 		             auto extension = std::string(c_extension);
 		             return is_case_insensitive_equal(extension, ".z64") ||
-			             is_case_insensitive_equal(extension, ".n64") || is_case_insensitive_equal(
+			             is_case_insensitive_equal(extension, ".n64") ||
+			             is_case_insensitive_equal(
 				             extension, ".v64")
 			             || is_case_insensitive_equal(extension, ".rom");
 	             });

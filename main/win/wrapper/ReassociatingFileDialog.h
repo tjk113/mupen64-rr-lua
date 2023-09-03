@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <filesystem>
 
-class ReassociatingFileDialog {
+class ReassociatingFileDialog
+{
 public:
 	/// <summary>
 	/// Shows a file dialog with the specified flags
@@ -14,7 +15,8 @@ public:
 	/// <param name="path">Pointer to MAX_PATH-long ASCII string</param>
 	/// <param name="fTypes">Allowed file types in format: *.extension1;*.extension2 ...</param>
 	/// <param name="allowMultiSelect">Whether the file dialog allows multiple files to be selected</param>
-	bool ShowFileDialog(char* path, const wchar_t* fTypes, bool openDialog, bool allowMultiSelect = FALSE, HWND hWnd = NULL);
+	bool ShowFileDialog(char* path, const wchar_t* fTypes, bool openDialog,
+	                    bool allowMultiSelect = FALSE, HWND hWnd = NULL);
 
 	/// <summary>
 	/// Shows a folder dialog with the specified flags
@@ -25,7 +27,8 @@ public:
 	/// <returns></returns>
 	bool ShowFolderDialog(char* path, int maxSize, HWND hWnd = NULL);
 
-	ReassociatingFileDialog() {
+	ReassociatingFileDialog()
+	{
 		// set lastPath to mupen64.exe directory by default
 		char tmpArr[MAX_PATH];
 		GetModuleFileName(NULL, tmpArr, _MAX_PATH);

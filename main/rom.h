@@ -83,7 +83,7 @@ inline static void rom_byteswap(uint8_t* rom)
 
 	if (rom[0] == 0x37)
 	{
-		for (size_t i = 0; i<(0x40 / 2); i++)
+		for (size_t i = 0; i < (0x40 / 2); i++)
 		{
 			tmp = rom[i * 2];
 			rom[i * 2] = rom[i * 2 + 1];
@@ -92,7 +92,7 @@ inline static void rom_byteswap(uint8_t* rom)
 	}
 	if (rom[0] == 0x40)
 	{
-		for (size_t i = 0; i<(0x40 / 4); i++)
+		for (size_t i = 0; i < (0x40 / 4); i++)
 		{
 			tmp = rom[i * 4];
 			rom[i * 4] = rom[i * 4 + 3];

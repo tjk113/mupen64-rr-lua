@@ -57,7 +57,8 @@
 #define DH 6
 #define BH 7
 
-typedef struct _reg_cache_struct {
+typedef struct _reg_cache_struct
+{
 	int need_map;
 	void* needed_registers[8];
 	unsigned char jump_wrapper[62];
@@ -131,7 +132,8 @@ void jg_rj(unsigned char saut);
 void and_ax_imm16(unsigned short imm16);
 void or_ax_imm16(unsigned short imm16);
 void xor_ax_imm16(unsigned short imm16);
-void shrd_reg32_reg32_imm8(unsigned long reg1, unsigned long reg2, unsigned char imm8);
+void shrd_reg32_reg32_imm8(unsigned long reg1, unsigned long reg2,
+                           unsigned char imm8);
 void or_eax_imm32(unsigned long imm32);
 void or_m32_reg32(void* _m32, unsigned long reg32);
 void or_reg32_reg32(unsigned long reg1, unsigned long reg2);
@@ -158,11 +160,13 @@ void xor_reg32_m32(unsigned long reg32, void* _m32);
 void sar_reg32_cl(unsigned long reg32);
 void jmp_imm_short(char saut);
 void jmp_m32(void* _m32);
-void mov_reg32_preg32preg32pimm32(int reg1, int reg2, int reg3, unsigned long imm32);
+void mov_reg32_preg32preg32pimm32(int reg1, int reg2, int reg3,
+                                  unsigned long imm32);
 void mov_reg32_preg32pimm32(int reg1, int reg2, unsigned long imm32);
 void cmp_m32_imm8(void* _m32, unsigned char imm8);
 void mov_reg32_preg32x4preg32(int reg1, int reg2, int reg3);
-void mov_reg32_preg32x4preg32pimm32(int reg1, int reg2, int reg3, unsigned long imm32);
+void mov_reg32_preg32x4preg32pimm32(int reg1, int reg2, int reg3,
+                                    unsigned long imm32);
 void mov_reg32_preg32x4pimm32(int reg1, int reg2, unsigned long imm32);
 void and_reg32_imm32(int reg32, unsigned long imm32);
 void movsx_reg32_m8(int reg32, unsigned char* m8);
@@ -175,7 +179,8 @@ void movsx_reg32_m16(int reg32, unsigned short* m16);
 void cmp_reg32_imm8(int reg32, unsigned char imm8);
 void add_m32_imm8(void* _m32, unsigned char imm8);
 void mov_reg8_m8(int reg8, unsigned char* m8);
-void mov_preg32preg32pimm32_reg8(int reg1, int reg2, unsigned long imm32, int reg8);
+void mov_preg32preg32pimm32_reg8(int reg1, int reg2, unsigned long imm32,
+                                 int reg8);
 void mov_preg32pimm32_reg16(int reg32, unsigned long imm32, int reg16);
 void cmp_reg32_imm32(int reg32, unsigned long imm32);
 void mov_preg32pimm32_reg32(int reg1, unsigned long imm32, int reg2);
@@ -231,7 +236,8 @@ void idiv_reg32(unsigned long reg32);
 void div_reg32(unsigned long reg32);
 void adc_reg32_reg32(unsigned long reg1, unsigned long reg2);
 void sbb_reg32_reg32(int reg1, int reg2);
-void shld_reg32_reg32_imm8(unsigned long reg1, unsigned long reg2, unsigned char imm8);
+void shld_reg32_reg32_imm8(unsigned long reg1, unsigned long reg2,
+                           unsigned char imm8);
 void cmp_preg32pimm32_imm8(int reg32, unsigned long imm32, unsigned char imm8);
 void test_m32_imm32(void* _m32, unsigned long imm32);
 void fldcw_m16(unsigned short* m16);

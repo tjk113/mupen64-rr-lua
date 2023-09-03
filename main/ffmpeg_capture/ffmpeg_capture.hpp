@@ -20,12 +20,14 @@ const std::string defaultOptions = "out.mp4";
 // video size and framerate prepared in manager constructor when values are known
 // pixel format is bgr24, because that's what windows uses
 #define videoOptions " -thread_queue_size 4 -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 "
-const char baseOptions[] = videoOptions "-i \\\\.\\pipe\\mupenvideo" audioOptions "-i \\\\.\\pipe\\mupenaudio ";
+const char baseOptions[] = videoOptions "-i \\\\.\\pipe\\mupenvideo"
+	audioOptions "-i \\\\.\\pipe\\mupenaudio ";
 
 void InitReadScreenFFmpeg(const SWindowInfo& info);
 void FFMpegCleanup();
 
-enum initErrors {
+enum initErrors
+{
 	UNKNOWN,
 	INIT_SUCCESS,
 	INIT_CREATEPROCESS_ERROR,
@@ -36,9 +38,9 @@ enum initErrors {
 
 initErrors InitFFMPEGTest();
 
-class FFmpegManager {
+class FFmpegManager
+{
 public:
-
 	/// <summary>
 	/// Object used to communicate with ffmpeg process
 	/// </summary>
@@ -46,8 +48,9 @@ public:
 	/// <param name="videoY">input video resolution</param>
 	/// <param name="framerate">framerate (depends whether PAL or not)</param>
 	/// <param name="cmdOptions">additional ffmpeg options (compression, output name, effects and shit)</param>
-	FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate, unsigned audiorate,
-		std::string cmdOptions = defaultOptions);
+	FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate,
+	              unsigned audiorate,
+	              std::string cmdOptions = defaultOptions);
 
 	~FFmpegManager();
 
@@ -79,16 +82,18 @@ private:
 	unsigned int audiorate{}; //bytes of audio needed to play 1 frame
 	char* silenceBuffer{};
 
-	bool stopThread = false; // (following comment functionality is disabled now) if you REALLY want to stop both threads, clear their queues. Otherwise this just tells thread to stop waiting for new stuff
+	bool stopThread = false;
+	// (following comment functionality is disabled now) if you REALLY want to stop both threads, clear their queues. Otherwise this just tells thread to stop waiting for new stuff
 
 	std::thread audioThread;
 	std::mutex audioQueueMutex{};
-	std::queue<std::vector<char>> audioQueue; // queue for sound frames to write to ffmpeg
+	std::queue<std::vector<char>> audioQueue;
+	// queue for sound frames to write to ffmpeg
 
 	std::thread videoThread;
 	std::mutex videoQueueMutex{};
-	std::queue<std::vector<unsigned char>> videoQueue; // queue for sound frames to write to ffmpeg
+	std::queue<std::vector<unsigned char>> videoQueue;
+	// queue for sound frames to write to ffmpeg
 
 	bool lastWriteWasVideo{};
-
 };
