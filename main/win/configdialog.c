@@ -789,11 +789,11 @@ static void KillMessages() {
 }
 
 
-int get_hotkey_array_index_from_selected_identifier(std::string selected_identifier) {
-	int indexInHotkeyArray = -1;
+int32_t get_hotkey_array_index_from_selected_identifier(std::string selected_identifier) {
+	int32_t indexInHotkeyArray = -1;
 	for (size_t i = 0; i < hotkeys.size(); i++)
 	{
-		if (selected_identifier == hotkeys[i]->identifier)
+		if (selected_identifier == hotkey_to_string2(hotkeys[i]))
 		{
 			indexInHotkeyArray = i;
 			break;
@@ -802,43 +802,47 @@ int get_hotkey_array_index_from_selected_identifier(std::string selected_identif
 	return indexInHotkeyArray;
 }
 
-void UpdateSelectedHotkeyTextBox(HWND dialogHwnd) {
-	HWND listHwnd = GetDlgItem(dialogHwnd, IDC_HOTKEY_LIST);
-	HWND selectedHotkeyEditHwnd = GetDlgItem(dialogHwnd, IDC_SELECTED_HOTKEY_TEXT);
+void update_selected_hotkey_view(const HWND dialog_hwnd) {
+	HWND list_hwnd = GetDlgItem(dialog_hwnd, IDC_HOTKEY_LIST);
+	HWND selected_hotkey_edit_hwnd = GetDlgItem(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT);
+	
+	char selected_identifier[MAX_PATH] = {0};
+	SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
+	
+	const int index_in_hotkey_array = get_hotkey_array_index_from_selected_identifier(std::string(selected_identifier));
 
-
-	char selected_identifier[MAX_PATH];
-	SendMessage(listHwnd, LB_GETTEXT, SendMessage(listHwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
-
-	int indexInHotkeyArray = get_hotkey_array_index_from_selected_identifier(std::string(selected_identifier));
-
-	if (indexInHotkeyArray >= 0 && indexInHotkeyArray < hotkeys.size())
+	if (index_in_hotkey_array >= 0 && index_in_hotkey_array < hotkeys.size())
 	{
-		char hotkeyText[MAX_PATH];
+		char hotkey_text[MAX_PATH];
 
-		hotkey_to_string(hotkeys[indexInHotkeyArray], hotkeyText);
+		hotkey_to_string(hotkeys[index_in_hotkey_array], hotkey_text);
 
-		SetWindowText(selectedHotkeyEditHwnd, hotkeyText);
+		SetWindowText(selected_hotkey_edit_hwnd, hotkey_text);
+	} else
+	{
+		SetDlgItemText(dialog_hwnd, IDC_HOTKEY_ASSIGN_SELECTED, "Assign...");
+		SetDlgItemText(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT, "");
 	}
 }
 
-void build_hotkey_list(HWND hwnd, char* searchQuery) {
-	SendMessage(hwnd, LB_RESETCONTENT, 0, 0);
+void build_hotkey_list(HWND list_hwnd, std::string search_query) {
+	SendMessage(list_hwnd, LB_RESETCONTENT, 0, 0);
 
 	for (size_t i = 0; i < hotkeys.size(); i++)
 	{
-		if (strlen(searchQuery) != 0)
+		std::string hotkey_string = hotkey_to_string2(hotkeys[i]);
+		
+		if (!search_query.empty())
 		{
-			char hotkeyString[MAX_PATH];
-			hotkey_to_string(hotkeys[i], hotkeyString);
-
-			if (!stristr(hotkeyString, searchQuery) && !stristr(hotkeys[i]->identifier.c_str(), searchQuery))
+			if (!contains(to_lower(hotkey_string), to_lower(search_query))
+				&& !contains(to_lower(hotkeys[i]->identifier), to_lower(search_query)))
 			{
 				continue;
 			}
 		}
-		SendMessage(hwnd, LB_ADDSTRING, 0,
-			(LPARAM)hotkeys[i]->identifier.c_str());
+		
+		SendMessage(list_hwnd, LB_ADDSTRING, 0,
+			(LPARAM)hotkey_string.c_str());
 	}
 }
 
@@ -847,9 +851,8 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	switch (Message) {
 	case WM_INITDIALOG:
 	{
-
 		SetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, "");
-
+		update_selected_hotkey_view(hwnd);
 		return TRUE;
 	}
 	case WM_COMMAND: {
@@ -858,7 +861,7 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 		if (id == IDC_HOTKEY_LIST && event == LBN_SELCHANGE)
 		{
-			UpdateSelectedHotkeyTextBox(hwnd);
+			update_selected_hotkey_view(hwnd);
 		}
 
 		if (id == IDC_HOTKEY_ASSIGN_SELECTED)
@@ -867,26 +870,26 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			char selected_identifier[MAX_PATH];
 			SendMessage(listHwnd, LB_GETTEXT, SendMessage(listHwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
 
-			int index = get_hotkey_array_index_from_selected_identifier(std::string(selected_identifier));
+			int32_t index = get_hotkey_array_index_from_selected_identifier(std::string(selected_identifier));
 
 			if (index >= 0 && index < hotkeys.size())
 			{
-				char buttonText[MAX_PATH];
-				GetDlgItemText(hwnd, id, buttonText, MAX_PATH);
 				SetDlgItemText(hwnd, id, "...");
 
 				get_user_hotkey(hotkeys[index]);
-				UpdateSelectedHotkeyTextBox(hwnd);
-
-				SetDlgItemText(hwnd, id, buttonText);
+				update_selected_hotkey_view(hwnd);
+				
+				char search_query[MAX_PATH] = { 0 };
+				GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, search_query, std::size(search_query));
+				build_hotkey_list(GetDlgItem(hwnd, IDC_HOTKEY_LIST), search_query);
 			}
 		}
 
 		if (id == IDC_HOTKEY_SEARCH)
 		{
-			static char hotkeySearchQuery[MAX_PATH] = { 0 };
-			GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, hotkeySearchQuery, sizeof(hotkeySearchQuery) / sizeof(hotkeySearchQuery[0]));
-			build_hotkey_list(GetDlgItem(hwnd, IDC_HOTKEY_LIST), hotkeySearchQuery);
+			char search_query[MAX_PATH] = { 0 };
+			GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, search_query, std::size(search_query));
+			build_hotkey_list(GetDlgItem(hwnd, IDC_HOTKEY_LIST), search_query);
 		}
 	}
 				   break;

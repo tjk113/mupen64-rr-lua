@@ -15,6 +15,7 @@
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
 
+// TODO: use std::string
 void hotkey_to_string(t_hotkey* hotkeys, char* buf)
 {
 	int k = hotkeys->key;
@@ -128,6 +129,14 @@ void hotkey_to_string(t_hotkey* hotkeys, char* buf)
 			}
 		strcat(buf, buf2);
 	}
+}
+
+std::string hotkey_to_string2(t_hotkey* hotkey)
+{
+	char hotkey_string[MAX_PATH] = {0};
+	hotkey_to_string(hotkey, hotkey_string);
+	return std::string(hotkey->identifier) + " (" + std::string(hotkey_string) +
+		")";
 }
 
 
