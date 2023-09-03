@@ -313,8 +313,8 @@ BOOL StartRom(const char* fullRomPath) {
 			}
 
 			sprintf(LastSelectedRom, "%s", fullRomPath);
-			// TODO: reimplement
-			// AddToRecentList(mainHWND, fullRomPath);
+
+			main_recent_roms_add(fullRomPath);
 
 			InitTimer();
 
@@ -1300,20 +1300,69 @@ void exit_emu(int postquit) {
 	}
 }
 
+void main_recent_roms_build(int32_t reset)
+{
+	HMENU h_menu = GetMenu(mainHWND);
+	for (size_t i = 0; i < Config.recent_rom_paths.size(); i++)
+	{
+		if (Config.recent_rom_paths[i].empty())
+		{
+			continue;
+		}
+		DeleteMenu(h_menu, ID_RECENTROMS_FIRST + i, MF_BYCOMMAND);
+	}
+
+	if (reset)
+	{
+		Config.recent_rom_paths.clear();
+	}
+
+	HMENU h_sub_menu = GetSubMenu(h_menu, 0);
+	h_sub_menu = GetSubMenu(h_sub_menu, 5);
+
+	MENUITEMINFO menu_info = {0};
+	menu_info.cbSize = sizeof(MENUITEMINFO);
+	menu_info.fMask = MIIM_TYPE | MIIM_ID;
+	menu_info.fType = MFT_STRING;
+	menu_info.fState = MFS_ENABLED;
+
+	for (size_t i = 0; i < Config.recent_rom_paths.size(); i++)
+	{
+		if (Config.recent_rom_paths[i].empty())
+		{
+			continue;
+		}
+		menu_info.dwTypeData = (LPSTR)Config.recent_rom_paths[i].c_str();
+		menu_info.cch = strlen(menu_info.dwTypeData);
+		menu_info.wID = ID_RECENTROMS_FIRST + i;
+		InsertMenuItem(h_sub_menu, i + 3, TRUE, &menu_info);
+	}
+}
+
+void main_recent_roms_add(const std::string& path)
+{
+	if (Config.recent_rom_paths.size() > 5)
+	{
+		Config.recent_rom_paths.pop_back();
+	}
+	std::erase(Config.recent_rom_paths, path);
+	Config.recent_rom_paths.insert(Config.recent_rom_paths.begin(), path);
+	main_recent_roms_build();
+}
+
+int32_t main_recent_roms_run(uint16_t menu_item_id)
+{
+	const int index = menu_item_id - ID_RECENTROMS_FIRST;
+	return StartRom(Config.recent_rom_paths[index].c_str());
+}
+
 void exit_emu2() {
 	save_config();
 
 	if ((!cmdlineMode) || (cmdlineSave)) {
 		ini_updateFile();
-		// TODO: reimplement
-		// if (!cmdlineNoGui) {
-		// 	SaveRomBrowserCache();
-		// }
 	}
 	ini_closeFile();
-	// TODO: reimplement
-	// freeRomDirList();
-	// freeRomList();
 	freeLanguages();
 	PostQuitMessage(0);
 }
@@ -1588,10 +1637,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			if (!FullScreenMode) {
 				SendMessage(hTool, TB_AUTOSIZE, 0, 0);
 				SendMessage(hStatus, WM_SIZE, 0, 0);
-				// TODO: reimplement
-				// ResizeRomListControl();
-			}
-				rombrowser_update_size();
+			}rombrowser_update_size();
 			break;
 		}
 		case WM_USER + 17:  SetFocus(mainHWND); break;
@@ -1878,10 +1924,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					}
 				}
 				break;
-				case ID_AUDIT_ROMS:
-					// TODO: reimplement
-					// audit_roms();
-					break;
 				case ID_HELP_ABOUT:
 				{
 					BOOL wasMenuPaused = MenuPaused;
@@ -1978,18 +2020,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					if (!emu_launched) {
 						rombrowser_build();
 					}
-					break;
-				case ID_POPUP_ROM_SETTING:
-					// TODO: reimplement
-					// OpenRomProperties();
-					break;
-				case ID_START_ROM:
-					// TODO: reimplement
-					// RomList_OpenRom();
-					break;
-				case ID_START_ROM_ENTER:
-					// TODO: reimplement
-					// if (!emu_launched) RomList_OpenRom();
 					break;
 				case STATE_SAVE:
 					if (!emu_paused || MenuPaused) {
@@ -2171,11 +2201,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						recording = FALSE;
 					}
 					break;
-				case ID_GENERATE_ROM_INFO:
-					// TODO: reimplement
-					// generateRomInfo();
-					break;
-				break;
 				case GENERATE_BITMAP: // take/capture a screenshot
 					if (Config.is_default_screenshots_directory_used) {
 						sprintf(path_buffer, "%sScreenShots\\", AppPath);
@@ -2186,17 +2211,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					}
 					break;
 				case ID_RECENTROMS_RESET:
-					// TODO: reimplement
-					// ClearRecentList(hwnd, TRUE);
-					// SetRecentList(hwnd);
+					main_recent_roms_build(1);
 					break;
 				case ID_RECENTROMS_FREEZE:
-					// TODO: reimplement
-					// FreezeRecentRoms(hwnd, TRUE);
+					Config.is_recent_rom_paths_frozen ^= 1;
 					break;
 				case ID_LOAD_LATEST:
-					// TODO: reimplement
-					// RunRecentRom(ID_RECENTROMS_FIRST);
+					main_recent_roms_run(ID_RECENTROMS_FIRST);
+					break;
 				case IDC_GUI_TOOLBAR:
 					Config.is_toolbar_enabled = 1 - Config.is_toolbar_enabled;
 					EnableToolbar();
@@ -2254,8 +2276,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					} else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_10) {
 						LoadTheState(hwnd, LOWORD(wParam));
 					} else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST && LOWORD(wParam) < (ID_RECENTROMS_FIRST + Config.recent_rom_paths.size())) {
-						// TODO: reimplement
-						// RunRecentRom(LOWORD(wParam));
+						main_recent_roms_run(LOWORD(wParam));
 					} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST && LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + Config.recent_movie_paths.size())) {
 						if (vcr_recent_movies_play(LOWORD(wParam)) != SUCCESS) {
 							SetStatusTranslatedString(hStatus, 0, "Could not load movie!");
@@ -2525,6 +2546,7 @@ int WINAPI WinMain(
 
 		vcr_recent_movies_build();
 		lua_recent_scripts_build();
+		main_recent_roms_build();
 
 		EnableEmulationMenuItems(0);
 		if (!StartGameByCommandLine()) {
