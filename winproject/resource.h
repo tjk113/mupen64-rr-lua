@@ -407,12 +407,6 @@
 #define IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING 10010
 #define IDC_EMULATEFLOATCRASHES         10011
 #define IDC_ROMLIST                     12352
-#define IDH_NO_HELP                     28445
-#define IDH_MISSING_CONTEXT             28446
-#define IDH_GENERIC_HELP_BUTTON         28447
-#define IDH_OK                          28448
-#define IDH_CANCEL                      28449
-#define IDH_HELP                        28450
 #define ID_EMULATOR_EXIT                40006
 #define ID_FFMPEG_START                 400011
 #define EMU_RESET                       400012
