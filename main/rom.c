@@ -128,69 +128,40 @@ bool validRomExt(const char* filename)
         !_stricmp(str, "rom");
 }
 
-void country_code_to_country_name(int country_code, char* country_name)
+std::string country_code_to_country_name(int country_code)
 {
     switch (country_code & 0xFF)
     {
     case 0:
-        strcpy(country_name, "Demo");
-        break;
-
+        return "Demo";
     case '7':
-        strcpy(country_name, "Beta");
-        break;
-
+        return "Beta";
     case 0x41:
-        strcpy(country_name, "USA/Japan");
-        break;
-
-    /* Germany */
+        return "USA/Japan";
     case 0x44:
-        strcpy(country_name, "German");
-        break;
-
-    /* USA */
+        return "Germany";
     case 0x45:
-        strcpy(country_name, "USA");
-        break;
-
-    /* France */
+        return "USA";
     case 0x46:
-        strcpy(country_name, "France");
-        break;
-
-    /* Italy */
-    case 'I':
-        strcpy(country_name, "Italy");
-        break;
-
-    /* Japan */
+        return "France";
+     case 'I':
+        return "Italy";
     case 0x4A:
-        strcpy(country_name, "Japan");
-        break;
-
-    case 'S': /* Spain */
-        strcpy(country_name, "Spain");
-        break;
-
-    /* Australia */
+        return "Japan";
+    case 'S':
+        return "Spain";
     case 0x55:
     case 0x59:
-        strcpy(country_name, "Australia");
-        break;
-
+        return "Australia";
     case 0x50:
     case 0x58:
     case 0x20:
     case 0x21:
     case 0x38:
     case 0x70:
-        sprintf(country_name, "Europe");
-        break;
-
+        return "Europe";
     default:
-        sprintf(country_name, "Unknown (%d)", (int)(country_code & 0xFF));
-        break;
+        return "Unknown (" + std::to_string(country_code & 0xFF) + ")";
     }
 }
 

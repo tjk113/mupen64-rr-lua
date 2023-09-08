@@ -628,20 +628,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 
 	HWND descriptionDialog;
 	HWND authorDialog;
-
-	//    md5_byte_t digest[16];
-	//    ROM_INFO *pRomInfo;
-	//    char tempname[100];
-	//    HWND hwndPB;
-	//    pRomInfo = getSelectedRom();
-	//    DEFAULT_ROM_SETTINGS TempRomSettings;
-
 	static char path_buffer[_MAX_PATH];
-
-	//    if (pRomInfo==NULL) {
-	//       EndDialog(hwnd, IDOK);
-	//       return FALSE;
-	//      }
 	switch (Message)
 	{
 	case WM_INITDIALOG:
@@ -652,15 +639,13 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		            MOVIE_DESCRIPTION_DATA_SIZE, 0);
 		SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
 
-		country_code_to_country_name(ROM_HEADER->Country_code, tempbuf2);
-		sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, tempbuf2);
+		sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, country_code_to_country_name(ROM_HEADER->Country_code).c_str());
 		strcat(tempbuf, ".m64");
 		SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*)ROM_HEADER->nom);
 
-		country_code_to_country_name(ROM_HEADER->Country_code, tempbuf);
-		SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, tempbuf);
+		SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, country_code_to_country_name(ROM_HEADER->Country_code).c_str());
 
 		sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER->CRC1);
 		SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
@@ -837,8 +822,7 @@ refresh:
 
 	SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME, m_header.romNom);
 
-	country_code_to_country_name(m_header.romCountry, tempbuf);
-	SetDlgItemText(hwnd, IDC_ROM_COUNTRY, tempbuf);
+ 	SetDlgItemText(hwnd, IDC_ROM_COUNTRY, country_code_to_country_name(m_header.romCountry).c_str());
 
 	sprintf(tempbuf, "%X", (unsigned int)m_header.romCRC);
 	SetDlgItemText(hwnd, IDC_ROM_CRC, tempbuf);
@@ -1010,15 +994,13 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		CheckRadioButton(hwnd, IDC_FROMSNAPSHOT_RADIO, IDC_FROMSTART_RADIO,
 		                 checked_movie_type);
 
-		country_code_to_country_name(ROM_HEADER->Country_code, tempbuf2);
-		sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, tempbuf2);
+		sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, country_code_to_country_name(ROM_HEADER->Country_code).c_str());
 		strcat(tempbuf, ".m64");
 		SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*)ROM_HEADER->nom);
 
-		country_code_to_country_name(ROM_HEADER->Country_code, tempbuf);
-		SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, tempbuf);
+		SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, country_code_to_country_name(ROM_HEADER->Country_code).c_str());
 
 		sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER->CRC1);
 		SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);

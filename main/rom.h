@@ -75,7 +75,7 @@ typedef struct _rom_settings
 
 extern rom_settings ROM_SETTINGS;
 
-void country_code_to_country_name(int country_code, char* country_name);
+std::string country_code_to_country_name(int country_code);
 
 inline static void rom_byteswap(uint8_t* rom)
 {
