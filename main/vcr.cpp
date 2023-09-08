@@ -1,5 +1,7 @@
 //#include "../config.h"
 #include <assert.h>
+
+#include "win/main_win.h"
 #ifdef VCR_SUPPORT
 
 #include "../lua/LuaConsole.h"
@@ -1395,7 +1397,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 				stderr,
 				"[VCR]: Cannot start playback, could not open .m64 file '%s': %s\n",
 				filename, strerror(errno));
-			RESET_TITLEBAR
+			reset_titlebar();
 			if (m_file != NULL)
 				fclose(m_file);
 			return VCR_PLAYBACK_FILE_BUSY;
@@ -1641,7 +1643,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 
 				if (dontPlay)
 				{
-					RESET_TITLEBAR
+					reset_titlebar();
 					if (m_file != NULL)
 						fclose(m_file);
 					return VCR_PLAYBACK_INCOMPATIBLE;
@@ -1708,7 +1710,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 			{
 				printf(
 					"[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
-				RESET_TITLEBAR
+				reset_titlebar();
 				if (m_file != NULL)
 					fclose(m_file);
 				return VCR_PLAYBACK_SAVESTATE_MISSING;
@@ -1754,8 +1756,7 @@ stopPlayback(bool bypassLoopSetting)
 		return restartPlayback();
 	}
 	extern HWND mainHWND;
-	//SetActiveMovie(NULL); //remove from title
-	RESET_TITLEBAR // maybe
+	reset_titlebar();
 	if (m_file && m_task != StartRecording && m_task != Recording)
 	{
 		fclose(m_file);
@@ -2401,7 +2402,7 @@ VCR_stopCapture()
 	} else
 	{
 		//atme
-		RESET_TITLEBAR
+		reset_titlebar();
 	}
 	SetWindowLong(mainHWND, GWL_STYLE,
 	              GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);

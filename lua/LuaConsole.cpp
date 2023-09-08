@@ -36,6 +36,8 @@
 #include <md5.h>
 #include <assert.h>
 
+#include "Recent.h"
+
 #pragma comment(lib, "lua54.lib")
 #pragma comment (lib,"Gdiplus.lib")
 #pragma comment(lib, "d2d1.lib")

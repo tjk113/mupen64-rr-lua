@@ -14,13 +14,8 @@
  *                                                                         *
  ***************************************************************************/
 
-//for max recent
-#include "../lua/Recent.h"
+#pragma once
 #include "Config.hpp"
-
-#ifndef MAIN_WIN_H
-#define MAIN_WIN_H
-
 #define MUPEN_VERSION     "Mupen 64 1.1.4"
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
@@ -67,10 +62,6 @@ void main_recent_roms_build(int32_t reset = 0);
 void main_recent_roms_add(const std::string& path);
 int32_t main_recent_roms_run(uint16_t menu_item_id);
 
-
 #define IGNORE_RSP (((!manualFPSLimit) && !VCR_isCapturing() && (!Config.frame_skip_frequency || (frame++ % Config.frame_skip_frequency)))) //if frame advancing and either skipfreq is 0 or modulo is 0
 
-
-#define RESET_TITLEBAR char tmpwndtitle[200]; sprintf(tmpwndtitle, MUPEN_VERSION " - %s", ROM_HEADER->nom); SetWindowText(mainHWND, tmpwndtitle);
-
-#endif
+void reset_titlebar();

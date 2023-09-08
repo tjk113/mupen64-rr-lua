@@ -1621,6 +1621,11 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 	return 0;
 }
 
+void reset_titlebar()
+{
+	SetWindowText(mainHWND, (std::string(MUPEN_VERSION) + " - " + std::string(reinterpret_cast<char*>(ROM_HEADER->nom))).c_str());
+}
+
 void exit_emu2()
 {
 	save_config();
