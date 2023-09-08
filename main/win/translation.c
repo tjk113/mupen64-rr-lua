@@ -277,15 +277,10 @@ void SetMenuAccelerator(HMENU hMenu, int elementID, const char* Acc)
 
 static void SetHotkeyMenuAccelerators(t_hotkey* hotkey, HMENU hmenu, int menuItemID)
 {
-    char buf[64] = {0};
-    hotkey_to_string(hotkey, buf);
-
     if (hmenu && menuItemID >= 0)
     {
-        if (strcmp(buf, "(nothing)"))
-            SetMenuAccelerator(hmenu, menuItemID, buf);
-        else
-            SetMenuAccelerator(hmenu, menuItemID, "");
+        const std::string hotkey_str = hotkey_to_string(hotkey);
+        SetMenuAccelerator(hmenu, menuItemID, hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
     }
 }
 

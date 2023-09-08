@@ -16,26 +16,25 @@ CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
 
 // TODO: use std::string
-void hotkey_to_string(t_hotkey* hotkeys, char* buf)
+std::string hotkey_to_string(t_hotkey* hotkey)
 {
-	int k = hotkeys->key;
-	buf[0] = 0;
+	char buf[260] = {0};
+	const int k = hotkey->key;
 
-	if (!hotkeys->ctrl && !hotkeys->shift && !hotkeys->alt && !hotkeys->key)
+	if (!hotkey->ctrl && !hotkey->shift && !hotkey->alt && !hotkey->key)
 	{
-		strcpy(buf, "(nothing)");
-		return;
+		return "(nothing)";
 	}
 
-	if (hotkeys->ctrl)
+	if (hotkey->ctrl)
 		strcat(buf, "Ctrl ");
-	if (hotkeys->shift)
+	if (hotkey->shift)
 		strcat(buf, "Shift ");
-	if (hotkeys->alt)
+	if (hotkey->alt)
 		strcat(buf, "Alt ");
 	if (k)
 	{
-		char buf2[32];
+		char buf2[64] = {0};
 		if ((k >= '0' && k <= '9') || (k >= 'A' && k <= 'Z'))
 			sprintf(buf2, "%c", (char)k);
 		else if ((k >= VK_F1 && k <= VK_F24))
@@ -129,14 +128,7 @@ void hotkey_to_string(t_hotkey* hotkeys, char* buf)
 			}
 		strcat(buf, buf2);
 	}
-}
-
-std::string hotkey_to_string2(t_hotkey* hotkey)
-{
-	char hotkey_string[MAX_PATH] = {0};
-	hotkey_to_string(hotkey, hotkey_string);
-	return std::string(hotkey->identifier) + " (" + std::string(hotkey_string) +
-		")";
+	return std::string(buf);
 }
 
 
@@ -904,24 +896,19 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
 
 void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkeys)
 {
-	char buf[MAX_PATH];
-	hotkey_to_string(hotkeys, buf);
-	SetDlgItemText(hwnd, idc, buf);
+	SetDlgItemText(hwnd, idc, hotkey_to_string(hotkeys).c_str());
 }
 
 void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkeys, HMENU hmenu,
                              int menuItemID)
 {
-	char buf[MAX_PATH];
-	hotkey_to_string(hotkeys, buf);
-	SetDlgItemText(hwnd, idc, buf);
+	std::string hotkey_str = hotkey_to_string(hotkeys);
+	SetDlgItemText(hwnd, idc, hotkey_str.c_str());
 
 	if (hmenu && menuItemID >= 0)
 	{
-		if (strcmp(buf, "(nothing)"))
-			SetMenuAccelerator(hmenu, menuItemID, buf);
-		else
-			SetMenuAccelerator(hmenu, menuItemID, "");
+		SetMenuAccelerator(hmenu, menuItemID,
+		                   hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
 	}
 }
 

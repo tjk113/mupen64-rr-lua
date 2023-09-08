@@ -357,8 +357,7 @@ extern std::vector<t_hotkey*> hotkeys;
 extern const CONFIG default_config;
 
 CONFIG get_default_config();
-void hotkey_to_string(t_hotkey* hotkey, char* string);
-std::string hotkey_to_string2(t_hotkey* hotkey);
+std::string hotkey_to_string(t_hotkey* hotkey);
 void save_config();
 void load_config();
 

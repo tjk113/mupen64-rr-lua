@@ -852,13 +852,17 @@ static void KillMessages()
     }
 }
 
+std::string hotkey_to_string_overview(t_hotkey* hotkey)
+{
+    return hotkey->identifier + " (" + hotkey_to_string(hotkey) + ")"; 
+}
 
 int32_t get_hotkey_array_index_from_selected_identifier(std::string selected_identifier)
 {
     int32_t indexInHotkeyArray = -1;
     for (size_t i = 0; i < hotkeys.size(); i++)
     {
-        if (selected_identifier == hotkey_to_string2(hotkeys[i]))
+        if (selected_identifier == hotkey_to_string_overview(hotkeys[i]))
         {
             indexInHotkeyArray = i;
             break;
@@ -879,11 +883,7 @@ void update_selected_hotkey_view(const HWND dialog_hwnd)
 
     if (index_in_hotkey_array >= 0 && index_in_hotkey_array < hotkeys.size())
     {
-        char hotkey_text[MAX_PATH];
-
-        hotkey_to_string(hotkeys[index_in_hotkey_array], hotkey_text);
-
-        SetWindowText(selected_hotkey_edit_hwnd, hotkey_text);
+        SetWindowText(selected_hotkey_edit_hwnd, hotkey_to_string(hotkeys[index_in_hotkey_array]).c_str());
     }
     else
     {
@@ -898,7 +898,7 @@ void build_hotkey_list(HWND list_hwnd, std::string search_query)
 
     for (size_t i = 0; i < hotkeys.size(); i++)
     {
-        std::string hotkey_string = hotkey_to_string2(hotkeys[i]);
+        std::string hotkey_string = hotkey_to_string_overview(hotkeys[i]);
 
         if (!search_query.empty())
         {
