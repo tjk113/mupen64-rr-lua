@@ -1634,7 +1634,9 @@ void main_recent_roms_add(const std::string& path)
 int32_t main_recent_roms_run(uint16_t menu_item_id)
 {
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
-	return StartRom(Config.recent_rom_paths[index].c_str());
+	if (index >= 0 && index < Config.recent_rom_paths.size())
+		return StartRom(Config.recent_rom_paths[index].c_str());
+	return 0;
 }
 
 void exit_emu2()

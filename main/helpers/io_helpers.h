@@ -1,4 +1,7 @@
-﻿#include <memory>
+﻿
+#pragma once
+
+#include <memory>
 #include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +9,6 @@
 #include <vector>
 #include <functional>
 
-#pragma once
 
 inline static std::vector<std::string> get_files_with_extension_in_directory(
 	std::string directory, std::string extension)

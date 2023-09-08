@@ -59,6 +59,10 @@ void lua_recent_scripts_add(const std::string& path)
 int32_t lua_recent_scripts_run(uint16_t menu_item_id)
 {
 	const int index = menu_item_id - ID_LUA_RECENT;
-	LuaOpenAndRun(Config.recent_lua_script_paths[index].c_str());
-	return 1;
+	if (index >= 0 && index < Config.recent_lua_script_paths.size())
+	{
+		LuaOpenAndRun(Config.recent_lua_script_paths[index].c_str());
+		return 1;
+	}
+	return 0;
 }

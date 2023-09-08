@@ -2554,8 +2554,12 @@ void vcr_recent_movies_add(const std::string& path)
 int32_t vcr_recent_movies_play(uint16_t menu_item_id)
 {
 	int index = menu_item_id - ID_RECENTMOVIES_FIRST;
-	VCR_setReadOnly(TRUE);
-	return VCR_startPlayback(Config.recent_movie_paths[index], "", "");
+	if (index >= 0 && index < Config.recent_movie_paths.size())
+	{
+		VCR_setReadOnly(TRUE);
+		return VCR_startPlayback(Config.recent_movie_paths[index], "", "");
+	}
+	return 0;
 }
 
 #endif // VCR_SUPPORT
