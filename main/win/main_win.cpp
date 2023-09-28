@@ -3046,7 +3046,7 @@ int WINAPI WinMain(
 		ShowWindow(hwnd, nCmdShow);
 
 		// This fixes offscreen recording issue
-		SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED);
+		SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 		//this can't be applied before ShowWindow(), otherwise you must use some fancy function
 
 		UpdateWindow(hwnd);

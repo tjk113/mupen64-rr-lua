@@ -2270,8 +2270,9 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename,
 	}
 
 	// disable minimize titlebar button
-	SetWindowLong(mainHWND, GWL_STYLE,
-	              GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
+	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
+	// we apply WS_EX_LAYERED to fix offscreen blitting
+	SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
 
 	VCR_invalidatedCaptureFrame();
 
@@ -2404,9 +2405,10 @@ VCR_stopCapture()
 		//atme
 		reset_titlebar();
 	}
-	SetWindowLong(mainHWND, GWL_STYLE,
-	              GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
-	//	VCR_stopPlayback();
+	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
+	// we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
+	SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+
 	VCRComp_finishFile(0);
 	AVIIncrement = 0;
 	printf("[VCR]: Capture finished.\n");
