@@ -5,7 +5,6 @@
 #include "commandline.h"
 #include "../../winproject/resource.h"
 #include "config.hpp"
-
 #include "../../lua/Recent.h"
 #include "../vcr.h"
 #include "translation.h"
@@ -542,7 +541,7 @@ CONFIG get_default_config()
 	config.rombrowser_sorted_column = 0;
 	config.rombrowser_sort_method = "ASC";
 	config.rombrowser_column_widths = {250, 150, 70, 70, 200, 100, 100};
-	config.rombrowser_rom_paths = std::vector<std::string>();
+	config.rombrowser_rom_paths = {};
 	config.is_rombrowser_recursion_enabled = 0;
 	config.is_reset_recording_disabled = 1;
 	config.is_internal_capture_forced = 0;
@@ -555,6 +554,8 @@ CONFIG get_default_config()
 	config.is_recent_scripts_frozen = 0;
 	config.is_round_towards_zero_enabled = 0;
 	config.is_float_exception_propagation_enabled = 0;
+	config.is_audio_delay_enabled = 1;
+	config.is_compiled_jump_enabled = 1;
 	config.is_lua_double_buffered = 1;
 	config.selected_video_plugin_name = "";
 	config.selected_audio_plugin_name = "";
@@ -770,6 +771,8 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_INT_VALUE(is_recent_scripts_frozen)
 	HANDLE_INT_VALUE(is_round_towards_zero_enabled)
 	HANDLE_INT_VALUE(is_float_exception_propagation_enabled)
+	HANDLE_INT_VALUE(is_audio_delay_enabled)
+	HANDLE_INT_VALUE(is_compiled_jump_enabled)
 	HANDLE_INT_VALUE(is_lua_double_buffered)
 	HANDLE_VALUE(selected_video_plugin_name)
 	HANDLE_VALUE(selected_audio_plugin_name)

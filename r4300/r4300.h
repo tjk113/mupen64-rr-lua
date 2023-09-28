@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../main/rom.h"
+#include "../main/win/Config.hpp"
 #include "recomp.h"
 #include "../memory/tlb.h"
 
@@ -62,10 +63,6 @@ extern short x87_status_word;
 extern unsigned long last_addr, interp_addr;
 extern char invalid_code[0x100000];
 extern unsigned long jump_to_address;
-extern int no_audio_delay;
-extern int no_compiled_jump;
-extern int round_to_zero;
-extern int emulate_float_crashes;
 
 void go();
 void pure_interpreter();

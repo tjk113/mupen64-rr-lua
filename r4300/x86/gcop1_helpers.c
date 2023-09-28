@@ -119,7 +119,7 @@ void gencheck_float_output_valid()
  */
 void gencheck_float_conversion_valid()
 {
-    if (!emulate_float_crashes)
+    if (!Config.is_float_exception_propagation_enabled)
         return;
 
     fstsw_ax();

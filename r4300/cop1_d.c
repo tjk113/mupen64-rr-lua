@@ -206,12 +206,12 @@ void CVT_S_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[cffs]);
-    if (round_to_zero)
+    if (Config.is_round_towards_zero_enabled)
     {
         set_trunc();
     }
     *reg_cop1_simple[cffd] = *reg_cop1_double[cffs];
-    if (round_to_zero)
+    if (Config.is_round_towards_zero_enabled)
     {
         set_rounding();
     }

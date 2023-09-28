@@ -15,8 +15,11 @@
  ***************************************************************************/
 
 #pragma once
+
 #include "Config.hpp"
-#define MUPEN_VERSION     "Mupen 64 1.1.4"
+#include <Windows.h>
+
+#define MUPEN_VERSION "Mupen 64 1.1.4"
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);

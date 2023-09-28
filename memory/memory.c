@@ -2669,7 +2669,7 @@ void write_ai()
             }
             break;
         }
-        if (no_audio_delay) delay = 0;
+        if (!Config.is_audio_delay_enabled) delay = 0;
         if (ai_register.ai_status & 0x40000000) // busy
         {
             ai_register.next_delay = delay;
@@ -2877,7 +2877,7 @@ void write_aih()
                 vi_register.vi_delay * 60) / 48681812;
             break;
         }
-        if (no_audio_delay) delay = 0;
+        if (!Config.is_audio_delay_enabled) delay = 0;
         if (ai_register.ai_status & 0x40000000) // busy
         {
             ai_register.next_delay = delay;
@@ -2977,7 +2977,7 @@ void write_aid()
                 vi_register.vi_delay * 60) / 48681812;
             break;
         }
-        if (no_audio_delay) delay = 0;
+        if (!Config.is_audio_delay_enabled) delay = 0;
         if (ai_register.ai_status & 0x40000000) // busy
         {
             ai_register.next_delay = delay;

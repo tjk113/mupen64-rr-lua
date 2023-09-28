@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
-#include <Windows.h>
 #define IDENTIFIER_LENGTH 260
 
 typedef struct t_hotkey
@@ -290,6 +289,16 @@ typedef struct _CONFIG
 	/// Whether floating point exceptions will propagate and crash the emulator
 	/// </summary>
 	int32_t is_float_exception_propagation_enabled;
+
+	/// <summary>
+	/// Whether audio interrupts will be delayed
+	/// </summary>
+	int32_t is_audio_delay_enabled;
+
+	/// <summary>
+	/// Whether jmp instructions will cause the following code to be JIT'd by dynarec
+	/// </summary>
+	int32_t is_compiled_jump_enabled;
 
 	/// <summary>
 	/// Whether lua drawing is double-buffered

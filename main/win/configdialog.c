@@ -64,9 +64,6 @@ BOOL stopScan = FALSE;
 
 HWND hwndTrackMovieBackup;
 
-extern int no_audio_delay;
-extern int no_compiled_jump;
-
 void SwitchMovieBackupModifier(HWND hwnd)
 {
     if (ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS))
@@ -799,8 +796,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
         WriteCheckBoxValue(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
         WriteCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
         WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, Config.is_lua_double_buffered);
-        WriteCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY, no_audio_delay);
-        WriteCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP, no_compiled_jump);
+        WriteCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY, !Config.is_audio_delay_enabled);
+        WriteCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP, !Config.is_compiled_jump_enabled);
 
         WriteCheckBoxValue(hwnd, IDC_NORESET, !Config.is_reset_recording_disabled);
 
@@ -820,8 +817,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
             Config.is_float_exception_propagation_enabled = ReadCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES);
 
             Config.is_lua_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
-            no_audio_delay = ReadCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY);
-            no_compiled_jump = ReadCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP);
+            Config.is_audio_delay_enabled = !ReadCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY);
+            Config.is_compiled_jump_enabled = !ReadCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP);
 
             Config.is_reset_recording_disabled = ReadCheckBoxValue(hwnd, IDC_NORESET) == 0;
             Config.is_internal_capture_forced = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
