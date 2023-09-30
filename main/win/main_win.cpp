@@ -1817,7 +1817,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
 	int ret;
-	int i;
 	static PAINTSTRUCT ps;
 	BOOL minimize;
 	HMENU hMenu = GetMenu(hwnd);
@@ -1896,22 +1895,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 			}
-			for (i = 1; i < hotkeys.size(); i++)
+			for (const t_hotkey* hotkey : hotkeys)
 			{
-				if ((int)wParam == hotkeys[i]->key)
+				if ((int)wParam == hotkey->key)
 				{
-					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == hotkeys[i]
-						->shift
+					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == hotkey->
+						shift
 						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
-						hotkeys[i]->ctrl
-						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkeys[
-							i]->alt)
+						hotkey->ctrl
+						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkey->
+						alt)
 					{
-						SendMessage(hwnd, WM_COMMAND, hotkeys[i]->command, 0);
+						// printf("sent %s - %d\n", hotkey->identifier.c_str(), hotkey->command);
+						SendMessage(mainHWND, WM_COMMAND, hotkey->command, 0);
 						hit = TRUE;
 					}
 				}
 			}
+
 			if (emu_launched)
 				keyDown(wParam, lParam);
 			if (!hit)
@@ -2090,19 +2091,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				ini_closeFile();
 				break;
 			case ID_TRACELOG:
-#ifdef LUA_TRACELOG
-#ifdef LUA_TRACEINTERP
 				// keep if check just in case user manages to screw with mupen config or something
 				if (!dynacore)
 				{
 					::LuaTraceLogState();
 				}
-#else
-					if (!dynacore && interpcore == 1) {
-						::LuaTraceLogState();
-					}
-#endif
-#endif
 				break;
 			case IDGFXCONFIG:
 				{
@@ -3086,36 +3079,24 @@ int WINAPI WinMain(
 				DispatchMessage(&Msg);
 			}
 
-			// modifier-only checks, cannot be obtained through windows messaging...
-			for (int i = 0; i < hotkeys.size(); i++)
+			for (t_hotkey* hotkey : hotkeys)
 			{
-				if (!hotkeys[i]->key && (hotkeys[i]->shift || hotkeys[i]->ctrl
-					|| hotkeys[i]->alt))
+				// modifier-only checks, cannot be obtained through windows messaging...
+				if (!hotkey->key && (hotkey->shift || hotkey->ctrl || hotkey->alt))
 				{
-					if (i != 0)
-					{
-						if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
-							hotkeys[i]->shift
-							&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
-							hotkeys[i]->ctrl
-							&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
-							hotkeys[i]->alt)
-						{
-							SendMessage(hwnd, WM_COMMAND, hotkeys[i]->command,
-							            0);
-						}
-					} else // fast-forward
+					// special treatment for fast-forward
+					if (hotkey->identifier == Config.fast_forward_hotkey.identifier)
 					{
 						extern int frame_advancing;
 						if (!frame_advancing)
 						{
 							// dont allow fastforward+frameadvance
 							if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
-								hotkeys[i]->shift
+								hotkey->shift
 								&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0)
-								== hotkeys[i]->ctrl
+								== hotkey->ctrl
 								&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
-								hotkeys[i]->alt)
+								hotkey->alt)
 							{
 								manualFPSLimit = 0;
 							} else
@@ -3123,9 +3104,23 @@ int WINAPI WinMain(
 								manualFPSLimit = 1;
 							}
 						}
+						continue;
 					}
-				}
+					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
+							hotkey->shift
+							&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
+							hotkey->ctrl
+							&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
+							hotkey->alt)
+					{
+						SendMessage(hwnd, WM_COMMAND, hotkey->command,
+									0);
+					}
+
 			}
+
+			}
+
 		}
 	}
 	return (int)Msg.wParam;

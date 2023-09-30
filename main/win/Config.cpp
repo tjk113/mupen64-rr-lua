@@ -708,7 +708,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 
 	if (is_reading)
 	{
-		// our config is empty, so hotkeys are missing identifiers
+		// our config is empty, so hotkeys are missing identifiers and commands
 		// we need to copy the identifiers from a default config
 		// FIXME: this assumes that the loaded config's hotkeys map 1:1 to the current hotkeys, which may not be the case
 
@@ -719,6 +719,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 		{
 			hotkey_pointers[i]->identifier = std::string(
 				base_config_hotkey_pointers[i]->identifier);
+			hotkey_pointers[i]->command = base_config_hotkey_pointers[i]->command;
 		}
 	}
 
@@ -726,11 +727,11 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	auto hotkey_pointers = collect_hotkeys(&Config);
 
 	hotkeys.clear();
-	for (size_t i = 0; i < hotkey_pointers.size(); i++)
+	for (auto& hotkey_pointer : hotkey_pointers)
 	{
-		handle_config_value(ini, hotkey_pointers[i]->identifier, is_reading,
-		                    hotkey_pointers[i]);
-		hotkeys.push_back(hotkey_pointers[i]);
+		handle_config_value(ini, hotkey_pointer->identifier, is_reading,
+		                    hotkey_pointer);
+		hotkeys.push_back(hotkey_pointer);
 	}
 
 
@@ -897,15 +898,15 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
 	}
 }
 
-void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkeys)
+void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkey)
 {
-	SetDlgItemText(hwnd, idc, hotkey_to_string(hotkeys).c_str());
+	SetDlgItemText(hwnd, idc, hotkey_to_string(hotkey).c_str());
 }
 
-void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkeys, HMENU hmenu,
+void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey, HMENU hmenu,
                              int menuItemID)
 {
-	std::string hotkey_str = hotkey_to_string(hotkeys);
+	std::string hotkey_str = hotkey_to_string(hotkey);
 	SetDlgItemText(hwnd, idc, hotkey_str.c_str());
 
 	if (hmenu && menuItemID >= 0)
