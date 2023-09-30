@@ -33,6 +33,8 @@
 #include "../win/main_win.h"
 
 #include "../vcr_compress.h"
+
+#include "Config.hpp"
 #include "../plugin.hpp"
 #include "../../winproject/resource.h"
 #include "vfw.h"
@@ -204,8 +206,7 @@ BOOL VCRComp_addAudioData(unsigned char* data, int len)
 
 bool VRComp_loadOptions()
 {
-    extern char AppPath[MAX_PATH];
-    SetCurrentDirectory(AppPath);
+    SetCurrentDirectory(app_path.c_str());
     FILE* f = fopen("avi.cfg", "rb");
     if (f == NULL) return false; //file doesn't exist
 
@@ -230,8 +231,7 @@ error:
 
 void VRComp_saveOptions()
 {
-    extern char AppPath[MAX_PATH];
-    SetCurrentDirectory(AppPath);
+    SetCurrentDirectory(app_path.c_str());
     FILE* f = fopen("avi.cfg", "w");
     fwrite(pvideo_options[0], sizeof(AVICOMPRESSOPTIONS), 1, f);
     fwrite(pvideo_options[0]->lpParms, pvideo_options[0]->cbParms, 1, f);

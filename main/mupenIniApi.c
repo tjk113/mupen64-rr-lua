@@ -36,6 +36,9 @@
 #include <zlib.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string>
+
+#include "win/main_win.h"
 
 typedef struct _iniElem
 {
@@ -66,16 +69,9 @@ static int split_property(char* s)
     return i;
 }
 
-static char* get_ini_path()
+std::string get_ini_path()
 {
-    static char* path = NULL;
-    if (path == NULL)
-    {
-        path = (char*)malloc(strlen(get_currentpath()) + 1 + strlen("mupen64.ini"));
-        strcpy(path, get_currentpath());
-        strcat(path, "mupen64.ini");
-    }
-    return path;
+    return app_path + "mupen64.ini";
 }
 
 void ini_openFile()
@@ -89,7 +85,7 @@ void ini_openFile()
 
     memset(&emptyEntry, 0, sizeof(emptyEntry));
 
-    f = gzopen(get_ini_path(), "rb");
+    f = gzopen(get_ini_path().c_str(), "rb");
     if (f == NULL) return;
 
     do
@@ -237,7 +233,7 @@ void ini_updateFile()
 
     if (ini.comment == NULL) return;
 
-    f = fopen(get_ini_path(), "wb");
+    f = fopen(get_ini_path().c_str(), "wb");
     fprintf(f, "%s", ini.comment);
 
     aux = ini.list;

@@ -142,7 +142,7 @@ TCHAR CoreNames[3][30] = {
 	TEXT("Interpreter"), TEXT("Dynamic Recompiler"), TEXT("Pure Interpreter")
 };
 
-char AppPath[MAX_PATH];
+std::string app_path = "";
 
 void ClearButtons()
 {
@@ -153,8 +153,10 @@ void ClearButtons()
 	}
 }
 
-void getAppFullPath(char* ret)
+std::string get_app_full_path()
 {
+	char ret[MAX_PATH] = {0};
+
 	char drive[_MAX_DRIVE], dirn[_MAX_DIR];
 	char fname[_MAX_FNAME], ext[_MAX_EXT];
 	char path_buffer[_MAX_DIR];
@@ -163,6 +165,8 @@ void getAppFullPath(char* ret)
 	_splitpath(path_buffer, drive, dirn, fname, ext);
 	strcpy(ret, drive);
 	strcat(ret, dirn);
+
+	return std::string(ret);
 }
 
 
@@ -2638,7 +2642,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case GENERATE_BITMAP: // take/capture a screenshot
 				if (Config.is_default_screenshots_directory_used)
 				{
-					sprintf(path_buffer, "%sScreenShots\\", AppPath);
+					sprintf(path_buffer, "%sScreenShots\\", app_path.c_str());
 					CaptureScreen(path_buffer);
 				} else
 				{
@@ -2911,17 +2915,15 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	//timeBeginPeriod(1);
 #ifdef _DEBUG
 	AllocConsole();
 	FILE* f = 0;
 	freopen_s(&f, "CONIN$", "r", stdin);
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
-	printf("mupen64 debug console\n");
 #endif
-	/* Put absolute App path to AppPath variable */
-	getAppFullPath(AppPath);
+
+	app_path = get_app_full_path();
 	app_hInstance = hInstance;
 	InitCommonControls();
 	SaveCmdLineParameter(lpCmdLine);
@@ -2930,12 +2932,11 @@ int WINAPI WinMain(
 
 	// ensure folders exist!
 	{
-		String path = AppPath;
-		CreateDirectory((path + "save").c_str(), NULL);
-		CreateDirectory((path + "Mempaks").c_str(), NULL);
-		CreateDirectory((path + "Lang").c_str(), NULL);
-		CreateDirectory((path + "ScreenShots").c_str(), NULL);
-		CreateDirectory((path + "plugin").c_str(), NULL);
+		CreateDirectory((app_path + "save").c_str(), NULL);
+		CreateDirectory((app_path + "Mempaks").c_str(), NULL);
+		CreateDirectory((app_path + "Lang").c_str(), NULL);
+		CreateDirectory((app_path + "ScreenShots").c_str(), NULL);
+		CreateDirectory((app_path + "plugin").c_str(), NULL);
 	}
 	emu_launched = 0;
 	emu_paused = 1;

@@ -25,6 +25,8 @@
 #endif
 #include <commctrl.h>
 #include "translation.h"
+
+#include "Config.hpp"
 #include "../../winproject/resource.h"
 #include "main_win.h"
 
@@ -73,7 +75,7 @@ void search_languages()
     lang_list = (languages*)malloc(sizeof(languages));
     lang_list->next = NULL;
 
-    sprintf(cwd, "%slang", AppPath);
+    sprintf(cwd, "%slang", app_path.c_str());
 
     sprintf(String, "%s\\*.lng", cwd);
     hFind = FindFirstFile(String, &FindFileData);
@@ -87,7 +89,7 @@ void search_languages()
             strcmp(FindFileData.cFileName, "..") != 0 &&
             !(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
         {
-            sprintf(name, "%slang\\%s", AppPath, FindFileData.cFileName);
+            sprintf(name, "%slang\\%s", app_path.c_str(), FindFileData.cFileName);
             memset(String, 0, sizeof(String));
             GetPrivateProfileSectionNames(String, sizeof(String), name);
             if (String)

@@ -3,6 +3,7 @@
 #include "win/main_win.h"
 #include "ffmpeg_capture.hpp"
 #include "plugin.hpp"
+#include "win/Config.hpp"
 
 SWindowInfo gSInfo{};
 BITMAPINFO gBMPInfo{}; //Needed for GetDIBits

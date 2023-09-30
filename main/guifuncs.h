@@ -27,7 +27,6 @@
  *
 **/
 
-char* get_currentpath();
 const char* get_savespath();
 
 void new_frame();

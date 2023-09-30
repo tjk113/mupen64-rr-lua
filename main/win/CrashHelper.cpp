@@ -3,6 +3,8 @@
 #include <vcr.h>
 #include <Psapi.h>
 
+#include "Config.hpp"
+
 
 int CrashHelper::FindModuleName(char* error, void* addr, int len)
 {

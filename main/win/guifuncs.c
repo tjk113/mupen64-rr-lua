@@ -27,17 +27,12 @@
 #include "../../winproject/resource.h"
 #include <vcr.h>
 
-char* get_currentpath()
-{
-    return AppPath;
-}
-
 const char* get_savespath()
 {
     static char defDir[MAX_PATH];
     if (Config.is_default_saves_directory_used)
     {
-        sprintf(defDir, "%sSave\\", AppPath);
+        sprintf(defDir, "%sSave\\", app_path.c_str());
         return defDir;
     }
     else return Config.saves_directory.c_str();

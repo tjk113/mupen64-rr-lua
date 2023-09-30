@@ -9,6 +9,8 @@
 #include <iterator>
 #include <vector>
 
+#include "Config.hpp"
+
 HWND rombrowser_hwnd = nullptr;
 std::vector<t_rombrowser_entry*> rombrowser_entries;
 

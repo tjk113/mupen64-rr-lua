@@ -5,6 +5,7 @@
 #include "commandline.h"
 #include "../../winproject/resource.h"
 #include "config.hpp"
+#include "main_win.h"
 #include "../../lua/Recent.h"
 #include "../vcr.h"
 #include "translation.h"
@@ -791,11 +792,9 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	return ini;
 }
 
-extern char AppPath[];
-
 std::string get_config_path()
 {
-	return std::string(AppPath) + "config.ini";
+	return app_path + "config.ini";
 }
 
 void save_config()

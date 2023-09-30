@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
-#define IDENTIFIER_LENGTH 260
 
 typedef struct t_hotkey
 {

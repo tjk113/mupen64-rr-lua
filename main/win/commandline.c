@@ -21,6 +21,8 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "commandline.h"
+
+#include "Config.hpp"
 #include "main_win.h"
 #include "../plugin.hpp"
 

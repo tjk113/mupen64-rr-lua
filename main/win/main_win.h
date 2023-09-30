@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "Config.hpp"
 #include <Windows.h>
+#include <string>
 
 #define MUPEN_VERSION "Mupen 64 1.1.4"
 
@@ -42,7 +42,7 @@ extern char statusmsg[800];
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
 
-extern char AppPath[MAX_PATH];
+extern std::string app_path;
 
 extern void EnableEmulationMenuItems(BOOL flag);
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
