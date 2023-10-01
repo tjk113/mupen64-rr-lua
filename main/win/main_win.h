@@ -24,10 +24,19 @@
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
 extern void ShowMessage(const char* lpszMessage);
-extern void EnableToolbar();
 extern void CreateStatusBarWindow(HWND hwnd);
 extern void SetStatusMode(int mode);
 extern char* getExtension(char* str);
+
+/**
+ * \brief Updates the toolbar's visibility to the respective config value, or disables it if VCR is capturing
+ */
+extern void update_toolbar_visibility();
+
+/**
+ * \brief Updates the statusbar's visibility to the respective config value
+ */
+extern void update_statusbar_visibility();
 
 /********* Global Variables **********/
 extern char TempMessage[200];
@@ -50,7 +59,6 @@ BOOL StartRom(const char* fullRomPath);
 extern void resetEmu();
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
-extern void EnableStatusbar();
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
 extern void LoadConfigExternals();

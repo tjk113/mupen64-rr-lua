@@ -174,7 +174,7 @@ static void gui_ChangeWindow()
 {
 	if (FullScreenMode)
 	{
-		EnableStatusbar();
+		update_statusbar_visibility();
 		EnableWindow(hTool, FALSE);
 		ShowWindow(hTool, SW_HIDE);
 		ShowWindow(hStatus, SW_HIDE);
@@ -564,8 +564,7 @@ void CreateToolBarWindow(HWND hwnd)
 	};
 	auto tbButtonsCount = sizeof(tbButtons) / sizeof(TBBUTTON);
 	hTool = CreateToolbarEx(hwnd,
-	                        WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS /* | */
-	                        /*CS_ADJUSTABLE    no this causes a bug...*/,
+	                        WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS,
 	                        IDC_TOOLBAR, 10, app_hInstance, IDB_TOOLBAR,
 	                        tbButtons, (int)tbButtonsCount, 16, 16,
 	                        (int)tbButtonsCount * 16, 16, sizeof(TBBUTTON));
@@ -573,7 +572,6 @@ void CreateToolBarWindow(HWND hwnd)
 	if (hTool == NULL)
 		MessageBox(hwnd, "Could not create tool bar.", "Error",
 		           MB_OK | MB_ICONERROR);
-
 
 	if (emu_launched)
 	{
@@ -1716,38 +1714,33 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 	}
 }
 
-void EnableStatusbar()
+void update_statusbar_visibility()
 {
-	if (Config.is_statusbar_enabled)
-	{
-		if (!IsWindow(hStatus))
-		{
-			CreateStatusBarWindow(mainHWND);
-		}
-	} else
+	if (hStatus)
 	{
 		DestroyWindow(hStatus);
-		hStatus = NULL;
+		hStatus = nullptr;
+	}
+
+	if (Config.is_statusbar_enabled)
+	{
+		CreateStatusBarWindow(mainHWND);
 	}
 
 	rombrowser_update_size();
 }
 
-void EnableToolbar()
+void update_toolbar_visibility()
 {
+	if (hTool)
+	{
+		DestroyWindow(hTool);
+		hTool = NULL;
+	}
+
 	if (Config.is_toolbar_enabled && !VCR_isCapturing())
 	{
-		if (!hTool || !IsWindow(hTool))
-		{
-			CreateToolBarWindow(mainHWND);
-		}
-	} else
-	{
-		if (hTool && IsWindow(hTool))
-		{
-			DestroyWindow(hTool);
-			hTool = NULL;
-		}
+		CreateToolBarWindow(mainHWND);
 	}
 
 	rombrowser_update_size();
@@ -1982,8 +1975,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		SetupLanguages(hwnd);
 		TranslateMenu(GetMenu(hwnd), hwnd);
 		SetMenuAcceleratorsFromUser(hwnd);
-		EnableToolbar();
-		EnableStatusbar();
 		return TRUE;
 	case WM_CLOSE:
 		{
@@ -2661,20 +2652,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				main_recent_roms_run(ID_RECENTROMS_FIRST);
 				break;
 			case IDC_GUI_TOOLBAR:
-				Config.is_toolbar_enabled = 1 - Config.is_toolbar_enabled;
-				EnableToolbar();
-				if (Config.is_toolbar_enabled) CheckMenuItem(
-					hMenu, IDC_GUI_TOOLBAR, MF_BYCOMMAND | MF_CHECKED);
-				else CheckMenuItem(hMenu, IDC_GUI_TOOLBAR,
-				                   MF_BYCOMMAND | MF_UNCHECKED);
+				Config.is_toolbar_enabled ^= true;
+				update_toolbar_visibility();
+				CheckMenuItem(
+					hMenu, IDC_GUI_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
 			case IDC_GUI_STATUSBAR:
 				Config.is_statusbar_enabled ^= true;
-				EnableStatusbar();
-				if (Config.is_statusbar_enabled) CheckMenuItem(
-					hMenu, IDC_GUI_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
-				else CheckMenuItem(hMenu, IDC_GUI_STATUSBAR,
-				                   MF_BYCOMMAND | MF_UNCHECKED);
+				update_statusbar_visibility();
+				CheckMenuItem(
+					hMenu, IDC_GUI_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
 			case IDC_INCREASE_MODIFIER:
 				if (Config.fps_modifier < 50)
@@ -3042,6 +3029,9 @@ int WINAPI WinMain(
 		// This fixes offscreen recording issue
 		SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 		//this can't be applied before ShowWindow(), otherwise you must use some fancy function
+
+		update_toolbar_visibility();
+		update_statusbar_visibility();
 
 		UpdateWindow(hwnd);
 

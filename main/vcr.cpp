@@ -2251,16 +2251,9 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename,
 	Config.avi_capture_path = std::string(aviFilename);
 
 	UpdateTitleBarCapture(AVIFileName);
-	/*	if (VCR_startPlayback( recFilename ) < 0)
-		{
-			printError("Cannot start capture; could not play movie file!\n" );
-			return -1;
-		}*/
 
-	// disable the toolbar (m_capture==1 causes this call to do that)
-	// because a bug means part of it could get captured into the AVI
-	extern void EnableToolbar();
-	EnableToolbar();
+	// BUG: toolbar could get captured in AVI, so we disable it
+	update_toolbar_visibility();
 
 	if (!wasPaused || (m_task == Playback || m_task == StartPlayback || m_task
 		== StartPlaybackFromSnapshot))
@@ -2388,8 +2381,9 @@ VCR_stopCapture()
 	VCR_invalidatedCaptureFrame();
 
 	// re-enable the toolbar (m_capture==0 causes this call to do that)
-	extern void EnableToolbar();
-	EnableToolbar();
+	// check previous update_toolbar_visibility call
+	update_toolbar_visibility();
+
 	SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	if (VCR_isPlaying())
 	{

@@ -165,8 +165,8 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
             if (l_nmhdr->code == PSN_APPLY)
             {
                 Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
-                EnableToolbar();
-                EnableStatusbar();
+                update_toolbar_visibility();
+                update_statusbar_visibility();
                 rombrowser_build();
                 LoadConfigExternals();
             }
@@ -823,8 +823,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
             Config.is_reset_recording_disabled = ReadCheckBoxValue(hwnd, IDC_NORESET) == 0;
             Config.is_internal_capture_forced = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
 
-            EnableToolbar();
-            EnableStatusbar();
+            update_toolbar_visibility();
+            update_statusbar_visibility();
             rombrowser_build();
             LoadConfigExternals();
         }
