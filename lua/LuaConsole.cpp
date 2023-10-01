@@ -298,7 +298,6 @@ namespace LuaEngine
 		IDWriteFactory* dw_factory = NULL;
 		std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 		std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
-		std::unordered_map<uint32_t, IDWriteTextLayout*> dw_text_layout_cache;
 
 		Renderer get_renderer() { return renderer; };
 
@@ -393,12 +392,6 @@ namespace LuaEngine
 					val->Release();
 				}
 				d2d_bitmap_cache.clear();
-
-				for (auto const& [_, val] : dw_text_layout_cache)
-				{
-					val->Release();
-				}
-				dw_text_layout_cache.clear();
 			}
 			ReleaseDC(mainHWND, dc);
 			dc = NULL;
@@ -3146,7 +3139,7 @@ namespace LuaEngine
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
+		auto color = D2D_GET_COLOR(L, 5);
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
@@ -3154,65 +3147,52 @@ namespace LuaEngine
 
 		auto text = std::string(luaL_checkstring(L, 9));
 		auto font_name = std::string(luaL_checkstring(L, 10));
-		auto font_size = (float)luaL_checknumber(L, 11);
-		auto font_weight = (int)luaL_checknumber(L, 12);
-		auto font_style = (int)luaL_checkinteger(L, 13);
-		auto horizontal_alignment = (int)luaL_checkinteger(L, 14);
-		auto vertical_alignment = (int)luaL_checkinteger(L, 15);
+		auto font_size = static_cast<float>(luaL_checknumber(L, 11));
+		auto font_weight = static_cast<int>(luaL_checknumber(L, 12));
+		auto font_style = static_cast<int>(luaL_checkinteger(L, 13));
+		auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14));
+		auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15));
 
-		uint32_t hash = std::hash<std::string>{}(text) ^
-			std::hash<std::string>{}(font_name) ^
-			std::hash<float>{}(font_size) ^
-			std::hash<int>{}(font_weight) ^
-			std::hash<int>{}(font_style) ^
-			std::hash<int>{}(horizontal_alignment) ^
-			std::hash<int>{}(vertical_alignment);
 
-		//if (!dw_text_layout_cache.contains(hash)) {
-		// FIXME: hash collisions!!!
-		if (true)
-		{
-			printf("Creating text layout cache %ul\n", hash);
+		IDWriteTextFormat* text_format;
 
-			IDWriteTextFormat* text_format;
+		lua->dw_factory->CreateTextFormat(
+			widen(font_name).c_str(),
+			nullptr,
+			static_cast<DWRITE_FONT_WEIGHT>(font_weight),
+			static_cast<DWRITE_FONT_STYLE>(font_style),
+			DWRITE_FONT_STRETCH_NORMAL,
+			font_size,
+			L"",
+			&text_format
+		);
 
-			lua->dw_factory->CreateTextFormat(
-				widen(font_name).c_str(),
-				NULL,
-				(DWRITE_FONT_WEIGHT)font_weight,
-				(DWRITE_FONT_STYLE)font_style,
-				DWRITE_FONT_STRETCH_NORMAL,
-				font_size,
-				L"",
-				&text_format
-			);
+		text_format->SetTextAlignment(
+			static_cast<DWRITE_TEXT_ALIGNMENT>(horizontal_alignment));
+		text_format->SetParagraphAlignment(
+			static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(vertical_alignment));
 
-			text_format->SetTextAlignment(
-				(DWRITE_TEXT_ALIGNMENT)horizontal_alignment);
-			text_format->SetParagraphAlignment(
-				(DWRITE_PARAGRAPH_ALIGNMENT)vertical_alignment);
+		IDWriteTextLayout* text_layout;
 
-			IDWriteTextLayout* text_layout;
+		auto wtext = widen(text);
+		lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
+		                                  text_format,
+		                                  rectangle.right - rectangle.left,
+		                                  rectangle.bottom - rectangle.top,
+		                                  &text_layout);
 
-			auto wtext = widen(text);
-			lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
-			                                  text_format,
-			                                  rectangle.right - rectangle.left,
-			                                  rectangle.bottom - rectangle.top,
-			                                  &text_layout);
+		text_format->Release();
 
-			text_format->Release();
-
-			lua->dw_text_layout_cache[hash] = text_layout;
-		}
 
 		lua->d2d_render_target->DrawTextLayout({
 			                                       .x = rectangle.left,
 			                                       .y = rectangle.top,
-		                                       }, lua->dw_text_layout_cache[
-			                                       hash], brush,
-		                                       (D2D1_DRAW_TEXT_OPTIONS)options);
+		                                       }, text_layout, brush,
+		                                       static_cast<
+			                                       D2D1_DRAW_TEXT_OPTIONS>(
+			                                       options));
 
+		text_layout->Release();
 		return 0;
 	}
 
