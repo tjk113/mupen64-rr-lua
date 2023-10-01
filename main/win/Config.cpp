@@ -36,7 +36,7 @@ std::string hotkey_to_string(t_hotkey* hotkey)
 	{
 		char buf2[64] = {0};
 		if ((k >= '0' && k <= '9') || (k >= 'A' && k <= 'Z'))
-			sprintf(buf2, "%c", (char)k);
+			sprintf(buf2, "%c", static_cast<char>(k));
 		else if ((k >= VK_F1 && k <= VK_F24))
 			sprintf(buf2, "F%d", k - (VK_F1 - 1));
 		else if ((k >= VK_NUMPAD0 && k <= VK_NUMPAD9))
@@ -619,28 +619,26 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 {
 	if (is_reading)
 	{
-		// find all elements under key
-		// TODO: use size()
-		int vector_length = 0;
-		for (size_t i = 0; i < INT32_MAX; i++)
+		// if the virtual collection doesn't exist just leave the vector empty, as attempting to read will crash
+		if (!ini.has(field_name))
 		{
-			if (!ini["Config"].has(field_name + "_" + std::to_string(i)))
-			{
-				vector_length = i;
-				break;
-			}
+			return;
 		}
-		value.clear();
-		for (size_t i = 0; i < vector_length; i++)
+
+		for (size_t i = 0; i < ini[field_name].size(); i++)
 		{
-			value.push_back(
-				ini["Config"][field_name + "_" + std::to_string(i)]);
+			value.push_back(ini[field_name][std::to_string(i)]);
 		}
 	} else
 	{
+		// create virtual collection:
+		// dump under key field_name with i
+		// [field_name]
+		// 0 = a.m64
+		// 1 = b.m64
 		for (size_t i = 0; i < value.size(); i++)
 		{
-			ini["Config"][field_name + "_" + std::to_string(i)] = value[i];
+			ini[field_name][std::to_string(i)] = value[i];
 		}
 	}
 }
@@ -685,7 +683,7 @@ const CONFIG default_config = get_default_config();
 std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 {
 	std::vector<t_hotkey*> hotkeys;
-	t_hotkey* arr = (t_hotkey*)config;
+	auto arr = (t_hotkey*)config;
 	// NOTE:
 	// last_offset should contain the offset of the last hotkey
 	// this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
@@ -720,7 +718,8 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 		{
 			hotkey_pointers[i]->identifier = std::string(
 				base_config_hotkey_pointers[i]->identifier);
-			hotkey_pointers[i]->command = base_config_hotkey_pointers[i]->command;
+			hotkey_pointers[i]->command = base_config_hotkey_pointers[i]->
+				command;
 		}
 	}
 
@@ -734,7 +733,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 		                    hotkey_pointer);
 		hotkeys.push_back(hotkey_pointer);
 	}
-
 
 	HANDLE_VALUE(language)
 	HANDLE_INT_VALUE(show_fps)
@@ -850,15 +848,18 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
 				{
 					lc = 1;
 					continue;
-				} else if (j == VK_SHIFT)
+				}
+				if (j == VK_SHIFT)
 				{
 					ls = 1;
 					continue;
-				} else if (j == VK_MENU)
+				}
+				if (j == VK_MENU)
 				{
 					la = 1;
 					continue;
-				} else if (j != VK_ESCAPE)
+				}
+				if (j != VK_ESCAPE)
 				{
 					hotkey->key = j;
 					hotkey->shift = GetAsyncKeyState(VK_SHIFT) ? 1 : 0;
@@ -868,30 +869,30 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
 				}
 				memset(hotkey, 0, sizeof(t_hotkey)); // clear key on escape
 				return 0;
-			} else
+			}
+			if (j == VK_CONTROL && lc)
 			{
-				if (j == VK_CONTROL && lc)
-				{
-					hotkey->key = 0;
-					hotkey->shift = 0;
-					hotkey->ctrl = 1;
-					hotkey->alt = 0;
-					return 1;
-				} else if (j == VK_SHIFT && ls)
-				{
-					hotkey->key = 0;
-					hotkey->shift = 1;
-					hotkey->ctrl = 0;
-					hotkey->alt = 0;
-					return 1;
-				} else if (j == VK_MENU && la)
-				{
-					hotkey->key = 0;
-					hotkey->shift = 0;
-					hotkey->ctrl = 0;
-					hotkey->alt = 1;
-					return 1;
-				}
+				hotkey->key = 0;
+				hotkey->shift = 0;
+				hotkey->ctrl = 1;
+				hotkey->alt = 0;
+				return 1;
+			}
+			if (j == VK_SHIFT && ls)
+			{
+				hotkey->key = 0;
+				hotkey->shift = 1;
+				hotkey->ctrl = 0;
+				hotkey->alt = 0;
+				return 1;
+			}
+			if (j == VK_MENU && la)
+			{
+				hotkey->key = 0;
+				hotkey->shift = 0;
+				hotkey->ctrl = 0;
+				hotkey->alt = 1;
+				return 1;
 			}
 		}
 	}

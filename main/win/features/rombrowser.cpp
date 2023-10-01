@@ -6,6 +6,8 @@
 #include <commctrl.h>
 #include "RomBrowser.hpp"
 
+#include <chrono>
+
 #include "Statusbar.hpp"
 #include "Toolbar.hpp"
 #include "../main_win.h"
@@ -16,6 +18,7 @@
 
 HWND rombrowser_hwnd = nullptr;
 std::vector<t_rombrowser_entry*> rombrowser_entries;
+int32_t rombrowser_is_loading = 0;
 
 void rombrowser_create()
 {
@@ -147,8 +150,7 @@ void rombrowser_add_rom(int32_t index, t_rombrowser_entry* rombrowser_entry)
 	ListView_InsertItem(rombrowser_hwnd, &lv_item);
 	rombrowser_entries.push_back(rombrowser_entry);
 }
-
-void rombrowser_build()
+void rombrowser_build_impl()
 {
 	ListView_DeleteAllItems(rombrowser_hwnd);
 	for (auto entry : rombrowser_entries)
@@ -232,6 +234,22 @@ void rombrowser_build()
 
 		i++;
 	}
+}
+void rombrowser_build()
+{
+	if (rombrowser_is_loading)
+	{
+		MessageBox(mainHWND, "Rombrowser is busy", NULL, 0);
+		return;
+	}
+
+	std::thread([] ()
+	{
+		rombrowser_is_loading = 1;
+		rombrowser_build_impl();
+		rombrowser_is_loading = 0;
+		Sleep(3000);
+	}).detach();
 }
 
 void rombrowser_set_visibility(int32_t is_visible)
