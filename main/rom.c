@@ -46,7 +46,7 @@
 #include "mupenIniApi.h"
 #include "guifuncs.h"
 #include "../main/win/Config.hpp"
-#include <win\RomBrowser.hpp>
+#include <win/features/RomBrowser.hpp>
 #include <win\RomSettings.h>
 #include <win/main_win.h>
 

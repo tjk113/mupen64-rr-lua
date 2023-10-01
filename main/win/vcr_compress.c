@@ -38,12 +38,14 @@
 #include "../plugin.hpp"
 #include "../../winproject/resource.h"
 #include "vfw.h"
+#include "features/Toolbar.hpp"
+#include "features/Statusbar.hpp"
 
 #ifndef _MSC_VER
 void (*readScreen)(void** dest, long* width, long* height);
 #endif
 
-extern HWND mainHWND, hTool, hStatus;
+extern HWND mainHWND;
 
 static int avi_opened = 0;
 extern int recording;
@@ -77,12 +79,12 @@ void CalculateWindowDimensions(HWND hWindow, SWindowInfo& infoStruct)
     infoStruct.height = rect.bottom - rect.top;
 
     //get size of toolbar and statusbar
-    if (hTool)
-        GetClientRect(hTool, &rectT);
-    infoStruct.toolbarHeight = hTool ? (rectT.bottom - rectT.top) : 0;
-    if (hStatus)
-        GetClientRect(hStatus, &rectS);
-    infoStruct.statusbarHeight = hStatus ? (rectS.bottom - rectS.top) : 0;
+    if (toolbar_hwnd)
+        GetClientRect(toolbar_hwnd, &rectT);
+    infoStruct.toolbarHeight = toolbar_hwnd ? (rectT.bottom - rectT.top) : 0;
+    if (statusbar_hwnd)
+        GetClientRect(statusbar_hwnd, &rectS);
+    infoStruct.statusbarHeight = statusbar_hwnd ? (rectS.bottom - rectS.top) : 0;
 
     //subtract size of toolbar and statusbar from buffer dimensions
     //if video plugin knows about this, whole game screen should be captured. Most of the plugins do.
@@ -327,7 +329,6 @@ void VCRComp_finishFile(int split)
         EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
         EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
         EnableMenuItem(hMenu, FULL_SCREEN, MF_ENABLED); //Enables fullscreen menu
-        SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, TRUE); //Enables fullscreen button
         SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); //Remove the always on top flag
     }
 

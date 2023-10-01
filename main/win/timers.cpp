@@ -30,6 +30,8 @@
 #include <chrono>
 #include <thread>
 
+#include "features/Statusbar.hpp"
+
 #ifdef _DEBUG
 #include <iostream>
 #endif
@@ -73,13 +75,12 @@ void InitTimer()
 		1000.0 / (VILimit * (float)temp / 100));
 	Translate("Speed Limit", TempMessage);
 	sprintf(TempMessage, "%s: %d%%", TempMessage, temp);
-	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)TempMessage);
+	statusbar_send_text(std::string(TempMessage));
 }
 
 
 void new_frame()
 {
-	char mes[32];
 	static std::chrono::high_resolution_clock::time_point prevTime;
 	static std::chrono::high_resolution_clock::time_point
 		lastStatusbarUpdateTime = std::chrono::high_resolution_clock::now();
@@ -90,8 +91,9 @@ void new_frame()
 	{
 		auto timeTaken = std::chrono::duration<double>(
 			currentTime - lastStatusbarUpdateTime);
+		char mes[100] = {0};
 		sprintf(mes, "FPS: %.1f", frameCount / timeTaken.count());
-		SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)mes);
+		statusbar_send_text(std::string(mes), 2);
 		lastStatusbarUpdateTime = std::chrono::high_resolution_clock::now();
 		frameCount = 0;
 	}
@@ -102,7 +104,6 @@ void new_frame()
 void new_frame_old()
 {
 	DWORD CurrentFPSTime;
-	char mes[100];
 	static DWORD LastFPSTime;
 	static DWORD CounterTime;
 	static int Fps_Counter = 0;
@@ -114,9 +115,10 @@ void new_frame_old()
 
 	if (CurrentFPSTime - CounterTime >= 1000)
 	{
+		char mes[100] = {0};
 		FPS = (float)(Fps_Counter * 1000.0 / (CurrentFPSTime - CounterTime));
 		sprintf(mes, "FPS: %.1f", FPS);
-		SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)mes);
+		statusbar_send_text(std::string(mes), 2);
 		CounterTime = timeGetTime();
 		Fps_Counter = 0;
 	}
@@ -148,7 +150,7 @@ void new_vi()
 		}
 	}
 	typedef std::chrono::high_resolution_clock::time_point timePoint;
-	char mes[100];
+	char mes[100] = {0};
 	static timePoint LastFPSTime{}; //time point when previous VI happened
 	static timePoint CounterTime{};
 	//time point when last statusbar update happened
@@ -232,10 +234,7 @@ void new_vi()
 			if (VIs > 1) //if after fast forwarding pretend statusbar lagged idk
 			{
 				sprintf(mes, "VI/s: %.1f", VIs);
-				if (Config.show_fps)
-					SendMessage(hStatus, SB_SETTEXT, 3, (LPARAM)mes);
-				else
-					SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)mes);
+				statusbar_send_text(std::string(mes), Config.show_fps ? 3 : 2);
 			}
 			CounterTime = std::chrono::high_resolution_clock::now();
 			VI_Counter = 0;

@@ -2,6 +2,8 @@
 #include <assert.h>
 
 #include "win/main_win.h"
+#include "win/features/Statusbar.hpp"
+#include "win/features/Toolbar.hpp"
 #ifdef VCR_SUPPORT
 
 #include "../lua/LuaConsole.h"
@@ -1286,9 +1288,8 @@ VCR_stopRecord(int defExt)
 		SetActiveMovie(0); // ?
 
 
-		extern HWND hStatus/*, hStatusProgress*/;
-		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
-		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped recording.");
+		statusbar_send_text("", 1);
+		statusbar_send_text("Stopped recording");
 
 		retVal = 0;
 	}
@@ -1667,8 +1668,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 				char buf[50];
 				sprintf(buf, "%lu rr", m_header.rerecord_count);
 
-				extern HWND hStatus;
-				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)buf);
+				statusbar_send_text(std::string(buf), 1);
 			}
 			break;
 		default:
@@ -1778,9 +1778,9 @@ stopPlayback(bool bypassLoopSetting)
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
 
-		extern HWND hStatus;
-		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
-		SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"Stopped playback.");
+		statusbar_send_text("", 1);
+		statusbar_send_text("Stopped playback");
+
 		if (m_inputBuffer)
 		{
 			free(m_inputBuffer);
@@ -2253,7 +2253,7 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename,
 	UpdateTitleBarCapture(AVIFileName);
 
 	// BUG: toolbar could get captured in AVI, so we disable it
-	update_toolbar_visibility();
+	toolbar_set_visibility(0);
 
 	if (!wasPaused || (m_task == Playback || m_task == StartPlayback || m_task
 		== StartPlaybackFromSnapshot))
@@ -2339,9 +2339,7 @@ VCR_toggleReadOnly()
 	}
 	VCR_setReadOnly(!m_readOnly);
 
-	extern HWND hStatus/*, hStatusProgress*/;
-	SendMessage(hStatus, SB_SETTEXT, 0,
-	            (LPARAM)(m_readOnly ? "read-only" : "read+write"));
+	statusbar_send_text(m_readOnly ? "Read" : "Read-write");
 }
 
 void
@@ -2357,12 +2355,10 @@ VCR_toggleLoopMovie()
 		                              ? MFS_CHECKED
 		                              : MFS_UNCHECKED));
 
-	extern HWND hStatus/*, hStatusProgress*/;
 	if (emu_launched)
-		SendMessage(hStatus, SB_SETTEXT, 0,
-		            (LPARAM)(Config.is_movie_loop_enabled
-			                     ? "loop movie enabled"
-			                     : "loop movie disabled"));
+		statusbar_send_text(Config.is_movie_loop_enabled
+								 ? "Movies restart after ending"
+								 : "Movies stop after ending");
 }
 
 
@@ -2382,7 +2378,7 @@ VCR_stopCapture()
 
 	// re-enable the toolbar (m_capture==0 causes this call to do that)
 	// check previous update_toolbar_visibility call
-	update_toolbar_visibility();
+	toolbar_set_visibility(Config.is_toolbar_enabled);
 
 	SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	if (VCR_isPlaying())
@@ -2486,11 +2482,10 @@ void VCR_updateFrameCounter()
 	} else
 		strcpy(str, input_display);
 
-	extern HWND hStatus/*, hStatusProgress*/;
-
 	if (VCR_isRecording() || VCR_isPlaying())
-		SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)rr);
-	SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)str);
+		statusbar_send_text(std::string(rr), 1);
+
+	statusbar_send_text(std::string(str));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

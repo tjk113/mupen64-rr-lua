@@ -170,51 +170,53 @@
         <ClInclude Include="..\..\main\speex\arch.h"/>
         <ClInclude Include="..\..\main\win\CrashHandlerDialog.h"/>
         <ClInclude Include="..\..\main\win\CrashHelper.h"/>
-        <ClInclude Include="..\..\main\zip.h"/>
-        <ClInclude Include="..\..\main\win\commandline.h"/>
-        <ClInclude Include="..\..\main\win\Config.hpp"/>
-        <ClInclude Include="..\..\main\win\configdialog.h"/>
-        <ClInclude Include="..\..\main\win\main_win.h"/>
-        <ClInclude Include="..\..\main\win\RomBrowser.hpp"/>
-        <ClInclude Include="..\..\main\win\RomSettings.h"/>
-        <ClInclude Include="..\..\main\win\timers.h"/>
-        <ClInclude Include="..\..\main\win\translation.h"/>
-        <ClInclude Include="..\..\main\win\vfw.h"/>
-        <ClInclude Include="..\..\main\win\GameDebugger.h"/>
-        <ClInclude Include="..\..\main\win\wrapper\ReassociatingFileDialog.h"/>
-        <ClInclude Include="..\..\main\helpers\string_helpers.h"/>
-        <ClInclude Include="..\..\memory\dma.h"/>
-        <ClInclude Include="..\..\memory\flashram.h"/>
-        <ClInclude Include="..\..\memory\memory.h"/>
-        <ClInclude Include="..\..\memory\pif.h"/>
-        <ClInclude Include="..\..\memory\pif2.h"/>
-        <ClInclude Include="..\..\memory\tlb.h"/>
-        <ClInclude Include="..\..\r4300\cop1_helpers.h"/>
-        <ClInclude Include="..\..\r4300\exception.h"/>
-        <ClInclude Include="..\..\r4300\interupt.h"/>
-        <ClInclude Include="..\..\r4300\macros.h"/>
-        <ClInclude Include="..\..\r4300\ops.h"/>
-        <ClInclude Include="..\..\r4300\r4300.h"/>
-        <ClInclude Include="..\..\r4300\recomp.h"/>
-        <ClInclude Include="..\..\r4300\recomph.h"/>
-        <ClInclude Include="..\..\r4300\x86\assemble.h"/>
-        <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h"/>
-        <ClInclude Include="..\..\r4300\x86\interpret.h"/>
-        <ClInclude Include="..\..\r4300\x86\regcache.h"/>
-        <ClInclude Include="..\..\lua\LuaConsole.h"/>
-        <ClInclude Include="..\resource.h"/>
+        <ClInclude Include="..\..\main\win\features\RomBrowser.hpp" />
+        <ClInclude Include="..\..\main\win\features\Statusbar.hpp" />
+        <ClInclude Include="..\..\main\win\features\Toolbar.hpp" />
+        <ClInclude Include="..\..\main\zip.h" />
+        <ClInclude Include="..\..\main\win\commandline.h" />
+        <ClInclude Include="..\..\main\win\Config.hpp" />
+        <ClInclude Include="..\..\main\win\configdialog.h" />
+        <ClInclude Include="..\..\main\win\main_win.h" />
+        <ClInclude Include="..\..\main\win\RomSettings.h" />
+        <ClInclude Include="..\..\main\win\timers.h" />
+        <ClInclude Include="..\..\main\win\translation.h" />
+        <ClInclude Include="..\..\main\win\vfw.h" />
+        <ClInclude Include="..\..\main\win\GameDebugger.h" />
+        <ClInclude Include="..\..\main\win\wrapper\ReassociatingFileDialog.h" />
+        <ClInclude Include="..\..\main\helpers\string_helpers.h" />
+        <ClInclude Include="..\..\memory\dma.h" />
+        <ClInclude Include="..\..\memory\flashram.h" />
+        <ClInclude Include="..\..\memory\memory.h" />
+        <ClInclude Include="..\..\memory\pif.h" />
+        <ClInclude Include="..\..\memory\pif2.h" />
+        <ClInclude Include="..\..\memory\tlb.h" />
+        <ClInclude Include="..\..\r4300\cop1_helpers.h" />
+        <ClInclude Include="..\..\r4300\exception.h" />
+        <ClInclude Include="..\..\r4300\interupt.h" />
+        <ClInclude Include="..\..\r4300\macros.h" />
+        <ClInclude Include="..\..\r4300\ops.h" />
+        <ClInclude Include="..\..\r4300\r4300.h" />
+        <ClInclude Include="..\..\r4300\recomp.h" />
+        <ClInclude Include="..\..\r4300\recomph.h" />
+        <ClInclude Include="..\..\r4300\x86\assemble.h" />
+        <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h" />
+        <ClInclude Include="..\..\r4300\x86\interpret.h" />
+        <ClInclude Include="..\..\r4300\x86\regcache.h" />
+        <ClInclude Include="..\..\lua\LuaConsole.h" />
+        <ClInclude Include="..\resource.h" />
     </ItemGroup>
     <ItemGroup>
-        <ClCompile Include="..\..\lua\Recent.cpp"/>
+        <ClCompile Include="..\..\lua\Recent.cpp" />
         <ClCompile Include="..\..\main\adler32.c">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>
             <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
         </ClCompile>
-        <ClCompile Include="..\..\main\debughook.c"/>
-        <ClCompile Include="..\..\main\disasm.c"/>
-        <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp"/>
-        <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp"/>
+        <ClCompile Include="..\..\main\debughook.c" />
+        <ClCompile Include="..\..\main\disasm.c" />
+        <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp" />
+        <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp" />
         <ClCompile Include="..\..\main\ioapi.c">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>
@@ -264,8 +266,88 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\main\win\CrashHandlerDialog.cpp"/>
-        <ClCompile Include="..\..\main\win\CrashHelper.cpp"/>
+        <ClCompile Include="..\..\main\win\CrashHandlerDialog.cpp" />
+        <ClCompile Include="..\..\main\win\CrashHelper.cpp" />
+        <ClCompile Include="..\..\main\win\features\RomBrowser.cpp">
+          <AssemblerOutput>NoListing</AssemblerOutput>
+          <AssemblerListingLocation>obj\Debug\</AssemblerListingLocation>
+          <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+          <BrowseInformation>false</BrowseInformation>
+          <BrowseInformationFile>obj\Debug\</BrowseInformationFile>
+          <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+          <CompileAs>CompileAsCpp</CompileAs>
+          <ConformanceMode>Default</ConformanceMode>
+          <DiagnosticsFormat>Column</DiagnosticsFormat>
+          <DisableLanguageExtensions>false</DisableLanguageExtensions>
+          <ErrorReporting>Prompt</ErrorReporting>
+          <ExpandAttributedSource>false</ExpandAttributedSource>
+          <ExceptionHandling>Sync</ExceptionHandling>
+          <EnableASAN>false</EnableASAN>
+          <EnableFuzzer>false</EnableFuzzer>
+          <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+          <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+          <FloatingPointModel>Precise</FloatingPointModel>
+          <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+          <GenerateModuleDependencies>false</GenerateModuleDependencies>
+          <GenerateSourceDependencies>false</GenerateSourceDependencies>
+          <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+          <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+          <IntrinsicFunctions>false</IntrinsicFunctions>
+          <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+          <LanguageStandard>stdcpp20</LanguageStandard>
+          <LanguageStandard_C>Default</LanguageStandard_C>
+          <MinimalRebuild>false</MinimalRebuild>
+          <ModuleDependenciesFile>obj\Debug\</ModuleDependenciesFile>
+          <ModuleOutputFile>obj\Debug\</ModuleOutputFile>
+          <OmitDefaultLibName>false</OmitDefaultLibName>
+          <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+          <WholeProgramOptimization>false</WholeProgramOptimization>
+          <Optimization>Disabled</Optimization>
+          <ObjectFileName>obj\Debug\</ObjectFileName>
+          <CallingConvention>Cdecl</CallingConvention>
+          <ProgramDataBaseFileName>obj\Debug\vc143.pdb</ProgramDataBaseFileName>
+          <PrecompiledHeader>NotUsing</PrecompiledHeader>
+          <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+          <PrecompiledHeaderOutputFile>obj\Debug\mupen64_debug.pch</PrecompiledHeaderOutputFile>
+          <PreprocessToFile>false</PreprocessToFile>
+          <PreprocessKeepComments>false</PreprocessKeepComments>
+          <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+          <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+          <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+          <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+          <ShowIncludes>false</ShowIncludes>
+          <SourceDependenciesFile>obj\Debug\</SourceDependenciesFile>
+          <SuppressStartupBanner>true</SuppressStartupBanner>
+          <BufferSecurityCheck>true</BufferSecurityCheck>
+          <SmallerTypeCheck>false</SmallerTypeCheck>
+          <SpectreMitigation>false</SpectreMitigation>
+          <StructMemberAlignment>Default</StructMemberAlignment>
+          <SupportJustMyCode>false</SupportJustMyCode>
+          <TrackerLogDirectory>obj\Debug\mupen64.tlog\</TrackerLogDirectory>
+          <TranslateIncludes>false</TranslateIncludes>
+          <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+          <TreatWarningAsError>false</TreatWarningAsError>
+          <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+          <UseFullPaths>false</UseFullPaths>
+          <WarningLevel>Level3</WarningLevel>
+          <XMLDocumentationFileName>obj\Debug\</XMLDocumentationFileName>
+          <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+          <IntelJCCErratum>false</IntelJCCErratum>
+          <BuildStlModules>false</BuildStlModules>
+          <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+          <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+          <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+          <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+          <PreprocessorDefinitions>VCR_SUPPORT;WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;_VC80_UPGRADE=0x0710;_MBCS;</PreprocessorDefinitions>
+          <EnablePREfast>false</EnablePREfast>
+          <OmitFramePointers>false</OmitFramePointers>
+          <AdditionalIncludeDirectories>../../lua;../zlib;../../main;</AdditionalIncludeDirectories>
+          <DisableSpecificWarnings>4018;4244;</DisableSpecificWarnings>
+          <AdditionalOptions>/FI "../main/debughook.h" </AdditionalOptions>
+          <LinkCompiled>true</LinkCompiled>
+        </ClCompile>
+        <ClCompile Include="..\..\main\win\features\Statusbar.cpp" />
+        <ClCompile Include="..\..\main\win\features\Toolbar.cpp" />
         <ClCompile Include="..\..\main\zip.c">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>
         </ClCompile>
@@ -289,10 +371,6 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\main\win\RomBrowser.cpp">
-            <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-            <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-        </ClCompile>
         <ClCompile Include="..\..\main\win\RomSettings.c">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -311,11 +389,11 @@
             <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)win_vcr_compress</ObjectFileName>
             <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)win_vcr_compress</ObjectFileName>
         </ClCompile>
-        <ClCompile Include="..\..\memory\dma.c"/>
-        <ClCompile Include="..\..\memory\flashram.c"/>
-        <ClCompile Include="..\..\memory\memory.c"/>
-        <ClCompile Include="..\..\memory\pif.c"/>
-        <ClCompile Include="..\..\memory\tlb.c"/>
+        <ClCompile Include="..\..\memory\dma.c" />
+        <ClCompile Include="..\..\memory\flashram.c" />
+        <ClCompile Include="..\..\memory\memory.c" />
+        <ClCompile Include="..\..\memory\pif.c" />
+        <ClCompile Include="..\..\memory\tlb.c" />
         <ClCompile Include="..\..\r4300\bc.c">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -336,7 +414,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\cop1_helpers.c"/>
+        <ClCompile Include="..\..\r4300\cop1_helpers.c" />
         <ClCompile Include="..\..\r4300\cop1_l.c">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -411,7 +489,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\x86\gcop1_helpers.c"/>
+        <ClCompile Include="..\..\r4300\x86\gcop1_helpers.c" />
         <ClCompile Include="..\..\r4300\x86\gcop1_l.c">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -448,41 +526,41 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\lua\LuaConsole.cpp"/>
-        <ClCompile Include="..\..\main\win\GameDebugger.cpp"/>
-        <ClCompile Include="..\..\main\win\wrapper\ReassociatingFileDialog.cpp"/>
+        <ClCompile Include="..\..\lua\LuaConsole.cpp" />
+        <ClCompile Include="..\..\main\win\GameDebugger.cpp" />
+        <ClCompile Include="..\..\main\win\wrapper\ReassociatingFileDialog.cpp" />
     </ItemGroup>
     <ItemGroup>
-        <ResourceCompile Include="..\rsrc.rc"/>
+        <ResourceCompile Include="..\rsrc.rc" />
     </ItemGroup>
     <ItemGroup>
-        <Image Include="..\icons\austral.ico"/>
-        <Image Include="..\icons\beta.ico"/>
-        <Image Include="..\icons\Control.bmp"/>
-        <Image Include="..\icons\demo.ico"/>
-        <Image Include="..\icons\Display.bmp"/>
-        <Image Include="..\icons\down_arrow.bmp"/>
-        <Image Include="..\icons\europe.ico"/>
-        <Image Include="..\icons\france.ico"/>
-        <Image Include="..\icons\germany.ico"/>
-        <Image Include="..\icons\italy.ico"/>
-        <Image Include="..\icons\japan.ico"/>
-        <Image Include="..\icons\logo.bmp"/>
-        <Image Include="..\icons\logobw.bmp"/>
-        <Image Include="..\icons\m64big.ico"/>
-        <Image Include="..\icons\m64small.ico"/>
-        <Image Include="..\icons\pause.bmp"/>
-        <Image Include="..\icons\resume.bmp"/>
-        <Image Include="..\icons\RSP.bmp"/>
-        <Image Include="..\icons\Sound.bmp"/>
-        <Image Include="..\icons\spain.ico"/>
-        <Image Include="..\icons\toolbar.bmp"/>
-        <Image Include="..\icons\unknown.ico"/>
-        <Image Include="..\icons\up_arrow.bmp"/>
-        <Image Include="..\icons\usa.ico"/>
+        <Image Include="..\icons\austral.ico" />
+        <Image Include="..\icons\beta.ico" />
+        <Image Include="..\icons\Control.bmp" />
+        <Image Include="..\icons\demo.ico" />
+        <Image Include="..\icons\Display.bmp" />
+        <Image Include="..\icons\down_arrow.bmp" />
+        <Image Include="..\icons\europe.ico" />
+        <Image Include="..\icons\france.ico" />
+        <Image Include="..\icons\germany.ico" />
+        <Image Include="..\icons\italy.ico" />
+        <Image Include="..\icons\japan.ico" />
+        <Image Include="..\icons\logo.bmp" />
+        <Image Include="..\icons\logobw.bmp" />
+        <Image Include="..\icons\m64big.ico" />
+        <Image Include="..\icons\m64small.ico" />
+        <Image Include="..\icons\pause.bmp" />
+        <Image Include="..\icons\resume.bmp" />
+        <Image Include="..\icons\RSP.bmp" />
+        <Image Include="..\icons\Sound.bmp" />
+        <Image Include="..\icons\spain.ico" />
+        <Image Include="..\icons\toolbar.bmp" />
+        <Image Include="..\icons\unknown.ico" />
+        <Image Include="..\icons\up_arrow.bmp" />
+        <Image Include="..\icons\usa.ico" />
     </ItemGroup>
     <ItemGroup>
-        <Manifest Include="..\mupen64.exe.manifest"/>
+        <Manifest Include="..\mupen64.exe.manifest" />
     </ItemGroup>
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
     <ImportGroup Label="ExtensionTargets">

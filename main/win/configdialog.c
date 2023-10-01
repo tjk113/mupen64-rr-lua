@@ -26,7 +26,7 @@
 #include "main_win.h"
 #include "../../winproject/resource.h"
 #include "../plugin.hpp"
-#include "RomBrowser.hpp"
+#include "features/RomBrowser.hpp"
 #include "../guifuncs.h"
 #include "../md5.h"
 #include "timers.h"
@@ -40,6 +40,9 @@
 #include "configdialog.h"
 #include <vcr.h>
 #include <cassert>
+
+#include "features/Statusbar.hpp"
+#include "features/Toolbar.hpp"
 // ughh msvc-only code once again
 #pragma comment(lib,"comctl32.lib")
 #pragma comment(lib,"propsys.lib")
@@ -165,8 +168,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
             if (l_nmhdr->code == PSN_APPLY)
             {
                 Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
-                update_toolbar_visibility();
-                update_statusbar_visibility();
                 rombrowser_build();
                 LoadConfigExternals();
             }
@@ -297,14 +298,18 @@ void ChangeSettings(HWND hwndOwner)
 
     CONFIG old_config = Config;
 
-    if (PropertySheet(&psh))
-        save_config();
-    else
+    const auto applied = PropertySheet(&psh);
+    
+    if (!applied)
     {
-        Config = old_config;
+        Config = old_config;   
     }
-
-    return;
+    save_config();
+    
+    toolbar_set_visibility(Config.is_toolbar_enabled);
+    statusbar_set_visibility(Config.is_statusbar_enabled);
+    statusbar_set_mode(emu_launched ? statusbar_mode::emulating : statusbar_mode::rombrowser);
+    toolbar_on_emu_state_changed(emu_launched, !emu_paused);
 }
 
 
@@ -769,11 +774,7 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
             Config.is_state_independent_state_loading_allowed = ReadCheckBoxValue(
                 hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
-
-            if (emu_launched) SetStatusMode(2);
-            else SetStatusMode(0);
             InitTimer();
-            SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"");
         }
         break;
     default:
@@ -823,8 +824,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
             Config.is_reset_recording_disabled = ReadCheckBoxValue(hwnd, IDC_NORESET) == 0;
             Config.is_internal_capture_forced = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
 
-            update_toolbar_visibility();
-            update_statusbar_visibility();
             rombrowser_build();
             LoadConfigExternals();
         }

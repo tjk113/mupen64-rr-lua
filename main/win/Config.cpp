@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <winuser.h>
 #include <stdio.h>
-#include "RomBrowser.hpp"
+#include "features/RomBrowser.hpp"
 #include "commandline.h"
 #include "../../winproject/resource.h"
 #include "config.hpp"

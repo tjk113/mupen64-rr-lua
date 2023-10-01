@@ -44,7 +44,7 @@ extern "C" {
 #include "../../r4300/r4300.h"
 #include "../../memory/memory.h"
 #include "translation.h"
-#include "RomBrowser.hpp"
+#include "features/RomBrowser.hpp"
 #include "main_win.h"
 #include "configdialog.h"
 #include "../guifuncs.h"
@@ -66,6 +66,8 @@ extern "C" {
 
 #include <gdiplus.h>
 #include "../main/win/GameDebugger.h"
+#include "features/Statusbar.hpp"
+#include "features\Toolbar.hpp"
 
 #pragma comment (lib,"Gdiplus.lib")
 
@@ -119,7 +121,7 @@ char TempMessage[200];
 int emu_launched; // emu_emulating
 int emu_paused;
 int recording;
-HWND hTool, mainHWND, hStatus;
+HWND mainHWND;
 HINSTANCE app_hInstance;
 BOOL manualFPSLimit = TRUE;
 BOOL ignoreErrorEmulation = FALSE;
@@ -174,20 +176,15 @@ static void gui_ChangeWindow()
 {
 	if (FullScreenMode)
 	{
-		update_statusbar_visibility();
-		EnableWindow(hTool, FALSE);
-		ShowWindow(hTool, SW_HIDE);
-		ShowWindow(hStatus, SW_HIDE);
 		ShowCursor(FALSE);
 		changeWindow();
 	} else
 	{
 		changeWindow();
-		ShowWindow(hTool, SW_SHOW);
-		EnableWindow(hTool, TRUE);
-		ShowWindow(hStatus, SW_SHOW);
 		ShowCursor(TRUE);
 	}
+	toolbar_set_visibility(!FullScreenMode);
+	statusbar_set_visibility(!FullScreenMode);
 }
 
 static int LastState = ID_CURRENTSAVE_1;
@@ -268,13 +265,10 @@ void resumeEmu(BOOL quiet)
 		emu_paused = 0;
 		ResumeThread(SoundThreadHandle);
 		if (!quiet)
-			SetStatusTranslatedString(hStatus, 0, "Emulation started");
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 0);
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
-	} else
-	{
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
+			statusbar_send_text("Emulation started");
 	}
+
+	toolbar_on_emu_state_changed(emu_launched, 1);
 
 	if (emu_paused != wasPaused && !quiet)
 		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
@@ -295,17 +289,14 @@ void pauseEmu(BOOL quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
 			SuspendThread(SoundThreadHandle);
 		if (!quiet)
-			SetStatusTranslatedString(hStatus, 0, "Emulation paused");
-
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_STOP, 0);
+			statusbar_send_text("Emulation paused");
 	} else
 	{
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 0);
 		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
 		              MF_BYCOMMAND | MFS_UNCHECKED);
 	}
+
+	toolbar_on_emu_state_changed(emu_launched, 0);
 
 	if (emu_paused != wasPaused && !MenuPaused)
 		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
@@ -346,16 +337,10 @@ BOOL StartRom(const char* fullRomPath)
 				return 1;
 			}
 
-			SetStatusMode(1);
-
-			SetStatusTranslatedString(hStatus, 0, "Loading ROM...");
-			SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)fullRomPath);
-
 			if (rom_read(fullRomPath))
 			{
 				emu_launched = 0;
-				SetStatusMode(0);
-				SetStatusTranslatedString(hStatus, 0, "Failed to open rom");
+				MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
 				return TRUE;
 			}
 
@@ -370,7 +355,7 @@ BOOL StartRom(const char* fullRomPath)
 			rombrowser_set_visibility(0);
 		}
 
-		SetStatusMode(2);
+		statusbar_set_mode(statusbar_mode::emulating);
 
 		printf("Creating emulation thread...\n");
 		EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
@@ -381,8 +366,7 @@ BOOL StartRom(const char* fullRomPath)
 			sprintf(TempMessage, MUPEN_VERSION " - %s", (char*)ROM_HEADER->nom);
 			SetWindowText(mainHWND, TempMessage);
 		}
-		SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
-		SetStatusTranslatedString(hStatus, 0, "Emulation started");
+
 		printf("Thread created\n");
 		EnableEmulationMenuItems(TRUE);
 		return FALSE;
@@ -416,7 +400,7 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 			{
 				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 				             SWP_NOMOVE | SWP_NOSIZE);
-				SetStatusTranslatedString(hStatus, 0, "Stopped AVI capture");
+				statusbar_send_text("Stopped AVI capture");
 				recording = FALSE;
 			}
 		}
@@ -437,12 +421,14 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 
 			EnableEmulationMenuItems(FALSE);
 			rombrowser_set_visibility(!really_restart_mode);
+			toolbar_on_emu_state_changed(0, 0);
 
 			extern int m_task;
 			if (m_task == 0)
 			{
 				SetWindowText(mainHWND, MUPEN_VERSION);
-				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)" ");
+				// TODO: look into why this is done
+				statusbar_send_text(" ", 1);
 			}
 		}
 
@@ -453,8 +439,8 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 		}
 	}
 
-	SetStatusMode(0);
-	SetStatusTranslatedString(hStatus, 0, "Rom Closed");
+	statusbar_set_mode(statusbar_mode::rombrowser);
+	statusbar_send_text("Emulation stopped");
 
 	//Makes window resizable
 	winstyle = GetWindowLong(mainHWND, GWL_STYLE);
@@ -478,11 +464,8 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 				just_restarted_flag = TRUE;
 			if (StartRom(LastSelectedRom))
 			{
-				// If rom loading fails
 				closeRom(lpParam);
-				// TODO: reimplement
-				// ShowRomBrowser(TRUE, TRUE);
-				SetStatusTranslatedString(hStatus, 0, "Failed to open rom");
+				MessageBox(mainHWND, "Failed to open ROM", NULL, MB_ICONERROR | MB_OK);
 			}
 		}
 	}
@@ -514,96 +497,6 @@ void ShowMessage(const char* lpszMessage)
 	MessageBox(NULL, lpszMessage, "Info", MB_OK);
 }
 
-void CreateToolBarWindow(HWND hwnd)
-{
-	TBBUTTON tbButtons[] =
-	{
-		{
-			0, IDLOAD, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
-			{0, 0}, 0, 0
-		},
-		{0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, {0, 0}, 0, 0},
-		{
-			1, EMU_PLAY, TBSTATE_ENABLED, TBSTYLE_CHECK | TBSTYLE_AUTOSIZE,
-			{0, 0}, 0, 0
-		},
-		{
-			2, EMU_PAUSE, TBSTATE_ENABLED, TBSTYLE_CHECK | TBSTYLE_AUTOSIZE,
-			{0, 0}, 0, 0
-		},
-		{
-			3, EMU_STOP, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
-			{0, 0}, 0, 0
-		},
-		{0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, {0, 0}, 0, 0},
-		{
-			4, FULL_SCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
-			{0, 0}, 0, 0
-		},
-		{0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, {0, 0}, 0, 0},
-		{
-			5, IDGFXCONFIG, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
-			{0, 0}, 0, 0
-		},
-		{
-			6, IDSOUNDCONFIG, TBSTATE_ENABLED,
-			TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0, 0}, 0, 0
-		},
-		{
-			7, IDINPUTCONFIG, TBSTATE_ENABLED,
-			TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0, 0}, 0, 0
-		},
-		{
-			8, IDRSPCONFIG, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
-			{0, 0}, 0, 0
-		},
-		{
-			9, ID_LOAD_CONFIG, TBSTATE_ENABLED,
-			TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0, 0}, 0, 0
-		},
-	};
-	auto tbButtonsCount = sizeof(tbButtons) / sizeof(TBBUTTON);
-	hTool = CreateToolbarEx(hwnd,
-	                        WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS,
-	                        IDC_TOOLBAR, 10, app_hInstance, IDB_TOOLBAR,
-	                        tbButtons, (int)tbButtonsCount, 16, 16,
-	                        (int)tbButtonsCount * 16, 16, sizeof(TBBUTTON));
-
-	if (hTool == NULL)
-		MessageBox(hwnd, "Could not create tool bar.", "Error",
-		           MB_OK | MB_ICONERROR);
-
-	if (emu_launched)
-	{
-		if (emu_paused)
-		{
-			SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 1);
-		} else
-		{
-			SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
-		}
-	} else
-	{
-		// TODO: reimplement
-		// getSelectedRom();
-		SendMessage(hTool, TB_ENABLEBUTTON, EMU_STOP, FALSE);
-		SendMessage(hTool, TB_ENABLEBUTTON, EMU_PAUSE, FALSE);
-		SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE);
-	}
-}
-
-void CreateStatusBarWindow(HWND hwnd)
-{
-	//Create Status bar
-	hStatus = CreateWindowEx(0, STATUSCLASSNAME, NULL,
-	                         WS_CHILD | WS_VISIBLE /*| SBARS_SIZEGRIP*/, 0, 0,
-	                         0, 0,
-	                         hwnd, (HMENU)IDC_MAIN_STATUS,
-	                         GetModuleHandle(NULL), NULL);
-
-	if (emu_launched) SetStatusMode(2);
-	else SetStatusMode(0);
-}
 
 int pauseAtFrame = -1;
 
@@ -617,9 +510,9 @@ void SetStatusPlaybackStarted()
 	EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
 
 	if (!emu_paused || !emu_launched)
-		SetStatusTranslatedString(hStatus, 0, "Playback started...");
+		statusbar_send_text("Playback started");
 	else
-		SetStatusTranslatedString(hStatus, 0, "Playback started. (Paused)");
+		statusbar_send_text("Playback started while paused");
 }
 
 LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
@@ -1161,8 +1054,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 						HMENU hMenu = GetMenu(mainHWND);
 						EnableMenuItem(hMenu, ID_STOP_RECORD, MF_ENABLED);
 						EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
-						SetStatusTranslatedString(
-							hStatus, 0, "Recording replay...");
+						statusbar_send_text("Recording replay");
 					}
 
 					EndDialog(hwnd, IDOK);
@@ -1261,89 +1153,6 @@ void OpenMovieRecordDialog()
 }
 
 
-void SetStatusMode(int mode)
-{
-	RECT rcClient; //Client area of parent window
-	const int loadingwidths[] = {200, 300, -1}; //Initial statusbar
-	const int emulatewidthsFPSVIS[] = {230, 300, 370, 440, -1};
-	//Emulating statusbar with FPS and VIS
-	const int emulatewidthsFPS[] = {230, 300, 370, -1};
-	//Emulating statusbar with FPS
-	const int emulatewidths[] = {230, 300, -1}; //Emulating statusbar
-	const int browserwidths[] = {400, -1}; //Initial statusbar
-	int parts;
-
-
-	if (hStaticHandle) DestroyWindow(hStaticHandle);
-
-	//Setting status widths
-	if (Config.is_statusbar_enabled)
-	{
-		switch (mode)
-		{
-		case 0: //Rombrowser Statusbar
-			SendMessage(hStatus, SB_SETPARTS,
-			            sizeof(browserwidths) / sizeof(int),
-			            (LPARAM)browserwidths);
-			SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)statusmsg);
-			SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
-			break;
-
-		case 1: //Loading Statusbar
-			SendMessage(hStatus, SB_SETPARTS,
-			            sizeof(loadingwidths) / sizeof(int),
-			            (LPARAM)loadingwidths);
-			SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)statusmsg);
-			SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
-			SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)"");
-
-			GetClientRect(hStatus, &rcClient);
-			break;
-
-		case 2: //Emulating Statusbar
-			if (Config.show_fps && Config.show_vis_per_second)
-			{
-				SendMessage(hStatus, SB_SETPARTS,
-				            sizeof(emulatewidthsFPSVIS) / sizeof(int),
-				            (LPARAM)emulatewidthsFPSVIS);
-				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)""); //rr
-				SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)""); //FPS
-				SendMessage(hStatus, SB_SETTEXT, 3, (LPARAM)""); //VIS
-				parts = 5;
-			} else if (Config.show_fps)
-			{
-				SendMessage(hStatus, SB_SETPARTS,
-				            sizeof(emulatewidthsFPS) / sizeof(int),
-				            (LPARAM)emulatewidthsFPS);
-				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
-				SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)"");
-				parts = 4;
-			} else if (Config.show_vis_per_second)
-			{
-				SendMessage(hStatus, SB_SETPARTS,
-				            sizeof(emulatewidthsFPS) / sizeof(int),
-				            (LPARAM)emulatewidthsFPS);
-				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
-				SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)"");
-				parts = 4;
-			} else
-			{
-				SendMessage(hStatus, SB_SETPARTS,
-				            sizeof(emulatewidths) / sizeof(int),
-				            (LPARAM)emulatewidths);
-				SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"");
-				parts = 3;
-			}
-
-			SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)statusmsg);
-			sprintf(TempMessage, "%s", ROM_SETTINGS.goodname);
-			SendMessage(hStatus, SB_SETTEXT, parts - 1, (LPARAM)TempMessage);
-			break;
-		default:
-			break;
-		} //Switch
-	} //If
-}
 
 void EnableEmulationMenuItems(BOOL emulationRunning)
 {
@@ -1398,16 +1207,7 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 			               VCR_isCapturing() ? MF_ENABLED : MF_GRAYED);
 		}
 
-		if (Config.is_toolbar_enabled)
-		{
-			SendMessage(hTool, TB_ENABLEBUTTON, EMU_PLAY, TRUE);
-			SendMessage(hTool, TB_ENABLEBUTTON, EMU_STOP, TRUE);
-			SendMessage(hTool, TB_ENABLEBUTTON, EMU_PAUSE, TRUE);
-			if (recording && !externalReadScreen)
-				SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE);
-			else
-				SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, TRUE);
-		}
+		toolbar_on_emu_state_changed(1, 1);
 	} else
 	{
 		EnableMenuItem(hMenu, EMU_STOP, MF_GRAYED);
@@ -1421,8 +1221,6 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 		EnableMenuItem(hMenu, STATE_RESTORE, MF_GRAYED);
 		EnableMenuItem(hMenu, STATE_LOAD, MF_GRAYED);
 		EnableMenuItem(hMenu, GENERATE_BITMAP, MF_GRAYED);
-		// TODO: reimplement
-		// EnableRecentROMsMenu(hMenu, TRUE);
 		EnableMenuItem(hMenu, EMU_RESET, MF_GRAYED);
 		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
@@ -1448,15 +1246,7 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 			             SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			//Set on top
 		}
-		if (Config.is_toolbar_enabled)
-		{
-			// TODO: reimplement
-			// getSelectedRom();
-			//SendMessage( hTool, TB_ENABLEBUTTON, EMU_PLAY, FALSE );
-			SendMessage(hTool, TB_ENABLEBUTTON, EMU_STOP, FALSE);
-			SendMessage(hTool, TB_ENABLEBUTTON, EMU_PAUSE, FALSE);
-			SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE);
-		}
+		toolbar_on_emu_state_changed(0, 0);
 	}
 
 	if (Config.is_toolbar_enabled) CheckMenuItem(
@@ -1714,38 +1504,6 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 	}
 }
 
-void update_statusbar_visibility()
-{
-	if (hStatus)
-	{
-		DestroyWindow(hStatus);
-		hStatus = nullptr;
-	}
-
-	if (Config.is_statusbar_enabled)
-	{
-		CreateStatusBarWindow(mainHWND);
-	}
-
-	rombrowser_update_size();
-}
-
-void update_toolbar_visibility()
-{
-	if (hTool)
-	{
-		DestroyWindow(hTool);
-		hTool = NULL;
-	}
-
-	if (Config.is_toolbar_enabled && !VCR_isCapturing())
-	{
-		CreateToolBarWindow(mainHWND);
-	}
-
-	rombrowser_update_size();
-}
-
 
 LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam,
                               LPARAM lParam)
@@ -1960,8 +1718,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			if (!FullScreenMode)
 			{
-				SendMessage(hTool, TB_AUTOSIZE, 0, 0);
-				SendMessage(hStatus, WM_SIZE, 0, 0);
+				SendMessage(toolbar_hwnd, TB_AUTOSIZE, 0, 0);
+				SendMessage(statusbar_hwnd, WM_SIZE, 0, 0);
 			}
 			rombrowser_update_size();
 			break;
@@ -1970,8 +1728,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CREATE:
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
-		CreateToolBarWindow(hwnd);
-		CreateStatusBarWindow(hwnd);
 		SetupLanguages(hwnd);
 		TranslateMenu(GetMenu(hwnd), hwnd);
 		SetMenuAcceleratorsFromUser(hwnd);
@@ -2154,10 +1910,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (emu_launched)
 				{
 					stop_it();
-					//SleepEx(1000, TRUE); //todo check if can remove
 					CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, &Id);
-					SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, 0);
-					SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 0);
+
 				}
 				break;
 
@@ -2171,7 +1925,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						MenuPaused = FALSE;
 						CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
 						              MF_BYCOMMAND | MFS_CHECKED);
-						SendMessage(hTool, TB_CHECKBUTTON, EMU_PAUSE, TRUE);
 					} else
 					{
 						resumeEmu(VCR_isActive());
@@ -2207,8 +1960,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (err == VCR_PLAYBACK_SUCCESS)
 						SetStatusPlaybackStarted();
 					else
-						SetStatusTranslatedString(
-							hStatus, 0, "Couldn't start latest movie");
+						statusbar_send_text("Latest movie couldn't be started");
 				}
 				break;
 			case ID_REPLAY_LATEST:
@@ -2222,11 +1974,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (err == VCR_PLAYBACK_SUCCESS)
 						SetStatusPlaybackStarted();
 					else
-						SetStatusTranslatedString(
-							hStatus, 0, "Couldn't start latest movie");
+						statusbar_send_text("Latest movie couldn't be started");
 				} else
-					SetStatusTranslatedString(hStatus, 0,
-					                          "Cannot load a movie while not emulating!");
+					statusbar_send_text("Movie can't be loaded while not emulating");
 				break;
 			case ID_RECENTMOVIES_FREEZE:
 				CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE,
@@ -2243,10 +1993,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (emu_paused)
 					{
 						resumeEmu(FALSE);
-					} else
-					{
-						SendMessage(hTool, TB_CHECKBUTTON, EMU_PLAY, 1);
-						//The button is always checked when started and not on pause
 					}
 				} else
 				{
@@ -2264,7 +2010,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					scheduled_restart = true;
 					continue_vcr_on_restart_mode = true;
-					display_status("Writing restart to m64...");
+					statusbar_send_text("Writing restart to movie");
 					break;
 				}
 			//resttart_mode = 1; //has issues
@@ -2495,8 +2241,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						ClearButtons();
 						EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
 						EnableMenuItem(hMenu, ID_START_RECORD, MF_ENABLED);
-						SetStatusTranslatedString(
-							hStatus, 0, "Recording stopped");
+						statusbar_send_text("Recording stopped");
 					}
 				}
 				break;
@@ -2515,8 +2260,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						ClearButtons();
 						EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
 						EnableMenuItem(hMenu, ID_START_PLAYBACK, MF_ENABLED);
-						SetStatusTranslatedString(
-							hStatus, 0, "Playback stopped");
+						statusbar_send_text("Playback stopped");
 					}
 				}
 				break;
@@ -2537,12 +2281,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						if (!externalReadScreen)
 						{
 							EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-							//Disables fullscreen menu
-							SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN,
-							            FALSE); //Disables fullscreen button
 						}
-						SetStatusTranslatedString(
-							hStatus, 0, "Recording avi...");
+						statusbar_send_text("Recording AVI with FFmpeg");
 						EnableEmulationMenuItems(TRUE);
 					} else
 						printf("Start capture error: %d\n", err);
@@ -2589,7 +2329,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 							recording = FALSE;
 						} else
 						{
-							//SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
 							EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
 							EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET,
 							               MF_GRAYED);
@@ -2598,12 +2337,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 							if (!externalReadScreen)
 							{
 								EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-								//Disables fullscreen menu
-								SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN,
-								            FALSE); //Disables fullscreen button
 							}
-							SetStatusTranslatedString(
-								hStatus, 0, "Recording avi...");
+							statusbar_send_text("Recording AVI");
 							EnableEmulationMenuItems(TRUE);
 							recording = TRUE;
 						}
@@ -2625,8 +2360,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
 					EnableMenuItem(hMenu, ID_FFMPEG_START, MF_ENABLED);
 					EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
-					SetStatusTranslatedString(hStatus, 0,
-					                          "Stopped video capture");
+					statusbar_send_text("Capture stopped");
 					recording = FALSE;
 				}
 				break;
@@ -2653,13 +2387,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDC_GUI_TOOLBAR:
 				Config.is_toolbar_enabled ^= true;
-				update_toolbar_visibility();
+				toolbar_set_visibility(Config.is_toolbar_enabled);
 				CheckMenuItem(
 					hMenu, IDC_GUI_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
 			case IDC_GUI_STATUSBAR:
 				Config.is_statusbar_enabled ^= true;
-				update_statusbar_visibility();
+				statusbar_set_visibility(Config.is_statusbar_enabled);
 				CheckMenuItem(
 					hMenu, IDC_GUI_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
@@ -2726,8 +2460,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					if (vcr_recent_movies_play(LOWORD(wParam)) != SUCCESS)
 					{
-						SetStatusTranslatedString(
-							hStatus, 0, "Could not load movie!");
+						statusbar_send_text("Couldn't load movie");
 						break;
 					}
 					// should probably make this code from the ID_REPLAY_LATEST case into a function on its own
@@ -2736,11 +2469,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
 
 					if (!emu_paused || !emu_launched)
-						SetStatusTranslatedString(
-							hStatus, 0, "Playback started...");
+						statusbar_send_text("Playback started");
 					else
-						SetStatusTranslatedString(
-							hStatus, 0, "Playback started. (Paused)");
+						statusbar_send_text("Playback started while paused");
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
 				{
@@ -2793,10 +2524,8 @@ void StartMovies()
 				{
 					EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
 					//Disables fullscreen menu
-					SendMessage(hTool, TB_ENABLEBUTTON, FULL_SCREEN, FALSE);
-					//Disables fullscreen button
 				}
-				SetStatusTranslatedString(hStatus, 0, "Recording avi...");
+				statusbar_send_text("Recording AVI");
 				recording = TRUE;
 			}
 		}
@@ -3030,8 +2759,8 @@ int WINAPI WinMain(
 		SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 		//this can't be applied before ShowWindow(), otherwise you must use some fancy function
 
-		update_toolbar_visibility();
-		update_statusbar_visibility();
+		toolbar_set_visibility(Config.is_toolbar_enabled);
+		statusbar_set_visibility(Config.is_statusbar_enabled);
 
 		UpdateWindow(hwnd);
 

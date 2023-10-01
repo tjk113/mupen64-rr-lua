@@ -23,9 +23,11 @@
 #include "../guifuncs.h"
 #include "main_win.h"
 #include "translation.h"
-#include "RomBrowser.hpp"
+#include "features/RomBrowser.hpp"
 #include "../../winproject/resource.h"
 #include <vcr.h>
+
+#include "features/Statusbar.hpp"
 
 const char* get_savespath()
 {
@@ -78,7 +80,7 @@ void internal_warnsavestate(const char* messageCaption, const char* message, boo
     if (modal)
         MessageBox(mainHWND, TempMessage, messageCaption, MB_ICONERROR);
     else
-        display_status(TempMessage);
+        statusbar_send_text(std::string(TempMessage));
 }
 
 void warn_savestate(const char* messageCaption, const char* message)
@@ -91,8 +93,3 @@ void warn_savestate(const char* messageCaption, const char* message, bool modal)
     internal_warnsavestate(messageCaption, message, modal);
 }
 
-//Shows text in the first sector of statusbar
-void display_status(const char* status)
-{
-    SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)status);
-}

@@ -43,6 +43,7 @@
 #include "../r4300/r4300.h"
 #include "../r4300/interupt.h"
 #include "win/main_win.h"
+#include "win/features/Statusbar.hpp"
 
 extern unsigned long interp_addr;
 
@@ -110,7 +111,8 @@ void savestates_save()
         strcpy(filename, fname);
         sprintf(statusString, "saving %-200s", filename);
     }
-    display_status(statusString);
+    
+    statusbar_send_text(std::string(statusString));
     useFilename = false;
 
     f = gzopen(filename, "wb");
@@ -362,7 +364,7 @@ void savestates_load(bool silenceNotFoundError)
         useFilename = false;
         return;
     }
-    display_status(buf);
+    statusbar_send_text(std::string(buf));
     free(filename);
     useFilename = false;
 
@@ -437,7 +439,7 @@ void savestates_load(bool silenceNotFoundError)
             }
             else
             {
-                display_status("Warning: loading non-movie savestate can desync playback");
+                statusbar_send_text("Warning: loading non-movie savestate can desync playback");
             }
         }
 
@@ -501,7 +503,7 @@ void savestates_load(bool silenceNotFoundError)
             }
             else
             {
-                display_status("Warning: loading non-movie savestate can break recording");
+                statusbar_send_text("Warning: loading non-movie savestate can break recording");
             }
         }
     }
@@ -616,7 +618,7 @@ void savestates_load_old(bool silenceNotFoundError)
             return;
         }
     }
-    display_status(str);
+    statusbar_send_text(std::string(str));
     free(filename);
 
     //printf("--------st start---------\n");
@@ -775,7 +777,7 @@ void savestates_load_old(bool silenceNotFoundError)
             }
             else
             {
-                display_status("Warning: this savestate is mismatched");
+                statusbar_send_text("Warning: this savestate is mismatched");
             }
         }
     }
@@ -783,7 +785,7 @@ void savestates_load_old(bool silenceNotFoundError)
     {
         if (VCR_isActive() && Config.is_state_independent_state_loading_allowed)
         {
-            display_status("Warning: non-movie savestate\n");
+            statusbar_send_text("Warning: non-movie savestate\n");
         }
         else if (VCR_isActive() && !silenceNotFoundError && !lockNoStWarn) //@TODO: lockNoStWarn is not used anywhere!!!
         {

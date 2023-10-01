@@ -14,23 +14,18 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef ROMBROWSER_H
-#define ROMBROWSER_H
+#pragma once
 
 #include <windows.h>
-#include <commctrl.h>
-
 #include "rom.h"
-#include "../md5.h"
 
-typedef struct s_rombrowser_entry
+using t_rombrowser_entry = struct s_rombrowser_entry
 {
 	std::string path;
 	std::string filename;
 	std::string size;
 	t_rom_header rom_header;
-} t_rombrowser_entry;
-
+};
 
 /**
  * \brief Creates the rombrowser control
@@ -48,7 +43,6 @@ void rombrowser_build();
  */
 void rombrowser_set_visibility(int32_t is_visible);
 
-
 /**
  * \brief Updates the rombrowser control's size
  */
@@ -59,5 +53,3 @@ void rombrowser_update_size();
  * \param lparam The lparam value associated with the current message processing pass
  */
 void rombrowser_notify(LPARAM lparam);
-
-#endif

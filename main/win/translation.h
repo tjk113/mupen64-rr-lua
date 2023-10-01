@@ -22,7 +22,6 @@ void SetupLanguages(HWND hWnd);
 void Translate(const char* GuiWord, char* Ret);
 void TranslateDefault(const char* GuiWord, const char* Default, char* Ret);
 void SetItemTranslatedString(HWND hwnd, int ElementID, const char* Str);
-void SetStatusTranslatedString(HWND hStatus, int section, const char* Str);
 void SetMenuTranslatedString(HMENU hMenu, int elementID, const char* Str,
                              const char* Acc);
 void SetMenuAccelerator(HMENU hMenu, int elementID, const char* Acc);

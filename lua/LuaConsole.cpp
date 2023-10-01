@@ -37,6 +37,7 @@
 #include <assert.h>
 
 #include "Recent.h"
+#include "win/features/Statusbar.hpp"
 
 #pragma comment(lib, "lua54.lib")
 #pragma comment (lib,"Gdiplus.lib")
@@ -3497,7 +3498,7 @@ namespace LuaEngine
 
 	int StatusbarWrite(lua_State* L)
 	{
-		SendMessage(hStatus, (WM_USER + 1), 0, (LPARAM)lua_tostring(L, 1));
+		statusbar_send_text(std::string(lua_tostring(L, 1)));
 		return 0;
 	}
 

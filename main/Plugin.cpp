@@ -37,8 +37,9 @@
 #include "../memory/memory.h"
 #include <win/main_win.h>
 
+#include "win/features/Statusbar.hpp"
+
 extern HWND mainHWND;
-extern HWND hStatus;
 extern HINSTANCE app_hInstance;
 
 CONTROL Controls[4];
@@ -209,13 +210,7 @@ int load_gfx(HMODULE handle_gfx)
 				dummy_void;
 
 		gfx_info.hWnd = mainHWND;
-		if (Config.is_statusbar_enabled)
-		{
-			gfx_info.hStatusBar = hStatus;
-		} else
-		{
-			gfx_info.hStatusBar = NULL;
-		}
+		gfx_info.hStatusBar = Config.is_statusbar_enabled ? statusbar_hwnd : nullptr;
 		gfx_info.MemoryBswaped = TRUE;
 		gfx_info.HEADER = rom;
 		gfx_info.RDRAM = (BYTE*)rdram;
@@ -745,8 +740,8 @@ void setup_dummy_info()
 	int i;
 
 	/////// GFX ///////////////////////////
-	dummy_gfx_info.hWnd = hStatus;
-	dummy_gfx_info.hStatusBar = hStatus;
+	dummy_gfx_info.hWnd = statusbar_hwnd;
+	dummy_gfx_info.hStatusBar = statusbar_hwnd;
 	dummy_gfx_info.MemoryBswaped = TRUE;
 	dummy_gfx_info.HEADER = (BYTE*)dummy_header;
 	dummy_gfx_info.RDRAM = (BYTE*)rdram;

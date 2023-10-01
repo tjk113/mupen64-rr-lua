@@ -24,26 +24,14 @@
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
 extern void ShowMessage(const char* lpszMessage);
-extern void CreateStatusBarWindow(HWND hwnd);
-extern void SetStatusMode(int mode);
 extern char* getExtension(char* str);
-
-/**
- * \brief Updates the toolbar's visibility to the respective config value, or disables it if VCR is capturing
- */
-extern void update_toolbar_visibility();
-
-/**
- * \brief Updates the statusbar's visibility to the respective config value
- */
-extern void update_statusbar_visibility();
 
 /********* Global Variables **********/
 extern char TempMessage[200];
 extern int emu_launched; // emu_emulating
 extern int emu_paused;
 extern int recording;
-extern HWND hTool, mainHWND, hStatus;
+extern HWND mainHWND;
 extern HINSTANCE app_hInstance;
 extern BOOL manualFPSLimit;
 extern char statusmsg[800];

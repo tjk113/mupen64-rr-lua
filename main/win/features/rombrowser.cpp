@@ -1,15 +1,18 @@
-#include "RomBrowser.hpp"
-#include "main_win.h"
-#include "rom.h"
-#include "../../winproject/resource.h"
-#include "helpers/io_helpers.h"
-#include "helpers/string_helpers.h"
+#include <Windows.h>
 #include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <vector>
+#include <commctrl.h>
+#include "RomBrowser.hpp"
 
-#include "Config.hpp"
+#include "Statusbar.hpp"
+#include "Toolbar.hpp"
+#include "../main_win.h"
+#include "../../winproject/resource.h"
+#include "helpers/io_helpers.h"
+#include "helpers/string_helpers.h"
+#include "../Config.hpp"
 
 HWND rombrowser_hwnd = nullptr;
 std::vector<t_rombrowser_entry*> rombrowser_entries;
@@ -23,8 +26,8 @@ void rombrowser_create()
 
 	RECT rcl, rtool, rstatus;
 	GetClientRect(mainHWND, &rcl);
-	GetWindowRect(hTool, &rtool);
-	GetWindowRect(hStatus, &rstatus);
+	GetWindowRect(toolbar_hwnd, &rtool);
+	GetWindowRect(statusbar_hwnd, &rstatus);
 
 	rombrowser_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
 	                                 WS_TABSTOP | WS_VISIBLE | WS_CHILD |
@@ -243,20 +246,21 @@ void rombrowser_update_size()
 	if (!IsWindow(rombrowser_hwnd))
 		return;
 
+	// TODO: clean up this mess
 	RECT rc, rc_main;
 	WORD n_width, n_height;
 	int32_t y = 0;
 	GetClientRect(mainHWND, &rc_main);
 	n_width = rc_main.right - rc_main.left;
 	n_height = rc_main.bottom - rc_main.top;
-	if (IsWindow(hStatus))
+	if (statusbar_hwnd)
 	{
-		GetWindowRect(hStatus, &rc);
+		GetWindowRect(statusbar_hwnd, &rc);
 		n_height -= (WORD)(rc.bottom - rc.top);
 	}
-	if (IsWindow(hTool))
+	if (toolbar_hwnd)
 	{
-		GetWindowRect(hTool, &rc);
+		GetWindowRect(toolbar_hwnd, &rc);
 		y += (WORD)(rc.bottom - rc.top);
 	}
 	MoveWindow(rombrowser_hwnd, 0, y, n_width, n_height - y, TRUE);

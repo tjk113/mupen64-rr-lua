@@ -230,15 +230,6 @@ void SetItemTranslatedStringDefault(HWND hwnd, int ElementID, const char* Str, c
     SetDlgItemText(hwnd, ElementID, String);
 }
 
-
-void SetStatusTranslatedString(HWND hStatus, int section, const char* Str)
-{
-    char String[800];
-    Translate(Str, String);
-    if (section == 0) strcpy(statusmsg, String);
-    SendMessage(hStatus, SB_SETTEXT, section, (LPARAM)String);
-}
-
 void SetMenuTranslatedString(HMENU hMenu, int elementID, const char* Str, const char* Acc)
 {
     char String[800];
