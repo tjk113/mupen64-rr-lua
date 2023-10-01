@@ -83,7 +83,7 @@
             <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
             <SubSystem>Windows</SubSystem>
             <RandomizedBaseAddress>false</RandomizedBaseAddress>
-            <DataExecutionPrevention>false</DataExecutionPrevention>
+            <DataExecutionPrevention>true</DataExecutionPrevention>
             <TargetMachine>MachineX86</TargetMachine>
             <IgnoreSpecificDefaultLibraries>
             </IgnoreSpecificDefaultLibraries>
@@ -129,7 +129,7 @@
             <OptimizeReferences>true</OptimizeReferences>
             <EnableCOMDATFolding>true</EnableCOMDATFolding>
             <RandomizedBaseAddress>false</RandomizedBaseAddress>
-            <DataExecutionPrevention>false</DataExecutionPrevention>
+            <DataExecutionPrevention>true</DataExecutionPrevention>
             <TargetMachine>MachineX86</TargetMachine>
             <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
             <Profile>false</Profile>
