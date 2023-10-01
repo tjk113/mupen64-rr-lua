@@ -306,10 +306,7 @@ void ChangeSettings(HWND hwndOwner)
     }
     save_config();
     
-    toolbar_set_visibility(Config.is_toolbar_enabled);
-    statusbar_set_visibility(Config.is_statusbar_enabled);
-    statusbar_set_mode(emu_launched ? statusbar_mode::emulating : statusbar_mode::rombrowser);
-    toolbar_on_emu_state_changed(emu_launched, !emu_paused);
+    rombrowser_build();
 }
 
 
@@ -853,18 +850,16 @@ std::string hotkey_to_string_overview(t_hotkey* hotkey)
     return hotkey->identifier + " (" + hotkey_to_string(hotkey) + ")"; 
 }
 
-int32_t get_hotkey_array_index_from_selected_identifier(std::string selected_identifier)
+int32_t get_hotkey_array_index_from_overview(std::string overview)
 {
-    int32_t indexInHotkeyArray = -1;
     for (size_t i = 0; i < hotkeys.size(); i++)
     {
-        if (selected_identifier == hotkey_to_string_overview(hotkeys[i]))
+        if (overview == hotkey_to_string_overview(hotkeys[i]))
         {
-            indexInHotkeyArray = i;
-            break;
+            return i;
         }
     }
-    return indexInHotkeyArray;
+    return -1;
 }
 
 void update_selected_hotkey_view(const HWND dialog_hwnd)
@@ -875,7 +870,7 @@ void update_selected_hotkey_view(const HWND dialog_hwnd)
     char selected_identifier[MAX_PATH] = {0};
     SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
 
-    const int index_in_hotkey_array = get_hotkey_array_index_from_selected_identifier(std::string(selected_identifier));
+    const int32_t index_in_hotkey_array = get_hotkey_array_index_from_overview(std::string(selected_identifier));
 
     if (index_in_hotkey_array >= 0 && index_in_hotkey_array < hotkeys.size())
     {
@@ -892,14 +887,14 @@ void build_hotkey_list(HWND list_hwnd, std::string search_query)
 {
     SendMessage(list_hwnd, LB_RESETCONTENT, 0, 0);
 
-    for (size_t i = 0; i < hotkeys.size(); i++)
+    for (const auto& hotkey : hotkeys)
     {
-        std::string hotkey_string = hotkey_to_string_overview(hotkeys[i]);
+        std::string hotkey_string = hotkey_to_string_overview(hotkey);
 
         if (!search_query.empty())
         {
             if (!contains(to_lower(hotkey_string), to_lower(search_query))
-                && !contains(to_lower(hotkeys[i]->identifier), to_lower(search_query)))
+                && !contains(to_lower(hotkey->identifier), to_lower(search_query)))
             {
                 continue;
             }
@@ -937,18 +932,18 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 SendMessage(listHwnd, LB_GETTEXT, SendMessage(listHwnd, LB_GETCURSEL, 0, 0),
                             (LPARAM)selected_identifier);
 
-                int32_t index = get_hotkey_array_index_from_selected_identifier(std::string(selected_identifier));
+                const int32_t index = get_hotkey_array_index_from_overview(std::string(selected_identifier));
 
                 if (index >= 0 && index < hotkeys.size())
                 {
                     SetDlgItemText(hwnd, id, "...");
 
                     get_user_hotkey(hotkeys[index]);
-                    update_selected_hotkey_view(hwnd);
 
                     char search_query[MAX_PATH] = {0};
                     GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, search_query, std::size(search_query));
                     build_hotkey_list(GetDlgItem(hwnd, IDC_HOTKEY_LIST), search_query);
+                    update_selected_hotkey_view(hwnd);
                 }
             }
 

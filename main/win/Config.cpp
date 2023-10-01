@@ -577,16 +577,21 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 {
 	if (is_reading)
 	{
-		hotkey->key = std::stoi(ini["Config"][field_name + "_key"]);
-		hotkey->ctrl = std::stoi(ini["Config"][field_name + "_ctrl"]);
-		hotkey->shift = std::stoi(ini["Config"][field_name + "_shift"]);
-		hotkey->alt = std::stoi(ini["Config"][field_name + "_alt"]);
+		if (!ini.has(field_name))
+		{
+			return;
+		}
+
+		hotkey->key = std::stoi(ini[field_name]["key"]);
+		hotkey->ctrl = std::stoi(ini[field_name]["ctrl"]);
+		hotkey->shift = std::stoi(ini[field_name]["shift"]);
+		hotkey->alt = std::stoi(ini[field_name]["alt"]);
 	} else
 	{
-		ini["Config"][field_name + "_key"] = std::to_string(hotkey->key);
-		ini["Config"][field_name + "_ctrl"] = std::to_string(hotkey->ctrl);
-		ini["Config"][field_name + "_shift"] = std::to_string(hotkey->shift);
-		ini["Config"][field_name + "_alt"] = std::to_string(hotkey->alt);
+		ini[field_name]["key"] = std::to_string(hotkey->key);
+		ini[field_name]["ctrl"] = std::to_string(hotkey->ctrl);
+		ini[field_name]["shift"] = std::to_string(hotkey->shift);
+		ini[field_name]["alt"] = std::to_string(hotkey->alt);
 	}
 }
 
@@ -841,7 +846,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
 			{
 				// HACK to avoid exiting all the way out of the dialog on pressing escape to clear a hotkeys
 				// or continually re-activating the button on trying to assign space as a hotkeys
-				if (j == VK_ESCAPE || j == VK_SPACE)
+				if (j == VK_ESCAPE)
 					return 0;
 
 				if (j == VK_CONTROL)
