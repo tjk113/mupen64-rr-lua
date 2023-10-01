@@ -239,7 +239,6 @@ void rombrowser_build()
 {
 	if (rombrowser_is_loading)
 	{
-		MessageBox(mainHWND, "Rombrowser is busy", NULL, 0);
 		return;
 	}
 
@@ -248,7 +247,6 @@ void rombrowser_build()
 		rombrowser_is_loading = 1;
 		rombrowser_build_impl();
 		rombrowser_is_loading = 0;
-		Sleep(3000);
 	}).detach();
 }
 
