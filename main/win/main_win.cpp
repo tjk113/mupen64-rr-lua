@@ -2772,19 +2772,18 @@ int WINAPI WinMain(
 
 		toolbar_set_visibility(Config.is_toolbar_enabled);
 		statusbar_set_visibility(Config.is_statusbar_enabled);
-
-		UpdateWindow(hwnd);
-
 		setup_dummy_info();
 		search_plugins();
 		rombrowser_create();
 		rombrowser_build();
+		rombrowser_update_size();
 
 		vcr_recent_movies_build();
 		lua_recent_scripts_build();
 		main_recent_roms_build();
 
 		EnableEmulationMenuItems(0);
+
 		if (!StartGameByCommandLine())
 		{
 			cmdlineMode = 0;
@@ -2800,7 +2799,6 @@ int WINAPI WinMain(
 		//
 		// raise continuable exception
 		//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
-
 
 		while (GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
