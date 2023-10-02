@@ -31,7 +31,5 @@ void TranslateRomBrowserMenu(HMENU hMenu);
 void TranslateAuditDialog(HWND hwnd);
 void TranslateGeneralDialog(HWND hwnd);
 void TranslateLangInfoDialog(HWND hwnd);
-void TranslateAdvancedDialog(HWND hwnd);
-void TranslateHotkeyDialog(HWND hwnd);
 void freeLanguages();
 void SetMenuAcceleratorsFromUser(HWND hwnd);

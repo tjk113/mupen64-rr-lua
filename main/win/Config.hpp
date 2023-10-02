@@ -231,7 +231,7 @@ typedef struct _CONFIG
 	/// Whether rom resets are not recorded in movies
 	/// TODO: Negate related conditions and wording
 	/// </summary>
-	int32_t is_reset_recording_disabled;
+	int32_t is_reset_recording_enabled;
 
 	/// <summary>
 	/// Whether video will forcibly be captured by mupen itself

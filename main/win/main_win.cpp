@@ -2014,10 +2014,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case EMU_RESET:
-				if (Config.is_reset_recording_disabled && warn_recording())break
-					;
+				if (!Config.is_reset_recording_enabled && warn_recording())
+					break;
 				extern int m_task;
-				if (m_task == 3 && !Config.is_reset_recording_disabled)
+				if (m_task == 3 && Config.is_reset_recording_enabled)
 				//recording
 				{
 					scheduled_restart = true;
@@ -2025,7 +2025,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					statusbar_send_text("Writing restart to movie");
 					break;
 				}
-			//resttart_mode = 1; //has issues
 				resetEmu();
 				break;
 

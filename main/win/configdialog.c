@@ -794,14 +794,10 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
         WriteCheckBoxValue(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
         WriteCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
         WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, Config.is_lua_double_buffered);
-        WriteCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY, !Config.is_audio_delay_enabled);
-        WriteCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP, !Config.is_compiled_jump_enabled);
-
-        WriteCheckBoxValue(hwnd, IDC_NORESET, !Config.is_reset_recording_disabled);
-
+        WriteCheckBoxValue(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
+        WriteCheckBoxValue(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
+        WriteCheckBoxValue(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
         WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
-
-        TranslateAdvancedDialog(hwnd);
         return TRUE;
 
 
@@ -815,10 +811,10 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
             Config.is_float_exception_propagation_enabled = ReadCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES);
 
             Config.is_lua_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
-            Config.is_audio_delay_enabled = !ReadCheckBoxValue(hwnd, IDC_NO_AUDIO_DELAY);
-            Config.is_compiled_jump_enabled = !ReadCheckBoxValue(hwnd, IDC_NO_COMPILED_JUMP);
+            Config.is_audio_delay_enabled = ReadCheckBoxValue(hwnd, IDC_ENABLE_AUDIO_DELAY);
+            Config.is_compiled_jump_enabled = ReadCheckBoxValue(hwnd, IDC_ENABLE_COMPILED_JUMP);
 
-            Config.is_reset_recording_disabled = ReadCheckBoxValue(hwnd, IDC_NORESET) == 0;
+            Config.is_reset_recording_enabled = ReadCheckBoxValue(hwnd, IDC_RECORD_RESETS);
             Config.is_internal_capture_forced = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
 
             rombrowser_build();

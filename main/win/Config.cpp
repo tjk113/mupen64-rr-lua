@@ -544,7 +544,7 @@ CONFIG get_default_config()
 	config.rombrowser_column_widths = {250, 150, 70, 70, 200, 100, 100};
 	config.rombrowser_rom_paths = {};
 	config.is_rombrowser_recursion_enabled = 0;
-	config.is_reset_recording_disabled = 1;
+	config.is_reset_recording_enabled = 1;
 	config.is_internal_capture_forced = 0;
 	config.is_capture_cropped_screen_dc = 0;
 	config.is_unknown_hotkey_selection_allowed = 1;
@@ -767,7 +767,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_INT_VALUE(rombrowser_sorted_column)
 	HANDLE_VALUE(rombrowser_sort_method)
 	HANDLE_INT_VALUE(is_rombrowser_recursion_enabled)
-	HANDLE_INT_VALUE(is_reset_recording_disabled)
+	HANDLE_INT_VALUE(is_reset_recording_enabled)
 	HANDLE_INT_VALUE(is_unknown_hotkey_selection_allowed)
 	HANDLE_VALUE(avi_capture_path)
 	HANDLE_INT_VALUE(synchronization_mode)

@@ -222,8 +222,8 @@
 #define IDC_COLUMN_COMMENTS             5511
 #define IDC_COMMON                      5513
 #define IDC_COMPATIBILITY               5514
-#define IDC_NO_AUDIO_DELAY              5515
-#define IDC_NO_COMPILED_JUMP            5516
+#define IDC_ENABLE_AUDIO_DELAY              5515
+#define IDC_ENABLE_COMPILED_JUMP            5516
 #define IDD_HOTKEY_CONFIG               5518
 #define IDC_WARNING_OPTIONS             5519
 #define IDC_RECORDINGOPT                5520
@@ -402,7 +402,7 @@
 #define IDC_TEXTBOX_LUAPROMPT           9525
 #define ID_LANG_ENGLISH                 10005
 #define IDC_ROUNDTOZERO                 10007
-#define IDC_NORESET                     10008
+#define IDC_RECORD_RESETS                     10008
 #define IDC_FORCEINTERNAL               10009
 #define IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING 10010
 #define IDC_EMULATEFLOATCRASHES         10011
