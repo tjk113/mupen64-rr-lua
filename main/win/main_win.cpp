@@ -405,6 +405,18 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 			}
 		}
 
+		CloseAllLuaScript();
+		// the emu thread will die soon and won't be able to call LuaProcessMessages(),
+		// so we need to run the pump one time manually before closing to get our messages processed
+		LuaProcessMessages();
+
+		// and that message pass doesn't do anything besides telling the windows to close
+		// so now we have to wait until they actually clean up their shit
+		while (!LuaEngine::is_hwnd_map_empty())
+		{
+			printf("Pumping messages until lua cleans up...\n");
+			LuaProcessMessages();
+		}
 
 		printf("Closing emulation thread...\n");
 		stop_it();

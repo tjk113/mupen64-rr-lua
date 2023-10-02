@@ -47,6 +47,7 @@ void instrStr2(unsigned long pc, unsigned long w, char* buffer);
 //無理やりinline関数に
 namespace LuaEngine
 {
+	int32_t is_hwnd_map_empty();
 	void PCBreak(void*, unsigned long);
 	extern void* pcBreakMap_[0x800000 / 4];
 }

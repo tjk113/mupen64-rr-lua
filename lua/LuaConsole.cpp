@@ -166,6 +166,11 @@ namespace LuaEngine
 
 	int getn(lua_State*);
 
+	int32_t is_hwnd_map_empty()
+	{
+		return hwnd_lua_map.empty();
+	}
+
 
 	//improved debug print from stackoverflow, now shows function info
 #ifdef _DEBUG
@@ -1129,24 +1134,17 @@ namespace LuaEngine
 	void SetButtonState(HWND wnd, bool state)
 	{
 		if (!IsWindow(wnd)) return;
-		HWND stateButton = GetDlgItem(wnd, IDC_BUTTON_LUASTATE),
-		     stopButton = GetDlgItem(wnd, IDC_BUTTON_LUASTOP);
+		const HWND state_button = GetDlgItem(wnd, IDC_BUTTON_LUASTATE);
+		const HWND stop_button = GetDlgItem(wnd, IDC_BUTTON_LUASTOP);
 		if (state)
 		{
-			SetWindowText(stateButton, "Restart");
-			SetWindowLongPtr(stopButton, GWL_STYLE,
-			                 GetWindowLongPtr(stopButton, GWL_STYLE) & ~
-			                 WS_DISABLED);
+			SetWindowText(state_button, "Restart");
+			EnableWindow(stop_button, TRUE);
 		} else
 		{
-			SetWindowText(stateButton, "Run");
-			SetWindowLongPtr(stopButton, GWL_STYLE,
-			                 GetWindowLongPtr(stopButton, GWL_STYLE) |
-			                 WS_DISABLED);
+			SetWindowText(state_button, "Run");
+			EnableWindow(stop_button, FALSE);
 		}
-		//redraw
-		InvalidateRect(stateButton, NULL, FALSE);
-		InvalidateRect(stopButton, NULL, FALSE);
 	}
 
 	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control)
