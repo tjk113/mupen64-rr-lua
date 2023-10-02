@@ -191,6 +191,7 @@
         <ClInclude Include="..\..\memory\pif.h" />
         <ClInclude Include="..\..\memory\pif2.h" />
         <ClInclude Include="..\..\memory\tlb.h" />
+        <ClInclude Include="..\..\memory\summercart.h" />
         <ClInclude Include="..\..\r4300\cop1_helpers.h" />
         <ClInclude Include="..\..\r4300\exception.h" />
         <ClInclude Include="..\..\r4300\interupt.h" />
@@ -317,6 +318,7 @@
         <ClCompile Include="..\..\memory\memory.c" />
         <ClCompile Include="..\..\memory\pif.c" />
         <ClCompile Include="..\..\memory\tlb.c" />
+        <ClCompile Include="..\..\memory\summercart.c" />
         <ClCompile Include="..\..\r4300\bc.c">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
