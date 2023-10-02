@@ -601,6 +601,12 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 {
 	if (is_reading)
 	{
+		// keep the default value if the key doesnt exist
+		// it will be created upon saving anyway
+		if (!ini["Config"].has(field_name))
+		{
+			return;
+		}
 		*value = std::stoi(ini["Config"][field_name]);
 	} else
 	{
@@ -613,6 +619,12 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 {
 	if (is_reading)
 	{
+		// keep the default value if the key doesnt exist
+		// it will be created upon saving anyway
+		if (!ini["Config"].has(field_name))
+		{
+			return;
+		}
 		value = ini["Config"][field_name];
 	} else
 	{
