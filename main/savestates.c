@@ -40,6 +40,7 @@
 #include "rom.h"
 #include "../memory/memory.h"
 #include "../memory/flashram.h"
+#include "../memory/summercart.h"
 #include "../r4300/r4300.h"
 #include "../r4300/interupt.h"
 #include "win/main_win.h"
@@ -114,6 +115,8 @@ void savestates_save()
     
     statusbar_send_text(std::string(statusString));
     useFilename = false;
+
+    if (Config.use_summercart) save_summercart(filename);
 
     f = gzopen(filename, "wb");
     free(filename);
@@ -365,6 +368,7 @@ void savestates_load(bool silenceNotFoundError)
         return;
     }
     statusbar_send_text(std::string(buf));
+    if (Config.use_summercart) load_summercart(filename);
     free(filename);
     useFilename = false;
 

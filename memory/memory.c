@@ -44,6 +44,7 @@
 #include "../r4300/ops.h"
 #include "pif.h"
 #include "flashram.h"
+#include "summercart.h"
 #include "../main/plugin.hpp"
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"
@@ -1012,6 +1013,28 @@ int init_memory()
         writememh[0xb000 + i] = write_nothingh;
         writememd[0x9000 + i] = write_nothingd;
         writememd[0xb000 + i] = write_nothingd;
+    }
+
+    //init SUMMERCART
+    if (Config.use_summercart)
+    {
+        readmem[0x9fff] = read_sc_reg;
+        readmem[0xbfff] = read_sc_reg;
+        readmemb[0x9fff] = read_sc_regb;
+        readmemb[0xbfff] = read_sc_regb;
+        readmemh[0x9fff] = read_sc_regh;
+        readmemh[0xbfff] = read_sc_regh;
+        readmemd[0x9fff] = read_sc_regd;
+        readmemd[0xbfff] = read_sc_regd;
+        writemem[0x9fff] = write_sc_reg;
+        writemem[0xbfff] = write_sc_reg;
+        writememb[0x9fff] = write_sc_regb;
+        writememb[0xbfff] = write_sc_regb;
+        writememh[0x9fff] = write_sc_regh;
+        writememh[0xbfff] = write_sc_regh;
+        writememd[0x9fff] = write_sc_regd;
+        writememd[0xbfff] = write_sc_regd;
+        init_summercart();
     }
 
     use_flashram = 0;
@@ -3677,4 +3700,46 @@ void write_pifd()
         else
             update_pif_write();
     }
+}
+
+void read_sc_reg()
+{
+    *rdword = read_summercart(address);
+}
+
+void read_sc_regb()
+{
+    *rdword = read_summercart(address) >> ((address & 3) << 3) & 0xFF;
+}
+
+void read_sc_regh()
+{
+    *rdword = read_summercart(address) >> ((address & 2) << 3) & 0xFFFF;
+}
+
+void read_sc_regd()
+{
+    MessageBox(NULL, "el RCP no tiene la segunda palabra :(", "error", MB_OK|MB_ICONERROR|MB_TOPMOST);
+    stop = 1;
+}
+
+void write_sc_reg()
+{
+    write_summercart(address, word);
+}
+
+void write_sc_regb()
+{
+    /* necesito la palabra completa pero no lo tengo en el recompilador */
+    write_summercart(address, g_byte << ((~address & 3) << 3));
+}
+
+void write_sc_regh()
+{
+    write_summercart(address, hword << ((~address & 2) << 3));
+}
+
+void write_sc_regd()
+{
+    write_summercart(address, dword >> 32);
 }

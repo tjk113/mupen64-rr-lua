@@ -553,6 +553,7 @@ CONFIG get_default_config()
 	config.lua_script_path = "";
 	config.recent_lua_script_paths = {};
 	config.is_recent_scripts_frozen = 0;
+	config.use_summercart = 0;
 	config.is_round_towards_zero_enabled = 0;
 	config.is_float_exception_propagation_enabled = 0;
 	config.is_audio_delay_enabled = 1;
@@ -774,6 +775,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_VALUE(lua_script_path)
 	HANDLE_VALUE(recent_lua_script_paths)
 	HANDLE_INT_VALUE(is_recent_scripts_frozen)
+	HANDLE_INT_VALUE(use_summercart)
 	HANDLE_INT_VALUE(is_round_towards_zero_enabled)
 	HANDLE_INT_VALUE(is_float_exception_propagation_enabled)
 	HANDLE_INT_VALUE(is_audio_delay_enabled)

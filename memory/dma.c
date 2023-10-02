@@ -37,6 +37,7 @@
 #include <malloc.h>
 #include "pif.h"
 #include "flashram.h"
+#include "summercart.h"
 #include "../main/guifuncs.h"
 #include "../r4300/ops.h"
 #include "../main/win/GameDebugger.h"
@@ -46,6 +47,7 @@ unsigned char sram[0x8000];
 
 void dma_pi_read()
 {
+    unsigned long longueur;
     int i;
 
     if (pi_register.pi_cart_addr_reg >= 0x08000000 &&
@@ -78,6 +80,37 @@ void dma_pi_read()
         }
         else
             dma_write_flashram();
+    }
+    else if (Config.use_summercart)
+    {
+        longueur = (pi_register.pi_rd_len_reg & 0xFFFFFF) + 1;
+        if (pi_register.pi_cart_addr_reg >= 0x1ffe0000 &&
+            pi_register.pi_cart_addr_reg < 0x1fff0000)
+        {
+            for (i = 0; i < longueur; i++)
+            {
+                unsigned long dram = (pi_register.pi_dram_addr_reg + i);
+                unsigned long cart = (pi_register.pi_cart_addr_reg + i) - 0x1ffe0000;
+                if (dram > 0x7FFFFF || cart > 0x1FFF) break;
+                summercart.buffer[cart ^ S8] = ((char*)rdram)[dram ^ S8];
+            }
+        }
+        else if (pi_register.pi_cart_addr_reg >= 0x10000000 &&
+            pi_register.pi_cart_addr_reg < 0x14000000 &&
+            summercart.cfg_rom_write)
+        {
+            for (i = 0; i < longueur; i++)
+            {
+                unsigned long dram = (pi_register.pi_dram_addr_reg + i);
+                unsigned long cart = (pi_register.pi_cart_addr_reg + i) - 0x10000000;
+                if (dram > 0x7FFFFF || cart > 0x3FFFFFF) break;
+                rom[cart ^ S8] = ((char*)rdram)[dram ^ S8];
+            }
+        }
+        pi_register.read_pi_status_reg |= 1;
+        update_count();
+        add_interupt_event(PI_INT, longueur / 8);
+        return;
     }
     else
         printf("unknown dma read\n");
@@ -137,6 +170,24 @@ void dma_pi_write()
         return;
     }
 
+    longueur = (pi_register.pi_wr_len_reg & 0xFFFFFF) + 1;
+
+    if (Config.use_summercart && pi_register.pi_cart_addr_reg >= 0x1ffe0000 &&
+        pi_register.pi_cart_addr_reg < 0x1fff0000)
+    {
+        for (i = 0; i < longueur; i++)
+        {
+            unsigned long dram = (pi_register.pi_dram_addr_reg + i);
+            unsigned long cart = (pi_register.pi_cart_addr_reg + i) - 0x1ffe0000;
+            if (dram > 0x7FFFFF || cart > 0x1FFF) break;
+            ((char*)rdram)[dram ^ S8] = summercart.buffer[cart ^ S8];
+        }
+        pi_register.read_pi_status_reg |= 1;
+        update_count();
+        add_interupt_event(PI_INT, longueur / 8);
+        return;
+    }
+
     if (pi_register.pi_cart_addr_reg >= 0x1fc00000) // for paper mario
     {
         pi_register.read_pi_status_reg |= 1;
@@ -145,7 +196,6 @@ void dma_pi_write()
         return;
     }
 
-    longueur = (pi_register.pi_wr_len_reg & 0xFFFFFF) + 1;
     i = (pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF;
     longueur = (i + longueur) > romByteCount ? (romByteCount - i) : longueur;
     longueur = (pi_register.pi_dram_addr_reg + longueur) > 0x7FFFFF

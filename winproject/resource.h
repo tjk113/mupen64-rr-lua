@@ -81,6 +81,7 @@
 #define IDC_HOTKEY_CLEAR                1019
 #define IDC_LIST1                       1019
 #define IDD_ABOUT                       1020
+#define IDC_USESUMMERCART               1021
 #define FULL_SCREEN                     1061
 #define EMU_PAUSE                       1062
 #define EMU_FRAMEADVANCE                1063
@@ -461,7 +462,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
