@@ -974,13 +974,13 @@ namespace LuaEngine
 						auto wnd = msg->destroyLua.wnd;
 						auto lua = hwnd_lua_map[wnd];
 
-						hwnd_lua_map.erase(wnd);
-
 						if (lua)
 						{
 							lua->stop();
 						}
+
 						delete lua;
+						hwnd_lua_map.erase(wnd);
 						break;
 					}
 				case LuaMessenger::LuaMessage::Types::RunPath:
