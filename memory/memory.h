@@ -343,6 +343,10 @@ void read_pif();
 void read_pifb();
 void read_pifh();
 void read_pifd();
+void read_sc_reg();
+void read_sc_regb();
+void read_sc_regh();
+void read_sc_regd();
 
 void write_nothing();
 void write_nothingb();
@@ -421,6 +425,10 @@ void write_pif();
 void write_pifb();
 void write_pifh();
 void write_pifd();
+void write_sc_reg();
+void write_sc_regb();
+void write_sc_regh();
+void write_sc_regd();
 
 void update_SP();
 void update_DPC();

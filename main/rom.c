@@ -238,6 +238,7 @@ int rom_read(const char* argv)
     mupenEntry* entry;
     bool invalidSize;
     char buf[1024], arg[1024], *s;
+    unsigned long taille;
 
     strncpy(arg, argv, 1000);
 
@@ -271,7 +272,9 @@ int rom_read(const char* argv)
     if (invalidSize && !Config.allow_suspicious_rom_loading) goto killRom;
 
     if (rom) free(rom);
-    rom = (unsigned char*)malloc(romByteCount);
+    taille = romByteCount;
+    if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
+    rom = (unsigned char*)malloc(taille);
 
     tmp = 0;
     if (!z)

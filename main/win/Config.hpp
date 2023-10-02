@@ -280,6 +280,11 @@ typedef struct _CONFIG
 	int32_t is_recent_scripts_frozen;
 
 	/// <summary>
+	/// SD card emulation
+	/// </summary>
+	int32_t use_summercart;
+
+	/// <summary>
 	/// Whether floats will be truncated when rounding
 	/// </summary>
 	int32_t is_round_towards_zero_enabled;
