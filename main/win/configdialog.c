@@ -35,6 +35,7 @@
 #include "../rom.h"
 #include "../main/win/wrapper/ReassociatingFileDialog.h"
 #include "../main/helpers/string_helpers.h"
+#include "../main/helpers/win_helpers.h"
 
 
 #include "configdialog.h"
@@ -59,25 +60,8 @@ ReassociatingFileDialog fdSelectPluginsFolder;
 ReassociatingFileDialog fdSelectSavesFolder;
 ReassociatingFileDialog fdSelectScreenshotsFolder;
 
-//HWND romInfoHWND;
 static DWORD dwExitCode;
 static DWORD Id;
-BOOL stopScan = FALSE;
-//HWND __stdcall CreateTrackbar(HWND hwndDlg, HMENU hMenu, UINT iMin, UINT iMax, UINT iSelMin, UINT iSelMax, UINT x, UINT y, UINT w); // winapi macro was very confusing
-
-HWND hwndTrackMovieBackup;
-
-void SwitchMovieBackupModifier(HWND hwnd)
-{
-    if (ReadCheckBoxValue(hwnd, IDC_MOVIEBACKUPS))
-    {
-        EnableWindow(hwndTrackMovieBackup, TRUE);
-    }
-    else
-    {
-        EnableWindow(hwndTrackMovieBackup, FALSE);
-    }
-}
 
 BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -88,26 +72,22 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
     {
     case WM_INITDIALOG:
         {
-            WriteCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
+            set_checkbox_state(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
 
-            static const char* clockSpeedMultiplierNames[] = {
+            static const char* clock_speed_multiplier_names[] = {
                 "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6"
             };
 
             // Populate CPU Clock Speed Multiplier Dropdown Menu
-            for (int i = 0; i < (int)(sizeof(clockSpeedMultiplierNames) / sizeof(clockSpeedMultiplierNames[0])); i++)
+            for (int i = 0; i < (int)(sizeof(clock_speed_multiplier_names) / sizeof(clock_speed_multiplier_names[0])); i++)
             {
                 SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0,
-                                   (LPARAM)clockSpeedMultiplierNames[i]);
+                                   (LPARAM)clock_speed_multiplier_names[i]);
             }
             index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1,
-                                       (LPARAM)clockSpeedMultiplierNames[Config.cpu_clock_speed_multiplier - 1]);
+                                       (LPARAM)clock_speed_multiplier_names[Config.cpu_clock_speed_multiplier - 1]);
             SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
-
-            // todo
-            //hwndTrackMovieBackup = CreateTrackbar(hwnd, (HMENU)ID_MOVIEBACKUP_TRACKBAR, 1, 3, Config.movieBackupsLevel, 3, 200, 55, 100);
-            SwitchMovieBackupModifier(hwnd);
-
+            
             switch (Config.synchronization_mode)
             {
             case VCR_SYNC_AUDIO_DUPL:
@@ -129,7 +109,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
     case WM_COMMAND:
         {
             char buf[50];
-            // dame tu xorita mamacita
+            // TODO: move into wm_notify psn_apply
             switch (LOWORD(wParam))
             {
             case IDC_AV_AUDIOSYNC:
@@ -148,9 +128,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                 ReadComboBoxValue(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
                 Config.cpu_clock_speed_multiplier = atoi(&buf[0]);
                 break;
-            case IDC_MOVIEBACKUPS:
-                SwitchMovieBackupModifier(hwnd);
-                break;
             default:
                 break;
             }
@@ -167,7 +144,7 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 
             if (l_nmhdr->code == PSN_APPLY)
             {
-                Config.is_rom_movie_compatibility_check_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTMOVIESERRORS);
+                Config.is_rom_movie_compatibility_check_enabled = get_checkbox_state(hwnd, IDC_ALERTMOVIESERRORS);
                 rombrowser_build();
                 LoadConfigExternals();
             }
@@ -180,19 +157,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
     return TRUE;
 }
 
-
-void WriteCheckBoxValue(HWND hwnd, int resourceID, int value)
-{
-    if (value)
-    {
-        SendMessage(GetDlgItem(hwnd, resourceID), BM_SETCHECK, BST_CHECKED, 0);
-    }
-}
-
-int ReadCheckBoxValue(HWND hwnd, int resourceID)
-{
-    return SendDlgItemMessage(hwnd, resourceID, BM_GETCHECK, 0, 0) == BST_CHECKED ? TRUE : FALSE;
-}
 
 void WriteComboBoxValue(HWND hwnd, int ResourceID, char* PrimaryVal, char* DefaultVal)
 {
@@ -712,12 +676,12 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     switch (Message)
     {
     case WM_INITDIALOG:
-        WriteCheckBoxValue(hwnd, IDC_SHOWFPS, Config.show_fps);
-        WriteCheckBoxValue(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
-        WriteCheckBoxValue(hwnd, IDC_MANAGEBADROM, Config.allow_suspicious_rom_loading);
-        WriteCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
+        set_checkbox_state(hwnd, IDC_SHOWFPS, Config.show_fps);
+        set_checkbox_state(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
+        set_checkbox_state(hwnd, IDC_ALLOW_SUSPICIOUS_ROMS, Config.allow_suspicious_rom_loading);
+        set_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
         SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
-        WriteCheckBoxValue(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING,
+        set_checkbox_state(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING,
                            Config.is_state_independent_state_loading_allowed);
 
         CheckDlgButton(hwnd, IDC_INTERP, Config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
@@ -728,7 +692,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         EnableWindow(GetDlgItem(hwnd, IDC_RECOMP), !emu_launched);
         EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
 
-        TranslateGeneralDialog(hwnd);
         return TRUE;
 
     case WM_COMMAND:
@@ -764,12 +727,12 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_NOTIFY:
         if (l_nmhdr->code == PSN_APPLY)
         {
-            Config.show_fps = ReadCheckBoxValue(hwnd, IDC_SHOWFPS);
-            Config.show_vis_per_second = ReadCheckBoxValue(hwnd, IDC_SHOWVIS);
-            Config.allow_suspicious_rom_loading = ReadCheckBoxValue(hwnd, IDC_MANAGEBADROM);
-            Config.is_savestate_warning_enabled = ReadCheckBoxValue(hwnd, IDC_ALERTSAVESTATEWARNINGS);
+            Config.show_fps = get_checkbox_state(hwnd, IDC_SHOWFPS);
+            Config.show_vis_per_second = get_checkbox_state(hwnd, IDC_SHOWVIS);
+            Config.allow_suspicious_rom_loading = get_checkbox_state(hwnd, IDC_ALLOW_SUSPICIOUS_ROMS);
+            Config.is_savestate_warning_enabled = get_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS);
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
-            Config.is_state_independent_state_loading_allowed = ReadCheckBoxValue(
+            Config.is_state_independent_state_loading_allowed = get_checkbox_state(
                 hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
             InitTimer();
         }
@@ -788,36 +751,34 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
     switch (Message)
     {
     case WM_INITDIALOG:
-        WriteCheckBoxValue(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
-        WriteCheckBoxValue(hwnd, IDC_GUI_TOOLBAR, Config.is_toolbar_enabled);
-        WriteCheckBoxValue(hwnd, IDC_GUI_STATUSBAR, Config.is_statusbar_enabled);
-        WriteCheckBoxValue(hwnd, IDC_USESUMMERCART, Config.use_summercart);
-        WriteCheckBoxValue(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
-        WriteCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
-        WriteCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER, Config.is_lua_double_buffered);
-        WriteCheckBoxValue(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
-        WriteCheckBoxValue(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
-        WriteCheckBoxValue(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
-        WriteCheckBoxValue(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
+       set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
+       set_checkbox_state(hwnd, IDC_GUI_TOOLBAR, Config.is_toolbar_enabled);
+       set_checkbox_state(hwnd, IDC_GUI_STATUSBAR, Config.is_statusbar_enabled);
+       set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
+       set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
+       set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
+       set_checkbox_state(hwnd, IDC_CLUADOUBLEBUFFER, Config.is_lua_double_buffered);
+       set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
+       set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
+       set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
+       set_checkbox_state(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
         return TRUE;
 
 
     case WM_NOTIFY:
         if (l_nmhdr->code == PSN_APPLY)
         {
-            Config.is_unfocused_pause_enabled = ReadCheckBoxValue(hwnd, IDC_PAUSENOTACTIVE);
-            Config.is_toolbar_enabled = ReadCheckBoxValue(hwnd, IDC_GUI_TOOLBAR);
-            Config.is_statusbar_enabled = ReadCheckBoxValue(hwnd, IDC_GUI_STATUSBAR);
-            Config.use_summercart = ReadCheckBoxValue(hwnd, IDC_USESUMMERCART);
-            Config.is_round_towards_zero_enabled = ReadCheckBoxValue(hwnd, IDC_ROUNDTOZERO);
-            Config.is_float_exception_propagation_enabled = ReadCheckBoxValue(hwnd, IDC_EMULATEFLOATCRASHES);
-
-            Config.is_lua_double_buffered = ReadCheckBoxValue(hwnd, IDC_CLUADOUBLEBUFFER);
-            Config.is_audio_delay_enabled = ReadCheckBoxValue(hwnd, IDC_ENABLE_AUDIO_DELAY);
-            Config.is_compiled_jump_enabled = ReadCheckBoxValue(hwnd, IDC_ENABLE_COMPILED_JUMP);
-
-            Config.is_reset_recording_enabled = ReadCheckBoxValue(hwnd, IDC_RECORD_RESETS);
-            Config.is_internal_capture_forced = ReadCheckBoxValue(hwnd, IDC_FORCEINTERNAL);
+            Config.is_unfocused_pause_enabled = get_checkbox_state(hwnd, IDC_PAUSENOTACTIVE);
+            Config.is_toolbar_enabled = get_checkbox_state(hwnd, IDC_GUI_TOOLBAR);
+            Config.is_statusbar_enabled = get_checkbox_state(hwnd, IDC_GUI_STATUSBAR);
+            Config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
+            Config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
+            Config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
+            Config.is_lua_double_buffered = get_checkbox_state(hwnd, IDC_CLUADOUBLEBUFFER);
+            Config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);
+            Config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);
+            Config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);
+            Config.is_internal_capture_forced = get_checkbox_state(hwnd, IDC_FORCEINTERNAL);
 
             rombrowser_build();
             LoadConfigExternals();
@@ -828,19 +789,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
         return FALSE;
     }
     return TRUE;
-}
-
-
-static void KillMessages()
-{
-    MSG Msg;
-    int i = 0;
-    while (GetMessage(&Msg, NULL, 0, 0) > 0 && i < 20)
-    {
-        //		TranslateMessage(&Msg);
-        //		DispatchMessage(&Msg);
-        i++;
-    }
 }
 
 std::string hotkey_to_string_overview(t_hotkey* hotkey)
@@ -957,66 +905,4 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         return FALSE;
     }
     return TRUE;
-}
-
-
-HWND WINAPI CreateTrackbar(
-    HWND hwndDlg, // handle of dialog box (parent window)
-    HMENU hMenu, // handle of trackbar to use as identifier
-    UINT iMin, // minimum value in trackbar range 
-    UINT iMax, // maximum value in trackbar range 
-    UINT iSelMin, // minimum value in trackbar selection 
-    UINT iSelMax, // maximum value in trackbar selection 
-    UINT x, // x pos
-    UINT y, // y pos
-    UINT w
-) // width
-{
-    HWND hwndTrack = CreateWindowEx(
-        0, // no extended styles 
-        TRACKBAR_CLASS, // class name 
-        "Trackbar Control", // title (caption) 
-        WS_CHILD | WS_VISIBLE |
-        /*TBS_TOOLTIPS |*/ TBS_FIXEDLENGTH | TBS_TOOLTIPS, // style 
-        (int)x, (int)y, // position 
-        (int)w, 30, // size 
-        hwndDlg, // parent window 
-        hMenu, // control identifier 
-        app_hInstance, // instance 
-        NULL); // no WM_CREATE parameter 
-
-
-    SendMessage(hwndTrack, TBM_SETRANGE,
-                (WPARAM)TRUE, // redraw flag 
-                (LPARAM)MAKELONG(iMin, iMax)); // min. & max. positions 
-
-    LPARAM pageSize;
-    if (iMax < 10)
-    {
-        pageSize = 1;
-        SendMessage(hwndTrack, TBM_SETTIC,
-                    0, 2);
-    }
-    else
-    {
-        pageSize = 10;
-        SendMessage(hwndTrack, TBM_SETTIC,
-                    0, 100);
-    }
-    SendMessage(hwndTrack, TBM_SETPAGESIZE,
-                0, pageSize); // new page size 
-    SendMessage(hwndTrack, TBM_SETLINESIZE,
-                0, pageSize);
-    /*
-        SendMessage(hwndTrack, TBM_SETSEL,
-            (WPARAM) FALSE,                  // redraw flag
-            (LPARAM) MAKELONG(iSelMin, iSelMax));
-    */
-    SendMessage(hwndTrack, TBM_SETPOS,
-                (WPARAM)TRUE, // redraw flag 
-                (LPARAM)iSelMin);
-
-    SetFocus(hwndTrack);
-
-    return hwndTrack;
 }

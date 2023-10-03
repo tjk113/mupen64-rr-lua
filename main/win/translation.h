@@ -26,10 +26,5 @@ void SetMenuTranslatedString(HMENU hMenu, int elementID, const char* Str,
                              const char* Acc);
 void SetMenuAccelerator(HMENU hMenu, int elementID, const char* Acc);
 void TranslateMenu(HMENU hMenu, HWND mainHWND);
-void TranslateRomInfoDialog(HWND hwnd);
-void TranslateRomBrowserMenu(HMENU hMenu);
-void TranslateAuditDialog(HWND hwnd);
-void TranslateGeneralDialog(HWND hwnd);
-void TranslateLangInfoDialog(HWND hwnd);
 void freeLanguages();
 void SetMenuAcceleratorsFromUser(HWND hwnd);

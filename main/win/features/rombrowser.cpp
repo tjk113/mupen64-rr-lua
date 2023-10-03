@@ -152,6 +152,10 @@ void rombrowser_add_rom(int32_t index, t_rombrowser_entry* rombrowser_entry)
 }
 void rombrowser_build_impl()
 {
+	// we disable redrawing because it would repaint after every added rom otherwise,
+	// which is slow and causes flicker
+	SendMessage(rombrowser_hwnd, WM_SETREDRAW, FALSE, 0);
+
 	ListView_DeleteAllItems(rombrowser_hwnd);
 	for (auto entry : rombrowser_entries)
 	{
@@ -197,6 +201,7 @@ void rombrowser_build_impl()
 			             || is_case_insensitive_equal(extension, ".rom");
 	             });
 
+
 	int32_t i = 0;
 	for (auto& path : filtered_rom_paths)
 	{
@@ -234,6 +239,7 @@ void rombrowser_build_impl()
 
 		i++;
 	}
+	SendMessage(rombrowser_hwnd, WM_SETREDRAW, TRUE, 0);
 }
 void rombrowser_build()
 {

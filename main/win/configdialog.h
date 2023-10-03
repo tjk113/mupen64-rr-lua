@@ -32,8 +32,6 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam,
                           LPARAM lParam);
 
 
-void WriteCheckBoxValue(HWND hwnd, int resourceID, int value);
-int ReadCheckBoxValue(HWND hwnd, int resourceID);
 void WriteComboBoxValue(HWND hwnd, int ResourceID, char* PrimaryVal,
                         char* DefaultVal);
 void ReadComboBoxValue(HWND hwnd, int ResourceID, char* ret);

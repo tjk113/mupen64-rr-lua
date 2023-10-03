@@ -148,6 +148,7 @@
         <ClInclude Include="..\..\main\ffmpeg_capture\ffmpeg_capture.hpp"/>
         <ClInclude Include="..\..\main\guifuncs.h"/>
         <ClInclude Include="..\..\main\helpers\io_helpers.h"/>
+        <ClInclude Include="..\..\main\helpers\win_helpers.h" />
         <ClInclude Include="..\..\main\ioapi.h">
             <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
         </ClInclude>
