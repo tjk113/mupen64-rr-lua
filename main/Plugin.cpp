@@ -652,9 +652,11 @@ void plugin_about(t_plugin* plugin)
 
 std::string get_plugins_directory()
 {
-	return Config.is_default_plugins_directory_used
-		       ? std::string("plugins\\")
-		       : Config.plugins_directory;
+	if (Config.is_default_plugins_directory_used)
+	{
+		return app_path + "plugin\\";
+	}
+	return Config.plugins_directory;
 }
 
 
