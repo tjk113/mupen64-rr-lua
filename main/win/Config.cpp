@@ -549,7 +549,7 @@ CONFIG get_default_config()
 	config.is_capture_cropped_screen_dc = 0;
 	config.is_unknown_hotkey_selection_allowed = 1;
 	config.avi_capture_path = "";
-	config.synchronization_mode = 1;
+	config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
 	config.lua_script_path = "";
 	config.recent_lua_script_paths = {};
 	config.is_recent_scripts_frozen = 0;

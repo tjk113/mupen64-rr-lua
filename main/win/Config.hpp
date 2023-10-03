@@ -258,8 +258,8 @@ typedef struct _CONFIG
 	/// <summary>
 	/// The audio-video synchronization mode
 	/// <para/>
-	/// 0 - drop/duplicate frames to synchronize with audio
-	/// 1 - insert empty audio samples to synchronize with video
+	/// 0 - drop/duplicate samples to synchronize with video
+	/// 1 - drop/duplicate frames to synchronize with audio
 	/// 2 - no synchronization
 	/// </summary>
 	int32_t synchronization_mode;

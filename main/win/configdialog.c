@@ -102,7 +102,10 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
             default:
                 break;
             }
-
+            
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_AUDIOSYNC), !VCR_isCapturing());
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_VIDEOSYNC), !VCR_isCapturing());
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_NOSYNC), !VCR_isCapturing());
 
             return TRUE;
         }
@@ -113,16 +116,13 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
             switch (LOWORD(wParam))
             {
             case IDC_AV_AUDIOSYNC:
-                if (!VCR_isCapturing())
-                    Config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
+                Config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
                 break;
             case IDC_AV_VIDEOSYNC:
-                if (!VCR_isCapturing())
-                    Config.synchronization_mode = VCR_SYNC_VIDEO_SNDROP;
+                Config.synchronization_mode = VCR_SYNC_VIDEO_SNDROP;
                 break;
             case IDC_AV_NOSYNC:
-                if (!VCR_isCapturing())
-                    Config.synchronization_mode = VCR_SYNC_NONE;
+                Config.synchronization_mode = VCR_SYNC_NONE;
                 break;
             case IDC_COMBO_CLOCK_SPD_MULT:
                 ReadComboBoxValue(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
