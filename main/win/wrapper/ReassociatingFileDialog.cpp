@@ -1,6 +1,8 @@
 #include "ReassociatingFileDialog.h"
 #include <shlobj.h>
 #include <stdio.h>
+
+#include "helpers/string_helpers.h"
 #pragma comment(lib,"comctl32.lib")
 #pragma comment(lib,"propsys.lib")
 #pragma comment(lib,"shlwapi.lib")
@@ -31,9 +33,13 @@ bool ReassociatingFileDialog::ShowFileDialog(char* path, const wchar_t* fTypes,
 				, IID_PPV_ARGS(&pFileDialog))); // nope
 	}
 	FAILSAFE(pFileDialog->GetOptions(&dwFlags));
-	FAILSAFE(
+	if (openDialog)
+	{
+		FAILSAFE(
 		pFileDialog->SetOptions((allowMultiSelect ? FOS_ALLOWMULTISELECT : 0)));
-	//dwFlags | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | 
+	}
+
+	//dwFlags | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST |
 	// scoped bc initialization should be skipped if FAILSAFE
 	{
 		COMDLG_FILTERSPEC fileTypes[] =
@@ -62,6 +68,15 @@ bool ReassociatingFileDialog::ShowFileDialog(char* path, const wchar_t* fTypes,
 				"[ReassociatingFileDialog]: Unable to create IShellItem from parsing lastPath name");
 	}
 	FAILSAFE(pFileDialog->SetFolder(shlPtr));
+
+	if (!openDialog)
+	{
+		// if we are saving a file, use the filter list's first extension as the default suffix
+		// because otherwise we get an extension-less file...
+		auto first_filter = split_wstring(fTypes, L";")[0];
+		first_filter.erase(0, 2);
+		pFileDialog->SetDefaultExtension(first_filter.c_str());
+	}
 
 	FAILSAFE(pFileDialog->Show(hWnd));
 	FAILSAFE(pFileDialog->GetResult(&pShellItem));

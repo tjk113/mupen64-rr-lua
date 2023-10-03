@@ -76,3 +76,47 @@ inline static bool contains(const std::string& a, const std::string& b)
 {
 	return a.find(b) != std::string::npos;
 }
+
+inline static std::wstring string_to_wstring(const std::string str)
+{
+	const auto wstr = static_cast<wchar_t*>(calloc(str.length(), sizeof(wchar_t)));
+
+	mbstowcs(wstr, str.c_str(), str.length());
+
+	auto wstdstr = std::wstring(wstr);
+	wstdstr.resize(str.length());
+
+	free(wstr);
+	return wstdstr;
+}
+
+// https://stackoverflow.com/a/46931770/14472122
+inline static std::vector<std::string> split_string(std::string s, const std::string& delimiter) {
+	size_t pos_start = 0, pos_end;
+	const size_t delim_len = delimiter.length();
+	std::vector<std::string> res;
+
+	while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+		std::string token = s.substr(pos_start, pos_end - pos_start);
+		pos_start = pos_end + delim_len;
+		res.push_back (token);
+	}
+
+	res.push_back (s.substr (pos_start));
+	return res;
+}
+
+inline static std::vector<std::wstring> split_wstring(std::wstring s, const std::wstring& delimiter) {
+	size_t pos_start = 0, pos_end;
+	const size_t delim_len = delimiter.length();
+	std::vector<std::wstring> res;
+
+	while ((pos_end = s.find(delimiter, pos_start)) != std::wstring::npos) {
+		std::wstring token = s.substr(pos_start, pos_end - pos_start);
+		pos_start = pos_end + delim_len;
+		res.push_back (token);
+	}
+
+	res.push_back (s.substr (pos_start));
+	return res;
+}

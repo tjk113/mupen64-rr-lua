@@ -37,6 +37,7 @@
 #include <assert.h>
 
 #include "Recent.h"
+#include "helpers/string_helpers.h"
 #include "win/features/Statusbar.hpp"
 
 #pragma comment(lib, "lua54.lib")
@@ -3878,16 +3879,14 @@ namespace LuaEngine
 	int LuaFileDialog(lua_State* L)
 	{
 		EmulationLock lock;
-		char filename[MAX_PATH];
-		const char* filter = luaL_checkstring(L, 1);
-		wchar_t filterW[MAX_PATH];
-		int type = luaL_checkinteger(L, 2);
-		if (!filter[0] || strlen(filter) > MAX_PATH) filter = "*.*";
-		// fucking catastrophe
-		mbstowcs(filterW, filter, MAX_PATH);
+		char filename[MAX_PATH] = {0};
+		const std::string filter = luaL_checkstring(L, 1);
+		const int32_t type = luaL_checkinteger(L, 2);
 
-		fdOpenLua.ShowFileDialog(filename, filterW, type ? FALSE : TRUE,
-		                         mainHWND);
+		std::wstring wfilter = string_to_wstring(filter);
+
+		fdOpenLua.ShowFileDialog(filename, wfilter.c_str(), type == 0,
+		                         false, mainHWND);
 
 		lua_pushstring(L, filename);
 		return 1;
