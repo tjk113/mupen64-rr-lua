@@ -1,5 +1,7 @@
 #pragma once
 #include <algorithm>
+#include <locale>
+#include <codecvt>
 
 inline static char* stristr(const char* str1, const char* str2)
 {
@@ -88,6 +90,13 @@ inline static std::wstring string_to_wstring(const std::string str)
 
 	free(wstr);
 	return wstdstr;
+}
+
+inline static std::string wstring_to_string(const std::wstring& wstr) {
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+	return converterX.to_bytes(wstr);
 }
 
 // https://stackoverflow.com/a/46931770/14472122

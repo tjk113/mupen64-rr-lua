@@ -33,7 +33,7 @@
 #include "translation.h"
 #include "Config.hpp"
 #include "../rom.h"
-#include "../main/win/wrapper/ReassociatingFileDialog.h"
+#include "wrapper/PersistentPathDialog.h"
 #include "../main/helpers/string_helpers.h"
 #include "../main/helpers/win_helpers.h"
 
@@ -54,11 +54,6 @@
 #define strcasecmp	_stricmp
 #define strncasecmp	_strnicmp
 #endif
-
-ReassociatingFileDialog fdSelectRomFolder;
-ReassociatingFileDialog fdSelectPluginsFolder;
-ReassociatingFileDialog fdSelectSavesFolder;
-ReassociatingFileDialog fdSelectScreenshotsFolder;
 
 static DWORD dwExitCode;
 static DWORD Id;
@@ -403,11 +398,12 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
             break;
         case IDC_ADD_BROWSER_DIR:
             {
-                if (fdSelectRomFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
+                const auto path = show_persistent_folder_dialog("f_roms", hwnd);
+                if (path.size() == 0)
                 {
-                    int len = (int)strlen(Directory);
-                    Config.rombrowser_rom_paths.push_back(std::string(Directory));
+                    break;
                 }
+                Config.rombrowser_rom_paths.push_back(wstring_to_string(path));
                 build_rom_browser_path_list(hwnd);
                 break;
             }
@@ -444,14 +440,14 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
             break;
         case IDC_CHOOSE_PLUGINS_DIR:
             {
-                if (fdSelectPluginsFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
+                const auto path = show_persistent_folder_dialog("f_plugins", hwnd);
+                if (path.size() == 0)
                 {
-                    Config.plugins_directory = std::string(Directory) + "\\";
+                    break;
                 }
+                Config.plugins_directory = wstring_to_string(path) + "\\";
                 SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Config.plugins_directory.c_str());
             }
-
-
             break;
         case IDC_DEFAULT_SAVES_CHECK:
             {
@@ -463,11 +459,13 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
             break;
         case IDC_CHOOSE_SAVES_DIR:
             {
-                if (fdSelectSavesFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
+                const auto path = show_persistent_folder_dialog("f_saves", hwnd);
+                if (path.size() == 0)
                 {
-                    Config.saves_directory = std::string(Directory) + "\\";
-                    SetDlgItemText(hwnd, IDC_SAVES_DIR, Config.saves_directory.c_str());
+                    break;
                 }
+                Config.saves_directory = wstring_to_string(path) + "\\";
+                SetDlgItemText(hwnd, IDC_SAVES_DIR, Config.saves_directory.c_str());
             }
             break;
         case IDC_DEFAULT_SCREENSHOTS_CHECK:
@@ -481,11 +479,13 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
             break;
         case IDC_CHOOSE_SCREENSHOTS_DIR:
             {
-                if (fdSelectScreenshotsFolder.ShowFolderDialog(Directory, sizeof(Directory) / sizeof(char), hwnd))
+                const auto path = show_persistent_folder_dialog("f_screenshots", hwnd);
+                if (path.size() == 0)
                 {
-                    Config.screenshots_directory = std::string(Directory) + "\\";
-                    SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory.c_str());
+                    break;
                 }
+                Config.screenshots_directory = wstring_to_string(path) + "\\";
+                SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory.c_str());
             }
             break;
         default:

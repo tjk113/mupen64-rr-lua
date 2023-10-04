@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <map>
 
 typedef struct t_hotkey
 {
@@ -363,6 +364,12 @@ typedef struct _CONFIG
 	/// The width of rombrowser columns by index
 	/// </summary>
 	std::vector<std::int32_t> rombrowser_column_widths;
+
+	/// <summary>
+	/// A map of persistent path dialog IDs and the respective value
+	/// </summary>
+	std::map<std::string, std::wstring> persistent_folder_paths;
+
 } CONFIG;
 
 extern "C" CONFIG Config;

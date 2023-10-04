@@ -23,7 +23,7 @@
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/configdialog.h"
-#include "../main/win/wrapper/ReassociatingFileDialog.h"
+#include "..\main\win\wrapper\PersistentPathDialog.h"
 #include "../main/vcr_compress.h"
 #include <vcr.h>
 #include <gdiplus.h>
@@ -102,11 +102,6 @@ void LoadScreenInit()
 }
 
 #define DEBUG_GETLASTERROR 0
-
-ReassociatingFileDialog fdOpenLuaScript; // internal picker
-ReassociatingFileDialog fdOpenLua; // api picker
-ReassociatingFileDialog fdLuaTraceLog;
-
 
 namespace LuaEngine
 {
@@ -1108,30 +1103,6 @@ namespace LuaEngine
 		return FALSE;
 	}
 
-	std::string OpenLuaFileDialog()
-	{
-		int storePaused = emu_paused;
-		pauseEmu(1);
-
-		// The default directory we open the file dialog window in is
-		// the parent directory of the last script that the user ran
-		char scriptParentDir[MAX_PATH] = "";
-		std::filesystem::path scriptPath = Config.lua_script_path;
-		strncpy(scriptParentDir, scriptPath.parent_path().string().c_str(),
-		        MAX_PATH); // monstrosity
-
-		if (!fdOpenLuaScript.ShowFileDialog(scriptParentDir, L"*.lua", TRUE,
-		                                    FALSE, mainHWND))
-		{
-			if (!storePaused) resumeEmu(1);
-			return "";
-		}
-
-		if (!storePaused) resumeEmu(1);
-
-		return std::string(scriptParentDir); // umm fuck you
-	}
-
 	void SetButtonState(HWND wnd, bool state)
 	{
 		if (!IsWindow(wnd)) return;
@@ -1175,10 +1146,14 @@ namespace LuaEngine
 			}
 		case IDC_BUTTON_LUABROWSE:
 			{
-				std::string newPath = OpenLuaFileDialog();
-				if (!newPath.empty())
-					SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-					              newPath.c_str());
+				auto path = show_persistent_open_dialog("o_lua", wnd, L"*.lua");
+
+				if (path.size() == 0)
+				{
+					break;
+				}
+
+				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), wstring_to_string(path).c_str());
 				return TRUE;
 			}
 		case IDC_BUTTON_LUAEDIT:
@@ -3879,36 +3854,21 @@ namespace LuaEngine
 	int LuaFileDialog(lua_State* L)
 	{
 		EmulationLock lock;
-		char filename[MAX_PATH] = {0};
-		const std::string filter = luaL_checkstring(L, 1);
+		auto filter = string_to_wstring(std::string(luaL_checkstring(L, 1)));
 		const int32_t type = luaL_checkinteger(L, 2);
 
-		std::wstring wfilter = string_to_wstring(filter);
+		std::wstring path;
 
-		fdOpenLua.ShowFileDialog(filename, wfilter.c_str(), type == 0,
-		                         false, mainHWND);
-
-		lua_pushstring(L, filename);
-		return 1;
-	}
-
-
-	BOOL validType(const char* type)
-	{
-		printf("Type: %s\n", type);
-		const char* validTypes[15] = {
-			"r", "rb", "w", "wb", "a", "ab", "r+", "rb+", "r+b", "w+", "wb+",
-			"w+b", "a+", "ab+", "a+b"
-		};
-		for (int i = 0; i <= 15; i++)
+		if (type == 0)
 		{
-			if (strcmp(validTypes[i], type))
-				return TRUE;
+			path = show_persistent_open_dialog("o_lua_api", mainHWND, filter);
+		} else
+		{
+			path = show_persistent_save_dialog("o_lua_api", mainHWND, filter);
 		}
-		/*return strcmp(type, "r") ||
-			   strcmp(type,"rw") ||
-			   strcmp(type,"rb");*/
-		return FALSE;
+
+		lua_pushstring(L, wstring_to_string(path).c_str());
+		return 1;
 	}
 
 	BOOL fileexists(const char* path)
@@ -5282,15 +5242,15 @@ void LuaTraceLogState()
 {
 	if (!enableTraceLog) return;
 	LuaEngine::EmulationLock lock;
-	char filename[MAX_PATH] = "trace.log";
-	if (fdLuaTraceLog.
-		ShowFileDialog(filename, L"*.log", FALSE, FALSE, mainHWND))
+
+	auto path = show_persistent_save_dialog("o_tracelog", mainHWND, L"*.log");
+
+	if (path.size() == 0)
 	{
-		LuaEngine::TraceLogStart(filename);
-	} else
-	{
-		LuaEngine::TraceLogStop();
+		return;
 	}
+
+	LuaEngine::TraceLogStart(wstring_to_string(path).c_str());
 }
 
 

@@ -76,7 +76,7 @@
             <LanguageStandard>stdcpp20</LanguageStandard>
         </ClCompile>
         <Link>
-            <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
             <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
             <AdditionalLibraryDirectories>../zlib;../../lua;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -121,7 +121,7 @@
             <LanguageStandard>stdcpp20</LanguageStandard>
         </ClCompile>
         <Link>
-            <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
             <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
             <AdditionalLibraryDirectories>../zlib;../../lua;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -184,7 +184,7 @@
         <ClInclude Include="..\..\main\win\translation.h" />
         <ClInclude Include="..\..\main\win\vfw.h" />
         <ClInclude Include="..\..\main\win\GameDebugger.h" />
-        <ClInclude Include="..\..\main\win\wrapper\ReassociatingFileDialog.h" />
+        <ClInclude Include="..\..\main\win\wrapper\PersistentPathDialog.h" />
         <ClInclude Include="..\..\main\helpers\string_helpers.h" />
         <ClInclude Include="..\..\memory\dma.h" />
         <ClInclude Include="..\..\memory\flashram.h" />
@@ -217,6 +217,7 @@
         </ClCompile>
         <ClCompile Include="..\..\main\debughook.c" />
         <ClCompile Include="..\..\main\disasm.c" />
+        <ClCompile Include="..\..\main\helpers\io_helpers.cpp" />
         <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp" />
         <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp" />
         <ClCompile Include="..\..\main\ioapi.c">
@@ -454,7 +455,7 @@
         </ClCompile>
         <ClCompile Include="..\..\lua\LuaConsole.cpp" />
         <ClCompile Include="..\..\main\win\GameDebugger.cpp" />
-        <ClCompile Include="..\..\main\win\wrapper\ReassociatingFileDialog.cpp" />
+        <ClCompile Include="..\..\main\win\wrapper\PersistentPathDialog.cpp" />
     </ItemGroup>
     <ItemGroup>
         <ResourceCompile Include="..\rsrc.rc" />

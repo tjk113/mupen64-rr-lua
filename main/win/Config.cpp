@@ -1,16 +1,17 @@
 #include <Windows.h>
 #include <winuser.h>
-#include <stdio.h>
+#include <cstdio>
 #include "features/RomBrowser.hpp"
 #include "commandline.h"
 #include "../../winproject/resource.h"
-#include "config.hpp"
+#include "Config.hpp"
 #include "main_win.h"
 #include "../../lua/Recent.h"
 #include "../vcr.h"
 #include "translation.h"
 #include "../lib/ini.h"
 #include "translation.h"
+#include <helpers/string_helpers.h>
 
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
@@ -662,6 +663,31 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 }
 
 void handle_config_value(mINI::INIStructure& ini, std::string field_name,
+						 int32_t is_reading, std::map<std::string, std::wstring>& value)
+{
+	if (is_reading) {
+		// if the virtual map doesn't exist just leave the vector empty, as attempting to read will crash
+		if (!ini.has(field_name)) {
+			return;
+		}
+		auto& map = ini[field_name];
+		for (auto& pair : map) {
+			// TODO: wide path support!
+			value[pair.first] = string_to_wstring(pair.second);
+		}
+	} else {
+		// create virtual map:
+		// [field_name]
+		// value = value
+		for (auto &pair : value) {
+			// TODO: wide path support!
+			ini[field_name][pair.first] = wstring_to_string(pair.second);
+		}
+	}
+
+}
+
+void handle_config_value(mINI::INIStructure& ini, std::string field_name,
                          int32_t is_reading, std::vector<int32_t>& value)
 {
 	if (is_reading)
@@ -720,7 +746,7 @@ std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 
 mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 {
-#define HANDLE_INT_VALUE(x) handle_config_value(ini, #x, is_reading, &Config.x);
+#define HANDLE_P_VALUE(x) handle_config_value(ini, #x, is_reading, &Config.x);
 #define HANDLE_VALUE(x) handle_config_value(ini, #x, is_reading, Config.x);
 
 	if (is_reading)
@@ -753,59 +779,60 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	}
 
 	HANDLE_VALUE(language)
-	HANDLE_INT_VALUE(show_fps)
-	HANDLE_INT_VALUE(show_vis_per_second)
-	HANDLE_INT_VALUE(allow_suspicious_rom_loading)
-	HANDLE_INT_VALUE(is_savestate_warning_enabled)
-	HANDLE_INT_VALUE(is_rom_movie_compatibility_check_enabled)
-	HANDLE_INT_VALUE(core_type)
-	HANDLE_INT_VALUE(fps_modifier)
-	HANDLE_INT_VALUE(frame_skip_frequency)
-	HANDLE_INT_VALUE(is_movie_loop_enabled)
-	HANDLE_INT_VALUE(cpu_clock_speed_multiplier)
-	HANDLE_INT_VALUE(is_unfocused_pause_enabled)
-	HANDLE_INT_VALUE(is_toolbar_enabled)
-	HANDLE_INT_VALUE(is_statusbar_enabled)
-	HANDLE_INT_VALUE(is_state_independent_state_loading_allowed)
-	HANDLE_INT_VALUE(is_default_plugins_directory_used)
-	HANDLE_INT_VALUE(is_default_saves_directory_used)
-	HANDLE_INT_VALUE(is_default_screenshots_directory_used)
+	HANDLE_P_VALUE(show_fps)
+	HANDLE_P_VALUE(show_vis_per_second)
+	HANDLE_P_VALUE(allow_suspicious_rom_loading)
+	HANDLE_P_VALUE(is_savestate_warning_enabled)
+	HANDLE_P_VALUE(is_rom_movie_compatibility_check_enabled)
+	HANDLE_P_VALUE(core_type)
+	HANDLE_P_VALUE(fps_modifier)
+	HANDLE_P_VALUE(frame_skip_frequency)
+	HANDLE_P_VALUE(is_movie_loop_enabled)
+	HANDLE_P_VALUE(cpu_clock_speed_multiplier)
+	HANDLE_P_VALUE(is_unfocused_pause_enabled)
+	HANDLE_P_VALUE(is_toolbar_enabled)
+	HANDLE_P_VALUE(is_statusbar_enabled)
+	HANDLE_P_VALUE(is_state_independent_state_loading_allowed)
+	HANDLE_P_VALUE(is_default_plugins_directory_used)
+	HANDLE_P_VALUE(is_default_saves_directory_used)
+	HANDLE_P_VALUE(is_default_screenshots_directory_used)
 	HANDLE_VALUE(plugins_directory)
 	HANDLE_VALUE(saves_directory)
 	HANDLE_VALUE(screenshots_directory)
 	HANDLE_VALUE(states_path)
 	HANDLE_VALUE(recent_rom_paths)
-	HANDLE_INT_VALUE(is_recent_rom_paths_frozen)
+	HANDLE_P_VALUE(is_recent_rom_paths_frozen)
 	HANDLE_VALUE(recent_movie_paths)
-	HANDLE_INT_VALUE(is_recent_movie_paths_frozen)
-	HANDLE_INT_VALUE(rombrowser_sorted_column)
+	HANDLE_P_VALUE(is_recent_movie_paths_frozen)
+	HANDLE_P_VALUE(rombrowser_sorted_column)
 	HANDLE_VALUE(rombrowser_sort_method)
-	HANDLE_INT_VALUE(is_rombrowser_recursion_enabled)
-	HANDLE_INT_VALUE(is_reset_recording_enabled)
-	HANDLE_INT_VALUE(is_unknown_hotkey_selection_allowed)
+	HANDLE_P_VALUE(is_rombrowser_recursion_enabled)
+	HANDLE_P_VALUE(is_reset_recording_enabled)
+	HANDLE_P_VALUE(is_unknown_hotkey_selection_allowed)
 	HANDLE_VALUE(avi_capture_path)
-	HANDLE_INT_VALUE(synchronization_mode)
+	HANDLE_P_VALUE(synchronization_mode)
 	HANDLE_VALUE(lua_script_path)
 	HANDLE_VALUE(recent_lua_script_paths)
-	HANDLE_INT_VALUE(is_recent_scripts_frozen)
-	HANDLE_INT_VALUE(use_summercart)
-	HANDLE_INT_VALUE(is_round_towards_zero_enabled)
-	HANDLE_INT_VALUE(is_float_exception_propagation_enabled)
-	HANDLE_INT_VALUE(is_audio_delay_enabled)
-	HANDLE_INT_VALUE(is_compiled_jump_enabled)
-	HANDLE_INT_VALUE(is_lua_double_buffered)
+	HANDLE_P_VALUE(is_recent_scripts_frozen)
+	HANDLE_P_VALUE(use_summercart)
+	HANDLE_P_VALUE(is_round_towards_zero_enabled)
+	HANDLE_P_VALUE(is_float_exception_propagation_enabled)
+	HANDLE_P_VALUE(is_audio_delay_enabled)
+	HANDLE_P_VALUE(is_compiled_jump_enabled)
+	HANDLE_P_VALUE(is_lua_double_buffered)
 	HANDLE_VALUE(selected_video_plugin_name)
 	HANDLE_VALUE(selected_audio_plugin_name)
 	HANDLE_VALUE(selected_input_plugin_name)
 	HANDLE_VALUE(selected_rsp_plugin_name)
-	HANDLE_INT_VALUE(last_movie_type)
+	HANDLE_P_VALUE(last_movie_type)
 	HANDLE_VALUE(last_movie_author)
-	HANDLE_INT_VALUE(window_x)
-	HANDLE_INT_VALUE(window_y)
-	HANDLE_INT_VALUE(window_width)
-	HANDLE_INT_VALUE(window_height)
+	HANDLE_P_VALUE(window_x)
+	HANDLE_P_VALUE(window_y)
+	HANDLE_P_VALUE(window_width)
+	HANDLE_P_VALUE(window_height)
 	HANDLE_VALUE(rombrowser_column_widths)
 	HANDLE_VALUE(rombrowser_rom_paths)
+	HANDLE_VALUE(persistent_folder_paths)
 
 	return ini;
 }
@@ -940,7 +967,6 @@ void ApplyHotkeys()
 {
 	// TODO: get rid of this garbage and find another way
 
-	extern HWND mainHWND;
 	SetDlgItemHotkey(mainHWND, IDC_HOT_FASTFORWARD,
 	                 &Config.fast_forward_hotkey);
 	SetDlgItemHotkey(mainHWND, IDC_HOT_SPEEDUP, &Config.speed_up_hotkey);
