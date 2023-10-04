@@ -15,7 +15,7 @@ void fail_float(const char* msg)
     printf("%s\n", buf);
     MessageBox(NULL, buf, "Floating Point Error", MB_OK);
 
-    Cause = 15 << 2;
+    core_Cause = 15 << 2;
     exception_general();
 }
 

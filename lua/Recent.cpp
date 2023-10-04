@@ -4,6 +4,7 @@
 #include <windows.h>
 #include "win/main_win.h"
 #include "../winproject/resource.h"
+#include "../main/win/Config.hpp"
 
 void lua_recent_scripts_build(int32_t reset)
 {

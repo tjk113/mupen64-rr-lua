@@ -34,27 +34,27 @@
 #define sign_extendedb(a) a = (long long)((char)a)
 #define sign_extendedh(a) a = (long long)((short)a)
 
-#define rrt *PC->f.r.rt
-#define rrd *PC->f.r.rd
-#define rfs PC->f.r.nrd
-#define rrs *PC->f.r.rs
-#define rsa PC->f.r.sa
-#define irt *PC->f.i.rt
-#define ioffset PC->f.i.immediate
-#define iimmediate PC->f.i.immediate
-#define lsaddr (PC-1)->f.i.immediate+(*(PC-1)->f.i.rs)
-#define lsrt *(PC-1)->f.i.rt
-#define irs *PC->f.i.rs
-#define ibase *PC->f.i.rs
-#define jinst_index PC->f.j.inst_index
-#define lfbase PC->f.lf.base
-#define lfft PC->f.lf.ft
-#define lfoffset PC->f.lf.offset
-#define lslfaddr (PC-1)->f.lf.offset+reg[(PC-1)->f.lf.base]
-#define lslfft (PC-1)->f.lf.ft
-#define cfft PC->f.cf.ft
-#define cffs PC->f.cf.fs
-#define cffd PC->f.cf.fd
+#define core_rrt *PC->f.r.rt
+#define core_rrd *PC->f.r.rd
+#define core_rfs PC->f.r.nrd
+#define core_rrs *PC->f.r.rs
+#define core_rsa PC->f.r.sa
+#define core_irt *PC->f.i.rt
+#define core_ioffset PC->f.i.immediate
+#define core_iimmediate PC->f.i.immediate
+#define core_lsaddr (PC-1)->f.i.immediate+(*(PC-1)->f.i.rs)
+#define core_lsrt *(PC-1)->f.i.rt
+#define core_irs *PC->f.i.rs
+#define core_ibase *PC->f.i.rs
+#define core_jinst_index PC->f.j.inst_index
+#define core_lfbase PC->f.lf.base
+#define core_lfft PC->f.lf.ft
+#define core_lfoffset PC->f.lf.offset
+#define core_lslfaddr (PC-1)->f.lf.offset+reg[(PC-1)->f.lf.base]
+#define core_lslfft (PC-1)->f.lf.ft
+#define core_cfft PC->f.cf.ft
+#define core_cffs PC->f.cf.fs
+#define core_cffd PC->f.cf.fd
 
 // 32 bits macros
 #ifndef _BIG_ENDIAN
@@ -80,31 +80,31 @@ stop=1; \
 
 
 //cop0 macros
-#define Index reg_cop0[0]
-#define Random reg_cop0[1]
-#define EntryLo0 reg_cop0[2]
-#define EntryLo1 reg_cop0[3]
-#define Context reg_cop0[4]
-#define PageMask reg_cop0[5]
-#define Wired reg_cop0[6]
-#define BadVAddr reg_cop0[8]
-#define Count reg_cop0[9]
-#define EntryHi reg_cop0[10]
-#define Compare reg_cop0[11]
-#define Status reg_cop0[12]
-#define Cause reg_cop0[13]
-#define EPC reg_cop0[14]
-#define PRevID reg_cop0[15]
-#define Config_cop0 reg_cop0[16]
-#define LLAddr reg_cop0[17]
-#define WatchLo reg_cop0[18]
-#define WatchHi reg_cop0[19]
-#define XContext reg_cop0[20]
-#define PErr reg_cop0[26]
-#define CacheErr reg_cop0[27]
-#define TagLo reg_cop0[28]
-#define TagHi reg_cop0[29]
-#define ErrorEPC reg_cop0[30]
+#define core_Index reg_cop0[0]
+#define core_Random reg_cop0[1]
+#define core_EntryLo0 reg_cop0[2]
+#define core_EntryLo1 reg_cop0[3]
+#define core_Context reg_cop0[4]
+#define core_PageMask reg_cop0[5]
+#define core_Wired reg_cop0[6]
+#define core_BadVAddr reg_cop0[8]
+#define core_Count reg_cop0[9]
+#define core_EntryHi reg_cop0[10]
+#define core_Compare reg_cop0[11]
+#define core_Status reg_cop0[12]
+#define core_Cause reg_cop0[13]
+#define core_EPC reg_cop0[14]
+#define core_PRevID reg_cop0[15]
+#define core_Config_cop0 reg_cop0[16]
+#define core_LLAddr reg_cop0[17]
+#define core_WatchLo reg_cop0[18]
+#define core_WatchHi reg_cop0[19]
+#define core_XContext reg_cop0[20]
+#define core_PErr reg_cop0[26]
+#define core_CacheErr reg_cop0[27]
+#define core_TagLo reg_cop0[28]
+#define core_TagHi reg_cop0[29]
+#define core_ErrorEPC reg_cop0[30]
 
 #ifdef X86
 #ifdef _MSC_VER

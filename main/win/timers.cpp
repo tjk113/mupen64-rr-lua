@@ -20,6 +20,7 @@
 #include <commctrl.h>
 #include "../guifuncs.h"
 #include "main_win.h"
+#include "Config.hpp"
 #include "../rom.h"
 #include "translation.h"
 #include "../vcr.h"

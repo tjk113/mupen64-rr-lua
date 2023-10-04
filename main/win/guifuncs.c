@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include "../guifuncs.h"
 #include "main_win.h"
+#include "Config.hpp"
 #include "translation.h"
 #include "features/RomBrowser.hpp"
 #include "../../winproject/resource.h"

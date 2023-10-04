@@ -69,35 +69,35 @@ void TLB_refill_exception(unsigned long address, int w)
     //printf("TLB_refill_exception:%x\n", address);
     if (!dynacore && w != 2) update_count();
     if (w == 1)
-        Cause = (3 << 2);
+        core_Cause = (3 << 2);
     else
-        Cause = (2 << 2);
-    BadVAddr = address;
-    Context = (Context & 0xFF80000F) | ((address >> 9) & 0x007FFFF0);
-    EntryHi = address & 0xFFFFE000;
-    if (Status & 0x2) // Test de EXL
+        core_Cause = (2 << 2);
+    core_BadVAddr = address;
+    core_Context = (core_Context & 0xFF80000F) | ((address >> 9) & 0x007FFFF0);
+    core_EntryHi = address & 0xFFFFE000;
+    if (core_Status & 0x2) // Test de EXL
     {
         if (interpcore) interp_addr = 0x80000180;
         else jump_to(0x80000180);
         if (delay_slot == 1 || delay_slot == 3)
-            Cause |= 0x80000000;
+            core_Cause |= 0x80000000;
         else
-            Cause &= 0x7FFFFFFF;
+            core_Cause &= 0x7FFFFFFF;
     }
     else
     {
         if (!interpcore)
         {
             if (w != 2)
-                EPC = PC->addr;
+                core_EPC = PC->addr;
             else
-                EPC = address;
+                core_EPC = address;
         }
         else
-            EPC = interp_addr;
+            core_EPC = interp_addr;
 
-        Cause &= ~0x80000000;
-        Status |= 0x2; //EXL=1
+        core_Cause &= ~0x80000000;
+        core_Status |= 0x2; //EXL=1
 
         if (address >= 0x80000000 && address < 0xc0000000)
             usual_handler = 1;
@@ -123,15 +123,15 @@ void TLB_refill_exception(unsigned long address, int w)
     }
     if (delay_slot == 1 || delay_slot == 3)
     {
-        Cause |= 0x80000000;
-        EPC -= 4;
+        core_Cause |= 0x80000000;
+        core_EPC -= 4;
     }
     else
     {
-        Cause &= 0x7FFFFFFF;
+        core_Cause &= 0x7FFFFFFF;
     }
     if (w != 2)
-        EPC -= 4;
+        core_EPC -= 4;
 
     if (interpcore) last_addr = interp_addr;
     else last_addr = PC->addr;
@@ -180,13 +180,13 @@ void exception_general()
 {
     update_count();
     //EXL bit, 1 = exception level
-    Status |= 2;
+    core_Status |= 2;
 
     //Exception return address
     if (!interpcore)
-        EPC = PC->addr;
+        core_EPC = PC->addr;
     else
-        EPC = interp_addr;
+        core_EPC = interp_addr;
 
     //printf("exception, Cause: %x EPC: %x \n", Cause, EPC);
 
@@ -195,12 +195,12 @@ void exception_general()
     //if delay_slot, arrange the registers as it should be on n64 (emu uses a variable)
     if (delay_slot == 1 || delay_slot == 3)
     {
-        Cause |= 0x80000000;
-        EPC -= 4;
+        core_Cause |= 0x80000000;
+        core_EPC -= 4;
     }
     else
     {
-        Cause &= 0x7FFFFFFF; //make sure its cleared?
+        core_Cause &= 0x7FFFFFFF; //make sure its cleared?
     }
 
     //exception handler is always at 0x80000180, continue there

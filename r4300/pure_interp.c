@@ -71,43 +71,43 @@ static void NI()
 
 static void SLL()
 {
-    rrd32 = (unsigned long)(rrt32) << rsa;
-    sign_extended(rrd);
+    rrd32 = (unsigned long)(rrt32) << core_rsa;
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SRL()
 {
-    rrd32 = (unsigned long)rrt32 >> rsa;
-    sign_extended(rrd);
+    rrd32 = (unsigned long)rrt32 >> core_rsa;
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SRA()
 {
-    rrd32 = (signed long)rrt32 >> rsa;
-    sign_extended(rrd);
+    rrd32 = (signed long)rrt32 >> core_rsa;
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SLLV()
 {
     rrd32 = (unsigned long)(rrt32) << (rrs32 & 0x1F);
-    sign_extended(rrd);
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SRLV()
 {
     rrd32 = (unsigned long)rrt32 >> (rrs32 & 0x1F);
-    sign_extended(rrd);
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SRAV()
 {
     rrd32 = (signed long)rrt32 >> (rrs32 & 0x1F);
-    sign_extended(rrd);
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
@@ -122,7 +122,7 @@ static void JR()
     delay_slot = 0;
     interp_addr = local_rs32;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void JALR()
@@ -143,12 +143,12 @@ static void JALR()
         interp_addr = local_rs32;
     }
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void SYSCALL()
 {
-    Cause = 8 << 2;
+    core_Cause = 8 << 2;
     exception_general();
 }
 
@@ -163,50 +163,50 @@ static void SYNC()
 
 static void MFHI()
 {
-    rrd = hi;
+    core_rrd = hi;
     interp_addr += 4;
 }
 
 static void MTHI()
 {
-    hi = rrs;
+    hi = core_rrs;
     interp_addr += 4;
 }
 
 static void MFLO()
 {
-    rrd = lo;
+    core_rrd = lo;
     interp_addr += 4;
 }
 
 static void MTLO()
 {
-    lo = rrs;
+    lo = core_rrs;
     interp_addr += 4;
 }
 
 static void DSLLV()
 {
-    rrd = rrt << (rrs32 & 0x3F);
+    core_rrd = core_rrt << (rrs32 & 0x3F);
     interp_addr += 4;
 }
 
 static void DSRLV()
 {
-    rrd = (unsigned long long)rrt >> (rrs32 & 0x3F);
+    core_rrd = (unsigned long long)core_rrt >> (rrs32 & 0x3F);
     interp_addr += 4;
 }
 
 static void DSRAV()
 {
-    rrd = (long long)rrt >> (rrs32 & 0x3F);
+    core_rrd = (long long)core_rrt >> (rrs32 & 0x3F);
     interp_addr += 4;
 }
 
 static void MULT()
 {
     long long int temp;
-    temp = rrs * rrt;
+    temp = core_rrs * core_rrt;
     hi = temp >> 32;
     lo = temp;
     sign_extended(lo);
@@ -216,7 +216,7 @@ static void MULT()
 static void MULTU()
 {
     unsigned long long int temp;
-    temp = (unsigned long)rrs * (unsigned long long)((unsigned long)rrt);
+    temp = (unsigned long)core_rrs * (unsigned long long)((unsigned long)core_rrt);
     hi = (long long)temp >> 32;
     lo = temp;
     sign_extended(lo);
@@ -256,18 +256,18 @@ static void DMULT()
     unsigned long long int temp1, temp2, temp3, temp4;
     int sign = 0;
 
-    if (rrs < 0)
+    if (core_rrs < 0)
     {
-        op2 = -rrs;
+        op2 = -core_rrs;
         sign = 1 - sign;
     }
-    else op2 = rrs;
-    if (rrt < 0)
+    else op2 = core_rrs;
+    if (core_rrt < 0)
     {
-        op4 = -rrt;
+        op4 = -core_rrt;
         sign = 1 - sign;
     }
-    else op4 = rrt;
+    else op4 = core_rrt;
 
     op1 = op2 & 0xFFFFFFFF;
     op2 = (op2 >> 32) & 0xFFFFFFFF;
@@ -301,10 +301,10 @@ static void DMULTU()
     unsigned long long int result1, result2, result3, result4;
     unsigned long long int temp1, temp2, temp3, temp4;
 
-    op1 = rrs & 0xFFFFFFFF;
-    op2 = (rrs >> 32) & 0xFFFFFFFF;
-    op3 = rrt & 0xFFFFFFFF;
-    op4 = (rrt >> 32) & 0xFFFFFFFF;
+    op1 = core_rrs & 0xFFFFFFFF;
+    op2 = (core_rrs >> 32) & 0xFFFFFFFF;
+    op3 = core_rrt & 0xFFFFFFFF;
+    op4 = (core_rrt >> 32) & 0xFFFFFFFF;
 
     temp1 = op1 * op3;
     temp2 = (temp1 >> 32) + op1 * op4;
@@ -324,10 +324,10 @@ static void DMULTU()
 
 static void DDIV()
 {
-    if (rrt)
+    if (core_rrt)
     {
-        lo = (long long int)rrs / (long long int)rrt;
-        hi = (long long int)rrs % (long long int)rrt;
+        lo = (long long int)core_rrs / (long long int)core_rrt;
+        hi = (long long int)core_rrs % (long long int)core_rrt;
     }
     else printf("ddiv\n");
     interp_addr += 4;
@@ -335,10 +335,10 @@ static void DDIV()
 
 static void DDIVU()
 {
-    if (rrt)
+    if (core_rrt)
     {
-        lo = (unsigned long long int)rrs / (unsigned long long int)rrt;
-        hi = (unsigned long long int)rrs % (unsigned long long int)rrt;
+        lo = (unsigned long long int)core_rrs / (unsigned long long int)core_rrt;
+        hi = (unsigned long long int)core_rrs % (unsigned long long int)core_rrt;
     }
     else printf("ddivu\n");
     interp_addr += 4;
@@ -347,100 +347,100 @@ static void DDIVU()
 static void ADD()
 {
     rrd32 = rrs32 + rrt32;
-    sign_extended(rrd);
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void ADDU()
 {
     rrd32 = rrs32 + rrt32;
-    sign_extended(rrd);
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SUB()
 {
     rrd32 = rrs32 - rrt32;
-    sign_extended(rrd);
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SUBU()
 {
     rrd32 = rrs32 - rrt32;
-    sign_extended(rrd);
+    sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void AND()
 {
-    rrd = rrs & rrt;
+    core_rrd = core_rrs & core_rrt;
     interp_addr += 4;
 }
 
 static void OR()
 {
-    rrd = rrs | rrt;
+    core_rrd = core_rrs | core_rrt;
     interp_addr += 4;
 }
 
 static void XOR()
 {
-    rrd = rrs ^ rrt;
+    core_rrd = core_rrs ^ core_rrt;
     interp_addr += 4;
 }
 
 static void NOR()
 {
-    rrd = ~(rrs | rrt);
+    core_rrd = ~(core_rrs | core_rrt);
     interp_addr += 4;
 }
 
 static void SLT()
 {
-    if (rrs < rrt)
-        rrd = 1;
+    if (core_rrs < core_rrt)
+        core_rrd = 1;
     else
-        rrd = 0;
+        core_rrd = 0;
     interp_addr += 4;
 }
 
 static void SLTU()
 {
-    if ((unsigned long long)rrs < (unsigned long long)rrt)
-        rrd = 1;
+    if ((unsigned long long)core_rrs < (unsigned long long)core_rrt)
+        core_rrd = 1;
     else
-        rrd = 0;
+        core_rrd = 0;
     interp_addr += 4;
 }
 
 static void DADD()
 {
-    rrd = rrs + rrt;
+    core_rrd = core_rrs + core_rrt;
     interp_addr += 4;
 }
 
 static void DADDU()
 {
-    rrd = rrs + rrt;
+    core_rrd = core_rrs + core_rrt;
     interp_addr += 4;
 }
 
 static void DSUB()
 {
-    rrd = rrs - rrt;
+    core_rrd = core_rrs - core_rrt;
     interp_addr += 4;
 }
 
 static void DSUBU()
 {
-    rrd = rrs - rrt;
+    core_rrd = core_rrs - core_rrt;
     interp_addr += 4;
 }
 
 static void TEQ()
 {
-    if (rrs == rrt)
+    if (core_rrs == core_rrt)
     {
         printf("trap exception in teq\n");
         stop = 1;
@@ -450,37 +450,37 @@ static void TEQ()
 
 static void DSLL()
 {
-    rrd = rrt << rsa;
+    core_rrd = core_rrt << core_rsa;
     interp_addr += 4;
 }
 
 static void DSRL()
 {
-    rrd = (unsigned long long)rrt >> rsa;
+    core_rrd = (unsigned long long)core_rrt >> core_rsa;
     interp_addr += 4;
 }
 
 static void DSRA()
 {
-    rrd = rrt >> rsa;
+    core_rrd = core_rrt >> core_rsa;
     interp_addr += 4;
 }
 
 static void DSLL32()
 {
-    rrd = rrt << (32 + rsa);
+    core_rrd = core_rrt << (32 + core_rsa);
     interp_addr += 4;
 }
 
 static void DSRL32()
 {
-    rrd = (unsigned long long int)rrt >> (32 + rsa);
+    core_rrd = (unsigned long long int)core_rrt >> (32 + core_rsa);
     interp_addr += 4;
 }
 
 static void DSRA32()
 {
-    rrd = (signed long long int)rrt >> (32 + rsa);
+    core_rrd = (signed long long int)core_rrt >> (32 + core_rsa);
     interp_addr += 4;
 }
 
@@ -498,18 +498,18 @@ static void (*interp_special[64])(void) =
 
 static void BLTZ()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
         if (local_rs < 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -523,23 +523,23 @@ static void BLTZ()
     if (local_rs < 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BGEZ()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
         if (local_rs >= 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -553,28 +553,28 @@ static void BGEZ()
     if (local_rs >= 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BLTZL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
-        if (irs < 0)
+        if (core_irs < 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
         }
-    if (irs < 0)
+    if (core_irs < 0)
     {
         interp_addr += 4;
         delay_slot = 1;
@@ -586,28 +586,28 @@ static void BLTZL()
     }
     else interp_addr += 8;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BGEZL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
-        if (irs >= 0)
+        if (core_irs >= 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
         }
-    if (irs >= 0)
+    if (core_irs >= 0)
     {
         interp_addr += 4;
         delay_slot = 1;
@@ -619,15 +619,15 @@ static void BGEZL()
     }
     else interp_addr += 8;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BLTZAL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     reg[31] = interp_addr + 8;
-    if ((&irs) != (reg + 31))
+    if ((&core_irs) != (reg + 31))
     {
         if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
             if (local_rs < 0)
@@ -635,10 +635,10 @@ static void BLTZAL()
                 if (probe_nop(interp_addr + 4))
                 {
                     update_count();
-                    skip = next_interupt - Count;
+                    skip = next_interupt - core_Count;
                     if (skip > 3)
                     {
-                        Count += (skip & 0xFFFFFFFC);
+                        core_Count += (skip & 0xFFFFFFFC);
                         return;
                     }
                 }
@@ -654,15 +654,15 @@ static void BLTZAL()
     }
     else printf("erreur dans bltzal\n");
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BGEZAL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     reg[31] = interp_addr + 8;
-    if ((&irs) != (reg + 31))
+    if ((&core_irs) != (reg + 31))
     {
         if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
             if (local_rs >= 0)
@@ -670,10 +670,10 @@ static void BGEZAL()
                 if (probe_nop(interp_addr + 4))
                 {
                     update_count();
-                    skip = next_interupt - Count;
+                    skip = next_interupt - core_Count;
                     if (skip > 3)
                     {
-                        Count += (skip & 0xFFFFFFFC);
+                        core_Count += (skip & 0xFFFFFFFC);
                         return;
                     }
                 }
@@ -689,15 +689,15 @@ static void BGEZAL()
     }
     else printf("erreur dans bgezal\n");
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BLTZALL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     reg[31] = interp_addr + 8;
-    if ((&irs) != (reg + 31))
+    if ((&core_irs) != (reg + 31))
     {
         if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
             if (local_rs < 0)
@@ -705,10 +705,10 @@ static void BLTZALL()
                 if (probe_nop(interp_addr + 4))
                 {
                     update_count();
-                    skip = next_interupt - Count;
+                    skip = next_interupt - core_Count;
                     if (skip > 3)
                     {
-                        Count += (skip & 0xFFFFFFFC);
+                        core_Count += (skip & 0xFFFFFFFC);
                         return;
                     }
                 }
@@ -727,15 +727,15 @@ static void BLTZALL()
     }
     else printf("erreur dans bltzall\n");
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BGEZALL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     reg[31] = interp_addr + 8;
-    if ((&irs) != (reg + 31))
+    if ((&core_irs) != (reg + 31))
     {
         if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
             if (local_rs >= 0)
@@ -743,10 +743,10 @@ static void BGEZALL()
                 if (probe_nop(interp_addr + 4))
                 {
                     update_count();
-                    skip = next_interupt - Count;
+                    skip = next_interupt - core_Count;
                     if (skip > 3)
                     {
-                        Count += (skip & 0xFFFFFFFC);
+                        core_Count += (skip & 0xFFFFFFFC);
                         return;
                     }
                 }
@@ -765,7 +765,7 @@ static void BGEZALL()
     }
     else printf("erreur dans bgezall\n");
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void (*interp_regimm[32])(void) =
@@ -779,13 +779,13 @@ static void (*interp_regimm[32])(void) =
 static void TLBR()
 {
     int index;
-    index = Index & 0x1F;
-    PageMask = tlb_e[index].mask << 13;
-    EntryHi = ((tlb_e[index].vpn2 << 13) | tlb_e[index].asid);
-    EntryLo0 = (tlb_e[index].pfn_even << 6) | (tlb_e[index].c_even << 3)
+    index = core_Index & 0x1F;
+    core_PageMask = tlb_e[index].mask << 13;
+    core_EntryHi = ((tlb_e[index].vpn2 << 13) | tlb_e[index].asid);
+    core_EntryLo0 = (tlb_e[index].pfn_even << 6) | (tlb_e[index].c_even << 3)
         | (tlb_e[index].d_even << 2) | (tlb_e[index].v_even << 1)
         | tlb_e[index].g;
-    EntryLo1 = (tlb_e[index].pfn_odd << 6) | (tlb_e[index].c_odd << 3)
+    core_EntryLo1 = (tlb_e[index].pfn_odd << 6) | (tlb_e[index].c_odd << 3)
         | (tlb_e[index].d_odd << 2) | (tlb_e[index].v_odd << 1)
         | tlb_e[index].g;
     interp_addr += 4;
@@ -795,77 +795,77 @@ static void TLBWI()
 {
     unsigned int i;
 
-    if (tlb_e[Index & 0x3F].v_even)
+    if (tlb_e[core_Index & 0x3F].v_even)
     {
-        for (i = tlb_e[Index & 0x3F].start_even; i < tlb_e[Index & 0x3F].end_even; i++)
+        for (i = tlb_e[core_Index & 0x3F].start_even; i < tlb_e[core_Index & 0x3F].end_even; i++)
             tlb_LUT_r[i >> 12] = 0;
-        if (tlb_e[Index & 0x3F].d_even)
-            for (i = tlb_e[Index & 0x3F].start_even; i < tlb_e[Index & 0x3F].end_even; i++)
+        if (tlb_e[core_Index & 0x3F].d_even)
+            for (i = tlb_e[core_Index & 0x3F].start_even; i < tlb_e[core_Index & 0x3F].end_even; i++)
                 tlb_LUT_w[i >> 12] = 0;
     }
-    if (tlb_e[Index & 0x3F].v_odd)
+    if (tlb_e[core_Index & 0x3F].v_odd)
     {
-        for (i = tlb_e[Index & 0x3F].start_odd; i < tlb_e[Index & 0x3F].end_odd; i++)
+        for (i = tlb_e[core_Index & 0x3F].start_odd; i < tlb_e[core_Index & 0x3F].end_odd; i++)
             tlb_LUT_r[i >> 12] = 0;
-        if (tlb_e[Index & 0x3F].d_odd)
-            for (i = tlb_e[Index & 0x3F].start_odd; i < tlb_e[Index & 0x3F].end_odd; i++)
+        if (tlb_e[core_Index & 0x3F].d_odd)
+            for (i = tlb_e[core_Index & 0x3F].start_odd; i < tlb_e[core_Index & 0x3F].end_odd; i++)
                 tlb_LUT_w[i >> 12] = 0;
     }
-    tlb_e[Index & 0x3F].g = (EntryLo0 & EntryLo1 & 1);
-    tlb_e[Index & 0x3F].pfn_even = (EntryLo0 & 0x3FFFFFC0) >> 6;
-    tlb_e[Index & 0x3F].pfn_odd = (EntryLo1 & 0x3FFFFFC0) >> 6;
-    tlb_e[Index & 0x3F].c_even = (EntryLo0 & 0x38) >> 3;
-    tlb_e[Index & 0x3F].c_odd = (EntryLo1 & 0x38) >> 3;
-    tlb_e[Index & 0x3F].d_even = (EntryLo0 & 0x4) >> 2;
-    tlb_e[Index & 0x3F].d_odd = (EntryLo1 & 0x4) >> 2;
-    tlb_e[Index & 0x3F].v_even = (EntryLo0 & 0x2) >> 1;
-    tlb_e[Index & 0x3F].v_odd = (EntryLo1 & 0x2) >> 1;
-    tlb_e[Index & 0x3F].asid = (EntryHi & 0xFF);
-    tlb_e[Index & 0x3F].vpn2 = (EntryHi & 0xFFFFE000) >> 13;
+    tlb_e[core_Index & 0x3F].g = (core_EntryLo0 & core_EntryLo1 & 1);
+    tlb_e[core_Index & 0x3F].pfn_even = (core_EntryLo0 & 0x3FFFFFC0) >> 6;
+    tlb_e[core_Index & 0x3F].pfn_odd = (core_EntryLo1 & 0x3FFFFFC0) >> 6;
+    tlb_e[core_Index & 0x3F].c_even = (core_EntryLo0 & 0x38) >> 3;
+    tlb_e[core_Index & 0x3F].c_odd = (core_EntryLo1 & 0x38) >> 3;
+    tlb_e[core_Index & 0x3F].d_even = (core_EntryLo0 & 0x4) >> 2;
+    tlb_e[core_Index & 0x3F].d_odd = (core_EntryLo1 & 0x4) >> 2;
+    tlb_e[core_Index & 0x3F].v_even = (core_EntryLo0 & 0x2) >> 1;
+    tlb_e[core_Index & 0x3F].v_odd = (core_EntryLo1 & 0x2) >> 1;
+    tlb_e[core_Index & 0x3F].asid = (core_EntryHi & 0xFF);
+    tlb_e[core_Index & 0x3F].vpn2 = (core_EntryHi & 0xFFFFE000) >> 13;
     //tlb_e[Index&0x3F].r = (EntryHi & 0xC000000000000000LL) >> 62;
-    tlb_e[Index & 0x3F].mask = (PageMask & 0x1FFE000) >> 13;
+    tlb_e[core_Index & 0x3F].mask = (core_PageMask & 0x1FFE000) >> 13;
 
-    tlb_e[Index & 0x3F].start_even = tlb_e[Index & 0x3F].vpn2 << 13;
-    tlb_e[Index & 0x3F].end_even = tlb_e[Index & 0x3F].start_even +
-        (tlb_e[Index & 0x3F].mask << 12) + 0xFFF;
-    tlb_e[Index & 0x3F].phys_even = tlb_e[Index & 0x3F].pfn_even << 12;
+    tlb_e[core_Index & 0x3F].start_even = tlb_e[core_Index & 0x3F].vpn2 << 13;
+    tlb_e[core_Index & 0x3F].end_even = tlb_e[core_Index & 0x3F].start_even +
+        (tlb_e[core_Index & 0x3F].mask << 12) + 0xFFF;
+    tlb_e[core_Index & 0x3F].phys_even = tlb_e[core_Index & 0x3F].pfn_even << 12;
 
-    if (tlb_e[Index & 0x3F].v_even)
+    if (tlb_e[core_Index & 0x3F].v_even)
     {
-        if (tlb_e[Index & 0x3F].start_even < tlb_e[Index & 0x3F].end_even &&
-            !(tlb_e[Index & 0x3F].start_even >= 0x80000000 &&
-                tlb_e[Index & 0x3F].end_even < 0xC0000000) &&
-            tlb_e[Index & 0x3F].phys_even < 0x20000000)
+        if (tlb_e[core_Index & 0x3F].start_even < tlb_e[core_Index & 0x3F].end_even &&
+            !(tlb_e[core_Index & 0x3F].start_even >= 0x80000000 &&
+                tlb_e[core_Index & 0x3F].end_even < 0xC0000000) &&
+            tlb_e[core_Index & 0x3F].phys_even < 0x20000000)
         {
-            for (i = tlb_e[Index & 0x3F].start_even; i < tlb_e[Index & 0x3F].end_even; i++)
+            for (i = tlb_e[core_Index & 0x3F].start_even; i < tlb_e[core_Index & 0x3F].end_even; i++)
                 tlb_LUT_r[i >> 12] = 0x80000000 |
-                    (tlb_e[Index & 0x3F].phys_even + (i - tlb_e[Index & 0x3F].start_even));
-            if (tlb_e[Index & 0x3F].d_even)
-                for (i = tlb_e[Index & 0x3F].start_even; i < tlb_e[Index & 0x3F].end_even; i++)
+                    (tlb_e[core_Index & 0x3F].phys_even + (i - tlb_e[core_Index & 0x3F].start_even));
+            if (tlb_e[core_Index & 0x3F].d_even)
+                for (i = tlb_e[core_Index & 0x3F].start_even; i < tlb_e[core_Index & 0x3F].end_even; i++)
                     tlb_LUT_w[i >> 12] = 0x80000000 |
-                        (tlb_e[Index & 0x3F].phys_even + (i - tlb_e[Index & 0x3F].start_even));
+                        (tlb_e[core_Index & 0x3F].phys_even + (i - tlb_e[core_Index & 0x3F].start_even));
         }
     }
 
-    tlb_e[Index & 0x3F].start_odd = tlb_e[Index & 0x3F].end_even + 1;
-    tlb_e[Index & 0x3F].end_odd = tlb_e[Index & 0x3F].start_odd +
-        (tlb_e[Index & 0x3F].mask << 12) + 0xFFF;
-    tlb_e[Index & 0x3F].phys_odd = tlb_e[Index & 0x3F].pfn_odd << 12;
+    tlb_e[core_Index & 0x3F].start_odd = tlb_e[core_Index & 0x3F].end_even + 1;
+    tlb_e[core_Index & 0x3F].end_odd = tlb_e[core_Index & 0x3F].start_odd +
+        (tlb_e[core_Index & 0x3F].mask << 12) + 0xFFF;
+    tlb_e[core_Index & 0x3F].phys_odd = tlb_e[core_Index & 0x3F].pfn_odd << 12;
 
-    if (tlb_e[Index & 0x3F].v_odd)
+    if (tlb_e[core_Index & 0x3F].v_odd)
     {
-        if (tlb_e[Index & 0x3F].start_odd < tlb_e[Index & 0x3F].end_odd &&
-            !(tlb_e[Index & 0x3F].start_odd >= 0x80000000 &&
-                tlb_e[Index & 0x3F].end_odd < 0xC0000000) &&
-            tlb_e[Index & 0x3F].phys_odd < 0x20000000)
+        if (tlb_e[core_Index & 0x3F].start_odd < tlb_e[core_Index & 0x3F].end_odd &&
+            !(tlb_e[core_Index & 0x3F].start_odd >= 0x80000000 &&
+                tlb_e[core_Index & 0x3F].end_odd < 0xC0000000) &&
+            tlb_e[core_Index & 0x3F].phys_odd < 0x20000000)
         {
-            for (i = tlb_e[Index & 0x3F].start_odd; i < tlb_e[Index & 0x3F].end_odd; i++)
+            for (i = tlb_e[core_Index & 0x3F].start_odd; i < tlb_e[core_Index & 0x3F].end_odd; i++)
                 tlb_LUT_r[i >> 12] = 0x80000000 |
-                    (tlb_e[Index & 0x3F].phys_odd + (i - tlb_e[Index & 0x3F].start_odd));
-            if (tlb_e[Index & 0x3F].d_odd)
-                for (i = tlb_e[Index & 0x3F].start_odd; i < tlb_e[Index & 0x3F].end_odd; i++)
+                    (tlb_e[core_Index & 0x3F].phys_odd + (i - tlb_e[core_Index & 0x3F].start_odd));
+            if (tlb_e[core_Index & 0x3F].d_odd)
+                for (i = tlb_e[core_Index & 0x3F].start_odd; i < tlb_e[core_Index & 0x3F].end_odd; i++)
                     tlb_LUT_w[i >> 12] = 0x80000000 |
-                        (tlb_e[Index & 0x3F].phys_odd + (i - tlb_e[Index & 0x3F].start_odd));
+                        (tlb_e[core_Index & 0x3F].phys_odd + (i - tlb_e[core_Index & 0x3F].start_odd));
         }
     }
     interp_addr += 4;
@@ -875,77 +875,77 @@ static void TLBWR()
 {
     unsigned int i;
     update_count();
-    Random = (Count / 2 % (32 - Wired)) + Wired;
-    if (tlb_e[Random].v_even)
+    core_Random = (core_Count / 2 % (32 - core_Wired)) + core_Wired;
+    if (tlb_e[core_Random].v_even)
     {
-        for (i = tlb_e[Random].start_even; i < tlb_e[Random].end_even; i++)
+        for (i = tlb_e[core_Random].start_even; i < tlb_e[core_Random].end_even; i++)
             tlb_LUT_r[i >> 12] = 0;
-        if (tlb_e[Random].d_even)
-            for (i = tlb_e[Random].start_even; i < tlb_e[Random].end_even; i++)
+        if (tlb_e[core_Random].d_even)
+            for (i = tlb_e[core_Random].start_even; i < tlb_e[core_Random].end_even; i++)
                 tlb_LUT_w[i >> 12] = 0;
     }
-    if (tlb_e[Random].v_odd)
+    if (tlb_e[core_Random].v_odd)
     {
-        for (i = tlb_e[Random].start_odd; i < tlb_e[Random].end_odd; i++)
+        for (i = tlb_e[core_Random].start_odd; i < tlb_e[core_Random].end_odd; i++)
             tlb_LUT_r[i >> 12] = 0;
-        if (tlb_e[Random].d_odd)
-            for (i = tlb_e[Random].start_odd; i < tlb_e[Random].end_odd; i++)
+        if (tlb_e[core_Random].d_odd)
+            for (i = tlb_e[core_Random].start_odd; i < tlb_e[core_Random].end_odd; i++)
                 tlb_LUT_w[i >> 12] = 0;
     }
-    tlb_e[Random].g = (EntryLo0 & EntryLo1 & 1);
-    tlb_e[Random].pfn_even = (EntryLo0 & 0x3FFFFFC0) >> 6;
-    tlb_e[Random].pfn_odd = (EntryLo1 & 0x3FFFFFC0) >> 6;
-    tlb_e[Random].c_even = (EntryLo0 & 0x38) >> 3;
-    tlb_e[Random].c_odd = (EntryLo1 & 0x38) >> 3;
-    tlb_e[Random].d_even = (EntryLo0 & 0x4) >> 2;
-    tlb_e[Random].d_odd = (EntryLo1 & 0x4) >> 2;
-    tlb_e[Random].v_even = (EntryLo0 & 0x2) >> 1;
-    tlb_e[Random].v_odd = (EntryLo1 & 0x2) >> 1;
-    tlb_e[Random].asid = (EntryHi & 0xFF);
-    tlb_e[Random].vpn2 = (EntryHi & 0xFFFFE000) >> 13;
+    tlb_e[core_Random].g = (core_EntryLo0 & core_EntryLo1 & 1);
+    tlb_e[core_Random].pfn_even = (core_EntryLo0 & 0x3FFFFFC0) >> 6;
+    tlb_e[core_Random].pfn_odd = (core_EntryLo1 & 0x3FFFFFC0) >> 6;
+    tlb_e[core_Random].c_even = (core_EntryLo0 & 0x38) >> 3;
+    tlb_e[core_Random].c_odd = (core_EntryLo1 & 0x38) >> 3;
+    tlb_e[core_Random].d_even = (core_EntryLo0 & 0x4) >> 2;
+    tlb_e[core_Random].d_odd = (core_EntryLo1 & 0x4) >> 2;
+    tlb_e[core_Random].v_even = (core_EntryLo0 & 0x2) >> 1;
+    tlb_e[core_Random].v_odd = (core_EntryLo1 & 0x2) >> 1;
+    tlb_e[core_Random].asid = (core_EntryHi & 0xFF);
+    tlb_e[core_Random].vpn2 = (core_EntryHi & 0xFFFFE000) >> 13;
     //tlb_e[Random].r = (EntryHi & 0xC000000000000000LL) >> 62;
-    tlb_e[Random].mask = (PageMask & 0x1FFE000) >> 13;
+    tlb_e[core_Random].mask = (core_PageMask & 0x1FFE000) >> 13;
 
-    tlb_e[Random].start_even = tlb_e[Random].vpn2 << 13;
-    tlb_e[Random].end_even = tlb_e[Random].start_even +
-        (tlb_e[Random].mask << 12) + 0xFFF;
-    tlb_e[Random].phys_even = tlb_e[Random].pfn_even << 12;
+    tlb_e[core_Random].start_even = tlb_e[core_Random].vpn2 << 13;
+    tlb_e[core_Random].end_even = tlb_e[core_Random].start_even +
+        (tlb_e[core_Random].mask << 12) + 0xFFF;
+    tlb_e[core_Random].phys_even = tlb_e[core_Random].pfn_even << 12;
 
-    if (tlb_e[Random].v_even)
+    if (tlb_e[core_Random].v_even)
     {
-        if (tlb_e[Random].start_even < tlb_e[Random].end_even &&
-            !(tlb_e[Random].start_even >= 0x80000000 &&
-                tlb_e[Random].end_even < 0xC0000000) &&
-            tlb_e[Random].phys_even < 0x20000000)
+        if (tlb_e[core_Random].start_even < tlb_e[core_Random].end_even &&
+            !(tlb_e[core_Random].start_even >= 0x80000000 &&
+                tlb_e[core_Random].end_even < 0xC0000000) &&
+            tlb_e[core_Random].phys_even < 0x20000000)
         {
-            for (i = tlb_e[Random].start_even; i < tlb_e[Random].end_even; i++)
+            for (i = tlb_e[core_Random].start_even; i < tlb_e[core_Random].end_even; i++)
                 tlb_LUT_r[i >> 12] = 0x80000000 |
-                    (tlb_e[Random].phys_even + (i - tlb_e[Random].start_even));
-            if (tlb_e[Random].d_even)
-                for (i = tlb_e[Random].start_even; i < tlb_e[Random].end_even; i++)
+                    (tlb_e[core_Random].phys_even + (i - tlb_e[core_Random].start_even));
+            if (tlb_e[core_Random].d_even)
+                for (i = tlb_e[core_Random].start_even; i < tlb_e[core_Random].end_even; i++)
                     tlb_LUT_w[i >> 12] = 0x80000000 |
-                        (tlb_e[Random].phys_even + (i - tlb_e[Random].start_even));
+                        (tlb_e[core_Random].phys_even + (i - tlb_e[core_Random].start_even));
         }
     }
-    tlb_e[Random].start_odd = tlb_e[Random].end_even + 1;
-    tlb_e[Random].end_odd = tlb_e[Random].start_odd +
-        (tlb_e[Random].mask << 12) + 0xFFF;
-    tlb_e[Random].phys_odd = tlb_e[Random].pfn_odd << 12;
+    tlb_e[core_Random].start_odd = tlb_e[core_Random].end_even + 1;
+    tlb_e[core_Random].end_odd = tlb_e[core_Random].start_odd +
+        (tlb_e[core_Random].mask << 12) + 0xFFF;
+    tlb_e[core_Random].phys_odd = tlb_e[core_Random].pfn_odd << 12;
 
-    if (tlb_e[Random].v_odd)
+    if (tlb_e[core_Random].v_odd)
     {
-        if (tlb_e[Random].start_odd < tlb_e[Random].end_odd &&
-            !(tlb_e[Random].start_odd >= 0x80000000 &&
-                tlb_e[Random].end_odd < 0xC0000000) &&
-            tlb_e[Random].phys_odd < 0x20000000)
+        if (tlb_e[core_Random].start_odd < tlb_e[core_Random].end_odd &&
+            !(tlb_e[core_Random].start_odd >= 0x80000000 &&
+                tlb_e[core_Random].end_odd < 0xC0000000) &&
+            tlb_e[core_Random].phys_odd < 0x20000000)
         {
-            for (i = tlb_e[Random].start_odd; i < tlb_e[Random].end_odd; i++)
+            for (i = tlb_e[core_Random].start_odd; i < tlb_e[core_Random].end_odd; i++)
                 tlb_LUT_r[i >> 12] = 0x80000000 |
-                    (tlb_e[Random].phys_odd + (i - tlb_e[Random].start_odd));
-            if (tlb_e[Random].d_odd)
-                for (i = tlb_e[Random].start_odd; i < tlb_e[Random].end_odd; i++)
+                    (tlb_e[core_Random].phys_odd + (i - tlb_e[core_Random].start_odd));
+            if (tlb_e[core_Random].d_odd)
+                for (i = tlb_e[core_Random].start_odd; i < tlb_e[core_Random].end_odd; i++)
                     tlb_LUT_w[i >> 12] = 0x80000000 |
-                        (tlb_e[Random].phys_odd + (i - tlb_e[Random].start_odd));
+                        (tlb_e[core_Random].phys_odd + (i - tlb_e[core_Random].start_odd));
         }
     }
     interp_addr += 4;
@@ -954,15 +954,15 @@ static void TLBWR()
 static void TLBP()
 {
     int i;
-    Index |= 0x80000000;
+    core_Index |= 0x80000000;
     for (i = 0; i < 32; i++)
     {
         if (((tlb_e[i].vpn2 & (~tlb_e[i].mask)) ==
-                (((EntryHi & 0xFFFFE000) >> 13) & (~tlb_e[i].mask))) &&
+                (((core_EntryHi & 0xFFFFE000) >> 13) & (~tlb_e[i].mask))) &&
             ((tlb_e[i].g) ||
-                (tlb_e[i].asid == (EntryHi & 0xFF))))
+                (tlb_e[i].asid == (core_EntryHi & 0xFF))))
         {
-            Index = i;
+            core_Index = i;
             break;
         }
     }
@@ -972,20 +972,20 @@ static void TLBP()
 static void ERET()
 {
     update_count();
-    if (Status & 0x4)
+    if (core_Status & 0x4)
     {
         printf("erreur dans ERET\n");
         stop = 1;
     }
     else
     {
-        Status &= 0xFFFFFFFD;
-        interp_addr = EPC;
+        core_Status &= 0xFFFFFFFD;
+        interp_addr = core_EPC;
     }
     llbit = 0;
     check_interupt();
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void (*interp_tlb[64])(void) =
@@ -1009,7 +1009,7 @@ static void MFC0()
         stop = 1;
     default:
         rrt32 = reg_cop0[PC->f.r.nrd];
-        sign_extended(rrt);
+        sign_extended(core_rrt);
     }
     interp_addr += 4;
 }
@@ -1019,8 +1019,8 @@ static void MTC0()
     switch (PC->f.r.nrd)
     {
     case 0: // Index
-        Index = rrt & 0x8000003F;
-        if ((Index & 0x3F) > 31)
+        core_Index = core_rrt & 0x8000003F;
+        if ((core_Index & 0x3F) > 31)
         {
             printf("il y a plus de 32 TLB\n");
             stop = 1;
@@ -1029,45 +1029,45 @@ static void MTC0()
     case 1: // Random
         break;
     case 2: // EntryLo0
-        EntryLo0 = rrt & 0x3FFFFFFF;
+        core_EntryLo0 = core_rrt & 0x3FFFFFFF;
         break;
     case 3: // EntryLo1
-        EntryLo1 = rrt & 0x3FFFFFFF;
+        core_EntryLo1 = core_rrt & 0x3FFFFFFF;
         break;
     case 4: // Context
-        Context = (rrt & 0xFF800000) | (Context & 0x007FFFF0);
+        core_Context = (core_rrt & 0xFF800000) | (core_Context & 0x007FFFF0);
         break;
     case 5: // PageMask
-        PageMask = rrt & 0x01FFE000;
+        core_PageMask = core_rrt & 0x01FFE000;
         break;
     case 6: // Wired
-        Wired = rrt;
-        Random = 31;
+        core_Wired = core_rrt;
+        core_Random = 31;
         break;
     case 8: // BadVAddr
         break;
     case 9: // Count
         update_count();
-        if (next_interupt <= Count) gen_interupt();
-        debug_count += Count;
-        translate_event_queue(rrt & 0xFFFFFFFF);
-        Count = rrt & 0xFFFFFFFF;
-        debug_count -= Count;
+        if (next_interupt <= core_Count) gen_interupt();
+        debug_count += core_Count;
+        translate_event_queue(core_rrt & 0xFFFFFFFF);
+        core_Count = core_rrt & 0xFFFFFFFF;
+        debug_count -= core_Count;
         break;
     case 10: // EntryHi
-        EntryHi = rrt & 0xFFFFE0FF;
+        core_EntryHi = core_rrt & 0xFFFFE0FF;
         break;
     case 11: // Compare
         update_count();
         remove_event(COMPARE_INT);
-        add_interupt_event_count(COMPARE_INT, (unsigned long)rrt);
-        Compare = rrt;
-        Cause = Cause & 0xFFFF7FFF; //Timer interupt is clear
+        add_interupt_event_count(COMPARE_INT, (unsigned long)core_rrt);
+        core_Compare = core_rrt;
+        core_Cause = core_Cause & 0xFFFF7FFF; //Timer interupt is clear
         break;
     case 12: // Status
-        if ((rrt & 0x04000000) != (Status & 0x04000000))
+        if ((core_rrt & 0x04000000) != (core_Status & 0x04000000))
         {
-            if (rrt & 0x04000000)
+            if (core_rrt & 0x04000000)
             {
                 int i;
                 for (i = 0; i < 32; i++)
@@ -1098,43 +1098,43 @@ static void MTC0()
                 }
             }
         }
-        Status = rrt;
+        core_Status = core_rrt;
         interp_addr += 4;
         check_interupt();
         update_count();
-        if (next_interupt <= Count) gen_interupt();
+        if (next_interupt <= core_Count) gen_interupt();
         interp_addr -= 4;
         break;
     case 13: // Cause
-        if (rrt != 0)
+        if (core_rrt != 0)
         {
             printf("écriture dans Cause\n");
             stop = 1;
         }
         else
-            Cause = rrt;
+            core_Cause = core_rrt;
         break;
     case 14: // EPC
-        EPC = rrt;
+        core_EPC = core_rrt;
         break;
     case 15: // PRevID
         break;
     case 16: // Config
-        Config_cop0 = rrt;
+        core_Config_cop0 = core_rrt;
         break;
     case 18: // WatchLo
-        WatchLo = rrt & 0xFFFFFFFF;
+        core_WatchLo = core_rrt & 0xFFFFFFFF;
         break;
     case 19: // WatchHi
-        WatchHi = rrt & 0xFFFFFFFF;
+        core_WatchHi = core_rrt & 0xFFFFFFFF;
         break;
     case 27: // CacheErr
         break;
     case 28: // TagLo
-        TagLo = rrt & 0x0FFFFFC0;
+        core_TagLo = core_rrt & 0x0FFFFFC0;
         break;
     case 29: // TagHi
-        TagHi = 0;
+        core_TagHi = 0;
         break;
     default:
         printf("unknown mtc0 write : %d\n", PC->f.r.nrd);
@@ -1158,17 +1158,17 @@ static void (*interp_cop0[32])(void) =
 
 static void BC1F()
 {
-    short local_immediate = iimmediate;
+    short local_immediate = core_iimmediate;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
         if ((FCR31 & 0x800000) == 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -1182,22 +1182,22 @@ static void BC1F()
     if ((FCR31 & 0x800000) == 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BC1T()
 {
-    short local_immediate = iimmediate;
+    short local_immediate = core_iimmediate;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
         if ((FCR31 & 0x800000) != 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -1211,22 +1211,22 @@ static void BC1T()
     if ((FCR31 & 0x800000) != 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BC1FL()
 {
-    short local_immediate = iimmediate;
+    short local_immediate = core_iimmediate;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
         if ((FCR31 & 0x800000) == 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -1244,22 +1244,22 @@ static void BC1FL()
     else
         interp_addr += 8;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BC1TL()
 {
-    short local_immediate = iimmediate;
+    short local_immediate = core_iimmediate;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
         if ((FCR31 & 0x800000) != 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -1277,7 +1277,7 @@ static void BC1TL()
     else
         interp_addr += 8;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void (*interp_cop1_bc[4])(void) =
@@ -1289,86 +1289,86 @@ static void (*interp_cop1_bc[4])(void) =
 static void ADD_S()
 {
     set_rounding();
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
-    CHECK_INPUT(*reg_cop1_simple[cfft]);
-    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] +
-        *reg_cop1_simple[cfft];
-    CHECK_OUTPUT(*reg_cop1_simple[cffd]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cfft]);
+    *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] +
+        *reg_cop1_simple[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     interp_addr += 4;
 }
 
 static void SUB_S()
 {
     set_rounding();
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
-    CHECK_INPUT(*reg_cop1_simple[cfft]);
-    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] -
-        *reg_cop1_simple[cfft];
-    CHECK_OUTPUT(*reg_cop1_simple[cffd]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cfft]);
+    *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] -
+        *reg_cop1_simple[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     interp_addr += 4;
 }
 
 static void MUL_S()
 {
     set_rounding();
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
-    CHECK_INPUT(*reg_cop1_simple[cfft]);
-    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] *
-        *reg_cop1_simple[cfft];
-    CHECK_OUTPUT(*reg_cop1_simple[cffd]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cfft]);
+    *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] *
+        *reg_cop1_simple[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     interp_addr += 4;
 }
 
 static void DIV_S()
 {
-    if ((FCR31 & 0x400) && *reg_cop1_simple[cfft] == 0)
+    if ((FCR31 & 0x400) && *reg_cop1_simple[core_cfft] == 0)
     {
         printf("div_s by 0\n");
     }
     set_rounding();
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
-    CHECK_INPUT(*reg_cop1_simple[cfft]);
-    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs] /
-        *reg_cop1_simple[cfft];
-    CHECK_OUTPUT(*reg_cop1_simple[cffd]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cfft]);
+    *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] /
+        *reg_cop1_simple[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     interp_addr += 4;
 }
 
 static void SQRT_S()
 {
     set_rounding();
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
-    *reg_cop1_simple[cffd] = sqrt(*reg_cop1_simple[cffs]);
-    CHECK_OUTPUT(*reg_cop1_simple[cffd]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
+    *reg_cop1_simple[core_cffd] = sqrt(*reg_cop1_simple[core_cffs]);
+    CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     interp_addr += 4;
 }
 
 static void ABS_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
-    *reg_cop1_simple[cffd] = fabs(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
+    *reg_cop1_simple[core_cffd] = fabs(*reg_cop1_simple[core_cffs]);
     interp_addr += 4;
 }
 
 static void MOV_S()
 {
-    *reg_cop1_simple[cffd] = *reg_cop1_simple[cffs];
+    *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs];
     interp_addr += 4;
 }
 
 static void NEG_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
-    *reg_cop1_simple[cffd] = -(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
+    *reg_cop1_simple[core_cffd] = -(*reg_cop1_simple[core_cffs]);
     interp_addr += 4;
 }
 
 static void ROUND_L_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_round_to_nearest();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1376,10 +1376,10 @@ static void ROUND_L_S()
 
 static void TRUNC_L_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_trunc();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1387,10 +1387,10 @@ static void TRUNC_L_S()
 
 static void CEIL_L_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_ceil();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1398,10 +1398,10 @@ static void CEIL_L_S()
 
 static void FLOOR_L_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_floor();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1409,10 +1409,10 @@ static void FLOOR_L_S()
 
 static void ROUND_W_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_round_to_nearest();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1420,10 +1420,10 @@ static void ROUND_W_S()
 
 static void TRUNC_W_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_trunc();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1431,10 +1431,10 @@ static void TRUNC_W_S()
 
 static void CEIL_W_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_ceil();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1442,10 +1442,10 @@ static void CEIL_W_S()
 
 static void FLOOR_W_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_floor();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1453,27 +1453,27 @@ static void FLOOR_W_S()
 
 static void CVT_D_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
-    *reg_cop1_double[cffd] = *reg_cop1_simple[cffs];
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_simple[core_cffs];
     interp_addr += 4;
 }
 
 static void CVT_W_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_rounding();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
 
 static void CVT_L_S()
 {
-    CHECK_INPUT(*reg_cop1_simple[cffs]);
+    CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     set_rounding();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[cffs], reg_cop1_simple[cffd]);
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1486,7 +1486,7 @@ static void C_F_S()
 
 static void C_UN_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1494,8 +1494,8 @@ static void C_UN_S()
 
 static void C_EQ_S()
 {
-    if (!isnan(*reg_cop1_simple[cffs]) && !isnan(*reg_cop1_simple[cfft]) &&
-        *reg_cop1_simple[cffs] == *reg_cop1_simple[cfft])
+    if (!isnan(*reg_cop1_simple[core_cffs]) && !isnan(*reg_cop1_simple[core_cfft]) &&
+        *reg_cop1_simple[core_cffs] == *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1503,8 +1503,8 @@ static void C_EQ_S()
 
 static void C_UEQ_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]) ||
-        *reg_cop1_simple[cffs] == *reg_cop1_simple[cfft])
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]) ||
+        *reg_cop1_simple[core_cffs] == *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1512,8 +1512,8 @@ static void C_UEQ_S()
 
 static void C_OLT_S()
 {
-    if (!isnan(*reg_cop1_simple[cffs]) && !isnan(*reg_cop1_simple[cfft]) &&
-        *reg_cop1_simple[cffs] < *reg_cop1_simple[cfft])
+    if (!isnan(*reg_cop1_simple[core_cffs]) && !isnan(*reg_cop1_simple[core_cfft]) &&
+        *reg_cop1_simple[core_cffs] < *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1521,8 +1521,8 @@ static void C_OLT_S()
 
 static void C_ULT_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]) ||
-        *reg_cop1_simple[cffs] < *reg_cop1_simple[cfft])
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]) ||
+        *reg_cop1_simple[core_cffs] < *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1530,8 +1530,8 @@ static void C_ULT_S()
 
 static void C_OLE_S()
 {
-    if (!isnan(*reg_cop1_simple[cffs]) && !isnan(*reg_cop1_simple[cfft]) &&
-        *reg_cop1_simple[cffs] <= *reg_cop1_simple[cfft])
+    if (!isnan(*reg_cop1_simple[core_cffs]) && !isnan(*reg_cop1_simple[core_cfft]) &&
+        *reg_cop1_simple[core_cffs] <= *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1539,8 +1539,8 @@ static void C_OLE_S()
 
 static void C_ULE_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]) ||
-        *reg_cop1_simple[cffs] <= *reg_cop1_simple[cfft])
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]) ||
+        *reg_cop1_simple[core_cffs] <= *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1548,7 +1548,7 @@ static void C_ULE_S()
 
 static void C_SF_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
@@ -1559,7 +1559,7 @@ static void C_SF_S()
 
 static void C_NGLE_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
@@ -1570,12 +1570,12 @@ static void C_NGLE_S()
 
 static void C_SEQ_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_simple[cffs] == *reg_cop1_simple[cfft])
+    if (*reg_cop1_simple[core_cffs] == *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1583,12 +1583,12 @@ static void C_SEQ_S()
 
 static void C_NGL_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_simple[cffs] == *reg_cop1_simple[cfft])
+    if (*reg_cop1_simple[core_cffs] == *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1596,12 +1596,12 @@ static void C_NGL_S()
 
 static void C_LT_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_simple[cffs] < *reg_cop1_simple[cfft])
+    if (*reg_cop1_simple[core_cffs] < *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1609,12 +1609,12 @@ static void C_LT_S()
 
 static void C_NGE_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_simple[cffs] < *reg_cop1_simple[cfft])
+    if (*reg_cop1_simple[core_cffs] < *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1622,12 +1622,12 @@ static void C_NGE_S()
 
 static void C_LE_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_simple[cffs] <= *reg_cop1_simple[cfft])
+    if (*reg_cop1_simple[core_cffs] <= *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1635,12 +1635,12 @@ static void C_LE_S()
 
 static void C_NGT_S()
 {
-    if (isnan(*reg_cop1_simple[cffs]) || isnan(*reg_cop1_simple[cfft]))
+    if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_simple[cffs] <= *reg_cop1_simple[cfft])
+    if (*reg_cop1_simple[core_cffs] <= *reg_cop1_simple[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1661,39 +1661,39 @@ static void (*interp_cop1_s[64])(void) =
 static void ADD_D()
 {
     set_rounding();
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    CHECK_INPUT(*reg_cop1_double[cfft]);
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] +
-        *reg_cop1_double[cfft];
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cfft]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] +
+        *reg_cop1_double[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     interp_addr += 4;
 }
 
 static void SUB_D()
 {
     set_rounding();
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    CHECK_INPUT(*reg_cop1_double[cfft]);
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] -
-        *reg_cop1_double[cfft];
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cfft]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] -
+        *reg_cop1_double[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     interp_addr += 4;
 }
 
 static void MUL_D()
 {
     set_rounding();
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    CHECK_INPUT(*reg_cop1_double[cfft]);
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] *
-        *reg_cop1_double[cfft];
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cfft]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] *
+        *reg_cop1_double[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     interp_addr += 4;
 }
 
 static void DIV_D()
 {
-    if ((FCR31 & 0x400) && *reg_cop1_double[cfft] == 0)
+    if ((FCR31 & 0x400) && *reg_cop1_double[core_cfft] == 0)
     {
         //FCR31 |= 0x8020;
         /*FCR31 |= 0x8000;
@@ -1703,49 +1703,49 @@ static void DIV_D()
         //return;
     }
     set_rounding();
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    CHECK_INPUT(*reg_cop1_double[cfft]);
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] /
-        *reg_cop1_double[cfft];
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cfft]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] /
+        *reg_cop1_double[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     interp_addr += 4;
 }
 
 static void SQRT_D()
 {
     set_rounding();
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    *reg_cop1_double[cffd] = sqrt(*reg_cop1_double[cffs]);
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    *reg_cop1_double[core_cffd] = sqrt(*reg_cop1_double[core_cffs]);
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     interp_addr += 4;
 }
 
 static void ABS_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    *reg_cop1_double[cffd] = fabs(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    *reg_cop1_double[core_cffd] = fabs(*reg_cop1_double[core_cffs]);
     interp_addr += 4;
 }
 
 static void MOV_D()
 {
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs];
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs];
     interp_addr += 4;
 }
 
 static void NEG_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    *reg_cop1_double[cffd] = -(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    *reg_cop1_double[core_cffd] = -(*reg_cop1_double[core_cffs]);
     interp_addr += 4;
 }
 
 static void ROUND_L_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_round_to_nearest();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1753,10 +1753,10 @@ static void ROUND_L_D()
 
 static void TRUNC_L_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_trunc();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     set_rounding();
     interp_addr += 4;
@@ -1764,10 +1764,10 @@ static void TRUNC_L_D()
 
 static void CEIL_L_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_ceil();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1775,10 +1775,10 @@ static void CEIL_L_D()
 
 static void FLOOR_L_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_floor();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1786,10 +1786,10 @@ static void FLOOR_L_D()
 
 static void ROUND_W_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_round_to_nearest();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1797,10 +1797,10 @@ static void ROUND_W_D()
 
 static void TRUNC_W_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_trunc();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1808,10 +1808,10 @@ static void TRUNC_W_D()
 
 static void CEIL_W_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_ceil();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1819,10 +1819,10 @@ static void CEIL_W_D()
 
 static void FLOOR_W_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_floor();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
@@ -1830,7 +1830,7 @@ static void FLOOR_W_D()
 
 static void CVT_S_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     if (Config.is_round_towards_zero_enabled)
     {
         set_trunc();
@@ -1839,28 +1839,28 @@ static void CVT_S_D()
     {
         set_rounding();
     }
-    *reg_cop1_simple[cffd] = *reg_cop1_double[cffs];
+    *reg_cop1_simple[core_cffd] = *reg_cop1_double[core_cffs];
     set_rounding();
-    CHECK_OUTPUT(*reg_cop1_simple[cffd]);
+    CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     interp_addr += 4;
 }
 
 static void CVT_W_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_rounding();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
 
 static void CVT_L_D()
 {
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_rounding();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1873,7 +1873,7 @@ static void C_F_D()
 
 static void C_UN_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1881,8 +1881,8 @@ static void C_UN_D()
 
 static void C_EQ_D()
 {
-    if (!isnan(*reg_cop1_double[cffs]) && !isnan(*reg_cop1_double[cfft]) &&
-        *reg_cop1_double[cffs] == *reg_cop1_double[cfft])
+    if (!isnan(*reg_cop1_double[core_cffs]) && !isnan(*reg_cop1_double[core_cfft]) &&
+        *reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1890,8 +1890,8 @@ static void C_EQ_D()
 
 static void C_UEQ_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]) ||
-        *reg_cop1_double[cffs] == *reg_cop1_double[cfft])
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]) ||
+        *reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1899,8 +1899,8 @@ static void C_UEQ_D()
 
 static void C_OLT_D()
 {
-    if (!isnan(*reg_cop1_double[cffs]) && !isnan(*reg_cop1_double[cfft]) &&
-        *reg_cop1_double[cffs] < *reg_cop1_double[cfft])
+    if (!isnan(*reg_cop1_double[core_cffs]) && !isnan(*reg_cop1_double[core_cfft]) &&
+        *reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1908,8 +1908,8 @@ static void C_OLT_D()
 
 static void C_ULT_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]) ||
-        *reg_cop1_double[cffs] < *reg_cop1_double[cfft])
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]) ||
+        *reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1917,8 +1917,8 @@ static void C_ULT_D()
 
 static void C_OLE_D()
 {
-    if (!isnan(*reg_cop1_double[cffs]) && !isnan(*reg_cop1_double[cfft]) &&
-        *reg_cop1_double[cffs] <= *reg_cop1_double[cfft])
+    if (!isnan(*reg_cop1_double[core_cffs]) && !isnan(*reg_cop1_double[core_cfft]) &&
+        *reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1926,8 +1926,8 @@ static void C_OLE_D()
 
 static void C_ULE_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]) ||
-        *reg_cop1_double[cffs] <= *reg_cop1_double[cfft])
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]) ||
+        *reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1935,7 +1935,7 @@ static void C_ULE_D()
 
 static void C_SF_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
@@ -1946,7 +1946,7 @@ static void C_SF_D()
 
 static void C_NGLE_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
@@ -1957,12 +1957,12 @@ static void C_NGLE_D()
 
 static void C_SEQ_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] == *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1970,12 +1970,12 @@ static void C_SEQ_D()
 
 static void C_NGL_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] == *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1983,12 +1983,12 @@ static void C_NGL_D()
 
 static void C_LT_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] < *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -1996,12 +1996,12 @@ static void C_LT_D()
 
 static void C_NGE_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] < *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -2009,12 +2009,12 @@ static void C_NGE_D()
 
 static void C_LE_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] <= *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -2022,12 +2022,12 @@ static void C_LE_D()
 
 static void C_NGT_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] <= *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     interp_addr += 4;
@@ -2048,14 +2048,14 @@ static void (*interp_cop1_d[64])(void) =
 static void CVT_S_W()
 {
     set_rounding();
-    *reg_cop1_simple[cffd] = *((long*)reg_cop1_simple[cffs]);
+    *reg_cop1_simple[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
     interp_addr += 4;
 }
 
 static void CVT_D_W()
 {
     set_rounding();
-    *reg_cop1_double[cffd] = *((long*)reg_cop1_simple[cffs]);
+    *reg_cop1_double[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
     interp_addr += 4;
 }
 
@@ -2074,14 +2074,14 @@ static void (*interp_cop1_w[64])(void) =
 static void CVT_S_L()
 {
     set_rounding();
-    *reg_cop1_simple[cffd] = *((long long*)(reg_cop1_double[cffs]));
+    *reg_cop1_simple[core_cffd] = *((long long*)(reg_cop1_double[core_cffs]));
     interp_addr += 4;
 }
 
 static void CVT_D_L()
 {
     set_rounding();
-    *reg_cop1_double[cffd] = *((long long*)(reg_cop1_double[cffs]));
+    *reg_cop1_double[core_cffd] = *((long long*)(reg_cop1_double[core_cffs]));
     interp_addr += 4;
 }
 
@@ -2099,47 +2099,47 @@ static void (*interp_cop1_l[64])(void) =
 
 static void MFC1()
 {
-    rrt32 = *((long*)reg_cop1_simple[rfs]);
-    sign_extended(rrt);
+    rrt32 = *((long*)reg_cop1_simple[core_rfs]);
+    sign_extended(core_rrt);
     interp_addr += 4;
 }
 
 static void DMFC1()
 {
-    rrt = *((long long*)(reg_cop1_double[rfs]));
+    core_rrt = *((long long*)(reg_cop1_double[core_rfs]));
     interp_addr += 4;
 }
 
 static void CFC1()
 {
-    if (rfs == 31)
+    if (core_rfs == 31)
     {
         rrt32 = FCR31;
-        sign_extended(rrt);
+        sign_extended(core_rrt);
     }
-    if (rfs == 0)
+    if (core_rfs == 0)
     {
         rrt32 = FCR0;
-        sign_extended(rrt);
+        sign_extended(core_rrt);
     }
     interp_addr += 4;
 }
 
 static void MTC1()
 {
-    *((long*)reg_cop1_simple[rfs]) = rrt32;
+    *((long*)reg_cop1_simple[core_rfs]) = rrt32;
     interp_addr += 4;
 }
 
 static void DMTC1()
 {
-    *((long long*)reg_cop1_double[rfs]) = rrt;
+    *((long long*)reg_cop1_double[core_rfs]) = core_rrt;
     interp_addr += 4;
 }
 
 static void CTC1()
 {
-    if (rfs == 31)
+    if (core_rfs == 31)
         FCR31 = rrt32;
     switch ((FCR31 & 3))
     {
@@ -2209,10 +2209,10 @@ static void REGIMM()
 #define SKIP_IDLE() \
 if (probe_nop(interp_addr+4)) {\
 	update_count();\
-	skip = next_interupt - Count; \
+	skip = next_interupt - core_Count; \
 	if (skip > 3)\
 	{\
-		Count += (skip & 0xFFFFFFFC);\
+		core_Count += (skip & 0xFFFFFFFC);\
 		return;\
 	}\
 }
@@ -2232,7 +2232,7 @@ static void J()
     delay_slot = 0;
     interp_addr = naddr;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void JAL()
@@ -2256,14 +2256,14 @@ static void JAL()
         interp_addr = naddr;
     }
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BEQ()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
-    local_rt = irt;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
+    local_rt = core_irt;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs == local_rt)
     {
         SKIP_IDLE()
@@ -2277,14 +2277,14 @@ static void BEQ()
     if (local_rs == local_rt && !ignore)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BNE()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
-    local_rt = irt;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
+    local_rt = core_irt;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs != local_rt)
     {
         SKIP_IDLE()
@@ -2298,13 +2298,13 @@ static void BNE()
     if (local_rs != local_rt)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BLEZ()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs <= 0)
     {
         SKIP_IDLE()
@@ -2318,13 +2318,13 @@ static void BLEZ()
     if (local_rs <= 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BGTZ()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr && local_rs <= 0)
     {
         SKIP_IDLE()
@@ -2338,65 +2338,65 @@ static void BGTZ()
     if (local_rs > 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 #undef SKIP_IDLE()
 
 static void ADDI()
 {
-    irt32 = irs32 + iimmediate;
-    sign_extended(irt);
+    irt32 = irs32 + core_iimmediate;
+    sign_extended(core_irt);
     interp_addr += 4;
 }
 
 static void ADDIU()
 {
-    irt32 = irs32 + iimmediate;
-    sign_extended(irt);
+    irt32 = irs32 + core_iimmediate;
+    sign_extended(core_irt);
     interp_addr += 4;
 }
 
 static void SLTI()
 {
-    if (irs < iimmediate)
-        irt = 1;
+    if (core_irs < core_iimmediate)
+        core_irt = 1;
     else
-        irt = 0;
+        core_irt = 0;
     interp_addr += 4;
 }
 
 static void SLTIU()
 {
-    if ((unsigned long long)irs < (unsigned long long)((long long)iimmediate))
-        irt = 1;
+    if ((unsigned long long)core_irs < (unsigned long long)((long long)core_iimmediate))
+        core_irt = 1;
     else
-        irt = 0;
+        core_irt = 0;
     interp_addr += 4;
 }
 
 static void ANDI()
 {
-    irt = irs & (unsigned short)iimmediate;
+    core_irt = core_irs & (unsigned short)core_iimmediate;
     interp_addr += 4;
 }
 
 static void ORI()
 {
-    irt = irs | (unsigned short)iimmediate;
+    core_irt = core_irs | (unsigned short)core_iimmediate;
     interp_addr += 4;
 }
 
 static void XORI()
 {
-    irt = irs ^ (unsigned short)iimmediate;
+    core_irt = core_irs ^ (unsigned short)core_iimmediate;
     interp_addr += 4;
 }
 
 static void LUI()
 {
-    irt32 = iimmediate << 16;
-    sign_extended(irt);
+    irt32 = core_iimmediate << 16;
+    sign_extended(core_irt);
     interp_addr += 4;
 }
 
@@ -2413,19 +2413,19 @@ static void COP1()
 
 static void BEQL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
-    local_rt = irt;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
+    local_rt = core_irt;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
-        if (irs == irt)
+        if (core_irs == core_irt)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -2446,24 +2446,24 @@ static void BEQL()
         update_count();
     }
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BNEL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
-    local_rt = irt;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
+    local_rt = core_irt;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
-        if (irs != irt)
+        if (core_irs != core_irt)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -2484,23 +2484,23 @@ static void BNEL()
         update_count();
     }
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BLEZL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
-        if (irs <= 0)
+        if (core_irs <= 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -2521,23 +2521,23 @@ static void BLEZL()
         update_count();
     }
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void BGTZL()
 {
-    short local_immediate = iimmediate;
-    local_rs = irs;
+    short local_immediate = core_iimmediate;
+    local_rs = core_irs;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
-        if (irs > 0)
+        if (core_irs > 0)
         {
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - Count;
+                skip = next_interupt - core_Count;
                 if (skip > 3)
                 {
-                    Count += (skip & 0xFFFFFFFC);
+                    core_Count += (skip & 0xFFFFFFFC);
                     return;
                 }
             }
@@ -2558,18 +2558,18 @@ static void BGTZL()
         update_count();
     }
     last_addr = interp_addr;
-    if (next_interupt <= Count) gen_interupt();
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 static void DADDI()
 {
-    irt = irs + iimmediate;
+    core_irt = core_irs + core_iimmediate;
     interp_addr += 4;
 }
 
 static void DADDIU()
 {
-    irt = irs + iimmediate;
+    core_irt = core_irs + core_iimmediate;
     interp_addr += 4;
 }
 
@@ -2577,54 +2577,54 @@ static void LDL()
 {
     unsigned long long int word = 0;
     interp_addr += 4;
-    switch ((iimmediate + irs32) & 7)
+    switch ((core_iimmediate + irs32) & 7)
     {
     case 0:
-        address = iimmediate + irs32;
-        rdword = (unsigned long long int*)&irt;
+        address = core_iimmediate + irs32;
+        rdword = (unsigned long long int*)&core_irt;
         read_dword_in_memory();
         break;
     case 1:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFF) | (word << 8);
+        core_irt = (core_irt & 0xFF) | (word << 8);
         break;
     case 2:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFF) | (word << 16);
+        core_irt = (core_irt & 0xFFFF) | (word << 16);
         break;
     case 3:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFF) | (word << 24);
+        core_irt = (core_irt & 0xFFFFFF) | (word << 24);
         break;
     case 4:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFFFF) | (word << 32);
+        core_irt = (core_irt & 0xFFFFFFFF) | (word << 32);
         break;
     case 5:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFFFFFFLL) | (word << 40);
+        core_irt = (core_irt & 0xFFFFFFFFFFLL) | (word << 40);
         break;
     case 6:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFFFFFFFFLL) | (word << 48);
+        core_irt = (core_irt & 0xFFFFFFFFFFFFLL) | (word << 48);
         break;
     case 7:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFFFFFFFFFFLL) | (word << 56);
+        core_irt = (core_irt & 0xFFFFFFFFFFFFFFLL) | (word << 56);
         break;
     }
 }
@@ -2633,53 +2633,53 @@ static void LDR()
 {
     unsigned long long int word = 0;
     interp_addr += 4;
-    switch ((iimmediate + irs32) & 7)
+    switch ((core_iimmediate + irs32) & 7)
     {
     case 0:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFFFFFFFFFF00LL) | (word >> 56);
+        core_irt = (core_irt & 0xFFFFFFFFFFFFFF00LL) | (word >> 56);
         break;
     case 1:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFFFFFFFF0000LL) | (word >> 48);
+        core_irt = (core_irt & 0xFFFFFFFFFFFF0000LL) | (word >> 48);
         break;
     case 2:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFFFFFF000000LL) | (word >> 40);
+        core_irt = (core_irt & 0xFFFFFFFFFF000000LL) | (word >> 40);
         break;
     case 3:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFFFF00000000LL) | (word >> 32);
+        core_irt = (core_irt & 0xFFFFFFFF00000000LL) | (word >> 32);
         break;
     case 4:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFFFF0000000000LL) | (word >> 24);
+        core_irt = (core_irt & 0xFFFFFF0000000000LL) | (word >> 24);
         break;
     case 5:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFFFF000000000000LL) | (word >> 16);
+        core_irt = (core_irt & 0xFFFF000000000000LL) | (word >> 16);
         break;
     case 6:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
         read_dword_in_memory();
-        irt = (irt & 0xFF00000000000000LL) | (word >> 8);
+        core_irt = (core_irt & 0xFF00000000000000LL) | (word >> 8);
         break;
     case 7:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
-        rdword = (unsigned long long int*)&irt;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
+        rdword = (unsigned long long int*)&core_irt;
         read_dword_in_memory();
         break;
     }
@@ -2688,76 +2688,76 @@ static void LDR()
 static void LB()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    rdword = (unsigned long long int*)&irt;
+    address = core_iimmediate + irs32;
+    rdword = (unsigned long long int*)&core_irt;
     read_byte_in_memory();
-    sign_extendedb(irt);
+    sign_extendedb(core_irt);
 }
 
 static void LH()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    rdword = (unsigned long long int*)&irt;
+    address = core_iimmediate + irs32;
+    rdword = (unsigned long long int*)&core_irt;
     read_hword_in_memory();
-    sign_extendedh(irt);
+    sign_extendedh(core_irt);
 }
 
 static void LWL()
 {
     unsigned long long int word = 0;
     interp_addr += 4;
-    switch ((iimmediate + irs32) & 3)
+    switch ((core_iimmediate + irs32) & 3)
     {
     case 0:
-        address = iimmediate + irs32;
-        rdword = (unsigned long long int*)&irt;
+        address = core_iimmediate + irs32;
+        rdword = (unsigned long long int*)&core_irt;
         read_word_in_memory();
         break;
     case 1:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &word;
         read_word_in_memory();
-        irt = (irt & 0xFF) | (word << 8);
+        core_irt = (core_irt & 0xFF) | (word << 8);
         break;
     case 2:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &word;
         read_word_in_memory();
-        irt = (irt & 0xFFFF) | (word << 16);
+        core_irt = (core_irt & 0xFFFF) | (word << 16);
         break;
     case 3:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &word;
         read_word_in_memory();
-        irt = (irt & 0xFFFFFF) | (word << 24);
+        core_irt = (core_irt & 0xFFFFFF) | (word << 24);
         break;
     }
-    sign_extended(irt);
+    sign_extended(core_irt);
 }
 
 static void LW()
 {
-    address = iimmediate + irs32;
-    rdword = (unsigned long long int*)&irt;
+    address = core_iimmediate + irs32;
+    rdword = (unsigned long long int*)&core_irt;
     interp_addr += 4;
     read_word_in_memory();
-    sign_extended(irt);
+    sign_extended(core_irt);
 }
 
 static void LBU()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    rdword = (unsigned long long int*)&irt;
+    address = core_iimmediate + irs32;
+    rdword = (unsigned long long int*)&core_irt;
     read_byte_in_memory();
 }
 
 static void LHU()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    rdword = (unsigned long long int*)&irt;
+    address = core_iimmediate + irs32;
+    rdword = (unsigned long long int*)&core_irt;
     read_hword_in_memory();
 }
 
@@ -2765,38 +2765,38 @@ static void LWR()
 {
     unsigned long long int word = 0;
     interp_addr += 4;
-    switch ((iimmediate + irs32) & 3)
+    switch ((core_iimmediate + irs32) & 3)
     {
     case 0:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &word;
         read_word_in_memory();
-        irt = (irt & 0xFFFFFFFFFFFFFF00LL) | ((word >> 24) & 0xFF);
+        core_irt = (core_irt & 0xFFFFFFFFFFFFFF00LL) | ((word >> 24) & 0xFF);
         break;
     case 1:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &word;
         read_word_in_memory();
-        irt = (irt & 0xFFFFFFFFFFFF0000LL) | ((word >> 16) & 0xFFFF);
+        core_irt = (core_irt & 0xFFFFFFFFFFFF0000LL) | ((word >> 16) & 0xFFFF);
         break;
     case 2:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &word;
         read_word_in_memory();
-        irt = (irt & 0xFFFFFFFFFF000000LL) | ((word >> 8) & 0xFFFFFF);
+        core_irt = (core_irt & 0xFFFFFFFFFF000000LL) | ((word >> 8) & 0xFFFFFF);
         break;
     case 3:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
-        rdword = (unsigned long long int*)&irt;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
+        rdword = (unsigned long long int*)&core_irt;
         read_word_in_memory();
-        sign_extended(irt);
+        sign_extended(core_irt);
     }
 }
 
 static void LWU()
 {
-    address = iimmediate + irs32;
-    rdword = (unsigned long long int*)&irt;
+    address = core_iimmediate + irs32;
+    rdword = (unsigned long long int*)&core_irt;
     interp_addr += 4;
     read_word_in_memory();
 }
@@ -2804,16 +2804,16 @@ static void LWU()
 static void SB()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    g_byte = (unsigned char)(irt & 0xFF);
+    address = core_iimmediate + irs32;
+    g_byte = (unsigned char)(core_irt & 0xFF);
     write_byte_in_memory();
 }
 
 static void SH()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    hword = (unsigned short)(irt & 0xFFFF);
+    address = core_iimmediate + irs32;
+    hword = (unsigned short)(core_irt & 0xFFFF);
     write_hword_in_memory();
 }
 
@@ -2821,30 +2821,30 @@ static void SWL()
 {
     unsigned long long int old_word = 0;
     interp_addr += 4;
-    switch ((iimmediate + irs32) & 3)
+    switch ((core_iimmediate + irs32) & 3)
     {
     case 0:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
-        word = (unsigned long)irt;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
+        word = (unsigned long)core_irt;
         write_word_in_memory();
         break;
     case 1:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &old_word;
         read_word_in_memory();
-        word = ((unsigned long)irt >> 8) | (old_word & 0xFF000000);
+        word = ((unsigned long)core_irt >> 8) | (old_word & 0xFF000000);
         write_word_in_memory();
         break;
     case 2:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &old_word;
         read_word_in_memory();
-        word = ((unsigned long)irt >> 16) | (old_word & 0xFFFF0000);
+        word = ((unsigned long)core_irt >> 16) | (old_word & 0xFFFF0000);
         write_word_in_memory();
         break;
     case 3:
-        address = iimmediate + irs32;
-        g_byte = (unsigned char)(irt >> 24);
+        address = core_iimmediate + irs32;
+        g_byte = (unsigned char)(core_irt >> 24);
         write_byte_in_memory();
         break;
     }
@@ -2853,8 +2853,8 @@ static void SWL()
 static void SW()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    word = (unsigned long)(irt & 0xFFFFFFFF);
+    address = core_iimmediate + irs32;
+    word = (unsigned long)(core_irt & 0xFFFFFFFF);
     write_word_in_memory();
 }
 
@@ -2862,60 +2862,60 @@ static void SDL()
 {
     unsigned long long int old_word = 0;
     interp_addr += 4;
-    switch ((iimmediate + irs32) & 7)
+    switch ((core_iimmediate + irs32) & 7)
     {
     case 0:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
-        dword = irt;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
+        dword = core_irt;
         write_dword_in_memory();
         break;
     case 1:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = ((unsigned long long)irt >> 8) | (old_word & 0xFF00000000000000LL);
+        dword = ((unsigned long long)core_irt >> 8) | (old_word & 0xFF00000000000000LL);
         write_dword_in_memory();
         break;
     case 2:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = ((unsigned long long)irt >> 16) | (old_word & 0xFFFF000000000000LL);
+        dword = ((unsigned long long)core_irt >> 16) | (old_word & 0xFFFF000000000000LL);
         write_dword_in_memory();
         break;
     case 3:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = ((unsigned long long)irt >> 24) | (old_word & 0xFFFFFF0000000000LL);
+        dword = ((unsigned long long)core_irt >> 24) | (old_word & 0xFFFFFF0000000000LL);
         write_dword_in_memory();
         break;
     case 4:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = ((unsigned long long)irt >> 32) | (old_word & 0xFFFFFFFF00000000LL);
+        dword = ((unsigned long long)core_irt >> 32) | (old_word & 0xFFFFFFFF00000000LL);
         write_dword_in_memory();
         break;
     case 5:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = ((unsigned long long)irt >> 40) | (old_word & 0xFFFFFFFFFF000000LL);
+        dword = ((unsigned long long)core_irt >> 40) | (old_word & 0xFFFFFFFFFF000000LL);
         write_dword_in_memory();
         break;
     case 6:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = ((unsigned long long)irt >> 48) | (old_word & 0xFFFFFFFFFFFF0000LL);
+        dword = ((unsigned long long)core_irt >> 48) | (old_word & 0xFFFFFFFFFFFF0000LL);
         write_dword_in_memory();
         break;
     case 7:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = ((unsigned long long)irt >> 56) | (old_word & 0xFFFFFFFFFFFFFF00LL);
+        dword = ((unsigned long long)core_irt >> 56) | (old_word & 0xFFFFFFFFFFFFFF00LL);
         write_dword_in_memory();
         break;
     }
@@ -2925,60 +2925,60 @@ static void SDR()
 {
     unsigned long long int old_word = 0;
     interp_addr += 4;
-    switch ((iimmediate + irs32) & 7)
+    switch ((core_iimmediate + irs32) & 7)
     {
     case 0:
-        address = iimmediate + irs32;
+        address = core_iimmediate + irs32;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (irt << 56) | (old_word & 0x00FFFFFFFFFFFFFFLL);
+        dword = (core_irt << 56) | (old_word & 0x00FFFFFFFFFFFFFFLL);
         write_dword_in_memory();
         break;
     case 1:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (irt << 48) | (old_word & 0x0000FFFFFFFFFFFFLL);
+        dword = (core_irt << 48) | (old_word & 0x0000FFFFFFFFFFFFLL);
         write_dword_in_memory();
         break;
     case 2:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (irt << 40) | (old_word & 0x000000FFFFFFFFFFLL);
+        dword = (core_irt << 40) | (old_word & 0x000000FFFFFFFFFFLL);
         write_dword_in_memory();
         break;
     case 3:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (irt << 32) | (old_word & 0x00000000FFFFFFFFLL);
+        dword = (core_irt << 32) | (old_word & 0x00000000FFFFFFFFLL);
         write_dword_in_memory();
         break;
     case 4:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (irt << 24) | (old_word & 0x0000000000FFFFFFLL);
+        dword = (core_irt << 24) | (old_word & 0x0000000000FFFFFFLL);
         write_dword_in_memory();
         break;
     case 5:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (irt << 16) | (old_word & 0x000000000000FFFFLL);
+        dword = (core_irt << 16) | (old_word & 0x000000000000FFFFLL);
         write_dword_in_memory();
         break;
     case 6:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (irt << 8) | (old_word & 0x00000000000000FFLL);
+        dword = (core_irt << 8) | (old_word & 0x00000000000000FFLL);
         write_dword_in_memory();
         break;
     case 7:
-        address = (iimmediate + irs32) & 0xFFFFFFF8;
-        dword = irt;
+        address = (core_iimmediate + irs32) & 0xFFFFFFF8;
+        dword = core_irt;
         write_dword_in_memory();
         break;
     }
@@ -2988,32 +2988,32 @@ static void SWR()
 {
     unsigned long long int old_word = 0;
     interp_addr += 4;
-    switch ((iimmediate + irs32) & 3)
+    switch ((core_iimmediate + irs32) & 3)
     {
     case 0:
-        address = iimmediate + irs32;
+        address = core_iimmediate + irs32;
         rdword = &old_word;
         read_word_in_memory();
-        word = ((unsigned long)irt << 24) | (old_word & 0x00FFFFFF);
+        word = ((unsigned long)core_irt << 24) | (old_word & 0x00FFFFFF);
         write_word_in_memory();
         break;
     case 1:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &old_word;
         read_word_in_memory();
-        word = ((unsigned long)irt << 16) | (old_word & 0x0000FFFF);
+        word = ((unsigned long)core_irt << 16) | (old_word & 0x0000FFFF);
         write_word_in_memory();
         break;
     case 2:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &old_word;
         read_word_in_memory();
-        word = ((unsigned long)irt << 8) | (old_word & 0x000000FF);
+        word = ((unsigned long)core_irt << 8) | (old_word & 0x000000FF);
         write_word_in_memory();
         break;
     case 3:
-        address = (iimmediate + irs32) & 0xFFFFFFFC;
-        word = (unsigned long)irt;
+        address = (core_iimmediate + irs32) & 0xFFFFFFFC;
+        word = (unsigned long)core_irt;
         write_word_in_memory();
         break;
     }
@@ -3026,11 +3026,11 @@ static void CACHE()
 
 static void LL()
 {
-    address = iimmediate + irs32;
-    rdword = (unsigned long long int*)&irt;
+    address = core_iimmediate + irs32;
+    rdword = (unsigned long long int*)&core_irt;
     interp_addr += 4;
     read_word_in_memory();
-    sign_extended(irt);
+    sign_extended(core_irt);
     llbit = 1;
 }
 
@@ -3039,26 +3039,26 @@ static void LWC1()
     unsigned long long int temp;
     if (check_cop1_unusable()) return;
     interp_addr += 4;
-    address = lfoffset + reg[lfbase];
+    address = core_lfoffset + reg[core_lfbase];
     rdword = &temp;
     read_word_in_memory();
-    *((long*)reg_cop1_simple[lfft]) = *rdword;
+    *((long*)reg_cop1_simple[core_lfft]) = *rdword;
 }
 
 static void LDC1()
 {
     if (check_cop1_unusable()) return;
     interp_addr += 4;
-    address = lfoffset + reg[lfbase];
-    rdword = (unsigned long long int*)reg_cop1_double[lfft];
+    address = core_lfoffset + reg[core_lfbase];
+    rdword = (unsigned long long int*)reg_cop1_double[core_lfft];
     read_dword_in_memory();
 }
 
 static void LD()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    rdword = (unsigned long long int*)&irt;
+    address = core_iimmediate + irs32;
+    rdword = (unsigned long long int*)&core_irt;
     read_dword_in_memory();
 }
 
@@ -3067,15 +3067,15 @@ static void SC()
     interp_addr += 4;
     if (llbit)
     {
-        address = iimmediate + irs32;
-        word = (unsigned long)(irt & 0xFFFFFFFF);
+        address = core_iimmediate + irs32;
+        word = (unsigned long)(core_irt & 0xFFFFFFFF);
         write_word_in_memory();
         llbit = 0;
-        irt = 1;
+        core_irt = 1;
     }
     else
     {
-        irt = 0;
+        core_irt = 0;
     }
 }
 
@@ -3083,8 +3083,8 @@ static void SWC1()
 {
     if (check_cop1_unusable()) return;
     interp_addr += 4;
-    address = lfoffset + reg[lfbase];
-    word = *((long*)reg_cop1_simple[lfft]);
+    address = core_lfoffset + reg[core_lfbase];
+    word = *((long*)reg_cop1_simple[core_lfft]);
     write_word_in_memory();
 }
 
@@ -3092,16 +3092,16 @@ static void SDC1()
 {
     if (check_cop1_unusable()) return;
     interp_addr += 4;
-    address = lfoffset + reg[lfbase];
-    dword = *((unsigned long long*)reg_cop1_double[lfft]);
+    address = core_lfoffset + reg[core_lfbase];
+    dword = *((unsigned long long*)reg_cop1_double[core_lfft]);
     write_dword_in_memory();
 }
 
 static void SD()
 {
     interp_addr += 4;
-    address = iimmediate + irs32;
-    dword = irt;
+    address = core_iimmediate + irs32;
+    dword = core_irt;
     write_dword_in_memory();
 }
 

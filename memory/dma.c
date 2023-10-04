@@ -245,7 +245,7 @@ void dma_pi_write()
     /*for (i=0; i<=((longueur+0x800)>>12); i++)
       invalid_code[(((pi_register.pi_dram_addr_reg&0xFFFFFF)|0x80000000)>>12)+i] = 1;*/
 
-    if ((debug_count + Count) < 0x100000)
+    if ((debug_count + core_Count) < 0x100000)
     {
         switch (CIC_Chip)
         {

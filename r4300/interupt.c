@@ -73,7 +73,7 @@ void print_queue()
 {
     interupt_queue* aux;
     //if (Count < 0x7000000) return;
-    printf("------------------ %x\n", (unsigned int)Count);
+    printf("------------------ %x\n", (unsigned int)core_Count);
     aux = q;
     while (aux != NULL)
     {
@@ -95,16 +95,16 @@ static int SPECIAL_done = 0;
 /// <returns></returns>
 int before_event(unsigned long evt1, unsigned long evt2, int type2)
 {
-    if (evt1 - Count < 0x80000000)
+    if (evt1 - core_Count < 0x80000000)
     {
-        if (evt2 - Count < 0x80000000)
+        if (evt2 - core_Count < 0x80000000)
         {
-            if ((evt1 - Count) < (evt2 - Count)) return 1;
+            if ((evt1 - core_Count) < (evt2 - core_Count)) return 1;
             else return 0;
         }
         else
         {
-            if ((Count - evt2) < 0x10000000)
+            if ((core_Count - evt2) < 0x10000000)
             {
                 switch (type2)
                 {
@@ -129,11 +129,11 @@ int before_event(unsigned long evt1, unsigned long evt2, int type2)
 /// <param name="delay">how much to wait</param>
 void add_interupt_event(int type, unsigned long delay)
 {
-    unsigned long count = Count + delay/**2*/;
+    unsigned long count = core_Count + delay/**2*/;
     int special = 0;
 
     if (type == SPECIAL_INT /*|| type == COMPARE_INT*/) special = 1;
-    if (Count > 0x80000000) SPECIAL_done = 0;
+    if (core_Count > 0x80000000) SPECIAL_done = 0;
 
     if (get_event(type))
     {
@@ -211,7 +211,7 @@ void add_interupt_event(int type, unsigned long delay)
 /// <param name="count">when to make this interrupt happen</param>
 void add_interupt_event_count(int type, unsigned long count)
 {
-    add_interupt_event(type, (count - Count)/*/2*/);
+    add_interupt_event(type, (count - core_Count)/*/2*/);
 }
 
 void remove_interupt_event()
@@ -220,7 +220,7 @@ void remove_interupt_event()
     if (q->type == SPECIAL_INT) SPECIAL_done = 1;
     free(q);
     q = aux;
-    if (q != NULL && (q->count > Count || (Count - q->count) < 0x80000000))
+    if (q != NULL && (q->count > core_Count || (core_Count - q->count) < 0x80000000))
         next_interupt = q->count;
     else
         next_interupt = 0;
@@ -277,10 +277,10 @@ void translate_event_queue(unsigned long base)
     aux = q;
     while (aux != NULL)
     {
-        aux->count = (aux->count - Count) + base;
+        aux->count = (aux->count - core_Count) + base;
         aux = aux->next;
     }
-    add_interupt_event_count(COMPARE_INT, Compare);
+    add_interupt_event_count(COMPARE_INT, core_Compare);
     add_interupt_event_count(SPECIAL_INT, 0);
 }
 
@@ -341,30 +341,30 @@ void check_interupt()
 
     // same thing is done in gen_interrupt, but this is needed so that the bit is cleared properly
     if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-        Cause = (Cause | 0x400) & 0xFFFFFF83; //0x400 is CAUSE_IP3 (rcp interrupt pending)
+        core_Cause = (core_Cause | 0x400) & 0xFFFFFF83; //0x400 is CAUSE_IP3 (rcp interrupt pending)
     else
-        Cause &= ~0x400;
-    if ((Status & 7) != 1) return;
+        core_Cause &= ~0x400;
+    if ((core_Status & 7) != 1) return;
     // if any of the interrupts is pending, add a check interrupt
     // (which does nothing itself but makes cpu jump to general exception vector)
-    if (Status & Cause & 0xFF00)
+    if (core_Status & core_Cause & 0xFF00)
     {
         if (q == NULL)
         {
             q = (interupt_queue*)malloc(sizeof(interupt_queue));
             q->next = NULL;
-            q->count = Count;
+            q->count = core_Count;
             q->type = CHECK_INT;
         }
         else
         {
             interupt_queue* aux = (interupt_queue*)malloc(sizeof(interupt_queue));
             aux->next = q;
-            aux->count = Count;
+            aux->count = core_Count;
             aux->type = CHECK_INT;
             q = aux;
         }
-        next_interupt = Count;
+        next_interupt = core_Count;
     }
 }
 
@@ -382,7 +382,7 @@ void gen_interupt()
 
     if (skip_jump /*&& !dynacore*/)
     {
-        if (q->count > Count || (Count - q->count) < 0x80000000)
+        if (q->count > core_Count || (core_Count - q->count) < 0x80000000)
             next_interupt = q->count;
         else
             next_interupt = 0;
@@ -412,7 +412,7 @@ void gen_interupt()
     {
     case SPECIAL_INT: // does nothing, spammed when Count is close to rolling over
         //printf("SPECIAL, count: %x\n", q->count);
-        if (Count > 0x10000000) return;
+        if (core_Count > 0x10000000) return;
         remove_interupt_event();
         add_interupt_event_count(SPECIAL_INT, 0);
         return;
@@ -440,9 +440,9 @@ void gen_interupt()
     case COMPARE_INT: // game can set Compare register to some value, and make a timer like that
         //printf("COMPARE, count: %x\n", q->count);
         remove_interupt_event();
-        Count += 2;
-        add_interupt_event_count(COMPARE_INT, Compare);
-        Count -= 2;
+        core_Count += 2;
+        add_interupt_event_count(COMPARE_INT, core_Compare);
+        core_Count -= 2;
         break;
 
     case CHECK_INT: //fake interrupt used to trigger exception handler (when interrupt is pending)
@@ -522,15 +522,15 @@ void gen_interupt()
     }
 
     if (type == COMPARE_INT)
-        Cause = (Cause | 0x8000) & 0xFFFFFF83; // COMPARE interrupt to be pending
+        core_Cause = (core_Cause | 0x8000) & 0xFFFFFF83; // COMPARE interrupt to be pending
     if (type != CHECK_INT)
     {
         if (MI_register.mi_intr_reg & MI_register.mi_intr_mask_reg)
-            Cause = (Cause | 0x400) & 0xFFFFFF83; //RCP interrupt is pending
+            core_Cause = (core_Cause | 0x400) & 0xFFFFFF83; //RCP interrupt is pending
         else
             return;
-        if ((Status & 7) != 1) return; // if interrupts shouldn't be handled, return
-        if (!(Status & Cause & 0xFF00)) return; // check if there is any pending interrupt that isn't masked away
+        if ((core_Status & 7) != 1) return; // if interrupts shouldn't be handled, return
+        if (!(core_Status & core_Cause & 0xFF00)) return; // check if there is any pending interrupt that isn't masked away
     }
 
 

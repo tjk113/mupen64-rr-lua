@@ -406,7 +406,7 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 
 		// and that message pass doesn't do anything besides telling the windows to close
 		// so now we have to wait until they actually clean up their shit
-		while (!LuaEngine::is_hwnd_map_empty())
+		while (!hwnd_lua_map.empty())
 		{
 			printf("Pumping messages until lua cleans up...\n");
 			LuaProcessMessages();

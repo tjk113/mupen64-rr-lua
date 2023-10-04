@@ -38,61 +38,61 @@
 void ADD_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    CHECK_INPUT(*reg_cop1_double[cfft]);
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] +
-        *reg_cop1_double[cfft];
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cfft]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] +
+        *reg_cop1_double[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     PC++;
 }
 
 void SUB_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    CHECK_INPUT(*reg_cop1_double[cfft]);
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] -
-        *reg_cop1_double[cfft];
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cfft]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] -
+        *reg_cop1_double[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     PC++;
 }
 
 void MUL_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    CHECK_INPUT(*reg_cop1_double[cfft]);
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] *
-        *reg_cop1_double[cfft];
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cfft]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] *
+        *reg_cop1_double[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     PC++;
 }
 
 void DIV_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    CHECK_INPUT(*reg_cop1_double[cfft]);
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs] /
-        *reg_cop1_double[cfft];
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cfft]);
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] /
+        *reg_cop1_double[core_cfft];
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     PC++;
 }
 
 void SQRT_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    *reg_cop1_double[cffd] = sqrt(*reg_cop1_double[cffs]);
-    CHECK_OUTPUT(*reg_cop1_double[cffd]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    *reg_cop1_double[core_cffd] = sqrt(*reg_cop1_double[core_cffs]);
+    CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
     PC++;
 }
 
 void ABS_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    *reg_cop1_double[cffd] = fabs(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    *reg_cop1_double[core_cffd] = fabs(*reg_cop1_double[core_cffs]);
     // ABS cannot fail
     PC++;
 }
@@ -101,15 +101,15 @@ void MOV_D()
 {
     if (check_cop1_unusable()) return;
     // MOV is not an arithmetic instruction, no check needed
-    *reg_cop1_double[cffd] = *reg_cop1_double[cffs];
+    *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs];
     PC++;
 }
 
 void NEG_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
-    *reg_cop1_double[cffd] = -(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
+    *reg_cop1_double[core_cffd] = -(*reg_cop1_double[core_cffs]);
     // NEG cannot fail
     PC++;
 }
@@ -117,10 +117,10 @@ void NEG_D()
 void ROUND_L_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_round_to_nearest();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     PC++;
 }
@@ -128,10 +128,10 @@ void ROUND_L_D()
 void TRUNC_L_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_trunc();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     PC++;
 }
@@ -139,10 +139,10 @@ void TRUNC_L_D()
 void CEIL_L_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_ceil();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     PC++;
 }
@@ -150,10 +150,10 @@ void CEIL_L_D()
 void FLOOR_L_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_floor();
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     set_rounding();
     PC++;
 }
@@ -161,10 +161,10 @@ void FLOOR_L_D()
 void ROUND_W_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_round_to_nearest();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
     set_rounding();
     PC++;
 }
@@ -172,10 +172,10 @@ void ROUND_W_D()
 void TRUNC_W_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_trunc();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
     set_rounding();
     PC++;
 }
@@ -183,10 +183,10 @@ void TRUNC_W_D()
 void CEIL_W_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_ceil();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
     set_rounding();
     PC++;
 }
@@ -194,10 +194,10 @@ void CEIL_W_D()
 void FLOOR_W_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     set_floor();
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
     set_rounding();
     PC++;
 }
@@ -205,35 +205,35 @@ void FLOOR_W_D()
 void CVT_S_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     if (Config.is_round_towards_zero_enabled)
     {
         set_trunc();
     }
-    *reg_cop1_simple[cffd] = *reg_cop1_double[cffs];
+    *reg_cop1_simple[core_cffd] = *reg_cop1_double[core_cffs];
     if (Config.is_round_towards_zero_enabled)
     {
         set_rounding();
     }
-    CHECK_OUTPUT(*reg_cop1_simple[cffd]);
+    CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     PC++;
 }
 
 void CVT_W_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[cffs], reg_cop1_simple[cffd]);
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
     PC++;
 }
 
 void CVT_L_D()
 {
     if (check_cop1_unusable()) return;
-    CHECK_INPUT(*reg_cop1_double[cffs]);
+    CHECK_INPUT(*reg_cop1_double[core_cffs]);
     clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[cffs], reg_cop1_double[cffd]);
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     PC++;
 }
 
@@ -247,7 +247,7 @@ void C_F_D()
 void C_UN_D()
 {
     if (check_cop1_unusable()) return;
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -256,8 +256,8 @@ void C_UN_D()
 void C_EQ_D()
 {
     if (check_cop1_unusable()) return;
-    if (!isnan(*reg_cop1_double[cffs]) && !isnan(*reg_cop1_double[cfft]) &&
-        *reg_cop1_double[cffs] == *reg_cop1_double[cfft])
+    if (!isnan(*reg_cop1_double[core_cffs]) && !isnan(*reg_cop1_double[core_cfft]) &&
+        *reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -266,8 +266,8 @@ void C_EQ_D()
 void C_UEQ_D()
 {
     if (check_cop1_unusable()) return;
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]) ||
-        *reg_cop1_double[cffs] == *reg_cop1_double[cfft])
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]) ||
+        *reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -276,8 +276,8 @@ void C_UEQ_D()
 void C_OLT_D()
 {
     if (check_cop1_unusable()) return;
-    if (!isnan(*reg_cop1_double[cffs]) && !isnan(*reg_cop1_double[cfft]) &&
-        *reg_cop1_double[cffs] < *reg_cop1_double[cfft])
+    if (!isnan(*reg_cop1_double[core_cffs]) && !isnan(*reg_cop1_double[core_cfft]) &&
+        *reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -286,8 +286,8 @@ void C_OLT_D()
 void C_ULT_D()
 {
     if (check_cop1_unusable()) return;
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]) ||
-        *reg_cop1_double[cffs] < *reg_cop1_double[cfft])
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]) ||
+        *reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -296,8 +296,8 @@ void C_ULT_D()
 void C_OLE_D()
 {
     if (check_cop1_unusable()) return;
-    if (!isnan(*reg_cop1_double[cffs]) && !isnan(*reg_cop1_double[cfft]) &&
-        *reg_cop1_double[cffs] <= *reg_cop1_double[cfft])
+    if (!isnan(*reg_cop1_double[core_cffs]) && !isnan(*reg_cop1_double[core_cfft]) &&
+        *reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -306,8 +306,8 @@ void C_OLE_D()
 void C_ULE_D()
 {
     if (check_cop1_unusable()) return;
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]) ||
-        *reg_cop1_double[cffs] <= *reg_cop1_double[cfft])
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]) ||
+        *reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -315,7 +315,7 @@ void C_ULE_D()
 
 void C_SF_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
@@ -326,7 +326,7 @@ void C_SF_D()
 
 void C_NGLE_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
@@ -337,12 +337,12 @@ void C_NGLE_D()
 
 void C_SEQ_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] == *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -350,12 +350,12 @@ void C_SEQ_D()
 
 void C_NGL_D()
 {
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] == *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -364,12 +364,12 @@ void C_NGL_D()
 void C_LT_D()
 {
     if (check_cop1_unusable()) return;
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] < *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -378,12 +378,12 @@ void C_LT_D()
 void C_NGE_D()
 {
     if (check_cop1_unusable()) return;
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] < *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -392,12 +392,12 @@ void C_NGE_D()
 void C_LE_D()
 {
     if (check_cop1_unusable()) return;
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] <= *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
@@ -406,12 +406,12 @@ void C_LE_D()
 void C_NGT_D()
 {
     if (check_cop1_unusable()) return;
-    if (isnan(*reg_cop1_double[cffs]) || isnan(*reg_cop1_double[cfft]))
+    if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
         printf("Invalid operation exception in C opcode\n");
         stop = 1;
     }
-    if (*reg_cop1_double[cffs] <= *reg_cop1_double[cfft])
+    if (*reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
         FCR31 |= 0x800000;
     else FCR31 &= ~0x800000;
     PC++;
