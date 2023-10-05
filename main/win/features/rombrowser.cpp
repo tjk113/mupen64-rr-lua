@@ -320,7 +320,7 @@ void rombrowser_notify(LPARAM lparam)
 			int i = ListView_GetNextItem(rombrowser_hwnd, -1, LVNI_SELECTED);
 			if (i != -1)
 			{
-				StartRom(rombrowser_entries[i]->path.c_str());
+				start_rom(rombrowser_entries[i]->path.c_str());
 			}
 		}
 		break;

@@ -109,7 +109,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam);
 const char g_szClassName[] = "myWindowClass";
 char LastSelectedRom[_MAX_PATH];
 bool scheduled_restart = false;
-static BOOL restart_mode = 0;
 BOOL really_restart_mode = 0;
 BOOL clear_sram_on_restart_mode = 0;
 BOOL continue_vcr_on_restart_mode = 0;
@@ -299,73 +298,64 @@ void pauseEmu(BOOL quiet)
 			                              : MFS_UNCHECKED));
 }
 
-BOOL StartRom(const char* fullRomPath)
+int32_t start_rom(std::string path)
 {
-	LONG winstyle;
-	if (emu_launched)
+	assert(!emu_launched);
+
+	// if any plugin isn't ready (not selected or otherwise invalid), we bail
+	std::vector<plugin_type> missing_plugin_types =
+		get_missing_plugin_types();
+
+	if (!missing_plugin_types.empty())
 	{
-		really_restart_mode = TRUE;
-		strcpy(LastSelectedRom, fullRomPath);
-		CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
-	} else
-	{
-		winstyle = GetWindowLong(mainHWND, GWL_STYLE);
-		winstyle = winstyle & ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
-		SetWindowLong(mainHWND, GWL_STYLE, winstyle);
-		SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0,
-		             SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED); //Set on top
-
-		if (!restart_mode)
+		if (MessageBox(mainHWND,
+					   "Can't start emulation prior to selecting plugins.\nDo you want to select plugins in the settings?",
+					   "Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
 		{
-			std::vector<plugin_type> missing_plugin_types =
-				get_missing_plugin_types();
-
-			if (missing_plugin_types.size() > 0)
-			{
-				if (MessageBox(mainHWND,
-				               "Can't start emulation prior to selecting plugins.\nDo you want to select plugins in the settings?",
-				               "Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
-				{
-					ChangeSettings(mainHWND);
-				}
-				return 1;
-			}
-
-			if (rom_read(fullRomPath))
-			{
-				emu_launched = 0;
-				MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
-				return TRUE;
-			}
-
-			sprintf(LastSelectedRom, "%s", fullRomPath);
-
-			main_recent_roms_add(fullRomPath);
-
-			InitTimer();
-
-			EnableEmulationMenuItems(TRUE);
-
-			rombrowser_set_visibility(0);
+			ChangeSettings(mainHWND);
 		}
-
-		statusbar_set_mode(statusbar_mode::emulating);
-
-		printf("Creating emulation thread...\n");
-		EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
-
-		extern int m_task;
-		if (m_task == 0)
-		{
-			sprintf(TempMessage, MUPEN_VERSION " - %s", (char*)ROM_HEADER->nom);
-			SetWindowText(mainHWND, TempMessage);
-		}
-
-		printf("Thread created\n");
-		EnableEmulationMenuItems(TRUE);
-		return FALSE;
+		return 0;
 	}
-	return 0;
+
+	// valid rom is required to start emulation
+	if (rom_read(path.c_str()))
+	{
+		MessageBox(mainHWND, "Failed to open ROM", "Error",
+				   MB_ICONERROR | MB_OK);
+		return 0;
+	}
+
+	// at this point, we're set to begin emulating and can't backtrack
+	// disallow window resizing
+	LONG style = GetWindowLong(mainHWND, GWL_STYLE);
+	SetWindowLong(mainHWND, GWL_STYLE,
+	              style & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
+
+	// TODO: investigate wtf this is
+	strcpy(LastSelectedRom, path.c_str());
+
+	// notify ui of emu state change
+	main_recent_roms_add(path);
+	rombrowser_set_visibility(0);
+	statusbar_set_mode(statusbar_mode::emulating);
+	EnableEmulationMenuItems(TRUE);
+	InitTimer();
+	if (m_task == 0) {
+		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER->nom)).c_str());
+	}
+
+	printf("Loading plugins...\n");
+	// we might need to call init_memory before this, but it seems to behave correctly for now
+	load_plugins();
+
+	printf("Creating emulation thread...\n");
+	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
+
+	while (!emu_launched) {
+		printf("Waiting for core to start...\n");
+	}
+
+	return 1;
 }
 
 void exit_emu2();
@@ -417,8 +407,6 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 
 		WaitEmuThread();
 
-		if (!restart_mode)
-		{
 			free(rom);
 			rom = NULL;
 			free(ROM_HEADER);
@@ -436,7 +424,7 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 				// TODO: look into why this is done
 				statusbar_send_text(" ", 1);
 			}
-		}
+
 
 		if (shut_window)
 		{
@@ -468,7 +456,7 @@ DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
 			extern int m_task;
 			if (m_task != 0)
 				just_restarted_flag = TRUE;
-			if (StartRom(LastSelectedRom))
+			if (!start_rom(LastSelectedRom))
 			{
 				closeRom(lpParam);
 				MessageBox(mainHWND, "Failed to open ROM", NULL, MB_ICONERROR | MB_OK);
@@ -491,7 +479,6 @@ void resetEmu()
 	{
 		extern int frame_advancing;
 		frame_advancing = false;
-		restart_mode = 0;
 		really_restart_mode = TRUE;
 		MenuPaused = FALSE;
 		CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
@@ -1273,7 +1260,6 @@ static DWORD WINAPI StartMoviesThread(LPVOID lpParam)
 static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 {
 	init_memory();
-	load_plugins();
 	romOpen_gfx();
 	romOpen_input();
 	romOpen_audio();
@@ -1282,7 +1268,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	emu_paused = 0;
 	emu_launched = 1;
-	restart_mode = 0;
 
 	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0,
 	                                 &SOUNDTHREADID);
@@ -1399,7 +1384,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 {
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
 	if (index >= 0 && index < Config.recent_rom_paths.size())
-		return StartRom(Config.recent_rom_paths[index].c_str());
+		return start_rom(Config.recent_rom_paths[index].c_str());
 	return 0;
 }
 
@@ -1582,7 +1567,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if (lstrcmp(fext, ".N64") == 0 || lstrcmp(fext, ".V64") == 0 ||
 				lstrcmp(fext, ".Z64") == 0 || lstrcmp(fext, ".ROM") == 0)
 			{
-				StartRom(fname);
+				start_rom(fname);
 			} else if (lstrcmp(fext, ".M64") == 0)
 			{
 				if (rom)
@@ -2099,7 +2084,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					if (path.size() > 0)
 					{
-						StartRom(wstring_to_string(path).c_str());
+						start_rom(wstring_to_string(path).c_str());
 					}
 
 					if (wasMenuPaused)

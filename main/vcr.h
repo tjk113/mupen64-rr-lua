@@ -173,6 +173,7 @@ typedef struct
 
 extern SMovieHeader VCR_getHeaderInfo(const char* filename);
 extern char VCR_Lastpath[MAX_PATH];
+extern int m_task;
 
 #endif // VCR_SUPPORT
 
