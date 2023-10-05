@@ -597,8 +597,8 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, std::string field_name,
-                         int32_t is_reading, int32_t* value)
+void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
+                         const int32_t is_reading, int32_t* value)
 {
 	if (is_reading)
 	{
@@ -615,8 +615,8 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, std::string field_name,
-                         int32_t is_reading, std::string& value)
+void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
+                         const int32_t is_reading, std::string& value)
 {
 	if (is_reading)
 	{
@@ -633,8 +633,8 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, std::string field_name,
-                         int32_t is_reading, std::vector<std::string>& value)
+void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
+                         const int32_t is_reading, std::vector<std::string>& value)
 {
 	if (is_reading)
 	{
@@ -662,8 +662,8 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, std::string field_name,
-						 int32_t is_reading, std::map<std::string, std::wstring>& value)
+void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
+						 const int32_t is_reading, std::map<std::string, std::wstring>& value)
 {
 	if (is_reading) {
 		// if the virtual map doesn't exist just leave the vector empty, as attempting to read will crash
@@ -687,8 +687,8 @@ void handle_config_value(mINI::INIStructure& ini, std::string field_name,
 
 }
 
-void handle_config_value(mINI::INIStructure& ini, std::string field_name,
-                         int32_t is_reading, std::vector<int32_t>& value)
+void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
+                        const int32_t is_reading, std::vector<int32_t>& value)
 {
 	if (is_reading)
 	{
@@ -727,7 +727,7 @@ const CONFIG default_config = get_default_config();
 std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 {
 	std::vector<t_hotkey*> hotkeys;
-	auto arr = (t_hotkey*)config;
+	const auto arr = (t_hotkey*)config;
 	// NOTE:
 	// last_offset should contain the offset of the last hotkey
 	// this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
@@ -943,6 +943,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
 			}
 		}
 	}
+	//return value?
 }
 
 void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkey)

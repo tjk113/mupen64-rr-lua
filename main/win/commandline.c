@@ -35,7 +35,7 @@ char cmdLineParameterBuf[512] = {0};
 void SaveCmdLineParameter(char* cmdline)
 {
     strcpy(cmdLineParameterBuf, cmdline);
-    if (strlen(cmdLineParameterBuf) > 0)
+    if (cmdLineParameterBuf[0] != '\0')
     {
         int i;
         int len = (int)strlen(cmdLineParameterBuf);
@@ -142,7 +142,7 @@ std::string setPluginFromCmndLine(CmdLineParameterType plugintype, int spec_type
     char tempstr[100];
     char* tempPluginStr;
     GetCmdLineParameter(plugintype, tempstr);
-    if (strlen(tempstr) > 0)
+    if (tempstr[0] != '\0')
     {
         printf("Command Line: Checking plugin name: %s\n", tempstr);
         // TODO: reimplement
@@ -151,14 +151,16 @@ std::string setPluginFromCmndLine(CmdLineParameterType plugintype, int spec_type
         {
             return tempPluginStr;
         }
+        
     }
+    // Where is return statement?
 }
 
 BOOL StartGameByCommandLine()
 {
     char szFileName[MAX_PATH];
 
-    if (strlen(cmdLineParameterBuf) == 0)
+    if (cmdLineParameterBuf[0] == '\0')
     {
         printf("No command line params specified\n");
         return FALSE;
@@ -210,7 +212,7 @@ BOOL CmdLineParameterExist(CmdLineParameterType param)
 {
     char tempStr[MAX_PATH];
     GetCmdLineParameter(param, tempStr);
-    if (strlen(tempStr) == 0)
+    if (tempStr[0] == '\0')
     {
         return FALSE;
     }

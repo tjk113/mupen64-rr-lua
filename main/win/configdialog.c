@@ -403,7 +403,7 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
                 {
                     break;
                 }
-                Config.rombrowser_rom_paths.push_back(wstring_to_string(path));
+                Config.rombrowser_rom_paths.emplace_back(wstring_to_string(path));
                 build_rom_browser_path_list(hwnd);
                 break;
             }
@@ -796,7 +796,7 @@ std::string hotkey_to_string_overview(t_hotkey* hotkey)
     return hotkey->identifier + " (" + hotkey_to_string(hotkey) + ")"; 
 }
 
-int32_t get_hotkey_array_index_from_overview(std::string overview)
+int32_t get_hotkey_array_index_from_overview(std::string const &overview)
 {
     for (size_t i = 0; i < hotkeys.size(); i++)
     {
@@ -829,7 +829,7 @@ void update_selected_hotkey_view(const HWND dialog_hwnd)
     }
 }
 
-void build_hotkey_list(HWND list_hwnd, std::string search_query)
+void build_hotkey_list(HWND list_hwnd, const std::string &search_query)
 {
     SendMessage(list_hwnd, LB_RESETCONTENT, 0, 0);
 

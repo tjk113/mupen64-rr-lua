@@ -644,7 +644,7 @@ void LoadScreenInit()
 				CHAR buf[MAX_PATH];
 				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				              buf, MAX_PATH);
-				if (buf == NULL || strlen(buf) == 0)
+				if (buf == NULL || buf[0] == '\0')
 					/* || strlen(buf)>MAX_PATH*/
 					return FALSE;
 				// previously , clicking edit with empty path will open current directory in explorer, which is very bad
@@ -755,7 +755,7 @@ void LoadScreenInit()
 	LuaEnvironment* GetLuaClass(lua_State* L)
 	{
 		lua_getfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
-		LuaEnvironment* lua = (LuaEnvironment*)lua_topointer(L, -1);
+		auto lua = (LuaEnvironment*)lua_topointer(L, -1);
 		lua_pop(L, 1);
 		return lua;
 	}
@@ -787,10 +787,9 @@ void LoadScreenInit()
 
 	ULONGLONG LuaCheckQWord(lua_State* L, int i)
 	{
-		ULONGLONG n;
 		lua_pushinteger(L, 1);
 		lua_gettable(L, i);
-		n = (ULONGLONG)LuaCheckIntegerU(L) << 32;
+		ULONGLONG n = (ULONGLONG)LuaCheckIntegerU(L) << 32;
 		lua_pop(L, 1);
 		lua_pushinteger(L, 2);
 		lua_gettable(L, i);
@@ -1343,7 +1342,7 @@ void LoadScreenInit()
 				if (it == breakMap.end())
 				{
 					AddrBreak b;
-					it = breakMap.insert(std::pair<ULONG, AddrBreak>(addr, b)).
+					it = breakMap.emplace(std::pair<ULONG, AddrBreak>(addr, b)).
 					              first;
 				}
 				s.lua = L;
@@ -1386,7 +1385,7 @@ void LoadScreenInit()
 			{
 				AddrBreakFuncVec& f = it->second.func;
 				AddrBreakFuncVec::iterator itt = f.begin();
-				for (; itt != f.end(); itt++)
+				for (; itt != f.end(); ++itt)
 				{
 					if (itt->lua == L)
 					{
@@ -3387,7 +3386,7 @@ void LoadScreenInit()
 	{
 		AddrBreakFuncVec& f = it->second.func;
 		for (AddrBreakFuncVec::iterator itt = f.begin();
-		     itt != f.end(); itt++)
+		     itt != f.end(); ++itt)
 		{
 			lua_State* L = itt->lua;
 			lua_getfield(L, LUA_REGISTRYINDEX, REG_SYNCBREAK);
@@ -3465,7 +3464,7 @@ void LoadScreenInit()
 		AddrBreakFuncVec* p = (AddrBreakFuncVec*)p_;
 		AddrBreakFuncVec& f = *p;
 		for (AddrBreakFuncVec::iterator itt = f.begin();
-		     itt != f.end(); itt++)
+		     itt != f.end(); ++itt)
 		{
 			lua_State* L = itt->lua;
 			lua_getfield(L, LUA_REGISTRYINDEX, REG_PCBREAK);
@@ -3529,7 +3528,7 @@ void LoadScreenInit()
 			current_break_value_size = sizeof(T);
 			AddrBreakFuncVec& f = it->second.func;
 			for (AddrBreakFuncVec::iterator itt = f.begin();
-			     itt != f.end(); itt++)
+			     itt != f.end(); ++itt)
 			{
 				lua_State* L = itt->lua;
 				lua_getfield(L, LUA_REGISTRYINDEX,
@@ -3758,7 +3757,7 @@ void LoadScreenInit()
 					char* buf = new char[size];
 					GetWindowText(inp, buf, size);
 					std::string str(buf);
-					delete buf;
+					delete[] buf;
 					std::string::size_type p = 0;
 					while ((p = str.find("\r\n", p)) != std::string::npos)
 					{
@@ -5105,13 +5104,13 @@ void LuaEnvironment::correctBreakMap(T& breakMap,
 			if (itt->lua == L) {
 				itt = f.erase(itt);
 			} else {
-				itt++;
+				++itt;
 			}
 		}
 		if (f.empty()) {
 			it = removeFunc(it);
 		} else {
-			it++;
+			++it;
 		}
 	}
 }
@@ -5126,7 +5125,7 @@ void LuaEnvironment::correctPCBreak() {
 				if (it->lua == L) {
 					it = RemovePCBreak(f, it);
 				} else {
-					it++;
+					++it;
 				}
 			}
 			if (f.empty()) {

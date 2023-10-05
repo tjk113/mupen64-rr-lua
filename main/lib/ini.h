@@ -386,7 +386,7 @@ namespace mINI
                 lineData = std::make_shared<T_LineData>();
             }
         }
-        ~INIReader() {}
+        ~INIReader() = default;
 
         bool operator>>(INIStructure& data)
         {
@@ -435,7 +435,7 @@ namespace mINI
         bool prettyPrint = false;
 
         INIGenerator(std::string const& filename) { fileWriteStream.open(filename, std::ios::out | std::ios::binary); }
-        ~INIGenerator() {}
+        ~INIGenerator() = default;
 
         bool operator<<(INIStructure const& data)
         {
@@ -643,7 +643,7 @@ namespace mINI
         bool prettyPrint = false;
 
         INIWriter(std::string const& filename) : filename(filename) {}
-        ~INIWriter() {}
+        ~INIWriter() = default;
 
         bool operator<<(INIStructure& data)
         {
@@ -708,7 +708,7 @@ namespace mINI
     public:
         INIFile(std::string const& filename) : filename(filename) {}
 
-        ~INIFile() {}
+        ~INIFile() = default;
 
         bool read(INIStructure& data) const
         {

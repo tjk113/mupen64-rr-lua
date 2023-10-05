@@ -79,7 +79,7 @@ inline static bool contains(const std::string& a, const std::string& b)
 	return a.find(b) != std::string::npos;
 }
 
-inline static std::wstring string_to_wstring(const std::string str)
+inline static std::wstring string_to_wstring(const std::string &str)
 {
 	const auto wstr = static_cast<wchar_t*>(calloc(str.length(), sizeof(wchar_t)));
 
@@ -100,7 +100,7 @@ inline static std::string wstring_to_string(const std::wstring& wstr) {
 }
 
 // https://stackoverflow.com/a/46931770/14472122
-inline static std::vector<std::string> split_string(std::string s, const std::string& delimiter) {
+inline static std::vector<std::string> split_string(const std::string& s, const std::string& delimiter) {
 	size_t pos_start = 0, pos_end;
 	const size_t delim_len = delimiter.length();
 	std::vector<std::string> res;
@@ -111,11 +111,11 @@ inline static std::vector<std::string> split_string(std::string s, const std::st
 		res.push_back (token);
 	}
 
-	res.push_back (s.substr (pos_start));
+	res.emplace_back (s.substr (pos_start));
 	return res;
 }
 
-inline static std::vector<std::wstring> split_wstring(std::wstring s, const std::wstring& delimiter) {
+inline static std::vector<std::wstring> split_wstring(const std::wstring& s, const std::wstring& delimiter) {
 	size_t pos_start = 0, pos_end;
 	const size_t delim_len = delimiter.length();
 	std::vector<std::wstring> res;
@@ -126,6 +126,6 @@ inline static std::vector<std::wstring> split_wstring(std::wstring s, const std:
 		res.push_back (token);
 	}
 
-	res.push_back (s.substr (pos_start));
+	res.emplace_back (s.substr (pos_start));
 	return res;
 }

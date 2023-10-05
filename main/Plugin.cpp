@@ -477,6 +477,7 @@ t_plugin* plugin_create(std::string path)
 
 	if (h_module == nullptr)
 	{
+		free(plugin);
 		return 0;
 	}
 
@@ -485,6 +486,7 @@ t_plugin* plugin_create(std::string path)
 	if (!get_dll_info._fp)
 	{
 		FreeLibrary(h_module);
+		free(plugin);
 		return 0;
 	}
 
@@ -503,8 +505,8 @@ t_plugin* plugin_create(std::string path)
 	plugin->type = static_cast<plugin_type>(plugin_info.Type);
 	plugin->version = plugin_info.Version;
 	plugin->path = path;
-
 	return plugin;
+	
 }
 
 void plugin_destroy(t_plugin* plugin)

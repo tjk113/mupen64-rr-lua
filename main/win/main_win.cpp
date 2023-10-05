@@ -1384,7 +1384,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 {
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
 	if (index >= 0 && index < Config.recent_rom_paths.size())
-		return start_rom(Config.recent_rom_paths[index].c_str());
+		return start_rom(Config.recent_rom_paths[index]);
 	return 0;
 }
 
@@ -1931,7 +1931,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					VCR_setReadOnly(TRUE);
 					bool err = VCR_startPlayback(
-						Config.recent_movie_paths[0].c_str(), 0, 0);
+						Config.recent_movie_paths[0], 0, 0);
 					if (err == VCR_PLAYBACK_SUCCESS)
 						SetStatusPlaybackStarted();
 					else
@@ -1945,7 +1945,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					// Overwrite prevention? Path sanity check (Leave to internal handling)?
 					VCR_setReadOnly(TRUE);
 					bool err = VCR_startPlayback(
-						Config.recent_movie_paths[0].c_str(), 0, 0);
+						Config.recent_movie_paths[0], 0, 0);
 					if (err == VCR_PLAYBACK_SUCCESS)
 						SetStatusPlaybackStarted();
 					else
@@ -2084,7 +2084,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					if (path.size() > 0)
 					{
-						start_rom(wstring_to_string(path).c_str());
+						start_rom(wstring_to_string(path));
 					}
 
 					if (wasMenuPaused)

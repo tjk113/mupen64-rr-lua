@@ -600,27 +600,24 @@ void savestates_load_old(bool silenceNotFoundError)
     //failed opening st
     if (f == NULL)
     {
-        if (f == NULL)
-        {
-            if (silenceNotFoundError)
-            {
-                printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
-                return;
-            }
-            if (slot > 9)
-            {
-                //print .st not .savestate because
-                filename[strlen(filename) - 10] = '\0';
-                strcat(filename, ".st");
-            }
-            printf("Savestate \"%s\" not found.\n", filename); //full path for debug
-            free(filename);
-            warn_savestate(0, "Savestate not found");
-            // example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
-            // by moving the warn function it doesn't do this anymore 
-            savestates_job_success = FALSE;
-            return;
-        }
+    	if (silenceNotFoundError)
+    	{
+    		printf("Silent st fail: Savestate \"%s\" not found.\n", filename);
+    		return;
+    	}
+    	if (slot > 9)
+    	{
+    		//print .st not .savestate because
+    		filename[strlen(filename) - 10] = '\0';
+    		strcat(filename, ".st");
+    	}
+    	printf("Savestate \"%s\" not found.\n", filename); //full path for debug
+    	free(filename);
+    	warn_savestate(0, "Savestate not found");
+    	// example: removing this (also happens sometimes normally) will make "loading slot" text flicker for like a milisecond which looks awful,
+    	// by moving the warn function it doesn't do this anymore 
+    	savestates_job_success = FALSE;
+    	return;
     }
     statusbar_send_text(std::string(str));
     free(filename);
@@ -739,7 +736,7 @@ void savestates_load_old(bool silenceNotFoundError)
         if ((unsigned long)readBytes != movieInputDataSize)
         {
             fprintf(stderr, "Corrupt movie snapshot.\n");
-            if (local_movie_data)
+            if (local_movie_data != nullptr && local_movie_data)
                 free(local_movie_data);
             savestates_job_success = FALSE;
             goto failedLoad;

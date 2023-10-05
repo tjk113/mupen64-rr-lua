@@ -451,9 +451,9 @@ void setup_dummy_info();
 /// </summary>
 std::vector<plugin_type> get_missing_plugin_types();
 
-inline static t_plugin* get_plugin_by_name(std::string name)
+inline static t_plugin* get_plugin_by_name(const std::string &name)
 {
-	for (auto& plugin : plugins)
+	for (const auto& plugin : plugins)
 	{
 		if (plugin->name == name)
 		{

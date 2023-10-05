@@ -56,7 +56,7 @@ cleanUp:
 	if (pShellItem) pShellItem->Release();
 	if (pFileDialog) pFileDialog->Release();
 
-	return succeeded ? Config.persistent_folder_paths[id] : std::wstring(L"");
+	return succeeded ? Config.persistent_folder_paths[id] : std::wstring();
 }
 
 std::wstring show_persistent_save_dialog(std::string id, HWND hwnd,
@@ -115,12 +115,12 @@ cleanUp:
 	if (pShellItem) pShellItem->Release();
 	if (pFileDialog) pFileDialog->Release();
 
-	return succeeded ? Config.persistent_folder_paths[id] : std::wstring(L"");
+	return succeeded ? Config.persistent_folder_paths[id] : std::wstring();
 }
 
 std::wstring show_persistent_folder_dialog(std::string id, HWND hwnd)
 {
-	std::wstring final_path = L"";
+	std::wstring final_path;
 	IFileDialog* pfd;
 	if (SUCCEEDED(
 		CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER,

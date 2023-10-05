@@ -235,7 +235,7 @@ void SetMenuTranslatedString(HMENU hMenu, int elementID, const char* Str, const 
     char String[800];
     MENUITEMINFO menuinfo;
     Translate(Str, String);
-    if (strcmp(Acc, "")) sprintf(String, "%s\t%s", String, Acc);
+    if (strcmp(Acc, "")) sprintf(String, "%s\t%s", String, Acc); //String into itself
 
     memset(&menuinfo, 0, sizeof(MENUITEMINFO));
     menuinfo.cbSize = sizeof(MENUITEMINFO);
@@ -257,7 +257,7 @@ void SetMenuAccelerator(HMENU hMenu, int elementID, const char* Acc)
     if (tab)
         *tab = '\0';
     if (strcmp(Acc, ""))
-        sprintf(String, "%s\t%s", String, Acc);
+        sprintf(String, "%s\t%s", String, Acc); // String into itself
 
     memset(&menuinfo, 0, sizeof(MENUITEMINFO));
     menuinfo.cbSize = sizeof(MENUITEMINFO);
