@@ -111,7 +111,7 @@ extern int VCR_startRecord(const char* filename, unsigned short flags,
                            const char* authorUTF8, const char* descriptionUTF8,
                            int defExt);
 extern int VCR_stopRecord(int defExt);
-extern int VCR_startPlayback(std::string filename, const char* authorUTF8,
+extern int VCR_startPlayback(const std::string &filename, const char* authorUTF8,
                              const char* descriptionUTF8);
 extern int VCR_stopPlayback();
 extern int VCR_startCapture(const char* recFilename, const char* aviFilename,

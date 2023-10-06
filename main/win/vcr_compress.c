@@ -153,7 +153,7 @@ void __cdecl win_readScreen(void** dest, long* width, long* height)
     static unsigned int bufferSize = 0;
     if (!buffer || bufferSize < *width * *height * 3 + 1) //if buffer doesn't exist yet or changed size somehow
     {
-        if (buffer) free(buffer);
+        free(buffer);
         bufferSize = *width * *height * 3 + 1;
         buffer = (unsigned char*)malloc(bufferSize);
     }

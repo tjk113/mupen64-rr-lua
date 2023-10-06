@@ -7,8 +7,8 @@
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp
 
-std::wstring show_persistent_open_dialog(std::string id, HWND hwnd,
-                                         std::wstring filter)
+std::wstring show_persistent_open_dialog(const std::string &id, HWND hwnd,
+                                         const std::wstring &filter)
 {
 	IFileDialog* pFileDialog = nullptr;
 	IShellItem* pShellItem = nullptr;
@@ -52,15 +52,15 @@ std::wstring show_persistent_open_dialog(std::string id, HWND hwnd,
 	succeeded = true;
 
 cleanUp:
-	if (pFilePath) CoTaskMemFree(pFilePath);
+	CoTaskMemFree(pFilePath);
 	if (pShellItem) pShellItem->Release();
 	if (pFileDialog) pFileDialog->Release();
 
 	return succeeded ? Config.persistent_folder_paths[id] : std::wstring();
 }
 
-std::wstring show_persistent_save_dialog(std::string id, HWND hwnd,
-                                         std::wstring filter)
+std::wstring show_persistent_save_dialog(const std::string &id, HWND hwnd,
+                                         const std::wstring &filter)
 {
 	IFileDialog* pFileDialog = nullptr;
 	IShellItem* pShellItem = nullptr;
@@ -111,14 +111,14 @@ std::wstring show_persistent_save_dialog(std::string id, HWND hwnd,
 	succeeded = true;
 
 cleanUp:
-	if (pFilePath) CoTaskMemFree(pFilePath);
+	CoTaskMemFree(pFilePath);
 	if (pShellItem) pShellItem->Release();
 	if (pFileDialog) pFileDialog->Release();
 
 	return succeeded ? Config.persistent_folder_paths[id] : std::wstring();
 }
 
-std::wstring show_persistent_folder_dialog(std::string id, HWND hwnd)
+std::wstring show_persistent_folder_dialog(const std::string &id, HWND hwnd)
 {
 	std::wstring final_path;
 	IFileDialog* pfd;

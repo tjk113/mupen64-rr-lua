@@ -129,6 +129,7 @@ void LoadScreenInit()
 
 	typedef std::vector<AddrBreakFunc> AddrBreakFuncVec;
 
+
 	struct AddrBreak
 	{
 		AddrBreakFuncVec func;
@@ -5098,9 +5099,9 @@ void LuaEnvironment::correctBreakMap(T& breakMap,
 						 typename T::iterator)) {
 	for (typename T::iterator it =
 			 breakMap.begin(); it != breakMap.end();) {
-		AddrBreakFuncVec& f = it->second.func;
-		for (AddrBreakFuncVec::iterator itt = f.begin();
-			 itt != f.end();) {
+		std::deque<AddrBreakFunc>& f = (std::deque<AddrBreakFunc>&)it->second.func;
+		for (auto itt = f.begin();
+		     itt != f.end();) {
 			if (itt->lua == L) {
 				itt = f.erase(itt);
 			} else {

@@ -533,10 +533,10 @@ CONFIG get_default_config()
 	config.is_default_plugins_directory_used = 1;
 	config.is_default_saves_directory_used = 1;
 	config.is_default_screenshots_directory_used = 1;
-	config.plugins_directory = "";
-	config.saves_directory = "";
-	config.screenshots_directory = "";
-	config.states_path = "";
+	config.plugins_directory.clear();
+	config.saves_directory.clear();
+	config.screenshots_directory.clear();
+	config.states_path.clear();
 	config.recent_rom_paths = {};
 	config.recent_movie_paths = {};
 	config.is_recent_movie_paths_frozen = 0;
@@ -549,9 +549,9 @@ CONFIG get_default_config()
 	config.is_internal_capture_forced = 0;
 	config.is_capture_cropped_screen_dc = 0;
 	config.is_unknown_hotkey_selection_allowed = 1;
-	config.avi_capture_path = "";
+	config.avi_capture_path.clear();
 	config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
-	config.lua_script_path = "";
+	config.lua_script_path.clear();
 	config.recent_lua_script_paths = {};
 	config.is_recent_scripts_frozen = 0;
 	config.use_summercart = 0;
@@ -560,10 +560,10 @@ CONFIG get_default_config()
 	config.is_audio_delay_enabled = 1;
 	config.is_compiled_jump_enabled = 1;
 	config.is_lua_double_buffered = 1;
-	config.selected_video_plugin_name = "";
-	config.selected_audio_plugin_name = "";
-	config.selected_input_plugin_name = "";
-	config.selected_rsp_plugin_name = "";
+	config.selected_video_plugin_name.clear();
+	config.selected_audio_plugin_name.clear();
+	config.selected_input_plugin_name.clear();
+	config.selected_rsp_plugin_name.clear();
 	config.last_movie_type = 1;
 	config.last_movie_author = "Unknown Author";
 	config.window_x = CW_USEDEFAULT;
@@ -574,7 +574,7 @@ CONFIG get_default_config()
 	return config;
 }
 
-void handle_config_value(mINI::INIStructure& ini, std::string field_name,
+void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          int32_t is_reading, t_hotkey* hotkey)
 {
 	if (is_reading)

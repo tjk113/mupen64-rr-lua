@@ -298,7 +298,7 @@ void pauseEmu(BOOL quiet)
 			                              : MFS_UNCHECKED));
 }
 
-int32_t start_rom(std::string path)
+int32_t start_rom(const std::string &path)
 {
 	assert(!emu_launched);
 
@@ -641,7 +641,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				auto playbackResult = VCR_startPlayback(
 					tempbuf, authorUTF8, descriptionUTF8);
 
-				if (strlen(tempbuf) == 0 || playbackResult !=
+				if (tempbuf[0] == '\0' || playbackResult !=
 					VCR_PLAYBACK_SUCCESS)
 				{
 					char errorString[MAX_PATH];
@@ -812,14 +812,14 @@ refresh:
 				                    MOVIE_AUTHOR_DATA_SIZE, NULL, NULL);
 				SetWindowTextA(GetDlgItem(hwnd, IDC_INI_AUTHOR), ansiStr);
 
-				if (strlen(ansiStr) == 0)
+				if (ansiStr[0] == '\0')
 					SetWindowTextA(GetDlgItem(hwnd, IDC_INI_AUTHOR),
 					               "(too lazy to type name)");
 
 				SetLastError(0);
 			} else
 			{
-				if (wcslen(wszMeta) == 0)
+				if (wszMeta[0] == '\0')
 					SetWindowTextW(GetDlgItem(hwnd, IDC_INI_AUTHOR),
 					               L"(too lazy to type name)");
 			}
@@ -836,14 +836,14 @@ refresh:
 				                    MOVIE_DESCRIPTION_DATA_SIZE, NULL, NULL);
 				SetWindowTextA(GetDlgItem(hwnd, IDC_INI_DESCRIPTION), ansiStr);
 
-				if (strlen(ansiStr) == 0)
+				if (ansiStr[0] == '\0')
 					SetWindowTextA(GetDlgItem(hwnd, IDC_INI_DESCRIPTION),
 					               "(no description entered)");
 
 				SetLastError(0);
 			} else
 			{
-				if (wcslen(wszMeta) == 0)
+				if (wszMeta[0] == '\0')
 					SetWindowTextW(GetDlgItem(hwnd, IDC_INI_DESCRIPTION),
 					               L"(no description entered)");
 			}
@@ -1027,7 +1027,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 
 				if (allowClosing)
 				{
-					if (strlen(tempbuf) == 0 || VCR_startRecord(
+					if (tempbuf[0] == '\0' || VCR_startRecord(
 						tempbuf, flag, authorUTF8, descriptionUTF8,
 						!IsDlgButtonChecked(hwnd, IDC_EXTSAVESTATE)) < 0)
 					{
@@ -2060,7 +2060,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					        "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>",
 					        proc_name, ram_start);
 
-					auto stroop_str = std::string(stroop_c);
+					const auto stroop_str = std::string(stroop_c);
 					if (MessageBoxA(mainHWND,
 					                "Do you want to copy the generated STROOP config line to your clipboard?",
 					                "STROOP",

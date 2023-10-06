@@ -32,9 +32,9 @@
 
 static int LastLang = -1;
 
-typedef struct _languages languages;
+typedef struct languages languages;
 
-struct _languages
+struct languages
 {
     char* file_name;
     char* language_name;

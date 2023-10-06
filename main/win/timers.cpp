@@ -104,15 +104,13 @@ void new_frame()
 
 void new_frame_old()
 {
-	DWORD CurrentFPSTime;
+	const DWORD CurrentFPSTime = timeGetTime();
 	static DWORD LastFPSTime;
 	static DWORD CounterTime;
 	static int Fps_Counter = 0;
 
 	if (!Config.show_fps) return;
 	Fps_Counter++;
-
-	CurrentFPSTime = timeGetTime();
 
 	if (CurrentFPSTime - CounterTime >= 1000)
 	{
@@ -164,15 +162,13 @@ void new_vi()
 
 	// frame display / frame counter / framecount
 
-	extern int frame_advancing;
-	extern BOOL manualFPSLimit;
+
 	VCR_updateFrameCounter();
 	if (VCR_isPlaying())
 	{
 		extern int pauseAtFrame;
 		if (m_currentSample >= pauseAtFrame && pauseAtFrame >= 0)
 		{
-			extern void pauseEmu(BOOL quiet);
 			pauseEmu(TRUE); // maybe this is multithreading unsafe?
 			pauseAtFrame = -1; // don't pause again
 		}

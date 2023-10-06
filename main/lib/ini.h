@@ -149,7 +149,7 @@ namespace mINI
     public:
         using const_iterator = typename T_DataContainer::const_iterator;
 
-        INIMap() {}
+        INIMap() = default;
 
         INIMap(INIMap const& other)
         {
@@ -296,7 +296,7 @@ namespace mINI
                 {
                     auto section = line.substr(1, closingBracketAt - 1);
                     INIStringUtil::trim(section);
-                    parseData.first = section;
+                    parseData.first = std::move(section);
                     return PDataType::PDATA_SECTION;
                 }
             }
@@ -310,8 +310,8 @@ namespace mINI
                 INIStringUtil::replace(key, "\\=", "=");
                 auto value = line.substr(equalsAt + 1);
                 INIStringUtil::trim(value);
-                parseData.first = key;
-                parseData.second = value;
+                parseData.first = std::move(key);
+                parseData.second = std::move(value);
                 return PDataType::PDATA_KEYVALUE;
             }
             return PDataType::PDATA_UNKNOWN;

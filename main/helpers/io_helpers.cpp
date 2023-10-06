@@ -6,7 +6,7 @@
 #include <vector>
 
 std::vector<std::string> get_files_with_extension_in_directory(
-	std::string directory, std::string extension)
+	const std::string &directory, const std::string &extension)
 {
 	WIN32_FIND_DATA find_file_data;
 	const HANDLE h_find = FindFirstFile((directory + "*." + extension).c_str(),
@@ -22,7 +22,7 @@ std::vector<std::string> get_files_with_extension_in_directory(
 	{
 		if (!(find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 		{
-			paths.push_back(directory + find_file_data.cFileName);
+			paths.emplace_back(directory + find_file_data.cFileName);
 		}
 	}
 	while (FindNextFile(h_find, &find_file_data) != 0);
@@ -33,7 +33,7 @@ std::vector<std::string> get_files_with_extension_in_directory(
 }
 
 std::vector<std::string> get_files_in_subdirectories(
-	std::string directory)
+	const std::string &directory)
 {
 	WIN32_FIND_DATA find_file_data;
 	const HANDLE h_find = FindFirstFile((directory + "*").c_str(),
@@ -71,7 +71,7 @@ std::vector<std::string> get_files_in_subdirectories(
 	return paths;
 }
 
-std::wstring strip_extension(std::wstring path)
+std::wstring strip_extension(const std::wstring &path)
 {
 	size_t i = path.find_last_of('.');
 
@@ -80,7 +80,7 @@ std::wstring strip_extension(std::wstring path)
 	}
 	return path;
 }
-std::wstring get_extension(std::wstring path)
+std::wstring get_extension(const std::wstring &path)
 {
 	size_t i = path.find_last_of('.');
 
@@ -90,7 +90,7 @@ std::wstring get_extension(std::wstring path)
 	return path;
 }
 
-void copy_to_clipboard(HWND owner, std::string str)
+void copy_to_clipboard(HWND owner, const std::string &str)
 {
 	OpenClipboard(owner);
 	EmptyClipboard();

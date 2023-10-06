@@ -120,7 +120,7 @@ bool validRomExt(const char* filename)
     //	printf("%s\n", filename);
     //#endif
     const char* str = getExt(filename);
-    if (str == "\0" || str == "0") return 0;
+    if (str[0] == '\0' || str == "0") return 0;
     // z64,n64,v64,rom
     return !_stricmp(str, "z64") ||
         !_stricmp(str, "n64") ||
@@ -271,7 +271,7 @@ int rom_read(const char* argv)
     invalidSize = (romByteCount > 0x400'0000 || romByteCount < 0x1000);
     if (invalidSize && !Config.allow_suspicious_rom_loading) goto killRom;
 
-    if (rom) free(rom);
+    free(rom);
     taille = romByteCount;
     if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
     rom = (unsigned char*)malloc(taille);
@@ -488,7 +488,7 @@ int fill_header(const char* argv)
     }
     /*------------------------------------------------------------------------*/
     findsize();
-    if (rom) free(rom);
+    free(rom);
     rom = (unsigned char*)malloc(0x40);
 
     tmp = 0;
@@ -535,7 +535,7 @@ void calculateMD5(const char* argv, unsigned char digest[16])
     }
     /*------------------------------------------------------------------------*/
     findsize();
-    if (rom) free(rom);
+    free(rom);
     rom = (unsigned char*)malloc(romByteCount);
 
     tmp = 0;

@@ -45,7 +45,8 @@ inline static char* stristr(const char* str1, const char* str2)
 
 inline static int is_string_alpha_only(const char* str)
 {
-	for (size_t i = 0; i < strlen(str); i++)
+	const size_t tempLen = strlen(str);
+	for (size_t i = 0; i < tempLen; i++)
 	{
 		if (!isalpha(str[i]))
 		{

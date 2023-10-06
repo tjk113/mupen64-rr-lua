@@ -50,7 +50,7 @@ extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
 extern void LoadConfigExternals();
 
-int32_t start_rom(std::string path);
+int32_t start_rom(const std::string &path);
 
 extern BOOL forceIgnoreRSP;
 extern BOOL continue_vcr_on_restart_mode;

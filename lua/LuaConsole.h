@@ -70,7 +70,7 @@ private:
 public:
 	uint64_t draw_call_count = 0;
 	HDC dc = NULL;
-	int dc_width, dc_height = NULL;
+	int dc_width, dc_height = 0;
 	ID2D1Factory* d2d_factory = NULL;
 	ID2D1DCRenderTarget* d2d_render_target = NULL;
 	IDWriteFactory* dw_factory = NULL;

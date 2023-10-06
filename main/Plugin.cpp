@@ -469,7 +469,7 @@ int load_rsp(HMODULE handle_RSP)
 	return 0;
 }
 
-t_plugin* plugin_create(std::string path)
+t_plugin* plugin_create(const std::string &path)
 {
 	t_plugin* plugin = new t_plugin();
 
@@ -495,9 +495,10 @@ t_plugin* plugin_create(std::string path)
 	PLUGIN_INFO plugin_info;
 	getDllInfo(&plugin_info);
 
-	while (plugin_info.Name[strlen(plugin_info.Name) - 1] == ' ')
+	const size_t pluginNameLen = strlen(plugin_info.Name);
+	while (plugin_info.Name[pluginNameLen - 1] == ' ')
 	{
-		plugin_info.Name[strlen(plugin_info.Name) - 1] = '\0';
+		plugin_info.Name[pluginNameLen - 1] = '\0';
 	}
 
 	plugin->handle = h_module;
@@ -719,6 +720,7 @@ void load_plugins()
 std::vector<plugin_type> get_missing_plugin_types()
 {
 	std::vector<plugin_type> plugin_types;
+	plugin_types.reserve(4);
 
 	if (get_plugin_by_name(Config.selected_video_plugin_name) == nullptr)
 	{

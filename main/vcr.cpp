@@ -1357,7 +1357,7 @@ bool getSavestatePath(const char* filename, char* outBuffer)
 }
 
 int
-VCR_startPlayback(std::string filename, const char* authorUTF8,
+VCR_startPlayback(const std::string &filename, const char* authorUTF8,
                   const char* descriptionUTF8)
 {
 	vcr_recent_movies_add(filename);
@@ -1600,7 +1600,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 					}
 				}
 
-				if (strlen(warningStr) > 0)
+				if (warningStr[0] != '\0')
 				{
 					if (dontPlay)
 						printError(warningStr);
