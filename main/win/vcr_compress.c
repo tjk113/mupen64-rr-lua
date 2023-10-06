@@ -340,9 +340,9 @@ void VCRComp_finishFile(int split)
 void init_readScreen()
 {
     printf((readScreen != NULL)
-               ? (char*)"ReadScreen is implemented by this graphics plugin.\n"
-               : (char*)
-               "ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n");
+               ? (const char*)("ReadScreen is implemented by this graphics plugin.\n")
+               : (const char*)(
+	               "ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n"));
 
     if (readScreen == NULL)
         readScreen = win_readScreen;

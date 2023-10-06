@@ -1343,8 +1343,7 @@ void LoadScreenInit()
 				if (it == breakMap.end())
 				{
 					AddrBreak b;
-					it = breakMap.emplace(std::pair<ULONG, AddrBreak>(addr, b)).
-					              first;
+					it = breakMap.try_emplace(std::pair<ULONG, AddrBreak>(addr, b)).first; //VS yells
 				}
 				s.lua = L;
 				s.idx = RegisterFunction(L, reg);

@@ -173,7 +173,6 @@ long ZCALLBACK win32_tell_file_func(
         {
             DWORD dwErr = GetLastError();
             ((WIN32FILE_IOWIN*)stream)->error = (int)dwErr;
-            ret = -1;
         }
         else
             ret = (long)dwSet;
@@ -214,7 +213,6 @@ long ZCALLBACK win32_seek_file_func(
         {
             DWORD dwErr = GetLastError();
             ((WIN32FILE_IOWIN*)stream)->error = (int)dwErr;
-            ret = -1;
         }
         else
             ret = 0;

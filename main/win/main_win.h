@@ -19,7 +19,7 @@
 #include <Windows.h>
 #include <string>
 
-#define MUPEN_VERSION "Mupen 64 1.1.4"
+#define MUPEN_VERSION "Mupen 64 1.1.5"
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
@@ -27,7 +27,7 @@ extern void ShowMessage(const char* lpszMessage);
 extern char* getExtension(char* str);
 
 /********* Global Variables **********/
-extern char TempMessage[200];
+extern char TempMessage[MAX_PATH];
 extern int emu_launched; // emu_emulating
 extern int emu_paused;
 extern int recording;

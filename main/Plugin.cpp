@@ -477,7 +477,7 @@ t_plugin* plugin_create(const std::string &path)
 
 	if (h_module == nullptr)
 	{
-		free(plugin);
+		delete plugin;
 		return 0;
 	}
 
@@ -486,7 +486,7 @@ t_plugin* plugin_create(const std::string &path)
 	if (!get_dll_info._fp)
 	{
 		FreeLibrary(h_module);
-		free(plugin);
+		delete plugin;
 		return 0;
 	}
 

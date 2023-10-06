@@ -117,7 +117,7 @@ static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
 static HWND hStaticHandle; //Handle for static place
 
-char TempMessage[200];
+char TempMessage[MAX_PATH];
 int emu_launched; // emu_emulating
 int emu_paused;
 int recording;

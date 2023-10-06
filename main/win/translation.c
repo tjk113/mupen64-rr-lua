@@ -157,7 +157,7 @@ void SetupLanguages(HWND hWnd)
     menuinfo.fType = MFT_STRING;
     menuinfo.fState = MFS_ENABLED;
     menuinfo.dwTypeData = String;
-    menuinfo.cch = sizeof(hSubMenu);
+    menuinfo.cch = sizeof(*hSubMenu);
     while (p)
     {
         if (strcmp(p->language_name, "English") == 0)

@@ -116,5 +116,5 @@ void CrashHelper::GenerateLog(_EXCEPTION_POINTERS* exceptionPointersPtr,
 	len += sprintf(logPtr + len, "emu_launched:%d\n", emu_launched);
 	len += sprintf(logPtr + len, "is_capturing_avi:%d\n", VCR_isCapturing());
 
-	strcpy(logPtr, logPtr);
+	strcpy(logPtr, logPtr); // ????
 }

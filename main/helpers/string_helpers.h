@@ -82,7 +82,7 @@ inline static bool contains(const std::string& a, const std::string& b)
 
 inline static std::wstring string_to_wstring(const std::string &str)
 {
-	const auto wstr = static_cast<wchar_t*>(calloc(str.length(), sizeof(wchar_t)));
+	const auto wstr = static_cast<wchar_t*>(calloc(str.length(), sizeof(wchar_t)+1));
 
 	mbstowcs(wstr, str.c_str(), str.length());
 

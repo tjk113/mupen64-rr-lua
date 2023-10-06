@@ -428,7 +428,7 @@ static int read_movie_header(FILE* file, SMovieHeader* header)
 		strncpy(newHeader.authorInfo, newHeader.oldAuthorInfo, 48);
 		strncpy(newHeader.description, newHeader.oldDescription, 80);
 	}
-	if (newHeader.version >= 3 && newHeader.version <= MUP_VERSION)
+	if (newHeader.version == 3)
 	{
 		// read rest of header
 		if (fread((char*)(&newHeader) + MUP_HEADER_SIZE_OLD, 1,
@@ -1693,7 +1693,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 			printf("[VCR]: Loading state...\n");
 			strcpy(buf, m_filename);
 
-			char* untruncatedName = (char*)malloc(strlen(buf));
+			char* untruncatedName = (char*)malloc(strlen(buf)+1);
 			strcpy(untruncatedName, buf);
 			// remove everything after the first `.` (dot)
 			for (;;)
@@ -2525,7 +2525,7 @@ void vcr_recent_movies_build(int32_t reset)
 		{
 			continue;
 		}
-		menu_info.dwTypeData = (LPSTR)Config.recent_movie_paths[i].c_str();
+		menu_info.dwTypeData = const_cast<LPSTR>(Config.recent_movie_paths[i].c_str());
 		menu_info.cch = strlen(menu_info.dwTypeData);
 		menu_info.wID = ID_RECENTMOVIES_FIRST + i;
 		InsertMenuItem(h_sub_menu, i + 3, TRUE, &menu_info);
