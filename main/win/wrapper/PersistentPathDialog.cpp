@@ -43,7 +43,8 @@ std::wstring show_persistent_open_dialog(const std::string &id, HWND hwnd,
 				"Unable to create IShellItem from parsing lastPath name");
 	}
 	FAILSAFE(pFileDialog->SetFolder(shlPtr));
-	FAILSAFE(pFileDialog->Show(hwnd));
+	// we need to pass null due to a shell api bug. ms has been informed
+	FAILSAFE(pFileDialog->Show(nullptr));
 	FAILSAFE(pFileDialog->GetResult(&pShellItem));
 	FAILSAFE(pShellItem->GetDisplayName(SIGDN_FILESYSPATH, &pFilePath));
 
@@ -102,7 +103,8 @@ std::wstring show_persistent_save_dialog(const std::string &id, HWND hwnd,
 		pFileDialog->SetDefaultExtension(first_filter.c_str());
 	}
 	FAILSAFE(pFileDialog->SetFolder(shlPtr));
-	FAILSAFE(pFileDialog->Show(hwnd));
+	// we need to pass null due to a shell api bug. ms has been informed
+	FAILSAFE(pFileDialog->Show(nullptr));
 	FAILSAFE(pFileDialog->GetResult(&pShellItem));
 	FAILSAFE(pShellItem->GetDisplayName(SIGDN_FILESYSPATH, &pFilePath));
 
@@ -152,7 +154,8 @@ std::wstring show_persistent_folder_dialog(const std::string &id, HWND hwnd)
 		{
 			pfd->SetOptions(dwOptions | FOS_PICKFOLDERS | FOS_PATHMUSTEXIST);
 		}
-		if (SUCCEEDED(pfd->Show(hwnd)))
+		// we need to pass null due to a shell api bug. ms has been informed
+		if (SUCCEEDED(pfd->Show(nullptr)))
 		{
 			IShellItem* psi;
 			if (SUCCEEDED(pfd->GetResult(&psi)))
