@@ -77,7 +77,7 @@ public:
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
 	Renderer get_renderer() { return renderer; };
-	void create_renderer(Renderer renderer);
+	void create_renderer(Renderer renderer, int32_t override_identical_check = 0);
 	void destroy_renderer();
 	void early_draw();
 	void draw();
