@@ -1787,9 +1787,6 @@ void go()
 				virtual_to_physical_address(PC->addr, 2);
 			compare_core();
 #endif
-#ifdef LUA_PCBREAK_INTERP
-            if (enablePCBreak)LuaPCBreakInterp();
-#endif
             PC->ops();
             ignore = false;
             /*if (j!= (Count & 0xFFF00000))

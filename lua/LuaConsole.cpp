@@ -62,7 +62,6 @@ unsigned long rewriteInputLua[4];
 bool rewriteInputFlagLua[4];
 bool enableTraceLog;
 bool traceLogMode;
-bool enablePCBreak;
 bool maximumSpeedMode;
 bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
@@ -72,17 +71,6 @@ SWindowInfo windowSize{};
 HBITMAP hbitmap;
 bool LoadScreenInitialized = false;
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-
-
-void LuaPCBreakPure() {
-	void* p = pcBreakMap_[(interp_addr & 0x7FFFFF) >> 2];
-	if (p)PCBreak(p, interp_addr);
-}
-
-void LuaPCBreakInterp() {
-	void* p = pcBreakMap_[(PC->addr & 0x7FFFFF) >> 2];
-	if (p)PCBreak(p, PC->addr);
-}
 
 // Deletes all the variables used in LoadScreen (avoid memory leaks)
 void LoadScreenDelete()
@@ -121,53 +109,7 @@ void LoadScreenInit()
 
 	std::vector<Gdiplus::Bitmap*> image_pool;
 
-	struct AddrBreakFunc
-	{
-		lua_State* lua;
-		int idx;
-	};
-
-	typedef std::vector<AddrBreakFunc> AddrBreakFuncVec;
-
-
-	struct AddrBreak
-	{
-		AddrBreakFuncVec func;
-	};
-
-	struct SyncBreak
-	{
-		AddrBreakFuncVec func;
-		unsigned op;
-		precomp_instr pc;
-	};
-
-	struct MemoryHashInfo
-	{
-		unsigned count;
-		void (*func[4])();
-	};
-
-	void (**readFuncHashMap[])() = {
-		readmemb, readmemh, readmem, readmemd
-	};
-	void (**writeFuncHashMap[])() = {
-		writememb, writememh, writemem, writememd
-	};
-	typedef std::map<ULONG, AddrBreak> AddrBreakMap;
-	typedef std::map<ULONG, SyncBreak> SyncBreakMap;
-	SyncBreakMap syncBreakMap;
-	AddrBreakMap readBreakMap;
-	AddrBreakMap writeBreakMap;
-	MemoryHashInfo* readHashMap[0x10000];
-	MemoryHashInfo* writeHashMap[0x10000];
-	void* pcBreakMap_[0x800000 / 4];
-	unsigned pcBreakCount = 0;
-#define pcBreakMap ((AddrBreakFuncVec**)pcBreakMap_)
-	ULONGLONG break_value; //read/write���p
-	bool break_value_flag;
 	unsigned inputCount = 0;
-	size_t current_break_value_size = 1;
 
 	int getn(lua_State*);
 
@@ -234,11 +176,6 @@ void LoadScreenInit()
 	};
 
 	int AtPanic(lua_State* L);
-	SyncBreakMap::iterator RemoveSyncBreak(SyncBreakMap::iterator it);
-	template <bool rw>
-	AddrBreakMap::iterator RemoveMemoryBreak(AddrBreakMap::iterator it);
-	AddrBreakFuncVec::iterator RemovePCBreak(AddrBreakFuncVec& f,
-	                                         AddrBreakFuncVec::iterator it);
 	extern const luaL_Reg globalFuncs[];
 	extern const luaL_Reg emuFuncs[];
 	extern const luaL_Reg wguiFuncs[];
@@ -259,7 +196,6 @@ void LoadScreenInit()
 	const char* const REG_ATINPUT = "I";
 	const char* const REG_ATSTOP = "T";
 	const char* const REG_SYNCBREAK = "B";
-	const char* const REG_PCBREAK = "P";
 	const char* const REG_READBREAK = "R";
 	const char* const REG_WRITEBREAK = "W";
 	const char* const REG_WINDOWMESSAGE = "M";
@@ -1288,300 +1224,6 @@ void LoadScreenInit()
 	}
 
 	void Recompile(ULONG);
-
-	SyncBreakMap::iterator RemoveSyncBreak(SyncBreakMap::iterator it)
-	{
-		StoreRDRAMSafe<ULONG>(it->first, it->second.op);
-		if (interpcore == 0)
-		{
-			Recompile(it->first);
-		}
-		syncBreakMap.erase(it++);
-		return it;
-	}
-
-	template <bool rw>
-	AddrBreakMap::iterator RemoveMemoryBreak(AddrBreakMap::iterator it)
-	{
-		USHORT hash = it->first >> 16;
-		MemoryHashInfo** hashMap = rw ? writeHashMap : readHashMap;
-		MemoryHashInfo* p = hashMap[hash];
-		ASSERT(p != NULL);
-		if (--p->count == 0)
-		{
-			for (int i = 0; i < 4; i++)
-			{
-				(rw ? writeFuncHashMap : readFuncHashMap)[i][hash] =
-					p->func[i];
-			}
-			delete p;
-			hashMap[hash] = NULL;
-		}
-		(rw ? writeBreakMap : readBreakMap).erase(it++);
-		return it;
-	}
-
-	extern void (*AtMemoryRead[])();
-	extern void (*AtMemoryWrite[])();
-
-	template <bool rw>
-	void SetMemoryBreak(lua_State* L)
-	{
-		//	PureInterpreterCoreCheck(L);
-		ULONG addr = LuaCheckIntegerU(L, 1) | 0x80000000;
-		luaL_checktype(L, 2, LUA_TFUNCTION);
-
-		AddrBreakMap& breakMap = rw ? writeBreakMap : readBreakMap;
-		MemoryHashInfo** hashMap = rw ? writeHashMap : readHashMap;
-		const char* const& reg = rw ? REG_WRITEBREAK : REG_READBREAK;
-		if (!lua_toboolean(L, 3))
-		{
-			lua_pushvalue(L, 2);
-			{
-				AddrBreakFunc s{};
-				AddrBreakMap::iterator it = breakMap.find(addr);
-				if (it == breakMap.end())
-				{
-					AddrBreak b;
-					it = breakMap.emplace(std::pair<ULONG, AddrBreak>(addr, b)).first;
-				}
-				s.lua = L;
-				s.idx = RegisterFunction(L, reg);
-				it->second.func.push_back(s);
-			}
-			{
-				void (***funcHashMap)() = rw
-					                          ? writeFuncHashMap
-					                          : readFuncHashMap;
-				USHORT hash = addr >> 16;
-				MemoryHashInfo* p = hashMap[hash];
-				void (**atMemoryBreak)() = rw ? AtMemoryWrite : AtMemoryRead;
-				if (p == NULL)
-				{
-					MemoryHashInfo* info = new MemoryHashInfo;
-					info->count = 0;
-					for (int i = 0; i < 4; i++)
-					{
-						info->func[i] = funcHashMap[i][hash];
-						funcHashMap[i][hash] = atMemoryBreak[i];
-					}
-					p = hashMap[hash] = info;
-				}
-				p->count++;
-			}
-			if (dynacore)
-			{
-				if (fast_memory)
-				{
-					fast_memory = 0; //�ǂ����ŕ����������ق����������B�ǂ��ŁH
-					RecompileNextAll();
-				}
-			}
-		} else
-		{
-			lua_pushvalue(L, 2);
-			AddrBreakMap::iterator it = breakMap.find(addr);
-			if (it != breakMap.end())
-			{
-				AddrBreakFuncVec& f = it->second.func;
-				AddrBreakFuncVec::iterator itt = f.begin();
-				for (; itt != f.end(); ++itt)
-				{
-					if (itt->lua == L)
-					{
-						lua_getglobal(L, "table");
-						lua_getfield(L, -1, "remove");
-						lua_getfield(L, LUA_REGISTRYINDEX, reg);
-						lua_pushinteger(L, itt->idx);
-						lua_call(L, 2, 0);
-						lua_pop(L, 1);
-						f.erase(itt);
-						if (f.size() == 0)
-						{
-							RemoveMemoryBreak<rw>(it);
-						}
-						return;
-					}
-				}
-			}
-			luaL_error(L, "SetMemoryBreak: not found registry function");
-		}
-	}
-
-	//dynacore�̏ꍇ��recompile����܂Ō��ʂ����f����Ȃ�
-
-	AddrBreakFuncVec::iterator RemovePCBreak(AddrBreakFuncVec& f,
-	                                         AddrBreakFuncVec::iterator it)
-	{
-		it = f.erase(it);
-		pcBreakCount--;
-		if (pcBreakCount == 0)
-		{
-			enablePCBreak = false;
-		}
-		return it;
-	}
-
-	const char* const RegName[] = {
-		//CPU
-		"r0", "at", "v0", "v1", "a0", "a1", "a2", "a3",
-		"t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7",
-		"s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7",
-		"t8", "t9", "k0", "k1", "gp", "sp", "s8", "ra",
-		//COP0
-		"index", "random", "entrylo0", "entrylo1",
-		"context", "pagemask", "wired", "reserved7",
-		"badvaddr", "count", "entryhi", "compare",
-		"status", "cause", "epc", "previd",
-		"config", "lladdr", "watchlo", "watchhi",
-		"xcontext", "reserved21", "reserved22", "reserved23",
-		"reserved24", "reserved25", "perr", "cacheerr",
-		"taglo", "taghi", "errorepc", "reserved31",
-		"hi", "lo", //division and multiple
-		"fcr0", "fcr31", //cop1 control register
-		"pc",
-		//not register
-		"break_value", //������break�̎��A
-		//����̒l��ύX�ł���(readbreak/writebreak)�A�������ݐ�p�A1��̂�
-		"writebreak_value", //writebreak�̂݁A����������Ƃ��Ă���l�𓾂鎞�͂�����
-		//readbreak�œǂ݂�����Ƃ��Ă���l�𓾂�ɂ�readsize(addr, size)��(addr,size�͊֐��̈���)
-
-		//COP1: "f"+N
-	};
-
-	int SelectRegister(lua_State* L, void** r, int* arg)
-	{
-		//InterpreterCoreCheck(L);
-		/*
-			dynacore���ƃ��W�X�^���蓖�Ăɂ���ĈႤ���ʂ�Ԃ����Ƃ͂��邪�A
-			��ɃC���^�v���^�Ɠ������ʂ�Ԃ����W�X�^����邵
-			�܂��A�ł��Ȃ����o�����ق��������̂ŁB
-			dynacore�ł͒��ӂƂ������Ƃ�
-		*/
-		int t = lua_type(L, 1);
-		int size = 32;
-		int n = -1;
-		const int cop1index = sizeof(RegName) / sizeof(*RegName);
-		if (lua_gettop(L) == *arg + 2)
-		{
-			size = lua_tointeger(L, 2);
-			*arg += 2;
-		} else
-		{
-			*arg += 1;
-		}
-		if (size < 0 || size > 64)
-		{
-			luaL_error(L, "size 0 - 64");
-		}
-		if (t == LUA_TSTRING)
-		{
-			const char* s = lua_tostring(L, 1);
-			if (s[0] == 'f')
-			{
-				sscanf(s + 1, "%u", &n);
-				if (n >= 32) n = -1;
-				else n += 66;
-			} else
-			{
-				for (int i = 0; i < sizeof(RegName) / sizeof(RegName[0]); i++)
-				{
-					if (lstrcmpi(s, RegName[i]) == 0)
-					{
-						n = i;
-						break;
-					}
-				}
-			}
-		} else if (t == LUA_TNUMBER)
-		{
-			n = lua_tointeger(L, 1);
-		}
-		if (n < 0 || n > cop1index + 32)
-		{
-			luaL_error(L, "unknown register");
-		} else if (n < 32)
-		{
-			*r = &reg[n];
-		} else if (n < 64)
-		{
-			*r = &reg_cop0[n - 32];
-		} else if (n < cop1index)
-		{
-			switch (n)
-			{
-			case 64:
-				*r = &hi;
-				break;
-			case 65:
-				*r = &lo;
-				break;
-			case 66:
-				*r = &FCR0;
-				if (size > 32) size = 32;
-				break;
-			case 67:
-				*r = &FCR31;
-				if (size > 32) size = 32;
-				break;
-			case 68:
-				InterpreterCoreCheck(L, "(get PC)");
-			//MemoryBreak�ł�PC++������ɏ�������݂���������A1���[�h�����
-				if (interpcore == 0)
-				{
-					*r = &PC->addr;
-				} else
-				{
-					*r = &interp_addr;
-				}
-				break;
-			case 69:
-				if (!break_value_flag)
-				{
-					//2��ڂƂ�break�̊O�Ƃ�
-					luaL_error(L, "break_value");
-				}
-				break_value_flag = false;
-				*r = &break_value;
-				break;
-			case 70:
-				//�ǂݍ��݂̂�
-				switch (current_break_value_size)
-				{
-				case 1: *r = &g_byte;
-					break;
-				case 2: *r = &hword;
-					break;
-				case 4: *r = &word;
-					break;
-				case 8: *r = &dword;
-					break;
-				default: ASSERT(0);
-				}
-				if (size > current_break_value_size * 8)
-				{
-					size = current_break_value_size * 8;
-				}
-				break;
-			}
-		} else
-		{
-			//Status�ɂ�����炸�������ʂɂȂ�����������H(cop0�悭�킩���ĂȂ��̂�����ǂ�)
-			if (size == 32)
-			{
-				*r = reg_cop1_simple[n - cop1index];
-				size = -32;
-			} else if (size == 64)
-			{
-				*r = reg_cop1_double[n - cop1index];
-				size = -64;
-			} else
-			{
-				luaL_error(L, "get cop1 register size must be 32 or 64");
-			}
-		}
-		return size;
-	}
 
 	unsigned long PAddr(unsigned long addr)
 	{
@@ -3416,216 +3058,8 @@ void LoadScreenInit()
 		return 0;
 	}
 
-	//callback�Ȃ�
-	bool BreakpointSync(SyncBreakMap::iterator it, ULONG addr)
-	{
-		AddrBreakFuncVec& f = it->second.func;
-		for (AddrBreakFuncVec::iterator itt = f.begin();
-		     itt != f.end(); ++itt)
-		{
-			lua_State* L = itt->lua;
-			lua_getfield(L, LUA_REGISTRYINDEX, REG_SYNCBREAK);
-			lua_pushinteger(L, itt->idx);
-			lua_gettable(L, -2);
-			lua_pushinteger(L, addr);
-			if (GetLuaClass(L)->errorPCall(1, 0))
-			{
-				return true;
-			}
-			lua_pop(L, 1);
-		}
-		return false;
-	}
-
-	void BreakpointSyncPure()
-	{
-		if (op != BREAKPOINTSYNC_MAGIC)
-		{
-			interp_addr++;
-			return;
-		}
-		SyncBreakMap::iterator it = syncBreakMap.find(interp_addr);
-		if (it != syncBreakMap.end())
-		{
-			if (BreakpointSync(it, interp_addr))
-			{
-				//�C�e���[�^�������ɂȂ����肵�Ă�
-				it = syncBreakMap.find(interp_addr);
-				if (it == syncBreakMap.end())
-				{
-					BreakpointSyncPure();
-					return;
-				}
-			}
-			op = it->second.op;
-			prefetch_opcode(op);
-			if (op != BREAKPOINTSYNC_MAGIC) //�����ċA�΍�
-				interp_ops[((op >> 26) & 0x3F)]();
-		}
-	}
-
-	void BreakpointSyncInterp()
-	{
-		if (PC->f.stype != BREAKPOINTSYNC_MAGIC_STYPE)
-		{
-			PC++;
-			return;
-		}
-		unsigned long addr = PC->addr;
-		SyncBreakMap::iterator it = syncBreakMap.find(addr);
-		if (it != syncBreakMap.end())
-		{
-			if (BreakpointSync(it, addr))
-			{
-				//�C�e���[�^�������ɂȂ����肵�Ă�
-				it = syncBreakMap.find(addr);
-				if (it == syncBreakMap.end())
-				{
-					BreakpointSyncInterp();
-					return;
-				}
-			}
-			precomp_instr* o_PC = PC;
-			*PC = it->second.pc;
-			PC->ops();
-			StoreRDRAMSafe<ULONG>(addr, BREAKPOINTSYNC_MAGIC);
-			o_PC->ops = SYNC;
-			o_PC->f.stype = BREAKPOINTSYNC_MAGIC_STYPE;
-		}
-	}
-
-	void PCBreak(void* p_, unsigned long addr)
-	{
-		AddrBreakFuncVec* p = (AddrBreakFuncVec*)p_;
-		AddrBreakFuncVec& f = *p;
-		for (AddrBreakFuncVec::iterator itt = f.begin();
-		     itt != f.end(); ++itt)
-		{
-			lua_State* L = itt->lua;
-			lua_getfield(L, LUA_REGISTRYINDEX, REG_PCBREAK);
-			lua_pushinteger(L, itt->idx);
-			lua_gettable(L, -2);
-			lua_pushinteger(L, addr);
-			if (GetLuaClass(L)->errorPCall(1, 0))
-			{
-				PCBreak(p, addr);
-				return;
-			}
-			lua_pop(L, 1);
-		}
-	}
-
 	extern void LuaDCUpdate(int redraw);
 
-	template <typename T>
-	struct TypeIndex
-	{
-		enum { v = -1 };
-	};
-
-	template <>
-	struct TypeIndex<UCHAR>
-	{
-		enum { v = 0 };
-	};
-
-	template <>
-	struct TypeIndex<USHORT>
-	{
-		enum { v = 1 };
-	};
-
-	template <>
-	struct TypeIndex<ULONG>
-	{
-		enum { v = 2 };
-	};
-
-	template <>
-	struct TypeIndex<ULONGLONG>
-	{
-		enum { v = 3 };
-	};
-
-	template <typename T, bool rw>
-	void AtMemoryRW()
-	{
-		MemoryHashInfo* (&hashMap)[0x10000] = rw ? writeHashMap : readHashMap;
-		AddrBreakMap& breakMap = rw ? writeBreakMap : readBreakMap;
-		AddrBreakMap::iterator it = breakMap.find(address);
-		if (it == breakMap.end())
-		{
-			hashMap[address >> 16]->func[TypeIndex<T>::v]();
-			return;
-		} else
-		{
-			break_value_flag = true;
-			current_break_value_size = sizeof(T);
-			AddrBreakFuncVec& f = it->second.func;
-			for (AddrBreakFuncVec::iterator itt = f.begin();
-			     itt != f.end(); ++itt)
-			{
-				lua_State* L = itt->lua;
-				lua_getfield(L, LUA_REGISTRYINDEX,
-				             rw ? REG_WRITEBREAK : REG_READBREAK);
-				lua_pushinteger(L, itt->idx);
-				lua_gettable(L, -2);
-				lua_pushinteger(L, address);
-				lua_pushinteger(L, sizeof(T));
-				if (GetLuaClass(L)->errorPCall(2, 0))
-				{
-					if (hashMap[address >> 16] != NULL)
-						AtMemoryRW<T, rw>();
-					return;
-				}
-				lua_pop(L, 1);
-			}
-			if (rw && !break_value_flag)
-			{
-				if (sizeof(T) == 1)
-				{
-					g_byte = (T)break_value;
-				} else if (sizeof(T) == 2)
-				{
-					hword = (T)break_value;
-				} else if (sizeof(T) == 4)
-				{
-					word = (T)break_value;
-				} else if (sizeof(T) == 8)
-				{
-					dword = (T)break_value;
-				}
-			}
-			hashMap[address >> 16]->func[TypeIndex<T>::v]();
-			if (!rw && !break_value_flag)
-			{
-				*rdword = break_value;
-			}
-			break_value_flag = false;
-			return;
-		}
-	}
-
-	template <typename T>
-	void AtMemoryReadT()
-	{
-		AtMemoryRW<T, false>();
-	}
-
-	template <typename T>
-	void AtMemoryWriteT()
-	{
-		AtMemoryRW<T, true>();
-	}
-
-	void (*AtMemoryRead[])() = {
-		AtMemoryReadT<UCHAR>, AtMemoryReadT<USHORT>,
-		AtMemoryReadT<ULONG>, AtMemoryReadT<ULONGLONG>,
-	};
-	void (*AtMemoryWrite[])() = {
-		AtMemoryWriteT<UCHAR>, AtMemoryWriteT<USHORT>,
-		AtMemoryWriteT<ULONG>, AtMemoryWriteT<ULONGLONG>,
-	};
 
 	//input
 
@@ -4178,17 +3612,6 @@ void LuaProcessMessages()
 {
 	lua_messenger.process_messages();
 }
-
-void LuaBreakpointSyncPure()
-{
-	BreakpointSyncPure();
-}
-
-void LuaBreakpointSyncInterp()
-{
-	BreakpointSyncInterp();
-}
-
 
 //Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
 //Next and DrawLuaDC are only used with double buffering
@@ -5060,8 +4483,7 @@ void LuaEnvironment::newLuaState() {
 }
 
 void LuaEnvironment::deleteLuaState() {
-	if (L == NULL)*(int*)0 = 0;
-	correctData();
+	assert(L != NULL);
 	lua_close(L);
 	L = NULL;
 }
@@ -5130,57 +4552,4 @@ void LuaEnvironment::selectGDIObject(HGDIOBJ p) {
 void LuaEnvironment::deleteGDIObject(HGDIOBJ p, int stockobj) {
 	SelectObject(this->dc, GetStockObject(stockobj));
 	DeleteObject(p);
-}
-
-template <typename T>
-void LuaEnvironment::correctBreakMap(T& breakMap,
-					 typename T::iterator(*removeFunc)(
-						 typename T::iterator)) {
-	for (typename T::iterator it =
-			 breakMap.begin(); it != breakMap.end();) {
-		std::deque<AddrBreakFunc>& f = (std::deque<AddrBreakFunc>&)it->second.func;
-		for (auto itt = f.begin();
-		     itt != f.end();) {
-			if (itt->lua == L) {
-				itt = f.erase(itt);
-			} else {
-				++itt;
-			}
-		}
-		if (f.empty()) {
-			it = removeFunc(it);
-		} else {
-			++it;
-		}
-	}
-}
-
-void LuaEnvironment::correctPCBreak() {
-	for (AddrBreakFuncVec** p = pcBreakMap;
-		 p < &pcBreakMap[0x800000 / 4]; p++) {
-		if (*p) {
-			AddrBreakFuncVec& f = **p;
-			for (AddrBreakFuncVec::iterator it = f.begin();
-				 it != f.end();) {
-				if (it->lua == L) {
-					it = RemovePCBreak(f, it);
-				} else {
-					++it;
-				}
-			}
-			if (f.empty()) {
-				delete* p;
-				*p = NULL;
-			}
-		}
-	}
-}
-
-void LuaEnvironment::correctData() {
-	correctBreakMap<SyncBreakMap>(syncBreakMap, RemoveSyncBreak);
-	correctBreakMap<AddrBreakMap>(readBreakMap,
-								  RemoveMemoryBreak<false>);
-	correctBreakMap<AddrBreakMap>(writeBreakMap,
-								  RemoveMemoryBreak<true>);
-	correctPCBreak();
 }

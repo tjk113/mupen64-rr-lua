@@ -58,10 +58,6 @@ enum class Renderer {
 	Direct2D
 };
 
-void PCBreak(void*, unsigned long);
-extern void* pcBreakMap_[0x800000 / 4];
-
-
 class LuaEnvironment {
 private:
 	bool stopping = false;
@@ -115,12 +111,6 @@ private:
 	void setGDIObject(HGDIOBJ* save, HGDIOBJ newobj);
 	void selectGDIObject(HGDIOBJ p);
 	void deleteGDIObject(HGDIOBJ p, int stockobj);
-	template <typename T>
-	void correctBreakMap(T& breakMap,
-						 typename T::iterator(*removeFunc)(
-							 typename T::iterator));
-	void correctPCBreak();
-	void correctData();
 	lua_State* L;
 		// gdi objects are filled in on run(), then deleted on stop()
 	HBRUSH brush;
@@ -130,14 +120,11 @@ private:
 	int bkmode;
 };
 
-void LuaPCBreakPure();
-void LuaPCBreakInterp();
 extern unsigned long lastInputLua[4];
 extern unsigned long rewriteInputLua[4];
 extern bool rewriteInputFlagLua[4];
 extern bool enableTraceLog;
 extern bool traceLogMode;
-extern bool enablePCBreak;
 extern bool maximumSpeedMode;
 extern unsigned long gdiPlusToken;
 

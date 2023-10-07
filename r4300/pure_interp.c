@@ -3149,9 +3149,7 @@ void prefetch()
               printf("count:%x, add:%x, op:%x, l%d\n", (int)(Count+debug_count),
                  interp_addr, op, line);*/
             prefetch_opcode(op);
-#ifdef LUA_PCBREAK_PURE
-            if (enablePCBreak)LuaPCBreakPure();
-#endif
+
         }
         else if ((interp_addr >= 0xa4000000) && (interp_addr < 0xa4001000))
         {
