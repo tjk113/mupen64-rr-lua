@@ -97,7 +97,7 @@ static DWORD Id;
 static DWORD SOUNDTHREADID;
 static HANDLE SoundThreadHandle;
 static BOOL FullScreenMode = 0;
-DWORD WINAPI closeRom(LPVOID lpParam);
+DWORD WINAPI close_rom(LPVOID lpParam);
 
 HANDLE EmuThreadHandle;
 HWND hwnd_plug;
@@ -218,37 +218,6 @@ char* getExtension(char* str)
 	else return NULL;
 }
 
-void WaitEmuThread()
-{
-	DWORD ExitCode;
-	int count;
-
-	for (count = 0; count < 400; count++)
-	{
-		SleepEx(50, TRUE);
-		GetExitCodeThread(EmuThreadHandle, &ExitCode);
-		if (ExitCode != STILL_ACTIVE)
-		{
-			EmuThreadHandle = NULL;
-			break;
-		}
-	}
-	if (EmuThreadHandle != NULL || ExitCode != 0)
-	{
-		if (EmuThreadHandle != NULL)
-		{
-			printf("Abnormal emu thread termination!\n");
-			TerminateThread(EmuThreadHandle, 0);
-			EmuThreadHandle = NULL;
-		}
-
-		MessageBox(NULL, "There was a problem with emulating.", "Warning",
-		           MB_OK);
-	}
-	emu_launched = 0;
-	emu_paused = 1;
-}
-
 
 void resumeEmu(BOOL quiet)
 {
@@ -358,111 +327,108 @@ int32_t start_rom(const std::string &path)
 	return 1;
 }
 
-void exit_emu2();
 static int shut_window = 0;
 
-//void closeRom()
-DWORD WINAPI closeRom(LPVOID lpParam) //lpParam - treated as bool, show romlist?
+DWORD WINAPI close_rom(LPVOID lpParam)
 {
-	LONG winstyle; //Used for setting new style to the window
-	//   int browserwidths[] = {400, -1};              //Rombrowser statusbar
+	assert(emu_launched);
 
-	if (emu_launched)
+	if (emu_paused)
 	{
-		if (emu_paused)
-		{
-			MenuPaused = FALSE;
-			resumeEmu(FALSE);
-		}
+		MenuPaused = FALSE;
+		resumeEmu(FALSE);
+	}
 
-		if (recording && !continue_vcr_on_restart_mode)
+	if (recording && !continue_vcr_on_restart_mode)
+	{
+		// we need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
+		if (VCR_stopCapture() != 0)
+			MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
+		else
 		{
-			//Sleep(1000); // HACK - seems to help crash on closing ROM during capture...?
-			if (VCR_stopCapture() != 0) // but it never returns non-zero ???
-				MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
-			else
-			{
-				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
-				             SWP_NOMOVE | SWP_NOSIZE);
-				statusbar_send_text("Stopped AVI capture");
-				recording = FALSE;
-			}
+			SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
+			             SWP_NOMOVE | SWP_NOSIZE);
+			statusbar_send_text("Stopped AVI capture");
+			recording = FALSE;
 		}
+	}
 
-		CloseAllLuaScript();
-		// the emu thread will die soon and won't be able to call LuaProcessMessages(),
-		// so we need to run the pump one time manually before closing to get our messages processed
+	CloseAllLuaScript();
+	// the emu thread will die soon and won't be able to call LuaProcessMessages(),
+	// so we need to run the pump one time manually before closing to get our messages processed
+	LuaProcessMessages();
+
+	// and that message pass doesn't do anything besides telling the windows to close
+	// so now we have to wait until they actually clean up their shit
+	while (!hwnd_lua_map.empty())
+	{
+		printf("Pumping messages until lua cleans up...\n");
 		LuaProcessMessages();
+	}
 
-		// and that message pass doesn't do anything besides telling the windows to close
-		// so now we have to wait until they actually clean up their shit
-		while (!hwnd_lua_map.empty())
-		{
-			printf("Pumping messages until lua cleans up...\n");
-			LuaProcessMessages();
-		}
+	printf("Closing emulation thread...\n");
 
-		printf("Closing emulation thread...\n");
-		stop_it();
+	// we signal the core to stop, then wait until thread exits
+	stop_it();
+	DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
+	if (result == WAIT_TIMEOUT)
+	{
+		MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
+		           MB_ICONERROR | MB_OK);
+	}
 
-		WaitEmuThread();
+	emu_launched = 0;
+	emu_paused = 1;
 
-			free(rom);
-			rom = NULL;
-			free(ROM_HEADER);
-			ROM_HEADER = NULL;
-			free_memory();
+	free(rom);
+	rom = NULL;
+	free(ROM_HEADER);
+	ROM_HEADER = NULL;
+	free_memory();
 
-			EnableEmulationMenuItems(FALSE);
-			rombrowser_set_visibility(!really_restart_mode);
-			toolbar_on_emu_state_changed(0, 0);
+	EnableEmulationMenuItems(FALSE);
+	rombrowser_set_visibility(!really_restart_mode);
+	toolbar_on_emu_state_changed(0, 0);
 
-			extern int m_task;
-			if (m_task == 0)
-			{
-				SetWindowText(mainHWND, MUPEN_VERSION);
-				// TODO: look into why this is done
-				statusbar_send_text(" ", 1);
-			}
+	if (m_task == 0)
+	{
+		SetWindowText(mainHWND, MUPEN_VERSION);
+		// TODO: look into why this is done
+		statusbar_send_text(" ", 1);
+	}
 
-
-		if (shut_window)
-		{
-			SendMessage(mainHWND, WM_CLOSE, 0, 0);
-			return 0;
-		}
+	if (shut_window)
+	{
+		SendMessage(mainHWND, WM_CLOSE, 0, 0);
+		return 0;
 	}
 
 	statusbar_set_mode(statusbar_mode::rombrowser);
 	statusbar_send_text("Emulation stopped");
 
-	//Makes window resizable
-	winstyle = GetWindowLong(mainHWND, GWL_STYLE);
-	winstyle |= WS_THICKFRAME;
-	SetWindowLong(mainHWND, GWL_STYLE, winstyle);
-	SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0,
-	             SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED); //Set on top
+	SetWindowLong(mainHWND, GWL_STYLE,
+	              GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME);
 
+
+	if (really_restart_mode)
 	{
-		if (really_restart_mode)
+		if (clear_sram_on_restart_mode)
 		{
-			if (clear_sram_on_restart_mode)
-			{
-				VCR_clearAllSaveData();
-				clear_sram_on_restart_mode = FALSE;
-			}
+			VCR_clearAllSaveData();
+			clear_sram_on_restart_mode = FALSE;
+		}
 
-			really_restart_mode = FALSE;
-			extern int m_task;
-			if (m_task != 0)
-				just_restarted_flag = TRUE;
-			if (!start_rom(LastSelectedRom))
-			{
-				closeRom(lpParam);
-				MessageBox(mainHWND, "Failed to open ROM", NULL, MB_ICONERROR | MB_OK);
-			}
+		really_restart_mode = FALSE;
+		if (m_task != 0)
+			just_restarted_flag = TRUE;
+		if (!start_rom(LastSelectedRom))
+		{
+			close_rom(lpParam);
+			MessageBox(mainHWND, "Failed to open ROM", NULL,
+			           MB_ICONERROR | MB_OK);
 		}
 	}
+
 
 	continue_vcr_on_restart_mode = FALSE;
 
@@ -481,7 +447,7 @@ void resetEmu()
 		frame_advancing = false;
 		really_restart_mode = TRUE;
 		MenuPaused = FALSE;
-		CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
+		CreateThread(NULL, 0, close_rom, NULL, 0, &Id);
 	}
 }
 
@@ -1316,7 +1282,7 @@ void exit_emu(int postquit)
 		ini_closeFile();
 	} else
 	{
-		CreateThread(NULL, 0, closeRom, NULL, 0, &Id);
+		CreateThread(NULL, 0, close_rom, NULL, 0, &Id);
 	}
 
 	if (postquit)
@@ -1391,19 +1357,6 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 void reset_titlebar()
 {
 	SetWindowText(mainHWND, (std::string(MUPEN_VERSION) + " - " + std::string(reinterpret_cast<char*>(ROM_HEADER->nom))).c_str());
-}
-
-void exit_emu2()
-{
-	save_config();
-
-	if ((!cmdlineMode) || (cmdlineSave))
-	{
-		ini_updateFile();
-	}
-	ini_closeFile();
-	freeLanguages();
-	PostQuitMessage(0);
 }
 
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId)
@@ -1885,7 +1838,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (emu_launched)
 				{
 					stop_it();
-					CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, &Id);
+					CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &Id);
 
 				}
 				break;

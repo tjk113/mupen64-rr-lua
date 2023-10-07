@@ -130,7 +130,6 @@ extern long m_currentSample;
 
 void new_vi()
 {
-	extern DWORD WINAPI closeRom(LPVOID lpParam);
 	extern int frame_advancing;
 
 	// fps wont update when emu is stuck so we must check vi/s
@@ -145,7 +144,7 @@ void new_vi()
 		if (result == CrashHandlerDialog::Choices::Exit)
 		{
 			frame_advancing = false; //don't pause at next open
-			CreateThread(NULL, 0, closeRom, (LPVOID)1, 0, 0);
+			CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, 0);
 		}
 	}
 	typedef std::chrono::high_resolution_clock::time_point timePoint;

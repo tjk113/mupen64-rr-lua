@@ -51,6 +51,7 @@ extern void OpenMovieRecordDialog();
 extern void LoadConfigExternals();
 
 int32_t start_rom(const std::string &path);
+DWORD WINAPI close_rom(LPVOID lpParam);
 
 extern BOOL forceIgnoreRSP;
 extern BOOL continue_vcr_on_restart_mode;
