@@ -805,7 +805,7 @@ void LoadScreenInit()
 		lua_insert(L, 1);
 		lua_call(L, lua_gettop(L) - 1, 1);
 		const char* str = lua_tostring(L, 1);
-		HWND wnd = GetLuaClass(L)->ownWnd;
+		HWND wnd = GetLuaClass(L)->hwnd;
 		ConsoleWrite(wnd, str);
 		ConsoleWrite(wnd, "\r\n");
 		return 0;
@@ -813,7 +813,7 @@ void LoadScreenInit()
 
 	int StopScript(lua_State* L)
 	{
-		HWND wnd = GetLuaClass(L)->ownWnd;
+		HWND wnd = GetLuaClass(L)->hwnd;
 		hwnd_lua_map[wnd]->stop();
 		return 0;
 	}
@@ -962,7 +962,7 @@ void LoadScreenInit()
 			lua_pop(L, 1);
 			if (i != len - 1) { str.append("\t"); }
 		}
-		ConsoleWrite(GetLuaClass(L)->ownWnd, str.append("\r\n").c_str());
+		ConsoleWrite(GetLuaClass(L)->hwnd, str.append("\r\n").c_str());
 		return 1;
 	}
 
@@ -2565,10 +2565,13 @@ void LoadScreenInit()
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
+		RECT rect;
+		GetClientRect(mainHWND, &rect);
+
 		lua_newtable(L);
-		lua_pushinteger(L, lua->dc_width);
+		lua_pushinteger(L, rect.right - rect.left);
 		lua_setfield(L, -2, "width");
-		lua_pushinteger(L, lua->dc_height);
+		lua_pushinteger(L, rect.bottom - rect.top);
 		lua_setfield(L, -2, "height");
 		return 1;
 	}
@@ -2591,7 +2594,7 @@ void LoadScreenInit()
 
 		auto prev_renderer = lua->get_renderer();
 		lua->destroy_renderer();
-		lua->create_renderer(prev_renderer);
+		lua->create_renderer(prev_renderer, 1);
 
 		return 0;
 	}
@@ -2599,7 +2602,7 @@ void LoadScreenInit()
 	//emu
 	int ConsoleWriteLua(lua_State* L)
 	{
-		ConsoleWrite(GetLuaClass(L)->ownWnd, lua_tostring(L, 1));
+		ConsoleWrite(GetLuaClass(L)->hwnd, lua_tostring(L, 1));
 		return 0;
 	}
 
@@ -2876,7 +2879,7 @@ void LoadScreenInit()
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		lua->destroy_renderer();
-		lua->create_renderer(static_cast<Renderer>(luaL_checknumber(L, 1)));
+		lua->create_renderer(static_cast<Renderer>(luaL_checknumber(L, 1)), 1);
 
 		return 1;
 	}
@@ -3626,16 +3629,6 @@ void lua_new_vi(int redraw)
 	// hardware-accelerated drawing on a bitmap with some additional info (w, h, pixel format) provided by the emulator
 	// this way, the video plugin can't overwrite our window contents whenever it wants, thereby causing flicker
 
-	if (redraw)
-	{
-		for (auto& pair : hwnd_lua_map)
-		{
-			if (!pair.first || !pair.second)
-				continue;
-			pair.second->early_draw();
-		}
-	}
-
 	AtVILuaCallback();
 
 	if (!redraw) return;
@@ -4204,36 +4197,42 @@ void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l)
 	lua_messenger.send_message(message);
 }
 
-void LuaEnvironment::create_renderer(Renderer renderer, int32_t override_identical_check) {
-	if (dc) {
+void LuaEnvironment::create_renderer(Renderer renderer,
+                                     int32_t override_identical_check)
+{
+	if (dc)
+	{
 		return;
 	}
 
-	if (this->renderer == renderer && override_identical_check)
+	if (this->renderer == renderer && !override_identical_check)
 	{
 		printf("Renderer is identical, skipping...");
 		return;
 	}
+	printf("Creating renderer %d for Lua...\n", renderer);
 
 	this->renderer = renderer;
-	RECT window_rect;
-	GetClientRect(mainHWND, &window_rect);
-	dc_width = window_rect.right;
-	dc_height = window_rect.bottom;
 
-	if (renderer == Renderer::GDIMixed) {
-		printf("Creating GDIMixed renderer for Lua...\n");
-		if (Config.is_lua_double_buffered) {
-			HDC main_dc = GetDC(mainHWND);
-			dc = CreateCompatibleDC(main_dc);
-			HBITMAP bmp = CreateCompatibleBitmap(
-				main_dc, window_rect.right, window_rect.bottom);
-			SelectObject(dc, bmp);
-			ReleaseDC(mainHWND, main_dc);
-		} else {
-			dc = GetDC(mainHWND);
-		}
-	} else if(renderer == Renderer::Direct2D) {
+	if (renderer != Renderer::None)
+	{
+		RECT window_rect;
+		GetClientRect(mainHWND, &window_rect);
+		dc_width = window_rect.right;
+		dc_height = window_rect.bottom;
+
+
+		// we create a bitmap with the main window's size and point our dc to it
+		HDC main_dc = GetDC(mainHWND);
+		dc = CreateCompatibleDC(main_dc);
+		HBITMAP bmp = CreateCompatibleBitmap(
+			main_dc, window_rect.right, window_rect.bottom);
+		SelectObject(dc, bmp);
+		ReleaseDC(mainHWND, main_dc);
+	}
+
+	if (renderer == Renderer::Direct2D)
+	{
 		printf("Creating Direct2D renderer for Lua...\n");
 		D2D1_RENDER_TARGET_PROPERTIES props =
 			D2D1::RenderTargetProperties(
@@ -4243,23 +4242,13 @@ void LuaEnvironment::create_renderer(Renderer renderer, int32_t override_identic
 					D2D1_ALPHA_MODE_PREMULTIPLIED));
 
 		D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
-						  &d2d_factory);
+		                  &d2d_factory);
 		d2d_factory->CreateDCRenderTarget(&props, &d2d_render_target);
 		DWriteCreateFactory(
 			DWRITE_FACTORY_TYPE_SHARED,
 			__uuidof(dw_factory),
 			reinterpret_cast<IUnknown**>(&dw_factory)
 		);
-		if (Config.is_lua_double_buffered) {
-			HDC main_dc = GetDC(mainHWND);
-			dc = CreateCompatibleDC(main_dc);
-			HBITMAP bmp = CreateCompatibleBitmap(
-				main_dc, window_rect.right, window_rect.bottom);
-			SelectObject(dc, bmp);
-			ReleaseDC(mainHWND, main_dc);
-		} else {
-			dc = GetDC(mainHWND);
-		}
 
 		RECT dc_rect = {0, 0, dc_width, dc_height};
 		d2d_render_target->BindDC(dc, &dc_rect);
@@ -4294,19 +4283,6 @@ void LuaEnvironment::destroy_renderer() {
 	d2d_render_target = NULL;
 }
 
-void LuaEnvironment::early_draw() {
-	// NOTE: it's important to check for `stopping`, since it's set after the lua message processor is invoked on the emu thread, and draw functions are also called on emu thread
-	if (!dc || stopping || renderer == Renderer::None) {
-		return;
-	}
-
-	if (renderer == Renderer::GDIMixed) {
-		HDC main_dc = GetDC(mainHWND);
-		BitBlt(dc, 0, 0, dc_width, dc_height, main_dc, 0, 0, SRCCOPY);
-		ReleaseDC(mainHWND, main_dc);
-	}
-}
-
 void LuaEnvironment::draw() {
 	if (!dc || stopping || renderer == Renderer::None) {
 		return;
@@ -4315,32 +4291,36 @@ void LuaEnvironment::draw() {
 	HDC main_dc = GetDC(mainHWND);
 
 	if (renderer == Renderer::Direct2D) {
-		TransparentBlt(dc, 0, 0, dc_width, dc_height, main_dc, 0, 0,
-					   dc_width, dc_height, d2d_color_mask);
+		// TransparentBlt(dc, 0, 0, dc_width, dc_height, main_dc, 0, 0,
+		// 			   dc_width, dc_height, bitmap_color_mask);
 		d2d_render_target->BeginDraw();
 		d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
-		d2d_render_target->Clear(D2D1::ColorF(d2d_color_mask));
+		d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
 	}
 
-	this->invoke_callbacks_with_key(AtUpdateScreen,
-									REG_ATUPDATESCREEN);
+	this->invoke_callbacks_with_key(AtUpdateScreen, REG_ATUPDATESCREEN);
+
+	if (renderer == Renderer::Direct2D) {
+		d2d_render_target->EndDraw();
+	}
+
+	TransparentBlt(main_dc, 0, 0, dc_width, dc_height, dc, 0, 0,
+		dc_width, dc_height, bitmap_color_mask);
 
 	if (renderer == Renderer::GDIMixed) {
-		BitBlt(main_dc, 0, 0, dc_width, dc_height, dc, 0, 0, SRCCOPY);
-	} else {
-		d2d_render_target->EndDraw();
-		TransparentBlt(main_dc, 0, 0, dc_width, dc_height, dc, 0, 0,
-					   dc_width, dc_height, d2d_color_mask);
+		RECT rect = { 0, 0, this->dc_width, this->dc_height};
+		HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
+		FillRect(dc, &rect, brush);
+		DeleteObject(brush);
 	}
 
 	ReleaseDC(mainHWND, main_dc);
-	draw_call_count++;
 }
 
 
 LuaEnvironment::LuaEnvironment(HWND wnd) {
 	L = NULL;
-	ownWnd = wnd;
+	hwnd = wnd;
 	SetWindowLua(wnd, this);
 	printf("Lua construct\n");
 }
@@ -4349,7 +4329,7 @@ LuaEnvironment::~LuaEnvironment() {
 	if (isrunning()) {
 		stop();
 	}
-	SetWindowLua(ownWnd, NULL);
+	SetWindowLua(hwnd, NULL);
 	printf("Lua destruct\n");
 }
 
@@ -4371,7 +4351,7 @@ bool LuaEnvironment::run(char* path) {
 	newLuaState();
 	auto status = runFile(path);
 	if (isrunning()) {
-		SetButtonState(ownWnd, true);
+		SetButtonState(hwnd, true);
 		lua_recent_scripts_add(path);
 		Config.lua_script_path = std::string(path);
 	}
@@ -4393,7 +4373,7 @@ void LuaEnvironment::stop() {
 		delete x;
 	}
 	image_pool.clear();
-	SetButtonState(ownWnd, false);
+	SetButtonState(hwnd, false);
 	printf("Lua stop\n");
 }
 
@@ -4466,14 +4446,6 @@ bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> fu
 	return false;
 }
 
-bool LuaEnvironment::errorPCall(int a, int r) {
-	if (lua_pcall(L, a, r, 0)) {
-		error();
-		return true;
-	}
-	return false;
-}
-
 void LuaEnvironment::newLuaState() {
 	ASSERT(L == 0);
 	L = luaL_newstate();
@@ -4531,8 +4503,8 @@ bool LuaEnvironment::runFile(char* path) {
 
 void LuaEnvironment::error() {
 	const char* str = lua_tostring(L, -1);
-	ConsoleWrite(ownWnd, str);
-	ConsoleWrite(ownWnd, "\r\n");
+	ConsoleWrite(hwnd, str);
+	ConsoleWrite(hwnd, "\r\n");
 	printf("Lua error: %s\n", str);
 	stop();
 }

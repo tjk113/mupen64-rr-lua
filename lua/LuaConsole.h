@@ -49,8 +49,7 @@ void LuaTraceLogState();
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 void instrStr2(unsigned long pc, unsigned long w, char* buffer);
 
-static uint32_t d2d_color_mask = RGB(1, 0, 1);
-
+static uint32_t bitmap_color_mask = RGB(255, 0, 255);
 
 enum class Renderer {
 	None,
@@ -64,21 +63,24 @@ private:
 	Renderer renderer = Renderer::None;
 
 public:
-	uint64_t draw_call_count = 0;
-	HDC dc = NULL;
+	HDC dc = nullptr;
 	int dc_width, dc_height = 0;
-	ID2D1Factory* d2d_factory = NULL;
-	ID2D1DCRenderTarget* d2d_render_target = NULL;
-	IDWriteFactory* dw_factory = NULL;
+	ID2D1Factory* d2d_factory = nullptr;
+	ID2D1DCRenderTarget* d2d_render_target = nullptr;
+	IDWriteFactory* dw_factory = nullptr;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
-	Renderer get_renderer() { return renderer; };
-	void create_renderer(Renderer renderer, int32_t override_identical_check = 0);
-	void destroy_renderer();
-	void early_draw();
-	void draw();
+
 	LuaEnvironment(HWND wnd);
 	~LuaEnvironment();
+
+	Renderer get_renderer() { return renderer; }
+	void create_renderer(Renderer renderer, int32_t override_identical_check = 0);
+	void destroy_renderer();
+
+
+	void draw();
+
 	bool run(char* path);
 	void stop();
 	void setBrush(HBRUSH h);
@@ -96,8 +98,7 @@ public:
 	//returns true at fail
 	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
 								   const char* key);
-	bool errorPCall(int a, int r);
-	HWND ownWnd;
+	HWND hwnd;
 	HANDLE hMutex;
 
 private:
@@ -112,7 +113,7 @@ private:
 	void selectGDIObject(HGDIOBJ p);
 	void deleteGDIObject(HGDIOBJ p, int stockobj);
 	lua_State* L;
-		// gdi objects are filled in on run(), then deleted on stop()
+	// gdi objects are filled in on run(), then deleted on stop()
 	HBRUSH brush;
 	HPEN pen;
 	HFONT font;
