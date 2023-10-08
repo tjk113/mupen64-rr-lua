@@ -85,7 +85,7 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 	if (!buffer || bufferSize < *width * *height * 3 + 1)
 	//if buffer doesn't exist yet or changed size somehow
 	{
-		free(buffer);
+		if(buffer) free(buffer);
 		bufferSize = *width * *height * 3 + 1;
 		buffer = (unsigned char*)malloc(bufferSize);
 	}

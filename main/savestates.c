@@ -742,7 +742,7 @@ void savestates_load_old(bool silenceNotFoundError)
             goto failedLoad;
         }
         int code = VCR_movieUnfreeze(local_movie_data, movieInputDataSize);
-    	free(local_movie_data);
+    	if(local_movie_data) free(local_movie_data);
         if (code != SUCCESS && !VCR_isIdle())
         {
             bool stop = false;
