@@ -341,7 +341,8 @@ static int shut_window = 0;
 DWORD WINAPI close_rom(LPVOID lpParam)
 {
 	//assert(emu_launched);
-	WaitForSingleObject(EmuThreadHandle, 10'000);
+	//Bad fix that technically works but causes unintended behaviour
+	//WaitForSingleObject(EmuThreadHandle, 10'000);
 	if (emu_paused)
 	{
 		MenuPaused = FALSE;
