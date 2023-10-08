@@ -1849,7 +1849,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (emu_launched)
 				{
 					stop_it();
-					CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &Id);
+					close_rom(&Id);
+					//CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &Id);
 
 				}
 				break;
