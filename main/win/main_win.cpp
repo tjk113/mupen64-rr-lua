@@ -269,13 +269,21 @@ void pauseEmu(BOOL quiet)
 
 int32_t start_rom(std::string path)
 {
+	
+	// Creating close rom thread throws access violations
+	// Why was it even a thread in the first place?
+	// called as a function here, it seems to work fine
 
-	assert(!emu_launched);
+	if (emu_launched) {
+		close_rom(&Id);
+		//WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
+	}
 
+	//assert(!emu_launched);
 	// if any plugin isn't ready (not selected or otherwise invalid), we bail
+
 	std::vector<plugin_type> missing_plugin_types =
 		get_missing_plugin_types();
-
 	if (!missing_plugin_types.empty())
 	{
 		if (MessageBox(mainHWND,
@@ -332,7 +340,7 @@ static int shut_window = 0;
 
 DWORD WINAPI close_rom(LPVOID lpParam)
 {
-	assert(emu_launched);
+	//assert(emu_launched);
 
 	if (emu_paused)
 	{
@@ -371,6 +379,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 	// we signal the core to stop, then wait until thread exits
 	stop_it();
+
 	DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
 	if (result == WAIT_TIMEOUT)
 	{
@@ -432,7 +441,6 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 
 	continue_vcr_on_restart_mode = FALSE;
-
 	return 0;
 }
 
