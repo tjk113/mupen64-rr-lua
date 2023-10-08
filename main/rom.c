@@ -271,7 +271,7 @@ int rom_read(const char* argv)
     invalidSize = (romByteCount > 0x400'0000 || romByteCount < 0x1000);
     if (invalidSize && !Config.allow_suspicious_rom_loading) goto killRom;
 
-    free(rom);
+    if(rom) free(rom);
     taille = romByteCount;
     if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
     rom = (unsigned char*)malloc(taille);
@@ -535,7 +535,7 @@ void calculateMD5(const char* argv, unsigned char digest[16])
     }
     /*------------------------------------------------------------------------*/
     findsize();
-    free(rom);
+    if(rom) free(rom);
     rom = (unsigned char*)malloc(romByteCount);
 
     tmp = 0;

@@ -267,8 +267,9 @@ void pauseEmu(BOOL quiet)
 			                              : MFS_UNCHECKED));
 }
 
-int32_t start_rom(const std::string &path)
+int32_t start_rom(std::string path)
 {
+
 	assert(!emu_launched);
 
 	// if any plugin isn't ready (not selected or otherwise invalid), we bail
@@ -1350,6 +1351,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 {
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
 	if (index >= 0 && index < Config.recent_rom_paths.size())
+
 		return start_rom(Config.recent_rom_paths[index]);
 	return 0;
 }
