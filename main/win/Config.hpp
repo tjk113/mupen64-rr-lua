@@ -391,3 +391,8 @@ void load_config();
 /// Whether a hotkey has successfully been picked
 /// </returns>
 int32_t get_user_hotkey(t_hotkey* hotkey);
+
+/**
+ * \brief Updates all menu hotkey accelerator labels to the appropriate config values
+ */
+void update_menu_hotkey_labels();

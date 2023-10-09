@@ -2613,6 +2613,7 @@ int WINAPI WinMain(
 
 		mainHWND = hwnd;
 		ShowWindow(hwnd, nCmdShow);
+
 		UpdateWindow(hwnd);
 
 		StartGameByCommandLine();
@@ -2673,6 +2674,7 @@ int WINAPI WinMain(
 		SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 		//this can't be applied before ShowWindow(), otherwise you must use some fancy function
 
+		update_menu_hotkey_labels();
 		toolbar_set_visibility(Config.is_toolbar_enabled);
 		statusbar_set_visibility(Config.is_statusbar_enabled);
 		setup_dummy_info();

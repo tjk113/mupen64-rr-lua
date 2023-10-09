@@ -266,6 +266,7 @@ void ChangeSettings(HWND hwndOwner)
     save_config();
     
     rombrowser_build();
+    update_menu_hotkey_labels();
 }
 
 
