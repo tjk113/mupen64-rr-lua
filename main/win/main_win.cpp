@@ -345,7 +345,6 @@ static int shut_window = 0;
 DWORD WINAPI close_rom(LPVOID lpParam)
 {
 	if (emu_launched) {
-	//assert(emu_launched);
 
 		if (emu_paused) {
 			MenuPaused = FALSE;
@@ -1765,7 +1764,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 			case ID_MENU_LUASCRIPT_NEW:
 				{
-					::NewLuaScript((void(*)())lParam);
+					NewLuaScript();
 				}
 				break;
 			case ID_LUA_RECENT_FREEZE:

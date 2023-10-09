@@ -21,8 +21,9 @@
 #include <queue>
 #include <md5.h>
 #include <assert.h>
+#include <mutex>
 
-void NewLuaScript(void (*callback)());
+void NewLuaScript();
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 
 void LuaReload();

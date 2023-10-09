@@ -219,10 +219,9 @@ void LoadScreenInit()
 		return 0;
 	}
 
-	void SetWindowLua(HWND, LuaEnvironment*);
 	extern const char* const REG_WINDOWMESSAGE;
 	int AtWindowMessage(lua_State* L);
-	HWND CreateLuaWindow(void (*callback)());
+	HWND CreateLuaWindow();
 
 	void invoke_callback_with_key_on_instance(LuaEnvironment* lua,
 	                                          std::function<int(lua_State*)>
@@ -320,10 +319,6 @@ void LoadScreenInit()
 		{
 			enum class Types
 			{
-				NewLua,
-				DestroyLua,
-				RunPath,
-				StopCurrent,
 				CloseAll,
 				WindowMessage,
 			};
@@ -332,28 +327,6 @@ void LoadScreenInit()
 
 			union
 			{
-				struct
-				{
-					HWND wnd;
-					void (*callback)();
-				} newLua;
-
-				struct
-				{
-					HWND wnd;
-				} destroyLua;
-
-				struct
-				{
-					HWND wnd;
-					char path[MAX_PATH];
-				} runPath;
-
-				struct
-				{
-					HWND wnd;
-				} stopCurrent;
-
 				struct
 				{
 					HWND wnd;
@@ -379,48 +352,6 @@ void LoadScreenInit()
 				current_message = msg;
 				switch (msg->type)
 				{
-				case LuaMessenger::LuaMessage::Types::NewLua:
-					{
-						HWND wnd = msg->newLua.wnd;
-						LuaEnvironment* lua = new LuaEnvironment(wnd);
-						SetWindowLua(wnd, lua);
-						if (msg->newLua.callback)
-							msg->newLua.callback();
-						break;
-					}
-				case LuaMessenger::LuaMessage::Types::DestroyLua:
-					{
-						auto wnd = msg->destroyLua.wnd;
-						auto lua = hwnd_lua_map[wnd];
-
-						if (lua)
-						{
-							lua->stop();
-						}
-
-						delete lua;
-						hwnd_lua_map.erase(wnd);
-						break;
-					}
-				case LuaMessenger::LuaMessage::Types::RunPath:
-					{
-						if (msg->runPath.wnd == NULL)
-						{
-							// FIXME: what the hell is this? when does this even happen?
-							printf("RunPath message sent without hwnd\n");
-						}
-						auto lua = hwnd_lua_map[msg->runPath.wnd];
-						if (lua)
-						{
-							lua->stop();
-							lua->run(msg->runPath.path);
-
-						}
-						break;
-					}
-				case LuaMessenger::LuaMessage::Types::StopCurrent:
-					hwnd_lua_map[msg->stopCurrent.wnd]->stop();
-					break;
 				case LuaMessenger::LuaMessage::Types::CloseAll:
 					{
 						for (auto& pair : hwnd_lua_map)
@@ -443,15 +374,6 @@ void LoadScreenInit()
 	};
 
 	LuaMessenger lua_messenger;
-
-
-	void SetWindowLua(HWND wnd, LuaEnvironment* lua)
-	{
-		if (lua)
-			hwnd_lua_map[wnd] = lua;
-		else
-			hwnd_lua_map.erase(wnd);
-	}
 
 	void SizingControl(HWND wnd, RECT* p, int x, int y, int w, int h)
 	{
@@ -491,11 +413,9 @@ void LoadScreenInit()
 		case WM_INITDIALOG:
 			{
 				checkGDIPlusInitialized();
-				auto msg = new LuaMessenger::LuaMessage();
-				msg->type = LuaMessenger::LuaMessage::Types::NewLua;
-				msg->newLua.wnd = wnd;
-				msg->newLua.callback = (void(*)())lParam;
-				lua_messenger.send_message(msg);
+
+				hwnd_lua_map[wnd] = new LuaEnvironment(wnd);
+
 				if (InitalWindowRect[0].right == 0)
 				{
 					GetInitalWindowRect(wnd);
@@ -509,11 +429,9 @@ void LoadScreenInit()
 			return TRUE;
 		case WM_DESTROY:
 			{
-				LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
-				msg->type = LuaMessenger::LuaMessage::Types::DestroyLua;
-				msg->destroyLua.wnd = wnd;
-				lua_messenger.send_message(msg);
-
+				assert(hwnd_lua_map.contains(wnd));
+				hwnd_lua_map[wnd]->stop();
+				hwnd_lua_map.erase(wnd);
 				return TRUE;
 			}
 		case WM_COMMAND:
@@ -548,30 +466,26 @@ void LoadScreenInit()
 		{
 		case IDC_BUTTON_LUASTATE:
 			{
-				LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
-				msg->type = LuaMessenger::LuaMessage::Types::RunPath;
-				msg->runPath.wnd = wnd;
-
+				char path[MAX_PATH] = {0};
 				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-				              msg->runPath.path, MAX_PATH);
-
-				lua_messenger.send_message(msg);
+				              path, MAX_PATH);
+				if (hwnd_lua_map[wnd]->isrunning())
+				{
+					hwnd_lua_map[wnd]->stop();
+				}
+				hwnd_lua_map[wnd]->run(path);
 				return TRUE;
 			}
 		case IDC_BUTTON_LUASTOP:
 			{
-				LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
-				msg->type = LuaMessenger::LuaMessage::Types::StopCurrent;
-				msg->stopCurrent.wnd = wnd;
-				lua_messenger.send_message(msg);
-				// save config?
+				hwnd_lua_map[wnd]->stop();
 				return TRUE;
 			}
 		case IDC_BUTTON_LUABROWSE:
 			{
 				auto path = show_persistent_open_dialog("o_lua", wnd, L"*.lua");
 
-				if (path.size() == 0)
+				if (path.empty())
 				{
 					break;
 				}
@@ -606,12 +520,12 @@ void LoadScreenInit()
 		return FALSE;
 	}
 
-	HWND CreateLuaWindow(void (*callback)())
+	HWND CreateLuaWindow()
 	{
 		HWND hwnd = CreateDialogParam(app_hInstance,
 		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
 		                             DialogProc,
-		                             (LPARAM)callback);
+		                             NULL);
 		ShowWindow(hwnd, SW_SHOW);
 		return hwnd;
 	}
@@ -3524,9 +3438,9 @@ void LoadScreenInit()
 		{NULL, NULL}
 	};
 
-void NewLuaScript(void (*callback)())
+void NewLuaScript()
 {
-	CreateLuaWindow(callback);
+	CreateLuaWindow();
 }
 
 void dummy_function()
@@ -3535,11 +3449,14 @@ void dummy_function()
 
 void LuaOpenAndRun(const char* path)
 {
-	auto hwnd = CreateLuaWindow(&dummy_function);
+	printf("Creating lua window...\n");
+	auto hwnd = CreateLuaWindow();
 
+	printf("Setting path...\n");
 	// set the textbox content to match the path
 	SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
 
+	printf("Simulating run button click...\n");
 	// click run button
 	SendMessage(hwnd, WM_COMMAND,
 		            MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
@@ -4204,12 +4121,12 @@ void LuaEnvironment::create_renderer(Renderer renderer,
 	{
 		return;
 	}
-
 	if (this->renderer == renderer && !override_identical_check)
 	{
 		printf("Renderer is identical, skipping...");
 		return;
 	}
+
 	printf("Creating renderer %d for Lua...\n", renderer);
 
 	this->renderer = renderer;
@@ -4263,6 +4180,8 @@ void LuaEnvironment::destroy_renderer() {
 		return;
 	}
 
+	// BUG: if this is called from ui thread (e.g.: when clicking the stop button), we might release renderer-related resources while they are being used, as draw() is called from the emu thread
+
 	if (renderer == Renderer::Direct2D) {
 		d2d_factory->Release();
 		d2d_render_target->Release();
@@ -4291,8 +4210,6 @@ void LuaEnvironment::draw() {
 	HDC main_dc = GetDC(mainHWND);
 
 	if (renderer == Renderer::Direct2D) {
-		// TransparentBlt(dc, 0, 0, dc_width, dc_height, main_dc, 0, 0,
-		// 			   dc_width, dc_height, bitmap_color_mask);
 		d2d_render_target->BeginDraw();
 		d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 		d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
@@ -4321,7 +4238,6 @@ void LuaEnvironment::draw() {
 LuaEnvironment::LuaEnvironment(HWND wnd) {
 	L = NULL;
 	hwnd = wnd;
-	SetWindowLua(wnd, this);
 	printf("Lua construct\n");
 }
 
@@ -4329,7 +4245,6 @@ LuaEnvironment::~LuaEnvironment() {
 	if (isrunning()) {
 		stop();
 	}
-	SetWindowLua(hwnd, NULL);
 	printf("Lua destruct\n");
 }
 
@@ -4355,7 +4270,7 @@ bool LuaEnvironment::run(char* path) {
 		lua_recent_scripts_add(path);
 		Config.lua_script_path = std::string(path);
 	}
-	printf("Lua run\n");
+	printf("Lua run %s\n", path);
 	return status;
 }
 
@@ -4364,6 +4279,9 @@ void LuaEnvironment::stop() {
 		return;
 
 	stopping = true;
+
+	// BUG: if this is called from ui thread (e.g.: when clicking the stop button), we might release renderer-related resources while they are being used, as draw() is called from the emu thread
+
 	invoke_callbacks_with_key(AtStop, REG_ATSTOP);
 	deleteGDIObject(brush, WHITE_BRUSH);
 	deleteGDIObject(pen, BLACK_PEN);
