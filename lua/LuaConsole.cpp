@@ -222,28 +222,30 @@ void LoadScreenInit()
 	void SetWindowLua(HWND, LuaEnvironment*);
 	extern const char* const REG_WINDOWMESSAGE;
 	int AtWindowMessage(lua_State* L);
-	void CreateLuaWindow(void (*callback)());
+	HWND CreateLuaWindow(void (*callback)());
 
 	void invoke_callback_with_key_on_instance(LuaEnvironment* lua,
 	                                          std::function<int(lua_State*)>
 	                                          function, const char* key)
 	{
-		if (lua->isrunning())
+		if (!lua->isrunning())
 		{
-			// ensure thread safety (load and savestate callbacks for example)
-			DWORD waitResult = WaitForSingleObject(lua->hMutex, INFINITE);
-			switch (waitResult)
+			return;
+		}
+
+		// ensure thread safety (load and savestate callbacks for example)
+		DWORD waitResult = WaitForSingleObject(lua->hMutex, INFINITE);
+		switch (waitResult)
+		{
+		case WAIT_OBJECT_0:
+			if (lua->invoke_callbacks_with_key(function, key))
 			{
-			case WAIT_OBJECT_0:
-				if (lua->invoke_callbacks_with_key(function, key))
-				{
-					printf("!ERRROR, RETRY\n");
-					//if error happened, try again (but what if it fails again and again?)
-					invoke_callback_with_key_on_instance(lua, function, key);
-					return;
-				}
-				ReleaseMutex(lua->hMutex);
+				printf("!ERRROR, RETRY\n");
+				//if error happened, try again (but what if it fails again and again?)
+				invoke_callback_with_key_on_instance(lua, function, key);
+				return;
 			}
+			ReleaseMutex(lua->hMutex);
 		}
 	}
 
@@ -324,7 +326,6 @@ void LoadScreenInit()
 				StopCurrent,
 				CloseAll,
 				WindowMessage,
-				RespawnLua,
 			};
 
 			Types type;
@@ -422,19 +423,8 @@ void LoadScreenInit()
 					break;
 				case LuaMessenger::LuaMessage::Types::CloseAll:
 					{
-						int i = 0;
 						for (auto& pair : hwnd_lua_map)
 						{
-							if (i > 0) {
-								if (std::find(recent_closed_lua.begin(), recent_closed_lua.end(),
-									pair.second->currentPath) != recent_closed_lua.end() || pair.second->currentPath.empty()) {
-									continue;
-								}
-							}
-							if (!(pair.second) == NULL) {
-								recent_closed_lua.insert(recent_closed_lua.begin(), pair.second->currentPath);
-							}
-							i += 1;
 							PostMessage(pair.first, WM_CLOSE, 0, 0);
 						}
 						break;
@@ -501,14 +491,13 @@ void LoadScreenInit()
 		case WM_INITDIALOG:
 			{
 				checkGDIPlusInitialized();
-				LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
+				auto msg = new LuaMessenger::LuaMessage();
 				msg->type = LuaMessenger::LuaMessage::Types::NewLua;
 				msg->newLua.wnd = wnd;
 				msg->newLua.callback = (void(*)())lParam;
 				lua_messenger.send_message(msg);
 				if (InitalWindowRect[0].right == 0)
 				{
-					//�蔲���ȁA�ŏ��ł��邱�Ƃ̔���
 					GetInitalWindowRect(wnd);
 				}
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -617,17 +606,14 @@ void LoadScreenInit()
 		return FALSE;
 	}
 
-	void CreateLuaWindow(void (*callback)(),
-	                     std::function<void(HWND)> post_creation_callback)
+	HWND CreateLuaWindow(void (*callback)())
 	{
-		HWND wnd = CreateDialogParam(app_hInstance,
+		HWND hwnd = CreateDialogParam(app_hInstance,
 		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
 		                             DialogProc,
 		                             (LPARAM)callback);
-
-		ShowWindow(wnd, SW_SHOW);
-
-		post_creation_callback(wnd);
+		ShowWindow(hwnd, SW_SHOW);
+		return hwnd;
 	}
 
 	void ConsoleWrite(HWND wnd, const char* str)
@@ -2659,6 +2645,10 @@ void LoadScreenInit()
 	{
 		auto message = lua_messenger.get_current_message();
 
+		if (!message)
+		{
+			return 0;
+		}
 		lua_pushinteger(L, (unsigned)message->windowMessage.wnd);
 		lua_pushinteger(L, message->windowMessage.msg);
 		lua_pushinteger(L, message->windowMessage.wParam);
@@ -3536,9 +3526,7 @@ void LoadScreenInit()
 
 void NewLuaScript(void (*callback)())
 {
-	CreateLuaWindow(callback, [](HWND hwnd)
-	{
-	});
+	CreateLuaWindow(callback);
 }
 
 void dummy_function()
@@ -3547,17 +3535,15 @@ void dummy_function()
 
 void LuaOpenAndRun(const char* path)
 {
-	CreateLuaWindow(&dummy_function, [path](HWND hwnd)
-	{
-		// UI automation:
-		// set textbox path
-		SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
+	auto hwnd = CreateLuaWindow(&dummy_function);
 
-		// click run button
-		SendMessage(hwnd, WM_COMMAND,
+	// set the textbox content to match the path
+	SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
+
+	// click run button
+	SendMessage(hwnd, WM_COMMAND,
 		            MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
 		            (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-	});
 }
 
 void CloseAllLuaScript(void)
@@ -3567,22 +3553,7 @@ void CloseAllLuaScript(void)
 	msg->type = LuaMessenger::LuaMessage::Types::CloseAll;
 	lua_messenger.send_message(msg);
 }
- 
-void OpenRecentLuaScript(void)
-{
-	for (int i = 0; i < recent_closed_lua.size(); ++i)
-	{
-		LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
-		msg->type = LuaMessenger::LuaMessage::Types::RunPath;
 
-		lua_messenger.send_message(msg);
-		LuaOpenAndRun(recent_closed_lua[i].c_str());
-		printf("recent_closed_lua[%d] = %s\n", i,
-						   recent_closed_lua[i].c_str());
-
-	}
-
-}
 void AtUpdateScreenLuaCallback()
 {
 	invoke_callbacks_with_key_on_all_instances(
@@ -4366,6 +4337,7 @@ bool LuaEnvironment::run(char* path) {
 	if (!path) {
 		return false;
 	}
+	this->path = path;
 	stopping = false;
 
 	ASSERT(!isrunning());
@@ -4376,7 +4348,6 @@ bool LuaEnvironment::run(char* path) {
 	bkmode = TRANSPARENT;
 	hMutex = CreateMutex(0, 0, 0);
 	this->create_renderer(Renderer::None);
-	currentPath  = path;
 	newLuaState();
 	auto status = runFile(path);
 	if (isrunning()) {

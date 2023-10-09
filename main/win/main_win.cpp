@@ -138,6 +138,7 @@ TCHAR CoreNames[3][30] = {
 };
 
 std::string app_path = "";
+std::vector<std::string> previously_open_lua_paths;
 
 void ClearButtons()
 {
@@ -269,15 +270,10 @@ void pauseEmu(BOOL quiet)
 
 int32_t start_rom(std::string path)
 {
-	
-		
-	
 	// Kill any roms that are still running
-
 	if (emu_launched) {
 		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
 	}
-
 
 	//assert(!emu_launched);
 	// if any plugin isn't ready (not selected or otherwise invalid), we bail
@@ -328,11 +324,19 @@ int32_t start_rom(std::string path)
 
 	printf("Creating emulation thread...\n");
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
-	
+
 	while (!emu_launched) {
 		printf("Waiting for core to start...\n");
 	}
-	OpenRecentLuaScript();
+
+	// restore all the saved paths, then clear them
+	for (const auto& lua_path : previously_open_lua_paths)
+	{
+		LuaOpenAndRun(lua_path.c_str());
+		printf("Lua restored %s\n", lua_path.c_str());
+	}
+	previously_open_lua_paths.clear();
+
 	return 1;
 }
 
@@ -360,11 +364,20 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			}
 		}
 
+		// remember all running lua scripts' paths and queue them up for a restart
+		for (const auto [key, value] : hwnd_lua_map)
+		{
+			if (key && value && value->isrunning())
+			{
+				previously_open_lua_paths.push_back(value->path);
+			}
+		}
+
 		CloseAllLuaScript();
 		// the emu thread will die soon and won't be able to call LuaProcessMessages(),
 		// so we need to run the pump one time manually before closing to get our messages processed
 		LuaProcessMessages();
-		
+
 		// and that message pass doesn't do anything besides telling the windows to close
 		// so now we have to wait until they actually clean up their shit
 		while (!hwnd_lua_map.empty()) {
@@ -386,12 +399,12 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		emu_launched = 0;
 		emu_paused = 1;
 
-		
+
 		rom = NULL;
 		free(rom);
 		ROM_HEADER = NULL;
 		free(ROM_HEADER);
-		
+
 		free_memory();
 
 		EnableEmulationMenuItems(FALSE);
@@ -1237,14 +1250,14 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	dynacore = Config.core_type;
 
 	emu_paused = 0;
-	
+
 	emu_launched = 1;
 	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0,
 				                         &SOUNDTHREADID);
-	
+
 	printf("Emu thread: Emulation started....\n");
 	WaitForSingleObject(CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL), 10'000);
-	
+
 
 	StartSavestate();
 	AtResetCallback();

@@ -28,7 +28,6 @@ void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 void LuaReload();
 void LuaOpenAndRun(const char* path);
 void CloseAllLuaScript();
-void OpenRecentLuaScript();
 void AtUpdateScreenLuaCallback();
 void AtVILuaCallback();
 void LuaProcessMessages();
@@ -71,7 +70,7 @@ public:
 	IDWriteFactory* dw_factory = nullptr;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
-	std::string currentPath;
+	std::string path;
 	LuaEnvironment(HWND wnd);
 	~LuaEnvironment();
 
