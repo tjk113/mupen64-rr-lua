@@ -42,6 +42,7 @@ typedef struct _CONFIG
 	t_hotkey save_to_slot_7_hotkey;
 	t_hotkey save_to_slot_8_hotkey;
 	t_hotkey save_to_slot_9_hotkey;
+	t_hotkey save_to_slot_10_hotkey;
 	t_hotkey load_from_slot_1_hotkey;
 	t_hotkey load_from_slot_2_hotkey;
 	t_hotkey load_from_slot_3_hotkey;
@@ -51,6 +52,7 @@ typedef struct _CONFIG
 	t_hotkey load_from_slot_7_hotkey;
 	t_hotkey load_from_slot_8_hotkey;
 	t_hotkey load_from_slot_9_hotkey;
+	t_hotkey load_from_slot_10_hotkey;
 	t_hotkey select_slot_1_hotkey;
 	t_hotkey select_slot_2_hotkey;
 	t_hotkey select_slot_3_hotkey;
@@ -60,6 +62,7 @@ typedef struct _CONFIG
 	t_hotkey select_slot_7_hotkey;
 	t_hotkey select_slot_8_hotkey;
 	t_hotkey select_slot_9_hotkey;
+	t_hotkey select_slot_10_hotkey;
 
 #pragma endregion
 

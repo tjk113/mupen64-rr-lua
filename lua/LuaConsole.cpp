@@ -4,7 +4,7 @@
 
 
 #include "LuaConsole.h"
-
+#include <cstdlib>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -57,6 +57,7 @@ void InitTimer();
 inline void TraceLoggingBufFlush();
 extern void (__cdecl*CaptureScreen)(char* Directory); // for lua screenshot
 
+std::vector<std::string> recent_closed_lua;
 unsigned long lastInputLua[4];
 unsigned long rewriteInputLua[4];
 bool rewriteInputFlagLua[4];
@@ -323,6 +324,7 @@ void LoadScreenInit()
 				StopCurrent,
 				CloseAll,
 				WindowMessage,
+				RespawnLua,
 			};
 
 			Types type;
@@ -411,6 +413,7 @@ void LoadScreenInit()
 						{
 							lua->stop();
 							lua->run(msg->runPath.path);
+
 						}
 						break;
 					}
@@ -419,8 +422,19 @@ void LoadScreenInit()
 					break;
 				case LuaMessenger::LuaMessage::Types::CloseAll:
 					{
+						int i = 0;
 						for (auto& pair : hwnd_lua_map)
 						{
+							if (i > 0) {
+								if (std::find(recent_closed_lua.begin(), recent_closed_lua.end(),
+									pair.second->currentPath) != recent_closed_lua.end() || pair.second->currentPath.empty()) {
+									continue;
+								}
+							}
+							if (!(pair.second) == NULL) {
+								recent_closed_lua.insert(recent_closed_lua.begin(), pair.second->currentPath);
+							}
+							i += 1;
 							PostMessage(pair.first, WM_CLOSE, 0, 0);
 						}
 						break;
@@ -3553,7 +3567,22 @@ void CloseAllLuaScript(void)
 	msg->type = LuaMessenger::LuaMessage::Types::CloseAll;
 	lua_messenger.send_message(msg);
 }
+ 
+void OpenRecentLuaScript(void)
+{
+	for (int i = 0; i < recent_closed_lua.size(); ++i)
+	{
+		LuaMessenger::LuaMessage* msg = new LuaMessenger::LuaMessage();
+		msg->type = LuaMessenger::LuaMessage::Types::RunPath;
 
+		lua_messenger.send_message(msg);
+		LuaOpenAndRun(recent_closed_lua[i].c_str());
+		printf("recent_closed_lua[%d] = %s\n", i,
+						   recent_closed_lua[i].c_str());
+
+	}
+
+}
 void AtUpdateScreenLuaCallback()
 {
 	invoke_callbacks_with_key_on_all_instances(
@@ -4347,7 +4376,7 @@ bool LuaEnvironment::run(char* path) {
 	bkmode = TRANSPARENT;
 	hMutex = CreateMutex(0, 0, 0);
 	this->create_renderer(Renderer::None);
-
+	currentPath  = path;
 	newLuaState();
 	auto status = runFile(path);
 	if (isrunning()) {

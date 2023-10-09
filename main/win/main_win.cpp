@@ -328,11 +328,11 @@ int32_t start_rom(std::string path)
 
 	printf("Creating emulation thread...\n");
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
-
+	
 	while (!emu_launched) {
 		printf("Waiting for core to start...\n");
 	}
-
+	OpenRecentLuaScript();
 	return 1;
 }
 
@@ -364,7 +364,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		// the emu thread will die soon and won't be able to call LuaProcessMessages(),
 		// so we need to run the pump one time manually before closing to get our messages processed
 		LuaProcessMessages();
-
+		
 		// and that message pass doesn't do anything besides telling the windows to close
 		// so now we have to wait until they actually clean up their shit
 		while (!hwnd_lua_map.empty()) {
@@ -1245,10 +1245,10 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	printf("Emu thread: Emulation started....\n");
 	WaitForSingleObject(CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL), 10'000);
 	
-	StartLuaScripts();
+
 	StartSavestate();
 	AtResetCallback();
-
+	StartLuaScripts();
 	if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
 	{
 		while (emu_paused)
