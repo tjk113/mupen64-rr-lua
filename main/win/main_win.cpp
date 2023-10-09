@@ -118,7 +118,7 @@ static BOOL MenuPaused = 0;
 static HWND hStaticHandle; //Handle for static place
 
 char TempMessage[MAX_PATH];
-int emu_launched; // emu_emulating
+int emu_launched; //int emu_emulating;
 int emu_paused;
 int recording;
 HWND mainHWND;
@@ -270,14 +270,14 @@ void pauseEmu(BOOL quiet)
 int32_t start_rom(std::string path)
 {
 	
-	// Creating close rom thread throws access violations
-	// Why was it even a thread in the first place?
-	// called as a function here, it seems to work fine
+		
+	
+	// Kill any roms that are still running
 
 	if (emu_launched) {
-		close_rom(&Id);
-		//WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
+		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
 	}
+
 
 	//assert(!emu_launched);
 	// if any plugin isn't ready (not selected or otherwise invalid), we bail
@@ -340,108 +340,102 @@ static int shut_window = 0;
 
 DWORD WINAPI close_rom(LPVOID lpParam)
 {
+	if (emu_launched) {
 	//assert(emu_launched);
-	//Bad fix that technically works but causes unintended behaviour
-	//WaitForSingleObject(EmuThreadHandle, 10'000);
-	if (emu_paused)
-	{
-		MenuPaused = FALSE;
-		resumeEmu(FALSE);
-	}
 
-	if (recording && !continue_vcr_on_restart_mode)
-	{
-		// we need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
-		if (VCR_stopCapture() != 0)
-			MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
-		else
-		{
-			SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
-			             SWP_NOMOVE | SWP_NOSIZE);
-			statusbar_send_text("Stopped AVI capture");
-			recording = FALSE;
+		if (emu_paused) {
+			MenuPaused = FALSE;
+			resumeEmu(FALSE);
 		}
-	}
 
-	CloseAllLuaScript();
-	// the emu thread will die soon and won't be able to call LuaProcessMessages(),
-	// so we need to run the pump one time manually before closing to get our messages processed
-	LuaProcessMessages();
+		if (recording && !continue_vcr_on_restart_mode) {
+			// we need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
+			if (VCR_stopCapture() != 0)
+				MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
+			else {
+				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
+							 SWP_NOMOVE | SWP_NOSIZE);
+				statusbar_send_text("Stopped AVI capture");
+				recording = FALSE;
+			}
+		}
 
-	// and that message pass doesn't do anything besides telling the windows to close
-	// so now we have to wait until they actually clean up their shit
-	while (!hwnd_lua_map.empty())
-	{
-		printf("Pumping messages until lua cleans up...\n");
+		CloseAllLuaScript();
+		// the emu thread will die soon and won't be able to call LuaProcessMessages(),
+		// so we need to run the pump one time manually before closing to get our messages processed
 		LuaProcessMessages();
-	}
 
-	printf("Closing emulation thread...\n");
+		// and that message pass doesn't do anything besides telling the windows to close
+		// so now we have to wait until they actually clean up their shit
+		while (!hwnd_lua_map.empty()) {
+			printf("Pumping messages until lua cleans up...\n");
+			LuaProcessMessages();
+		}
 
-	// we signal the core to stop, then wait until thread exits
-	stop_it();
+		printf("Closing emulation thread...\n");
 
-	DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
-	if (result == WAIT_TIMEOUT)
-	{
-		MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
-		           MB_ICONERROR | MB_OK);
-	}
+		// we signal the core to stop, then wait until thread exits
+		stop_it();
 
-	emu_launched = 0;
-	emu_paused = 1;
+		DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
+		if (result == WAIT_TIMEOUT) {
+			MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
+					   MB_ICONERROR | MB_OK);
+		}
 
-	free(rom);
-	rom = NULL;
-	free(ROM_HEADER);
-	ROM_HEADER = NULL;
-	free_memory();
+		emu_launched = 0;
+		emu_paused = 1;
 
-	EnableEmulationMenuItems(FALSE);
-	rombrowser_set_visibility(!really_restart_mode);
-	toolbar_on_emu_state_changed(0, 0);
+		
+		rom = NULL;
+		free(rom);
+		ROM_HEADER = NULL;
+		free(ROM_HEADER);
+		
+		free_memory();
 
-	if (m_task == 0)
-	{
-		SetWindowText(mainHWND, MUPEN_VERSION);
-		// TODO: look into why this is done
-		statusbar_send_text(" ", 1);
-	}
+		EnableEmulationMenuItems(FALSE);
+		rombrowser_set_visibility(!really_restart_mode);
+		toolbar_on_emu_state_changed(0, 0);
 
-	if (shut_window)
-	{
-		SendMessage(mainHWND, WM_CLOSE, 0, 0);
+		if (m_task == 0) {
+			SetWindowText(mainHWND, MUPEN_VERSION);
+			// TODO: look into why this is done
+			statusbar_send_text(" ", 1);
+		}
+
+		if (shut_window) {
+			SendMessage(mainHWND, WM_CLOSE, 0, 0);
+			return 0;
+		}
+
+		statusbar_set_mode(statusbar_mode::rombrowser);
+		statusbar_send_text("Emulation stopped");
+
+		SetWindowLong(mainHWND, GWL_STYLE,
+					  GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME);
+
+
+		if (really_restart_mode) {
+			if (clear_sram_on_restart_mode) {
+				VCR_clearAllSaveData();
+				clear_sram_on_restart_mode = FALSE;
+			}
+
+			really_restart_mode = FALSE;
+			if (m_task != 0)
+				just_restarted_flag = TRUE;
+			if (!start_rom(LastSelectedRom)) {
+				close_rom(lpParam);
+				MessageBox(mainHWND, "Failed to open ROM", NULL,
+						   MB_ICONERROR | MB_OK);
+			}
+		}
+
+
+		continue_vcr_on_restart_mode = FALSE;
 		return 0;
 	}
-
-	statusbar_set_mode(statusbar_mode::rombrowser);
-	statusbar_send_text("Emulation stopped");
-
-	SetWindowLong(mainHWND, GWL_STYLE,
-	              GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME);
-
-
-	if (really_restart_mode)
-	{
-		if (clear_sram_on_restart_mode)
-		{
-			VCR_clearAllSaveData();
-			clear_sram_on_restart_mode = FALSE;
-		}
-
-		really_restart_mode = FALSE;
-		if (m_task != 0)
-			just_restarted_flag = TRUE;
-		if (!start_rom(LastSelectedRom))
-		{
-			close_rom(lpParam);
-			MessageBox(mainHWND, "Failed to open ROM", NULL,
-			           MB_ICONERROR | MB_OK);
-		}
-	}
-
-
-	continue_vcr_on_restart_mode = FALSE;
 	return 0;
 }
 
@@ -1228,7 +1222,7 @@ static DWORD WINAPI SoundThread(LPVOID lpParam)
 
 static DWORD WINAPI StartMoviesThread(LPVOID lpParam)
 {
-	Sleep(2000);
+	Sleep(1000);
 	StartMovies();
 	ExitThread(0);
 }
@@ -1243,15 +1237,18 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	dynacore = Config.core_type;
 
 	emu_paused = 0;
+	
 	emu_launched = 1;
-
 	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0,
-	                                 &SOUNDTHREADID);
+				                         &SOUNDTHREADID);
+	
 	printf("Emu thread: Emulation started....\n");
-	CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL);
+	WaitForSingleObject(CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL), 10'000);
+	
 	StartLuaScripts();
 	StartSavestate();
 	AtResetCallback();
+
 	if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
 	{
 		while (emu_paused)
@@ -1848,9 +1845,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (warn_recording())break;
 				if (emu_launched)
 				{
-					stop_it();
-					close_rom(&Id);
-					//CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &Id);
+					//close_rom(&Id);
+					CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &Id);
 
 				}
 				break;
