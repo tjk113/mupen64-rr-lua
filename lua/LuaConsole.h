@@ -61,9 +61,10 @@ enum class Renderer {
 class LuaEnvironment {
 private:
 	bool stopping = false;
-	Renderer renderer = Renderer::None;
-
 public:
+	Renderer renderer = Renderer::GDIMixed;
+	CRITICAL_SECTION render_critical_section;
+
 	HDC dc = nullptr;
 	int dc_width, dc_height = 0;
 	ID2D1Factory* d2d_factory = nullptr;
@@ -74,14 +75,9 @@ public:
 	std::string path;
 	LuaEnvironment(HWND wnd);
 	~LuaEnvironment();
-
-	Renderer get_renderer() { return renderer; }
-	void create_renderer(Renderer renderer, int32_t override_identical_check = 0);
+	void create_renderer();
 	void destroy_renderer();
-
-
 	void draw();
-
 	bool run(char* path);
 	void stop();
 	void setBrush(HBRUSH h);

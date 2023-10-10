@@ -1378,7 +1378,7 @@ void LoadScreenInit()
 	int SetBrush(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 		const char* s = lua_tostring(L, 1);
 		if (lstrcmpi(s, "null") == 0)
 			lua->setBrush((HBRUSH)GetStockObject(NULL_BRUSH));
@@ -1390,7 +1390,7 @@ void LoadScreenInit()
 	int SetPen(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 		const char* s = lua_tostring(L, 1);
 		if (lstrcmpi(s, "null") == 0)
 			lua->setPen((HPEN)GetStockObject(NULL_PEN));
@@ -1404,7 +1404,7 @@ void LoadScreenInit()
 	int SetTextColor(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 		lua->setTextColor(StrToColor(lua_tostring(L, 1)));
 		return 0;
 	}
@@ -1412,7 +1412,7 @@ void LoadScreenInit()
 	int SetBackgroundColor(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 		const char* s = lua_tostring(L, 1);
 		if (lstrcmpi(s, "null") == 0)
 			lua->setBackgroundColor(0, TRANSPARENT);
@@ -1424,7 +1424,7 @@ void LoadScreenInit()
 	int SetFont(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		LOGFONT font = {0};
 
@@ -1458,7 +1458,7 @@ void LoadScreenInit()
 	int LuaTextOut(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 		lua->selectTextColor();
 		lua->selectBackgroundColor();
 		lua->selectFont();
@@ -1513,7 +1513,7 @@ void LoadScreenInit()
 	int GetTextExtent(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		const char* string = luaL_checkstring(L, 1);
 		SIZE size = {0};
@@ -1529,7 +1529,7 @@ void LoadScreenInit()
 	int LuaDrawText(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		lua->selectTextColor();
 		lua->selectBackgroundColor();
@@ -1575,7 +1575,7 @@ void LoadScreenInit()
 	int LuaDrawTextAlt(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		lua->selectTextColor();
 		lua->selectBackgroundColor();
@@ -1596,7 +1596,7 @@ void LoadScreenInit()
 	int DrawRect(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		int left = luaL_checknumber(L, 1);
 		int top = luaL_checknumber(L, 2);
@@ -1667,7 +1667,7 @@ void LoadScreenInit()
 	int DrawImage(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1; // because lua
 
@@ -1769,7 +1769,7 @@ void LoadScreenInit()
 	int LoadScreen(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		if (!LoadScreenInitialized)
 		{
@@ -1795,7 +1795,7 @@ void LoadScreenInit()
 	int LoadScreenReset(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		LoadScreenInit();
 		return 0;
@@ -1804,7 +1804,7 @@ void LoadScreenInit()
 	int GetImageInfo(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
 
@@ -1831,7 +1831,7 @@ void LoadScreenInit()
 	{
 		//Get lua instance stored in script class
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		//stack should look like
 		//--------
@@ -1894,7 +1894,7 @@ void LoadScreenInit()
 	int FillEllipseAlpha(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		int x = luaL_checknumber(L, 1);
 		int y = luaL_checknumber(L, 2);
@@ -1913,7 +1913,7 @@ void LoadScreenInit()
 	int FillRectAlpha(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		int x = luaL_checknumber(L, 1);
 		int y = luaL_checknumber(L, 2);
@@ -1932,7 +1932,7 @@ void LoadScreenInit()
 	int FillRect(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		COLORREF color = RGB(
 			luaL_checknumber(L, 5),
@@ -1953,7 +1953,7 @@ void LoadScreenInit()
 	int DrawEllipse(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 		lua->selectBrush();
 		lua->selectPen();
 
@@ -1969,7 +1969,7 @@ void LoadScreenInit()
 	int DrawPolygon(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		POINT p[0x100];
 		luaL_checktype(L, 1, LUA_TTABLE);
@@ -2003,7 +2003,7 @@ void LoadScreenInit()
 	int DrawLine(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		lua->selectPen();
 		::MoveToEx(lua->dc, luaL_checknumber(L, 1), luaL_checknumber(L, 2),
@@ -2015,7 +2015,7 @@ void LoadScreenInit()
 	int SetClip(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		auto rgn = CreateRectRgn(luaL_checkinteger(L, 1),
 		                         luaL_checkinteger(L, 2),
@@ -2031,7 +2031,7 @@ void LoadScreenInit()
 	int ResetClip(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->create_renderer(Renderer::GDIMixed);
+
 
 		SelectClipRgn(lua->dc, NULL);
 		return 0;
@@ -2506,9 +2506,10 @@ void LoadScreenInit()
 		             h + (wndRect.bottom - clientRect.bottom),
 		             SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
 
-		auto prev_renderer = lua->get_renderer();
+
+		// we need to recreate the renderer to accomodate for size changes (this cant be done in-place)
 		lua->destroy_renderer();
-		lua->create_renderer(prev_renderer, 1);
+		lua->create_renderer();
 
 		return 0;
 	}
@@ -2796,8 +2797,9 @@ void LoadScreenInit()
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
+		lua->renderer = static_cast<Renderer>(luaL_checknumber(L, 1));
 		lua->destroy_renderer();
-		lua->create_renderer(static_cast<Renderer>(luaL_checknumber(L, 1)), 1);
+		lua->create_renderer();
 
 		return 1;
 	}
@@ -4114,98 +4116,85 @@ void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l)
 	lua_messenger.send_message(message);
 }
 
-void LuaEnvironment::create_renderer(Renderer renderer,
-                                     int32_t override_identical_check)
+void LuaEnvironment::create_renderer()
 {
-	if (dc)
+	if (dc != nullptr)
 	{
 		return;
 	}
-	if (this->renderer == renderer && !override_identical_check)
-	{
-		printf("Renderer is identical, skipping...");
-		return;
-	}
+	printf("Creating multi-target renderer for Lua...\n");
 
-	printf("Creating renderer %d for Lua...\n", renderer);
+	EnterCriticalSection(&this->render_critical_section);
+	RECT window_rect;
+	GetClientRect(mainHWND, &window_rect);
+	dc_width = window_rect.right;
+	dc_height = window_rect.bottom;
 
-	this->renderer = renderer;
+	// we create a bitmap with the main window's size and point our dc to it
+	HDC main_dc = GetDC(mainHWND);
+	dc = CreateCompatibleDC(main_dc);
+	HBITMAP bmp = CreateCompatibleBitmap(
+		main_dc, window_rect.right, window_rect.bottom);
+	SelectObject(dc, bmp);
+	ReleaseDC(mainHWND, main_dc);
 
-	if (renderer != Renderer::None)
-	{
-		RECT window_rect;
-		GetClientRect(mainHWND, &window_rect);
-		dc_width = window_rect.right;
-		dc_height = window_rect.bottom;
+	D2D1_RENDER_TARGET_PROPERTIES props =
+		D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(
+				DXGI_FORMAT_B8G8R8A8_UNORM,
+				D2D1_ALPHA_MODE_PREMULTIPLIED));
 
+	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
+					  &d2d_factory);
+	d2d_factory->CreateDCRenderTarget(&props, &d2d_render_target);
+	DWriteCreateFactory(
+		DWRITE_FACTORY_TYPE_SHARED,
+		__uuidof(dw_factory),
+		reinterpret_cast<IUnknown**>(&dw_factory)
+	);
 
-		// we create a bitmap with the main window's size and point our dc to it
-		HDC main_dc = GetDC(mainHWND);
-		dc = CreateCompatibleDC(main_dc);
-		HBITMAP bmp = CreateCompatibleBitmap(
-			main_dc, window_rect.right, window_rect.bottom);
-		SelectObject(dc, bmp);
-		ReleaseDC(mainHWND, main_dc);
-	}
-
-	if (renderer == Renderer::Direct2D)
-	{
-		printf("Creating Direct2D renderer for Lua...\n");
-		D2D1_RENDER_TARGET_PROPERTIES props =
-			D2D1::RenderTargetProperties(
-				D2D1_RENDER_TARGET_TYPE_DEFAULT,
-				D2D1::PixelFormat(
-					DXGI_FORMAT_B8G8R8A8_UNORM,
-					D2D1_ALPHA_MODE_PREMULTIPLIED));
-
-		D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
-		                  &d2d_factory);
-		d2d_factory->CreateDCRenderTarget(&props, &d2d_render_target);
-		DWriteCreateFactory(
-			DWRITE_FACTORY_TYPE_SHARED,
-			__uuidof(dw_factory),
-			reinterpret_cast<IUnknown**>(&dw_factory)
-		);
-
-		RECT dc_rect = {0, 0, dc_width, dc_height};
-		d2d_render_target->BindDC(dc, &dc_rect);
-	}
+	RECT dc_rect = {0, 0, dc_width, dc_height};
+	d2d_render_target->BindDC(dc, &dc_rect);
+	LeaveCriticalSection(&this->render_critical_section);
 }
 
-void LuaEnvironment::destroy_renderer() {
-	printf("Destroying Lua renderer...\n");
-
-	if (!dc) {
-		printf("No renderer to destroy\n");
+void LuaEnvironment::destroy_renderer()
+{
+	if (dc == nullptr)
+	{
 		return;
 	}
 
-	// BUG: if this is called from ui thread (e.g.: when clicking the stop button), we might release renderer-related resources while they are being used, as draw() is called from the emu thread
+	EnterCriticalSection(&this->render_critical_section);
+	printf("Destroying Lua renderer...\n");
 
-	if (renderer == Renderer::Direct2D) {
-		d2d_factory->Release();
-		d2d_render_target->Release();
+	d2d_factory->Release();
+	d2d_render_target->Release();
 
-		for (auto const& [_, val] : d2d_brush_cache) {
-			val->Release();
-		}
-		d2d_brush_cache.clear();
-
-		for (auto const& [_, val] : d2d_bitmap_cache) {
-			val->Release();
-		}
-		d2d_bitmap_cache.clear();
+	for (auto const& [_, val] : d2d_brush_cache) {
+		val->Release();
 	}
+	d2d_brush_cache.clear();
+
+	for (auto const& [_, val] : d2d_bitmap_cache) {
+		val->Release();
+	}
+	d2d_bitmap_cache.clear();
+
 	ReleaseDC(mainHWND, dc);
 	dc = NULL;
 	d2d_factory = NULL;
 	d2d_render_target = NULL;
+	LeaveCriticalSection(&this->render_critical_section);
 }
 
 void LuaEnvironment::draw() {
 	if (!dc || stopping || renderer == Renderer::None) {
 		return;
 	}
+
+	EnterCriticalSection(&this->render_critical_section);
 
 	HDC main_dc = GetDC(mainHWND);
 
@@ -4232,12 +4221,14 @@ void LuaEnvironment::draw() {
 	}
 
 	ReleaseDC(mainHWND, main_dc);
+	LeaveCriticalSection(&this->render_critical_section);
 }
 
 
 LuaEnvironment::LuaEnvironment(HWND wnd) {
 	L = NULL;
 	hwnd = wnd;
+	InitializeCriticalSection(&this->render_critical_section);
 	printf("Lua construct\n");
 }
 
@@ -4252,6 +4243,7 @@ bool LuaEnvironment::run(char* path) {
 	if (!path) {
 		return false;
 	}
+	EnterCriticalSection(&this->render_critical_section);
 	this->path = path;
 	stopping = false;
 
@@ -4262,7 +4254,8 @@ bool LuaEnvironment::run(char* path) {
 	col = bkcol = 0;
 	bkmode = TRANSPARENT;
 	hMutex = CreateMutex(0, 0, 0);
-	this->create_renderer(Renderer::None);
+	// all lua scripts run with legacy renderer until otherwise stated
+	this->create_renderer();
 	newLuaState();
 	auto status = runFile(path);
 	if (isrunning()) {
@@ -4271,6 +4264,7 @@ bool LuaEnvironment::run(char* path) {
 		Config.lua_script_path = std::string(path);
 	}
 	printf("Lua run %s\n", path);
+	LeaveCriticalSection(&this->render_critical_section);
 	return status;
 }
 
@@ -4279,8 +4273,7 @@ void LuaEnvironment::stop() {
 		return;
 
 	stopping = true;
-
-	// BUG: if this is called from ui thread (e.g.: when clicking the stop button), we might release renderer-related resources while they are being used, as draw() is called from the emu thread
+	EnterCriticalSection(&this->render_critical_section);
 
 	invoke_callbacks_with_key(AtStop, REG_ATSTOP);
 	deleteGDIObject(brush, WHITE_BRUSH);
@@ -4292,6 +4285,7 @@ void LuaEnvironment::stop() {
 	}
 	image_pool.clear();
 	SetButtonState(hwnd, false);
+	LeaveCriticalSection(&this->render_critical_section);
 	printf("Lua stop\n");
 }
 
