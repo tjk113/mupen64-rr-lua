@@ -268,7 +268,6 @@ void pauseEmu(BOOL quiet)
 
 int32_t start_rom(std::string path)
 {
-
 	// Kill any roms that are still running
 	if (emu_launched) {
 		close_rom(nullptr); // works better, but still not great
@@ -303,7 +302,7 @@ int32_t start_rom(std::string path)
 	// disallow window resizing
 	LONG style = GetWindowLong(mainHWND, GWL_STYLE);
 	SetWindowLong(mainHWND, GWL_STYLE,
-	              style & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
+				  style & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
 
 	// TODO: investigate wtf this is
 	strcpy(LastSelectedRom, path.c_str());
@@ -329,13 +328,18 @@ int32_t start_rom(std::string path)
 		printf("Waiting for core to start...\n");
 	}
 
-	// restore all the saved paths, then clear them
-	for (const auto& lua_path : previously_open_lua_paths)
+
+	dispatcher_queue.push_back([&]
 	{
-		LuaOpenAndRun(lua_path.c_str());
-		printf("Lua restored %s\n", lua_path.c_str());
-	}
-	previously_open_lua_paths.clear();
+		// restore all the saved paths, then clear them
+		for (const auto& lua_path : previously_open_lua_paths)
+		{
+				LuaOpenAndRun(lua_path.c_str());
+				printf("Lua restored %s\n", lua_path.c_str());
+		}
+		previously_open_lua_paths.clear();
+	});
+
 
 	return 1;
 }
@@ -427,7 +431,6 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		SetWindowLong(mainHWND, GWL_STYLE,
 					  GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME);
 
-
 		if (really_restart_mode) {
 			if (clear_sram_on_restart_mode) {
 				VCR_clearAllSaveData();
@@ -437,18 +440,14 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			really_restart_mode = FALSE;
 			if (m_task != 0)
 				just_restarted_flag = TRUE;
-			dispatcher_queue.push_back([] { if (!start_rom(LastSelectedRom)) {
-
-				close_rom(NULL);
-				MessageBox(mainHWND, "Failed to open ROM", NULL,
-						   MB_ICONERROR | MB_OK);
-			}});
-			/*if (!start_rom(LastSelectedRom)) {
-
-				close_rom(lpParam);
-				MessageBox(mainHWND, "Failed to open ROM", NULL,
-						   MB_ICONERROR | MB_OK);
-			}*/
+			dispatcher_queue.push_back([] {
+				if (!start_rom(LastSelectedRom))
+				{
+					close_rom(NULL);
+					MessageBox(mainHWND, "Failed to open ROM", NULL,
+							   MB_ICONERROR | MB_OK);
+				}
+			});
 		}
 
 
@@ -2715,7 +2714,6 @@ int WINAPI WinMain(
 		{
 			while (!dispatcher_queue.empty())
 			{
-
 				auto dispatcher = dispatcher_queue.front();
 				dispatcher();
 				dispatcher_queue.pop_front();
