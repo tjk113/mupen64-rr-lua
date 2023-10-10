@@ -1121,13 +1121,7 @@ void OpenMovieRecordDialog()
 
 void EnableEmulationMenuItems(BOOL emulationRunning)
 {
-	extern BOOL continue_vcr_on_restart_mode;
-
 	HMENU hMenu = GetMenu(mainHWND);
-
-#ifdef _DEBUG
-	EnableMenuItem(hMenu, ID_CRASHHANDLERDIALOGSHOW, MF_ENABLED);
-#endif
 
 	if (emulationRunning)
 	{
@@ -1147,14 +1141,10 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_GRAYED);
 		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_DISABLED);
 
-#ifdef GAME_DEBUGGER
-		EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_ENABLED);
-#endif
 		if (dynacore)
 			EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
 		else
 			EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
-
 
 		if (!continue_vcr_on_restart_mode)
 		{
@@ -1189,7 +1179,6 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 		EnableMenuItem(hMenu, EMU_RESET, MF_GRAYED);
 		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
-		EnableMenuItem(hMenu, ID_GAMEDEBUGGER, MF_GRAYED);
 		EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
 		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
@@ -1999,14 +1988,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				break;
-			case ID_CRASHHANDLERDIALOGSHOW:
-				{
-					CrashHandlerDialog crashHandlerDialog(
-						CrashHandlerDialog::Types::Ignorable,
-						"This is a mock crash.");
-					crashHandlerDialog.Show();
-					break;
-				}
 			case ID_GAMEDEBUGGER:
 				extern unsigned long op;
 

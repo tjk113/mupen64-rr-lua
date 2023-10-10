@@ -152,8 +152,6 @@ BEGIN
     END
     POPUP "Help"
     BEGIN
-        MENUITEM "Show Crash Dialog...",        ID_CRASHHANDLERDIALOGSHOW, GRAYED
-        MENUITEM SEPARATOR
         MENUITEM "&About Mupen64...",           ID_HELP_ABOUT
     END
     POPUP "Lua Script"

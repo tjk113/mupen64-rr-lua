@@ -423,7 +423,6 @@
 #define ID_MOVIEBACKUP_TRACKBAR         40021
 #define ID_FORCESAVE                    40022
 #define IDB_LOGO_BW                     40029
-#define ID_CRASHHANDLERDIALOGSHOW       40030
 #define IDD_GAMEDEBUGGERDIALOG          40031
 #define IDC_DEBUGGER_GROUPBOX           40032
 #define IDC_DEBUGGER_TOGGLEPAUSE        40033
@@ -462,7 +461,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
