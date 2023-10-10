@@ -763,6 +763,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
        set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
        set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
        set_checkbox_state(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
+       set_checkbox_state(hwnd, IDC_CAPTUREOTHER, Config.is_capture_cropped_screen_dc);
+       SetDlgItemInt(hwnd, IDC_CAPTUREDELAY, Config.capture_delay, 0);
         return TRUE;
 
 
@@ -780,6 +782,8 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
             Config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);
             Config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);
             Config.is_internal_capture_forced = get_checkbox_state(hwnd, IDC_FORCEINTERNAL);
+            Config.is_capture_cropped_screen_dc = get_checkbox_state(hwnd, IDC_CAPTUREOTHER);
+            Config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, 0, 0);
 
             rombrowser_build();
             LoadConfigExternals();

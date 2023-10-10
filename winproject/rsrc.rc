@@ -14,7 +14,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Neutral (Standard) resources
+// Neutral (Default) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
@@ -212,10 +212,13 @@ BEGIN
     CONTROL         "Emulate float crashes",IDC_EMULATEFLOATCRASHES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,42,96,8
     CONTROL         "WiiVC Rounding",IDC_ROUNDTOZERO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,54,96,10
     GROUPBOX        "Recording",IDC_RECORDINGOPT,6,126,216,43
-    CONTROL         "Record resets",IDC_RECORD_RESETS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,140,114,8
-    CONTROL         "Force internal avi capture",IDC_FORCEINTERNAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,150,114,8
+    CONTROL         "Record resets",IDC_RECORD_RESETS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,140,100,8
+    CONTROL         "Force internal avi capture",IDC_FORCEINTERNAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,150,96,8
     GROUPBOX        "UI",IDC_STATIC,6,78,216,42
     CONTROL         "Emulate SD Card",IDC_USESUMMERCART,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,176,96,10
+    LTEXT           "Capture delay:",IDC_STATIC,117,151,49,12
+    EDITTEXT        IDC_CAPTUREDELAY,167,150,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Capture other windows",IDC_CAPTUREOTHER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,118,140,91,10
 END
 
 IDD_OTHER_OPTIONS_DIALOG DIALOGEX 0, 0, 231, 273
@@ -776,12 +779,12 @@ BEGIN
     ID_START_RECORD         "Starts AVI capture with previous codec and preset (avi.cfg)"
 END
 
-#endif    // Neutral (Standard) resources
+#endif    // Neutral (Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Englisch (USA) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -796,7 +799,7 @@ BEGIN
     0
 END
 
-#endif    // Englisch (USA) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

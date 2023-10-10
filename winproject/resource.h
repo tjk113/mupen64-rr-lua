@@ -82,6 +82,8 @@
 #define IDC_LIST1                       1019
 #define IDD_ABOUT                       1020
 #define IDC_USESUMMERCART               1021
+#define IDC_CAPTUREOTHER                1022
+#define IDC_CAPTUREDELAY                1026
 #define FULL_SCREEN                     1061
 #define EMU_PAUSE                       1062
 #define EMU_FRAMEADVANCE                1063
@@ -135,7 +137,7 @@
 #define IDD_MESSAGES                    2250
 #define IDC_SHOWFPS                     2251
 #define IDC_SHOWVIS                     2252
-#define IDC_ALLOW_SUSPICIOUS_ROMS                2253
+#define IDC_ALLOW_SUSPICIOUS_ROMS       2253
 #define IDC_MESSAGES                    2255
 #define IDC_ALERTSAVESTATEWARNINGS      2256
 #define IDC_LIMITFPS                    2257
@@ -223,8 +225,8 @@
 #define IDC_COLUMN_COMMENTS             5511
 #define IDC_COMMON                      5513
 #define IDC_COMPATIBILITY               5514
-#define IDC_ENABLE_AUDIO_DELAY              5515
-#define IDC_ENABLE_COMPILED_JUMP            5516
+#define IDC_ENABLE_AUDIO_DELAY          5515
+#define IDC_ENABLE_COMPILED_JUMP        5516
 #define IDD_HOTKEY_CONFIG               5518
 #define IDC_WARNING_OPTIONS             5519
 #define IDC_RECORDINGOPT                5520
@@ -403,7 +405,7 @@
 #define IDC_TEXTBOX_LUAPROMPT           9525
 #define ID_LANG_ENGLISH                 10005
 #define IDC_ROUNDTOZERO                 10007
-#define IDC_RECORD_RESETS                     10008
+#define IDC_RECORD_RESETS               10008
 #define IDC_FORCEINTERNAL               10009
 #define IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING 10010
 #define IDC_EMULATEFLOATCRASHES         10011
@@ -427,7 +429,6 @@
 #define IDC_DEBUGGER_GROUPBOX           40032
 #define IDC_DEBUGGER_TOGGLEPAUSE        40033
 #define IDC_DEBUGGER_INSTRUCTION        40035
-#define IDC_DEBUGGER_VI                 40046
 #define IDC_DEBUGGER_RSP                40037
 #define IDC_DEBUGGER_RSP_TOGGLE         40038
 #define ID_GAMEDEBUGGER                 40039
@@ -439,6 +440,7 @@
 #define IDC_DEBUGGER_PRECOMPADDR        40043
 #define IDC_DEBUGGER_PRECOMPOP          40044
 #define IDC_DEBUGGER_STEP               40045
+#define IDC_DEBUGGER_VI                 40046
 #define IDC_DEBUGGER_DUMPRDRAM          40046
 #define IDC_DEBUGGER_DISASSEMBLED       40046
 #define IDC_DEBUGGER_DMA_R_TOGGLE       40047
@@ -466,7 +468,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

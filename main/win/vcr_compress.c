@@ -106,6 +106,11 @@ void __cdecl win_readScreen(void** dest, long* width, long* height)
     POINT cli_tl{0, 0}; //mupen client x y 
     HBITMAP bitmap, oldbitmap;
 
+    if (Config.capture_delay)
+    {
+        Sleep(Config.capture_delay);
+    }
+
     mupendc = GetDC(mainHWND); //only client area
     if (Config.is_capture_cropped_screen_dc)
     {
@@ -145,6 +150,8 @@ void __cdecl win_readScreen(void** dest, long* width, long* height)
             DeleteDC(copy);
         if (mupendc)
             ReleaseDC(mainHWND, mupendc);
+        if (all)
+            ReleaseDC(NULL, all);
         return;
     }
 
@@ -169,6 +176,8 @@ void __cdecl win_readScreen(void** dest, long* width, long* height)
             DeleteDC(copy);
         if (mupendc)
             ReleaseDC(mainHWND, mupendc);
+        if (all)
+            ReleaseDC(NULL, all);
         return;
     }
 
@@ -184,6 +193,8 @@ void __cdecl win_readScreen(void** dest, long* width, long* height)
         DeleteDC(copy);
     if (mupendc)
         ReleaseDC(mainHWND, mupendc);
+    if (all)
+        ReleaseDC(NULL, all);
 }
 
 
