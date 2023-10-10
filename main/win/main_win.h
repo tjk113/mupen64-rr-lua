@@ -18,7 +18,8 @@
 
 #include <Windows.h>
 #include <string>
-
+#include <deque>
+#include <functional>
 #define MUPEN_VERSION "Mupen 64 1.1.5"
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
@@ -40,7 +41,7 @@ extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
 
 extern std::string app_path;
-
+inline std::deque<std::function<void()>> dispatcher_queue;
 extern void EnableEmulationMenuItems(BOOL flag);
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
 extern void resetEmu();
@@ -49,7 +50,6 @@ extern void pauseEmu(BOOL quiet);
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
 extern void LoadConfigExternals();
-
 int32_t start_rom(std::string path);
 DWORD WINAPI close_rom(LPVOID lpParam);
 

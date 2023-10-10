@@ -63,7 +63,6 @@ extern "C" {
 #define EMULATOR_MAIN_CPP_DEF
 #include "../../memory/pif.h"
 #undef EMULATOR_MAIN_CPP_DEF
-
 #include <gdiplus.h>
 #include "../main/win/GameDebugger.h"
 #include "features/Statusbar.hpp"
@@ -116,7 +115,6 @@ BOOL just_restarted_flag = 0;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
 static HWND hStaticHandle; //Handle for static place
-
 char TempMessage[MAX_PATH];
 int emu_launched; //int emu_emulating;
 int emu_paused;
@@ -270,9 +268,11 @@ void pauseEmu(BOOL quiet)
 
 int32_t start_rom(std::string path)
 {
+
 	// Kill any roms that are still running
 	if (emu_launched) {
-		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
+		close_rom(nullptr); // works better, but still not great
+		//WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
 	}
 
 	//assert(!emu_launched);
@@ -437,11 +437,18 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			really_restart_mode = FALSE;
 			if (m_task != 0)
 				just_restarted_flag = TRUE;
-			if (!start_rom(LastSelectedRom)) {
+			dispatcher_queue.push_back([] { if (!start_rom(LastSelectedRom)) {
+
+				close_rom(NULL);
+				MessageBox(mainHWND, "Failed to open ROM", NULL,
+						   MB_ICONERROR | MB_OK);
+			}});
+			/*if (!start_rom(LastSelectedRom)) {
+
 				close_rom(lpParam);
 				MessageBox(mainHWND, "Failed to open ROM", NULL,
 						   MB_ICONERROR | MB_OK);
-			}
+			}*/
 		}
 
 
@@ -2706,6 +2713,14 @@ int WINAPI WinMain(
 
 		while (GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
+			while (!dispatcher_queue.empty())
+			{
+
+				auto dispatcher = dispatcher_queue.front();
+				dispatcher();
+				dispatcher_queue.pop_front();
+			}
+
 			if (!TranslateAccelerator(mainHWND, Accel, &Msg))
 			{
 				TranslateMessage(&Msg);
