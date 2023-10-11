@@ -2210,14 +2210,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (emu_launched && !emu_paused)
 						pauseEmu(FALSE);
 
-					auto path = show_persistent_open_dialog("s_capture", hwnd, L"*.avi");
+					auto path = show_persistent_save_dialog("s_capture", hwnd, L"*.avi");
 					if (path.size() == 0)
 					{
 						break;
 					}
 
 					// pass false to startCapture when "last preset" option was choosen
-					if (VCR_startCapture(wstring_to_string(path).c_str(), path_buffer, LOWORD(wParam) == ID_START_CAPTURE) < 0)
+					if (VCR_startCapture(nullptr, wstring_to_string(path).c_str(), LOWORD(wParam) == ID_START_CAPTURE) < 0)
 					{
 						MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
 						recording = FALSE;
