@@ -324,23 +324,6 @@ int32_t start_rom(std::string path)
 	printf("Creating emulation thread...\n");
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
 
-	while (!emu_launched) {
-		printf("Waiting for core to start...\n");
-	}
-
-
-	dispatcher_queue.push_back([&]
-	{
-		// restore all the saved paths, then clear them
-		for (const auto& lua_path : previously_open_lua_paths)
-		{
-				LuaOpenAndRun(lua_path.c_str());
-				printf("Lua restored %s\n", lua_path.c_str());
-		}
-		previously_open_lua_paths.clear();
-	});
-
-
 	return 1;
 }
 
@@ -1244,8 +1227,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	dynacore = Config.core_type;
 
 	emu_paused = 0;
-
 	emu_launched = 1;
+
 	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0,
 				                         &SOUNDTHREADID);
 
@@ -1265,6 +1248,16 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		pauseEmu(FALSE);
 		pauseAtFrame = -1;
 	}
+	dispatcher_queue.push_back([&]
+	{
+		// restore all the saved paths, then clear them
+		for (const auto& lua_path : previously_open_lua_paths)
+		{
+				LuaOpenAndRun(lua_path.c_str());
+				printf("Lua restored %s\n", lua_path.c_str());
+		}
+		previously_open_lua_paths.clear();
+	});
 	go();
 
 	romClosed_gfx();
