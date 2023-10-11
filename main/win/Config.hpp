@@ -250,6 +250,13 @@ typedef struct _CONFIG
 	int32_t is_capture_cropped_screen_dc;
 
 	/// <summary>
+	/// The delay (in milliseconds) before capturing the window
+	/// <para/>
+	/// May be useful when capturing other windows alongside mupen
+	/// </summary>
+	int32_t capture_delay;
+
+	/// <summary>
 	/// Whether selecting hotkeys inside the OEM-reserved range is allowed
 	/// </summary>
 	int32_t is_unknown_hotkey_selection_allowed;

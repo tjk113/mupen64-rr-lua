@@ -575,6 +575,7 @@ CONFIG get_default_config()
 	config.is_reset_recording_enabled = 1;
 	config.is_internal_capture_forced = 0;
 	config.is_capture_cropped_screen_dc = 0;
+	config.capture_delay = 0;
 	config.is_unknown_hotkey_selection_allowed = 1;
 	config.avi_capture_path.clear();
 	config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
@@ -937,6 +938,9 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_VALUE(rombrowser_sort_method)
 	HANDLE_P_VALUE(is_rombrowser_recursion_enabled)
 	HANDLE_P_VALUE(is_reset_recording_enabled)
+	HANDLE_P_VALUE(is_internal_capture_forced)
+	HANDLE_P_VALUE(is_capture_cropped_screen_dc)
+	HANDLE_P_VALUE(capture_delay)
 	HANDLE_P_VALUE(is_unknown_hotkey_selection_allowed)
 	HANDLE_VALUE(avi_capture_path)
 	HANDLE_P_VALUE(synchronization_mode)
