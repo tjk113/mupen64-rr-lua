@@ -324,11 +324,8 @@ void build_rom_browser_path_list(HWND dialog_hwnd)
 
 BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-    char Directory[MAX_PATH];
     LPITEMIDLIST pidl{};
     BROWSEINFO bi{};
-    char RomBrowserDir[_MAX_PATH];
-    HWND RomBrowserDirListBox;
     auto l_nmhdr = (NMHDR*)&lParam;
     switch (Message)
     {
@@ -518,7 +515,6 @@ void sync_plugin_option(HWND hwnd, int32_t id, std::string& selected_plugin_name
 BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
     char path_buffer[_MAX_PATH];
-    int index;
     NMHDR FAR* l_nmhdr = nullptr;
     memcpy(&l_nmhdr, &lParam, sizeof(NMHDR FAR*));
     switch (Message)

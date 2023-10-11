@@ -483,7 +483,6 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
                                LPARAM lParam)
 {
 	char tempbuf[MAX_PATH];
-	char tempbuf2[MAX_PATH];
 
 	HWND descriptionDialog;
 	HWND authorDialog;

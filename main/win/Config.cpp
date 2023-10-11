@@ -1076,6 +1076,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
 			}
 		}
 	}
-	//return value?
+	//we checked all keys and none of them was pressed, so give up
+	return 0;
 }
 

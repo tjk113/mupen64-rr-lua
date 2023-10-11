@@ -83,6 +83,7 @@ BOOL CALLBACK CrashHandlerDialogProcedure(HWND hwnd, UINT Message,
 	default:
 		return FALSE;
 	}
+	return FALSE;
 }
 
 CrashHandlerDialog::Choices CrashHandlerDialog::Show()

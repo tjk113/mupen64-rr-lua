@@ -2341,7 +2341,7 @@ static void BGTZ()
     if (next_interupt <= core_Count) gen_interupt();
 }
 
-#undef SKIP_IDLE()
+#undef SKIP_IDLE
 
 static void ADDI()
 {
@@ -3216,7 +3216,7 @@ void pure_interpreter()
 		if (debugger_mode) update_debugger();
 #endif
 #ifdef GAME_DEBUGGER
-        while (!gameDebuggerIsResumed) { _sleep(10); }
+        while (!gameDebuggerIsResumed) { Sleep(10); }
         GameDebuggerOnLateCycle();
 #endif
     }
