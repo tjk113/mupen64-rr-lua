@@ -1851,7 +1851,7 @@ VCR_updateScreen()
 #ifdef FFMPEG_BENCHMARK
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> time = (end - start);
-	printf("ReadScreen (ffmpeg): %lf ms\n", time);
+	printf("ReadScreen (ffmpeg): %lf ms\n", time.count());
 #endif
 	if (image == NULL)
 	{
