@@ -1,7 +1,6 @@
 #pragma once
 #include <algorithm>
 #include <locale>
-#include <codecvt>
 
 inline static char* stristr(const char* str1, const char* str2)
 {
@@ -40,7 +39,7 @@ inline static char* stristr(const char* str1, const char* str2)
 		p1++;
 	}
 
-	return *p2 == 0 ? (char*)r : 0;
+	return *p2 == 0 ? const_cast<char*>(r) : 0;
 }
 
 inline static int is_string_alpha_only(const char* str)
@@ -93,11 +92,12 @@ inline static std::wstring string_to_wstring(const std::string &str)
 	return wstdstr;
 }
 
-inline static std::string wstring_to_string(const std::wstring& wstr) {
-	using convert_typeX = std::codecvt_utf8<wchar_t>;
-	std::wstring_convert<convert_typeX, wchar_t> converterX;
+static std::string wstring_to_string(const std::wstring& wstr) {
+	const int utf8Length = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+	std::string utf8String(utf8Length, '\0');
 
-	return converterX.to_bytes(wstr);
+	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, utf8String.data(), utf8Length, nullptr, nullptr);
+	return utf8String;
 }
 
 // https://stackoverflow.com/a/46931770/14472122
