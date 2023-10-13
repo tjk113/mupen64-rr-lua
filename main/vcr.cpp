@@ -894,6 +894,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 				m_currentVI = 0;
 				m_task = Recording;
 				memset(Keys, 0, sizeof(BUTTONS));
+				EnableMenuItem(GetMenu(mainHWND), ID_STOP_RECORD, MF_ENABLED);
 			} else
 			{
 				printf("[VCR]: Starting recording...\n");
