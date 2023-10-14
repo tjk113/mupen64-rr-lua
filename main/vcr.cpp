@@ -2541,7 +2541,6 @@ void vcr_recent_movies_add(const std::string path)
 	}
 	std::erase(Config.recent_movie_paths, path);
 	Config.recent_movie_paths.insert(Config.recent_movie_paths.begin(), path);
-	Sleep(100);
 	vcr_recent_movies_build();
 }
 
