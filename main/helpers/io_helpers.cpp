@@ -71,6 +71,14 @@ std::vector<std::string> get_files_in_subdirectories(
 	return paths;
 }
 
+std::string strip_extension(const std::string& path) {
+	size_t i = path.find_last_of('.');
+
+	if (i != std::string::npos) {
+		return path.substr(0, i);
+	}
+	return path;
+}
 std::wstring strip_extension(const std::wstring &path)
 {
 	size_t i = path.find_last_of('.');

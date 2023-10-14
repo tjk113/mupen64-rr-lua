@@ -22,8 +22,7 @@
 using t_rombrowser_entry = struct s_rombrowser_entry
 {
 	std::string path;
-	std::string filename;
-	std::string size;
+	size_t size;
 	t_rom_header rom_header;
 };
 
