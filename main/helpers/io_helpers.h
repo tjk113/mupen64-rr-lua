@@ -10,6 +10,7 @@ std::vector<std::string> get_files_with_extension_in_directory(
 std::vector<std::string> get_files_in_subdirectories(
 	const std::string& directory);
 
+std::string strip_extension(const std::string& path);
 std::wstring strip_extension(const std::wstring &path);
 std::wstring get_extension(const std::wstring &path);
 

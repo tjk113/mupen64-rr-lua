@@ -974,17 +974,20 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				{
 					// The default directory we open the file dialog window in is the
 					// parent directory of the last savestate that the user saved or loaded
-					std::wstring path = show_persistent_open_dialog("o_movie_existing_snapshot", hwnd, L"*.st;*.savestate");
+					std::string path = wstring_to_string(show_persistent_open_dialog("o_movie_existing_snapshot", hwnd, L"*.st;*.savestate"));
 
-					if (path.size() == 0)
+					if (path.empty())
 					{
 						break;
 					}
 
-					strcpy(tempbuf, wstring_to_string(path).c_str());
-					savestates_select_filename(tempbuf);
+					savestates_select_filename(path.c_str());
 
-					if (std::filesystem::exists(strip_extension(path) + L".m64"))
+					std::string movie_path = strip_extension(path) + ".m64";
+
+					strcpy(tempbuf, movie_path.c_str());
+
+					if (std::filesystem::exists(movie_path))
 					{
 						sprintf(tempbuf2,
 						        "\"%s\" already exists. Are you sure want to overwrite this movie?",
