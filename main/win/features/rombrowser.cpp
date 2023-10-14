@@ -152,6 +152,8 @@ void rombrowser_add_rom(int32_t index, t_rombrowser_entry* rombrowser_entry)
 }
 void rombrowser_build_impl()
 {
+	auto start_time = std::chrono::high_resolution_clock::now();
+
 	// we disable redrawing because it would repaint after every added rom otherwise,
 	// which is slow and causes flicker
 	SendMessage(rombrowser_hwnd, WM_SETREDRAW, FALSE, 0);
@@ -211,35 +213,29 @@ void rombrowser_build_impl()
 		uint64_t len = ftell(f);
 		fseek(f, 0, SEEK_SET);
 
-		auto buffer = (uint8_t*)malloc(len);
-
-		fread(buffer, sizeof(uint8_t), len / sizeof(uint8_t), f);
-
 		if (len > sizeof(t_rom_header))
 		{
-			t_rom_header rom_header = {0};
-			rom_byteswap(buffer);
-			memcpy(&rom_header, buffer, sizeof(rom_header));
+			auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
+			fread(header, sizeof(t_rom_header), 1, f);
+
+			rom_byteswap((uint8_t*)header);
 
 			auto rombrowser_entry = new t_rombrowser_entry;
-			rombrowser_entry->rom_header = rom_header;
-			char filename[MAX_PATH] = {0};
-			_splitpath(path.c_str(), NULL, NULL,
-			           filename, NULL);
+			rombrowser_entry->rom_header = *header;
 			rombrowser_entry->path = path;
-			rombrowser_entry->filename = std::string(filename);
-			rombrowser_entry->size = std::to_string(len / (1024 * 1024)) +
-				" MB";
+			rombrowser_entry->size = len;
 
 			rombrowser_add_rom(i, rombrowser_entry);
+			free(header);
 		}
 
-		free(buffer);
+		
 		fclose(f);
 
 		i++;
 	}
 	SendMessage(rombrowser_hwnd, WM_SETREDRAW, TRUE, 0);
+	printf("Rombrowser loading took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
 }
 void rombrowser_build()
 {
@@ -303,11 +299,20 @@ void rombrowser_notify(LPARAM lparam)
 				plvdi->item.pszText = (LPSTR)rombrowser_entry->rom_header.nom;
 				break;
 			case 2:
-				plvdi->item.pszText = (LPSTR)rombrowser_entry->filename.c_str();
+			{
+				char filename[MAX_PATH] = {0};
+				_splitpath(rombrowser_entry->path.c_str(), NULL, NULL,
+						   filename, NULL);
+				plvdi->item.pszText = (LPSTR)filename;
 				break;
+			}
 			case 3:
-				plvdi->item.pszText = (LPSTR)rombrowser_entry->size.c_str();
+			{
+				std::string size = std::to_string(rombrowser_entry->size / (1024 * 1024)) +
+					" MB";
+				plvdi->item.pszText = (LPSTR)size.c_str();
 				break;
+			}
 			default:
 				break;
 			}
