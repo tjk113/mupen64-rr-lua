@@ -2533,7 +2533,7 @@ void vcr_recent_movies_build(int32_t reset)
 	}
 }
 
-void vcr_recent_movies_add(const std::string& path)
+void vcr_recent_movies_add(const std::string path)
 {
 	if (Config.recent_movie_paths.size() > 5)
 	{
