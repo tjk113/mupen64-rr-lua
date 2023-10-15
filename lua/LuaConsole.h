@@ -21,11 +21,15 @@
 #include <queue>
 #include <md5.h>
 #include <assert.h>
+#include <filesystem>
 #include <mutex>
+
+void lua_init();
 
 void NewLuaScript();
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 
+void ConsoleWrite(HWND wnd, const char* str);
 void LuaReload();
 void LuaOpenAndRun(const char* path);
 void CloseAllLuaScript();
@@ -59,12 +63,20 @@ enum class Renderer {
 };
 
 class LuaEnvironment {
-private:
-	bool stopping = false;
 public:
-	Renderer renderer = Renderer::GDIMixed;
-	CRITICAL_SECTION render_critical_section;
+	bool stopping = false;
 
+	/**
+	 * \brief Creates a lua environment and runs it if the operation succeeds
+	 * \param path The script path
+	 * \param wnd The associated window
+	 * \return A pointer to a lua environment object, or NULL if the operation failed and an error string
+	 */
+	static std::pair<LuaEnvironment*, std::string> create(std::filesystem::path path, HWND wnd);
+	static void destroy(LuaEnvironment* lua_environment);
+	Renderer renderer = Renderer::GDIMixed;
+
+	std::filesystem::path path;
 	HDC dc = nullptr;
 	int dc_width, dc_height = 0;
 	ID2D1Factory* d2d_factory = nullptr;
@@ -72,14 +84,15 @@ public:
 	IDWriteFactory* dw_factory = nullptr;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
-	std::string path;
-	LuaEnvironment(HWND wnd);
+
+	/**
+	 * \brief Destroys and stops the environment
+	 */
 	~LuaEnvironment();
+
 	void create_renderer();
 	void destroy_renderer();
 	void draw();
-	bool run(char* path);
-	void stop();
 	void setBrush(HBRUSH h);
 	void selectBrush();
 	void setPen(HPEN h);
@@ -90,26 +103,21 @@ public:
 	void selectTextColor();
 	void setBackgroundColor(COLORREF c, int mode = OPAQUE);
 	void selectBackgroundColor();
-	bool isrunning();
 	//calls all functions that lua script has defined as callbacks, reads them from registry
 	//returns true at fail
 	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
 								   const char* key);
 	HWND hwnd;
-	HANDLE hMutex;
+	lua_State* L;
 
 private:
-	void newLuaState();
 	void deleteLuaState();
 	void registerAsPackage(lua_State* L, const char* name,
 						   const luaL_Reg reg[]);
 	void registerFunctions();
-	bool runFile(char* path);
-	void error();
 	void setGDIObject(HGDIOBJ* save, HGDIOBJ newobj);
 	void selectGDIObject(HGDIOBJ p);
 	void deleteGDIObject(HGDIOBJ p, int stockobj);
-	lua_State* L;
 	// gdi objects are filled in on run(), then deleted on stop()
 	HBRUSH brush;
 	HPEN pen;

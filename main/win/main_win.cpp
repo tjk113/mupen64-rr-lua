@@ -136,7 +136,7 @@ TCHAR CoreNames[3][30] = {
 };
 
 std::string app_path = "";
-std::vector<std::string> previously_open_lua_paths;
+std::vector<std::filesystem::path> previously_open_lua_paths;
 
 void ClearButtons()
 {
@@ -353,7 +353,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		// remember all running lua scripts' paths and queue them up for a restart
 		for (const auto [key, value] : hwnd_lua_map)
 		{
-			if (key && value && value->isrunning())
+			if (key && value)
 			{
 				previously_open_lua_paths.push_back(value->path);
 			}
@@ -1255,8 +1255,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		// restore all the saved paths, then clear them
 		for (const auto& lua_path : previously_open_lua_paths)
 		{
-				LuaOpenAndRun(lua_path.c_str());
-				printf("Lua restored %s\n", lua_path.c_str());
+			LuaOpenAndRun(lua_path.string().c_str());
+			printf("Lua restored %s\n", lua_path.string().c_str());
 		}
 		previously_open_lua_paths.clear();
 	});
@@ -2663,6 +2663,7 @@ int WINAPI WinMain(
 		rombrowser_create();
 		rombrowser_build();
 		rombrowser_update_size();
+		lua_init();
 
 		vcr_recent_movies_build();
 		lua_recent_scripts_build();

@@ -72,6 +72,7 @@ SWindowInfo windowSize{};
 HBITMAP hbitmap;
 bool LoadScreenInitialized = false;
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
+CRITICAL_SECTION lua_critical_section;
 
 // Deletes all the variables used in LoadScreen (avoid memory leaks)
 void LoadScreenDelete()
@@ -207,10 +208,11 @@ void LoadScreenInit()
 	const char* const REG_ATSAVESTATE = "SS";
 	const char* const REG_ATRESET = "RE";
 
+	void lua_init() {
+		InitializeCriticalSection(&lua_critical_section);
+	}
+
 	int AtUpdateScreen(lua_State* L);
-
-
-
 
 	int AtPanic(lua_State* L)
 	{
@@ -223,41 +225,12 @@ void LoadScreenInit()
 	int AtWindowMessage(lua_State* L);
 	HWND CreateLuaWindow();
 
-	void invoke_callback_with_key_on_instance(LuaEnvironment* lua,
-	                                          std::function<int(lua_State*)>
-	                                          function, const char* key)
-	{
-		if (!lua->isrunning())
-		{
-			return;
-		}
-
-		// ensure thread safety (load and savestate callbacks for example)
-		DWORD waitResult = WaitForSingleObject(lua->hMutex, INFINITE);
-		switch (waitResult)
-		{
-		case WAIT_OBJECT_0:
-			if (lua->invoke_callbacks_with_key(function, key))
-			{
-				printf("!ERRROR, RETRY\n");
-				//if error happened, try again (but what if it fails again and again?)
-				invoke_callback_with_key_on_instance(lua, function, key);
-				return;
-			}
-			ReleaseMutex(lua->hMutex);
-		}
-	}
-
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
 	{
 		for (auto pair : hwnd_lua_map)
 		{
-			if (!pair.second || !pair.first)
-			{
-				continue;
-			}
-			invoke_callback_with_key_on_instance(pair.second, function, key);
+			pair.second->invoke_callbacks_with_key(function, key);
 		}
 	}
 
@@ -414,8 +387,6 @@ void LoadScreenInit()
 			{
 				checkGDIPlusInitialized();
 
-				hwnd_lua_map[wnd] = new LuaEnvironment(wnd);
-
 				if (InitalWindowRect[0].right == 0)
 				{
 					GetInitalWindowRect(wnd);
@@ -429,9 +400,9 @@ void LoadScreenInit()
 			return TRUE;
 		case WM_DESTROY:
 			{
-				assert(hwnd_lua_map.contains(wnd));
-				hwnd_lua_map[wnd]->stop();
-				hwnd_lua_map.erase(wnd);
+				if (hwnd_lua_map.contains(wnd)) {
+					LuaEnvironment::destroy(hwnd_lua_map[wnd]);
+				}
 				return TRUE;
 			}
 		case WM_COMMAND:
@@ -469,16 +440,36 @@ void LoadScreenInit()
 				char path[MAX_PATH] = {0};
 				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				              path, MAX_PATH);
-				if (hwnd_lua_map[wnd]->isrunning())
-				{
-					hwnd_lua_map[wnd]->stop();
+
+				EnterCriticalSection(&lua_critical_section);
+
+				// if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
+				if (hwnd_lua_map.contains(wnd)) {
+					LuaEnvironment::destroy(hwnd_lua_map[wnd]);
 				}
-				hwnd_lua_map[wnd]->run(path);
+
+				// now spool up a new one
+				auto status = LuaEnvironment::create(path, wnd);
+
+				if (status.first == nullptr) {
+					// failed, we give user some info and thats it
+					ConsoleWrite(wnd, status.second.c_str());
+				} else {
+					// it worked, we can set up associations and sync ui state
+					hwnd_lua_map[wnd] = status.first;
+					SetButtonState(wnd, true);
+				}
+
+				LeaveCriticalSection(&lua_critical_section);
+				
 				return TRUE;
 			}
 		case IDC_BUTTON_LUASTOP:
 			{
-				hwnd_lua_map[wnd]->stop();
+				if (hwnd_lua_map.contains(wnd)) {
+					LuaEnvironment::destroy(hwnd_lua_map[wnd]);
+					SetButtonState(wnd, false);
+				}
 				return TRUE;
 			}
 		case IDC_BUTTON_LUABROWSE:
@@ -520,8 +511,8 @@ void LoadScreenInit()
 		return FALSE;
 	}
 
-	HWND CreateLuaWindow()
-	{
+	HWND CreateLuaWindow() 
+	{ 
 		HWND hwnd = CreateDialogParam(app_hInstance,
 		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
 		                             DialogProc,
@@ -727,8 +718,10 @@ void LoadScreenInit()
 
 	int StopScript(lua_State* L)
 	{
+		// FIXME: this isn't the right way to do this, but it's roughly equivalent to the old method
+		// it's better to force an error and kill the environment indirectly
 		HWND wnd = GetLuaClass(L)->hwnd;
-		hwnd_lua_map[wnd]->stop();
+		LuaEnvironment::destroy(hwnd_lua_map[wnd]);
 		return 0;
 	}
 
@@ -3440,7 +3433,9 @@ void LoadScreenInit()
 		{NULL, NULL}
 	};
 
-void NewLuaScript()
+	
+
+	void NewLuaScript()
 {
 	CreateLuaWindow();
 }
@@ -3548,16 +3543,20 @@ void lua_new_vi(int redraw)
 	// hardware-accelerated drawing on a bitmap with some additional info (w, h, pixel format) provided by the emulator
 	// this way, the video plugin can't overwrite our window contents whenever it wants, thereby causing flicker
 
+	// we need to enter the critical section, because we are on emu thread and hwnd_lua_map mustn't be changed
+	EnterCriticalSection(&lua_critical_section);
+
 	AtVILuaCallback();
 
-	if (!redraw) return;
-
-	for (auto& pair : hwnd_lua_map)
-	{
-		if (!pair.first || !pair.second)
-			continue;
-		pair.second->draw();
+	if (redraw) {
+		for (auto& pair : hwnd_lua_map) {
+			if (!pair.first || !pair.second)
+				continue;
+			pair.second->draw();
+		}
 	}
+
+	LeaveCriticalSection(&lua_critical_section);
 }
 
 //�Ƃ肠����lua�ɓ���Ƃ�
@@ -4124,7 +4123,7 @@ void LuaEnvironment::create_renderer()
 	}
 	printf("Creating multi-target renderer for Lua...\n");
 
-	EnterCriticalSection(&this->render_critical_section);
+	EnterCriticalSection(&lua_critical_section);
 	RECT window_rect;
 	GetClientRect(mainHWND, &window_rect);
 	dc_width = window_rect.right;
@@ -4156,17 +4155,17 @@ void LuaEnvironment::create_renderer()
 
 	RECT dc_rect = {0, 0, dc_width, dc_height};
 	d2d_render_target->BindDC(dc, &dc_rect);
-	LeaveCriticalSection(&this->render_critical_section);
+	LeaveCriticalSection(&lua_critical_section);
 }
 
 void LuaEnvironment::destroy_renderer()
 {
-	if (dc == nullptr)
+	if (!dc)
 	{
 		return;
 	}
 
-	EnterCriticalSection(&this->render_critical_section);
+	EnterCriticalSection(&lua_critical_section);
 	printf("Destroying Lua renderer...\n");
 
 	d2d_factory->Release();
@@ -4186,16 +4185,13 @@ void LuaEnvironment::destroy_renderer()
 	dc = NULL;
 	d2d_factory = NULL;
 	d2d_render_target = NULL;
-	LeaveCriticalSection(&this->render_critical_section);
+	LeaveCriticalSection(&lua_critical_section);
 }
 
 void LuaEnvironment::draw() {
-	if (!dc || stopping || renderer == Renderer::None) {
+	if (renderer == Renderer::None) {
 		return;
 	}
-
-	EnterCriticalSection(&this->render_critical_section);
-
 	HDC main_dc = GetDC(mainHWND);
 
 	if (renderer == Renderer::Direct2D) {
@@ -4221,60 +4217,49 @@ void LuaEnvironment::draw() {
 	}
 
 	ReleaseDC(mainHWND, main_dc);
-	LeaveCriticalSection(&this->render_critical_section);
 }
 
+void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
+	EnterCriticalSection(&lua_critical_section);
+	hwnd_lua_map.erase(lua_environment->hwnd);
+	delete lua_environment;
+	LeaveCriticalSection(&lua_critical_section);
+}
 
-LuaEnvironment::LuaEnvironment(HWND wnd) {
-	L = NULL;
-	hwnd = wnd;
-	InitializeCriticalSection(&this->render_critical_section);
-	printf("Lua construct\n");
+std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::path path, HWND wnd)
+{
+	auto lua_environment = new LuaEnvironment();
+
+	lua_environment->hwnd = wnd;
+	lua_environment->path = path;
+
+	lua_environment->brush = static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
+	lua_environment->pen = static_cast<HPEN>(GetStockObject(BLACK_PEN));
+	lua_environment->font = static_cast<HFONT>(GetStockObject(SYSTEM_FONT));
+	lua_environment->col = lua_environment->bkcol = 0;
+	lua_environment->bkmode = TRANSPARENT;
+	lua_environment->L = luaL_newstate();
+	lua_atpanic(lua_environment->L, AtPanic);
+	SetLuaClass(lua_environment->L, lua_environment);
+	lua_environment->registerFunctions();
+
+	// all lua scripts run with legacy renderer until otherwise stated
+	lua_environment->create_renderer();
+
+	bool error = luaL_dofile(lua_environment->L, lua_environment->path.string().c_str());
+
+	std::string error_str;
+	if (error)
+	{
+		error_str = lua_tostring(lua_environment->L, -1);
+		delete lua_environment;
+		lua_environment = nullptr;
+	}
+
+	return std::make_pair(lua_environment, error_str);
 }
 
 LuaEnvironment::~LuaEnvironment() {
-	if (isrunning()) {
-		stop();
-	}
-	printf("Lua destruct\n");
-}
-
-bool LuaEnvironment::run(char* path) {
-	if (!path) {
-		return false;
-	}
-	EnterCriticalSection(&this->render_critical_section);
-	this->path = path;
-	stopping = false;
-
-	ASSERT(!isrunning());
-	brush = (HBRUSH)GetStockObject(WHITE_BRUSH);
-	pen = (HPEN)GetStockObject(BLACK_PEN);
-	font = (HFONT)GetStockObject(SYSTEM_FONT);
-	col = bkcol = 0;
-	bkmode = TRANSPARENT;
-	hMutex = CreateMutex(0, 0, 0);
-	// all lua scripts run with legacy renderer until otherwise stated
-	this->create_renderer();
-	newLuaState();
-	auto status = runFile(path);
-	if (isrunning()) {
-		SetButtonState(hwnd, true);
-		lua_recent_scripts_add(path);
-		Config.lua_script_path = std::string(path);
-	}
-	printf("Lua run %s\n", path);
-	LeaveCriticalSection(&this->render_critical_section);
-	return status;
-}
-
-void LuaEnvironment::stop() {
-	if (!isrunning())
-		return;
-
-	stopping = true;
-	EnterCriticalSection(&this->render_critical_section);
-
 	invoke_callbacks_with_key(AtStop, REG_ATSTOP);
 	deleteGDIObject(brush, WHITE_BRUSH);
 	deleteGDIObject(pen, BLACK_PEN);
@@ -4285,8 +4270,8 @@ void LuaEnvironment::stop() {
 	}
 	image_pool.clear();
 	SetButtonState(hwnd, false);
-	LeaveCriticalSection(&this->render_critical_section);
-	printf("Lua stop\n");
+	this->destroy_renderer();
+	printf("Lua destroyed\n");
 }
 
 void LuaEnvironment::setBrush(HBRUSH h) {
@@ -4331,10 +4316,6 @@ void LuaEnvironment::selectBackgroundColor() {
 	::SetBkColor(this->dc, bkcol);
 }
 
-bool LuaEnvironment::isrunning() {
-	return L != NULL && !stopping;
-}
-
 //calls all functions that lua script has defined as callbacks, reads them from registry
 //returns true at fail
 bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> function,
@@ -4349,21 +4330,16 @@ bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> fu
 	for (LUA_INTEGER i = 0; i < n; i++) {
 		lua_pushinteger(L, 1 + i);
 		lua_gettable(L, -2);
-		if (function(L)) {
-			error();
+		if (function(L)) {\
+			const char* str = lua_tostring(L, -1);
+			ConsoleWrite(hwnd, str);
+			ConsoleWrite(hwnd, "\r\n");
+			printf("Lua error: %s\n", str);
 			return true;
 		}
 	}
 	lua_pop(L, 1);
 	return false;
-}
-
-void LuaEnvironment::newLuaState() {
-	ASSERT(L == 0);
-	L = luaL_newstate();
-	lua_atpanic(L, AtPanic);
-	SetLuaClass(L, this);
-	registerFunctions();
 }
 
 void LuaEnvironment::deleteLuaState() {
@@ -4401,24 +4377,6 @@ void LuaEnvironment::registerFunctions() {
 	lua_pushcfunction(L, getn);
 	lua_setfield(L, -2, "getn");
 	lua_pop(L, 1);
-}
-
-bool LuaEnvironment::runFile(char* path) {
-	int result;
-	result = luaL_dofile(L, path);
-	if (result) {
-		error();
-		return false;
-	}
-	return true;
-}
-
-void LuaEnvironment::error() {
-	const char* str = lua_tostring(L, -1);
-	ConsoleWrite(hwnd, str);
-	ConsoleWrite(hwnd, "\r\n");
-	printf("Lua error: %s\n", str);
-	stop();
 }
 
 void LuaEnvironment::setGDIObject(HGDIOBJ* save, HGDIOBJ newobj) {
