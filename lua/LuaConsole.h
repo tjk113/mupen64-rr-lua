@@ -92,7 +92,10 @@ public:
 
 	void create_renderer();
 	void destroy_renderer();
-	void draw();
+
+	void pre_draw();
+	void post_draw();
+
 	void setBrush(HBRUSH h);
 	void selectBrush();
 	void setPen(HPEN h);

@@ -228,10 +228,12 @@ void LoadScreenInit()
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
 	{
+		EnterCriticalSection(&lua_critical_section);
 		for (auto pair : hwnd_lua_map)
 		{
 			pair.second->invoke_callbacks_with_key(function, key);
 		}
+		LeaveCriticalSection(&lua_critical_section);
 	}
 
 
@@ -442,7 +444,6 @@ void LoadScreenInit()
 				              path, MAX_PATH);
 
 				EnterCriticalSection(&lua_critical_section);
-
 				// if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
 				if (hwnd_lua_map.contains(wnd)) {
 					LuaEnvironment::destroy(hwnd_lua_map[wnd]);
@@ -461,7 +462,6 @@ void LoadScreenInit()
 				}
 
 				LeaveCriticalSection(&lua_critical_section);
-				
 				return TRUE;
 			}
 		case IDC_BUTTON_LUASTOP:
@@ -511,8 +511,8 @@ void LoadScreenInit()
 		return FALSE;
 	}
 
-	HWND CreateLuaWindow() 
-	{ 
+	HWND CreateLuaWindow()
+	{
 		HWND hwnd = CreateDialogParam(app_hInstance,
 		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
 		                             DialogProc,
@@ -3433,7 +3433,7 @@ void LoadScreenInit()
 		{NULL, NULL}
 	};
 
-	
+
 
 	void NewLuaScript()
 {
@@ -3543,19 +3543,22 @@ void lua_new_vi(int redraw)
 	// hardware-accelerated drawing on a bitmap with some additional info (w, h, pixel format) provided by the emulator
 	// this way, the video plugin can't overwrite our window contents whenever it wants, thereby causing flicker
 
-	// we need to enter the critical section, because we are on emu thread and hwnd_lua_map mustn't be changed
-	EnterCriticalSection(&lua_critical_section);
-
 	AtVILuaCallback();
 
-	if (redraw) {
-		for (auto& pair : hwnd_lua_map) {
-			if (!pair.first || !pair.second)
-				continue;
-			pair.second->draw();
-		}
-	}
+	if (!redraw) return;
 
+	EnterCriticalSection(&lua_critical_section);
+	for (auto& pair : hwnd_lua_map) {
+		pair.second->pre_draw();
+	}
+	LeaveCriticalSection(&lua_critical_section);
+
+	invoke_callbacks_with_key_on_all_instances(AtUpdateScreen, REG_ATUPDATESCREEN);
+
+	EnterCriticalSection(&lua_critical_section);
+	for (auto& pair : hwnd_lua_map) {
+		pair.second->post_draw();
+	}
 	LeaveCriticalSection(&lua_critical_section);
 }
 
@@ -4123,7 +4126,6 @@ void LuaEnvironment::create_renderer()
 	}
 	printf("Creating multi-target renderer for Lua...\n");
 
-	EnterCriticalSection(&lua_critical_section);
 	RECT window_rect;
 	GetClientRect(mainHWND, &window_rect);
 	dc_width = window_rect.right;
@@ -4155,7 +4157,6 @@ void LuaEnvironment::create_renderer()
 
 	RECT dc_rect = {0, 0, dc_width, dc_height};
 	d2d_render_target->BindDC(dc, &dc_rect);
-	LeaveCriticalSection(&lua_critical_section);
 }
 
 void LuaEnvironment::destroy_renderer()
@@ -4165,7 +4166,6 @@ void LuaEnvironment::destroy_renderer()
 		return;
 	}
 
-	EnterCriticalSection(&lua_critical_section);
 	printf("Destroying Lua renderer...\n");
 
 	d2d_factory->Release();
@@ -4185,26 +4185,33 @@ void LuaEnvironment::destroy_renderer()
 	dc = NULL;
 	d2d_factory = NULL;
 	d2d_render_target = NULL;
-	LeaveCriticalSection(&lua_critical_section);
 }
 
-void LuaEnvironment::draw() {
-	if (renderer == Renderer::None) {
+void LuaEnvironment::pre_draw() {
+
+	if (this == nullptr || !dc)
+	{
 		return;
 	}
-	HDC main_dc = GetDC(mainHWND);
-
 	if (renderer == Renderer::Direct2D) {
 		d2d_render_target->BeginDraw();
 		d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 		d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
 	}
 
-	this->invoke_callbacks_with_key(AtUpdateScreen, REG_ATUPDATESCREEN);
+}
+
+void LuaEnvironment::post_draw()
+{
+	if (renderer == Renderer::None || this == nullptr || !dc) {
+		return;
+	}
 
 	if (renderer == Renderer::Direct2D) {
 		d2d_render_target->EndDraw();
 	}
+
+	HDC main_dc = GetDC(mainHWND);
 
 	TransparentBlt(main_dc, 0, 0, dc_width, dc_height, dc, 0, 0,
 		dc_width, dc_height, bitmap_color_mask);
