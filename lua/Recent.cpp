@@ -47,6 +47,10 @@ void lua_recent_scripts_build(int32_t reset)
 
 void lua_recent_scripts_add(const std::string& path)
 {
+	if (Config.is_recent_scripts_frozen)
+	{
+		return;
+	}
 	if (Config.recent_lua_script_paths.size() > 5)
 	{
 		Config.recent_lua_script_paths.pop_back();

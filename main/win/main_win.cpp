@@ -1201,6 +1201,8 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 		hMenu, ID_RECENTMOVIES_FREEZE, MF_BYCOMMAND | MF_CHECKED);
 	if (Config.is_recent_scripts_frozen) CheckMenuItem(
 		hMenu, ID_LUA_RECENT_FREEZE, MF_BYCOMMAND | MF_CHECKED);
+	if (Config.is_recent_rom_paths_frozen) CheckMenuItem(
+		hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | MF_CHECKED);
 }
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
@@ -1346,6 +1348,10 @@ void main_recent_roms_build(int32_t reset)
 
 void main_recent_roms_add(const std::string& path)
 {
+	if (Config.is_recent_rom_paths_frozen)
+	{
+		return;
+	}
 	if (Config.recent_rom_paths.size() > 5)
 	{
 		Config.recent_rom_paths.pop_back();
@@ -2275,7 +2281,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				main_recent_roms_build(1);
 				break;
 			case ID_RECENTROMS_FREEZE:
-				Config.is_recent_rom_paths_frozen ^= 1;
+				CheckMenuItem(hMenu, ID_RECENTROMS_FREEZE,
+							  (Config.is_recent_rom_paths_frozen ^= 1)
+								  ? MF_CHECKED
+								  : MF_UNCHECKED);
 				break;
 			case ID_LOAD_LATEST:
 				main_recent_roms_run(ID_RECENTROMS_FIRST);
