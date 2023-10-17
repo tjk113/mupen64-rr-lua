@@ -54,7 +54,6 @@ extern "C" {
 #include "config.hpp"
 #include "RomSettings.h"
 #include "commandline.h"
-#include "CrashHandlerDialog.h"
 #include "CrashHelper.h"
 #include "wrapper\PersistentPathDialog.h"
 #include "../vcr.h"
@@ -2499,27 +2498,23 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	fwrite(crashLog, sizeof(crashLog), 1, f);
 	fclose(f);
 
-	bool isIgnorable = !(ExceptionInfo->ExceptionRecord->ExceptionFlags &
+	bool is_continuable = !(ExceptionInfo->ExceptionRecord->ExceptionFlags &
 		EXCEPTION_NONCONTINUABLE);
 
-	printf("exception occured! creating crash dialog...\n");
-	CrashHandlerDialog crashHandlerDialog(
-		isIgnorable
-			? CrashHandlerDialog::Types::Ignorable
-			: (CrashHandlerDialog::Types)0,
-		"An exception has been thrown and a crash log has been automatically generated.\r\nPlease choose a way to proceed.");
+	int result = 0;
 
-	auto result = crashHandlerDialog.Show();
-
-	switch (result)
-	{
-	case CrashHandlerDialog::Choices::Ignore:
-		return EXCEPTION_CONTINUE_EXECUTION;
-	case CrashHandlerDialog::Choices::Exit:
-		return EXCEPTION_EXECUTE_HANDLER;
+	if (is_continuable) {
+		TaskDialog(mainHWND, app_hInstance, L"Error",
+			L"An error has occured", L"A crash log has been automatically generated. You can choose to continue program execution.", TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
+	} else {
+		TaskDialog(mainHWND, app_hInstance, L"Error",
+			L"An error has occured", L"A crash log has been automatically generated. The program will now exit.", TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
 	}
 
-	return EXCEPTION_EXECUTE_HANDLER;
+	if (result == IDCLOSE) {
+		return EXCEPTION_EXECUTE_HANDLER;
+	}
+	return EXCEPTION_CONTINUE_EXECUTION;
 }
 
 

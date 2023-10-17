@@ -25,7 +25,6 @@
 #include "translation.h"
 #include "../vcr.h"
 #include "../../winproject/resource.h"
-#include <win/CrashHandlerDialog.h>
 
 //c++!!!
 #include <chrono>
@@ -40,8 +39,7 @@
 extern bool ffup;
 
 static float VILimit = 60.0;
-static auto VILimitMilliseconds = std::chrono::duration<double, std::milli>(
-	1000.0 / 60.0);
+static auto VILimitMilliseconds = std::chrono::duration<double, std::milli>(1000.0 / 60.0);
 float VIs, FPS;
 
 int GetVILimit()
@@ -136,13 +134,11 @@ void new_vi()
 	// vi/s shouldn't go over 1000 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
 	if (!ignoreErrorEmulation && emu_launched && frame_advancing && VIs > 1000)
 	{
-		CrashHandlerDialog crashHandlerDialog(
-			CrashHandlerDialog::Types::Ignorable,
-			"An emulator core timing inaccuracy or game crash has been detected.\nPlease choose a way to proceed.");
-		auto result = crashHandlerDialog.Show();
+		int result = 0;
+		TaskDialog(mainHWND, app_hInstance, L"Error",
+			L"Unusual core state", L"An emulator core timing inaccuracy or game crash has been detected. You can choose to continue emulation.", TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
 
-		if (result == CrashHandlerDialog::Choices::Exit)
-		{
+		if (result == IDCLOSE) {
 			frame_advancing = false; //don't pause at next open
 			CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, 0);
 		}
