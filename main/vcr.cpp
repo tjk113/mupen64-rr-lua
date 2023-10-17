@@ -862,7 +862,10 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		getKeys(Control, Keys);
 #ifdef LUA_JOYPAD
 		lastInputLua[Control] = *(DWORD*)Keys;
-		AtInputLuaCallback(Control);
+		main_dispatcher_invoke([Control] {
+			AtInputLuaCallback(Control);
+		});
+
 		if (0 <= Control && Control < 4)
 		{
 			if (rewriteInputFlagLua[Control])
@@ -1067,7 +1070,9 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 
 #ifdef LUA_JOYPAD
 			lastInputLua[Control] = *(DWORD*)Keys;
-			AtInputLuaCallback(Control);
+			main_dispatcher_invoke([Control] {
+				AtInputLuaCallback(Control);
+			});
 			if (0 <= Control && Control < 4)
 			{
 				if (rewriteInputFlagLua[Control])
@@ -1733,7 +1738,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 			strncpy(m_header.description, descriptionUTF8,
 			        MOVIE_DESCRIPTION_DATA_SIZE);
 		m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
-		AtPlayMovieLuaCallback();
+		main_dispatcher_invoke(AtPlayMovieLuaCallback);
 		return code;
 	}
 }
@@ -1790,7 +1795,7 @@ stopPlayback(bool bypassLoopSetting)
 			m_inputBufferSize = 0;
 		}
 
-		AtStopMovieLuaCallback();
+		main_dispatcher_invoke(AtStopMovieLuaCallback);
 		return 0;
 	}
 
@@ -1823,27 +1828,23 @@ VCR_updateScreen()
 		// only update screen if not capturing
 		// skip frames according to skipFrequency if fast-forwarding
 		if ((IGNORE_RSP || forceIgnoreRSP)) redraw = 0;
-#ifdef LUA_SPEEDMODE
-		if (maximumSpeedMode)redraw = 0;
-#endif
-		if (redraw)
-		{
+		if (redraw) {
 			updateScreen();
-			lua_new_vi(redraw);
+			main_dispatcher_invoke([redraw] {
+				lua_new_vi(redraw);
+			});
 		}
 		return;
 	}
 
 	// capturing, update screen and call readscreen, call avi/ffmpeg stuff
 
-#ifdef LUA_SPEEDMODE
-	if (maximumSpeedMode)redraw = 0;
-#endif
-
 	if (redraw)
 	{
 		updateScreen();
-		lua_new_vi(redraw);
+		main_dispatcher_invoke([redraw] {
+			lua_new_vi(redraw);
+		});
 	}
 #ifdef FFMPEG_BENCHMARK
 	auto start = std::chrono::high_resolution_clock::now();

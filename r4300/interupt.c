@@ -419,9 +419,7 @@ void gen_interupt()
         break;
 
     case VI_INT:
-#ifdef LUA_EMUPAUSED_WORK
-        AtIntervalLuaCallback();
-#endif
+        main_dispatcher_invoke(AtIntervalLuaCallback);
         VCR_updateScreen();
         new_vi();
         if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;

@@ -40,11 +40,8 @@
 #include "helpers/string_helpers.h"
 #include "win/features/Statusbar.hpp"
 
-#pragma comment(lib, "lua54.lib")
-#pragma comment (lib,"Gdiplus.lib")
-#pragma comment(lib, "d2d1.lib")
-#pragma comment(lib, "dwrite.lib")
 #include <Windows.h>
+#pragma comment(lib, "lua54.lib")
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
@@ -63,7 +60,6 @@ unsigned long rewriteInputLua[4];
 bool rewriteInputFlagLua[4];
 bool enableTraceLog;
 bool traceLogMode;
-bool maximumSpeedMode;
 bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
 // LoadScreen variables
@@ -72,8 +68,7 @@ SWindowInfo windowSize{};
 HBITMAP hbitmap;
 bool LoadScreenInitialized = false;
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-CRITICAL_SECTION lua_critical_section;
-
+t_window_procedure_params window_proc_params = {0};
 // Deletes all the variables used in LoadScreen (avoid memory leaks)
 void LoadScreenDelete()
 {
@@ -208,10 +203,6 @@ void LoadScreenInit()
 	const char* const REG_ATSAVESTATE = "SS";
 	const char* const REG_ATRESET = "RE";
 
-	void lua_init() {
-		InitializeCriticalSection(&lua_critical_section);
-	}
-
 	int AtUpdateScreen(lua_State* L);
 
 	int AtPanic(lua_State* L)
@@ -228,12 +219,10 @@ void LoadScreenInit()
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
 	{
-		EnterCriticalSection(&lua_critical_section);
 		for (auto pair : hwnd_lua_map)
 		{
 			pair.second->invoke_callbacks_with_key(function, key);
 		}
-		LeaveCriticalSection(&lua_critical_section);
 	}
 
 
@@ -246,109 +235,6 @@ void LoadScreenInit()
 		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
 		gdiPlusInitialized = true;
 	}
-
-	class LuaMessenger
-	{
-	public:
-		struct LuaMessage;
-
-	private:
-		LuaMessage* pop_message()
-		{
-			EnterCriticalSection(&cs);
-
-			if (message_queue.empty())
-			{
-				LeaveCriticalSection(&cs);
-				return NULL;
-			}
-
-			LuaMessage* msg = message_queue.front();
-			message_queue.pop();
-
-			LeaveCriticalSection(&cs);
-			return msg;
-		}
-
-		CRITICAL_SECTION cs;
-		std::queue<LuaMessage*> message_queue;
-		LuaMessage* current_message;
-
-	public:
-		LuaMessenger()
-		{
-			InitializeCriticalSection(&cs);
-		}
-
-		~LuaMessenger()
-		{
-			DeleteCriticalSection(&cs);
-		}
-
-		auto get_current_message()
-		{
-			return this->current_message;
-		}
-
-		struct LuaMessage
-		{
-			enum class Types
-			{
-				CloseAll,
-				WindowMessage,
-			};
-
-			Types type;
-
-			union
-			{
-				struct
-				{
-					HWND wnd;
-					UINT msg;
-					WPARAM wParam;
-					LPARAM lParam;
-				} windowMessage;
-			};
-		};
-
-		void send_message(LuaMessage* msg)
-		{
-			EnterCriticalSection(&cs);
-			message_queue.push(msg);
-			LeaveCriticalSection(&cs);
-		}
-
-		void process_messages()
-		{
-			LuaMessage* msg;
-			while (msg = pop_message())
-			{
-				current_message = msg;
-				switch (msg->type)
-				{
-				case LuaMessenger::LuaMessage::Types::CloseAll:
-					{
-						for (auto& pair : hwnd_lua_map)
-						{
-							PostMessage(pair.first, WM_CLOSE, 0, 0);
-						}
-						break;
-					}
-				case LuaMessenger::LuaMessage::Types::WindowMessage:
-					{
-						invoke_callbacks_with_key_on_all_instances(
-							AtWindowMessage, REG_WINDOWMESSAGE);
-						break;
-					}
-				}
-				delete msg;
-			}
-			current_message = NULL;
-		}
-	};
-
-	LuaMessenger lua_messenger;
 
 	void SizingControl(HWND wnd, RECT* p, int x, int y, int w, int h)
 	{
@@ -443,7 +329,6 @@ void LoadScreenInit()
 				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				              path, MAX_PATH);
 
-				EnterCriticalSection(&lua_critical_section);
 				// if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
 				if (hwnd_lua_map.contains(wnd)) {
 					LuaEnvironment::destroy(hwnd_lua_map[wnd]);
@@ -461,7 +346,6 @@ void LoadScreenInit()
 					SetButtonState(wnd, true);
 				}
 
-				LeaveCriticalSection(&lua_critical_section);
 				return TRUE;
 			}
 		case IDC_BUTTON_LUASTOP:
@@ -2197,7 +2081,7 @@ void LoadScreenInit()
 		IDWriteTextFormat* text_format;
 
 		lua->dw_factory->CreateTextFormat(
-			widen(font_name).c_str(),
+			string_to_wstring(font_name).c_str(),
 			nullptr,
 			static_cast<DWRITE_FONT_WEIGHT>(font_weight),
 			static_cast<DWRITE_FONT_STYLE>(font_style),
@@ -2214,7 +2098,7 @@ void LoadScreenInit()
 
 		IDWriteTextLayout* text_layout;
 
-		auto wtext = widen(text);
+		auto wtext = string_to_wstring(text);
 		lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
 		                                  text_format,
 		                                  rectangle.right - rectangle.left,
@@ -2257,7 +2141,7 @@ void LoadScreenInit()
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		std::wstring text = widen(std::string(luaL_checkstring(L, 1)));
+		std::wstring text = string_to_wstring(std::string(luaL_checkstring(L, 1)));
 		std::string font_name = std::string(luaL_checkstring(L, 2));
 		float font_size = luaL_checknumber(L, 3);
 		float max_width = luaL_checknumber(L, 4);
@@ -2266,7 +2150,7 @@ void LoadScreenInit()
 		IDWriteTextFormat* text_format;
 
 		lua->dw_factory->CreateTextFormat(
-			widen(font_name).c_str(),
+			string_to_wstring(font_name).c_str(),
 			NULL,
 			DWRITE_FONT_WEIGHT_NORMAL,
 			DWRITE_FONT_STYLE_NORMAL,
@@ -2376,7 +2260,7 @@ void LoadScreenInit()
 		);
 
 		HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
-			widen(path).c_str(),
+			string_to_wstring(path).c_str(),
 			NULL,
 			GENERIC_READ,
 			WICDecodeMetadataCacheOnLoad,
@@ -2551,17 +2435,10 @@ void LoadScreenInit()
 
 	int AtWindowMessage(lua_State* L)
 	{
-		auto message = lua_messenger.get_current_message();
-
-		if (!message)
-		{
-			return 0;
-		}
-		lua_pushinteger(L, (unsigned)message->windowMessage.wnd);
-		lua_pushinteger(L, message->windowMessage.msg);
-		lua_pushinteger(L, message->windowMessage.wParam);
-		lua_pushinteger(L, message->windowMessage.lParam);
-
+		lua_pushinteger(L, (unsigned)window_proc_params.wnd);
+		lua_pushinteger(L, window_proc_params.msg);
+		lua_pushinteger(L, window_proc_params.w_param);
+		lua_pushinteger(L, window_proc_params.l_param);
 
 		return lua_pcall(L, 4, 0, 0);
 	}
@@ -2870,13 +2747,10 @@ void LoadScreenInit()
 
 	int SetSpeedMode(lua_State* L)
 	{
-		const char* s = lua_tostring(L, 1);
-		if (lstrcmpi(s, "normal") == 0)
-		{
-			maximumSpeedMode = false;
-		} else if (lstrcmpi(s, "maximum") == 0)
-		{
-			maximumSpeedMode = true;
+		if (!strcmp(luaL_checkstring(L, 1), "normal")) {
+			Config.fps_modifier = 100;
+		} else {
+			Config.fps_modifier = 10000;
 		}
 		return 0;
 	}
@@ -3460,13 +3334,6 @@ void LuaOpenAndRun(const char* path)
 		            (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
 }
 
-void CloseAllLuaScript(void)
-{
-	LuaMessenger::LuaMessage* msg = new
-		LuaMessenger::LuaMessage();
-	msg->type = LuaMessenger::LuaMessage::Types::CloseAll;
-	lua_messenger.send_message(msg);
-}
 
 void AtUpdateScreenLuaCallback()
 {
@@ -3525,18 +3392,12 @@ void AtResetCallback()
 		CallTop, REG_ATRESET);
 }
 
-void LuaProcessMessages()
-{
-	lua_messenger.process_messages();
-}
 
 //Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
 //Next and DrawLuaDC are only used with double buffering
 //otherwise calls vi callback and updatescreen callback
 void lua_new_vi(int redraw)
 {
-	LuaProcessMessages();
-
 	// FIXME:
 	// (somewhat unrealistic, as it requires a spec change)
 	// don't give video plugin window handle, instead let it perform
@@ -3547,19 +3408,15 @@ void lua_new_vi(int redraw)
 
 	if (!redraw) return;
 
-	EnterCriticalSection(&lua_critical_section);
 	for (auto& pair : hwnd_lua_map) {
 		pair.second->pre_draw();
 	}
-	LeaveCriticalSection(&lua_critical_section);
 
 	invoke_callbacks_with_key_on_all_instances(AtUpdateScreen, REG_ATUPDATESCREEN);
 
-	EnterCriticalSection(&lua_critical_section);
 	for (auto& pair : hwnd_lua_map) {
 		pair.second->post_draw();
 	}
-	LeaveCriticalSection(&lua_critical_section);
 }
 
 //�Ƃ肠����lua�ɓ���Ƃ�
@@ -4106,16 +3963,27 @@ void LuaTraceLogState()
 	TraceLogStart(wstring_to_string(path).c_str());
 }
 
+void close_all_scripts() {
+	assert(IsGUIThread(false));
+
+	// we mutate the map's nodes while iterating, so we have to make a copy
+	auto copy = std::map(hwnd_lua_map);
+	for (auto pair : copy) {
+		SendMessage(pair.first, WM_CLOSE, 0, 0);
+	}
+	assert(hwnd_lua_map.empty());
+}
+
 
 void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l)
 {
-	auto message = new LuaMessenger::LuaMessage();
-	message->type = LuaMessenger::LuaMessage::Types::WindowMessage;
-	message->windowMessage.wnd = mainHWND;
-	message->windowMessage.msg = msg;
-	message->windowMessage.wParam = w;
-	message->windowMessage.lParam = l;
-	lua_messenger.send_message(message);
+	window_proc_params = {
+		.wnd = wnd,
+		.msg = msg,
+		.w_param = w,
+		.l_param = l
+	};
+	invoke_callbacks_with_key_on_all_instances(AtWindowMessage, REG_WINDOWMESSAGE);
 }
 
 void LuaEnvironment::create_renderer()
@@ -4227,10 +4095,8 @@ void LuaEnvironment::post_draw()
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
-	EnterCriticalSection(&lua_critical_section);
 	hwnd_lua_map.erase(lua_environment->hwnd);
 	delete lua_environment;
-	LeaveCriticalSection(&lua_critical_section);
 }
 
 std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::path path, HWND wnd)
@@ -4327,6 +4193,7 @@ void LuaEnvironment::selectBackgroundColor() {
 //returns true at fail
 bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> function,
 							   const char* key) {
+	assert(IsGUIThread(false));
 	lua_getfield(L, LUA_REGISTRYINDEX, key);
 	//shouldn't ever happen but could cause kernel panic
 	if lua_isnil(L, -1) {

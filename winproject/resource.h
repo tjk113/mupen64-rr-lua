@@ -462,6 +462,9 @@
 #define IDD_NEW_HOTKEY_DIALOG           40064
 #define IDC_STATIC                      -1
 
+
+#define WM_EXECUTE_DISPATCHER (WM_USER + 10)
+
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED

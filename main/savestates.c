@@ -210,7 +210,7 @@ void savestates_save()
             savestates_job_success = FALSE;
         }
     }
-    AtSaveStateLuaCallback();
+    main_dispatcher_invoke(AtSaveStateLuaCallback);
     // /re-recording
 
     gzclose(f);
@@ -516,7 +516,7 @@ void savestates_load(bool silenceNotFoundError)
     load_eventqueue_infos(buf);
     load_memory_from_buffer(firstBlock);
     free(firstBlock);
-    AtLoadStateLuaCallback();
+    main_dispatcher_invoke(AtLoadStateLuaCallback);
     //printf("--------st end-----------\n");
 failedLoad:
 
@@ -802,7 +802,7 @@ void savestates_load_old(bool silenceNotFoundError)
             lockNoStWarn = false; //reset
         }
     }
-    AtLoadStateLuaCallback();
+    main_dispatcher_invoke(AtLoadStateLuaCallback);
     //extern long m_currentSample;
     //printf(".st frame: %d\n", m_currentSample);
     //printf("--------st end-----------\n");

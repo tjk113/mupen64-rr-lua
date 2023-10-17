@@ -52,6 +52,7 @@
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/Config.hpp"
+#include <win/main_win.h>
 
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];
@@ -516,8 +517,10 @@ void update_pif_read(bool stcheck)
                         while (emu_paused)
                         {
                             Sleep(10);
-                            AtIntervalLuaCallback();
-                            lua_new_vi(1);
+                            main_dispatcher_invoke([] {
+                                AtIntervalLuaCallback();
+                                lua_new_vi(1);
+                            });
                             //should this be before or after? idk
                             if (savestates_job & LOADSTATE && stAllowed)
                             {
@@ -559,7 +562,9 @@ void update_pif_read(bool stcheck)
                         readController(channel, &PIF_RAMb[i]);
 #ifdef LUA_JOYPAD
                         lastInputLua[channel] = *(DWORD*)&PIF_RAMb[i + 3];
-                        AtInputLuaCallback(channel);
+                        main_dispatcher_invoke([channel] {
+                            AtInputLuaCallback(channel);
+                        });
                         if (0 <= channel && channel < 4)
                         {
                             if (rewriteInputFlagLua[channel])

@@ -176,11 +176,7 @@ void new_vi()
 	//nanosecond precosion is kept up to the sleep
 
 	auto Dif = CurrentFPSTime - LastFPSTime;
-	if (manualFPSLimit && !frame_advancing
-#ifdef LUA_SPEEDMODE
-		&& !maximumSpeedMode
-#endif
-	)
+	if (manualFPSLimit && !frame_advancing)
 	{
 		if (Dif < VILimitMilliseconds)
 		{

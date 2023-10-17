@@ -18,7 +18,6 @@
 
 #include <Windows.h>
 #include <string>
-#include <deque>
 #include <functional>
 #define MUPEN_VERSION "Mupen 64 1.1.5"
 
@@ -40,8 +39,8 @@ extern char statusmsg[800];
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
 
+void main_dispatcher_invoke(std::function<void()> func);
 extern std::string app_path;
-inline std::deque<std::function<void()>> dispatcher_queue;
 extern void EnableEmulationMenuItems(BOOL flag);
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
 extern void resetEmu();

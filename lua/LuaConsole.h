@@ -24,18 +24,20 @@
 #include <filesystem>
 #include <mutex>
 
-void lua_init();
+typedef struct s_window_procedure_params {
+	HWND wnd;
+	UINT msg;
+	WPARAM w_param;
+	LPARAM l_param;
+} t_window_procedure_params;
 
 void NewLuaScript();
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 
 void ConsoleWrite(HWND wnd, const char* str);
-void LuaReload();
 void LuaOpenAndRun(const char* path);
-void CloseAllLuaScript();
 void AtUpdateScreenLuaCallback();
 void AtVILuaCallback();
-void LuaProcessMessages();
 void AtInputLuaCallback(int n);
 void AtIntervalLuaCallback();
 void AtPlayMovieLuaCallback();
@@ -43,16 +45,12 @@ void AtStopMovieLuaCallback();
 void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
 void AtResetCallback();
-
-void LuaBreakpointSyncPure();
-void LuaBreakpointSyncInterp();
 void lua_new_vi(int redraw);
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
-
+void close_all_scripts();
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
-void instrStr2(unsigned long pc, unsigned long w, char* buffer);
 
 static uint32_t bitmap_color_mask = RGB(255, 0, 255);
 
@@ -134,18 +132,8 @@ extern unsigned long rewriteInputLua[4];
 extern bool rewriteInputFlagLua[4];
 extern bool enableTraceLog;
 extern bool traceLogMode;
-extern bool maximumSpeedMode;
 extern unsigned long gdiPlusToken;
 
 extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-
-
-// https://stackoverflow.com/questions/2573834/c-convert-string-or-char-to-wstring-or-wchar-t
-inline static std::wstring widen(const std::string& str) {
-	std::wstring ws(str.size(), L' ');
-	ws.resize(std::mbstowcs(&ws[0], str.c_str(), str.size()));
-	return ws;
-}
-
 
 #endif

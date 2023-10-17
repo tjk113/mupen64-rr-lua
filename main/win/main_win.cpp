@@ -35,6 +35,7 @@ extern "C" {
 #include <cstdlib>
 #include <cmath>
 #include <filesystem>
+#include <deque>
 #ifndef _MSC_VER
 #include <dirent.h>
 #endif
@@ -74,11 +75,8 @@ void StartMovies();
 void StartLuaScripts();
 void StartSavestate();
 
-typedef std::string String;
-
 bool ffup = false;
 BOOL forceIgnoreRSP = false;
-
 #if defined(__cplusplus) && !defined(_MSC_VER)
 }
 #endif
@@ -136,6 +134,13 @@ TCHAR CoreNames[3][30] = {
 
 std::string app_path = "";
 std::vector<std::filesystem::path> previously_open_lua_paths;
+
+std::deque<std::function<void()>> dispatcher_queue;
+
+void main_dispatcher_invoke(std::function<void()> func) {
+	dispatcher_queue.push_back(func);
+	SendMessage(mainHWND, WM_EXECUTE_DISPATCHER, 0, 0);
+}
 
 void ClearButtons()
 {
@@ -358,18 +363,8 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			}
 		}
 
-		CloseAllLuaScript();
-		// the emu thread will die soon and won't be able to call LuaProcessMessages(),
-		// so we need to run the pump one time manually before closing to get our messages processed
-		LuaProcessMessages();
-
-		// and that message pass doesn't do anything besides telling the windows to close
-		// so now we have to wait until they actually clean up their shit
-		while (!hwnd_lua_map.empty()) {
-			printf("Pumping messages until lua cleans up...\n");
-			LuaProcessMessages();
-		}
-
+		main_dispatcher_invoke(close_all_scripts);
+		
 		printf("Closing emulation thread...\n");
 
 		// we signal the core to stop, then wait until thread exits
@@ -422,9 +417,9 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			really_restart_mode = FALSE;
 			if (m_task != 0)
 				just_restarted_flag = TRUE;
-			dispatcher_queue.push_back([] {
-				if (!start_rom(LastSelectedRom))
-				{
+
+			main_dispatcher_invoke([] {
+				if (!start_rom(LastSelectedRom)) {
 					close_rom(NULL);
 					MessageBox(mainHWND, "Failed to open ROM", NULL,
 							   MB_ICONERROR | MB_OK);
@@ -1251,7 +1246,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		pauseEmu(FALSE);
 		pauseAtFrame = -1;
 	}
-	dispatcher_queue.push_back([&]
+	
+	main_dispatcher_invoke([]
 	{
 		// restore all the saved paths, then clear them
 		for (const auto& lua_path : previously_open_lua_paths)
@@ -1261,6 +1257,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		}
 		previously_open_lua_paths.clear();
 	});
+
 	go();
 
 	romClosed_gfx();
@@ -1487,6 +1484,12 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam,
 		break;
 	case WM_USER + 17: SetFocus(mainHWND);
 		break;
+	case WM_EXECUTE_DISPATCHER:
+		while (!dispatcher_queue.empty()) {
+			dispatcher_queue.front()();
+			dispatcher_queue.pop_front();
+		}
+		break;
 	case WM_CLOSE:
 		exit_emu(1);
 		break;
@@ -1669,6 +1672,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_USER + 17: SetFocus(mainHWND);
 		break;
+	case WM_EXECUTE_DISPATCHER:
+		while (!dispatcher_queue.empty()) {
+			dispatcher_queue.front()();
+			dispatcher_queue.pop_front();
+		}
+		break;
 	case WM_CREATE:
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		SetupLanguages(hwnd);
@@ -1775,9 +1784,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				lua_recent_scripts_run(ID_LUA_RECENT);
 				break;
 			case ID_MENU_LUASCRIPT_CLOSEALL:
-				{
-					CloseAllLuaScript();
-				}
+				close_all_scripts();
 				break;
 			case ID_FORCESAVE:
 				ini_updateFile();
@@ -2667,7 +2674,6 @@ int WINAPI WinMain(
 		rombrowser_create();
 		rombrowser_build();
 		rombrowser_update_size();
-		lua_init();
 
 		vcr_recent_movies_build();
 		lua_recent_scripts_build();
@@ -2693,13 +2699,6 @@ int WINAPI WinMain(
 
 		while (GetMessage(&Msg, NULL, 0, 0) > 0)
 		{
-			while (!dispatcher_queue.empty())
-			{
-				auto dispatcher = dispatcher_queue.front();
-				dispatcher();
-				dispatcher_queue.pop_front();
-			}
-
 			if (!TranslateAccelerator(mainHWND, Accel, &Msg))
 			{
 				TranslateMessage(&Msg);
@@ -2750,5 +2749,6 @@ int WINAPI WinMain(
 
 		}
 	}
+
 	return (int)Msg.wParam;
 }
