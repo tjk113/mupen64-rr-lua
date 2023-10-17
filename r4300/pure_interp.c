@@ -3185,9 +3185,7 @@ void prefetch()
         interp_addr = addr;
         return;
     }
-#ifdef LUA_TRACEPURE
     if (enableTraceLog)LuaTraceLoggingPure();
-#endif
 }
 
 void pure_interpreter()
@@ -3231,12 +3229,7 @@ void interprete_section(unsigned long addr)
     while (!stop && (addr >> 12) == (interp_addr >> 12))
     {
         prefetch();
-#ifdef LUA_TRACEPURE
         if (enableTraceLog)LuaTraceLoggingPure();
-#endif
-#ifdef COMPARE_CORE
-		compare_core();
-#endif
         PC->addr = interp_addr;
         interp_ops[((op >> 26) & 0x3F)]();
 #ifdef DBG

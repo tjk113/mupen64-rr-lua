@@ -1,8 +1,6 @@
 #ifndef LUA_CONSOLE_H
 #define LUA_CONSOLE_H
 
-#include "luaDefine.h"
-
 #include "include/lua.hpp"
 
 #include <Windows.h>

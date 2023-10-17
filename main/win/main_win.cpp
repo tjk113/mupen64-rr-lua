@@ -364,7 +364,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		}
 
 		main_dispatcher_invoke(close_all_scripts);
-		
+
 		printf("Closing emulation thread...\n");
 
 		// we signal the core to stop, then wait until thread exits
@@ -1246,7 +1246,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		pauseEmu(FALSE);
 		pauseAtFrame = -1;
 	}
-	
+
 	main_dispatcher_invoke([]
 	{
 		// restore all the saved paths, then clear them
@@ -1517,62 +1517,48 @@ DWORD WINAPI UnpauseEmuAfterMenu(LPVOID lpParam)
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
-	int ret;
 	static PAINTSTRUCT ps;
-	BOOL minimize;
 	HMENU hMenu = GetMenu(hwnd);
 
-#ifdef LUA_WINDOWMESSAGE
 	LuaWindowMessage(hwnd, Message, wParam, lParam);
-#endif
+
 	switch (Message)
 	{
 	case WM_DROPFILES:
 		{
 			HDROP h_file = (HDROP)wParam;
-			char fname[MAX_PATH];
-			LPSTR fext;
+			char fname[MAX_PATH] = {0};
 			DragQueryFile(h_file, 0, fname, sizeof(fname));
 			LocalFree(h_file);
-			fext = CharUpper(PathFindExtension(fname));
-			if (lstrcmp(fext, ".N64") == 0 || lstrcmp(fext, ".V64") == 0 ||
-				lstrcmp(fext, ".Z64") == 0 || lstrcmp(fext, ".ROM") == 0)
+
+			std::filesystem::path path = fname;
+			std::string extension = to_lower(path.extension().string());
+
+			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
 				start_rom(fname);
-			} else if (lstrcmp(fext, ".M64") == 0)
+			} else if (extension == ".m64")
 			{
-				if (rom)
+				if (!emu_launched) break;
+				if (!VCR_getReadOnly()) VCR_toggleReadOnly();
+				if (VCR_startPlayback(fname, nullptr, nullptr) >= 0)
+					SetStatusPlaybackStarted();
+				else
 				{
-					if (!VCR_getReadOnly()) VCR_toggleReadOnly();
-
-					if (VCR_startPlayback(fname, 0, 0) < 0)
-					{
-						printf(
-							"[VCR]: Drag drop Failed to start playback of %s",
-							fname);
-						break;
-					} else
-						SetStatusPlaybackStarted();
+					printf(
+						"[VCR]: Drag drop Failed to start playback of %s",
+						fname);
+					break;
 				}
-			} else if (strcmp(fext, ".ST") == 0 || strcmp(fext, ".SAVESTATE") ==
-				0)
+			}else if (extension == ".st" || extension == ".savestate")
 			{
-				if (rom)
-				{
-					savestates_select_filename(fname);
-					savestates_job = LOADSTATE;
-				}
-			} else if (strcmp(fext, ".LUA") == 0)
+				if (!emu_launched) break;
+				savestates_select_filename(fname);
+				savestates_job = LOADSTATE;
+			} else if(extension == ".lua")
 			{
-				if (rom)
-				{
-					for (; *fext; ++fext) *fext = (CHAR)tolower(*fext);
-					// Deep in the code, lua will access file with that path (uppercase extension because stupid, useless programming at line 2677 converts it), see it doesnt exist and fail.
-					// even this hack will fail under special circumstances
-					LuaOpenAndRun(fname);
-				}
+				LuaOpenAndRun(path.string().c_str());
 			}
-
 			break;
 		}
 	case WM_KEYDOWN:
@@ -1733,7 +1719,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_ACTIVATE:
 		UpdateWindow(hwnd);
-		minimize = (BOOL)HIWORD(wParam);
 
 		switch (LOWORD(wParam))
 		{
@@ -1986,9 +1971,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
-					ret = DialogBox(GetModuleHandle(NULL),
-					                MAKEINTRESOURCE(IDD_ABOUT), hwnd,
-					                AboutDlgProc);
+					DialogBox(GetModuleHandle(NULL),
+						MAKEINTRESOURCE(IDD_ABOUT), hwnd,
+						AboutDlgProc);
 					if (wasMenuPaused)
 					{
 						resumeEmu(TRUE);

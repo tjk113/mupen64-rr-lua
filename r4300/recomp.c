@@ -2362,18 +2362,13 @@ void recompile_block(long* source, precomp_block* block, unsigned long func)
         dst->addr = block->start + i * 4;
         dst->reg_cache_infos.need_map = 0;
         dst->local_addr = code_length;
-#ifdef EMU64_DEBUG
-		if (dynacore) gendebug();
-#endif
         recomp_ops[((src >> 26) & 0x3F)]();
-#ifdef LUA_TRACEINTERP
         if (enableTraceLog)
         {
             dst->s_ops = dst->ops;
             dst->ops = LuaTraceLoggingInterpOps;
             dst->src = src;
         }
-#endif
         dst = block->block + i;
         /*if ((dst+1)->ops != NOTCOMPILED && !delay_slot_compiled &&
             i < length)

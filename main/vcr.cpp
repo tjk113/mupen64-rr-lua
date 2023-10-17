@@ -860,7 +860,6 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		StartPlaybackFromSnapshot)
 	{
 		getKeys(Control, Keys);
-#ifdef LUA_JOYPAD
 		lastInputLua[Control] = *(DWORD*)Keys;
 		main_dispatcher_invoke([Control] {
 			AtInputLuaCallback(Control);
@@ -876,7 +875,6 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 				rewriteInputFlagLua[Control] = false;
 			}
 		}
-#endif
 	}
 
 	if (Control == 0)
@@ -1068,7 +1066,6 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 				resetEmu();
 			}
 
-#ifdef LUA_JOYPAD
 			lastInputLua[Control] = *(DWORD*)Keys;
 			main_dispatcher_invoke([Control] {
 				AtInputLuaCallback(Control);
@@ -1083,8 +1080,6 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 					rewriteInputFlagLua[Control] = false;
 				}
 			}
-#endif
-			//		fread( Keys, 1, sizeof (BUTTONS), m_file );
 			m_currentSample++;
 		} else
 		{

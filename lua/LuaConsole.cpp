@@ -3932,7 +3932,6 @@ void LuaTraceLoggingPure()
 
 void LuaTraceLoggingInterpOps()
 {
-#ifdef LUA_TRACEINTERP
 	if (enableTraceLog)
 	{
 		if (!traceLogMode)
@@ -3944,7 +3943,6 @@ void LuaTraceLoggingInterpOps()
 		}
 	}
 	PC->s_ops();
-#endif
 }
 
 

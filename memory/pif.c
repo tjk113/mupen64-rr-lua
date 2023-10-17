@@ -560,7 +560,6 @@ void update_pif_read(bool stcheck)
                     )
                     {
                         readController(channel, &PIF_RAMb[i]);
-#ifdef LUA_JOYPAD
                         lastInputLua[channel] = *(DWORD*)&PIF_RAMb[i + 3];
                         main_dispatcher_invoke([channel] {
                             AtInputLuaCallback(channel);
@@ -575,7 +574,6 @@ void update_pif_read(bool stcheck)
                                 rewriteInputFlagLua[channel] = false;
                             }
                         }
-#endif
                     }
                     else
                         internal_ReadController(channel, &PIF_RAMb[i]);
