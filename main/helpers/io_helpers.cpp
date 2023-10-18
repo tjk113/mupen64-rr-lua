@@ -35,6 +35,13 @@ std::vector<std::string> get_files_with_extension_in_directory(
 std::vector<std::string> get_files_in_subdirectories(
 	const std::string &directory)
 {
+	std::string newdir =  directory;
+	if (directory.back() != '\0')
+	{
+		newdir.push_back( '\0');
+	}
+	//char *te = (char*)calloc(sizeof((directory + "*").c_str()), sizeof(char)); *te = *((directory + "*").c_str());
+	//printf("%s\n", (directory + "*").c_str());
 	WIN32_FIND_DATA find_file_data;
 	const HANDLE h_find = FindFirstFile((directory + "*").c_str(),
 	                                    &find_file_data);
@@ -44,17 +51,24 @@ std::vector<std::string> get_files_in_subdirectories(
 	}
 
 	std::vector<std::string> paths;
-
+	std::string fixed_path = directory;
 	do
 	{
 		if (strcmp(find_file_data.cFileName, ".") != 0 && strcmp(
 			find_file_data.cFileName, "..") != 0)
 		{
+
 			std::string full_path = directory + find_file_data.cFileName;
 			if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
+				if (directory.back() != '\0' && directory.back() == '\\') {
+						fixed_path.pop_back();
+						fixed_path.pop_back();
+						fixed_path.push_back('\\');
+						full_path = fixed_path + find_file_data.cFileName;
+				}
 				for (const auto& path : get_files_in_subdirectories(
-					     full_path + "\\"))
+					     fixed_path))
 				{
 					paths.push_back(path);
 				}
