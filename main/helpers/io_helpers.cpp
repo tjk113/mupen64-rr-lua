@@ -61,14 +61,18 @@ std::vector<std::string> get_files_in_subdirectories(
 			std::string full_path = directory + find_file_data.cFileName;
 			if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				if (directory.back() != '\0' && directory.back() == '\\') {
+				if (directory[directory.size() - 2] == '\0') {
+					if (directory.back() == '\\') {
 						fixed_path.pop_back();
 						fixed_path.pop_back();
-						fixed_path.push_back('\\');
-						full_path = fixed_path + find_file_data.cFileName;
+					}
 				}
+				if (directory.back() != '\\') {
+					fixed_path.push_back('\\');
+				}
+				full_path = fixed_path + find_file_data.cFileName;
 				for (const auto& path : get_files_in_subdirectories(
-					     fixed_path))
+					     full_path + "\\"))
 				{
 					paths.push_back(path);
 				}
