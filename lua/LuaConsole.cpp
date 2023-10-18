@@ -2674,6 +2674,12 @@ void LoadScreenInit()
 		return 1;
 	}
 
+	int LuaPlaySound(lua_State* L)
+	{
+		PlaySound(luaL_checkstring(L, 1), NULL, SND_FILENAME | SND_ASYNC);
+		return 1;
+	}
+
 	int GetAddress(lua_State* L)
 	{
 		struct NameAndVariable
@@ -3175,6 +3181,7 @@ void LoadScreenInit()
 
 		{"screenshot", Screenshot},
 		{"set_renderer", SetRenderer},
+		{"play_sound", LuaPlaySound},
 		{NULL, NULL}
 	};
 	const luaL_Reg memoryFuncs[] = {
