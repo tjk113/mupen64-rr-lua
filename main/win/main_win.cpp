@@ -93,7 +93,6 @@ static DWORD Id;
 static DWORD SOUNDTHREADID;
 static HANDLE SoundThreadHandle;
 static BOOL FullScreenMode = 0;
-DWORD WINAPI close_rom(LPVOID lpParam);
 
 HANDLE EmuThreadHandle;
 HWND hwnd_plug;
@@ -101,8 +100,8 @@ HWND hwnd_plug;
 static int currentSaveState = 1;
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam);
-
-const char g_szClassName[] = "myWindowClass";
+DWORD WINAPI close_rom(LPVOID lpParam);
+constexpr char g_szClassName[] = "myWindowClass";
 char LastSelectedRom[_MAX_PATH];
 bool scheduled_restart = false;
 BOOL really_restart_mode = 0;
@@ -137,7 +136,7 @@ std::vector<std::filesystem::path> previously_open_lua_paths;
 
 std::deque<std::function<void()>> dispatcher_queue;
 
-void main_dispatcher_invoke(std::function<void()> func) {
+void main_dispatcher_invoke(const std::function<void()>& func) {
 	dispatcher_queue.push_back(func);
 	SendMessage(mainHWND, WM_EXECUTE_DISPATCHER, 0, 0);
 }
@@ -270,12 +269,15 @@ void pauseEmu(BOOL quiet)
 			                              : MFS_UNCHECKED));
 }
 
-int32_t start_rom(std::string path)
+DWORD WINAPI start_rom(LPVOID lpParam)
 {
+	std::string path = (char*)lpParam;
 	// Kill any roms that are still running
 	if (emu_launched) {
-		close_rom(nullptr); // works better, but still not great
-		//WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
+
+		//close_rom(nullptr); // works better, but still not great
+		//main_dispatcher_invoke([] {WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);  });
+		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
 	}
 
 	//assert(!emu_launched);
@@ -299,7 +301,7 @@ int32_t start_rom(std::string path)
 	{
 		MessageBox(mainHWND, "Failed to open ROM", "Error",
 				   MB_ICONERROR | MB_OK);
-		return 0;
+		//return 0;
 	}
 
 	// at this point, we're set to begin emulating and can't backtrack
@@ -327,7 +329,7 @@ int32_t start_rom(std::string path)
 
 	printf("Creating emulation thread...\n");
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
-
+	//ExitThread(0);
 	return 1;
 }
 
@@ -363,13 +365,14 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			}
 		}
 
-		main_dispatcher_invoke(close_all_scripts);
+		
 
 		printf("Closing emulation thread...\n");
 
 		// we signal the core to stop, then wait until thread exits
 		stop_it();
-
+		main_dispatcher_invoke(close_all_scripts);
+		stop = 1;
 		DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
 		if (result == WAIT_TIMEOUT) {
 			MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
@@ -1360,9 +1363,10 @@ void main_recent_roms_add(const std::string& path)
 int32_t main_recent_roms_run(uint16_t menu_item_id)
 {
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
-	if (index >= 0 && index < Config.recent_rom_paths.size())
-
-		return start_rom(Config.recent_rom_paths[index]);
+	if (index >= 0 && index < Config.recent_rom_paths.size()) {
+		main_dispatcher_invoke([index] {CreateThread(NULL, 0, start_rom, (LPVOID*)Config.recent_rom_paths[index].c_str(), 0, &Id);
+			}); return 	1;
+	}
 	return 0;
 }
 
@@ -1536,7 +1540,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
-				start_rom(fname);
+				main_dispatcher_invoke([fname] {CreateThread(NULL, 0, start_rom, (LPVOID*)fname, 0, &Id); });
 			} else if (extension == ".m64")
 			{
 				if (!emu_launched) break;
@@ -2036,7 +2040,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					if (path.size() > 0)
 					{
-						start_rom(wstring_to_string(path));
+						main_dispatcher_invoke([path] {CreateThread(nullptr, 0, start_rom, (LPVOID*)wstring_to_string(path).c_str(), NULL, &Id); });
 					}
 
 					if (wasMenuPaused)

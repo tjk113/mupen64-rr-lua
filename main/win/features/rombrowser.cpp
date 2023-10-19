@@ -16,6 +16,7 @@
 #include "helpers/string_helpers.h"
 #include "../Config.hpp"
 
+DWORD Id;
 HWND rombrowser_hwnd = nullptr;
 std::vector<t_rombrowser_entry*> rombrowser_entries;
 int32_t rombrowser_is_loading = 0;
@@ -325,7 +326,9 @@ void rombrowser_notify(LPARAM lparam)
 			int i = ListView_GetNextItem(rombrowser_hwnd, -1, LVNI_SELECTED);
 			if (i != -1)
 			{
-				start_rom(rombrowser_entries[i]->path.c_str());
+				char* entries = (char*)rombrowser_entries[i]->path.c_str();
+				//CreateThread(NULL, 0, start_rom, &entries, 0, &Id);
+				main_dispatcher_invoke([i] {start_rom((LPVOID*)rombrowser_entries[i]->path.c_str()); });
 			}
 		}
 		break;

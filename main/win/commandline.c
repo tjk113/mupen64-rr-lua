@@ -26,7 +26,7 @@
 #include "main_win.h"
 #include "../plugin.hpp"
 
-
+static DWORD Id;
 BOOL cmdlineMode = 0;
 BOOL cmdlineSave = 0;
 BOOL cmdlineNoGui = 0;

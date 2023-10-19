@@ -39,7 +39,7 @@ extern char statusmsg[800];
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
 
-void main_dispatcher_invoke(std::function<void()> func);
+void main_dispatcher_invoke(const std::function<void()>& func);
 extern std::string app_path;
 extern void EnableEmulationMenuItems(BOOL flag);
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
@@ -49,7 +49,7 @@ extern void pauseEmu(BOOL quiet);
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
 extern void LoadConfigExternals();
-int32_t start_rom(std::string path);
+DWORD WINAPI start_rom(LPVOID lpParam);
 DWORD WINAPI close_rom(LPVOID lpParam);
 
 extern BOOL forceIgnoreRSP;
