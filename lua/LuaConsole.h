@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <filesystem>
 #include <mutex>
+#include <stack>
 
 typedef struct s_window_procedure_params {
 	HWND wnd;
@@ -80,6 +81,8 @@ public:
 	IDWriteFactory* dw_factory = nullptr;
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
+	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
+	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
 
 	/**
 	 * \brief Destroys and stops the environment
@@ -106,6 +109,23 @@ public:
 	//returns true at fail
 	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
 								   const char* key);
+
+	ID2D1Bitmap* get_loose_bitmap(const char* identifier) {
+
+		// look for bitmap in the normal cache
+		if (d2d_bitmap_cache.contains(identifier)) {
+			return d2d_bitmap_cache[identifier];
+		}
+
+		// look for it in render target map
+		if (d2d_bitmap_render_target.contains(identifier)) {
+			ID2D1Bitmap* bitmap;
+			d2d_bitmap_render_target[identifier]->GetBitmap(&bitmap);
+			return bitmap;
+		}
+
+		return nullptr;
+	}
 	HWND hwnd;
 	lua_State* L;
 

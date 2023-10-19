@@ -1992,7 +1992,7 @@ void LoadScreenInit()
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		lua->d2d_render_target->FillRectangle(&rectangle, brush);
+		lua->d2d_render_target_stack.top()->FillRectangle(&rectangle, brush);
 
 		return 0;
 	}
@@ -2007,7 +2007,7 @@ void LoadScreenInit()
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		lua->d2d_render_target->DrawRectangle(&rectangle, brush, thickness);
+		lua->d2d_render_target_stack.top()->DrawRectangle(&rectangle, brush, thickness);
 
 		return 0;
 	}
@@ -2021,7 +2021,7 @@ void LoadScreenInit()
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		lua->d2d_render_target->FillEllipse(&ellipse, brush);
+		lua->d2d_render_target_stack.top()->FillEllipse(&ellipse, brush);
 
 		return 0;
 	}
@@ -2036,7 +2036,7 @@ void LoadScreenInit()
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		lua->d2d_render_target->DrawEllipse(&ellipse, brush, thickness);
+		lua->d2d_render_target_stack.top()->DrawEllipse(&ellipse, brush, thickness);
 
 		return 0;
 	}
@@ -2052,7 +2052,7 @@ void LoadScreenInit()
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		lua->d2d_render_target->DrawLine(point_a, point_b, brush, thickness);
+		lua->d2d_render_target_stack.top()->DrawLine(point_a, point_b, brush, thickness);
 
 		return 0;
 	}
@@ -2108,7 +2108,7 @@ void LoadScreenInit()
 		text_format->Release();
 
 
-		lua->d2d_render_target->DrawTextLayout({
+		lua->d2d_render_target_stack.top()->DrawTextLayout({
 			                                       .x = rectangle.left,
 			                                       .y = rectangle.top,
 		                                       }, text_layout, brush,
@@ -2124,7 +2124,7 @@ void LoadScreenInit()
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 		float mode = luaL_checkinteger(L, 1);
-		lua->d2d_render_target->SetTextAntialiasMode(
+		lua->d2d_render_target_stack.top()->SetTextAntialiasMode(
 			(D2D1_TEXT_ANTIALIAS_MODE)mode);
 		return 0;
 	}
@@ -2133,7 +2133,7 @@ void LoadScreenInit()
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 		float mode = luaL_checkinteger(L, 1);
-		lua->d2d_render_target->SetAntialiasMode((D2D1_ANTIALIAS_MODE)mode);
+		lua->d2d_render_target_stack.top()->SetAntialiasMode((D2D1_ANTIALIAS_MODE)mode);
 		return 0;
 	}
 
@@ -2187,7 +2187,7 @@ void LoadScreenInit()
 
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
 
-		lua->d2d_render_target->PushAxisAlignedClip(
+		lua->d2d_render_target_stack.top()->PushAxisAlignedClip(
 			rectangle,
 			D2D1_ANTIALIAS_MODE_PER_PRIMITIVE
 		);
@@ -2199,7 +2199,7 @@ void LoadScreenInit()
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		lua->d2d_render_target->PopAxisAlignedClip();
+		lua->d2d_render_target_stack.top()->PopAxisAlignedClip();
 
 		return 0;
 	}
@@ -2213,7 +2213,7 @@ void LoadScreenInit()
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		lua->d2d_render_target->FillRoundedRectangle(&rounded_rectangle, brush);
+		lua->d2d_render_target_stack.top()->FillRoundedRectangle(&rounded_rectangle, brush);
 
 		return 0;
 	}
@@ -2228,7 +2228,7 @@ void LoadScreenInit()
 
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		lua->d2d_render_target->DrawRoundedRectangle(
+		lua->d2d_render_target_stack.top()->DrawRoundedRectangle(
 			&rounded_rectangle, brush, thickness);
 
 		return 0;
@@ -2285,7 +2285,7 @@ void LoadScreenInit()
 			WICBitmapPaletteTypeMedianCut
 		);
 
-		lua->d2d_render_target->CreateBitmapFromWicBitmap(
+		lua->d2d_render_target_stack.top()->CreateBitmapFromWicBitmap(
 			pConverter,
 			NULL,
 			&bmp
@@ -2321,8 +2321,10 @@ void LoadScreenInit()
 		float opacity = luaL_checknumber(L, 10);
 		int interpolation = luaL_checkinteger(L, 11);
 
-		lua->d2d_render_target->DrawBitmap(
-			lua->d2d_bitmap_cache[identifier],
+		ID2D1Bitmap* bitmap = lua->get_loose_bitmap(identifier.c_str());
+
+		lua->d2d_render_target_stack.top()->DrawBitmap(
+			bitmap,
 			destination_rectangle,
 			opacity,
 			(D2D1_BITMAP_INTERPOLATION_MODE)interpolation,
@@ -2337,13 +2339,76 @@ void LoadScreenInit()
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		std::string identifier(luaL_checkstring(L, 1));
-		D2D1_SIZE_U size = lua->d2d_bitmap_cache[identifier]->GetPixelSize();
-		lua_newtable(L);
-		lua_pushinteger(L, size.width);
-		lua_setfield(L, -2, "width");
-		lua_pushinteger(L, size.height);
-		lua_setfield(L, -2, "height");
+		ID2D1Bitmap* bitmap = lua->get_loose_bitmap(identifier.c_str());
+
+		if (bitmap == nullptr) {
+			luaL_error(L, "Bitmap doesnt exist");
+		} else {
+			D2D1_SIZE_U size = bitmap->GetPixelSize();
+			lua_newtable(L);
+			lua_pushinteger(L, size.width);
+			lua_setfield(L, -2, "width");
+			lua_pushinteger(L, size.height);
+			lua_setfield(L, -2, "height");
+		}
+		
 		return 1;
+	}
+
+	int LuaD2DCreateRenderTarget(lua_State* L) {
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		float width = luaL_checknumber(L, 1);
+		float height = luaL_checknumber(L, 2);
+
+		ID2D1BitmapRenderTarget* bitmap_render_target;
+		lua->d2d_render_target_stack.top()->CreateCompatibleRenderTarget(D2D1::SizeF(width, height), &bitmap_render_target);
+
+		std::string unique_key = "rt_" + std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+		lua->d2d_bitmap_render_target[unique_key] = bitmap_render_target;
+
+		lua_pushstring(L, unique_key.c_str());
+
+		return 1;
+	}
+
+	int LuaD2DDestroyRenderTarget(lua_State* L) {
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		std::string key = luaL_checkstring(L, 1);
+
+		if (lua->d2d_bitmap_render_target.contains(key)) {
+			lua->d2d_bitmap_render_target[key]->Release();
+			lua->d2d_bitmap_render_target.erase(key);
+		}
+
+		return 0;
+	}
+
+	int LuaD2DBeginRenderTarget(lua_State* L) {
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		std::string key = luaL_checkstring(L, 1);
+
+		if (lua->d2d_bitmap_render_target.contains(key)) {
+			lua->d2d_render_target_stack.push(lua->d2d_bitmap_render_target[key]);
+			lua->d2d_bitmap_render_target[key]->BeginDraw();
+		}
+
+		return 0;
+	}
+
+	int LuaD2DEndRenderTarget(lua_State* L) {
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		std::string key = luaL_checkstring(L, 1);
+
+		if (lua->d2d_bitmap_render_target.contains(key)) {
+			lua->d2d_bitmap_render_target[key]->EndDraw();
+			lua->d2d_render_target_stack.pop();
+		}
+
+		return 0;
 	}
 
 #undef D2D_GET_RECT
@@ -3273,6 +3338,10 @@ void LoadScreenInit()
 		{"get_image_info", LuaD2DGetImageInfo},
 		{"set_text_antialias_mode", LuaD2DSetTextAntialiasMode},
 		{"set_antialias_mode", LuaD2DSetAntialiasMode},
+		{"create_render_target", LuaD2DCreateRenderTarget},
+		{"destroy_render_target", LuaD2DDestroyRenderTarget},
+		{"begin_render_target", LuaD2DBeginRenderTarget},
+		{"end_render_target", LuaD2DEndRenderTarget},
 		{NULL, NULL}
 	};
 
@@ -4030,6 +4099,7 @@ void LuaEnvironment::create_renderer()
 
 	RECT dc_rect = {0, 0, dc_width, dc_height};
 	d2d_render_target->BindDC(dc, &dc_rect);
+	d2d_render_target_stack.push(d2d_render_target);
 }
 
 void LuaEnvironment::destroy_renderer()
@@ -4053,6 +4123,15 @@ void LuaEnvironment::destroy_renderer()
 		val->Release();
 	}
 	d2d_bitmap_cache.clear();
+
+	for (auto const& [_, val] : d2d_bitmap_render_target) {
+		val->Release();
+	}
+	d2d_bitmap_render_target.clear();
+
+	while (!d2d_render_target_stack.empty()) {
+		d2d_render_target_stack.pop();
+	}
 
 	ReleaseDC(mainHWND, dc);
 	dc = NULL;
