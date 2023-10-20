@@ -519,7 +519,6 @@ void update_pif_read(bool stcheck)
                             Sleep(10);
                             main_dispatcher_invoke([] {
                                 AtIntervalLuaCallback();
-                                lua_new_vi(1);
                             });
                             //should this be before or after? idk
                             if (savestates_job & LOADSTATE && stAllowed)

@@ -1825,9 +1825,7 @@ VCR_updateScreen()
 		if ((IGNORE_RSP || forceIgnoreRSP)) redraw = 0;
 		if (redraw) {
 			updateScreen();
-			main_dispatcher_invoke([redraw] {
-				lua_new_vi(redraw);
-			});
+			main_dispatcher_invoke(AtVILuaCallback);
 		}
 		return;
 	}
@@ -1837,9 +1835,7 @@ VCR_updateScreen()
 	if (redraw)
 	{
 		updateScreen();
-		main_dispatcher_invoke([redraw] {
-			lua_new_vi(redraw);
-		});
+		main_dispatcher_invoke(AtVILuaCallback);
 	}
 #ifdef FFMPEG_BENCHMARK
 	auto start = std::chrono::high_resolution_clock::now();

@@ -44,7 +44,6 @@ void AtStopMovieLuaCallback();
 void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
 void AtResetCallback();
-void lua_new_vi(int redraw);
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();

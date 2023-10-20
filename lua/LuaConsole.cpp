@@ -3413,8 +3413,15 @@ void LuaOpenAndRun(const char* path)
 
 void AtUpdateScreenLuaCallback()
 {
-	invoke_callbacks_with_key_on_all_instances(
-		AtUpdateScreen, REG_ATUPDATESCREEN);
+	for (auto& pair : hwnd_lua_map) {
+		pair.second->pre_draw();
+	}
+
+	invoke_callbacks_with_key_on_all_instances(AtUpdateScreen, REG_ATUPDATESCREEN);
+
+	for (auto& pair : hwnd_lua_map) {
+		pair.second->post_draw();
+	}
 }
 
 void AtVILuaCallback()
@@ -3466,33 +3473,6 @@ void AtResetCallback()
 {
 	invoke_callbacks_with_key_on_all_instances(
 		CallTop, REG_ATRESET);
-}
-
-
-//Draws lua, somewhere, either straight to window or to buffer, then buffer to dc
-//Next and DrawLuaDC are only used with double buffering
-//otherwise calls vi callback and updatescreen callback
-void lua_new_vi(int redraw)
-{
-	// FIXME:
-	// (somewhat unrealistic, as it requires a spec change)
-	// don't give video plugin window handle, instead let it perform
-	// hardware-accelerated drawing on a bitmap with some additional info (w, h, pixel format) provided by the emulator
-	// this way, the video plugin can't overwrite our window contents whenever it wants, thereby causing flicker
-
-	AtVILuaCallback();
-
-	if (!redraw) return;
-
-	for (auto& pair : hwnd_lua_map) {
-		pair.second->pre_draw();
-	}
-
-	invoke_callbacks_with_key_on_all_instances(AtUpdateScreen, REG_ATUPDATESCREEN);
-
-	for (auto& pair : hwnd_lua_map) {
-		pair.second->post_draw();
-	}
 }
 
 //�Ƃ肠����lua�ɓ���Ƃ�

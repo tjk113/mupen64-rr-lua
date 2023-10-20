@@ -74,7 +74,7 @@ BOOL CALLBACK GameDebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam,
 	case WM_INITDIALOG:
 		CheckDlgButton(hwnd, IDC_DEBUGGER_RSP_TOGGLE, 1);
 		gameDebuggerIsUpdateQueued = true;
-		gameDebuggerTimerId = SetTimer(hwnd, 1, 1000 / 60, TimerCallback);
+		gameDebuggerTimerId = SetTimer(hwnd, NULL, 1000 / 60, TimerCallback);
 		return TRUE;
 	case WM_COMMAND:
 		switch (LOWORD(wParam))

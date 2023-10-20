@@ -68,6 +68,7 @@ extern "C" {
 #include "features/Statusbar.hpp"
 #include "features\Toolbar.hpp"
 #include "helpers/string_helpers.h"
+#include "helpers/win_helpers.h"
 
 #pragma comment (lib,"Gdiplus.lib")
 
@@ -96,7 +97,7 @@ static BOOL FullScreenMode = 0;
 
 HANDLE EmuThreadHandle;
 HWND hwnd_plug;
-
+UINT update_screen_timer;
 static int currentSaveState = 1;
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam);
@@ -1300,6 +1301,7 @@ void exit_emu(int postquit)
 		// TODO: reimplement
 		// freeRomDirList();
 		// freeRomList();
+		KillTimer(mainHWND, update_screen_timer);
 		freeLanguages();
 		Gdiplus::GdiplusShutdown(gdiPlusToken);
 		PostQuitMessage(0);
@@ -1673,7 +1675,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		SetupLanguages(hwnd);
 		TranslateMenu(GetMenu(hwnd), hwnd);
 		SetMenuAcceleratorsFromUser(hwnd);
+		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
 		return TRUE;
+	case WM_TIMER:
+		AtUpdateScreenLuaCallback();
+		break;
 	case WM_CLOSE:
 		{
 			if (warn_recording())break;
@@ -1684,6 +1690,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				return 0;
 			} else
 			{
+				
 				exit_emu(1);
 				//DestroyWindow(hwnd);
 			}
@@ -1696,9 +1703,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			return 0;
 		}
-	//		case WM_SETCURSOR:
-	//			SetCursor(FALSE);
-	//			return 0;
 	case WM_WINDOWPOSCHANGING: //allow gfx plugin to set arbitrary size
 		return 0;
 	case WM_GETMINMAXINFO:
