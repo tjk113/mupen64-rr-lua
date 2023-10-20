@@ -272,6 +272,22 @@ void pauseEmu(BOOL quiet)
 
 DWORD WINAPI start_rom(LPVOID lpParam)
 {
+	if (!get_missing_plugin_types().empty()) {
+		// we're missing plugins, try to search for them first
+		search_plugins();
+
+		if (!get_missing_plugin_types().empty()) {
+			// we're still missing plugins after searching (user didnt select an accessible plugin)
+			// bail
+			if (MessageBox(mainHWND,
+				"Can't start emulation prior to selecting plugins.\nDo you want to select plugins in the settings?",
+				"Question", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+				ChangeSettings(mainHWND);
+			}
+			return 0;
+		}
+	}
+
 	std::string path = (char*)lpParam;
 	// Kill any roms that are still running
 	if (emu_launched) {
@@ -279,22 +295,6 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 		//close_rom(nullptr); // works better, but still not great
 		//main_dispatcher_invoke([] {WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);  });
 		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
-	}
-
-	//assert(!emu_launched);
-	// if any plugin isn't ready (not selected or otherwise invalid), we bail
-
-	std::vector<plugin_type> missing_plugin_types =
-		get_missing_plugin_types();
-	if (!missing_plugin_types.empty())
-	{
-		if (MessageBox(mainHWND,
-					   "Can't start emulation prior to selecting plugins.\nDo you want to select plugins in the settings?",
-					   "Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
-		{
-			ChangeSettings(mainHWND);
-		}
-		return 0;
 	}
 
 	// valid rom is required to start emulation
@@ -2663,7 +2663,6 @@ int WINAPI WinMain(
 		toolbar_set_visibility(Config.is_toolbar_enabled);
 		statusbar_set_visibility(Config.is_statusbar_enabled);
 		setup_dummy_info();
-		search_plugins();
 		rombrowser_create();
 		rombrowser_build();
 		rombrowser_update_size();

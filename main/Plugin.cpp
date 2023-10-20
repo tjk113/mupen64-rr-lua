@@ -704,7 +704,6 @@ void search_plugins()
 
 void load_plugins()
 {
-	search_plugins();
 
 	video_plugin = get_plugin_by_name(Config.selected_video_plugin_name);
 	audio_plugin = get_plugin_by_name(Config.selected_audio_plugin_name);

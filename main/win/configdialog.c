@@ -267,6 +267,7 @@ void ChangeSettings(HWND hwndOwner)
     
     rombrowser_build();
     update_menu_hotkey_labels();
+    search_plugins();
 }
 
 
@@ -383,8 +384,6 @@ BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPar
             GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, TempMessage, MAX_PATH);
             Config.screenshots_directory = std::string(TempMessage);
             Config.is_default_screenshots_directory_used = selected;
-
-            search_plugins();
         }
         break;
     case WM_COMMAND:
