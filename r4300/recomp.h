@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -30,80 +30,83 @@
 #ifndef RECOMP_H
 #define RECOMP_H
 
-#include "../lua/luaDefine.h"
 #include "x86/assemble.h"
 
 typedef struct _precomp_instr
 {
-   void (*ops)();
-   union
-     {
-	struct
-	  {
-	     long long int *rs;
-	     long long int *rt;
-	     short immediate;
-	  } i;
-	struct
-	  {
-	     unsigned long inst_index;
-	  } j;
-	struct
-	  {
-	     long long int *rs;
-	     long long int *rt;
-	     long long int *rd;
-	     unsigned char sa;
-	     unsigned char nrd;
-	  } r;
-	struct
-	  {
-	     unsigned char base;
-	     unsigned char ft;
-	     short offset;
-	  } lf;
-	struct
-	  {
-	     unsigned char ft;
-	     unsigned char fs;
-	     unsigned char fd;
-	  } cf;
+	void (*ops)();
+
+	union
+	{
+		struct
+		{
+			long long int* rs;
+			long long int* rt;
+			short immediate;
+		} i;
+
+		struct
+		{
+			unsigned long inst_index;
+		} j;
+
+		struct
+		{
+			long long int* rs;
+			long long int* rt;
+			long long int* rd;
+			unsigned char sa;
+			unsigned char nrd;
+		} r;
+
+		struct
+		{
+			unsigned char base;
+			unsigned char ft;
+			short offset;
+		} lf;
+
+		struct
+		{
+			unsigned char ft;
+			unsigned char fs;
+			unsigned char fd;
+		} cf;
 #ifdef LUA_BREAKPOINTSYNC_INTERP
-	 unsigned char stype;
+		unsigned char stype;
 #endif
-     } f;
-   unsigned long addr;
-   unsigned long local_addr;
-   reg_cache_struct reg_cache_infos;
-//#ifdef LUA_TRACEINTERP
-	 void (*s_ops)();
-	 unsigned long src;
-//#endif
+	} f;
+
+	unsigned long addr;
+	unsigned long local_addr;
+	reg_cache_struct reg_cache_infos;
+	void (*s_ops)();
+	unsigned long src;
 } precomp_instr;
 
 typedef struct _precomp_block
 {
-   precomp_instr *block;
-   unsigned int start;
-   unsigned int end;
-   unsigned char *code;
-   unsigned int code_length;
-   unsigned int max_code_length;
-   void *jumps_table;
-   int jumps_number;
-   //unsigned char md5[16];
-   unsigned long adler32;
+	precomp_instr* block;
+	unsigned int start;
+	unsigned int end;
+	unsigned char* code;
+	unsigned int code_length;
+	unsigned int max_code_length;
+	void* jumps_table;
+	int jumps_number;
+	//unsigned char md5[16];
+	unsigned long adler32;
 } precomp_block;
 
-void recompile_block(long *source, precomp_block *block, unsigned long func);
-void init_block(long *source, precomp_block *block);
+void recompile_block(long* source, precomp_block* block, unsigned long func);
+void init_block(long* source, precomp_block* block);
 void recompile_opcode();
 void prefetch_opcode(unsigned long op);
 void dyna_jump();
 void dyna_start(void (*code)());
 void dyna_stop();
 
-extern precomp_instr *dst;
+extern precomp_instr* dst;
 
 #include "x86/regcache.h"
 

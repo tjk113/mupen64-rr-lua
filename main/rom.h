@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -31,47 +31,77 @@
 #ifndef ROM_H
 #define ROM_H
 
-int rom_read(const char *argv);
-int fill_header(const char *argv);
-bool iequals(const std::string& a, const std::string& b);
+int rom_read(const char* argv);
+int fill_header(const char* argv);
+bool is_case_insensitive_equal(const std::string& a, const std::string& b);
 bool validRomExt(const char* filename);
-void calculateMD5(const char *argv, unsigned char digest[16]);
-extern unsigned char *rom;
-extern int taille_rom;
+void calculateMD5(const char* argv, unsigned char digest[16]);
+extern unsigned char* rom;
+extern int romByteCount;
 
 extern const char* getExt(const char* filename);
 extern void stripExt(char* fname);
 extern bool validRomExt(const char* filename);
 
-typedef struct _rom_header
+typedef struct s_rom_header
 {
-   unsigned char init_PI_BSB_DOM1_LAT_REG;
-   unsigned char init_PI_BSB_DOM1_PGS_REG;
-   unsigned char init_PI_BSB_DOM1_PWD_REG;
-   unsigned char init_PI_BSB_DOM1_PGS_REG2;
-   unsigned long ClockRate;
-   unsigned long PC;
-   unsigned long Release;
-   unsigned long CRC1;
-   unsigned long CRC2;
-   unsigned long Unknown[2];
-   unsigned char nom[20];
-   unsigned long unknown;
-   unsigned long Manufacturer_ID;
-   unsigned short Cartridge_ID;
-   unsigned short Country_code;
-   unsigned long Boot_Code[1008];
-} rom_header;
-extern rom_header *ROM_HEADER;
+	unsigned char init_PI_BSB_DOM1_LAT_REG;
+	unsigned char init_PI_BSB_DOM1_PGS_REG;
+	unsigned char init_PI_BSB_DOM1_PWD_REG;
+	unsigned char init_PI_BSB_DOM1_PGS_REG2;
+	unsigned long ClockRate;
+	unsigned long PC;
+	unsigned long Release;
+	unsigned long CRC1;
+	unsigned long CRC2;
+	unsigned long Unknown[2];
+	unsigned char nom[20];
+	unsigned long unknown;
+	unsigned long Manufacturer_ID;
+	unsigned short Cartridge_ID;
+	unsigned short Country_code;
+	unsigned long Boot_Code[1008];
+} t_rom_header;
 
+extern t_rom_header* ROM_HEADER;
 
 
 typedef struct _rom_settings
 {
-   char goodname[256];
-   int eeprom_16kb;
-   char MD5[33];
+	char goodname[256];
+	int eeprom_16kb;
+	char MD5[33];
 } rom_settings;
+
 extern rom_settings ROM_SETTINGS;
+
+std::string country_code_to_country_name(int country_code);
+
+inline static void rom_byteswap(uint8_t* rom)
+{
+	uint8_t tmp = 0;
+
+	if (rom[0] == 0x37)
+	{
+		for (size_t i = 0; i < (0x40 / 2); i++)
+		{
+			tmp = rom[i * 2];
+			rom[i * 2] = rom[i * 2 + 1];
+			rom[i * 2 + 1] = tmp;
+		}
+	}
+	if (rom[0] == 0x40)
+	{
+		for (size_t i = 0; i < (0x40 / 4); i++)
+		{
+			tmp = rom[i * 4];
+			rom[i * 4] = rom[i * 4 + 3];
+			rom[i * 4 + 3] = tmp;
+			tmp = rom[i * 4 + 1];
+			rom[i * 4 + 1] = rom[i * 4 + 2];
+			rom[i * 4 + 2] = tmp;
+		}
+	}
+}
 
 #endif

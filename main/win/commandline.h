@@ -1,8 +1,8 @@
 /***************************************************************************
-                          commandline.h  -  description
-                             -------------------
-    copyright            : (C) 2003 by ShadowPrince
-    email                : shadow@emulation64.com
+						  commandline.h  -  description
+							 -------------------
+	copyright            : (C) 2003 by ShadowPrince
+	email                : shadow@emulation64.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -12,12 +12,13 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
 #ifndef COMMANDLINE_H
 #define COMMANDLINE_H
 #include <windows.h>
 
-typedef enum {
+typedef enum
+{
 	CMDLINE_AUDIO_PLUGIN,
 	CMDLINE_VIDEO_PLUGIN,
 	CMDLINE_CONTROLLER_PLUGIN,
@@ -32,15 +33,15 @@ typedef enum {
 	CMDLINE_LUA,
 	CMDLINE_SAVESTATE,
 	CMDLINE_MAX_NUMBER
-}CmdLineParameterType;
+} CmdLineParameterType;
 
-void SaveCmdLineParameter(char *cmdline);
-void GetCmdLineParameter(CmdLineParameterType arg, char *buf);
+void SaveCmdLineParameter(char* cmdline);
+void GetCmdLineParameter(CmdLineParameterType arg, char* buf);
 BOOL StartGameByCommandLine();
 BOOL GuiDisabled();
 BOOL CmdLineParameterExist(CmdLineParameterType param);
 
-extern BOOL cmdlineMode; 
+extern BOOL cmdlineMode;
 extern BOOL cmdlineSave;
 extern BOOL cmdlineNoGui;
 #endif

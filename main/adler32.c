@@ -46,7 +46,7 @@
 /* ========================================================================= */
 uLong ZEXPORT adler32(
     uLong adler,
-    const Bytef *buf,
+    const Bytef* buf,
     uInt len)
 {
     unsigned long s1 = adler & 0xffff;
@@ -55,18 +55,23 @@ uLong ZEXPORT adler32(
 
     if (buf == Z_NULL) return 1L;
 
-    while (len > 0) {
+    while (len > 0)
+    {
         k = len < NMAX ? (int)len : NMAX;
         len -= k;
-        while (k >= 16) {
+        while (k >= 16)
+        {
             DO16(buf);
             buf += 16;
             k -= 16;
         }
-        if (k != 0) do {
-            s1 += *buf++;
-            s2 += s1;
-        } while (--k);
+        if (k != 0)
+            do
+            {
+                s1 += *buf++;
+                s2 += s1;
+            }
+            while (--k);
         MOD(s1);
         MOD(s2);
     }

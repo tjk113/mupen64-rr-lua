@@ -1,104 +1,73 @@
-//Based on recent roms but better
 #include "LuaConsole.h"
 #include "Recent.h"
-
-#ifdef _WIN32
+#include <algorithm>
 #include <windows.h>
 #include "win/main_win.h"
-#include "../winproject/resource.h" //for menu id
-#endif
+#include "../winproject/resource.h"
+#include "../main/win/Config.hpp"
 
-BOOL freezeRecentScript;
-
-//takes config and puts the entries to menu
-void BuildRecentScriptsMenu(HWND hwnd) {
-	int i;
-	bool empty = false;
-	MENUITEMINFO menuinfo = { 0 };
-	HMENU hMenu = GetMenu(hwnd);
-	HMENU hSubMenu = GetSubMenu(hMenu, 5);
-	hSubMenu = GetSubMenu(hSubMenu, 2);
-	//DeleteMenu(hSubMenu, ID_LUA_RECENT, MF_BYCOMMAND); //remove the "no recent scripts" entry, add later if in fact no recent
-	
-	menuinfo.cbSize = sizeof(MENUITEMINFO);
-	menuinfo.fMask = MIIM_TYPE | MIIM_ID;
-	menuinfo.fType = MFT_STRING;
-	menuinfo.fState = MFS_ENABLED;
-	for (i = 0; i < LUA_MAX_RECENT; i++) {
-		if (strcmp(Config.RecentScripts[i], "") == 0)
+void lua_recent_scripts_build(int32_t reset)
+{
+	HMENU h_menu = GetMenu(mainHWND);
+	for (size_t i = 0; i < Config.recent_lua_script_paths.size(); i++)
+	{
+		if (Config.recent_lua_script_paths[i].empty())
 		{
-			if (i == 0)
-			{
-				menuinfo.dwTypeData = "No recent scripts";
-				empty = true;
-			}
-			else break;
+			continue;
 		}
-		else
-			menuinfo.dwTypeData = Config.RecentScripts[i];
-
-		
-		menuinfo.cch = strlen(menuinfo.dwTypeData);
-		menuinfo.wID = ID_LUA_RECENT + i;
-		InsertMenuItem(hSubMenu, i+3, TRUE, &menuinfo);
-		if (empty)  EnableMenuItem(hSubMenu, ID_LUA_RECENT, MF_DISABLED);
-	}
-}
-
-void ClearRecent(BOOL clear_array) {
-	int i;
-	HMENU hMenu;
-
-	hMenu = GetMenu(mainHWND);
-	for (i = 0; i < LUA_MAX_RECENT; i++) {
-		DeleteMenu(hMenu, ID_LUA_RECENT + i, MF_BYCOMMAND);
-	}
-	if (clear_array) {
-		memset(Config.RecentScripts, 0, LUA_MAX_RECENT * sizeof(Config.RecentScripts[0]));
+		DeleteMenu(h_menu, ID_LUA_RECENT + i, MF_BYCOMMAND);
 	}
 
-}
-
-void RefreshRecent()
-{
-	//nuke the menu 
-	ClearRecent(FALSE);
-	//rebuild
-	BuildRecentScriptsMenu(mainHWND);
-
-
-}
-
-
-//Adds path to recent paths, if already in list then just moves things around
-//newer scripts are earlier in array
-void AddToRecentScripts(char* path)
-{
-	if (Config.RecentScriptsFreeze) return; // fuck off?
-
-	int i = 0;
-	//Either finds index of path in recent list, or stops at last one
-	//notice how it doesn't matter if last==path or not, we do same swapping later
-	for (; i<LUA_MAX_RECENT-1; ++i)
+	if (reset)
 	{
-		//if matches or empty (list is not full), break
-		if (Config.RecentScripts[i][0]==0 || !strcmp(Config.RecentScripts[i], path)) break;
+		Config.recent_lua_script_paths.clear();
 	}
-	//now swap all elements backwards starting from `i`
-	for (int j = i; j>0; --j)
+
+	HMENU h_sub_menu = GetSubMenu(h_menu, 6);
+	h_sub_menu = GetSubMenu(h_sub_menu, 3);
+
+	MENUITEMINFO menu_info = {0};
+	menu_info.cbSize = sizeof(MENUITEMINFO);
+	menu_info.fMask = MIIM_TYPE | MIIM_ID;
+	menu_info.fType = MFT_STRING;
+	menu_info.fState = MFS_ENABLED;
+
+	for (size_t i = 0; i < Config.recent_lua_script_paths.size(); i++)
 	{
-		strcpy(Config.RecentScripts[j], Config.RecentScripts[j-1]);
+		if (Config.recent_lua_script_paths[i].empty())
+		{
+			continue;
+		}
+		menu_info.dwTypeData = (LPSTR)Config.recent_lua_script_paths[i].c_str();
+		menu_info.cch = strlen(menu_info.dwTypeData);
+		menu_info.wID = ID_LUA_RECENT + i;
+		InsertMenuItem(h_sub_menu, i + 3, TRUE, &menu_info);
 	}
-	//now write to top
-	strcpy(Config.RecentScripts[0], path);
-	//rebuild menu
-	RefreshRecent();
 }
 
-void RunRecentScript(WORD menuItem)
+void lua_recent_scripts_add(const std::string& path)
 {
-		char path[MAX_PATH];
-		int index = menuItem - ID_LUA_RECENT;
-		sprintf(path, Config.RecentScripts[index]);
-		LuaOpenAndRun(path);
+	if (Config.is_recent_scripts_frozen)
+	{
+		return;
+	}
+	if (Config.recent_lua_script_paths.size() > 5)
+	{
+		Config.recent_lua_script_paths.pop_back();
+	}
+	std::erase(Config.recent_lua_script_paths, path);
+	Config.recent_lua_script_paths.insert(
+		Config.recent_lua_script_paths.begin(), path);
+	lua_recent_scripts_build();
+}
+
+int32_t lua_recent_scripts_run(uint16_t menu_item_id)
+{
+	const int index = menu_item_id - ID_LUA_RECENT;
+	if (index >= 0 && index < Config.recent_lua_script_paths.size())
+	{
+		LuaOpenAndRun(Config.recent_lua_script_paths[index].c_str());
+		return 1;
+	}
+	return 0;
 }

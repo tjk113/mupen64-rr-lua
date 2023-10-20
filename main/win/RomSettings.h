@@ -1,8 +1,8 @@
 /***************************************************************************
-                          RomSettings.h  -  description
-                             -------------------
-    copyright            : (C) 2003 by ShadowPrince
-    email                : shadow@emulation64.com
+						  RomSettings.h  -  description
+							 -------------------
+	copyright            : (C) 2003 by ShadowPrince
+	email                : shadow@emulation64.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -14,14 +14,16 @@
  *                                                                         *
  ***************************************************************************/
 
-typedef struct _DEFAULT_ROM_SETTINGS {
-     unsigned char Version ;
-     char GfxPluginName[100];
-     char InputPluginName[100];
-     char SoundPluginName[100];
-     char RspPluginName[100];
-    
+typedef struct _DEFAULT_ROM_SETTINGS
+{
+	unsigned char Version;
+	char GfxPluginName[100];
+	char InputPluginName[100];
+	char SoundPluginName[100];
+	char RspPluginName[100];
 } DEFAULT_ROM_SETTINGS;
 
-DEFAULT_ROM_SETTINGS GetDefaultRomSettings(char *Section);
-void saveDefaultRomSettings(char *Section, DEFAULT_ROM_SETTINGS DefaultRomSettings);
+char* trim(char* str);
+DEFAULT_ROM_SETTINGS GetDefaultRomSettings(char* Section);
+void saveDefaultRomSettings(char* Section,
+                            DEFAULT_ROM_SETTINGS DefaultRomSettings);

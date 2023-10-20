@@ -1,70 +1,156 @@
 #ifndef LUA_CONSOLE_H
 #define LUA_CONSOLE_H
 
-#include "luaDefine.h"
+#include "include/lua.hpp"
 
-//#ifdef LUA_MODULEIMPL
-
-
-//識別子衝突対策
-//本当はヘッダ分割すべきか
-#include "../r4300/r4300.h"
-
-#ifndef LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include <Windows.h>
-bool IsLuaConsoleMessage(MSG* msg);
-void InitializeLuaDC(HWND mainWnd);
-void NewLuaScript(void(*callback)());
-void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
-#endif
+#include <locale>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <map>
+#include <cstdint>
+#include <gdiplus.h>
+#include <d2d1.h>
+#include <d2d1helper.h>
+#include <dwrite.h>
+#include <wincodec.h>
+#include <functional>
+#include <queue>
+#include <md5.h>
+#include <assert.h>
+#include <filesystem>
+#include <mutex>
+#include <stack>
 
-void LuaReload();
-void LuaOpenAndRun(const char *path);
-void CloseAllLuaScript();
+typedef struct s_window_procedure_params {
+	HWND wnd;
+	UINT msg;
+	WPARAM w_param;
+	LPARAM l_param;
+} t_window_procedure_params;
+
+void NewLuaScript();
+void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
+
+void ConsoleWrite(HWND wnd, const char* str);
+void LuaOpenAndRun(const char* path);
 void AtUpdateScreenLuaCallback();
 void AtVILuaCallback();
-void GetLuaMessage();
 void AtInputLuaCallback(int n);
 void AtIntervalLuaCallback();
+void AtPlayMovieLuaCallback();
+void AtStopMovieLuaCallback();
 void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
 void AtResetCallback();
-
-void LuaBreakpointSyncPure();
-void LuaBreakpointSyncInterp();
-void LuaDCUpdate(int redraw);
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
-
+void close_all_scripts();
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
-void instrStr2(unsigned long pc, unsigned long w, char* buffer);
 
-//無理やりinline関数に
-namespace LuaEngine {
-void PCBreak(void*,unsigned long);
-extern void *pcBreakMap_[0x800000/4];
-}
+static uint32_t bitmap_color_mask = RGB(255, 0, 255);
 
-inline void LuaPCBreakPure(){
-	void *p = LuaEngine::pcBreakMap_[(interp_addr&0x7FFFFF)>>2];
-	if(p)LuaEngine::PCBreak(p, interp_addr);
-}
-inline void LuaPCBreakInterp(){
-	void *p = LuaEngine::pcBreakMap_[(PC->addr&0x7FFFFF)>>2];
-	if(p)LuaEngine::PCBreak(p, PC->addr);
-}
+enum class Renderer {
+	None,
+	GDIMixed,
+	Direct2D
+};
+
+class LuaEnvironment {
+public:
+	bool stopping = false;
+
+	/**
+	 * \brief Creates a lua environment and runs it if the operation succeeds
+	 * \param path The script path
+	 * \param wnd The associated window
+	 * \return A pointer to a lua environment object, or NULL if the operation failed and an error string
+	 */
+	static std::pair<LuaEnvironment*, std::string> create(std::filesystem::path path, HWND wnd);
+	static void destroy(LuaEnvironment* lua_environment);
+	Renderer renderer = Renderer::GDIMixed;
+
+	std::filesystem::path path;
+	HDC dc = nullptr;
+	int dc_width, dc_height = 0;
+	ID2D1Factory* d2d_factory = nullptr;
+	ID2D1DCRenderTarget* d2d_render_target = nullptr;
+	IDWriteFactory* dw_factory = nullptr;
+	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
+	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
+	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
+	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
+
+	/**
+	 * \brief Destroys and stops the environment
+	 */
+	~LuaEnvironment();
+
+	void create_renderer();
+	void destroy_renderer();
+
+	void pre_draw();
+	void post_draw();
+
+	void setBrush(HBRUSH h);
+	void selectBrush();
+	void setPen(HPEN h);
+	void selectPen();
+	void setFont(HFONT h);
+	void selectFont();
+	void setTextColor(COLORREF c);
+	void selectTextColor();
+	void setBackgroundColor(COLORREF c, int mode = OPAQUE);
+	void selectBackgroundColor();
+	//calls all functions that lua script has defined as callbacks, reads them from registry
+	//returns true at fail
+	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
+								   const char* key);
+
+	ID2D1Bitmap* get_loose_bitmap(const char* identifier) {
+
+		// look for bitmap in the normal cache
+		if (d2d_bitmap_cache.contains(identifier)) {
+			return d2d_bitmap_cache[identifier];
+		}
+
+		// look for it in render target map
+		if (d2d_bitmap_render_target.contains(identifier)) {
+			ID2D1Bitmap* bitmap;
+			d2d_bitmap_render_target[identifier]->GetBitmap(&bitmap);
+			return bitmap;
+		}
+
+		return nullptr;
+	}
+	HWND hwnd;
+	lua_State* L;
+
+private:
+	void deleteLuaState();
+	void registerAsPackage(lua_State* L, const char* name,
+						   const luaL_Reg reg[]);
+	void registerFunctions();
+	void setGDIObject(HGDIOBJ* save, HGDIOBJ newobj);
+	void selectGDIObject(HGDIOBJ p);
+	void deleteGDIObject(HGDIOBJ p, int stockobj);
+	// gdi objects are filled in on run(), then deleted on stop()
+	HBRUSH brush;
+	HPEN pen;
+	HFONT font;
+	COLORREF col, bkcol;
+	int bkmode;
+};
 
 extern unsigned long lastInputLua[4];
 extern unsigned long rewriteInputLua[4];
 extern bool rewriteInputFlagLua[4];
 extern bool enableTraceLog;
 extern bool traceLogMode;
-extern bool enablePCBreak;
-extern bool maximumSpeedMode;
-extern bool anyLuaRunning;
 extern unsigned long gdiPlusToken;
 
-#endif
+extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
-//#endif
+#endif

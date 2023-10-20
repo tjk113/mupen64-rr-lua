@@ -13,20 +13,22 @@
 void OpenDV( HINSTANCE hInst );
 void DVMsg( int icon, char *Message, ...);
 void CloseDV( void );*/
+#ifndef DEBUGVIEW_H
+#define DEBUGVIEW_H
 
-void (__cdecl* FileLog)( char *fmt, ... );
-HWND (__cdecl* OpenDV)( HINSTANCE hInst, int mode );
-void (__cdecl* DVMsg)( int icon, char *Message, ... );
-void (__cdecl* CloseDV)( void );
-void (__cdecl* ShowDV)( int mode );
-void (__cdecl* SetUserIcon)( int iconnum, HICON hIcon );
-void (__cdecl* SetUserIconName)( int iconnum, char *messagetype );
-void (__cdecl* DVClear)( void );
+inline void(__cdecl* FileLog)(char* fmt, ...);
+inline HWND(__cdecl* OpenDV)(HINSTANCE hInst, int mode);
+inline void(__cdecl* DVMsg)(int icon, char* Message, ...);
+inline void(__cdecl* CloseDV)(void);
+inline void(__cdecl* ShowDV)(int mode);
+inline void(__cdecl* SetUserIcon)(int iconnum, HICON hIcon);
+inline void(__cdecl* SetUserIconName)(int iconnum, char* messagetype);
+inline void(__cdecl* DVClear)(void);
 
 /**************************************************************************
    Icon types
 **************************************************************************/
-#define DV_NOICON		-1
+#define DV_NOICON		(-1)
 #define DV_INFO			0
 #define	DV_WARNING		1
 #define DV_ERROR		2
@@ -49,3 +51,4 @@ void (__cdecl* DVClear)( void );
 #define DV_HIDE			0
 #define	DV_SHOW 		1
 #define DV_AUTO 		2
+#endif // DEBUGVIEW_H

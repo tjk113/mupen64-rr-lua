@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -31,13 +31,12 @@
 #define LOADSTATE 2
 
 extern int savestates_job;
-extern bool savestates_ignore_nonmovie_warnings;
 extern bool st_skip_dma;
 
 void savestates_save();
 void savestates_load(bool silenceNotFoundError);
 
 void savestates_select_slot(unsigned int s);
-void savestates_select_filename(const char *fn);
+void savestates_select_filename(const char* fn);
 
-unsigned const char * savestates_get_selected_filename();
+unsigned const char* savestates_get_selected_filename();

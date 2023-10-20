@@ -8,13 +8,15 @@
 #include "assemble.h"
 #include "gcop1_helpers.h"
 
-static void patch_jump(unsigned long addr, unsigned long target) {
+static void patch_jump(unsigned long addr, unsigned long target)
+{
     long diff = target - addr;
     assert(-128 <= diff && diff < 128);
     (*inst_pointer)[addr - 1] = (unsigned char)(diff & 0xFF);
 }
 
-static void gencall_noret(void (*fn)()) {
+static void gencall_noret(void (*fn)())
+{
     mov_m32_imm32((unsigned long*)(&PC), (unsigned long)(dst));
     mov_reg32_imm32(EAX, (unsigned int)fn);
     call_reg32(EAX);
@@ -117,7 +119,7 @@ void gencheck_float_output_valid()
  */
 void gencheck_float_conversion_valid()
 {
-    if (!emulate_float_crashes)
+    if (!Config.is_float_exception_propagation_enabled)
         return;
 
     fstsw_ax();

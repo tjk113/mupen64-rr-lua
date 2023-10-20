@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -37,19 +37,19 @@
 //static unsigned long pMFC0 = (unsigned long)(MFC0);
 void genmfc0()
 {
-   gencallinterp((unsigned long)MFC0, 0);
-   /*dst->local_addr = code_length;
-   mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-   call_m32((unsigned long *)(&pMFC0));
-   genupdate_system(0);*/
+    gencallinterp((unsigned long)MFC0, 0);
+    /*dst->local_addr = code_length;
+    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    call_m32((unsigned long *)(&pMFC0));
+    genupdate_system(0);*/
 }
 
 //static unsigned long pMTC0 = (unsigned long)(MTC0);
 void genmtc0()
 {
-   gencallinterp((unsigned long)MTC0, 0);
-   /*dst->local_addr = code_length;
-   mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-   call_m32((unsigned long *)(&pMTC0));
-   genupdate_system(0);*/
+    gencallinterp((unsigned long)MTC0, 0);
+    /*dst->local_addr = code_length;
+    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    call_m32((unsigned long *)(&pMTC0));
+    genupdate_system(0);*/
 }

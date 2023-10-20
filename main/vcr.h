@@ -5,13 +5,14 @@
 
 #ifdef VCR_SUPPORT
 
-#ifndef __WIN32__
-# include "winlnxdefs.h"
-#else
 # include <windows.h>
-#endif
 
-#include "plugin.h"
+#include "plugin.hpp"
+
+#ifdef __cplusplus	//don't include cpp headers when .c compilation unit includes the file
+
+#include <string>	//(also done later for ffmpeg functions)
+#endif
 
 #define SUCCESS (0)
 #define WRONG_FORMAT (1)
@@ -22,9 +23,16 @@
 #define INVALID_FRAME (6)
 #define UNKNOWN_ERROR (7)
 
-#define MOVIE_START_FROM_SNAPSHOT	(1<<0)
-#define MOVIE_START_FROM_NOTHING	(1<<1)
-#define MOVIE_START_FROM_EEPROM     (1<<2)
+#define VCR_PLAYBACK_SUCCESS (0)
+#define VCR_PLAYBACK_ERROR (-1)
+#define VCR_PLAYBACK_SAVESTATE_MISSING (-2)
+#define VCR_PLAYBACK_FILE_BUSY (-3)
+#define VCR_PLAYBACK_INCOMPATIBLE (-4)
+
+#define MOVIE_START_FROM_SNAPSHOT			(1<<0)
+#define MOVIE_START_FROM_NOTHING			(1<<1)
+#define MOVIE_START_FROM_EEPROM				(1<<2)
+#define MOVIE_START_FROM_EXISTING_SNAPSHOT	(1<<3)
 
 #define CONTROLLER_X_PRESENT(x)	(1<<(x))
 #define CONTROLLER_1_PRESENT	(1<<0)
@@ -69,85 +77,103 @@
 
 extern bool gStopAVI;
 
-extern void VCR_getKeys( int Control, BUTTONS *Keys );
+extern void VCR_getKeys(int Control, BUTTONS* Keys);
 extern void VCR_updateScreen();
-extern void VCR_aiDacrateChanged( int SystemType );
+extern void VCR_aiDacrateChanged(system_type type);
 extern void VCR_aiLenChanged();
 
 extern BOOL VCR_isActive();
 extern BOOL VCR_isIdle(); // not the same as !isActive()
+extern BOOL VCR_isStarting();
+extern BOOL VCR_isStartingAndJustRestarted();
 extern BOOL VCR_isPlaying();
 extern BOOL VCR_isRecording();
 extern BOOL VCR_isCapturing();
 extern void VCR_invalidatedCaptureFrame();
+extern const char* VCR_getMovieFilename();
 extern BOOL VCR_getReadOnly();
 extern bool VCR_isLooping();
+extern bool VCR_isRestarting();
 extern void VCR_setReadOnly(BOOL val);
 extern unsigned long VCR_getLengthVIs();
 extern unsigned long VCR_getLengthSamples();
 extern void VCR_setLengthVIs(unsigned long val);
 extern void VCR_setLengthSamples(unsigned long val);
 extern void VCR_updateFrameCounter();
-extern void VCR_toggleReadOnly ();
+extern void VCR_toggleReadOnly();
 extern void VCR_toggleLoopMovie();
 
-extern void VCR_movieFreeze (char** buf, unsigned long* size);
-extern int VCR_movieUnfreeze (const char* buf, unsigned long size);
+extern void VCR_movieFreeze(char** buf, unsigned long* size);
+extern int VCR_movieUnfreeze(const char* buf, unsigned long size);
 extern void VCR_clearAllSaveData();
 
-extern int VCR_startRecord( const char *filename, unsigned short flags, const char *authorUTF8, const char *descriptionUTF8, int defExt);
+extern int VCR_startRecord(const char* filename, unsigned short flags,
+                           const char* authorUTF8, const char* descriptionUTF8,
+                           int defExt);
 extern int VCR_stopRecord(int defExt);
-extern int VCR_startPlayback( const char *filename, const char *authorUTF8, const char *descriptionUTF8 );
-extern int VCR_restartPlayback();
+extern int VCR_startPlayback(const std::string &filename, const char* authorUTF8,
+                             const char* descriptionUTF8);
 extern int VCR_stopPlayback();
-extern int VCR_startCapture( const char *recFilename, const char *aviFilename, bool codecDialog );
+extern int VCR_startCapture(const char* recFilename, const char* aviFilename,
+                            bool codecDialog);
 extern int VCR_stopCapture();
+
+//ffmpeg
+#ifdef __cplusplus
+int VCR_StartFFmpegCapture(const std::string& outputName,
+                           const std::string& arguments);
+void VCR_StopFFmpegCapture();
+#endif
 
 extern void VCR_coreStopped();
 
-extern void printWarning(char*);
-extern void printError(char*);
+extern void printWarning(const char*);
+extern void printError(const char*);
+
+void vcr_recent_movies_build(int32_t reset = 0);
+void vcr_recent_movies_add(const std::string path);
+int32_t vcr_recent_movies_play(uint16_t menu_item_id);
 
 #pragma pack(push, 1)
 //#pragms pack(1)
-typedef struct 
+typedef struct
 {
-	unsigned long	magic;		// M64\0x1a
-	unsigned long	version;	// 3
-	unsigned long	uid;		// used to match savestates to a particular movie
+	unsigned long magic; // M64\0x1a
+	unsigned long version; // 3
+	unsigned long uid; // used to match savestates to a particular movie
 
-	unsigned long	length_vis; // number of "frames" in the movie
-	unsigned long	rerecord_count;
-	unsigned char   vis_per_second; // "frames" per second
-	unsigned char   num_controllers;
-	unsigned short  reserved1;
-	unsigned long	length_samples;
+	unsigned long length_vis; // number of "frames" in the movie
+	unsigned long rerecord_count;
+	unsigned char vis_per_second; // "frames" per second
+	unsigned char num_controllers;
+	unsigned short reserved1;
+	unsigned long length_samples;
 
-	unsigned short	startFlags; // should equal 2 if the movie is from a clean start
-	unsigned short  reserved2;
-	unsigned long	controllerFlags;
-	unsigned long	reservedFlags [8];
+	unsigned short startFlags;
+	// should equal 2 if the movie is from a clean start
+	unsigned short reserved2;
+	unsigned long controllerFlags;
+	unsigned long reservedFlags[8];
 
-	char	oldAuthorInfo [48];
-	char	oldDescription [80];
-	char	romNom [32]; // internal rom name
-	unsigned long	romCRC;
-	unsigned short	romCountry;
-	char	reservedBytes [56];
-	char	videoPluginName [64];
-	char	soundPluginName [64];
-	char	inputPluginName [64];
-	char	rspPluginName [64];
-	char	authorInfo [MOVIE_AUTHOR_DATA_SIZE]; // utf8-encoded
-	char	description [MOVIE_DESCRIPTION_DATA_SIZE]; // utf8-encoded
-	
-
+	char oldAuthorInfo[48];
+	char oldDescription[80];
+	char romNom[32]; // internal rom name
+	unsigned long romCRC;
+	unsigned short romCountry;
+	char reservedBytes[56];
+	char videoPluginName[64];
+	char soundPluginName[64];
+	char inputPluginName[64];
+	char rspPluginName[64];
+	char authorInfo[MOVIE_AUTHOR_DATA_SIZE]; // utf8-encoded
+	char description[MOVIE_DESCRIPTION_DATA_SIZE]; // utf8-encoded
 } SMovieHeader; // should be exactly 1024 bytes
 #pragma pack(pop)
-	
+
 
 extern SMovieHeader VCR_getHeaderInfo(const char* filename);
 extern char VCR_Lastpath[MAX_PATH];
+extern int m_task;
 
 #endif // VCR_SUPPORT
 

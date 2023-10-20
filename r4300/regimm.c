@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -35,412 +35,420 @@
 
 void BLTZ()
 {
-   local_rs = irs;
-   PC++;
-   delay_slot=1;
-   PC->ops();
-   update_count();
-   delay_slot=0;
-   if (local_rs < 0 && !skip_jump)
-     PC += (PC-2)->f.i.immediate-1;
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    PC++;
+    delay_slot = 1;
+    PC->ops();
+    update_count();
+    delay_slot = 0;
+    if (local_rs < 0 && !skip_jump)
+        PC += (PC - 2)->f.i.immediate - 1;
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BLTZ_OUT()
 {
-   local_rs = irs;
-   jump_target = (long)PC->f.i.immediate;
-   PC++;
-   delay_slot=1;
-   PC->ops();
-   update_count();
-   delay_slot=0;
-   if (!skip_jump && local_rs < 0)
-     jump_to(PC->addr + ((jump_target-1)<<2));
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    jump_target = (long)PC->f.i.immediate;
+    PC++;
+    delay_slot = 1;
+    PC->ops();
+    update_count();
+    delay_slot = 0;
+    if (!skip_jump && local_rs < 0)
+        jump_to(PC->addr + ((jump_target - 1) << 2));
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BLTZ_IDLE()
 {
-   long skip;
-   if (irs < 0)
-     {
-	update_count();
-	skip = next_interupt - Count;
-	if (skip > 3) Count += (skip & 0xFFFFFFFC);
-	else BLTZ();
-     }
-   else BLTZ();
+    long skip;
+    if (core_irs < 0)
+    {
+        update_count();
+        skip = next_interupt - core_Count;
+        if (skip > 3)
+            core_Count += (skip & 0xFFFFFFFC);
+        else BLTZ();
+    }
+    else BLTZ();
 }
 
 void BGEZ()
 {
-   local_rs = irs;
-   PC++;
-   delay_slot=1;
-   PC->ops();
-   update_count();
-   delay_slot=0;
-   if (local_rs >= 0 && !skip_jump)
-     PC += (PC-2)->f.i.immediate - 1;
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    PC++;
+    delay_slot = 1;
+    PC->ops();
+    update_count();
+    delay_slot = 0;
+    if (local_rs >= 0 && !skip_jump)
+        PC += (PC - 2)->f.i.immediate - 1;
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BGEZ_OUT()
 {
-   local_rs = irs;
-   jump_target = (long)PC->f.i.immediate;
-   PC++;
-   delay_slot=1;
-   PC->ops();
-   update_count();
-   delay_slot=0;
-   if (!skip_jump && local_rs >= 0)
-     jump_to(PC->addr + ((jump_target-1)<<2));
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    jump_target = (long)PC->f.i.immediate;
+    PC++;
+    delay_slot = 1;
+    PC->ops();
+    update_count();
+    delay_slot = 0;
+    if (!skip_jump && local_rs >= 0)
+        jump_to(PC->addr + ((jump_target - 1) << 2));
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BGEZ_IDLE()
 {
-   long skip;
-   if (irs >= 0)
-     {
-	update_count();
-	skip = next_interupt - Count;
-	if (skip > 3) Count += (skip & 0xFFFFFFFC);
-	else BGEZ();
-     }
-   else BGEZ();
+    long skip;
+    if (core_irs >= 0)
+    {
+        update_count();
+        skip = next_interupt - core_Count;
+        if (skip > 3)
+            core_Count += (skip & 0xFFFFFFFC);
+        else BGEZ();
+    }
+    else BGEZ();
 }
 
 void BLTZL()
 {
-   if (irs < 0)
-     {
-	PC++;
-	delay_slot=1;
-	PC->ops();
-	update_count();
-	delay_slot=0;
-	if(!skip_jump)
-	  PC += (PC-2)->f.i.immediate-1;
-     }
-   else
-     PC+=2;
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    if (core_irs < 0)
+    {
+        PC++;
+        delay_slot = 1;
+        PC->ops();
+        update_count();
+        delay_slot = 0;
+        if (!skip_jump)
+            PC += (PC - 2)->f.i.immediate - 1;
+    }
+    else
+        PC += 2;
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BLTZL_OUT()
 {
-   if (irs < 0)
-     {
-	jump_target = (long)PC->f.i.immediate;
-	PC++;
-	delay_slot=1;
-	PC->ops();
-	update_count();
-	delay_slot=0;
-	if (!skip_jump)
-	  jump_to(PC->addr + ((jump_target-1)<<2));
-     }
-   else
-     PC+=2;
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    if (core_irs < 0)
+    {
+        jump_target = (long)PC->f.i.immediate;
+        PC++;
+        delay_slot = 1;
+        PC->ops();
+        update_count();
+        delay_slot = 0;
+        if (!skip_jump)
+            jump_to(PC->addr + ((jump_target - 1) << 2));
+    }
+    else
+        PC += 2;
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BLTZL_IDLE()
 {
-   long skip;
-   if (irs < 0)
-     {
-	update_count();
-	skip = next_interupt - Count;
-	if (skip > 3) Count += (skip & 0xFFFFFFFC);
-	else BLTZL();
-     }
-   else BLTZL();
+    long skip;
+    if (core_irs < 0)
+    {
+        update_count();
+        skip = next_interupt - core_Count;
+        if (skip > 3)
+            core_Count += (skip & 0xFFFFFFFC);
+        else BLTZL();
+    }
+    else BLTZL();
 }
 
 void BGEZL()
 {
-   if (irs >= 0)
-     {
-	PC++;
-	delay_slot=1;
-	PC->ops();
-	update_count();
-	delay_slot=0;
-	if(!skip_jump)
-	  PC += (PC-2)->f.i.immediate-1;
-     }
-   else
-     PC+=2;
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    if (core_irs >= 0)
+    {
+        PC++;
+        delay_slot = 1;
+        PC->ops();
+        update_count();
+        delay_slot = 0;
+        if (!skip_jump)
+            PC += (PC - 2)->f.i.immediate - 1;
+    }
+    else
+        PC += 2;
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BGEZL_OUT()
 {
-   if (irs >= 0)
-     {
-	jump_target = (long)PC->f.i.immediate;
-	PC++;
-	delay_slot=1;
-	PC->ops();
-	update_count();
-	delay_slot=0;
-	if (!skip_jump)
-	  jump_to(PC->addr + ((jump_target-1)<<2));
-     }
-   else
-     PC+=2;
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    if (core_irs >= 0)
+    {
+        jump_target = (long)PC->f.i.immediate;
+        PC++;
+        delay_slot = 1;
+        PC->ops();
+        update_count();
+        delay_slot = 0;
+        if (!skip_jump)
+            jump_to(PC->addr + ((jump_target - 1) << 2));
+    }
+    else
+        PC += 2;
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BGEZL_IDLE()
 {
-   long skip;
-   if (irs >= 0)
-     {
-	update_count();
-	skip = next_interupt - Count;
-	if (skip > 3) Count += (skip & 0xFFFFFFFC);
-	else BGEZL();
-     }
-   else BGEZL();
+    long skip;
+    if (core_irs >= 0)
+    {
+        update_count();
+        skip = next_interupt - core_Count;
+        if (skip > 3)
+            core_Count += (skip & 0xFFFFFFFC);
+        else BGEZL();
+    }
+    else BGEZL();
 }
 
 void BLTZAL()
 {
-   local_rs = irs;
-   reg[31]=PC->addr+8;
-   if((&irs)!=(reg+31))
-     {
-	PC++;
-	delay_slot=1;
-	PC->ops();
-	update_count();
-	delay_slot=0;
-	if(local_rs < 0 && !skip_jump)
-	  PC += (PC-2)->f.i.immediate-1;
-     }
-   else printf("erreur dans bltzal\n");
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    reg[31] = PC->addr + 8;
+    if ((&core_irs) != (reg + 31))
+    {
+        PC++;
+        delay_slot = 1;
+        PC->ops();
+        update_count();
+        delay_slot = 0;
+        if (local_rs < 0 && !skip_jump)
+            PC += (PC - 2)->f.i.immediate - 1;
+    }
+    else printf("erreur dans bltzal\n");
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BLTZAL_OUT()
 {
-   local_rs = irs;
-   reg[31]=PC->addr+8;
-   if((&irs)!=(reg+31))
-     {
-	jump_target = (long)PC->f.i.immediate;
-	PC++;
-	delay_slot=1;
-	PC->ops();
-	update_count();
-	delay_slot=0;
-	if(!skip_jump && local_rs < 0)
-	  jump_to(PC->addr + ((jump_target-1)<<2));
-     }
-   else printf("erreur dans bltzal\n");
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    reg[31] = PC->addr + 8;
+    if ((&core_irs) != (reg + 31))
+    {
+        jump_target = (long)PC->f.i.immediate;
+        PC++;
+        delay_slot = 1;
+        PC->ops();
+        update_count();
+        delay_slot = 0;
+        if (!skip_jump && local_rs < 0)
+            jump_to(PC->addr + ((jump_target - 1) << 2));
+    }
+    else printf("erreur dans bltzal\n");
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BLTZAL_IDLE()
 {
-   long skip;
-   if (irs < 0)
-     {
-	update_count();
-	skip = next_interupt - Count;
-	if (skip > 3) Count += (skip & 0xFFFFFFFC);
-	else BLTZAL();
-     }
-   else BLTZAL();
+    long skip;
+    if (core_irs < 0)
+    {
+        update_count();
+        skip = next_interupt - core_Count;
+        if (skip > 3)
+            core_Count += (skip & 0xFFFFFFFC);
+        else BLTZAL();
+    }
+    else BLTZAL();
 }
 
 void BGEZAL()
 {
-   local_rs = irs;
-   reg[31]=PC->addr+8;
-   if((&irs)!=(reg+31))
-     {
-	PC++;
-	delay_slot=1;
-	PC->ops();
-	update_count();
-	delay_slot=0;
-	if(local_rs >= 0 && !skip_jump)
-	  PC += (PC-2)->f.i.immediate-1;
-     }
-   else printf("erreur dans bgezal\n");
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    reg[31] = PC->addr + 8;
+    if ((&core_irs) != (reg + 31))
+    {
+        PC++;
+        delay_slot = 1;
+        PC->ops();
+        update_count();
+        delay_slot = 0;
+        if (local_rs >= 0 && !skip_jump)
+            PC += (PC - 2)->f.i.immediate - 1;
+    }
+    else printf("erreur dans bgezal\n");
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BGEZAL_OUT()
 {
-   local_rs = irs;
-   reg[31]=PC->addr+8;
-   if((&irs)!=(reg+31))
-     {
-	jump_target = (long)PC->f.i.immediate;
-	PC++;
-	delay_slot=1;
-	PC->ops();
-	update_count();
-	delay_slot=0;
-	if(!skip_jump && local_rs >= 0)
-	  jump_to(PC->addr + ((jump_target-1)<<2));
-     }
-   else printf("erreur dans bgezal\n");
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    reg[31] = PC->addr + 8;
+    if ((&core_irs) != (reg + 31))
+    {
+        jump_target = (long)PC->f.i.immediate;
+        PC++;
+        delay_slot = 1;
+        PC->ops();
+        update_count();
+        delay_slot = 0;
+        if (!skip_jump && local_rs >= 0)
+            jump_to(PC->addr + ((jump_target - 1) << 2));
+    }
+    else printf("erreur dans bgezal\n");
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BGEZAL_IDLE()
 {
-   long skip;
-   if (irs >=0)
-     {
-	update_count();
-	skip = next_interupt - Count;
-	if (skip > 3) Count += (skip & 0xFFFFFFFC);
-	else BGEZAL();
-     }
-   else BGEZAL();
+    long skip;
+    if (core_irs >= 0)
+    {
+        update_count();
+        skip = next_interupt - core_Count;
+        if (skip > 3)
+            core_Count += (skip & 0xFFFFFFFC);
+        else BGEZAL();
+    }
+    else BGEZAL();
 }
 
 void BLTZALL()
 {
-   local_rs = irs;
-   reg[31]=PC->addr+8;
-   if((&irs)!=(reg+31))
-     {
-	if (local_rs < 0)
-	  {
-	     PC++;
-	     delay_slot=1;
-	     PC->ops();
-	     update_count();
-	     delay_slot=0;
-	     if(!skip_jump)
-	       PC += (PC-2)->f.i.immediate-1;
-	  }
-	else
-	  PC+=2;
-     }
-   else printf("erreur dans bltzall\n");
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    reg[31] = PC->addr + 8;
+    if ((&core_irs) != (reg + 31))
+    {
+        if (local_rs < 0)
+        {
+            PC++;
+            delay_slot = 1;
+            PC->ops();
+            update_count();
+            delay_slot = 0;
+            if (!skip_jump)
+                PC += (PC - 2)->f.i.immediate - 1;
+        }
+        else
+            PC += 2;
+    }
+    else printf("erreur dans bltzall\n");
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BLTZALL_OUT()
 {
-   local_rs = irs;
-   reg[31]=PC->addr+8;
-   if((&irs)!=(reg+31))
-     {
-	if (local_rs < 0)
-	  {
-	     jump_target = (long)PC->f.i.immediate;
-	     PC++;
-	     delay_slot=1;
-	     PC->ops();
-	     update_count();
-	     delay_slot=0;
-	     if (!skip_jump)
-	       jump_to(PC->addr + ((jump_target-1)<<2));
-	  }
-	else
-	  PC+=2;
-     }
-   else printf("erreur dans bltzall\n");
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    reg[31] = PC->addr + 8;
+    if ((&core_irs) != (reg + 31))
+    {
+        if (local_rs < 0)
+        {
+            jump_target = (long)PC->f.i.immediate;
+            PC++;
+            delay_slot = 1;
+            PC->ops();
+            update_count();
+            delay_slot = 0;
+            if (!skip_jump)
+                jump_to(PC->addr + ((jump_target - 1) << 2));
+        }
+        else
+            PC += 2;
+    }
+    else printf("erreur dans bltzall\n");
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BLTZALL_IDLE()
 {
-   long skip;
-   if (irs < 0)
-     {
-	update_count();
-	skip = next_interupt - Count;
-	if (skip > 3) Count += (skip & 0xFFFFFFFC);
-	else BLTZALL();
-     }
-   else BLTZALL();
+    long skip;
+    if (core_irs < 0)
+    {
+        update_count();
+        skip = next_interupt - core_Count;
+        if (skip > 3)
+            core_Count += (skip & 0xFFFFFFFC);
+        else BLTZALL();
+    }
+    else BLTZALL();
 }
 
 void BGEZALL()
 {
-   local_rs = irs;
-   reg[31]=PC->addr+8;
-   if((&irs)!=(reg+31))
-     {
-	if (local_rs >= 0)
-	  {
-	     PC++;
-	     delay_slot=1;
-	     PC->ops();
-	     update_count();
-	     delay_slot=0;
-	     if(!skip_jump)
-	       PC += (PC-2)->f.i.immediate-1;
-	  }
-	else
-	  PC+=2;
-     }
-   else printf("erreur dans bgezall\n");
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    reg[31] = PC->addr + 8;
+    if ((&core_irs) != (reg + 31))
+    {
+        if (local_rs >= 0)
+        {
+            PC++;
+            delay_slot = 1;
+            PC->ops();
+            update_count();
+            delay_slot = 0;
+            if (!skip_jump)
+                PC += (PC - 2)->f.i.immediate - 1;
+        }
+        else
+            PC += 2;
+    }
+    else printf("erreur dans bgezall\n");
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BGEZALL_OUT()
 {
-   local_rs = irs;
-   reg[31]=PC->addr+8;
-   if((&irs)!=(reg+31))
-     {
-	if (local_rs >= 0)
-	  {
-	     jump_target = (long)PC->f.i.immediate;
-	     PC++;
-	     delay_slot=1;
-	     PC->ops();
-	     update_count();
-	     delay_slot=0;
-	     if (!skip_jump)
-	       jump_to(PC->addr + ((jump_target-1)<<2));
-	  }
-	else
-	  PC+=2;
-     }
-   else printf("erreur dans bgezall\n");
-   last_addr = PC->addr;
-   if (next_interupt <= Count) gen_interupt();
+    local_rs = core_irs;
+    reg[31] = PC->addr + 8;
+    if ((&core_irs) != (reg + 31))
+    {
+        if (local_rs >= 0)
+        {
+            jump_target = (long)PC->f.i.immediate;
+            PC++;
+            delay_slot = 1;
+            PC->ops();
+            update_count();
+            delay_slot = 0;
+            if (!skip_jump)
+                jump_to(PC->addr + ((jump_target - 1) << 2));
+        }
+        else
+            PC += 2;
+    }
+    else printf("erreur dans bgezall\n");
+    last_addr = PC->addr;
+    if (next_interupt <= core_Count) gen_interupt();
 }
 
 void BGEZALL_IDLE()
 {
-   long skip;
-   if (irs >= 0)
-     {
-	update_count();
-	skip = next_interupt - Count;
-	if (skip > 3) Count += (skip & 0xFFFFFFFC);
-	else BGEZALL();
-     }
-   else BGEZALL();
+    long skip;
+    if (core_irs >= 0)
+    {
+        update_count();
+        skip = next_interupt - core_Count;
+        if (skip > 3)
+            core_Count += (skip & 0xFFFFFFFC);
+        else BGEZALL();
+    }
+    else BGEZALL();
 }

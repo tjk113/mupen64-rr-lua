@@ -4,7 +4,7 @@
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
  * email address: hacktarux@yahoo.fr
- * 
+ *
  * If you want to contribute to the project please contact
  * me first (maybe someone is already making what you are
  * planning to do).
@@ -27,20 +27,12 @@
  *
 **/
 
-char *get_currentpath();
-char *get_savespath();
-void display_loading_progress(int p);
-void display_MD5calculating_progress(int p);
-
-int ask_extension();
-int ask_bad();
-int ask_hack();
+const char* get_savespath();
 
 void new_frame();
 void new_vi();
 
 bool warn_recording();
-void warn_savestate(char* messageCaption, char* message);
-void warn_savestate(char* messageCaption, char* message, bool modal); // Overload
-
-void display_status(const char* status);
+void warn_savestate(const char* messageCaption, const char* message);
+void warn_savestate(const char* messageCaption, const char* message,
+                    bool modal); // Overload

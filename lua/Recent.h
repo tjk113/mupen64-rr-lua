@@ -1,12 +1,11 @@
 #pragma once
-#ifdef _WIN32
-#include <windows.h> //linux trolled
-					 // lol
-#endif
-#define LUA_MAX_RECENT 5
 
-//functions
-void AddToRecentScripts(char* path);
-void BuildRecentScriptsMenu(HWND);
-void RunRecentScript(WORD);
-void ClearRecent(BOOL);
+#define MAX_RECENT 10
+
+#ifdef __cplusplus
+#include <string>
+#endif
+
+void lua_recent_scripts_build(int32_t reset = 0);
+void lua_recent_scripts_add(const std::string& path);
+int32_t lua_recent_scripts_run(uint16_t menu_item_id);

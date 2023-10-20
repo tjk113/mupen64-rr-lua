@@ -1,8 +1,8 @@
 /***************************************************************************
-                          configdialog.h  -  description
-                             -------------------
-    copyright            : (C) 2003 by ShadowPrince
-    email                : shadow@emulation64.com
+						  configdialog.h  -  description
+							 -------------------
+	copyright            : (C) 2003 by ShadowPrince
+	email                : shadow@emulation64.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -12,25 +12,27 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
+#ifndef CONFIGDIALOG_H
+#define CONFIGDIALOG_H
 
 
 #include <Windows.h>
 
 void ChangeSettings(HWND hwndOwner);
-BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
+                           LPARAM lParam);
+BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam,
+                             LPARAM lParam);
 BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK AuditDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK LangInfoProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam,
+                                   LPARAM lParam);
+BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam,
+                          LPARAM lParam);
 
 
-void WriteCheckBoxValue( HWND hwnd, int resourceID , int value);
-int ReadCheckBoxValue( HWND hwnd, int resourceID);
-void WriteComboBoxValue(HWND hwnd,int ResourceID,char *PrimaryVal,char *DefaultVal);
-void ReadComboBoxValue(HWND hwnd,int ResourceID,char *ret);
-
-extern BOOL LuaCriticalSettingChangePending;
+void WriteComboBoxValue(HWND hwnd, int ResourceID, char* PrimaryVal,
+                        char* DefaultVal);
+void ReadComboBoxValue(HWND hwnd, int ResourceID, char* ret);
+#endif // CONFIGDIALOG_H
