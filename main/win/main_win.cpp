@@ -1111,6 +1111,7 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 		EnableMenuItem(hMenu, EMU_STOP, MF_ENABLED);
 		EnableMenuItem(hMenu, EMU_PAUSE, MF_ENABLED);
 		EnableMenuItem(hMenu, EMU_FRAMEADVANCE, MF_ENABLED);
+		EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_ENABLED);
 		EnableMenuItem(hMenu, EMU_PLAY, MF_ENABLED);
 		EnableMenuItem(hMenu, FULL_SCREEN, MF_ENABLED);
 		EnableMenuItem(hMenu, STATE_SAVE, MF_ENABLED);
@@ -1152,6 +1153,7 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 		EnableMenuItem(hMenu, IDLOAD, MF_ENABLED);
 		EnableMenuItem(hMenu, EMU_PAUSE, MF_GRAYED);
 		EnableMenuItem(hMenu, EMU_FRAMEADVANCE, MF_GRAYED);
+		EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_GRAYED);
 		EnableMenuItem(hMenu, EMU_PLAY, MF_GRAYED);
 		EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
 		EnableMenuItem(hMenu, STATE_SAVE, MF_GRAYED);

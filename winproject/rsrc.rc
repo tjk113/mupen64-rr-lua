@@ -67,7 +67,7 @@ BEGIN
             MENUITEM "Freeze",                      ID_RECENTROMS_FREEZE
             MENUITEM SEPARATOR
         END
-        MENUITEM "&Load Latest ROM\tCtrl Shift L", ID_LOAD_LATEST, GRAYED
+        MENUITEM "&Load Latest ROM\tCtrl Shift L", ID_LOAD_LATEST
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt F4",               ID_EMULATOR_EXIT
     END
