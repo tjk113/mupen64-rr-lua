@@ -1366,8 +1366,8 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 {
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
 	if (index >= 0 && index < Config.recent_rom_paths.size()) {
-		main_dispatcher_invoke([index] {CreateThread(NULL, 0, start_rom, (LPVOID*)Config.recent_rom_paths[index].c_str(), 0, &Id);
-			}); return 	1;
+		CreateThread(NULL, 0, start_rom, (LPVOID*)Config.recent_rom_paths[index].c_str(), 0, &Id);
+			return 	1;
 	}
 	return 0;
 }
@@ -1542,7 +1542,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
-				main_dispatcher_invoke([fname] {CreateThread(NULL, 0, start_rom, (LPVOID*)fname, 0, &Id); });
+				CreateThread(NULL, 0, start_rom, (LPVOID*)fname, 0, &Id); 
 			} else if (extension == ".m64")
 			{
 				if (!emu_launched) break;
@@ -2044,7 +2044,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					if (path.size() > 0)
 					{
-						main_dispatcher_invoke([path] {CreateThread(nullptr, 0, start_rom, (LPVOID*)wstring_to_string(path).c_str(), NULL, &Id); });
+						CreateThread(nullptr, 0, start_rom, (LPVOID*)wstring_to_string(path).c_str(), NULL, &Id);
 					}
 
 					if (wasMenuPaused)

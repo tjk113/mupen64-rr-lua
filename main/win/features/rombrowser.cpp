@@ -326,9 +326,7 @@ void rombrowser_notify(LPARAM lparam)
 			int i = ListView_GetNextItem(rombrowser_hwnd, -1, LVNI_SELECTED);
 			if (i != -1)
 			{
-				char* entries = (char*)rombrowser_entries[i]->path.c_str();
-				//CreateThread(NULL, 0, start_rom, &entries, 0, &Id);
-				main_dispatcher_invoke([i] {start_rom((LPVOID*)rombrowser_entries[i]->path.c_str()); });
+				start_rom((LPVOID*)rombrowser_entries[i]->path.c_str());
 			}
 		}
 		break;
