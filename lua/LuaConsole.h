@@ -30,11 +30,24 @@ typedef struct s_window_procedure_params {
 	LPARAM l_param;
 } t_window_procedure_params;
 
+/**
+ * \brief Creates a lua window and runs the specified script
+ * \param path The script's path
+ * \param minimized Whether the window starts out minimized
+ */
+void lua_create_and_run(const char* path, bool minimized);
+
+/**
+ * \brief Creates and shows a lua window with the specified flags
+ * \param sw_flags The flags to call ShowWindow with
+ * \return The window's handle
+ */
+HWND create_and_show_lua_window(int32_t sw_flags);
+
 void NewLuaScript();
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 
 void ConsoleWrite(HWND wnd, const char* str);
-void LuaOpenAndRun(const char* path);
 void AtUpdateScreenLuaCallback();
 void AtVILuaCallback();
 void AtInputLuaCallback(int n);

@@ -214,7 +214,6 @@ void LoadScreenInit()
 
 	extern const char* const REG_WINDOWMESSAGE;
 	int AtWindowMessage(lua_State* L);
-	HWND CreateLuaWindow();
 
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
@@ -395,13 +394,13 @@ void LoadScreenInit()
 		return FALSE;
 	}
 
-	HWND CreateLuaWindow()
+	HWND create_and_show_lua_window(int32_t sw_flags)
 	{
 		HWND hwnd = CreateDialogParam(app_hInstance,
 		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
 		                             DialogProc,
 		                             NULL);
-		ShowWindow(hwnd, SW_SHOW);
+		ShowWindow(hwnd, sw_flags);
 		return hwnd;
 	}
 
@@ -2351,7 +2350,7 @@ void LoadScreenInit()
 			lua_pushinteger(L, size.height);
 			lua_setfield(L, -2, "height");
 		}
-		
+
 		return 1;
 	}
 
@@ -3387,19 +3386,19 @@ void LoadScreenInit()
 
 
 
-	void NewLuaScript()
+void NewLuaScript()
 {
-	CreateLuaWindow();
+	create_and_show_lua_window(SW_SHOW);
 }
 
 void dummy_function()
 {
 }
 
-void LuaOpenAndRun(const char* path)
+void lua_create_and_run(const char* path, bool minimized)
 {
 	printf("Creating lua window...\n");
-	auto hwnd = CreateLuaWindow();
+	auto hwnd = create_and_show_lua_window(minimized ? SW_SHOWMINNOACTIVE : SW_SHOW);
 
 	printf("Setting path...\n");
 	// set the textbox content to match the path

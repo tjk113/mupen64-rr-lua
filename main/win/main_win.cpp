@@ -133,7 +133,13 @@ TCHAR CoreNames[3][30] = {
 };
 
 std::string app_path = "";
-std::vector<std::filesystem::path> previously_open_lua_paths;
+
+
+/**
+ * \brief List of lua environments running before emulation stopped
+ * \brief Pair consists of the environment's path, and the iconization state
+ */
+std::vector<std::pair<std::filesystem::path, bool>> previously_open_lua_environments;
 
 std::deque<std::function<void()>> dispatcher_queue;
 
@@ -360,13 +366,8 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		// remember all running lua scripts' paths and queue them up for a restart
 		for (const auto [key, value] : hwnd_lua_map)
 		{
-			if (key && value)
-			{
-				previously_open_lua_paths.push_back(value->path);
-			}
+			previously_open_lua_environments.push_back(std::make_pair(value->path, IsIconic(key)));
 		}
-
-		
 
 		printf("Closing emulation thread...\n");
 
@@ -1256,12 +1257,13 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	main_dispatcher_invoke([]
 	{
 		// restore all the saved paths, then clear them
-		for (const auto& lua_path : previously_open_lua_paths)
+		for (const auto& pair : previously_open_lua_environments)
 		{
-			LuaOpenAndRun(lua_path.string().c_str());
-			printf("Lua restored %s\n", lua_path.string().c_str());
+			lua_create_and_run(pair.first.string().c_str(), pair.second);
+			printf("Lua restored %s\n", pair.first.string().c_str());
 		}
-		previously_open_lua_paths.clear();
+
+		previously_open_lua_environments.clear();
 	});
 
 	go();
@@ -1544,7 +1546,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
-				CreateThread(NULL, 0, start_rom, (LPVOID*)fname, 0, &Id); 
+				CreateThread(NULL, 0, start_rom, (LPVOID*)fname, 0, &Id);
 			} else if (extension == ".m64")
 			{
 				if (!emu_launched) break;
@@ -1565,7 +1567,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				savestates_job = LOADSTATE;
 			} else if(extension == ".lua")
 			{
-				LuaOpenAndRun(path.string().c_str());
+				lua_create_and_run(path.string().c_str(), false);
 			}
 			break;
 		}
@@ -1692,7 +1694,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				return 0;
 			} else
 			{
-				
+
 				exit_emu(1);
 				//DestroyWindow(hwnd);
 			}
@@ -2470,7 +2472,7 @@ void StartLuaScripts()
 		for (int i = 0; i < numScripts; ++i)
 		{
 			strcpy(file, &files[scriptStartPositions[i]]);
-			LuaOpenAndRun(file);
+			lua_create_and_run(file, false);
 		}
 	}
 }

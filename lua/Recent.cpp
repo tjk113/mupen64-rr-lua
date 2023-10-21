@@ -66,7 +66,7 @@ int32_t lua_recent_scripts_run(uint16_t menu_item_id)
 	const int index = menu_item_id - ID_LUA_RECENT;
 	if (index >= 0 && index < Config.recent_lua_script_paths.size())
 	{
-		LuaOpenAndRun(Config.recent_lua_script_paths[index].c_str());
+		lua_create_and_run(Config.recent_lua_script_paths[index].c_str(), false);
 		return 1;
 	}
 	return 0;
