@@ -336,7 +336,7 @@ void LoadScreenInit()
 
 				// now spool up a new one
 				auto status = LuaEnvironment::create(path, wnd);
-
+				lua_recent_scripts_add(path);
 				if (status.first == nullptr) {
 					// failed, we give user some info and thats it
 					ConsoleWrite(wnd, status.second.c_str());

@@ -302,7 +302,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	{
 		MessageBox(mainHWND, "Failed to open ROM", "Error",
 				   MB_ICONERROR | MB_OK);
-		//return 0;
+		return 0;
 	}
 
 	// at this point, we're set to begin emulating and can't backtrack
