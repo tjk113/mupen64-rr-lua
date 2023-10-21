@@ -1942,7 +1942,7 @@ void LoadScreenInit()
 			       color.r, color.g, color.b, color.a, key);
 
 			ID2D1SolidColorBrush* brush;
-			lua->d2d_render_target->CreateSolidColorBrush(
+			lua->d2d_render_target_stack.top()->CreateSolidColorBrush(
 				color,
 				&brush
 			);
@@ -2392,6 +2392,8 @@ void LoadScreenInit()
 
 		if (lua->d2d_bitmap_render_target.contains(key)) {
 			lua->d2d_render_target_stack.push(lua->d2d_bitmap_render_target[key]);
+			// we need to clear the brush cache because brushes are rt-scoped
+			lua->d2d_brush_cache.clear();
 			lua->d2d_bitmap_render_target[key]->BeginDraw();
 		}
 
