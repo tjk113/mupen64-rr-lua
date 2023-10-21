@@ -1125,6 +1125,8 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 		EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_GRAYED);
 		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_DISABLED);
+		EnableMenuItem(hMenu, IDC_GUI_TOOLBAR, MF_DISABLED);
+		EnableMenuItem(hMenu, IDC_GUI_STATUSBAR, MF_DISABLED);
 
 		if (dynacore)
 			EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
@@ -1168,6 +1170,8 @@ void EnableEmulationMenuItems(BOOL emulationRunning)
 		EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
 		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
+		EnableMenuItem(hMenu, IDC_GUI_TOOLBAR, MF_ENABLED);
+		EnableMenuItem(hMenu, IDC_GUI_STATUSBAR, MF_ENABLED);
 
 		if (!continue_vcr_on_restart_mode)
 		{
