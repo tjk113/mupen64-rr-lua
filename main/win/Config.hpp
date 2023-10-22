@@ -83,11 +83,6 @@ typedef struct _CONFIG
 	int32_t show_vis_per_second;
 
 	/// <summary>
-	/// Whether large or presumably hacked roms will not be loaded
-	/// </summary>
-	int32_t allow_suspicious_rom_loading;
-
-	/// <summary>
 	/// Whether the user will be notified of savestate errors
 	/// TODO: Deprecate or unify
 	/// </summary>

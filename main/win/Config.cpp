@@ -545,7 +545,6 @@ CONFIG get_default_config()
 	config.language = "English";
 	config.show_fps = 1;
 	config.show_vis_per_second = 1;
-	config.allow_suspicious_rom_loading = 0;
 	config.is_savestate_warning_enabled = 1;
 	config.is_rom_movie_compatibility_check_enabled = 1;
 	config.core_type = 1;
@@ -911,7 +910,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_VALUE(language)
 	HANDLE_P_VALUE(show_fps)
 	HANDLE_P_VALUE(show_vis_per_second)
-	HANDLE_P_VALUE(allow_suspicious_rom_loading)
 	HANDLE_P_VALUE(is_savestate_warning_enabled)
 	HANDLE_P_VALUE(is_rom_movie_compatibility_check_enabled)
 	HANDLE_P_VALUE(core_type)

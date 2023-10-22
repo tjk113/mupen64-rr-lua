@@ -236,14 +236,10 @@ int rom_read(const char* argv)
     md5_state_t state;
     md5_byte_t digest[16];
     mupenEntry* entry;
-    bool invalidSize;
     char buf[1024], arg[1024], *s;
     unsigned long taille;
 
     strncpy(arg, argv, 1000);
-
-    if (!Config.allow_suspicious_rom_loading && !validRomExt(argv))
-        goto killRom;
 
     if (find_file(arg))
     {
@@ -267,9 +263,6 @@ int rom_read(const char* argv)
     printf("file found\n");
     /*------------------------------------------------------------------------*/
     findsize(); // findsize() needs to be called first because it has side effects
-    // rom sizes that make sense are 1kB (at least boot code) to 64Mb (extended roms)
-    invalidSize = (romByteCount > 0x400'0000 || romByteCount < 0x1000);
-    if (invalidSize && !Config.allow_suspicious_rom_loading) goto killRom;
 
     if(rom) free(rom);
     taille = romByteCount;
@@ -424,14 +417,6 @@ int rom_read(const char* argv)
         }
         else
         {
-            if (!Config.allow_suspicious_rom_loading)
-            {
-                free(rom);
-                rom = NULL;
-                free(ROM_HEADER);
-                ROM_HEADER = NULL;
-                return 1;
-            }
             strcpy(ROM_SETTINGS.goodname, entry->goodname);
             strcat(ROM_SETTINGS.goodname, " (bad dump)");
             if (strcmp(entry->refMD5, "") != 0)
@@ -441,33 +426,7 @@ int rom_read(const char* argv)
         }
     }
     s = entry->goodname;
-    for (i = (int)strlen(s); i > 0 && s[i - 1] != '['; i--)
-        if (i != 0)
-        {
-            if (s[i] == 'T' || s[i] == 't' || s[i] == 'h' || s[i] == 'f' || s[i] == 'o')
-            {
-                if (!Config.allow_suspicious_rom_loading)
-                {
-                killRom:
-                    free(rom);
-                    rom = NULL;
-                    free(ROM_HEADER);
-                    ROM_HEADER = NULL;
-                    return 1;
-                }
-            }
-            if (s[i] == 'b')
-            {
-                if (!Config.allow_suspicious_rom_loading)
-                {
-                    free(rom);
-                    rom = NULL;
-                    free(ROM_HEADER);
-                    ROM_HEADER = NULL;
-                    return 1;
-                }
-            }
-        }
+    
     strcpy(ROM_SETTINGS.goodname, entry->goodname);
 
     if (strcmp(entry->refMD5, "") != 0)

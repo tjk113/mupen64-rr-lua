@@ -137,7 +137,6 @@
 #define IDD_MESSAGES                    2250
 #define IDC_SHOWFPS                     2251
 #define IDC_SHOWVIS                     2252
-#define IDC_ALLOW_SUSPICIOUS_ROMS       2253
 #define IDC_MESSAGES                    2255
 #define IDC_ALERTSAVESTATEWARNINGS      2256
 #define IDC_LIMITFPS                    2257

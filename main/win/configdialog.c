@@ -674,7 +674,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_INITDIALOG:
         set_checkbox_state(hwnd, IDC_SHOWFPS, Config.show_fps);
         set_checkbox_state(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
-        set_checkbox_state(hwnd, IDC_ALLOW_SUSPICIOUS_ROMS, Config.allow_suspicious_rom_loading);
         set_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
         SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
         set_checkbox_state(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING,
@@ -725,7 +724,6 @@ BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         {
             Config.show_fps = get_checkbox_state(hwnd, IDC_SHOWFPS);
             Config.show_vis_per_second = get_checkbox_state(hwnd, IDC_SHOWVIS);
-            Config.allow_suspicious_rom_loading = get_checkbox_state(hwnd, IDC_ALLOW_SUSPICIOUS_ROMS);
             Config.is_savestate_warning_enabled = get_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS);
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
             Config.is_state_independent_state_loading_allowed = get_checkbox_state(
