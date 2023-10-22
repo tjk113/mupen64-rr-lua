@@ -207,16 +207,6 @@ typedef struct _CONFIG
 	int32_t is_recent_movie_paths_frozen;
 
 	/// <summary>
-	/// The rom browser column index to sort by
-	/// </summary>
-	int32_t rombrowser_sorted_column;
-
-	/// <summary>
-	/// The method to sort <see cref="rombrowser_sorted_column"/> by
-	/// </summary>
-	std::string rombrowser_sort_method;
-
-	/// <summary>
 	/// Whether the rom browser will recursively search for roms beginning in the specified directories
 	/// </summary>
 	int32_t is_rombrowser_recursion_enabled;
@@ -369,6 +359,16 @@ typedef struct _CONFIG
 	/// The width of rombrowser columns by index
 	/// </summary>
 	std::vector<std::int32_t> rombrowser_column_widths;
+
+	/// <summary>
+	/// The index of the currently sorted column, or -1 if none is sorted
+	/// </summary>
+	int32_t rombrowser_sorted_column;
+
+	/// <summary>
+	/// Whether the selected column is sorted in an ascending order
+	/// </summary>
+	int32_t rombrowser_sort_ascending;
 
 	/// <summary>
 	/// A map of persistent path dialog IDs and the respective value

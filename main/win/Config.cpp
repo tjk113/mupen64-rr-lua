@@ -566,10 +566,9 @@ CONFIG get_default_config()
 	config.recent_rom_paths = {};
 	config.recent_movie_paths = {};
 	config.is_recent_movie_paths_frozen = 0;
-	config.rombrowser_sorted_column = 0;
-	config.rombrowser_sort_method = "ASC";
-	config.rombrowser_column_widths = {250, 150, 70, 70, 200, 100, 100};
-	config.rombrowser_rom_paths = {};
+	config.rombrowser_sorted_column = 2;
+	config.rombrowser_sort_ascending = 1;
+	config.rombrowser_column_widths = {24, 240, 240, 120};
 	config.is_rombrowser_recursion_enabled = 0;
 	config.is_reset_recording_enabled = 1;
 	config.is_internal_capture_forced = 0;
@@ -932,8 +931,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_recent_rom_paths_frozen)
 	HANDLE_VALUE(recent_movie_paths)
 	HANDLE_P_VALUE(is_recent_movie_paths_frozen)
-	HANDLE_P_VALUE(rombrowser_sorted_column)
-	HANDLE_VALUE(rombrowser_sort_method)
 	HANDLE_P_VALUE(is_rombrowser_recursion_enabled)
 	HANDLE_P_VALUE(is_reset_recording_enabled)
 	HANDLE_P_VALUE(is_internal_capture_forced)
@@ -963,6 +960,8 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(window_height)
 	HANDLE_VALUE(rombrowser_column_widths)
 	HANDLE_VALUE(rombrowser_rom_paths)
+	HANDLE_P_VALUE(rombrowser_sort_ascending)
+	HANDLE_P_VALUE(rombrowser_sorted_column)
 	HANDLE_VALUE(persistent_folder_paths)
 
 	return ini;

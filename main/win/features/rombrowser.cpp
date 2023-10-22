@@ -15,18 +15,55 @@
 #include "helpers/io_helpers.h"
 #include "helpers/string_helpers.h"
 #include "../Config.hpp"
+#include <assert.h>
 
 DWORD Id;
 HWND rombrowser_hwnd = nullptr;
 std::vector<t_rombrowser_entry*> rombrowser_entries;
 int32_t rombrowser_is_loading = 0;
 
+int CALLBACK rombrowser_compare(LPARAM lParam1, LPARAM lParam2, LPARAM _) {
+
+	auto first = rombrowser_entries[Config.rombrowser_sort_ascending ? lParam1 : lParam2];
+	auto second = rombrowser_entries[Config.rombrowser_sort_ascending ? lParam2 : lParam1];
+
+	int32_t result = 0;
+
+	switch (Config.rombrowser_sorted_column) {
+		case 0:
+			result = first->rom_header.Country_code - second->rom_header.Country_code;
+			break;
+		case 1:
+			// BUG: these are not null terminated!!!
+			result = strcmpi((const char*)first->rom_header.nom, (const char*)second->rom_header.nom);
+			break;
+		case 2:
+			result = strcmpi((const char*)first->path.c_str(), (const char*)second->path.c_str());
+			break;
+		case 3:
+			result = first->size - second->size;
+			break;
+		default:
+			assert(false);
+			break;
+	}
+
+	if (result > 1) {
+		result = 1;
+	}
+	if (result < -1) {
+		result = -1;
+	}
+
+	return result;
+}
+void rombrowser_update_sort() {
+	ListView_SortItems(rombrowser_hwnd, rombrowser_compare, nullptr);
+}
+
 void rombrowser_create()
 {
-	if (rombrowser_hwnd)
-	{
-		DestroyWindow(rombrowser_hwnd);
-	}
+	assert(rombrowser_hwnd == nullptr);
 
 	RECT rcl, rtool, rstatus;
 	GetClientRect(mainHWND, &rcl);
@@ -78,25 +115,29 @@ void rombrowser_create()
 	ListView_SetImageList(rombrowser_hwnd, hSmall, LVSIL_SMALL);
 
 	LVCOLUMN lv_column = {0};
+	std::vector<int32_t> column_widths = Config.rombrowser_column_widths;
 
-	lv_column.mask = LVCF_WIDTH;
+	if (Config.rombrowser_column_widths.size() < 4) {
+		// something's malformed, fuck off and use default values
+		column_widths = default_config.rombrowser_column_widths;
+	}
+
+	lv_column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+
 	lv_column.iImage = 1;
-	lv_column.cx = 24;
+	lv_column.cx = column_widths[0];
 	ListView_InsertColumn(rombrowser_hwnd, 0, &lv_column);
 
-	lv_column.mask = LVCF_TEXT | LVCF_WIDTH;
 	lv_column.pszText = (LPTSTR)"Name";
-	lv_column.cx = 240;
+	lv_column.cx = column_widths[1];
 	ListView_InsertColumn(rombrowser_hwnd, 1, &lv_column);
 
-	lv_column.mask = LVCF_TEXT | LVCF_WIDTH;
 	lv_column.pszText = (LPTSTR)"Filename";
-	lv_column.cx = 240;
+	lv_column.cx = column_widths[2];
 	ListView_InsertColumn(rombrowser_hwnd, 2, &lv_column);
 
-	lv_column.mask = LVCF_TEXT | LVCF_WIDTH;
 	lv_column.pszText = (LPTSTR)"Size";
-	lv_column.cx = 120;
+	lv_column.cx = column_widths[3];
 	ListView_InsertColumn(rombrowser_hwnd, 3, &lv_column);
 
 	BringWindowToTop(rombrowser_hwnd);
@@ -140,12 +181,10 @@ void rombrowser_add_rom(int32_t index, t_rombrowser_entry* rombrowser_entry)
 {
 	LV_ITEM lv_item = {0};
 
-	lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
+	lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
 	lv_item.pszText = LPSTR_TEXTCALLBACK;
-	lv_item.stateMask = 0;
-	lv_item.iSubItem = 0;
-	lv_item.state = 0;
-	lv_item.iItem = index;
+	lv_item.lParam = index;
+	lv_item.iItem = index;	
 	lv_item.iImage = rombrowser_country_code_to_image_index(
 		rombrowser_entry->rom_header.Country_code);
 	ListView_InsertItem(rombrowser_hwnd, &lv_item);
@@ -235,6 +274,7 @@ void rombrowser_build_impl()
 
 		i++;
 	}
+	rombrowser_update_sort();
 	SendMessage(rombrowser_hwnd, WM_SETREDRAW, TRUE, 0);
 	printf("Rombrowser loading took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
 }
@@ -285,33 +325,48 @@ void rombrowser_update_size()
 	MoveWindow(rombrowser_hwnd, 0, y, n_width, n_height - y, TRUE);
 }
 
+
+
 void rombrowser_notify(LPARAM lparam)
 {
 	switch (((LPNMHDR)lparam)->code)
 	{
+		case LVN_COLUMNCLICK:
+		{
+			auto lv = (LPNMLISTVIEW)lparam;
+
+			if (Config.rombrowser_sorted_column == lv->iSubItem) {
+				Config.rombrowser_sort_ascending ^= 1;
+			}
+
+			Config.rombrowser_sorted_column = lv->iSubItem;
+
+			rombrowser_update_sort();
+			break;
+		}
 	case LVN_GETDISPINFO:
 		{
 			NMLVDISPINFO* plvdi = (NMLVDISPINFO*)lparam;
 			t_rombrowser_entry* rombrowser_entry = rombrowser_entries[plvdi->
-				item.iItem];
+				item.lParam];
 			switch (plvdi->item.iSubItem)
 			{
 			case 1:
-				plvdi->item.pszText = (LPSTR)rombrowser_entry->rom_header.nom;
+				strcpy(plvdi->item.pszText, (const char*)rombrowser_entry->rom_header.nom);
 				break;
 			case 2:
 			{
 				char filename[MAX_PATH] = {0};
 				_splitpath(rombrowser_entry->path.c_str(), NULL, NULL,
 						   filename, NULL);
-				plvdi->item.pszText = (LPSTR)filename;
+				strcpy(plvdi->item.pszText, filename);
 				break;
 			}
 			case 3:
 			{
 				std::string size = std::to_string(rombrowser_entry->size / (1024 * 1024)) +
 					" MB";
-				plvdi->item.pszText = (LPSTR)size.c_str();
+				strcpy(plvdi->item.pszText, size.c_str());
 				break;
 			}
 			default:
