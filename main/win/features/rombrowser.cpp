@@ -378,11 +378,15 @@ void rombrowser_notify(LPARAM lparam)
 		break;
 	case NM_DBLCLK:
 		{
-			int i = ListView_GetNextItem(rombrowser_hwnd, -1, LVNI_SELECTED);
-			if (i != -1)
-			{
-				start_rom((LPVOID*)rombrowser_entries[i]->path.c_str());
-			}
+			int32_t i = ListView_GetNextItem(rombrowser_hwnd, -1, LVNI_SELECTED);
+
+			if (i == -1) break;
+
+			LVITEM item = {0};
+			item.mask = LVIF_PARAM;
+			item.iItem = i;
+			ListView_GetItem(rombrowser_hwnd, &item);
+			start_rom((LPVOID*)rombrowser_entries[item.lParam]->path.c_str());
 		}
 		break;
 	}
