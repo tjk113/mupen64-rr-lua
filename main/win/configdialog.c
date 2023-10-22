@@ -765,8 +765,6 @@ BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARA
         if (l_nmhdr->code == PSN_APPLY)
         {
             Config.is_unfocused_pause_enabled = get_checkbox_state(hwnd, IDC_PAUSENOTACTIVE);
-            Config.is_toolbar_enabled = get_checkbox_state(hwnd, IDC_GUI_TOOLBAR);
-            Config.is_statusbar_enabled = get_checkbox_state(hwnd, IDC_GUI_STATUSBAR);
             Config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
             Config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
             Config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
