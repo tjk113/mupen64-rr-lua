@@ -71,6 +71,27 @@ enum class Renderer {
 	Direct2D
 };
 
+typedef struct t_text_layout_params {
+	IDWriteTextLayout* text_layout;
+	std::string text;
+	std::string font_name;
+	float font_size;
+	int font_weight;
+	int font_style;
+	int horizontal_alignment;
+	int vertical_alignment;
+} t_text_layout_params;
+
+static bool text_layout_params_equals(t_text_layout_params* lhs, t_text_layout_params* rhs) {
+	return lhs->text == rhs->text
+		&& lhs->font_name == rhs->font_name
+		&& lhs->font_size == rhs->font_size
+		&& lhs->font_weight == rhs->font_weight
+		&& lhs->font_style == rhs->font_style
+		&& lhs->horizontal_alignment == rhs->horizontal_alignment
+		&& lhs->vertical_alignment == rhs->vertical_alignment;
+}
+
 class LuaEnvironment {
 public:
 	bool stopping = false;
@@ -94,6 +115,7 @@ public:
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
 	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
+	std::vector<t_text_layout_params> dw_text_layout_params;
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
 
 	/**
@@ -140,8 +162,11 @@ public:
 	}
 	HWND hwnd;
 	lua_State* L;
+	
 
 private:
+
+	
 	void deleteLuaState();
 	void registerAsPackage(lua_State* L, const char* name,
 						   const luaL_Reg reg[]);
@@ -165,5 +190,7 @@ extern bool traceLogMode;
 extern unsigned long gdiPlusToken;
 
 extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
+
+
 
 #endif

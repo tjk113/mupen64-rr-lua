@@ -2068,54 +2068,67 @@ void LoadScreenInit()
 
 		int options = luaL_checkinteger(L, 16);
 
-		auto text = std::string(luaL_checkstring(L, 9));
-		auto font_name = std::string(luaL_checkstring(L, 10));
-		auto font_size = static_cast<float>(luaL_checknumber(L, 11));
-		auto font_weight = static_cast<int>(luaL_checknumber(L, 12));
-		auto font_style = static_cast<int>(luaL_checkinteger(L, 13));
-		auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14));
-		auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15));
+		t_text_layout_params params = {
+			.text = std::string(luaL_checkstring(L, 9)),
+			.font_name = std::string(luaL_checkstring(L, 10)),
+			.font_size = static_cast<float>(luaL_checknumber(L, 11)),
+			.font_weight = static_cast<int>(luaL_checknumber(L, 12)),
+			.font_style = static_cast<int>(luaL_checkinteger(L, 13)),
+			.horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14)),
+			.vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15)),
+		};
 
+		// find matching text layout params
+		// this is O(n) but, even with lots of elements, still orders of magnitude faster than doing the complex text layouting
+		size_t matching_index = -1;
+		for (size_t i = 0; i < lua->dw_text_layout_params.size(); i++) {
+			if (text_layout_params_equals(&lua->dw_text_layout_params[i], &params)) {
+				matching_index = i;
+				break;
+			}
+		}
 
-		IDWriteTextFormat* text_format;
+		if (matching_index == -1) {
+			IDWriteTextFormat* text_format;
 
-		lua->dw_factory->CreateTextFormat(
-			string_to_wstring(font_name).c_str(),
-			nullptr,
-			static_cast<DWRITE_FONT_WEIGHT>(font_weight),
-			static_cast<DWRITE_FONT_STYLE>(font_style),
-			DWRITE_FONT_STRETCH_NORMAL,
-			font_size,
-			L"",
-			&text_format
-		);
+			lua->dw_factory->CreateTextFormat(
+				string_to_wstring(params.font_name).c_str(),
+				nullptr,
+				static_cast<DWRITE_FONT_WEIGHT>(params.font_weight),
+				static_cast<DWRITE_FONT_STYLE>(params.font_style),
+				DWRITE_FONT_STRETCH_NORMAL,
+				params.font_size,
+				L"",
+				&text_format
+			);
 
-		text_format->SetTextAlignment(
-			static_cast<DWRITE_TEXT_ALIGNMENT>(horizontal_alignment));
-		text_format->SetParagraphAlignment(
-			static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(vertical_alignment));
+			text_format->SetTextAlignment(
+				static_cast<DWRITE_TEXT_ALIGNMENT>(params.horizontal_alignment));
+			text_format->SetParagraphAlignment(
+				static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(params.vertical_alignment));
 
-		IDWriteTextLayout* text_layout;
+			IDWriteTextLayout* text_layout;
 
-		auto wtext = string_to_wstring(text);
-		lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
-		                                  text_format,
-		                                  rectangle.right - rectangle.left,
-		                                  rectangle.bottom - rectangle.top,
-		                                  &text_layout);
-
-		text_format->Release();
-
+			auto wtext = string_to_wstring(params.text);
+			lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
+											  text_format,
+											  rectangle.right - rectangle.left,
+											  rectangle.bottom - rectangle.top,
+											  &text_layout);
+			text_format->Release();
+			params.text_layout = text_layout;
+			lua->dw_text_layout_params.push_back(params);
+			matching_index = lua->dw_text_layout_params.size() - 1;
+			printf("Generating text format cache %d\n", matching_index);
+		}
 
 		lua->d2d_render_target_stack.top()->DrawTextLayout({
 			                                       .x = rectangle.left,
 			                                       .y = rectangle.top,
-		                                       }, text_layout, brush,
+		                                       }, lua->dw_text_layout_params[matching_index].text_layout, brush,
 		                                       static_cast<
 			                                       D2D1_DRAW_TEXT_OPTIONS>(
 			                                       options));
-
-		text_layout->Release();
 		return 0;
 	}
 
@@ -4109,6 +4122,11 @@ void LuaEnvironment::destroy_renderer()
 		val->Release();
 	}
 	d2d_bitmap_render_target.clear();
+
+	for (auto const& val : dw_text_layout_params) {
+		val.text_layout->Release();
+	}
+	dw_text_layout_params.clear();
 
 	while (!d2d_render_target_stack.empty()) {
 		d2d_render_target_stack.pop();
