@@ -19,7 +19,7 @@
 #include <Windows.h>
 #include <string>
 #include <functional>
-#define MUPEN_VERSION "Mupen 64 1.1.5"
+#define MUPEN_VERSION "Mupen 64 1.1.6"
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
