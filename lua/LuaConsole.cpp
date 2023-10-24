@@ -2140,6 +2140,17 @@ void LoadScreenInit()
 		return 0;
 	}
 
+	int LuaD2DPurgeTextLayoutCache(lua_State* L) {
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		for (auto const& val : lua->dw_text_layout_params) {
+			val.text_layout->Release();
+		}
+		lua->dw_text_layout_params.clear();
+
+		return 0;
+	}
+
 	int LuaD2DSetTextAntialiasMode(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
@@ -3349,6 +3360,7 @@ void LoadScreenInit()
 		{"draw_ellipse", LuaD2DDrawEllipse},
 		{"draw_line", LuaD2DDrawLine},
 		{"draw_text", LuaD2DDrawText},
+		{"purge_text_layout_cache", LuaD2DPurgeTextLayoutCache},
 		{"get_text_size", LuaD2DGetTextSize},
 		{"push_clip", LuaD2DPushClip},
 		{"pop_clip", LuaD2DPopClip},
