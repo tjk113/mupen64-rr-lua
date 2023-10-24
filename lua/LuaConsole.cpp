@@ -2064,11 +2064,19 @@ void LoadScreenInit()
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
 		auto color = D2D_GET_COLOR(L, 5);
 
+		// we would get tons of near-misses otherwise
+		rectangle.left = (int)rectangle.left;
+		rectangle.top = (int)rectangle.top;
+		rectangle.right = (int)rectangle.right;
+		rectangle.bottom = (int)rectangle.bottom;
+
 		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
 		int options = luaL_checkinteger(L, 16);
 
 		t_text_layout_params params = {
+			.width = (int)(rectangle.right - rectangle.left),
+			.height = (int)(rectangle.bottom - rectangle.top),
 			.text = std::string(luaL_checkstring(L, 9)),
 			.font_name = std::string(luaL_checkstring(L, 10)),
 			.font_size = static_cast<float>(luaL_checknumber(L, 11)),

@@ -73,6 +73,8 @@ enum class Renderer {
 
 typedef struct t_text_layout_params {
 	IDWriteTextLayout* text_layout;
+	int width;
+	int height;
 	std::string text;
 	std::string font_name;
 	float font_size;
@@ -84,6 +86,8 @@ typedef struct t_text_layout_params {
 
 static bool text_layout_params_equals(t_text_layout_params* lhs, t_text_layout_params* rhs) {
 	return lhs->text == rhs->text
+		&& lhs->width == rhs->width
+		&& lhs->height == rhs->height
 		&& lhs->font_name == rhs->font_name
 		&& lhs->font_size == rhs->font_size
 		&& lhs->font_weight == rhs->font_weight
