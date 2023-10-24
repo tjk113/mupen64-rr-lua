@@ -1805,7 +1805,6 @@ void VCR_invalidatedCaptureFrame()
 void
 VCR_updateScreen()
 {
-	extern int externalReadScreen;
 	void* image = NULL;
 	long width = 0, height = 0;
 	static int frame = 0;
@@ -1856,9 +1855,11 @@ VCR_updateScreen()
 	{
 		captureManager->WriteVideoFrame((unsigned char*)image,
 		                                width * height * 3);
-		if (externalReadScreen)
-			DllCrtFree(image);
+
 		//free only with external capture, since plugin can't reuse same buffer...
+		if (readScreen != vcrcomp_internal_read_screen)
+			DllCrtFree(image);
+
 		return;
 	} else
 	{
@@ -1948,7 +1949,7 @@ VCR_updateScreen()
 	}
 
 cleanup:
-	if (externalReadScreen /*|| (!captureFrameValid && lastImage != image)*/)
+	if (readScreen != vcrcomp_internal_read_screen)
 	{
 		if (image)
 			DllCrtFree(image);
@@ -2153,8 +2154,6 @@ void VCR_aiLenChanged()
 	}
 }
 
-void init_readScreen();
-
 void UpdateTitleBarCapture(const char* filename)
 {
 	// Setting titlebar to include currently capturing AVI file
@@ -2196,7 +2195,12 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename,
 		extern void pauseEmu(BOOL quiet);
 		pauseEmu(TRUE);
 	}
-	init_readScreen(); //readScreen always not null here
+
+	if (readScreen == NULL)
+	{
+		printf("readScreen not implemented by graphics plugin. Falling back...");
+		readScreen = vcrcomp_internal_read_screen;
+	}
 
 	FILE* tmpf = fopen(aviFilename, "ab+");
 
@@ -2230,10 +2234,10 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename,
 	{
 		// fill in window size at avi start, which can't change
 		// scrap whatever was written there even if window didnt change, for safety
-		sInfo = {0};
-		CalculateWindowDimensions(mainHWND, sInfo);
-		width = sInfo.width & ~3;
-		height = sInfo.height & ~3;
+		vcrcomp_window_info = {0};
+		get_window_info(mainHWND, vcrcomp_window_info);
+		width = vcrcomp_window_info.width & ~3;
+		height = vcrcomp_window_info.height & ~3;
 	}
 	VCRComp_startFile(aviFilename, width, height, visByCountrycode(),
 	                  codecDialog);
@@ -2251,7 +2255,6 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename,
 	if (!wasPaused || (m_task == Playback || m_task == StartPlayback || m_task
 		== StartPlaybackFromSnapshot))
 	{
-		extern void resumeEmu(BOOL quiet);
 		resumeEmu(TRUE);
 	}
 
@@ -2285,8 +2288,8 @@ int VCR_StartFFmpegCapture(const std::string& outputName,
 #endif
 		return INIT_ALREADY_RUNNING;
 	}
-	SWindowInfo sInfo{};
-	CalculateWindowDimensions(mainHWND, sInfo);
+	t_window_info sInfo{};
+	get_window_info(mainHWND, sInfo);
 
 	InitReadScreenFFmpeg(sInfo);
 	captureManager = std::make_unique<FFmpegManager>(

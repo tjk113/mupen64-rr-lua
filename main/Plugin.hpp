@@ -331,9 +331,6 @@ static void __cdecl dummy_fBGetFrameBufferInfo(void* p)
 {
 };
 
-static int externalReadScreen = 0;
-
-
 extern void (__cdecl*getDllInfo)(PLUGIN_INFO* PluginInfo);
 extern void (__cdecl*dllConfig)(HWND hParent);
 extern void (__cdecl*dllTest)(HWND hParent);

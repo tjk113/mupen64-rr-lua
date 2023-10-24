@@ -6,6 +6,7 @@
 #include "plugin.hpp"
 #include "rom.h"
 #include "RomBrowser.hpp"
+#include "vcr.h"
 #include "../Config.hpp"
 #include "../main_win.h"
 #include "../../winproject/resource.h"
@@ -117,11 +118,7 @@ void toolbar_on_emu_state_changed(int32_t is_running, int32_t is_resumed)
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_PLAY, TRUE);
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_STOP, TRUE);
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_PAUSE, TRUE);
-		if (recording && !externalReadScreen)
-			SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, FULL_SCREEN, FALSE);
-		else
-			SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, FULL_SCREEN, TRUE);
-
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, FULL_SCREEN, !VCR_isCapturing());
 		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PAUSE, !is_resumed);
 		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PLAY, is_resumed);
 	} else

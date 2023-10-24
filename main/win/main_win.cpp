@@ -115,7 +115,6 @@ static HWND hStaticHandle; //Handle for static place
 char TempMessage[MAX_PATH];
 int emu_launched; //int emu_emulating;
 int emu_paused;
-int recording;
 HWND mainHWND;
 HINSTANCE app_hInstance;
 BOOL manualFPSLimit = TRUE;
@@ -351,7 +350,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			resumeEmu(FALSE);
 		}
 
-		if (recording && !continue_vcr_on_restart_mode) {
+		if (VCR_isCapturing() && !continue_vcr_on_restart_mode) {
 			// we need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
 			if (VCR_stopCapture() != 0)
 				MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
@@ -359,7 +358,6 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 							 SWP_NOMOVE | SWP_NOSIZE);
 				statusbar_send_text("Stopped AVI capture");
-				recording = FALSE;
 			}
 		}
 
@@ -2070,7 +2068,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					exit_emu(1);
 				break;
 			case FULL_SCREEN:
-				if (emu_launched && (!recording || externalReadScreen))
+				if (emu_launched && !VCR_isCapturing())
 				{
 					FullScreenMode = 1 - FullScreenMode;
 					gui_ChangeWindow();
@@ -2205,10 +2203,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						               MF_GRAYED);
 						EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
 						EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
-						if (!externalReadScreen)
-						{
-							EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-						}
+						EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
 						statusbar_send_text("Recording AVI with FFmpeg");
 						EnableEmulationMenuItems(TRUE);
 					} else
@@ -2235,7 +2230,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (VCR_startCapture(nullptr, wstring_to_string(path).c_str(), LOWORD(wParam) == ID_START_CAPTURE) < 0)
 					{
 						MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
-						recording = FALSE;
 					} else
 					{
 						EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
@@ -2243,13 +2237,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						               MF_GRAYED);
 						EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
 						EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
-						if (!externalReadScreen)
-						{
-							EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-						}
+						EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
 						statusbar_send_text("Recording AVI");
 						EnableEmulationMenuItems(TRUE);
-						recording = TRUE;
 					}
 
 					if (emu_launched && emu_paused && !wasPaused)
@@ -2269,7 +2259,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					EnableMenuItem(hMenu, ID_FFMPEG_START, MF_ENABLED);
 					EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
 					statusbar_send_text("Capture stopped");
-					recording = FALSE;
 				}
 				break;
 			case GENERATE_BITMAP: // take/capture a screenshot
@@ -2422,7 +2411,6 @@ void StartMovies()
 			if (VCR_startCapture(0, file, false) < 0)
 			{
 				MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
-				recording = FALSE;
 			} else
 			{
 				gStopAVI = true;
@@ -2431,13 +2419,8 @@ void StartMovies()
 				EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
 				EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
 				EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
-				if (!externalReadScreen)
-				{
-					EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-					//Disables fullscreen menu
-				}
+				EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
 				statusbar_send_text("Recording AVI");
-				recording = TRUE;
 			}
 		}
 		resumeEmu(FALSE);

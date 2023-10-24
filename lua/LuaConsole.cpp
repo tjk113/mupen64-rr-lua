@@ -64,7 +64,7 @@ bool gdiPlusInitialized = false;
 ULONG_PTR gdiPlusToken;
 // LoadScreen variables
 HDC hwindowDC, hsrcDC;
-SWindowInfo windowSize{};
+t_window_info windowSize{};
 HBITMAP hbitmap;
 bool LoadScreenInitialized = false;
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
@@ -87,7 +87,7 @@ void LoadScreenInit()
 	// Create a handle to the main window Device Context
 	hsrcDC = CreateCompatibleDC(hwindowDC); // Create a DC to copy the screen to
 
-	CalculateWindowDimensions(mainHWND, windowSize);
+	get_window_info(mainHWND, windowSize);
 	windowSize.height -= 1; // ¯\_(ツ)_/¯
 	printf("LoadScreen Size: %d x %d\n", windowSize.width, windowSize.height);
 

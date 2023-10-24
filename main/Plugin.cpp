@@ -28,6 +28,7 @@
 **/
 
 
+// ReSharper disable CppCStyleCast
 #include "Plugin.hpp"
 
 #include <assert.h>
@@ -78,7 +79,7 @@ void (__cdecl*showCFB)() = dummy_void;
 void (__cdecl*updateScreen)() = dummy_void;
 void (__cdecl*viStatusChanged)() = dummy_void;
 void (__cdecl*viWidthChanged)() = dummy_void;
-void (__cdecl*readScreen)(void** dest, long* width, long* height) = 0;
+void (__cdecl*readScreen)(void** dest, long* width, long* height) = nullptr;
 void (__cdecl*DllCrtFree)(void* block);
 
 void (__cdecl*aiDacrateChanged)(int SystemType) = dummy_aiDacrateChanged;
@@ -153,36 +154,30 @@ int load_gfx(HMODULE handle_gfx)
 			handle_gfx, "MoveScreen");
 		CaptureScreen = (void(__cdecl*)(char* Directory))GetProcAddress(
 			handle_gfx, "CaptureScreen");
-		if (Config.is_internal_capture_forced)
-		{
-			readScreen = NULL;
-			externalReadScreen = 0;
-			DllCrtFree = free;
-		} else
-		{
-			readScreen = (void(__cdecl
+
+		// attempt to find one of the 2 ReadScreen variations lol
+		readScreen = (void(__cdecl
 				*)(void** dest, long* width, long* height))GetProcAddress(
 				handle_gfx, "ReadScreen");
-			if (readScreen == NULL)
-			{
-				//try to find readscreen2 instead (gln64)
-				readScreen = (void(__cdecl*)(void** dest, long* width,
-				                             long* height))GetProcAddress(
+
+		if (readScreen == nullptr)
+		{
+			// we dont have the primary ReadScreen, so plugin is probably gln which only exports ReadScreen2
+			readScreen = (void(__cdecl*)(void** dest, long* width,
+											 long* height))GetProcAddress(
 					handle_gfx, "ReadScreen2");
-				if (readScreen == NULL)
-				{
-					externalReadScreen = 0;
-					DllCrtFree = free;
-				}
-			}
-			if (readScreen)
-			{
-				externalReadScreen = 1;
-				DllCrtFree = (void(__cdecl*)(void*))GetProcAddress(
-					handle_gfx, "DllCrtFree");
-				if (DllCrtFree == NULL) DllCrtFree = free;
-				//attempt to match the crt, avi capture will probably crash without this
-			}
+			DllCrtFree = free;
+
+			// if readScreen is still missing at this point, we're fucked and have to fall back to internal recording
+		}
+
+		if (readScreen)
+		{
+			// there is a bug where gln bundled crt is mismatched from new mupen one, which causes a crash when plugin calls free
+			// so we overwrite it with ours
+			DllCrtFree = (void(__cdecl*)(void*))GetProcAddress(
+				handle_gfx, "DllCrtFree");
+			if (DllCrtFree == nullptr) DllCrtFree = free;
 		}
 
 		fBRead = (void(__cdecl*)(DWORD))GetProcAddress(handle_gfx, "FBRead");
@@ -191,21 +186,21 @@ int load_gfx(HMODULE handle_gfx)
 		fBGetFrameBufferInfo = (void(__cdecl*)(void*))GetProcAddress(
 			handle_gfx, "FBGetFrameBufferInfo");
 
-		if (changeWindow == NULL) changeWindow = dummy_void;
-		if (closeDLL_gfx == NULL) closeDLL_gfx = dummy_void;
-		if (initiateGFX == NULL) initiateGFX = dummy_initiateGFX;
-		if (processDList == NULL) processDList = dummy_void;
-		if (processRDPList == NULL) processRDPList = dummy_void;
-		if (romClosed_gfx == NULL) romClosed_gfx = dummy_void;
-		if (romOpen_gfx == NULL) romOpen_gfx = dummy_void;
-		if (showCFB == NULL) showCFB = dummy_void;
-		if (updateScreen == NULL) updateScreen = dummy_void;
-		if (viStatusChanged == NULL) viStatusChanged = dummy_void;
-		if (viWidthChanged == NULL) viWidthChanged = dummy_void;
-		if (CaptureScreen == NULL)
+		if (changeWindow == nullptr) changeWindow = dummy_void;
+		if (closeDLL_gfx == nullptr) closeDLL_gfx = dummy_void;
+		if (initiateGFX == nullptr) initiateGFX = dummy_initiateGFX;
+		if (processDList == nullptr) processDList = dummy_void;
+		if (processRDPList == nullptr) processRDPList = dummy_void;
+		if (romClosed_gfx == nullptr) romClosed_gfx = dummy_void;
+		if (romOpen_gfx == nullptr) romOpen_gfx = dummy_void;
+		if (showCFB == nullptr) showCFB = dummy_void;
+		if (updateScreen == nullptr) updateScreen = dummy_void;
+		if (viStatusChanged == nullptr) viStatusChanged = dummy_void;
+		if (viWidthChanged == nullptr) viWidthChanged = dummy_void;
+		if (CaptureScreen == nullptr)
 			CaptureScreen = (void(__cdecl*)(char*))
 				dummy_void;
-		if (moveScreen == NULL)
+		if (moveScreen == nullptr)
 			moveScreen = (void(__cdecl*)(int, int))
 				dummy_void;
 
@@ -294,20 +289,20 @@ int load_input(HMODULE handle_input)
 		keyUp = (void(__cdecl*)(WPARAM wParam, LPARAM lParam))GetProcAddress(
 			handle_input, "WM_KeyUp");
 
-		if (closeDLL_input == NULL) closeDLL_input = dummy_void;
-		if (controllerCommand == NULL)
+		if (closeDLL_input == nullptr) closeDLL_input = dummy_void;
+		if (controllerCommand == nullptr)
 			controllerCommand =
 				dummy_controllerCommand;
-		if (getKeys == NULL) getKeys = dummy_getKeys;
-		if (setKeys == NULL) setKeys = dummy_setKeys;
-		if (initiateControllers == NULL)
+		if (getKeys == nullptr) getKeys = dummy_getKeys;
+		if (setKeys == nullptr) setKeys = dummy_setKeys;
+		if (initiateControllers == nullptr)
 			initiateControllers =
 				dummy_initiateControllers;
-		if (readController == NULL) readController = dummy_readController;
-		if (romClosed_input == NULL) romClosed_input = dummy_void;
-		if (romOpen_input == NULL) romOpen_input = dummy_void;
-		if (keyDown == NULL) keyDown = dummy_keyDown;
-		if (keyUp == NULL) keyUp = dummy_keyUp;
+		if (readController == nullptr) readController = dummy_readController;
+		if (romClosed_input == nullptr) romClosed_input = dummy_void;
+		if (romOpen_input == nullptr) romOpen_input = dummy_void;
+		if (keyDown == nullptr) keyDown = dummy_keyDown;
+		if (keyUp == nullptr) keyUp = dummy_keyUp;
 
 		control_info.hMainWindow = mainHWND;
 		control_info.hinst = app_hInstance;
@@ -368,15 +363,15 @@ int load_sound(HMODULE handle_sound)
 			handle_sound, "AiUpdate");
 		auto a = GetLastError();
 
-		if (aiDacrateChanged == NULL) aiDacrateChanged = dummy_aiDacrateChanged;
-		if (aiLenChanged == NULL) aiLenChanged = dummy_void;
-		if (aiReadLength == NULL) aiReadLength = dummy_aiReadLength;
-		if (aiUpdate == NULL) aiUpdate = dummy_aiUpdate;
-		if (closeDLL_audio == NULL) closeDLL_audio = dummy_void;
-		if (initiateAudio == NULL) initiateAudio = dummy_initiateAudio;
-		if (processAList == NULL) processAList = dummy_void;
-		if (romClosed_audio == NULL) romClosed_audio = dummy_void;
-		if (romOpen_audio == NULL) romOpen_audio = dummy_void;
+		if (aiDacrateChanged == nullptr) aiDacrateChanged = dummy_aiDacrateChanged;
+		if (aiLenChanged == nullptr) aiLenChanged = dummy_void;
+		if (aiReadLength == nullptr) aiReadLength = dummy_aiReadLength;
+		if (aiUpdate == nullptr) aiUpdate = dummy_aiUpdate;
+		if (closeDLL_audio == nullptr) closeDLL_audio = dummy_void;
+		if (initiateAudio == nullptr) initiateAudio = dummy_initiateAudio;
+		if (processAList == nullptr) processAList = dummy_void;
+		if (romClosed_audio == nullptr) romClosed_audio = dummy_void;
+		if (romOpen_audio == nullptr) romOpen_audio = dummy_void;
 
 		audio_info.hwnd = mainHWND;
 		audio_info.hinst = app_hInstance;
@@ -426,10 +421,10 @@ int load_rsp(HMODULE handle_RSP)
 		romClosed_RSP = (void(__cdecl*)(void))GetProcAddress(
 			handle_RSP, "RomClosed");
 
-		if (closeDLL_RSP == NULL) closeDLL_RSP = dummy_void;
-		if (doRspCycles == NULL) doRspCycles = dummy_doRspCycles;
-		if (initiateRSP == NULL) initiateRSP = dummy_initiateRSP;
-		if (romClosed_RSP == NULL) romClosed_RSP = dummy_void;
+		if (closeDLL_RSP == nullptr) closeDLL_RSP = dummy_void;
+		if (doRspCycles == nullptr) doRspCycles = dummy_doRspCycles;
+		if (initiateRSP == nullptr) initiateRSP = dummy_initiateRSP;
+		if (romClosed_RSP == nullptr) romClosed_RSP = dummy_void;
 
 		rsp_info.MemoryBswaped = TRUE;
 		rsp_info.RDRAM = (BYTE*)rdram;
@@ -478,7 +473,7 @@ t_plugin* plugin_create(const std::string &path)
 	if (h_module == nullptr)
 	{
 		delete plugin;
-		return 0;
+		return nullptr;
 	}
 
 	const auto get_dll_info = ProcAddress(h_module, "GetDllInfo");
@@ -487,7 +482,7 @@ t_plugin* plugin_create(const std::string &path)
 	{
 		FreeLibrary(h_module);
 		delete plugin;
-		return 0;
+		return nullptr;
 	}
 
 	getDllInfo = get_dll_info;
@@ -507,7 +502,7 @@ t_plugin* plugin_create(const std::string &path)
 	plugin->version = plugin_info.Version;
 	plugin->path = path;
 	return plugin;
-	
+
 }
 
 void plugin_destroy(t_plugin* plugin)
@@ -538,7 +533,7 @@ void plugin_config(t_plugin* plugin)
 				plugin->handle, "InitiateGFX");
 			if (!initiateGFX(dummy_gfx_info))
 			{
-				MessageBox(mainHWND, "Failed to initiate gfx plugin.", NULL,
+				MessageBox(mainHWND, "Failed to initiate gfx plugin.", nullptr,
 				           MB_ICONERROR);
 			}
 		}

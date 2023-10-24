@@ -43,9 +43,7 @@ const char* get_savespath()
 
 bool warn_recording()
 {
-    int res = 0, warnings = res; // red eared slider
-    bool rec = VCR_isCapturing() || recording;
-    //printf("\nRecording info:\nVCR_isRecording: %i\nVCR_isCapturing: %i", VCR_isRecording(), VCR_isCapturing());
+    int res = 0, warnings = res;
     if (continue_vcr_on_restart_mode == 0)
     {
         std::string finalMessage = "";
@@ -54,7 +52,7 @@ bool warn_recording()
             finalMessage.append("Movie recording ");
             warnings++;
         }
-        if (rec)
+        if (VCR_isCapturing())
         {
             if (warnings > 0) { finalMessage.append(","); }
             finalMessage.append(" AVI capture ");
