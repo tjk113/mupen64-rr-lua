@@ -73,9 +73,10 @@ void InitTimer()
 	VILimit = (float)GetVILimit();
 	VILimitMilliseconds = std::chrono::duration<double, std::milli>(
 		1000.0 / (VILimit * (float)temp / 100));
-	Translate("Speed Limit", TempMessage);
-	sprintf(TempMessage, "%s: %d%%", TempMessage, temp); // TempMessage into itself?
-	statusbar_send_text(std::string(TempMessage));
+
+	char message[260] = {0};
+	sprintf(message, "Max speed: %d%%", temp);
+	statusbar_send_text(message);
 }
 
 

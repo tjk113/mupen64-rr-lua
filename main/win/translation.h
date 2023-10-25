@@ -13,18 +13,10 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#pragma once
 
 #include <Windows.h>
+#include "Config.hpp"
 
-
-void SelectLang(HWND hWnd, int LangMenuID);
-void SetupLanguages(HWND hWnd);
-void Translate(const char* GuiWord, char* Ret);
-void TranslateDefault(const char* GuiWord, const char* Default, char* Ret);
-void SetItemTranslatedString(HWND hwnd, int ElementID, const char* Str);
-void SetMenuTranslatedString(HMENU hMenu, int elementID, const char* Str,
-                             const char* Acc);
 void SetMenuAccelerator(HMENU hMenu, int elementID, const char* Acc);
-void TranslateMenu(HMENU hMenu, HWND mainHWND);
-void freeLanguages();
-void SetMenuAcceleratorsFromUser(HWND hwnd);
+void SetHotkeyMenuAccelerators(t_hotkey* hotkey, HMENU hmenu, int menuItemID);

@@ -622,7 +622,31 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey, HMENU hmenu,
 
 void update_menu_hotkey_labels()
 {
-	// TODO: get rid of this garbage and find another way
+	SetHotkeyMenuAccelerators(&Config.pause_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 0);
+    SetHotkeyMenuAccelerators(&Config.frame_advance_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 1);
+    SetHotkeyMenuAccelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+    SetHotkeyMenuAccelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+
+    SetHotkeyMenuAccelerators(&Config.toggle_read_only_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 13);
+    SetHotkeyMenuAccelerators(&Config.start_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 3);
+    SetHotkeyMenuAccelerators(&Config.stop_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 4);
+    SetHotkeyMenuAccelerators(&Config.start_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 0);
+    SetHotkeyMenuAccelerators(&Config.stop_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 1);
+    SetHotkeyMenuAccelerators(&Config.take_screenshot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 2);
+    SetHotkeyMenuAccelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+    SetHotkeyMenuAccelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+    SetHotkeyMenuAccelerators(&Config.select_slot_1_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+    SetHotkeyMenuAccelerators(&Config.select_slot_2_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+    SetHotkeyMenuAccelerators(&Config.select_slot_3_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+    SetHotkeyMenuAccelerators(&Config.select_slot_4_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+    SetHotkeyMenuAccelerators(&Config.select_slot_5_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+    SetHotkeyMenuAccelerators(&Config.select_slot_6_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+    SetHotkeyMenuAccelerators(&Config.select_slot_7_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+    SetHotkeyMenuAccelerators(&Config.select_slot_8_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+    SetHotkeyMenuAccelerators(&Config.select_slot_9_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+
+    SetHotkeyMenuAccelerators(&Config.restart_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 12);
+    SetHotkeyMenuAccelerators(&Config.play_latest_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 7);
 
 	SetDlgItemHotkey(mainHWND, IDC_HOT_FASTFORWARD,
 	                 &Config.fast_forward_hotkey);

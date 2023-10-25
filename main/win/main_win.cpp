@@ -1294,7 +1294,6 @@ void exit_emu(int postquit)
 		// freeRomDirList();
 		// freeRomList();
 		KillTimer(mainHWND, update_screen_timer);
-		freeLanguages();
 		Gdiplus::GdiplusShutdown(gdiPlusToken);
 		PostQuitMessage(0);
 	}
@@ -1410,54 +1409,34 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 	switch (lpttt->hdr.idFrom)
 	{
 	case IDLOAD:
-		TranslateDefault("Load ROM...", "Load ROM...", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Load ROM...");
 		break;
 	case EMU_PLAY:
-		if (!emu_launched)
-		{
-			TranslateDefault("Start Emulation", "Start Emulation", TempMessage);
-		} else if (emu_paused)
-		{
-			TranslateDefault("Resume Emulation", "Resume Emulation",
-			                 TempMessage);
-		} else
-		{
-			TranslateDefault("Emulating", "Emulating", TempMessage);
-		}
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Resume");
 		break;
 	case EMU_PAUSE:
-		TranslateDefault("Pause Emulation", "Pause Emulation", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Pause");
 		break;
 	case EMU_STOP:
-		TranslateDefault("Stop Emulation", "Stop Emulation", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Stop");
 		break;
 	case FULL_SCREEN:
-		TranslateDefault("Full Screen", "Full Screen", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Fullscreen");
 		break;
 	case IDGFXCONFIG:
-		TranslateDefault("Video Settings...", "Video Settings...", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Video Settings...");
 		break;
 	case IDSOUNDCONFIG:
-		TranslateDefault("Audio Settings...", "Audio Settings...", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Audio Settings...");
 		break;
 	case IDINPUTCONFIG:
-		TranslateDefault("Input Settings...", "Input Settings...", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Input Settings...");
 		break;
 	case IDRSPCONFIG:
-		TranslateDefault("RSP Settings...", "RSP Settings...", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "RSP Settings...");
 		break;
 	case ID_LOAD_CONFIG:
-		TranslateDefault("Settings...", "Settings...", TempMessage);
-		lpttt->lpszText = TempMessage;
+		strcpy(lpttt->lpszText, "Settings...");
 		break;
 	default:
 		break;
@@ -1686,9 +1665,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CREATE:
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
-		SetupLanguages(hwnd);
-		TranslateMenu(GetMenu(hwnd), hwnd);
-		SetMenuAcceleratorsFromUser(hwnd);
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
 		return TRUE;
 	case WM_TIMER:
@@ -2334,16 +2310,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				InitTimer();
 				break;
 			default:
-				//Language Support  from ID_LANG_ENGLISH to ID_LANG_ENGLISH+100
-				if (LOWORD(wParam) >= ID_LANG_ENGLISH && LOWORD(wParam) <= (
-					ID_LANG_ENGLISH + 100))
-				{
-					SelectLang(hwnd, LOWORD(wParam));
-					TranslateMenu(GetMenu(hwnd), hwnd);
-					// TODO: reimplement
-					// TranslateBrowserHeader(hRomList);
-					// ShowTotalRoms();
-				} else if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam)
+				if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam)
 					<= ID_CURRENTSAVE_10)
 				{
 					SelectState(hwnd, LOWORD(wParam));

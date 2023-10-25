@@ -182,15 +182,13 @@ void ChangeSettings(HWND hwndOwner)
 {
     PROPSHEETPAGE psp[6]{};
     PROPSHEETHEADER psh{};
-    char ConfigStr[200], DirectoriesStr[200], titleStr[200], settingsStr[200];
-    char AdvSettingsStr[200], HotkeysStr[200], OtherStr[200];
+
     psp[0].dwSize = sizeof(PROPSHEETPAGE);
     psp[0].dwFlags = PSP_USETITLE;
     psp[0].hInstance = app_hInstance;
     psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
     psp[0].pfnDlgProc = PluginsCfg;
-    TranslateDefault("Plugins", "Plugins", ConfigStr);
-    psp[0].pszTitle = ConfigStr;
+    psp[0].pszTitle = "Plugins";
     psp[0].lParam = 0;
     psp[0].pfnCallback = NULL;
 
@@ -199,8 +197,7 @@ void ChangeSettings(HWND hwndOwner)
     psp[1].hInstance = app_hInstance;
     psp[1].pszTemplate = MAKEINTRESOURCE(IDD_DIRECTORIES);
     psp[1].pfnDlgProc = DirectoriesCfg;
-    TranslateDefault("Directories", "Directories", DirectoriesStr);
-    psp[1].pszTitle = DirectoriesStr;
+    psp[1].pszTitle = "Directories";
     psp[1].lParam = 0;
     psp[1].pfnCallback = NULL;
 
@@ -209,8 +206,7 @@ void ChangeSettings(HWND hwndOwner)
     psp[2].hInstance = app_hInstance;
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
     psp[2].pfnDlgProc = GeneralCfg;
-    TranslateDefault("General", "General", settingsStr);
-    psp[2].pszTitle = settingsStr;
+    psp[2].pszTitle = "General";
     psp[2].lParam = 0;
     psp[2].pfnCallback = NULL;
 
@@ -219,8 +215,7 @@ void ChangeSettings(HWND hwndOwner)
     psp[3].hInstance = app_hInstance;
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
     psp[3].pfnDlgProc = AdvancedSettingsProc;
-    TranslateDefault("Advanced", "Advanced", AdvSettingsStr);
-    psp[3].pszTitle = AdvSettingsStr;
+    psp[3].pszTitle = "Advanced";
     psp[3].lParam = 0;
     psp[3].pfnCallback = NULL;
 
@@ -229,8 +224,7 @@ void ChangeSettings(HWND hwndOwner)
     psp[4].hInstance = app_hInstance;
     psp[4].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
     psp[4].pfnDlgProc = HotkeysProc;
-    TranslateDefault("Hotkeys", "Hotkeys", HotkeysStr);
-    psp[4].pszTitle = HotkeysStr;
+    psp[4].pszTitle = "Hotkeys";
     psp[4].lParam = 0;
     psp[4].pfnCallback = NULL;
 
@@ -239,8 +233,7 @@ void ChangeSettings(HWND hwndOwner)
     psp[5].hInstance = app_hInstance;
     psp[5].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
     psp[5].pfnDlgProc = OtherOptionsProc;
-    TranslateDefault("Other", "Other", OtherStr);
-    psp[5].pszTitle = OtherStr;
+    psp[5].pszTitle = "Other";
     psp[5].lParam = 0;
     psp[5].pfnCallback = NULL;
 
@@ -248,8 +241,7 @@ void ChangeSettings(HWND hwndOwner)
     psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
     psh.hwndParent = hwndOwner;
     psh.hInstance = app_hInstance;
-    TranslateDefault("Settings", "Settings", titleStr);
-    psh.pszCaption = (LPTSTR)titleStr;
+    psh.pszCaption = "Settings";
     psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
     psh.nStartPage = 0;
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
@@ -279,8 +271,6 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
         SendDlgItemMessage(hwnd, IDB_LOGO, STM_SETIMAGE, IMAGE_BITMAP,
                            (LPARAM)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_LOGO),
                                              IMAGE_BITMAP, 0, 0, 0));
-
-    //            MessageBox( hwnd, "", "", MB_OK );
         return TRUE;
 
     case WM_CLOSE:

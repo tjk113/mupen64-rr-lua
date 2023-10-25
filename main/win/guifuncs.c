@@ -75,11 +75,11 @@ bool warn_recording()
 void internal_warnsavestate(const char* messageCaption, const char* message, bool modal)
 {
     if (!Config.is_savestate_warning_enabled) return;
-    TranslateDefault(message, messageCaption, TempMessage);
+
     if (modal)
-        MessageBox(mainHWND, TempMessage, messageCaption, MB_ICONERROR);
+        MessageBox(mainHWND, message, messageCaption, MB_ICONERROR);
     else
-        statusbar_send_text(std::string(TempMessage));
+        statusbar_send_text(std::string(messageCaption) + " - " + std::string(message));
 }
 
 void warn_savestate(const char* messageCaption, const char* message)
