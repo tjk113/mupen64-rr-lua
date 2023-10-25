@@ -72,7 +72,6 @@ enum class Renderer {
 };
 
 typedef struct t_text_layout_params {
-	IDWriteTextLayout* text_layout;
 	int width;
 	int height;
 	std::string text;
@@ -84,16 +83,24 @@ typedef struct t_text_layout_params {
 	int vertical_alignment;
 } t_text_layout_params;
 
-static bool text_layout_params_equals(t_text_layout_params* lhs, t_text_layout_params* rhs) {
-	return lhs->text == rhs->text
-		&& lhs->width == rhs->width
-		&& lhs->height == rhs->height
-		&& lhs->font_name == rhs->font_name
-		&& lhs->font_size == rhs->font_size
-		&& lhs->font_weight == rhs->font_weight
-		&& lhs->font_style == rhs->font_style
-		&& lhs->horizontal_alignment == rhs->horizontal_alignment
-		&& lhs->vertical_alignment == rhs->vertical_alignment;
+static uint16_t text_layout_hash(t_text_layout_params* val) {
+	md5_state_t state = {0};
+	md5_init(&state);
+
+	md5_append(&state, (const md5_byte_t*)&val->width, sizeof(int));
+	md5_append(&state, (const md5_byte_t*)&val->height, sizeof(int));
+	md5_append(&state, (const md5_byte_t*)val->text.c_str(), val->text.size());
+	md5_append(&state, (const md5_byte_t*)val->font_name.c_str(), val->font_name.size());
+	md5_append(&state, (const md5_byte_t*)&val->font_size, sizeof(float));
+	md5_append(&state, (const md5_byte_t*)&val->font_weight, sizeof(int));
+	md5_append(&state, (const md5_byte_t*)&val->font_style, sizeof(int));
+	md5_append(&state, (const md5_byte_t*)&val->horizontal_alignment, sizeof(int));
+	md5_append(&state, (const md5_byte_t*)&val->vertical_alignment, sizeof(int));
+
+	uint8_t result[16];
+	md5_finish(&state, result);
+	
+	return *((uint16_t*)result);
 }
 
 class LuaEnvironment {
@@ -119,7 +126,7 @@ public:
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
 	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
-	std::vector<t_text_layout_params> dw_text_layout_params;
+	std::unordered_map<int64_t, IDWriteTextLayout*> dw_text_layout_cache;
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
 
 	/**
