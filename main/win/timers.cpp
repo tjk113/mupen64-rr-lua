@@ -24,6 +24,7 @@
 #include "../rom.h"
 #include "translation.h"
 #include "../vcr.h"
+#include "../../memory/pif.h"
 #include "../../winproject/resource.h"
 
 //c++!!!
@@ -128,8 +129,6 @@ extern long m_currentSample;
 
 void new_vi()
 {
-	extern int frame_advancing;
-
 	// fps wont update when emu is stuck so we must check vi/s
 	// vi/s shouldn't go over 1000 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
 	if (!ignoreErrorEmulation && emu_launched && frame_advancing && VIs > 1000)
@@ -176,7 +175,7 @@ void new_vi()
 	//nanosecond precosion is kept up to the sleep
 
 	auto Dif = CurrentFPSTime - LastFPSTime;
-	if (manualFPSLimit && !frame_advancing)
+	if (!fast_forward && !frame_advancing)
 	{
 		if (Dif < VILimitMilliseconds)
 		{

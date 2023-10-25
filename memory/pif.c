@@ -56,6 +56,7 @@
 
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];
+int frame_advancing = 0;
 
 void check_input_sync(unsigned char* value);
 
@@ -194,7 +195,6 @@ unsigned char mempack_crc(unsigned char* data)
     return CRC;
 }
 
-int frame_advancing = 0;
 
 void internal_ReadController(int Control, BYTE* Command)
 {

@@ -66,7 +66,6 @@
 
 //stop AVI at m64 end, set by command line avi
 bool gStopAVI = false;
-bool captureMarkedStop;
 BOOL dontPlay = false;
 
 #define BUFFER_GROWTH_SIZE (4096)
@@ -95,19 +94,6 @@ enum ETask
 	StartPlaybackFromSnapshot,
 	Playback
 };
-
-/*
-static const char *m_taskName[] =
-{
-	"Idle",
-	"StartRecording",
-	"StartRecordingFromSnapshot",
-	"Recording",
-	"StartPlayback",
-	"StartPlaybackFromSnapshot",
-	"Playback"
-};
-*/
 
 static char m_filename[PATH_MAX];
 static char AVIFileName[PATH_MAX];
@@ -146,8 +132,8 @@ bool is_restarting_flag = false;
 
 bool captureWithFFmpeg = true;
 std::unique_ptr<FFmpegManager> captureManager;
+uint64_t screen_updates = 0;
 
-extern void resetEmu();
 void SetActiveMovie(char* buf);
 static int startPlayback(const char* filename, const char* authorUTF8,
                          const char* descriptionUTF8, const bool restarting);
@@ -1756,7 +1742,6 @@ stopPlayback(bool bypassLoopSetting)
 	{
 		return restartPlayback();
 	}
-	extern HWND mainHWND;
 	reset_titlebar();
 	if (m_file && m_task != StartRecording && m_task != Recording)
 	{
@@ -1802,52 +1787,37 @@ void VCR_invalidatedCaptureFrame()
 	captureFrameValid = FALSE;
 }
 
-void
-VCR_updateScreen()
+void VCR_updateScreen()
 {
-	void* image = NULL;
-	long width = 0, height = 0;
-	static int frame = 0;
-	int redraw = 1;
+	screen_updates++;
 
-	if (captureMarkedStop && VCR_isCapturing())
+	if (!VCR_isCapturing())
 	{
-		// Stop capture.
-		VCR_stopCapture();
-		// If it crashes here, let me know (auru) because this is bad code
-	}
-
-	if (VCR_isCapturing() == 0)
-	{
-		// only update screen if not capturing
-		// skip frames according to skipFrequency if fast-forwarding
-		if ((IGNORE_RSP || forceIgnoreRSP)) redraw = 0;
-		if (redraw) {
+		if (!is_frame_skipped()) {
 			updateScreen();
-			main_dispatcher_invoke(AtVILuaCallback);
 		}
+
+		// we always want to invoke atvi, regardless of ff optimization
+		main_dispatcher_invoke(AtVILuaCallback);
 		return;
 	}
 
 	// capturing, update screen and call readscreen, call avi/ffmpeg stuff
+	updateScreen();
+	main_dispatcher_invoke(AtVILuaCallback);
 
-	if (redraw)
-	{
-		updateScreen();
-		main_dispatcher_invoke(AtVILuaCallback);
-	}
-#ifdef FFMPEG_BENCHMARK
+	void* image = nullptr;
+	long width = 0, height = 0;
+
 	auto start = std::chrono::high_resolution_clock::now();
-#endif
 	readScreen(&image, &width, &height);
-#ifdef FFMPEG_BENCHMARK
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> time = (end - start);
 	printf("ReadScreen (ffmpeg): %lf ms\n", time.count());
-#endif
-	if (image == NULL)
+
+	if (image == nullptr)
 	{
-		fprintf(stderr, "[VCR]: Couldn't read screen (out of memory?)\n");
+		printf("[VCR]: Couldn't read screen (out of memory?)\n");
 		return;
 	}
 

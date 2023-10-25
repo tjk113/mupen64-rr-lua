@@ -556,7 +556,8 @@ void plugin_config(t_plugin* plugin)
 				plugin->handle, "InitiateAudio");
 			if (!initiateAudio(dummy_audio_info))
 			{
-				ShowMessage("Failed to initialize audio plugin.");
+				MessageBox(mainHWND, "Failed to initiate audio plugin.", nullptr,
+						   MB_ICONERROR);
 			}
 		}
 

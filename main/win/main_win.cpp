@@ -77,7 +77,6 @@ void StartLuaScripts();
 void StartSavestate();
 
 bool ffup = false;
-BOOL forceIgnoreRSP = false;
 #if defined(__cplusplus) && !defined(_MSC_VER)
 }
 #endif
@@ -117,7 +116,7 @@ int emu_launched; //int emu_emulating;
 int emu_paused;
 HWND mainHWND;
 HINSTANCE app_hInstance;
-BOOL manualFPSLimit = TRUE;
+BOOL fast_forward = 0;
 BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
 
@@ -218,12 +217,6 @@ void LoadTheState(HWND hWnd, int StateID)
 	{
 		savestates_job = LOADSTATE;
 	}
-}
-
-char* getExtension(char* str)
-{
-	if (strlen(str) > 3) return str + strlen(str) - 3;
-	else return NULL;
 }
 
 
@@ -445,19 +438,12 @@ void resetEmu()
 	// simply by clearing out some memory and maybe notifying the plugins...
 	if (emu_launched)
 	{
-		extern int frame_advancing;
 		frame_advancing = false;
 		really_restart_mode = TRUE;
 		MenuPaused = FALSE;
 		CreateThread(NULL, 0, close_rom, NULL, 0, &Id);
 	}
 }
-
-void ShowMessage(const char* lpszMessage)
-{
-	MessageBox(NULL, lpszMessage, "Info", MB_OK);
-}
-
 
 int pauseAtFrame = -1;
 
@@ -1378,6 +1364,28 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 	return 0;
 }
 
+bool is_frame_skipped()
+{
+	if (!fast_forward || VCR_isCapturing())
+	{
+		return false;
+	}
+
+	// skip every frame
+	if (Config.frame_skip_frequency == 0)
+	{
+		return true;
+	}
+
+	// skip no frames
+	if (Config.frame_skip_frequency == 1)
+	{
+		return false;
+	}
+
+	return screen_updates % Config.frame_skip_frequency != 0;
+}
+
 void reset_titlebar()
 {
 	SetWindowText(mainHWND, (std::string(MUPEN_VERSION) + " - " + std::string(reinterpret_cast<char*>(ROM_HEADER->nom))).c_str());
@@ -1466,7 +1474,7 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam,
 		switch (wParam)
 		{
 		case VK_TAB:
-			manualFPSLimit = 0;
+			fast_forward = 1;
 			break;
 		default:
 			break;
@@ -1477,7 +1485,7 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam,
 		switch (wParam)
 		{
 		case VK_TAB:
-			manualFPSLimit = 1;
+			fast_forward = 0;
 			break;
 		case VK_ESCAPE:
 			exit_emu(1);
@@ -1577,7 +1585,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYDOWN:
 		{
 			BOOL hit = FALSE;
-			if (manualFPSLimit)
+			if (!fast_forward)
 			{
 				if ((int)wParam == Config.fast_forward_hotkey.key)
 				// fast-forward on
@@ -1589,7 +1597,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.
 						fast_forward_hotkey.alt)
 					{
-						manualFPSLimit = 0;
+						fast_forward = 1;
 						hit = TRUE;
 					}
 				}
@@ -1622,7 +1630,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		if ((int)wParam == Config.fast_forward_hotkey.key) // fast-forward off
 		{
-			manualFPSLimit = 1;
+			fast_forward = 0;
 			ffup = true; //fuck it, timers.c is too weird
 		}
 		if (emu_launched)
@@ -1884,8 +1892,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case EMU_FRAMEADVANCE:
 				{
 					MenuPaused = FALSE;
-					if (!manualFPSLimit) break;
-					extern int frame_advancing;
 					frame_advancing = 1;
 					VIs = 0;
 					// prevent old VI value from showing error if running at super fast speeds
@@ -2696,7 +2702,6 @@ int WINAPI WinMain(
 					// special treatment for fast-forward
 					if (hotkey->identifier == Config.fast_forward_hotkey.identifier)
 					{
-						extern int frame_advancing;
 						if (!frame_advancing)
 						{
 							// dont allow fastforward+frameadvance
@@ -2707,10 +2712,10 @@ int WINAPI WinMain(
 								&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
 								hotkey->alt)
 							{
-								manualFPSLimit = 0;
+								fast_forward = 1;
 							} else
 							{
-								manualFPSLimit = 1;
+								fast_forward = 0;
 							}
 						}
 						continue;

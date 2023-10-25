@@ -2754,9 +2754,7 @@ void LoadScreenInit()
 
 	int SetGFX(lua_State* L)
 	{
-		// Ignore or update gfx
-		int state = luaL_checknumber(L, 1);
-		forceIgnoreRSP = state == 0;
+		// stub for now
 		return 0;
 	}
 

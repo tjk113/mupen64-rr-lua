@@ -274,8 +274,10 @@ void VCRComp_startFile(const char* filename, long width, long height, int fps, i
     {
         ZeroMemory(&video_options, sizeof(AVICOMPRESSOPTIONS));
         pvideo_options[0] = &video_options;
-        extern bool captureMarkedStop;
-        captureMarkedStop = !AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options);
+        if(!AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options))
+        {
+            // TODO: user cancel, roll everything back
+        }
     }
     VRComp_saveOptions();
     AVIMakeCompressedStream(&compressed_video_stream, video_stream, pvideo_options[0], NULL);

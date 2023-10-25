@@ -49,7 +49,6 @@
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"
 
-extern BOOL manualFPSLimit; //0 = ff enabled
 static int frame;
 
 /* definitions of the rcp's structures and memory area */
@@ -1228,7 +1227,8 @@ void update_SP()
             //processDList();
             rsp_register.rsp_pc &= 0xFFF;
             start_section(GFX_SECTION);
-            if (!IGNORE_RSP) doRspCycles(100);
+            if(!is_frame_skipped())
+                doRspCycles(100);
             end_section(GFX_SECTION);
             rsp_register.rsp_pc |= save_pc;
             new_frame();
