@@ -2087,7 +2087,7 @@ void LoadScreenInit()
 		};
 		auto hash = text_layout_hash(&params);
 
-		if (!lua->dw_text_layout_cache.contains(hash))
+		// if (!lua->dw_text_layout_cache.contains(hash))
 		{
 			IDWriteTextFormat* text_format;
 
@@ -2116,7 +2116,6 @@ void LoadScreenInit()
 											  rectangle.bottom - rectangle.top,
 											  &text_layout);
 			text_format->Release();
-			printf("Generated text format cache %d\n", hash);
 			lua->dw_text_layout_cache[hash] = text_layout;
 		}
 
@@ -2127,6 +2126,7 @@ void LoadScreenInit()
 		                                       static_cast<
 			                                       D2D1_DRAW_TEXT_OPTIONS>(
 			                                       options));
+		lua->dw_text_layout_cache[hash]->Release();
 		return 0;
 	}
 
