@@ -895,7 +895,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 	if (m_task == StartRecordingFromSnapshot)
 	{
 		// wait until state is saved, then record
-		if ((savestates_job & SAVESTATE) == 0)
+		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Snapshot...\n");
 			m_task = Recording;
@@ -905,7 +905,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 	}
 
 	if (m_task == StartRecordingFromExistingSnapshot)
-		if ((savestates_job & LOADSTATE) == 0)
+		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Existing Snapshot...\n");
 			m_task = Recording;
@@ -934,7 +934,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 	if (m_task == StartPlaybackFromSnapshot)
 	{
 		// wait until state is loaded, then playback
-		if ((savestates_job & LOADSTATE) == 0)
+		if (savestates_job == e_st_job::none)
 		{
 			extern BOOL savestates_job_success;
 			if (!savestates_job_success)
@@ -1165,8 +1165,7 @@ VCR_startRecord(const char* filename, unsigned short flags,
 		else
 			strncat(buf, ".savestate", 12);
 
-		savestates_select_filename(buf);
-		savestates_job |= SAVESTATE;
+		savestates_exec(buf, e_st_job::save, false);
 		m_task = StartRecordingFromSnapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
@@ -1179,8 +1178,7 @@ VCR_startRecord(const char* filename, unsigned short flags,
 		else
 			strncat(buf, ".savestate", 12);
 
-		savestates_select_filename(buf);
-		savestates_job |= LOADSTATE;
+		savestates_exec(buf, e_st_job::load, false);
 
 		// set this to the normal snapshot flag to maintain compatibility
 		m_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
@@ -1673,9 +1671,6 @@ startPlayback(const char* filename, const char* authorUTF8,
 
 		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 		{
-			// we cant wait for this function to return and then get check in emu(?) thread (savestates_load)
-
-
 			// load state
 			printf("[VCR]: Loading state...\n");
 			strcpy(buf, m_filename);
@@ -1703,8 +1698,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 				return VCR_PLAYBACK_SAVESTATE_MISSING;
 			}
 
-			savestates_select_filename(buf);
-			savestates_job |= LOADSTATE;
+			savestates_exec(buf, e_st_job::load, false);
 			m_task = StartPlaybackFromSnapshot;
 		} else
 		{

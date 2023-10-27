@@ -141,3 +141,14 @@ std::wstring get_desktop_path()
 	SHGetSpecialFolderPathW(HWND_DESKTOP, path, CSIDL_DESKTOP, FALSE);
 	return path;
 }
+
+bool is_file_accessible(const std::filesystem::path& path)
+{
+	FILE* f = fopen(path.string().c_str(), "r");
+	if (!f)
+	{
+		return false;
+	}
+	fclose(f);
+	return true;
+}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <Windows.h>
 #include <string>
 #include <vector>
@@ -17,3 +18,4 @@ std::wstring get_extension(const std::wstring &path);
 void copy_to_clipboard(HWND owner, const std::string &str);
 
 std::wstring get_desktop_path();
+bool is_file_accessible(const std::filesystem::path& path);

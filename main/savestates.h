@@ -27,16 +27,54 @@
  *
 **/
 
-#define SAVESTATE 1
-#define LOADSTATE 2
 
-extern int savestates_job;
+#pragma once
+
+#include <filesystem>
+
+enum class e_st_job
+{
+	none,
+	save,
+	load
+};
+
+extern size_t st_slot;
+extern std::filesystem::path st_path;
+extern e_st_job savestates_job;
+extern bool savestates_job_use_slot;
 extern bool st_skip_dma;
 
-void savestates_save();
-void savestates_load(bool silenceNotFoundError);
+/**
+ * \brief Reads emu state and generates a savestate depending on the st global state
+ * \remarks If <c>savestates_job_use_slot</c> is specified, <c>st_slot</c> will be used to construct the savestate's path, otherwise <c>st_path</c> will be used
+ *
+ * This function should only be called by the core, other callers shall use <c>savestates_exec</c>
+ */
+void savestates_save_immediate();
 
-void savestates_select_slot(unsigned int s);
-void savestates_select_filename(const char* fn);
+/**
+ * \brief Overwrites emu state from a read savestate depending on the st global state
+ * \remarks If <c>savestates_job_use_slot</c> is specified, <c>st_slot</c> will be used to construct the savestate's path, otherwise <c>st_path</c> will be used
+ *
+ * This function should only be called by the core, other callers shall use <c>savestates_exec</c>
+ */
+void savestates_load_immediate();
 
-unsigned const char* savestates_get_selected_filename();
+/**
+ * \brief Executes a savestate operation
+ * \param path The savestate's path
+ * \param job The job to set
+ * \param immediate Whether the operation should be performed immediately
+ * \remarks If <c>immediate</c> is true, but the emu state changes while the function runs (e.g.: when the game is unpaused and this function is called from non-emu thread), the results will be invalid
+ */
+void savestates_exec(std::filesystem::path path, e_st_job job, bool immediate);
+
+/**
+ * \brief Executes a savestate operation
+ * \param slot The slot to construct the savestate path with
+ * \param job The job to set
+ * \param immediate Whether the operation should be performed immediately
+ * \remarks If <c>immediate</c> is true, but the emu state changes while the function runs (e.g.: when the game is unpaused and this function is called from non-emu thread), the results will be invalid
+ */
+void savestates_exec(size_t slot, e_st_job job, bool immediate);

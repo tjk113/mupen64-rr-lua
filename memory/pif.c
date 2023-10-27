@@ -521,25 +521,25 @@ void update_pif_read(bool stcheck)
                                 AtIntervalLuaCallback();
                             });
                             //should this be before or after? idk
-                            if (savestates_job & LOADSTATE && stAllowed)
+                            if (savestates_job == e_st_job::load && stAllowed)
                             {
-                                savestates_load(false);
-                                savestates_job &= ~LOADSTATE;
+                                savestates_load_immediate();
+                                savestates_job = e_st_job::none;
                             }
                         }
                     }
                     if (stcheck)
                     {
-                        if (savestates_job & SAVESTATE && stAllowed)
+                        if (savestates_job == e_st_job::save && stAllowed)
                         {
-                            savestates_save();
-                            savestates_job &= ~SAVESTATE;
+                            savestates_save_immediate();
+                            savestates_job = e_st_job::none;
                         }
                     }
-                    if (savestates_job & LOADSTATE && stAllowed)
+                    if (savestates_job == e_st_job::load && stAllowed)
                     {
-                        savestates_load(false);
-                        savestates_job &= ~LOADSTATE;
+                        savestates_load_immediate();
+                        savestates_job = e_st_job::none;
                     }
                     extern bool old_st;
                     if (old_st)

@@ -2879,15 +2879,13 @@ void LoadScreenInit()
 	//�蔲��
 	int SaveFileSavestate(lua_State* L)
 	{
-		savestates_select_filename(lua_tostring(L, 1));
-		savestates_job = SAVESTATE;
+		savestates_exec(lua_tostring(L, 1), e_st_job::save, false);
 		return 0;
 	}
 
 	int LoadFileSavestate(lua_State* L)
 	{
-		savestates_select_filename(lua_tostring(L, 1));
-		savestates_job = LOADSTATE;
+		savestates_exec(lua_tostring(L, 1), e_st_job::load, false);
 		return 0;
 	}
 
