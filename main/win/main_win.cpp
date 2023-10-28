@@ -1519,7 +1519,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			}else if (extension == ".st" || extension == ".savestate")
 			{
 				if (!emu_launched) break;
-				savestates_exec(fname, e_st_job::load, false);
+				savestates_do(fname, e_st_job::load);
 			} else if(extension == ".lua")
 			{
 				lua_create_and_run(path.string().c_str(), false);
@@ -2029,7 +2029,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case STATE_SAVE:
-				savestates_exec(st_slot, e_st_job::save, emu_paused);
+				savestates_do(st_slot, e_st_job::save);
 				break;
 			case STATE_SAVEAS:
 				{
@@ -2042,7 +2042,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					savestates_exec(path, e_st_job::save, true);
+					savestates_do(path, e_st_job::save);
 
 					if (wasMenuPaused)
 					{
@@ -2051,7 +2051,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case STATE_RESTORE:
-				savestates_exec(st_slot, e_st_job::load, emu_paused);
+				savestates_do(st_slot, e_st_job::load);
 				break;
 			case STATE_LOAD:
 				{
@@ -2064,7 +2064,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					savestates_exec(path, e_st_job::load, true);
+					savestates_do(path, e_st_job::load);
 
 					if (wasMenuPaused)
 					{
@@ -2267,12 +2267,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					auto slot = LOWORD(wParam) - ID_SAVE_1;
 					// if emu is paused and no console state is changing, we can safely perform st op instantly
-					savestates_exec(slot, e_st_job::save, emu_paused);
+					savestates_do(slot, e_st_job::save);
 				} else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <=
 					ID_LOAD_10)
 				{
 					auto slot = LOWORD(wParam) - ID_LOAD_1;
-					savestates_exec(slot, e_st_job::load, emu_paused);
+					savestates_do(slot, e_st_job::load);
 				} else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST &&
 					LOWORD(wParam) < (ID_RECENTROMS_FIRST + Config.
 						recent_rom_paths.size()))
@@ -2398,7 +2398,7 @@ void StartSavestate()
 	{
 		char file[MAX_PATH];
 		GetCmdLineParameter(CMDLINE_SAVESTATE, file);
-		savestates_exec(file, e_st_job::load, false);
+		savestates_do(file, e_st_job::load);
 	}
 }
 

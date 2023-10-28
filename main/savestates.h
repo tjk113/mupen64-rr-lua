@@ -44,6 +44,7 @@ extern std::filesystem::path st_path;
 extern e_st_job savestates_job;
 extern bool savestates_job_use_slot;
 extern bool st_skip_dma;
+extern bool old_st;
 
 /**
  * \brief Reads emu state and generates a savestate depending on the st global state
@@ -65,16 +66,14 @@ void savestates_load_immediate();
  * \brief Executes a savestate operation
  * \param path The savestate's path
  * \param job The job to set
- * \param immediate Whether the operation should be performed immediately
- * \remarks If <c>immediate</c> is true, but the emu state changes while the function runs (e.g.: when the game is unpaused and this function is called from non-emu thread), the results will be invalid
+ * \remarks The operation won't complete immediately
  */
-void savestates_exec(std::filesystem::path path, e_st_job job, bool immediate);
+void savestates_do(std::filesystem::path path, e_st_job job);
 
 /**
  * \brief Executes a savestate operation
  * \param slot The slot to construct the savestate path with
  * \param job The job to set
- * \param immediate Whether the operation should be performed immediately
- * \remarks If <c>immediate</c> is true, but the emu state changes while the function runs (e.g.: when the game is unpaused and this function is called from non-emu thread), the results will be invalid
+ * \remarks The operation won't complete immediately
  */
-void savestates_exec(size_t slot, e_st_job job, bool immediate);
+void savestates_do(size_t slot, e_st_job job);

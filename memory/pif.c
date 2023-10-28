@@ -511,7 +511,6 @@ void update_pif_read(bool stcheck)
                     if (once && channel <= controllerRead && (&PIF_RAMb[i])[2] == 1)
                     {
                         once = false;
-                        extern void pauseEmu(BOOL quiet);
                         frame_advancing = 0;
                         pauseEmu(TRUE);
                         while (emu_paused)
@@ -520,7 +519,13 @@ void update_pif_read(bool stcheck)
                             main_dispatcher_invoke([] {
                                 AtIntervalLuaCallback();
                             });
-                            //should this be before or after? idk
+
+                            // TODO: maybe unify this and the other calls outside paused loop with some pump function like savestates_process_job()
+                            if (savestates_job == e_st_job::save && stAllowed)
+                            {
+                                savestates_save_immediate();
+                                savestates_job = e_st_job::none;
+                            }
                             if (savestates_job == e_st_job::load && stAllowed)
                             {
                                 savestates_load_immediate();
@@ -541,7 +546,6 @@ void update_pif_read(bool stcheck)
                         savestates_load_immediate();
                         savestates_job = e_st_job::none;
                     }
-                    extern bool old_st;
                     if (old_st)
                     {
                         //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
