@@ -71,38 +71,6 @@ enum class Renderer {
 	Direct2D
 };
 
-typedef struct t_text_layout_params {
-	int width;
-	int height;
-	std::string text;
-	std::string font_name;
-	float font_size;
-	int font_weight;
-	int font_style;
-	int horizontal_alignment;
-	int vertical_alignment;
-} t_text_layout_params;
-
-static uint16_t text_layout_hash(t_text_layout_params* val) {
-	md5_state_t state = {0};
-	md5_init(&state);
-
-	md5_append(&state, (const md5_byte_t*)&val->width, sizeof(int));
-	md5_append(&state, (const md5_byte_t*)&val->height, sizeof(int));
-	md5_append(&state, (const md5_byte_t*)val->text.c_str(), val->text.size());
-	md5_append(&state, (const md5_byte_t*)val->font_name.c_str(), val->font_name.size());
-	md5_append(&state, (const md5_byte_t*)&val->font_size, sizeof(float));
-	md5_append(&state, (const md5_byte_t*)&val->font_weight, sizeof(int));
-	md5_append(&state, (const md5_byte_t*)&val->font_style, sizeof(int));
-	md5_append(&state, (const md5_byte_t*)&val->horizontal_alignment, sizeof(int));
-	md5_append(&state, (const md5_byte_t*)&val->vertical_alignment, sizeof(int));
-
-	uint8_t result[16];
-	md5_finish(&state, result);
-	
-	return *((uint16_t*)result);
-}
-
 class LuaEnvironment {
 public:
 	bool stopping = false;
@@ -126,7 +94,6 @@ public:
 	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
 	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
-	std::unordered_map<int64_t, IDWriteTextLayout*> dw_text_layout_cache;
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
 
 	/**
@@ -173,11 +140,11 @@ public:
 	}
 	HWND hwnd;
 	lua_State* L;
-	
+
 
 private:
 
-	
+
 	void deleteLuaState();
 	void registerAsPackage(lua_State* L, const char* name,
 						   const luaL_Reg reg[]);

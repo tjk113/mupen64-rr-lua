@@ -2057,89 +2057,70 @@ void LoadScreenInit()
 	}
 
 
-	int LuaD2DDrawText(lua_State* L)
-	{
-		LuaEnvironment* lua = GetLuaClass(L);
+int LuaD2DDrawText(lua_State* L)
+{
+	LuaEnvironment* lua = GetLuaClass(L);
 
-		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-		auto color = D2D_GET_COLOR(L, 5);
+	D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
+	auto color = D2D_GET_COLOR(L, 5);
 
-		// we would get tons of near-misses otherwise
-		rectangle.left = (int)rectangle.left;
-		rectangle.top = (int)rectangle.top;
-		rectangle.right = (int)rectangle.right;
-		rectangle.bottom = (int)rectangle.bottom;
+	// we would get tons of near-misses otherwise
+	rectangle.left = (int)rectangle.left;
+	rectangle.top = (int)rectangle.top;
+	rectangle.right = (int)rectangle.right;
+	rectangle.bottom = (int)rectangle.bottom;
+	auto text = std::string(luaL_checkstring(L, 9));
+	auto font_name = std::string(luaL_checkstring(L, 10));
+	auto font_size = static_cast<float>(luaL_checknumber(L, 11));
+	auto font_weight = static_cast<int>(luaL_checknumber(L, 12));
+	auto font_style = static_cast<int>(luaL_checkinteger(L, 13));
+	auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14));
+	auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15));
 
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+	ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		int options = luaL_checkinteger(L, 16);
+	int options = luaL_checkinteger(L, 16);
 
-		t_text_layout_params params = {
-			.width = (int)(rectangle.right - rectangle.left),
-			.height = (int)(rectangle.bottom - rectangle.top),
-			.text = std::string(luaL_checkstring(L, 9)),
-			.font_name = std::string(luaL_checkstring(L, 10)),
-			.font_size = static_cast<float>(luaL_checknumber(L, 11)),
-			.font_weight = static_cast<int>(luaL_checknumber(L, 12)),
-			.font_style = static_cast<int>(luaL_checkinteger(L, 13)),
-			.horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14)),
-			.vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15)),
-		};
-		auto hash = text_layout_hash(&params);
 
-		// if (!lua->dw_text_layout_cache.contains(hash))
-		{
-			IDWriteTextFormat* text_format;
+	IDWriteTextFormat* text_format;
 
-			lua->dw_factory->CreateTextFormat(
-				string_to_wstring(params.font_name).c_str(),
-				nullptr,
-				static_cast<DWRITE_FONT_WEIGHT>(params.font_weight),
-				static_cast<DWRITE_FONT_STYLE>(params.font_style),
-				DWRITE_FONT_STRETCH_NORMAL,
-				params.font_size,
-				L"",
-				&text_format
-			);
+	lua->dw_factory->CreateTextFormat(
+		string_to_wstring(font_name).c_str(),
+		nullptr,
+		static_cast<DWRITE_FONT_WEIGHT>(font_weight),
+		static_cast<DWRITE_FONT_STYLE>(font_style),
+		DWRITE_FONT_STRETCH_NORMAL,
+		font_size,
+		L"",
+		&text_format
+	);
 
-			text_format->SetTextAlignment(
-				static_cast<DWRITE_TEXT_ALIGNMENT>(params.horizontal_alignment));
-			text_format->SetParagraphAlignment(
-				static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(params.vertical_alignment));
+	text_format->SetTextAlignment(
+		static_cast<DWRITE_TEXT_ALIGNMENT>(horizontal_alignment));
+	text_format->SetParagraphAlignment(
+		static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(vertical_alignment));
 
-			IDWriteTextLayout* text_layout;
+	IDWriteTextLayout* text_layout;
 
-			auto wtext = string_to_wstring(params.text);
-			lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
-											  text_format,
-											  rectangle.right - rectangle.left,
-											  rectangle.bottom - rectangle.top,
-											  &text_layout);
-			text_format->Release();
-			lua->dw_text_layout_cache[hash] = text_layout;
-		}
+	auto wtext = string_to_wstring(text);
+	lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
+	                                  text_format,
+	                                  rectangle.right - rectangle.left,
+	                                  rectangle.bottom - rectangle.top,
+	                                  &text_layout);
 
-		lua->d2d_render_target_stack.top()->DrawTextLayout({
-			                                       .x = rectangle.left,
-			                                       .y = rectangle.top,
-		                                       }, lua->dw_text_layout_cache[hash], brush,
-		                                       static_cast<
-			                                       D2D1_DRAW_TEXT_OPTIONS>(
-			                                       options));
-		lua->dw_text_layout_cache[hash]->Release();
-		return 0;
-	}
+	lua->d2d_render_target_stack.top()->DrawTextLayout({
+			.x = rectangle.left,
+			.y = rectangle.top,
+		}, text_layout, brush,
+		static_cast<
+			D2D1_DRAW_TEXT_OPTIONS>(
+			options));
 
-	int LuaD2DPurgeTextLayoutCache(lua_State* L) {
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		for (auto const& val : lua->dw_text_layout_cache) {
-			val.second->Release();
-		}
-		lua->dw_text_layout_cache.clear();
-
-		return 0;
-	}
+	text_format->Release();
+	text_layout->Release();
+	return 0;
+}
 
 	int LuaD2DSetTextAntialiasMode(lua_State* L)
 	{
@@ -3346,7 +3327,6 @@ void LoadScreenInit()
 		{"draw_ellipse", LuaD2DDrawEllipse},
 		{"draw_line", LuaD2DDrawLine},
 		{"draw_text", LuaD2DDrawText},
-		{"purge_text_layout_cache", LuaD2DPurgeTextLayoutCache},
 		{"get_text_size", LuaD2DGetTextSize},
 		{"push_clip", LuaD2DPushClip},
 		{"pop_clip", LuaD2DPopClip},
@@ -4128,11 +4108,6 @@ void LuaEnvironment::destroy_renderer()
 		val->Release();
 	}
 	d2d_bitmap_render_target.clear();
-
-	for (auto const& val : dw_text_layout_cache) {
-		val.second->Release();
-	}
-	dw_text_layout_cache.clear();
 
 	while (!d2d_render_target_stack.empty()) {
 		d2d_render_target_stack.pop();
