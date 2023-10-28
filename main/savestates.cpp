@@ -28,11 +28,11 @@
 **/
 
 #include <zlib.h>
+#include <libdeflate.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../lua/LuaConsole.h"
-
 #include "vcr.h"
 
 #include "savestates.h"
@@ -77,14 +77,15 @@ std::filesystem::path get_effective_path()
 
 void savestates_save_immediate()
 {
+	auto start_time = std::chrono::high_resolution_clock::now();
     savestates_job_success = TRUE;
 
 	std::filesystem::path path = get_effective_path();
     if (Config.use_summercart) save_summercart(path.string().c_str());
 
-    gzFile f = gzopen(path.string().c_str(), "wb");
+	std::vector<uint8_t> b;
 
-    gzwrite(f, ROM_SETTINGS.MD5, 32);
+    vecwrite(b, ROM_SETTINGS.MD5, 32);
 
     //if fixing enabled...
     if (fix_new_st)
@@ -108,54 +109,52 @@ void savestates_save_immediate()
         st_skip_dma = true;
         //hack end
     }
-    gzwrite(f, &rdram_register, sizeof(RDRAM_register));
-    gzwrite(f, &MI_register, sizeof(mips_register));
-    gzwrite(f, &pi_register, sizeof(PI_register));
-    gzwrite(f, &sp_register, sizeof(SP_register));
-    gzwrite(f, &rsp_register, sizeof(RSP_register));
-    gzwrite(f, &si_register, sizeof(SI_register));
-    gzwrite(f, &vi_register, sizeof(VI_register));
-    gzwrite(f, &ri_register, sizeof(RI_register));
-    gzwrite(f, &ai_register, sizeof(AI_register));
-    gzwrite(f, &dpc_register, sizeof(DPC_register));
-    gzwrite(f, &dps_register, sizeof(DPS_register));
-    gzwrite(f, rdram, 0x800000);
-    gzwrite(f, SP_DMEM, 0x1000);
-    gzwrite(f, SP_IMEM, 0x1000);
-    gzwrite(f, PIF_RAM, 0x40);
+    vecwrite(b, &rdram_register, sizeof(RDRAM_register));
+    vecwrite(b, &MI_register, sizeof(mips_register));
+    vecwrite(b, &pi_register, sizeof(PI_register));
+    vecwrite(b, &sp_register, sizeof(SP_register));
+    vecwrite(b, &rsp_register, sizeof(RSP_register));
+    vecwrite(b, &si_register, sizeof(SI_register));
+    vecwrite(b, &vi_register, sizeof(VI_register));
+    vecwrite(b, &ri_register, sizeof(RI_register));
+    vecwrite(b, &ai_register, sizeof(AI_register));
+    vecwrite(b, &dpc_register, sizeof(DPC_register));
+    vecwrite(b, &dps_register, sizeof(DPS_register));
+    vecwrite(b, rdram, 0x800000);
+    vecwrite(b, SP_DMEM, 0x1000);
+    vecwrite(b, SP_IMEM, 0x1000);
+    vecwrite(b, PIF_RAM, 0x40);
 
 	char buf[1024];
     save_flashram_infos(buf);
-    gzwrite(f, buf, 24);
-
-    gzwrite(f, tlb_LUT_r, 0x100000);
-    gzwrite(f, tlb_LUT_w, 0x100000);
-
-    gzwrite(f, &llbit, 4);
-    gzwrite(f, reg, 32 * 8);
+    vecwrite(b, buf, 24);
+    vecwrite(b, tlb_LUT_r, 0x100000);
+    vecwrite(b, tlb_LUT_w, 0x100000);
+    vecwrite(b, &llbit, 4);
+    vecwrite(b, reg, 32 * 8);
     for (size_t i = 0; i < 32; i++)
-        gzwrite(f, reg_cop0 + i, 8); // *8 for compatibility with old versions purpose
-    gzwrite(f, &lo, 8);
-    gzwrite(f, &hi, 8);
-    gzwrite(f, reg_cop1_fgr_64, 32 * 8);
-    gzwrite(f, &FCR0, 4);
-    gzwrite(f, &FCR31, 4);
-    gzwrite(f, tlb_e, 32 * sizeof(tlb));
+        vecwrite(b, reg_cop0 + i, 8); // *8 for compatibility with old versions purpose
+    vecwrite(b, &lo, 8);
+    vecwrite(b, &hi, 8);
+    vecwrite(b, reg_cop1_fgr_64, 32 * 8);
+    vecwrite(b, &FCR0, 4);
+    vecwrite(b, &FCR31, 4);
+    vecwrite(b, tlb_e, 32 * sizeof(tlb));
     if (!dynacore && interpcore)
-        gzwrite(f, &interp_addr, 4);
+        vecwrite(b, &interp_addr, 4);
     else
-        gzwrite(f, &PC->addr, 4);
+        vecwrite(b, &PC->addr, 4);
 
-    gzwrite(f, &next_interupt, 4);
-    gzwrite(f, &next_vi, 4);
-    gzwrite(f, &vi_field, 4);
+    vecwrite(b, &next_interupt, 4);
+    vecwrite(b, &next_vi, 4);
+    vecwrite(b, &vi_field, 4);
 
     int len = save_eventqueue_infos(buf);
-    gzwrite(f, buf, len);
+    vecwrite(b, buf, len);
 
     // re-recording
     BOOL movieActive = VCR_isActive();
-    gzwrite(f, &movieActive, sizeof(movieActive));
+    vecwrite(b, &movieActive, sizeof(movieActive));
     if (movieActive)
     {
         char* movie_freeze_buf = NULL;
@@ -164,8 +163,8 @@ void savestates_save_immediate()
         VCR_movieFreeze(&movie_freeze_buf, &movie_freeze_size);
         if (movie_freeze_buf)
         {
-            gzwrite(f, &movie_freeze_size, sizeof(movie_freeze_size));
-            gzwrite(f, movie_freeze_buf, movie_freeze_size);
+            vecwrite(b, &movie_freeze_size, sizeof(movie_freeze_size));
+            vecwrite(b, movie_freeze_buf, movie_freeze_size);
             free(movie_freeze_buf);
         }
         else
@@ -175,9 +174,19 @@ void savestates_save_immediate()
         }
     }
 
+	std::vector<uint8_t> compressed = b;
+	auto compressor = libdeflate_alloc_compressor(6);
+	size_t final_size = libdeflate_gzip_compress(compressor, b.data(), b.size(), compressed.data(), compressed.size());
+	compressed.resize(final_size);
+
+	FILE* f = fopen(path.string().c_str(), "wb");
+	fwrite(compressed.data(), compressed.size(), 1, f);
+	fclose(f);
+
     main_dispatcher_invoke(AtSaveStateLuaCallback);
 	statusbar_send_text(std::format("Saved {}", path.filename().string()));
-    gzclose(f);
+	printf("Savestate saving took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
+
 }
 
 // reads memory like a file

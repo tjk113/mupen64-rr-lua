@@ -152,3 +152,9 @@ bool is_file_accessible(const std::filesystem::path& path)
 	fclose(f);
 	return true;
 }
+
+void vecwrite(std::vector<uint8_t>& vec, void* data, size_t len)
+{
+	vec.resize(vec.size() + len);
+	memcpy(vec.data() + (vec.size() - len), data, len);
+}

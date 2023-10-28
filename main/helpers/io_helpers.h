@@ -19,3 +19,5 @@ void copy_to_clipboard(HWND owner, const std::string &str);
 
 std::wstring get_desktop_path();
 bool is_file_accessible(const std::filesystem::path& path);
+
+void vecwrite(std::vector<uint8_t>& vec, void* data, size_t len);
