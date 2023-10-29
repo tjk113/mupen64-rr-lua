@@ -586,10 +586,10 @@ CONFIG get_default_config()
 	config.is_audio_delay_enabled = 1;
 	config.is_compiled_jump_enabled = 1;
 	config.is_lua_double_buffered = 1;
-	config.selected_video_plugin_name.clear();
-	config.selected_audio_plugin_name.clear();
-	config.selected_input_plugin_name.clear();
-	config.selected_rsp_plugin_name.clear();
+	config.selected_video_plugin.clear();
+	config.selected_audio_plugin.clear();
+	config.selected_input_plugin.clear();
+	config.selected_rsp_plugin.clear();
 	config.last_movie_type = 1;
 	config.last_movie_author = "Unknown Author";
 	config.window_x = CW_USEDEFAULT;
@@ -972,10 +972,10 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_audio_delay_enabled)
 	HANDLE_P_VALUE(is_compiled_jump_enabled)
 	HANDLE_P_VALUE(is_lua_double_buffered)
-	HANDLE_VALUE(selected_video_plugin_name)
-	HANDLE_VALUE(selected_audio_plugin_name)
-	HANDLE_VALUE(selected_input_plugin_name)
-	HANDLE_VALUE(selected_rsp_plugin_name)
+	HANDLE_VALUE(selected_video_plugin)
+	HANDLE_VALUE(selected_audio_plugin)
+	HANDLE_VALUE(selected_input_plugin)
+	HANDLE_VALUE(selected_rsp_plugin)
 	HANDLE_P_VALUE(last_movie_type)
 	HANDLE_VALUE(last_movie_author)
 	HANDLE_P_VALUE(window_x)

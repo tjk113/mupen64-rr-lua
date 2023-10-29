@@ -175,10 +175,10 @@ BOOL StartGameByCommandLine()
     }
 
     //Plugins
-    Config.selected_video_plugin_name = setPluginFromCmndLine(CMDLINE_VIDEO_PLUGIN, plugin_type::video);
-    Config.selected_audio_plugin_name = setPluginFromCmndLine(CMDLINE_AUDIO_PLUGIN, plugin_type::audio);
-    Config.selected_input_plugin_name = setPluginFromCmndLine(CMDLINE_CONTROLLER_PLUGIN, plugin_type::input);
-    Config.selected_rsp_plugin_name = setPluginFromCmndLine(CMDLINE_RSP_PLUGIN, plugin_type::rsp);
+    Config.selected_video_plugin = setPluginFromCmndLine(CMDLINE_VIDEO_PLUGIN, plugin_type::video);
+    Config.selected_audio_plugin = setPluginFromCmndLine(CMDLINE_AUDIO_PLUGIN, plugin_type::audio);
+    Config.selected_input_plugin = setPluginFromCmndLine(CMDLINE_CONTROLLER_PLUGIN, plugin_type::input);
+    Config.selected_rsp_plugin = setPluginFromCmndLine(CMDLINE_RSP_PLUGIN, plugin_type::rsp);
 
     if (!CmdLineParameterExist(CMDLINE_GAME_FILENAME))
     {

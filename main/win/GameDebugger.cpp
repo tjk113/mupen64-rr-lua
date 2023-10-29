@@ -95,7 +95,7 @@ BOOL CALLBACK GameDebuggerDialogProc(HWND hwnd, UINT Message, WPARAM wParam,
 				original_doRspCycles = doRspCycles;
 			}
 
-		// if rsp is disabled, we swap out the real doRspCycles function for the dummy one, effectively disabling the rsp unit
+			// if rsp is disabled, we swap out the real doRspCycles function for the dummy one, effectively disabling the rsp unit
 			if (IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE))
 				doRspCycles = original_doRspCycles;
 			else

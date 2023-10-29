@@ -236,28 +236,18 @@ void pauseEmu(BOOL quiet)
 
 DWORD WINAPI start_rom(LPVOID lpParam)
 {
-	if (!get_missing_plugin_types().empty()) {
-		// we're missing plugins, try to search for them first
-		search_plugins();
-
-		if (!get_missing_plugin_types().empty()) {
-			// we're still missing plugins after searching (user didnt select an accessible plugin)
-			// bail
-			if (MessageBox(mainHWND,
-				"Can't start emulation prior to selecting plugins.\nDo you want to select plugins in the settings?",
-				"Question", MB_YESNO | MB_ICONQUESTION) == IDYES) {
-				ChangeSettings(mainHWND);
-			}
-			return 0;
-		}
+	// this style of lifetime management means user wont be allowed to fuck with plugins, as mupen holds on to them permanently
+	unload_plugins();
+	if (!load_plugins())
+	{
+		MessageBox(mainHWND, "Invalid plugins selected", nullptr,
+		   MB_ICONERROR | MB_OK);
+		return 0;
 	}
 
 	std::string path = (char*)lpParam;
 	// Kill any roms that are still running
 	if (emu_launched) {
-
-		//close_rom(nullptr); // works better, but still not great
-		//main_dispatcher_invoke([] {WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);  });
 		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
 	}
 
@@ -288,13 +278,13 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER->nom)).c_str());
 	}
 
-	printf("Loading plugins...\n");
-	// we might need to call init_memory before this, but it seems to behave correctly for now
-	load_plugins();
+	load_gfx(video_plugin->handle);
+	load_sound(audio_plugin->handle);
+	load_input(input_plugin->handle);
+	load_rsp(rsp_plugin->handle);
 
-	printf("Creating emulation thread...\n");
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
-	//ExitThread(0);
+
 	return 1;
 }
 
@@ -458,13 +448,13 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2,
-		               Config.selected_video_plugin_name.c_str());
+		               Config.selected_video_plugin.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT2,
-		               Config.selected_input_plugin_name.c_str());
+		               Config.selected_input_plugin.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT2,
-		               Config.selected_audio_plugin_name.c_str());
+		               Config.selected_audio_plugin.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2,
-		               Config.selected_rsp_plugin_name.c_str());
+		               Config.selected_rsp_plugin.c_str());
 
 		strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
 		if (Controls[0].Present && Controls[0].Plugin ==
@@ -811,13 +801,13 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2,
-		               Config.selected_video_plugin_name.c_str());
+		               Config.selected_video_plugin.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT2,
-		               Config.selected_input_plugin_name.c_str());
+		               Config.selected_input_plugin.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT2,
-		               Config.selected_audio_plugin_name.c_str());
+		               Config.selected_audio_plugin.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2,
-		               Config.selected_rsp_plugin_name.c_str());
+		               Config.selected_rsp_plugin.c_str());
 
 		strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
 		if (Controls[0].Present && Controls[0].Plugin ==
@@ -1745,62 +1735,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!dynacore)
 				{
 					::LuaTraceLogState();
-				}
-				break;
-			case IDGFXCONFIG:
-				{
-					BOOL wasPaused = emu_paused && !MenuPaused;
-					MenuPaused = FALSE;
-					if (emu_launched && !emu_paused)
-						pauseEmu(FALSE);
-
-					hwnd_plug = hwnd;
-					plugin_config(
-						get_plugin_by_name(Config.selected_video_plugin_name));
-					if (emu_launched && emu_paused && !wasPaused)
-						resumeEmu(FALSE);
-				}
-				break;
-			case IDINPUTCONFIG:
-				{
-					BOOL wasPaused = emu_paused && !MenuPaused;
-					MenuPaused = FALSE;
-					if (emu_launched && !emu_paused)
-						pauseEmu(FALSE);
-
-					hwnd_plug = hwnd;
-					plugin_config(
-						get_plugin_by_name(Config.selected_input_plugin_name));
-					if (emu_launched && emu_paused && !wasPaused)
-						resumeEmu(FALSE);
-				}
-				break;
-			case IDSOUNDCONFIG:
-				{
-					BOOL wasPaused = emu_paused && !MenuPaused;
-					MenuPaused = FALSE;
-					if (emu_launched && !emu_paused)
-						pauseEmu(FALSE);
-
-					hwnd_plug = hwnd;
-					plugin_config(
-						get_plugin_by_name(Config.selected_audio_plugin_name));
-					if (emu_launched && emu_paused && !wasPaused)
-						resumeEmu(FALSE);
-				}
-				break;
-			case IDRSPCONFIG:
-				{
-					BOOL wasPaused = emu_paused && !MenuPaused;
-					MenuPaused = FALSE;
-					if (emu_launched && !emu_paused)
-						pauseEmu(FALSE);
-
-					hwnd_plug = hwnd;
-					plugin_config(
-						get_plugin_by_name(Config.selected_rsp_plugin_name));
-					if (emu_launched && emu_paused && !wasPaused)
-						resumeEmu(FALSE);
 				}
 				break;
 			case EMU_STOP:

@@ -103,13 +103,13 @@ void CrashHelper::GenerateLog(_EXCEPTION_POINTERS* exceptionPointersPtr,
 		               "Exception code: unknown (no exception thrown, was crash log called manually?)\n");
 	}
 	len += sprintf(logPtr + len, "Gfx:%s\n",
-	               Config.selected_video_plugin_name.c_str());
+	               Config.selected_video_plugin.c_str());
 	len += sprintf(logPtr + len, "Input:%s\n",
-	               Config.selected_input_plugin_name.c_str());
+	               Config.selected_input_plugin.c_str());
 	len += sprintf(logPtr + len, "Audio:%s\n",
-	               Config.selected_audio_plugin_name.c_str());
+	               Config.selected_audio_plugin.c_str());
 	len += sprintf(logPtr + len, "rsp:%s\n",
-	               Config.selected_rsp_plugin_name.c_str());
+	               Config.selected_rsp_plugin.c_str());
 	extern int m_task;
 	//some flags
 	len += sprintf(logPtr + len, "m_task:%d\n", m_task);

@@ -259,77 +259,9 @@ typedef struct
 	// CONTROL Controls[4];
 } CONTROL_INFO;
 
-extern CONTROL Controls[4];
-
-/* dummy functions to prevent mupen from crashing if a plugin is missing */
-static void __cdecl dummy_void()
-{
-}
-
-static BOOL __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info) { return TRUE; }
-
-static BOOL __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info)
-{
-	return TRUE;
-}
-
-static void __cdecl dummy_initiateControllers(CONTROL_INFO Control_Info)
-{
-}
-
-static void __cdecl dummy_aiDacrateChanged(int SystemType)
-{
-}
-
-static DWORD __cdecl dummy_aiReadLength() { return 0; }
-
-static void __cdecl dummy_aiUpdate(BOOL)
-{
-}
-
-static void __cdecl dummy_controllerCommand(int Control, BYTE* Command)
-{
-}
-
-static void __cdecl dummy_getKeys(int Control, BUTTONS* Keys)
-{
-}
-
-static void __cdecl dummy_setKeys(int Control, BUTTONS Keys)
-{
-}
-
-static void __cdecl dummy_readController(int Control, BYTE* Command)
-{
-}
-
-static void __cdecl dummy_keyDown(WPARAM wParam, LPARAM lParam)
-{
-}
-
-static void __cdecl dummy_keyUp(WPARAM wParam, LPARAM lParam)
-{
-}
-
-static unsigned long dummy;
 static DWORD __cdecl dummy_doRspCycles(DWORD Cycles) { return Cycles; };
 
-static void __cdecl dummy_initiateRSP(RSP_INFO Rsp_Info,
-                                      DWORD* CycleCount)
-{
-};
-
-static void __cdecl dummy_fBRead(DWORD addr)
-{
-};
-
-static void __cdecl dummy_fBWrite(DWORD addr, DWORD size)
-{
-};
-
-static void __cdecl dummy_fBGetFrameBufferInfo(void* p)
-{
-};
+extern CONTROL Controls[4];
 
 extern void (__cdecl*getDllInfo)(PLUGIN_INFO* PluginInfo);
 extern void (__cdecl*dllConfig)(HWND hParent);
@@ -399,14 +331,29 @@ typedef struct
 
 typedef struct s_plugin
 {
-	std::string path;
+	std::filesystem::path path;
 	std::string name;
-	HMODULE handle;
 	plugin_type type;
 	uint16_t version;
+	HMODULE handle;
 } t_plugin;
 
-extern std::vector<t_plugin*> plugins;
+extern t_plugin* video_plugin;
+extern t_plugin* audio_plugin;
+extern t_plugin* input_plugin;
+extern t_plugin* rsp_plugin;
+
+/**
+ * \return A vector of available plugin
+ */
+std::vector<t_plugin*> get_available_plugins();
+
+
+/**
+ * \brief Destroys a plugin and releases the library handle
+ * \param plugin A pointer to the plugin to be destroyed
+ */
+void plugin_destroy(t_plugin* plugin);
 
 /// <summary>
 /// Opens a plugin's configuration dialog, if it exists
@@ -424,38 +371,21 @@ void plugin_test(t_plugin* plugin);
 void plugin_about(t_plugin* plugin);
 
 /// <summary>
-/// Searches for plugins in the path specified by the config and regenerates the <see cref="plugins"/> vector
-/// </summary>
-void search_plugins();
-
-/// <summary>
 /// Searches for plugins and loads their exported functions into the globals
 /// </summary>
-void load_plugins();
+bool load_plugins();
 
-/// <summary>
-/// Destroys all plugins and clears <see cref="plugins"/> vector
-/// </summary>
-void destroy_plugins();
+/**
+ * \brief Unloads all loaded plugins
+ */
+void unload_plugins();
+
+int load_gfx(HMODULE);
+int load_sound(HMODULE);
+int load_input(HMODULE);
+int load_rsp(HMODULE);
 
 /// <summary>
 /// Initializes dummy info used by per-plugin functions
 /// </summary>
 void setup_dummy_info();
-
-/// <summary>
-/// Gets a vector of plugin types with no current configuration
-/// </summary>
-std::vector<plugin_type> get_missing_plugin_types();
-
-inline static t_plugin* get_plugin_by_name(const std::string &name)
-{
-	for (const auto& plugin : plugins)
-	{
-		if (plugin->name == name)
-		{
-			return plugin;
-		}
-	}
-	return nullptr;
-}
