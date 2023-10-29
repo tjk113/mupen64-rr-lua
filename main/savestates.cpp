@@ -101,12 +101,15 @@ void savestates_save_immediate()
 
         //update: I stumbled upon a .st that had the bit set, but didn't have SI_INT in queue,
         //so it froze game, so there exists a way to cause that somehow
-        for (size_t i = 0; i < (64 / 4); i++)
-            rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
-        update_count();
-        add_interupt_event(SI_INT, /*0x100*/0x900);
-        rdram_register.rdram_device_manuf |= MUPEN64NEW_ST_FIXED;
-        st_skip_dma = true;
+		if (get_event(SI_INT) == 0) //if there is no interrupt, add it, otherwise dont care
+		{
+			for (size_t i = 0; i < (64 / 4); i++)
+				rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
+			update_count();
+			add_interupt_event(SI_INT, /*0x100*/0x900);
+			rdram_register.rdram_device_manuf |= MUPEN64NEW_ST_FIXED;
+			st_skip_dma = true;
+		}
         //hack end
     }
     vecwrite(b, &rdram_register, sizeof(RDRAM_register));
