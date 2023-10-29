@@ -25,6 +25,7 @@ extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
 
 extern char TempMessage[MAX_PATH];
+extern char rom_path[MAX_PATH];
 
 // TODO: use state enum
 extern int emu_launched; // emu_emulating
@@ -53,7 +54,10 @@ extern void pauseEmu(BOOL quiet);
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
 extern void LoadConfigExternals();
-DWORD WINAPI start_rom(LPVOID lpParam);
+/**
+ * \brief Starts the rom from the path contained in <c>rom_path</c>
+ */
+DWORD WINAPI start_rom(LPVOID);
 DWORD WINAPI close_rom(LPVOID lpParam);
 
 extern BOOL continue_vcr_on_restart_mode;

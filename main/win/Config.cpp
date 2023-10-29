@@ -16,7 +16,6 @@
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
 
-// TODO: use std::string
 std::string hotkey_to_string(t_hotkey* hotkey)
 {
 	char buf[260] = {0};
@@ -824,7 +823,6 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 		}
 		auto& map = ini[field_name];
 		for (auto& pair : map) {
-			// TODO: wide path support!
 			value[pair.first] = string_to_wstring(pair.second);
 		}
 	} else {
@@ -832,7 +830,6 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 		// [field_name]
 		// value = value
 		for (auto &pair : value) {
-			// TODO: wide path support!
 			ini[field_name][pair.first] = wstring_to_string(pair.second);
 		}
 	}
@@ -844,8 +841,6 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 {
 	if (is_reading)
 	{
-		// find all elements under key
-		// TODO: use size()
 		int vector_length = 0;
 		for (size_t i = 0; i < INT32_MAX; i++)
 		{

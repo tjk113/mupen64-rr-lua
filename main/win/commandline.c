@@ -191,7 +191,8 @@ BOOL StartGameByCommandLine()
         printf("Command Line: Rom Name :%s\n", szFileName);
     }
 
-    if (start_rom(szFileName))
+    strcpy(rom_path, szFileName);
+    if (start_rom(nullptr))
     {
         return TRUE;
     }

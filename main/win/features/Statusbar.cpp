@@ -70,8 +70,7 @@ void statusbar_set_mode(const statusbar_mode mode)
 		}
 
 		SendMessage(statusbar_hwnd, SB_SETTEXT, 0, (LPARAM)statusmsg);
-		sprintf(TempMessage, "%s", ROM_SETTINGS.goodname);
-		SendMessage(statusbar_hwnd, SB_SETTEXT, parts - 1, (LPARAM)TempMessage);
+		SendMessage(statusbar_hwnd, SB_SETTEXT, parts - 1, (LPARAM)ROM_HEADER.nom);
 		break;
 	}
 }

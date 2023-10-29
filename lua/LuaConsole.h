@@ -56,7 +56,7 @@ void AtPlayMovieLuaCallback();
 void AtStopMovieLuaCallback();
 void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
-void AtResetCallback();
+void AtResetLuaCallback();
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();

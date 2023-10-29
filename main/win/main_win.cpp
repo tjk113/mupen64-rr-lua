@@ -53,7 +53,6 @@ extern "C" {
 #include "../savestates.h"
 #include "timers.h"
 #include "config.hpp"
-#include "RomSettings.h"
 #include "commandline.h"
 #include "CrashHelper.h"
 #include "wrapper\PersistentPathDialog.h"
@@ -101,6 +100,7 @@ UINT update_screen_timer;
 static DWORD WINAPI ThreadFunc(LPVOID lpParam);
 DWORD WINAPI close_rom(LPVOID lpParam);
 constexpr char g_szClassName[] = "myWindowClass";
+char rom_path[MAX_PATH] = {0};
 char LastSelectedRom[_MAX_PATH];
 bool scheduled_restart = false;
 BOOL really_restart_mode = 0;
@@ -234,10 +234,17 @@ void pauseEmu(BOOL quiet)
 			                              : MFS_UNCHECKED));
 }
 
-DWORD WINAPI start_rom(LPVOID lpParam)
+DWORD WINAPI start_rom(LPVOID)
 {
-	// this style of lifetime management means user wont be allowed to fuck with plugins, as mupen holds on to them permanently
-	unload_plugins();
+	auto start_time = std::chrono::high_resolution_clock::now();
+
+	// Kill any roms that are still running
+	if (emu_launched) {
+		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
+	}
+
+	// TODO: keep plugins loaded and only unload and reload them when they actually change
+	printf("Loading plugins\n");
 	if (!load_plugins())
 	{
 		MessageBox(mainHWND, "Invalid plugins selected", nullptr,
@@ -245,17 +252,12 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 		return 0;
 	}
 
-	std::string path = (char*)lpParam;
-	// Kill any roms that are still running
-	if (emu_launched) {
-		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
-	}
-
 	// valid rom is required to start emulation
-	if (rom_read(path.c_str()))
+	if (rom_read(rom_path))
 	{
 		MessageBox(mainHWND, "Failed to open ROM", "Error",
 				   MB_ICONERROR | MB_OK);
+		unload_plugins();
 		return 0;
 	}
 
@@ -266,22 +268,24 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 				  style & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
 
 	// TODO: investigate wtf this is
-	strcpy(LastSelectedRom, path.c_str());
+	strcpy(LastSelectedRom, rom_path);
 
 	// notify ui of emu state change
-	main_recent_roms_add(path);
+	main_recent_roms_add(rom_path);
 	rombrowser_set_visibility(0);
 	statusbar_set_mode(statusbar_mode::emulating);
 	EnableEmulationMenuItems(TRUE);
 	InitTimer();
 	if (m_task == 0) {
-		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER->nom)).c_str());
+		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
 	}
 
 	load_gfx(video_plugin->handle);
 	load_sound(audio_plugin->handle);
 	load_input(input_plugin->handle);
 	load_rsp(rsp_plugin->handle);
+
+	printf("start_rom entry %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
 
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
 
@@ -334,8 +338,6 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 		rom = NULL;
 		free(rom);
-		ROM_HEADER = NULL;
-		free(ROM_HEADER);
 
 		free_memory();
 
@@ -371,7 +373,8 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 				just_restarted_flag = TRUE;
 
 			main_dispatcher_invoke([] {
-				if (!start_rom(LastSelectedRom)) {
+				strcpy(rom_path, LastSelectedRom);
+				if (!start_rom(nullptr)) {
 					close_rom(NULL);
 					MessageBox(mainHWND, "Failed to open ROM", NULL,
 							   MB_ICONERROR | MB_OK);
@@ -436,15 +439,15 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		            MOVIE_DESCRIPTION_DATA_SIZE, 0);
 		SendMessage(authorDialog, EM_SETLIMITTEXT, MOVIE_AUTHOR_DATA_SIZE, 0);
 
-		sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, country_code_to_country_name(ROM_HEADER->Country_code).c_str());
+		sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code).c_str());
 		strcat(tempbuf, ".m64");
 		SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
-		SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*)ROM_HEADER->nom);
+		SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*)ROM_HEADER.nom);
 
-		SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, country_code_to_country_name(ROM_HEADER->Country_code).c_str());
+		SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, country_code_to_country_name(ROM_HEADER.Country_code).c_str());
 
-		sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER->CRC1);
+		sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER.CRC1);
 		SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2,
@@ -789,15 +792,15 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		CheckRadioButton(hwnd, IDC_FROMSNAPSHOT_RADIO, IDC_FROMSTART_RADIO,
 		                 checked_movie_type);
 
-		sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER->nom, country_code_to_country_name(ROM_HEADER->Country_code).c_str());
+		sprintf(tempbuf, "%s (%s)", (char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code).c_str());
 		strcat(tempbuf, ".m64");
 		SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf);
 
-		SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*)ROM_HEADER->nom);
+		SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME2, (CHAR*)ROM_HEADER.nom);
 
-		SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, country_code_to_country_name(ROM_HEADER->Country_code).c_str());
+		SetDlgItemText(hwnd, IDC_ROM_COUNTRY2, country_code_to_country_name(ROM_HEADER.Country_code).c_str());
 
-		sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER->CRC1);
+		sprintf(tempbuf, "%X", (unsigned int)ROM_HEADER.CRC1);
 		SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2,
@@ -1169,6 +1172,7 @@ static DWORD WINAPI StartMoviesThread(LPVOID lpParam)
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 {
+	auto start_time = std::chrono::high_resolution_clock::now();
 	init_memory();
 	romOpen_gfx();
 	romOpen_input();
@@ -1184,10 +1188,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	printf("Emu thread: Emulation started....\n");
 	WaitForSingleObject(CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL), 10'000);
-
-
 	StartSavestate();
-	AtResetCallback();
+	AtResetLuaCallback();
 	StartLuaScripts();
 	if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
 	{
@@ -1211,6 +1213,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		previously_open_lua_environments.clear();
 	});
 
+	printf("emu thread entry %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
+
 	go();
 
 	romClosed_gfx();
@@ -1222,6 +1226,9 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	closeDLL_audio();
 	closeDLL_input();
 	closeDLL_RSP();
+
+	printf("Unloading plugins\n");
+	unload_plugins();
 
 	ExitThread(0);
 }
@@ -1314,7 +1321,8 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 {
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
 	if (index >= 0 && index < Config.recent_rom_paths.size()) {
-		CreateThread(NULL, 0, start_rom, (LPVOID*)Config.recent_rom_paths[index].c_str(), 0, &Id);
+		strcpy(rom_path, Config.recent_rom_paths[index].c_str());
+		CreateThread(NULL, 0, start_rom, nullptr, 0, &Id);
 			return 	1;
 	}
 	return 0;
@@ -1344,7 +1352,7 @@ bool is_frame_skipped()
 
 void reset_titlebar()
 {
-	SetWindowText(mainHWND, (std::string(MUPEN_VERSION) + " - " + std::string(reinterpret_cast<char*>(ROM_HEADER->nom))).c_str());
+	SetWindowText(mainHWND, (std::string(MUPEN_VERSION) + " - " + std::string(reinterpret_cast<char*>(ROM_HEADER.nom))).c_str());
 }
 
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId)
@@ -1492,7 +1500,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
-				CreateThread(NULL, 0, start_rom, (LPVOID*)fname, 0, &Id);
+				strcpy(rom_path, fname);
+				CreateThread(NULL, 0, start_rom, nullptr, 0, &Id);
 			} else if (extension == ".m64")
 			{
 				if (!emu_launched) break;
@@ -1930,9 +1939,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					const auto path = show_persistent_open_dialog("o_rom", mainHWND, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap");
 
-					if (path.size() > 0)
+					if (!path.empty())
 					{
-						CreateThread(nullptr, 0, start_rom, (LPVOID*)wstring_to_string(path).c_str(), NULL, &Id);
+						strcpy(rom_path, wstring_to_string(path).c_str());
+						CreateThread(nullptr, 0, start_rom, nullptr, NULL, &Id);
 					}
 
 					if (wasMenuPaused)

@@ -71,6 +71,9 @@ void print_pif() {
 }
 #endif
 
+// 16kb eeprom flag
+#define EXTENDED_EEPROM (0)
+
 void EepromCommand(BYTE* Command)
 {
     switch (Command[2])
@@ -82,14 +85,14 @@ void EepromCommand(BYTE* Command)
             if ((Command[1] & 3) > 0)
                 Command[3] = 0;
             if ((Command[1] & 3) > 1)
-                Command[4] = ROM_SETTINGS.eeprom_16kb == 0 ? 0x80 : 0xc0;
+                Command[4] = EXTENDED_EEPROM == 0 ? 0x80 : 0xc0;
             if ((Command[1] & 3) > 2)
                 Command[5] = 0;
         }
         else
         {
             Command[3] = 0;
-            Command[4] = ROM_SETTINGS.eeprom_16kb == 0 ? 0x80 : 0xc0;
+            Command[4] = EXTENDED_EEPROM == 0 ? 0x80 : 0xc0;
             Command[5] = 0;
         }
         break;
@@ -99,9 +102,9 @@ void EepromCommand(BYTE* Command)
             FILE* f;
             int i;
             filename = (char*)malloc(strlen(get_savespath()) +
-                strlen(ROM_SETTINGS.goodname) + 4 + 1);
+                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
             strcpy(filename, get_savespath());
-            strcat(filename, ROM_SETTINGS.goodname);
+            strcat(filename, (const char*)ROM_HEADER.nom);
             strcat(filename, ".eep");
             f = fopen(filename, "rb");
             if (f)
@@ -120,9 +123,9 @@ void EepromCommand(BYTE* Command)
             FILE* f;
             int i;
             filename = (char*)malloc(strlen(get_savespath()) +
-                strlen(ROM_SETTINGS.goodname) + 4 + 1);
+                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
             strcpy(filename, get_savespath());
-            strcat(filename, ROM_SETTINGS.goodname);
+            strcat(filename, (const char*)ROM_HEADER.nom);
             strcat(filename, ".eep");
             f = fopen(filename, "rb");
             if (f)
@@ -285,9 +288,9 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                             char* filename;
                             FILE* f;
                             filename = (char*)malloc(strlen(get_savespath()) +
-                                strlen(ROM_SETTINGS.goodname) + 4 + 1);
+                                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
                             strcpy(filename, get_savespath());
-                            strcat(filename, ROM_SETTINGS.goodname);
+                            strcat(filename, (const char*)ROM_HEADER.nom);
                             strcat(filename, ".mpk");
                             f = fopen(filename, "rb");
                             if (f)
@@ -339,9 +342,9 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                             char* filename;
                             FILE* f;
                             filename = (char*)malloc(strlen(get_savespath()) +
-                                strlen(ROM_SETTINGS.goodname) + 4 + 1);
+                                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
                             strcpy(filename, get_savespath());
-                            strcat(filename, ROM_SETTINGS.goodname);
+                            strcat(filename, (const char*)ROM_HEADER.nom);
                             strcat(filename, ".mpk");
                             f = fopen(filename, "rb");
                             if (f)

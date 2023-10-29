@@ -70,7 +70,7 @@ std::filesystem::path get_effective_path()
 {
 	if (savestates_job_use_slot)
 	{
-		return std::format("{}{}.st{}", get_savespath(), (const char*)ROM_HEADER->nom, std::to_string(st_slot));
+		return std::format("{}{}.st{}", get_savespath(), (const char*)ROM_HEADER.nom, std::to_string(st_slot));
 	}
 	return st_path;
 }
@@ -85,7 +85,9 @@ void savestates_save_immediate()
 
 	std::vector<uint8_t> b;
 
-    vecwrite(b, ROM_SETTINGS.MD5, 32);
+	// for some reason, mupen used to write the hash as 32-wide, even though it only needs 16 bits
+	uint32_t md5 = rom_md5;
+    vecwrite(b, &md5, sizeof(uint32_t));
 
     //if fixing enabled...
     if (fix_new_st)
@@ -294,7 +296,9 @@ void savestates_load_immediate()
 
     // compare current rom hash with one stored in state
     gzread(f, buf, 32);
-    if (memcmp(buf, ROM_SETTINGS.MD5, 32) != 0)
+
+	uint32_t md5 = rom_md5;
+    if (memcmp(buf, &md5, 32) != 0)
     {
         if (Config.is_rom_movie_compatibility_check_enabled) // if true, allows loading
             warn_savestate("Savestate Warning",

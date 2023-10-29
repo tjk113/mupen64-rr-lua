@@ -45,8 +45,7 @@ float VIs, FPS;
 
 int GetVILimit()
 {
-	if (ROM_HEADER == NULL) return 60;
-	switch (ROM_HEADER->Country_code & 0xFF)
+	switch (ROM_HEADER.Country_code & 0xFF)
 	{
 	case 0x44:
 	case 0x46:

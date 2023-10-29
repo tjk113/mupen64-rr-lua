@@ -3469,7 +3469,7 @@ void AtSaveStateLuaCallback()
 }
 
 //called after reset, when emulation ready
-void AtResetCallback()
+void AtResetLuaCallback()
 {
 	invoke_callbacks_with_key_on_all_instances(
 		CallTop, REG_ATRESET);

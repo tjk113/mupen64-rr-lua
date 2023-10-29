@@ -108,9 +108,9 @@ void flashram_command(unsigned long command)
                 FILE* f;
                 int i;
                 filename = (char*)malloc(strlen(get_savespath()) +
-                    strlen(ROM_SETTINGS.goodname) + 4 + 1);
+                    strlen((const char*)ROM_HEADER.nom) + 4 + 1);
                 strcpy(filename, get_savespath());
-                strcat(filename, ROM_SETTINGS.goodname);
+                strcat(filename, (const char*)ROM_HEADER.nom);
                 strcat(filename, ".fla");
                 f = fopen(filename, "rb");
                 if (f)
@@ -133,9 +133,9 @@ void flashram_command(unsigned long command)
                 FILE* f;
                 int i;
                 filename = (char*)malloc(strlen(get_savespath()) +
-                    strlen(ROM_SETTINGS.goodname) + 4 + 1);
+                    strlen((const char*)ROM_HEADER.nom) + 4 + 1);
                 strcpy(filename, get_savespath());
-                strcat(filename, ROM_SETTINGS.goodname);
+                strcat(filename, (const char*)ROM_HEADER.nom);
                 strcat(filename, ".fla");
                 f = fopen(filename, "rb");
                 if (f)
@@ -189,9 +189,9 @@ void dma_read_flashram()
         break;
     case READ_MODE:
         filename = (char*)malloc(strlen(get_savespath()) +
-            strlen(ROM_SETTINGS.goodname) + 4 + 1);
+            strlen((const char*)ROM_HEADER.nom) + 4 + 1);
         strcpy(filename, get_savespath());
-        strcat(filename, ROM_SETTINGS.goodname);
+        strcat(filename, (const char*)ROM_HEADER.nom);
         strcat(filename, ".fla");
         f = fopen(filename, "rb");
         if (f)

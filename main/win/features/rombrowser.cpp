@@ -184,7 +184,7 @@ void rombrowser_add_rom(int32_t index, t_rombrowser_entry* rombrowser_entry)
 	lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
 	lv_item.pszText = LPSTR_TEXTCALLBACK;
 	lv_item.lParam = index;
-	lv_item.iItem = index;	
+	lv_item.iItem = index;
 	lv_item.iImage = rombrowser_country_code_to_image_index(
 		rombrowser_entry->rom_header.Country_code);
 	ListView_InsertItem(rombrowser_hwnd, &lv_item);
@@ -269,7 +269,7 @@ void rombrowser_build_impl()
 			free(header);
 		}
 
-		
+
 		fclose(f);
 
 		i++;
@@ -386,7 +386,8 @@ void rombrowser_notify(LPARAM lparam)
 			item.mask = LVIF_PARAM;
 			item.iItem = i;
 			ListView_GetItem(rombrowser_hwnd, &item);
-			start_rom((LPVOID*)rombrowser_entries[item.lParam]->path.c_str());
+			strcpy(rom_path, rombrowser_entries[item.lParam]->path.c_str());
+			start_rom(nullptr);
 		}
 		break;
 	}

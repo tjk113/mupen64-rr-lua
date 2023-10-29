@@ -58,9 +58,9 @@ void dma_pi_read()
             char* filename;
             FILE* f;
             filename = (char*)malloc(strlen(get_savespath()) +
-                strlen(ROM_SETTINGS.goodname) + 4 + 1);
+                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
             strcpy(filename, get_savespath());
-            strcat(filename, ROM_SETTINGS.goodname);
+            strcat(filename, (const char*)ROM_HEADER.nom);
             strcat(filename, ".sra");
             f = fopen(filename, "rb");
             if (f)
@@ -136,9 +136,9 @@ void dma_pi_write()
                 FILE* f;
                 int i;
                 filename = (char*)malloc(strlen(get_savespath()) +
-                    strlen(ROM_SETTINGS.goodname) + 4 + 1);
+                    strlen((const char*)ROM_HEADER.nom) + 4 + 1);
                 strcpy(filename, get_savespath());
-                strcat(filename, ROM_SETTINGS.goodname);
+                strcat(filename, (const char*)ROM_HEADER.nom);
                 strcat(filename, ".sra");
                 f = fopen(filename, "rb");
                 if (f)
@@ -197,12 +197,12 @@ void dma_pi_write()
     }
 
     i = (pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF;
-    longueur = (i + longueur) > romByteCount ? (romByteCount - i) : longueur;
+    longueur = (i + longueur) > rom_size ? (rom_size - i) : longueur;
     longueur = (pi_register.pi_dram_addr_reg + longueur) > 0x7FFFFF
                    ? (0x7FFFFF - pi_register.pi_dram_addr_reg)
                    : longueur;
 
-    if (i > romByteCount || pi_register.pi_dram_addr_reg > 0x7FFFFF)
+    if (i > rom_size || pi_register.pi_dram_addr_reg > 0x7FFFFF)
     {
         pi_register.read_pi_status_reg |= 3;
         update_count();

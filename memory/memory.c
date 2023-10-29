@@ -132,7 +132,7 @@ int init_memory()
     //swap rom
     unsigned long* roml;
     roml = (unsigned long*)rom;
-    for (i = 0; i < (romByteCount / 4); i++)
+    for (i = 0; i < (rom_size / 4); i++)
         roml[i] = sl(roml[i]);
 
     //init hash tables
@@ -935,7 +935,7 @@ int init_memory()
     }
 
     //init rom area
-    for (i = 0; i < (romByteCount >> 16); i++)
+    for (i = 0; i < (rom_size >> 16); i++)
     {
         readmem[0x9000 + i] = read_rom;
         readmem[0xb000 + i] = read_rom;
@@ -954,7 +954,7 @@ int init_memory()
         writememd[0x9000 + i] = write_nothingd;
         writememd[0xb000 + i] = write_nothingd;
     }
-    for (i = (romByteCount >> 16); i < 0xfc0; i++)
+    for (i = (rom_size >> 16); i < 0xfc0; i++)
     {
         readmem[0x9000 + i] = read_nothing;
         readmem[0xb000 + i] = read_nothing;
@@ -2663,7 +2663,7 @@ void write_ai()
 #else
         VCR_aiLenChanged();
 #endif
-        switch (ROM_HEADER->Country_code & 0xFF)
+        switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
         case 0x46:
@@ -2718,7 +2718,7 @@ void write_ai()
         if (ai_register.ai_dacrate != word)
         {
             ai_register.ai_dacrate = word;
-            switch (ROM_HEADER->Country_code & 0xFF)
+            switch (ROM_HEADER.Country_code & 0xFF)
             {
             case 0x44:
             case 0x46:
@@ -2771,7 +2771,7 @@ void write_aib()
 #else
         VCR_aiLenChanged();
 #endif
-        switch (ROM_HEADER->Country_code & 0xFF)
+        switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
         case 0x46:
@@ -2827,7 +2827,7 @@ void write_aib()
         if (ai_register.ai_dacrate != temp)
         {
             ai_register.ai_dacrate = temp;
-            switch (ROM_HEADER->Country_code & 0xFF)
+            switch (ROM_HEADER.Country_code & 0xFF)
             {
             case 0x44:
             case 0x46:
@@ -2879,7 +2879,7 @@ void write_aih()
 #else
         VCR_aiLenChanged();
 #endif
-        switch (ROM_HEADER->Country_code & 0xFF)
+        switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
         case 0x46:
@@ -2931,7 +2931,7 @@ void write_aih()
         if (ai_register.ai_dacrate != temp)
         {
             ai_register.ai_dacrate = temp;
-            switch (ROM_HEADER->Country_code & 0xFF)
+            switch (ROM_HEADER.Country_code & 0xFF)
             {
             case 0x44:
             case 0x46:
@@ -2979,7 +2979,7 @@ void write_aid()
 #else
         VCR_aiLenChanged();
 #endif
-        switch (ROM_HEADER->Country_code & 0xFF)
+        switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
         case 0x46:
@@ -3027,7 +3027,7 @@ void write_aid()
         if (ai_register.ai_dacrate != dword >> 32)
         {
             ai_register.ai_dacrate = dword >> 32;
-            switch (ROM_HEADER->Country_code & 0xFF)
+            switch (ROM_HEADER.Country_code & 0xFF)
             {
             case 0x44:
             case 0x46:

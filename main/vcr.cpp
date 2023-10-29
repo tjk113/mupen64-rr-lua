@@ -204,7 +204,7 @@ static int visByCountrycode()
 {
 	if (m_visPerSecond == -1)
 	{
-		switch (ROM_HEADER ? (ROM_HEADER->Country_code & 0xFF) : -1)
+		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:
 		case 0x46:
@@ -237,7 +237,7 @@ static int visByCountrycode()
 static void setROMInfo(SMovieHeader* header)
 {
 	// FIXME
-	switch (ROM_HEADER ? (ROM_HEADER->Country_code & 0xFF) : -1)
+	switch (ROM_HEADER.Country_code & 0xFF)
 	{
 	case 0x37:
 	case 0x41:
@@ -289,13 +289,9 @@ static void setROMInfo(SMovieHeader* header)
 	if (Controls[3].Plugin == controller_extension::rumblepak)
 		header->controllerFlags |= CONTROLLER_4_RUMBLE;
 
-	extern t_rom_header* ROM_HEADER;
-	if (ROM_HEADER)
-		strncpy(header->romNom, (const char*)ROM_HEADER->nom, 32);
-	else
-		strncpy(header->romNom, "(Unknown)", 32);
-	header->romCRC = ROM_HEADER ? ROM_HEADER->CRC1 : 0;
-	header->romCountry = ROM_HEADER ? ROM_HEADER->Country_code : -1;
+	strncpy(header->romNom, (const char*)ROM_HEADER.nom, 32);
+	header->romCRC = ROM_HEADER.CRC1;
+	header->romCountry = ROM_HEADER.Country_code;
 
 	header->inputPluginName[0] = '\0';
 	header->videoPluginName[0] = '\0';
@@ -498,9 +494,9 @@ void VCR_clearAllSaveData()
 		char* filename;
 		FILE* f;
 		filename = (char*)malloc(strlen(get_savespath()) +
-			strlen(ROM_SETTINGS.goodname) + 4 + 1);
+			strlen((const char*)ROM_HEADER.nom) + 4 + 1);
 		strcpy(filename, get_savespath());
-		strcat(filename, ROM_SETTINGS.goodname);
+		strcat(filename, (const char*)ROM_HEADER.nom);
 		strcat(filename, ".sra");
 		f = fopen(filename, "rb");
 		if (f)
@@ -522,9 +518,9 @@ void VCR_clearAllSaveData()
 		char* filename;
 		FILE* f;
 		filename = (char*)malloc(strlen(get_savespath()) +
-			strlen(ROM_SETTINGS.goodname) + 4 + 1);
+			strlen((const char*)ROM_HEADER.nom) + 4 + 1);
 		strcpy(filename, get_savespath());
-		strcat(filename, ROM_SETTINGS.goodname);
+		strcat(filename, (const char*)ROM_HEADER.nom);
 		strcat(filename, ".eep");
 		f = fopen(filename, "rb");
 		if (f)
@@ -546,9 +542,9 @@ void VCR_clearAllSaveData()
 		char* filename;
 		FILE* f;
 		filename = (char*)malloc(strlen(get_savespath()) +
-			strlen(ROM_SETTINGS.goodname) + 4 + 1);
+			strlen((const char*)ROM_HEADER.nom) + 4 + 1);
 		strcpy(filename, get_savespath());
-		strcat(filename, ROM_SETTINGS.goodname);
+		strcat(filename, (const char*)ROM_HEADER.nom);
 		strcat(filename, ".mpk");
 
 		f = fopen(filename, "rb");
@@ -1172,7 +1168,7 @@ VCR_startRecord(const char* filename, unsigned short flags,
 		printf("[VCR]: Loading state...\n");
 		strncpy(m_filename, filename, MAX_PATH);
 		strncpy(buf, m_filename, MAX_PATH);
-		stripExt(buf);
+		strip_extension(buf);
 		if (defExt)
 			strncat(buf, ".st", 4);
 		else
@@ -1298,11 +1294,11 @@ void SetActiveMovie(char* buf)
 
 	if (!buf)
 	{
-		sprintf(title, MUPEN_VERSION " - %s", (char*)ROM_HEADER->nom);
+		sprintf(title, MUPEN_VERSION " - %s", (char*)ROM_HEADER.nom);
 	} else if (buf)
 	{
 		_splitpath(buf, 0, 0, buf, 0);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER->nom,
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER.nom,
 		        buf);
 	}
 	printf("title %s\n", title);
@@ -1544,39 +1540,39 @@ startPlayback(const char* filename, const char* authorUTF8,
 
 				char str[512], name[512];
 
-				if (ROM_HEADER && _stricmp(m_header.romNom,
-				                           (const char*)ROM_HEADER->nom) != 0)
+				if (_stricmp(m_header.romNom,
+				                           (const char*)ROM_HEADER.nom) != 0)
 				{
 					sprintf(
 						str,
 						"The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n",
-						m_header.romNom, (char*)ROM_HEADER->nom);
+						m_header.romNom, (char*)ROM_HEADER.nom);
 					strcat(warningStr, str);
 					dontPlay = Config.is_rom_movie_compatibility_check_enabled
 						           ? dontPlay
 						           : TRUE;
 				} else
 				{
-					if (ROM_HEADER && m_header.romCountry != ROM_HEADER->
+					if (m_header.romCountry != ROM_HEADER.
 						Country_code)
 					{
 						sprintf(
 							str,
 							"The movie was recorded with a ROM with country code \"%d\",\nbut you are using a ROM with country code \"%d\",\nso the movie may not play properly.\n",
-							m_header.romCountry, ROM_HEADER->Country_code);
+							m_header.romCountry, ROM_HEADER.Country_code);
 						strcat(warningStr, str);
 						dontPlay =
 							Config.is_rom_movie_compatibility_check_enabled
 								? dontPlay
 								: TRUE;
-					} else if (ROM_HEADER && m_header.romCRC != ROM_HEADER->
+					} else if (m_header.romCRC != ROM_HEADER.
 						CRC1)
 					{
 						sprintf(
 							str,
 							"The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\",\nso the movie may not play properly.\n",
 							(unsigned int)m_header.romCRC,
-							(unsigned int)ROM_HEADER->CRC1);
+							(unsigned int)ROM_HEADER.CRC1);
 						strcat(warningStr, str);
 						dontPlay =
 							Config.is_rom_movie_compatibility_check_enabled
@@ -2133,10 +2129,10 @@ void UpdateTitleBarCapture(const char* filename)
 		strncpy(m64, m_filename, PATH_MAX);
 		_splitpath(m64, 0, 0, m64, 0);
 		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s%s",
-		        (char*)ROM_HEADER->nom, m64, avi, ext);
+		        (char*)ROM_HEADER.nom, m64, avi, ext);
 	} else
 	{
-		sprintf(title, MUPEN_VERSION " - %s | %s%s", (char*)ROM_HEADER->nom,
+		sprintf(title, MUPEN_VERSION " - %s | %s%s", (char*)ROM_HEADER.nom,
 		        avi, ext);
 	}
 	printf("title %s\n", title);
@@ -2347,7 +2343,7 @@ VCR_stopCapture()
 		char m64[PATH_MAX];
 		strncpy(m64, m_filename, PATH_MAX);
 		_splitpath(m64, 0, 0, m64, 0);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER->nom,
+		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER.nom,
 		        m64);
 		SetWindowText(mainHWND, title);
 	} else
