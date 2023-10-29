@@ -51,7 +51,7 @@
 
 uint8_t* rom;
 size_t rom_size;
-uint16_t rom_md5;
+char rom_md5[33];
 
 t_rom_header ROM_HEADER;
 
@@ -201,7 +201,11 @@ int rom_read(const char* argv)
         md5_init(&state);
         md5_append(&state, rom, rom_size);
         md5_finish(&state, digest);
-        rom_md5 = *reinterpret_cast<uint16_t*>(digest);
+
+        char arg[256] = { 0 };
+        for (size_t i = 0; i < 16; i++) sprintf(arg + i * 2, "%02X", digest[i]);
+        strcpy(rom_md5, arg);
+
     }
     
     return 0;

@@ -85,9 +85,7 @@ void savestates_save_immediate()
 
 	std::vector<uint8_t> b;
 
-	// for some reason, mupen used to write the hash as 32-wide, even though it only needs 16 bits
-	uint32_t md5 = rom_md5;
-    vecwrite(b, &md5, sizeof(uint32_t));
+    vecwrite(b, rom_md5, 32);
 
     //if fixing enabled...
     if (fix_new_st)
@@ -295,23 +293,19 @@ void savestates_load_immediate()
 
 
     // compare current rom hash with one stored in state
-    gzread(f, buf, 32);
+	char md5[33] = {0};
+    gzread(f, &md5, 32);
 
-	uint32_t md5 = rom_md5;
-    if (memcmp(buf, &md5, 32) != 0)
-    {
-        if (Config.is_rom_movie_compatibility_check_enabled) // if true, allows loading
-            warn_savestate("Savestate Warning",
-                           "You have option 'Allow loading movies on wrong roms' selected.\nMismatched .st is going to be loaded",
-                           TRUE);
-        else
-        {
-            warn_savestate("Wrong ROM error", "This savestate is from another ROM or version.", TRUE);
-            gzclose(f);
-            savestates_job_success = FALSE;
-            return;
-        }
-    }
+	if (memcmp(md5, rom_md5, 32)) {
+
+		MessageBox(mainHWND, std::format("The savestate was created on a rom with CRC {}, but is being loaded on a rom with CRC {}.", md5, rom_md5).c_str(), nullptr, MB_ICONWARNING);
+
+		if (!Config.is_state_independent_state_loading_allowed) {
+			gzclose(f);
+			savestates_job_success = FALSE;
+			return;
+		}
+	}
 
     // new version does one bigass gzread for first part of .st (static size)
     char* firstBlock = (char*)malloc(firstBlockSize);

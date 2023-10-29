@@ -33,7 +33,7 @@
 
 extern uint8_t* rom;
 extern size_t rom_size;
-extern uint16_t rom_md5;
+extern char rom_md5[33];
 
 int rom_read(const char* argv);
 bool is_case_insensitive_equal(const std::string& a, const std::string& b);
