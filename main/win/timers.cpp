@@ -157,7 +157,7 @@ void new_vi()
 	// frame display / frame counter / framecount
 
 
-	VCR_updateFrameCounter();
+	vcr_update_statusbar();
 	if (VCR_isPlaying())
 	{
 		extern int pauseAtFrame;

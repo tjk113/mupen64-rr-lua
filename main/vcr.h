@@ -99,7 +99,6 @@ extern unsigned long VCR_getLengthVIs();
 extern unsigned long VCR_getLengthSamples();
 extern void VCR_setLengthVIs(unsigned long val);
 extern void VCR_setLengthSamples(unsigned long val);
-extern void VCR_updateFrameCounter();
 extern void VCR_toggleReadOnly();
 extern void VCR_toggleLoopMovie();
 
@@ -129,6 +128,11 @@ extern void VCR_coreStopped();
 
 extern void printWarning(const char*);
 extern void printError(const char*);
+
+/**
+ * \brief Updates the statusbar with the current VCR state
+ */
+void vcr_update_statusbar();
 
 void vcr_recent_movies_build(int32_t reset = 0);
 void vcr_recent_movies_add(const std::string path);

@@ -2383,61 +2383,53 @@ VCR_coreStopped()
 		VCR_stopCapture();
 }
 
-// update frame counter
-void VCR_updateFrameCounter()
+void vcr_update_statusbar()
 {
-	char input_display[128] = {0};
+	auto buttons = static_cast<BUTTONS>(m_lastController1Keys);
+
+	std::string input_string = std::format("({}, {}) ", (int)buttons.X_AXIS, (int)buttons.Y_AXIS);
+	if (buttons.START_BUTTON) input_string += "S";
+	if (buttons.Z_TRIG) input_string += "Z";
+	if (buttons.A_BUTTON) input_string += "A";
+	if (buttons.B_BUTTON) input_string += "B";
+	if (buttons.L_TRIG) input_string += "L";
+	if (buttons.R_TRIG) input_string += "R";
+	if (buttons.U_CBUTTON || buttons.D_CBUTTON || buttons.L_CBUTTON ||
+		buttons.R_CBUTTON)
 	{
-		auto buttons = static_cast<BUTTONS>(m_lastController1Keys);
-
-		sprintf(input_display, "(%d, %d) ", buttons.Y_AXIS, buttons.X_AXIS);
-
-		if (buttons.START_BUTTON) strcat(input_display, "S");
-		if (buttons.Z_TRIG) strcat(input_display, "Z");
-		if (buttons.A_BUTTON) strcat(input_display, "A");
-		if (buttons.B_BUTTON) strcat(input_display, "B");
-		if (buttons.L_TRIG) strcat(input_display, "L");
-		if (buttons.R_TRIG) strcat(input_display, "R");
-		if (buttons.U_CBUTTON || buttons.D_CBUTTON || buttons.L_CBUTTON ||
-			buttons.R_CBUTTON)
-		{
-			strcat(input_display, " C");
-			if (buttons.U_CBUTTON) strcat(input_display, "^");
-			if (buttons.D_CBUTTON) strcat(input_display, "v");
-			if (buttons.L_CBUTTON) strcat(input_display, "<");
-			if (buttons.R_CBUTTON) strcat(input_display, ">");
-		}
-		if (buttons.U_DPAD || buttons.D_DPAD || buttons.L_DPAD || buttons.
-			R_DPAD)
-		{
-			strcat(input_display, " D");
-			if (buttons.U_DPAD) strcat(input_display, "^");
-			if (buttons.D_DPAD) strcat(input_display, "v");
-			if (buttons.L_DPAD) strcat(input_display, "<");
-			if (buttons.R_DPAD) strcat(input_display, ">");
-		}
+		input_string += " C";
+		if (buttons.U_CBUTTON) input_string += "^";
+		if (buttons.D_CBUTTON) input_string += "v";
+		if (buttons.L_CBUTTON) input_string += "<";
+		if (buttons.R_CBUTTON) input_string += ">";
+	}
+	if (buttons.U_DPAD || buttons.D_DPAD || buttons.L_DPAD || buttons.
+		R_DPAD)
+	{
+		input_string += " D";
+		if (buttons.U_DPAD) input_string += "^";
+		if (buttons.D_DPAD) input_string += "v";
+		if (buttons.L_DPAD) input_string += "<";
+		if (buttons.R_DPAD) input_string += ">";
 	}
 
-	char str[128];
-	char rr[50];
 	if (VCR_isRecording())
 	{
-		sprintf(str, "%d (%d) %s", (int)m_currentVI, (int)m_currentSample,
-		        input_display);
-		sprintf(rr, "%lu rr", m_header.rerecord_count);
-	} else if (VCR_isPlaying())
+		std::string text = std::format("{} ({}) ", m_currentVI, m_currentSample);
+		statusbar_send_text(text + input_string);
+		statusbar_send_text(std::format("{} rr", m_header.rerecord_count), 1);
+	}
+
+	if (VCR_isPlaying())
 	{
-		sprintf(str, "%d/%d (%d/%d) %s", (int)m_currentVI,
-		        (int)VCR_getLengthVIs(), (int)m_currentSample,
-		        (int)VCR_getLengthSamples(), input_display);
-		sprintf(rr, "%lu rr", m_header.rerecord_count);
-	} else
-		strcpy(str, input_display);
+		std::string text = std::format("{} / {} ({} / {}) ", m_currentVI, VCR_getLengthVIs(), m_currentSample, VCR_getLengthSamples());
+		statusbar_send_text(text + input_string);
+	}
 
-	if (VCR_isRecording() || VCR_isPlaying())
-		statusbar_send_text(std::string(rr), 1);
-
-	statusbar_send_text(std::string(str));
+	if (!VCR_isActive())
+	{
+		statusbar_send_text(input_string);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
