@@ -57,10 +57,11 @@
 #define PATH_MAX _MAX_PATH
 #endif
 
-#define MUP_MAGIC (0x1a34364d) // M64\0x1a
+// M64\0x1a
+#define MUP_MAGIC (0x1a34364d)
 #define MUP_VERSION (3)
-#define MUP_HEADER_SIZE_OLD (512) // bytes
-#define MUP_HEADER_SIZE (sizeof(SMovieHeader))
+#define MUP_HEADER_SIZE_OLD (512)
+#define MUP_HEADER_SIZE (sizeof(t_movie_header))
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? MUP_HEADER_SIZE_OLD : MUP_HEADER_SIZE)
 #define MAX_AVI_SIZE 0x7B9ACA00
 
@@ -82,25 +83,13 @@ static const char* m_errCodeName[] =
 	"Unknown Error"
 };
 
-
-enum ETask
-{
-	Idle = 0,
-	StartRecording,
-	StartRecordingFromSnapshot,
-	StartRecordingFromExistingSnapshot,
-	Recording,
-	StartPlayback,
-	StartPlaybackFromSnapshot,
-	Playback
-};
+e_task m_task = e_task::idle;
 
 static char m_filename[PATH_MAX];
 static char AVIFileName[PATH_MAX];
 static FILE* m_file = 0;
-int m_task = Idle;
 
-static SMovieHeader m_header;
+static t_movie_header m_header;
 static BOOL m_readOnly = FALSE;
 
 long m_currentSample = -1;
@@ -234,7 +223,7 @@ static int visByCountrycode()
 	return m_visPerSecond;
 }
 
-static void setROMInfo(SMovieHeader* header)
+static void setROMInfo(t_movie_header* header)
 {
 	// FIXME
 	switch (ROM_HEADER.Country_code & 0xFF)
@@ -258,53 +247,53 @@ static void setROMInfo(SMovieHeader* header)
 		break;
 	}
 
-	header->controllerFlags = 0;
+	header->controller_flags = 0;
 	header->num_controllers = 0;
 	if (Controls[0].Present)
-		header->controllerFlags |= CONTROLLER_1_PRESENT, header->num_controllers
+		header->controller_flags |= CONTROLLER_1_PRESENT, header->num_controllers
 			++;
 	if (Controls[1].Present)
-		header->controllerFlags |= CONTROLLER_2_PRESENT, header->num_controllers
+		header->controller_flags |= CONTROLLER_2_PRESENT, header->num_controllers
 			++;
 	if (Controls[2].Present)
-		header->controllerFlags |= CONTROLLER_3_PRESENT, header->num_controllers
+		header->controller_flags |= CONTROLLER_3_PRESENT, header->num_controllers
 			++;
 	if (Controls[3].Present)
-		header->controllerFlags |= CONTROLLER_4_PRESENT, header->num_controllers
+		header->controller_flags |= CONTROLLER_4_PRESENT, header->num_controllers
 			++;
 	if (Controls[0].Plugin == controller_extension::mempak)
-		header->controllerFlags |= CONTROLLER_1_MEMPAK;
+		header->controller_flags |= CONTROLLER_1_MEMPAK;
 	if (Controls[1].Plugin == controller_extension::mempak)
-		header->controllerFlags |= CONTROLLER_2_MEMPAK;
+		header->controller_flags |= CONTROLLER_2_MEMPAK;
 	if (Controls[2].Plugin == controller_extension::mempak)
-		header->controllerFlags |= CONTROLLER_3_MEMPAK;
+		header->controller_flags |= CONTROLLER_3_MEMPAK;
 	if (Controls[3].Plugin == controller_extension::mempak)
-		header->controllerFlags |= CONTROLLER_4_MEMPAK;
+		header->controller_flags |= CONTROLLER_4_MEMPAK;
 	if (Controls[0].Plugin == controller_extension::rumblepak)
-		header->controllerFlags |= CONTROLLER_1_RUMBLE;
+		header->controller_flags |= CONTROLLER_1_RUMBLE;
 	if (Controls[1].Plugin == controller_extension::rumblepak)
-		header->controllerFlags |= CONTROLLER_2_RUMBLE;
+		header->controller_flags |= CONTROLLER_2_RUMBLE;
 	if (Controls[2].Plugin == controller_extension::rumblepak)
-		header->controllerFlags |= CONTROLLER_3_RUMBLE;
+		header->controller_flags |= CONTROLLER_3_RUMBLE;
 	if (Controls[3].Plugin == controller_extension::rumblepak)
-		header->controllerFlags |= CONTROLLER_4_RUMBLE;
+		header->controller_flags |= CONTROLLER_4_RUMBLE;
 
-	strncpy(header->romNom, (const char*)ROM_HEADER.nom, 32);
-	header->romCRC = ROM_HEADER.CRC1;
-	header->romCountry = ROM_HEADER.Country_code;
+	strncpy(header->rom_name, (const char*)ROM_HEADER.nom, 32);
+	header->rom_crc1 = ROM_HEADER.CRC1;
+	header->rom_country = ROM_HEADER.Country_code;
 
-	header->inputPluginName[0] = '\0';
-	header->videoPluginName[0] = '\0';
-	header->soundPluginName[0] = '\0';
-	header->rspPluginName[0] = '\0';
+	header->input_plugin_name[0] = '\0';
+	header->video_plugin_name[0] = '\0';
+	header->audio_plugin_name[0] = '\0';
+	header->rsp_plugin_name[0] = '\0';
 
-	strncpy(header->videoPluginName, video_plugin->name.c_str(),
+	strncpy(header->video_plugin_name, video_plugin->name.c_str(),
 	        64);
-	strncpy(header->inputPluginName, input_plugin->name.c_str(),
+	strncpy(header->input_plugin_name, input_plugin->name.c_str(),
 	        64);
-	strncpy(header->soundPluginName, audio_plugin->name.c_str(),
+	strncpy(header->audio_plugin_name, audio_plugin->name.c_str(),
 	        64);
-	strncpy(header->rspPluginName, rsp_plugin->name.c_str(), 64);
+	strncpy(header->rsp_plugin_name, rsp_plugin->name.c_str(), 64);
 }
 
 static void reserve_buffer_space(unsigned long space_needed)
@@ -336,12 +325,12 @@ static void truncateMovie()
 	}
 }
 
-static int read_movie_header(FILE* file, SMovieHeader* header)
+static int read_movie_header(FILE* file, t_movie_header* header)
 {
 	fseek(file, 0L, SEEK_SET);
 
-	SMovieHeader newHeader;
-	memset(&newHeader, 0, sizeof(SMovieHeader));
+	t_movie_header newHeader;
+	memset(&newHeader, 0, sizeof(t_movie_header));
 
 	if (fread(&newHeader, 1, MUP_HEADER_SIZE_OLD, file) != MUP_HEADER_SIZE_OLD)
 		return WRONG_FORMAT;
@@ -360,55 +349,55 @@ static int read_movie_header(FILE* file, SMovieHeader* header)
 #define isAlpha(x) (((x) >= 'A' && (x) <= 'Z') || ((x) >= 'a' && (x) <= 'z') || ((x) == '1'))
 		int i;
 		for (i = 0; i < 56 + 64; i++)
-			if (isAlpha(newHeader.reservedBytes[i])
-				&& isAlpha(newHeader.reservedBytes[i + 64])
-				&& isAlpha(newHeader.reservedBytes[i + 64 + 64])
-				&& isAlpha(newHeader.reservedBytes[i + 64 + 64 + 64]))
+			if (isAlpha(newHeader.reserved_bytes[i])
+				&& isAlpha(newHeader.reserved_bytes[i + 64])
+				&& isAlpha(newHeader.reserved_bytes[i + 64 + 64])
+				&& isAlpha(newHeader.reserved_bytes[i + 64 + 64 + 64]))
 				break;
 		if (i != 56 + 64)
 		{
-			memmove(newHeader.videoPluginName, newHeader.reservedBytes + i,
+			memmove(newHeader.video_plugin_name, newHeader.reserved_bytes + i,
 			        256);
 		} else
 		{
 			for (i = 0; i < 56 + 64; i++)
-				if (isAlpha(newHeader.reservedBytes[i])
-					&& isAlpha(newHeader.reservedBytes[i + 64])
-					&& isAlpha(newHeader.reservedBytes[i + 64 + 64]))
+				if (isAlpha(newHeader.reserved_bytes[i])
+					&& isAlpha(newHeader.reserved_bytes[i + 64])
+					&& isAlpha(newHeader.reserved_bytes[i + 64 + 64]))
 					break;
 			if (i != 56 + 64)
-				memmove(newHeader.soundPluginName, newHeader.reservedBytes + i,
+				memmove(newHeader.audio_plugin_name, newHeader.reserved_bytes + i,
 				        256 - 64);
 			else
 			{
 				for (i = 0; i < 56 + 64; i++)
-					if (isAlpha(newHeader.reservedBytes[i])
-						&& isAlpha(newHeader.reservedBytes[i + 64]))
+					if (isAlpha(newHeader.reserved_bytes[i])
+						&& isAlpha(newHeader.reserved_bytes[i + 64]))
 						break;
 				if (i != 56 + 64)
-					memmove(newHeader.inputPluginName,
-					        newHeader.reservedBytes + i, 256 - 64 - 64);
+					memmove(newHeader.input_plugin_name,
+					        newHeader.reserved_bytes + i, 256 - 64 - 64);
 				else
 				{
 					for (i = 0; i < 56 + 64; i++)
-						if (isAlpha(newHeader.reservedBytes[i]))
+						if (isAlpha(newHeader.reserved_bytes[i]))
 							break;
 					if (i != 56 + 64)
-						memmove(newHeader.rspPluginName,
-						        newHeader.reservedBytes + i,
+						memmove(newHeader.rsp_plugin_name,
+						        newHeader.reserved_bytes + i,
 						        256 - 64 - 64 - 64);
 					else
-						strncpy(newHeader.rspPluginName, "(unknown)", 64);
+						strncpy(newHeader.rsp_plugin_name, "(unknown)", 64);
 
-					strncpy(newHeader.inputPluginName, "(unknown)", 64);
+					strncpy(newHeader.input_plugin_name, "(unknown)", 64);
 				}
-				strncpy(newHeader.soundPluginName, "(unknown)", 64);
+				strncpy(newHeader.audio_plugin_name, "(unknown)", 64);
 			}
-			strncpy(newHeader.videoPluginName, "(unknown)", 64);
+			strncpy(newHeader.video_plugin_name, "(unknown)", 64);
 		}
 		// attempt to convert old author and description to utf8
-		strncpy(newHeader.authorInfo, newHeader.oldAuthorInfo, 48);
-		strncpy(newHeader.description, newHeader.oldDescription, 80);
+		strncpy(newHeader.author, newHeader.old_author_info, 48);
+		strncpy(newHeader.description, newHeader.old_description, 80);
 	}
 	if (newHeader.version == 3)
 	{
@@ -426,9 +415,9 @@ static int read_movie_header(FILE* file, SMovieHeader* header)
 
 void flush_movie()
 {
-	if (m_file && (m_task == Recording || m_task == StartRecording || m_task ==
-		StartRecordingFromSnapshot || m_task ==
-		StartRecordingFromExistingSnapshot))
+	if (m_file && (m_task == e_task::recording || m_task == e_task::start_recording || m_task ==
+		e_task::start_recording_from_snapshot || m_task ==
+		e_task::start_recording_from_existing_snapshot))
 	{
 		// (over-)write the header
 		write_movie_header(m_file, MUP_HEADER_SIZE);
@@ -442,14 +431,14 @@ void flush_movie()
 	}
 }
 
-SMovieHeader VCR_getHeaderInfo(const char* filename)
+t_movie_header VCR_getHeaderInfo(const char* filename)
 {
 	char buf[PATH_MAX];
 	char temp_filename[PATH_MAX];
-	SMovieHeader tempHeader;
-	memset(&tempHeader, 0, sizeof(SMovieHeader));
-	tempHeader.romCountry = -1;
-	strcpy(tempHeader.romNom, "(no ROM)");
+	t_movie_header tempHeader;
+	memset(&tempHeader, 0, sizeof(t_movie_header));
+	tempHeader.rom_country = -1;
+	strcpy(tempHeader.rom_name, "(no ROM)");
 
 	flush_movie();
 
@@ -573,19 +562,19 @@ void VCR_clearAllSaveData()
 BOOL
 VCR_isActive()
 {
-	return (m_task == Recording || m_task == Playback) ? TRUE : FALSE;
+	return (m_task == e_task::recording || m_task == e_task::playback) ? TRUE : FALSE;
 }
 
 BOOL
 VCR_isIdle()
 {
-	return (m_task == Idle) ? TRUE : FALSE;
+	return (m_task == e_task::idle) ? TRUE : FALSE;
 }
 
 BOOL
 VCR_isStarting()
 {
-	return (m_task == StartPlayback || m_task == StartPlaybackFromSnapshot)
+	return (m_task == e_task::start_playback || m_task == e_task::start_playback_from_snapshot)
 		       ? TRUE
 		       : FALSE;
 }
@@ -594,13 +583,13 @@ BOOL
 VCR_isStartingAndJustRestarted()
 {
 	extern BOOL just_restarted_flag;
-	if (m_task == StartPlayback && !continue_vcr_on_restart_mode &&
+	if (m_task == e_task::start_playback && !continue_vcr_on_restart_mode &&
 		just_restarted_flag)
 	{
 		just_restarted_flag = FALSE;
 		m_currentSample = 0;
 		m_currentVI = 0;
-		m_task = Playback;
+		m_task = e_task::playback;
 		return TRUE;
 	}
 
@@ -610,13 +599,13 @@ VCR_isStartingAndJustRestarted()
 BOOL
 VCR_isPlaying()
 {
-	return (m_task == Playback) ? TRUE : FALSE;
+	return (m_task == e_task::playback) ? TRUE : FALSE;
 }
 
 BOOL
 VCR_isRecording()
 {
-	return (m_task == Recording) ? TRUE : FALSE;
+	return (m_task == e_task::recording) ? TRUE : FALSE;
 }
 
 BOOL
@@ -763,22 +752,22 @@ int VCR_movieUnfreeze(const char* buf, unsigned long size)
 	if (space_needed > size)
 		return WRONG_FORMAT;
 
-	int lastTask = m_task;
+	e_task lastTask = m_task;
 	if (!m_readOnly)
 	{
 		// here, we are going to take the input data from the savestate
 		// and make it the input data for the current movie, then continue
 		// writing new input data at the currentFrame pointer
 		//		change_state(MOVIE_STATE_RECORD);
-		m_task = Recording;
+		m_task = e_task::recording;
 		flush_movie();
 		///		systemScreenMessage("Movie re-record");
 
 		extern void EnableEmulationMenuItems(BOOL flag);
-		if (lastTask == Playback)
+		if (lastTask == e_task::playback)
 			EnableEmulationMenuItems(TRUE);
 		// update header with new ROM info
-		if (lastTask == Playback)
+		if (lastTask == e_task::playback)
 			setROMInfo(&m_header);
 
 		m_currentSample = (long)current_sample;
@@ -806,13 +795,13 @@ int VCR_movieUnfreeze(const char* buf, unsigned long size)
 		if (current_sample > m_header.length_samples)
 			return INVALID_FRAME;
 
-		m_task = Playback;
+		m_task = e_task::playback;
 		flush_movie();
 		//		change_state(MOVIE_STATE_PLAY);
 		///		systemScreenMessage("Movie rewind");
 
 		extern void EnableEmulationMenuItems(BOOL flag);
-		if (lastTask == Recording)
+		if (lastTask == e_task::recording)
 			EnableEmulationMenuItems(TRUE);
 
 		m_currentSample = (long)current_sample;
@@ -836,8 +825,8 @@ extern BOOL just_restarted_flag;
 void
 VCR_getKeys(int Control, BUTTONS* Keys)
 {
-	if (m_task != Playback && m_task != StartPlayback && m_task !=
-		StartPlaybackFromSnapshot)
+	if (m_task != e_task::playback && m_task != e_task::start_playback && m_task !=
+		e_task::start_playback_from_snapshot)
 	{
 		getKeys(Control, Keys);
 		lastInputLua[Control] = *(DWORD*)Keys;
@@ -860,11 +849,11 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 	if (Control == 0)
 		memcpy(&m_lastController1Keys, Keys, sizeof(unsigned long));
 
-	if (m_task == Idle)
+	if (m_task == e_task::idle)
 		return;
 
 
-	if (m_task == StartRecording)
+	if (m_task == e_task::start_recording)
 	{
 		if (!continue_vcr_on_restart_mode)
 		{
@@ -873,7 +862,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 				just_restarted_flag = FALSE;
 				m_currentSample = 0;
 				m_currentVI = 0;
-				m_task = Recording;
+				m_task = e_task::recording;
 				memset(Keys, 0, sizeof(BUTTONS));
 				EnableMenuItem(GetMenu(mainHWND), ID_STOP_RECORD, MF_ENABLED);
 			} else
@@ -886,27 +875,27 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		///       return;
 	}
 
-	if (m_task == StartRecordingFromSnapshot)
+	if (m_task == e_task::start_recording_from_snapshot)
 	{
 		// wait until state is saved, then record
 		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Snapshot...\n");
-			m_task = Recording;
+			m_task = e_task::recording;
 			memset(Keys, 0, sizeof(BUTTONS));
 		}
 		///		return;
 	}
 
-	if (m_task == StartRecordingFromExistingSnapshot)
+	if (m_task == e_task::start_recording_from_existing_snapshot)
 		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Existing Snapshot...\n");
-			m_task = Recording;
+			m_task = e_task::recording;
 			memset(Keys, 0, sizeof(BUTTONS));
 		}
 
-	if (m_task == StartPlayback)
+	if (m_task == e_task::start_playback)
 	{
 		if (!continue_vcr_on_restart_mode)
 		{
@@ -915,7 +904,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 				just_restarted_flag = FALSE;
 				m_currentSample = 0;
 				m_currentVI = 0;
-				m_task = Playback;
+				m_task = e_task::playback;
 			} else
 			{
 				printf("[VCR]: Starting playback...\n");
@@ -925,7 +914,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		}
 	}
 
-	if (m_task == StartPlaybackFromSnapshot)
+	if (m_task == e_task::start_playback_from_snapshot)
 	{
 		// wait until state is loaded, then playback
 		if (savestates_job == e_st_job::none)
@@ -936,7 +925,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 				//char str [2048];
 				//sprintf(str, "Couldn't find or load this movie's snapshot,\n\"%s\".\nMake sure that file is where Mupen64 can find it.", savestates_get_selected_filename());
 				//printError(str);
-				m_task = Idle;
+				m_task = e_task::idle;
 				if (!dontPlay)
 				{
 					char title[MAX_PATH];
@@ -948,12 +937,12 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 				return;
 			}
 			printf("[VCR]: Starting playback...\n");
-			m_task = Playback;
+			m_task = e_task::playback;
 		}
 		///		return;
 	}
 
-	if (m_task == Recording)
+	if (m_task == e_task::recording)
 	{
 		//		long cont = Control;
 		//		fwrite( &cont, 1, sizeof (long), m_file ); // write the controller #
@@ -990,7 +979,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		return;
 	}
 
-	if (m_task == Playback)
+	if (m_task == e_task::playback)
 	{
 		//		long cont;
 		//		fread( &cont, 1, sizeof (long), m_file );
@@ -1026,7 +1015,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		//			// ...
 		//		}
 
-		if (m_header.controllerFlags & CONTROLLER_X_PRESENT(Control))
+		if (m_header.controller_flags & CONTROLLER_X_PRESENT(Control))
 		{
 			//cool debug info
 			//extern int frame_advancing;
@@ -1160,7 +1149,7 @@ VCR_startRecord(const char* filename, unsigned short flags,
 			strncat(buf, ".savestate", 12);
 
 		savestates_do(buf, e_st_job::save);
-		m_task = StartRecordingFromSnapshot;
+		m_task = e_task::start_recording_from_snapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
 		printf("[VCR]: Loading state...\n");
@@ -1177,18 +1166,18 @@ VCR_startRecord(const char* filename, unsigned short flags,
 		// set this to the normal snapshot flag to maintain compatibility
 		m_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
 
-		m_task = StartRecordingFromExistingSnapshot;
+		m_task = e_task::start_recording_from_existing_snapshot;
 	} else
 	{
-		m_task = StartRecording;
+		m_task = e_task::start_recording;
 	}
 	SetActiveMovie(buf);
 	setROMInfo(&m_header);
 
 	// utf8 strings are also null-terminated so this method still works
 	if (authorUTF8)
-		strncpy(m_header.authorInfo, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
-	m_header.authorInfo[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
+		strncpy(m_header.author, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
+	m_header.author[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
 	if (descriptionUTF8)
 		strncpy(m_header.description, descriptionUTF8,
 		        MOVIE_DESCRIPTION_DATA_SIZE);
@@ -1208,11 +1197,11 @@ VCR_stopRecord(int defExt)
 {
 	int retVal = -1;
 
-	if (m_task == StartRecording)
+	if (m_task == e_task::start_recording)
 	{
 		char buf[PATH_MAX];
 
-		m_task = Idle;
+		m_task = e_task::idle;
 		if (m_file)
 		{
 			fclose(m_file);
@@ -1240,7 +1229,7 @@ VCR_stopRecord(int defExt)
 		retVal = 0;
 	}
 
-	if (m_task == Recording)
+	if (m_task == e_task::recording)
 	{
 		//		long end = -1;
 
@@ -1248,7 +1237,7 @@ VCR_stopRecord(int defExt)
 
 		flush_movie();
 
-		m_task = Idle;
+		m_task = e_task::idle;
 
 		//		fwrite( &end, 1, sizeof (long), m_file );
 		//		fwrite( &m_header.length_samples, 1, sizeof (long), m_file );
@@ -1412,14 +1401,14 @@ startPlayback(const char* filename, const char* authorUTF8,
 					}
 				}
 
-				if (!Controls[0].Present && (m_header.controllerFlags &
+				if (!Controls[0].Present && (m_header.controller_flags &
 					CONTROLLER_1_PRESENT))
 				{
 					strcat(warningStr,
 					       "Error: You have controller 1 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n");
 					dontPlay = TRUE;
 				}
-				if (Controls[0].Present && !(m_header.controllerFlags &
+				if (Controls[0].Present && !(m_header.controller_flags &
 					CONTROLLER_1_PRESENT))
 					strcat(warningStr,
 					       "Warning: You have controller 1 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n");
@@ -1427,30 +1416,30 @@ startPlayback(const char* filename, const char* authorUTF8,
 				{
 					if (Controls[0].Present && (Controls[0].Plugin !=
 						controller_extension::mempak) && (m_header.
-						controllerFlags & CONTROLLER_1_MEMPAK))
+						controller_flags & CONTROLLER_1_MEMPAK))
 						strcat(warningStr,
 						       "Warning: Controller 1 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 					if (Controls[0].Present && (Controls[0].Plugin !=
 						controller_extension::rumblepak) && (m_header.
-						controllerFlags & CONTROLLER_1_RUMBLE))
+						controller_flags & CONTROLLER_1_RUMBLE))
 						strcat(warningStr,
 						       "Warning: Controller 1 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 					if (Controls[0].Present && (Controls[0].Plugin !=
 						controller_extension::none) && !(m_header.
-						controllerFlags & (CONTROLLER_1_MEMPAK |
+						controller_flags & (CONTROLLER_1_MEMPAK |
 							CONTROLLER_1_RUMBLE)))
 						strcat(warningStr,
 						       "Warning: Controller 1 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 				}
 
-				if (!Controls[1].Present && (m_header.controllerFlags &
+				if (!Controls[1].Present && (m_header.controller_flags &
 					CONTROLLER_2_PRESENT))
 				{
 					strcat(warningStr,
 					       "Error: You have controller 2 disabled, but it is enabled in the movie file.\nIt cannot back correctly unless you change this first (in your input settings).\n");
 					dontPlay = TRUE;
 				}
-				if (Controls[1].Present && !(m_header.controllerFlags &
+				if (Controls[1].Present && !(m_header.controller_flags &
 					CONTROLLER_2_PRESENT))
 					strcat(warningStr,
 					       "Warning: You have controller 2 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
@@ -1458,30 +1447,30 @@ startPlayback(const char* filename, const char* authorUTF8,
 				{
 					if (Controls[1].Present && (Controls[1].Plugin !=
 						controller_extension::mempak) && (m_header.
-						controllerFlags & CONTROLLER_2_MEMPAK))
+						controller_flags & CONTROLLER_2_MEMPAK))
 						strcat(warningStr,
 						       "Warning: Controller 2 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 					if (Controls[1].Present && (Controls[1].Plugin !=
 						controller_extension::rumblepak) && (m_header.
-						controllerFlags & CONTROLLER_2_RUMBLE))
+						controller_flags & CONTROLLER_2_RUMBLE))
 						strcat(warningStr,
 						       "Warning: Controller 2 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 					if (Controls[1].Present && (Controls[1].Plugin !=
 						controller_extension::none) && !(m_header.
-						controllerFlags & (CONTROLLER_2_MEMPAK |
+						controller_flags & (CONTROLLER_2_MEMPAK |
 							CONTROLLER_2_RUMBLE)))
 						strcat(warningStr,
 						       "Warning: Controller 2 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 				}
 
-				if (!Controls[2].Present && (m_header.controllerFlags &
+				if (!Controls[2].Present && (m_header.controller_flags &
 					CONTROLLER_3_PRESENT))
 				{
 					strcat(warningStr,
 					       "Error: You have controller 3 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you change this first (in your input settings).\n");
 					dontPlay = TRUE;
 				}
-				if (Controls[2].Present && !(m_header.controllerFlags &
+				if (Controls[2].Present && !(m_header.controller_flags &
 					CONTROLLER_3_PRESENT))
 					strcat(warningStr,
 					       "Warning: You have controller 3 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
@@ -1489,30 +1478,30 @@ startPlayback(const char* filename, const char* authorUTF8,
 				{
 					if (Controls[2].Present && (Controls[2].Plugin !=
 						controller_extension::mempak) && !(m_header.
-						controllerFlags & CONTROLLER_3_MEMPAK))
+						controller_flags & CONTROLLER_3_MEMPAK))
 						strcat(warningStr,
 						       "Warning: Controller 3 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 					if (Controls[2].Present && (Controls[2].Plugin !=
 						controller_extension::rumblepak) && !(m_header.
-						controllerFlags & CONTROLLER_3_RUMBLE))
+						controller_flags & CONTROLLER_3_RUMBLE))
 						strcat(warningStr,
 						       "Warning: Controller 3 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 					if (Controls[2].Present && (Controls[2].Plugin !=
 						controller_extension::none) && !(m_header.
-						controllerFlags & (CONTROLLER_3_MEMPAK |
+						controller_flags & (CONTROLLER_3_MEMPAK |
 							CONTROLLER_3_RUMBLE)))
 						strcat(warningStr,
 						       "Warning: Controller 3 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 				}
 
-				if (!Controls[3].Present && (m_header.controllerFlags &
+				if (!Controls[3].Present && (m_header.controller_flags &
 					CONTROLLER_4_PRESENT))
 				{
 					strcat(warningStr,
 					       "Error: You have controller 4 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you change this first (in your input settings).\n");
 					dontPlay = TRUE;
 				}
-				if (Controls[3].Present && !(m_header.controllerFlags &
+				if (Controls[3].Present && !(m_header.controller_flags &
 					CONTROLLER_4_PRESENT))
 					strcat(warningStr,
 					       "Error: You have controller 4 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
@@ -1520,17 +1509,17 @@ startPlayback(const char* filename, const char* authorUTF8,
 				{
 					if (Controls[3].Present && (Controls[3].Plugin !=
 						controller_extension::mempak) && !(m_header.
-						controllerFlags & CONTROLLER_4_MEMPAK))
+						controller_flags & CONTROLLER_4_MEMPAK))
 						strcat(warningStr,
 						       "Warning: Controller 4 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 					if (Controls[3].Present && (Controls[3].Plugin !=
 						controller_extension::rumblepak) && !(m_header.
-						controllerFlags & CONTROLLER_4_RUMBLE))
+						controller_flags & CONTROLLER_4_RUMBLE))
 						strcat(warningStr,
 						       "Warning: Controller 4 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
 					if (Controls[3].Present && (Controls[3].Plugin !=
 						controller_extension::none) && !(m_header.
-						controllerFlags & (CONTROLLER_4_MEMPAK |
+						controller_flags & (CONTROLLER_4_MEMPAK |
 							CONTROLLER_4_RUMBLE)))
 						strcat(warningStr,
 						       "Warning: Controller 4 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
@@ -1538,38 +1527,38 @@ startPlayback(const char* filename, const char* authorUTF8,
 
 				char str[512], name[512];
 
-				if (_stricmp(m_header.romNom,
+				if (_stricmp(m_header.rom_name,
 				                           (const char*)ROM_HEADER.nom) != 0)
 				{
 					sprintf(
 						str,
 						"The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n",
-						m_header.romNom, (char*)ROM_HEADER.nom);
+						m_header.rom_name, (char*)ROM_HEADER.nom);
 					strcat(warningStr, str);
 					dontPlay = Config.is_rom_movie_compatibility_check_enabled
 						           ? dontPlay
 						           : TRUE;
 				} else
 				{
-					if (m_header.romCountry != ROM_HEADER.
+					if (m_header.rom_country != ROM_HEADER.
 						Country_code)
 					{
 						sprintf(
 							str,
 							"The movie was recorded with a ROM with country code \"%d\",\nbut you are using a ROM with country code \"%d\",\nso the movie may not play properly.\n",
-							m_header.romCountry, ROM_HEADER.Country_code);
+							m_header.rom_country, ROM_HEADER.Country_code);
 						strcat(warningStr, str);
 						dontPlay =
 							Config.is_rom_movie_compatibility_check_enabled
 								? dontPlay
 								: TRUE;
-					} else if (m_header.romCRC != ROM_HEADER.
+					} else if (m_header.rom_crc1 != ROM_HEADER.
 						CRC1)
 					{
 						sprintf(
 							str,
 							"The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\",\nso the movie may not play properly.\n",
-							(unsigned int)m_header.romCRC,
+							(unsigned int)m_header.rom_crc1,
 							(unsigned int)ROM_HEADER.CRC1);
 						strcat(warningStr, str);
 						dontPlay =
@@ -1588,36 +1577,36 @@ startPlayback(const char* filename, const char* authorUTF8,
 				}
 
 				strncpy(name, input_plugin->name.c_str(), 64);
-				if (name[0] && m_header.inputPluginName[0] && _stricmp(
-					m_header.inputPluginName, name) != 0)
+				if (name[0] && m_header.input_plugin_name[0] && _stricmp(
+					m_header.input_plugin_name, name) != 0)
 				{
 					printf(
 						"Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.\n",
-						m_header.inputPluginName, name);
+						m_header.input_plugin_name, name);
 				}
 				strncpy(name, video_plugin->name.c_str(), 64);
-				if (name[0] && m_header.videoPluginName[0] && _stricmp(
-					m_header.videoPluginName, name) != 0)
+				if (name[0] && m_header.video_plugin_name[0] && _stricmp(
+					m_header.video_plugin_name, name) != 0)
 				{
 					printf(
 						"Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.\n",
-						m_header.videoPluginName, name);
+						m_header.video_plugin_name, name);
 				}
 				strncpy(name, audio_plugin->name.c_str(), 64);
-				if (name[0] && m_header.soundPluginName[0] && _stricmp(
-					m_header.soundPluginName, name) != 0)
+				if (name[0] && m_header.audio_plugin_name[0] && _stricmp(
+					m_header.audio_plugin_name, name) != 0)
 				{
 					printf(
 						"Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.\n",
-						m_header.soundPluginName, name);
+						m_header.audio_plugin_name, name);
 				}
 				strncpy(name, rsp_plugin->name.c_str(), 64);
-				if (name[0] && m_header.rspPluginName[0] && _stricmp(
-					m_header.rspPluginName, name) != 0)
+				if (name[0] && m_header.rsp_plugin_name[0] && _stricmp(
+					m_header.rsp_plugin_name, name) != 0)
 				{
 					printf(
 						"Warning: The movie was recorded with the RSP plugin \"%s\",\nbut you are using the RSP plugin \"%s\",\nso the movie probably won't play properly.\n",
-						m_header.rspPluginName, name);
+						m_header.rsp_plugin_name, name);
 				}
 
 
@@ -1693,16 +1682,16 @@ startPlayback(const char* filename, const char* authorUTF8,
 			}
 
 			savestates_do(buf, e_st_job::load);
-			m_task = StartPlaybackFromSnapshot;
+			m_task = e_task::start_playback_from_snapshot;
 		} else
 		{
-			m_task = StartPlayback;
+			m_task = e_task::start_playback;
 		}
 
 		// utf8 strings are also null-terminated so this method still works
 		if (authorUTF8)
-			strncpy(m_header.authorInfo, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
-		m_header.authorInfo[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
+			strncpy(m_header.author, authorUTF8, MOVIE_AUTHOR_DATA_SIZE);
+		m_header.author[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
 		if (descriptionUTF8)
 			strncpy(m_header.description, descriptionUTF8,
 			        MOVIE_DESCRIPTION_DATA_SIZE);
@@ -1731,21 +1720,21 @@ stopPlayback(bool bypassLoopSetting)
 		return restartPlayback();
 	}
 	reset_titlebar();
-	if (m_file && m_task != StartRecording && m_task != Recording)
+	if (m_file && m_task != e_task::start_recording && m_task != e_task::recording)
 	{
 		fclose(m_file);
 		m_file = 0;
 	}
 
-	if (m_task == StartPlayback)
+	if (m_task == e_task::start_playback)
 	{
-		m_task = Idle;
+		m_task = e_task::idle;
 		return 0;
 	}
 
-	if (m_task == Playback)
+	if (m_task == e_task::playback)
 	{
-		m_task = Idle;
+		m_task = e_task::idle;
 		printf("[VCR]: Playback stopped (%ld samples played)\n",
 		       m_currentSample);
 
@@ -2210,8 +2199,8 @@ int VCR_startCapture(const char* recFilename, const char* aviFilename,
 	// BUG: toolbar could get captured in AVI, so we disable it
 	toolbar_set_visibility(0);
 
-	if (!wasPaused || (m_task == Playback || m_task == StartPlayback || m_task
-		== StartPlaybackFromSnapshot))
+	if (!wasPaused || (m_task == e_task::playback || m_task == e_task::start_playback || m_task
+		== e_task::start_playback_from_snapshot))
 	{
 		resumeEmu(TRUE);
 	}
@@ -2287,7 +2276,7 @@ void VCR_StopFFmpegCapture()
 void
 VCR_toggleReadOnly()
 {
-	if (m_task == Recording)
+	if (m_task == e_task::recording)
 	{
 		flush_movie();
 	}
@@ -2367,14 +2356,14 @@ VCR_coreStopped()
 
 	switch (m_task)
 	{
-	case StartRecording:
-	case StartRecordingFromSnapshot:
-	case Recording:
+	case e_task::start_recording:
+	case e_task::start_recording_from_snapshot:
+	case e_task::recording:
 		VCR_stopRecord(1);
 		break;
-	case StartPlayback:
-	case StartPlaybackFromSnapshot:
-	case Playback:
+	case e_task::start_playback:
+	case e_task::start_playback_from_snapshot:
+	case e_task::playback:
 		VCR_stopPlayback();
 		break;
 	}

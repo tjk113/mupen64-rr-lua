@@ -110,7 +110,6 @@ void CrashHelper::GenerateLog(_EXCEPTION_POINTERS* exceptionPointersPtr,
 	               Config.selected_audio_plugin.c_str());
 	len += sprintf(logPtr + len, "rsp:%s\n",
 	               Config.selected_rsp_plugin.c_str());
-	extern int m_task;
 	//some flags
 	len += sprintf(logPtr + len, "m_task:%d\n", m_task);
 	len += sprintf(logPtr + len, "emu_launched:%d\n", emu_launched);

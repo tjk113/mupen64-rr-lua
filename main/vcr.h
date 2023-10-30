@@ -139,45 +139,149 @@ void vcr_recent_movies_add(const std::string path);
 int32_t vcr_recent_movies_play(uint16_t menu_item_id);
 
 #pragma pack(push, 1)
-//#pragms pack(1)
+/**
+ * \brief
+ */
 typedef struct
 {
-	unsigned long magic; // M64\0x1a
-	unsigned long version; // 3
-	unsigned long uid; // used to match savestates to a particular movie
+	/**
+	 * \brief <c>M64\0x1a</c>
+	 */
+	unsigned long magic;
 
-	unsigned long length_vis; // number of "frames" in the movie
+	/**
+	 * \brief Currently <c>3</c>
+	 */
+	unsigned long version;
+
+	/**
+	 * \brief Movie creation time, used to correlate savestates to a movie
+	 */
+	unsigned long uid;
+
+	/**
+	 * \brief Amount of VIs in the movie
+	 */
+	unsigned long length_vis;
+
+	/**
+	 * \brief Amount of loaded states during recording
+	 */
 	unsigned long rerecord_count;
-	unsigned char vis_per_second; // "frames" per second
+
+	/**
+	 * \brief The VIs per second of the rom this movie was recorded on
+	 * \remarks (unused)
+	 * \remarks This field makes no sense, as VI/s are already known via ROM cc
+	 */
+	unsigned char vis_per_second;
+
+	/**
+	 * \brief The amount of controllers connected during recording
+	 * \remarks (pretty much unused)
+	 * \remarks This field makes no sense, as this value can already be figured out by checking controller flags post-load
+	 */
 	unsigned char num_controllers;
+
 	unsigned short reserved1;
+
+	/**
+	 * \brief Amount of input samples in the movie, ideally equal to <c>(file_length - 1024) / 4</c>
+	 */
 	unsigned long length_samples;
 
+	/**
+	 * \brief What state the movie is expected to start from
+	 * \remarks vcr.h:32
+	 */
 	unsigned short startFlags;
-	// should equal 2 if the movie is from a clean start
-	unsigned short reserved2;
-	unsigned long controllerFlags;
-	unsigned long reservedFlags[8];
 
-	char oldAuthorInfo[48];
-	char oldDescription[80];
-	char romNom[32]; // internal rom name
-	unsigned long romCRC;
-	unsigned short romCountry;
-	char reservedBytes[56];
-	char videoPluginName[64];
-	char soundPluginName[64];
-	char inputPluginName[64];
-	char rspPluginName[64];
-	char authorInfo[MOVIE_AUTHOR_DATA_SIZE]; // utf8-encoded
-	char description[MOVIE_DESCRIPTION_DATA_SIZE]; // utf8-encoded
-} SMovieHeader; // should be exactly 1024 bytes
+	unsigned short reserved2;
+
+	/**
+	 * \brief Bitfield of flags for each controller. Sequence of present, mempak and rumble bits with per-controller values respectively (c1,c2,c3,c4,r1,...)
+	 */
+	unsigned long controller_flags;
+
+	unsigned long reserved_flags[8];
+
+	/**
+	 * \brief The name of the movie's author
+	 * \remarks Used in .rec (version 2)
+	 */
+	char old_author_info[48];
+
+	/**
+	 * \brief A description of what the movie is about
+	 * \remarks Used in .rec (version 2)
+	 */
+	char old_description[80];
+
+	/**
+	 * \brief The internal name of the rom the movie was recorded on
+	 */
+	char rom_name[32];
+
+	/**
+	 * \brief The primary checksum of the rom the movie was recorded on
+	 */
+	unsigned long rom_crc1;
+
+	/**
+	 * \brief The rom country of the rom the movie was recorded on
+	 */
+	unsigned short rom_country;
+
+	char reserved_bytes[56];
+
+	/**
+	 * \brief The name of the video plugin the movie was recorded with, as specified by the plugin
+	 */
+	char video_plugin_name[64];
+
+	/**
+	 * \brief The name of the audio plugin the movie was recorded with, as specified by the plugin
+	 */
+	char audio_plugin_name[64];
+
+	/**
+	 * \brief The name of the input plugin the movie was recorded with, as specified by the plugin
+	 */
+	char input_plugin_name[64];
+
+	/**
+	 * \brief The name of the RSP plugin the movie was recorded with, as specified by the plugin
+	 */
+	char rsp_plugin_name[64];
+
+	/**
+	 * \brief The name of the movie's author as a UTF-8 string
+	 */
+	char author[MOVIE_AUTHOR_DATA_SIZE];
+
+	/**
+	 * \brief A description of what the movie is about as a UTF-8 string
+	 */
+	char description[MOVIE_DESCRIPTION_DATA_SIZE];
+} t_movie_header;
 #pragma pack(pop)
 
+enum class e_task
+{
+	idle,
+	start_recording,
+	start_recording_from_snapshot,
+	start_recording_from_existing_snapshot,
+	recording,
+	start_playback,
+	start_playback_from_snapshot,
+	playback
+};
 
-extern SMovieHeader VCR_getHeaderInfo(const char* filename);
+extern e_task m_task;
+
+extern t_movie_header VCR_getHeaderInfo(const char* filename);
 extern char VCR_Lastpath[MAX_PATH];
-extern int m_task;
 extern uint64_t screen_updates;
 
 #endif // VCR_SUPPORT

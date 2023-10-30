@@ -276,7 +276,7 @@ DWORD WINAPI start_rom(LPVOID)
 	statusbar_set_mode(statusbar_mode::emulating);
 	EnableEmulationMenuItems(TRUE);
 	InitTimer();
-	if (m_task == 0) {
+	if (m_task == e_task::idle) {
 		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
 	}
 
@@ -345,7 +345,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		rombrowser_set_visibility(!really_restart_mode);
 		toolbar_on_emu_state_changed(0, 0);
 
-		if (m_task == 0) {
+		if (m_task == e_task::idle) {
 			SetWindowText(mainHWND, MUPEN_VERSION);
 			// TODO: look into why this is done
 			statusbar_send_text(" ", 1);
@@ -369,7 +369,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			}
 
 			really_restart_mode = FALSE;
-			if (m_task != 0)
+			if (m_task != e_task::idle)
 				just_restarted_flag = TRUE;
 
 			main_dispatcher_invoke([] {
@@ -616,53 +616,53 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 refresh:
 
 	GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, tempbuf, MAX_PATH);
-	SMovieHeader m_header = VCR_getHeaderInfo(tempbuf);
+	t_movie_header m_header = VCR_getHeaderInfo(tempbuf);
 
-	SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME, m_header.romNom);
+	SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME, m_header.rom_name);
 
- 	SetDlgItemText(hwnd, IDC_ROM_COUNTRY, country_code_to_country_name(m_header.romCountry).c_str());
+ 	SetDlgItemText(hwnd, IDC_ROM_COUNTRY, country_code_to_country_name(m_header.rom_country).c_str());
 
-	sprintf(tempbuf, "%X", (unsigned int)m_header.romCRC);
+	sprintf(tempbuf, "%X", (unsigned int)m_header.rom_crc1);
 	SetDlgItemText(hwnd, IDC_ROM_CRC, tempbuf);
 
-	SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT, m_header.videoPluginName);
-	SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT, m_header.inputPluginName);
-	SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT, m_header.soundPluginName);
-	SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT, m_header.rspPluginName);
+	SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT, m_header.video_plugin_name);
+	SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT, m_header.input_plugin_name);
+	SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT, m_header.audio_plugin_name);
+	SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT, m_header.rsp_plugin_name);
 
-	strcpy(tempbuf, (m_header.controllerFlags & CONTROLLER_1_PRESENT)
+	strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_1_PRESENT)
 		                ? "Present"
 		                : "Disconnected");
-	if (m_header.controllerFlags & CONTROLLER_1_MEMPAK)
+	if (m_header.controller_flags & CONTROLLER_1_MEMPAK)
 		strcat(tempbuf, " with mempak");
-	if (m_header.controllerFlags & CONTROLLER_1_RUMBLE)
+	if (m_header.controller_flags & CONTROLLER_1_RUMBLE)
 		strcat(tempbuf, " with rumble");
 	SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER1_TEXT, tempbuf);
 
-	strcpy(tempbuf, (m_header.controllerFlags & CONTROLLER_2_PRESENT)
+	strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_2_PRESENT)
 		                ? "Present"
 		                : "Disconnected");
-	if (m_header.controllerFlags & CONTROLLER_2_MEMPAK)
+	if (m_header.controller_flags & CONTROLLER_2_MEMPAK)
 		strcat(tempbuf, " with mempak");
-	if (m_header.controllerFlags & CONTROLLER_2_RUMBLE)
+	if (m_header.controller_flags & CONTROLLER_2_RUMBLE)
 		strcat(tempbuf, " with rumble");
 	SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER2_TEXT, tempbuf);
 
-	strcpy(tempbuf, (m_header.controllerFlags & CONTROLLER_3_PRESENT)
+	strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_3_PRESENT)
 		                ? "Present"
 		                : "Disconnected");
-	if (m_header.controllerFlags & CONTROLLER_3_MEMPAK)
+	if (m_header.controller_flags & CONTROLLER_3_MEMPAK)
 		strcat(tempbuf, " with mempak");
-	if (m_header.controllerFlags & CONTROLLER_3_RUMBLE)
+	if (m_header.controller_flags & CONTROLLER_3_RUMBLE)
 		strcat(tempbuf, " with rumble");
 	SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER3_TEXT, tempbuf);
 
-	strcpy(tempbuf, (m_header.controllerFlags & CONTROLLER_4_PRESENT)
+	strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_4_PRESENT)
 		                ? "Present"
 		                : "Disconnected");
-	if (m_header.controllerFlags & CONTROLLER_4_MEMPAK)
+	if (m_header.controller_flags & CONTROLLER_4_MEMPAK)
 		strcat(tempbuf, " with mempak");
-	if (m_header.controllerFlags & CONTROLLER_4_RUMBLE)
+	if (m_header.controller_flags & CONTROLLER_4_RUMBLE)
 		strcat(tempbuf, " with rumble");
 	SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER4_TEXT, tempbuf);
 
@@ -710,7 +710,7 @@ refresh:
 		// convert utf8 metadata to windows widechar
 		WCHAR wszMeta[MOVIE_MAX_METADATA_SIZE];
 		if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-		                        m_header.authorInfo, -1, wszMeta,
+		                        m_header.author, -1, wszMeta,
 		                        MOVIE_AUTHOR_DATA_SIZE))
 		{
 			SetLastError(0);
@@ -1844,9 +1844,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case EMU_RESET:
 				if (!Config.is_reset_recording_enabled && warn_recording())
 					break;
-				extern int m_task;
-				if (m_task == 3 && Config.is_reset_recording_enabled)
-				//recording
+				if (VCR_isRecording() && Config.is_reset_recording_enabled)
 				{
 					scheduled_restart = true;
 					continue_vcr_on_restart_mode = true;
