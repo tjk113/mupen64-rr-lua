@@ -1163,13 +1163,6 @@ static DWORD WINAPI SoundThread(LPVOID lpParam)
 	ExitThread(0);
 }
 
-static DWORD WINAPI StartMoviesThread(LPVOID lpParam)
-{
-	Sleep(1000);
-	StartMovies();
-	ExitThread(0);
-}
-
 static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 {
 	auto start_time = std::chrono::high_resolution_clock::now();
@@ -1187,7 +1180,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 				                         &SOUNDTHREADID);
 
 	printf("Emu thread: Emulation started....\n");
-	WaitForSingleObject(CreateThread(NULL, 0, StartMoviesThread, NULL, 0, NULL), 10'000);
+	StartMovies();
 	StartSavestate();
 	AtResetLuaCallback();
 	StartLuaScripts();
