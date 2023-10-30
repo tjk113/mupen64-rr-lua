@@ -7,7 +7,7 @@
 #include <vector>
 
 std::vector<std::string> get_files_with_extension_in_directory(
-	const std::string &directory, const std::string &extension)
+	const std::string& directory, const std::string& extension)
 {
 	WIN32_FIND_DATA find_file_data;
 	const HANDLE h_find = FindFirstFile((directory + "*." + extension).c_str(),
@@ -34,15 +34,14 @@ std::vector<std::string> get_files_with_extension_in_directory(
 }
 
 std::vector<std::string> get_files_in_subdirectories(
-	const std::string &directory)
+	const std::string& directory)
 {
-	std::string newdir =  directory;
+	std::string newdir = directory;
 	if (directory.back() != '\0')
 	{
-		newdir.push_back( '\0');
+		newdir.push_back('\0');
 	}
-	//char *te = (char*)calloc(sizeof((directory + "*").c_str()), sizeof(char)); *te = *((directory + "*").c_str());
-	//printf("%s\n", (directory + "*").c_str());
+
 	WIN32_FIND_DATA find_file_data;
 	const HANDLE h_find = FindFirstFile((directory + "*").c_str(),
 	                                    &find_file_data);
@@ -58,17 +57,19 @@ std::vector<std::string> get_files_in_subdirectories(
 		if (strcmp(find_file_data.cFileName, ".") != 0 && strcmp(
 			find_file_data.cFileName, "..") != 0)
 		{
-
 			std::string full_path = directory + find_file_data.cFileName;
 			if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				if (directory[directory.size() - 2] == '\0') {
-					if (directory.back() == '\\') {
+				if (directory[directory.size() - 2] == '\0')
+				{
+					if (directory.back() == '\\')
+					{
 						fixed_path.pop_back();
 						fixed_path.pop_back();
 					}
 				}
-				if (directory.back() != '\\') {
+				if (directory.back() != '\\')
+				{
 					fixed_path.push_back('\\');
 				}
 				full_path = fixed_path + find_file_data.cFileName;
@@ -90,34 +91,29 @@ std::vector<std::string> get_files_in_subdirectories(
 	return paths;
 }
 
-std::string strip_extension(const std::string& path) {
+std::string strip_extension(const std::string& path)
+{
 	size_t i = path.find_last_of('.');
 
-	if (i != std::string::npos) {
+	if (i != std::string::npos)
+	{
 		return path.substr(0, i);
 	}
 	return path;
 }
-std::wstring strip_extension(const std::wstring &path)
+
+std::wstring strip_extension(const std::wstring& path)
 {
 	size_t i = path.find_last_of('.');
 
-	if (i != std::string::npos) {
+	if (i != std::string::npos)
+	{
 		return path.substr(0, i);
 	}
 	return path;
 }
-std::wstring get_extension(const std::wstring &path)
-{
-	size_t i = path.find_last_of('.');
 
-	if (i != std::string::npos) {
-		return path.substr(i, path.size() - i);
-	}
-	return path;
-}
-
-void copy_to_clipboard(HWND owner, const std::string &str)
+void copy_to_clipboard(HWND owner, const std::string& str)
 {
 	OpenClipboard(owner);
 	EmptyClipboard();
@@ -181,7 +177,8 @@ std::vector<uint8_t> read_file_buffer(const std::filesystem::path& path)
 	return b;
 }
 
-std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec)
+std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
+                                     size_t initial_size)
 {
 	if (vec[0] != 0x1F && vec[1] != 0x8B)
 	{
@@ -193,16 +190,19 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec)
 	}
 
 	// we dont know what the decompressed size is, so we reallocate a buffer until we find the right size lol
-	size_t buf_size = 65536;
-	auto out_buf = (uint8_t*)malloc(buf_size);
+	size_t buf_size = initial_size;
+	auto out_buf = static_cast<uint8_t*>(malloc(buf_size));
 	while (true)
 	{
-		out_buf = (uint8_t*)realloc(out_buf, buf_size);
+		out_buf = static_cast<uint8_t*>(realloc(out_buf, buf_size));
 		size_t actual_size = 0;
 		auto decompressor = libdeflate_alloc_decompressor();
-		auto result = libdeflate_gzip_decompress(decompressor, vec.data(), vec.size(), out_buf, buf_size, &actual_size);
+		auto result = libdeflate_gzip_decompress(
+			decompressor, vec.data(), vec.size(), out_buf, buf_size,
+			&actual_size);
 		libdeflate_free_decompressor(decompressor);
-		if (result == LIBDEFLATE_SHORT_OUTPUT || result == LIBDEFLATE_INSUFFICIENT_SPACE)
+		if (result == LIBDEFLATE_SHORT_OUTPUT || result ==
+			LIBDEFLATE_INSUFFICIENT_SPACE)
 		{
 			printf("Buffer size of %d insufficient...\n", buf_size);
 			buf_size *= 2;
@@ -212,10 +212,16 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec)
 		break;
 	}
 	printf("Found size %d...\n", buf_size);
-	out_buf = (uint8_t*)realloc(out_buf, buf_size);
+	out_buf = static_cast<uint8_t*>(realloc(out_buf, buf_size));
 	std::vector<uint8_t> out_vec;
 	out_vec.resize(buf_size);
 	memcpy(out_vec.data(), out_buf, buf_size);
 	free(out_buf);
 	return out_vec;
+}
+
+void memread(char** src, void* dest, unsigned int len)
+{
+	memcpy(dest, *src, len);
+	*src += len;
 }

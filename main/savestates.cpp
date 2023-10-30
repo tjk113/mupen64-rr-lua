@@ -219,19 +219,9 @@ void savestates_save_immediate()
 		// stub
 	}
 
-
-
-
     main_dispatcher_invoke(AtSaveStateLuaCallback);
 	printf("Savestate saving took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
 
-}
-
-// reads memory like a file
-void memread(char** src, void* dest, unsigned int len)
-{
-    memcpy(dest, *src, len);
-    *src += len;
 }
 
 /// <summary>
@@ -303,6 +293,8 @@ void load_memory_from_buffer(char* p)
 /// <param name="silence_not_found_error"></param>
 void savestates_load_immediate()
 {
+	auto start_time = std::chrono::high_resolution_clock::now();
+
     /*rough .st format :
     0x0 - 0xA02BB0 : memory, registers, stuff like that, known size
     0xA02BB4 - ??? : interrupt queue, dynamic size (cap 1kB)
@@ -481,6 +473,8 @@ failedLoad:
         //printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
         last_addr = PC->addr;
     }
+
+	printf("Savestate loading took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
 }
 
 void savestates_do(std::filesystem::path path, e_st_job job)
