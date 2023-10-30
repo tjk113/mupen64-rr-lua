@@ -451,13 +451,13 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2,
-		               Config.selected_video_plugin.c_str());
+					   video_plugin->name.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT2,
-		               Config.selected_input_plugin.c_str());
+					   input_plugin->name.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT2,
-		               Config.selected_audio_plugin.c_str());
+					   audio_plugin->name.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2,
-		               Config.selected_rsp_plugin.c_str());
+					   rsp_plugin->name.c_str());
 
 		strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
 		if (Controls[0].Present && Controls[0].Plugin ==
@@ -804,13 +804,13 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		SetDlgItemText(hwnd, IDC_ROM_CRC3, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT2,
-		               Config.selected_video_plugin.c_str());
+		               video_plugin->name.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT2,
-		               Config.selected_input_plugin.c_str());
+		               input_plugin->name.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT2,
-		               Config.selected_audio_plugin.c_str());
+		               audio_plugin->name.c_str());
 		SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2,
-		               Config.selected_rsp_plugin.c_str());
+		               rsp_plugin->name.c_str());
 
 		strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
 		if (Controls[0].Present && Controls[0].Plugin ==

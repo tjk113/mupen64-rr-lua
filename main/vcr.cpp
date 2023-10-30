@@ -298,13 +298,13 @@ static void setROMInfo(SMovieHeader* header)
 	header->soundPluginName[0] = '\0';
 	header->rspPluginName[0] = '\0';
 
-	strncpy(header->videoPluginName, Config.selected_video_plugin.c_str(),
+	strncpy(header->videoPluginName, video_plugin->name.c_str(),
 	        64);
-	strncpy(header->inputPluginName, Config.selected_input_plugin.c_str(),
+	strncpy(header->inputPluginName, input_plugin->name.c_str(),
 	        64);
-	strncpy(header->soundPluginName, Config.selected_audio_plugin.c_str(),
+	strncpy(header->soundPluginName, audio_plugin->name.c_str(),
 	        64);
-	strncpy(header->rspPluginName, Config.selected_rsp_plugin.c_str(), 64);
+	strncpy(header->rspPluginName, rsp_plugin->name.c_str(), 64);
 }
 
 static void reserve_buffer_space(unsigned long space_needed)
@@ -1587,7 +1587,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 						printWarning(warningStr);
 				}
 
-				strncpy(name, Config.selected_input_plugin.c_str(), 64);
+				strncpy(name, input_plugin->name.c_str(), 64);
 				if (name[0] && m_header.inputPluginName[0] && _stricmp(
 					m_header.inputPluginName, name) != 0)
 				{
@@ -1595,7 +1595,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 						"Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.\n",
 						m_header.inputPluginName, name);
 				}
-				strncpy(name, Config.selected_video_plugin.c_str(), 64);
+				strncpy(name, video_plugin->name.c_str(), 64);
 				if (name[0] && m_header.videoPluginName[0] && _stricmp(
 					m_header.videoPluginName, name) != 0)
 				{
@@ -1603,7 +1603,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 						"Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.\n",
 						m_header.videoPluginName, name);
 				}
-				strncpy(name, Config.selected_audio_plugin.c_str(), 64);
+				strncpy(name, audio_plugin->name.c_str(), 64);
 				if (name[0] && m_header.soundPluginName[0] && _stricmp(
 					m_header.soundPluginName, name) != 0)
 				{
@@ -1611,7 +1611,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 						"Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.\n",
 						m_header.soundPluginName, name);
 				}
-				strncpy(name, Config.selected_rsp_plugin.c_str(), 64);
+				strncpy(name, rsp_plugin->name.c_str(), 64);
 				if (name[0] && m_header.rspPluginName[0] && _stricmp(
 					m_header.rspPluginName, name) != 0)
 				{
