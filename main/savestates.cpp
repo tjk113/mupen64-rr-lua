@@ -55,17 +55,24 @@ e_st_job savestates_job = e_st_job::none;
 e_st_medium st_medium = e_st_medium::path;
 int savestates_job_success = 1;
 
-bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
-//- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
-//- execution continues at exception handler (after input poll) at 0x80000180.
-bool lockNoStWarn; // I wont remove this variable for now, it should be used how the name suggests
-// right now it's big mess and some other variable is used instead
+// st that comes from no delay fix mupen, it has some differences compared to new st:
+// - one frame of input is "embedded", that is the pif ram holds already fetched controller info.
+// - execution continues at exception handler (after input poll) at 0x80000180.
+bool old_st;
 
-bool fix_new_st = true; //this is a switch to enable/disable fixing .st to work for old mupen (and m64plus)
-//read savestate save function for more info
-//right now its hardcoded to enabled
+// enable fixing .st to work for old mupen (and m64plus)
+bool fix_new_st = true;
+
+// read savestate save function for more info
+// right now its hardcoded to enabled
 bool st_skip_dma = false;
-#define MUPEN64NEW_ST_FIXED (1<<31) //last bit seems to be free
+
+//last bit seems to be free
+#define NEW_ST_FIXED_BIT (1<<31)
+
+constexpr int buflen = 1024;
+constexpr int first_block_size = 0xA02BB4 - 32; //32 is md5 hash
+uint8_t first_block[first_block_size] = {0};
 
 std::vector<uint8_t> generate_savestate()
 {
@@ -93,7 +100,7 @@ std::vector<uint8_t> generate_savestate()
 				rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
 			update_count();
 			add_interupt_event(SI_INT, /*0x100*/0x900);
-			rdram_register.rdram_device_manuf |= MUPEN64NEW_ST_FIXED;
+			rdram_register.rdram_device_manuf |= NEW_ST_FIXED_BIT;
 			st_skip_dma = true;
 		}
         //hack end
@@ -228,12 +235,12 @@ void savestates_save_immediate()
 /// overwrites emu memory with given data. Make sure to call load_eventqueue_infos as well!!!
 /// </summary>
 /// <param name="firstBlock"></param>
-void load_memory_from_buffer(char* p)
+void load_memory_from_buffer(uint8_t* p)
 {
     memread(&p, &rdram_register, sizeof(RDRAM_register));
-    if (rdram_register.rdram_device_manuf & MUPEN64NEW_ST_FIXED)
+    if (rdram_register.rdram_device_manuf & NEW_ST_FIXED_BIT)
     {
-        rdram_register.rdram_device_manuf &= ~MUPEN64NEW_ST_FIXED; //remove the trick
+        rdram_register.rdram_device_manuf &= ~NEW_ST_FIXED_BIT; //remove the trick
         st_skip_dma = true; //tell dma.c to skip it
     }
     memread(&p, &MI_register, sizeof(mips_register));
@@ -301,9 +308,7 @@ void savestates_load_immediate()
     ??? - ??????   : m64 info, also dynamic, no cap
     More precise info can be seen on github
     */
-    constexpr int BUFLEN = 1024;
-    constexpr int firstBlockSize = 0xA02BB4 - 32; //32 is md5 hash
-    char buf[BUFLEN];
+    char buf[buflen];
     //handle to st
     int len;
 
@@ -334,7 +339,7 @@ void savestates_load_immediate()
 
 	// BUG (PRONE): we arent allowed to hold on to a vector element pointer
 	// find another way of doing this
-	auto ptr = (char*)decompressed_buf.data();
+	auto ptr = decompressed_buf.data();
 
     // compare current rom hash with one stored in state
 	char md5[33] = {0};
@@ -351,107 +356,105 @@ void savestates_load_immediate()
 	}
 
     // new version does one bigass gzread for first part of .st (static size)
-    char* firstBlock = (char*)malloc(firstBlockSize);
-    memread(&ptr, firstBlock, firstBlockSize);
+    memread(&ptr, first_block, first_block_size);
+
     // now read interrupt queue into buf
-    for (len = 0; len < BUFLEN; len += 8)
+    for (len = 0; len < buflen; len += 8)
     {
         memread(&ptr, buf + len, 4);
         if (*reinterpret_cast<unsigned long*>(&buf[len]) == 0xFFFFFFFF)
             break;
         memread(&ptr, buf + len + 4, 4);
     }
-    if (len == BUFLEN)
+    if (len == buflen)
     {
         // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
         fprintf(stderr, "Snapshot event queue terminator not reached.\n");
         savestates_job_success = FALSE;
         warn_savestate("Savestate error", "Event queue too long (Savestate corrupted?)");
-        free(firstBlock);
         savestates_job_success = FALSE;
         return;
     }
-    // this will be later
-    // load_eventqueue_infos(buf);
 
-    // now read movie info if exists
-    uint32_t isMovie;
-    memread(&ptr, &isMovie, sizeof(isMovie));
+    uint32_t is_movie;
+    memread(&ptr, &is_movie, sizeof(is_movie));
 
-    if (!isMovie) // this .st is not part of a movie
+    if (is_movie)
     {
-        if (VCR_isActive())
-        {
-            if (!Config.is_state_independent_state_loading_allowed)
-            {
-                fprintf(stderr, "Can't load a non-movie snapshot while a movie is active.\n");
-                warn_savestate("Savestate error", "Can't load a non-movie snapshot while a movie is active.\n");
-                free(firstBlock);
-                savestates_job_success = FALSE;
-                return;
-            }
-            else
-            {
-                statusbar_send_text("Warning: loading non-movie savestate can desync playback");
-            }
-        }
+	    // this .st is part of a movie, we need to overwrite our current movie buffer
 
-        // at this point we know the savestate is safe to be loaded (done after else block)
+	    // hash matches, load and verify rest of the data
+	    unsigned long movie_input_data_size = 0;
+	    memread(&ptr, &movie_input_data_size, sizeof(movie_input_data_size));
+
+	    auto local_movie_data = (char*)malloc(movie_input_data_size);
+	    memread(&ptr, local_movie_data, movie_input_data_size);
+
+	    int code = VCR_movieUnfreeze(local_movie_data, movie_input_data_size);
+	    free(local_movie_data);
+
+	    if (code != SUCCESS && !VCR_isIdle())
+	    {
+	    	statusbar_send_text("Loading non-movie savestate. Recording can break");
+
+		    if (!Config.is_state_independent_state_loading_allowed)
+		    {
+		    	bool critical_stop = false;
+		    	std::string err_str = "Failed to restore movie, ";
+		    	switch (code)
+		    	{
+		    	case NOT_FROM_THIS_MOVIE:
+		    		err_str += "snapshot not from this movie";
+		    		break;
+		    	case NOT_FROM_A_MOVIE:
+		    		err_str += "snapshot not from a movie";
+		    		break;
+		    	case INVALID_FRAME:
+		    		err_str += "invalid frame number";
+		    		break;
+		    	case WRONG_FORMAT:
+		    		err_str += "wrong format";
+		    		stop = true;
+		    		break;
+		    	default:
+		    		break;
+		    	}
+		    	MessageBox(mainHWND, err_str.c_str(), nullptr, MB_ICONERROR);
+			    if (critical_stop)
+			    {
+				    if (VCR_isRecording())
+				    {
+				    	VCR_stopRecord(1);
+				    }
+			    	if (VCR_isPlaying())
+			    	{
+			    		VCR_stopPlayback();
+			    	}
+			    }
+			    savestates_job_success = FALSE;
+			    goto failedLoad;
+		    }
+	    }
     }
     else
     {
-        // this .st is part of a movie
-        // rest of the file can be gzreaded now
+	    if (VCR_isActive())
+	    {
+		    if (!Config.is_state_independent_state_loading_allowed)
+		    {
+		    	MessageBox(mainHWND, "Can't load a non-movie snapshot while a movie is active", nullptr, MB_ICONERROR);
+			    savestates_job_success = FALSE;
+			    return;
+		    }
+		    statusbar_send_text("Loading non-movie savestate can desync playback");
+	    }
 
-        // hash matches, load and verify rest of the data
-        unsigned long movieInputDataSize = 0;
-        memread(&ptr, &movieInputDataSize, sizeof(movieInputDataSize));
-        auto local_movie_data = (char*)malloc(movieInputDataSize * sizeof(char));
-        memread(&ptr, local_movie_data, movieInputDataSize);
-        int code = VCR_movieUnfreeze(local_movie_data, movieInputDataSize);
-        free(local_movie_data);
-        if (code != SUCCESS && !VCR_isIdle())
-        {
-            bool stop = false;
-            char errStr[1024];
-            strcpy(errStr, "Failed to load movie snapshot,\n");
-            switch (code)
-            {
-            case NOT_FROM_THIS_MOVIE:
-                strcat(errStr, "snapshot not from this movie\n");
-                break;
-            case NOT_FROM_A_MOVIE:
-                strcat(errStr, "not a movie snapshot\n");
-                break; // shouldn't get here...
-            case INVALID_FRAME:
-                strcat(errStr, "invalid frame number\n");
-                break;
-            case WRONG_FORMAT:
-                strcat(errStr, "wrong format\n");
-                stop = true;
-                break;
-            default:
-                break;
-            }
-            if (!Config.is_state_independent_state_loading_allowed)
-            {
-                printWarning(errStr);
-                if (stop && VCR_isRecording()) VCR_stopRecord(1);
-                else if (stop) VCR_stopPlayback();
-                savestates_job_success = FALSE;
-                goto failedLoad;
-            }
-            else
-            {
-                statusbar_send_text("Warning: loading non-movie savestate can break recording");
-            }
-        }
+	    // at this point we know the savestate is safe to be loaded (done after else block)
     }
 
     // so far loading success! overwrite memory
     load_eventqueue_infos(buf);
-    load_memory_from_buffer(firstBlock);
-    free(firstBlock);
+    load_memory_from_buffer(first_block);
     main_dispatcher_invoke(AtLoadStateLuaCallback);
 	statusbar_send_text(std::format("Loaded {}", new_st_path.filename().string()));
 failedLoad:
@@ -491,4 +494,3 @@ void savestates_do(size_t slot, e_st_job job)
 	st_medium = e_st_medium::slot;
 }
 
-#undef BUFLEN

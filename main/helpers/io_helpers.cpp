@@ -220,7 +220,7 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
 	return out_vec;
 }
 
-void memread(char** src, void* dest, unsigned int len)
+void memread(uint8_t** src, void* dest, unsigned int len)
 {
 	memcpy(dest, *src, len);
 	*src += len;

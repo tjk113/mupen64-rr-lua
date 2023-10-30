@@ -727,8 +727,6 @@ VCR_movieFreeze(char** buf, unsigned long* size)
 
 int VCR_movieUnfreeze(const char* buf, unsigned long size)
 {
-	//	m_intro = FALSE;
-
 	// sanity check
 	if (VCR_isIdle())
 	{
@@ -2302,8 +2300,6 @@ void
 VCR_toggleLoopMovie()
 {
 	Config.is_movie_loop_enabled ^= 1;
-	//extern bool lockNoStWarn;
-	//lockNoStWarn = Config.loopMovie; // not needed now I think
 
 	extern HWND mainHWND;
 	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE,

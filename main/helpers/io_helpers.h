@@ -79,4 +79,4 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec, size_t initial_s
  * \param dest The destination buffer
  * \param len The destination buffer's length
  */
-void memread(char** src, void* dest, unsigned int len);
+void memread(uint8_t** src, void* dest, unsigned int len);
