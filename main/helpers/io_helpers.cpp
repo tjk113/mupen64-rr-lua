@@ -192,15 +192,14 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
 	// we dont know what the decompressed size is, so we reallocate a buffer until we find the right size lol
 	size_t buf_size = initial_size;
 	auto out_buf = static_cast<uint8_t*>(malloc(buf_size));
+	auto decompressor = libdeflate_alloc_decompressor();
 	while (true)
 	{
 		out_buf = static_cast<uint8_t*>(realloc(out_buf, buf_size));
 		size_t actual_size = 0;
-		auto decompressor = libdeflate_alloc_decompressor();
 		auto result = libdeflate_gzip_decompress(
 			decompressor, vec.data(), vec.size(), out_buf, buf_size,
 			&actual_size);
-		libdeflate_free_decompressor(decompressor);
 		if (result == LIBDEFLATE_SHORT_OUTPUT || result ==
 			LIBDEFLATE_INSUFFICIENT_SPACE)
 		{
@@ -211,6 +210,8 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
 		buf_size = actual_size;
 		break;
 	}
+	libdeflate_free_decompressor(decompressor);
+
 	printf("Found size %d...\n", buf_size);
 	out_buf = static_cast<uint8_t*>(realloc(out_buf, buf_size));
 	std::vector<uint8_t> out_vec;
