@@ -35,10 +35,10 @@ int CALLBACK rombrowser_compare(LPARAM lParam1, LPARAM lParam2, LPARAM _) {
 			break;
 		case 1:
 			// BUG: these are not null terminated!!!
-			result = strcmpi((const char*)first->rom_header.nom, (const char*)second->rom_header.nom);
+			result = _strcmpi((const char*)first->rom_header.nom, (const char*)second->rom_header.nom);
 			break;
 		case 2:
-			result = strcmpi((const char*)first->path.c_str(), (const char*)second->path.c_str());
+			result = _strcmpi((const char*)first->path.c_str(), (const char*)second->path.c_str());
 			break;
 		case 3:
 			result = first->size - second->size;
@@ -276,7 +276,7 @@ void rombrowser_build_impl()
 	}
 	rombrowser_update_sort();
 	SendMessage(rombrowser_hwnd, WM_SETREDRAW, TRUE, 0);
-	printf("Rombrowser loading took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
+	printf("Rombrowser loading took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 void rombrowser_build()
 {

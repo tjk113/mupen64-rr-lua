@@ -285,7 +285,7 @@ DWORD WINAPI start_rom(LPVOID)
 	load_input(input_plugin->handle);
 	load_rsp(rsp_plugin->handle);
 
-	printf("start_rom entry %lldms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
+	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
 
@@ -1206,7 +1206,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		previously_open_lua_environments.clear();
 	});
 
-	printf("emu thread entry %lldms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
+	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 
 	go();
 

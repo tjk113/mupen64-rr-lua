@@ -227,7 +227,7 @@ void savestates_save_immediate()
 	}
 
     main_dispatcher_invoke(AtSaveStateLuaCallback);
-	printf("Savestate saving took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
+	printf("Savestate saving took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 
 }
 
@@ -477,7 +477,7 @@ failedLoad:
         last_addr = PC->addr;
     }
 
-	printf("Savestate loading took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
+	printf("Savestate loading took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
 void savestates_do(std::filesystem::path path, e_st_job job)
