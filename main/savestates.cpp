@@ -48,11 +48,12 @@
 
 extern unsigned long interp_addr;
 
+std::unordered_map<size_t, uint8_t*> local_st;
 size_t st_slot = 0;
 std::filesystem::path st_path;
 e_st_job savestates_job = e_st_job::none;
+e_st_medium st_medium = e_st_medium::path;
 int savestates_job_success = 1;
-bool savestates_job_use_slot = false;
 
 bool old_st; //.st that comes from no delay fix mupen, it has some differences compared to new st:
 //- one frame of input is "embedded", that is the pif ram holds already fetched controller info.
@@ -66,23 +67,8 @@ bool fix_new_st = true; //this is a switch to enable/disable fixing .st to work 
 bool st_skip_dma = false;
 #define MUPEN64NEW_ST_FIXED (1<<31) //last bit seems to be free
 
-std::filesystem::path get_effective_path()
+std::vector<uint8_t> generate_savestate()
 {
-	if (savestates_job_use_slot)
-	{
-		return std::format("{}{}.st{}", get_savespath(), (const char*)ROM_HEADER.nom, std::to_string(st_slot));
-	}
-	return st_path;
-}
-
-void savestates_save_immediate()
-{
-	auto start_time = std::chrono::high_resolution_clock::now();
-    savestates_job_success = TRUE;
-
-	std::filesystem::path path = get_effective_path();
-    if (Config.use_summercart) save_summercart(path.string().c_str());
-
 	std::vector<uint8_t> b;
 
     vecwrite(b, rom_md5, 32);
@@ -176,18 +162,67 @@ void savestates_save_immediate()
             savestates_job_success = FALSE;
         }
     }
+	return b;
+}
 
-	std::vector<uint8_t> compressed = b;
-	auto compressor = libdeflate_alloc_compressor(6);
-	size_t final_size = libdeflate_gzip_compress(compressor, b.data(), b.size(), compressed.data(), compressed.size());
-	compressed.resize(final_size);
+void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& sd_path)
+{
+	sd_path = std::format("{}{}.sd", get_savespath(), (const char*)ROM_HEADER.nom);
 
-	FILE* f = fopen(path.string().c_str(), "wb");
-	fwrite(compressed.data(), compressed.size(), 1, f);
-	fclose(f);
+	if (st_medium == e_st_medium::slot)
+	{
+		st_path = std::format("{}{}.st{}", get_savespath(), (const char*)ROM_HEADER.nom, std::to_string(st_slot));
+	}
+}
+
+void savestates_save_immediate()
+{
+	auto start_time = std::chrono::high_resolution_clock::now();
+    savestates_job_success = TRUE;
+
+	auto st = generate_savestate();
+
+	if (!savestates_job_success)
+	{
+		statusbar_send_text("Failed to save savestate");
+		return;
+	}
+
+	if (st_medium == e_st_medium::slot || st_medium == e_st_medium::path)
+	{
+		// write compressed st to disk
+		std::filesystem::path new_st_path = st_path;
+		std::filesystem::path new_sd_path = "";
+		get_effective_paths(new_st_path, new_sd_path);
+
+		if (Config.use_summercart) save_summercart(new_sd_path.string().c_str());
+
+		std::vector<uint8_t> compressed = st;
+		auto compressor = libdeflate_alloc_compressor(6);
+		size_t final_size = libdeflate_gzip_compress(compressor, st.data(), st.size(), compressed.data(), compressed.size());
+		libdeflate_free_compressor(compressor);
+		compressed.resize(final_size);
+
+		FILE* f = fopen(new_st_path.string().c_str(), "wb");
+		fwrite(compressed.data(), compressed.size(), 1, f);
+		fclose(f);
+
+		if (st_medium == e_st_medium::slot)
+		{
+			statusbar_send_text(std::format("Saved slot {}", st_slot));
+		} else
+		{
+			statusbar_send_text(std::format("Saved {}", new_st_path.filename().string()));
+		}
+	} else
+	{
+		// stub
+	}
+
+
+
 
     main_dispatcher_invoke(AtSaveStateLuaCallback);
-	statusbar_send_text(std::format("Saved {}", path.filename().string()));
 	printf("Savestate saving took %dms\n", (std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000);
 
 }
@@ -282,18 +317,20 @@ void savestates_load_immediate()
 
     savestates_job_success = TRUE;
 
-    std::filesystem::path path = get_effective_path();
-    gzFile f = gzopen(path.string().c_str(), "rb");
+	std::filesystem::path new_st_path = st_path;
+	std::filesystem::path new_sd_path = "";
+	get_effective_paths(new_st_path, new_sd_path);
 
-    //failed opening st
+	if (Config.use_summercart) load_summercart(new_sd_path.string().c_str());
+
+    gzFile f = gzopen(new_st_path.string().c_str(), "rb");
+
     if (f == nullptr)
     {
-    	statusbar_send_text(std::format("{} not found", path.filename().string()));
+    	statusbar_send_text(std::format("{} not found", new_st_path.filename().string()));
         savestates_job_success = FALSE;
         return;
     }
-    if (Config.use_summercart) load_summercart(path.string().c_str());
-
 
     // compare current rom hash with one stored in state
 	char md5[33] = {0};
@@ -428,7 +465,7 @@ void savestates_load_immediate()
     load_memory_from_buffer(firstBlock);
     free(firstBlock);
     main_dispatcher_invoke(AtLoadStateLuaCallback);
-	statusbar_send_text(std::format("Loaded {}", path.filename().string()));
+	statusbar_send_text(std::format("Loaded {}", new_st_path.filename().string()));
 failedLoad:
 
     gzclose(f);
@@ -456,14 +493,14 @@ void savestates_do(std::filesystem::path path, e_st_job job)
 {
 	st_path = path;
 	savestates_job = job;
-	savestates_job_use_slot = false;
+	st_medium = e_st_medium::path;
 }
 
 void savestates_do(size_t slot, e_st_job job)
 {
 	st_slot = slot;
 	savestates_job = job;
-	savestates_job_use_slot = true;
+	st_medium = e_st_medium::slot;
 }
 
 #undef BUFLEN

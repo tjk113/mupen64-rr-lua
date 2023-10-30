@@ -31,6 +31,7 @@
 #pragma once
 
 #include <filesystem>
+#include <map>
 
 enum class e_st_job
 {
@@ -39,10 +40,20 @@ enum class e_st_job
 	load
 };
 
+enum class e_st_medium
+{
+	slot,
+	path,
+	memory
+};
+
+// in-memory savestate buffers
+extern std::unordered_map<size_t, uint8_t*> local_st;
+
 extern size_t st_slot;
 extern std::filesystem::path st_path;
 extern e_st_job savestates_job;
-extern bool savestates_job_use_slot;
+extern e_st_medium st_medium;
 extern bool st_skip_dma;
 extern bool old_st;
 

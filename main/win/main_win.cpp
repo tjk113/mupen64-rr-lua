@@ -924,7 +924,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 					}
 
 					st_path = path;
-					savestates_job_use_slot = false;
+					st_medium = e_st_medium::path;
 
 					std::string movie_path = strip_extension(path) + ".m64";
 
