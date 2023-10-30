@@ -21,3 +21,6 @@ std::wstring get_desktop_path();
 bool is_file_accessible(const std::filesystem::path& path);
 
 void vecwrite(std::vector<uint8_t>& vec, void* data, size_t len);
+std::vector<uint8_t> read_file_buffer(const std::filesystem::path& path);
+
+std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec);

@@ -323,25 +323,36 @@ void savestates_load_immediate()
 
 	if (Config.use_summercart) load_summercart(new_sd_path.string().c_str());
 
-    gzFile f = gzopen(new_st_path.string().c_str(), "rb");
+    std::vector<uint8_t> st_buf = read_file_buffer(new_st_path);
 
-    if (f == nullptr)
+    if (st_buf.empty())
     {
     	statusbar_send_text(std::format("{} not found", new_st_path.filename().string()));
         savestates_job_success = FALSE;
         return;
     }
 
+	std::vector<uint8_t> decompressed_buf = auto_decompress(st_buf);
+	if(decompressed_buf.empty())
+	{
+		MessageBox(mainHWND, "Failed to decompress savestate", nullptr, MB_ICONERROR);
+		savestates_job_success = FALSE;
+		return;
+	}
+
+	// BUG (PRONE): we arent allowed to hold on to a vector element pointer
+	// find another way of doing this
+	auto ptr = (char*)decompressed_buf.data();
+
     // compare current rom hash with one stored in state
 	char md5[33] = {0};
-    gzread(f, &md5, 32);
+    memread(&ptr, &md5, 32);
 
 	if (memcmp(md5, rom_md5, 32)) {
 
 		MessageBox(mainHWND, std::format("The savestate was created on a rom with CRC {}, but is being loaded on a rom with CRC {}.", md5, rom_md5).c_str(), nullptr, MB_ICONWARNING);
 
 		if (!Config.is_state_independent_state_loading_allowed) {
-			gzclose(f);
 			savestates_job_success = FALSE;
 			return;
 		}
@@ -349,14 +360,14 @@ void savestates_load_immediate()
 
     // new version does one bigass gzread for first part of .st (static size)
     char* firstBlock = (char*)malloc(firstBlockSize);
-    gzread(f, firstBlock, firstBlockSize);
+    memread(&ptr, firstBlock, firstBlockSize);
     // now read interrupt queue into buf
     for (len = 0; len < BUFLEN; len += 8)
     {
-        gzread(f, buf + len, 4);
+        memread(&ptr, buf + len, 4);
         if (*reinterpret_cast<unsigned long*>(&buf[len]) == 0xFFFFFFFF)
             break;
-        gzread(f, buf + len + 4, 4);
+        memread(&ptr, buf + len + 4, 4);
     }
     if (len == BUFLEN)
     {
@@ -364,7 +375,6 @@ void savestates_load_immediate()
         fprintf(stderr, "Snapshot event queue terminator not reached.\n");
         savestates_job_success = FALSE;
         warn_savestate("Savestate error", "Event queue too long (Savestate corrupted?)");
-        gzclose(f);
         free(firstBlock);
         savestates_job_success = FALSE;
         return;
@@ -374,7 +384,7 @@ void savestates_load_immediate()
 
     // now read movie info if exists
     uint32_t isMovie;
-    gzread(f, &isMovie, sizeof(isMovie));
+    memread(&ptr, &isMovie, sizeof(isMovie));
 
     if (!isMovie) // this .st is not part of a movie
     {
@@ -384,7 +394,6 @@ void savestates_load_immediate()
             {
                 fprintf(stderr, "Can't load a non-movie snapshot while a movie is active.\n");
                 warn_savestate("Savestate error", "Can't load a non-movie snapshot while a movie is active.\n");
-                gzclose(f);
                 free(firstBlock);
                 savestates_job_success = FALSE;
                 return;
@@ -404,22 +413,9 @@ void savestates_load_immediate()
 
         // hash matches, load and verify rest of the data
         unsigned long movieInputDataSize = 0;
-        gzread(f, &movieInputDataSize, sizeof(movieInputDataSize));
-        char* local_movie_data = (char*)malloc(movieInputDataSize * sizeof(char));
-        if (!local_movie_data)
-        {
-            fprintf(stderr, "Out of memory while loading .st\n");
-            savestates_job_success = FALSE;
-            goto failedLoad;
-        }
-        int readBytes = gzread(f, local_movie_data, movieInputDataSize);
-        if ((unsigned long)readBytes != movieInputDataSize)
-        {
-            fprintf(stderr, "Error while loading .st, file was too short.\n");
-            free(local_movie_data);
-            savestates_job_success = FALSE;
-            goto failedLoad;
-        }
+        memread(&ptr, &movieInputDataSize, sizeof(movieInputDataSize));
+        auto local_movie_data = (char*)malloc(movieInputDataSize * sizeof(char));
+        memread(&ptr, local_movie_data, movieInputDataSize);
         int code = VCR_movieUnfreeze(local_movie_data, movieInputDataSize);
         free(local_movie_data);
         if (code != SUCCESS && !VCR_isIdle())
@@ -467,8 +463,6 @@ void savestates_load_immediate()
     main_dispatcher_invoke(AtLoadStateLuaCallback);
 	statusbar_send_text(std::format("Loaded {}", new_st_path.filename().string()));
 failedLoad:
-
-    gzclose(f);
     extern bool ignore;
     //legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
     //This should cause issues anyway but libultra seems to be flexible (this means there's a chance it fails).
