@@ -192,6 +192,7 @@ void savestates_save_immediate()
 	if (!savestates_job_success)
 	{
 		statusbar_send_text("Failed to save savestate");
+		savestates_job_success = FALSE;
 		return;
 	}
 
@@ -211,6 +212,15 @@ void savestates_save_immediate()
 		compressed.resize(final_size);
 
 		FILE* f = fopen(new_st_path.string().c_str(), "wb");
+
+		// i observed this happens when repeatedly loading sts for a long time but i dont know why, better to check it
+		if (f == nullptr)
+		{
+			statusbar_send_text("Failed to save savestate");
+			savestates_job_success = FALSE;
+			return;
+		}
+
 		fwrite(compressed.data(), compressed.size(), 1, f);
 		fclose(f);
 
