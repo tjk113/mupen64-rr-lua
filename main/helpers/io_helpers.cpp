@@ -174,6 +174,7 @@ std::vector<uint8_t> read_file_buffer(const std::filesystem::path& path)
 
 	fread(b.data(), sizeof(uint8_t), len, f);
 
+	fclose(f);
 	return b;
 }
 

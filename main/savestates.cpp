@@ -213,7 +213,6 @@ void savestates_save_immediate()
 
 		FILE* f = fopen(new_st_path.string().c_str(), "wb");
 
-		// i observed this happens when repeatedly loading sts for a long time but i dont know why, better to check it
 		if (f == nullptr)
 		{
 			statusbar_send_text("Failed to save savestate");
