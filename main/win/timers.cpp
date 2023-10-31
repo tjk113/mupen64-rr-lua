@@ -138,8 +138,11 @@ void timer_new_vi()
 
 	if (current_vi_time - last_statusbar_update_time > std::chrono::seconds(1))
 	{
-		vcr_update_statusbar();
+		vcr_update_statusbar(true);
 		last_statusbar_update_time = current_vi_time;
+	} else
+	{
+		vcr_update_statusbar(false);
 	}
 
 	// if we're playing game normally with no frame advance or ff and overstepping max time between frames,

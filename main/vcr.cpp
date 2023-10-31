@@ -2373,7 +2373,7 @@ VCR_coreStopped()
 		VCR_stopCapture();
 }
 
-void vcr_update_statusbar()
+void vcr_update_statusbar(bool full_update)
 {
 	auto buttons = static_cast<BUTTONS>(m_lastController1Keys);
 
@@ -2419,6 +2419,11 @@ void vcr_update_statusbar()
 	if (!VCR_isActive())
 	{
 		statusbar_send_text(input_string);
+	}
+
+	if (!full_update)
+	{
+		return;
 	}
 
 	if (Config.show_fps)

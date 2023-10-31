@@ -211,7 +211,7 @@ void pauseEmu(BOOL quiet)
 	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
-		vcr_update_statusbar();
+		vcr_update_statusbar(true);
 		emu_paused = 1;
 		if (!quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance

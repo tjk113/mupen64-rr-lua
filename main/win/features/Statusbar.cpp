@@ -76,8 +76,9 @@ void statusbar_set_mode(const statusbar_mode mode)
 }
 void statusbar_create()
 {
+	// undocumented behaviour of CCS_BOTTOM: it skips applying SBARS_SIZEGRIP in style pre-computation phase
 	statusbar_hwnd = CreateWindowEx(0, STATUSCLASSNAME, nullptr,
-									WS_CHILD | WS_VISIBLE /*| SBARS_SIZEGRIP*/,
+									WS_CHILD | WS_VISIBLE | CCS_BOTTOM,
 									0, 0,
 									0, 0,
 									mainHWND, (HMENU)IDC_MAIN_STATUS,

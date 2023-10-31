@@ -131,8 +131,9 @@ extern void printError(const char*);
 
 /**
  * \brief Updates the statusbar with the current VCR state
+ * \remarks Whether all segments should be updated
  */
-void vcr_update_statusbar();
+void vcr_update_statusbar(bool full_update);
 
 void vcr_recent_movies_build(int32_t reset = 0);
 void vcr_recent_movies_add(const std::string path);
