@@ -274,7 +274,7 @@ DWORD WINAPI start_rom(LPVOID)
 	rombrowser_set_visibility(0);
 	statusbar_set_mode(statusbar_mode::emulating);
 	EnableEmulationMenuItems(TRUE);
-	InitTimer();
+	timer_init();
 	if (m_task == e_task::idle) {
 		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
 	}
@@ -1771,7 +1771,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					MenuPaused = FALSE;
 					frame_advancing = 1;
-					VIs = 0;
+					vi_s = 0;
 					// prevent old VI value from showing error if running at super fast speeds
 					resumeEmu(TRUE); // maybe multithreading unsafe
 				}
@@ -2164,7 +2164,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.fps_modifier = Config.fps_modifier + 50;
 				if (Config.fps_modifier > 1000)
 					Config.fps_modifier = 1000;
-				InitTimer();
+				timer_init();
 				break;
 			case IDC_DECREASE_MODIFIER:
 				if (Config.fps_modifier > 200)
@@ -2177,11 +2177,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.fps_modifier = Config.fps_modifier - 5;
 				if (Config.fps_modifier < 5)
 					Config.fps_modifier = 5;
-				InitTimer();
+				timer_init();
 				break;
 			case IDC_RESET_MODIFIER:
 				Config.fps_modifier = 100;
-				InitTimer();
+				timer_init();
 				break;
 			default:
 				if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam)

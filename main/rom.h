@@ -61,7 +61,17 @@ typedef struct s_rom_header
 
 extern t_rom_header ROM_HEADER;
 
-std::string country_code_to_country_name(int country_code);
+/**
+ * \param country_code A rom's country code
+ * \return The rom's country name
+ */
+std::string country_code_to_country_name(uint16_t country_code);
+
+/**
+ * \param country_code A rom's country code
+ * \return The maximum amount of VIs per second intended
+ */
+uint32_t get_vis_per_second(uint16_t country_code);
 
 inline static void rom_byteswap(uint8_t* rom)
 {

@@ -1231,7 +1231,7 @@ void update_SP()
                 doRspCycles(100);
             end_section(GFX_SECTION);
             rsp_register.rsp_pc |= save_pc;
-            on_frame();
+            timer_new_frame();
 
             MI_register.mi_intr_reg &= ~0x21;
             sp_register.sp_status_reg &= ~0x303;

@@ -50,7 +50,7 @@ extern long m_currentSample;
 extern int fast_memory;
 void SYNC();
 void NOTCOMPILED();
-void InitTimer();
+void timer_init();
 inline void TraceLoggingBufFlush();
 extern void (__cdecl*CaptureScreen)(char* Directory); // for lua screenshot
 
@@ -2814,7 +2814,7 @@ int LuaD2DDrawText(lua_State* L)
 	int SetSpeed(lua_State* L)
 	{
 		Config.fps_modifier = luaL_checkinteger(L, 1);
-		InitTimer();
+		timer_init();
 		return 0;
 	}
 

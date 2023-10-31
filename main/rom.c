@@ -91,7 +91,7 @@ void strip_extension(char* fname)
     }
 }
 
-std::string country_code_to_country_name(int country_code)
+std::string country_code_to_country_name(uint16_t country_code)
 {
     switch (country_code & 0xFF)
     {
@@ -125,6 +125,29 @@ std::string country_code_to_country_name(int country_code)
         return "Europe";
     default:
         return "Unknown (" + std::to_string(country_code & 0xFF) + ")";
+    }
+}
+
+uint32_t get_vis_per_second(uint16_t country_code)
+{
+    switch (country_code & 0xFF)
+    {
+    case 0x44:
+    case 0x46:
+    case 0x49:
+    case 0x50:
+    case 0x53:
+    case 0x55:
+    case 0x58:
+    case 0x59:
+        return 50;
+    case 0x37:
+    case 0x41:
+    case 0x45:
+    case 0x4a:
+        return 60;
+    default:
+        return 60;
     }
 }
 
