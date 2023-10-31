@@ -1771,7 +1771,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					MenuPaused = FALSE;
 					frame_advancing = 1;
-					vi_s = 0;
+					vis_per_second = 0;
 					// prevent old VI value from showing error if running at super fast speeds
 					resumeEmu(TRUE); // maybe multithreading unsafe
 				}

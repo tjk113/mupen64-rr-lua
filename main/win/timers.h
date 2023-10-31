@@ -15,7 +15,7 @@
  ***************************************************************************/
 #pragma once
 
-extern float vi_s;
+extern float vis_per_second;
 extern float fps;
 
 /**

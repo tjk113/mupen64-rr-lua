@@ -39,39 +39,56 @@ extern int m_currentVI;
 extern long m_currentSample;
 
 std::chrono::duration<double, std::milli> max_vi_s_ms;
-float max_vi_s, vi_s, fps;
+float max_vi_s, vis_per_second, fps;
 typedef std::chrono::high_resolution_clock::time_point time_point;
+
+std::deque<float> fps_values;
+std::deque<float> vi_values;
+
+float add_value(std::deque<float>& vec, const float value, const size_t max_size = 30)
+{
+	if (vec.size() > max_size)
+	{
+		vec.pop_front();
+	}
+
+	vec.push_back(value);
+
+	float accumulator = 0.0f;
+
+	for (auto val : vec)
+	{
+		accumulator += val;
+	}
+
+	return accumulator / vec.size();
+}
 
 void timer_init()
 {
 	max_vi_s = (float)get_vis_per_second(ROM_HEADER.Country_code);
 	max_vi_s_ms = std::chrono::duration<double, std::milli>(
 		1000.0 / (max_vi_s * (float)Config.fps_modifier / 100));
+	fps_values = {};
+	vi_values = {};
+	fps = 0;
+	vis_per_second = 0;
 }
 
 
-// TODO: buffer frame and vi statusbar updates and update all section simultaneously
 void timer_new_frame()
 {
-	static time_point last_statusbar_update_time = std::chrono::high_resolution_clock::now();
-	static int frame_count = 0;
+	static time_point last_frame_time = std::chrono::high_resolution_clock::now();
+	time_point current_frame_time = std::chrono::high_resolution_clock::now();
 
-	++frame_count;
-	auto current_time = std::chrono::high_resolution_clock::now();
+	auto diff = (current_frame_time - last_frame_time) / 1'000'000.0f;
 
-	if (current_time - last_statusbar_update_time > std::chrono::seconds(1))
+	if (diff.count() > 1)
 	{
-		auto time_taken = std::chrono::duration<double>(
-			current_time - last_statusbar_update_time);
-
-		if (Config.show_fps)
-		{
-			statusbar_send_text(std::format("FPS: {:.0f}", frame_count / time_taken.count()), 2);
-		}
-
-		last_statusbar_update_time = std::chrono::high_resolution_clock::now();
-		frame_count = 0;
+		fps = add_value(fps_values, 1000.0f / diff.count());
 	}
+
+	last_frame_time = current_frame_time;
 }
 
 
@@ -79,6 +96,7 @@ void timer_new_frame()
 void timer_new_vi()
 {
 	// time when last vi happened
+	static time_point last_statusbar_update_time = std::chrono::high_resolution_clock::now();
 	static time_point last_vi_time;
 	static time_point counter_time;
 	static std::chrono::duration<double, std::nano> last_sleep_error;
@@ -86,7 +104,7 @@ void timer_new_vi()
 
 	// fps wont update when emu is stuck so we must check vi/s
 	// vi/s shouldn't go over 1000 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
-	if (!ignoreErrorEmulation && emu_launched && frame_advancing && vi_s > 1000)
+	if (!ignoreErrorEmulation && emu_launched && frame_advancing && vis_per_second > 1000)
 	{
 		int result = 0;
 		TaskDialog(mainHWND, app_hInstance, L"Error",
@@ -103,8 +121,6 @@ void timer_new_vi()
 	if (VCR_isRecording())
 		VCR_setLengthVIs(m_currentVI);
 
-	vcr_update_statusbar();
-
 	if (VCR_isPlaying())
 	{
 		extern int pauseAtFrame;
@@ -119,6 +135,12 @@ void timer_new_vi()
 
 	auto current_vi_time = std::chrono::high_resolution_clock::now();
 	auto vi_time_diff = current_vi_time - last_vi_time;
+
+	if (current_vi_time - last_statusbar_update_time > std::chrono::seconds(1))
+	{
+		vcr_update_statusbar();
+		last_statusbar_update_time = current_vi_time;
+	}
 
 	// if we're playing game normally with no frame advance or ff and overstepping max time between frames,
 	// we need to sleep to compensate the additional time
@@ -157,24 +179,11 @@ void timer_new_vi()
 		}
 	}
 
-	vi_s = (float)((double)vi_counter / std::chrono::duration<double>(
-				current_vi_time - counter_time).count());
-
-
-	if (current_vi_time - counter_time >= std::chrono::seconds(1))
+	auto post_sleep_vi_time_diff = (std::chrono::high_resolution_clock::now() - last_vi_time) / 1'000'000.0f;
+	if (post_sleep_vi_time_diff.count() > 1)
 	{
-		// after releasing fast forward it's <1 for one second so we just hide that from user
-		if (vi_s > 1)
-		{
-			if (Config.show_vis_per_second)
-			{
-				statusbar_send_text(std::format("VI/s: {:.0f}", vi_s), 3);
-			}
-		}
-		counter_time = std::chrono::high_resolution_clock::now();
-		vi_counter = 0;
+		vis_per_second = add_value(vi_values, 1000.0f / post_sleep_vi_time_diff.count());
 	}
-
 
 	last_vi_time = std::chrono::high_resolution_clock::now();
 }

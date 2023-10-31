@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "win/main_win.h"
+#include "win/timers.h"
 #include "win/features/Statusbar.hpp"
 #include "win/features/Toolbar.hpp"
 #ifdef VCR_SUPPORT
@@ -2418,6 +2419,15 @@ void vcr_update_statusbar()
 	if (!VCR_isActive())
 	{
 		statusbar_send_text(input_string);
+	}
+
+	if (Config.show_fps)
+	{
+		statusbar_send_text(std::format("FPS: {:.1f}", fps), 2);
+	}
+	if (Config.show_vis_per_second)
+	{
+		statusbar_send_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
 	}
 }
 
