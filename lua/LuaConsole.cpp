@@ -4178,7 +4178,7 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 	lua_environment->L = luaL_newstate();
 	lua_atpanic(lua_environment->L, AtPanic);
 	SetLuaClass(lua_environment->L, lua_environment);
-	lua_environment->registerFunctions();
+	lua_environment->register_functions();
 
 	// all lua scripts run with legacy renderer until otherwise stated
 	lua_environment->create_renderer();
@@ -4201,7 +4201,8 @@ LuaEnvironment::~LuaEnvironment() {
 	deleteGDIObject(brush, WHITE_BRUSH);
 	deleteGDIObject(pen, BLACK_PEN);
 	deleteGDIObject(font, SYSTEM_FONT);
-	deleteLuaState();
+	lua_close(L);
+	L = NULL;
 	for (auto x : image_pool) {
 		delete x;
 	}
@@ -4280,35 +4281,33 @@ bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> fu
 	return false;
 }
 
-void LuaEnvironment::deleteLuaState() {
-	assert(L != NULL);
-	lua_close(L);
-	L = NULL;
+void register_as_package(lua_State* lua_state, const char* name, const luaL_Reg regs[]) {
+	if (name == nullptr)
+	{
+		const luaL_Reg* p = regs;
+		do {
+			lua_register(lua_state, p->name, p->func);
+		} while ((++p)->func);
+		return;
+	}
+	luaL_newlib(lua_state, regs);
+	lua_setglobal(lua_state, name);
 }
 
-void LuaEnvironment::registerAsPackage(lua_State* L, const char* name,
-					   const luaL_Reg reg[]) {
-	luaL_newlib(L, reg);
-	lua_setglobal(L, name);
-}
-
-void LuaEnvironment::registerFunctions() {
+void LuaEnvironment::register_functions() {
 	luaL_openlibs(L);
-	//�Ȃ�luaL_register(L, NULL, globalFuncs)����Ɨ�����
-	const luaL_Reg* p = globalFuncs;
-	do {
-		lua_register(L, p->name, p->func);
-	} while ((++p)->func);
-	registerAsPackage(L, "emu", emuFuncs);
-	registerAsPackage(L, "memory", memoryFuncs);
-	registerAsPackage(L, "wgui", wguiFuncs);
-	registerAsPackage(L, "d2d", d2dFuncs);
-	registerAsPackage(L, "input", inputFuncs);
-	registerAsPackage(L, "joypad", joypadFuncs);
-	registerAsPackage(L, "movie", movieFuncs);
-	registerAsPackage(L, "savestate", savestateFuncs);
-	registerAsPackage(L, "iohelper", ioHelperFuncs);
-	registerAsPackage(L, "avi", aviFuncs);
+
+	register_as_package(L, nullptr, globalFuncs);
+	register_as_package(L, "emu", emuFuncs);
+	register_as_package(L, "memory", memoryFuncs);
+	register_as_package(L, "wgui", wguiFuncs);
+	register_as_package(L, "d2d", d2dFuncs);
+	register_as_package(L, "input", inputFuncs);
+	register_as_package(L, "joypad", joypadFuncs);
+	register_as_package(L, "movie", movieFuncs);
+	register_as_package(L, "savestate", savestateFuncs);
+	register_as_package(L, "iohelper", ioHelperFuncs);
+	register_as_package(L, "avi", aviFuncs);
 
 	//this makes old scripts backward compatible, new syntax for table length is '#'
 	lua_getglobal(L, "table");

@@ -143,12 +143,7 @@ public:
 
 
 private:
-
-
-	void deleteLuaState();
-	void registerAsPackage(lua_State* L, const char* name,
-						   const luaL_Reg reg[]);
-	void registerFunctions();
+	void register_functions();
 	void setGDIObject(HGDIOBJ* save, HGDIOBJ newobj);
 	void selectGDIObject(HGDIOBJ p);
 	void deleteGDIObject(HGDIOBJ p, int stockobj);
