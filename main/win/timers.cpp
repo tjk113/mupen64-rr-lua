@@ -78,56 +78,35 @@ void InitTimer()
 	statusbar_send_text(message);
 }
 
-
-void new_frame()
-{
-	static std::chrono::high_resolution_clock::time_point prevTime;
-	static std::chrono::high_resolution_clock::time_point
-		lastStatusbarUpdateTime = std::chrono::high_resolution_clock::now();
-	static int frameCount = 0;
-	++frameCount;
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	if (currentTime - lastStatusbarUpdateTime > std::chrono::seconds(1))
-	{
-		auto timeTaken = std::chrono::duration<double>(
-			currentTime - lastStatusbarUpdateTime);
-		char mes[100] = {0};
-		sprintf(mes, "FPS: %.1f", frameCount / timeTaken.count());
-		statusbar_send_text(std::string(mes), 2);
-		lastStatusbarUpdateTime = std::chrono::high_resolution_clock::now();
-		frameCount = 0;
-	}
-
-	prevTime = currentTime;
-}
-
-void new_frame_old()
-{
-	const DWORD CurrentFPSTime = timeGetTime();
-	static DWORD LastFPSTime;
-	static DWORD CounterTime;
-	static int Fps_Counter = 0;
-
-	if (!Config.show_fps) return;
-	Fps_Counter++;
-
-	if (CurrentFPSTime - CounterTime >= 1000)
-	{
-		char mes[100] = {0};
-		FPS = (float)(Fps_Counter * 1000.0 / (CurrentFPSTime - CounterTime));
-		sprintf(mes, "FPS: %.1f", FPS);
-		statusbar_send_text(std::string(mes), 2);
-		CounterTime = timeGetTime();
-		Fps_Counter = 0;
-	}
-
-	LastFPSTime = CurrentFPSTime;
-}
-
 extern int m_currentVI;
 extern long m_currentSample;
 
-void new_vi()
+// TODO: buffer frame and vi statusbar updates and update all section simultaneously
+void on_frame()
+{
+	static std::chrono::high_resolution_clock::time_point prev_time;
+	static std::chrono::high_resolution_clock::time_point last_statusbar_update_time = std::chrono::high_resolution_clock::now();
+	static int frame_count = 0;
+
+	++frame_count;
+	auto current_time = std::chrono::high_resolution_clock::now();
+
+	if (current_time - last_statusbar_update_time > std::chrono::seconds(1))
+	{
+		auto time_taken = std::chrono::duration<double>(
+			current_time - last_statusbar_update_time);
+
+		statusbar_send_text(std::format("FPS: {:.0f}", frame_count / time_taken.count()), 2);
+		last_statusbar_update_time = std::chrono::high_resolution_clock::now();
+		frame_count = 0;
+	}
+
+	prev_time = current_time;
+}
+
+
+
+void on_vi()
 {
 	// fps wont update when emu is stuck so we must check vi/s
 	// vi/s shouldn't go over 1000 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed

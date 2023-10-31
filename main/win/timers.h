@@ -17,3 +17,13 @@
 void InitTimer();
 extern float VIs;
 extern float FPS;
+
+/**
+ * \brief To be called when a new frame is generated
+ */
+void on_frame();
+
+/**
+ * \brief To be called when a VI is generated
+ */
+void on_vi();

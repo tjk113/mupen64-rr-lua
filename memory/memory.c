@@ -34,6 +34,7 @@
 #include <windows.h>
 #include "../main/win/main_win.h"
 #include "../main/win/Config.hpp"
+#include "../main/win/timers.h"
 
 #include "memory.h"
 #include "dma.h"
@@ -46,7 +47,6 @@
 #include "flashram.h"
 #include "summercart.h"
 #include "../main/plugin.hpp"
-#include "../main/guifuncs.h"
 #include "../main/vcr.h"
 
 static int frame;
@@ -1231,7 +1231,7 @@ void update_SP()
                 doRspCycles(100);
             end_section(GFX_SECTION);
             rsp_register.rsp_pc |= save_pc;
-            new_frame();
+            on_frame();
 
             MI_register.mi_intr_reg &= ~0x21;
             sp_register.sp_status_reg &= ~0x303;

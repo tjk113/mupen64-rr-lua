@@ -29,8 +29,6 @@
 
 const char* get_savespath();
 
-void new_frame();
-void new_vi();
 
 bool warn_recording();
 void warn_savestate(const char* messageCaption, const char* message);
