@@ -60,7 +60,17 @@ void AtResetLuaCallback();
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
+
+/**
+ * \brief Stops all lua scripts and closes their windows
+ */
 void close_all_scripts();
+
+/**
+ * \brief Stops all lua scripts
+ */
+void stop_all_scripts();
+
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
 static uint32_t bitmap_color_mask = RGB(255, 0, 255);

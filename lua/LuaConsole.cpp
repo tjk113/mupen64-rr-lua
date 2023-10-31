@@ -4028,6 +4028,20 @@ void close_all_scripts() {
 	assert(hwnd_lua_map.empty());
 }
 
+void stop_all_scripts()
+{
+	assert(IsGUIThread(false));
+	// we mutate the map's nodes while iterating, so we have to make a copy
+	auto copy = std::map(hwnd_lua_map);
+	for (auto pair : copy) {
+		SendMessage(pair.first, WM_COMMAND,
+					MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
+					(LPARAM)GetDlgItem(pair.first, IDC_BUTTON_LUASTOP));
+
+	}
+	assert(hwnd_lua_map.empty());
+}
+
 
 void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l)
 {

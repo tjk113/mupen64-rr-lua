@@ -133,10 +133,9 @@ std::string app_path = "";
 
 
 /**
- * \brief List of lua environments running before emulation stopped
- * \brief Pair consists of the environment's path, and the iconization state
+ * \brief List of lua environment map keys running before emulation stopped
  */
-std::vector<std::pair<std::filesystem::path, bool>> previously_open_lua_environments;
+std::vector<HWND> previously_running_luas;
 
 std::deque<std::function<void()>> dispatcher_queue;
 
@@ -314,17 +313,17 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			}
 		}
 
-		// remember all running lua scripts' paths and queue them up for a restart
+		// remember all running lua scripts' HWNDs
 		for (const auto [key, value] : hwnd_lua_map)
 		{
-			previously_open_lua_environments.push_back(std::make_pair(value->path, IsIconic(key)));
+			previously_running_luas.push_back(key);
 		}
 
 		printf("Closing emulation thread...\n");
 
 		// we signal the core to stop, then wait until thread exits
 		stop_it();
-		main_dispatcher_invoke(close_all_scripts);
+		main_dispatcher_invoke(stop_all_scripts);
 		stop = 1;
 		DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
 		if (result == WAIT_TIMEOUT) {
@@ -1196,14 +1195,15 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	main_dispatcher_invoke([]
 	{
-		// restore all the saved paths, then clear them
-		for (const auto& pair : previously_open_lua_environments)
+		for (const HWND hwnd : previously_running_luas)
 		{
-			lua_create_and_run(pair.first.string().c_str(), pair.second);
-			printf("Lua restored %s\n", pair.first.string().c_str());
+			// click start button
+			SendMessage(hwnd, WM_COMMAND,
+					MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+					(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
 		}
 
-		previously_open_lua_environments.clear();
+		previously_running_luas.clear();
 	});
 
 	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
