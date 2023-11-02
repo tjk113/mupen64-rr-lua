@@ -1767,8 +1767,6 @@ void VCR_invalidatedCaptureFrame()
 
 void VCR_updateScreen()
 {
-	screen_updates++;
-
 	if (!VCR_isCapturing())
 	{
 		if (!is_frame_skipped()) {

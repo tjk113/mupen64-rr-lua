@@ -1227,8 +1227,13 @@ void update_SP()
             //processDList();
             rsp_register.rsp_pc &= 0xFFF;
             start_section(GFX_SECTION);
+
+            // NOTE: we increment this here, and not in vcr_updatescreen, since invocation of vcr_updatescreen depends on vi interrupts, which dont get generated if we skip rsp
+            // if that happens, then we never increment screen_updates and thus are stuck in incorrect state
+            screen_updates++;
             if(!is_frame_skipped())
                 doRspCycles(100);
+
             end_section(GFX_SECTION);
             rsp_register.rsp_pc |= save_pc;
             timer_new_frame();
