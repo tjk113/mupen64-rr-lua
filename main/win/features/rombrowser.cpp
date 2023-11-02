@@ -387,7 +387,7 @@ void rombrowser_notify(LPARAM lparam)
 			item.iItem = i;
 			ListView_GetItem(rombrowser_hwnd, &item);
 			strcpy(rom_path, rombrowser_entries[item.lParam]->path.c_str());
-			start_rom(nullptr);
+			CreateThread(NULL, 0, start_rom, NULL, 0, &Id);
 		}
 		break;
 	}

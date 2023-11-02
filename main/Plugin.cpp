@@ -198,8 +198,10 @@ void (__cdecl*CaptureScreen)(char* Directory);
 void (__cdecl*old_initiateControllers)(HWND hMainWindow, CONTROL Controls[4]);
 void (__cdecl*aiUpdate)(BOOL Wait);
 
-int load_gfx(HMODULE handle)
+
+DWORD WINAPI load_gfx(LPVOID lpParam)
 {
+	HMODULE handle = (HMODULE)lpParam;
 	if (handle)
 	{
 		changeWindow = (void(__cdecl*)())GetProcAddress(
@@ -327,11 +329,12 @@ int load_gfx(HMODULE handle)
 		viStatusChanged = dummy_void;
 		viWidthChanged = dummy_void;
 	}
-	return 0;
+	return 0; ExitThread(0);
 }
 
-int load_input(HMODULE handle)
+DWORD WINAPI load_input(LPVOID lpParam)
 {
+	HMODULE handle = (HMODULE)lpParam;
 	int i;
 	PLUGIN_INFO PluginInfo;
 	if (handle)
@@ -412,12 +415,13 @@ int load_input(HMODULE handle)
 		keyDown = dummy_keyDown;
 		keyUp = dummy_keyUp;
 	}
-	return 0;
+	return 0; ExitThread(0);
 }
 
 
-int load_sound(HMODULE handle)
+DWORD WINAPI load_sound(LPVOID lpParam)
 {
+	HMODULE handle = (HMODULE) lpParam;
 	if (handle)
 	{
 		closeDLL_audio = (void(__cdecl*)(void))GetProcAddress(
@@ -481,11 +485,11 @@ int load_sound(HMODULE handle)
 		romClosed_audio = dummy_void;
 		romOpen_audio = dummy_void;
 	}
-	return 0;
+	return 0; ExitThread(0);
 }
-
-int load_rsp(HMODULE handle_RSP)
+DWORD WINAPI load_rsp(LPVOID lpParam)
 {
+	HMODULE handle_RSP = (HMODULE) lpParam;
 	int i = 4;
 	if (handle_RSP)
 	{
@@ -538,7 +542,7 @@ int load_rsp(HMODULE handle_RSP)
 		initiateRSP = dummy_initiateRSP;
 		romClosed_RSP = dummy_void;
 	}
-	return 0;
+	return 0;//ExitThread(0);
 }
 
 t_plugin* plugin_create(const std::filesystem::path &path)

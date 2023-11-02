@@ -57,7 +57,7 @@ extern void LoadConfigExternals();
 /**
  * \brief Starts the rom from the path contained in <c>rom_path</c>
  */
-DWORD WINAPI start_rom(LPVOID);
+DWORD WINAPI start_rom(LPVOID lpParam);
 DWORD WINAPI close_rom(LPVOID lpParam);
 
 extern BOOL continue_vcr_on_restart_mode;

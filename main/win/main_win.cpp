@@ -89,10 +89,17 @@ bool ffup = false;
 
 
 static DWORD Id;
+static DWORD gfx_id;
+static DWORD audio_id;
+static DWORD input_id;
+static DWORD rsp_id;
 static DWORD SOUNDTHREADID;
+static DWORD start_rom_id;
+static DWORD close_rom_id;
 static HANDLE SoundThreadHandle;
 static BOOL FullScreenMode = 0;
 
+HANDLE loading_handle[4];
 HANDLE EmuThreadHandle;
 HWND hwnd_plug;
 UINT update_screen_timer;
@@ -233,13 +240,21 @@ void pauseEmu(BOOL quiet)
 			                              : MFS_UNCHECKED));
 }
 
-DWORD WINAPI start_rom(LPVOID)
+DWORD WINAPI start_rom(LPVOID lpParam)
 {
+	// maybe make no access violations, probably can be just
+	// replaced with rom_path instead of rom_path_local
+	char* rom_path_local = {}; 
+	if (lpParam != nullptr) {
+		rom_path_local = (char*)lpParam;
+	} else {
+		rom_path_local = rom_path;
+	}
 	auto start_time = std::chrono::high_resolution_clock::now();
 
 	// Kill any roms that are still running
 	if (emu_launched) {
-		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &Id), 10'000);
+		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id), 10'000);
 	}
 
 	// TODO: keep plugins loaded and only unload and reload them when they actually change
@@ -252,25 +267,23 @@ DWORD WINAPI start_rom(LPVOID)
 	}
 
 	// valid rom is required to start emulation
-	if (rom_read(rom_path))
+	if (rom_read(rom_path_local))
 	{
 		MessageBox(mainHWND, "Failed to open ROM", "Error",
 				   MB_ICONERROR | MB_OK);
 		unload_plugins();
 		return 0;
 	}
-
 	// at this point, we're set to begin emulating and can't backtrack
 	// disallow window resizing
 	LONG style = GetWindowLong(mainHWND, GWL_STYLE);
 	SetWindowLong(mainHWND, GWL_STYLE,
 				  style & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
-
 	// TODO: investigate wtf this is
-	strcpy(LastSelectedRom, rom_path);
+	strcpy(LastSelectedRom, rom_path_local);
 
 	// notify ui of emu state change
-	main_recent_roms_add(rom_path);
+	main_recent_roms_add(rom_path_local);
 	rombrowser_set_visibility(0);
 	statusbar_set_mode(statusbar_mode::emulating);
 	EnableEmulationMenuItems(TRUE);
@@ -279,13 +292,19 @@ DWORD WINAPI start_rom(LPVOID)
 		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
 	}
 
-	load_gfx(video_plugin->handle);
-	load_sound(audio_plugin->handle);
-	load_input(input_plugin->handle);
-	load_rsp(rsp_plugin->handle);
+	// Loading plugins takes a while, so we do it in parallel
+	// Sleep statements seem to fix bug where plugins don't load properly
+	loading_handle[0] = CreateThread(NULL, 0, load_gfx, video_plugin->handle, 0, &gfx_id);
+	Sleep(10);
+	loading_handle[1] = CreateThread(NULL, 0, load_sound, audio_plugin->handle, 0, &audio_id);
+	Sleep(10);
+	loading_handle[2] = CreateThread(NULL, 0, load_input, input_plugin->handle, 0, &input_id);
+	Sleep(10);
+	loading_handle[3] = CreateThread(NULL, 0, load_rsp, rsp_plugin->handle, 0, &rsp_id);
+	WaitForMultipleObjects(4, loading_handle, TRUE, 5000);
+	
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
 
 	return 1;
@@ -373,19 +392,20 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 			main_dispatcher_invoke([] {
 				strcpy(rom_path, LastSelectedRom);
-				if (!start_rom(nullptr)) {
-					close_rom(NULL);
-					MessageBox(mainHWND, "Failed to open ROM", NULL,
-							   MB_ICONERROR | MB_OK);
-				}
+				CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
+				//if (!start_rom(nullptr)) {
+					//close_rom(NULL);
+					//MessageBox(mainHWND, "Failed to open ROM", NULL,
+							//   MB_ICONERROR | MB_OK);
+				//}
 			});
 		}
 
 
 		continue_vcr_on_restart_mode = FALSE;
-		return 0;
+		ExitThread(0);
 	}
-	return 0;
+	ExitThread(0);
 }
 
 void resetEmu()
@@ -1169,7 +1189,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	romOpen_gfx();
 	romOpen_input();
 	romOpen_audio();
-
+	
 	dynacore = Config.core_type;
 
 	emu_paused = 0;
@@ -1177,7 +1197,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0,
 				                         &SOUNDTHREADID);
-
 	printf("Emu thread: Emulation started....\n");
 	StartMovies();
 	StartSavestate();
@@ -1192,7 +1211,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		pauseEmu(FALSE);
 		pauseAtFrame = -1;
 	}
-
 	main_dispatcher_invoke([]
 	{
 		for (const HWND hwnd : previously_running_luas)
@@ -1315,7 +1333,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
 	if (index >= 0 && index < Config.recent_rom_paths.size()) {
 		strcpy(rom_path, Config.recent_rom_paths[index].c_str());
-		CreateThread(NULL, 0, start_rom, nullptr, 0, &Id);
+		CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
 			return 	1;
 	}
 	return 0;
