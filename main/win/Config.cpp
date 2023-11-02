@@ -1018,6 +1018,15 @@ void load_config()
 	file.read(ini);
 
 	ini = handle_config_ini(true, ini);
+
+	// handle edge case: closing while minimized produces bogus values for position
+	if (Config.window_x < -10'000 || Config.window_y < -10'000)
+	{
+		Config.window_x = default_config.window_x;
+		Config.window_y = default_config.window_y;
+		Config.window_width = default_config.window_width;
+		Config.window_height = default_config.window_height;
+	}
 }
 
 int32_t get_user_hotkey(t_hotkey* hotkey)
