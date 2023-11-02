@@ -73,6 +73,7 @@ void timer_init()
 	vi_values = {};
 	fps = 0;
 	vis_per_second = 0;
+	statusbar_send_text(std::format("Speed limit: {}%", Config.fps_modifier));
 }
 
 
