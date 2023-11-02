@@ -244,7 +244,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 {
 	// maybe make no access violations, probably can be just
 	// replaced with rom_path instead of rom_path_local
-	char* rom_path_local = {}; 
+	char* rom_path_local = {};
 	if (lpParam != nullptr) {
 		rom_path_local = (char*)lpParam;
 	} else {
@@ -292,17 +292,15 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
 	}
 
-	// Loading plugins takes a while, so we do it in parallel
-	// Sleep statements seem to fix bug where plugins don't load properly
-	loading_handle[0] = CreateThread(NULL, 0, load_gfx, video_plugin->handle, 0, &gfx_id);
-	Sleep(10);
-	loading_handle[1] = CreateThread(NULL, 0, load_sound, audio_plugin->handle, 0, &audio_id);
-	Sleep(10);
-	loading_handle[2] = CreateThread(NULL, 0, load_input, input_plugin->handle, 0, &input_id);
-	Sleep(10);
-	loading_handle[3] = CreateThread(NULL, 0, load_rsp, rsp_plugin->handle, 0, &rsp_id);
-	WaitForMultipleObjects(4, loading_handle, TRUE, 5000);
-	
+	auto gfx_thread = std::thread(load_gfx, video_plugin->handle);
+	auto audio_thread = std::thread(load_audio, audio_plugin->handle);
+	auto input_thread = std::thread(load_input, input_plugin->handle);
+	auto rsp_thread = std::thread(load_rsp, rsp_plugin->handle);
+
+	gfx_thread.join();
+	audio_thread.join();
+	input_thread.join();
+	rsp_thread.join();
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
@@ -1189,7 +1187,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	romOpen_gfx();
 	romOpen_input();
 	romOpen_audio();
-	
+
 	dynacore = Config.core_type;
 
 	emu_paused = 0;

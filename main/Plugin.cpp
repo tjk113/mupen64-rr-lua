@@ -199,9 +199,8 @@ void (__cdecl*old_initiateControllers)(HWND hMainWindow, CONTROL Controls[4]);
 void (__cdecl*aiUpdate)(BOOL Wait);
 
 
-DWORD WINAPI load_gfx(LPVOID lpParam)
+void load_gfx(HMODULE handle)
 {
-	HMODULE handle = (HMODULE)lpParam;
 	if (handle)
 	{
 		changeWindow = (void(__cdecl*)())GetProcAddress(
@@ -329,12 +328,10 @@ DWORD WINAPI load_gfx(LPVOID lpParam)
 		viStatusChanged = dummy_void;
 		viWidthChanged = dummy_void;
 	}
-	return 0; ExitThread(0);
 }
 
-DWORD WINAPI load_input(LPVOID lpParam)
+void load_input(HMODULE handle)
 {
-	HMODULE handle = (HMODULE)lpParam;
 	int i;
 	PLUGIN_INFO PluginInfo;
 	if (handle)
@@ -415,13 +412,11 @@ DWORD WINAPI load_input(LPVOID lpParam)
 		keyDown = dummy_keyDown;
 		keyUp = dummy_keyUp;
 	}
-	return 0; ExitThread(0);
 }
 
 
-DWORD WINAPI load_sound(LPVOID lpParam)
+void load_audio(HMODULE handle)
 {
-	HMODULE handle = (HMODULE) lpParam;
 	if (handle)
 	{
 		closeDLL_audio = (void(__cdecl*)(void))GetProcAddress(
@@ -485,22 +480,20 @@ DWORD WINAPI load_sound(LPVOID lpParam)
 		romClosed_audio = dummy_void;
 		romOpen_audio = dummy_void;
 	}
-	return 0; ExitThread(0);
 }
-DWORD WINAPI load_rsp(LPVOID lpParam)
+void load_rsp(HMODULE handle)
 {
-	HMODULE handle_RSP = (HMODULE) lpParam;
 	int i = 4;
-	if (handle_RSP)
+	if (handle)
 	{
 		closeDLL_RSP = (void(__cdecl*)(void))GetProcAddress(
-			handle_RSP, "CloseDLL");
+			handle, "CloseDLL");
 		doRspCycles = (DWORD(__cdecl*)(DWORD))GetProcAddress(
-			handle_RSP, "DoRspCycles");
+			handle, "DoRspCycles");
 		initiateRSP = (void(__cdecl*)(RSP_INFO, DWORD*))GetProcAddress(
-			handle_RSP, "InitiateRSP");
+			handle, "InitiateRSP");
 		romClosed_RSP = (void(__cdecl*)(void))GetProcAddress(
-			handle_RSP, "RomClosed");
+			handle, "RomClosed");
 
 		if (closeDLL_RSP == nullptr) closeDLL_RSP = dummy_void;
 		if (doRspCycles == nullptr) doRspCycles = dummy_doRspCycles;
@@ -542,7 +535,6 @@ DWORD WINAPI load_rsp(LPVOID lpParam)
 		initiateRSP = dummy_initiateRSP;
 		romClosed_RSP = dummy_void;
 	}
-	return 0;//ExitThread(0);
 }
 
 t_plugin* plugin_create(const std::filesystem::path &path)

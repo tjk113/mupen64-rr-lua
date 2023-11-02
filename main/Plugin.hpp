@@ -380,10 +380,10 @@ bool load_plugins();
  */
 void unload_plugins();
 
-DWORD WINAPI load_gfx(LPVOID lpParam);
-DWORD WINAPI load_sound(LPVOID lpParam);
-DWORD WINAPI load_input(LPVOID lpParam);
-DWORD WINAPI load_rsp(LPVOID lpParam);
+void load_gfx(HMODULE);
+void load_audio(HMODULE);
+void load_input(HMODULE);
+void load_rsp(HMODULE);
 
 /// <summary>
 /// Initializes dummy info used by per-plugin functions
