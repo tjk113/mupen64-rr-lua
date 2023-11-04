@@ -79,6 +79,7 @@ void timer_init()
 
 void timer_new_frame()
 {
+	static time_point last_statusbar_update_time = std::chrono::high_resolution_clock::now();
 	static time_point last_frame_time = std::chrono::high_resolution_clock::now();
 	time_point current_frame_time = std::chrono::high_resolution_clock::now();
 
@@ -90,6 +91,25 @@ void timer_new_frame()
 	}
 
 	last_frame_time = current_frame_time;
+
+	// we dont need precise updates when ff'ing
+	if (!fast_forward)
+	{
+		vcr_update_statusbar();
+	}
+
+	if (current_frame_time - last_statusbar_update_time > std::chrono::seconds(1))
+	{
+		if (Config.show_fps)
+		{
+			statusbar_post_text(std::format("FPS: {:.1f}", fps), 2);
+		}
+		if (Config.show_vis_per_second)
+		{
+			statusbar_post_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
+		}
+		last_statusbar_update_time = current_frame_time;
+	}
 }
 
 
@@ -98,7 +118,6 @@ void timer_new_vi()
 {
 	auto start_time = std::chrono::high_resolution_clock::now();
 	// time when last vi happened
-	static time_point last_statusbar_update_time = std::chrono::high_resolution_clock::now();
 	static time_point last_vi_time;
 	static time_point counter_time;
 	static std::chrono::duration<double, std::nano> last_sleep_error;
@@ -138,24 +157,6 @@ void timer_new_vi()
 	auto current_vi_time = std::chrono::high_resolution_clock::now();
 	auto vi_time_diff = current_vi_time - last_vi_time;
 
-	if (current_vi_time - last_statusbar_update_time > std::chrono::seconds(1))
-	{
-		if (Config.show_fps)
-		{
-			statusbar_post_text(std::format("FPS: {:.1f}", fps), 2);
-		}
-		if (Config.show_vis_per_second)
-		{
-			statusbar_post_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
-		}
-		last_statusbar_update_time = current_vi_time;
-	}
-
-	// we dont need precise updates when ff'ing
-	if (!fast_forward)
-	{
-		vcr_update_statusbar();
-	}
 
 	// if we're playing game normally with no frame advance or ff and overstepping max time between frames,
 	// we need to sleep to compensate the additional time
