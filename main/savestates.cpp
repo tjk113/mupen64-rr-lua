@@ -191,7 +191,7 @@ void savestates_save_immediate()
 
 	if (!savestates_job_success)
 	{
-		statusbar_send_text("Failed to save savestate");
+		statusbar_post_text("Failed to save savestate");
 		savestates_job_success = FALSE;
 		return;
 	}
@@ -215,7 +215,7 @@ void savestates_save_immediate()
 
 		if (f == nullptr)
 		{
-			statusbar_send_text("Failed to save savestate");
+			statusbar_post_text("Failed to save savestate");
 			savestates_job_success = FALSE;
 			return;
 		}
@@ -225,10 +225,10 @@ void savestates_save_immediate()
 
 		if (st_medium == e_st_medium::slot)
 		{
-			statusbar_send_text(std::format("Saved slot {}", st_slot));
+			statusbar_post_text(std::format("Saved slot {}", st_slot));
 		} else
 		{
-			statusbar_send_text(std::format("Saved {}", new_st_path.filename().string()));
+			statusbar_post_text(std::format("Saved {}", new_st_path.filename().string()));
 		}
 	} else
 	{
@@ -333,7 +333,7 @@ void savestates_load_immediate()
 
     if (st_buf.empty())
     {
-    	statusbar_send_text(std::format("{} not found", new_st_path.filename().string()));
+    	statusbar_post_text(std::format("{} not found", new_st_path.filename().string()));
         savestates_job_success = FALSE;
         return;
     }
@@ -404,7 +404,7 @@ void savestates_load_immediate()
 
 	    if (code != SUCCESS && !VCR_isIdle())
 	    {
-	    	statusbar_send_text("Loading non-movie savestate. Recording can break");
+	    	statusbar_post_text("Loading non-movie savestate. Recording can break");
 
 		    if (!Config.is_state_independent_state_loading_allowed)
 		    {
@@ -455,7 +455,7 @@ void savestates_load_immediate()
 			    savestates_job_success = FALSE;
 			    return;
 		    }
-		    statusbar_send_text("Loading non-movie savestate can desync playback");
+		    statusbar_post_text("Loading non-movie savestate can desync playback");
 	    }
 
 	    // at this point we know the savestate is safe to be loaded (done after else block)
@@ -465,7 +465,7 @@ void savestates_load_immediate()
     load_eventqueue_infos(buf);
     load_memory_from_buffer(first_block);
     main_dispatcher_invoke(AtLoadStateLuaCallback);
-	statusbar_send_text(std::format("Loaded {}", new_st_path.filename().string()));
+	statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));
 failedLoad:
     extern bool ignore;
     //legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.

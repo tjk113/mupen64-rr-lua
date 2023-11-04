@@ -1257,8 +1257,8 @@ VCR_stopRecord(int defExt)
 		SetActiveMovie(0); // ?
 
 
-		statusbar_send_text("", 1);
-		statusbar_send_text("Stopped recording");
+		statusbar_post_text("", 1);
+		statusbar_post_text("Stopped recording");
 
 		retVal = 0;
 	}
@@ -1637,7 +1637,7 @@ startPlayback(const char* filename, const char* authorUTF8,
 				char buf[50];
 				sprintf(buf, "%lu rr", m_header.rerecord_count);
 
-				statusbar_send_text(std::string(buf), 1);
+				statusbar_post_text(std::string(buf), 1);
 			}
 			break;
 		default:
@@ -1742,8 +1742,8 @@ stopPlayback(bool bypassLoopSetting)
 		extern void EnableEmulationMenuItems(BOOL flag);
 		EnableEmulationMenuItems(TRUE);
 
-		statusbar_send_text("", 1);
-		statusbar_send_text("Stopped playback");
+		statusbar_post_text("", 1);
+		statusbar_post_text("Stopped playback");
 
 		if (m_inputBuffer)
 		{
@@ -2281,7 +2281,7 @@ VCR_toggleReadOnly()
 	}
 	VCR_setReadOnly(!m_readOnly);
 
-	statusbar_send_text(m_readOnly ? "Read" : "Read-write");
+	statusbar_post_text(m_readOnly ? "Read" : "Read-write");
 }
 
 void
@@ -2296,7 +2296,7 @@ VCR_toggleLoopMovie()
 		                              : MFS_UNCHECKED));
 
 	if (emu_launched)
-		statusbar_send_text(Config.is_movie_loop_enabled
+		statusbar_post_text(Config.is_movie_loop_enabled
 								 ? "Movies restart after ending"
 								 : "Movies stop after ending");
 }
@@ -2371,7 +2371,7 @@ VCR_coreStopped()
 		VCR_stopCapture();
 }
 
-void vcr_update_statusbar(bool full_update)
+void vcr_update_statusbar()
 {
 	auto buttons = static_cast<BUTTONS>(m_lastController1Keys);
 
@@ -2404,33 +2404,19 @@ void vcr_update_statusbar(bool full_update)
 	if (VCR_isRecording())
 	{
 		std::string text = std::format("{} ({}) ", m_currentVI, m_currentSample);
-		statusbar_send_text(text + input_string);
-		statusbar_send_text(std::format("{} rr", m_header.rerecord_count), 1);
+		statusbar_post_text(text + input_string);
+		statusbar_post_text(std::format("{} rr", m_header.rerecord_count), 1);
 	}
 
 	if (VCR_isPlaying())
 	{
 		std::string text = std::format("{} / {} ({} / {}) ", m_currentVI, VCR_getLengthVIs(), m_currentSample, VCR_getLengthSamples());
-		statusbar_send_text(text + input_string);
+		statusbar_post_text(text + input_string);
 	}
 
 	if (!VCR_isActive())
 	{
-		statusbar_send_text(input_string);
-	}
-
-	if (!full_update)
-	{
-		return;
-	}
-
-	if (Config.show_fps)
-	{
-		statusbar_send_text(std::format("FPS: {:.1f}", fps), 2);
-	}
-	if (Config.show_vis_per_second)
-	{
-		statusbar_send_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
+		statusbar_post_text(input_string);
 	}
 }
 

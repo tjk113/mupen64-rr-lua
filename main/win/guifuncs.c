@@ -79,7 +79,7 @@ void internal_warnsavestate(const char* messageCaption, const char* message, boo
     if (modal)
         MessageBox(mainHWND, message, messageCaption, MB_ICONERROR);
     else
-        statusbar_send_text(std::string(messageCaption) + " - " + std::string(message));
+        statusbar_post_text(std::string(messageCaption) + " - " + std::string(message));
 }
 
 void warn_savestate(const char* messageCaption, const char* message)

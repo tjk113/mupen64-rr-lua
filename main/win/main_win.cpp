@@ -200,7 +200,7 @@ void resumeEmu(BOOL quiet)
 		emu_paused = 0;
 		ResumeThread(SoundThreadHandle);
 		if (!quiet)
-			statusbar_send_text("Emulation started");
+			statusbar_post_text("Emulation started");
 	}
 
 	toolbar_on_emu_state_changed(emu_launched, 1);
@@ -218,13 +218,13 @@ void pauseEmu(BOOL quiet)
 	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
-		vcr_update_statusbar(true);
+		vcr_update_statusbar();
 		emu_paused = 1;
 		if (!quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
 			SuspendThread(SoundThreadHandle);
 		if (!quiet)
-			statusbar_send_text("Emulation paused");
+			statusbar_post_text("Emulation paused");
 	} else
 	{
 		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
@@ -326,7 +326,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			else {
 				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 							 SWP_NOMOVE | SWP_NOSIZE);
-				statusbar_send_text("Stopped AVI capture");
+				statusbar_post_text("Stopped AVI capture");
 			}
 		}
 
@@ -364,7 +364,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		if (m_task == e_task::idle) {
 			SetWindowText(mainHWND, MUPEN_VERSION);
 			// TODO: look into why this is done
-			statusbar_send_text(" ", 1);
+			statusbar_post_text(" ", 1);
 		}
 
 		if (shut_window) {
@@ -373,7 +373,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		}
 
 		statusbar_set_mode(statusbar_mode::rombrowser);
-		statusbar_send_text("Emulation stopped");
+		statusbar_post_text("Emulation stopped");
 
 		SetWindowLong(mainHWND, GWL_STYLE,
 					  GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME);
@@ -433,9 +433,9 @@ void SetStatusPlaybackStarted()
 	EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
 
 	if (!emu_paused || !emu_launched)
-		statusbar_send_text("Playback started");
+		statusbar_post_text("Playback started");
 	else
-		statusbar_send_text("Playback started while paused");
+		statusbar_post_text("Playback started while paused");
 }
 
 LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
@@ -974,7 +974,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 						HMENU hMenu = GetMenu(mainHWND);
 						EnableMenuItem(hMenu, ID_STOP_RECORD, MF_ENABLED);
 						EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
-						statusbar_send_text("Recording replay");
+						statusbar_post_text("Recording replay");
 					}
 
 					EndDialog(hwnd, IDOK);
@@ -1809,7 +1809,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (err == VCR_PLAYBACK_SUCCESS)
 						SetStatusPlaybackStarted();
 					else
-						statusbar_send_text("Latest movie couldn't be started");
+						statusbar_post_text("Latest movie couldn't be started");
 				}
 				break;
 			case ID_REPLAY_LATEST:
@@ -1823,9 +1823,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (err == VCR_PLAYBACK_SUCCESS)
 						SetStatusPlaybackStarted();
 					else
-						statusbar_send_text("Latest movie couldn't be started");
+						statusbar_post_text("Latest movie couldn't be started");
 				} else
-					statusbar_send_text("Movie can't be loaded while not emulating");
+					statusbar_post_text("Movie can't be loaded while not emulating");
 				break;
 			case ID_RECENTMOVIES_FREEZE:
 				CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE,
@@ -1857,7 +1857,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					scheduled_restart = true;
 					continue_vcr_on_restart_mode = true;
-					statusbar_send_text("Writing restart to movie");
+					statusbar_post_text("Writing restart to movie");
 					break;
 				}
 				resetEmu();
@@ -2038,7 +2038,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						ClearButtons();
 						EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
 						EnableMenuItem(hMenu, ID_START_RECORD, MF_ENABLED);
-						statusbar_send_text("Recording stopped");
+						statusbar_post_text("Recording stopped");
 					}
 				}
 				break;
@@ -2057,7 +2057,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						ClearButtons();
 						EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
 						EnableMenuItem(hMenu, ID_START_PLAYBACK, MF_ENABLED);
-						statusbar_send_text("Playback stopped");
+						statusbar_post_text("Playback stopped");
 					}
 				}
 				break;
@@ -2076,7 +2076,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
 						EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
 						EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-						statusbar_send_text("Recording AVI with FFmpeg");
+						statusbar_post_text("Recording AVI with FFmpeg");
 						EnableEmulationMenuItems(TRUE);
 					} else
 						printf("Start capture error: %d\n", err);
@@ -2110,7 +2110,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
 						EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
 						EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-						statusbar_send_text("Recording AVI");
+						statusbar_post_text("Recording AVI");
 						EnableEmulationMenuItems(TRUE);
 					}
 
@@ -2130,7 +2130,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
 					EnableMenuItem(hMenu, ID_FFMPEG_START, MF_ENABLED);
 					EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
-					statusbar_send_text("Capture stopped");
+					statusbar_post_text("Capture stopped");
 				}
 				break;
 			case GENERATE_BITMAP: // take/capture a screenshot
@@ -2235,7 +2235,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					if (vcr_recent_movies_play(LOWORD(wParam)) != SUCCESS)
 					{
-						statusbar_send_text("Couldn't load movie");
+						statusbar_post_text("Couldn't load movie");
 						break;
 					}
 					// should probably make this code from the ID_REPLAY_LATEST case into a function on its own
@@ -2244,9 +2244,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
 
 					if (!emu_paused || !emu_launched)
-						statusbar_send_text("Playback started");
+						statusbar_post_text("Playback started");
 					else
-						statusbar_send_text("Playback started while paused");
+						statusbar_post_text("Playback started while paused");
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
 				{
@@ -2295,7 +2295,7 @@ void StartMovies()
 				EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
 				EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
 				EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-				statusbar_send_text("Recording AVI");
+				statusbar_post_text("Recording AVI");
 			}
 		}
 		resumeEmu(FALSE);

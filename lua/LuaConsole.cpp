@@ -2475,7 +2475,7 @@ int LuaD2DDrawText(lua_State* L)
 
 	int StatusbarWrite(lua_State* L)
 	{
-		statusbar_send_text(std::string(lua_tostring(L, 1)));
+		statusbar_post_text(std::string(lua_tostring(L, 1)));
 		return 0;
 	}
 

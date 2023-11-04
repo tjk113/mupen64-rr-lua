@@ -19,11 +19,11 @@ extern HWND statusbar_hwnd;
 void statusbar_set_visibility(int32_t is_visible);
 
 /**
- * \brief Temporarily shows text in the statusbar
+ * \brief Shows text in the statusbar
  * \param text The text to be displayed
  * \param section The statusbar section to display the text in
  */
-void statusbar_send_text(std::string text, int32_t section = 0);
+void statusbar_post_text(const std::string& text, int32_t section = 0);
 
 /**
  * \brief Sets the statusbar's mode

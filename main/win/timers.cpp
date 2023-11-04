@@ -73,7 +73,7 @@ void timer_init()
 	vi_values = {};
 	fps = 0;
 	vis_per_second = 0;
-	statusbar_send_text(std::format("Speed limit: {}%", Config.fps_modifier));
+	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
 }
 
 
@@ -96,6 +96,7 @@ void timer_new_frame()
 
 void timer_new_vi()
 {
+	auto start_time = std::chrono::high_resolution_clock::now();
 	// time when last vi happened
 	static time_point last_statusbar_update_time = std::chrono::high_resolution_clock::now();
 	static time_point last_vi_time;
@@ -139,11 +140,21 @@ void timer_new_vi()
 
 	if (current_vi_time - last_statusbar_update_time > std::chrono::seconds(1))
 	{
-		vcr_update_statusbar(true);
+		if (Config.show_fps)
+		{
+			statusbar_post_text(std::format("FPS: {:.1f}", fps), 2);
+		}
+		if (Config.show_vis_per_second)
+		{
+			statusbar_post_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
+		}
 		last_statusbar_update_time = current_vi_time;
-	} else
+	}
+
+	// we dont need precise updates when ff'ing
+	if (!fast_forward)
 	{
-		vcr_update_statusbar(false);
+		vcr_update_statusbar();
 	}
 
 	// if we're playing game normally with no frame advance or ff and overstepping max time between frames,
@@ -190,4 +201,6 @@ void timer_new_vi()
 	}
 
 	last_vi_time = std::chrono::high_resolution_clock::now();
+	printf("vi took %dns\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count()));
+
 }

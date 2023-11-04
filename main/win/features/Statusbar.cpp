@@ -10,7 +10,7 @@
 
 HWND statusbar_hwnd;
 
-void statusbar_send_text(std::string text, int32_t section)
+void statusbar_post_text(const std::string& text, int32_t section)
 {
 	SendMessage(statusbar_hwnd, SB_SETTEXT, section, (LPARAM)text.c_str());
 }
@@ -74,6 +74,7 @@ void statusbar_set_mode(const statusbar_mode mode)
 		break;
 	}
 }
+
 void statusbar_create()
 {
 	// undocumented behaviour of CCS_BOTTOM: it skips applying SBARS_SIZEGRIP in style pre-computation phase
