@@ -83,7 +83,7 @@ void statusbar_create()
 									0, 0,
 									0, 0,
 									mainHWND, (HMENU)IDC_MAIN_STATUS,
-									app_hInstance, nullptr);
+									app_instance, nullptr);
 
 	statusbar_set_mode(emu_launched ? statusbar_mode::emulating : statusbar_mode::rombrowser);
 }

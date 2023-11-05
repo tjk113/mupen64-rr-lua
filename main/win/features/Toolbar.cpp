@@ -49,7 +49,7 @@ void toolbar_create()
 	constexpr auto tb_buttons_count = sizeof(tb_buttons) / sizeof(TBBUTTON);
 	toolbar_hwnd = CreateToolbarEx(mainHWND,
 	                               WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS,
-	                               IDC_TOOLBAR, 10, app_hInstance, IDB_TOOLBAR,
+	                               IDC_TOOLBAR, 10, app_instance, IDB_TOOLBAR,
 	                               tb_buttons,
 	                               tb_buttons_count, 16, 16,
 	                               static_cast<int>(tb_buttons_count) * 16, 16,

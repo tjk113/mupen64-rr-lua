@@ -35,7 +35,7 @@ extern int emu_paused;
 extern int recording;
 
 extern HWND mainHWND;
-extern HINSTANCE app_hInstance;
+extern HINSTANCE app_instance;
 
 // TODO: rename
 extern BOOL fast_forward;

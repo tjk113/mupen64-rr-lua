@@ -127,7 +127,7 @@ void timer_new_vi()
 	if (!ignoreErrorEmulation && emu_launched && frame_advancing && vis_per_second > 1000)
 	{
 		int result = 0;
-		TaskDialog(mainHWND, app_hInstance, L"Error",
+		TaskDialog(mainHWND, app_instance, L"Error",
 			L"Unusual core state", L"An emulator core timing inaccuracy or game crash has been detected. You can choose to continue emulation.", TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
 
 		if (result == IDCLOSE) {

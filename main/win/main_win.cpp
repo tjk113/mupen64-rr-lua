@@ -119,7 +119,7 @@ char TempMessage[MAX_PATH];
 int emu_launched; //int emu_emulating;
 int emu_paused;
 HWND mainHWND;
-HINSTANCE app_hInstance;
+HINSTANCE app_instance;
 BOOL fast_forward = 0;
 BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
@@ -169,17 +169,14 @@ void ClearButtons()
 std::string get_app_full_path()
 {
 	char ret[MAX_PATH] = {0};
-
 	char drive[_MAX_DRIVE], dirn[_MAX_DIR];
-	char fname[_MAX_FNAME], ext[_MAX_EXT];
 	char path_buffer[_MAX_DIR];
-
-	GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
-	_splitpath(path_buffer, drive, dirn, fname, ext);
+	GetModuleFileName(nullptr, path_buffer, sizeof(path_buffer));
+	_splitpath(path_buffer, drive, dirn, nullptr, nullptr);
 	strcpy(ret, drive);
 	strcat(ret, dirn);
 
-	return std::string(ret);
+	return ret;
 }
 
 
@@ -1380,7 +1377,7 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 {
 	LPTOOLTIPTEXT lpttt = (LPTOOLTIPTEXT)lParam;
 
-	lpttt->hinst = app_hInstance;
+	lpttt->hinst = app_instance;
 
 	// Specify the resource identifier of the descriptive
 	// text for the given button.
@@ -2378,10 +2375,10 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	int result = 0;
 
 	if (is_continuable) {
-		TaskDialog(mainHWND, app_hInstance, L"Error",
+		TaskDialog(mainHWND, app_instance, L"Error",
 			L"An error has occured", L"A crash log has been automatically generated. You can choose to continue program execution.", TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
 	} else {
-		TaskDialog(mainHWND, app_hInstance, L"Error",
+		TaskDialog(mainHWND, app_instance, L"Error",
 			L"An error has occured", L"A crash log has been automatically generated. The program will now exit.", TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
 	}
 
@@ -2404,53 +2401,42 @@ int WINAPI WinMain(
 // #endif
 
 	app_path = get_app_full_path();
-	app_hInstance = hInstance;
-	InitCommonControls();
-	SaveCmdLineParameter(lpCmdLine);
+	app_instance = hInstance;
+ 	SaveCmdLineParameter(lpCmdLine);
 	printf("cmd: \"%s\"\n", lpCmdLine);
 	ini_openFile();
 
 	// ensure folders exist!
-	{
-		CreateDirectory((app_path + "save").c_str(), NULL);
-		CreateDirectory((app_path + "Mempaks").c_str(), NULL);
-		CreateDirectory((app_path + "Lang").c_str(), NULL);
-		CreateDirectory((app_path + "ScreenShots").c_str(), NULL);
-		CreateDirectory((app_path + "plugin").c_str(), NULL);
-	}
+	CreateDirectory((app_path + "save").c_str(), NULL);
+	CreateDirectory((app_path + "Mempaks").c_str(), NULL);
+	CreateDirectory((app_path + "Lang").c_str(), NULL);
+	CreateDirectory((app_path + "ScreenShots").c_str(), NULL);
+	CreateDirectory((app_path + "plugin").c_str(), NULL);
+
 	emu_launched = 0;
 	emu_paused = 1;
 
 	load_config();
 
-	WNDCLASSEX wc;
+	WNDCLASSEX wc = {0};
 	HWND hwnd;
-	MSG Msg;
-	HACCEL Accel;
+	MSG msg;
+
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.hInstance = hInstance;
+	wc.hIcon = LoadIcon(
+			GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONBIG));
+	wc.hIconSm = LoadIcon(
+		GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONSMALL));
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.lpszClassName = g_szClassName;
 
 	if (GuiDisabled())
 	{
-		wc.cbSize = sizeof(WNDCLASSEX);
-		wc.style = 0;
 		wc.lpfnWndProc = NoGuiWndProc;
-		wc.cbClsExtra = 0;
-		wc.cbWndExtra = 0;
-		wc.hInstance = hInstance;
-		wc.hIcon = LoadIcon(
-			GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONBIG));
-		wc.hIconSm = LoadIcon(
-			GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONSMALL));
-		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 		wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-		wc.lpszMenuName = NULL;
-		wc.lpszClassName = g_szClassName;
 
-		if (!RegisterClassEx(&wc))
-		{
-			MessageBox(NULL, "Window Registration Failed!", "Error!",
-			           MB_ICONEXCLAMATION | MB_OK);
-			return 0;
-		}
+		RegisterClassEx(&wc);
 
 		hwnd = CreateWindowEx(
 			0,
@@ -2468,39 +2454,21 @@ int WINAPI WinMain(
 
 		StartGameByCommandLine();
 
-		while (GetMessage(&Msg, NULL, 0, 0) > 0)
+		while (GetMessage(&msg, NULL, 0, 0) > 0)
 		{
-			TranslateMessage(&Msg);
-			DispatchMessage(&Msg);
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
-	} else
+	}
+	else
 	{
-		//window initialize
-
-		wc.cbSize = sizeof(WNDCLASSEX);
-		wc.style = 0;
 		wc.lpfnWndProc = WndProc;
-		wc.cbClsExtra = 0;
-		wc.cbWndExtra = 0;
-		wc.hInstance = hInstance;
-		wc.hIcon = LoadIcon(
-			GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONBIG));
-		wc.hIconSm = LoadIcon(
-			GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONSMALL));
-		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 		wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-		//(HBRUSH)(COLOR_WINDOW+11);
 		wc.lpszMenuName = MAKEINTRESOURCE(IDR_MYMENU);
-		wc.lpszClassName = g_szClassName;
 
-		if (!RegisterClassEx(&wc))
-		{
-			MessageBox(NULL, "Window Registration Failed!", "Error!",
-			           MB_ICONEXCLAMATION | MB_OK);
-			return 0;
-		}
+		RegisterClassEx(&wc);
 
-		Accel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
+		HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
 
 		hwnd = CreateWindowEx(
 			0,
@@ -2511,12 +2479,6 @@ int WINAPI WinMain(
 			Config.window_height,
 			NULL, NULL, hInstance, NULL);
 
-		if (hwnd == NULL)
-		{
-			MessageBox(NULL, "Window Creation Failed!", "Error!",
-			           MB_ICONEXCLAMATION | MB_OK);
-			return 0;
-		}
 		mainHWND = hwnd;
 		ShowWindow(hwnd, nCmdShow);
 
@@ -2554,12 +2516,12 @@ int WINAPI WinMain(
 		// raise continuable exception
 		//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
-		while (GetMessage(&Msg, NULL, 0, 0) > 0)
+		while (GetMessage(&msg, NULL, 0, 0) > 0)
 		{
-			if (!TranslateAccelerator(mainHWND, Accel, &Msg))
+			if (!TranslateAccelerator(mainHWND, accelerators, &msg))
 			{
-				TranslateMessage(&Msg);
-				DispatchMessage(&Msg);
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
 			}
 
 			for (t_hotkey* hotkey : hotkeys)
@@ -2606,5 +2568,5 @@ int WINAPI WinMain(
 		}
 	}
 
-	return (int)Msg.wParam;
+	return (int)msg.wParam;
 }

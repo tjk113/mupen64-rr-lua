@@ -41,7 +41,7 @@
 #include "win/features/Statusbar.hpp"
 
 extern HWND mainHWND;
-extern HINSTANCE app_hInstance;
+extern HINSTANCE app_instance;
 
 CONTROL Controls[4];
 
@@ -382,7 +382,7 @@ void load_input(HMODULE handle)
 		if (keyUp == nullptr) keyUp = dummy_keyUp;
 
 		control_info.hMainWindow = mainHWND;
-		control_info.hinst = app_hInstance;
+		control_info.hinst = app_instance;
 		control_info.MemoryBswaped = TRUE;
 		control_info.HEADER = rom;
 		control_info.Controls = Controls;
@@ -450,7 +450,7 @@ void load_audio(HMODULE handle)
 		if (romOpen_audio == nullptr) romOpen_audio = dummy_void;
 
 		audio_info.hwnd = mainHWND;
-		audio_info.hinst = app_hInstance;
+		audio_info.hinst = app_instance;
 		audio_info.MemoryBswaped = TRUE;
 		audio_info.HEADER = rom;
 
@@ -805,7 +805,7 @@ void setup_dummy_info()
 
 	/////// AUDIO /////////////////////////
 	dummy_audio_info.hwnd = mainHWND;
-	dummy_audio_info.hinst = app_hInstance;
+	dummy_audio_info.hinst = app_instance;
 	dummy_audio_info.MemoryBswaped = TRUE;
 	dummy_audio_info.HEADER = (BYTE*)dummy_header;
 	dummy_audio_info.RDRAM = (BYTE*)rdram;
@@ -822,7 +822,7 @@ void setup_dummy_info()
 
 	///// CONTROLS ///////////////////////////
 	dummy_control_info.hMainWindow = mainHWND;
-	dummy_control_info.hinst = app_hInstance;
+	dummy_control_info.hinst = app_instance;
 	dummy_control_info.MemoryBswaped = TRUE;
 	dummy_control_info.HEADER = (BYTE*)dummy_header;
 	dummy_control_info.Controls = Controls;

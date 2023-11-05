@@ -184,7 +184,7 @@ void ChangeSettings(HWND hwndOwner)
 
     psp[0].dwSize = sizeof(PROPSHEETPAGE);
     psp[0].dwFlags = PSP_USETITLE;
-    psp[0].hInstance = app_hInstance;
+    psp[0].hInstance = app_instance;
     psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
     psp[0].pfnDlgProc = PluginsCfg;
     psp[0].pszTitle = "Plugins";
@@ -193,7 +193,7 @@ void ChangeSettings(HWND hwndOwner)
 
     psp[1].dwSize = sizeof(PROPSHEETPAGE);
     psp[1].dwFlags = PSP_USETITLE;
-    psp[1].hInstance = app_hInstance;
+    psp[1].hInstance = app_instance;
     psp[1].pszTemplate = MAKEINTRESOURCE(IDD_DIRECTORIES);
     psp[1].pfnDlgProc = DirectoriesCfg;
     psp[1].pszTitle = "Directories";
@@ -202,7 +202,7 @@ void ChangeSettings(HWND hwndOwner)
 
     psp[2].dwSize = sizeof(PROPSHEETPAGE);
     psp[2].dwFlags = PSP_USETITLE;
-    psp[2].hInstance = app_hInstance;
+    psp[2].hInstance = app_instance;
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
     psp[2].pfnDlgProc = GeneralCfg;
     psp[2].pszTitle = "General";
@@ -211,7 +211,7 @@ void ChangeSettings(HWND hwndOwner)
 
     psp[3].dwSize = sizeof(PROPSHEETPAGE);
     psp[3].dwFlags = PSP_USETITLE;
-    psp[3].hInstance = app_hInstance;
+    psp[3].hInstance = app_instance;
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
     psp[3].pfnDlgProc = AdvancedSettingsProc;
     psp[3].pszTitle = "Advanced";
@@ -220,7 +220,7 @@ void ChangeSettings(HWND hwndOwner)
 
     psp[4].dwSize = sizeof(PROPSHEETPAGE);
     psp[4].dwFlags = PSP_USETITLE;
-    psp[4].hInstance = app_hInstance;
+    psp[4].hInstance = app_instance;
     psp[4].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
     psp[4].pfnDlgProc = HotkeysProc;
     psp[4].pszTitle = "Hotkeys";
@@ -229,7 +229,7 @@ void ChangeSettings(HWND hwndOwner)
 
     psp[5].dwSize = sizeof(PROPSHEETPAGE);
     psp[5].dwFlags = PSP_USETITLE;
-    psp[5].hInstance = app_hInstance;
+    psp[5].hInstance = app_instance;
     psp[5].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
     psp[5].pfnDlgProc = OtherOptionsProc;
     psp[5].pszTitle = "Other";
@@ -239,7 +239,7 @@ void ChangeSettings(HWND hwndOwner)
     psh.dwSize = sizeof(PROPSHEETHEADER);
     psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
     psh.hwndParent = hwndOwner;
-    psh.hInstance = app_hInstance;
+    psh.hInstance = app_instance;
     psh.pszCaption = "Settings";
     psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
     psh.nStartPage = 0;

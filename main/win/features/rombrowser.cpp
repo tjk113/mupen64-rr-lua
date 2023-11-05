@@ -79,7 +79,7 @@ void rombrowser_create()
 	                                 rcl.bottom - rcl.top - rtool.bottom + rtool
 	                                 .top - rstatus.bottom + rstatus.top,
 	                                 mainHWND, (HMENU)IDC_ROMLIST,
-	                                 app_hInstance,
+	                                 app_instance,
 	                                 NULL);
 
 	ListView_SetExtendedListViewStyle(rombrowser_hwnd,
@@ -90,27 +90,27 @@ void rombrowser_create()
 		ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 11, 0);
 	HICON hIcon;
 
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_GERMANY));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_GERMANY));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_USA));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_USA));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_JAPAN));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_JAPAN));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_EUROPE));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_EUROPE));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_AUSTRALIA));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_AUSTRALIA));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_ITALIA));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_ITALIA));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_FRANCE));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_FRANCE));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_SPAIN));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_SPAIN));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_UNKNOWN));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_UNKNOWN));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_DEMO));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_DEMO));
 	ImageList_AddIcon(hSmall, hIcon);
-	hIcon = LoadIcon(app_hInstance, MAKEINTRESOURCE(IDI_BETA));
+	hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_BETA));
 	ImageList_AddIcon(hSmall, hIcon);
 	ListView_SetImageList(rombrowser_hwnd, hSmall, LVSIL_SMALL);
 

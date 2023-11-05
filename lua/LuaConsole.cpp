@@ -396,7 +396,7 @@ void LoadScreenInit()
 
 	HWND create_and_show_lua_window(int32_t sw_flags)
 	{
-		HWND hwnd = CreateDialogParam(app_hInstance,
+		HWND hwnd = CreateDialogParam(app_instance,
 		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
 		                             DialogProc,
 		                             NULL);
@@ -3110,7 +3110,7 @@ int LuaD2DDrawText(lua_State* L)
 
 	int InputPrompt(lua_State* L)
 	{
-		DialogBoxParam(app_hInstance,
+		DialogBoxParam(app_instance,
 		               MAKEINTRESOURCE(IDD_LUAINPUTPROMPT), mainHWND,
 		               InputPromptProc, (LPARAM)L);
 		return 1;
