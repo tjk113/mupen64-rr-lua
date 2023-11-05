@@ -23,7 +23,7 @@
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/configdialog.h"
-#include "..\main\win\wrapper\PersistentPathDialog.h"
+#include "../main/win/wrapper/PersistentPathDialog.h"
 #include "../main/vcr_compress.h"
 #include <vcr.h>
 #include <gdiplus.h>

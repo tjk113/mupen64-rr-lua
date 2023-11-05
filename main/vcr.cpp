@@ -469,7 +469,7 @@ void VCR_clearAllSaveData()
 {
 	int i;
 	extern const char* get_savespath();
-	// defined in either win\guifuncs.c or gui_gtk/main_gtk.c
+	// defined in either win\guifuncs.cpp or gui_gtk/main_gtk.c
 
 	// clear SRAM
 	{

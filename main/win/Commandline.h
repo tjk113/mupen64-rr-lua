@@ -15,7 +15,6 @@
  ***************************************************************************/
 #ifndef COMMANDLINE_H
 #define COMMANDLINE_H
-#include <string>
 
 /**
  * \brief Sets and readies state from commandline arguments

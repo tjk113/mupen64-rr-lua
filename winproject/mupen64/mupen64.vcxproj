@@ -159,7 +159,7 @@
     <ClInclude Include="..\..\main\win\features\RomBrowser.hpp" />
     <ClInclude Include="..\..\main\win\features\Statusbar.hpp" />
     <ClInclude Include="..\..\main\win\features\Toolbar.hpp" />
-    <ClInclude Include="..\..\main\win\commandline.h" />
+    <ClInclude Include="..\..\main\win\Commandline.h" />
     <ClInclude Include="..\..\main\win\Config.hpp" />
     <ClInclude Include="..\..\main\win\configdialog.h" />
     <ClInclude Include="..\..\main\win\main_win.h" />
@@ -235,7 +235,7 @@
     <ClCompile Include="..\..\main\win\features\RomBrowser.cpp" />
     <ClCompile Include="..\..\main\win\features\Statusbar.cpp" />
     <ClCompile Include="..\..\main\win\features\Toolbar.cpp" />
-    <ClCompile Include="..\..\main\win\commandline.cpp">
+    <ClCompile Include="..\..\main\win\Commandline.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
@@ -247,7 +247,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\guifuncs.c">
+    <ClCompile Include="..\..\main\win\guifuncs.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>

@@ -16,62 +16,44 @@
  ***************************************************************************/
 
 
-#include "LuaConsole.h"
+#include "main_win.h"
 
-#include "Recent.h"
-#include "ffmpeg_capture/ffmpeg_capture.hpp"
-
-#if defined(__cplusplus) && !defined(_MSC_VER)
-extern "C" {
-#endif
-
-#include <Windows.h>
-#include <Shlwapi.h>
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0500
-#endif
+#include <cmath>
 #include <commctrl.h>
 #include <cstdlib>
-#include <cmath>
-#include <filesystem>
 #include <deque>
-#ifndef _MSC_VER
-#endif
-#include "../../winproject/resource.h"
+#include <filesystem>
+#include <gdiplus.h>
+#include <Shlwapi.h>
+#include <Windows.h>
+
+#include "Commandline.h"
+#include "config.hpp"
+#include "configdialog.h"
+#include "CrashHelper.h"
+#include "LuaConsole.h"
+#include "Recent.h"
+#include "timers.h"
+#include "../guifuncs.h"
 #include "../plugin.hpp"
 #include "../rom.h"
-#include "../../r4300/r4300.h"
-#include "../../memory/memory.h"
-#include "translation.h"
-#include "features/RomBrowser.hpp"
-#include "main_win.h"
-#include "configdialog.h"
-#include "../guifuncs.h"
 #include "../savestates.h"
-#include "timers.h"
-#include "config.hpp"
-#include "commandline.h"
-#include "CrashHelper.h"
-#include "wrapper\PersistentPathDialog.h"
 #include "../vcr.h"
-#include "../../r4300/recomph.h"
-
-#define EMULATOR_MAIN_CPP_DEF
+#include "../../memory/memory.h"
 #include "../../memory/pif.h"
-#undef EMULATOR_MAIN_CPP_DEF
-#include <gdiplus.h>
+#include "../../r4300/r4300.h"
+#include "../../r4300/recomph.h"
+#include "../../winproject/resource.h"
 #include "../main/win/GameDebugger.h"
+#include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
-#include "features\Toolbar.hpp"
+#include "features/Toolbar.hpp"
+#include "ffmpeg_capture/ffmpeg_capture.hpp"
 #include "helpers/string_helpers.h"
 #include "helpers/win_helpers.h"
-
-#pragma comment (lib,"Gdiplus.lib")
+#include "wrapper/PersistentPathDialog.h"
 
 bool ffup = false;
-#if defined(__cplusplus) && !defined(_MSC_VER)
-}
-#endif
 
 
 #ifdef _MSC_VER
@@ -1248,23 +1230,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	ExitThread(0);
 }
 
-void exit_emu(int postquit)
-{
-	save_config();
-
-	if (!postquit)
-	{
-		CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id);
-	}
-
-	if (postquit)
-	{
-		KillTimer(mainHWND, update_screen_timer);
-		Gdiplus::GdiplusShutdown(gdiPlusToken);
-		PostQuitMessage(0);
-	}
-}
-
 void main_recent_roms_build(int32_t reset)
 {
 	HMENU h_menu = GetMenu(mainHWND);
@@ -1575,25 +1540,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
 		commandline_start_rom();
 		return TRUE;
+	case WM_DESTROY:
+		save_config();
+		KillTimer(mainHWND, update_screen_timer);
+		Gdiplus::GdiplusShutdown(gdiPlusToken);
+		PostQuitMessage(0);
+		break;
+	case WM_CLOSE:
+		if (confirm_user_exit())
+		{
+			DestroyWindow(mainHWND);
+			break;
+		}
+		return 0;
 	case WM_TIMER:
 		AtUpdateScreenLuaCallback();
 		break;
-	case WM_CLOSE:
-		{
-			if (warn_recording())break;
-			if (emu_launched)
-			{
-				shut_window = 1;
-				exit_emu(0);
-				return 0;
-			} else
-			{
-
-				exit_emu(1);
-				//DestroyWindow(hwnd);
-			}
-			break;
-		}
 	case WM_PAINT: //todo, work with updatescreen to use wmpaint
 		{
 			BeginPaint(hwnd, &ps);
@@ -1689,7 +1651,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case EMU_STOP:
 				MenuPaused = FALSE;
-				if (warn_recording())break;
+				if (!confirm_user_exit())
+					break;
 				if (emu_launched)
 				{
 					//close_rom(&Id);
@@ -1783,7 +1746,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case EMU_RESET:
-				if (!Config.is_reset_recording_enabled && warn_recording())
+				if (!Config.is_reset_recording_enabled && confirm_user_exit())
 					break;
 				if (VCR_isRecording() && Config.is_reset_recording_enabled)
 				{
@@ -1888,12 +1851,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case ID_EMULATOR_EXIT:
-				if (warn_recording())break;
-				shut_window = 1;
-				if (emu_launched)
-					exit_emu(0);
-				else
-					exit_emu(1);
+				DestroyWindow(mainHWND);
 				break;
 			case FULL_SCREEN:
 				if (emu_launched && !VCR_isCapturing())

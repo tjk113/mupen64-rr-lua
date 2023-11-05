@@ -30,7 +30,13 @@
 const char* get_savespath();
 
 
-bool warn_recording();
+
+/**
+ * \brief Demands user confirmation for an exit action
+ * \return Whether the action is allowed
+ */
+bool confirm_user_exit();
+
 void warn_savestate(const char* messageCaption, const char* message);
 void warn_savestate(const char* messageCaption, const char* message,
                     bool modal); // Overload

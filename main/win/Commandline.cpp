@@ -17,7 +17,7 @@
 // Based on code from 1964 by Schibo and Rice
 // Slightly improved command line params parsing function to work with spaced arguments
 #include <Windows.h>
-#include "commandline.h"
+#include "Commandline.h"
 
 #include <iostream>
 

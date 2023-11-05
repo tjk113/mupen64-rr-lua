@@ -2,7 +2,7 @@
 #include <winuser.h>
 #include <cstdio>
 #include "features/RomBrowser.hpp"
-#include "commandline.h"
+#include "Commandline.h"
 #include "../../winproject/resource.h"
 #include "Config.hpp"
 #include "main_win.h"
