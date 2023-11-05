@@ -2224,7 +2224,7 @@ void vcr_update_statusbar()
 {
 	auto buttons = static_cast<BUTTONS>(m_lastController1Keys);
 
-	std::string input_string = std::format("({}, {}) ", (int)buttons.X_AXIS, (int)buttons.Y_AXIS);
+	std::string input_string = std::format("({}, {}) ", (int)buttons.Y_AXIS, (int)buttons.X_AXIS);
 	if (buttons.START_BUTTON) input_string += "S";
 	if (buttons.Z_TRIG) input_string += "Z";
 	if (buttons.A_BUTTON) input_string += "A";
