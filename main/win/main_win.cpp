@@ -149,6 +149,14 @@ void main_dispatcher_invoke(const std::function<void()>& func) {
 	SendMessage(mainHWND, WM_EXECUTE_DISPATCHER, 0, 0);
 }
 
+void main_dispatcher_process()
+{
+	while (!dispatcher_queue.empty()) {
+		dispatcher_queue.front()();
+		dispatcher_queue.pop_front();
+	}
+}
+
 void ClearButtons()
 {
 	BUTTONS zero = {0};
@@ -1421,6 +1429,9 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam,
 {
 	switch (Message)
 	{
+	case WM_EXECUTE_DISPATCHER:
+		main_dispatcher_process();
+		break;
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
@@ -1454,12 +1465,6 @@ LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam,
 		rombrowser_update_size();
 		break;
 	case WM_USER + 17: SetFocus(mainHWND);
-		break;
-	case WM_EXECUTE_DISPATCHER:
-		while (!dispatcher_queue.empty()) {
-			dispatcher_queue.front()();
-			dispatcher_queue.pop_front();
-		}
 		break;
 	case WM_CLOSE:
 		exit_emu(1);
@@ -1495,6 +1500,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 	switch (Message)
 	{
+	case WM_EXECUTE_DISPATCHER:
+		main_dispatcher_process();
+		break;
 	case WM_DROPFILES:
 		{
 			HDROP h_file = (HDROP)wParam;
@@ -1628,12 +1636,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 	case WM_USER + 17: SetFocus(mainHWND);
-		break;
-	case WM_EXECUTE_DISPATCHER:
-		while (!dispatcher_queue.empty()) {
-			dispatcher_queue.front()();
-			dispatcher_queue.pop_front();
-		}
 		break;
 	case WM_CREATE:
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));

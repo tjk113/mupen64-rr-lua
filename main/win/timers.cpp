@@ -116,7 +116,6 @@ void timer_new_frame()
 
 void timer_new_vi()
 {
-	auto start_time = std::chrono::high_resolution_clock::now();
 	// time when last vi happened
 	static time_point last_vi_time;
 	static time_point counter_time;
@@ -202,6 +201,4 @@ void timer_new_vi()
 	}
 
 	last_vi_time = std::chrono::high_resolution_clock::now();
-	printf("vi took %dns\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count()));
-
 }
