@@ -519,9 +519,7 @@ void update_pif_read(bool stcheck)
                         while (emu_paused)
                         {
                             Sleep(10);
-                            main_dispatcher_invoke([] {
-                                AtIntervalLuaCallback();
-                            });
+                            main_dispatcher_invoke(AtIntervalLuaCallback);
 
                             // TODO: maybe unify this and the other calls outside paused loop with some pump function like savestates_process_job()
                             if (savestates_job == e_st_job::save && stAllowed)
