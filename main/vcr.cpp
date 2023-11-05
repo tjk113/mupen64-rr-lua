@@ -100,8 +100,7 @@ static int m_visPerSecond = -1;
 static char* m_inputBuffer = NULL;
 static unsigned long m_inputBufferSize = 0;
 static char* m_inputBufferPtr = NULL;
-//static BOOL m_intro = TRUE;
-static unsigned long m_lastController1Keys = 0; // for input display
+static BUTTONS m_lastController1Keys = {0}; // for input display
 
 static int m_capture = 0; // capture movie
 static int m_audioFreq = 33000; //0x30018;
@@ -170,11 +169,9 @@ void printError(const char* str)
 static void hardResetAndClearAllSaveData(bool clear)
 {
 	extern BOOL clear_sram_on_restart_mode;
-	extern BOOL continue_vcr_on_restart_mode;
-	extern HWND mainHWND;
 	clear_sram_on_restart_mode = clear;
 	continue_vcr_on_restart_mode = TRUE;
-	m_lastController1Keys = 0;
+	m_lastController1Keys = {0};
 	if (clear)
 		printf("Clearing save data...\n");
 	else
@@ -790,7 +787,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 	}
 
 	if (Control == 0)
-		memcpy(&m_lastController1Keys, Keys, sizeof(unsigned long));
+		memcpy(&m_lastController1Keys, Keys, sizeof(BUTTONS));
 
 	if (m_task == e_task::idle)
 		return;
@@ -945,7 +942,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 			setKeys(Control, zero);
 			getKeys(Control, Keys);
 			if (Control == 0)
-				memcpy(&m_lastController1Keys, Keys, sizeof(unsigned long));
+				memcpy(&m_lastController1Keys, Keys, sizeof(BUTTONS));
 			return;
 		}
 		//		if (cont != Control)
@@ -995,7 +992,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		}
 
 		if (Control == 0)
-			memcpy(&m_lastController1Keys, Keys, sizeof(unsigned long));
+			memcpy(&m_lastController1Keys, Keys, sizeof(BUTTONS));
 
 		return;
 	}
@@ -2222,32 +2219,30 @@ VCR_coreStopped()
 
 void vcr_update_statusbar()
 {
-	auto buttons = static_cast<BUTTONS>(m_lastController1Keys);
-
-	std::string input_string = std::format("({}, {}) ", (int)buttons.Y_AXIS, (int)buttons.X_AXIS);
-	if (buttons.START_BUTTON) input_string += "S";
-	if (buttons.Z_TRIG) input_string += "Z";
-	if (buttons.A_BUTTON) input_string += "A";
-	if (buttons.B_BUTTON) input_string += "B";
-	if (buttons.L_TRIG) input_string += "L";
-	if (buttons.R_TRIG) input_string += "R";
-	if (buttons.U_CBUTTON || buttons.D_CBUTTON || buttons.L_CBUTTON ||
-		buttons.R_CBUTTON)
+	std::string input_string = std::format("({}, {}) ", (int)m_lastController1Keys.Y_AXIS, (int)m_lastController1Keys.X_AXIS);
+	if (m_lastController1Keys.START_BUTTON) input_string += "S";
+	if (m_lastController1Keys.Z_TRIG) input_string += "Z";
+	if (m_lastController1Keys.A_BUTTON) input_string += "A";
+	if (m_lastController1Keys.B_BUTTON) input_string += "B";
+	if (m_lastController1Keys.L_TRIG) input_string += "L";
+	if (m_lastController1Keys.R_TRIG) input_string += "R";
+	if (m_lastController1Keys.U_CBUTTON || m_lastController1Keys.D_CBUTTON || m_lastController1Keys.L_CBUTTON ||
+		m_lastController1Keys.R_CBUTTON)
 	{
 		input_string += " C";
-		if (buttons.U_CBUTTON) input_string += "^";
-		if (buttons.D_CBUTTON) input_string += "v";
-		if (buttons.L_CBUTTON) input_string += "<";
-		if (buttons.R_CBUTTON) input_string += ">";
+		if (m_lastController1Keys.U_CBUTTON) input_string += "^";
+		if (m_lastController1Keys.D_CBUTTON) input_string += "v";
+		if (m_lastController1Keys.L_CBUTTON) input_string += "<";
+		if (m_lastController1Keys.R_CBUTTON) input_string += ">";
 	}
-	if (buttons.U_DPAD || buttons.D_DPAD || buttons.L_DPAD || buttons.
+	if (m_lastController1Keys.U_DPAD || m_lastController1Keys.D_DPAD || m_lastController1Keys.L_DPAD || m_lastController1Keys.
 		R_DPAD)
 	{
 		input_string += " D";
-		if (buttons.U_DPAD) input_string += "^";
-		if (buttons.D_DPAD) input_string += "v";
-		if (buttons.L_DPAD) input_string += "<";
-		if (buttons.R_DPAD) input_string += ">";
+		if (m_lastController1Keys.U_DPAD) input_string += "^";
+		if (m_lastController1Keys.D_DPAD) input_string += "v";
+		if (m_lastController1Keys.L_DPAD) input_string += "<";
+		if (m_lastController1Keys.R_DPAD) input_string += ">";
 	}
 
 	if (VCR_isRecording())
