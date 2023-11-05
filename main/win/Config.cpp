@@ -8,13 +8,44 @@
 #include "main_win.h"
 #include "../../lua/Recent.h"
 #include "../vcr.h"
-#include "translation.h"
 #include "../lib/ini.h"
-#include "translation.h"
 #include <helpers/string_helpers.h>
 
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
+
+void set_menu_accelerator(const HMENU h_menu, int element_id, const char* acc)
+{
+	char string[256] = {0};
+	GetMenuString(h_menu, element_id, string, std::size(string), MF_BYPOSITION);
+
+	MENUITEMINFO menuinfo;
+
+	// make sure there is tab character (accelerator marker)
+	char* tab = strrchr(string, '\t');
+	if (tab)
+		*tab = '\0';
+	if (strcmp(acc, ""))
+		sprintf(string, "%s\t%s", string, acc);
+
+	memset(&menuinfo, 0, sizeof(MENUITEMINFO));
+	menuinfo.cbSize = sizeof(MENUITEMINFO);
+	menuinfo.fMask = MIIM_TYPE;
+	menuinfo.fType = MFT_STRING;
+	menuinfo.dwTypeData = string;
+	menuinfo.cch = sizeof(string);
+	SetMenuItemInfo(h_menu, element_id, TRUE, &menuinfo);
+}
+
+void set_hotkey_menu_accelerators(t_hotkey* hotkey, const HMENU hmenu, int menu_item_id)
+{
+	if (!hmenu || menu_item_id < 0)
+		return;
+
+	const std::string hotkey_str = hotkey_to_string(hotkey);
+	set_menu_accelerator(hmenu, menu_item_id, hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+}
+
 
 std::string hotkey_to_string(t_hotkey* hotkey)
 {
@@ -613,7 +644,7 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey, HMENU hmenu,
 
 	if (hmenu && menuItemID >= 0)
 	{
-		SetMenuAccelerator(hmenu, menuItemID,
+		set_menu_accelerator(hmenu, menuItemID,
 						   hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
 	}
 }
@@ -621,31 +652,31 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey, HMENU hmenu,
 
 void update_menu_hotkey_labels()
 {
-	SetHotkeyMenuAccelerators(&Config.pause_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 0);
-    SetHotkeyMenuAccelerators(&Config.frame_advance_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 1);
-    SetHotkeyMenuAccelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
-    SetHotkeyMenuAccelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+	set_hotkey_menu_accelerators(&Config.pause_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 0);
+    set_hotkey_menu_accelerators(&Config.frame_advance_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 1);
+    set_hotkey_menu_accelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+    set_hotkey_menu_accelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
 
-    SetHotkeyMenuAccelerators(&Config.toggle_read_only_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 13);
-    SetHotkeyMenuAccelerators(&Config.start_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 3);
-    SetHotkeyMenuAccelerators(&Config.stop_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 4);
-    SetHotkeyMenuAccelerators(&Config.start_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 0);
-    SetHotkeyMenuAccelerators(&Config.stop_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 1);
-    SetHotkeyMenuAccelerators(&Config.take_screenshot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 2);
-    SetHotkeyMenuAccelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
-    SetHotkeyMenuAccelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
-    SetHotkeyMenuAccelerators(&Config.select_slot_1_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
-    SetHotkeyMenuAccelerators(&Config.select_slot_2_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
-    SetHotkeyMenuAccelerators(&Config.select_slot_3_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
-    SetHotkeyMenuAccelerators(&Config.select_slot_4_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
-    SetHotkeyMenuAccelerators(&Config.select_slot_5_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
-    SetHotkeyMenuAccelerators(&Config.select_slot_6_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
-    SetHotkeyMenuAccelerators(&Config.select_slot_7_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
-    SetHotkeyMenuAccelerators(&Config.select_slot_8_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
-    SetHotkeyMenuAccelerators(&Config.select_slot_9_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+    set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 13);
+    set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 3);
+    set_hotkey_menu_accelerators(&Config.stop_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 4);
+    set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 0);
+    set_hotkey_menu_accelerators(&Config.stop_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 1);
+    set_hotkey_menu_accelerators(&Config.take_screenshot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 2);
+    set_hotkey_menu_accelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+    set_hotkey_menu_accelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+    set_hotkey_menu_accelerators(&Config.select_slot_1_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+    set_hotkey_menu_accelerators(&Config.select_slot_2_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+    set_hotkey_menu_accelerators(&Config.select_slot_3_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+    set_hotkey_menu_accelerators(&Config.select_slot_4_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+    set_hotkey_menu_accelerators(&Config.select_slot_5_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+    set_hotkey_menu_accelerators(&Config.select_slot_6_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+    set_hotkey_menu_accelerators(&Config.select_slot_7_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+    set_hotkey_menu_accelerators(&Config.select_slot_8_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+    set_hotkey_menu_accelerators(&Config.select_slot_9_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
 
-    SetHotkeyMenuAccelerators(&Config.restart_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 12);
-    SetHotkeyMenuAccelerators(&Config.play_latest_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 7);
+    set_hotkey_menu_accelerators(&Config.restart_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 12);
+    set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 7);
 
 	SetDlgItemHotkey(mainHWND, IDC_HOT_FASTFORWARD,
 	                 &Config.fast_forward_hotkey);

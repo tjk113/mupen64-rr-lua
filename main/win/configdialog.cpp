@@ -31,7 +31,6 @@
 #include "../guifuncs.h"
 #include "../md5.h"
 #include "timers.h"
-#include "translation.h"
 #include "Config.hpp"
 #include "../rom.h"
 #include "wrapper/PersistentPathDialog.h"

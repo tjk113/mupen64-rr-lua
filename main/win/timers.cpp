@@ -22,7 +22,6 @@
 #include "main_win.h"
 #include "Config.hpp"
 #include "../rom.h"
-#include "translation.h"
 #include "../vcr.h"
 #include "../../memory/pif.h"
 #include "../../winproject/resource.h"
