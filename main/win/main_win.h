@@ -43,6 +43,9 @@ extern char statusmsg[800];
 
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
+extern DWORD emu_id;
+extern DWORD start_rom_id;
+extern DWORD close_rom_id;
 
 void main_dispatcher_invoke(const std::function<void()>& func);
 extern std::string app_path;

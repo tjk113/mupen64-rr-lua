@@ -15,33 +15,16 @@
  ***************************************************************************/
 #ifndef COMMANDLINE_H
 #define COMMANDLINE_H
-#include <Windows.h>
+#include <string>
 
-typedef enum
-{
-	CMDLINE_AUDIO_PLUGIN,
-	CMDLINE_VIDEO_PLUGIN,
-	CMDLINE_CONTROLLER_PLUGIN,
-	CMDLINE_RSP_PLUGIN,
-	CMDLINE_ROM_DIR,
-	CMDLINE_GAME_FILENAME,
-	CMDLINE_FULL_SCREEN_FLAG,
-	CMDLINE_NO_GUI,
-	CMDLINE_SAVE_OPTIONS,
-	CMDLINE_PLAY_M64,
-	CMDLINE_CAPTURE_AVI,
-	CMDLINE_LUA,
-	CMDLINE_SAVESTATE,
-	CMDLINE_MAX_NUMBER
-} CmdLineParameterType;
+/**
+ * \brief Sets and readies state from commandline arguments
+ */
+void commandline_set();
 
-void SaveCmdLineParameter(char* cmdline);
-void GetCmdLineParameter(CmdLineParameterType arg, char* buf);
-BOOL StartGameByCommandLine();
-BOOL GuiDisabled();
-BOOL CmdLineParameterExist(CmdLineParameterType param);
+/**
+ * \brief Load the commandline-specified rom
+ */
+void commandline_load_rom();
 
-extern BOOL cmdlineMode;
-extern BOOL cmdlineSave;
-extern BOOL cmdlineNoGui;
 #endif

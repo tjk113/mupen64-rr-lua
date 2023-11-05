@@ -137,7 +137,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\Desktop\ini.h" />
+    <ClInclude Include="..\..\main\lib\ini.h" />
+    <ClInclude Include="..\..\main\lib\argh.h" />
     <ClInclude Include="..\..\lua\Recent.h" />
     <ClInclude Include="..\..\main\crypt.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -273,7 +274,7 @@
     <ClCompile Include="..\..\main\zip.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\commandline.c">
+    <ClCompile Include="..\..\main\win\commandline.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>

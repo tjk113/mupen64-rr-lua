@@ -69,10 +69,6 @@ extern "C" {
 
 #pragma comment (lib,"Gdiplus.lib")
 
-void StartMovies();
-void StartLuaScripts();
-void StartSavestate();
-
 bool ffup = false;
 #if defined(__cplusplus) && !defined(_MSC_VER)
 }
@@ -86,15 +82,11 @@ bool ffup = false;
 #endif
 
 
-static DWORD Id;
-static DWORD gfx_id;
-static DWORD audio_id;
-static DWORD input_id;
-static DWORD rsp_id;
-static DWORD SOUNDTHREADID;
-static DWORD start_rom_id;
-static DWORD close_rom_id;
-static HANDLE SoundThreadHandle;
+DWORD emu_id;
+DWORD start_rom_id;
+DWORD close_rom_id;
+DWORD audio_thread_id;
+HANDLE sound_thread_handle;
 static BOOL FullScreenMode = 0;
 
 HANDLE loading_handle[4];
@@ -201,7 +193,7 @@ void resumeEmu(BOOL quiet)
 	if (emu_launched)
 	{
 		emu_paused = 0;
-		ResumeThread(SoundThreadHandle);
+		ResumeThread(sound_thread_handle);
 		if (!quiet)
 			statusbar_post_text("Emulation started");
 	}
@@ -225,7 +217,7 @@ void pauseEmu(BOOL quiet)
 		emu_paused = 1;
 		if (!quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
-			SuspendThread(SoundThreadHandle);
+			SuspendThread(sound_thread_handle);
 		if (!quiet)
 			statusbar_post_text("Emulation paused");
 	} else
@@ -306,7 +298,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	rsp_thread.join();
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &Id);
+	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &emu_id);
 
 	return 1;
 }
@@ -420,7 +412,7 @@ void resetEmu()
 		frame_advancing = false;
 		really_restart_mode = TRUE;
 		MenuPaused = FALSE;
-		CreateThread(NULL, 0, close_rom, NULL, 0, &Id);
+		CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id);
 	}
 }
 
@@ -1196,13 +1188,16 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	emu_paused = 0;
 	emu_launched = 1;
 
-	SoundThreadHandle = CreateThread(NULL, 0, SoundThread, NULL, 0,
-				                         &SOUNDTHREADID);
+	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
+				                         &audio_thread_id);
 	printf("Emu thread: Emulation started....\n");
-	StartMovies();
-	StartSavestate();
+
+	// start movies, st and lua scripts
+	// StartMovies();
+	// StartSavestate();
+	// StartLuaScripts();
+
 	AtResetLuaCallback();
-	StartLuaScripts();
 	if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
 	{
 		while (emu_paused)
@@ -1251,17 +1246,11 @@ void exit_emu(int postquit)
 
 	if (postquit)
 	{
-		if (!cmdlineMode || cmdlineSave)
-		{
-			ini_updateFile();
-			// TODO: reimplement
-			// if (!cmdlineNoGui)
-			// 	SaveRomBrowserCache();
-		}
+		ini_updateFile();
 		ini_closeFile();
 	} else
 	{
-		CreateThread(NULL, 0, close_rom, NULL, 0, &Id);
+		CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id);
 	}
 
 	if (postquit)
@@ -1420,60 +1409,6 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 	}
 }
 
-
-LRESULT CALLBACK NoGuiWndProc(HWND hwnd, UINT Message, WPARAM wParam,
-                              LPARAM lParam)
-{
-	switch (Message)
-	{
-	case WM_EXECUTE_DISPATCHER:
-		main_dispatcher_process();
-		break;
-	case WM_KEYDOWN:
-		switch (wParam)
-		{
-		case VK_TAB:
-			fast_forward = 1;
-			break;
-		default:
-			break;
-		}
-		if (emu_launched) keyDown(wParam, lParam);
-		break;
-	case WM_KEYUP:
-		switch (wParam)
-		{
-		case VK_TAB:
-			fast_forward = 0;
-			break;
-		case VK_ESCAPE:
-			exit_emu(1);
-			break;
-		default:
-			break;
-		}
-		if (emu_launched) keyUp(wParam, lParam);
-		break;
-	case WM_MOVE:
-		if (emu_launched && !FullScreenMode)
-		{
-			moveScreen((int)wParam, lParam);
-		}
-		rombrowser_update_size();
-		break;
-	case WM_USER + 17: SetFocus(mainHWND);
-		break;
-	case WM_CLOSE:
-		exit_emu(1);
-		break;
-
-	default:
-		return DefWindowProc(hwnd, Message, wParam, lParam);
-	}
-	return TRUE;
-}
-
-
 DWORD WINAPI UnpauseEmuAfterMenu(LPVOID lpParam)
 {
 	Sleep(60); // Wait for another thread to clear MenuPaused
@@ -1513,7 +1448,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
 				strcpy(rom_path, fname);
-				CreateThread(NULL, 0, start_rom, nullptr, 0, &Id);
+				CreateThread(NULL, 0, start_rom, nullptr, 0, &start_rom_id);
 			} else if (extension == ".m64")
 			{
 				if (!emu_launched) break;
@@ -1637,6 +1572,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
+		commandline_load_rom();
 		return TRUE;
 	case WM_TIMER:
 		AtUpdateScreenLuaCallback();
@@ -1758,7 +1694,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (emu_launched)
 				{
 					//close_rom(&Id);
-					CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &Id);
+					CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &close_rom_id);
 
 				}
 				break;
@@ -1946,7 +1882,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (!path.empty())
 					{
 						strcpy(rom_path, wstring_to_string(path).c_str());
-						CreateThread(nullptr, 0, start_rom, nullptr, NULL, &Id);
+						CreateThread(nullptr, 0, start_rom, nullptr, NULL, &start_rom_id);
 					}
 
 					if (wasMenuPaused)
@@ -2261,95 +2197,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	return TRUE;
 }
 
-//starts m64 and avi
-//this is called from game thread because otherwise gfx plugin tries to resize window,
-//but main thread waits for game thread to finish loading, and hangs.
-void StartMovies()
-{
-	//-m64, -g
-	HMENU hMenu = GetMenu(mainHWND);
-	printf("------thread done------\n");
-	if (CmdLineParameterExist(CMDLINE_PLAY_M64) && CmdLineParameterExist(
-		CMDLINE_GAME_FILENAME))
-	{
-		char file[MAX_PATH];
-		GetCmdLineParameter(CMDLINE_PLAY_M64, file);
-		//not reading author nor description atm
-		VCR_setReadOnly(TRUE);
-		VCR_startPlayback(file, "", "");
-		if (CmdLineParameterExist(CMDLINE_CAPTURE_AVI))
-		{
-			GetCmdLineParameter(CMDLINE_CAPTURE_AVI, file);
-			if (VCR_startCapture(0, file, false) < 0)
-			{
-				MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
-			} else
-			{
-				gStopAVI = true;
-				SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0,
-				             SWP_NOMOVE | SWP_NOSIZE); //Set on top
-				EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
-				EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
-				EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
-				EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-				statusbar_post_text("Recording AVI");
-			}
-		}
-		resumeEmu(FALSE);
-	}
-}
-
-//-lua, -g
-// runs multiple lua scripts with paths seperated by ;
-// Ex: "path\script1.lua;path\script2.lua"
-// From testing only works with 2 scripts ?
-void StartLuaScripts()
-{
-	HMENU hMenu = GetMenu(mainHWND);
-	if (CmdLineParameterExist(CMDLINE_LUA) && CmdLineParameterExist(
-		CMDLINE_GAME_FILENAME))
-	{
-		char files[MAX_PATH];
-		GetCmdLineParameter(CMDLINE_LUA, files);
-		int len = (int)strlen(files);
-		int numScripts = 1;
-		int scriptStartPositions[MAX_LUA_OPEN_AND_RUN_INSTANCES] = {0};
-		for (int i = 0; i < len; ++i)
-		{
-			if (files[i] == ';')
-			{
-				files[i] = 0; // turn ; into \0 so we can copy each part easily
-				scriptStartPositions[numScripts] = i + 1;
-				++numScripts;
-				if (numScripts >= MAX_LUA_OPEN_AND_RUN_INSTANCES)
-				{
-					break;
-				}
-			}
-		}
-		char file[MAX_PATH];
-		for (int i = 0; i < numScripts; ++i)
-		{
-			strcpy(file, &files[scriptStartPositions[i]]);
-			lua_create_and_run(file, false);
-		}
-	}
-}
-
-//-st, -g
-void StartSavestate()
-{
-	HMENU hMenu = GetMenu(mainHWND);
-	if (CmdLineParameterExist(CMDLINE_SAVESTATE) && CmdLineParameterExist(
-			CMDLINE_GAME_FILENAME)
-		&& !CmdLineParameterExist(CMDLINE_PLAY_M64))
-	{
-		char file[MAX_PATH];
-		GetCmdLineParameter(CMDLINE_SAVESTATE, file);
-		savestates_do(file, e_st_job::load);
-	}
-}
-
 // Loads various variables from the current config state
 void LoadConfigExternals()
 {
@@ -2392,18 +2239,18 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-// #ifdef _DEBUG
+	// #ifdef _DEBUG
 	AllocConsole();
 	FILE* f = 0;
 	freopen_s(&f, "CONIN$", "r", stdin);
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
-// #endif
+	// #endif
 
 	app_path = get_app_full_path();
 	app_instance = hInstance;
- 	SaveCmdLineParameter(lpCmdLine);
-	printf("cmd: \"%s\"\n", lpCmdLine);
+
+	commandline_set();
 	ini_openFile();
 
 	// ensure folders exist!
@@ -2424,149 +2271,109 @@ int WINAPI WinMain(
 
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.hInstance = hInstance;
-	wc.hIcon = LoadIcon(
-			GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONBIG));
-	wc.hIconSm = LoadIcon(
-		GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_M64ICONSMALL));
+	wc.hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_M64ICONBIG));
+	wc.hIconSm = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_M64ICONSMALL));
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.lpszClassName = g_szClassName;
+	wc.lpfnWndProc = WndProc;
+	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wc.lpszMenuName = MAKEINTRESOURCE(IDR_MYMENU);
 
-	if (GuiDisabled())
+	RegisterClassEx(&wc);
+
+	HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
+
+	hwnd = CreateWindowEx(
+		0,
+		g_szClassName,
+		MUPEN_VERSION,
+		WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
+		Config.window_x, Config.window_y, Config.window_width,
+		Config.window_height,
+		NULL, NULL, hInstance, NULL);
+
+	mainHWND = hwnd;
+	ShowWindow(hwnd, nCmdShow);
+
+	// This fixes offscreen recording issue
+	SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
+	//this can't be applied before ShowWindow(), otherwise you must use some fancy function
+
+	update_menu_hotkey_labels();
+	toolbar_set_visibility(Config.is_toolbar_enabled);
+	statusbar_set_visibility(Config.is_statusbar_enabled);
+	setup_dummy_info();
+	rombrowser_create();
+	rombrowser_build();
+	rombrowser_update_size();
+
+	vcr_recent_movies_build();
+	lua_recent_scripts_build();
+	main_recent_roms_build();
+
+	EnableEmulationMenuItems(0);
+	LoadConfigExternals();
+
+	//warning, this is ignored when debugger is attached (like visual studio)
+	SetUnhandledExceptionFilter(ExceptionReleaseTarget);
+
+	// raise noncontinuable exception (impossible to recover from it)
+	//RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
+	//
+	// raise continuable exception
+	//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
 	{
-		wc.lpfnWndProc = NoGuiWndProc;
-		wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-
-		RegisterClassEx(&wc);
-
-		hwnd = CreateWindowEx(
-			0,
-			g_szClassName,
-			MUPEN_VERSION,
-			WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
-			Config.window_x, Config.window_y, Config.window_width,
-			Config.window_height,
-			NULL, NULL, hInstance, NULL);
-
-		mainHWND = hwnd;
-		ShowWindow(hwnd, nCmdShow);
-
-		UpdateWindow(hwnd);
-
-		StartGameByCommandLine();
-
-		while (GetMessage(&msg, NULL, 0, 0) > 0)
+		if (!TranslateAccelerator(mainHWND, accelerators, &msg))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-	}
-	else
-	{
-		wc.lpfnWndProc = WndProc;
-		wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-		wc.lpszMenuName = MAKEINTRESOURCE(IDR_MYMENU);
 
-		RegisterClassEx(&wc);
-
-		HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
-
-		hwnd = CreateWindowEx(
-			0,
-			g_szClassName,
-			MUPEN_VERSION,
-			WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
-			Config.window_x, Config.window_y, Config.window_width,
-			Config.window_height,
-			NULL, NULL, hInstance, NULL);
-
-		mainHWND = hwnd;
-		ShowWindow(hwnd, nCmdShow);
-
-		// This fixes offscreen recording issue
-		SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
-		//this can't be applied before ShowWindow(), otherwise you must use some fancy function
-
-		update_menu_hotkey_labels();
-		toolbar_set_visibility(Config.is_toolbar_enabled);
-		statusbar_set_visibility(Config.is_statusbar_enabled);
-		setup_dummy_info();
-		rombrowser_create();
-		rombrowser_build();
-		rombrowser_update_size();
-
-		vcr_recent_movies_build();
-		lua_recent_scripts_build();
-		main_recent_roms_build();
-
-		EnableEmulationMenuItems(0);
-
-		if (!StartGameByCommandLine())
+		for (t_hotkey* hotkey : hotkeys)
 		{
-			cmdlineMode = 0;
-		}
-
-		LoadConfigExternals();
-
-		//warning, this is ignored when debugger is attached (like visual studio)
-		SetUnhandledExceptionFilter(ExceptionReleaseTarget);
-
-		// raise noncontinuable exception (impossible to recover from it)
-		//RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
-		//
-		// raise continuable exception
-		//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
-
-		while (GetMessage(&msg, NULL, 0, 0) > 0)
-		{
-			if (!TranslateAccelerator(mainHWND, accelerators, &msg))
+			// modifier-only checks, cannot be obtained through windows messaging...
+			if (!hotkey->key && (hotkey->shift || hotkey->ctrl || hotkey->alt))
 			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-
-			for (t_hotkey* hotkey : hotkeys)
-			{
-				// modifier-only checks, cannot be obtained through windows messaging...
-				if (!hotkey->key && (hotkey->shift || hotkey->ctrl || hotkey->alt))
+				// special treatment for fast-forward
+				if (hotkey->identifier == Config.fast_forward_hotkey.identifier)
 				{
-					// special treatment for fast-forward
-					if (hotkey->identifier == Config.fast_forward_hotkey.identifier)
+					if (!frame_advancing)
 					{
-						if (!frame_advancing)
-						{
-							// dont allow fastforward+frameadvance
-							if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
-								hotkey->shift
-								&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0)
-								== hotkey->ctrl
-								&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
-								hotkey->alt)
-							{
-								fast_forward = 1;
-							} else
-							{
-								fast_forward = 0;
-							}
-						}
-						continue;
-					}
-					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
+						// dont allow fastforward+frameadvance
+						if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
 							hotkey->shift
-							&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
-							hotkey->ctrl
+							&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0)
+							== hotkey->ctrl
 							&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
 							hotkey->alt)
-					{
-						SendMessage(hwnd, WM_COMMAND, hotkey->command,
-									0);
+						{
+							fast_forward = 1;
+						} else
+						{
+							fast_forward = 0;
+						}
 					}
-
-			}
+					continue;
+				}
+				if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
+						hotkey->shift
+						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
+						hotkey->ctrl
+						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
+						hotkey->alt)
+				{
+					SendMessage(hwnd, WM_COMMAND, hotkey->command,
+								0);
+				}
 
 			}
 
 		}
+
 	}
+
 
 	return (int)msg.wParam;
 }

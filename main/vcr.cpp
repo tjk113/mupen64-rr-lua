@@ -158,20 +158,12 @@ char* strtrimext(char* myStr)
 
 void printWarning(const char* str)
 {
-	extern BOOL cmdlineNoGui;
-	if (cmdlineNoGui)
-		printf("Warning: %s\n", str);
-	else
-		MessageBox(NULL, str, "Warning", MB_OK | MB_ICONWARNING);
+	MessageBox(NULL, str, "Warning", MB_OK | MB_ICONWARNING);
 }
 
 void printError(const char* str)
 {
-	extern BOOL cmdlineNoGui;
-	if (cmdlineNoGui)
-		fprintf(stderr, "Error: %s\n", str);
-	else
-		MessageBox(NULL, str, "Error", MB_OK | MB_ICONERROR);
+	MessageBox(NULL, str, "Error", MB_OK | MB_ICONERROR);
 }
 
 
@@ -997,11 +989,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 			if (gStopAVI && VCR_isCapturing())
 			{
 				VCR_stopCapture();
-				extern BOOL GuiDisabled();
-				if (GuiDisabled())
-					SendMessage(mainHWND, WM_CLOSE, 0, 0);
-				else
-					SendMessage(mainHWND, WM_COMMAND, ID_EMULATOR_EXIT, 0);
+				SendMessage(mainHWND, WM_COMMAND, ID_EMULATOR_EXIT, 0);
 			}
 			BUTTONS zero = {0};
 			setKeys(Control, zero);
