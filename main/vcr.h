@@ -1,10 +1,6 @@
 #ifndef VCR_H_
 #define VCR_H_
 
-//#include "../config.h"
-
-#ifdef VCR_SUPPORT
-
 # include <Windows.h>
 
 #include "plugin.hpp"
@@ -290,7 +286,5 @@ extern e_task m_task;
 extern t_movie_header VCR_getHeaderInfo(const char* filename);
 extern char VCR_Lastpath[MAX_PATH];
 extern uint64_t screen_updates;
-
-#endif // VCR_SUPPORT
 
 #endif // VCR_H_

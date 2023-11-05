@@ -1,6 +1,5 @@
 //#include "../config.h"
 
-#ifdef VCR_SUPPORT
 
 #ifndef __VCR_RESAMPLE__
 #define __VCR_RESAMPLE__
@@ -14,4 +13,3 @@ int VCR_getResampleLen(int dst_freq, int src_freq, int src_bitrate,
 
 #endif // __VCR_RESAMPLE__
 
-#endif // VCR_SUPPORT

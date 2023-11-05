@@ -5,7 +5,6 @@
 #include "win/timers.h"
 #include "win/features/Statusbar.hpp"
 #include "win/features/Toolbar.hpp"
-#ifdef VCR_SUPPORT
 
 #include "../lua/LuaConsole.h"
 
@@ -2333,5 +2332,3 @@ int32_t vcr_recent_movies_play(uint16_t menu_item_id)
 	}
 	return 0;
 }
-
-#endif // VCR_SUPPORT

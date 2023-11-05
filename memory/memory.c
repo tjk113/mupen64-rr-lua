@@ -2663,11 +2663,7 @@ void write_ai()
     {
     case 0x4:
         ai_register.ai_len = word;
-#ifndef VCR_SUPPORT
-			aiLenChanged();
-#else
         VCR_aiLenChanged();
-#endif
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2733,21 +2729,13 @@ void write_ai()
             case 0x55:
             case 0x58:
             case 0x59:
-#ifndef VCR_SUPPORT
-						aiDacrateChanged(system_type::pal);
-#else
                 VCR_aiDacrateChanged(system_type::pal);
-#endif
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-#ifndef VCR_SUPPORT
-						aiDacrateChanged(system_type::ntsc);
-#else
                 VCR_aiDacrateChanged(system_type::ntsc);
-#endif
                 break;
             }
         }
@@ -2771,11 +2759,7 @@ void write_aib()
         *((unsigned char*)&temp
             + ((*address_low & 3) ^ S8)) = g_byte;
         ai_register.ai_len = temp;
-#ifndef VCR_SUPPORT
-			aiLenChanged();
-#else
         VCR_aiLenChanged();
-#endif
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2842,21 +2826,13 @@ void write_aib()
             case 0x55:
             case 0x58:
             case 0x59:
-#ifndef VCR_SUPPORT
-						aiDacrateChanged(system_type::pal);
-#else
                 VCR_aiDacrateChanged(system_type::pal);
-#endif
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-#ifndef VCR_SUPPORT
-						aiDacrateChanged(system_type::ntsc);
-#else
                 VCR_aiDacrateChanged(system_type::ntsc);
-#endif
                 break;
             }
         }
@@ -2879,11 +2855,7 @@ void write_aih()
         *((unsigned short*)((unsigned char*)&temp
             + ((*address_low & 3) ^ S16))) = hword;
         ai_register.ai_len = temp;
-#ifndef VCR_SUPPORT
-			aiLenChanged();
-#else
         VCR_aiLenChanged();
-#endif
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2946,21 +2918,13 @@ void write_aih()
             case 0x55:
             case 0x58:
             case 0x59:
-#ifndef VCR_SUPPORT
-						aiDacrateChanged(system_type::pal);
-#else
                 VCR_aiDacrateChanged(system_type::pal);
-#endif
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-#ifndef VCR_SUPPORT
-						aiDacrateChanged(system_type::ntsc);
-#else
                 VCR_aiDacrateChanged(system_type::ntsc);
-#endif
                 break;
             }
         }
@@ -2979,11 +2943,7 @@ void write_aid()
     case 0x0:
         ai_register.ai_dram_addr = dword >> 32;
         ai_register.ai_len = dword & 0xFFFFFFFF;
-#ifndef VCR_SUPPORT
-			aiLenChanged();
-#else
         VCR_aiLenChanged();
-#endif
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -3042,21 +3002,13 @@ void write_aid()
             case 0x55:
             case 0x58:
             case 0x59:
-#ifndef VCR_SUPPORT
-						aiDacrateChanged(system_type::pal);
-#else
                 VCR_aiDacrateChanged(system_type::pal);
-#endif
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-#ifndef VCR_SUPPORT
-						aiDacrateChanged(system_type::ntsc);
-#else
                 VCR_aiDacrateChanged(system_type::ntsc);
-#endif
                 break;
             }
         }

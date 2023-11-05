@@ -191,11 +191,7 @@ void internal_ReadController(int Control, BYTE* Command)
         if (Controls[Control].Present)
         {
             BUTTONS Keys;
-#ifdef VCR_SUPPORT
             VCR_getKeys(Control, &Keys);
-#else
-				getKeys(Control, &Keys);
-#endif
             *((unsigned long*)(Command + 3)) = Keys.Value;
 #ifdef COMPARE_CORE
 				check_input_sync(Command + 3);
@@ -531,9 +527,7 @@ void update_pif_read(bool stcheck)
                     controllerRead = channel;
                     if (Controls[channel].Present &&
                         Controls[channel].RawData
-#ifdef VCR_SUPPORT
                         && VCR_isIdle()
-#endif
                     )
                     {
                         readController(channel, &PIF_RAMb[i]);

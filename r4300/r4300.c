@@ -1859,7 +1859,5 @@ void go()
     }
     if (!dynacore && interpcore) free(PC);
 
-#ifdef VCR_SUPPORT
     VCR_coreStopped();
-#endif
 }

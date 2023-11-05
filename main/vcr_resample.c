@@ -1,5 +1,4 @@
 //#include "../config.h"
-#ifdef VCR_SUPPORT
 
 #include "vcr_resample.h"
 #include "speex/speex_resampler.h"
@@ -78,5 +77,3 @@ VCR_resample(short** dst, int dst_freq,
     *dst = out_samps;
     return (int)out_pos * 4;
 }
-
-#endif // VCR_SUPPORT
