@@ -28,3 +28,9 @@ static int32_t get_primary_monitor_refresh_rate() {
 
 	return dm.dmDisplayFrequency;
 }
+
+static void read_combo_box_value(const HWND hwnd, const int resource_id, char* ret)
+{
+	int index = SendDlgItemMessage(hwnd, resource_id, CB_GETCURSEL, 0, 0);
+	SendDlgItemMessage(hwnd, resource_id, CB_GETLBTEXT, index, (LPARAM)ret);
+}

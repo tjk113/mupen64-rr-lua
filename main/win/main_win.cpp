@@ -1803,7 +1803,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					{
 						pauseEmu(FALSE);
 					}
-					ChangeSettings(hwnd);
+					configdialog_show();
 					if (emu_launched && emu_paused && !wasPaused)
 					{
 						resumeEmu(FALSE);
@@ -1814,9 +1814,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
-					DialogBox(GetModuleHandle(NULL),
-						MAKEINTRESOURCE(IDD_ABOUT), hwnd,
-						AboutDlgProc);
+					configdialog_about();
 					if (wasMenuPaused)
 					{
 						resumeEmu(TRUE);

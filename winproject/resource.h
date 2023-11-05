@@ -419,8 +419,6 @@
 #define ID_LUA_RECENT_FREEZE            40014
 #define IDD_OTHER_OPTIONS_DIALOG        40015
 #define IDC_OTHEROPTIONS                40016
-#define IDC_MOVIEBACKUPS                40020
-#define ID_MOVIEBACKUP_TRACKBAR         40021
 #define ID_FORCESAVE                    40022
 #define IDB_LOGO_BW                     40029
 #define IDD_GAMEDEBUGGERDIALOG          40031

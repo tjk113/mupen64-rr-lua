@@ -46,15 +46,6 @@
 #include "features/Statusbar.hpp"
 #include "features/Toolbar.hpp"
 
-#ifdef _MSC_VER
-#define snprintf	_snprintf
-#define strcasecmp	_stricmp
-#define strncasecmp	_strnicmp
-#endif
-
-static DWORD dwExitCode;
-static DWORD Id;
-
 std::vector<t_plugin*> available_plugins;
 
 BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -119,32 +110,19 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
                 Config.synchronization_mode = VCR_SYNC_NONE;
                 break;
             case IDC_COMBO_CLOCK_SPD_MULT:
-                ReadComboBoxValue(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
+                read_combo_box_value(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
                 Config.cpu_clock_speed_multiplier = atoi(&buf[0]);
                 break;
+            case IDC_ALERTMOVIESERRORS:
+            	Config.is_rom_movie_compatibility_check_enabled = get_checkbox_state(hwnd, IDC_ALERTMOVIESERRORS);
+            	printf("%d\n", Config.is_rom_movie_compatibility_check_enabled);
+            	break;
             default:
                 break;
             }
 
             break;
         }
-
-    case WM_NOTIFY:
-        {
-            if (l_nmhdr->code == NM_RELEASEDCAPTURE)
-            {
-                // could potentially show value here, if necessary
-            }
-
-            if (l_nmhdr->code == PSN_APPLY)
-            {
-                Config.is_rom_movie_compatibility_check_enabled = get_checkbox_state(hwnd, IDC_ALERTMOVIESERRORS);
-                rombrowser_build();
-                LoadConfigExternals();
-            }
-        }
-        break;
-
     default:
         return FALSE;
     }
@@ -152,113 +130,6 @@ BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lP
 }
 
 
-void WriteComboBoxValue(HWND hwnd, int ResourceID, char* PrimaryVal, char* DefaultVal)
-{
-    int index;
-    index = SendDlgItemMessage(hwnd, ResourceID, CB_FINDSTRINGEXACT, 0, (LPARAM)PrimaryVal);
-    if (index != CB_ERR)
-    {
-        SendDlgItemMessage(hwnd, ResourceID, CB_SETCURSEL, index, 0);
-        return;
-    }
-    index = SendDlgItemMessage(hwnd, ResourceID, CB_FINDSTRINGEXACT, 0, (LPARAM)DefaultVal);
-    if (index != CB_ERR)
-    {
-        SendDlgItemMessage(hwnd, ResourceID, CB_SETCURSEL, index, 0);
-        return;
-    }
-    SendDlgItemMessage(hwnd, ResourceID, CB_SETCURSEL, 0, 0);
-}
-
-void ReadComboBoxValue(HWND hwnd, int ResourceID, char* ret)
-{
-    int index;
-    index = SendDlgItemMessage(hwnd, ResourceID, CB_GETCURSEL, 0, 0);
-    SendDlgItemMessage(hwnd, ResourceID, CB_GETLBTEXT, index, (LPARAM)ret);
-}
-
-void ChangeSettings(HWND hwndOwner)
-{
-    PROPSHEETPAGE psp[6]{};
-    PROPSHEETHEADER psh{};
-
-    psp[0].dwSize = sizeof(PROPSHEETPAGE);
-    psp[0].dwFlags = PSP_USETITLE;
-    psp[0].hInstance = app_instance;
-    psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
-    psp[0].pfnDlgProc = PluginsCfg;
-    psp[0].pszTitle = "Plugins";
-    psp[0].lParam = 0;
-    psp[0].pfnCallback = NULL;
-
-    psp[1].dwSize = sizeof(PROPSHEETPAGE);
-    psp[1].dwFlags = PSP_USETITLE;
-    psp[1].hInstance = app_instance;
-    psp[1].pszTemplate = MAKEINTRESOURCE(IDD_DIRECTORIES);
-    psp[1].pfnDlgProc = DirectoriesCfg;
-    psp[1].pszTitle = "Directories";
-    psp[1].lParam = 0;
-    psp[1].pfnCallback = NULL;
-
-    psp[2].dwSize = sizeof(PROPSHEETPAGE);
-    psp[2].dwFlags = PSP_USETITLE;
-    psp[2].hInstance = app_instance;
-    psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
-    psp[2].pfnDlgProc = GeneralCfg;
-    psp[2].pszTitle = "General";
-    psp[2].lParam = 0;
-    psp[2].pfnCallback = NULL;
-
-    psp[3].dwSize = sizeof(PROPSHEETPAGE);
-    psp[3].dwFlags = PSP_USETITLE;
-    psp[3].hInstance = app_instance;
-    psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
-    psp[3].pfnDlgProc = AdvancedSettingsProc;
-    psp[3].pszTitle = "Advanced";
-    psp[3].lParam = 0;
-    psp[3].pfnCallback = NULL;
-
-    psp[4].dwSize = sizeof(PROPSHEETPAGE);
-    psp[4].dwFlags = PSP_USETITLE;
-    psp[4].hInstance = app_instance;
-    psp[4].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
-    psp[4].pfnDlgProc = HotkeysProc;
-    psp[4].pszTitle = "Hotkeys";
-    psp[4].lParam = 0;
-    psp[4].pfnCallback = NULL;
-
-    psp[5].dwSize = sizeof(PROPSHEETPAGE);
-    psp[5].dwFlags = PSP_USETITLE;
-    psp[5].hInstance = app_instance;
-    psp[5].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
-    psp[5].pfnDlgProc = OtherOptionsProc;
-    psp[5].pszTitle = "Other";
-    psp[5].lParam = 0;
-    psp[5].pfnCallback = NULL;
-
-    psh.dwSize = sizeof(PROPSHEETHEADER);
-    psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
-    psh.hwndParent = hwndOwner;
-    psh.hInstance = app_instance;
-    psh.pszCaption = "Settings";
-    psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
-    psh.nStartPage = 0;
-    psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-    psh.pfnCallback = NULL;
-
-    CONFIG old_config = Config;
-
-    const auto applied = PropertySheet(&psh);
-
-    if (!applied)
-    {
-        Config = old_config;
-    }
-    save_config();
-
-    rombrowser_build();
-    update_menu_hotkey_labels();
-}
 
 
 BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -296,6 +167,13 @@ BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam
         return FALSE;
     }
     return TRUE;
+}
+
+void configdialog_about()
+{
+	DialogBox(GetModuleHandle(NULL),
+						MAKEINTRESOURCE(IDD_ABOUT), mainHWND,
+						AboutDlgProc);
 }
 
 void build_rom_browser_path_list(HWND dialog_hwnd)
@@ -917,3 +795,87 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     }
     return TRUE;
 }
+
+void configdialog_show()
+{
+    PROPSHEETPAGE psp[6]{};
+
+    psp[0].dwSize = sizeof(PROPSHEETPAGE);
+    psp[0].dwFlags = PSP_USETITLE;
+    psp[0].hInstance = app_instance;
+    psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
+    psp[0].pfnDlgProc = PluginsCfg;
+    psp[0].pszTitle = "Plugins";
+    psp[0].lParam = 0;
+    psp[0].pfnCallback = NULL;
+
+    psp[1].dwSize = sizeof(PROPSHEETPAGE);
+    psp[1].dwFlags = PSP_USETITLE;
+    psp[1].hInstance = app_instance;
+    psp[1].pszTemplate = MAKEINTRESOURCE(IDD_DIRECTORIES);
+    psp[1].pfnDlgProc = DirectoriesCfg;
+    psp[1].pszTitle = "Directories";
+    psp[1].lParam = 0;
+    psp[1].pfnCallback = NULL;
+
+    psp[2].dwSize = sizeof(PROPSHEETPAGE);
+    psp[2].dwFlags = PSP_USETITLE;
+    psp[2].hInstance = app_instance;
+    psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
+    psp[2].pfnDlgProc = GeneralCfg;
+    psp[2].pszTitle = "General";
+    psp[2].lParam = 0;
+    psp[2].pfnCallback = NULL;
+
+    psp[3].dwSize = sizeof(PROPSHEETPAGE);
+    psp[3].dwFlags = PSP_USETITLE;
+    psp[3].hInstance = app_instance;
+    psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
+    psp[3].pfnDlgProc = AdvancedSettingsProc;
+    psp[3].pszTitle = "Advanced";
+    psp[3].lParam = 0;
+    psp[3].pfnCallback = NULL;
+
+    psp[4].dwSize = sizeof(PROPSHEETPAGE);
+    psp[4].dwFlags = PSP_USETITLE;
+    psp[4].hInstance = app_instance;
+    psp[4].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
+    psp[4].pfnDlgProc = HotkeysProc;
+    psp[4].pszTitle = "Hotkeys";
+    psp[4].lParam = 0;
+    psp[4].pfnCallback = NULL;
+
+    psp[5].dwSize = sizeof(PROPSHEETPAGE);
+    psp[5].dwFlags = PSP_USETITLE;
+    psp[5].hInstance = app_instance;
+    psp[5].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
+    psp[5].pfnDlgProc = OtherOptionsProc;
+    psp[5].pszTitle = "Other";
+    psp[5].lParam = 0;
+    psp[5].pfnCallback = NULL;
+
+	PROPSHEETHEADER psh = {0};
+    psh.dwSize = sizeof(PROPSHEETHEADER);
+    psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
+    psh.hwndParent = mainHWND;
+    psh.hInstance = app_instance;
+    psh.pszCaption = "Settings";
+    psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
+    psh.nStartPage = 0;
+    psh.ppsp = (LPCPROPSHEETPAGE)&psp;
+    psh.pfnCallback = nullptr;
+
+    CONFIG old_config = Config;
+
+    if (!PropertySheet(&psh))
+    {
+        Config = old_config;
+    }
+
+    save_config();
+    rombrowser_build();
+    update_menu_hotkey_labels();
+}
+
+
+

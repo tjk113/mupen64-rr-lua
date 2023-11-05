@@ -225,7 +225,6 @@ IDD_OTHER_OPTIONS_DIALOG DIALOGEX 0, 0, 231, 273
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "Automatic movie backups",IDC_MOVIEBACKUPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,12,132,10
     CONTROL         "No Synchronisation",IDC_AV_NOSYNC,"Button",BS_AUTORADIOBUTTON,18,54,120,8
     CONTROL         "Audio-Authoritative Synchronisation",IDC_AV_AUDIOSYNC,
                     "Button",BS_AUTORADIOBUTTON,18,66,132,8
