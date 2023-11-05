@@ -40,7 +40,6 @@
 
 #include "rom.h"
 #include "../memory/memory.h"
-#include "unzip.h"
 #include "guifuncs.h"
 #include "md5.h"
 #include "guifuncs.h"
