@@ -47,7 +47,6 @@ extern "C" {
 #include "main_win.h"
 #include "configdialog.h"
 #include "../guifuncs.h"
-#include "../mupenIniApi.h"
 #include "../savestates.h"
 #include "timers.h"
 #include "config.hpp"
@@ -1197,6 +1196,15 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	commandline_start_lua();
 	commandline_start_movie();
 
+	// HACK:
+	// starting capture immediately won't work, since sample rate will change at game startup, thus terminating the capture
+	// as a workaround, we wait a bit before starting the capture
+	std::thread([]
+	{
+		Sleep(1000);
+		commandline_start_capture();
+	}).detach();
+
 	AtResetLuaCallback();
 	if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
 	{
@@ -1244,20 +1252,13 @@ void exit_emu(int postquit)
 {
 	save_config();
 
-	if (postquit)
-	{
-		ini_updateFile();
-		ini_closeFile();
-	} else
+	if (!postquit)
 	{
 		CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id);
 	}
 
 	if (postquit)
 	{
-		// TODO: reimplement
-		// freeRomDirList();
-		// freeRomList();
 		KillTimer(mainHWND, update_screen_timer);
 		Gdiplus::GdiplusShutdown(gdiPlusToken);
 		PostQuitMessage(0);
@@ -1677,9 +1678,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				close_all_scripts();
 				break;
 			case ID_FORCESAVE:
-				ini_updateFile();
 				save_config();
-				ini_closeFile();
 				break;
 			case ID_TRACELOG:
 				// keep if check just in case user manages to screw with mupen config or something
@@ -1805,7 +1804,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						pauseEmu(FALSE);
 					}
 					ChangeSettings(hwnd);
-					ini_updateFile();
 					if (emu_launched && emu_paused && !wasPaused)
 					{
 						resumeEmu(FALSE);
@@ -2251,7 +2249,6 @@ int WINAPI WinMain(
 	app_instance = hInstance;
 
 	commandline_set();
-	ini_openFile();
 
 	// ensure folders exist!
 	CreateDirectory((app_path + "save").c_str(), NULL);

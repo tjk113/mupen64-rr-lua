@@ -42,4 +42,9 @@ void commandline_load_st();
  */
 void commandline_start_movie();
 
+/**
+ * \brief Start the commandline-specified AVI capture
+ */
+void commandline_start_capture();
+
 #endif

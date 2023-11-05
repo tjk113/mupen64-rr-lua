@@ -32,22 +32,14 @@ std::string commandline_rom;
 std::string commandline_lua;
 std::string commandline_st;
 std::string commandline_movie;
+std::string commandline_avi;
 
-//To get a command line parameter if available, please pass a flag
 // Flags:
-//	"-v"	-> return video plugin name
-//	"-a"	-> return audio plugin name
-//  "-c"	-> return controller plugin name
-//  "-g"	-> return game name to run
-//	"-f"	-> return play-in-full-screen flag
-//	"-r"	-> return rom path
-//  "-nogui"-> nogui mode
-//  "-save" -> save options on exit
-
-//  "-m64"  -> play m64 from path, requires -g
-//  "-avi"  -> capture m64 to avi, requires -m64
-//  "-lua"  -> play a lua script from path, requires -g
-//  "-st"   -> load a savestate from path, requires -g, cant have -m64
+// --rom Loads rom
+// --movie Plays movie
+// --st Loads savestate
+// --lua Starts lua script
+// --avi Starts capturing AVI
 
 void commandline_set()
 {
@@ -57,6 +49,7 @@ void commandline_set()
 	commandline_lua = cmdl("--lua", "").str();
 	commandline_st = cmdl("--st", "").str();
 	commandline_movie = cmdl("--movie", "").str();
+	commandline_avi = cmdl("--avi", "").str();
 
 	// handle "Open With...":
 	if (cmdl.size() == 2 && cmdl.params().empty())
@@ -104,4 +97,14 @@ void commandline_start_movie()
 	}
 
 	VCR_startPlayback(commandline_movie, nullptr, nullptr);
+}
+
+void commandline_start_capture()
+{
+	if (commandline_avi.empty())
+	{
+		return;
+	}
+
+	VCR_startCapture(nullptr, commandline_avi.c_str(), false);
 }
