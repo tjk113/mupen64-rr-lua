@@ -149,7 +149,7 @@ void TLB_refill_exception(unsigned long address, int w)
         {
             if (interp_addr) skip_jump = interp_addr;
             else skip_jump = PC->addr;
-            next_interupt = 0;
+            next_interrupt = 0;
         }
     }
 }
@@ -226,7 +226,7 @@ void exception_general()
         {
             if (interpcore) skip_jump = interp_addr;
             else skip_jump = PC->addr;
-            next_interupt = 0;
+            next_interrupt = 0;
         }
     }
 }

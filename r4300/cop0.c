@@ -30,7 +30,7 @@
 #include "r4300.h"
 #include "macros.h"
 #include "ops.h"
-#include "interupt.h"
+#include "interrupt.h"
 
 void MFC0()
 {
@@ -80,7 +80,7 @@ void MTC0()
         break;
     case 9: // Count
         update_count();
-        if (next_interupt <= core_Count) gen_interupt();
+        if (next_interrupt <= core_Count) gen_interrupt();
         debug_count += core_Count;
         translate_event_queue(core_rrt & 0xFFFFFFFF);
         core_Count = core_rrt & 0xFFFFFFFF;
@@ -92,9 +92,9 @@ void MTC0()
     case 11: // Compare
         update_count();
         remove_event(COMPARE_INT);
-        add_interupt_event_count(COMPARE_INT, (unsigned long)core_rrt);
+        add_interrupt_event_count(COMPARE_INT, (unsigned long)core_rrt);
         core_Compare = core_rrt;
-        core_Cause = core_Cause & 0xFFFF7FFF; //Timer interupt is clear
+        core_Cause = core_Cause & 0xFFFF7FFF; //Timer interrupt is clear
         break;
     case 12: // Status
         if ((core_rrt & 0x04000000) != (core_Status & 0x04000000))
@@ -125,9 +125,9 @@ void MTC0()
         }
         core_Status = core_rrt;
         PC++;
-        check_interupt();
+        check_interrupt();
         update_count();
-        if (next_interupt <= core_Count) gen_interupt();
+        if (next_interrupt <= core_Count) gen_interrupt();
         PC--;
         break;
     case 13: // Cause

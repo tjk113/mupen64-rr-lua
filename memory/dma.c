@@ -32,7 +32,7 @@
 #include "../main/rom.h"
 #include <stdio.h>
 #include "../r4300/r4300.h"
-#include "../r4300/interupt.h"
+#include "../r4300/interrupt.h"
 #include "../r4300/macros.h"
 #include <malloc.h>
 #include "pif.h"
@@ -102,7 +102,7 @@ void dma_pi_read()
         }
         pi_register.read_pi_status_reg |= 1;
         update_count();
-        add_interupt_event(PI_INT, longueur / 8);
+        add_interrupt_event(PI_INT, longueur / 8);
         return;
     }
     else
@@ -110,7 +110,7 @@ void dma_pi_read()
 
     pi_register.read_pi_status_reg |= 1;
     update_count();
-    add_interupt_event(PI_INT, 0x1000/*pi_register.pi_rd_len_reg*/);
+    add_interrupt_event(PI_INT, 0x1000/*pi_register.pi_rd_len_reg*/);
 }
 
 void dma_pi_write()
@@ -150,7 +150,7 @@ void dma_pi_write()
 
         pi_register.read_pi_status_reg |= 1;
         update_count();
-        add_interupt_event(PI_INT, /*pi_register.pi_wr_len_reg*/0x1000);
+        add_interrupt_event(PI_INT, /*pi_register.pi_wr_len_reg*/0x1000);
 
         return;
     }
@@ -169,7 +169,7 @@ void dma_pi_write()
         }
         pi_register.read_pi_status_reg |= 1;
         update_count();
-        add_interupt_event(PI_INT, longueur / 8);
+        add_interrupt_event(PI_INT, longueur / 8);
         return;
     }
 
@@ -177,7 +177,7 @@ void dma_pi_write()
     {
         pi_register.read_pi_status_reg |= 1;
         update_count();
-        add_interupt_event(PI_INT, 0x1000);
+        add_interrupt_event(PI_INT, 0x1000);
         return;
     }
 
@@ -191,7 +191,7 @@ void dma_pi_write()
     {
         pi_register.read_pi_status_reg |= 3;
         update_count();
-        add_interupt_event(PI_INT, longueur / 8);
+        add_interrupt_event(PI_INT, longueur / 8);
         return;
     }
 
@@ -248,7 +248,7 @@ void dma_pi_write()
 
     pi_register.read_pi_status_reg |= 3;
     update_count();
-    add_interupt_event(PI_INT, longueur / 8);
+    add_interrupt_event(PI_INT, longueur / 8);
     return;
 }
 
@@ -298,7 +298,7 @@ void dma_si_write()
         PIF_RAM[i] = sl(rdram[si_register.si_dram_addr / 4 + i]);
     update_pif_write();
     update_count();
-    add_interupt_event(SI_INT, /*0x100*/0x900);
+    add_interrupt_event(SI_INT, /*0x100*/0x900);
 }
 
 void dma_si_read()
@@ -315,7 +315,7 @@ void dma_si_read()
     if (!st_skip_dma) //st already did this, see savestates.cpp, we still copy pif ram tho because it has new inputs
     {
         update_count();
-        add_interupt_event(SI_INT, /*0x100*/0x900);
+        add_interrupt_event(SI_INT, /*0x100*/0x900);
     }
     st_skip_dma = false;
 }

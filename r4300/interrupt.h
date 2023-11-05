@@ -1,5 +1,5 @@
 /**
- * Mupen64 - interupt.h
+ * Mupen64 - interrupt.h
  * Copyright (C) 2002 Hacktarux
  *
  * Mupen64 homepage: http://mupen64.emulation64.com
@@ -27,20 +27,20 @@
  *
 **/
 
-void compare_interupt();
+void compare_interrupt();
 void gen_dp();
-void init_interupt();
+void init_interrupt();
 
 extern int vi_field;
 extern unsigned long next_vi;
 
-void gen_interupt();
-void check_interupt();
+void gen_interrupt();
+void check_interrupt();
 
 void translate_event_queue(unsigned long base);
 void remove_event(int type);
-void add_interupt_event_count(int type, unsigned long count);
-void add_interupt_event(int type, unsigned long delay);
+void add_interrupt_event_count(int type, unsigned long count);
+void add_interrupt_event(int type, unsigned long delay);
 unsigned long get_event(int type);
 
 int save_eventqueue_infos(char* buf);

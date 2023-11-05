@@ -28,7 +28,7 @@
 **/
 
 #include "r4300.h"
-#include "interupt.h"
+#include "interrupt.h"
 #include "../memory/memory.h"
 #include "ops.h"
 #include "exception.h"
@@ -93,7 +93,7 @@ void JR()
     delay_slot = 0;
     jump_to(local_rs32);
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void JALR()
@@ -113,7 +113,7 @@ void JALR()
         jump_to(local_rs32);
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void SYSCALL()

@@ -46,7 +46,7 @@
 #include "pif.h"
 #include "pif2.h"
 #include "../r4300/r4300.h"
-#include "../r4300/interupt.h"
+#include "../r4300/interrupt.h"
 #include "../main/plugin.hpp"
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"

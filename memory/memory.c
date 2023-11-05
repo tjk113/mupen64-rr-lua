@@ -40,7 +40,7 @@
 #include "dma.h"
 #include "../r4300/r4300.h"
 #include "../r4300/macros.h"
-#include "../r4300/interupt.h"
+#include "../r4300/interrupt.h"
 #include "../r4300/recomph.h"
 #include "../r4300/ops.h"
 #include "pif.h"
@@ -1065,7 +1065,7 @@ static void update_MI_init_mode_reg()
     if (MI_register.w_mi_init_mode_reg & 0x800)
     {
         MI_register.mi_intr_reg &= 0xFFFFFFDF;
-        check_interupt();
+        check_interrupt();
     }
     if (MI_register.w_mi_init_mode_reg & 0x1000)
         MI_register.RDRAM_reg_mode = 0;
@@ -1113,12 +1113,12 @@ void update_SP()
     if (sp_register.w_sp_status_reg & 0x8)
     {
         MI_register.mi_intr_reg &= 0xFFFFFFFE;
-        check_interupt();
+        check_interrupt();
     }
     if (sp_register.w_sp_status_reg & 0x10)
     {
         MI_register.mi_intr_reg |= 1;
-        check_interupt();
+        check_interrupt();
     }
     if (sp_register.w_sp_status_reg & 0x20)
         sp_register.single_step = 0;
@@ -1241,8 +1241,8 @@ void update_SP()
             MI_register.mi_intr_reg &= ~0x21;
             sp_register.sp_status_reg &= ~0x303;
             update_count();
-            add_interupt_event(SP_INT, 1000);
-            add_interupt_event(DP_INT, 1000);
+            add_interrupt_event(SP_INT, 1000);
+            add_interrupt_event(DP_INT, 1000);
 
             // protecting new frame buffers
             if (fBGetFrameBufferInfo && fBRead && fBWrite) fBGetFrameBufferInfo(frameBufferInfos);
@@ -1313,8 +1313,8 @@ void update_SP()
             MI_register.mi_intr_reg &= ~0x1;
             sp_register.sp_status_reg &= ~0x303;
             update_count();
-            //add_interupt_event(SP_INT, 500);
-            add_interupt_event(SP_INT, 4000);
+            //add_interrupt_event(SP_INT, 500);
+            add_interrupt_event(SP_INT, 4000);
         }
         else
         {
@@ -1326,7 +1326,7 @@ void update_SP()
             MI_register.mi_intr_reg &= ~0x1;
             sp_register.sp_status_reg &= ~0x203;
             update_count();
-            add_interupt_event(SP_INT, 0/*100*/);
+            add_interrupt_event(SP_INT, 0/*100*/);
         }
         //printf("unknown task type\n");
         /*if (hle) execute_dlist();
@@ -2085,7 +2085,7 @@ void write_dp()
     case 0x4:
         processRDPList();
         MI_register.mi_intr_reg |= 0x20;
-        check_interupt();
+        check_interrupt();
         break;
     }
 }
@@ -2140,7 +2140,7 @@ void write_dpb()
     case 0x7:
         processRDPList();
         MI_register.mi_intr_reg |= 0x20;
-        check_interupt();
+        check_interrupt();
         break;
     }
 }
@@ -2179,7 +2179,7 @@ void write_dph()
     case 0x6:
         processRDPList();
         MI_register.mi_intr_reg |= 0x20;
-        check_interupt();
+        check_interrupt();
         break;
     }
 }
@@ -2206,7 +2206,7 @@ void write_dpd()
         dpc_register.dpc_current = dpc_register.dpc_start;
         processRDPList();
         MI_register.mi_intr_reg |= 0x20;
-        check_interupt();
+        check_interrupt();
         break;
     }
 }
@@ -2292,9 +2292,9 @@ void write_mi()
         MI_register.w_mi_intr_mask_reg = word;
         update_MI_intr_mask_reg();
 
-        check_interupt();
+        check_interrupt();
         update_count();
-        if (next_interupt <= core_Count) gen_interupt();
+        if (next_interrupt <= core_Count) gen_interrupt();
         break;
     }
 }
@@ -2319,9 +2319,9 @@ void write_mib()
             + ((*address_low & 3) ^ S8)) = g_byte;
         update_MI_intr_mask_reg();
 
-        check_interupt();
+        check_interrupt();
         update_count();
-        if (next_interupt <= core_Count) gen_interupt();
+        if (next_interrupt <= core_Count) gen_interrupt();
         break;
     }
 }
@@ -2342,9 +2342,9 @@ void write_mih()
             + ((*address_low & 3) ^ S16))) = hword;
         update_MI_intr_mask_reg();
 
-        check_interupt();
+        check_interrupt();
         update_count();
-        if (next_interupt <= core_Count) gen_interupt();
+        if (next_interrupt <= core_Count) gen_interrupt();
         break;
     }
 }
@@ -2361,9 +2361,9 @@ void write_mid()
         MI_register.w_mi_intr_mask_reg = dword & 0xFFFFFFFF;
         update_MI_intr_mask_reg();
 
-        check_interupt();
+        check_interrupt();
         update_count();
-        if (next_interupt <= core_Count) gen_interupt();
+        if (next_interrupt <= core_Count) gen_interrupt();
         break;
     }
 }
@@ -2449,7 +2449,7 @@ void write_vi()
         break;
     case 0x10:
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     }
@@ -2494,7 +2494,7 @@ void write_vib()
     case 0x12:
     case 0x13:
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     }
@@ -2534,7 +2534,7 @@ void write_vih()
     case 0x10:
     case 0x12:
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     }
@@ -2566,7 +2566,7 @@ void write_vid()
         break;
     case 0x10:
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
-        check_interupt();
+        check_interrupt();
         vi_register.vi_burst = dword & 0xFFFFFFFF;
         return;
         break;
@@ -2705,14 +2705,14 @@ void write_ai()
             ai_register.current_delay = delay;
             ai_register.current_len = ai_register.ai_len;
             update_count();
-            add_interupt_event(AI_INT, delay);
+            add_interrupt_event(AI_INT, delay);
             ai_register.ai_status |= 0x40000000;
         }
         return;
         break;
     case 0xc:
         MI_register.mi_intr_reg &= 0xFFFFFFFB;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     case 0x10:
@@ -2793,7 +2793,7 @@ void write_aib()
             ai_register.current_delay = delay;
             ai_register.current_len = ai_register.ai_len;
             update_count();
-            add_interupt_event(AI_INT, delay / 2);
+            add_interrupt_event(AI_INT, delay / 2);
             ai_register.ai_status |= 0x40000000;
         }
         return;
@@ -2803,7 +2803,7 @@ void write_aib()
     case 0xe:
     case 0xf:
         MI_register.mi_intr_reg &= 0xFFFFFFFB;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     case 0x10:
@@ -2889,7 +2889,7 @@ void write_aih()
             ai_register.current_delay = delay;
             ai_register.current_len = ai_register.ai_len;
             update_count();
-            add_interupt_event(AI_INT, delay / 2);
+            add_interrupt_event(AI_INT, delay / 2);
             ai_register.ai_status |= 0x40000000;
         }
         return;
@@ -2897,7 +2897,7 @@ void write_aih()
     case 0xc:
     case 0xe:
         MI_register.mi_intr_reg &= 0xFFFFFFFB;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     case 0x10:
@@ -2977,7 +2977,7 @@ void write_aid()
             ai_register.current_delay = delay;
             ai_register.current_len = ai_register.ai_len;
             update_count();
-            add_interupt_event(AI_INT, delay / 2);
+            add_interrupt_event(AI_INT, delay / 2);
             ai_register.ai_status |= 0x40000000;
         }
         return;
@@ -2985,7 +2985,7 @@ void write_aid()
     case 0x8:
         ai_register.ai_control = dword >> 32;
         MI_register.mi_intr_reg &= 0xFFFFFFFB;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     case 0x10:
@@ -3059,7 +3059,7 @@ void write_pi()
         break;
     case 0x10:
         if (word & 2) MI_register.mi_intr_reg &= 0xFFFFFFEF;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     case 0x14:
@@ -3104,7 +3104,7 @@ void write_pib()
     case 0x12:
     case 0x13:
         if (word) MI_register.mi_intr_reg &= 0xFFFFFFEF;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     case 0x14:
@@ -3159,7 +3159,7 @@ void write_pih()
     case 0x10:
     case 0x12:
         if (word) MI_register.mi_intr_reg &= 0xFFFFFFEF;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     case 0x16:
@@ -3202,7 +3202,7 @@ void write_pid()
         break;
     case 0x10:
         if (word) MI_register.mi_intr_reg &= 0xFFFFFFEF;
-        check_interupt();
+        check_interrupt();
         *readpi[*address_low + 4] = dword & 0xFF;
         return;
         break;
@@ -3309,7 +3309,7 @@ void write_si()
     case 0x18:
         MI_register.mi_intr_reg &= 0xFFFFFFFD;
         si_register.si_status &= ~0x1000;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     }
@@ -3351,7 +3351,7 @@ void write_sib()
     case 0x1b:
         MI_register.mi_intr_reg &= 0xFFFFFFFD;
         si_register.si_status &= ~0x1000;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     }
@@ -3385,7 +3385,7 @@ void write_sih()
     case 0x1a:
         MI_register.mi_intr_reg &= 0xFFFFFFFD;
         si_register.si_status &= ~0x1000;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     }
@@ -3409,7 +3409,7 @@ void write_sid()
     case 0x18:
         MI_register.mi_intr_reg &= 0xFFFFFFFD;
         si_register.si_status &= ~0x1000;
-        check_interupt();
+        check_interrupt();
         return;
         break;
     }
@@ -3582,7 +3582,7 @@ void write_pif()
         {
             PIF_RAMb[0x3F] = 0;
             update_count();
-            add_interupt_event(SI_INT, /*0x100*/0x900);
+            add_interrupt_event(SI_INT, /*0x100*/0x900);
         }
         else
             update_pif_write();
@@ -3604,7 +3604,7 @@ void write_pifb()
         {
             PIF_RAMb[0x3F] = 0;
             update_count();
-            add_interupt_event(SI_INT, /*0x100*/0x900);
+            add_interrupt_event(SI_INT, /*0x100*/0x900);
         }
         else
             update_pif_write();
@@ -3627,7 +3627,7 @@ void write_pifh()
         {
             PIF_RAMb[0x3F] = 0;
             update_count();
-            add_interupt_event(SI_INT, /*0x100*/0x900);
+            add_interrupt_event(SI_INT, /*0x100*/0x900);
         }
         else
             update_pif_write();
@@ -3652,7 +3652,7 @@ void write_pifd()
         {
             PIF_RAMb[0x3F] = 0;
             update_count();
-            add_interupt_event(SI_INT, /*0x100*/0x900);
+            add_interrupt_event(SI_INT, /*0x100*/0x900);
         }
         else
             update_pif_write();

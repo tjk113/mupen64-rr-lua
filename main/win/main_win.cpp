@@ -85,6 +85,8 @@ BOOL really_restart_mode = 0;
 BOOL clear_sram_on_restart_mode = 0;
 BOOL continue_vcr_on_restart_mode = 0;
 BOOL just_restarted_flag = 0;
+int frame_count = 1;
+long long total_vi = 0;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
 static HWND hStaticHandle; //Handle for static place
@@ -288,6 +290,7 @@ static int shut_window = 0;
 
 DWORD WINAPI close_rom(LPVOID lpParam)
 {
+	//printf("gen interrupt: %lld ns/vi", (total_vi/frame_count));
 	if (emu_launched) {
 
 		if (emu_paused) {
@@ -307,7 +310,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		}
 
 		// remember all running lua scripts' HWNDs
-		for (const auto [key, value] : hwnd_lua_map)
+		for (const auto key : hwnd_lua_map | std::views::keys)
 		{
 			previously_running_luas.push_back(key);
 		}

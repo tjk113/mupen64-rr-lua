@@ -177,7 +177,7 @@
     <ClInclude Include="..\..\memory\summercart.h" />
     <ClInclude Include="..\..\r4300\cop1_helpers.h" />
     <ClInclude Include="..\..\r4300\exception.h" />
-    <ClInclude Include="..\..\r4300\interupt.h" />
+    <ClInclude Include="..\..\r4300\interrupt.h" />
     <ClInclude Include="..\..\r4300\macros.h" />
     <ClInclude Include="..\..\r4300\ops.h" />
     <ClInclude Include="..\..\r4300\r4300.h" />
@@ -307,7 +307,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\r4300\interupt.c">
+    <ClCompile Include="..\..\r4300\interrupt.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>

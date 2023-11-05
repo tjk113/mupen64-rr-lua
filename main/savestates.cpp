@@ -41,7 +41,7 @@
 #include "../memory/flashram.h"
 #include "../memory/memory.h"
 #include "../memory/summercart.h"
-#include "../r4300/interupt.h"
+#include "../r4300/interrupt.h"
 #include "../r4300/r4300.h"
 #include "win/main_win.h"
 #include "win/features/Statusbar.hpp"
@@ -127,7 +127,7 @@ std::vector<uint8_t> generate_savestate()
 			for (size_t i = 0; i < (64 / 4); i++)
 				rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
 			update_count();
-			add_interupt_event(SI_INT, /*0x100*/0x900);
+			add_interrupt_event(SI_INT, /*0x100*/0x900);
 			rdram_register.rdram_device_manuf |= NEW_ST_FIXED_BIT;
 			st_skip_dma = true;
 		}
@@ -169,7 +169,7 @@ std::vector<uint8_t> generate_savestate()
     else
         vecwrite(b, &PC->addr, 4);
 
-    vecwrite(b, &next_interupt, 4);
+    vecwrite(b, &next_interrupt, 4);
     vecwrite(b, &next_vi, 4);
     vecwrite(b, &vi_field, 4);
 
@@ -326,7 +326,7 @@ void load_memory_from_buffer(uint8_t* p)
         jump_to(target_addr)
     }
 
-    memread(&p, &next_interupt, 4);
+    memread(&p, &next_interrupt, 4);
     memread(&p, &next_vi, 4);
     memread(&p, &vi_field, 4);
 }
