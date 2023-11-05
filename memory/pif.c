@@ -39,7 +39,7 @@
 #ifndef __WIN32__
 #include "../main/winlnxdefs.h"
 #else
-#include <windows.h>
+#include <Windows.h>
 #endif
 
 #include "memory.h"

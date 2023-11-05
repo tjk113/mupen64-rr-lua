@@ -7,7 +7,7 @@
    Copyright (C) 1998-2005 Gilles Vollant
 */
 
-#include <windows.h>
+#include <Windows.h>
 
 
 #ifdef __cplusplus

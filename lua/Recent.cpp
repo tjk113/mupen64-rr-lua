@@ -1,7 +1,7 @@
 #include "LuaConsole.h"
 #include "Recent.h"
 #include <algorithm>
-#include <windows.h>
+#include <Windows.h>
 #include "win/main_win.h"
 #include "../winproject/resource.h"
 #include "../main/win/Config.hpp"

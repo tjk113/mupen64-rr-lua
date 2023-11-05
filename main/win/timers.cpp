@@ -15,7 +15,7 @@
  ***************************************************************************/
 #include "../../lua/LuaConsole.h"
 
-#include <windows.h>
+#include <Windows.h>
 #include <stdio.h>
 #include <commctrl.h>
 #include "../guifuncs.h"

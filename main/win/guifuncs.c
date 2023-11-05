@@ -17,7 +17,7 @@
 #define _WIN32_IE 0x0500
 #include <LuaConsole.h>
 
-#include <windows.h>
+#include <Windows.h>
 #include <commctrl.h>
 #include <stdio.h>
 #include "../guifuncs.h"

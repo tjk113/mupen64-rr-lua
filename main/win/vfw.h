@@ -5,7 +5,7 @@
 #endif
 
 #ifndef _WINDOWS_H
-#include <windows.h>
+#include <Windows.h>
 #endif
 #ifndef _MMSYSTEM_H
 #include <mmsystem.h>

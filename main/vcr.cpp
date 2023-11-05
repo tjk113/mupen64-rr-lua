@@ -43,7 +43,7 @@
 #include <chrono>
 
 #include <commctrl.h> // for SendMessage, SB_SETTEXT
-#include <windows.h> // for truncate functions
+#include <Windows.h> // for truncate functions
 #include <../../winproject/resource.h> // for EMU_RESET
 #include "win/Config.hpp" //config struct
 #include "win/main_win.h" // mainHWND
@@ -1401,131 +1401,37 @@ startPlayback(const char* filename, const char* authorUTF8,
 						break; //
 					}
 				}
-
-				if (!Controls[0].Present && (m_header.controller_flags &
-					CONTROLLER_1_PRESENT))
+				for (int i = 0; i < 4; ++i)
 				{
-					strcat(warningStr,
-					       "Error: You have controller 1 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n");
-					dontPlay = TRUE;
+					if (!Controls[i].Present && (m_header.controller_flags &
+						CONTROLLER_X_PRESENT(i))) {
+						sprintf(warningStr,
+							   "Error: You have controller %d disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n", (i+1));
+						dontPlay = TRUE;
+					}
+					if (Controls[i].Present && !(m_header.controller_flags &
+						CONTROLLER_X_PRESENT(i)))
+						sprintf(warningStr,
+							   "Warning: You have controller %d enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n", (i+1));
+					else {
+						if (Controls[i].Present && (Controls[i].Plugin !=
+							controller_extension::mempak) && (m_header.
+								controller_flags & CONTROLLER_X_MEMPAK(i)))
+							sprintf(warningStr,
+								   "Warning: Controller %d has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", (i+1));
+						if (Controls[i].Present && (Controls[i].Plugin !=
+							controller_extension::rumblepak) && (m_header.
+								controller_flags & CONTROLLER_X_RUMBLE(i)))
+							sprintf(warningStr,
+								   "Warning: Controller %d has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", (i+1));
+						if (Controls[i].Present && (Controls[i].Plugin !=
+							controller_extension::none) && !(m_header.
+								controller_flags & (CONTROLLER_X_MEMPAK(i) |
+									CONTROLLER_X_RUMBLE(i))))
+							sprintf(warningStr,
+								   "Warning: Controller %d does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", (i+1));
+					}
 				}
-				if (Controls[0].Present && !(m_header.controller_flags &
-					CONTROLLER_1_PRESENT))
-					strcat(warningStr,
-					       "Warning: You have controller 1 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n");
-				else
-				{
-					if (Controls[0].Present && (Controls[0].Plugin !=
-						controller_extension::mempak) && (m_header.
-						controller_flags & CONTROLLER_1_MEMPAK))
-						strcat(warningStr,
-						       "Warning: Controller 1 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[0].Present && (Controls[0].Plugin !=
-						controller_extension::rumblepak) && (m_header.
-						controller_flags & CONTROLLER_1_RUMBLE))
-						strcat(warningStr,
-						       "Warning: Controller 1 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[0].Present && (Controls[0].Plugin !=
-						controller_extension::none) && !(m_header.
-						controller_flags & (CONTROLLER_1_MEMPAK |
-							CONTROLLER_1_RUMBLE)))
-						strcat(warningStr,
-						       "Warning: Controller 1 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-				}
-
-				if (!Controls[1].Present && (m_header.controller_flags &
-					CONTROLLER_2_PRESENT))
-				{
-					strcat(warningStr,
-					       "Error: You have controller 2 disabled, but it is enabled in the movie file.\nIt cannot back correctly unless you change this first (in your input settings).\n");
-					dontPlay = TRUE;
-				}
-				if (Controls[1].Present && !(m_header.controller_flags &
-					CONTROLLER_2_PRESENT))
-					strcat(warningStr,
-					       "Warning: You have controller 2 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
-				else
-				{
-					if (Controls[1].Present && (Controls[1].Plugin !=
-						controller_extension::mempak) && (m_header.
-						controller_flags & CONTROLLER_2_MEMPAK))
-						strcat(warningStr,
-						       "Warning: Controller 2 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[1].Present && (Controls[1].Plugin !=
-						controller_extension::rumblepak) && (m_header.
-						controller_flags & CONTROLLER_2_RUMBLE))
-						strcat(warningStr,
-						       "Warning: Controller 2 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[1].Present && (Controls[1].Plugin !=
-						controller_extension::none) && !(m_header.
-						controller_flags & (CONTROLLER_2_MEMPAK |
-							CONTROLLER_2_RUMBLE)))
-						strcat(warningStr,
-						       "Warning: Controller 2 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-				}
-
-				if (!Controls[2].Present && (m_header.controller_flags &
-					CONTROLLER_3_PRESENT))
-				{
-					strcat(warningStr,
-					       "Error: You have controller 3 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you change this first (in your input settings).\n");
-					dontPlay = TRUE;
-				}
-				if (Controls[2].Present && !(m_header.controller_flags &
-					CONTROLLER_3_PRESENT))
-					strcat(warningStr,
-					       "Warning: You have controller 3 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
-				else
-				{
-					if (Controls[2].Present && (Controls[2].Plugin !=
-						controller_extension::mempak) && !(m_header.
-						controller_flags & CONTROLLER_3_MEMPAK))
-						strcat(warningStr,
-						       "Warning: Controller 3 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[2].Present && (Controls[2].Plugin !=
-						controller_extension::rumblepak) && !(m_header.
-						controller_flags & CONTROLLER_3_RUMBLE))
-						strcat(warningStr,
-						       "Warning: Controller 3 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[2].Present && (Controls[2].Plugin !=
-						controller_extension::none) && !(m_header.
-						controller_flags & (CONTROLLER_3_MEMPAK |
-							CONTROLLER_3_RUMBLE)))
-						strcat(warningStr,
-						       "Warning: Controller 3 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-				}
-
-				if (!Controls[3].Present && (m_header.controller_flags &
-					CONTROLLER_4_PRESENT))
-				{
-					strcat(warningStr,
-					       "Error: You have controller 4 disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you change this first (in your input settings).\n");
-					dontPlay = TRUE;
-				}
-				if (Controls[3].Present && !(m_header.controller_flags &
-					CONTROLLER_4_PRESENT))
-					strcat(warningStr,
-					       "Error: You have controller 4 enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you fix this first (in your input settings).\n");
-				else
-				{
-					if (Controls[3].Present && (Controls[3].Plugin !=
-						controller_extension::mempak) && !(m_header.
-						controller_flags & CONTROLLER_4_MEMPAK))
-						strcat(warningStr,
-						       "Warning: Controller 4 has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[3].Present && (Controls[3].Plugin !=
-						controller_extension::rumblepak) && !(m_header.
-						controller_flags & CONTROLLER_4_RUMBLE))
-						strcat(warningStr,
-						       "Warning: Controller 4 has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-					if (Controls[3].Present && (Controls[3].Plugin !=
-						controller_extension::none) && !(m_header.
-						controller_flags & (CONTROLLER_4_MEMPAK |
-							CONTROLLER_4_RUMBLE)))
-						strcat(warningStr,
-						       "Warning: Controller 4 does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n");
-				}
-
 				char str[512], name[512];
 
 				if (_stricmp(m_header.rom_name,

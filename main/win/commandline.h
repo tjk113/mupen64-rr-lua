@@ -15,7 +15,7 @@
  ***************************************************************************/
 #ifndef COMMANDLINE_H
 #define COMMANDLINE_H
-#include <windows.h>
+#include <Windows.h>
 
 typedef enum
 {

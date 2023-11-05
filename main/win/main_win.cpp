@@ -25,8 +25,7 @@
 extern "C" {
 #endif
 
-#include <windows.h> // TODO: Include Windows.h not windows.h and see if it breaks
-
+#include <Windows.h>
 #include <Shlwapi.h>
 #ifndef _WIN32_IE
 #define _WIN32_IE 0x0500
@@ -37,7 +36,6 @@ extern "C" {
 #include <filesystem>
 #include <deque>
 #ifndef _MSC_VER
-#include <dirent.h>
 #endif
 #include "../../winproject/resource.h"
 #include "../plugin.hpp"

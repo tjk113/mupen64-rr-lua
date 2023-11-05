@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <windows.h>
+#include <Windows.h>
 #include "rom.h"
 
 using t_rombrowser_entry = struct s_rombrowser_entry

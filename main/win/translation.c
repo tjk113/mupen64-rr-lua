@@ -16,7 +16,7 @@
 
 #include "translation.h"
 
-#include <windows.h>
+#include <Windows.h>
 #include <stdio.h>
 #include <commctrl.h>
 #include "Config.hpp"

@@ -27,7 +27,7 @@
  *
 **/
 
-#include <windows.h>
+#include <Windows.h>
 #include <commctrl.h>
 #include <stdio.h>
 #include "../win/main_win.h"

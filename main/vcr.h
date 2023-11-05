@@ -1,11 +1,11 @@
-#ifndef __VCR_H__
-#define __VCR_H__
+#ifndef VCR_H_
+#define VCR_H_
 
 //#include "../config.h"
 
 #ifdef VCR_SUPPORT
 
-# include <windows.h>
+# include <Windows.h>
 
 #include "plugin.hpp"
 
@@ -39,10 +39,12 @@
 #define CONTROLLER_2_PRESENT	(1<<1)
 #define CONTROLLER_3_PRESENT	(1<<2)
 #define CONTROLLER_4_PRESENT	(1<<3)
+#define CONTROLLER_X_MEMPAK(x)	(1<<((x)+4))
 #define CONTROLLER_1_MEMPAK 	(1<<4)
 #define CONTROLLER_2_MEMPAK 	(1<<5)
 #define CONTROLLER_3_MEMPAK 	(1<<6)
 #define CONTROLLER_4_MEMPAK 	(1<<7)
+#define CONTROLLER_X_RUMBLE(x)	(1<<((x)+8))
 #define CONTROLLER_1_RUMBLE 	(1<<8)
 #define CONTROLLER_2_RUMBLE 	(1<<9)
 #define CONTROLLER_3_RUMBLE 	(1<<10)
@@ -286,4 +288,4 @@ extern uint64_t screen_updates;
 
 #endif // VCR_SUPPORT
 
-#endif // __VCR_H__
+#endif // VCR_H_
