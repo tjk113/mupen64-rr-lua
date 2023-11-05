@@ -115,29 +115,22 @@ void rombrowser_create()
 	ListView_SetImageList(rombrowser_hwnd, hSmall, LVSIL_SMALL);
 
 	LVCOLUMN lv_column = {0};
-	std::vector<int32_t> column_widths = Config.rombrowser_column_widths;
-
-	if (Config.rombrowser_column_widths.size() < 4) {
-		// something's malformed, fuck off and use default values
-		column_widths = default_config.rombrowser_column_widths;
-	}
-
 	lv_column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 
 	lv_column.iImage = 1;
-	lv_column.cx = column_widths[0];
+	lv_column.cx = Config.rombrowser_column_widths[0];
 	ListView_InsertColumn(rombrowser_hwnd, 0, &lv_column);
 
 	lv_column.pszText = (LPTSTR)"Name";
-	lv_column.cx = column_widths[1];
+	lv_column.cx = Config.rombrowser_column_widths[1];
 	ListView_InsertColumn(rombrowser_hwnd, 1, &lv_column);
 
 	lv_column.pszText = (LPTSTR)"Filename";
-	lv_column.cx = column_widths[2];
+	lv_column.cx = Config.rombrowser_column_widths[2];
 	ListView_InsertColumn(rombrowser_hwnd, 2, &lv_column);
 
 	lv_column.pszText = (LPTSTR)"Size";
-	lv_column.cx = column_widths[3];
+	lv_column.cx = Config.rombrowser_column_widths[3];
 	ListView_InsertColumn(rombrowser_hwnd, 3, &lv_column);
 
 	BringWindowToTop(rombrowser_hwnd);

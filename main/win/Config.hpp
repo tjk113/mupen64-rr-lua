@@ -379,11 +379,22 @@ typedef struct _CONFIG
 
 extern "C" CONFIG Config;
 extern std::vector<t_hotkey*> hotkeys;
-extern const CONFIG default_config;
 
-CONFIG get_default_config();
+/**
+ * \brief Gets the string representation of a hotkey
+ * \param hotkey The hotkey to convert
+ * \return The hotkey as a string
+ */
 std::string hotkey_to_string(t_hotkey* hotkey);
+
+/**
+ * \brief Saves the current config state to the config file
+ */
 void save_config();
+
+/**
+ * \brief Restores the config state from the config file
+ */
 void load_config();
 
 /// <summary>

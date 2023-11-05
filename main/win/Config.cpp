@@ -1058,6 +1058,11 @@ void load_config()
 		Config.window_width = default_config.window_width;
 		Config.window_height = default_config.window_height;
 	}
+
+	if (Config.rombrowser_column_widths.size() < 4) {
+		// something's malformed, fuck off and use default values
+		Config.rombrowser_column_widths = default_config.rombrowser_column_widths;
+	}
 }
 
 int32_t get_user_hotkey(t_hotkey* hotkey)
