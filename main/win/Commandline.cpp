@@ -123,5 +123,5 @@ void commandline_on_movie_playback_stop()
 		VCR_stopCapture();
 	}
 
-	DestroyWindow(mainHWND);
+	SendMessage(mainHWND, WM_DESTROY, 0, 0);
 }

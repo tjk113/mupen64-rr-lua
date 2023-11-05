@@ -73,7 +73,6 @@
 	(0xFF000000) Analog Y
 */
 
-extern void VCR_getKeys(int Control, BUTTONS* Keys);
 extern void VCR_updateScreen();
 extern void VCR_aiDacrateChanged(system_type type);
 extern void VCR_aiLenChanged();
@@ -140,6 +139,13 @@ void vcr_clear_save_data();
  * \return Whether the operation succeded
  */
 bool vcr_start_capture(const char* path, bool show_codec_dialog);
+
+/**
+ * \brief Notifies VCR engine about controller being polled
+ * \param index The polled controller's index
+ * \param input The controller's input data
+ */
+void vcr_on_controller_poll(int index, BUTTONS* input);
 
 void vcr_recent_movies_build(int32_t reset = 0);
 void vcr_recent_movies_add(const std::string path);
@@ -286,6 +292,15 @@ enum class e_task
 };
 
 extern e_task m_task;
+
+inline bool is_task_playback(e_task task)
+{
+	return task == e_task::start_playback || task == e_task::start_playback_from_snapshot || task == e_task::playback;
+}
+inline bool is_task_recording(e_task task)
+{
+	return task == e_task::start_recording || task == e_task::start_recording_from_snapshot || task == e_task::start_recording_from_existing_snapshot || task == e_task::recording;
+}
 
 extern t_movie_header VCR_getHeaderInfo(const char* filename);
 extern char VCR_Lastpath[MAX_PATH];

@@ -191,7 +191,7 @@ void internal_ReadController(int Control, BYTE* Command)
         if (Controls[Control].Present)
         {
             BUTTONS Keys;
-            VCR_getKeys(Control, &Keys);
+            vcr_on_controller_poll(Control, &Keys);
             *((unsigned long*)(Command + 3)) = Keys.Value;
 #ifdef COMPARE_CORE
 				check_input_sync(Command + 3);
@@ -525,24 +525,27 @@ void update_pif_read(bool stcheck)
                     }
                     stAllowed = false;
                     controllerRead = channel;
+
+                    // we handle raw data-mode controllers here:
+                    // this is incompatible with VCR!
                     if (Controls[channel].Present &&
                         Controls[channel].RawData
                         && VCR_isIdle()
                     )
                     {
                         readController(channel, &PIF_RAMb[i]);
-                        lastInputLua[channel] = *(DWORD*)&PIF_RAMb[i + 3];
+                        last_controller_data[channel] = *(BUTTONS*)&PIF_RAMb[i + 3];
                         main_dispatcher_invoke([channel] {
                             AtInputLuaCallback(channel);
                         });
                         if (0 <= channel && channel < 4)
                         {
-                            if (rewriteInputFlagLua[channel])
+                            if (overwrite_controller_data[channel])
                             {
-                                *(DWORD*)&PIF_RAMb[i + 3] =
-                                    lastInputLua[channel] =
-                                    rewriteInputLua[channel];
-                                rewriteInputFlagLua[channel] = false;
+                                *(BUTTONS*)&PIF_RAMb[i + 3] =
+                                    last_controller_data[channel] =
+                                    last_controller_data[channel];
+                                overwrite_controller_data[channel] = false;
                             }
                         }
                     }

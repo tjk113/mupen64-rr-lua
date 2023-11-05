@@ -99,7 +99,6 @@ static int m_visPerSecond = -1;
 static char* m_inputBuffer = NULL;
 static unsigned long m_inputBufferSize = 0;
 static char* m_inputBufferPtr = NULL;
-static BUTTONS m_lastController1Keys = {0}; // for input display
 
 static int m_capture = 0; // capture movie
 static int m_audioFreq = 33000; //0x30018;
@@ -170,7 +169,6 @@ static void hardResetAndClearAllSaveData(bool clear)
 	extern BOOL clear_sram_on_restart_mode;
 	clear_sram_on_restart_mode = clear;
 	continue_vcr_on_restart_mode = TRUE;
-	m_lastController1Keys = {0};
 	if (clear)
 		printf("Clearing save data...\n");
 	else
@@ -761,36 +759,28 @@ int VCR_movieUnfreeze(const char* buf, unsigned long size)
 extern BOOL continue_vcr_on_restart_mode;
 extern BOOL just_restarted_flag;
 
-void
-VCR_getKeys(int Control, BUTTONS* Keys)
+void vcr_on_controller_poll(int index, BUTTONS* input)
 {
-	if (m_task != e_task::playback && m_task != e_task::start_playback && m_task !=
-		e_task::start_playback_from_snapshot)
+	// if we aren't playing back a movie, our data source isn't movie
+	if (!is_task_playback(m_task))
 	{
-		getKeys(Control, Keys);
-		lastInputLua[Control] = *(DWORD*)Keys;
-		main_dispatcher_invoke([Control] {
-			AtInputLuaCallback(Control);
+		getKeys(index, input);
+		last_controller_data[index] = *input;
+		main_dispatcher_invoke([index] {
+			AtInputLuaCallback(index);
 		});
 
-		if (0 <= Control && Control < 4)
+		// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
+		if (overwrite_controller_data[index])
 		{
-			if (rewriteInputFlagLua[Control])
-			{
-				*(DWORD*)Keys =
-					lastInputLua[Control] =
-					rewriteInputLua[Control];
-				rewriteInputFlagLua[Control] = false;
-			}
+			*input = new_controller_data[index];
+			last_controller_data[index] = *input;
+			overwrite_controller_data[index] = false;
 		}
 	}
 
-	if (Control == 0)
-		memcpy(&m_lastController1Keys, Keys, sizeof(BUTTONS));
-
 	if (m_task == e_task::idle)
 		return;
-
 
 	if (m_task == e_task::start_recording)
 	{
@@ -802,7 +792,7 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 				m_currentSample = 0;
 				m_currentVI = 0;
 				m_task = e_task::recording;
-				memset(Keys, 0, sizeof(BUTTONS));
+				*input = {0};
 				EnableMenuItem(GetMenu(mainHWND), ID_STOP_RECORD, MF_ENABLED);
 			} else
 			{
@@ -811,28 +801,30 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 					!(m_header.startFlags & MOVIE_START_FROM_EEPROM));
 			}
 		}
-		///       return;
 	}
 
 	if (m_task == e_task::start_recording_from_snapshot)
 	{
-		// wait until state is saved, then record
+		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Snapshot...\n");
 			m_task = e_task::recording;
-			memset(Keys, 0, sizeof(BUTTONS));
+			*input = {0};
 		}
-		///		return;
 	}
 
 	if (m_task == e_task::start_recording_from_existing_snapshot)
+	{
+		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Existing Snapshot...\n");
 			m_task = e_task::recording;
-			memset(Keys, 0, sizeof(BUTTONS));
+			*input = {0};
 		}
+	}
+
 
 	if (m_task == e_task::start_playback)
 	{
@@ -855,52 +847,48 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 
 	if (m_task == e_task::start_playback_from_snapshot)
 	{
-		// wait until state is loaded, then playback
+		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
-			extern BOOL savestates_job_success;
 			if (!savestates_job_success)
 			{
-				//char str [2048];
-				//sprintf(str, "Couldn't find or load this movie's snapshot,\n\"%s\".\nMake sure that file is where Mupen64 can find it.", savestates_get_selected_filename());
-				//printError(str);
 				m_task = e_task::idle;
 				if (!dontPlay)
 				{
+					// TODO: reset titlebar properly
 					char title[MAX_PATH];
 					GetWindowText(mainHWND, title, MAX_PATH);
 					title[titleLength] = '\0'; //remove movie being played part
 					SetWindowText(mainHWND, title);
 				}
-				getKeys(Control, Keys);
+				getKeys(index, input);
 				return;
 			}
 			printf("[VCR]: Starting playback...\n");
 			m_task = e_task::playback;
 		}
-		///		return;
 	}
 
 	if (m_task == e_task::recording)
 	{
-		//		long cont = Control;
-		//		fwrite( &cont, 1, sizeof (long), m_file ); // write the controller #
-
+		// TODO: as old comments already state, remove vcr flush mechanism (reasons for it are long gone, at this point it's just huge complexity for no reason)
 		reserve_buffer_space(
-			(unsigned long)((m_inputBufferPtr + sizeof(BUTTONS)) -
+			(unsigned long)(m_inputBufferPtr + sizeof(BUTTONS) -
 				m_inputBuffer));
 
 		extern bool scheduled_restart;
 		if (scheduled_restart)
 		{
-			Keys->Value = 0xC000; //Reserved 1 and 2
+			// reserved 1 and 2 pressed simultaneously = reset flag
+			*input = {
+				.Reserved1 = 1,
+				.Reserved2 = 1,
+			};
 		}
 
-		*reinterpret_cast<BUTTONS*>(m_inputBufferPtr) = *Keys;
+		*reinterpret_cast<BUTTONS*>(m_inputBufferPtr) = *input;
 
 		m_inputBufferPtr += sizeof(BUTTONS);
-
-		//		fwrite( Keys, 1, sizeof (BUTTONS), m_file ); // write the data for this controller (sizeof(BUTTONS) == 4 the last time I checked)
 		m_header.length_samples++;
 		m_currentSample++;
 
@@ -918,70 +906,53 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		return;
 	}
 
+	// our input source is movie, input plugin is overriden
 	if (m_task == e_task::playback)
 	{
-		//		long cont;
-		//		fread( &cont, 1, sizeof (long), m_file );
-		//		if (cont == -1)	// end
-
 		// This if previously also checked for if the VI is over the amount specified in the header,
 		// but that can cause movies to end playback early on laggy plugins.
+		// TODO: only rely on samples for movie termination
 		if (m_currentSample >= (long)m_header.length_samples)
 		{
 			stopPlayback(false);
 			commandline_on_movie_playback_stop();
-			setKeys(Control, {0});
-			getKeys(Control, Keys);
-			if (Control == 0)
-				memcpy(&m_lastController1Keys, Keys, sizeof(BUTTONS));
-
+			setKeys(index, {0});
+			getKeys(index, input);
 			return;
 		}
 
-		if (m_header.controller_flags & CONTROLLER_X_PRESENT(Control))
+		if (m_header.controller_flags & CONTROLLER_X_PRESENT(index))
 		{
-			//cool debug info
-			//extern int frame_advancing;
-			//printf("frame advancing? %d\n", frame_advancing);
-			//printf("reading frame: %d\n", m_currentSample);
-			*Keys = *reinterpret_cast<BUTTONS*>(m_inputBufferPtr);
+			*input = *reinterpret_cast<BUTTONS*>(m_inputBufferPtr);
 			m_inputBufferPtr += sizeof(BUTTONS);
-			//printf("read donex x: %d, y: %d\n", Keys->X_AXIS, Keys->Y_AXIS);
-			//printf("setKeys!\n");
-			setKeys(Control, *Keys);
-			//printf("setKeys done\n\n");
+			setKeys(index, *input);
 
-			if (Keys->Value == 0xC000)
 			//no readable code because 120 star tas can't get this right >:(
+			if (input->Value == 0xC000)
 			{
 				continue_vcr_on_restart_mode = true;
 				resetEmu();
 			}
 
-			lastInputLua[Control] = *(DWORD*)Keys;
-			main_dispatcher_invoke([Control] {
-				AtInputLuaCallback(Control);
+			last_controller_data[index] = *input;
+			main_dispatcher_invoke([index] {
+				AtInputLuaCallback(index);
 			});
-			if (0 <= Control && Control < 4)
+
+			// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
+			if (overwrite_controller_data[index])
 			{
-				if (rewriteInputFlagLua[Control])
-				{
-					*(DWORD*)Keys =
-						lastInputLua[Control] =
-						rewriteInputLua[Control];
-					rewriteInputFlagLua[Control] = false;
-				}
+				*input = new_controller_data[index];
+				last_controller_data[index] = *input;
+				overwrite_controller_data[index] = false;
 			}
 			m_currentSample++;
 		} else
 		{
-			memset(Keys, 0, sizeof(BUTTONS));
+			// disconnected controls are forced to have no input during playback
+			*input = {0};
 		}
 
-		if (Control == 0)
-			memcpy(&m_lastController1Keys, Keys, sizeof(BUTTONS));
-
-		return;
 	}
 }
 
@@ -2170,30 +2141,31 @@ VCR_coreStopped()
 
 void vcr_update_statusbar()
 {
-	std::string input_string = std::format("({}, {}) ", (int)m_lastController1Keys.Y_AXIS, (int)m_lastController1Keys.X_AXIS);
-	if (m_lastController1Keys.START_BUTTON) input_string += "S";
-	if (m_lastController1Keys.Z_TRIG) input_string += "Z";
-	if (m_lastController1Keys.A_BUTTON) input_string += "A";
-	if (m_lastController1Keys.B_BUTTON) input_string += "B";
-	if (m_lastController1Keys.L_TRIG) input_string += "L";
-	if (m_lastController1Keys.R_TRIG) input_string += "R";
-	if (m_lastController1Keys.U_CBUTTON || m_lastController1Keys.D_CBUTTON || m_lastController1Keys.L_CBUTTON ||
-		m_lastController1Keys.R_CBUTTON)
+	BUTTONS b = last_controller_data[0];
+	std::string input_string = std::format("({}, {}) ", (int)b.Y_AXIS, (int)b.X_AXIS);
+	if (b.START_BUTTON) input_string += "S";
+	if (b.Z_TRIG) input_string += "Z";
+	if (b.A_BUTTON) input_string += "A";
+	if (b.B_BUTTON) input_string += "B";
+	if (b.L_TRIG) input_string += "L";
+	if (b.R_TRIG) input_string += "R";
+	if (b.U_CBUTTON || b.D_CBUTTON || b.L_CBUTTON ||
+		b.R_CBUTTON)
 	{
 		input_string += " C";
-		if (m_lastController1Keys.U_CBUTTON) input_string += "^";
-		if (m_lastController1Keys.D_CBUTTON) input_string += "v";
-		if (m_lastController1Keys.L_CBUTTON) input_string += "<";
-		if (m_lastController1Keys.R_CBUTTON) input_string += ">";
+		if (b.U_CBUTTON) input_string += "^";
+		if (b.D_CBUTTON) input_string += "v";
+		if (b.L_CBUTTON) input_string += "<";
+		if (b.R_CBUTTON) input_string += ">";
 	}
-	if (m_lastController1Keys.U_DPAD || m_lastController1Keys.D_DPAD || m_lastController1Keys.L_DPAD || m_lastController1Keys.
+	if (b.U_DPAD || b.D_DPAD || b.L_DPAD || b.
 		R_DPAD)
 	{
 		input_string += " D";
-		if (m_lastController1Keys.U_DPAD) input_string += "^";
-		if (m_lastController1Keys.D_DPAD) input_string += "v";
-		if (m_lastController1Keys.L_DPAD) input_string += "<";
-		if (m_lastController1Keys.R_DPAD) input_string += ">";
+		if (b.U_DPAD) input_string += "^";
+		if (b.D_DPAD) input_string += "v";
+		if (b.L_DPAD) input_string += "<";
+		if (b.R_DPAD) input_string += ">";
 	}
 
 	if (VCR_isRecording())

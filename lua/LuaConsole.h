@@ -23,6 +23,8 @@
 #include <mutex>
 #include <stack>
 
+#include "plugin.hpp"
+
 typedef struct s_window_procedure_params {
 	HWND wnd;
 	UINT msg;
@@ -165,12 +167,24 @@ private:
 	int bkmode;
 };
 
-extern unsigned long lastInputLua[4];
-extern unsigned long rewriteInputLua[4];
-extern bool rewriteInputFlagLua[4];
 extern bool enableTraceLog;
 extern bool traceLogMode;
 extern unsigned long gdiPlusToken;
+
+/**
+ * \brief The controller data at time of the last input poll
+ */
+extern BUTTONS last_controller_data[4];
+
+/**
+ * \brief The modified control data to be pushed the next frame
+ */
+extern BUTTONS new_controller_data[4];
+
+/**
+ * \brief Whether the <c>new_controller_data</c> of a controller should be pushed the next frame
+ */
+extern bool overwrite_controller_data[4];
 
 extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 

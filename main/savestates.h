@@ -51,6 +51,7 @@ extern e_st_job savestates_job;
 extern e_st_medium st_medium;
 extern bool st_skip_dma;
 extern bool old_st;
+extern bool savestates_job_success;
 
 /**
  * \brief Gets the path to the save directory

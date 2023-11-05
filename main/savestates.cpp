@@ -51,7 +51,7 @@ size_t st_slot = 0;
 std::filesystem::path st_path;
 e_st_job savestates_job = e_st_job::none;
 e_st_medium st_medium = e_st_medium::path;
-int savestates_job_success = 1;
+bool savestates_job_success = true;
 
 // st that comes from no delay fix mupen, it has some differences compared to new st:
 // - one frame of input is "embedded", that is the pif ram holds already fetched controller info.

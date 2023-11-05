@@ -55,9 +55,11 @@ inline void TraceLoggingBufFlush();
 extern void (__cdecl*CaptureScreen)(char* Directory); // for lua screenshot
 
 std::vector<std::string> recent_closed_lua;
-unsigned long lastInputLua[4];
-unsigned long rewriteInputLua[4];
-bool rewriteInputFlagLua[4];
+
+BUTTONS last_controller_data[4];
+BUTTONS new_controller_data[4];
+bool overwrite_controller_data[4];
+
 bool enableTraceLog;
 bool traceLogMode;
 bool gdiPlusInitialized = false;
@@ -3117,16 +3119,15 @@ int LuaD2DDrawText(lua_State* L)
 	}
 
 	//joypad
-	int GetJoypad(lua_State* L)
+	int lua_get_joypad(lua_State* L)
 	{
 		int i = luaL_optinteger(L, 1, 1) - 1;
 		if (i < 0 || i >= 4)
 		{
 			luaL_error(L, "port: 1-4");
 		}
-		BUTTONS b = *(BUTTONS*)&lastInputLua[i];
 		lua_newtable(L);
-#define A(a,s) lua_pushboolean(L,b.a);lua_setfield(L, -2, s)
+#define A(a,s) lua_pushboolean(L,last_controller_data[i].a);lua_setfield(L, -2, s)
 		A(R_DPAD, "right");
 		A(L_DPAD, "left");
 		A(D_DPAD, "down");
@@ -3141,18 +3142,15 @@ int LuaD2DDrawText(lua_State* L)
 		A(U_CBUTTON, "Cup");
 		A(R_TRIG, "R");
 		A(L_TRIG, "L");
-		//	A(Reserved1,"reserved1");
-		//	A(Reserved2,"reserved2");
-		lua_pushinteger(L, b.X_AXIS);
-		lua_setfield(L, -2, "Y"); //X��Y���t�A�㉺��t(�オ��)
-		lua_pushinteger(L, b.Y_AXIS);
-		//X��Y�͒������A�㉺�͒����Ȃ�(-128�Ƃ����͂����獬���̌�)
-		lua_setfield(L, -2, "X");
 #undef A
+		lua_pushinteger(L, last_controller_data[i].X_AXIS);
+		lua_setfield(L, -2, "Y");
+		lua_pushinteger(L, last_controller_data[i].Y_AXIS);
+		lua_setfield(L, -2, "X");
 		return 1;
 	}
 
-	int SetJoypad(lua_State* L)
+	int lua_set_joypad(lua_State* L)
 	{
 		int a_2 = 2;
 		int i;
@@ -3168,9 +3166,8 @@ int LuaD2DDrawText(lua_State* L)
 		{
 			luaL_error(L, "control: 1-4");
 		}
-		BUTTONS* b = (BUTTONS*)&rewriteInputLua[i];
 		lua_pushvalue(L, a_2);
-#define A(a,s) lua_getfield(L, -1, s);b->a=lua_toboolean(L,-1);lua_pop(L,1);
+#define A(a,s) lua_getfield(L, -1, s);new_controller_data[i].a=lua_toboolean(L,-1);lua_pop(L,1)
 		A(R_DPAD, "right");
 		A(L_DPAD, "left");
 		A(D_DPAD, "down");
@@ -3185,15 +3182,13 @@ int LuaD2DDrawText(lua_State* L)
 		A(U_CBUTTON, "Cup");
 		A(R_TRIG, "R");
 		A(L_TRIG, "L");
-		//	A(Reserved1,"reserved1");
-		//	A(Reserved2,"reserved2");
 		lua_getfield(L, -1, "Y");
-		b->X_AXIS = lua_tointeger(L, -1);
+		new_controller_data[i].X_AXIS = lua_tointeger(L, -1);
 		lua_pop(L, 1);
 		lua_getfield(L, -1, "X");
-		b->Y_AXIS = lua_tointeger(L, -1);
+		new_controller_data[i].Y_AXIS = lua_tointeger(L, -1);
 		lua_pop(L, 1);
-		rewriteInputFlagLua[i] = true;
+		overwrite_controller_data[i] = true;
 #undef A
 		return 1;
 	}
@@ -3354,8 +3349,8 @@ int LuaD2DDrawText(lua_State* L)
 		{NULL, NULL}
 	};
 	const luaL_Reg joypadFuncs[] = {
-		{"get", GetJoypad},
-		{"set", SetJoypad},
+		{"get", lua_get_joypad},
+		{"set", lua_set_joypad},
 		{"register", RegisterInput},
 		{"count", GetInputCount},
 		{NULL, NULL}
