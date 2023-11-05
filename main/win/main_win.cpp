@@ -1986,7 +1986,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 
 					// pass false to startCapture when "last preset" option was choosen
-					if (VCR_startCapture(nullptr, wstring_to_string(path).c_str(), LOWORD(wParam) == ID_START_CAPTURE) < 0)
+					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == ID_START_CAPTURE) < 0)
 					{
 						MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
 					} else

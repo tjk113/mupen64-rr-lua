@@ -48,6 +48,8 @@
 #include "win/main_win.h" // mainHWND
 #include <WinUser.h>
 
+#include "win/Commandline.h"
+
 
 #ifdef _DEBUG
 #include "../r4300/macros.h"
@@ -65,8 +67,6 @@
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? MUP_HEADER_SIZE_OLD : MUP_HEADER_SIZE)
 #define MAX_AVI_SIZE 0x7B9ACA00
 
-//stop AVI at m64 end, set by command line avi
-bool gStopAVI = false;
 BOOL dontPlay = false;
 
 #define BUFFER_GROWTH_SIZE (4096)
@@ -928,27 +928,15 @@ VCR_getKeys(int Control, BUTTONS* Keys)
 		// but that can cause movies to end playback early on laggy plugins.
 		if (m_currentSample >= (long)m_header.length_samples)
 		{
-			//			if (m_capture != 0)
-			//				VCR_stopCapture();
-			//			else
 			stopPlayback(false);
-			if (gStopAVI && VCR_isCapturing())
-			{
-				VCR_stopCapture();
-				SendMessage(mainHWND, WM_COMMAND, ID_EMULATOR_EXIT, 0);
-			}
-			BUTTONS zero = {0};
-			setKeys(Control, zero);
+			commandline_on_movie_playback_stop();
+			setKeys(Control, {0});
 			getKeys(Control, Keys);
 			if (Control == 0)
 				memcpy(&m_lastController1Keys, Keys, sizeof(BUTTONS));
+
 			return;
 		}
-		//		if (cont != Control)
-		//		{
-		//			printf( "[VCR]: Warning - controller num from file doesn't match requested number\n" );
-		//			// ...
-		//		}
 
 		if (m_header.controller_flags & CONTROLLER_X_PRESENT(Control))
 		{
@@ -1970,95 +1958,60 @@ void UpdateTitleBarCapture(const char* filename)
 	SetWindowText(mainHWND, title);
 }
 
-//starts avi capture, creates avi file
-
-//recFilename - unused, this was supposed to be the m64 to capture, preciously it had .rec extension
-//aviFIlename - name of the avi file that will be created, intrestingly you can capture to another file,
-//				even to mp4 if compressor supports that, but audio will always be put inside avi.
-//codecDialog - displays codec dialog if true, otherwise uses last used settings
-int VCR_startCapture(const char* recFilename, const char* aviFilename,
-                     bool codecDialog)
+bool vcr_start_capture(const char* path, bool show_codec_dialog)
 {
 	extern BOOL emu_paused;
-	BOOL wasPaused = emu_paused;
+	BOOL was_paused = emu_paused;
 	if (!emu_paused)
 	{
-		extern void pauseEmu(BOOL quiet);
 		pauseEmu(TRUE);
 	}
 
-	if (readScreen == NULL)
+	if (readScreen == nullptr)
 	{
-		printf("readScreen not implemented by graphics plugin. Falling back...");
+		printf("readScreen not implemented by graphics plugin. Falling back...\n");
 		readScreen = vcrcomp_internal_read_screen;
 	}
 
-	FILE* tmpf = fopen(aviFilename, "ab+");
-
-	if (!tmpf && MessageBox(
-		0,
-		"AVI capture might break because the file is inaccessible. Try anyway?",
-		"File inaccessible", MB_TASKMODAL | MB_ICONERROR | MB_YESNO) == IDNO)
-		return -1;
-
-	fclose(tmpf);
-
-	memset(soundBufEmpty, 0, 44100 * 2);
-	memset(soundBuf, 0, 44100 * 2);
+	memset(soundBufEmpty, 0, std::size(soundBufEmpty));
+	memset(soundBuf, 0, std::size(soundBuf));
 	lastSound = 0;
-
 	m_videoFrame = 0.0;
 	m_audioFrame = 0.0;
-	long width, height;
-	if (false) //debug
-	{
-		void* dest = (void*)1;
-		//trick, this tells readscreen() that it's initialisation phase
-		readScreen(&dest, &width, &height);
-		//if you see this crash, you're using GlideN64, not much can be done atm,
-		//unknown issue...
-		if (dest)
-			DllCrtFree(dest);
-		//if you see this crash, then the graphics plugin has mismatched crt
-		//and doesn't export DllCrtFree(), you're out of luck
-	} else
-	{
-		// fill in window size at avi start, which can't change
-		// scrap whatever was written there even if window didnt change, for safety
-		vcrcomp_window_info = {0};
-		get_window_info(mainHWND, vcrcomp_window_info);
-		width = vcrcomp_window_info.width & ~3;
-		height = vcrcomp_window_info.height & ~3;
-	}
-	VCRComp_startFile(aviFilename, width, height, visByCountrycode(),
-	                  codecDialog);
+
+	// fill in window size at avi start, which can't change
+	// scrap whatever was written there even if window didnt change, for safety
+	vcrcomp_window_info = {0};
+	get_window_info(mainHWND, vcrcomp_window_info);
+	long width = vcrcomp_window_info.width & ~3;
+	long height = vcrcomp_window_info.height & ~3;
+
+	VCRComp_startFile(path, width, height, visByCountrycode(), show_codec_dialog);
 	m_capture = 1;
-	captureWithFFmpeg = 0;
-	EnableEmulationMenuItems(TRUE);
-	strncpy(AVIFileName, aviFilename, PATH_MAX);
-	Config.avi_capture_path = std::string(aviFilename);
+	captureWithFFmpeg = false;
+	strncpy(AVIFileName, path, PATH_MAX);
+	Config.avi_capture_path = path;
 
-	UpdateTitleBarCapture(AVIFileName);
 
-	// BUG: toolbar could get captured in AVI, so we disable it
+	// toolbar could get captured in AVI, so we disable it
 	toolbar_set_visibility(0);
+	UpdateTitleBarCapture(AVIFileName);
+	EnableEmulationMenuItems(TRUE);
+	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
+	// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
+	SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
 
-	if (!wasPaused || (m_task == e_task::playback || m_task == e_task::start_playback || m_task
+	VCR_invalidatedCaptureFrame();
+
+	if (!was_paused || (m_task == e_task::playback || m_task == e_task::start_playback || m_task
 		== e_task::start_playback_from_snapshot))
 	{
 		resumeEmu(TRUE);
 	}
 
-	// disable minimize titlebar button
-	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
-	// we apply WS_EX_LAYERED to fix offscreen blitting
-	SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
-
-	VCR_invalidatedCaptureFrame();
-
 	printf("[VCR]: Starting capture...\n");
 
-	return 0;
+	return true;
 }
 
 /// <summary>
@@ -2147,8 +2100,7 @@ VCR_toggleLoopMovie()
 }
 
 
-int
-VCR_stopCapture()
+int VCR_stopCapture()
 {
 	if (captureWithFFmpeg)
 	{

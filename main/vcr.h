@@ -73,8 +73,6 @@
 	(0xFF000000) Analog Y
 */
 
-extern bool gStopAVI;
-
 extern void VCR_getKeys(int Control, BUTTONS* Keys);
 extern void VCR_updateScreen();
 extern void VCR_aiDacrateChanged(system_type type);
@@ -111,8 +109,6 @@ extern int VCR_stopRecord(int defExt);
 extern int VCR_startPlayback(const std::string &filename, const char* authorUTF8,
                              const char* descriptionUTF8);
 extern int VCR_stopPlayback();
-extern int VCR_startCapture(const char* recFilename, const char* aviFilename,
-                            bool codecDialog);
 extern int VCR_stopCapture();
 
 //ffmpeg
@@ -135,7 +131,15 @@ void vcr_update_statusbar();
 /**
  * \brief Clears all save data related to the current rom, such as SRAM, EEP and mempak
  */
-extern void vcr_clear_save_data();
+void vcr_clear_save_data();
+
+/**
+ * \brief Starts an AVI capture
+ * \param path The path to the AVI output file
+ * \param show_codec_dialog Whether the user should be presented with a dialog to pick the capture codec
+ * \return Whether the operation succeded
+ */
+bool vcr_start_capture(const char* path, bool show_codec_dialog);
 
 void vcr_recent_movies_build(int32_t reset = 0);
 void vcr_recent_movies_add(const std::string path);

@@ -46,4 +46,5 @@ void commandline_start_movie();
  */
 void commandline_start_capture();
 
+void commandline_on_movie_playback_stop();
 #endif

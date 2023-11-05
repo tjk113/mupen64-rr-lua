@@ -2902,7 +2902,7 @@ int LuaD2DDrawText(lua_State* L)
 	{
 		const char* fname = lua_tostring(L, 1);
 		if (!VCR_isCapturing())
-			VCR_startCapture("", fname, false);
+			vcr_start_capture(fname, false);
 		else
 			luaL_error(
 				L,

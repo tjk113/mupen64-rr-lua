@@ -33,6 +33,7 @@ std::string commandline_lua;
 std::string commandline_st;
 std::string commandline_movie;
 std::string commandline_avi;
+bool commandline_stop_on_movie_end;
 
 // Flags:
 // --rom Loads rom
@@ -50,6 +51,7 @@ void commandline_set()
 	commandline_st = cmdl("--st", "").str();
 	commandline_movie = cmdl("--movie", "").str();
 	commandline_avi = cmdl("--avi", "").str();
+	commandline_stop_on_movie_end = cmdl["--stop-avi-on-movie-end"];
 
 	// handle "Open With...":
 	if (cmdl.size() == 2 && cmdl.params().empty())
@@ -106,5 +108,20 @@ void commandline_start_capture()
 		return;
 	}
 
-	VCR_startCapture(nullptr, commandline_avi.c_str(), false);
+	vcr_start_capture(commandline_avi.c_str(), false);
+}
+
+void commandline_on_movie_playback_stop()
+{
+	if (!commandline_stop_on_movie_end)
+	{
+		return;
+	}
+
+	if (VCR_isCapturing())
+	{
+		VCR_stopCapture();
+	}
+
+	DestroyWindow(mainHWND);
 }
