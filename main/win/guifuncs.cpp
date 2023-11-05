@@ -29,16 +29,6 @@
 
 #include "features/Statusbar.hpp"
 
-const char* get_savespath()
-{
-    static char defDir[MAX_PATH];
-    if (Config.is_default_saves_directory_used)
-    {
-        sprintf(defDir, "%sSave\\", app_path.c_str());
-        return defDir;
-    }
-    else return Config.saves_directory.c_str();
-}
 
 bool confirm_user_exit()
 {

@@ -356,7 +356,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 		if (really_restart_mode) {
 			if (clear_sram_on_restart_mode) {
-				VCR_clearAllSaveData();
+				vcr_clear_save_data();
 				clear_sram_on_restart_mode = FALSE;
 			}
 

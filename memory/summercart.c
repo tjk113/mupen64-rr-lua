@@ -10,6 +10,8 @@
 
 #include "summercart.h"
 
+#include "savestates.h"
+
 struct vhd
 {
 	char cookie[8];
@@ -58,18 +60,19 @@ static void vhd_copy(struct vhd *vhd, FILE *dst, FILE *src, void *buf, unsigned 
 
 struct summercart summercart;
 
-static char *sd_path()
+static char *get_sd_path()
 {
+	auto saves_path = get_saves_directory();
 	char *path;
-	if ((path = (char *)malloc(strlen(get_savespath())+8+1)))
+	if ((path = (char *)malloc(strlen(saves_path.string().c_str())+8+1)))
 	{
-		strcpy(path, get_savespath());
+		strcpy(path, saves_path.string().c_str());
 		strcat(path, "card.vhd");
 	}
 	return path;
 }
 
-static char *st_path(const char *filename)
+static char *get_st_path(const char *filename)
 {
 	char *path;
 	if ((path = (char *)malloc(strlen(filename)+4+1)))
@@ -110,7 +113,7 @@ static void sd_read()
 	unsigned long count = summercart.data1;
 	unsigned long size = 512*count;
 	if (count > 131072) return;
-	if ((path = sd_path()))
+	if ((path = get_sd_path()))
 	{
 		if ((fp = fopen(path, "rb")))
 		{
@@ -152,7 +155,7 @@ static void sd_write()
 	unsigned long count = summercart.data1;
 	unsigned long size = 512*count;
 	if (count > 131072) return;
-	if ((path = sd_path()))
+	if ((path = get_sd_path()))
 	{
 		if ((fp = fopen(path, "r+b")))
 		{
@@ -193,9 +196,9 @@ void save_summercart(const char* filename)
 	struct vhd vhd;
 	if ((buf = malloc(512*(n = 128))))
 	{
-		if ((sdp = sd_path()))
+		if ((sdp = get_sd_path()))
 		{
-			if ((stp = st_path(filename)))
+			if ((stp = get_st_path(filename)))
 			{
 				if ((sdf = fopen(sdp, "rb")))
 				{
@@ -232,9 +235,9 @@ void load_summercart(const char *filename)
 	struct vhd vhd;
 	if ((buf = malloc(512*(n = 128))))
 	{
-		if ((stp = st_path(filename)))
+		if ((stp = get_st_path(filename)))
 		{
-			if ((sdp = sd_path()))
+			if ((sdp = get_sd_path()))
 			{
 				if ((stf = fopen(stp, "rb")))
 				{

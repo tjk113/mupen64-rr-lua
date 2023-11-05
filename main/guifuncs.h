@@ -27,10 +27,6 @@
  *
 **/
 
-const char* get_savespath();
-
-
-
 /**
  * \brief Demands user confirmation for an exit action
  * \return Whether the action is allowed

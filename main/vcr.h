@@ -106,7 +106,7 @@ extern void VCR_toggleLoopMovie();
 
 extern void VCR_movieFreeze(char** buf, unsigned long* size);
 extern int VCR_movieUnfreeze(const char* buf, unsigned long size);
-extern void VCR_clearAllSaveData();
+
 
 extern int VCR_startRecord(const char* filename, unsigned short flags,
                            const char* authorUTF8, const char* descriptionUTF8,
@@ -135,6 +135,11 @@ extern void printError(const char*);
  * \brief Updates the statusbar with the current VCR state
  */
 void vcr_update_statusbar();
+
+/**
+ * \brief Clears all save data related to the current rom, such as SRAM, EEP and mempak
+ */
+extern void vcr_clear_save_data();
 
 void vcr_recent_movies_build(int32_t reset = 0);
 void vcr_recent_movies_add(const std::string path);

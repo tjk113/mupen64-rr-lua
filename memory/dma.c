@@ -55,14 +55,8 @@ void dma_pi_read()
     {
         if (use_flashram != 1)
         {
-            char* filename;
-            FILE* f;
-            filename = (char*)malloc(strlen(get_savespath()) +
-                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-            strcpy(filename, get_savespath());
-            strcat(filename, (const char*)ROM_HEADER.nom);
-            strcat(filename, ".sra");
-            f = fopen(filename, "rb");
+            auto filename = get_sram_path();
+            FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)
             {
                 fread(sram, 1, 0x8000, f);
@@ -72,10 +66,9 @@ void dma_pi_read()
             for (i = 0; i < (pi_register.pi_rd_len_reg & 0xFFFFFF) + 1; i++)
                 sram[((pi_register.pi_cart_addr_reg - 0x08000000) + i) ^ S8] = ((unsigned char*)rdram)[(pi_register.
                     pi_dram_addr_reg + i) ^ S8];
-            f = fopen(filename, "wb");
+            f = fopen(filename.string().c_str(), "wb");
             fwrite(sram, 1, 0x8000, f);
             fclose(f);
-            free(filename);
             use_flashram = -1;
         }
         else
@@ -132,22 +125,14 @@ void dma_pi_write()
         {
             if (use_flashram != 1)
             {
-                char* filename;
-                FILE* f;
-                int i;
-                filename = (char*)malloc(strlen(get_savespath()) +
-                    strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-                strcpy(filename, get_savespath());
-                strcat(filename, (const char*)ROM_HEADER.nom);
-                strcat(filename, ".sra");
-                f = fopen(filename, "rb");
+                auto filename = get_sram_path();
+                FILE* f = fopen(filename.string().c_str(), "rb");
                 if (f)
                 {
                     fread(sram, 1, 0x8000, f);
                     fclose(f);
                 }
                 else for (i = 0; i < 0x8000; i++) sram[i] = 0x0;
-                free(filename);
                 for (i = 0; i < (pi_register.pi_wr_len_reg & 0xFFFFFF) + 1; i++)
                     ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
                         sram[(((pi_register.pi_cart_addr_reg - 0x08000000) & 0xFFFF) + i) ^ S8];

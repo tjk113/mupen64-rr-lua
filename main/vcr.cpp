@@ -464,90 +464,40 @@ t_movie_header VCR_getHeaderInfo(const char* filename)
 	return tempHeader;
 }
 
-// clear all SRAM, EEPROM, and mempaks
-void VCR_clearAllSaveData()
+void vcr_clear_save_data()
 {
-	int i;
-	extern const char* get_savespath();
-	// defined in either win\guifuncs.cpp or gui_gtk/main_gtk.c
-
-	// clear SRAM
 	{
-		char* filename;
-		FILE* f;
-		filename = (char*)malloc(strlen(get_savespath()) +
-			strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-		strcpy(filename, get_savespath());
-		strcat(filename, (const char*)ROM_HEADER.nom);
-		strcat(filename, ".sra");
-		f = fopen(filename, "rb");
+		FILE* f = fopen(get_sram_path().string().c_str(), "wb");
 		if (f)
 		{
+			extern unsigned char sram[0x8000];
+			for (int i = 0; i < 0x8000; i++) sram[i] = 0;
+			fwrite(sram, 1, 0x8000, f);
 			fclose(f);
-			f = fopen(filename, "wb");
-			if (f)
-			{
-				extern unsigned char sram[0x8000];
-				for (i = 0; i < 0x8000; i++) sram[i] = 0;
-				fwrite(sram, 1, 0x8000, f);
-				fclose(f);
-			}
 		}
-		free(filename);
 	}
-	// clear EEPROM
 	{
-		char* filename;
-		FILE* f;
-		filename = (char*)malloc(strlen(get_savespath()) +
-			strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-		strcpy(filename, get_savespath());
-		strcat(filename, (const char*)ROM_HEADER.nom);
-		strcat(filename, ".eep");
-		f = fopen(filename, "rb");
+		FILE* f = fopen(get_eeprom_path().string().c_str(), "wb");
 		if (f)
 		{
+			extern unsigned char eeprom[0x8000];
+			for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+			fwrite(eeprom, 1, 0x800, f);
 			fclose(f);
-			f = fopen(filename, "wb");
-			if (f)
-			{
-				extern unsigned char eeprom[0x8000];
-				for (i = 0; i < 0x800; i++) eeprom[i] = 0;
-				fwrite(eeprom, 1, 0x800, f);
-				fclose(f);
-			}
 		}
-		free(filename);
 	}
-	// clear mempaks
 	{
-		char* filename;
-		FILE* f;
-		filename = (char*)malloc(strlen(get_savespath()) +
-			strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-		strcpy(filename, get_savespath());
-		strcat(filename, (const char*)ROM_HEADER.nom);
-		strcat(filename, ".mpk");
-
-		f = fopen(filename, "rb");
+		FILE* f = fopen(get_mempak_path().string().c_str(), "wb");
 		if (f)
 		{
-			fclose(f);
-			f = fopen(filename, "wb");
-			if (f)
+			extern unsigned char mempack[4][0x8000];
+			for (int j = 0; j < 4; j++)
 			{
-				extern unsigned char mempack[4][0x8000];
-				int j;
-				for (j = 0; j < 4; j++)
-				{
-					for (i = 0; i < 0x800; i++) mempack[j][i] = 0;
-					fwrite(mempack[j], 1, 0x800, f);
-				}
-				fclose(f);
+				for (int i = 0; i < 0x800; i++) mempack[j][i] = 0;
+				fwrite(mempack[j], 1, 0x800, f);
 			}
+			fclose(f);
 		}
-
-		free(filename);
 	}
 }
 

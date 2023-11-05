@@ -32,6 +32,7 @@
 
 #include "../r4300/r4300.h"
 #include "memory.h"
+#include "savestates.h"
 #include "../main/guifuncs.h"
 
 int use_flashram;
@@ -104,53 +105,37 @@ void flashram_command(unsigned long command)
             break;
         case ERASE_MODE:
             {
-                char* filename;
-                FILE* f;
-                int i;
-                filename = (char*)malloc(strlen(get_savespath()) +
-                    strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-                strcpy(filename, get_savespath());
-                strcat(filename, (const char*)ROM_HEADER.nom);
-                strcat(filename, ".fla");
-                f = fopen(filename, "rb");
+                auto filename = get_sram_path();
+                FILE* f = fopen(filename.string().c_str(), "rb");
                 if (f)
                 {
                     fread(flashram, 1, 0x20000, f);
                     fclose(f);
                 }
-                else for (i = 0; i < 0x20000; i++) flashram[i] = 0xff;
-                for (i = erase_offset; i < (erase_offset + 128); i++)
+                else for (int i = 0; i < 0x20000; i++) flashram[i] = 0xff;
+                for (int i = erase_offset; i < (erase_offset + 128); i++)
                     flashram[i ^ S8] = 0xff;
-                f = fopen(filename, "wb");
+                f = fopen(filename.string().c_str(), "wb");
                 fwrite(flashram, 1, 0x20000, f);
                 fclose(f);
-                free(filename);
             }
             break;
         case WRITE_MODE:
             {
-                char* filename;
-                FILE* f;
-                int i;
-                filename = (char*)malloc(strlen(get_savespath()) +
-                    strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-                strcpy(filename, get_savespath());
-                strcat(filename, (const char*)ROM_HEADER.nom);
-                strcat(filename, ".fla");
-                f = fopen(filename, "rb");
+                auto filename = get_sram_path();
+                FILE* f = fopen(filename.string().c_str(), "rb");
                 if (f)
                 {
                     fread(flashram, 1, 0x20000, f);
                     fclose(f);
                 }
-                else for (i = 0; i < 0x20000; i++) flashram[i] = 0xff;
-                for (i = 0; i < 128; i++)
+                else for (int i = 0; i < 0x20000; i++) flashram[i] = 0xff;
+                for (int i = 0; i < 128; i++)
                     flashram[(erase_offset + i) ^ S8] =
                         ((unsigned char*)rdram)[(write_pointer + i) ^ S8];
-                f = fopen(filename, "wb");
+                f = fopen(filename.string().c_str(), "wb");
                 fwrite(flashram, 1, 0x20000, f);
                 fclose(f);
-                free(filename);
             }
             break;
         case STATUS_MODE:
@@ -188,23 +173,20 @@ void dma_read_flashram()
         rdram[pi_register.pi_dram_addr_reg / 4 + 1] = (unsigned long)(status);
         break;
     case READ_MODE:
-        filename = (char*)malloc(strlen(get_savespath()) +
-            strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-        strcpy(filename, get_savespath());
-        strcat(filename, (const char*)ROM_HEADER.nom);
-        strcat(filename, ".fla");
-        f = fopen(filename, "rb");
-        if (f)
         {
-            fread(flashram, 1, 0x20000, f);
-            fclose(f);
+            auto filename = get_flashram_path();
+            FILE* f = fopen(filename.string().c_str(), "rb");
+            if (f)
+            {
+                fread(flashram, 1, 0x20000, f);
+                fclose(f);
+            }
+            else for (i = 0; i < 0x20000; i++) flashram[i] = 0xff;
+            for (i = 0; i < (pi_register.pi_wr_len_reg & 0x0FFFFFF) + 1; i++)
+                ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
+                    flashram[(((pi_register.pi_cart_addr_reg - 0x08000000) & 0xFFFF) * 2 + i) ^ S8];
+            break;
         }
-        else for (i = 0; i < 0x20000; i++) flashram[i] = 0xff;
-        free(filename);
-        for (i = 0; i < (pi_register.pi_wr_len_reg & 0x0FFFFFF) + 1; i++)
-            ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-                flashram[(((pi_register.pi_cart_addr_reg - 0x08000000) & 0xFFFF) * 2 + i) ^ S8];
-        break;
     default:
         printf("unknown dma_read_flashram:%x\n", mode);
         stop = 1;

@@ -26,8 +26,6 @@
  * USA.
  *
 **/
-
-
 #pragma once
 
 #include <filesystem>
@@ -47,15 +45,37 @@ enum class e_st_medium
 	memory
 };
 
-// in-memory savestate buffers
-extern std::unordered_map<size_t, uint8_t*> local_st;
-
 extern size_t st_slot;
 extern std::filesystem::path st_path;
 extern e_st_job savestates_job;
 extern e_st_medium st_medium;
 extern bool st_skip_dma;
 extern bool old_st;
+
+/**
+ * \brief Gets the path to the save directory
+ */
+std::filesystem::path get_saves_directory();
+
+/**
+ * \brief Gets the path to the current rom's SRAM file
+ */
+std::filesystem::path get_sram_path();
+
+/**
+ * \brief Gets the path to the current rom's EEPROM file
+ */
+std::filesystem::path get_eeprom_path();
+
+/**
+ * \brief Gets the path to the current rom's flashram file
+ */
+std::filesystem::path get_flashram_path();
+
+/**
+ * \brief Gets the path to the current rom's mempak file
+ */
+std::filesystem::path get_mempak_path();
 
 /**
  * \brief Reads emu state and generates a savestate depending on the st global state

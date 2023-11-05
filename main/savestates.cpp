@@ -27,28 +27,26 @@
  *
 **/
 
-#include <zlib.h>
-#include <libdeflate.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "../lua/LuaConsole.h"
-#include "vcr.h"
-
 #include "savestates.h"
+
+#include <libdeflate.h>
+#include <map>
+#include <stdlib.h>
+#include <string>
+
 #include "guifuncs.h"
 #include "rom.h"
-#include "../memory/memory.h"
+#include "vcr.h"
+#include "../lua/LuaConsole.h"
 #include "../memory/flashram.h"
+#include "../memory/memory.h"
 #include "../memory/summercart.h"
-#include "../r4300/r4300.h"
 #include "../r4300/interupt.h"
+#include "../r4300/r4300.h"
 #include "win/main_win.h"
 #include "win/features/Statusbar.hpp"
-
 extern unsigned long interp_addr;
 
-std::unordered_map<size_t, uint8_t*> local_st;
 size_t st_slot = 0;
 std::filesystem::path st_path;
 e_st_job savestates_job = e_st_job::none;
@@ -73,6 +71,36 @@ bool st_skip_dma = false;
 constexpr int buflen = 1024;
 constexpr int first_block_size = 0xA02BB4 - 32; //32 is md5 hash
 uint8_t first_block[first_block_size] = {0};
+
+
+std::filesystem::path get_saves_directory()
+{
+	if (Config.is_default_saves_directory_used)
+	{
+		return app_path + "Save\\";
+	}
+	return Config.saves_directory;
+}
+
+std::filesystem::path get_sram_path()
+{
+	return std::format("{}{}.sra", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+}
+
+std::filesystem::path get_eeprom_path()
+{
+	return std::format("{}{}.eep", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+}
+
+std::filesystem::path get_flashram_path()
+{
+	return std::format("{}{}.fla", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+}
+
+std::filesystem::path get_mempak_path()
+{
+	return std::format("{}{}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+}
 
 std::vector<uint8_t> generate_savestate()
 {
@@ -174,11 +202,11 @@ std::vector<uint8_t> generate_savestate()
 
 void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& sd_path)
 {
-	sd_path = std::format("{}{}.sd", get_savespath(), (const char*)ROM_HEADER.nom);
+	sd_path = std::format("{}{}.sd", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
 
 	if (st_medium == e_st_medium::slot)
 	{
-		st_path = std::format("{}{}.st{}", get_savespath(), (const char*)ROM_HEADER.nom, std::to_string(st_slot));
+		st_path = std::format("{}{}.st{}", get_saves_directory().string(), (const char*)ROM_HEADER.nom, std::to_string(st_slot));
 	}
 }
 

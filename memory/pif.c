@@ -98,47 +98,31 @@ void EepromCommand(BYTE* Command)
         break;
     case 4: // read
         {
-            char* filename;
-            FILE* f;
-            int i;
-            filename = (char*)malloc(strlen(get_savespath()) +
-                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-            strcpy(filename, get_savespath());
-            strcat(filename, (const char*)ROM_HEADER.nom);
-            strcat(filename, ".eep");
-            f = fopen(filename, "rb");
+            auto filename = get_eeprom_path();
+            FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)
             {
                 fread(eeprom, 1, 0x800, f);
                 fclose(f);
             }
-            else for (i = 0; i < 0x800; i++) eeprom[i] = 0;
-            free(filename);
+            else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
             memcpy(&Command[4], eeprom + Command[3] * 8, 8);
         }
         break;
     case 5: // write
         {
-            char* filename;
-            FILE* f;
-            int i;
-            filename = (char*)malloc(strlen(get_savespath()) +
-                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-            strcpy(filename, get_savespath());
-            strcat(filename, (const char*)ROM_HEADER.nom);
-            strcat(filename, ".eep");
-            f = fopen(filename, "rb");
+            auto filename = get_eeprom_path();
+            FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)
             {
                 fread(eeprom, 1, 0x800, f);
                 fclose(f);
             }
-            else for (i = 0; i < 0x800; i++) eeprom[i] = 0;
+            else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
             memcpy(eeprom + Command[3] * 8, &Command[4], 8);
-            f = fopen(filename, "wb");
+            f = fopen(filename.string().c_str(), "wb");
             fwrite(eeprom, 1, 0x800, f);
             fclose(f);
-            free(filename);
         }
         break;
     default:
@@ -285,14 +269,8 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                         address &= 0xFFE0;
                         if (address <= 0x7FE0)
                         {
-                            char* filename;
-                            FILE* f;
-                            filename = (char*)malloc(strlen(get_savespath()) +
-                                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-                            strcpy(filename, get_savespath());
-                            strcat(filename, (const char*)ROM_HEADER.nom);
-                            strcat(filename, ".mpk");
-                            f = fopen(filename, "rb");
+                            auto filename = get_mempak_path();
+                            FILE* f = fopen(filename.string().c_str(), "rb");
                             if (f)
                             {
                                 fread(mempack[0], 1, 0x8000, f);
@@ -302,7 +280,6 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                                 fclose(f);
                             }
                             else format_mempacks();
-                            free(filename);
                             memcpy(&Command[5], &mempack[Control][address], 0x20);
                         }
                         else
@@ -339,14 +316,8 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                         address &= 0xFFE0;
                         if (address <= 0x7FE0)
                         {
-                            char* filename;
-                            FILE* f;
-                            filename = (char*)malloc(strlen(get_savespath()) +
-                                strlen((const char*)ROM_HEADER.nom) + 4 + 1);
-                            strcpy(filename, get_savespath());
-                            strcat(filename, (const char*)ROM_HEADER.nom);
-                            strcat(filename, ".mpk");
-                            f = fopen(filename, "rb");
+                            auto filename = get_mempak_path();
+                            FILE* f = fopen(filename.string().c_str(), "rb");
                             if (f)
                             {
                                 fread(mempack[0], 1, 0x8000, f);
@@ -357,13 +328,12 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                             }
                             else format_mempacks();
                             memcpy(&mempack[Control][address], &Command[5], 0x20);
-                            f = fopen(filename, "wb");
+                            f = fopen(filename.string().c_str(), "wb");
                             fwrite(mempack[0], 1, 0x8000, f);
                             fwrite(mempack[1], 1, 0x8000, f);
                             fwrite(mempack[2], 1, 0x8000, f);
                             fwrite(mempack[3], 1, 0x8000, f);
                             fclose(f);
-                            free(filename);
                         }
                         Command[0x25] = mempack_crc(&Command[5]);
                     }
