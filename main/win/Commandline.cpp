@@ -33,14 +33,9 @@ std::string commandline_lua;
 std::string commandline_st;
 std::string commandline_movie;
 std::string commandline_avi;
-bool commandline_stop_on_movie_end;
+bool commandline_stop_capture_on_movie_end;
+bool commandline_stop_emu_on_movie_end;
 
-// Flags:
-// --rom Loads rom
-// --movie Plays movie
-// --st Loads savestate
-// --lua Starts lua script
-// --avi Starts capturing AVI
 
 void commandline_set()
 {
@@ -51,7 +46,8 @@ void commandline_set()
 	commandline_st = cmdl("--st", "").str();
 	commandline_movie = cmdl("--movie", "").str();
 	commandline_avi = cmdl("--avi", "").str();
-	commandline_stop_on_movie_end = cmdl["--stop-avi-on-movie-end"];
+	commandline_stop_capture_on_movie_end = cmdl["--stop-capture-on-movie-end"];
+	commandline_stop_emu_on_movie_end = cmdl["--stop-emu-on-movie-end"];
 
 	// handle "Open With...":
 	if (cmdl.size() == 2 && cmdl.params().empty())
@@ -113,15 +109,13 @@ void commandline_start_capture()
 
 void commandline_on_movie_playback_stop()
 {
-	if (!commandline_stop_on_movie_end)
-	{
-		return;
-	}
-
-	if (VCR_isCapturing())
+	if (commandline_stop_capture_on_movie_end && VCR_isCapturing())
 	{
 		VCR_stopCapture();
 	}
 
-	SendMessage(mainHWND, WM_DESTROY, 0, 0);
+	if (commandline_stop_capture_on_movie_end)
+	{
+		SendMessage(mainHWND, WM_DESTROY, 0, 0);
+	}
 }

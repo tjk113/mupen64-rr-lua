@@ -46,5 +46,9 @@ void commandline_start_movie();
  */
 void commandline_start_capture();
 
+/**
+ * \brief Notify commandline of movie playback stopping
+ */
 void commandline_on_movie_playback_stop();
+
 #endif
