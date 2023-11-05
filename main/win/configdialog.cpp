@@ -798,61 +798,37 @@ BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 void configdialog_show()
 {
-    PROPSHEETPAGE psp[6]{};
+    PROPSHEETPAGE psp[6] = {0};
+    for (int i = 0; i < std::size(psp); ++i)
+    {
+    	psp[i].dwSize = sizeof(PROPSHEETPAGE);
+    	psp[i].dwFlags = PSP_USETITLE;
+    	psp[i].hInstance = app_instance;
+    }
 
-    psp[0].dwSize = sizeof(PROPSHEETPAGE);
-    psp[0].dwFlags = PSP_USETITLE;
-    psp[0].hInstance = app_instance;
-    psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
+	psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
     psp[0].pfnDlgProc = PluginsCfg;
     psp[0].pszTitle = "Plugins";
-    psp[0].lParam = 0;
-    psp[0].pfnCallback = NULL;
 
-    psp[1].dwSize = sizeof(PROPSHEETPAGE);
-    psp[1].dwFlags = PSP_USETITLE;
-    psp[1].hInstance = app_instance;
     psp[1].pszTemplate = MAKEINTRESOURCE(IDD_DIRECTORIES);
     psp[1].pfnDlgProc = DirectoriesCfg;
     psp[1].pszTitle = "Directories";
-    psp[1].lParam = 0;
-    psp[1].pfnCallback = NULL;
 
-    psp[2].dwSize = sizeof(PROPSHEETPAGE);
-    psp[2].dwFlags = PSP_USETITLE;
-    psp[2].hInstance = app_instance;
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
     psp[2].pfnDlgProc = GeneralCfg;
     psp[2].pszTitle = "General";
-    psp[2].lParam = 0;
-    psp[2].pfnCallback = NULL;
 
-    psp[3].dwSize = sizeof(PROPSHEETPAGE);
-    psp[3].dwFlags = PSP_USETITLE;
-    psp[3].hInstance = app_instance;
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
     psp[3].pfnDlgProc = AdvancedSettingsProc;
     psp[3].pszTitle = "Advanced";
-    psp[3].lParam = 0;
-    psp[3].pfnCallback = NULL;
 
-    psp[4].dwSize = sizeof(PROPSHEETPAGE);
-    psp[4].dwFlags = PSP_USETITLE;
-    psp[4].hInstance = app_instance;
     psp[4].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
     psp[4].pfnDlgProc = HotkeysProc;
     psp[4].pszTitle = "Hotkeys";
-    psp[4].lParam = 0;
-    psp[4].pfnCallback = NULL;
 
-    psp[5].dwSize = sizeof(PROPSHEETPAGE);
-    psp[5].dwFlags = PSP_USETITLE;
-    psp[5].hInstance = app_instance;
     psp[5].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
     psp[5].pfnDlgProc = OtherOptionsProc;
     psp[5].pszTitle = "Other";
-    psp[5].lParam = 0;
-    psp[5].pfnCallback = NULL;
 
 	PROPSHEETHEADER psh = {0};
     psh.dwSize = sizeof(PROPSHEETHEADER);
@@ -861,9 +837,7 @@ void configdialog_show()
     psh.hInstance = app_instance;
     psh.pszCaption = "Settings";
     psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
-    psh.nStartPage = 0;
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-    psh.pfnCallback = nullptr;
 
     CONFIG old_config = Config;
 
