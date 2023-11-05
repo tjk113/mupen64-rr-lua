@@ -1680,14 +1680,19 @@ void VCR_updateScreen()
 		}
 
 		// we always want to invoke atvi, regardless of ff optimization
-		main_dispatcher_invoke(AtVILuaCallback);
+		if (!hwnd_lua_map.empty())
+		{
+			main_dispatcher_invoke(AtVILuaCallback);
+		}
 		return;
 	}
 
 	// capturing, update screen and call readscreen, call avi/ffmpeg stuff
 	updateScreen();
-	main_dispatcher_invoke(AtVILuaCallback);
-
+	if (!hwnd_lua_map.empty())
+	{
+		main_dispatcher_invoke(AtVILuaCallback);
+	}
 	void* image = nullptr;
 	long width = 0, height = 0;
 
