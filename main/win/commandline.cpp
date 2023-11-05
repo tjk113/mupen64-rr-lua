@@ -19,11 +19,19 @@
 #include <Windows.h>
 #include "commandline.h"
 
+#include <iostream>
+
+#include "LuaConsole.h"
 #include "main_win.h"
+#include "savestates.h"
+#include "vcr.h"
 #include "helpers/string_helpers.h"
 #include "lib/argh.h"
 
 std::string commandline_rom;
+std::string commandline_lua;
+std::string commandline_st;
+std::string commandline_movie;
 
 //To get a command line parameter if available, please pass a flag
 // Flags:
@@ -43,27 +51,21 @@ std::string commandline_rom;
 
 void commandline_set()
 {
-	argh::parser cmdl(__argv);
+	argh::parser cmdl(__argc, __argv, argh::parser::PREFER_PARAM_FOR_UNREG_OPTION);
 
-	// first arg is always executable
-	// if only that is present, we dont have any options
-	if (cmdl.size() == 1)
-	{
-		return;
-	}
-
+	commandline_rom = cmdl("--rom", "").str();
+	commandline_lua = cmdl("--lua", "").str();
+	commandline_st = cmdl("--st", "").str();
+	commandline_movie = cmdl("--movie", "").str();
 
 	// handle "Open With...":
-	if (cmdl.size() == 2)
+	if (cmdl.size() == 2 && cmdl.params().empty())
 	{
 		commandline_rom = cmdl[1];
-		return;
 	}
-
-	// TODO: add back old ones
 }
 
-void commandline_load_rom()
+void commandline_start_rom()
 {
 	if (commandline_rom.empty())
 	{
@@ -72,4 +74,34 @@ void commandline_load_rom()
 
 	strcpy(rom_path, commandline_rom.c_str());
 	CreateThread(NULL, 0, start_rom, nullptr, 0, &start_rom_id);
+}
+
+void commandline_load_st()
+{
+	if (commandline_st.empty())
+	{
+		return;
+	}
+
+	savestates_do(commandline_st.c_str(), e_st_job::load);
+}
+
+void commandline_start_lua()
+{
+	if (commandline_lua.empty())
+	{
+		return;
+	}
+
+	lua_create_and_run(commandline_lua.c_str(), false);
+}
+
+void commandline_start_movie()
+{
+	if (commandline_movie.empty())
+	{
+		return;
+	}
+
+	VCR_startPlayback(commandline_movie, nullptr, nullptr);
 }

@@ -25,6 +25,21 @@ void commandline_set();
 /**
  * \brief Load the commandline-specified rom
  */
-void commandline_load_rom();
+void commandline_start_rom();
+
+/**
+ * \brief Load the commandline-specified lua
+ */
+void commandline_start_lua();
+
+/**
+ * \brief Load the commandline-specified savestate
+ */
+void commandline_load_st();
+
+/**
+ * \brief Load the commandline-specified movie
+ */
+void commandline_start_movie();
 
 #endif

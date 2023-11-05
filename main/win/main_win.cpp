@@ -1193,9 +1193,9 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	printf("Emu thread: Emulation started....\n");
 
 	// start movies, st and lua scripts
-	// StartMovies();
-	// StartSavestate();
-	// StartLuaScripts();
+	commandline_load_st();
+	commandline_start_lua();
+	commandline_start_movie();
 
 	AtResetLuaCallback();
 	if (pauseAtFrame == 0 && VCR_isStartingAndJustRestarted())
@@ -1572,7 +1572,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
-		commandline_load_rom();
+		commandline_start_rom();
 		return TRUE;
 	case WM_TIMER:
 		AtUpdateScreenLuaCallback();
