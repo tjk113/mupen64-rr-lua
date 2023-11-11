@@ -425,7 +425,7 @@ void gen_interrupt()
         {
             main_dispatcher_invoke(AtIntervalLuaCallback);
         }
-        VCR_updateScreen();
+        vcr_update_screen();
         timer_new_vi();
         if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
         else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * Config.cpu_clock_speed_multiplier));

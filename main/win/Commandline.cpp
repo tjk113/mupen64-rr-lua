@@ -94,7 +94,7 @@ void commandline_start_movie()
 		return;
 	}
 
-	VCR_startPlayback(commandline_movie, nullptr, nullptr);
+	vcr_start_playback(commandline_movie, nullptr, nullptr);
 }
 
 void commandline_start_capture()
@@ -109,9 +109,9 @@ void commandline_start_capture()
 
 void commandline_on_movie_playback_stop()
 {
-	if (commandline_stop_capture_on_movie_end && VCR_isCapturing())
+	if (commandline_stop_capture_on_movie_end && vcr_is_capturing())
 	{
-		VCR_stopCapture();
+		vcr_stop_capture();
 	}
 
 	if (commandline_stop_capture_on_movie_end)
