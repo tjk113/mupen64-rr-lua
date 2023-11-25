@@ -124,7 +124,6 @@ extern unsigned long vcr_get_length_samples();
 extern void vcr_set_length_v_is(unsigned long val);
 extern void vcr_set_length_samples(unsigned long val);
 extern void vcr_toggle_read_only();
-extern void vcr_toggle_loop_movie();
 
 extern void vcr_movie_freeze(char** buf, unsigned long* size);
 extern int vcr_movie_unfreeze(const char* buf, unsigned long size);

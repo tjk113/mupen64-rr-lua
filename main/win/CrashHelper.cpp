@@ -79,7 +79,7 @@ void crash_helper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_pt
 
 		//emu info
 #ifdef _DEBUG
-		len += sprintf(logPtr + len, "Version:" MUPEN_VERSION " DEBUG\n");
+		len += sprintf(log_ptr + len, "Version:" MUPEN_VERSION " DEBUG\n");
 #else
 		len += sprintf(log_ptr + len, "Version:" MUPEN_VERSION "\n");
 #endif
@@ -94,7 +94,7 @@ void crash_helper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_pt
 	{
 		//emu info
 #ifdef _DEBUG
-		len += sprintf(logPtr + len, "Version:" MUPEN_VERSION " DEBUG\n");
+		len += sprintf(log_ptr + len, "Version:" MUPEN_VERSION " DEBUG\n");
 #else
 		len += sprintf(log_ptr + len, "Version:" MUPEN_VERSION "\n");
 #endif

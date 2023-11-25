@@ -1754,7 +1754,7 @@ static void write_sound(char* buf, int len, const int min_write_size, const int 
 #ifdef _DEBUG
 		else
 		{
-			long double pro = (long double)(soundBufPos + len) * 100 / (
+			long double pro = (long double)(sound_buf_pos + len) * 100 / (
 				SOUND_BUF_SIZE * sizeof(char));
 			if (pro > 75) printf("---!!!---");
 			printf("sound buffer: %.2f%%\n", pro);
@@ -2013,24 +2013,6 @@ vcr_toggle_read_only()
 
 	statusbar_post_text(m_read_only ? "Read" : "Read-write");
 }
-
-void
-vcr_toggle_loop_movie()
-{
-	Config.is_movie_loop_enabled ^= 1;
-
-	extern HWND mainHWND;
-	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE,
-	              MF_BYCOMMAND | (Config.is_movie_loop_enabled
-		                              ? MFS_CHECKED
-		                              : MFS_UNCHECKED));
-
-	if (emu_launched)
-		statusbar_post_text(Config.is_movie_loop_enabled
-								 ? "Movies restart after ending"
-								 : "Movies stop after ending");
-}
-
 
 int vcr_stop_capture()
 {
