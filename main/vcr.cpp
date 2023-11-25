@@ -1841,31 +1841,6 @@ void vcr_ai_len_changed()
 	}
 }
 
-void update_title_bar_capture(const char* filename)
-{
-	// Setting titlebar to include currently capturing AVI file
-	char title[PATH_MAX];
-	char avi[PATH_MAX];
-	char ext[PATH_MAX];
-	strncpy(avi, avi_file_name, PATH_MAX);
-	_splitpath(avi, nullptr, nullptr, avi, ext);
-
-	if (vcr_is_playing())
-	{
-		char m64[PATH_MAX];
-		strncpy(m64, m_filename, PATH_MAX);
-		_splitpath(m64, nullptr, nullptr, m64, nullptr);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64 | %s%s",
-		        (char*)ROM_HEADER.nom, m64, avi, ext);
-	} else
-	{
-		sprintf(title, MUPEN_VERSION " - %s | %s%s", (char*)ROM_HEADER.nom,
-		        avi, ext);
-	}
-	printf("title %s\n", title);
-	SetWindowText(mainHWND, title);
-}
-
 bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 {
 	extern BOOL emu_paused;
@@ -1903,7 +1878,6 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 
 	// toolbar could get captured in AVI, so we disable it
 	toolbar_set_visibility(0);
-	update_title_bar_capture(avi_file_name);
 	enable_emulation_menu_items(TRUE);
 	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
 	// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
@@ -1951,7 +1925,6 @@ int vcr_start_f_fmpeg_capture(const std::string& output_name,
 		capture_manager.reset();
 	else
 	{
-		update_title_bar_capture(output_name.data());
 		m_capture = 1;
 		capture_with_f_fmpeg = 1;
 	}
