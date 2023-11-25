@@ -21,46 +21,55 @@
 */
 
 #include <shlobj.h>
-#include <cstdio>
+#include <stdio.h>
 #include <vector>
-
 #include "../lua/LuaConsole.h"
 #include "main_win.h"
 #include "../../winproject/resource.h"
 #include "../plugin.hpp"
 #include "features/RomBrowser.hpp"
+#include "../guifuncs.h"
+#include "../md5.h"
 #include "timers.h"
 #include "Config.hpp"
+#include "../rom.h"
 #include "wrapper/PersistentPathDialog.h"
 #include "../main/helpers/string_helpers.h"
 #include "../main/helpers/win_helpers.h"
+
+
 #include "configdialog.h"
 #include <vcr.h>
 #include <cassert>
 
+#include "features/Statusbar.hpp"
+#include "features/Toolbar.hpp"
+
 std::vector<t_plugin*> available_plugins;
 
-BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
+BOOL CALLBACK OtherOptionsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	NMHDR FAR* l_nmhdr = nullptr;
-    memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));
-    switch (message)
+    int index;
+    NMHDR FAR* l_nmhdr = nullptr;
+    memcpy(&l_nmhdr, &lParam, sizeof(NMHDR FAR*));
+    switch (Message)
     {
     case WM_INITDIALOG:
         {
-	        set_checkbox_state(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
+            set_checkbox_state(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
 
             static const char* clock_speed_multiplier_names[] = {
                 "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6"
             };
 
             // Populate CPU Clock Speed Multiplier Dropdown Menu
-            for (auto& clock_speed_multiplier_name :clock_speed_multiplier_names) {
+            for (int i = 0; i < (int)(sizeof(clock_speed_multiplier_names) / sizeof(clock_speed_multiplier_names[0])); i++)
+            {
                 SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0,
-                                   (LPARAM)clock_speed_multiplier_name);
+                                   (LPARAM)clock_speed_multiplier_names[i]);
             }
-	        const int index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1,
-	                                             (LPARAM)clock_speed_multiplier_names[Config.cpu_clock_speed_multiplier - 1]);
+            index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1,
+                                       (LPARAM)clock_speed_multiplier_names[Config.cpu_clock_speed_multiplier - 1]);
             SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
 
             switch (Config.synchronization_mode)
@@ -78,9 +87,9 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
                 break;
             }
 
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_AUDIOSYNC), !vcr_is_capturing());
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_VIDEOSYNC), !vcr_is_capturing());
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_NOSYNC), !vcr_is_capturing());
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_AUDIOSYNC), !VCR_isCapturing());
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_VIDEOSYNC), !VCR_isCapturing());
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_NOSYNC), !VCR_isCapturing());
 
             return TRUE;
         }
@@ -88,7 +97,7 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
         {
             char buf[50];
             // TODO: move into wm_notify psn_apply
-            switch (LOWORD(w_param))
+            switch (LOWORD(wParam))
             {
             case IDC_AV_AUDIOSYNC:
                 Config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
@@ -122,13 +131,13 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
 
 
 
-BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM)
+BOOL CALLBACK AboutDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
+    switch (Message)
     {
     case WM_INITDIALOG:
         SendDlgItemMessage(hwnd, IDB_LOGO, STM_SETIMAGE, IMAGE_BITMAP,
-                           (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_LOGO),
+                           (LPARAM)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_LOGO),
                                              IMAGE_BITMAP, 0, 0, 0));
         return TRUE;
 
@@ -137,17 +146,17 @@ BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w
         break;
 
     case WM_COMMAND:
-        switch (LOWORD(w_param))
+        switch (LOWORD(wParam))
         {
         case IDOK:
             EndDialog(hwnd, IDOK);
             break;
 
         case IDC_WEBSITE:
-            ShellExecute(nullptr, nullptr, "http://mupen64.emulation64.com", nullptr, nullptr, SW_SHOW);
+            ShellExecute(0, 0, "http://mupen64.emulation64.com", 0, 0, SW_SHOW);
             break;
         case IDC_GITREPO:
-            ShellExecute(nullptr, nullptr, "https://github.com/mkdasher/mupen64-rr-lua-/", nullptr, nullptr, SW_SHOW);
+            ShellExecute(0, 0, "https://github.com/mkdasher/mupen64-rr-lua-/", 0, 0, SW_SHOW);
             break;
         default:
             break;
@@ -163,28 +172,28 @@ void configdialog_about()
 {
 	DialogBox(GetModuleHandle(NULL),
 						MAKEINTRESOURCE(IDD_ABOUT), mainHWND,
-						about_dlg_proc);
+						AboutDlgProc);
 }
 
-void build_rom_browser_path_list(const HWND dialog_hwnd)
+void build_rom_browser_path_list(HWND dialog_hwnd)
 {
-	const HWND hwnd = GetDlgItem(dialog_hwnd, IDC_ROMBROWSER_DIR_LIST);
+    HWND hwnd = GetDlgItem(dialog_hwnd, IDC_ROMBROWSER_DIR_LIST);
 
     SendMessage(hwnd, LB_RESETCONTENT, 0, 0);
 
-    for (const std::string& str : Config.rombrowser_rom_paths)
+    for (std::string str : Config.rombrowser_rom_paths)
     {
         SendMessage(hwnd, LB_ADDSTRING, 0,
                     (LPARAM)str.c_str());
     }
 }
 
-BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM l_param)
+BOOL CALLBACK DirectoriesCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	[[maybe_unused]] LPITEMIDLIST pidl{};
+    LPITEMIDLIST pidl{};
     BROWSEINFO bi{};
-    auto l_nmhdr = (NMHDR*)&l_param;
-    switch (message)
+    auto l_nmhdr = (NMHDR*)&lParam;
+    switch (Message)
     {
     case WM_INITDIALOG:
 
@@ -243,7 +252,7 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
         }
         break;
     case WM_COMMAND:
-        switch (LOWORD(w_param))
+        switch (LOWORD(wParam))
         {
         case IDC_RECURSION:
             Config.is_rombrowser_recursion_enabled = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) ==
@@ -252,7 +261,7 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
         case IDC_ADD_BROWSER_DIR:
             {
                 const auto path = show_persistent_folder_dialog("f_roms", hwnd);
-                if (path.empty())
+                if (path.size() == 0)
                 {
                     break;
                 }
@@ -262,7 +271,8 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
             }
         case IDC_REMOVE_BROWSER_DIR:
             {
-	            if (const int32_t selected_index = SendMessage(GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST), LB_GETCURSEL, 0, 0); selected_index != -1)
+                int32_t selected_index = SendMessage(GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST), LB_GETCURSEL, 0, 0);
+                if (selected_index != -1)
                 {
                     Config.rombrowser_rom_paths.erase(Config.rombrowser_rom_paths.begin() + selected_index);
                 }
@@ -293,7 +303,7 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
         case IDC_CHOOSE_PLUGINS_DIR:
             {
                 const auto path = show_persistent_folder_dialog("f_plugins", hwnd);
-                if (path.empty())
+                if (path.size() == 0)
                 {
                     break;
                 }
@@ -312,7 +322,7 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
         case IDC_CHOOSE_SAVES_DIR:
             {
                 const auto path = show_persistent_folder_dialog("f_saves", hwnd);
-                if (path.empty())
+                if (path.size() == 0)
                 {
                     break;
                 }
@@ -332,7 +342,7 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
         case IDC_CHOOSE_SCREENSHOTS_DIR:
             {
                 const auto path = show_persistent_folder_dialog("f_screenshots", hwnd);
-                if (path.empty())
+                if (path.size() == 0)
                 {
                     break;
                 }
@@ -354,7 +364,8 @@ void update_plugin_selection(const HWND hwnd, const int32_t id, const std::files
 {
 	for (int i = 0; i < SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0); ++i)
 	{
-		if (const auto plugin = (t_plugin*)SendDlgItemMessage(hwnd, id, CB_GETITEMDATA, i, 0); plugin->path == path)
+		auto plugin = (t_plugin*)SendDlgItemMessage(hwnd, id, CB_GETITEMDATA, i, 0);
+		if (plugin->path == path)
 		{
 			SendDlgItemMessage(hwnd, id, CB_SETCURSEL, i, 0);
 			break;
@@ -362,26 +373,26 @@ void update_plugin_selection(const HWND hwnd, const int32_t id, const std::files
 	}
 }
 
-t_plugin* get_selected_plugin(const HWND hwnd, const int id)
+t_plugin* get_selected_plugin(HWND hwnd, int id)
 {
     const int i = SendDlgItemMessage(hwnd, id, CB_GETCURSEL, 0, 0);
-    const auto res = SendDlgItemMessage(hwnd, id, CB_GETITEMDATA, i, 0);
+    auto res = SendDlgItemMessage(hwnd, id, CB_GETITEMDATA, i, 0);
 	return res == CB_ERR ? nullptr : (t_plugin*)res;
 }
 
-BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
+BOOL CALLBACK PluginsCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	[[maybe_unused]] char path_buffer[_MAX_PATH];
+    char path_buffer[_MAX_PATH];
     NMHDR FAR* l_nmhdr = nullptr;
-    memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));
-    switch (message)
+    memcpy(&l_nmhdr, &lParam, sizeof(NMHDR FAR*));
+    switch (Message)
     {
     case WM_CLOSE:
         EndDialog(hwnd, IDOK);
         break;
     case WM_INITDIALOG:
 
-    	for (const auto& plugin : available_plugins)
+    	for (auto& plugin : available_plugins)
     	{
     		plugin_destroy(plugin);
     	}
@@ -411,7 +422,7 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                 break;
             }
             // we add the string and associate a pointer to the plugin with the item
-            const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
+            int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
 
             SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, (LPARAM)plugin->name.c_str());
             SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin);
@@ -428,20 +439,20 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
 
         SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
-                           (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_DISPLAY),
+                           (LPARAM)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_DISPLAY),
                                              IMAGE_BITMAP, 0, 0, 0));
         SendDlgItemMessage(hwnd, IDB_CONTROL, STM_SETIMAGE, IMAGE_BITMAP,
-                           (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_CONTROL),
+                           (LPARAM)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_CONTROL),
                                              IMAGE_BITMAP, 0, 0, 0));
         SendDlgItemMessage(hwnd, IDB_SOUND, STM_SETIMAGE, IMAGE_BITMAP,
-                           (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_SOUND),
+                           (LPARAM)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_SOUND),
                                              IMAGE_BITMAP, 0, 0, 0));
         SendDlgItemMessage(hwnd, IDB_RSP, STM_SETIMAGE, IMAGE_BITMAP,
-                           (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_RSP),
+                           (LPARAM)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_RSP),
                                              IMAGE_BITMAP, 0, 0, 0));
         return TRUE;
     case WM_COMMAND:
-        switch (LOWORD(w_param))
+        switch (LOWORD(wParam))
         {
         case IDGFXCONFIG:
             hwnd_plug = hwnd;
@@ -522,12 +533,12 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
     return TRUE;
 }
 
-BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
+BOOL CALLBACK GeneralCfg(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
     NMHDR FAR* l_nmhdr = nullptr;
-    memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));
+    memcpy(&l_nmhdr, &lParam, sizeof(NMHDR FAR*));
 
-    switch (message)
+    switch (Message)
     {
     case WM_INITDIALOG:
         set_checkbox_state(hwnd, IDC_SHOWFPS, Config.show_fps);
@@ -548,7 +559,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         return TRUE;
 
     case WM_COMMAND:
-        switch (LOWORD(w_param))
+        switch (LOWORD(wParam))
         {
         case IDC_SKIPFREQUENCY_HELP:
             MessageBox(hwnd, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame", "Info",
@@ -583,7 +594,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             Config.show_fps = get_checkbox_state(hwnd, IDC_SHOWFPS);
             Config.show_vis_per_second = get_checkbox_state(hwnd, IDC_SHOWVIS);
             Config.is_savestate_warning_enabled = get_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS);
-            Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
+            Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, 0, 0);
             Config.is_state_independent_state_loading_allowed = get_checkbox_state(
                 hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
             timer_init();
@@ -596,11 +607,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 }
 
 
-BOOL CALLBACK advanced_settings_proc(const HWND hwnd, const UINT message, WPARAM, const LPARAM l_param)
+BOOL CALLBACK AdvancedSettingsProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
     NMHDR FAR* l_nmhdr = nullptr;
-    memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));
-    switch (message)
+    memcpy(&l_nmhdr, &lParam, sizeof(NMHDR FAR*));
+    switch (Message)
     {
     case WM_INITDIALOG:
        set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
@@ -632,7 +643,7 @@ BOOL CALLBACK advanced_settings_proc(const HWND hwnd, const UINT message, WPARAM
             Config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);
             Config.is_internal_capture_forced = get_checkbox_state(hwnd, IDC_FORCEINTERNAL);
             Config.is_capture_cropped_screen_dc = get_checkbox_state(hwnd, IDC_CAPTUREOTHER);
-            Config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, nullptr, 0);
+            Config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, 0, 0);
 
             rombrowser_build();
             LoadConfigExternals();
@@ -670,7 +681,9 @@ void update_selected_hotkey_view(const HWND dialog_hwnd)
     char selected_identifier[MAX_PATH] = {0};
     SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
 
-    if (const int32_t index_in_hotkey_array = get_hotkey_array_index_from_overview(std::string(selected_identifier)); index_in_hotkey_array >= 0 && index_in_hotkey_array < hotkeys.size())
+    const int32_t index_in_hotkey_array = get_hotkey_array_index_from_overview(std::string(selected_identifier));
+
+    if (index_in_hotkey_array >= 0 && index_in_hotkey_array < hotkeys.size())
     {
         SetWindowText(selected_hotkey_edit_hwnd, hotkey_to_string(hotkeys[index_in_hotkey_array]).c_str());
         EnableWindow(GetDlgItem(dialog_hwnd, IDC_HOTKEY_CLEAR), 1);
@@ -683,7 +696,7 @@ void update_selected_hotkey_view(const HWND dialog_hwnd)
     }
 }
 
-void build_hotkey_list(const HWND list_hwnd, const std::string &search_query)
+void build_hotkey_list(HWND list_hwnd, const std::string &search_query)
 {
     SendMessage(list_hwnd, LB_RESETCONTENT, 0, 0);
 
@@ -705,9 +718,9 @@ void build_hotkey_list(const HWND list_hwnd, const std::string &search_query)
     }
 }
 
-BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM)
+BOOL CALLBACK HotkeysProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
+    switch (Message)
     {
     case WM_INITDIALOG:
         {
@@ -717,21 +730,24 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
         }
     case WM_COMMAND:
         {
-	        const int id = LOWORD(w_param);
+            int id = LOWORD(wParam);
+            int event = HIWORD(wParam);
 
-	        if (const int event = HIWORD(w_param); id == IDC_HOTKEY_LIST && event == LBN_SELCHANGE)
+            if (id == IDC_HOTKEY_LIST && event == LBN_SELCHANGE)
             {
                 update_selected_hotkey_view(hwnd);
             }
 
             if (id == IDC_HOTKEY_ASSIGN_SELECTED)
             {
-	            const HWND list_hwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
+                HWND listHwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
                 char selected_identifier[MAX_PATH];
-                SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0),
+                SendMessage(listHwnd, LB_GETTEXT, SendMessage(listHwnd, LB_GETCURSEL, 0, 0),
                             (LPARAM)selected_identifier);
 
-	            if (const int32_t index = get_hotkey_array_index_from_overview(std::string(selected_identifier)); index >= 0 && index < hotkeys.size())
+                const int32_t index = get_hotkey_array_index_from_overview(std::string(selected_identifier));
+
+                if (index >= 0 && index < hotkeys.size())
                 {
                     SetDlgItemText(hwnd, id, "...");
 
@@ -757,7 +773,9 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
                 SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0),
                             (LPARAM)selected_identifier);
 
-                if (const int32_t index = get_hotkey_array_index_from_overview(std::string(selected_identifier)); index >= 0 && index < hotkeys.size())
+                const int32_t index = get_hotkey_array_index_from_overview(std::string(selected_identifier));
+
+                if (index >= 0 && index < hotkeys.size())
                 {
                     hotkeys[index]->key = 0;
                     hotkeys[index]->ctrl = 0;
@@ -780,35 +798,35 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 void configdialog_show()
 {
     PROPSHEETPAGE psp[6] = {0};
-    for (auto& i : psp)
+    for (int i = 0; i < std::size(psp); ++i)
     {
-	    i.dwSize = sizeof(PROPSHEETPAGE);
-	    i.dwFlags = PSP_USETITLE;
-	    i.hInstance = app_instance;
+    	psp[i].dwSize = sizeof(PROPSHEETPAGE);
+    	psp[i].dwFlags = PSP_USETITLE;
+    	psp[i].hInstance = app_instance;
     }
 
 	psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
-    psp[0].pfnDlgProc = plugins_cfg;
+    psp[0].pfnDlgProc = PluginsCfg;
     psp[0].pszTitle = "Plugins";
 
     psp[1].pszTemplate = MAKEINTRESOURCE(IDD_DIRECTORIES);
-    psp[1].pfnDlgProc = directories_cfg;
+    psp[1].pfnDlgProc = DirectoriesCfg;
     psp[1].pszTitle = "Directories";
 
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
-    psp[2].pfnDlgProc = general_cfg;
+    psp[2].pfnDlgProc = GeneralCfg;
     psp[2].pszTitle = "General";
 
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
-    psp[3].pfnDlgProc = advanced_settings_proc;
+    psp[3].pfnDlgProc = AdvancedSettingsProc;
     psp[3].pszTitle = "Advanced";
 
     psp[4].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
-    psp[4].pfnDlgProc = hotkeys_proc;
+    psp[4].pfnDlgProc = HotkeysProc;
     psp[4].pszTitle = "Hotkeys";
 
     psp[5].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
-    psp[5].pfnDlgProc = other_options_proc;
+    psp[5].pfnDlgProc = OtherOptionsProc;
     psp[5].pszTitle = "Other";
 
 	PROPSHEETHEADER psh = {0};
@@ -820,7 +838,7 @@ void configdialog_show()
     psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
 
-    const CONFIG old_config = Config;
+    CONFIG old_config = Config;
 
     if (!PropertySheet(&psh))
     {

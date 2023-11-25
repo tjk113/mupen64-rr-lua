@@ -49,7 +49,7 @@ extern DWORD close_rom_id;
 
 void main_dispatcher_invoke(const std::function<void()>& func);
 extern std::string app_path;
-extern void enable_emulation_menu_items(BOOL flag);
+extern void EnableEmulationMenuItems(BOOL flag);
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
 extern void resetEmu();
 extern void resumeEmu(BOOL quiet);

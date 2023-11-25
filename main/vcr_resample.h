@@ -1,12 +1,15 @@
-#ifndef VCR_RESAMPLE
-#define VCR_RESAMPLE
+//#include "../config.h"
 
-int vcr_resample(short** dst, int dst_freq,
+
+#ifndef __VCR_RESAMPLE__
+#define __VCR_RESAMPLE__
+
+int VCR_resample(short** dst, int dst_freq,
                  const short* src, int src_freq, int src_bitrate, int src_len);
 
 
-int vcr_get_resample_len(int dst_freq, int src_freq, int src_bitrate,
+int VCR_getResampleLen(int dst_freq, int src_freq, int src_bitrate,
                        int src_len);
 
-#endif // VCR_RESAMPLE
+#endif // __VCR_RESAMPLE__
 

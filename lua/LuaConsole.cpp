@@ -45,8 +45,8 @@
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
-extern int m_current_vi;
-extern long m_current_sample;
+extern int m_currentVI;
+extern long m_currentSample;
 extern int fast_memory;
 void SYNC();
 void NOTCOMPILED();
@@ -2687,13 +2687,13 @@ int LuaD2DDrawText(lua_State* L)
 
 	int GetVICount(lua_State* L)
 	{
-		lua_pushinteger(L, m_current_vi);
+		lua_pushinteger(L, m_currentVI);
 		return 1;
 	}
 
 	int GetSampleCount(lua_State* L)
 	{
-		lua_pushinteger(L, m_current_sample);
+		lua_pushinteger(L, m_currentSample);
 		return 1;
 	}
 
@@ -2721,7 +2721,7 @@ int LuaD2DDrawText(lua_State* L)
 
 	int GetVCRReadOnly(lua_State* L)
 	{
-		lua_pushboolean(L, vcr_get_read_only());
+		lua_pushboolean(L, VCR_getReadOnly());
 		return 1;
 	}
 
@@ -2834,22 +2834,22 @@ int LuaD2DDrawText(lua_State* L)
 	int PlayMovie(lua_State* L)
 	{
 		const char* fname = lua_tostring(L, 1);
-		vcr_set_read_only(true);
-		vcr_start_playback(fname, "", "");
+		VCR_setReadOnly(true);
+		VCR_startPlayback(fname, "", "");
 		return 0;
 	}
 
 	int StopMovie(lua_State* L)
 	{
-		vcr_stop_playback();
+		VCR_stopPlayback();
 		return 0;
 	}
 
 	int GetMovieFilename(lua_State* L)
 	{
-		if (vcr_is_starting() || vcr_is_playing())
+		if (VCR_isStarting() || VCR_isPlaying())
 		{
-			lua_pushstring(L, vcr_get_movie_filename());
+			lua_pushstring(L, VCR_getMovieFilename());
 		} else
 		{
 			luaL_error(L, "No movie is currently playing");
@@ -2903,7 +2903,7 @@ int LuaD2DDrawText(lua_State* L)
 	int StartCapture(lua_State* L)
 	{
 		const char* fname = lua_tostring(L, 1);
-		if (!vcr_is_capturing())
+		if (!VCR_isCapturing())
 			vcr_start_capture(fname, false);
 		else
 			luaL_error(
@@ -2914,8 +2914,8 @@ int LuaD2DDrawText(lua_State* L)
 
 	int StopCapture(lua_State* L)
 	{
-		if (vcr_is_capturing())
-			vcr_stop_capture();
+		if (VCR_isCapturing())
+			VCR_stopCapture();
 		else
 			luaL_error(L, "Tried to end AVI capture when none was in progress");
 		return 0;

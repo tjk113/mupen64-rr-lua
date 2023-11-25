@@ -1,5 +1,5 @@
-#ifndef VCR_H
-#define VCR_H
+#ifndef VCR_H_
+#define VCR_H_
 
 # include <Windows.h>
 
@@ -10,79 +10,49 @@
 #include <string>	//(also done later for ffmpeg functions)
 #endif
 
-enum
-{
-	SUCCESS = (0),
-	WRONG_FORMAT = (1),
-	WRONG_VERSION = (2),
-	FILE_NOT_FOUND = (3),
-	NOT_FROM_THIS_MOVIE = (4),
-	NOT_FROM_A_MOVIE = (5),
-	INVALID_FRAME = (6),
-	UNKNOWN_ERROR = (7)
-};
+#define SUCCESS (0)
+#define WRONG_FORMAT (1)
+#define WRONG_VERSION (2)
+#define FILE_NOT_FOUND (3)
+#define NOT_FROM_THIS_MOVIE (4)
+#define NOT_FROM_A_MOVIE (5)
+#define INVALID_FRAME (6)
+#define UNKNOWN_ERROR (7)
 
-enum
-{
-	VCR_PLAYBACK_SUCCESS = (0),
-	VCR_PLAYBACK_ERROR = (-1),
-	VCR_PLAYBACK_SAVESTATE_MISSING = (-2),
-	VCR_PLAYBACK_FILE_BUSY = (-3),
-	VCR_PLAYBACK_INCOMPATIBLE = (-4)
-};
+#define VCR_PLAYBACK_SUCCESS (0)
+#define VCR_PLAYBACK_ERROR (-1)
+#define VCR_PLAYBACK_SAVESTATE_MISSING (-2)
+#define VCR_PLAYBACK_FILE_BUSY (-3)
+#define VCR_PLAYBACK_INCOMPATIBLE (-4)
 
-enum
-{
-	MOVIE_START_FROM_SNAPSHOT = (1<<0),
-	MOVIE_START_FROM_NOTHING = (1<<1),
-	MOVIE_START_FROM_EEPROM = (1<<2),
-	MOVIE_START_FROM_EXISTING_SNAPSHOT = (1<<3)
-};
+#define MOVIE_START_FROM_SNAPSHOT			(1<<0)
+#define MOVIE_START_FROM_NOTHING			(1<<1)
+#define MOVIE_START_FROM_EEPROM				(1<<2)
+#define MOVIE_START_FROM_EXISTING_SNAPSHOT	(1<<3)
 
 #define CONTROLLER_X_PRESENT(x)	(1<<(x))
-
-enum
-{
-	CONTROLLER_1_PRESENT = (1<<0),
-	CONTROLLER_2_PRESENT = (1<<1),
-	CONTROLLER_3_PRESENT = (1<<2),
-	CONTROLLER_4_PRESENT = (1<<3)
-};
-
+#define CONTROLLER_1_PRESENT	(1<<0)
+#define CONTROLLER_2_PRESENT	(1<<1)
+#define CONTROLLER_3_PRESENT	(1<<2)
+#define CONTROLLER_4_PRESENT	(1<<3)
 #define CONTROLLER_X_MEMPAK(x)	(1<<((x)+4))
-
-enum
-{
-	CONTROLLER_1_MEMPAK = (1<<4),
-	CONTROLLER_2_MEMPAK = (1<<5),
-	CONTROLLER_3_MEMPAK = (1<<6),
-	CONTROLLER_4_MEMPAK = (1<<7)
-};
-
+#define CONTROLLER_1_MEMPAK 	(1<<4)
+#define CONTROLLER_2_MEMPAK 	(1<<5)
+#define CONTROLLER_3_MEMPAK 	(1<<6)
+#define CONTROLLER_4_MEMPAK 	(1<<7)
 #define CONTROLLER_X_RUMBLE(x)	(1<<((x)+8))
+#define CONTROLLER_1_RUMBLE 	(1<<8)
+#define CONTROLLER_2_RUMBLE 	(1<<9)
+#define CONTROLLER_3_RUMBLE 	(1<<10)
+#define CONTROLLER_4_RUMBLE 	(1<<11)
 
-enum
-{
-	CONTROLLER_1_RUMBLE = (1<<8),
-	CONTROLLER_2_RUMBLE = (1<<9),
-	CONTROLLER_3_RUMBLE = (1<<10),
-	CONTROLLER_4_RUMBLE = (1<<11)
-};
-
-enum
-{
-	MOVIE_AUTHOR_DATA_SIZE = (222),
-	MOVIE_DESCRIPTION_DATA_SIZE = (256)
-};
-
+#define MOVIE_AUTHOR_DATA_SIZE (222)
+#define MOVIE_DESCRIPTION_DATA_SIZE (256)
 #define MOVIE_MAX_METADATA_SIZE (MOVIE_DESCRIPTION_DATA_SIZE > MOVIE_AUTHOR_DATA_SIZE ? MOVIE_DESCRIPTION_DATA_SIZE : MOVIE_AUTHOR_DATA_SIZE)
 
-enum
-{
-	VCR_SYNC_AUDIO_DUPL = 0,
-	VCR_SYNC_VIDEO_SNDROP = 1,
-	VCR_SYNC_NONE = 2
-};
+#define VCR_SYNC_AUDIO_DUPL 0
+#define VCR_SYNC_VIDEO_SNDROP 1
+#define VCR_SYNC_NONE 2
 
 /*
 	(0x0001)	Directional Right
@@ -103,54 +73,54 @@ enum
 	(0xFF000000) Analog Y
 */
 
-extern void vcr_update_screen();
-extern void vcr_ai_dacrate_changed(system_type type);
-extern void vcr_ai_len_changed();
+extern void VCR_updateScreen();
+extern void VCR_aiDacrateChanged(system_type type);
+extern void VCR_aiLenChanged();
 
-extern BOOL vcr_is_active();
-extern BOOL vcr_is_idle(); // not the same as !isActive()
-extern BOOL vcr_is_starting();
-extern BOOL vcr_is_starting_and_just_restarted();
-extern BOOL vcr_is_playing();
-extern BOOL vcr_is_recording();
-extern BOOL vcr_is_capturing();
-extern void vcr_invalidated_capture_frame();
-extern const char* vcr_get_movie_filename();
-extern BOOL vcr_get_read_only();
-extern bool vcr_is_looping();
-extern bool vcr_is_restarting();
-extern void vcr_set_read_only(BOOL val);
-extern unsigned long vcr_get_length_v_is();
-extern unsigned long vcr_get_length_samples();
-extern void vcr_set_length_v_is(unsigned long val);
-extern void vcr_set_length_samples(unsigned long val);
-extern void vcr_toggle_read_only();
-extern void vcr_toggle_loop_movie();
+extern BOOL VCR_isActive();
+extern BOOL VCR_isIdle(); // not the same as !isActive()
+extern BOOL VCR_isStarting();
+extern BOOL VCR_isStartingAndJustRestarted();
+extern BOOL VCR_isPlaying();
+extern BOOL VCR_isRecording();
+extern BOOL VCR_isCapturing();
+extern void VCR_invalidatedCaptureFrame();
+extern const char* VCR_getMovieFilename();
+extern BOOL VCR_getReadOnly();
+extern bool VCR_isLooping();
+extern bool VCR_isRestarting();
+extern void VCR_setReadOnly(BOOL val);
+extern unsigned long VCR_getLengthVIs();
+extern unsigned long VCR_getLengthSamples();
+extern void VCR_setLengthVIs(unsigned long val);
+extern void VCR_setLengthSamples(unsigned long val);
+extern void VCR_toggleReadOnly();
+extern void VCR_toggleLoopMovie();
 
-extern void vcr_movie_freeze(char** buf, unsigned long* size);
-extern int vcr_movie_unfreeze(const char* buf, unsigned long size);
+extern void VCR_movieFreeze(char** buf, unsigned long* size);
+extern int VCR_movieUnfreeze(const char* buf, unsigned long size);
 
 
-extern int vcr_start_record(const char* filename, unsigned short flags,
-                           const char* author_utf8, const char* description_utf8,
-                           int def_ext);
-extern int vcr_stop_record(int def_ext);
-extern int vcr_start_playback(const std::string &filename, const char* author_utf8,
-                             const char* description_utf8);
-extern int vcr_stop_playback();
-extern int vcr_stop_capture();
+extern int VCR_startRecord(const char* filename, unsigned short flags,
+                           const char* authorUTF8, const char* descriptionUTF8,
+                           int defExt);
+extern int VCR_stopRecord(int defExt);
+extern int VCR_startPlayback(const std::string &filename, const char* authorUTF8,
+                             const char* descriptionUTF8);
+extern int VCR_stopPlayback();
+extern int VCR_stopCapture();
 
 //ffmpeg
 #ifdef __cplusplus
-int vcr_start_f_fmpeg_capture(const std::string& output_name,
+int VCR_StartFFmpegCapture(const std::string& outputName,
                            const std::string& arguments);
-void vcr_stop_f_fmpeg_capture();
+void VCR_StopFFmpegCapture();
 #endif
 
-extern void vcr_core_stopped();
+extern void VCR_coreStopped();
 
-extern void print_warning(const char*);
-extern void print_error(const char*);
+extern void printWarning(const char*);
+extern void printError(const char*);
 
 /**
  * \brief Updates the statusbar with the current VCR state
@@ -323,17 +293,17 @@ enum class e_task
 
 extern e_task m_task;
 
-inline bool is_task_playback(const e_task task)
+inline bool is_task_playback(e_task task)
 {
 	return task == e_task::start_playback || task == e_task::start_playback_from_snapshot || task == e_task::playback;
 }
-inline bool is_task_recording(const e_task task)
+inline bool is_task_recording(e_task task)
 {
 	return task == e_task::start_recording || task == e_task::start_recording_from_snapshot || task == e_task::start_recording_from_existing_snapshot || task == e_task::recording;
 }
 
-extern t_movie_header vcr_get_header_info(const char* filename);
-extern char vcr_lastpath[MAX_PATH];
+extern t_movie_header VCR_getHeaderInfo(const char* filename);
+extern char VCR_Lastpath[MAX_PATH];
 extern uint64_t screen_updates;
 
-#endif // VCR_H
+#endif // VCR_H_
