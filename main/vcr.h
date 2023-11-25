@@ -114,7 +114,6 @@ extern BOOL vcr_is_starting_and_just_restarted();
 extern BOOL vcr_is_playing();
 extern BOOL vcr_is_recording();
 extern BOOL vcr_is_capturing();
-extern void vcr_invalidated_capture_frame();
 extern const char* vcr_get_movie_filename();
 extern BOOL vcr_get_read_only();
 extern bool vcr_is_looping();
