@@ -333,5 +333,6 @@ inline bool is_task_recording(const e_task task)
 extern t_movie_header vcr_get_header_info(const char* filename);
 extern char vcr_lastpath[MAX_PATH];
 extern uint64_t screen_updates;
+extern std::filesystem::path movie_path;
 
 #endif // VCR_H

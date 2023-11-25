@@ -1334,9 +1334,23 @@ bool is_frame_skipped()
 	return screen_updates % Config.frame_skip_frequency != 0;
 }
 
-void reset_titlebar()
+void update_titlebar()
 {
-	SetWindowText(mainHWND, (std::string(MUPEN_VERSION) + " - " + std::string(reinterpret_cast<char*>(ROM_HEADER.nom))).c_str());
+	std::string text = MUPEN_VERSION;
+
+	if (emu_launched)
+	{
+		text += std::format(" - {}", reinterpret_cast<char*>(ROM_HEADER.nom));
+	}
+
+	if (!movie_path.empty())
+	{
+		char movie_filename[MAX_PATH] = {0};
+		_splitpath(movie_path.string().c_str(), nullptr, nullptr, movie_filename, nullptr);
+		text += std::format(" - {}", movie_filename);
+	}
+
+	SetWindowText(mainHWND, text.c_str());
 }
 
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId)

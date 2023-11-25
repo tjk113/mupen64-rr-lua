@@ -78,6 +78,7 @@ static const char* m_err_code_name[] =
 };
 
 e_task m_task = e_task::idle;
+std::filesystem::path movie_path;
 
 static char m_filename[PATH_MAX];
 static char avi_file_name[PATH_MAX];
@@ -114,7 +115,6 @@ bool capture_with_f_fmpeg = true;
 std::unique_ptr<FFmpegManager> capture_manager;
 uint64_t screen_updates = 0;
 
-void set_active_movie(char* buf);
 static int start_playback(const char* filename, const char* author_utf8,
                          const char* description_utf8, const bool restarting);
 static int restart_playback();
@@ -680,15 +680,12 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		//		change_state(MOVIE_STATE_RECORD);
 		m_task = e_task::recording;
 		flush_movie();
-		///		systemScreenMessage("Movie re-record");
-		extern void enable_emulation_menu_items(BOOL flag);
 
-		if (last_task == e_task::playback)
-			enable_emulation_menu_items(TRUE);
 		// update header with new ROM info
 		if (last_task == e_task::playback)
 			set_rom_info(&m_header);
 
+		enable_emulation_menu_items(TRUE);
 		m_current_sample = (long)current_sample;
 		m_header.length_samples = current_sample;
 		m_current_vi = (int)current_vi;
@@ -716,12 +713,8 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 
 		m_task = e_task::playback;
 		flush_movie();
-		//		change_state(MOVIE_STATE_PLAY);
-		///		systemScreenMessage("Movie rewind");
 
-		extern void enable_emulation_menu_items(BOOL flag);
-		if (last_task == e_task::recording)
-			enable_emulation_menu_items(TRUE);
+		enable_emulation_menu_items(TRUE);
 
 		m_current_sample = (long)current_sample;
 		m_current_vi = (int)current_vi;
@@ -1043,8 +1036,10 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	{
 		m_task = e_task::start_recording;
 	}
-	set_active_movie(buf);
+
+	movie_path = buf;
 	set_rom_info(&m_header);
+	update_titlebar();
 
 	// utf8 strings are also null-terminated so this method still works
 	if (author_utf8)
@@ -1122,11 +1117,7 @@ vcr_stop_record(const int def_ext)
 		printf("[VCR]: Record stopped. Recorded %ld input samples\n",
 		       m_header.length_samples);
 
-		extern void enable_emulation_menu_items(BOOL flag);
 		enable_emulation_menu_items(TRUE);
-		//RESET_TITLEBAR;
-		set_active_movie(nullptr); // ?
-
 
 		statusbar_post_text("", 1);
 		statusbar_post_text("Stopped recording");
@@ -1142,26 +1133,9 @@ vcr_stop_record(const int def_ext)
 		m_input_buffer_size = 0;
 	}
 
+	movie_path = "";
+	update_titlebar();
 	return ret_val;
-}
-
-//on titlebar, modifies passed buffer!!
-//if buffer == NULL, remove current active
-void set_active_movie(char* buf)
-{
-	char title[MAX_PATH];
-
-	if (!buf)
-	{
-		sprintf(title, MUPEN_VERSION " - %s", (char*)ROM_HEADER.nom);
-	} else if (buf)
-	{
-		_splitpath(buf, nullptr, nullptr, buf, nullptr);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER.nom,
-		        buf);
-	}
-	printf("title %s\n", title);
-	SetWindowText(mainHWND, title);
 }
 
 bool get_savestate_path(const char* filename, char* out_buffer)
@@ -1208,7 +1182,6 @@ static int start_playback(const char* filename, const char* author_utf8,
 {
 	vcr_core_stopped();
 	is_restarting_flag = false;
-	//	m_intro = TRUE;
 
 	extern HWND mainHWND;
 	char buf[PATH_MAX];
@@ -1236,13 +1209,12 @@ static int start_playback(const char* filename, const char* author_utf8,
 				stderr,
 				"[VCR]: Cannot start playback, could not open .m64 file '%s': %s\n",
 				filename, strerror(errno));
-			reset_titlebar();
 			if (m_file != nullptr)
 				fclose(m_file);
 			return VCR_PLAYBACK_FILE_BUSY;
 		}
 	}
-	set_active_movie(buf);
+
 	// can crash when looping + fast forward, no need to change this
 	// this creates a bug, so i changed it -auru
 	{
@@ -1388,7 +1360,6 @@ static int start_playback(const char* filename, const char* author_utf8,
 
 				if (dont_play)
 				{
-					reset_titlebar();
 					if (m_file != nullptr)
 						fclose(m_file);
 					return VCR_PLAYBACK_INCOMPATIBLE;
@@ -1427,6 +1398,8 @@ static int start_playback(const char* filename, const char* author_utf8,
 		m_current_sample = 0;
 		m_current_vi = 0;
 		strcpy(vcr_lastpath, filename);
+		movie_path = buf;
+		update_titlebar();
 
 		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 		{
@@ -1450,7 +1423,6 @@ static int start_playback(const char* filename, const char* author_utf8,
 			{
 				printf(
 					"[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
-				reset_titlebar();
 				if (m_file != nullptr)
 					fclose(m_file);
 				return VCR_PLAYBACK_SAVESTATE_MISSING;
@@ -1493,7 +1465,10 @@ static int stop_playback(const bool bypass_loop_setting)
 	{
 		return restart_playback();
 	}
-	reset_titlebar();
+
+	movie_path = "";
+	update_titlebar();
+
 	if (m_file && m_task != e_task::start_recording && m_task != e_task::recording)
 	{
 		fclose(m_file);
@@ -1529,7 +1504,6 @@ static int stop_playback(const bool bypass_loop_setting)
 		main_dispatcher_invoke(AtStopMovieLuaCallback);
 		return 0;
 	}
-
 	return -1;
 }
 
@@ -2042,8 +2016,7 @@ int vcr_stop_capture()
 		SetWindowText(mainHWND, title);
 	} else
 	{
-		//atme
-		reset_titlebar();
+		update_titlebar();
 	}
 	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
 	// we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
