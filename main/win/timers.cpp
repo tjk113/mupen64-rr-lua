@@ -86,11 +86,7 @@ void timer_new_frame()
 
 	last_frame_time = current_frame_time;
 
-	// we dont need precise updates when ff'ing
-	if (!fast_forward)
-	{
-		vcr_update_statusbar();
-	}
+	vcr_update_statusbar();
 
 	if (current_frame_time - last_statusbar_update_time > std::chrono::seconds(1))
 	{
