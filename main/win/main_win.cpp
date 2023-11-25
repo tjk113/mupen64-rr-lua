@@ -1725,19 +1725,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case ID_REPLAY_LATEST:
-				// Don't try to load a recent movie if not emulating!
-				if (rom)
+				if (!emu_launched || Config.recent_movie_paths.empty())
 				{
-					// Overwrite prevention? Path sanity check (Leave to internal handling)?
-					vcr_set_read_only(TRUE);
-					bool err = vcr_start_playback(
-						Config.recent_movie_paths[0], 0, 0);
-					if (err == VCR_PLAYBACK_SUCCESS)
-						SetStatusPlaybackStarted();
-					else
-						statusbar_post_text("Latest movie couldn't be started");
-				} else
-					statusbar_post_text("Movie can't be loaded while not emulating");
+					break;
+				}
+				vcr_set_read_only(TRUE);
+				vcr_start_playback(Config.recent_movie_paths[0], nullptr, nullptr);
+				SetStatusPlaybackStarted();
 				break;
 			case ID_RECENTMOVIES_FREEZE:
 				CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE,
