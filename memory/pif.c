@@ -530,7 +530,7 @@ void update_pif_read(bool stcheck)
                     // this is incompatible with VCR!
                     if (Controls[channel].Present &&
                         Controls[channel].RawData
-                        && VCR_isIdle()
+                        && vcr_is_idle()
                     )
                     {
                         readController(channel, &PIF_RAMb[i]);

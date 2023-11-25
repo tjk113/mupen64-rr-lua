@@ -15,15 +15,12 @@
  ***************************************************************************/
 
 #include <LuaConsole.h>
-
 #include <Windows.h>
 #include <commctrl.h>
-#include <stdio.h>
+#include <cstdio>
 #include "../guifuncs.h"
 #include "main_win.h"
 #include "Config.hpp"
-#include "features/RomBrowser.hpp"
-#include "../../winproject/resource.h"
 #include <vcr.h>
 
 #include "features/Statusbar.hpp"
@@ -37,12 +34,12 @@ bool confirm_user_exit()
     if (!continue_vcr_on_restart_mode)
     {
 	    std::string final_message;
-        if (VCR_isRecording())
+        if (vcr_is_recording())
         {
             final_message.append("Movie recording ");
             warnings++;
         }
-        if (VCR_isCapturing())
+        if (vcr_is_capturing())
         {
             if (warnings > 0) { final_message.append(","); }
             final_message.append(" AVI capture ");
@@ -62,23 +59,23 @@ bool confirm_user_exit()
     return res == IDYES || warnings == 0;
 }
 
-void internal_warnsavestate(const char* messageCaption, const char* message, bool modal)
+void internal_warnsavestate(const char* message_caption, const char* message, const bool modal)
 {
     if (!Config.is_savestate_warning_enabled) return;
 
     if (modal)
-        MessageBox(mainHWND, message, messageCaption, MB_ICONERROR);
+        MessageBox(mainHWND, message, message_caption, MB_ICONERROR);
     else
-        statusbar_post_text(std::string(messageCaption) + " - " + std::string(message));
+        statusbar_post_text(std::string(message_caption) + " - " + std::string(message));
 }
 
-void warn_savestate(const char* messageCaption, const char* message)
+void warn_savestate(const char* message_caption, const char* message)
 {
-    internal_warnsavestate(messageCaption, message, false);
+    internal_warnsavestate(message_caption, message, false);
 }
 
-void warn_savestate(const char* messageCaption, const char* message, bool modal)
+void warn_savestate(const char* message_caption, const char* message, const bool modal)
 {
-    internal_warnsavestate(messageCaption, message, modal);
+    internal_warnsavestate(message_caption, message, modal);
 }
 
