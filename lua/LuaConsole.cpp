@@ -41,6 +41,8 @@
 #include "win/features/Statusbar.hpp"
 
 #include <Windows.h>
+
+#include "win/timers.h"
 #pragma comment(lib, "lua54.lib")
 
 extern unsigned long op;
@@ -48,11 +50,7 @@ extern void (*interp_ops[64])(void);
 extern int m_current_vi;
 extern long m_current_sample;
 extern int fast_memory;
-void SYNC();
-void NOTCOMPILED();
-void timer_init();
 inline void TraceLoggingBufFlush();
-extern void (__cdecl*CaptureScreen)(char* Directory); // for lua screenshot
 
 std::vector<std::string> recent_closed_lua;
 
@@ -3394,13 +3392,6 @@ int LuaD2DDrawText(lua_State* L)
 		{"stopcapture", StopCapture},
 		{NULL, NULL}
 	};
-
-
-void dummy_function()
-{
-}
-
-
 
 void AtUpdateScreenLuaCallback()
 {
