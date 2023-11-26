@@ -375,6 +375,10 @@ typedef struct _CONFIG
 	/// </summary>
 	std::map<std::string, std::wstring> persistent_folder_paths;
 
+	/// <summary>
+	/// Whether the new timer code will be used
+	/// </summary>
+	int32_t use_new_timer;
 } CONFIG;
 
 extern "C" CONFIG Config;

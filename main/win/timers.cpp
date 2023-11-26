@@ -41,7 +41,8 @@ typedef std::chrono::high_resolution_clock::time_point time_point;
 std::deque<float> fps_values;
 std::deque<float> vi_values;
 
-float add_value(std::deque<float>& vec, const float value, const size_t max_size = 30)
+float add_value(std::deque<float>& vec, const float value,
+                const size_t max_size = 30)
 {
 	if (vec.size() > max_size)
 	{
@@ -72,13 +73,27 @@ void timer_init()
 	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
 }
 
-
-void timer_new_frame()
+void timer_new_frame_2()
 {
-	static time_point last_frame_time = std::chrono::high_resolution_clock::now();
-	const time_point current_frame_time = std::chrono::high_resolution_clock::now();
+	static time_point last_frame_time =
+		std::chrono::high_resolution_clock::now();
+	const time_point frame_time = std::chrono::high_resolution_clock::now();
 
-	if (const auto diff = (current_frame_time - last_frame_time) / 1'000'000.0f; diff.count() > 1)
+	fps = add_value(fps_values,
+	                1000.0f / ((frame_time - last_frame_time) /
+		                1'000'000.0f).count());
+	last_frame_time = frame_time;
+}
+
+void timer_new_frame_1()
+{
+	static time_point last_frame_time =
+		std::chrono::high_resolution_clock::now();
+	const time_point current_frame_time =
+		std::chrono::high_resolution_clock::now();
+
+	if (const auto diff = (current_frame_time - last_frame_time) / 1'000'000.0f;
+		diff.count() > 1)
 	{
 		fps = add_value(fps_values, 1000.0f / diff.count());
 	}
@@ -87,8 +102,30 @@ void timer_new_frame()
 }
 
 
+void timer_new_vi_2()
+{
+	static time_point last_vi_time = std::chrono::high_resolution_clock::now();
 
-void timer_new_vi()
+	if (!fast_forward)
+	{
+		float multiplier = (float)Config.fps_modifier / 100.0f;
+		float target_vis = multiplier * (float)get_vis_per_second(
+			ROM_HEADER.Country_code);
+		float target_sleep_time = 1000.0f / target_vis;
+
+		std::this_thread::sleep_for(
+			std::chrono::milliseconds((long long)target_sleep_time));
+	}
+
+	time_point vi_time = std::chrono::high_resolution_clock::now();
+
+	vis_per_second = add_value(vi_values,
+	                           1000.0f / ((vi_time - last_vi_time) /
+		                           1'000'000.0f).count());
+	last_vi_time = vi_time;
+}
+
+void timer_new_vi_1()
 {
 	// time when last vi happened
 	static time_point last_vi_time;
@@ -98,13 +135,18 @@ void timer_new_vi()
 
 	// fps wont update when emu is stuck so we must check vi/s
 	// vi/s shouldn't go over 1000 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
-	if (!ignoreErrorEmulation && emu_launched && frame_advancing && vis_per_second > 1000)
+	if (!ignoreErrorEmulation && emu_launched && frame_advancing &&
+		vis_per_second > 1000)
 	{
 		int result = 0;
 		TaskDialog(mainHWND, app_instance, L"Error",
-			L"Unusual core state", L"An emulator core timing inaccuracy or game crash has been detected. You can choose to continue emulation.", TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
+		           L"Unusual core state",
+		           L"An emulator core timing inaccuracy or game crash has been detected. You can choose to continue emulation.",
+		           TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON,
+		           &result);
 
-		if (result == IDCLOSE) {
+		if (result == IDCLOSE)
+		{
 			frame_advancing = false; //don't pause at next open
 			CreateThread(nullptr, 0, close_rom, (LPVOID)1, 0, nullptr);
 		}
@@ -117,7 +159,8 @@ void timer_new_vi()
 
 	if (vcr_is_playing())
 	{
-		if (extern int pauseAtFrame; m_current_sample >= pauseAtFrame && pauseAtFrame >= 0)
+		if (extern int pauseAtFrame; m_current_sample >= pauseAtFrame &&
+			pauseAtFrame >= 0)
 		{
 			pauseEmu(TRUE); // maybe this is multithreading unsafe?
 			pauseAtFrame = -1; // don't pause again
@@ -131,7 +174,8 @@ void timer_new_vi()
 
 	// if we're playing game normally with no frame advance or ff and overstepping max time between frames,
 	// we need to sleep to compensate the additional time
-	if (const auto vi_time_diff = current_vi_time - last_vi_time; !fast_forward && !frame_advancing && vi_time_diff < max_vi_s_ms)
+	if (const auto vi_time_diff = current_vi_time - last_vi_time; !fast_forward
+		&& !frame_advancing && vi_time_diff < max_vi_s_ms)
 	{
 		auto sleep_time = max_vi_s_ms - vi_time_diff;
 
@@ -143,10 +187,12 @@ void timer_new_vi()
 			counter_time = std::chrono::high_resolution_clock::now();
 			ffup = false;
 		}
-		if (sleep_time.count() > 0 && sleep_time < std::chrono::milliseconds(700))
+		if (sleep_time.count() > 0 && sleep_time <
+			std::chrono::milliseconds(700))
 		{
 			// we try to sleep for the overstepped time, but must account for sleeping inaccuracies
-			const auto goal_sleep = max_vi_s_ms - vi_time_diff - last_sleep_error;
+			const auto goal_sleep = max_vi_s_ms - vi_time_diff -
+				last_sleep_error;
 			const auto start_sleep = std::chrono::high_resolution_clock::now();
 			std::this_thread::sleep_for(goal_sleep);
 			const auto end_sleep = std::chrono::high_resolution_clock::now();
@@ -166,10 +212,36 @@ void timer_new_vi()
 		}
 	}
 
-	if (const auto post_sleep_vi_time_diff = (std::chrono::high_resolution_clock::now() - last_vi_time) / 1'000'000.0f; post_sleep_vi_time_diff.count() > 1)
+	if (const auto post_sleep_vi_time_diff = (
+			std::chrono::high_resolution_clock::now() - last_vi_time) /
+		1'000'000.0f
+		; post_sleep_vi_time_diff.count() > 1)
 	{
-		vis_per_second = add_value(vi_values, 1000.0f / post_sleep_vi_time_diff.count());
+		vis_per_second = add_value(vi_values,
+		                           1000.0f / post_sleep_vi_time_diff.count());
 	}
 
 	last_vi_time = std::chrono::high_resolution_clock::now();
+}
+
+void timer_new_frame()
+{
+	if (Config.use_new_timer)
+	{
+		timer_new_frame_2();
+	} else
+	{
+		timer_new_frame_1();
+	}
+}
+
+void timer_new_vi()
+{
+	if (Config.use_new_timer)
+	{
+		timer_new_vi_2();
+	} else
+	{
+		timer_new_vi_1();
+	}
 }
