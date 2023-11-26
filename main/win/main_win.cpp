@@ -1467,7 +1467,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				savestates_do(fname, e_st_job::load);
 			} else if(extension == ".lua")
 			{
-				lua_create_and_run(path.string().c_str(), false);
+				lua_create_and_run(path.string().c_str());
 			}
 			break;
 		}
@@ -1679,7 +1679,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 			case ID_MENU_LUASCRIPT_NEW:
 				{
-					NewLuaScript();
+					lua_create();
 				}
 				break;
 			case ID_LUA_RECENT_FREEZE:

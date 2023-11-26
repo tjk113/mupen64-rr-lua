@@ -84,7 +84,7 @@ void commandline_start_lua()
 		return;
 	}
 
-	lua_create_and_run(commandline_lua.c_str(), false);
+	lua_create_and_run(commandline_lua.c_str());
 }
 
 void commandline_start_movie()

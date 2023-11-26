@@ -396,15 +396,32 @@ void LoadScreenInit()
 		return FALSE;
 	}
 
-	HWND create_and_show_lua_window(int32_t sw_flags)
+	HWND lua_create()
 	{
 		HWND hwnd = CreateDialogParam(app_instance,
 		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
 		                             DialogProc,
 		                             NULL);
-		ShowWindow(hwnd, sw_flags);
+		ShowWindow(hwnd, SW_SHOW);
 		return hwnd;
 	}
+
+	void lua_create_and_run(const char* path)
+	{
+		printf("Creating lua window...\n");
+		auto hwnd = lua_create();
+
+		printf("Setting path...\n");
+		// set the textbox content to match the path
+		SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
+
+		printf("Simulating run button click...\n");
+		// click run button
+		SendMessage(hwnd, WM_COMMAND,
+						MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+						(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+	}
+
 
 	void ConsoleWrite(HWND wnd, const char* str)
 	{
@@ -3379,31 +3396,10 @@ int LuaD2DDrawText(lua_State* L)
 	};
 
 
-
-void NewLuaScript()
-{
-	create_and_show_lua_window(SW_SHOW);
-}
-
 void dummy_function()
 {
 }
 
-void lua_create_and_run(const char* path, bool minimized)
-{
-	printf("Creating lua window...\n");
-	auto hwnd = create_and_show_lua_window(minimized ? SW_SHOWMINNOACTIVE : SW_SHOW);
-
-	printf("Setting path...\n");
-	// set the textbox content to match the path
-	SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
-
-	printf("Simulating run button click...\n");
-	// click run button
-	SendMessage(hwnd, WM_COMMAND,
-		            MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
-		            (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-}
 
 
 void AtUpdateScreenLuaCallback()
