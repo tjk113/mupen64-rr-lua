@@ -41,7 +41,6 @@ static void read_combo_box_value(const HWND hwnd, const int resource_id, char* r
  * \remarks https://blat-blatnik.github.io/computerBear/making-accurate-sleep-function/
  */
 static void accurate_sleep(double seconds) {
-	printf("Sleeping for %f\n", seconds);
 	using namespace std;
 	using namespace std::chrono;
 
