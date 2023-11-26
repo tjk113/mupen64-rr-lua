@@ -84,6 +84,7 @@ void timer_new_frame_2()
 	                1000.0f / ((frame_time - last_frame_time) /
 		                1'000'000.0f).count());
 	last_frame_time = frame_time;
+	is_primary_statusbar_invalidated = true;
 }
 
 void timer_new_frame_1()
@@ -114,6 +115,19 @@ void timer_new_vi_2()
 			ROM_HEADER.Country_code);
 		float target_sleep_time = 1000.0f / target_vis;
 		accurate_sleep(target_sleep_time / 1000.0f);
+	}
+
+	m_current_vi++;
+	if (vcr_is_recording())
+		vcr_set_length_v_is(m_current_vi);
+	if (vcr_is_playing())
+	{
+		extern int pauseAtFrame;
+		if (m_current_sample >= pauseAtFrame && pauseAtFrame >= 0)
+		{
+			pauseEmu(TRUE); // maybe this is multithreading unsafe?
+			pauseAtFrame = -1; // don't pause again
+		}
 	}
 
 	time_point vi_time = std::chrono::high_resolution_clock::now();
