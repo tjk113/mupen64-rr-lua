@@ -70,7 +70,12 @@ void main_recent_roms_build(int32_t reset = 0);
 void main_recent_roms_add(const std::string& path);
 int32_t main_recent_roms_run(uint16_t menu_item_id);
 
-extern bool is_frame_skipped();
+/**
+ * \brief Whether the statusbar needs to be updated with new input information
+ */
+extern bool is_primary_statusbar_invalidated;
+
+bool is_frame_skipped();
 
 /**
  * \brief Updates the titlebar to reflect the current application state

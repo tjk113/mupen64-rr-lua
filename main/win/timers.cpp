@@ -75,7 +75,6 @@ void timer_init()
 
 void timer_new_frame()
 {
-	static time_point last_statusbar_update_time = std::chrono::high_resolution_clock::now();
 	static time_point last_frame_time = std::chrono::high_resolution_clock::now();
 	const time_point current_frame_time = std::chrono::high_resolution_clock::now();
 
@@ -85,21 +84,6 @@ void timer_new_frame()
 	}
 
 	last_frame_time = current_frame_time;
-
-	vcr_update_statusbar();
-
-	if (current_frame_time - last_statusbar_update_time > std::chrono::seconds(1))
-	{
-		if (Config.show_fps)
-		{
-			statusbar_post_text(std::format("FPS: {:.1f}", fps), 2);
-		}
-		if (Config.show_vis_per_second)
-		{
-			statusbar_post_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
-		}
-		last_statusbar_update_time = current_frame_time;
-	}
 }
 
 

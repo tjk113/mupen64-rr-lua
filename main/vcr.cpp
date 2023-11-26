@@ -2029,6 +2029,8 @@ vcr_core_stopped()
 
 void vcr_update_statusbar()
 {
+	printf("Statusbar repaint\n");
+
 	BUTTONS b = last_controller_data[0];
 	std::string input_string = std::format("({}, {}) ", (int)b.Y_AXIS, (int)b.X_AXIS);
 	if (b.START_BUTTON) input_string += "S";

@@ -99,6 +99,8 @@ BOOL fast_forward = 0;
 BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
 
+bool is_primary_statusbar_invalidated = true;
+
 char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
 const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {
@@ -210,7 +212,7 @@ void pauseEmu(BOOL quiet)
 	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
-		vcr_update_statusbar();
+		is_primary_statusbar_invalidated = true;
 		emu_paused = 1;
 		if (!quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
@@ -1585,7 +1587,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		return 0;
 	case WM_TIMER:
-		AtUpdateScreenLuaCallback();
+		{
+			static std::chrono::high_resolution_clock::time_point last_statusbar_update = std::chrono::high_resolution_clock::now();
+			std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
+
+			AtUpdateScreenLuaCallback();
+
+			if (is_primary_statusbar_invalidated)
+			{
+				vcr_update_statusbar();
+				is_primary_statusbar_invalidated = false;
+			}
+
+			// We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
+			if (time - last_statusbar_update > std::chrono::seconds(1))
+			{
+				if (Config.show_fps)
+				{
+					statusbar_post_text(std::format("FPS: {:.1f}", fps), 2);
+				}
+				if (Config.show_vis_per_second)
+				{
+					statusbar_post_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
+				}
+				last_statusbar_update = time;
+			}
+		}
 		break;
 	case WM_PAINT: //todo, work with updatescreen to use wmpaint
 		{
