@@ -22,6 +22,7 @@
 #include "Config.hpp"
 #include "../rom.h"
 #include "../vcr.h"
+#include "../helpers/win_helpers.h"
 #include "../../memory/pif.h"
 
 //c++!!!
@@ -112,9 +113,7 @@ void timer_new_vi_2()
 		float target_vis = multiplier * (float)get_vis_per_second(
 			ROM_HEADER.Country_code);
 		float target_sleep_time = 1000.0f / target_vis;
-
-		std::this_thread::sleep_for(
-			std::chrono::milliseconds((long long)target_sleep_time));
+		accurate_sleep(target_sleep_time / 1000.0f);
 	}
 
 	time_point vi_time = std::chrono::high_resolution_clock::now();
