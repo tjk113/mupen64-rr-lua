@@ -739,9 +739,13 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	{
 		getKeys(index, input);
 		last_controller_data[index] = *input;
-		main_dispatcher_invoke([index] {
-			AtInputLuaCallback(index);
-		});
+		if (!hwnd_lua_map.empty())
+		{
+			main_dispatcher_invoke([index] {
+				AtInputLuaCallback(index);
+			});
+		}
+
 
 		// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
 		if (overwrite_controller_data[index])
@@ -2029,8 +2033,6 @@ vcr_core_stopped()
 
 void vcr_update_statusbar()
 {
-	printf("Statusbar repaint\n");
-
 	BUTTONS b = last_controller_data[0];
 	std::string input_string = std::format("({}, {}) ", (int)b.Y_AXIS, (int)b.X_AXIS);
 	if (b.START_BUTTON) input_string += "S";
