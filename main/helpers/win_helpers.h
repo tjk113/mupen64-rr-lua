@@ -1,5 +1,6 @@
 #pragma once
 #include <Windows.h>
+#include <Windowsx.h>
 #include <CommCtrl.h>
 #include <cstdint>
 
@@ -68,4 +69,21 @@ static void accurate_sleep(double seconds) {
 	// spin lock
 	auto start = high_resolution_clock::now();
 	while ((high_resolution_clock::now() - start).count() / 1e9 < seconds);
+}
+
+
+static RECT get_window_rect_client_space(HWND parent, HWND child)
+{
+	RECT offset_client = {0};
+	MapWindowRect(child, parent, &offset_client);
+
+	RECT client = {0};
+	GetWindowRect(child, &client);
+
+	return {
+		offset_client.left,
+		offset_client.top,
+		offset_client.left + (client.right - client.left),
+		offset_client.top + (client.bottom - client.top)
+	};
 }

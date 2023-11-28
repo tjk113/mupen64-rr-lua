@@ -23,6 +23,7 @@
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/configdialog.h"
+#include "../main/helpers/win_helpers.h"
 #include "../main/win/wrapper/PersistentPathDialog.h"
 #include "../main/vcr_compress.h"
 #include <vcr.h>
@@ -99,9 +100,6 @@ void LoadScreenInit()
 }
 
 #define DEBUG_GETLASTERROR 0
-
-
-	RECT InitalWindowRect[3] = {0};
 	HANDLE TraceLogFile;
 
 	std::vector<Gdiplus::Bitmap*> image_pool;
@@ -235,34 +233,6 @@ void LoadScreenInit()
 		gdiPlusInitialized = true;
 	}
 
-	void SizingControl(HWND wnd, RECT* p, int x, int y, int w, int h)
-	{
-		SetWindowPos(wnd, NULL, p->left + x, p->top + y,
-		             p->right - p->left + w, p->bottom - p->top + h,
-		             SWP_NOZORDER);
-	}
-
-	void SizingControls(HWND wnd, WORD width, WORD height)
-	{
-		int xa = width - (InitalWindowRect[0].right - InitalWindowRect[0].left),
-		    ya = height - (InitalWindowRect[0].bottom - InitalWindowRect[0].
-			    top);
-		SizingControl(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-		              &InitalWindowRect[1], 0, 0, xa, 0);
-		SizingControl(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE),
-		              &InitalWindowRect[2], 0, 0, xa, ya);
-	}
-
-	void GetInitalWindowRect(HWND wnd)
-	{
-		GetClientRect(wnd, &InitalWindowRect[0]);
-		GetWindowRect(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-		              &InitalWindowRect[1]);
-		GetWindowRect(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE),
-		              &InitalWindowRect[2]);
-		MapWindowPoints(NULL, wnd, (LPPOINT)&InitalWindowRect[1], 2 * 2);
-	}
-
 	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
 
 	INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
@@ -273,11 +243,6 @@ void LoadScreenInit()
 		case WM_INITDIALOG:
 			{
 				checkGDIPlusInitialized();
-
-				if (InitalWindowRect[0].right == 0)
-				{
-					GetInitalWindowRect(wnd);
-				}
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				              Config.lua_script_path.c_str());
 				return TRUE;
@@ -295,9 +260,20 @@ void LoadScreenInit()
 		case WM_COMMAND:
 			return WmCommand(wnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
 		case WM_SIZE:
-			SizingControls(wnd, LOWORD(lParam), HIWORD(lParam));
-			if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
-			break;
+			{
+				RECT window_rect = {0};
+				GetClientRect(wnd, &window_rect);
+
+				HWND console_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
+				RECT console_rect = get_window_rect_client_space(wnd, console_hwnd);
+				SetWindowPos(console_hwnd, nullptr, 0, 0, window_rect.right - console_rect.left * 2, window_rect.bottom - console_rect.top, SWP_NOMOVE);
+
+				HWND path_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH);
+				RECT path_rect = get_window_rect_client_space(wnd, path_hwnd);
+				SetWindowPos(path_hwnd, nullptr, 0, 0, window_rect.right - console_rect.left * 2, path_rect.bottom - path_rect.top, SWP_NOMOVE);
+				if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
+				break;
+			}
 		}
 		return FALSE;
 	}
