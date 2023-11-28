@@ -1480,15 +1480,9 @@ void lua_create_and_run(const char* path)
 
 	int LuaLoadImage(lua_State* L)
 	{
-		const char* path = luaL_checkstring(L, 1);
-		int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
-		wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
-		int size = MultiByteToWideChar(CP_ACP, 0, path, -1, pathw, output_size);
-
-		printf("LoadImage: %ws\n", pathw);
-		Gdiplus::Bitmap* img = new Gdiplus::Bitmap(pathw);
-		free(pathw);
-
+		std::wstring path = string_to_wstring(luaL_checkstring(L, 1));
+		printf("LoadImage: %ws\n", path.c_str());
+		Gdiplus::Bitmap* img = new Gdiplus::Bitmap(path.c_str());
 		if (img->GetLastStatus())
 		{
 			luaL_error(L, "Couldn't find image '%s'", path);
@@ -1524,7 +1518,7 @@ void lua_create_and_run(const char* path)
 			} else
 			{
 				// Error if the image doesn't exist
-				luaL_error(L, "Argument #1: Invalid image index");
+				luaL_error(L, "Argument #1: Image index doesn't exist");
 				return 0;
 			}
 		}
@@ -1534,14 +1528,12 @@ void lua_create_and_run(const char* path)
 	int DrawImage(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-
-
-		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1; // because lua
+		size_t pool_index = luaL_checkinteger(L, 1) - 1; // because lua
 
 		// Error if the image doesn't exist
-		if (imgIndex > image_pool.size() - 1)
+		if (pool_index > image_pool.size() - 1)
 		{
-			luaL_error(L, "Argument #1: Invalid image index");
+			luaL_error(L, "Argument #1: Image index doesn't exist");
 			return 0;
 		}
 
@@ -1549,7 +1541,7 @@ void lua_create_and_run(const char* path)
 		unsigned int args = lua_gettop(L);
 
 		Gdiplus::Graphics gfx(lua->dc);
-		Gdiplus::Bitmap* img = image_pool[imgIndex];
+		Gdiplus::Bitmap* img = image_pool[pool_index];
 
 		// Original DrawImage
 		if (args == 3)
