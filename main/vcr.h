@@ -175,6 +175,11 @@ bool vcr_start_capture(const char* path, bool show_codec_dialog);
  */
 void vcr_on_controller_poll(int index, BUTTONS* input);
 
+/**
+ * \brief Notifies VCR engine about a new VI
+ */
+void vcr_on_vi();
+
 void vcr_recent_movies_build(int32_t reset = 0);
 void vcr_recent_movies_add(const std::string path);
 int32_t vcr_recent_movies_play(uint16_t menu_item_id);

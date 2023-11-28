@@ -21,7 +21,6 @@
 #include "main_win.h"
 #include "Config.hpp"
 #include "../rom.h"
-#include "../vcr.h"
 #include "../helpers/win_helpers.h"
 #include "../../memory/pif.h"
 
@@ -117,19 +116,6 @@ void timer_new_vi_2()
 		accurate_sleep(target_sleep_time / 1000.0f);
 	}
 
-	m_current_vi++;
-	if (vcr_is_recording())
-		vcr_set_length_v_is(m_current_vi);
-	if (vcr_is_playing())
-	{
-		extern int pauseAtFrame;
-		if (m_current_sample >= pauseAtFrame && pauseAtFrame >= 0)
-		{
-			pauseEmu(TRUE); // maybe this is multithreading unsafe?
-			pauseAtFrame = -1; // don't pause again
-		}
-	}
-
 	time_point vi_time = std::chrono::high_resolution_clock::now();
 
 	vis_per_second = add_value(vi_values,
@@ -144,7 +130,6 @@ void timer_new_vi_1()
 	static time_point last_vi_time;
 	static time_point counter_time;
 	static std::chrono::duration<double, std::nano> last_sleep_error;
-	static unsigned int vi_counter = 0;
 
 	// fps wont update when emu is stuck so we must check vi/s
 	// vi/s shouldn't go over 1000 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
@@ -165,25 +150,7 @@ void timer_new_vi_1()
 		}
 	}
 
-	m_current_vi++;
-
-	if (vcr_is_recording())
-		vcr_set_length_v_is(m_current_vi);
-
-	if (vcr_is_playing())
-	{
-		if (extern int pauseAtFrame; m_current_sample >= pauseAtFrame &&
-			pauseAtFrame >= 0)
-		{
-			pauseEmu(TRUE); // maybe this is multithreading unsafe?
-			pauseAtFrame = -1; // don't pause again
-		}
-	}
-
-	vi_counter++;
-
 	const auto current_vi_time = std::chrono::high_resolution_clock::now();
-
 
 	// if we're playing game normally with no frame advance or ff and overstepping max time between frames,
 	// we need to sleep to compensate the additional time

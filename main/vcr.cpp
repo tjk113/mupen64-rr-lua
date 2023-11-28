@@ -2077,6 +2077,22 @@ void vcr_update_statusbar()
 	}
 }
 
+void vcr_on_vi()
+{
+	m_current_vi++;
+	if (vcr_is_recording())
+		vcr_set_length_v_is(m_current_vi);
+	if (vcr_is_playing())
+	{
+		extern int pauseAtFrame;
+		if (m_current_sample >= pauseAtFrame && pauseAtFrame >= 0)
+		{
+			pauseEmu(TRUE); // maybe this is multithreading unsafe?
+			pauseAtFrame = -1; // don't pause again
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Recent Movies //////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
