@@ -61,8 +61,7 @@ bool overwrite_controller_data[4];
 
 bool enableTraceLog;
 bool traceLogMode;
-bool gdiPlusInitialized = false;
-ULONG_PTR gdiPlusToken;
+ULONG_PTR gdi_plus_token;
 // LoadScreen variables
 HDC hwindowDC, hsrcDC;
 t_window_info windowSize{};
@@ -222,17 +221,6 @@ void LoadScreenInit()
 		}
 	}
 
-
-	void checkGDIPlusInitialized()
-	{
-		if (gdiPlusInitialized)
-			return;
-		printf("Initializing GDI+\n");
-		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
-		gdiPlusInitialized = true;
-	}
-
 	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
 
 	INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
@@ -242,7 +230,6 @@ void LoadScreenInit()
 		{
 		case WM_INITDIALOG:
 			{
-				checkGDIPlusInitialized();
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				              Config.lua_script_path.c_str());
 				return TRUE;
@@ -380,7 +367,18 @@ void LoadScreenInit()
 		return hwnd;
 	}
 
-	void lua_create_and_run(const char* path)
+void lua_init()
+{
+	Gdiplus::GdiplusStartupInput startup_input;
+	GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
+}
+
+void lua_exit()
+{
+	Gdiplus::GdiplusShutdown(gdi_plus_token);
+}
+
+void lua_create_and_run(const char* path)
 	{
 		printf("Creating lua window...\n");
 		auto hwnd = lua_create();

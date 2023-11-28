@@ -33,6 +33,16 @@ typedef struct s_window_procedure_params {
 } t_window_procedure_params;
 
 /**
+ * \brief Initializes the lua subsystem
+ */
+void lua_init();
+
+/**
+ * \brief Exits the lua subsystem
+ */
+void lua_exit();
+
+/**
  * \brief Creates a lua window and runs the specified script
  * \param path The script's path
  */
@@ -166,7 +176,6 @@ private:
 
 extern bool enableTraceLog;
 extern bool traceLogMode;
-extern unsigned long gdiPlusToken;
 
 /**
  * \brief The controller data at time of the last input poll

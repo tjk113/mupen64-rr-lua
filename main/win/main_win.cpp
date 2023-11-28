@@ -1576,7 +1576,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		save_config();
 		KillTimer(mainHWND, update_screen_timer);
-		Gdiplus::GdiplusShutdown(gdiPlusToken);
+
 		PostQuitMessage(0);
 		break;
 	case WM_CLOSE:
