@@ -4141,7 +4141,7 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 	lua_atpanic(lua_environment->L, AtPanic);
 	SetLuaClass(lua_environment->L, lua_environment);
 	lua_environment->register_functions();
-
+	luaL_dostring(lua_environment->L, "os.execute = function() print('os.execute is disabled') end");
 	// all lua scripts run with legacy renderer until otherwise stated
 	lua_environment->create_renderer();
 
