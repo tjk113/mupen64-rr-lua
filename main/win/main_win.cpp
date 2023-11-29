@@ -62,6 +62,7 @@ bool ffup = false;
 #define STRNCASECMP	strnicmp
 #endif
 
+HMENU hMenu;
 
 DWORD emu_id;
 DWORD start_rom_id;
@@ -1424,9 +1425,6 @@ DWORD WINAPI UnpauseEmuAfterMenu(LPVOID lpParam)
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
-	static PAINTSTRUCT ps;
-	HMENU hMenu = GetMenu(hwnd);
-
 	LuaWindowMessage(hwnd, Message, wParam, lParam);
 
 	switch (Message)
@@ -1569,6 +1567,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_USER + 17: SetFocus(mainHWND);
 		break;
 	case WM_CREATE:
+		hMenu = GetMenu(hwnd);
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
 		commandline_start_rom();
@@ -1614,13 +1613,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;
-	case WM_PAINT: //todo, work with updatescreen to use wmpaint
-		{
-			BeginPaint(hwnd, &ps);
-			EndPaint(hwnd, &ps);
-
-			return 0;
-		}
 	case WM_WINDOWPOSCHANGING: //allow gfx plugin to set arbitrary size
 		return 0;
 	case WM_GETMINMAXINFO:
