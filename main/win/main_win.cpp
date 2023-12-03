@@ -1409,18 +1409,6 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 	}
 }
 
-DWORD WINAPI UnpauseEmuAfterMenu(LPVOID lpParam)
-{
-	Sleep(60); // Wait for another thread to clear MenuPaused
-
-	if (emu_paused && !AutoPause && MenuPaused)
-	{
-		resumeEmu(FALSE);
-	}
-	MenuPaused = FALSE;
-	return 0;
-}
-
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -1501,7 +1489,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkey->
 						alt)
 					{
-						// printf("sent %s - %d\n", hotkey->identifier.c_str(), hotkey->command);
+						printf("Sent %s (%d)\n", hotkey->identifier.c_str(), hotkey->command);
 						SendMessage(mainHWND, WM_COMMAND, hotkey->command, 0);
 						hit = TRUE;
 					}
@@ -1633,7 +1621,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_EXITMENULOOP:
-		CreateThread(NULL, 0, UnpauseEmuAfterMenu, NULL, 0, NULL);
+		// This message is sent when we escape the blocking menu loop, including situations where the clicked menu spawns a dialog.
+		// In those situations, we would unpause the game here (since this message is sent first), and then pause it again in the menu item message handler.
+		// It's almost guaranteed that a game frame will pass between those messages, so we need to wait a bit on another thread before unpausing.
+		std::thread([]
+		{
+			Sleep(60);
+			if (emu_paused && !AutoPause && MenuPaused)
+			{
+				resumeEmu(FALSE);
+			}
+			MenuPaused = FALSE;
+		}).detach();
 		break;
 	case WM_ACTIVATE:
 		UpdateWindow(hwnd);
