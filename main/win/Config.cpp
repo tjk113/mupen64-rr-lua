@@ -214,9 +214,9 @@ CONFIG get_default_config()
 
 	config.toggle_read_only_hotkey = {
 		.identifier = "Toggle read-only",
-		.key = 0x38 /* 8 */,
-		.ctrl = 1,
-		.shift = 0,
+		.key = 0x52 /* R */,
+		.ctrl = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = EMU_VCRTOGGLEREADONLY,
 	};
@@ -225,16 +225,16 @@ CONFIG get_default_config()
 		.identifier = "Start movie playback",
 		.key = 0x50 /* P */,
 		.ctrl = 1,
-		.shift = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = ID_START_PLAYBACK,
 	};
 
 	config.stop_movie_playback_hotkey = {
 		.identifier = "Stop movie playback",
-		.key = 0x53 /* S */,
+		.key = 0x58 /* X */,
 		.ctrl = 1,
-		.shift = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = ID_STOP_PLAYBACK,
 	};
@@ -243,16 +243,16 @@ CONFIG get_default_config()
 		.identifier = "Start movie recording",
 		.key = 0x52 /* R */,
 		.ctrl = 1,
-		.shift = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = ID_START_RECORD,
 	};
 
 	config.stop_movie_recording_hotkey = {
 		.identifier = "Stop movie recording",
-		.key = 0x53 /* S */,
+		.key = 0x43 /* C */,
 		.ctrl = 1,
-		.shift = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = ID_STOP_RECORD,
 	};
@@ -286,7 +286,7 @@ CONFIG get_default_config()
 
 	config.restart_movie_hotkey = {
 		.identifier = "Restart playing movie",
-		.key = 0x52 /* R */,
+		.key = 0x54 /* T */,
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
