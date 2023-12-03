@@ -165,7 +165,7 @@
     <ClInclude Include="..\..\main\win\main_win.h" />
     <ClInclude Include="..\..\main\win\timers.h" />
     <ClInclude Include="..\..\main\win\vfw.h" />
-    <ClInclude Include="..\..\main\win\GameDebugger.h" />
+    <ClInclude Include="..\..\main\win\CoreDbg.h" />
     <ClInclude Include="..\..\main\win\wrapper\PersistentPathDialog.h" />
     <ClInclude Include="..\..\main\helpers\string_helpers.h" />
     <ClInclude Include="..\..\memory\dma.h" />
@@ -403,7 +403,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="..\..\lua\LuaConsole.cpp" />
-    <ClCompile Include="..\..\main\win\GameDebugger.cpp" />
+    <ClCompile Include="..\..\main\win\CoreDbg.cpp" />
     <ClCompile Include="..\..\main\win\wrapper\PersistentPathDialog.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -40,7 +40,7 @@
 #include "summercart.h"
 #include "../main/guifuncs.h"
 #include "../r4300/ops.h"
-#include "../main/win/GameDebugger.h"
+#include "..\main\win\CoreDbg.h"
 #include "savestates.h"
 
 unsigned char sram[0x8000];
@@ -203,7 +203,7 @@ void dma_pi_write()
             unsigned long rdram_address2 = pi_register.pi_dram_addr_reg + i + 0xa0000000;
 
             ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-                !gameDebuggerIsDmaReadEnabled
+                !dma_read_enabled
                     ? (255)
                     : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
 
@@ -221,7 +221,7 @@ void dma_pi_write()
         for (i = 0; i < longueur; i++)
         {
             ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-                !gameDebuggerIsDmaReadEnabled
+                !dma_read_enabled
                     ? (255)
                     : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
         }

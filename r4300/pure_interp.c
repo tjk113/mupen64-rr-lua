@@ -44,7 +44,7 @@
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "../../main/win/GameDebugger.h"
+#include "..\main\win\CoreDbg.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -3213,10 +3213,11 @@ void pure_interpreter()
 		PC->addr = interp_addr;
 		if (debugger_mode) update_debugger();
 #endif
-#ifdef GAME_DEBUGGER
-        while (!gameDebuggerIsResumed) { Sleep(10); }
-        GameDebuggerOnLateCycle();
-#endif
+        while (!coredbg_resumed)
+        {
+            Sleep(10);
+        }
+        CoreDbg::on_late_cycle(op, interp_addr);
     }
     PC->addr = interp_addr;
 }

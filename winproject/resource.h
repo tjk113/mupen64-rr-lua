@@ -421,13 +421,13 @@
 #define IDC_OTHEROPTIONS                40016
 #define ID_FORCESAVE                    40022
 #define IDB_LOGO_BW                     40029
-#define IDD_GAMEDEBUGGERDIALOG          40031
+#define IDD_COREDBG						40031
 #define IDC_DEBUGGER_GROUPBOX           40032
 #define IDC_DEBUGGER_TOGGLEPAUSE        40033
 #define IDC_DEBUGGER_INSTRUCTION        40035
 #define IDC_DEBUGGER_RSP                40037
 #define IDC_DEBUGGER_RSP_TOGGLE         40038
-#define ID_GAMEDEBUGGER                 40039
+#define ID_COREDBG                      40039
 #define IDC_DEBUGGER_RSP_TOGGLE2        40039
 #define IDC_DEBUGGER_ALWAYS_UPDATE      40039
 #define IDB_PAUSE                       40040
@@ -439,7 +439,7 @@
 #define IDC_DEBUGGER_VI                 40046
 #define IDC_DEBUGGER_DUMPRDRAM          40046
 #define IDC_DEBUGGER_DISASSEMBLED       40046
-#define IDC_DEBUGGER_DMA_R_TOGGLE       40047
+#define IDC_COREDBG_CART_TILT           40047
 #define ID_REPLAY_LATEST                40048
 #define IDC_AV_NOSYNC                   40050
 #define IDC_AV_AUDIOSYNC                40051

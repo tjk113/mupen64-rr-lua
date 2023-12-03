@@ -44,7 +44,7 @@
 #include "../../r4300/r4300.h"
 #include "../../r4300/recomph.h"
 #include "../../winproject/resource.h"
-#include "../main/win/GameDebugger.h"
+#include "CoreDbg.h"
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
 #include "features/Toolbar.hpp"
@@ -1827,18 +1827,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				break;
-			case ID_GAMEDEBUGGER:
-				extern unsigned long op;
-
-				GameDebuggerStart([=]()
-				                  {
-					                  return Config.core_type == 2 ? op : -1;
-				                  }, []()
-				                  {
-					                  return Config.core_type == 2
-						                         ? interp_addr
-						                         : -1;
-				                  });
+			case ID_COREDBG:
+				CoreDbg::start();
 				break;
 			case ID_RAMSTART:
 				{
