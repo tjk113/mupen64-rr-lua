@@ -295,7 +295,7 @@ CONFIG get_default_config()
 
 	config.play_latest_movie_hotkey = {
 		.identifier = "Play latest movie",
-		.key = 0x50 /* P */,
+		.key = 0x54 /* T */,
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
