@@ -44,7 +44,7 @@
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "..\main\win\CoreDbg.h"
+#include "..\main\win\features\CoreDbg.h"
 
 #ifdef DBG
 extern int debugger_mode;

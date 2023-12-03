@@ -40,7 +40,7 @@
 #include "summercart.h"
 #include "../main/guifuncs.h"
 #include "../r4300/ops.h"
-#include "..\main\win\CoreDbg.h"
+#include "..\main\win\features\CoreDbg.h"
 #include "savestates.h"
 
 unsigned char sram[0x8000];

@@ -14,7 +14,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Neutral (Default) resources
+// Neutral (Standard) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
@@ -56,10 +56,10 @@ IDR_MYMENU MENU
 BEGIN
     POPUP "File"
     BEGIN
-        MENUITEM "&Load ROM...",        IDLOAD
-        MENUITEM "&Close ROM",         EMU_STOP, GRAYED
-        MENUITEM "&Reset ROM",          EMU_RESET, GRAYED
-        MENUITEM "&Refresh ROM List", REFRESH_ROM_BROWSER
+        MENUITEM "&Load ROM...",                IDLOAD
+        MENUITEM "&Close ROM",                  EMU_STOP, GRAYED
+        MENUITEM "&Reset ROM",                  EMU_RESET, GRAYED
+        MENUITEM "&Refresh ROM List",           REFRESH_ROM_BROWSER
         MENUITEM SEPARATOR
         POPUP "Recent ROMs"
         BEGIN
@@ -67,7 +67,7 @@ BEGIN
             MENUITEM "Freeze",                      ID_RECENTROMS_FREEZE
             MENUITEM SEPARATOR
         END
-        MENUITEM "&Load Latest ROM", ID_LOAD_LATEST
+        MENUITEM "&Load Latest ROM",            ID_LOAD_LATEST
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt F4",               ID_EMULATOR_EXIT
     END
@@ -78,9 +78,9 @@ BEGIN
         MENUITEM "Take Screenshot",             GENERATE_BITMAP, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Save State",                 STATE_SAVE, GRAYED
-        MENUITEM "Save State As...",    STATE_SAVEAS, GRAYED
+        MENUITEM "Save State As...",            STATE_SAVEAS, GRAYED
         MENUITEM "&Restore State",              STATE_RESTORE, GRAYED
-        MENUITEM "Load State...",       STATE_LOAD, GRAYED
+        MENUITEM "Load State...",               STATE_LOAD, GRAYED
         MENUITEM SEPARATOR
         POPUP "Current Save S&tate"
         BEGIN
@@ -98,7 +98,7 @@ BEGIN
     END
     POPUP "Options"
     BEGIN
-        MENUITEM "&Full Screen",     FULL_SCREEN, GRAYED
+        MENUITEM "&Full Screen",                FULL_SCREEN, GRAYED
         MENUITEM SEPARATOR
         POPUP "Plugin Settings"
         BEGIN
@@ -108,10 +108,10 @@ BEGIN
             MENUITEM "&RSP Settings...",            IDRSPCONFIG
         END
         MENUITEM SEPARATOR
-        MENUITEM "Show &Toolbar",        IDC_GUI_TOOLBAR
-        MENUITEM "Show Status&bar",      IDC_GUI_STATUSBAR
+        MENUITEM "Show &Toolbar",               IDC_GUI_TOOLBAR
+        MENUITEM "Show Status&bar",             IDC_GUI_STATUSBAR
         MENUITEM SEPARATOR
-        MENUITEM "&Settings...",        ID_LOAD_CONFIG
+        MENUITEM "&Settings...",                ID_LOAD_CONFIG
     END
     POPUP "Movie"
     BEGIN
@@ -157,7 +157,7 @@ BEGIN
     POPUP "Lua Script"
     BEGIN
         MENUITEM "New Instance...",             ID_MENU_LUASCRIPT_NEW
-        MENUITEM "Load Latest Lua Script...", ID_LUA_LOAD_LATEST
+        MENUITEM "Load Latest Lua Script...",   ID_LUA_LOAD_LATEST
         MENUITEM SEPARATOR
         POPUP "Recent Scripts"
         BEGIN
@@ -169,6 +169,7 @@ BEGIN
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -513,23 +514,17 @@ BEGIN
     CONTROL         "",IDC_ERROR_PICTUREBOX,"Static",SS_OWNERDRAW,6,6,42,36
 END
 
-IDD_COREDBG DIALOGEX 0, 0, 311, 98
+IDD_COREDBG DIALOGEX 0, 0, 213, 252
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
 CAPTION "N64 Debugger"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Pause",IDC_DEBUGGER_TOGGLEPAUSE,6,6,54,18
-    PUSHBUTTON      "Advance",IDC_DEBUGGER_STEP,66,6,54,18
-    CTEXT           "Address",IDC_STATIC,126,6,66,18,SS_CENTERIMAGE
-    CTEXT           "Opcode",IDC_STATIC,126,30,66,18,SS_CENTERIMAGE
-    EDITTEXT        IDC_DEBUGGER_PRECOMPADDR,198,6,97,18,ES_AUTOHSCROLL | ES_READONLY
-    EDITTEXT        IDC_DEBUGGER_PRECOMPOP,198,30,96,18,ES_AUTOHSCROLL | ES_READONLY
-    CONTROL         "RSP",IDC_DEBUGGER_RSP_TOGGLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,42,54,8
-    CONTROL         "Cartridge Tilt",IDC_COREDBG_CART_TILT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,30,72,9
-    CTEXT           "Disassembled",IDC_STATIC,126,54,66,18,SS_CENTERIMAGE
-    EDITTEXT        IDC_DEBUGGER_DISASSEMBLED,198,54,96,18,ES_AUTOHSCROLL | ES_READONLY
-    CONTROL         "Regular interval updates",IDC_DEBUGGER_ALWAYS_UPDATE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,54,96,8
+    PUSHBUTTON      "Pause",IDC_COREDBG_TOGGLEPAUSE,6,6,48,18
+    PUSHBUTTON      "Advance",IDC_COREDBG_STEP,54,6,36,18
+    CONTROL         "RSP",IDC_COREDBG_RSP_TOGGLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,54,54,8
+    CONTROL         "Cartridge Tilt",IDC_COREDBG_CART_TILT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,42,72,8
+    CONTROL         "Always update",IDC_COREDBG_ALWAYS_UPDATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,30,96,8
+    LISTBOX         IDC_COREDBG_LIST,0,72,210,180,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
 END
 
 
@@ -645,9 +640,9 @@ BEGIN
     IDD_COREDBG, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 307
+        RIGHTMARGIN, 209
         VERTGUIDE, 57
-        BOTTOMMARGIN, 62
+        BOTTOMMARGIN, 216
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -757,12 +752,12 @@ BEGIN
     ID_START_RECORD         "Starts AVI capture with previous codec and preset (avi.cfg)"
 END
 
-#endif    // Neutral (Default) resources
+#endif    // Neutral (Standard) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// Englisch (USA) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -777,7 +772,7 @@ BEGIN
     0
 END
 
-#endif    // English (United States) resources
+#endif    // Englisch (USA) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

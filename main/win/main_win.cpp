@@ -19,13 +19,14 @@
 #include "main_win.h"
 
 #include <cmath>
-#include <commctrl.h>
 #include <cstdlib>
 #include <deque>
 #include <filesystem>
-#include <gdiplus.h>
-#include <Shlwapi.h>
 #include <Windows.h>
+#include <Windowsx.h>
+#include <commctrl.h>
+#include <Shlwapi.h>
+#include <gdiplus.h>
 
 #include "Commandline.h"
 #include "config.hpp"
@@ -44,7 +45,7 @@
 #include "../../r4300/r4300.h"
 #include "../../r4300/recomph.h"
 #include "../../winproject/resource.h"
-#include "CoreDbg.h"
+#include "features/CoreDbg.h"
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
 #include "features/Toolbar.hpp"

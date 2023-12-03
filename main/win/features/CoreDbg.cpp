@@ -3,9 +3,13 @@
 #include "../resource.h"
 #include "../main/win/main_win.h"
 #include "CoreDbg.h"
+
 #include <stdio.h>
 #include "vcr.h"
 #include <Windows.h>
+#include <Windowsx.h>
+#include <commctrl.h>
+
 #include "../../r4300/r4300.h"
 #include "../../memory/memory.h"
 #include "disasm.h"
@@ -15,6 +19,8 @@ bool coredbg_resumed = true;
 
 namespace CoreDbg
 {
+	HWND hwnd = nullptr;
+
 	using t_cpu_state = struct
 	{
 		unsigned long opcode;
@@ -29,35 +35,15 @@ namespace CoreDbg
 	bool ui_invalidated = true;
 	t_cpu_state cpu_state = {0};
 
-	void update(HWND hwnd)
-	{
-		char opcode_str[255] = {0};
-		sprintf(opcode_str, "0x%lx", cpu_state.opcode);
-
-		char address_str[255] = {0};
-		sprintf(address_str, "0x%lx", cpu_state.address);
-
-		char disassembled_str[255] = {0};
-		DisassembleInstruction(disassembled_str,
-		                       cpu_state.opcode,
-		                       cpu_state.address);
-
-		SetWindowText(GetDlgItem(hwnd, IDC_DEBUGGER_PRECOMPADDR), opcode_str);
-		SetWindowText(GetDlgItem(hwnd, IDC_DEBUGGER_PRECOMPOP), address_str);
-		SetWindowText(GetDlgItem(hwnd, IDC_DEBUGGER_DISASSEMBLED),
-		              disassembled_str);
-		SetWindowText(GetDlgItem(hwnd, IDC_DEBUGGER_TOGGLEPAUSE),
-		              coredbg_resumed ? "Pause" : "Resume");
-	}
-
 	BOOL CALLBACK coredbg_dlgproc(HWND hwnd, UINT msg, WPARAM w_param,
 	                              LPARAM l_param)
 	{
 		switch (msg)
 		{
 		case WM_INITDIALOG:
-			CheckDlgButton(hwnd, IDC_DEBUGGER_RSP_TOGGLE, 1);
+			CheckDlgButton(hwnd, IDC_COREDBG_RSP_TOGGLE, 1);
 			ui_timer = SetTimer(hwnd, NULL, 1000 / 60, nullptr);
+			CoreDbg::hwnd = hwnd;
 			return TRUE;
 		case WM_DESTROY:
 			KillTimer(hwnd, ui_timer);
@@ -67,11 +53,12 @@ namespace CoreDbg
 			if (!ui_invalidated)
 				break;
 
-			if (!IsDlgButtonChecked(hwnd, IDC_DEBUGGER_ALWAYS_UPDATE))
+			if (!IsDlgButtonChecked(hwnd, IDC_COREDBG_ALWAYS_UPDATE))
 			{
 				ui_invalidated = false;
 			}
-			update(hwnd);
+			SetWindowText(GetDlgItem(hwnd, IDC_COREDBG_TOGGLEPAUSE),
+					  coredbg_resumed ? "Pause" : "Resume");
 			break;
 		case WM_COMMAND:
 			switch (LOWORD(w_param))
@@ -80,7 +67,7 @@ namespace CoreDbg
 				dma_read_enabled = !IsDlgButtonChecked(
 					hwnd, IDC_COREDBG_CART_TILT);
 				break;
-			case IDC_DEBUGGER_RSP_TOGGLE:
+			case IDC_COREDBG_RSP_TOGGLE:
 
 				// if real doRspCycles pointer hasnt been stored yet, cache it
 				if (!original_doRspCycles)
@@ -89,19 +76,19 @@ namespace CoreDbg
 				}
 
 			// if rsp is disabled, we swap out the real doRspCycles function for the dummy one, effectively disabling the rsp unit
-				if (IsDlgButtonChecked(hwnd, IDC_DEBUGGER_RSP_TOGGLE))
+				if (IsDlgButtonChecked(hwnd, IDC_COREDBG_RSP_TOGGLE))
 					doRspCycles = original_doRspCycles;
 				else
 					doRspCycles = dummy_doRspCycles;
 
 				break;
-			case IDC_DEBUGGER_STEP:
+			case IDC_COREDBG_STEP:
 				// set step flag and resume
 				// the flag is cleared at the end of the current cycle
 				cycle_advance = true;
 				coredbg_resumed = true;
 				break;
-			case IDC_DEBUGGER_TOGGLEPAUSE:
+			case IDC_COREDBG_TOGGLEPAUSE:
 				coredbg_resumed ^= true;
 				ui_invalidated = true;
 				break;
@@ -137,6 +124,15 @@ namespace CoreDbg
 			cycle_advance = false;
 			coredbg_resumed = false;
 			ui_invalidated = true;
+
+			char disasm[255] = {0};
+			DisassembleInstruction(disasm,
+								   cpu_state.opcode,
+								   cpu_state.address);
+
+			auto str = std::format("{} ({:#08x}, {:#08x})", disasm,
+								   cpu_state.opcode, cpu_state.address);
+			ListBox_InsertString(GetDlgItem(hwnd, IDC_COREDBG_LIST), 0, str.c_str());
 		}
 	}
 }
