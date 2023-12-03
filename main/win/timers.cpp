@@ -100,6 +100,7 @@ void timer_new_frame_1()
 	}
 
 	last_frame_time = current_frame_time;
+	is_primary_statusbar_invalidated = true;
 }
 
 
