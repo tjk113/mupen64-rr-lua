@@ -302,6 +302,69 @@ CONFIG get_default_config()
 		.command = ID_REPLAY_LATEST,
 	};
 
+	config.load_rom_hotkey = {
+		.identifier = "Load ROM",
+		.key = 0x4F /* O */,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = IDLOAD,
+	};
+
+	config.close_rom_hotkey = {
+		.identifier = "Close ROM",
+		.key = 0x57 /* W */,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = EMU_STOP,
+	};
+
+	config.reset_rom_hotkey = {
+		.identifier = "Reset ROM",
+		.key = 0x52 /* R */,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = EMU_RESET,
+	};
+
+	config.fullscreen_hotkey = {
+		.identifier = "Toggle Fullscreen",
+		.key = VK_RETURN,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 1,
+		.command = FULL_SCREEN,
+	};
+
+	config.settings_hotkey = {
+		.identifier = "Show Settings",
+		.key = 0x53 /* S */,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = ID_LOAD_CONFIG,
+	};
+
+	config.save_current_hotkey = {
+		.identifier = "Save to current slot",
+		.key = 0x49 /* I */,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 0,
+		.command = STATE_SAVE,
+	};
+
+	config.save_current_hotkey = {
+		.identifier = "Load from current slot",
+		.key = 0x50 /* P */,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 0,
+		.command = STATE_RESTORE,
+	};
+
 	config.save_to_slot_1_hotkey = {
 		.identifier = "Save to slot 1",
 		.key = 0x31 /* 1 */,
@@ -675,6 +738,14 @@ void update_menu_hotkey_labels()
     set_hotkey_menu_accelerators(&Config.select_slot_7_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
     set_hotkey_menu_accelerators(&Config.select_slot_8_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
     set_hotkey_menu_accelerators(&Config.select_slot_9_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+
+	set_hotkey_menu_accelerators(&Config.load_rom_hotkey, GetSubMenu(GetMenu(mainHWND), 0), 0);
+	set_hotkey_menu_accelerators(&Config.close_rom_hotkey, GetSubMenu(GetMenu(mainHWND), 0), 1);
+	set_hotkey_menu_accelerators(&Config.reset_rom_hotkey, GetSubMenu(GetMenu(mainHWND), 0), 2);
+	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, GetSubMenu(GetMenu(mainHWND), 2), 0);
+	set_hotkey_menu_accelerators(&Config.settings_hotkey, GetSubMenu(GetMenu(mainHWND), 2), 7);
+	set_hotkey_menu_accelerators(&Config.save_current_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+	set_hotkey_menu_accelerators(&Config.load_current_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
 
     set_hotkey_menu_accelerators(&Config.restart_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 12);
     set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 7);

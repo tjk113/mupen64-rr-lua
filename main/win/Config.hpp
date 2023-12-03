@@ -33,6 +33,13 @@ typedef struct _CONFIG
 	t_hotkey load_from_current_slot_hotkey;
 	t_hotkey restart_movie_hotkey;
 	t_hotkey play_latest_movie_hotkey;
+	t_hotkey load_rom_hotkey;
+	t_hotkey close_rom_hotkey;
+	t_hotkey reset_rom_hotkey;
+	t_hotkey fullscreen_hotkey;
+	t_hotkey settings_hotkey;
+	t_hotkey save_current_hotkey;
+	t_hotkey load_current_hotkey;
 	t_hotkey save_to_slot_1_hotkey;
 	t_hotkey save_to_slot_2_hotkey;
 	t_hotkey save_to_slot_3_hotkey;

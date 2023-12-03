@@ -56,10 +56,10 @@ IDR_MYMENU MENU
 BEGIN
     POPUP "File"
     BEGIN
-        MENUITEM "&Load ROM...\tCtrl O",        IDLOAD
-        MENUITEM "&Close ROM\tCtrl F4",         EMU_STOP, GRAYED
-        MENUITEM "&Reset ROM\tCtrl R",          EMU_RESET, GRAYED
-        MENUITEM "&Refresh ROM List\tCtrl Alt R", REFRESH_ROM_BROWSER
+        MENUITEM "&Load ROM...",        IDLOAD
+        MENUITEM "&Close ROM",         EMU_STOP, GRAYED
+        MENUITEM "&Reset ROM",          EMU_RESET, GRAYED
+        MENUITEM "&Refresh ROM List", REFRESH_ROM_BROWSER
         MENUITEM SEPARATOR
         POPUP "Recent ROMs"
         BEGIN
@@ -67,7 +67,7 @@ BEGIN
             MENUITEM "Freeze",                      ID_RECENTROMS_FREEZE
             MENUITEM SEPARATOR
         END
-        MENUITEM "&Load Latest ROM\tCtrl Shift L", ID_LOAD_LATEST
+        MENUITEM "&Load Latest ROM", ID_LOAD_LATEST
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt F4",               ID_EMULATOR_EXIT
     END
@@ -78,9 +78,9 @@ BEGIN
         MENUITEM "Take Screenshot",             GENERATE_BITMAP, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Save State",                 STATE_SAVE, GRAYED
-        MENUITEM "Save State As...\tCtrl A",    STATE_SAVEAS, GRAYED
+        MENUITEM "Save State As...",    STATE_SAVEAS, GRAYED
         MENUITEM "&Restore State",              STATE_RESTORE, GRAYED
-        MENUITEM "Load State...\tCtrl L",       STATE_LOAD, GRAYED
+        MENUITEM "Load State...",       STATE_LOAD, GRAYED
         MENUITEM SEPARATOR
         POPUP "Current Save S&tate"
         BEGIN
@@ -98,7 +98,7 @@ BEGIN
     END
     POPUP "Options"
     BEGIN
-        MENUITEM "&Full Screen\tAlt Enter",     FULL_SCREEN, GRAYED
+        MENUITEM "&Full Screen",     FULL_SCREEN, GRAYED
         MENUITEM SEPARATOR
         POPUP "Plugin Settings"
         BEGIN
@@ -108,10 +108,10 @@ BEGIN
             MENUITEM "&RSP Settings...",            IDRSPCONFIG
         END
         MENUITEM SEPARATOR
-        MENUITEM "Show &Toolbar\tAlt T",        IDC_GUI_TOOLBAR
-        MENUITEM "Show Status&bar\tAlt S",      IDC_GUI_STATUSBAR
+        MENUITEM "Show &Toolbar",        IDC_GUI_TOOLBAR
+        MENUITEM "Show Status&bar",      IDC_GUI_STATUSBAR
         MENUITEM SEPARATOR
-        MENUITEM "&Settings...\tCtrl S",        ID_LOAD_CONFIG
+        MENUITEM "&Settings...",        ID_LOAD_CONFIG
     END
     POPUP "Movie"
     BEGIN
@@ -157,7 +157,7 @@ BEGIN
     POPUP "Lua Script"
     BEGIN
         MENUITEM "New Instance...",             ID_MENU_LUASCRIPT_NEW
-        MENUITEM "Load Latest Lua Script...\tCtrl Alt L", ID_LUA_LOAD_LATEST
+        MENUITEM "Load Latest Lua Script...", ID_LUA_LOAD_LATEST
         MENUITEM SEPARATOR
         POPUP "Recent Scripts"
         BEGIN
@@ -169,18 +169,6 @@ BEGIN
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
     END
 END
-
-ROM_POPUP_MENU MENU
-BEGIN
-    POPUP "POPUP Menu"
-    BEGIN
-        MENUITEM "Play Game\tEnter",            ID_START_ROM
-        MENUITEM "ROM Properties...\tCtrl P",   ID_POPUP_ROM_SETTING
-        MENUITEM SEPARATOR
-        MENUITEM "Refresh\tCtrl Shift R",       REFRESH_ROM_BROWSER
-    END
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -552,15 +540,7 @@ END
 
 IDR_ACCEL ACCELERATORS
 BEGIN
-    "R",            EMU_RESET,              VIRTKEY, CONTROL
-    VK_F4,          EMU_STOP,               VIRTKEY, CONTROL
-    VK_F4,          ID_EMULATOR_EXIT,       VIRTKEY, ALT
-    "O",            IDLOAD,                 VIRTKEY, CONTROL
-    "L",            STATE_LOAD,             VIRTKEY, CONTROL
-    "A",            STATE_SAVEAS,           VIRTKEY, CONTROL
-    VK_RETURN,      FULL_SCREEN,            VIRTKEY, ALT
     VK_RETURN,      ID_START_ROM_ENTER,     VIRTKEY 
-    "S",            ID_LOAD_CONFIG,         VIRTKEY, CONTROL
     "P",            ID_POPUP_ROM_SETTING,   VIRTKEY, CONTROL
     "R",            REFRESH_ROM_BROWSER,    VIRTKEY, CONTROL, ALT
     "T",            IDC_GUI_TOOLBAR,        VIRTKEY, ALT
