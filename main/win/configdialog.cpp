@@ -727,6 +727,11 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 		        {
 		        	on_hotkey_selection_changed(hwnd);
 		        }
+	        	if (event == LBN_DBLCLK)
+	        	{
+	        		on_hotkey_selection_changed(hwnd);
+	        		SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDC_HOTKEY_ASSIGN_SELECTED, BN_CLICKED), (LPARAM)GetDlgItem(hwnd, IDC_HOTKEY_ASSIGN_SELECTED));
+	        	}
 	        	break;
 	        case IDC_HOTKEY_ASSIGN_SELECTED:
 		        {
