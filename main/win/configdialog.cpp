@@ -649,44 +649,44 @@ std::string hotkey_to_string_overview(t_hotkey* hotkey)
     return hotkey->identifier + " (" + hotkey_to_string(hotkey) + ")";
 }
 
-int32_t get_hotkey_array_index_from_overview(std::string const &overview)
-{
-    for (size_t i = 0; i < hotkeys.size(); i++)
-    {
-        if (overview == hotkey_to_string_overview(hotkeys[i]))
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
-void update_selected_hotkey_view(const HWND dialog_hwnd)
+void on_hotkey_selection_changed(const HWND dialog_hwnd)
 {
     HWND list_hwnd = GetDlgItem(dialog_hwnd, IDC_HOTKEY_LIST);
-    HWND selected_hotkey_edit_hwnd = GetDlgItem(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT);
+    HWND enable_hwnd = GetDlgItem(dialog_hwnd, IDC_HOTKEY_CLEAR);
+    HWND edit_hwnd = GetDlgItem(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT);
+    HWND assign_hwnd = GetDlgItem(dialog_hwnd, IDC_HOTKEY_ASSIGN_SELECTED);
 
     char selected_identifier[MAX_PATH] = {0};
     SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
 
-    if (const int32_t index_in_hotkey_array = get_hotkey_array_index_from_overview(std::string(selected_identifier)); index_in_hotkey_array >= 0 && index_in_hotkey_array < hotkeys.size())
+	int32_t selected_index = ListBox_GetCurSel(list_hwnd);
+
+	EnableWindow(enable_hwnd, selected_index != -1);
+	EnableWindow(edit_hwnd, selected_index != -1);
+	EnableWindow(assign_hwnd, selected_index != -1);
+
+    if (selected_index == -1)
     {
-        SetWindowText(selected_hotkey_edit_hwnd, hotkey_to_string(hotkeys[index_in_hotkey_array]).c_str());
-        EnableWindow(GetDlgItem(dialog_hwnd, IDC_HOTKEY_CLEAR), 1);
+    	SetDlgItemText(dialog_hwnd, IDC_HOTKEY_ASSIGN_SELECTED, "Assign...");
+    	SetDlgItemText(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT, "");
+    	return;
     }
-    else
-    {
-        SetDlgItemText(dialog_hwnd, IDC_HOTKEY_ASSIGN_SELECTED, "Assign...");
-        SetDlgItemText(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT, "");
-        EnableWindow(GetDlgItem(dialog_hwnd, IDC_HOTKEY_CLEAR), 0);
-    }
+
+	auto hotkey = (t_hotkey*)ListBox_GetItemData(list_hwnd, selected_index);
+	SetWindowText(edit_hwnd, hotkey_to_string(hotkey).c_str());
 }
 
-void build_hotkey_list(const HWND list_hwnd, const std::string &search_query)
+void build_hotkey_list(HWND hwnd)
 {
-    SendMessage(list_hwnd, LB_RESETCONTENT, 0, 0);
+	HWND list_hwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
 
-    for (const auto& hotkey : hotkeys)
+	char search_query_c[MAX_PATH] = {0};
+	GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, search_query_c, std::size(search_query_c));
+	std::string search_query = search_query_c;
+
+    ListBox_ResetContent(list_hwnd);
+
+    for (t_hotkey* hotkey : hotkeys)
     {
         std::string hotkey_string = hotkey_to_string_overview(hotkey);
 
@@ -699,8 +699,9 @@ void build_hotkey_list(const HWND list_hwnd, const std::string &search_query)
             }
         }
 
-        SendMessage(list_hwnd, LB_ADDSTRING, 0,
-                    (LPARAM)hotkey_string.c_str());
+    	int32_t index = ListBox_GetCount(list_hwnd);
+    	ListBox_AddString(list_hwnd, hotkey_string.c_str());
+		ListBox_SetItemData(list_hwnd, index, hotkey);
     }
 }
 
@@ -711,63 +712,58 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
     case WM_INITDIALOG:
         {
             SetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, "");
-            update_selected_hotkey_view(hwnd);
+            on_hotkey_selection_changed(hwnd);
             return TRUE;
         }
     case WM_COMMAND:
         {
-	        const int id = LOWORD(w_param);
-
-	        if (const int event = HIWORD(w_param); id == IDC_HOTKEY_LIST && event == LBN_SELCHANGE)
-            {
-                update_selected_hotkey_view(hwnd);
-            }
-
-            if (id == IDC_HOTKEY_ASSIGN_SELECTED)
-            {
-	            const HWND list_hwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
-                char selected_identifier[MAX_PATH];
-                SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0),
-                            (LPARAM)selected_identifier);
-
-	            if (const int32_t index = get_hotkey_array_index_from_overview(std::string(selected_identifier)); index >= 0 && index < hotkeys.size())
-                {
-                    SetDlgItemText(hwnd, id, "...");
-
-                    get_user_hotkey(hotkeys[index]);
-
-                    char search_query[MAX_PATH] = {0};
-                    GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, search_query, std::size(search_query));
-                    build_hotkey_list(GetDlgItem(hwnd, IDC_HOTKEY_LIST), search_query);
-                    update_selected_hotkey_view(hwnd);
-                }
-            }
-
-            if (id == IDC_HOTKEY_SEARCH)
-            {
-                char search_query[MAX_PATH] = {0};
-                GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, search_query, std::size(search_query));
-                build_hotkey_list(GetDlgItem(hwnd, IDC_HOTKEY_LIST), search_query);
-            }
-            if (id == IDC_HOTKEY_CLEAR)
-            {
-                const HWND list_hwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
-                char selected_identifier[MAX_PATH];
-                SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0),
-                            (LPARAM)selected_identifier);
-
-                if (const int32_t index = get_hotkey_array_index_from_overview(std::string(selected_identifier)); index >= 0 && index < hotkeys.size())
-                {
-                    hotkeys[index]->key = 0;
-                    hotkeys[index]->ctrl = 0;
-                    hotkeys[index]->shift = 0;
-                    hotkeys[index]->alt = 0;
-                    char search_query[MAX_PATH] = {0};
-                    GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, search_query, std::size(search_query));
-                    build_hotkey_list(GetDlgItem(hwnd, IDC_HOTKEY_LIST), search_query);
-                    update_selected_hotkey_view(hwnd);
-                }
-            }
+    		HWND list_hwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
+    		const int event = HIWORD(w_param);
+    		const int id = LOWORD(w_param);
+	        switch (id)
+	        {
+	        case IDC_HOTKEY_LIST:
+		        if (event == LBN_SELCHANGE)
+		        {
+		        	on_hotkey_selection_changed(hwnd);
+		        }
+	        	break;
+	        case IDC_HOTKEY_ASSIGN_SELECTED:
+		        {
+	        		int32_t index = ListBox_GetCurSel(list_hwnd);
+			        if (index == -1)
+			        {
+				        break;
+			        }
+	        		auto hotkey = (t_hotkey*)ListBox_GetItemData(list_hwnd, index);
+	        		SetDlgItemText(hwnd, id, "...");
+	        		get_user_hotkey(hotkey);
+	        		build_hotkey_list(hwnd);
+	        		on_hotkey_selection_changed(hwnd);
+		        }
+	        	break;
+	        case IDC_HOTKEY_SEARCH:
+		        {
+	        		build_hotkey_list(hwnd);
+		        }
+	        	break;
+	        case IDC_HOTKEY_CLEAR:
+	        	{
+	        		int32_t index = ListBox_GetCurSel(list_hwnd);
+	        		if (index == -1)
+	        		{
+	        			break;
+	        		}
+	        		auto hotkey = (t_hotkey*)ListBox_GetItemData(list_hwnd, index);
+	        		hotkey->key = 0;
+	        		hotkey->ctrl = 0;
+	        		hotkey->shift = 0;
+	        		hotkey->alt = 0;
+	        		build_hotkey_list(list_hwnd);
+	        		on_hotkey_selection_changed(hwnd);
+	        	}
+	        	break;
+	        }
         }
         break;
     default:
