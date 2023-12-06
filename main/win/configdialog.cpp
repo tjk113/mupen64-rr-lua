@@ -759,7 +759,7 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 	        		hotkey->ctrl = 0;
 	        		hotkey->shift = 0;
 	        		hotkey->alt = 0;
-	        		build_hotkey_list(list_hwnd);
+	        		build_hotkey_list(hwnd);
 	        		on_hotkey_selection_changed(hwnd);
 	        	}
 	        	break;
