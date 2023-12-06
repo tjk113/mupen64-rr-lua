@@ -13,6 +13,8 @@
 
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
+const auto first_offset = offsetof(CONFIG, fast_forward_hotkey);
+const auto last_offset = offsetof(CONFIG, select_slot_10_hotkey);
 
 void set_menu_accelerator(const HMENU h_menu, int element_id, const char* acc)
 {
@@ -356,7 +358,7 @@ CONFIG get_default_config()
 		.command = STATE_SAVE,
 	};
 
-	config.save_current_hotkey = {
+	config.load_current_hotkey = {
 		.identifier = "Load from current slot",
 		.key = 0x50 /* P */,
 		.ctrl = 0,
@@ -694,6 +696,7 @@ CONFIG get_default_config()
 	return config;
 }
 
+CONFIG default_config = get_default_config();
 
 void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkey)
 {
@@ -970,26 +973,20 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 }
 
 
-const auto first_offset = offsetof(CONFIG, fast_forward_hotkey);
-const auto last_offset = offsetof(CONFIG, select_slot_10_hotkey);
-const CONFIG default_config = get_default_config();
+
 
 std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 {
-	std::vector<t_hotkey*> hotkeys;
-	const auto arr = (t_hotkey*)config;
 	// NOTE:
 	// last_offset should contain the offset of the last hotkey
 	// this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
 	// i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
-	for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1
-	     ; i++)
+	for (size_t i = 0; i < (last_offset - first_offset) / sizeof(t_hotkey); i++)
 	{
-		auto hotkey = &arr[i];
-		// printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
+		auto hotkey = &(((t_hotkey*)config)[i]);
+		printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
 		hotkeys.push_back(hotkey);
 	}
-	// printf("---\n");
 
 	return hotkeys;
 }
@@ -999,23 +996,22 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 #define HANDLE_P_VALUE(x) handle_config_value(ini, #x, is_reading, &Config.x);
 #define HANDLE_VALUE(x) handle_config_value(ini, #x, is_reading, Config.x);
 
-	if (is_reading)
-	{
-		// our config is empty, so hotkeys are missing identifiers and commands
-		// we need to copy the identifiers from a default config
-		// FIXME: this assumes that the loaded config's hotkeys map 1:1 to the current hotkeys, which may not be the case
-
-		auto base_config_hotkey_pointers = collect_hotkeys(&default_config);
-		auto hotkey_pointers = collect_hotkeys(&Config);
-
-		for (size_t i = 0; i < hotkey_pointers.size(); i++)
-		{
-			hotkey_pointers[i]->identifier = std::string(
-				base_config_hotkey_pointers[i]->identifier);
-			hotkey_pointers[i]->command = base_config_hotkey_pointers[i]->
-				command;
-		}
-	}
+	// if (is_reading)
+	// {
+	// 	// our config is empty, so hotkeys are missing identifiers and commands
+	// 	// we need to copy the identifiers from a default config
+	// 	// FIXME: this assumes that the loaded config's hotkeys map 1:1 to the current hotkeys, which may not be the case
+	// 	auto base_config_hotkey_pointers = collect_hotkeys(&default_config);
+	//
+	// 	for (size_t i = 0; i < base_config_hotkey_pointers.size(); i++)
+	// 	{
+	// 		auto hotkey = (t_hotkey*)&Config;
+	// 		hotkey->identifier = std::string(
+	// 			base_config_hotkey_pointers[i]->identifier);
+	// 		hotkey->command = base_config_hotkey_pointers[i]->
+	// 			command;
+	// 	}
+	// }
 
 
 	auto hotkey_pointers = collect_hotkeys(&Config);

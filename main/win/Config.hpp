@@ -15,6 +15,7 @@ typedef struct t_hotkey
 	int32_t command;
 } t_hotkey;
 
+#pragma pack(push, 1)
 typedef struct _CONFIG
 {
 #pragma region Hotkeys
@@ -387,6 +388,7 @@ typedef struct _CONFIG
 	/// </summary>
 	int32_t use_new_timer;
 } CONFIG;
+#pragma pack(pop)
 
 extern "C" CONFIG Config;
 extern std::vector<t_hotkey*> hotkeys;
