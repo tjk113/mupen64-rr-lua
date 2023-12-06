@@ -204,18 +204,17 @@ void rombrowser_build_impl()
 	// we aggregate all file paths and only filter them after we're done
 	if (Config.is_rombrowser_recursion_enabled)
 	{
-		for (auto& path : Config.rombrowser_rom_paths)
+		for (auto path : Config.rombrowser_rom_paths)
 		{
-			auto file_paths = get_files_in_subdirectories(path + "\\");
+			auto file_paths = get_files_in_subdirectories(path);
 			rom_paths.insert(rom_paths.end(), file_paths.begin(),
 			                 file_paths.end());
 		}
 	} else
 	{
-		for (auto& path : Config.rombrowser_rom_paths)
+		for (auto path : Config.rombrowser_rom_paths)
 		{
-			auto file_paths = get_files_with_extension_in_directory(
-				path + "\\", "*");
+			auto file_paths = get_files_with_extension_in_directory(path, "*");
 			rom_paths.insert(rom_paths.end(), file_paths.begin(),
 			                 file_paths.end());
 		}

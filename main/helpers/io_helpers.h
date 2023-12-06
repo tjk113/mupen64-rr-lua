@@ -11,13 +11,13 @@
  * \param extension The file extension with no period
  */
 std::vector<std::string> get_files_with_extension_in_directory(
-	const std::string &directory, const std::string &extension);
+	std::string directory, const std::string& extension);
 /**
  * \brief Gets all files under all subdirectory of a specific directory, including the directory's shallow files
  * \param directory The path joiner-terminated directory
  */
 std::vector<std::string> get_files_in_subdirectories(
-	const std::string& directory);
+	std::string directory);
 
 /**
  * \brief Removes the extension from a path
@@ -31,14 +31,14 @@ std::string strip_extension(const std::string& path);
  * \param path The path to remove the extension from
  * \return The path without an extension
  */
-std::wstring strip_extension(const std::wstring &path);
+std::wstring strip_extension(const std::wstring& path);
 
 /**
  * \brief Copies a string to the clipboard
  * \param owner The clipboard content's owner window
  * \param str The string to be copied
  */
-void copy_to_clipboard(HWND owner, const std::string &str);
+void copy_to_clipboard(HWND owner, const std::string& str);
 
 /**
  * \brief Gets the path to the current user's desktop
@@ -71,7 +71,8 @@ std::vector<uint8_t> read_file_buffer(const std::filesystem::path& path);
  * \param initial_size The initial size to allocate for the internal buffer
  * \return The decompressed byte vector
  */
-std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec, size_t initial_size = 10'500'000);
+std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
+                                     size_t initial_size = 10'500'000);
 
 /**
  * \brief Reads source data into the destination, advancing the source pointer by <c>len</c>

@@ -7,8 +7,12 @@
 #include <vector>
 
 std::vector<std::string> get_files_with_extension_in_directory(
-	const std::string& directory, const std::string& extension)
+	std::string directory, const std::string& extension)
 {
+	if (directory.back() != '\\')
+	{
+		directory += "\\";
+	}
 	WIN32_FIND_DATA find_file_data;
 	const HANDLE h_find = FindFirstFile((directory + "*." + extension).c_str(),
 	                                    &find_file_data);
@@ -34,14 +38,12 @@ std::vector<std::string> get_files_with_extension_in_directory(
 }
 
 std::vector<std::string> get_files_in_subdirectories(
-	const std::string& directory)
+	std::string directory)
 {
-	std::string newdir = directory;
-	if (directory.back() != '\0')
+	if (directory.back() != '\\')
 	{
-		newdir.push_back('\0');
+		directory += "\\";
 	}
-
 	WIN32_FIND_DATA find_file_data;
 	const HANDLE h_find = FindFirstFile((directory + "*").c_str(),
 	                                    &find_file_data);

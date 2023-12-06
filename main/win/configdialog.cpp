@@ -256,7 +256,7 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
                 {
                     break;
                 }
-                Config.rombrowser_rom_paths.emplace_back(wstring_to_string(path));
+                Config.rombrowser_rom_paths.push_back(wstring_to_string(path));
                 build_rom_browser_path_list(hwnd);
                 break;
             }
@@ -267,7 +267,6 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
                     Config.rombrowser_rom_paths.erase(Config.rombrowser_rom_paths.begin() + selected_index);
                 }
                 build_rom_browser_path_list(hwnd);
-
                 break;
             }
 
