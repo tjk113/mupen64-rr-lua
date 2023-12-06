@@ -997,28 +997,27 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 #define HANDLE_P_VALUE(x) handle_config_value(ini, #x, is_reading, &Config.x);
 #define HANDLE_VALUE(x) handle_config_value(ini, #x, is_reading, Config.x);
 
-	// if (is_reading)
-	// {
-	// 	// our config is empty, so hotkeys are missing identifiers and commands
-	// 	// we need to copy the identifiers from a default config
-	// 	// FIXME: this assumes that the loaded config's hotkeys map 1:1 to the current hotkeys, which may not be the case
-	// 	auto base_config_hotkey_pointers = collect_hotkeys(&default_config);
-	//
-	// 	for (size_t i = 0; i < base_config_hotkey_pointers.size(); i++)
-	// 	{
-	// 		auto hotkey = (t_hotkey*)&Config;
-	// 		hotkey->identifier = std::string(
-	// 			base_config_hotkey_pointers[i]->identifier);
-	// 		hotkey->command = base_config_hotkey_pointers[i]->
-	// 			command;
-	// 	}
-	// }
+	if (is_reading)
+	{
+		// our config is empty, so hotkeys are missing identifiers and commands
+		// we need to copy the identifiers from a default config
+		// FIXME: this assumes that the loaded config's hotkeys map 1:1 to the current hotkeys, which may not be the case
+		auto hotkey_pointers = collect_hotkeys(&default_config);
+		for (size_t i = 0; i < hotkey_pointers.size(); i++)
+		{
+			auto hotkey = &(((t_hotkey*)&Config)[i]);
+			hotkey->identifier = std::string(
+				hotkey_pointers[i]->identifier);
+			hotkey->command = hotkey_pointers[i]->
+				command;
+		}
+	}
 
 
 	auto hotkey_pointers = collect_hotkeys(&Config);
 
 	hotkeys.clear();
-	for (auto& hotkey_pointer : hotkey_pointers)
+	for (auto hotkey_pointer : hotkey_pointers)
 	{
 		handle_config_value(ini, hotkey_pointer->identifier, is_reading,
 		                    hotkey_pointer);
