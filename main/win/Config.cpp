@@ -178,15 +178,6 @@ CONFIG get_default_config()
 		.command = 0,
 	};
 
-	config.speed_up_hotkey = {
-		.identifier = "Speed up",
-		.key = VK_OEM_PLUS,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
-		.command = IDC_INCREASE_MODIFIER,
-	};
-
 	config.speed_down_hotkey = {
 		.identifier = "Speed down",
 		.key = VK_OEM_MINUS,
@@ -194,6 +185,15 @@ CONFIG get_default_config()
 		.shift = 0,
 		.alt = 0,
 		.command = IDC_DECREASE_MODIFIER,
+	};
+
+	config.speed_up_hotkey = {
+		.identifier = "Speed up",
+		.key = VK_OEM_PLUS,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 0,
+		.command = IDC_INCREASE_MODIFIER,
 	};
 
 	config.frame_advance_hotkey = {

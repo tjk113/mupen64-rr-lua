@@ -20,8 +20,8 @@ typedef struct _CONFIG
 {
 #pragma region Hotkeys
 	t_hotkey fast_forward_hotkey;
-	t_hotkey speed_up_hotkey;
 	t_hotkey speed_down_hotkey;
+	t_hotkey speed_up_hotkey;
 	t_hotkey frame_advance_hotkey;
 	t_hotkey pause_hotkey;
 	t_hotkey toggle_read_only_hotkey;
