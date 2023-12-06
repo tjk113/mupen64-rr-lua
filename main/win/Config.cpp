@@ -981,14 +981,15 @@ std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 	// last_offset should contain the offset of the last hotkey
 	// this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
 	// i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
+	std::vector<t_hotkey*> vec;
 	for (size_t i = 0; i < (last_offset - first_offset) / sizeof(t_hotkey); i++)
 	{
 		auto hotkey = &(((t_hotkey*)config)[i]);
 		printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
-		hotkeys.push_back(hotkey);
+		vec.push_back(hotkey);
 	}
 
-	return hotkeys;
+	return vec;
 }
 
 mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
