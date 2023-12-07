@@ -380,9 +380,9 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         break;
     case WM_INITDIALOG:
 
-    	for (const auto& plugin : available_plugins)
+    	for (auto plugin : available_plugins)
     	{
-    		plugin_destroy(plugin);
+    		plugin_destroy(&plugin);
     	}
 
         available_plugins = get_available_plugins();
