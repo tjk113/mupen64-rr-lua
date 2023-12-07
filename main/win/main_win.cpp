@@ -1669,6 +1669,41 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			switch (LOWORD(wParam))
 			{
+			case IDGFXCONFIG:
+			case IDINPUTCONFIG:
+			case IDSOUNDCONFIG:
+			case IDRSPCONFIG:
+				{
+					// If emu isn't launched, we don't have any loaded plugins, so we gotta load them first
+					if (!emu_launched)
+					{
+						load_plugins();
+					}
+
+					hwnd_plug = mainHWND;
+					t_plugin* plugin = video_plugin;
+					switch (LOWORD(wParam))
+					{
+					case IDINPUTCONFIG:
+						plugin = input_plugin;
+						break;
+					case IDSOUNDCONFIG:
+						plugin = audio_plugin;
+						break;
+					case IDRSPCONFIG:
+						plugin = rsp_plugin;
+						break;
+					}
+
+					// plugin can be null when no plugins are available, but it's handled internally
+					plugin_config(plugin);
+
+					if (!emu_launched)
+					{
+						unload_plugins();
+					}
+				}
+				break;
 			case ID_MENU_LUASCRIPT_NEW:
 				{
 					lua_create();
