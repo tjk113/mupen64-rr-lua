@@ -578,16 +578,16 @@ t_plugin* plugin_create(const std::filesystem::path &path)
 
 }
 
-void plugin_destroy(t_plugin* plugin)
+void plugin_destroy(t_plugin** plugin)
 {
-	if (plugin == nullptr || plugin->handle == nullptr)
+	if (plugin == nullptr || (*plugin)->handle == nullptr)
 	{
 		return;
 	}
-	printf("Plugin %s destroyed\n", plugin->path.string().c_str());
-	FreeLibrary(plugin->handle);
-	delete plugin;
-	plugin = nullptr;
+	printf("Plugin %s destroyed\n", (*plugin)->path.string().c_str());
+	FreeLibrary((*plugin)->handle);
+	delete *plugin;
+	*plugin = nullptr;
 }
 
 std::vector<t_plugin*> get_available_plugins()
@@ -760,10 +760,10 @@ bool load_plugins()
 
 void unload_plugins()
 {
-	plugin_destroy(video_plugin);
-	plugin_destroy(audio_plugin);
-	plugin_destroy(input_plugin);
-	plugin_destroy(rsp_plugin);
+	plugin_destroy(&video_plugin);
+	plugin_destroy(&audio_plugin);
+	plugin_destroy(&input_plugin);
+	plugin_destroy(&rsp_plugin);
 }
 
 void setup_dummy_info()

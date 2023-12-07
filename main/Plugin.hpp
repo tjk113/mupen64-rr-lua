@@ -351,9 +351,10 @@ std::vector<t_plugin*> get_available_plugins();
 
 /**
  * \brief Destroys a plugin and releases the library handle
- * \param plugin A pointer to the plugin to be destroyed
+ * \param plugin Double pointer to the plugin to be destroyed
+ * \remarks The inner pointer will be mutated
  */
-void plugin_destroy(t_plugin* plugin);
+void plugin_destroy(t_plugin** plugin);
 
 /// <summary>
 /// Opens a plugin's configuration dialog, if it exists
