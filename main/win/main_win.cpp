@@ -288,9 +288,13 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
 	}
 
+	// HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
 	auto gfx_thread = std::thread(load_gfx, video_plugin->handle);
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	auto audio_thread = std::thread(load_audio, audio_plugin->handle);
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	auto input_thread = std::thread(load_input, input_plugin->handle);
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	auto rsp_thread = std::thread(load_rsp, rsp_plugin->handle);
 
 	gfx_thread.join();
