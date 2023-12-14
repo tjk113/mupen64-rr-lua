@@ -23,6 +23,8 @@
 #include <mutex>
 #include <stack>
 
+#include "plugin.hpp"
+
 typedef struct s_window_procedure_params {
 	HWND wnd;
 	UINT msg;
@@ -30,11 +32,31 @@ typedef struct s_window_procedure_params {
 	LPARAM l_param;
 } t_window_procedure_params;
 
-void NewLuaScript();
+/**
+ * \brief Initializes the lua subsystem
+ */
+void lua_init();
+
+/**
+ * \brief Exits the lua subsystem
+ */
+void lua_exit();
+
+/**
+ * \brief Creates a lua window and runs the specified script
+ * \param path The script's path
+ */
+void lua_create_and_run(const char* path);
+
+/**
+ * \brief Creates a lua window
+ * \return The window's handle
+ */
+HWND lua_create();
+
 void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 
 void ConsoleWrite(HWND wnd, const char* str);
-void LuaOpenAndRun(const char* path);
 void AtUpdateScreenLuaCallback();
 void AtVILuaCallback();
 void AtInputLuaCallback(int n);
@@ -43,11 +65,21 @@ void AtPlayMovieLuaCallback();
 void AtStopMovieLuaCallback();
 void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
-void AtResetCallback();
+void AtResetLuaCallback();
 void LuaTraceLoggingPure();
 void LuaTraceLoggingInterpOps();
 void LuaTraceLogState();
+
+/**
+ * \brief Stops all lua scripts and closes their windows
+ */
 void close_all_scripts();
+
+/**
+ * \brief Stops all lua scripts
+ */
+void stop_all_scripts();
+
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
 static uint32_t bitmap_color_mask = RGB(255, 0, 255);
@@ -128,11 +160,9 @@ public:
 	HWND hwnd;
 	lua_State* L;
 
+
 private:
-	void deleteLuaState();
-	void registerAsPackage(lua_State* L, const char* name,
-						   const luaL_Reg reg[]);
-	void registerFunctions();
+	void register_functions();
 	void setGDIObject(HGDIOBJ* save, HGDIOBJ newobj);
 	void selectGDIObject(HGDIOBJ p);
 	void deleteGDIObject(HGDIOBJ p, int stockobj);
@@ -144,13 +174,26 @@ private:
 	int bkmode;
 };
 
-extern unsigned long lastInputLua[4];
-extern unsigned long rewriteInputLua[4];
-extern bool rewriteInputFlagLua[4];
 extern bool enableTraceLog;
 extern bool traceLogMode;
-extern unsigned long gdiPlusToken;
+
+/**
+ * \brief The controller data at time of the last input poll
+ */
+extern BUTTONS last_controller_data[4];
+
+/**
+ * \brief The modified control data to be pushed the next frame
+ */
+extern BUTTONS new_controller_data[4];
+
+/**
+ * \brief Whether the <c>new_controller_data</c> of a controller should be pushed the next frame
+ */
+extern bool overwrite_controller_data[4];
 
 extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
+
+
 
 #endif

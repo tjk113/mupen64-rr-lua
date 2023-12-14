@@ -28,7 +28,7 @@
 **/
 
 #include "r4300.h"
-#include "interupt.h"
+#include "interrupt.h"
 #include "../memory/memory.h"
 #include "ops.h"
 #include "macros.h"
@@ -44,7 +44,7 @@ void BLTZ()
     if (local_rs < 0 && !skip_jump)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLTZ_OUT()
@@ -59,7 +59,7 @@ void BLTZ_OUT()
     if (!skip_jump && local_rs < 0)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLTZ_IDLE()
@@ -68,7 +68,7 @@ void BLTZ_IDLE()
     if (core_irs < 0)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLTZ();
@@ -87,7 +87,7 @@ void BGEZ()
     if (local_rs >= 0 && !skip_jump)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGEZ_OUT()
@@ -102,7 +102,7 @@ void BGEZ_OUT()
     if (!skip_jump && local_rs >= 0)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGEZ_IDLE()
@@ -111,7 +111,7 @@ void BGEZ_IDLE()
     if (core_irs >= 0)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGEZ();
@@ -134,7 +134,7 @@ void BLTZL()
     else
         PC += 2;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLTZL_OUT()
@@ -153,7 +153,7 @@ void BLTZL_OUT()
     else
         PC += 2;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLTZL_IDLE()
@@ -162,7 +162,7 @@ void BLTZL_IDLE()
     if (core_irs < 0)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLTZL();
@@ -185,7 +185,7 @@ void BGEZL()
     else
         PC += 2;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGEZL_OUT()
@@ -204,7 +204,7 @@ void BGEZL_OUT()
     else
         PC += 2;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGEZL_IDLE()
@@ -213,7 +213,7 @@ void BGEZL_IDLE()
     if (core_irs >= 0)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGEZL();
@@ -237,7 +237,7 @@ void BLTZAL()
     }
     else printf("erreur dans bltzal\n");
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLTZAL_OUT()
@@ -257,7 +257,7 @@ void BLTZAL_OUT()
     }
     else printf("erreur dans bltzal\n");
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLTZAL_IDLE()
@@ -266,7 +266,7 @@ void BLTZAL_IDLE()
     if (core_irs < 0)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLTZAL();
@@ -290,7 +290,7 @@ void BGEZAL()
     }
     else printf("erreur dans bgezal\n");
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGEZAL_OUT()
@@ -310,7 +310,7 @@ void BGEZAL_OUT()
     }
     else printf("erreur dans bgezal\n");
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGEZAL_IDLE()
@@ -319,7 +319,7 @@ void BGEZAL_IDLE()
     if (core_irs >= 0)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGEZAL();
@@ -348,7 +348,7 @@ void BLTZALL()
     }
     else printf("erreur dans bltzall\n");
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLTZALL_OUT()
@@ -373,7 +373,7 @@ void BLTZALL_OUT()
     }
     else printf("erreur dans bltzall\n");
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLTZALL_IDLE()
@@ -382,7 +382,7 @@ void BLTZALL_IDLE()
     if (core_irs < 0)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLTZALL();
@@ -411,7 +411,7 @@ void BGEZALL()
     }
     else printf("erreur dans bgezall\n");
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGEZALL_OUT()
@@ -436,7 +436,7 @@ void BGEZALL_OUT()
     }
     else printf("erreur dans bgezall\n");
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGEZALL_IDLE()
@@ -445,7 +445,7 @@ void BGEZALL_IDLE()
     if (core_irs >= 0)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGEZALL();

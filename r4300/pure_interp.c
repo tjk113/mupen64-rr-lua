@@ -38,13 +38,13 @@
 #include "exception.h"
 #include "../memory/memory.h"
 #include "macros.h"
-#include "interupt.h"
+#include "interrupt.h"
 #include "cop1_helpers.h"
 
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "../../main/win/GameDebugger.h"
+#include "..\main\win\features\CoreDbg.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -122,7 +122,7 @@ static void JR()
     delay_slot = 0;
     interp_addr = local_rs32;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void JALR()
@@ -143,7 +143,7 @@ static void JALR()
         interp_addr = local_rs32;
     }
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void SYSCALL()
@@ -506,7 +506,7 @@ static void BLTZ()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -523,7 +523,7 @@ static void BLTZ()
     if (local_rs < 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BGEZ()
@@ -536,7 +536,7 @@ static void BGEZ()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -553,7 +553,7 @@ static void BGEZ()
     if (local_rs >= 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BLTZL()
@@ -566,7 +566,7 @@ static void BLTZL()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -586,7 +586,7 @@ static void BLTZL()
     }
     else interp_addr += 8;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BGEZL()
@@ -599,7 +599,7 @@ static void BGEZL()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -619,7 +619,7 @@ static void BGEZL()
     }
     else interp_addr += 8;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BLTZAL()
@@ -635,7 +635,7 @@ static void BLTZAL()
                 if (probe_nop(interp_addr + 4))
                 {
                     update_count();
-                    skip = next_interupt - core_Count;
+                    skip = next_interrupt - core_Count;
                     if (skip > 3)
                     {
                         core_Count += (skip & 0xFFFFFFFC);
@@ -654,7 +654,7 @@ static void BLTZAL()
     }
     else printf("erreur dans bltzal\n");
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BGEZAL()
@@ -670,7 +670,7 @@ static void BGEZAL()
                 if (probe_nop(interp_addr + 4))
                 {
                     update_count();
-                    skip = next_interupt - core_Count;
+                    skip = next_interrupt - core_Count;
                     if (skip > 3)
                     {
                         core_Count += (skip & 0xFFFFFFFC);
@@ -689,7 +689,7 @@ static void BGEZAL()
     }
     else printf("erreur dans bgezal\n");
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BLTZALL()
@@ -705,7 +705,7 @@ static void BLTZALL()
                 if (probe_nop(interp_addr + 4))
                 {
                     update_count();
-                    skip = next_interupt - core_Count;
+                    skip = next_interrupt - core_Count;
                     if (skip > 3)
                     {
                         core_Count += (skip & 0xFFFFFFFC);
@@ -727,7 +727,7 @@ static void BLTZALL()
     }
     else printf("erreur dans bltzall\n");
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BGEZALL()
@@ -743,7 +743,7 @@ static void BGEZALL()
                 if (probe_nop(interp_addr + 4))
                 {
                     update_count();
-                    skip = next_interupt - core_Count;
+                    skip = next_interrupt - core_Count;
                     if (skip > 3)
                     {
                         core_Count += (skip & 0xFFFFFFFC);
@@ -765,7 +765,7 @@ static void BGEZALL()
     }
     else printf("erreur dans bgezall\n");
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void (*interp_regimm[32])(void) =
@@ -983,9 +983,9 @@ static void ERET()
         interp_addr = core_EPC;
     }
     llbit = 0;
-    check_interupt();
+    check_interrupt();
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void (*interp_tlb[64])(void) =
@@ -1048,7 +1048,7 @@ static void MTC0()
         break;
     case 9: // Count
         update_count();
-        if (next_interupt <= core_Count) gen_interupt();
+        if (next_interrupt <= core_Count) gen_interrupt();
         debug_count += core_Count;
         translate_event_queue(core_rrt & 0xFFFFFFFF);
         core_Count = core_rrt & 0xFFFFFFFF;
@@ -1060,9 +1060,9 @@ static void MTC0()
     case 11: // Compare
         update_count();
         remove_event(COMPARE_INT);
-        add_interupt_event_count(COMPARE_INT, (unsigned long)core_rrt);
+        add_interrupt_event_count(COMPARE_INT, (unsigned long)core_rrt);
         core_Compare = core_rrt;
-        core_Cause = core_Cause & 0xFFFF7FFF; //Timer interupt is clear
+        core_Cause = core_Cause & 0xFFFF7FFF; //Timer interrupt is clear
         break;
     case 12: // Status
         if ((core_rrt & 0x04000000) != (core_Status & 0x04000000))
@@ -1100,9 +1100,9 @@ static void MTC0()
         }
         core_Status = core_rrt;
         interp_addr += 4;
-        check_interupt();
+        check_interrupt();
         update_count();
-        if (next_interupt <= core_Count) gen_interupt();
+        if (next_interrupt <= core_Count) gen_interrupt();
         interp_addr -= 4;
         break;
     case 13: // Cause
@@ -1165,7 +1165,7 @@ static void BC1F()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -1182,7 +1182,7 @@ static void BC1F()
     if ((FCR31 & 0x800000) == 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BC1T()
@@ -1194,7 +1194,7 @@ static void BC1T()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -1211,7 +1211,7 @@ static void BC1T()
     if ((FCR31 & 0x800000) != 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BC1FL()
@@ -1223,7 +1223,7 @@ static void BC1FL()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -1244,7 +1244,7 @@ static void BC1FL()
     else
         interp_addr += 8;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BC1TL()
@@ -1256,7 +1256,7 @@ static void BC1TL()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -1277,7 +1277,7 @@ static void BC1TL()
     else
         interp_addr += 8;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void (*interp_cop1_bc[4])(void) =
@@ -2209,7 +2209,7 @@ static void REGIMM()
 #define SKIP_IDLE() \
 if (probe_nop(interp_addr+4)) {\
 	update_count();\
-	skip = next_interupt - core_Count; \
+	skip = next_interrupt - core_Count; \
 	if (skip > 3)\
 	{\
 		core_Count += (skip & 0xFFFFFFFC);\
@@ -2232,7 +2232,7 @@ static void J()
     delay_slot = 0;
     interp_addr = naddr;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void JAL()
@@ -2256,7 +2256,7 @@ static void JAL()
         interp_addr = naddr;
     }
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BEQ()
@@ -2277,7 +2277,7 @@ static void BEQ()
     if (local_rs == local_rt && !ignore)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BNE()
@@ -2298,7 +2298,7 @@ static void BNE()
     if (local_rs != local_rt)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BLEZ()
@@ -2318,7 +2318,7 @@ static void BLEZ()
     if (local_rs <= 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BGTZ()
@@ -2338,7 +2338,7 @@ static void BGTZ()
     if (local_rs > 0)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 #undef SKIP_IDLE
@@ -2422,7 +2422,7 @@ static void BEQL()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -2446,7 +2446,7 @@ static void BEQL()
         update_count();
     }
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BNEL()
@@ -2460,7 +2460,7 @@ static void BNEL()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -2484,7 +2484,7 @@ static void BNEL()
         update_count();
     }
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BLEZL()
@@ -2497,7 +2497,7 @@ static void BLEZL()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -2521,7 +2521,7 @@ static void BLEZL()
         update_count();
     }
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void BGTZL()
@@ -2534,7 +2534,7 @@ static void BGTZL()
             if (probe_nop(interp_addr + 4))
             {
                 update_count();
-                skip = next_interupt - core_Count;
+                skip = next_interrupt - core_Count;
                 if (skip > 3)
                 {
                     core_Count += (skip & 0xFFFFFFFC);
@@ -2558,7 +2558,7 @@ static void BGTZL()
         update_count();
     }
     last_addr = interp_addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 static void DADDI()
@@ -3213,10 +3213,11 @@ void pure_interpreter()
 		PC->addr = interp_addr;
 		if (debugger_mode) update_debugger();
 #endif
-#ifdef GAME_DEBUGGER
-        while (!gameDebuggerIsResumed) { Sleep(10); }
-        GameDebuggerOnLateCycle();
-#endif
+        while (!coredbg_resumed)
+        {
+            Sleep(10);
+        }
+        CoreDbg::on_late_cycle(op, interp_addr);
     }
     PC->addr = interp_addr;
 }

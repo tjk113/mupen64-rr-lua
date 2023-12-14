@@ -14,7 +14,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Neutral (Default) resources
+// Neutral (Standard) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
@@ -56,10 +56,10 @@ IDR_MYMENU MENU
 BEGIN
     POPUP "File"
     BEGIN
-        MENUITEM "&Load ROM...\tCtrl O",        IDLOAD
-        MENUITEM "&Close ROM\tCtrl F4",         EMU_STOP, GRAYED
-        MENUITEM "&Reset ROM\tCtrl R",          EMU_RESET, GRAYED
-        MENUITEM "&Refresh ROM List\tCtrl Alt R", REFRESH_ROM_BROWSER
+        MENUITEM "&Load ROM...",                IDLOAD
+        MENUITEM "&Close ROM",                  EMU_STOP, GRAYED
+        MENUITEM "&Reset ROM",                  EMU_RESET, GRAYED
+        MENUITEM "&Refresh ROM List",           REFRESH_ROM_BROWSER
         MENUITEM SEPARATOR
         POPUP "Recent ROMs"
         BEGIN
@@ -67,7 +67,7 @@ BEGIN
             MENUITEM "Freeze",                      ID_RECENTROMS_FREEZE
             MENUITEM SEPARATOR
         END
-        MENUITEM "&Load Latest ROM\tCtrl Shift L", ID_LOAD_LATEST
+        MENUITEM "&Load Latest ROM",            ID_LOAD_LATEST
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt F4",               ID_EMULATOR_EXIT
     END
@@ -78,9 +78,9 @@ BEGIN
         MENUITEM "Take Screenshot",             GENERATE_BITMAP, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "&Save State",                 STATE_SAVE, GRAYED
-        MENUITEM "Save State As...\tCtrl A",    STATE_SAVEAS, GRAYED
+        MENUITEM "Save State As...",            STATE_SAVEAS, GRAYED
         MENUITEM "&Restore State",              STATE_RESTORE, GRAYED
-        MENUITEM "Load State...\tCtrl L",       STATE_LOAD, GRAYED
+        MENUITEM "Load State...",               STATE_LOAD, GRAYED
         MENUITEM SEPARATOR
         POPUP "Current Save S&tate"
         BEGIN
@@ -98,7 +98,7 @@ BEGIN
     END
     POPUP "Options"
     BEGIN
-        MENUITEM "&Full Screen\tAlt Enter",     FULL_SCREEN, GRAYED
+        MENUITEM "&Full Screen",                FULL_SCREEN, GRAYED
         MENUITEM SEPARATOR
         POPUP "Plugin Settings"
         BEGIN
@@ -108,10 +108,10 @@ BEGIN
             MENUITEM "&RSP Settings...",            IDRSPCONFIG
         END
         MENUITEM SEPARATOR
-        MENUITEM "Show &Toolbar\tAlt T",        IDC_GUI_TOOLBAR
-        MENUITEM "Show Status&bar\tAlt S",      IDC_GUI_STATUSBAR
+        MENUITEM "Show &Toolbar",               IDC_GUI_TOOLBAR
+        MENUITEM "Show Status&bar",             IDC_GUI_STATUSBAR
         MENUITEM SEPARATOR
-        MENUITEM "&Settings...\tCtrl S",        ID_LOAD_CONFIG
+        MENUITEM "&Settings...",                ID_LOAD_CONFIG
     END
     POPUP "Movie"
     BEGIN
@@ -147,8 +147,8 @@ BEGIN
     BEGIN
         MENUITEM "Show RAM start...",           ID_RAMSTART
         MENUITEM "Start &Trace Logger...",      ID_TRACELOG
+        MENUITEM "CoreDbg...",                  ID_COREDBG
         MENUITEM "Save Config",                 ID_FORCESAVE
-        MENUITEM "Game Debugger...",            ID_GAMEDEBUGGER
     END
     POPUP "Help"
     BEGIN
@@ -157,7 +157,7 @@ BEGIN
     POPUP "Lua Script"
     BEGIN
         MENUITEM "New Instance...",             ID_MENU_LUASCRIPT_NEW
-        MENUITEM "Load Latest Lua Script...\tCtrl Alt L", ID_LUA_LOAD_LATEST
+        MENUITEM "Load Latest Lua Script...",   ID_LUA_LOAD_LATEST
         MENUITEM SEPARATOR
         POPUP "Recent Scripts"
         BEGIN
@@ -167,17 +167,6 @@ BEGIN
         END
         MENUITEM SEPARATOR
         MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
-    END
-END
-
-ROM_POPUP_MENU MENU
-BEGIN
-    POPUP "POPUP Menu"
-    BEGIN
-        MENUITEM "Play Game\tEnter",            ID_START_ROM
-        MENUITEM "ROM Properties...\tCtrl P",   ID_POPUP_ROM_SETTING
-        MENUITEM SEPARATOR
-        MENUITEM "Refresh\tCtrl Shift R",       REFRESH_ROM_BROWSER
     END
 END
 
@@ -197,7 +186,7 @@ BEGIN
     PUSHBUTTON      "Website",IDC_WEBSITE,134,197,60,14
     GROUPBOX        "About this program",IDC_STATIC,5,65,189,127
     LTEXT           "Author:\r\n     Hacktarux (hacktarux@yahoo.fr)\r\n\nWindows port:\r\n     ShadowPrince (shadow@emulation64.com)\r\n     linker (linker@mail.bg)\r\n\r\nContributors:\r\n     Codex, Falcon4ever, Pir4nhaX, Malcolm,\r\n     Olivieryuyu\r\n\r\nThanks to the many others who helped",IDC_STATIC,13,82,173,104
-    LTEXT           "Mupen 64 1.1.4",IDC_STATIC,70,30,120,12
+    LTEXT           "Mupen 64 1.1.6",IDC_STATIC,70,30,120,12
 END
 
 IDD_ADVANCED_OPTIONS DIALOGEX 0, 0, 231, 273
@@ -225,7 +214,6 @@ IDD_OTHER_OPTIONS_DIALOG DIALOGEX 0, 0, 231, 273
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "Automatic movie backups",IDC_MOVIEBACKUPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,12,132,10
     CONTROL         "No Synchronisation",IDC_AV_NOSYNC,"Button",BS_AUTORADIOBUTTON,18,54,120,8
     CONTROL         "Audio-Authoritative Synchronisation",IDC_AV_AUDIOSYNC,
                     "Button",BS_AUTORADIOBUTTON,18,66,132,8
@@ -322,7 +310,6 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Alerts",IDC_MESSAGES,6,6,216,42
-    CONTROL         "Allow bad ROMs",IDC_ALLOW_SUSPICIOUS_ROMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,18,96,8
     CONTROL         "Alert save errors",IDC_ALERTSAVESTATEWARNINGS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,132,18,84,8
     GROUPBOX        "Flow",IDC_FPSTITLE,6,54,215,54
     CONTROL         "Show FPS",IDC_SHOWFPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,66,78,8
@@ -527,23 +514,17 @@ BEGIN
     CONTROL         "",IDC_ERROR_PICTUREBOX,"Static",SS_OWNERDRAW,6,6,42,36
 END
 
-IDD_GAMEDEBUGGERDIALOG DIALOGEX 0, 0, 311, 98
+IDD_COREDBG DIALOGEX 0, 0, 213, 252
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
 CAPTION "N64 Debugger"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Pause",IDC_DEBUGGER_TOGGLEPAUSE,6,6,54,18
-    PUSHBUTTON      "Advance",IDC_DEBUGGER_STEP,66,6,54,18
-    CTEXT           "Address",IDC_STATIC,126,6,66,18,SS_CENTERIMAGE
-    CTEXT           "Opcode",IDC_STATIC,126,30,66,18,SS_CENTERIMAGE
-    EDITTEXT        IDC_DEBUGGER_PRECOMPADDR,198,6,97,18,ES_AUTOHSCROLL | ES_READONLY
-    EDITTEXT        IDC_DEBUGGER_PRECOMPOP,198,30,96,18,ES_AUTOHSCROLL | ES_READONLY
-    CONTROL         "RSP",IDC_DEBUGGER_RSP_TOGGLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,42,54,8
-    CONTROL         "Cartridge Tilt",IDC_DEBUGGER_DMA_R_TOGGLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,30,72,9
-    CTEXT           "Disassembled",IDC_STATIC,126,54,66,18,SS_CENTERIMAGE
-    EDITTEXT        IDC_DEBUGGER_DISASSEMBLED,198,54,96,18,ES_AUTOHSCROLL | ES_READONLY
-    CONTROL         "Regular interval updates",IDC_DEBUGGER_ALWAYS_UPDATE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,54,96,8
+    PUSHBUTTON      "Pause",IDC_COREDBG_TOGGLEPAUSE,6,6,48,18
+    PUSHBUTTON      "Advance",IDC_COREDBG_STEP,54,6,36,18
+    CONTROL         "RSP",IDC_COREDBG_RSP_TOGGLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,54,54,8
+    CONTROL         "Cartridge Tilt",IDC_COREDBG_CART_TILT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,42,72,8
+    CONTROL         "Always update",IDC_COREDBG_ALWAYS_UPDATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,30,96,8
+    LISTBOX         IDC_COREDBG_LIST,0,72,210,180,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
 END
 
 
@@ -554,15 +535,7 @@ END
 
 IDR_ACCEL ACCELERATORS
 BEGIN
-    "R",            EMU_RESET,              VIRTKEY, CONTROL
-    VK_F4,          EMU_STOP,               VIRTKEY, CONTROL
-    VK_F4,          ID_EMULATOR_EXIT,       VIRTKEY, ALT
-    "O",            IDLOAD,                 VIRTKEY, CONTROL
-    "L",            STATE_LOAD,             VIRTKEY, CONTROL
-    "A",            STATE_SAVEAS,           VIRTKEY, CONTROL
-    VK_RETURN,      FULL_SCREEN,            VIRTKEY, ALT
     VK_RETURN,      ID_START_ROM_ENTER,     VIRTKEY 
-    "S",            ID_LOAD_CONFIG,         VIRTKEY, CONTROL
     "P",            ID_POPUP_ROM_SETTING,   VIRTKEY, CONTROL
     "R",            REFRESH_ROM_BROWSER,    VIRTKEY, CONTROL, ALT
     "T",            IDC_GUI_TOOLBAR,        VIRTKEY, ALT
@@ -664,12 +637,12 @@ BEGIN
     BEGIN
     END
 
-    IDD_GAMEDEBUGGERDIALOG, DIALOG
+    IDD_COREDBG, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 307
+        RIGHTMARGIN, 209
         VERTGUIDE, 57
-        BOTTOMMARGIN, 62
+        BOTTOMMARGIN, 216
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -705,7 +678,7 @@ BEGIN
     0
 END
 
-IDD_GAMEDEBUGGERDIALOG AFX_DIALOG_LAYOUT
+IDD_COREDBG AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -779,12 +752,12 @@ BEGIN
     ID_START_RECORD         "Starts AVI capture with previous codec and preset (avi.cfg)"
 END
 
-#endif    // Neutral (Default) resources
+#endif    // Neutral (Standard) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// Englisch (USA) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -799,7 +772,7 @@ BEGIN
     0
 END
 
-#endif    // English (United States) resources
+#endif    // Englisch (USA) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

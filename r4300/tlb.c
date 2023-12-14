@@ -31,7 +31,7 @@
 #include "r4300.h"
 #include "macros.h"
 #include "recomph.h"
-#include "interupt.h"
+#include "interrupt.h"
 #include "../main/md5.h"
 #include "../memory/memory.h"
 
@@ -460,7 +460,7 @@ void ERET()
         jump_to(core_EPC);
     }
     llbit = 0;
-    check_interupt();
+    check_interrupt();
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }

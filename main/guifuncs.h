@@ -27,12 +27,12 @@
  *
 **/
 
-const char* get_savespath();
+/**
+ * \brief Demands user confirmation for an exit action
+ * \return Whether the action is allowed
+ */
+bool confirm_user_exit();
 
-void new_frame();
-void new_vi();
-
-bool warn_recording();
-void warn_savestate(const char* messageCaption, const char* message);
-void warn_savestate(const char* messageCaption, const char* message,
+void warn_savestate(const char* message_caption, const char* message);
+void warn_savestate(const char* message_caption, const char* message,
                     bool modal); // Overload

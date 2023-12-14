@@ -15,16 +15,14 @@
  ***************************************************************************/
 #include "../../lua/LuaConsole.h"
 
-#include <windows.h>
-#include <stdio.h>
+#include <Windows.h>
+#include <cstdio>
 #include <commctrl.h>
-#include "../guifuncs.h"
 #include "main_win.h"
 #include "Config.hpp"
 #include "../rom.h"
-#include "translation.h"
-#include "../vcr.h"
-#include "../../winproject/resource.h"
+#include "../helpers/win_helpers.h"
+#include "../../memory/pif.h"
 
 //c++!!!
 #include <chrono>
@@ -32,201 +30,199 @@
 
 #include "features/Statusbar.hpp"
 
-#ifdef _DEBUG
-#include <iostream>
-#endif
-
 extern bool ffup;
+extern int m_current_vi;
+extern long m_current_sample;
 
-static float VILimit = 60.0;
-static auto VILimitMilliseconds = std::chrono::duration<double, std::milli>(1000.0 / 60.0);
-float VIs, FPS;
+std::chrono::duration<double, std::milli> max_vi_s_ms;
+float max_vi_s, vis_per_second, fps;
+typedef std::chrono::high_resolution_clock::time_point time_point;
 
-int GetVILimit()
+std::deque<float> fps_values;
+std::deque<float> vi_values;
+
+float add_value(std::deque<float>& vec, const float value,
+                const size_t max_size = 30)
 {
-	if (ROM_HEADER == NULL) return 60;
-	switch (ROM_HEADER->Country_code & 0xFF)
+	if (vec.size() > max_size)
 	{
-	case 0x44:
-	case 0x46:
-	case 0x49:
-	case 0x50:
-	case 0x53:
-	case 0x55:
-	case 0x58:
-	case 0x59:
-		return 50;
-	case 0x37:
-	case 0x41:
-	case 0x45:
-	case 0x4a:
-		return 60;
-	default:
-		return 60;
-	}
-}
-
-void InitTimer()
-{
-	int temp = Config.fps_modifier;
-	VILimit = (float)GetVILimit();
-	VILimitMilliseconds = std::chrono::duration<double, std::milli>(
-		1000.0 / (VILimit * (float)temp / 100));
-	Translate("Speed Limit", TempMessage);
-	sprintf(TempMessage, "%s: %d%%", TempMessage, temp); // TempMessage into itself?
-	statusbar_send_text(std::string(TempMessage));
-}
-
-
-void new_frame()
-{
-	static std::chrono::high_resolution_clock::time_point prevTime;
-	static std::chrono::high_resolution_clock::time_point
-		lastStatusbarUpdateTime = std::chrono::high_resolution_clock::now();
-	static int frameCount = 0;
-	++frameCount;
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	if (currentTime - lastStatusbarUpdateTime > std::chrono::seconds(1))
-	{
-		auto timeTaken = std::chrono::duration<double>(
-			currentTime - lastStatusbarUpdateTime);
-		char mes[100] = {0};
-		sprintf(mes, "FPS: %.1f", frameCount / timeTaken.count());
-		statusbar_send_text(std::string(mes), 2);
-		lastStatusbarUpdateTime = std::chrono::high_resolution_clock::now();
-		frameCount = 0;
+		vec.pop_front();
 	}
 
-	prevTime = currentTime;
-}
+	vec.push_back(value);
 
-void new_frame_old()
-{
-	const DWORD CurrentFPSTime = timeGetTime();
-	static DWORD LastFPSTime;
-	static DWORD CounterTime;
-	static int Fps_Counter = 0;
+	float accumulator = 0.0f;
 
-	if (!Config.show_fps) return;
-	Fps_Counter++;
-
-	if (CurrentFPSTime - CounterTime >= 1000)
+	for (const auto val : vec)
 	{
-		char mes[100] = {0};
-		FPS = (float)(Fps_Counter * 1000.0 / (CurrentFPSTime - CounterTime));
-		sprintf(mes, "FPS: %.1f", FPS);
-		statusbar_send_text(std::string(mes), 2);
-		CounterTime = timeGetTime();
-		Fps_Counter = 0;
+		accumulator += val;
 	}
 
-	LastFPSTime = CurrentFPSTime;
+	return accumulator / vec.size();
 }
 
-extern int m_currentVI;
-extern long m_currentSample;
-
-void new_vi()
+void timer_init()
 {
-	extern int frame_advancing;
+	max_vi_s = (float)get_vis_per_second(ROM_HEADER.Country_code);
+	max_vi_s_ms = std::chrono::duration<double, std::milli>(
+		1000.0 / (max_vi_s * (float)Config.fps_modifier / 100));
+	fps_values = {};
+	vi_values = {};
+	fps = 0;
+	vis_per_second = 0;
+	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
+}
+
+void timer_new_frame_2()
+{
+	static time_point last_frame_time =
+		std::chrono::high_resolution_clock::now();
+	const time_point frame_time = std::chrono::high_resolution_clock::now();
+
+	fps = add_value(fps_values,
+	                1000.0f / ((frame_time - last_frame_time) /
+		                1'000'000.0f).count());
+	last_frame_time = frame_time;
+	is_primary_statusbar_invalidated = true;
+}
+
+void timer_new_frame_1()
+{
+	static time_point last_frame_time =
+		std::chrono::high_resolution_clock::now();
+	const time_point current_frame_time =
+		std::chrono::high_resolution_clock::now();
+
+	if (const auto diff = (current_frame_time - last_frame_time) / 1'000'000.0f;
+		diff.count() > 1)
+	{
+		fps = add_value(fps_values, 1000.0f / diff.count());
+	}
+
+	last_frame_time = current_frame_time;
+	is_primary_statusbar_invalidated = true;
+}
+
+
+void timer_new_vi_2()
+{
+	static time_point last_vi_time = std::chrono::high_resolution_clock::now();
+
+	if (!fast_forward)
+	{
+		float multiplier = (float)Config.fps_modifier / 100.0f;
+		float target_vis = multiplier * (float)get_vis_per_second(
+			ROM_HEADER.Country_code);
+		float target_sleep_time = 1000.0f / target_vis;
+		accurate_sleep(target_sleep_time / 1000.0f);
+	}
+
+	time_point vi_time = std::chrono::high_resolution_clock::now();
+
+	vis_per_second = add_value(vi_values,
+	                           1000.0f / ((vi_time - last_vi_time) /
+		                           1'000'000.0f).count());
+	last_vi_time = vi_time;
+}
+
+void timer_new_vi_1()
+{
+	// time when last vi happened
+	static time_point last_vi_time;
+	static time_point counter_time;
+	static std::chrono::duration<double, std::nano> last_sleep_error;
 
 	// fps wont update when emu is stuck so we must check vi/s
 	// vi/s shouldn't go over 1000 in normal gameplay while holding down fast forward unless you have repeat speed at uzi speed
-	if (!ignoreErrorEmulation && emu_launched && frame_advancing && VIs > 1000)
+	if (!ignoreErrorEmulation && emu_launched && frame_advancing &&
+		vis_per_second > 1000)
 	{
 		int result = 0;
-		TaskDialog(mainHWND, app_hInstance, L"Error",
-			L"Unusual core state", L"An emulator core timing inaccuracy or game crash has been detected. You can choose to continue emulation.", TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
+		TaskDialog(mainHWND, app_instance, L"Error",
+		           L"Unusual core state",
+		           L"An emulator core timing inaccuracy or game crash has been detected. You can choose to continue emulation.",
+		           TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON,
+		           &result);
 
-		if (result == IDCLOSE) {
+		if (result == IDCLOSE)
+		{
 			frame_advancing = false; //don't pause at next open
-			CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, 0);
+			CreateThread(nullptr, 0, close_rom, (LPVOID)1, 0, nullptr);
 		}
 	}
-	typedef std::chrono::high_resolution_clock::time_point timePoint;
-	char mes[100] = {0};
-	static timePoint LastFPSTime{}; //time point when previous VI happened
-	static timePoint CounterTime{};
-	//time point when last statusbar update happened
-	static std::chrono::duration<double, std::nano> lastSleepError{};
-	static unsigned int VI_Counter = 0;
 
-	m_currentVI++;
-	if (VCR_isRecording())
-		VCR_setLengthVIs(m_currentVI/*VCR_getLengthVIs() + 1*/);
+	const auto current_vi_time = std::chrono::high_resolution_clock::now();
 
-	// frame display / frame counter / framecount
-
-
-	VCR_updateFrameCounter();
-	if (VCR_isPlaying())
+	// if we're playing game normally with no frame advance or ff and overstepping max time between frames,
+	// we need to sleep to compensate the additional time
+	if (const auto vi_time_diff = current_vi_time - last_vi_time; !fast_forward
+		&& !frame_advancing && vi_time_diff < max_vi_s_ms)
 	{
-		extern int pauseAtFrame;
-		if (m_currentSample >= pauseAtFrame && pauseAtFrame >= 0)
+		auto sleep_time = max_vi_s_ms - vi_time_diff;
+
+		// if we just released fastforward we dont sleep at all
+		// this fixes an old bug where game would sleep for too long after going out of ff mode
+		if (ffup)
 		{
-			pauseEmu(TRUE); // maybe this is multithreading unsafe?
-			pauseAtFrame = -1; // don't pause again
+			sleep_time = sleep_time.zero();
+			counter_time = std::chrono::high_resolution_clock::now();
+			ffup = false;
+		}
+		if (sleep_time.count() > 0 && sleep_time <
+			std::chrono::milliseconds(700))
+		{
+			// we try to sleep for the overstepped time, but must account for sleeping inaccuracies
+			const auto goal_sleep = max_vi_s_ms - vi_time_diff -
+				last_sleep_error;
+			const auto start_sleep = std::chrono::high_resolution_clock::now();
+			std::this_thread::sleep_for(goal_sleep);
+			const auto end_sleep = std::chrono::high_resolution_clock::now();
+
+			// sleeping inaccuracy is difference between actual time spent sleeping and the goal sleep
+			// this value isnt usually too large
+			last_sleep_error = end_sleep - start_sleep - goal_sleep;
+		} else
+		{
+			// sleep time is unreasonable, log it and reset related state
+			const auto casted = std::chrono::duration_cast<
+				std::chrono::milliseconds>(sleep_time).count();
+			printf("Invalid timer: %lld ms\n", casted);
+			sleep_time = sleep_time.zero();
+			counter_time = std::chrono::high_resolution_clock::now();
+			ffup = false;
 		}
 	}
 
-
-	VI_Counter++;
-
-	auto CurrentFPSTime = std::chrono::high_resolution_clock::now();
-	//nanosecond precosion is kept up to the sleep
-
-	auto Dif = CurrentFPSTime - LastFPSTime;
-	if (manualFPSLimit && !frame_advancing)
+	if (const auto post_sleep_vi_time_diff = (
+			std::chrono::high_resolution_clock::now() - last_vi_time) /
+		1'000'000.0f
+		; post_sleep_vi_time_diff.count() > 1)
 	{
-		if (Dif < VILimitMilliseconds)
-		{
-			auto time = VILimitMilliseconds - Dif;
-			if (ffup)
-			{
-				time = time.zero();
-				CounterTime = std::chrono::high_resolution_clock::now();
-				ffup = false;
-			}
-			if (time.count() > 0 && time < std::chrono::milliseconds(700))
-			//700ms
-			{
-				auto goalSleep = VILimitMilliseconds - Dif - lastSleepError;
-				auto startSleep = std::chrono::high_resolution_clock::now();
-				std::this_thread::sleep_for(goalSleep);
-				auto endSleep = std::chrono::high_resolution_clock::now();
-				lastSleepError = (endSleep - startSleep) - goalSleep;
-#ifdef _DEBUG
-				//auto miliError = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(lastSleepError);
-				//std::cout << "Sleep error:" << miliError << std::endl;
-#endif
-			} else
-			{
-				auto casted = std::chrono::duration_cast<
-					std::chrono::milliseconds>(time).count();
-				printf("Invalid timer: %lld ms\n", casted);
-				//reset values?
-				time = time.zero();
-				CounterTime = std::chrono::high_resolution_clock::now();
-				ffup = false;
-			}
-		}
+		vis_per_second = add_value(vi_values,
+		                           1000.0f / post_sleep_vi_time_diff.count());
 	}
-	if (Config.show_vis_per_second)
+
+	last_vi_time = std::chrono::high_resolution_clock::now();
+}
+
+void timer_new_frame()
+{
+	if (Config.use_new_timer)
 	{
-		if (CurrentFPSTime - CounterTime >= std::chrono::seconds(1))
-		{
-			//count is in nanoseconds, but statusbar in seconds
-			VIs = (float)((double)VI_Counter / std::chrono::duration<double>(
-				CurrentFPSTime - CounterTime).count());
-			//std::cout << VI_Counter << " in " << std::chrono::duration<double>(CurrentFPSTime - CounterTime) << std::endl;
-			if (VIs > 1) //if after fast forwarding pretend statusbar lagged idk
-			{
-				sprintf(mes, "VI/s: %.1f", VIs);
-				statusbar_send_text(std::string(mes), Config.show_fps ? 3 : 2);
-			}
-			CounterTime = std::chrono::high_resolution_clock::now();
-			VI_Counter = 0;
-		}
+		timer_new_frame_2();
+	} else
+	{
+		timer_new_frame_1();
 	}
-	LastFPSTime = std::chrono::high_resolution_clock::now();
+}
+
+void timer_new_vi()
+{
+	if (Config.use_new_timer)
+	{
+		timer_new_vi_2();
+	} else
+	{
+		timer_new_vi_1();
+	}
 }

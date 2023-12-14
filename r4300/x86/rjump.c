@@ -35,7 +35,7 @@
 #include "../ops.h"
 #include "../recomph.h"
 #include <csetjmp>
-#include "../main/win/GameDebugger.h"
+#include "..\..\main\win\features\CoreDbg.h"
 
 // NOTE: dynarec isn't compatible with the game debugger
 

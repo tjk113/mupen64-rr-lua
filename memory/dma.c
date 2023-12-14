@@ -32,7 +32,7 @@
 #include "../main/rom.h"
 #include <stdio.h>
 #include "../r4300/r4300.h"
-#include "../r4300/interupt.h"
+#include "../r4300/interrupt.h"
 #include "../r4300/macros.h"
 #include <malloc.h>
 #include "pif.h"
@@ -40,7 +40,7 @@
 #include "summercart.h"
 #include "../main/guifuncs.h"
 #include "../r4300/ops.h"
-#include "../main/win/GameDebugger.h"
+#include "..\main\win\features\CoreDbg.h"
 #include "savestates.h"
 
 unsigned char sram[0x8000];
@@ -55,14 +55,8 @@ void dma_pi_read()
     {
         if (use_flashram != 1)
         {
-            char* filename;
-            FILE* f;
-            filename = (char*)malloc(strlen(get_savespath()) +
-                strlen(ROM_SETTINGS.goodname) + 4 + 1);
-            strcpy(filename, get_savespath());
-            strcat(filename, ROM_SETTINGS.goodname);
-            strcat(filename, ".sra");
-            f = fopen(filename, "rb");
+            auto filename = get_sram_path();
+            FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)
             {
                 fread(sram, 1, 0x8000, f);
@@ -72,10 +66,9 @@ void dma_pi_read()
             for (i = 0; i < (pi_register.pi_rd_len_reg & 0xFFFFFF) + 1; i++)
                 sram[((pi_register.pi_cart_addr_reg - 0x08000000) + i) ^ S8] = ((unsigned char*)rdram)[(pi_register.
                     pi_dram_addr_reg + i) ^ S8];
-            f = fopen(filename, "wb");
+            f = fopen(filename.string().c_str(), "wb");
             fwrite(sram, 1, 0x8000, f);
             fclose(f);
-            free(filename);
             use_flashram = -1;
         }
         else
@@ -109,7 +102,7 @@ void dma_pi_read()
         }
         pi_register.read_pi_status_reg |= 1;
         update_count();
-        add_interupt_event(PI_INT, longueur / 8);
+        add_interrupt_event(PI_INT, longueur / 8);
         return;
     }
     else
@@ -117,7 +110,7 @@ void dma_pi_read()
 
     pi_register.read_pi_status_reg |= 1;
     update_count();
-    add_interupt_event(PI_INT, 0x1000/*pi_register.pi_rd_len_reg*/);
+    add_interrupt_event(PI_INT, 0x1000/*pi_register.pi_rd_len_reg*/);
 }
 
 void dma_pi_write()
@@ -132,22 +125,14 @@ void dma_pi_write()
         {
             if (use_flashram != 1)
             {
-                char* filename;
-                FILE* f;
-                int i;
-                filename = (char*)malloc(strlen(get_savespath()) +
-                    strlen(ROM_SETTINGS.goodname) + 4 + 1);
-                strcpy(filename, get_savespath());
-                strcat(filename, ROM_SETTINGS.goodname);
-                strcat(filename, ".sra");
-                f = fopen(filename, "rb");
+                auto filename = get_sram_path();
+                FILE* f = fopen(filename.string().c_str(), "rb");
                 if (f)
                 {
                     fread(sram, 1, 0x8000, f);
                     fclose(f);
                 }
                 else for (i = 0; i < 0x8000; i++) sram[i] = 0x0;
-                free(filename);
                 for (i = 0; i < (pi_register.pi_wr_len_reg & 0xFFFFFF) + 1; i++)
                     ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
                         sram[(((pi_register.pi_cart_addr_reg - 0x08000000) & 0xFFFF) + i) ^ S8];
@@ -165,7 +150,7 @@ void dma_pi_write()
 
         pi_register.read_pi_status_reg |= 1;
         update_count();
-        add_interupt_event(PI_INT, /*pi_register.pi_wr_len_reg*/0x1000);
+        add_interrupt_event(PI_INT, /*pi_register.pi_wr_len_reg*/0x1000);
 
         return;
     }
@@ -184,7 +169,7 @@ void dma_pi_write()
         }
         pi_register.read_pi_status_reg |= 1;
         update_count();
-        add_interupt_event(PI_INT, longueur / 8);
+        add_interrupt_event(PI_INT, longueur / 8);
         return;
     }
 
@@ -192,21 +177,21 @@ void dma_pi_write()
     {
         pi_register.read_pi_status_reg |= 1;
         update_count();
-        add_interupt_event(PI_INT, 0x1000);
+        add_interrupt_event(PI_INT, 0x1000);
         return;
     }
 
     i = (pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF;
-    longueur = (i + longueur) > romByteCount ? (romByteCount - i) : longueur;
+    longueur = (i + longueur) > rom_size ? (rom_size - i) : longueur;
     longueur = (pi_register.pi_dram_addr_reg + longueur) > 0x7FFFFF
                    ? (0x7FFFFF - pi_register.pi_dram_addr_reg)
                    : longueur;
 
-    if (i > romByteCount || pi_register.pi_dram_addr_reg > 0x7FFFFF)
+    if (i > rom_size || pi_register.pi_dram_addr_reg > 0x7FFFFF)
     {
         pi_register.read_pi_status_reg |= 3;
         update_count();
-        add_interupt_event(PI_INT, longueur / 8);
+        add_interrupt_event(PI_INT, longueur / 8);
         return;
     }
 
@@ -218,7 +203,7 @@ void dma_pi_write()
             unsigned long rdram_address2 = pi_register.pi_dram_addr_reg + i + 0xa0000000;
 
             ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-                !gameDebuggerIsDmaReadEnabled
+                !dma_read_enabled
                     ? (255)
                     : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
 
@@ -236,7 +221,7 @@ void dma_pi_write()
         for (i = 0; i < longueur; i++)
         {
             ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-                !gameDebuggerIsDmaReadEnabled
+                !dma_read_enabled
                     ? (255)
                     : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
         }
@@ -263,7 +248,7 @@ void dma_pi_write()
 
     pi_register.read_pi_status_reg |= 3;
     update_count();
-    add_interupt_event(PI_INT, longueur / 8);
+    add_interrupt_event(PI_INT, longueur / 8);
     return;
 }
 
@@ -313,7 +298,7 @@ void dma_si_write()
         PIF_RAM[i] = sl(rdram[si_register.si_dram_addr / 4 + i]);
     update_pif_write();
     update_count();
-    add_interupt_event(SI_INT, /*0x100*/0x900);
+    add_interrupt_event(SI_INT, /*0x100*/0x900);
 }
 
 void dma_si_read()
@@ -327,10 +312,10 @@ void dma_si_read()
     update_pif_read(true);
     for (i = 0; i < (64 / 4); i++)
         rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
-    if (!st_skip_dma) //st already did this, see savestates.c, we still copy pif ram tho because it has new inputs
+    if (!st_skip_dma) //st already did this, see savestates.cpp, we still copy pif ram tho because it has new inputs
     {
         update_count();
-        add_interupt_event(SI_INT, /*0x100*/0x900);
+        add_interrupt_event(SI_INT, /*0x100*/0x900);
     }
     st_skip_dma = false;
 }

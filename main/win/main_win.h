@@ -19,49 +19,66 @@
 #include <Windows.h>
 #include <string>
 #include <functional>
-#define MUPEN_VERSION "Mupen 64 1.1.5"
+#define MUPEN_VERSION "Mupen 64 1.1.6"
 
+#define WM_EXECUTE_DISPATCHER (WM_USER + 10)
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
-extern void ShowMessage(const char* lpszMessage);
-extern char* getExtension(char* str);
 
-/********* Global Variables **********/
 extern char TempMessage[MAX_PATH];
+extern char rom_path[MAX_PATH];
+
+// TODO: use state enum
 extern int emu_launched; // emu_emulating
 extern int emu_paused;
+
+// TODO: remove
 extern int recording;
+
 extern HWND mainHWND;
-extern HINSTANCE app_hInstance;
-extern BOOL manualFPSLimit;
+extern HINSTANCE app_instance;
+
+// TODO: rename
+extern BOOL fast_forward;
 extern char statusmsg[800];
 
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
+extern DWORD emu_id;
+extern DWORD start_rom_id;
+extern DWORD close_rom_id;
 
 void main_dispatcher_invoke(const std::function<void()>& func);
 extern std::string app_path;
-extern void EnableEmulationMenuItems(BOOL flag);
+extern void enable_emulation_menu_items(BOOL flag);
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
 extern void resetEmu();
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
 extern void OpenMoviePlaybackDialog();
 extern void OpenMovieRecordDialog();
-extern void LoadConfigExternals();
+/**
+ * \brief Starts the rom from the path contained in <c>rom_path</c>
+ */
 DWORD WINAPI start_rom(LPVOID lpParam);
 DWORD WINAPI close_rom(LPVOID lpParam);
 
-extern BOOL forceIgnoreRSP;
 extern BOOL continue_vcr_on_restart_mode;
 extern BOOL ignoreErrorEmulation;
-
-void exit_emu(int postquit);
-
+extern int frame_count;
+extern long long total_vi;
 void main_recent_roms_build(int32_t reset = 0);
 void main_recent_roms_add(const std::string& path);
 int32_t main_recent_roms_run(uint16_t menu_item_id);
 
-#define IGNORE_RSP (((!manualFPSLimit) && !VCR_isCapturing() && (!Config.frame_skip_frequency || (frame++ % Config.frame_skip_frequency)))) //if frame advancing and either skipfreq is 0 or modulo is 0
+/**
+ * \brief Whether the statusbar needs to be updated with new input information
+ */
+extern bool is_primary_statusbar_invalidated;
 
-void reset_titlebar();
+bool is_frame_skipped();
+
+/**
+ * \brief Updates the titlebar to reflect the current application state
+ */
+void update_titlebar();

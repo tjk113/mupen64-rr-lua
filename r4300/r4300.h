@@ -57,7 +57,7 @@ extern unsigned long delay_slot, skip_jump, dyna_interp;
 extern unsigned long long int debug_count;
 extern unsigned long dynacore;
 extern unsigned long interpcore;
-extern unsigned int next_interupt, CIC_Chip;
+extern unsigned int next_interrupt, CIC_Chip;
 extern int rounding_mode, trunc_mode, round_mode, ceil_mode, floor_mode;
 extern short x87_status_word;
 extern unsigned long last_addr, interp_addr;

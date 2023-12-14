@@ -6,30 +6,29 @@
 #include "Config.hpp"
 
 
-int CrashHelper::FindModuleName(char* error, void* addr, int len)
+int crash_helper::find_module_name(char* error, void* addr, const int len)
 {
-	HMODULE hMods[1024];
-	HANDLE hProcess = GetCurrentProcess();
-	DWORD cbNeeded;
+	const HANDLE h_process = GetCurrentProcess();
+	DWORD cb_needed;
 	printf("addr: %p\n", addr);
-	if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
+	if (HMODULE h_mods[1024]; EnumProcessModules(h_process, h_mods, sizeof(h_mods), &cb_needed))
 	{
-		HMODULE maxbase = 0;
-		for (int i = 0; i < (int)(cbNeeded / sizeof(HMODULE)); i++)
+		HMODULE maxbase = nullptr;
+		for (int i = 0; i < (int)(cb_needed / sizeof(HMODULE)); i++)
 		{
 			//find closest addr
-			if (hMods[i] > maxbase && hMods[i] < addr)
+			if (h_mods[i] > maxbase && h_mods[i] < addr)
 			{
-				maxbase = hMods[i];
+				maxbase = h_mods[i];
 				char modname[MAX_PATH];
-				GetModuleBaseName(hProcess, maxbase, modname,
+				GetModuleBaseName(h_process, maxbase, modname,
 				                  sizeof(modname) / sizeof(char));
 				printf("%s: %p\n", modname, (void*)maxbase);
 			}
 		}
 		// Get the full path to the module's file.
 		char modname[MAX_PATH];
-		if (GetModuleBaseName(hProcess, maxbase, modname,
+		if (GetModuleBaseName(h_process, maxbase, modname,
 		                      sizeof(modname) / sizeof(char)))
 			// write the address with module
 			return sprintf(error + len, "Addr:0x%p (%s 0x%p)\n", addr, modname,
@@ -38,83 +37,82 @@ int CrashHelper::FindModuleName(char* error, void* addr, int len)
 	return 0; //what
 }
 
-void CrashHelper::GetExceptionCodeFriendlyName(
-	_EXCEPTION_POINTERS* exceptionPointersPtr, char* exceptionCodeStringPtr)
+void crash_helper::get_exception_code_friendly_name(
+	const _EXCEPTION_POINTERS* exception_pointers_ptr, char* exception_code_string_ptr)
 {
-	switch (exceptionPointersPtr->ExceptionRecord->ExceptionCode)
+	switch (exception_pointers_ptr->ExceptionRecord->ExceptionCode)
 	{
 	case EXCEPTION_ACCESS_VIOLATION:
-		strcpy(exceptionCodeStringPtr, "Access violation");
+		strcpy(exception_code_string_ptr, "Access violation");
 		break;
 	case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-		strcpy(exceptionCodeStringPtr,
+		strcpy(exception_code_string_ptr,
 		       "Attempted to access out-of-bounds array index");
 		break;
 	case EXCEPTION_FLT_DENORMAL_OPERAND:
-		strcpy(exceptionCodeStringPtr,
+		strcpy(exception_code_string_ptr,
 		       "An operand in floating point operation was denormal");
 		break;
 	case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-		strcpy(exceptionCodeStringPtr, "Float division by zero");
+		strcpy(exception_code_string_ptr, "Float division by zero");
 		break;
 	case EXCEPTION_STACK_OVERFLOW:
-		strcpy(exceptionCodeStringPtr, "Stack overflow");
+		strcpy(exception_code_string_ptr, "Stack overflow");
 		break;
 	default:
-		sprintf(exceptionCodeStringPtr, "%d",
-		        (int)exceptionPointersPtr->ExceptionRecord->ExceptionCode);
+		sprintf(exception_code_string_ptr, "%d",
+		        (int)exception_pointers_ptr->ExceptionRecord->ExceptionCode);
 		break;
 	}
 }
 
 
-void CrashHelper::GenerateLog(_EXCEPTION_POINTERS* exceptionPointersPtr,
-                              char* logPtr)
+void crash_helper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr,
+                               char* log_ptr)
 {
 	int len = 0;
 
-	if (exceptionPointersPtr != nullptr)
+	if (exception_pointers_ptr != nullptr)
 	{
-		void* addr = exceptionPointersPtr->ExceptionRecord->ExceptionAddress;
-		len += FindModuleName(logPtr, addr, len); //appends to error as well
+		void* addr = exception_pointers_ptr->ExceptionRecord->ExceptionAddress;
+		len += find_module_name(log_ptr, addr, len); //appends to error as well
 
 		//emu info
 #ifdef _DEBUG
-		len += sprintf(logPtr + len, "Version:" MUPEN_VERSION " DEBUG\n");
+		len += sprintf(log_ptr + len, "Version:" MUPEN_VERSION " DEBUG\n");
 #else
-		len += sprintf(logPtr + len, "Version:" MUPEN_VERSION "\n");
+		len += sprintf(log_ptr + len, "Version:" MUPEN_VERSION "\n");
 #endif
-		char exceptionCodeFriendly[1024] = {0};
-		GetExceptionCodeFriendlyName(exceptionPointersPtr,
-		                             exceptionCodeFriendly);
-		len += sprintf(logPtr + len, "Exception code: %s (0x%08x)\n",
-		               exceptionCodeFriendly,
-		               (int)exceptionPointersPtr->ExceptionRecord->
+		char exception_code_friendly[1024]{};
+		get_exception_code_friendly_name(exception_pointers_ptr,
+		                             exception_code_friendly);
+		len += sprintf(log_ptr + len, "Exception code: %s (0x%08x)\n",
+		               exception_code_friendly,
+		               (int)exception_pointers_ptr->ExceptionRecord->
 		                                          ExceptionCode);
 	} else
 	{
 		//emu info
 #ifdef _DEBUG
-		len += sprintf(logPtr + len, "Version:" MUPEN_VERSION " DEBUG\n");
+		len += sprintf(log_ptr + len, "Version:" MUPEN_VERSION " DEBUG\n");
 #else
-		len += sprintf(logPtr + len, "Version:" MUPEN_VERSION "\n");
+		len += sprintf(log_ptr + len, "Version:" MUPEN_VERSION "\n");
 #endif
-		len += sprintf(logPtr + len,
+		len += sprintf(log_ptr + len,
 		               "Exception code: unknown (no exception thrown, was crash log called manually?)\n");
 	}
-	len += sprintf(logPtr + len, "Gfx:%s\n",
-	               Config.selected_video_plugin_name.c_str());
-	len += sprintf(logPtr + len, "Input:%s\n",
-	               Config.selected_input_plugin_name.c_str());
-	len += sprintf(logPtr + len, "Audio:%s\n",
-	               Config.selected_audio_plugin_name.c_str());
-	len += sprintf(logPtr + len, "rsp:%s\n",
-	               Config.selected_rsp_plugin_name.c_str());
-	extern int m_task;
+	len += sprintf(log_ptr + len, "Gfx:%s\n",
+	               Config.selected_video_plugin.c_str());
+	len += sprintf(log_ptr + len, "Input:%s\n",
+	               Config.selected_input_plugin.c_str());
+	len += sprintf(log_ptr + len, "Audio:%s\n",
+	               Config.selected_audio_plugin.c_str());
+	len += sprintf(log_ptr + len, "rsp:%s\n",
+	               Config.selected_rsp_plugin.c_str());
 	//some flags
-	len += sprintf(logPtr + len, "m_task:%d\n", m_task);
-	len += sprintf(logPtr + len, "emu_launched:%d\n", emu_launched);
-	len += sprintf(logPtr + len, "is_capturing_avi:%d\n", VCR_isCapturing());
+	len += sprintf(log_ptr + len, "m_task:%d\n", m_task);
+	len += sprintf(log_ptr + len, "emu_launched:%d\n", emu_launched);
+	len += sprintf(log_ptr + len, "is_capturing_avi:%d\n", vcr_is_capturing());
 
-	strcpy(logPtr, logPtr); // ????
+	strcpy(log_ptr, log_ptr); // ????
 }

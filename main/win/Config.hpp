@@ -15,12 +15,13 @@ typedef struct t_hotkey
 	int32_t command;
 } t_hotkey;
 
+#pragma pack(push, 1)
 typedef struct _CONFIG
 {
 #pragma region Hotkeys
 	t_hotkey fast_forward_hotkey;
-	t_hotkey speed_up_hotkey;
 	t_hotkey speed_down_hotkey;
+	t_hotkey speed_up_hotkey;
 	t_hotkey frame_advance_hotkey;
 	t_hotkey pause_hotkey;
 	t_hotkey toggle_read_only_hotkey;
@@ -33,6 +34,13 @@ typedef struct _CONFIG
 	t_hotkey load_from_current_slot_hotkey;
 	t_hotkey restart_movie_hotkey;
 	t_hotkey play_latest_movie_hotkey;
+	t_hotkey load_rom_hotkey;
+	t_hotkey close_rom_hotkey;
+	t_hotkey reset_rom_hotkey;
+	t_hotkey fullscreen_hotkey;
+	t_hotkey settings_hotkey;
+	t_hotkey save_current_hotkey;
+	t_hotkey load_current_hotkey;
 	t_hotkey save_to_slot_1_hotkey;
 	t_hotkey save_to_slot_2_hotkey;
 	t_hotkey save_to_slot_3_hotkey;
@@ -81,11 +89,6 @@ typedef struct _CONFIG
 	/// TODO: fix disabling this breaking emulation
 	/// </summary>
 	int32_t show_vis_per_second;
-
-	/// <summary>
-	/// Whether large or presumably hacked roms will not be loaded
-	/// </summary>
-	int32_t allow_suspicious_rom_loading;
 
 	/// <summary>
 	/// Whether the user will be notified of savestate errors
@@ -212,16 +215,6 @@ typedef struct _CONFIG
 	int32_t is_recent_movie_paths_frozen;
 
 	/// <summary>
-	/// The rom browser column index to sort by
-	/// </summary>
-	int32_t rombrowser_sorted_column;
-
-	/// <summary>
-	/// The method to sort <see cref="rombrowser_sorted_column"/> by
-	/// </summary>
-	std::string rombrowser_sort_method;
-
-	/// <summary>
 	/// Whether the rom browser will recursively search for roms beginning in the specified directories
 	/// </summary>
 	int32_t is_rombrowser_recursion_enabled;
@@ -321,24 +314,24 @@ typedef struct _CONFIG
 	int32_t is_lua_double_buffered;
 
 	/// <summary>
-	/// The name of the currently selected video plugin
+	/// The path of the currently selected video plugin
 	/// </summary>
-	std::string selected_video_plugin_name;
+	std::string selected_video_plugin;
 
 	/// <summary>
-	/// The name of the currently selected audio plugin
+	/// The path of the currently selected audio plugin
 	/// </summary>
-	std::string selected_audio_plugin_name;
+	std::string selected_audio_plugin;
 
 	/// <summary>
-	/// The name of the currently selected input plugin
+	/// The path of the currently selected input plugin
 	/// </summary>
-	std::string selected_input_plugin_name;
+	std::string selected_input_plugin;
 
 	/// <summary>
-	/// The name of the currently selected RSP plugin
+	/// The path of the currently selected RSP plugin
 	/// </summary>
-	std::string selected_rsp_plugin_name;
+	std::string selected_rsp_plugin;
 
 	/// <summary>
 	/// The last known value of the record movie dialog's "start type" field
@@ -376,19 +369,45 @@ typedef struct _CONFIG
 	std::vector<std::int32_t> rombrowser_column_widths;
 
 	/// <summary>
+	/// The index of the currently sorted column, or -1 if none is sorted
+	/// </summary>
+	int32_t rombrowser_sorted_column;
+
+	/// <summary>
+	/// Whether the selected column is sorted in an ascending order
+	/// </summary>
+	int32_t rombrowser_sort_ascending;
+
+	/// <summary>
 	/// A map of persistent path dialog IDs and the respective value
 	/// </summary>
 	std::map<std::string, std::wstring> persistent_folder_paths;
 
+	/// <summary>
+	/// Whether the new timer code will be used
+	/// </summary>
+	int32_t use_new_timer;
 } CONFIG;
+#pragma pack(pop)
 
 extern "C" CONFIG Config;
 extern std::vector<t_hotkey*> hotkeys;
-extern const CONFIG default_config;
 
-CONFIG get_default_config();
+/**
+ * \brief Gets the string representation of a hotkey
+ * \param hotkey The hotkey to convert
+ * \return The hotkey as a string
+ */
 std::string hotkey_to_string(t_hotkey* hotkey);
+
+/**
+ * \brief Saves the current config state to the config file
+ */
 void save_config();
+
+/**
+ * \brief Restores the config state from the config file
+ */
 void load_config();
 
 /// <summary>

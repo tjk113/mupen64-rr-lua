@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <locale>
+#include <vector>
 
 inline static char* stristr(const char* str1, const char* str2)
 {
@@ -93,11 +94,11 @@ inline static std::wstring string_to_wstring(const std::string &str)
 }
 
 static std::string wstring_to_string(const std::wstring& wstr) {
-	const int utf8Length = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-	std::string utf8String(utf8Length, '\0');
-
-	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, utf8String.data(), utf8Length, nullptr, nullptr);
-	return utf8String;
+	std::string str(wstr.length(), 0);
+	std::transform(wstr.begin(), wstr.end(), str.begin(), [] (wchar_t c) {
+		return (char)c;
+	});
+	return str;
 }
 
 // https://stackoverflow.com/a/46931770/14472122

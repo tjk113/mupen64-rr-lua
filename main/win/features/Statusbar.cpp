@@ -10,7 +10,7 @@
 
 HWND statusbar_hwnd;
 
-void statusbar_send_text(std::string text, int32_t section)
+void statusbar_post_text(const std::string& text, int32_t section)
 {
 	SendMessage(statusbar_hwnd, SB_SETTEXT, section, (LPARAM)text.c_str());
 }
@@ -70,19 +70,20 @@ void statusbar_set_mode(const statusbar_mode mode)
 		}
 
 		SendMessage(statusbar_hwnd, SB_SETTEXT, 0, (LPARAM)statusmsg);
-		sprintf(TempMessage, "%s", ROM_SETTINGS.goodname);
-		SendMessage(statusbar_hwnd, SB_SETTEXT, parts - 1, (LPARAM)TempMessage);
+		SendMessage(statusbar_hwnd, SB_SETTEXT, parts - 1, (LPARAM)ROM_HEADER.nom);
 		break;
 	}
 }
+
 void statusbar_create()
 {
+	// undocumented behaviour of CCS_BOTTOM: it skips applying SBARS_SIZEGRIP in style pre-computation phase
 	statusbar_hwnd = CreateWindowEx(0, STATUSCLASSNAME, nullptr,
-									WS_CHILD | WS_VISIBLE /*| SBARS_SIZEGRIP*/,
+									WS_CHILD | WS_VISIBLE | CCS_BOTTOM,
 									0, 0,
 									0, 0,
 									mainHWND, (HMENU)IDC_MAIN_STATUS,
-									app_hInstance, nullptr);
+									app_instance, nullptr);
 
 	statusbar_set_mode(emu_launched ? statusbar_mode::emulating : statusbar_mode::rombrowser);
 }

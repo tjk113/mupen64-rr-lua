@@ -290,7 +290,7 @@ void gensdl();
 void gensdr();
 void genlink_subblock();
 void gendelayslot();
-void gencheck_interupt_reg();
+void gencheck_interrupt_reg();
 void gentest();
 void gentest_out();
 void gentest_idle();

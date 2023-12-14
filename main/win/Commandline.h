@@ -1,5 +1,5 @@
 /***************************************************************************
-						  RomSettings.h  -  description
+						  commandline.h  -  description
 							 -------------------
 	copyright            : (C) 2003 by ShadowPrince
 	email                : shadow@emulation64.com
@@ -13,17 +13,42 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifndef COMMANDLINE_H
+#define COMMANDLINE_H
 
-typedef struct _DEFAULT_ROM_SETTINGS
-{
-	unsigned char Version;
-	char GfxPluginName[100];
-	char InputPluginName[100];
-	char SoundPluginName[100];
-	char RspPluginName[100];
-} DEFAULT_ROM_SETTINGS;
+/**
+ * \brief Sets and readies state from commandline arguments
+ */
+void commandline_set();
 
-char* trim(char* str);
-DEFAULT_ROM_SETTINGS GetDefaultRomSettings(char* Section);
-void saveDefaultRomSettings(char* Section,
-                            DEFAULT_ROM_SETTINGS DefaultRomSettings);
+/**
+ * \brief Load the commandline-specified rom
+ */
+void commandline_start_rom();
+
+/**
+ * \brief Load the commandline-specified lua
+ */
+void commandline_start_lua();
+
+/**
+ * \brief Load the commandline-specified savestate
+ */
+void commandline_load_st();
+
+/**
+ * \brief Load the commandline-specified movie
+ */
+void commandline_start_movie();
+
+/**
+ * \brief Start the commandline-specified AVI capture
+ */
+void commandline_start_capture();
+
+/**
+ * \brief Notify commandline of movie playback stopping
+ */
+void commandline_on_movie_playback_stop();
+
+#endif

@@ -2,21 +2,53 @@
 #include <winuser.h>
 #include <cstdio>
 #include "features/RomBrowser.hpp"
-#include "commandline.h"
+#include "Commandline.h"
 #include "../../winproject/resource.h"
 #include "Config.hpp"
 #include "main_win.h"
 #include "../../lua/Recent.h"
 #include "../vcr.h"
-#include "translation.h"
 #include "../lib/ini.h"
-#include "translation.h"
 #include <helpers/string_helpers.h>
 
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
+const auto first_offset = offsetof(CONFIG, fast_forward_hotkey);
+const auto last_offset = offsetof(CONFIG, select_slot_10_hotkey);
 
-// TODO: use std::string
+void set_menu_accelerator(const HMENU h_menu, int element_id, const char* acc)
+{
+	char string[256] = {0};
+	GetMenuString(h_menu, element_id, string, std::size(string), MF_BYPOSITION);
+
+	MENUITEMINFO menuinfo;
+
+	// make sure there is tab character (accelerator marker)
+	char* tab = strrchr(string, '\t');
+	if (tab)
+		*tab = '\0';
+	if (strcmp(acc, ""))
+		sprintf(string, "%s\t%s", string, acc);
+
+	memset(&menuinfo, 0, sizeof(MENUITEMINFO));
+	menuinfo.cbSize = sizeof(MENUITEMINFO);
+	menuinfo.fMask = MIIM_TYPE;
+	menuinfo.fType = MFT_STRING;
+	menuinfo.dwTypeData = string;
+	menuinfo.cch = sizeof(string);
+	SetMenuItemInfo(h_menu, element_id, TRUE, &menuinfo);
+}
+
+void set_hotkey_menu_accelerators(t_hotkey* hotkey, const HMENU hmenu, int menu_item_id)
+{
+	if (!hmenu || menu_item_id < 0)
+		return;
+
+	const std::string hotkey_str = hotkey_to_string(hotkey);
+	set_menu_accelerator(hmenu, menu_item_id, hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+}
+
+
 std::string hotkey_to_string(t_hotkey* hotkey)
 {
 	char buf[260] = {0};
@@ -146,15 +178,6 @@ CONFIG get_default_config()
 		.command = 0,
 	};
 
-	config.speed_up_hotkey = {
-		.identifier = "Speed up",
-		.key = VK_OEM_PLUS,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
-		.command = IDC_INCREASE_MODIFIER,
-	};
-
 	config.speed_down_hotkey = {
 		.identifier = "Speed down",
 		.key = VK_OEM_MINUS,
@@ -162,6 +185,15 @@ CONFIG get_default_config()
 		.shift = 0,
 		.alt = 0,
 		.command = IDC_DECREASE_MODIFIER,
+	};
+
+	config.speed_up_hotkey = {
+		.identifier = "Speed up",
+		.key = VK_OEM_PLUS,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 0,
+		.command = IDC_INCREASE_MODIFIER,
 	};
 
 	config.frame_advance_hotkey = {
@@ -184,9 +216,9 @@ CONFIG get_default_config()
 
 	config.toggle_read_only_hotkey = {
 		.identifier = "Toggle read-only",
-		.key = 0x38 /* 8 */,
-		.ctrl = 1,
-		.shift = 0,
+		.key = 0x52 /* R */,
+		.ctrl = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = EMU_VCRTOGGLEREADONLY,
 	};
@@ -195,16 +227,16 @@ CONFIG get_default_config()
 		.identifier = "Start movie playback",
 		.key = 0x50 /* P */,
 		.ctrl = 1,
-		.shift = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = ID_START_PLAYBACK,
 	};
 
 	config.stop_movie_playback_hotkey = {
 		.identifier = "Stop movie playback",
-		.key = 0x53 /* S */,
+		.key = 0x58 /* X */,
 		.ctrl = 1,
-		.shift = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = ID_STOP_PLAYBACK,
 	};
@@ -213,16 +245,16 @@ CONFIG get_default_config()
 		.identifier = "Start movie recording",
 		.key = 0x52 /* R */,
 		.ctrl = 1,
-		.shift = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = ID_START_RECORD,
 	};
 
 	config.stop_movie_recording_hotkey = {
 		.identifier = "Stop movie recording",
-		.key = 0x53 /* S */,
+		.key = 0x43 /* C */,
 		.ctrl = 1,
-		.shift = 0,
+		.shift = 1,
 		.alt = 0,
 		.command = ID_STOP_RECORD,
 	};
@@ -256,7 +288,7 @@ CONFIG get_default_config()
 
 	config.restart_movie_hotkey = {
 		.identifier = "Restart playing movie",
-		.key = 0x52 /* R */,
+		.key = 0x54 /* T */,
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
@@ -265,11 +297,74 @@ CONFIG get_default_config()
 
 	config.play_latest_movie_hotkey = {
 		.identifier = "Play latest movie",
-		.key = 0x50 /* P */,
+		.key = 0x54 /* T */,
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
 		.command = ID_REPLAY_LATEST,
+	};
+
+	config.load_rom_hotkey = {
+		.identifier = "Load ROM",
+		.key = 0x4F /* O */,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = IDLOAD,
+	};
+
+	config.close_rom_hotkey = {
+		.identifier = "Close ROM",
+		.key = 0x57 /* W */,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = EMU_STOP,
+	};
+
+	config.reset_rom_hotkey = {
+		.identifier = "Reset ROM",
+		.key = 0x52 /* R */,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = EMU_RESET,
+	};
+
+	config.fullscreen_hotkey = {
+		.identifier = "Toggle Fullscreen",
+		.key = VK_RETURN,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 1,
+		.command = FULL_SCREEN,
+	};
+
+	config.settings_hotkey = {
+		.identifier = "Show Settings",
+		.key = 0x53 /* S */,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = ID_LOAD_CONFIG,
+	};
+
+	config.save_current_hotkey = {
+		.identifier = "Save to current slot",
+		.key = 0x49 /* I */,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 0,
+		.command = STATE_SAVE,
+	};
+
+	config.load_current_hotkey = {
+		.identifier = "Load from current slot",
+		.key = 0x50 /* P */,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 0,
+		.command = STATE_RESTORE,
 	};
 
 	config.save_to_slot_1_hotkey = {
@@ -545,7 +640,6 @@ CONFIG get_default_config()
 	config.language = "English";
 	config.show_fps = 1;
 	config.show_vis_per_second = 1;
-	config.allow_suspicious_rom_loading = 0;
 	config.is_savestate_warning_enabled = 1;
 	config.is_rom_movie_compatibility_check_enabled = 1;
 	config.core_type = 1;
@@ -567,10 +661,9 @@ CONFIG get_default_config()
 	config.recent_rom_paths = {};
 	config.recent_movie_paths = {};
 	config.is_recent_movie_paths_frozen = 0;
-	config.rombrowser_sorted_column = 0;
-	config.rombrowser_sort_method = "ASC";
-	config.rombrowser_column_widths = {250, 150, 70, 70, 200, 100, 100};
-	config.rombrowser_rom_paths = {};
+	config.rombrowser_sorted_column = 2;
+	config.rombrowser_sort_ascending = 1;
+	config.rombrowser_column_widths = {24, 240, 240, 120};
 	config.is_rombrowser_recursion_enabled = 0;
 	config.is_reset_recording_enabled = 1;
 	config.is_internal_capture_forced = 0;
@@ -588,20 +681,22 @@ CONFIG get_default_config()
 	config.is_audio_delay_enabled = 1;
 	config.is_compiled_jump_enabled = 1;
 	config.is_lua_double_buffered = 1;
-	config.selected_video_plugin_name.clear();
-	config.selected_audio_plugin_name.clear();
-	config.selected_input_plugin_name.clear();
-	config.selected_rsp_plugin_name.clear();
+	config.selected_video_plugin.clear();
+	config.selected_audio_plugin.clear();
+	config.selected_input_plugin.clear();
+	config.selected_rsp_plugin.clear();
 	config.last_movie_type = 1;
 	config.last_movie_author = "Unknown Author";
 	config.window_x = CW_USEDEFAULT;
 	config.window_y = CW_USEDEFAULT;
 	config.window_width = 640;
 	config.window_height = 480;
+	config.use_new_timer = 0;
 
 	return config;
 }
 
+CONFIG default_config = get_default_config();
 
 void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkey)
 {
@@ -616,7 +711,7 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey, HMENU hmenu,
 
 	if (hmenu && menuItemID >= 0)
 	{
-		SetMenuAccelerator(hmenu, menuItemID,
+		set_menu_accelerator(hmenu, menuItemID,
 						   hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
 	}
 }
@@ -624,7 +719,39 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey, HMENU hmenu,
 
 void update_menu_hotkey_labels()
 {
-	// TODO: get rid of this garbage and find another way
+	set_hotkey_menu_accelerators(&Config.pause_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 0);
+    set_hotkey_menu_accelerators(&Config.frame_advance_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 1);
+    set_hotkey_menu_accelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+    set_hotkey_menu_accelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+
+    set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 13);
+    set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 3);
+    set_hotkey_menu_accelerators(&Config.stop_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 4);
+    set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 0);
+    set_hotkey_menu_accelerators(&Config.stop_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 1);
+    set_hotkey_menu_accelerators(&Config.take_screenshot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 2);
+    set_hotkey_menu_accelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+    set_hotkey_menu_accelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+    set_hotkey_menu_accelerators(&Config.select_slot_1_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
+    set_hotkey_menu_accelerators(&Config.select_slot_2_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
+    set_hotkey_menu_accelerators(&Config.select_slot_3_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
+    set_hotkey_menu_accelerators(&Config.select_slot_4_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 3);
+    set_hotkey_menu_accelerators(&Config.select_slot_5_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 4);
+    set_hotkey_menu_accelerators(&Config.select_slot_6_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 5);
+    set_hotkey_menu_accelerators(&Config.select_slot_7_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 6);
+    set_hotkey_menu_accelerators(&Config.select_slot_8_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 7);
+    set_hotkey_menu_accelerators(&Config.select_slot_9_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 8);
+
+	set_hotkey_menu_accelerators(&Config.load_rom_hotkey, GetSubMenu(GetMenu(mainHWND), 0), 0);
+	set_hotkey_menu_accelerators(&Config.close_rom_hotkey, GetSubMenu(GetMenu(mainHWND), 0), 1);
+	set_hotkey_menu_accelerators(&Config.reset_rom_hotkey, GetSubMenu(GetMenu(mainHWND), 0), 2);
+	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, GetSubMenu(GetMenu(mainHWND), 2), 0);
+	set_hotkey_menu_accelerators(&Config.settings_hotkey, GetSubMenu(GetMenu(mainHWND), 2), 7);
+	set_hotkey_menu_accelerators(&Config.save_current_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+	set_hotkey_menu_accelerators(&Config.load_current_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+
+    set_hotkey_menu_accelerators(&Config.restart_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 12);
+    set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 7);
 
 	SetDlgItemHotkey(mainHWND, IDC_HOT_FASTFORWARD,
 	                 &Config.fast_forward_hotkey);
@@ -802,7 +929,6 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 		}
 		auto& map = ini[field_name];
 		for (auto& pair : map) {
-			// TODO: wide path support!
 			value[pair.first] = string_to_wstring(pair.second);
 		}
 	} else {
@@ -810,7 +936,6 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 		// [field_name]
 		// value = value
 		for (auto &pair : value) {
-			// TODO: wide path support!
 			ini[field_name][pair.first] = wstring_to_string(pair.second);
 		}
 	}
@@ -822,8 +947,6 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 {
 	if (is_reading)
 	{
-		// find all elements under key
-		// TODO: use size()
 		int vector_length = 0;
 		for (size_t i = 0; i < INT32_MAX; i++)
 		{
@@ -850,28 +973,23 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 }
 
 
-const auto first_offset = offsetof(CONFIG, fast_forward_hotkey);
-const auto last_offset = offsetof(CONFIG, select_slot_10_hotkey);
-const CONFIG default_config = get_default_config();
+
 
 std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 {
-	std::vector<t_hotkey*> hotkeys;
-	const auto arr = (t_hotkey*)config;
 	// NOTE:
 	// last_offset should contain the offset of the last hotkey
 	// this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
 	// i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
-	for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1
-	     ; i++)
+	std::vector<t_hotkey*> vec;
+	for (size_t i = 0; i < (last_offset - first_offset) / sizeof(t_hotkey); i++)
 	{
-		auto hotkey = &arr[i];
-		// printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
-		hotkeys.push_back(hotkey);
+		auto hotkey = &(((t_hotkey*)config)[i]);
+		printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
+		vec.push_back(hotkey);
 	}
-	// printf("---\n");
 
-	return hotkeys;
+	return vec;
 }
 
 mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
@@ -884,15 +1002,13 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 		// our config is empty, so hotkeys are missing identifiers and commands
 		// we need to copy the identifiers from a default config
 		// FIXME: this assumes that the loaded config's hotkeys map 1:1 to the current hotkeys, which may not be the case
-
-		auto base_config_hotkey_pointers = collect_hotkeys(&default_config);
-		auto hotkey_pointers = collect_hotkeys(&Config);
-
+		auto hotkey_pointers = collect_hotkeys(&default_config);
 		for (size_t i = 0; i < hotkey_pointers.size(); i++)
 		{
-			hotkey_pointers[i]->identifier = std::string(
-				base_config_hotkey_pointers[i]->identifier);
-			hotkey_pointers[i]->command = base_config_hotkey_pointers[i]->
+			auto hotkey = &(((t_hotkey*)&Config)[i]);
+			hotkey->identifier = std::string(
+				hotkey_pointers[i]->identifier);
+			hotkey->command = hotkey_pointers[i]->
 				command;
 		}
 	}
@@ -901,7 +1017,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	auto hotkey_pointers = collect_hotkeys(&Config);
 
 	hotkeys.clear();
-	for (auto& hotkey_pointer : hotkey_pointers)
+	for (auto hotkey_pointer : hotkey_pointers)
 	{
 		handle_config_value(ini, hotkey_pointer->identifier, is_reading,
 		                    hotkey_pointer);
@@ -911,7 +1027,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_VALUE(language)
 	HANDLE_P_VALUE(show_fps)
 	HANDLE_P_VALUE(show_vis_per_second)
-	HANDLE_P_VALUE(allow_suspicious_rom_loading)
 	HANDLE_P_VALUE(is_savestate_warning_enabled)
 	HANDLE_P_VALUE(is_rom_movie_compatibility_check_enabled)
 	HANDLE_P_VALUE(core_type)
@@ -934,8 +1049,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_recent_rom_paths_frozen)
 	HANDLE_VALUE(recent_movie_paths)
 	HANDLE_P_VALUE(is_recent_movie_paths_frozen)
-	HANDLE_P_VALUE(rombrowser_sorted_column)
-	HANDLE_VALUE(rombrowser_sort_method)
 	HANDLE_P_VALUE(is_rombrowser_recursion_enabled)
 	HANDLE_P_VALUE(is_reset_recording_enabled)
 	HANDLE_P_VALUE(is_internal_capture_forced)
@@ -953,10 +1066,10 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_audio_delay_enabled)
 	HANDLE_P_VALUE(is_compiled_jump_enabled)
 	HANDLE_P_VALUE(is_lua_double_buffered)
-	HANDLE_VALUE(selected_video_plugin_name)
-	HANDLE_VALUE(selected_audio_plugin_name)
-	HANDLE_VALUE(selected_input_plugin_name)
-	HANDLE_VALUE(selected_rsp_plugin_name)
+	HANDLE_VALUE(selected_video_plugin)
+	HANDLE_VALUE(selected_audio_plugin)
+	HANDLE_VALUE(selected_input_plugin)
+	HANDLE_VALUE(selected_rsp_plugin)
 	HANDLE_P_VALUE(last_movie_type)
 	HANDLE_VALUE(last_movie_author)
 	HANDLE_P_VALUE(window_x)
@@ -965,7 +1078,10 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(window_height)
 	HANDLE_VALUE(rombrowser_column_widths)
 	HANDLE_VALUE(rombrowser_rom_paths)
+	HANDLE_P_VALUE(rombrowser_sort_ascending)
+	HANDLE_P_VALUE(rombrowser_sorted_column)
 	HANDLE_VALUE(persistent_folder_paths)
+	HANDLE_P_VALUE(use_new_timer)
 
 	return ini;
 }
@@ -1002,6 +1118,20 @@ void load_config()
 	file.read(ini);
 
 	ini = handle_config_ini(true, ini);
+
+	// handle edge case: closing while minimized produces bogus values for position
+	if (Config.window_x < -10'000 || Config.window_y < -10'000)
+	{
+		Config.window_x = default_config.window_x;
+		Config.window_y = default_config.window_y;
+		Config.window_width = default_config.window_width;
+		Config.window_height = default_config.window_height;
+	}
+
+	if (Config.rombrowser_column_widths.size() < 4) {
+		// something's malformed, fuck off and use default values
+		Config.rombrowser_column_widths = default_config.rombrowser_column_widths;
+	}
 }
 
 int32_t get_user_hotkey(t_hotkey* hotkey)

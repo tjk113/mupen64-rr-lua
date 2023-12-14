@@ -39,14 +39,14 @@
 #ifndef __WIN32__
 #include "../main/winlnxdefs.h"
 #else
-#include <windows.h>
+#include <Windows.h>
 #endif
 
 #include "memory.h"
 #include "pif.h"
 #include "pif2.h"
 #include "../r4300/r4300.h"
-#include "../r4300/interupt.h"
+#include "../r4300/interrupt.h"
 #include "../main/plugin.hpp"
 #include "../main/guifuncs.h"
 #include "../main/vcr.h"
@@ -56,6 +56,7 @@
 
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];
+int frame_advancing = 0;
 
 void check_input_sync(unsigned char* value);
 
@@ -70,6 +71,9 @@ void print_pif() {
 }
 #endif
 
+// 16kb eeprom flag
+#define EXTENDED_EEPROM (0)
+
 void EepromCommand(BYTE* Command)
 {
     switch (Command[2])
@@ -81,60 +85,44 @@ void EepromCommand(BYTE* Command)
             if ((Command[1] & 3) > 0)
                 Command[3] = 0;
             if ((Command[1] & 3) > 1)
-                Command[4] = ROM_SETTINGS.eeprom_16kb == 0 ? 0x80 : 0xc0;
+                Command[4] = EXTENDED_EEPROM == 0 ? 0x80 : 0xc0;
             if ((Command[1] & 3) > 2)
                 Command[5] = 0;
         }
         else
         {
             Command[3] = 0;
-            Command[4] = ROM_SETTINGS.eeprom_16kb == 0 ? 0x80 : 0xc0;
+            Command[4] = EXTENDED_EEPROM == 0 ? 0x80 : 0xc0;
             Command[5] = 0;
         }
         break;
     case 4: // read
         {
-            char* filename;
-            FILE* f;
-            int i;
-            filename = (char*)malloc(strlen(get_savespath()) +
-                strlen(ROM_SETTINGS.goodname) + 4 + 1);
-            strcpy(filename, get_savespath());
-            strcat(filename, ROM_SETTINGS.goodname);
-            strcat(filename, ".eep");
-            f = fopen(filename, "rb");
+            auto filename = get_eeprom_path();
+            FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)
             {
                 fread(eeprom, 1, 0x800, f);
                 fclose(f);
             }
-            else for (i = 0; i < 0x800; i++) eeprom[i] = 0;
-            free(filename);
+            else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
             memcpy(&Command[4], eeprom + Command[3] * 8, 8);
         }
         break;
     case 5: // write
         {
-            char* filename;
-            FILE* f;
-            int i;
-            filename = (char*)malloc(strlen(get_savespath()) +
-                strlen(ROM_SETTINGS.goodname) + 4 + 1);
-            strcpy(filename, get_savespath());
-            strcat(filename, ROM_SETTINGS.goodname);
-            strcat(filename, ".eep");
-            f = fopen(filename, "rb");
+            auto filename = get_eeprom_path();
+            FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)
             {
                 fread(eeprom, 1, 0x800, f);
                 fclose(f);
             }
-            else for (i = 0; i < 0x800; i++) eeprom[i] = 0;
+            else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
             memcpy(eeprom + Command[3] * 8, &Command[4], 8);
-            f = fopen(filename, "wb");
+            f = fopen(filename.string().c_str(), "wb");
             fwrite(eeprom, 1, 0x800, f);
             fclose(f);
-            free(filename);
         }
         break;
     default:
@@ -194,7 +182,6 @@ unsigned char mempack_crc(unsigned char* data)
     return CRC;
 }
 
-int frame_advancing = 0;
 
 void internal_ReadController(int Control, BYTE* Command)
 {
@@ -204,11 +191,7 @@ void internal_ReadController(int Control, BYTE* Command)
         if (Controls[Control].Present)
         {
             BUTTONS Keys;
-#ifdef VCR_SUPPORT
-            VCR_getKeys(Control, &Keys);
-#else
-				getKeys(Control, &Keys);
-#endif
+            vcr_on_controller_poll(Control, &Keys);
             *((unsigned long*)(Command + 3)) = Keys.Value;
 #ifdef COMPARE_CORE
 				check_input_sync(Command + 3);
@@ -282,14 +265,8 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                         address &= 0xFFE0;
                         if (address <= 0x7FE0)
                         {
-                            char* filename;
-                            FILE* f;
-                            filename = (char*)malloc(strlen(get_savespath()) +
-                                strlen(ROM_SETTINGS.goodname) + 4 + 1);
-                            strcpy(filename, get_savespath());
-                            strcat(filename, ROM_SETTINGS.goodname);
-                            strcat(filename, ".mpk");
-                            f = fopen(filename, "rb");
+                            auto filename = get_mempak_path();
+                            FILE* f = fopen(filename.string().c_str(), "rb");
                             if (f)
                             {
                                 fread(mempack[0], 1, 0x8000, f);
@@ -299,7 +276,6 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                                 fclose(f);
                             }
                             else format_mempacks();
-                            free(filename);
                             memcpy(&Command[5], &mempack[Control][address], 0x20);
                         }
                         else
@@ -336,14 +312,8 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                         address &= 0xFFE0;
                         if (address <= 0x7FE0)
                         {
-                            char* filename;
-                            FILE* f;
-                            filename = (char*)malloc(strlen(get_savespath()) +
-                                strlen(ROM_SETTINGS.goodname) + 4 + 1);
-                            strcpy(filename, get_savespath());
-                            strcat(filename, ROM_SETTINGS.goodname);
-                            strcat(filename, ".mpk");
-                            f = fopen(filename, "rb");
+                            auto filename = get_mempak_path();
+                            FILE* f = fopen(filename.string().c_str(), "rb");
                             if (f)
                             {
                                 fread(mempack[0], 1, 0x8000, f);
@@ -354,13 +324,12 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                             }
                             else format_mempacks();
                             memcpy(&mempack[Control][address], &Command[5], 0x20);
-                            f = fopen(filename, "wb");
+                            f = fopen(filename.string().c_str(), "wb");
                             fwrite(mempack[0], 1, 0x8000, f);
                             fwrite(mempack[1], 1, 0x8000, f);
                             fwrite(mempack[2], 1, 0x8000, f);
                             fwrite(mempack[3], 1, 0x8000, f);
                             fclose(f);
-                            free(filename);
                         }
                         Command[0x25] = mempack_crc(&Command[5]);
                     }
@@ -511,37 +480,42 @@ void update_pif_read(bool stcheck)
                     if (once && channel <= controllerRead && (&PIF_RAMb[i])[2] == 1)
                     {
                         once = false;
-                        extern void pauseEmu(BOOL quiet);
                         frame_advancing = 0;
                         pauseEmu(TRUE);
                         while (emu_paused)
                         {
                             Sleep(10);
-                            main_dispatcher_invoke([] {
-                                AtIntervalLuaCallback();
-                            });
-                            //should this be before or after? idk
-                            if (savestates_job & LOADSTATE && stAllowed)
+                            if (!hwnd_lua_map.empty())
                             {
-                                savestates_load(false);
-                                savestates_job &= ~LOADSTATE;
+                                main_dispatcher_invoke(AtIntervalLuaCallback);
+                            }
+
+                            // TODO: maybe unify this and the other calls outside paused loop with some pump function like savestates_process_job()
+                            if (savestates_job == e_st_job::save && stAllowed)
+                            {
+                                savestates_save_immediate();
+                                savestates_job = e_st_job::none;
+                            }
+                            if (savestates_job == e_st_job::load && stAllowed)
+                            {
+                                savestates_load_immediate();
+                                savestates_job = e_st_job::none;
                             }
                         }
                     }
                     if (stcheck)
                     {
-                        if (savestates_job & SAVESTATE && stAllowed)
+                        if (savestates_job == e_st_job::save && stAllowed)
                         {
-                            savestates_save();
-                            savestates_job &= ~SAVESTATE;
+                            savestates_save_immediate();
+                            savestates_job = e_st_job::none;
                         }
                     }
-                    if (savestates_job & LOADSTATE && stAllowed)
+                    if (savestates_job == e_st_job::load && stAllowed)
                     {
-                        savestates_load(false);
-                        savestates_job &= ~LOADSTATE;
+                        savestates_load_immediate();
+                        savestates_job = e_st_job::none;
                     }
-                    extern bool old_st;
                     if (old_st)
                     {
                         //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
@@ -551,26 +525,27 @@ void update_pif_read(bool stcheck)
                     }
                     stAllowed = false;
                     controllerRead = channel;
+
+                    // we handle raw data-mode controllers here:
+                    // this is incompatible with VCR!
                     if (Controls[channel].Present &&
                         Controls[channel].RawData
-#ifdef VCR_SUPPORT
-                        && VCR_isIdle()
-#endif
+                        && vcr_is_idle()
                     )
                     {
                         readController(channel, &PIF_RAMb[i]);
-                        lastInputLua[channel] = *(DWORD*)&PIF_RAMb[i + 3];
+                        last_controller_data[channel] = *(BUTTONS*)&PIF_RAMb[i + 3];
                         main_dispatcher_invoke([channel] {
                             AtInputLuaCallback(channel);
                         });
                         if (0 <= channel && channel < 4)
                         {
-                            if (rewriteInputFlagLua[channel])
+                            if (overwrite_controller_data[channel])
                             {
-                                *(DWORD*)&PIF_RAMb[i + 3] =
-                                    lastInputLua[channel] =
-                                    rewriteInputLua[channel];
-                                rewriteInputFlagLua[channel] = false;
+                                *(BUTTONS*)&PIF_RAMb[i + 3] =
+                                    last_controller_data[channel] =
+                                    last_controller_data[channel];
+                                overwrite_controller_data[channel] = false;
                             }
                         }
                     }

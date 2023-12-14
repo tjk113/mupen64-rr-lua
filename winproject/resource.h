@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by rsrc.rc
+// Von Microsoft Visual C++ generierte Includedatei.
+// Verwendet durch rsrc.rc
 //
 #define MAX_LUA_OPEN_AND_RUN_INSTANCES  100
 #define MIN_WINDOW_H                    100
@@ -80,6 +80,7 @@
 #define IDC_HOTKEY_SEARCH               1018
 #define IDC_HOTKEY_CLEAR                1019
 #define IDC_LIST1                       1019
+#define IDC_COREDBG_LIST                1019
 #define IDD_ABOUT                       1020
 #define IDC_USESUMMERCART               1021
 #define IDC_CAPTUREOTHER                1022
@@ -137,7 +138,6 @@
 #define IDD_MESSAGES                    2250
 #define IDC_SHOWFPS                     2251
 #define IDC_SHOWVIS                     2252
-#define IDC_ALLOW_SUSPICIOUS_ROMS       2253
 #define IDC_MESSAGES                    2255
 #define IDC_ALERTSAVESTATEWARNINGS      2256
 #define IDC_LIMITFPS                    2257
@@ -403,7 +403,6 @@
 #define IDC_BUTTON_LUASTOP              9520
 #define IDC_FROMEEPROM_RADIO            9521
 #define IDC_TEXTBOX_LUAPROMPT           9525
-#define ID_LANG_ENGLISH                 10005
 #define IDC_ROUNDTOZERO                 10007
 #define IDC_RECORD_RESETS               10008
 #define IDC_FORCEINTERNAL               10009
@@ -421,29 +420,27 @@
 #define ID_LUA_RECENT_FREEZE            40014
 #define IDD_OTHER_OPTIONS_DIALOG        40015
 #define IDC_OTHEROPTIONS                40016
-#define IDC_MOVIEBACKUPS                40020
-#define ID_MOVIEBACKUP_TRACKBAR         40021
 #define ID_FORCESAVE                    40022
 #define IDB_LOGO_BW                     40029
-#define IDD_GAMEDEBUGGERDIALOG          40031
-#define IDC_DEBUGGER_GROUPBOX           40032
-#define IDC_DEBUGGER_TOGGLEPAUSE        40033
-#define IDC_DEBUGGER_INSTRUCTION        40035
-#define IDC_DEBUGGER_RSP                40037
-#define IDC_DEBUGGER_RSP_TOGGLE         40038
-#define ID_GAMEDEBUGGER                 40039
-#define IDC_DEBUGGER_RSP_TOGGLE2        40039
-#define IDC_DEBUGGER_ALWAYS_UPDATE      40039
+#define IDD_COREDBG                     40031
+#define IDC_COREDBG_GROUPBOX           40032
+#define IDC_COREDBG_TOGGLEPAUSE        40033
+#define IDC_COREDBG_INSTRUCTION        40035
+#define IDC_COREDBG_RSP                40037
+#define IDC_COREDBG_RSP_TOGGLE         40038
+#define ID_COREDBG                      40039
+#define IDC_COREDBG_RSP_TOGGLE2        40039
+#define IDC_COREDBG_ALWAYS_UPDATE      40039
 #define IDB_PAUSE                       40040
 #define IDB_RESUME                      40041
-#define IDC_DEBUGGER_INSTDECODEMODE     40042
-#define IDC_DEBUGGER_PRECOMPADDR        40043
-#define IDC_DEBUGGER_PRECOMPOP          40044
-#define IDC_DEBUGGER_STEP               40045
-#define IDC_DEBUGGER_VI                 40046
-#define IDC_DEBUGGER_DUMPRDRAM          40046
-#define IDC_DEBUGGER_DISASSEMBLED       40046
-#define IDC_DEBUGGER_DMA_R_TOGGLE       40047
+#define IDC_COREDBG_INSTDECODEMODE     40042
+#define IDC_COREDBG_PRECOMPADDR        40043
+#define IDC_COREDBG_PRECOMPOP          40044
+#define IDC_COREDBG_STEP               40045
+#define IDC_COREDBG_VI                 40046
+#define IDC_COREDBG_DUMPRDRAM          40046
+#define IDC_COREDBG_DISASSEMBLED       40046
+#define IDC_COREDBG_CART_TILT           40047
 #define ID_REPLAY_LATEST                40048
 #define IDC_AV_NOSYNC                   40050
 #define IDC_AV_AUDIOSYNC                40051
@@ -462,11 +459,8 @@
 #define IDD_NEW_HOTKEY_DIALOG           40064
 #define IDC_STATIC                      -1
 
-
-#define WM_EXECUTE_DISPATCHER (WM_USER + 10)
-
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106

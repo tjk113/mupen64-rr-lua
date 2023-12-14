@@ -27,13 +27,11 @@
  *
 **/
 
-#include <windows.h>
+#include <Windows.h>
 #include <commctrl.h>
 #include <stdio.h>
 #include "../win/main_win.h"
-
 #include "../vcr_compress.h"
-
 #include "Config.hpp"
 #include "../plugin.hpp"
 #include "../../winproject/resource.h"
@@ -41,11 +39,6 @@
 #include "features/Toolbar.hpp"
 #include "features/Statusbar.hpp"
 
-#ifndef _MSC_VER
-void (*readScreen)(void** dest, long* width, long* height);
-#endif
-
-extern HWND mainHWND;
 
 static int avi_opened = 0;
 extern int recording;
@@ -64,45 +57,36 @@ static unsigned int AVIFileSize;
 static WAVEFORMATEX sound_format;
 static AVISTREAMINFO sound_stream_header;
 static PAVISTREAM sound_stream;
-//static PAVISTREAM compressed_sound_stream;
-//static AVICOMPRESSOPTIONS sound_options;
-//static AVICOMPRESSOPTIONS *psound_options[1];
 
-SWindowInfo sInfo = {0};
+t_window_info vcrcomp_window_info = {0};
 
-void CalculateWindowDimensions(HWND hWindow, SWindowInfo& infoStruct)
+void get_window_info(HWND hwnd, t_window_info& info)
 {
-    RECT rect, rectS, rectT;
-    // retrieve the dimension of the picture
-    GetClientRect(hWindow, &rect);
-    infoStruct.width = rect.right - rect.left;
-    infoStruct.height = rect.bottom - rect.top;
+    RECT client_rect = {0}, statusbar_rect = {0}, toolbar_rect = {0};
 
-    //get size of toolbar and statusbar
+    GetClientRect(hwnd, &client_rect);
+
+    // full client dimensions (including statusbar and toolbar)
+    info.width = client_rect.right - client_rect.left;
+    info.height = client_rect.bottom - client_rect.top;
+
     if (toolbar_hwnd)
-        GetClientRect(toolbar_hwnd, &rectT);
-    infoStruct.toolbarHeight = toolbar_hwnd ? (rectT.bottom - rectT.top) : 0;
+        GetClientRect(toolbar_hwnd, &toolbar_rect);
+    info.toolbar_height = toolbar_rect.bottom - toolbar_rect.top;
+    
     if (statusbar_hwnd)
-        GetClientRect(statusbar_hwnd, &rectS);
-    infoStruct.statusbarHeight = statusbar_hwnd ? (rectS.bottom - rectS.top) : 0;
+        GetClientRect(statusbar_hwnd, &statusbar_rect);
+    info.statusbar_height = statusbar_rect.bottom - statusbar_rect.top;
 
     //subtract size of toolbar and statusbar from buffer dimensions
     //if video plugin knows about this, whole game screen should be captured. Most of the plugins do.
-    infoStruct.height -= (infoStruct.toolbarHeight + infoStruct.statusbarHeight);
-
-    //round size to multiple of 4 (avi needs that iirc), not sure why it saves orig dimensions
-    //const int origWidth = infoStruct.width;
-    //const int origHeight = infoStruct.height;
-    //*width = (origWidth) & ~3;
-    //*height = (origHeight) & ~3;
+    info.height -= info.toolbar_height + info.statusbar_height;
 }
 
 // "internal" readScreen, used when plugin doesn't implement it
-// sInfo struct is filled during VCR_startCapture 
-void __cdecl win_readScreen(void** dest, long* width, long* height)
+void __cdecl vcrcomp_internal_read_screen(void** dest, long* width, long* height)
 {
     HDC mupendc, all = nullptr, copy; //all - screen; copy - buffer
-    //RECT rect, rectS, rectT;
     POINT cli_tl{0, 0}; //mupen client x y 
     HBITMAP bitmap, oldbitmap;
 
@@ -119,23 +103,22 @@ void __cdecl win_readScreen(void** dest, long* width, long* height)
         ClientToScreen(mainHWND, &cli_tl);
     }
 
-    //floor down to multiple of 4 (for avi?)
-    *width = sInfo.width & ~3;
-    *height = sInfo.height & ~3;
-
+    //real width and height of emulated area must be a multiple of 4, which is apparently important for avi
+    *width = vcrcomp_window_info.width & ~3;
+    *height = vcrcomp_window_info.height & ~3;
 
     // copy to a context in memory to speed up process
     copy = CreateCompatibleDC(mupendc);
     bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
     oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
-    Sleep(0);
+    
     if (copy)
     {
         if (Config.is_capture_cropped_screen_dc)
             BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x,
-                   cli_tl.y + sInfo.toolbarHeight + (sInfo.height - *height), SRCCOPY);
+                   cli_tl.y + vcrcomp_window_info.toolbar_height + (vcrcomp_window_info.height - *height), SRCCOPY);
         else
-            BitBlt(copy, 0, 0, *width, *height, mupendc, 0, sInfo.toolbarHeight + (sInfo.height - *height), SRCCOPY);
+            BitBlt(copy, 0, 0, *width, *height, mupendc, 0, vcrcomp_window_info.toolbar_height + (vcrcomp_window_info.height - *height), SRCCOPY);
     }
 
     if ((!avi_opened || !copy || !bitmap))
@@ -197,6 +180,10 @@ void __cdecl win_readScreen(void** dest, long* width, long* height)
         ReleaseDC(NULL, all);
 }
 
+void VCRComp_init()
+{
+}
+
 
 BOOL VCRComp_addVideoFrame(unsigned char* data)
 {
@@ -254,7 +241,6 @@ void VRComp_saveOptions()
 
 void VCRComp_startFile(const char* filename, long width, long height, int fps, int New)
 {
-    recording = 1;
     avi_opened = 1;
     AVIFileSize = 0;
     frame = 0;
@@ -288,8 +274,10 @@ void VCRComp_startFile(const char* filename, long width, long height, int fps, i
     {
         ZeroMemory(&video_options, sizeof(AVICOMPRESSOPTIONS));
         pvideo_options[0] = &video_options;
-        extern bool captureMarkedStop;
-        captureMarkedStop = !AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options);
+        if(!AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options))
+        {
+            // TODO: user cancel, roll everything back
+        }
     }
     VRComp_saveOptions();
     AVIMakeCompressedStream(&compressed_video_stream, video_stream, pvideo_options[0], NULL);
@@ -343,22 +331,9 @@ void VCRComp_finishFile(int split)
         SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); //Remove the always on top flag
     }
 
-    recording = 0;
     avi_opened = 0;
     printf("[VCR]: Finished AVI capture.\n");
 }
-
-void init_readScreen()
-{
-    printf((readScreen != NULL)
-               ? (const char*)("ReadScreen is implemented by this graphics plugin.\n")
-               : (const char*)(
-	               "ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n"));
-
-    if (readScreen == NULL)
-        readScreen = win_readScreen;
-}
-
 
 unsigned int VCRComp_GetSize()
 {

@@ -23,7 +23,8 @@
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/configdialog.h"
-#include "..\main\win\wrapper\PersistentPathDialog.h"
+#include "../main/helpers/win_helpers.h"
+#include "../main/win/wrapper/PersistentPathDialog.h"
 #include "../main/vcr_compress.h"
 #include <vcr.h>
 #include <gdiplus.h>
@@ -41,30 +42,29 @@
 #include "win/features/Statusbar.hpp"
 
 #include <Windows.h>
+
+#include "win/timers.h"
 #pragma comment(lib, "lua54.lib")
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
-extern int m_currentVI;
-extern long m_currentSample;
+extern int m_current_vi;
+extern long m_current_sample;
 extern int fast_memory;
-void SYNC();
-void NOTCOMPILED();
-void InitTimer();
 inline void TraceLoggingBufFlush();
-extern void (__cdecl*CaptureScreen)(char* Directory); // for lua screenshot
 
 std::vector<std::string> recent_closed_lua;
-unsigned long lastInputLua[4];
-unsigned long rewriteInputLua[4];
-bool rewriteInputFlagLua[4];
+
+BUTTONS last_controller_data[4];
+BUTTONS new_controller_data[4];
+bool overwrite_controller_data[4];
+
 bool enableTraceLog;
 bool traceLogMode;
-bool gdiPlusInitialized = false;
-ULONG_PTR gdiPlusToken;
+ULONG_PTR gdi_plus_token;
 // LoadScreen variables
 HDC hwindowDC, hsrcDC;
-SWindowInfo windowSize{};
+t_window_info windowSize{};
 HBITMAP hbitmap;
 bool LoadScreenInitialized = false;
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
@@ -87,7 +87,7 @@ void LoadScreenInit()
 	// Create a handle to the main window Device Context
 	hsrcDC = CreateCompatibleDC(hwindowDC); // Create a DC to copy the screen to
 
-	CalculateWindowDimensions(mainHWND, windowSize);
+	get_window_info(mainHWND, windowSize);
 	windowSize.height -= 1; // ¯\_(ツ)_/¯
 	printf("LoadScreen Size: %d x %d\n", windowSize.width, windowSize.height);
 
@@ -99,9 +99,6 @@ void LoadScreenInit()
 }
 
 #define DEBUG_GETLASTERROR 0
-
-
-	RECT InitalWindowRect[3] = {0};
 	HANDLE TraceLogFile;
 
 	std::vector<Gdiplus::Bitmap*> image_pool;
@@ -214,7 +211,6 @@ void LoadScreenInit()
 
 	extern const char* const REG_WINDOWMESSAGE;
 	int AtWindowMessage(lua_State* L);
-	HWND CreateLuaWindow();
 
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
@@ -223,45 +219,6 @@ void LoadScreenInit()
 		{
 			pair.second->invoke_callbacks_with_key(function, key);
 		}
-	}
-
-
-	void checkGDIPlusInitialized()
-	{
-		if (gdiPlusInitialized)
-			return;
-		printf("Initializing GDI+\n");
-		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		Gdiplus::GdiplusStartup(&gdiPlusToken, &gdiplusStartupInput, NULL);
-		gdiPlusInitialized = true;
-	}
-
-	void SizingControl(HWND wnd, RECT* p, int x, int y, int w, int h)
-	{
-		SetWindowPos(wnd, NULL, p->left + x, p->top + y,
-		             p->right - p->left + w, p->bottom - p->top + h,
-		             SWP_NOZORDER);
-	}
-
-	void SizingControls(HWND wnd, WORD width, WORD height)
-	{
-		int xa = width - (InitalWindowRect[0].right - InitalWindowRect[0].left),
-		    ya = height - (InitalWindowRect[0].bottom - InitalWindowRect[0].
-			    top);
-		SizingControl(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-		              &InitalWindowRect[1], 0, 0, xa, 0);
-		SizingControl(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE),
-		              &InitalWindowRect[2], 0, 0, xa, ya);
-	}
-
-	void GetInitalWindowRect(HWND wnd)
-	{
-		GetClientRect(wnd, &InitalWindowRect[0]);
-		GetWindowRect(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-		              &InitalWindowRect[1]);
-		GetWindowRect(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE),
-		              &InitalWindowRect[2]);
-		MapWindowPoints(NULL, wnd, (LPPOINT)&InitalWindowRect[1], 2 * 2);
 	}
 
 	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
@@ -273,12 +230,6 @@ void LoadScreenInit()
 		{
 		case WM_INITDIALOG:
 			{
-				checkGDIPlusInitialized();
-
-				if (InitalWindowRect[0].right == 0)
-				{
-					GetInitalWindowRect(wnd);
-				}
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				              Config.lua_script_path.c_str());
 				return TRUE;
@@ -296,9 +247,20 @@ void LoadScreenInit()
 		case WM_COMMAND:
 			return WmCommand(wnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
 		case WM_SIZE:
-			SizingControls(wnd, LOWORD(lParam), HIWORD(lParam));
-			if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
-			break;
+			{
+				RECT window_rect = {0};
+				GetClientRect(wnd, &window_rect);
+
+				HWND console_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
+				RECT console_rect = get_window_rect_client_space(wnd, console_hwnd);
+				SetWindowPos(console_hwnd, nullptr, 0, 0, window_rect.right - console_rect.left * 2, window_rect.bottom - console_rect.top, SWP_NOMOVE);
+
+				HWND path_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH);
+				RECT path_rect = get_window_rect_client_space(wnd, path_hwnd);
+				SetWindowPos(path_hwnd, nullptr, 0, 0, window_rect.right - console_rect.left * 2, path_rect.bottom - path_rect.top, SWP_NOMOVE);
+				if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
+				break;
+			}
 		}
 		return FALSE;
 	}
@@ -395,15 +357,43 @@ void LoadScreenInit()
 		return FALSE;
 	}
 
-	HWND CreateLuaWindow()
+	HWND lua_create()
 	{
-		HWND hwnd = CreateDialogParam(app_hInstance,
+		HWND hwnd = CreateDialogParam(app_instance,
 		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
 		                             DialogProc,
 		                             NULL);
 		ShowWindow(hwnd, SW_SHOW);
 		return hwnd;
 	}
+
+void lua_init()
+{
+	Gdiplus::GdiplusStartupInput startup_input;
+	GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
+}
+
+void lua_exit()
+{
+	Gdiplus::GdiplusShutdown(gdi_plus_token);
+}
+
+void lua_create_and_run(const char* path)
+	{
+		printf("Creating lua window...\n");
+		auto hwnd = lua_create();
+
+		printf("Setting path...\n");
+		// set the textbox content to match the path
+		SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
+
+		printf("Simulating run button click...\n");
+		// click run button
+		SendMessage(hwnd, WM_COMMAND,
+						MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+						(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+	}
+
 
 	void ConsoleWrite(HWND wnd, const char* str)
 	{
@@ -1490,15 +1480,9 @@ void LoadScreenInit()
 
 	int LuaLoadImage(lua_State* L)
 	{
-		const char* path = luaL_checkstring(L, 1);
-		int output_size = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
-		wchar_t* pathw = (wchar_t*)malloc(output_size * sizeof(wchar_t));
-		int size = MultiByteToWideChar(CP_ACP, 0, path, -1, pathw, output_size);
-
-		printf("LoadImage: %ws\n", pathw);
-		Gdiplus::Bitmap* img = new Gdiplus::Bitmap(pathw);
-		free(pathw);
-
+		std::wstring path = string_to_wstring(luaL_checkstring(L, 1));
+		printf("LoadImage: %ws\n", path.c_str());
+		Gdiplus::Bitmap* img = new Gdiplus::Bitmap(path.c_str());
 		if (img->GetLastStatus())
 		{
 			luaL_error(L, "Couldn't find image '%s'", path);
@@ -1534,7 +1518,7 @@ void LoadScreenInit()
 			} else
 			{
 				// Error if the image doesn't exist
-				luaL_error(L, "Argument #1: Invalid image index");
+				luaL_error(L, "Argument #1: Image index doesn't exist");
 				return 0;
 			}
 		}
@@ -1544,14 +1528,12 @@ void LoadScreenInit()
 	int DrawImage(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-
-
-		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1; // because lua
+		size_t pool_index = luaL_checkinteger(L, 1) - 1; // because lua
 
 		// Error if the image doesn't exist
-		if (imgIndex > image_pool.size() - 1)
+		if (pool_index > image_pool.size() - 1)
 		{
-			luaL_error(L, "Argument #1: Invalid image index");
+			luaL_error(L, "Argument #1: Image index doesn't exist");
 			return 0;
 		}
 
@@ -1559,7 +1541,7 @@ void LoadScreenInit()
 		unsigned int args = lua_gettop(L);
 
 		Gdiplus::Graphics gfx(lua->dc);
-		Gdiplus::Bitmap* img = image_pool[imgIndex];
+		Gdiplus::Bitmap* img = image_pool[pool_index];
 
 		// Original DrawImage
 		if (args == 3)
@@ -1942,7 +1924,7 @@ void LoadScreenInit()
 			       color.r, color.g, color.b, color.a, key);
 
 			ID2D1SolidColorBrush* brush;
-			lua->d2d_render_target->CreateSolidColorBrush(
+			lua->d2d_render_target_stack.top()->CreateSolidColorBrush(
 				color,
 				&brush
 			);
@@ -2058,67 +2040,70 @@ void LoadScreenInit()
 	}
 
 
-	int LuaD2DDrawText(lua_State* L)
-	{
-		LuaEnvironment* lua = GetLuaClass(L);
+int LuaD2DDrawText(lua_State* L)
+{
+	LuaEnvironment* lua = GetLuaClass(L);
 
-		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-		auto color = D2D_GET_COLOR(L, 5);
+	D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
+	auto color = D2D_GET_COLOR(L, 5);
 
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+	// we would get tons of near-misses otherwise
+	rectangle.left = (int)rectangle.left;
+	rectangle.top = (int)rectangle.top;
+	rectangle.right = (int)rectangle.right;
+	rectangle.bottom = (int)rectangle.bottom;
+	auto text = std::string(luaL_checkstring(L, 9));
+	auto font_name = std::string(luaL_checkstring(L, 10));
+	auto font_size = static_cast<float>(luaL_checknumber(L, 11));
+	auto font_weight = static_cast<int>(luaL_checknumber(L, 12));
+	auto font_style = static_cast<int>(luaL_checkinteger(L, 13));
+	auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14));
+	auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15));
 
-		int options = luaL_checkinteger(L, 16);
+	ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
 
-		auto text = std::string(luaL_checkstring(L, 9));
-		auto font_name = std::string(luaL_checkstring(L, 10));
-		auto font_size = static_cast<float>(luaL_checknumber(L, 11));
-		auto font_weight = static_cast<int>(luaL_checknumber(L, 12));
-		auto font_style = static_cast<int>(luaL_checkinteger(L, 13));
-		auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14));
-		auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15));
-
-
-		IDWriteTextFormat* text_format;
-
-		lua->dw_factory->CreateTextFormat(
-			string_to_wstring(font_name).c_str(),
-			nullptr,
-			static_cast<DWRITE_FONT_WEIGHT>(font_weight),
-			static_cast<DWRITE_FONT_STYLE>(font_style),
-			DWRITE_FONT_STRETCH_NORMAL,
-			font_size,
-			L"",
-			&text_format
-		);
-
-		text_format->SetTextAlignment(
-			static_cast<DWRITE_TEXT_ALIGNMENT>(horizontal_alignment));
-		text_format->SetParagraphAlignment(
-			static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(vertical_alignment));
-
-		IDWriteTextLayout* text_layout;
-
-		auto wtext = string_to_wstring(text);
-		lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
-		                                  text_format,
-		                                  rectangle.right - rectangle.left,
-		                                  rectangle.bottom - rectangle.top,
-		                                  &text_layout);
-
-		text_format->Release();
+	int options = luaL_checkinteger(L, 16);
 
 
-		lua->d2d_render_target_stack.top()->DrawTextLayout({
-			                                       .x = rectangle.left,
-			                                       .y = rectangle.top,
-		                                       }, text_layout, brush,
-		                                       static_cast<
-			                                       D2D1_DRAW_TEXT_OPTIONS>(
-			                                       options));
+	IDWriteTextFormat* text_format;
 
-		text_layout->Release();
-		return 0;
-	}
+	lua->dw_factory->CreateTextFormat(
+		string_to_wstring(font_name).c_str(),
+		nullptr,
+		static_cast<DWRITE_FONT_WEIGHT>(font_weight),
+		static_cast<DWRITE_FONT_STYLE>(font_style),
+		DWRITE_FONT_STRETCH_NORMAL,
+		font_size,
+		L"",
+		&text_format
+	);
+
+	text_format->SetTextAlignment(
+		static_cast<DWRITE_TEXT_ALIGNMENT>(horizontal_alignment));
+	text_format->SetParagraphAlignment(
+		static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(vertical_alignment));
+
+	IDWriteTextLayout* text_layout;
+
+	auto wtext = string_to_wstring(text);
+	lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
+	                                  text_format,
+	                                  rectangle.right - rectangle.left,
+	                                  rectangle.bottom - rectangle.top,
+	                                  &text_layout);
+
+	lua->d2d_render_target_stack.top()->DrawTextLayout({
+			.x = rectangle.left,
+			.y = rectangle.top,
+		}, text_layout, brush,
+		static_cast<
+			D2D1_DRAW_TEXT_OPTIONS>(
+			options));
+
+	text_format->Release();
+	text_layout->Release();
+	return 0;
+}
 
 	int LuaD2DSetTextAntialiasMode(lua_State* L)
 	{
@@ -2351,7 +2336,7 @@ void LoadScreenInit()
 			lua_pushinteger(L, size.height);
 			lua_setfield(L, -2, "height");
 		}
-		
+
 		return 1;
 	}
 
@@ -2392,6 +2377,8 @@ void LoadScreenInit()
 
 		if (lua->d2d_bitmap_render_target.contains(key)) {
 			lua->d2d_render_target_stack.push(lua->d2d_bitmap_render_target[key]);
+			// we need to clear the brush cache because brushes are rt-scoped
+			lua->d2d_brush_cache.clear();
 			lua->d2d_bitmap_render_target[key]->BeginDraw();
 		}
 
@@ -2471,7 +2458,7 @@ void LoadScreenInit()
 
 	int StatusbarWrite(lua_State* L)
 	{
-		statusbar_send_text(std::string(lua_tostring(L, 1)));
+		statusbar_post_text(std::string(lua_tostring(L, 1)));
 		return 0;
 	}
 
@@ -2681,13 +2668,13 @@ void LoadScreenInit()
 
 	int GetVICount(lua_State* L)
 	{
-		lua_pushinteger(L, m_currentVI);
+		lua_pushinteger(L, m_current_vi);
 		return 1;
 	}
 
 	int GetSampleCount(lua_State* L)
 	{
-		lua_pushinteger(L, m_currentSample);
+		lua_pushinteger(L, m_current_sample);
 		return 1;
 	}
 
@@ -2715,15 +2702,13 @@ void LoadScreenInit()
 
 	int GetVCRReadOnly(lua_State* L)
 	{
-		lua_pushboolean(L, VCR_getReadOnly());
+		lua_pushboolean(L, vcr_get_read_only());
 		return 1;
 	}
 
 	int SetGFX(lua_State* L)
 	{
-		// Ignore or update gfx
-		int state = luaL_checknumber(L, 1);
-		forceIgnoreRSP = state == 0;
+		// stub for now
 		return 0;
 	}
 
@@ -2812,7 +2797,7 @@ void LoadScreenInit()
 	int SetSpeed(lua_State* L)
 	{
 		Config.fps_modifier = luaL_checkinteger(L, 1);
-		InitTimer();
+		timer_init();
 		return 0;
 	}
 
@@ -2830,22 +2815,22 @@ void LoadScreenInit()
 	int PlayMovie(lua_State* L)
 	{
 		const char* fname = lua_tostring(L, 1);
-		VCR_setReadOnly(true);
-		VCR_startPlayback(fname, "", "");
+		vcr_set_read_only(true);
+		vcr_start_playback(fname, "", "");
 		return 0;
 	}
 
 	int StopMovie(lua_State* L)
 	{
-		VCR_stopPlayback();
+		vcr_stop_playback();
 		return 0;
 	}
 
 	int GetMovieFilename(lua_State* L)
 	{
-		if (VCR_isStarting() || VCR_isPlaying())
+		if (vcr_is_starting() || vcr_is_playing())
 		{
-			lua_pushstring(L, VCR_getMovieFilename());
+			lua_pushstring(L, vcr_get_movie_filename());
 		} else
 		{
 			luaL_error(L, "No movie is currently playing");
@@ -2858,15 +2843,13 @@ void LoadScreenInit()
 	//�蔲��
 	int SaveFileSavestate(lua_State* L)
 	{
-		savestates_select_filename(lua_tostring(L, 1));
-		savestates_job = SAVESTATE;
+		savestates_do(lua_tostring(L, 1), e_st_job::save);
 		return 0;
 	}
 
 	int LoadFileSavestate(lua_State* L)
 	{
-		savestates_select_filename(lua_tostring(L, 1));
-		savestates_job = LOADSTATE;
+		savestates_do(lua_tostring(L, 1), e_st_job::load);
 		return 0;
 	}
 
@@ -2901,8 +2884,8 @@ void LoadScreenInit()
 	int StartCapture(lua_State* L)
 	{
 		const char* fname = lua_tostring(L, 1);
-		if (!VCR_isCapturing())
-			VCR_startCapture("", fname, false);
+		if (!vcr_is_capturing())
+			vcr_start_capture(fname, false);
 		else
 			luaL_error(
 				L,
@@ -2912,8 +2895,8 @@ void LoadScreenInit()
 
 	int StopCapture(lua_State* L)
 	{
-		if (VCR_isCapturing())
-			VCR_stopCapture();
+		if (vcr_is_capturing())
+			vcr_stop_capture();
 		else
 			luaL_error(L, "Tried to end AVI capture when none was in progress");
 		return 0;
@@ -3110,23 +3093,22 @@ void LoadScreenInit()
 
 	int InputPrompt(lua_State* L)
 	{
-		DialogBoxParam(app_hInstance,
+		DialogBoxParam(app_instance,
 		               MAKEINTRESOURCE(IDD_LUAINPUTPROMPT), mainHWND,
 		               InputPromptProc, (LPARAM)L);
 		return 1;
 	}
 
 	//joypad
-	int GetJoypad(lua_State* L)
+	int lua_get_joypad(lua_State* L)
 	{
 		int i = luaL_optinteger(L, 1, 1) - 1;
 		if (i < 0 || i >= 4)
 		{
 			luaL_error(L, "port: 1-4");
 		}
-		BUTTONS b = *(BUTTONS*)&lastInputLua[i];
 		lua_newtable(L);
-#define A(a,s) lua_pushboolean(L,b.a);lua_setfield(L, -2, s)
+#define A(a,s) lua_pushboolean(L,last_controller_data[i].a);lua_setfield(L, -2, s)
 		A(R_DPAD, "right");
 		A(L_DPAD, "left");
 		A(D_DPAD, "down");
@@ -3141,18 +3123,15 @@ void LoadScreenInit()
 		A(U_CBUTTON, "Cup");
 		A(R_TRIG, "R");
 		A(L_TRIG, "L");
-		//	A(Reserved1,"reserved1");
-		//	A(Reserved2,"reserved2");
-		lua_pushinteger(L, b.X_AXIS);
-		lua_setfield(L, -2, "Y"); //X��Y���t�A�㉺��t(�オ��)
-		lua_pushinteger(L, b.Y_AXIS);
-		//X��Y�͒������A�㉺�͒����Ȃ�(-128�Ƃ����͂����獬���̌�)
-		lua_setfield(L, -2, "X");
 #undef A
+		lua_pushinteger(L, last_controller_data[i].X_AXIS);
+		lua_setfield(L, -2, "Y");
+		lua_pushinteger(L, last_controller_data[i].Y_AXIS);
+		lua_setfield(L, -2, "X");
 		return 1;
 	}
 
-	int SetJoypad(lua_State* L)
+	int lua_set_joypad(lua_State* L)
 	{
 		int a_2 = 2;
 		int i;
@@ -3168,9 +3147,8 @@ void LoadScreenInit()
 		{
 			luaL_error(L, "control: 1-4");
 		}
-		BUTTONS* b = (BUTTONS*)&rewriteInputLua[i];
 		lua_pushvalue(L, a_2);
-#define A(a,s) lua_getfield(L, -1, s);b->a=lua_toboolean(L,-1);lua_pop(L,1);
+#define A(a,s) lua_getfield(L, -1, s);new_controller_data[i].a=lua_toboolean(L,-1);lua_pop(L,1)
 		A(R_DPAD, "right");
 		A(L_DPAD, "left");
 		A(D_DPAD, "down");
@@ -3185,15 +3163,13 @@ void LoadScreenInit()
 		A(U_CBUTTON, "Cup");
 		A(R_TRIG, "R");
 		A(L_TRIG, "L");
-		//	A(Reserved1,"reserved1");
-		//	A(Reserved2,"reserved2");
 		lua_getfield(L, -1, "Y");
-		b->X_AXIS = lua_tointeger(L, -1);
+		new_controller_data[i].X_AXIS = lua_tointeger(L, -1);
 		lua_pop(L, 1);
 		lua_getfield(L, -1, "X");
-		b->Y_AXIS = lua_tointeger(L, -1);
+		new_controller_data[i].Y_AXIS = lua_tointeger(L, -1);
 		lua_pop(L, 1);
-		rewriteInputFlagLua[i] = true;
+		overwrite_controller_data[i] = true;
 #undef A
 		return 1;
 	}
@@ -3354,8 +3330,8 @@ void LoadScreenInit()
 		{NULL, NULL}
 	};
 	const luaL_Reg joypadFuncs[] = {
-		{"get", GetJoypad},
-		{"set", SetJoypad},
+		{"get", lua_get_joypad},
+		{"set", lua_set_joypad},
 		{"register", RegisterInput},
 		{"count", GetInputCount},
 		{NULL, NULL}
@@ -3382,34 +3358,6 @@ void LoadScreenInit()
 		{"stopcapture", StopCapture},
 		{NULL, NULL}
 	};
-
-
-
-	void NewLuaScript()
-{
-	CreateLuaWindow();
-}
-
-void dummy_function()
-{
-}
-
-void LuaOpenAndRun(const char* path)
-{
-	printf("Creating lua window...\n");
-	auto hwnd = CreateLuaWindow();
-
-	printf("Setting path...\n");
-	// set the textbox content to match the path
-	SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
-
-	printf("Simulating run button click...\n");
-	// click run button
-	SendMessage(hwnd, WM_COMMAND,
-		            MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
-		            (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-}
-
 
 void AtUpdateScreenLuaCallback()
 {
@@ -3469,7 +3417,7 @@ void AtSaveStateLuaCallback()
 }
 
 //called after reset, when emulation ready
-void AtResetCallback()
+void AtResetLuaCallback()
 {
 	invoke_callbacks_with_key_on_all_instances(
 		CallTop, REG_ATRESET);
@@ -4028,6 +3976,20 @@ void close_all_scripts() {
 	assert(hwnd_lua_map.empty());
 }
 
+void stop_all_scripts()
+{
+	assert(IsGUIThread(false));
+	// we mutate the map's nodes while iterating, so we have to make a copy
+	auto copy = std::map(hwnd_lua_map);
+	for (auto pair : copy) {
+		SendMessage(pair.first, WM_COMMAND,
+					MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
+					(LPARAM)GetDlgItem(pair.first, IDC_BUTTON_LUASTOP));
+
+	}
+	assert(hwnd_lua_map.empty());
+}
+
 
 void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l)
 {
@@ -4178,8 +4140,8 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 	lua_environment->L = luaL_newstate();
 	lua_atpanic(lua_environment->L, AtPanic);
 	SetLuaClass(lua_environment->L, lua_environment);
-	lua_environment->registerFunctions();
-
+	lua_environment->register_functions();
+	luaL_dostring(lua_environment->L, "os.execute = function() print('os.execute is disabled') end");
 	// all lua scripts run with legacy renderer until otherwise stated
 	lua_environment->create_renderer();
 
@@ -4201,7 +4163,8 @@ LuaEnvironment::~LuaEnvironment() {
 	deleteGDIObject(brush, WHITE_BRUSH);
 	deleteGDIObject(pen, BLACK_PEN);
 	deleteGDIObject(font, SYSTEM_FONT);
-	deleteLuaState();
+	lua_close(L);
+	L = NULL;
 	for (auto x : image_pool) {
 		delete x;
 	}
@@ -4280,35 +4243,33 @@ bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> fu
 	return false;
 }
 
-void LuaEnvironment::deleteLuaState() {
-	assert(L != NULL);
-	lua_close(L);
-	L = NULL;
+void register_as_package(lua_State* lua_state, const char* name, const luaL_Reg regs[]) {
+	if (name == nullptr)
+	{
+		const luaL_Reg* p = regs;
+		do {
+			lua_register(lua_state, p->name, p->func);
+		} while ((++p)->func);
+		return;
+	}
+	luaL_newlib(lua_state, regs);
+	lua_setglobal(lua_state, name);
 }
 
-void LuaEnvironment::registerAsPackage(lua_State* L, const char* name,
-					   const luaL_Reg reg[]) {
-	luaL_newlib(L, reg);
-	lua_setglobal(L, name);
-}
-
-void LuaEnvironment::registerFunctions() {
+void LuaEnvironment::register_functions() {
 	luaL_openlibs(L);
-	//�Ȃ�luaL_register(L, NULL, globalFuncs)����Ɨ�����
-	const luaL_Reg* p = globalFuncs;
-	do {
-		lua_register(L, p->name, p->func);
-	} while ((++p)->func);
-	registerAsPackage(L, "emu", emuFuncs);
-	registerAsPackage(L, "memory", memoryFuncs);
-	registerAsPackage(L, "wgui", wguiFuncs);
-	registerAsPackage(L, "d2d", d2dFuncs);
-	registerAsPackage(L, "input", inputFuncs);
-	registerAsPackage(L, "joypad", joypadFuncs);
-	registerAsPackage(L, "movie", movieFuncs);
-	registerAsPackage(L, "savestate", savestateFuncs);
-	registerAsPackage(L, "iohelper", ioHelperFuncs);
-	registerAsPackage(L, "avi", aviFuncs);
+
+	register_as_package(L, nullptr, globalFuncs);
+	register_as_package(L, "emu", emuFuncs);
+	register_as_package(L, "memory", memoryFuncs);
+	register_as_package(L, "wgui", wguiFuncs);
+	register_as_package(L, "d2d", d2dFuncs);
+	register_as_package(L, "input", inputFuncs);
+	register_as_package(L, "joypad", joypadFuncs);
+	register_as_package(L, "movie", movieFuncs);
+	register_as_package(L, "savestate", savestateFuncs);
+	register_as_package(L, "iohelper", ioHelperFuncs);
+	register_as_package(L, "avi", aviFuncs);
 
 	//this makes old scripts backward compatible, new syntax for table length is '#'
 	lua_getglobal(L, "table");

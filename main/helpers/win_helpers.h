@@ -1,5 +1,6 @@
 #pragma once
 #include <Windows.h>
+#include <Windowsx.h>
 #include <CommCtrl.h>
 #include <cstdint>
 
@@ -27,4 +28,62 @@ static int32_t get_primary_monitor_refresh_rate() {
 	EnumDisplaySettings(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm);
 
 	return dm.dmDisplayFrequency;
+}
+
+static void read_combo_box_value(const HWND hwnd, const int resource_id, char* ret)
+{
+	int index = SendDlgItemMessage(hwnd, resource_id, CB_GETCURSEL, 0, 0);
+	SendDlgItemMessage(hwnd, resource_id, CB_GETLBTEXT, index, (LPARAM)ret);
+}
+
+/**
+ * \brief Accurately sleeps for the specified amount of time
+ * \param seconds The seconds to sleep for
+ * \remarks https://blat-blatnik.github.io/computerBear/making-accurate-sleep-function/
+ */
+static void accurate_sleep(double seconds) {
+	using namespace std;
+	using namespace std::chrono;
+
+	static double estimate = 5e-3;
+	static double mean = 5e-3;
+	static double m2 = 0;
+	static int64_t count = 1;
+
+	while (seconds > estimate) {
+		auto start = high_resolution_clock::now();
+		this_thread::sleep_for(milliseconds(1));
+		auto end = high_resolution_clock::now();
+
+		double observed = (end - start).count() / 1e9;
+		seconds -= observed;
+
+		++count;
+		double delta = observed - mean;
+		mean += delta / count;
+		m2   += delta * (observed - mean);
+		double stddev = sqrt(m2 / (count - 1));
+		estimate = mean + stddev;
+	}
+
+	// spin lock
+	auto start = high_resolution_clock::now();
+	while ((high_resolution_clock::now() - start).count() / 1e9 < seconds);
+}
+
+
+static RECT get_window_rect_client_space(HWND parent, HWND child)
+{
+	RECT offset_client = {0};
+	MapWindowRect(child, parent, &offset_client);
+
+	RECT client = {0};
+	GetWindowRect(child, &client);
+
+	return {
+		offset_client.left,
+		offset_client.top,
+		offset_client.left + (client.right - client.left),
+		offset_client.top + (client.bottom - client.top)
+	};
 }

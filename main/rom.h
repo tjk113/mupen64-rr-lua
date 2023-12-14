@@ -31,17 +31,13 @@
 #ifndef ROM_H
 #define ROM_H
 
-int rom_read(const char* argv);
-int fill_header(const char* argv);
-bool is_case_insensitive_equal(const std::string& a, const std::string& b);
-bool validRomExt(const char* filename);
-void calculateMD5(const char* argv, unsigned char digest[16]);
-extern unsigned char* rom;
-extern int romByteCount;
+extern uint8_t* rom;
+extern size_t rom_size;
+extern char rom_md5[33];
 
-extern const char* getExt(const char* filename);
-extern void stripExt(char* fname);
-extern bool validRomExt(const char* filename);
+int rom_read(const char* argv);
+bool is_case_insensitive_equal(const std::string& a, const std::string& b);
+void strip_extension(char* fname);
 
 typedef struct s_rom_header
 {
@@ -63,19 +59,19 @@ typedef struct s_rom_header
 	unsigned long Boot_Code[1008];
 } t_rom_header;
 
-extern t_rom_header* ROM_HEADER;
+extern t_rom_header ROM_HEADER;
 
+/**
+ * \param country_code A rom's country code
+ * \return The rom's country name
+ */
+std::string country_code_to_country_name(uint16_t country_code);
 
-typedef struct _rom_settings
-{
-	char goodname[256];
-	int eeprom_16kb;
-	char MD5[33];
-} rom_settings;
-
-extern rom_settings ROM_SETTINGS;
-
-std::string country_code_to_country_name(int country_code);
+/**
+ * \param country_code A rom's country code
+ * \return The maximum amount of VIs per second intended
+ */
+uint32_t get_vis_per_second(uint16_t country_code);
 
 inline static void rom_byteswap(uint8_t* rom)
 {
@@ -102,6 +98,26 @@ inline static void rom_byteswap(uint8_t* rom)
 			rom[i * 4 + 2] = tmp;
 		}
 	}
+}
+
+inline static char* trim(char* str)
+{
+	char *ibuf, *obuf;
+
+	if (str)
+	{
+		for (ibuf = obuf = str; *ibuf; )
+		{
+			while (*ibuf && (isspace (*ibuf)))
+				ibuf++;
+			if (*ibuf && (obuf != str))
+				*(obuf++) = ' ';
+			while (*ibuf && (!isspace (*ibuf)))
+				*(obuf++) = *(ibuf++);
+		}
+		*obuf = 0;
+	}
+	return str;
 }
 
 #endif

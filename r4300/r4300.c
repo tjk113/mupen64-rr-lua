@@ -33,7 +33,7 @@
 #include "ops.h"
 #include "../memory/memory.h"
 #include "exception.h"
-#include "interupt.h"
+#include "interrupt.h"
 #include "macros.h"
 #include "recomp.h"
 #include "recomph.h"
@@ -63,7 +63,7 @@ long FCR0, FCR31;
 tlb tlb_e[32];
 unsigned long delay_slot, skip_jump = 0, dyna_interp = 0, last_addr;
 unsigned long long int debug_count = 0;
-unsigned int next_interupt, CIC_Chip;
+unsigned int next_interrupt, CIC_Chip;
 precomp_instr* PC;
 char invalid_code[0x100000];
 
@@ -141,7 +141,7 @@ void J()
         PC = actual->block +
             (((((PC - 2)->f.j.inst_index << 2) | ((PC - 1)->addr & 0xF0000000)) - actual->start) >> 2);
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void J_OUT()
@@ -155,14 +155,14 @@ void J_OUT()
     if (!skip_jump)
         jump_to(jump_target);
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void J_IDLE()
 {
     long skip;
     update_count();
-    skip = next_interupt - core_Count;
+    skip = next_interrupt - core_Count;
     if (skip > 3)
         core_Count += (skip & 0xFFFFFFFC);
     else J();
@@ -184,7 +184,7 @@ void JAL()
             (((((PC - 2)->f.j.inst_index << 2) | ((PC - 1)->addr & 0xF0000000)) - actual->start) >> 2);
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void JAL_OUT()
@@ -203,14 +203,14 @@ void JAL_OUT()
         jump_to(jump_target);
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void JAL_IDLE()
 {
     long skip;
     update_count();
-    skip = next_interupt - core_Count;
+    skip = next_interrupt - core_Count;
     if (skip > 3)
         core_Count += (skip & 0xFFFFFFFC);
     else JAL();
@@ -228,7 +228,7 @@ void BEQ()
     if (local_rs == local_rt && !skip_jump && !ignore)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BEQ_OUT()
@@ -244,7 +244,7 @@ void BEQ_OUT()
     if (!skip_jump && local_rs == local_rt)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BEQ_IDLE()
@@ -253,7 +253,7 @@ void BEQ_IDLE()
     if (core_irs == core_irt)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BEQ();
@@ -273,7 +273,7 @@ void BNE()
     if (local_rs != local_rt && !skip_jump)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BNE_OUT()
@@ -289,7 +289,7 @@ void BNE_OUT()
     if (!skip_jump && local_rs != local_rt)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BNE_IDLE()
@@ -298,7 +298,7 @@ void BNE_IDLE()
     if (core_irs != core_irt)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BNE();
@@ -317,7 +317,7 @@ void BLEZ()
     if (local_rs <= 0 && !skip_jump)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLEZ_OUT()
@@ -332,7 +332,7 @@ void BLEZ_OUT()
     if (!skip_jump && local_rs <= 0)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLEZ_IDLE()
@@ -341,7 +341,7 @@ void BLEZ_IDLE()
     if (core_irs <= core_irt)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLEZ();
@@ -360,7 +360,7 @@ void BGTZ()
     if (local_rs > 0 && !skip_jump)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGTZ_OUT()
@@ -375,7 +375,7 @@ void BGTZ_OUT()
     if (!skip_jump && local_rs > 0)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGTZ_IDLE()
@@ -384,7 +384,7 @@ void BGTZ_IDLE()
     if (core_irs > core_irt)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGTZ();
@@ -467,7 +467,7 @@ void BEQL()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BEQL_OUT()
@@ -489,7 +489,7 @@ void BEQL_OUT()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BEQL_IDLE()
@@ -498,7 +498,7 @@ void BEQL_IDLE()
     if (core_irs == core_irt)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BEQL();
@@ -524,7 +524,7 @@ void BNEL()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BNEL_OUT()
@@ -546,7 +546,7 @@ void BNEL_OUT()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BNEL_IDLE()
@@ -555,7 +555,7 @@ void BNEL_IDLE()
     if (core_irs != core_irt)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BNEL();
@@ -581,7 +581,7 @@ void BLEZL()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLEZL_OUT()
@@ -603,7 +603,7 @@ void BLEZL_OUT()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BLEZL_IDLE()
@@ -612,7 +612,7 @@ void BLEZL_IDLE()
     if (core_irs <= core_irt)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLEZL();
@@ -638,7 +638,7 @@ void BGTZL()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGTZL_OUT()
@@ -660,7 +660,7 @@ void BGTZL_OUT()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interupt <= core_Count) gen_interupt();
+    if (next_interrupt <= core_Count) gen_interrupt();
 }
 
 void BGTZL_IDLE()
@@ -669,7 +669,7 @@ void BGTZL_IDLE()
     if (core_irs > core_irt)
     {
         update_count();
-        skip = next_interupt - core_Count;
+        skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGTZL();
@@ -1619,7 +1619,7 @@ void go()
         CIC_Chip = 2;
     }
 
-    switch (ROM_HEADER->Country_code & 0xFF)
+    switch (ROM_HEADER.Country_code & 0xFF)
     {
     case 0x44:
     case 0x46:
@@ -1743,8 +1743,8 @@ void go()
     set_rounding();
 
     last_addr = 0xa4000040;
-    //next_interupt = 624999; //this is later overwritten with different value so what's the point...
-    init_interupt();
+    //next_interrupt = 624999; //this is later overwritten with different value so what's the point...
+    init_interrupt();
     interpcore = 0;
 
     if (!dynacore)
@@ -1859,7 +1859,5 @@ void go()
     }
     if (!dynacore && interpcore) free(PC);
 
-#ifdef VCR_SUPPORT
-    VCR_coreStopped();
-#endif
+    vcr_core_stopped();
 }
