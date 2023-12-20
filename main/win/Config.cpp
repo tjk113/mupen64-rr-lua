@@ -268,24 +268,6 @@ CONFIG get_default_config()
 		.command = GENERATE_BITMAP,
 	};
 
-	config.save_to_current_slot_hotkey = {
-		.identifier = "Save to current slot",
-		.key = 0x49 /* I */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
-		.command = STATE_SAVE,
-	};
-
-	config.load_from_current_slot_hotkey = {
-		.identifier = "Load from current slot",
-		.key = 0x50 /* P */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
-		.command = STATE_RESTORE,
-	};
-
 	config.restart_movie_hotkey = {
 		.identifier = "Restart playing movie",
 		.key = 0x54 /* T */,
