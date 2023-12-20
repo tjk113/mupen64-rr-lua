@@ -960,7 +960,7 @@ std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 	// this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
 	// i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
 	std::vector<t_hotkey*> vec;
-	for (size_t i = 0; i < (last_offset - first_offset) / sizeof(t_hotkey); i++)
+	for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1; i++)
 	{
 		auto hotkey = &(((t_hotkey*)config)[i]);
 		printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
