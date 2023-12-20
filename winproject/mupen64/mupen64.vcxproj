@@ -137,6 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\main\helpers\collection_helpers.h" />
     <ClInclude Include="..\..\main\lib\ini.h" />
     <ClInclude Include="..\..\main\lib\argh.h" />
     <ClInclude Include="..\..\lua\Recent.h" />

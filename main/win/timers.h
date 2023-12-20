@@ -15,8 +15,17 @@
  ***************************************************************************/
 #pragma once
 
-extern float vis_per_second;
-extern float fps;
+#include <chrono>
+#include <queue>
+
+typedef std::chrono::high_resolution_clock::time_point time_point;
+
+
+/// Timepoints at which new frame happened
+extern std::deque<time_point> new_frame_times;
+
+/// Timepoints at which new VI happened
+extern std::deque<time_point> new_vi_times;
 
 /**
  * \brief Initializes timer code with values from current rom

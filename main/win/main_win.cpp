@@ -50,6 +50,7 @@
 #include "features/Statusbar.hpp"
 #include "features/Toolbar.hpp"
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
+#include "helpers/collection_helpers.h"
 #include "helpers/string_helpers.h"
 #include "helpers/win_helpers.h"
 #include "wrapper/PersistentPathDialog.h"
@@ -1594,13 +1595,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			// We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
 			if (time - last_statusbar_update > std::chrono::seconds(1))
 			{
-				if (Config.show_fps)
+				// TODO: This is just a quick proof of concept, must reduce code duplication
+				if (Config.show_fps && !new_frame_times.empty())
 				{
-					statusbar_post_text(std::format("FPS: {:.1f}", fps), 2);
+					long long fps = 0;
+					for (int i = 1; i < new_frame_times.size(); ++i)
+					{
+						fps += (new_frame_times[i] - new_frame_times[i - 1]).count();
+					}
+					statusbar_post_text(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / new_frame_times.size()) / 1'000'000.0f)), 2);
 				}
-				if (Config.show_vis_per_second)
+				if (Config.show_vis_per_second && !new_vi_times.empty())
 				{
-					statusbar_post_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
+					long long vis = 0;
+					for (int i = 1; i < new_vi_times.size(); ++i)
+					{
+						vis += (new_vi_times[i] - new_vi_times[i - 1]).count();
+					}
+					statusbar_post_text(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / new_vi_times.size()) / 1'000'000.0f)), 3);
 				}
 				last_statusbar_update = time;
 			}
@@ -1771,7 +1783,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					MenuPaused = FALSE;
 					frame_advancing = 1;
-					vis_per_second = 0;
+					// vis_per_second = 0;
 					// prevent old VI value from showing error if running at super fast speeds
 					resumeEmu(TRUE); // maybe multithreading unsafe
 				}
