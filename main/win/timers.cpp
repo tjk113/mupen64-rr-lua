@@ -20,8 +20,6 @@
 #include "../rom.h"
 #include "../../memory/pif.h"
 #include "../helpers/win_helpers.h"
-
-#include "features/Statusbar.hpp"
 #include "helpers/collection_helpers.h"
 
 bool frame_changed = true;
@@ -45,7 +43,6 @@ void timer_init()
 
 	new_frame_times = {};
 	new_vi_times = {};
-	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
 }
 
 void timer_new_frame()
