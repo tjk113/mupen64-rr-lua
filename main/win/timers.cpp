@@ -18,6 +18,7 @@
 #include "timers.h"
 #include "Config.hpp"
 #include "../rom.h"
+#include "../../memory/pif.h"
 #include "../helpers/win_helpers.h"
 
 #include "features/Statusbar.hpp"
@@ -55,8 +56,7 @@ void timer_new_frame()
 
 void timer_new_vi()
 {
-	// FIXME: Dependency on currently frontend-stored ff variable. Move into core!!!
-	if (true)
+	if (!fast_forward)
 	{
 		accurate_sleep(target_sleep_time / 1000.0f);
 		// TODO: Reimplement game crash detection, but properly
