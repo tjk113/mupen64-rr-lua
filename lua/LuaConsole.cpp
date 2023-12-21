@@ -3362,15 +3362,29 @@ int LuaD2DDrawText(lua_State* L)
 
 void AtUpdateScreenLuaCallback()
 {
-	for (auto& pair : hwnd_lua_map) {
-		pair.second->pre_draw();
-	}
-
-	invoke_callbacks_with_key_on_all_instances(AtUpdateScreen, REG_ATUPDATESCREEN);
+	HDC main_dc = GetDC(mainHWND);
 
 	for (auto& pair : hwnd_lua_map) {
-		pair.second->post_draw();
+		/// Let the environment draw to its DC
+		pair.second->draw();
+
+		/// Blit its DC to the main window with alpha mask
+        TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->dc, 0, 0,
+        	pair.second->dc_width, pair.second->dc_height, bitmap_color_mask);
+
+		/// In case of GDI, we clear the screen with alpha mask specifically
+        if (pair.second->renderer == Renderer::GDIMixed) {
+        	RECT rect = { 0, 0, pair.second->dc_width, pair.second->dc_height};
+        	HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
+        	FillRect(pair.second->dc, &rect, brush);
+        	DeleteObject(brush);
+        }
+
 	}
+
+
+	ReleaseDC(mainHWND, main_dc);
+
 }
 
 void AtVILuaCallback()
@@ -4082,43 +4096,18 @@ void LuaEnvironment::destroy_renderer()
 	d2d_render_target = NULL;
 }
 
-void LuaEnvironment::pre_draw() {
-
-	if (this == nullptr || !dc)
-	{
-		return;
-	}
+void LuaEnvironment::draw() {
 	if (renderer == Renderer::Direct2D) {
 		d2d_render_target->BeginDraw();
 		d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 		d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
 	}
 
-}
-
-void LuaEnvironment::post_draw()
-{
-	if (renderer == Renderer::None || this == nullptr || !dc) {
-		return;
-	}
+	this->invoke_callbacks_with_key(AtUpdateScreen, REG_ATUPDATESCREEN);
 
 	if (renderer == Renderer::Direct2D) {
 		d2d_render_target->EndDraw();
 	}
-
-	HDC main_dc = GetDC(mainHWND);
-
-	TransparentBlt(main_dc, 0, 0, dc_width, dc_height, dc, 0, 0,
-		dc_width, dc_height, bitmap_color_mask);
-
-	if (renderer == Renderer::GDIMixed) {
-		RECT rect = { 0, 0, this->dc_width, this->dc_height};
-		HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
-		FillRect(dc, &rect, brush);
-		DeleteObject(brush);
-	}
-
-	ReleaseDC(mainHWND, main_dc);
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {

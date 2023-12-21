@@ -123,8 +123,11 @@ public:
 	void create_renderer();
 	void destroy_renderer();
 
-	void pre_draw();
-	void post_draw();
+
+	/**
+	 * \brief Draws to the environment's DC
+	 */
+	void draw();
 
 	void setBrush(HBRUSH h);
 	void selectBrush();
