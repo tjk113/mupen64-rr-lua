@@ -1452,107 +1452,6 @@ inline void TraceLoggingWriteBuf()
 	}
 }
 
-void instrStr2(r4300word pc, r4300word w, char* p1)
-{
-	char*& p = p1;
-	INSTDECODE decode;
-	//little endian
-#define HEX8(n) 	*(r4300word*)p = n; p += 4
-	DecodeInstruction(w, &decode);
-	HEX8(pc);
-	HEX8(w);
-	INSTOPERAND& o = decode.operand;
-	//n�͌ォ��f�R�[�h����΂킩��
-#define REGCPU(n) \
-	HEX8(reg[n])
-#define REGCPU2(n,m) \
-		REGCPU(n);\
-		REGCPU(m);
-	//10�i��
-#define REGFPU(n) \
-	HEX8(*(r4300word*)reg_cop1_simple[n])
-#define REGFPU2(n,m) REGFPU(n);REGFPU(m)
-#define NONE *(r4300word*)p=0;p+=4
-#define NONE2 NONE;NONE
-
-	switch (decode.format)
-	{
-	case INSTF_NONE:
-		NONE2;
-		break;
-	case INSTF_J:
-	case INSTF_0BRANCH:
-		NONE2;
-		break;
-	case INSTF_LUI:
-		NONE2;
-		break;
-	case INSTF_1BRANCH:
-	case INSTF_JR:
-	case INSTF_ISIGN:
-	case INSTF_IUNSIGN:
-		REGCPU(o.i.rs);
-		NONE;
-		break;
-	case INSTF_2BRANCH:
-		REGCPU2(o.i.rs, o.i.rt);
-		break;
-	case INSTF_ADDRW:
-		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-		REGCPU(o.i.rt);
-		break;
-	case INSTF_ADDRR:
-		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-		NONE;
-		break;
-	case INSTF_LFW:
-		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-		REGFPU(o.lf.ft);
-		break;
-	case INSTF_LFR:
-		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-		NONE;
-		break;
-	case INSTF_R1:
-		REGCPU(o.r.rd);
-		NONE;
-		break;
-	case INSTF_R2:
-		REGCPU2(o.i.rs, o.i.rt);
-		break;
-	case INSTF_R3:
-		REGCPU2(o.i.rs, o.i.rt);
-		break;
-	case INSTF_MTC0:
-	case INSTF_MTC1:
-	case INSTF_SA:
-		REGCPU(o.r.rt);
-		NONE;
-		break;
-	case INSTF_R2F:
-		REGFPU(o.cf.fs);
-		NONE;
-		break;
-	case INSTF_R3F:
-	case INSTF_C:
-		REGFPU2(o.cf.fs, o.cf.ft);
-		break;
-	case INSTF_MFC0:
-		NONE2;
-		break;
-	case INSTF_MFC1:
-		REGFPU(((FPUREG)o.r.rs));
-		NONE;
-		break;
-	}
-	p1[strlen(p1)] = '\0';
-#undef HEX8
-#undef REGCPU
-#undef REGFPU
-#undef REGCPU2
-#undef REGFPU2
-}
-
 void instrStr1(unsigned long pc, unsigned long w, char* p1)
 {
 	char*& p = p1;
@@ -2123,7 +2022,6 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 	SetLuaClass(lua_environment->L, lua_environment);
 	lua_environment->register_functions();
 	luaL_dostring(lua_environment->L, "os.execute = function() print('os.execute is disabled') end");
-	// all lua scripts run with legacy renderer until otherwise stated
 	lua_environment->create_renderer();
 
 	bool error = luaL_dofile(lua_environment->L, lua_environment->path.string().c_str());
