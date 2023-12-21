@@ -17,7 +17,6 @@
 
 #include "timers.h"
 #include "Config.hpp"
-#include "../rom.h"
 #include "../../memory/pif.h"
 #include "../helpers/win_helpers.h"
 #include "helpers/collection_helpers.h"
@@ -33,12 +32,12 @@ std::deque<time_point> new_vi_times;
 
 float target_sleep_time;
 
-void timer_init()
+void timer_init(int32_t speed_modifier, t_rom_header* rom_header)
 {
 	// We precompute the sleep time, since it only changes with the rom
-	float multiplier = (float)Config.fps_modifier / 100.0f;
+	float multiplier = (float)speed_modifier / 100.0f;
 	float target_vis = multiplier * (float)get_vis_per_second(
-		ROM_HEADER.Country_code);
+		rom_header->Country_code);
 	target_sleep_time = 1000.0f / target_vis;
 
 	new_frame_times = {};

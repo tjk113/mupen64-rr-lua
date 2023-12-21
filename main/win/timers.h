@@ -18,6 +18,8 @@
 #include <chrono>
 #include <queue>
 
+#include "rom.h"
+
 typedef std::chrono::high_resolution_clock::time_point time_point;
 
 /// Frame invalidation flag: cleared by consumer
@@ -30,10 +32,11 @@ extern std::deque<time_point> new_frame_times;
 extern std::deque<time_point> new_vi_times;
 
 /**
- * \brief Initializes timer code with values from current rom
- * \remarks Needs to be called after reading rom header
+ * \brief Initializes timer code with the specified values
+ * \param speed_modifier The current speed modifier
+ * \param rom_header The current rom header
  */
-void timer_init();
+void timer_init(int32_t speed_modifier, t_rom_header* rom_header);
 
 /**
  * \brief To be called when a new frame is generated
