@@ -24,6 +24,7 @@
 #include <stack>
 
 #include "plugin.hpp"
+#include "vcr_compress.h"
 
 typedef struct s_window_procedure_params {
 	HWND wnd;
@@ -107,6 +108,12 @@ public:
 	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
 	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
+	std::vector<Gdiplus::Bitmap*> image_pool;
+	bool LoadScreenInitialized = false;
+	// LoadScreen variables
+	HDC hwindowDC, hsrcDC;
+	t_window_info windowSize{};
+	HBITMAP hbitmap;
 
 	/**
 	 * \brief Destroys and stops the environment
@@ -153,8 +160,16 @@ public:
 
 		return nullptr;
 	}
+
+
+	// Deletes all the variables used in LoadScreen (avoid memory leaks)
+	void LoadScreenDelete();
+
+	// Initializes everything needed for LoadScreen
+	void LoadScreenInit();
 	HWND hwnd;
 	lua_State* L;
+
 
 
 private:

@@ -65,46 +65,13 @@ bool overwrite_controller_data[4];
 bool enableTraceLog;
 bool traceLogMode;
 ULONG_PTR gdi_plus_token;
-// LoadScreen variables
-HDC hwindowDC, hsrcDC;
-t_window_info windowSize{};
-HBITMAP hbitmap;
-bool LoadScreenInitialized = false;
+
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 t_window_procedure_params window_proc_params = {0};
-// Deletes all the variables used in LoadScreen (avoid memory leaks)
-void LoadScreenDelete()
-{
-	ReleaseDC(mainHWND, hwindowDC);
-	DeleteDC(hsrcDC);
 
-	LoadScreenInitialized = false;
-}
-
-// Initializes everything needed for LoadScreen
-void LoadScreenInit()
-{
-	if (LoadScreenInitialized) LoadScreenDelete();
-
-	hwindowDC = GetDC(mainHWND);
-	// Create a handle to the main window Device Context
-	hsrcDC = CreateCompatibleDC(hwindowDC); // Create a DC to copy the screen to
-
-	get_window_info(mainHWND, windowSize);
-	windowSize.height -= 1; // ¯\_(ツ)_/¯
-	printf("LoadScreen Size: %d x %d\n", windowSize.width, windowSize.height);
-
-	// create an hbitmap
-	hbitmap = CreateCompatibleBitmap(hwindowDC, windowSize.width,
-	                                 windowSize.height);
-
-	LoadScreenInitialized = true;
-}
 
 #define DEBUG_GETLASTERROR 0
 	HANDLE TraceLogFile;
-
-	std::vector<Gdiplus::Bitmap*> image_pool;
 
 	unsigned inputCount = 0;
 
@@ -2774,6 +2741,11 @@ void LuaEnvironment::destroy_renderer()
 		d2d_render_target_stack.pop();
 	}
 
+	for (auto x : image_pool) {
+		delete x;
+	}
+	image_pool.clear();
+
 	ReleaseDC(mainHWND, dc);
 	dc = NULL;
 	d2d_factory = NULL;
@@ -2834,10 +2806,6 @@ LuaEnvironment::~LuaEnvironment() {
 	deleteGDIObject(font, SYSTEM_FONT);
 	lua_close(L);
 	L = NULL;
-	for (auto x : image_pool) {
-		delete x;
-	}
-	image_pool.clear();
 	SetButtonState(hwnd, false);
 	this->destroy_renderer();
 	printf("Lua destroyed\n");
@@ -2910,6 +2878,33 @@ bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> fu
 	}
 	lua_pop(L, 1);
 	return false;
+}
+
+void LuaEnvironment::LoadScreenDelete()
+{
+	ReleaseDC(mainHWND, hwindowDC);
+	DeleteDC(hsrcDC);
+
+	LoadScreenInitialized = false;
+}
+
+void LuaEnvironment::LoadScreenInit()
+{
+	if (LoadScreenInitialized) LoadScreenDelete();
+
+	hwindowDC = GetDC(mainHWND);
+	// Create a handle to the main window Device Context
+	hsrcDC = CreateCompatibleDC(hwindowDC); // Create a DC to copy the screen to
+
+	get_window_info(mainHWND, windowSize);
+	windowSize.height -= 1; // ¯\_(ツ)_/¯
+	printf("LoadScreen Size: %d x %d\n", windowSize.width, windowSize.height);
+
+	// create an hbitmap
+	hbitmap = CreateCompatibleBitmap(hwindowDC, windowSize.width,
+									 windowSize.height);
+
+	LoadScreenInitialized = true;
 }
 
 void register_as_package(lua_State* lua_state, const char* name, const luaL_Reg regs[]) {

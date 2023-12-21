@@ -361,8 +361,6 @@ namespace LuaCore::Wgui
 	static int DrawRect(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-
-
 		int left = luaL_checknumber(L, 1);
 		int top = luaL_checknumber(L, 2);
 		int right = luaL_checknumber(L, 3);
@@ -378,6 +376,7 @@ namespace LuaCore::Wgui
 
 	static int LuaLoadImage(lua_State* L)
 	{
+		LuaEnvironment* lua = GetLuaClass(L);
 		std::wstring path = string_to_wstring(luaL_checkstring(L, 1));
 		printf("LoadImage: %ws\n", path.c_str());
 		Gdiplus::Bitmap* img = new Gdiplus::Bitmap(path.c_str());
@@ -386,33 +385,34 @@ namespace LuaCore::Wgui
 			luaL_error(L, "Couldn't find image '%s'", path);
 			return 0;
 		}
-		image_pool.push_back(img);
-		lua_pushinteger(L, image_pool.size()); //return the identifier (index+1)
+		lua->image_pool.push_back(img);
+		lua_pushinteger(L, lua->image_pool.size()); //return the identifier (index+1)
 		return 1;
 	}
 
 	static int DeleteImage(lua_State* L)
 	{
+		LuaEnvironment* lua = GetLuaClass(L);
 		// Clears one or all images from imagePool
 		unsigned int clearIndex = luaL_checkinteger(L, 1);
 		if (clearIndex == 0)
 		{
 			// If clearIndex is 0, clear all images
 			printf("Deleting all images\n");
-			for (auto x : image_pool)
+			for (auto x : lua->image_pool)
 			{
 				delete x;
 			}
-			image_pool.clear();
+			lua->image_pool.clear();
 		} else
 		{
 			// If clear index is not 0, clear 1 image
-			if (clearIndex <= image_pool.size())
+			if (clearIndex <= lua->image_pool.size())
 			{
 				printf("Deleting image index %d (%d in lua)\n", clearIndex - 1,
 				       clearIndex);
-				delete image_pool[clearIndex - 1];
-				image_pool.erase(image_pool.begin() + clearIndex - 1);
+				delete lua->image_pool[clearIndex - 1];
+				lua->image_pool.erase(lua->image_pool.begin() + clearIndex - 1);
 			} else
 			{
 				// Error if the image doesn't exist
@@ -429,7 +429,7 @@ namespace LuaCore::Wgui
 		size_t pool_index = luaL_checkinteger(L, 1) - 1; // because lua
 
 		// Error if the image doesn't exist
-		if (pool_index > image_pool.size() - 1)
+		if (pool_index > lua->image_pool.size() - 1)
 		{
 			luaL_error(L, "Argument #1: Image index doesn't exist");
 			return 0;
@@ -439,7 +439,7 @@ namespace LuaCore::Wgui
 		unsigned int args = lua_gettop(L);
 
 		Gdiplus::Graphics gfx(lua->dc);
-		Gdiplus::Bitmap* img = image_pool[pool_index];
+		Gdiplus::Bitmap* img = lua->image_pool[pool_index];
 
 		// Original DrawImage
 		if (args == 3)
@@ -527,24 +527,23 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-
-		if (!LoadScreenInitialized)
+		if (!lua->LoadScreenInitialized)
 		{
 			luaL_error(
 				L, "LoadScreen not initialized! Something has gone wrong.");
 			return 0;
 		}
 		// set the selected object of hsrcDC to hbwindow
-		SelectObject(hsrcDC, hbitmap);
+		SelectObject(lua->hsrcDC, lua->hbitmap);
 		// copy from the window device context to the bitmap device context
-		BitBlt(hsrcDC, 0, 0, windowSize.width, windowSize.height, hwindowDC, 0,
+		BitBlt(lua->hsrcDC, 0, 0, lua->windowSize.width, lua->windowSize.height, lua->hwindowDC, 0,
 		       0, SRCCOPY);
 
-		Gdiplus::Bitmap* out = new Gdiplus::Bitmap(hbitmap, nullptr);
+		Gdiplus::Bitmap* out = new Gdiplus::Bitmap(lua->hbitmap, nullptr);
 
-		image_pool.push_back(out);
+		lua->image_pool.push_back(out);
 
-		lua_pushinteger(L, image_pool.size());
+		lua_pushinteger(L, lua->image_pool.size());
 
 		return 1;
 	}
@@ -552,9 +551,7 @@ namespace LuaCore::Wgui
 	static int LoadScreenReset(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-
-
-		LoadScreenInit();
+		lua->LoadScreenInit();
 		return 0;
 	}
 
@@ -565,13 +562,13 @@ namespace LuaCore::Wgui
 
 		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
 
-		if (imgIndex > image_pool.size() - 1)
+		if (imgIndex > lua->image_pool.size() - 1)
 		{
 			luaL_error(L, "Argument #1: Invalid image index");
 			return 0;
 		}
 
-		Gdiplus::Bitmap* img = image_pool[imgIndex];
+		Gdiplus::Bitmap* img = lua->image_pool[imgIndex];
 
 		lua_newtable(L);
 		lua_pushinteger(L, img->GetWidth());
