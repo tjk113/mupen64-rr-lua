@@ -55,8 +55,6 @@
 #include "helpers/win_helpers.h"
 #include "wrapper/PersistentPathDialog.h"
 
-bool ffup = false;
-
 
 #ifdef _MSC_VER
 #define SNPRINTF	_snprintf
@@ -101,9 +99,6 @@ HINSTANCE app_instance;
 BOOL fast_forward = 0;
 BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
-
-bool is_primary_statusbar_invalidated = true;
-
 char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
 const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {
@@ -215,7 +210,7 @@ void pauseEmu(BOOL quiet)
 	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
-		is_primary_statusbar_invalidated = true;
+		frame_changed = true;
 		emu_paused = 1;
 		if (!quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
@@ -1513,7 +1508,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		if ((int)wParam == Config.fast_forward_hotkey.key) // fast-forward off
 		{
 			fast_forward = 0;
-			ffup = true; //fuck it, timers.c is too weird
 		}
 		if (emu_launched)
 			keyUp(wParam, lParam);
@@ -1586,10 +1580,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			AtUpdateScreenLuaCallback();
 
-			if (is_primary_statusbar_invalidated)
+			if (frame_changed)
 			{
 				vcr_update_statusbar();
-				is_primary_statusbar_invalidated = false;
+				frame_changed = false;
 			}
 
 			// We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed

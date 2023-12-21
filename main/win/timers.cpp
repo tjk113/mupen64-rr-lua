@@ -16,37 +16,32 @@
 #include "../../lua/LuaConsole.h"
 
 #include "timers.h"
-#include <Windows.h>
-#include <cstdio>
-#include <commctrl.h>
-#include "main_win.h"
 #include "Config.hpp"
 #include "../rom.h"
 #include "../helpers/win_helpers.h"
-#include "../../memory/pif.h"
-
-//c++!!!
-#include <thread>
 
 #include "features/Statusbar.hpp"
 #include "helpers/collection_helpers.h"
 
-
-extern bool ffup;
+bool frame_changed = true;
 extern int m_current_vi;
 extern long m_current_sample;
 
 std::chrono::duration<double, std::milli> max_vi_s_ms;
-float max_vi_s;
 
 std::deque<time_point> new_frame_times;
 std::deque<time_point> new_vi_times;
 
+float target_sleep_time;
+
 void timer_init()
 {
-	max_vi_s = (float)get_vis_per_second(ROM_HEADER.Country_code);
-	max_vi_s_ms = std::chrono::duration<double, std::milli>(
-		1000.0 / (max_vi_s * (float)Config.fps_modifier / 100));
+	// We precompute the sleep time, since it only changes with the rom
+	float multiplier = (float)Config.fps_modifier / 100.0f;
+	float target_vis = multiplier * (float)get_vis_per_second(
+		ROM_HEADER.Country_code);
+	target_sleep_time = 1000.0f / target_vis;
+
 	new_frame_times = {};
 	new_vi_times = {};
 	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
@@ -55,19 +50,15 @@ void timer_init()
 void timer_new_frame()
 {
 	circular_push(new_frame_times, std::chrono::high_resolution_clock::now());
-	is_primary_statusbar_invalidated = true;
+	frame_changed = true;
 }
 
 void timer_new_vi()
 {
-	if (!fast_forward)
+	// FIXME: Dependency on currently frontend-stored ff variable. Move into core!!!
+	if (true)
 	{
-		float multiplier = (float)Config.fps_modifier / 100.0f;
-		float target_vis = multiplier * (float)get_vis_per_second(
-			ROM_HEADER.Country_code);
-		float target_sleep_time = 1000.0f / target_vis;
 		accurate_sleep(target_sleep_time / 1000.0f);
-
 		// TODO: Reimplement game crash detection, but properly
 	}
 	circular_push(new_vi_times, std::chrono::high_resolution_clock::now());

@@ -20,6 +20,8 @@
 
 typedef std::chrono::high_resolution_clock::time_point time_point;
 
+/// Frame invalidation flag: cleared by consumer
+extern bool frame_changed;
 
 /// Timepoints at which new frame happened
 extern std::deque<time_point> new_frame_times;
