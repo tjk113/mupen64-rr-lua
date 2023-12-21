@@ -673,7 +673,6 @@ CONFIG get_default_config()
 	config.window_y = CW_USEDEFAULT;
 	config.window_width = 640;
 	config.window_height = 480;
-	config.use_new_timer = 0;
 
 	return config;
 }
@@ -1059,7 +1058,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(rombrowser_sort_ascending)
 	HANDLE_P_VALUE(rombrowser_sorted_column)
 	HANDLE_VALUE(persistent_folder_paths)
-	HANDLE_P_VALUE(use_new_timer)
 
 	return ini;
 }
