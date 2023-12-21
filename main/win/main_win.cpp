@@ -96,7 +96,6 @@ int emu_launched; //int emu_emulating;
 int emu_paused;
 HWND mainHWND;
 HINSTANCE app_instance;
-BOOL fast_forward = 0;
 BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
 char correctedPath[260];

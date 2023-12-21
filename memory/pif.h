@@ -35,6 +35,6 @@ void update_pif_write();
 void update_pif_read(bool stcheck);
 
 extern int frame_advancing;
-
+extern int fast_forward;
 
 #endif

@@ -38,8 +38,6 @@ extern int recording;
 extern HWND mainHWND;
 extern HINSTANCE app_instance;
 
-// TODO: Move to core
-extern BOOL fast_forward;
 extern char statusmsg[800];
 
 extern HWND hwnd_plug;
