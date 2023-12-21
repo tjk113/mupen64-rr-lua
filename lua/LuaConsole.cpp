@@ -2172,11 +2172,8 @@ void LuaEnvironment::register_functions() {
 	register_as_package(L, "iohelper", ioHelperFuncs);
 	register_as_package(L, "avi", aviFuncs);
 
-	//this makes old scripts backward compatible, new syntax for table length is '#'
-	lua_getglobal(L, "table");
-	lua_pushcfunction(L, getn);
-	lua_setfield(L, -2, "getn");
-	lua_pop(L, 1);
+	// COMPAT: table.getn deprecated, replaced by # prefix
+	luaL_dostring(L, "table.getn = function(t) return #t end");
 }
 
 void LuaEnvironment::setGDIObject(HGDIOBJ* save, HGDIOBJ newobj) {
