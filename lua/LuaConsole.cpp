@@ -43,6 +43,7 @@
 
 #include <Windows.h>
 
+#include "modules/avi.h"
 #include "modules/d2d.h"
 #include "modules/input.h"
 #include "modules/iohelper.h"
@@ -1166,27 +1167,7 @@ void lua_create_and_run(const char* path)
 	}
 
 
-	// AVI
-	int StartCapture(lua_State* L)
-	{
-		const char* fname = lua_tostring(L, 1);
-		if (!vcr_is_capturing())
-			vcr_start_capture(fname, false);
-		else
-			luaL_error(
-				L,
-				"Tried to start AVI capture when one was already in progress");
-		return 0;
-	}
 
-	int StopCapture(lua_State* L)
-	{
-		if (vcr_is_capturing())
-			vcr_stop_capture();
-		else
-			luaL_error(L, "Tried to end AVI capture when none was in progress");
-		return 0;
-	}
 
 
 
@@ -1368,8 +1349,8 @@ void lua_create_and_run(const char* path)
 		{NULL, NULL}
 	};
 	const luaL_Reg aviFuncs[] = {
-		{"startcapture", StartCapture},
-		{"stopcapture", StopCapture},
+		{"startcapture", LuaCore::Avi::StartCapture},
+		{"stopcapture", LuaCore::Avi::StopCapture},
 		{NULL, NULL}
 	};
 
