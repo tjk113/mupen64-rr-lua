@@ -47,6 +47,7 @@
 #include "modules/input.h"
 #include "modules/joypad.h"
 #include "modules/memory.h"
+#include "modules/movie.h"
 #include "modules/wgui.h"
 #include "win/timers.h"
 #pragma comment(lib, "lua54.lib")
@@ -1162,33 +1163,7 @@ void lua_create_and_run(const char* path)
 		return 0;
 	}
 
-	// Movie
-	int PlayMovie(lua_State* L)
-	{
-		const char* fname = lua_tostring(L, 1);
-		vcr_set_read_only(true);
-		vcr_start_playback(fname, "", "");
-		return 0;
-	}
 
-	int StopMovie(lua_State* L)
-	{
-		vcr_stop_playback();
-		return 0;
-	}
-
-	int GetMovieFilename(lua_State* L)
-	{
-		if (vcr_is_starting() || vcr_is_playing())
-		{
-			lua_pushstring(L, vcr_get_movie_filename());
-		} else
-		{
-			luaL_error(L, "No movie is currently playing");
-			lua_pushstring(L, "");
-		}
-		return 1;
-	}
 
 	//savestate
 	//�蔲��
@@ -1411,9 +1386,9 @@ void lua_create_and_run(const char* path)
 	};
 
 	const luaL_Reg movieFuncs[] = {
-		{"playmovie", PlayMovie},
-		{"stopmovie", StopMovie},
-		{"getmoviefilename", GetMovieFilename},
+		{"playmovie", LuaCore::Movie::PlayMovie},
+		{"stopmovie", LuaCore::Movie::StopMovie},
+		{"getmoviefilename", LuaCore::Movie::GetMovieFilename},
 		{NULL, NULL}
 	};
 
