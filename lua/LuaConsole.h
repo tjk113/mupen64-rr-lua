@@ -84,12 +84,6 @@ void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
 static uint32_t bitmap_color_mask = RGB(255, 0, 255);
 
-enum class Renderer {
-	None,
-	GDIMixed,
-	Direct2D
-};
-
 class LuaEnvironment {
 public:
 	bool stopping = false;
@@ -102,7 +96,6 @@ public:
 	 */
 	static std::pair<LuaEnvironment*, std::string> create(std::filesystem::path path, HWND wnd);
 	static void destroy(LuaEnvironment* lua_environment);
-	Renderer renderer = Renderer::GDIMixed;
 
 	std::filesystem::path path;
 	HDC dc = nullptr;

@@ -2712,18 +2712,6 @@ int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	// calling this during a drawing section will crash the application
-	int SetRenderer(lua_State* L)
-	{
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		lua->renderer = static_cast<Renderer>(luaL_checknumber(L, 1));
-		lua->destroy_renderer();
-		lua->create_renderer();
-
-		return 1;
-	}
-
 	int LuaPlaySound(lua_State* L)
 	{
 		PlaySound(luaL_checkstring(L, 1), NULL, SND_FILENAME | SND_ASYNC);
@@ -3222,7 +3210,6 @@ int LuaD2DDrawText(lua_State* L)
 		{"ismainwindowinforeground", IsMainWindowInForeground},
 
 		{"screenshot", Screenshot},
-		{"set_renderer", SetRenderer},
 		{"play_sound", LuaPlaySound},
 		{NULL, NULL}
 	};
@@ -3372,13 +3359,10 @@ void AtUpdateScreenLuaCallback()
         TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->dc, 0, 0,
         	pair.second->dc_width, pair.second->dc_height, bitmap_color_mask);
 
-		/// In case of GDI, we clear the screen with alpha mask specifically
-        if (pair.second->renderer == Renderer::GDIMixed) {
-        	RECT rect = { 0, 0, pair.second->dc_width, pair.second->dc_height};
-        	HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
-        	FillRect(pair.second->dc, &rect, brush);
-        	DeleteObject(brush);
-        }
+		RECT rect = { 0, 0, pair.second->dc_width, pair.second->dc_height};
+		HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
+		FillRect(pair.second->dc, &rect, brush);
+		DeleteObject(brush);
 
 	}
 
@@ -4097,17 +4081,12 @@ void LuaEnvironment::destroy_renderer()
 }
 
 void LuaEnvironment::draw() {
-	if (renderer == Renderer::Direct2D) {
-		d2d_render_target->BeginDraw();
-		d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
-		d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
-	}
+	d2d_render_target->BeginDraw();
+	d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 
 	this->invoke_callbacks_with_key(AtUpdateScreen, REG_ATUPDATESCREEN);
 
-	if (renderer == Renderer::Direct2D) {
-		d2d_render_target->EndDraw();
-	}
+	d2d_render_target->EndDraw();
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
