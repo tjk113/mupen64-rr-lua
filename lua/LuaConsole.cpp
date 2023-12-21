@@ -79,7 +79,7 @@ t_window_procedure_params window_proc_params = {0};
 #define DEBUG_GETLASTERROR 0
 	HANDLE TraceLogFile;
 
-	unsigned inputCount = 0;
+	uint64_t inputCount = 0;
 
 	int getn(lua_State*);
 
@@ -130,20 +130,7 @@ t_window_procedure_params window_proc_params = {0};
 		}
 	}
 
-	struct EmulationLock
-	{
-		EmulationLock()
-		{
-			printf("Emulation Lock\n");
-			pauseEmu(FALSE);
-		}
 
-		~EmulationLock()
-		{
-			resumeEmu(FALSE);
-			printf("Emulation Unlock\n");
-		}
-	};
 
 	int AtPanic(lua_State* L);
 	extern const luaL_Reg globalFuncs[];
@@ -1198,7 +1185,7 @@ void lua_create_and_run(const char* path)
 
 		{"framecount", GetVICount},
 		{"samplecount", GetSampleCount},
-		{"inputcount", GetInputCount},
+		{"inputcount", LuaCore::Joypad::GetInputCount},
 
 		{"getversion", GetMupenVersion},
 
@@ -1586,6 +1573,18 @@ void instrStr1(unsigned long pc, unsigned long w, char* p1)
 #undef REGCPU2
 #undef REGFPU2
 #undef C
+}
+
+EmulationLock::EmulationLock()
+{
+	printf("Emulation Lock\n");
+	pauseEmu(FALSE);
+}
+
+EmulationLock::~EmulationLock()
+{
+	resumeEmu(FALSE);
+	printf("Emulation Unlock\n");
 }
 
 void TraceLogging(r4300word pc, r4300word w)

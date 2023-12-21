@@ -85,6 +85,12 @@ void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
 static uint32_t bitmap_color_mask = RGB(255, 0, 255);
 
+struct EmulationLock
+{
+	EmulationLock();
+	~EmulationLock();
+};
+
 class LuaEnvironment {
 public:
 	bool stopping = false;
@@ -187,6 +193,7 @@ private:
 
 extern bool enableTraceLog;
 extern bool traceLogMode;
+extern uint64_t inputCount;
 
 /**
  * \brief The controller data at time of the last input poll
