@@ -585,7 +585,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
             Config.is_state_independent_state_loading_allowed = get_checkbox_state(
                 hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
-            timer_init();
         }
         break;
     default:
