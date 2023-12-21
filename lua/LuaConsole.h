@@ -84,6 +84,21 @@ void stop_all_scripts();
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
 static uint32_t bitmap_color_mask = RGB(255, 0, 255);
+static const char* const REG_LUACLASS = "C";
+static const char* const REG_ATUPDATESCREEN = "S";
+static const char* const REG_ATVI = "V";
+static const char* const REG_ATINPUT = "I";
+static const char* const REG_ATSTOP = "T";
+static const char* const REG_SYNCBREAK = "B";
+static const char* const REG_READBREAK = "R";
+static const char* const REG_WRITEBREAK = "W";
+static const char* const REG_WINDOWMESSAGE = "M";
+static const char* const REG_ATINTERVAL = "N";
+static const char* const REG_ATPLAYMOVIE = "PM";
+static const char* const REG_ATSTOPMOVIE = "SM";
+static const char* const REG_ATLOADSTATE = "LS";
+static const char* const REG_ATSAVESTATE = "SS";
+static const char* const REG_ATRESET = "RE";
 
 struct EmulationLock
 {
@@ -217,5 +232,19 @@ extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
  * \param L The lua state
  */
 extern LuaEnvironment* GetLuaClass(lua_State* L);
+
+/**
+ * \brief Registers a function with a key to a lua state
+ * \param L The lua state
+ * \param key The function's key
+ */
+int RegisterFunction(lua_State* L, const char* key);
+
+/**
+ * \brief Unregisters a function with a key to a lua state
+* \param L The lua state
+ * \param key The function's key
+ */
+void UnregisterFunction(lua_State* L, const char* key);
 
 #endif

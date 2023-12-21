@@ -517,11 +517,7 @@ namespace LuaCore::Wgui
 		return 0;
 	}
 
-	static int Screenshot(lua_State* L)
-	{
-		CaptureScreen((char*)luaL_checkstring(L, 1));
-		return 0;
-	}
+
 
 	static int LoadScreen(lua_State* L)
 	{

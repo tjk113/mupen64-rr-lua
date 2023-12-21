@@ -4,11 +4,6 @@
 
 namespace LuaCore::Joypad
 {
-	static int GetInputCount(lua_State* L)
-	{
-		lua_pushinteger(L, inputCount);
-		return 1;
-	}
 
 	static int lua_get_joypad(lua_State* L)
 	{

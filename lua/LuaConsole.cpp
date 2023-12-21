@@ -45,6 +45,7 @@
 
 #include "modules/avi.h"
 #include "modules/d2d.h"
+#include "modules/emu.h"
 #include "modules/global.h"
 #include "modules/input.h"
 #include "modules/iohelper.h"
@@ -58,8 +59,7 @@
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
-extern int m_current_vi;
-extern long m_current_sample;
+
 extern int fast_memory;
 inline void TraceLoggingBufFlush();
 
@@ -148,21 +148,7 @@ t_window_procedure_params window_proc_params = {0};
 	extern const char* const REG_ATSTOP;
 	int AtStop(lua_State* L);
 
-	const char* const REG_LUACLASS = "C";
-	const char* const REG_ATUPDATESCREEN = "S";
-	const char* const REG_ATVI = "V";
-	const char* const REG_ATINPUT = "I";
-	const char* const REG_ATSTOP = "T";
-	const char* const REG_SYNCBREAK = "B";
-	const char* const REG_READBREAK = "R";
-	const char* const REG_WRITEBREAK = "W";
-	const char* const REG_WINDOWMESSAGE = "M";
-	const char* const REG_ATINTERVAL = "N";
-	const char* const REG_ATPLAYMOVIE = "PM";
-	const char* const REG_ATSTOPMOVIE = "SM";
-	const char* const REG_ATLOADSTATE = "LS";
-	const char* const REG_ATSAVESTATE = "SS";
-	const char* const REG_ATRESET = "RE";
+
 
 	int AtUpdateScreen(lua_State* L);
 
@@ -614,42 +600,8 @@ void lua_create_and_run(const char* path)
 
 
 
-	int GetSystemMetricsLua(lua_State* L)
-	{
-		LuaEnvironment* lua = GetLuaClass(L);
 
-		lua_pushinteger(L, GetSystemMetrics(luaL_checkinteger(L, 1)));
 
-		return 1;
-	}
-
-	int IsMainWindowInForeground(lua_State* L)
-	{
-		LuaEnvironment* lua = GetLuaClass(L);
-		lua_pushboolean(
-			L, GetForegroundWindow() == mainHWND || GetActiveWindow() ==
-			mainHWND);
-		return 1;
-	}
-
-	//emu
-	int ConsoleWriteLua(lua_State* L)
-	{
-		ConsoleWrite(GetLuaClass(L)->hwnd, lua_tostring(L, 1));
-		return 0;
-	}
-
-	int DebugviewWrite(lua_State* L)
-	{
-		printf("%s\n", (char*)lua_tostring(L, 1));
-		return 0;
-	}
-
-	int StatusbarWrite(lua_State* L)
-	{
-		statusbar_post_text(std::string(lua_tostring(L, 1)));
-		return 0;
-	}
 
 	int AtUpdateScreen(lua_State* L)
 	{
@@ -684,311 +636,13 @@ void lua_create_and_run(const char* path)
 		return lua_pcall(L, 4, 0, 0);
 	}
 
-	int RegisterUpdateScreen(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATUPDATESCREEN);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATUPDATESCREEN);
-		}
-		return 0;
-	}
 
-	int RegisterVI(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATVI);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATVI);
-		}
-		return 0;
-	}
-
-	int RegisterInput(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATINPUT);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATINPUT);
-		}
-		return 0;
-	}
-
-	int RegisterStop(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATSTOP);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATSTOP);
-		}
-		return 0;
-	}
-
-	int RegisterWindowMessage(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_WINDOWMESSAGE);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_WINDOWMESSAGE);
-		}
-		return 0;
-	}
-
-	int RegisterInterval(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATINTERVAL);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATINTERVAL);
-		}
-		return 0;
-	}
-
-	int RegisterPlayMovie(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATPLAYMOVIE);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATPLAYMOVIE);
-		}
-		return 0;
-	}
-
-	int RegisterStopMovie(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATSTOPMOVIE);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATSTOPMOVIE);
-		}
-		return 0;
-	}
-
-	int RegisterLoadState(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATLOADSTATE);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATLOADSTATE);
-		}
-		return 0;
-	}
-
-	int RegisterSaveState(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATSAVESTATE);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATSAVESTATE);
-		}
-		return 0;
-	}
-
-	int RegisterReset(lua_State* L)
-	{
-		if (lua_toboolean(L, 2))
-		{
-			lua_pop(L, 1);
-			UnregisterFunction(L, REG_ATRESET);
-		} else
-		{
-			if (lua_gettop(L) == 2)
-				lua_pop(L, 1);
-			RegisterFunction(L, REG_ATRESET);
-		}
-		return 0;
-	}
 
 	//generic function used for all of the At... callbacks, calls function from stack top.
 	int CallTop(lua_State* L)
 	{
 		return lua_pcall(L, 0, 0, 0);
 	}
-
-	int GetVICount(lua_State* L)
-	{
-		lua_pushinteger(L, m_current_vi);
-		return 1;
-	}
-
-	int GetSampleCount(lua_State* L)
-	{
-		lua_pushinteger(L, m_current_sample);
-		return 1;
-	}
-
-
-
-
-	int GetMupenVersion(lua_State* L)
-	{
-		int type = luaL_checknumber(L, 1);
-		const char* version;
-		// 0 = name + version number
-		// 1 = version number
-		version = MUPEN_VERSION;
-		if (type > 0)
-			version = {&MUPEN_VERSION[strlen("Mupen 64 ")]};
-
-
-		lua_pushstring(L, version);
-		return 1;
-	}
-
-	int GetVCRReadOnly(lua_State* L)
-	{
-		lua_pushboolean(L, vcr_get_read_only());
-		return 1;
-	}
-
-	int SetGFX(lua_State* L)
-	{
-		// stub for now
-		return 0;
-	}
-
-	int LuaPlaySound(lua_State* L)
-	{
-		PlaySound(luaL_checkstring(L, 1), NULL, SND_FILENAME | SND_ASYNC);
-		return 1;
-	}
-
-	int GetAddress(lua_State* L)
-	{
-		struct NameAndVariable
-		{
-			const char* name;
-			void* pointer;
-		};
-#define A(n) {#n, &n}
-#define B(n) {#n, n}
-		const NameAndVariable list[] = {
-			A(rdram),
-			A(rdram_register),
-			A(MI_register),
-			A(pi_register),
-			A(sp_register),
-			A(rsp_register),
-			A(si_register),
-			A(vi_register),
-			A(ri_register),
-			A(ai_register),
-			A(dpc_register),
-			A(dps_register),
-			B(SP_DMEM),
-			B(PIF_RAM),
-			{NULL, NULL}
-		};
-#undef A
-#undef B
-		const char* s = lua_tostring(L, 1);
-		for (const NameAndVariable* p = list; p->name; p++)
-		{
-			if (lstrcmpi(p->name, s) == 0)
-			{
-				lua_pushinteger(L, (unsigned)p->pointer);
-				return 1;
-			}
-		}
-		return 0;
-	}
-
-	int EmuPause(lua_State* L)
-	{
-		if (!lua_toboolean(L, 1))
-		{
-			pauseEmu(FALSE);
-		} else
-		{
-			resumeEmu(TRUE);
-		}
-		return 0;
-	}
-
-	int GetEmuPause(lua_State* L)
-	{
-		lua_pushboolean(L, emu_paused);
-		return 1;
-	}
-
-	int GetSpeed(lua_State* L)
-	{
-		lua_pushinteger(L, Config.fps_modifier);
-		return 1;
-	}
-
-	int SetSpeed(lua_State* L)
-	{
-		Config.fps_modifier = luaL_checkinteger(L, 1);
-		timer_init(Config.fps_modifier, &ROM_HEADER);
-		on_speed_modifier_changed(Config.fps_modifier);
-		return 0;
-	}
-
-	int SetSpeedMode(lua_State* L)
-	{
-		if (!strcmp(luaL_checkstring(L, 1), "normal")) {
-			Config.fps_modifier = 100;
-		} else {
-			Config.fps_modifier = 10000;
-		}
-		return 0;
-	}
-
-
-
-
-
 
 	const luaL_Reg globalFuncs[] = {
 		{"print", LuaCore::Global::Print},
@@ -999,45 +653,51 @@ void lua_create_and_run(const char* path)
 	};
 	//�G���Ȋ֐�
 	const luaL_Reg emuFuncs[] = {
-		{"console", ConsoleWriteLua},
-		{"debugview", DebugviewWrite},
-		{"statusbar", StatusbarWrite},
+		{"console", LuaCore::Emu::ConsoleWriteLua},
+		// DEPRECATE: DebugView doesn't exist anymore
+		{"debugview", LuaCore::Emu::DebugviewWrite},
+		{"statusbar", LuaCore::Emu::StatusbarWrite},
 
-		{"atvi", RegisterVI},
-		{"atupdatescreen", RegisterUpdateScreen},
-		{"atinput", RegisterInput},
-		{"atstop", RegisterStop},
-		{"atwindowmessage", RegisterWindowMessage},
-		{"atinterval", RegisterInterval},
-		{"atplaymovie", RegisterPlayMovie},
-		{"atstopmovie", RegisterStopMovie},
-		{"atloadstate", RegisterLoadState},
-		{"atsavestate", RegisterSaveState},
-		{"atreset", RegisterReset},
+		{"atvi", LuaCore::Emu::RegisterVI},
+		{"atupdatescreen", LuaCore::Emu::RegisterUpdateScreen},
+		{"atinput", LuaCore::Emu::RegisterInput},
+		{"atstop", LuaCore::Emu::RegisterStop},
+		{"atwindowmessage", LuaCore::Emu::RegisterWindowMessage},
+		{"atinterval", LuaCore::Emu::RegisterInterval},
+		{"atplaymovie", LuaCore::Emu::RegisterPlayMovie},
+		{"atstopmovie", LuaCore::Emu::RegisterStopMovie},
+		{"atloadstate", LuaCore::Emu::RegisterLoadState},
+		{"atsavestate", LuaCore::Emu::RegisterSaveState},
+		{"atreset", LuaCore::Emu::RegisterReset},
 
-		{"framecount", GetVICount},
-		{"samplecount", GetSampleCount},
-		{"inputcount", LuaCore::Joypad::GetInputCount},
+		{"framecount", LuaCore::Emu::GetVICount},
+		{"samplecount", LuaCore::Emu::GetSampleCount},
+		{"inputcount", LuaCore::Emu::GetInputCount},
 
-		{"getversion", GetMupenVersion},
+		// DEPRECATE: This is completely useless
+		{"getversion", LuaCore::Emu::GetMupenVersion},
 
-		{"pause", EmuPause},
-		{"getpause", GetEmuPause},
-		{"getspeed", GetSpeed},
-		{"speed", SetSpeed},
-		{"speedmode", SetSpeedMode},
-		{"setgfx", SetGFX},
+		{"pause", LuaCore::Emu::EmuPause},
+		{"getpause", LuaCore::Emu::GetEmuPause},
+		{"getspeed", LuaCore::Emu::GetSpeed},
+		{"speed", LuaCore::Emu::SetSpeed},
+		{"speedmode", LuaCore::Emu::SetSpeedMode},
+		// DEPRECATE: This is completely useless
+		{"setgfx", LuaCore::Emu::SetGFX},
 
-		{"getaddress", GetAddress},
+		{"getaddress", LuaCore::Emu::GetAddress},
 
-		{"isreadonly", GetVCRReadOnly},
+		// TODO: Move to vcr module
+		{"isreadonly", LuaCore::Emu::GetVCRReadOnly},
 
-		{"getsystemmetrics", GetSystemMetricsLua},
-		// irrelevant to core but i dont give a
-		{"ismainwindowinforeground", IsMainWindowInForeground},
+		{"screenshot", LuaCore::Emu::Screenshot},
 
-		{"screenshot", LuaCore::Wgui::Screenshot},
-		{"play_sound", LuaPlaySound},
+#pragma region WinAPI
+		{"getsystemmetrics", LuaCore::Emu::GetSystemMetricsLua},
+		{"ismainwindowinforeground", LuaCore::Emu::IsMainWindowInForeground},
+		{"play_sound", LuaCore::Emu::LuaPlaySound},
+#pragma endregion
+
 		{NULL, NULL}
 	};
 	const luaL_Reg memoryFuncs[] = {
@@ -1147,7 +807,8 @@ void lua_create_and_run(const char* path)
 	const luaL_Reg joypadFuncs[] = {
 		{"get", LuaCore::Joypad::lua_get_joypad},
 		{"set", LuaCore::Joypad::lua_set_joypad},
-		{"count", LuaCore::Joypad::GetInputCount},
+		// OBSOLETE: Cross-module reach
+		{"count", LuaCore::Emu::GetInputCount},
 		{NULL, NULL}
 	};
 
