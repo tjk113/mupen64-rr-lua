@@ -48,6 +48,7 @@
 #include "modules/joypad.h"
 #include "modules/memory.h"
 #include "modules/movie.h"
+#include "modules/savestate.h"
 #include "modules/wgui.h"
 #include "win/timers.h"
 #pragma comment(lib, "lua54.lib")
@@ -1165,19 +1166,7 @@ void lua_create_and_run(const char* path)
 
 
 
-	//savestate
-	//�蔲��
-	int SaveFileSavestate(lua_State* L)
-	{
-		savestates_do(lua_tostring(L, 1), e_st_job::save);
-		return 0;
-	}
 
-	int LoadFileSavestate(lua_State* L)
-	{
-		savestates_do(lua_tostring(L, 1), e_st_job::load);
-		return 0;
-	}
 
 	// IO
 	int LuaFileDialog(lua_State* L)
@@ -1393,8 +1382,8 @@ void lua_create_and_run(const char* path)
 	};
 
 	const luaL_Reg savestateFuncs[] = {
-		{"savefile", SaveFileSavestate},
-		{"loadfile", LoadFileSavestate},
+		{"savefile", LuaCore::Savestate::SaveFileSavestate},
+		{"loadfile", LuaCore::Savestate::LoadFileSavestate},
 		{NULL, NULL}
 	};
 	const luaL_Reg ioHelperFuncs[] = {
