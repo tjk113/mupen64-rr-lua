@@ -45,6 +45,7 @@
 
 #include "modules/d2d.h"
 #include "modules/input.h"
+#include "modules/iohelper.h"
 #include "modules/joypad.h"
 #include "modules/memory.h"
 #include "modules/movie.h"
@@ -1165,30 +1166,6 @@ void lua_create_and_run(const char* path)
 	}
 
 
-
-
-
-	// IO
-	int LuaFileDialog(lua_State* L)
-	{
-		EmulationLock lock;
-		auto filter = string_to_wstring(std::string(luaL_checkstring(L, 1)));
-		const int32_t type = luaL_checkinteger(L, 2);
-
-		std::wstring path;
-
-		if (type == 0)
-		{
-			path = show_persistent_open_dialog("o_lua_api", mainHWND, filter);
-		} else
-		{
-			path = show_persistent_save_dialog("o_lua_api", mainHWND, filter);
-		}
-
-		lua_pushstring(L, wstring_to_string(path).c_str());
-		return 1;
-	}
-
 	// AVI
 	int StartCapture(lua_State* L)
 	{
@@ -1387,7 +1364,7 @@ void lua_create_and_run(const char* path)
 		{NULL, NULL}
 	};
 	const luaL_Reg ioHelperFuncs[] = {
-		{"filediag", LuaFileDialog},
+		{"filediag", LuaCore::IOHelper::LuaFileDialog},
 		{NULL, NULL}
 	};
 	const luaL_Reg aviFuncs[] = {
