@@ -2797,7 +2797,8 @@ int LuaD2DDrawText(lua_State* L)
 	int SetSpeed(lua_State* L)
 	{
 		Config.fps_modifier = luaL_checkinteger(L, 1);
-		timer_init();
+		timer_init(Config.fps_modifier, &ROM_HEADER);
+		on_speed_modifier_changed(Config.fps_modifier);
 		return 0;
 	}
 

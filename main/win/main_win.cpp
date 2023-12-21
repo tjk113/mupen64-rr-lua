@@ -278,7 +278,9 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	rombrowser_set_visibility(0);
 	statusbar_set_mode(statusbar_mode::emulating);
 	enable_emulation_menu_items(TRUE);
-	timer_init();
+	timer_init(Config.fps_modifier, &ROM_HEADER);
+	on_speed_modifier_changed(Config.fps_modifier);
+
 	if (m_task == e_task::idle) {
 		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
 	}
@@ -2150,7 +2152,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.fps_modifier = Config.fps_modifier + 50;
 				if (Config.fps_modifier > 1000)
 					Config.fps_modifier = 1000;
-				timer_init();
+				timer_init(Config.fps_modifier, &ROM_HEADER);
+				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			case IDC_DECREASE_MODIFIER:
 				if (Config.fps_modifier > 200)
@@ -2163,11 +2166,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.fps_modifier = Config.fps_modifier - 5;
 				if (Config.fps_modifier < 5)
 					Config.fps_modifier = 5;
-				timer_init();
+				timer_init(Config.fps_modifier, &ROM_HEADER);
+				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			case IDC_RESET_MODIFIER:
 				Config.fps_modifier = 100;
-				timer_init();
+				timer_init(Config.fps_modifier, &ROM_HEADER);
+				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			default:
 				if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam)
