@@ -190,6 +190,10 @@ extern bool overwrite_controller_data[4];
 
 extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
-
+/**
+ * \brief Gets the lua environment associated to a lua state
+ * \param L The lua state
+ */
+extern LuaEnvironment* GetLuaClass(lua_State* L);
 
 #endif
