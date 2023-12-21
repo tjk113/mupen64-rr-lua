@@ -1513,7 +1513,6 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 	lua_atpanic(lua_environment->L, AtPanic);
 	SetLuaClass(lua_environment->L, lua_environment);
 	lua_environment->register_functions();
-	luaL_dostring(lua_environment->L, "os.execute = function() print('os.execute is disabled') end");
 	lua_environment->create_renderer();
 
 	bool error = luaL_dofile(lua_environment->L, lua_environment->path.string().c_str());
@@ -1667,6 +1666,9 @@ void LuaEnvironment::register_functions() {
 
 	// COMPAT: table.getn deprecated, replaced by # prefix
 	luaL_dostring(L, "table.getn = function(t) return #t end");
+
+	// os.execute poses security risks
+	luaL_dostring(L, "os.execute = function() print('os.execute is disabled') end");
 }
 
 void LuaEnvironment::setGDIObject(HGDIOBJ* save, HGDIOBJ newobj) {
