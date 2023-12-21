@@ -738,9 +738,9 @@ void lua_create_and_run(const char* path)
 
 	//winAPI GDI�֐���
 	const luaL_Reg wguiFuncs[] = {
-		{"setbrush", LuaCore::Wgui::SetBrush},
-		{"setpen", LuaCore::Wgui::SetPen},
-		{"setcolor", LuaCore::Wgui::SetTextColor},
+		{"setbrush", LuaCore::Wgui::set_brush},
+		{"setpen", LuaCore::Wgui::set_pen},
+		{"setcolor", LuaCore::Wgui::set_text_color},
 		{"setbk", LuaCore::Wgui::SetBackgroundColor},
 		{"setfont", LuaCore::Wgui::SetFont},
 		{"text", LuaCore::Wgui::LuaTextOut},
@@ -1530,56 +1530,15 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 
 LuaEnvironment::~LuaEnvironment() {
 	invoke_callbacks_with_key(AtStop, REG_ATSTOP);
-	deleteGDIObject(brush, WHITE_BRUSH);
-	deleteGDIObject(pen, BLACK_PEN);
-	deleteGDIObject(font, SYSTEM_FONT);
+	SelectObject(dc, nullptr);
+	DeleteObject(brush);
+	DeleteObject(pen);
+	DeleteObject(font);
 	lua_close(L);
 	L = NULL;
 	SetButtonState(hwnd, false);
 	this->destroy_renderer();
 	printf("Lua destroyed\n");
-}
-
-void LuaEnvironment::setBrush(HBRUSH h) {
-	setGDIObject((HGDIOBJ*)&brush, h);
-}
-
-void LuaEnvironment::selectBrush() {
-	selectGDIObject(brush);
-}
-
-void LuaEnvironment::setPen(HPEN h) {
-	setGDIObject((HGDIOBJ*)&pen, h);
-}
-
-void LuaEnvironment::selectPen() {
-	selectGDIObject(pen);
-}
-
-void LuaEnvironment::setFont(HFONT h) {
-	setGDIObject((HGDIOBJ*)&font, h);
-}
-
-void LuaEnvironment::selectFont() {
-	selectGDIObject(font);
-}
-
-void LuaEnvironment::setTextColor(COLORREF c) {
-	col = c;
-}
-
-void LuaEnvironment::selectTextColor() {
-	::SetTextColor(this->dc, col);
-}
-
-void LuaEnvironment::setBackgroundColor(COLORREF c, int mode) {
-	bkcol = c;
-	bkmode = mode;
-}
-
-void LuaEnvironment::selectBackgroundColor() {
-	::SetBkMode(this->dc, bkmode);
-	::SetBkColor(this->dc, bkcol);
 }
 
 //calls all functions that lua script has defined as callbacks, reads them from registry
@@ -1669,21 +1628,4 @@ void LuaEnvironment::register_functions() {
 
 	// os.execute poses security risks
 	luaL_dostring(L, "os.execute = function() print('os.execute is disabled') end");
-}
-
-void LuaEnvironment::setGDIObject(HGDIOBJ* save, HGDIOBJ newobj) {
-	if (*save)
-		::DeleteObject(*save);
-	DEBUG_GETLASTERROR;
-	*save = newobj;
-}
-
-void LuaEnvironment::selectGDIObject(HGDIOBJ p) {
-	SelectObject(this->dc, p);
-	DEBUG_GETLASTERROR;
-}
-
-void LuaEnvironment::deleteGDIObject(HGDIOBJ p, int stockobj) {
-	SelectObject(this->dc, GetStockObject(stockobj));
-	DeleteObject(p);
 }

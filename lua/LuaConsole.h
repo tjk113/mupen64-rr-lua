@@ -136,6 +136,12 @@ public:
 	t_window_info windowSize{};
 	HBITMAP hbitmap;
 
+	HBRUSH brush;
+	HPEN pen;
+	HFONT font;
+	COLORREF col, bkcol;
+	int bkmode;
+
 	/**
 	 * \brief Destroys and stops the environment
 	 */
@@ -150,16 +156,6 @@ public:
 	 */
 	void draw();
 
-	void setBrush(HBRUSH h);
-	void selectBrush();
-	void setPen(HPEN h);
-	void selectPen();
-	void setFont(HFONT h);
-	void selectFont();
-	void setTextColor(COLORREF c);
-	void selectTextColor();
-	void setBackgroundColor(COLORREF c, int mode = OPAQUE);
-	void selectBackgroundColor();
 	//calls all functions that lua script has defined as callbacks, reads them from registry
 	//returns true at fail
 	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
@@ -195,15 +191,7 @@ public:
 
 private:
 	void register_functions();
-	void setGDIObject(HGDIOBJ* save, HGDIOBJ newobj);
-	void selectGDIObject(HGDIOBJ p);
-	void deleteGDIObject(HGDIOBJ p, int stockobj);
-	// gdi objects are filled in on run(), then deleted on stop()
-	HBRUSH brush;
-	HPEN pen;
-	HFONT font;
-	COLORREF col, bkcol;
-	int bkmode;
+
 };
 
 extern bool enableTraceLog;

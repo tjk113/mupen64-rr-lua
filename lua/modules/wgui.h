@@ -3,6 +3,7 @@
 
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
+#include "../../main/helpers/win_helpers.h"
 
 namespace LuaCore::Wgui
 {
@@ -139,38 +140,48 @@ namespace LuaCore::Wgui
 		return c;
 	}
 
-	//wgui
-	static int SetBrush(lua_State* L)
+	static int set_brush(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
+
+		if (lua->brush)
+		{
+			DeleteObject(lua->brush);
+		}
 
 		const char* s = lua_tostring(L, 1);
 		if (lstrcmpi(s, "null") == 0)
-			lua->setBrush((HBRUSH)GetStockObject(NULL_BRUSH));
+			lua->brush = (HBRUSH)GetStockObject(NULL_BRUSH);
 		else
-			lua->setBrush(::CreateSolidBrush(StrToColor(s)));
+			lua->brush = CreateSolidBrush(StrToColor(s));
+
 		return 0;
 	}
 
-	static int SetPen(lua_State* L)
+	static int set_pen(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
+
+		if (lua->pen)
+		{
+			DeleteObject(lua->pen);
+		}
 
 		const char* s = lua_tostring(L, 1);
+		int width = luaL_optnumber(L, 2, 1);
+
 		if (lstrcmpi(s, "null") == 0)
-			lua->setPen((HPEN)GetStockObject(NULL_PEN));
+			lua->pen = (HPEN)GetStockObject(NULL_PEN);
 		else
-			// optional pen width defaults to 1
-			lua->setPen(
-				::CreatePen(PS_SOLID, luaL_optnumber(L, 2, 1), StrToColor(s)));
+			lua->pen = CreatePen(PS_SOLID, width, StrToColor(s));
+
 		return 0;
 	}
 
-	static int SetTextColor(lua_State* L)
+	static int set_text_color(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-
-		lua->setTextColor(StrToColor(lua_tostring(L, 1)));
+		lua->col = StrToColor(lua_tostring(L, 1));
 		return 0;
 	}
 
@@ -180,26 +191,32 @@ namespace LuaCore::Wgui
 
 		const char* s = lua_tostring(L, 1);
 		if (lstrcmpi(s, "null") == 0)
-			lua->setBackgroundColor(0, TRANSPARENT);
+			lua->bkmode = TRANSPARENT;
 		else
-			lua->setBackgroundColor(StrToColor(s));
+			lua->bkcol = StrToColor(s);
+
 		return 0;
 	}
 
 	static int SetFont(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-
-
 		LOGFONT font = {0};
 
-		// set the size of the font
-		font.lfHeight = -MulDiv(luaL_checknumber(L, 1),
-		                        GetDeviceCaps(lua->dc, LOGPIXELSY), 72);
-		lstrcpyn(font.lfFaceName, luaL_optstring(L, 2, "MS Gothic"),
-		         LF_FACESIZE);
-		font.lfCharSet = DEFAULT_CHARSET;
+		if (lua->font)
+		{
+			DeleteObject(lua->font);
+		}
+
+		auto font_size = luaL_checknumber(L, 1);
+		const char* font_name = luaL_optstring(L, 2, "MS Gothic");
 		const char* style = luaL_optstring(L, 3, "");
+
+		// set the size of the font
+		font.lfHeight = -MulDiv(font_size,
+		                        GetDeviceCaps(lua->dc, LOGPIXELSY), 72);
+		lstrcpyn(font.lfFaceName, font_name, LF_FACESIZE);
+		font.lfCharSet = DEFAULT_CHARSET;
 		for (const char* p = style; *p; p++)
 		{
 			switch (*p)
@@ -216,7 +233,7 @@ namespace LuaCore::Wgui
 				break;
 			}
 		}
-		GetLuaClass(L)->setFont(CreateFontIndirect(&font));
+		lua->font = CreateFontIndirect(&font);
 		return 0;
 	}
 
@@ -224,9 +241,10 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		lua->selectTextColor();
-		lua->selectBackgroundColor();
-		lua->selectFont();
+		SetBkMode(lua->dc, lua->bkmode);
+		SetBkColor(lua->dc, lua->bkcol);
+		SetTextColor(lua->dc, lua->col);
+		SelectObject(lua->dc, lua->font);
 
 		int x = luaL_checknumber(L, 1);
 		int y = luaL_checknumber(L, 2);
@@ -278,11 +296,13 @@ namespace LuaCore::Wgui
 	static int GetTextExtent(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-
-
 		const char* string = luaL_checkstring(L, 1);
+
+		SelectObject(lua->dc, lua->font);
+
 		SIZE size = {0};
 		GetTextExtentPoint32(lua->dc, string, strlen(string), &size);
+
 		lua_newtable(L);
 		lua_pushinteger(L, size.cx);
 		lua_setfield(L, -2, "width");
@@ -295,10 +315,11 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
+		SetBkMode(lua->dc, lua->bkmode);
+		SetBkColor(lua->dc, lua->bkcol);
+		SetTextColor(lua->dc, lua->col);
+		SelectObject(lua->dc, lua->font);
 
-		lua->selectTextColor();
-		lua->selectBackgroundColor();
-		lua->selectFont();
 		RECT rect = {0};
 		UINT format = DT_NOPREFIX | DT_WORDBREAK;
 		if (!GetRectLua(L, 2, &rect))
@@ -341,10 +362,10 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-
-		lua->selectTextColor();
-		lua->selectBackgroundColor();
-		lua->selectFont();
+		SetBkMode(lua->dc, lua->bkmode);
+		SetBkColor(lua->dc, lua->bkcol);
+		SetTextColor(lua->dc, lua->col);
+		SelectObject(lua->dc, lua->font);
 
 		RECT rect = {0};
 		LPSTR string = (LPSTR)lua_tostring(L, 1);
@@ -368,9 +389,9 @@ namespace LuaCore::Wgui
 		int cornerW = luaL_optnumber(L, 5, 0);
 		int cornerH = luaL_optnumber(L, 6, 0);
 
-		lua->selectBrush();
-		lua->selectPen();
-		::RoundRect(lua->dc, left, top, right, bottom, cornerW, cornerH);
+		SelectObject(lua->dc, lua->brush);
+		SelectObject(lua->dc, lua->pen);
+		RoundRect(lua->dc, left, top, right, bottom, cornerW, cornerH);
 		return 0;
 	}
 
@@ -704,8 +725,8 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		lua->selectBrush();
-		lua->selectPen();
+		SelectObject(lua->dc, lua->brush);
+		SelectObject(lua->dc, lua->pen);
 
 		int left = luaL_checknumber(L, 1);
 		int top = luaL_checknumber(L, 2);
@@ -744,8 +765,8 @@ namespace LuaCore::Wgui
 			p[i].y = lua_tointeger(L, -1);
 			lua_pop(L, 2);
 		}
-		lua->selectBrush();
-		lua->selectPen();
+		SelectObject(lua->dc, lua->brush);
+		SelectObject(lua->dc, lua->pen);
 		::Polygon(lua->dc, p, n);
 		return 0;
 	}
@@ -754,8 +775,7 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-
-		lua->selectPen();
+		SelectObject(lua->dc, lua->pen);
 		::MoveToEx(lua->dc, luaL_checknumber(L, 1), luaL_checknumber(L, 2),
 		           NULL);
 		::LineTo(lua->dc, luaL_checknumber(L, 3), luaL_checknumber(L, 4));
