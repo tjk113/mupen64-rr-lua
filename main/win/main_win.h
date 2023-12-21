@@ -80,3 +80,9 @@ bool is_frame_skipped();
  * \brief Updates the titlebar to reflect the current application state
  */
 void update_titlebar();
+
+/**
+ * \brief Notifies the frontend of speed modifier changing
+ * \param value The new speed modifier
+ */
+void on_speed_modifier_changed(int32_t value);

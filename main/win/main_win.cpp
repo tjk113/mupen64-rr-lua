@@ -1356,6 +1356,11 @@ void update_titlebar()
 	SetWindowText(mainHWND, text.c_str());
 }
 
+void on_speed_modifier_changed(int32_t value)
+{
+	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
+}
+
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId)
 {
 	return !(GetMenuState(hMenu, uId, MF_BYCOMMAND) & (MF_DISABLED |
