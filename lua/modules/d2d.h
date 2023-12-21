@@ -73,7 +73,7 @@ namespace LuaCore::D2D
 	luaL_checknumber(L, idx + 6) \
 )
 
-	static int LuaD2DFillRectangle(lua_State* L)
+	static int fill_rectangle(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -87,7 +87,7 @@ namespace LuaCore::D2D
 		return 0;
 	}
 
-	static int LuaD2DDrawRectangle(lua_State* L)
+	static int draw_rectangle(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -102,7 +102,7 @@ namespace LuaCore::D2D
 		return 0;
 	}
 
-	static int LuaD2DFillEllipse(lua_State* L)
+	static int fill_ellipse(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -116,7 +116,7 @@ namespace LuaCore::D2D
 		return 0;
 	}
 
-	static int LuaD2DDrawEllipse(lua_State* L)
+	static int draw_ellipse(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -131,7 +131,7 @@ namespace LuaCore::D2D
 		return 0;
 	}
 
-	static int LuaD2DDrawLine(lua_State* L)
+	static int draw_line(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -148,7 +148,7 @@ namespace LuaCore::D2D
 	}
 
 
-static int LuaD2DDrawText(lua_State* L)
+static int draw_text(lua_State* L)
 {
 	LuaEnvironment* lua = GetLuaClass(L);
 
@@ -213,7 +213,7 @@ static int LuaD2DDrawText(lua_State* L)
 	return 0;
 }
 
-	static int LuaD2DSetTextAntialiasMode(lua_State* L)
+	static int set_text_antialias_mode(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 		float mode = luaL_checkinteger(L, 1);
@@ -222,7 +222,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DSetAntialiasMode(lua_State* L)
+	static int set_antialias_mode(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 		float mode = luaL_checkinteger(L, 1);
@@ -230,7 +230,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DGetTextSize(lua_State* L)
+	static int measure_text(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -274,7 +274,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 1;
 	}
 
-	static int LuaD2DPushClip(lua_State* L)
+	static int push_clip(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -288,7 +288,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DPopClip(lua_State* L)
+	static int pop_clip(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -297,7 +297,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DFillRoundedRectangle(lua_State* L)
+	static int fill_rounded_rectangle(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -311,7 +311,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DDrawRoundedRectangle(lua_State* L)
+	static int draw_rounded_rectangle(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -327,7 +327,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DLoadImage(lua_State* L)
+	static int load_image(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -394,7 +394,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DFreeImage(lua_State* L)
+	static int free_image(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -404,7 +404,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DDrawImage(lua_State* L)
+	static int draw_image(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -427,7 +427,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DGetImageInfo(lua_State* L)
+	static int get_image_info(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
@@ -448,7 +448,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 1;
 	}
 
-	static int LuaD2DCreateRenderTarget(lua_State* L) {
+	static int create_render_target(lua_State* L) {
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		float width = luaL_checknumber(L, 1);
@@ -465,7 +465,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 1;
 	}
 
-	static int LuaD2DDestroyRenderTarget(lua_State* L) {
+	static int destroy_render_target(lua_State* L) {
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		std::string key = luaL_checkstring(L, 1);
@@ -478,7 +478,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DBeginRenderTarget(lua_State* L) {
+	static int begin_render_target(lua_State* L) {
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		std::string key = luaL_checkstring(L, 1);
@@ -493,7 +493,7 @@ static int LuaD2DDrawText(lua_State* L)
 		return 0;
 	}
 
-	static int LuaD2DEndRenderTarget(lua_State* L) {
+	static int end_render_target(lua_State* L) {
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		std::string key = luaL_checkstring(L, 1);
