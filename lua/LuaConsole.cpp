@@ -2863,12 +2863,6 @@ int LuaD2DDrawText(lua_State* L)
 		return 1;
 	}
 
-	BOOL fileexists(const char* path)
-	{
-		struct stat buffer;
-		return (stat(path, &buffer) == 0);
-	}
-
 	// AVI
 	int StartCapture(lua_State* L)
 	{
@@ -2890,9 +2884,6 @@ int LuaD2DDrawText(lua_State* L)
 			luaL_error(L, "Tried to end AVI capture when none was in progress");
 		return 0;
 	}
-
-	extern void LuaDCUpdate(int redraw);
-
 
 	//input
 
