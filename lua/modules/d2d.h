@@ -332,12 +332,6 @@ static int draw_text(lua_State* L)
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		std::string path(luaL_checkstring(L, 1));
-		std::string identifier(luaL_checkstring(L, 2));
-
-		if (lua->d2d_bitmap_cache.contains(identifier))
-		{
-			lua->d2d_bitmap_cache[identifier]->Release();
-		}
 
 		IWICImagingFactory* pIWICFactory = NULL;
 		IWICBitmapDecoder* pDecoder = NULL;
@@ -389,18 +383,15 @@ static int draw_text(lua_State* L)
 		pSource->Release();
 		pConverter->Release();
 
-		lua->d2d_bitmap_cache[identifier] = bmp;
-
-		return 0;
+		lua_pushinteger(L, (uint64_t)bmp);
+		return 1;
 	}
 
 	static int free_image(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-
-		std::string identifier(luaL_checkstring(L, 1));
-		lua->d2d_bitmap_cache[identifier]->Release();
-		lua->d2d_bitmap_cache.erase(identifier);
+		auto bmp = (ID2D1Bitmap*)luaL_checkinteger(L, 1);
+		bmp->Release();
 		return 0;
 	}
 
@@ -410,14 +401,12 @@ static int draw_text(lua_State* L)
 
 		D2D1_RECT_F destination_rectangle = D2D_GET_RECT(L, 1);
 		D2D1_RECT_F source_rectangle = D2D_GET_RECT(L, 5);
-		std::string identifier(luaL_checkstring(L, 9));
-		float opacity = luaL_checknumber(L, 10);
-		int interpolation = luaL_checkinteger(L, 11);
-
-		ID2D1Bitmap* bitmap = lua->get_loose_bitmap(identifier.c_str());
+		float opacity = luaL_checknumber(L, 9);
+		int interpolation = luaL_checkinteger(L, 10);
+		auto bmp = (ID2D1Bitmap*)luaL_checkinteger(L, 11);
 
 		lua->d2d_render_target_stack.top()->DrawBitmap(
-			bitmap,
+			bmp,
 			destination_rectangle,
 			opacity,
 			(D2D1_BITMAP_INTERPOLATION_MODE)interpolation,
@@ -431,19 +420,14 @@ static int draw_text(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		std::string identifier(luaL_checkstring(L, 1));
-		ID2D1Bitmap* bitmap = lua->get_loose_bitmap(identifier.c_str());
+		auto bmp = (ID2D1Bitmap*)luaL_checkinteger(L, 1);
 
-		if (bitmap == nullptr) {
-			luaL_error(L, "Bitmap doesnt exist");
-		} else {
-			D2D1_SIZE_U size = bitmap->GetPixelSize();
-			lua_newtable(L);
-			lua_pushinteger(L, size.width);
-			lua_setfield(L, -2, "width");
-			lua_pushinteger(L, size.height);
-			lua_setfield(L, -2, "height");
-		}
+		D2D1_SIZE_U size = bmp->GetPixelSize();
+		lua_newtable(L);
+		lua_pushinteger(L, size.width);
+		lua_setfield(L, -2, "width");
+		lua_pushinteger(L, size.height);
+		lua_setfield(L, -2, "height");
 
 		return 1;
 	}
@@ -504,6 +488,23 @@ static int draw_text(lua_State* L)
 		}
 
 		return 0;
+	}
+
+	static int get_render_target_bitmap(lua_State* L) {
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		std::string key = luaL_checkstring(L, 1);
+
+		if (!lua->d2d_bitmap_render_target.contains(key)) {
+			lua_pushinteger(L, 0);
+			return 1;
+		}
+
+		ID2D1Bitmap* bmp;
+		lua->d2d_bitmap_render_target[key]->GetBitmap(&bmp);
+
+		lua_pushinteger(L, (uint64_t)bmp);
+		return 1;
 	}
 
 #undef D2D_GET_RECT

@@ -793,6 +793,7 @@ void lua_create_and_run(const char* path)
 		{"destroy_render_target", LuaCore::D2D::destroy_render_target},
 		{"begin_render_target", LuaCore::D2D::begin_render_target},
 		{"end_render_target", LuaCore::D2D::end_render_target},
+		{"get_render_target_bitmap", LuaCore::D2D::get_render_target_bitmap},
 		{NULL, NULL}
 	};
 
@@ -1457,11 +1458,6 @@ void LuaEnvironment::destroy_renderer()
 		val->Release();
 	}
 	d2d_brush_cache.clear();
-
-	for (auto const& [_, val] : d2d_bitmap_cache) {
-		val->Release();
-	}
-	d2d_bitmap_cache.clear();
 
 	for (auto const& [_, val] : d2d_bitmap_render_target) {
 		val->Release();
