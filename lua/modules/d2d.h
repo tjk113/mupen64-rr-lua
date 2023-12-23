@@ -66,8 +66,7 @@ namespace LuaCore::D2D
 
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
-
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 9);
 
 		lua->d2d_render_target_stack.top()->FillRectangle(&rectangle, brush);
 
@@ -81,8 +80,7 @@ namespace LuaCore::D2D
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 		float thickness = luaL_checknumber(L, 9);
-
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 10);
 
 		lua->d2d_render_target_stack.top()->DrawRectangle(&rectangle, brush, thickness);
 
@@ -95,8 +93,7 @@ namespace LuaCore::D2D
 
 		D2D1_ELLIPSE ellipse = D2D_GET_ELLIPSE(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
-
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 9);
 
 		lua->d2d_render_target_stack.top()->FillEllipse(&ellipse, brush);
 
@@ -110,8 +107,7 @@ namespace LuaCore::D2D
 		D2D1_ELLIPSE ellipse = D2D_GET_ELLIPSE(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 		float thickness = luaL_checknumber(L, 9);
-
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 10);
 
 		lua->d2d_render_target_stack.top()->DrawEllipse(&ellipse, brush, thickness);
 
@@ -126,8 +122,7 @@ namespace LuaCore::D2D
 		D2D1_POINT_2F point_b = D2D_GET_POINT(L, 3);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
 		float thickness = luaL_checknumber(L, 9);
-
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 10);
 
 		lua->d2d_render_target_stack.top()->DrawLine(point_a, point_b, brush, thickness);
 
@@ -141,12 +136,6 @@ static int draw_text(lua_State* L)
 
 	D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
 	auto color = D2D_GET_COLOR(L, 5);
-
-	// we would get tons of near-misses otherwise
-	rectangle.left = (int)rectangle.left;
-	rectangle.top = (int)rectangle.top;
-	rectangle.right = (int)rectangle.right;
-	rectangle.bottom = (int)rectangle.bottom;
 	auto text = std::string(luaL_checkstring(L, 9));
 	auto font_name = std::string(luaL_checkstring(L, 10));
 	auto font_size = static_cast<float>(luaL_checknumber(L, 11));
@@ -154,11 +143,8 @@ static int draw_text(lua_State* L)
 	auto font_style = static_cast<int>(luaL_checkinteger(L, 13));
 	auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14));
 	auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15));
-
-	ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
-
 	int options = luaL_checkinteger(L, 16);
-
+	auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 17);
 
 	IDWriteTextFormat* text_format;
 
@@ -290,8 +276,7 @@ static int draw_text(lua_State* L)
 
 		D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 7);
-
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 11);
 
 		lua->d2d_render_target_stack.top()->FillRoundedRectangle(&rounded_rectangle, brush);
 
@@ -305,8 +290,7 @@ static int draw_text(lua_State* L)
 		D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
 		D2D1::ColorF color = D2D_GET_COLOR(L, 7);
 		float thickness = luaL_checknumber(L, 11);
-
-		ID2D1SolidColorBrush* brush = d2d_get_cached_brush(lua, color);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 12);
 
 		lua->d2d_render_target_stack.top()->DrawRoundedRectangle(
 			&rounded_rectangle, brush, thickness);
@@ -456,8 +440,6 @@ static int draw_text(lua_State* L)
 
 		if (lua->d2d_bitmap_render_target.contains(key)) {
 			lua->d2d_render_target_stack.push(lua->d2d_bitmap_render_target[key]);
-			// we need to clear the brush cache because brushes are rt-scoped
-			lua->d2d_brush_cache.clear();
 			lua->d2d_bitmap_render_target[key]->BeginDraw();
 		}
 
