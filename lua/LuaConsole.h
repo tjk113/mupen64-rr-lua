@@ -125,7 +125,6 @@ public:
 	ID2D1Factory* d2d_factory = nullptr;
 	ID2D1DCRenderTarget* d2d_render_target = nullptr;
 	IDWriteFactory* dw_factory = nullptr;
-	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
 	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
 	std::vector<Gdiplus::Bitmap*> image_pool;

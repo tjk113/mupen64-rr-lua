@@ -772,6 +772,9 @@ void lua_create_and_run(const char* path)
 	};
 
 	const luaL_Reg d2dFuncs[] = {
+		{"create_brush", LuaCore::D2D::create_brush},
+		{"free_brush", LuaCore::D2D::free_brush},
+
 		{"fill_rectangle", LuaCore::D2D::fill_rectangle},
 		{"draw_rectangle", LuaCore::D2D::draw_rectangle},
 		{"fill_ellipse", LuaCore::D2D::fill_ellipse},
@@ -1453,11 +1456,6 @@ void LuaEnvironment::destroy_renderer()
 
 	d2d_factory->Release();
 	d2d_render_target->Release();
-
-	for (auto const& [_, val] : d2d_brush_cache) {
-		val->Release();
-	}
-	d2d_brush_cache.clear();
 
 	for (auto const& [_, val] : d2d_bitmap_render_target) {
 		val->Release();

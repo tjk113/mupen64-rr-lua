@@ -6,42 +6,6 @@
 namespace LuaCore::D2D
 {
 
-	uint32_t get_hash(D2D1::ColorF color)
-	{
-		assert(color.r >= 0.0f && color.r <= 1.0f);
-		assert(color.g >= 0.0f && color.g <= 1.0f);
-		assert(color.b >= 0.0f && color.b <= 1.0f);
-		assert(color.a >= 0.0f && color.a <= 1.0f);
-
-		uint32_t r = static_cast<uint32_t>(color.r * 255.0f);
-		uint32_t g = static_cast<uint32_t>(color.g * 255.0f);
-		uint32_t b = static_cast<uint32_t>(color.b * 255.0f);
-		uint32_t a = static_cast<uint32_t>(color.a * 255.0f);
-
-		return (r << 24) | (g << 16) | (b << 8) | a;
-	}
-
-	ID2D1SolidColorBrush* d2d_get_cached_brush(LuaEnvironment* lua,
-	                                           D2D1::ColorF color)
-	{
-		uint32_t key = get_hash(color);
-
-		if (!lua->d2d_brush_cache.contains(key))
-		{
-			printf("Creating ID2D1SolidColorBrush (%f, %f, %f, %f) = %d\n",
-			       color.r, color.g, color.b, color.a, key);
-
-			ID2D1SolidColorBrush* brush;
-			lua->d2d_render_target_stack.top()->CreateSolidColorBrush(
-				color,
-				&brush
-			);
-			lua->d2d_brush_cache[key] = brush;
-		}
-
-		return lua->d2d_brush_cache[key];
-	}
-
 #define D2D_GET_RECT(L, idx) D2D1::RectF( \
 	luaL_checknumber(L, idx), \
 	luaL_checknumber(L, idx + 1), \
@@ -72,6 +36,29 @@ namespace LuaCore::D2D
 	luaL_checknumber(L, idx + 5), \
 	luaL_checknumber(L, idx + 6) \
 )
+
+	static int create_brush(lua_State* L)
+	{
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		D2D1::ColorF color = D2D_GET_COLOR(L, 1);
+
+		ID2D1SolidColorBrush* brush;
+		lua->d2d_render_target_stack.top()->CreateSolidColorBrush(
+			color,
+			&brush
+		);
+
+		lua_pushinteger(L, (uint64_t)brush);
+		return 1;
+	}
+
+	static int free_brush(lua_State* L)
+	{
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 1);
+		brush->Release();
+		return 0;
+	}
 
 	static int fill_rectangle(lua_State* L)
 	{
