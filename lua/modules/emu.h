@@ -226,12 +226,6 @@ namespace LuaCore::Emu
 		return 1;
 	}
 
-	static int GetVCRReadOnly(lua_State* L)
-	{
-		lua_pushboolean(L, vcr_get_read_only());
-		return 1;
-	}
-
 	static int SetGFX(lua_State* L)
 	{
 		// stub for now

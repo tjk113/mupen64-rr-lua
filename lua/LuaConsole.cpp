@@ -685,9 +685,6 @@ void lua_create_and_run(const char* path)
 
 		{"getaddress", LuaCore::Emu::GetAddress},
 
-		// TODO: Move to vcr module
-		{"isreadonly", LuaCore::Emu::GetVCRReadOnly},
-
 		{"screenshot", LuaCore::Emu::Screenshot},
 
 #pragma region WinAPI
@@ -815,6 +812,7 @@ void lua_create_and_run(const char* path)
 		{"playmovie", LuaCore::Movie::PlayMovie},
 		{"stopmovie", LuaCore::Movie::StopMovie},
 		{"getmoviefilename", LuaCore::Movie::GetMovieFilename},
+		{"isreadonly", LuaCore::Movie::GetVCRReadOnly},
 		{NULL, NULL}
 	};
 

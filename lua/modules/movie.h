@@ -31,4 +31,11 @@ namespace LuaCore::Movie
 		}
 		return 1;
 	}
+
+	static int GetVCRReadOnly(lua_State* L)
+	{
+		lua_pushboolean(L, vcr_get_read_only());
+		return 1;
+	}
+
 }
