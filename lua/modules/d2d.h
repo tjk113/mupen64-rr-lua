@@ -1,10 +1,24 @@
 #include <include/lua.h>
 #include <Windows.h>
 #include <assert.h>
+#include <xxhash.h>
 #include "../../main/win/main_win.h"
 
 namespace LuaCore::D2D
 {
+	typedef struct
+	{
+		uint64_t text_hash;
+		uint64_t font_name_hash;
+		int font_weight;
+		int font_style;
+		float font_size;
+		int horizontal_alignment;
+		int vertical_alignment;
+		float width;
+		float height;
+	} t_text_layout_params;
+
 
 #define D2D_GET_RECT(L, idx) D2D1::RectF( \
 	luaL_checknumber(L, idx), \
@@ -80,7 +94,8 @@ namespace LuaCore::D2D
 		float thickness = luaL_checknumber(L, 5);
 		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 6);
 
-		lua->d2d_render_target_stack.top()->DrawRectangle(&rectangle, brush, thickness);
+		lua->d2d_render_target_stack.top()->DrawRectangle(
+			&rectangle, brush, thickness);
 
 		return 0;
 	}
@@ -105,7 +120,8 @@ namespace LuaCore::D2D
 		float thickness = luaL_checknumber(L, 5);
 		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 6);
 
-		lua->d2d_render_target_stack.top()->DrawEllipse(&ellipse, brush, thickness);
+		lua->d2d_render_target_stack.top()->DrawEllipse(
+			&ellipse, brush, thickness);
 
 		return 0;
 	}
@@ -119,66 +135,88 @@ namespace LuaCore::D2D
 		float thickness = luaL_checknumber(L, 5);
 		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 6);
 
-		lua->d2d_render_target_stack.top()->DrawLine(point_a, point_b, brush, thickness);
+		lua->d2d_render_target_stack.top()->DrawLine(
+			point_a, point_b, brush, thickness);
 
 		return 0;
 	}
 
 
-static int draw_text(lua_State* L)
-{
-	LuaEnvironment* lua = GetLuaClass(L);
+	static int draw_text(lua_State* L)
+	{
+		LuaEnvironment* lua = GetLuaClass(L);
 
-	D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-	auto text = std::string(luaL_checkstring(L, 5));
-	auto font_name = std::string(luaL_checkstring(L, 6));
-	auto font_size = static_cast<float>(luaL_checknumber(L, 7));
-	auto font_weight = static_cast<int>(luaL_checknumber(L, 8));
-	auto font_style = static_cast<int>(luaL_checkinteger(L, 9));
-	auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 10));
-	auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 11));
-	int options = luaL_checkinteger(L, 12);
-	auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 13);
+		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
+		auto text = std::string(luaL_checkstring(L, 5));
+		auto font_name = std::string(luaL_checkstring(L, 6));
+		auto font_size = static_cast<float>(luaL_checknumber(L, 7));
+		auto font_weight = static_cast<int>(luaL_checknumber(L, 8));
+		auto font_style = static_cast<int>(luaL_checkinteger(L, 9));
+		auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 10));
+		auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 11));
+		int options = luaL_checkinteger(L, 12);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 13);
 
-	IDWriteTextFormat* text_format;
+		XXH64_hash_t font_name_hash = XXH64(font_name.data(), font_name.size(), 0);
+		XXH64_hash_t text_hash = XXH64(text.data(), text.size(), 0);
 
-	lua->dw_factory->CreateTextFormat(
-		string_to_wstring(font_name).c_str(),
-		nullptr,
-		static_cast<DWRITE_FONT_WEIGHT>(font_weight),
-		static_cast<DWRITE_FONT_STYLE>(font_style),
-		DWRITE_FONT_STRETCH_NORMAL,
-		font_size,
-		L"",
-		&text_format
-	);
+		t_text_layout_params params = {
+			.text_hash = text_hash,
+			.font_name_hash = font_name_hash,
+			.font_weight = font_weight,
+			.font_style = font_style,
+			.font_size = font_size,
+			.horizontal_alignment = horizontal_alignment,
+			.vertical_alignment = vertical_alignment,
+			.width = rectangle.right - rectangle.left,
+			.height = rectangle.bottom - rectangle.top,
+		};
 
-	text_format->SetTextAlignment(
-		static_cast<DWRITE_TEXT_ALIGNMENT>(horizontal_alignment));
-	text_format->SetParagraphAlignment(
-		static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(vertical_alignment));
+		XXH64_hash_t params_hash = XXH64(&params, sizeof(params), 0);
 
-	IDWriteTextLayout* text_layout;
+		if (!lua->dw_text_layouts.contains(params_hash))
+		{
+			IDWriteTextFormat* text_format;
 
-	auto wtext = string_to_wstring(text);
-	lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
-	                                  text_format,
-	                                  rectangle.right - rectangle.left,
-	                                  rectangle.bottom - rectangle.top,
-	                                  &text_layout);
+			lua->dw_factory->CreateTextFormat(
+				string_to_wstring(font_name).c_str(),
+				nullptr,
+				static_cast<DWRITE_FONT_WEIGHT>(font_weight),
+				static_cast<DWRITE_FONT_STYLE>(font_style),
+				DWRITE_FONT_STRETCH_NORMAL,
+				font_size,
+				L"",
+				&text_format
+			);
 
-	lua->d2d_render_target_stack.top()->DrawTextLayout({
-			.x = rectangle.left,
-			.y = rectangle.top,
-		}, text_layout, brush,
-		static_cast<
-			D2D1_DRAW_TEXT_OPTIONS>(
-			options));
+			text_format->SetTextAlignment(
+				static_cast<DWRITE_TEXT_ALIGNMENT>(horizontal_alignment));
+			text_format->SetParagraphAlignment(
+				static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(vertical_alignment));
 
-	text_format->Release();
-	text_layout->Release();
-	return 0;
-}
+			IDWriteTextLayout* text_layout;
+
+			auto wtext = string_to_wstring(text);
+			lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
+											  text_format,
+											  rectangle.right - rectangle.left,
+											  rectangle.bottom - rectangle.top,
+											  &text_layout);
+
+			lua->dw_text_layouts[params_hash] = text_layout;
+			text_format->Release();
+		}
+
+		lua->d2d_render_target_stack.top()->DrawTextLayout({
+				.x = rectangle.left,
+				.y = rectangle.top,
+			}, lua->dw_text_layouts[params_hash], brush,
+			static_cast<
+				D2D1_DRAW_TEXT_OPTIONS>(
+				options));
+
+		return 0;
+	}
 
 	static int set_text_antialias_mode(lua_State* L)
 	{
@@ -193,7 +231,8 @@ static int draw_text(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 		float mode = luaL_checkinteger(L, 1);
-		lua->d2d_render_target_stack.top()->SetAntialiasMode((D2D1_ANTIALIAS_MODE)mode);
+		lua->d2d_render_target_stack.top()->SetAntialiasMode(
+			(D2D1_ANTIALIAS_MODE)mode);
 		return 0;
 	}
 
@@ -201,7 +240,8 @@ static int draw_text(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		std::wstring text = string_to_wstring(std::string(luaL_checkstring(L, 1)));
+		std::wstring text = string_to_wstring(
+			std::string(luaL_checkstring(L, 1)));
 		std::string font_name = std::string(luaL_checkstring(L, 2));
 		float font_size = luaL_checknumber(L, 3);
 		float max_width = luaL_checknumber(L, 4);
@@ -271,7 +311,8 @@ static int draw_text(lua_State* L)
 		D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
 		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 7);
 
-		lua->d2d_render_target_stack.top()->FillRoundedRectangle(&rounded_rectangle, brush);
+		lua->d2d_render_target_stack.top()->FillRoundedRectangle(
+			&rounded_rectangle, brush);
 
 		return 0;
 	}
@@ -392,14 +433,16 @@ static int draw_text(lua_State* L)
 		return 1;
 	}
 
-	static int draw_to_image(lua_State* L) {
+	static int draw_to_image(lua_State* L)
+	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		float width = luaL_checknumber(L, 1);
 		float height = luaL_checknumber(L, 2);
 
 		ID2D1BitmapRenderTarget* render_target;
-		lua->d2d_render_target_stack.top()->CreateCompatibleRenderTarget(D2D1::SizeF(width, height), &render_target);
+		lua->d2d_render_target_stack.top()->CreateCompatibleRenderTarget(
+			D2D1::SizeF(width, height), &render_target);
 
 		// With render target at top of stack, we hand control back to script and let it run its callback with rt-scoped drawing
 		lua->d2d_render_target_stack.push(render_target);
@@ -421,5 +464,4 @@ static int draw_text(lua_State* L)
 #undef D2D_GET_POINT
 #undef D2D_GET_ELLIPS
 #undef D2D_GET_ROUNDED_RECT
-
 }

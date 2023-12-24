@@ -1435,6 +1435,11 @@ void LuaEnvironment::destroy_renderer()
 	}
 	d2d_bitmap_render_target.clear();
 
+	for (auto const& [_, val] : dw_text_layouts) {
+		val->Release();
+	}
+	dw_text_layouts.clear();
+
 	while (!d2d_render_target_stack.empty()) {
 		d2d_render_target_stack.pop();
 	}

@@ -126,6 +126,7 @@ public:
 	ID2D1DCRenderTarget* d2d_render_target = nullptr;
 	IDWriteFactory* dw_factory = nullptr;
 	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
+	std::unordered_map<uint64_t, IDWriteTextLayout*> dw_text_layouts;
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
 	std::vector<Gdiplus::Bitmap*> image_pool;
 	bool LoadScreenInitialized = false;
