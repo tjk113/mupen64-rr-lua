@@ -1615,6 +1615,9 @@ void LuaEnvironment::register_functions() {
 	// COMPAT: table.getn deprecated, replaced by # prefix
 	luaL_dostring(L, "table.getn = function(t) return #t end");
 
+	// COMPAT: emu.debugview deprecated, forwarded to print
+	luaL_dostring(L, "emu.debugview = print");
+
 	// os.execute poses security risks
 	luaL_dostring(L, "os.execute = function() print('os.execute is disabled') end");
 }
