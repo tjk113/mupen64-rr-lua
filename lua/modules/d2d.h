@@ -403,7 +403,9 @@ static int draw_text(lua_State* L)
 
 		// With render target at top of stack, we hand control back to script and let it run its callback with rt-scoped drawing
 		lua->d2d_render_target_stack.push(render_target);
+		render_target->BeginDraw();
 		lua_call(L, 0, 0);
+		render_target->EndDraw();
 		lua->d2d_render_target_stack.pop();
 
 		ID2D1Bitmap* bmp;
