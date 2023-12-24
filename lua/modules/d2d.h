@@ -65,8 +65,7 @@ namespace LuaCore::D2D
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
-		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 9);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 5);
 
 		lua->d2d_render_target_stack.top()->FillRectangle(&rectangle, brush);
 
@@ -78,9 +77,8 @@ namespace LuaCore::D2D
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
-		float thickness = luaL_checknumber(L, 9);
-		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 10);
+		float thickness = luaL_checknumber(L, 5);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 6);
 
 		lua->d2d_render_target_stack.top()->DrawRectangle(&rectangle, brush, thickness);
 
@@ -92,8 +90,7 @@ namespace LuaCore::D2D
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_ELLIPSE ellipse = D2D_GET_ELLIPSE(L, 1);
-		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
-		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 9);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 5);
 
 		lua->d2d_render_target_stack.top()->FillEllipse(&ellipse, brush);
 
@@ -105,9 +102,8 @@ namespace LuaCore::D2D
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_ELLIPSE ellipse = D2D_GET_ELLIPSE(L, 1);
-		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
-		float thickness = luaL_checknumber(L, 9);
-		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 10);
+		float thickness = luaL_checknumber(L, 5);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 6);
 
 		lua->d2d_render_target_stack.top()->DrawEllipse(&ellipse, brush, thickness);
 
@@ -120,9 +116,8 @@ namespace LuaCore::D2D
 
 		D2D1_POINT_2F point_a = D2D_GET_POINT(L, 1);
 		D2D1_POINT_2F point_b = D2D_GET_POINT(L, 3);
-		D2D1::ColorF color = D2D_GET_COLOR(L, 5);
-		float thickness = luaL_checknumber(L, 9);
-		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 10);
+		float thickness = luaL_checknumber(L, 5);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 6);
 
 		lua->d2d_render_target_stack.top()->DrawLine(point_a, point_b, brush, thickness);
 
@@ -135,16 +130,15 @@ static int draw_text(lua_State* L)
 	LuaEnvironment* lua = GetLuaClass(L);
 
 	D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
-	auto color = D2D_GET_COLOR(L, 5);
-	auto text = std::string(luaL_checkstring(L, 9));
-	auto font_name = std::string(luaL_checkstring(L, 10));
-	auto font_size = static_cast<float>(luaL_checknumber(L, 11));
-	auto font_weight = static_cast<int>(luaL_checknumber(L, 12));
-	auto font_style = static_cast<int>(luaL_checkinteger(L, 13));
-	auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 14));
-	auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 15));
-	int options = luaL_checkinteger(L, 16);
-	auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 17);
+	auto text = std::string(luaL_checkstring(L, 5));
+	auto font_name = std::string(luaL_checkstring(L, 6));
+	auto font_size = static_cast<float>(luaL_checknumber(L, 7));
+	auto font_weight = static_cast<int>(luaL_checknumber(L, 8));
+	auto font_style = static_cast<int>(luaL_checkinteger(L, 9));
+	auto horizontal_alignment = static_cast<int>(luaL_checkinteger(L, 10));
+	auto vertical_alignment = static_cast<int>(luaL_checkinteger(L, 11));
+	int options = luaL_checkinteger(L, 12);
+	auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 13);
 
 	IDWriteTextFormat* text_format;
 
@@ -275,8 +269,7 @@ static int draw_text(lua_State* L)
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
-		D2D1::ColorF color = D2D_GET_COLOR(L, 7);
-		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 11);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 7);
 
 		lua->d2d_render_target_stack.top()->FillRoundedRectangle(&rounded_rectangle, brush);
 
@@ -288,9 +281,8 @@ static int draw_text(lua_State* L)
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
-		D2D1::ColorF color = D2D_GET_COLOR(L, 7);
-		float thickness = luaL_checknumber(L, 11);
-		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 12);
+		float thickness = luaL_checknumber(L, 7);
+		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 8);
 
 		lua->d2d_render_target_stack.top()->DrawRoundedRectangle(
 			&rounded_rectangle, brush, thickness);
@@ -360,7 +352,6 @@ static int draw_text(lua_State* L)
 
 	static int free_image(lua_State* L)
 	{
-		LuaEnvironment* lua = GetLuaClass(L);
 		auto bmp = (ID2D1Bitmap*)luaL_checkinteger(L, 1);
 		bmp->Release();
 		return 0;
@@ -389,8 +380,6 @@ static int draw_text(lua_State* L)
 
 	static int get_image_info(lua_State* L)
 	{
-		LuaEnvironment* lua = GetLuaClass(L);
-
 		auto bmp = (ID2D1Bitmap*)luaL_checkinteger(L, 1);
 
 		D2D1_SIZE_U size = bmp->GetPixelSize();
@@ -472,6 +461,28 @@ static int draw_text(lua_State* L)
 		ID2D1Bitmap* bmp;
 		lua->d2d_bitmap_render_target[key]->GetBitmap(&bmp);
 
+		lua_pushinteger(L, (uint64_t)bmp);
+		return 1;
+	}
+
+	static int draw_to_render_target(lua_State* L) {
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		float width = luaL_checknumber(L, 1);
+		float height = luaL_checknumber(L, 2);
+
+		ID2D1BitmapRenderTarget* render_target;
+		lua->d2d_render_target_stack.top()->CreateCompatibleRenderTarget(D2D1::SizeF(width, height), &render_target);
+
+		// With render target at top of stack, we hand control back to script and let it run its callback with rt-scoped drawing
+		lua->d2d_render_target_stack.push(render_target);
+		lua_call(L, 0, 0);
+		lua->d2d_render_target_stack.pop();
+
+		ID2D1Bitmap* bmp;
+		render_target->GetBitmap(&bmp);
+
+		render_target->Release();
 		lua_pushinteger(L, (uint64_t)bmp);
 		return 1;
 	}

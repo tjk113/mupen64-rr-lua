@@ -792,11 +792,8 @@ void lua_create_and_run(const char* path)
 		{"get_image_info", LuaCore::D2D::get_image_info},
 		{"set_text_antialias_mode", LuaCore::D2D::set_text_antialias_mode},
 		{"set_antialias_mode", LuaCore::D2D::set_antialias_mode},
-		{"create_render_target", LuaCore::D2D::create_render_target},
-		{"destroy_render_target", LuaCore::D2D::destroy_render_target},
-		{"begin_render_target", LuaCore::D2D::begin_render_target},
-		{"end_render_target", LuaCore::D2D::end_render_target},
-		{"get_render_target_bitmap", LuaCore::D2D::get_render_target_bitmap},
+
+		{"draw_to_render_target", LuaCore::D2D::draw_to_render_target},
 		{NULL, NULL}
 	};
 
