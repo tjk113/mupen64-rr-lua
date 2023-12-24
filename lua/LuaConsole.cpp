@@ -1616,6 +1616,9 @@ void LuaEnvironment::register_functions() {
 	// COMPAT: emu.debugview deprecated, forwarded to print
 	luaL_dostring(L, "emu.debugview = print");
 
+	// COMPAT: emu.isreadonly deprecated, forwarded to movie.isreadonly
+	luaL_dostring(L, "emu.isreadonly = movie.isreadonly");
+
 	// os.execute poses security risks
 	luaL_dostring(L, "os.execute = function() print('os.execute is disabled') end");
 }
