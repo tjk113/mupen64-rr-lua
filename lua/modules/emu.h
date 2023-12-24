@@ -341,12 +341,6 @@ namespace LuaCore::Emu
 		return 0;
 	}
 
-	static int DebugviewWrite(lua_State* L)
-	{
-		printf("%s\n", (char*)lua_tostring(L, 1));
-		return 0;
-	}
-
 	static int StatusbarWrite(lua_State* L)
 	{
 		statusbar_post_text(std::string(lua_tostring(L, 1)));

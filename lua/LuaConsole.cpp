@@ -654,8 +654,6 @@ void lua_create_and_run(const char* path)
 	//�G���Ȋ֐�
 	const luaL_Reg emuFuncs[] = {
 		{"console", LuaCore::Emu::ConsoleWriteLua},
-		// DEPRECATE: DebugView doesn't exist anymore
-		{"debugview", LuaCore::Emu::DebugviewWrite},
 		{"statusbar", LuaCore::Emu::StatusbarWrite},
 
 		{"atvi", LuaCore::Emu::RegisterVI},
