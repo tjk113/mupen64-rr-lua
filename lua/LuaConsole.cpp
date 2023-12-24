@@ -504,26 +504,6 @@ void lua_create_and_run(const char* path)
 	const ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		(BREAKPOINTSYNC_MAGIC_STYPE << 6);
 
-	void PureInterpreterCoreCheck(lua_State* L)
-	{
-		if (!(dynacore == 0 && interpcore == 1))
-		{
-			luaL_error(L, "this function works only in pure interpreter core"
-			           "(Menu->Option->Settings->General->CPU Core->Pure Interpreter)");
-		}
-	}
-
-	void InterpreterCoreCheck(lua_State* L, const char* s = "")
-	{
-		if (dynacore)
-		{
-			luaL_error(
-				L, "this function%s works only in (pure) interpreter core"
-				"(Menu->Option->Settings->General->CPU Core->Interpreter or Pure Interpreter)",
-				s);
-		}
-	}
-
 	void Recompile(ULONG);
 
 	unsigned long PAddr(unsigned long addr)
