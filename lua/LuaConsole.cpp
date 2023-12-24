@@ -793,7 +793,7 @@ void lua_create_and_run(const char* path)
 		{"set_text_antialias_mode", LuaCore::D2D::set_text_antialias_mode},
 		{"set_antialias_mode", LuaCore::D2D::set_antialias_mode},
 
-		{"draw_to_render_target", LuaCore::D2D::draw_to_render_target},
+		{"draw_to_image", LuaCore::D2D::draw_to_image},
 		{NULL, NULL}
 	};
 

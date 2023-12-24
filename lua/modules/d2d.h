@@ -392,7 +392,7 @@ static int draw_text(lua_State* L)
 		return 1;
 	}
 
-	static int draw_to_render_target(lua_State* L) {
+	static int draw_to_image(lua_State* L) {
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		float width = luaL_checknumber(L, 1);
