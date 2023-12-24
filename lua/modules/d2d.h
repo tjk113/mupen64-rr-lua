@@ -1,7 +1,7 @@
 #include <include/lua.h>
 #include <Windows.h>
 #include <assert.h>
-#include <xxhash.h>
+#include <xxh64.h>
 #include "../../main/win/main_win.h"
 
 namespace LuaCore::D2D
@@ -157,8 +157,8 @@ namespace LuaCore::D2D
 		int options = luaL_checkinteger(L, 12);
 		auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 13);
 
-		XXH64_hash_t font_name_hash = XXH64(font_name.data(), font_name.size(), 0);
-		XXH64_hash_t text_hash = XXH64(text.data(), text.size(), 0);
+		uint64_t font_name_hash = xxh64::hash(font_name.data(), font_name.size(), 0);
+		uint64_t text_hash = xxh64::hash(text.data(), text.size(), 0);
 
 		t_text_layout_params params = {
 			.text_hash = text_hash,
@@ -172,7 +172,7 @@ namespace LuaCore::D2D
 			.height = rectangle.bottom - rectangle.top,
 		};
 
-		XXH64_hash_t params_hash = XXH64(&params, sizeof(params), 0);
+		uint64_t params_hash = xxh64::hash((const char*)&params, sizeof(params), 0);
 
 		if (!lua->dw_text_layouts.contains(params_hash))
 		{
