@@ -1592,27 +1592,31 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				frame_changed = false;
 			}
 
+			// We need to create a copy of these, as they might get mutated during our enumeration
+			auto frame_times = new_frame_times;
+			auto vi_times = new_vi_times;
+
 			// We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
 			if (time - last_statusbar_update > std::chrono::seconds(1))
 			{
 				// TODO: This is just a quick proof of concept, must reduce code duplication
-				if (Config.show_fps && !new_frame_times.empty())
+				if (Config.show_fps && !frame_times.empty())
 				{
 					long long fps = 0;
-					for (int i = 1; i < new_frame_times.size(); ++i)
+					for (int i = 1; i < frame_times.size(); ++i)
 					{
-						fps += (new_frame_times[i] - new_frame_times[i - 1]).count();
+						fps += (frame_times[i] - frame_times[i - 1]).count();
 					}
-					statusbar_post_text(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / new_frame_times.size()) / 1'000'000.0f)), 2);
+					statusbar_post_text(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / frame_times.size()) / 1'000'000.0f)), 2);
 				}
-				if (Config.show_vis_per_second && !new_vi_times.empty())
+				if (Config.show_vis_per_second && !vi_times.empty())
 				{
 					long long vis = 0;
-					for (int i = 1; i < new_vi_times.size(); ++i)
+					for (int i = 1; i < vi_times.size(); ++i)
 					{
-						vis += (new_vi_times[i] - new_vi_times[i - 1]).count();
+						vis += (vi_times[i] - vi_times[i - 1]).count();
 					}
-					statusbar_post_text(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / new_vi_times.size()) / 1'000'000.0f)), 3);
+					statusbar_post_text(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / vi_times.size()) / 1'000'000.0f)), 3);
 				}
 				last_statusbar_update = time;
 			}
