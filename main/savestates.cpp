@@ -488,7 +488,13 @@ void savestates_load_immediate()
     load_eventqueue_infos(buf);
     load_memory_from_buffer(first_block);
     main_dispatcher_invoke(AtLoadStateLuaCallback);
-	statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));
+	if (st_medium == e_st_medium::path)
+	{
+		statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));
+	} else
+	{
+		statusbar_post_text(std::format("Loaded slot {}", st_slot));
+	}
 failedLoad:
     extern bool ignore;
     //legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
