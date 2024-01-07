@@ -380,12 +380,17 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         break;
     case WM_INITDIALOG:
 
-    	for (auto plugin : available_plugins)
-    	{
-    		plugin_destroy(&plugin);
-    	}
+    	// When the emu is running, we know that the plugins are locked and the comboboxes can't reveal new items, so we reuse the previous results
+    	// There's also the possibility that we don't have any "previous results", so we do the search normally in that case
+	    if (!emu_launched || available_plugins.empty())
+	    {
+    		for (auto plugin : available_plugins)
+    		{
+    			plugin_destroy(&plugin);
+    		}
 
-        available_plugins = get_available_plugins();
+        	available_plugins = get_available_plugins();
+	    }
 
         for (const auto& plugin : available_plugins)
         {
