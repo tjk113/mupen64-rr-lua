@@ -447,6 +447,7 @@ namespace LuaCore::D2D
 		// With render target at top of stack, we hand control back to script and let it run its callback with rt-scoped drawing
 		lua->d2d_render_target_stack.push(render_target);
 		render_target->BeginDraw();
+		render_target->Clear(D2D1::ColorF(0, 0, 0, 0));
 		lua_call(L, 0, 0);
 		render_target->EndDraw();
 		lua->d2d_render_target_stack.pop();
