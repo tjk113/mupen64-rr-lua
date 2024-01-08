@@ -250,12 +250,13 @@ void savestates_save_immediate()
 		fwrite(compressed_buffer.data(), compressed_buffer.size(), 1, f);
 		fclose(f);
 
+		if (st_medium == e_st_medium::path)
+		{
+			statusbar_post_text(std::format("Saved {}", new_st_path.filename().string()));
+		}
 		if (st_medium == e_st_medium::slot)
 		{
 			statusbar_post_text(std::format("Saved slot {}", st_slot));
-		} else
-		{
-			statusbar_post_text(std::format("Saved {}", new_st_path.filename().string()));
 		}
 	} else
 	{
@@ -509,7 +510,8 @@ void savestates_load_immediate()
 	if (st_medium == e_st_medium::path)
 	{
 		statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));
-	} else
+	}
+	if (st_medium == e_st_medium::slot)
 	{
 		statusbar_post_text(std::format("Loaded slot {}", st_slot));
 	}
