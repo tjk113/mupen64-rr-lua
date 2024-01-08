@@ -668,10 +668,11 @@ void on_hotkey_selection_changed(const HWND dialog_hwnd)
 	EnableWindow(edit_hwnd, selected_index != -1);
 	EnableWindow(assign_hwnd, selected_index != -1);
 
+	SetWindowText(assign_hwnd, "Assign...");
+
     if (selected_index == -1)
     {
-    	SetDlgItemText(dialog_hwnd, IDC_HOTKEY_ASSIGN_SELECTED, "Assign...");
-    	SetDlgItemText(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT, "");
+    	SetWindowText(edit_hwnd, "");
     	return;
     }
 
@@ -746,7 +747,9 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 	        		auto hotkey = (t_hotkey*)ListBox_GetItemData(list_hwnd, index);
 	        		SetDlgItemText(hwnd, id, "...");
 	        		get_user_hotkey(hotkey);
+
 	        		build_hotkey_list(hwnd);
+	        		ListBox_SetCurSel(list_hwnd, (index + 1) % ListBox_GetCount(list_hwnd));
 	        		on_hotkey_selection_changed(hwnd);
 		        }
 	        	break;
