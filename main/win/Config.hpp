@@ -380,6 +380,11 @@ typedef struct _CONFIG
 	/// A map of persistent path dialog IDs and the respective value
 	/// </summary>
 	std::map<std::string, std::wstring> persistent_folder_paths;
+
+	/// <summary>
+	/// Resets the emulator faster, but may cause issues
+	/// </summary>
+	int32_t fast_reset;
 } CONFIG;
 #pragma pack(pop)
 
