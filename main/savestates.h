@@ -102,6 +102,14 @@ void savestates_load_immediate();
 void savestates_do_file(const std::filesystem::path& path, e_st_job job);
 
 /**
+ * \brief Executes a savestate operation in-memory
+ * \param key The savestate's key
+ * \param job The job to set
+ * \remarks The operation won't complete immediately
+ */
+void savestates_do_memory(const std::string key, e_st_job job);
+
+/**
  * \brief Executes a savestate operation to a slot
  * \param slot The slot to construct the savestate path with
  * \param job The job to set
