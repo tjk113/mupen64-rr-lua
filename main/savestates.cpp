@@ -493,7 +493,7 @@ void savestates_load_immediate()
 		statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));
 	} else
 	{
-		statusbar_post_text(std::format("Loaded slot {}", st_slot));
+		statusbar_post_text(std::format("Loaded slot {}", st_slot+1));
 	}
 failedLoad:
     extern bool ignore;
