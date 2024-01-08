@@ -518,14 +518,14 @@ failedLoad:
 	printf("Savestate loading took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
-void savestates_do(const std::filesystem::path& path, const e_st_job job)
+void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
 {
 	st_path = path;
 	savestates_job = job;
 	st_medium = e_st_medium::path;
 }
 
-void savestates_do(const size_t slot, const e_st_job job)
+void savestates_do_slot(const size_t slot, const e_st_job job)
 {
 	st_slot = slot;
 	savestates_job = job;

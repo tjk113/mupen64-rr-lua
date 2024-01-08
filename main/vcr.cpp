@@ -1017,7 +1017,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		else
 			strncat(buf, ".savestate", 12);
 
-		savestates_do(buf, e_st_job::save);
+		savestates_do_file(buf, e_st_job::save);
 		m_task = e_task::start_recording_from_snapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
@@ -1030,7 +1030,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		else
 			strncat(buf, ".savestate", 12);
 
-		savestates_do(buf, e_st_job::load);
+		savestates_do_file(buf, e_st_job::load);
 
 		// set this to the normal snapshot flag to maintain compatibility
 		m_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
@@ -1432,7 +1432,7 @@ static int start_playback(const char* filename, const char* author_utf8,
 				return VCR_PLAYBACK_SAVESTATE_MISSING;
 			}
 
-			savestates_do(buf, e_st_job::load);
+			savestates_do_file(buf, e_st_job::load);
 			m_task = e_task::start_playback_from_snapshot;
 		} else
 		{

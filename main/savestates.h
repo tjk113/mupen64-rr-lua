@@ -94,17 +94,17 @@ void savestates_save_immediate();
 void savestates_load_immediate();
 
 /**
- * \brief Executes a savestate operation
+ * \brief Executes a savestate operation to a path
  * \param path The savestate's path
  * \param job The job to set
  * \remarks The operation won't complete immediately
  */
-void savestates_do(const std::filesystem::path& path, e_st_job job);
+void savestates_do_file(const std::filesystem::path& path, e_st_job job);
 
 /**
- * \brief Executes a savestate operation
+ * \brief Executes a savestate operation to a slot
  * \param slot The slot to construct the savestate path with
  * \param job The job to set
  * \remarks The operation won't complete immediately
  */
-void savestates_do(size_t slot, e_st_job job);
+void savestates_do_slot(size_t slot, e_st_job job);
