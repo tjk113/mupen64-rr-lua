@@ -47,6 +47,8 @@
 #include <win/features/RomBrowser.hpp>
 #include <win/main_win.h>
 
+#include "helpers/io_helpers.h"
+
 uint8_t* rom;
 size_t rom_size;
 char rom_md5[33];
@@ -156,19 +158,22 @@ int rom_read(const char* argv)
     {
         free(rom);    
     }
+
     
-    // TODO: support zipped roms
-    FILE* f = fopen(argv, "rb");
-    fseek(f, 0, SEEK_END);
-    rom_size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    
+    auto rom_buf = read_file_buffer(argv);
+    auto decompressed_rom = auto_decompress(rom_buf);
+
+    if (decompressed_rom.empty())
+    {
+        return 1;
+    }
+
+    rom_size = decompressed_rom.size();
     unsigned long taille = rom_size;
     if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
+    
     rom = (unsigned char*)malloc(taille);
-
-    fread(rom, rom_size, 1, f);
-    fclose(f);
+    memcpy(rom, decompressed_rom.data(), rom_size);
 
     uint8_t tmp;
     if (rom[0] == 0x37)
