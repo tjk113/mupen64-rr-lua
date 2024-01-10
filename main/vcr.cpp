@@ -1866,12 +1866,21 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 	m_video_frame = 0.0;
 	m_audio_frame = 0.0;
 
-	// fill in window size at avi start, which can't change
-	// scrap whatever was written there even if window didnt change, for safety
-	vcrcomp_window_info = {0};
-	get_window_info(mainHWND, vcrcomp_window_info);
-	const long width = vcrcomp_window_info.width & ~3;
-	const long height = vcrcomp_window_info.height & ~3;
+	// If we are capturing internally, we get our dimensions from the window, otherwise from the GFX plugin
+	long width = 0, height = 0;
+	if (readScreen == vcrcomp_internal_read_screen)
+	{
+		// fill in window size at avi start, which can't change
+		// scrap whatever was written there even if window didnt change, for safety
+		vcrcomp_window_info = {0};
+		get_window_info(mainHWND, vcrcomp_window_info);
+		width = vcrcomp_window_info.width & ~3;
+		height = vcrcomp_window_info.height & ~3;
+	} else
+	{
+		void* dummy;
+		readScreen(&dummy, &width, &height);
+	}
 
 	VCRComp_startFile(path, width, height, vis_by_countrycode(), show_codec_dialog);
 	m_capture = 1;
