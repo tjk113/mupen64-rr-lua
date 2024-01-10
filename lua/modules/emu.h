@@ -310,6 +310,7 @@ namespace LuaCore::Emu
 				return 1;
 			}
 		}
+		luaL_error(L, "Invalid variable name. (%s)", s);
 		return 0;
 	}
 
