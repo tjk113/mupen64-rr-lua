@@ -58,3 +58,8 @@ bool confirm_user_exit()
 
     return res == IDYES || warnings == 0;
 }
+
+void show_modal_info(const char* str, const char* title)
+{
+	MessageBox(mainHWND, str, title, MB_OK | MB_ICONINFORMATION);
+}

@@ -32,3 +32,5 @@
  * \return Whether the action is allowed
  */
 bool confirm_user_exit();
+
+void show_modal_info(const char* str, const char* title);
