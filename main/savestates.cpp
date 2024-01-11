@@ -423,7 +423,7 @@ void savestates_load_immediate()
         // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
         fprintf(stderr, "Snapshot event queue terminator not reached.\n");
         savestates_job_success = FALSE;
-        warn_savestate("Savestate error", "Event queue too long (Savestate corrupted?)");
+        statusbar_post_text("Event queue too long (corrupted?)");
         savestates_job_success = FALSE;
         return;
     }

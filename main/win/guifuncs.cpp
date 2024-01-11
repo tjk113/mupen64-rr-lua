@@ -58,24 +58,3 @@ bool confirm_user_exit()
 
     return res == IDYES || warnings == 0;
 }
-
-void internal_warnsavestate(const char* message_caption, const char* message, const bool modal)
-{
-    if (!Config.is_savestate_warning_enabled) return;
-
-    if (modal)
-        MessageBox(mainHWND, message, message_caption, MB_ICONERROR);
-    else
-        statusbar_post_text(std::string(message_caption) + " - " + std::string(message));
-}
-
-void warn_savestate(const char* message_caption, const char* message)
-{
-    internal_warnsavestate(message_caption, message, false);
-}
-
-void warn_savestate(const char* message_caption, const char* message, const bool modal)
-{
-    internal_warnsavestate(message_caption, message, modal);
-}
-

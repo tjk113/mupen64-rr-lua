@@ -32,7 +32,3 @@
  * \return Whether the action is allowed
  */
 bool confirm_user_exit();
-
-void warn_savestate(const char* message_caption, const char* message);
-void warn_savestate(const char* message_caption, const char* message,
-                    bool modal); // Overload
