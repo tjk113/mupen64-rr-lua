@@ -40,6 +40,8 @@
 #include <../../winproject/resource.h> // for EMU_RESET
 #include "win/Config.hpp" //config struct
 #include <WinUser.h>
+
+#include "guifuncs.h"
 #include "win/Commandline.h"
 
 #ifdef _DEBUG
@@ -144,17 +146,6 @@ char* strtrimext(char* myStr)
 	return ret_str;
 }
 
-void print_warning(const char* str)
-{
-	MessageBox(nullptr, str, "Warning", MB_OK | MB_ICONWARNING);
-}
-
-void print_error(const char* str)
-{
-	MessageBox(nullptr, str, "Error", MB_OK | MB_ICONERROR);
-}
-
-
 static void hard_reset_and_clear_all_save_data(const bool clear)
 {
 	extern BOOL clear_sram_on_restart_mode;
@@ -191,8 +182,7 @@ static int vis_by_countrycode()
 			m_vis_per_second = 60;
 			break;
 		default:
-			print_warning(
-				"[VCR]: Warning - unknown country code, using 60 FPS for video.\n");
+			MessageBox(mainHWND, "Unknown country code, falling back to 60 FPS", nullptr, MB_ICONWARNING | MB_OK);
 			m_vis_per_second = 60;
 			break;
 		}
@@ -1322,10 +1312,8 @@ static int start_playback(const char* filename, const char* author_utf8,
 
 				if (warning_str[0] != '\0')
 				{
-					if (dont_play)
-						print_error(warning_str);
-					else
-						print_warning(warning_str);
+					MessageBox(mainHWND, warning_str, "VCR",
+					           MB_OK | (dont_play ? MB_ICONERROR : MB_ICONWARNING));
 				}
 
 				strncpy(name, input_plugin->name.c_str(), 64);
@@ -1391,10 +1379,7 @@ static int start_playback(const char* filename, const char* author_utf8,
 			}
 			break;
 		default:
-			char buffer[100];
-			sprintf(buffer, "[VCR]: Error playing movie: %s.\n",
-			        m_err_code_name[code]);
-			print_error(buffer);
+			show_modal_info(m_err_code_name[code], nullptr);
 			dont_play = code != 0; // should be stable enough
 			break;
 		}
@@ -1590,7 +1575,7 @@ void vcr_update_screen()
 		{
 			if (audio_frames < 0)
 			{
-				print_error("Audio frames became negative!");
+				show_modal_info("Audio frames became negative!", nullptr);
 				vcr_stop_capture();
 				goto cleanup;
 			}
@@ -1603,8 +1588,8 @@ void vcr_update_screen()
 			{
 				if (!VCRComp_addVideoFrame((unsigned char*)image))
 				{
-					print_error(
-						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+					show_modal_info(
+						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", nullptr);
 					vcr_stop_capture();
 					goto cleanup;
 				} else
@@ -1619,8 +1604,8 @@ void vcr_update_screen()
 			{
 				if (!VCRComp_addVideoFrame((unsigned char*)image))
 				{
-					print_error(
-						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+					show_modal_info(
+						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", nullptr);
 					vcr_stop_capture();
 					goto cleanup;
 				} else
@@ -1635,8 +1620,8 @@ void vcr_update_screen()
 		{
 			if (!VCRComp_addVideoFrame((unsigned char*)image))
 			{
-				print_error(
-					"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+				show_modal_info(
+					"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", nullptr);
 				vcr_stop_capture();
 				goto cleanup;
 			} else
@@ -1712,8 +1697,8 @@ static void write_sound(char* buf, int len, const int min_write_size, const int 
 				}
 				if (!VCRComp_addAudioData((unsigned char*)buf2, len2))
 				{
-					print_error(
-						"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?");
+					show_modal_info(
+						"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", nullptr);
 					vcr_stop_capture();
 				}
 			}

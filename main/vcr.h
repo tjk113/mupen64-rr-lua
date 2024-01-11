@@ -147,9 +147,6 @@ void vcr_stop_f_fmpeg_capture();
 
 extern void vcr_core_stopped();
 
-extern void print_warning(const char*);
-extern void print_error(const char*);
-
 /**
  * \brief Updates the statusbar with the current VCR state
  */
