@@ -250,13 +250,21 @@ void savestates_save_immediate()
 		fwrite(compressed_buffer.data(), compressed_buffer.size(), 1, f);
 		fclose(f);
 
+
 		if (st_medium == e_st_medium::path)
 		{
 			statusbar_post_text(std::format("Saved {}", new_st_path.filename().string()));
-		}
-		if (st_medium == e_st_medium::slot)
+		} else
 		{
 			statusbar_post_text(std::format("Saved slot {}", st_slot));
+
+			if (Config.increment_slot)
+			{
+				if (++st_slot > 10)
+				{
+					st_slot = 0;
+				}
+			}
 		}
 	} else
 	{

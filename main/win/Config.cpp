@@ -1063,6 +1063,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_VALUE(persistent_folder_paths)
 	HANDLE_P_VALUE(fast_reset)
 	HANDLE_P_VALUE(vcr_0_index)
+	HANDLE_P_VALUE(increment_slot)
 
 	return ini;
 }
