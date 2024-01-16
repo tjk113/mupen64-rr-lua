@@ -210,6 +210,7 @@ void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& 
 
 void savestates_save_immediate()
 {
+
 	const auto start_time = std::chrono::high_resolution_clock::now();
     savestates_job_success = TRUE;
 
@@ -221,6 +222,14 @@ void savestates_save_immediate()
 		savestates_job_success = FALSE;
 		return;
 	}
+
+	if (st_medium == e_st_medium::slot && Config.increment_slot)
+	{
+		if (++st_slot > 10)
+		{
+			st_slot = 0;
+		}
+ 	}
 
 	if (st_medium == e_st_medium::slot || st_medium == e_st_medium::path)
 	{
@@ -250,21 +259,12 @@ void savestates_save_immediate()
 		fwrite(compressed_buffer.data(), compressed_buffer.size(), 1, f);
 		fclose(f);
 
-
 		if (st_medium == e_st_medium::path)
 		{
 			statusbar_post_text(std::format("Saved {}", new_st_path.filename().string()));
 		} else
 		{
 			statusbar_post_text(std::format("Saved slot {}", st_slot + 1));
-
-			if (Config.increment_slot)
-			{
-				if (++st_slot > 10)
-				{
-					st_slot = 0;
-				}
-			}
 		}
 	} else
 	{
