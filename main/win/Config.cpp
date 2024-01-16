@@ -674,6 +674,7 @@ CONFIG get_default_config()
 	config.window_width = 640;
 	config.window_height = 480;
 	config.fast_reset = 0;
+	config.vcr_0_index = 0;
 
 	return config;
 }
@@ -1060,6 +1061,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(rombrowser_sorted_column)
 	HANDLE_VALUE(persistent_folder_paths)
 	HANDLE_P_VALUE(fast_reset)
+	HANDLE_P_VALUE(vcr_0_index)
 
 	return ini;
 }

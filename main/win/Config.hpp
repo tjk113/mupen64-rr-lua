@@ -385,6 +385,11 @@ typedef struct _CONFIG
 	/// Resets the emulator faster, but may cause issues
 	/// </summary>
 	int32_t fast_reset;
+
+	/// <summary>
+	/// Whether VCR displays frame information relative to frame 0, not 1
+	/// </summary>
+	int32_t vcr_0_index;
 } CONFIG;
 #pragma pack(pop)
 
