@@ -2054,16 +2054,18 @@ void vcr_update_statusbar()
 		if (b.R_DPAD) input_string += ">";
 	}
 
+	auto index_adjustment = (Config.vcr_0_index ? 1 : 0);
+
 	if (vcr_is_recording())
 	{
-		std::string text = std::format("{} ({}) ", m_current_vi, m_current_sample);
+		std::string text = std::format("{} ({}) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
 		statusbar_post_text(text + input_string);
 		statusbar_post_text(std::format("{} rr", m_header.rerecord_count), 1);
 	}
 
 	if (vcr_is_playing())
 	{
-		std::string text = std::format("{} / {} ({} / {}) ", m_current_vi, vcr_get_length_v_is(), m_current_sample, vcr_get_length_samples());
+		std::string text = std::format("{} / {} ({} / {}) ", m_current_vi - index_adjustment, vcr_get_length_v_is(), m_current_sample - index_adjustment, vcr_get_length_samples());
 		statusbar_post_text(text + input_string);
 	}
 
