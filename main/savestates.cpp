@@ -256,7 +256,7 @@ void savestates_save_immediate()
 			statusbar_post_text(std::format("Saved {}", new_st_path.filename().string()));
 		} else
 		{
-			statusbar_post_text(std::format("Saved slot {}", st_slot));
+			statusbar_post_text(std::format("Saved slot {}", st_slot + 1));
 
 			if (Config.increment_slot)
 			{
@@ -521,7 +521,7 @@ void savestates_load_immediate()
 	}
 	if (st_medium == e_st_medium::slot)
 	{
-		statusbar_post_text(std::format("Loaded slot {}", st_slot+1));
+		statusbar_post_text(std::format("Loaded slot {}", st_slot + 1));
 	}
 failedLoad:
     extern bool ignore;
