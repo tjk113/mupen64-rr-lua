@@ -390,6 +390,11 @@ typedef struct _CONFIG
 	/// Whether VCR displays frame information relative to frame 0, not 1
 	/// </summary>
 	int32_t vcr_0_index;
+
+	/// <summary>
+	/// Increments the current slot when saving savestate to slot
+	/// </summary>
+	int32_t increment_slot;
 } CONFIG;
 #pragma pack(pop)
 

@@ -675,6 +675,7 @@ CONFIG get_default_config()
 	config.window_height = 480;
 	config.fast_reset = 0;
 	config.vcr_0_index = 0;
+	config.increment_slot = 0;
 
 	return config;
 }
