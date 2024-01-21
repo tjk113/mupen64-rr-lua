@@ -332,6 +332,8 @@ inline bool is_task_recording(const e_task task)
 	return task == e_task::start_recording || task == e_task::start_recording_from_snapshot || task == e_task::start_recording_from_existing_snapshot || task == e_task::recording;
 }
 
+bool is_frame_skipped();
+
 extern t_movie_header vcr_get_header_info(const char* filename);
 extern char vcr_lastpath[MAX_PATH];
 extern uint64_t screen_updates;

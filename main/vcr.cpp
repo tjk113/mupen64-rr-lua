@@ -52,6 +52,8 @@
 #define PATH_MAX _MAX_PATH
 #endif
 
+#include "../memory/pif.h"
+
 // M64\0x1a
 enum
 {
@@ -2158,4 +2160,26 @@ int32_t vcr_recent_movies_play(const uint16_t menu_item_id)
 		return vcr_start_playback(Config.recent_movie_paths[index], "", "");
 	}
 	return 0;
+}
+
+bool is_frame_skipped()
+{
+	if (!fast_forward || vcr_is_capturing())
+	{
+		return false;
+	}
+
+	// skip every frame
+	if (Config.frame_skip_frequency == 0)
+	{
+		return true;
+	}
+
+	// skip no frames
+	if (Config.frame_skip_frequency == 1)
+	{
+		return false;
+	}
+
+	return screen_updates % Config.frame_skip_frequency != 0;
 }

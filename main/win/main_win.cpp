@@ -1317,27 +1317,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 	return 0;
 }
 
-bool is_frame_skipped()
-{
-	if (!fast_forward || vcr_is_capturing())
-	{
-		return false;
-	}
 
-	// skip every frame
-	if (Config.frame_skip_frequency == 0)
-	{
-		return true;
-	}
-
-	// skip no frames
-	if (Config.frame_skip_frequency == 1)
-	{
-		return false;
-	}
-
-	return screen_updates % Config.frame_skip_frequency != 0;
-}
 
 void update_titlebar()
 {

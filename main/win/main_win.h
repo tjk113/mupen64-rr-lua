@@ -74,8 +74,6 @@ int32_t main_recent_roms_run(uint16_t menu_item_id);
  */
 extern bool is_primary_statusbar_invalidated;
 
-bool is_frame_skipped();
-
 /**
  * \brief Updates the titlebar to reflect the current application state
  */
