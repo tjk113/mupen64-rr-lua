@@ -28,6 +28,7 @@
 **/
 
 #include <Windows.h>
+#include <Vfw.h>
 #include <commctrl.h>
 #include <stdio.h>
 #include "../win/main_win.h"
@@ -35,7 +36,6 @@
 #include "Config.hpp"
 #include "../plugin.hpp"
 #include "../../winproject/resource.h"
-#include "vfw.h"
 #include "features/Toolbar.hpp"
 #include "features/Statusbar.hpp"
 

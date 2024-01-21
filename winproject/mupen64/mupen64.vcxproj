@@ -177,7 +177,6 @@
     <ClInclude Include="..\..\main\win\configdialog.h" />
     <ClInclude Include="..\..\main\win\main_win.h" />
     <ClInclude Include="..\..\main\win\timers.h" />
-    <ClInclude Include="..\..\main\win\vfw.h" />
     <ClInclude Include="..\..\main\win\wrapper\PersistentPathDialog.h" />
     <ClInclude Include="..\..\main\helpers\string_helpers.h" />
     <ClInclude Include="..\..\memory\dma.h" />
