@@ -2230,11 +2230,10 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 {
 	// generate crash log
 
-	char crashLog[1024 * 4] = {0};
-	CrashHelper::generate_log(ExceptionInfo, crashLog);
-
+	char crash_log[1024 * 4] = {0};
+	CrashHelper::generate_log(ExceptionInfo, crash_log);
 	FILE* f = fopen("crash.log", "w+");
-	fwrite(crashLog, sizeof(crashLog), 1, f);
+	fputs(crash_log, f);
 	fclose(f);
 
 	bool is_continuable = !(ExceptionInfo->ExceptionRecord->ExceptionFlags &
