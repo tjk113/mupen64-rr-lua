@@ -9,10 +9,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b401311-6af4-49db-81e5-ecf7a6096804" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../../main/win/Config.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/Config.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/win/Config.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/Config.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/LuaConsole.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/LuaConsole.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/global.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/global.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/input.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/input.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/wgui.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/wgui.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/adler32.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/adler32.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/disasm.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/disasm.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/rom.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/rom.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/win/configdialog.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/configdialog.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../main/win/main_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/main_win.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/win/timers.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/timers.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/dma.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/dma.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/memory.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/memory.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/pif.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/pif.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/summercart.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/summercart.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/bc.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/bc.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_d.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_d.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_l.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_l.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_s.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_s.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_w.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_w.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/exception.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/exception.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/interrupt.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/interrupt.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/pure_interp.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/pure_interp.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/r4300.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/r4300.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/regimm.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/regimm.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/special.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/special.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/tlb.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/tlb.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/x86/regcache.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/x86/regcache.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -27,6 +50,9 @@
     <setting file="mock://C:/Users/Alex/source/repos/mupen64-rr-lua-/main/win/timers.cpp" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="QODANA_PROBLEMS_VIEW_TAB" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 8
@@ -38,6 +64,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "C++ Project.mupen64.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
@@ -47,16 +74,37 @@
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "settings.qodana",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
     "rider.external.source.directories": [
-      "C:\\Users\\Alex\\AppData\\Roaming\\JetBrains\\Rider2023.2\\resharper-host\\DecompilerCache",
-      "C:\\Users\\Alex\\AppData\\Roaming\\JetBrains\\Rider2023.2\\resharper-host\\SourcesCache",
-      "C:\\Users\\Alex\\AppData\\Local\\Symbols\\src"
+      "C:\\Users\\austi\\AppData\\Local\\JetBrains\\Shared\\vAny\\DecompilerCache",
+      "C:\\Users\\austi\\AppData\\Local\\JetBrains\\Shared\\vAny\\SourcesCache",
+      "C:\\Users\\austi\\AppData\\Local\\Symbols\\src"
     ]
   }
 }]]></component>
+  <component name="QodanaHighlightedReportService">
+    <option name="localRunNotPublishedPersistedInfo">
+      <LocalReportPersistedInfo>
+        <option name="path" value="C:\Users\austi\AppData\Local\Temp\qodana_output2\qodana.sarif.json" />
+        <option name="reportGuid" value="ea5f98ef-4961-4269-811f-0baf241142d3" />
+        <option name="reportName" value="mupen64/qodana/2024-01-21" />
+      </LocalReportPersistedInfo>
+    </option>
+  </component>
+  <component name="QodanaIsSelectedPersistenceService">
+    <option name="selectedOrLoading" value="true" />
+  </component>
+  <component name="QodanaReportsService">
+    <option name="descriptions">
+      <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="4a7ffac2-6f7f-48a2-bedc-8bdeaf40b23f" reportId="mupen64/qodana/2024-01-21" />
+      <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output1\qodana.sarif.json" reportGuid="e5de9b64-0596-4874-bcf1-4a40b3b5f615" reportId="mupen64/qodana/2024-01-21" />
+      <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output2\qodana.sarif.json" reportGuid="ea5f98ef-4961-4269-811f-0baf241142d3" reportId="mupen64/qodana/2024-01-21" />
+    </option>
+  </component>
   <component name="RunManager">
     <configuration name="mupen64" type="CppProject" factoryName="C++ Project">
       <configuration_1>
@@ -99,6 +147,7 @@
       <workItem from="1696566645330" duration="1387000" />
       <workItem from="1696736812128" duration="2653000" />
       <workItem from="1701000600670" duration="1860000" />
+      <workItem from="1705867152858" duration="7197000" />
     </task>
     <servers />
   </component>
@@ -106,6 +155,17 @@
     <option name="version" value="3" />
   </component>
   <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
   </component>
@@ -114,7 +174,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/../../main/win/main_win.cpp</url>
-          <line>2350</line>
+          <line>2333</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -124,5 +184,9 @@
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

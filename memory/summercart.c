@@ -272,6 +272,7 @@ unsigned long read_summercart(unsigned long address)
 {
 	switch (address & 0xFFFC)
 	{
+	default: break;
 	case 0x00:
 		if (summercart.unlock) return summercart.status;
 		break;
@@ -292,15 +293,18 @@ void write_summercart(unsigned long address, unsigned long value)
 {
 	switch (address & 0xFFFC)
 	{
+	default: break;
 	case 0x00:
 		if (summercart.unlock)
 		{
 			summercart.status = 0x40000000;
 			switch (value)
 			{
+			default: break;
 			case 'c':
 				switch (summercart.data0)
 				{
+				default: break;
 				case 1:
 					summercart.data1 = summercart.cfg_rom_write;
 					summercart.status = 0;
@@ -318,6 +322,7 @@ void write_summercart(unsigned long address, unsigned long value)
 			case 'C':
 				switch (summercart.data0)
 				{
+				default: break;
 				case 1:
 					if (summercart.data1)
 					{
@@ -336,6 +341,7 @@ void write_summercart(unsigned long address, unsigned long value)
 			case 'i':
 				switch (summercart.data1)
 				{
+				default: break;
 				case 0:
 					summercart.status = 0;
 					break;

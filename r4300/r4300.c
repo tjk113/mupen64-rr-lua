@@ -693,6 +693,7 @@ void LDL()
     PC++;
     switch ((core_lsaddr) & 7)
     {
+    default: break;
     case 0:
         address = core_lsaddr;
         rdword = (unsigned long long int*)&core_lsrt;
@@ -756,6 +757,7 @@ void LDR()
     PC++;
     switch ((core_lsaddr) & 7)
     {
+    default: break;
     case 0:
         address = (core_lsaddr) & 0xFFFFFFF8;
         rdword = &word;
@@ -839,6 +841,7 @@ void LWL()
     PC++;
     switch ((core_lsaddr) & 3)
     {
+    default: break;
     case 0:
         address = core_lsaddr;
         rdword = (unsigned long long int*)&core_lsrt;

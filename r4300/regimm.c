@@ -57,7 +57,7 @@ void BLTZ_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump && local_rs < 0)
-        jump_to(PC->addr + ((jump_target - 1) << 2));
+        jump_to(PC->addr + ((jump_target - 1) << 2))
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -100,7 +100,7 @@ void BGEZ_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump && local_rs >= 0)
-        jump_to(PC->addr + ((jump_target - 1) << 2));
+        jump_to(PC->addr + ((jump_target - 1) << 2))
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -148,7 +148,7 @@ void BLTZL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else
         PC += 2;
@@ -199,7 +199,7 @@ void BGEZL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else
         PC += 2;
@@ -253,7 +253,7 @@ void BLTZAL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump && local_rs < 0)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else printf("erreur dans bltzal\n");
     last_addr = PC->addr;
@@ -306,7 +306,7 @@ void BGEZAL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump && local_rs >= 0)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else printf("erreur dans bgezal\n");
     last_addr = PC->addr;
@@ -366,7 +366,7 @@ void BLTZALL_OUT()
             update_count();
             delay_slot = 0;
             if (!skip_jump)
-                jump_to(PC->addr + ((jump_target - 1) << 2));
+                jump_to(PC->addr + ((jump_target - 1) << 2))
         }
         else
             PC += 2;
@@ -429,7 +429,7 @@ void BGEZALL_OUT()
             update_count();
             delay_slot = 0;
             if (!skip_jump)
-                jump_to(PC->addr + ((jump_target - 1) << 2));
+                jump_to(PC->addr + ((jump_target - 1) << 2))
         }
         else
             PC += 2;

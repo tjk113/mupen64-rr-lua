@@ -33,7 +33,7 @@
 void CVT_S_L()
 {
     if (check_cop1_unusable()) return;
-    set_rounding();
+    set_rounding()
     *reg_cop1_simple[core_cffd] = *((long long*)reg_cop1_double[core_cffs]);
     PC++;
 }
@@ -41,7 +41,7 @@ void CVT_S_L()
 void CVT_D_L()
 {
     if (check_cop1_unusable()) return;
-    set_rounding();
+    set_rounding()
     *reg_cop1_double[core_cffd] = *((long long*)reg_cop1_double[core_cffs]);
     PC++;
 }

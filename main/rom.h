@@ -76,7 +76,7 @@ uint32_t get_vis_per_second(uint16_t country_code);
 
 static void rom_byteswap(uint8_t* rom)
 {
-	uint8_t tmp = 0;
+	uint8_t tmp;
 
 	if (rom[0] == 0x37)
 	{

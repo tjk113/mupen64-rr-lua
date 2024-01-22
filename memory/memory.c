@@ -1468,7 +1468,6 @@ void write_nomemd()
 
 void read_rdram()
 {
-    ;
     *rdword = *((unsigned long*)(rdramb + (address & 0xFFFFFF)));
 }
 
@@ -2073,6 +2072,7 @@ void write_dp()
 {
     switch (*address_low)
     {
+    default: break;
     case 0xc:
         dpc_register.w_dpc_status = word;
         update_DPC();
@@ -2082,10 +2082,12 @@ void write_dp()
     case 0x18:
     case 0x1c:
         return;
+    
     }
     *readdp[*address_low] = word;
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         dpc_register.dpc_current = dpc_register.dpc_start;
         break;
@@ -2101,6 +2103,7 @@ void write_dpb()
 {
     switch (*address_low)
     {
+    default: break;
     case 0xc:
     case 0xd:
     case 0xe:
@@ -2134,6 +2137,7 @@ void write_dpb()
         + ((*address_low & 3) ^ S8)) = g_byte;
     switch (*address_low)
     {
+    default: break;
     case 0x0:
     case 0x1:
     case 0x2:
@@ -2155,6 +2159,7 @@ void write_dph()
 {
     switch (*address_low)
     {
+    default: break;
     case 0xc:
     case 0xe:
         *((unsigned short*)((unsigned char*)&dpc_register.w_dpc_status
@@ -2176,6 +2181,7 @@ void write_dph()
         + ((*address_low & 3) ^ S16))) = hword;
     switch (*address_low)
     {
+    default: break;
     case 0x0:
     case 0x2:
         dpc_register.dpc_current = dpc_register.dpc_start;
@@ -2193,6 +2199,7 @@ void write_dpd()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x8:
         dpc_register.w_dpc_status = dword & 0xFFFFFFFF;
         update_DPC();
@@ -2205,6 +2212,7 @@ void write_dpd()
     *readdp[*address_low + 4] = dword & 0xFFFFFFFF;
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         dpc_register.dpc_current = dpc_register.dpc_start;
         processRDPList();
@@ -2287,6 +2295,7 @@ void write_mi()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         MI_register.w_mi_init_mode_reg = word;
         update_MI_init_mode_reg();
@@ -2306,6 +2315,7 @@ void write_mib()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
     case 0x1:
     case 0x2:
@@ -2333,6 +2343,7 @@ void write_mih()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
     case 0x2:
         *((unsigned short*)((unsigned char*)&MI_register.w_mi_init_mode_reg
@@ -2356,6 +2367,7 @@ void write_mid()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         MI_register.w_mi_init_mode_reg = dword >> 32;
         update_MI_init_mode_reg();
@@ -2375,6 +2387,7 @@ void read_vi()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x10:
         update_count();
         vi_register.vi_current = (vi_register.vi_delay - (next_vi - core_Count)) / 1500;
@@ -2388,6 +2401,7 @@ void read_vib()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x10:
     case 0x11:
     case 0x12:
@@ -2405,6 +2419,7 @@ void read_vih()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x10:
     case 0x12:
         update_count();
@@ -2420,6 +2435,7 @@ void read_vid()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x10:
         update_count();
         vi_register.vi_current = (vi_register.vi_delay - (next_vi - core_Count)) / 1500;
@@ -2434,6 +2450,7 @@ void write_vi()
 {
     switch (*address_low)
     {
+        
     case 0x0:
         if (vi_register.vi_status != word)
         {
@@ -2452,6 +2469,7 @@ void write_vi()
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
         check_interrupt();
         return;
+    default: break;
     }
     *readvi[*address_low] = word;
 }
@@ -2461,6 +2479,7 @@ void write_vib()
     int temp;
     switch (*address_low)
     {
+    default: break;
     case 0x0:
     case 0x1:
     case 0x2:
@@ -2504,6 +2523,7 @@ void write_vih()
     int temp;
     switch (*address_low)
     {
+    default: break;
     case 0x0:
     case 0x2:
         temp = vi_register.vi_status;
@@ -2540,6 +2560,7 @@ void write_vid()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         if (vi_register.vi_status != dword >> 32)
         {
@@ -2578,7 +2599,9 @@ void read_ai()
         else
             *rdword = 0;
         return;
+    default: break;
     }
+    
     *rdword = *(readai[*address_low]);
 }
 
@@ -2587,6 +2610,7 @@ void read_aib()
     unsigned long len;
     switch (*address_low)
     {
+    default: break;
     case 0x4:
     case 0x5:
     case 0x6:
@@ -2609,6 +2633,7 @@ void read_aih()
     unsigned long len;
     switch (*address_low)
     {
+    default: break;
     case 0x4:
     case 0x6:
         update_count();
@@ -2629,6 +2654,7 @@ void read_aid()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         update_count();
         if (ai_register.current_delay != 0 && get_event(AI_INT) != 0)
@@ -2648,11 +2674,13 @@ void write_ai()
     unsigned long delay = 0;
     switch (*address_low)
     {
+    default: break;
     case 0x4:
         ai_register.ai_len = word;
         vcr_ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
+        default: break;
         case 0x44:
         case 0x46:
         case 0x49:
@@ -2706,6 +2734,7 @@ void write_ai()
             ai_register.ai_dacrate = word;
             switch (ROM_HEADER.Country_code & 0xFF)
             {
+            default: break;
             case 0x44:
             case 0x46:
             case 0x49:
@@ -2714,13 +2743,13 @@ void write_ai()
             case 0x55:
             case 0x58:
             case 0x59:
-                vcr_ai_dacrate_changed(system_type::pal);
+                vcr_ai_dacrate_changed(pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                vcr_ai_dacrate_changed(system_type::ntsc);
+                vcr_ai_dacrate_changed(ntsc);
                 break;
             }
         }
@@ -2735,6 +2764,7 @@ void write_aib()
     unsigned long delay = 0;
     switch (*address_low)
     {
+    default: break;
     case 0x4:
     case 0x5:
     case 0x6:
@@ -2746,6 +2776,7 @@ void write_aib()
         vcr_ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
+        default: break;
         case 0x44:
         case 0x46:
         case 0x49:
@@ -2800,6 +2831,7 @@ void write_aib()
             ai_register.ai_dacrate = temp;
             switch (ROM_HEADER.Country_code & 0xFF)
             {
+            default: break;
             case 0x44:
             case 0x46:
             case 0x49:
@@ -2830,6 +2862,7 @@ void write_aih()
     unsigned long delay = 0;
     switch (*address_low)
     {
+    default: break;
     case 0x4:
     case 0x6:
         temp = ai_register.ai_len;
@@ -2839,6 +2872,7 @@ void write_aih()
         vcr_ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
+        default: break;
         case 0x44:
         case 0x46:
         case 0x49:
@@ -2889,6 +2923,7 @@ void write_aih()
             ai_register.ai_dacrate = temp;
             switch (ROM_HEADER.Country_code & 0xFF)
             {
+            default: break;
             case 0x44:
             case 0x46:
             case 0x49:
@@ -2918,12 +2953,14 @@ void write_aid()
     unsigned long delay = 0;
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         ai_register.ai_dram_addr = dword >> 32;
         ai_register.ai_len = dword & 0xFFFFFFFF;
         vcr_ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
+        default: break;
         case 0x44:
         case 0x46:
         case 0x49:
@@ -2970,6 +3007,7 @@ void write_aid()
             ai_register.ai_dacrate = dword >> 32;
             switch (ROM_HEADER.Country_code & 0xFF)
             {
+            default: break;
             case 0x44:
             case 0x46:
             case 0x49:
@@ -3022,6 +3060,7 @@ void write_pi()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x8:
         pi_register.pi_rd_len_reg = word;
         dma_pi_read();
@@ -3052,6 +3091,7 @@ void write_pib()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x8:
     case 0x9:
     case 0xa:
@@ -3109,6 +3149,7 @@ void write_pih()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x8:
     case 0xa:
         *((unsigned short*)((unsigned char*)&pi_register.pi_rd_len_reg
@@ -3155,6 +3196,7 @@ void write_pid()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x8:
         pi_register.pi_rd_len_reg = dword >> 32;
         dma_pi_read();
@@ -3251,6 +3293,7 @@ void write_si()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         si_register.si_dram_addr = word;
         return;
@@ -3274,6 +3317,7 @@ void write_sib()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
     case 0x1:
     case 0x2:
@@ -3312,6 +3356,7 @@ void write_sih()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
     case 0x2:
         *((unsigned short*)((unsigned char*)&si_register.si_dram_addr
@@ -3342,6 +3387,7 @@ void write_sid()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x0:
         si_register.si_dram_addr = dword >> 32;
         si_register.si_pif_addr_rd64b = dword & 0xFFFFFFFF;
@@ -3495,7 +3541,7 @@ void read_pifh()
 	}
 #endif
     *rdword = (*(PIF_RAMb + ((address & 0x7FF) - 0x7C0)) << 8) |
-        *(PIF_RAMb + (((address + 1) & 0x7FF) - 0x7C0));;
+        *(PIF_RAMb + (((address + 1) & 0x7FF) - 0x7C0));
 }
 
 void read_pifd()
