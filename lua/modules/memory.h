@@ -51,13 +51,13 @@ namespace LuaCore::Memory
 	template <typename T>
 	T LoadRDRAMSafe(unsigned long addr)
 	{
-		return *const_cast<T*>(rdramb + ((ToAddr<T>(addr) & AddrMask)));
+		return *reinterpret_cast<T*>(rdramb + ((ToAddr<T>(addr) & AddrMask)));
 	}
 
 	template <typename T>
 	void StoreRDRAMSafe(unsigned long addr, T value)
 	{
-		*const_cast<T*>(rdramb + ((ToAddr<T>(addr) & AddrMask))) = value;
+		*reinterpret_cast<T*>(rdramb + ((ToAddr<T>(addr) & AddrMask))) = value;
 	}
 
 	// Read functions
