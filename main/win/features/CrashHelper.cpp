@@ -1,10 +1,10 @@
 #include "CrashHelper.h"
-#include "main_win.h"
+#include "../main_win.h"
 #include "../r4300/r4300.h"
 #include <vcr.h>
 #include <Psapi.h>
 
-#include "Config.hpp"
+#include "../Config.hpp"
 
 
 int crash_helper::find_module_name(char* error, void* addr, const int len)

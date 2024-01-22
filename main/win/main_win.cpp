@@ -31,7 +31,7 @@
 #include "Commandline.h"
 #include "config.hpp"
 #include "configdialog.h"
-#include "CrashHelper.h"
+#include "features/CrashHelper.h"
 #include "LuaConsole.h"
 #include "Recent.h"
 #include "timers.h"
