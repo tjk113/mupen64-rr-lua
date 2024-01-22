@@ -222,6 +222,7 @@ namespace LuaCore::Wgui
 		{
 			switch (*p)
 			{
+			default: break;
 			case 'b': font.lfWeight = FW_BOLD;
 				break;
 			case 'i': font.lfItalic = TRUE;
@@ -334,6 +335,7 @@ namespace LuaCore::Wgui
 			{
 				switch (*p)
 				{
+				default: break;
 				case 'l': format |= DT_LEFT;
 					break;
 				case 'r': format |= DT_RIGHT;

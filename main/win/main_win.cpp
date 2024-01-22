@@ -1508,6 +1508,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			}
 			switch ((l_header)->code)
 			{
+			default: break;
 			case TTN_NEEDTEXT:
 				ProcessToolTips(lParam, hwnd);
 				break;
@@ -1684,6 +1685,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					t_plugin* plugin = video_plugin;
 					switch (LOWORD(wParam))
 					{
+					default: break;
 					case IDINPUTCONFIG:
 						plugin = input_plugin;
 						break;

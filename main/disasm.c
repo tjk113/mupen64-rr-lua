@@ -505,7 +505,7 @@ static char* sfmt(char* b, const char* f, ...)
         case 'u':
             {
                 r4300half n = va_arg(v, r4300half);
-                HEX4();
+                HEX4()
                 break;
             }
         case 's':
@@ -521,16 +521,16 @@ static char* sfmt(char* b, const char* f, ...)
                     //				n = -n;
                 }
                 q++;
-                HEX4();
+                HEX4()
                 break;
             }
         case 'p':
             {
                 r4300word m = va_arg(v, r4300word);
                 r4300half n = m >> 16;
-                HEX4();
+                HEX4()
                 n = m & 0xFFFF;
-                HEX4();
+                HEX4()
                 break;
             }
         case 'a':

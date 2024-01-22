@@ -78,7 +78,7 @@ void TLB_refill_exception(unsigned long address, int w)
     if (core_Status & 0x2) // Test de EXL
     {
         if (interpcore) interp_addr = 0x80000180;
-        else jump_to(0x80000180);
+        else jump_to(0x80000180)
         if (delay_slot == 1 || delay_slot == 3)
             core_Cause |= 0x80000000;
         else
@@ -113,12 +113,12 @@ void TLB_refill_exception(unsigned long address, int w)
         if (usual_handler)
         {
             if (interpcore) interp_addr = 0x80000180;
-            else jump_to(0x80000180);
+            else jump_to(0x80000180)
         }
         else
         {
             if (interpcore) interp_addr = 0x80000000;
-            else jump_to(0x80000000);
+            else jump_to(0x80000000)
         }
     }
     if (delay_slot == 1 || delay_slot == 3)
@@ -211,7 +211,7 @@ void exception_general()
     }
     else
     {
-        jump_to(0x80000180);
+        jump_to(0x80000180)
         last_addr = PC->addr;
     }
     if (dynacore)
