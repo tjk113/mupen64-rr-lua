@@ -114,7 +114,6 @@ void dma_pi_read()
 
 void dma_pi_write()
 {
-    unsigned long longueur;
     int i;
 
     if (pi_register.pi_cart_addr_reg < 0x10000000)
@@ -153,7 +152,7 @@ void dma_pi_write()
         return;
     }
 
-    longueur = (pi_register.pi_wr_len_reg & 0xFFFFFF) + 1;
+    unsigned long longueur = (pi_register.pi_wr_len_reg & 0xFFFFFF) + 1;
 
     if (Config.use_summercart && pi_register.pi_cart_addr_reg >= 0x1ffe0000 &&
         pi_register.pi_cart_addr_reg < 0x1fff0000)
@@ -287,13 +286,12 @@ void dma_sp_read()
 
 void dma_si_write()
 {
-    int i;
     if (si_register.si_pif_addr_wr64b != 0x1FC007C0)
     {
         printf("unknown SI use\n");
         stop = 1;
     }
-    for (i = 0; i < (64 / 4); i++)
+    for (int i = 0; i < (64 / 4); i++)
         PIF_RAM[i] = sl(rdram[si_register.si_dram_addr / 4 + i]);
     update_pif_write();
     update_count();
@@ -302,14 +300,13 @@ void dma_si_write()
 
 void dma_si_read()
 {
-    int i;
     if (si_register.si_pif_addr_rd64b != 0x1FC007C0)
     {
         printf("unknown SI use\n");
         stop = 1;
     }
     update_pif_read(true);
-    for (i = 0; i < (64 / 4); i++)
+    for (int i = 0; i < (64 / 4); i++)
         rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
     if (!st_skip_dma) //st already did this, see savestates.cpp, we still copy pif ram tho because it has new inputs
     {

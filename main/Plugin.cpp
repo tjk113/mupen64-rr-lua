@@ -790,8 +790,6 @@ void unload_plugins()
 
 void setup_dummy_info()
 {
-	int i;
-
 	/////// GFX ///////////////////////////
 	dummy_gfx_info.hWnd = statusbar_hwnd;
 	dummy_gfx_info.hStatusBar = statusbar_hwnd;
@@ -848,7 +846,7 @@ void setup_dummy_info()
 	dummy_control_info.MemoryBswaped = TRUE;
 	dummy_control_info.HEADER = (BYTE*)dummy_header;
 	dummy_control_info.Controls = Controls;
-	for (i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		Controls[i].Present = FALSE;
 		Controls[i].RawData = FALSE;

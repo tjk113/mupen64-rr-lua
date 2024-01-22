@@ -92,26 +92,26 @@ void EepromCommand(BYTE* Command)
         break;
     case 4: // read
         {
-            auto filename = get_eeprom_path();
+            const auto filename = get_eeprom_path();
             if (FILE* f = fopen(filename.string().c_str(), "rb"))
             {
                 fread(eeprom, 1, 0x800, f);
                 fclose(f);
             }
-            else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+            else for (unsigned char& i : eeprom) i = 0;
             memcpy(&Command[4], eeprom + Command[3] * 8, 8);
         }
         break;
     case 5: // write
         {
-            auto filename = get_eeprom_path();
+            const auto filename = get_eeprom_path();
             FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)
             {
                 fread(eeprom, 1, 0x800, f);
                 fclose(f);
             }
-            else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+            else for (unsigned char& i : eeprom) i = 0;
             memcpy(eeprom + Command[3] * 8, &Command[4], 8);
             f = fopen(filename.string().c_str(), "wb");
             fwrite(eeprom, 1, 0x800, f);
@@ -125,7 +125,7 @@ void EepromCommand(BYTE* Command)
 
 void format_mempacks()
 {
-    unsigned char init[] =
+    const unsigned char init[] =
     {
         0x81, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
@@ -145,26 +145,23 @@ void format_mempacks()
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x71, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03
     };
-    int i, j;
-    for (i = 0; i < 4; i++)
+    for (auto& i : mempack)
     {
-        for (j = 0; j < 0x8000; j += 2)
+        for (int j = 0; j < 0x8000; j += 2)
         {
-            mempack[i][j] = 0;
-            mempack[i][j + 1] = 0x03;
+            i[j] = 0;
+            i[j + 1] = 0x03;
         }
-        memcpy(mempack[i], init, 272);
+        memcpy(i, init, 272);
     }
 }
 
 unsigned char mempack_crc(unsigned char* data)
 {
-    int i;
     unsigned char CRC = 0;
-    for (i = 0; i <= 0x20; i++)
+    for (int i = 0; i <= 0x20; i++)
     {
-        int mask;
-        for (mask = 0x80; mask >= 1; mask >>= 1)
+        for (int mask = 0x80; mask >= 1; mask >>= 1)
         {
             int xor_tap = (CRC & 0x80) ? 0x85 : 0x00;
             CRC <<= 1;
@@ -195,14 +192,14 @@ void internal_ReadController(int Control, BYTE* Command)
     case 2: // read controller pack
         if (Controls[Control].Present)
         {
-            if (Controls[Control].Plugin == controller_extension::raw)
+            if (Controls[Control].Plugin == raw)
                 if (controllerCommand) readController(Control, Command);
         }
         break;
     case 3: // write controller pack
         if (Controls[Control].Present)
         {
-            if (Controls[Control].Plugin == controller_extension::raw)
+            if (Controls[Control].Plugin == raw)
                 if (controllerCommand) readController(Control, Command);
         }
         break;
@@ -224,10 +221,10 @@ void internal_ControllerCommand(int Control, BYTE* Command)
             Command[4] = 0x00;
             switch (Controls[Control].Plugin)
             {
-            case controller_extension::mempak:
+            case mempak:
                 Command[5] = 1;
                 break;
-            case controller_extension::raw:
+            case raw:
                 Command[5] = 1;
                 break;
             default:
@@ -247,7 +244,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
         {
             switch (Controls[Control].Plugin)
             {
-            case controller_extension::mempak:
+            case mempak:
                 {
                     int address = (Command[3] << 8) | Command[4];
                     if (address == 0x8001)

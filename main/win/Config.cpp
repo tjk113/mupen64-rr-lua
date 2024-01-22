@@ -1117,12 +1117,11 @@ void load_config()
 
 int32_t get_user_hotkey(t_hotkey* hotkey)
 {
-	int i, j;
 	int lc = 0, ls = 0, la = 0;
-	for (i = 0; i < 500; i++)
+	for (int i = 0; i < 500; i++)
 	{
 		SleepEx(10, TRUE);
-		for (j = 8; j < 254; j++)
+		for (int j = 8; j < 254; j++)
 		{
 			if (j == VK_LCONTROL || j == VK_RCONTROL || j == VK_LMENU || j ==
 				VK_RMENU || j == VK_LSHIFT || j == VK_RSHIFT)

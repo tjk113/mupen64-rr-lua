@@ -266,10 +266,9 @@ void remove_event(int type)
 
 void translate_event_queue(unsigned long base)
 {
-    interrupt_queue* aux;
     remove_event(COMPARE_INT);
     remove_event(SPECIAL_INT);
-    aux = q;
+    interrupt_queue* aux = q;
     while (aux != nullptr)
     {
         aux->count = (aux->count - core_Count) + base;
@@ -288,7 +287,7 @@ int save_eventqueue_infos(char* buf)
         printf("SI_INT not found\n");
 #endif
     int len = 0;
-    interrupt_queue* aux = q;
+    const interrupt_queue* aux = q;
     if (q == nullptr)
     {
         *reinterpret_cast<unsigned long*>(&buf[0]) = 0xFFFFFFFF;

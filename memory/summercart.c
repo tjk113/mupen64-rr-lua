@@ -46,11 +46,10 @@ struct vhd
 
 static void vhd_copy(struct vhd *vhd, FILE *dst, FILE *src, void *buf, unsigned int n)
 {
-	unsigned long long len;
 	fseek(src, -512, SEEK_END);
 	fread(vhd, 1, sizeof(struct vhd), src);
 	fseek(src, 0, SEEK_SET);
-	for (len = vhd_64(vhd->disk_size)/512; len > 0; len -= n)
+	for (unsigned long long len = vhd_64(vhd->disk_size) / 512; len > 0; len -= n)
 	{
 		if (n > len) n = len;
 		fread(buf, n, 512, src);
@@ -133,8 +132,7 @@ static void sd_read()
 			}
 			if (ptr)
 			{
-				unsigned long i;
-				for (i = 0; i < size; i++) ptr[(addr+i)^s] = fgetc(fp);
+				for (unsigned long i = 0; i < size; i++) ptr[(addr+i)^s] = fgetc(fp);
 				summercart.status = 0;
 			}
 			fclose(fp);

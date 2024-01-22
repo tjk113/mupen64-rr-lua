@@ -128,8 +128,7 @@ int init_memory()
     int i;
 
     //swap rom
-    unsigned long* roml;
-    roml = reinterpret_cast<unsigned long*>(rom);
+    const auto roml = reinterpret_cast<unsigned long*>(rom);
     for (i = 0; i < (rom_size / 4); i++)
         roml[i] = sl(roml[i]);
 
@@ -1180,26 +1179,24 @@ void update_SP()
         return;
     if (!sp_register.halt && !sp_register.broke)
     {
-        int save_pc = rsp_register.rsp_pc & ~0xFFF;
+        const int save_pc = rsp_register.rsp_pc & ~0xFFF;
         if (SP_DMEM[0xFC0 / 4] == 1)
         {
             // unprotecting old frame buffers
             if (fBGetFrameBufferInfo && fBRead && fBWrite &&
                 frameBufferInfos[0].addr)
             {
-                int i;
-                for (i = 0; i < 6; i++)
+                for (auto& [addr, size, width, height] : frameBufferInfos)
                 {
-                    if (frameBufferInfos[i].addr)
+                    if (addr)
                     {
-                        int j;
-                        int start = frameBufferInfos[i].addr & 0x7FFFFF;
-                        int end = start + frameBufferInfos[i].width *
-                            frameBufferInfos[i].height *
-                            frameBufferInfos[i].size - 1;
+                        int start = addr & 0x7FFFFF;
+                        int end = start + width *
+                            height *
+                            size - 1;
                         start = start >> 16;
                         end = end >> 16;
-                        for (j = start; j <= end; j++)
+                        for (int j = start; j <= end; j++)
                         {
                             readmem[0x8000 + j] = read_rdram;
                             readmem[0xa000 + j] = read_rdram;
@@ -1247,16 +1244,15 @@ void update_SP()
             if (fBGetFrameBufferInfo && fBRead && fBWrite &&
                 frameBufferInfos[0].addr)
             {
-                int i;
-                for (i = 0; i < 6; i++)
+                for (auto& [addr, size, width, height] : frameBufferInfos)
                 {
-                    if (frameBufferInfos[i].addr)
+                    if (addr)
                     {
                         int j;
-                        int start = frameBufferInfos[i].addr & 0x7FFFFF;
-                        int end = start + frameBufferInfos[i].width *
-                            frameBufferInfos[i].height *
-                            frameBufferInfos[i].size - 1;
+                        int start = addr & 0x7FFFFF;
+                        int end = start + width *
+                            height *
+                            size - 1;
                         int start1 = start;
                         int end1 = end;
                         start >>= 16;
@@ -1489,15 +1485,14 @@ void read_rdramd()
 
 void read_rdramFB()
 {
-    int i;
-    for (i = 0; i < 6; i++)
+    for (auto& [addr, size, width, height] : frameBufferInfos)
     {
-        if (frameBufferInfos[i].addr)
+        if (addr)
         {
-            int start = frameBufferInfos[i].addr & 0x7FFFFF;
-            int end = start + frameBufferInfos[i].width *
-                frameBufferInfos[i].height *
-                frameBufferInfos[i].size - 1;
+            int start = addr & 0x7FFFFF;
+            int end = start + width *
+                height *
+                size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end &&
                 framebufferRead[(address & 0x7FFFFF) >> 12])
             {
@@ -1511,15 +1506,14 @@ void read_rdramFB()
 
 void read_rdramFBb()
 {
-    int i;
-    for (i = 0; i < 6; i++)
+    for (auto& [addr, size, width, height] : frameBufferInfos)
     {
-        if (frameBufferInfos[i].addr)
+        if (addr)
         {
-            int start = frameBufferInfos[i].addr & 0x7FFFFF;
-            int end = start + frameBufferInfos[i].width *
-                frameBufferInfos[i].height *
-                frameBufferInfos[i].size - 1;
+            int start = addr & 0x7FFFFF;
+            int end = start + width *
+                height *
+                size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end &&
                 framebufferRead[(address & 0x7FFFFF) >> 12])
             {
@@ -1533,15 +1527,14 @@ void read_rdramFBb()
 
 void read_rdramFBh()
 {
-    int i;
-    for (i = 0; i < 6; i++)
+    for (auto& [addr, size, width, height] : frameBufferInfos)
     {
-        if (frameBufferInfos[i].addr)
+        if (addr)
         {
-            int start = frameBufferInfos[i].addr & 0x7FFFFF;
-            int end = start + frameBufferInfos[i].width *
-                frameBufferInfos[i].height *
-                frameBufferInfos[i].size - 1;
+            int start = addr & 0x7FFFFF;
+            int end = start + width *
+                height *
+                size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end &&
                 framebufferRead[(address & 0x7FFFFF) >> 12])
             {
@@ -1555,15 +1548,14 @@ void read_rdramFBh()
 
 void read_rdramFBd()
 {
-    int i;
-    for (i = 0; i < 6; i++)
+    for (auto& [addr, size, width, height] : frameBufferInfos)
     {
-        if (frameBufferInfos[i].addr)
+        if (addr)
         {
-            int start = frameBufferInfos[i].addr & 0x7FFFFF;
-            int end = start + frameBufferInfos[i].width *
-                frameBufferInfos[i].height *
-                frameBufferInfos[i].size - 1;
+            int start = addr & 0x7FFFFF;
+            int end = start + width *
+                height *
+                size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end &&
                 framebufferRead[(address & 0x7FFFFF) >> 12])
             {
@@ -1598,15 +1590,14 @@ void write_rdramd()
 
 void write_rdramFB()
 {
-    int i;
-    for (i = 0; i < 6; i++)
+    for (const auto& [addr, size, width, height] : frameBufferInfos)
     {
-        if (frameBufferInfos[i].addr)
+        if (addr)
         {
-            int start = frameBufferInfos[i].addr & 0x7FFFFF;
-            int end = start + frameBufferInfos[i].width *
-                frameBufferInfos[i].height *
-                frameBufferInfos[i].size - 1;
+            int start = addr & 0x7FFFFF;
+            int end = start + width *
+                height *
+                size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end)
                 fBWrite(address, 4);
         }
@@ -1616,15 +1607,14 @@ void write_rdramFB()
 
 void write_rdramFBb()
 {
-    int i;
-    for (i = 0; i < 6; i++)
+    for (auto& [addr, size, width, height] : frameBufferInfos)
     {
-        if (frameBufferInfos[i].addr)
+        if (addr)
         {
-            int start = frameBufferInfos[i].addr & 0x7FFFFF;
-            int end = start + frameBufferInfos[i].width *
-                frameBufferInfos[i].height *
-                frameBufferInfos[i].size - 1;
+            int start = addr & 0x7FFFFF;
+            int end = start + width *
+                height *
+                size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end)
                 fBWrite(address ^ S8, 1);
         }
@@ -1634,15 +1624,14 @@ void write_rdramFBb()
 
 void write_rdramFBh()
 {
-    int i;
-    for (i = 0; i < 6; i++)
+    for (auto& [addr, size, width, height] : frameBufferInfos)
     {
-        if (frameBufferInfos[i].addr)
+        if (addr)
         {
-            int start = frameBufferInfos[i].addr & 0x7FFFFF;
-            int end = start + frameBufferInfos[i].width *
-                frameBufferInfos[i].height *
-                frameBufferInfos[i].size - 1;
+            int start = addr & 0x7FFFFF;
+            int end = start + width *
+                height *
+                size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end)
                 fBWrite(address ^ S16, 2);
         }
@@ -1652,8 +1641,7 @@ void write_rdramFBh()
 
 void write_rdramFBd()
 {
-    int i;
-    for (i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++)
     {
         if (frameBufferInfos[i].addr)
         {

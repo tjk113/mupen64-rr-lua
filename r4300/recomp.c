@@ -526,11 +526,9 @@ static void (*recomp_special[64])(void) =
 
 static void RBLTZ()
 {
-    unsigned long target;
     dst->ops = BLTZ;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -550,11 +548,9 @@ static void RBLTZ()
 
 static void RBGEZ()
 {
-    unsigned long target;
     dst->ops = BGEZ;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -574,11 +570,9 @@ static void RBGEZ()
 
 static void RBLTZL()
 {
-    unsigned long target;
     dst->ops = BLTZL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -598,11 +592,9 @@ static void RBLTZL()
 
 static void RBGEZL()
 {
-    unsigned long target;
     dst->ops = BGEZL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -658,11 +650,9 @@ static void RTNEI()
 
 static void RBLTZAL()
 {
-    unsigned long target;
     dst->ops = BLTZAL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -682,11 +672,9 @@ static void RBLTZAL()
 
 static void RBGEZAL()
 {
-    unsigned long target;
     dst->ops = BGEZAL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -706,11 +694,9 @@ static void RBGEZAL()
 
 static void RBLTZALL()
 {
-    unsigned long target;
     dst->ops = BLTZALL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -730,11 +716,9 @@ static void RBLTZALL()
 
 static void RBGEZALL()
 {
-    unsigned long target;
     dst->ops = BGEZALL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -847,11 +831,9 @@ static void (*recomp_cop0[32])(void) =
 
 static void RBC1F()
 {
-    unsigned long target;
     dst->ops = BC1F;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -871,11 +853,9 @@ static void RBC1F()
 
 static void RBC1T()
 {
-    unsigned long target;
     dst->ops = BC1T;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -895,11 +875,9 @@ static void RBC1T()
 
 static void RBC1FL()
 {
-    unsigned long target;
     dst->ops = BC1FL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -919,11 +897,9 @@ static void RBC1FL()
 
 static void RBC1TL()
 {
-    unsigned long target;
     dst->ops = BC1TL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {

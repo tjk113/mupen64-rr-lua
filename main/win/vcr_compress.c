@@ -86,16 +86,15 @@ void get_window_info(HWND hwnd, t_window_info& info)
 // "internal" readScreen, used when plugin doesn't implement it
 void __cdecl vcrcomp_internal_read_screen(void** dest, long* width, long* height)
 {
-    HDC mupendc, all = nullptr, copy; //all - screen; copy - buffer
+    HDC all = nullptr; //all - screen; copy - buffer
     POINT cli_tl{0, 0}; //mupen client x y 
-    HBITMAP bitmap, oldbitmap;
 
     if (Config.capture_delay)
     {
         Sleep(Config.capture_delay);
     }
 
-    mupendc = GetDC(mainHWND); //only client area
+    const HDC mupendc = GetDC(mainHWND); //only client area
     if (Config.is_capture_cropped_screen_dc)
     {
         //get whole screen dc and find out where is mupen's client area
@@ -108,9 +107,9 @@ void __cdecl vcrcomp_internal_read_screen(void** dest, long* width, long* height
     *height = vcrcomp_window_info.height & ~3;
 
     // copy to a context in memory to speed up process
-    copy = CreateCompatibleDC(mupendc);
-    bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
-    oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
+    const HDC copy = CreateCompatibleDC(mupendc);
+    const HBITMAP bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
+    const HBITMAP oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
     
     if (copy)
     {
@@ -322,8 +321,7 @@ void VCRComp_finishFile(int split)
     AVIFileExit();
     if (!split)
     {
-        HMENU hMenu;
-        hMenu = GetMenu(mainHWND);
+        const HMENU hMenu = GetMenu(mainHWND);
         EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
         EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
         EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);

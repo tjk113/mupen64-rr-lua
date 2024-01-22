@@ -1139,8 +1139,7 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
-			LONG winstyle;
-			winstyle = GetWindowLong(mainHWND, GWL_STYLE);
+			LONG winstyle = GetWindowLong(mainHWND, GWL_STYLE);
 			winstyle |= WS_MAXIMIZEBOX;
 			SetWindowLong(mainHWND, GWL_STYLE, winstyle);
 			SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0,
@@ -2284,7 +2283,6 @@ int WINAPI WinMain(
 	load_config();
 
 	WNDCLASSEX wc = {0};
-	HWND hwnd;
 	MSG msg;
 
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -2301,7 +2299,7 @@ int WINAPI WinMain(
 
 	HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
 
-	hwnd = CreateWindowEx(
+	HWND hwnd = CreateWindowEx(
 		0,
 		g_szClassName,
 		MUPEN_VERSION,

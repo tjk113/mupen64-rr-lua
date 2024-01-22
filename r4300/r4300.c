@@ -161,10 +161,8 @@ void J_OUT()
 
 void J_IDLE()
 {
-    long skip;
     update_count();
-    skip = next_interrupt - core_Count;
-    if (skip > 3)
+    if (const long skip = next_interrupt - core_Count; skip > 3)
         core_Count += (skip & 0xFFFFFFFC);
     else J();
 }
@@ -209,10 +207,8 @@ void JAL_OUT()
 
 void JAL_IDLE()
 {
-    long skip;
     update_count();
-    skip = next_interrupt - core_Count;
-    if (skip > 3)
+    if (const long skip = next_interrupt - core_Count; skip > 3)
         core_Count += (skip & 0xFFFFFFFC);
     else JAL();
 }
@@ -1418,9 +1414,8 @@ inline void jump_to_func()
     //#ifdef _DEBUG
     //	printf("dyna jump: %p\n", addr);
     //#endif
-    unsigned long paddr;
     if (skip_jump) return;
-    paddr = update_invalid_addr(addr);
+    const unsigned long paddr = update_invalid_addr(addr);
     if (!paddr) return;
     actual = blocks[addr >> 12];
     if (invalid_code[addr >> 12])

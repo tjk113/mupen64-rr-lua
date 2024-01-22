@@ -419,14 +419,12 @@ void (*InstFormatTypeFunc[INSTFTYPE_COUNT])(r4300word, INSTOPERAND*) = {
 void DecodeInstruction(r4300word w, INSTDECODE* d)
 {
     INST inst = GetInstruction(w);
-    INSTFMT format;
-    INSTFTYPE type;
     if (inst == INST_UNDEF)
     {
         inst = GetInstruction(w);
     }
-    format = InstFormat[inst];
-    type = InstFormatType[format];
+    const INSTFMT format = InstFormat[inst];
+    const INSTFTYPE type = InstFormatType[format];
     InstFormatTypeFunc[type](w, &d->operand);
     d->inst = inst;
     d->format = format;
@@ -465,18 +463,16 @@ static char* sfmt(char* b, const char* f, ...)
 			q+=4;
 
     va_list v;
-    const char* p;
     char* q = b;
     va_start(v, f);
-    for (p = f; *p; p++)
+    for (const char* p = f; *p; p++)
     {
         const char* const x = "0123456789abcdef";
         switch (const char c = *p)
         {
         case 'r':
             {
-                const char* l;
-                for (l = CPURegisterName[va_arg(v, int)]; *l; l++)
+                for (const char* l = CPURegisterName[va_arg(v, int)]; *l; l++)
                 {
                     *(q++) = *l;
                 }
@@ -484,8 +480,7 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'c':
             {
-                const char* l;
-                for (l = COP0RegisterName[va_arg(v, int)]; *l; l++)
+                for (const char* l = COP0RegisterName[va_arg(v, int)]; *l; l++)
                 {
                     *(q++) = *l;
                 }
@@ -503,13 +498,13 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'u':
             {
-                r4300half n = va_arg(v, r4300half);
+                const r4300half n = va_arg(v, r4300half);
                 HEX4()
                 break;
             }
         case 's':
             {
-                r4300half n = va_arg(v, r4300half);
+                const r4300half n = va_arg(v, r4300half);
                 if (n < 0x8000)
                 {
                     *q = '+';
@@ -525,7 +520,7 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'p':
             {
-                r4300word m = va_arg(v, r4300word);
+                const r4300word m = va_arg(v, r4300word);
                 r4300half n = m >> 16;
                 HEX4()
                 n = m & 0xFFFF;
@@ -612,9 +607,8 @@ char* GetOperandString(char* buf, INSTDECODE* d, r4300word pc)
 char* DisassembleInstruction(char* buf, r4300word w, r4300word pc)
 {
     INSTDECODE decode;
-    const char* p;
     DecodeInstruction(w, &decode);
-    for (p = GetOpecodeString(&decode); *p; p++)
+    for (const char* p = GetOpecodeString(&decode); *p; p++)
     {
         *(buf++) = *p;
     }

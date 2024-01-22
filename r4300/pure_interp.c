@@ -767,8 +767,7 @@ static void (*interp_regimm[32])(void) =
 
 static void TLBR()
 {
-    int index;
-    index = core_Index & 0x1F;
+    const int index = core_Index & 0x1F;
     core_PageMask = tlb_e[index].mask << 13;
     core_EntryHi = ((tlb_e[index].vpn2 << 13) | tlb_e[index].asid);
     core_EntryLo0 = (tlb_e[index].pfn_even << 6) | (tlb_e[index].c_even << 3)
@@ -942,9 +941,8 @@ static void TLBWR()
 
 static void TLBP()
 {
-    int i;
     core_Index |= 0x80000000;
-    for (i = 0; i < 32; i++)
+    for (int i = 0; i < 32; i++)
     {
         if (((tlb_e[i].vpn2 & (~tlb_e[i].mask)) ==
                 (((core_EntryHi & 0xFFFFE000) >> 13) & (~tlb_e[i].mask))) &&
@@ -1058,8 +1056,7 @@ static void MTC0()
         {
             if (core_rrt & 0x04000000)
             {
-                int i;
-                for (i = 0; i < 32; i++)
+                for (int i = 0; i < 32; i++)
                 {
                     //reg_cop1_fgr_64[i]=reg_cop1_fgr_32[i];
                     reg_cop1_double[i] = reinterpret_cast<double*>(&reg_cop1_fgr_64[i]);
@@ -1068,8 +1065,7 @@ static void MTC0()
             }
             else
             {
-                int i;
-                for (i = 0; i < 32; i++)
+                for (int i = 0; i < 32; i++)
                 {
                     //reg_cop1_fgr_32[i]=reg_cop1_fgr_64[i]&0xFFFFFFFF;
                     //if (i<16) reg_cop1_double[i*2]=(double*)&reg_cop1_fgr_32[i*2];
@@ -3168,9 +3164,8 @@ void prefetch()
     }
     else
     {
-        unsigned long addr = interp_addr, phys;
-        phys = virtual_to_physical_address(interp_addr, 2);
-        if (phys != 0x00000000) interp_addr = phys;
+        const unsigned long addr = interp_addr;
+        if (const unsigned long phys = virtual_to_physical_address(interp_addr, 2); phys != 0x00000000) interp_addr = phys;
         else
         {
             prefetch();

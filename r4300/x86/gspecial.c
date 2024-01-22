@@ -80,13 +80,11 @@ void gensllv()
 #ifdef INTERPRET_SLLV
 	gencallinterp((unsigned long)SLLV, 0);
 #else
-    int rt, rd;
     allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
 
-    rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
 
-    if (rd != ECX)
+    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd != ECX)
     {
         mov_reg32_reg32(rd, rt);
         shl_reg32_cl(rd);
@@ -107,20 +105,18 @@ void gensrlv()
 #ifdef INTERPRET_SRLV
 	gencallinterp((unsigned long)SRLV, 0);
 #else
-    int rt, rd;
     allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
 
-    rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
 
-    if (rd != ECX)
+    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd != ECX)
     {
         mov_reg32_reg32(rd, rt);
         shr_reg32_cl(rd);
     }
     else
     {
-        int temp = lru_register();
+        const int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rt);
         shr_reg32_cl(temp);
@@ -134,20 +130,18 @@ void gensrav()
 #ifdef INTERPRET_SRAV
 	gencallinterp((unsigned long)SRAV, 0);
 #else
-    int rt, rd;
     allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
 
-    rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
 
-    if (rd != ECX)
+    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd != ECX)
     {
         mov_reg32_reg32(rd, rt);
         sar_reg32_cl(rd);
     }
     else
     {
-        int temp = lru_register();
+        const int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rt);
         sar_reg32_cl(temp);

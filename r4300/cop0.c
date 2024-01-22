@@ -101,8 +101,7 @@ void MTC0()
         {
             if (core_rrt & 0x04000000)
             {
-                int i;
-                for (i = 0; i < 32; i++)
+                for (int i = 0; i < 32; i++)
                 {
                     reg_cop1_double[i] = reinterpret_cast<double*>(&reg_cop1_fgr_64[i]);
                     reg_cop1_simple[i] = reinterpret_cast<float*>(&reg_cop1_fgr_64[i]);
@@ -110,8 +109,7 @@ void MTC0()
             }
             else
             {
-                int i;
-                for (i = 0; i < 32; i++)
+                for (int i = 0; i < 32; i++)
                 {
                     if (!(i & 1))
                         reg_cop1_double[i] = reinterpret_cast<double*>(&reg_cop1_fgr_64[i >> 1]);

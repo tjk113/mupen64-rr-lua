@@ -34,15 +34,14 @@ void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap)
 //based on original one for AVI
 void FFMpegReadScreen(void** dest, long* width, long* height)
 {
-	HDC mupendc, all = nullptr, copy; //all - screen; copy - buffer
+	HDC all = nullptr; //all - screen; copy - buffer
 	//RECT rect, rectS, rectT;
 	POINT cli_tl{0, 0}; //mupen client x y
-	HBITMAP bitmap, oldbitmap;
 
 	*width = gSInfo.width;
 	*height = gSInfo.height;
 
-	mupendc = GetDC(mainHWND); //only client area
+	const HDC mupendc = GetDC(mainHWND); //only client area
 	if (Config.is_capture_cropped_screen_dc)
 	{
 		//get whole screen dc and find out where is mupen's client area
@@ -51,9 +50,9 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 	}
 
 	// copy to a context in memory to speed up process
-	copy = CreateCompatibleDC(mupendc);
-	bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
-	oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
+	const HDC copy = CreateCompatibleDC(mupendc);
+	const HBITMAP bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
+	const HBITMAP oldbitmap = static_cast<HBITMAP>(SelectObject(copy, bitmap));
 	Sleep(0);
 	if (copy)
 	{
@@ -87,7 +86,7 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 	{
 		if(buffer) free(buffer);
 		bufferSize = *width * *height * 3 + 1;
-		buffer = (unsigned char*)malloc(bufferSize);
+		buffer = static_cast<unsigned char*>(malloc(bufferSize));
 	}
 
 	if (!buffer) //failed to alloc
@@ -107,8 +106,8 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 
 	if (gBMPInfo.bmiHeader.biSize == 0)
 		PrepareBitmapHeader(mainHWND, bitmap);
-	if (auto res = GetDIBits(copy, bitmap, 0, *height, buffer, &gBMPInfo,
-	                         DIB_RGB_COLORS) == 0)
+	if (GetDIBits(copy, bitmap, 0, *height, buffer, &gBMPInfo,
+	              DIB_RGB_COLORS) == 0)
 	{
 		printf("GetDIBits error\n");
 	}
@@ -126,9 +125,9 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 void InitReadScreenFFmpeg(const t_window_info& info)
 {
 	printf((readScreen != nullptr)
-		       ? (char*)"ReadScreen is implemented by this graphics plugin.\n"
-		       : (char*)
-		       "ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n");
+		       ? const_cast<char*>("ReadScreen is implemented by this graphics plugin.\n")
+		       : const_cast<char*>(
+			       "ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n"));
 
 	if (readScreen == nullptr)
 	{
