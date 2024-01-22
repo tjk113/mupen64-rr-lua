@@ -1035,6 +1035,7 @@ void instrStr1(unsigned long pc, unsigned long w, char* p1)
 	case INSTF_MFC1:
 		REGFPU(((FPUREG)o.r.rs));
 		break;
+	default: break;
 	}
 	p1[strlen(p1)] = '\0';
 #undef HEX8
@@ -1183,6 +1184,7 @@ void TraceLogging(r4300word pc, r4300word w)
 	case INSTF_MFC1:
 		REGFPU(((FPUREG)o.r.rs));
 		break;
+	default: break;
 	}
 	*(p++) = '\n';
 
@@ -1288,6 +1290,7 @@ void TraceLoggingBin(r4300word pc, r4300word w)
 		REGFPU(((FPUREG)o.r.rs));
 		NONE;
 		break;
+	default: break;
 	}
 	TraceLoggingWriteBuf();
 #undef HEX8

@@ -29,8 +29,8 @@
 
 //#include "../config.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include "../main/win/Config.hpp"
 #include "../main/win/timers.h"
 
@@ -1815,6 +1815,7 @@ void read_rsp_reg()
     case 0x1c:
         sp_register.sp_semaphore_reg = 1;
         break;
+    default: break;
     }
 }
 
@@ -1830,6 +1831,7 @@ void read_rsp_regb()
     case 0x1f:
         sp_register.sp_semaphore_reg = 1;
         break;
+    default: break;
     }
 }
 
@@ -1843,6 +1845,7 @@ void read_rsp_regh()
     case 0x1e:
         sp_register.sp_semaphore_reg = 1;
         break;
+    default: ;
     }
 }
 
@@ -1855,6 +1858,7 @@ void read_rsp_regd()
     case 0x18:
         sp_register.sp_semaphore_reg = 1;
         break;
+    default: ;
     }
 }
 
@@ -1862,13 +1866,14 @@ void write_rsp_reg()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x10:
         sp_register.w_sp_status_reg = word;
         update_SP();
     case 0x14:
     case 0x18:
         return;
-        break;
+    
     }
     *readrspreg[*address_low] = word;
     switch (*address_low)
@@ -1882,6 +1887,7 @@ void write_rsp_reg()
     case 0x1c:
         sp_register.sp_semaphore_reg = 0;
         break;
+    default: break;
     }
 }
 
@@ -1889,6 +1895,7 @@ void write_rsp_regb()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x10:
     case 0x11:
     case 0x12:
@@ -1904,7 +1911,6 @@ void write_rsp_regb()
     case 0x1a:
     case 0x1b:
         return;
-        break;
     }
     *((unsigned char*)readrspreg[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S8)) = g_byte;
@@ -1928,6 +1934,7 @@ void write_rsp_regb()
     case 0x1f:
         sp_register.sp_semaphore_reg = 0;
         break;
+    default: break;
     }
 }
 
@@ -1935,6 +1942,7 @@ void write_rsp_regh()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x10:
     case 0x12:
         *((unsigned short*)((unsigned char*)&sp_register.w_sp_status_reg
@@ -1944,7 +1952,7 @@ void write_rsp_regh()
     case 0x18:
     case 0x1a:
         return;
-        break;
+    
     }
     *((unsigned short*)((unsigned char*)readrspreg[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S16))) = hword;
@@ -1962,6 +1970,7 @@ void write_rsp_regh()
     case 0x1e:
         sp_register.sp_semaphore_reg = 0;
         break;
+    default: break;
     }
 }
 
@@ -1969,15 +1978,15 @@ void write_rsp_regd()
 {
     switch (*address_low)
     {
+    default: break;
     case 0x10:
         sp_register.w_sp_status_reg = dword >> 32;
         update_SP();
         return;
-        break;
     case 0x18:
         sp_register.sp_semaphore_reg = 0;
         return;
-        break;
+    
     }
     *readrspreg[*address_low] = dword >> 32;
     *readrspreg[*address_low + 4] = dword & 0xFFFFFFFF;
@@ -1987,6 +1996,7 @@ void write_rsp_regd()
         dma_sp_write();
         dma_sp_read();
         break;
+    default: break;
     }
 }
 
@@ -2072,7 +2082,6 @@ void write_dp()
     case 0x18:
     case 0x1c:
         return;
-        break;
     }
     *readdp[*address_low] = word;
     switch (*address_low)
@@ -2120,7 +2129,6 @@ void write_dpb()
     case 0x1e:
     case 0x1f:
         return;
-        break;
     }
     *((unsigned char*)readdp[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S8)) = g_byte;
@@ -2163,7 +2171,6 @@ void write_dph()
     case 0x1c:
     case 0x1e:
         return;
-        break;
     }
     *((unsigned short*)((unsigned char*)readdp[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S16))) = hword;
@@ -2190,11 +2197,9 @@ void write_dpd()
         dpc_register.w_dpc_status = dword & 0xFFFFFFFF;
         update_DPC();
         return;
-        break;
     case 0x10:
     case 0x18:
         return;
-        break;
     }
     *readdp[*address_low] = dword >> 32;
     *readdp[*address_low + 4] = dword & 0xFFFFFFFF;
@@ -2436,7 +2441,6 @@ void write_vi()
             viStatusChanged();
         }
         return;
-        break;
     case 0x8:
         if (vi_register.vi_width != word)
         {
@@ -2444,12 +2448,10 @@ void write_vi()
             viWidthChanged();
         }
         return;
-        break;
     case 0x10:
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
         check_interrupt();
         return;
-        break;
     }
     *readvi[*address_low] = word;
 }
@@ -2472,7 +2474,6 @@ void write_vib()
             viStatusChanged();
         }
         return;
-        break;
     case 0x8:
     case 0x9:
     case 0xa:
@@ -2486,7 +2487,6 @@ void write_vib()
             viWidthChanged();
         }
         return;
-        break;
     case 0x10:
     case 0x11:
     case 0x12:
@@ -2494,7 +2494,6 @@ void write_vib()
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
         check_interrupt();
         return;
-        break;
     }
     *((unsigned char*)readvi[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S8)) = g_byte;
@@ -2516,7 +2515,6 @@ void write_vih()
             viStatusChanged();
         }
         return;
-        break;
     case 0x8:
     case 0xa:
         temp = vi_register.vi_status;
@@ -2528,13 +2526,11 @@ void write_vih()
             viWidthChanged();
         }
         return;
-        break;
     case 0x10:
     case 0x12:
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
         check_interrupt();
         return;
-        break;
     }
     *((unsigned short*)((unsigned char*)readvi[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S16))) = hword;
@@ -2552,7 +2548,6 @@ void write_vid()
         }
         vi_register.vi_origin = dword & 0xFFFFFFFF;
         return;
-        break;
     case 0x8:
         if (vi_register.vi_width != dword >> 32)
         {
@@ -2561,13 +2556,11 @@ void write_vid()
         }
         vi_register.vi_v_intr = dword & 0xFFFFFFFF;
         return;
-        break;
     case 0x10:
         MI_register.mi_intr_reg &= 0xFFFFFFF7;
         check_interrupt();
         vi_register.vi_burst = dword & 0xFFFFFFFF;
         return;
-        break;
     }
     *readvi[*address_low] = dword >> 32;
     *readvi[*address_low + 4] = dword & 0xFFFFFFFF;
@@ -2585,7 +2578,6 @@ void read_ai()
         else
             *rdword = 0;
         return;
-        break;
     }
     *rdword = *(readai[*address_low]);
 }
@@ -2607,7 +2599,6 @@ void read_aib()
             len = 0;
         *rdword = *((unsigned char*)&len + ((*address_low & 3) ^ S8));
         return;
-        break;
     }
     *rdword = *((unsigned char*)readai[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S8));
@@ -2629,7 +2620,6 @@ void read_aih()
         *rdword = *((unsigned short*)((unsigned char*)&len
             + ((*address_low & 3) ^ S16)));
         return;
-        break;
     }
     *rdword = *((unsigned short*)((unsigned char*)readai[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S16)));
@@ -2648,7 +2638,6 @@ void read_aid()
             *rdword = 0;
         *rdword |= (unsigned long long)ai_register.ai_dram_addr << 32;
         return;
-        break;
     }
     *rdword = ((unsigned long long int)(*readai[*address_low]) << 32) |
         *readai[*address_low + 4];
@@ -2707,12 +2696,10 @@ void write_ai()
             ai_register.ai_status |= 0x40000000;
         }
         return;
-        break;
     case 0xc:
         MI_register.mi_intr_reg &= 0xFFFFFFFB;
         check_interrupt();
         return;
-        break;
     case 0x10:
         if (ai_register.ai_dacrate != word)
         {
@@ -2738,7 +2725,6 @@ void write_ai()
             }
         }
         return;
-        break;
     }
     *readai[*address_low] = word;
 }
@@ -2795,7 +2781,6 @@ void write_aib()
             ai_register.ai_status |= 0x40000000;
         }
         return;
-        break;
     case 0xc:
     case 0xd:
     case 0xe:
@@ -2803,7 +2788,6 @@ void write_aib()
         MI_register.mi_intr_reg &= 0xFFFFFFFB;
         check_interrupt();
         return;
-        break;
     case 0x10:
     case 0x11:
     case 0x12:
@@ -2835,7 +2819,6 @@ void write_aib()
             }
         }
         return;
-        break;
     }
     *((unsigned char*)readai[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S8)) = g_byte;
@@ -2891,13 +2874,11 @@ void write_aih()
             ai_register.ai_status |= 0x40000000;
         }
         return;
-        break;
     case 0xc:
     case 0xe:
         MI_register.mi_intr_reg &= 0xFFFFFFFB;
         check_interrupt();
         return;
-        break;
     case 0x10:
     case 0x12:
         temp = ai_register.ai_dacrate;
@@ -2927,7 +2908,6 @@ void write_aih()
             }
         }
         return;
-        break;
     }
     *((unsigned short*)((unsigned char*)readai[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S16))) = hword;
@@ -2979,13 +2959,11 @@ void write_aid()
             ai_register.ai_status |= 0x40000000;
         }
         return;
-        break;
     case 0x8:
         ai_register.ai_control = dword >> 32;
         MI_register.mi_intr_reg &= 0xFFFFFFFB;
         check_interrupt();
         return;
-        break;
     case 0x10:
         if (ai_register.ai_dacrate != dword >> 32)
         {
@@ -3012,7 +2990,6 @@ void write_aid()
         }
         ai_register.ai_bitrate = dword & 0xFFFFFFFF;
         return;
-        break;
     }
     *readai[*address_low] = dword >> 32;
     *readai[*address_low + 4] = dword & 0xFFFFFFFF;
@@ -3049,17 +3026,14 @@ void write_pi()
         pi_register.pi_rd_len_reg = word;
         dma_pi_read();
         return;
-        break;
     case 0xc:
         pi_register.pi_wr_len_reg = word;
         dma_pi_write();
         return;
-        break;
     case 0x10:
         if (word & 2) MI_register.mi_intr_reg &= 0xFFFFFFEF;
         check_interrupt();
         return;
-        break;
     case 0x14:
     case 0x18:
     case 0x1c:
@@ -3070,7 +3044,6 @@ void write_pi()
     case 0x30:
         *readpi[*address_low] = word & 0xFF;
         return;
-        break;
     }
     *readpi[*address_low] = word;
 }
@@ -3087,7 +3060,6 @@ void write_pib()
             + ((*address_low & 3) ^ S8)) = g_byte;
         dma_pi_read();
         return;
-        break;
     case 0xc:
     case 0xd:
     case 0xe:
@@ -3096,7 +3068,6 @@ void write_pib()
             + ((*address_low & 3) ^ S8)) = g_byte;
         dma_pi_write();
         return;
-        break;
     case 0x10:
     case 0x11:
     case 0x12:
@@ -3104,7 +3075,6 @@ void write_pib()
         if (word) MI_register.mi_intr_reg &= 0xFFFFFFEF;
         check_interrupt();
         return;
-        break;
     case 0x14:
     case 0x15:
     case 0x16:
@@ -3130,7 +3100,6 @@ void write_pib()
     case 0x31:
     case 0x32:
         return;
-        break;
     }
     *((unsigned char*)readpi[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S8)) = g_byte;
@@ -3146,20 +3115,17 @@ void write_pih()
             + ((*address_low & 3) ^ S16))) = hword;
         dma_pi_read();
         return;
-        break;
     case 0xc:
     case 0xe:
         *((unsigned short*)((unsigned char*)&pi_register.pi_wr_len_reg
             + ((*address_low & 3) ^ S16))) = hword;
         dma_pi_write();
         return;
-        break;
     case 0x10:
     case 0x12:
         if (word) MI_register.mi_intr_reg &= 0xFFFFFFEF;
         check_interrupt();
         return;
-        break;
     case 0x16:
     case 0x1a:
     case 0x1e:
@@ -3171,7 +3137,6 @@ void write_pih()
         *((unsigned short*)((unsigned char*)readpi[*address_low & 0xfffc]
             + ((*address_low & 3) ^ S16))) = hword & 0xFF;
         return;
-        break;
     case 0x14:
     case 0x18:
     case 0x1c:
@@ -3181,7 +3146,6 @@ void write_pih()
     case 0x2c:
     case 0x30:
         return;
-        break;
     }
     *((unsigned short*)((unsigned char*)readpi[*address_low & 0xfffc]
         + ((*address_low & 3) ^ S16))) = hword;
@@ -3197,13 +3161,11 @@ void write_pid()
         pi_register.pi_wr_len_reg = dword & 0xFFFFFFFF;
         dma_pi_write();
         return;
-        break;
     case 0x10:
         if (word) MI_register.mi_intr_reg &= 0xFFFFFFEF;
         check_interrupt();
         *readpi[*address_low + 4] = dword & 0xFF;
         return;
-        break;
     case 0x18:
     case 0x20:
     case 0x28:
@@ -3211,7 +3173,6 @@ void write_pid()
         *readpi[*address_low] = (dword >> 32) & 0xFF;
         *readpi[*address_low + 4] = dword & 0xFF;
         return;
-        break;
     }
     *readpi[*address_low] = dword >> 32;
     *readpi[*address_low + 4] = dword & 0xFFFFFFFF;
@@ -3293,23 +3254,19 @@ void write_si()
     case 0x0:
         si_register.si_dram_addr = word;
         return;
-        break;
     case 0x4:
         si_register.si_pif_addr_rd64b = word;
         dma_si_read();
         return;
-        break;
     case 0x10:
         si_register.si_pif_addr_wr64b = word;
         dma_si_write();
         return;
-        break;
     case 0x18:
         MI_register.mi_intr_reg &= 0xFFFFFFFD;
         si_register.si_status &= ~0x1000;
         check_interrupt();
         return;
-        break;
     }
 }
 
@@ -3324,7 +3281,6 @@ void write_sib()
         *((unsigned char*)&si_register.si_dram_addr
             + ((*address_low & 3) ^ S8)) = g_byte;
         return;
-        break;
     case 0x4:
     case 0x5:
     case 0x6:
@@ -3333,7 +3289,6 @@ void write_sib()
             + ((*address_low & 3) ^ S8)) = g_byte;
         dma_si_read();
         return;
-        break;
     case 0x10:
     case 0x11:
     case 0x12:
@@ -3342,7 +3297,6 @@ void write_sib()
             + ((*address_low & 3) ^ S8)) = g_byte;
         dma_si_write();
         return;
-        break;
     case 0x18:
     case 0x19:
     case 0x1a:
@@ -3351,7 +3305,6 @@ void write_sib()
         si_register.si_status &= ~0x1000;
         check_interrupt();
         return;
-        break;
     }
 }
 
@@ -3364,28 +3317,24 @@ void write_sih()
         *((unsigned short*)((unsigned char*)&si_register.si_dram_addr
             + ((*address_low & 3) ^ S16))) = hword;
         return;
-        break;
     case 0x4:
     case 0x6:
         *((unsigned short*)((unsigned char*)&si_register.si_pif_addr_rd64b
             + ((*address_low & 3) ^ S16))) = hword;
         dma_si_read();
         return;
-        break;
     case 0x10:
     case 0x12:
         *((unsigned short*)((unsigned char*)&si_register.si_pif_addr_wr64b
             + ((*address_low & 3) ^ S16))) = hword;
         dma_si_write();
         return;
-        break;
     case 0x18:
     case 0x1a:
         MI_register.mi_intr_reg &= 0xFFFFFFFD;
         si_register.si_status &= ~0x1000;
         check_interrupt();
         return;
-        break;
     }
 }
 
@@ -3398,18 +3347,15 @@ void write_sid()
         si_register.si_pif_addr_rd64b = dword & 0xFFFFFFFF;
         dma_si_read();
         return;
-        break;
     case 0x10:
         si_register.si_pif_addr_wr64b = dword >> 32;
         dma_si_write();
         return;
-        break;
     case 0x18:
         MI_register.mi_intr_reg &= 0xFFFFFFFD;
         si_register.si_status &= ~0x1000;
         check_interrupt();
         return;
-        break;
     }
 }
 

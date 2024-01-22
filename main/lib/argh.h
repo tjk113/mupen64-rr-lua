@@ -189,7 +189,7 @@ namespace argh
    inline void parser::parse(const char * const argv[], int mode)
    {
       int argc = 0;
-      for (auto argvp = argv; *argvp; ++argc, ++argvp);
+      for (auto argvp = argv; *argvp; ++argc, ++argvp) {}
       parse(argc, argv, mode);
    }
 

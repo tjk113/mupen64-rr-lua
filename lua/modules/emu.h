@@ -1,3 +1,5 @@
+#ifndef EMU_H
+#define EMU_H
 #include <include/lua.h>
 #include <Windows.h>
 
@@ -342,3 +344,4 @@ namespace LuaCore::Emu
 		return 0;
 	}
 }
+#endif // EMU_H

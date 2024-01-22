@@ -26,6 +26,8 @@
  * USA.
  *
 **/
+#ifndef OPS_H
+#define OPS_H
 
 void NI();
 void LW();
@@ -277,3 +279,5 @@ void BGTZL_OUT();
 void NOTCOMPILED();
 void LL();
 void NOTCOMPILED2();
+
+#endif // OPS_H

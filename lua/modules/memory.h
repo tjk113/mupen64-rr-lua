@@ -1,6 +1,6 @@
+#pragma once
 #include <include/lua.h>
 #include <Windows.h>
-#include "../../main/win/main_win.h"
 
 namespace LuaCore::Memory
 {
@@ -34,7 +34,7 @@ namespace LuaCore::Memory
 
 	//memory
 	unsigned char* const rdramb = (unsigned char*)rdram;
-	const unsigned long AddrMask = 0x7FFFFF;
+	constexpr unsigned long AddrMask = 0x7FFFFF;
 
 	template <typename T>
 	ULONG ToAddr(ULONG addr)
@@ -269,7 +269,7 @@ namespace LuaCore::Memory
 	}
 
 	template <>
-	void PushT<ULONGLONG>(lua_State* L, ULONGLONG value)
+	inline void PushT<ULONGLONG>(lua_State* L, ULONGLONG value)
 	{
 		LuaPushQword(L, value);
 	}
@@ -294,7 +294,7 @@ namespace LuaCore::Memory
 	}
 
 	template <>
-	ULONGLONG CheckT<ULONGLONG>(lua_State* L, int i)
+	inline ULONGLONG CheckT<ULONGLONG>(lua_State* L, int i)
 	{
 		return LuaCheckQWord(L, i);
 	}

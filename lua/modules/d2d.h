@@ -1,8 +1,10 @@
+#ifndef D2D_H
+#define D2D_H
 #include <include/lua.h>
 #include <Windows.h>
 #include <assert.h>
 #include <xxh64.h>
-#include "../../main/win/main_win.h"
+
 
 namespace LuaCore::D2D
 {
@@ -466,3 +468,4 @@ namespace LuaCore::D2D
 #undef D2D_GET_ELLIPS
 #undef D2D_GET_ROUNDED_RECT
 }
+#endif // D2D_H

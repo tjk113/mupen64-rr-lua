@@ -27,7 +27,6 @@
  *
 **/
 
-#include <stdio.h>
 #include "../recomph.h"
 #include "../recomp.h"
 #include "assemble.h"
@@ -35,9 +34,6 @@
 #include "../ops.h"
 #include "../macros.h"
 #include "../exception.h"
-#include "interpret.h"
-#define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "../lua/LuaConsole.h"
 
 
 void gensll()

@@ -26,6 +26,8 @@
  * USA.
  *
 **/
+#ifndef INTERRUPT_H
+#define INTERRUPT_H
 
 void compare_interrupt();
 void gen_dp();
@@ -46,12 +48,16 @@ unsigned long get_event(int type);
 int save_eventqueue_infos(char* buf);
 void load_eventqueue_infos(char* buf);
 
-#define VI_INT      0x001
-#define COMPARE_INT 0x002
-#define CHECK_INT   0x004
-#define SI_INT      0x008
-#define PI_INT      0x010
-#define SPECIAL_INT 0x020
-#define AI_INT      0x040
-#define SP_INT      0x080
-#define DP_INT      0x100
+enum {
+	VI_INT = 0x001,
+	COMPARE_INT = 0x002,
+	CHECK_INT = 0x004,
+	SI_INT = 0x008,
+	PI_INT = 0x010,
+	SPECIAL_INT = 0x020,
+	AI_INT = 0x040,
+	SP_INT = 0x080,
+	DP_INT = 0x100
+};
+
+#endif // INTERRUPT_H

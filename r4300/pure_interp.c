@@ -30,21 +30,21 @@
 #include "../lua/LuaConsole.h"
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-#include "r4300.h"
-#include "exception.h"
-#include "../memory/memory.h"
-#include "macros.h"
-#include "interrupt.h"
+#include <cstdio>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
 #include "cop1_helpers.h"
+#include "exception.h"
+#include "interrupt.h"
+#include "macros.h"
+#include "r4300.h"
+#include "../memory/memory.h"
 
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "..\main\win\features\CoreDbg.h"
+#include "../main/win/features/CoreDbg.h"
 
 #ifdef DBG
 extern int debugger_mode;

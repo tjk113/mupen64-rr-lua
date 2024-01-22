@@ -1,6 +1,7 @@
+#ifndef AVI_H
+#define AVI_H
 #include <include/lua.h>
-#include <Windows.h>
-#include "../../main/win/main_win.h"
+
 
 namespace LuaCore::Avi
 {
@@ -25,3 +26,4 @@ namespace LuaCore::Avi
 		return 0;
 	}
 }
+#endif // AVI_H

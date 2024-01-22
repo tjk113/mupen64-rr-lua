@@ -1,3 +1,5 @@
+#ifndef FFMPEG_CAPTURE_HPP
+#define FFMPEG_CAPTURE_HPP
 #include <string>
 #include <thread>
 #include <queue>
@@ -97,3 +99,4 @@ private:
 
 	bool lastWriteWasVideo{};
 };
+#endif // FFMPEG_CAPTURE_HPP

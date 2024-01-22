@@ -1,6 +1,7 @@
+#ifndef GLOBAL_H
+#define GLOBAL_H
 #include <include/lua.h>
 #include <Windows.h>
-#include "../../main/win/main_win.h"
 
 namespace LuaCore::Global
 {
@@ -176,3 +177,4 @@ namespace LuaCore::Global
 		return 1;
 	}
 }
+#endif // GLOBAL_H

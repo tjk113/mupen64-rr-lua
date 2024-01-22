@@ -1,9 +1,10 @@
+#ifndef WGUI_H
+#define WGUI_H
 #include <include/lua.h>
 #include <Windows.h>
 
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
-#include "../../main/helpers/win_helpers.h"
 
 namespace LuaCore::Wgui
 {
@@ -806,3 +807,4 @@ namespace LuaCore::Wgui
 		return 0;
 	}
 }
+#endif // WGUI_H

@@ -1,10 +1,12 @@
+#ifndef INPUT_H
+#define INPUT_H
 #include <include/lua.h>
 #include <Windows.h>
 #include "../../main/win/main_win.h"
 
 namespace LuaCore::Input
 {
-	const char* KeyName[256] =
+	inline const char* KeyName[256] =
 	{
 		NULL, "leftclick", "rightclick", NULL,
 		"middleclick", NULL, NULL, NULL,
@@ -196,3 +198,4 @@ namespace LuaCore::Input
 		return 1;
 	}
 }
+#endif // INPUT_H

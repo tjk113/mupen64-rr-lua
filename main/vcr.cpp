@@ -2021,6 +2021,11 @@ vcr_core_stopped()
 	case e_task::playback:
 		vcr_stop_playback();
 		break;
+	case e_task::idle:
+		break;
+	case e_task::start_recording_from_existing_snapshot:
+		break;
+	default: break;
 	}
 
 	if (m_capture != 0)

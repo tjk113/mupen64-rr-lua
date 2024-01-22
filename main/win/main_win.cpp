@@ -2006,7 +2006,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_STOP_PLAYBACK:
 				if (vcr_is_playing())
 				{
-					if (vcr_stop_playback() < 0); // fail quietly
+					if (vcr_stop_playback() < 0) {}
+					// fail quietly
 					//                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
 					else
 					{
