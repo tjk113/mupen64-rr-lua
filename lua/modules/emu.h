@@ -1,3 +1,5 @@
+#ifndef EMU_H
+#define EMU_H
 #include <include/lua.h>
 #include <Windows.h>
 
@@ -317,10 +319,9 @@ namespace LuaCore::Emu
 	static int GetMupenVersion(lua_State* L)
 	{
 		int type = luaL_checknumber(L, 1);
-		const char* version;
 		// 0 = name + version number
 		// 1 = version number
-		version = MUPEN_VERSION;
+		const char* version = MUPEN_VERSION;
 		if (type > 0)
 			version = {&MUPEN_VERSION[strlen("Mupen 64 ")]};
 
@@ -342,3 +343,4 @@ namespace LuaCore::Emu
 		return 0;
 	}
 }
+#endif // EMU_H

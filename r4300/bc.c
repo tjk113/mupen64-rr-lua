@@ -56,7 +56,7 @@ void BC1F_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump && (FCR31 & 0x800000) == 0)
-        jump_to(PC->addr + ((jump_target - 1) << 2));
+        jump_to(PC->addr + ((jump_target - 1) << 2))
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -99,7 +99,7 @@ void BC1T_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump && (FCR31 & 0x800000) != 0)
-        jump_to(PC->addr + ((jump_target - 1) << 2));
+        jump_to(PC->addr + ((jump_target - 1) << 2))
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -149,7 +149,7 @@ void BC1FL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else
         PC += 2;
@@ -202,7 +202,7 @@ void BC1TL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else
         PC += 2;

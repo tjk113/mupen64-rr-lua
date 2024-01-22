@@ -87,7 +87,6 @@
 #include <cctype>
 #include <fstream>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
@@ -107,8 +106,8 @@ namespace mINI
 #ifndef MINI_CASE_SENSITIVE
         inline void toLower(std::string& str)
         {
-            std::transform(str.begin(), str.end(), str.begin(),
-                           [](const char c) { return static_cast<char>(std::tolower(c)); });
+            std::ranges::transform(str, str.begin(),
+                                   [](const char c) { return static_cast<char>(std::tolower(c)); });
         }
 #endif
         inline void replace(std::string& str, std::string const& a, std::string const& b)
@@ -129,16 +128,15 @@ namespace mINI
     template <typename T>
     class INIMap
     {
-    private:
-        using T_DataIndexMap = std::unordered_map<std::string, std::size_t>;
+	    using T_DataIndexMap = std::unordered_map<std::string, std::size_t>;
         using T_DataItem = std::pair<std::string, T>;
         using T_DataContainer = std::vector<T_DataItem>;
-        using T_MultiArgs = typename std::vector<std::pair<std::string, T>>;
+        using T_MultiArgs = std::vector<std::pair<std::string, T>>;
 
         T_DataIndexMap dataIndexMap;
         T_DataContainer data;
 
-        inline std::size_t setEmpty(std::string& key)
+	    std::size_t setEmpty(std::string& key)
         {
             std::size_t index = data.size();
             dataIndexMap[key] = index;

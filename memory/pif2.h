@@ -1,4 +1,6 @@
-unsigned char pif2_lut[][2][16] =
+#ifndef PIF2_H
+#define PIF2_H
+inline unsigned char pif2_lut[][2][16] =
 {
 	{
 		{
@@ -2959,3 +2961,4 @@ unsigned char pif2_lut[][2][16] =
 		}
 	}
 };
+#endif // PIF2_H

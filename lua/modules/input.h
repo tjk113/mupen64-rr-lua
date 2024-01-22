@@ -1,10 +1,12 @@
+#ifndef INPUT_H
+#define INPUT_H
 #include <include/lua.h>
 #include <Windows.h>
 #include "../../main/win/main_win.h"
 
 namespace LuaCore::Input
 {
-	const char* KeyName[256] =
+	inline const char* KeyName[256] =
 	{
 		NULL, "leftclick", "rightclick", NULL,
 		"middleclick", NULL, NULL, NULL,
@@ -141,6 +143,7 @@ namespace LuaCore::Input
 		static lua_State* L;
 		switch (msg)
 		{
+		default: break;
 		case WM_INITDIALOG:
 			{
 				L = (lua_State*)lParam;
@@ -161,6 +164,7 @@ namespace LuaCore::Input
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
+		default: break;
 		case IDOK:
 			{
 				HWND inp = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
@@ -196,3 +200,4 @@ namespace LuaCore::Input
 		return 1;
 	}
 }
+#endif // INPUT_H

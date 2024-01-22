@@ -1,6 +1,6 @@
+#ifndef JOYPAD_H
+#define JOYPAD_H
 #include <include/lua.h>
-#include <Windows.h>
-#include "../../main/win/main_win.h"
 
 namespace LuaCore::Joypad
 {
@@ -79,3 +79,4 @@ namespace LuaCore::Joypad
 		return 1;
 	}
 }
+#endif // JOYPAD_H

@@ -38,8 +38,6 @@
 #include "recomp.h"
 #include "recomph.h"
 #include <malloc.h>
-#define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "../lua/LuaConsole.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -107,7 +105,7 @@ void FIN_BLOCK()
 {
     if (!delay_slot)
     {
-        jump_to((PC - 1)->addr + 4);
+        jump_to((PC - 1)->addr + 4)
         PC->ops();
         if (dynacore) dyna_jump();
     }
@@ -115,7 +113,7 @@ void FIN_BLOCK()
     {
         precomp_block* blk = actual;
         precomp_instr* inst = PC;
-        jump_to((PC - 1)->addr + 4);
+        jump_to((PC - 1)->addr + 4)
 
         if (!skip_jump)
         {
@@ -153,7 +151,7 @@ void J_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump)
-        jump_to(jump_target);
+        jump_to(jump_target)
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -200,7 +198,7 @@ void JAL_OUT()
         reg[31] = PC->addr;
         sign_extended(reg[31]);
 
-        jump_to(jump_target);
+        jump_to(jump_target)
     }
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
@@ -242,7 +240,7 @@ void BEQ_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump && local_rs == local_rt)
-        jump_to(PC->addr + ((jump_target - 1) << 2));
+        jump_to(PC->addr + ((jump_target - 1) << 2))
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -287,7 +285,7 @@ void BNE_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump && local_rs != local_rt)
-        jump_to(PC->addr + ((jump_target - 1) << 2));
+        jump_to(PC->addr + ((jump_target - 1) << 2))
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -330,7 +328,7 @@ void BLEZ_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump && local_rs <= 0)
-        jump_to(PC->addr + ((jump_target - 1) << 2));
+        jump_to(PC->addr + ((jump_target - 1) << 2))
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -373,7 +371,7 @@ void BGTZ_OUT()
     update_count();
     delay_slot = 0;
     if (!skip_jump && local_rs > 0)
-        jump_to(PC->addr + ((jump_target - 1) << 2));
+        jump_to(PC->addr + ((jump_target - 1) << 2))
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -481,7 +479,7 @@ void BEQL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else
     {
@@ -538,7 +536,7 @@ void BNEL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else
     {
@@ -595,7 +593,7 @@ void BLEZL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else
     {
@@ -652,7 +650,7 @@ void BGTZL_OUT()
         update_count();
         delay_slot = 0;
         if (!skip_jump)
-            jump_to(PC->addr + ((jump_target - 1) << 2));
+            jump_to(PC->addr + ((jump_target - 1) << 2))
     }
     else
     {
@@ -695,6 +693,7 @@ void LDL()
     PC++;
     switch ((core_lsaddr) & 7)
     {
+    default: break;
     case 0:
         address = core_lsaddr;
         rdword = (unsigned long long int*)&core_lsrt;
@@ -758,6 +757,7 @@ void LDR()
     PC++;
     switch ((core_lsaddr) & 7)
     {
+    default: break;
     case 0:
         address = (core_lsaddr) & 0xFFFFFFF8;
         rdword = &word;
@@ -841,6 +841,7 @@ void LWL()
     PC++;
     switch ((core_lsaddr) & 3)
     {
+    default: break;
     case 0:
         address = core_lsaddr;
         rdword = (unsigned long long int*)&core_lsrt;
@@ -925,6 +926,7 @@ void LWR()
         if (address)
             core_lsrt = (core_lsrt & 0xFFFFFFFFFF000000LL) | ((word >> 8) & 0XFFFFFF);
         break;
+    default: break;
     case 3:
         address = (core_lsaddr) & 0xFFFFFFFC;
         rdword = (unsigned long long int*)&core_lsrt;
@@ -948,7 +950,7 @@ void SB()
     address = core_lsaddr;
     g_byte = (unsigned char)(core_lsrt & 0xFF);
     write_byte_in_memory();
-    check_memory();
+    check_memory()
 }
 
 void SH()
@@ -957,7 +959,7 @@ void SH()
     address = core_lsaddr;
     hword = (unsigned short)(core_lsrt & 0xFFFF);
     write_hword_in_memory();
-    check_memory();
+    check_memory()
 }
 
 void SWL()
@@ -970,7 +972,7 @@ void SWL()
         address = (core_lsaddr) & 0xFFFFFFFC;
         word = (unsigned long)core_lsrt;
         write_word_in_memory();
-        check_memory();
+        check_memory()
         break;
     case 1:
         address = (core_lsaddr) & 0xFFFFFFFC;
@@ -980,7 +982,7 @@ void SWL()
         {
             word = ((unsigned long)core_lsrt >> 8) | (old_word & 0xFF000000);
             write_word_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 2:
@@ -991,15 +993,16 @@ void SWL()
         {
             word = ((unsigned long)core_lsrt >> 16) | (old_word & 0xFFFF0000);
             write_word_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 3:
         address = core_lsaddr;
         g_byte = (unsigned char)(core_lsrt >> 24);
         write_byte_in_memory();
-        check_memory();
+        check_memory()
         break;
+    default: ;
     }
 }
 
@@ -1009,7 +1012,7 @@ void SW()
     address = core_lsaddr;
     word = (unsigned long)(core_lsrt & 0xFFFFFFFF);
     write_word_in_memory();
-    check_memory();
+    check_memory()
 }
 
 void SDL()
@@ -1022,7 +1025,7 @@ void SDL()
         address = (core_lsaddr) & 0xFFFFFFF8;
         dword = core_lsrt;
         write_dword_in_memory();
-        check_memory();
+        check_memory()
         break;
     case 1:
         address = (core_lsaddr) & 0xFFFFFFF8;
@@ -1032,7 +1035,7 @@ void SDL()
         {
             dword = ((unsigned long long)core_lsrt >> 8) | (old_word & 0xFF00000000000000LL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 2:
@@ -1043,7 +1046,7 @@ void SDL()
         {
             dword = ((unsigned long long)core_lsrt >> 16) | (old_word & 0xFFFF000000000000LL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 3:
@@ -1054,7 +1057,7 @@ void SDL()
         {
             dword = ((unsigned long long)core_lsrt >> 24) | (old_word & 0xFFFFFF0000000000LL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 4:
@@ -1065,7 +1068,7 @@ void SDL()
         {
             dword = ((unsigned long long)core_lsrt >> 32) | (old_word & 0xFFFFFFFF00000000LL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 5:
@@ -1076,7 +1079,7 @@ void SDL()
         {
             dword = ((unsigned long long)core_lsrt >> 40) | (old_word & 0xFFFFFFFFFF000000LL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 6:
@@ -1087,7 +1090,7 @@ void SDL()
         {
             dword = ((unsigned long long)core_lsrt >> 48) | (old_word & 0xFFFFFFFFFFFF0000LL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 7:
@@ -1098,9 +1101,10 @@ void SDL()
         {
             dword = ((unsigned long long)core_lsrt >> 56) | (old_word & 0xFFFFFFFFFFFFFF00LL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
+    default: ;
     }
 }
 
@@ -1118,7 +1122,7 @@ void SDR()
         {
             dword = (core_lsrt << 56) | (old_word & 0x00FFFFFFFFFFFFFFLL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 1:
@@ -1129,7 +1133,7 @@ void SDR()
         {
             dword = (core_lsrt << 48) | (old_word & 0x0000FFFFFFFFFFFFLL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 2:
@@ -1140,7 +1144,7 @@ void SDR()
         {
             dword = (core_lsrt << 40) | (old_word & 0x000000FFFFFFFFFFLL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 3:
@@ -1151,7 +1155,7 @@ void SDR()
         {
             dword = (core_lsrt << 32) | (old_word & 0x00000000FFFFFFFFLL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 4:
@@ -1162,7 +1166,7 @@ void SDR()
         {
             dword = (core_lsrt << 24) | (old_word & 0x0000000000FFFFFFLL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 5:
@@ -1173,7 +1177,7 @@ void SDR()
         {
             dword = (core_lsrt << 16) | (old_word & 0x000000000000FFFFLL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 6:
@@ -1184,15 +1188,16 @@ void SDR()
         {
             dword = (core_lsrt << 8) | (old_word & 0x00000000000000FFLL);
             write_dword_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 7:
         address = (core_lsaddr) & 0xFFFFFFF8;
         dword = core_lsrt;
         write_dword_in_memory();
-        check_memory();
+        check_memory()
         break;
+    default: ;
     }
 }
 
@@ -1210,7 +1215,7 @@ void SWR()
         {
             word = ((unsigned long)core_lsrt << 24) | (old_word & 0x00FFFFFF);
             write_word_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 1:
@@ -1221,7 +1226,7 @@ void SWR()
         {
             word = ((unsigned long)core_lsrt << 16) | (old_word & 0x0000FFFF);
             write_word_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 2:
@@ -1232,15 +1237,16 @@ void SWR()
         {
             word = ((unsigned long)core_lsrt << 8) | (old_word & 0x000000FF);
             write_word_in_memory();
-            check_memory();
+            check_memory()
         }
         break;
     case 3:
         address = (core_lsaddr) & 0xFFFFFFFC;
         word = (unsigned long)core_lsrt;
         write_word_in_memory();
-        check_memory();
+        check_memory()
         break;
+    default: ;
     }
 }
 
@@ -1308,7 +1314,7 @@ void SC()
         address = core_lsaddr;
         word = (unsigned long)(core_lsrt & 0xFFFFFFFF);
         write_word_in_memory();
-        check_memory();
+        check_memory()
         llbit = 0;
         core_lsrt = 1;
     }
@@ -1325,7 +1331,7 @@ void SWC1()
     address = core_lslfaddr;
     word = *((long*)reg_cop1_simple[core_lslfft]);
     write_word_in_memory();
-    check_memory();
+    check_memory()
 }
 
 void SDC1()
@@ -1335,7 +1341,7 @@ void SDC1()
     address = core_lslfaddr;
     dword = *((unsigned long long*)reg_cop1_double[core_lslfft]);
     write_dword_in_memory();
-    check_memory();
+    check_memory()
 }
 
 void SD()
@@ -1344,7 +1350,7 @@ void SD()
     address = core_lsaddr;
     dword = core_lsrt;
     write_dword_in_memory();
-    check_memory();
+    check_memory()
 }
 
 void NOTCOMPILED()
@@ -1363,7 +1369,7 @@ void NOTCOMPILED()
             {
                 //printf("not compiled rom:%x\n", paddr);
                 recompile_block(
-                    (long*)rom + ((((paddr - (PC->addr - blocks[PC->addr >> 12]->start)) & 0x1FFFFFFF) - 0x10000000) >>
+                    reinterpret_cast<long*>(rom) + ((((paddr - (PC->addr - blocks[PC->addr >> 12]->start)) & 0x1FFFFFFF) - 0x10000000) >>
                         2),
                     blocks[PC->addr >> 12], PC->addr);
             }
@@ -1489,8 +1495,7 @@ void update_count()
 
 void init_blocks()
 {
-    int i;
-    for (i = 0; i < 0x100000; i++)
+    for (int i = 0; i < 0x100000; i++)
     {
         invalid_code[i] = 1;
         blocks[i] = NULL;
@@ -1650,6 +1655,7 @@ void go()
             reg[14] = 0x000000001AF99984LL;
             reg[24] = 0x0000000000000002LL;
             break;
+        default: ;
         }
         reg[23] = 0x0000000000000006LL;
         reg[31] = 0xFFFFFFFFA4001554LL;
@@ -1678,6 +1684,7 @@ void go()
             reg[5] = 0xFFFFFFFFE067221FLL;
             reg[14] = 0x000000005CD2B70FLL;
             break;
+        default: ;
         }
         reg[20] = 0x0000000000000001LL;
         reg[24] = 0x0000000000000003LL;
@@ -1737,10 +1744,11 @@ void go()
         reg[22] = 0x0000000000000085LL;
         reg[25] = 0x00000000465E3F72LL;
         break;
+    default: ;
     }
 
     rounding_mode = ROUND_MODE;
-    set_rounding();
+    set_rounding()
 
     last_addr = 0xa4000040;
     //next_interrupt = 624999; //this is later overwritten with different value so what's the point...
@@ -1812,7 +1820,7 @@ void go()
         dynacore = 1;
         printf("dynamic recompiler\n");
         init_blocks();
-        code = (void (*)(void))(actual->code + (actual->block[0x40 / 4].local_addr));
+        code = reinterpret_cast<void (*)(void)>(actual->code + (actual->block[0x40 / 4].local_addr));
         dyna_start(code);
         PC++;
     }

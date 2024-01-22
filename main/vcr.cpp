@@ -1926,7 +1926,7 @@ int vcr_start_f_fmpeg_capture(const std::string& output_name,
 	else
 	{
 		m_capture = 1;
-		capture_with_f_fmpeg = 1;
+		capture_with_f_fmpeg = true;
 	}
 #ifdef _DEBUG
 	if (err == INIT_SUCCESS)
@@ -2021,6 +2021,11 @@ vcr_core_stopped()
 	case e_task::playback:
 		vcr_stop_playback();
 		break;
+	case e_task::idle:
+		break;
+	case e_task::start_recording_from_existing_snapshot:
+		break;
+	default: break;
 	}
 
 	if (m_capture != 0)

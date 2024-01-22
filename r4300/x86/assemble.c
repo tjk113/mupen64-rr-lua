@@ -30,7 +30,7 @@
 #include "assemble.h"
 #include "../recomph.h"
 #include <malloc.h>
-#include <stdio.h>
+#include <cstdio>
 #include "../r4300.h"
 
 typedef struct _jump_table
@@ -78,17 +78,17 @@ static void add_jump(unsigned long pc_addr, unsigned long mi_addr)
 
 void passe2(precomp_instr* dest, int start, int end, precomp_block* block)
 {
-    unsigned int i, real_code_length, addr_dest;
+    unsigned int addr_dest;
     build_wrappers(dest, start, end, block);
-    real_code_length = code_length;
+    const unsigned int real_code_length = code_length;
 
-    for (i = 0; i < jumps_number; i++)
+    for (unsigned int i = 0; i < jumps_number; i++)
     {
         code_length = jumps_table[i].pc_addr;
         if (dest[(jumps_table[i].mi_addr - dest[0].addr) / 4].reg_cache_infos.need_map)
         {
-            addr_dest = (unsigned int)dest[(jumps_table[i].mi_addr - dest[0].addr) / 4].reg_cache_infos.jump_wrapper;
-            put32(addr_dest - ((unsigned int)block->code + code_length) - 4);
+            addr_dest = reinterpret_cast<unsigned int>(dest[(jumps_table[i].mi_addr - dest[0].addr) / 4].reg_cache_infos.jump_wrapper);
+            put32(addr_dest - (reinterpret_cast<unsigned int>(block->code) + code_length) - 4);
         }
         else
         {
@@ -106,7 +106,7 @@ inline void put8(unsigned char octet)
     if (code_length == max_code_length)
     {
         max_code_length += 1000;
-        *inst_pointer = (unsigned char*)realloc(*inst_pointer, max_code_length);
+        *inst_pointer = static_cast<unsigned char*>(realloc(*inst_pointer, max_code_length));
     }
 }
 
@@ -115,9 +115,9 @@ inline void put32(unsigned long dword)
     if ((code_length + 4) >= max_code_length)
     {
         max_code_length += 1000;
-        *inst_pointer = (unsigned char*)realloc(*inst_pointer, max_code_length);
+        *inst_pointer = static_cast<unsigned char*>(realloc(*inst_pointer, max_code_length));
     }
-    *((unsigned long*)(&(*inst_pointer)[code_length])) = dword;
+    *reinterpret_cast<unsigned long*>(&(*inst_pointer)[code_length]) = dword;
     code_length += 4;
 }
 
@@ -126,9 +126,9 @@ inline void put16(unsigned short word)
     if ((code_length + 2) >= max_code_length)
     {
         max_code_length += 1000;
-        *inst_pointer = (unsigned char*)realloc(*inst_pointer, max_code_length);
+        *inst_pointer = static_cast<unsigned char*>(realloc(*inst_pointer, max_code_length));
     }
-    *((unsigned short*)(&(*inst_pointer)[code_length])) = word;
+    *reinterpret_cast<unsigned short*>(&(*inst_pointer)[code_length]) = word;
     code_length += 2;
 }
 

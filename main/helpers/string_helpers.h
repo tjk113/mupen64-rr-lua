@@ -60,12 +60,11 @@ inline static int is_string_alpha_only(const char* str)
 inline static bool is_case_insensitive_equal(const std::string& a,
                                              const std::string& b)
 {
-	return std::equal(a.begin(), a.end(),
-	                  b.begin(), b.end(),
-	                  [](char a, char b)
-	                  {
-		                  return tolower(a) == tolower(b);
-	                  });
+	return std::ranges::equal(a, b,
+	                          [](char a, char b)
+	                          {
+		                          return tolower(a) == tolower(b);
+	                          });
 }
 
 inline static std::string to_lower(std::string a)
@@ -95,7 +94,7 @@ inline static std::wstring string_to_wstring(const std::string &str)
 
 static std::string wstring_to_string(const std::wstring& wstr) {
 	std::string str(wstr.length(), 0);
-	std::transform(wstr.begin(), wstr.end(), str.begin(), [] (wchar_t c) {
+	std::ranges::transform(wstr, str.begin(), [] (wchar_t c) {
 		return (char)c;
 	});
 	return str;

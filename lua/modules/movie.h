@@ -1,6 +1,6 @@
+#ifndef MOVIE_H
+#define MOVIE_H
 #include <include/lua.h>
-#include <Windows.h>
-#include "../../main/win/main_win.h"
 
 namespace LuaCore::Movie
 {
@@ -39,3 +39,4 @@ namespace LuaCore::Movie
 	}
 
 }
+#endif // MOVIE_H

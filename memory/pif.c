@@ -181,12 +181,13 @@ void internal_ReadController(int Control, BYTE* Command)
 {
     switch (Command[2])
     {
+    default: break;
     case 1:
         if (Controls[Control].Present)
         {
             BUTTONS Keys;
             vcr_on_controller_poll(Control, &Keys);
-            *((unsigned long*)(Command + 3)) = Keys.Value;
+            *reinterpret_cast<unsigned long*>(Command + 3) = Keys.Value;
 #ifdef COMPARE_CORE
 				check_input_sync(Command + 3);
 #endif
@@ -213,6 +214,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
 {
     switch (Command[2])
     {
+    default: break;
     case 0x00: // check
     case 0xFF:
         if ((Command[1] & 0x80))
@@ -528,7 +530,7 @@ void update_pif_read(bool stcheck)
                     )
                     {
                         readController(channel, &PIF_RAMb[i]);
-                        last_controller_data[channel] = *(BUTTONS*)&PIF_RAMb[i + 3];
+                        last_controller_data[channel] = *reinterpret_cast<BUTTONS*>(&PIF_RAMb[i + 3]);
                         main_dispatcher_invoke([channel] {
                             AtInputLuaCallback(channel);
                         });
@@ -536,7 +538,7 @@ void update_pif_read(bool stcheck)
                         {
                             if (overwrite_controller_data[channel])
                             {
-                                *(BUTTONS*)&PIF_RAMb[i + 3] =
+                                *reinterpret_cast<BUTTONS*>(&PIF_RAMb[i + 3]) =
                                     last_controller_data[channel] =
                                     last_controller_data[channel];
                                 overwrite_controller_data[channel] = false;

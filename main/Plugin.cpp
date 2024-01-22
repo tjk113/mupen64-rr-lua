@@ -31,7 +31,7 @@
 // ReSharper disable CppCStyleCast
 #include "Plugin.hpp"
 
-#include <assert.h>
+#include <cassert>
 
 #include "rom.h"
 #include "win/Config.hpp"

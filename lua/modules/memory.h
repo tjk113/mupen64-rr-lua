@@ -1,19 +1,19 @@
+#pragma once
 #include <include/lua.h>
 #include <Windows.h>
-#include "../../main/win/main_win.h"
 
 namespace LuaCore::Memory
 {
 	static DWORD LuaCheckIntegerU(lua_State* L, int i = -1)
 	{
-		return (DWORD)luaL_checknumber(L, i);
+		return static_cast<DWORD>(luaL_checknumber(L, i));
 	}
 
 	static ULONGLONG LuaCheckQWord(lua_State* L, int i)
 	{
 		lua_pushinteger(L, 1);
 		lua_gettable(L, i);
-		ULONGLONG n = (ULONGLONG)LuaCheckIntegerU(L) << 32;
+		ULONGLONG n = static_cast<ULONGLONG>(LuaCheckIntegerU(L)) << 32;
 		lua_pop(L, 1);
 		lua_pushinteger(L, 2);
 		lua_gettable(L, i);
@@ -33,8 +33,8 @@ namespace LuaCore::Memory
 	}
 
 	//memory
-	unsigned char* const rdramb = (unsigned char*)rdram;
-	const unsigned long AddrMask = 0x7FFFFF;
+	unsigned char* const rdramb = reinterpret_cast<unsigned char*>(rdram);
+	constexpr unsigned long AddrMask = 0x7FFFFF;
 
 	template <typename T>
 	ULONG ToAddr(ULONG addr)
@@ -51,13 +51,13 @@ namespace LuaCore::Memory
 	template <typename T>
 	T LoadRDRAMSafe(unsigned long addr)
 	{
-		return *((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask))));
+		return *reinterpret_cast<T*>(rdramb + ((ToAddr<T>(addr) & AddrMask)));
 	}
 
 	template <typename T>
 	void StoreRDRAMSafe(unsigned long addr, T value)
 	{
-		*((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask)))) = value;
+		*reinterpret_cast<T*>(rdramb + ((ToAddr<T>(addr) & AddrMask))) = value;
 	}
 
 	// Read functions
@@ -269,7 +269,7 @@ namespace LuaCore::Memory
 	}
 
 	template <>
-	void PushT<ULONGLONG>(lua_State* L, ULONGLONG value)
+	inline void PushT<ULONGLONG>(lua_State* L, ULONGLONG value)
 	{
 		LuaPushQword(L, value);
 	}
@@ -294,7 +294,7 @@ namespace LuaCore::Memory
 	}
 
 	template <>
-	ULONGLONG CheckT<ULONGLONG>(lua_State* L, int i)
+	inline ULONGLONG CheckT<ULONGLONG>(lua_State* L, int i)
 	{
 		return LuaCheckQWord(L, i);
 	}

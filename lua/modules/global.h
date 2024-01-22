@@ -1,6 +1,7 @@
+#ifndef GLOBAL_H
+#define GLOBAL_H
 #include <include/lua.h>
 #include <Windows.h>
-#include "../../main/win/main_win.h"
 
 namespace LuaCore::Global
 {
@@ -32,6 +33,7 @@ namespace LuaCore::Global
 	{
 		switch (lua_type(L, -1))
 		{
+		default: break;
 		case LUA_TNIL:
 		case LUA_TBOOLEAN:
 		case LUA_TFUNCTION:
@@ -73,7 +75,7 @@ namespace LuaCore::Global
 				lua_pushnil(L);
 				if (lua_next(L, -2))
 				{
-					while (1)
+					while (true)
 					{
 						lua_pushvalue(L, -2);
 						if (lua_type(L, -1) == LUA_TNUMBER &&
@@ -176,3 +178,4 @@ namespace LuaCore::Global
 		return 1;
 	}
 }
+#endif // GLOBAL_H

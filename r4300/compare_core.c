@@ -35,7 +35,6 @@
 #include "../r4300/recomph.h"
 
 #ifdef _MSC_VER
-#include <Windows.h>
 #else
 #include "../main/winlnxdefs.h"
 #endif

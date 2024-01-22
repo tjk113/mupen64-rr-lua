@@ -249,10 +249,10 @@ static const struct QualityMapping quality_map[11] = {
 /*8,24,40,56,80,104,128,160,200,256,320*/
 static double compute_func(float x, const struct FuncDef* func)
 {
-    float y, frac;
+    float frac;
     double interp[4];
     int ind;
-    y = x * func->oversample;
+    const float y = x * func->oversample;
     ind = (int)floor(y);
     frac = (y - ind);
     /* CSE with handle the repeated powers */

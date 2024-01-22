@@ -30,21 +30,21 @@
 #include "../lua/LuaConsole.h"
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-#include "r4300.h"
-#include "exception.h"
-#include "../memory/memory.h"
-#include "macros.h"
-#include "interrupt.h"
+#include <cstdio>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
 #include "cop1_helpers.h"
+#include "exception.h"
+#include "interrupt.h"
+#include "macros.h"
+#include "r4300.h"
+#include "../memory/memory.h"
 
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
-#include "..\main\win\features\CoreDbg.h"
+#include "../main/win/features/CoreDbg.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -1288,7 +1288,7 @@ static void (*interp_cop1_bc[4])(void) =
 
 static void ADD_S()
 {
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     CHECK_INPUT(*reg_cop1_simple[core_cfft]);
     *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] +
@@ -1299,7 +1299,7 @@ static void ADD_S()
 
 static void SUB_S()
 {
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     CHECK_INPUT(*reg_cop1_simple[core_cfft]);
     *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] -
@@ -1310,7 +1310,7 @@ static void SUB_S()
 
 static void MUL_S()
 {
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     CHECK_INPUT(*reg_cop1_simple[core_cfft]);
     *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] *
@@ -1325,7 +1325,7 @@ static void DIV_S()
     {
         printf("div_s by 0\n");
     }
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     CHECK_INPUT(*reg_cop1_simple[core_cfft]);
     *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] /
@@ -1336,7 +1336,7 @@ static void DIV_S()
 
 static void SQRT_S()
 {
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     *reg_cop1_simple[core_cffd] = sqrt(*reg_cop1_simple[core_cffs]);
     CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
@@ -1366,10 +1366,10 @@ static void NEG_S()
 static void ROUND_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_round_to_nearest();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_round_to_nearest()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1377,10 +1377,10 @@ static void ROUND_L_S()
 static void TRUNC_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_trunc();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_trunc()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1388,10 +1388,10 @@ static void TRUNC_L_S()
 static void CEIL_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_ceil();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_ceil()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1399,10 +1399,10 @@ static void CEIL_L_S()
 static void FLOOR_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_floor();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_floor()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1410,10 +1410,10 @@ static void FLOOR_L_S()
 static void ROUND_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_round_to_nearest();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_round_to_nearest()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1421,10 +1421,10 @@ static void ROUND_W_S()
 static void TRUNC_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_trunc();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_trunc()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1432,10 +1432,10 @@ static void TRUNC_W_S()
 static void CEIL_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_ceil();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_ceil()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1443,10 +1443,10 @@ static void CEIL_W_S()
 static void FLOOR_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_floor();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_floor()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1461,9 +1461,9 @@ static void CVT_D_S()
 static void CVT_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_rounding();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd]);
+    set_rounding()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd])
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1471,9 +1471,9 @@ static void CVT_W_S()
 static void CVT_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_rounding();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd]);
+    set_rounding()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd])
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1660,7 +1660,7 @@ static void (*interp_cop1_s[64])(void) =
 
 static void ADD_D()
 {
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     CHECK_INPUT(*reg_cop1_double[core_cfft]);
     *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] +
@@ -1671,7 +1671,7 @@ static void ADD_D()
 
 static void SUB_D()
 {
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     CHECK_INPUT(*reg_cop1_double[core_cfft]);
     *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] -
@@ -1682,7 +1682,7 @@ static void SUB_D()
 
 static void MUL_D()
 {
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     CHECK_INPUT(*reg_cop1_double[core_cfft]);
     *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] *
@@ -1702,7 +1702,7 @@ static void DIV_D()
         printf("div_d by 0\n");
         //return;
     }
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     CHECK_INPUT(*reg_cop1_double[core_cfft]);
     *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] /
@@ -1713,7 +1713,7 @@ static void DIV_D()
 
 static void SQRT_D()
 {
-    set_rounding();
+    set_rounding()
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     *reg_cop1_double[core_cffd] = sqrt(*reg_cop1_double[core_cffs]);
     CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
@@ -1743,10 +1743,10 @@ static void NEG_D()
 static void ROUND_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_round_to_nearest();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_round_to_nearest()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1754,21 +1754,21 @@ static void ROUND_L_D()
 static void TRUNC_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_trunc();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_trunc()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
     CHECK_CONVERT_EXCEPTIONS();
-    set_rounding();
+    set_rounding()
     interp_addr += 4;
 }
 
 static void CEIL_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_ceil();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_ceil()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1776,10 +1776,10 @@ static void CEIL_L_D()
 static void FLOOR_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_floor();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_floor()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1787,10 +1787,10 @@ static void FLOOR_L_D()
 static void ROUND_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_round_to_nearest();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_round_to_nearest()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1798,10 +1798,10 @@ static void ROUND_W_D()
 static void TRUNC_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_trunc();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_trunc()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1809,10 +1809,10 @@ static void TRUNC_W_D()
 static void CEIL_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_ceil();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_ceil()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1820,10 +1820,10 @@ static void CEIL_W_D()
 static void FLOOR_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_floor();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
-    set_rounding();
+    set_floor()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding()
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1833,14 +1833,14 @@ static void CVT_S_D()
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     if (Config.is_round_towards_zero_enabled)
     {
-        set_trunc();
+        set_trunc()
     }
     else
     {
-        set_rounding();
+        set_rounding()
     }
     *reg_cop1_simple[core_cffd] = *reg_cop1_double[core_cffs];
-    set_rounding();
+    set_rounding()
     CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     interp_addr += 4;
 }
@@ -1848,9 +1848,9 @@ static void CVT_S_D()
 static void CVT_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_rounding();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1858,9 +1858,9 @@ static void CVT_W_D()
 static void CVT_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_rounding();
-    clear_x87_exceptions();
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding()
+    clear_x87_exceptions()
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -2047,14 +2047,14 @@ static void (*interp_cop1_d[64])(void) =
 
 static void CVT_S_W()
 {
-    set_rounding();
+    set_rounding()
     *reg_cop1_simple[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
     interp_addr += 4;
 }
 
 static void CVT_D_W()
 {
-    set_rounding();
+    set_rounding()
     *reg_cop1_double[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
     interp_addr += 4;
 }
@@ -2073,14 +2073,14 @@ static void (*interp_cop1_w[64])(void) =
 
 static void CVT_S_L()
 {
-    set_rounding();
+    set_rounding()
     *reg_cop1_simple[core_cffd] = *((long long*)(reg_cop1_double[core_cffs]));
     interp_addr += 4;
 }
 
 static void CVT_D_L()
 {
-    set_rounding();
+    set_rounding()
     *reg_cop1_double[core_cffd] = *((long long*)(reg_cop1_double[core_cffs]));
     interp_addr += 4;
 }
@@ -2143,6 +2143,7 @@ static void CTC1()
         FCR31 = rrt32;
     switch ((FCR31 & 3))
     {
+    default: break;
     case 0:
         rounding_mode = ROUND_MODE;
         break;
@@ -2158,7 +2159,7 @@ static void CTC1()
     }
     //if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n",
     //				   (int)((FCR31 >> 7) & 0x1F));
-    set_rounding();
+    set_rounding()
     interp_addr += 4;
 }
 
@@ -2579,6 +2580,7 @@ static void LDL()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 7)
     {
+    default: break;
     case 0:
         address = core_iimmediate + irs32;
         rdword = (unsigned long long int*)&core_irt;
@@ -2635,6 +2637,7 @@ static void LDR()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 7)
     {
+    default: break;
     case 0:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
@@ -2709,6 +2712,7 @@ static void LWL()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 3)
     {
+    default: break;
     case 0:
         address = core_iimmediate + irs32;
         rdword = (unsigned long long int*)&core_irt;
@@ -2767,6 +2771,7 @@ static void LWR()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 3)
     {
+    default: break;
     case 0:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &word;
@@ -2823,6 +2828,7 @@ static void SWL()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 3)
     {
+    default: break;
     case 0:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         word = (unsigned long)core_irt;
@@ -2864,6 +2870,7 @@ static void SDL()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 7)
     {
+    default: break;
     case 0:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         dword = core_irt;
@@ -2927,6 +2934,7 @@ static void SDR()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 7)
     {
+    default: break;
     case 0:
         address = core_iimmediate + irs32;
         rdword = &old_word;
@@ -2990,6 +2998,7 @@ static void SWR()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 3)
     {
+    default: break;
     case 0:
         address = core_iimmediate + irs32;
         rdword = &old_word;
@@ -3144,7 +3153,7 @@ void prefetch()
     {
         if (/*(interp_addr >= 0x80000000) && */(interp_addr < 0x80800000))
         {
-            op = *(unsigned long*)&((unsigned char*)rdram)[(interp_addr & 0xFFFFFF)];
+            op = *reinterpret_cast<unsigned long*>(&reinterpret_cast<unsigned char*>(rdram)[(interp_addr & 0xFFFFFF)]);
             /*if ((debug_count+Count) > 0xabaa20)
               printf("count:%x, add:%x, op:%x, l%d\n", (int)(Count+debug_count),
                  interp_addr, op, line);*/
@@ -3158,7 +3167,7 @@ void prefetch()
         }
         else if ((interp_addr > 0xb0000000))
         {
-            op = ((unsigned long*)rom)[(interp_addr & 0xFFFFFFF) / 4];
+            op = reinterpret_cast<unsigned long*>(rom)[(interp_addr & 0xFFFFFFF) / 4];
             prefetch_opcode(op);
         }
         else

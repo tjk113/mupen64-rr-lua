@@ -91,7 +91,7 @@ void JR()
     PC->ops();
     update_count();
     delay_slot = 0;
-    jump_to(local_rs32);
+    jump_to(local_rs32)
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -110,7 +110,7 @@ void JALR()
         *dest = PC->addr;
         sign_extended(*dest);
 
-        jump_to(local_rs32);
+        jump_to(local_rs32)
     }
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();

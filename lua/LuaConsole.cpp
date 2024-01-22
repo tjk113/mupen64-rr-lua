@@ -178,6 +178,7 @@ t_window_procedure_params window_proc_params = {0};
 	{
 		switch (msg)
 		{
+		default: break;
 		case WM_INITDIALOG:
 			{
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -235,6 +236,7 @@ t_window_procedure_params window_proc_params = {0};
 	{
 		switch (id)
 		{
+		default: break;
 		case IDC_BUTTON_LUASTATE:
 			{
 				char path[MAX_PATH] = {0};
@@ -365,6 +367,7 @@ void lua_create_and_run(const char* path)
 	{
 		switch (msg)
 		{
+		default: break;
 		case WM_CREATE:
 		case WM_DESTROY:
 			return 0;
@@ -1035,6 +1038,7 @@ void instrStr1(unsigned long pc, unsigned long w, char* p1)
 	case INSTF_MFC1:
 		REGFPU(((FPUREG)o.r.rs));
 		break;
+	default: break;
 	}
 	p1[strlen(p1)] = '\0';
 #undef HEX8
@@ -1183,6 +1187,7 @@ void TraceLogging(r4300word pc, r4300word w)
 	case INSTF_MFC1:
 		REGFPU(((FPUREG)o.r.rs));
 		break;
+	default: break;
 	}
 	*(p++) = '\n';
 
@@ -1288,6 +1293,7 @@ void TraceLoggingBin(r4300word pc, r4300word w)
 		REGFPU(((FPUREG)o.r.rs));
 		NONE;
 		break;
+	default: break;
 	}
 	TraceLoggingWriteBuf();
 #undef HEX8

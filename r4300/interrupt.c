@@ -31,9 +31,8 @@
 
 #include "../lua/LuaConsole.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <Windows.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "interrupt.h"
 #include "../memory/memory.h"
@@ -50,18 +49,18 @@
 unsigned long next_vi;
 int vi_field = 0;
 
-typedef struct _interrupt_queue
+typedef struct interrupt_queue
 {
     int type;
     unsigned long count;
-    struct _interrupt_queue* next;
+    interrupt_queue* next;
 } interrupt_queue;
 
-static interrupt_queue* q = NULL;
+static interrupt_queue* q = nullptr;
 
 void clear_queue()
 {
-    while (q != NULL)
+    while (q != nullptr)
     {
         interrupt_queue* aux = q->next;
         free(q);
@@ -71,13 +70,12 @@ void clear_queue()
 
 void print_queue()
 {
-    interrupt_queue* aux;
     //if (Count < 0x7000000) return;
-    printf("------------------ %x\n", (unsigned int)core_Count);
-    aux = q;
-    while (aux != NULL)
+    printf("------------------ %x\n", static_cast<unsigned int>(core_Count));
+    const interrupt_queue* aux = q;
+    while (aux != nullptr)
     {
-        printf("Count:%x, %x\n", (unsigned int)aux->count, aux->type);
+        printf("Count:%x, %x\n", static_cast<unsigned int>(aux->count), aux->type);
         aux = aux->next;
     }
     printf("------------------\n");
@@ -100,26 +98,24 @@ int before_event(unsigned long evt1, unsigned long evt2, int type2)
         if (evt2 - core_Count < 0x80000000)
         {
             if ((evt1 - core_Count) < (evt2 - core_Count)) return 1;
-            else return 0;
+            return 0;
         }
-        else
+        if ((core_Count - evt2) < 0x10000000)
         {
-            if ((core_Count - evt2) < 0x10000000)
+            switch (type2)
             {
-                switch (type2)
+            case SPECIAL_INT:
                 {
-                case SPECIAL_INT:
                     if (SPECIAL_done) return 1;
-                    else return 0;
-                    break;
-                default:
                     return 0;
                 }
+            default:
+                return 0;
             }
-            else return 1;
         }
+        return 1;
     }
-    else return 0;
+    return 0;
 }
 
 /// <summary>
@@ -129,7 +125,7 @@ int before_event(unsigned long evt1, unsigned long evt2, int type2)
 /// <param name="delay">how much to wait</param>
 void add_interrupt_event(int type, unsigned long delay)
 {
-    unsigned long count = core_Count + delay/**2*/;
+    const unsigned long count = core_Count + delay/**2*/;
     int special = 0;
 
     if (type == SPECIAL_INT /*|| type == COMPARE_INT*/) special = 1;
@@ -148,10 +144,10 @@ void add_interrupt_event(int type, unsigned long delay)
     //count = Count + delay/**2*/;
     //}
 
-    if (q == NULL)
+    if (q == nullptr)
     {
-        q = (interrupt_queue*)malloc(sizeof(interrupt_queue));
-        q->next = NULL;
+        q = static_cast<interrupt_queue*>(malloc(sizeof(interrupt_queue)));
+        q->next = nullptr;
         q->count = count;
         q->type = type;
         next_interrupt = q->count;
@@ -162,7 +158,7 @@ void add_interrupt_event(int type, unsigned long delay)
     // finds place in queue to insert the interrupt ( its sorted )
     if (before_event(count, q->count, q->type) && !special)
     {
-        q = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+        q = static_cast<interrupt_queue*>(malloc(sizeof(interrupt_queue)));
         q->next = aux;
         q->count = count;
         q->type = type;
@@ -171,13 +167,13 @@ void add_interrupt_event(int type, unsigned long delay)
         return;
     }
 
-    while (aux->next != NULL && (!before_event(count, aux->next->count, aux->next->type)
+    while (aux->next != nullptr && (!before_event(count, aux->next->count, aux->next->type)
         || special))
         aux = aux->next;
 
-    if (aux->next == NULL)
+    if (aux->next == nullptr)
     {
-        aux->next = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+        aux->next = static_cast<interrupt_queue*>(malloc(sizeof(interrupt_queue)));
         aux = aux->next;
         aux->next = NULL;
         aux->count = count;
@@ -185,11 +181,10 @@ void add_interrupt_event(int type, unsigned long delay)
     }
     else
     {
-        interrupt_queue* aux2;
         if (type != SPECIAL_INT)
             while (aux->next != NULL && aux->next->count == count)
                 aux = aux->next;
-        aux2 = aux->next;
+        interrupt_queue* aux2 = aux->next;
         aux->next = (interrupt_queue*)malloc(sizeof(interrupt_queue));
         aux = aux->next;
         aux->next = aux2;
@@ -296,7 +291,7 @@ int save_eventqueue_infos(char* buf)
     interrupt_queue* aux = q;
     if (q == NULL)
     {
-        *((unsigned long*)&buf[0]) = 0xFFFFFFFF;
+        *reinterpret_cast<unsigned long*>(&buf[0]) = 0xFFFFFFFF;
         return 4;
     }
     while (aux != NULL)
@@ -306,7 +301,7 @@ int save_eventqueue_infos(char* buf)
         len += 8;
         aux = aux->next;
     }
-    *((unsigned long*)&buf[len]) = 0xFFFFFFFF;
+    *reinterpret_cast<unsigned long*>(&buf[len]) = 0xFFFFFFFF;
     return len + 4;
 }
 
@@ -314,10 +309,10 @@ void load_eventqueue_infos(char* buf)
 {
     int len = 0;
     clear_queue();
-    while (*((unsigned long*)&buf[len]) != 0xFFFFFFFF)
+    while (*reinterpret_cast<unsigned long*>(&buf[len]) != 0xFFFFFFFF)
     {
-        int type = *((unsigned long*)&buf[len]);
-        unsigned long count = *((unsigned long*)&buf[len + 4]);
+        int type = *reinterpret_cast<unsigned long*>(&buf[len]);
+        unsigned long count = *reinterpret_cast<unsigned long*>(&buf[len + 4]);
         add_interrupt_event_count(type, count);
         len += 8;
     }
@@ -349,16 +344,16 @@ void check_interrupt()
     // (which does nothing itself but makes cpu jump to general exception vector)
     if (core_Status & core_Cause & 0xFF00)
     {
-        if (q == NULL)
+        if (q == nullptr)
         {
-            q = (interrupt_queue*)malloc(sizeof(interrupt_queue));
-            q->next = NULL;
+            q = static_cast<interrupt_queue*>(malloc(sizeof(interrupt_queue)));
+            q->next = nullptr;
             q->count = core_Count;
             q->type = CHECK_INT;
         }
         else
         {
-            interrupt_queue* aux = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+            interrupt_queue* aux = static_cast<interrupt_queue*>(malloc(sizeof(interrupt_queue)));
             aux->next = q;
             aux->count = core_Count;
             aux->type = CHECK_INT;
@@ -402,13 +397,13 @@ void gen_interrupt()
             else*/
             unsigned long dest = skip_jump;
             skip_jump = 0;
-            jump_to(dest);
+            jump_to(dest)
             last_addr = PC->addr;
         }
         skip_jump = 0;
         return;
     }
-    auto type = q->type;
+    const auto type = q->type;
     switch (q->type)
     {
     case SPECIAL_INT: // does nothing, spammed when Count is close to rolling over
@@ -417,7 +412,6 @@ void gen_interrupt()
         remove_interrupt_event();
         add_interrupt_event_count(SPECIAL_INT, 0);
         return;
-        break;
 
     case VI_INT:
         

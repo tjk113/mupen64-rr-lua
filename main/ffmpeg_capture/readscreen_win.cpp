@@ -34,7 +34,7 @@ void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap)
 //based on original one for AVI
 void FFMpegReadScreen(void** dest, long* width, long* height)
 {
-	HDC mupendc, all, copy; //all - screen; copy - buffer
+	HDC mupendc, all = nullptr, copy; //all - screen; copy - buffer
 	//RECT rect, rectS, rectT;
 	POINT cli_tl{0, 0}; //mupen client x y
 	HBITMAP bitmap, oldbitmap;

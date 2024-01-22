@@ -1,9 +1,10 @@
+#ifndef WGUI_H
+#define WGUI_H
 #include <include/lua.h>
 #include <Windows.h>
 
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
-#include "../../main/helpers/win_helpers.h"
 
 namespace LuaCore::Wgui
 {
@@ -221,6 +222,7 @@ namespace LuaCore::Wgui
 		{
 			switch (*p)
 			{
+			default: break;
 			case 'b': font.lfWeight = FW_BOLD;
 				break;
 			case 'i': font.lfItalic = TRUE;
@@ -333,6 +335,7 @@ namespace LuaCore::Wgui
 			{
 				switch (*p)
 				{
+				default: break;
 				case 'l': format |= DT_LEFT;
 					break;
 				case 'r': format |= DT_RIGHT;
@@ -806,3 +809,4 @@ namespace LuaCore::Wgui
 		return 0;
 	}
 }
+#endif // WGUI_H
