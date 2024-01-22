@@ -401,7 +401,7 @@ void gen_interrupt()
             else*/
             unsigned long dest = skip_jump;
             skip_jump = 0;
-            jump_to(dest)
+            jump_to(dest);
             last_addr = PC->addr;
         }
         skip_jump = 0;

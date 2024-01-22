@@ -188,7 +188,6 @@ void internal_ReadController(int Control, BYTE* Command)
 {
     switch (Command[2])
     {
-    default: break;
     case 1:
         if (Controls[Control].Present)
         {
@@ -221,7 +220,6 @@ void internal_ControllerCommand(int Control, BYTE* Command)
 {
     switch (Command[2])
     {
-    default: break;
     case 0x00: // check
     case 0xFF:
         if ((Command[1] & 0x80))

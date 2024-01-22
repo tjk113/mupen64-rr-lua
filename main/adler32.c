@@ -61,7 +61,7 @@ uLong ZEXPORT adler32(
         len -= k;
         while (k >= 16)
         {
-            DO16(buf)
+            DO16(buf);
             buf += 16;
             k -= 16;
         }

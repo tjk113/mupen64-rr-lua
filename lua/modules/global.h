@@ -33,7 +33,6 @@ namespace LuaCore::Global
 	{
 		switch (lua_type(L, -1))
 		{
-		default: break;
 		case LUA_TNIL:
 		case LUA_TBOOLEAN:
 		case LUA_TFUNCTION:

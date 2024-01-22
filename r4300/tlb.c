@@ -457,7 +457,7 @@ void ERET()
     else
     {
         core_Status &= 0xFFFFFFFD;
-        jump_to(core_EPC)
+        jump_to(core_EPC);
     }
     llbit = 0;
     check_interrupt();

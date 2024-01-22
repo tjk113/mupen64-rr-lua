@@ -815,7 +815,7 @@ void build_wrapper(precomp_instr* instr, unsigned char* code, precomp_block* blo
 
 void build_wrappers(precomp_instr* instr, int start, int end, precomp_block* block)
 {
-    int i, reg;
+    int i, reg;;
     for (i = start; i < end; i++)
     {
         instr[i].reg_cache_infos.need_map = 0;

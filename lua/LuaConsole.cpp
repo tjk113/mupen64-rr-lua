@@ -178,7 +178,6 @@ t_window_procedure_params window_proc_params = {0};
 	{
 		switch (msg)
 		{
-		default: break;
 		case WM_INITDIALOG:
 			{
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -236,7 +235,6 @@ t_window_procedure_params window_proc_params = {0};
 	{
 		switch (id)
 		{
-		default: break;
 		case IDC_BUTTON_LUASTATE:
 			{
 				char path[MAX_PATH] = {0};
@@ -367,7 +365,6 @@ void lua_create_and_run(const char* path)
 	{
 		switch (msg)
 		{
-		default: break;
 		case WM_CREATE:
 		case WM_DESTROY:
 			return 0;

@@ -234,7 +234,6 @@ void dma_pi_write()
     {
         switch (CIC_Chip)
         {
-        default: break;
         case 1:
         case 2:
         case 3:

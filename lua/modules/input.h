@@ -143,7 +143,6 @@ namespace LuaCore::Input
 		static lua_State* L;
 		switch (msg)
 		{
-		default: break;
 		case WM_INITDIALOG:
 			{
 				L = (lua_State*)lParam;
@@ -164,7 +163,6 @@ namespace LuaCore::Input
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
-		default: break;
 		case IDOK:
 			{
 				HWND inp = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
