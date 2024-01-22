@@ -2231,7 +2231,7 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	// generate crash log
 
 	char crashLog[1024 * 4] = {0};
-	crash_helper::generate_log(ExceptionInfo, crashLog);
+	CrashHelper::generate_log(ExceptionInfo, crashLog);
 
 	FILE* f = fopen("crash.log", "w+");
 	fwrite(crashLog, sizeof(crashLog), 1, f);

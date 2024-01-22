@@ -7,7 +7,7 @@
 #include "../Config.hpp"
 
 
-int crash_helper::find_module_name(char* error, void* addr, const int len)
+int CrashHelper::find_module_name(char* error, void* addr, const int len)
 {
 	const HANDLE h_process = GetCurrentProcess();
 	DWORD cb_needed;
@@ -38,7 +38,7 @@ int crash_helper::find_module_name(char* error, void* addr, const int len)
 	return 0; //what
 }
 
-void crash_helper::get_exception_code_friendly_name(
+void CrashHelper::get_exception_code_friendly_name(
 	const _EXCEPTION_POINTERS* exception_pointers_ptr, char* exception_code_string_ptr)
 {
 	switch (exception_pointers_ptr->ExceptionRecord->ExceptionCode)
@@ -68,7 +68,7 @@ void crash_helper::get_exception_code_friendly_name(
 }
 
 
-void crash_helper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr,
+void CrashHelper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr,
                                char* log_ptr)
 {
 	int len = 0;
