@@ -47,7 +47,6 @@ unsigned char sram[0x8000];
 
 void dma_pi_read()
 {
-    unsigned long longueur;
     int i;
 
     if (pi_register.pi_cart_addr_reg >= 0x08000000 &&
@@ -76,7 +75,7 @@ void dma_pi_read()
     }
     else if (Config.use_summercart)
     {
-        longueur = (pi_register.pi_rd_len_reg & 0xFFFFFF) + 1;
+        const unsigned long longueur = (pi_register.pi_rd_len_reg & 0xFFFFFF) + 1;
         if (pi_register.pi_cart_addr_reg >= 0x1ffe0000 &&
             pi_register.pi_cart_addr_reg < 0x1fff0000)
         {
@@ -126,8 +125,7 @@ void dma_pi_write()
             if (use_flashram != 1)
             {
                 auto filename = get_sram_path();
-                FILE* f = fopen(filename.string().c_str(), "rb");
-                if (f)
+                if (FILE* f = fopen(filename.string().c_str(), "rb"))
                 {
                     fread(sram, 1, 0x8000, f);
                     fclose(f);

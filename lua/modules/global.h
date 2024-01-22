@@ -70,22 +70,22 @@ namespace LuaCore::Global
 				lua_pushvalue(L, -1);
 				lua_pushboolean(L, TRUE);
 				lua_rawset(L, 1);
-				int isArray = 0;
 				std::string s("{");
 				lua_pushnil(L);
 				if (lua_next(L, -2))
 				{
+					int is_array = 0;
 					while (true)
 					{
 						lua_pushvalue(L, -2);
 						if (lua_type(L, -1) == LUA_TNUMBER &&
-							isArray + 1 == lua_tonumber(L, -1))
+							is_array + 1 == lua_tonumber(L, -1))
 						{
 							lua_pop(L, 1);
-							isArray++;
+							is_array++;
 						} else
 						{
-							isArray = -1;
+							is_array = -1;
 							if (lua_type(L, -1) == LUA_TSTRING)
 							{
 								s.append(lua_tostring(L, -1));
@@ -99,7 +99,7 @@ namespace LuaCore::Global
 							}
 						}
 						ToStringEx(L);
-						if (isArray == -1)
+						if (is_array == -1)
 						{
 							s.append("=");
 						}

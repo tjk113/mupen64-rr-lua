@@ -58,8 +58,7 @@ namespace LuaCore::Input
 		lua_newtable(L);
 		for (int i = 1; i < 255; i++)
 		{
-			const char* name = KeyName[i];
-			if (name)
+			if (const char* name = KeyName[i])
 			{
 				int active;
 				if (i == VK_CAPITAL || i == VK_NUMLOCK || i == VK_SCROLL)

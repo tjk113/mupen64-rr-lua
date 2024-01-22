@@ -10,40 +10,30 @@
   <component name="ChangeListManager">
     <list default="true" id="8b401311-6af4-49db-81e5-ecf7a6096804" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../../lua/LuaConsole.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/LuaConsole.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../lua/modules/d2d.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/d2d.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../lua/modules/emu.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/emu.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/global.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/global.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../lua/modules/input.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/input.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../lua/modules/wgui.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/wgui.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/Plugin.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/Plugin.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/adler32.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/adler32.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/ffmpeg_capture/manager_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/ffmpeg_capture/manager_win.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/ffmpeg_capture/readscreen_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/ffmpeg_capture/readscreen_win.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/helpers/string_helpers.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/helpers/string_helpers.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/helpers/win_helpers.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/helpers/win_helpers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/memory.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/memory.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/Plugin.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/Plugin.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/disasm.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/disasm.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/ffmpeg_capture/ffmpeg_capture.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/ffmpeg_capture/ffmpeg_capture.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/helpers/io_helpers.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/helpers/io_helpers.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/lib/ini.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/lib/ini.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/md5.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/md5.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/rom.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/rom.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../main/speex/speex_resampler.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/speex/speex_resampler.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/vcr_resample.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/vcr_resample.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/win/Commandline.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/Commandline.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/win/features/rombrowser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/features/rombrowser.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/vcr.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/vcr.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/win/Config.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/Config.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/win/configdialog.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/configdialog.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../main/win/main_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/main_win.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/win/vcr_compress.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/vcr_compress.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/dma.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/dma.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/flashram.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/flashram.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../memory/memory.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/memory.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../memory/pif.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/pif.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../memory/summercart.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/summercart.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../r4300/bc.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/bc.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/compare_core.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/compare_core.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop0.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop0.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_helpers.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_helpers.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_l.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_l.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_w.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_w.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/interrupt.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/interrupt.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/pure_interp.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/pure_interp.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/exception.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/exception.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../r4300/r4300.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/r4300.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/recomp.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/recomp.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/x86/assemble.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/x86/assemble.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/x86/regcache.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/x86/regcache.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/presets.json" beforeDir="false" afterPath="$PROJECT_DIR$/presets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/regimm.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/regimm.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,11 +84,28 @@
   }
 }</component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="9mNov" />
+    <option name="lastReportId" value="rRdad" />
     <option name="linkedProjectId" value="3e7n1" />
     <option name="linkedProjectName" value="Mupen64" />
     <option name="organizationId" value="AmB4k" />
     <option name="userId" value="Av8PR" />
+  </component>
+  <component name="QodanaHighlightedReportService">
+    <option name="localRunPublishedPersistedInfo">
+      <LocalRunPublishedPersistedInfo>
+        <option name="fileReportPersistedInfo">
+          <LocalReportPersistedInfo>
+            <option name="path" value="C:\Users\austi\AppData\Local\Temp\qodana_output4\qodana.sarif.json" />
+            <option name="reportGuid" value="6454dc67-ae03-4791-bdd6-cb88ddd150a5" />
+            <option name="reportName" value="mupen64/qodana/2024-01-22" />
+          </LocalReportPersistedInfo>
+        </option>
+        <option name="reportLink" value="https://qodana.cloud/projects/3e7n1/reports/rRdad" />
+      </LocalRunPublishedPersistedInfo>
+    </option>
+  </component>
+  <component name="QodanaIsSelectedPersistenceService">
+    <option name="selectedOrLoading" value="true" />
   </component>
   <component name="QodanaReportsService">
     <option name="descriptions">
@@ -108,6 +115,7 @@
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output7\qodana.sarif.json" publishedReportLink="https://qodana.cloud/projects/3e7n1/reports/7mENP" reportGuid="e2f0f8a1-84aa-4283-8a38-11000e015ff3" reportId="mupen64/qodana/2024-01-21" />
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output1\qodana.sarif.json" reportGuid="e5de9b64-0596-4874-bcf1-4a40b3b5f615" reportId="mupen64/qodana/2024-01-21" />
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output2\qodana.sarif.json" reportGuid="ea5f98ef-4961-4269-811f-0baf241142d3" reportId="mupen64/qodana/2024-01-21" />
+      <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output4\qodana.sarif.json" publishedReportLink="https://qodana.cloud/projects/3e7n1/reports/rRdad" reportGuid="6454dc67-ae03-4791-bdd6-cb88ddd150a5" reportId="mupen64/qodana/2024-01-22" />
     </option>
   </component>
   <component name="RunManager">
@@ -152,7 +160,7 @@
       <workItem from="1696566645330" duration="1387000" />
       <workItem from="1696736812128" duration="2653000" />
       <workItem from="1701000600670" duration="1860000" />
-      <workItem from="1705867152858" duration="16136000" />
+      <workItem from="1705867152858" duration="17152000" />
     </task>
     <servers />
   </component>
@@ -179,7 +187,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/../../main/win/main_win.cpp</url>
-          <line>2331</line>
+          <line>2330</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

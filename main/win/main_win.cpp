@@ -99,7 +99,7 @@ BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
 char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
-const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {
+constexpr char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {
 	"Azimer\'s Audio v0.7"
 };
 
@@ -783,7 +783,6 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
                                  LPARAM lParam)
 {
 	char tempbuf[MAX_PATH];
-	char tempbuf2[MAX_PATH];
 	int checked_movie_type;
 	HWND descriptionDialog;
 	HWND authorDialog;
@@ -877,6 +876,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		case IDC_OK:
 		case IDOK:
 			{
+				char tempbuf2[MAX_PATH];
 				// turn WCHAR into UTF8
 				WCHAR authorWC[MOVIE_AUTHOR_DATA_SIZE];
 				char authorUTF8[MOVIE_AUTHOR_DATA_SIZE * 4];
@@ -925,7 +925,6 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 					                      : MOVIE_START_FROM_EXISTING_SNAPSHOT;
 				Config.last_movie_type = checked_movie_type;
 
-				bool allowClosing = true;
 				if (flag == MOVIE_START_FROM_EXISTING_SNAPSHOT)
 				{
 					// The default directory we open the file dialog window in is the
@@ -955,7 +954,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 					}
 				}
 
-				if (allowClosing)
+				if (true)
 				{
 					if (tempbuf[0] == '\0' || vcr_start_record(
 						tempbuf, flag, authorUTF8, descriptionUTF8,
@@ -968,7 +967,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 						break;
 					} else
 					{
-						HMENU hMenu = GetMenu(mainHWND);
+						const HMENU hMenu = GetMenu(mainHWND);
 						EnableMenuItem(hMenu, ID_STOP_RECORD, MF_ENABLED);
 						EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
 						statusbar_post_text("Recording replay");

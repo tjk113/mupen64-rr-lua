@@ -22,7 +22,7 @@ const std::string defaultOptions = "out.mp4";
 // video size and framerate prepared in manager constructor when values are known
 // pixel format is bgr24, because that's what windows uses
 #define videoOptions " -thread_queue_size 4 -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 "
-const char baseOptions[] = videoOptions "-i \\\\.\\pipe\\mupenvideo"
+constexpr char baseOptions[] = videoOptions "-i \\\\.\\pipe\\mupenvideo"
 	audioOptions "-i \\\\.\\pipe\\mupenaudio ";
 
 void InitReadScreenFFmpeg(const t_window_info& info);

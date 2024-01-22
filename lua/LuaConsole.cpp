@@ -93,8 +93,7 @@ t_window_procedure_params window_proc_params = {nullptr};
 		printf(" ----------------  Stack Dump ----------------\n");
 		while (i)
 		{
-			int t = lua_type(L, i);
-			switch (t)
+			switch (const int t = lua_type(L, i))
 			{
 			case LUA_TSTRING:
 				printf("%d:`%s'", i, lua_tostring(L, i));
@@ -165,9 +164,9 @@ t_window_procedure_params window_proc_params = {nullptr};
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
 	{
-		for (auto pair : hwnd_lua_map)
+		for (const auto val : hwnd_lua_map | std::views::values)
 		{
-			pair.second->invoke_callbacks_with_key(function, key);
+			val->invoke_callbacks_with_key(function, key);
 		}
 	}
 
@@ -503,8 +502,8 @@ void lua_create_and_run(const char* path)
 
 
 	// 000000 | 0000 0000 0000 000 | stype(5) = 10101 |001111
-	const ULONG BREAKPOINTSYNC_MAGIC_STYPE = 0x15;
-	const ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
+constexpr ULONG BREAKPOINTSYNC_MAGIC_STYPE = 0x15;
+constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		(BREAKPOINTSYNC_MAGIC_STYPE << 6);
 
 	void Recompile(ULONG);
@@ -527,8 +526,7 @@ void lua_create_and_run(const char* path)
 			recompile_block((long*)SP_DMEM, blocks[0xa4000000 >> 12], addr);
 		else
 		{
-			unsigned long paddr = PAddr(addr);
-			if (paddr)
+			if (const unsigned long paddr = PAddr(addr))
 			{
 				if ((paddr & 0x1FFFFFFF) >= 0x10000000)
 				{
@@ -818,17 +816,17 @@ void AtUpdateScreenLuaCallback()
 {
 	HDC main_dc = GetDC(mainHWND);
 
-	for (auto& pair : hwnd_lua_map) {
+	for (const auto& val : hwnd_lua_map | std::views::values) {
 		/// Let the environment draw to its DC
-		pair.second->draw();
+		val->draw();
 
 		/// Blit its DC to the main window with alpha mask
-        TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->dc, 0, 0,
-        	pair.second->dc_width, pair.second->dc_height, bitmap_color_mask);
+        TransparentBlt(main_dc, 0, 0, val->dc_width, val->dc_height, val->dc, 0, 0,
+        	val->dc_width, val->dc_height, bitmap_color_mask);
 
-		RECT rect = { 0, 0, pair.second->dc_width, pair.second->dc_height};
+		RECT rect = { 0, 0, val->dc_width, val->dc_height};
 		HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
-		FillRect(pair.second->dc, &rect, brush);
+		FillRect(val->dc, &rect, brush);
 		DeleteObject(brush);
 
 	}
@@ -1350,8 +1348,8 @@ void close_all_scripts() {
 
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	auto copy = std::map(hwnd_lua_map);
-	for (auto pair : copy) {
-		SendMessage(pair.first, WM_CLOSE, 0, 0);
+	for (const auto key : copy | std::views::keys) {
+		SendMessage(key, WM_CLOSE, 0, 0);
 	}
 	assert(hwnd_lua_map.empty());
 }
@@ -1361,10 +1359,10 @@ void stop_all_scripts()
 	assert(IsGUIThread(false));
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	auto copy = std::map(hwnd_lua_map);
-	for (auto pair : copy) {
-		SendMessage(pair.first, WM_COMMAND,
+	for (const auto key : copy | std::views::keys) {
+		SendMessage(key, WM_COMMAND,
 					MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
-					(LPARAM)GetDlgItem(pair.first, IDC_BUTTON_LUASTOP));
+					(LPARAM)GetDlgItem(key, IDC_BUTTON_LUASTOP));
 
 	}
 	assert(hwnd_lua_map.empty());
@@ -1436,12 +1434,12 @@ void LuaEnvironment::destroy_renderer()
 	d2d_factory->Release();
 	d2d_render_target->Release();
 
-	for (auto const& [_, val] : d2d_bitmap_render_target) {
+	for (const auto& val : d2d_bitmap_render_target | std::views::values) {
 		val->Release();
 	}
 	d2d_bitmap_render_target.clear();
 
-	for (auto const& [_, val] : dw_text_layouts) {
+	for (const auto& val : dw_text_layouts | std::views::values) {
 		val->Release();
 	}
 	dw_text_layouts.clear();

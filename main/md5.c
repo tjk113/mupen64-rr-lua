@@ -140,18 +140,18 @@ md5_process(md5_state_t* pms, const md5_byte_t* data /*[64]*/)
 	md5_word_t X[16];
 #else
     /* Define storage for little-endian or both types of CPUs. */
-    md5_word_t xbuf[16];
     const md5_word_t* X;
 #endif
 
     {
+        md5_word_t xbuf[16];
 #if BYTE_ORDER == 0
         /*
          * Determine dynamically whether this is a big-endian or
          * little-endian machine, since we can use a more efficient
          * algorithm on the latter.
          */
-        static const int w = 1;
+        static constexpr int w = 1;
 
         if (*((const md5_byte_t*)&w)) /* dynamic little-endian */
 #endif

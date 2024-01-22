@@ -175,9 +175,8 @@ namespace LuaCore::Memory
 
 	static int LuaReadSize(lua_State* L)
 	{
-		ULONG addr = luaL_checkinteger(L, 1);
-		int size = luaL_checkinteger(L, 2);
-		switch (size)
+		const ULONG addr = luaL_checkinteger(L, 1);
+		switch (luaL_checkinteger(L, 2))
 		{
 		// unsigned
 		case 1: lua_pushinteger(L, LoadRDRAMSafe<UCHAR>(addr));
@@ -205,8 +204,7 @@ namespace LuaCore::Memory
 	static int LuaWriteSize(lua_State* L)
 	{
 		ULONG addr = luaL_checkinteger(L, 1);
-		int size = luaL_checkinteger(L, 2);
-		switch (size)
+		switch (luaL_checkinteger(L, 2))
 		{
 		case 1: StoreRDRAMSafe<UCHAR>(addr, luaL_checkinteger(L, 3));
 			break;

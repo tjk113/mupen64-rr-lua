@@ -293,12 +293,10 @@ void BNE_OUT()
 
 void BNE_IDLE()
 {
-    long skip;
     if (core_irs != core_irt)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BNE();
     }
@@ -336,12 +334,10 @@ void BLEZ_OUT()
 
 void BLEZ_IDLE()
 {
-    long skip;
     if (core_irs <= core_irt)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLEZ();
     }
@@ -379,12 +375,10 @@ void BGTZ_OUT()
 
 void BGTZ_IDLE()
 {
-    long skip;
     if (core_irs > core_irt)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGTZ();
     }
@@ -493,12 +487,10 @@ void BEQL_OUT()
 
 void BEQL_IDLE()
 {
-    long skip;
     if (core_irs == core_irt)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BEQL();
     }
@@ -605,12 +597,10 @@ void BLEZL_OUT()
 
 void BLEZL_IDLE()
 {
-    long skip;
     if (core_irs <= core_irt)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLEZL();
     }
@@ -662,12 +652,10 @@ void BGTZL_OUT()
 
 void BGTZL_IDLE()
 {
-    long skip;
     if (core_irs > core_irt)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGTZL();
     }

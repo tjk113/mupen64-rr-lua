@@ -64,12 +64,10 @@ void BLTZ_OUT()
 
 void BLTZ_IDLE()
 {
-    long skip;
     if (core_irs < 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLTZ();
     }
@@ -107,12 +105,10 @@ void BGEZ_OUT()
 
 void BGEZ_IDLE()
 {
-    long skip;
     if (core_irs >= 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGEZ();
     }
@@ -158,12 +154,10 @@ void BLTZL_OUT()
 
 void BLTZL_IDLE()
 {
-    long skip;
     if (core_irs < 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLTZL();
     }
@@ -209,12 +203,10 @@ void BGEZL_OUT()
 
 void BGEZL_IDLE()
 {
-    long skip;
     if (core_irs >= 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGEZL();
     }
@@ -262,12 +254,10 @@ void BLTZAL_OUT()
 
 void BLTZAL_IDLE()
 {
-    long skip;
     if (core_irs < 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLTZAL();
     }
@@ -315,12 +305,10 @@ void BGEZAL_OUT()
 
 void BGEZAL_IDLE()
 {
-    long skip;
     if (core_irs >= 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGEZAL();
     }
@@ -378,12 +366,10 @@ void BLTZALL_OUT()
 
 void BLTZALL_IDLE()
 {
-    long skip;
     if (core_irs < 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BLTZALL();
     }
@@ -441,12 +427,10 @@ void BGEZALL_OUT()
 
 void BGEZALL_IDLE()
 {
-    long skip;
     if (core_irs >= 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BGEZALL();
     }

@@ -1180,15 +1180,13 @@ static int start_playback(const char* filename, const char* author_utf8,
 	vcr_core_stopped();
 	is_restarting_flag = false;
 
-	extern HWND mainHWND;
 	char buf[PATH_MAX];
 
 	strncpy(m_filename, filename, PATH_MAX);
 	printf("m_filename = %s\n", m_filename);
-	char* p = strrchr(m_filename, '.');
 	// gets a string slice from the final "." to the end
 
-	if (p)
+	if (char* p = strrchr(m_filename, '.'))
 	{
 		if (!STRCASECMP(p, ".m64") || !STRCASECMP(p, ".st"))
 			*p = '\0';
@@ -1315,6 +1313,7 @@ static int start_playback(const char* filename, const char* author_utf8,
 
 				if (warning_str[0] != '\0')
 				{
+					extern HWND mainHWND;
 					MessageBox(mainHWND, warning_str, "VCR",
 					           MB_OK | (dont_play ? MB_ICONERROR : MB_ICONWARNING));
 				}

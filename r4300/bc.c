@@ -63,12 +63,10 @@ void BC1F_OUT()
 
 void BC1F_IDLE()
 {
-    long skip;
     if ((FCR31 & 0x800000) == 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BC1F();
     }
@@ -106,12 +104,10 @@ void BC1T_OUT()
 
 void BC1T_IDLE()
 {
-    long skip;
     if ((FCR31 & 0x800000) != 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BC1T();
     }
@@ -159,12 +155,10 @@ void BC1FL_OUT()
 
 void BC1FL_IDLE()
 {
-    long skip;
     if ((FCR31 & 0x800000) == 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BC1FL();
     }
@@ -212,12 +206,10 @@ void BC1TL_OUT()
 
 void BC1TL_IDLE()
 {
-    long skip;
     if ((FCR31 & 0x800000) != 0)
     {
         update_count();
-        skip = next_interrupt - core_Count;
-        if (skip > 3)
+        if (const long skip = next_interrupt - core_Count; skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
         else BC1TL();
     }

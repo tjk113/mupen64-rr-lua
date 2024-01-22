@@ -162,7 +162,6 @@ void flashram_command(unsigned long command)
 
 void dma_read_flashram()
 {
-    int i;
     char* filename;
     FILE* f;
 
@@ -174,6 +173,7 @@ void dma_read_flashram()
         break;
     case READ_MODE:
         {
+            int i;
             auto filename = get_flashram_path();
             FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)

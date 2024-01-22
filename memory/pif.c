@@ -93,8 +93,7 @@ void EepromCommand(BYTE* Command)
     case 4: // read
         {
             auto filename = get_eeprom_path();
-            FILE* f = fopen(filename.string().c_str(), "rb");
-            if (f)
+            if (FILE* f = fopen(filename.string().c_str(), "rb"))
             {
                 fread(eeprom, 1, 0x800, f);
                 fclose(f);
@@ -262,8 +261,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                         if (address <= 0x7FE0)
                         {
                             auto filename = get_mempak_path();
-                            FILE* f = fopen(filename.string().c_str(), "rb");
-                            if (f)
+                            if (FILE* f = fopen(filename.string().c_str(), "rb"))
                             {
                                 fread(mempack[0], 1, 0x8000, f);
                                 fread(mempack[1], 1, 0x8000, f);
@@ -282,7 +280,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                     }
                 }
                 break;
-            case controller_extension::raw:
+            case raw:
                 if (controllerCommand) controllerCommand(Control, Command);
                 break;
             default:
@@ -298,7 +296,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
         {
             switch (Controls[Control].Plugin)
             {
-            case controller_extension::mempak:
+            case mempak:
                 {
                     int address = (Command[3] << 8) | Command[4];
                     if (address == 0x8001)
@@ -331,7 +329,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                     }
                 }
                 break;
-            case controller_extension::raw:
+            case raw:
                 if (controllerCommand) controllerCommand(Control, Command);
                 break;
             default:

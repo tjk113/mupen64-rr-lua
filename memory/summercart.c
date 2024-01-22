@@ -105,10 +105,8 @@ static int sd_seek(FILE *fp, const char *caption)
 
 static void sd_read()
 {
-	unsigned long i;
 	FILE *fp;
 	char *path;
-	char *ptr = nullptr;
 	unsigned long addr = summercart.data0 & 0x1fffffff;
 	unsigned long count = summercart.data1;
 	unsigned long size = 512*count;
@@ -117,6 +115,7 @@ static void sd_read()
 	{
 		if ((fp = fopen(path, "rb")))
 		{
+			char *ptr = nullptr;
 			char s = S8;
 			if (!sd_seek(fp, "SD read error"))
 			{
@@ -134,6 +133,7 @@ static void sd_read()
 			}
 			if (ptr)
 			{
+				unsigned long i;
 				for (i = 0; i < size; i++) ptr[(addr+i)^s] = fgetc(fp);
 				summercart.status = 0;
 			}
@@ -147,10 +147,8 @@ static void sd_read()
 
 static void sd_write()
 {
-	unsigned long i;
 	FILE *fp;
 	char *path;
-	char *ptr = nullptr;
 	unsigned long addr = summercart.data0 & 0x1fffffff;
 	unsigned long count = summercart.data1;
 	unsigned long size = 512*count;
@@ -159,6 +157,7 @@ static void sd_write()
 	{
 		if ((fp = fopen(path, "r+b")))
 		{
+			const char *ptr = nullptr;
 			if (!sd_seek(fp, "SD write error"))
 			{
 				if (addr >= 0x1ffe0000 && addr+size <= 0x1ffe2000)
@@ -174,7 +173,7 @@ static void sd_write()
 			}
 			if (ptr)
 			{
-				for (i = 0; i < size; i++) fputc(ptr[(addr+i)^S8], fp);
+				for (unsigned long i = 0; i < size; i++) fputc(ptr[(addr+i)^S8], fp);
 				summercart.status = 0;
 			}
 			fclose(fp);

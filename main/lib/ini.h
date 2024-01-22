@@ -87,6 +87,7 @@
 #include <cctype>
 #include <fstream>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
@@ -231,9 +232,9 @@ namespace mINI
                 std::size_t index = it->second;
                 data.erase(data.begin() + index);
                 dataIndexMap.erase(it);
-                for (auto& it2 : dataIndexMap)
+                for (auto& val : dataIndexMap | std::views::values)
                 {
-                    auto& vi = it2.second;
+                    auto& vi = val;
                     if (vi > index)
                     {
                         vi--;
@@ -675,7 +676,7 @@ namespace mINI
             {
                 if (fileIsBOM)
                 {
-                    const char utf8_BOM[3] = {static_cast<char>(0xEF), static_cast<char>(0xBB),
+	                constexpr char utf8_BOM[3] = {static_cast<char>(0xEF), static_cast<char>(0xBB),
                                               static_cast<char>(0xBF)};
                     fileWriteStream.write(utf8_BOM, 3);
                 }

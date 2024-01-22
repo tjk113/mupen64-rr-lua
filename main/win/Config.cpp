@@ -24,8 +24,7 @@ void set_menu_accelerator(const HMENU h_menu, int element_id, const char* acc)
 	MENUITEMINFO menuinfo;
 
 	// make sure there is tab character (accelerator marker)
-	char* tab = strrchr(string, '\t');
-	if (tab)
+	if (char* tab = strrchr(string, '\t'))
 		*tab = '\0';
 	if (strcmp(acc, ""))
 		sprintf(string, "%s\t%s", string, acc);

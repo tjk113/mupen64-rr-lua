@@ -467,12 +467,11 @@ static char* sfmt(char* b, const char* f, ...)
     va_list v;
     const char* p;
     char* q = b;
-    const char* const x = "0123456789abcdef";
     va_start(v, f);
     for (p = f; *p; p++)
     {
-        char c = *p;
-        switch (c)
+        const char* const x = "0123456789abcdef";
+        switch (const char c = *p)
         {
         case 'r':
             {

@@ -103,11 +103,10 @@ static void rom_byteswap(uint8_t* rom)
 
 static char* trim(char* str)
 {
-	char *ibuf, *obuf;
-
 	if (str)
 	{
-		for (ibuf = obuf = str; *ibuf; )
+		char*obuf;
+		for (char* ibuf = obuf = str; *ibuf; )
 		{
 			while (*ibuf && (isspace (*ibuf)))
 				ibuf++;

@@ -355,7 +355,6 @@ void load_gfx(HMODULE handle)
 
 void load_input(HMODULE handle)
 {
-	int i;
 	PLUGIN_INFO PluginInfo;
 	if (handle)
 	{
@@ -409,7 +408,7 @@ void load_input(HMODULE handle)
 		control_info.MemoryBswaped = TRUE;
 		control_info.HEADER = rom;
 		control_info.Controls = Controls;
-		for (i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++)
 		{
 			Controls[i].Present = FALSE;
 			Controls[i].RawData = FALSE;

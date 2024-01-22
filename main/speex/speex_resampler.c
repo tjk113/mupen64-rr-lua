@@ -149,7 +149,7 @@ struct SpeexResamplerState_
     int out_stride;
 };
 
-static const double kaiser12_table[68] = {
+static constexpr double kaiser12_table[68] = {
     0.99859849, 1.00000000, 0.99859849, 0.99440475, 0.98745105, 0.97779076,
     0.96549770, 0.95066529, 0.93340547, 0.91384741, 0.89213598, 0.86843014,
     0.84290116, 0.81573067, 0.78710866, 0.75723148, 0.72629970, 0.69451601,
@@ -172,7 +172,7 @@ static const double kaiser12_table[36] = {
    0.03111947, 0.02127838, 0.01402878, 0.00886058, 0.00531256, 0.00298291,
    0.00153438, 0.00069463, 0.00025272, 0.0000527734, 0.00000500, 0.00000000};
 */
-static const double kaiser10_table[36] = {
+static constexpr double kaiser10_table[36] = {
     0.99537781, 1.00000000, 0.99537781, 0.98162644, 0.95908712, 0.92831446,
     0.89005583, 0.84522401, 0.79486424, 0.74011713, 0.68217934, 0.62226347,
     0.56155915, 0.50119680, 0.44221549, 0.38553619, 0.33194107, 0.28205962,
@@ -181,7 +181,7 @@ static const double kaiser10_table[36] = {
     0.00488951, 0.00257636, 0.00115101, 0.00035515, 0.00000000, 0.00000000
 };
 
-static const double kaiser8_table[36] = {
+static constexpr double kaiser8_table[36] = {
     0.99635258, 1.00000000, 0.99635258, 0.98548012, 0.96759014, 0.94302200,
     0.91223751, 0.87580811, 0.83439927, 0.78875245, 0.73966538, 0.68797126,
     0.63451750, 0.58014482, 0.52566725, 0.47185369, 0.41941150, 0.36897272,
@@ -190,7 +190,7 @@ static const double kaiser8_table[36] = {
     0.01563093, 0.00959968, 0.00527363, 0.00233883, 0.00050000, 0.00000000
 };
 
-static const double kaiser6_table[36] = {
+static constexpr double kaiser6_table[36] = {
     0.99733006, 1.00000000, 0.99733006, 0.98935595, 0.97618418, 0.95799003,
     0.93501423, 0.90755855, 0.87598009, 0.84068475, 0.80211977, 0.76076565,
     0.71712752, 0.67172623, 0.62508937, 0.57774224, 0.53019925, 0.48295561,
@@ -205,13 +205,13 @@ struct FuncDef
     int oversample;
 };
 
-static const struct FuncDef kaiser12_funcdef = {kaiser12_table, 64};
+static constexpr FuncDef kaiser12_funcdef = {kaiser12_table, 64};
 #define KAISER12 (&kaiser12_funcdef)
-static const struct FuncDef kaiser10_funcdef = {kaiser10_table, 32};
+static constexpr FuncDef kaiser10_funcdef = {kaiser10_table, 32};
 #define KAISER10 (&kaiser10_funcdef)
-static const struct FuncDef kaiser8_funcdef = {kaiser8_table, 32};
+static constexpr FuncDef kaiser8_funcdef = {kaiser8_table, 32};
 #define KAISER8 (&kaiser8_funcdef)
-static const struct FuncDef kaiser6_funcdef = {kaiser6_table, 32};
+static constexpr FuncDef kaiser6_funcdef = {kaiser6_table, 32};
 #define KAISER6 (&kaiser6_funcdef)
 
 struct QualityMapping
@@ -970,7 +970,6 @@ EXPORT int speex_resampler_process_float(SpeexResamplerState* st, spx_uint32_t c
                                          spx_uint32_t* in_len, float* out, spx_uint32_t* out_len)
 #endif
 {
-    int j;
     spx_uint32_t ilen = *in_len;
     spx_uint32_t olen = *out_len;
     spx_word16_t* x = st->mem + channel_index * st->mem_alloc_size;
@@ -982,6 +981,7 @@ EXPORT int speex_resampler_process_float(SpeexResamplerState* st, spx_uint32_t c
         olen -= speex_resampler_magic(st, channel_index, &out, olen);
     if (!st->magic_samples[channel_index])
     {
+        int j;
         while (ilen && olen)
         {
             spx_uint32_t ichunk = (ilen > xlen) ? xlen : ilen;
@@ -1028,14 +1028,14 @@ EXPORT int speex_resampler_process_int(SpeexResamplerState* st, spx_uint32_t cha
 	const unsigned int ylen = (olen < FIXED_STACK_ALLOC) ? olen : FIXED_STACK_ALLOC;
 	spx_word16_t ystack[ylen];
 #else
-    const unsigned int ylen = FIXED_STACK_ALLOC;
-    spx_word16_t ystack[FIXED_STACK_ALLOC];
 #endif
 
     st->out_stride = 1;
 
     while (ilen && olen)
     {
+        spx_word16_t ystack[FIXED_STACK_ALLOC];
+        constexpr unsigned int ylen = FIXED_STACK_ALLOC;
         spx_word16_t* y = ystack;
         spx_uint32_t ichunk = (ilen > xlen) ? xlen : ilen;
         spx_uint32_t ochunk = (olen > ylen) ? ylen : olen;
@@ -1168,7 +1168,6 @@ EXPORT int speex_resampler_set_rate_frac(SpeexResamplerState* st, spx_uint32_t r
 {
     spx_uint32_t fact;
     spx_uint32_t old_den;
-    spx_uint32_t i;
 
     if (ratio_num == 0 || ratio_den == 0)
         return RESAMPLER_ERR_INVALID_ARG;
@@ -1189,7 +1188,7 @@ EXPORT int speex_resampler_set_rate_frac(SpeexResamplerState* st, spx_uint32_t r
 
     if (old_den > 0)
     {
-        for (i = 0; i < st->nb_channels; i++)
+        for (spx_uint32_t i = 0; i < st->nb_channels; i++)
         {
             if (multiply_frac(&st->samp_frac_num[i], st->samp_frac_num[i], st->den_rate, old_den) !=
                 RESAMPLER_ERR_SUCCESS)

@@ -2690,8 +2690,7 @@ void write_ai()
         case 0x58:
         case 0x59:
             {
-                unsigned long f = 49656530 / (ai_register.ai_dacrate + 1);
-                if (f)
+                if (const unsigned long f = 49656530 / (ai_register.ai_dacrate + 1))
                     delay = (static_cast<unsigned long long>(ai_register.ai_len) *
                         vi_register.vi_delay * 50) / (f * 4);
             }
@@ -2701,8 +2700,7 @@ void write_ai()
         case 0x45:
         case 0x4a:
             {
-                unsigned long f = 48681812 / (ai_register.ai_dacrate + 1);
-                if (f)
+                if (const unsigned long f = 48681812 / (ai_register.ai_dacrate + 1))
                     delay = (static_cast<unsigned long long>(ai_register.ai_len) *
                         vi_register.vi_delay * 60) / (f * 4);
             }
