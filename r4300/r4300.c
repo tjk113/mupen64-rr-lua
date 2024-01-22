@@ -71,6 +71,9 @@ int trunc_mode = TRUNC_MODE, round_mode = ROUND_MODE, ceil_mode = CEIL_MODE, flo
 short x87_status_word;
 void (*code)();
 
+ int emu_launched;
+ int emu_paused;
+
 /*#define check_memory() \
    if (!invalid_code[address>>12]) \
 	   invalid_code[address>>12] = 1;*/

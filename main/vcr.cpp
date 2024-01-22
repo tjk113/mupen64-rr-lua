@@ -43,6 +43,7 @@
 
 #include "guifuncs.h"
 #include "win/Commandline.h"
+#include "../r4300/r4300.h"
 
 #ifdef _DEBUG
 #include "../r4300/macros.h"

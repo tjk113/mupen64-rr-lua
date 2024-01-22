@@ -63,6 +63,8 @@ extern short x87_status_word;
 extern unsigned long last_addr, interp_addr;
 extern char invalid_code[0x100000];
 extern unsigned long jump_to_address;
+extern int emu_launched;
+extern int emu_paused;
 
 void go();
 void pure_interpreter();

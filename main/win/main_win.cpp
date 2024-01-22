@@ -92,8 +92,7 @@ static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
 static HWND hStaticHandle; //Handle for static place
 char TempMessage[MAX_PATH];
-int emu_launched; //int emu_emulating;
-int emu_paused;
+
 HWND mainHWND;
 HINSTANCE app_instance;
 BOOL ignoreErrorEmulation = FALSE;

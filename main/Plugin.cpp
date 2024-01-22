@@ -38,6 +38,7 @@
 #include "../memory/memory.h"
 #include <win/main_win.h>
 #include <dbghelp.h>
+#include "../r4300/r4300.h"
 
 #include "win/features/Statusbar.hpp"
 

@@ -1,5 +1,6 @@
 #include "CrashHelper.h"
 #include "main_win.h"
+#include "../r4300/r4300.h"
 #include <vcr.h>
 #include <Psapi.h>
 

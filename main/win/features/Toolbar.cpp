@@ -8,7 +8,7 @@
 #include "../Config.hpp"
 #include "../main_win.h"
 #include "../../winproject/resource.h"
-
+#include "../r4300/r4300.h"
 HWND toolbar_hwnd;
 
 void toolbar_create()

@@ -34,6 +34,7 @@
 #include "wrapper/PersistentPathDialog.h"
 #include "../main/helpers/string_helpers.h"
 #include "../main/helpers/win_helpers.h"
+#include "../r4300/r4300.h"
 #include "configdialog.h"
 #include <vcr.h>
 #include <cassert>
