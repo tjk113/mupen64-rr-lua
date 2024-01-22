@@ -3153,7 +3153,7 @@ void prefetch()
     {
         if (/*(interp_addr >= 0x80000000) && */(interp_addr < 0x80800000))
         {
-            op = *(unsigned long*)&((unsigned char*)rdram)[(interp_addr & 0xFFFFFF)];
+            op = *reinterpret_cast<unsigned long*>(&reinterpret_cast<unsigned char*>(rdram)[(interp_addr & 0xFFFFFF)]);
             /*if ((debug_count+Count) > 0xabaa20)
               printf("count:%x, add:%x, op:%x, l%d\n", (int)(Count+debug_count),
                  interp_addr, op, line);*/
@@ -3167,7 +3167,7 @@ void prefetch()
         }
         else if ((interp_addr > 0xb0000000))
         {
-            op = ((unsigned long*)rom)[(interp_addr & 0xFFFFFFF) / 4];
+            op = reinterpret_cast<unsigned long*>(rom)[(interp_addr & 0xFFFFFFF) / 4];
             prefetch_opcode(op);
         }
         else

@@ -1926,7 +1926,7 @@ int vcr_start_f_fmpeg_capture(const std::string& output_name,
 	else
 	{
 		m_capture = 1;
-		capture_with_f_fmpeg = 1;
+		capture_with_f_fmpeg = true;
 	}
 #ifdef _DEBUG
 	if (err == INIT_SUCCESS)

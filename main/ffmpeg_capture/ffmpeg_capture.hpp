@@ -49,6 +49,7 @@ public:
 	/// <param name="videoX">input video resolution</param>
 	/// <param name="videoY">input video resolution</param>
 	/// <param name="framerate">framerate (depends whether PAL or not)</param>
+	/// <param name="audiorate"></param>
 	/// <param name="cmdOptions">additional ffmpeg options (compression, output name, effects and shit)</param>
 	FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate,
 	              unsigned audiorate,

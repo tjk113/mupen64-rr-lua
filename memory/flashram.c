@@ -132,7 +132,7 @@ void flashram_command(unsigned long command)
                 else for (int i = 0; i < 0x20000; i++) flashram[i] = 0xff;
                 for (int i = 0; i < 128; i++)
                     flashram[(erase_offset + i) ^ S8] =
-                        ((unsigned char*)rdram)[(write_pointer + i) ^ S8];
+                        reinterpret_cast<unsigned char*>(rdram)[(write_pointer + i) ^ S8];
                 f = fopen(filename.string().c_str(), "wb");
                 fwrite(flashram, 1, 0x20000, f);
                 fclose(f);
@@ -155,7 +155,7 @@ void flashram_command(unsigned long command)
         status = 0x11118004f0000000LL;
         break;
     default:
-        printf("unknown flashram command:%x\n", (int)command);
+        printf("unknown flashram command:%x\n", static_cast<int>(command));
     //stop=1;
     }
 }
@@ -169,8 +169,8 @@ void dma_read_flashram()
     switch (mode)
     {
     case STATUS_MODE:
-        rdram[pi_register.pi_dram_addr_reg / 4] = (unsigned long)(status >> 32);
-        rdram[pi_register.pi_dram_addr_reg / 4 + 1] = (unsigned long)(status);
+        rdram[pi_register.pi_dram_addr_reg / 4] = static_cast<unsigned long>(status >> 32);
+        rdram[pi_register.pi_dram_addr_reg / 4 + 1] = static_cast<unsigned long>(status);
         break;
     case READ_MODE:
         {
@@ -183,7 +183,7 @@ void dma_read_flashram()
             }
             else for (i = 0; i < 0x20000; i++) flashram[i] = 0xff;
             for (i = 0; i < (pi_register.pi_wr_len_reg & 0x0FFFFFF) + 1; i++)
-                ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
+                reinterpret_cast<unsigned char*>(rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
                     flashram[(((pi_register.pi_cart_addr_reg - 0x08000000) & 0xFFFF) * 2 + i) ^ S8];
             break;
         }

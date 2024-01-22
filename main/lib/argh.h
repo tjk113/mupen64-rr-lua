@@ -331,14 +331,14 @@ namespace argh
 
    inline bool argh::parser::got_flag(std::string const& name) const
    {
-      return flags_.end() != flags_.find(trim_leading_dashes(name));
+      return flags_.contains(trim_leading_dashes(name));
    }
 
    //////////////////////////////////////////////////////////////////////////
 
    inline bool argh::parser::is_param(std::string const& name) const
    {
-      return registeredParams_.count(name);
+      return registeredParams_.contains(name);
    }
 
    //////////////////////////////////////////////////////////////////////////
@@ -352,7 +352,7 @@ namespace argh
 
    inline bool parser::operator[](std::initializer_list<char const* const> init_list) const
    {
-      return std::any_of(init_list.begin(), init_list.end(), [&](char const* const name) { return got_flag(name); });
+      return std::ranges::any_of(init_list, [&](char const* const name) { return got_flag(name); });
    }
 
    //////////////////////////////////////////////////////////////////////////

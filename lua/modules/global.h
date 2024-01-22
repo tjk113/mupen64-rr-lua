@@ -75,7 +75,7 @@ namespace LuaCore::Global
 				lua_pushnil(L);
 				if (lua_next(L, -2))
 				{
-					while (1)
+					while (true)
 					{
 						lua_pushvalue(L, -2);
 						if (lua_type(L, -1) == LUA_TNUMBER &&

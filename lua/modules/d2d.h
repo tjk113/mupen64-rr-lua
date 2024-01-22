@@ -360,7 +360,7 @@ namespace LuaCore::D2D
 			&pDecoder
 		);
 
-		if (!SUCCEEDED(hr))
+		if (FAILED(hr))
 		{
 			printf("D2D image fail HRESULT %d\n", hr);
 			pIWICFactory->Release();

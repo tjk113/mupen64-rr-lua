@@ -813,7 +813,7 @@ static void RMFC0()
 {
     dst->ops = MFC0;
     recompile_standard_r_type();
-    dst->f.r.rd = (long long*)(reg_cop0 + ((src >> 11) & 0x1F));
+    dst->f.r.rd = reinterpret_cast<long long*>(reg_cop0 + ((src >> 11) & 0x1F));
     dst->f.r.nrd = (src >> 11) & 0x1F;
     if (dst->f.r.rt == reg) RNOP();
     else if (dynacore) genmfc0();

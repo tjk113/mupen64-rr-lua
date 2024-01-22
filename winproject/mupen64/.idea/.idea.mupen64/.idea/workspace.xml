@@ -9,32 +9,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b401311-6af4-49db-81e5-ecf7a6096804" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../../lua/LuaConsole.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/LuaConsole.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/d2d.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/d2d.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/emu.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/emu.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../lua/modules/global.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/global.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../lua/modules/input.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/input.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../lua/modules/wgui.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/wgui.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/adler32.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/adler32.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/disasm.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/disasm.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/rom.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/rom.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/win/configdialog.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/configdialog.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../main/win/main_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/main_win.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/memory.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/memory.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/ffmpeg_capture/ffmpeg_capture.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/ffmpeg_capture/ffmpeg_capture.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/ffmpeg_capture/readscreen_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/ffmpeg_capture/readscreen_win.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/helpers/string_helpers.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/helpers/string_helpers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/lib/argh.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/lib/argh.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/lib/ini.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/lib/ini.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/md5.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/md5.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/speex/speex_resampler.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/speex/speex_resampler.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/speex/speex_resampler.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/speex/speex_resampler.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/vcr.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/vcr.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../memory/dma.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/dma.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/flashram.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/flashram.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../memory/memory.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/memory.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../memory/pif.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/pif.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../memory/summercart.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/summercart.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/bc.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/bc.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_d.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_d.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_l.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_l.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_s.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_s.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_w.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_w.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/exception.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/exception.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../r4300/interrupt.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/interrupt.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../r4300/pure_interp.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/pure_interp.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/r4300.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/r4300.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/regimm.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/regimm.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/special.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/special.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../r4300/tlb.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/tlb.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/recomp.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/recomp.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/x86/assemble.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/x86/assemble.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../r4300/x86/regcache.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/x86/regcache.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" afterDir="false" />
     </list>
@@ -62,37 +58,49 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "C++ Project.mupen64.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "dev",
-    "ignore.virus.scanning.warn.message": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "settings.qodana",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;C++ Project.mupen64.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.qodana&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "rider.external.source.directories": [
-      "C:\\Users\\austi\\AppData\\Local\\JetBrains\\Shared\\vAny\\DecompilerCache",
-      "C:\\Users\\austi\\AppData\\Local\\JetBrains\\Shared\\vAny\\SourcesCache",
-      "C:\\Users\\austi\\AppData\\Local\\Symbols\\src"
+  &quot;keyToStringList&quot;: {
+    &quot;rider.external.source.directories&quot;: [
+      &quot;C:\\Users\\austi\\AppData\\Local\\JetBrains\\Shared\\vAny\\DecompilerCache&quot;,
+      &quot;C:\\Users\\austi\\AppData\\Local\\JetBrains\\Shared\\vAny\\SourcesCache&quot;,
+      &quot;C:\\Users\\austi\\AppData\\Local\\Symbols\\src&quot;
     ]
   }
-}]]></component>
+}</component>
+  <component name="QodanaCloudProjectLink">
+    <option name="lastReportId" value="7mENP" />
+    <option name="linkedProjectId" value="3e7n1" />
+    <option name="linkedProjectName" value="Mupen64" />
+    <option name="organizationId" value="AmB4k" />
+    <option name="userId" value="Av8PR" />
+  </component>
   <component name="QodanaHighlightedReportService">
-    <option name="localRunNotPublishedPersistedInfo">
-      <LocalReportPersistedInfo>
-        <option name="path" value="C:\Users\austi\AppData\Local\Temp\qodana_output2\qodana.sarif.json" />
-        <option name="reportGuid" value="ea5f98ef-4961-4269-811f-0baf241142d3" />
-        <option name="reportName" value="mupen64/qodana/2024-01-21" />
-      </LocalReportPersistedInfo>
+    <option name="localRunPublishedPersistedInfo">
+      <LocalRunPublishedPersistedInfo>
+        <option name="fileReportPersistedInfo">
+          <LocalReportPersistedInfo>
+            <option name="path" value="C:\Users\austi\AppData\Local\Temp\qodana_output7\qodana.sarif.json" />
+            <option name="reportGuid" value="e2f0f8a1-84aa-4283-8a38-11000e015ff3" />
+            <option name="reportName" value="mupen64/qodana/2024-01-21" />
+          </LocalReportPersistedInfo>
+        </option>
+        <option name="reportLink" value="https://qodana.cloud/projects/3e7n1/reports/7mENP" />
+      </LocalRunPublishedPersistedInfo>
     </option>
   </component>
   <component name="QodanaIsSelectedPersistenceService">
@@ -101,6 +109,7 @@
   <component name="QodanaReportsService">
     <option name="descriptions">
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="4a7ffac2-6f7f-48a2-bedc-8bdeaf40b23f" reportId="mupen64/qodana/2024-01-21" />
+      <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output7\qodana.sarif.json" publishedReportLink="https://qodana.cloud/projects/3e7n1/reports/7mENP" reportGuid="e2f0f8a1-84aa-4283-8a38-11000e015ff3" reportId="mupen64/qodana/2024-01-21" />
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output1\qodana.sarif.json" reportGuid="e5de9b64-0596-4874-bcf1-4a40b3b5f615" reportId="mupen64/qodana/2024-01-21" />
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output2\qodana.sarif.json" reportGuid="ea5f98ef-4961-4269-811f-0baf241142d3" reportId="mupen64/qodana/2024-01-21" />
     </option>
@@ -147,7 +156,7 @@
       <workItem from="1696566645330" duration="1387000" />
       <workItem from="1696736812128" duration="2653000" />
       <workItem from="1701000600670" duration="1860000" />
-      <workItem from="1705867152858" duration="7197000" />
+      <workItem from="1705867152858" duration="11975000" />
     </task>
     <servers />
   </component>

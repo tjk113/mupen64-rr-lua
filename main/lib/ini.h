@@ -107,8 +107,8 @@ namespace mINI
 #ifndef MINI_CASE_SENSITIVE
         inline void toLower(std::string& str)
         {
-            std::transform(str.begin(), str.end(), str.begin(),
-                           [](const char c) { return static_cast<char>(std::tolower(c)); });
+            std::ranges::transform(str, str.begin(),
+                                   [](const char c) { return static_cast<char>(std::tolower(c)); });
         }
 #endif
         inline void replace(std::string& str, std::string const& a, std::string const& b)

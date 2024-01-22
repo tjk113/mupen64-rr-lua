@@ -124,6 +124,7 @@ typedef struct SpeexResamplerState_ SpeexResamplerState;
  * @param out_rate Output sampling rate (integer number of Hz).
  * @param quality Resampling quality between 0 and 10, where 0 has poor quality
  * and 10 has very high quality.
+ * @param err Error value
  * @return Newly created resampler state
  * @retval NULL Error: not enough memory
  */
@@ -143,6 +144,7 @@ SpeexResamplerState* speex_resampler_init(spx_uint32_t nb_channels,
  * @param out_rate Output sampling rate rounded to the nearest integer (in Hz).
  * @param quality Resampling quality between 0 and 10, where 0 has poor quality
  * and 10 has very high quality.
+ * @param err Error value
  * @return Newly created resampler state
  * @retval NULL Error: not enough memory
  */
