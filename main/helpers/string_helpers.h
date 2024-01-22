@@ -7,13 +7,13 @@ inline static char* stristr(const char* str1, const char* str2)
 {
 	const char* p1 = str1;
 	const char* p2 = str2;
-	const char* r = *p2 == 0 ? str1 : 0;
+	const char* r = *p2 == 0 ? str1 : nullptr;
 
 	while (*p1 != 0 && *p2 != 0)
 	{
 		if (tolower((unsigned char)*p1) == tolower((unsigned char)*p2))
 		{
-			if (r == 0)
+			if (r == nullptr)
 			{
 				r = p1;
 			}
@@ -22,7 +22,7 @@ inline static char* stristr(const char* str1, const char* str2)
 		} else
 		{
 			p2 = str2;
-			if (r != 0)
+			if (r != nullptr)
 			{
 				p1 = r + 1;
 			}
@@ -33,14 +33,14 @@ inline static char* stristr(const char* str1, const char* str2)
 				p2++;
 			} else
 			{
-				r = 0;
+				r = nullptr;
 			}
 		}
 
 		p1++;
 	}
 
-	return *p2 == 0 ? const_cast<char*>(r) : 0;
+	return *p2 == 0 ? const_cast<char*>(r) : nullptr;
 }
 
 inline static int is_string_alpha_only(const char* str)

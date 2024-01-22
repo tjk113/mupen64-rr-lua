@@ -418,7 +418,7 @@ void update_pif_write()
         i++;
     }
     //PIF_RAMb[0x3F] = 0;
-    controllerCommand(-1, NULL);
+    controllerCommand(-1, nullptr);
     /*#ifdef DEBUG_PIF
         if (!one_frame_delay) {
             printf("---------- after write ----------\n");
@@ -556,7 +556,7 @@ void update_pif_read(bool stcheck)
         }
         i++;
     }
-    readController(-1, NULL);
+    readController(-1, nullptr);
 
 #ifdef DEBUG_PIF
 	printf("---------- after read -----------\n");

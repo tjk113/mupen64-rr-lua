@@ -27,14 +27,15 @@
  *
 **/
 
+#include "recomp.h"
+
 #include <malloc.h>
 
-#include "ops.h"
-#include "recomp.h"
 #include "macros.h"
+#include "ops.h"
 #include "r4300.h"
-#include "../memory/memory.h"
 #include "recomph.h"
+#include "../memory/memory.h"
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include "../lua/LuaConsole.h"
 
@@ -1632,11 +1633,9 @@ static void RREGIMM()
 
 static void RJ()
 {
-    unsigned long target;
     dst->ops = J_OUT;
     recompile_standard_j_type();
-    target = (dst->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
-    if (target == dst->addr)
+    if (const unsigned long target = (dst->f.j.inst_index << 2) | (dst->addr & 0xF0000000); target == dst->addr)
     {
         if (check_nop)
         {
@@ -1656,11 +1655,9 @@ static void RJ()
 
 static void RJAL()
 {
-    unsigned long target;
     dst->ops = JAL_OUT;
     recompile_standard_j_type();
-    target = (dst->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
-    if (target == dst->addr)
+    if (const unsigned long target = (dst->f.j.inst_index << 2) | (dst->addr & 0xF0000000); target == dst->addr)
     {
         if (check_nop)
         {
@@ -1680,11 +1677,9 @@ static void RJAL()
 
 static void RBEQ()
 {
-    unsigned long target;
     dst->ops = BEQ;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -1704,11 +1699,9 @@ static void RBEQ()
 
 static void RBNE()
 {
-    unsigned long target;
     dst->ops = BNE;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -1728,11 +1721,9 @@ static void RBNE()
 
 static void RBLEZ()
 {
-    unsigned long target;
     dst->ops = BLEZ;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -1752,11 +1743,9 @@ static void RBLEZ()
 
 static void RBGTZ()
 {
-    unsigned long target;
     dst->ops = BGTZ;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -1850,11 +1839,9 @@ static void RCOP1()
 
 static void RBEQL()
 {
-    unsigned long target;
     dst->ops = BEQL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -1874,11 +1861,9 @@ static void RBEQL()
 
 static void RBNEL()
 {
-    unsigned long target;
     dst->ops = BNEL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -1898,11 +1883,9 @@ static void RBNEL()
 
 static void RBLEZL()
 {
-    unsigned long target;
     dst->ops = BLEZL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -1922,11 +1905,9 @@ static void RBLEZL()
 
 static void RBGTZL()
 {
-    unsigned long target;
     dst->ops = BGTZL;
     recompile_standard_i_type();
-    target = dst->addr + dst->f.i.immediate * 4 + 4;
-    if (target == dst->addr)
+    if (const unsigned long target = dst->addr + dst->f.i.immediate * 4 + 4; target == dst->addr)
     {
         if (check_nop)
         {
@@ -2185,23 +2166,23 @@ static void (*recomp_ops[64])(void) =
  **********************************************************************/
 void init_block(long* source, precomp_block* block)
 {
-    int i, length, already_exist = 1;
+    int i, already_exist = 1;
     static int init_length;
     start_section(COMPILER_SECTION);
     //printf("init block recompiled %x\n", (int)block->start);
 
-    length = (block->end - block->start) / 4;
+    const int length = (block->end - block->start) / 4;
 
     if (!block->block)
     {
-        block->block = (precomp_instr*)malloc(((length + 1) + (length >> 2)) * sizeof(precomp_instr));
+        block->block = static_cast<precomp_instr*>(malloc(((length + 1) + (length >> 2)) * sizeof(precomp_instr)));
         already_exist = 0;
     }
     if (dynacore)
     {
         if (!block->code)
         {
-            block->code = (unsigned char*)malloc(5000);
+            block->code = static_cast<unsigned char*>(malloc(5000));
             max_code_length = 5000;
         }
         else
@@ -2212,9 +2193,9 @@ void init_block(long* source, precomp_block* block)
         if (block->jumps_table)
         {
             free(block->jumps_table);
-            block->jumps_table = NULL;
+            block->jumps_table = nullptr;
         }
-        init_assembler(NULL, 0);
+        init_assembler(nullptr, 0);
         init_cache(block->block);
     }
 
@@ -2260,33 +2241,31 @@ void init_block(long* source, precomp_block* block)
     invalid_code[block->start >> 12] = 0;
     if (block->end < 0x80000000 || block->start >= 0xc0000000)
     {
-        unsigned long paddr;
-
-        paddr = virtual_to_physical_address(block->start, 2);
+        unsigned long paddr = virtual_to_physical_address(block->start, 2);
         invalid_code[paddr >> 12] = 0;
         if (!blocks[paddr >> 12])
         {
-            blocks[paddr >> 12] = (precomp_block*)malloc(sizeof(precomp_block));
-            blocks[paddr >> 12]->code = NULL;
-            blocks[paddr >> 12]->block = NULL;
-            blocks[paddr >> 12]->jumps_table = NULL;
+            blocks[paddr >> 12] = static_cast<precomp_block*>(malloc(sizeof(precomp_block)));
+            blocks[paddr >> 12]->code = nullptr;
+            blocks[paddr >> 12]->block = nullptr;
+            blocks[paddr >> 12]->jumps_table = nullptr;
             blocks[paddr >> 12]->start = paddr & ~0xFFF;
             blocks[paddr >> 12]->end = (paddr & ~0xFFF) + 0x1000;
         }
-        init_block(NULL, blocks[paddr >> 12]);
+        init_block(nullptr, blocks[paddr >> 12]);
 
         paddr += block->end - block->start - 4;
         invalid_code[paddr >> 12] = 0;
         if (!blocks[paddr >> 12])
         {
-            blocks[paddr >> 12] = (precomp_block*)malloc(sizeof(precomp_block));
-            blocks[paddr >> 12]->code = NULL;
-            blocks[paddr >> 12]->block = NULL;
-            blocks[paddr >> 12]->jumps_table = NULL;
+            blocks[paddr >> 12] = static_cast<precomp_block*>(malloc(sizeof(precomp_block)));
+            blocks[paddr >> 12]->code = nullptr;
+            blocks[paddr >> 12]->block = nullptr;
+            blocks[paddr >> 12]->jumps_table = nullptr;
             blocks[paddr >> 12]->start = paddr & ~0xFFF;
             blocks[paddr >> 12]->end = (paddr & ~0xFFF) + 0x1000;
         }
-        init_block(NULL, blocks[paddr >> 12]);
+        init_block(nullptr, blocks[paddr >> 12]);
     }
     else
     {
@@ -2295,28 +2274,28 @@ void init_block(long* source, precomp_block* block)
         {
             if (!blocks[(block->start + 0x20000000) >> 12])
             {
-                blocks[(block->start + 0x20000000) >> 12] = (precomp_block*)malloc(sizeof(precomp_block));
-                blocks[(block->start + 0x20000000) >> 12]->code = NULL;
-                blocks[(block->start + 0x20000000) >> 12]->block = NULL;
-                blocks[(block->start + 0x20000000) >> 12]->jumps_table = NULL;
+                blocks[(block->start + 0x20000000) >> 12] = static_cast<precomp_block*>(malloc(sizeof(precomp_block)));
+                blocks[(block->start + 0x20000000) >> 12]->code = nullptr;
+                blocks[(block->start + 0x20000000) >> 12]->block = nullptr;
+                blocks[(block->start + 0x20000000) >> 12]->jumps_table = nullptr;
                 blocks[(block->start + 0x20000000) >> 12]->start = (block->start + 0x20000000) & ~0xFFF;
                 blocks[(block->start + 0x20000000) >> 12]->end = ((block->start + 0x20000000) & ~0xFFF) + 0x1000;
             }
-            init_block(NULL, blocks[(block->start + 0x20000000) >> 12]);
+            init_block(nullptr, blocks[(block->start + 0x20000000) >> 12]);
         }
         if (block->start >= 0xa0000000 && block->end < 0xc0000000 &&
             invalid_code[(block->start - 0x20000000) >> 12])
         {
             if (!blocks[(block->start - 0x20000000) >> 12])
             {
-                blocks[(block->start - 0x20000000) >> 12] = (precomp_block*)malloc(sizeof(precomp_block));
-                blocks[(block->start - 0x20000000) >> 12]->code = NULL;
-                blocks[(block->start - 0x20000000) >> 12]->block = NULL;
-                blocks[(block->start - 0x20000000) >> 12]->jumps_table = NULL;
+                blocks[(block->start - 0x20000000) >> 12] = static_cast<precomp_block*>(malloc(sizeof(precomp_block)));
+                blocks[(block->start - 0x20000000) >> 12]->code = nullptr;
+                blocks[(block->start - 0x20000000) >> 12]->block = nullptr;
+                blocks[(block->start - 0x20000000) >> 12]->jumps_table = nullptr;
                 blocks[(block->start - 0x20000000) >> 12]->start = (block->start - 0x20000000) & ~0xFFF;
                 blocks[(block->start - 0x20000000) >> 12]->end = ((block->start - 0x20000000) & ~0xFFF) + 0x1000;
             }
-            init_block(NULL, blocks[(block->start - 0x20000000) >> 12]);
+            init_block(nullptr, blocks[(block->start - 0x20000000) >> 12]);
         }
     }
     end_section(COMPILER_SECTION);
@@ -2327,9 +2306,9 @@ void init_block(long* source, precomp_block* block)
  **********************************************************************/
 void recompile_block(long* source, precomp_block* block, unsigned long func)
 {
-    int i, length, finished = 0;
+    int i, finished = 0;
     start_section(COMPILER_SECTION);
-    length = (block->end - block->start) / 4;
+    const int length = (block->end - block->start) / 4;
     dst_block = block;
 
     //for (i=0; i<16; i++) block->md5[i] = 0;
@@ -2348,9 +2327,8 @@ void recompile_block(long* source, precomp_block* block, unsigned long func)
     {
         if (block->start < 0x80000000 || block->start >= 0xc0000000)
         {
-            unsigned long address2 =
-                virtual_to_physical_address(block->start + i * 4, 0);
-            if (blocks[address2 >> 12]->block[(address2 & 0xFFF) / 4].ops == NOTCOMPILED)
+            if (const unsigned long address2 =
+                virtual_to_physical_address(block->start + i * 4, 0); blocks[address2 >> 12]->block[(address2 & 0xFFF) / 4].ops == NOTCOMPILED)
                 blocks[address2 >> 12]->block[(address2 & 0xFFF) / 4].ops = NOTCOMPILED2;
         }
 

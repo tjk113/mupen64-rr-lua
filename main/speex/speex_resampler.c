@@ -842,14 +842,14 @@ EXPORT SpeexResamplerState* speex_resampler_init_frac(spx_uint32_t nb_channels, 
     {
         if (err)
             *err = RESAMPLER_ERR_INVALID_ARG;
-        return NULL;
+        return nullptr;
     }
     st = (SpeexResamplerState*)speex_alloc(sizeof(SpeexResamplerState));
     if (!st)
     {
         if (err)
             *err = RESAMPLER_ERR_ALLOC_FAILED;
-        return NULL;
+        return nullptr;
     }
     st->initialised = 0;
     st->started = 0;
@@ -861,8 +861,8 @@ EXPORT SpeexResamplerState* speex_resampler_init_frac(spx_uint32_t nb_channels, 
     st->sinc_table_length = 0;
     st->mem_alloc_size = 0;
     st->filt_len = 0;
-    st->mem = 0;
-    st->resampler_ptr = 0;
+    st->mem = nullptr;
+    st->resampler_ptr = nullptr;
 
     st->cutoff = 1.f;
     st->nb_channels = nb_channels;
@@ -890,7 +890,7 @@ EXPORT SpeexResamplerState* speex_resampler_init_frac(spx_uint32_t nb_channels, 
     else
     {
         speex_resampler_destroy(st);
-        st = NULL;
+        st = nullptr;
     }
     if (err)
         *err = filter_err;
@@ -901,7 +901,7 @@ fail:
     if (err)
         *err = RESAMPLER_ERR_ALLOC_FAILED;
     speex_resampler_destroy(st);
-    return NULL;
+    return nullptr;
 }
 
 EXPORT void speex_resampler_destroy(SpeexResamplerState* st)
@@ -1106,10 +1106,10 @@ EXPORT int speex_resampler_process_interleaved_float(SpeexResamplerState* st, co
     {
         *out_len = bak_out_len;
         *in_len = bak_in_len;
-        if (in != NULL)
+        if (in != nullptr)
             speex_resampler_process_float(st, i, in + i, in_len, out + i, out_len);
         else
-            speex_resampler_process_float(st, i, NULL, in_len, out + i, out_len);
+            speex_resampler_process_float(st, i, nullptr, in_len, out + i, out_len);
     }
     st->in_stride = istride_save;
     st->out_stride = ostride_save;
@@ -1130,10 +1130,10 @@ EXPORT int speex_resampler_process_interleaved_int(SpeexResamplerState* st, cons
     {
         *out_len = bak_out_len;
         *in_len = bak_in_len;
-        if (in != NULL)
+        if (in != nullptr)
             speex_resampler_process_int(st, i, in + i, in_len, out + i, out_len);
         else
-            speex_resampler_process_int(st, i, NULL, in_len, out + i, out_len);
+            speex_resampler_process_int(st, i, nullptr, in_len, out + i, out_len);
     }
     st->in_stride = istride_save;
     st->out_stride = ostride_save;

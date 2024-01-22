@@ -427,7 +427,7 @@ int allocate_64_register1_w(unsigned long* addr)
     {
         while (free_since[reg2] <= dst)
         {
-            free_since[reg2]->reg_cache_infos.needed_registers[reg2] = NULL;
+            free_since[reg2]->reg_cache_infos.needed_registers[reg2] = nullptr;
             free_since[reg2]++;
         }
     }
@@ -588,7 +588,7 @@ void allocate_register_manually(int reg, unsigned long* addr)
     {
         while (free_since[reg] <= dst)
         {
-            free_since[reg]->reg_cache_infos.needed_registers[reg] = NULL;
+            free_since[reg]->reg_cache_infos.needed_registers[reg] = nullptr;
             free_since[reg]++;
         }
     }

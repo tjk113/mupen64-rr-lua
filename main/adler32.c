@@ -53,7 +53,7 @@ uLong ZEXPORT adler32(
     unsigned long s2 = (adler >> 16) & 0xffff;
     int k;
 
-    if (buf == Z_NULL) return 1L;
+    if (buf == nullptr) return 1L;
 
     while (len > 0)
     {

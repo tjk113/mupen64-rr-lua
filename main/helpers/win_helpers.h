@@ -21,7 +21,7 @@ static int32_t get_checkbox_state(const HWND hwnd, const int32_t id)
 static int32_t get_primary_monitor_refresh_rate() {
 	DISPLAY_DEVICE dd;
 	dd.cb = sizeof(dd);
-	EnumDisplayDevices(NULL, 0, &dd, 0);
+	EnumDisplayDevices(nullptr, 0, &dd, 0);
 
 	DEVMODE dm;
 	dm.dmSize = sizeof(dm);

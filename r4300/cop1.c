@@ -36,7 +36,7 @@
 void MFC1()
 {
     if (check_cop1_unusable()) return;
-    rrt32 = *((long*)reg_cop1_simple[core_rfs]);
+    rrt32 = reinterpret_cast<long>(reg_cop1_simple[core_rfs]);
     sign_extended(core_rrt);
     PC++;
 }
@@ -44,7 +44,7 @@ void MFC1()
 void DMFC1()
 {
     if (check_cop1_unusable()) return;
-    core_rrt = *((long long*)reg_cop1_double[core_rfs]);
+    core_rrt = reinterpret_cast<long long>(reg_cop1_double[core_rfs]);
     PC++;
 }
 

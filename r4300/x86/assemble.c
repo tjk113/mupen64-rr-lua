@@ -39,7 +39,7 @@ typedef struct _jump_table
     unsigned long pc_addr;
 } jump_table;
 
-static jump_table* jumps_table = NULL;
+static jump_table* jumps_table = nullptr;
 static int jumps_number, max_jumps_number;
 
 void init_assembler(void* block_jumps_table, int block_jumps_number)

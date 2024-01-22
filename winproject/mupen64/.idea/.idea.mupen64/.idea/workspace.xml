@@ -9,7 +9,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b401311-6af4-49db-81e5-ecf7a6096804" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../../r4300/x86/gspecial.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/x86/gspecial.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/LuaConsole.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/LuaConsole.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/d2d.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/d2d.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/emu.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/emu.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/input.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/input.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../lua/modules/wgui.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../lua/modules/wgui.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/Plugin.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/Plugin.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/adler32.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/adler32.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/ffmpeg_capture/manager_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/ffmpeg_capture/manager_win.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/ffmpeg_capture/readscreen_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/ffmpeg_capture/readscreen_win.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/helpers/string_helpers.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/helpers/string_helpers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/helpers/win_helpers.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/helpers/win_helpers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/speex/speex_resampler.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/speex/speex_resampler.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/vcr_resample.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/vcr_resample.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/win/Commandline.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/Commandline.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/win/features/rombrowser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/features/rombrowser.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/win/main_win.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/main_win.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main/win/vcr_compress.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../main/win/vcr_compress.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/memory.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/memory.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/pif.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/pif.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../memory/summercart.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../memory/summercart.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/bc.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/bc.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/compare_core.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/compare_core.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop0.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop0.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_helpers.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_helpers.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_l.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_l.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/cop1_w.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/cop1_w.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/interrupt.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/interrupt.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/pure_interp.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/pure_interp.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/r4300.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/r4300.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/recomp.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/recomp.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/x86/assemble.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/x86/assemble.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../r4300/x86/regcache.c" beforeDir="false" afterPath="$PROJECT_DIR$/../../r4300/x86/regcache.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/presets.json" beforeDir="false" afterPath="$PROJECT_DIR$/presets.json" afterDir="false" />
     </list>
@@ -68,25 +100,9 @@
     <option name="organizationId" value="AmB4k" />
     <option name="userId" value="Av8PR" />
   </component>
-  <component name="QodanaHighlightedReportService">
-    <option name="localRunPublishedPersistedInfo">
-      <LocalRunPublishedPersistedInfo>
-        <option name="fileReportPersistedInfo">
-          <LocalReportPersistedInfo>
-            <option name="path" value="C:\Users\austi\AppData\Local\Temp\qodana_output11\qodana.sarif.json" />
-            <option name="reportGuid" value="cde55d59-c49d-47e5-a324-96e73280e9b9" />
-            <option name="reportName" value="mupen64/qodana/2024-01-22" />
-          </LocalReportPersistedInfo>
-        </option>
-        <option name="reportLink" value="https://qodana.cloud/projects/3e7n1/reports/9mNov" />
-      </LocalRunPublishedPersistedInfo>
-    </option>
-  </component>
-  <component name="QodanaIsSelectedPersistenceService">
-    <option name="selectedOrLoading" value="true" />
-  </component>
   <component name="QodanaReportsService">
     <option name="descriptions">
+      <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output3\qodana.sarif.json" reportGuid="20de6225-a43c-4ee7-b736-ae9fe10bd54c" reportId="mupen64/qodana/2024-01-22" />
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output11\qodana.sarif.json" publishedReportLink="https://qodana.cloud/projects/3e7n1/reports/9mNov" reportGuid="cde55d59-c49d-47e5-a324-96e73280e9b9" reportId="mupen64/qodana/2024-01-22" />
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="4a7ffac2-6f7f-48a2-bedc-8bdeaf40b23f" reportId="mupen64/qodana/2024-01-21" />
       <ReportDescription localRun="true" path="C:\Users\austi\AppData\Local\Temp\qodana_output7\qodana.sarif.json" publishedReportLink="https://qodana.cloud/projects/3e7n1/reports/7mENP" reportGuid="e2f0f8a1-84aa-4283-8a38-11000e015ff3" reportId="mupen64/qodana/2024-01-21" />
@@ -136,7 +152,7 @@
       <workItem from="1696566645330" duration="1387000" />
       <workItem from="1696736812128" duration="2653000" />
       <workItem from="1701000600670" duration="1860000" />
-      <workItem from="1705867152858" duration="13516000" />
+      <workItem from="1705867152858" duration="16136000" />
     </task>
     <servers />
   </component>
@@ -163,12 +179,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/../../main/win/main_win.cpp</url>
-          <line>2333</line>
+          <line>2331</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/../../main/win/main_win.cpp</url>
-          <line>318</line>
+          <line>317</line>
           <option name="timeStamp" value="14" />
         </line-breakpoint>
       </breakpoints>

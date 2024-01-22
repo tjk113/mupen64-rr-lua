@@ -72,7 +72,7 @@ void rombrowser_create()
 	GetWindowRect(toolbar_hwnd, &rtool);
 	GetWindowRect(statusbar_hwnd, &rstatus);
 
-	rombrowser_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
+	rombrowser_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, nullptr,
 	                                 WS_TABSTOP | WS_VISIBLE | WS_CHILD |
 	                                 LVS_SINGLESEL | LVS_REPORT |
 	                                 LVS_SHOWSELALWAYS,
@@ -82,7 +82,7 @@ void rombrowser_create()
 	                                 .top - rstatus.bottom + rstatus.top,
 	                                 mainHWND, (HMENU)IDC_ROMLIST,
 	                                 app_instance,
-	                                 NULL);
+	nullptr);
 
 	ListView_SetExtendedListViewStyle(rombrowser_hwnd,
 	                                  LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT |
@@ -227,7 +227,7 @@ void rombrowser_build_impl()
 	             std::back_inserter(filtered_rom_paths), [](std::string val)
 	             {
 		             char c_extension[260] = {0};
-		             _splitpath(val.c_str(), NULL, NULL, NULL, c_extension);
+		             _splitpath(val.c_str(), nullptr, nullptr, nullptr, c_extension);
 
 		             auto extension = std::string(c_extension);
 		             return is_case_insensitive_equal(extension, ".z64") ||
@@ -351,8 +351,8 @@ void rombrowser_notify(LPARAM lparam)
 			case 2:
 			{
 				char filename[MAX_PATH] = {0};
-				_splitpath(rombrowser_entry->path.c_str(), NULL, NULL,
-						   filename, NULL);
+				_splitpath(rombrowser_entry->path.c_str(), nullptr, nullptr,
+						   filename, nullptr);
 				strcpy(plvdi->item.pszText, filename);
 				break;
 			}
@@ -381,7 +381,7 @@ void rombrowser_notify(LPARAM lparam)
 			item.iItem = i;
 			ListView_GetItem(rombrowser_hwnd, &item);
 			strcpy(rom_path, rombrowser_entries[item.lParam]->path.c_str());
-			CreateThread(NULL, 0, start_rom, NULL, 0, &Id);
+			CreateThread(nullptr, 0, start_rom, nullptr, 0, &Id);
 		}
 		break;
 	}

@@ -6,7 +6,7 @@
 #include <cmath>
 #include <cstdio>
 
-static SpeexResamplerState* speex_ctx = NULL;
+static SpeexResamplerState* speex_ctx = nullptr;
 static short in_samps[44100 * 2 * 2]; // big enough i guess?
 static short out_samps[44100 * 2 * 2]; // big enough i guess?
 static int err = 0;

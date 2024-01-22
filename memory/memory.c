@@ -3666,7 +3666,7 @@ void read_sc_regh()
 
 void read_sc_regd()
 {
-    MessageBox(NULL, "el RCP no tiene la segunda palabra :(", "error", MB_OK|MB_ICONERROR|MB_TOPMOST);
+    MessageBox(nullptr, "el RCP no tiene la segunda palabra :(", "error", MB_OK|MB_ICONERROR|MB_TOPMOST);
     stop = 1;
 }
 

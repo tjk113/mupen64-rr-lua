@@ -74,7 +74,7 @@ bool traceLogMode;
 ULONG_PTR gdi_plus_token;
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-t_window_procedure_params window_proc_params = {0};
+t_window_procedure_params window_proc_params = {nullptr};
 
 
 #define DEBUG_GETLASTERROR 0
@@ -287,12 +287,12 @@ t_window_procedure_params window_proc_params = {0};
 				CHAR buf[MAX_PATH];
 				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				              buf, MAX_PATH);
-				if (buf == NULL || buf[0] == '\0')
+				if (buf == nullptr || buf[0] == '\0')
 					/* || strlen(buf)>MAX_PATH*/
 					return FALSE;
 				// previously , clicking edit with empty path will open current directory in explorer, which is very bad
 
-				ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
+				ShellExecute(nullptr, nullptr, buf, nullptr, nullptr, SW_SHOW);
 				return TRUE;
 			}
 		case IDC_BUTTON_LUACLEAR:
@@ -322,7 +322,7 @@ t_window_procedure_params window_proc_params = {0};
 void lua_init()
 {
 	Gdiplus::GdiplusStartupInput startup_input;
-	GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
+	GdiplusStartup(&gdi_plus_token, &startup_input, nullptr);
 }
 
 void lua_exit()
@@ -382,14 +382,14 @@ void lua_create_and_run(const char* path)
 	void TraceLogStart(const char* name, BOOL append = FALSE)
 	{
 		if (TraceLogFile = CreateFile(name, GENERIC_WRITE,
-		                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+		                              FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
 		                              append ? OPEN_ALWAYS : CREATE_ALWAYS,
 		                              FILE_ATTRIBUTE_NORMAL |
-		                              FILE_FLAG_SEQUENTIAL_SCAN, NULL))
+		                              FILE_FLAG_SEQUENTIAL_SCAN, nullptr))
 		{
 			if (append)
 			{
-				SetFilePointer(TraceLogFile, 0, NULL, FILE_END);
+				SetFilePointer(TraceLogFile, 0, nullptr, FILE_END);
 			}
 			enableTraceLog = true;
 			if (interpcore == 0)
@@ -410,7 +410,7 @@ void lua_create_and_run(const char* path)
 	{
 		enableTraceLog = false;
 		CloseHandle(TraceLogFile);
-		TraceLogFile = NULL;
+		TraceLogFile = nullptr;
 		MENUITEMINFO mii = {};
 		mii.cbSize = sizeof(MENUITEMINFO);
 		mii.fMask = MIIM_STRING;
@@ -557,9 +557,9 @@ void lua_create_and_run(const char* path)
 		{
 			blocks[block] = (precomp_block*)malloc(sizeof(precomp_block));
 			actual = blocks[block];
-			blocks[block]->code = NULL;
-			blocks[block]->block = NULL;
-			blocks[block]->jumps_table = NULL;
+			blocks[block]->code = nullptr;
+			blocks[block]->block = nullptr;
+			blocks[block]->jumps_table = nullptr;
 		}
 		blocks[block]->start = addr & ~0xFFF;
 		blocks[block]->end = (addr & ~0xFFF) + 0x1000;
@@ -632,7 +632,7 @@ void lua_create_and_run(const char* path)
 		{"printx", LuaCore::Global::PrintX},
 		{"tostringex", LuaCore::Global::ToStringExs},
 		{"stop", LuaCore::Global::StopScript},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 	//�G���Ȋ֐�
 	const luaL_Reg emuFuncs[] = {
@@ -676,7 +676,7 @@ void lua_create_and_run(const char* path)
 		{"play_sound", LuaCore::Emu::LuaPlaySound},
 #pragma endregion
 
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 	const luaL_Reg memoryFuncs[] = {
 		// memory conversion functions
@@ -711,7 +711,7 @@ void lua_create_and_run(const char* path)
 
 		{"writesize", LuaCore::Memory::LuaWriteSize},
 
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 
 	//winAPI GDI�֐���
@@ -746,7 +746,7 @@ void lua_create_and_run(const char* path)
 		{"resize", LuaCore::Wgui::ResizeWindow},
 		{"setclip", LuaCore::Wgui::SetClip},
 		{"resetclip", LuaCore::Wgui::ResetClip},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 
 	const luaL_Reg d2dFuncs[] = {
@@ -772,7 +772,7 @@ void lua_create_and_run(const char* path)
 		{"set_antialias_mode", LuaCore::D2D::set_antialias_mode},
 
 		{"draw_to_image", LuaCore::D2D::draw_to_image},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 
 	const luaL_Reg inputFuncs[] = {
@@ -781,14 +781,14 @@ void lua_create_and_run(const char* path)
 		{"prompt", LuaCore::Input::InputPrompt},
 		{"get_key_name_text", LuaCore::Input::LuaGetKeyNameText},
 		{"map_virtual_key_ex", LuaCore::Input::LuaMapVirtualKeyEx},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 	const luaL_Reg joypadFuncs[] = {
 		{"get", LuaCore::Joypad::lua_get_joypad},
 		{"set", LuaCore::Joypad::lua_set_joypad},
 		// OBSOLETE: Cross-module reach
 		{"count", LuaCore::Emu::GetInputCount},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 
 	const luaL_Reg movieFuncs[] = {
@@ -796,22 +796,22 @@ void lua_create_and_run(const char* path)
 		{"stopmovie", LuaCore::Movie::StopMovie},
 		{"getmoviefilename", LuaCore::Movie::GetMovieFilename},
 		{"isreadonly", LuaCore::Movie::GetVCRReadOnly},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 
 	const luaL_Reg savestateFuncs[] = {
 		{"savefile", LuaCore::Savestate::SaveFileSavestate},
 		{"loadfile", LuaCore::Savestate::LoadFileSavestate},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 	const luaL_Reg ioHelperFuncs[] = {
 		{"filediag", LuaCore::IOHelper::LuaFileDialog},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 	const luaL_Reg aviFuncs[] = {
 		{"startcapture", LuaCore::Avi::StartCapture},
 		{"stopcapture", LuaCore::Avi::StopCapture},
-		{NULL, NULL}
+		{nullptr, nullptr}
 	};
 
 void AtUpdateScreenLuaCallback()
@@ -898,7 +898,7 @@ inline void TraceLoggingBufFlush()
 	DWORD writeen;
 	WriteFile(TraceLogFile,
 	          traceLoggingBuf, traceLoggingPointer - traceLoggingBuf, &writeen,
-	          NULL);
+	nullptr);
 	traceLoggingPointer = traceLoggingBuf;
 }
 
@@ -1456,9 +1456,9 @@ void LuaEnvironment::destroy_renderer()
 	image_pool.clear();
 
 	ReleaseDC(mainHWND, dc);
-	dc = NULL;
-	d2d_factory = NULL;
-	d2d_render_target = NULL;
+	dc = nullptr;
+	d2d_factory = nullptr;
+	d2d_render_target = nullptr;
 }
 
 void LuaEnvironment::draw() {
@@ -1513,7 +1513,7 @@ LuaEnvironment::~LuaEnvironment() {
 	DeleteObject(pen);
 	DeleteObject(font);
 	lua_close(L);
-	L = NULL;
+	L = nullptr;
 	SetButtonState(hwnd, false);
 	this->destroy_renderer();
 	printf("Lua destroyed\n");

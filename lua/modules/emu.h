@@ -224,7 +224,7 @@ namespace LuaCore::Emu
 
 	static int LuaPlaySound(lua_State* L)
 	{
-		PlaySound(luaL_checkstring(L, 1), NULL, SND_FILENAME | SND_ASYNC);
+		PlaySound(luaL_checkstring(L, 1), nullptr, SND_FILENAME | SND_ASYNC);
 		return 1;
 	}
 
@@ -299,7 +299,7 @@ namespace LuaCore::Emu
 			A(dps_register),
 			B(SP_DMEM),
 			B(PIF_RAM),
-			{NULL, NULL}
+			{nullptr, nullptr}
 		};
 #undef A
 #undef B

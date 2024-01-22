@@ -8,48 +8,48 @@ namespace LuaCore::Input
 {
 	inline const char* KeyName[256] =
 	{
-		NULL, "leftclick", "rightclick", NULL,
-		"middleclick", NULL, NULL, NULL,
-		"backspace", "tab", NULL, NULL,
-		NULL, "enter", NULL, NULL,
+		nullptr, "leftclick", "rightclick", nullptr,
+		"middleclick", nullptr, nullptr, nullptr,
+		"backspace", "tab", nullptr, nullptr,
+		nullptr, "enter", nullptr, nullptr,
 		"shift", "control", "alt", "pause", // 0x10
-		"capslock", NULL, NULL, NULL,
-		NULL, NULL, NULL, "escape",
-		NULL, NULL, NULL, NULL,
+		"capslock", nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, "escape",
+		nullptr, nullptr, nullptr, nullptr,
 		"space", "pageup", "pagedown", "end", // 0x20
 		"home", "left", "up", "right",
-		"down", NULL, NULL, NULL,
-		NULL, "insert", "delete", NULL,
+		"down", nullptr, nullptr, nullptr,
+		nullptr, "insert", "delete", nullptr,
 		"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
 		"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
 		"U", "V", "W", "X", "Y", "Z",
-		NULL, NULL, NULL, NULL, NULL,
+		nullptr, nullptr, nullptr, nullptr, nullptr,
 		"numpad0", "numpad1", "numpad2", "numpad3", "numpad4", "numpad5",
 		"numpad6", "numpad7", "numpad8", "numpad9",
 		"numpad*", "numpad+",
-		NULL,
+		nullptr,
 		"numpad-", "numpad.", "numpad/",
 		"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11",
 		"F12",
 		"F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22",
 		"F23", "F24",
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 		"numlock", "scrolllock",
-		NULL, // 0x92
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, // 0xB9
+		nullptr, // 0x92
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, // 0xB9
 		"semicolon", "plus", "comma", "minus",
 		"period", "slash", "tilde",
-		NULL, // 0xC1
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, // 0xDA
+		nullptr, // 0xC1
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, // 0xDA
 		"leftbracket", "backslash", "rightbracket", "quote",
 	};
 

@@ -49,7 +49,7 @@ void BC1F()
 void BC1F_OUT()
 {
     if (check_cop1_unusable()) return;
-    jump_target = (long)PC->f.i.immediate;
+    jump_target = static_cast<long>(PC->f.i.immediate);
     PC++;
     delay_slot = 1;
     PC->ops();
@@ -92,7 +92,7 @@ void BC1T()
 void BC1T_OUT()
 {
     if (check_cop1_unusable()) return;
-    jump_target = (long)PC->f.i.immediate;
+    jump_target = static_cast<long>(PC->f.i.immediate);
     PC++;
     delay_slot = 1;
     PC->ops();
@@ -142,7 +142,7 @@ void BC1FL_OUT()
     if (check_cop1_unusable()) return;
     if ((FCR31 & 0x800000) == 0)
     {
-        jump_target = (long)PC->f.i.immediate;
+        jump_target = static_cast<long>(PC->f.i.immediate);
         PC++;
         delay_slot = 1;
         PC->ops();
@@ -195,7 +195,7 @@ void BC1TL_OUT()
     if (check_cop1_unusable()) return;
     if ((FCR31 & 0x800000) != 0)
     {
-        jump_target = (long)PC->f.i.immediate;
+        jump_target = static_cast<long>(PC->f.i.immediate);
         PC++;
         delay_slot = 1;
         PC->ops();

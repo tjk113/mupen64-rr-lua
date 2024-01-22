@@ -41,7 +41,7 @@ struct ProcAddress
 {
 	FARPROC _fp;
 
-	ProcAddress(HMODULE module, LPCSTR name) : _fp(NULL)
+	ProcAddress(HMODULE module, LPCSTR name) : _fp(nullptr)
 	{
 		_fp = ::GetProcAddress(module, name);
 	}

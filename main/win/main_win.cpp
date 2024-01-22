@@ -244,7 +244,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 
 	// Kill any roms that are still running
 	if (emu_launched) {
-		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id), 10'000);
+		WaitForSingleObject(CreateThread(nullptr, 0, close_rom, nullptr, 0, &close_rom_id), 10'000);
 	}
 
 	// TODO: keep plugins loaded and only unload and reload them when they actually change
@@ -299,7 +299,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	rsp_thread.join();
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &emu_id);
+	EmuThreadHandle = CreateThread(nullptr, 0, ThreadFunc, nullptr, 0, &emu_id);
 
 	return 1;
 }
@@ -319,7 +319,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		if (vcr_is_capturing() && !continue_vcr_on_restart_mode) {
 			// we need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
 			if (vcr_stop_capture() != 0)
-				MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
+				MessageBox(nullptr, "Couldn't stop capturing", "VCR", MB_OK);
 			else {
 				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 							 SWP_NOMOVE | SWP_NOSIZE);
@@ -341,7 +341,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		stop = 1;
 		DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
 		if (result == WAIT_TIMEOUT) {
-			MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
+			MessageBox(mainHWND, "Emu thread didn't exit in time", nullptr,
 					   MB_ICONERROR | MB_OK);
 		}
 
@@ -349,7 +349,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		emu_paused = 1;
 
 
-		rom = NULL;
+		rom = nullptr;
 		free(rom);
 
 		free_memory();
@@ -387,7 +387,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 			main_dispatcher_invoke([] {
 				strcpy(rom_path, LastSelectedRom);
-				CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
+				CreateThread(nullptr, 0, start_rom, rom_path, 0, &start_rom_id);
 				//if (!start_rom(nullptr)) {
 					//close_rom(NULL);
 					//MessageBox(mainHWND, "Failed to open ROM", NULL,
@@ -414,7 +414,7 @@ void resetEmu()
 		frame_advancing = false;
 		really_restart_mode = TRUE;
 		MenuPaused = FALSE;
-		CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id);
+		CreateThread(nullptr, 0, close_rom, nullptr, 0, &close_rom_id);
 	}
 }
 
@@ -545,7 +545,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				if (GetDlgItemTextW(hwnd, IDC_INI_AUTHOR, authorWC,
 				                    MOVIE_AUTHOR_DATA_SIZE))
 					WideCharToMultiByte(CP_UTF8, 0, authorWC, -1, authorUTF8,
-					                    sizeof(authorUTF8), NULL, NULL);
+					                    sizeof(authorUTF8), nullptr, nullptr);
 				else
 					GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, authorUTF8,
 					                MOVIE_AUTHOR_DATA_SIZE);
@@ -556,7 +556,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				                    MOVIE_DESCRIPTION_DATA_SIZE))
 					WideCharToMultiByte(CP_UTF8, 0, descriptionWC, -1,
 					                    descriptionUTF8,
-					                    sizeof(descriptionUTF8), NULL, NULL);
+					                    sizeof(descriptionUTF8), nullptr, nullptr);
 				else
 					GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, descriptionUTF8,
 					                MOVIE_DESCRIPTION_DATA_SIZE);
@@ -735,7 +735,7 @@ refresh:
 				// TODO: load unicows.dll instead so SetWindowTextW won't fail even on Win98/ME
 				char ansiStr[MOVIE_AUTHOR_DATA_SIZE];
 				WideCharToMultiByte(CP_ACP, 0, wszMeta, -1, ansiStr,
-				                    MOVIE_AUTHOR_DATA_SIZE, NULL, NULL);
+				                    MOVIE_AUTHOR_DATA_SIZE, nullptr, nullptr);
 				SetWindowTextA(GetDlgItem(hwnd, IDC_INI_AUTHOR), ansiStr);
 
 				if (ansiStr[0] == '\0')
@@ -759,7 +759,7 @@ refresh:
 			{
 				char ansiStr[MOVIE_DESCRIPTION_DATA_SIZE];
 				WideCharToMultiByte(CP_ACP, 0, wszMeta, -1, ansiStr,
-				                    MOVIE_DESCRIPTION_DATA_SIZE, NULL, NULL);
+				                    MOVIE_DESCRIPTION_DATA_SIZE, nullptr, nullptr);
 				SetWindowTextA(GetDlgItem(hwnd, IDC_INI_DESCRIPTION), ansiStr);
 
 				if (ansiStr[0] == '\0')
@@ -883,7 +883,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				if (GetDlgItemTextW(hwnd, IDC_INI_AUTHOR, authorWC,
 				                    MOVIE_AUTHOR_DATA_SIZE))
 					WideCharToMultiByte(CP_UTF8, 0, authorWC, -1, authorUTF8,
-					                    sizeof(authorUTF8), NULL, NULL);
+					                    sizeof(authorUTF8), nullptr, nullptr);
 				else
 					GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, authorUTF8,
 					                MOVIE_AUTHOR_DATA_SIZE);
@@ -896,7 +896,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				                    MOVIE_DESCRIPTION_DATA_SIZE))
 					WideCharToMultiByte(CP_UTF8, 0, descriptionWC, -1,
 					                    descriptionUTF8,
-					                    sizeof(descriptionUTF8), NULL, NULL);
+					                    sizeof(descriptionUTF8), nullptr, nullptr);
 				else
 					GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, descriptionUTF8,
 					                MOVIE_DESCRIPTION_DATA_SIZE);
@@ -1190,8 +1190,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	emu_paused = 0;
 	emu_launched = 1;
 
-	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
-				                         &audio_thread_id);
+	sound_thread_handle = CreateThread(nullptr, 0, SoundThread, nullptr, 0,
+	                                   &audio_thread_id);
 	printf("Emu thread: Emulation started....\n");
 
 	// start movies, st and lua scripts
@@ -1310,7 +1310,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
 	if (index >= 0 && index < Config.recent_rom_paths.size()) {
 		strcpy(rom_path, Config.recent_rom_paths[index].c_str());
-		CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
+		CreateThread(nullptr, 0, start_rom, rom_path, 0, &start_rom_id);
 			return 	1;
 	}
 	return 0;
@@ -1419,7 +1419,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
 				strcpy(rom_path, fname);
-				CreateThread(NULL, 0, start_rom, nullptr, 0, &start_rom_id);
+				CreateThread(nullptr, 0, start_rom, nullptr, 0, &start_rom_id);
 			} else if (extension == ".m64")
 			{
 				if (!emu_launched) break;
@@ -1542,8 +1542,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CREATE:
 		hMenu = GetMenu(hwnd);
-		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
-		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
+		GetModuleFileName(nullptr, path_buffer, sizeof(path_buffer));
+		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), nullptr);
 		commandline_start_rom();
 		return TRUE;
 	case WM_DESTROY:
@@ -1742,7 +1742,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (emu_launched)
 				{
 					//close_rom(&Id);
-					CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &close_rom_id);
+					CreateThread(nullptr, 0, close_rom, (LPVOID)1, 0, &close_rom_id);
 
 				}
 				break;
@@ -1786,7 +1786,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					vcr_set_read_only(TRUE);
 					bool err = vcr_start_playback(
-						Config.recent_movie_paths[0], 0, 0);
+						Config.recent_movie_paths[0], nullptr, nullptr);
 					if (err == VCR_PLAYBACK_SUCCESS)
 						SetStatusPlaybackStarted();
 					else
@@ -1878,8 +1878,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					sprintf(ram_start, "0x%p", static_cast<void*>(rdram));
 
 					char proc_name[MAX_PATH] = {0};
-					GetModuleFileName(NULL, proc_name, MAX_PATH);
-					_splitpath(proc_name, 0, 0, proc_name, 0);
+					GetModuleFileName(nullptr, proc_name, MAX_PATH);
+					_splitpath(proc_name, nullptr, nullptr, proc_name, nullptr);
 
 					char stroop_c[1024] = {0};
 					sprintf(stroop_c,
@@ -2059,7 +2059,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					// pass false to startCapture when "last preset" option was choosen
 					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == ID_START_CAPTURE) < 0)
 					{
-						MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
+						MessageBox(nullptr, "Couldn't start capturing.", "VCR", MB_OK);
 					} else
 					{
 						EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
@@ -2079,7 +2079,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case ID_END_CAPTURE:
 				if (vcr_stop_capture() < 0)
-					MessageBox(NULL, "Couldn't stop capturing.", "VCR", MB_OK);
+					MessageBox(nullptr, "Couldn't stop capturing.", "VCR", MB_OK);
 				else
 				{
 					SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
@@ -2261,7 +2261,7 @@ int WINAPI WinMain(
 {
 #ifdef _DEBUG
 	AllocConsole();
-	FILE* f = 0;
+	FILE* f = nullptr;
 	freopen_s(&f, "CONIN$", "r", stdin);
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
@@ -2273,11 +2273,11 @@ int WINAPI WinMain(
 	commandline_set();
 
 	// ensure folders exist!
-	CreateDirectory((app_path + "save").c_str(), NULL);
-	CreateDirectory((app_path + "Mempaks").c_str(), NULL);
-	CreateDirectory((app_path + "Lang").c_str(), NULL);
-	CreateDirectory((app_path + "ScreenShots").c_str(), NULL);
-	CreateDirectory((app_path + "plugin").c_str(), NULL);
+	CreateDirectory((app_path + "save").c_str(), nullptr);
+	CreateDirectory((app_path + "Mempaks").c_str(), nullptr);
+	CreateDirectory((app_path + "Lang").c_str(), nullptr);
+	CreateDirectory((app_path + "ScreenShots").c_str(), nullptr);
+	CreateDirectory((app_path + "plugin").c_str(), nullptr);
 
 	emu_launched = 0;
 	emu_paused = 1;
@@ -2292,7 +2292,7 @@ int WINAPI WinMain(
 	wc.hInstance = hInstance;
 	wc.hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_M64ICONBIG));
 	wc.hIconSm = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_M64ICONSMALL));
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wc.lpszClassName = g_szClassName;
 	wc.lpfnWndProc = WndProc;
 	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
@@ -2309,7 +2309,7 @@ int WINAPI WinMain(
 		WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
 		Config.window_x, Config.window_y, Config.window_width,
 		Config.window_height,
-		NULL, NULL, hInstance, NULL);
+		nullptr, nullptr, hInstance, nullptr);
 
 	mainHWND = hwnd;
 	ShowWindow(hwnd, nCmdShow);
@@ -2342,7 +2342,7 @@ int WINAPI WinMain(
 	// raise continuable exception
 	//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
-	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	while (GetMessage(&msg, nullptr, 0, 0) > 0)
 	{
 		if (!TranslateAccelerator(mainHWND, accelerators, &msg))
 		{

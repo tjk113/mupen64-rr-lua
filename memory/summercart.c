@@ -85,7 +85,7 @@ static char *get_st_path(const char *filename)
 
 static int sd_error(const char *text, const char *caption)
 {
-	MessageBox(NULL, text, caption, MB_OK|MB_ICONERROR|MB_TOPMOST);
+	MessageBox(nullptr, text, caption, MB_OK|MB_ICONERROR|MB_TOPMOST);
 	return -1;
 }
 
@@ -108,7 +108,7 @@ static void sd_read()
 	unsigned long i;
 	FILE *fp;
 	char *path;
-	char *ptr = NULL;
+	char *ptr = nullptr;
 	unsigned long addr = summercart.data0 & 0x1fffffff;
 	unsigned long count = summercart.data1;
 	unsigned long size = 512*count;
@@ -150,7 +150,7 @@ static void sd_write()
 	unsigned long i;
 	FILE *fp;
 	char *path;
-	char *ptr = NULL;
+	char *ptr = nullptr;
 	unsigned long addr = summercart.data0 & 0x1fffffff;
 	unsigned long count = summercart.data1;
 	unsigned long size = 512*count;

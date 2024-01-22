@@ -253,7 +253,7 @@ namespace LuaCore::D2D
 
 		lua->dw_factory->CreateTextFormat(
 			string_to_wstring(font_name).c_str(),
-			NULL,
+			nullptr,
 			DWRITE_FONT_WEIGHT_NORMAL,
 			DWRITE_FONT_STYLE_NORMAL,
 			DWRITE_FONT_STRETCH_NORMAL,
@@ -339,22 +339,22 @@ namespace LuaCore::D2D
 
 		std::string path(luaL_checkstring(L, 1));
 
-		IWICImagingFactory* pIWICFactory = NULL;
-		IWICBitmapDecoder* pDecoder = NULL;
-		IWICBitmapFrameDecode* pSource = NULL;
-		IWICFormatConverter* pConverter = NULL;
-		ID2D1Bitmap* bmp = NULL;
+		IWICImagingFactory* pIWICFactory = nullptr;
+		IWICBitmapDecoder* pDecoder = nullptr;
+		IWICBitmapFrameDecode* pSource = nullptr;
+		IWICFormatConverter* pConverter = nullptr;
+		ID2D1Bitmap* bmp = nullptr;
 
 		CoCreateInstance(
 			CLSID_WICImagingFactory,
-			NULL,
+			nullptr,
 			CLSCTX_INPROC_SERVER,
 			IID_PPV_ARGS(&pIWICFactory)
 		);
 
 		HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
 			string_to_wstring(path).c_str(),
-			NULL,
+			nullptr,
 			GENERIC_READ,
 			WICDecodeMetadataCacheOnLoad,
 			&pDecoder
@@ -373,14 +373,14 @@ namespace LuaCore::D2D
 			pSource,
 			GUID_WICPixelFormat32bppPBGRA,
 			WICBitmapDitherTypeNone,
-			NULL,
+			nullptr,
 			0.0f,
 			WICBitmapPaletteTypeMedianCut
 		);
 
 		lua->d2d_render_target_stack.top()->CreateBitmapFromWicBitmap(
 			pConverter,
-			NULL,
+			nullptr,
 			&bmp
 		);
 

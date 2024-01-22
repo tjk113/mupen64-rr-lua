@@ -13,7 +13,7 @@ void fail_float(const char* msg)
     char buf[200];
     sprintf(buf, "%s; PC = 0x%lx", msg, interpcore ? interp_addr : PC->addr);
     printf("%s\n", buf);
-    MessageBox(NULL, buf, "Floating Point Error", MB_OK); //Winapi call
+    MessageBox(nullptr, buf, "Floating Point Error", MB_OK); //Winapi call
 
     core_Cause = 15 << 2;
     exception_general();

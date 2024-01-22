@@ -175,17 +175,17 @@ void add_interrupt_event(int type, unsigned long delay)
     {
         aux->next = static_cast<interrupt_queue*>(malloc(sizeof(interrupt_queue)));
         aux = aux->next;
-        aux->next = NULL;
+        aux->next = nullptr;
         aux->count = count;
         aux->type = type;
     }
     else
     {
         if (type != SPECIAL_INT)
-            while (aux->next != NULL && aux->next->count == count)
+            while (aux->next != nullptr && aux->next->count == count)
                 aux = aux->next;
         interrupt_queue* aux2 = aux->next;
-        aux->next = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+        aux->next = static_cast<interrupt_queue*>(malloc(sizeof(interrupt_queue)));
         aux = aux->next;
         aux->next = aux2;
         aux->count = count;
@@ -215,7 +215,7 @@ void remove_interrupt_event()
     if (q->type == SPECIAL_INT) SPECIAL_done = 1;
     free(q);
     q = aux;
-    if (q != NULL && (q->count > core_Count || (core_Count - q->count) < 0x80000000))
+    if (q != nullptr && (q->count > core_Count || (core_Count - q->count) < 0x80000000))
         next_interrupt = q->count;
     else
         next_interrupt = 0;
@@ -229,12 +229,12 @@ void remove_interrupt_event()
 unsigned long get_event(int type)
 {
     interrupt_queue* aux = q;
-    if (q == NULL) return 0;
+    if (q == nullptr) return 0;
     if (q->type == type)
         return q->count;
-    while (aux->next != NULL && aux->next->type != type)
+    while (aux->next != nullptr && aux->next->type != type)
         aux = aux->next;
-    if (aux->next != NULL)
+    if (aux->next != nullptr)
         return aux->next->count;
     return 0;
 }
@@ -246,7 +246,7 @@ unsigned long get_event(int type)
 void remove_event(int type)
 {
     interrupt_queue* aux = q;
-    if (q == NULL) return;
+    if (q == nullptr) return;
     if (q->type == type)
     {
         aux = aux->next;
@@ -254,9 +254,9 @@ void remove_event(int type)
         q = aux;
         return;
     }
-    while (aux->next != NULL && aux->next->type != type)
+    while (aux->next != nullptr && aux->next->type != type)
         aux = aux->next;
-    if (aux->next != NULL) // it's a type int
+    if (aux->next != nullptr) // it's a type int
     {
         interrupt_queue* aux2 = aux->next->next;
         free(aux->next);
@@ -270,7 +270,7 @@ void translate_event_queue(unsigned long base)
     remove_event(COMPARE_INT);
     remove_event(SPECIAL_INT);
     aux = q;
-    while (aux != NULL)
+    while (aux != nullptr)
     {
         aux->count = (aux->count - core_Count) + base;
         aux = aux->next;
@@ -289,12 +289,12 @@ int save_eventqueue_infos(char* buf)
 #endif
     int len = 0;
     interrupt_queue* aux = q;
-    if (q == NULL)
+    if (q == nullptr)
     {
         *reinterpret_cast<unsigned long*>(&buf[0]) = 0xFFFFFFFF;
         return 4;
     }
-    while (aux != NULL)
+    while (aux != nullptr)
     {
         memcpy(buf + len, &aux->type, 4);
         memcpy(buf + len + 4, &aux->count, 4);

@@ -41,7 +41,7 @@ namespace LuaCore::Wgui
 		{"cyan", 0xFFFFFF00},
 		{"blue", 0xFFFF0000},
 		{"purple", 0xFFFF0080},
-		{NULL}
+		{nullptr}
 	};
 
 	static int GetGUIInfo(lua_State* L)
@@ -70,7 +70,7 @@ namespace LuaCore::Wgui
 		wndRect.right -= wndRect.left;
 		int w = luaL_checkinteger(L, 1),
 			h = luaL_checkinteger(L, 2);
-		SetWindowPos(mainHWND, 0, 0, 0,
+		SetWindowPos(mainHWND, nullptr, 0, 0,
 					 w + (wndRect.right - clientRect.right),
 					 h + (wndRect.bottom - clientRect.bottom),
 					 SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
@@ -378,7 +378,7 @@ namespace LuaCore::Wgui
 		rect.right = luaL_checkinteger(L, 5);
 		rect.bottom = luaL_checkinteger(L, 6);
 
-		DrawTextEx(lua->dc, string, -1, &rect, format, NULL);
+		DrawTextEx(lua->dc, string, -1, &rect, format, nullptr);
 		return 0;
 	}
 
@@ -719,7 +719,7 @@ namespace LuaCore::Wgui
 		rect.top = luaL_checknumber(L, 2);
 		rect.right = luaL_checknumber(L, 3);
 		rect.bottom = luaL_checknumber(L, 4);
-		ExtTextOut(lua->dc, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
+		ExtTextOut(lua->dc, 0, 0, ETO_OPAQUE, &rect, "", 0, nullptr);
 		SetBkColor(lua->dc, colorold);
 		return 0;
 	}
@@ -780,7 +780,7 @@ namespace LuaCore::Wgui
 
 		SelectObject(lua->dc, lua->pen);
 		::MoveToEx(lua->dc, luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-		           NULL);
+		nullptr);
 		::LineTo(lua->dc, luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 		return 0;
 	}
@@ -805,7 +805,7 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		SelectClipRgn(lua->dc, NULL);
+		SelectClipRgn(lua->dc, nullptr);
 		return 0;
 	}
 }
