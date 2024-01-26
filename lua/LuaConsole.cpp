@@ -55,7 +55,6 @@
 #include "modules/savestate.h"
 #include "modules/wgui.h"
 #include "win/timers.h"
-#pragma comment(lib, "lua54.lib")
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);
