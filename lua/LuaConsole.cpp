@@ -76,61 +76,11 @@ ULONG_PTR gdi_plus_token;
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 t_window_procedure_params window_proc_params = {nullptr};
 
-
-#define DEBUG_GETLASTERROR 0
-	HANDLE TraceLogFile;
+HANDLE TraceLogFile;
 
 	uint64_t inputCount = 0;
 
 	int getn(lua_State*);
-
-
-	//improved debug print from stackoverflow, now shows function info
-#ifdef _DEBUG
-	static void stackDump(lua_State* L)
-	{
-		int i = lua_gettop(L);
-		printf(" ----------------  Stack Dump ----------------\n");
-		while (i)
-		{
-			switch (const int t = lua_type(L, i))
-			{
-			case LUA_TSTRING:
-				printf("%d:`%s'", i, lua_tostring(L, i));
-				break;
-			case LUA_TBOOLEAN:
-				printf("%d: %s", i, lua_toboolean(L, i) ? "true" : "false");
-				break;
-			case LUA_TNUMBER:
-				printf("%d: %g", i, lua_tonumber(L, i));
-				break;
-			case LUA_TFUNCTION:
-				lua_Debug ar;
-				lua_getstack(L, 0, &ar);
-				lua_pushvalue(L, -1);
-				lua_getinfo(L, ">S", &ar);
-				printf("%d: %s %p, type: %s", i, "function at",
-				       lua_topointer(L, -1), ar.what);
-				break;
-			default: printf("%d: %s", i, lua_typename(L, t));
-				break;
-			}
-			printf("\n");
-			i--;
-		}
-		printf("--------------- Stack Dump Finished ---------------\n");
-	}
-#endif
-	void ASSERT(bool e, const char* s = "assert")
-	{
-		if (!e)
-		{
-			DebugBreak();
-			printf("Lua assert failed: %s\n", s);
-		}
-	}
-
-
 
 	int AtPanic(lua_State* L);
 	extern const luaL_Reg globalFuncs[];
