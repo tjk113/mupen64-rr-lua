@@ -766,23 +766,24 @@ void AtUpdateScreenLuaCallback()
 	HDC main_dc = GetDC(mainHWND);
 
 	for (auto& pair : hwnd_lua_map) {
-		/// Let the environment draw to its DC
+
+		/// Let the environment draw to its DCs
 		pair.second->draw();
 
-		/// Blit its DC to the main window with alpha mask
-        TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->dc, 0, 0,
+		/// Blit its DCs (GDI, D2D) to the main window with alpha mask
+        TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->gdi_dc, 0, 0,
         	pair.second->dc_width, pair.second->dc_height, bitmap_color_mask);
+		TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->d2d_dc, 0, 0,
+			pair.second->dc_width, pair.second->dc_height, bitmap_color_mask);
 
+		// Fill GDI DC with alpha mask
 		RECT rect = { 0, 0, pair.second->dc_width, pair.second->dc_height};
 		HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
-		FillRect(pair.second->dc, &rect, brush);
+		FillRect(pair.second->gdi_dc, &rect, brush);
 		DeleteObject(brush);
-
 	}
 
-
 	ReleaseDC(mainHWND, main_dc);
-
 }
 
 void AtVILuaCallback()
@@ -1328,7 +1329,7 @@ void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l)
 
 void LuaEnvironment::create_renderer()
 {
-	if (dc != nullptr)
+	if (gdi_dc != nullptr)
 	{
 		return;
 	}
@@ -1341,10 +1342,16 @@ void LuaEnvironment::create_renderer()
 
 	// we create a bitmap with the main window's size and point our dc to it
 	HDC main_dc = GetDC(mainHWND);
-	dc = CreateCompatibleDC(main_dc);
-	HBITMAP bmp = CreateCompatibleBitmap(
-		main_dc, window_rect.right, window_rect.bottom);
-	SelectObject(dc, bmp);
+
+	gdi_dc = CreateCompatibleDC(main_dc);
+	d2d_dc = CreateCompatibleDC(main_dc);
+
+	HBITMAP gdi_dc_bmp = CreateCompatibleBitmap(main_dc, window_rect.right, window_rect.bottom);
+	SelectObject(gdi_dc, gdi_dc_bmp);
+
+	HBITMAP d2d_dc_bmp = CreateCompatibleBitmap(main_dc, window_rect.right, window_rect.bottom);
+	SelectObject(d2d_dc, d2d_dc_bmp);
+
 	ReleaseDC(mainHWND, main_dc);
 
 	D2D1_RENDER_TARGET_PROPERTIES props =
@@ -1364,13 +1371,13 @@ void LuaEnvironment::create_renderer()
 	);
 
 	RECT dc_rect = {0, 0, dc_width, dc_height};
-	d2d_render_target->BindDC(dc, &dc_rect);
+	d2d_render_target->BindDC(d2d_dc, &dc_rect);
 	d2d_render_target_stack.push(d2d_render_target);
 }
 
 void LuaEnvironment::destroy_renderer()
 {
-	if (!dc)
+	if (!gdi_dc)
 	{
 		return;
 	}
@@ -1399,14 +1406,19 @@ void LuaEnvironment::destroy_renderer()
 	}
 	image_pool.clear();
 
-	ReleaseDC(mainHWND, dc);
-	dc = NULL;
-	d2d_factory = NULL;
-	d2d_render_target = NULL;
+	ReleaseDC(mainHWND, gdi_dc);
+	ReleaseDC(mainHWND, d2d_dc);
+	gdi_dc = nullptr;
+	d2d_dc = nullptr;
+	d2d_factory = nullptr;
+	d2d_render_target = nullptr;
 }
 
 void LuaEnvironment::draw() {
+	// Draw to the bound D2D dc
+	// Also clear with alpha mask before drawing!
 	d2d_render_target->BeginDraw();
+	d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
 	d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 
 	this->invoke_callbacks_with_key(AtUpdateScreen, REG_ATUPDATESCREEN);
@@ -1452,7 +1464,7 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 
 LuaEnvironment::~LuaEnvironment() {
 	invoke_callbacks_with_key(AtStop, REG_ATSTOP);
-	SelectObject(dc, nullptr);
+	SelectObject(gdi_dc, nullptr);
 	DeleteObject(brush);
 	DeleteObject(pen);
 	DeleteObject(font);

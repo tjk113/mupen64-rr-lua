@@ -117,11 +117,25 @@ public:
 	 * \return A pointer to a lua environment object, or NULL if the operation failed and an error string
 	 */
 	static std::pair<LuaEnvironment*, std::string> create(std::filesystem::path path, HWND wnd);
+
+	/**
+	 * \brief Stops, destroys and removes a lua environment from the environment map
+	 * \param lua_environment The lua environment to destroy
+	 */
 	static void destroy(LuaEnvironment* lua_environment);
 
+	// The path to the current lua script
 	std::filesystem::path path;
-	HDC dc = nullptr;
+
+	// The DC for GDI/GDI+ drawings
+	HDC gdi_dc = nullptr;
+
+	// The DC for D2D drawings
+	HDC d2d_dc = nullptr;
+
+	// Dimensions of both DCs
 	int dc_width, dc_height = 0;
+
 	ID2D1Factory* d2d_factory = nullptr;
 	ID2D1DCRenderTarget* d2d_render_target = nullptr;
 	IDWriteFactory* dw_factory = nullptr;
