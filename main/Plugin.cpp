@@ -36,7 +36,9 @@
 #include "rom.h"
 #include "win/Config.hpp"
 #include "../memory/memory.h"
+#include "../r4300/r4300.h"
 #include <win/main_win.h>
+#include <dbghelp.h>
 
 #include "win/features/Statusbar.hpp"
 
@@ -198,6 +200,34 @@ void (__cdecl*CaptureScreen)(char* Directory);
 void (__cdecl*old_initiateControllers)(HWND hMainWindow, CONTROL Controls[4]);
 void (__cdecl*aiUpdate)(BOOL Wait);
 
+// Gets module's runtime free function
+auto get_dll_crt_free(HMODULE handle)
+{
+	auto dll_crt_free = (void(__cdecl*)(void*))GetProcAddress(handle, "DllCrtFree");
+	if (dll_crt_free != nullptr) return dll_crt_free;
+
+	ULONG size;
+	auto import_descriptor = (PIMAGE_IMPORT_DESCRIPTOR)ImageDirectoryEntryToDataEx(handle, true, IMAGE_DIRECTORY_ENTRY_IMPORT, &size, nullptr);
+	if (import_descriptor != nullptr)
+	{
+		while (import_descriptor->Characteristics && import_descriptor->Name)
+		{
+			auto importDllName = (LPCSTR)((PBYTE)handle + import_descriptor->Name);
+			auto importDllHandle = GetModuleHandleA(importDllName);
+			if (importDllHandle != nullptr)
+			{
+				dll_crt_free = (void(__cdecl*)(void*))GetProcAddress(importDllHandle, "free");
+				if (dll_crt_free != nullptr) return dll_crt_free;
+			}
+
+			import_descriptor++;
+		}
+	}
+
+
+	// this is probably always wrong
+	return free;
+}
 
 void load_gfx(HMODULE handle)
 {
@@ -244,19 +274,12 @@ void load_gfx(HMODULE handle)
 			readScreen = (void(__cdecl*)(void** dest, long* width,
 											 long* height))GetProcAddress(
 					handle, "ReadScreen2");
-			DllCrtFree = free;
 
 			// if readScreen is still missing at this point, we're fucked and have to fall back to internal recording
 		}
 
-		if (readScreen)
-		{
-			// there is a bug where gln bundled crt is mismatched from new mupen one, which causes a crash when plugin calls free
-			// so we overwrite it with ours
-			DllCrtFree = (void(__cdecl*)(void*))GetProcAddress(
-				handle, "DllCrtFree");
-			if (DllCrtFree == nullptr) DllCrtFree = free;
-		}
+		// ReadScreen returns a plugin-allocated buffer which must be freed by the same CRT
+		DllCrtFree = get_dll_crt_free(handle);
 
 		fBRead = (void(__cdecl*)(DWORD))GetProcAddress(handle, "FBRead");
 		fBWrite = (void(__cdecl*)(DWORD, DWORD))GetProcAddress(

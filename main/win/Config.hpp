@@ -30,8 +30,6 @@ typedef struct _CONFIG
 	t_hotkey start_movie_recording_hotkey;
 	t_hotkey stop_movie_recording_hotkey;
 	t_hotkey take_screenshot_hotkey;
-	t_hotkey save_to_current_slot_hotkey;
-	t_hotkey load_from_current_slot_hotkey;
 	t_hotkey restart_movie_hotkey;
 	t_hotkey play_latest_movie_hotkey;
 	t_hotkey load_rom_hotkey;
@@ -384,9 +382,19 @@ typedef struct _CONFIG
 	std::map<std::string, std::wstring> persistent_folder_paths;
 
 	/// <summary>
-	/// Whether the new timer code will be used
+	/// Resets the emulator faster, but may cause issues
 	/// </summary>
-	int32_t use_new_timer;
+	int32_t fast_reset;
+
+	/// <summary>
+	/// Whether VCR displays frame information relative to frame 0, not 1
+	/// </summary>
+	int32_t vcr_0_index;
+
+	/// <summary>
+	/// Increments the current slot when saving savestate to slot
+	/// </summary>
+	int32_t increment_slot;
 } CONFIG;
 #pragma pack(pop)
 

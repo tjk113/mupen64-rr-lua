@@ -31,7 +31,7 @@
 #include "Commandline.h"
 #include "config.hpp"
 #include "configdialog.h"
-#include "CrashHelper.h"
+#include "features/CrashHelper.h"
 #include "LuaConsole.h"
 #include "Recent.h"
 #include "timers.h"
@@ -50,11 +50,10 @@
 #include "features/Statusbar.hpp"
 #include "features/Toolbar.hpp"
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
+#include "helpers/collection_helpers.h"
 #include "helpers/string_helpers.h"
 #include "helpers/win_helpers.h"
 #include "wrapper/PersistentPathDialog.h"
-
-bool ffup = false;
 
 
 #ifdef _MSC_VER
@@ -93,16 +92,11 @@ static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
 static HWND hStaticHandle; //Handle for static place
 char TempMessage[MAX_PATH];
-int emu_launched; //int emu_emulating;
-int emu_paused;
+
 HWND mainHWND;
 HINSTANCE app_instance;
-BOOL fast_forward = 0;
 BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
-
-bool is_primary_statusbar_invalidated = true;
-
 char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
 const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {
@@ -214,7 +208,7 @@ void pauseEmu(BOOL quiet)
 	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
-		is_primary_statusbar_invalidated = true;
+		frame_changed = true;
 		emu_paused = 1;
 		if (!quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
@@ -283,7 +277,9 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	rombrowser_set_visibility(0);
 	statusbar_set_mode(statusbar_mode::emulating);
 	enable_emulation_menu_items(TRUE);
-	timer_init();
+	timer_init(Config.fps_modifier, &ROM_HEADER);
+	on_speed_modifier_changed(Config.fps_modifier);
+
 	if (m_task == e_task::idle) {
 		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
 	}
@@ -1320,27 +1316,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 	return 0;
 }
 
-bool is_frame_skipped()
-{
-	if (!fast_forward || vcr_is_capturing())
-	{
-		return false;
-	}
 
-	// skip every frame
-	if (Config.frame_skip_frequency == 0)
-	{
-		return true;
-	}
-
-	// skip no frames
-	if (Config.frame_skip_frequency == 1)
-	{
-		return false;
-	}
-
-	return screen_updates % Config.frame_skip_frequency != 0;
-}
 
 void update_titlebar()
 {
@@ -1359,6 +1335,11 @@ void update_titlebar()
 	}
 
 	SetWindowText(mainHWND, text.c_str());
+}
+
+void on_speed_modifier_changed(int32_t value)
+{
+	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
 }
 
 BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId)
@@ -1455,7 +1436,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			}else if (extension == ".st" || extension == ".savestate")
 			{
 				if (!emu_launched) break;
-				savestates_do(fname, e_st_job::load);
+				savestates_do_file(fname, e_st_job::load);
 			} else if(extension == ".lua")
 			{
 				lua_create_and_run(path.string().c_str());
@@ -1512,7 +1493,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		if ((int)wParam == Config.fast_forward_hotkey.key) // fast-forward off
 		{
 			fast_forward = 0;
-			ffup = true; //fuck it, timers.c is too weird
 		}
 		if (emu_launched)
 			keyUp(wParam, lParam);
@@ -1585,22 +1565,37 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			AtUpdateScreenLuaCallback();
 
-			if (is_primary_statusbar_invalidated)
+			if (frame_changed)
 			{
 				vcr_update_statusbar();
-				is_primary_statusbar_invalidated = false;
+				frame_changed = false;
 			}
+
+			// We need to create a copy of these, as they might get mutated during our enumeration
+			auto frame_times = new_frame_times;
+			auto vi_times = new_vi_times;
 
 			// We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
 			if (time - last_statusbar_update > std::chrono::seconds(1))
 			{
-				if (Config.show_fps)
+				// TODO: This is just a quick proof of concept, must reduce code duplication
+				if (Config.show_fps && !frame_times.empty())
 				{
-					statusbar_post_text(std::format("FPS: {:.1f}", fps), 2);
+					long long fps = 0;
+					for (int i = 1; i < frame_times.size(); ++i)
+					{
+						fps += (frame_times[i] - frame_times[i - 1]).count();
+					}
+					statusbar_post_text(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / frame_times.size()) / 1'000'000.0f)), 2);
 				}
-				if (Config.show_vis_per_second)
+				if (Config.show_vis_per_second && !vi_times.empty())
 				{
-					statusbar_post_text(std::format("VI/s: {:.1f}", vis_per_second), 3);
+					long long vis = 0;
+					for (int i = 1; i < vi_times.size(); ++i)
+					{
+						vis += (vi_times[i] - vi_times[i - 1]).count();
+					}
+					statusbar_post_text(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / vi_times.size()) / 1'000'000.0f)), 3);
 				}
 				last_statusbar_update = time;
 			}
@@ -1771,7 +1766,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					MenuPaused = FALSE;
 					frame_advancing = 1;
-					vis_per_second = 0;
+					// vis_per_second = 0;
 					// prevent old VI value from showing error if running at super fast speeds
 					resumeEmu(TRUE); // maybe multithreading unsafe
 				}
@@ -1940,7 +1935,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case STATE_SAVE:
-				savestates_do(st_slot, e_st_job::save);
+				savestates_do_slot(st_slot, e_st_job::save);
 				break;
 			case STATE_SAVEAS:
 				{
@@ -1953,7 +1948,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					savestates_do(path, e_st_job::save);
+					savestates_do_file(path, e_st_job::save);
 
 					if (wasMenuPaused)
 					{
@@ -1962,7 +1957,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case STATE_RESTORE:
-				savestates_do(st_slot, e_st_job::load);
+				savestates_do_slot(st_slot, e_st_job::load);
 				break;
 			case STATE_LOAD:
 				{
@@ -1975,7 +1970,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					savestates_do(path, e_st_job::load);
+					savestates_do_file(path, e_st_job::load);
 
 					if (wasMenuPaused)
 					{
@@ -2140,7 +2135,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.fps_modifier = Config.fps_modifier + 50;
 				if (Config.fps_modifier > 1000)
 					Config.fps_modifier = 1000;
-				timer_init();
+				timer_init(Config.fps_modifier, &ROM_HEADER);
+				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			case IDC_DECREASE_MODIFIER:
 				if (Config.fps_modifier > 200)
@@ -2153,11 +2149,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.fps_modifier = Config.fps_modifier - 5;
 				if (Config.fps_modifier < 5)
 					Config.fps_modifier = 5;
-				timer_init();
+				timer_init(Config.fps_modifier, &ROM_HEADER);
+				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			case IDC_RESET_MODIFIER:
 				Config.fps_modifier = 100;
-				timer_init();
+				timer_init(Config.fps_modifier, &ROM_HEADER);
+				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			default:
 				if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam)
@@ -2178,12 +2176,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					auto slot = LOWORD(wParam) - ID_SAVE_1;
 					// if emu is paused and no console state is changing, we can safely perform st op instantly
-					savestates_do(slot, e_st_job::save);
+					savestates_do_slot(slot, e_st_job::save);
 				} else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <=
 					ID_LOAD_10)
 				{
 					auto slot = LOWORD(wParam) - ID_LOAD_1;
-					savestates_do(slot, e_st_job::load);
+					savestates_do_slot(slot, e_st_job::load);
 				} else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST &&
 					LOWORD(wParam) < (ID_RECENTROMS_FIRST + Config.
 						recent_rom_paths.size()))
@@ -2229,11 +2227,11 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 {
 	// generate crash log
 
-	char crashLog[1024 * 4] = {0};
-	crash_helper::generate_log(ExceptionInfo, crashLog);
+	char crash_log[1024 * 4] = {0};
+	CrashHelper::generate_log(ExceptionInfo, crash_log);
 
 	FILE* f = fopen("crash.log", "w+");
-	fwrite(crashLog, sizeof(crashLog), 1, f);
+	fputs(crash_log, f);
 	fclose(f);
 
 	bool is_continuable = !(ExceptionInfo->ExceptionRecord->ExceptionFlags &

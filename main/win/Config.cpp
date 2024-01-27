@@ -7,6 +7,7 @@
 #include "Config.hpp"
 #include "main_win.h"
 #include "../../lua/Recent.h"
+#include "../r4300/r4300.h"
 #include "../vcr.h"
 #include "../lib/ini.h"
 #include <helpers/string_helpers.h>
@@ -266,24 +267,6 @@ CONFIG get_default_config()
 		.shift = 0,
 		.alt = 0,
 		.command = GENERATE_BITMAP,
-	};
-
-	config.save_to_current_slot_hotkey = {
-		.identifier = "Save to current slot",
-		.key = 0x49 /* I */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
-		.command = STATE_SAVE,
-	};
-
-	config.load_from_current_slot_hotkey = {
-		.identifier = "Load from current slot",
-		.key = 0x50 /* P */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
-		.command = STATE_RESTORE,
 	};
 
 	config.restart_movie_hotkey = {
@@ -691,7 +674,9 @@ CONFIG get_default_config()
 	config.window_y = CW_USEDEFAULT;
 	config.window_width = 640;
 	config.window_height = 480;
-	config.use_new_timer = 0;
+	config.fast_reset = 0;
+	config.vcr_0_index = 0;
+	config.increment_slot = 0;
 
 	return config;
 }
@@ -721,8 +706,6 @@ void update_menu_hotkey_labels()
 {
 	set_hotkey_menu_accelerators(&Config.pause_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 0);
     set_hotkey_menu_accelerators(&Config.frame_advance_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 1);
-    set_hotkey_menu_accelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
-    set_hotkey_menu_accelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
 
     set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 13);
     set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 3);
@@ -730,8 +713,8 @@ void update_menu_hotkey_labels()
     set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 0);
     set_hotkey_menu_accelerators(&Config.stop_movie_recording_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 1);
     set_hotkey_menu_accelerators(&Config.take_screenshot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 2);
-    set_hotkey_menu_accelerators(&Config.save_to_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
-    set_hotkey_menu_accelerators(&Config.load_from_current_slot_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
+    set_hotkey_menu_accelerators(&Config.save_current_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
+    set_hotkey_menu_accelerators(&Config.load_current_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
     set_hotkey_menu_accelerators(&Config.select_slot_1_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 0);
     set_hotkey_menu_accelerators(&Config.select_slot_2_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 1);
     set_hotkey_menu_accelerators(&Config.select_slot_3_hotkey, GetSubMenu(GetSubMenu(GetMenu(mainHWND), 1), 9), 2);
@@ -747,8 +730,6 @@ void update_menu_hotkey_labels()
 	set_hotkey_menu_accelerators(&Config.reset_rom_hotkey, GetSubMenu(GetMenu(mainHWND), 0), 2);
 	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, GetSubMenu(GetMenu(mainHWND), 2), 0);
 	set_hotkey_menu_accelerators(&Config.settings_hotkey, GetSubMenu(GetMenu(mainHWND), 2), 7);
-	set_hotkey_menu_accelerators(&Config.save_current_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 4);
-	set_hotkey_menu_accelerators(&Config.load_current_hotkey, GetSubMenu(GetMenu(mainHWND), 1), 6);
 
     set_hotkey_menu_accelerators(&Config.restart_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 12);
     set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, GetSubMenu(GetMenu(mainHWND), 3), 7);
@@ -781,10 +762,10 @@ void update_menu_hotkey_labels()
 	                        &Config.take_screenshot_hotkey,
 	                        GetSubMenu(GetMenu(mainHWND), 1), 2);
 	SetDlgItemHotkeyAndMenu(mainHWND, IDC_CSAVE,
-	                        &Config.save_to_current_slot_hotkey,
+	                        &Config.save_current_hotkey,
 	                        GetSubMenu(GetMenu(mainHWND), 1), 4);
 	SetDlgItemHotkeyAndMenu(mainHWND, IDC_CLOAD,
-	                        &Config.load_from_current_slot_hotkey,
+	                        &Config.load_current_hotkey,
 	                        GetSubMenu(GetMenu(mainHWND), 1), 6);
 
 	SetDlgItemHotkey(mainHWND, IDC_1SAVE, &Config.save_to_slot_1_hotkey);
@@ -982,7 +963,7 @@ std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 	// this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
 	// i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
 	std::vector<t_hotkey*> vec;
-	for (size_t i = 0; i < (last_offset - first_offset) / sizeof(t_hotkey); i++)
+	for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1; i++)
 	{
 		auto hotkey = &(((t_hotkey*)config)[i]);
 		printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
@@ -1081,7 +1062,9 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(rombrowser_sort_ascending)
 	HANDLE_P_VALUE(rombrowser_sorted_column)
 	HANDLE_VALUE(persistent_folder_paths)
-	HANDLE_P_VALUE(use_new_timer)
+	HANDLE_P_VALUE(fast_reset)
+	HANDLE_P_VALUE(vcr_0_index)
+	HANDLE_P_VALUE(increment_slot)
 
 	return ini;
 }

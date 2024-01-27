@@ -60,7 +60,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../lua;../zlib;../../main;../../libdeflate;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lua;../zlib;../../main;../../libdeflate;../../xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -76,9 +76,9 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../zlib;../../lua;../../libdeflate;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../zlib;../../lua;../../libdeflate;../../xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -95,7 +95,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../zlib;../../main;../../lua;../../libdeflate;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../zlib;../../main;../../lua;../../libdeflate;../../xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -121,9 +121,9 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../zlib;../../lua;../../libdeflate;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../zlib;../../lua;../../libdeflate;../../xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -137,6 +137,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\lua\modules\avi.h"/>
+    <ClInclude Include="..\..\lua\modules\d2d.h"/>
+    <ClInclude Include="..\..\lua\modules\emu.h"/>
+    <ClInclude Include="..\..\lua\modules\global.h"/>
+    <ClInclude Include="..\..\lua\modules\iohelper.h"/>
+    <ClInclude Include="..\..\lua\modules\joypad.h"/>
+    <ClInclude Include="..\..\lua\modules\memory.h"/>
+    <ClInclude Include="..\..\lua\modules\movie.h"/>
+    <ClInclude Include="..\..\lua\modules\savestate.h"/>
+    <ClInclude Include="..\..\lua\modules\wgui.h"/>
+    <ClInclude Include="..\..\main\helpers\collection_helpers.h" />
+    <ClInclude Include="..\..\main\helpers\math_helpers.h" />
     <ClInclude Include="..\..\main\lib\ini.h" />
     <ClInclude Include="..\..\main\lib\argh.h" />
     <ClInclude Include="..\..\lua\Recent.h" />
@@ -155,7 +167,7 @@
     <ClInclude Include="..\..\main\vcr_resample.h" />
     <ClInclude Include="..\..\main\speex\speex_resampler.h" />
     <ClInclude Include="..\..\main\speex\arch.h" />
-    <ClInclude Include="..\..\main\win\CrashHelper.h" />
+    <ClInclude Include="..\..\main\win\features\CrashHelper.h" />
     <ClInclude Include="..\..\main\win\features\CoreDbg.h" />
     <ClInclude Include="..\..\main\win\features\RomBrowser.hpp" />
     <ClInclude Include="..\..\main\win\features\Statusbar.hpp" />
@@ -165,7 +177,6 @@
     <ClInclude Include="..\..\main\win\configdialog.h" />
     <ClInclude Include="..\..\main\win\main_win.h" />
     <ClInclude Include="..\..\main\win\timers.h" />
-    <ClInclude Include="..\..\main\win\vfw.h" />
     <ClInclude Include="..\..\main\win\wrapper\PersistentPathDialog.h" />
     <ClInclude Include="..\..\main\helpers\string_helpers.h" />
     <ClInclude Include="..\..\memory\dma.h" />
@@ -191,6 +202,7 @@
     <ClInclude Include="..\resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\lua\modules\input.h"/>
     <ClCompile Include="..\..\lua\Recent.cpp" />
     <ClCompile Include="..\..\main\adler32.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
@@ -230,8 +242,8 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\main\win\CrashHelper.cpp" />
-    <ClCompile Include="..\..\main\win\features\CoreDbg.cpp"/>
+    <ClCompile Include="..\..\main\win\features\CrashHelper.cpp" />
+    <ClCompile Include="..\..\main\win\features\CoreDbg.cpp" />
     <ClCompile Include="..\..\main\win\features\RomBrowser.cpp" />
     <ClCompile Include="..\..\main\win\features\Statusbar.cpp" />
     <ClCompile Include="..\..\main\win\features\Toolbar.cpp" />

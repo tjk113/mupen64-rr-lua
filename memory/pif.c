@@ -36,27 +36,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __WIN32__
-#include "../main/winlnxdefs.h"
-#else
-#include <Windows.h>
-#endif
 
 #include "memory.h"
 #include "pif.h"
 #include "pif2.h"
 #include "../r4300/r4300.h"
-#include "../r4300/interrupt.h"
 #include "../main/plugin.hpp"
-#include "../main/guifuncs.h"
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/Config.hpp"
-#include <win/main_win.h>
+#include "win/main_win.h"
 
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];
 int frame_advancing = 0;
+int fast_forward = 0;
 
 void check_input_sync(unsigned char* value);
 

@@ -24,6 +24,7 @@
 #include <stack>
 
 #include "plugin.hpp"
+#include "vcr_compress.h"
 
 typedef struct s_window_procedure_params {
 	HWND wnd;
@@ -83,11 +84,26 @@ void stop_all_scripts();
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
 static uint32_t bitmap_color_mask = RGB(255, 0, 255);
+static const char* const REG_LUACLASS = "C";
+static const char* const REG_ATUPDATESCREEN = "S";
+static const char* const REG_ATVI = "V";
+static const char* const REG_ATINPUT = "I";
+static const char* const REG_ATSTOP = "T";
+static const char* const REG_SYNCBREAK = "B";
+static const char* const REG_READBREAK = "R";
+static const char* const REG_WRITEBREAK = "W";
+static const char* const REG_WINDOWMESSAGE = "M";
+static const char* const REG_ATINTERVAL = "N";
+static const char* const REG_ATPLAYMOVIE = "PM";
+static const char* const REG_ATSTOPMOVIE = "SM";
+static const char* const REG_ATLOADSTATE = "LS";
+static const char* const REG_ATSAVESTATE = "SS";
+static const char* const REG_ATRESET = "RE";
 
-enum class Renderer {
-	None,
-	GDIMixed,
-	Direct2D
+struct EmulationLock
+{
+	EmulationLock();
+	~EmulationLock();
 };
 
 class LuaEnvironment {
@@ -102,7 +118,6 @@ public:
 	 */
 	static std::pair<LuaEnvironment*, std::string> create(std::filesystem::path path, HWND wnd);
 	static void destroy(LuaEnvironment* lua_environment);
-	Renderer renderer = Renderer::GDIMixed;
 
 	std::filesystem::path path;
 	HDC dc = nullptr;
@@ -110,10 +125,21 @@ public:
 	ID2D1Factory* d2d_factory = nullptr;
 	ID2D1DCRenderTarget* d2d_render_target = nullptr;
 	IDWriteFactory* dw_factory = nullptr;
-	std::unordered_map<uint32_t, ID2D1SolidColorBrush*> d2d_brush_cache;
-	std::unordered_map<std::string, ID2D1Bitmap*> d2d_bitmap_cache;
 	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
+	std::unordered_map<uint64_t, IDWriteTextLayout*> dw_text_layouts;
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
+	std::vector<Gdiplus::Bitmap*> image_pool;
+	bool LoadScreenInitialized = false;
+	// LoadScreen variables
+	HDC hwindowDC, hsrcDC;
+	t_window_info windowSize{};
+	HBITMAP hbitmap;
+
+	HBRUSH brush;
+	HPEN pen;
+	HFONT font;
+	COLORREF col, bkcol;
+	int bkmode;
 
 	/**
 	 * \brief Destroys and stops the environment
@@ -123,59 +149,35 @@ public:
 	void create_renderer();
 	void destroy_renderer();
 
-	void pre_draw();
-	void post_draw();
 
-	void setBrush(HBRUSH h);
-	void selectBrush();
-	void setPen(HPEN h);
-	void selectPen();
-	void setFont(HFONT h);
-	void selectFont();
-	void setTextColor(COLORREF c);
-	void selectTextColor();
-	void setBackgroundColor(COLORREF c, int mode = OPAQUE);
-	void selectBackgroundColor();
+	/**
+	 * \brief Draws to the environment's DC
+	 */
+	void draw();
+
 	//calls all functions that lua script has defined as callbacks, reads them from registry
 	//returns true at fail
 	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
 								   const char* key);
 
-	ID2D1Bitmap* get_loose_bitmap(const char* identifier) {
+	// Deletes all the variables used in LoadScreen (avoid memory leaks)
+	void LoadScreenDelete();
 
-		// look for bitmap in the normal cache
-		if (d2d_bitmap_cache.contains(identifier)) {
-			return d2d_bitmap_cache[identifier];
-		}
-
-		// look for it in render target map
-		if (d2d_bitmap_render_target.contains(identifier)) {
-			ID2D1Bitmap* bitmap;
-			d2d_bitmap_render_target[identifier]->GetBitmap(&bitmap);
-			return bitmap;
-		}
-
-		return nullptr;
-	}
+	// Initializes everything needed for LoadScreen
+	void LoadScreenInit();
 	HWND hwnd;
 	lua_State* L;
 
 
+
 private:
 	void register_functions();
-	void setGDIObject(HGDIOBJ* save, HGDIOBJ newobj);
-	void selectGDIObject(HGDIOBJ p);
-	void deleteGDIObject(HGDIOBJ p, int stockobj);
-	// gdi objects are filled in on run(), then deleted on stop()
-	HBRUSH brush;
-	HPEN pen;
-	HFONT font;
-	COLORREF col, bkcol;
-	int bkmode;
+
 };
 
 extern bool enableTraceLog;
 extern bool traceLogMode;
+extern uint64_t inputCount;
 
 /**
  * \brief The controller data at time of the last input poll
@@ -194,6 +196,24 @@ extern bool overwrite_controller_data[4];
 
 extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
+/**
+ * \brief Gets the lua environment associated to a lua state
+ * \param L The lua state
+ */
+extern LuaEnvironment* GetLuaClass(lua_State* L);
 
+/**
+ * \brief Registers a function with a key to a lua state
+ * \param L The lua state
+ * \param key The function's key
+ */
+int RegisterFunction(lua_State* L, const char* key);
+
+/**
+ * \brief Unregisters a function with a key to a lua state
+* \param L The lua state
+ * \param key The function's key
+ */
+void UnregisterFunction(lua_State* L, const char* key);
 
 #endif

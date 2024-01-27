@@ -19,7 +19,7 @@
 #include <Windows.h>
 #include <string>
 #include <functional>
-#define MUPEN_VERSION "Mupen 64 1.1.6"
+#define MUPEN_VERSION "Mupen 64 1.1.7"
 
 #define WM_EXECUTE_DISPATCHER (WM_USER + 10)
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
@@ -28,9 +28,7 @@ extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
 extern char TempMessage[MAX_PATH];
 extern char rom_path[MAX_PATH];
 
-// TODO: use state enum
-extern int emu_launched; // emu_emulating
-extern int emu_paused;
+
 
 // TODO: remove
 extern int recording;
@@ -38,8 +36,6 @@ extern int recording;
 extern HWND mainHWND;
 extern HINSTANCE app_instance;
 
-// TODO: rename
-extern BOOL fast_forward;
 extern char statusmsg[800];
 
 extern HWND hwnd_plug;
@@ -76,9 +72,13 @@ int32_t main_recent_roms_run(uint16_t menu_item_id);
  */
 extern bool is_primary_statusbar_invalidated;
 
-bool is_frame_skipped();
-
 /**
  * \brief Updates the titlebar to reflect the current application state
  */
 void update_titlebar();
+
+/**
+ * \brief Notifies the frontend of speed modifier changing
+ * \param value The new speed modifier
+ */
+void on_speed_modifier_changed(int32_t value);

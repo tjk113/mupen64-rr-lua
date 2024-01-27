@@ -43,7 +43,9 @@
 #include "win/main_win.h"
 #include "win/features/Statusbar.hpp"
 
+std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;
+std::string st_key;
 std::filesystem::path st_path;
 e_st_job savestates_job = e_st_job::none;
 e_st_medium st_medium = e_st_medium::path;
@@ -208,6 +210,7 @@ void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& 
 
 void savestates_save_immediate()
 {
+
 	const auto start_time = std::chrono::high_resolution_clock::now();
     savestates_job_success = TRUE;
 
@@ -220,21 +223,30 @@ void savestates_save_immediate()
 		return;
 	}
 
+	if (st_medium == e_st_medium::slot && Config.increment_slot)
+	{
+		if (++st_slot > 10)
+		{
+			st_slot = 0;
+		}
+ 	}
+
 	if (st_medium == e_st_medium::slot || st_medium == e_st_medium::path)
 	{
-		// write compressed st to disk
+		// Always save summercart for some reason
 		std::filesystem::path new_st_path = st_path;
 		std::filesystem::path new_sd_path = "";
 		get_effective_paths(new_st_path, new_sd_path);
-
 		if (Config.use_summercart) save_summercart(new_sd_path.string().c_str());
 
-		std::vector<uint8_t> compressed = st;
+		// Generate compressed buffer
+		std::vector<uint8_t> compressed_buffer = st;
 		const auto compressor = libdeflate_alloc_compressor(6);
-		const size_t final_size = libdeflate_gzip_compress(compressor, st.data(), st.size(), compressed.data(), compressed.size());
+		const size_t final_size = libdeflate_gzip_compress(compressor, st.data(), st.size(), compressed_buffer.data(), compressed_buffer.size());
 		libdeflate_free_compressor(compressor);
-		compressed.resize(final_size);
+		compressed_buffer.resize(final_size);
 
+		// write compressed st to disk
 		FILE* f = fopen(new_st_path.string().c_str(), "wb");
 
 		if (f == nullptr)
@@ -244,24 +256,24 @@ void savestates_save_immediate()
 			return;
 		}
 
-		fwrite(compressed.data(), compressed.size(), 1, f);
+		fwrite(compressed_buffer.data(), compressed_buffer.size(), 1, f);
 		fclose(f);
 
-		if (st_medium == e_st_medium::slot)
-		{
-			statusbar_post_text(std::format("Saved slot {}", st_slot));
-		} else
+		if (st_medium == e_st_medium::path)
 		{
 			statusbar_post_text(std::format("Saved {}", new_st_path.filename().string()));
+		} else
+		{
+			statusbar_post_text(std::format("Saved slot {}", st_slot + 1));
 		}
 	} else
 	{
-		// stub
+		// Keep uncompressed buffer in memory
+		st_buffers[st_key] = st;
 	}
 
-    main_dispatcher_invoke(AtSaveStateLuaCallback);
+	main_dispatcher_invoke(AtSaveStateLuaCallback);
 	printf("Savestate saving took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-
 }
 
 /// <summary>
@@ -353,7 +365,22 @@ void savestates_load_immediate()
 
 	if (Config.use_summercart) load_summercart(new_sd_path.string().c_str());
 
-    std::vector<uint8_t> st_buf = read_file_buffer(new_st_path);
+    std::vector<uint8_t> st_buf;
+
+	switch (st_medium)
+	{
+	case e_st_medium::slot:
+	case e_st_medium::path:
+		st_buf = read_file_buffer(new_st_path);
+		break;
+	case e_st_medium::memory:
+		if (st_buffers.contains(st_key))
+		{
+			st_buf = st_buffers[st_key];
+		}
+		break;
+		default: assert(false);
+	}
 
     if (st_buf.empty())
     {
@@ -404,7 +431,7 @@ void savestates_load_immediate()
         // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
         fprintf(stderr, "Snapshot event queue terminator not reached.\n");
         savestates_job_success = FALSE;
-        warn_savestate("Savestate error", "Event queue too long (Savestate corrupted?)");
+        statusbar_post_text("Event queue too long (corrupted?)");
         savestates_job_success = FALSE;
         return;
     }
@@ -488,7 +515,14 @@ void savestates_load_immediate()
     load_eventqueue_infos(buf);
     load_memory_from_buffer(first_block);
     main_dispatcher_invoke(AtLoadStateLuaCallback);
-	statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));
+	if (st_medium == e_st_medium::path)
+	{
+		statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));
+	}
+	if (st_medium == e_st_medium::slot)
+	{
+		statusbar_post_text(std::format("Loaded slot {}", st_slot + 1));
+	}
 failedLoad:
     extern bool ignore;
     //legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
@@ -512,14 +546,21 @@ failedLoad:
 	printf("Savestate loading took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
-void savestates_do(const std::filesystem::path& path, const e_st_job job)
+void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
 {
 	st_path = path;
 	savestates_job = job;
 	st_medium = e_st_medium::path;
 }
 
-void savestates_do(const size_t slot, const e_st_job job)
+void savestates_do_memory(const std::string key, e_st_job job)
+{
+	st_key = key;
+	savestates_job = job;
+	st_medium = e_st_medium::memory;
+}
+
+void savestates_do_slot(const size_t slot, const e_st_job job)
 {
 	st_slot = slot;
 	savestates_job = job;

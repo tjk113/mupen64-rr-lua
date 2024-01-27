@@ -5,6 +5,7 @@
 
 #include "RomBrowser.hpp"
 #include "vcr.h"
+#include "../r4300/r4300.h"
 #include "../Config.hpp"
 #include "../main_win.h"
 #include "../../winproject/resource.h"

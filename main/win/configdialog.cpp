@@ -34,6 +34,7 @@
 #include "wrapper/PersistentPathDialog.h"
 #include "../main/helpers/string_helpers.h"
 #include "../main/helpers/win_helpers.h"
+#include "../r4300/r4300.h"
 #include "configdialog.h"
 #include <vcr.h>
 #include <cassert>
@@ -380,12 +381,17 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         break;
     case WM_INITDIALOG:
 
-    	for (auto plugin : available_plugins)
-    	{
-    		plugin_destroy(&plugin);
-    	}
+    	// When the emu is running, we know that the plugins are locked and the comboboxes can't reveal new items, so we reuse the previous results
+    	// There's also the possibility that we don't have any "previous results", so we do the search normally in that case
+	    if (!emu_launched || available_plugins.empty())
+	    {
+    		for (auto plugin : available_plugins)
+    		{
+    			plugin_destroy(&plugin);
+    		}
 
-        available_plugins = get_available_plugins();
+        	available_plugins = get_available_plugins();
+	    }
 
         for (const auto& plugin : available_plugins)
         {
@@ -585,7 +591,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
             Config.is_state_independent_state_loading_allowed = get_checkbox_state(
                 hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
-            timer_init();
         }
         break;
     default:
@@ -664,10 +669,11 @@ void on_hotkey_selection_changed(const HWND dialog_hwnd)
 	EnableWindow(edit_hwnd, selected_index != -1);
 	EnableWindow(assign_hwnd, selected_index != -1);
 
+	SetWindowText(assign_hwnd, "Assign...");
+
     if (selected_index == -1)
     {
-    	SetDlgItemText(dialog_hwnd, IDC_HOTKEY_ASSIGN_SELECTED, "Assign...");
-    	SetDlgItemText(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT, "");
+    	SetWindowText(edit_hwnd, "");
     	return;
     }
 
@@ -742,7 +748,9 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 	        		auto hotkey = (t_hotkey*)ListBox_GetItemData(list_hwnd, index);
 	        		SetDlgItemText(hwnd, id, "...");
 	        		get_user_hotkey(hotkey);
+
 	        		build_hotkey_list(hwnd);
+	        		ListBox_SetCurSel(list_hwnd, (index + 1) % ListBox_GetCount(list_hwnd));
 	        		on_hotkey_selection_changed(hwnd);
 		        }
 	        	break;

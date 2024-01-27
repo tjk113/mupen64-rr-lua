@@ -33,6 +33,4 @@
  */
 bool confirm_user_exit();
 
-void warn_savestate(const char* message_caption, const char* message);
-void warn_savestate(const char* message_caption, const char* message,
-                    bool modal); // Overload
+void show_modal_info(const char* str, const char* title);

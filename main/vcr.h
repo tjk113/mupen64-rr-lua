@@ -147,9 +147,6 @@ void vcr_stop_f_fmpeg_capture();
 
 extern void vcr_core_stopped();
 
-extern void print_warning(const char*);
-extern void print_error(const char*);
-
 /**
  * \brief Updates the statusbar with the current VCR state
  */
@@ -334,6 +331,8 @@ inline bool is_task_recording(const e_task task)
 {
 	return task == e_task::start_recording || task == e_task::start_recording_from_snapshot || task == e_task::start_recording_from_existing_snapshot || task == e_task::recording;
 }
+
+bool is_frame_skipped();
 
 extern t_movie_header vcr_get_header_info(const char* filename);
 extern char vcr_lastpath[MAX_PATH];
