@@ -1,6 +1,6 @@
-#ifndef SAVESTATE_H
-#define SAVESTATE_H
 #include <include/lua.h>
+#include <Windows.h>
+#include "../../main/win/main_win.h"
 
 namespace LuaCore::Savestate
 {
@@ -18,4 +18,3 @@ namespace LuaCore::Savestate
 		return 0;
 	}
 }
-#endif // SAVESTATE_H

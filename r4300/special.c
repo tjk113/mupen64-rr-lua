@@ -91,7 +91,7 @@ void JR()
     PC->ops();
     update_count();
     delay_slot = 0;
-    jump_to(local_rs32)
+    jump_to(local_rs32);
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -110,7 +110,7 @@ void JALR()
         *dest = PC->addr;
         sign_extended(*dest);
 
-        jump_to(local_rs32)
+        jump_to(local_rs32);
     }
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
@@ -175,7 +175,8 @@ void DSRAV()
 
 void MULT()
 {
-    const long long int temp = core_rrs * core_rrt;
+    long long int temp;
+    temp = core_rrs * core_rrt;
     hi = temp >> 32;
     lo = temp;
     sign_extended(lo);
@@ -184,8 +185,9 @@ void MULT()
 
 void MULTU()
 {
-    const unsigned long long int temp = static_cast<unsigned long>(core_rrs) * static_cast<unsigned long long>(static_cast<unsigned long>(core_rrt));
-    hi = static_cast<long long>(temp) >> 32;
+    unsigned long long int temp;
+    temp = (unsigned long)core_rrs * (unsigned long long)((unsigned long)core_rrt);
+    hi = (long long)temp >> 32;
     lo = temp;
     sign_extended(lo);
     PC++;
@@ -208,8 +210,8 @@ void DIVU()
 {
     if (rrt32)
     {
-        lo = static_cast<unsigned long>(rrs32) / static_cast<unsigned long>(rrt32);
-        hi = static_cast<unsigned long>(rrs32) % static_cast<unsigned long>(rrt32);
+        lo = (unsigned long)rrs32 / (unsigned long)rrt32;
+        hi = (unsigned long)rrs32 % (unsigned long)rrt32;
         sign_extended(lo);
         sign_extended(hi);
     }
@@ -219,7 +221,9 @@ void DIVU()
 
 void DMULT()
 {
-    unsigned long long int op2, op4;
+    unsigned long long int op1, op2, op3, op4;
+    unsigned long long int result1, result2, result3, result4;
+    unsigned long long int temp1, temp2, temp3, temp4;
     int sign = 0;
 
     if (core_rrs < 0)
@@ -235,20 +239,20 @@ void DMULT()
     }
     else op4 = core_rrt;
 
-    unsigned long long int op1 = op2 & 0xFFFFFFFF;
+    op1 = op2 & 0xFFFFFFFF;
     op2 = (op2 >> 32) & 0xFFFFFFFF;
-    unsigned long long int op3 = op4 & 0xFFFFFFFF;
+    op3 = op4 & 0xFFFFFFFF;
     op4 = (op4 >> 32) & 0xFFFFFFFF;
 
-    const unsigned long long int temp1 = op1 * op3;
-    const unsigned long long int temp2 = (temp1 >> 32) + op1 * op4;
-    const unsigned long long int temp3 = op2 * op3;
-    const unsigned long long int temp4 = (temp3 >> 32) + op2 * op4;
+    temp1 = op1 * op3;
+    temp2 = (temp1 >> 32) + op1 * op4;
+    temp3 = op2 * op3;
+    temp4 = (temp3 >> 32) + op2 * op4;
 
-    const unsigned long long int result1 = temp1 & 0xFFFFFFFF;
-    const unsigned long long int result2 = temp2 + (temp3 & 0xFFFFFFFF);
-    const unsigned long long int result3 = (result2 >> 32) + temp4;
-    const unsigned long long int result4 = (result3 >> 32);
+    result1 = temp1 & 0xFFFFFFFF;
+    result2 = temp2 + (temp3 & 0xFFFFFFFF);
+    result3 = (result2 >> 32) + temp4;
+    result4 = (result3 >> 32);
 
     lo = result1 | (result2 << 32);
     hi = (result3 & 0xFFFFFFFF) | (result4 << 32);
@@ -263,20 +267,24 @@ void DMULT()
 
 void DMULTU()
 {
-    const unsigned long long int op1 = core_rrs & 0xFFFFFFFF;
-    const unsigned long long int op2 = (core_rrs >> 32) & 0xFFFFFFFF;
-    const unsigned long long int op3 = core_rrt & 0xFFFFFFFF;
-    const unsigned long long int op4 = (core_rrt >> 32) & 0xFFFFFFFF;
+    unsigned long long int op1, op2, op3, op4;
+    unsigned long long int result1, result2, result3, result4;
+    unsigned long long int temp1, temp2, temp3, temp4;
 
-    const unsigned long long int temp1 = op1 * op3;
-    const unsigned long long int temp2 = (temp1 >> 32) + op1 * op4;
-    const unsigned long long int temp3 = op2 * op3;
-    const unsigned long long int temp4 = (temp3 >> 32) + op2 * op4;
+    op1 = core_rrs & 0xFFFFFFFF;
+    op2 = (core_rrs >> 32) & 0xFFFFFFFF;
+    op3 = core_rrt & 0xFFFFFFFF;
+    op4 = (core_rrt >> 32) & 0xFFFFFFFF;
 
-    const unsigned long long int result1 = temp1 & 0xFFFFFFFF;
-    const unsigned long long int result2 = temp2 + (temp3 & 0xFFFFFFFF);
-    const unsigned long long int result3 = (result2 >> 32) + temp4;
-    const unsigned long long int result4 = (result3 >> 32);
+    temp1 = op1 * op3;
+    temp2 = (temp1 >> 32) + op1 * op4;
+    temp3 = op2 * op3;
+    temp4 = (temp3 >> 32) + op2 * op4;
+
+    result1 = temp1 & 0xFFFFFFFF;
+    result2 = temp2 + (temp3 & 0xFFFFFFFF);
+    result3 = (result2 >> 32) + temp4;
+    result4 = (result3 >> 32);
 
     lo = result1 | (result2 << 32);
     hi = (result3 & 0xFFFFFFFF) | (result4 << 32);

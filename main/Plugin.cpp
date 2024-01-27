@@ -31,14 +31,14 @@
 // ReSharper disable CppCStyleCast
 #include "Plugin.hpp"
 
-#include <cassert>
+#include <assert.h>
 
 #include "rom.h"
 #include "win/Config.hpp"
 #include "../memory/memory.h"
+#include "../r4300/r4300.h"
 #include <win/main_win.h>
 #include <dbghelp.h>
-#include "../r4300/r4300.h"
 
 #include "win/features/Statusbar.hpp"
 
@@ -355,6 +355,7 @@ void load_gfx(HMODULE handle)
 
 void load_input(HMODULE handle)
 {
+	int i;
 	PLUGIN_INFO PluginInfo;
 	if (handle)
 	{
@@ -408,7 +409,7 @@ void load_input(HMODULE handle)
 		control_info.MemoryBswaped = TRUE;
 		control_info.HEADER = rom;
 		control_info.Controls = Controls;
-		for (int i = 0; i < 4; i++)
+		for (i = 0; i < 4; i++)
 		{
 			Controls[i].Present = FALSE;
 			Controls[i].RawData = FALSE;
@@ -790,6 +791,8 @@ void unload_plugins()
 
 void setup_dummy_info()
 {
+	int i;
+
 	/////// GFX ///////////////////////////
 	dummy_gfx_info.hWnd = statusbar_hwnd;
 	dummy_gfx_info.hStatusBar = statusbar_hwnd;
@@ -846,7 +849,7 @@ void setup_dummy_info()
 	dummy_control_info.MemoryBswaped = TRUE;
 	dummy_control_info.HEADER = (BYTE*)dummy_header;
 	dummy_control_info.Controls = Controls;
-	for (int i = 0; i < 4; i++)
+	for (i = 0; i < 4; i++)
 	{
 		Controls[i].Present = FALSE;
 		Controls[i].RawData = FALSE;

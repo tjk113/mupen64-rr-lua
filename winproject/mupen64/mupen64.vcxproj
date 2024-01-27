@@ -167,8 +167,8 @@
     <ClInclude Include="..\..\main\vcr_resample.h" />
     <ClInclude Include="..\..\main\speex\speex_resampler.h" />
     <ClInclude Include="..\..\main\speex\arch.h" />
-    <ClInclude Include="..\..\main\win\features\CoreDbg.h" />
     <ClInclude Include="..\..\main\win\features\CrashHelper.h" />
+    <ClInclude Include="..\..\main\win\features\CoreDbg.h" />
     <ClInclude Include="..\..\main\win\features\RomBrowser.hpp" />
     <ClInclude Include="..\..\main\win\features\Statusbar.hpp" />
     <ClInclude Include="..\..\main\win\features\Toolbar.hpp" />
@@ -242,8 +242,8 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\..\main\win\features\CrashHelper.cpp" />
     <ClCompile Include="..\..\main\win\features\CoreDbg.cpp" />
-    <ClCompile Include="..\..\main\win\features\CrashHelper.cpp"/>
     <ClCompile Include="..\..\main\win\features\RomBrowser.cpp" />
     <ClCompile Include="..\..\main\win\features\Statusbar.cpp" />
     <ClCompile Include="..\..\main\win\features\Toolbar.cpp" />

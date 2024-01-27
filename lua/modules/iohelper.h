@@ -1,7 +1,5 @@
-#ifndef IOHELPER_H
-#define IOHELPER_H
-
 #include <include/lua.h>
+#include <Windows.h>
 #include "../../main/win/main_win.h"
 
 namespace LuaCore::IOHelper
@@ -27,4 +25,3 @@ namespace LuaCore::IOHelper
 		return 1;
 	}
 }
-#endif // IOHELPER_H

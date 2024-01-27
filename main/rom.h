@@ -26,7 +26,6 @@
  * USA.
  *
 **/
-#pragma once
 #include <string>
 
 #ifndef ROM_H
@@ -74,9 +73,9 @@ std::string country_code_to_country_name(uint16_t country_code);
  */
 uint32_t get_vis_per_second(uint16_t country_code);
 
-static void rom_byteswap(uint8_t* rom)
+inline static void rom_byteswap(uint8_t* rom)
 {
-	uint8_t tmp;
+	uint8_t tmp = 0;
 
 	if (rom[0] == 0x37)
 	{
@@ -101,12 +100,13 @@ static void rom_byteswap(uint8_t* rom)
 	}
 }
 
-static char* trim(char* str)
+inline static char* trim(char* str)
 {
+	char *ibuf, *obuf;
+
 	if (str)
 	{
-		char*obuf;
-		for (char* ibuf = obuf = str; *ibuf; )
+		for (ibuf = obuf = str; *ibuf; )
 		{
 			while (*ibuf && (isspace (*ibuf)))
 				ibuf++;

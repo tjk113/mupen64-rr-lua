@@ -41,7 +41,8 @@ uLong ZEXPORT adler32(uLong adler, const Bytef* buf, uInt len);
 
 void TLBR()
 {
-    const int index = core_Index & 0x1F;
+    int index;
+    index = core_Index & 0x1F;
     core_PageMask = tlb_e[index].mask << 13;
     core_EntryHi = ((tlb_e[index].vpn2 << 13) | tlb_e[index].asid);
     core_EntryLo0 = (tlb_e[index].pfn_even << 6) | (tlb_e[index].c_even << 3)
@@ -427,8 +428,9 @@ void TLBWR()
 
 void TLBP()
 {
+    int i;
     core_Index |= 0x80000000;
-    for (int i = 0; i < 32; i++)
+    for (i = 0; i < 32; i++)
     {
         if (((tlb_e[i].vpn2 & (~tlb_e[i].mask)) ==
                 (((core_EntryHi & 0xFFFFE000) >> 13) & (~tlb_e[i].mask))) &&
@@ -455,7 +457,7 @@ void ERET()
     else
     {
         core_Status &= 0xFFFFFFFD;
-        jump_to(core_EPC)
+        jump_to(core_EPC);
     }
     llbit = 0;
     check_interrupt();

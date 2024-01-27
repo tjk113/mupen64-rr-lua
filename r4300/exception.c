@@ -65,6 +65,7 @@ void XTLB_refill_exception(unsigned long long int addresse)
 //Means no such virtual->physical translation exists
 void TLB_refill_exception(unsigned long address, int w)
 {
+    int usual_handler = 0, i;
     //printf("TLB_refill_exception:%x\n", address);
     if (!dynacore && w != 2) update_count();
     if (w == 1)
@@ -77,7 +78,7 @@ void TLB_refill_exception(unsigned long address, int w)
     if (core_Status & 0x2) // Test de EXL
     {
         if (interpcore) interp_addr = 0x80000180;
-        else jump_to(0x80000180)
+        else jump_to(0x80000180);
         if (delay_slot == 1 || delay_slot == 3)
             core_Cause |= 0x80000000;
         else
@@ -85,7 +86,6 @@ void TLB_refill_exception(unsigned long address, int w)
     }
     else
     {
-        int usual_handler = 0;
         if (!interpcore)
         {
             if (w != 2)
@@ -101,24 +101,24 @@ void TLB_refill_exception(unsigned long address, int w)
 
         if (address >= 0x80000000 && address < 0xc0000000)
             usual_handler = 1;
-        for (const auto& [mask, vpn2, g, asid, pfn_even, c_even, d_even, v_even, pfn_odd, c_odd, d_odd, v_odd, r, start_even, end_even, phys_even, start_odd, end_odd, phys_odd] : tlb_e)
+        for (i = 0; i < 32; i++)
         {
-            if (/*tlb_e[i].v_even &&*/ address >= start_even &&
-                address <= end_even)
+            if (/*tlb_e[i].v_even &&*/ address >= tlb_e[i].start_even &&
+                address <= tlb_e[i].end_even)
                 usual_handler = 1;
-            if (/*tlb_e[i].v_odd &&*/ address >= start_odd &&
-                address <= end_odd)
+            if (/*tlb_e[i].v_odd &&*/ address >= tlb_e[i].start_odd &&
+                address <= tlb_e[i].end_odd)
                 usual_handler = 1;
         }
         if (usual_handler)
         {
             if (interpcore) interp_addr = 0x80000180;
-            else jump_to(0x80000180)
+            else jump_to(0x80000180);
         }
         else
         {
             if (interpcore) interp_addr = 0x80000000;
-            else jump_to(0x80000000)
+            else jump_to(0x80000000);
         }
     }
     if (delay_slot == 1 || delay_slot == 3)
@@ -211,7 +211,7 @@ void exception_general()
     }
     else
     {
-        jump_to(0x80000180)
+        jump_to(0x80000180);
         last_addr = PC->addr;
     }
     if (dynacore)

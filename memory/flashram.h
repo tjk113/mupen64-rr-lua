@@ -26,8 +26,6 @@
  * USA.
  *
 **/
-#ifndef FLASHRAM_H
-#define FLASHRAM_H
 
 extern int use_flashram;
 
@@ -40,4 +38,3 @@ void dma_write_flashram();
 
 void save_flashram_infos(char* buf);
 void load_flashram_infos(char* buf);
-#endif // FLASHRAM_H

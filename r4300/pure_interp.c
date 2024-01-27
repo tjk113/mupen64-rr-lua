@@ -30,18 +30,21 @@
 #include "../lua/LuaConsole.h"
 
 
-#include <cstdio>
-#include <cmath>
-#include <cstdlib>
-#include "cop1_helpers.h"
-#include "exception.h"
-#include "interrupt.h"
-#include "macros.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <float.h>
 #include "r4300.h"
+#include "exception.h"
 #include "../memory/memory.h"
+#include "macros.h"
+#include "interrupt.h"
+#include "cop1_helpers.h"
 
 #include "../memory/tlb.h"
-#include "../main/win/features/CoreDbg.h"
+
+#define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
+#include "..\main\win\features\CoreDbg.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -62,48 +65,48 @@ extern unsigned long next_vi;
 
 static void NI()
 {
-    printf("NI:%x\n", static_cast<unsigned int>(op));
+    printf("NI:%x\n", (unsigned int)op);
     stop = 1;
 }
 
 static void SLL()
 {
-    rrd32 = static_cast<unsigned long>((rrt32)) << core_rsa;
+    rrd32 = (unsigned long)(rrt32) << core_rsa;
     sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SRL()
 {
-    rrd32 = static_cast<unsigned long>(rrt32) >> core_rsa;
+    rrd32 = (unsigned long)rrt32 >> core_rsa;
     sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SRA()
 {
-    rrd32 = rrt32 >> core_rsa;
+    rrd32 = (signed long)rrt32 >> core_rsa;
     sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SLLV()
 {
-    rrd32 = static_cast<unsigned long>((rrt32)) << (rrs32 & 0x1F);
+    rrd32 = (unsigned long)(rrt32) << (rrs32 & 0x1F);
     sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SRLV()
 {
-    rrd32 = static_cast<unsigned long>(rrt32) >> (rrs32 & 0x1F);
+    rrd32 = (unsigned long)rrt32 >> (rrs32 & 0x1F);
     sign_extended(core_rrd);
     interp_addr += 4;
 }
 
 static void SRAV()
 {
-    rrd32 = rrt32 >> (rrs32 & 0x1F);
+    rrd32 = (signed long)rrt32 >> (rrs32 & 0x1F);
     sign_extended(core_rrd);
     interp_addr += 4;
 }
@@ -124,7 +127,7 @@ static void JR()
 
 static void JALR()
 {
-    unsigned long long int* dest = reinterpret_cast<unsigned long long int*>(PC->f.r.rd);
+    unsigned long long int* dest = (unsigned long long int*)PC->f.r.rd;
     local_rs32 = rrs32;
     interp_addr += 4;
     delay_slot = 1;
@@ -190,19 +193,20 @@ static void DSLLV()
 
 static void DSRLV()
 {
-    core_rrd = static_cast<unsigned long long>(core_rrt) >> (rrs32 & 0x3F);
+    core_rrd = (unsigned long long)core_rrt >> (rrs32 & 0x3F);
     interp_addr += 4;
 }
 
 static void DSRAV()
 {
-    core_rrd = core_rrt >> (rrs32 & 0x3F);
+    core_rrd = (long long)core_rrt >> (rrs32 & 0x3F);
     interp_addr += 4;
 }
 
 static void MULT()
 {
-    const long long int temp = core_rrs * core_rrt;
+    long long int temp;
+    temp = core_rrs * core_rrt;
     hi = temp >> 32;
     lo = temp;
     sign_extended(lo);
@@ -211,8 +215,9 @@ static void MULT()
 
 static void MULTU()
 {
-    unsigned long long int temp = static_cast<unsigned long>(core_rrs) * static_cast<unsigned long long>(static_cast<unsigned long>(core_rrt));
-    hi = static_cast<long long>(temp) >> 32;
+    unsigned long long int temp;
+    temp = (unsigned long)core_rrs * (unsigned long long)((unsigned long)core_rrt);
+    hi = (long long)temp >> 32;
     lo = temp;
     sign_extended(lo);
     interp_addr += 4;
@@ -235,8 +240,8 @@ static void DIVU()
 {
     if (rrt32)
     {
-        lo = static_cast<unsigned long>(rrs32) / static_cast<unsigned long>(rrt32);
-        hi = static_cast<unsigned long>(rrs32) % static_cast<unsigned long>(rrt32);
+        lo = (unsigned long)rrs32 / (unsigned long)rrt32;
+        hi = (unsigned long)rrs32 % (unsigned long)rrt32;
         sign_extended(lo);
         sign_extended(hi);
     }
@@ -246,7 +251,9 @@ static void DIVU()
 
 static void DMULT()
 {
-    unsigned long long int op2, op4;
+    unsigned long long int op1, op2, op3, op4;
+    unsigned long long int result1, result2, result3, result4;
+    unsigned long long int temp1, temp2, temp3, temp4;
     int sign = 0;
 
     if (core_rrs < 0)
@@ -262,20 +269,20 @@ static void DMULT()
     }
     else op4 = core_rrt;
 
-    const unsigned long long int op1 = op2 & 0xFFFFFFFF;
+    op1 = op2 & 0xFFFFFFFF;
     op2 = (op2 >> 32) & 0xFFFFFFFF;
-    const unsigned long long int op3 = op4 & 0xFFFFFFFF;
+    op3 = op4 & 0xFFFFFFFF;
     op4 = (op4 >> 32) & 0xFFFFFFFF;
 
-    const unsigned long long int temp1 = op1 * op3;
-    const unsigned long long int temp2 = (temp1 >> 32) + op1 * op4;
-    const unsigned long long int temp3 = op2 * op3;
-    const unsigned long long int temp4 = (temp3 >> 32) + op2 * op4;
+    temp1 = op1 * op3;
+    temp2 = (temp1 >> 32) + op1 * op4;
+    temp3 = op2 * op3;
+    temp4 = (temp3 >> 32) + op2 * op4;
 
-    const unsigned long long int result1 = temp1 & 0xFFFFFFFF;
-    const unsigned long long int result2 = temp2 + (temp3 & 0xFFFFFFFF);
-    const unsigned long long int result3 = (result2 >> 32) + temp4;
-    const unsigned long long int result4 = (result3 >> 32);
+    result1 = temp1 & 0xFFFFFFFF;
+    result2 = temp2 + (temp3 & 0xFFFFFFFF);
+    result3 = (result2 >> 32) + temp4;
+    result4 = (result3 >> 32);
 
     lo = result1 | (result2 << 32);
     hi = (result3 & 0xFFFFFFFF) | (result4 << 32);
@@ -290,20 +297,24 @@ static void DMULT()
 
 static void DMULTU()
 {
-    unsigned long long int op1 = core_rrs & 0xFFFFFFFF;
-    unsigned long long int op2 = (core_rrs >> 32) & 0xFFFFFFFF;
-    unsigned long long int op3 = core_rrt & 0xFFFFFFFF;
-    unsigned long long int op4 = (core_rrt >> 32) & 0xFFFFFFFF;
+    unsigned long long int op1, op2, op3, op4;
+    unsigned long long int result1, result2, result3, result4;
+    unsigned long long int temp1, temp2, temp3, temp4;
 
-    unsigned long long int temp1 = op1 * op3;
-    unsigned long long int temp2 = (temp1 >> 32) + op1 * op4;
-    unsigned long long int temp3 = op2 * op3;
-    unsigned long long int temp4 = (temp3 >> 32) + op2 * op4;
+    op1 = core_rrs & 0xFFFFFFFF;
+    op2 = (core_rrs >> 32) & 0xFFFFFFFF;
+    op3 = core_rrt & 0xFFFFFFFF;
+    op4 = (core_rrt >> 32) & 0xFFFFFFFF;
 
-    unsigned long long int result1 = temp1 & 0xFFFFFFFF;
-    unsigned long long int result2 = temp2 + (temp3 & 0xFFFFFFFF);
-    unsigned long long int result3 = (result2 >> 32) + temp4;
-    unsigned long long int result4 = (result3 >> 32);
+    temp1 = op1 * op3;
+    temp2 = (temp1 >> 32) + op1 * op4;
+    temp3 = op2 * op3;
+    temp4 = (temp3 >> 32) + op2 * op4;
+
+    result1 = temp1 & 0xFFFFFFFF;
+    result2 = temp2 + (temp3 & 0xFFFFFFFF);
+    result3 = (result2 >> 32) + temp4;
+    result4 = (result3 >> 32);
 
     lo = result1 | (result2 << 32);
     hi = (result3 & 0xFFFFFFFF) | (result4 << 32);
@@ -315,8 +326,8 @@ static void DDIV()
 {
     if (core_rrt)
     {
-        lo = core_rrs / core_rrt;
-        hi = core_rrs % core_rrt;
+        lo = (long long int)core_rrs / (long long int)core_rrt;
+        hi = (long long int)core_rrs % (long long int)core_rrt;
     }
     else printf("ddiv\n");
     interp_addr += 4;
@@ -326,8 +337,8 @@ static void DDIVU()
 {
     if (core_rrt)
     {
-        lo = static_cast<unsigned long long int>(core_rrs) / static_cast<unsigned long long int>(core_rrt);
-        hi = static_cast<unsigned long long int>(core_rrs) % static_cast<unsigned long long int>(core_rrt);
+        lo = (unsigned long long int)core_rrs / (unsigned long long int)core_rrt;
+        hi = (unsigned long long int)core_rrs % (unsigned long long int)core_rrt;
     }
     else printf("ddivu\n");
     interp_addr += 4;
@@ -396,7 +407,7 @@ static void SLT()
 
 static void SLTU()
 {
-    if (static_cast<unsigned long long>(core_rrs) < static_cast<unsigned long long>(core_rrt))
+    if ((unsigned long long)core_rrs < (unsigned long long)core_rrt)
         core_rrd = 1;
     else
         core_rrd = 0;
@@ -445,7 +456,7 @@ static void DSLL()
 
 static void DSRL()
 {
-    core_rrd = static_cast<unsigned long long>(core_rrt) >> core_rsa;
+    core_rrd = (unsigned long long)core_rrt >> core_rsa;
     interp_addr += 4;
 }
 
@@ -463,7 +474,7 @@ static void DSLL32()
 
 static void DSRL32()
 {
-    core_rrd = static_cast<unsigned long long int>(core_rrt) >> (32 + core_rsa);
+    core_rrd = (unsigned long long int)core_rrt >> (32 + core_rsa);
     interp_addr += 4;
 }
 
@@ -767,7 +778,8 @@ static void (*interp_regimm[32])(void) =
 
 static void TLBR()
 {
-    const int index = core_Index & 0x1F;
+    int index;
+    index = core_Index & 0x1F;
     core_PageMask = tlb_e[index].mask << 13;
     core_EntryHi = ((tlb_e[index].vpn2 << 13) | tlb_e[index].asid);
     core_EntryLo0 = (tlb_e[index].pfn_even << 6) | (tlb_e[index].c_even << 3)
@@ -941,8 +953,9 @@ static void TLBWR()
 
 static void TLBP()
 {
+    int i;
     core_Index |= 0x80000000;
-    for (int i = 0; i < 32; i++)
+    for (i = 0; i < 32; i++)
     {
         if (((tlb_e[i].vpn2 & (~tlb_e[i].mask)) ==
                 (((core_EntryHi & 0xFFFFE000) >> 13) & (~tlb_e[i].mask))) &&
@@ -1047,7 +1060,7 @@ static void MTC0()
     case 11: // Compare
         update_count();
         remove_event(COMPARE_INT);
-        add_interrupt_event_count(COMPARE_INT, static_cast<unsigned long>(core_rrt));
+        add_interrupt_event_count(COMPARE_INT, (unsigned long)core_rrt);
         core_Compare = core_rrt;
         core_Cause = core_Cause & 0xFFFF7FFF; //Timer interrupt is clear
         break;
@@ -1056,27 +1069,29 @@ static void MTC0()
         {
             if (core_rrt & 0x04000000)
             {
-                for (int i = 0; i < 32; i++)
+                int i;
+                for (i = 0; i < 32; i++)
                 {
                     //reg_cop1_fgr_64[i]=reg_cop1_fgr_32[i];
-                    reg_cop1_double[i] = reinterpret_cast<double*>(&reg_cop1_fgr_64[i]);
-                    reg_cop1_simple[i] = reinterpret_cast<float*>(&reg_cop1_fgr_64[i]);
+                    reg_cop1_double[i] = (double*)&reg_cop1_fgr_64[i];
+                    reg_cop1_simple[i] = (float*)&reg_cop1_fgr_64[i];
                 }
             }
             else
             {
-                for (int i = 0; i < 32; i++)
+                int i;
+                for (i = 0; i < 32; i++)
                 {
                     //reg_cop1_fgr_32[i]=reg_cop1_fgr_64[i]&0xFFFFFFFF;
                     //if (i<16) reg_cop1_double[i*2]=(double*)&reg_cop1_fgr_32[i*2];
                     //reg_cop1_double[i]=(double*)&reg_cop1_fgr_64[i & 0xFFFE];
                     if (!(i & 1))
-                        reg_cop1_double[i] = reinterpret_cast<double*>(&reg_cop1_fgr_64[i >> 1]);
+                        reg_cop1_double[i] = (double*)&reg_cop1_fgr_64[i >> 1];
                     //reg_cop1_double[i]=(double*)&reg_cop1_fgr_64[i];
                     //reg_cop1_simple[i]=(float*)&reg_cop1_fgr_32[i];
                     //reg_cop1_simple[i]=(float*)&reg_cop1_fgr_64[i & 0xFFFE]+(i&1);
 #ifndef _BIG_ENDIAN
-                    reg_cop1_simple[i] = reinterpret_cast<float*>(&reg_cop1_fgr_64[i >> 1]) + (i & 1);
+                    reg_cop1_simple[i] = (float*)&reg_cop1_fgr_64[i >> 1] + (i & 1);
 #else
 						reg_cop1_simple[i] = (float*)&reg_cop1_fgr_64[i >> 1] + (1 - (i & 1));
 #endif
@@ -1273,7 +1288,7 @@ static void (*interp_cop1_bc[4])(void) =
 
 static void ADD_S()
 {
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     CHECK_INPUT(*reg_cop1_simple[core_cfft]);
     *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] +
@@ -1284,7 +1299,7 @@ static void ADD_S()
 
 static void SUB_S()
 {
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     CHECK_INPUT(*reg_cop1_simple[core_cfft]);
     *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] -
@@ -1295,7 +1310,7 @@ static void SUB_S()
 
 static void MUL_S()
 {
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     CHECK_INPUT(*reg_cop1_simple[core_cfft]);
     *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] *
@@ -1310,7 +1325,7 @@ static void DIV_S()
     {
         printf("div_s by 0\n");
     }
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     CHECK_INPUT(*reg_cop1_simple[core_cfft]);
     *reg_cop1_simple[core_cffd] = *reg_cop1_simple[core_cffs] /
@@ -1321,7 +1336,7 @@ static void DIV_S()
 
 static void SQRT_S()
 {
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
     *reg_cop1_simple[core_cffd] = sqrt(*reg_cop1_simple[core_cffs]);
     CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
@@ -1351,10 +1366,10 @@ static void NEG_S()
 static void ROUND_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_round_to_nearest()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_round_to_nearest();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1362,10 +1377,10 @@ static void ROUND_L_S()
 static void TRUNC_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_trunc()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_trunc();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1373,10 +1388,10 @@ static void TRUNC_L_S()
 static void CEIL_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_ceil()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_ceil();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1384,10 +1399,10 @@ static void CEIL_L_S()
 static void FLOOR_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_floor()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_floor();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1395,10 +1410,10 @@ static void FLOOR_L_S()
 static void ROUND_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_round_to_nearest()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_round_to_nearest();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1406,10 +1421,10 @@ static void ROUND_W_S()
 static void TRUNC_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_trunc()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_trunc();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1417,10 +1432,10 @@ static void TRUNC_W_S()
 static void CEIL_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_ceil()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_ceil();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1428,10 +1443,10 @@ static void CEIL_W_S()
 static void FLOOR_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_floor()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_floor();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1446,9 +1461,9 @@ static void CVT_D_S()
 static void CVT_W_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_rounding()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd])
+    set_rounding();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1456,9 +1471,9 @@ static void CVT_W_S()
 static void CVT_L_S()
 {
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
-    set_rounding()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd])
+    set_rounding();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_S(reg_cop1_simple[core_cffs], reg_cop1_simple[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1645,7 +1660,7 @@ static void (*interp_cop1_s[64])(void) =
 
 static void ADD_D()
 {
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     CHECK_INPUT(*reg_cop1_double[core_cfft]);
     *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] +
@@ -1656,7 +1671,7 @@ static void ADD_D()
 
 static void SUB_D()
 {
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     CHECK_INPUT(*reg_cop1_double[core_cfft]);
     *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] -
@@ -1667,7 +1682,7 @@ static void SUB_D()
 
 static void MUL_D()
 {
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     CHECK_INPUT(*reg_cop1_double[core_cfft]);
     *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] *
@@ -1687,7 +1702,7 @@ static void DIV_D()
         printf("div_d by 0\n");
         //return;
     }
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     CHECK_INPUT(*reg_cop1_double[core_cfft]);
     *reg_cop1_double[core_cffd] = *reg_cop1_double[core_cffs] /
@@ -1698,7 +1713,7 @@ static void DIV_D()
 
 static void SQRT_D()
 {
-    set_rounding()
+    set_rounding();
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     *reg_cop1_double[core_cffd] = sqrt(*reg_cop1_double[core_cffs]);
     CHECK_OUTPUT(*reg_cop1_double[core_cffd]);
@@ -1728,10 +1743,10 @@ static void NEG_D()
 static void ROUND_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_round_to_nearest()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_round_to_nearest();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1739,21 +1754,21 @@ static void ROUND_L_D()
 static void TRUNC_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_trunc()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_trunc();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
-    set_rounding()
+    set_rounding();
     interp_addr += 4;
 }
 
 static void CEIL_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_ceil()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_ceil();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1761,10 +1776,10 @@ static void CEIL_L_D()
 static void FLOOR_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_floor()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_floor();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1772,10 +1787,10 @@ static void FLOOR_L_D()
 static void ROUND_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_round_to_nearest()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_round_to_nearest();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1783,10 +1798,10 @@ static void ROUND_W_D()
 static void TRUNC_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_trunc()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_trunc();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1794,10 +1809,10 @@ static void TRUNC_W_D()
 static void CEIL_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_ceil()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_ceil();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1805,10 +1820,10 @@ static void CEIL_W_D()
 static void FLOOR_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_floor()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_floor();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1818,14 +1833,14 @@ static void CVT_S_D()
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     if (Config.is_round_towards_zero_enabled)
     {
-        set_trunc()
+        set_trunc();
     }
     else
     {
-        set_rounding()
+        set_rounding();
     }
     *reg_cop1_simple[core_cffd] = *reg_cop1_double[core_cffs];
-    set_rounding()
+    set_rounding();
     CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     interp_addr += 4;
 }
@@ -1833,9 +1848,9 @@ static void CVT_S_D()
 static void CVT_W_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_rounding()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -1843,9 +1858,9 @@ static void CVT_W_D()
 static void CVT_L_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_rounding()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    set_rounding();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     CHECK_CONVERT_EXCEPTIONS();
     interp_addr += 4;
 }
@@ -2032,15 +2047,15 @@ static void (*interp_cop1_d[64])(void) =
 
 static void CVT_S_W()
 {
-    set_rounding()
-    *reg_cop1_simple[core_cffd] = reinterpret_cast<long>(reg_cop1_simple[core_cffs]);
+    set_rounding();
+    *reg_cop1_simple[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
     interp_addr += 4;
 }
 
 static void CVT_D_W()
 {
-    set_rounding()
-    *reg_cop1_double[core_cffd] = reinterpret_cast<long>(reg_cop1_simple[core_cffs]);
+    set_rounding();
+    *reg_cop1_double[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
     interp_addr += 4;
 }
 
@@ -2058,15 +2073,15 @@ static void (*interp_cop1_w[64])(void) =
 
 static void CVT_S_L()
 {
-    set_rounding()
-    *reg_cop1_simple[core_cffd] = reinterpret_cast<long long>(reg_cop1_double[core_cffs]);
+    set_rounding();
+    *reg_cop1_simple[core_cffd] = *((long long*)(reg_cop1_double[core_cffs]));
     interp_addr += 4;
 }
 
 static void CVT_D_L()
 {
-    set_rounding()
-    *reg_cop1_double[core_cffd] = reinterpret_cast<long long>(reg_cop1_double[core_cffs]);
+    set_rounding();
+    *reg_cop1_double[core_cffd] = *((long long*)(reg_cop1_double[core_cffs]));
     interp_addr += 4;
 }
 
@@ -2084,14 +2099,14 @@ static void (*interp_cop1_l[64])(void) =
 
 static void MFC1()
 {
-    rrt32 = reinterpret_cast<long>(reg_cop1_simple[core_rfs]);
+    rrt32 = *((long*)reg_cop1_simple[core_rfs]);
     sign_extended(core_rrt);
     interp_addr += 4;
 }
 
 static void DMFC1()
 {
-    core_rrt = reinterpret_cast<long long>(reg_cop1_double[core_rfs]);
+    core_rrt = *((long long*)(reg_cop1_double[core_rfs]));
     interp_addr += 4;
 }
 
@@ -2128,7 +2143,6 @@ static void CTC1()
         FCR31 = rrt32;
     switch ((FCR31 & 3))
     {
-    default: break;
     case 0:
         rounding_mode = ROUND_MODE;
         break;
@@ -2144,7 +2158,7 @@ static void CTC1()
     }
     //if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n",
     //				   (int)((FCR31 >> 7) & 0x1F));
-    set_rounding()
+    set_rounding();
     interp_addr += 4;
 }
 
@@ -2173,7 +2187,7 @@ static void L()
     interp_cop1_l[(op & 0x3F)]();
 }
 
-static void (*interp_cop1[32])() =
+static void (*interp_cop1[32])(void) =
 {
     MFC1, DMFC1, CFC1, NI, MTC1, DMTC1, CTC1, NI,
     BC, NI, NI, NI, NI, NI, NI, NI,
@@ -2354,7 +2368,7 @@ static void SLTI()
 
 static void SLTIU()
 {
-    if (static_cast<unsigned long long>(core_irs) < static_cast<unsigned long long>(static_cast<long long>(core_iimmediate)))
+    if ((unsigned long long)core_irs < (unsigned long long)((long long)core_iimmediate))
         core_irt = 1;
     else
         core_irt = 0;
@@ -2363,19 +2377,19 @@ static void SLTIU()
 
 static void ANDI()
 {
-    core_irt = core_irs & static_cast<unsigned short>(core_iimmediate);
+    core_irt = core_irs & (unsigned short)core_iimmediate;
     interp_addr += 4;
 }
 
 static void ORI()
 {
-    core_irt = core_irs | static_cast<unsigned short>(core_iimmediate);
+    core_irt = core_irs | (unsigned short)core_iimmediate;
     interp_addr += 4;
 }
 
 static void XORI()
 {
-    core_irt = core_irs ^ static_cast<unsigned short>(core_iimmediate);
+    core_irt = core_irs ^ (unsigned short)core_iimmediate;
     interp_addr += 4;
 }
 
@@ -2399,7 +2413,7 @@ static void COP1()
 
 static void BEQL()
 {
-    const short local_immediate = core_iimmediate;
+    short local_immediate = core_iimmediate;
     local_rs = core_irs;
     local_rt = core_irt;
     if ((interp_addr + (local_immediate + 1) * 4) == interp_addr)
@@ -2565,10 +2579,9 @@ static void LDL()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 7)
     {
-    default: break;
     case 0:
         address = core_iimmediate + irs32;
-        rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+        rdword = (unsigned long long int*)&core_irt;
         read_dword_in_memory();
         break;
     case 1:
@@ -2622,7 +2635,6 @@ static void LDR()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 7)
     {
-    default: break;
     case 0:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &word;
@@ -2667,7 +2679,7 @@ static void LDR()
         break;
     case 7:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
-        rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+        rdword = (unsigned long long int*)&core_irt;
         read_dword_in_memory();
         break;
     }
@@ -2677,7 +2689,7 @@ static void LB()
 {
     interp_addr += 4;
     address = core_iimmediate + irs32;
-    rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+    rdword = (unsigned long long int*)&core_irt;
     read_byte_in_memory();
     sign_extendedb(core_irt);
 }
@@ -2686,7 +2698,7 @@ static void LH()
 {
     interp_addr += 4;
     address = core_iimmediate + irs32;
-    rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+    rdword = (unsigned long long int*)&core_irt;
     read_hword_in_memory();
     sign_extendedh(core_irt);
 }
@@ -2697,10 +2709,9 @@ static void LWL()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 3)
     {
-    default: break;
     case 0:
         address = core_iimmediate + irs32;
-        rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+        rdword = (unsigned long long int*)&core_irt;
         read_word_in_memory();
         break;
     case 1:
@@ -2728,7 +2739,7 @@ static void LWL()
 static void LW()
 {
     address = core_iimmediate + irs32;
-    rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+    rdword = (unsigned long long int*)&core_irt;
     interp_addr += 4;
     read_word_in_memory();
     sign_extended(core_irt);
@@ -2738,7 +2749,7 @@ static void LBU()
 {
     interp_addr += 4;
     address = core_iimmediate + irs32;
-    rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+    rdword = (unsigned long long int*)&core_irt;
     read_byte_in_memory();
 }
 
@@ -2746,7 +2757,7 @@ static void LHU()
 {
     interp_addr += 4;
     address = core_iimmediate + irs32;
-    rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+    rdword = (unsigned long long int*)&core_irt;
     read_hword_in_memory();
 }
 
@@ -2756,7 +2767,6 @@ static void LWR()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 3)
     {
-    default: break;
     case 0:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &word;
@@ -2777,7 +2787,7 @@ static void LWR()
         break;
     case 3:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
-        rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+        rdword = (unsigned long long int*)&core_irt;
         read_word_in_memory();
         sign_extended(core_irt);
     }
@@ -2786,7 +2796,7 @@ static void LWR()
 static void LWU()
 {
     address = core_iimmediate + irs32;
-    rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+    rdword = (unsigned long long int*)&core_irt;
     interp_addr += 4;
     read_word_in_memory();
 }
@@ -2795,7 +2805,7 @@ static void SB()
 {
     interp_addr += 4;
     address = core_iimmediate + irs32;
-    g_byte = static_cast<unsigned char>((core_irt & 0xFF));
+    g_byte = (unsigned char)(core_irt & 0xFF);
     write_byte_in_memory();
 }
 
@@ -2803,7 +2813,7 @@ static void SH()
 {
     interp_addr += 4;
     address = core_iimmediate + irs32;
-    hword = static_cast<unsigned short>((core_irt & 0xFFFF));
+    hword = (unsigned short)(core_irt & 0xFFFF);
     write_hword_in_memory();
 }
 
@@ -2813,29 +2823,28 @@ static void SWL()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 3)
     {
-    default: break;
     case 0:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
-        word = static_cast<unsigned long>(core_irt);
+        word = (unsigned long)core_irt;
         write_word_in_memory();
         break;
     case 1:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &old_word;
         read_word_in_memory();
-        word = (static_cast<unsigned long>(core_irt) >> 8) | (old_word & 0xFF000000);
+        word = ((unsigned long)core_irt >> 8) | (old_word & 0xFF000000);
         write_word_in_memory();
         break;
     case 2:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &old_word;
         read_word_in_memory();
-        word = (static_cast<unsigned long>(core_irt) >> 16) | (old_word & 0xFFFF0000);
+        word = ((unsigned long)core_irt >> 16) | (old_word & 0xFFFF0000);
         write_word_in_memory();
         break;
     case 3:
         address = core_iimmediate + irs32;
-        g_byte = static_cast<unsigned char>((core_irt >> 24));
+        g_byte = (unsigned char)(core_irt >> 24);
         write_byte_in_memory();
         break;
     }
@@ -2845,7 +2854,7 @@ static void SW()
 {
     interp_addr += 4;
     address = core_iimmediate + irs32;
-    word = static_cast<unsigned long>((core_irt & 0xFFFFFFFF));
+    word = (unsigned long)(core_irt & 0xFFFFFFFF);
     write_word_in_memory();
 }
 
@@ -2855,7 +2864,6 @@ static void SDL()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 7)
     {
-    default: break;
     case 0:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         dword = core_irt;
@@ -2865,49 +2873,49 @@ static void SDL()
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (static_cast<unsigned long long>(core_irt) >> 8) | (old_word & 0xFF00000000000000LL);
+        dword = ((unsigned long long)core_irt >> 8) | (old_word & 0xFF00000000000000LL);
         write_dword_in_memory();
         break;
     case 2:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (static_cast<unsigned long long>(core_irt) >> 16) | (old_word & 0xFFFF000000000000LL);
+        dword = ((unsigned long long)core_irt >> 16) | (old_word & 0xFFFF000000000000LL);
         write_dword_in_memory();
         break;
     case 3:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (static_cast<unsigned long long>(core_irt) >> 24) | (old_word & 0xFFFFFF0000000000LL);
+        dword = ((unsigned long long)core_irt >> 24) | (old_word & 0xFFFFFF0000000000LL);
         write_dword_in_memory();
         break;
     case 4:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (static_cast<unsigned long long>(core_irt) >> 32) | (old_word & 0xFFFFFFFF00000000LL);
+        dword = ((unsigned long long)core_irt >> 32) | (old_word & 0xFFFFFFFF00000000LL);
         write_dword_in_memory();
         break;
     case 5:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (static_cast<unsigned long long>(core_irt) >> 40) | (old_word & 0xFFFFFFFFFF000000LL);
+        dword = ((unsigned long long)core_irt >> 40) | (old_word & 0xFFFFFFFFFF000000LL);
         write_dword_in_memory();
         break;
     case 6:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (static_cast<unsigned long long>(core_irt) >> 48) | (old_word & 0xFFFFFFFFFFFF0000LL);
+        dword = ((unsigned long long)core_irt >> 48) | (old_word & 0xFFFFFFFFFFFF0000LL);
         write_dword_in_memory();
         break;
     case 7:
         address = (core_iimmediate + irs32) & 0xFFFFFFF8;
         rdword = &old_word;
         read_dword_in_memory();
-        dword = (static_cast<unsigned long long>(core_irt) >> 56) | (old_word & 0xFFFFFFFFFFFFFF00LL);
+        dword = ((unsigned long long)core_irt >> 56) | (old_word & 0xFFFFFFFFFFFFFF00LL);
         write_dword_in_memory();
         break;
     }
@@ -2919,7 +2927,6 @@ static void SDR()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 7)
     {
-    default: break;
     case 0:
         address = core_iimmediate + irs32;
         rdword = &old_word;
@@ -2983,31 +2990,30 @@ static void SWR()
     interp_addr += 4;
     switch ((core_iimmediate + irs32) & 3)
     {
-    default: break;
     case 0:
         address = core_iimmediate + irs32;
         rdword = &old_word;
         read_word_in_memory();
-        word = (static_cast<unsigned long>(core_irt) << 24) | (old_word & 0x00FFFFFF);
+        word = ((unsigned long)core_irt << 24) | (old_word & 0x00FFFFFF);
         write_word_in_memory();
         break;
     case 1:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &old_word;
         read_word_in_memory();
-        word = (static_cast<unsigned long>(core_irt) << 16) | (old_word & 0x0000FFFF);
+        word = ((unsigned long)core_irt << 16) | (old_word & 0x0000FFFF);
         write_word_in_memory();
         break;
     case 2:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
         rdword = &old_word;
         read_word_in_memory();
-        word = (static_cast<unsigned long>(core_irt) << 8) | (old_word & 0x000000FF);
+        word = ((unsigned long)core_irt << 8) | (old_word & 0x000000FF);
         write_word_in_memory();
         break;
     case 3:
         address = (core_iimmediate + irs32) & 0xFFFFFFFC;
-        word = static_cast<unsigned long>(core_irt);
+        word = (unsigned long)core_irt;
         write_word_in_memory();
         break;
     }
@@ -3021,7 +3027,7 @@ static void CACHE()
 static void LL()
 {
     address = core_iimmediate + irs32;
-    rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+    rdword = (unsigned long long int*)&core_irt;
     interp_addr += 4;
     read_word_in_memory();
     sign_extended(core_irt);
@@ -3044,7 +3050,7 @@ static void LDC1()
     if (check_cop1_unusable()) return;
     interp_addr += 4;
     address = core_lfoffset + reg[core_lfbase];
-    rdword = reinterpret_cast<unsigned long long int*>(reg_cop1_double[core_lfft]);
+    rdword = (unsigned long long int*)reg_cop1_double[core_lfft];
     read_dword_in_memory();
 }
 
@@ -3052,7 +3058,7 @@ static void LD()
 {
     interp_addr += 4;
     address = core_iimmediate + irs32;
-    rdword = reinterpret_cast<unsigned long long int*>(&core_irt);
+    rdword = (unsigned long long int*)&core_irt;
     read_dword_in_memory();
 }
 
@@ -3062,7 +3068,7 @@ static void SC()
     if (llbit)
     {
         address = core_iimmediate + irs32;
-        word = static_cast<unsigned long>((core_irt & 0xFFFFFFFF));
+        word = (unsigned long)(core_irt & 0xFFFFFFFF);
         write_word_in_memory();
         llbit = 0;
         core_irt = 1;
@@ -3078,7 +3084,7 @@ static void SWC1()
     if (check_cop1_unusable()) return;
     interp_addr += 4;
     address = core_lfoffset + reg[core_lfbase];
-    word = reinterpret_cast<long>(reg_cop1_simple[core_lfft]);
+    word = *((long*)reg_cop1_simple[core_lfft]);
     write_word_in_memory();
 }
 
@@ -3087,7 +3093,7 @@ static void SDC1()
     if (check_cop1_unusable()) return;
     interp_addr += 4;
     address = core_lfoffset + reg[core_lfbase];
-    dword = reinterpret_cast<unsigned long long>(reg_cop1_double[core_lfft]);
+    dword = *((unsigned long long*)reg_cop1_double[core_lfft]);
     write_dword_in_memory();
 }
 
@@ -3138,7 +3144,7 @@ void prefetch()
     {
         if (/*(interp_addr >= 0x80000000) && */(interp_addr < 0x80800000))
         {
-            op = *reinterpret_cast<unsigned long*>(&reinterpret_cast<unsigned char*>(rdram)[(interp_addr & 0xFFFFFF)]);
+            op = *(unsigned long*)&((unsigned char*)rdram)[(interp_addr & 0xFFFFFF)];
             /*if ((debug_count+Count) > 0xabaa20)
               printf("count:%x, add:%x, op:%x, l%d\n", (int)(Count+debug_count),
                  interp_addr, op, line);*/
@@ -3152,20 +3158,21 @@ void prefetch()
         }
         else if ((interp_addr > 0xb0000000))
         {
-            op = reinterpret_cast<unsigned long*>(rom)[(interp_addr & 0xFFFFFFF) / 4];
+            op = ((unsigned long*)rom)[(interp_addr & 0xFFFFFFF) / 4];
             prefetch_opcode(op);
         }
         else
         {
             //unmapped memory exception
-            printf("Exception, attempt to prefetch unmapped memory at: %x\n", static_cast<int>(interp_addr));
+            printf("Exception, attempt to prefetch unmapped memory at: %x\n", (int)interp_addr);
             stop = 1;
         }
     }
     else
     {
-        const unsigned long addr = interp_addr;
-        if (const unsigned long phys = virtual_to_physical_address(interp_addr, 2); phys != 0x00000000) interp_addr = phys;
+        unsigned long addr = interp_addr, phys;
+        phys = virtual_to_physical_address(interp_addr, 2);
+        if (phys != 0x00000000) interp_addr = phys;
         else
         {
             prefetch();
@@ -3185,7 +3192,7 @@ void pure_interpreter()
 {
     interp_addr = 0xa4000040;
     stop = 0;
-    PC = static_cast<precomp_instr*>(malloc(sizeof(precomp_instr)));
+    PC = (precomp_instr*)malloc(sizeof(precomp_instr));
     last_addr = interp_addr;
     while (!stop)
     {
@@ -3218,7 +3225,7 @@ void pure_interpreter()
 void interprete_section(unsigned long addr)
 {
     interp_addr = addr;
-    PC = static_cast<precomp_instr*>(malloc(sizeof(precomp_instr)));
+    PC = (precomp_instr*)malloc(sizeof(precomp_instr));
     last_addr = interp_addr;
     while (!stop && (addr >> 12) == (interp_addr >> 12))
     {

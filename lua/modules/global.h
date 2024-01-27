@@ -1,7 +1,6 @@
-#ifndef GLOBAL_H
-#define GLOBAL_H
 #include <include/lua.h>
 #include <Windows.h>
+#include "../../main/win/main_win.h"
 
 namespace LuaCore::Global
 {
@@ -33,7 +32,6 @@ namespace LuaCore::Global
 	{
 		switch (lua_type(L, -1))
 		{
-		default: break;
 		case LUA_TNIL:
 		case LUA_TBOOLEAN:
 		case LUA_TFUNCTION:
@@ -70,22 +68,22 @@ namespace LuaCore::Global
 				lua_pushvalue(L, -1);
 				lua_pushboolean(L, TRUE);
 				lua_rawset(L, 1);
+				int isArray = 0;
 				std::string s("{");
 				lua_pushnil(L);
 				if (lua_next(L, -2))
 				{
-					int is_array = 0;
-					while (true)
+					while (1)
 					{
 						lua_pushvalue(L, -2);
 						if (lua_type(L, -1) == LUA_TNUMBER &&
-							is_array + 1 == lua_tonumber(L, -1))
+							isArray + 1 == lua_tonumber(L, -1))
 						{
 							lua_pop(L, 1);
-							is_array++;
+							isArray++;
 						} else
 						{
-							is_array = -1;
+							isArray = -1;
 							if (lua_type(L, -1) == LUA_TSTRING)
 							{
 								s.append(lua_tostring(L, -1));
@@ -99,7 +97,7 @@ namespace LuaCore::Global
 							}
 						}
 						ToStringEx(L);
-						if (is_array == -1)
+						if (isArray == -1)
 						{
 							s.append("=");
 						}
@@ -178,4 +176,3 @@ namespace LuaCore::Global
 		return 1;
 	}
 }
-#endif // GLOBAL_H

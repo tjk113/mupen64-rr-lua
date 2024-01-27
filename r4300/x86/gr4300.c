@@ -202,19 +202,20 @@ void genj()
 #ifdef INTERPRET_J
 	gencallinterp((unsigned long)J, 1);
 #else
+    unsigned long naddr;
 
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(J), 1);
+        gencallinterp((unsigned long)J, 1);
         return;
     }
 
     gendelayslot();
-    const unsigned long naddr = ((dst - 1)->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
+    naddr = ((dst - 1)->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
 
-    mov_m32_imm32(&last_addr, naddr);
-    gencheck_interrupt(reinterpret_cast<unsigned long>(&actual->block[(naddr - actual->start) / 4]));
+    mov_m32_imm32((void*)(&last_addr), naddr);
+    gencheck_interrupt((unsigned long)&actual->block[(naddr - actual->start) / 4]);
     jmp(naddr);
 #endif
 }
@@ -224,6 +225,7 @@ void genj_out()
 #ifdef INTERPRET_J_OUT
 	gencallinterp((unsigned long)J_OUT, 1);
 #else
+    unsigned long naddr;
 
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
@@ -233,7 +235,7 @@ void genj_out()
     }
 
     gendelayslot();
-    const unsigned long naddr = ((dst - 1)->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
+    naddr = ((dst - 1)->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
 
     mov_m32_imm32((void*)(&last_addr), naddr);
     gencheck_interrupt_out(naddr);
@@ -273,6 +275,7 @@ void genjal()
 #ifdef INTERPRET_JAL
 	gencallinterp((unsigned long)JAL, 1);
 #else
+    unsigned long naddr;
 
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
@@ -289,7 +292,7 @@ void genjal()
     else
         mov_m32_imm32((unsigned long*)(&reg[31]) + 1, 0);
 
-    const unsigned long naddr = ((dst - 1)->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
+    naddr = ((dst - 1)->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
 
     mov_m32_imm32((void*)(&last_addr), naddr);
     gencheck_interrupt((unsigned long)&actual->block[(naddr - actual->start) / 4]);
@@ -302,6 +305,7 @@ void genjal_out()
 #ifdef INTERPRET_JAL_OUT
 	gencallinterp((unsigned long)JAL_OUT, 1);
 #else
+    unsigned long naddr;
 
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
@@ -318,7 +322,7 @@ void genjal_out()
     else
         mov_m32_imm32((unsigned long*)(&reg[31]) + 1, 0);
 
-    const unsigned long naddr = ((dst - 1)->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
+    naddr = ((dst - 1)->f.j.inst_index << 2) | (dst->addr & 0xF0000000);
 
     mov_m32_imm32((void*)(&last_addr), naddr);
     gencheck_interrupt_out(naddr);
@@ -424,19 +428,21 @@ void genbeq_test()
 
 void gentest()
 {
+    unsigned long temp, temp2;
+
     cmp_m32_imm32((unsigned long*)(&branch_taken), 0);
     je_near_rj(0);
-    const unsigned long temp = code_length;
-    mov_m32_imm32(&last_addr, dst->addr + (dst - 1)->f.i.immediate * 4);
+    temp = code_length;
+    mov_m32_imm32((void*)(&last_addr), dst->addr + (dst - 1)->f.i.immediate * 4);
     gencheck_interrupt((unsigned long)(dst + (dst - 1)->f.i.immediate));
     jmp(dst->addr + (dst - 1)->f.i.immediate * 4);
 
-    const unsigned long temp2 = code_length;
+    temp2 = code_length;
     code_length = temp - 4;
     put32(temp2 - temp);
     code_length = temp2;
-    mov_m32_imm32(&last_addr, dst->addr + 4);
-    gencheck_interrupt(reinterpret_cast<unsigned long>(dst + 1));
+    mov_m32_imm32((void*)(&last_addr), dst->addr + 4);
+    gencheck_interrupt((unsigned long)(dst + 1));
     jmp(dst->addr + 4);
 }
 
@@ -448,7 +454,7 @@ void genbeq()
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(BEQ), 1);
+        gencallinterp((unsigned long)BEQ, 1);
         return;
     }
 
@@ -460,22 +466,24 @@ void genbeq()
 
 void gentest_out()
 {
-    cmp_m32_imm32(&branch_taken, 0);
+    unsigned long temp, temp2;
+
+    cmp_m32_imm32((unsigned long*)(&branch_taken), 0);
     je_near_rj(0);
-    unsigned long temp = code_length;
-    mov_m32_imm32(&last_addr, dst->addr + (dst - 1)->f.i.immediate * 4);
+    temp = code_length;
+    mov_m32_imm32((void*)(&last_addr), dst->addr + (dst - 1)->f.i.immediate * 4);
     gencheck_interrupt_out(dst->addr + (dst - 1)->f.i.immediate * 4);
     mov_m32_imm32(&jump_to_address, dst->addr + (dst - 1)->f.i.immediate * 4);
-    mov_m32_imm32(&PC, reinterpret_cast<unsigned long>(dst + 1));
-    mov_reg32_imm32(EAX, reinterpret_cast<unsigned long>(jump_to_func));
+    mov_m32_imm32((unsigned long*)(&PC), (unsigned long)(dst + 1));
+    mov_reg32_imm32(EAX, (unsigned long)jump_to_func);
     call_reg32(EAX);
 
-    const unsigned long temp2 = code_length;
+    temp2 = code_length;
     code_length = temp - 4;
     put32(temp2 - temp);
     code_length = temp2;
     mov_m32_imm32((void*)(&last_addr), dst->addr + 4);
-    gencheck_interrupt(reinterpret_cast<unsigned long>(dst + 1));
+    gencheck_interrupt((unsigned long)(dst + 1));
     jmp(dst->addr + 4);
 }
 
@@ -499,22 +507,25 @@ void genbeq_out()
 
 void gentest_idle()
 {
-    const int reg = lru_register();
+    unsigned long temp, temp2;
+    int reg;
+
+    reg = lru_register();
     free_register(reg);
 
-    cmp_m32_imm32(&branch_taken, 0);
+    cmp_m32_imm32((unsigned long*)(&branch_taken), 0);
     je_near_rj(0);
-    const unsigned long temp = code_length;
+    temp = code_length;
 
-    mov_reg32_m32(reg, &next_interrupt);
-    sub_reg32_m32(reg, &core_Count);
+    mov_reg32_m32(reg, (unsigned long*)(&next_interrupt));
+    sub_reg32_m32(reg, (unsigned long*)(&core_Count));
     cmp_reg32_imm8(reg, 3);
     jbe_rj(12);
 
     and_reg32_imm32(reg, 0xFFFFFFFC); // 6
-    add_m32_reg32(&core_Count, reg); // 6
+    add_m32_reg32((unsigned long*)(&core_Count), reg); // 6
 
-    const unsigned long temp2 = code_length;
+    temp2 = code_length;
     code_length = temp - 4;
     put32(temp2 - temp);
     code_length = temp2;
@@ -528,7 +539,7 @@ void genbeq_idle()
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(BEQ_IDLE), 1);
+        gencallinterp((unsigned long)BEQ_IDLE, 1);
         return;
     }
 
@@ -540,69 +551,70 @@ void genbeq_idle()
 
 void genbne_test()
 {
-    const int rs_64bit = is64(reinterpret_cast<unsigned long*>(dst->f.i.rs));
+    int rs_64bit = is64((unsigned long*)dst->f.i.rs);
+    int rt_64bit = is64((unsigned long*)dst->f.i.rt);
 
-    if (const int rt_64bit = is64(reinterpret_cast<unsigned long*>(dst->f.i.rt)); !rs_64bit && !rt_64bit)
+    if (!rs_64bit && !rt_64bit)
     {
-        const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.i.rs));
-        const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.i.rt));
+        int rs = allocate_register((unsigned long*)dst->f.i.rs);
+        int rt = allocate_register((unsigned long*)dst->f.i.rt);
 
         cmp_reg32_reg32(rs, rt);
         je_rj(12);
-        mov_m32_imm32(&branch_taken, 1); // 10
+        mov_m32_imm32((unsigned long*)(&branch_taken), 1); // 10
         jmp_imm_short(10); // 2
-        mov_m32_imm32(&branch_taken, 0); // 10
+        mov_m32_imm32((unsigned long*)(&branch_taken), 0); // 10
     }
     else if (rs_64bit == -1)
     {
-        const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.i.rt));
-        const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.i.rt));
+        int rt1 = allocate_64_register1((unsigned long*)dst->f.i.rt);
+        int rt2 = allocate_64_register2((unsigned long*)dst->f.i.rt);
 
-        cmp_reg32_m32(rt1, dst->f.i.rs);
+        cmp_reg32_m32(rt1, (unsigned long*)dst->f.i.rs);
         jne_rj(20);
-        cmp_reg32_m32(rt2, reinterpret_cast<unsigned long*>(dst->f.i.rs) + 1); // 6
+        cmp_reg32_m32(rt2, ((unsigned long*)dst->f.i.rs) + 1); // 6
         jne_rj(12); // 2
-        mov_m32_imm32(&branch_taken, 0); // 10
+        mov_m32_imm32((unsigned long*)(&branch_taken), 0); // 10
         jmp_imm_short(10); // 2
-        mov_m32_imm32(&branch_taken, 1); // 10
+        mov_m32_imm32((unsigned long*)(&branch_taken), 1); // 10
     }
     else if (rt_64bit == -1)
     {
-        const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.i.rs));
-        const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.i.rs));
+        int rs1 = allocate_64_register1((unsigned long*)dst->f.i.rs);
+        int rs2 = allocate_64_register2((unsigned long*)dst->f.i.rs);
 
-        cmp_reg32_m32(rs1, dst->f.i.rt);
+        cmp_reg32_m32(rs1, (unsigned long*)dst->f.i.rt);
         jne_rj(20);
-        cmp_reg32_m32(rs2, reinterpret_cast<unsigned long*>(dst->f.i.rt) + 1); // 6
+        cmp_reg32_m32(rs2, ((unsigned long*)dst->f.i.rt) + 1); // 6
         jne_rj(12); // 2
-        mov_m32_imm32(&branch_taken, 0); // 10
+        mov_m32_imm32((unsigned long*)(&branch_taken), 0); // 10
         jmp_imm_short(10); // 2
-        mov_m32_imm32(&branch_taken, 1); // 10
+        mov_m32_imm32((unsigned long*)(&branch_taken), 1); // 10
     }
     else
     {
         int rs1, rs2, rt1, rt2;
         if (!rs_64bit)
         {
-            rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.i.rt));
-            rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.i.rt));
-            rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.i.rs));
-            rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.i.rs));
+            rt1 = allocate_64_register1((unsigned long*)dst->f.i.rt);
+            rt2 = allocate_64_register2((unsigned long*)dst->f.i.rt);
+            rs1 = allocate_64_register1((unsigned long*)dst->f.i.rs);
+            rs2 = allocate_64_register2((unsigned long*)dst->f.i.rs);
         }
         else
         {
-            rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.i.rs));
-            rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.i.rs));
-            rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.i.rt));
-            rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.i.rt));
+            rs1 = allocate_64_register1((unsigned long*)dst->f.i.rs);
+            rs2 = allocate_64_register2((unsigned long*)dst->f.i.rs);
+            rt1 = allocate_64_register1((unsigned long*)dst->f.i.rt);
+            rt2 = allocate_64_register2((unsigned long*)dst->f.i.rt);
         }
         cmp_reg32_reg32(rs1, rt1);
         jne_rj(16);
         cmp_reg32_reg32(rs2, rt2); // 2
         jne_rj(12); // 2
-        mov_m32_imm32(&branch_taken, 0); // 10
+        mov_m32_imm32((unsigned long*)(&branch_taken), 0); // 10
         jmp_imm_short(10); // 2
-        mov_m32_imm32(&branch_taken, 1); // 10
+        mov_m32_imm32((unsigned long*)(&branch_taken), 1); // 10
     }
 }
 
@@ -614,7 +626,7 @@ void genbne()
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(BNE), 1);
+        gencallinterp((unsigned long)BNE, 1);
         return;
     }
 
@@ -632,7 +644,7 @@ void genbne_out()
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(BNE_OUT), 1);
+        gencallinterp((unsigned long)BNE_OUT, 1);
         return;
     }
 
@@ -650,7 +662,7 @@ void genbne_idle()
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(BNE_IDLE), 1);
+        gencallinterp((unsigned long)BNE_IDLE, 1);
         return;
     }
 
@@ -968,29 +980,31 @@ void genlui()
 #ifdef INTERPRET_LUI
 	gencallinterp((unsigned long)LUI, 0);
 #else
-    const int rt = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.i.rt));
+    int rt = allocate_register_w((unsigned long*)dst->f.i.rt);
 
-    mov_reg32_imm32(rt, static_cast<unsigned long>(dst->f.i.immediate) << 16);
+    mov_reg32_imm32(rt, (unsigned long)dst->f.i.immediate << 16);
 #endif
 }
 
 void gentestl()
 {
-    cmp_m32_imm32(&branch_taken, 0);
+    unsigned long temp, temp2;
+
+    cmp_m32_imm32((unsigned long*)(&branch_taken), 0);
     je_near_rj(0);
-    const unsigned long temp = code_length;
+    temp = code_length;
     gendelayslot();
-    mov_m32_imm32(&last_addr, dst->addr + (dst - 1)->f.i.immediate * 4);
-    gencheck_interrupt(reinterpret_cast<unsigned long>(dst + (dst - 1)->f.i.immediate));
+    mov_m32_imm32((void*)(&last_addr), dst->addr + (dst - 1)->f.i.immediate * 4);
+    gencheck_interrupt((unsigned long)(dst + (dst - 1)->f.i.immediate));
     jmp(dst->addr + (dst - 1)->f.i.immediate * 4);
 
-    const unsigned long temp2 = code_length;
+    temp2 = code_length;
     code_length = temp - 4;
     put32(temp2 - temp);
     code_length = temp2;
     genupdate_count(dst->addr - 4);
-    mov_m32_imm32(&last_addr, dst->addr + 4);
-    gencheck_interrupt(reinterpret_cast<unsigned long>(dst + 1));
+    mov_m32_imm32((void*)(&last_addr), dst->addr + 4);
+    gencheck_interrupt((unsigned long)(dst + 1));
     jmp(dst->addr + 4);
 }
 
@@ -1002,7 +1016,7 @@ void genbeql()
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(BEQL), 1);
+        gencallinterp((unsigned long)BEQL, 1);
         return;
     }
 
@@ -1014,24 +1028,26 @@ void genbeql()
 
 void gentestl_out()
 {
-    cmp_m32_imm32(&branch_taken, 0);
+    unsigned long temp, temp2;
+
+    cmp_m32_imm32((unsigned long*)(&branch_taken), 0);
     je_near_rj(0);
-    const unsigned long temp = code_length;
+    temp = code_length;
     gendelayslot();
-    mov_m32_imm32(&last_addr, dst->addr + (dst - 1)->f.i.immediate * 4);
+    mov_m32_imm32((void*)(&last_addr), dst->addr + (dst - 1)->f.i.immediate * 4);
     gencheck_interrupt_out(dst->addr + (dst - 1)->f.i.immediate * 4);
     mov_m32_imm32(&jump_to_address, dst->addr + (dst - 1)->f.i.immediate * 4);
-    mov_m32_imm32(&PC, reinterpret_cast<unsigned long>(dst + 1));
-    mov_reg32_imm32(EAX, reinterpret_cast<unsigned long>(jump_to_func));
+    mov_m32_imm32((unsigned long*)(&PC), (unsigned long)(dst + 1));
+    mov_reg32_imm32(EAX, (unsigned long)jump_to_func);
     call_reg32(EAX);
 
-    const unsigned long temp2 = code_length;
+    temp2 = code_length;
     code_length = temp - 4;
     put32(temp2 - temp);
     code_length = temp2;
     genupdate_count(dst->addr - 4);
-    mov_m32_imm32(&last_addr, dst->addr + 4);
-    gencheck_interrupt(reinterpret_cast<unsigned long>(dst + 1));
+    mov_m32_imm32((void*)(&last_addr), dst->addr + 4);
+    gencheck_interrupt((unsigned long)(dst + 1));
     jmp(dst->addr + 4);
 }
 
@@ -1718,7 +1734,7 @@ void gensdr()
 
 void genswr()
 {
-    gencallinterp(reinterpret_cast<unsigned long>(SWR), 0);
+    gencallinterp((unsigned long)SWR, 0);
 }
 
 #include <malloc.h>
@@ -1730,22 +1746,23 @@ inline void put8gr(unsigned char octet)
     if (code_length == max_code_length)
     {
         max_code_length += 1000;
-        *inst_pointer = static_cast<unsigned char*>(realloc(*inst_pointer, max_code_length));
+        *inst_pointer = (unsigned char*)realloc(*inst_pointer, max_code_length);
     }
 }
 
 
 void gencheck_cop1_unusable()
 {
+    unsigned long temp, temp2;
     free_all_registers();
     simplify_access();
-    test_m32_imm32(&core_Status, 0x20000000);
+    test_m32_imm32((unsigned long*)&core_Status, 0x20000000);
     jne_rj(0);
-    const unsigned long temp = code_length;
+    temp = code_length;
 
-    gencallinterp(reinterpret_cast<unsigned long>(check_cop1_unusable), 0);
+    gencallinterp((unsigned long)check_cop1_unusable, 0);
 
-    const unsigned long temp2 = code_length;
+    temp2 = code_length;
     code_length = temp - 1;
     put8gr(temp2 - temp);
     code_length = temp2;
@@ -1758,8 +1775,8 @@ void genlwc1()
 #else
     gencheck_cop1_unusable();
 
-    mov_eax_memoffs32(&reg[dst->f.lf.base]);
-    add_eax_imm32(dst->f.lf.offset);
+    mov_eax_memoffs32((unsigned long*)(&reg[dst->f.lf.base]));
+    add_eax_imm32((long)dst->f.lf.offset);
     mov_reg32_reg32(EBX, EAX);
     if (fast_memory)
     {

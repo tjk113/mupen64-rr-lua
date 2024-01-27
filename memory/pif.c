@@ -92,26 +92,27 @@ void EepromCommand(BYTE* Command)
         break;
     case 4: // read
         {
-            const auto filename = get_eeprom_path();
-            if (FILE* f = fopen(filename.string().c_str(), "rb"))
-            {
-                fread(eeprom, 1, 0x800, f);
-                fclose(f);
-            }
-            else for (unsigned char& i : eeprom) i = 0;
-            memcpy(&Command[4], eeprom + Command[3] * 8, 8);
-        }
-        break;
-    case 5: // write
-        {
-            const auto filename = get_eeprom_path();
+            auto filename = get_eeprom_path();
             FILE* f = fopen(filename.string().c_str(), "rb");
             if (f)
             {
                 fread(eeprom, 1, 0x800, f);
                 fclose(f);
             }
-            else for (unsigned char& i : eeprom) i = 0;
+            else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+            memcpy(&Command[4], eeprom + Command[3] * 8, 8);
+        }
+        break;
+    case 5: // write
+        {
+            auto filename = get_eeprom_path();
+            FILE* f = fopen(filename.string().c_str(), "rb");
+            if (f)
+            {
+                fread(eeprom, 1, 0x800, f);
+                fclose(f);
+            }
+            else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
             memcpy(eeprom + Command[3] * 8, &Command[4], 8);
             f = fopen(filename.string().c_str(), "wb");
             fwrite(eeprom, 1, 0x800, f);
@@ -125,7 +126,7 @@ void EepromCommand(BYTE* Command)
 
 void format_mempacks()
 {
-    const unsigned char init[] =
+    unsigned char init[] =
     {
         0x81, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
@@ -145,23 +146,26 @@ void format_mempacks()
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x71, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03
     };
-    for (auto& i : mempack)
+    int i, j;
+    for (i = 0; i < 4; i++)
     {
-        for (int j = 0; j < 0x8000; j += 2)
+        for (j = 0; j < 0x8000; j += 2)
         {
-            i[j] = 0;
-            i[j + 1] = 0x03;
+            mempack[i][j] = 0;
+            mempack[i][j + 1] = 0x03;
         }
-        memcpy(i, init, 272);
+        memcpy(mempack[i], init, 272);
     }
 }
 
 unsigned char mempack_crc(unsigned char* data)
 {
+    int i;
     unsigned char CRC = 0;
-    for (int i = 0; i <= 0x20; i++)
+    for (i = 0; i <= 0x20; i++)
     {
-        for (int mask = 0x80; mask >= 1; mask >>= 1)
+        int mask;
+        for (mask = 0x80; mask >= 1; mask >>= 1)
         {
             int xor_tap = (CRC & 0x80) ? 0x85 : 0x00;
             CRC <<= 1;
@@ -177,13 +181,12 @@ void internal_ReadController(int Control, BYTE* Command)
 {
     switch (Command[2])
     {
-    default: break;
     case 1:
         if (Controls[Control].Present)
         {
             BUTTONS Keys;
             vcr_on_controller_poll(Control, &Keys);
-            *reinterpret_cast<unsigned long*>(Command + 3) = Keys.Value;
+            *((unsigned long*)(Command + 3)) = Keys.Value;
 #ifdef COMPARE_CORE
 				check_input_sync(Command + 3);
 #endif
@@ -192,14 +195,14 @@ void internal_ReadController(int Control, BYTE* Command)
     case 2: // read controller pack
         if (Controls[Control].Present)
         {
-            if (Controls[Control].Plugin == raw)
+            if (Controls[Control].Plugin == controller_extension::raw)
                 if (controllerCommand) readController(Control, Command);
         }
         break;
     case 3: // write controller pack
         if (Controls[Control].Present)
         {
-            if (Controls[Control].Plugin == raw)
+            if (Controls[Control].Plugin == controller_extension::raw)
                 if (controllerCommand) readController(Control, Command);
         }
         break;
@@ -210,7 +213,6 @@ void internal_ControllerCommand(int Control, BYTE* Command)
 {
     switch (Command[2])
     {
-    default: break;
     case 0x00: // check
     case 0xFF:
         if ((Command[1] & 0x80))
@@ -221,10 +223,10 @@ void internal_ControllerCommand(int Control, BYTE* Command)
             Command[4] = 0x00;
             switch (Controls[Control].Plugin)
             {
-            case mempak:
+            case controller_extension::mempak:
                 Command[5] = 1;
                 break;
-            case raw:
+            case controller_extension::raw:
                 Command[5] = 1;
                 break;
             default:
@@ -244,7 +246,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
         {
             switch (Controls[Control].Plugin)
             {
-            case mempak:
+            case controller_extension::mempak:
                 {
                     int address = (Command[3] << 8) | Command[4];
                     if (address == 0x8001)
@@ -258,7 +260,8 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                         if (address <= 0x7FE0)
                         {
                             auto filename = get_mempak_path();
-                            if (FILE* f = fopen(filename.string().c_str(), "rb"))
+                            FILE* f = fopen(filename.string().c_str(), "rb");
+                            if (f)
                             {
                                 fread(mempack[0], 1, 0x8000, f);
                                 fread(mempack[1], 1, 0x8000, f);
@@ -277,7 +280,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                     }
                 }
                 break;
-            case raw:
+            case controller_extension::raw:
                 if (controllerCommand) controllerCommand(Control, Command);
                 break;
             default:
@@ -293,7 +296,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
         {
             switch (Controls[Control].Plugin)
             {
-            case mempak:
+            case controller_extension::mempak:
                 {
                     int address = (Command[3] << 8) | Command[4];
                     if (address == 0x8001)
@@ -326,7 +329,7 @@ void internal_ControllerCommand(int Control, BYTE* Command)
                     }
                 }
                 break;
-            case raw:
+            case controller_extension::raw:
                 if (controllerCommand) controllerCommand(Control, Command);
                 break;
             default:
@@ -413,7 +416,7 @@ void update_pif_write()
         i++;
     }
     //PIF_RAMb[0x3F] = 0;
-    controllerCommand(-1, nullptr);
+    controllerCommand(-1, NULL);
     /*#ifdef DEBUG_PIF
         if (!one_frame_delay) {
             printf("---------- after write ----------\n");
@@ -525,7 +528,7 @@ void update_pif_read(bool stcheck)
                     )
                     {
                         readController(channel, &PIF_RAMb[i]);
-                        last_controller_data[channel] = *reinterpret_cast<BUTTONS*>(&PIF_RAMb[i + 3]);
+                        last_controller_data[channel] = *(BUTTONS*)&PIF_RAMb[i + 3];
                         main_dispatcher_invoke([channel] {
                             AtInputLuaCallback(channel);
                         });
@@ -533,7 +536,7 @@ void update_pif_read(bool stcheck)
                         {
                             if (overwrite_controller_data[channel])
                             {
-                                *reinterpret_cast<BUTTONS*>(&PIF_RAMb[i + 3]) =
+                                *(BUTTONS*)&PIF_RAMb[i + 3] =
                                     last_controller_data[channel] =
                                     last_controller_data[channel];
                                 overwrite_controller_data[channel] = false;
@@ -551,7 +554,7 @@ void update_pif_read(bool stcheck)
         }
         i++;
     }
-    readController(-1, nullptr);
+    readController(-1, NULL);
 
 #ifdef DEBUG_PIF
 	printf("---------- after read -----------\n");

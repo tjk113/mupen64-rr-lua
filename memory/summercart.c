@@ -46,10 +46,11 @@ struct vhd
 
 static void vhd_copy(struct vhd *vhd, FILE *dst, FILE *src, void *buf, unsigned int n)
 {
+	unsigned long long len;
 	fseek(src, -512, SEEK_END);
 	fread(vhd, 1, sizeof(struct vhd), src);
 	fseek(src, 0, SEEK_SET);
-	for (unsigned long long len = vhd_64(vhd->disk_size) / 512; len > 0; len -= n)
+	for (len = vhd_64(vhd->disk_size)/512; len > 0; len -= n)
 	{
 		if (n > len) n = len;
 		fread(buf, n, 512, src);
@@ -63,7 +64,7 @@ static char *get_sd_path()
 {
 	auto saves_path = get_saves_directory();
 	char *path;
-	if ((path = static_cast<char*>(malloc(strlen(saves_path.string().c_str()) + 8 + 1))))
+	if ((path = (char *)malloc(strlen(saves_path.string().c_str())+8+1)))
 	{
 		strcpy(path, saves_path.string().c_str());
 		strcat(path, "card.vhd");
@@ -74,7 +75,7 @@ static char *get_sd_path()
 static char *get_st_path(const char *filename)
 {
 	char *path;
-	if ((path = static_cast<char*>(malloc(strlen(filename) + 4 + 1))))
+	if ((path = (char *)malloc(strlen(filename)+4+1)))
 	{
 		strcpy(path, filename);
 		strcat(path, ".vhd");
@@ -84,7 +85,7 @@ static char *get_st_path(const char *filename)
 
 static int sd_error(const char *text, const char *caption)
 {
-	MessageBox(nullptr, text, caption, MB_OK|MB_ICONERROR|MB_TOPMOST);
+	MessageBox(NULL, text, caption, MB_OK|MB_ICONERROR|MB_TOPMOST);
 	return -1;
 }
 
@@ -97,15 +98,17 @@ static int sd_seek(FILE *fp, const char *caption)
 	if (fread(&vhd, 1, sizeof(struct vhd), fp) != sizeof(struct vhd)) return sd_error("Read error.", caption);
 	if (memcmp(vhd.cookie, "conectix", 8)) return sd_error("Invalid VHD file.", caption);
 	if (vhd_32(vhd.type) != 2) return sd_error("Invalid VHD type: must be a fixed disk.", caption);
-	if (static_cast<long long>(sector)+count > vhd_64(vhd.disk_size)/512) return -1;
-	if (fseek(fp, 512*static_cast<long long>(sector), SEEK_SET)) return sd_error("Seek(2) error.", caption);
+	if ((long long)sector+count > vhd_64(vhd.disk_size)/512) return -1;
+	if (fseek(fp, 512*(long long)sector, SEEK_SET)) return sd_error("Seek(2) error.", caption);
 	return 0;
 }
 
 static void sd_read()
 {
+	unsigned long i;
 	FILE *fp;
 	char *path;
+	char *ptr = NULL;
 	unsigned long addr = summercart.data0 & 0x1fffffff;
 	unsigned long count = summercart.data1;
 	unsigned long size = 512*count;
@@ -114,7 +117,6 @@ static void sd_read()
 	{
 		if ((fp = fopen(path, "rb")))
 		{
-			char *ptr = nullptr;
 			char s = S8;
 			if (!sd_seek(fp, "SD read error"))
 			{
@@ -127,12 +129,12 @@ static void sd_read()
 				{
 					s ^= summercart.sd_byteswap;
 					addr -= 0x10000000;
-					ptr = reinterpret_cast<char*>(rom);
+					ptr = (char *)rom;
 				}
 			}
 			if (ptr)
 			{
-				for (unsigned long i = 0; i < size; i++) ptr[(addr+i)^s] = fgetc(fp);
+				for (i = 0; i < size; i++) ptr[(addr+i)^s] = fgetc(fp);
 				summercart.status = 0;
 			}
 			fclose(fp);
@@ -145,8 +147,10 @@ static void sd_read()
 
 static void sd_write()
 {
+	unsigned long i;
 	FILE *fp;
 	char *path;
+	char *ptr = NULL;
 	unsigned long addr = summercart.data0 & 0x1fffffff;
 	unsigned long count = summercart.data1;
 	unsigned long size = 512*count;
@@ -155,7 +159,6 @@ static void sd_write()
 	{
 		if ((fp = fopen(path, "r+b")))
 		{
-			const char *ptr = nullptr;
 			if (!sd_seek(fp, "SD write error"))
 			{
 				if (addr >= 0x1ffe0000 && addr+size <= 0x1ffe2000)
@@ -166,12 +169,12 @@ static void sd_write()
 				if (addr >= 0x10000000 && addr+size <= 0x14000000)
 				{
 					addr -= 0x10000000;
-					ptr = reinterpret_cast<char*>(rom);
+					ptr = (char *)rom;
 				}
 			}
 			if (ptr)
 			{
-				for (unsigned long i = 0; i < size; i++) fputc(ptr[(addr+i)^S8], fp);
+				for (i = 0; i < size; i++) fputc(ptr[(addr+i)^S8], fp);
 				summercart.status = 0;
 			}
 			fclose(fp);
@@ -269,7 +272,6 @@ unsigned long read_summercart(unsigned long address)
 {
 	switch (address & 0xFFFC)
 	{
-	default: break;
 	case 0x00:
 		if (summercart.unlock) return summercart.status;
 		break;
@@ -290,18 +292,15 @@ void write_summercart(unsigned long address, unsigned long value)
 {
 	switch (address & 0xFFFC)
 	{
-	default: break;
 	case 0x00:
 		if (summercart.unlock)
 		{
 			summercart.status = 0x40000000;
 			switch (value)
 			{
-			default: break;
 			case 'c':
 				switch (summercart.data0)
 				{
-				default: break;
 				case 1:
 					summercart.data1 = summercart.cfg_rom_write;
 					summercart.status = 0;
@@ -319,7 +318,6 @@ void write_summercart(unsigned long address, unsigned long value)
 			case 'C':
 				switch (summercart.data0)
 				{
-				default: break;
 				case 1:
 					if (summercart.data1)
 					{
@@ -338,7 +336,6 @@ void write_summercart(unsigned long address, unsigned long value)
 			case 'i':
 				switch (summercart.data1)
 				{
-				default: break;
 				case 0:
 					summercart.status = 0;
 					break;

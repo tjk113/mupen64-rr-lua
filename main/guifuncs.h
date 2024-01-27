@@ -31,9 +31,6 @@
  * \brief Demands user confirmation for an exit action
  * \return Whether the action is allowed
  */
-#ifndef GUIFUNCS_H
-#define GUIFUNCS_H
 bool confirm_user_exit();
 
 void show_modal_info(const char* str, const char* title);
-#endif // GUIFUNCS_H

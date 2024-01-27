@@ -1,5 +1,3 @@
-#ifndef EMU_H
-#define EMU_H
 #include <include/lua.h>
 #include <Windows.h>
 
@@ -224,7 +222,7 @@ namespace LuaCore::Emu
 
 	static int LuaPlaySound(lua_State* L)
 	{
-		PlaySound(luaL_checkstring(L, 1), nullptr, SND_FILENAME | SND_ASYNC);
+		PlaySound(luaL_checkstring(L, 1), NULL, SND_FILENAME | SND_ASYNC);
 		return 1;
 	}
 
@@ -299,7 +297,7 @@ namespace LuaCore::Emu
 			A(dps_register),
 			B(SP_DMEM),
 			B(PIF_RAM),
-			{nullptr, nullptr}
+			{NULL, NULL}
 		};
 #undef A
 #undef B
@@ -319,9 +317,10 @@ namespace LuaCore::Emu
 	static int GetMupenVersion(lua_State* L)
 	{
 		int type = luaL_checknumber(L, 1);
+		const char* version;
 		// 0 = name + version number
 		// 1 = version number
-		const char* version = MUPEN_VERSION;
+		version = MUPEN_VERSION;
 		if (type > 0)
 			version = {&MUPEN_VERSION[strlen("Mupen 64 ")]};
 
@@ -343,4 +342,3 @@ namespace LuaCore::Emu
 		return 0;
 	}
 }
-#endif // EMU_H

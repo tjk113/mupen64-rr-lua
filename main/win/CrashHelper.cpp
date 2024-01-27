@@ -1,12 +1,12 @@
 #include "CrashHelper.h"
-#include "../main_win.h"
+#include "main_win.h"
 #include <vcr.h>
 #include <Psapi.h>
-#include "../r4300/r4300.h"
-#include "../Config.hpp"
+
+#include "Config.hpp"
 
 
-int CrashHelper::find_module_name(char* error, void* addr, const int len)
+int crash_helper::find_module_name(char* error, void* addr, const int len)
 {
 	const HANDLE h_process = GetCurrentProcess();
 	DWORD cb_needed;
@@ -37,7 +37,7 @@ int CrashHelper::find_module_name(char* error, void* addr, const int len)
 	return 0; //what
 }
 
-void CrashHelper::get_exception_code_friendly_name(
+void crash_helper::get_exception_code_friendly_name(
 	const _EXCEPTION_POINTERS* exception_pointers_ptr, char* exception_code_string_ptr)
 {
 	switch (exception_pointers_ptr->ExceptionRecord->ExceptionCode)
@@ -67,7 +67,7 @@ void CrashHelper::get_exception_code_friendly_name(
 }
 
 
-void CrashHelper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr,
+void crash_helper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr,
                                char* log_ptr)
 {
 	int len = 0;

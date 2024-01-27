@@ -724,9 +724,9 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
         {
     		HWND list_hwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
     		const int event = HIWORD(w_param);
-		    switch (const int id = LOWORD(w_param))
+    		const int id = LOWORD(w_param);
+	        switch (id)
 	        {
-	        default: break;
 	        case IDC_HOTKEY_LIST:
 		        if (event == LBN_SELCHANGE)
 		        {

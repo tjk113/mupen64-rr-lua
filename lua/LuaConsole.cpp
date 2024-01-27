@@ -73,13 +73,15 @@ bool traceLogMode;
 ULONG_PTR gdi_plus_token;
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-t_window_procedure_params window_proc_params = {nullptr};
+t_window_procedure_params window_proc_params = {0};
+
 
 HANDLE TraceLogFile;
 
 	uint64_t inputCount = 0;
 
 	int getn(lua_State*);
+
 
 	int AtPanic(lua_State* L);
 	extern const luaL_Reg globalFuncs[];
@@ -113,9 +115,9 @@ HANDLE TraceLogFile;
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
 	{
-		for (const auto val : hwnd_lua_map | std::views::values)
+		for (auto pair : hwnd_lua_map)
 		{
-			val->invoke_callbacks_with_key(function, key);
+			pair.second->invoke_callbacks_with_key(function, key);
 		}
 	}
 
@@ -126,7 +128,6 @@ HANDLE TraceLogFile;
 	{
 		switch (msg)
 		{
-		default: break;
 		case WM_INITDIALOG:
 			{
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
@@ -184,7 +185,6 @@ HANDLE TraceLogFile;
 	{
 		switch (id)
 		{
-		default: break;
 		case IDC_BUTTON_LUASTATE:
 			{
 				char path[MAX_PATH] = {0};
@@ -235,12 +235,12 @@ HANDLE TraceLogFile;
 				CHAR buf[MAX_PATH];
 				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
 				              buf, MAX_PATH);
-				if (buf == nullptr || buf[0] == '\0')
+				if (buf == NULL || buf[0] == '\0')
 					/* || strlen(buf)>MAX_PATH*/
 					return FALSE;
 				// previously , clicking edit with empty path will open current directory in explorer, which is very bad
 
-				ShellExecute(nullptr, nullptr, buf, nullptr, nullptr, SW_SHOW);
+				ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
 				return TRUE;
 			}
 		case IDC_BUTTON_LUACLEAR:
@@ -270,7 +270,7 @@ HANDLE TraceLogFile;
 void lua_init()
 {
 	Gdiplus::GdiplusStartupInput startup_input;
-	GdiplusStartup(&gdi_plus_token, &startup_input, nullptr);
+	GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
 }
 
 void lua_exit()
@@ -315,7 +315,6 @@ void lua_create_and_run(const char* path)
 	{
 		switch (msg)
 		{
-		default: break;
 		case WM_CREATE:
 		case WM_DESTROY:
 			return 0;
@@ -330,14 +329,14 @@ void lua_create_and_run(const char* path)
 	void TraceLogStart(const char* name, BOOL append = FALSE)
 	{
 		if (TraceLogFile = CreateFile(name, GENERIC_WRITE,
-		                              FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+		                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 		                              append ? OPEN_ALWAYS : CREATE_ALWAYS,
 		                              FILE_ATTRIBUTE_NORMAL |
-		                              FILE_FLAG_SEQUENTIAL_SCAN, nullptr))
+		                              FILE_FLAG_SEQUENTIAL_SCAN, NULL))
 		{
 			if (append)
 			{
-				SetFilePointer(TraceLogFile, 0, nullptr, FILE_END);
+				SetFilePointer(TraceLogFile, 0, NULL, FILE_END);
 			}
 			enableTraceLog = true;
 			if (interpcore == 0)
@@ -358,7 +357,7 @@ void lua_create_and_run(const char* path)
 	{
 		enableTraceLog = false;
 		CloseHandle(TraceLogFile);
-		TraceLogFile = nullptr;
+		TraceLogFile = NULL;
 		MENUITEMINFO mii = {};
 		mii.cbSize = sizeof(MENUITEMINFO);
 		mii.fMask = MIIM_STRING;
@@ -451,8 +450,8 @@ void lua_create_and_run(const char* path)
 
 
 	// 000000 | 0000 0000 0000 000 | stype(5) = 10101 |001111
-constexpr ULONG BREAKPOINTSYNC_MAGIC_STYPE = 0x15;
-constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
+	const ULONG BREAKPOINTSYNC_MAGIC_STYPE = 0x15;
+	const ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		(BREAKPOINTSYNC_MAGIC_STYPE << 6);
 
 	void Recompile(ULONG);
@@ -475,7 +474,8 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 			recompile_block((long*)SP_DMEM, blocks[0xa4000000 >> 12], addr);
 		else
 		{
-			if (const unsigned long paddr = PAddr(addr))
+			unsigned long paddr = PAddr(addr);
+			if (paddr)
 			{
 				if ((paddr & 0x1FFFFFFF) >= 0x10000000)
 				{
@@ -504,9 +504,9 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		{
 			blocks[block] = (precomp_block*)malloc(sizeof(precomp_block));
 			actual = blocks[block];
-			blocks[block]->code = nullptr;
-			blocks[block]->block = nullptr;
-			blocks[block]->jumps_table = nullptr;
+			blocks[block]->code = NULL;
+			blocks[block]->block = NULL;
+			blocks[block]->jumps_table = NULL;
 		}
 		blocks[block]->start = addr & ~0xFFF;
 		blocks[block]->end = (addr & ~0xFFF) + 0x1000;
@@ -579,7 +579,7 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		{"printx", LuaCore::Global::PrintX},
 		{"tostringex", LuaCore::Global::ToStringExs},
 		{"stop", LuaCore::Global::StopScript},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 	//�G���Ȋ֐�
 	const luaL_Reg emuFuncs[] = {
@@ -623,7 +623,7 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		{"play_sound", LuaCore::Emu::LuaPlaySound},
 #pragma endregion
 
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 	const luaL_Reg memoryFuncs[] = {
 		// memory conversion functions
@@ -658,7 +658,7 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 
 		{"writesize", LuaCore::Memory::LuaWriteSize},
 
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 
 	//winAPI GDI�֐���
@@ -693,7 +693,7 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		{"resize", LuaCore::Wgui::ResizeWindow},
 		{"setclip", LuaCore::Wgui::SetClip},
 		{"resetclip", LuaCore::Wgui::ResetClip},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 
 	const luaL_Reg d2dFuncs[] = {
@@ -719,7 +719,7 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		{"set_antialias_mode", LuaCore::D2D::set_antialias_mode},
 
 		{"draw_to_image", LuaCore::D2D::draw_to_image},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 
 	const luaL_Reg inputFuncs[] = {
@@ -728,14 +728,14 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		{"prompt", LuaCore::Input::InputPrompt},
 		{"get_key_name_text", LuaCore::Input::LuaGetKeyNameText},
 		{"map_virtual_key_ex", LuaCore::Input::LuaMapVirtualKeyEx},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 	const luaL_Reg joypadFuncs[] = {
 		{"get", LuaCore::Joypad::lua_get_joypad},
 		{"set", LuaCore::Joypad::lua_set_joypad},
 		// OBSOLETE: Cross-module reach
 		{"count", LuaCore::Emu::GetInputCount},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 
 	const luaL_Reg movieFuncs[] = {
@@ -743,39 +743,39 @@ constexpr ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		{"stopmovie", LuaCore::Movie::StopMovie},
 		{"getmoviefilename", LuaCore::Movie::GetMovieFilename},
 		{"isreadonly", LuaCore::Movie::GetVCRReadOnly},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 
 	const luaL_Reg savestateFuncs[] = {
 		{"savefile", LuaCore::Savestate::SaveFileSavestate},
 		{"loadfile", LuaCore::Savestate::LoadFileSavestate},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 	const luaL_Reg ioHelperFuncs[] = {
 		{"filediag", LuaCore::IOHelper::LuaFileDialog},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 	const luaL_Reg aviFuncs[] = {
 		{"startcapture", LuaCore::Avi::StartCapture},
 		{"stopcapture", LuaCore::Avi::StopCapture},
-		{nullptr, nullptr}
+		{NULL, NULL}
 	};
 
 void AtUpdateScreenLuaCallback()
 {
 	HDC main_dc = GetDC(mainHWND);
 
-	for (const auto& val : hwnd_lua_map | std::views::values) {
+	for (auto& pair : hwnd_lua_map) {
 		/// Let the environment draw to its DC
-		val->draw();
+		pair.second->draw();
 
 		/// Blit its DC to the main window with alpha mask
-        TransparentBlt(main_dc, 0, 0, val->dc_width, val->dc_height, val->dc, 0, 0,
-        	val->dc_width, val->dc_height, bitmap_color_mask);
+        TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->dc, 0, 0,
+        	pair.second->dc_width, pair.second->dc_height, bitmap_color_mask);
 
-		RECT rect = { 0, 0, val->dc_width, val->dc_height};
+		RECT rect = { 0, 0, pair.second->dc_width, pair.second->dc_height};
 		HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
-		FillRect(val->dc, &rect, brush);
+		FillRect(pair.second->dc, &rect, brush);
 		DeleteObject(brush);
 
 	}
@@ -845,7 +845,7 @@ inline void TraceLoggingBufFlush()
 	DWORD writeen;
 	WriteFile(TraceLogFile,
 	          traceLoggingBuf, traceLoggingPointer - traceLoggingBuf, &writeen,
-	nullptr);
+	          NULL);
 	traceLoggingPointer = traceLoggingBuf;
 }
 
@@ -985,7 +985,6 @@ void instrStr1(unsigned long pc, unsigned long w, char* p1)
 	case INSTF_MFC1:
 		REGFPU(((FPUREG)o.r.rs));
 		break;
-	default: break;
 	}
 	p1[strlen(p1)] = '\0';
 #undef HEX8
@@ -1134,7 +1133,6 @@ void TraceLogging(r4300word pc, r4300word w)
 	case INSTF_MFC1:
 		REGFPU(((FPUREG)o.r.rs));
 		break;
-	default: break;
 	}
 	*(p++) = '\n';
 
@@ -1240,7 +1238,6 @@ void TraceLoggingBin(r4300word pc, r4300word w)
 		REGFPU(((FPUREG)o.r.rs));
 		NONE;
 		break;
-	default: break;
 	}
 	TraceLoggingWriteBuf();
 #undef HEX8
@@ -1297,8 +1294,8 @@ void close_all_scripts() {
 
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	auto copy = std::map(hwnd_lua_map);
-	for (const auto key : copy | std::views::keys) {
-		SendMessage(key, WM_CLOSE, 0, 0);
+	for (auto pair : copy) {
+		SendMessage(pair.first, WM_CLOSE, 0, 0);
 	}
 	assert(hwnd_lua_map.empty());
 }
@@ -1308,10 +1305,10 @@ void stop_all_scripts()
 	assert(IsGUIThread(false));
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	auto copy = std::map(hwnd_lua_map);
-	for (const auto key : copy | std::views::keys) {
-		SendMessage(key, WM_COMMAND,
+	for (auto pair : copy) {
+		SendMessage(pair.first, WM_COMMAND,
 					MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
-					(LPARAM)GetDlgItem(key, IDC_BUTTON_LUASTOP));
+					(LPARAM)GetDlgItem(pair.first, IDC_BUTTON_LUASTOP));
 
 	}
 	assert(hwnd_lua_map.empty());
@@ -1383,12 +1380,12 @@ void LuaEnvironment::destroy_renderer()
 	d2d_factory->Release();
 	d2d_render_target->Release();
 
-	for (const auto& val : d2d_bitmap_render_target | std::views::values) {
+	for (auto const& [_, val] : d2d_bitmap_render_target) {
 		val->Release();
 	}
 	d2d_bitmap_render_target.clear();
 
-	for (const auto& val : dw_text_layouts | std::views::values) {
+	for (auto const& [_, val] : dw_text_layouts) {
 		val->Release();
 	}
 	dw_text_layouts.clear();
@@ -1403,9 +1400,9 @@ void LuaEnvironment::destroy_renderer()
 	image_pool.clear();
 
 	ReleaseDC(mainHWND, dc);
-	dc = nullptr;
-	d2d_factory = nullptr;
-	d2d_render_target = nullptr;
+	dc = NULL;
+	d2d_factory = NULL;
+	d2d_render_target = NULL;
 }
 
 void LuaEnvironment::draw() {
@@ -1460,7 +1457,7 @@ LuaEnvironment::~LuaEnvironment() {
 	DeleteObject(pen);
 	DeleteObject(font);
 	lua_close(L);
-	L = nullptr;
+	L = NULL;
 	SetButtonState(hwnd, false);
 	this->destroy_renderer();
 	printf("Lua destroyed\n");

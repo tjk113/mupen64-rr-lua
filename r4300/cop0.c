@@ -92,7 +92,7 @@ void MTC0()
     case 11: // Compare
         update_count();
         remove_event(COMPARE_INT);
-        add_interrupt_event_count(COMPARE_INT, static_cast<unsigned long>(core_rrt));
+        add_interrupt_event_count(COMPARE_INT, (unsigned long)core_rrt);
         core_Compare = core_rrt;
         core_Cause = core_Cause & 0xFFFF7FFF; //Timer interrupt is clear
         break;
@@ -101,20 +101,22 @@ void MTC0()
         {
             if (core_rrt & 0x04000000)
             {
-                for (int i = 0; i < 32; i++)
+                int i;
+                for (i = 0; i < 32; i++)
                 {
-                    reg_cop1_double[i] = reinterpret_cast<double*>(&reg_cop1_fgr_64[i]);
-                    reg_cop1_simple[i] = reinterpret_cast<float*>(&reg_cop1_fgr_64[i]);
+                    reg_cop1_double[i] = (double*)&reg_cop1_fgr_64[i];
+                    reg_cop1_simple[i] = (float*)&reg_cop1_fgr_64[i];
                 }
             }
             else
             {
-                for (int i = 0; i < 32; i++)
+                int i;
+                for (i = 0; i < 32; i++)
                 {
                     if (!(i & 1))
-                        reg_cop1_double[i] = reinterpret_cast<double*>(&reg_cop1_fgr_64[i >> 1]);
+                        reg_cop1_double[i] = (double*)&reg_cop1_fgr_64[i >> 1];
 #ifndef _BIG_ENDIAN
-                    reg_cop1_simple[i] = reinterpret_cast<float*>(&reg_cop1_fgr_64[i >> 1]) + (i & 1);
+                    reg_cop1_simple[i] = (float*)&reg_cop1_fgr_64[i >> 1] + (i & 1);
 #else
 						reg_cop1_simple[i] = (float*)&reg_cop1_fgr_64[i >> 1] + (1 - (i & 1));
 #endif

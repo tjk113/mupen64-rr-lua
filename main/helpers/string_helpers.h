@@ -7,13 +7,13 @@ inline static char* stristr(const char* str1, const char* str2)
 {
 	const char* p1 = str1;
 	const char* p2 = str2;
-	const char* r = *p2 == 0 ? str1 : nullptr;
+	const char* r = *p2 == 0 ? str1 : 0;
 
 	while (*p1 != 0 && *p2 != 0)
 	{
 		if (tolower((unsigned char)*p1) == tolower((unsigned char)*p2))
 		{
-			if (r == nullptr)
+			if (r == 0)
 			{
 				r = p1;
 			}
@@ -22,7 +22,7 @@ inline static char* stristr(const char* str1, const char* str2)
 		} else
 		{
 			p2 = str2;
-			if (r != nullptr)
+			if (r != 0)
 			{
 				p1 = r + 1;
 			}
@@ -33,14 +33,14 @@ inline static char* stristr(const char* str1, const char* str2)
 				p2++;
 			} else
 			{
-				r = nullptr;
+				r = 0;
 			}
 		}
 
 		p1++;
 	}
 
-	return *p2 == 0 ? const_cast<char*>(r) : nullptr;
+	return *p2 == 0 ? const_cast<char*>(r) : 0;
 }
 
 inline static int is_string_alpha_only(const char* str)
@@ -60,11 +60,12 @@ inline static int is_string_alpha_only(const char* str)
 inline static bool is_case_insensitive_equal(const std::string& a,
                                              const std::string& b)
 {
-	return std::ranges::equal(a, b,
-	                          [](char a, char b)
-	                          {
-		                          return tolower(a) == tolower(b);
-	                          });
+	return std::equal(a.begin(), a.end(),
+	                  b.begin(), b.end(),
+	                  [](char a, char b)
+	                  {
+		                  return tolower(a) == tolower(b);
+	                  });
 }
 
 inline static std::string to_lower(std::string a)
@@ -94,7 +95,7 @@ inline static std::wstring string_to_wstring(const std::string &str)
 
 static std::string wstring_to_string(const std::wstring& wstr) {
 	std::string str(wstr.length(), 0);
-	std::ranges::transform(wstr, str.begin(), [] (wchar_t c) {
+	std::transform(wstr.begin(), wstr.end(), str.begin(), [] (wchar_t c) {
 		return (char)c;
 	});
 	return str;

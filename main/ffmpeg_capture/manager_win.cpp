@@ -41,7 +41,7 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY,
 		BUFSIZEvideo, // output buffer size 
 		0, // input buffer size 
 		0, // client time-out 
-	nullptr); // default security attribute 
+		NULL); // default security attribute 
 
 	if (!videoPipe)
 	{
@@ -59,7 +59,7 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY,
 		BUFSIZEaudio, // output buffer size 
 		0, // input buffer size 
 		0, // client time-out 
-	nullptr);
+		NULL);
 
 	if (!audioPipe)
 	{
@@ -83,18 +83,18 @@ FFmpegManager::FFmpegManager(unsigned videoX, unsigned videoY,
 	// Start the child process. 
 	if (!CreateProcess("ffmpeg/bin/ffmpeg.exe",
 	                   cmdOptions.data(), //non-const
-	                   nullptr, // Process handle not inheritable
-	                   nullptr, // Thread handle not inheritable
+	                   NULL, // Process handle not inheritable
+	                   NULL, // Thread handle not inheritable
 	                   FALSE, // Set handle inheritance to FALSE
 	                   0, // No creation flags
-	                   nullptr, // Use parent's environment block
-	                   nullptr, // Use parent's starting directory 
+	                   NULL, // Use parent's environment block
+	                   NULL, // Use parent's starting directory 
 	                   &si, // Pointer to STARTUPINFO structure
 	                   &pi) // Pointer to PROCESS_INFORMATION structure
 	)
 	{
 		MessageBox(
-			nullptr, "Could not start ffmpeg process! Does ffmpeg exist on disk?",
+			NULL, "Could not start ffmpeg process! Does ffmpeg exist on disk?",
 			"Error", MB_ICONERROR);
 		printf("CreateProcess failed (%d).\n", GetLastError());
 		CloseHandle(videoPipe);
@@ -181,7 +181,7 @@ int FFmpegManager::WriteVideoFrame(unsigned char* buffer, unsigned bufferSize)
 int FFmpegManager::WritePipe(HANDLE pipe, char* buffer, unsigned bufferSize)
 {
 	DWORD written{};
-	auto res = WriteFile(pipe, buffer, bufferSize, &written, nullptr);
+	auto res = WriteFile(pipe, buffer, bufferSize, &written, NULL);
 	if (written != bufferSize or res != TRUE)
 	{
 		return GetLastError();

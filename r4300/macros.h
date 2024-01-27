@@ -30,9 +30,9 @@
 #ifndef MACROS_H
 #define MACROS_H
 
-#define sign_extended(a) a = (long long)((long)(a))
-#define sign_extendedb(a) a = (long long)((char)(a))
-#define sign_extendedh(a) a = (long long)((short)(a))
+#define sign_extended(a) a = (long long)((long)a)
+#define sign_extendedb(a) a = (long long)((char)a)
+#define sign_extendedh(a) a = (long long)((short)a)
 
 #define core_rrt *PC->f.r.rt
 #define core_rrd *PC->f.r.rd
@@ -42,7 +42,7 @@
 #define core_irt *PC->f.i.rt
 #define core_ioffset PC->f.i.immediate
 #define core_iimmediate PC->f.i.immediate
-#define core_lsaddr ((PC-1)->f.i.immediate+(*(PC-1)->f.i.rs))
+#define core_lsaddr (PC-1)->f.i.immediate+(*(PC-1)->f.i.rs)
 #define core_lsrt *(PC-1)->f.i.rt
 #define core_irs *PC->f.i.rs
 #define core_ibase *PC->f.i.rs
@@ -50,7 +50,7 @@
 #define core_lfbase PC->f.lf.base
 #define core_lfft PC->f.lf.ft
 #define core_lfoffset PC->f.lf.offset
-#define core_lslfaddr ((PC-1)->f.lf.offset+reg[(PC-1)->f.lf.base])
+#define core_lslfaddr (PC-1)->f.lf.offset+reg[(PC-1)->f.lf.base]
 #define core_lslfft (PC-1)->f.lf.ft
 #define core_cfft PC->f.cf.ft
 #define core_cffs PC->f.cf.fs

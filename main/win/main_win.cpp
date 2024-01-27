@@ -99,7 +99,7 @@ BOOL ignoreErrorEmulation = FALSE;
 char statusmsg[800];
 char correctedPath[260];
 #define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
-constexpr char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {
+const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {
 	"Azimer\'s Audio v0.7"
 };
 
@@ -244,7 +244,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 
 	// Kill any roms that are still running
 	if (emu_launched) {
-		WaitForSingleObject(CreateThread(nullptr, 0, close_rom, nullptr, 0, &close_rom_id), 10'000);
+		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id), 10'000);
 	}
 
 	// TODO: keep plugins loaded and only unload and reload them when they actually change
@@ -299,7 +299,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	rsp_thread.join();
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	EmuThreadHandle = CreateThread(nullptr, 0, ThreadFunc, nullptr, 0, &emu_id);
+	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &emu_id);
 
 	return 1;
 }
@@ -319,7 +319,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		if (vcr_is_capturing() && !continue_vcr_on_restart_mode) {
 			// we need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
 			if (vcr_stop_capture() != 0)
-				MessageBox(nullptr, "Couldn't stop capturing", "VCR", MB_OK);
+				MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
 			else {
 				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 							 SWP_NOMOVE | SWP_NOSIZE);
@@ -341,7 +341,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		stop = 1;
 		DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
 		if (result == WAIT_TIMEOUT) {
-			MessageBox(mainHWND, "Emu thread didn't exit in time", nullptr,
+			MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
 					   MB_ICONERROR | MB_OK);
 		}
 
@@ -349,7 +349,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		emu_paused = 1;
 
 
-		rom = nullptr;
+		rom = NULL;
 		free(rom);
 
 		free_memory();
@@ -387,7 +387,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 			main_dispatcher_invoke([] {
 				strcpy(rom_path, LastSelectedRom);
-				CreateThread(nullptr, 0, start_rom, rom_path, 0, &start_rom_id);
+				CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
 				//if (!start_rom(nullptr)) {
 					//close_rom(NULL);
 					//MessageBox(mainHWND, "Failed to open ROM", NULL,
@@ -414,7 +414,7 @@ void resetEmu()
 		frame_advancing = false;
 		really_restart_mode = TRUE;
 		MenuPaused = FALSE;
-		CreateThread(nullptr, 0, close_rom, nullptr, 0, &close_rom_id);
+		CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id);
 	}
 }
 
@@ -473,17 +473,41 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2,
 					   rsp_plugin->name.c_str());
 
-		for (int i = 0; i < 4; ++i)
-		{
-			strcpy(tempbuf, Controls[i].Present ? "Present" : "Disconnected");
-			if (Controls[i].Present && Controls[i].Plugin ==
-				controller_extension::mempak)
-				strcat(tempbuf, " with mempak");
-			if (Controls[i].Present && Controls[i].Plugin ==
-				controller_extension::rumblepak)
-				strcat(tempbuf, " with rumble");
-			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER1_TEXT2, tempbuf);
-		}
+		strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
+		if (Controls[0].Present && Controls[0].Plugin ==
+			controller_extension::mempak)
+			strcat(tempbuf, " with mempak");
+		if (Controls[0].Present && Controls[0].Plugin ==
+			controller_extension::rumblepak)
+			strcat(tempbuf, " with rumble");
+		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER1_TEXT2, tempbuf);
+
+		strcpy(tempbuf, Controls[1].Present ? "Present" : "Disconnected");
+		if (Controls[1].Present && Controls[1].Plugin ==
+			controller_extension::mempak)
+			strcat(tempbuf, " with mempak");
+		if (Controls[1].Present && Controls[1].Plugin ==
+			controller_extension::rumblepak)
+			strcat(tempbuf, " with rumble pak");
+		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER2_TEXT2, tempbuf);
+
+		strcpy(tempbuf, Controls[2].Present ? "Present" : "Disconnected");
+		if (Controls[2].Present && Controls[2].Plugin ==
+			controller_extension::mempak)
+			strcat(tempbuf, " with mempak");
+		if (Controls[2].Present && Controls[2].Plugin ==
+			controller_extension::rumblepak)
+			strcat(tempbuf, " with rumble pak");
+		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER3_TEXT2, tempbuf);
+
+		strcpy(tempbuf, Controls[3].Present ? "Present" : "Disconnected");
+		if (Controls[3].Present && Controls[3].Plugin ==
+			controller_extension::mempak)
+			strcat(tempbuf, " with mempak");
+		if (Controls[3].Present && Controls[3].Plugin ==
+			controller_extension::rumblepak)
+			strcat(tempbuf, " with rumble pak");
+		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER4_TEXT2, tempbuf);
 
 		CheckDlgButton(hwnd, IDC_MOVIE_READONLY, vcr_get_read_only());
 
@@ -521,7 +545,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				if (GetDlgItemTextW(hwnd, IDC_INI_AUTHOR, authorWC,
 				                    MOVIE_AUTHOR_DATA_SIZE))
 					WideCharToMultiByte(CP_UTF8, 0, authorWC, -1, authorUTF8,
-					                    sizeof(authorUTF8), nullptr, nullptr);
+					                    sizeof(authorUTF8), NULL, NULL);
 				else
 					GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, authorUTF8,
 					                MOVIE_AUTHOR_DATA_SIZE);
@@ -532,7 +556,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				                    MOVIE_DESCRIPTION_DATA_SIZE))
 					WideCharToMultiByte(CP_UTF8, 0, descriptionWC, -1,
 					                    descriptionUTF8,
-					                    sizeof(descriptionUTF8), nullptr, nullptr);
+					                    sizeof(descriptionUTF8), NULL, NULL);
 				else
 					GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, descriptionUTF8,
 					                MOVIE_DESCRIPTION_DATA_SIZE);
@@ -585,7 +609,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		case IDC_MOVIE_BROWSE:
 			{
 				const auto path = show_persistent_open_dialog("o_movie", hwnd, L"*.m64;*.rec");
-				if (path.empty())
+				if (path.size() == 0)
 				{
 					break;
 				}
@@ -620,7 +644,6 @@ refresh:
 	SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT, m_header.audio_plugin_name);
 	SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT, m_header.rsp_plugin_name);
 
-	
 	strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_1_PRESENT)
 		                ? "Present"
 		                : "Disconnected");
@@ -712,7 +735,7 @@ refresh:
 				// TODO: load unicows.dll instead so SetWindowTextW won't fail even on Win98/ME
 				char ansiStr[MOVIE_AUTHOR_DATA_SIZE];
 				WideCharToMultiByte(CP_ACP, 0, wszMeta, -1, ansiStr,
-				                    MOVIE_AUTHOR_DATA_SIZE, nullptr, nullptr);
+				                    MOVIE_AUTHOR_DATA_SIZE, NULL, NULL);
 				SetWindowTextA(GetDlgItem(hwnd, IDC_INI_AUTHOR), ansiStr);
 
 				if (ansiStr[0] == '\0')
@@ -736,7 +759,7 @@ refresh:
 			{
 				char ansiStr[MOVIE_DESCRIPTION_DATA_SIZE];
 				WideCharToMultiByte(CP_ACP, 0, wszMeta, -1, ansiStr,
-				                    MOVIE_DESCRIPTION_DATA_SIZE, nullptr, nullptr);
+				                    MOVIE_DESCRIPTION_DATA_SIZE, NULL, NULL);
 				SetWindowTextA(GetDlgItem(hwnd, IDC_INI_DESCRIPTION), ansiStr);
 
 				if (ansiStr[0] == '\0')
@@ -760,6 +783,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
                                  LPARAM lParam)
 {
 	char tempbuf[MAX_PATH];
+	char tempbuf2[MAX_PATH];
 	int checked_movie_type;
 	HWND descriptionDialog;
 	HWND authorDialog;
@@ -853,14 +877,13 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		case IDC_OK:
 		case IDOK:
 			{
-				char tempbuf2[MAX_PATH];
 				// turn WCHAR into UTF8
 				WCHAR authorWC[MOVIE_AUTHOR_DATA_SIZE];
 				char authorUTF8[MOVIE_AUTHOR_DATA_SIZE * 4];
 				if (GetDlgItemTextW(hwnd, IDC_INI_AUTHOR, authorWC,
 				                    MOVIE_AUTHOR_DATA_SIZE))
 					WideCharToMultiByte(CP_UTF8, 0, authorWC, -1, authorUTF8,
-					                    sizeof(authorUTF8), nullptr, nullptr);
+					                    sizeof(authorUTF8), NULL, NULL);
 				else
 					GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, authorUTF8,
 					                MOVIE_AUTHOR_DATA_SIZE);
@@ -873,7 +896,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				                    MOVIE_DESCRIPTION_DATA_SIZE))
 					WideCharToMultiByte(CP_UTF8, 0, descriptionWC, -1,
 					                    descriptionUTF8,
-					                    sizeof(descriptionUTF8), nullptr, nullptr);
+					                    sizeof(descriptionUTF8), NULL, NULL);
 				else
 					GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, descriptionUTF8,
 					                MOVIE_DESCRIPTION_DATA_SIZE);
@@ -902,6 +925,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 					                      : MOVIE_START_FROM_EXISTING_SNAPSHOT;
 				Config.last_movie_type = checked_movie_type;
 
+				bool allowClosing = true;
 				if (flag == MOVIE_START_FROM_EXISTING_SNAPSHOT)
 				{
 					// The default directory we open the file dialog window in is the
@@ -931,7 +955,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 					}
 				}
 
-				if (true)
+				if (allowClosing)
 				{
 					if (tempbuf[0] == '\0' || vcr_start_record(
 						tempbuf, flag, authorUTF8, descriptionUTF8,
@@ -944,7 +968,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 						break;
 					} else
 					{
-						const HMENU hMenu = GetMenu(mainHWND);
+						HMENU hMenu = GetMenu(mainHWND);
 						EnableMenuItem(hMenu, ID_STOP_RECORD, MF_ENABLED);
 						EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
 						statusbar_post_text("Recording replay");
@@ -1116,7 +1140,8 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
 			EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
-			LONG winstyle = GetWindowLong(mainHWND, GWL_STYLE);
+			LONG winstyle;
+			winstyle = GetWindowLong(mainHWND, GWL_STYLE);
 			winstyle |= WS_MAXIMIZEBOX;
 			SetWindowLong(mainHWND, GWL_STYLE, winstyle);
 			SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0,
@@ -1165,8 +1190,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	emu_paused = 0;
 	emu_launched = 1;
 
-	sound_thread_handle = CreateThread(nullptr, 0, SoundThread, nullptr, 0,
-	                                   &audio_thread_id);
+	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
+				                         &audio_thread_id);
 	printf("Emu thread: Emulation started....\n");
 
 	// start movies, st and lua scripts
@@ -1285,7 +1310,7 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 	const int index = menu_item_id - ID_RECENTROMS_FIRST;
 	if (index >= 0 && index < Config.recent_rom_paths.size()) {
 		strcpy(rom_path, Config.recent_rom_paths[index].c_str());
-		CreateThread(nullptr, 0, start_rom, rom_path, 0, &start_rom_id);
+		CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
 			return 	1;
 	}
 	return 0;
@@ -1394,7 +1419,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
 				strcpy(rom_path, fname);
-				CreateThread(nullptr, 0, start_rom, nullptr, 0, &start_rom_id);
+				CreateThread(NULL, 0, start_rom, nullptr, 0, &start_rom_id);
 			} else if (extension == ".m64")
 			{
 				if (!emu_launched) break;
@@ -1482,7 +1507,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			}
 			switch ((l_header)->code)
 			{
-			default: break;
 			case TTN_NEEDTEXT:
 				ProcessToolTips(lParam, hwnd);
 				break;
@@ -1517,8 +1541,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CREATE:
 		hMenu = GetMenu(hwnd);
-		GetModuleFileName(nullptr, path_buffer, sizeof(path_buffer));
-		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), nullptr);
+		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
+		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
 		commandline_start_rom();
 		return TRUE;
 	case WM_DESTROY:
@@ -1659,7 +1683,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					t_plugin* plugin = video_plugin;
 					switch (LOWORD(wParam))
 					{
-					default: break;
 					case IDINPUTCONFIG:
 						plugin = input_plugin;
 						break;
@@ -1717,7 +1740,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (emu_launched)
 				{
 					//close_rom(&Id);
-					CreateThread(nullptr, 0, close_rom, (LPVOID)1, 0, &close_rom_id);
+					CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &close_rom_id);
 
 				}
 				break;
@@ -1761,7 +1784,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					vcr_set_read_only(TRUE);
 					bool err = vcr_start_playback(
-						Config.recent_movie_paths[0], nullptr, nullptr);
+						Config.recent_movie_paths[0], 0, 0);
 					if (err == VCR_PLAYBACK_SUCCESS)
 						SetStatusPlaybackStarted();
 					else
@@ -1853,8 +1876,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					sprintf(ram_start, "0x%p", static_cast<void*>(rdram));
 
 					char proc_name[MAX_PATH] = {0};
-					GetModuleFileName(nullptr, proc_name, MAX_PATH);
-					_splitpath(proc_name, nullptr, nullptr, proc_name, nullptr);
+					GetModuleFileName(NULL, proc_name, MAX_PATH);
+					_splitpath(proc_name, 0, 0, proc_name, 0);
 
 					char stroop_c[1024] = {0};
 					sprintf(stroop_c,
@@ -1982,8 +2005,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_STOP_PLAYBACK:
 				if (vcr_is_playing())
 				{
-					if (vcr_stop_playback() < 0) {}
-					// fail quietly
+					if (vcr_stop_playback() < 0); // fail quietly
 					//                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
 					else
 					{
@@ -2034,7 +2056,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					// pass false to startCapture when "last preset" option was choosen
 					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == ID_START_CAPTURE) < 0)
 					{
-						MessageBox(nullptr, "Couldn't start capturing.", "VCR", MB_OK);
+						MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
 					} else
 					{
 						EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
@@ -2054,7 +2076,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case ID_END_CAPTURE:
 				if (vcr_stop_capture() < 0)
-					MessageBox(nullptr, "Couldn't stop capturing.", "VCR", MB_OK);
+					MessageBox(NULL, "Couldn't stop capturing.", "VCR", MB_OK);
 				else
 				{
 					SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
@@ -2207,6 +2229,7 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 
 	char crash_log[1024 * 4] = {0};
 	CrashHelper::generate_log(ExceptionInfo, crash_log);
+
 	FILE* f = fopen("crash.log", "w+");
 	fputs(crash_log, f);
 	fclose(f);
@@ -2236,7 +2259,7 @@ int WINAPI WinMain(
 {
 #ifdef _DEBUG
 	AllocConsole();
-	FILE* f = nullptr;
+	FILE* f = 0;
 	freopen_s(&f, "CONIN$", "r", stdin);
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
@@ -2248,11 +2271,11 @@ int WINAPI WinMain(
 	commandline_set();
 
 	// ensure folders exist!
-	CreateDirectory((app_path + "save").c_str(), nullptr);
-	CreateDirectory((app_path + "Mempaks").c_str(), nullptr);
-	CreateDirectory((app_path + "Lang").c_str(), nullptr);
-	CreateDirectory((app_path + "ScreenShots").c_str(), nullptr);
-	CreateDirectory((app_path + "plugin").c_str(), nullptr);
+	CreateDirectory((app_path + "save").c_str(), NULL);
+	CreateDirectory((app_path + "Mempaks").c_str(), NULL);
+	CreateDirectory((app_path + "Lang").c_str(), NULL);
+	CreateDirectory((app_path + "ScreenShots").c_str(), NULL);
+	CreateDirectory((app_path + "plugin").c_str(), NULL);
 
 	emu_launched = 0;
 	emu_paused = 1;
@@ -2260,13 +2283,14 @@ int WINAPI WinMain(
 	load_config();
 
 	WNDCLASSEX wc = {0};
+	HWND hwnd;
 	MSG msg;
 
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.hInstance = hInstance;
 	wc.hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_M64ICONBIG));
 	wc.hIconSm = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_M64ICONSMALL));
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.lpszClassName = g_szClassName;
 	wc.lpfnWndProc = WndProc;
 	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
@@ -2276,14 +2300,14 @@ int WINAPI WinMain(
 
 	HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
 
-	HWND hwnd = CreateWindowEx(
+	hwnd = CreateWindowEx(
 		0,
 		g_szClassName,
 		MUPEN_VERSION,
 		WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
 		Config.window_x, Config.window_y, Config.window_width,
 		Config.window_height,
-		nullptr, nullptr, hInstance, nullptr);
+		NULL, NULL, hInstance, NULL);
 
 	mainHWND = hwnd;
 	ShowWindow(hwnd, nCmdShow);
@@ -2316,7 +2340,7 @@ int WINAPI WinMain(
 	// raise continuable exception
 	//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
-	while (GetMessage(&msg, nullptr, 0, 0) > 0)
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
 	{
 		if (!TranslateAccelerator(mainHWND, accelerators, &msg))
 		{

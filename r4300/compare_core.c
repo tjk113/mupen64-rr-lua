@@ -35,6 +35,7 @@
 #include "../r4300/recomph.h"
 
 #ifdef _MSC_VER
+#include <Windows.h>
 #else
 #include "../main/winlnxdefs.h"
 #endif
@@ -51,21 +52,21 @@ int compare_core_mode = 0;
 void display_error(const char* txt)
 {
     int i;
-    unsigned long* comp_reg2 = reinterpret_cast<unsigned long*>(comp_reg);
+    unsigned long* comp_reg2 = (unsigned long*)comp_reg;
     printf("err: %s\n", txt);
     if (interpcore)
     {
-        printf("addr:%x\n", static_cast<int>(interp_addr));
-        if (!strcmp(txt, "PC")) printf("%x - %x\n", static_cast<int>(interp_addr), reinterpret_cast<int>(&comp_reg[0]));
+        printf("addr:%x\n", (int)interp_addr);
+        if (!strcmp(txt, "PC")) printf("%x - %x\n", (int)interp_addr, *(int*)&comp_reg[0]);
     }
     else
     {
-        printf("addr:%x\n", static_cast<int>(PC->addr));
-        if (!strcmp(txt, "PC")) printf("%x - %x\n", static_cast<int>(PC->addr), reinterpret_cast<int>(&comp_reg[0]));
+        printf("addr:%x\n", (int)PC->addr);
+        if (!strcmp(txt, "PC")) printf("%x - %x\n", (int)PC->addr, *(int*)&comp_reg[0]);
     }
-    printf("%x, %x\n", static_cast<unsigned int>(reg_cop0[9]), static_cast<unsigned int>(comp_reg2[9]));
-    printf("erreur @:%x\n", static_cast<int>(old_op));
-    printf("erreur @:%x\n", static_cast<int>(op));
+    printf("%x, %x\n", (unsigned int)reg_cop0[9], (unsigned int)comp_reg2[9]);
+    printf("erreur @:%x\n", (int)old_op);
+    printf("erreur @:%x\n", (int)op);
 
     if (!strcmp(txt, "gpr"))
     {
@@ -82,7 +83,7 @@ void display_error(const char* txt)
         {
             if (reg_cop0[i] != comp_reg2[i])
                 printf("reg_cop0[%d]=%x != reg_cop0[%d]=%x\n",
-                       i, static_cast<unsigned int>(reg_cop0[i]), i, static_cast<unsigned int>(comp_reg2[i]));
+                       i, (unsigned int)reg_cop0[i], i, (unsigned int)comp_reg2[i]);
         }
     }
     /*for (i=0; i<32; i++)
@@ -120,7 +121,7 @@ void compare_core()
         {
             pipe_opened = 0;
             if (f) fclose(f);
-            f = nullptr;
+            f = NULL;
         }
         return;
     }
@@ -158,7 +159,7 @@ void compare_core()
         {
             pipe_opened = 0;
             fclose(f);
-            f = nullptr;
+            f = NULL;
             compare_core_mode = 0;
             return;
         }

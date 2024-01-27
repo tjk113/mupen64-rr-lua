@@ -40,7 +40,9 @@
 extern precomp_instr* PC;
 
 extern precomp_block *blocks[0x100000], *actual;
-
+// TODO: use state enum
+extern int emu_launched; // emu_emulating
+extern int emu_paused;
 extern int stop, llbit;
 extern long long int reg[32], hi, lo;
 extern long long int local_rs, local_rt;
@@ -63,8 +65,6 @@ extern short x87_status_word;
 extern unsigned long last_addr, interp_addr;
 extern char invalid_code[0x100000];
 extern unsigned long jump_to_address;
-extern int emu_launched;
-extern int emu_paused;
 
 void go();
 void pure_interpreter();

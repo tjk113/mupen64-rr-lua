@@ -1,11 +1,10 @@
-﻿#include "Statusbar.hpp"
+#include "Statusbar.hpp"
 
 #include <Windows.h>
 #include <commctrl.h>
-
+#include "../r4300/r4300.h"
 #include "RomBrowser.hpp"
 #include "../../winproject/resource.h"
-#include "../r4300/r4300.h"
 #include "win/Config.hpp"
 #include "win/main_win.h"
 

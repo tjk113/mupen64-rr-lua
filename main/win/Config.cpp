@@ -7,6 +7,7 @@
 #include "Config.hpp"
 #include "main_win.h"
 #include "../../lua/Recent.h"
+#include "../r4300/r4300.h"
 #include "../vcr.h"
 #include "../lib/ini.h"
 #include <helpers/string_helpers.h>
@@ -24,7 +25,8 @@ void set_menu_accelerator(const HMENU h_menu, int element_id, const char* acc)
 	MENUITEMINFO menuinfo;
 
 	// make sure there is tab character (accelerator marker)
-	if (char* tab = strrchr(string, '\t'))
+	char* tab = strrchr(string, '\t');
+	if (tab)
 		*tab = '\0';
 	if (strcmp(acc, ""))
 		sprintf(string, "%s\t%s", string, acc);
@@ -1117,11 +1119,12 @@ void load_config()
 
 int32_t get_user_hotkey(t_hotkey* hotkey)
 {
+	int i, j;
 	int lc = 0, ls = 0, la = 0;
-	for (int i = 0; i < 500; i++)
+	for (i = 0; i < 500; i++)
 	{
 		SleepEx(10, TRUE);
-		for (int j = 8; j < 254; j++)
+		for (j = 8; j < 254; j++)
 		{
 			if (j == VK_LCONTROL || j == VK_RCONTROL || j == VK_LMENU || j ==
 				VK_RMENU || j == VK_LSHIFT || j == VK_RSHIFT)

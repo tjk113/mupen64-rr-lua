@@ -119,7 +119,8 @@ void copy_to_clipboard(HWND owner, const std::string& str)
 {
 	OpenClipboard(owner);
 	EmptyClipboard();
-	if (const HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, str.size() + 1))
+	HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, str.size() + 1);
+	if (hg)
 	{
 		memcpy(GlobalLock(hg), str.c_str(), str.size() + 1);
 		GlobalUnlock(hg);

@@ -51,16 +51,17 @@ uLong ZEXPORT adler32(
 {
     unsigned long s1 = adler & 0xffff;
     unsigned long s2 = (adler >> 16) & 0xffff;
+    int k;
 
-    if (buf == nullptr) return 1L;
+    if (buf == Z_NULL) return 1L;
 
     while (len > 0)
     {
-        int k = len < NMAX ? (int)len : NMAX;
+        k = len < NMAX ? (int)len : NMAX;
         len -= k;
         while (k >= 16)
         {
-            DO16(buf)
+            DO16(buf);
             buf += 16;
             k -= 16;
         }

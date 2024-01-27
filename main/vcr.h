@@ -1,6 +1,8 @@
 #ifndef VCR_H
 #define VCR_H
 
+# include <Windows.h>
+
 #include "plugin.hpp"
 
 #ifdef __cplusplus	//don't include cpp headers when .c compilation unit includes the file

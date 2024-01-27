@@ -1,55 +1,53 @@
-#ifndef INPUT_H
-#define INPUT_H
 #include <include/lua.h>
 #include <Windows.h>
 #include "../../main/win/main_win.h"
 
 namespace LuaCore::Input
 {
-	inline const char* KeyName[256] =
+	const char* KeyName[256] =
 	{
-		nullptr, "leftclick", "rightclick", nullptr,
-		"middleclick", nullptr, nullptr, nullptr,
-		"backspace", "tab", nullptr, nullptr,
-		nullptr, "enter", nullptr, nullptr,
+		NULL, "leftclick", "rightclick", NULL,
+		"middleclick", NULL, NULL, NULL,
+		"backspace", "tab", NULL, NULL,
+		NULL, "enter", NULL, NULL,
 		"shift", "control", "alt", "pause", // 0x10
-		"capslock", nullptr, nullptr, nullptr,
-		nullptr, nullptr, nullptr, "escape",
-		nullptr, nullptr, nullptr, nullptr,
+		"capslock", NULL, NULL, NULL,
+		NULL, NULL, NULL, "escape",
+		NULL, NULL, NULL, NULL,
 		"space", "pageup", "pagedown", "end", // 0x20
 		"home", "left", "up", "right",
-		"down", nullptr, nullptr, nullptr,
-		nullptr, "insert", "delete", nullptr,
+		"down", NULL, NULL, NULL,
+		NULL, "insert", "delete", NULL,
 		"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
 		"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
 		"U", "V", "W", "X", "Y", "Z",
-		nullptr, nullptr, nullptr, nullptr, nullptr,
+		NULL, NULL, NULL, NULL, NULL,
 		"numpad0", "numpad1", "numpad2", "numpad3", "numpad4", "numpad5",
 		"numpad6", "numpad7", "numpad8", "numpad9",
 		"numpad*", "numpad+",
-		nullptr,
+		NULL,
 		"numpad-", "numpad.", "numpad/",
 		"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11",
 		"F12",
 		"F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22",
 		"F23", "F24",
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 		"numlock", "scrolllock",
-		nullptr, // 0x92
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-		nullptr, // 0xB9
+		NULL, // 0x92
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, // 0xB9
 		"semicolon", "plus", "comma", "minus",
 		"period", "slash", "tilde",
-		nullptr, // 0xC1
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-		nullptr, // 0xDA
+		NULL, // 0xC1
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, // 0xDA
 		"leftbracket", "backslash", "rightbracket", "quote",
 	};
 
@@ -58,7 +56,8 @@ namespace LuaCore::Input
 		lua_newtable(L);
 		for (int i = 1; i < 255; i++)
 		{
-			if (const char* name = KeyName[i])
+			const char* name = KeyName[i];
+			if (name)
 			{
 				int active;
 				if (i == VK_CAPITAL || i == VK_NUMLOCK || i == VK_SCROLL)
@@ -142,7 +141,6 @@ namespace LuaCore::Input
 		static lua_State* L;
 		switch (msg)
 		{
-		default: break;
 		case WM_INITDIALOG:
 			{
 				L = (lua_State*)lParam;
@@ -163,7 +161,6 @@ namespace LuaCore::Input
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
-		default: break;
 		case IDOK:
 			{
 				HWND inp = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
@@ -199,4 +196,3 @@ namespace LuaCore::Input
 		return 1;
 	}
 }
-#endif // INPUT_H

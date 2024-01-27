@@ -8,7 +8,7 @@
 t_window_info gSInfo{};
 BITMAPINFO gBMPInfo{}; //Needed for GetDIBits
 
-static unsigned char* buffer = nullptr;
+static unsigned char* buffer = NULL;
 static unsigned int bufferSize = 0;
 
 /// <summary>
@@ -24,7 +24,7 @@ void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap)
 {
 	HDC hdc = GetDC(hMain);
 	gBMPInfo.bmiHeader.biSize = sizeof(gBMPInfo.bmiHeader);
-	GetDIBits(hdc, bitmap, 0, 0, nullptr, &gBMPInfo, DIB_RGB_COLORS);
+	GetDIBits(hdc, bitmap, 0, 0, NULL, &gBMPInfo, DIB_RGB_COLORS);
 	gBMPInfo.bmiHeader.biCompression = BI_RGB; //idk if needed
 	gBMPInfo.bmiHeader.biBitCount = 24;
 	gBMPInfo.bmiHeader.biHeight = -gBMPInfo.bmiHeader.biHeight;
@@ -34,25 +34,26 @@ void PrepareBitmapHeader(HWND hMain, HBITMAP bitmap)
 //based on original one for AVI
 void FFMpegReadScreen(void** dest, long* width, long* height)
 {
-	HDC all = nullptr; //all - screen; copy - buffer
+	HDC mupendc, all, copy; //all - screen; copy - buffer
 	//RECT rect, rectS, rectT;
 	POINT cli_tl{0, 0}; //mupen client x y
+	HBITMAP bitmap, oldbitmap;
 
 	*width = gSInfo.width;
 	*height = gSInfo.height;
 
-	const HDC mupendc = GetDC(mainHWND); //only client area
+	mupendc = GetDC(mainHWND); //only client area
 	if (Config.is_capture_cropped_screen_dc)
 	{
 		//get whole screen dc and find out where is mupen's client area
-		all = GetDC(nullptr);
+		all = GetDC(NULL);
 		ClientToScreen(mainHWND, &cli_tl);
 	}
 
 	// copy to a context in memory to speed up process
-	const HDC copy = CreateCompatibleDC(mupendc);
-	const HBITMAP bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
-	const HBITMAP oldbitmap = static_cast<HBITMAP>(SelectObject(copy, bitmap));
+	copy = CreateCompatibleDC(mupendc);
+	bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
+	oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
 	Sleep(0);
 	if (copy)
 	{
@@ -67,8 +68,8 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 
 	if (!copy || !bitmap)
 	{
-		MessageBox(nullptr, "Unexpected AVI error 1", "Error", MB_ICONERROR);
-		*dest = nullptr;
+		MessageBox(0, "Unexpected AVI error 1", "Error", MB_ICONERROR);
+		*dest = NULL;
 		SelectObject(copy, oldbitmap);
 		//apparently this leaks 1 pixel bitmap if not used
 		if (bitmap)
@@ -86,14 +87,14 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 	{
 		if(buffer) free(buffer);
 		bufferSize = *width * *height * 3 + 1;
-		buffer = static_cast<unsigned char*>(malloc(bufferSize));
+		buffer = (unsigned char*)malloc(bufferSize);
 	}
 
 	if (!buffer) //failed to alloc
 	{
-		MessageBox(nullptr, "Failed to allocate memory for buffer", "Error",
+		MessageBox(0, "Failed to allocate memory for buffer", "Error",
 		           MB_ICONERROR);
-		*dest = nullptr;
+		*dest = NULL;
 		SelectObject(copy, oldbitmap);
 		if (bitmap)
 			DeleteObject(bitmap);
@@ -106,8 +107,8 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 
 	if (gBMPInfo.bmiHeader.biSize == 0)
 		PrepareBitmapHeader(mainHWND, bitmap);
-	if (GetDIBits(copy, bitmap, 0, *height, buffer, &gBMPInfo,
-	              DIB_RGB_COLORS) == 0)
+	if (auto res = GetDIBits(copy, bitmap, 0, *height, buffer, &gBMPInfo,
+	                         DIB_RGB_COLORS) == 0)
 	{
 		printf("GetDIBits error\n");
 	}
@@ -124,12 +125,12 @@ void FFMpegReadScreen(void** dest, long* width, long* height)
 
 void InitReadScreenFFmpeg(const t_window_info& info)
 {
-	printf((readScreen != nullptr)
-		       ? const_cast<char*>("ReadScreen is implemented by this graphics plugin.\n")
-		       : const_cast<char*>(
-			       "ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n"));
+	printf((readScreen != NULL)
+		       ? (char*)"ReadScreen is implemented by this graphics plugin.\n"
+		       : (char*)
+		       "ReadScreen not implemented by this graphics plugin (or was forcefully disabled in settings) - substituting...\n");
 
-	if (readScreen == nullptr)
+	if (readScreen == NULL)
 	{
 		readScreen = FFMpegReadScreen;
 		gSInfo = info;

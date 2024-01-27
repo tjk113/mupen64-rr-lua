@@ -1,10 +1,8 @@
-#ifndef D2D_H
-#define D2D_H
 #include <include/lua.h>
 #include <Windows.h>
 #include <assert.h>
 #include <xxh64.h>
-
+#include "../../main/win/main_win.h"
 
 namespace LuaCore::D2D
 {
@@ -253,7 +251,7 @@ namespace LuaCore::D2D
 
 		lua->dw_factory->CreateTextFormat(
 			string_to_wstring(font_name).c_str(),
-			nullptr,
+			NULL,
 			DWRITE_FONT_WEIGHT_NORMAL,
 			DWRITE_FONT_STYLE_NORMAL,
 			DWRITE_FONT_STRETCH_NORMAL,
@@ -339,28 +337,28 @@ namespace LuaCore::D2D
 
 		std::string path(luaL_checkstring(L, 1));
 
-		IWICImagingFactory* pIWICFactory = nullptr;
-		IWICBitmapDecoder* pDecoder = nullptr;
-		IWICBitmapFrameDecode* pSource = nullptr;
-		IWICFormatConverter* pConverter = nullptr;
-		ID2D1Bitmap* bmp = nullptr;
+		IWICImagingFactory* pIWICFactory = NULL;
+		IWICBitmapDecoder* pDecoder = NULL;
+		IWICBitmapFrameDecode* pSource = NULL;
+		IWICFormatConverter* pConverter = NULL;
+		ID2D1Bitmap* bmp = NULL;
 
 		CoCreateInstance(
 			CLSID_WICImagingFactory,
-			nullptr,
+			NULL,
 			CLSCTX_INPROC_SERVER,
 			IID_PPV_ARGS(&pIWICFactory)
 		);
 
 		HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
 			string_to_wstring(path).c_str(),
-			nullptr,
+			NULL,
 			GENERIC_READ,
 			WICDecodeMetadataCacheOnLoad,
 			&pDecoder
 		);
 
-		if (FAILED(hr))
+		if (!SUCCEEDED(hr))
 		{
 			printf("D2D image fail HRESULT %d\n", hr);
 			pIWICFactory->Release();
@@ -373,14 +371,14 @@ namespace LuaCore::D2D
 			pSource,
 			GUID_WICPixelFormat32bppPBGRA,
 			WICBitmapDitherTypeNone,
-			nullptr,
+			NULL,
 			0.0f,
 			WICBitmapPaletteTypeMedianCut
 		);
 
 		lua->d2d_render_target_stack.top()->CreateBitmapFromWicBitmap(
 			pConverter,
-			nullptr,
+			NULL,
 			&bmp
 		);
 
@@ -468,4 +466,3 @@ namespace LuaCore::D2D
 #undef D2D_GET_ELLIPS
 #undef D2D_GET_ROUNDED_RECT
 }
-#endif // D2D_H

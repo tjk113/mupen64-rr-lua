@@ -1,5 +1,3 @@
-#ifndef FFMPEG_CAPTURE_HPP
-#define FFMPEG_CAPTURE_HPP
 #include <string>
 #include <thread>
 #include <queue>
@@ -22,7 +20,7 @@ const std::string defaultOptions = "out.mp4";
 // video size and framerate prepared in manager constructor when values are known
 // pixel format is bgr24, because that's what windows uses
 #define videoOptions " -thread_queue_size 4 -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 "
-constexpr char baseOptions[] = videoOptions "-i \\\\.\\pipe\\mupenvideo"
+const char baseOptions[] = videoOptions "-i \\\\.\\pipe\\mupenvideo"
 	audioOptions "-i \\\\.\\pipe\\mupenaudio ";
 
 void InitReadScreenFFmpeg(const t_window_info& info);
@@ -49,7 +47,6 @@ public:
 	/// <param name="videoX">input video resolution</param>
 	/// <param name="videoY">input video resolution</param>
 	/// <param name="framerate">framerate (depends whether PAL or not)</param>
-	/// <param name="audiorate"></param>
 	/// <param name="cmdOptions">additional ffmpeg options (compression, output name, effects and shit)</param>
 	FFmpegManager(unsigned videoX, unsigned videoY, unsigned framerate,
 	              unsigned audiorate,
@@ -100,4 +97,3 @@ private:
 
 	bool lastWriteWasVideo{};
 };
-#endif // FFMPEG_CAPTURE_HPP

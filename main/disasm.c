@@ -419,12 +419,14 @@ void (*InstFormatTypeFunc[INSTFTYPE_COUNT])(r4300word, INSTOPERAND*) = {
 void DecodeInstruction(r4300word w, INSTDECODE* d)
 {
     INST inst = GetInstruction(w);
+    INSTFMT format;
+    INSTFTYPE type;
     if (inst == INST_UNDEF)
     {
         inst = GetInstruction(w);
     }
-    const INSTFMT format = InstFormat[inst];
-    const INSTFTYPE type = InstFormatType[format];
+    format = InstFormat[inst];
+    type = InstFormatType[format];
     InstFormatTypeFunc[type](w, &d->operand);
     d->inst = inst;
     d->format = format;
@@ -463,16 +465,19 @@ static char* sfmt(char* b, const char* f, ...)
 			q+=4;
 
     va_list v;
+    const char* p;
     char* q = b;
+    const char* const x = "0123456789abcdef";
     va_start(v, f);
-    for (const char* p = f; *p; p++)
+    for (p = f; *p; p++)
     {
-        const char* const x = "0123456789abcdef";
-        switch (const char c = *p)
+        char c = *p;
+        switch (c)
         {
         case 'r':
             {
-                for (const char* l = CPURegisterName[va_arg(v, int)]; *l; l++)
+                const char* l;
+                for (l = CPURegisterName[va_arg(v, int)]; *l; l++)
                 {
                     *(q++) = *l;
                 }
@@ -480,7 +485,8 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'c':
             {
-                for (const char* l = COP0RegisterName[va_arg(v, int)]; *l; l++)
+                const char* l;
+                for (l = COP0RegisterName[va_arg(v, int)]; *l; l++)
                 {
                     *(q++) = *l;
                 }
@@ -498,13 +504,13 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'u':
             {
-                const r4300half n = va_arg(v, r4300half);
-                HEX4()
+                r4300half n = va_arg(v, r4300half);
+                HEX4();
                 break;
             }
         case 's':
             {
-                const r4300half n = va_arg(v, r4300half);
+                r4300half n = va_arg(v, r4300half);
                 if (n < 0x8000)
                 {
                     *q = '+';
@@ -515,16 +521,16 @@ static char* sfmt(char* b, const char* f, ...)
                     //				n = -n;
                 }
                 q++;
-                HEX4()
+                HEX4();
                 break;
             }
         case 'p':
             {
-                const r4300word m = va_arg(v, r4300word);
+                r4300word m = va_arg(v, r4300word);
                 r4300half n = m >> 16;
-                HEX4()
+                HEX4();
                 n = m & 0xFFFF;
-                HEX4()
+                HEX4();
                 break;
             }
         case 'a':
@@ -607,8 +613,9 @@ char* GetOperandString(char* buf, INSTDECODE* d, r4300word pc)
 char* DisassembleInstruction(char* buf, r4300word w, r4300word pc)
 {
     INSTDECODE decode;
+    const char* p;
     DecodeInstruction(w, &decode);
-    for (const char* p = GetOpecodeString(&decode); *p; p++)
+    for (p = GetOpecodeString(&decode); *p; p++)
     {
         *(buf++) = *p;
     }

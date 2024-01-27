@@ -1,10 +1,9 @@
-#ifndef WGUI_H
-#define WGUI_H
 #include <include/lua.h>
 #include <Windows.h>
 
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
+#include "../../main/helpers/win_helpers.h"
 
 namespace LuaCore::Wgui
 {
@@ -41,7 +40,7 @@ namespace LuaCore::Wgui
 		{"cyan", 0xFFFFFF00},
 		{"blue", 0xFFFF0000},
 		{"purple", 0xFFFF0080},
-		{nullptr}
+		{NULL}
 	};
 
 	static int GetGUIInfo(lua_State* L)
@@ -70,7 +69,7 @@ namespace LuaCore::Wgui
 		wndRect.right -= wndRect.left;
 		int w = luaL_checkinteger(L, 1),
 			h = luaL_checkinteger(L, 2);
-		SetWindowPos(mainHWND, nullptr, 0, 0,
+		SetWindowPos(mainHWND, 0, 0, 0,
 					 w + (wndRect.right - clientRect.right),
 					 h + (wndRect.bottom - clientRect.bottom),
 					 SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
@@ -222,7 +221,6 @@ namespace LuaCore::Wgui
 		{
 			switch (*p)
 			{
-			default: break;
 			case 'b': font.lfWeight = FW_BOLD;
 				break;
 			case 'i': font.lfItalic = TRUE;
@@ -335,7 +333,6 @@ namespace LuaCore::Wgui
 			{
 				switch (*p)
 				{
-				default: break;
 				case 'l': format |= DT_LEFT;
 					break;
 				case 'r': format |= DT_RIGHT;
@@ -378,7 +375,7 @@ namespace LuaCore::Wgui
 		rect.right = luaL_checkinteger(L, 5);
 		rect.bottom = luaL_checkinteger(L, 6);
 
-		DrawTextEx(lua->dc, string, -1, &rect, format, nullptr);
+		DrawTextEx(lua->dc, string, -1, &rect, format, NULL);
 		return 0;
 	}
 
@@ -719,7 +716,7 @@ namespace LuaCore::Wgui
 		rect.top = luaL_checknumber(L, 2);
 		rect.right = luaL_checknumber(L, 3);
 		rect.bottom = luaL_checknumber(L, 4);
-		ExtTextOut(lua->dc, 0, 0, ETO_OPAQUE, &rect, "", 0, nullptr);
+		ExtTextOut(lua->dc, 0, 0, ETO_OPAQUE, &rect, "", 0, 0);
 		SetBkColor(lua->dc, colorold);
 		return 0;
 	}
@@ -780,7 +777,7 @@ namespace LuaCore::Wgui
 
 		SelectObject(lua->dc, lua->pen);
 		::MoveToEx(lua->dc, luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-		nullptr);
+		           NULL);
 		::LineTo(lua->dc, luaL_checknumber(L, 3), luaL_checknumber(L, 4));
 		return 0;
 	}
@@ -805,8 +802,7 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		SelectClipRgn(lua->dc, nullptr);
+		SelectClipRgn(lua->dc, NULL);
 		return 0;
 	}
 }
-#endif // WGUI_H

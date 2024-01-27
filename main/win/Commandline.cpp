@@ -64,7 +64,7 @@ void commandline_start_rom()
 	}
 
 	strcpy(rom_path, commandline_rom.c_str());
-	CreateThread(nullptr, 0, start_rom, nullptr, 0, &start_rom_id);
+	CreateThread(NULL, 0, start_rom, nullptr, 0, &start_rom_id);
 }
 
 void commandline_load_st()

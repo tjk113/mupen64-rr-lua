@@ -27,6 +27,9 @@
  *
 **/
 
+#include <math.h>
+#include <float.h>
+
 #include "r4300.h"
 #include "ops.h"
 #include "macros.h"
@@ -115,10 +118,10 @@ void ROUND_L_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_round_to_nearest()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_round_to_nearest();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     PC++;
 }
 
@@ -126,10 +129,10 @@ void TRUNC_L_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_trunc()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_trunc();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     PC++;
 }
 
@@ -137,10 +140,10 @@ void CEIL_L_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_ceil()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_ceil();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     PC++;
 }
 
@@ -148,10 +151,10 @@ void FLOOR_L_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_floor()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
-    set_rounding()
+    set_floor();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
+    set_rounding();
     PC++;
 }
 
@@ -159,10 +162,10 @@ void ROUND_W_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_round_to_nearest()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd])
-    set_rounding()
+    set_round_to_nearest();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
+    set_rounding();
     PC++;
 }
 
@@ -170,10 +173,10 @@ void TRUNC_W_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_trunc()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd])
-    set_rounding()
+    set_trunc();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
+    set_rounding();
     PC++;
 }
 
@@ -181,10 +184,10 @@ void CEIL_W_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_ceil()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd])
-    set_rounding()
+    set_ceil();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
+    set_rounding();
     PC++;
 }
 
@@ -192,10 +195,10 @@ void FLOOR_W_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    set_floor()
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd])
-    set_rounding()
+    set_floor();
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
+    set_rounding();
     PC++;
 }
 
@@ -205,12 +208,12 @@ void CVT_S_D()
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
     if (Config.is_round_towards_zero_enabled)
     {
-        set_trunc()
+        set_trunc();
     }
     *reg_cop1_simple[core_cffd] = *reg_cop1_double[core_cffs];
     if (Config.is_round_towards_zero_enabled)
     {
-        set_rounding()
+        set_rounding();
     }
     CHECK_OUTPUT(*reg_cop1_simple[core_cffd]);
     PC++;
@@ -220,8 +223,8 @@ void CVT_W_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    clear_x87_exceptions()
-    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd])
+    clear_x87_exceptions();
+    FLOAT_CONVERT_W_D(reg_cop1_double[core_cffs], reg_cop1_simple[core_cffd]);
     PC++;
 }
 
@@ -229,8 +232,8 @@ void CVT_L_D()
 {
     if (check_cop1_unusable()) return;
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    clear_x87_exceptions()
-    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd])
+    clear_x87_exceptions();
+    FLOAT_CONVERT_L_D(reg_cop1_double[core_cffs], reg_cop1_double[core_cffd]);
     PC++;
 }
 

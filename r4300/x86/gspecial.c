@@ -27,6 +27,7 @@
  *
 **/
 
+#include <stdio.h>
 #include "../recomph.h"
 #include "../recomp.h"
 #include "assemble.h"
@@ -34,6 +35,9 @@
 #include "../ops.h"
 #include "../macros.h"
 #include "../exception.h"
+#include "interpret.h"
+#define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
+#include "../lua/LuaConsole.h"
 
 
 void gensll()
@@ -41,8 +45,8 @@ void gensll()
 #ifdef INTERPRET_SLL
 	gencallinterp((unsigned long)SLL, 0);
 #else
-    int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt = allocate_register((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd, rt);
     shl_reg32_imm8(rd, dst->f.r.sa);
@@ -54,8 +58,8 @@ void gensrl()
 #ifdef INTERPRET_SRL
 	gencallinterp((unsigned long)SRL, 0);
 #else
-    int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt = allocate_register((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd, rt);
     shr_reg32_imm8(rd, dst->f.r.sa);
@@ -67,8 +71,8 @@ void gensra()
 #ifdef INTERPRET_SRA
 	gencallinterp((unsigned long)SRA, 0);
 #else
-    int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt = allocate_register((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd, rt);
     sar_reg32_imm8(rd, dst->f.r.sa);
@@ -80,11 +84,13 @@ void gensllv()
 #ifdef INTERPRET_SLLV
 	gencallinterp((unsigned long)SLLV, 0);
 #else
-    allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
+    int rt, rd;
+    allocate_register_manually(ECX, (unsigned long*)dst->f.r.rs);
 
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    rt = allocate_register((unsigned long*)dst->f.r.rt);
+    rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd != ECX)
+    if (rd != ECX)
     {
         mov_reg32_reg32(rd, rt);
         shl_reg32_cl(rd);
@@ -105,18 +111,20 @@ void gensrlv()
 #ifdef INTERPRET_SRLV
 	gencallinterp((unsigned long)SRLV, 0);
 #else
-    allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
+    int rt, rd;
+    allocate_register_manually(ECX, (unsigned long*)dst->f.r.rs);
 
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    rt = allocate_register((unsigned long*)dst->f.r.rt);
+    rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd != ECX)
+    if (rd != ECX)
     {
         mov_reg32_reg32(rd, rt);
         shr_reg32_cl(rd);
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rt);
         shr_reg32_cl(temp);
@@ -130,18 +138,20 @@ void gensrav()
 #ifdef INTERPRET_SRAV
 	gencallinterp((unsigned long)SRAV, 0);
 #else
-    allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
+    int rt, rd;
+    allocate_register_manually(ECX, (unsigned long*)dst->f.r.rs);
 
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    rt = allocate_register((unsigned long*)dst->f.r.rt);
+    rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd != ECX)
+    if (rd != ECX)
     {
         mov_reg32_reg32(rd, rt);
         sar_reg32_cl(rd);
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rt);
         sar_reg32_cl(temp);
@@ -157,44 +167,45 @@ void genjr()
 #else
     static unsigned long precomp_instr_size = sizeof(precomp_instr);
     unsigned long diff =
-        reinterpret_cast<unsigned long>(&dst->local_addr) - reinterpret_cast<unsigned long>(dst);
+        (unsigned long)(&dst->local_addr) - (unsigned long)(dst);
     unsigned long diff_need =
-        reinterpret_cast<unsigned long>(&dst->reg_cache_infos.need_map) - reinterpret_cast<unsigned long>(dst);
+        (unsigned long)(&dst->reg_cache_infos.need_map) - (unsigned long)(dst);
     unsigned long diff_wrap =
-        reinterpret_cast<unsigned long>(&dst->reg_cache_infos.jump_wrapper) - reinterpret_cast<unsigned long>(dst);
+        (unsigned long)(&dst->reg_cache_infos.jump_wrapper) - (unsigned long)(dst);
+    unsigned long temp, temp2;
 
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(JR), 1);
+        gencallinterp((unsigned long)JR, 1);
         return;
     }
 
     free_all_registers();
     simplify_access();
-    mov_eax_memoffs32(dst->f.i.rs);
-    mov_memoffs32_eax(&local_rs);
+    mov_eax_memoffs32((unsigned long*)dst->f.i.rs);
+    mov_memoffs32_eax((unsigned long*)&local_rs);
 
     gendelayslot();
 
-    mov_eax_memoffs32(&local_rs);
-    mov_memoffs32_eax(&last_addr);
+    mov_eax_memoffs32((unsigned long*)&local_rs);
+    mov_memoffs32_eax((unsigned long*)&last_addr);
 
     gencheck_interrupt_reg();
 
-    mov_eax_memoffs32(&local_rs);
+    mov_eax_memoffs32((unsigned long*)&local_rs);
     mov_reg32_reg32(EBX, EAX);
     and_eax_imm32(0xFFFFF000);
     cmp_eax_imm32(dst_block->start & 0xFFFFF000);
     je_near_rj(0);
-    const unsigned long temp = code_length;
+    temp = code_length;
 
     mov_m32_reg32(&jump_to_address, EBX);
-    mov_m32_imm32(&PC, reinterpret_cast<unsigned long>(dst + 1));
-    mov_reg32_imm32(EAX, reinterpret_cast<unsigned long>(jump_to_func));
+    mov_m32_imm32((unsigned long*)(&PC), (unsigned long)(dst + 1));
+    mov_reg32_imm32(EAX, (unsigned long)jump_to_func);
     call_reg32(EAX);
 
-    const unsigned long temp2 = code_length;
+    temp2 = code_length;
     code_length = temp - 4;
     put32(temp2 - temp);
     code_length = temp2;
@@ -202,17 +213,17 @@ void genjr()
     mov_reg32_reg32(EAX, EBX);
     sub_eax_imm32(dst_block->start);
     shr_reg32_imm8(EAX, 2);
-    mul_m32(&precomp_instr_size);
+    mul_m32((unsigned long*)(&precomp_instr_size));
 
-    mov_reg32_preg32pimm32(EBX, EAX, reinterpret_cast<unsigned long>(dst_block->block) + diff_need);
+    mov_reg32_preg32pimm32(EBX, EAX, (unsigned long)(dst_block->block) + diff_need);
     cmp_reg32_imm32(EBX, 1);
     jne_rj(7);
 
-    add_eax_imm32(reinterpret_cast<unsigned long>(dst_block->block) + diff_wrap); // 5
+    add_eax_imm32((unsigned long)(dst_block->block) + diff_wrap); // 5
     jmp_reg32(EAX); // 2
 
-    mov_reg32_preg32pimm32(EAX, EAX, reinterpret_cast<unsigned long>(dst_block->block) + diff);
-    add_reg32_m32(EAX, &dst_block->code);
+    mov_reg32_preg32pimm32(EAX, EAX, (unsigned long)(dst_block->block) + diff);
+    add_reg32_m32(EAX, (unsigned long*)(&dst_block->code));
 
     jmp_reg32(EAX);
 #endif
@@ -225,50 +236,51 @@ void genjalr()
 #else
     static unsigned long precomp_instr_size = sizeof(precomp_instr);
     unsigned long diff =
-        reinterpret_cast<unsigned long>(&dst->local_addr) - reinterpret_cast<unsigned long>(dst);
+        (unsigned long)(&dst->local_addr) - (unsigned long)(dst);
     unsigned long diff_need =
-        reinterpret_cast<unsigned long>(&dst->reg_cache_infos.need_map) - reinterpret_cast<unsigned long>(dst);
+        (unsigned long)(&dst->reg_cache_infos.need_map) - (unsigned long)(dst);
     unsigned long diff_wrap =
-        reinterpret_cast<unsigned long>(&dst->reg_cache_infos.jump_wrapper) - reinterpret_cast<unsigned long>(dst);
+        (unsigned long)(&dst->reg_cache_infos.jump_wrapper) - (unsigned long)(dst);
+    unsigned long temp, temp2;
 
     if (((dst->addr & 0xFFF) == 0xFFC &&
         (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !Config.is_compiled_jump_enabled)
     {
-        gencallinterp(reinterpret_cast<unsigned long>(JALR), 1);
+        gencallinterp((unsigned long)JALR, 1);
         return;
     }
 
     free_all_registers();
     simplify_access();
-    mov_eax_memoffs32(dst->f.r.rs);
-    mov_memoffs32_eax(&local_rs);
+    mov_eax_memoffs32((unsigned long*)dst->f.r.rs);
+    mov_memoffs32_eax((unsigned long*)&local_rs);
 
     gendelayslot();
 
-    mov_m32_imm32((dst - 1)->f.r.rd, dst->addr + 4);
+    mov_m32_imm32((unsigned long*)(dst - 1)->f.r.rd, dst->addr + 4);
     if ((dst->addr + 4) & 0x80000000)
-        mov_m32_imm32(reinterpret_cast<unsigned long*>((dst - 1)->f.r.rd) + 1, 0xFFFFFFFF);
+        mov_m32_imm32(((unsigned long*)(dst - 1)->f.r.rd) + 1, 0xFFFFFFFF);
     else
-        mov_m32_imm32(reinterpret_cast<unsigned long*>((dst - 1)->f.r.rd) + 1, 0);
+        mov_m32_imm32(((unsigned long*)(dst - 1)->f.r.rd) + 1, 0);
 
-    mov_eax_memoffs32(&local_rs);
-    mov_memoffs32_eax(&last_addr);
+    mov_eax_memoffs32((unsigned long*)&local_rs);
+    mov_memoffs32_eax((unsigned long*)&last_addr);
 
     gencheck_interrupt_reg();
 
-    mov_eax_memoffs32(&local_rs);
+    mov_eax_memoffs32((unsigned long*)&local_rs);
     mov_reg32_reg32(EBX, EAX);
     and_eax_imm32(0xFFFFF000);
     cmp_eax_imm32(dst_block->start & 0xFFFFF000);
     je_near_rj(0);
-    const unsigned long temp = code_length;
+    temp = code_length;
 
     mov_m32_reg32(&jump_to_address, EBX);
-    mov_m32_imm32(&PC, reinterpret_cast<unsigned long>(dst + 1));
-    mov_reg32_imm32(EAX, reinterpret_cast<unsigned long>(jump_to_func));
+    mov_m32_imm32((unsigned long*)(&PC), (unsigned long)(dst + 1));
+    mov_reg32_imm32(EAX, (unsigned long)jump_to_func);
     call_reg32(EAX);
 
-    const unsigned long temp2 = code_length;
+    temp2 = code_length;
     code_length = temp - 4;
     put32(temp2 - temp);
     code_length = temp2;
@@ -276,17 +288,17 @@ void genjalr()
     mov_reg32_reg32(EAX, EBX);
     sub_eax_imm32(dst_block->start);
     shr_reg32_imm8(EAX, 2);
-    mul_m32(&precomp_instr_size);
+    mul_m32((unsigned long*)(&precomp_instr_size));
 
-    mov_reg32_preg32pimm32(EBX, EAX, reinterpret_cast<unsigned long>(dst_block->block) + diff_need);
+    mov_reg32_preg32pimm32(EBX, EAX, (unsigned long)(dst_block->block) + diff_need);
     cmp_reg32_imm32(EBX, 1);
     jne_rj(7);
 
-    add_eax_imm32(reinterpret_cast<unsigned long>(dst_block->block) + diff_wrap); // 5
+    add_eax_imm32((unsigned long)(dst_block->block) + diff_wrap); // 5
     jmp_reg32(EAX); // 2
 
-    mov_reg32_preg32pimm32(EAX, EAX, reinterpret_cast<unsigned long>(dst_block->block) + diff);
-    add_reg32_m32(EAX, &dst_block->code);
+    mov_reg32_preg32pimm32(EAX, EAX, (unsigned long)(dst_block->block) + diff);
+    add_reg32_m32(EAX, (unsigned long*)(&dst_block->code));
 
     jmp_reg32(EAX);
 #endif
@@ -300,7 +312,7 @@ void gensyscall()
     free_all_registers();
     simplify_access();
     mov_m32_imm32(&core_Cause, 8 << 2);
-    gencallinterp(reinterpret_cast<unsigned long>(exception_general), 0);
+    gencallinterp((unsigned long)exception_general, 0);
 #endif
 }
 
@@ -316,10 +328,10 @@ void genmfhi()
 #ifdef INTERPRET_MFHI
 	gencallinterp((unsigned long)MFHI, 0);
 #else
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int hi1 = allocate_64_register1(reinterpret_cast<unsigned long*>(&hi));
-    const int hi2 = allocate_64_register2(reinterpret_cast<unsigned long*>(&hi));
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
+    int hi1 = allocate_64_register1((unsigned long*)&hi);
+    int hi2 = allocate_64_register2((unsigned long*)&hi);
 
     mov_reg32_reg32(rd1, hi1);
     mov_reg32_reg32(rd2, hi2);
@@ -331,10 +343,10 @@ void genmthi()
 #ifdef INTERPRET_MTHI
 	gencallinterp((unsigned long)MTHI, 0);
 #else
-    const int hi1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(&hi));
-    const int hi2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(&hi));
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
+    int hi1 = allocate_64_register1_w((unsigned long*)&hi);
+    int hi2 = allocate_64_register2_w((unsigned long*)&hi);
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
 
     mov_reg32_reg32(hi1, rs1);
     mov_reg32_reg32(hi2, rs2);
@@ -346,10 +358,10 @@ void genmflo()
 #ifdef INTERPRET_MFLO
 	gencallinterp((unsigned long)MFLO, 0);
 #else
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int lo1 = allocate_64_register1(reinterpret_cast<unsigned long*>(&lo));
-    const int lo2 = allocate_64_register2(reinterpret_cast<unsigned long*>(&lo));
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
+    int lo1 = allocate_64_register1((unsigned long*)&lo);
+    int lo2 = allocate_64_register2((unsigned long*)&lo);
 
     mov_reg32_reg32(rd1, lo1);
     mov_reg32_reg32(rd2, lo2);
@@ -361,10 +373,10 @@ void genmtlo()
 #ifdef INTERPRET_MTLO
 	gencallinterp((unsigned long)MTLO, 0);
 #else
-    const int lo1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(&lo));
-    const int lo2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(&lo));
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
+    int lo1 = allocate_64_register1_w((unsigned long*)&lo);
+    int lo2 = allocate_64_register2_w((unsigned long*)&lo);
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
 
     mov_reg32_reg32(lo1, rs1);
     mov_reg32_reg32(lo2, rs2);
@@ -376,13 +388,15 @@ void gendsllv()
 #ifdef INTERPRET_DSLLV
 	gencallinterp((unsigned long)DSLLV, 0);
 #else
-    allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
+    int rt1, rt2, rd1, rd2;
+    allocate_register_manually(ECX, (unsigned long*)dst->f.r.rs);
 
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd1 != ECX && rd2 != ECX)
+    if (rd1 != ECX && rd2 != ECX)
     {
         mov_reg32_reg32(rd1, rt1);
         mov_reg32_reg32(rd2, rt2);
@@ -395,9 +409,10 @@ void gendsllv()
     }
     else
     {
+        int temp1, temp2;
         force_32(ECX);
-        const int temp1 = lru_register();
-        const int temp2 = lru_register_exc1(temp1);
+        temp1 = lru_register();
+        temp2 = lru_register_exc1(temp1);
         free_register(temp1);
         free_register(temp2);
 
@@ -421,13 +436,15 @@ void gendsrlv()
 #ifdef INTERPRET_DSRLV
 	gencallinterp((unsigned long)DSRLV, 0);
 #else
-    allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
+    int rt1, rt2, rd1, rd2;
+    allocate_register_manually(ECX, (unsigned long*)dst->f.r.rs);
 
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd1 != ECX && rd2 != ECX)
+    if (rd1 != ECX && rd2 != ECX)
     {
         mov_reg32_reg32(rd1, rt1);
         mov_reg32_reg32(rd2, rt2);
@@ -440,9 +457,10 @@ void gendsrlv()
     }
     else
     {
+        int temp1, temp2;
         force_32(ECX);
-        const int temp1 = lru_register();
-        const int temp2 = lru_register_exc1(temp1);
+        temp1 = lru_register();
+        temp2 = lru_register_exc1(temp1);
         free_register(temp1);
         free_register(temp2);
 
@@ -466,13 +484,15 @@ void gendsrav()
 #ifdef INTERPRET_DSRAV
 	gencallinterp((unsigned long)DSRAV, 0);
 #else
-    allocate_register_manually(ECX, reinterpret_cast<unsigned long*>(dst->f.r.rs));
+    int rt1, rt2, rd1, rd2;
+    allocate_register_manually(ECX, (unsigned long*)dst->f.r.rs);
 
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rd1 != ECX && rd2 != ECX)
+    if (rd1 != ECX && rd2 != ECX)
     {
         mov_reg32_reg32(rd1, rt1);
         mov_reg32_reg32(rd2, rt2);
@@ -485,9 +505,10 @@ void gendsrav()
     }
     else
     {
+        int temp1, temp2;
         force_32(ECX);
-        const int temp1 = lru_register();
-        const int temp2 = lru_register_exc1(temp1);
+        temp1 = lru_register();
+        temp2 = lru_register_exc1(temp1);
         free_register(temp1);
         free_register(temp2);
 
@@ -511,10 +532,11 @@ void genmult()
 #ifdef INTERPRET_MULT
 	gencallinterp((unsigned long)MULT, 0);
 #else
-    allocate_register_manually_w(EAX, reinterpret_cast<unsigned long*>(&lo), 0);
-    allocate_register_manually_w(EDX, reinterpret_cast<unsigned long*>(&hi), 0);
-    const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    int rs, rt;
+    allocate_register_manually_w(EAX, (unsigned long*)&lo, 0);
+    allocate_register_manually_w(EDX, (unsigned long*)&hi, 0);
+    rs = allocate_register((unsigned long*)dst->f.r.rs);
+    rt = allocate_register((unsigned long*)dst->f.r.rt);
     mov_reg32_reg32(EAX, rs);
     imul_reg32(rt);
 #endif
@@ -525,10 +547,11 @@ void genmultu()
 #ifdef INTERPRET_MULTU
 	gencallinterp((unsigned long)MULTU, 0);
 #else
-    allocate_register_manually_w(EAX, reinterpret_cast<unsigned long*>(&lo), 0);
-    allocate_register_manually_w(EDX, reinterpret_cast<unsigned long*>(&hi), 0);
-    const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    int rs, rt;
+    allocate_register_manually_w(EAX, (unsigned long*)&lo, 0);
+    allocate_register_manually_w(EDX, (unsigned long*)&hi, 0);
+    rs = allocate_register((unsigned long*)dst->f.r.rs);
+    rt = allocate_register((unsigned long*)dst->f.r.rt);
     mov_reg32_reg32(EAX, rs);
     mul_reg32(rt);
 #endif
@@ -539,10 +562,11 @@ void gendiv()
 #ifdef INTERPRET_DIV
 	gencallinterp((unsigned long)DIV, 0);
 #else
-    allocate_register_manually_w(EAX, reinterpret_cast<unsigned long*>(&lo), 0);
-    allocate_register_manually_w(EDX, reinterpret_cast<unsigned long*>(&hi), 0);
-    const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    int rs, rt;
+    allocate_register_manually_w(EAX, (unsigned long*)&lo, 0);
+    allocate_register_manually_w(EDX, (unsigned long*)&hi, 0);
+    rs = allocate_register((unsigned long*)dst->f.r.rs);
+    rt = allocate_register((unsigned long*)dst->f.r.rt);
     cmp_reg32_imm32(rt, 0);
     je_rj((rs == EAX ? 0 : 2) + 1 + 2);
     mov_reg32_reg32(EAX, rs); // 0 or 2
@@ -556,10 +580,11 @@ void gendivu()
 #ifdef INTERPRET_DIVU
 	gencallinterp((unsigned long)DIVU, 0);
 #else
-    allocate_register_manually_w(EAX, reinterpret_cast<unsigned long*>(&lo), 0);
-    allocate_register_manually_w(EDX, reinterpret_cast<unsigned long*>(&hi), 0);
-    const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    int rs, rt;
+    allocate_register_manually_w(EAX, (unsigned long*)&lo, 0);
+    allocate_register_manually_w(EDX, (unsigned long*)&hi, 0);
+    rs = allocate_register((unsigned long*)dst->f.r.rs);
+    rt = allocate_register((unsigned long*)dst->f.r.rt);
     cmp_reg32_imm32(rt, 0);
     je_rj((rs == EAX ? 0 : 2) + 2 + 2);
     mov_reg32_reg32(EAX, rs); // 0 or 2
@@ -570,7 +595,7 @@ void gendivu()
 
 void gendmult()
 {
-    gencallinterp(reinterpret_cast<unsigned long>(DMULT), 0);
+    gencallinterp((unsigned long)DMULT, 0);
 }
 
 void gendmultu()
@@ -581,45 +606,45 @@ void gendmultu()
     free_all_registers();
     simplify_access();
 
-    mov_eax_memoffs32(dst->f.r.rs);
-    mul_m32(dst->f.r.rt); // EDX:EAX = temp1
-    mov_memoffs32_eax(&lo);
+    mov_eax_memoffs32((unsigned long*)dst->f.r.rs);
+    mul_m32((unsigned long*)dst->f.r.rt); // EDX:EAX = temp1
+    mov_memoffs32_eax((unsigned long*)(&lo));
 
     mov_reg32_reg32(EBX, EDX); // EBX = temp1>>32
-    mov_eax_memoffs32(dst->f.r.rs);
-    mul_m32(reinterpret_cast<unsigned long*>(dst->f.r.rt) + 1);
+    mov_eax_memoffs32((unsigned long*)dst->f.r.rs);
+    mul_m32((unsigned long*)(dst->f.r.rt) + 1);
     add_reg32_reg32(EBX, EAX);
     adc_reg32_imm32(EDX, 0);
     mov_reg32_reg32(ECX, EDX); // ECX:EBX = temp2
 
-    mov_eax_memoffs32(reinterpret_cast<unsigned long*>(dst->f.r.rs) + 1);
-    mul_m32(dst->f.r.rt); // EDX:EAX = temp3
+    mov_eax_memoffs32((unsigned long*)(dst->f.r.rs) + 1);
+    mul_m32((unsigned long*)dst->f.r.rt); // EDX:EAX = temp3
 
     add_reg32_reg32(EBX, EAX);
     adc_reg32_imm32(ECX, 0); // ECX:EBX = result2
-    mov_m32_reg32(reinterpret_cast<unsigned long*>(&lo) + 1, EBX);
+    mov_m32_reg32((unsigned long*)(&lo) + 1, EBX);
 
     mov_reg32_reg32(ESI, EDX); // ESI = temp3>>32
-    mov_eax_memoffs32(reinterpret_cast<unsigned long*>(dst->f.r.rs) + 1);
-    mul_m32(reinterpret_cast<unsigned long*>(dst->f.r.rt) + 1);
+    mov_eax_memoffs32((unsigned long*)(dst->f.r.rs) + 1);
+    mul_m32((unsigned long*)(dst->f.r.rt) + 1);
     add_reg32_reg32(EAX, ESI);
     adc_reg32_imm32(EDX, 0); // EDX:EAX = temp4
 
     add_reg32_reg32(EAX, ECX);
     adc_reg32_imm32(EDX, 0); // EDX:EAX = result3
-    mov_memoffs32_eax(&hi);
-    mov_m32_reg32(reinterpret_cast<unsigned long*>(&hi) + 1, EDX);
+    mov_memoffs32_eax((unsigned long*)(&hi));
+    mov_m32_reg32((unsigned long*)(&hi) + 1, EDX);
 #endif
 }
 
 void genddiv()
 {
-    gencallinterp(reinterpret_cast<unsigned long>(DDIV), 0);
+    gencallinterp((unsigned long)DDIV, 0);
 }
 
 void genddivu()
 {
-    gencallinterp(reinterpret_cast<unsigned long>(DDIVU), 0);
+    gencallinterp((unsigned long)DDIVU, 0);
 }
 
 void genadd()
@@ -627,17 +652,18 @@ void genadd()
 #ifdef INTERPRET_ADD
 	gencallinterp((unsigned long)ADD, 0);
 #else
-    const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    int rs = allocate_register((unsigned long*)dst->f.r.rs);
+    int rt = allocate_register((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rt != rd && rs != rd)
+    if (rt != rd && rs != rd)
     {
         mov_reg32_reg32(rd, rs);
         add_reg32_reg32(rd, rt);
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rs);
         add_reg32_reg32(temp, rt);
@@ -651,9 +677,9 @@ void genaddu()
 #ifdef INTERPRET_ADDU
 	gencallinterp((unsigned long)ADDU, 0);
 #else
-    const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs = allocate_register((unsigned long*)dst->f.r.rs);
+    int rt = allocate_register((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
     if (rt != rd && rs != rd)
     {
@@ -662,7 +688,7 @@ void genaddu()
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rs);
         add_reg32_reg32(temp, rt);
@@ -676,17 +702,18 @@ void gensub()
 #ifdef INTERPRET_SUB
 	gencallinterp((unsigned long)SUB, 0);
 #else
-    const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    int rs = allocate_register((unsigned long*)dst->f.r.rs);
+    int rt = allocate_register((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rt != rd && rs != rd)
+    if (rt != rd && rs != rd)
     {
         mov_reg32_reg32(rd, rs);
         sub_reg32_reg32(rd, rt);
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rs);
         sub_reg32_reg32(temp, rt);
@@ -700,17 +727,18 @@ void gensubu()
 #ifdef INTERPRET_SUBU
 	gencallinterp((unsigned long)SUBU, 0);
 #else
-    const int rs = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt = allocate_register(reinterpret_cast<unsigned long*>(dst->f.r.rt));
+    int rs = allocate_register((unsigned long*)dst->f.r.rs);
+    int rt = allocate_register((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
-    if (const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd)); rt != rd && rs != rd)
+    if (rt != rd && rs != rd)
     {
         mov_reg32_reg32(rd, rs);
         sub_reg32_reg32(rd, rt);
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rs);
         sub_reg32_reg32(temp, rt);
@@ -724,12 +752,12 @@ void genand()
 #ifdef INTERPRET_AND
 	gencallinterp((unsigned long)AND, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     if (rt1 != rd1 && rs1 != rd1)
     {
@@ -740,7 +768,7 @@ void genand()
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rs1);
         and_reg32_reg32(temp, rt1);
@@ -757,12 +785,12 @@ void genor()
 #ifdef INTERPRET_OR
 	gencallinterp((unsigned long)OR, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     if (rt1 != rd1 && rs1 != rd1)
     {
@@ -790,12 +818,12 @@ void genxor()
 #ifdef INTERPRET_XOR
 	gencallinterp((unsigned long)XOR, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     if (rt1 != rd1 && rs1 != rd1)
     {
@@ -823,12 +851,12 @@ void gennor()
 #ifdef INTERPRET_NOR
 	gencallinterp((unsigned long)NOR, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     if (rt1 != rd1 && rs1 != rd1)
     {
@@ -860,11 +888,11 @@ void genslt()
 #ifdef INTERPRET_SLT
 	gencallinterp((unsigned long)SLT, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
     cmp_reg32_reg32(rs2, rt2);
     jl_rj(13);
@@ -882,11 +910,11 @@ void gensltu()
 #ifdef INTERPRET_SLTU
 	gencallinterp((unsigned long)SLTU, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
     cmp_reg32_reg32(rs2, rt2);
     jb_rj(13);
@@ -904,12 +932,12 @@ void gendadd()
 #ifdef INTERPRET_DADD
 	gencallinterp((unsigned long)DADD, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     if (rt1 != rd1 && rs1 != rd1)
     {
@@ -920,7 +948,7 @@ void gendadd()
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rs1);
         add_reg32_reg32(temp, rt1);
@@ -937,12 +965,12 @@ void gendaddu()
 #ifdef INTERPRET_DADDU
 	gencallinterp((unsigned long)DADDU, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     if (rt1 != rd1 && rs1 != rd1)
     {
@@ -953,7 +981,7 @@ void gendaddu()
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rs1);
         add_reg32_reg32(temp, rt1);
@@ -970,12 +998,12 @@ void gendsub()
 #ifdef INTERPRET_DSUB
 	gencallinterp((unsigned long)DSUB, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     if (rt1 != rd1 && rs1 != rd1)
     {
@@ -1003,12 +1031,12 @@ void gendsubu()
 #ifdef INTERPRET_DSUBU
 	gencallinterp((unsigned long)DSUBU, 0);
 #else
-    const int rs1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rs2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rs));
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rs1 = allocate_64_register1((unsigned long*)dst->f.r.rs);
+    int rs2 = allocate_64_register2((unsigned long*)dst->f.r.rs);
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     if (rt1 != rd1 && rs1 != rd1)
     {
@@ -1019,7 +1047,7 @@ void gendsubu()
     }
     else
     {
-        const int temp = lru_register();
+        int temp = lru_register();
         free_register(temp);
         mov_reg32_reg32(temp, rs1);
         sub_reg32_reg32(temp, rt1);
@@ -1033,7 +1061,7 @@ void gendsubu()
 
 void genteq()
 {
-    gencallinterp(reinterpret_cast<unsigned long>(TEQ), 0);
+    gencallinterp((unsigned long)TEQ, 0);
 }
 
 void gendsll()
@@ -1041,10 +1069,10 @@ void gendsll()
 #ifdef INTERPRET_DSLL
 	gencallinterp((unsigned long)DSLL, 0);
 #else
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd1, rt1);
     mov_reg32_reg32(rd2, rt2);
@@ -1063,10 +1091,10 @@ void gendsrl()
 #ifdef INTERPRET_DSRL
 	gencallinterp((unsigned long)DSRL, 0);
 #else
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd1, rt1);
     mov_reg32_reg32(rd2, rt2);
@@ -1085,10 +1113,10 @@ void gendsra()
 #ifdef INTERPRET_DSRA
 	gencallinterp((unsigned long)DSRA, 0);
 #else
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd1, rt1);
     mov_reg32_reg32(rd2, rt2);
@@ -1107,9 +1135,9 @@ void gendsll32()
 #ifdef INTERPRET_DSLL32
 	gencallinterp((unsigned long)DSLL32, 0);
 #else
-    const int rt1 = allocate_64_register1(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt1 = allocate_64_register1((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd2, rt1);
     shl_reg32_imm8(rd2, dst->f.r.sa);
@@ -1122,9 +1150,9 @@ void gendsrl32()
 #ifdef INTERPRET_DSRL32
 	gencallinterp((unsigned long)DSRL32, 0);
 #else
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd1 = allocate_64_register1_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
-    const int rd2 = allocate_64_register2_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd1 = allocate_64_register1_w((unsigned long*)dst->f.r.rd);
+    int rd2 = allocate_64_register2_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd1, rt2);
     shr_reg32_imm8(rd1, dst->f.r.sa);
@@ -1137,8 +1165,8 @@ void gendsra32()
 #ifdef INTERPRET_DSRA32
 	gencallinterp((unsigned long)DSRA32, 0);
 #else
-    const int rt2 = allocate_64_register2(reinterpret_cast<unsigned long*>(dst->f.r.rt));
-    const int rd = allocate_register_w(reinterpret_cast<unsigned long*>(dst->f.r.rd));
+    int rt2 = allocate_64_register2((unsigned long*)dst->f.r.rt);
+    int rd = allocate_register_w((unsigned long*)dst->f.r.rd);
 
     mov_reg32_reg32(rd, rt2);
     sar_reg32_imm8(rd, dst->f.r.sa);
