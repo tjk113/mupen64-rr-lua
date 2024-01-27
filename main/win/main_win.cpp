@@ -473,41 +473,17 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT2,
 					   rsp_plugin->name.c_str());
 
-		strcpy(tempbuf, Controls[0].Present ? "Present" : "Disconnected");
-		if (Controls[0].Present && Controls[0].Plugin ==
-			controller_extension::mempak)
-			strcat(tempbuf, " with mempak");
-		if (Controls[0].Present && Controls[0].Plugin ==
-			controller_extension::rumblepak)
-			strcat(tempbuf, " with rumble");
-		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER1_TEXT2, tempbuf);
-
-		strcpy(tempbuf, Controls[1].Present ? "Present" : "Disconnected");
-		if (Controls[1].Present && Controls[1].Plugin ==
-			controller_extension::mempak)
-			strcat(tempbuf, " with mempak");
-		if (Controls[1].Present && Controls[1].Plugin ==
-			controller_extension::rumblepak)
-			strcat(tempbuf, " with rumble pak");
-		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER2_TEXT2, tempbuf);
-
-		strcpy(tempbuf, Controls[2].Present ? "Present" : "Disconnected");
-		if (Controls[2].Present && Controls[2].Plugin ==
-			controller_extension::mempak)
-			strcat(tempbuf, " with mempak");
-		if (Controls[2].Present && Controls[2].Plugin ==
-			controller_extension::rumblepak)
-			strcat(tempbuf, " with rumble pak");
-		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER3_TEXT2, tempbuf);
-
-		strcpy(tempbuf, Controls[3].Present ? "Present" : "Disconnected");
-		if (Controls[3].Present && Controls[3].Plugin ==
-			controller_extension::mempak)
-			strcat(tempbuf, " with mempak");
-		if (Controls[3].Present && Controls[3].Plugin ==
-			controller_extension::rumblepak)
-			strcat(tempbuf, " with rumble pak");
-		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER4_TEXT2, tempbuf);
+		for (int i = 0; i < 4; ++i)
+		{
+			strcpy(tempbuf, Controls[i].Present ? "Present" : "Disconnected");
+			if (Controls[i].Present && Controls[i].Plugin ==
+				controller_extension::mempak)
+				strcat(tempbuf, " with mempak");
+			if (Controls[i].Present && Controls[i].Plugin ==
+				controller_extension::rumblepak)
+				strcat(tempbuf, " with rumble");
+			SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER1_TEXT2, tempbuf);
+		}
 
 		CheckDlgButton(hwnd, IDC_MOVIE_READONLY, vcr_get_read_only());
 
@@ -609,7 +585,7 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 		case IDC_MOVIE_BROWSE:
 			{
 				const auto path = show_persistent_open_dialog("o_movie", hwnd, L"*.m64;*.rec");
-				if (path.size() == 0)
+				if (path.empty())
 				{
 					break;
 				}
@@ -644,6 +620,7 @@ refresh:
 	SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT, m_header.audio_plugin_name);
 	SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT, m_header.rsp_plugin_name);
 
+	
 	strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_1_PRESENT)
 		                ? "Present"
 		                : "Disconnected");
