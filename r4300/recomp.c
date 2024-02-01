@@ -2367,7 +2367,7 @@ void recompile_block(long* source, precomp_block* block, unsigned long func)
         if (tracelog::active())
         {
             dst->s_ops = dst->ops;
-            dst->ops = tracelog::LuaTraceLoggingInterpOps;
+            dst->ops = tracelog::log_interp_ops;
             dst->src = src;
         }
         dst = block->block + i;

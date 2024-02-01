@@ -3187,7 +3187,7 @@ void prefetch()
         return;
     }
     if (tracelog::active())
-        tracelog::LuaTraceLoggingPure();
+        tracelog::log_pure();
 }
 
 void pure_interpreter()
@@ -3233,7 +3233,7 @@ void interprete_section(unsigned long addr)
     {
         prefetch();
         if (tracelog::active())
-            tracelog::LuaTraceLoggingPure();
+            tracelog::log_pure();
         PC->addr = interp_addr;
         interp_ops[((op >> 26) & 0x3F)]();
 #ifdef DBG

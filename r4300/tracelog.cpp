@@ -1,6 +1,7 @@
 ﻿#include "tracelog.h"
 
 #include "disasm.h"
+// TODO: Move the recompile dependencies into core
 #include "LuaConsole.h"
 #include "r4300.h"
 
@@ -23,7 +24,7 @@ namespace tracelog
 	}
 
 
-	void TraceLoggingBufFlush()
+	void flush_buf()
 	{
 		DWORD writeen;
 		WriteFile(TraceLogFile,
@@ -33,19 +34,19 @@ namespace tracelog
 		traceLoggingPointer = traceLoggingBuf;
 	}
 
-	void TraceLoggingWriteBuf()
+	void write_buf()
 	{
 		const char* const buflength = traceLoggingBuf + sizeof(traceLoggingBuf)
 			-
 			512;
 		if (traceLoggingPointer >= buflength)
 		{
-			TraceLoggingBufFlush();
+			flush_buf();
 		}
 	}
 
 
-	void TraceLoggingBin(r4300word pc, r4300word w)
+	void log_bin(r4300word pc, r4300word w)
 	{
 		char*& p = traceLoggingPointer;
 		INSTDECODE decode;
@@ -139,7 +140,7 @@ namespace tracelog
 			NONE;
 			break;
 		}
-		TraceLoggingWriteBuf();
+		write_buf();
 #undef HEX8
 #undef REGCPU
 #undef REGFPU
@@ -147,34 +148,10 @@ namespace tracelog
 #undef REGFPU2
 	}
 
-	void LuaTraceLoggingPure()
-	{
-		if (!traceLogMode)
-		{
-			TraceLogging(interp_addr, op);
-		} else
-		{
-			TraceLoggingBin(interp_addr, op);
-		}
-	}
-
-	void LuaTraceLoggingInterpOps()
-	{
-		if (enableTraceLog)
-		{
-			if (!traceLogMode)
-			{
-				TraceLogging(PC->addr, PC->src);
-			} else
-			{
-				TraceLoggingBin(PC->addr, PC->src);
-			}
-		}
-		PC->s_ops();
-	}
 
 
-	void TraceLogStart(const char* name, BOOL append)
+
+	void start(const char* name, bool append)
 	{
 		if (TraceLogFile = CreateFile(name, GENERIC_WRITE,
 		                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
@@ -196,16 +173,16 @@ namespace tracelog
 		}
 	}
 
-	void TraceLogStop()
+	void stop()
 	{
 		enableTraceLog = false;
 		CloseHandle(TraceLogFile);
 		TraceLogFile = NULL;
 		// TODO: Update ui in callsite
-		TraceLoggingBufFlush();
+		flush_buf();
 	}
 
-	void TraceLogging(r4300word pc, r4300word w)
+	void log(r4300word pc, r4300word w)
 	{
 		char*& p = traceLoggingPointer;
 		INSTDECODE decode;
@@ -334,12 +311,38 @@ namespace tracelog
 		}
 		*(p++) = '\n';
 
-		TraceLoggingWriteBuf();
+		write_buf();
 #undef HEX8
 #undef REGCPU
 #undef REGFPU
 #undef REGCPU2
 #undef REGFPU2
 #undef C
+	}
+
+	void log_pure()
+	{
+		if (!traceLogMode)
+		{
+			log(interp_addr, op);
+		} else
+		{
+			log_bin(interp_addr, op);
+		}
+	}
+
+	void log_interp_ops()
+	{
+		if (enableTraceLog)
+		{
+			if (!traceLogMode)
+			{
+				log(PC->addr, PC->src);
+			} else
+			{
+				log_bin(PC->addr, PC->src);
+			}
+		}
+		PC->s_ops();
 	}
 }

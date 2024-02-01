@@ -1726,7 +1726,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case ID_TRACELOG:
 				if (tracelog::active())
 				{
-					tracelog::TraceLogStop();
+					tracelog::stop();
 					ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Start &Trace Logger...");
 				} else
 				{
@@ -1737,7 +1737,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					tracelog::TraceLogStart(wstring_to_string(path).c_str());
+					tracelog::start(wstring_to_string(path).c_str());
 					ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Stop &Trace Logger");
 				}
 				break;
