@@ -105,8 +105,6 @@ struct EmulationLock
 
 class LuaEnvironment {
 public:
-	bool stopping = false;
-
 	/**
 	 * \brief Creates a lua environment and runs it if the operation succeeds
 	 * \param path The script path
@@ -133,13 +131,25 @@ public:
 	// Dimensions of both DCs
 	int dc_width, dc_height = 0;
 
+	// The Direct2D factory, whose lifetime is the renderer's
 	ID2D1Factory* d2d_factory = nullptr;
+
+	// The Direct2D render target, which points to the d2d_dc
 	ID2D1DCRenderTarget* d2d_render_target = nullptr;
+
+	// The DirectWrite factory, whose lifetime is the renderer's
 	IDWriteFactory* dw_factory = nullptr;
-	std::unordered_map<std::string, ID2D1BitmapRenderTarget*> d2d_bitmap_render_target;
+
+	// The cache for DirectWrite text layouts
 	std::unordered_map<uint64_t, IDWriteTextLayout*> dw_text_layouts;
+
+	// The stack of render targets. The top is used for D2D calls.
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
+
+	// The pool of GDI+ images.
+	// The user receives handles, which are indicies into this array.
 	std::vector<Gdiplus::Bitmap*> image_pool;
+
 	bool LoadScreenInitialized = false;
 	// LoadScreen variables
 	HDC hwindowDC, hsrcDC;

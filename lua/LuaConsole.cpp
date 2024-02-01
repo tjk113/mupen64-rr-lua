@@ -959,11 +959,6 @@ void LuaEnvironment::destroy_renderer()
 	d2d_factory->Release();
 	d2d_render_target->Release();
 
-	for (auto const& [_, val] : d2d_bitmap_render_target) {
-		val->Release();
-	}
-	d2d_bitmap_render_target.clear();
-
 	for (auto const& [_, val] : dw_text_layouts) {
 		val->Release();
 	}
