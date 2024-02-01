@@ -714,7 +714,7 @@ void update_menu_hotkey_labels()
     set_hotkey_menu_accelerators(&Config.select_slot_7_hotkey, ID_CURRENTSAVE_7);
     set_hotkey_menu_accelerators(&Config.select_slot_8_hotkey, ID_CURRENTSAVE_8);
     set_hotkey_menu_accelerators(&Config.select_slot_9_hotkey, ID_CURRENTSAVE_9);
-	// TODO: Add #10
+    set_hotkey_menu_accelerators(&Config.select_slot_10_hotkey, ID_CURRENTSAVE_10);
 
 	set_hotkey_menu_accelerators(&Config.load_rom_hotkey, IDLOAD);
 	set_hotkey_menu_accelerators(&Config.close_rom_hotkey, EMU_STOP);
