@@ -420,7 +420,6 @@
 #define IDM_FREEZE_RECENT_LUA            40014
 #define IDD_OTHER_OPTIONS_DIALOG        40015
 #define IDC_OTHEROPTIONS                40016
-#define IDM_SAVE_CONFIG                    40022
 #define IDB_LOGO_BW                     40029
 #define IDD_COREDBG                     40031
 #define IDC_COREDBG_GROUPBOX           40032

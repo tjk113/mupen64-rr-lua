@@ -1722,9 +1722,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_CLOSE_ALL_LUA:
 				close_all_scripts();
 				break;
-			case IDM_SAVE_CONFIG:
-				save_config();
-				break;
 			case IDM_TRACELOG:
 				{
 					if (tracelog::active())
