@@ -140,7 +140,6 @@ BEGIN
         END
         MENUITEM SEPARATOR
         MENUITEM "Loop Movie Playback",         ID_LOOP_MOVIE
-        MENUITEM "Start From Beginning",        ID_RESTART_MOVIE
         MENUITEM "Toggle Read-Only",            EMU_VCRTOGGLEREADONLY
     END
     POPUP "Utilities"

@@ -262,15 +262,6 @@ CONFIG get_default_config()
 		.command = GENERATE_BITMAP,
 	};
 
-	config.restart_movie_hotkey = {
-		.identifier = "Restart playing movie",
-		.key = 0x54 /* T */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
-		.command = ID_RESTART_MOVIE,
-	};
-
 	config.play_latest_movie_hotkey = {
 		.identifier = "Play latest movie",
 		.key = 0x54 /* T */,
@@ -722,10 +713,7 @@ void update_menu_hotkey_labels()
 	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, FULL_SCREEN);
 	set_hotkey_menu_accelerators(&Config.settings_hotkey, ID_LOAD_CONFIG);
 
-	// TODO: Remove
-    set_hotkey_menu_accelerators(&Config.restart_movie_hotkey, ID_RESTART_MOVIE);
     set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, ID_LOOP_MOVIE);
-
 }
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          int32_t is_reading, t_hotkey* hotkey)

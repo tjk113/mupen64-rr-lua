@@ -326,7 +326,6 @@
 #define ID_START_CAPTURE                9210
 #define ID_END_CAPTURE                  9211
 #define ID_LOOP_MOVIE                   9212
-#define ID_RESTART_MOVIE                9213
 #define ID_START_CAPTURE_PRESET         9214
 #define IDC_CONTROLLER4                 9228
 #define IDC_RSPPLUGIN2                  9229
@@ -460,7 +459,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106

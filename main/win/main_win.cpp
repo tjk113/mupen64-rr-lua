@@ -1082,7 +1082,6 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 		EnableMenuItem(hMenu, GENERATE_BITMAP, MF_ENABLED);
 		EnableMenuItem(hMenu, EMU_RESET, MF_ENABLED);
 		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_GRAYED);
-		EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_GRAYED);
 		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_DISABLED);
 		EnableMenuItem(hMenu, IDC_GUI_TOOLBAR, MF_DISABLED);
@@ -1122,7 +1121,6 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 		EnableMenuItem(hMenu, GENERATE_BITMAP, MF_GRAYED);
 		EnableMenuItem(hMenu, EMU_RESET, MF_GRAYED);
 		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_ENABLED);
-		EnableMenuItem(hMenu, ID_RESTART_MOVIE, MF_GRAYED);
 		EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
 		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
@@ -1794,18 +1792,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case ID_LOOP_MOVIE:
 				set_is_movie_loop_enabled(!Config.is_movie_loop_enabled);
-				break;
-			case ID_RESTART_MOVIE:
-				if (vcr_is_playing())
-				{
-					vcr_set_read_only(TRUE);
-					bool err = vcr_start_playback(
-						Config.recent_movie_paths[0], 0, 0);
-					if (err == VCR_PLAYBACK_SUCCESS)
-						SetStatusPlaybackStarted();
-					else
-						statusbar_post_text("Latest movie couldn't be started");
-				}
 				break;
 			case ID_REPLAY_LATEST:
 				if (!emu_launched || Config.recent_movie_paths.empty())
