@@ -59,7 +59,7 @@ void toolbar_create()
 
 	if (emu_launched)
 	{
-		if (IDM_PAUSEd)
+		if (emu_paused)
 		{
 			SendMessage(toolbar_hwnd, TB_CHECKBUTTON, IDM_PAUSE, 1);
 		} else

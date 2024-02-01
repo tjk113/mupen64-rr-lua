@@ -246,7 +246,7 @@ namespace LuaCore::Emu
 
 	static int GetEmuPause(lua_State* L)
 	{
-		lua_pushboolean(L, IDM_PAUSEd);
+		lua_pushboolean(L, emu_paused);
 		return 1;
 	}
 

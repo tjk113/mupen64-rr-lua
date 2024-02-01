@@ -186,10 +186,10 @@ static void gui_ChangeWindow()
 
 void resumeEmu(BOOL quiet)
 {
-	BOOL wasPaused = IDM_PAUSEd;
+	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
-		IDM_PAUSEd = 0;
+		emu_paused = 0;
 		ResumeThread(sound_thread_handle);
 		if (!quiet)
 			statusbar_post_text("Emulation started");
@@ -197,9 +197,9 @@ void resumeEmu(BOOL quiet)
 
 	toolbar_on_emu_state_changed(emu_launched, 1);
 
-	if (IDM_PAUSEd != wasPaused && !quiet)
+	if (emu_paused != wasPaused && !quiet)
 		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
-		              MF_BYCOMMAND | (IDM_PAUSEd
+		              MF_BYCOMMAND | (emu_paused
 			                              ? MFS_CHECKED
 			                              : MFS_UNCHECKED));
 }
@@ -207,11 +207,11 @@ void resumeEmu(BOOL quiet)
 
 void pauseEmu(BOOL quiet)
 {
-	BOOL wasPaused = IDM_PAUSEd;
+	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
 		frame_changed = true;
-		IDM_PAUSEd = 1;
+		emu_paused = 1;
 		if (!quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
 			SuspendThread(sound_thread_handle);
@@ -225,9 +225,9 @@ void pauseEmu(BOOL quiet)
 
 	toolbar_on_emu_state_changed(emu_launched, 0);
 
-	if (IDM_PAUSEd != wasPaused && !MenuPaused)
+	if (emu_paused != wasPaused && !MenuPaused)
 		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
-		              MF_BYCOMMAND | (IDM_PAUSEd
+		              MF_BYCOMMAND | (emu_paused
 			                              ? MFS_CHECKED
 			                              : MFS_UNCHECKED));
 }
@@ -313,7 +313,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 	//printf("gen interrupt: %lld ns/vi", (total_vi/frame_count));
 	if (emu_launched) {
 
-		if (IDM_PAUSEd) {
+		if (emu_paused) {
 			MenuPaused = FALSE;
 			resumeEmu(FALSE);
 		}
@@ -348,7 +348,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		}
 
 		emu_launched = 0;
-		IDM_PAUSEd = 1;
+		emu_paused = 1;
 
 
 		rom = NULL;
@@ -427,14 +427,11 @@ int pauseAtFrame = -1;
 /// </summary>
 void SetStatusPlaybackStarted()
 {
-	HMENU hMenu = GetMenu(mainHWND);
-	EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
+	HMENU hmenu = GetMenu(mainHWND);
+	EnableMenuItem(hmenu, IDM_STOP_MOVIE_RECORDING, MF_DISABLED);
+	EnableMenuItem(hmenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
 
-	if (!IDM_PAUSEd || !emu_launched)
-		statusbar_post_text("Playback started");
-	else
-		statusbar_post_text("Playback started while paused");
+	statusbar_post_text("Playback started");
 }
 
 LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
@@ -1033,31 +1030,31 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 
 void OpenMoviePlaybackDialog()
 {
-	BOOL wasPaused = IDM_PAUSEd && !MenuPaused;
+	BOOL wasPaused = emu_paused && !MenuPaused;
 	MenuPaused = FALSE;
-	if (emu_launched && !IDM_PAUSEd)
+	if (emu_launched && !emu_paused)
 		pauseEmu(FALSE);
 
 	DialogBox(GetModuleHandle(NULL),
 	          MAKEINTRESOURCE(IDD_MOVIE_PLAYBACK_DIALOG), mainHWND,
 	          (DLGPROC)PlayMovieProc);
 
-	if (emu_launched && IDM_PAUSEd && !wasPaused)
+	if (emu_launched && emu_paused && !wasPaused)
 		resumeEmu(FALSE);
 }
 
 void OpenMovieRecordDialog()
 {
-	BOOL wasPaused = IDM_PAUSEd && !MenuPaused;
+	BOOL wasPaused = emu_paused && !MenuPaused;
 	MenuPaused = FALSE;
-	if (emu_launched && !IDM_PAUSEd)
+	if (emu_launched && !emu_paused)
 		pauseEmu(FALSE);
 
 	DialogBox(GetModuleHandle(NULL),
 	          MAKEINTRESOURCE(IDD_MOVIE_RECORD_DIALOG), mainHWND,
 	          (DLGPROC)RecordMovieProc);
 
-	if (emu_launched && IDM_PAUSEd && !wasPaused)
+	if (emu_launched && emu_paused && !wasPaused)
 		resumeEmu(FALSE);
 }
 
@@ -1183,7 +1180,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	dynacore = Config.core_type;
 
-	IDM_PAUSEd = 0;
+	emu_paused = 0;
 	emu_launched = 1;
 
 	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
@@ -1207,7 +1204,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	AtResetLuaCallback();
 	if (pauseAtFrame == 0 && vcr_is_starting_and_just_restarted())
 	{
-		while (IDM_PAUSEd)
+		while (emu_paused)
 		{
 			Sleep(10);
 		}
@@ -1611,8 +1608,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_ENTERMENULOOP:
-		AutoPause = IDM_PAUSEd;
-		if (!IDM_PAUSEd)
+		AutoPause = emu_paused;
+		if (!emu_paused)
 		{
 			MenuPaused = TRUE;
 			pauseEmu(FALSE);
@@ -1626,7 +1623,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		std::thread([]
 		{
 			Sleep(60);
-			if (IDM_PAUSEd && !AutoPause && MenuPaused)
+			if (emu_paused && !AutoPause && MenuPaused)
 			{
 				resumeEmu(FALSE);
 			}
@@ -1640,16 +1637,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 		case WA_ACTIVE:
 		case WA_CLICKACTIVE:
-			if (Config.is_unfocused_pause_enabled && IDM_PAUSEd && !AutoPause)
+			if (Config.is_unfocused_pause_enabled && emu_paused && !AutoPause)
 			{
 				resumeEmu(FALSE);
-				AutoPause = IDM_PAUSEd;
+				AutoPause = emu_paused;
 			}
 			break;
 
 		case WA_INACTIVE:
-			AutoPause = IDM_PAUSEd && !MenuPaused;
-			if (Config.is_unfocused_pause_enabled && !IDM_PAUSEd
+			AutoPause = emu_paused && !MenuPaused;
+			if (Config.is_unfocused_pause_enabled && !emu_paused
 				/*(&& minimize*/ && !FullScreenMode)
 			{
 				MenuPaused = FALSE;
@@ -1758,7 +1755,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case IDM_PAUSE:
 				{
-					if (!IDM_PAUSEd)
+					if (!emu_paused)
 					{
 						pauseEmu(vcr_is_active());
 					} else if (MenuPaused)
@@ -1811,7 +1808,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case EMU_PLAY:
 				if (emu_launched)
 				{
-					if (IDM_PAUSEd)
+					if (emu_paused)
 					{
 						resumeEmu(FALSE);
 					}
@@ -1837,14 +1834,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case IDM_SETTINGS:
 				{
-					BOOL wasPaused = IDM_PAUSEd && !MenuPaused;
+					BOOL wasPaused = emu_paused && !MenuPaused;
 					MenuPaused = FALSE;
-					if (emu_launched && !IDM_PAUSEd)
+					if (emu_launched && !emu_paused)
 					{
 						pauseEmu(FALSE);
 					}
 					configdialog_show();
-					if (emu_launched && IDM_PAUSEd && !wasPaused)
+					if (emu_launched && emu_paused && !wasPaused)
 					{
 						resumeEmu(FALSE);
 					}
@@ -2041,9 +2038,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_START_CAPTURE:
 				if (emu_launched)
 				{
-					BOOL wasPaused = IDM_PAUSEd && !MenuPaused;
+					BOOL wasPaused = emu_paused && !MenuPaused;
 					MenuPaused = FALSE;
-					if (emu_launched && !IDM_PAUSEd)
+					if (emu_launched && !emu_paused)
 						pauseEmu(FALSE);
 
 					auto path = show_persistent_save_dialog("s_capture", hwnd, L"*.avi");
@@ -2068,7 +2065,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						enable_emulation_menu_items(TRUE);
 					}
 
-					if (emu_launched && IDM_PAUSEd && !wasPaused)
+					if (emu_launched && emu_paused && !wasPaused)
 						resumeEmu(FALSE);
 				}
 
@@ -2200,7 +2197,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
 					EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
 
-					if (!IDM_PAUSEd || !emu_launched)
+					if (!emu_paused || !emu_launched)
 						statusbar_post_text("Playback started");
 					else
 						statusbar_post_text("Playback started while paused");
@@ -2277,7 +2274,7 @@ int WINAPI WinMain(
 	CreateDirectory((app_path + "plugin").c_str(), NULL);
 
 	emu_launched = 0;
-	IDM_PAUSEd = 1;
+	emu_paused = 1;
 
 	load_config();
 	lua_init();

@@ -433,10 +433,7 @@ void update_pif_read(bool stcheck)
 {
     //printf("pif entry\n");
     int i = 0, channel = 0;
-    extern int IDM_PAUSEd; //if you get error here, this means you're compiling for linux, and linux version 
-    //doesn't have pausing. But this also means linux version is unusable for tasing.
-    //If you really want it for some reason, define IDM_PAUSEd.
-    bool once = IDM_PAUSEd | frame_advancing; //used to pause only once during controller routine
+    bool once = emu_paused | frame_advancing; //used to pause only once during controller routine
     bool stAllowed = true; //used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
 	printf("---------- before read ----------\n");
@@ -476,7 +473,7 @@ void update_pif_read(bool stcheck)
                         once = false;
                         frame_advancing = 0;
                         pauseEmu(TRUE);
-                        while (IDM_PAUSEd)
+                        while (emu_paused)
                         {
                             Sleep(10);
                             if (!hwnd_lua_map.empty())

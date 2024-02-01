@@ -1813,9 +1813,8 @@ void vcr_ai_len_changed()
 
 bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 {
-	extern BOOL IDM_PAUSEd;
-	const BOOL was_paused = IDM_PAUSEd;
-	if (!IDM_PAUSEd)
+	const BOOL was_paused = emu_paused;
+	if (!emu_paused)
 	{
 		pauseEmu(TRUE);
 	}
