@@ -1086,11 +1086,7 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_DISABLED);
 		EnableMenuItem(hMenu, IDC_GUI_TOOLBAR, MF_DISABLED);
 		EnableMenuItem(hMenu, IDC_GUI_STATUSBAR, MF_DISABLED);
-
-		if (dynacore)
-			EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
-		else
-			EnableMenuItem(hMenu, ID_TRACELOG, MF_ENABLED);
+		EnableMenuItem(hMenu, ID_TRACELOG, dynacore ? MF_DISABLED : MF_ENABLED);
 
 		if (!continue_vcr_on_restart_mode)
 		{
@@ -1728,10 +1724,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				save_config();
 				break;
 			case ID_TRACELOG:
-				// keep if check just in case user manages to screw with mupen config or something
-				if (!dynacore)
+				if (tracelog::active())
 				{
-					tracelog::LuaTraceLogState();
+					tracelog::TraceLogStop();
+					ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Start &Trace Logger...");
+				} else
+				{
+					auto path = show_persistent_save_dialog("s_tracelog", mainHWND, L"*.log");
+
+					if (path.empty())
+					{
+						break;
+					}
+
+					tracelog::TraceLogStart(wstring_to_string(path).c_str());
+					ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Stop &Trace Logger");
 				}
 				break;
 			case EMU_STOP:
