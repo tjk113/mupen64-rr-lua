@@ -148,6 +148,7 @@ public:
 
 	// The pool of GDI+ images.
 	// The user receives handles, which are indicies into this array.
+	// BUG: When deleting an image, all handles after it become invalid. The user is not aware of this happening, and it affects global state (can be caused by libraries)
 	std::vector<Gdiplus::Bitmap*> image_pool;
 
 	bool LoadScreenInitialized = false;
