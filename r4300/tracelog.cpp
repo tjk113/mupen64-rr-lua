@@ -1,6 +1,5 @@
 ﻿#include "tracelog.h"
 
-#include <Windows.h>
 #include "disasm.h"
 #include "r4300.h"
 
@@ -11,9 +10,8 @@ namespace tracelog
 {
 	bool enabled = false;
 	bool use_binary = false;
-	HANDLE TraceLogFile;
 
-	//�Ƃ肠����lua�ɓ���Ƃ�
+	FILE* log_file;
 	char traceLoggingBuf[0x10000];
 	char* traceLoggingPointer = traceLoggingBuf;
 
@@ -25,11 +23,7 @@ namespace tracelog
 
 	void flush_buf()
 	{
-		DWORD writeen;
-		WriteFile(TraceLogFile,
-		          traceLoggingBuf, traceLoggingPointer - traceLoggingBuf,
-		          &writeen,
-		          NULL);
+		fwrite(traceLoggingBuf, 1, traceLoggingPointer - traceLoggingBuf, log_file);
 		traceLoggingPointer = traceLoggingBuf;
 	}
 
@@ -146,37 +140,25 @@ namespace tracelog
 #undef REGCPU2
 #undef REGFPU2
 	}
-	
+
 	void start(const char* path, bool binary, bool append)
 	{
 		use_binary = binary;
-		if (TraceLogFile = CreateFile(path, GENERIC_WRITE,
-		                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-		                              append ? OPEN_ALWAYS : CREATE_ALWAYS,
-		                              FILE_ATTRIBUTE_NORMAL |
-		                              FILE_FLAG_SEQUENTIAL_SCAN, NULL))
+		log_file = fopen(path, "wb");
+
+		enabled = true;
+		if (interpcore == 0)
 		{
-			if (append)
-			{
-				SetFilePointer(TraceLogFile, 0, NULL, FILE_END);
-			}
-			enabled = true;
-			if (interpcore == 0)
-			{
-				recompile_all();
-				recompile_now(PC->addr);
-			}
-			// TODO: Update ui in callsite
+			recompile_all();
+			recompile_now(PC->addr);
 		}
 	}
 
 	void stop()
 	{
 		enabled = false;
-		CloseHandle(TraceLogFile);
-		TraceLogFile = NULL;
-		// TODO: Update ui in callsite
 		flush_buf();
+		fclose(log_file);
 	}
 
 	void log(r4300word pc, r4300word w)
