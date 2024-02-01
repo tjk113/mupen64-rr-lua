@@ -1,4 +1,3 @@
-#include <Windows.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -85,7 +84,7 @@ static char *get_st_path(const char *filename)
 
 static int sd_error(const char *text, const char *caption)
 {
-	MessageBox(NULL, text, caption, MB_OK|MB_ICONERROR|MB_TOPMOST);
+	show_modal_info(text, caption);
 	return -1;
 }
 
