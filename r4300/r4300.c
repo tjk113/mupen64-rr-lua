@@ -47,7 +47,7 @@ extern void update_debugger();
 
 extern bool ignore;
 int emu_launched; // emu_emulating
-int emu_paused;
+int IDM_PAUSEd;
 unsigned long i, dynacore = 0, interpcore = 0;
 int stop, llbit;
 long long int reg[32], hi, lo;

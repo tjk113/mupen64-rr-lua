@@ -448,7 +448,7 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
     case WM_COMMAND:
         switch (LOWORD(w_param))
         {
-        case IDGFXCONFIG:
+        case IDM_VIDEO_SETTINGS:
             hwnd_plug = hwnd;
             plugin_config(get_selected_plugin(hwnd, IDC_COMBO_GFX));
             break;
@@ -460,7 +460,7 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             hwnd_plug = hwnd;
             plugin_about(get_selected_plugin(hwnd, IDC_COMBO_GFX));
             break;
-        case IDINPUTCONFIG:
+        case IDM_INPUT_SETTINGS:
             hwnd_plug = hwnd;
             plugin_config(get_selected_plugin(hwnd, IDC_COMBO_INPUT));
             break;
@@ -472,7 +472,7 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             hwnd_plug = hwnd;
             plugin_about(get_selected_plugin(hwnd, IDC_COMBO_INPUT));
             break;
-        case IDSOUNDCONFIG:
+        case IDM_AUDIO_SETTINGS:
             hwnd_plug = hwnd;
             plugin_config(get_selected_plugin(hwnd, IDC_COMBO_SOUND));
             break;
@@ -484,7 +484,7 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             hwnd_plug = hwnd;
             plugin_about(get_selected_plugin(hwnd, IDC_COMBO_SOUND));
             break;
-        case IDRSPCONFIG:
+        case IDM_RSP_SETTINGS:
             hwnd_plug = hwnd;
             plugin_config(get_selected_plugin(hwnd, IDC_COMBO_RSP));
             break;
@@ -539,8 +539,8 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         set_checkbox_state(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
         set_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
         SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
-        set_checkbox_state(hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING,
-                           Config.is_state_independent_state_loading_allowed);
+        set_checkbox_state(hwnd, IDC_ALLOW_ARBITRARY_SAVEIDM_LOAD_STATE_ASING,
+                           Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed);
 
         CheckDlgButton(hwnd, IDC_INTERP, Config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
         CheckDlgButton(hwnd, IDC_RECOMP, Config.core_type == 1 ? BST_CHECKED : BST_UNCHECKED);
@@ -589,8 +589,8 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             Config.show_vis_per_second = get_checkbox_state(hwnd, IDC_SHOWVIS);
             Config.is_savestate_warning_enabled = get_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS);
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
-            Config.is_state_independent_state_loading_allowed = get_checkbox_state(
-                hwnd, IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING);
+            Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed = get_checkbox_state(
+                hwnd, IDC_ALLOW_ARBITRARY_SAVEIDM_LOAD_STATE_ASING);
         }
         break;
     default:
@@ -608,8 +608,8 @@ BOOL CALLBACK advanced_settings_proc(const HWND hwnd, const UINT message, WPARAM
     {
     case WM_INITDIALOG:
        set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
-       set_checkbox_state(hwnd, IDC_GUI_TOOLBAR, Config.is_toolbar_enabled);
-       set_checkbox_state(hwnd, IDC_GUI_STATUSBAR, Config.is_statusbar_enabled);
+       set_checkbox_state(hwnd, IDM_TOOLBAR, Config.is_toolbar_enabled);
+       set_checkbox_state(hwnd, IDM_STATUSBAR, Config.is_statusbar_enabled);
        set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
        set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
        set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);

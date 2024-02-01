@@ -324,10 +324,10 @@ void VCRComp_finishFile(int split)
     {
         HMENU hMenu;
         hMenu = GetMenu(mainHWND);
-        EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
-        EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
-        EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
-        EnableMenuItem(hMenu, FULL_SCREEN, MF_ENABLED); //Enables fullscreen menu
+        EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_GRAYED);
+        EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_ENABLED);
+        EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
+        EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_ENABLED); //Enables fullscreen menu
         SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); //Remove the always on top flag
     }
 

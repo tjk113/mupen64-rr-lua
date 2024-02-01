@@ -56,116 +56,116 @@ IDR_MYMENU MENU
 BEGIN
     POPUP "File"
     BEGIN
-        MENUITEM "&Load ROM...",                IDLOAD
-        MENUITEM "&Close ROM",                  EMU_STOP, GRAYED
-        MENUITEM "&Reset ROM",                  EMU_RESET, GRAYED
-        MENUITEM "&Refresh ROM List",           REFRESH_ROM_BROWSER
+        MENUITEM "&Load ROM...",                IDM_LOAD_ROM
+        MENUITEM "&Close ROM",                  IDM_CLOSE_ROM, GRAYED
+        MENUITEM "&Reset ROM",                  IDM_RESET_ROM, GRAYED
+        MENUITEM "&Refresh ROM List",           IDM_REFRESH_ROMBROWSER
         MENUITEM SEPARATOR
         POPUP "Recent ROMs"
         BEGIN
-            MENUITEM "Reset",                       ID_RECENTROMS_RESET
-            MENUITEM "Freeze",                      ID_RECENTROMS_FREEZE
+            MENUITEM "Reset",                       IDM_RESET_RECENT_ROMS
+            MENUITEM "Freeze",                      IDM_FREEZE_RECENT_ROMS
             MENUITEM SEPARATOR
         END
-        MENUITEM "&Load Latest ROM",            ID_LOAD_LATEST
+        MENUITEM "&Load Latest ROM",            IDM_LOAD_LATEST_ROM
         MENUITEM SEPARATOR
-        MENUITEM "E&xit\tAlt F4",               ID_EMULATOR_EXIT
+        MENUITEM "E&xit\tAlt F4",               IDM_EXIT
     END
     POPUP "Emulation"
     BEGIN
-        MENUITEM "Pause",                       EMU_PAUSE, GRAYED
-        MENUITEM "Frame Advance",               EMU_FRAMEADVANCE, GRAYED
-        MENUITEM "Take Screenshot",             GENERATE_BITMAP, GRAYED
+        MENUITEM "Pause",                       IDM_PAUSE, GRAYED
+        MENUITEM "Frame Advance",               IDM_FRAMEADVANCE, GRAYED
+        MENUITEM "Take Screenshot",             IDM_SCREENSHOT, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "&Save State",                 STATE_SAVE, GRAYED
-        MENUITEM "Save State As...",            STATE_SAVEAS, GRAYED
-        MENUITEM "&Restore State",              STATE_RESTORE, GRAYED
-        MENUITEM "Load State...",               STATE_LOAD, GRAYED
+        MENUITEM "&Save State",                 IDM_SAVE_SLOT, GRAYED
+        MENUITEM "Save State As...",            IDM_SAVE_STATE_AS, GRAYED
+        MENUITEM "&Restore State",              IDM_LOAD_SLOT, GRAYED
+        MENUITEM "Load State...",               IDM_LOAD_STATE_AS, GRAYED
         MENUITEM SEPARATOR
         POPUP "Current Save S&tate"
         BEGIN
-            MENUITEM "Slot 1",                      ID_CURRENTSAVE_1, CHECKED
-            MENUITEM "Slot 2",                      ID_CURRENTSAVE_2
-            MENUITEM "Slot 3",                      ID_CURRENTSAVE_3
-            MENUITEM "Slot 4",                      ID_CURRENTSAVE_4
-            MENUITEM "Slot 5",                      ID_CURRENTSAVE_5
-            MENUITEM "Slot 6",                      ID_CURRENTSAVE_6
-            MENUITEM "Slot 7",                      ID_CURRENTSAVE_7
-            MENUITEM "Slot 8",                      ID_CURRENTSAVE_8
-            MENUITEM "Slot 9",                      ID_CURRENTSAVE_9
-            MENUITEM "Slot 10",                     ID_CURRENTSAVE_10
+            MENUITEM "Slot 1",                      IDM_SELECT_1, CHECKED
+            MENUITEM "Slot 2",                      IDM_SELECT_2
+            MENUITEM "Slot 3",                      IDM_SELECT_3
+            MENUITEM "Slot 4",                      IDM_SELECT_4
+            MENUITEM "Slot 5",                      IDM_SELECT_5
+            MENUITEM "Slot 6",                      IDM_SELECT_6
+            MENUITEM "Slot 7",                      IDM_SELECT_7
+            MENUITEM "Slot 8",                      IDM_SELECT_8
+            MENUITEM "Slot 9",                      IDM_SELECT_9
+            MENUITEM "Slot 10",                     IDM_SELECT_10
         END
     END
     POPUP "Options"
     BEGIN
-        MENUITEM "&Full Screen",                FULL_SCREEN, GRAYED
+        MENUITEM "&Full Screen",                IDM_FULLSCREEN, GRAYED
         MENUITEM SEPARATOR
         POPUP "Plugin Settings"
         BEGIN
-            MENUITEM "&Video Settings...",          IDGFXCONFIG
-            MENUITEM "&Input Settings...",          IDINPUTCONFIG
-            MENUITEM "&Audio Settings...",          IDSOUNDCONFIG
-            MENUITEM "&RSP Settings...",            IDRSPCONFIG
+            MENUITEM "&Video Settings...",          IDM_VIDEO_SETTINGS
+            MENUITEM "&Input Settings...",          IDM_INPUT_SETTINGS
+            MENUITEM "&Audio Settings...",          IDM_AUDIO_SETTINGS
+            MENUITEM "&RSP Settings...",            IDM_RSP_SETTINGS
         END
         MENUITEM SEPARATOR
-        MENUITEM "Show &Toolbar",               IDC_GUI_TOOLBAR
-        MENUITEM "Show Status&bar",             IDC_GUI_STATUSBAR
+        MENUITEM "Show &Toolbar",               IDM_TOOLBAR
+        MENUITEM "Show Status&bar",             IDM_STATUSBAR
         MENUITEM SEPARATOR
-        MENUITEM "&Settings...",                ID_LOAD_CONFIG
+        MENUITEM "&Settings...",                IDM_SETTINGS
     END
     POPUP "Movie"
     BEGIN
-        MENUITEM "Start Movie Recording...",    ID_START_RECORD, GRAYED
-        MENUITEM "Stop Movie Recording",        ID_STOP_RECORD, GRAYED
+        MENUITEM "Start Movie Recording...",    IDM_START_MOVIE_RECORDING, GRAYED
+        MENUITEM "Stop Movie Recording",        IDM_STOP_MOVIE_RECORDING, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "Start Movie Playback...",     ID_START_PLAYBACK, GRAYED
-        MENUITEM "Stop Movie Playback",         ID_STOP_PLAYBACK, GRAYED
+        MENUITEM "Start Movie Playback...",     IDM_START_MOVIE_PLAYBACK, GRAYED
+        MENUITEM "Stop Movie Playback",         IDM_STOP_MOVIE_PLAYBACK, GRAYED
         MENUITEM SEPARATOR
         POPUP "Recent Movies"
         BEGIN
-            MENUITEM "Reset",                       ID_RECENTMOVIES_RESET
-            MENUITEM "Freeze",                      ID_RECENTMOVIES_FREEZE
+            MENUITEM "Reset",                       IDM_RESET_RECENT_MOVIES
+            MENUITEM "Freeze",                      IDM_FREEZE_RECENT_MOVIES
             MENUITEM SEPARATOR
         END
-        MENUITEM "Load Latest Movie",           ID_REPLAY_LATEST
+        MENUITEM "Load Latest Movie",           IDM_PLAY_LATEST_MOVIE
         MENUITEM SEPARATOR
         POPUP "Video Capture"
         BEGIN
-            MENUITEM "Start AVI Capture...",        ID_START_CAPTURE
-            MENUITEM "Start AVI From Preset...",    ID_START_CAPTURE_PRESET
+            MENUITEM "Start AVI Capture...",        IDM_START_CAPTURE
+            MENUITEM "Start AVI From Preset...",    IDM_START_CAPTURE_PRESET
             MENUITEM SEPARATOR
-            MENUITEM "Start FFmpeg Capture...",     ID_FFMPEG_START
+            MENUITEM "Start FFmpeg Capture...",     IDM_START_FFMPEG_CAPTURE
             MENUITEM SEPARATOR
-            MENUITEM "Stop Capture",                ID_END_CAPTURE
+            MENUITEM "Stop Capture",                IDM_STOP_CAPTURE
         END
         MENUITEM SEPARATOR
-        MENUITEM "Loop Movie Playback",         ID_LOOP_MOVIE
-        MENUITEM "Toggle Read-Only",            EMU_VCRTOGGLEREADONLY
+        MENUITEM "Loop Movie Playback",         IDM_LOOP_MOVIE
+        MENUITEM "Toggle Read-Only",            IDM_TOGGLE_READONLY
     END
     POPUP "Utilities"
     BEGIN
-        MENUITEM "Show RAM start...",           ID_RAMSTART
-        MENUITEM "Start &Trace Logger...",      ID_TRACELOG
-        MENUITEM "CoreDbg...",                  ID_COREDBG
-        MENUITEM "Save Config",                 ID_FORCESAVE
+        MENUITEM "Show RAM start...",           IDM_RAMSTART
+        MENUITEM "Start &Trace Logger...",      IDM_TRACELOG
+        MENUITEM "CoreDbg...",                  IDM_COREDBG
+        MENUITEM "Save Config",                 IDM_SAVE_CONFIG
     END
     POPUP "Help"
     BEGIN
-        MENUITEM "&About Mupen64...",           ID_HELP_ABOUT
+        MENUITEM "&About Mupen64...",           IDM_ABOUT
     END
     POPUP "Lua Script"
     BEGIN
-        MENUITEM "New Instance...",             ID_MENU_LUASCRIPT_NEW
-        MENUITEM "Load Latest Lua Script...",   ID_LUA_LOAD_LATEST
+        MENUITEM "New Instance...",             IDM_LOAD_LUA
+        MENUITEM "Load Latest Lua Script...",   IDM_LOAD_LATEST_LUA
         MENUITEM SEPARATOR
         POPUP "Recent Scripts"
         BEGIN
-            MENUITEM "Reset",                       ID_LUA_RECENT_RESET
-            MENUITEM "Freeze",                      ID_LUA_RECENT_FREEZE
+            MENUITEM "Reset",                       IDM_RESET_RECENT_LUA
+            MENUITEM "Freeze",                      IDM_FREEZE_RECENT_LUA
             MENUITEM SEPARATOR
         END
         MENUITEM SEPARATOR
-        MENUITEM "Close All",                   ID_MENU_LUASCRIPT_CLOSEALL
+        MENUITEM "Close All",                   IDM_CLOSE_ALL_LUA
     END
 END
 
@@ -280,22 +280,22 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Video",IDC_GFXPLUGIN,6,6,215,53
     COMBOBOX        IDC_COMBO_GFX,54,18,156,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Config",IDGFXCONFIG,54,36,48,15
+    PUSHBUTTON      "Config",IDM_VIDEO_SETTINGS,54,36,48,15
     PUSHBUTTON      "Test",IDGFXTEST,108,36,48,15
     PUSHBUTTON      "About",IDGFXABOUT,162,36,48,15
     GROUPBOX        "Input",IDC_INPUTPLUGIN,6,66,215,53
     COMBOBOX        IDC_COMBO_INPUT,54,78,156,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Config",IDINPUTCONFIG,54,96,48,15
+    PUSHBUTTON      "Config",IDM_INPUT_SETTINGS,54,96,48,15
     PUSHBUTTON      "Test",IDINPUTTEST,108,96,48,15
     PUSHBUTTON      "About",IDINPUTABOUT,162,96,48,15
     GROUPBOX        "Audio",IDC_SOUNDPLUGIN,6,126,215,53
     COMBOBOX        IDC_COMBO_SOUND,54,138,156,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Config",IDSOUNDCONFIG,54,156,48,15
+    PUSHBUTTON      "Config",IDM_AUDIO_SETTINGS,54,156,48,15
     PUSHBUTTON      "Test",IDSOUNDTEST,108,156,48,15
     PUSHBUTTON      "About",IDSOUNDABOUT,162,156,48,15
     GROUPBOX        "RSP",IDC_RSPPLUGIN,6,186,215,53
     COMBOBOX        IDC_COMBO_RSP,54,198,156,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Config",IDRSPCONFIG,54,216,48,15
+    PUSHBUTTON      "Config",IDM_RSP_SETTINGS,54,216,48,15
     PUSHBUTTON      "Test",IDRSPTEST,108,216,48,15
     PUSHBUTTON      "About",IDRSPABOUT,162,216,48,15
     CONTROL         "",IDB_DISPLAY,"Static",SS_BITMAP,13,21,15,13
@@ -320,7 +320,7 @@ BEGIN
     EDITTEXT        IDC_SKIPFREQ,114,90,78,12,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Fast forward skip frequency:",IDC_FASTFORWARDSKIPFREQ,12,90,96,12,SS_CENTERIMAGE
     PUSHBUTTON      "?",IDC_SKIPFREQUENCY_HELP,198,90,14,12
-    CONTROL         "State-independent savestate loading",IDC_ALLOW_ARBITRARY_SAVESTATE_LOADING,
+    CONTROL         "State-independent savestate loading",IDC_ALLOW_ARBITRARY_SAVEIDM_LOAD_STATE_ASING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,30,138,8
 END
 
@@ -536,9 +536,9 @@ IDR_ACCEL ACCELERATORS
 BEGIN
     VK_RETURN,      ID_START_ROM_ENTER,     VIRTKEY 
     "P",            ID_POPUP_ROM_SETTING,   VIRTKEY, CONTROL
-    "R",            REFRESH_ROM_BROWSER,    VIRTKEY, CONTROL, ALT
-    "T",            IDC_GUI_TOOLBAR,        VIRTKEY, ALT
-    "S",            IDC_GUI_STATUSBAR,      VIRTKEY, ALT
+    "R",            IDM_REFRESH_ROMBROWSER,    VIRTKEY, CONTROL, ALT
+    "T",            IDM_TOOLBAR,        VIRTKEY, ALT
+    "S",            IDM_STATUSBAR,      VIRTKEY, ALT
 END
 
 
@@ -748,7 +748,7 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_START_RECORD         "Starts AVI capture with previous codec and preset (avi.cfg)"
+    IDM_START_MOVIE_RECORDING         "Starts AVI capture with previous codec and preset (avi.cfg)"
 END
 
 #endif    // Neutral (Standard) resources

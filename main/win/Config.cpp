@@ -196,7 +196,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = EMU_FRAMEADVANCE,
+		.command = IDM_FRAMEADVANCE,
 	};
 
 	config.pause_hotkey = {
@@ -205,7 +205,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = EMU_PAUSE,
+		.command = IDM_PAUSE,
 	};
 
 	config.toggle_read_only_hotkey = {
@@ -214,7 +214,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = EMU_VCRTOGGLEREADONLY,
+		.command = IDM_TOGGLE_READONLY,
 	};
 
 	config.start_movie_playback_hotkey = {
@@ -223,7 +223,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = ID_START_PLAYBACK,
+		.command = IDM_START_MOVIE_PLAYBACK,
 	};
 
 	config.stop_movie_playback_hotkey = {
@@ -232,7 +232,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = ID_STOP_PLAYBACK,
+		.command = IDM_STOP_MOVIE_PLAYBACK,
 	};
 
 	config.start_movie_recording_hotkey = {
@@ -241,7 +241,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = ID_START_RECORD,
+		.command = IDM_START_MOVIE_RECORDING,
 	};
 
 	config.stop_movie_recording_hotkey = {
@@ -250,7 +250,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = ID_STOP_RECORD,
+		.command = IDM_STOP_MOVIE_RECORDING,
 	};
 
 	config.take_screenshot_hotkey = {
@@ -259,7 +259,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = GENERATE_BITMAP,
+		.command = IDM_SCREENSHOT,
 	};
 
 	config.play_latest_movie_hotkey = {
@@ -268,7 +268,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = ID_REPLAY_LATEST,
+		.command = IDM_PLAY_LATEST_MOVIE,
 	};
 
 	config.load_rom_hotkey = {
@@ -277,7 +277,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = IDLOAD,
+		.command = IDM_LOAD_ROM,
 	};
 
 	config.close_rom_hotkey = {
@@ -286,7 +286,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = EMU_STOP,
+		.command = IDM_CLOSE_ROM,
 	};
 
 	config.reset_rom_hotkey = {
@@ -295,7 +295,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = EMU_RESET,
+		.command = IDM_RESET_ROM,
 	};
 
 	config.fullscreen_hotkey = {
@@ -304,7 +304,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 1,
-		.command = FULL_SCREEN,
+		.command = IDM_FULLSCREEN,
 	};
 
 	config.settings_hotkey = {
@@ -313,7 +313,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = ID_LOAD_CONFIG,
+		.command = IDM_SETTINGS,
 	};
 
 	config.save_current_hotkey = {
@@ -322,7 +322,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = STATE_SAVE,
+		.command = IDM_SAVE_SLOT,
 	};
 
 	config.load_current_hotkey = {
@@ -331,7 +331,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = STATE_RESTORE,
+		.command = IDM_LOAD_SLOT,
 	};
 
 	config.save_to_slot_1_hotkey = {
@@ -520,7 +520,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 1,
+		.command = (IDM_SELECT_1 - 1) + 1,
 	};
 
 	config.select_slot_2_hotkey = {
@@ -529,7 +529,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 2,
+		.command = (IDM_SELECT_1 - 1) + 2,
 	};
 
 	config.select_slot_3_hotkey = {
@@ -538,7 +538,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 3,
+		.command = (IDM_SELECT_1 - 1) + 3,
 	};
 
 	config.select_slot_4_hotkey = {
@@ -547,7 +547,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 4,
+		.command = (IDM_SELECT_1 - 1) + 4,
 	};
 
 	config.select_slot_5_hotkey = {
@@ -556,7 +556,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 5,
+		.command = (IDM_SELECT_1 - 1) + 5,
 	};
 
 	config.select_slot_6_hotkey = {
@@ -565,7 +565,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 6,
+		.command = (IDM_SELECT_1 - 1) + 6,
 	};
 
 	config.select_slot_7_hotkey = {
@@ -574,7 +574,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 7,
+		.command = (IDM_SELECT_1 - 1) + 7,
 	};
 
 	config.select_slot_8_hotkey = {
@@ -583,7 +583,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 8,
+		.command = (IDM_SELECT_1 - 1) + 8,
 	};
 
 	config.select_slot_9_hotkey = {
@@ -592,7 +592,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 9,
+		.command = (IDM_SELECT_1 - 1) + 9,
 	};
 
 	config.select_slot_10_hotkey = {
@@ -601,7 +601,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_CURRENTSAVE_1 - 1) + 10,
+		.command = (IDM_SELECT_1 - 1) + 10,
 	};
 
 	config.language = "English";
@@ -617,7 +617,7 @@ CONFIG get_default_config()
 	config.is_unfocused_pause_enabled = 0;
 	config.is_toolbar_enabled = 1;
 	config.is_statusbar_enabled = 1;
-	config.is_state_independent_state_loading_allowed = 0;
+	config.is_state_independent_IDM_LOAD_STATE_ASing_allowed = 0;
 	config.is_default_plugins_directory_used = 1;
 	config.is_default_saves_directory_used = 1;
 	config.is_default_screenshots_directory_used = 1;
@@ -685,35 +685,35 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
 
 void update_menu_hotkey_labels()
 {
-	set_hotkey_menu_accelerators(&Config.pause_hotkey, EMU_PAUSE);
-    set_hotkey_menu_accelerators(&Config.frame_advance_hotkey, EMU_FRAMEADVANCE);
+	set_hotkey_menu_accelerators(&Config.pause_hotkey, IDM_PAUSE);
+    set_hotkey_menu_accelerators(&Config.frame_advance_hotkey, IDM_FRAMEADVANCE);
 
-    set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, EMU_VCRTOGGLEREADONLY);
-    set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, ID_START_PLAYBACK);
-    set_hotkey_menu_accelerators(&Config.stop_movie_playback_hotkey, ID_STOP_PLAYBACK);
-    set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, ID_START_RECORD);
-    set_hotkey_menu_accelerators(&Config.stop_movie_recording_hotkey, ID_STOP_RECORD);
-    set_hotkey_menu_accelerators(&Config.take_screenshot_hotkey, GENERATE_BITMAP);
-    set_hotkey_menu_accelerators(&Config.save_current_hotkey, STATE_SAVE);
-    set_hotkey_menu_accelerators(&Config.load_current_hotkey, STATE_RESTORE);
-    set_hotkey_menu_accelerators(&Config.select_slot_1_hotkey, ID_CURRENTSAVE_1);
-    set_hotkey_menu_accelerators(&Config.select_slot_2_hotkey, ID_CURRENTSAVE_2);
-    set_hotkey_menu_accelerators(&Config.select_slot_3_hotkey, ID_CURRENTSAVE_3);
-    set_hotkey_menu_accelerators(&Config.select_slot_4_hotkey, ID_CURRENTSAVE_4);
-    set_hotkey_menu_accelerators(&Config.select_slot_5_hotkey, ID_CURRENTSAVE_5);
-    set_hotkey_menu_accelerators(&Config.select_slot_6_hotkey, ID_CURRENTSAVE_6);
-    set_hotkey_menu_accelerators(&Config.select_slot_7_hotkey, ID_CURRENTSAVE_7);
-    set_hotkey_menu_accelerators(&Config.select_slot_8_hotkey, ID_CURRENTSAVE_8);
-    set_hotkey_menu_accelerators(&Config.select_slot_9_hotkey, ID_CURRENTSAVE_9);
-    set_hotkey_menu_accelerators(&Config.select_slot_10_hotkey, ID_CURRENTSAVE_10);
+    set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, IDM_TOGGLE_READONLY);
+    set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, IDM_START_MOVIE_PLAYBACK);
+    set_hotkey_menu_accelerators(&Config.stop_movie_playback_hotkey, IDM_STOP_MOVIE_PLAYBACK);
+    set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, IDM_START_MOVIE_RECORDING);
+    set_hotkey_menu_accelerators(&Config.stop_movie_recording_hotkey, IDM_STOP_MOVIE_RECORDING);
+    set_hotkey_menu_accelerators(&Config.take_screenshot_hotkey, IDM_SCREENSHOT);
+    set_hotkey_menu_accelerators(&Config.save_current_hotkey, IDM_SAVE_SLOT);
+    set_hotkey_menu_accelerators(&Config.load_current_hotkey, IDM_LOAD_SLOT);
+    set_hotkey_menu_accelerators(&Config.select_slot_1_hotkey, IDM_SELECT_1);
+    set_hotkey_menu_accelerators(&Config.select_slot_2_hotkey, IDM_SELECT_2);
+    set_hotkey_menu_accelerators(&Config.select_slot_3_hotkey, IDM_SELECT_3);
+    set_hotkey_menu_accelerators(&Config.select_slot_4_hotkey, IDM_SELECT_4);
+    set_hotkey_menu_accelerators(&Config.select_slot_5_hotkey, IDM_SELECT_5);
+    set_hotkey_menu_accelerators(&Config.select_slot_6_hotkey, IDM_SELECT_6);
+    set_hotkey_menu_accelerators(&Config.select_slot_7_hotkey, IDM_SELECT_7);
+    set_hotkey_menu_accelerators(&Config.select_slot_8_hotkey, IDM_SELECT_8);
+    set_hotkey_menu_accelerators(&Config.select_slot_9_hotkey, IDM_SELECT_9);
+    set_hotkey_menu_accelerators(&Config.select_slot_10_hotkey, IDM_SELECT_10);
 
-	set_hotkey_menu_accelerators(&Config.load_rom_hotkey, IDLOAD);
-	set_hotkey_menu_accelerators(&Config.close_rom_hotkey, EMU_STOP);
-	set_hotkey_menu_accelerators(&Config.reset_rom_hotkey, EMU_RESET);
-	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, FULL_SCREEN);
-	set_hotkey_menu_accelerators(&Config.settings_hotkey, ID_LOAD_CONFIG);
+	set_hotkey_menu_accelerators(&Config.load_rom_hotkey, IDM_LOAD_ROM);
+	set_hotkey_menu_accelerators(&Config.close_rom_hotkey, IDM_CLOSE_ROM);
+	set_hotkey_menu_accelerators(&Config.reset_rom_hotkey, IDM_RESET_ROM);
+	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, IDM_FULLSCREEN);
+	set_hotkey_menu_accelerators(&Config.settings_hotkey, IDM_SETTINGS);
 
-    set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, ID_LOOP_MOVIE);
+    set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, IDM_PLAY_LATEST_MOVIE);
 }
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          int32_t is_reading, t_hotkey* hotkey)
@@ -921,7 +921,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_unfocused_pause_enabled)
 	HANDLE_P_VALUE(is_toolbar_enabled)
 	HANDLE_P_VALUE(is_statusbar_enabled)
-	HANDLE_P_VALUE(is_state_independent_state_loading_allowed)
+	HANDLE_P_VALUE(is_state_independent_IDM_LOAD_STATE_ASing_allowed)
 	HANDLE_P_VALUE(is_default_plugins_directory_used)
 	HANDLE_P_VALUE(is_default_saves_directory_used)
 	HANDLE_P_VALUE(is_default_screenshots_directory_used)

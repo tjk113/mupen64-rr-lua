@@ -158,7 +158,7 @@ void set_is_movie_loop_enabled(bool value)
 {
 	Config.is_movie_loop_enabled = value;
 
-	CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE,
+	CheckMenuItem(GetMenu(mainHWND), IDM_PLAY_LATEST_MOVIE,
 				  MF_BYCOMMAND | (Config.is_movie_loop_enabled
 									  ? MFS_CHECKED
 									  : MFS_UNCHECKED));
@@ -186,10 +186,10 @@ static void gui_ChangeWindow()
 
 void resumeEmu(BOOL quiet)
 {
-	BOOL wasPaused = emu_paused;
+	BOOL wasPaused = IDM_PAUSEd;
 	if (emu_launched)
 	{
-		emu_paused = 0;
+		IDM_PAUSEd = 0;
 		ResumeThread(sound_thread_handle);
 		if (!quiet)
 			statusbar_post_text("Emulation started");
@@ -197,9 +197,9 @@ void resumeEmu(BOOL quiet)
 
 	toolbar_on_emu_state_changed(emu_launched, 1);
 
-	if (emu_paused != wasPaused && !quiet)
-		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
-		              MF_BYCOMMAND | (emu_paused
+	if (IDM_PAUSEd != wasPaused && !quiet)
+		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
+		              MF_BYCOMMAND | (IDM_PAUSEd
 			                              ? MFS_CHECKED
 			                              : MFS_UNCHECKED));
 }
@@ -207,11 +207,11 @@ void resumeEmu(BOOL quiet)
 
 void pauseEmu(BOOL quiet)
 {
-	BOOL wasPaused = emu_paused;
+	BOOL wasPaused = IDM_PAUSEd;
 	if (emu_launched)
 	{
 		frame_changed = true;
-		emu_paused = 1;
+		IDM_PAUSEd = 1;
 		if (!quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
 			SuspendThread(sound_thread_handle);
@@ -219,15 +219,15 @@ void pauseEmu(BOOL quiet)
 			statusbar_post_text("Emulation paused");
 	} else
 	{
-		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
+		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
 		              MF_BYCOMMAND | MFS_UNCHECKED);
 	}
 
 	toolbar_on_emu_state_changed(emu_launched, 0);
 
-	if (emu_paused != wasPaused && !MenuPaused)
-		CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
-		              MF_BYCOMMAND | (emu_paused
+	if (IDM_PAUSEd != wasPaused && !MenuPaused)
+		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
+		              MF_BYCOMMAND | (IDM_PAUSEd
 			                              ? MFS_CHECKED
 			                              : MFS_UNCHECKED));
 }
@@ -313,7 +313,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 	//printf("gen interrupt: %lld ns/vi", (total_vi/frame_count));
 	if (emu_launched) {
 
-		if (emu_paused) {
+		if (IDM_PAUSEd) {
 			MenuPaused = FALSE;
 			resumeEmu(FALSE);
 		}
@@ -348,7 +348,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		}
 
 		emu_launched = 0;
-		emu_paused = 1;
+		IDM_PAUSEd = 1;
 
 
 		rom = NULL;
@@ -428,10 +428,10 @@ int pauseAtFrame = -1;
 void SetStatusPlaybackStarted()
 {
 	HMENU hMenu = GetMenu(mainHWND);
-	EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-	EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+	EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
 
-	if (!emu_paused || !emu_launched)
+	if (!IDM_PAUSEd || !emu_launched)
 		statusbar_post_text("Playback started");
 	else
 		statusbar_post_text("Playback started while paused");
@@ -971,8 +971,8 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 					} else
 					{
 						HMENU hMenu = GetMenu(mainHWND);
-						EnableMenuItem(hMenu, ID_STOP_RECORD, MF_ENABLED);
-						EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_ENABLED);
+						EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
 						statusbar_post_text("Recording replay");
 					}
 
@@ -1033,31 +1033,31 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 
 void OpenMoviePlaybackDialog()
 {
-	BOOL wasPaused = emu_paused && !MenuPaused;
+	BOOL wasPaused = IDM_PAUSEd && !MenuPaused;
 	MenuPaused = FALSE;
-	if (emu_launched && !emu_paused)
+	if (emu_launched && !IDM_PAUSEd)
 		pauseEmu(FALSE);
 
 	DialogBox(GetModuleHandle(NULL),
 	          MAKEINTRESOURCE(IDD_MOVIE_PLAYBACK_DIALOG), mainHWND,
 	          (DLGPROC)PlayMovieProc);
 
-	if (emu_launched && emu_paused && !wasPaused)
+	if (emu_launched && IDM_PAUSEd && !wasPaused)
 		resumeEmu(FALSE);
 }
 
 void OpenMovieRecordDialog()
 {
-	BOOL wasPaused = emu_paused && !MenuPaused;
+	BOOL wasPaused = IDM_PAUSEd && !MenuPaused;
 	MenuPaused = FALSE;
-	if (emu_launched && !emu_paused)
+	if (emu_launched && !IDM_PAUSEd)
 		pauseEmu(FALSE);
 
 	DialogBox(GetModuleHandle(NULL),
 	          MAKEINTRESOURCE(IDD_MOVIE_RECORD_DIALOG), mainHWND,
 	          (DLGPROC)RecordMovieProc);
 
-	if (emu_launched && emu_paused && !wasPaused)
+	if (emu_launched && IDM_PAUSEd && !wasPaused)
 		resumeEmu(FALSE);
 }
 
@@ -1069,73 +1069,73 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 
 	if (emulationRunning)
 	{
-		EnableMenuItem(hMenu, EMU_STOP, MF_ENABLED);
-		EnableMenuItem(hMenu, EMU_PAUSE, MF_ENABLED);
-		EnableMenuItem(hMenu, EMU_FRAMEADVANCE, MF_ENABLED);
-		EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_CLOSE_ROM, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_PAUSE, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_FRAMEADVANCE, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_LOAD_LATEST_ROM, MF_ENABLED);
 		EnableMenuItem(hMenu, EMU_PLAY, MF_ENABLED);
-		EnableMenuItem(hMenu, FULL_SCREEN, MF_ENABLED);
-		EnableMenuItem(hMenu, STATE_SAVE, MF_ENABLED);
-		EnableMenuItem(hMenu, STATE_SAVEAS, MF_ENABLED);
-		EnableMenuItem(hMenu, STATE_RESTORE, MF_ENABLED);
-		EnableMenuItem(hMenu, STATE_LOAD, MF_ENABLED);
-		EnableMenuItem(hMenu, GENERATE_BITMAP, MF_ENABLED);
-		EnableMenuItem(hMenu, EMU_RESET, MF_ENABLED);
-		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_SAVE_SLOT, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_SAVE_STATE_AS, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_LOAD_SLOT, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_LOAD_STATE_AS, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_SCREENSHOT, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_RESET_ROM, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_REFRESH_ROMBROWSER, MF_GRAYED);
 		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_GRAYED);
-		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_DISABLED);
-		EnableMenuItem(hMenu, IDC_GUI_TOOLBAR, MF_DISABLED);
-		EnableMenuItem(hMenu, IDC_GUI_STATUSBAR, MF_DISABLED);
-		EnableMenuItem(hMenu, ID_TRACELOG, dynacore ? MF_DISABLED : MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_DISABLED);
+		EnableMenuItem(hMenu, IDM_TOOLBAR, MF_DISABLED);
+		EnableMenuItem(hMenu, IDM_STATUSBAR, MF_DISABLED);
+		EnableMenuItem(hMenu, IDM_TRACELOG, dynacore ? MF_DISABLED : MF_ENABLED);
 
 		if (!continue_vcr_on_restart_mode)
 		{
-			EnableMenuItem(hMenu, ID_START_RECORD, MF_ENABLED);
-			EnableMenuItem(hMenu, ID_STOP_RECORD,
+			EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, MF_ENABLED);
+			EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING,
 			               vcr_is_recording() ? MF_ENABLED : MF_GRAYED);
-			EnableMenuItem(hMenu, ID_START_PLAYBACK, MF_ENABLED);
-			EnableMenuItem(hMenu, ID_STOP_PLAYBACK,
+			EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, MF_ENABLED);
+			EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK,
 			               (vcr_is_restarting() || vcr_is_playing())
 				               ? MF_ENABLED
 				               : MF_GRAYED);
-			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
-			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
-			EnableMenuItem(hMenu, ID_END_CAPTURE,
+			EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_ENABLED);
+			EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
+			EnableMenuItem(hMenu, IDM_STOP_CAPTURE,
 			               vcr_is_capturing() ? MF_ENABLED : MF_GRAYED);
 		}
 
 		toolbar_on_emu_state_changed(1, 1);
 	} else
 	{
-		EnableMenuItem(hMenu, EMU_STOP, MF_GRAYED);
-		EnableMenuItem(hMenu, IDLOAD, MF_ENABLED);
-		EnableMenuItem(hMenu, EMU_PAUSE, MF_GRAYED);
-		EnableMenuItem(hMenu, EMU_FRAMEADVANCE, MF_GRAYED);
-		EnableMenuItem(hMenu, ID_LOAD_LATEST, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_CLOSE_ROM, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_LOAD_ROM, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_PAUSE, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_FRAMEADVANCE, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_LOAD_LATEST_ROM, MF_GRAYED);
 		EnableMenuItem(hMenu, EMU_PLAY, MF_GRAYED);
-		EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
-		EnableMenuItem(hMenu, STATE_SAVE, MF_GRAYED);
-		EnableMenuItem(hMenu, STATE_SAVEAS, MF_GRAYED);
-		EnableMenuItem(hMenu, STATE_RESTORE, MF_GRAYED);
-		EnableMenuItem(hMenu, STATE_LOAD, MF_GRAYED);
-		EnableMenuItem(hMenu, GENERATE_BITMAP, MF_GRAYED);
-		EnableMenuItem(hMenu, EMU_RESET, MF_GRAYED);
-		EnableMenuItem(hMenu, REFRESH_ROM_BROWSER, MF_ENABLED);
-		EnableMenuItem(hMenu, ID_TRACELOG, MF_DISABLED);
+		EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_SAVE_SLOT, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_SAVE_STATE_AS, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_LOAD_SLOT, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_LOAD_STATE_AS, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_SCREENSHOT, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_RESET_ROM, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_REFRESH_ROMBROWSER, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_TRACELOG, MF_DISABLED);
 		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_ENABLED);
-		EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
-		EnableMenuItem(hMenu, IDC_GUI_TOOLBAR, MF_ENABLED);
-		EnableMenuItem(hMenu, IDC_GUI_STATUSBAR, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
+		EnableMenuItem(hMenu, IDM_TOOLBAR, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_STATUSBAR, MF_ENABLED);
 
 		if (!continue_vcr_on_restart_mode)
 		{
-			EnableMenuItem(hMenu, ID_START_RECORD, MF_GRAYED);
-			EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-			EnableMenuItem(hMenu, ID_START_PLAYBACK, MF_GRAYED);
-			EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
-			EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
-			EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_GRAYED);
-			EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
+			EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, MF_GRAYED);
+			EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
+			EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, MF_GRAYED);
+			EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
+			EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_GRAYED);
+			EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET, MF_GRAYED);
+			EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_GRAYED);
 			LONG winstyle;
 			winstyle = GetWindowLong(mainHWND, GWL_STYLE);
 			winstyle |= WS_MAXIMIZEBOX;
@@ -1148,20 +1148,20 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 	}
 
 	if (Config.is_toolbar_enabled) CheckMenuItem(
-		hMenu, IDC_GUI_TOOLBAR, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, IDC_GUI_TOOLBAR, MF_BYCOMMAND | MF_UNCHECKED);
+		hMenu, IDM_TOOLBAR, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(hMenu, IDM_TOOLBAR, MF_BYCOMMAND | MF_UNCHECKED);
 	if (Config.is_statusbar_enabled) CheckMenuItem(
-		hMenu, IDC_GUI_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, IDC_GUI_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
+		hMenu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(hMenu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
 	if (Config.is_movie_loop_enabled) CheckMenuItem(
-		hMenu, ID_LOOP_MOVIE, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, ID_LOOP_MOVIE, MF_BYCOMMAND | MF_UNCHECKED);
+		hMenu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(hMenu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_UNCHECKED);
 	if (Config.is_recent_movie_paths_frozen) CheckMenuItem(
-		hMenu, ID_RECENTMOVIES_FREEZE, MF_BYCOMMAND | MF_CHECKED);
+		hMenu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
 	if (Config.is_recent_scripts_frozen) CheckMenuItem(
-		hMenu, ID_LUA_RECENT_FREEZE, MF_BYCOMMAND | MF_CHECKED);
+		hMenu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
 	if (Config.is_recent_rom_paths_frozen) CheckMenuItem(
-		hMenu, ID_RECENTROMS_FREEZE, MF_BYCOMMAND | MF_CHECKED);
+		hMenu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
 }
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
@@ -1183,7 +1183,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	dynacore = Config.core_type;
 
-	emu_paused = 0;
+	IDM_PAUSEd = 0;
 	emu_launched = 1;
 
 	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
@@ -1207,7 +1207,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	AtResetLuaCallback();
 	if (pauseAtFrame == 0 && vcr_is_starting_and_just_restarted())
 	{
-		while (emu_paused)
+		while (IDM_PAUSEd)
 		{
 			Sleep(10);
 		}
@@ -1356,34 +1356,34 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 
 	switch (lpttt->hdr.idFrom)
 	{
-	case IDLOAD:
+	case IDM_LOAD_ROM:
 		strcpy(lpttt->lpszText, "Load ROM...");
 		break;
 	case EMU_PLAY:
 		strcpy(lpttt->lpszText, "Resume");
 		break;
-	case EMU_PAUSE:
+	case IDM_PAUSE:
 		strcpy(lpttt->lpszText, "Pause");
 		break;
-	case EMU_STOP:
+	case IDM_CLOSE_ROM:
 		strcpy(lpttt->lpszText, "Stop");
 		break;
-	case FULL_SCREEN:
+	case IDM_FULLSCREEN:
 		strcpy(lpttt->lpszText, "Fullscreen");
 		break;
-	case IDGFXCONFIG:
+	case IDM_VIDEO_SETTINGS:
 		strcpy(lpttt->lpszText, "Video Settings...");
 		break;
-	case IDSOUNDCONFIG:
+	case IDM_AUDIO_SETTINGS:
 		strcpy(lpttt->lpszText, "Audio Settings...");
 		break;
-	case IDINPUTCONFIG:
+	case IDM_INPUT_SETTINGS:
 		strcpy(lpttt->lpszText, "Input Settings...");
 		break;
-	case IDRSPCONFIG:
+	case IDM_RSP_SETTINGS:
 		strcpy(lpttt->lpszText, "RSP Settings...");
 		break;
-	case ID_LOAD_CONFIG:
+	case IDM_SETTINGS:
 		strcpy(lpttt->lpszText, "Settings...");
 		break;
 	default:
@@ -1611,8 +1611,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_ENTERMENULOOP:
-		AutoPause = emu_paused;
-		if (!emu_paused)
+		AutoPause = IDM_PAUSEd;
+		if (!IDM_PAUSEd)
 		{
 			MenuPaused = TRUE;
 			pauseEmu(FALSE);
@@ -1626,7 +1626,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		std::thread([]
 		{
 			Sleep(60);
-			if (emu_paused && !AutoPause && MenuPaused)
+			if (IDM_PAUSEd && !AutoPause && MenuPaused)
 			{
 				resumeEmu(FALSE);
 			}
@@ -1640,16 +1640,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 		case WA_ACTIVE:
 		case WA_CLICKACTIVE:
-			if (Config.is_unfocused_pause_enabled && emu_paused && !AutoPause)
+			if (Config.is_unfocused_pause_enabled && IDM_PAUSEd && !AutoPause)
 			{
 				resumeEmu(FALSE);
-				AutoPause = emu_paused;
+				AutoPause = IDM_PAUSEd;
 			}
 			break;
 
 		case WA_INACTIVE:
-			AutoPause = emu_paused && !MenuPaused;
-			if (Config.is_unfocused_pause_enabled && !emu_paused
+			AutoPause = IDM_PAUSEd && !MenuPaused;
+			if (Config.is_unfocused_pause_enabled && !IDM_PAUSEd
 				/*(&& minimize*/ && !FullScreenMode)
 			{
 				MenuPaused = FALSE;
@@ -1667,10 +1667,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			switch (LOWORD(wParam))
 			{
-			case IDGFXCONFIG:
-			case IDINPUTCONFIG:
-			case IDSOUNDCONFIG:
-			case IDRSPCONFIG:
+			case IDM_VIDEO_SETTINGS:
+			case IDM_INPUT_SETTINGS:
+			case IDM_AUDIO_SETTINGS:
+			case IDM_RSP_SETTINGS:
 				{
 					// If emu isn't launched, we don't have any loaded plugins, so we gotta load them first
 					if (!emu_launched)
@@ -1682,13 +1682,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					t_plugin* plugin = video_plugin;
 					switch (LOWORD(wParam))
 					{
-					case IDINPUTCONFIG:
+					case IDM_INPUT_SETTINGS:
 						plugin = input_plugin;
 						break;
-					case IDSOUNDCONFIG:
+					case IDM_AUDIO_SETTINGS:
 						plugin = audio_plugin;
 						break;
-					case IDRSPCONFIG:
+					case IDM_RSP_SETTINGS:
 						plugin = rsp_plugin;
 						break;
 					}
@@ -1702,35 +1702,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				break;
-			case ID_MENU_LUASCRIPT_NEW:
+			case IDM_LOAD_LUA:
 				{
 					lua_create();
 				}
 				break;
-			case ID_LUA_RECENT_FREEZE:
-				CheckMenuItem(hMenu, ID_LUA_RECENT_FREEZE,
+			case IDM_FREEZE_RECENT_LUA:
+				CheckMenuItem(hMenu, IDM_FREEZE_RECENT_LUA,
 				              (Config.is_recent_scripts_frozen ^= 1)
 					              ? MF_CHECKED
 					              : MF_UNCHECKED);
 				break;
-			case ID_LUA_RECENT_RESET:
+			case IDM_RESET_RECENT_LUA:
 				lua_recent_scripts_build(1);
 				break;
-			case ID_LUA_LOAD_LATEST:
+			case IDM_LOAD_LATEST_LUA:
 				lua_recent_scripts_run(ID_LUA_RECENT);
 				break;
-			case ID_MENU_LUASCRIPT_CLOSEALL:
+			case IDM_CLOSE_ALL_LUA:
 				close_all_scripts();
 				break;
-			case ID_FORCESAVE:
+			case IDM_SAVE_CONFIG:
 				save_config();
 				break;
-			case ID_TRACELOG:
+			case IDM_TRACELOG:
 				{
 					if (tracelog::active())
 					{
 						tracelog::stop();
-						ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Start &Trace Logger...");
+						ModifyMenu(hMenu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Start &Trace Logger...");
 						break;
 					}
 
@@ -1744,10 +1744,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					auto result = MessageBox(mainHWND, "Should the trace log be generated in a binary format?", "Trace Logger", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1);
 
 					tracelog::start(wstring_to_string(path).c_str(), result == IDYES);
-					ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Stop &Trace Logger");
+					ModifyMenu(hMenu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Stop &Trace Logger");
 				}
 				break;
-			case EMU_STOP:
+			case IDM_CLOSE_ROM:
 				MenuPaused = FALSE;
 				if (!confirm_user_exit())
 					break;
@@ -1759,15 +1759,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 
-			case EMU_PAUSE:
+			case IDM_PAUSE:
 				{
-					if (!emu_paused)
+					if (!IDM_PAUSEd)
 					{
 						pauseEmu(vcr_is_active());
 					} else if (MenuPaused)
 					{
 						MenuPaused = FALSE;
-						CheckMenuItem(GetMenu(mainHWND), EMU_PAUSE,
+						CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
 						              MF_BYCOMMAND | MFS_CHECKED);
 					} else
 					{
@@ -1776,7 +1776,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 
-			case EMU_FRAMEADVANCE:
+			case IDM_FRAMEADVANCE:
 				{
 					MenuPaused = FALSE;
 					frame_advancing = 1;
@@ -1786,14 +1786,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 
-			case EMU_VCRTOGGLEREADONLY:
+			case IDM_TOGGLE_READONLY:
 				vcr_toggle_read_only();
 				break;
 
-			case ID_LOOP_MOVIE:
+			case IDM_LOOP_MOVIE:
 				set_is_movie_loop_enabled(!Config.is_movie_loop_enabled);
 				break;
-			case ID_REPLAY_LATEST:
+			case IDM_PLAY_LATEST_MOVIE:
 				if (!emu_launched || Config.recent_movie_paths.empty())
 				{
 					break;
@@ -1802,19 +1802,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				vcr_start_playback(Config.recent_movie_paths[0], nullptr, nullptr);
 				SetStatusPlaybackStarted();
 				break;
-			case ID_RECENTMOVIES_FREEZE:
-				CheckMenuItem(hMenu, ID_RECENTMOVIES_FREEZE,
+			case IDM_FREEZE_RECENT_MOVIES:
+				CheckMenuItem(hMenu, IDM_FREEZE_RECENT_MOVIES,
 				              (Config.is_recent_movie_paths_frozen ^= 1)
 					              ? MF_CHECKED
 					              : MF_UNCHECKED);
 				break;
-			case ID_RECENTMOVIES_RESET:
+			case IDM_RESET_RECENT_MOVIES:
 				vcr_recent_movies_build(1);
 				break;
 			case EMU_PLAY:
 				if (emu_launched)
 				{
-					if (emu_paused)
+					if (IDM_PAUSEd)
 					{
 						resumeEmu(FALSE);
 					}
@@ -1825,7 +1825,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 
-			case EMU_RESET:
+			case IDM_RESET_ROM:
 				if (!Config.is_reset_recording_enabled && confirm_user_exit())
 					break;
 				if (vcr_is_recording() && Config.is_reset_recording_enabled)
@@ -1838,22 +1838,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				resetEmu();
 				break;
 
-			case ID_LOAD_CONFIG:
+			case IDM_SETTINGS:
 				{
-					BOOL wasPaused = emu_paused && !MenuPaused;
+					BOOL wasPaused = IDM_PAUSEd && !MenuPaused;
 					MenuPaused = FALSE;
-					if (emu_launched && !emu_paused)
+					if (emu_launched && !IDM_PAUSEd)
 					{
 						pauseEmu(FALSE);
 					}
 					configdialog_show();
-					if (emu_launched && emu_paused && !wasPaused)
+					if (emu_launched && IDM_PAUSEd && !wasPaused)
 					{
 						resumeEmu(FALSE);
 					}
 				}
 				break;
-			case ID_HELP_ABOUT:
+			case IDM_ABOUT:
 				{
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
@@ -1864,10 +1864,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				break;
-			case ID_COREDBG:
+			case IDM_COREDBG:
 				CoreDbg::start();
 				break;
-			case ID_RAMSTART:
+			case IDM_RAMSTART:
 				{
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
@@ -1901,7 +1901,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 					break;
 				}
-			case IDLOAD:
+			case IDM_LOAD_ROM:
 				{
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
@@ -1920,26 +1920,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				break;
-			case ID_EMULATOR_EXIT:
+			case IDM_EXIT:
 				DestroyWindow(mainHWND);
 				break;
-			case FULL_SCREEN:
+			case IDM_FULLSCREEN:
 				if (emu_launched && !vcr_is_capturing())
 				{
 					FullScreenMode = 1 - FullScreenMode;
 					gui_ChangeWindow();
 				}
 				break;
-			case REFRESH_ROM_BROWSER:
+			case IDM_REFRESH_ROMBROWSER:
 				if (!emu_launched)
 				{
 					rombrowser_build();
 				}
 				break;
-			case STATE_SAVE:
+			case IDM_SAVE_SLOT:
 				savestates_do_slot(st_slot, e_st_job::save);
 				break;
-			case STATE_SAVEAS:
+			case IDM_SAVE_STATE_AS:
 				{
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
@@ -1958,10 +1958,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				break;
-			case STATE_RESTORE:
+			case IDM_LOAD_SLOT:
 				savestates_do_slot(st_slot, e_st_job::load);
 				break;
-			case STATE_LOAD:
+			case IDM_LOAD_STATE_AS:
 				{
 					BOOL wasMenuPaused = MenuPaused;
 					MenuPaused = FALSE;
@@ -1980,11 +1980,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				break;
-			case ID_START_RECORD:
+			case IDM_START_MOVIE_RECORDING:
 				if (emu_launched)
 					OpenMovieRecordDialog();
 				break;
-			case ID_STOP_RECORD:
+			case IDM_STOP_MOVIE_RECORDING:
 				if (vcr_is_recording())
 				{
 					if (vcr_stop_record(1) < 0) // seems ok (no)
@@ -1993,18 +1993,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					else
 					{
 						ClearButtons();
-						EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-						EnableMenuItem(hMenu, ID_START_RECORD, MF_ENABLED);
+						EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, MF_ENABLED);
 						statusbar_post_text("Recording stopped");
 					}
 				}
 				break;
-			case ID_START_PLAYBACK:
+			case IDM_START_MOVIE_PLAYBACK:
 				if (emu_launched)
 					OpenMoviePlaybackDialog();
 
 				break;
-			case ID_STOP_PLAYBACK:
+			case IDM_STOP_MOVIE_PLAYBACK:
 				if (vcr_is_playing())
 				{
 					if (vcr_stop_playback() < 0); // fail quietly
@@ -2012,14 +2012,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					else
 					{
 						ClearButtons();
-						EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_GRAYED);
-						EnableMenuItem(hMenu, ID_START_PLAYBACK, MF_ENABLED);
+						EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, MF_ENABLED);
 						statusbar_post_text("Playback stopped");
 					}
 				}
 				break;
 
-			case ID_FFMPEG_START:
+			case IDM_START_FFMPEG_CAPTURE:
 				{
 					auto err = vcr_start_f_fmpeg_capture(
 						"ffmpeg_out.mp4",
@@ -2027,12 +2027,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (err == INIT_SUCCESS)
 					{
 						//SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
-						EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
-						EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET,
+						EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET,
 						               MF_GRAYED);
-						EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
-						EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
-						EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_ENABLED);
+						EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI with FFmpeg");
 						enable_emulation_menu_items(TRUE);
 					} else
@@ -2040,13 +2040,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 
-			case ID_START_CAPTURE_PRESET:
-			case ID_START_CAPTURE:
+			case IDM_START_CAPTURE_PRESET:
+			case IDM_START_CAPTURE:
 				if (emu_launched)
 				{
-					BOOL wasPaused = emu_paused && !MenuPaused;
+					BOOL wasPaused = IDM_PAUSEd && !MenuPaused;
 					MenuPaused = FALSE;
-					if (emu_launched && !emu_paused)
+					if (emu_launched && !IDM_PAUSEd)
 						pauseEmu(FALSE);
 
 					auto path = show_persistent_save_dialog("s_capture", hwnd, L"*.avi");
@@ -2056,41 +2056,41 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 
 					// pass false to startCapture when "last preset" option was choosen
-					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == ID_START_CAPTURE) < 0)
+					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == IDM_START_CAPTURE) < 0)
 					{
 						MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
 					} else
 					{
-						EnableMenuItem(hMenu, ID_START_CAPTURE, MF_GRAYED);
-						EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET,
+						EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET,
 						               MF_GRAYED);
-						EnableMenuItem(hMenu, ID_FFMPEG_START, MF_GRAYED);
-						EnableMenuItem(hMenu, ID_END_CAPTURE, MF_ENABLED);
-						EnableMenuItem(hMenu, FULL_SCREEN, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_ENABLED);
+						EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI");
 						enable_emulation_menu_items(TRUE);
 					}
 
-					if (emu_launched && emu_paused && !wasPaused)
+					if (emu_launched && IDM_PAUSEd && !wasPaused)
 						resumeEmu(FALSE);
 				}
 
 				break;
-			case ID_END_CAPTURE:
+			case IDM_STOP_CAPTURE:
 				if (vcr_stop_capture() < 0)
 					MessageBox(NULL, "Couldn't stop capturing.", "VCR", MB_OK);
 				else
 				{
 					SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 					             SWP_NOMOVE | SWP_NOSIZE);
-					EnableMenuItem(hMenu, ID_END_CAPTURE, MF_GRAYED);
-					EnableMenuItem(hMenu, ID_START_CAPTURE, MF_ENABLED);
-					EnableMenuItem(hMenu, ID_FFMPEG_START, MF_ENABLED);
-					EnableMenuItem(hMenu, ID_START_CAPTURE_PRESET, MF_ENABLED);
+					EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_GRAYED);
+					EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_ENABLED);
+					EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_ENABLED);
+					EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
 					statusbar_post_text("Capture stopped");
 				}
 				break;
-			case GENERATE_BITMAP: // take/capture a screenshot
+			case IDM_SCREENSHOT: // take/capture a screenshot
 				if (Config.is_default_screenshots_directory_used)
 				{
 					sprintf(path_buffer, "%sScreenShots\\", app_path.c_str());
@@ -2102,29 +2102,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					CaptureScreen(path_buffer);
 				}
 				break;
-			case ID_RECENTROMS_RESET:
+			case IDM_RESET_RECENT_ROMS:
 				main_recent_roms_build(1);
 				break;
-			case ID_RECENTROMS_FREEZE:
-				CheckMenuItem(hMenu, ID_RECENTROMS_FREEZE,
+			case IDM_FREEZE_RECENT_ROMS:
+				CheckMenuItem(hMenu, IDM_FREEZE_RECENT_ROMS,
 							  (Config.is_recent_rom_paths_frozen ^= 1)
 								  ? MF_CHECKED
 								  : MF_UNCHECKED);
 				break;
-			case ID_LOAD_LATEST:
+			case IDM_LOAD_LATEST_ROM:
 				main_recent_roms_run(ID_RECENTROMS_FIRST);
 				break;
-			case IDC_GUI_TOOLBAR:
+			case IDM_TOOLBAR:
 				Config.is_toolbar_enabled ^= true;
 				toolbar_set_visibility(Config.is_toolbar_enabled);
 				CheckMenuItem(
-					hMenu, IDC_GUI_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
+					hMenu, IDM_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
-			case IDC_GUI_STATUSBAR:
+			case IDM_STATUSBAR:
 				Config.is_statusbar_enabled ^= true;
 				statusbar_set_visibility(Config.is_statusbar_enabled);
 				CheckMenuItem(
-					hMenu, IDC_GUI_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
+					hMenu, IDM_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
 			case IDC_INCREASE_MODIFIER:
 				if (Config.fps_modifier < 50)
@@ -2160,14 +2160,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			default:
-				if (LOWORD(wParam) >= ID_CURRENTSAVE_1 && LOWORD(wParam)
-					<= ID_CURRENTSAVE_10)
+				if (LOWORD(wParam) >= IDM_SELECT_1 && LOWORD(wParam)
+					<= IDM_SELECT_10)
 				{
-					auto slot = LOWORD(wParam) - ID_CURRENTSAVE_1;
+					auto slot = LOWORD(wParam) - IDM_SELECT_1;
 					st_slot = slot;
 
 					// set checked state for only the currently selected save
-					for (int i = ID_CURRENTSAVE_1; i < ID_CURRENTSAVE_10; ++i)
+					for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
 					{
 						CheckMenuItem(hMenu, i, MF_UNCHECKED);
 					}
@@ -2198,12 +2198,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						statusbar_post_text("Couldn't load movie");
 						break;
 					}
-					// should probably make this code from the ID_REPLAY_LATEST case into a function on its own
+					// should probably make this code from the IDM_PLAY_LATEST_MOVIE case into a function on its own
 					// because now it's used here too
-					EnableMenuItem(hMenu, ID_STOP_RECORD, MF_GRAYED);
-					EnableMenuItem(hMenu, ID_STOP_PLAYBACK, MF_ENABLED);
+					EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
+					EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
 
-					if (!emu_paused || !emu_launched)
+					if (!IDM_PAUSEd || !emu_launched)
 						statusbar_post_text("Playback started");
 					else
 						statusbar_post_text("Playback started while paused");
@@ -2280,7 +2280,7 @@ int WINAPI WinMain(
 	CreateDirectory((app_path + "plugin").c_str(), NULL);
 
 	emu_launched = 0;
-	emu_paused = 1;
+	IDM_PAUSEd = 1;
 
 	load_config();
 	lua_init();

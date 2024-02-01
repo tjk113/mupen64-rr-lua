@@ -17,7 +17,7 @@ void toolbar_create()
 	const TBBUTTON tb_buttons[] =
 	{
 		{
-			0, IDLOAD, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
+			0, IDM_LOAD_ROM, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
 			{0, 0}, 0, 0
 		},
 		{0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, {0, 0}, 0, 0},
@@ -26,20 +26,20 @@ void toolbar_create()
 			{0, 0}, 0, 0
 		},
 		{
-			2, EMU_PAUSE, TBSTATE_ENABLED, TBSTYLE_CHECK | TBSTYLE_AUTOSIZE,
+			2, IDM_PAUSE, TBSTATE_ENABLED, TBSTYLE_CHECK | TBSTYLE_AUTOSIZE,
 			{0, 0}, 0, 0
 		},
 		{
-			3, EMU_STOP, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
+			3, IDM_CLOSE_ROM, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
 			{0, 0}, 0, 0
 		},
 		{0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, {0, 0}, 0, 0},
 		{
-			4, FULL_SCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
+			4, IDM_FULLSCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE,
 			{0, 0}, 0, 0
 		},
 		{
-			9, ID_LOAD_CONFIG, TBSTATE_ENABLED,
+			9, IDM_SETTINGS, TBSTATE_ENABLED,
 			TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE, {0, 0}, 0, 0
 		},
 	};
@@ -59,18 +59,18 @@ void toolbar_create()
 
 	if (emu_launched)
 	{
-		if (emu_paused)
+		if (IDM_PAUSEd)
 		{
-			SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PAUSE, 1);
+			SendMessage(toolbar_hwnd, TB_CHECKBUTTON, IDM_PAUSE, 1);
 		} else
 		{
 			SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PLAY, 1);
 		}
 	} else
 	{
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_STOP, FALSE);
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_PAUSE, FALSE);
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, FULL_SCREEN, FALSE);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_CLOSE_ROM, FALSE);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_PAUSE, FALSE);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_FULLSCREEN, FALSE);
 	}
 }
 
@@ -97,16 +97,16 @@ void toolbar_on_emu_state_changed(int32_t is_running, int32_t is_resumed)
 	if (is_running)
 	{
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_PLAY, TRUE);
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_STOP, TRUE);
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_PAUSE, TRUE);
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, FULL_SCREEN, !vcr_is_capturing());
-		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PAUSE, !is_resumed);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_CLOSE_ROM, TRUE);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_PAUSE, TRUE);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_FULLSCREEN, !vcr_is_capturing());
+		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, IDM_PAUSE, !is_resumed);
 		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PLAY, is_resumed);
 	} else
 	{
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_STOP, FALSE);
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_PAUSE, FALSE);
-		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, FULL_SCREEN, FALSE);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_CLOSE_ROM, FALSE);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_PAUSE, FALSE);
+		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_FULLSCREEN, FALSE);
 	}
 
 

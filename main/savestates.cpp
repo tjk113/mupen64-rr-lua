@@ -409,7 +409,7 @@ void savestates_load_immediate()
 
 		MessageBox(mainHWND, std::format("The savestate was created on a rom with CRC {}, but is being loaded on a rom with CRC {}.", md5, rom_md5).c_str(), nullptr, MB_ICONWARNING);
 
-		if (!Config.is_state_independent_state_loading_allowed) {
+		if (!Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed) {
 			savestates_job_success = FALSE;
 			return;
 		}
@@ -457,7 +457,7 @@ void savestates_load_immediate()
 	    {
 	    	statusbar_post_text("Loading non-movie savestate. Recording can break");
 
-		    if (!Config.is_state_independent_state_loading_allowed)
+		    if (!Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed)
 		    {
 			    std::string err_str = "Failed to restore movie, ";
 		    	switch (code)
@@ -499,7 +499,7 @@ void savestates_load_immediate()
     {
 	    if (vcr_is_active())
 	    {
-		    if (!Config.is_state_independent_state_loading_allowed)
+		    if (!Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed)
 		    {
 		    	MessageBox(mainHWND, "Can't load a non-movie snapshot while a movie is active", nullptr, MB_ICONERROR);
 			    savestates_job_success = FALSE;

@@ -37,7 +37,7 @@
 #include <chrono>
 #include <commctrl.h> // for SendMessage, SB_SETTEXT
 #include <Windows.h> // for truncate functions
-#include <../../winproject/resource.h> // for EMU_RESET
+#include <../../winproject/resource.h> // for IDM_RESET_ROM
 #include "win/Config.hpp" //config struct
 #include <WinUser.h>
 
@@ -157,7 +157,7 @@ static void hard_reset_and_clear_all_save_data(const bool clear)
 		printf("Clearing save data...\n");
 	else
 		printf("Playing movie without clearing save data\n");
-	SendMessage(mainHWND, WM_COMMAND, EMU_RESET, 0);
+	SendMessage(mainHWND, WM_COMMAND, IDM_RESET_ROM, 0);
 }
 
 static int vis_by_countrycode()
@@ -543,7 +543,7 @@ vcr_set_read_only(const BOOL val)
 {
 	extern HWND mainHWND;
 	if (m_read_only != val)
-		CheckMenuItem(GetMenu(mainHWND), EMU_VCRTOGGLEREADONLY,
+		CheckMenuItem(GetMenu(mainHWND), IDM_TOGGLE_READONLY,
 		              MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
 	m_read_only = val;
 }
@@ -561,7 +561,7 @@ bool vcr_is_restarting()
 void vcr_set_loop_movie(const bool val)
 {
 	if (vcr_is_looping() != val)
-		CheckMenuItem(GetMenu(mainHWND), ID_LOOP_MOVIE,
+		CheckMenuItem(GetMenu(mainHWND), IDM_PLAY_LATEST_MOVIE,
 		              MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
 	Config.is_movie_loop_enabled = val;
 }
@@ -762,7 +762,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 				m_current_vi = 0;
 				m_task = e_task::recording;
 				*input = {0};
-				EnableMenuItem(GetMenu(mainHWND), ID_STOP_RECORD, MF_ENABLED);
+				EnableMenuItem(GetMenu(mainHWND), IDM_STOP_MOVIE_RECORDING, MF_ENABLED);
 			} else
 			{
 				printf("[VCR]: Starting recording...\n");
@@ -1813,9 +1813,9 @@ void vcr_ai_len_changed()
 
 bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 {
-	extern BOOL emu_paused;
-	const BOOL was_paused = emu_paused;
-	if (!emu_paused)
+	extern BOOL IDM_PAUSEd;
+	const BOOL was_paused = IDM_PAUSEd;
+	if (!IDM_PAUSEd)
 	{
 		pauseEmu(TRUE);
 	}
