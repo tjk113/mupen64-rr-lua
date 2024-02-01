@@ -35,7 +35,6 @@
 #include "r4300.h"
 #include "../memory/memory.h"
 #include "recomph.h"
-#define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include "tracelog.h"
 #include "../lua/LuaConsole.h"
 

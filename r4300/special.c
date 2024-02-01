@@ -33,7 +33,6 @@
 #include "ops.h"
 #include "exception.h"
 #include "macros.h"
-#define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include "../lua/LuaConsole.h"
 
 void NOP()

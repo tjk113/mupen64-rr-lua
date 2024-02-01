@@ -34,13 +34,6 @@
 #include "../main/plugin.hpp"
 #include "../r4300/recomph.h"
 
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
-#include "../main/winlnxdefs.h"
-#endif
-
-
 static FILE* f;
 static int pipe_opened = 0;
 static long long int comp_reg[32];

@@ -43,7 +43,6 @@
 
 #include "../memory/tlb.h"
 
-#define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include "tracelog.h"
 #include "..\main\win\features\CoreDbg.h"
 

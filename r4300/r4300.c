@@ -38,7 +38,6 @@
 #include "recomp.h"
 #include "recomph.h"
 #include <malloc.h>
-#define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
 #include "../lua/LuaConsole.h"
 
 #ifdef DBG
