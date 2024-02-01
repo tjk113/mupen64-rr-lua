@@ -28,7 +28,7 @@ extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
 extern char TempMessage[MAX_PATH];
 extern char rom_path[MAX_PATH];
 
-
+extern int last_wheel_delta;
 
 // TODO: remove
 extern int recording;

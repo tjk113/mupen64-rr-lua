@@ -79,6 +79,8 @@ namespace LuaCore::Input
 		lua_setfield(L, -2, "xmouse");
 		lua_pushinteger(L, mouse.y);
 		lua_setfield(L, -2, "ymouse");
+		lua_pushinteger(L, last_wheel_delta > 0 ? 1 : (last_wheel_delta < 0 ? -1 : 0));
+		lua_setfield(L, -2, "ywmouse");
 		return 1;
 	}
 

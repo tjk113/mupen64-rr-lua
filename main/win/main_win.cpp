@@ -71,6 +71,7 @@ DWORD close_rom_id;
 DWORD audio_thread_id;
 HANDLE sound_thread_handle;
 static BOOL FullScreenMode = 0;
+int last_wheel_delta = 0;
 
 HANDLE loading_handle[4];
 HANDLE EmuThreadHandle;
@@ -1494,6 +1495,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		if (emu_launched)
 			keyUp(wParam, lParam);
 		return DefWindowProc(hwnd, Message, wParam, lParam);
+	case WM_MOUSEWHEEL:
+		last_wheel_delta = GET_WHEEL_DELTA_WPARAM(wParam);
+		break;
 	case WM_NOTIFY:
 		{
 			LPNMHDR l_header = (LPNMHDR)lParam;
@@ -2294,7 +2298,7 @@ int WINAPI WinMain(
 
 	load_config();
 	lua_init();
-	
+
 	WNDCLASSEX wc = {0};
 	HWND hwnd;
 	MSG msg;
