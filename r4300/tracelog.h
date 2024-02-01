@@ -9,10 +9,11 @@ namespace tracelog
 
 	/**
 	 * \brief Starts trace logging to the specified file
-	 * \param name The output path
+	 * \param path The output path
+	 * \param binary Whether log output is in a binary format
 	 * \param append Whether log output will be appended to the file
 	 */
-	void start(const char* name, bool append = false);
+	void start(const char* path, bool binary, bool append = false);
 
 	/**
 	 * \brief Stops trace logging

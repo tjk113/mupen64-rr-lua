@@ -9,8 +9,8 @@ extern unsigned long op;
 
 namespace tracelog
 {
-	bool enableTraceLog = false;
-	bool traceLogMode;
+	bool enabled = false;
+	bool use_binary = false;
 	HANDLE TraceLogFile;
 
 	//�Ƃ肠����lua�ɓ���Ƃ�
@@ -19,7 +19,7 @@ namespace tracelog
 
 	bool active()
 	{
-		return enableTraceLog;
+		return enabled;
 	}
 
 
@@ -146,13 +146,11 @@ namespace tracelog
 #undef REGCPU2
 #undef REGFPU2
 	}
-
-
-
-
-	void start(const char* name, bool append)
+	
+	void start(const char* path, bool binary, bool append)
 	{
-		if (TraceLogFile = CreateFile(name, GENERIC_WRITE,
+		use_binary = binary;
+		if (TraceLogFile = CreateFile(path, GENERIC_WRITE,
 		                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 		                              append ? OPEN_ALWAYS : CREATE_ALWAYS,
 		                              FILE_ATTRIBUTE_NORMAL |
@@ -162,7 +160,7 @@ namespace tracelog
 			{
 				SetFilePointer(TraceLogFile, 0, NULL, FILE_END);
 			}
-			enableTraceLog = true;
+			enabled = true;
 			if (interpcore == 0)
 			{
 				recompile_all();
@@ -174,7 +172,7 @@ namespace tracelog
 
 	void stop()
 	{
-		enableTraceLog = false;
+		enabled = false;
 		CloseHandle(TraceLogFile);
 		TraceLogFile = NULL;
 		// TODO: Update ui in callsite
@@ -321,7 +319,7 @@ namespace tracelog
 
 	void log_pure()
 	{
-		if (!traceLogMode)
+		if (!use_binary)
 		{
 			log(interp_addr, op);
 		} else
@@ -332,9 +330,9 @@ namespace tracelog
 
 	void log_interp_ops()
 	{
-		if (enableTraceLog)
+		if (enabled)
 		{
-			if (!traceLogMode)
+			if (!use_binary)
 			{
 				log(PC->addr, PC->src);
 			} else

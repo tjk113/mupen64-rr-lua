@@ -1724,12 +1724,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				save_config();
 				break;
 			case ID_TRACELOG:
-				if (tracelog::active())
 				{
-					tracelog::stop();
-					ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Start &Trace Logger...");
-				} else
-				{
+					if (tracelog::active())
+					{
+						tracelog::stop();
+						ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Start &Trace Logger...");
+						break;
+					}
+
 					auto path = show_persistent_save_dialog("s_tracelog", mainHWND, L"*.log");
 
 					if (path.empty())
@@ -1737,7 +1739,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					tracelog::start(wstring_to_string(path).c_str());
+					auto result = MessageBox(mainHWND, "Should the trace log be generated in a binary format?", "Trace Logger", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1);
+
+					tracelog::start(wstring_to_string(path).c_str(), result == IDYES);
 					ModifyMenu(hMenu, ID_TRACELOG, MF_BYCOMMAND | MF_STRING, ID_TRACELOG, "Stop &Trace Logger");
 				}
 				break;
