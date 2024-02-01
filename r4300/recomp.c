@@ -2539,3 +2539,46 @@ void prefetch_opcode(unsigned long op)
     src = op;
     recomp_ops[((src >> 26) & 0x3F)]();
 }
+
+unsigned long PAddr(unsigned long addr)
+{
+    if (addr >= 0x80000000 && addr < 0xC0000000)
+    {
+        return addr;
+    } else
+    {
+        return virtual_to_physical_address(addr, 2);
+    }
+}
+
+void recompile_all()
+{
+    memset(invalid_code, 1, 0x100000);
+}
+
+void recompile_now(ULONG addr)
+{
+    //NOTCOMPILED���B�����ɃR���p�C�����ʂ�ops�Ȃǂ��~�������Ɏg��
+    if ((addr >> 16) == 0xa400)
+        recompile_block((long*)SP_DMEM, blocks[0xa4000000 >> 12], addr);
+    else
+    {
+        unsigned long paddr = PAddr(addr);
+        if (paddr)
+        {
+            if ((paddr & 0x1FFFFFFF) >= 0x10000000)
+            {
+                recompile_block(
+                    (long*)rom + ((((paddr - (addr - blocks[addr >> 12]->
+                        start)) & 0x1FFFFFFF) - 0x10000000) >> 2),
+                    blocks[addr >> 12], addr);
+            } else
+            {
+                recompile_block(
+                    (long*)(rdram + (((paddr - (addr - blocks[addr >> 12]->
+                        start)) & 0x1FFFFFFF) >> 2)),
+                    blocks[addr >> 12], addr);
+            }
+        }
+    }
+}

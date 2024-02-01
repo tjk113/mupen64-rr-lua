@@ -68,9 +68,6 @@ void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
 void AtResetLuaCallback();
 
-void RecompileNextAll();
-void RecompileNow(ULONG);
-
 /**
  * \brief Stops all lua scripts and closes their windows
  */

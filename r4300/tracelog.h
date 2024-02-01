@@ -1,10 +1,7 @@
 ﻿#pragma once
 
-#include "disasm.h"
-
 namespace tracelog
 {
-
 	/**
 	 * \return Whether the trace logger is active
 	 */

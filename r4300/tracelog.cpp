@@ -1,8 +1,7 @@
 ﻿#include "tracelog.h"
 
+#include <Windows.h>
 #include "disasm.h"
-// TODO: Move the recompile dependencies into core
-#include "LuaConsole.h"
 #include "r4300.h"
 
 // TODO: Rename to less generic name, e.g.: vr_op
@@ -166,8 +165,8 @@ namespace tracelog
 			enableTraceLog = true;
 			if (interpcore == 0)
 			{
-				RecompileNextAll();
-				RecompileNow(PC->addr);
+				recompile_all();
+				recompile_now(PC->addr);
 			}
 			// TODO: Update ui in callsite
 		}
