@@ -401,9 +401,9 @@ namespace LuaCore::Wgui
 		std::wstring path = string_to_wstring(luaL_checkstring(L, 1));
 		printf("LoadImage: %ws\n", path.c_str());
 		Gdiplus::Bitmap* img = new Gdiplus::Bitmap(path.c_str());
-		if (img->GetLastStatus())
+		if (!img || img->GetLastStatus())
 		{
-			luaL_error(L, "Couldn't find image '%s'", path);
+			luaL_error(L, "Couldn't find image '%s'", path.c_str());
 			return 0;
 		}
 		lua->image_pool.push_back(img);
