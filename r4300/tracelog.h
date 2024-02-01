@@ -16,4 +16,5 @@ namespace tracelog
 	void TraceLoggingBufFlush();
 	void TraceLoggingWriteBuf();
 	void TraceLogging(r4300word pc, r4300word w);
+	void LuaTraceLogState();
 }

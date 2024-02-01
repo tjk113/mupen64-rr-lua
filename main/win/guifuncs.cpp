@@ -23,6 +23,7 @@
 #include "Config.hpp"
 #include <vcr.h>
 
+#include "../../r4300/tracelog.h"
 #include "features/Statusbar.hpp"
 
 
@@ -45,7 +46,7 @@ bool confirm_user_exit()
             final_message.append(" AVI capture ");
             warnings++;
         }
-        if (enableTraceLog)
+        if (tracelog::active())
         {
             if (warnings > 0) { final_message.append(","); }
             final_message.append(" Trace logging ");

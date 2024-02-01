@@ -36,6 +36,7 @@
 #include "../memory/memory.h"
 #include "recomph.h"
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
+#include "tracelog.h"
 #include "../lua/LuaConsole.h"
 
 // global variables :
@@ -2363,10 +2364,10 @@ void recompile_block(long* source, precomp_block* block, unsigned long func)
         dst->reg_cache_infos.need_map = 0;
         dst->local_addr = code_length;
         recomp_ops[((src >> 26) & 0x3F)]();
-        if (enableTraceLog)
+        if (tracelog::active())
         {
             dst->s_ops = dst->ops;
-            dst->ops = LuaTraceLoggingInterpOps;
+            dst->ops = tracelog::LuaTraceLoggingInterpOps;
             dst->src = src;
         }
         dst = block->block + i;

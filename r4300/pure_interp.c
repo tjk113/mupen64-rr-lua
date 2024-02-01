@@ -44,6 +44,7 @@
 #include "../memory/tlb.h"
 
 #define LUACONSOLE_H_NOINCLUDE_WINDOWS_H
+#include "tracelog.h"
 #include "..\main\win\features\CoreDbg.h"
 
 #ifdef DBG
@@ -3185,7 +3186,8 @@ void prefetch()
         interp_addr = addr;
         return;
     }
-    if (enableTraceLog)LuaTraceLoggingPure();
+    if (tracelog::active())
+        tracelog::LuaTraceLoggingPure();
 }
 
 void pure_interpreter()
@@ -3230,7 +3232,8 @@ void interprete_section(unsigned long addr)
     while (!stop && (addr >> 12) == (interp_addr >> 12))
     {
         prefetch();
-        if (enableTraceLog)LuaTraceLoggingPure();
+        if (tracelog::active())
+            tracelog::LuaTraceLoggingPure();
         PC->addr = interp_addr;
         interp_ops[((op >> 26) & 0x3F)]();
 #ifdef DBG

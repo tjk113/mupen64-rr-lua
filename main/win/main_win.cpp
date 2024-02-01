@@ -44,6 +44,7 @@
 #include "../../memory/pif.h"
 #include "../../r4300/r4300.h"
 #include "../../r4300/recomph.h"
+#include "../../r4300/tracelog.h"
 #include "../../winproject/resource.h"
 #include "features/CoreDbg.h"
 #include "features/RomBrowser.hpp"
@@ -1730,7 +1731,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				// keep if check just in case user manages to screw with mupen config or something
 				if (!dynacore)
 				{
-					::LuaTraceLogState();
+					tracelog::LuaTraceLogState();
 				}
 				break;
 			case EMU_STOP:
