@@ -194,6 +194,7 @@
     <ClInclude Include="..\..\r4300\r4300.h" />
     <ClInclude Include="..\..\r4300\recomp.h" />
     <ClInclude Include="..\..\r4300\recomph.h" />
+    <ClInclude Include="..\..\r4300\tracelog.h" />
     <ClInclude Include="..\..\r4300\x86\assemble.h" />
     <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h" />
     <ClInclude Include="..\..\r4300\x86\interpret.h" />
@@ -354,6 +355,7 @@
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)r4300_tlb</ObjectFileName>
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)r4300_tlb</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="..\..\r4300\tracelog.cpp" />
     <ClCompile Include="..\..\r4300\x86\assemble.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>

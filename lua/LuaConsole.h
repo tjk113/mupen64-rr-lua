@@ -67,9 +67,9 @@ void AtStopMovieLuaCallback();
 void AtLoadStateLuaCallback();
 void AtSaveStateLuaCallback();
 void AtResetLuaCallback();
-void LuaTraceLoggingPure();
-void LuaTraceLoggingInterpOps();
-void LuaTraceLogState();
+
+void RecompileNextAll();
+void RecompileNow(ULONG);
 
 /**
  * \brief Stops all lua scripts and closes their windows
@@ -189,8 +189,6 @@ private:
 
 };
 
-extern bool enableTraceLog;
-extern bool traceLogMode;
 extern uint64_t inputCount;
 
 /**
