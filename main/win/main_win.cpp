@@ -2293,7 +2293,8 @@ int WINAPI WinMain(
 	emu_paused = 1;
 
 	load_config();
-
+	lua_init();
+	
 	WNDCLASSEX wc = {0};
 	HWND hwnd;
 	MSG msg;
