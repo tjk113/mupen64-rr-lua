@@ -13,7 +13,7 @@ namespace LuaCallbacks
 		return lua_pcall(L, 0, 0, 0);
 	}
 
-	int AtUpdateScreen(lua_State* L)
+	int state_update_screen(lua_State* L)
 	{
 		return lua_pcall(L, 0, 0, 0);
 	}
@@ -30,7 +30,7 @@ namespace LuaCallbacks
 		return lua_pcall(L, 1, 0, 0);
 	}
 
-	int AtStop(lua_State* L)
+	int state_stop(lua_State* L)
 	{
 		return lua_pcall(L, 0, 0, 0);
 	}
@@ -45,7 +45,7 @@ namespace LuaCallbacks
 		return lua_pcall(L, 4, 0, 0);
 	}
 
-	void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l)
+	void call_window_message(HWND wnd, UINT msg, WPARAM w, LPARAM l)
 	{
 		// Invoking dispatcher here isn't allowed, as it would lead to infinite recursion
 		window_proc_params = {
@@ -58,7 +58,7 @@ namespace LuaCallbacks
 			AtWindowMessage, REG_WINDOWMESSAGE);
 	}
 
-	void AtUpdateScreenLuaCallback()
+	void call_updatescreen()
 	{
 		HDC main_dc = GetDC(mainHWND);
 
@@ -87,7 +87,7 @@ namespace LuaCallbacks
 		ReleaseDC(mainHWND, main_dc);
 	}
 
-	void AtVILuaCallback()
+	void call_vi()
 	{
 		main_dispatcher_invoke([]
 		{
@@ -96,7 +96,7 @@ namespace LuaCallbacks
 		});
 	}
 
-	void AtInputLuaCallback(int n)
+	void call_input(int n)
 	{
 		main_dispatcher_invoke([n]
 		{
@@ -107,7 +107,7 @@ namespace LuaCallbacks
 		});
 	}
 
-	void AtIntervalLuaCallback()
+	void call_interval()
 	{
 		main_dispatcher_invoke([]
 		{
@@ -116,7 +116,7 @@ namespace LuaCallbacks
 		});
 	}
 
-	void AtPlayMovieLuaCallback()
+	void call_play_movie()
 	{
 		main_dispatcher_invoke([]
 		{
@@ -125,7 +125,7 @@ namespace LuaCallbacks
 		});
 	}
 
-	void AtStopMovieLuaCallback()
+	void call_stop_movie()
 	{
 		main_dispatcher_invoke([]
 		{
@@ -134,7 +134,7 @@ namespace LuaCallbacks
 		});
 	}
 
-	void AtLoadStateLuaCallback()
+	void call_load_state()
 	{
 		main_dispatcher_invoke([]
 		{
@@ -143,7 +143,7 @@ namespace LuaCallbacks
 		});
 	}
 
-	void AtSaveStateLuaCallback()
+	void call_save_state()
 	{
 		main_dispatcher_invoke([]
 		{
@@ -152,7 +152,7 @@ namespace LuaCallbacks
 		});
 	}
 
-	void AtResetLuaCallback()
+	void call_reset()
 	{
 		main_dispatcher_invoke([]
 		{

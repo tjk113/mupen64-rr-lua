@@ -420,7 +420,7 @@ void gen_interrupt()
         break;
 
     case VI_INT:
-        LuaCallbacks::AtIntervalLuaCallback();
+        LuaCallbacks::call_interval();
         vcr_update_screen();
         vcr_on_vi();
         timer_new_vi();

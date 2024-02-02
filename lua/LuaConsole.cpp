@@ -851,7 +851,7 @@ void LuaEnvironment::draw() {
 	d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
 	d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 
-	this->invoke_callbacks_with_key(LuaCallbacks::AtUpdateScreen, REG_ATUPDATESCREEN);
+	this->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
 
 	d2d_render_target->EndDraw();
 }
@@ -893,7 +893,7 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 }
 
 LuaEnvironment::~LuaEnvironment() {
-	invoke_callbacks_with_key(LuaCallbacks::AtStop, REG_ATSTOP);
+	invoke_callbacks_with_key(LuaCallbacks::state_stop, REG_ATSTOP);
 	SelectObject(gdi_dc, nullptr);
 	DeleteObject(brush);
 	DeleteObject(pen);

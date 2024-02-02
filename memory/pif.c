@@ -478,10 +478,7 @@ void update_pif_read(bool stcheck)
                         while (emu_paused)
                         {
                             Sleep(10);
-                            if (!hwnd_lua_map.empty())
-                            {
-                                LuaCallbacks::AtIntervalLuaCallback();
-                            }
+                            LuaCallbacks::call_interval();
 
                             // TODO: maybe unify this and the other calls outside paused loop with some pump function like savestates_process_job()
                             if (savestates_job == e_st_job::save && stAllowed)
@@ -528,7 +525,7 @@ void update_pif_read(bool stcheck)
                     {
                         readController(channel, &PIF_RAMb[i]);
                         last_controller_data[channel] = *(BUTTONS*)&PIF_RAMb[i + 3];
-                        LuaCallbacks::AtInputLuaCallback(channel);
+                        LuaCallbacks::call_input(channel);
                         if (0 <= channel && channel < 4)
                         {
                             if (overwrite_controller_data[channel])
