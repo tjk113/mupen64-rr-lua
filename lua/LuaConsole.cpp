@@ -433,6 +433,8 @@ void lua_create_and_run(const char* path)
 		{"pause", LuaCore::Emu::EmuPause},
 		{"getpause", LuaCore::Emu::GetEmuPause},
 		{"getspeed", LuaCore::Emu::GetSpeed},
+		{"get_ff", LuaCore::Emu::GetFastForward},
+		{"set_ff", LuaCore::Emu::SetFastForward},
 		{"speed", LuaCore::Emu::SetSpeed},
 		{"speedmode", LuaCore::Emu::SetSpeedMode},
 		// DEPRECATE: This is completely useless

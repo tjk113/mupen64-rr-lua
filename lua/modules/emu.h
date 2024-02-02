@@ -3,6 +3,7 @@
 
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
+#include "../../memory/pif.h"
 #include "win/timers.h"
 #include "win/features/Statusbar.hpp"
 
@@ -261,6 +262,18 @@ namespace LuaCore::Emu
 		Config.fps_modifier = luaL_checkinteger(L, 1);
 		timer_init(Config.fps_modifier, &ROM_HEADER);
 		on_speed_modifier_changed(Config.fps_modifier);
+		return 0;
+	}
+
+	static int GetFastForward(lua_State* L)
+	{
+		lua_pushboolean(L, fast_forward);
+		return 1;
+	}
+
+	static int SetFastForward(lua_State* L)
+	{
+		fast_forward = lua_toboolean(L, 1);
 		return 0;
 	}
 
