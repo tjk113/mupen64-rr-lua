@@ -53,10 +53,6 @@ namespace CoreDbg
 			if (!ui_invalidated)
 				break;
 
-			if (!IsDlgButtonChecked(hwnd, IDC_COREDBG_ALWAYS_UPDATE))
-			{
-				ui_invalidated = false;
-			}
 			SetWindowText(GetDlgItem(hwnd, IDC_COREDBG_TOGGLEPAUSE),
 					  coredbg_resumed ? "Pause" : "Resume");
 			break;

@@ -429,7 +429,6 @@
 #define IDC_COREDBG_RSP_TOGGLE         40038
 #define IDM_COREDBG                      40039
 #define IDC_COREDBG_RSP_TOGGLE2        40039
-#define IDC_COREDBG_ALWAYS_UPDATE      40039
 #define IDB_PAUSE                       40040
 #define IDB_RESUME                      40041
 #define IDC_COREDBG_INSTDECODEMODE     40042
