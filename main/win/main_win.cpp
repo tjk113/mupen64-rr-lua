@@ -1085,6 +1085,7 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 		EnableMenuItem(hMenu, IDM_TOOLBAR, MF_DISABLED);
 		EnableMenuItem(hMenu, IDM_STATUSBAR, MF_DISABLED);
 		EnableMenuItem(hMenu, IDM_TRACELOG, dynacore ? MF_DISABLED : MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_COREDBG, Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
 
 		if (!continue_vcr_on_restart_mode)
 		{
@@ -1124,6 +1125,7 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 		EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
 		EnableMenuItem(hMenu, IDM_TOOLBAR, MF_ENABLED);
 		EnableMenuItem(hMenu, IDM_STATUSBAR, MF_ENABLED);
+		EnableMenuItem(hMenu, IDM_COREDBG, MF_GRAYED);
 
 		if (!continue_vcr_on_restart_mode)
 		{
