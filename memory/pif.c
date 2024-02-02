@@ -39,6 +39,8 @@
 
 #include "memory.h"
 #include "pif.h"
+
+#include "LuaCallbacks.h"
 #include "pif2.h"
 #include "../r4300/r4300.h"
 #include "../main/plugin.hpp"
@@ -478,7 +480,7 @@ void update_pif_read(bool stcheck)
                             Sleep(10);
                             if (!hwnd_lua_map.empty())
                             {
-                                main_dispatcher_invoke(AtIntervalLuaCallback);
+                                LuaCallbacks::AtIntervalLuaCallback();
                             }
 
                             // TODO: maybe unify this and the other calls outside paused loop with some pump function like savestates_process_job()
@@ -526,9 +528,7 @@ void update_pif_read(bool stcheck)
                     {
                         readController(channel, &PIF_RAMb[i]);
                         last_controller_data[channel] = *(BUTTONS*)&PIF_RAMb[i + 3];
-                        main_dispatcher_invoke([channel] {
-                            AtInputLuaCallback(channel);
-                        });
+                        LuaCallbacks::AtInputLuaCallback(channel);
                         if (0 <= channel && channel < 4)
                         {
                             if (overwrite_controller_data[channel])

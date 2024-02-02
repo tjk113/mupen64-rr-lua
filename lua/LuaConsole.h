@@ -55,18 +55,9 @@ void lua_create_and_run(const char* path);
  */
 HWND lua_create();
 
-void LuaWindowMessage(HWND, UINT, WPARAM, LPARAM);
 
 void ConsoleWrite(HWND wnd, const char* str);
-void AtUpdateScreenLuaCallback();
-void AtVILuaCallback();
-void AtInputLuaCallback(int n);
-void AtIntervalLuaCallback();
-void AtPlayMovieLuaCallback();
-void AtStopMovieLuaCallback();
-void AtLoadStateLuaCallback();
-void AtSaveStateLuaCallback();
-void AtResetLuaCallback();
+
 
 /**
  * \brief Stops all lua scripts and closes their windows
@@ -77,6 +68,14 @@ void close_all_scripts();
  * \brief Stops all lua scripts
  */
 void stop_all_scripts();
+
+/**
+ * \brief Invokes a lua callback on all instances
+ * \param function The native function
+ * \param key The function's registration key
+ */
+void invoke_callbacks_with_key_on_all_instances(
+		std::function<int(lua_State*)> function, const char* key);
 
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 

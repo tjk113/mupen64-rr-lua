@@ -137,6 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\lua\LuaCallbacks.h" />
     <ClInclude Include="..\..\lua\modules\avi.h"/>
     <ClInclude Include="..\..\lua\modules\d2d.h"/>
     <ClInclude Include="..\..\lua\modules\emu.h"/>
@@ -204,6 +205,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lua\modules\input.h"/>
+    <ClCompile Include="..\..\lua\LuaCallbacks.cpp" />
     <ClCompile Include="..\..\lua\Recent.cpp" />
     <ClCompile Include="..\..\main\adler32.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>

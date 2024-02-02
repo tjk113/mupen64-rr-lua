@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string>
 #include "guifuncs.h"
+#include "LuaCallbacks.h"
 #include "rom.h"
 #include "vcr.h"
 #include "../lua/LuaConsole.h"
@@ -272,7 +273,7 @@ void savestates_save_immediate()
 		st_buffers[st_key] = st;
 	}
 
-	main_dispatcher_invoke(AtSaveStateLuaCallback);
+	LuaCallbacks::AtSaveStateLuaCallback();
 	printf("Savestate saving took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
@@ -514,7 +515,7 @@ void savestates_load_immediate()
     // so far loading success! overwrite memory
     load_eventqueue_infos(buf);
     load_memory_from_buffer(first_block);
-    main_dispatcher_invoke(AtLoadStateLuaCallback);
+    LuaCallbacks::AtLoadStateLuaCallback();
 	if (st_medium == e_st_medium::path)
 	{
 		statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));

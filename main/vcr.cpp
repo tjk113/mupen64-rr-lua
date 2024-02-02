@@ -52,6 +52,7 @@
 #define PATH_MAX _MAX_PATH
 #endif
 
+#include "LuaCallbacks.h"
 #include "../memory/pif.h"
 
 // M64\0x1a
@@ -733,9 +734,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		last_controller_data[index] = *input;
 		if (!hwnd_lua_map.empty())
 		{
-			main_dispatcher_invoke([index] {
-				AtInputLuaCallback(index);
-			});
+			LuaCallbacks::AtInputLuaCallback(index);
 		}
 
 
@@ -904,9 +903,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			}
 
 			last_controller_data[index] = *input;
-			main_dispatcher_invoke([index] {
-				AtInputLuaCallback(index);
-			});
+			LuaCallbacks::AtInputLuaCallback(index);
 
 			// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
 			if (overwrite_controller_data[index])
@@ -1413,7 +1410,7 @@ static int start_playback(const char* filename, const char* author_utf8,
 			strncpy(m_header.description, description_utf8,
 			MOVIE_DESCRIPTION_DATA_SIZE);
 		m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
-		main_dispatcher_invoke(AtPlayMovieLuaCallback);
+		LuaCallbacks::AtPlayMovieLuaCallback();
 		return code;
 	}
 
@@ -1471,7 +1468,7 @@ static int stop_playback(const bool bypass_loop_setting)
 			m_input_buffer_size = 0;
 		}
 
-		main_dispatcher_invoke(AtStopMovieLuaCallback);
+		LuaCallbacks::AtStopMovieLuaCallback();
 		return 0;
 	}
 	return -1;
@@ -1489,7 +1486,7 @@ void vcr_update_screen()
 		// we always want to invoke atvi, regardless of ff optimization
 		if (!hwnd_lua_map.empty())
 		{
-			main_dispatcher_invoke(AtVILuaCallback);
+			LuaCallbacks::AtVILuaCallback();
 		}
 		return;
 	}
@@ -1498,7 +1495,7 @@ void vcr_update_screen()
 	updateScreen();
 	if (!hwnd_lua_map.empty())
 	{
-		main_dispatcher_invoke(AtVILuaCallback);
+		LuaCallbacks::AtVILuaCallback();
 	}
 	void* image = nullptr;
 	long width = 0, height = 0;

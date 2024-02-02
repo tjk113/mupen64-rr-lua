@@ -39,6 +39,7 @@
 #include "r4300.h"
 #include "macros.h"
 #include "exception.h"
+#include "LuaCallbacks.h"
 #include "../main/plugin.hpp"
 #include "../main/win/timers.h"
 #include "../main/savestates.h"
@@ -419,11 +420,7 @@ void gen_interrupt()
         break;
 
     case VI_INT:
-        
-        if (!hwnd_lua_map.empty())
-        {
-            main_dispatcher_invoke(AtIntervalLuaCallback);
-        }
+        LuaCallbacks::AtIntervalLuaCallback();
         vcr_update_screen();
         vcr_on_vi();
         timer_new_vi();

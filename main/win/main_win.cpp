@@ -31,6 +31,7 @@
 #include "Commandline.h"
 #include "config.hpp"
 #include "configdialog.h"
+#include "LuaCallbacks.h"
 #include "features/CrashHelper.h"
 #include "LuaConsole.h"
 #include "Recent.h"
@@ -1201,7 +1202,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 		commandline_start_capture();
 	}).detach();
 
-	AtResetLuaCallback();
+	LuaCallbacks::AtResetLuaCallback();
+
 	if (pauseAtFrame == 0 && vcr_is_starting_and_just_restarted())
 	{
 		while (emu_paused)
@@ -1392,7 +1394,7 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
-	LuaWindowMessage(hwnd, Message, wParam, lParam);
+	LuaCallbacks::LuaWindowMessage(hwnd, Message, wParam, lParam);
 
 	switch (Message)
 	{
@@ -1559,7 +1561,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			static std::chrono::high_resolution_clock::time_point last_statusbar_update = std::chrono::high_resolution_clock::now();
 			std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
 
-			AtUpdateScreenLuaCallback();
+			LuaCallbacks::AtUpdateScreenLuaCallback();
 
 			if (frame_changed)
 			{

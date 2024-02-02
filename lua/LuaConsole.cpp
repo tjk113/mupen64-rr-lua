@@ -43,6 +43,7 @@
 
 #include <Windows.h>
 
+#include "LuaCallbacks.h"
 #include "modules/avi.h"
 #include "modules/d2d.h"
 #include "modules/emu.h"
@@ -70,7 +71,6 @@ bool overwrite_controller_data[4];
 ULONG_PTR gdi_plus_token;
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-t_window_procedure_params window_proc_params = {0};
 
 
 
@@ -92,11 +92,6 @@ t_window_procedure_params window_proc_params = {0};
 	extern const luaL_Reg ioHelperFuncs[];
 	extern const luaL_Reg aviFuncs[];
 	extern const char* const REG_ATSTOP;
-	int AtStop(lua_State* L);
-
-
-
-	int AtUpdateScreen(lua_State* L);
 
 	int AtPanic(lua_State* L)
 	{
@@ -106,7 +101,6 @@ t_window_procedure_params window_proc_params = {0};
 	}
 
 	extern const char* const REG_WINDOWMESSAGE;
-	int AtWindowMessage(lua_State* L);
 
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
@@ -399,56 +393,11 @@ void lua_create_and_run(const char* path)
 		lua_error(L);
 	}
 
-
-	//������ւ񂩂�֐�
-
-
-
 	// 000000 | 0000 0000 0000 000 | stype(5) = 10101 |001111
 	const ULONG BREAKPOINTSYNC_MAGIC_STYPE = 0x15;
 	const ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
 		(BREAKPOINTSYNC_MAGIC_STYPE << 6);
 
-	int AtUpdateScreen(lua_State* L)
-	{
-		return lua_pcall(L, 0, 0, 0);
-	}
-
-	int AtVI(lua_State* L)
-	{
-		return lua_pcall(L, 0, 0, 0);
-	}
-
-	static int current_input_n;
-
-	int AtInput(lua_State* L)
-	{
-		lua_pushinteger(L, current_input_n);
-		return lua_pcall(L, 1, 0, 0);
-	}
-
-	int AtStop(lua_State* L)
-	{
-		return lua_pcall(L, 0, 0, 0);
-	}
-
-	int AtWindowMessage(lua_State* L)
-	{
-		lua_pushinteger(L, (unsigned)window_proc_params.wnd);
-		lua_pushinteger(L, window_proc_params.msg);
-		lua_pushinteger(L, window_proc_params.w_param);
-		lua_pushinteger(L, window_proc_params.l_param);
-
-		return lua_pcall(L, 4, 0, 0);
-	}
-
-
-
-	//generic function used for all of the At... callbacks, calls function from stack top.
-	int CallTop(lua_State* L)
-	{
-		return lua_pcall(L, 0, 0, 0);
-	}
 
 	const luaL_Reg globalFuncs[] = {
 		{"print", LuaCore::Global::Print},
@@ -637,81 +586,7 @@ void lua_create_and_run(const char* path)
 		{NULL, NULL}
 	};
 
-void AtUpdateScreenLuaCallback()
-{
-	HDC main_dc = GetDC(mainHWND);
 
-	for (auto& pair : hwnd_lua_map) {
-
-		/// Let the environment draw to its DCs
-		pair.second->draw();
-
-		/// Blit its DCs (GDI, D2D) to the main window with alpha mask
-        TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->gdi_dc, 0, 0,
-        	pair.second->dc_width, pair.second->dc_height, bitmap_color_mask);
-		TransparentBlt(main_dc, 0, 0, pair.second->dc_width, pair.second->dc_height, pair.second->d2d_dc, 0, 0,
-			pair.second->dc_width, pair.second->dc_height, bitmap_color_mask);
-
-		// Fill GDI DC with alpha mask
-		RECT rect = { 0, 0, pair.second->dc_width, pair.second->dc_height};
-		HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
-		FillRect(pair.second->gdi_dc, &rect, brush);
-		DeleteObject(brush);
-	}
-
-	ReleaseDC(mainHWND, main_dc);
-}
-
-void AtVILuaCallback()
-{
-	invoke_callbacks_with_key_on_all_instances(
-		AtVI, REG_ATVI);
-}
-
-void AtInputLuaCallback(int n)
-{
-	current_input_n = n;
-	invoke_callbacks_with_key_on_all_instances(
-		AtInput, REG_ATINPUT);
-	inputCount++;
-}
-
-void AtIntervalLuaCallback()
-{
-	invoke_callbacks_with_key_on_all_instances(
-		CallTop, REG_ATINTERVAL);
-}
-
-void AtPlayMovieLuaCallback()
-{
-	invoke_callbacks_with_key_on_all_instances(
-		CallTop, REG_ATPLAYMOVIE);
-}
-
-void AtStopMovieLuaCallback()
-{
-	invoke_callbacks_with_key_on_all_instances(
-		CallTop, REG_ATSTOPMOVIE);
-}
-
-void AtLoadStateLuaCallback()
-{
-	invoke_callbacks_with_key_on_all_instances(
-		CallTop, REG_ATLOADSTATE);
-}
-
-void AtSaveStateLuaCallback()
-{
-	invoke_callbacks_with_key_on_all_instances(
-		CallTop, REG_ATSAVESTATE);
-}
-
-//called after reset, when emulation ready
-void AtResetLuaCallback()
-{
-	invoke_callbacks_with_key_on_all_instances(
-		CallTop, REG_ATRESET);
-}
 
 
 void instrStr1(unsigned long pc, unsigned long w, char* p1)
@@ -887,18 +762,6 @@ void stop_all_scripts()
 	assert(hwnd_lua_map.empty());
 }
 
-
-void LuaWindowMessage(HWND wnd, UINT msg, WPARAM w, LPARAM l)
-{
-	window_proc_params = {
-		.wnd = wnd,
-		.msg = msg,
-		.w_param = w,
-		.l_param = l
-	};
-	invoke_callbacks_with_key_on_all_instances(AtWindowMessage, REG_WINDOWMESSAGE);
-}
-
 void LuaEnvironment::create_renderer()
 {
 	if (gdi_dc != nullptr)
@@ -988,7 +851,7 @@ void LuaEnvironment::draw() {
 	d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
 	d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
 
-	this->invoke_callbacks_with_key(AtUpdateScreen, REG_ATUPDATESCREEN);
+	this->invoke_callbacks_with_key(LuaCallbacks::AtUpdateScreen, REG_ATUPDATESCREEN);
 
 	d2d_render_target->EndDraw();
 }
@@ -1030,7 +893,7 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 }
 
 LuaEnvironment::~LuaEnvironment() {
-	invoke_callbacks_with_key(AtStop, REG_ATSTOP);
+	invoke_callbacks_with_key(LuaCallbacks::AtStop, REG_ATSTOP);
 	SelectObject(gdi_dc, nullptr);
 	DeleteObject(brush);
 	DeleteObject(pen);
