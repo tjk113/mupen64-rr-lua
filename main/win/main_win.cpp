@@ -423,18 +423,6 @@ void resetEmu()
 
 int pauseAtFrame = -1;
 
-/// <summary>
-/// Helper function because this is repeated multiple times
-/// </summary>
-void SetStatusPlaybackStarted()
-{
-	HMENU hmenu = GetMenu(mainHWND);
-	EnableMenuItem(hmenu, IDM_STOP_MOVIE_RECORDING, MF_DISABLED);
-	EnableMenuItem(hmenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
-
-	statusbar_post_text("Playback started");
-}
-
 LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
                                LPARAM lParam)
 {
@@ -596,7 +584,6 @@ LRESULT CALLBACK PlayMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 					break;
 				} else
 				{
-					SetStatusPlaybackStarted();
 					resumeEmu(TRUE); // Unpause emu if it was paused before
 				}
 				EndDialog(hwnd, IDOK);
@@ -1421,9 +1408,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 				if (!emu_launched) break;
 				if (!vcr_get_read_only()) vcr_toggle_read_only();
-				if (vcr_start_playback(fname, nullptr, nullptr) >= 0)
-					SetStatusPlaybackStarted();
-				else
+				if (vcr_start_playback(fname, nullptr, nullptr) < 0)
 				{
 					printf(
 						"[VCR]: Drag drop Failed to start playback of %s",
@@ -1798,7 +1783,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				vcr_set_read_only(TRUE);
 				vcr_start_playback(Config.recent_movie_paths[0], nullptr, nullptr);
-				SetStatusPlaybackStarted();
 				break;
 			case IDM_FREEZE_RECENT_MOVIES:
 				CheckMenuItem(hMenu, IDM_FREEZE_RECENT_MOVIES,

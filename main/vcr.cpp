@@ -1167,7 +1167,16 @@ vcr_start_playback(const std::string &filename, const char* author_utf8,
                   const char* description_utf8)
 {
 	vcr_recent_movies_add(filename);
-	return start_playback(filename.c_str(), author_utf8, description_utf8, false);
+	auto result = start_playback(filename.c_str(), author_utf8, description_utf8, false);
+	if (result <= 0)
+	{
+		HMENU hmenu = GetMenu(mainHWND);
+		EnableMenuItem(hmenu, IDM_STOP_MOVIE_RECORDING, MF_DISABLED);
+		EnableMenuItem(hmenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
+
+		statusbar_post_text("Playback started");
+	}
+	return result;
 }
 
 int check_warn_controllers(char* warning_str) {
