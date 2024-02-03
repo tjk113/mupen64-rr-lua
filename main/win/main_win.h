@@ -52,7 +52,6 @@ extern void resetEmu();
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
 extern void OpenMoviePlaybackDialog();
-extern void OpenMovieRecordDialog();
 /**
  * \brief Starts the rom from the path contained in <c>rom_path</c>
  */
@@ -66,6 +65,9 @@ extern long long total_vi;
 void main_recent_roms_build(int32_t reset = 0);
 void main_recent_roms_add(const std::string& path);
 int32_t main_recent_roms_run(uint16_t menu_item_id);
+
+
+
 
 /**
  * \brief Whether the statusbar needs to be updated with new input information

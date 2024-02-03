@@ -102,6 +102,7 @@ struct EmulationLock
 	~EmulationLock();
 };
 
+
 class LuaEnvironment {
 public:
 	/**
