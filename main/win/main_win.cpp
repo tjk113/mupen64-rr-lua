@@ -1734,6 +1734,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
+					Config.last_movie_author = result.author;
+
 					EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING,
 					               MF_ENABLED);
 					EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK,
