@@ -484,7 +484,7 @@ void savestates_load_immediate()
 			    {
 				    if (vcr_is_recording())
 				    {
-				    	vcr_stop_record(1);
+				    	vcr_stop_record();
 				    }
 			    	if (vcr_is_playing())
 			    	{

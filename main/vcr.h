@@ -130,9 +130,8 @@ extern int vcr_movie_unfreeze(const char* buf, unsigned long size);
 
 
 extern int vcr_start_record(const char* filename, unsigned short flags,
-                           const char* author_utf8, const char* description_utf8,
-                           int def_ext);
-extern int vcr_stop_record(int def_ext);
+                           const char* author_utf8, const char* description_utf8);
+extern int vcr_stop_record();
 extern int vcr_start_playback(const std::string &filename, const char* author_utf8,
                              const char* description_utf8);
 extern int vcr_stop_playback();

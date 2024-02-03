@@ -849,7 +849,6 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 			strcat(tempbuf, " with rumble pak");
 		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER4_TEXT2, tempbuf);
 
-		EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
 	// workaround because initial selected button is "Start"
 
 		SetFocus(GetDlgItem(hwnd, IDC_INI_AUTHOR));
@@ -945,8 +944,7 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 				if (allowClosing)
 				{
 					if (tempbuf[0] == '\0' || vcr_start_record(
-						tempbuf, flag, authorUTF8, descriptionUTF8,
-						!IsDlgButtonChecked(hwnd, IDC_EXTSAVESTATE)) < 0)
+						tempbuf, flag, authorUTF8, descriptionUTF8) < 0)
 					{
 						sprintf(tempbuf2,
 						        "Couldn't start recording\nof \"%s\".",
@@ -983,25 +981,21 @@ LRESULT CALLBACK RecordMovieProc(HWND hwnd, UINT Message, WPARAM wParam,
 			break;
 
 		case IDC_FROMEEPROM_RADIO:
-			EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
 			EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 1);
 			EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 1);
 			EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 1);
 			break;
 		case IDC_FROMSNAPSHOT_RADIO:
-			EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 1);
 			EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 1);
 			EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 1);
 			EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 1);
 			break;
 		case IDC_FROMEXISTINGSNAPSHOT_RADIO:
-			EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 1);
 			EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 0);
 			EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 0);
 			EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 0);
 			break;
 		case IDC_FROMSTART_RADIO:
-			EnableWindow(GetDlgItem(hwnd, IDC_EXTSAVESTATE), 0);
 			EnableWindow(GetDlgItem(hwnd, IDC_MOVIE_BROWSE), 1);
 			EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE), 1);
 			EnableWindow(GetDlgItem(hwnd, IDC_INI_MOVIEFILE_TEXT), 1);
@@ -1967,19 +1961,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					OpenMovieRecordDialog();
 				break;
 			case IDM_STOP_MOVIE_RECORDING:
-				if (vcr_is_recording())
+				if (!vcr_is_recording())
+					break;
+				if (vcr_stop_record() < 0)
 				{
-					if (vcr_stop_record(1) < 0) // seems ok (no)
-						; // fail quietly
-					//                        MessageBox(NULL, "Couldn't stop recording.", "VCR", MB_OK);
-					else
-					{
-						ClearButtons();
-						EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
-						EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, MF_ENABLED);
-						statusbar_post_text("Recording stopped");
-					}
+					show_modal_info("Couldn't stop movie recording", nullptr);
+					break;
 				}
+				ClearButtons();
+				EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
+				EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, MF_ENABLED);
+				statusbar_post_text("Recording stopped");
 				break;
 			case IDM_START_MOVIE_PLAYBACK:
 				if (emu_launched)

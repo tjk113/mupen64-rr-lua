@@ -415,7 +415,6 @@
 #define IDC_STARTFROM2                  40008
 #define IDC_CLUADOUBLEBUFFER            40010
 #define IDC_GITREPO                     40011
-#define IDC_EXTSAVESTATE                40012
 #define IDM_RESET_RECENT_LUA             40013
 #define IDM_FREEZE_RECENT_LUA            40014
 #define IDD_OTHER_OPTIONS_DIALOG        40015

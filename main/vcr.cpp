@@ -925,7 +925,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 int
 vcr_start_record(const char* filename, const unsigned short flags,
-                const char* author_utf8, const char* description_utf8, const int def_ext)
+                const char* author_utf8, const char* description_utf8)
 {
 	vcr_core_stopped();
 
@@ -1001,11 +1001,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 				break;
 		}
 
-		if (def_ext)
-			strncat(buf, ".st", 4);
-		else
-			strncat(buf, ".savestate", 12);
-
+		strncat(buf, ".st", 4);
 		savestates_do_file(buf, e_st_job::save);
 		m_task = e_task::start_recording_from_snapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
@@ -1014,11 +1010,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		strncpy(m_filename, filename, MAX_PATH);
 		strncpy(buf, m_filename, MAX_PATH);
 		strip_extension(buf);
-		if (def_ext)
-			strncat(buf, ".st", 4);
-		else
-			strncat(buf, ".savestate", 12);
-
+		strncat(buf, ".st", 4);
 		savestates_do_file(buf, e_st_job::load);
 
 		// set this to the normal snapshot flag to maintain compatibility
@@ -1053,7 +1045,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 
 
 int
-vcr_stop_record(const int def_ext)
+vcr_stop_record()
 {
 	int ret_val = -1;
 
@@ -1071,10 +1063,7 @@ vcr_stop_record(const int def_ext)
 
 		strcpy(buf, m_filename);
 
-		if (def_ext)
-			strncat(m_filename, ".st", PATH_MAX);
-		else
-			strncat(m_filename, ".savestate", PATH_MAX);
+		strncat(m_filename, ".st", PATH_MAX);
 
 		if (_unlink(buf) < 0)
 			fprintf(stderr, "[VCR]: Couldn't remove save state: %s\n",
@@ -1998,7 +1987,7 @@ vcr_core_stopped()
 	case e_task::start_recording:
 	case e_task::start_recording_from_snapshot:
 	case e_task::recording:
-		vcr_stop_record(1);
+		vcr_stop_record();
 		break;
 	case e_task::start_playback:
 	case e_task::start_playback_from_snapshot:
