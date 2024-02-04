@@ -51,7 +51,6 @@ BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
 extern void resetEmu();
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
-extern void OpenMoviePlaybackDialog();
 /**
  * \brief Starts the rom from the path contained in <c>rom_path</c>
  */

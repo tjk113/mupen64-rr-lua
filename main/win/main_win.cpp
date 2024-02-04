@@ -787,21 +787,6 @@ refresh:
 }
 
 
-void OpenMoviePlaybackDialog()
-{
-	BOOL wasPaused = emu_paused && !MenuPaused;
-	MenuPaused = FALSE;
-	if (emu_launched && !emu_paused)
-		pauseEmu(FALSE);
-
-	DialogBox(GetModuleHandle(NULL),
-	          MAKEINTRESOURCE(IDD_MOVIE_PLAYBACK_DIALOG), mainHWND,
-	          (DLGPROC)PlayMovieProc);
-
-	if (emu_launched && emu_paused && !wasPaused)
-		resumeEmu(FALSE);
-}
-
 void enable_emulation_menu_items(BOOL emulationRunning)
 {
 	HMENU hMenu = GetMenu(mainHWND);
@@ -1720,7 +1705,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					BetterEmulationLock lock;
 
-					auto result = MovieDialog::show();
+					auto result = MovieDialog::show(false);
 
 					if (result.path.empty())
 					{
@@ -1757,9 +1742,46 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				statusbar_post_text("Recording stopped");
 				break;
 			case IDM_START_MOVIE_PLAYBACK:
-				if (emu_launched)
-					OpenMoviePlaybackDialog();
+				{
+					BetterEmulationLock lock;
 
+					auto result = MovieDialog::show(true);
+
+					if (result.path.empty())
+					{
+						break;
+					}
+
+					auto playbackResult = vcr_start_playback(
+						result.path.string(), nullptr, nullptr);
+
+					if (playbackResult == VCR_PLAYBACK_SUCCESS)
+						break;
+
+					char err[MAX_PATH];
+
+					sprintf(err, "Failed to start movie \"%s\" ",
+					        result.path.string().c_str());
+
+					switch (playbackResult)
+					{
+					case VCR_PLAYBACK_ERROR:
+						strcat(err, " - unknown error");
+						break;
+					case VCR_PLAYBACK_SAVESTATE_MISSING:
+						strcat(err, " - savestate is missing");
+						break;
+					case VCR_PLAYBACK_FILE_BUSY:
+						strcat(err, " - file is locked");
+						break;
+					case VCR_PLAYBACK_INCOMPATIBLE:
+						strcat(err, " - configuration incompatibility");
+						break;
+					default: break;
+					}
+
+					show_modal_info(err, nullptr);
+				}
 				break;
 			case IDM_STOP_MOVIE_PLAYBACK:
 				if (vcr_is_playing())

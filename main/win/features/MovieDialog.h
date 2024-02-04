@@ -12,5 +12,10 @@ namespace MovieDialog
 		std::string description;
 	};
 
-	t_record_params show();
+	/**
+	 * \brief Shows a movie inspector dialog
+	 * \param readonly Whether movie properties can't be edited
+	 * \return The user-chosen parameters
+	 */
+	t_record_params show(bool readonly);
 }
