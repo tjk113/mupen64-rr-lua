@@ -121,7 +121,7 @@ std::unique_ptr<FFmpegManager> capture_manager;
 uint64_t screen_updates = 0;
 
 static int start_playback(const char* filename, const char* author_utf8,
-                         const char* description_utf8, const bool restarting);
+                         const char* description_utf8);
 static int restart_playback();
 static int stop_playback(const bool bypass_loop_setting);
 
@@ -1142,7 +1142,7 @@ vcr_start_playback(const std::string &filename, const char* author_utf8,
                   const char* description_utf8)
 {
 	vcr_recent_movies_add(filename);
-	auto result = start_playback(filename.c_str(), author_utf8, description_utf8, false);
+	auto result = start_playback(filename.c_str(), author_utf8, description_utf8);
 	if (result <= 0)
 	{
 		HMENU hmenu = GetMenu(mainHWND);
@@ -1188,7 +1188,7 @@ int check_warn_controllers(char* warning_str) {
 	return 0;
 }
 static int start_playback(const char* filename, const char* author_utf8,
-			  const char* description_utf8, const bool restarting) {
+			  const char* description_utf8) {
 	vcr_core_stopped();
 	is_restarting_flag = false;
 
