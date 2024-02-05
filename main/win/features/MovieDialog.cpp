@@ -41,7 +41,7 @@ namespace MovieDialog {
 				return FALSE;
 			}
 			case WM_CLOSE:
-				EndDialog(hwnd, IDOK);
+				EndDialog(hwnd, IDCANCEL);
 				break;
 			case WM_COMMAND:
 				switch (LOWORD(wParam)) {

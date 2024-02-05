@@ -88,7 +88,6 @@
 #define IDC_RADIO_FROM_START            1027
 #define IDC_RADIO_FROM_ST               1028
 #define IDC_RADIO_FROM_EEPROM           1029
-#define IDC_RADIO_FROM_EEPROM2          1030
 #define IDC_RADIO_FROM_EXISTING_ST      1030
 #define IDM_FULLSCREEN                  1061
 #define IDM_PAUSE                       1062
@@ -351,7 +350,9 @@
 #define IDC_FROMSNAPSHOT_LABEL          9308
 #define IDC_ROM_INFO_TEXT               9414
 #define IDC_ROM_HEADER_INFO_TEXT2       9415
+#define IDC_GROUP_START_FROM            9415
 #define IDC_ROM_INFO_TEXT2              9416
+#define IDC_GROUP_START_FROM2           9416
 #define IDC_MOVIE_AUTHOR_TEXT           9420
 #define IDC_MOVIE_DESCRIPTION_TEXT      9421
 #define IDC_ROM_INTERNAL_NAME_TEXT2     9424
