@@ -1120,35 +1120,21 @@ vcr_stop_record()
 	return ret_val;
 }
 
-bool get_savestate_path(const char* filename, char* out_buffer)
+std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 {
-	bool found = true;
-
-	const auto filename_with_extension = (char*)malloc(strlen(filename) + 11);
-	if (!filename_with_extension)
-		return false;
-
-	strcpy(filename_with_extension, filename);
-	strncat(filename_with_extension, ".st", 4);
-
-	if (std::filesystem::path st_path = filename_with_extension; std::filesystem::exists(st_path))
-		strcpy(out_buffer, filename_with_extension);
-	else
+	auto st = strip_extension(path.string()) + ".st";
+	if (std::filesystem::exists(st))
 	{
-		/* try .savestate (old extension created bc of discord
-		trying to display a preview of .st data when uploaded) */
-		strcpy(filename_with_extension, filename);
-		strncat(filename_with_extension, ".savestate", 11);
-		st_path = filename_with_extension;
-
-		if (std::filesystem::exists(st_path))
-			strcpy(out_buffer, filename_with_extension);
-		else
-			found = false;
+		return st;
 	}
 
-	free(filename_with_extension);
-	return found;
+	st = strip_extension(path.string()) + ".savestate";
+	if (std::filesystem::exists(st))
+	{
+		return st;
+	}
+
+	return "";
 }
 
 int
@@ -1372,34 +1358,24 @@ static int start_playback(const char* filename, const char* author_utf8,
 		update_titlebar();
 
 		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) {
-			// load state
 			printf("[VCR]: Loading state...\n");
-			strcpy(buf, m_filename);
 
-			const auto untruncated_name = (char*)malloc(strlen(buf) + 1);
-			strcpy(untruncated_name, buf);
-			// remove everything after the first `.` (dot)
-			for (;;) {
-				if (char* dot = strrchr(buf, '.'); dot && (dot > strrchr(buf, '\\') && dot >
-				strrchr(buf, '/')))
-					*dot = '\0';
-				else
-					break;
-			}
-			if (!get_savestate_path(buf, buf) && !get_savestate_path(
-				untruncated_name, buf)) {
-				printf(
-				"[VCR]: Precautionary movie respective savestate exist check failed. No .savestate or .st found for movie!\n");
+			// Load appropriate state for movie
+			auto st_path = find_savestate_for_movie(movie_path);
+
+			if (st_path.empty())
+			{
 				if (m_file != nullptr)
 					fclose(m_file);
 				return VCR_PLAYBACK_SAVESTATE_MISSING;
-				}
+			}
 
-				savestates_do_file(buf, e_st_job::load);
-				m_task = e_task::start_playback_from_snapshot;
+			savestates_do_file(st_path, e_st_job::load);
+			m_task = e_task::start_playback_from_snapshot;
 		} else {
 			m_task = e_task::start_playback;
 		}
+
 		// utf8 strings are also null-terminated so this method still works
 		if (author_utf8)
 			strncpy(m_header.author, author_utf8, MOVIE_AUTHOR_DATA_SIZE);
