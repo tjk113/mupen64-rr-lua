@@ -114,7 +114,6 @@ long last_sound = 0;
 int avi_increment = 0;
 int title_length;
 char vcr_lastpath[MAX_PATH];
-bool is_restarting_flag = false;
 
 bool capture_with_f_fmpeg = true;
 std::unique_ptr<FFmpegManager> capture_manager;
@@ -552,11 +551,6 @@ vcr_set_read_only(const BOOL val)
 bool vcr_is_looping()
 {
 	return Config.is_movie_loop_enabled;
-}
-
-bool vcr_is_restarting()
-{
-	return is_restarting_flag;
 }
 
 void vcr_set_loop_movie(const bool val)
@@ -1160,7 +1154,7 @@ int check_warn_controllers(char* warning_str) {
 			CONTROLLER_X_PRESENT(i))) {
 			sprintf(warning_str,
 				   "Error: You have controller %d disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n", (i + 1));
-			dont_play = TRUE;
+			return 0;
 		}
 		if (Controls[i].Present && !(m_header.controller_flags &
 			CONTROLLER_X_PRESENT(i)))
@@ -1185,213 +1179,164 @@ int check_warn_controllers(char* warning_str) {
 					   "Warning: Controller %d does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", (i + 1));
 		}
 	}
-	return 0;
+	return 1;
 }
-static int start_playback(const char* filename, const char* author_utf8,
-			  const char* description_utf8) {
-	vcr_core_stopped();
-	is_restarting_flag = false;
 
-	extern HWND mainHWND;
-	char buf[PATH_MAX];
+static int start_playback(const char* filename, const char* author_utf8,
+                          const char* description_utf8)
+{
+	vcr_core_stopped();
 
 	strncpy(m_filename, filename, PATH_MAX);
-	printf("m_filename = %s\n", m_filename);
-	char* p = strrchr(m_filename, '.');
-	// gets a string slice from the final "." to the end
 
-	if (p) {
-		if (!STRCASECMP(p, ".m64") || !STRCASECMP(p, ".st"))
-			*p = '\0';
-	}
-	// open record file
-	strcpy(buf, m_filename);
-	m_file = fopen(buf, "rb+");
-	if (m_file == nullptr && (m_file = fopen(buf, "rb")) == nullptr) {
-		strncat(buf, ".m64", PATH_MAX);
-		m_file = fopen(buf, "rb+");
-		if (m_file == nullptr && (m_file = fopen(buf, "rb")) == nullptr) {
-			fprintf(
-				stderr,
-				"[VCR]: Cannot start playback, could not open .m64 file '%s': %s\n",
-				filename, strerror(errno));
-			if (m_file != nullptr)
-				fclose(m_file);
-			return VCR_PLAYBACK_FILE_BUSY;
-		}
-	}
-
-	// can crash when looping + fast forward, no need to change this
-	// this creates a bug, so i changed it -auru
+	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
+	m_file = fopen(filename, "rb+");
+	if (!m_file)
 	{
-		const int code = read_movie_header(m_file, &m_header);
-		if (code == SUCCESS) {
-			{
-				char warning_str[8092]{};
-				warning_str[0] = '\0';
+		return VCR_PLAYBACK_FILE_BUSY;
+	}
 
-				dont_play = FALSE;
-
-				for (auto& [Present, RawData, Plugin] : Controls) {
-					if (Present && RawData) {
-						if (MessageBox(
-							nullptr,
-							"Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?",
-							"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
-							==
-							IDNO) dont_play = TRUE;
-						break; //
-					}
-				}
-
-				check_warn_controllers(warning_str);
-
-				char str[512], name[512];
-
-				if (_stricmp(m_header.rom_name,
-					(const char*)ROM_HEADER.nom) != 0) {
-					sprintf(
-						str,
-						"The movie was recorded with the ROM \"%s\",\nbut you are using the ROM \"%s\",\nso the movie probably won't play properly.\n",
-						m_header.rom_name, (char*)ROM_HEADER.nom);
-					strcat(warning_str, str);
-					dont_play = Config.is_rom_movie_compatibility_check_enabled
-						? dont_play
-						: TRUE;
-				} else {
-					if (m_header.rom_country != ROM_HEADER.
-						Country_code) {
-						sprintf(
-							str,
-							"The movie was recorded with a ROM with country code \"%d\",\nbut you are using a ROM with country code \"%d\",\nso the movie may not play properly.\n",
-							m_header.rom_country, ROM_HEADER.Country_code);
-						strcat(warning_str, str);
-						dont_play =
-							Config.is_rom_movie_compatibility_check_enabled
-							? dont_play
-							: TRUE;
-					} else if (m_header.rom_crc1 != ROM_HEADER.
-						CRC1) {
-						sprintf(
-							str,
-							"The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\",\nso the movie may not play properly.\n",
-							(unsigned int)m_header.rom_crc1,
-							(unsigned int)ROM_HEADER.CRC1);
-						strcat(warning_str, str);
-						dont_play =
-							Config.is_rom_movie_compatibility_check_enabled
-							? dont_play
-							: TRUE;
-					}
-				}
-
-				if (warning_str[0] != '\0') {
-					MessageBox(mainHWND, warning_str, "VCR",
-							   MB_OK | (dont_play ? MB_ICONERROR : MB_ICONWARNING));
-				}
-
-				strncpy(name, input_plugin->name.c_str(), 64);
-				if (name[0] && m_header.input_plugin_name[0] && _stricmp(
-					m_header.input_plugin_name, name) != 0) {
-					printf(
-						"Warning: The movie was recorded with the input plugin \"%s\",\nbut you are using the input plugin \"%s\",\nso the movie may not play properly.\n",
-						m_header.input_plugin_name, name);
-				}
-				strncpy(name, video_plugin->name.c_str(), 64);
-				if (name[0] && m_header.video_plugin_name[0] && _stricmp(
-					m_header.video_plugin_name, name) != 0) {
-					printf(
-						"Warning: The movie was recorded with the graphics plugin \"%s\",\nbut you are using the graphics plugin \"%s\",\nso the movie might not play properly.\n",
-						m_header.video_plugin_name, name);
-				}
-				strncpy(name, audio_plugin->name.c_str(), 64);
-				if (name[0] && m_header.audio_plugin_name[0] && _stricmp(
-					m_header.audio_plugin_name, name) != 0) {
-					printf(
-						"Warning: The movie was recorded with the sound plugin \"%s\",\nbut you are using the sound plugin \"%s\",\nso the movie might not play properly.\n",
-						m_header.audio_plugin_name, name);
-				}
-				strncpy(name, rsp_plugin->name.c_str(), 64);
-				if (name[0] && m_header.rsp_plugin_name[0] && _stricmp(
-					m_header.rsp_plugin_name, name) != 0) {
-					printf(
-						"Warning: The movie was recorded with the RSP plugin \"%s\",\nbut you are using the RSP plugin \"%s\",\nso the movie probably won't play properly.\n",
-						m_header.rsp_plugin_name, name);
-				}
-
-
-				if (dont_play) {
-					if (m_file != nullptr)
-						fclose(m_file);
-					return VCR_PLAYBACK_INCOMPATIBLE;
-				}
-
-				// recalculate length of movie from the file size
-				//				fseek(m_file, 0, SEEK_END);
-				//				int fileSize = ftell(m_file);
-				//				m_header.length_samples = (fileSize - MUP_HEADER_SIZE) / sizeof(BUTTONS) - 1;
-				if (m_file == nullptr) return 0;
-				fseek(m_file, MUP_HEADER_SIZE_CUR, SEEK_SET);
-
-				// read controller data
-				m_input_buffer_ptr = m_input_buffer;
-				const unsigned long to_read = sizeof(BUTTONS) * (m_header.
-					length_samples + 1);
-				reserve_buffer_space(to_read);
-				fread(m_input_buffer_ptr, 1, to_read, m_file);
-
-				fseek(m_file, 0, SEEK_END);
-				char buffer[50];
-				sprintf(buffer, "%lu rr", m_header.rerecord_count);
-
-				statusbar_post_text(std::string(buffer), 1);
-			}
-		} else {
-			show_modal_info(m_err_code_name[code], nullptr);
-			dont_play = code != 0; // should be stable enough
-		}
-
-		m_current_sample = 0;
-		m_current_vi = 0;
-		strcpy(vcr_lastpath, filename);
-		movie_path = buf;
-		update_titlebar();
-
-		if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT) {
-			printf("[VCR]: Loading state...\n");
-
-			// Load appropriate state for movie
-			auto st_path = find_savestate_for_movie(movie_path);
-
-			if (st_path.empty())
-			{
-				if (m_file != nullptr)
-					fclose(m_file);
-				return VCR_PLAYBACK_SAVESTATE_MISSING;
-			}
-
-			savestates_do_file(st_path, e_st_job::load);
-			m_task = e_task::start_playback_from_snapshot;
-		} else {
-			m_task = e_task::start_playback;
-		}
-
-		// utf8 strings are also null-terminated so this method still works
-		if (author_utf8)
-			strncpy(m_header.author, author_utf8, MOVIE_AUTHOR_DATA_SIZE);
-		m_header.author[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
-		if (description_utf8)
-			strncpy(m_header.description, description_utf8,
-			MOVIE_DESCRIPTION_DATA_SIZE);
-		m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
-		LuaCallbacks::call_play_movie();
+	const int code = read_movie_header(m_file, &m_header);
+	if (code != SUCCESS)
+	{
+		// FIXME: The results don't collide, but use typed errors anyway!!!
+		fclose(m_file);
 		return code;
 	}
 
+	for (auto& [Present, RawData, Plugin] : Controls)
+	{
+		if (!Present || !RawData)
+			continue;
+
+		if (MessageBox(
+				nullptr,
+				"Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?",
+				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
+			==
+			IDNO)
+		{
+			fclose(m_file);
+			return VCR_PLAYBACK_ERROR;
+		}
+
+		break;
+	}
+
+	char dummy[1024] = {0};
+	if(!check_warn_controllers(dummy))
+	{
+		fclose(m_file);
+		return VCR_PLAYBACK_ERROR;
+	}
+
+	if (strlen(dummy) > 0)
+	{
+		MessageBox(
+			nullptr,
+			dummy, "VCR", MB_OK | MB_TOPMOST | MB_ICONWARNING);
+	}
+
+	if (_stricmp(m_header.rom_name,
+	             (const char*)ROM_HEADER.nom) != 0)
+	{
+		if (MessageBox(
+				nullptr,
+				std::format("The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?", m_header.rom_name, (const char*)ROM_HEADER.nom).c_str(),
+				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
+			==
+			IDNO)
+		{
+			fclose(m_file);
+			return VCR_PLAYBACK_ERROR;
+		}
+	} else
+	{
+		if (m_header.rom_country != ROM_HEADER.
+			Country_code)
+		{
+			if (MessageBox(
+				nullptr,
+				std::format("The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?", m_header.rom_country, ROM_HEADER.Country_code).c_str(),
+				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
+			==
+			IDNO)
+			{
+				fclose(m_file);
+				return VCR_PLAYBACK_ERROR;
+			}
+		} else if (m_header.rom_crc1 != ROM_HEADER.
+			CRC1)
+		{
+			char str[512] = {0};
+			sprintf(
+				str,
+				"The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?",
+				(unsigned int)m_header.rom_crc1,
+				(unsigned int)ROM_HEADER.CRC1);
+			if (MessageBox(
+				nullptr,
+str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
+			==
+			IDNO)
+			{
+				fclose(m_file);
+				return VCR_PLAYBACK_ERROR;
+			}
+		}
+	}
+
+	fseek(m_file, MUP_HEADER_SIZE_CUR, SEEK_SET);
+
+	// read controller data
+	m_input_buffer_ptr = m_input_buffer;
+	const unsigned long to_read = sizeof(BUTTONS) * (m_header.
+		length_samples + 1);
+	reserve_buffer_space(to_read);
+	fread(m_input_buffer_ptr, 1, to_read, m_file);
+
+	fseek(m_file, 0, SEEK_END);
+
+	// Reset VCR-related state
+	m_current_sample = 0;
+	m_current_vi = 0;
+	strcpy(vcr_lastpath, filename);
+	movie_path = filename;
+
+	if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
+	{
+		printf("[VCR]: Loading state...\n");
+
+		// Load appropriate state for movie
+		auto st_path = find_savestate_for_movie(movie_path);
+
+		if (st_path.empty())
+		{
+			fclose(m_file);
+			return VCR_PLAYBACK_SAVESTATE_MISSING;
+		}
+
+		savestates_do_file(st_path, e_st_job::load);
+		m_task = e_task::start_playback_from_snapshot;
+	} else
+	{
+		m_task = e_task::start_playback;
+	}
+
+	// utf8 strings are also null-terminated so this method still works
+	if (author_utf8)
+		strncpy(m_header.author, author_utf8, MOVIE_AUTHOR_DATA_SIZE);
+	m_header.author[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
+	if (description_utf8)
+		strncpy(m_header.description, description_utf8,
+		        MOVIE_DESCRIPTION_DATA_SIZE);
+	m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
+
+	LuaCallbacks::call_play_movie();
+	return SUCCESS;
 }
 int restart_playback()
 {
-	is_restarting_flag = true;
 	return vcr_start_playback(vcr_lastpath, nullptr, nullptr);
 }
 

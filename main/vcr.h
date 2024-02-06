@@ -117,7 +117,6 @@ extern BOOL vcr_is_capturing();
 extern const char* vcr_get_movie_filename();
 extern BOOL vcr_get_read_only();
 extern bool vcr_is_looping();
-extern bool vcr_is_restarting();
 extern void vcr_set_read_only(BOOL val);
 extern unsigned long vcr_get_length_v_is();
 extern unsigned long vcr_get_length_samples();

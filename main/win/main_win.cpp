@@ -820,7 +820,7 @@ void enable_emulation_menu_items(BOOL emulationRunning)
 			               vcr_is_recording() ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, MF_ENABLED);
 			EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK,
-			               (vcr_is_restarting() || vcr_is_playing())
+			               (vcr_is_playing())
 				               ? MF_ENABLED
 				               : MF_GRAYED);
 			EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_ENABLED);
