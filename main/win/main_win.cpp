@@ -34,6 +34,7 @@
 #include "LuaCallbacks.h"
 #include "features/CrashHelper.h"
 #include "LuaConsole.h"
+#include "messenger.h"
 #include "Recent.h"
 #include "timers.h"
 #include "../guifuncs.h"
@@ -101,8 +102,10 @@ std::deque<std::function<void()>> dispatcher_queue;
 
 
 #pragma region Change notifications
-void on_emu_launched_changed(bool value)
+void on_emu_launched_changed(std::any data)
 {
+	auto value = std::any_cast<bool>(data);
+
 	if (value)
 	{
 		SetWindowLong(mainHWND, GWL_STYLE,
@@ -369,7 +372,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	main_recent_roms_add(rom_path_local);
 	rombrowser_set_visibility(0);
 	statusbar_set_mode(statusbar_mode::emulating);
-	on_emu_launched_changed(true);
+	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 	on_speed_modifier_changed(Config.fps_modifier);
 
@@ -447,7 +450,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 		free_memory();
 
-		on_emu_launched_changed(false);
+		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 		rombrowser_set_visibility(!really_restart_mode);
 		// toolbar_on_emu_launched_changed(0, 0);
 
@@ -1973,6 +1976,8 @@ int WINAPI WinMain(
 	emu_launched = 0;
 	emu_paused = 1;
 
+	Messenger::init();
+	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
 	load_config();
 	lua_init();
 	vcr_init(on_task_changed);
@@ -2024,7 +2029,7 @@ int WINAPI WinMain(
 	lua_recent_scripts_build();
 	main_recent_roms_build();
 
-	on_emu_launched_changed(false);
+	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	on_capturing_changed(false);
 
 	//warning, this is ignored when debugger is attached (like visual studio)
