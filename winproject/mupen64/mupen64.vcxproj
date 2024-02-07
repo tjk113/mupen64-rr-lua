@@ -160,6 +160,7 @@
     <ClInclude Include="..\..\main\helpers\io_helpers.h" />
     <ClInclude Include="..\..\main\helpers\win_helpers.h" />
     <ClInclude Include="..\..\main\md5.h" />
+    <ClInclude Include="..\..\main\messenger.h" />
     <ClInclude Include="..\..\main\Plugin.hpp" />
     <ClInclude Include="..\..\main\rom.h" />
     <ClInclude Include="..\..\main\savestates.h" />
@@ -222,6 +223,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\..\main\messenger.cpp" />
     <ClCompile Include="..\..\main\Plugin.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
