@@ -166,6 +166,13 @@ void on_capturing_changed(bool value)
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
 		// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
 		SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
+
+		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
+		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
+					   MF_GRAYED);
+		EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
+		EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_ENABLED);
+		EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 	} else
 	{
 		// re-enable the toolbar
@@ -174,6 +181,13 @@ void on_capturing_changed(bool value)
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
         // we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
         SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+
+		SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
+								 SWP_NOMOVE | SWP_NOSIZE);
+		EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_GRAYED);
+		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_ENABLED);
+		EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_ENABLED);
+		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
 	}
 }
 
@@ -1729,13 +1743,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						"-pixel_format yuv420p -loglevel debug -y");
 					if (err == INIT_SUCCESS)
 					{
-						//SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
-						EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
-						EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
-						               MF_GRAYED);
-						EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
-						EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_ENABLED);
-						EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI with FFmpeg");
 					} else
 						printf("Start capture error: %d\n", err);
@@ -1757,12 +1764,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					// pass false to startCapture when "last preset" option was choosen
 					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == IDM_START_CAPTURE) >= 0)
 					{
-						EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
-						EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
-						               MF_GRAYED);
-						EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
-						EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_ENABLED);
-						EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI");
 					}
 				}
@@ -1773,12 +1774,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					MessageBox(NULL, "Couldn't stop capturing.", "VCR", MB_OK);
 				else
 				{
-					SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
-					             SWP_NOMOVE | SWP_NOSIZE);
-					EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_GRAYED);
-					EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_ENABLED);
-					EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_ENABLED);
-					EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
+
 					statusbar_post_text("Capture stopped");
 				}
 				break;
