@@ -1364,7 +1364,7 @@ void vcr_update_screen()
 		if (VCRComp_GetSize() > max_avi_size)
 		{
 			static char* endptr;
-			VCRComp_finishFile(1);
+			VCRComp_finishFile();
 			if (!avi_increment)
 				endptr = avi_file_name + strlen(avi_file_name) - 4;
 			//AVIIncrement
@@ -1786,7 +1786,7 @@ int vcr_stop_capture()
 	}
 
 
-	VCRComp_finishFile(0);
+	VCRComp_finishFile();
 	avi_increment = 0;
 	printf("[VCR]: Capture finished.\n");
 	return 0;

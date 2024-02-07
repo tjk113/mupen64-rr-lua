@@ -15,7 +15,7 @@ void VCRComp_init();
 
 void VCRComp_startFile(const char* filename, long width, long height, int fps,
                        int New);
-void VCRComp_finishFile(int split);
+void VCRComp_finishFile();
 BOOL VCRComp_addVideoFrame(unsigned char* data);
 BOOL VCRComp_addAudioData(unsigned char* data, int len);
 

@@ -311,7 +311,7 @@ void VCRComp_startFile(const char* filename, long width, long height, int fps, i
     AVIStreamSetFormat(compressed_sound_stream, 0, &sound_format, sizeof(WAVEFORMATEX));*/
 }
 
-void VCRComp_finishFile(int split)
+void VCRComp_finishFile()
 {
     //SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // why is this being set when recording is stopped...
     AVIStreamClose(compressed_video_stream);
@@ -320,16 +320,6 @@ void VCRComp_finishFile(int split)
     AVIStreamClose(sound_stream);
     AVIFileClose(avi_file);
     AVIFileExit();
-    if (!split)
-    {
-        HMENU hMenu;
-        hMenu = GetMenu(mainHWND);
-        EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_GRAYED);
-        EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_ENABLED);
-        EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
-        EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_ENABLED); //Enables fullscreen menu
-        SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); //Remove the always on top flag
-    }
 
     avi_opened = 0;
     printf("[VCR]: Finished AVI capture.\n");
