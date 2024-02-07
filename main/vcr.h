@@ -8,6 +8,8 @@
 #ifdef __cplusplus	//don't include cpp headers when .c compilation unit includes the file
 
 #include <string>	//(also done later for ffmpeg functions)
+#include <functional>
+
 #endif
 
 enum
@@ -83,101 +85,6 @@ enum
 	VCR_SYNC_VIDEO_SNDROP = 1,
 	VCR_SYNC_NONE = 2
 };
-
-/*
-	(0x0001)	Directional Right
-	(0x0002)	Directional Left
-	(0x0004)	Directional Down
-	(0x0008)	Directional Up
-	(0x0010)	Start
-	(0x0020)	Z
-	(0x0040)	B
-	(0x0080)	A
-	(0x0100)	C Right
-	(0x0200)	C Left
-	(0x0400)	C Down
-	(0x0800)	C Up
-	(0x1000)	R
-	(0x2000)	L
-	(0x00FF0000) Analog X
-	(0xFF000000) Analog Y
-*/
-
-extern void vcr_update_screen();
-extern void vcr_ai_dacrate_changed(system_type type);
-extern void vcr_ai_len_changed();
-
-extern BOOL vcr_is_active();
-extern BOOL vcr_is_idle(); // not the same as !isActive()
-extern BOOL vcr_is_starting();
-extern BOOL vcr_is_starting_and_just_restarted();
-extern BOOL vcr_is_playing();
-extern BOOL vcr_is_recording();
-extern BOOL vcr_is_capturing();
-extern const char* vcr_get_movie_filename();
-extern BOOL vcr_get_read_only();
-extern bool vcr_is_looping();
-extern void vcr_set_read_only(BOOL val);
-extern unsigned long vcr_get_length_v_is();
-extern unsigned long vcr_get_length_samples();
-extern void vcr_set_length_v_is(unsigned long val);
-extern void vcr_set_length_samples(unsigned long val);
-extern void vcr_toggle_read_only();
-
-extern void vcr_movie_freeze(char** buf, unsigned long* size);
-extern int vcr_movie_unfreeze(const char* buf, unsigned long size);
-
-
-extern int vcr_start_record(const char* filename, unsigned short flags,
-                           const char* author_utf8, const char* description_utf8);
-extern int vcr_stop_record();
-extern int vcr_start_playback(const std::string &filename, const char* author_utf8,
-                             const char* description_utf8);
-extern int vcr_stop_playback();
-extern int vcr_stop_capture();
-
-//ffmpeg
-#ifdef __cplusplus
-int vcr_start_f_fmpeg_capture(const std::string& output_name,
-                           const std::string& arguments);
-void vcr_stop_f_fmpeg_capture();
-#endif
-
-extern void vcr_core_stopped();
-
-/**
- * \brief Updates the statusbar with the current VCR state
- */
-void vcr_update_statusbar();
-
-/**
- * \brief Clears all save data related to the current rom, such as SRAM, EEP and mempak
- */
-void vcr_clear_save_data();
-
-/**
- * \brief Starts an AVI capture
- * \param path The path to the AVI output file
- * \param show_codec_dialog Whether the user should be presented with a dialog to pick the capture codec
- * \return Whether the operation succeded
- */
-bool vcr_start_capture(const char* path, bool show_codec_dialog);
-
-/**
- * \brief Notifies VCR engine about controller being polled
- * \param index The polled controller's index
- * \param input The controller's input data
- */
-void vcr_on_controller_poll(int index, BUTTONS* input);
-
-/**
- * \brief Notifies VCR engine about a new VI
- */
-void vcr_on_vi();
-
-void vcr_recent_movies_build(int32_t reset = 0);
-void vcr_recent_movies_add(const std::string path);
-int32_t vcr_recent_movies_play(uint16_t menu_item_id);
 
 #pragma pack(push, 1)
 /**
@@ -321,14 +228,91 @@ enum class e_task
 
 extern e_task m_task;
 
-inline bool is_task_playback(const e_task task)
-{
-	return task == e_task::start_playback || task == e_task::start_playback_from_snapshot || task == e_task::playback;
-}
-inline bool is_task_recording(const e_task task)
-{
-	return task == e_task::start_recording || task == e_task::start_recording_from_snapshot || task == e_task::start_recording_from_existing_snapshot || task == e_task::recording;
-}
+
+extern void vcr_update_screen();
+extern void vcr_ai_dacrate_changed(system_type type);
+extern void vcr_ai_len_changed();
+
+extern BOOL vcr_is_active();
+extern BOOL vcr_is_idle(); // not the same as !isActive()
+extern BOOL vcr_is_starting();
+extern BOOL vcr_is_starting_and_just_restarted();
+extern BOOL vcr_is_playing();
+extern BOOL vcr_is_recording();
+extern BOOL vcr_is_capturing();
+extern const char* vcr_get_movie_filename();
+extern BOOL vcr_get_read_only();
+extern bool vcr_is_looping();
+extern void vcr_set_read_only(BOOL val);
+extern unsigned long vcr_get_length_v_is();
+extern unsigned long vcr_get_length_samples();
+extern void vcr_set_length_v_is(unsigned long val);
+extern void vcr_set_length_samples(unsigned long val);
+extern void vcr_toggle_read_only();
+
+extern void vcr_movie_freeze(char** buf, unsigned long* size);
+extern int vcr_movie_unfreeze(const char* buf, unsigned long size);
+
+
+extern int vcr_start_record(const char* filename, unsigned short flags,
+                           const char* author_utf8, const char* description_utf8);
+extern int vcr_stop_record();
+extern int vcr_start_playback(const std::string &filename, const char* author_utf8,
+                             const char* description_utf8);
+extern int vcr_stop_playback();
+extern int vcr_stop_capture();
+
+//ffmpeg
+#ifdef __cplusplus
+int vcr_start_f_fmpeg_capture(const std::string& output_name,
+                           const std::string& arguments);
+void vcr_stop_f_fmpeg_capture();
+#endif
+
+extern void vcr_core_stopped();
+
+/**
+ * \brief Updates the statusbar with the current VCR state
+ */
+void vcr_update_statusbar();
+
+/**
+ * \brief Clears all save data related to the current rom, such as SRAM, EEP and mempak
+ */
+void vcr_clear_save_data();
+
+/**
+ * \brief Starts an AVI capture
+ * \param path The path to the AVI output file
+ * \param show_codec_dialog Whether the user should be presented with a dialog to pick the capture codec
+ * \return Whether the operation succeded
+ */
+bool vcr_start_capture(const char* path, bool show_codec_dialog);
+
+/**
+ * \brief Notifies VCR engine about controller being polled
+ * \param index The polled controller's index
+ * \param input The controller's input data
+ */
+void vcr_on_controller_poll(int index, BUTTONS* input);
+
+/**
+ * \brief Notifies VCR engine about a new VI
+ */
+void vcr_on_vi();
+
+#ifdef __cplusplus
+/**
+ * \brief Initializes the VCR engine
+ * \param on_task_changed Callback which is invoked whenever the VCR task changes
+ */
+void vcr_init(std::function<void(e_task)> on_task_changed);
+#endif
+
+void vcr_recent_movies_build(int32_t reset = 0);
+void vcr_recent_movies_add(const std::string path);
+int32_t vcr_recent_movies_play(uint16_t menu_item_id);
+
 
 bool is_frame_skipped();
 

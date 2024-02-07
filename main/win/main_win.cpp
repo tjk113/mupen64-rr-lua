@@ -2035,6 +2035,11 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 }
 
 
+void on_task_changed(e_task task)
+{
+	printf("on_task_changed: %d\n", task);
+}
+
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -2063,6 +2068,7 @@ int WINAPI WinMain(
 
 	load_config();
 	lua_init();
+	vcr_init(on_task_changed);
 
 	WNDCLASSEX wc = {0};
 	HWND hwnd;
@@ -2176,3 +2182,4 @@ int WINAPI WinMain(
 
 	return (int)msg.wParam;
 }
+

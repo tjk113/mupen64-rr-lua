@@ -83,6 +83,7 @@ static const char* m_err_code_name[] =
 };
 
 e_task m_task = e_task::idle;
+std::function<void(e_task)> on_task_changed;
 std::filesystem::path movie_path;
 
 static char m_filename[PATH_MAX];
@@ -124,7 +125,12 @@ static int start_playback(const char* filename, const char* author_utf8,
 static int restart_playback();
 static int stop_playback(const bool bypass_loop_setting);
 
-static void write_movie_header(FILE* file, int)
+bool is_task_playback(const e_task task)
+{
+	return task == e_task::start_playback || task == e_task::start_playback_from_snapshot || task == e_task::playback;
+}
+
+static void write_movie_header(FILE* file)
 {
 	//	assert(ftell(file) == 0); // we assume file points to beginning of movie file
 	fseek(file, 0L, SEEK_SET);
@@ -388,7 +394,7 @@ void flush_movie()
 		e_task::start_recording_from_existing_snapshot))
 	{
 		// (over-)write the header
-		write_movie_header(m_file, MUP_HEADER_SIZE);
+		write_movie_header(m_file);
 
 		// (over-)write the controller data
 		fseek(m_file, MUP_HEADER_SIZE, SEEK_SET);
@@ -1029,7 +1035,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		        MOVIE_DESCRIPTION_DATA_SIZE);
 	m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
 
-	write_movie_header(m_file, MUP_HEADER_SIZE);
+	write_movie_header(m_file);
 
 	m_current_sample = 0;
 	m_current_vi = 0;
@@ -1985,6 +1991,11 @@ void vcr_on_vi()
 			pauseAtFrame = -1; // don't pause again
 		}
 	}
+}
+
+void vcr_init(std::function<void(e_task)> on_task_changed)
+{
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
