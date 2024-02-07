@@ -95,7 +95,6 @@ static BOOL m_read_only = FALSE;
 long m_current_sample = -1;
 // should = length_samples when recording, and be < length_samples when playing
 int m_current_vi = -1;
-static int m_vis_per_second = -1;
 static char* m_input_buffer = nullptr;
 static unsigned long m_input_buffer_size = 0;
 static char* m_input_buffer_ptr = nullptr;
@@ -164,39 +163,6 @@ static void hard_reset_and_clear_all_save_data(const bool clear)
 	else
 		printf("Playing movie without clearing save data\n");
 	SendMessage(mainHWND, WM_COMMAND, IDM_RESET_ROM, 0);
-}
-
-static int vis_by_countrycode()
-{
-	if (m_vis_per_second == -1)
-	{
-		switch (ROM_HEADER.Country_code & 0xFF)
-		{
-		case 0x44:
-		case 0x46:
-		case 0x49:
-		case 0x50:
-		case 0x53:
-		case 0x55:
-		case 0x58:
-		case 0x59:
-			m_vis_per_second = 50;
-			break;
-
-		case 0x37:
-		case 0x41:
-		case 0x45:
-		case 0x4a:
-			m_vis_per_second = 60;
-			break;
-		default:
-			MessageBox(mainHWND, "Unknown country code, falling back to 60 FPS", nullptr, MB_ICONWARNING | MB_OK);
-			m_vis_per_second = 60;
-			break;
-		}
-	}
-
-	return m_vis_per_second;
 }
 
 static void set_rom_info(t_movie_header* header)
@@ -1457,7 +1423,7 @@ void vcr_update_screen()
 				endptr = avi_file_name + strlen(avi_file_name) - 4;
 			//AVIIncrement
 			sprintf(endptr, "%d.avi", ++avi_increment);
-			VCRComp_startFile(avi_file_name, width, height, vis_by_countrycode(),
+			VCRComp_startFile(avi_file_name, width, height, get_vis_per_second(ROM_HEADER.Country_code),
 			                  0);
 		}
 	}
@@ -1629,14 +1595,14 @@ static void write_sound(char* buf, int len, const int min_write_size, const int 
 		memcpy(sound_buf + sound_buf_pos, (char*)buf, len);
 		sound_buf_pos += len;
 		m_audio_frame += ((len / 4) / (long double)m_audio_freq) *
-			vis_by_countrycode();
+			get_vis_per_second(ROM_HEADER.Country_code);
 	}
 }
 
 // calculates how long the audio data will last
 float get_percent_of_frame(const int ai_len, const int audio_freq, const int audio_bitrate)
 {
-	const int limit = vis_by_countrycode();
+	const int limit = get_vis_per_second(ROM_HEADER.Country_code);
 	const float vi_len = 1.f / (float)limit; //how much seconds one VI lasts
 	const float time = (float)(ai_len * 8) / ((float)audio_freq * 2.f * (float)
 		audio_bitrate); //how long the buffer can play for
@@ -1705,7 +1671,7 @@ void vcr_ai_len_changed()
 			if (desync > 1.0)
 			{
 				printf("[VCR]: Correcting for A/V desynchronization of %+Lf frames\n",desync);
-				int len3 = (int)(m_audio_freq / (long double)vis_by_countrycode()) * (int)desync;
+				int len3 = (int)(m_audio_freq / (long double)get_vis_per_second(ROM_HEADER.Country_code)) * (int)desync;
 				len3 <<= 2;
 				const int empty_size = len3 > write_size ? write_size : len3;
 
@@ -1769,7 +1735,7 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 		readScreen(&dummy, &width, &height);
 	}
 
-	VCRComp_startFile(path, width, height, vis_by_countrycode(), show_codec_dialog);
+	VCRComp_startFile(path, width, height, get_vis_per_second(ROM_HEADER.Country_code), show_codec_dialog);
 	m_capture = 1;
 	capture_with_f_fmpeg = false;
 	strncpy(avi_file_name, path, PATH_MAX);
@@ -1817,7 +1783,7 @@ int vcr_start_f_fmpeg_capture(const std::string& output_name,
 
 	InitReadScreenFFmpeg(s_info);
 	capture_manager = std::make_unique<FFmpegManager>(
-		s_info.width, s_info.height, vis_by_countrycode(), m_audio_freq,
+		s_info.width, s_info.height, get_vis_per_second(ROM_HEADER.Country_code), m_audio_freq,
 		arguments + " " + output_name);
 
 	auto err = capture_manager->initError;
@@ -1870,7 +1836,6 @@ int vcr_stop_capture()
 	}
 
 	m_capture = 0;
-	m_vis_per_second = -1;
 	write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
 	// re-enable the toolbar (m_capture==0 causes this call to do that)
