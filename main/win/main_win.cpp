@@ -152,8 +152,8 @@ void on_emu_launched_changed(bool value)
 		main_menu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
 	if (Config.is_recent_rom_paths_frozen) CheckMenuItem(
 		main_menu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
-
-	toolbar_on_emu_state_changed(value, value);
+	//
+	// toolbar_on_emu_launched_changed(value, value);
 }
 
 void on_capturing_changed(bool value)
@@ -161,7 +161,7 @@ void on_capturing_changed(bool value)
 	if (value)
 	{
 		// toolbar could get captured in AVI, so we disable it
-		toolbar_set_visibility(0);
+		// toolbar_set_visibility(0);
 
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
 		// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
@@ -176,7 +176,7 @@ void on_capturing_changed(bool value)
 	} else
 	{
 		// re-enable the toolbar
-		toolbar_set_visibility(Config.is_toolbar_enabled);
+		// toolbar_set_visibility(Config.is_toolbar_enabled);
 
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
         // we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
@@ -191,6 +191,13 @@ void on_capturing_changed(bool value)
 	}
 }
 
+
+void on_emu_paused_changed(bool value)
+{
+
+}
+
+
 BetterEmulationLock::BetterEmulationLock()
 {
 	was_paused = emu_paused && !MenuPaused;
@@ -203,11 +210,6 @@ BetterEmulationLock::~BetterEmulationLock()
 {
 	if (emu_launched && emu_paused && !was_paused)
 		resumeEmu(FALSE);
-}
-
-void on_paused_changed(bool value)
-{
-
 }
 
 #pragma endregion
@@ -273,7 +275,7 @@ static void gui_ChangeWindow()
 		changeWindow();
 		ShowCursor(TRUE);
 	}
-	toolbar_set_visibility(!FullScreenMode);
+	// toolbar_set_visibility(!FullScreenMode);
 	statusbar_set_visibility(!FullScreenMode);
 }
 
@@ -288,7 +290,7 @@ void resumeEmu(BOOL quiet)
 			statusbar_post_text("Emulation started");
 	}
 
-	toolbar_on_emu_state_changed(emu_launched, 1);
+	// toolbar_on_emu_launched_changed(emu_launched, 1);
 
 	if (emu_paused != wasPaused && !quiet)
 		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
@@ -316,7 +318,7 @@ void pauseEmu(BOOL quiet)
 		              MF_BYCOMMAND | MFS_UNCHECKED);
 	}
 
-	toolbar_on_emu_state_changed(emu_launched, 0);
+	// toolbar_on_emu_launched_changed(emu_launched, 0);
 
 	if (emu_paused != wasPaused && !MenuPaused)
 		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
@@ -447,7 +449,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 		on_emu_launched_changed(false);
 		rombrowser_set_visibility(!really_restart_mode);
-		toolbar_on_emu_state_changed(0, 0);
+		// toolbar_on_emu_launched_changed(0, 0);
 
 		if (m_task == e_task::idle) {
 			SetWindowText(mainHWND, MUPEN_VERSION);
@@ -1804,7 +1806,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_TOOLBAR:
 				Config.is_toolbar_enabled ^= true;
-				toolbar_set_visibility(Config.is_toolbar_enabled);
+				// toolbar_set_visibility(Config.is_toolbar_enabled);
 				CheckMenuItem(
 					main_menu, IDM_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
@@ -2010,7 +2012,7 @@ int WINAPI WinMain(
 	//this can't be applied before ShowWindow(), otherwise you must use some fancy function
 
 	update_menu_hotkey_labels();
-	toolbar_set_visibility(Config.is_toolbar_enabled);
+	// toolbar_set_visibility(Config.is_toolbar_enabled);
 	statusbar_set_visibility(Config.is_statusbar_enabled);
 	setup_dummy_info();
 	rombrowser_create();

@@ -90,25 +90,27 @@ void toolbar_set_visibility(int32_t is_visible)
 	rombrowser_update_size();
 }
 
-void toolbar_on_emu_state_changed(int32_t is_running, int32_t is_resumed)
+void toolbar_on_emu_launched_changed(bool value)
 {
 	if (!toolbar_hwnd) return;
 
-	if (is_running)
+	if (value)
 	{
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, EMU_PLAY, TRUE);
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_CLOSE_ROM, TRUE);
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_PAUSE, TRUE);
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_FULLSCREEN, !vcr_is_capturing());
-		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, IDM_PAUSE, !is_resumed);
-		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PLAY, is_resumed);
+
 	} else
 	{
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_CLOSE_ROM, FALSE);
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_PAUSE, FALSE);
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_FULLSCREEN, FALSE);
 	}
+}
 
-
-
+void toolbar_on_emu_paused_changed(bool value)
+{
+	SendMessage(toolbar_hwnd, TB_CHECKBUTTON, IDM_PAUSE, value);
+	SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PLAY, !value);
 }
