@@ -3,6 +3,15 @@
 #include <Windows.h>
 #include <cstdint>
 
-extern HWND toolbar_hwnd;
+namespace Toolbar
+{
+	/**
+	 * \brief Gets the toolbar handle
+	 */
+	HWND hwnd();
 
-// TODO: Use a messenger
+	/**
+	 * \brief Initializes the toolbar
+	 */
+	void init();
+}
