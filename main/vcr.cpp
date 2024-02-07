@@ -1647,12 +1647,6 @@ void vcr_ai_len_changed()
 
 bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 {
-	const BOOL was_paused = emu_paused;
-	if (!emu_paused)
-	{
-		pauseEmu(TRUE);
-	}
-
 	if (readScreen == nullptr)
 	{
 		printf("readScreen not implemented by graphics plugin. Falling back...\n");
@@ -1688,12 +1682,6 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 	Config.avi_capture_path = path;
 
 	on_capturing_changed(true);
-
-	if (!was_paused || (m_task == e_task::playback || m_task == e_task::start_playback || m_task
-		== e_task::start_playback_from_snapshot))
-	{
-		resumeEmu(TRUE);
-	}
 
 	printf("[VCR]: Starting capture...\n");
 

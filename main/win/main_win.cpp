@@ -99,24 +99,6 @@ std::vector<HWND> previously_running_luas;
 
 std::deque<std::function<void()>> dispatcher_queue;
 
-struct BetterEmulationLock
-{
-private:
-	bool was_paused;
-public:
-	BetterEmulationLock()
-	{
-		was_paused = emu_paused && !MenuPaused;
-		MenuPaused = FALSE;
-		if (emu_launched && !emu_paused)
-			pauseEmu(FALSE);
-	}
-	~BetterEmulationLock()
-	{
-		if (emu_launched && emu_paused && !was_paused)
-			resumeEmu(FALSE);
-	}
-};
 
 #pragma region Change notifications
 void on_emu_launched_changed(bool value)
@@ -193,6 +175,25 @@ void on_capturing_changed(bool value)
         // we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
         SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) & ~WS_EX_LAYERED);
 	}
+}
+
+BetterEmulationLock::BetterEmulationLock()
+{
+	was_paused = emu_paused && !MenuPaused;
+	MenuPaused = FALSE;
+	if (emu_launched && !emu_paused)
+		pauseEmu(FALSE);
+}
+
+BetterEmulationLock::~BetterEmulationLock()
+{
+	if (emu_launched && emu_paused && !was_paused)
+		resumeEmu(FALSE);
+}
+
+void on_paused_changed(bool value)
+{
+
 }
 
 #pragma endregion
@@ -1501,17 +1502,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case IDM_SETTINGS:
 				{
-					BOOL wasPaused = emu_paused && !MenuPaused;
-					MenuPaused = FALSE;
-					if (emu_launched && !emu_paused)
-					{
-						pauseEmu(FALSE);
-					}
+					BetterEmulationLock lock;
 					configdialog_show();
-					if (emu_launched && emu_paused && !wasPaused)
-					{
-						resumeEmu(FALSE);
-					}
 				}
 				break;
 			case IDM_ABOUT:
@@ -1754,22 +1746,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_START_CAPTURE:
 				if (emu_launched)
 				{
-					BOOL wasPaused = emu_paused && !MenuPaused;
-					MenuPaused = FALSE;
-					if (emu_launched && !emu_paused)
-						pauseEmu(FALSE);
+					BetterEmulationLock lock;
 
 					auto path = show_persistent_save_dialog("s_capture", hwnd, L"*.avi");
-					if (path.size() == 0)
+					if (path.empty())
 					{
 						break;
 					}
 
 					// pass false to startCapture when "last preset" option was choosen
-					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == IDM_START_CAPTURE) < 0)
-					{
-						MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
-					} else
+					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == IDM_START_CAPTURE) >= 0)
 					{
 						EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
 						EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
@@ -1779,9 +1765,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI");
 					}
-
-					if (emu_launched && emu_paused && !wasPaused)
-						resumeEmu(FALSE);
 				}
 
 				break;
