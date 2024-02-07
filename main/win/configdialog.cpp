@@ -221,25 +221,26 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
     case WM_NOTIFY:
         if (l_nmhdr->code == PSN_APPLY)
         {
+        	char str[MAX_PATH] = {0};
             int selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                                ? TRUE
                                : FALSE;
-            GetDlgItemText(hwnd, IDC_PLUGINS_DIR, TempMessage, 200);
-            Config.plugins_directory = std::string(TempMessage);
+            GetDlgItemText(hwnd, IDC_PLUGINS_DIR, str, 200);
+            Config.plugins_directory = std::string(str);
             Config.is_default_plugins_directory_used = selected;
 
             selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SAVES_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                            ? TRUE
                            : FALSE;
-            GetDlgItemText(hwnd, IDC_SAVES_DIR, TempMessage, MAX_PATH);
-            Config.saves_directory = std::string(TempMessage);
+            GetDlgItemText(hwnd, IDC_SAVES_DIR, str, MAX_PATH);
+            Config.saves_directory = std::string(str);
             Config.is_default_saves_directory_used = selected;
 
             selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                            ? TRUE
                            : FALSE;
-            GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, TempMessage, MAX_PATH);
-            Config.screenshots_directory = std::string(TempMessage);
+            GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, str, MAX_PATH);
+            Config.screenshots_directory = std::string(str);
             Config.is_default_screenshots_directory_used = selected;
         }
         break;

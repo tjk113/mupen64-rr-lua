@@ -25,7 +25,6 @@
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
 
-extern char TempMessage[MAX_PATH];
 extern char rom_path[MAX_PATH];
 
 extern int last_wheel_delta;
@@ -36,17 +35,13 @@ extern int recording;
 extern HWND mainHWND;
 extern HINSTANCE app_instance;
 
-extern char statusmsg[800];
-
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
-extern DWORD emu_id;
 extern DWORD start_rom_id;
 extern DWORD close_rom_id;
 
 void main_dispatcher_invoke(const std::function<void()>& func);
 extern std::string app_path;
-BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId);
 extern void resetEmu();
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
@@ -57,9 +52,6 @@ DWORD WINAPI start_rom(LPVOID lpParam);
 DWORD WINAPI close_rom(LPVOID lpParam);
 
 extern BOOL continue_vcr_on_restart_mode;
-extern BOOL ignoreErrorEmulation;
-extern int frame_count;
-extern long long total_vi;
 void main_recent_roms_build(int32_t reset = 0);
 void main_recent_roms_add(const std::string& path);
 int32_t main_recent_roms_run(uint16_t menu_item_id);

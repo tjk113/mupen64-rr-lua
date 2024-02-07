@@ -59,15 +59,7 @@
 #include "wrapper/PersistentPathDialog.h"
 
 
-#ifdef _MSC_VER
-#define SNPRINTF	_snprintf
-#define STRCASECMP	stricmp
-#define STRNCASECMP	strnicmp
-#endif
 
-HMENU hMenu;
-
-DWORD emu_id;
 DWORD start_rom_id;
 DWORD close_rom_id;
 DWORD audio_thread_id;
@@ -90,26 +82,12 @@ BOOL really_restart_mode = 0;
 BOOL clear_sram_on_restart_mode = 0;
 BOOL continue_vcr_on_restart_mode = 0;
 BOOL just_restarted_flag = 0;
-int frame_count = 1;
-long long total_vi = 0;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
-static HWND hStaticHandle; //Handle for static place
-char TempMessage[MAX_PATH];
 
 HWND mainHWND;
+HMENU main_menu;
 HINSTANCE app_instance;
-BOOL ignoreErrorEmulation = FALSE;
-char statusmsg[800];
-char correctedPath[260];
-#define INCOMPATIBLE_PLUGINS_AMOUNT 1 // this is so bad
-const char pluginBlacklist[INCOMPATIBLE_PLUGINS_AMOUNT][256] = {
-	"Azimer\'s Audio v0.7"
-};
-
-TCHAR CoreNames[3][30] = {
-	TEXT("Interpreter"), TEXT("Dynamic Recompiler"), TEXT("Pure Interpreter")
-};
 
 std::string app_path = "";
 
@@ -142,47 +120,45 @@ public:
 
 void on_emu_launched_changed(bool value)
 {
-	HMENU hMenu = GetMenu(mainHWND);
-
-	EnableMenuItem(hMenu, IDM_STATUSBAR, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_TOOLBAR, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_AUDIT_ROMS, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_REFRESH_ROMBROWSER, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_RESET_ROM, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_SCREENSHOT, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_LOAD_STATE_AS, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_LOAD_SLOT, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_SAVE_STATE_AS, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_SAVE_SLOT, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_FULLSCREEN, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_FRAMEADVANCE, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_PAUSE, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, EMU_PLAY, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_CLOSE_ROM, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_TRACELOG, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, IDM_PLAY_LATEST_MOVIE, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_STATUSBAR, !value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_TOOLBAR, !value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, ID_AUDIT_ROMS, !value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_REFRESH_ROMBROWSER, !value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_RESET_ROM, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_SCREENSHOT, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_LOAD_STATE_AS, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_LOAD_SLOT, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_SAVE_STATE_AS, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_SAVE_SLOT, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_FULLSCREEN, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_FRAMEADVANCE, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_PAUSE, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, EMU_PLAY, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_CLOSE_ROM, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_TRACELOG, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_START_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_PLAY_LATEST_MOVIE, value ? MF_ENABLED : MF_GRAYED);
 
 	if (Config.is_toolbar_enabled) CheckMenuItem(
-		hMenu, IDM_TOOLBAR, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, IDM_TOOLBAR, MF_BYCOMMAND | MF_UNCHECKED);
+		main_menu, IDM_TOOLBAR, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(main_menu, IDM_TOOLBAR, MF_BYCOMMAND | MF_UNCHECKED);
 	if (Config.is_statusbar_enabled) CheckMenuItem(
-		hMenu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
+		main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
 	if (Config.is_movie_loop_enabled) CheckMenuItem(
-		hMenu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_UNCHECKED);
+		main_menu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(main_menu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_UNCHECKED);
 	if (Config.is_recent_movie_paths_frozen) CheckMenuItem(
-		hMenu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
+		main_menu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
 	if (Config.is_recent_scripts_frozen) CheckMenuItem(
-		hMenu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
+		main_menu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
 	if (Config.is_recent_rom_paths_frozen) CheckMenuItem(
-		hMenu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
+		main_menu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
 
 	toolbar_on_emu_state_changed(value, value);
 }
@@ -369,7 +345,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	rsp_thread.join();
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &emu_id);
+	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
 
 	return 1;
 }
@@ -921,14 +897,13 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 void main_recent_roms_build(int32_t reset)
 {
-	HMENU h_menu = GetMenu(mainHWND);
 	for (size_t i = 0; i < Config.recent_rom_paths.size(); i++)
 	{
 		if (Config.recent_rom_paths[i].empty())
 		{
 			continue;
 		}
-		DeleteMenu(h_menu, ID_RECENTROMS_FIRST + i, MF_BYCOMMAND);
+		DeleteMenu(main_menu, ID_RECENTROMS_FIRST + i, MF_BYCOMMAND);
 	}
 
 	if (reset)
@@ -936,7 +911,7 @@ void main_recent_roms_build(int32_t reset)
 		Config.recent_rom_paths.clear();
 	}
 
-	HMENU h_sub_menu = GetSubMenu(h_menu, 0);
+	HMENU h_sub_menu = GetSubMenu(main_menu, 0);
 	h_sub_menu = GetSubMenu(h_sub_menu, 5);
 
 	MENUITEMINFO menu_info = {0};
@@ -1010,12 +985,6 @@ void on_speed_modifier_changed(int32_t value)
 	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
 }
 
-BOOL IsMenuItemEnabled(HMENU hMenu, UINT uId)
-{
-	return !(GetMenuState(hMenu, uId, MF_BYCOMMAND) & (MF_DISABLED |
-		MF_GRAYED));
-}
-
 void ProcessToolTips(LPARAM lParam, HWND hWnd)
 {
 	LPTOOLTIPTEXT lpttt = (LPTOOLTIPTEXT)lParam;
@@ -1024,7 +993,6 @@ void ProcessToolTips(LPARAM lParam, HWND hWnd)
 
 	// Specify the resource identifier of the descriptive
 	// text for the given button.
-	HMENU hMenu = GetMenu(hWnd);
 
 	switch (lpttt->hdr.idFrom)
 	{
@@ -1209,7 +1177,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_USER + 17: SetFocus(mainHWND);
 		break;
 	case WM_CREATE:
-		hMenu = GetMenu(hwnd);
+		main_menu = GetMenu(hwnd);
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
 		commandline_start_rom();
@@ -1378,7 +1346,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case IDM_FREEZE_RECENT_LUA:
-				CheckMenuItem(hMenu, IDM_FREEZE_RECENT_LUA,
+				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_LUA,
 				              (Config.is_recent_scripts_frozen ^= 1)
 					              ? MF_CHECKED
 					              : MF_UNCHECKED);
@@ -1397,7 +1365,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (tracelog::active())
 					{
 						tracelog::stop();
-						ModifyMenu(hMenu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Start &Trace Logger...");
+						ModifyMenu(main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Start &Trace Logger...");
 						break;
 					}
 
@@ -1411,7 +1379,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					auto result = MessageBox(mainHWND, "Should the trace log be generated in a binary format?", "Trace Logger", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1);
 
 					tracelog::start(wstring_to_string(path).c_str(), result == IDYES);
-					ModifyMenu(hMenu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Stop &Trace Logger");
+					ModifyMenu(main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Stop &Trace Logger");
 				}
 				break;
 			case IDM_CLOSE_ROM:
@@ -1469,7 +1437,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				vcr_start_playback(Config.recent_movie_paths[0], nullptr, nullptr);
 				break;
 			case IDM_FREEZE_RECENT_MOVIES:
-				CheckMenuItem(hMenu, IDM_FREEZE_RECENT_MOVIES,
+				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_MOVIES,
 				              (Config.is_recent_movie_paths_frozen ^= 1)
 					              ? MF_CHECKED
 					              : MF_UNCHECKED);
@@ -1743,12 +1711,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (err == INIT_SUCCESS)
 					{
 						//SetWindowPos(mainHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);  //Set on top avichg
-						EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_GRAYED);
-						EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET,
+						EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
+						EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
 						               MF_GRAYED);
-						EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
-						EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_ENABLED);
-						EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_GRAYED);
+						EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
+						EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_ENABLED);
+						EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI with FFmpeg");
 					} else
 						printf("Start capture error: %d\n", err);
@@ -1776,12 +1744,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						MessageBox(NULL, "Couldn't start capturing.", "VCR", MB_OK);
 					} else
 					{
-						EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_GRAYED);
-						EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET,
+						EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
+						EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
 						               MF_GRAYED);
-						EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
-						EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_ENABLED);
-						EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_GRAYED);
+						EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
+						EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_ENABLED);
+						EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI");
 					}
 
@@ -1797,10 +1765,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 					             SWP_NOMOVE | SWP_NOSIZE);
-					EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_GRAYED);
-					EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_ENABLED);
-					EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_ENABLED);
-					EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
+					EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_GRAYED);
+					EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_ENABLED);
+					EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_ENABLED);
+					EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
 					statusbar_post_text("Capture stopped");
 				}
 				break;
@@ -1820,7 +1788,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				main_recent_roms_build(1);
 				break;
 			case IDM_FREEZE_RECENT_ROMS:
-				CheckMenuItem(hMenu, IDM_FREEZE_RECENT_ROMS,
+				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS,
 							  (Config.is_recent_rom_paths_frozen ^= 1)
 								  ? MF_CHECKED
 								  : MF_UNCHECKED);
@@ -1832,13 +1800,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				Config.is_toolbar_enabled ^= true;
 				toolbar_set_visibility(Config.is_toolbar_enabled);
 				CheckMenuItem(
-					hMenu, IDM_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
+					main_menu, IDM_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
 			case IDM_STATUSBAR:
 				Config.is_statusbar_enabled ^= true;
 				statusbar_set_visibility(Config.is_statusbar_enabled);
 				CheckMenuItem(
-					hMenu, IDM_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
+					main_menu, IDM_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
 			case IDC_INCREASE_MODIFIER:
 				if (Config.fps_modifier < 50)
@@ -1883,9 +1851,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					// set checked state for only the currently selected save
 					for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
 					{
-						CheckMenuItem(hMenu, i, MF_UNCHECKED);
+						CheckMenuItem(main_menu, i, MF_UNCHECKED);
 					}
-					CheckMenuItem(hMenu, LOWORD(wParam), MF_CHECKED);
+					CheckMenuItem(main_menu, LOWORD(wParam), MF_CHECKED);
 
 				} else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <=
 					ID_SAVE_10)

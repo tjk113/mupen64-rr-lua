@@ -31,7 +31,7 @@ void statusbar_set_mode(const statusbar_mode mode)
 		SendMessage(statusbar_hwnd, SB_SETPARTS,
 		            sizeof(browserwidths) / sizeof(int),
 		            (LPARAM)browserwidths);
-		SendMessage(statusbar_hwnd, SB_SETTEXT, 0, (LPARAM)statusmsg);
+		SendMessage(statusbar_hwnd, SB_SETTEXT, 0, (LPARAM)"");
 		SendMessage(statusbar_hwnd, SB_SETTEXT, 1, (LPARAM)"");
 		break;
 	case statusbar_mode::emulating:
@@ -69,7 +69,7 @@ void statusbar_set_mode(const statusbar_mode mode)
 			parts = 3;
 		}
 
-		SendMessage(statusbar_hwnd, SB_SETTEXT, 0, (LPARAM)statusmsg);
+		SendMessage(statusbar_hwnd, SB_SETTEXT, 0, (LPARAM)"");
 		SendMessage(statusbar_hwnd, SB_SETTEXT, parts - 1, (LPARAM)ROM_HEADER.nom);
 		break;
 	}
