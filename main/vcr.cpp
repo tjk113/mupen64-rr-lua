@@ -142,16 +142,6 @@ static void write_movie_header(FILE* file)
 	fseek(file, 0L, SEEK_END);
 }
 
-char* strtrimext(char* myStr)
-{
-	char* ret_str;
-	if (myStr == nullptr) return nullptr;
-	if ((ret_str = (char*)malloc(strlen(myStr) + 1)) == nullptr) return nullptr;
-	strcpy(ret_str, myStr);
-	if (char* last_ext = strrchr(ret_str, '.'); last_ext != nullptr)
-		*last_ext = '\0';
-	return ret_str;
-}
 
 static void hard_reset_and_clear_all_save_data(const bool clear)
 {
@@ -167,58 +157,28 @@ static void hard_reset_and_clear_all_save_data(const bool clear)
 
 static void set_rom_info(t_movie_header* header)
 {
-	// FIXME
-	switch (ROM_HEADER.Country_code & 0xFF)
-	{
-	case 0x37:
-	case 0x41:
-	case 0x45:
-	case 0x4a:
-	default:
-		header->vis_per_second = 60; // NTSC
-		break;
-	case 0x44:
-	case 0x46:
-	case 0x49:
-	case 0x50:
-	case 0x53:
-	case 0x55:
-	case 0x58:
-	case 0x59:
-		header->vis_per_second = 50; // PAL
-		break;
-	}
-
+	header->vis_per_second = get_vis_per_second(ROM_HEADER.Country_code);
 	header->controller_flags = 0;
 	header->num_controllers = 0;
-	if (Controls[0].Present)
-		header->controller_flags |= CONTROLLER_1_PRESENT, header->num_controllers
-			++;
-	if (Controls[1].Present)
-		header->controller_flags |= CONTROLLER_2_PRESENT, header->num_controllers
-			++;
-	if (Controls[2].Present)
-		header->controller_flags |= CONTROLLER_3_PRESENT, header->num_controllers
-			++;
-	if (Controls[3].Present)
-		header->controller_flags |= CONTROLLER_4_PRESENT, header->num_controllers
-			++;
-	if (Controls[0].Plugin == controller_extension::mempak)
-		header->controller_flags |= CONTROLLER_1_MEMPAK;
-	if (Controls[1].Plugin == controller_extension::mempak)
-		header->controller_flags |= CONTROLLER_2_MEMPAK;
-	if (Controls[2].Plugin == controller_extension::mempak)
-		header->controller_flags |= CONTROLLER_3_MEMPAK;
-	if (Controls[3].Plugin == controller_extension::mempak)
-		header->controller_flags |= CONTROLLER_4_MEMPAK;
-	if (Controls[0].Plugin == controller_extension::rumblepak)
-		header->controller_flags |= CONTROLLER_1_RUMBLE;
-	if (Controls[1].Plugin == controller_extension::rumblepak)
-		header->controller_flags |= CONTROLLER_2_RUMBLE;
-	if (Controls[2].Plugin == controller_extension::rumblepak)
-		header->controller_flags |= CONTROLLER_3_RUMBLE;
-	if (Controls[3].Plugin == controller_extension::rumblepak)
-		header->controller_flags |= CONTROLLER_4_RUMBLE;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		if (Controls[i].Plugin == controller_extension::mempak)
+		{
+			header->controller_flags |= CONTROLLER_X_MEMPAK(i);
+		}
+
+		if (Controls[i].Plugin == controller_extension::rumblepak)
+		{
+			header->controller_flags |= CONTROLLER_X_RUMBLE(i);
+		}
+
+		if (!Controls[i].Present)
+			continue;
+
+		header->controller_flags |= CONTROLLER_X_PRESENT(i);
+		header->num_controllers++;
+	}
 
 	strncpy(header->rom_name, (const char*)ROM_HEADER.nom, 32);
 	header->rom_crc1 = ROM_HEADER.CRC1;
