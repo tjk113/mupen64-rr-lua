@@ -219,7 +219,7 @@ void savestates_save_immediate()
 
 	if (!savestates_job_success)
 	{
-		statusbar_post_text("Failed to save savestate");
+		Statusbar::post("Failed to save savestate");
 		savestates_job_success = FALSE;
 		return;
 	}
@@ -252,7 +252,7 @@ void savestates_save_immediate()
 
 		if (f == nullptr)
 		{
-			statusbar_post_text("Failed to save savestate");
+			Statusbar::post("Failed to save savestate");
 			savestates_job_success = FALSE;
 			return;
 		}
@@ -262,10 +262,10 @@ void savestates_save_immediate()
 
 		if (st_medium == e_st_medium::path)
 		{
-			statusbar_post_text(std::format("Saved {}", new_st_path.filename().string()));
+			Statusbar::post(std::format("Saved {}", new_st_path.filename().string()));
 		} else
 		{
-			statusbar_post_text(std::format("Saved slot {}", st_slot + 1));
+			Statusbar::post(std::format("Saved slot {}", st_slot + 1));
 		}
 	} else
 	{
@@ -385,7 +385,7 @@ void savestates_load_immediate()
 
     if (st_buf.empty())
     {
-    	statusbar_post_text(std::format("{} not found", new_st_path.filename().string()));
+    	Statusbar::post(std::format("{} not found", new_st_path.filename().string()));
         savestates_job_success = FALSE;
         return;
     }
@@ -432,7 +432,7 @@ void savestates_load_immediate()
         // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
         fprintf(stderr, "Snapshot event queue terminator not reached.\n");
         savestates_job_success = FALSE;
-        statusbar_post_text("Event queue too long (corrupted?)");
+        Statusbar::post("Event queue too long (corrupted?)");
         savestates_job_success = FALSE;
         return;
     }
@@ -456,7 +456,7 @@ void savestates_load_immediate()
 
 	    if (code != SUCCESS && !vcr_is_idle())
 	    {
-	    	statusbar_post_text("Loading non-movie savestate. Recording can break");
+	    	Statusbar::post("Loading non-movie savestate. Recording can break");
 
 		    if (!Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed)
 		    {
@@ -506,7 +506,7 @@ void savestates_load_immediate()
 			    savestates_job_success = FALSE;
 			    return;
 		    }
-		    statusbar_post_text("Loading non-movie savestate can desync playback");
+		    Statusbar::post("Loading non-movie savestate can desync playback");
 	    }
 
 	    // at this point we know the savestate is safe to be loaded (done after else block)
@@ -518,11 +518,11 @@ void savestates_load_immediate()
     LuaCallbacks::call_load_state();
 	if (st_medium == e_st_medium::path)
 	{
-		statusbar_post_text(std::format("Loaded {}", new_st_path.filename().string()));
+		Statusbar::post(std::format("Loaded {}", new_st_path.filename().string()));
 	}
 	if (st_medium == e_st_medium::slot)
 	{
-		statusbar_post_text(std::format("Loaded slot {}", st_slot + 1));
+		Statusbar::post(std::format("Loaded slot {}", st_slot + 1));
 	}
 failedLoad:
     extern bool ignore;

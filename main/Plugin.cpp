@@ -306,7 +306,7 @@ void load_gfx(HMODULE handle)
 				dummy_void;
 
 		gfx_info.hWnd = mainHWND;
-		gfx_info.hStatusBar = Config.is_statusbar_enabled ? statusbar_hwnd : nullptr;
+		gfx_info.hStatusBar = Config.is_statusbar_enabled ? Statusbar::hwnd() : nullptr;
 		gfx_info.MemoryBswaped = TRUE;
 		gfx_info.HEADER = rom;
 		gfx_info.RDRAM = (BYTE*)rdram;
@@ -794,8 +794,8 @@ void setup_dummy_info()
 	int i;
 
 	/////// GFX ///////////////////////////
-	dummy_gfx_info.hWnd = statusbar_hwnd;
-	dummy_gfx_info.hStatusBar = statusbar_hwnd;
+	dummy_gfx_info.hWnd = Statusbar::hwnd();
+	dummy_gfx_info.hStatusBar = Statusbar::hwnd();
 	dummy_gfx_info.MemoryBswaped = TRUE;
 	dummy_gfx_info.HEADER = (BYTE*)dummy_header;
 	dummy_gfx_info.RDRAM = (BYTE*)rdram;

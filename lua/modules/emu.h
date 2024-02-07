@@ -351,7 +351,7 @@ namespace LuaCore::Emu
 
 	static int StatusbarWrite(lua_State* L)
 	{
-		statusbar_post_text(std::string(lua_tostring(L, 1)));
+		Statusbar::post(std::string(lua_tostring(L, 1)));
 		return 0;
 	}
 }

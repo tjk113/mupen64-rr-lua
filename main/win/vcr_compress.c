@@ -74,8 +74,8 @@ void get_window_info(HWND hwnd, t_window_info& info)
         GetClientRect(Toolbar::hwnd(), &toolbar_rect);
     info.toolbar_height = toolbar_rect.bottom - toolbar_rect.top;
     
-    if (statusbar_hwnd)
-        GetClientRect(statusbar_hwnd, &statusbar_rect);
+    if (Statusbar::hwnd())
+        GetClientRect(Statusbar::hwnd(), &statusbar_rect);
     info.statusbar_height = statusbar_rect.bottom - statusbar_rect.top;
 
     //subtract size of toolbar and statusbar from buffer dimensions

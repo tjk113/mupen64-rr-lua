@@ -92,7 +92,7 @@ namespace Rombrowser
 		RECT rcl, rtool, rstatus;
 		GetClientRect(mainHWND, &rcl);
 		GetWindowRect(Toolbar::hwnd(), &rtool);
-		GetWindowRect(statusbar_hwnd, &rstatus);
+		GetWindowRect(Statusbar::hwnd(), &rstatus);
 
 		rombrowser_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
 		                                 WS_TABSTOP | WS_VISIBLE | WS_CHILD |
@@ -330,9 +330,9 @@ namespace Rombrowser
 		GetClientRect(mainHWND, &rc_main);
 		n_width = rc_main.right - rc_main.left;
 		n_height = rc_main.bottom - rc_main.top;
-		if (statusbar_hwnd)
+		if (Statusbar::hwnd())
 		{
-			GetWindowRect(statusbar_hwnd, &rc);
+			GetWindowRect(Statusbar::hwnd(), &rc);
 			n_height -= (WORD)(rc.bottom - rc.top);
 		}
 		if (Toolbar::hwnd())

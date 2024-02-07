@@ -1021,8 +1021,8 @@ vcr_stop_record()
 		printf("[VCR]: Record stopped. Recorded %ld input samples\n",
 		       m_header.length_samples);
 
-		statusbar_post_text("", 1);
-		statusbar_post_text("Stopped recording");
+		Statusbar::post("", 1);
+		Statusbar::post("Stopped recording");
 
 		ret_val = 0;
 	}
@@ -1065,7 +1065,7 @@ vcr_start_playback(const std::string &filename, const char* author_utf8,
 	auto result = start_playback(filename.c_str(), author_utf8, description_utf8);
 	if (result <= 0)
 	{
-		statusbar_post_text("Playback started");
+		Statusbar::post("Playback started");
 	}
 	return result;
 }
@@ -1295,8 +1295,8 @@ static int stop_playback(const bool bypass_loop_setting)
 		printf("[VCR]: Playback stopped (%ld samples played)\n",
 		       m_current_sample);
 
-		statusbar_post_text("", 1);
-		statusbar_post_text("Stopped playback");
+		Statusbar::post("", 1);
+		Statusbar::post("Stopped playback");
 
 		if (m_input_buffer)
 		{
@@ -1756,7 +1756,7 @@ vcr_toggle_read_only()
 	}
 	vcr_set_read_only(!m_read_only);
 
-	statusbar_post_text(m_read_only ? "Read" : "Read-write");
+	Statusbar::post(m_read_only ? "Read" : "Read-write");
 }
 
 int vcr_stop_capture()
@@ -1855,19 +1855,19 @@ void vcr_update_statusbar()
 	if (vcr_is_recording())
 	{
 		std::string text = std::format("{} ({}) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
-		statusbar_post_text(text + input_string);
-		statusbar_post_text(std::format("{} rr", m_header.rerecord_count), 1);
+		Statusbar::post(text + input_string);
+		Statusbar::post(std::format("{} rr", m_header.rerecord_count), 1);
 	}
 
 	if (vcr_is_playing())
 	{
 		std::string text = std::format("{} / {} ({} / {}) ", m_current_vi - index_adjustment, vcr_get_length_v_is(), m_current_sample - index_adjustment, vcr_get_length_samples());
-		statusbar_post_text(text + input_string);
+		Statusbar::post(text + input_string);
 	}
 
 	if (!vcr_is_active())
 	{
-		statusbar_post_text(input_string);
+		Statusbar::post(input_string);
 	}
 }
 

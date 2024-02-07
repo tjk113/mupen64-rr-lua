@@ -30,6 +30,11 @@ namespace Messenger
 		ToolbarVisibilityChanged,
 
 		/**
+		 * \brief The statusbar visibility has changed
+		 */
+		StatusbarVisibilityChanged,
+
+		/**
 		 * \brief The main window size changed
 		 */
 		SizeChanged,

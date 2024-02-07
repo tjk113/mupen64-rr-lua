@@ -258,7 +258,7 @@ void set_is_movie_loop_enabled(bool value)
 									  : MFS_UNCHECKED));
 
 	if (emu_launched)
-		statusbar_post_text(Config.is_movie_loop_enabled
+		Statusbar::post(Config.is_movie_loop_enabled
 								 ? "Movies restart after ending"
 								 : "Movies stop after ending");
 }
@@ -274,8 +274,6 @@ static void gui_ChangeWindow()
 		changeWindow();
 		ShowCursor(TRUE);
 	}
-
-	statusbar_set_visibility(!FullScreenMode);
 }
 
 void resumeEmu(BOOL quiet)
@@ -286,7 +284,7 @@ void resumeEmu(BOOL quiet)
 		emu_paused = 0;
 		ResumeThread(sound_thread_handle);
 		if (!quiet)
-			statusbar_post_text("Emulation started");
+			Statusbar::post("Emulation started");
 	}
 
 	// toolbar_on_emu_launched_changed(emu_launched, 1);
@@ -310,7 +308,7 @@ void pauseEmu(BOOL quiet)
 			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
 			SuspendThread(sound_thread_handle);
 		if (!quiet)
-			statusbar_post_text("Emulation paused");
+			Statusbar::post("Emulation paused");
 	} else
 	{
 		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
@@ -366,7 +364,6 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 
 	// notify ui of emu state change
 	main_recent_roms_add(rom_path_local);
-	statusbar_set_mode(statusbar_mode::emulating);
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 	on_speed_modifier_changed(Config.fps_modifier);
@@ -414,7 +411,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			else {
 				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 							 SWP_NOMOVE | SWP_NOSIZE);
-				statusbar_post_text("Stopped AVI capture");
+				Statusbar::post("Stopped AVI capture");
 			}
 		}
 
@@ -451,7 +448,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		if (m_task == e_task::idle) {
 			SetWindowText(mainHWND, MUPEN_VERSION);
 			// TODO: look into why this is done
-			statusbar_post_text(" ", 1);
+			Statusbar::post(" ", 1);
 		}
 
 		if (shut_window) {
@@ -459,8 +456,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			return 0;
 		}
 
-		statusbar_set_mode(statusbar_mode::rombrowser);
-		statusbar_post_text("Emulation stopped");
+		Statusbar::post("Emulation stopped");
 
 		if (really_restart_mode) {
 			if (clear_sram_on_restart_mode) {
@@ -1023,7 +1019,7 @@ void update_titlebar()
 
 void on_speed_modifier_changed(int32_t value)
 {
-	statusbar_post_text(std::format("Speed limit: {}%", Config.fps_modifier));
+	Statusbar::post(std::format("Speed limit: {}%", Config.fps_modifier));
 }
 
 void ProcessToolTips(LPARAM lParam, HWND hWnd)
@@ -1210,7 +1206,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if (!FullScreenMode)
 			{
 				SendMessage(Toolbar::hwnd(), TB_AUTOSIZE, 0, 0);
-				SendMessage(statusbar_hwnd, WM_SIZE, 0, 0);
+				SendMessage(Statusbar::hwnd(), WM_SIZE, 0, 0);
 			}
 			RECT rect{};
 			GetClientRect(mainHWND, &rect);
@@ -1266,7 +1262,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					{
 						fps += (frame_times[i] - frame_times[i - 1]).count();
 					}
-					statusbar_post_text(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / frame_times.size()) / 1'000'000.0f)), 2);
+					Statusbar::post(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / frame_times.size()) / 1'000'000.0f)), 2);
 				}
 				if (Config.show_vis_per_second && !vi_times.empty())
 				{
@@ -1275,7 +1271,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					{
 						vis += (vi_times[i] - vi_times[i - 1]).count();
 					}
-					statusbar_post_text(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / vi_times.size()) / 1'000'000.0f)), 3);
+					Statusbar::post(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / vi_times.size()) / 1'000'000.0f)), 3);
 				}
 				last_statusbar_update = time;
 			}
@@ -1509,7 +1505,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					scheduled_restart = true;
 					continue_vcr_on_restart_mode = true;
-					statusbar_post_text("Writing restart to movie");
+					Statusbar::post("Writing restart to movie");
 					break;
 				}
 				resetEmu();
@@ -1668,7 +1664,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					Config.last_movie_author = result.author;
 
-					statusbar_post_text("Recording replay");
+					Statusbar::post("Recording replay");
 				}
 				break;
 			case IDM_STOP_MOVIE_RECORDING:
@@ -1680,7 +1676,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 				ClearButtons();
-				statusbar_post_text("Recording stopped");
+				Statusbar::post("Recording stopped");
 				break;
 			case IDM_START_MOVIE_PLAYBACK:
 				{
@@ -1732,7 +1728,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					else
 					{
 						ClearButtons();
-						statusbar_post_text("Playback stopped");
+						Statusbar::post("Playback stopped");
 					}
 				}
 				break;
@@ -1744,7 +1740,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						"-pixel_format yuv420p -loglevel debug -y");
 					if (err == INIT_SUCCESS)
 					{
-						statusbar_post_text("Recording AVI with FFmpeg");
+						Statusbar::post("Recording AVI with FFmpeg");
 					} else
 						printf("Start capture error: %d\n", err);
 					break;
@@ -1765,7 +1761,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					// pass false to startCapture when "last preset" option was choosen
 					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == IDM_START_CAPTURE) >= 0)
 					{
-						statusbar_post_text("Recording AVI");
+						Statusbar::post("Recording AVI");
 					}
 				}
 
@@ -1776,7 +1772,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				else
 				{
 
-					statusbar_post_text("Capture stopped");
+					Statusbar::post("Capture stopped");
 				}
 				break;
 			case IDM_SCREENSHOT: // take/capture a screenshot
@@ -1811,7 +1807,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_STATUSBAR:
 				Config.is_statusbar_enabled ^= true;
-				statusbar_set_visibility(Config.is_statusbar_enabled);
+				Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
 				CheckMenuItem(
 					main_menu, IDM_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
@@ -1884,14 +1880,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					if (vcr_recent_movies_play(LOWORD(wParam)) != SUCCESS)
 					{
-						statusbar_post_text("Couldn't load movie");
+						Statusbar::post("Couldn't load movie");
 						break;
 					}
 
 					if (!emu_paused || !emu_launched)
-						statusbar_post_text("Playback started");
+						Statusbar::post("Playback started");
 					else
-						statusbar_post_text("Playback started while paused");
+						Statusbar::post("Playback started while paused");
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
 				{
@@ -2017,9 +2013,9 @@ int WINAPI WinMain(
 	// Rombrowser needs to be initialized *after* toolbar, since it depends on its state smh bru
 	Toolbar::init();
 	Rombrowser::init();
+	Statusbar::init();
 
 	update_menu_hotkey_labels();
-	statusbar_set_visibility(Config.is_statusbar_enabled);
 
 	set_is_movie_loop_enabled(Config.is_movie_loop_enabled);
 
@@ -2028,9 +2024,12 @@ int WINAPI WinMain(
 	main_recent_roms_build();
 
 	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
+	Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 	Messenger::broadcast(Messenger::Message::SizeChanged, rect);
+
+	Rombrowser::build();
 
 	//warning, this is ignored when debugger is attached (like visual studio)
 	SetUnhandledExceptionFilter(ExceptionReleaseTarget);

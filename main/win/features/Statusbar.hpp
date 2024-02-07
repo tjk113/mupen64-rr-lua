@@ -4,28 +4,23 @@
 #include <string>
 #include <Windows.h>
 
-enum class statusbar_mode
+namespace Statusbar
 {
-	rombrowser,
-	emulating,
-};
+	/**
+	 * \brief Gets the statusbar handle
+	 */
+	HWND hwnd();
 
-extern HWND statusbar_hwnd;
+	/**
+	 * \brief Initializes the statusbar
+	 */
+	void init();
 
-/**
- * \brief Sets the statusbar's visibility
- * \param is_visible Whether the toolbar is visible
- */
-void statusbar_set_visibility(int32_t is_visible);
+	/**
+ 	* \brief Shows text in the statusbar
+ 	* \param text The text to be displayed
+ 	* \param section The statusbar section to display the text in
+ 	*/
+	void post(const std::string& text, int32_t section = 0);
+}
 
-/**
- * \brief Shows text in the statusbar
- * \param text The text to be displayed
- * \param section The statusbar section to display the text in
- */
-void statusbar_post_text(const std::string& text, int32_t section = 0);
-
-/**
- * \brief Sets the statusbar's mode
- */
-void statusbar_set_mode(statusbar_mode mode);
