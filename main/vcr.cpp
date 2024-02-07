@@ -604,7 +604,6 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		if (last_task == e_task::playback)
 			set_rom_info(&m_header);
 
-		enable_emulation_menu_items(TRUE);
 		m_current_sample = (long)current_sample;
 		m_header.length_samples = current_sample;
 		m_current_vi = (int)current_vi;
@@ -632,8 +631,6 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 
 		m_task = e_task::playback;
 		flush_movie();
-
-		enable_emulation_menu_items(TRUE);
 
 		m_current_sample = (long)current_sample;
 		m_current_vi = (int)current_vi;
@@ -687,7 +684,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 				m_current_vi = 0;
 				m_task = e_task::recording;
 				*input = {0};
-				EnableMenuItem(GetMenu(mainHWND), IDM_STOP_MOVIE_RECORDING, MF_ENABLED);
 			} else
 			{
 				printf("[VCR]: Starting recording...\n");
@@ -1025,8 +1021,6 @@ vcr_stop_record()
 		printf("[VCR]: Record stopped. Recorded %ld input samples\n",
 		       m_header.length_samples);
 
-		enable_emulation_menu_items(TRUE);
-
 		statusbar_post_text("", 1);
 		statusbar_post_text("Stopped recording");
 
@@ -1071,10 +1065,6 @@ vcr_start_playback(const std::string &filename, const char* author_utf8,
 	auto result = start_playback(filename.c_str(), author_utf8, description_utf8);
 	if (result <= 0)
 	{
-		HMENU hmenu = GetMenu(mainHWND);
-		EnableMenuItem(hmenu, IDM_STOP_MOVIE_RECORDING, MF_DISABLED);
-		EnableMenuItem(hmenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
-
 		statusbar_post_text("Playback started");
 	}
 	return result;
@@ -1304,9 +1294,6 @@ static int stop_playback(const bool bypass_loop_setting)
 		m_task = e_task::idle;
 		printf("[VCR]: Playback stopped (%ld samples played)\n",
 		       m_current_sample);
-
-		extern void enable_emulation_menu_items(BOOL flag);
-		enable_emulation_menu_items(TRUE);
 
 		statusbar_post_text("", 1);
 		statusbar_post_text("Stopped playback");
@@ -1704,7 +1691,7 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 
 	// toolbar could get captured in AVI, so we disable it
 	toolbar_set_visibility(0);
-	enable_emulation_menu_items(TRUE);
+
 	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
 	// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
 	SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);

@@ -140,6 +140,53 @@ public:
 	}
 };
 
+void on_emu_launched_changed(bool value)
+{
+	HMENU hMenu = GetMenu(mainHWND);
+
+	EnableMenuItem(hMenu, IDM_STATUSBAR, !value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_TOOLBAR, !value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_AUDIT_ROMS, !value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_REFRESH_ROMBROWSER, !value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_RESET_ROM, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_SCREENSHOT, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_LOAD_STATE_AS, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_LOAD_SLOT, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_SAVE_STATE_AS, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_SAVE_SLOT, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_FULLSCREEN, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_FRAMEADVANCE, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_PAUSE, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, EMU_PLAY, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_CLOSE_ROM, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_TRACELOG, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, IDM_PLAY_LATEST_MOVIE, value ? MF_ENABLED : MF_GRAYED);
+
+	if (Config.is_toolbar_enabled) CheckMenuItem(
+		hMenu, IDM_TOOLBAR, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(hMenu, IDM_TOOLBAR, MF_BYCOMMAND | MF_UNCHECKED);
+	if (Config.is_statusbar_enabled) CheckMenuItem(
+		hMenu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(hMenu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
+	if (Config.is_movie_loop_enabled) CheckMenuItem(
+		hMenu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_CHECKED);
+	else CheckMenuItem(hMenu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_UNCHECKED);
+	if (Config.is_recent_movie_paths_frozen) CheckMenuItem(
+		hMenu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
+	if (Config.is_recent_scripts_frozen) CheckMenuItem(
+		hMenu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
+	if (Config.is_recent_rom_paths_frozen) CheckMenuItem(
+		hMenu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
+
+	toolbar_on_emu_state_changed(value, value);
+}
+
 void main_dispatcher_invoke(const std::function<void()>& func) {
 	dispatcher_queue.push_back(func);
 	SendMessage(mainHWND, WM_EXECUTE_DISPATCHER, 0, 0);
@@ -299,7 +346,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	main_recent_roms_add(rom_path_local);
 	rombrowser_set_visibility(0);
 	statusbar_set_mode(statusbar_mode::emulating);
-	enable_emulation_menu_items(TRUE);
+	on_emu_launched_changed(true);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 	on_speed_modifier_changed(Config.fps_modifier);
 
@@ -377,7 +424,7 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 		free_memory();
 
-		enable_emulation_menu_items(FALSE);
+		on_emu_launched_changed(false);
 		rombrowser_set_visibility(!really_restart_mode);
 		toolbar_on_emu_state_changed(0, 0);
 
@@ -787,108 +834,6 @@ refresh:
 }
 
 
-void enable_emulation_menu_items(BOOL emulationRunning)
-{
-	HMENU hMenu = GetMenu(mainHWND);
-
-	if (emulationRunning)
-	{
-		EnableMenuItem(hMenu, IDM_CLOSE_ROM, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_PAUSE, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_FRAMEADVANCE, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_LOAD_LATEST_ROM, MF_ENABLED);
-		EnableMenuItem(hMenu, EMU_PLAY, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_SAVE_SLOT, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_SAVE_STATE_AS, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_LOAD_SLOT, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_LOAD_STATE_AS, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_SCREENSHOT, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_RESET_ROM, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_REFRESH_ROMBROWSER, MF_GRAYED);
-		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_DISABLED);
-		EnableMenuItem(hMenu, IDM_TOOLBAR, MF_DISABLED);
-		EnableMenuItem(hMenu, IDM_STATUSBAR, MF_DISABLED);
-		EnableMenuItem(hMenu, IDM_TRACELOG, dynacore ? MF_DISABLED : MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_COREDBG, Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
-
-		if (!continue_vcr_on_restart_mode)
-		{
-			EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, MF_ENABLED);
-			EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING,
-			               vcr_is_recording() ? MF_ENABLED : MF_GRAYED);
-			EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, MF_ENABLED);
-			EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK,
-			               (vcr_is_playing())
-				               ? MF_ENABLED
-				               : MF_GRAYED);
-			EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_ENABLED);
-			EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
-			EnableMenuItem(hMenu, IDM_STOP_CAPTURE,
-			               vcr_is_capturing() ? MF_ENABLED : MF_GRAYED);
-		}
-
-		toolbar_on_emu_state_changed(1, 1);
-	} else
-	{
-		EnableMenuItem(hMenu, IDM_CLOSE_ROM, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_LOAD_ROM, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_PAUSE, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_FRAMEADVANCE, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_LOAD_LATEST_ROM, MF_GRAYED);
-		EnableMenuItem(hMenu, EMU_PLAY, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_SAVE_SLOT, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_SAVE_STATE_AS, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_LOAD_SLOT, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_LOAD_STATE_AS, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_SCREENSHOT, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_RESET_ROM, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_REFRESH_ROMBROWSER, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_TRACELOG, MF_DISABLED);
-		EnableMenuItem(hMenu, ID_AUDIT_ROMS, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
-		EnableMenuItem(hMenu, IDM_TOOLBAR, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_STATUSBAR, MF_ENABLED);
-		EnableMenuItem(hMenu, IDM_COREDBG, MF_GRAYED);
-
-		if (!continue_vcr_on_restart_mode)
-		{
-			EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, MF_GRAYED);
-			EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
-			EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, MF_GRAYED);
-			EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
-			EnableMenuItem(hMenu, IDM_START_CAPTURE, MF_GRAYED);
-			EnableMenuItem(hMenu, IDM_START_CAPTURE_PRESET, MF_GRAYED);
-			EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_GRAYED);
-			LONG winstyle;
-			winstyle = GetWindowLong(mainHWND, GWL_STYLE);
-			winstyle |= WS_MAXIMIZEBOX;
-			SetWindowLong(mainHWND, GWL_STYLE, winstyle);
-			SetWindowPos(mainHWND, HWND_NOTOPMOST, 0, 0, 0, 0,
-			             SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-			//Set on top
-		}
-		toolbar_on_emu_state_changed(0, 0);
-	}
-
-	if (Config.is_toolbar_enabled) CheckMenuItem(
-		hMenu, IDM_TOOLBAR, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, IDM_TOOLBAR, MF_BYCOMMAND | MF_UNCHECKED);
-	if (Config.is_statusbar_enabled) CheckMenuItem(
-		hMenu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
-	if (Config.is_movie_loop_enabled) CheckMenuItem(
-		hMenu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(hMenu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_UNCHECKED);
-	if (Config.is_recent_movie_paths_frozen) CheckMenuItem(
-		hMenu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
-	if (Config.is_recent_scripts_frozen) CheckMenuItem(
-		hMenu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
-	if (Config.is_recent_rom_paths_frozen) CheckMenuItem(
-		hMenu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
-}
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
 {
@@ -1721,10 +1666,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					Config.last_movie_author = result.author;
 
-					EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING,
-					               MF_ENABLED);
-					EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK,
-					               MF_GRAYED);
 					statusbar_post_text("Recording replay");
 				}
 				break;
@@ -1737,8 +1678,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 				ClearButtons();
-				EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
-				EnableMenuItem(hMenu, IDM_START_MOVIE_RECORDING, MF_ENABLED);
 				statusbar_post_text("Recording stopped");
 				break;
 			case IDM_START_MOVIE_PLAYBACK:
@@ -1791,8 +1730,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					else
 					{
 						ClearButtons();
-						EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
-						EnableMenuItem(hMenu, IDM_START_MOVIE_PLAYBACK, MF_ENABLED);
 						statusbar_post_text("Playback stopped");
 					}
 				}
@@ -1813,7 +1750,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_ENABLED);
 						EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI with FFmpeg");
-						enable_emulation_menu_items(TRUE);
 					} else
 						printf("Start capture error: %d\n", err);
 					break;
@@ -1847,7 +1783,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						EnableMenuItem(hMenu, IDM_STOP_CAPTURE, MF_ENABLED);
 						EnableMenuItem(hMenu, IDM_FULLSCREEN, MF_GRAYED);
 						statusbar_post_text("Recording AVI");
-						enable_emulation_menu_items(TRUE);
 					}
 
 					if (emu_launched && emu_paused && !wasPaused)
@@ -1977,10 +1912,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						statusbar_post_text("Couldn't load movie");
 						break;
 					}
-					// should probably make this code from the IDM_PLAY_LATEST_MOVIE case into a function on its own
-					// because now it's used here too
-					EnableMenuItem(hMenu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
-					EnableMenuItem(hMenu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
 
 					if (!emu_paused || !emu_launched)
 						statusbar_post_text("Playback started");
@@ -2117,7 +2048,7 @@ int WINAPI WinMain(
 	lua_recent_scripts_build();
 	main_recent_roms_build();
 
-	enable_emulation_menu_items(0);
+	on_emu_launched_changed(false);
 
 	//warning, this is ignored when debugger is attached (like visual studio)
 	SetUnhandledExceptionFilter(ExceptionReleaseTarget);
