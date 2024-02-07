@@ -1692,10 +1692,6 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 	// toolbar could get captured in AVI, so we disable it
 	toolbar_set_visibility(0);
 
-	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
-	// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
-	SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
-
 	if (!was_paused || (m_task == e_task::playback || m_task == e_task::start_playback || m_task
 		== e_task::start_playback_from_snapshot))
 	{
@@ -1803,9 +1799,7 @@ int vcr_stop_capture()
 	{
 		update_titlebar();
 	}
-	SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
-	// we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
-	SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+
 
 	VCRComp_finishFile(0);
 	avi_increment = 0;

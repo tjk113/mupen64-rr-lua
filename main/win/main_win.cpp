@@ -118,8 +118,19 @@ public:
 	}
 };
 
+#pragma region Change notifications
 void on_emu_launched_changed(bool value)
 {
+	if (value)
+	{
+		SetWindowLong(mainHWND, GWL_STYLE,
+					  GetWindowLong(mainHWND, GWL_STYLE) & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
+	} else
+	{
+		SetWindowLong(mainHWND, GWL_STYLE,
+			  GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME | WS_MAXIMIZEBOX);
+	}
+
 	EnableMenuItem(main_menu, IDM_STATUSBAR, !value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_TOOLBAR, !value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, value ? MF_ENABLED : MF_GRAYED);
@@ -162,6 +173,26 @@ void on_emu_launched_changed(bool value)
 
 	toolbar_on_emu_state_changed(value, value);
 }
+
+void on_capturing_changed(bool value)
+{
+	if (value)
+	{
+		// toolbar could get captured in AVI, so we disable it
+		toolbar_set_visibility(0);
+
+		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
+		// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
+		SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
+	} else
+	{
+		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
+        // we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
+        SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+	}
+}
+
+#pragma endregion
 
 void main_dispatcher_invoke(const std::function<void()>& func) {
 	dispatcher_queue.push_back(func);
@@ -310,11 +341,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 		unload_plugins();
 		return 0;
 	}
-	// at this point, we're set to begin emulating and can't backtrack
-	// disallow window resizing
-	LONG style = GetWindowLong(mainHWND, GWL_STYLE);
-	SetWindowLong(mainHWND, GWL_STYLE,
-				  style & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
+
 	// TODO: investigate wtf this is
 	strcpy(LastSelectedRom, rom_path_local);
 
@@ -417,9 +444,6 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 
 		statusbar_set_mode(statusbar_mode::rombrowser);
 		statusbar_post_text("Emulation stopped");
-
-		SetWindowLong(mainHWND, GWL_STYLE,
-					  GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME);
 
 		if (really_restart_mode) {
 			if (clear_sram_on_restart_mode) {
@@ -2017,6 +2041,7 @@ int WINAPI WinMain(
 	main_recent_roms_build();
 
 	on_emu_launched_changed(false);
+	on_capturing_changed(false);
 
 	//warning, this is ignored when debugger is attached (like visual studio)
 	SetUnhandledExceptionFilter(ExceptionReleaseTarget);
