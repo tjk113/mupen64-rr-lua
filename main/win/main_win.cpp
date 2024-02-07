@@ -159,13 +159,12 @@ void on_emu_launched_changed(std::any data)
 	// toolbar_on_emu_launched_changed(value, value);
 }
 
-void on_capturing_changed(bool value)
+void on_capturing_changed(std::any data)
 {
+	auto value = std::any_cast<bool>(data);
+
 	if (value)
 	{
-		// toolbar could get captured in AVI, so we disable it
-		// toolbar_set_visibility(0);
-
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
 		// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
 		SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
@@ -178,9 +177,6 @@ void on_capturing_changed(bool value)
 		EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 	} else
 	{
-		// re-enable the toolbar
-		// toolbar_set_visibility(Config.is_toolbar_enabled);
-
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
         // we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
         SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) & ~WS_EX_LAYERED);
@@ -1978,6 +1974,7 @@ int WINAPI WinMain(
 
 	Messenger::init();
 	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
+	Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
 	load_config();
 	lua_init();
 	vcr_init(on_task_changed);
@@ -2027,7 +2024,7 @@ int WINAPI WinMain(
 	main_recent_roms_build();
 
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
-	on_capturing_changed(false);
+	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 
 	//warning, this is ignored when debugger is attached (like visual studio)
 	SetUnhandledExceptionFilter(ExceptionReleaseTarget);

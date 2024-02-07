@@ -52,6 +52,7 @@
 #endif
 
 #include "LuaCallbacks.h"
+#include "messenger.h"
 #include "../memory/pif.h"
 
 // M64\0x1a
@@ -1681,7 +1682,7 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 	strncpy(avi_file_name, path, PATH_MAX);
 	Config.avi_capture_path = path;
 
-	on_capturing_changed(true);
+	Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
 	printf("[VCR]: Starting capture...\n");
 
@@ -1721,7 +1722,7 @@ int vcr_start_f_fmpeg_capture(const std::string& output_name,
 	{
 		m_capture = 1;
 		capture_with_f_fmpeg = 1;
-		on_capturing_changed(true);
+		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 	}
 #ifdef _DEBUG
 	if (err == INIT_SUCCESS)
@@ -1736,7 +1737,8 @@ void vcr_stop_f_fmpeg_capture()
 {
 	if (capture_manager == nullptr) return; // no error code but its no big deal
 	m_capture = 0;
-	on_capturing_changed(false);
+	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
+
 	//this must be first in case object is being destroyed and other thread still sees m_capture=1
 	capture_manager.reset();
 	//apparently closing the pipes is enough to tell ffmpeg the movie ended.
@@ -1768,7 +1770,8 @@ int vcr_stop_capture()
 	m_capture = 0;
 	write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
-	on_capturing_changed(false);
+	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
+
 
 	SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	if (vcr_is_playing())

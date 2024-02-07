@@ -13,6 +13,11 @@ namespace Messenger
 		 * \brief The emulator launched state has changed
 		 */
 		EmuLaunchedChanged,
+
+		/**
+		 * \brief The video capturing state has changed
+		 */
+		CapturingChanged,
 	};
 
 	/**

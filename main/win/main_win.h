@@ -76,13 +76,6 @@ void update_titlebar();
 void on_speed_modifier_changed(int32_t value);
 
 /**
- * \brief Notifies the frontend of capturing state changing
- * \param value The new capturing state
- */
-void on_capturing_changed(bool value);
-
-
-/**
  * \brief Pauses the emulation during the object's lifetime, resuming it if previously paused upon being destroyed
  */
 struct BetterEmulationLock
