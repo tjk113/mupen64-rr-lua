@@ -1983,7 +1983,6 @@ int WINAPI WinMain(
 	vcr_init(on_task_changed);
 
 	WNDCLASSEX wc = {0};
-	HWND hwnd;
 	MSG msg;
 
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -2000,7 +1999,7 @@ int WINAPI WinMain(
 
 	HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
 
-	hwnd = CreateWindowEx(
+	mainHWND = CreateWindowEx(
 		0,
 		g_szClassName,
 		MUPEN_VERSION,
@@ -2009,12 +2008,10 @@ int WINAPI WinMain(
 		Config.window_height,
 		NULL, NULL, hInstance, NULL);
 
-	mainHWND = hwnd;
-	ShowWindow(hwnd, nCmdShow);
+	ShowWindow(mainHWND, nCmdShow);
 
-	// This fixes offscreen recording issue
-	SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 	//this can't be applied before ShowWindow(), otherwise you must use some fancy function
+	SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 
 	update_menu_hotkey_labels();
 	// toolbar_set_visibility(Config.is_toolbar_enabled);
@@ -2082,7 +2079,7 @@ int WINAPI WinMain(
 						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
 						hotkey->alt)
 				{
-					SendMessage(hwnd, WM_COMMAND, hotkey->command,
+					SendMessage(mainHWND, WM_COMMAND, hotkey->command,
 								0);
 				}
 
