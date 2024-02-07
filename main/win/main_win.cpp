@@ -366,7 +366,6 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 
 	// notify ui of emu state change
 	main_recent_roms_add(rom_path_local);
-	rombrowser_set_visibility(0);
 	statusbar_set_mode(statusbar_mode::emulating);
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
@@ -447,7 +446,6 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		free_memory();
 
 		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
-		rombrowser_set_visibility(!really_restart_mode);
 		// toolbar_on_emu_launched_changed(0, 0);
 
 		if (m_task == e_task::idle) {
@@ -1183,7 +1181,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (wParam == IDC_ROMLIST)
 			{
-				rombrowser_notify(lParam);
+				Rombrowser::notify(lParam);
 			}
 			switch ((l_header)->code)
 			{
@@ -1214,7 +1212,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				SendMessage(Toolbar::hwnd(), TB_AUTOSIZE, 0, 0);
 				SendMessage(statusbar_hwnd, WM_SIZE, 0, 0);
 			}
-			rombrowser_update_size();
+			RECT rect{};
+			GetClientRect(mainHWND, &rect);
+			Messenger::broadcast(Messenger::Message::SizeChanged, rect);
 			break;
 		}
 	case WM_USER + 17: SetFocus(mainHWND);
@@ -1601,7 +1601,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_REFRESH_ROMBROWSER:
 				if (!emu_launched)
 				{
-					rombrowser_build();
+					Rombrowser::build();
 				}
 				break;
 			case IDM_SAVE_SLOT:
@@ -1994,6 +1994,8 @@ int WINAPI WinMain(
 
 	HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
 
+	Messenger::init();
+
 	mainHWND = CreateWindowEx(
 		0,
 		g_szClassName,
@@ -2004,29 +2006,31 @@ int WINAPI WinMain(
 		NULL, NULL, hInstance, NULL);
 
 	ShowWindow(mainHWND, nCmdShow);
-
-	//this can't be applied before ShowWindow(), otherwise you must use some fancy function
 	SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 
-	Messenger::init();
-	Toolbar::init();
+	RECT rect{};
+	GetClientRect(mainHWND, &rect);
+
 	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
 	Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
 
+	// Rombrowser needs to be initialized *after* toolbar, since it depends on its state smh bru
+	Toolbar::init();
+	Rombrowser::init();
+
 	update_menu_hotkey_labels();
-	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 	statusbar_set_visibility(Config.is_statusbar_enabled);
-	rombrowser_create();
-	rombrowser_build();
-	rombrowser_update_size();
+
 	set_is_movie_loop_enabled(Config.is_movie_loop_enabled);
 
 	vcr_recent_movies_build();
 	lua_recent_scripts_build();
 	main_recent_roms_build();
 
+	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
+	Messenger::broadcast(Messenger::Message::SizeChanged, rect);
 
 	//warning, this is ignored when debugger is attached (like visual studio)
 	SetUnhandledExceptionFilter(ExceptionReleaseTarget);

@@ -100,6 +100,4 @@ void statusbar_set_visibility(int32_t is_visible)
 	{
 		statusbar_create();
 	}
-
-	rombrowser_update_size();
 }

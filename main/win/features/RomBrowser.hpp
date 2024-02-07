@@ -19,36 +19,21 @@
 #include <Windows.h>
 #include "rom.h"
 
-using t_rombrowser_entry = struct s_rombrowser_entry
+namespace Rombrowser
 {
-	std::string path;
-	size_t size;
-	t_rom_header rom_header;
-};
+	/**
+	 * \brief Initializes the rombrowser
+	 */
+	void init();
 
-/**
- * \brief Creates the rombrowser control
- */
-void rombrowser_create();
+	/**
+	 * \brief Builds the rombrowser contents
+	 */
+	void build();
 
-/**
- * \brief Deletes and rebuilds the rombrowser contents
- */
-void rombrowser_build();
-
-/**
- * \brief Sets the rombrowser's visibility
- * \param is_visible Whether the rombrowser should be visible
- */
-void rombrowser_set_visibility(int32_t is_visible);
-
-/**
- * \brief Updates the rombrowser control's size
- */
-void rombrowser_update_size();
-
-/**
- * \brief Notifies the rombrowser of a parent receiving the WM_NOTIFY message
- * \param lparam The lparam value associated with the current message processing pass
- */
-void rombrowser_notify(LPARAM lparam);
+	/**
+ 	* \brief Notifies the rombrowser of a parent receiving the WM_NOTIFY message
+ 	* \param lparam The lparam value associated with the current message processing pass
+ 	*/
+	void notify(LPARAM lparam);
+}

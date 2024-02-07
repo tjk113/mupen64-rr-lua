@@ -28,6 +28,11 @@ namespace Messenger
 		 * \brief The toolbar visibility has changed
 		 */
 		ToolbarVisibilityChanged,
+
+		/**
+		 * \brief The main window size changed
+		 */
+		SizeChanged,
 	};
 
 	/**

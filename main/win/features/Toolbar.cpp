@@ -101,8 +101,6 @@ namespace Toolbar
 		{
 			toolbar_create();
 		}
-
-		rombrowser_update_size();
 	}
 
 	void emu_launched_changed(std::any data)

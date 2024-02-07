@@ -638,8 +638,6 @@ BOOL CALLBACK advanced_settings_proc(const HWND hwnd, const UINT message, WPARAM
             Config.is_internal_capture_forced = get_checkbox_state(hwnd, IDC_FORCEINTERNAL);
             Config.is_capture_cropped_screen_dc = get_checkbox_state(hwnd, IDC_CAPTUREOTHER);
             Config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, nullptr, 0);
-
-            rombrowser_build();
         }
         break;
 
@@ -836,7 +834,7 @@ void configdialog_show()
     }
 
     save_config();
-    rombrowser_build();
+    Rombrowser::build();
     update_menu_hotkey_labels();
 }
 
