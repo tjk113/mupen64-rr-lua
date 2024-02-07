@@ -70,8 +70,8 @@ void get_window_info(HWND hwnd, t_window_info& info)
     info.width = client_rect.right - client_rect.left;
     info.height = client_rect.bottom - client_rect.top;
 
-    if (toolbar_hwnd)
-        GetClientRect(toolbar_hwnd, &toolbar_rect);
+    if (Toolbar::hwnd())
+        GetClientRect(Toolbar::hwnd(), &toolbar_rect);
     info.toolbar_height = toolbar_rect.bottom - toolbar_rect.top;
     
     if (statusbar_hwnd)

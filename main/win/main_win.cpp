@@ -274,7 +274,7 @@ static void gui_ChangeWindow()
 		changeWindow();
 		ShowCursor(TRUE);
 	}
-	// toolbar_set_visibility(!FullScreenMode);
+
 	statusbar_set_visibility(!FullScreenMode);
 }
 
@@ -1211,7 +1211,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			if (!FullScreenMode)
 			{
-				SendMessage(toolbar_hwnd, TB_AUTOSIZE, 0, 0);
+				SendMessage(Toolbar::hwnd(), TB_AUTOSIZE, 0, 0);
 				SendMessage(statusbar_hwnd, WM_SIZE, 0, 0);
 			}
 			rombrowser_update_size();
@@ -1805,7 +1805,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_TOOLBAR:
 				Config.is_toolbar_enabled ^= true;
-				// toolbar_set_visibility(Config.is_toolbar_enabled);
+				Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 				CheckMenuItem(
 					main_menu, IDM_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
@@ -1972,12 +1972,10 @@ int WINAPI WinMain(
 	emu_launched = 0;
 	emu_paused = 1;
 
-	Messenger::init();
-	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
-	Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
 	load_config();
 	lua_init();
 	vcr_init(on_task_changed);
+	setup_dummy_info();
 
 	WNDCLASSEX wc = {0};
 	MSG msg;
@@ -2010,10 +2008,14 @@ int WINAPI WinMain(
 	//this can't be applied before ShowWindow(), otherwise you must use some fancy function
 	SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 
+	Messenger::init();
+	Toolbar::init();
+	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
+	Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
+
 	update_menu_hotkey_labels();
-	// toolbar_set_visibility(Config.is_toolbar_enabled);
+	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 	statusbar_set_visibility(Config.is_statusbar_enabled);
-	setup_dummy_info();
 	rombrowser_create();
 	rombrowser_build();
 	rombrowser_update_size();

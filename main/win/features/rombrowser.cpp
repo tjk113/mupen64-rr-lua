@@ -69,7 +69,7 @@ void rombrowser_create()
 
 	RECT rcl, rtool, rstatus;
 	GetClientRect(mainHWND, &rcl);
-	GetWindowRect(toolbar_hwnd, &rtool);
+	GetWindowRect(Toolbar::hwnd(), &rtool);
 	GetWindowRect(statusbar_hwnd, &rstatus);
 
 	rombrowser_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
@@ -311,9 +311,9 @@ void rombrowser_update_size()
 		GetWindowRect(statusbar_hwnd, &rc);
 		n_height -= (WORD)(rc.bottom - rc.top);
 	}
-	if (toolbar_hwnd)
+	if (Toolbar::hwnd())
 	{
-		GetWindowRect(toolbar_hwnd, &rc);
+		GetWindowRect(Toolbar::hwnd(), &rc);
 		y += (WORD)(rc.bottom - rc.top);
 	}
 	MoveWindow(rombrowser_hwnd, 0, y, n_width, n_height - y, TRUE);

@@ -15,6 +15,11 @@ HWND toolbar_hwnd;
 
 namespace Toolbar
 {
+	HWND hwnd()
+	{
+		return toolbar_hwnd;
+	}
+
 	void toolbar_create()
 	{
 		const TBBUTTON tb_buttons[] =
@@ -82,26 +87,22 @@ namespace Toolbar
 		}
 	}
 
-	void toolbar_set_visibility(int32_t is_visible)
+	void toolbar_visibility_changed(std::any data)
 	{
+		auto value = std::any_cast<bool>(data);
+
 		if (toolbar_hwnd)
 		{
 			DestroyWindow(toolbar_hwnd);
 			toolbar_hwnd = nullptr;
 		}
 
-		if (is_visible)
+		if (value)
 		{
 			toolbar_create();
 		}
 
 		rombrowser_update_size();
-	}
-
-	void toolbar_on_emu_paused_changed(bool value)
-	{
-		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, IDM_PAUSE, value);
-		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PLAY, !value);
 	}
 
 	void emu_launched_changed(std::any data)
@@ -116,9 +117,21 @@ namespace Toolbar
 		SendMessage(toolbar_hwnd, TB_ENABLEBUTTON, IDM_PAUSE, value);
 	}
 
+	void emu_paused_changed(std::any data)
+	{
+		auto value = std::any_cast<bool>(data);
+		if (!toolbar_hwnd) return;
+		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, IDM_PAUSE, value);
+		SendMessage(toolbar_hwnd, TB_CHECKBUTTON, EMU_PLAY, !value);
+	}
+
 	void init()
 	{
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged,
 		                     emu_launched_changed);
+		Messenger::subscribe(Messenger::Message::EmuPausedChanged,
+							 emu_paused_changed);
+		Messenger::subscribe(Messenger::Message::ToolbarVisibilityChanged,
+							 toolbar_visibility_changed);
 	}
 };

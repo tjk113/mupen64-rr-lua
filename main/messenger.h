@@ -15,9 +15,19 @@ namespace Messenger
 		EmuLaunchedChanged,
 
 		/**
+		 * \brief The emulator paused state has changed
+		 */
+		EmuPausedChanged,
+
+		/**
 		 * \brief The video capturing state has changed
 		 */
 		CapturingChanged,
+
+		/**
+		 * \brief The toolbar visibility has changed
+		 */
+		ToolbarVisibilityChanged,
 	};
 
 	/**
