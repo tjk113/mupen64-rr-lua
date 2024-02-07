@@ -186,6 +186,9 @@ void on_capturing_changed(bool value)
 		SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
 	} else
 	{
+		// re-enable the toolbar
+		toolbar_set_visibility(Config.is_toolbar_enabled);
+
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
         // we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
         SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) & ~WS_EX_LAYERED);

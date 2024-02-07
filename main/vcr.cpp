@@ -3,7 +3,6 @@
 
 #include "win/main_win.h"
 #include "win/features/Statusbar.hpp"
-#include "win/features/Toolbar.hpp"
 #include "../r4300/r4300.h"
 #include "../lua/LuaConsole.h"
 
@@ -1688,9 +1687,7 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 	strncpy(avi_file_name, path, PATH_MAX);
 	Config.avi_capture_path = path;
 
-
-	// toolbar could get captured in AVI, so we disable it
-	toolbar_set_visibility(0);
+	on_capturing_changed(true);
 
 	if (!was_paused || (m_task == e_task::playback || m_task == e_task::start_playback || m_task
 		== e_task::start_playback_from_snapshot))
@@ -1736,6 +1733,7 @@ int vcr_start_f_fmpeg_capture(const std::string& output_name,
 	{
 		m_capture = 1;
 		capture_with_f_fmpeg = 1;
+		on_capturing_changed(true);
 	}
 #ifdef _DEBUG
 	if (err == INIT_SUCCESS)
@@ -1750,6 +1748,7 @@ void vcr_stop_f_fmpeg_capture()
 {
 	if (capture_manager == nullptr) return; // no error code but its no big deal
 	m_capture = 0;
+	on_capturing_changed(false);
 	//this must be first in case object is being destroyed and other thread still sees m_capture=1
 	capture_manager.reset();
 	//apparently closing the pipes is enough to tell ffmpeg the movie ended.
@@ -1781,9 +1780,7 @@ int vcr_stop_capture()
 	m_capture = 0;
 	write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
-	// re-enable the toolbar (m_capture==0 causes this call to do that)
-	// check previous update_toolbar_visibility call
-	toolbar_set_visibility(Config.is_toolbar_enabled);
+	on_capturing_changed(false);
 
 	SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	if (vcr_is_playing())

@@ -74,3 +74,9 @@ void update_titlebar();
  * \param value The new speed modifier
  */
 void on_speed_modifier_changed(int32_t value);
+
+/**
+ * \brief Notifies the frontend of capturing state changing
+ * \param value The new capturing state
+ */
+void on_capturing_changed(bool value);
