@@ -661,6 +661,7 @@ CONFIG get_default_config()
 	config.fast_reset = 0;
 	config.vcr_0_index = 0;
 	config.increment_slot = 0;
+	config.pause_at_frame = -1;
 
 	return config;
 }
@@ -968,6 +969,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(fast_reset)
 	HANDLE_P_VALUE(vcr_0_index)
 	HANDLE_P_VALUE(increment_slot)
+	HANDLE_P_VALUE(pause_at_frame)
 
 	return ini;
 }

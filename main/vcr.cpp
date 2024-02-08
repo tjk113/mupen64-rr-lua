@@ -1866,11 +1866,10 @@ void vcr_on_vi()
 		vcr_set_length_v_is(m_current_vi);
 	if (vcr_is_playing())
 	{
-		extern int pauseAtFrame;
-		if (m_current_sample >= pauseAtFrame && pauseAtFrame >= 0)
+		if (m_current_sample >= Config.pause_at_frame && Config.pause_at_frame >= 0)
 		{
 			pauseEmu(TRUE); // maybe this is multithreading unsafe?
-			pauseAtFrame = -1; // don't pause again
+			Config.pause_at_frame = -1; // don't pause again
 		}
 	}
 }

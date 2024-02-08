@@ -395,6 +395,11 @@ typedef struct _CONFIG
 	/// Increments the current slot when saving savestate to slot
 	/// </summary>
 	int32_t increment_slot;
+
+	/// <summary>
+	/// The movie frame to automatically pause at, or -1 if none
+	/// </summary>
+	int32_t pause_at_frame;
 } CONFIG;
 #pragma pack(pop)
 

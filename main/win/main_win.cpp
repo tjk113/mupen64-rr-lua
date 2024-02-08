@@ -541,14 +541,14 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	LuaCallbacks::call_reset();
 
-	if (pauseAtFrame == 0 && vcr_is_starting_and_just_restarted())
+	if (Config.pause_at_frame == 0 && vcr_is_starting_and_just_restarted())
 	{
 		while (emu_paused)
 		{
 			Sleep(10);
 		}
 		pauseEmu(FALSE);
-		pauseAtFrame = -1;
+		Config.pause_at_frame = -1;
 	}
 	main_dispatcher_invoke([]
 	{
