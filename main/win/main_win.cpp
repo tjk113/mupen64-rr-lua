@@ -196,6 +196,19 @@ void on_emu_paused_changed(bool value)
 
 }
 
+void on_movie_loop_changed(std::any data)
+{
+	auto value = std::any_cast<bool>(data);
+
+	CheckMenuItem(main_menu, IDM_LOOP_MOVIE,
+				  MF_BYCOMMAND | (value
+									  ? MFS_CHECKED
+									  : MFS_UNCHECKED));
+
+	Statusbar::post(value
+							 ? "Movies restart after ending"
+							 : "Movies stop after ending");
+}
 
 BetterEmulationLock::BetterEmulationLock()
 {
@@ -246,21 +259,6 @@ std::string get_app_full_path()
 	strcat(ret, dirn);
 
 	return ret;
-}
-
-void set_is_movie_loop_enabled(bool value)
-{
-	Config.is_movie_loop_enabled = value;
-
-	CheckMenuItem(GetMenu(mainHWND), IDM_PLAY_LATEST_MOVIE,
-				  MF_BYCOMMAND | (Config.is_movie_loop_enabled
-									  ? MFS_CHECKED
-									  : MFS_UNCHECKED));
-
-	if (emu_launched)
-		Statusbar::post(Config.is_movie_loop_enabled
-								 ? "Movies restart after ending"
-								 : "Movies stop after ending");
 }
 
 static void gui_ChangeWindow()
@@ -1465,7 +1463,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case IDM_LOOP_MOVIE:
-				set_is_movie_loop_enabled(!Config.is_movie_loop_enabled);
+				Config.is_movie_loop_enabled ^= true;
+				Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)Config.is_movie_loop_enabled);
 				break;
 			case IDM_PLAY_LATEST_MOVIE:
 				if (!emu_launched || Config.recent_movie_paths.empty())
@@ -2009,6 +2008,7 @@ int WINAPI WinMain(
 
 	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
 	Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
+	Messenger::subscribe(Messenger::Message::MovieLoopChanged, on_movie_loop_changed);
 
 	// Rombrowser needs to be initialized *after* toolbar, since it depends on its state smh bru
 	Toolbar::init();
@@ -2017,14 +2017,13 @@ int WINAPI WinMain(
 
 	update_menu_hotkey_labels();
 
-	set_is_movie_loop_enabled(Config.is_movie_loop_enabled);
-
 	vcr_recent_movies_build();
 	lua_recent_scripts_build();
 	main_recent_roms_build();
 
 	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 	Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
+	Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)Config.is_movie_loop_enabled);
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 	Messenger::broadcast(Messenger::Message::SizeChanged, rect);

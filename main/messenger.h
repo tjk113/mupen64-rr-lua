@@ -38,6 +38,11 @@ namespace Messenger
 		 * \brief The main window size changed
 		 */
 		SizeChanged,
+
+		/**
+		 * \brief The movie loop state changed
+		 */
+		MovieLoopChanged,
 	};
 
 	/**
