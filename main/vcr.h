@@ -257,8 +257,7 @@ extern int vcr_movie_unfreeze(const char* buf, unsigned long size);
 extern int vcr_start_record(const char* filename, unsigned short flags,
                            const char* author_utf8, const char* description_utf8);
 extern int vcr_stop_record();
-extern int vcr_start_playback(const std::string &filename, const char* author_utf8,
-                             const char* description_utf8);
+
 extern int vcr_stop_playback();
 extern int vcr_stop_capture();
 
@@ -301,7 +300,18 @@ void vcr_on_controller_poll(int index, BUTTONS* input);
  */
 void vcr_on_vi();
 
+
 #ifdef __cplusplus
+/**
+ * \brief Starts playing back a movie
+ * \param path The movie's path
+ * \param author_utf8 The author override, or null
+ * \param description_utf8 The description override, or null
+ * \return The error code
+ */
+int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
+							 const char* description_utf8);
+
 /**
  * \brief Initializes the VCR engine
  * \param on_task_changed Callback which is invoked whenever the VCR task changes

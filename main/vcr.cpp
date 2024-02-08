@@ -1057,18 +1057,6 @@ std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 	return "";
 }
 
-int
-vcr_start_playback(const std::string &filename, const char* author_utf8,
-                  const char* description_utf8)
-{
-	vcr_recent_movies_add(filename);
-	auto result = start_playback(filename.c_str(), author_utf8, description_utf8);
-	if (result <= 0)
-	{
-		Statusbar::post("Playback started");
-	}
-	return result;
-}
 
 int check_warn_controllers(char* warning_str) {
 	for (int i = 0; i < 4; ++i) {
@@ -1104,15 +1092,15 @@ int check_warn_controllers(char* warning_str) {
 	return 1;
 }
 
-static int start_playback(const char* filename, const char* author_utf8,
+int start_playback(std::filesystem::path path, const char* author_utf8,
                           const char* description_utf8)
 {
 	vcr_core_stopped();
 
-	strncpy(m_filename, filename, PATH_MAX);
+	strncpy(m_filename, path.string().c_str(), PATH_MAX);
 
 	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
-	m_file = fopen(filename, "rb+");
+	m_file = fopen(m_filename, "rb+");
 	if (!m_file)
 	{
 		return VCR_PLAYBACK_FILE_BUSY;
@@ -1222,8 +1210,8 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 	// Reset VCR-related state
 	m_current_sample = 0;
 	m_current_vi = 0;
-	strcpy(vcr_lastpath, filename);
-	movie_path = filename;
+	strcpy(vcr_lastpath, m_filename);
+	movie_path = path;
 
 	if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 	{
