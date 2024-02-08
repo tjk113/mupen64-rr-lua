@@ -9,7 +9,7 @@ namespace LuaCore::Movie
 	{
 		const char* fname = lua_tostring(L, 1);
 		vcr_set_read_only(true);
-		vcr_start_playback(fname, "", "");
+		vcr_start_playback(fname, nullptr, nullptr);
 		return 0;
 	}
 
