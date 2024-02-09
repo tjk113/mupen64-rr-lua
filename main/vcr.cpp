@@ -961,6 +961,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	m_current_sample = 0;
 	m_current_vi = 0;
 
+	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	return 0;
 }
 
@@ -1036,6 +1037,7 @@ vcr_stop_record()
 
 	movie_path = "";
 	update_titlebar();
+	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	return ret_val;
 }
 
