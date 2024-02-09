@@ -43,6 +43,11 @@ namespace Messenger
 		 * \brief The movie loop state changed
 		 */
 		MovieLoopChanged,
+
+		/**
+		 * \brief The VCR task changed
+		 */
+		TaskChanged,
 	};
 
 	/**

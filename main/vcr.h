@@ -300,7 +300,13 @@ void vcr_on_controller_poll(int index, BUTTONS* input);
  */
 void vcr_on_vi();
 
-
+namespace VCR
+{
+	/**
+	 * \brief Initializes the VCR engine
+	 */
+	void init();
+}
 #ifdef __cplusplus
 /**
  * \brief Starts playing back a movie
@@ -312,11 +318,6 @@ void vcr_on_vi();
 int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 							 const char* description_utf8);
 
-/**
- * \brief Initializes the VCR engine
- * \param on_task_changed Callback which is invoked whenever the VCR task changes
- */
-void vcr_init(std::function<void(e_task)> on_task_changed);
 #endif
 
 void vcr_recent_movies_build(int32_t reset = 0);

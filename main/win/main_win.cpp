@@ -102,6 +102,13 @@ std::deque<std::function<void()>> dispatcher_queue;
 
 
 #pragma region Change notifications
+void on_task_changed(std::any data)
+{
+	auto value = std::any_cast<e_task>(data);
+
+	printf("%d\n", value);
+}
+
 void on_emu_launched_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
@@ -1588,12 +1595,6 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
 
-
-void on_task_changed(e_task task)
-{
-	printf("on_task_changed: %d\n", task);
-}
-
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -1622,7 +1623,6 @@ int WINAPI WinMain(
 
 	load_config();
 	lua_init();
-	vcr_init(on_task_changed);
 	setup_dummy_info();
 
 	WNDCLASSEX wc = {0};
@@ -1662,11 +1662,13 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
 	Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
 	Messenger::subscribe(Messenger::Message::MovieLoopChanged, on_movie_loop_changed);
+	Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
 
 	// Rombrowser needs to be initialized *after* toolbar, since it depends on its state smh bru
 	Toolbar::init();
 	Rombrowser::init();
 	Statusbar::init();
+	VCR::init();
 
 	update_menu_hotkey_labels();
 

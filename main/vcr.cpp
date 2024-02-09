@@ -83,7 +83,6 @@ static const char* m_err_code_name[] =
 };
 
 e_task m_task = e_task::idle;
-std::function<void(e_task)> on_task_changed;
 std::filesystem::path movie_path;
 
 static char m_filename[PATH_MAX];
@@ -1242,6 +1241,7 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 		        MOVIE_DESCRIPTION_DATA_SIZE);
 	m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
 
+	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	LuaCallbacks::call_play_movie();
 	return SUCCESS;
 }
@@ -1274,6 +1274,7 @@ static int stop_playback(const bool bypass_loop_setting)
 	if (m_task == e_task::start_playback)
 	{
 		m_task = e_task::idle;
+		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 		return 0;
 	}
 
@@ -1294,6 +1295,7 @@ static int stop_playback(const bool bypass_loop_setting)
 			m_input_buffer_size = 0;
 		}
 
+		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 		LuaCallbacks::call_stop_movie();
 		return 0;
 	}
@@ -1874,9 +1876,9 @@ void vcr_on_vi()
 	}
 }
 
-void vcr_init(std::function<void(e_task)> on_task_changed)
+void VCR::init()
 {
-
+	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
