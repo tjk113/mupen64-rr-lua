@@ -106,7 +106,26 @@ void on_task_changed(std::any data)
 {
 	auto value = std::any_cast<e_task>(data);
 
-	printf("%d\n", value);
+	switch (value) {
+	case e_task::idle:
+		EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
+		EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
+		break;
+	case e_task::start_recording:
+	case e_task::start_recording_from_snapshot:
+	case e_task::start_recording_from_existing_snapshot:
+	case e_task::recording:
+		EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
+		EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_ENABLED);
+		break;
+	case e_task::start_playback:
+	case e_task::start_playback_from_snapshot:
+	case e_task::playback:
+		EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
+		EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
+		break;
+	}
+
 }
 
 void on_emu_launched_changed(std::any data)
@@ -142,9 +161,9 @@ void on_emu_launched_changed(std::any data)
 	EnableMenuItem(main_menu, IDM_TRACELOG, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_PLAY_LATEST_MOVIE, value ? MF_ENABLED : MF_GRAYED);
 
 	if (Config.is_toolbar_enabled) CheckMenuItem(
