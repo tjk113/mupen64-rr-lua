@@ -101,6 +101,25 @@ std::vector<HWND> previously_running_luas;
 std::deque<std::function<void()>> dispatcher_queue;
 
 
+void update_titlebar()
+{
+	std::string text = MUPEN_VERSION;
+
+	if (emu_launched)
+	{
+		text += std::format(" - {}", reinterpret_cast<char*>(ROM_HEADER.nom));
+	}
+
+	if (!movie_path.empty())
+	{
+		char movie_filename[MAX_PATH] = {0};
+		_splitpath(movie_path.string().c_str(), nullptr, nullptr, movie_filename, nullptr);
+		text += std::format(" - {}", movie_filename);
+	}
+
+	SetWindowText(mainHWND, text.c_str());
+}
+
 #pragma region Change notifications
 void on_task_changed(std::any data)
 {
@@ -126,6 +145,7 @@ void on_task_changed(std::any data)
 		break;
 	}
 
+	update_titlebar();
 }
 
 void on_emu_launched_changed(std::any data)
@@ -181,8 +201,8 @@ void on_emu_launched_changed(std::any data)
 		main_menu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
 	if (Config.is_recent_rom_paths_frozen) CheckMenuItem(
 		main_menu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
-	//
-	// toolbar_on_emu_launched_changed(value, value);
+
+	update_titlebar();
 }
 
 void on_capturing_changed(std::any data)
@@ -214,6 +234,8 @@ void on_capturing_changed(std::any data)
 		EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_ENABLED);
 		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
 	}
+
+	update_titlebar();
 }
 
 
@@ -675,24 +697,6 @@ int32_t main_recent_roms_run(uint16_t menu_item_id)
 
 
 
-void update_titlebar()
-{
-	std::string text = MUPEN_VERSION;
-
-	if (emu_launched)
-	{
-		text += std::format(" - {}", reinterpret_cast<char*>(ROM_HEADER.nom));
-	}
-
-	if (!movie_path.empty())
-	{
-		char movie_filename[MAX_PATH] = {0};
-		_splitpath(movie_path.string().c_str(), nullptr, nullptr, movie_filename, nullptr);
-		text += std::format(" - {}", movie_filename);
-	}
-
-	SetWindowText(mainHWND, text.c_str());
-}
 
 void on_speed_modifier_changed(int32_t value)
 {

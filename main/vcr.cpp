@@ -945,7 +945,6 @@ vcr_start_record(const char* filename, const unsigned short flags,
 
 	movie_path = buf;
 	set_rom_info(&m_header);
-	update_titlebar();
 
 	// utf8 strings are also null-terminated so this method still works
 	if (author_utf8)
@@ -1036,7 +1035,6 @@ vcr_stop_record()
 	}
 
 	movie_path = "";
-	update_titlebar();
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	return ret_val;
 }
@@ -1265,7 +1263,6 @@ static int stop_playback(const bool bypass_loop_setting)
 	}
 
 	movie_path = "";
-	update_titlebar();
 
 	if (m_file && m_task != e_task::start_recording && m_task != e_task::recording)
 	{
@@ -1775,11 +1772,7 @@ int vcr_stop_capture()
 		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER.nom,
 		        m64);
 		SetWindowText(mainHWND, title);
-	} else
-	{
-		update_titlebar();
 	}
-
 
 	VCRComp_finishFile();
 	avi_increment = 0;

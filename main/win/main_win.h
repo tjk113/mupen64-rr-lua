@@ -65,11 +65,6 @@ int32_t main_recent_roms_run(uint16_t menu_item_id);
 extern bool is_primary_statusbar_invalidated;
 
 /**
- * \brief Updates the titlebar to reflect the current application state
- */
-void update_titlebar();
-
-/**
  * \brief Notifies the frontend of speed modifier changing
  * \param value The new speed modifier
  */
