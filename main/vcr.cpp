@@ -1092,7 +1092,7 @@ int check_warn_controllers(char* warning_str) {
 	return 1;
 }
 
-int start_playback(std::filesystem::path path, const char* author_utf8,
+int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
                           const char* description_utf8)
 {
 	vcr_core_stopped();
