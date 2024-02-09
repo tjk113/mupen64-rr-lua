@@ -484,14 +484,6 @@ bool vcr_is_looping()
 	return Config.is_movie_loop_enabled;
 }
 
-void vcr_set_loop_movie(const bool val)
-{
-	if (vcr_is_looping() != val)
-		CheckMenuItem(GetMenu(mainHWND), IDM_PLAY_LATEST_MOVIE,
-		              MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
-	Config.is_movie_loop_enabled = val;
-}
-
 unsigned long vcr_get_length_v_is()
 {
 	return vcr_is_active() ? m_header.length_vis : 0;

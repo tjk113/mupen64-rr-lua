@@ -192,9 +192,6 @@ void on_emu_launched_changed(std::any data)
 	if (Config.is_statusbar_enabled) CheckMenuItem(
 		main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
 	else CheckMenuItem(main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
-	if (Config.is_movie_loop_enabled) CheckMenuItem(
-		main_menu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(main_menu, IDM_PLAY_LATEST_MOVIE, MF_BYCOMMAND | MF_UNCHECKED);
 	if (Config.is_recent_movie_paths_frozen) CheckMenuItem(
 		main_menu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
 	if (Config.is_recent_scripts_frozen) CheckMenuItem(
