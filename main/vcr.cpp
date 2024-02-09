@@ -1943,7 +1943,7 @@ int32_t vcr_recent_movies_play(const uint16_t menu_item_id)
 	if (const int index = menu_item_id - ID_RECENTMOVIES_FIRST; index >= 0 && index < Config.recent_movie_paths.size())
 	{
 		vcr_set_read_only(TRUE);
-		return vcr_start_playback(Config.recent_movie_paths[index], "", "");
+		return vcr_start_playback(Config.recent_movie_paths[index], nullptr, nullptr);
 	}
 	return 0;
 }
