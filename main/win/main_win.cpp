@@ -784,10 +784,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_DROPFILES:
 		{
-			HDROP h_file = (HDROP)wParam;
+			auto drop = (HDROP)wParam;
 			char fname[MAX_PATH] = {0};
-			DragQueryFile(h_file, 0, fname, sizeof(fname));
-			LocalFree(h_file);
+			DragQueryFile(drop, 0, fname, sizeof(fname));
 
 			std::filesystem::path path = fname;
 			std::string extension = to_lower(path.extension().string());
