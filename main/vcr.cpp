@@ -572,6 +572,7 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		// writing new input data at the currentFrame pointer
 		//		change_state(MOVIE_STATE_RECORD);
 		m_task = e_task::recording;
+		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 		flush_movie();
 
 		// update header with new ROM info
