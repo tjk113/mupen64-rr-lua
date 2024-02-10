@@ -37,6 +37,9 @@ typedef struct _CONFIG
 	t_hotkey reset_rom_hotkey;
 	t_hotkey fullscreen_hotkey;
 	t_hotkey settings_hotkey;
+	t_hotkey toggle_toolbar_hotkey;
+	t_hotkey toggle_statusbar_hotkey;
+	t_hotkey refresh_rombrowser_hotkey;
 	t_hotkey save_current_hotkey;
 	t_hotkey load_current_hotkey;
 	t_hotkey save_to_slot_1_hotkey;

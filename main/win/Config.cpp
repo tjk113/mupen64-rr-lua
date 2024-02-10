@@ -315,6 +315,33 @@ CONFIG get_default_config()
 		.command = IDM_SETTINGS,
 	};
 
+	config.toggle_toolbar_hotkey = {
+		.identifier = "Toggle Toolbar",
+		.key = 0x54 /* T */,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 1,
+		.command = IDM_TOOLBAR,
+	};
+
+	config.toggle_statusbar_hotkey = {
+		.identifier = "Toggle Statusbar",
+		.key = 0x53 /* S */,
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 1,
+		.command = IDM_STATUSBAR,
+	};
+
+	config.refresh_rombrowser_hotkey = {
+		.identifier = "Refresh Rombrowser",
+		.key = VK_F5,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = IDM_REFRESH_ROMBROWSER,
+	};
+
 	config.save_current_hotkey = {
 		.identifier = "Save to current slot",
 		.key = 0x49 /* I */,
