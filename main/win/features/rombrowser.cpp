@@ -429,6 +429,10 @@ namespace Rombrowser
 		{
 			rombrowser_update_size();
 		});
+		Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged, [] (auto _)
+		{
+			rombrowser_update_size();
+		});
 		Messenger::subscribe(Messenger::Message::SizeChanged, [] (auto _)
 		{
 			rombrowser_update_size();

@@ -1719,10 +1719,10 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::MoviePlaybackStarted, on_movie_recording_or_playback_started);
 	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
 
-	// Rombrowser needs to be initialized *after* toolbar, since it depends on its state smh bru
+	// Rombrowser needs to be initialized *after* other components, since it depends on their state smh bru
 	Toolbar::init();
-	Rombrowser::init();
 	Statusbar::init();
+	Rombrowser::init();
 	VCR::init();
 
 	update_menu_hotkey_labels();
