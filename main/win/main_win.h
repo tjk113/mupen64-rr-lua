@@ -52,12 +52,6 @@ DWORD WINAPI start_rom(LPVOID lpParam);
 DWORD WINAPI close_rom(LPVOID lpParam);
 
 extern BOOL continue_vcr_on_restart_mode;
-void main_recent_roms_build(int32_t reset = 0);
-void main_recent_roms_add(const std::string& path);
-int32_t main_recent_roms_run(uint16_t menu_item_id);
-
-
-
 
 /**
  * \brief Whether the statusbar needs to be updated with new input information

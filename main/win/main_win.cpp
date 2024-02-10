@@ -88,6 +88,7 @@ static BOOL MenuPaused = 0;
 
 HWND mainHWND;
 HMENU main_menu;
+HMENU recent_roms_menu;
 HINSTANCE app_instance;
 
 std::string app_path = "";
@@ -99,6 +100,72 @@ std::string app_path = "";
 std::vector<HWND> previously_running_luas;
 
 std::deque<std::function<void()>> dispatcher_queue;
+
+
+namespace Recent
+{
+	void build(std::vector<std::string>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
+	{
+		for (size_t i = 0; i < vec.size(); i++)
+		{
+			if (vec[i].empty())
+			{
+				continue;
+			}
+			DeleteMenu(main_menu, first_menu_id + i, MF_BYCOMMAND);
+		}
+
+		if (reset)
+		{
+			vec.clear();
+			return;
+		}
+
+		MENUITEMINFO menu_info = {0};
+		menu_info.cbSize = sizeof(MENUITEMINFO);
+		menu_info.fMask = MIIM_TYPE | MIIM_ID;
+		menu_info.fType = MFT_STRING;
+		menu_info.fState = MFS_ENABLED;
+
+		for (size_t i = 0; i < vec.size(); i++)
+		{
+			if (vec[i].empty())
+			{
+				continue;
+			}
+			menu_info.dwTypeData = (LPSTR)vec[i].c_str();
+			menu_info.cch = strlen(menu_info.dwTypeData);
+			menu_info.wID = first_menu_id + i;
+			InsertMenuItem(parent_menu, i + 3, TRUE, &menu_info);
+		}
+	}
+
+	void add(std::vector<std::string>& vec, std::string val, bool frozen, int first_menu_id, HMENU parent_menu)
+	{
+		if (frozen)
+		{
+			return;
+		}
+		if (vec.size() > 5)
+		{
+			vec.pop_back();
+		}
+		std::erase(vec, val);
+		Config.recent_rom_paths.insert(vec.begin(), val);
+		build(vec, first_menu_id, parent_menu);
+	}
+
+	std::string element_at(std::vector<std::string> vec, int first_menu_id, int menu_id)
+	{
+		const int index = menu_id - first_menu_id;
+		if (index >= 0 && index < vec.size()) {
+			return vec[index];
+		}
+		return "";
+	}
+
+}
+
 
 
 void update_titlebar()
@@ -421,7 +488,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	strcpy(LastSelectedRom, rom_path_local);
 
 	// notify ui of emu state change
-	main_recent_roms_add(rom_path_local);
+	Recent::add(Config.recent_rom_paths, rom_path_local, Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 	on_speed_modifier_changed(Config.fps_modifier);
@@ -642,73 +709,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	ExitThread(0);
 }
-
-void main_recent_roms_build(int32_t reset)
-{
-	for (size_t i = 0; i < Config.recent_rom_paths.size(); i++)
-	{
-		if (Config.recent_rom_paths[i].empty())
-		{
-			continue;
-		}
-		DeleteMenu(main_menu, ID_RECENTROMS_FIRST + i, MF_BYCOMMAND);
-	}
-
-	if (reset)
-	{
-		Config.recent_rom_paths.clear();
-	}
-
-	HMENU h_sub_menu = GetSubMenu(main_menu, 0);
-	h_sub_menu = GetSubMenu(h_sub_menu, 5);
-
-	MENUITEMINFO menu_info = {0};
-	menu_info.cbSize = sizeof(MENUITEMINFO);
-	menu_info.fMask = MIIM_TYPE | MIIM_ID;
-	menu_info.fType = MFT_STRING;
-	menu_info.fState = MFS_ENABLED;
-
-	for (size_t i = 0; i < Config.recent_rom_paths.size(); i++)
-	{
-		if (Config.recent_rom_paths[i].empty())
-		{
-			continue;
-		}
-		menu_info.dwTypeData = (LPSTR)Config.recent_rom_paths[i].c_str();
-		menu_info.cch = strlen(menu_info.dwTypeData);
-		menu_info.wID = ID_RECENTROMS_FIRST + i;
-		InsertMenuItem(h_sub_menu, i + 3, TRUE, &menu_info);
-	}
-}
-
-void main_recent_roms_add(const std::string& path)
-{
-	if (Config.is_recent_rom_paths_frozen)
-	{
-		return;
-	}
-	if (Config.recent_rom_paths.size() > 5)
-	{
-		Config.recent_rom_paths.pop_back();
-	}
-	std::erase(Config.recent_rom_paths, path);
-	Config.recent_rom_paths.insert(Config.recent_rom_paths.begin(), path);
-	main_recent_roms_build();
-}
-
-int32_t main_recent_roms_run(uint16_t menu_item_id)
-{
-	const int index = menu_item_id - ID_RECENTROMS_FIRST;
-	if (index >= 0 && index < Config.recent_rom_paths.size()) {
-		strcpy(rom_path, Config.recent_rom_paths[index].c_str());
-		CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
-			return 	1;
-	}
-	return 0;
-}
-
-
-
 
 void on_speed_modifier_changed(int32_t value)
 {
@@ -1483,7 +1483,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case IDM_RESET_RECENT_ROMS:
-				main_recent_roms_build(1);
+				Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu, true);
 				break;
 			case IDM_FREEZE_RECENT_ROMS:
 				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS,
@@ -1492,7 +1492,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 								  : MF_UNCHECKED);
 				break;
 			case IDM_LOAD_LATEST_ROM:
-				main_recent_roms_run(ID_RECENTROMS_FIRST);
+				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_RECENTROMS_FIRST, 0), 0);
 				break;
 			case IDM_TOOLBAR:
 				Config.is_toolbar_enabled ^= true;
@@ -1568,7 +1568,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					LOWORD(wParam) < (ID_RECENTROMS_FIRST + Config.
 						recent_rom_paths.size()))
 				{
-					main_recent_roms_run(LOWORD(wParam));
+					auto path = Recent::element_at(Config.recent_rom_paths, ID_RECENTROMS_FIRST, LOWORD(wParam));
+					if (path.empty())
+						break;
+
+					strcpy(rom_path, path.c_str());
+					CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
 				} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST &&
 					LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + Config.
 						recent_movie_paths.size()))
@@ -1692,6 +1697,8 @@ int WINAPI WinMain(
 	ShowWindow(mainHWND, nCmdShow);
 	SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 
+	recent_roms_menu = GetSubMenu(GetSubMenu(main_menu, 0), 5);
+
 	RECT rect{};
 	GetClientRect(mainHWND, &rect);
 
@@ -1711,7 +1718,7 @@ int WINAPI WinMain(
 
 	vcr_recent_movies_build();
 	lua_recent_scripts_build();
-	main_recent_roms_build();
+	Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu);
 
 	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 	Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
