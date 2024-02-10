@@ -6,7 +6,6 @@
 #include "../../winproject/resource.h"
 #include "Config.hpp"
 #include "main_win.h"
-#include "../../lua/Recent.h"
 #include "../r4300/r4300.h"
 #include "../vcr.h"
 #include "../lib/ini.h"

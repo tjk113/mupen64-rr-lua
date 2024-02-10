@@ -152,7 +152,6 @@
     <ClInclude Include="..\..\main\helpers\math_helpers.h" />
     <ClInclude Include="..\..\main\lib\ini.h" />
     <ClInclude Include="..\..\main\lib\argh.h" />
-    <ClInclude Include="..\..\lua\Recent.h" />
     <ClInclude Include="..\..\main\debughook.h" />
     <ClInclude Include="..\..\main\disasm.h" />
     <ClInclude Include="..\..\main\ffmpeg_capture\ffmpeg_capture.hpp" />
@@ -208,7 +207,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\lua\modules\input.h"/>
     <ClCompile Include="..\..\lua\LuaCallbacks.cpp" />
-    <ClCompile Include="..\..\lua\Recent.cpp" />
     <ClCompile Include="..\..\main\adler32.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</CompileAs>

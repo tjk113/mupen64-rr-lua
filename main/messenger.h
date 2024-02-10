@@ -63,6 +63,11 @@ namespace Messenger
 		 * \brief The VCR engine has begun playing back a movie
 		 */
 		MoviePlaybackStarted,
+
+		/**
+		 * \brief The Lua engine has started a script
+		 */
+		ScriptStarted,
 	};
 
 	/**

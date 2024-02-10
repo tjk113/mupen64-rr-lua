@@ -35,7 +35,6 @@
 #include "features/CrashHelper.h"
 #include "LuaConsole.h"
 #include "messenger.h"
-#include "Recent.h"
 #include "timers.h"
 #include "../guifuncs.h"
 #include "../plugin.hpp"
@@ -90,6 +89,7 @@ HWND mainHWND;
 HMENU main_menu;
 HMENU recent_roms_menu;
 HMENU recent_movies_menu;
+HMENU recent_lua_menu;
 HINSTANCE app_instance;
 
 std::string app_path = "";
@@ -190,6 +190,12 @@ void on_movie_recording_or_playback_started(std::any data)
 {
 	auto value = std::any_cast<std::filesystem::path>(data);
 	Recent::add(Config.recent_movie_paths, value.string(), Config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, recent_movies_menu);
+}
+
+void on_script_started(std::any data)
+{
+	auto value = std::any_cast<std::filesystem::path>(data);
+	Recent::add(Config.recent_lua_script_paths, value.string(), Config.is_recent_scripts_frozen, ID_LUA_RECENT, recent_lua_menu);
 }
 
 void on_task_changed(std::any data)
@@ -1080,18 +1086,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					lua_create();
 				}
 				break;
-			case IDM_FREEZE_RECENT_LUA:
-				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_LUA,
-				              (Config.is_recent_scripts_frozen ^= 1)
-					              ? MF_CHECKED
-					              : MF_UNCHECKED);
-				break;
-			case IDM_RESET_RECENT_LUA:
-				lua_recent_scripts_build(1);
-				break;
-			case IDM_LOAD_LATEST_LUA:
-				lua_recent_scripts_run(ID_LUA_RECENT);
-				break;
+
 			case IDM_CLOSE_ALL_LUA:
 				close_all_scripts();
 				break;
@@ -1476,6 +1471,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_RESET_RECENT_MOVIES:
 				Recent::build(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu, true);
 				break;
+			case IDM_RESET_RECENT_LUA:
+				Recent::build(Config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu, true);
+				break;
 			case IDM_FREEZE_RECENT_ROMS:
 				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS,
 							  (Config.is_recent_rom_paths_frozen ^= 1)
@@ -1487,6 +1485,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 							  (Config.is_recent_movie_paths_frozen ^= 1)
 								  ? MF_CHECKED
 								  : MF_UNCHECKED);
+				break;
+			case IDM_FREEZE_RECENT_LUA:
+				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_LUA,
+							  (Config.is_recent_scripts_frozen ^= 1)
+								  ? MF_CHECKED
+								  : MF_UNCHECKED);
+				break;
+			case IDM_LOAD_LATEST_LUA:
+				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_LUA_RECENT, 0), 0);
 				break;
 			case IDM_LOAD_LATEST_ROM:
 				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_RECENTROMS_FIRST, 0), 0);
@@ -1588,8 +1595,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
 				{
-					printf("run recent script\n");
-					lua_recent_scripts_run(LOWORD(wParam));
+					auto path = Recent::element_at(Config.recent_lua_script_paths, ID_LUA_RECENT, LOWORD(wParam));
+					if (path.empty())
+						break;
+
+					lua_create_and_run(path.c_str());
 				}
 				break;
 			}
@@ -1696,6 +1706,7 @@ int WINAPI WinMain(
 
 	recent_roms_menu = GetSubMenu(GetSubMenu(main_menu, 0), 5);
 	recent_movies_menu = GetSubMenu(GetSubMenu(main_menu, 3), 6);
+	recent_lua_menu = GetSubMenu(GetSubMenu(main_menu, 6), 2);
 
 	RECT rect{};
 	GetClientRect(mainHWND, &rect);
@@ -1707,6 +1718,7 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
 	Messenger::subscribe(Messenger::Message::MovieRecordingStarted, on_movie_recording_or_playback_started);
 	Messenger::subscribe(Messenger::Message::MoviePlaybackStarted, on_movie_recording_or_playback_started);
+	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
 
 	// Rombrowser needs to be initialized *after* toolbar, since it depends on its state smh bru
 	Toolbar::init();
@@ -1715,9 +1727,10 @@ int WINAPI WinMain(
 	VCR::init();
 
 	update_menu_hotkey_labels();
-	lua_recent_scripts_build();
+
 	Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu);
 	Recent::build(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu);
+	Recent::build(Config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu);
 
 	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 	Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
