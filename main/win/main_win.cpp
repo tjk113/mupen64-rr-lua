@@ -89,6 +89,7 @@ static BOOL MenuPaused = 0;
 HWND mainHWND;
 HMENU main_menu;
 HMENU recent_roms_menu;
+HMENU recent_movies_menu;
 HINSTANCE app_instance;
 
 std::string app_path = "";
@@ -165,8 +166,6 @@ namespace Recent
 	}
 
 }
-
-
 
 void update_titlebar()
 {
@@ -1161,24 +1160,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				Config.is_movie_loop_enabled ^= true;
 				Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)Config.is_movie_loop_enabled);
 				break;
-			case IDM_PLAY_LATEST_MOVIE:
-				if (!emu_launched || Config.recent_movie_paths.empty())
-				{
-					break;
-				}
-				Config.vcr_readonly = true;
-				Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
-				vcr_start_playback(Config.recent_movie_paths[0], nullptr, nullptr);
-				break;
-			case IDM_FREEZE_RECENT_MOVIES:
-				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_MOVIES,
-				              (Config.is_recent_movie_paths_frozen ^= 1)
-					              ? MF_CHECKED
-					              : MF_UNCHECKED);
-				break;
-			case IDM_RESET_RECENT_MOVIES:
-				vcr_recent_movies_build(1);
-				break;
+
+
 			case EMU_PLAY:
 				if (emu_launched)
 				{
@@ -1485,14 +1468,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_RESET_RECENT_ROMS:
 				Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu, true);
 				break;
+			case IDM_RESET_RECENT_MOVIES:
+				Recent::build(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu, true);
+				break;
 			case IDM_FREEZE_RECENT_ROMS:
 				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS,
 							  (Config.is_recent_rom_paths_frozen ^= 1)
 								  ? MF_CHECKED
 								  : MF_UNCHECKED);
 				break;
+			case IDM_FREEZE_RECENT_MOVIES:
+				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_MOVIES,
+							  (Config.is_recent_movie_paths_frozen ^= 1)
+								  ? MF_CHECKED
+								  : MF_UNCHECKED);
+				break;
 			case IDM_LOAD_LATEST_ROM:
 				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_RECENTROMS_FIRST, 0), 0);
+				break;
+			case IDM_PLAY_LATEST_MOVIE:
+				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_RECENTMOVIES_FIRST, 0), 0);
 				break;
 			case IDM_TOOLBAR:
 				Config.is_toolbar_enabled ^= true;
@@ -1578,16 +1573,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + Config.
 						recent_movie_paths.size()))
 				{
-					if (vcr_recent_movies_play(LOWORD(wParam)) != SUCCESS)
-					{
-						Statusbar::post("Couldn't load movie");
+					auto path = Recent::element_at(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, LOWORD(wParam));
+					if (path.empty())
 						break;
-					}
 
-					if (!emu_paused || !emu_launched)
-						Statusbar::post("Playback started");
-					else
-						Statusbar::post("Playback started while paused");
+					Config.vcr_readonly = true;
+					Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
+					vcr_start_playback(path, nullptr, nullptr);
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
 				{
@@ -1698,6 +1690,7 @@ int WINAPI WinMain(
 	SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 
 	recent_roms_menu = GetSubMenu(GetSubMenu(main_menu, 0), 5);
+	recent_movies_menu = GetSubMenu(GetSubMenu(main_menu, 3), 6);
 
 	RECT rect{};
 	GetClientRect(mainHWND, &rect);
@@ -1715,10 +1708,9 @@ int WINAPI WinMain(
 	VCR::init();
 
 	update_menu_hotkey_labels();
-
-	vcr_recent_movies_build();
 	lua_recent_scripts_build();
 	Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu);
+	Recent::build(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu);
 
 	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 	Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);

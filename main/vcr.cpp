@@ -829,8 +829,6 @@ vcr_start_record(const char* filename, const unsigned short flags,
 
 	char buf[PATH_MAX];
 
-	vcr_recent_movies_add(std::string(filename));
-
 	// m_filename will be overwritten later in the function if
 	// MOVIE_START_FROM_EXISTING_SNAPSHOT is true, but it doesn't
 	// matter enough to make this a conditional thing
@@ -1841,76 +1839,6 @@ void vcr_on_vi()
 void VCR::init()
 {
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/////////////////////////// Recent Movies //////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-void vcr_recent_movies_build(const int32_t reset)
-{
-	const HMENU h_menu = GetMenu(mainHWND);
-
-	for (size_t i = 0; i < Config.recent_movie_paths.size(); i++)
-	{
-		if (Config.recent_movie_paths[i].empty())
-		{
-			continue;
-		}
-		DeleteMenu(h_menu, ID_RECENTMOVIES_FIRST + i, MF_BYCOMMAND);
-	}
-
-	if (reset)
-	{
-		Config.recent_movie_paths.clear();
-	}
-
-	HMENU h_sub_menu = GetSubMenu(h_menu, 3);
-	h_sub_menu = GetSubMenu(h_sub_menu, 6);
-
-	MENUITEMINFO menu_info = {0};
-	menu_info.cbSize = sizeof(MENUITEMINFO);
-	menu_info.fMask = MIIM_TYPE | MIIM_ID;
-	menu_info.fType = MFT_STRING;
-	menu_info.fState = MFS_ENABLED;
-
-	for (size_t i = 0; i < Config.recent_movie_paths.size(); i++)
-	{
-		if (Config.recent_movie_paths[i].empty())
-		{
-			continue;
-		}
-		menu_info.dwTypeData = const_cast<LPSTR>(Config.recent_movie_paths[i].c_str());
-		menu_info.cch = strlen(menu_info.dwTypeData);
-		menu_info.wID = ID_RECENTMOVIES_FIRST + i;
-		InsertMenuItem(h_sub_menu, i + 3, TRUE, &menu_info);
-	}
-}
-
-void vcr_recent_movies_add(const std::string path) // TODO: change to const reference
-{
-	if (Config.is_recent_movie_paths_frozen)
-	{
-		return;
-	}
-	if (Config.recent_movie_paths.size() > 5)
-	{
-		Config.recent_movie_paths.pop_back();
-	}
-	std::erase(Config.recent_movie_paths, path);
-	Config.recent_movie_paths.insert(Config.recent_movie_paths.begin(), path);
-	vcr_recent_movies_build();
-}
-
-int32_t vcr_recent_movies_play(const uint16_t menu_item_id)
-{
-	if (const int index = menu_item_id - ID_RECENTMOVIES_FIRST; index >= 0 && index < Config.recent_movie_paths.size())
-	{
-		Config.vcr_readonly = 1;
-		Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
-		return vcr_start_playback(Config.recent_movie_paths[index], nullptr, nullptr);
-	}
-	return 0;
 }
 
 bool is_frame_skipped()

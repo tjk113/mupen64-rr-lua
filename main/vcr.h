@@ -317,11 +317,6 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 
 #endif
 
-void vcr_recent_movies_build(int32_t reset = 0);
-void vcr_recent_movies_add(const std::string path);
-int32_t vcr_recent_movies_play(uint16_t menu_item_id);
-
-
 bool is_frame_skipped();
 
 extern t_movie_header vcr_get_header_info(const char* filename);
