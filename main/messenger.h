@@ -53,6 +53,16 @@ namespace Messenger
 		 * \brief The VCR task changed
 		 */
 		TaskChanged,
+
+		/**
+		 * \brief The VCR engine has begun recording a movie
+		 */
+		MovieRecordingStarted,
+
+		/**
+		 * \brief The VCR engine has begun playing back a movie
+		 */
+		MoviePlaybackStarted,
 	};
 
 	/**

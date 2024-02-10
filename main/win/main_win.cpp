@@ -94,14 +94,12 @@ HINSTANCE app_instance;
 
 std::string app_path = "";
 
-
 /**
  * \brief List of lua environment map keys running before emulation stopped
  */
 std::vector<HWND> previously_running_luas;
 
 std::deque<std::function<void()>> dispatcher_queue;
-
 
 namespace Recent
 {
@@ -152,7 +150,7 @@ namespace Recent
 			vec.pop_back();
 		}
 		std::erase(vec, val);
-		Config.recent_rom_paths.insert(vec.begin(), val);
+		vec.insert(vec.begin(), val);
 		build(vec, first_menu_id, parent_menu);
 	}
 
@@ -187,6 +185,13 @@ void update_titlebar()
 }
 
 #pragma region Change notifications
+
+void on_movie_recording_or_playback_started(std::any data)
+{
+	auto value = std::any_cast<std::filesystem::path>(data);
+	Recent::add(Config.recent_movie_paths, value.string(), Config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, recent_movies_menu);
+}
+
 void on_task_changed(std::any data)
 {
 	auto value = std::any_cast<e_task>(data);
@@ -1700,6 +1705,8 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::MovieLoopChanged, on_movie_loop_changed);
 	Messenger::subscribe(Messenger::Message::ReadonlyChanged, on_readonly_changed);
 	Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
+	Messenger::subscribe(Messenger::Message::MovieRecordingStarted, on_movie_recording_or_playback_started);
+	Messenger::subscribe(Messenger::Message::MoviePlaybackStarted, on_movie_recording_or_playback_started);
 
 	// Rombrowser needs to be initialized *after* toolbar, since it depends on its state smh bru
 	Toolbar::init();

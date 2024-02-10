@@ -920,7 +920,8 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		m_task = e_task::start_recording;
 	}
 
-	movie_path = buf;
+	// NOTE: Previously, movie_path was set to buf here, which is the st path
+	movie_path = filename;
 	set_rom_info(&m_header);
 
 	// utf8 strings are also null-terminated so this method still works
@@ -937,6 +938,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	m_current_sample = 0;
 	m_current_vi = 0;
 
+	Messenger::broadcast(Messenger::Message::MovieRecordingStarted, movie_path);
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	return 0;
 }
@@ -1218,6 +1220,7 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 		        MOVIE_DESCRIPTION_DATA_SIZE);
 	m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
 
+	Messenger::broadcast(Messenger::Message::MoviePlaybackStarted, movie_path);
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	LuaCallbacks::call_play_movie();
 	return SUCCESS;
