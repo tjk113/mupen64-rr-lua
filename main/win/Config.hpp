@@ -400,6 +400,11 @@ typedef struct _CONFIG
 	/// The movie frame to automatically pause at, or -1 if none
 	/// </summary>
 	int32_t pause_at_frame;
+
+	/// <summary>
+	/// Whether VCR operates in read-only mode
+	/// </summary>
+	int32_t vcr_readonly;
 } CONFIG;
 #pragma pack(pop)
 

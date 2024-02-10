@@ -90,7 +90,6 @@ static char avi_file_name[PATH_MAX];
 static FILE* m_file = nullptr;
 static t_movie_header m_header;
 
-static BOOL m_read_only = FALSE;
 long m_current_sample = -1;
 // should = length_samples when recording, and be < length_samples when playing
 int m_current_vi = -1;
@@ -457,26 +456,10 @@ vcr_is_capturing()
 	return m_capture ? TRUE : FALSE;
 }
 
-BOOL
-vcr_get_read_only()
-{
-	return m_read_only;
-}
-
 // Returns the filename of the last-played movie
 const char* vcr_get_movie_filename()
 {
 	return m_filename;
-}
-
-void
-vcr_set_read_only(const BOOL val)
-{
-	extern HWND mainHWND;
-	if (m_read_only != val)
-		CheckMenuItem(GetMenu(mainHWND), IDM_TOGGLE_READONLY,
-		              MF_BYCOMMAND | (val ? MFS_CHECKED : MFS_UNCHECKED));
-	m_read_only = val;
 }
 
 bool vcr_is_looping()
@@ -582,7 +565,7 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		return WRONG_FORMAT;
 
 	const e_task last_task = m_task;
-	if (!m_read_only)
+	if (!Config.vcr_readonly)
 	{
 		// here, we are going to take the input data from the savestate
 		// and make it the input data for the current movie, then continue
@@ -884,7 +867,9 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		}
 	}
 
-	vcr_set_read_only(FALSE);
+	// FIXME: Do we want to reset this every time?
+	Config.vcr_readonly = 0;
+	Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 
 	memset(&m_header, 0, MUP_HEADER_SIZE);
 
@@ -1728,18 +1713,6 @@ void vcr_stop_f_fmpeg_capture()
 #endif
 }
 
-void
-vcr_toggle_read_only()
-{
-	if (m_task == e_task::recording)
-	{
-		flush_movie();
-	}
-	vcr_set_read_only(!m_read_only);
-
-	Statusbar::post(m_read_only ? "Read" : "Read-write");
-}
-
 int vcr_stop_capture()
 {
 	if (capture_with_f_fmpeg)
@@ -1931,7 +1904,8 @@ int32_t vcr_recent_movies_play(const uint16_t menu_item_id)
 {
 	if (const int index = menu_item_id - ID_RECENTMOVIES_FIRST; index >= 0 && index < Config.recent_movie_paths.size())
 	{
-		vcr_set_read_only(TRUE);
+		Config.vcr_readonly = 1;
+		Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 		return vcr_start_playback(Config.recent_movie_paths[index], nullptr, nullptr);
 	}
 	return 0;

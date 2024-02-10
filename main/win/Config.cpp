@@ -214,7 +214,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = IDM_TOGGLE_READONLY,
+		.command = IDM_VCR_READONLY,
 	};
 
 	config.start_movie_playback_hotkey = {
@@ -662,6 +662,7 @@ CONFIG get_default_config()
 	config.vcr_0_index = 0;
 	config.increment_slot = 0;
 	config.pause_at_frame = -1;
+	config.vcr_readonly = 0;
 
 	return config;
 }
@@ -689,7 +690,7 @@ void update_menu_hotkey_labels()
 	set_hotkey_menu_accelerators(&Config.pause_hotkey, IDM_PAUSE);
     set_hotkey_menu_accelerators(&Config.frame_advance_hotkey, IDM_FRAMEADVANCE);
 
-    set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, IDM_TOGGLE_READONLY);
+    set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, IDM_VCR_READONLY);
     set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, IDM_START_MOVIE_PLAYBACK);
     set_hotkey_menu_accelerators(&Config.stop_movie_playback_hotkey, IDM_STOP_MOVIE_PLAYBACK);
     set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, IDM_START_MOVIE_RECORDING);
@@ -970,6 +971,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(vcr_0_index)
 	HANDLE_P_VALUE(increment_slot)
 	HANDLE_P_VALUE(pause_at_frame)
+	HANDLE_P_VALUE(vcr_readonly)
 
 	return ini;
 }

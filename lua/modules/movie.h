@@ -1,5 +1,7 @@
 #include <include/lua.h>
 #include <Windows.h>
+
+#include "messenger.h"
 #include "../../main/win/main_win.h"
 
 namespace LuaCore::Movie
@@ -8,7 +10,8 @@ namespace LuaCore::Movie
 	static int PlayMovie(lua_State* L)
 	{
 		const char* fname = lua_tostring(L, 1);
-		vcr_set_read_only(true);
+		Config.vcr_readonly = true;
+		Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 		vcr_start_playback(fname, nullptr, nullptr);
 		return 0;
 	}
@@ -34,7 +37,7 @@ namespace LuaCore::Movie
 
 	static int GetVCRReadOnly(lua_State* L)
 	{
-		lua_pushboolean(L, vcr_get_read_only());
+		lua_pushboolean(L, Config.vcr_readonly);
 		return 1;
 	}
 

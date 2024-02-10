@@ -241,14 +241,11 @@ extern BOOL vcr_is_playing();
 extern BOOL vcr_is_recording();
 extern BOOL vcr_is_capturing();
 extern const char* vcr_get_movie_filename();
-extern BOOL vcr_get_read_only();
 extern bool vcr_is_looping();
-extern void vcr_set_read_only(BOOL val);
 extern unsigned long vcr_get_length_v_is();
 extern unsigned long vcr_get_length_samples();
 extern void vcr_set_length_v_is(unsigned long val);
 extern void vcr_set_length_samples(unsigned long val);
-extern void vcr_toggle_read_only();
 
 extern void vcr_movie_freeze(char** buf, unsigned long* size);
 extern int vcr_movie_unfreeze(const char* buf, unsigned long size);

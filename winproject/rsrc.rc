@@ -140,7 +140,7 @@ BEGIN
         END
         MENUITEM SEPARATOR
         MENUITEM "Loop Movie Pl&ayback",        IDM_LOOP_MOVIE
-        MENUITEM "Toggle Read-Onl&y",           IDM_TOGGLE_READONLY
+        MENUITEM "Read-Onl&y",           IDM_VCR_READONLY
     END
     POPUP "&Utilities"
     BEGIN

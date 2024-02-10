@@ -45,6 +45,11 @@ namespace Messenger
 		MovieLoopChanged,
 
 		/**
+		 * \brief The VCR read-only state changed
+		 */
+		ReadonlyChanged,
+
+		/**
 		 * \brief The VCR task changed
 		 */
 		TaskChanged,

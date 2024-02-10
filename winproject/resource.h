@@ -95,7 +95,7 @@
 #define EMU_PLAY                        1064
 #define IDM_CLOSE_ROM                   1065
 #define IDM_REFRESH_ROMBROWSER          1066
-#define IDM_TOGGLE_READONLY             1067
+#define IDM_VCR_READONLY             1067
 #define REPLACEDLGORD                   1541
 #define RUNDLGORD                       1545
 #define IDC_MANAGE_LINK                 1592
@@ -462,7 +462,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
