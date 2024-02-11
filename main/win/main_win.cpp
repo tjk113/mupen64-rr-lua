@@ -1367,6 +1367,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 
 					Config.pause_at_frame = result.pause_at;
+					Config.pause_at_last_frame = result.pause_at_last;
 
 					auto playbackResult = vcr_start_playback(
 						result.path.string(), nullptr, nullptr);

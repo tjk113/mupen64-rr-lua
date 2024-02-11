@@ -400,10 +400,14 @@ typedef struct _CONFIG
 
 	/// <summary>
 	/// The movie frame to automatically pause at
-	/// -1 if none
-	/// -2 if last frame
+	/// -1 none
 	/// </summary>
 	int32_t pause_at_frame;
+
+	/// <summary>
+	/// Whether to pause at the last movie frame
+	/// </summary>
+	int32_t pause_at_last_frame;
 
 	/// <summary>
 	/// Whether VCR operates in read-only mode

@@ -1819,14 +1819,25 @@ void vcr_on_vi()
 	m_current_vi++;
 	if (vcr_is_recording())
 		vcr_set_length_v_is(m_current_vi);
-	if (vcr_is_playing() && Config.pause_at_frame != -1)
+	if (!vcr_is_playing())
+		return;
+
+	bool pausing_at_last = (Config.pause_at_last_frame && m_current_sample == m_header.length_samples);
+	bool pausing_at_n = (Config.pause_at_frame != -1 && m_current_sample >= Config.pause_at_frame);
+
+	if (pausing_at_last || pausing_at_n)
 	{
-		if ((Config.pause_at_frame == -2 && m_current_sample == m_header.length_samples) ||
-				(Config.pause_at_frame == -1 && m_current_sample >= Config.pause_at_frame))
-		{
-			pauseEmu(true);
-			Config.pause_at_frame = -1;
-		}
+		pauseEmu(true);
+	}
+
+	if (pausing_at_last)
+	{
+		Config.pause_at_last_frame = 0;
+	}
+
+	if (pausing_at_n)
+	{
+		Config.pause_at_frame = -1;
 	}
 }
 

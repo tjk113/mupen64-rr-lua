@@ -55,9 +55,7 @@ namespace MovieDialog {
 						} else {
 							record_params.pause_at = std::atoi(text);
 						}
-						if (IsDlgButtonChecked(hwnd, IDC_PAUSE_AT_END)) {
-							record_params.pause_at = -2;
-						}
+						record_params.pause_at_last = IsDlgButtonChecked(hwnd, IDC_PAUSE_AT_END);
 
 						Config.last_movie_type = record_params.start_flag;
 
@@ -99,12 +97,6 @@ namespace MovieDialog {
 						record_params.path.clear();
 						EndDialog(hwnd, IDCANCEL);
 						break;
-					case IDC_PAUSE_AT_END:
-					{
-						bool checked = IsDlgButtonChecked(hwnd, IDC_PAUSE_AT_END);
-						EnableWindow(GetDlgItem(hwnd, IDC_PAUSEAT_FIELD), !checked);
-						break;
-					}
 					case IDC_INI_MOVIEFILE:
 					{
 						char path[MAX_PATH] = {0};

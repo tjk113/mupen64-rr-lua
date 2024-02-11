@@ -11,6 +11,7 @@ namespace MovieDialog
 		std::string author;
 		std::string description;
 		int32_t pause_at;
+		int32_t pause_at_last;
 	};
 
 	/**
