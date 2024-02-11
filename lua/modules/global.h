@@ -21,10 +21,7 @@ namespace LuaCore::Global
 
 	static int StopScript(lua_State* L)
 	{
-		// FIXME: this isn't the right way to do this, but it's roughly equivalent to the old method
-		// it's better to force an error and kill the environment indirectly
-		HWND wnd = GetLuaClass(L)->hwnd;
-		LuaEnvironment::destroy(hwnd_lua_map[wnd]);
+		luaL_error(L, "Stop requested");
 		return 0;
 	}
 
