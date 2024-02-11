@@ -30,7 +30,6 @@ typedef struct _CONFIG
 	t_hotkey start_movie_recording_hotkey;
 	t_hotkey stop_movie_recording_hotkey;
 	t_hotkey take_screenshot_hotkey;
-	t_hotkey restart_movie_hotkey;
 	t_hotkey play_latest_movie_hotkey;
 	t_hotkey load_rom_hotkey;
 	t_hotkey close_rom_hotkey;
