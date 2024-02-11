@@ -400,7 +400,9 @@ typedef struct _CONFIG
 	int32_t increment_slot;
 
 	/// <summary>
-	/// The movie frame to automatically pause at, or -1 if none
+	/// The movie frame to automatically pause at
+	/// -1 if none
+	/// -2 if last frame
 	/// </summary>
 	int32_t pause_at_frame;
 

@@ -1819,12 +1819,13 @@ void vcr_on_vi()
 	m_current_vi++;
 	if (vcr_is_recording())
 		vcr_set_length_v_is(m_current_vi);
-	if (vcr_is_playing())
+	if (vcr_is_playing() && Config.pause_at_frame != -1)
 	{
-		if (m_current_sample >= Config.pause_at_frame && Config.pause_at_frame >= 0)
+		if ((Config.pause_at_frame == -2 && m_current_sample == m_header.length_samples) ||
+				(Config.pause_at_frame == -1 && m_current_sample >= Config.pause_at_frame))
 		{
-			pauseEmu(TRUE); // maybe this is multithreading unsafe?
-			Config.pause_at_frame = -1; // don't pause again
+			pauseEmu(true);
+			Config.pause_at_frame = -1;
 		}
 	}
 }
