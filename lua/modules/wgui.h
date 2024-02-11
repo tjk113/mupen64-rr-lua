@@ -193,7 +193,10 @@ namespace LuaCore::Wgui
 		if (lstrcmpi(s, "null") == 0)
 			lua->bkmode = TRANSPARENT;
 		else
+		{
 			lua->bkcol = StrToColor(s);
+			lua->bkmode = OPAQUE;
+		}
 
 		return 0;
 	}
