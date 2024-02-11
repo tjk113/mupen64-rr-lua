@@ -566,10 +566,11 @@ void lua_create_and_run(const char* path)
 	};
 
 	const luaL_Reg movieFuncs[] = {
-		{"playmovie", LuaCore::Movie::PlayMovie},
-		{"stopmovie", LuaCore::Movie::StopMovie},
-		{"getmoviefilename", LuaCore::Movie::GetMovieFilename},
-		{"isreadonly", LuaCore::Movie::GetVCRReadOnly},
+		{"play", LuaCore::Movie::PlayMovie},
+		{"stop", LuaCore::Movie::StopMovie},
+		{"get_filename", LuaCore::Movie::GetMovieFilename},
+		{"get_readonly", LuaCore::Movie::GetVCRReadOnly},
+		{"set_readonly", LuaCore::Movie::SetVCRReadOnly},
 		{NULL, NULL}
 	};
 
@@ -997,6 +998,18 @@ void LuaEnvironment::register_functions() {
 
 	// COMPAT: emu.isreadonly deprecated, forwarded to movie.isreadonly
 	luaL_dostring(L, "emu.isreadonly = movie.isreadonly");
+
+	// COMPAT: movie.playmovie deprecated, forwarded to movie.play
+	luaL_dostring(L, "movie.playmovie = movie.play");
+
+	// COMPAT: movie.stopmovie deprecated, forwarded to movie.stop
+	luaL_dostring(L, "movie.stopmovie = movie.stop");
+
+	// COMPAT: movie.getmoviefilename deprecated, forwarded to movie.get_filename
+	luaL_dostring(L, "movie.getmoviefilename = movie.get_filename");
+
+	// COMPAT: movie.isreadonly deprecated, forwarded to movie.get_readonly
+	luaL_dostring(L, "movie.isreadonly = movie.get_readonly");
 
 	// os.execute poses security risks
 	luaL_dostring(L, "os.execute = function() print('os.execute is disabled') end");

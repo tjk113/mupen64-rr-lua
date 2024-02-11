@@ -41,4 +41,11 @@ namespace LuaCore::Movie
 		return 1;
 	}
 
+	static int SetVCRReadOnly(lua_State* L)
+	{
+		Config.vcr_readonly = lua_toboolean(L, 1);
+		Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
+		return 0;
+	}
+
 }
