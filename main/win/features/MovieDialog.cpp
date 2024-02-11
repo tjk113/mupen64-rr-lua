@@ -48,6 +48,17 @@ namespace MovieDialog {
 					case IDC_OK:
 					case IDOK:
 					{
+						char text[MAX_PATH] = {0};
+						GetDlgItemText(hwnd, IDC_PAUSEAT_FIELD, text, std::size(text));
+						if (strlen(text) == 0) {
+							record_params.pause_at = -1;
+						} else {
+							record_params.pause_at = std::atoi(text);
+						}
+						if (IsDlgButtonChecked(hwnd, IDC_PAUSE_AT_END)) {
+							record_params.pause_at = -2;
+						}
+
 						Config.last_movie_type = record_params.start_flag;
 
 						if (record_params.start_flag ==
@@ -88,6 +99,12 @@ namespace MovieDialog {
 						record_params.path.clear();
 						EndDialog(hwnd, IDCANCEL);
 						break;
+					case IDC_PAUSE_AT_END:
+					{
+						bool checked = IsDlgButtonChecked(hwnd, IDC_PAUSE_AT_END);
+						EnableWindow(GetDlgItem(hwnd, IDC_PAUSEAT_FIELD), !checked);
+						break;
+					}
 					case IDC_INI_MOVIEFILE:
 					{
 						char path[MAX_PATH] = {0};

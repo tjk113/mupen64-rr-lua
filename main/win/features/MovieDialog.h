@@ -10,6 +10,7 @@ namespace MovieDialog
 		unsigned short start_flag;
 		std::string author;
 		std::string description;
+		int32_t pause_at;
 	};
 
 	/**
