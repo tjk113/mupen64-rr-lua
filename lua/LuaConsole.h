@@ -171,12 +171,6 @@ public:
 	void create_renderer();
 	void destroy_renderer();
 
-
-	/**
-	 * \brief Draws to the environment's DC
-	 */
-	void draw();
-
 	//calls all functions that lua script has defined as callbacks, reads them from registry
 	//returns true at fail
 	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,

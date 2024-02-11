@@ -68,10 +68,21 @@ namespace LuaCallbacks
 		RET_IF_EMPTY;
 		HDC main_dc = GetDC(mainHWND);
 
-		for (auto& pair : hwnd_lua_map)
+		// We need to copy the map, since it might be modified during iteration
+		auto map = hwnd_lua_map;
+		for (auto& pair : map)
 		{
 			/// Let the environment draw to its DCs
-			pair.second->draw();
+
+			// Draw to the bound D2D dc
+			// Also clear with alpha mask before drawing!
+			pair.second->d2d_render_target->BeginDraw();
+			pair.second->d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
+			pair.second->d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
+
+			bool failed = pair.second->invoke_callbacks_with_key(state_update_screen, REG_ATUPDATESCREEN);
+
+			pair.second->d2d_render_target->EndDraw();
 
 			/// Blit its DCs (GDI, D2D) to the main window with alpha mask
 			TransparentBlt(main_dc, 0, 0, pair.second->dc_width,
@@ -88,6 +99,11 @@ namespace LuaCallbacks
 			HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
 			FillRect(pair.second->gdi_dc, &rect, brush);
 			DeleteObject(brush);
+
+			if (failed)
+			{
+				LuaEnvironment::destroy(pair.second);
+			}
 		}
 
 		ReleaseDC(mainHWND, main_dc);

@@ -104,9 +104,14 @@ std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 	void invoke_callbacks_with_key_on_all_instances(
 		std::function<int(lua_State*)> function, const char* key)
 	{
-		for (auto pair : hwnd_lua_map)
+		// We need to copy the map, since it might be modified during iteration
+		auto map = hwnd_lua_map;
+		for (auto pair : map)
 		{
-			pair.second->invoke_callbacks_with_key(function, key);
+			if(!pair.second->invoke_callbacks_with_key(function, key))
+				continue;
+
+			LuaEnvironment::destroy(pair.second);
 		}
 	}
 
@@ -845,18 +850,6 @@ void LuaEnvironment::destroy_renderer()
 	d2d_dc = nullptr;
 	d2d_factory = nullptr;
 	d2d_render_target = nullptr;
-}
-
-void LuaEnvironment::draw() {
-	// Draw to the bound D2D dc
-	// Also clear with alpha mask before drawing!
-	d2d_render_target->BeginDraw();
-	d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
-	d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
-
-	this->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
-
-	d2d_render_target->EndDraw();
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
