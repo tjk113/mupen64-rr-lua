@@ -631,11 +631,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	{
 		getKeys(index, input);
 		last_controller_data[index] = *input;
-		if (!hwnd_lua_map.empty())
-		{
-			LuaCallbacks::call_input(index);
-		}
-
+		LuaCallbacks::call_input(index);
 
 		// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
 		if (overwrite_controller_data[index])
@@ -1291,19 +1287,13 @@ void vcr_update_screen()
 		}
 
 		// we always want to invoke atvi, regardless of ff optimization
-		if (!hwnd_lua_map.empty())
-		{
-			LuaCallbacks::call_vi();
-		}
+		LuaCallbacks::call_vi();
 		return;
 	}
 
 	// capturing, update screen and call readscreen, call avi/ffmpeg stuff
 	updateScreen();
-	if (!hwnd_lua_map.empty())
-	{
-		LuaCallbacks::call_vi();
-	}
+	LuaCallbacks::call_vi();
 	void* image = nullptr;
 	long width = 0, height = 0;
 

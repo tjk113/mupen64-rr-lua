@@ -4,6 +4,9 @@
 
 namespace LuaCallbacks
 {
+	// OPTIMIZATION: If no lua scripts are running, skip the deeper lua path
+#define RET_IF_EMPTY { if(hwnd_lua_map.empty()) return; }
+
 	t_window_procedure_params window_proc_params = {0};
 	int current_input_n = 0;
 
@@ -45,8 +48,10 @@ namespace LuaCallbacks
 		return lua_pcall(L, 4, 0, 0);
 	}
 
+#pragma region Call Implementations
 	void call_window_message(HWND wnd, UINT msg, WPARAM w, LPARAM l)
 	{
+		RET_IF_EMPTY;
 		// Invoking dispatcher here isn't allowed, as it would lead to infinite recursion
 		window_proc_params = {
 			.wnd = wnd,
@@ -60,6 +65,7 @@ namespace LuaCallbacks
 
 	void call_updatescreen()
 	{
+		RET_IF_EMPTY;
 		HDC main_dc = GetDC(mainHWND);
 
 		for (auto& pair : hwnd_lua_map)
@@ -89,6 +95,7 @@ namespace LuaCallbacks
 
 	void call_vi()
 	{
+		RET_IF_EMPTY;
 		main_dispatcher_invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
@@ -98,6 +105,7 @@ namespace LuaCallbacks
 
 	void call_input(int n)
 	{
+		RET_IF_EMPTY;
 		main_dispatcher_invoke([n]
 		{
 			current_input_n = n;
@@ -109,6 +117,7 @@ namespace LuaCallbacks
 
 	void call_interval()
 	{
+		RET_IF_EMPTY;
 		main_dispatcher_invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
@@ -118,6 +127,7 @@ namespace LuaCallbacks
 
 	void call_play_movie()
 	{
+		RET_IF_EMPTY;
 		main_dispatcher_invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
@@ -127,6 +137,7 @@ namespace LuaCallbacks
 
 	void call_stop_movie()
 	{
+		RET_IF_EMPTY;
 		main_dispatcher_invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
@@ -136,6 +147,7 @@ namespace LuaCallbacks
 
 	void call_load_state()
 	{
+		RET_IF_EMPTY;
 		main_dispatcher_invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
@@ -145,6 +157,7 @@ namespace LuaCallbacks
 
 	void call_save_state()
 	{
+		RET_IF_EMPTY;
 		main_dispatcher_invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
@@ -154,10 +167,12 @@ namespace LuaCallbacks
 
 	void call_reset()
 	{
+		RET_IF_EMPTY;
 		main_dispatcher_invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
 				CallTop, REG_ATRESET);
 		});
 	}
+#pragma endregion
 }
