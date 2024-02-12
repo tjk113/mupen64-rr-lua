@@ -129,16 +129,6 @@ BEGIN
         END
         MENUITEM "&Load Latest Movie",          IDM_PLAY_LATEST_MOVIE
         MENUITEM SEPARATOR
-        POPUP "Video Capture"
-        BEGIN
-            MENUITEM "Start AVI Capture...",        IDM_START_CAPTURE
-            MENUITEM "Start AVI From Preset...",    IDM_START_CAPTURE_PRESET
-            MENUITEM SEPARATOR
-            MENUITEM "Start FFmpeg Capture...",     IDM_START_FFMPEG_CAPTURE
-            MENUITEM SEPARATOR
-            MENUITEM "Stop Capture",                IDM_STOP_CAPTURE
-        END
-        MENUITEM SEPARATOR
         MENUITEM "Loop Movie Pl&ayback",        IDM_LOOP_MOVIE
         MENUITEM "Read-Onl&y",                  IDM_VCR_READONLY
     END
@@ -147,6 +137,16 @@ BEGIN
         MENUITEM "Show &RAM start...",          IDM_RAMSTART
         MENUITEM "Start &Trace Logger...",      IDM_TRACELOG
         MENUITEM "&CoreDbg...",                 IDM_COREDBG
+        MENUITEM SEPARATOR
+        POPUP "Video Capture"
+                BEGIN
+                    MENUITEM "Start AVI Capture...",        IDM_START_CAPTURE
+                    MENUITEM "Start AVI From Preset...",    IDM_START_CAPTURE_PRESET
+                    MENUITEM SEPARATOR
+                    MENUITEM "Start FFmpeg Capture...",     IDM_START_FFMPEG_CAPTURE
+                    MENUITEM SEPARATOR
+                    MENUITEM "Stop Capture",                IDM_STOP_CAPTURE
+        END
     END
     POPUP "&Help"
     BEGIN
