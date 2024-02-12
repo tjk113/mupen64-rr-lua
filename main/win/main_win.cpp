@@ -1626,6 +1626,11 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	fputs(crash_log, f);
 	fclose(f);
 
+	if (!Config.crash_dialog)
+	{
+		return EXCEPTION_EXECUTE_HANDLER;
+	}
+
 	bool is_continuable = !(ExceptionInfo->ExceptionRecord->ExceptionFlags &
 		EXCEPTION_NONCONTINUABLE);
 

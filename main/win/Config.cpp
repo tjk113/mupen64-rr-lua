@@ -688,7 +688,9 @@ CONFIG get_default_config()
 	config.vcr_0_index = 0;
 	config.increment_slot = 0;
 	config.pause_at_frame = -1;
+	config.pause_at_last_frame = 0;
 	config.vcr_readonly = 0;
+	config.crash_dialog = 1;
 
 	return config;
 }
@@ -997,7 +999,9 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(vcr_0_index)
 	HANDLE_P_VALUE(increment_slot)
 	HANDLE_P_VALUE(pause_at_frame)
+	HANDLE_P_VALUE(pause_at_last_frame)
 	HANDLE_P_VALUE(vcr_readonly)
+	HANDLE_P_VALUE(crash_dialog)
 
 	return ini;
 }

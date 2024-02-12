@@ -413,6 +413,11 @@ typedef struct _CONFIG
 	/// Whether VCR operates in read-only mode
 	/// </summary>
 	int32_t vcr_readonly;
+
+	/// <summary>
+	/// Whether mupen will display a dialog upon crashing
+	/// </summary>
+	int32_t crash_dialog;
 } CONFIG;
 #pragma pack(pop)
 
