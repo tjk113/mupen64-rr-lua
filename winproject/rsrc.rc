@@ -118,7 +118,7 @@ BEGIN
         MENUITEM "S&tart Movie Recording...",   IDM_START_MOVIE_RECORDING, GRAYED
         MENUITEM "Stop Movie &Recording",       IDM_STOP_MOVIE_RECORDING, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "Start Movie &Playback...",    IDM_START_MOVIE_PLAYBACK, GRAYED
+        MENUITEM "Start Movie &Playback...",    IDM_START_MOVIE_PLAYBACK
         MENUITEM "St&op Movie Playback",        IDM_STOP_MOVIE_PLAYBACK, GRAYED
         MENUITEM SEPARATOR
         POPUP "Recent Movies"

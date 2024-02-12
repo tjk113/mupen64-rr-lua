@@ -17,6 +17,8 @@
 #pragma once
 
 #include <Windows.h>
+#include <vector>
+#include <string>
 #include "rom.h"
 
 namespace Rombrowser
@@ -36,4 +38,9 @@ namespace Rombrowser
  	* \param lparam The lparam value associated with the current message processing pass
  	*/
 	void notify(LPARAM lparam);
+
+	/**
+	 * \brief Finds all available ROMs
+	 */
+	std::vector<std::string> find_available_roms();
 }

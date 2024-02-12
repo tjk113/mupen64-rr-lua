@@ -257,8 +257,6 @@ void on_emu_launched_changed(std::any data)
 	EnableMenuItem(main_menu, IDM_CLOSE_ROM, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_TRACELOG, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_START_MOVIE_PLAYBACK, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_PLAY_LATEST_MOVIE, value ? MF_ENABLED : MF_GRAYED);
@@ -797,7 +795,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				CreateThread(NULL, 0, start_rom, nullptr, 0, &start_rom_id);
 			} else if (extension == ".m64")
 			{
-				if (!emu_launched) break;
 				if (vcr_start_playback(fname, nullptr, nullptr) < 0)
 				{
 					printf(
