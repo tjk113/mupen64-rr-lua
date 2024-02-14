@@ -117,6 +117,7 @@ set(PROJECT_NAME mupen64)
 # Source groups
 ################################################################################
 set(Headers
+    "../../lua/LuaCallbacks.h"
     "../../lua/LuaConsole.h"
     "../../lua/modules/avi.h"
     "../../lua/modules/d2d.h"
@@ -187,6 +188,7 @@ source_group("Headers" FILES ${Headers})
 set(Sources
     "../rsrc.rc"
     "../mupen64.exe.Manifest"
+    "../../lua/LuaCallbacks.cpp"
     "../../lua/LuaConsole.cpp"
 #    "../../main/adler32.c"
     "../../main/debughook.c"
@@ -342,6 +344,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 ################################################################################
 # Compile and link options
 ################################################################################
+add_compile_options( $<$<AND:$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>,$<OR:$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>,$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},>>>:-pedantic> )
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:
