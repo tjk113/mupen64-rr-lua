@@ -716,14 +716,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			if (!savestates_job_success)
 			{
 				m_task = e_task::idle;
-				if (!dont_play)
-				{
-					// TODO: reset titlebar properly
-					char title[MAX_PATH];
-					GetWindowText(mainHWND, title, MAX_PATH);
-					title[title_length] = '\0'; //remove movie being played part
-					SetWindowText(mainHWND, title);
-				}
 				getKeys(index, input);
 				return;
 			}
@@ -1770,16 +1762,6 @@ int vcr_stop_capture()
 
 
 	SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-	if (vcr_is_playing())
-	{
-		char title[PATH_MAX];
-		char m64[PATH_MAX];
-		strncpy(m64, m_filename, PATH_MAX);
-		_splitpath(m64, nullptr, nullptr, m64, nullptr);
-		sprintf(title, MUPEN_VERSION " - %s | %s.m64", (char*)ROM_HEADER.nom,
-		        m64);
-		SetWindowText(mainHWND, title);
-	}
 
 	VCRComp_finishFile();
 	avi_increment = 0;

@@ -497,13 +497,8 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 
 	// notify ui of emu state change
 	Recent::add(Config.recent_rom_paths, rom_path_local, Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
-	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 	on_speed_modifier_changed(Config.fps_modifier);
-
-	if (m_task == e_task::idle) {
-		SetWindowText(mainHWND, std::format("{} - {}", std::string(MUPEN_VERSION), std::string((char*)ROM_HEADER.nom)).c_str());
-	}
 
 	// HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
 	auto gfx_thread = std::thread(load_gfx, video_plugin->handle);
@@ -579,7 +574,6 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 		// toolbar_on_emu_launched_changed(0, 0);
 
 		if (m_task == e_task::idle) {
-			SetWindowText(mainHWND, MUPEN_VERSION);
 			// TODO: look into why this is done
 			Statusbar::post(" ", 1);
 		}
@@ -659,6 +653,8 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
 				                         &audio_thread_id);
 	printf("Emu thread: Emulation started....\n");
+
+	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 
 	// start movies, st and lua scripts
 	commandline_load_st();
