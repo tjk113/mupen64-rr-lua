@@ -19,13 +19,12 @@
 #include <Windows.h>
 #include <string>
 #include <functional>
+#include <filesystem>
 #define MUPEN_VERSION "Mupen 64 1.1.7"
 
 #define WM_EXECUTE_DISPATCHER (WM_USER + 10)
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
-
-extern char rom_path[MAX_PATH];
 
 extern int last_wheel_delta;
 
@@ -38,18 +37,30 @@ extern HINSTANCE app_instance;
 extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
 extern DWORD start_rom_id;
-extern DWORD close_rom_id;
 
 void main_dispatcher_invoke(const std::function<void()>& func);
 extern std::string app_path;
-extern void resetEmu();
+
+/**
+ * \brief Resets the emulator
+ */
+void reset_emu();
+
+/**
+ * \brief Stops the emulator
+ */
+void close_rom();
+
+/**
+ * \brief Starts the emulator
+ * \param path Path to a rom file
+ * \returns The operation status code
+ */
+int start_rom(std::filesystem::path path);
+
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
-/**
- * \brief Starts the rom from the path contained in <c>rom_path</c>
- */
-DWORD WINAPI start_rom(LPVOID lpParam);
-DWORD WINAPI close_rom(LPVOID lpParam);
+
 
 /**
  * \brief Whether the statusbar needs to be updated with new input information

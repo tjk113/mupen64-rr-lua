@@ -371,8 +371,8 @@ namespace Rombrowser
 				item.mask = LVIF_PARAM;
 				item.iItem = i;
 				ListView_GetItem(rombrowser_hwnd, &item);
-				strcpy(rom_path, rombrowser_entries[item.lParam]->path.c_str());
-				CreateThread(NULL, 0, start_rom, NULL, 0, nullptr);
+				auto path = rombrowser_entries[item.lParam]->path;
+				std::thread([path] { start_rom(path); }).detach();
 			}
 			break;
 		}

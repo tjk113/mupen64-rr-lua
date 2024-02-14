@@ -60,8 +60,6 @@
 
 
 
-DWORD start_rom_id;
-DWORD close_rom_id;
 DWORD audio_thread_id;
 HANDLE sound_thread_handle;
 static BOOL FullScreenMode = 0;
@@ -73,13 +71,7 @@ HWND hwnd_plug;
 UINT update_screen_timer;
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam);
-DWORD WINAPI close_rom(LPVOID lpParam);
 constexpr char g_szClassName[] = "myWindowClass";
-char rom_path[MAX_PATH] = {0};
-char LastSelectedRom[_MAX_PATH];
-BOOL really_restart_mode = 0;
-BOOL clear_sram_on_restart_mode = 0;
-BOOL just_restarted_flag = 0;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
 
@@ -91,6 +83,7 @@ HMENU recent_lua_menu;
 HINSTANCE app_instance;
 
 std::string app_path = "";
+std::filesystem::path rom_path;
 
 /**
  * \brief List of lua environment map keys running before emulation stopped
@@ -455,21 +448,15 @@ void pauseEmu(BOOL quiet)
 			                              : MFS_UNCHECKED));
 }
 
-DWORD WINAPI start_rom(LPVOID lpParam)
+int start_rom(std::filesystem::path path)
 {
-	// maybe make no access violations, probably can be just
-	// replaced with rom_path instead of rom_path_local
-	char* rom_path_local = {};
-	if (lpParam != nullptr) {
-		rom_path_local = (char*)lpParam;
-	} else {
-		rom_path_local = rom_path;
-	}
+	rom_path = path;
+
 	auto start_time = std::chrono::high_resolution_clock::now();
 
 	// Kill any roms that are still running
 	if (emu_launched) {
-		WaitForSingleObject(CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id), 10'000);
+		close_rom();
 	}
 
 	// TODO: keep plugins loaded and only unload and reload them when they actually change
@@ -482,7 +469,7 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	}
 
 	// valid rom is required to start emulation
-	if (rom_read(rom_path_local))
+	if (rom_read(path.string().c_str()))
 	{
 		MessageBox(mainHWND, "Failed to open ROM", "Error",
 				   MB_ICONERROR | MB_OK);
@@ -490,11 +477,8 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 		return 0;
 	}
 
-	// TODO: investigate wtf this is
-	strcpy(LastSelectedRom, rom_path_local);
-
 	// notify ui of emu state change
-	Recent::add(Config.recent_rom_paths, rom_path_local, Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
+	Recent::add(Config.recent_rom_paths, path.string(), Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 	on_speed_modifier_changed(Config.fps_modifier);
 
@@ -518,104 +502,68 @@ DWORD WINAPI start_rom(LPVOID lpParam)
 	return 1;
 }
 
-static int shut_window = 0;
-
-DWORD WINAPI close_rom(LPVOID lpParam)
+void close_rom()
 {
-	//printf("gen interrupt: %lld ns/vi", (total_vi/frame_count));
-	if (emu_launched) {
-
-		if (emu_paused) {
-			MenuPaused = FALSE;
-			resumeEmu(FALSE);
-		}
-
-		// We need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
-		if (vcr_is_capturing()) {
-			vcr_stop_capture();
-		}
-
-		// remember all running lua scripts' HWNDs
-		for (const auto key : hwnd_lua_map | std::views::keys)
-		{
-			previously_running_luas.push_back(key);
-		}
-
-		printf("Closing emulation thread...\n");
-
-		// we signal the core to stop, then wait until thread exits
-		stop_it();
-		main_dispatcher_invoke(stop_all_scripts);
-		stop = 1;
-		DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
-		if (result == WAIT_TIMEOUT) {
-			MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
-					   MB_ICONERROR | MB_OK);
-		}
-
-		emu_launched = 0;
-		emu_paused = 1;
-
-
-		rom = NULL;
-		free(rom);
-
-		free_memory();
-
-		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
-		// toolbar_on_emu_launched_changed(0, 0);
-
-		if (m_task == e_task::idle) {
-			// TODO: look into why this is done
-			Statusbar::post(" ", 1);
-		}
-
-		if (shut_window) {
-			SendMessage(mainHWND, WM_CLOSE, 0, 0);
-			return 0;
-		}
-
-		Statusbar::post("Emulation stopped");
-
-		if (really_restart_mode) {
-			if (clear_sram_on_restart_mode) {
-				vcr_clear_save_data();
-				clear_sram_on_restart_mode = FALSE;
-			}
-
-			really_restart_mode = FALSE;
-			if (m_task != e_task::idle)
-				just_restarted_flag = TRUE;
-
-			main_dispatcher_invoke([] {
-				strcpy(rom_path, LastSelectedRom);
-				CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
-				//if (!start_rom(nullptr)) {
-					//close_rom(NULL);
-					//MessageBox(mainHWND, "Failed to open ROM", NULL,
-							//   MB_ICONERROR | MB_OK);
-				//}
-			});
-		}
-
-		ExitThread(0);
+	if (!emu_launched)
+	{
+		return;
 	}
-	ExitThread(0);
+
+	if (emu_paused) {
+		MenuPaused = FALSE;
+		resumeEmu(FALSE);
+	}
+
+	// We need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
+	if (vcr_is_capturing()) {
+		vcr_stop_capture();
+	}
+
+	// remember all running lua scripts' HWNDs
+	for (const auto key : hwnd_lua_map | std::views::keys)
+	{
+		previously_running_luas.push_back(key);
+	}
+
+	printf("Closing emulation thread...\n");
+
+	// we signal the core to stop, then wait until thread exits
+	stop_it();
+	main_dispatcher_invoke(stop_all_scripts);
+	stop = 1;
+	DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
+	if (result == WAIT_TIMEOUT) {
+		MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
+		           MB_ICONERROR | MB_OK);
+	}
+
+	emu_launched = 0;
+	emu_paused = 1;
+
+	rom = NULL;
+	free(rom);
+
+	free_memory();
+
+	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
+
+	Statusbar::post("Emulation stopped");
 }
 
-void resetEmu()
+void reset_emu()
 {
+	if (!emu_launched)
+		return;
+
 	// why is it so damned difficult to reset the game?
 	// right now it's hacked to exit to the GUI then re-load the ROM,
 	// but it should be possible to reset the game while it's still running
 	// simply by clearing out some memory and maybe notifying the plugins...
-	if (emu_launched)
-	{
-		frame_advancing = false;
-		really_restart_mode = TRUE;
-		MenuPaused = FALSE;
-		CreateThread(NULL, 0, close_rom, NULL, 0, &close_rom_id);
-	}
+	frame_advancing = false;
+	MenuPaused = FALSE;
+
+	close_rom();
+	start_rom(rom_path);
 }
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
@@ -768,8 +716,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
-				strcpy(rom_path, fname);
-				CreateThread(NULL, 0, start_rom, nullptr, 0, &start_rom_id);
+				std::thread([path] { start_rom(path); }).detach();
 			} else if (extension == ".m64")
 			{
 				if (vcr_start_playback(fname, nullptr, nullptr) < 0)
@@ -1089,12 +1036,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				MenuPaused = FALSE;
 				if (!confirm_user_exit())
 					break;
-				if (emu_launched)
-				{
-					//close_rom(&Id);
-					CreateThread(NULL, 0, close_rom, (LPVOID)1, 0, &close_rom_id);
-
-				}
+				std::thread(close_rom).detach();
 				break;
 
 			case IDM_PAUSE:
@@ -1153,7 +1095,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!Config.is_reset_recording_enabled && confirm_user_exit())
 					break;
 
-				resetEmu();
+				std::thread(reset_emu).detach();
 				break;
 
 			case IDM_SETTINGS:
@@ -1219,8 +1161,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					if (!path.empty())
 					{
-						strcpy(rom_path, wstring_to_string(path).c_str());
-						CreateThread(nullptr, 0, start_rom, nullptr, NULL, &start_rom_id);
+						std::thread([path] { start_rom(path); }).detach();
 					}
 
 					if (wasMenuPaused)
@@ -1549,8 +1490,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (path.empty())
 						break;
 
-					strcpy(rom_path, path.c_str());
-					CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
+					std::thread([path] { start_rom(path); }).detach();
 				} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST &&
 					LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + Config.
 						recent_movie_paths.size()))

@@ -1045,8 +1045,7 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 		// We don't have any mechanisms in place to wait until the game has fully started, so maybe that should be done
 		main_dispatcher_invoke([matching_rom]
 		{
-			strcpy(rom_path, matching_rom.c_str());
-			CreateThread(NULL, 0, start_rom, rom_path, 0, &start_rom_id);
+			std::thread([matching_rom] { start_rom(matching_rom); }).detach();
 			Sleep(200);
 		});
 	}
