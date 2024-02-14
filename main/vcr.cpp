@@ -141,19 +141,6 @@ static void write_movie_header(FILE* file)
 	fseek(file, 0L, SEEK_END);
 }
 
-
-static void hard_reset_and_clear_all_save_data(const bool clear)
-{
-	extern BOOL clear_sram_on_restart_mode;
-	clear_sram_on_restart_mode = clear;
-	continue_vcr_on_restart_mode = TRUE;
-	if (clear)
-		printf("Clearing save data...\n");
-	else
-		printf("Playing movie without clearing save data\n");
-	SendMessage(mainHWND, WM_COMMAND, IDM_RESET_ROM, 0);
-}
-
 static void set_rom_info(t_movie_header* header)
 {
 	header->vis_per_second = get_vis_per_second(ROM_HEADER.Country_code);
@@ -424,22 +411,6 @@ vcr_is_starting()
 }
 
 BOOL
-vcr_is_starting_and_just_restarted()
-{
-	if (extern BOOL just_restarted_flag; m_task == e_task::start_playback && !continue_vcr_on_restart_mode &&
-		just_restarted_flag)
-	{
-		just_restarted_flag = FALSE;
-		m_current_sample = 0;
-		m_current_vi = 0;
-		m_task = e_task::playback;
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-BOOL
 vcr_is_playing()
 {
 	return (m_task == e_task::playback) ? TRUE : FALSE;
@@ -646,26 +617,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	if (m_task == e_task::idle)
 		return;
 
-	if (m_task == e_task::start_recording)
-	{
-		if (!continue_vcr_on_restart_mode)
-		{
-			if (just_restarted_flag)
-			{
-				just_restarted_flag = FALSE;
-				m_current_sample = 0;
-				m_current_vi = 0;
-				m_task = e_task::recording;
-				*input = {0};
-			} else
-			{
-				printf("[VCR]: Starting recording...\n");
-				hard_reset_and_clear_all_save_data(
-					!(m_header.startFlags & MOVIE_START_FROM_EEPROM));
-			}
-		}
-	}
-
 	if (m_task == e_task::start_recording_from_snapshot)
 	{
 		// TODO: maybe call st generation like normal and remove the "start_x" states
@@ -685,26 +636,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			printf("[VCR]: Starting recording from Existing Snapshot...\n");
 			m_task = e_task::recording;
 			*input = {0};
-		}
-	}
-
-
-	if (m_task == e_task::start_playback)
-	{
-		if (!continue_vcr_on_restart_mode)
-		{
-			if (just_restarted_flag)
-			{
-				just_restarted_flag = FALSE;
-				m_current_sample = 0;
-				m_current_vi = 0;
-				m_task = e_task::playback;
-			} else
-			{
-				printf("[VCR]: Starting playback...\n");
-				hard_reset_and_clear_all_save_data(
-					!(m_header.startFlags & MOVIE_START_FROM_EEPROM));
-			}
 		}
 	}
 
@@ -731,15 +662,12 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			(unsigned long)(m_input_buffer_ptr + sizeof(BUTTONS) -
 				m_input_buffer));
 
-		extern bool scheduled_restart;
-		if (scheduled_restart)
-		{
-			// reserved 1 and 2 pressed simultaneously = reset flag
-			*input = {
-				.Reserved1 = 1,
-				.Reserved2 = 1,
-			};
-		}
+		// TODO: Reimplement!
+		// Write sample with only Reserved1&2 if resetting
+		// *input = {
+		// 	.Reserved1 = 1,
+		// 	.Reserved2 = 1,
+		// };
 
 		*reinterpret_cast<BUTTONS*>(m_input_buffer_ptr) = *input;
 
@@ -753,11 +681,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			flush_movie();
 		}
 
-		if (scheduled_restart)
-		{
-			resetEmu();
-			scheduled_restart = false;
-		}
 		return;
 	}
 
@@ -785,8 +708,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			//no readable code because 120 star tas can't get this right >:(
 			if (input->Value == 0xC000)
 			{
-				continue_vcr_on_restart_mode = true;
-				resetEmu();
+				// TODO: Reimplement!!!
 			}
 
 			last_controller_data[index] = *input;
@@ -1773,10 +1695,6 @@ int vcr_stop_capture()
 void
 vcr_core_stopped()
 {
-	extern BOOL continue_vcr_on_restart_mode;
-	if (continue_vcr_on_restart_mode)
-		return;
-
 	switch (m_task)
 	{
 	case e_task::start_recording:

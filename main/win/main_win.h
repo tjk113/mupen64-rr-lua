@@ -51,8 +51,6 @@ extern void pauseEmu(BOOL quiet);
 DWORD WINAPI start_rom(LPVOID lpParam);
 DWORD WINAPI close_rom(LPVOID lpParam);
 
-extern BOOL continue_vcr_on_restart_mode;
-
 /**
  * \brief Whether the statusbar needs to be updated with new input information
  */

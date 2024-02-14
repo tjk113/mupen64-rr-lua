@@ -237,7 +237,6 @@ extern void vcr_ai_len_changed();
 extern BOOL vcr_is_active();
 extern BOOL vcr_is_idle(); // not the same as !isActive()
 extern BOOL vcr_is_starting();
-extern BOOL vcr_is_starting_and_just_restarted();
 extern BOOL vcr_is_playing();
 extern BOOL vcr_is_recording();
 extern BOOL vcr_is_capturing();

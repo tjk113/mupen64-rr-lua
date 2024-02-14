@@ -77,10 +77,8 @@ DWORD WINAPI close_rom(LPVOID lpParam);
 constexpr char g_szClassName[] = "myWindowClass";
 char rom_path[MAX_PATH] = {0};
 char LastSelectedRom[_MAX_PATH];
-bool scheduled_restart = false;
 BOOL really_restart_mode = 0;
 BOOL clear_sram_on_restart_mode = 0;
-BOOL continue_vcr_on_restart_mode = 0;
 BOOL just_restarted_flag = 0;
 static BOOL AutoPause = 0;
 static BOOL MenuPaused = 0;
@@ -532,15 +530,9 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			resumeEmu(FALSE);
 		}
 
-		if (vcr_is_capturing() && !continue_vcr_on_restart_mode) {
-			// we need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
-			if (vcr_stop_capture() != 0)
-				MessageBox(NULL, "Couldn't stop capturing", "VCR", MB_OK);
-			else {
-				SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
-							 SWP_NOMOVE | SWP_NOSIZE);
-				Statusbar::post("Stopped AVI capture");
-			}
+		// We need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
+		if (vcr_is_capturing()) {
+			vcr_stop_capture();
 		}
 
 		// remember all running lua scripts' HWNDs
@@ -606,8 +598,6 @@ DWORD WINAPI close_rom(LPVOID lpParam)
 			});
 		}
 
-
-		continue_vcr_on_restart_mode = FALSE;
 		ExitThread(0);
 	}
 	ExitThread(0);
@@ -672,15 +662,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	LuaCallbacks::call_reset();
 
-	if (Config.pause_at_frame == 0 && vcr_is_starting_and_just_restarted())
-	{
-		while (emu_paused)
-		{
-			Sleep(10);
-		}
-		pauseEmu(FALSE);
-		Config.pause_at_frame = -1;
-	}
 	main_dispatcher_invoke([]
 	{
 		for (const HWND hwnd : previously_running_luas)
@@ -1171,13 +1152,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_RESET_ROM:
 				if (!Config.is_reset_recording_enabled && confirm_user_exit())
 					break;
-				if (vcr_is_recording() && Config.is_reset_recording_enabled)
-				{
-					scheduled_restart = true;
-					continue_vcr_on_restart_mode = true;
-					Statusbar::post("Writing restart to movie");
-					break;
-				}
+
 				resetEmu();
 				break;
 

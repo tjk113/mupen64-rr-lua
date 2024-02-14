@@ -32,30 +32,29 @@ bool confirm_user_exit()
     int res = 0;
 	int warnings = 0;
 
-    if (!continue_vcr_on_restart_mode)
+    std::string final_message;
+    if (vcr_is_recording())
     {
-	    std::string final_message;
-        if (vcr_is_recording())
-        {
-            final_message.append("Movie recording ");
-            warnings++;
-        }
-        if (vcr_is_capturing())
-        {
-            if (warnings > 0) { final_message.append(","); }
-            final_message.append(" AVI capture ");
-            warnings++;
-        }
-        if (tracelog::active())
-        {
-            if (warnings > 0) { final_message.append(","); }
-            final_message.append(" Trace logging ");
-            warnings++;
-        }
-        final_message.append("is running. Are you sure you want to stop emulation?");
-        if (warnings > 0) res = MessageBox(mainHWND, final_message.c_str(), "Stop emulation?",
-                                           MB_YESNO | MB_ICONWARNING);
+	    final_message.append("Movie recording ");
+	    warnings++;
     }
+    if (vcr_is_capturing())
+    {
+	    if (warnings > 0) { final_message.append(","); }
+	    final_message.append(" AVI capture ");
+	    warnings++;
+    }
+    if (tracelog::active())
+    {
+	    if (warnings > 0) { final_message.append(","); }
+	    final_message.append(" Trace logging ");
+	    warnings++;
+    }
+    final_message.
+	    append("is running. Are you sure you want to stop emulation?");
+    if (warnings > 0)
+	    res = MessageBox(mainHWND, final_message.c_str(), "Stop emulation?",
+	                     MB_YESNO | MB_ICONWARNING);
 
     return res == IDYES || warnings == 0;
 }
