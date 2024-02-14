@@ -138,16 +138,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lua\LuaCallbacks.h" />
-    <ClInclude Include="..\..\lua\modules\avi.h"/>
-    <ClInclude Include="..\..\lua\modules\d2d.h"/>
-    <ClInclude Include="..\..\lua\modules\emu.h"/>
-    <ClInclude Include="..\..\lua\modules\global.h"/>
-    <ClInclude Include="..\..\lua\modules\iohelper.h"/>
-    <ClInclude Include="..\..\lua\modules\joypad.h"/>
-    <ClInclude Include="..\..\lua\modules\memory.h"/>
-    <ClInclude Include="..\..\lua\modules\movie.h"/>
-    <ClInclude Include="..\..\lua\modules\savestate.h"/>
-    <ClInclude Include="..\..\lua\modules\wgui.h"/>
+    <ClInclude Include="..\..\lua\modules\avi.h" />
+    <ClInclude Include="..\..\lua\modules\d2d.h" />
+    <ClInclude Include="..\..\lua\modules\emu.h" />
+    <ClInclude Include="..\..\lua\modules\global.h" />
+    <ClInclude Include="..\..\lua\modules\iohelper.h" />
+    <ClInclude Include="..\..\lua\modules\joypad.h" />
+    <ClInclude Include="..\..\lua\modules\memory.h" />
+    <ClInclude Include="..\..\lua\modules\movie.h" />
+    <ClInclude Include="..\..\lua\modules\savestate.h" />
+    <ClInclude Include="..\..\lua\modules\wgui.h" />
     <ClInclude Include="..\..\main\helpers\collection_helpers.h" />
     <ClInclude Include="..\..\main\helpers\math_helpers.h" />
     <ClInclude Include="..\..\main\lib\ini.h" />
@@ -205,7 +205,7 @@
     <ClInclude Include="..\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\lua\modules\input.h"/>
+    <ClInclude Include="..\..\lua\modules\input.h" />
     <ClCompile Include="..\..\lua\LuaCallbacks.cpp" />
     <ClCompile Include="..\..\main\adler32.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
@@ -213,7 +213,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\main\debughook.c" />
-    <ClCompile Include="..\..\main\disasm.c" />
+    <ClCompile Include="..\..\main\disasm.cpp" />
     <ClCompile Include="..\..\main\helpers\io_helpers.cpp" />
     <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp" />
     <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp" />
@@ -282,12 +282,12 @@
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)win_vcr_compress</ObjectFileName>
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)win_vcr_compress</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="..\..\memory\dma.c" />
-    <ClCompile Include="..\..\memory\flashram.c" />
-    <ClCompile Include="..\..\memory\memory.c" />
-    <ClCompile Include="..\..\memory\pif.c" />
-    <ClCompile Include="..\..\memory\tlb.c" />
-    <ClCompile Include="..\..\memory\summercart.c" />
+    <ClCompile Include="..\..\memory\dma.cpp" />
+    <ClCompile Include="..\..\memory\flashram.cpp" />
+    <ClCompile Include="..\..\memory\memory.cpp" />
+    <ClCompile Include="..\..\memory\pif.cpp" />
+    <ClCompile Include="..\..\memory\tlb.cpp" />
+    <ClCompile Include="..\..\memory\summercart.cpp" />
     <ClCompile Include="..\..\r4300\bc.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -308,7 +308,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\r4300\cop1_helpers.c" />
+    <ClCompile Include="..\..\r4300\cop1_helpers.cpp" />
     <ClCompile Include="..\..\r4300\cop1_l.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -384,7 +384,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\r4300\x86\gcop1_helpers.c" />
+    <ClCompile Include="..\..\r4300\x86\gcop1_helpers.cpp" />
     <ClCompile Include="..\..\r4300\x86\gcop1_l.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
