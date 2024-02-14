@@ -169,6 +169,7 @@ set(Headers
     "../../memory/pif2.h"
     "../../memory/summercart.h"
     "../../memory/tlb.h"
+    "../../r4300/tracelog.h"
     "../../r4300/cop1_helpers.h"
     "../../r4300/exception.h"
     "../../r4300/interrupt.h"
@@ -241,6 +242,7 @@ set(Sources
     "../../r4300/regimm.c"
     "../../r4300/special.c"
     "../../r4300/tlb.c"
+    "../../r4300/tracelog.cpp"
     "../../r4300/x86/assemble.c"
     "../../r4300/x86/debug.c"
     "../../r4300/x86/gbc.c"
@@ -344,7 +346,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 ################################################################################
 # Compile and link options
 ################################################################################
-add_compile_options( $<$<AND:$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>,$<OR:$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>,$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},>>>:-pedantic> )
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:
@@ -509,6 +510,10 @@ if(MSVC)
         "/TP"
     )
     source_file_compile_options(../../r4300/tlb.c ${FILE_CL_OPTIONS})
+    string(CONCAT FILE_CL_OPTIONS
+        "/TP"
+    )
+    source_file_compile_options(../../r4300/tracelog.cpp ${FILE_CL_OPTIONS})
     string(CONCAT FILE_CL_OPTIONS
         "/TP"
     )
