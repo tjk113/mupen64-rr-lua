@@ -1106,13 +1106,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_ABOUT:
 				{
-					BOOL wasMenuPaused = MenuPaused;
-					MenuPaused = FALSE;
+					BetterEmulationLock lock;
 					configdialog_about();
-					if (wasMenuPaused)
-					{
-						resumeEmu(TRUE);
-					}
 				}
 				break;
 			case IDM_COREDBG:
@@ -1120,10 +1115,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_RAMSTART:
 				{
-					BOOL wasMenuPaused = MenuPaused;
-					MenuPaused = FALSE;
-
-					pauseEmu(TRUE);
+					BetterEmulationLock lock;
 
 					char ram_start[20] = {0};
 					sprintf(ram_start, "0x%p", static_cast<void*>(rdram));
@@ -1146,27 +1138,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					{
 						copy_to_clipboard(mainHWND, stroop_str);
 					}
-					if (wasMenuPaused)
-					{
-						resumeEmu(TRUE);
-					}
 					break;
 				}
 			case IDM_LOAD_ROM:
 				{
-					BOOL wasMenuPaused = MenuPaused;
-					MenuPaused = FALSE;
+					BetterEmulationLock lock;
 
 					const auto path = show_persistent_open_dialog("o_rom", mainHWND, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap");
 
 					if (!path.empty())
 					{
 						std::thread([path] { start_rom(path); }).detach();
-					}
-
-					if (wasMenuPaused)
-					{
-						resumeEmu(TRUE);
 					}
 				}
 				break;
@@ -1191,8 +1173,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_SAVE_STATE_AS:
 				{
-					BOOL wasMenuPaused = MenuPaused;
-					MenuPaused = FALSE;
+					BetterEmulationLock lock;
 
 					auto path = show_persistent_save_dialog("s_savestate", hwnd, L"*.st;*.savestate");
 					if (path.empty())
@@ -1201,11 +1182,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 
 					savestates_do_file(path, e_st_job::save);
-
-					if (wasMenuPaused)
-					{
-						resumeEmu(TRUE);
-					}
 				}
 				break;
 			case IDM_LOAD_SLOT:
@@ -1213,21 +1189,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_LOAD_STATE_AS:
 				{
-					BOOL wasMenuPaused = MenuPaused;
-					MenuPaused = FALSE;
+					BetterEmulationLock lock;
 
 					auto path = show_persistent_open_dialog("o_state", hwnd, L"*.st;*.savestate;*.st0;*.st1;*.st2;*.st3;*.st4;*.st5;*.st6;*.st7;*.st8;*.st9,*.st10");
-					if (path.size() == 0)
+					if (path.empty())
 					{
 						break;
 					}
 
 					savestates_do_file(path, e_st_job::load);
-
-					if (wasMenuPaused)
-					{
-						resumeEmu(TRUE);
-					}
 				}
 				break;
 			case IDM_START_MOVIE_RECORDING:
