@@ -23,6 +23,7 @@
 
 #include "LuaConsole.h"
 #include "main_win.h"
+#include "messenger.h"
 #include "savestates.h"
 #include "vcr.h"
 #include "helpers/string_helpers.h"
@@ -39,7 +40,8 @@ bool commandline_stop_emu_on_movie_end;
 
 void commandline_set()
 {
-	argh::parser cmdl(__argc, __argv, argh::parser::PREFER_PARAM_FOR_UNREG_OPTION);
+	argh::parser cmdl(__argc, __argv,
+	                  argh::parser::PREFER_PARAM_FOR_UNREG_OPTION);
 
 	commandline_rom = cmdl("--rom", "").str();
 	commandline_lua = cmdl("--lua", "").str();
@@ -116,5 +118,56 @@ void commandline_on_movie_playback_stop()
 	if (commandline_stop_capture_on_movie_end)
 	{
 		SendMessage(mainHWND, WM_DESTROY, 0, 0);
+	}
+}
+
+namespace Cli
+{
+	void on_task_changed(std::any data)
+	{
+		auto value = std::any_cast<e_task>(data);
+		static auto previous_value = value;
+
+
+		if (task_is_playback(previous_value) && !task_is_playback(value))
+		{
+			commandline_on_movie_playback_stop();
+		}
+
+		previous_value = value;
+	}
+
+	void on_emu_launched_changed(std::any data)
+	{
+		auto value = std::any_cast<bool>(data);
+
+		if (!value)
+			return;
+
+		// start movies, st and lua scripts
+		commandline_load_st();
+		commandline_start_lua();
+		commandline_start_movie();
+
+		// HACK:
+		// starting capture immediately won't work, since sample rate will change at game startup, thus terminating the capture
+		// as a workaround, we wait a bit before starting the capture
+		std::thread([]
+		{
+			Sleep(1000);
+			commandline_start_capture();
+		}).detach();
+	}
+
+	void on_main_window_created(std::any _)
+	{
+		commandline_start_rom();
+	}
+
+	void init()
+	{
+		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
+		Messenger::subscribe(Messenger::Message::MainWindowCreated, on_main_window_created);
+		commandline_set();
 	}
 }

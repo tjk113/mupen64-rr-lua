@@ -68,6 +68,11 @@ namespace Messenger
 		 * \brief The Lua engine has started a script
 		 */
 		ScriptStarted,
+
+		/**
+		 * \brief The main window has been created
+		 */
+		MainWindowCreated,
 	};
 
 	/**

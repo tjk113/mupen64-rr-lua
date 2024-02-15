@@ -229,6 +229,7 @@ enum class e_task
 
 extern e_task m_task;
 
+bool task_is_playback(e_task task);
 
 extern void vcr_update_screen();
 extern void vcr_ai_dacrate_changed(system_type type);

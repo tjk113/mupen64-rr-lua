@@ -693,7 +693,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		if (m_current_sample >= (long)m_header.length_samples)
 		{
 			stop_playback(false);
-			commandline_on_movie_playback_stop();
 			setKeys(index, {0});
 			getKeys(index, input);
 			return;
@@ -1239,6 +1238,12 @@ static int stop_playback(const bool bypass_loop_setting)
 	return -1;
 }
 
+
+bool task_is_playback(e_task task)
+{
+	return task == e_task::playback || task == e_task::start_playback || task ==
+		e_task::start_playback_from_snapshot;
+}
 
 void vcr_update_screen()
 {

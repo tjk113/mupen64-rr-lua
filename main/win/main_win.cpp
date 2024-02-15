@@ -590,20 +590,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	printf("Emu thread: Emulation started....\n");
 
 
-	// start movies, st and lua scripts
-	commandline_load_st();
-	commandline_start_lua();
-	commandline_start_movie();
-
-	// HACK:
-	// starting capture immediately won't work, since sample rate will change at game startup, thus terminating the capture
-	// as a workaround, we wait a bit before starting the capture
-	std::thread([]
-	{
-		Sleep(1000);
-		commandline_start_capture();
-	}).detach();
-
 	LuaCallbacks::call_reset();
 
 	main_dispatcher_invoke([]
@@ -842,7 +828,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		main_menu = GetMenu(hwnd);
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
-		commandline_start_rom();
+
 		return TRUE;
 	case WM_DESTROY:
 		save_config();
@@ -1543,8 +1529,6 @@ int WINAPI WinMain(
 	app_path = get_app_full_path();
 	app_instance = hInstance;
 
-	commandline_set();
-
 	// ensure folders exist!
 	CreateDirectory((app_path + "save").c_str(), NULL);
 	CreateDirectory((app_path + "Mempaks").c_str(), NULL);
@@ -1611,6 +1595,7 @@ int WINAPI WinMain(
 	Statusbar::init();
 	Rombrowser::init();
 	VCR::init();
+	Cli::init();
 
 	update_menu_hotkey_labels();
 
