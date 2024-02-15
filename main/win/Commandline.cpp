@@ -65,7 +65,7 @@ void commandline_start_rom()
 		return;
 	}
 
-	start_rom(commandline_rom);
+	std::thread([] { start_rom(commandline_rom); }).detach();
 }
 
 void commandline_load_st()
@@ -159,7 +159,7 @@ namespace Cli
 		}).detach();
 	}
 
-	void on_main_window_created(std::any _)
+	void on_app_ready(std::any)
 	{
 		commandline_start_rom();
 	}
@@ -167,7 +167,8 @@ namespace Cli
 	void init()
 	{
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
-		Messenger::subscribe(Messenger::Message::MainWindowCreated, on_main_window_created);
+		Messenger::subscribe(Messenger::Message::AppReady, on_app_ready);
+		Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
 		commandline_set();
 	}
 }

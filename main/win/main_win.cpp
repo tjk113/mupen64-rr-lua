@@ -828,7 +828,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		main_menu = GetMenu(hwnd);
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
-
 		return TRUE;
 	case WM_DESTROY:
 		save_config();
@@ -1610,6 +1609,7 @@ int WINAPI WinMain(
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 	Messenger::broadcast(Messenger::Message::SizeChanged, rect);
+	Messenger::broadcast(Messenger::Message::AppReady, nullptr);
 
 	Rombrowser::build();
 

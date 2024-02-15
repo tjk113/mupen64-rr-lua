@@ -72,7 +72,7 @@ namespace Messenger
 		/**
 		 * \brief The main window has been created
 		 */
-		MainWindowCreated,
+		AppReady,
 	};
 
 	/**
