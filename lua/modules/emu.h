@@ -329,7 +329,7 @@ namespace LuaCore::Emu
 
 	static int GetMupenVersion(lua_State* L)
 	{
-		int type = luaL_checknumber(L, 1);
+		int type = luaL_optnumber(L, 1, 0);
 		const char* version;
 		// 0 = name + version number
 		// 1 = version number
