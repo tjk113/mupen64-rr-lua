@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include "r4300.h"
 #include "../memory/memory.h"
-#include "../main/plugin.hpp"
+#include "../main/Plugin.hpp"
 #include "../r4300/recomph.h"
 
 static FILE* f;

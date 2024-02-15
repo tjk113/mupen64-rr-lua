@@ -34,7 +34,7 @@
 #include "../win/main_win.h"
 #include "../vcr_compress.h"
 #include "Config.hpp"
-#include "../plugin.hpp"
+#include "../Plugin.hpp"
 #include "../../winproject/resource.h"
 #include "features/Toolbar.hpp"
 #include "features/Statusbar.hpp"

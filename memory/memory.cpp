@@ -44,7 +44,7 @@
 #include "pif.h"
 #include "flashram.h"
 #include "summercart.h"
-#include "../main/plugin.hpp"
+#include "../main/Plugin.hpp"
 #include "../main/vcr.h"
 
 static int frame;

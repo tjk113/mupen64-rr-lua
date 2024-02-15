@@ -14,7 +14,7 @@
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
 #include <memory>
 
-#include "plugin.hpp"
+#include "Plugin.hpp"
 #include "rom.h"
 #include "savestates.h"
 #include "../memory/memory.h"

@@ -18,7 +18,7 @@
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
 #include "../r4300/recomp.h"
-#include "../main/plugin.hpp"
+#include "../main/Plugin.hpp"
 #include "../main/disasm.h"
 #include "../main/vcr.h"
 #include "../main/savestates.h"
@@ -723,6 +723,8 @@ void instrStr1(unsigned long pc, unsigned long w, char* p1)
 	case INSTF_MFC1:
 		REGFPU(((FPUREG)o.r.rs));
 		break;
+	case INSTF_COUNT:
+		break;
 	}
 	p1[strlen(p1)] = '\0';
 #undef HEX8
@@ -749,9 +751,8 @@ void close_all_scripts() {
 	assert(IsGUIThread(false));
 
 	// we mutate the map's nodes while iterating, so we have to make a copy
-	auto copy = std::map(hwnd_lua_map);
-	for (auto pair : copy) {
-		SendMessage(pair.first, WM_CLOSE, 0, 0);
+	for (auto copy = std::map(hwnd_lua_map); const auto fst : copy | std::views::keys) {
+		SendMessage(fst, WM_CLOSE, 0, 0);
 	}
 	assert(hwnd_lua_map.empty());
 }
@@ -761,10 +762,10 @@ void stop_all_scripts()
 	assert(IsGUIThread(false));
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	auto copy = std::map(hwnd_lua_map);
-	for (auto pair : copy) {
-		SendMessage(pair.first, WM_COMMAND,
+	for (const auto key : copy | std::views::keys) {
+		SendMessage(key, WM_COMMAND,
 					MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
-					(LPARAM)GetDlgItem(pair.first, IDC_BUTTON_LUASTOP));
+					(LPARAM)GetDlgItem(key, IDC_BUTTON_LUASTOP));
 
 	}
 	assert(hwnd_lua_map.empty());

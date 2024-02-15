@@ -27,7 +27,7 @@
 #include "../lua/LuaConsole.h"
 #include "main_win.h"
 #include "../../winproject/resource.h"
-#include "../plugin.hpp"
+#include "../Plugin.hpp"
 #include "features/RomBrowser.hpp"
 #include "timers.h"
 #include "Config.hpp"
@@ -785,7 +785,7 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 
 void configdialog_show()
 {
-    PROPSHEETPAGE psp[6] = {0};
+    PROPSHEETPAGE psp[6] = {{0}};
     for (auto& i : psp)
     {
 	    i.dwSize = sizeof(PROPSHEETPAGE);

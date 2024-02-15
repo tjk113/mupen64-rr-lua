@@ -2,7 +2,7 @@
 
 #include "win/main_win.h"
 #include "ffmpeg_capture.hpp"
-#include "plugin.hpp"
+#include "Plugin.hpp"
 #include "win/Config.hpp"
 
 t_window_info gSInfo{};

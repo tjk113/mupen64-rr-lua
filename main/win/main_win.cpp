@@ -29,7 +29,7 @@
 #include <gdiplus.h>
 
 #include "Commandline.h"
-#include "config.hpp"
+#include "Config.hpp"
 #include "configdialog.h"
 #include "LuaCallbacks.h"
 #include "features/CrashHelper.h"
@@ -37,7 +37,7 @@
 #include "messenger.h"
 #include "timers.h"
 #include "../guifuncs.h"
-#include "../plugin.hpp"
+#include "../Plugin.hpp"
 #include "../rom.h"
 #include "../savestates.h"
 #include "../vcr.h"

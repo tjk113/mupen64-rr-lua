@@ -23,7 +23,7 @@
 #include <mutex>
 #include <stack>
 
-#include "plugin.hpp"
+#include "Plugin.hpp"
 #include "vcr_compress.h"
 
 typedef struct s_window_procedure_params {

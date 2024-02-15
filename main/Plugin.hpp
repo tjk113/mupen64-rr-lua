@@ -1,6 +1,6 @@
 #pragma once
 /**
- * Mupen64 - plugin.hpp
+ * Mupen64 - Plugin.hpp
  * Copyright (C) 2002 Hacktarux
  *
  * Mupen64 homepage: http://mupen64.emulation64.com

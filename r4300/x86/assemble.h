@@ -71,7 +71,7 @@ void debug();
 
 
 void put8(unsigned char octet);
-void put32(unsigned long dword);
+extern void put32(unsigned long dword);
 void put16(unsigned short word);
 
 void push_reg32(int reg32);

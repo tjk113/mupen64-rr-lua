@@ -3,7 +3,7 @@
 
 # include <Windows.h>
 
-#include "plugin.hpp"
+#include "Plugin.hpp"
 
 #ifdef __cplusplus	//don't include cpp headers when .c compilation unit includes the file
 

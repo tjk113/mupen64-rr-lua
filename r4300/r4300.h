@@ -69,7 +69,7 @@ extern unsigned long jump_to_address;
 void go();
 void pure_interpreter();
 void compare_core();
-__inline void jump_to_func();
+extern void jump_to_func();
 void update_count();
 int check_cop1_unusable();
 
