@@ -550,7 +550,7 @@ void close_rom()
 	Statusbar::post("Emulation stopped");
 }
 
-void reset_emu()
+void reset_rom()
 {
 	if (!emu_launched)
 		return;
@@ -1095,7 +1095,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!Config.is_reset_recording_enabled && confirm_user_exit())
 					break;
 
-				std::thread(reset_emu).detach();
+				std::thread(reset_rom).detach();
 				break;
 
 			case IDM_SETTINGS:

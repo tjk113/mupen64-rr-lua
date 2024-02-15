@@ -42,9 +42,11 @@ void main_dispatcher_invoke(const std::function<void()>& func);
 extern std::string app_path;
 
 /**
- * \brief Resets the emulator
+ * \brief Starts the emulator
+ * \param path Path to a rom file
+ * \returns The operation status code
  */
-void reset_emu();
+int start_rom(std::filesystem::path path);
 
 /**
  * \brief Stops the emulator
@@ -52,11 +54,9 @@ void reset_emu();
 void close_rom();
 
 /**
- * \brief Starts the emulator
- * \param path Path to a rom file
- * \returns The operation status code
+ * \brief Resets the emulator
  */
-int start_rom(std::filesystem::path path);
+void reset_rom();
 
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);
