@@ -643,7 +643,6 @@ CONFIG get_default_config()
 	config.is_unfocused_pause_enabled = 0;
 	config.is_toolbar_enabled = 1;
 	config.is_statusbar_enabled = 1;
-	config.is_state_independent_IDM_LOAD_STATE_ASing_allowed = 0;
 	config.is_default_plugins_directory_used = 1;
 	config.is_default_saves_directory_used = 1;
 	config.is_default_screenshots_directory_used = 1;
@@ -951,7 +950,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_unfocused_pause_enabled)
 	HANDLE_P_VALUE(is_toolbar_enabled)
 	HANDLE_P_VALUE(is_statusbar_enabled)
-	HANDLE_P_VALUE(is_state_independent_IDM_LOAD_STATE_ASing_allowed)
 	HANDLE_P_VALUE(is_default_plugins_directory_used)
 	HANDLE_P_VALUE(is_default_saves_directory_used)
 	HANDLE_P_VALUE(is_default_screenshots_directory_used)
