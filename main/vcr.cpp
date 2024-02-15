@@ -891,13 +891,31 @@ vcr_stop_record()
 
 std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 {
-	auto st = strip_extension(path.string()) + ".st";
+	// To allow multiple m64s to reference on st, we construct the st name from the m64 name up to the first point only
+	// movie.a.m64 => movie.st
+	// movie.m64   => movie.st
+	char drive[MAX_PATH] = {0};
+	char dir[MAX_PATH] = {0};
+	char filename[MAX_PATH] = {0};
+	_splitpath(path.string().c_str(), drive, dir, filename, nullptr);
+
+	auto dot_index = std::string(filename).find_first_of(".");
+	std::string name;
+	if (dot_index == std::string::npos)
+	{
+		name = filename;
+	} else
+	{
+		name = std::string(filename).substr(0, dot_index);
+	}
+
+	auto st = std::string(drive) + std::string(dir) + strip_extension(name) + ".st";
 	if (std::filesystem::exists(st))
 	{
 		return st;
 	}
 
-	st = strip_extension(path.string()) + ".savestate";
+	st = std::string(drive) + std::string(dir) + strip_extension(name) + ".savestate";
 	if (std::filesystem::exists(st))
 	{
 		return st;
