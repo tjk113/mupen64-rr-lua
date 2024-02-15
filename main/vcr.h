@@ -300,10 +300,29 @@ void vcr_on_vi();
 
 namespace VCR
 {
+	enum class Result
+	{
+		// The operation completed successfully
+		Ok,
+		// The provided data has an invalid format
+		InvalidFormat,
+		// The provided file is inaccessible or does not exist
+		BadFile,
+	};
+
 	/**
 	 * \brief Initializes the VCR engine
 	 */
 	void init();
+
+
+	/**
+	 * \brief Parses a movie's header
+	 * \param path The movie's path
+	 * \param header The header to fill
+	 * \return The operation result
+	 */
+	Result parse_header(std::filesystem::path path, t_movie_header* header);
 }
 #ifdef __cplusplus
 /**
@@ -319,8 +338,6 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 #endif
 
 bool is_frame_skipped();
-
-extern t_movie_header vcr_get_header_info(const char* filename);
 extern char vcr_lastpath[MAX_PATH];
 extern uint64_t screen_updates;
 extern std::filesystem::path movie_path;

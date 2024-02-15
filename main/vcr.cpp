@@ -190,14 +190,13 @@ static void truncate_movie()
 	}
 }
 
-static int read_movie_header(FILE* file, t_movie_header* header)
+static int read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
 {
-	fseek(file, 0L, SEEK_SET);
+	if (buf.size() < mup_header_size_old)
+		return WRONG_FORMAT;
 
 	t_movie_header new_header = {};
-
-	if (fread(&new_header, 1, mup_header_size_old, file) != mup_header_size_old)
-		return WRONG_FORMAT;
+	memcpy(&new_header, buf.data(), mup_header_size_old);
 
 	if (new_header.magic != mup_magic)
 		return WRONG_FORMAT;
@@ -263,13 +262,9 @@ static int read_movie_header(FILE* file, t_movie_header* header)
 		strncpy(new_header.author, new_header.old_author_info, 48);
 		strncpy(new_header.description, new_header.old_description, 80);
 	}
-	if (new_header.version == 3)
+	if (new_header.version == 3 && buf.size() < MUP_HEADER_SIZE)
 	{
-		// read rest of header
-		if (fread((char*)(&new_header) + mup_header_size_old, 1,
-		          MUP_HEADER_SIZE - mup_header_size_old,
-		          file) != MUP_HEADER_SIZE - mup_header_size_old)
-			return WRONG_FORMAT;
+		return WRONG_FORMAT;
 	}
 
 	*header = new_header;
@@ -295,43 +290,30 @@ void flush_movie()
 	}
 }
 
-// TODO: Refactor
-t_movie_header vcr_get_header_info(const char* filename)
+VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header)
 {
-	char buf[MAX_PATH];
-	char temp_filename[MAX_PATH];
-	t_movie_header temp_header = {};
-	temp_header.rom_country = -1;
-	strcpy(temp_header.rom_name, "(no ROM)");
-
-	flush_movie();
-
-	strncpy(temp_filename, filename, MAX_PATH);
-	if (char* p = strrchr(temp_filename, '.'))
+	if (path.extension() != ".m64")
 	{
-		if (!_stricmp(p, ".m64") || !_stricmp(p, ".st"))
-			*p = '\0';
-	}
-	// open record file
-	strncpy(buf, temp_filename, MAX_PATH);
-	FILE* temp_file = fopen(buf, "rb+");
-	if (temp_file == nullptr && (temp_file = fopen(buf, "rb")) == nullptr)
-	{
-		strncat(buf, ".m64", 4);
-		temp_file = fopen(buf, "rb+");
-		if (temp_file == nullptr && (temp_file = fopen(buf, "rb")) == nullptr)
-		{
-			fprintf(
-				stderr,
-				"[VCR]: Could not get header info of .m64 file\n\"%s\": %s\n",
-				filename, strerror(errno));
-			return temp_header;
-		}
+		return Result::InvalidFormat;
 	}
 
-	read_movie_header(temp_file, &temp_header);
-	fclose(temp_file);
-	return temp_header;
+	t_movie_header new_header = {};
+	new_header.rom_country = -1;
+	strcpy(new_header.rom_name, "(no ROM)");
+
+	auto buf = read_file_buffer(path);
+	if (buf.empty())
+	{
+		return Result::BadFile;
+	}
+
+	if(read_movie_header(buf, &new_header) != SUCCESS)
+	{
+		return Result::InvalidFormat;
+	}
+
+	*header = new_header;
+	return Result::Ok;
 }
 
 void vcr_clear_save_data()
@@ -966,6 +948,13 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 
 	strncpy(m_filename, path.string().c_str(), MAX_PATH);
 
+	auto movie_buf = read_file_buffer(path);
+
+	if (movie_buf.empty())
+	{
+		return VCR_PLAYBACK_FILE_BUSY;
+	}
+
 	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
 	m_file = fopen(m_filename, "rb+");
 	if (!m_file)
@@ -973,7 +962,7 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 		return VCR_PLAYBACK_FILE_BUSY;
 	}
 
-	const int code = read_movie_header(m_file, &m_header);
+	const int code = read_movie_header(movie_buf, &m_header);
 	if (code != SUCCESS)
 	{
 		// FIXME: The results don't collide, but use typed errors anyway!!!
