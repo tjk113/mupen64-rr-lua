@@ -585,14 +585,10 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	dynacore = Config.core_type;
 
-	emu_paused = 0;
-	emu_launched = 1;
-
 	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
 				                         &audio_thread_id);
 	printf("Emu thread: Emulation started....\n");
 
-	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 
 	// start movies, st and lua scripts
 	commandline_load_st();
@@ -624,6 +620,11 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	});
 
 	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+
+	emu_paused = 0;
+	emu_launched = 1;
+
+	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 
 	go();
 
