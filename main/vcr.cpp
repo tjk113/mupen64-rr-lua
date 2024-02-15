@@ -24,33 +24,11 @@
 #include <malloc.h>
 #include <cstdio>
 #include <cstring>
-#ifdef _MSC_VER
-#define SNPRINTF	_snprintf
-#define STRCASECMP	_stricmp
-#define STRNCASECMP	_strnicmp
-#else
-#include <unistd.h>
-#endif
-//#include <zlib.h>
 #include <ctime>
 #include <chrono>
-#include <commctrl.h> // for SendMessage, SB_SETTEXT
-#include <Windows.h> // for truncate functions
-#include <../../winproject/resource.h> // for IDM_RESET_ROM
-#include "win/Config.hpp" //config struct
-#include <WinUser.h>
-
+#include <Windows.h>
+#include "win/Config.hpp"
 #include "guifuncs.h"
-#include "win/Commandline.h"
-
-#ifdef _DEBUG
-#include "../r4300/macros.h"
-#endif
-
-#ifndef PATH_MAX
-#define PATH_MAX _MAX_PATH
-#endif
-
 #include "LuaCallbacks.h"
 #include "messenger.h"
 #include "../memory/pif.h"
@@ -86,8 +64,8 @@ static const char* m_err_code_name[] =
 e_task m_task = e_task::idle;
 std::filesystem::path movie_path;
 
-static char m_filename[PATH_MAX];
-static char avi_file_name[PATH_MAX];
+static char m_filename[MAX_PATH];
+static char avi_file_name[MAX_PATH];
 static FILE* m_file = nullptr;
 static t_movie_header m_header;
 
@@ -317,24 +295,25 @@ void flush_movie()
 	}
 }
 
+// TODO: Refactor
 t_movie_header vcr_get_header_info(const char* filename)
 {
-	char buf[PATH_MAX];
-	char temp_filename[PATH_MAX];
+	char buf[MAX_PATH];
+	char temp_filename[MAX_PATH];
 	t_movie_header temp_header = {};
 	temp_header.rom_country = -1;
 	strcpy(temp_header.rom_name, "(no ROM)");
 
 	flush_movie();
 
-	strncpy(temp_filename, filename, PATH_MAX);
+	strncpy(temp_filename, filename, MAX_PATH);
 	if (char* p = strrchr(temp_filename, '.'))
 	{
-		if (!STRCASECMP(p, ".m64") || !STRCASECMP(p, ".st"))
+		if (!_stricmp(p, ".m64") || !_stricmp(p, ".st"))
 			*p = '\0';
 	}
 	// open record file
-	strncpy(buf, temp_filename, PATH_MAX);
+	strncpy(buf, temp_filename, MAX_PATH);
 	FILE* temp_file = fopen(buf, "rb+");
 	if (temp_file == nullptr && (temp_file = fopen(buf, "rb")) == nullptr)
 	{
@@ -737,12 +716,12 @@ vcr_start_record(const char* filename, const unsigned short flags,
 {
 	vcr_core_stopped();
 
-	char buf[PATH_MAX];
+	char buf[MAX_PATH];
 
 	// m_filename will be overwritten later in the function if
 	// MOVIE_START_FROM_EXISTING_SNAPSHOT is true, but it doesn't
 	// matter enough to make this a conditional thing
-	strncpy(m_filename, filename, PATH_MAX);
+	strncpy(m_filename, filename, MAX_PATH);
 
 	// open record file
 	strcpy(buf, m_filename);
@@ -751,7 +730,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		const char* s1 = strrchr(buf, '\\');
 		if (const char* s2 = strrchr(buf, '/'); !dot || ((s1 && s1 > dot) || (s2 && s2 > dot)))
 		{
-			strncat(buf, ".m64", PATH_MAX);
+			strncat(buf, ".m64", MAX_PATH);
 		}
 	}
 	m_file = fopen(buf, "wb");
@@ -861,7 +840,7 @@ vcr_stop_record()
 
 	if (m_task == e_task::start_recording)
 	{
-		char buf[PATH_MAX];
+		char buf[MAX_PATH];
 
 		m_task = e_task::idle;
 		if (m_file)
@@ -873,14 +852,14 @@ vcr_stop_record()
 
 		strcpy(buf, m_filename);
 
-		strncat(m_filename, ".st", PATH_MAX);
+		strncat(m_filename, ".st", MAX_PATH);
 
 		if (_unlink(buf) < 0)
 			fprintf(stderr, "[VCR]: Couldn't remove save state: %s\n",
 			        strerror(errno));
 
 		strcpy(buf, m_filename);
-		strncat(m_filename, ".m64", PATH_MAX);
+		strncat(m_filename, ".m64", MAX_PATH);
 		if (_unlink(buf) < 0)
 			fprintf(stderr, "[VCR]: Couldn't remove recorded file: %s\n",
 			        strerror(errno));
@@ -985,7 +964,7 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 {
 	vcr_core_stopped();
 
-	strncpy(m_filename, path.string().c_str(), PATH_MAX);
+	strncpy(m_filename, path.string().c_str(), MAX_PATH);
 
 	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
 	m_file = fopen(m_filename, "rb+");
@@ -1605,7 +1584,7 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 	VCRComp_startFile(path, width, height, get_vis_per_second(ROM_HEADER.Country_code), show_codec_dialog);
 	m_capture = 1;
 	capture_with_f_fmpeg = false;
-	strncpy(avi_file_name, path, PATH_MAX);
+	strncpy(avi_file_name, path, MAX_PATH);
 	Config.avi_capture_path = path;
 
 	Messenger::broadcast(Messenger::Message::CapturingChanged, true);
