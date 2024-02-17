@@ -99,11 +99,6 @@ uint64_t screen_updates = 0;
 // Used for VCR-invoked resets
 bool just_reset;
 
-static int start_playback(const char* filename, const char* author_utf8,
-                         const char* description_utf8);
-static int restart_playback();
-static int stop_playback(const bool bypass_loop_setting);
-
 bool is_task_playback(const e_task task)
 {
 	return task == e_task::start_playback || task == e_task::start_playback_from_snapshot || task == e_task::playback;
@@ -638,10 +633,15 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 	// This if previously also checked for if the VI is over the amount specified in the header,
 	// but that can cause movies to end playback early on laggy plugins.
-	// TODO: only rely on samples for movie termination
 	if (m_current_sample >= (long)m_header.length_samples)
 	{
-		stop_playback(false);
+		if (Config.is_movie_loop_enabled)
+		{
+			VCR::start_playback(movie_path);
+			return;
+		}
+
+		vcr_stop_playback();
 		setKeys(index, {0});
 		getKeys(index, input);
 		return;
@@ -950,20 +950,15 @@ int check_warn_controllers(char* warning_str) {
 	return 1;
 }
 
-int vcr_start_playback(std::filesystem::path path)
+VCR::Result VCR::start_playback(std::filesystem::path path)
 {
+	// Nope, doesnt work since some random user32 call in core somewhere converts it to "GUI" thread.
+	// assert(!IsGUIThread(false));
+
 	if (!emu_launched)
 	{
-		std::thread([path]
-		{
-			start_rom(path);
-			vcr_start_playback(path);
-		}).detach();
-		// We're on UI thread, but we can't wait for thread to exit, so no status code for us...
-		return SUCCESS;
+		start_rom(path);
 	}
-
-	vcr_core_stopped();
 
 	strncpy(m_filename, path.string().c_str(), MAX_PATH);
 
@@ -971,14 +966,14 @@ int vcr_start_playback(std::filesystem::path path)
 
 	if (movie_buf.empty())
 	{
-		return VCR_PLAYBACK_FILE_BUSY;
+		return Result::BadFile;
 	}
 
 	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
 	m_file = fopen(m_filename, "rb+");
 	if (!m_file)
 	{
-		return VCR_PLAYBACK_FILE_BUSY;
+		return Result::BadFile;
 	}
 
 	const int code = read_movie_header(movie_buf, &m_header);
@@ -986,7 +981,7 @@ int vcr_start_playback(std::filesystem::path path)
 	{
 		// FIXME: The results don't collide, but use typed errors anyway!!!
 		fclose(m_file);
-		return code;
+		return Result::InvalidFormat;
 	}
 
 	for (auto& [Present, RawData, Plugin] : Controls)
@@ -1002,7 +997,7 @@ int vcr_start_playback(std::filesystem::path path)
 			IDNO)
 		{
 			fclose(m_file);
-			return VCR_PLAYBACK_ERROR;
+			return Result::Cancelled;
 		}
 
 		break;
@@ -1012,7 +1007,7 @@ int vcr_start_playback(std::filesystem::path path)
 	if(!check_warn_controllers(dummy))
 	{
 		fclose(m_file);
-		return VCR_PLAYBACK_ERROR;
+		return Result::InvalidControllers;
 	}
 
 	if (strlen(dummy) > 0)
@@ -1033,7 +1028,7 @@ int vcr_start_playback(std::filesystem::path path)
 			IDNO)
 		{
 			fclose(m_file);
-			return VCR_PLAYBACK_ERROR;
+			return Result::Cancelled;
 		}
 	} else
 	{
@@ -1048,7 +1043,7 @@ int vcr_start_playback(std::filesystem::path path)
 			IDNO)
 			{
 				fclose(m_file);
-				return VCR_PLAYBACK_ERROR;
+				return Result::Cancelled;
 			}
 		} else if (m_header.rom_crc1 != ROM_HEADER.
 			CRC1)
@@ -1066,27 +1061,26 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 			IDNO)
 			{
 				fclose(m_file);
-				return VCR_PLAYBACK_ERROR;
+				return Result::Cancelled;
 			}
 		}
 	}
 
 	fseek(m_file, MUP_HEADER_SIZE_CUR, SEEK_SET);
 
-	// read controller data
-	m_input_buffer_ptr = m_input_buffer;
-	const unsigned long to_read = sizeof(BUTTONS) * (m_header.
-		length_samples + 1);
-	reserve_buffer_space(to_read);
-	fread(m_input_buffer_ptr, 1, to_read, m_file);
-
-	fseek(m_file, 0, SEEK_END);
-
 	// Reset VCR-related state
+	vcr_core_stopped();
 	m_current_sample = 0;
 	m_current_vi = 0;
 	strcpy(vcr_lastpath, m_filename);
 	movie_path = path;
+
+	// Read input stream into buffer, then point to first element
+	m_input_buffer_ptr = m_input_buffer;
+	const unsigned long to_read = sizeof(BUTTONS) * (m_header.length_samples + 1);
+	reserve_buffer_space(to_read);
+	fread(m_input_buffer_ptr, 1, to_read, m_file);
+	fseek(m_file, 0, SEEK_END);
 
 	if (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 	{
@@ -1098,7 +1092,7 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 		if (st_path.empty())
 		{
 			fclose(m_file);
-			return VCR_PLAYBACK_SAVESTATE_MISSING;
+			return Result::InvalidSavestate;
 		}
 
 		savestates_do_file(st_path, e_st_job::load);
@@ -1111,25 +1105,11 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 	Messenger::broadcast(Messenger::Message::MoviePlaybackStarted, movie_path);
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	LuaCallbacks::call_play_movie();
-	return SUCCESS;
-}
-int restart_playback()
-{
-	return vcr_start_playback(vcr_lastpath);
+	return Result::Ok;
 }
 
 int vcr_stop_playback()
 {
-	return stop_playback(true);
-}
-
-static int stop_playback(const bool bypass_loop_setting)
-{
-	if (!bypass_loop_setting && vcr_is_looping())
-	{
-		return restart_playback();
-	}
-
 	movie_path = "";
 
 	if (m_file && m_task != e_task::start_recording && m_task != e_task::recording)

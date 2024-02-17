@@ -95,7 +95,7 @@ void commandline_start_movie()
 		return;
 	}
 
-	vcr_start_playback(commandline_movie);
+	std::thread([] { VCR::start_playback(commandline_movie); }).detach();
 }
 
 void commandline_start_capture()

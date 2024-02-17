@@ -793,13 +793,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				std::thread([path] { start_rom(path); }).detach();
 			} else if (extension == ".m64")
 			{
-				if (vcr_start_playback(fname) < 0)
-				{
-					printf(
-						"[VCR]: Drag drop Failed to start playback of %s",
-						fname);
-					break;
-				}
+				std::thread([fname] { VCR::start_playback(fname); }).detach();
 			}else if (extension == ".st" || extension == ".savestate")
 			{
 				if (!emu_launched) break;
@@ -1321,35 +1315,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.pause_at_frame = result.pause_at;
 					Config.pause_at_last_frame = result.pause_at_last;
 
-					auto playbackResult = vcr_start_playback(
-						result.path.string());
-
-					if (playbackResult == VCR_PLAYBACK_SUCCESS)
-						break;
-
-					char err[MAX_PATH];
-
-					sprintf(err, "Failed to start movie \"%s\" ",
-					        result.path.string().c_str());
-
-					switch (playbackResult)
-					{
-					case VCR_PLAYBACK_ERROR:
-						strcat(err, " - unknown error");
-						break;
-					case VCR_PLAYBACK_SAVESTATE_MISSING:
-						strcat(err, " - savestate is missing");
-						break;
-					case VCR_PLAYBACK_FILE_BUSY:
-						strcat(err, " - file is locked");
-						break;
-					case VCR_PLAYBACK_INCOMPATIBLE:
-						strcat(err, " - configuration incompatibility");
-						break;
-					default: break;
-					}
-
-					show_modal_info(err, nullptr);
+					std::thread([result]{ VCR::start_playback(result.path); }).detach();
 				}
 				break;
 			case IDM_STOP_MOVIE_PLAYBACK:
@@ -1544,7 +1510,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					Config.vcr_readonly = true;
 					Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
-					vcr_start_playback(path);
+					std::thread([path] { VCR::start_playback(path);}).detach();
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
 				{

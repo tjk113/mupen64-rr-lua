@@ -303,6 +303,12 @@ namespace VCR
 		InvalidFormat,
 		// The provided file is inaccessible or does not exist
 		BadFile,
+		// The user cancelled the operation
+		Cancelled,
+		// The controller configuration is invalid
+		InvalidControllers,
+		// The movie's savestate is missing or invalid
+		InvalidSavestate,
 	};
 
 	/**
@@ -319,16 +325,13 @@ namespace VCR
 	 */
 	Result parse_header(std::filesystem::path path, t_movie_header* header);
 
+	/**
+ 	* \brief Starts playing back a movie
+ 	* \param path The movie's path
+ 	* \return The error code
+ 	*/
+	Result start_playback(std::filesystem::path path);
 }
-#ifdef __cplusplus
-/**
- * \brief Starts playing back a movie
- * \param path The movie's path
- * \return The error code
- */
-int vcr_start_playback(std::filesystem::path path);
-
-#endif
 
 bool is_frame_skipped();
 extern char vcr_lastpath[MAX_PATH];
