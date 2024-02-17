@@ -16,39 +16,11 @@
 #ifndef COMMANDLINE_H
 #define COMMANDLINE_H
 
-/**
- * \brief Sets and readies state from commandline arguments
- */
-void commandline_set();
-
-/**
- * \brief Load the commandline-specified rom
- */
-void commandline_start_rom();
-
-/**
- * \brief Load the commandline-specified lua
- */
-void commandline_start_lua();
-
-/**
- * \brief Load the commandline-specified savestate
- */
-void commandline_load_st();
-
-/**
- * \brief Load the commandline-specified movie
- */
-void commandline_start_movie();
-
-/**
- * \brief Start the commandline-specified AVI capture
- */
-void commandline_start_capture();
-
-/**
- * \brief Notify commandline of movie playback stopping
- */
-void commandline_on_movie_playback_stop();
-
+namespace Cli
+{
+	/**
+	 * \brief Initializes the CLI
+	 */
+	void init();
+}
 #endif

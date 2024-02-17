@@ -415,7 +415,6 @@
 #define IDC_ROUNDTOZERO                 10007
 #define IDC_RECORD_RESETS               10008
 #define IDC_FORCEINTERNAL               10009
-#define IDC_ALLOW_ARBITRARY_SAVEIDM_LOAD_STATE_ASING 10010
 #define IDC_EMULATEFLOATCRASHES         10011
 #define IDC_ROMLIST                     12352
 #define IDM_EXIT                        40001
@@ -465,7 +464,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107

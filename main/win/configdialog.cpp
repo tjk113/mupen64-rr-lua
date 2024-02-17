@@ -540,8 +540,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         set_checkbox_state(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
         set_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
         SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
-        set_checkbox_state(hwnd, IDC_ALLOW_ARBITRARY_SAVEIDM_LOAD_STATE_ASING,
-                           Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed);
 
         CheckDlgButton(hwnd, IDC_INTERP, Config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
         CheckDlgButton(hwnd, IDC_RECOMP, Config.core_type == 1 ? BST_CHECKED : BST_UNCHECKED);
@@ -590,8 +588,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             Config.show_vis_per_second = get_checkbox_state(hwnd, IDC_SHOWVIS);
             Config.is_savestate_warning_enabled = get_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS);
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
-            Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed = get_checkbox_state(
-                hwnd, IDC_ALLOW_ARBITRARY_SAVEIDM_LOAD_STATE_ASING);
         }
         break;
     default:

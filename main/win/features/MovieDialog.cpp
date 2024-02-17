@@ -177,87 +177,92 @@ namespace MovieDialog {
 
 	refresh:
 		char tempbuf[260] = {0};
-		t_movie_header m_header = vcr_get_header_info(record_params.path.string().c_str());
+		t_movie_header header = {};
 
-		SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME, m_header.rom_name);
+		if(VCR::parse_header(record_params.path, &header) != VCR::Result::Ok)
+		{
+			return FALSE;
+		}
+
+		SetDlgItemText(hwnd, IDC_ROM_INTERNAL_NAME, header.rom_name);
 
 		SetDlgItemText(hwnd, IDC_ROM_COUNTRY,
-					   country_code_to_country_name(m_header.rom_country).
+					   country_code_to_country_name(header.rom_country).
 					   c_str());
 
-		sprintf(tempbuf, "%X", (unsigned int)m_header.rom_crc1);
+		sprintf(tempbuf, "%X", (unsigned int)header.rom_crc1);
 		SetDlgItemText(hwnd, IDC_ROM_CRC, tempbuf);
 
-		SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT, m_header.video_plugin_name);
-		SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT, m_header.input_plugin_name);
-		SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT, m_header.audio_plugin_name);
-		SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT, m_header.rsp_plugin_name);
+		SetDlgItemText(hwnd, IDC_MOVIE_VIDEO_TEXT, header.video_plugin_name);
+		SetDlgItemText(hwnd, IDC_MOVIE_INPUT_TEXT, header.input_plugin_name);
+		SetDlgItemText(hwnd, IDC_MOVIE_SOUND_TEXT, header.audio_plugin_name);
+		SetDlgItemText(hwnd, IDC_MOVIE_RSP_TEXT, header.rsp_plugin_name);
 
 		CheckDlgButton(hwnd, IDC_RADIO_FROM_ST,
-							   m_header.startFlags ==
+							   header.startFlags ==
 							   MOVIE_START_FROM_SNAPSHOT);
 		CheckDlgButton(hwnd, IDC_RADIO_FROM_EXISTING_ST,
-					   m_header.startFlags ==
+					   header.startFlags ==
 					   MOVIE_START_FROM_EXISTING_SNAPSHOT);
 		CheckDlgButton(hwnd, IDC_RADIO_FROM_START,
-					   m_header.startFlags ==
+					   header.startFlags ==
 					   MOVIE_START_FROM_NOTHING);
 		CheckDlgButton(hwnd, IDC_RADIO_FROM_EEPROM,
-					   m_header.startFlags ==
+					   header.startFlags ==
 					   MOVIE_START_FROM_EEPROM);
 
-		strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_1_PRESENT)
+		strcpy(tempbuf, (header.controller_flags & CONTROLLER_1_PRESENT)
 							? "Present"
 							: "Disconnected");
-		if (m_header.controller_flags & CONTROLLER_1_MEMPAK)
+		if (header.controller_flags & CONTROLLER_1_MEMPAK)
 			strcat(tempbuf, " with mempak");
-		if (m_header.controller_flags & CONTROLLER_1_RUMBLE)
+		if (header.controller_flags & CONTROLLER_1_RUMBLE)
 			strcat(tempbuf, " with rumble");
 		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER1_TEXT, tempbuf);
 
-		strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_2_PRESENT)
+		strcpy(tempbuf, (header.controller_flags & CONTROLLER_2_PRESENT)
 							? "Present"
 							: "Disconnected");
-		if (m_header.controller_flags & CONTROLLER_2_MEMPAK)
+		if (header.controller_flags & CONTROLLER_2_MEMPAK)
 			strcat(tempbuf, " with mempak");
-		if (m_header.controller_flags & CONTROLLER_2_RUMBLE)
+		if (header.controller_flags & CONTROLLER_2_RUMBLE)
 			strcat(tempbuf, " with rumble");
 		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER2_TEXT, tempbuf);
 
-		strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_3_PRESENT)
+		strcpy(tempbuf, (header.controller_flags & CONTROLLER_3_PRESENT)
 							? "Present"
 							: "Disconnected");
-		if (m_header.controller_flags & CONTROLLER_3_MEMPAK)
+		if (header.controller_flags & CONTROLLER_3_MEMPAK)
 			strcat(tempbuf, " with mempak");
-		if (m_header.controller_flags & CONTROLLER_3_RUMBLE)
+		if (header.controller_flags & CONTROLLER_3_RUMBLE)
 			strcat(tempbuf, " with rumble");
 		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER3_TEXT, tempbuf);
 
-		strcpy(tempbuf, (m_header.controller_flags & CONTROLLER_4_PRESENT)
+		strcpy(tempbuf, (header.controller_flags & CONTROLLER_4_PRESENT)
 							? "Present"
 							: "Disconnected");
-		if (m_header.controller_flags & CONTROLLER_4_MEMPAK)
+		if (header.controller_flags & CONTROLLER_4_MEMPAK)
 			strcat(tempbuf, " with mempak");
-		if (m_header.controller_flags & CONTROLLER_4_RUMBLE)
+		if (header.controller_flags & CONTROLLER_4_RUMBLE)
 			strcat(tempbuf, " with rumble");
 		SetDlgItemText(hwnd, IDC_MOVIE_CONTROLLER4_TEXT, tempbuf);
 
 		SetDlgItemText(hwnd, IDC_FROMSNAPSHOT_TEXT,
-					   (m_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
+					   (header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 						   ? "Savestate"
 						   : "Start");
-		if (m_header.startFlags & MOVIE_START_FROM_EEPROM) {
+		if (header.startFlags & MOVIE_START_FROM_EEPROM) {
 			SetDlgItemTextA(hwnd, IDC_FROMSNAPSHOT_TEXT, "EEPROM");
 		}
 
-		sprintf(tempbuf, "%u  (%u input)", (int)m_header.length_vis,
-				(int)m_header.length_samples);
+		sprintf(tempbuf, "%u  (%u input)", (int)header.length_vis,
+				(int)header.length_samples);
 		SetDlgItemText(hwnd, IDC_MOVIE_FRAMES, tempbuf);
 
-		if (m_header.vis_per_second == 0)
-			m_header.vis_per_second = 60;
+		if (header.vis_per_second == 0)
+			header.vis_per_second = 60;
 
-		double seconds = (double)m_header.length_vis / (double)m_header.
+		double seconds = (double)header.length_vis / (double)header.
 			vis_per_second;
 		double minutes = seconds / 60.0;
 		if ((bool)seconds)
@@ -273,20 +278,20 @@ namespace MovieDialog {
 			sprintf(tempbuf, "%d minutes and %.0f seconds",
 					(unsigned int)minutes,
 					(float)seconds);
-		else if (m_header.length_vis != 0)
+		else if (header.length_vis != 0)
 			sprintf(tempbuf, "%.1f seconds", (float)seconds);
 		else
 			strcpy(tempbuf, "0 seconds");
 		SetDlgItemText(hwnd, IDC_MOVIE_LENGTH, tempbuf);
 
-		sprintf(tempbuf, "%lu", m_header.rerecord_count);
+		sprintf(tempbuf, "%lu", header.rerecord_count);
 		SetDlgItemText(hwnd, IDC_MOVIE_RERECORDS, tempbuf);
 
 		{
 			// convert utf8 metadata to windows widechar
 			WCHAR wszMeta[MOVIE_MAX_METADATA_SIZE];
 			if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-				m_header.author, -1, wszMeta,
+				header.author, -1, wszMeta,
 				MOVIE_AUTHOR_DATA_SIZE)) {
 				SetLastError(0);
 				SetWindowTextW(GetDlgItem(hwnd, IDC_INI_AUTHOR), wszMeta);
@@ -310,7 +315,7 @@ namespace MovieDialog {
 				}
 			}
 			if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-				m_header.description, -1, wszMeta,
+				header.description, -1, wszMeta,
 				MOVIE_DESCRIPTION_DATA_SIZE)) {
 				SetWindowTextW(GetDlgItem(hwnd, IDC_INI_DESCRIPTION), wszMeta);
 				if (GetLastError() == ERROR_CALL_NOT_IMPLEMENTED) {

@@ -409,9 +409,9 @@ void savestates_load_immediate()
 
 	if (memcmp(md5, rom_md5, 32)) {
 
-		MessageBox(mainHWND, std::format("The savestate was created on a rom with CRC {}, but is being loaded on a rom with CRC {}.", md5, rom_md5).c_str(), nullptr, MB_ICONWARNING);
+		auto result = MessageBox(mainHWND, std::format("The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?", md5).c_str(), nullptr, MB_ICONQUESTION | MB_YESNO);
 
-		if (!Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed) {
+		if (result != IDYES) {
 			savestates_job_success = FALSE;
 			return;
 		}
@@ -457,40 +457,39 @@ void savestates_load_immediate()
 
 	    if (code != SUCCESS && !vcr_is_idle())
 	    {
-	    	Statusbar::post("Loading non-movie savestate. Recording can break");
-
-		    if (!Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed)
+		    std::string err_str = "Failed to restore movie, ";
+		    switch (code)
 		    {
-			    std::string err_str = "Failed to restore movie, ";
-		    	switch (code)
-		    	{
-		    	case NOT_FROM_THIS_MOVIE:
-		    		err_str += "snapshot not from this movie";
-		    		break;
-		    	case NOT_FROM_A_MOVIE:
-		    		err_str += "snapshot not from a movie";
-		    		break;
-		    	case INVALID_FRAME:
-		    		err_str += "invalid frame number";
-		    		break;
-		    	case WRONG_FORMAT:
-		    		err_str += "wrong format";
-		    		stop = true;
-		    		break;
-		    	default:
-		    		break;
-		    	}
-		    	MessageBox(mainHWND, err_str.c_str(), nullptr, MB_ICONERROR);
-			    if ([[maybe_unused]] bool critical_stop = false)
+		    case NOT_FROM_THIS_MOVIE:
+			    err_str += "snapshot not from this movie";
+			    break;
+		    case NOT_FROM_A_MOVIE:
+			    err_str += "snapshot not from a movie";
+			    break;
+		    case INVALID_FRAME:
+			    err_str += "invalid frame number";
+			    break;
+		    case WRONG_FORMAT:
+			    err_str += "wrong format";
+			    stop = true;
+			    break;
+		    default:
+			    break;
+		    }
+		    auto result = MessageBox(mainHWND,
+		                             (err_str +
+			                             "\r\nAre you sure you want to continue?")
+		                             .c_str(), nullptr,
+		                             MB_ICONQUESTION | MB_YESNO);
+		    if (result != IDYES)
+		    {
+			    if (vcr_is_recording())
 			    {
-				    if (vcr_is_recording())
-				    {
-				    	vcr_stop_record();
-				    }
-			    	if (vcr_is_playing())
-			    	{
-			    		vcr_stop_playback();
-			    	}
+				    vcr_stop_record();
+			    }
+			    if (vcr_is_playing())
+			    {
+				    vcr_stop_playback();
 			    }
 			    savestates_job_success = FALSE;
 			    goto failedLoad;
@@ -501,13 +500,12 @@ void savestates_load_immediate()
     {
 	    if (vcr_is_active())
 	    {
-		    if (!Config.is_state_independent_IDM_LOAD_STATE_ASing_allowed)
+	    	auto result = MessageBox(mainHWND, "Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?", nullptr, MB_ICONQUESTION | MB_YESNO);
+		    if (result != IDYES)
 		    {
-		    	MessageBox(mainHWND, "Can't load a non-movie snapshot while a movie is active", nullptr, MB_ICONERROR);
-			    savestates_job_success = FALSE;
-			    return;
+		    	savestates_job_success = FALSE;
+		    	return;
 		    }
-		    Statusbar::post("Loading non-movie savestate can desync playback");
 	    }
 
 	    // at this point we know the savestate is safe to be loaded (done after else block)

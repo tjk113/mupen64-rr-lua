@@ -24,33 +24,11 @@
 #include <malloc.h>
 #include <cstdio>
 #include <cstring>
-#ifdef _MSC_VER
-#define SNPRINTF	_snprintf
-#define STRCASECMP	_stricmp
-#define STRNCASECMP	_strnicmp
-#else
-#include <unistd.h>
-#endif
-//#include <zlib.h>
 #include <ctime>
 #include <chrono>
-#include <commctrl.h> // for SendMessage, SB_SETTEXT
-#include <Windows.h> // for truncate functions
-#include <../../winproject/resource.h> // for IDM_RESET_ROM
-#include "win/Config.hpp" //config struct
-#include <WinUser.h>
-
+#include <Windows.h>
+#include "win/Config.hpp"
 #include "guifuncs.h"
-#include "win/Commandline.h"
-
-#ifdef _DEBUG
-#include "../r4300/macros.h"
-#endif
-
-#ifndef PATH_MAX
-#define PATH_MAX _MAX_PATH
-#endif
-
 #include "LuaCallbacks.h"
 #include "messenger.h"
 #include "../memory/pif.h"
@@ -86,8 +64,8 @@ static const char* m_err_code_name[] =
 e_task m_task = e_task::idle;
 std::filesystem::path movie_path;
 
-static char m_filename[PATH_MAX];
-static char avi_file_name[PATH_MAX];
+static char m_filename[MAX_PATH];
+static char avi_file_name[MAX_PATH];
 static FILE* m_file = nullptr;
 static t_movie_header m_header;
 
@@ -212,14 +190,13 @@ static void truncate_movie()
 	}
 }
 
-static int read_movie_header(FILE* file, t_movie_header* header)
+static int read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
 {
-	fseek(file, 0L, SEEK_SET);
+	if (buf.size() < mup_header_size_old)
+		return WRONG_FORMAT;
 
 	t_movie_header new_header = {};
-
-	if (fread(&new_header, 1, mup_header_size_old, file) != mup_header_size_old)
-		return WRONG_FORMAT;
+	memcpy(&new_header, buf.data(), mup_header_size_old);
 
 	if (new_header.magic != mup_magic)
 		return WRONG_FORMAT;
@@ -285,13 +262,9 @@ static int read_movie_header(FILE* file, t_movie_header* header)
 		strncpy(new_header.author, new_header.old_author_info, 48);
 		strncpy(new_header.description, new_header.old_description, 80);
 	}
-	if (new_header.version == 3)
+	if (new_header.version == 3 && buf.size() < MUP_HEADER_SIZE)
 	{
-		// read rest of header
-		if (fread((char*)(&new_header) + mup_header_size_old, 1,
-		          MUP_HEADER_SIZE - mup_header_size_old,
-		          file) != MUP_HEADER_SIZE - mup_header_size_old)
-			return WRONG_FORMAT;
+		return WRONG_FORMAT;
 	}
 
 	*header = new_header;
@@ -317,42 +290,30 @@ void flush_movie()
 	}
 }
 
-t_movie_header vcr_get_header_info(const char* filename)
+VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header)
 {
-	char buf[PATH_MAX];
-	char temp_filename[PATH_MAX];
-	t_movie_header temp_header = {};
-	temp_header.rom_country = -1;
-	strcpy(temp_header.rom_name, "(no ROM)");
-
-	flush_movie();
-
-	strncpy(temp_filename, filename, PATH_MAX);
-	if (char* p = strrchr(temp_filename, '.'))
+	if (path.extension() != ".m64")
 	{
-		if (!STRCASECMP(p, ".m64") || !STRCASECMP(p, ".st"))
-			*p = '\0';
-	}
-	// open record file
-	strncpy(buf, temp_filename, PATH_MAX);
-	FILE* temp_file = fopen(buf, "rb+");
-	if (temp_file == nullptr && (temp_file = fopen(buf, "rb")) == nullptr)
-	{
-		strncat(buf, ".m64", 4);
-		temp_file = fopen(buf, "rb+");
-		if (temp_file == nullptr && (temp_file = fopen(buf, "rb")) == nullptr)
-		{
-			fprintf(
-				stderr,
-				"[VCR]: Could not get header info of .m64 file\n\"%s\": %s\n",
-				filename, strerror(errno));
-			return temp_header;
-		}
+		return Result::InvalidFormat;
 	}
 
-	read_movie_header(temp_file, &temp_header);
-	fclose(temp_file);
-	return temp_header;
+	t_movie_header new_header = {};
+	new_header.rom_country = -1;
+	strcpy(new_header.rom_name, "(no ROM)");
+
+	auto buf = read_file_buffer(path);
+	if (buf.empty())
+	{
+		return Result::BadFile;
+	}
+
+	if(read_movie_header(buf, &new_header) != SUCCESS)
+	{
+		return Result::InvalidFormat;
+	}
+
+	*header = new_header;
+	return Result::Ok;
 }
 
 void vcr_clear_save_data()
@@ -693,7 +654,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		if (m_current_sample >= (long)m_header.length_samples)
 		{
 			stop_playback(false);
-			commandline_on_movie_playback_stop();
 			setKeys(index, {0});
 			getKeys(index, input);
 			return;
@@ -738,12 +698,12 @@ vcr_start_record(const char* filename, const unsigned short flags,
 {
 	vcr_core_stopped();
 
-	char buf[PATH_MAX];
+	char buf[MAX_PATH];
 
 	// m_filename will be overwritten later in the function if
 	// MOVIE_START_FROM_EXISTING_SNAPSHOT is true, but it doesn't
 	// matter enough to make this a conditional thing
-	strncpy(m_filename, filename, PATH_MAX);
+	strncpy(m_filename, filename, MAX_PATH);
 
 	// open record file
 	strcpy(buf, m_filename);
@@ -752,7 +712,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		const char* s1 = strrchr(buf, '\\');
 		if (const char* s2 = strrchr(buf, '/'); !dot || ((s1 && s1 > dot) || (s2 && s2 > dot)))
 		{
-			strncat(buf, ".m64", PATH_MAX);
+			strncat(buf, ".m64", MAX_PATH);
 		}
 	}
 	m_file = fopen(buf, "wb");
@@ -862,7 +822,7 @@ vcr_stop_record()
 
 	if (m_task == e_task::start_recording)
 	{
-		char buf[PATH_MAX];
+		char buf[MAX_PATH];
 
 		m_task = e_task::idle;
 		if (m_file)
@@ -874,14 +834,14 @@ vcr_stop_record()
 
 		strcpy(buf, m_filename);
 
-		strncat(m_filename, ".st", PATH_MAX);
+		strncat(m_filename, ".st", MAX_PATH);
 
 		if (_unlink(buf) < 0)
 			fprintf(stderr, "[VCR]: Couldn't remove save state: %s\n",
 			        strerror(errno));
 
 		strcpy(buf, m_filename);
-		strncat(m_filename, ".m64", PATH_MAX);
+		strncat(m_filename, ".m64", MAX_PATH);
 		if (_unlink(buf) < 0)
 			fprintf(stderr, "[VCR]: Couldn't remove recorded file: %s\n",
 			        strerror(errno));
@@ -931,13 +891,31 @@ vcr_stop_record()
 
 std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 {
-	auto st = strip_extension(path.string()) + ".st";
+	// To allow multiple m64s to reference on st, we construct the st name from the m64 name up to the first point only
+	// movie.a.m64 => movie.st
+	// movie.m64   => movie.st
+	char drive[MAX_PATH] = {0};
+	char dir[MAX_PATH] = {0};
+	char filename[MAX_PATH] = {0};
+	_splitpath(path.string().c_str(), drive, dir, filename, nullptr);
+
+	auto dot_index = std::string(filename).find_first_of(".");
+	std::string name;
+	if (dot_index == std::string::npos)
+	{
+		name = filename;
+	} else
+	{
+		name = std::string(filename).substr(0, dot_index);
+	}
+
+	auto st = std::string(drive) + std::string(dir) + strip_extension(name) + ".st";
 	if (std::filesystem::exists(st))
 	{
 		return st;
 	}
 
-	st = strip_extension(path.string()) + ".savestate";
+	st = std::string(drive) + std::string(dir) + strip_extension(name) + ".savestate";
 	if (std::filesystem::exists(st))
 	{
 		return st;
@@ -986,7 +964,14 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 {
 	vcr_core_stopped();
 
-	strncpy(m_filename, path.string().c_str(), PATH_MAX);
+	strncpy(m_filename, path.string().c_str(), MAX_PATH);
+
+	auto movie_buf = read_file_buffer(path);
+
+	if (movie_buf.empty())
+	{
+		return VCR_PLAYBACK_FILE_BUSY;
+	}
 
 	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
 	m_file = fopen(m_filename, "rb+");
@@ -995,7 +980,7 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 		return VCR_PLAYBACK_FILE_BUSY;
 	}
 
-	const int code = read_movie_header(m_file, &m_header);
+	const int code = read_movie_header(movie_buf, &m_header);
 	if (code != SUCCESS)
 	{
 		// FIXME: The results don't collide, but use typed errors anyway!!!
@@ -1239,6 +1224,12 @@ static int stop_playback(const bool bypass_loop_setting)
 	return -1;
 }
 
+
+bool task_is_playback(e_task task)
+{
+	return task == e_task::playback || task == e_task::start_playback || task ==
+		e_task::start_playback_from_snapshot;
+}
 
 void vcr_update_screen()
 {
@@ -1600,7 +1591,7 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 	VCRComp_startFile(path, width, height, get_vis_per_second(ROM_HEADER.Country_code), show_codec_dialog);
 	m_capture = 1;
 	capture_with_f_fmpeg = false;
-	strncpy(avi_file_name, path, PATH_MAX);
+	strncpy(avi_file_name, path, MAX_PATH);
 	Config.avi_capture_path = path;
 
 	Messenger::broadcast(Messenger::Message::CapturingChanged, true);

@@ -550,7 +550,7 @@ void close_rom()
 	Statusbar::post("Emulation stopped");
 }
 
-void reset_emu()
+void reset_rom()
 {
 	if (!emu_launched)
 		return;
@@ -585,28 +585,10 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	dynacore = Config.core_type;
 
-	emu_paused = 0;
-	emu_launched = 1;
-
 	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
 				                         &audio_thread_id);
 	printf("Emu thread: Emulation started....\n");
 
-	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
-
-	// start movies, st and lua scripts
-	commandline_load_st();
-	commandline_start_lua();
-	commandline_start_movie();
-
-	// HACK:
-	// starting capture immediately won't work, since sample rate will change at game startup, thus terminating the capture
-	// as a workaround, we wait a bit before starting the capture
-	std::thread([]
-	{
-		Sleep(1000);
-		commandline_start_capture();
-	}).detach();
 
 	LuaCallbacks::call_reset();
 
@@ -624,6 +606,11 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	});
 
 	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+
+	emu_paused = 0;
+	emu_launched = 1;
+
+	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 
 	go();
 
@@ -841,7 +828,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		main_menu = GetMenu(hwnd);
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
-		commandline_start_rom();
 		return TRUE;
 	case WM_DESTROY:
 		save_config();
@@ -1095,7 +1081,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!Config.is_reset_recording_enabled && confirm_user_exit())
 					break;
 
-				std::thread(reset_emu).detach();
+				std::thread(reset_rom).detach();
 				break;
 
 			case IDM_SETTINGS:
@@ -1542,8 +1528,6 @@ int WINAPI WinMain(
 	app_path = get_app_full_path();
 	app_instance = hInstance;
 
-	commandline_set();
-
 	// ensure folders exist!
 	CreateDirectory((app_path + "save").c_str(), NULL);
 	CreateDirectory((app_path + "Mempaks").c_str(), NULL);
@@ -1610,6 +1594,7 @@ int WINAPI WinMain(
 	Statusbar::init();
 	Rombrowser::init();
 	VCR::init();
+	Cli::init();
 
 	update_menu_hotkey_labels();
 
@@ -1624,6 +1609,7 @@ int WINAPI WinMain(
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 	Messenger::broadcast(Messenger::Message::SizeChanged, rect);
+	Messenger::broadcast(Messenger::Message::AppReady, nullptr);
 
 	Rombrowser::build();
 

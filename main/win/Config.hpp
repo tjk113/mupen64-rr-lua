@@ -154,12 +154,6 @@ typedef struct _CONFIG
 	int32_t is_statusbar_enabled;
 
 	/// <summary>
-	/// Whether savestate loading will be allowed regardless of any incompatiblities
-	/// TODO: better represent how dangerous this is in the view layer
-	/// </summary>
-	int32_t is_state_independent_IDM_LOAD_STATE_ASing_allowed;
-
-	/// <summary>
 	/// Whether the default plugins directory will be used (otherwise, falls back to <see cref="plugins_directory"/>)
 	/// </summary>
 	int32_t is_default_plugins_directory_used;
