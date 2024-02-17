@@ -34,6 +34,7 @@
 #include "ops.h"
 #include "macros.h"
 #include "cop1_helpers.h"
+#include "win/Config.hpp"
 
 void ADD_D()
 {

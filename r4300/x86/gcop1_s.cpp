@@ -35,6 +35,7 @@
 #include "../macros.h"
 #include "interpret.h"
 #include "gcop1_helpers.h"
+#include "win/Config.hpp"
 
 static void gencheck_eax_valid(int stackBase)
 {

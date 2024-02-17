@@ -9,6 +9,7 @@
 
 #include "summercart.h"
 
+#include "rom.h"
 #include "savestates.h"
 
 struct vhd

@@ -32,10 +32,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "../main/rom.h"
-#include "../main/win/Config.hpp"
 #include "recomp.h"
 #include "../memory/tlb.h"
+#include "rom.h"
+#include "win/Config.hpp"
 
 extern precomp_instr* PC;
 

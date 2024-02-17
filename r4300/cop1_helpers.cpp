@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include "r4300.h"
 #include "exception.h"
 #include "cop1_helpers.h"

@@ -41,6 +41,7 @@
 #include "../memory/summercart.h"
 #include "../r4300/interrupt.h"
 #include "../r4300/r4300.h"
+#include "win/Config.hpp"
 #include "win/main_win.h"
 #include "win/features/Statusbar.hpp"
 

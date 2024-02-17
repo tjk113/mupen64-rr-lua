@@ -27,13 +27,13 @@
  *
 **/
 
-#include <math.h>
-#include <float.h>
+#include <cmath>
 
 #include "r4300.h"
 #include "ops.h"
 #include "macros.h"
 #include "cop1_helpers.h"
+#include "win/Config.hpp"
 
 void ADD_S()
 {

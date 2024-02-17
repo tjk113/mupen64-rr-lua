@@ -8,6 +8,8 @@
 #include "assemble.h"
 #include "gcop1_helpers.h"
 
+#include "win/Config.hpp"
+
 static void patch_jump(unsigned long addr, unsigned long target)
 {
     long diff = target - addr;
