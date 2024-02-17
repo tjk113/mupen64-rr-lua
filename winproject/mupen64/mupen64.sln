@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
+﻿Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2017
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mupen64", "mupen64.vcxproj", "{83B5BB38-A6A7-432B-AF4D-2AE840F5621C}"
 EndProject

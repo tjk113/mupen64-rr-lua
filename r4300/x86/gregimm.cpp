@@ -27,7 +27,7 @@
  *
 **/
 
-#include <stdio.h>
+#include <cstdio>
 #include "../recomph.h"
 #include "../recomp.h"
 #include "../r4300.h"
@@ -36,6 +36,7 @@
 #include "../../memory/memory.h"
 #include "../macros.h"
 #include "interpret.h"
+#include "win/Config.hpp"
 
 void genbltz_test()
 {

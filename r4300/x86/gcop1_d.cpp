@@ -27,13 +27,13 @@
  *
 **/
 
-#include <stdio.h>
 #include "../recomph.h"
 #include "assemble.h"
 #include "../r4300.h"
 #include "../ops.h"
 #include "interpret.h"
 #include "gcop1_helpers.h"
+#include "win/Config.hpp"
 
 static void gencheck_eax_valid(int stackBase)
 {

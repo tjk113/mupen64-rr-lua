@@ -27,7 +27,7 @@
  *
 **/
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "../recomp.h"
 #include "../r4300.h"

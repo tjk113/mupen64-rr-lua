@@ -37,6 +37,7 @@
 #include "regcache.h"
 #include "../exception.h"
 #include "interpret.h"
+#include "win/Config.hpp"
 
 extern unsigned long op; //pure_interp.c
 extern unsigned long src; //recomp.c

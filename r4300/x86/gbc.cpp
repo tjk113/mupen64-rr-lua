@@ -33,6 +33,7 @@
 #include "../r4300.h"
 #include "../ops.h"
 #include "interpret.h"
+#include "win/Config.hpp"
 
 void genbc1f_test()
 {
