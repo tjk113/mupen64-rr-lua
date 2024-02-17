@@ -450,7 +450,53 @@ void pauseEmu(BOOL quiet)
 
 int start_rom(std::filesystem::path path)
 {
-	rom_path = path;
+	if (path.extension() != ".m64")
+	{
+		rom_path = path;
+	} else
+	{
+		t_movie_header movie_header{};
+		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
+		{
+			return 0;
+		}
+
+		auto rom_paths = Rombrowser::find_available_roms();
+		std::string matching_rom;
+		for (auto rom_path : rom_paths)
+		{
+			FILE* f = fopen(rom_path.c_str(), "rb");
+
+			fseek(f, 0, SEEK_END);
+			uint64_t len = ftell(f);
+			fseek(f, 0, SEEK_SET);
+
+			if (len > sizeof(t_rom_header))
+			{
+				auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
+				fread(header, sizeof(t_rom_header), 1, f);
+
+				rom_byteswap((uint8_t*)header);
+
+				if (header->CRC1 == movie_header.rom_crc1)
+				{
+					matching_rom = rom_path;
+				}
+
+				free(header);
+			}
+
+			fclose(f);
+		}
+
+		if (matching_rom.empty())
+		{
+			return 0;
+		}
+
+		rom_path = matching_rom;
+		path = matching_rom;
+	}
 
 	auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -747,7 +793,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				std::thread([path] { start_rom(path); }).detach();
 			} else if (extension == ".m64")
 			{
-				if (vcr_start_playback(fname, nullptr, nullptr) < 0)
+				if (vcr_start_playback(fname) < 0)
 				{
 					printf(
 						"[VCR]: Drag drop Failed to start playback of %s",
@@ -1276,7 +1322,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.pause_at_last_frame = result.pause_at_last;
 
 					auto playbackResult = vcr_start_playback(
-						result.path.string(), nullptr, nullptr);
+						result.path.string());
 
 					if (playbackResult == VCR_PLAYBACK_SUCCESS)
 						break;
@@ -1498,7 +1544,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					Config.vcr_readonly = true;
 					Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
-					vcr_start_playback(path, nullptr, nullptr);
+					vcr_start_playback(path);
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
 				{

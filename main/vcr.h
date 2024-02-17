@@ -324,12 +324,9 @@ namespace VCR
 /**
  * \brief Starts playing back a movie
  * \param path The movie's path
- * \param author_utf8 The author override, or null
- * \param description_utf8 The description override, or null
  * \return The error code
  */
-int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
-							 const char* description_utf8);
+int vcr_start_playback(std::filesystem::path path);
 
 #endif
 

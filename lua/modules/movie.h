@@ -12,7 +12,7 @@ namespace LuaCore::Movie
 		const char* fname = lua_tostring(L, 1);
 		Config.vcr_readonly = true;
 		Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
-		vcr_start_playback(fname, nullptr, nullptr);
+		vcr_start_playback(fname);
 		return 0;
 	}
 

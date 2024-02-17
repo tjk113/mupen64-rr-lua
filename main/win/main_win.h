@@ -43,7 +43,7 @@ extern std::string app_path;
 
 /**
  * \brief Starts the emulator
- * \param path Path to a rom file
+ * \param path Path to a rom or corresponding movie file
  * \returns The operation status code
  */
 int start_rom(std::filesystem::path path);

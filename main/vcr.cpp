@@ -950,9 +950,19 @@ int check_warn_controllers(char* warning_str) {
 	return 1;
 }
 
-int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
-                          const char* description_utf8)
+int vcr_start_playback(std::filesystem::path path)
 {
+	if (!emu_launched)
+	{
+		std::thread([path]
+		{
+			start_rom(path);
+			vcr_start_playback(path);
+		}).detach();
+		// We're on UI thread, but we can't wait for thread to exit, so no status code for us...
+		return SUCCESS;
+	}
+
 	vcr_core_stopped();
 
 	strncpy(m_filename, path.string().c_str(), MAX_PATH);
@@ -977,53 +987,6 @@ int vcr_start_playback(std::filesystem::path path, const char* author_utf8,
 		// FIXME: The results don't collide, but use typed errors anyway!!!
 		fclose(m_file);
 		return code;
-	}
-
-	// If emu is not launched, try to find a rom in known directories with CRC matching that of header
-	if (!emu_launched)
-	{
-		auto rom_paths = Rombrowser::find_available_roms();
-
-		std::string matching_rom;
-		for (auto rom_path : rom_paths)
-		{
-			FILE* f = fopen(rom_path.c_str(), "rb");
-
-			fseek(f, 0, SEEK_END);
-			uint64_t len = ftell(f);
-			fseek(f, 0, SEEK_SET);
-
-			if (len > sizeof(t_rom_header))
-			{
-				auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
-				fread(header, sizeof(t_rom_header), 1, f);
-
-				rom_byteswap((uint8_t*)header);
-
-				if (header->CRC1 == m_header.rom_crc1)
-				{
-					matching_rom = rom_path;
-				}
-
-				free(header);
-			}
-
-			fclose(f);
-		}
-
-		if (matching_rom.empty())
-		{
-			fclose(m_file);
-			return VCR_PLAYBACK_NO_MATCHING_ROM;
-		}
-
-		// BUG: start_rom creates the emu thread, and thus doesn't actually block until the game starts
-		// We don't have any mechanisms in place to wait until the game has fully started, so maybe that should be done
-		main_dispatcher_invoke([matching_rom]
-		{
-			std::thread([matching_rom] { start_rom(matching_rom); }).detach();
-			Sleep(200);
-		});
 	}
 
 	for (auto& [Present, RawData, Plugin] : Controls)
@@ -1145,15 +1108,6 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 		m_task = e_task::start_playback;
 	}
 
-	// utf8 strings are also null-terminated so this method still works
-	if (author_utf8)
-		strncpy(m_header.author, author_utf8, MOVIE_AUTHOR_DATA_SIZE);
-	m_header.author[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
-	if (description_utf8)
-		strncpy(m_header.description, description_utf8,
-		        MOVIE_DESCRIPTION_DATA_SIZE);
-	m_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
-
 	Messenger::broadcast(Messenger::Message::MoviePlaybackStarted, movie_path);
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	LuaCallbacks::call_play_movie();
@@ -1161,7 +1115,7 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 }
 int restart_playback()
 {
-	return vcr_start_playback(vcr_lastpath, nullptr, nullptr);
+	return vcr_start_playback(vcr_lastpath);
 }
 
 int vcr_stop_playback()

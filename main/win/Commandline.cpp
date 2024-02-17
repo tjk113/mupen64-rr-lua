@@ -95,7 +95,7 @@ void commandline_start_movie()
 		return;
 	}
 
-	vcr_start_playback(commandline_movie, nullptr, nullptr);
+	vcr_start_playback(commandline_movie);
 }
 
 void commandline_start_capture()
