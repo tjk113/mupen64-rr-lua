@@ -1118,19 +1118,9 @@ int vcr_stop_playback()
 		m_file = nullptr;
 	}
 
-	if (m_task == e_task::start_playback)
+	if (is_task_playback(m_task))
 	{
 		m_task = e_task::idle;
-		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
-		return 0;
-	}
-
-	if (m_task == e_task::playback)
-	{
-		m_task = e_task::idle;
-		printf("[VCR]: Playback stopped (%ld samples played)\n",
-		       m_current_sample);
-
 		Statusbar::post("", 1);
 		Statusbar::post("Stopped playback");
 
@@ -1146,6 +1136,7 @@ int vcr_stop_playback()
 		LuaCallbacks::call_stop_movie();
 		return 0;
 	}
+
 	return -1;
 }
 
