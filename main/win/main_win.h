@@ -55,8 +55,9 @@ void close_rom();
 
 /**
  * \brief Resets the emulator
+ * \param reset_save_data Whether save data (e.g.: EEPROM, SRAM, Mempak) will be reset
  */
-void reset_rom();
+void reset_rom(bool reset_save_data = false);
 
 extern void resumeEmu(BOOL quiet);
 extern void pauseEmu(BOOL quiet);

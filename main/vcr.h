@@ -274,11 +274,6 @@ extern void vcr_core_stopped();
 void vcr_update_statusbar();
 
 /**
- * \brief Clears all save data related to the current rom, such as SRAM, EEP and mempak
- */
-void vcr_clear_save_data();
-
-/**
  * \brief Starts an AVI capture
  * \param path The path to the AVI output file
  * \param show_codec_dialog Whether the user should be presented with a dialog to pick the capture codec
@@ -323,6 +318,7 @@ namespace VCR
 	 * \return The operation result
 	 */
 	Result parse_header(std::filesystem::path path, t_movie_header* header);
+
 }
 #ifdef __cplusplus
 /**

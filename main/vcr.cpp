@@ -96,6 +96,9 @@ bool capture_with_f_fmpeg = true;
 std::unique_ptr<FFmpegManager> capture_manager;
 uint64_t screen_updates = 0;
 
+// Used for VCR-invoked resets
+bool just_reset;
+
 static int start_playback(const char* filename, const char* author_utf8,
                          const char* description_utf8);
 static int restart_playback();
@@ -315,41 +318,6 @@ VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header
 	*header = new_header;
 	return Result::Ok;
 }
-
-void vcr_clear_save_data()
-{
-	{
-		if (FILE* f = fopen(get_sram_path().string().c_str(), "wb"))
-		{
-			extern unsigned char sram[0x8000];
-			for (unsigned char& i : sram) i = 0;
-			fwrite(sram, 1, 0x8000, f);
-			fclose(f);
-		}
-	}
-	{
-		if (FILE* f = fopen(get_eeprom_path().string().c_str(), "wb"))
-		{
-			extern unsigned char eeprom[0x8000];
-			for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
-			fwrite(eeprom, 1, 0x800, f);
-			fclose(f);
-		}
-	}
-	{
-		if (FILE* f = fopen(get_mempak_path().string().c_str(), "wb"))
-		{
-			extern unsigned char mempack[4][0x8000];
-			for (auto& j : mempack)
-			{
-				for (int i = 0; i < 0x800; i++) j[i] = 0;
-				fwrite(j, 1, 0x800, f);
-			}
-			fclose(f);
-		}
-	}
-}
-
 
 BOOL
 vcr_is_active()
@@ -578,6 +546,25 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	if (m_task == e_task::idle)
 		return;
 
+
+	// We need to handle start tasks first, as logic after it depends on the task being modified
+	if (m_task == e_task::start_recording)
+	{
+		if (just_reset)
+		{
+			m_current_sample = 0;
+			m_current_vi = 0;
+			m_task = e_task::recording;
+			just_reset = false;
+			Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+		} else
+		{
+			// We need to fully reset rom prior to actually pushing any samples to the buffer
+			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
+			std::thread([clear_eeprom] { reset_rom(clear_eeprom); }).detach();
+		}
+	}
+
 	if (m_task == e_task::start_recording_from_snapshot)
 	{
 		// TODO: maybe call st generation like normal and remove the "start_x" states
@@ -646,49 +633,53 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	}
 
 	// our input source is movie, input plugin is overriden
-	if (m_task == e_task::playback)
+	if (m_task != e_task::playback)
+		return;
+
+	// This if previously also checked for if the VI is over the amount specified in the header,
+	// but that can cause movies to end playback early on laggy plugins.
+	// TODO: only rely on samples for movie termination
+	if (m_current_sample >= (long)m_header.length_samples)
 	{
-		// This if previously also checked for if the VI is over the amount specified in the header,
-		// but that can cause movies to end playback early on laggy plugins.
-		// TODO: only rely on samples for movie termination
-		if (m_current_sample >= (long)m_header.length_samples)
-		{
-			stop_playback(false);
-			setKeys(index, {0});
-			getKeys(index, input);
-			return;
-		}
-
-		if (m_header.controller_flags & CONTROLLER_X_PRESENT(index))
-		{
-			*input = *reinterpret_cast<BUTTONS*>(m_input_buffer_ptr);
-			m_input_buffer_ptr += sizeof(BUTTONS);
-			setKeys(index, *input);
-
-			//no readable code because 120 star tas can't get this right >:(
-			if (input->Value == 0xC000)
-			{
-				// TODO: Reimplement!!!
-			}
-
-			last_controller_data[index] = *input;
-			LuaCallbacks::call_input(index);
-
-			// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
-			if (overwrite_controller_data[index])
-			{
-				*input = new_controller_data[index];
-				last_controller_data[index] = *input;
-				overwrite_controller_data[index] = false;
-			}
-			m_current_sample++;
-		} else
-		{
-			// disconnected controls are forced to have no input during playback
-			*input = {0};
-		}
-
+		stop_playback(false);
+		setKeys(index, {0});
+		getKeys(index, input);
+		return;
 	}
+
+	if (!(m_header.controller_flags & CONTROLLER_X_PRESENT(index)))
+	{
+		// disconnected controls are forced to have no input during playback
+		*input = {0};
+		return;
+	}
+
+	// Use inputs from movie, also notify input plugin of override via setKeys
+	*input = *reinterpret_cast<BUTTONS*>(m_input_buffer_ptr);
+	m_input_buffer_ptr += sizeof(BUTTONS);
+	setKeys(index, *input);
+
+	//no readable code because 120 star tas can't get this right >:(
+	if (input->Value == 0xC000)
+	{
+		printf("[VCR] Resetting during playback...\n");
+		std::thread([] { reset_rom(); }).detach();
+		// NOTE: While it doesn't seem to happen in practice, we could theoretically get another input poll generation between us signalling reset and the emu actually stopping.
+		// To prevent this, we pause it here as to not generate new frames.
+		pauseEmu(true);
+	}
+
+	last_controller_data[index] = *input;
+	LuaCallbacks::call_input(index);
+
+	// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
+	if (overwrite_controller_data[index])
+	{
+		*input = new_controller_data[index];
+		last_controller_data[index] = *input;
+		overwrite_controller_data[index] = false;
+	}
+	m_current_sample++;
 }
 
 
@@ -1783,6 +1774,10 @@ void vcr_on_vi()
 void VCR::init()
 {
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+	Messenger::subscribe(Messenger::Message::ResetCompleted, [](std::any)
+	{
+		just_reset = true;
+	});
 }
 
 bool is_frame_skipped()

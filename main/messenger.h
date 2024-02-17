@@ -73,6 +73,11 @@ namespace Messenger
 		 * \brief The main window has been created
 		 */
 		AppReady,
+
+		/**
+		 * \brief The emulator has finished resetting
+		 */
+		ResetCompleted,
 	};
 
 	/**

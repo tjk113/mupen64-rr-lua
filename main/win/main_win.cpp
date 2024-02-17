@@ -499,6 +499,8 @@ int start_rom(std::filesystem::path path)
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
 
+	while (!emu_launched);
+
 	return 1;
 }
 
@@ -550,7 +552,41 @@ void close_rom()
 	Statusbar::post("Emulation stopped");
 }
 
-void reset_rom()
+void clear_save_data()
+{
+	{
+		if (FILE* f = fopen(get_sram_path().string().c_str(), "wb"))
+		{
+			extern unsigned char sram[0x8000];
+			for (unsigned char& i : sram) i = 0;
+			fwrite(sram, 1, 0x8000, f);
+			fclose(f);
+		}
+	}
+	{
+		if (FILE* f = fopen(get_eeprom_path().string().c_str(), "wb"))
+		{
+			extern unsigned char eeprom[0x8000];
+			for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+			fwrite(eeprom, 1, 0x800, f);
+			fclose(f);
+		}
+	}
+	{
+		if (FILE* f = fopen(get_mempak_path().string().c_str(), "wb"))
+		{
+			extern unsigned char mempack[4][0x8000];
+			for (auto& j : mempack)
+			{
+				for (int i = 0; i < 0x800; i++) j[i] = 0;
+				fwrite(j, 1, 0x800, f);
+			}
+			fclose(f);
+		}
+	}
+}
+
+void reset_rom(bool reset_save_data)
 {
 	if (!emu_launched)
 		return;
@@ -563,7 +599,12 @@ void reset_rom()
 	MenuPaused = FALSE;
 
 	close_rom();
+	if (reset_save_data)
+	{
+		clear_save_data();
+	}
 	start_rom(rom_path);
+	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 }
 
 static DWORD WINAPI SoundThread(LPVOID lpParam)
@@ -1081,7 +1122,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!Config.is_reset_recording_enabled && confirm_user_exit())
 					break;
 
-				std::thread(reset_rom).detach();
+				std::thread([] { reset_rom(); }).detach();
 				break;
 
 			case IDM_SETTINGS:
