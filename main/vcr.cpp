@@ -994,6 +994,9 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		return Result::BadFile;
 	}
 
+	// We can't call this after opening m_file, since it will potentially nuke it
+	vcr_core_stopped();
+
 	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
 	m_file = fopen(m_filename, "rb+");
 	if (!m_file)
@@ -1094,7 +1097,6 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 	fseek(m_file, MUP_HEADER_SIZE_CUR, SEEK_SET);
 
 	// Reset VCR-related state
-	vcr_core_stopped();
 	m_current_sample = 0;
 	m_current_vi = 0;
 	strcpy(vcr_lastpath, m_filename);
