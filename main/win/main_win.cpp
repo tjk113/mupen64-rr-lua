@@ -95,8 +95,8 @@ std::deque<std::function<void()>> dispatcher_queue;
 // Flag which tells close_rom start_rom to skip some broadcasting and other operations
 bool is_restarting;
 
-// Whether start_rom or close_rom are currently executing. Used as a lock to prevent multiple callers from beating up emu simultaneously.
-bool emu_state_changing;
+// Lock to prevent multiple callers from starting/stopping/resetting emu simultaneously
+CRITICAL_SECTION emu_cs;
 
 namespace Recent
 {
@@ -456,18 +456,19 @@ void pauseEmu(BOOL quiet)
 			                              : MFS_UNCHECKED));
 }
 
-int start_rom(std::filesystem::path path)
-{
-	if (emu_state_changing)
+int start_rom(std::filesystem::path path){
+
+	// Kill any roms that are still running
+	if (emu_launched) {
+		close_rom();
+	}
+
+	if (!TryEnterCriticalSection(&emu_cs))
 	{
-		printf("Tried to start rom while emu state was already changing. Cancelling...\n");
 		return 0;
 	}
 
-	if (path.extension() != ".m64")
-	{
-		rom_path = path;
-	} else
+	if (path.extension() == ".m64")
 	{
 		t_movie_header movie_header{};
 		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
@@ -508,18 +509,11 @@ int start_rom(std::filesystem::path path)
 			return 0;
 		}
 
-		rom_path = matching_rom;
 		path = matching_rom;
 	}
 
+	rom_path = path;
 	auto start_time = std::chrono::high_resolution_clock::now();
-
-	// Kill any roms that are still running
-	if (emu_launched) {
-		close_rom();
-	}
-
-	emu_state_changing = true;
 
 	// TODO: keep plugins loaded and only unload and reload them when they actually change
 	printf("Loading plugins\n");
@@ -527,6 +521,7 @@ int start_rom(std::filesystem::path path)
 	{
 		MessageBox(mainHWND, "Invalid plugins selected", nullptr,
 		   MB_ICONERROR | MB_OK);
+		LeaveCriticalSection(&emu_cs);
 		return 0;
 	}
 
@@ -536,6 +531,7 @@ int start_rom(std::filesystem::path path)
 		MessageBox(mainHWND, "Failed to open ROM", "Error",
 				   MB_ICONERROR | MB_OK);
 		unload_plugins();
+		LeaveCriticalSection(&emu_cs);
 		return 0;
 	}
 
@@ -563,29 +559,27 @@ int start_rom(std::filesystem::path path)
 
 	while (!emu_launched);
 
-	emu_state_changing = false;
+	// Between emu_launched being set to 1 and core finishing setup, there's some time we want to bridge
+	Sleep(100);
+
+	LeaveCriticalSection(&emu_cs);
 	return 1;
 }
 
 void close_rom()
 {
-	if (emu_state_changing)
-	{
-		printf("Tried to close rom while emu state was already changing. Cancelling...\n");
-		return;
-	}
-
 	if (!emu_launched)
 	{
 		return;
 	}
 
-	emu_state_changing = true;
-
-	if (emu_paused) {
-		MenuPaused = FALSE;
-		resumeEmu(FALSE);
+	if(!TryEnterCriticalSection(&emu_cs))
+	{
+		return;
 	}
+
+	MenuPaused = FALSE;
+	resumeEmu(FALSE);
 
 	// We need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
 	if (vcr_is_capturing()) {
@@ -624,7 +618,7 @@ void close_rom()
 	}
 
 	Statusbar::post("Emulation stopped");
-	emu_state_changing = false;
+	LeaveCriticalSection(&emu_cs);
 }
 
 void clear_save_data()
@@ -1614,6 +1608,8 @@ int WINAPI WinMain(
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
 #endif
+
+	InitializeCriticalSection(&emu_cs);
 
 	app_path = get_app_full_path();
 	app_instance = hInstance;
