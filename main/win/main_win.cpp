@@ -862,6 +862,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkey->
 						alt)
 					{
+						// We only want to send it if the corresponding menu item exists and is enabled
+						auto state = GetMenuState(main_menu, hotkey->command, MF_BYCOMMAND);
+						if (state == -1 || state & MF_DISABLED || state & MF_GRAYED)
+						{
+							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), hotkey->command);
+							continue;
+						}
 						printf("Sent %s (%d)\n", hotkey->identifier.c_str(), hotkey->command);
 						SendMessage(mainHWND, WM_COMMAND, hotkey->command, 0);
 						hit = TRUE;
