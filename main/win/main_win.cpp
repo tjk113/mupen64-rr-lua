@@ -581,9 +581,10 @@ void close_rom()
 	MenuPaused = FALSE;
 	resumeEmu(FALSE);
 
-	// We need to stop capture before closing rom because rombrowser might show up in recording otherwise lol
-	if (vcr_is_capturing()) {
-		vcr_stop_capture();
+	// We only want to stop VCR when user explicitly requests close rom
+	if (!Config.is_reset_recording_enabled || !is_restarting)
+	{
+		vcr_core_stopped();
 	}
 
 	// remember all running lua scripts' HWNDs
