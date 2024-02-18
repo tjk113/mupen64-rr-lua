@@ -843,7 +843,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 			}
 
-			if (emu_launched)
+			if (keyDown && emu_launched)
 				keyDown(wParam, lParam);
 			if (!hit)
 				return DefWindowProc(hwnd, Message, wParam, lParam);
@@ -855,7 +855,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			fast_forward = 0;
 		}
-		if (emu_launched)
+		if (keyUp && emu_launched)
 			keyUp(wParam, lParam);
 		return DefWindowProc(hwnd, Message, wParam, lParam);
 	case WM_MOUSEWHEEL:
