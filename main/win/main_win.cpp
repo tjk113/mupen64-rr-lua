@@ -92,6 +92,9 @@ std::vector<HWND> previously_running_luas;
 
 std::deque<std::function<void()>> dispatcher_queue;
 
+// Flag which tells close_rom start_rom to skip some broadcasting and other operations
+bool is_restarting;
+
 namespace Recent
 {
 	void build(std::vector<std::string>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
@@ -595,7 +598,10 @@ void close_rom()
 
 	free_memory();
 
-	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
+	if (!is_restarting)
+	{
+		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
+	}
 
 	Statusbar::post("Emulation stopped");
 }
@@ -645,6 +651,7 @@ void reset_rom(bool reset_save_data)
 	// simply by clearing out some memory and maybe notifying the plugins...
 	frame_advancing = false;
 	MenuPaused = FALSE;
+	is_restarting = true;
 
 	close_rom();
 	if (reset_save_data)
@@ -652,6 +659,7 @@ void reset_rom(bool reset_save_data)
 		clear_save_data();
 	}
 	start_rom(rom_path);
+	is_restarting = false;
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 }
 
