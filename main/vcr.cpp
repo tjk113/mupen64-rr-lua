@@ -1177,7 +1177,44 @@ void vcr_update_screen()
 	if (!vcr_is_capturing())
 	{
 		if (!is_frame_skipped()) {
-			updateScreen();
+			if (get_video_size && read_video)
+			{
+				static long last_width = 0;
+				static long last_height = 0;
+				static void* video_buf = nullptr;
+
+				long width, height;
+				get_video_size(&width, &height);
+
+				if (width != last_width || height != last_height)
+				{
+					printf("MGE Compositor: Video size changed. Reallocating...\n");
+					free(video_buf);
+					video_buf = malloc(width * height * 3);
+				}
+
+				read_video(&video_buf);
+
+				last_width = width;
+				last_height = height;
+				auto dc = GetDC(mainHWND);
+
+				BITMAPINFOHEADER bi{};
+				bi.biSize = sizeof(BITMAPINFOHEADER);
+				bi.biWidth = width;
+				bi.biHeight = height;
+				bi.biPlanes = 1;
+				bi.biBitCount = 24;
+				bi.biCompression = BI_RGB;
+
+				StretchDIBits(dc, 0, 0, width, height, 0, 0, width, height, video_buf,
+							  (BITMAPINFO*)&bi, DIB_RGB_COLORS, SRCCOPY);
+
+				ReleaseDC(mainHWND, dc);
+			} else
+			{
+				updateScreen();
+			}
 		}
 
 		// we always want to invoke atvi, regardless of ff optimization

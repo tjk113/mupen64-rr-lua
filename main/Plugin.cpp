@@ -161,6 +161,10 @@ void (__cdecl*viWidthChanged)() = dummy_void;
 void (__cdecl*readScreen)(void** dest, long* width, long* height) = nullptr;
 void (__cdecl*DllCrtFree)(void* block);
 
+// Mupen Graphics Extension, currently only implemented by bettergln64/ngl64
+void (__cdecl*get_video_size)(long* width, long* height) = nullptr;
+void (__cdecl*read_video)(void** buffer) = nullptr;
+
 void (__cdecl*aiDacrateChanged)(int SystemType) = dummy_aiDacrateChanged;
 void (__cdecl*aiLenChanged)() = dummy_void;
 DWORD (__cdecl*aiReadLength)() = dummy_aiReadLength;
@@ -280,6 +284,13 @@ void load_gfx(HMODULE handle)
 
 		// ReadScreen returns a plugin-allocated buffer which must be freed by the same CRT
 		DllCrtFree = get_dll_crt_free(handle);
+
+		get_video_size = (void(__cdecl
+				*)(long* width, long* height))GetProcAddress(
+				handle, "mge_get_video_size");
+		read_video = (void(__cdecl
+						*)(void** buffer))GetProcAddress(
+						handle, "mge_read_video");
 
 		fBRead = (void(__cdecl*)(DWORD))GetProcAddress(handle, "FBRead");
 		fBWrite = (void(__cdecl*)(DWORD, DWORD))GetProcAddress(

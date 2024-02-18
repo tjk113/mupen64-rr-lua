@@ -282,6 +282,9 @@ extern void (__cdecl*viWidthChanged)();
 extern void (__cdecl*readScreen)(void** dest, long* width, long* height);
 extern void (__cdecl*DllCrtFree)(void* block);
 
+extern void (__cdecl*get_video_size)(long* width, long* height);
+extern void (__cdecl*read_video)(void** buffer);
+
 extern void (__cdecl*aiDacrateChanged)(int SystemType);
 extern void (__cdecl*aiLenChanged)();
 extern DWORD (__cdecl*aiReadLength)();

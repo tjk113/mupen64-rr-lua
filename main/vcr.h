@@ -316,7 +316,6 @@ namespace VCR
 	 */
 	void init();
 
-
 	/**
 	 * \brief Parses a movie's header
 	 * \param path The movie's path
