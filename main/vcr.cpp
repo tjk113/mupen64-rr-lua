@@ -598,6 +598,23 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		}
 	}
 
+
+	if (m_task == e_task::start_playback)
+	{
+		if (just_reset)
+		{
+			m_current_sample = 0;
+			m_current_vi = 0;
+			m_task = e_task::playback;
+			just_reset = false;
+			Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+		} else
+		{
+			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
+			std::thread([clear_eeprom] { reset_rom(clear_eeprom); }).detach();
+		}
+	}
+
 	if (m_task == e_task::recording)
 	{
 		// TODO: as old comments already state, remove vcr flush mechanism (reasons for it are long gone, at this point it's just huge complexity for no reason)
@@ -635,13 +652,14 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// but that can cause movies to end playback early on laggy plugins.
 	if (m_current_sample >= (long)m_header.length_samples)
 	{
+		vcr_stop_playback();
+
 		if (Config.is_movie_loop_enabled)
 		{
 			VCR::start_playback(movie_path);
 			return;
 		}
 
-		vcr_stop_playback();
 		setKeys(index, {0});
 		getKeys(index, input);
 		return;
@@ -875,7 +893,6 @@ vcr_stop_record()
 		m_input_buffer_size = 0;
 	}
 
-	movie_path = "";
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	return ret_val;
 }
@@ -1110,8 +1127,6 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 
 int vcr_stop_playback()
 {
-	movie_path = "";
-
 	if (m_file && m_task != e_task::start_recording && m_task != e_task::recording)
 	{
 		fclose(m_file);

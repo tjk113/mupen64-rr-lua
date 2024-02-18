@@ -165,7 +165,7 @@ void update_titlebar()
 		text += std::format(" - {}", reinterpret_cast<char*>(ROM_HEADER.nom));
 	}
 
-	if (!movie_path.empty())
+	if (m_task != e_task::idle)
 	{
 		char movie_filename[MAX_PATH] = {0};
 		_splitpath(movie_path.string().c_str(), nullptr, nullptr, movie_filename, nullptr);
