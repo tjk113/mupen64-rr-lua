@@ -48,6 +48,7 @@
 #include "../../r4300/tracelog.h"
 #include "../../winproject/resource.h"
 #include "features/CoreDbg.h"
+#include "features/GameControl.h"
 #include "features/MovieDialog.h"
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
@@ -932,6 +933,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		main_menu = GetMenu(hwnd);
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
+		MGECompositor::create(hwnd);
 		return TRUE;
 	case WM_DESTROY:
 		save_config();
@@ -1634,6 +1636,7 @@ int WINAPI WinMain(
 	wc.lpszMenuName = MAKEINTRESOURCE(IDR_MYMENU);
 
 	RegisterClassEx(&wc);
+	MGECompositor::init();
 
 	HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
 
