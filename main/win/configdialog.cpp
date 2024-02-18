@@ -605,7 +605,6 @@ BOOL CALLBACK advanced_settings_proc(const HWND hwnd, const UINT message, WPARAM
     {
     case WM_INITDIALOG:
        set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
-       set_checkbox_state(hwnd, IDM_TOOLBAR, Config.is_toolbar_enabled);
        set_checkbox_state(hwnd, IDM_STATUSBAR, Config.is_statusbar_enabled);
        set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
        set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);

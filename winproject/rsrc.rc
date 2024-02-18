@@ -36,8 +36,6 @@ IDB_RSP                 BITMAP                  "icons\\RSP.bmp"
 
 IDB_SOUND               BITMAP                  "icons\\Sound.bmp"
 
-IDB_TOOLBAR             BITMAP                  "icons\\toolbar.bmp"
-
 IDB_UP_ARROW            BITMAP                  "icons\\up_arrow.bmp"
 
 IDB_LOGO_BW             BITMAP                  "icons\\logobw.bmp"
@@ -108,7 +106,6 @@ BEGIN
             MENUITEM "&RSP Settings...",            IDM_RSP_SETTINGS
         END
         MENUITEM SEPARATOR
-        MENUITEM "Show &Toolbar",               IDM_TOOLBAR
         MENUITEM "Show Status&bar",             IDM_STATUSBAR
         MENUITEM SEPARATOR
         MENUITEM "&Settings...",                IDM_SETTINGS

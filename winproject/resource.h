@@ -59,8 +59,6 @@
 #define IDC_RSPPLUGIN                   202
 #define IDRSPTEST                       203
 #define IDRSPABOUT                      204
-#define IDC_TOOLBAR                     1000
-#define IDB_TOOLBAR                     1001
 #define IDC_MAIN_STATUS                 1002
 #define IDC_PLUGIN_DEFAULT              1003
 #define IDC_SKIPFREQUENCY_HELP          1003
@@ -71,7 +69,6 @@
 #define IDC_REMOVE_BROWSER_ALL          1009
 #define IDC_ROMS_DIRECTORIES            1010
 #define IDC_RECURSION                   1011
-#define IDM_TOOLBAR                     1012
 #define IDM_STATUSBAR                   1013
 #define IDC_PLUGIN_DIRECTORY_HELP       1014
 #define IDC_HOTKEY_LIST                 1015

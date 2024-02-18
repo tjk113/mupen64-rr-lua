@@ -51,7 +51,6 @@
 #include "features/MovieDialog.h"
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
-#include "features/Toolbar.hpp"
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
 #include "helpers/collection_helpers.h"
 #include "helpers/string_helpers.h"
@@ -237,7 +236,6 @@ void on_emu_launched_changed(std::any data)
 	}
 
 	EnableMenuItem(main_menu, IDM_STATUSBAR, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_TOOLBAR, !value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, ID_AUDIT_ROMS, !value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_REFRESH_ROMBROWSER, !value ? MF_ENABLED : MF_GRAYED);
@@ -258,9 +256,6 @@ void on_emu_launched_changed(std::any data)
 	EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_PLAY_LATEST_MOVIE, value ? MF_ENABLED : MF_GRAYED);
 
-	if (Config.is_toolbar_enabled) CheckMenuItem(
-		main_menu, IDM_TOOLBAR, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(main_menu, IDM_TOOLBAR, MF_BYCOMMAND | MF_UNCHECKED);
 	if (Config.is_statusbar_enabled) CheckMenuItem(
 		main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
 	else CheckMenuItem(main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
@@ -419,8 +414,6 @@ void resumeEmu(BOOL quiet)
 			Statusbar::post("Emulation started");
 	}
 
-	// toolbar_on_emu_launched_changed(emu_launched, 1);
-
 	if (emu_paused != wasPaused && !quiet)
 		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
 		              MF_BYCOMMAND | (emu_paused
@@ -446,8 +439,6 @@ void pauseEmu(BOOL quiet)
 		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
 		              MF_BYCOMMAND | MFS_UNCHECKED);
 	}
-
-	// toolbar_on_emu_launched_changed(emu_launched, 0);
 
 	if (emu_paused != wasPaused && !MenuPaused)
 		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
@@ -928,7 +919,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			if (!FullScreenMode)
 			{
-				SendMessage(Toolbar::hwnd(), TB_AUTOSIZE, 0, 0);
 				SendMessage(Statusbar::hwnd(), WM_SIZE, 0, 0);
 			}
 			RECT rect{};
@@ -1460,12 +1450,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_PLAY_LATEST_MOVIE:
 				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_RECENTMOVIES_FIRST, 0), 0);
 				break;
-			case IDM_TOOLBAR:
-				Config.is_toolbar_enabled ^= true;
-				Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
-				CheckMenuItem(
-					main_menu, IDM_TOOLBAR, MF_BYCOMMAND | (Config.is_toolbar_enabled ? MF_CHECKED : MF_UNCHECKED));
-				break;
 			case IDM_STATUSBAR:
 				Config.is_statusbar_enabled ^= true;
 				Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
@@ -1684,7 +1668,6 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
 
 	// Rombrowser needs to be initialized *after* other components, since it depends on their state smh bru
-	Toolbar::init();
 	Statusbar::init();
 	Rombrowser::init();
 	VCR::init();
@@ -1696,7 +1679,6 @@ int WINAPI WinMain(
 	Recent::build(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu);
 	Recent::build(Config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu);
 
-	Messenger::broadcast(Messenger::Message::ToolbarVisibilityChanged, (bool)Config.is_toolbar_enabled);
 	Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
 	Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)Config.is_movie_loop_enabled);
 	Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);

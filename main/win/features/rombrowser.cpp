@@ -9,7 +9,6 @@
 #include <chrono>
 
 #include "Statusbar.hpp"
-#include "Toolbar.hpp"
 #include "../main_win.h"
 #include "../../winproject/resource.h"
 #include "helpers/io_helpers.h"
@@ -89,9 +88,8 @@ namespace Rombrowser
 	{
 		assert(rombrowser_hwnd == nullptr);
 
-		RECT rcl, rtool, rstatus;
+		RECT rcl{}, rtool{}, rstatus{};
 		GetClientRect(mainHWND, &rcl);
-		GetWindowRect(Toolbar::hwnd(), &rtool);
 		GetWindowRect(Statusbar::hwnd(), &rstatus);
 
 		rombrowser_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
@@ -298,11 +296,6 @@ namespace Rombrowser
 			GetWindowRect(Statusbar::hwnd(), &rc);
 			n_height -= (WORD)(rc.bottom - rc.top);
 		}
-		if (Toolbar::hwnd())
-		{
-			GetWindowRect(Toolbar::hwnd(), &rc);
-			y += (WORD)(rc.bottom - rc.top);
-		}
 		MoveWindow(rombrowser_hwnd, 0, y, n_width, n_height - y, TRUE);
 	}
 
@@ -430,10 +423,6 @@ namespace Rombrowser
 	{
 		rombrowser_create();
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, emu_launched_changed);
-		Messenger::subscribe(Messenger::Message::ToolbarVisibilityChanged, [] (auto _)
-		{
-			rombrowser_update_size();
-		});
 		Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged, [] (auto _)
 		{
 			rombrowser_update_size();

@@ -25,11 +25,6 @@ namespace Messenger
 		CapturingChanged,
 
 		/**
-		 * \brief The toolbar visibility has changed
-		 */
-		ToolbarVisibilityChanged,
-
-		/**
 		 * \brief The statusbar visibility has changed
 		 */
 		StatusbarVisibilityChanged,

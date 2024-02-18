@@ -36,7 +36,6 @@
 #include "Config.hpp"
 #include "../Plugin.hpp"
 #include "../../winproject/resource.h"
-#include "features/Toolbar.hpp"
 #include "features/Statusbar.hpp"
 
 
@@ -62,18 +61,16 @@ t_window_info vcrcomp_window_info = {0};
 
 void get_window_info(HWND hwnd, t_window_info& info)
 {
-    RECT client_rect = {0}, statusbar_rect = {0}, toolbar_rect = {0};
+    RECT client_rect = {0}, statusbar_rect = {0};
 
     GetClientRect(hwnd, &client_rect);
 
-    // full client dimensions (including statusbar and toolbar)
+    // full client dimensions including statusbar
     info.width = client_rect.right - client_rect.left;
     info.height = client_rect.bottom - client_rect.top;
 
-    if (Toolbar::hwnd())
-        GetClientRect(Toolbar::hwnd(), &toolbar_rect);
-    info.toolbar_height = toolbar_rect.bottom - toolbar_rect.top;
-    
+    info.toolbar_height = 0;
+
     if (Statusbar::hwnd())
         GetClientRect(Statusbar::hwnd(), &statusbar_rect);
     info.statusbar_height = statusbar_rect.bottom - statusbar_rect.top;
@@ -87,7 +84,7 @@ void get_window_info(HWND hwnd, t_window_info& info)
 void __cdecl vcrcomp_internal_read_screen(void** dest, long* width, long* height)
 {
     HDC mupendc, all = nullptr, copy; //all - screen; copy - buffer
-    POINT cli_tl{0, 0}; //mupen client x y 
+    POINT cli_tl{0, 0}; //mupen client x y
     HBITMAP bitmap, oldbitmap;
 
     if (Config.capture_delay)
@@ -111,7 +108,7 @@ void __cdecl vcrcomp_internal_read_screen(void** dest, long* width, long* height
     copy = CreateCompatibleDC(mupendc);
     bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
     oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
-    
+
     if (copy)
     {
         if (Config.is_capture_cropped_screen_dc)

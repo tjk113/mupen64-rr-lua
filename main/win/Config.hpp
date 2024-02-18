@@ -37,7 +37,6 @@ typedef struct _CONFIG
 	t_hotkey load_latest_rom_hotkey;
 	t_hotkey fullscreen_hotkey;
 	t_hotkey settings_hotkey;
-	t_hotkey toggle_toolbar_hotkey;
 	t_hotkey toggle_statusbar_hotkey;
 	t_hotkey refresh_rombrowser_hotkey;
 	t_hotkey save_current_hotkey;
@@ -143,11 +142,6 @@ typedef struct _CONFIG
 	/// Whether emulation will pause when the main window loses focus
 	/// </summary>
 	int32_t is_unfocused_pause_enabled;
-
-	/// <summary>
-	/// Whether the toolbar is enabled
-	/// </summary>
-	int32_t is_toolbar_enabled;
 
 	/// <summary>
 	/// Whether the statusbar is enabled

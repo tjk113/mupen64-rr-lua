@@ -324,15 +324,6 @@ CONFIG get_default_config()
 		.command = IDM_SETTINGS,
 	};
 
-	config.toggle_toolbar_hotkey = {
-		.identifier = "Toggle Toolbar",
-		.key = 0x54 /* T */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 1,
-		.command = IDM_TOOLBAR,
-	};
-
 	config.toggle_statusbar_hotkey = {
 		.identifier = "Toggle Statusbar",
 		.key = 0x53 /* S */,
@@ -650,7 +641,6 @@ CONFIG get_default_config()
 	config.is_movie_loop_enabled = 0;
 	config.cpu_clock_speed_multiplier = 1;
 	config.is_unfocused_pause_enabled = 0;
-	config.is_toolbar_enabled = 1;
 	config.is_statusbar_enabled = 1;
 	config.is_default_plugins_directory_used = 1;
 	config.is_default_saves_directory_used = 1;
@@ -958,7 +948,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_movie_loop_enabled)
 	HANDLE_P_VALUE(cpu_clock_speed_multiplier)
 	HANDLE_P_VALUE(is_unfocused_pause_enabled)
-	HANDLE_P_VALUE(is_toolbar_enabled)
 	HANDLE_P_VALUE(is_statusbar_enabled)
 	HANDLE_P_VALUE(is_default_plugins_directory_used)
 	HANDLE_P_VALUE(is_default_saves_directory_used)

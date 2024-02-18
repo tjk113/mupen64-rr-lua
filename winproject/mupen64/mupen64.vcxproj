@@ -173,7 +173,6 @@
     <ClInclude Include="..\..\main\win\features\MovieDialog.h" />
     <ClInclude Include="..\..\main\win\features\RomBrowser.hpp" />
     <ClInclude Include="..\..\main\win\features\Statusbar.hpp" />
-    <ClInclude Include="..\..\main\win\features\Toolbar.hpp" />
     <ClInclude Include="..\..\main\win\Commandline.h" />
     <ClInclude Include="..\..\main\win\Config.hpp" />
     <ClInclude Include="..\..\main\win\configdialog.h" />
@@ -251,7 +250,6 @@
     <ClCompile Include="..\..\main\win\features\MovieDialog.cpp" />
     <ClCompile Include="..\..\main\win\features\RomBrowser.cpp" />
     <ClCompile Include="..\..\main\win\features\Statusbar.cpp" />
-    <ClCompile Include="..\..\main\win\features\Toolbar.cpp" />
     <ClCompile Include="..\..\main\win\Commandline.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -448,7 +446,6 @@
     <Image Include="..\icons\RSP.bmp" />
     <Image Include="..\icons\Sound.bmp" />
     <Image Include="..\icons\spain.ico" />
-    <Image Include="..\icons\toolbar.bmp" />
     <Image Include="..\icons\unknown.ico" />
     <Image Include="..\icons\up_arrow.bmp" />
     <Image Include="..\icons\usa.ico" />
