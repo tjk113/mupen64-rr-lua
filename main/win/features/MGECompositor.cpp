@@ -23,7 +23,6 @@ namespace MGECompositor
 		{
 		case WM_PAINT:
 			{
-				printf("mge control repaint %d %d\n", width, height);
 				PAINTSTRUCT ps;
 				RECT rect;
 				HDC hdc = BeginPaint(hwnd, &ps);
