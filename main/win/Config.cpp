@@ -297,6 +297,15 @@ CONFIG get_default_config()
 		.command = IDM_RESET_ROM,
 	};
 
+	config.load_latest_rom_hotkey = {
+		.identifier = "Load Latest ROM",
+		.key = 0x4F /* O */,
+		.ctrl = 1,
+		.shift = 1,
+		.alt = 0,
+		.command = IDM_LOAD_LATEST_ROM,
+	};
+
 	config.fullscreen_hotkey = {
 		.identifier = "Toggle Fullscreen",
 		.key = VK_RETURN,
@@ -739,6 +748,7 @@ void update_menu_hotkey_labels()
 	set_hotkey_menu_accelerators(&Config.load_rom_hotkey, IDM_LOAD_ROM);
 	set_hotkey_menu_accelerators(&Config.close_rom_hotkey, IDM_CLOSE_ROM);
 	set_hotkey_menu_accelerators(&Config.reset_rom_hotkey, IDM_RESET_ROM);
+	set_hotkey_menu_accelerators(&Config.load_latest_rom_hotkey, IDM_LOAD_LATEST_ROM);
 	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, IDM_FULLSCREEN);
 	set_hotkey_menu_accelerators(&Config.settings_hotkey, IDM_SETTINGS);
 
