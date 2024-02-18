@@ -266,6 +266,8 @@ void on_emu_launched_changed(std::any data)
 		main_menu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
 
 	update_titlebar();
+	// Some menu items, like movie ones, depend on both this and vcr task
+	on_task_changed(m_task);
 }
 
 void on_capturing_changed(std::any data)
