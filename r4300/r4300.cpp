@@ -1812,7 +1812,15 @@ void go()
         dynacore = 1;
         printf("dynamic recompiler\n");
         init_blocks();
-        code = (void (*)(void))(actual->code + (actual->block[0x40 / 4].local_addr));
+
+    	auto code_addr = actual->code + (actual->block[0x40 / 4].local_addr);
+    	DWORD dummy;
+    	if(!VirtualProtectEx(GetCurrentProcess(), code_addr, actual->code_length, PAGE_EXECUTE_READWRITE, &dummy))
+    	{
+    		printf("VirtualProtectEx failed\n");
+    	}
+
+        code = (void (*)(void))(code_addr);
         dyna_start(code);
         PC++;
     }
