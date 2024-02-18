@@ -96,8 +96,10 @@ bool capture_with_f_fmpeg = true;
 std::unique_ptr<FFmpegManager> capture_manager;
 uint64_t screen_updates = 0;
 
-// Used for VCR-invoked resets
+// Used for tracking VCR-invoked resets
 bool just_reset;
+// Used for tracking user-invoked resets
+bool user_requested_reset;
 
 bool is_task_playback(const e_task task)
 {
@@ -622,12 +624,13 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			(unsigned long)(m_input_buffer_ptr + sizeof(BUTTONS) -
 				m_input_buffer));
 
-		// TODO: Reimplement!
-		// Write sample with only Reserved1&2 if resetting
-		// *input = {
-		// 	.Reserved1 = 1,
-		// 	.Reserved2 = 1,
-		// };
+		if (user_requested_reset)
+		{
+			*input = {
+				.Reserved1 = 1,
+				.Reserved2 = 1,
+			};
+		}
 
 		*reinterpret_cast<BUTTONS*>(m_input_buffer_ptr) = *input;
 
@@ -641,6 +644,11 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			flush_movie();
 		}
 
+		if (user_requested_reset)
+		{
+			user_requested_reset = false;
+			std::thread([] { reset_rom(); }).detach();
+		}
 		return;
 	}
 
@@ -1717,6 +1725,10 @@ void VCR::init()
 	Messenger::subscribe(Messenger::Message::ResetCompleted, [](std::any)
 	{
 		just_reset = true;
+	});
+	Messenger::subscribe(Messenger::Message::ResetRequested, [](std::any)
+	{
+		user_requested_reset = true;
 	});
 }
 
