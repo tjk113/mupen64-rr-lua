@@ -95,6 +95,9 @@ std::deque<std::function<void()>> dispatcher_queue;
 // Flag which tells close_rom start_rom to skip some broadcasting and other operations
 bool is_restarting;
 
+// Whether start_rom or close_rom are currently executing. Used as a lock to prevent multiple callers from beating up emu simultaneously.
+bool emu_state_changing;
+
 namespace Recent
 {
 	void build(std::vector<std::string>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
@@ -455,6 +458,12 @@ void pauseEmu(BOOL quiet)
 
 int start_rom(std::filesystem::path path)
 {
+	if (emu_state_changing)
+	{
+		printf("Tried to start rom while emu state was already changing. Cancelling...\n");
+		return 0;
+	}
+
 	if (path.extension() != ".m64")
 	{
 		rom_path = path;
@@ -470,7 +479,7 @@ int start_rom(std::filesystem::path path)
 		std::string matching_rom;
 		for (auto rom_path : rom_paths)
 		{
-			FILE* f = fopen(rom_path.c_str(), "rb");
+				FILE* f = fopen(rom_path.c_str(), "rb");
 
 			fseek(f, 0, SEEK_END);
 			uint64_t len = ftell(f);
@@ -509,6 +518,8 @@ int start_rom(std::filesystem::path path)
 	if (emu_launched) {
 		close_rom();
 	}
+
+	emu_state_changing = true;
 
 	// TODO: keep plugins loaded and only unload and reload them when they actually change
 	printf("Loading plugins\n");
@@ -552,15 +563,24 @@ int start_rom(std::filesystem::path path)
 
 	while (!emu_launched);
 
+	emu_state_changing = false;
 	return 1;
 }
 
 void close_rom()
 {
+	if (emu_state_changing)
+	{
+		printf("Tried to close rom while emu state was already changing. Cancelling...\n");
+		return;
+	}
+
 	if (!emu_launched)
 	{
 		return;
 	}
+
+	emu_state_changing = true;
 
 	if (emu_paused) {
 		MenuPaused = FALSE;
@@ -604,6 +624,7 @@ void close_rom()
 	}
 
 	Statusbar::post("Emulation stopped");
+	emu_state_changing = false;
 }
 
 void clear_save_data()
