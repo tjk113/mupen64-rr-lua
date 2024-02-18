@@ -864,7 +864,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					{
 						// We only want to send it if the corresponding menu item exists and is enabled
 						auto state = GetMenuState(main_menu, hotkey->command, MF_BYCOMMAND);
-						if (state == -1 || state & MF_DISABLED || state & MF_GRAYED)
+						if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
 						{
 							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), hotkey->command);
 							continue;
