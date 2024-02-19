@@ -959,6 +959,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				frame_changed = false;
 			}
 
+			// NOTE: We don't invalidate the controls in their WM_PAINT, since that generates too many WM_PAINTs and fills up the message queue
+			// Instead, we invalidate them driven by not so high-freq heartbeat like previously.
+			for (auto map : hwnd_lua_map)
+			{
+				map.second->invalidate_visuals();
+			}
+
 			// We need to create a copy of these, as they might get mutated during our enumeration
 			auto frame_times = new_frame_times;
 			auto vi_times = new_vi_times;

@@ -269,6 +269,9 @@ LRESULT CALLBACK lua_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 		{
 		case WM_PAINT:
 			{
+				static uint32_t bitmap_color_mask = RGB(255, 0, 255);
+				static HBRUSH alpha_mask_brush = CreateSolidBrush(bitmap_color_mask);
+
 				auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
 				PAINTSTRUCT ps;
@@ -295,9 +298,7 @@ LRESULT CALLBACK lua_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 							   bitmap_color_mask);
 
 				// Fill GDI DC with alpha mask
-				HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
-				FillRect(lua->gdi_dc, &rect, brush);
-				DeleteObject(brush);
+				FillRect(lua->gdi_dc, &rect, alpha_mask_brush);
 
 				if (failed)
 				{
@@ -305,7 +306,6 @@ LRESULT CALLBACK lua_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 				}
 
 				EndPaint(hwnd, &ps);
-				InvalidateRect(hwnd, &rect, false);
 				return 0;
 			}
 		}
@@ -999,6 +999,13 @@ void LuaEnvironment::LoadScreenDelete()
 	DeleteDC(hsrcDC);
 
 	LoadScreenInitialized = false;
+}
+
+void LuaEnvironment::invalidate_visuals()
+{
+	RECT rect;
+ 	GetClientRect(this->overlay_hwnd, &rect);
+ 	InvalidateRect(this->overlay_hwnd, &rect, false);
 }
 
 void LuaEnvironment::LoadScreenInit()

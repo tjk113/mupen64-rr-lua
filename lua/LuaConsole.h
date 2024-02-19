@@ -79,7 +79,6 @@ void invoke_callbacks_with_key_on_all_instances(
 
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
-static uint32_t bitmap_color_mask = RGB(255, 0, 255);
 static const char* const REG_LUACLASS = "C";
 static const char* const REG_ATUPDATESCREEN = "S";
 static const char* const REG_ATVI = "V";
@@ -181,6 +180,9 @@ public:
 
 	// Deletes all the variables used in LoadScreen (avoid memory leaks)
 	void LoadScreenDelete();
+
+	// Invalidates the composition layer
+	void invalidate_visuals();
 
 	// Initializes everything needed for LoadScreen
 	void LoadScreenInit();
