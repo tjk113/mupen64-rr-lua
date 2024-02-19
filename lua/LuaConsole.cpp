@@ -68,7 +68,7 @@ BUTTONS new_controller_data[4];
 bool overwrite_controller_data[4];
 
 ULONG_PTR gdi_plus_token;
-auto lua_overlay_class_name = "lua_overlay";
+auto d2d_overlay_class = "lua_d2d_overlay";
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
@@ -266,61 +266,8 @@ static HBRUSH alpha_mask_brush = CreateSolidBrush(bitmap_color_mask);
 		return hwnd;
 	}
 
-LRESULT CALLBACK lua_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-	{
-		switch (msg)
-		{
-		case WM_PAINT:
-			{
 
-				auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
-				PAINTSTRUCT ps;
-				RECT rect;
-				BeginPaint(hwnd, &ps);
-				GetClientRect(hwnd, &rect);
-
-				lua->d2d_render_target->BeginDraw();
-				lua->d2d_render_target->Clear(D2D1::ColorF(0, 0, 0, 0));
-				lua->d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
-
-				bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
-
-				lua->d2d_render_target->EndDraw();
-
-				BitBlt(lua->overlay_front_dc, 0, 0, lua->dc_width,
-							   lua->dc_height, lua->gdi_dc, 0, 0, SRCCOPY);
-				// FIXME: This doesn't work properly, since we don't actually have alpha channel for the overlay DC
-				// AlphaBlend actually composites everything properly, but data is lost afterwards.
-				AlphaBlend(lua->overlay_front_dc, 0, 0, lua->dc_width,
-						   lua->dc_height, lua->d2d_dc, 0, 0, lua->dc_width,
-						   lua->dc_height, BLENDFUNCTION{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA});
-
-				if (failed)
-				{
-					LuaEnvironment::destroy(lua);
-				}
-
-				EndPaint(hwnd, &ps);
-				return 0;
-			}
-		}
-		return DefWindowProc(hwnd, msg, wparam, lparam);
-	}
-
-void lua_init()
-{
-	Gdiplus::GdiplusStartupInput startup_input;
-	GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
-
-	WNDCLASS wndclass = {0};
-	wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
-	wndclass.lpfnWndProc = (WNDPROC)lua_overlay_wndproc;
-	wndclass.hInstance = GetModuleHandle(nullptr);
-	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndclass.lpszClassName = lua_overlay_class_name;
-	RegisterClass(&wndclass);
-}
 
 void lua_exit()
 {
@@ -820,6 +767,54 @@ void stop_all_scripts()
 	assert(hwnd_lua_map.empty());
 }
 
+LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	switch (msg)
+	{
+	case WM_PAINT:
+		{
+			auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+			PAINTSTRUCT ps;
+			RECT rect;
+			HDC hdc = BeginPaint(hwnd, &ps);
+			GetClientRect(hwnd, &rect);
+
+			lua->d2d_render_target->BindDC(hdc, &rect);
+			lua->d2d_render_target->BeginDraw();
+			lua->d2d_render_target->Clear(D2D1::ColorF(0, 0, 0, 0));
+			lua->d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
+
+			bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
+
+			lua->d2d_render_target->EndDraw();
+
+			if (failed)
+			{
+				LuaEnvironment::destroy(lua);
+			}
+
+			EndPaint(hwnd, &ps);
+			return 0;
+		}
+	}
+	return DefWindowProc(hwnd, msg, wparam, lparam);
+}
+
+void lua_init()
+{
+	Gdiplus::GdiplusStartupInput startup_input;
+	GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
+
+	WNDCLASS wndclass = {0};
+	wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
+	wndclass.lpfnWndProc = (WNDPROC)d2d_overlay_wndproc;
+	wndclass.hInstance = GetModuleHandle(nullptr);
+	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wndclass.lpszClassName = d2d_overlay_class;
+	RegisterClass(&wndclass);
+}
+
 void LuaEnvironment::create_renderer()
 {
 	if (gdi_dc != nullptr)
@@ -840,55 +835,21 @@ void LuaEnvironment::create_renderer()
 	dc_width = window_rect.right;
 	dc_height = window_rect.bottom;
 
-	overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, lua_overlay_class_name, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_width, dc_height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
-	SetWindowLongPtr(overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
-
-	// Alpha color mask will be dropped	by windows during compositing so we don't have to deal with that
-	// NOTE: This requires Windows 8+, sorry Fraims :/
-	SetLayeredWindowAttributes(overlay_hwnd, bitmap_color_mask, 0, LWA_COLORKEY);
-
-	overlay_front_dc = GetDC(overlay_hwnd);
-
-	gdi_dc = CreateCompatibleDC(overlay_front_dc);
-	gdi_bmp = CreateCompatibleBitmap(overlay_front_dc, dc_width, dc_height);
-	SelectObject(gdi_dc, gdi_bmp);
-
-	d2d_dc = CreateCompatibleDC(overlay_front_dc);
-	// We want a bitmap with alpha channel for D2D
-	BITMAPINFO bi{};
-	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bi.bmiHeader.biWidth = dc_width;
-	bi.bmiHeader.biHeight = dc_height;
-	bi.bmiHeader.biPlanes = 1;
-	bi.bmiHeader.biBitCount = 32;
-	bi.bmiHeader.biCompression = BI_RGB;
-	void* bits; // We don't need the buffer lol
-	d2d_bmp = CreateDIBSection(d2d_dc, &bi, DIB_RGB_COLORS, &bits, NULL, 0x0);
-	SelectObject(d2d_dc, d2d_bmp);
-
-	// Initialize all DCs with alpha mask
-	FillRect(gdi_dc, &window_rect, alpha_mask_brush);
-	FillRect(d2d_dc, &window_rect, alpha_mask_brush);
-	FillRect(overlay_front_dc, &window_rect, alpha_mask_brush);
-
-	D2D1_RENDER_TARGET_PROPERTIES props =
-		D2D1::RenderTargetProperties(
-			D2D1_RENDER_TARGET_TYPE_DEFAULT,
-			D2D1::PixelFormat(
-				DXGI_FORMAT_B8G8R8A8_UNORM,
-				D2D1_ALPHA_MODE_PREMULTIPLIED));
+	d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_width, dc_height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
+	SetWindowLongPtr(d2d_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
 					  &d2d_factory);
-	d2d_factory->CreateDCRenderTarget(&props, &d2d_render_target);
-	DWriteCreateFactory(
-		DWRITE_FACTORY_TYPE_SHARED,
-		__uuidof(dw_factory),
-		reinterpret_cast<IUnknown**>(&dw_factory)
-	);
 
-	RECT dc_rect = {0, 0, dc_width, dc_height};
-	d2d_render_target->BindDC(d2d_dc, &dc_rect);
+	D2D1_RENDER_TARGET_PROPERTIES props =
+			D2D1::RenderTargetProperties(
+				D2D1_RENDER_TARGET_TYPE_DEFAULT,
+				D2D1::PixelFormat(
+					DXGI_FORMAT_B8G8R8A8_UNORM,
+					D2D1_ALPHA_MODE_PREMULTIPLIED));
+
+	auto result = d2d_factory->CreateDCRenderTarget(&props, &d2d_render_target);
+
 	d2d_render_target_stack.push(d2d_render_target);
 }
 
@@ -918,19 +879,10 @@ void LuaEnvironment::destroy_renderer()
 	}
 	image_pool.clear();
 
-	SelectObject(gdi_dc, nullptr);
-	SelectObject(d2d_dc, nullptr);
-	DeleteObject(gdi_bmp);
-	DeleteObject(d2d_bmp);
-	DeleteDC(gdi_dc);
-	DeleteDC(d2d_dc);
-	ReleaseDC(overlay_hwnd, overlay_front_dc);
-	gdi_dc = nullptr;
-	d2d_dc = nullptr;
-	d2d_factory = nullptr;
-	d2d_render_target = nullptr;
 
-	DestroyWindow(overlay_hwnd);
+	gdi_dc = nullptr;
+
+	DestroyWindow(d2d_overlay_hwnd);
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
@@ -1020,8 +972,8 @@ void LuaEnvironment::LoadScreenDelete()
 void LuaEnvironment::invalidate_visuals()
 {
 	RECT rect;
- 	GetClientRect(this->overlay_hwnd, &rect);
- 	InvalidateRect(this->overlay_hwnd, &rect, false);
+ 	GetClientRect(this->d2d_overlay_hwnd, &rect);
+ 	InvalidateRect(this->d2d_overlay_hwnd, &rect, false);
 }
 
 void LuaEnvironment::LoadScreenInit()
