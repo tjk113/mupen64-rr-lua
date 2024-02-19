@@ -953,8 +953,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			static std::chrono::high_resolution_clock::time_point last_statusbar_update = std::chrono::high_resolution_clock::now();
 			std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
 
-			LuaCallbacks::call_updatescreen();
-
 			if (frame_changed)
 			{
 				vcr_update_statusbar();

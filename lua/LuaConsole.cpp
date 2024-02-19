@@ -68,6 +68,7 @@ BUTTONS new_controller_data[4];
 bool overwrite_controller_data[4];
 
 ULONG_PTR gdi_plus_token;
+auto lua_overlay_class_name = "lua_overlay";
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
@@ -262,10 +263,67 @@ std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 		return hwnd;
 	}
 
+LRESULT CALLBACK lua_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+	{
+		switch (msg)
+		{
+		case WM_PAINT:
+			{
+				auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+				PAINTSTRUCT ps;
+				RECT rect;
+				HDC hdc = BeginPaint(hwnd, &ps);
+				GetClientRect(hwnd, &rect);
+
+				lua->d2d_render_target->BeginDraw();
+				lua->d2d_render_target->Clear(D2D1::ColorF(bitmap_color_mask));
+				lua->d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
+
+				bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
+
+				lua->d2d_render_target->EndDraw();
+
+				/// Blit its DCs (GDI, D2D) to the control with alpha mask
+				TransparentBlt(hdc, 0, 0, lua->dc_width,
+							   lua->dc_height, lua->gdi_dc, 0, 0,
+							   lua->dc_width, lua->dc_height,
+							   bitmap_color_mask);
+				TransparentBlt(hdc, 0, 0, lua->dc_width,
+							   lua->dc_height, lua->d2d_dc, 0, 0,
+							   lua->dc_width, lua->dc_height,
+							   bitmap_color_mask);
+
+				// Fill GDI DC with alpha mask
+				HBRUSH brush = CreateSolidBrush(bitmap_color_mask);
+				FillRect(lua->gdi_dc, &rect, brush);
+				DeleteObject(brush);
+
+				if (failed)
+				{
+					LuaEnvironment::destroy(lua);
+				}
+
+				EndPaint(hwnd, &ps);
+				InvalidateRect(hwnd, &rect, false);
+				return 0;
+			}
+		}
+		return DefWindowProc(hwnd, msg, wparam, lparam);
+	}
+
 void lua_init()
 {
 	Gdiplus::GdiplusStartupInput startup_input;
 	GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
+
+	WNDCLASS wndclass = {0};
+	wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
+	wndclass.lpfnWndProc = (WNDPROC)lua_overlay_wndproc;
+	wndclass.hInstance = GetModuleHandle(nullptr);
+	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wndclass.lpszClassName = lua_overlay_class_name;
+	RegisterClass(&wndclass);
 }
 
 void lua_exit()
@@ -316,11 +374,6 @@ void lua_create_and_run(const char* path)
 		}
 		return DefWindowProc(wnd, msg, wParam, lParam);
 	}
-
-
-
-
-
 
 	LuaEnvironment* GetLuaClass(lua_State* L)
 	{
@@ -781,22 +834,31 @@ void LuaEnvironment::create_renderer()
 
 	RECT window_rect;
 	GetClientRect(mainHWND, &window_rect);
+	// We don't want to paint over statusbar
+	if (Statusbar::hwnd())
+	{
+		RECT rc{};
+		GetWindowRect(Statusbar::hwnd(), &rc);
+		window_rect.bottom -= (WORD)(rc.bottom - rc.top);
+	}
 	dc_width = window_rect.right;
 	dc_height = window_rect.bottom;
 
-	// we create a bitmap with the main window's size and point our dc to it
-	HDC main_dc = GetDC(mainHWND);
+	overlay_hwnd = CreateWindow(lua_overlay_class_name, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_width, dc_height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
+	SetWindowLongPtr(overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
-	gdi_dc = CreateCompatibleDC(main_dc);
-	d2d_dc = CreateCompatibleDC(main_dc);
+	HDC overlay_dc = GetDC(overlay_hwnd);
 
-	HBITMAP gdi_dc_bmp = CreateCompatibleBitmap(main_dc, window_rect.right, window_rect.bottom);
+	gdi_dc = CreateCompatibleDC(overlay_dc);
+	d2d_dc = CreateCompatibleDC(overlay_dc);
+
+	HBITMAP gdi_dc_bmp = CreateCompatibleBitmap(overlay_dc, dc_width, dc_height);
 	SelectObject(gdi_dc, gdi_dc_bmp);
 
-	HBITMAP d2d_dc_bmp = CreateCompatibleBitmap(main_dc, window_rect.right, window_rect.bottom);
+	HBITMAP d2d_dc_bmp = CreateCompatibleBitmap(overlay_dc, dc_width, dc_height);
 	SelectObject(d2d_dc, d2d_dc_bmp);
 
-	ReleaseDC(mainHWND, main_dc);
+	ReleaseDC(overlay_hwnd, overlay_dc);
 
 	D2D1_RENDER_TARGET_PROPERTIES props =
 		D2D1::RenderTargetProperties(
@@ -845,12 +907,14 @@ void LuaEnvironment::destroy_renderer()
 	}
 	image_pool.clear();
 
-	ReleaseDC(mainHWND, gdi_dc);
-	ReleaseDC(mainHWND, d2d_dc);
+	ReleaseDC(overlay_hwnd, gdi_dc);
+	ReleaseDC(overlay_hwnd, d2d_dc);
 	gdi_dc = nullptr;
 	d2d_dc = nullptr;
 	d2d_factory = nullptr;
 	d2d_render_target = nullptr;
+
+	DestroyWindow(overlay_hwnd);
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {

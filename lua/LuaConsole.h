@@ -122,6 +122,9 @@ public:
 	// The path to the current lua script
 	std::filesystem::path path;
 
+	// The overlay control handle
+	HWND overlay_hwnd;
+
 	// The DC for GDI/GDI+ drawings
 	HDC gdi_dc = nullptr;
 

@@ -14,11 +14,6 @@ namespace LuaCallbacks
 	void call_window_message(HWND, UINT, WPARAM, LPARAM);
 
 	/**
-	 * \brief Notifies all lua instances of a screen update
-	 */
-	void call_updatescreen();
-
-	/**
 	 * \brief Notifies all lua instances of a visual interrupt
 	 */
 	void call_vi();
