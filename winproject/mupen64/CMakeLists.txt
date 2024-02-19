@@ -2,18 +2,17 @@ cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 
 set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
 
+
+
 project(mupen64 C CXX)
 
 ################################################################################
 # Set target arch type if empty. Visual studio solution generator provides it.
 ################################################################################
-if(NOT CMAKE_VS_PLATFORM_NAME)
-    set(CMAKE_VS_PLATFORM_NAME "x64")
-endif()
-message("${CMAKE_VS_PLATFORM_NAME} architecture in use")
-
-if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "win32"))
-    message(FATAL_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")
+if(CMAKE_TOOLCHAIN_FILE)
+    message(STATUS "Custom toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+else()
+    message(STATUS "No custom toolchain file specified.")
 endif()
 
 ################################################################################
@@ -71,6 +70,7 @@ endfunction()
 ################################################################################
 include(CMake/Utils.cmake)
 
+
 ################################################################################
 # Additional Global Settings(add specific info there)
 ################################################################################
@@ -88,31 +88,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-set(PROJECT_NAME mupen64)
-
+#if(CMAKE_GENERATOR STREQUAL "Ninja")
+#    set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/clang-ninja-build)
+#else()
+#    set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/cmake-vs-build)
+#endif()
+#set(PROJECT_NAME mupen64)
+##
 ################################################################################
 # Source groups
 ################################################################################
@@ -159,7 +141,6 @@ set(Headers
     "../../main/win/features/MovieDialog.h"
     "../../main/win/features/RomBrowser.hpp"
     "../../main/win/features/Statusbar.hpp"
-    "../../main/win/features/Toolbar.hpp"
     "../../main/win/main_win.h"
     "../../main/win/timers.h"
     "../../main/win/wrapper/PersistentPathDialog.h"
@@ -185,6 +166,7 @@ set(Headers
     "../../r4300/x86/regcache.h"
     "../resource.h"
 )
+
 source_group("Headers" FILES ${Headers})
 
 set(Sources
@@ -193,7 +175,7 @@ set(Sources
     "../../lua/LuaCallbacks.cpp"
     "../../lua/LuaConsole.cpp"
 #    "../../main/adler32.c"
-    "../../main/debughook.c"
+    "../../main/debughook.cpp"
     "../../main/disasm.cpp"
     "../../main/ffmpeg_capture/manager_win.cpp"
     "../../main/ffmpeg_capture/readscreen_win.cpp"
@@ -201,24 +183,24 @@ set(Sources
     "../../main/md5.c"
     "../../main/messenger.cpp"
     "../../main/Plugin.cpp"
-    "../../main/rom.c"
+    "../../main/rom.cpp"
     "../../main/savestates.cpp"
     "../../main/speex/speex_resampler.c"
     "../../main/vcr.cpp"
-    "../../main/vcr_resample.c"
+    "../../main/vcr_resample.cpp"
     "../../main/win/Commandline.cpp"
     "../../main/win/Config.cpp"
     "../../main/win/configdialog.cpp"
     "../../main/win/features/CoreDbg.cpp"
     "../../main/win/features/CrashHelper.cpp"
+    "../../main/win/features/MGECompositor.cpp"
     "../../main/win/features/MovieDialog.cpp"
     "../../main/win/features/rombrowser.cpp"
     "../../main/win/features/Statusbar.cpp"
-    "../../main/win/features/Toolbar.cpp"
     "../../main/win/guifuncs.cpp"
     "../../main/win/main_win.cpp"
     "../../main/win/timers.cpp"
-    "../../main/win/vcr_compress.c"
+    "../../main/win/vcr_compress.cpp"
     "../../main/win/wrapper/PersistentPathDialog.cpp"
     "../../memory/dma.cpp"
     "../../memory/flashram.cpp"
@@ -226,41 +208,41 @@ set(Sources
     "../../memory/pif.cpp"
     "../../memory/summercart.cpp"
     "../../memory/tlb.cpp"
-    "../../r4300/bc.c"
-    "../../r4300/compare_core.c"
-    "../../r4300/cop0.c"
-    "../../r4300/cop1.c"
-    "../../r4300/cop1_d.c"
+    "../../r4300/bc.cpp"
+    "../../r4300/compare_core.cpp"
+    "../../r4300/cop0.cpp"
+    "../../r4300/cop1.cpp"
+    "../../r4300/cop1_d.cpp"
     "../../r4300/cop1_helpers.cpp"
-    "../../r4300/cop1_l.c"
-    "../../r4300/cop1_s.c"
-    "../../r4300/cop1_w.c"
-    "../../r4300/exception.c"
-    "../../r4300/interrupt.c"
-    "../../r4300/profile.c"
-    "../../r4300/pure_interp.c"
-    "../../r4300/r4300.c"
-    "../../r4300/recomp.c"
-    "../../r4300/regimm.c"
-    "../../r4300/special.c"
-    "../../r4300/tlb.c"
+    "../../r4300/cop1_l.cpp"
+    "../../r4300/cop1_s.cpp"
+    "../../r4300/cop1_w.cpp"
+    "../../r4300/exception.cpp"
+    "../../r4300/interrupt.cpp"
+    "../../r4300/profile.cpp"
+    "../../r4300/pure_interp.cpp"
+    "../../r4300/r4300.cpp"
+    "../../r4300/recomp.cpp"
+    "../../r4300/regimm.cpp"
+    "../../r4300/special.cpp"
+    "../../r4300/tlb.cpp"
     "../../r4300/tracelog.cpp"
-    "../../r4300/x86/assemble.c"
-    "../../r4300/x86/debug.c"
-    "../../r4300/x86/gbc.c"
-    "../../r4300/x86/gcop0.c"
-    "../../r4300/x86/gcop1.c"
-    "../../r4300/x86/gcop1_d.c"
+    "../../r4300/x86/assemble.cpp"
+    "../../r4300/x86/debug.cpp"
+    "../../r4300/x86/gbc.cpp"
+    "../../r4300/x86/gcop0.cpp"
+    "../../r4300/x86/gcop1.cpp"
+    "../../r4300/x86/gcop1_d.cpp"
     "../../r4300/x86/gcop1_helpers.cpp"
-    "../../r4300/x86/gcop1_l.c"
-    "../../r4300/x86/gcop1_s.c"
-    "../../r4300/x86/gcop1_w.c"
-    "../../r4300/x86/gr4300.c"
-    "../../r4300/x86/gregimm.c"
-    "../../r4300/x86/gspecial.c"
-    "../../r4300/x86/gtlb.c"
-    "../../r4300/x86/regcache.c"
-    "../../r4300/x86/rjump.c"
+    "../../r4300/x86/gcop1_l.cpp"
+    "../../r4300/x86/gcop1_s.cpp"
+    "../../r4300/x86/gcop1_w.cpp"
+    "../../r4300/x86/gr4300.cpp"
+    "../../r4300/x86/gregimm.cpp"
+    "../../r4300/x86/gspecial.cpp"
+    "../../r4300/x86/gtlb.cpp"
+    "../../r4300/x86/regcache.cpp"
+    "../../r4300/x86/rjump.cpp"
 )
 source_group("Sources" FILES ${Sources})
 
@@ -272,7 +254,7 @@ set(ALL_FILES
 ################################################################################
 # Target
 ################################################################################
-add_executable(${PROJECT_NAME} ${ALL_FILES})
+add_executable(${PROJECT_NAME} WIN32 ${ALL_FILES})
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
 set(ROOT_NAMESPACE mupen64)
@@ -283,6 +265,16 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 ################################################################################
 # Target name
 ################################################################################
+if(CMAKE_GENERATOR STREQUAL "Ninja")
+    message(STATUS "Generator used: ${CMAKE_GENERATOR}")
+    include(CMake/clang-ninja-toolchain.cmake)
+    
+else()
+    message(STATUS "Generator used: ${CMAKE_GENERATOR}")
+    # Perform actions for other generators
+    include(CMake/Default.cmake)
+    include(CMake/DefaultCXX.cmake)
+endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES
     TARGET_NAME_DEBUG   "${PROJECT_NAME}_debug$ENV{TargetExt}"
     TARGET_NAME_RELEASE "${TARGET_NAME}$ENV{TargetExt}"
@@ -348,6 +340,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 ################################################################################
 # Compile and link options
 ################################################################################
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker /NXCOMPAT:NO -Xlinker /DYNAMICBASE:NO")
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:
@@ -589,6 +582,7 @@ if(MSVC)
             /LTCG;
             /OPT:ICF
         >
+	    /FIXED;
         /RELEASE;
         /MACHINE:X86;
         /SUBSYSTEM:WINDOWS;
