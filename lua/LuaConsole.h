@@ -124,11 +124,22 @@ public:
 	// The overlay control handle
 	HWND overlay_hwnd;
 
+	// The DC for the overlay's front buffer
+	HDC overlay_front_dc;
+
 	// The DC for GDI/GDI+ drawings
+	// This DC is special, since commands can be issued to it anytime and it's never cleared
 	HDC gdi_dc = nullptr;
 
 	// The DC for D2D drawings
+	// This DC is cleared every frame
 	HDC d2d_dc = nullptr;
+
+	// The bitmap for GDI/GDI+ drawings
+	HBITMAP gdi_bmp;
+
+	// The bitmap for D2D drawings
+	HBITMAP d2d_bmp;
 
 	// Dimensions of both DCs
 	int dc_width, dc_height = 0;
