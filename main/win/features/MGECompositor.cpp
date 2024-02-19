@@ -65,7 +65,7 @@ namespace MGECompositor
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, [](std::any data)
 		{
 			auto value = std::any_cast<bool>(data);
-			ShowWindow(control_hwnd, value ? SW_SHOW : SW_HIDE);
+			ShowWindow(control_hwnd, (value && get_video_size && read_video) ? SW_SHOW : SW_HIDE);
 		});
 	}
 
