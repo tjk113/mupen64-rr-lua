@@ -12,7 +12,10 @@
 #include <cstdint>
 #include <gdiplus.h>
 #include <d2d1.h>
+#include <d2d1_3.h>
 #include <d2d1helper.h>
+#include <dcomp.h>
+#include <d3d11.h>
 #include <dwrite.h>
 #include <wincodec.h>
 #include <functional>
@@ -121,6 +124,18 @@ public:
 	// The path to the current lua script
 	std::filesystem::path path;
 
+#pragma region Composition
+
+	ID2D1Factory3* m_factory;
+	IDXGISwapChain1* m_swapChain;
+	ID3D11DeviceContext* m_d3dc;
+	IDCompositionDevice* m_compDevice;
+	IDCompositionTarget* m_compTarget;
+	ID2D1Device2* m_d2device;
+	ID2D1DeviceContext2* m_dc;
+
+#pragma endregion
+
 	// The Direct2D overlay control handle
 	HWND d2d_overlay_hwnd;
 
@@ -133,12 +148,6 @@ public:
 
 	// Dimensions of both DCs
 	int dc_width, dc_height = 0;
-
-	// The Direct2D factory, whose lifetime is the renderer's
-	ID2D1Factory* d2d_factory = nullptr;
-
-	// The Direct2D render target, which points to the d2d_dc
-	ID2D1DCRenderTarget* d2d_render_target = nullptr;
 
 	// The DirectWrite factory, whose lifetime is the renderer's
 	IDWriteFactory* dw_factory = nullptr;
@@ -194,7 +203,9 @@ public:
 
 private:
 	void register_functions();
-
+	void create_device(HWND hwnd);
+	void create_alpha_swap_chain(HWND hwnd, IDXGIFactory2 *factory, ID3D11Device *device, IDXGIDevice1 *dxgidevice);
+	void create_device_context(HWND hwnd);
 };
 
 extern uint64_t inputCount;
