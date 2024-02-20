@@ -140,15 +140,18 @@ public:
 	// The Direct2D overlay control handle
 	HWND d2d_overlay_hwnd;
 
+	// The GDI overlay control handle
+	HWND gdi_overlay_hwnd;
+
 	// The DC for GDI/GDI+ drawings
 	// This DC is special, since commands can be issued to it anytime and it's never cleared
-	HDC gdi_dc = nullptr;
+	HDC gdi_back_dc = nullptr;
 
 	// The bitmap for GDI/GDI+ drawings
 	HBITMAP gdi_bmp;
 
-	// Dimensions of both DCs
-	int dc_width, dc_height = 0;
+	// Dimensions of the drawing surfaces
+	D2D1_SIZE_U dc_size;
 
 	// The DirectWrite factory, whose lifetime is the renderer's
 	IDWriteFactory* dw_factory = nullptr;

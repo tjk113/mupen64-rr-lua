@@ -69,6 +69,7 @@ bool overwrite_controller_data[4];
 
 ULONG_PTR gdi_plus_token;
 auto d2d_overlay_class = "lua_d2d_overlay";
+auto gdi_overlay_class = "lua_gdi_overlay";
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
@@ -803,6 +804,27 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
+LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	switch (msg)
+	{
+	case WM_PAINT:
+		{
+			auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+			PAINTSTRUCT ps;
+			HDC hdc = BeginPaint(hwnd, &ps);
+
+			BitBlt(hdc, 0, 0, lua->dc_size.width, lua->dc_size.height, lua->gdi_back_dc, 0, 0, SRCCOPY);
+
+			EndPaint(hwnd, &ps);
+			return 0;
+		}
+	}
+	return DefWindowProc(hwnd, msg, wparam, lparam);
+}
+
+
 void lua_init()
 {
 
@@ -816,12 +838,16 @@ void lua_init()
 	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndclass.lpszClassName = d2d_overlay_class;
 	RegisterClass(&wndclass);
+
+	wndclass.lpfnWndProc = (WNDPROC)gdi_overlay_wndproc;
+	wndclass.lpszClassName = gdi_overlay_class;
+	RegisterClass(&wndclass);
 }
 
 
 void LuaEnvironment::create_renderer()
 {
-	if (gdi_dc != nullptr)
+	if (gdi_back_dc != nullptr)
 	{
 		return;
 	}
@@ -829,17 +855,16 @@ void LuaEnvironment::create_renderer()
 
 	RECT window_rect;
 	GetClientRect(mainHWND, &window_rect);
-	// We don't want to paint over statusbar
 	if (Statusbar::hwnd())
 	{
+		// We don't want to paint over statusbar
 		RECT rc{};
 		GetWindowRect(Statusbar::hwnd(), &rc);
 		window_rect.bottom -= (WORD)(rc.bottom - rc.top);
 	}
-	dc_width = window_rect.right;
-	dc_height = window_rect.bottom;
+	dc_size = { (UINT32)window_rect.right, (UINT32)window_rect.bottom };
 
-	d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_width, dc_height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
+	d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
 	SetWindowLongPtr(d2d_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	DWriteCreateFactory(
@@ -848,13 +873,22 @@ void LuaEnvironment::create_renderer()
 		reinterpret_cast<IUnknown**>(&dw_factory)
 	);
 
-	if(!create_composition_surface(d2d_overlay_hwnd, {(UINT32)dc_width, (UINT32)dc_height}, &comp_device, &comp_target, &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc))
+	if(!create_composition_surface(d2d_overlay_hwnd, dc_size, &comp_device, &comp_target, &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc))
 	{
 		printf("Failed to set up composition\n");
 		return;
 	}
 
 	d2d_render_target_stack.push(d2d_dc);
+
+	gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, gdi_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
+	SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
+
+	auto gdi_front_dc = GetDC(gdi_overlay_hwnd);
+	gdi_back_dc = CreateCompatibleDC(gdi_front_dc);
+	gdi_bmp = CreateCompatibleBitmap(gdi_front_dc,dc_size.width, dc_size.height);
+	SelectObject(gdi_back_dc, gdi_bmp);
+	ReleaseDC(gdi_overlay_hwnd, gdi_front_dc);
 }
 
 void LuaEnvironment::destroy_renderer()
@@ -889,8 +923,10 @@ void LuaEnvironment::destroy_renderer()
 	d2d_factory->Release();
 	d2d_device->Release();
 
-	gdi_dc = nullptr;
-
+	DestroyWindow(gdi_overlay_hwnd);
+	SelectObject(gdi_back_dc, nullptr);
+	DeleteObject(gdi_bmp);
+	gdi_back_dc = nullptr;
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
@@ -931,7 +967,7 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 
 LuaEnvironment::~LuaEnvironment() {
 	invoke_callbacks_with_key(LuaCallbacks::state_stop, REG_ATSTOP);
-	SelectObject(gdi_dc, nullptr);
+	SelectObject(gdi_back_dc, nullptr);
 	DeleteObject(brush);
 	DeleteObject(pen);
 	DeleteObject(font);
@@ -981,7 +1017,9 @@ void LuaEnvironment::invalidate_visuals()
 {
 	RECT rect;
  	GetClientRect(this->d2d_overlay_hwnd, &rect);
+
  	InvalidateRect(this->d2d_overlay_hwnd, &rect, false);
+ 	InvalidateRect(this->gdi_overlay_hwnd, &rect, false);
 }
 
 void LuaEnvironment::LoadScreenInit()
