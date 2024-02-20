@@ -45,6 +45,20 @@ namespace LuaCore::Emu
 		}
 		return 0;
 	}
+	static int RegisterAtDrawD2D(lua_State* L)
+	{
+		if (lua_toboolean(L, 2))
+		{
+			lua_pop(L, 1);
+			UnregisterFunction(L, REG_ATDRAWD2D);
+		} else
+		{
+			if (lua_gettop(L) == 2)
+				lua_pop(L, 1);
+			RegisterFunction(L, REG_ATDRAWD2D);
+		}
+		return 0;
+	}
 
 	static int RegisterVI(lua_State* L)
 	{

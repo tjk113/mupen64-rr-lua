@@ -414,6 +414,7 @@ void lua_create_and_run(const char* path)
 
 		{"atvi", LuaCore::Emu::RegisterVI},
 		{"atupdatescreen", LuaCore::Emu::RegisterUpdateScreen},
+		{"atdrawd2d", LuaCore::Emu::RegisterAtDrawD2D},
 		{"atinput", LuaCore::Emu::RegisterInput},
 		{"atstop", LuaCore::Emu::RegisterStop},
 		{"atwindowmessage", LuaCore::Emu::RegisterWindowMessage},
@@ -784,7 +785,7 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 			lua->d2d_dc->Clear(D2D1::ColorF(0, 0, 0, 0));
 			lua->d2d_dc->SetTransform(D2D1::Matrix3x2F::Identity());
 
-			bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
+			bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATDRAWD2D);
 
 			lua->d2d_dc->EndDraw();
 			lua->dxgi_swapchain->Present(0, 0);

@@ -84,6 +84,7 @@ void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
 static const char* const REG_LUACLASS = "C";
 static const char* const REG_ATUPDATESCREEN = "S";
+static const char* const REG_ATDRAWD2D = "SD2D";
 static const char* const REG_ATVI = "V";
 static const char* const REG_ATINPUT = "I";
 static const char* const REG_ATSTOP = "T";
