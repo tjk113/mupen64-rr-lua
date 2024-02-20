@@ -17,6 +17,9 @@ namespace MGECompositor
 	long height = 0;
 	void* video_buf = nullptr;
 
+	RECT control_rect{};
+	BITMAPINFO bmp_info{};
+
 	LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		switch (msg)
@@ -24,20 +27,10 @@ namespace MGECompositor
 		case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
-				RECT rect;
 				HDC hdc = BeginPaint(hwnd, &ps);
-				GetClientRect(hwnd, &rect);
 
-				BITMAPINFOHEADER bi{};
-				bi.biSize = sizeof(BITMAPINFOHEADER);
-				bi.biWidth = width;
-				bi.biHeight = height;
-				bi.biPlanes = 1;
-				bi.biBitCount = 24;
-				bi.biCompression = BI_RGB;
-
-				StretchDIBits(hdc, 0, 0, rect.right, rect.bottom, 0, 0, width, height, video_buf,
-							  (BITMAPINFO*)&bi, DIB_RGB_COLORS, SRCCOPY);
+				StretchDIBits(hdc, control_rect.top, control_rect.left, control_rect.right, control_rect.bottom, 0, 0, width, height, video_buf,
+							  &bmp_info, DIB_RGB_COLORS, SRCCOPY);
 
 				EndPaint(hwnd, &ps);
 				return 0;
@@ -78,7 +71,15 @@ namespace MGECompositor
 			printf("MGE Compositor: Video size %dx%d\n", width, height);
 			free(video_buf);
 			video_buf = malloc(width * height * 3);
+
+			bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			bmp_info.bmiHeader.biWidth = width;
+			bmp_info.bmiHeader.biHeight = height;
+			bmp_info.bmiHeader.biPlanes = 1;
+			bmp_info.bmiHeader.biBitCount = 24;
+			bmp_info.bmiHeader.biCompression = BI_RGB;
 			MoveWindow(control_hwnd, 0, 0, width, height, true);
+			GetClientRect(control_hwnd, &control_rect);
 		}
 
 		read_video(&video_buf);
@@ -86,8 +87,6 @@ namespace MGECompositor
 		last_width = width;
 		last_height = height;
 
-		RECT rect{};
-		GetClientRect(control_hwnd, &rect);
-		InvalidateRect(control_hwnd, &rect, false);
+		InvalidateRect(control_hwnd, &control_rect, false);
 	}
 }
