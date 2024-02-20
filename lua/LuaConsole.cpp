@@ -858,7 +858,7 @@ void LuaEnvironment::create_renderer()
 
 void LuaEnvironment::destroy_renderer()
 {
-	if (!gdi_dc)
+	if (!d2d_dc)
 	{
 		return;
 	}
@@ -879,7 +879,7 @@ void LuaEnvironment::destroy_renderer()
 	}
 	image_pool.clear();
 
-	// FIXME: This cleanup doesnt work lol
+	DestroyWindow(d2d_overlay_hwnd);
 	d2d_dc->Release();
 	d3d_dc->Release();
 	comp_device->Release();
@@ -890,7 +890,6 @@ void LuaEnvironment::destroy_renderer()
 
 	gdi_dc = nullptr;
 
-	DestroyWindow(d2d_overlay_hwnd);
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
