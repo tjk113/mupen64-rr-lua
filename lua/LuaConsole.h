@@ -126,13 +126,13 @@ public:
 
 #pragma region Composition
 
-	ID2D1Factory3* m_factory;
-	IDXGISwapChain1* m_swapChain;
-	ID3D11DeviceContext* m_d3dc;
-	IDCompositionDevice* m_compDevice;
-	IDCompositionTarget* m_compTarget;
-	ID2D1Device2* m_d2device;
-	ID2D1DeviceContext2* m_dc;
+	ID3D11DeviceContext* d3d_dc;
+	IDCompositionDevice* comp_device;
+	IDCompositionTarget* comp_target;
+	IDXGISwapChain1* dxgi_swapchain;
+	ID2D1Factory3* d2d_factory;
+	ID2D1Device2* d2d_device;
+	ID2D1DeviceContext2* d2d_dc;
 
 #pragma endregion
 

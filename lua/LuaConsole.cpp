@@ -780,15 +780,15 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 			BeginPaint(hwnd, &ps);
 			GetClientRect(hwnd, &rect);
 
-			lua->m_dc->BeginDraw();
-			lua->m_dc->Clear(D2D1::ColorF(0, 0, 0, 0));
-			lua->m_dc->SetTransform(D2D1::Matrix3x2F::Identity());
+			lua->d2d_dc->BeginDraw();
+			lua->d2d_dc->Clear(D2D1::ColorF(0, 0, 0, 0));
+			lua->d2d_dc->SetTransform(D2D1::Matrix3x2F::Identity());
 
 			bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
 
-			lua->m_dc->EndDraw();
-			lua->m_swapChain->Present(0, 0);
-			lua->m_compDevice->Commit();
+			lua->d2d_dc->EndDraw();
+			lua->dxgi_swapchain->Present(0, 0);
+			lua->comp_device->Commit();
 
 			if (failed)
 			{
@@ -847,13 +847,13 @@ void LuaEnvironment::create_renderer()
 		reinterpret_cast<IUnknown**>(&dw_factory)
 	);
 
-	if(!create_composition_surface(d2d_overlay_hwnd, {(UINT32)dc_width, (UINT32)dc_height}, &m_compDevice, &m_compTarget, &m_swapChain, &m_factory, &m_d2device, &m_d3dc, &m_dc))
+	if(!create_composition_surface(d2d_overlay_hwnd, {(UINT32)dc_width, (UINT32)dc_height}, &comp_device, &comp_target, &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc))
 	{
 		printf("Failed to set up composition\n");
 		return;
 	}
 
-	d2d_render_target_stack.push(m_dc);
+	d2d_render_target_stack.push(d2d_dc);
 }
 
 void LuaEnvironment::destroy_renderer()
@@ -879,6 +879,14 @@ void LuaEnvironment::destroy_renderer()
 	}
 	image_pool.clear();
 
+	// FIXME: This cleanup doesnt work lol
+	d2d_dc->Release();
+	d3d_dc->Release();
+	comp_device->Release();
+	comp_target->Release();
+	dxgi_swapchain->Release();
+	d2d_factory->Release();
+	d2d_device->Release();
 
 	gdi_dc = nullptr;
 
