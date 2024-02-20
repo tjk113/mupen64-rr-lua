@@ -144,6 +144,9 @@ public:
 	HWND gdi_overlay_hwnd;
 
 	// The DC for GDI/GDI+ drawings
+	HDC gdi_front_dc = nullptr;
+
+	// The DC for GDI/GDI+ drawings
 	// This DC is special, since commands can be issued to it anytime and it's never cleared
 	HDC gdi_back_dc = nullptr;
 

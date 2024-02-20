@@ -813,9 +813,14 @@ LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 			auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
 			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hwnd, &ps);
+			BeginPaint(hwnd, &ps);
 
-			BitBlt(hdc, 0, 0, lua->dc_size.width, lua->dc_size.height, lua->gdi_back_dc, 0, 0, SRCCOPY);
+			bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
+			BitBlt(lua->gdi_front_dc, 0, 0, lua->dc_size.width, lua->dc_size.height, lua->gdi_back_dc, 0, 0, SRCCOPY);
+			if (failed)
+			{
+				LuaEnvironment::destroy(lua);
+			}
 
 			EndPaint(hwnd, &ps);
 			return 0;
@@ -884,11 +889,10 @@ void LuaEnvironment::create_renderer()
 	gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, gdi_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
 	SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
-	auto gdi_front_dc = GetDC(gdi_overlay_hwnd);
+	gdi_front_dc = GetDC(gdi_overlay_hwnd);
 	gdi_back_dc = CreateCompatibleDC(gdi_front_dc);
 	gdi_bmp = CreateCompatibleBitmap(gdi_front_dc,dc_size.width, dc_size.height);
 	SelectObject(gdi_back_dc, gdi_bmp);
-	ReleaseDC(gdi_overlay_hwnd, gdi_front_dc);
 }
 
 void LuaEnvironment::destroy_renderer()
@@ -926,7 +930,9 @@ void LuaEnvironment::destroy_renderer()
 	DestroyWindow(gdi_overlay_hwnd);
 	SelectObject(gdi_back_dc, nullptr);
 	DeleteObject(gdi_bmp);
+	ReleaseDC(gdi_overlay_hwnd, gdi_front_dc);
 	gdi_back_dc = nullptr;
+	gdi_front_dc = nullptr;
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
