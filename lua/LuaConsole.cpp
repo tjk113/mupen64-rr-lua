@@ -817,84 +817,6 @@ void lua_init()
 	RegisterClass(&wndclass);
 }
 
-void LuaEnvironment::create_alpha_swap_chain(HWND hwnd, IDXGIFactory2 *factory, ID3D11Device *device, IDXGIDevice1 *dxgidevice)
-{
-	DCompositionCreateDevice(dxgidevice, IID_PPV_ARGS(&m_compDevice));
-
-	m_compDevice->CreateTargetForHwnd(hwnd, true, &m_compTarget);
-
-	IDCompositionVisual* compVisual;
-	m_compDevice->CreateVisual(&compVisual);
-
-	RECT rect;
-	GetClientRect(hwnd, &rect);
-
-	DXGI_SWAP_CHAIN_DESC1 swapdesc{};
-	swapdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-	swapdesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
-	swapdesc.SampleDesc.Count = 1;
-	swapdesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapdesc.BufferCount = 2;
-	swapdesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-	swapdesc.Width = rect.right - rect.left;
-	swapdesc.Height = rect.bottom - rect.top;
-
-	factory->CreateSwapChainForComposition(device, &swapdesc, nullptr, &m_swapChain);
-
-	compVisual->SetContent(m_swapChain);
-	m_compTarget->SetRoot(compVisual);
-}
-
-void LuaEnvironment::create_device_context(HWND hwnd)
-{
-	m_d2device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &m_dc);
-
-	IDXGISurface* surface;
-	m_swapChain->GetBuffer(0, IID_PPV_ARGS(&surface));
-
-	const UINT dpi = GetDpiForWindow(hwnd);
-	const D2D1_BITMAP_PROPERTIES1 props = D2D1::BitmapProperties1(
-		D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-		dpi,
-		dpi
-	);
-
-	ID2D1Bitmap1* bitmap;
-	m_dc->CreateBitmapFromDxgiSurface(surface, props, &bitmap);
-
-	m_dc->SetTarget(bitmap);
-}
-
-void LuaEnvironment::create_device(HWND hwnd)
-{
-	IDXGIFactory2* factory;
-	CreateDXGIFactory2(0, IID_PPV_ARGS(&factory));
-
-	IDXGIAdapter1* dxgiadapter;
-	factory->EnumAdapters1(0, &dxgiadapter);
-
-	ID3D11Device* d3device;
-	D3D11CreateDevice(dxgiadapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, &d3device, nullptr, &m_d3dc);
-
-	IDXGIDevice1* dxdevice;
-	d3device->QueryInterface(&dxdevice);
-
-	dxdevice->SetMaximumFrameLatency(1);
-
-	create_alpha_swap_chain(hwnd, factory, d3device, dxdevice);
-
-	const D2D1_FACTORY_OPTIONS fo = {
-#ifdef _DEBUG
-		D2D1_DEBUG_LEVEL_INFORMATION
-#endif
-	};
-	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, fo, &m_factory);
-	m_factory->CreateDevice(dxdevice, &m_d2device);
-	create_device_context(hwnd);
-
-	d2d_render_target_stack.push(m_dc);
-}
 
 void LuaEnvironment::create_renderer()
 {
@@ -925,7 +847,13 @@ void LuaEnvironment::create_renderer()
 		reinterpret_cast<IUnknown**>(&dw_factory)
 	);
 
-	create_device(d2d_overlay_hwnd);
+	if(!create_composition_surface(d2d_overlay_hwnd, {(UINT32)dc_width, (UINT32)dc_height}, &m_compDevice, &m_compTarget, &m_swapChain, &m_factory, &m_d2device, &m_d3dc, &m_dc))
+	{
+		printf("Failed to set up composition\n");
+		return;
+	}
+
+	d2d_render_target_stack.push(m_dc);
 }
 
 void LuaEnvironment::destroy_renderer()

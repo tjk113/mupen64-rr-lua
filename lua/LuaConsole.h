@@ -203,9 +203,7 @@ public:
 
 private:
 	void register_functions();
-	void create_device(HWND hwnd);
-	void create_alpha_swap_chain(HWND hwnd, IDXGIFactory2 *factory, ID3D11Device *device, IDXGIDevice1 *dxgidevice);
-	void create_device_context(HWND hwnd);
+
 };
 
 extern uint64_t inputCount;

@@ -87,3 +87,67 @@ static RECT get_window_rect_client_space(HWND parent, HWND child)
 		offset_client.top + (client.bottom - client.top)
 	};
 }
+
+static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDCompositionDevice** comp_device, IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device, ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc)
+{
+	IDXGIFactory2* factory;
+	CreateDXGIFactory2(0, IID_PPV_ARGS(&factory));
+
+	IDXGIAdapter1* dxgiadapter;
+	factory->EnumAdapters1(0, &dxgiadapter);
+
+	ID3D11Device* d3device;
+	D3D11CreateDevice(dxgiadapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, &d3device, nullptr, d3d_dc);
+
+	IDXGIDevice1* dxdevice;
+	d3device->QueryInterface(&dxdevice);
+
+	dxdevice->SetMaximumFrameLatency(1);
+
+	{
+		DCompositionCreateDevice(dxdevice, IID_PPV_ARGS(comp_device));
+
+		(*comp_device)->CreateTargetForHwnd(hwnd, true, comp_target);
+
+		IDCompositionVisual* compVisual;
+		(*comp_device)->CreateVisual(&compVisual);
+
+		DXGI_SWAP_CHAIN_DESC1 swapdesc{};
+		swapdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		swapdesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
+		swapdesc.SampleDesc.Count = 1;
+		swapdesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapdesc.BufferCount = 2;
+		swapdesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+		swapdesc.Width = size.width;
+		swapdesc.Height = size.height;
+
+		factory->CreateSwapChainForComposition(d3device, &swapdesc, nullptr, swapchain);
+
+		compVisual->SetContent(*swapchain);
+		(*comp_target)->SetRoot(compVisual);
+	}
+
+	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, {}, d2d_factory);
+	(*d2d_factory)->CreateDevice(dxdevice, d2d_device);
+	{
+		(*d2d_device)->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, d2d_dc);
+
+		IDXGISurface* surface;
+		(*swapchain)->GetBuffer(0, IID_PPV_ARGS(&surface));
+
+		const UINT dpi = GetDpiForWindow(hwnd);
+		const D2D1_BITMAP_PROPERTIES1 props = D2D1::BitmapProperties1(
+			D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
+			dpi,
+			dpi
+		);
+
+		ID2D1Bitmap1* bitmap;
+		(*d2d_dc)->CreateBitmapFromDxgiSurface(surface, props, &bitmap);
+		(*d2d_dc)->SetTarget(bitmap);
+	}
+
+	return true;
+}
