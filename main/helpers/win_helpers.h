@@ -88,7 +88,7 @@ static RECT get_window_rect_client_space(HWND parent, HWND child)
 	};
 }
 
-static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDCompositionDevice** comp_device, IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device, ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc)
+static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDCompositionDevice** comp_device, IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device, ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface** dxgi_surface, ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
 {
 	IDXGIFactory2* factory;
 	CreateDXGIFactory2(0, IID_PPV_ARGS(&factory));
@@ -133,8 +133,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDCompositio
 	{
 		(*d2d_device)->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, d2d_dc);
 
-		IDXGISurface* surface;
-		(*swapchain)->GetBuffer(0, IID_PPV_ARGS(&surface));
+		(*swapchain)->GetBuffer(0, IID_PPV_ARGS(dxgi_surface));
 
 		const UINT dpi = GetDpiForWindow(hwnd);
 		const D2D1_BITMAP_PROPERTIES1 props = D2D1::BitmapProperties1(
@@ -145,9 +144,12 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDCompositio
 		);
 
 		ID2D1Bitmap1* bitmap;
-		(*d2d_dc)->CreateBitmapFromDxgiSurface(surface, props, &bitmap);
+		(*d2d_dc)->CreateBitmapFromDxgiSurface(*dxgi_surface, props, &bitmap);
 		(*d2d_dc)->SetTarget(bitmap);
 	}
+
+	(*swapchain)->GetBuffer(1, IID_PPV_ARGS(front_buffer));
+	(*dxgi_surface)->QueryInterface(dxgi_surface_resource);
 
 	return true;
 }
