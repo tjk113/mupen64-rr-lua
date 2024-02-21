@@ -78,6 +78,11 @@ namespace Messenger
 		 * \brief The user has requested a reset. The reset won't be performed after the message is handled.
 		 */
 		ResetRequested,
+
+		/**
+		 * \brief The config will begin saving soon
+		 */
+		ConfigSaving,
 	};
 
 	/**

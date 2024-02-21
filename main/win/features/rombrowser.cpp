@@ -431,5 +431,12 @@ namespace Rombrowser
 		{
 			rombrowser_update_size();
 		});
+		Messenger::subscribe(Messenger::Message::ConfigSaving, [] (auto _)
+		{
+			for (int i = 0; i < Config.rombrowser_column_widths.size(); ++i)
+			{
+				Config.rombrowser_column_widths[i] = ListView_GetColumnWidth(rombrowser_hwnd, i);
+			}
+		});
 	}
 }

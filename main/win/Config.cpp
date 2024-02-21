@@ -11,6 +11,8 @@
 #include "../lib/ini.h"
 #include <helpers/string_helpers.h>
 
+#include "messenger.h"
+
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
 const auto first_offset = offsetof(CONFIG, fast_forward_hotkey);
@@ -1010,6 +1012,8 @@ std::string get_config_path()
 
 void save_config()
 {
+	Messenger::broadcast(Messenger::Message::ConfigSaving, nullptr);
+
 	std::remove(get_config_path().c_str());
 
 	mINI::INIFile file(get_config_path());
