@@ -690,8 +690,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	dynacore = Config.core_type;
 
-	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0,
-				                         &audio_thread_id);
 	printf("Emu thread: Emulation started....\n");
 
 
@@ -714,6 +712,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	emu_paused = 0;
 	emu_launched = 1;
+	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0, &audio_thread_id);
 
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 
