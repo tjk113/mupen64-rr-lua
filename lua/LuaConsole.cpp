@@ -530,6 +530,7 @@ void lua_create_and_run(const char* path)
 		{"create_brush", LuaCore::D2D::create_brush},
 		{"free_brush", LuaCore::D2D::free_brush},
 
+		{"clear", LuaCore::D2D::clear},
 		{"fill_rectangle", LuaCore::D2D::fill_rectangle},
 		{"draw_rectangle", LuaCore::D2D::draw_rectangle},
 		{"fill_ellipse", LuaCore::D2D::fill_ellipse},

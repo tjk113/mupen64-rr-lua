@@ -74,6 +74,17 @@ namespace LuaCore::D2D
 		return 0;
 	}
 
+	static int clear(lua_State* L)
+	{
+		LuaEnvironment* lua = GetLuaClass(L);
+
+		D2D1::ColorF color = D2D_GET_COLOR(L, 1);
+
+		lua->d2d_render_target_stack.top()->Clear(color);
+
+		return 0;
+	}
+
 	static int fill_rectangle(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
