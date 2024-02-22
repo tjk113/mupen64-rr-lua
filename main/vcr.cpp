@@ -483,6 +483,7 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		m_current_vi = (int)current_vi;
 
 		m_header.rerecord_count++;
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 
 		reserve_buffer_space(space_needed);
 		memcpy(m_input_buffer, ptr, space_needed);
@@ -1686,7 +1687,6 @@ void vcr_update_statusbar()
 	{
 		std::string vcr_info = std::format("{} ({}) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
 		Statusbar::post(vcr_info, Statusbar::Section::VCR);
-		Statusbar::post(std::format("{} rr", m_header.rerecord_count), Statusbar::Section::Rerecords);
 	}
 
 	if (vcr_is_playing())

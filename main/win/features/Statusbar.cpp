@@ -14,7 +14,7 @@
 
 namespace Statusbar
 {
-	const std::vector emu_parts = {210, 150, 80, 80, 80, -1};
+	const std::vector emu_parts = {220, 120, 90, 80, 80, -1};
 	const std::vector idle_parts = {400, -1};
 
 	HWND statusbar_hwnd;
@@ -35,13 +35,15 @@ namespace Statusbar
 
 		if (!statusbar_hwnd) return;
 
-		if (value)
+		auto parts = value ? emu_parts : idle_parts;
+
+		// We don't want to keep the weird crap from previous state, so let's clear everything
+		for (int i = 0; i < 255; ++i)
 		{
-			set_statusbar_parts(statusbar_hwnd, emu_parts);
-		} else
-		{
-			set_statusbar_parts(statusbar_hwnd, idle_parts);
+			SendMessage(statusbar_hwnd, SB_SETTEXT, i, (LPARAM)"");
 		}
+
+		set_statusbar_parts(statusbar_hwnd, parts);
 	}
 
 	void create()
@@ -72,11 +74,20 @@ namespace Statusbar
 		}
 	}
 
+	void on_rerecords_changed(std::any data)
+	{
+		auto value = std::any_cast<uint64_t>(data);
+		post(std::format("{} rr", value), Section::Rerecords);
+	}
+
 	void init()
 	{
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged,
 		                     emu_launched_changed);
 		Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged,
 		                     statusbar_visibility_changed);
+		Messenger::subscribe(Messenger::Message::RerecordsChanged,
+							 on_rerecords_changed);
+
 	}
 }

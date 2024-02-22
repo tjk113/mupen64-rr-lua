@@ -610,7 +610,6 @@ void close_rom()
 		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	}
 
-	Statusbar::post("Emulation stopped");
 	LeaveCriticalSection(&emu_cs);
 }
 
