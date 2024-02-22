@@ -6,6 +6,7 @@
 #include "messenger.h"
 #include "../r4300/r4300.h"
 #include "RomBrowser.hpp"
+#include "vcr.h"
 #include "../../winproject/resource.h"
 #include "helpers/win_helpers.h"
 #include "win/Config.hpp"
@@ -80,12 +81,24 @@ namespace Statusbar
 		post(std::format("{} rr", value), Section::Rerecords);
 	}
 
+	void on_task_changed(std::any data)
+	{
+		auto value = std::any_cast<e_task>(data);
+
+		if (!task_is_recording(value))
+		{
+			post("", Section::Rerecords);
+		}
+	}
+
 	void init()
 	{
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged,
 		                     emu_launched_changed);
 		Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged,
 		                     statusbar_visibility_changed);
+		Messenger::subscribe(Messenger::Message::TaskChanged,
+							 on_task_changed);
 		Messenger::subscribe(Messenger::Message::RerecordsChanged,
 							 on_rerecords_changed);
 

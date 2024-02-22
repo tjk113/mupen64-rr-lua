@@ -472,6 +472,7 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		//		change_state(MOVIE_STATE_RECORD);
 		m_task = e_task::recording;
 		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 		flush_movie();
 
 		// update header with new ROM info
@@ -556,6 +557,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			m_task = e_task::recording;
 			just_reset = false;
 			Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+			Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 		} else
 		{
 			// We need to fully reset rom prior to actually pushing any samples to the buffer
@@ -830,6 +832,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 
 	Messenger::broadcast(Messenger::Message::MovieRecordingStarted, movie_path);
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 	return 0;
 }
 
@@ -1170,6 +1173,10 @@ bool task_is_playback(e_task task)
 {
 	return task == e_task::playback || task == e_task::start_playback || task ==
 		e_task::start_playback_from_snapshot;
+}
+bool task_is_recording(e_task task)
+{
+	return task == e_task::recording || task == e_task::start_recording || task == e_task::start_recording_from_existing_snapshot || task == e_task::start_recording_from_snapshot;
 }
 
 void vcr_update_screen()
