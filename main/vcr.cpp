@@ -1652,50 +1652,47 @@ vcr_core_stopped()
 void vcr_update_statusbar()
 {
 	BUTTONS b = last_controller_data[0];
-	std::string input_string = std::format("({}, {}) ", (int)b.Y_AXIS, (int)b.X_AXIS);
-	if (b.START_BUTTON) input_string += "S";
-	if (b.Z_TRIG) input_string += "Z";
-	if (b.A_BUTTON) input_string += "A";
-	if (b.B_BUTTON) input_string += "B";
-	if (b.L_TRIG) input_string += "L";
-	if (b.R_TRIG) input_string += "R";
+	std::string input_info = std::format("({}, {}) ", (int)b.Y_AXIS, (int)b.X_AXIS);
+	if (b.START_BUTTON) input_info += "S";
+	if (b.Z_TRIG) input_info += "Z";
+	if (b.A_BUTTON) input_info += "A";
+	if (b.B_BUTTON) input_info += "B";
+	if (b.L_TRIG) input_info += "L";
+	if (b.R_TRIG) input_info += "R";
 	if (b.U_CBUTTON || b.D_CBUTTON || b.L_CBUTTON ||
 		b.R_CBUTTON)
 	{
-		input_string += " C";
-		if (b.U_CBUTTON) input_string += "^";
-		if (b.D_CBUTTON) input_string += "v";
-		if (b.L_CBUTTON) input_string += "<";
-		if (b.R_CBUTTON) input_string += ">";
+		input_info += " C";
+		if (b.U_CBUTTON) input_info += "^";
+		if (b.D_CBUTTON) input_info += "v";
+		if (b.L_CBUTTON) input_info += "<";
+		if (b.R_CBUTTON) input_info += ">";
 	}
 	if (b.U_DPAD || b.D_DPAD || b.L_DPAD || b.
 		R_DPAD)
 	{
-		input_string += " D";
-		if (b.U_DPAD) input_string += "^";
-		if (b.D_DPAD) input_string += "v";
-		if (b.L_DPAD) input_string += "<";
-		if (b.R_DPAD) input_string += ">";
+		input_info += " D";
+		if (b.U_DPAD) input_info += "^";
+		if (b.D_DPAD) input_info += "v";
+		if (b.L_DPAD) input_info += "<";
+		if (b.R_DPAD) input_info += ">";
 	}
 
 	auto index_adjustment = (Config.vcr_0_index ? 1 : 0);
 
+	Statusbar::post(input_info, Statusbar::Section::Input);
+
 	if (vcr_is_recording())
 	{
-		std::string text = std::format("{} ({}) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
-		Statusbar::post(text + input_string);
+		std::string vcr_info = std::format("{} ({}) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
+		Statusbar::post(vcr_info, Statusbar::Section::VCR);
 		Statusbar::post(std::format("{} rr", m_header.rerecord_count), Statusbar::Section::Rerecords);
 	}
 
 	if (vcr_is_playing())
 	{
-		std::string text = std::format("{} / {} ({} / {}) ", m_current_vi - index_adjustment, vcr_get_length_v_is(), m_current_sample - index_adjustment, vcr_get_length_samples());
-		Statusbar::post(text + input_string);
-	}
-
-	if (!vcr_is_active())
-	{
-		Statusbar::post(input_string);
+		std::string vcr_info = std::format("{} / {} ({} / {}) ", m_current_vi - index_adjustment, vcr_get_length_v_is(), m_current_sample - index_adjustment, vcr_get_length_samples());
+		Statusbar::post(vcr_info);
 	}
 }
 
