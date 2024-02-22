@@ -888,7 +888,6 @@ vcr_stop_record()
 		printf("[VCR]: Record stopped. Recorded %ld input samples\n",
 		       m_header.length_samples);
 
-		Statusbar::post("", 1);
 		Statusbar::post("Stopped recording");
 
 		ret_val = 0;
@@ -1147,7 +1146,6 @@ int vcr_stop_playback()
 	if (is_task_playback(m_task))
 	{
 		m_task = e_task::idle;
-		Statusbar::post("", 1);
 		Statusbar::post("Stopped playback");
 
 		if (m_input_buffer)
@@ -1686,7 +1684,7 @@ void vcr_update_statusbar()
 	{
 		std::string text = std::format("{} ({}) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
 		Statusbar::post(text + input_string);
-		Statusbar::post(std::format("{} rr", m_header.rerecord_count), 1);
+		Statusbar::post(std::format("{} rr", m_header.rerecord_count), Statusbar::Section::Rerecords);
 	}
 
 	if (vcr_is_playing())

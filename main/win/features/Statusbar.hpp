@@ -6,6 +6,15 @@
 
 namespace Statusbar
 {
+	enum class Section
+	{
+		VCR,
+		Input,
+		Rerecords,
+		FPS,
+		VIs,
+	};
+
 	/**
 	 * \brief Gets the statusbar handle
 	 */
@@ -21,6 +30,6 @@ namespace Statusbar
  	* \param text The text to be displayed
  	* \param section The statusbar section to display the text in
  	*/
-	void post(const std::string& text, int32_t section = 0);
+	void post(const std::string& text, Section section = Section::VCR);
 }
 

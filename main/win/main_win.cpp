@@ -980,7 +980,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					{
 						fps += (frame_times[i] - frame_times[i - 1]).count();
 					}
-					Statusbar::post(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / frame_times.size()) / 1'000'000.0f)), 2);
+					Statusbar::post(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / frame_times.size()) / 1'000'000.0f)), Statusbar::Section::FPS);
 				}
 				if (Config.show_vis_per_second && !vi_times.empty())
 				{
@@ -989,7 +989,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					{
 						vis += (vi_times[i] - vi_times[i - 1]).count();
 					}
-					Statusbar::post(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / vi_times.size()) / 1'000'000.0f)), 3);
+					Statusbar::post(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / vi_times.size()) / 1'000'000.0f)), Statusbar::Section::VIs);
 				}
 				last_statusbar_update = time;
 			}

@@ -7,12 +7,16 @@
 #include "../r4300/r4300.h"
 #include "RomBrowser.hpp"
 #include "../../winproject/resource.h"
+#include "helpers/win_helpers.h"
 #include "win/Config.hpp"
 #include "win/main_win.h"
 
 
 namespace Statusbar
 {
+	const std::vector emu_parts = {210, 150, 80, 80, 80, -1};
+	const std::vector idle_parts = {400, -1};
+
 	HWND statusbar_hwnd;
 
 	HWND hwnd()
@@ -20,9 +24,9 @@ namespace Statusbar
 		return statusbar_hwnd;
 	}
 
-	void post(const std::string& text, int32_t section)
+	void post(const std::string& text, Section section)
 	{
-		SendMessage(statusbar_hwnd, SB_SETTEXT, section, (LPARAM)text.c_str());
+		 SendMessage(statusbar_hwnd, SB_SETTEXT, (int)section, (LPARAM)text.c_str());
 	}
 
 	void emu_launched_changed(std::any data)
@@ -31,58 +35,12 @@ namespace Statusbar
 
 		if (!statusbar_hwnd) return;
 
-		constexpr int emulatewidths_fpsvis[] = {230, 300, 370, 440, -1};
-		constexpr int emulatewidths_fps[] = {230, 300, 370, -1};
-		constexpr int emulatewidths[] = {230, 300, -1};
-		constexpr int browserwidths[] = {400, -1};
-		int parts;
-
 		if (value)
 		{
-			if (Config.show_fps && Config.show_vis_per_second)
-			{
-				SendMessage(statusbar_hwnd, SB_SETPARTS,
-				            sizeof(emulatewidths_fpsvis) / sizeof(int),
-				            (LPARAM)emulatewidths_fpsvis);
-				SendMessage(statusbar_hwnd, SB_SETTEXT, 1, (LPARAM)""); //rr
-				SendMessage(statusbar_hwnd, SB_SETTEXT, 2, (LPARAM)""); //FPS
-				SendMessage(statusbar_hwnd, SB_SETTEXT, 3, (LPARAM)""); //VIS
-				parts = 5;
-			} else if (Config.show_fps)
-			{
-				SendMessage(statusbar_hwnd, SB_SETPARTS,
-				            sizeof(emulatewidths_fps) / sizeof(int),
-				            (LPARAM)emulatewidths_fps);
-				SendMessage(statusbar_hwnd, SB_SETTEXT, 1, (LPARAM)"");
-				SendMessage(statusbar_hwnd, SB_SETTEXT, 2, (LPARAM)"");
-				parts = 4;
-			} else if (Config.show_vis_per_second)
-			{
-				SendMessage(statusbar_hwnd, SB_SETPARTS,
-				            sizeof(emulatewidths_fps) / sizeof(int),
-				            (LPARAM)emulatewidths_fps);
-				SendMessage(statusbar_hwnd, SB_SETTEXT, 1, (LPARAM)"");
-				SendMessage(statusbar_hwnd, SB_SETTEXT, 2, (LPARAM)"");
-				parts = 4;
-			} else
-			{
-				SendMessage(statusbar_hwnd, SB_SETPARTS,
-				            sizeof(emulatewidths) / sizeof(int),
-				            (LPARAM)emulatewidths);
-				SendMessage(statusbar_hwnd, SB_SETTEXT, 1, (LPARAM)"");
-				parts = 3;
-			}
-
-			SendMessage(statusbar_hwnd, SB_SETTEXT, 0, (LPARAM)"");
-			SendMessage(statusbar_hwnd, SB_SETTEXT, parts - 1,
-			            (LPARAM)ROM_HEADER.nom);
+			set_statusbar_parts(statusbar_hwnd, emu_parts);
 		} else
 		{
-			SendMessage(statusbar_hwnd, SB_SETPARTS,
-			            sizeof(browserwidths) / sizeof(int),
-			            (LPARAM)browserwidths);
-			SendMessage(statusbar_hwnd, SB_SETTEXT, 0, (LPARAM)"");
-			SendMessage(statusbar_hwnd, SB_SETTEXT, 1, (LPARAM)"");
+			set_statusbar_parts(statusbar_hwnd, idle_parts);
 		}
 	}
 

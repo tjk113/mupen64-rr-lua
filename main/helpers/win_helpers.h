@@ -2,7 +2,25 @@
 #include <Windows.h>
 #include <Windowsx.h>
 #include <CommCtrl.h>
+#include <Shlwapi.h>
 #include <cstdint>
+#include <chrono>
+#include <gdiplus.h>
+#include <d2d1.h>
+#include <d2d1helper.h>
+#include <dwrite.h>
+#include <wincodec.h>
+#include <functional>
+#include <queue>
+#include <gdiplus.h>
+#include <d2d1.h>
+#include <d2d1_3.h>
+#include <d2d1helper.h>
+#include <dcomp.h>
+#include <d3d11.h>
+#include <dwrite.h>
+#include <wincodec.h>
+#include <thread>
 
 static void set_checkbox_state(const HWND hwnd, const int32_t id,
                                int32_t is_checked)
@@ -152,4 +170,19 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDCompositio
 	(*dxgi_surface)->QueryInterface(dxgi_surface_resource);
 
 	return true;
+}
+
+
+static void set_statusbar_parts(HWND hwnd, std::vector<int32_t> parts)
+{
+	auto new_parts = parts;
+	auto accumulator = 0;
+	for (int i = 0; i < parts.size(); ++i)
+	{
+		accumulator += parts[i];
+		new_parts[i] = accumulator;
+	}
+	SendMessage(hwnd, SB_SETPARTS,
+				new_parts.size(),
+				(LPARAM)new_parts.data());
 }
