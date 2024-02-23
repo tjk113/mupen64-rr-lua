@@ -17,9 +17,19 @@ namespace MovieDialog {
 
 	LRESULT CALLBACK MovieInspectorProc(HWND hwnd, UINT Message, WPARAM wParam,
 										LPARAM lParam) {
+
+		// List of dialog item IDs that shouldn't be interactable when in a specific mode
+		const std::vector disabled_on_play = {IDC_INI_AUTHOR, IDC_INI_DESCRIPTION, IDC_GROUP_START_FROM};
+		const std::vector disabled_on_record = {IDC_GROUP_START_FROM3};
+
 		switch (Message) {
 			case WM_INITDIALOG:
 			{
+				SetWindowText(hwnd, is_readonly ? "Play Movie" : "Record Movie");
+				for (auto id : is_readonly ? disabled_on_play : disabled_on_record)
+				{
+					EnableWindow(GetDlgItem(hwnd, id), false);
+				}
 				SendMessage(GetDlgItem(hwnd, IDC_INI_DESCRIPTION),
 							EM_SETLIMITTEXT,
 							MOVIE_DESCRIPTION_DATA_SIZE, 0);
