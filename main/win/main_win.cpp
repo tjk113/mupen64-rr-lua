@@ -683,7 +683,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	});
 
 	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-
 	emu_paused = 0;
 	emu_launched = 1;
 	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0, &audio_thread_id);
@@ -1245,7 +1244,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case IDM_SAVE_SLOT:
-				savestates_do_slot(st_slot, e_st_job::save);
+				savestates_do_slot(-1, e_st_job::save);
 				break;
 			case IDM_SAVE_STATE_AS:
 				{
@@ -1261,7 +1260,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case IDM_LOAD_SLOT:
-				savestates_do_slot(st_slot, e_st_job::load);
+				savestates_do_slot(-1, e_st_job::load);
 				break;
 			case IDM_LOAD_STATE_AS:
 				{
@@ -1474,7 +1473,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					<= IDM_SELECT_10)
 				{
 					auto slot = LOWORD(wParam) - IDM_SELECT_1;
-					st_slot = slot;
+					savestates_set_slot(slot);
 
 					// set checked state for only the currently selected save
 					for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
@@ -1653,6 +1652,7 @@ int WINAPI WinMain(
 	Rombrowser::init();
 	VCR::init();
 	Cli::init();
+	savestates_init();
 
 	update_menu_hotkey_labels();
 

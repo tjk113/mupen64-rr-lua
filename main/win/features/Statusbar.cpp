@@ -15,7 +15,7 @@
 
 namespace Statusbar
 {
-	const std::vector emu_parts = {220, 120, 90, 80, 80, -1};
+	const std::vector emu_parts = {220, 120, 90, 80, 80, 90, -1};
 	const std::vector idle_parts = {400, -1};
 
 	HWND statusbar_hwnd;
@@ -91,6 +91,12 @@ namespace Statusbar
 		}
 	}
 
+	void on_slot_changed(std::any data)
+	{
+		auto value = std::any_cast<size_t>(data);
+		post(std::format("Slot {}", value + 1), Section::Slot);
+	}
+
 	void init()
 	{
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged,
@@ -101,6 +107,8 @@ namespace Statusbar
 							 on_task_changed);
 		Messenger::subscribe(Messenger::Message::RerecordsChanged,
 							 on_rerecords_changed);
+		Messenger::subscribe(Messenger::Message::SlotChanged,
+							 on_slot_changed);
 
 	}
 }

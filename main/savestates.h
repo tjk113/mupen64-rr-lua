@@ -44,7 +44,6 @@ enum class e_st_medium
 	memory
 };
 
-extern size_t st_slot;
 extern std::filesystem::path st_path;
 extern e_st_job savestates_job;
 extern e_st_medium st_medium;
@@ -76,6 +75,16 @@ std::filesystem::path get_flashram_path();
  * \brief Gets the path to the current rom's mempak file
  */
 std::filesystem::path get_mempak_path();
+
+/**
+ * \brief Sets the selected slot
+ */
+void savestates_set_slot(size_t slot);
+
+/**
+ * \brief Initializes the savestate system
+ */
+void savestates_init();
 
 /**
  * \brief Reads emu state and generates a savestate depending on the st global state
@@ -111,8 +120,8 @@ void savestates_do_memory(const std::string key, e_st_job job);
 
 /**
  * \brief Executes a savestate operation to a slot
- * \param slot The slot to construct the savestate path with
+ * \param slot The slot to construct the savestate path with, or -1 if the current one should be used
  * \param job The job to set
  * \remarks The operation won't complete immediately
  */
-void savestates_do_slot(size_t slot, e_st_job job);
+void savestates_do_slot(int32_t slot, e_st_job job);

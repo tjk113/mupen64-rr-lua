@@ -13,6 +13,7 @@ namespace Statusbar
 		Rerecords,
 		FPS,
 		VIs,
+		Slot,
 	};
 
 	/**

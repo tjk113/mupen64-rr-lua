@@ -33,6 +33,7 @@
 #include <string>
 #include "guifuncs.h"
 #include "LuaCallbacks.h"
+#include "messenger.h"
 #include "rom.h"
 #include "vcr.h"
 #include "../lua/LuaConsole.h"
@@ -100,6 +101,25 @@ std::filesystem::path get_flashram_path()
 std::filesystem::path get_mempak_path()
 {
 	return std::format("{}{}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+}
+
+void savestates_init()
+{
+	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, [](std::any data)
+	{
+		auto value = std::any_cast<bool>(data);
+
+		if (value)
+		{
+			savestates_set_slot(st_slot);
+		}
+	});
+}
+
+void savestates_set_slot(size_t slot)
+{
+	st_slot = slot;
+	Messenger::broadcast(Messenger::Message::SlotChanged, st_slot);
 }
 
 std::vector<uint8_t> generate_savestate()
@@ -227,9 +247,12 @@ void savestates_save_immediate()
 
 	if (st_medium == e_st_medium::slot && Config.increment_slot)
 	{
-		if (++st_slot > 10)
+		if (st_slot >= 9)
 		{
-			st_slot = 0;
+			savestates_set_slot(0);
+		} else
+		{
+			savestates_set_slot(st_slot + 1);
 		}
  	}
 
@@ -560,9 +583,9 @@ void savestates_do_memory(const std::string key, e_st_job job)
 	st_medium = e_st_medium::memory;
 }
 
-void savestates_do_slot(const size_t slot, const e_st_job job)
+void savestates_do_slot(const int32_t slot, const e_st_job job)
 {
-	st_slot = slot;
+	savestates_set_slot(slot == -1 ? st_slot : slot);
 	savestates_job = job;
 	st_medium = e_st_medium::slot;
 }

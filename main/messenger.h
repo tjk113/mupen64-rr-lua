@@ -88,6 +88,11 @@ namespace Messenger
 		 * \brief The rerecord count of the currently recorded movie changed
 		 */
 		RerecordsChanged,
+
+		/**
+		 * \brief The currently selected save slot changed
+		 */
+		SlotChanged,
 	};
 
 	/**
