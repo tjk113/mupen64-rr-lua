@@ -33,6 +33,48 @@ int32_t rombrowser_is_loading = 0;
 
 namespace Rombrowser
 {
+	std::vector<std::string> find_available_roms()
+	{
+		std::vector<std::string> rom_paths;
+
+		// we aggregate all file paths and only filter them after we're done
+		if (Config.is_rombrowser_recursion_enabled)
+		{
+			for (auto path : Config.rombrowser_rom_paths)
+			{
+				auto file_paths = get_files_in_subdirectories(path);
+				rom_paths.insert(rom_paths.end(), file_paths.begin(),
+								 file_paths.end());
+			}
+		} else
+		{
+			for (auto path : Config.rombrowser_rom_paths)
+			{
+				auto file_paths = get_files_with_extension_in_directory(
+					path, "*");
+				rom_paths.insert(rom_paths.end(), file_paths.begin(),
+								 file_paths.end());
+			}
+		}
+
+		std::vector<std::string> filtered_rom_paths;
+
+		std::copy_if(rom_paths.begin(), rom_paths.end(),
+					 std::back_inserter(filtered_rom_paths), [](std::string val)
+					 {
+						 char c_extension[260] = {0};
+						 _splitpath(val.c_str(), NULL, NULL, NULL, c_extension);
+
+						 auto extension = std::string(c_extension);
+						 return is_case_insensitive_equal(extension, ".z64") ||
+							 is_case_insensitive_equal(extension, ".n64") ||
+							 is_case_insensitive_equal(
+								 extension, ".v64")
+							 || is_case_insensitive_equal(extension, ".rom");
+					 });
+		return filtered_rom_paths;
+	}
+
 	int CALLBACK rombrowser_compare(LPARAM lParam1, LPARAM lParam2, LPARAM _)
 	{
 		auto first = rombrowser_entries[Config.rombrowser_sort_ascending
@@ -371,46 +413,38 @@ namespace Rombrowser
 		}
 	}
 
-	std::vector<std::string> find_available_roms()
-	{
-		std::vector<std::string> rom_paths;
 
-		// we aggregate all file paths and only filter them after we're done
-		if (Config.is_rombrowser_recursion_enabled)
+	std::string find_available_rom_with_crc(unsigned long crc)
+	{
+		auto rom_paths = find_available_roms();
+		std::string matching_rom;
+		for (auto rom_path : rom_paths)
 		{
-			for (auto path : Config.rombrowser_rom_paths)
+			FILE* f = fopen(rom_path.c_str(), "rb");
+
+			fseek(f, 0, SEEK_END);
+			uint64_t len = ftell(f);
+			fseek(f, 0, SEEK_SET);
+
+			if (len > sizeof(t_rom_header))
 			{
-				auto file_paths = get_files_in_subdirectories(path);
-				rom_paths.insert(rom_paths.end(), file_paths.begin(),
-								 file_paths.end());
+				auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
+				fread(header, sizeof(t_rom_header), 1, f);
+
+				rom_byteswap((uint8_t*)header);
+
+				if (header->CRC1 == crc)
+				{
+					matching_rom = rom_path;
+				}
+
+				free(header);
 			}
-		} else
-		{
-			for (auto path : Config.rombrowser_rom_paths)
-			{
-				auto file_paths = get_files_with_extension_in_directory(
-					path, "*");
-				rom_paths.insert(rom_paths.end(), file_paths.begin(),
-								 file_paths.end());
-			}
+
+			fclose(f);
 		}
 
-		std::vector<std::string> filtered_rom_paths;
-
-		std::copy_if(rom_paths.begin(), rom_paths.end(),
-					 std::back_inserter(filtered_rom_paths), [](std::string val)
-					 {
-						 char c_extension[260] = {0};
-						 _splitpath(val.c_str(), NULL, NULL, NULL, c_extension);
-
-						 auto extension = std::string(c_extension);
-						 return is_case_insensitive_equal(extension, ".z64") ||
-							 is_case_insensitive_equal(extension, ".n64") ||
-							 is_case_insensitive_equal(
-								 extension, ".v64")
-							 || is_case_insensitive_equal(extension, ".rom");
-					 });
-		return filtered_rom_paths;
+		return matching_rom;
 	}
 
 	void emu_launched_changed(std::any data)

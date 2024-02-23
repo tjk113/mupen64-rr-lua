@@ -40,7 +40,9 @@ namespace Rombrowser
 	void notify(LPARAM lparam);
 
 	/**
-	 * \brief Finds all available ROMs
+	 * \brief Finds a rom from the available ROM list with the given CRC
+	 * \param crc The CRC to search for
+	 * \return The rom's path, or an empty string if no rom was found
 	 */
-	std::vector<std::string> find_available_roms();
+	std::string find_available_rom_with_crc(unsigned long crc);
 }

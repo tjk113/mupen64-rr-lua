@@ -460,6 +460,7 @@ int start_rom(std::filesystem::path path){
 		return 0;
 	}
 
+	// If we get a movie instead of a rom, we try to search the available rom lists to find one matching the movie
 	if (path.extension() == ".m64")
 	{
 		t_movie_header movie_header{};
@@ -468,33 +469,7 @@ int start_rom(std::filesystem::path path){
 			return 0;
 		}
 
-		auto rom_paths = Rombrowser::find_available_roms();
-		std::string matching_rom;
-		for (auto rom_path : rom_paths)
-		{
-				FILE* f = fopen(rom_path.c_str(), "rb");
-
-			fseek(f, 0, SEEK_END);
-			uint64_t len = ftell(f);
-			fseek(f, 0, SEEK_SET);
-
-			if (len > sizeof(t_rom_header))
-			{
-				auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
-				fread(header, sizeof(t_rom_header), 1, f);
-
-				rom_byteswap((uint8_t*)header);
-
-				if (header->CRC1 == movie_header.rom_crc1)
-				{
-					matching_rom = rom_path;
-				}
-
-				free(header);
-			}
-
-			fclose(f);
-		}
+		const auto matching_rom = Rombrowser::find_available_rom_with_crc(movie_header.rom_crc1);
 
 		if (matching_rom.empty())
 		{
