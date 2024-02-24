@@ -1085,9 +1085,6 @@ void LuaEnvironment::register_functions() {
 	// COMPAT: emu.debugview deprecated, forwarded to print
 	luaL_dostring(L, "emu.debugview = print");
 
-	// COMPAT: emu.isreadonly deprecated, forwarded to movie.isreadonly
-	luaL_dostring(L, "emu.isreadonly = movie.isreadonly");
-
 	// COMPAT: movie.playmovie deprecated, forwarded to movie.play
 	luaL_dostring(L, "movie.playmovie = movie.play");
 
@@ -1099,6 +1096,9 @@ void LuaEnvironment::register_functions() {
 
 	// COMPAT: movie.isreadonly deprecated, forwarded to movie.get_readonly
 	luaL_dostring(L, "movie.isreadonly = movie.get_readonly");
+
+	// COMPAT: emu.isreadonly deprecated, forwarded to movie.get_readonly
+	luaL_dostring(L, "emu.isreadonly = movie.get_readonly");
 
 	// os.execute poses security risks
 	luaL_dostring(L, "os.execute = function() print('os.execute is disabled') end");
