@@ -220,7 +220,7 @@ void on_task_changed(std::any data)
 		break;
 	}
 
-	EnableMenuItem(main_menu, IDM_SEEKER, task_is_playback(value));
+	EnableMenuItem(main_menu, IDM_SEEKER, task_is_playback(value) ? MF_ENABLED : MF_GRAYED);
 
 	update_titlebar();
 }
@@ -1662,6 +1662,7 @@ int WINAPI WinMain(
 	Rombrowser::init();
 	VCR::init();
 	Cli::init();
+	Seeker::init();
 	savestates_init();
 
 	update_menu_hotkey_labels();

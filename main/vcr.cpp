@@ -682,8 +682,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 	if (seek_to_frame.has_value() && m_current_sample >= seek_to_frame.value())
 	{
-		seek_to_frame.reset();
-		Messenger::broadcast(Messenger::Message::SeekCompleted, nullptr);
+		VCR::stop_seek();
 	}
 
 	if (!(m_header.controller_flags & CONTROLLER_X_PRESENT(index)))
@@ -1150,8 +1149,15 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 
 VCR::Result VCR::begin_seek_to(size_t frame)
 {
-	seek_to_frame = frame;
+	seek_to_frame = std::make_optional(frame);
+	resumeEmu(true);
 	return Result::Ok;
+}
+
+void VCR::stop_seek()
+{
+	seek_to_frame.reset();
+	Messenger::broadcast(Messenger::Message::SeekCompleted, nullptr);
 }
 
 bool VCR::is_seeking()
@@ -1765,6 +1771,11 @@ void VCR::init()
 
 bool is_frame_skipped()
 {
+	if (VCR::is_seeking())
+	{
+		return true;
+	}
+
 	if (!fast_forward || vcr_is_capturing())
 	{
 		return false;

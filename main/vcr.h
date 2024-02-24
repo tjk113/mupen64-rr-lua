@@ -341,6 +341,11 @@ namespace VCR
 	Result begin_seek_to(size_t frame);
 
 	/**
+	 * \brief Stops the current seek operation
+	 */
+	void stop_seek();
+
+	/**
 	 * \brief Gets whether the VCR engine is currently performing a seek operation
 	 */
 	bool is_seeking();

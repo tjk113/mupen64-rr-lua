@@ -17,6 +17,7 @@
 
 #include "timers.h"
 #include "Config.hpp"
+#include "vcr.h"
 #include "../../memory/pif.h"
 #include "../helpers/win_helpers.h"
 #include "helpers/collection_helpers.h"
@@ -50,7 +51,9 @@ void timer_new_frame()
 
 void timer_new_vi()
 {
-	if (!fast_forward)
+	bool ff = fast_forward || VCR::is_seeking();
+
+	if (!ff)
 	{
 		static time_point last_vi_time;
 		static time_point counter_time;
@@ -59,7 +62,7 @@ void timer_new_vi()
 		// if we're playing game normally with no frame advance or ff and overstepping max time between frames,
 		// we need to sleep to compensate the additional time
 		if (const auto vi_time_diff = current_vi_time - last_vi_time; !
-			fast_forward && !frame_advancing && vi_time_diff < max_vi_s_ms) {
+			ff && !frame_advancing && vi_time_diff < max_vi_s_ms) {
 			auto sleep_time = max_vi_s_ms - vi_time_diff;
 			if (sleep_time.count() > 0 && sleep_time <
 				std::chrono::milliseconds(700)) {
