@@ -1590,6 +1590,8 @@ int WINAPI WinMain(
 	freopen_s(&f, "CONOUT$", "w", stderr);
 #endif
 
+	Messenger::init();
+
 	InitializeCriticalSection(&emu_cs);
 
 	app_path = get_app_full_path();
@@ -1626,8 +1628,6 @@ int WINAPI WinMain(
 	MGECompositor::init();
 
 	HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
-
-	Messenger::init();
 
 	mainHWND = CreateWindowEx(
 		0,
