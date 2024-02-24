@@ -65,6 +65,9 @@ static const char* m_err_code_name[] =
 e_task m_task = e_task::idle;
 std::filesystem::path movie_path;
 
+// The frame to seek to during playback, or an empty option if no seek is being performed
+std::optional<size_t> seek_to_frame;
+
 static char m_filename[MAX_PATH];
 static char avi_file_name[MAX_PATH];
 static FILE* m_file = nullptr;
@@ -677,6 +680,12 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		return;
 	}
 
+	if (seek_to_frame.has_value() && m_current_sample >= seek_to_frame.value())
+	{
+		seek_to_frame.reset();
+		Messenger::broadcast(Messenger::Message::SeekCompleted, nullptr);
+	}
+
 	if (!(m_header.controller_flags & CONTROLLER_X_PRESENT(index)))
 	{
 		// disconnected controls are forced to have no input during playback
@@ -1137,6 +1146,17 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	LuaCallbacks::call_play_movie();
 	return Result::Ok;
+}
+
+VCR::Result VCR::begin_seek_to(size_t frame)
+{
+	seek_to_frame = frame;
+	return Result::Ok;
+}
+
+bool VCR::is_seeking()
+{
+	return seek_to_frame.has_value();
 }
 
 int vcr_stop_playback()

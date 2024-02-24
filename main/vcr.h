@@ -331,6 +331,19 @@ namespace VCR
  	* \return The error code
  	*/
 	Result start_playback(std::filesystem::path path);
+
+	/**
+	 * \brief Begins seeking to a frame in the currently playing movie
+	 * \param frame The frame to seek to
+	 * \return The operation result
+	 * \remarks When the seek operation completes, the SeekCompleted message will be sent
+	 */
+	Result begin_seek_to(size_t frame);
+
+	/**
+	 * \brief Gets whether the VCR engine is currently performing a seek operation
+	 */
+	bool is_seeking();
 }
 
 bool is_frame_skipped();

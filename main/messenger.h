@@ -93,6 +93,11 @@ namespace Messenger
 		 * \brief The currently selected save slot changed
 		 */
 		SlotChanged,
+
+		/**
+		 * \brief A VCR seek operation has completed
+		 */
+		SeekCompleted,
 	};
 
 	/**
