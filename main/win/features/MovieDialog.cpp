@@ -19,8 +19,8 @@ namespace MovieDialog {
 										LPARAM lParam) {
 
 		// List of dialog item IDs that shouldn't be interactable when in a specific mode
-		const std::vector disabled_on_play = {IDC_INI_AUTHOR, IDC_INI_DESCRIPTION, IDC_GROUP_START_FROM};
-		const std::vector disabled_on_record = {IDC_GROUP_START_FROM3};
+		const std::vector disabled_on_play = {IDC_INI_AUTHOR, IDC_INI_DESCRIPTION, IDC_RADIO_FROM_START, IDC_RADIO_FROM_ST, IDC_RADIO_FROM_EEPROM, IDC_RADIO_FROM_EXISTING_ST};
+		const std::vector disabled_on_record = {IDC_PAUSE_AT_END, IDC_PAUSEAT_FIELD};
 
 		switch (Message) {
 			case WM_INITDIALOG:
