@@ -682,6 +682,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 	if (seek_to_frame.has_value() && m_current_sample >= seek_to_frame.value())
 	{
+		pauseEmu(false);
 		VCR::stop_seek();
 	}
 
@@ -1151,6 +1152,14 @@ VCR::Result VCR::begin_seek_to(size_t frame)
 {
 	seek_to_frame = std::make_optional(frame);
 	resumeEmu(true);
+
+	// We need to backtrack by restarting playback if we're ahead of the frame
+	if (m_current_sample >= frame)
+	{
+		vcr_stop_playback();
+		start_playback(movie_path);
+	}
+
 	return Result::Ok;
 }
 
