@@ -754,6 +754,7 @@ void update_menu_hotkey_labels()
 	set_hotkey_menu_accelerators(&Config.settings_hotkey, IDM_SETTINGS);
 
     set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, IDM_PLAY_LATEST_MOVIE);
+    set_hotkey_menu_accelerators(&Config.seek_to_frame_hotkey, IDM_SEEKER);
 }
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          int32_t is_reading, t_hotkey* hotkey)
