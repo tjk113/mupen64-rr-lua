@@ -492,8 +492,13 @@ int start_rom(std::filesystem::path path){
 	printf("Loading plugins\n");
 	if (!load_plugins())
 	{
-		MessageBox(mainHWND, "Invalid plugins selected", nullptr,
-		   MB_ICONERROR | MB_OK);
+		if (MessageBox(mainHWND,
+		               "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
+		               nullptr,
+		               MB_ICONQUESTION | MB_YESNO) == IDYES)
+		{
+			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
+		}
 		LeaveCriticalSection(&emu_cs);
 		return 0;
 	}
