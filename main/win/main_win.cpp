@@ -912,7 +912,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			Messenger::broadcast(Messenger::Message::SizeChanged, rect);
 			break;
 		}
-	case WM_USER + 17: SetFocus(mainHWND);
+	case WM_FOCUS_MAIN_WINDOW:
+		SetFocus(mainHWND);
 		break;
 	case WM_CREATE:
 		main_menu = GetMenu(hwnd);
