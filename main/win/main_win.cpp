@@ -470,6 +470,7 @@ int start_rom(std::filesystem::path path){
 		t_movie_header movie_header{};
 		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
 		{
+			LeaveCriticalSection(&emu_cs);
 			return 0;
 		}
 
@@ -477,6 +478,7 @@ int start_rom(std::filesystem::path path){
 
 		if (matching_rom.empty())
 		{
+			LeaveCriticalSection(&emu_cs);
 			return 0;
 		}
 
