@@ -20,6 +20,7 @@ namespace Seeker
 		{
 		case WM_INITDIALOG:
 			current_hwnd = hwnd;
+			SetFocus(GetDlgItem(hwnd, IDC_SEEKER_FRAME));
 			break;
 		case WM_DESTROY:
 			VCR::stop_seek();
