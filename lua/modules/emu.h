@@ -275,7 +275,6 @@ namespace LuaCore::Emu
 	{
 		Config.fps_modifier = luaL_checkinteger(L, 1);
 		timer_init(Config.fps_modifier, &ROM_HEADER);
-		on_speed_modifier_changed(Config.fps_modifier);
 		return 0;
 	}
 

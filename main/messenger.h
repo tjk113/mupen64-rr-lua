@@ -98,6 +98,11 @@ namespace Messenger
 		 * \brief A VCR seek operation has completed
 		 */
 		SeekCompleted,
+
+		/**
+		 * \brief The core speed modifier has changed
+		 */
+		SpeedModifierChanged,
 	};
 
 	/**

@@ -17,6 +17,7 @@
 
 #include "timers.h"
 #include "Config.hpp"
+#include "messenger.h"
 #include "vcr.h"
 #include "../../memory/pif.h"
 #include "../helpers/win_helpers.h"
@@ -41,6 +42,7 @@ void timer_init(int32_t speed_modifier, t_rom_header* rom_header)
 
 	new_frame_times = {};
 	new_vi_times = {};
+	Messenger::broadcast(Messenger::Message::SpeedModifierChanged, speed_modifier);
 }
 
 void timer_new_frame()

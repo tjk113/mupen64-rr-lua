@@ -71,12 +71,6 @@ extern void pauseEmu(BOOL quiet);
 extern bool is_primary_statusbar_invalidated;
 
 /**
- * \brief Notifies the frontend of speed modifier changing
- * \param value The new speed modifier
- */
-void on_speed_modifier_changed(int32_t value);
-
-/**
  * \brief Pauses the emulation during the object's lifetime, resuming it if previously paused upon being destroyed
  */
 struct BetterEmulationLock

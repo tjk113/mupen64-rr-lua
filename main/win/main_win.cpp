@@ -309,6 +309,12 @@ void on_capturing_changed(std::any data)
 	update_titlebar();
 }
 
+void on_speed_modifier_changed(std::any data)
+{
+	auto value = std::any_cast<int32_t>(data);
+
+	Statusbar::post(std::format("Speed limit: {}%", value));
+}
 
 void on_emu_paused_changed(bool value)
 {
@@ -516,7 +522,6 @@ int start_rom(std::filesystem::path path){
 	// notify ui of emu state change
 	Recent::add(Config.recent_rom_paths, path.string(), Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
-	on_speed_modifier_changed(Config.fps_modifier);
 
 	// HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
 	auto gfx_thread = std::thread(load_gfx, video_plugin->handle);
@@ -718,10 +723,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	ExitThread(0);
 }
 
-void on_speed_modifier_changed(int32_t value)
-{
-	Statusbar::post(std::format("Speed limit: {}%", Config.fps_modifier));
-}
 
 void ProcessToolTips(LPARAM lParam, HWND hWnd)
 {
@@ -1464,7 +1465,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (Config.fps_modifier > 1000)
 					Config.fps_modifier = 1000;
 				timer_init(Config.fps_modifier, &ROM_HEADER);
-				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			case IDC_DECREASE_MODIFIER:
 				if (Config.fps_modifier > 200)
@@ -1478,12 +1478,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (Config.fps_modifier < 5)
 					Config.fps_modifier = 5;
 				timer_init(Config.fps_modifier, &ROM_HEADER);
-				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			case IDC_RESET_MODIFIER:
 				Config.fps_modifier = 100;
 				timer_init(Config.fps_modifier, &ROM_HEADER);
-				on_speed_modifier_changed(Config.fps_modifier);
 				break;
 			default:
 				if (LOWORD(wParam) >= IDM_SELECT_1 && LOWORD(wParam)
@@ -1663,6 +1661,7 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::MovieRecordingStarted, on_movie_recording_or_playback_started);
 	Messenger::subscribe(Messenger::Message::MoviePlaybackStarted, on_movie_recording_or_playback_started);
 	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
+	Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
 
 	// Rombrowser needs to be initialized *after* other components, since it depends on their state smh bru
 	Statusbar::init();
