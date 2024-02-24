@@ -69,7 +69,6 @@ bool overwrite_controller_data[4];
 
 ULONG_PTR gdi_plus_token;
 auto d2d_overlay_class = "lua_d2d_overlay";
-auto gdi_overlay_class = "lua_gdi_overlay";
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
@@ -805,32 +804,6 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-	switch (msg)
-	{
-	case WM_PAINT:
-		{
-			auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-
-			PAINTSTRUCT ps;
-			BeginPaint(hwnd, &ps);
-
-			bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
-			BitBlt(lua->gdi_front_dc, 0, 0, lua->dc_size.width, lua->dc_size.height, lua->gdi_back_dc, 0, 0, SRCCOPY);
-			if (failed)
-			{
-				LuaEnvironment::destroy(lua);
-			}
-
-			EndPaint(hwnd, &ps);
-			return 0;
-		}
-	}
-	return DefWindowProc(hwnd, msg, wparam, lparam);
-}
-
-
 void lua_init()
 {
 
@@ -843,10 +816,6 @@ void lua_init()
 	wndclass.hInstance = GetModuleHandle(nullptr);
 	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndclass.lpszClassName = d2d_overlay_class;
-	RegisterClass(&wndclass);
-
-	wndclass.lpfnWndProc = (WNDPROC)gdi_overlay_wndproc;
-	wndclass.lpszClassName = gdi_overlay_class;
 	RegisterClass(&wndclass);
 }
 
@@ -887,13 +856,11 @@ void LuaEnvironment::create_renderer()
 
 	d2d_render_target_stack.push(d2d_dc);
 
-	gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, gdi_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
-	SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
-
-	gdi_front_dc = GetDC(gdi_overlay_hwnd);
-	gdi_back_dc = CreateCompatibleDC(gdi_front_dc);
-	gdi_bmp = CreateCompatibleBitmap(gdi_front_dc,dc_size.width, dc_size.height);
+	auto gdi_dc = GetDC(mainHWND);
+	gdi_back_dc = CreateCompatibleDC(gdi_dc);
+	gdi_bmp = CreateCompatibleBitmap(gdi_dc,dc_size.width, dc_size.height);
 	SelectObject(gdi_back_dc, gdi_bmp);
+	ReleaseDC(mainHWND, gdi_dc);
 }
 
 void LuaEnvironment::destroy_renderer()
@@ -931,12 +898,10 @@ void LuaEnvironment::destroy_renderer()
 	d2d_factory->Release();
 	d2d_device->Release();
 
-	DestroyWindow(gdi_overlay_hwnd);
 	SelectObject(gdi_back_dc, nullptr);
+	DeleteDC(gdi_back_dc);
 	DeleteObject(gdi_bmp);
-	ReleaseDC(gdi_overlay_hwnd, gdi_front_dc);
 	gdi_back_dc = nullptr;
-	gdi_front_dc = nullptr;
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
@@ -1029,7 +994,15 @@ void LuaEnvironment::invalidate_visuals()
  	GetClientRect(this->d2d_overlay_hwnd, &rect);
 
  	InvalidateRect(this->d2d_overlay_hwnd, &rect, false);
- 	InvalidateRect(this->gdi_overlay_hwnd, &rect, false);
+
+	auto dc = GetDC(mainHWND);
+	bool failed = invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
+	BitBlt(dc, 0, 0, dc_size.width, dc_size.height, gdi_back_dc, 0, 0, SRCCOPY);
+	ReleaseDC(mainHWND, dc);
+	if (failed)
+	{
+		LuaEnvironment::destroy(this);
+	}
 }
 
 void LuaEnvironment::LoadScreenInit()
