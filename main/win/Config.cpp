@@ -344,6 +344,15 @@ CONFIG get_default_config()
 		.command = IDM_REFRESH_ROMBROWSER,
 	};
 
+	config.seek_to_frame_hotkey = {
+		.identifier = "Seek to frame",
+		.key = 0x47,
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.command = IDM_SEEKER,
+	};
+
 	config.save_current_hotkey = {
 		.identifier = "Save to current slot",
 		.key = 0x49 /* I */,
