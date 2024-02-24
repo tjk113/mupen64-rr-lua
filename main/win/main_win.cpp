@@ -51,6 +51,7 @@
 #include "features/GameControl.h"
 #include "features/MovieDialog.h"
 #include "features/RomBrowser.hpp"
+#include "features/Seeker.h"
 #include "features/Statusbar.hpp"
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
 #include "helpers/collection_helpers.h"
@@ -219,6 +220,8 @@ void on_task_changed(std::any data)
 		break;
 	}
 
+	EnableMenuItem(main_menu, IDM_SEEKER, task_is_playback(value));
+
 	update_titlebar();
 }
 
@@ -252,6 +255,7 @@ void on_emu_launched_changed(std::any data)
 	EnableMenuItem(main_menu, EMU_PLAY, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_CLOSE_ROM, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_TRACELOG, value ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_SEEKER, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
@@ -1187,6 +1191,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_COREDBG:
 				CoreDbg::start();
+				break;
+			case IDM_SEEKER:
+				{
+					BetterEmulationLock lock;
+					Seeker::show();
+				}
 				break;
 			case IDM_RAMSTART:
 				{

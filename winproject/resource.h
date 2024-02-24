@@ -8,6 +8,7 @@
 #define IDR_MYMENU                      101
 #define IDR_ACCEL                       103
 #define IDM_SETTINGS                    105
+#define IDD_SEEKER                      107
 #define IDD_MAIN                        128
 #define IDM_LOAD_ROM                    129
 #define IDC_INTERP                      130
@@ -88,6 +89,8 @@
 #define IDC_RADIO_FROM_EXISTING_ST      1030
 #define IDC_PAUSE_AT_END                1031
 #define IDC_RADIO1                      1033
+#define IDC_EDIT1                       1035
+#define IDC_SEEKER_FRAME                1035
 #define IDM_FULLSCREEN                  1061
 #define IDM_PAUSE                       1062
 #define IDM_FRAMEADVANCE                1063
@@ -458,15 +461,16 @@
 #define IDC_ERRORTEXT                   40062
 #define IDC_ERROR_PICTUREBOX            40063
 #define IDD_NEW_HOTKEY_DIALOG           40064
+#define IDM_SEEKER                      40065
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        107
+#define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1036
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
