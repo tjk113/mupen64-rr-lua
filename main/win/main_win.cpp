@@ -55,6 +55,7 @@
 #include "features/Statusbar.hpp"
 #include "ffmpeg_capture/ffmpeg_capture.hpp"
 #include "helpers/collection_helpers.h"
+#include "helpers/math_helpers.h"
 #include "helpers/string_helpers.h"
 #include "helpers/win_helpers.h"
 #include "wrapper/PersistentPathDialog.h"
@@ -957,25 +958,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			// We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
 			if (time - last_statusbar_update > std::chrono::seconds(1))
 			{
-				// TODO: This is just a quick proof of concept, must reduce code duplication
-				if (Config.show_fps && !frame_times.empty())
-				{
-					long long fps = 0;
-					for (int i = 1; i < frame_times.size(); ++i)
-					{
-						fps += (frame_times[i] - frame_times[i - 1]).count();
-					}
-					Statusbar::post(std::format("FPS: {:.1f}", 1000.0f / (float)((fps / frame_times.size()) / 1'000'000.0f)), Statusbar::Section::FPS);
-				}
-				if (Config.show_vis_per_second && !vi_times.empty())
-				{
-					long long vis = 0;
-					for (int i = 1; i < vi_times.size(); ++i)
-					{
-						vis += (vi_times[i] - vi_times[i - 1]).count();
-					}
-					Statusbar::post(std::format("VI/s: {:.1f}", 1000.0f / (float)((vis / vi_times.size()) / 1'000'000.0f)), Statusbar::Section::VIs);
-				}
+				Statusbar::post(std::format("FPS: {:.1f}", get_rate_per_second_from_times(frame_times)), Statusbar::Section::FPS);
+				Statusbar::post(std::format("VI/s: {:.1f}", get_rate_per_second_from_times(vi_times)), Statusbar::Section::VIs);
 				last_statusbar_update = time;
 			}
 		}
