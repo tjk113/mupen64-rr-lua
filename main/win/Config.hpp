@@ -76,33 +76,6 @@ typedef struct _CONFIG
 #pragma endregion
 
 	/// <summary>
-	/// The selected language
-	/// </summary>
-	std::string language;
-
-	/// <summary>
-	/// Whether FPS are shown to the user
-	/// </summary>
-	int32_t show_fps;
-
-	/// <summary>
-	/// Whether VI/s are shown to the user
-	/// TODO: fix disabling this breaking emulation
-	/// </summary>
-	int32_t show_vis_per_second;
-
-	/// <summary>
-	/// Whether the user will be notified of savestate errors
-	/// TODO: Deprecate or unify
-	/// </summary>
-	int32_t is_savestate_warning_enabled;
-
-	/// <summary>
-	/// Whether movie rom metadata is checked against the currently loaded rom
-	/// </summary>
-	int32_t is_rom_movie_compatibility_check_enabled;
-
-	/// <summary>
 	/// The currently selected core type
 	/// <para/>
 	/// 0 - Cached Interpreter
@@ -216,7 +189,6 @@ typedef struct _CONFIG
 
 	/// <summary>
 	/// Whether rom resets are not recorded in movies
-	/// TODO: Negate related conditions and wording
 	/// </summary>
 	int32_t is_reset_recording_enabled;
 
@@ -238,16 +210,6 @@ typedef struct _CONFIG
 	/// May be useful when capturing other windows alongside mupen
 	/// </summary>
 	int32_t capture_delay;
-
-	/// <summary>
-	/// Whether selecting hotkeys inside the OEM-reserved range is allowed
-	/// </summary>
-	int32_t is_unknown_hotkey_selection_allowed;
-
-	/// <summary>
-	/// The avi capture path
-	/// </summary>
-	std::string avi_capture_path;
 
 	/// <summary>
 	/// The audio-video synchronization mode
@@ -297,11 +259,6 @@ typedef struct _CONFIG
 	/// Whether jmp instructions will cause the following code to be JIT'd by dynarec
 	/// </summary>
 	int32_t is_compiled_jump_enabled;
-
-	/// <summary>
-	/// Whether lua drawing is double-buffered
-	/// </summary>
-	int32_t is_lua_double_buffered;
 
 	/// <summary>
 	/// The path of the currently selected video plugin

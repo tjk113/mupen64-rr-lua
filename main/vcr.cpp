@@ -1582,7 +1582,6 @@ bool vcr_start_capture(const char* path, const bool show_codec_dialog)
 	m_capture = 1;
 	capture_with_f_fmpeg = false;
 	strncpy(avi_file_name, path, MAX_PATH);
-	Config.avi_capture_path = path;
 
 	Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 

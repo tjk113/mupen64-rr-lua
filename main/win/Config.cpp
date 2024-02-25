@@ -641,11 +641,6 @@ CONFIG get_default_config()
 		.command = (IDM_SELECT_1 - 1) + 10,
 	};
 
-	config.language = "English";
-	config.show_fps = 1;
-	config.show_vis_per_second = 1;
-	config.is_savestate_warning_enabled = 1;
-	config.is_rom_movie_compatibility_check_enabled = 1;
 	config.core_type = 1;
 	config.fps_modifier = 100;
 	config.frame_skip_frequency = 1;
@@ -671,8 +666,6 @@ CONFIG get_default_config()
 	config.is_internal_capture_forced = 0;
 	config.is_capture_cropped_screen_dc = 0;
 	config.capture_delay = 0;
-	config.is_unknown_hotkey_selection_allowed = 1;
-	config.avi_capture_path.clear();
 	config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
 	config.lua_script_path.clear();
 	config.recent_lua_script_paths = {};
@@ -682,7 +675,6 @@ CONFIG get_default_config()
 	config.is_float_exception_propagation_enabled = 0;
 	config.is_audio_delay_enabled = 1;
 	config.is_compiled_jump_enabled = 1;
-	config.is_lua_double_buffered = 1;
 	config.selected_video_plugin.clear();
 	config.selected_audio_plugin.clear();
 	config.selected_input_plugin.clear();
@@ -950,11 +942,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 		hotkeys.push_back(hotkey_pointer);
 	}
 
-	HANDLE_VALUE(language)
-	HANDLE_P_VALUE(show_fps)
-	HANDLE_P_VALUE(show_vis_per_second)
-	HANDLE_P_VALUE(is_savestate_warning_enabled)
-	HANDLE_P_VALUE(is_rom_movie_compatibility_check_enabled)
 	HANDLE_P_VALUE(core_type)
 	HANDLE_P_VALUE(fps_modifier)
 	HANDLE_P_VALUE(frame_skip_frequency)
@@ -978,8 +965,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_internal_capture_forced)
 	HANDLE_P_VALUE(is_capture_cropped_screen_dc)
 	HANDLE_P_VALUE(capture_delay)
-	HANDLE_P_VALUE(is_unknown_hotkey_selection_allowed)
-	HANDLE_VALUE(avi_capture_path)
 	HANDLE_P_VALUE(synchronization_mode)
 	HANDLE_VALUE(lua_script_path)
 	HANDLE_VALUE(recent_lua_script_paths)
@@ -989,7 +974,6 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_float_exception_propagation_enabled)
 	HANDLE_P_VALUE(is_audio_delay_enabled)
 	HANDLE_P_VALUE(is_compiled_jump_enabled)
-	HANDLE_P_VALUE(is_lua_double_buffered)
 	HANDLE_VALUE(selected_video_plugin)
 	HANDLE_VALUE(selected_audio_plugin)
 	HANDLE_VALUE(selected_input_plugin)

@@ -49,8 +49,6 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
     {
     case WM_INITDIALOG:
         {
-	        set_checkbox_state(hwnd, IDC_ALERTMOVIESERRORS, Config.is_rom_movie_compatibility_check_enabled);
-
             static const char* clock_speed_multiplier_names[] = {
                 "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6"
             };
@@ -104,10 +102,6 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
                 read_combo_box_value(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
                 Config.cpu_clock_speed_multiplier = atoi(&buf[0]);
                 break;
-            case IDC_ALERTMOVIESERRORS:
-            	Config.is_rom_movie_compatibility_check_enabled = get_checkbox_state(hwnd, IDC_ALERTMOVIESERRORS);
-            	printf("%d\n", Config.is_rom_movie_compatibility_check_enabled);
-            	break;
             default:
                 break;
             }
@@ -536,9 +530,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
     switch (message)
     {
     case WM_INITDIALOG:
-        set_checkbox_state(hwnd, IDC_SHOWFPS, Config.show_fps);
-        set_checkbox_state(hwnd, IDC_SHOWVIS, Config.show_vis_per_second);
-        set_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS, Config.is_savestate_warning_enabled);
         SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
 
         CheckDlgButton(hwnd, IDC_INTERP, Config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
@@ -584,9 +575,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
     case WM_NOTIFY:
         if (l_nmhdr->code == PSN_APPLY)
         {
-            Config.show_fps = get_checkbox_state(hwnd, IDC_SHOWFPS);
-            Config.show_vis_per_second = get_checkbox_state(hwnd, IDC_SHOWVIS);
-            Config.is_savestate_warning_enabled = get_checkbox_state(hwnd, IDC_ALERTSAVESTATEWARNINGS);
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
         }
         break;
@@ -609,7 +597,6 @@ BOOL CALLBACK advanced_settings_proc(const HWND hwnd, const UINT message, WPARAM
        set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
        set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
        set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
-       set_checkbox_state(hwnd, IDC_CLUADOUBLEBUFFER, Config.is_lua_double_buffered);
        set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
        set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
        set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
@@ -626,7 +613,6 @@ BOOL CALLBACK advanced_settings_proc(const HWND hwnd, const UINT message, WPARAM
             Config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
             Config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
             Config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
-            Config.is_lua_double_buffered = get_checkbox_state(hwnd, IDC_CLUADOUBLEBUFFER);
             Config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);
             Config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);
             Config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);

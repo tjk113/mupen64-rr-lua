@@ -142,10 +142,7 @@
 #define IDC_CURRENT_ROM                 2108
 #define ID_GENERATE_ROM_INFO            2200
 #define IDD_MESSAGES                    2250
-#define IDC_SHOWFPS                     2251
-#define IDC_SHOWVIS                     2252
 #define IDC_MESSAGES                    2255
-#define IDC_ALERTSAVESTATEWARNINGS      2256
 #define IDC_LIMITFPS                    2257
 #define IDC_FPSTITLE                    2258
 #define IDC_FPSTRACKBAR                 2259
@@ -155,7 +152,6 @@
 #define IDC_RESET_MODIFIER              2264
 #define IDC_SKIPFREQ                    2265
 #define IDC_0INDEX                      2266
-#define IDC_ALERTMOVIESERRORS           2267
 #define IDC_FASTFORWARDSKIPFREQ         2268
 #define IDM_SAVE_SLOT                   3000
 #define IDM_SAVE_STATE_AS               3001
@@ -421,7 +417,6 @@
 #define IDM_START_FFMPEG_CAPTURE        40006
 #define IDM_RESET_ROM                   40007
 #define IDC_STARTFROM2                  40008
-#define IDC_CLUADOUBLEBUFFER            40010
 #define IDC_GITREPO                     40011
 #define IDM_RESET_RECENT_LUA            40013
 #define IDM_FREEZE_RECENT_LUA           40014
