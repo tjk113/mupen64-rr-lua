@@ -103,16 +103,6 @@ namespace Messenger
 		 * \brief The core speed modifier has changed
 		 */
 		SpeedModifierChanged,
-
-		/**
-		 * \brief The emulator has paused
-		 */
-		EmuPaused,
-
-		/**
-		 * \brief The emulator has resumed
-		 */
-		EmuResumed,
 	};
 
 	/**

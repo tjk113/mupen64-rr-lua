@@ -38,6 +38,8 @@
 #include "recomp.h"
 #include "recomph.h"
 #include <malloc.h>
+
+#include "messenger.h"
 #include "../lua/LuaConsole.h"
 
 #ifdef DBG
@@ -81,6 +83,27 @@ void (*code)();
    if (!invalid_code[address>>12]) \
        if (blocks[address>>12]->block[(address&0xFFF)/4].ops != NOTCOMPILED) \
 	 invalid_code[address>>12] = 1;
+
+void resume_emu()
+{
+	if (emu_launched)
+	{
+		emu_paused = 0;
+	}
+
+	Messenger::broadcast(Messenger::Message::EmuPausedChanged, (bool)emu_paused);
+}
+
+
+void pause_emu()
+{
+	if (emu_launched)
+	{
+		emu_paused = 1;
+	}
+
+	Messenger::broadcast(Messenger::Message::EmuPausedChanged, (bool)emu_paused);
+}
 
 void NI()
 {

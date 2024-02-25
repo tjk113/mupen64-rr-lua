@@ -320,9 +320,13 @@ void on_speed_modifier_changed(std::any data)
 	Statusbar::post(std::format("Speed limit: {}%", value));
 }
 
-void on_emu_paused_changed(bool value)
+void on_emu_paused_changed(std::any data)
 {
+	auto value = std::any_cast<bool>(data);
 
+	sound_allowed = !value;
+	frame_changed = true;
+	MenuPaused = false;
 }
 
 void on_movie_loop_changed(std::any data)
@@ -418,31 +422,6 @@ static void gui_ChangeWindow()
 	}
 }
 
-void resume_emu()
-{
-	if (emu_launched)
-	{
-		emu_paused = 0;
-		sound_allowed = true;
-		Statusbar::post("Emulation started");
-	}
-
-	CheckMenuItem(main_menu, IDM_PAUSE, MF_BYCOMMAND | (emu_paused ? MF_CHECKED : MF_UNCHECKED));
-}
-
-
-void pause_emu()
-{
-	if (emu_launched)
-	{
-		frame_changed = true;
-		emu_paused = 1;
-		sound_allowed = false;
- 		Statusbar::post("Emulation paused");
-	}
-
-	CheckMenuItem(main_menu, IDM_PAUSE, MF_BYCOMMAND | (emu_paused ? MF_CHECKED : MF_UNCHECKED));
-}
 
 int start_rom(std::filesystem::path path){
 
@@ -964,6 +943,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			// this might break small res with gfx plugin!!!
 		}
 		break;
+	case WM_INITMENU:
+		{
+			CheckMenuItem(main_menu, IDM_PAUSE, MF_BYCOMMAND | (AutoPause ? MF_CHECKED : MF_UNCHECKED));
+		}
+		break;
 	case WM_ENTERMENULOOP:
 		AutoPause = emu_paused;
 		if (!emu_paused)
@@ -1102,8 +1086,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					} else if (MenuPaused)
 					{
 						MenuPaused = FALSE;
-						CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
-						              MF_BYCOMMAND | MFS_CHECKED);
 					} else
 					{
 						resume_emu();
@@ -1618,6 +1600,7 @@ int WINAPI WinMain(
 	GetClientRect(mainHWND, &rect);
 
 	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
+	Messenger::subscribe(Messenger::Message::EmuPausedChanged, on_emu_paused_changed);
 	Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
 	Messenger::subscribe(Messenger::Message::MovieLoopChanged, on_movie_loop_changed);
 	Messenger::subscribe(Messenger::Message::ReadonlyChanged, on_readonly_changed);
