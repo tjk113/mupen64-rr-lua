@@ -91,6 +91,7 @@
 #define IDC_RADIO1                      1033
 #define IDC_EDIT1                       1035
 #define IDC_SEEKER_FRAME                1035
+#define IDC_MOVIE_INFO_TEMPLATE         1036
 #define IDM_FULLSCREEN                  1061
 #define IDM_PAUSE                       1062
 #define IDM_FRAMEADVANCE                1063
@@ -464,7 +465,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1036
+#define _APS_NEXT_CONTROL_VALUE         1037
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
