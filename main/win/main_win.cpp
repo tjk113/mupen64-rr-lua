@@ -87,6 +87,9 @@ HINSTANCE app_instance;
 std::string app_path = "";
 std::filesystem::path rom_path;
 
+// Whether the sound thread can call aiUpdate
+bool sound_allowed = true;
+
 /**
  * \brief List of lua environment map keys running before emulation stopped
  */
@@ -356,13 +359,13 @@ BetterEmulationLock::BetterEmulationLock()
 	was_paused = emu_paused && !MenuPaused;
 	MenuPaused = FALSE;
 	if (emu_launched && !emu_paused)
-		pauseEmu(FALSE);
+		pause_emu();
 }
 
 BetterEmulationLock::~BetterEmulationLock()
 {
 	if (emu_launched && emu_paused && !was_paused)
-		resumeEmu(FALSE);
+		resume_emu();
 }
 
 #pragma endregion
@@ -415,48 +418,30 @@ static void gui_ChangeWindow()
 	}
 }
 
-void resumeEmu(BOOL quiet)
+void resume_emu()
 {
-	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
 		emu_paused = 0;
-		ResumeThread(sound_thread_handle);
-		if (!quiet)
-			Statusbar::post("Emulation started");
+		sound_allowed = true;
+		Statusbar::post("Emulation started");
 	}
 
-	if (emu_paused != wasPaused && !quiet)
-		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
-		              MF_BYCOMMAND | (emu_paused
-			                              ? MFS_CHECKED
-			                              : MFS_UNCHECKED));
+	CheckMenuItem(main_menu, IDM_PAUSE, MF_BYCOMMAND | (emu_paused ? MF_CHECKED : MF_UNCHECKED));
 }
 
 
-void pauseEmu(BOOL quiet)
+void pause_emu()
 {
-	BOOL wasPaused = emu_paused;
 	if (emu_launched)
 	{
 		frame_changed = true;
 		emu_paused = 1;
-		if (!quiet)
-			// HACK (not a typo) seems to help avoid a race condition that permanently disables sound when doing frame advance
-			SuspendThread(sound_thread_handle);
-		if (!quiet)
-			Statusbar::post("Emulation paused");
-	} else
-	{
-		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
-		              MF_BYCOMMAND | MFS_UNCHECKED);
+		sound_allowed = false;
+ 		Statusbar::post("Emulation paused");
 	}
 
-	if (emu_paused != wasPaused && !MenuPaused)
-		CheckMenuItem(GetMenu(mainHWND), IDM_PAUSE,
-		              MF_BYCOMMAND | (emu_paused
-			                              ? MFS_CHECKED
-			                              : MFS_UNCHECKED));
+	CheckMenuItem(main_menu, IDM_PAUSE, MF_BYCOMMAND | (emu_paused ? MF_CHECKED : MF_UNCHECKED));
 }
 
 int start_rom(std::filesystem::path path){
@@ -563,7 +548,7 @@ void close_rom(bool stop_vcr)
 	}
 
 	MenuPaused = FALSE;
-	resumeEmu(FALSE);
+	resume_emu();
 
 	if (stop_vcr)
 	{
@@ -666,6 +651,10 @@ static DWORD WINAPI SoundThread(LPVOID lpParam)
 {
 	while (emu_launched)
 	{
+		if (!sound_allowed)
+		{
+			continue;
+		}
 		aiUpdate(1);
 	}
 	ExitThread(0);
@@ -980,7 +969,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		if (!emu_paused)
 		{
 			MenuPaused = TRUE;
-			pauseEmu(FALSE);
+			pause_emu();
 		}
 		break;
 
@@ -993,7 +982,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			Sleep(60);
 			if (emu_paused && !AutoPause && MenuPaused)
 			{
-				resumeEmu(FALSE);
+				resume_emu();
 			}
 			MenuPaused = FALSE;
 		}).detach();
@@ -1007,7 +996,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		case WA_CLICKACTIVE:
 			if (Config.is_unfocused_pause_enabled && emu_paused && !AutoPause)
 			{
-				resumeEmu(FALSE);
+				resume_emu();
 				AutoPause = emu_paused;
 			}
 			break;
@@ -1018,7 +1007,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				/*(&& minimize*/ && !FullScreenMode)
 			{
 				MenuPaused = FALSE;
-				pauseEmu(FALSE);
+				pause_emu();
 			} else if (Config.is_unfocused_pause_enabled && MenuPaused)
 			{
 				MenuPaused = FALSE;
@@ -1109,7 +1098,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					if (!emu_paused)
 					{
-						pauseEmu(vcr_is_active());
+						pause_emu();
 					} else if (MenuPaused)
 					{
 						MenuPaused = FALSE;
@@ -1117,7 +1106,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						              MF_BYCOMMAND | MFS_CHECKED);
 					} else
 					{
-						resumeEmu(vcr_is_active());
+						resume_emu();
 					}
 					break;
 				}
@@ -1128,7 +1117,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					frame_advancing = 1;
 					// vis_per_second = 0;
 					// prevent old VI value from showing error if running at super fast speeds
-					resumeEmu(TRUE); // maybe multithreading unsafe
+					resume_emu(); // maybe multithreading unsafe
 				}
 				break;
 
@@ -1144,17 +1133,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 
 			case EMU_PLAY:
-				if (emu_launched)
-				{
-					if (emu_paused)
-					{
-						resumeEmu(FALSE);
-					}
-				} else
-				{
-					// TODO: reimplement
-					// RomList_OpenRom();
-				}
+				resume_emu();
 				break;
 
 			case IDM_RESET_ROM:

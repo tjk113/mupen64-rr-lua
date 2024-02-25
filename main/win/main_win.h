@@ -64,8 +64,15 @@ void close_rom(bool stop_vcr = true);
  */
 void reset_rom(bool reset_save_data = false, bool stop_vcr = true);
 
-extern void resumeEmu(BOOL quiet);
-extern void pauseEmu(BOOL quiet);
+/**
+ * \brief Resumes the emulator
+ */
+void resume_emu();
+
+/**
+ * \brief Pauses the emulator
+ */
+void pause_emu();
 
 
 /**

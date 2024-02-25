@@ -736,12 +736,12 @@ void instrStr1(unsigned long pc, unsigned long w, char* p1)
 EmulationLock::EmulationLock()
 {
 	printf("Emulation Lock\n");
-	pauseEmu(FALSE);
+	pause_emu();
 }
 
 EmulationLock::~EmulationLock()
 {
-	resumeEmu(FALSE);
+	resume_emu();
 	printf("Emulation Unlock\n");
 }
 

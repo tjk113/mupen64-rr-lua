@@ -683,7 +683,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// Off-by-one because we are already inside input poll, so pauseEmu will be delayed by one frame
 	if (seek_to_frame.has_value() && m_current_sample >= seek_to_frame.value() - 1)
 	{
-		pauseEmu(false);
+		pause_emu();
 		VCR::stop_seek();
 	}
 
@@ -706,7 +706,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		std::thread([] { reset_rom(false, false); }).detach();
 		// NOTE: While it doesn't seem to happen in practice, we could theoretically get another input poll generation between us signalling reset and the emu actually stopping.
 		// To prevent this, we pause it here as to not generate new frames.
-		pauseEmu(true);
+		pause_emu();
 	}
 
 	last_controller_data[index] = *input;
@@ -1152,7 +1152,7 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 VCR::Result VCR::begin_seek_to(size_t frame)
 {
 	seek_to_frame = std::make_optional(frame);
-	resumeEmu(true);
+	resume_emu();
 
 	// We need to backtrack by restarting playback if we're ahead of the frame
 	if (m_current_sample > frame)
@@ -1752,7 +1752,7 @@ void vcr_on_vi()
 
 	if (pausing_at_last || pausing_at_n)
 	{
-		pauseEmu(true);
+		pause_emu();
 	}
 
 	if (pausing_at_last)

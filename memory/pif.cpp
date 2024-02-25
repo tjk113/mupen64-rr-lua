@@ -474,7 +474,7 @@ void update_pif_read(bool stcheck)
                     {
                         once = false;
                         frame_advancing = 0;
-                        pauseEmu(TRUE);
+                        pause_emu();
                         while (emu_paused)
                         {
                             Sleep(10);

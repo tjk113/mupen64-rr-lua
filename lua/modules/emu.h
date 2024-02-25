@@ -251,10 +251,10 @@ namespace LuaCore::Emu
 	{
 		if (!lua_toboolean(L, 1))
 		{
-			pauseEmu(FALSE);
+			pause_emu();
 		} else
 		{
-			resumeEmu(TRUE);
+			resume_emu();
 		}
 		return 0;
 	}
