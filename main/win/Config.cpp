@@ -700,7 +700,7 @@ CONFIG get_default_config()
 	config.pause_at_last_frame = 0;
 	config.vcr_readonly = 0;
 	config.crash_dialog = 1;
-	config.max_vis_since_input_poll = 120;
+	config.max_vis_since_input_poll = 480;
 
 	return config;
 }
