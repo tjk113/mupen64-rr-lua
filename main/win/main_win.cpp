@@ -74,8 +74,6 @@ UINT update_screen_timer;
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam);
 constexpr char g_szClassName[] = "myWindowClass";
-static BOOL AutoPause = 0;
-static BOOL MenuPaused = 0;
 
 HWND mainHWND;
 HMENU main_menu;
@@ -102,6 +100,9 @@ bool is_restarting;
 
 // Lock to prevent multiple callers from starting/stopping/resetting emu simultaneously
 CRITICAL_SECTION emu_cs;
+
+bool paused_before_menu;
+bool paused_before_focus;
 
 namespace Recent
 {
@@ -326,7 +327,6 @@ void on_emu_paused_changed(std::any data)
 
 	sound_allowed = !value;
 	frame_changed = true;
-	MenuPaused = false;
 }
 
 void on_movie_loop_changed(std::any data)
@@ -360,15 +360,13 @@ void on_readonly_changed(std::any data)
 
 BetterEmulationLock::BetterEmulationLock()
 {
-	was_paused = emu_paused && !MenuPaused;
-	MenuPaused = FALSE;
-	if (emu_launched && !emu_paused)
-		pause_emu();
+	was_paused = emu_paused;
+	pause_emu();
 }
 
 BetterEmulationLock::~BetterEmulationLock()
 {
-	if (emu_launched && emu_paused && !was_paused)
+	if (!was_paused)
 		resume_emu();
 }
 
@@ -526,7 +524,6 @@ void close_rom(bool stop_vcr)
 		return;
 	}
 
-	MenuPaused = FALSE;
 	resume_emu();
 
 	if (stop_vcr)
@@ -612,7 +609,6 @@ void reset_rom(bool reset_save_data, bool stop_vcr)
 	// but it should be possible to reset the game while it's still running
 	// simply by clearing out some memory and maybe notifying the plugins...
 	frame_advancing = false;
-	MenuPaused = FALSE;
 	is_restarting = true;
 
 	close_rom(stop_vcr);
@@ -945,16 +941,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_INITMENU:
 		{
-			CheckMenuItem(main_menu, IDM_PAUSE, MF_BYCOMMAND | (AutoPause ? MF_CHECKED : MF_UNCHECKED));
+			CheckMenuItem(main_menu, IDM_PAUSE, MF_BYCOMMAND | (paused_before_menu ? MF_CHECKED : MF_UNCHECKED));
 		}
 		break;
 	case WM_ENTERMENULOOP:
-		AutoPause = emu_paused;
-		if (!emu_paused)
-		{
-			MenuPaused = TRUE;
-			pause_emu();
-		}
+		paused_before_menu = emu_paused;
+		pause_emu();
 		break;
 
 	case WM_EXITMENULOOP:
@@ -964,38 +956,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		std::thread([]
 		{
 			Sleep(60);
-			if (emu_paused && !AutoPause && MenuPaused)
+			if (!paused_before_menu)
 			{
 				resume_emu();
 			}
-			MenuPaused = FALSE;
 		}).detach();
 		break;
 	case WM_ACTIVATE:
 		UpdateWindow(hwnd);
 
+		if (!Config.is_unfocused_pause_enabled)
+		{
+			break;
+		}
+
 		switch (LOWORD(wParam))
 		{
 		case WA_ACTIVE:
 		case WA_CLICKACTIVE:
-			if (Config.is_unfocused_pause_enabled && emu_paused && !AutoPause)
+			if (!paused_before_focus)
 			{
 				resume_emu();
-				AutoPause = emu_paused;
 			}
 			break;
 
 		case WA_INACTIVE:
-			AutoPause = emu_paused && !MenuPaused;
-			if (Config.is_unfocused_pause_enabled && !emu_paused
-				/*(&& minimize*/ && !FullScreenMode)
-			{
-				MenuPaused = FALSE;
-				pause_emu();
-			} else if (Config.is_unfocused_pause_enabled && MenuPaused)
-			{
-				MenuPaused = FALSE;
-			}
+			paused_before_focus = emu_paused;
+			pause_emu();
 			break;
 		default:
 			break;
@@ -1072,7 +1059,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case IDM_CLOSE_ROM:
-				MenuPaused = FALSE;
 				if (!confirm_user_exit())
 					break;
 				std::thread([] { close_rom(); }).detach();
@@ -1080,26 +1066,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case IDM_PAUSE:
 				{
-					if (!emu_paused)
-					{
-						pause_emu();
-					} else if (MenuPaused)
-					{
-						MenuPaused = FALSE;
-					} else
+					if (emu_paused)
 					{
 						resume_emu();
+						break;
 					}
+					pause_emu();
 					break;
 				}
 
 			case IDM_FRAMEADVANCE:
 				{
-					MenuPaused = FALSE;
 					frame_advancing = 1;
-					// vis_per_second = 0;
-					// prevent old VI value from showing error if running at super fast speeds
-					resume_emu(); // maybe multithreading unsafe
+					resume_emu();
 				}
 				break;
 
