@@ -400,6 +400,10 @@ void lua_create_and_run(const char* path)
 		(BREAKPOINTSYNC_MAGIC_STYPE << 6);
 
 
+	// these begin and end comments help to generate documentation
+	// please don't remove them
+
+	// begin lua funcs
 	const luaL_Reg globalFuncs[] = {
 		{"print", LuaCore::Global::Print},
 		{"printx", LuaCore::Global::PrintX},
@@ -407,7 +411,7 @@ void lua_create_and_run(const char* path)
 		{"stop", LuaCore::Global::StopScript},
 		{NULL, NULL}
 	};
-	//�G���Ȋ֐�
+
 	const luaL_Reg emuFuncs[] = {
 		{"console", LuaCore::Emu::ConsoleWriteLua},
 		{"statusbar", LuaCore::Emu::StatusbarWrite},
@@ -490,7 +494,6 @@ void lua_create_and_run(const char* path)
 		{NULL, NULL}
 	};
 
-	//winAPI GDI�֐���
 	const luaL_Reg wguiFuncs[] = {
 		{"setbrush", LuaCore::Wgui::set_brush},
 		{"setpen", LuaCore::Wgui::set_pen},
@@ -591,6 +594,7 @@ void lua_create_and_run(const char* path)
 		{"stopcapture", LuaCore::Avi::StopCapture},
 		{NULL, NULL}
 	};
+	// end lua funcs
 
 
 
