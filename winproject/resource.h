@@ -146,6 +146,7 @@
 #define IDC_LIMITFPS                    2257
 #define IDC_FPSTITLE                    2258
 #define IDC_FPSTRACKBAR                 2259
+#define IDC_FPSTITLE2                   2259
 #define IDC_SPEEDMODIFIER_VALUE         2261
 #define IDC_INCREASE_MODIFIER           2262
 #define IDC_DECREASE_MODIFIER           2263
@@ -215,7 +216,6 @@
 #define IDC_IDC_ROM_MD5                 5011
 #define IDC_CHOOSE_SAVES_DIR            5014
 #define IDM_SCREENSHOT                  5015
-#define IDD_ADVANCED_OPTIONS            5501
 #define IDC_PAUSENOTACTIVE              5503
 #define IDC_ROMBROWSERCOLUMNS           5504
 #define IDC_COLUMN_GOODNAME             5505
@@ -231,7 +231,6 @@
 #define IDC_ENABLE_COMPILED_JUMP        5516
 #define IDD_HOTKEY_CONFIG               5518
 #define IDC_WARNING_OPTIONS             5519
-#define IDC_RECORDINGOPT                5520
 #define IDM_RESET_RECENT_ROMS           6000
 #define IDM_FREEZE_RECENT_ROMS          6001
 #define ID_RECENTROMS_FIRST             6002
@@ -460,7 +459,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109

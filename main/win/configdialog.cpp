@@ -540,6 +540,18 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         EnableWindow(GetDlgItem(hwnd, IDC_RECOMP), !emu_launched);
         EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
 
+		set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
+		set_checkbox_state(hwnd, IDM_STATUSBAR, Config.is_statusbar_enabled);
+		set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
+		set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
+		set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
+		set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
+		set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
+		set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
+		set_checkbox_state(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
+		set_checkbox_state(hwnd, IDC_CAPTUREOTHER, Config.is_capture_cropped_screen_dc);
+		SetDlgItemInt(hwnd, IDC_CAPTUREDELAY, Config.capture_delay, 0);
+
         return TRUE;
 
     case WM_COMMAND:
@@ -576,52 +588,18 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         if (l_nmhdr->code == PSN_APPLY)
         {
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
+			Config.is_unfocused_pause_enabled = get_checkbox_state(hwnd, IDC_PAUSENOTACTIVE);
+			Config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
+			Config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
+			Config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
+			Config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);
+			Config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);
+			Config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);
+			Config.is_internal_capture_forced = get_checkbox_state(hwnd, IDC_FORCEINTERNAL);
+			Config.is_capture_cropped_screen_dc = get_checkbox_state(hwnd, IDC_CAPTUREOTHER);
+			Config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, nullptr, 0);
         }
         break;
-    default:
-        return FALSE;
-    }
-    return TRUE;
-}
-
-
-BOOL CALLBACK advanced_settings_proc(const HWND hwnd, const UINT message, WPARAM, const LPARAM l_param)
-{
-    NMHDR FAR* l_nmhdr = nullptr;
-    memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));
-    switch (message)
-    {
-    case WM_INITDIALOG:
-       set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
-       set_checkbox_state(hwnd, IDM_STATUSBAR, Config.is_statusbar_enabled);
-       set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
-       set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
-       set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
-       set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
-       set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
-       set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
-       set_checkbox_state(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
-       set_checkbox_state(hwnd, IDC_CAPTUREOTHER, Config.is_capture_cropped_screen_dc);
-       SetDlgItemInt(hwnd, IDC_CAPTUREDELAY, Config.capture_delay, 0);
-        return TRUE;
-
-
-    case WM_NOTIFY:
-        if (l_nmhdr->code == PSN_APPLY)
-        {
-            Config.is_unfocused_pause_enabled = get_checkbox_state(hwnd, IDC_PAUSENOTACTIVE);
-            Config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
-            Config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
-            Config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
-            Config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);
-            Config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);
-            Config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);
-            Config.is_internal_capture_forced = get_checkbox_state(hwnd, IDC_FORCEINTERNAL);
-            Config.is_capture_cropped_screen_dc = get_checkbox_state(hwnd, IDC_CAPTUREOTHER);
-            Config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, nullptr, 0);
-        }
-        break;
-
     default:
         return FALSE;
     }
@@ -766,7 +744,7 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 
 void configdialog_show()
 {
-    PROPSHEETPAGE psp[6] = {{0}};
+    PROPSHEETPAGE psp[5] = {{0}};
     for (auto& i : psp)
     {
 	    i.dwSize = sizeof(PROPSHEETPAGE);
@@ -786,17 +764,13 @@ void configdialog_show()
     psp[2].pfnDlgProc = general_cfg;
     psp[2].pszTitle = "General";
 
-    psp[3].pszTemplate = MAKEINTRESOURCE(IDD_ADVANCED_OPTIONS);
-    psp[3].pfnDlgProc = advanced_settings_proc;
-    psp[3].pszTitle = "Advanced";
+    psp[3].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
+    psp[3].pfnDlgProc = hotkeys_proc;
+    psp[3].pszTitle = "Hotkeys";
 
-    psp[4].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
-    psp[4].pfnDlgProc = hotkeys_proc;
-    psp[4].pszTitle = "Hotkeys";
-
-    psp[5].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
-    psp[5].pfnDlgProc = other_options_proc;
-    psp[5].pszTitle = "Other";
+    psp[4].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
+    psp[4].pfnDlgProc = other_options_proc;
+    psp[4].pszTitle = "Other";
 
 	PROPSHEETHEADER psh = {0};
     psh.dwSize = sizeof(PROPSHEETHEADER);
