@@ -265,7 +265,6 @@ void on_emu_launched_changed(std::any data)
 	EnableMenuItem(main_menu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_PLAY_LATEST_MOVIE, value ? MF_ENABLED : MF_GRAYED);
 
 	if (Config.is_statusbar_enabled) CheckMenuItem(
 		main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
