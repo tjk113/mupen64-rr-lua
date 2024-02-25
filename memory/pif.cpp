@@ -54,7 +54,6 @@ unsigned char mempack[4][0x8000];
 int frame_advancing = 0;
 int fast_forward = 0;
 size_t vis_since_input_poll;
-bool vis_since_input_poll_warning_dismissed;
 
 void check_input_sync(unsigned char* value);
 

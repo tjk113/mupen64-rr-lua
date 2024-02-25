@@ -126,7 +126,6 @@ static const int MemoryMaxCount = 0xFFFF;
 int init_memory()
 {
 	vis_since_input_poll = 0;
-	vis_since_input_poll_warning_dismissed = false;
 
     int i;
 

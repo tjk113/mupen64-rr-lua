@@ -53,7 +53,7 @@ void timer_new_frame()
 
 void timer_new_vi()
 {
-	if (Config.max_vis_since_input_poll != 0 && !vis_since_input_poll_warning_dismissed && vis_since_input_poll >= Config.max_vis_since_input_poll)
+	if (Config.max_vis_since_input_poll != 0 && vis_since_input_poll >= Config.max_vis_since_input_poll)
 	{
 		Messenger::broadcast(Messenger::Message::VIsSinceInputPollExceeded, nullptr);
 	}

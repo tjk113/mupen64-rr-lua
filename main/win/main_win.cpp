@@ -103,6 +103,7 @@ CRITICAL_SECTION emu_cs;
 
 bool paused_before_menu;
 bool paused_before_focus;
+bool vis_since_input_poll_warning_dismissed;
 
 namespace Recent
 {
@@ -331,12 +332,17 @@ void on_emu_paused_changed(std::any data)
 
 void on_vis_since_input_poll_exceeded(std::any)
 {
-	vis_since_input_poll_warning_dismissed = true;
+	if (vis_since_input_poll_warning_dismissed)
+	{
+		return;
+	}
+
 	if(!Config.crash_dialog || MessageBox(mainHWND, "An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?", "Warning",
 			   MB_ICONWARNING | MB_YESNO) == IDYES)
 	{
 		std::thread([] { close_rom(); }).detach();
 	}
+	vis_since_input_poll_warning_dismissed = true;
 }
 
 void on_movie_loop_changed(std::any data)
@@ -649,6 +655,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 {
 	auto start_time = std::chrono::high_resolution_clock::now();
 	init_memory();
+	vis_since_input_poll_warning_dismissed = false;
 	romOpen_gfx();
 	romOpen_input();
 	romOpen_audio();
