@@ -329,6 +329,16 @@ void on_emu_paused_changed(std::any data)
 	frame_changed = true;
 }
 
+void on_vis_since_input_poll_exceeded(std::any)
+{
+	vis_since_input_poll_warning_dismissed = true;
+	if(!Config.crash_dialog || MessageBox(mainHWND, "An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?", "Warning",
+			   MB_ICONWARNING | MB_YESNO) == IDYES)
+	{
+		std::thread([] { close_rom(); }).detach();
+	}
+}
+
 void on_movie_loop_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
@@ -1588,6 +1598,7 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::MoviePlaybackStarted, on_movie_recording_or_playback_started);
 	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
 	Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
+	Messenger::subscribe(Messenger::Message::VIsSinceInputPollExceeded, on_vis_since_input_poll_exceeded);
 
 	// Rombrowser needs to be initialized *after* other components, since it depends on their state smh bru
 	Statusbar::init();

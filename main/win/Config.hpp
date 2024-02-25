@@ -408,6 +408,12 @@ typedef struct _CONFIG
 	/// Whether mupen will display a dialog upon crashing
 	/// </summary>
 	int32_t crash_dialog;
+
+	/// <summary>
+	/// The maximum amount of VIs allowed to be generated since the last input poll before a warning dialog is shown
+	/// 0 - no warning
+	/// </summary>
+	int32_t max_vis_since_input_poll;
 } CONFIG;
 #pragma pack(pop)
 

@@ -700,6 +700,7 @@ CONFIG get_default_config()
 	config.pause_at_last_frame = 0;
 	config.vcr_readonly = 0;
 	config.crash_dialog = 1;
+	config.max_vis_since_input_poll = 120;
 
 	return config;
 }
@@ -1011,6 +1012,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(pause_at_last_frame)
 	HANDLE_P_VALUE(vcr_readonly)
 	HANDLE_P_VALUE(crash_dialog)
+	HANDLE_P_VALUE(max_vis_since_input_poll)
 
 	return ini;
 }

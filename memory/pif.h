@@ -36,5 +36,7 @@ void update_pif_read(bool stcheck);
 
 extern int frame_advancing;
 extern int fast_forward;
+extern size_t vis_since_input_poll;
+extern bool vis_since_input_poll_warning_dismissed;
 
 #endif

@@ -46,6 +46,7 @@
 #include "../main/vcr.h"
 #include "../main/win/Config.hpp"
 #include "../main/win/main_win.h"
+#include "../memory/pif.h"
 
 unsigned long next_vi;
 int vi_field = 0;
@@ -420,6 +421,7 @@ void gen_interrupt()
         break;
 
     case VI_INT:
+    	vis_since_input_poll++;
         LuaCallbacks::call_interval();
         vcr_update_screen();
         vcr_on_vi();
