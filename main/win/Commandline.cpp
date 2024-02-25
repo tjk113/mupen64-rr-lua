@@ -29,11 +29,11 @@
 #include "helpers/string_helpers.h"
 #include "lib/argh.h"
 
-std::string commandline_rom;
-std::string commandline_lua;
-std::string commandline_st;
-std::string commandline_movie;
-std::string commandline_avi;
+std::filesystem::path commandline_rom;
+std::filesystem::path commandline_lua;
+std::filesystem::path commandline_st;
+std::filesystem::path commandline_movie;
+std::filesystem::path commandline_avi;
 bool commandline_stop_capture_on_movie_end;
 bool commandline_stop_emu_on_movie_end;
 
@@ -65,7 +65,15 @@ void commandline_start_rom()
 		return;
 	}
 
-	std::thread([] { start_rom(commandline_rom); }).detach();
+	std::thread([]
+	{
+		start_rom(commandline_rom);
+		// Special case for "Open With..."
+		if (commandline_rom.extension() == ".m64")
+		{
+			VCR::start_playback(commandline_rom);
+		}
+	}).detach();
 }
 
 void commandline_load_st()
@@ -85,7 +93,7 @@ void commandline_start_lua()
 		return;
 	}
 
-	lua_create_and_run(commandline_lua.c_str());
+	lua_create_and_run(commandline_lua.string().c_str());
 }
 
 void commandline_start_movie()
@@ -105,7 +113,7 @@ void commandline_start_capture()
 		return;
 	}
 
-	vcr_start_capture(commandline_avi.c_str(), false);
+	vcr_start_capture(commandline_avi.string().c_str(), false);
 }
 
 void commandline_on_movie_playback_stop()
