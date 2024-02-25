@@ -565,7 +565,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		{
 			// We need to fully reset rom prior to actually pushing any samples to the buffer
 			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
-			std::thread([clear_eeprom] { reset_rom(clear_eeprom); }).detach();
+			std::thread([clear_eeprom] { reset_rom(clear_eeprom, false); }).detach();
 		}
 	}
 
@@ -620,7 +620,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		} else
 		{
 			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
-			std::thread([clear_eeprom] { reset_rom(clear_eeprom); }).detach();
+			std::thread([clear_eeprom] { reset_rom(clear_eeprom, false); }).detach();
 		}
 	}
 
@@ -654,7 +654,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		if (user_requested_reset)
 		{
 			user_requested_reset = false;
-			std::thread([] { reset_rom(); }).detach();
+			std::thread([] { reset_rom(false, false); }).detach();
 		}
 		return;
 	}
@@ -703,7 +703,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	if (input->Value == 0xC000)
 	{
 		printf("[VCR] Resetting during playback...\n");
-		std::thread([] { reset_rom(); }).detach();
+		std::thread([] { reset_rom(false, false); }).detach();
 		// NOTE: While it doesn't seem to happen in practice, we could theoretically get another input poll generation between us signalling reset and the emu actually stopping.
 		// To prevent this, we pause it here as to not generate new frames.
 		pauseEmu(true);

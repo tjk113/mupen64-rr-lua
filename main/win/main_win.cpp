@@ -550,7 +550,7 @@ int start_rom(std::filesystem::path path){
 	return 1;
 }
 
-void close_rom()
+void close_rom(bool stop_vcr)
 {
 	if (!emu_launched)
 	{
@@ -565,8 +565,7 @@ void close_rom()
 	MenuPaused = FALSE;
 	resumeEmu(FALSE);
 
-	// We only want to stop VCR when user explicitly requests close rom
-	if (!Config.is_reset_recording_enabled || !is_restarting)
+	if (stop_vcr)
 	{
 		vcr_core_stopped();
 	}
@@ -639,7 +638,7 @@ void clear_save_data()
 	}
 }
 
-void reset_rom(bool reset_save_data)
+void reset_rom(bool reset_save_data, bool stop_vcr)
 {
 	if (!emu_launched)
 		return;
@@ -652,12 +651,13 @@ void reset_rom(bool reset_save_data)
 	MenuPaused = FALSE;
 	is_restarting = true;
 
-	close_rom();
+	close_rom(stop_vcr);
 	if (reset_save_data)
 	{
 		clear_save_data();
 	}
 	start_rom(rom_path);
+
 	is_restarting = false;
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 }
@@ -1102,7 +1102,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				MenuPaused = FALSE;
 				if (!confirm_user_exit())
 					break;
-				std::thread(close_rom).detach();
+				std::thread([] { close_rom(); }).detach();
 				break;
 
 			case IDM_PAUSE:
