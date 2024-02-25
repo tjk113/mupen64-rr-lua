@@ -20,7 +20,6 @@ namespace MovieDialog
 	t_record_params record_params;
 	bool is_readonly;
 	HWND grid_hwnd;
-	std::vector<std::pair<std::string, std::string>> metadata;
 
 	LRESULT CALLBACK MovieInspectorProc(HWND hwnd, UINT Message, WPARAM wParam,
 	                                    LPARAM lParam)
@@ -38,7 +37,6 @@ namespace MovieDialog
 		{
 		case WM_INITDIALOG:
 			{
-				metadata.clear();
 				RECT grid_rect = get_window_rect_client_space(
 					hwnd, GetDlgItem(hwnd, IDC_MOVIE_INFO_TEMPLATE));
 				DestroyWindow(GetDlgItem(hwnd, IDC_MOVIE_INFO_TEMPLATE));
@@ -256,16 +254,24 @@ namespace MovieDialog
 			return FALSE;
 		}
 
+		std::vector<std::pair<std::string, std::string>> metadata;
+
 		ListView_DeleteAllItems(grid_hwnd);
 
-		metadata.emplace_back(std::make_pair("ROM Name", header.rom_name));
-		metadata.emplace_back(std::make_pair("ROM Country",
-		                                     country_code_to_country_name(
-			                                     header.rom_country)));
+		metadata.emplace_back(std::make_pair("ROM", std::format("{} ({}, {})",
+		                                                       (char*)header.rom_name,
+		                                                       country_code_to_country_name(header.rom_country),
+		                                                       std::format("{:#08x}", header.rom_crc1))));
 
-
-		sprintf(tempbuf, "%X", (unsigned int)header.rom_crc1);
-		metadata.emplace_back(std::make_pair("ROM CRC", tempbuf));
+		metadata.emplace_back(std::make_pair("Length",
+											 std::format(
+												 "{} ({} input)",
+												 header.length_vis,
+												 header.length_samples)));
+		metadata.emplace_back(std::make_pair("Duration", format_duration((double)header.length_vis / (double)header.
+			vis_per_second)));
+		metadata.emplace_back(
+			std::make_pair("Rerecords", std::to_string(header.rerecord_count)));
 
 		metadata.emplace_back(
 			std::make_pair("Video Plugin", header.video_plugin_name));
@@ -291,15 +297,7 @@ namespace MovieDialog
 		}
 
 
-		metadata.emplace_back(std::make_pair("Length",
-		                                     std::format(
-			                                     "{} ({} input)",
-			                                     header.length_vis,
-			                                     header.length_samples)));
-		metadata.emplace_back(std::make_pair("Duration", format_duration((double)header.length_vis / (double)header.
-			vis_per_second)));
-		metadata.emplace_back(
-			std::make_pair("Rerecords", std::to_string(header.rerecord_count)));
+
 
 		{
 			// convert utf8 metadata to windows widechar
