@@ -11,7 +11,7 @@
  * \return The value, limited to the specified range
  */
 template<typename T>
-T clamp(const T value, const T min, const T max)
+static T clamp(const T value, const T min, const T max)
 {
 	if (value > max)
 	{
@@ -30,7 +30,7 @@ T clamp(const T value, const T min, const T max)
  * \param times A queue of time points
  * \return The average rate of entries in the time queue per second
  */
-float get_rate_per_second_from_times(std::deque<std::chrono::high_resolution_clock::time_point> times)
+static float get_rate_per_second_from_times(std::deque<std::chrono::high_resolution_clock::time_point> times)
 {
 	if (times.empty())
 	{
@@ -43,4 +43,33 @@ float get_rate_per_second_from_times(std::deque<std::chrono::high_resolution_clo
 		fps += (times[i] - times[i - 1]).count();
 	}
 	return 1000.0f / (float)((fps / times.size()) / 1'000'000.0f);
+}
+
+/**
+ * \brief Formats a duration into a string
+ * \param seconds The duration in seconds
+ * \return The formatted duration
+ */
+static std::string format_duration(size_t seconds)
+{
+	char tempbuf[260]{};
+	double minutes = seconds / 60.0;
+	if ((bool)seconds)
+		seconds = fmod(seconds, 60.0);
+	double hours = minutes / 60.0;
+	if ((bool)minutes)
+		minutes = fmod(minutes, 60.0);
+
+	if (hours >= 1.0)
+		sprintf(tempbuf, "%d hours and %.1f minutes", (unsigned int)hours,
+				(float)minutes);
+	else if (minutes >= 1.0)
+		sprintf(tempbuf, "%d minutes and %.0f seconds",
+				(unsigned int)minutes,
+				(float)seconds);
+	else if (seconds > 0)
+		sprintf(tempbuf, "%.1f seconds", (float)seconds);
+	else
+		strcpy(tempbuf, "0 seconds");
+	return std::string(tempbuf);
 }

@@ -13,6 +13,8 @@
 #include "win/wrapper/PersistentPathDialog.h"
 #include <CommCtrl.h>
 
+#include "helpers/math_helpers.h"
+
 namespace MovieDialog
 {
 	t_record_params record_params;
@@ -289,33 +291,13 @@ namespace MovieDialog
 		}
 
 
-		double seconds = (double)header.length_vis / (double)header.
-			vis_per_second;
-		double minutes = seconds / 60.0;
-		if ((bool)seconds)
-			seconds = fmod(seconds, 60.0);
-		double hours = minutes / 60.0;
-		if ((bool)minutes)
-			minutes = fmod(minutes, 60.0);
-
-		if (hours >= 1.0)
-			sprintf(tempbuf, "%d hours and %.1f minutes", (unsigned int)hours,
-			        (float)minutes);
-		else if (minutes >= 1.0)
-			sprintf(tempbuf, "%d minutes and %.0f seconds",
-			        (unsigned int)minutes,
-			        (float)seconds);
-		else if (header.length_vis != 0)
-			sprintf(tempbuf, "%.1f seconds", (float)seconds);
-		else
-			strcpy(tempbuf, "0 seconds");
-
 		metadata.emplace_back(std::make_pair("Length",
 		                                     std::format(
 			                                     "{} ({} input)",
 			                                     header.length_vis,
 			                                     header.length_samples)));
-		metadata.emplace_back(std::make_pair("Duration", tempbuf));
+		metadata.emplace_back(std::make_pair("Duration", format_duration((double)header.length_vis / (double)header.
+			vis_per_second)));
 		metadata.emplace_back(
 			std::make_pair("Rerecords", std::to_string(header.rerecord_count)));
 
