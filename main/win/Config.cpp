@@ -693,6 +693,7 @@ CONFIG get_default_config()
 	config.vcr_readonly = 0;
 	config.crash_dialog = 1;
 	config.max_vis_since_input_poll = 480;
+	config.seeker_value = "";
 
 	return config;
 }
@@ -997,6 +998,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(vcr_readonly)
 	HANDLE_P_VALUE(crash_dialog)
 	HANDLE_P_VALUE(max_vis_since_input_poll)
+	HANDLE_VALUE(seeker_value)
 
 	return ini;
 }

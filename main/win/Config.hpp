@@ -371,6 +371,11 @@ typedef struct _CONFIG
 	/// 0 - no warning
 	/// </summary>
 	int32_t max_vis_since_input_poll;
+
+	/// <summary>
+	/// The current seeker input value
+	/// </summary>
+	std::string seeker_value;
 } CONFIG;
 #pragma pack(pop)
 

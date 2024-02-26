@@ -8,6 +8,7 @@
 #include "vcr.h"
 #include "../main_win.h"
 #include "../../winproject/resource.h"
+#include "win/Config.hpp"
 
 namespace Seeker
 {
@@ -20,6 +21,7 @@ namespace Seeker
 		{
 		case WM_INITDIALOG:
 			current_hwnd = hwnd;
+			SetDlgItemText(hwnd, IDC_SEEKER_FRAME, Config.seeker_value.c_str());
 			SetFocus(GetDlgItem(hwnd, IDC_SEEKER_FRAME));
 			break;
 		case WM_DESTROY:
@@ -34,6 +36,13 @@ namespace Seeker
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
+		case IDC_SEEKER_FRAME:
+			{
+				char str[260] = {0};
+				GetDlgItemText(hwnd, IDC_SEEKER_FRAME, str, std::size(str));
+				Config.seeker_value = str;
+			}
+			break;
 			case IDOK:
 				{
 					BOOL success = false;
