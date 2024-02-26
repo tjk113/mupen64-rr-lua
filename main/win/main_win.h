@@ -23,7 +23,6 @@
 #define MUPEN_VERSION "Mupen 64 1.1.7"
 
 #define WM_EXECUTE_DISPATCHER (WM_USER + 10)
-#define WM_SEEK_COMPLETED (WM_USER + 11)
 #define WM_FOCUS_MAIN_WINDOW (WM_USER + 17)
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,

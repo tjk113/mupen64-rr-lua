@@ -335,6 +335,14 @@ namespace VCR
 	Result start_playback(std::filesystem::path path);
 
 	/**
+	 * \brief Computes whether a seek operation is possible
+	 * \param frame The frame to seek to
+	 * \param relative Whether the seek is relative to the current frame
+	 * \return Whether the specified parameters allow a seek operation
+	 */
+	bool can_seek_to(int32_t frame, bool relative);
+
+	/**
 	 * \brief Begins seeking to a frame in the currently playing movie
 	 * \param frame The frame to seek to
 	 * \param relative Whether the seek is relative to the current frame
