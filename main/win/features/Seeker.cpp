@@ -41,19 +41,16 @@ namespace Seeker
 				char str[260] = {0};
 				GetDlgItemText(hwnd, IDC_SEEKER_FRAME, str, std::size(str));
 				Config.seeker_value = str;
+				EnableWindow(GetDlgItem(hwnd, IDOK), Config.seeker_value.size() > 1);
 			}
 			break;
 			case IDOK:
 				{
-					BOOL success = false;
-					int frame = GetDlgItemInt(hwnd, IDC_SEEKER_FRAME, &success,
-											  false);
-					if (!success)
-					{
-						break;
-					}
+					// Relative seek is activated by typing + or - in front of number
+					bool relative = Config.seeker_value[0] == '-' || Config.seeker_value[0] == '+';
+					int32_t frame = std::stoi(Config.seeker_value);
 
-					if (VCR::begin_seek_to(frame) != VCR::Result::Ok)
+					if (VCR::begin_seek_to(frame, relative) != VCR::Result::Ok)
 					{
 						MessageBox(
 							hwnd,

@@ -310,6 +310,8 @@ namespace VCR
 		InvalidControllers,
 		// The movie's savestate is missing or invalid
 		InvalidSavestate,
+		// The resulting frame is outside the bounds of the movie
+		InvalidFrame,
 	};
 
 	/**
@@ -335,10 +337,11 @@ namespace VCR
 	/**
 	 * \brief Begins seeking to a frame in the currently playing movie
 	 * \param frame The frame to seek to
+	 * \param relative Whether the seek is relative to the current frame
 	 * \return The operation result
 	 * \remarks When the seek operation completes, the SeekCompleted message will be sent
 	 */
-	Result begin_seek_to(size_t frame);
+	Result begin_seek_to(int32_t frame, bool relative);
 
 	/**
 	 * \brief Stops the current seek operation

@@ -1149,8 +1149,15 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 	return Result::Ok;
 }
 
-VCR::Result VCR::begin_seek_to(size_t frame)
+VCR::Result VCR::begin_seek_to(int32_t frame, bool relative)
 {
+	frame += relative ? m_current_sample : 0;
+
+	if (frame >= m_header.length_samples)
+	{
+		return Result::InvalidFrame;
+	}
+
 	seek_to_frame = std::make_optional(frame);
 	resume_emu();
 
