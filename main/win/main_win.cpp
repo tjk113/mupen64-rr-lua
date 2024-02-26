@@ -48,7 +48,7 @@
 #include "../../r4300/tracelog.h"
 #include "../../winproject/resource.h"
 #include "features/CoreDbg.h"
-#include "features/GameControl.h"
+#include "features/MGECompositor.h"
 #include "features/MovieDialog.h"
 #include "features/RomBrowser.hpp"
 #include "features/Seeker.h"

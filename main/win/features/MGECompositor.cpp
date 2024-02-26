@@ -1,4 +1,4 @@
-﻿#include "GameControl.h"
+﻿#include "MGECompositor.h"
 #include <Windows.h>
 
 #include "messenger.h"

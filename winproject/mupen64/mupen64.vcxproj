@@ -170,7 +170,7 @@
     <ClInclude Include="..\..\main\speex\arch.h" />
     <ClInclude Include="..\..\main\win\features\CrashHelper.h" />
     <ClInclude Include="..\..\main\win\features\CoreDbg.h" />
-    <ClInclude Include="..\..\main\win\features\GameControl.h" />
+    <ClInclude Include="..\..\main\win\features\MGECompositor.h" />
     <ClInclude Include="..\..\main\win\features\MovieDialog.h" />
     <ClInclude Include="..\..\main\win\features\RomBrowser.hpp" />
     <ClInclude Include="..\..\main\win\features\Seeker.h" />

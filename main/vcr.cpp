@@ -32,7 +32,7 @@
 #include "LuaCallbacks.h"
 #include "messenger.h"
 #include "../memory/pif.h"
-#include "win/features/GameControl.h"
+#include "win/features/MGECompositor.h"
 #include "win/features/RomBrowser.hpp"
 
 // M64\0x1a
