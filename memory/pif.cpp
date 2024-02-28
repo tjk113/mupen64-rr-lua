@@ -481,6 +481,8 @@ void update_pif_read(bool stcheck)
                         {
                             Sleep(10);
                             LuaCallbacks::call_interval();
+                        	// COMPAT: Old input lua expects atvi to be called when paused (due to a bug in the invalidation)...
+                        	LuaCallbacks::call_vi();
 
                             // TODO: maybe unify this and the other calls outside paused loop with some pump function like savestates_process_job()
                             if (savestates_job == e_st_job::save && stAllowed)
