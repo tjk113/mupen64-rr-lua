@@ -9,6 +9,11 @@
 std::vector<std::string> get_files_with_extension_in_directory(
 	std::string directory, const std::string& extension)
 {
+	if (directory.empty())
+	{
+		directory = ".\\";
+	}
+
 	if (directory.back() != '\\')
 	{
 		directory += "\\";
