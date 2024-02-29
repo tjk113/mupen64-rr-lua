@@ -85,7 +85,7 @@ namespace Statusbar
 	{
 		auto value = std::any_cast<e_task>(data);
 
-		if (!task_is_recording(value))
+		if (value == e_task::idle)
 		{
 			post("", Section::Rerecords);
 		}

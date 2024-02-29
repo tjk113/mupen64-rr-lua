@@ -510,6 +510,7 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 
 		m_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 		flush_movie();
 
 		m_current_sample = (long)current_sample;
@@ -530,6 +531,12 @@ extern BOOL just_restarted_flag;
 
 void vcr_on_controller_poll(int index, BUTTONS* input)
 {
+	// When resetting during playback, we need to remind program of the rerecords
+	if (m_task != e_task::idle && just_reset)
+	{
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
+	}
+
 	// if we aren't playing back a movie, our data source isn't movie
 	if (!is_task_playback(m_task))
 	{
@@ -617,6 +624,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			m_task = e_task::playback;
 			just_reset = false;
 			Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+			Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 		} else
 		{
 			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
@@ -1145,6 +1153,7 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 
 	Messenger::broadcast(Messenger::Message::MoviePlaybackStarted, movie_path);
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 	LuaCallbacks::call_play_movie();
 	return Result::Ok;
 }
