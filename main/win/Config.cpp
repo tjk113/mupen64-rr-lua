@@ -641,6 +641,7 @@ CONFIG get_default_config()
 		.command = (IDM_SELECT_1 - 1) + 10,
 	};
 
+	config.version = 1;
 	config.core_type = 1;
 	config.fps_modifier = 100;
 	config.frame_skip_frequency = 1;
@@ -943,6 +944,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 		hotkeys.push_back(hotkey_pointer);
 	}
 
+	HANDLE_P_VALUE(version)
 	HANDLE_P_VALUE(core_type)
 	HANDLE_P_VALUE(fps_modifier)
 	HANDLE_P_VALUE(frame_skip_frequency)
@@ -1037,6 +1039,13 @@ void load_config()
 	file.read(ini);
 
 	ini = handle_config_ini(true, ini);
+
+	if (Config.version < default_config.version)
+	{
+		printf("[CONFIG] Config file is outdated and will probably cause issues. Generating...\n");
+		Config = get_default_config();
+		save_config();
+	}
 
 	// handle edge case: closing while minimized produces bogus values for position
 	if (Config.window_x < -10'000 || Config.window_y < -10'000)

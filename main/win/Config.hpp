@@ -76,6 +76,11 @@ typedef struct _CONFIG
 #pragma endregion
 
 	/// <summary>
+	/// The config protocol version
+	/// </summary>
+	int32_t version;
+
+	/// <summary>
 	/// The currently selected core type
 	/// <para/>
 	/// 0 - Cached Interpreter
