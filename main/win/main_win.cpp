@@ -771,6 +771,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				std::thread([path] { start_rom(path); }).detach();
 			} else if (extension == ".m64")
 			{
+				Config.vcr_readonly = true;
+				Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 				std::thread([fname] { VCR::start_playback(fname); }).detach();
 			}else if (extension == ".st" || extension == ".savestate")
 			{
