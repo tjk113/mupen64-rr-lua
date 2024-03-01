@@ -60,10 +60,7 @@
 #include "helpers/win_helpers.h"
 #include "wrapper/PersistentPathDialog.h"
 
-
-
-DWORD audio_thread_id;
-HANDLE sound_thread_handle;
+HANDLE audio_thread_handle;
 static BOOL FullScreenMode = 0;
 int last_wheel_delta = 0;
 
@@ -637,16 +634,14 @@ void reset_rom(bool reset_save_data, bool stop_vcr)
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 }
 
-static DWORD WINAPI SoundThread(LPVOID lpParam)
+DWORD WINAPI audio_thread(LPVOID)
 {
+	printf("Sound thread entering...\n");
 	while (emu_launched)
 	{
-		if (!sound_allowed)
-		{
-			continue;
-		}
 		aiUpdate(1);
 	}
+	printf("Sound thread exiting...\n");
 	ExitThread(0);
 }
 
@@ -682,7 +677,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	emu_paused = 0;
 	emu_launched = 1;
-	sound_thread_handle = CreateThread(NULL, 0, SoundThread, NULL, 0, &audio_thread_id);
+	audio_thread_handle = CreateThread(nullptr, 0, audio_thread, nullptr, 0, nullptr);
 
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 
