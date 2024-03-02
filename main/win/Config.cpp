@@ -745,6 +745,7 @@ void update_menu_hotkey_labels()
 	set_hotkey_menu_accelerators(&Config.close_rom_hotkey, IDM_CLOSE_ROM);
 	set_hotkey_menu_accelerators(&Config.reset_rom_hotkey, IDM_RESET_ROM);
 	set_hotkey_menu_accelerators(&Config.load_latest_rom_hotkey, IDM_LOAD_LATEST_ROM);
+	set_hotkey_menu_accelerators(&Config.refresh_rombrowser_hotkey, IDM_REFRESH_ROMBROWSER);
 	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, IDM_FULLSCREEN);
 	set_hotkey_menu_accelerators(&Config.settings_hotkey, IDM_SETTINGS);
 
