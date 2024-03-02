@@ -34,7 +34,7 @@
 #include "guifuncs.h"
 #include "LuaCallbacks.h"
 #include "messenger.h"
-#include "rom.h"
+#include "../r4300/rom.h"
 #include "vcr.h"
 #include "../lua/LuaConsole.h"
 #include "../memory/flashram.h"

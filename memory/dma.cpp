@@ -29,7 +29,7 @@
 
 #include "dma.h"
 #include "memory.h"
-#include "../main/rom.h"
+#include "../r4300/rom.h"
 #include <stdio.h>
 #include "../r4300/r4300.h"
 #include "../r4300/interrupt.h"

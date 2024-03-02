@@ -19,7 +19,7 @@
 #include <Windows.h>
 #include <vector>
 #include <string>
-#include "rom.h"
+#include "../../r4300/rom.h"
 
 namespace Rombrowser
 {

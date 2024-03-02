@@ -38,7 +38,7 @@
 #include "timers.h"
 #include "../guifuncs.h"
 #include "../Plugin.hpp"
-#include "../rom.h"
+#include "../../r4300/rom.h"
 #include "../savestates.h"
 #include "../vcr.h"
 #include "../../memory/memory.h"
@@ -486,10 +486,9 @@ int start_rom(std::filesystem::path path){
 	}
 
 	// valid rom is required to start emulation
-	if (rom_read(path.string().c_str()))
+	if (!rom_load(path.string().c_str()))
 	{
-		MessageBox(mainHWND, "Failed to open ROM", "Error",
-				   MB_ICONERROR | MB_OK);
+		MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
 		unload_plugins();
 		LeaveCriticalSection(&emu_cs);
 		return 0;

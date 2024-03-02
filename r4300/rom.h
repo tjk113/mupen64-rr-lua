@@ -26,16 +26,10 @@
  * USA.
  *
 **/
+#pragma once
+
+#include <filesystem>
 #include <string>
-
-#ifndef ROM_H
-#define ROM_H
-
-extern uint8_t* rom;
-extern size_t rom_size;
-extern char rom_md5[33];
-
-int rom_read(const char* argv);
 
 typedef struct s_rom_header
 {
@@ -57,7 +51,17 @@ typedef struct s_rom_header
 	unsigned long Boot_Code[1008];
 } t_rom_header;
 
+extern uint8_t* rom;
+extern size_t rom_size;
+extern char rom_md5[33];
 extern t_rom_header ROM_HEADER;
+
+/**
+ * \brief Reads the specified rom and initializes the rom module's globals
+ * \param path The rom's path
+ * \return Whether the operation succeeded
+ */
+bool rom_load(std::filesystem::path path);
 
 /**
  * \param country_code A rom's country code
@@ -71,31 +75,8 @@ std::string country_code_to_country_name(uint16_t country_code);
  */
 uint32_t get_vis_per_second(uint16_t country_code);
 
-inline static void rom_byteswap(uint8_t* rom)
-{
-	uint8_t tmp = 0;
-
-	if (rom[0] == 0x37)
-	{
-		for (size_t i = 0; i < (0x40 / 2); i++)
-		{
-			tmp = rom[i * 2];
-			rom[i * 2] = rom[i * 2 + 1];
-			rom[i * 2 + 1] = tmp;
-		}
-	}
-	if (rom[0] == 0x40)
-	{
-		for (size_t i = 0; i < (0x40 / 4); i++)
-		{
-			tmp = rom[i * 4];
-			rom[i * 4] = rom[i * 4 + 3];
-			rom[i * 4 + 3] = tmp;
-			tmp = rom[i * 4 + 1];
-			rom[i * 4 + 1] = rom[i * 4 + 2];
-			rom[i * 4 + 2] = tmp;
-		}
-	}
-}
-
-#endif
+/**
+ * \brief Performs an in-place byte order correction on a rom buffer depending on its header
+ * \param rom The rom buffer
+ */
+void rom_byteswap(uint8_t* rom);

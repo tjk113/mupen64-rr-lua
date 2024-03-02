@@ -32,21 +32,13 @@
  * subdirectory or in the path specified in the path.cfg file.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <zlib.h>
-#include <string.h>
-#include <ctype.h>
-
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "rom.h"
 #include "../memory/memory.h"
-#include "guifuncs.h"
 #include "lib/md5.h"
-#include "guifuncs.h"
 #include "../main/win/Config.hpp"
-#include <win/features/RomBrowser.hpp>
-#include <win/main_win.h>
-
 #include "helpers/io_helpers.h"
 #include "helpers/string_helpers.h"
 
@@ -136,21 +128,47 @@ uint32_t get_vis_per_second(uint16_t country_code)
     }
 }
 
+void rom_byteswap(uint8_t* rom)
+{
+	uint8_t tmp = 0;
 
-int rom_read(const char* argv)
+	if (rom[0] == 0x37)
+	{
+		for (size_t i = 0; i < (0x40 / 2); i++)
+		{
+			tmp = rom[i * 2];
+			rom[i * 2] = rom[i * 2 + 1];
+			rom[i * 2 + 1] = tmp;
+		}
+	}
+	if (rom[0] == 0x40)
+	{
+		for (size_t i = 0; i < (0x40 / 4); i++)
+		{
+			tmp = rom[i * 4];
+			rom[i * 4] = rom[i * 4 + 3];
+			rom[i * 4 + 3] = tmp;
+			tmp = rom[i * 4 + 1];
+			rom[i * 4 + 1] = rom[i * 4 + 2];
+			rom[i * 4 + 2] = tmp;
+		}
+	}
+}
+
+
+bool rom_load(std::filesystem::path path)
 {
     if (rom)
     {
         free(rom);
     }
 
-
-    auto rom_buf = read_file_buffer(argv);
+    auto rom_buf = read_file_buffer(path);
     auto decompressed_rom = auto_decompress(rom_buf);
 
     if (decompressed_rom.empty())
     {
-        return 1;
+        return false;
     }
 
     rom_size = decompressed_rom.size();
@@ -193,7 +211,7 @@ int rom_read(const char* argv)
         printf("wrong file format !\n");
         free(rom);
         rom = nullptr;
-        return 1;
+        return false;
     }
     printf("rom loaded succesfully\n");
 
@@ -219,5 +237,5 @@ int rom_read(const char* argv)
 
     }
 
-    return 0;
+    return true;
 }

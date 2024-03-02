@@ -15,7 +15,7 @@
 #include <memory>
 
 #include "Plugin.hpp"
-#include "rom.h"
+#include "../r4300/rom.h"
 #include "savestates.h"
 #include "../memory/memory.h"
 
