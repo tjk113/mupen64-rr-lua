@@ -274,6 +274,11 @@ namespace Rombrowser
 			uint64_t len = ftell(f);
 			fseek(f, 0, SEEK_SET);
 
+			auto rombrowser_entry = new t_rombrowser_entry;
+			rombrowser_entry->path = path;
+			rombrowser_entry->size = len;
+			rombrowser_entry->rom_header = {};
+
 			if (len > sizeof(t_rom_header))
 			{
 				auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
@@ -281,14 +286,12 @@ namespace Rombrowser
 
 				rom_byteswap((uint8_t*)header);
 
-				auto rombrowser_entry = new t_rombrowser_entry;
 				rombrowser_entry->rom_header = *header;
-				rombrowser_entry->path = path;
-				rombrowser_entry->size = len;
 
-				rombrowser_add_rom(i, rombrowser_entry);
 				free(header);
 			}
+
+			rombrowser_add_rom(i, rombrowser_entry);
 
 
 			fclose(f);
