@@ -1,7 +1,7 @@
 #include "MovieDialog.h"
 #include <Windows.h>
 
-#include "rom.h"
+#include "../r4300/rom.h"
 #include "savestates.h"
 #include "Statusbar.hpp"
 #include "vcr.h"
