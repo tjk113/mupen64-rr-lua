@@ -224,7 +224,7 @@ void on_task_changed(std::any data)
 		break;
 	}
 
-	EnableMenuItem(main_menu, IDM_SEEKER, task_is_playback(value) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(main_menu, IDM_SEEKER, (task_is_playback(value) && emu_launched) ? MF_ENABLED : MF_GRAYED);
 
 	update_titlebar();
 }
