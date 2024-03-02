@@ -2,6 +2,20 @@
 #include <algorithm>
 #include <locale>
 #include <vector>
+#include <cctype>
+#include <algorithm>
+#include <string_view>
+
+static bool ichar_equals(char a, char b)
+{
+	return std::tolower(static_cast<unsigned char>(a)) ==
+		   std::tolower(static_cast<unsigned char>(b));
+}
+
+static bool iequals(std::string_view lhs, std::string_view rhs)
+{
+	return std::ranges::equal(lhs, rhs, ichar_equals);
+}
 
 inline static char* stristr(const char* str1, const char* str2)
 {
@@ -54,18 +68,6 @@ inline static int is_string_alpha_only(const char* str)
 		}
 	}
 	return 1;
-}
-
-// https://stackoverflow.com/a/4119881
-inline static bool is_case_insensitive_equal(const std::string& a,
-                                             const std::string& b)
-{
-	return std::equal(a.begin(), a.end(),
-	                  b.begin(), b.end(),
-	                  [](char a, char b)
-	                  {
-		                  return tolower(a) == tolower(b);
-	                  });
 }
 
 inline static std::string to_lower(std::string a)

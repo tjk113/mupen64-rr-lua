@@ -60,18 +60,18 @@ namespace Rombrowser
 		std::vector<std::string> filtered_rom_paths;
 
 		std::copy_if(rom_paths.begin(), rom_paths.end(),
-					 std::back_inserter(filtered_rom_paths), [](std::string val)
-					 {
-						 char c_extension[260] = {0};
-						 _splitpath(val.c_str(), NULL, NULL, NULL, c_extension);
+		             std::back_inserter(filtered_rom_paths), [](std::string val)
+		             {
+			             char c_extension[260] = {0};
+			             _splitpath(val.c_str(), NULL, NULL, NULL, c_extension);
 
-						 auto extension = std::string(c_extension);
-						 return is_case_insensitive_equal(extension, ".z64") ||
-							 is_case_insensitive_equal(extension, ".n64") ||
-							 is_case_insensitive_equal(
-								 extension, ".v64")
-							 || is_case_insensitive_equal(extension, ".rom");
-					 });
+			             auto extension = std::string(c_extension);
+			             return iequals(extension, ".z64") ||
+				             iequals(extension, ".n64") ||
+				             iequals(
+					             extension, ".v64")
+				             || iequals(extension, ".rom");
+		             });
 		return filtered_rom_paths;
 	}
 
