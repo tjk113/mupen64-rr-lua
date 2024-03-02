@@ -798,19 +798,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	{
 		// save state
 		printf("[VCR]: Saving state...\n");
-		strcpy(buf, m_filename);
-
-		// remove extension
-		for (;;)
-		{
-			if (char* dot = strrchr(buf, '.'); dot && (dot > strrchr(buf, '\\') && dot > strrchr(buf, '/')))
-				*dot = '\0';
-			else
-				break;
-		}
-
-		strncat(buf, ".st", 4);
-		savestates_do_file(buf, e_st_job::save);
+		savestates_do_file(strip_extension(m_filename) + ".st", e_st_job::save);
 		m_task = e_task::start_recording_from_snapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
