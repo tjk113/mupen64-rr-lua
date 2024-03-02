@@ -100,6 +100,7 @@ CRITICAL_SECTION emu_cs;
 
 bool paused_before_menu;
 bool paused_before_focus;
+bool in_menu_loop;
 bool vis_since_input_poll_warning_dismissed;
 
 namespace Recent
@@ -958,6 +959,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_ENTERMENULOOP:
+		in_menu_loop = true;
 		paused_before_menu = emu_paused;
 		pause_emu();
 		break;
@@ -969,6 +971,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		std::thread([]
 		{
 			Sleep(60);
+			in_menu_loop = false;
 			if (!paused_before_menu)
 			{
 				resume_emu();
@@ -1079,12 +1082,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			case IDM_PAUSE:
 				{
-					if (emu_paused)
+					// FIXME: While this is a beautiful and clean solution, there has to be a better way to handle this
+					// We're too close to release to care tho
+					if (in_menu_loop)
 					{
-						resume_emu();
-						break;
+						if (paused_before_menu)
+						{
+							resume_emu();
+							paused_before_menu = false;
+							break;
+						}
+						paused_before_menu = true;
+						pause_emu();
+					} else
+					{
+						if (emu_paused)
+						{
+							resume_emu();
+							break;
+						}
+						pause_emu();
 					}
-					pause_emu();
+
 					break;
 				}
 
