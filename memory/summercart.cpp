@@ -9,7 +9,7 @@
 
 #include "summercart.h"
 
-#include "rom.h"
+#include "../r4300/rom.h"
 #include "savestates.h"
 
 struct vhd
