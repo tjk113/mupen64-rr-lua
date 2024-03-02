@@ -41,7 +41,7 @@
 #include "rom.h"
 #include "../memory/memory.h"
 #include "guifuncs.h"
-#include "md5.h"
+#include "lib/md5.h"
 #include "guifuncs.h"
 #include "../main/win/Config.hpp"
 #include <win/features/RomBrowser.hpp>
@@ -156,10 +156,10 @@ int rom_read(const char* argv)
 {
     if (rom)
     {
-        free(rom);    
+        free(rom);
     }
 
-    
+
     auto rom_buf = read_file_buffer(argv);
     auto decompressed_rom = auto_decompress(rom_buf);
 
@@ -171,14 +171,14 @@ int rom_read(const char* argv)
     rom_size = decompressed_rom.size();
     unsigned long taille = rom_size;
     if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
-    
+
     rom = (unsigned char*)malloc(taille);
     memcpy(rom, decompressed_rom.data(), rom_size);
 
     uint8_t tmp;
     if (rom[0] == 0x37)
     {
-        
+
         for (size_t i = 0; i < (rom_size / 2); i++)
         {
             tmp = rom[i * 2];
@@ -211,13 +211,13 @@ int rom_read(const char* argv)
         return 1;
     }
     printf("rom loaded succesfully\n");
-    
+
     memcpy(&ROM_HEADER, rom, sizeof(t_rom_header));
     ROM_HEADER.unknown = 0;
     // Clean up ROMs that accidentally set the unused bytes (ensuring previous fields are null terminated)
     ROM_HEADER.Unknown[0] = 0;
     ROM_HEADER.Unknown[1] = 0;
-   
+
     //trim header
     memcpy(ROM_HEADER.nom, trim((char*)ROM_HEADER.nom), sizeof(ROM_HEADER.nom));
 
@@ -233,6 +233,6 @@ int rom_read(const char* argv)
         strcpy(rom_md5, arg);
 
     }
-    
+
     return 0;
 }

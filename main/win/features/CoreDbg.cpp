@@ -12,7 +12,7 @@
 
 #include "../../r4300/r4300.h"
 #include "../../memory/memory.h"
-#include "disasm.h"
+#include "../../r4300/disasm.h"
 
 bool dma_read_enabled = true;
 bool coredbg_resumed = true;

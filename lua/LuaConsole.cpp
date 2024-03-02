@@ -17,15 +17,16 @@
 #include "include/lua.hpp"
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
+#include "../r4300/disasm.h"
 #include "../r4300/recomp.h"
 #include "../main/Plugin.hpp"
-#include "../main/disasm.h"
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/configdialog.h"
 #include "../main/helpers/win_helpers.h"
 #include "../main/win/wrapper/PersistentPathDialog.h"
 #include "../main/vcr_compress.h"
+#include "../main/lib/md5.h"
 #include <vcr.h>
 #include <gdiplus.h>
 #include <d2d1.h>
@@ -34,7 +35,6 @@
 #include <wincodec.h>
 #include <functional>
 #include <queue>
-#include <md5.h>
 #include <assert.h>
 
 #include "helpers/string_helpers.h"

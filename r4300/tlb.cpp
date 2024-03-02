@@ -32,7 +32,7 @@
 #include "macros.h"
 #include "recomph.h"
 #include "interrupt.h"
-#include "../main/md5.h"
+#include "../main/lib/md5.h"
 #include "../memory/memory.h"
 
 #include <zlib.h>

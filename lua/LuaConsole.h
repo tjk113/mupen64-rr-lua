@@ -20,7 +20,7 @@
 #include <wincodec.h>
 #include <functional>
 #include <queue>
-#include <md5.h>
+#include "../main/lib/md5.h"
 #include <assert.h>
 #include <filesystem>
 #include <mutex>
