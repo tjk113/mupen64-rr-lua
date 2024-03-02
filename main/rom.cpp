@@ -48,6 +48,7 @@
 #include <win/main_win.h>
 
 #include "helpers/io_helpers.h"
+#include "helpers/string_helpers.h"
 
 uint8_t* rom;
 size_t rom_size;
@@ -203,7 +204,7 @@ int rom_read(const char* argv)
     ROM_HEADER.Unknown[1] = 0;
 
     //trim header
-    memcpy(ROM_HEADER.nom, trim((char*)ROM_HEADER.nom), sizeof(ROM_HEADER.nom));
+    memcpy(ROM_HEADER.nom, strtrim((char*)ROM_HEADER.nom), sizeof(ROM_HEADER.nom));
 
     {
         md5_state_t state;
