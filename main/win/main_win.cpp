@@ -1570,8 +1570,6 @@ int WINAPI WinMain(
 	RegisterClassEx(&wc);
 	MGECompositor::init();
 
-	HACCEL accelerators = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCEL));
-
 	mainHWND = CreateWindowEx(
 		0,
 		g_szClassName,
@@ -1636,13 +1634,10 @@ int WINAPI WinMain(
 	// raise continuable exception
 	//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
-	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	while (GetMessage(&msg, NULL, 0, 0) != 0)
 	{
-		if (!TranslateAccelerator(mainHWND, accelerators, &msg))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 
 		for (t_hotkey* hotkey : hotkeys)
 		{

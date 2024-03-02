@@ -6,7 +6,6 @@
 #define MIN_WINDOW_H                    100
 #define MIN_WINDOW_W                    100
 #define IDR_MYMENU                      101
-#define IDR_ACCEL                       103
 #define IDM_SETTINGS                    105
 #define IDD_SEEKER                      107
 #define IDD_MAIN                        128
@@ -460,7 +459,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
