@@ -59,19 +59,16 @@ namespace Rombrowser
 
 		std::vector<std::string> filtered_rom_paths;
 
-		std::copy_if(rom_paths.begin(), rom_paths.end(),
-		             std::back_inserter(filtered_rom_paths), [](std::string val)
-		             {
-			             char c_extension[260] = {0};
-			             _splitpath(val.c_str(), NULL, NULL, NULL, c_extension);
+		std::ranges::copy_if(rom_paths, std::back_inserter(filtered_rom_paths), [](std::string val)
+		 {
+		    char c_extension[260] = {0};
+		    _splitpath(val.c_str(), nullptr, nullptr, nullptr, c_extension);
 
-			             auto extension = std::string(c_extension);
-			             return iequals(extension, ".z64") ||
-				             iequals(extension, ".n64") ||
-				             iequals(
-					             extension, ".v64")
-				             || iequals(extension, ".rom");
-		             });
+		    return iequals(c_extension, ".z64")
+		        || iequals(c_extension, ".n64")
+		        || iequals(c_extension, ".v64")
+		        || iequals(c_extension, ".rom");
+		 });
 		return filtered_rom_paths;
 	}
 
@@ -238,6 +235,8 @@ namespace Rombrowser
 
 	void rombrowser_add_rom(int32_t index, t_rombrowser_entry* rombrowser_entry)
 	{
+		rombrowser_entries.push_back(rombrowser_entry);
+
 		LV_ITEM lv_item = {0};
 
 		lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
@@ -247,7 +246,6 @@ namespace Rombrowser
 		lv_item.iImage = rombrowser_country_code_to_image_index(
 			rombrowser_entry->rom_header.Country_code);
 		ListView_InsertItem(rombrowser_hwnd, &lv_item);
-		rombrowser_entries.push_back(rombrowser_entry);
 	}
 
 	void rombrowser_build_impl()
