@@ -816,10 +816,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	{
 		printf("[VCR]: Loading state...\n");
 		strncpy(m_filename, filename, MAX_PATH);
-		strncpy(buf, m_filename, MAX_PATH);
-		strip_extension(buf);
-		strncat(buf, ".st", 4);
-		savestates_do_file(buf, e_st_job::load);
+		savestates_do_file(strip_extension(m_filename) + ".st", e_st_job::load);
 
 		// set this to the normal snapshot flag to maintain compatibility
 		m_header.startFlags = MOVIE_START_FROM_SNAPSHOT;

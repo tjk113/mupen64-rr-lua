@@ -75,22 +75,6 @@ void print_rom_info()
     printf("----------------\n");
 }
 
-
-void strip_extension(char* fname)
-{
-    char* end = fname + strlen(fname);
-
-    while (end > fname && *end != '.' && *end != '\\' && *end != '/')
-    {
-        --end;
-    }
-    if ((end > fname && *end == '.') &&
-        (*(end - 1) != '\\' && *(end - 1) != '/'))
-    {
-        *end = '\0';
-    }
-}
-
 std::string country_code_to_country_name(uint16_t country_code)
 {
     switch (country_code & 0xFF)
