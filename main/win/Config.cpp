@@ -749,6 +749,7 @@ void update_menu_hotkey_labels()
 	set_hotkey_menu_accelerators(&Config.refresh_rombrowser_hotkey, IDM_REFRESH_ROMBROWSER);
 	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, IDM_FULLSCREEN);
 	set_hotkey_menu_accelerators(&Config.settings_hotkey, IDM_SETTINGS);
+	set_hotkey_menu_accelerators(&Config.toggle_statusbar_hotkey, IDM_STATUSBAR);
 
     set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, IDM_PLAY_LATEST_MOVIE);
     set_hotkey_menu_accelerators(&Config.seek_to_frame_hotkey, IDM_SEEKER);
