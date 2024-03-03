@@ -711,54 +711,6 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	ExitThread(0);
 }
 
-
-void ProcessToolTips(LPARAM lParam, HWND hWnd)
-{
-	LPTOOLTIPTEXT lpttt = (LPTOOLTIPTEXT)lParam;
-
-	lpttt->hinst = app_instance;
-
-	// Specify the resource identifier of the descriptive
-	// text for the given button.
-
-	switch (lpttt->hdr.idFrom)
-	{
-	case IDM_LOAD_ROM:
-		strcpy(lpttt->lpszText, "Load ROM...");
-		break;
-	case EMU_PLAY:
-		strcpy(lpttt->lpszText, "Resume");
-		break;
-	case IDM_PAUSE:
-		strcpy(lpttt->lpszText, "Pause");
-		break;
-	case IDM_CLOSE_ROM:
-		strcpy(lpttt->lpszText, "Stop");
-		break;
-	case IDM_FULLSCREEN:
-		strcpy(lpttt->lpszText, "Fullscreen");
-		break;
-	case IDM_VIDEO_SETTINGS:
-		strcpy(lpttt->lpszText, "Video Settings...");
-		break;
-	case IDM_AUDIO_SETTINGS:
-		strcpy(lpttt->lpszText, "Audio Settings...");
-		break;
-	case IDM_INPUT_SETTINGS:
-		strcpy(lpttt->lpszText, "Input Settings...");
-		break;
-	case IDM_RSP_SETTINGS:
-		strcpy(lpttt->lpszText, "RSP Settings...");
-		break;
-	case IDM_SETTINGS:
-		strcpy(lpttt->lpszText, "Settings...");
-		break;
-	default:
-		break;
-	}
-}
-
-
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
@@ -881,12 +833,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if (wParam == IDC_ROMLIST)
 			{
 				Rombrowser::notify(lParam);
-			}
-			switch ((l_header)->code)
-			{
-			case TTN_NEEDTEXT:
-				ProcessToolTips(lParam, hwnd);
-				break;
 			}
 			return 0;
 		}
