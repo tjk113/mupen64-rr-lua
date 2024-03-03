@@ -415,10 +415,9 @@ namespace Rombrowser
 	}
 
 
-	std::string find_available_rom_with_crc(unsigned long crc)
+	std::string find_available_rom(std::function<bool(const t_rom_header&)> predicate)
 	{
 		auto rom_paths = find_available_roms();
-		std::string matching_rom;
 		for (auto rom_path : rom_paths)
 		{
 			FILE* f = fopen(rom_path.c_str(), "rb");
@@ -434,9 +433,11 @@ namespace Rombrowser
 
 				rom_byteswap((uint8_t*)header);
 
-				if (header->CRC1 == crc)
+				if (predicate(*header))
 				{
-					matching_rom = rom_path;
+					free(header);
+					fclose(f);
+					return rom_path;
 				}
 
 				free(header);
@@ -445,7 +446,7 @@ namespace Rombrowser
 			fclose(f);
 		}
 
-		return matching_rom;
+		return "";
 	}
 
 	void emu_launched_changed(std::any data)

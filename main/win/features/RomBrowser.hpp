@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <functional>
 #include <Windows.h>
 #include <vector>
 #include <string>
@@ -40,9 +41,9 @@ namespace Rombrowser
 	void notify(LPARAM lparam);
 
 	/**
-	 * \brief Finds a rom from the available ROM list with the given CRC
-	 * \param crc The CRC to search for
+	 * \brief Finds the first rom from the available ROM list which matches the predicate
+	 * \param predicate A predicate which determines if the rom matches
 	 * \return The rom's path, or an empty string if no rom was found
 	 */
-	std::string find_available_rom_with_crc(unsigned long crc);
+	std::string find_available_rom(std::function<bool(const t_rom_header&)> predicate);
 }
