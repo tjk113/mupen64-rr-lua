@@ -281,16 +281,14 @@ namespace Rombrowser
 
 			if (len > sizeof(t_rom_header))
 			{
-				auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
-				fread(header, sizeof(t_rom_header), 1, f);
+				t_rom_header header{};
+				fread(&header, sizeof(t_rom_header), 1, f);
 
-				rom_byteswap((uint8_t*)header);
+				rom_byteswap((uint8_t*)&header);
 
-				strtrim((char*)header->nom, sizeof(header->nom));
+				strtrim((char*)header.nom, sizeof(header.nom));
 
-				rombrowser_entry->rom_header = *header;
-
-				free(header);
+				rombrowser_entry->rom_header = header;
 			}
 
 			rombrowser_add_rom(i, rombrowser_entry);
