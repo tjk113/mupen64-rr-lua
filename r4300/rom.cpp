@@ -222,7 +222,7 @@ bool rom_load(std::filesystem::path path)
     ROM_HEADER.Unknown[1] = 0;
 
     //trim header
-    memcpy(ROM_HEADER.nom, strtrim((char*)ROM_HEADER.nom), sizeof(ROM_HEADER.nom));
+	strtrim((char*)ROM_HEADER.nom, sizeof(ROM_HEADER.nom));
 
     {
         md5_state_t state;

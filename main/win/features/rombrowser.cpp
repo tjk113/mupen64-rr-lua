@@ -286,6 +286,8 @@ namespace Rombrowser
 
 				rom_byteswap((uint8_t*)header);
 
+				strtrim((char*)header->nom, sizeof(header->nom));
+
 				rombrowser_entry->rom_header = *header;
 
 				free(header);

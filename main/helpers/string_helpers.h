@@ -134,22 +134,18 @@ inline static std::vector<std::wstring> split_wstring(const std::wstring& s, con
 	return res;
 }
 
-inline static char* strtrim(char* str)
+inline static void strtrim(char* str, size_t len)
 {
-	char *ibuf, *obuf;
-
-	if (str)
+	for (int i = 0; i < len; ++i)
 	{
-		for (ibuf = obuf = str; *ibuf; )
+		if (i == 0)
 		{
-			while (*ibuf && (isspace (*ibuf)))
-				ibuf++;
-			if (*ibuf && (obuf != str))
-				*(obuf++) = ' ';
-			while (*ibuf && (!isspace (*ibuf)))
-				*(obuf++) = *(ibuf++);
+			continue;
 		}
-		*obuf = 0;
+		if (str[i - 1] == ' ' && str[i] == ' ')
+		{
+			str[i - 1] = '\0';
+			return;
+		}
 	}
-	return str;
 }
