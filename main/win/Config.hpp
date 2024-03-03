@@ -12,7 +12,8 @@ typedef struct t_hotkey
 	int32_t ctrl;
 	int32_t shift;
 	int32_t alt;
-	int32_t command;
+	int32_t down_cmd;
+	int32_t up_cmd;
 } t_hotkey;
 
 #pragma pack(push, 1)

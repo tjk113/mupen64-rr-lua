@@ -800,23 +800,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYDOWN:
 		{
 			BOOL hit = FALSE;
-			if (!fast_forward)
-			{
-				if ((int)wParam == Config.fast_forward_hotkey.key)
-				// fast-forward on
-				{
-					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == Config.
-						fast_forward_hotkey.shift
-						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
-						Config.fast_forward_hotkey.ctrl
-						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == Config.
-						fast_forward_hotkey.alt)
-					{
-						fast_forward = 1;
-						hit = TRUE;
-					}
-				}
-			}
 			for (const t_hotkey* hotkey : hotkeys)
 			{
 				if ((int)wParam == hotkey->key)
@@ -829,14 +812,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						alt)
 					{
 						// We only want to send it if the corresponding menu item exists and is enabled
-						auto state = GetMenuState(main_menu, hotkey->command, MF_BYCOMMAND);
+						auto state = GetMenuState(main_menu, hotkey->down_cmd, MF_BYCOMMAND);
 						if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
 						{
-							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), hotkey->command);
+							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), hotkey->down_cmd);
 							continue;
 						}
-						printf("Sent %s (%d)\n", hotkey->identifier.c_str(), hotkey->command);
-						SendMessage(mainHWND, WM_COMMAND, hotkey->command, 0);
+						printf("Sent down %s (%d)\n", hotkey->identifier.c_str(), hotkey->down_cmd);
+						SendMessage(mainHWND, WM_COMMAND, hotkey->down_cmd, 0);
 						hit = TRUE;
 					}
 				}
@@ -846,17 +829,48 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				keyDown(wParam, lParam);
 			if (!hit)
 				return DefWindowProc(hwnd, Message, wParam, lParam);
+			break;
 		}
-		break;
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
-		if ((int)wParam == Config.fast_forward_hotkey.key) // fast-forward off
 		{
-			fast_forward = 0;
+			BOOL hit = FALSE;
+			for (const t_hotkey* hotkey : hotkeys)
+			{
+				if (!hotkey->up_cmd)
+				{
+					continue;
+				}
+
+				if ((int)wParam == hotkey->key)
+				{
+					if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) == hotkey->
+						shift
+						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
+						hotkey->ctrl
+						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkey->
+						alt)
+					{
+						// We only want to send it if the corresponding menu item exists and is enabled
+						auto state = GetMenuState(main_menu, hotkey->up_cmd, MF_BYCOMMAND);
+						if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
+						{
+							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), hotkey->up_cmd);
+							continue;
+						}
+						printf("Sent up %s (%d)\n", hotkey->identifier.c_str(), hotkey->up_cmd);
+						SendMessage(mainHWND, WM_COMMAND, hotkey->up_cmd, 0);
+						hit = TRUE;
+					}
+				}
+			}
+
+			if (keyUp && emu_launched)
+				keyUp(wParam, lParam);
+			if (!hit)
+				return DefWindowProc(hwnd, Message, wParam, lParam);
+			break;
 		}
-		if (keyUp && emu_launched)
-			keyUp(wParam, lParam);
-		return DefWindowProc(hwnd, Message, wParam, lParam);
 	case WM_MOUSEWHEEL:
 		last_wheel_delta = GET_WHEEL_DELTA_WPARAM(wParam);
 		break;
@@ -1090,7 +1104,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					break;
 				std::thread([] { close_rom(); }).detach();
 				break;
-
+			case IDM_FASTFORWARD_ON:
+				fast_forward = 1;
+				break;
+			case IDM_FASTFORWARD_OFF:
+				fast_forward = 0;
+				break;
 			case IDM_PAUSE:
 				{
 					// FIXME: While this is a beautiful and clean solution, there has to be a better way to handle this
@@ -1674,27 +1693,6 @@ int WINAPI WinMain(
 			// modifier-only checks, cannot be obtained through windows messaging...
 			if (!hotkey->key && (hotkey->shift || hotkey->ctrl || hotkey->alt))
 			{
-				// special treatment for fast-forward
-				if (hotkey->identifier == Config.fast_forward_hotkey.identifier)
-				{
-					if (!frame_advancing)
-					{
-						// dont allow fastforward+frameadvance
-						if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
-							hotkey->shift
-							&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0)
-							== hotkey->ctrl
-							&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
-							hotkey->alt)
-						{
-							fast_forward = 1;
-						} else
-						{
-							fast_forward = 0;
-						}
-					}
-					continue;
-				}
 				if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
 						hotkey->shift
 						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
@@ -1702,7 +1700,7 @@ int WINAPI WinMain(
 						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
 						hotkey->alt)
 				{
-					SendMessage(mainHWND, WM_COMMAND, hotkey->command,
+					SendMessage(mainHWND, WM_COMMAND, hotkey->down_cmd,
 								0);
 				}
 

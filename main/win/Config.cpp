@@ -170,7 +170,8 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = 0,
+		.down_cmd = IDM_FASTFORWARD_ON,
+		.up_cmd = IDM_FASTFORWARD_OFF
 	};
 
 	config.speed_down_hotkey = {
@@ -179,7 +180,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = IDC_DECREASE_MODIFIER,
+		.down_cmd = IDC_DECREASE_MODIFIER,
 	};
 
 	config.speed_up_hotkey = {
@@ -188,7 +189,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = IDC_INCREASE_MODIFIER,
+		.down_cmd = IDC_INCREASE_MODIFIER,
 	};
 
 	config.frame_advance_hotkey = {
@@ -197,7 +198,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_FRAMEADVANCE,
+		.down_cmd = IDM_FRAMEADVANCE,
 	};
 
 	config.pause_hotkey = {
@@ -206,7 +207,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_PAUSE,
+		.down_cmd = IDM_PAUSE,
 	};
 
 	config.toggle_read_only_hotkey = {
@@ -215,7 +216,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = IDM_VCR_READONLY,
+		.down_cmd = IDM_VCR_READONLY,
 	};
 
 	config.start_movie_playback_hotkey = {
@@ -224,7 +225,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = IDM_START_MOVIE_PLAYBACK,
+		.down_cmd = IDM_START_MOVIE_PLAYBACK,
 	};
 
 	config.stop_movie_playback_hotkey = {
@@ -233,7 +234,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = IDM_STOP_MOVIE_PLAYBACK,
+		.down_cmd = IDM_STOP_MOVIE_PLAYBACK,
 	};
 
 	config.start_movie_recording_hotkey = {
@@ -242,7 +243,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = IDM_START_MOVIE_RECORDING,
+		.down_cmd = IDM_START_MOVIE_RECORDING,
 	};
 
 	config.stop_movie_recording_hotkey = {
@@ -251,7 +252,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = IDM_STOP_MOVIE_RECORDING,
+		.down_cmd = IDM_STOP_MOVIE_RECORDING,
 	};
 
 	config.take_screenshot_hotkey = {
@@ -260,7 +261,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_SCREENSHOT,
+		.down_cmd = IDM_SCREENSHOT,
 	};
 
 	config.play_latest_movie_hotkey = {
@@ -269,7 +270,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = IDM_PLAY_LATEST_MOVIE,
+		.down_cmd = IDM_PLAY_LATEST_MOVIE,
 	};
 
 	config.load_rom_hotkey = {
@@ -278,7 +279,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_LOAD_ROM,
+		.down_cmd = IDM_LOAD_ROM,
 	};
 
 	config.close_rom_hotkey = {
@@ -287,7 +288,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_CLOSE_ROM,
+		.down_cmd = IDM_CLOSE_ROM,
 	};
 
 	config.reset_rom_hotkey = {
@@ -296,7 +297,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_RESET_ROM,
+		.down_cmd = IDM_RESET_ROM,
 	};
 
 	config.load_latest_rom_hotkey = {
@@ -305,7 +306,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.command = IDM_LOAD_LATEST_ROM,
+		.down_cmd = IDM_LOAD_LATEST_ROM,
 	};
 
 	config.fullscreen_hotkey = {
@@ -314,7 +315,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 1,
-		.command = IDM_FULLSCREEN,
+		.down_cmd = IDM_FULLSCREEN,
 	};
 
 	config.settings_hotkey = {
@@ -323,7 +324,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_SETTINGS,
+		.down_cmd = IDM_SETTINGS,
 	};
 
 	config.toggle_statusbar_hotkey = {
@@ -332,7 +333,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 1,
-		.command = IDM_STATUSBAR,
+		.down_cmd = IDM_STATUSBAR,
 	};
 
 	config.refresh_rombrowser_hotkey = {
@@ -341,7 +342,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_REFRESH_ROMBROWSER,
+		.down_cmd = IDM_REFRESH_ROMBROWSER,
 	};
 
 	config.seek_to_frame_hotkey = {
@@ -350,7 +351,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_SEEKER,
+		.down_cmd = IDM_SEEKER,
 	};
 
 	config.save_current_hotkey = {
@@ -359,7 +360,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_SAVE_SLOT,
+		.down_cmd = IDM_SAVE_SLOT,
 	};
 
 	config.load_current_hotkey = {
@@ -368,7 +369,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = IDM_LOAD_SLOT,
+		.down_cmd = IDM_LOAD_SLOT,
 	};
 
 	config.save_to_slot_1_hotkey = {
@@ -377,7 +378,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 1,
+		.down_cmd = (ID_SAVE_1 - 1) + 1,
 	};
 
 	config.save_to_slot_2_hotkey = {
@@ -386,7 +387,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 2,
+		.down_cmd = (ID_SAVE_1 - 1) + 2,
 	};
 
 	config.save_to_slot_3_hotkey = {
@@ -395,7 +396,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 3,
+		.down_cmd = (ID_SAVE_1 - 1) + 3,
 	};
 
 	config.save_to_slot_4_hotkey = {
@@ -404,7 +405,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 4,
+		.down_cmd = (ID_SAVE_1 - 1) + 4,
 	};
 
 	config.save_to_slot_5_hotkey = {
@@ -413,7 +414,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 5,
+		.down_cmd = (ID_SAVE_1 - 1) + 5,
 	};
 
 	config.save_to_slot_6_hotkey = {
@@ -422,7 +423,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 6,
+		.down_cmd = (ID_SAVE_1 - 1) + 6,
 	};
 
 	config.save_to_slot_7_hotkey = {
@@ -431,7 +432,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 7,
+		.down_cmd = (ID_SAVE_1 - 1) + 7,
 	};
 
 	config.save_to_slot_8_hotkey = {
@@ -440,7 +441,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 8,
+		.down_cmd = (ID_SAVE_1 - 1) + 8,
 	};
 
 	config.save_to_slot_9_hotkey = {
@@ -449,7 +450,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 9,
+		.down_cmd = (ID_SAVE_1 - 1) + 9,
 	};
 
 	config.save_to_slot_10_hotkey = {
@@ -458,7 +459,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.command = (ID_SAVE_1 - 1) + 10,
+		.down_cmd = (ID_SAVE_1 - 1) + 10,
 	};
 
 	config.load_from_slot_1_hotkey = {
@@ -467,7 +468,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 1,
+		.down_cmd = (ID_LOAD_1 - 1) + 1,
 	};
 
 	config.load_from_slot_2_hotkey = {
@@ -476,7 +477,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 2,
+		.down_cmd = (ID_LOAD_1 - 1) + 2,
 	};
 
 	config.load_from_slot_3_hotkey = {
@@ -485,7 +486,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 3,
+		.down_cmd = (ID_LOAD_1 - 1) + 3,
 	};
 
 	config.load_from_slot_4_hotkey = {
@@ -494,7 +495,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 4,
+		.down_cmd = (ID_LOAD_1 - 1) + 4,
 	};
 
 	config.load_from_slot_5_hotkey = {
@@ -503,7 +504,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 5,
+		.down_cmd = (ID_LOAD_1 - 1) + 5,
 	};
 
 	config.load_from_slot_6_hotkey = {
@@ -512,7 +513,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 6,
+		.down_cmd = (ID_LOAD_1 - 1) + 6,
 	};
 
 	config.load_from_slot_7_hotkey = {
@@ -521,7 +522,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 7,
+		.down_cmd = (ID_LOAD_1 - 1) + 7,
 	};
 
 	config.load_from_slot_8_hotkey = {
@@ -530,7 +531,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 8,
+		.down_cmd = (ID_LOAD_1 - 1) + 8,
 	};
 
 	config.load_from_slot_9_hotkey = {
@@ -539,7 +540,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 9,
+		.down_cmd = (ID_LOAD_1 - 1) + 9,
 	};
 
 	config.load_from_slot_10_hotkey = {
@@ -548,7 +549,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (ID_LOAD_1 - 1) + 10,
+		.down_cmd = (ID_LOAD_1 - 1) + 10,
 	};
 
 	config.select_slot_1_hotkey = {
@@ -557,7 +558,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 1,
+		.down_cmd = (IDM_SELECT_1 - 1) + 1,
 	};
 
 	config.select_slot_2_hotkey = {
@@ -566,7 +567,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 2,
+		.down_cmd = (IDM_SELECT_1 - 1) + 2,
 	};
 
 	config.select_slot_3_hotkey = {
@@ -575,7 +576,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 3,
+		.down_cmd = (IDM_SELECT_1 - 1) + 3,
 	};
 
 	config.select_slot_4_hotkey = {
@@ -584,7 +585,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 4,
+		.down_cmd = (IDM_SELECT_1 - 1) + 4,
 	};
 
 	config.select_slot_5_hotkey = {
@@ -593,7 +594,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 5,
+		.down_cmd = (IDM_SELECT_1 - 1) + 5,
 	};
 
 	config.select_slot_6_hotkey = {
@@ -602,7 +603,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 6,
+		.down_cmd = (IDM_SELECT_1 - 1) + 6,
 	};
 
 	config.select_slot_7_hotkey = {
@@ -611,7 +612,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 7,
+		.down_cmd = (IDM_SELECT_1 - 1) + 7,
 	};
 
 	config.select_slot_8_hotkey = {
@@ -620,7 +621,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 8,
+		.down_cmd = (IDM_SELECT_1 - 1) + 8,
 	};
 
 	config.select_slot_9_hotkey = {
@@ -629,7 +630,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 9,
+		.down_cmd = (IDM_SELECT_1 - 1) + 9,
 	};
 
 	config.select_slot_10_hotkey = {
@@ -638,10 +639,10 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.command = (IDM_SELECT_1 - 1) + 10,
+		.down_cmd = (IDM_SELECT_1 - 1) + 10,
 	};
 
-	config.version = 1;
+	config.version = 2;
 	config.core_type = 1;
 	config.fps_modifier = 100;
 	config.frame_skip_frequency = 1;
@@ -929,8 +930,10 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 			auto hotkey = &(((t_hotkey*)&Config)[i]);
 			hotkey->identifier = std::string(
 				hotkey_pointers[i]->identifier);
-			hotkey->command = hotkey_pointers[i]->
-				command;
+			hotkey->down_cmd = hotkey_pointers[i]->
+				down_cmd;
+			hotkey->up_cmd = hotkey_pointers[i]->
+				up_cmd;
 		}
 	}
 

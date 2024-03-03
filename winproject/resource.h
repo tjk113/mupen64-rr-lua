@@ -456,6 +456,8 @@
 #define IDC_ERROR_PICTUREBOX            40063
 #define IDD_NEW_HOTKEY_DIALOG           40064
 #define IDM_SEEKER                      40065
+#define IDM_FASTFORWARD_ON				40066
+#define IDM_FASTFORWARD_OFF				40067
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
