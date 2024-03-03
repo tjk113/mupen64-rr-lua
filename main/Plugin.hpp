@@ -37,28 +37,6 @@
 #include <functional>
 #include "helpers/io_helpers.h"
 
-struct ProcAddress
-{
-	FARPROC _fp;
-
-	ProcAddress(HMODULE module, LPCSTR name) : _fp(NULL)
-	{
-		_fp = ::GetProcAddress(module, name);
-	}
-
-	template <class T>
-	operator T() const
-	{
-		union
-		{
-			FARPROC fp;
-			T func;
-		} converter;
-		converter.fp = _fp;
-		return converter.func;
-	}
-};
-
 enum plugin_type
 {
 	video = 2,

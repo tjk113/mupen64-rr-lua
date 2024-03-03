@@ -583,9 +583,9 @@ t_plugin* plugin_create(const std::filesystem::path &path)
 		return nullptr;
 	}
 
-	const auto get_dll_info = ProcAddress(h_module, "GetDllInfo");
+	const auto get_dll_info = (void(__cdecl*)(PLUGIN_INFO*))GetProcAddress(h_module, "GetDllInfo");
 
-	if (!get_dll_info._fp)
+	if (!get_dll_info)
 	{
 		FreeLibrary(h_module);
 		delete plugin;
