@@ -61,7 +61,7 @@ void close_rom(bool stop_vcr = true);
  * \param reset_save_data Whether save data (e.g.: EEPROM, SRAM, Mempak) will be reset
  * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
  */
-void reset_rom(bool reset_save_data = false, bool stop_vcr = true);
+bool reset_rom(bool reset_save_data = false, bool stop_vcr = true);
 
 
 

@@ -98,6 +98,9 @@ bool is_restarting;
 // Lock to prevent multiple callers from starting/stopping/resetting emu simultaneously
 CRITICAL_SECTION emu_cs;
 
+// Lock to prevent reset race conditions
+std::mutex emu_reset_cs;
+
 bool paused_before_menu;
 bool paused_before_focus;
 bool in_menu_loop;
@@ -614,10 +617,15 @@ void clear_save_data()
 	}
 }
 
-void reset_rom(bool reset_save_data, bool stop_vcr)
+bool reset_rom(bool reset_save_data, bool stop_vcr)
 {
+	std::unique_lock lock(emu_reset_cs, std::try_to_lock);
+	if(!lock.owns_lock()){
+		return false;
+	}
+
 	if (!emu_launched)
-		return;
+		return false;
 
 	// why is it so damned difficult to reset the game?
 	// right now it's hacked to exit to the GUI then re-load the ROM,
@@ -635,6 +643,7 @@ void reset_rom(bool reset_save_data, bool stop_vcr)
 
 	is_restarting = false;
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
+	return true;
 }
 
 DWORD WINAPI audio_thread(LPVOID)
