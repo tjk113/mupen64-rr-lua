@@ -312,6 +312,8 @@ namespace VCR
 		InvalidSavestate,
 		// The resulting frame is outside the bounds of the movie
 		InvalidFrame,
+		// There is no rom which matches this movie
+		NoMatchingRom,
 	};
 
 	/**

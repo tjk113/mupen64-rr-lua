@@ -987,9 +987,9 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	// Nope, doesnt work since some random user32 call in core somewhere converts it to "GUI" thread.
 	// assert(!IsGUIThread(false));
 
-	if (!emu_launched)
+	if (!emu_launched && !start_rom(path))
 	{
-		start_rom(path);
+		return Result::NoMatchingRom;
 	}
 
 	strncpy(m_filename, path.string().c_str(), MAX_PATH);
