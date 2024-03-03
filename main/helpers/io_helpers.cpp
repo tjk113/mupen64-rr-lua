@@ -188,7 +188,7 @@ std::vector<uint8_t> read_file_buffer(const std::filesystem::path& path)
 std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
                                      size_t initial_size)
 {
-	if (vec[0] != 0x1F && vec[1] != 0x8B)
+	if (vec.size() < 2 || vec[0] != 0x1F && vec[1] != 0x8B)
 	{
 		// vec is decompressed already
 		printf("Already decompressed\n");
