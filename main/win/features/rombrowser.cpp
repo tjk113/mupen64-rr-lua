@@ -370,8 +370,10 @@ namespace Rombrowser
 				switch (plvdi->item.iSubItem)
 				{
 				case 1:
-					strcpy(plvdi->item.pszText,
-					       (const char*)rombrowser_entry->rom_header.nom);
+					// NOTE: The name may not be null-terminated, so we NEED to limit the size
+					strncpy(plvdi->item.pszText, (const char*)rombrowser_entry->
+					rom_header.nom, sizeof(rombrowser_entry->
+					rom_header.nom));
 					break;
 				case 2:
 					{
