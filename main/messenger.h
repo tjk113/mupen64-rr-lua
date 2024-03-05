@@ -108,6 +108,11 @@ namespace Messenger
 		 * \brief The threhsold of VIs since the last input poll has been exceeded
 		 */
 		LagLimitExceeded,
+
+		/**
+		 * \brief The emu has begun or stopped its starting process
+		 */
+		EmuStartingChanged,
 	};
 
 	/**

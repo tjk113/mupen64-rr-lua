@@ -105,6 +105,7 @@ bool paused_before_menu;
 bool paused_before_focus;
 bool in_menu_loop;
 bool vis_since_input_poll_warning_dismissed;
+bool emu_starting;
 
 namespace Recent
 {
@@ -173,6 +174,11 @@ namespace Recent
 void update_titlebar()
 {
 	std::string text = MUPEN_VERSION;
+
+	if (emu_starting)
+	{
+		text += " - Starting...";
+	}
 
 	if (emu_launched)
 	{
@@ -449,6 +455,8 @@ int start_rom(std::filesystem::path path){
 		return 0;
 	}
 
+	Messenger::broadcast(Messenger::Message::EmuStartingChanged, true);
+
 	// If we get a movie instead of a rom, we try to search the available rom lists to find one matching the movie
 	if (path.extension() == ".m64")
 	{
@@ -456,6 +464,7 @@ int start_rom(std::filesystem::path path){
 		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
 		{
 			LeaveCriticalSection(&emu_cs);
+			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 			return 0;
 		}
 
@@ -467,6 +476,7 @@ int start_rom(std::filesystem::path path){
 		if (matching_rom.empty())
 		{
 			LeaveCriticalSection(&emu_cs);
+			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 			return 0;
 		}
 
@@ -488,6 +498,7 @@ int start_rom(std::filesystem::path path){
 			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 		}
 		LeaveCriticalSection(&emu_cs);
+		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 		return 0;
 	}
 
@@ -497,6 +508,7 @@ int start_rom(std::filesystem::path path){
 		MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
 		unload_plugins();
 		LeaveCriticalSection(&emu_cs);
+		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 		return 0;
 	}
 
@@ -697,6 +709,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	audio_thread_handle = CreateThread(nullptr, 0, audio_thread, nullptr, 0, nullptr);
 
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
+	Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 
 	go();
 
@@ -1600,6 +1613,11 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
 	Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
 	Messenger::subscribe(Messenger::Message::LagLimitExceeded, on_vis_since_input_poll_exceeded);
+	Messenger::subscribe(Messenger::Message::EmuStartingChanged, [] (std::any data)
+	{
+		emu_starting = std::any_cast<bool>(data);
+		update_titlebar();
+	});
 
 	// Rombrowser needs to be initialized *after* other components, since it depends on their state smh bru
 	Statusbar::init();
