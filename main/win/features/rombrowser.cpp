@@ -17,7 +17,7 @@
 #include "../Config.hpp"
 #include <assert.h>
 #include <thread>
-
+#include <Uxtheme.h>
 #include "messenger.h"
 
 using t_rombrowser_entry = struct s_rombrowser_entry
@@ -143,11 +143,13 @@ namespace Rombrowser
 		                                 mainHWND, (HMENU)IDC_ROMLIST,
 		                                 app_instance,
 		                                 NULL);
-
 		ListView_SetExtendedListViewStyle(rombrowser_hwnd,
 		                                  LVS_EX_GRIDLINES |
 		                                  LVS_EX_FULLROWSELECT |
 		                                  LVS_EX_DOUBLEBUFFER);
+
+		// Explorer theme is better than default, because it has selection highlight
+		SetWindowTheme(rombrowser_hwnd, L"Explorer", NULL);
 
 		HIMAGELIST hSmall =
 			ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 11, 0);
