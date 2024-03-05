@@ -125,7 +125,7 @@ static const int MemoryMaxCount = 0xFFFF;
 
 int init_memory()
 {
-	vis_since_input_poll = 0;
+	lag_count = 0;
 
     int i;
 

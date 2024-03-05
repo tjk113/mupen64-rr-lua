@@ -1594,7 +1594,7 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::MoviePlaybackStarted, on_movie_recording_or_playback_started);
 	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
 	Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
-	Messenger::subscribe(Messenger::Message::VIsSinceInputPollExceeded, on_vis_since_input_poll_exceeded);
+	Messenger::subscribe(Messenger::Message::LagLimitExceeded, on_vis_since_input_poll_exceeded);
 
 	// Rombrowser needs to be initialized *after* other components, since it depends on their state smh bru
 	Statusbar::init();

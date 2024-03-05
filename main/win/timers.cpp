@@ -53,9 +53,9 @@ void timer_new_frame()
 
 void timer_new_vi()
 {
-	if (Config.max_vis_since_input_poll != 0 && vis_since_input_poll >= Config.max_vis_since_input_poll)
+	if (Config.max_lag != 0 && lag_count >= Config.max_lag)
 	{
-		Messenger::broadcast(Messenger::Message::VIsSinceInputPollExceeded, nullptr);
+		Messenger::broadcast(Messenger::Message::LagLimitExceeded, nullptr);
 	}
 	bool ff = fast_forward || VCR::is_seeking();
 

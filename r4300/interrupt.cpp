@@ -421,7 +421,7 @@ void gen_interrupt()
         break;
 
     case VI_INT:
-    	vis_since_input_poll++;
+    	lag_count++;
         LuaCallbacks::call_interval();
         vcr_update_screen();
         vcr_on_vi();

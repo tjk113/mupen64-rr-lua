@@ -107,7 +107,7 @@ namespace Messenger
 		/**
 		 * \brief The threhsold of VIs since the last input poll has been exceeded
 		 */
-		VIsSinceInputPollExceeded,
+		LagLimitExceeded,
 	};
 
 	/**

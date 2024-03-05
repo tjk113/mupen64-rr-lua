@@ -53,7 +53,8 @@ unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];
 int frame_advancing = 0;
 int fast_forward = 0;
-size_t vis_since_input_poll;
+// Amount of VIs since last input poll
+size_t lag_count;
 
 void check_input_sync(unsigned char* value);
 
@@ -188,7 +189,7 @@ void internal_ReadController(int Control, BYTE* Command)
         if (Controls[Control].Present)
         {
             BUTTONS Keys;
-        	vis_since_input_poll = 0;
+        	lag_count = 0;
             vcr_on_controller_poll(Control, &Keys);
             *((unsigned long*)(Command + 3)) = Keys.Value;
 #ifdef COMPARE_CORE

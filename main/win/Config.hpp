@@ -376,7 +376,7 @@ typedef struct _CONFIG
 	/// The maximum amount of VIs allowed to be generated since the last input poll before a warning dialog is shown
 	/// 0 - no warning
 	/// </summary>
-	int32_t max_vis_since_input_poll;
+	int32_t max_lag;
 
 	/// <summary>
 	/// The current seeker input value
