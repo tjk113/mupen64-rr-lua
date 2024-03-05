@@ -50,6 +50,7 @@ extern void update_debugger();
 extern bool ignore;
 int emu_launched; // emu_emulating
 int emu_paused;
+bool core_executing;
 unsigned long i, dynacore = 0, interpcore = 0;
 int stop, llbit;
 long long int reg[32], hi, lo;
@@ -1780,6 +1781,7 @@ void go()
         printf("interpreter\n");
         init_blocks();
         last_addr = PC->addr;
+    	core_executing = true;
         while (!stop)
         {
             //if ((debug_count+Count) >= 0x78a8091) break; // obj 0x16aeb8a
@@ -1828,6 +1830,7 @@ void go()
 				update_debugger();
 #endif
         }
+    	core_executing = false;
     }
     else if (dynacore == 2)
     {

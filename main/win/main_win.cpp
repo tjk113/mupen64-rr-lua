@@ -458,6 +458,7 @@ int start_rom(std::filesystem::path path){
 
 	std::unique_lock lock(emu_start_cs, std::try_to_lock);
 	if(!lock.owns_lock()){
+		printf("IM BUSY!!!\n");
 		return 0;
 	}
 
@@ -532,7 +533,9 @@ int start_rom(std::filesystem::path path){
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
 
-	while (!emu_launched);
+	// We need to wait until the core is actually done and running before we can continue, because we release the lock
+	// If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
+	while (!core_executing);
 
 	return 1;
 }

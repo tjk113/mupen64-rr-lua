@@ -3197,6 +3197,7 @@ void pure_interpreter()
     stop = 0;
     PC = (precomp_instr*)malloc(sizeof(precomp_instr));
     last_addr = interp_addr;
+	core_executing = true;
     while (!stop)
     {
         //if (interp_addr == 0x10022d08) stop = 1;
@@ -3222,6 +3223,7 @@ void pure_interpreter()
         }
         CoreDbg::on_late_cycle(op, interp_addr);
     }
+	core_executing = false;
     PC->addr = interp_addr;
 }
 
