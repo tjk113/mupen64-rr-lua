@@ -286,6 +286,8 @@ void on_emu_launched_changed(std::any data)
 	update_titlebar();
 	// Some menu items, like movie ones, depend on both this and vcr task
 	on_task_changed(m_task);
+
+	Recent::add(Config.recent_rom_paths, rom_path.string(), Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
 }
 
 void on_capturing_changed(std::any data)
@@ -508,8 +510,6 @@ int start_rom(std::filesystem::path path){
 		return 0;
 	}
 
-	// notify ui of emu state change
-	Recent::add(Config.recent_rom_paths, path.string(), Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 
 	// HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
