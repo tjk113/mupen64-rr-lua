@@ -528,9 +528,6 @@ int start_rom(std::filesystem::path path){
 
 	while (!emu_launched);
 
-	// Between emu_launched being set to 1 and core finishing setup, there's some time we want to bridge
-	Sleep(100);
-
 	return 1;
 }
 
