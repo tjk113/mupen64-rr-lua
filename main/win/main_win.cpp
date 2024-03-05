@@ -95,8 +95,8 @@ std::deque<std::function<void()>> dispatcher_queue;
 // Flag which tells close_rom start_rom to skip some broadcasting and other operations
 bool is_restarting;
 
-// Lock to prevent multiple callers from starting/stopping/resetting emu simultaneously
-CRITICAL_SECTION emu_cs;
+// Lock to prevent start/stop race conditions
+std::mutex emu_start_cs;
 
 // Lock to prevent reset race conditions
 std::mutex emu_reset_cs;
@@ -450,8 +450,8 @@ int start_rom(std::filesystem::path path){
 		close_rom();
 	}
 
-	if (!TryEnterCriticalSection(&emu_cs))
-	{
+	std::unique_lock lock(emu_start_cs, std::try_to_lock);
+	if(!lock.owns_lock()){
 		return 0;
 	}
 
@@ -463,7 +463,6 @@ int start_rom(std::filesystem::path path){
 		t_movie_header movie_header{};
 		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
 		{
-			LeaveCriticalSection(&emu_cs);
 			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 			return 0;
 		}
@@ -475,7 +474,6 @@ int start_rom(std::filesystem::path path){
 
 		if (matching_rom.empty())
 		{
-			LeaveCriticalSection(&emu_cs);
 			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 			return 0;
 		}
@@ -497,7 +495,6 @@ int start_rom(std::filesystem::path path){
 		{
 			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 		}
-		LeaveCriticalSection(&emu_cs);
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 		return 0;
 	}
@@ -507,7 +504,6 @@ int start_rom(std::filesystem::path path){
 	{
 		MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
 		unload_plugins();
-		LeaveCriticalSection(&emu_cs);
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 		return 0;
 	}
@@ -538,7 +534,6 @@ int start_rom(std::filesystem::path path){
 	// Between emu_launched being set to 1 and core finishing setup, there's some time we want to bridge
 	Sleep(100);
 
-	LeaveCriticalSection(&emu_cs);
 	return 1;
 }
 
@@ -549,8 +544,8 @@ void close_rom(bool stop_vcr)
 		return;
 	}
 
-	if(!TryEnterCriticalSection(&emu_cs))
-	{
+	std::unique_lock lock(emu_start_cs, std::try_to_lock);
+	if(!lock.owns_lock()){
 		return;
 	}
 
@@ -591,8 +586,6 @@ void close_rom(bool stop_vcr)
 	{
 		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	}
-
-	LeaveCriticalSection(&emu_cs);
 }
 
 void clear_save_data()
@@ -1547,8 +1540,6 @@ int WINAPI WinMain(
 #endif
 
 	Messenger::init();
-
-	InitializeCriticalSection(&emu_cs);
 
 	app_path = get_app_full_path();
 	app_instance = hInstance;
