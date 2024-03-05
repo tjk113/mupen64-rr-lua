@@ -85,11 +85,6 @@ std::filesystem::path rom_path;
 // Whether the sound thread can call aiUpdate
 bool sound_allowed = true;
 
-/**
- * \brief List of lua environment map keys running before emulation stopped
- */
-std::vector<HWND> previously_running_luas;
-
 std::deque<std::function<void()>> dispatcher_queue;
 
 // Flag which tells close_rom start_rom to skip some broadcasting and other operations
@@ -556,18 +551,10 @@ void close_rom(bool stop_vcr)
 		vcr_core_stopped();
 	}
 
-	// remember all running lua scripts' HWNDs
-	for (const auto key : hwnd_lua_map | std::views::keys)
-	{
-		previously_running_luas.push_back(key);
-	}
-
 	printf("Closing emulation thread...\n");
 
 	// we signal the core to stop, then wait until thread exits
 	terminate_emu();
-
-	main_dispatcher_invoke(stop_all_scripts);
 
 	DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
 	if (result == WAIT_TIMEOUT) {
@@ -681,21 +668,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	printf("Emu thread: Emulation started....\n");
 
-
 	LuaCallbacks::call_reset();
-
-	main_dispatcher_invoke([]
-	{
-		for (const HWND hwnd : previously_running_luas)
-		{
-			// click start button
-			SendMessage(hwnd, WM_COMMAND,
-					MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
-					(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-		}
-
-		previously_running_luas.clear();
-	});
 
 	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	emu_paused = 0;
