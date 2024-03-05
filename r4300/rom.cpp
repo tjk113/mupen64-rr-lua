@@ -161,6 +161,7 @@ bool rom_load(std::filesystem::path path)
     if (rom)
     {
         free(rom);
+		rom = nullptr;
     }
 
     auto rom_buf = read_file_buffer(path);
