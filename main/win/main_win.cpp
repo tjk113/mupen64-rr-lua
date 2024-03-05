@@ -490,21 +490,18 @@ int start_rom(std::filesystem::path path){
 	rom_path = path;
 	auto start_time = std::chrono::high_resolution_clock::now();
 
-	if (!is_restarting)
+	printf("Loading plugins\n");
+	if (!load_plugins())
 	{
-		printf("Loading plugins\n");
-		if (!load_plugins())
+		if (MessageBox(mainHWND,
+					   "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
+					   nullptr,
+					   MB_ICONQUESTION | MB_YESNO) == IDYES)
 		{
-			if (MessageBox(mainHWND,
-			               "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
-			               nullptr,
-			               MB_ICONQUESTION | MB_YESNO) == IDYES)
-			{
-				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
-			}
-			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-			return 0;
+			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 		}
+		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
+		return 0;
 	}
 
 	// valid rom is required to start emulation
@@ -692,16 +689,12 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	romClosed_input();
 	romClosed_RSP();
 
-	if (!is_restarting)
-	{
-		closeDLL_gfx();
-		closeDLL_audio();
-		closeDLL_input();
-		closeDLL_RSP();
+	closeDLL_gfx();
+	closeDLL_audio();
+	closeDLL_input();
+	closeDLL_RSP();
 
-		unload_plugins();
-	}
-
+	unload_plugins();
 
 	ExitThread(0);
 }
