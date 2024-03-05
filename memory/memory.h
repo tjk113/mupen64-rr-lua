@@ -31,7 +31,6 @@
 #define MEMORY_H
 
 int init_memory();
-void free_memory();
 #define read_word_in_memory() readmem[address>>16]()
 #define read_byte_in_memory() readmemb[address>>16]()
 #define read_hword_in_memory() readmemh[address>>16]()

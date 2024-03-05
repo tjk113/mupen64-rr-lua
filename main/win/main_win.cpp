@@ -568,8 +568,6 @@ void close_rom(bool stop_vcr)
 	rom = NULL;
 	free(rom);
 
-	free_memory();
-
 	if (!is_restarting)
 	{
 		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);

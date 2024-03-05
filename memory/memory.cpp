@@ -1047,10 +1047,6 @@ int init_memory()
     return 0;
 }
 
-void free_memory()
-{
-}
-
 static void update_MI_init_mode_reg()
 {
     MI_register.init_length = MI_register.w_mi_init_mode_reg & 0x7F;
