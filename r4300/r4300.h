@@ -76,6 +76,11 @@ void resume_emu();
  */
 void pause_emu();
 
+/**
+ * \brief Terminates the emulator
+ */
+void terminate_emu();
+
 void go();
 void pure_interpreter();
 void compare_core();

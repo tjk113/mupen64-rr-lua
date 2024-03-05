@@ -41,7 +41,7 @@ void debug()
 	compare_core();
 #endif
     //if (Count > 0x8000000)
-    //printf("PC->addr:%x:%x\n",(int)PC->addr, 
+    //printf("PC->addr:%x:%x\n",(int)PC->addr,
     /*(int)SP_DMEM[(PC->addr - 0xa4000000)/4]*/
     //(int)rdram[(PC->addr & 0xFFFFFF)/4]);
     //printf("count:%x\n", (int)(Count));
@@ -100,25 +100,3 @@ void debug()
 }
 
 //static void dyna_stop() {}
-
-void stop_it()
-{
-    if (dynacore)
-    {
-        stop = 1;
-        /**return_address = (unsigned long)dyna_stop;
-        asm("mov return_address, %%esp \n"
-            "ret                       \n"
-            :
-            :
-            : "memory");*/
-        /*int i;
-        for (i=0; i<0x100000; i++)
-          {
-             if (((unsigned long)(EPC) >= blocks[i]->start)
-             && ((unsigned long)(EPC) < blocks[i]->end))
-               blocks[i]->code[blocks[i]->block[(EPC - blocks[i]->start)/4].local_addr] = 0xC3;
-          }*/
-    }
-    else stop = 1;
-}

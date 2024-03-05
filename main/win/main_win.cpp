@@ -565,9 +565,10 @@ void close_rom(bool stop_vcr)
 	printf("Closing emulation thread...\n");
 
 	// we signal the core to stop, then wait until thread exits
-	stop_it();
+	terminate_emu();
+
 	main_dispatcher_invoke(stop_all_scripts);
-	stop = 1;
+
 	DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
 	if (result == WAIT_TIMEOUT) {
 		MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,

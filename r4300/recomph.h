@@ -43,7 +43,6 @@ extern int fast_memory;
 void passe2(precomp_instr* dest, int start, int end, precomp_block* block);
 void init_assembler(void* block_jumps_table, int block_jumps_number);
 void free_assembler(void** block_jumps_table, int* block_jumps_number);
-void stop_it();
 
 void gencallinterp(unsigned long addr, int jump);
 

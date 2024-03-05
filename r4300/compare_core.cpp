@@ -86,7 +86,7 @@ void display_error(const char* txt)
           i, reg_cop0[i], i, comp_reg[i]);
       }*/
 
-    stop_it();
+    terminate_emu();
 }
 
 void check_input_sync(unsigned char* value)

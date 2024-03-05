@@ -105,6 +105,11 @@ void pause_emu()
 	Messenger::broadcast(Messenger::Message::EmuPausedChanged, (bool)emu_paused);
 }
 
+void terminate_emu()
+{
+	stop = 1;
+}
+
 void NI()
 {
     printf("NI() @ %x\n", (int)PC->addr);
