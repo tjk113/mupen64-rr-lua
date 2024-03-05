@@ -144,7 +144,7 @@ inline static void strtrim(char* str, size_t len)
 		}
 		if (str[i - 1] == ' ' && str[i] == ' ')
 		{
-			str[i - 1] = '\0';
+			memset(str + i - 1, 0, len - i + 1);
 			return;
 		}
 	}

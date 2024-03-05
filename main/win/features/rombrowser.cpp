@@ -290,6 +290,9 @@ namespace Rombrowser
 
 				strtrim((char*)header.nom, sizeof(header.nom));
 
+				// We need this for later, because listview assumes it has a nul terminator
+				header.nom[sizeof(header.nom) - 1] = '\0';
+
 				rombrowser_entry->rom_header = header;
 			}
 
@@ -373,9 +376,7 @@ namespace Rombrowser
 				{
 				case 1:
 					// NOTE: The name may not be null-terminated, so we NEED to limit the size
-					strncpy(plvdi->item.pszText, (const char*)rombrowser_entry->
-					rom_header.nom, sizeof(rombrowser_entry->
-					rom_header.nom));
+					plvdi->item.pszText = (char*)rombrowser_entry->rom_header.nom;
 					break;
 				case 2:
 					{
