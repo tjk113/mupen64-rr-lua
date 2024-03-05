@@ -218,7 +218,9 @@
 #define IDM_SCREENSHOT                  5015
 #define IDC_PAUSENOTACTIVE              5503
 #define IDC_ROMBROWSERCOLUMNS           5504
+#define IDC_STATUSBAR                   5504
 #define IDC_COLUMN_GOODNAME             5505
+#define IDC_AUTOINCREMENTSAVESLOT       5505
 #define IDC_COLUMN_INTERNALNAME         5506
 #define IDC_COLUMN_COUNTRY              5507
 #define IDC_COLUMN_SIZE                 5508
@@ -456,12 +458,13 @@
 #define IDC_ERROR_PICTUREBOX            40063
 #define IDD_NEW_HOTKEY_DIALOG           40064
 #define IDM_SEEKER                      40065
-#define IDM_FASTFORWARD_ON				40066
-#define IDM_FASTFORWARD_OFF				40067
+#define IDM_FASTFORWARD_ON              40066
+#define IDM_FASTFORWARD_OFF             40067
+#define IDC_STATUSBARZEROINDEX          40068
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109

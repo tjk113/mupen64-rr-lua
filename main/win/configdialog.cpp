@@ -541,7 +541,8 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
 
 		set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
-		set_checkbox_state(hwnd, IDM_STATUSBAR, Config.is_statusbar_enabled);
+		set_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT, Config.increment_slot);
+		set_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX, Config.vcr_0_index);
 		set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
 		set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
 		set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
@@ -588,6 +589,8 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         if (l_nmhdr->code == PSN_APPLY)
         {
             Config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
+			Config.increment_slot = get_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT);
+			Config.vcr_0_index = get_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX);
 			Config.is_unfocused_pause_enabled = get_checkbox_state(hwnd, IDC_PAUSENOTACTIVE);
 			Config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
 			Config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
