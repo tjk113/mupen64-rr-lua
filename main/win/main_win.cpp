@@ -651,6 +651,11 @@ DWORD WINAPI audio_thread(LPVOID)
 	printf("Sound thread entering...\n");
 	while (emu_launched)
 	{
+		if(VCR::is_seeking())
+		{
+			Sleep(1);
+			continue;
+		}
 		aiUpdate(1);
 	}
 	printf("Sound thread exiting...\n");
