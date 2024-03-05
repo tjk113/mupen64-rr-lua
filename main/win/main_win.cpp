@@ -166,6 +166,15 @@ namespace Recent
 
 }
 
+std::string get_screenshots_directory()
+{
+	if (Config.is_default_screenshots_directory_used)
+	{
+		return app_path + "screenshots\\";
+	}
+	return Config.screenshots_directory;
+}
+
 void update_titlebar()
 {
 	std::string text = MUPEN_VERSION;
@@ -1310,25 +1319,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 				break;
 			case IDM_STOP_CAPTURE:
-				if (vcr_stop_capture() < 0)
-					MessageBox(NULL, "Couldn't stop capturing.", "VCR", MB_OK);
-				else
+				if (vcr_stop_capture() >= 0)
 				{
-
 					Statusbar::post("Capture stopped");
 				}
 				break;
-			case IDM_SCREENSHOT: // take/capture a screenshot
-				if (Config.is_default_screenshots_directory_used)
-				{
-					sprintf(path_buffer, "%sScreenShots\\", app_path.c_str());
-					CaptureScreen(path_buffer);
-				} else
-				{
-					sprintf(path_buffer, "%s",
-					        Config.screenshots_directory.c_str());
-					CaptureScreen(path_buffer);
-				}
+			case IDM_SCREENSHOT:
+				CaptureScreen(const_cast<char*>(get_screenshots_directory().c_str()));
 				break;
 			case IDM_RESET_RECENT_ROMS:
 				Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu, true);
