@@ -102,6 +102,11 @@ bool in_menu_loop;
 bool vis_since_input_poll_warning_dismissed;
 bool emu_starting;
 
+/**
+ * \brief List of lua environment map keys running before emulation stopped
+ */
+std::vector<HWND> previously_running_luas;
+
 namespace Recent
 {
 	void build(std::vector<std::string>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
@@ -559,6 +564,13 @@ void close_rom(bool stop_vcr)
 		vcr_core_stopped();
 	}
 
+	// Remember all running lua scripts' HWNDs
+	for (const auto key : hwnd_lua_map | std::views::keys)
+	{
+		previously_running_luas.push_back(key);
+	}
+	main_dispatcher_invoke(stop_all_scripts);
+
 	printf("Closing emulation thread...\n");
 
 	// we signal the core to stop, then wait until thread exits
@@ -671,6 +683,19 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 	dynacore = Config.core_type;
 
 	printf("Emu thread: Emulation started....\n");
+
+	main_dispatcher_invoke([]
+	{
+		for (const HWND hwnd : previously_running_luas)
+		{
+			// click start button
+			SendMessage(hwnd, WM_COMMAND,
+					MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+					(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+		}
+
+		previously_running_luas.clear();
+	});
 
 	LuaCallbacks::call_reset();
 
