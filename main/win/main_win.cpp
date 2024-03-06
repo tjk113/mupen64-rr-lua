@@ -101,6 +101,8 @@ bool in_menu_loop;
 bool vis_since_input_poll_warning_dismissed;
 bool emu_starting;
 
+std::atomic<bool> audio_thread_stop_requested;
+
 /**
  * \brief List of lua environment map keys running before emulation stopped
  */
@@ -545,6 +547,10 @@ void close_rom(bool stop_vcr)
 
 	resume_emu();
 
+	audio_thread_stop_requested = true;
+	WaitForSingleObject(audio_thread_handle, INFINITE);
+	audio_thread_stop_requested = false;
+
 	if (stop_vcr)
 	{
 		vcr_core_stopped();
@@ -643,8 +649,12 @@ bool reset_rom(bool reset_save_data, bool stop_vcr)
 DWORD WINAPI audio_thread(LPVOID)
 {
 	printf("Sound thread entering...\n");
-	while (emu_launched)
+	while (true)
 	{
+		if (audio_thread_stop_requested == true) {
+			break;
+		}
+
 		if(VCR::is_seeking())
 		{
 			Sleep(1);
@@ -653,7 +663,7 @@ DWORD WINAPI audio_thread(LPVOID)
 		aiUpdate(1);
 	}
 	printf("Sound thread exiting...\n");
-	ExitThread(0);
+	return 0;
 }
 
 static DWORD WINAPI ThreadFunc(LPVOID lpParam)
