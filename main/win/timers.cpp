@@ -32,7 +32,7 @@ std::chrono::duration<double, std::milli> max_vi_s_ms;
 std::deque<time_point> new_frame_times;
 std::deque<time_point> new_vi_times;
 
-
+std::mutex timepoints_mutex;
 
 void timer_init(int32_t speed_modifier, t_rom_header* rom_header)
 {
@@ -47,7 +47,9 @@ void timer_init(int32_t speed_modifier, t_rom_header* rom_header)
 
 void timer_new_frame()
 {
+	timepoints_mutex.lock();
 	circular_push(new_frame_times, std::chrono::high_resolution_clock::now());
+	timepoints_mutex.unlock();
 	frame_changed = true;
 }
 
@@ -97,5 +99,7 @@ void timer_new_vi()
 		last_vi_time = std::chrono::high_resolution_clock::now();
 		// TODO: Reimplement game crash detection, but properly
 	}
+	timepoints_mutex.lock();
 	circular_push(new_vi_times, std::chrono::high_resolution_clock::now());
+	timepoints_mutex.unlock();
 }

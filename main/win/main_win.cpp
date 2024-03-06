@@ -889,15 +889,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				map.second->invalidate_visuals();
 			}
 
-			// We need to create a copy of these, as they might get mutated during our enumeration
-			auto frame_times = new_frame_times;
-			auto vi_times = new_vi_times;
-
 			// We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
 			if (time - last_statusbar_update > std::chrono::seconds(1))
 			{
-				Statusbar::post(std::format("FPS: {:.1f}", get_rate_per_second_from_times(frame_times)), Statusbar::Section::FPS);
-				Statusbar::post(std::format("VI/s: {:.1f}", get_rate_per_second_from_times(vi_times)), Statusbar::Section::VIs);
+				timepoints_mutex.lock();
+				Statusbar::post(std::format("FPS: {:.1f}", get_rate_per_second_from_times(new_frame_times)), Statusbar::Section::FPS);
+				Statusbar::post(std::format("VI/s: {:.1f}", get_rate_per_second_from_times(new_vi_times)), Statusbar::Section::VIs);
+				timepoints_mutex.unlock();
 				last_statusbar_update = time;
 			}
 		}

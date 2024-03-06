@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <queue>
+#include <mutex>
 
 #include "../r4300/rom.h"
 
@@ -30,6 +31,8 @@ extern std::deque<time_point> new_frame_times;
 
 /// Timepoints at which new VI happened
 extern std::deque<time_point> new_vi_times;
+
+extern std::mutex timepoints_mutex;
 
 /**
  * \brief Initializes timer code with the specified values
