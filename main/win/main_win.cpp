@@ -884,13 +884,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		save_config();
 		KillTimer(mainHWND, update_screen_timer);
-
 		PostQuitMessage(0);
 		break;
 	case WM_CLOSE:
 		if (confirm_user_exit())
 		{
-			DestroyWindow(mainHWND);
+			std::thread([] {
+				close_rom(true);
+				Dispatcher::invoke([] {
+					DestroyWindow(mainHWND);
+				});
+			}).detach();
 			break;
 		}
 		return 0;
