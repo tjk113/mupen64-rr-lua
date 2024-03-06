@@ -119,6 +119,10 @@ void EepromCommand(BYTE* Command)
             else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
             memcpy(eeprom + Command[3] * 8, &Command[4], 8);
             f = fopen(filename.string().c_str(), "wb");
+			if (!f) {
+				printf("[Core] EEPROM write fail due to no file handle");
+				return;
+			}
             fwrite(eeprom, 1, 0x800, f);
             fclose(f);
         }
