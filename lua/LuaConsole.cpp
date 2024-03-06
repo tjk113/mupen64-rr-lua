@@ -201,7 +201,7 @@ static HBRUSH alpha_mask_brush = CreateSolidBrush(bitmap_color_mask);
 
 				if (status.first == nullptr) {
 					// failed, we give user some info and thats it
-					ConsoleWrite(wnd, status.second.c_str());
+					ConsoleWrite(wnd, (status.second + "\r\n").c_str());
 				} else {
 					// it worked, we can set up associations and sync ui state
 					hwnd_lua_map[wnd] = status.first;
