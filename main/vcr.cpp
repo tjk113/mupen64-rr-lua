@@ -105,6 +105,8 @@ bool just_reset;
 // Used for tracking user-invoked resets
 bool user_requested_reset;
 
+std::mutex vcr_mutex;
+
 bool is_task_playback(const e_task task)
 {
 	return task == e_task::start_playback || task == e_task::start_playback_from_snapshot || task == e_task::playback;
@@ -735,6 +737,12 @@ int
 vcr_start_record(const char* filename, const unsigned short flags,
                 const char* author_utf8, const char* description_utf8)
 {
+	std::unique_lock lock(vcr_mutex, std::try_to_lock);
+	if (!lock.owns_lock()) {
+		printf("[VCR] vcr_start_record busy!\n");
+		return -1;
+	}
+
 	vcr_core_stopped();
 
 	char buf[MAX_PATH];
@@ -843,6 +851,12 @@ vcr_start_record(const char* filename, const unsigned short flags,
 int
 vcr_stop_record()
 {
+	std::unique_lock lock(vcr_mutex, std::try_to_lock);
+	if (!lock.owns_lock()) {
+		printf("[VCR] vcr_stop_record busy!\n");
+		return -1;
+	}
+
 	int ret_val = -1;
 
 	if (m_task == e_task::start_recording)
@@ -984,6 +998,12 @@ int check_warn_controllers(char* warning_str) {
 
 VCR::Result VCR::start_playback(std::filesystem::path path)
 {
+	std::unique_lock lock(vcr_mutex, std::try_to_lock);
+	if (!lock.owns_lock() ) {
+		printf("[VCR] start_playback busy!\n");
+		return VCR::Result::Busy;
+	}
+
 	// Nope, doesnt work since some random user32 call in core somewhere converts it to "GUI" thread.
 	// assert(!IsGUIThread(false));
 
@@ -1184,6 +1204,12 @@ bool VCR::is_seeking()
 
 int vcr_stop_playback()
 {
+	std::unique_lock lock(vcr_mutex, std::try_to_lock);
+	if (!lock.owns_lock()) {
+		printf("[VCR] vcr_stop_playback busy!\n");
+		return -1;
+	}
+
 	if (m_file && m_task != e_task::start_recording && m_task != e_task::recording)
 	{
 		fclose(m_file);

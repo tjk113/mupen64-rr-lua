@@ -314,6 +314,8 @@ namespace VCR
 		InvalidFrame,
 		// There is no rom which matches this movie
 		NoMatchingRom,
+		// The VCR engine is already performing another task
+		Busy,
 	};
 
 	/**
