@@ -160,7 +160,7 @@ BEGIN
             MENUITEM "Freeze",                      IDM_FREEZE_RECENT_LUA
             MENUITEM SEPARATOR
         END
-        MENUITEM "Load &Latest Lua Script...",  IDM_LOAD_LATEST_LUA
+        MENUITEM "Load &Latest Script",         IDM_LOAD_LATEST_LUA
         MENUITEM SEPARATOR
         MENUITEM "&Close All",                  IDM_CLOSE_ALL_LUA
     END
