@@ -40,7 +40,6 @@ extern HWND hwnd_plug;
 extern HANDLE EmuThreadHandle;
 extern DWORD start_rom_id;
 
-void main_dispatcher_invoke(const std::function<void()>& func);
 extern std::string app_path;
 
 /**

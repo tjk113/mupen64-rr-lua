@@ -168,6 +168,7 @@
     <ClInclude Include="..\..\main\speex\arch.h" />
     <ClInclude Include="..\..\main\win\features\CrashHelper.h" />
     <ClInclude Include="..\..\main\win\features\CoreDbg.h" />
+    <ClInclude Include="..\..\main\win\features\Dispatcher.h" />
     <ClInclude Include="..\..\main\win\features\MGECompositor.h" />
     <ClInclude Include="..\..\main\win\features\MovieDialog.h" />
     <ClInclude Include="..\..\main\win\features\RomBrowser.hpp" />
@@ -243,6 +244,7 @@
     </ClCompile>
     <ClCompile Include="..\..\main\win\features\CrashHelper.cpp" />
     <ClCompile Include="..\..\main\win\features\CoreDbg.cpp" />
+    <ClCompile Include="..\..\main\win\features\Dispatcher.cpp" />
     <ClCompile Include="..\..\main\win\features\MGECompositor.cpp" />
     <ClCompile Include="..\..\main\win\features\MovieDialog.cpp" />
     <ClCompile Include="..\..\main\win\features\RomBrowser.cpp" />

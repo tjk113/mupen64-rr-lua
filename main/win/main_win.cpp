@@ -48,6 +48,7 @@
 #include "../../r4300/tracelog.h"
 #include "../../winproject/resource.h"
 #include "features/CoreDbg.h"
+#include "features/Dispatcher.h"
 #include "features/MGECompositor.h"
 #include "features/MovieDialog.h"
 #include "features/RomBrowser.hpp"
@@ -84,8 +85,6 @@ std::filesystem::path rom_path;
 
 // Whether the sound thread can call aiUpdate
 bool sound_allowed = true;
-
-std::deque<std::function<void()>> dispatcher_queue;
 
 // Flag which tells close_rom start_rom to skip some broadcasting and other operations
 bool is_restarting;
@@ -405,19 +404,6 @@ BetterEmulationLock::~BetterEmulationLock()
 
 #pragma endregion
 
-void main_dispatcher_invoke(const std::function<void()>& func) {
-	dispatcher_queue.push_back(func);
-	SendMessage(mainHWND, WM_EXECUTE_DISPATCHER, 0, 0);
-}
-
-void main_dispatcher_process()
-{
-	while (!dispatcher_queue.empty()) {
-		dispatcher_queue.front()();
-		dispatcher_queue.pop_front();
-	}
-}
-
 void ClearButtons()
 {
 	BUTTONS zero = {0};
@@ -569,7 +555,7 @@ void close_rom(bool stop_vcr)
 	{
 		previously_running_luas.push_back(key);
 	}
-	main_dispatcher_invoke(stop_all_scripts);
+	Dispatcher::invoke(stop_all_scripts);
 
 	printf("Closing emulation thread...\n");
 
@@ -684,7 +670,7 @@ static DWORD WINAPI ThreadFunc(LPVOID lpParam)
 
 	printf("Emu thread: Emulation started....\n");
 
-	main_dispatcher_invoke([]
+	Dispatcher::invoke([]
 	{
 		for (const HWND hwnd : previously_running_luas)
 		{
@@ -732,7 +718,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	switch (Message)
 	{
 	case WM_EXECUTE_DISPATCHER:
-		main_dispatcher_process();
+		Dispatcher::execute();
 		break;
 	case WM_DROPFILES:
 		{

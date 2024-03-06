@@ -1,6 +1,7 @@
 ﻿#include "LuaCallbacks.h"
 #include "LuaConsole.h"
 #include "../main/win/main_win.h"
+#include "win/features/Dispatcher.h"
 
 namespace LuaCallbacks
 {
@@ -66,7 +67,7 @@ namespace LuaCallbacks
 	void call_vi()
 	{
 		RET_IF_EMPTY;
-		main_dispatcher_invoke([]
+		Dispatcher::invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
 				AtVI, REG_ATVI);
@@ -76,7 +77,7 @@ namespace LuaCallbacks
 	void call_input(int n)
 	{
 		RET_IF_EMPTY;
-		main_dispatcher_invoke([n]
+		Dispatcher::invoke([n]
 		{
 			current_input_n = n;
 			invoke_callbacks_with_key_on_all_instances(
@@ -88,7 +89,7 @@ namespace LuaCallbacks
 	void call_interval()
 	{
 		RET_IF_EMPTY;
-		main_dispatcher_invoke([]
+		Dispatcher::invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
 				CallTop, REG_ATINTERVAL);
@@ -98,7 +99,7 @@ namespace LuaCallbacks
 	void call_play_movie()
 	{
 		RET_IF_EMPTY;
-		main_dispatcher_invoke([]
+		Dispatcher::invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
 				CallTop, REG_ATPLAYMOVIE);
@@ -108,7 +109,7 @@ namespace LuaCallbacks
 	void call_stop_movie()
 	{
 		RET_IF_EMPTY;
-		main_dispatcher_invoke([]
+		Dispatcher::invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
 				CallTop, REG_ATSTOPMOVIE);
@@ -118,7 +119,7 @@ namespace LuaCallbacks
 	void call_load_state()
 	{
 		RET_IF_EMPTY;
-		main_dispatcher_invoke([]
+		Dispatcher::invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
 				CallTop, REG_ATLOADSTATE);
@@ -128,7 +129,7 @@ namespace LuaCallbacks
 	void call_save_state()
 	{
 		RET_IF_EMPTY;
-		main_dispatcher_invoke([]
+		Dispatcher::invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
 				CallTop, REG_ATSAVESTATE);
@@ -138,7 +139,7 @@ namespace LuaCallbacks
 	void call_reset()
 	{
 		RET_IF_EMPTY;
-		main_dispatcher_invoke([]
+		Dispatcher::invoke([]
 		{
 			invoke_callbacks_with_key_on_all_instances(
 				CallTop, REG_ATRESET);
