@@ -66,7 +66,7 @@ static BOOL FullScreenMode = 0;
 int last_wheel_delta = 0;
 
 HANDLE loading_handle[4];
-HANDLE EmuThreadHandle;
+HANDLE emu_thread_handle;
 HWND hwnd_plug;
 UINT update_screen_timer;
 
@@ -450,8 +450,8 @@ int start_rom(std::filesystem::path path){
 	}
 
 	std::unique_lock lock(emu_start_cs, std::try_to_lock);
-	if(!lock.owns_lock()){
-		printf("IM BUSY!!!\n");
+	if(!lock.owns_lock() || emu_thread_handle){
+		printf("already doing something\n");
 		return 0;
 	}
 
@@ -524,7 +524,7 @@ int start_rom(std::filesystem::path path){
 	rsp_thread.join();
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	EmuThreadHandle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
+	emu_thread_handle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
 
 	// We need to wait until the core is actually done and running before we can continue, because we release the lock
 	// If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
@@ -568,14 +568,16 @@ void close_rom(bool stop_vcr)
 	// we signal the core to stop, then wait until thread exits
 	terminate_emu();
 
-	DWORD result = WaitForSingleObject(EmuThreadHandle, 10'000);
+	DWORD result = WaitForSingleObject(emu_thread_handle, 10'000);
 	if (result == WAIT_TIMEOUT) {
 		MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
 		           MB_ICONERROR | MB_OK);
 	}
 
+
 	emu_launched = 0;
 	emu_paused = 1;
+	emu_thread_handle = nullptr;
 
 	if (!is_restarting)
 	{

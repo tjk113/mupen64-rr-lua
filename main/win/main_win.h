@@ -37,7 +37,7 @@ extern HWND mainHWND;
 extern HINSTANCE app_instance;
 
 extern HWND hwnd_plug;
-extern HANDLE EmuThreadHandle;
+extern HANDLE emu_thread_handle;
 extern DWORD start_rom_id;
 
 extern std::string app_path;
