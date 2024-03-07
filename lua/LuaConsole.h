@@ -127,6 +127,10 @@ public:
 
 #pragma region Composition
 
+	IDXGIFactory2* factory;
+	IDXGIAdapter1* dxgiadapter;
+	ID3D11Device* d3device;
+	IDXGIDevice1* dxdevice;
 	ID3D11DeviceContext* d3d_dc;
 	IDCompositionDevice* comp_device;
 	IDCompositionTarget* comp_target;

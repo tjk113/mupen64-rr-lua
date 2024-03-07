@@ -106,24 +106,20 @@ static RECT get_window_rect_client_space(HWND parent, HWND child)
 	};
 }
 
-static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDCompositionDevice** comp_device, IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device, ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface** dxgi_surface, ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
+static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory2** factory, IDXGIAdapter1** dxgiadapter, ID3D11Device** d3device, IDXGIDevice1** dxdevice, IDCompositionDevice** comp_device, IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device, ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface** dxgi_surface, ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
 {
-	IDXGIFactory2* factory;
-	CreateDXGIFactory2(0, IID_PPV_ARGS(&factory));
+	CreateDXGIFactory2(0, IID_PPV_ARGS(factory));
 
-	IDXGIAdapter1* dxgiadapter;
-	factory->EnumAdapters1(0, &dxgiadapter);
+	(*factory)->EnumAdapters1(0, dxgiadapter);
 
-	ID3D11Device* d3device;
-	D3D11CreateDevice(dxgiadapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, &d3device, nullptr, d3d_dc);
+	D3D11CreateDevice(*dxgiadapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, d3device, nullptr, d3d_dc);
 
-	IDXGIDevice1* dxdevice;
-	d3device->QueryInterface(&dxdevice);
+	(*d3device)->QueryInterface(dxdevice);
 
-	dxdevice->SetMaximumFrameLatency(1);
+	(*dxdevice)->SetMaximumFrameLatency(1);
 
 	{
-		DCompositionCreateDevice(dxdevice, IID_PPV_ARGS(comp_device));
+		DCompositionCreateDevice(*dxdevice, IID_PPV_ARGS(comp_device));
 
 		(*comp_device)->CreateTargetForHwnd(hwnd, true, comp_target);
 
@@ -140,14 +136,14 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDCompositio
 		swapdesc.Width = size.width;
 		swapdesc.Height = size.height;
 
-		factory->CreateSwapChainForComposition(d3device, &swapdesc, nullptr, swapchain);
+		(*factory)->CreateSwapChainForComposition(*d3device, &swapdesc, nullptr, swapchain);
 
 		compVisual->SetContent(*swapchain);
 		(*comp_target)->SetRoot(compVisual);
 	}
 
 	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, {}, d2d_factory);
-	(*d2d_factory)->CreateDevice(dxdevice, d2d_device);
+	(*d2d_factory)->CreateDevice(*dxdevice, d2d_device);
 	{
 		(*d2d_device)->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, d2d_dc);
 
