@@ -106,7 +106,7 @@ static RECT get_window_rect_client_space(HWND parent, HWND child)
 	};
 }
 
-static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory2** factory, IDXGIAdapter1** dxgiadapter, ID3D11Device** d3device, IDXGIDevice1** dxdevice, IDCompositionDevice** comp_device, IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device, ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface** dxgi_surface, ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
+static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory2** factory, IDXGIAdapter1** dxgiadapter, ID3D11Device** d3device, IDXGIDevice1** dxdevice, ID2D1Bitmap1** bitmap, IDCompositionVisual** comp_visual, IDCompositionDevice** comp_device, IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device, ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface** dxgi_surface, ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
 {
 	CreateDXGIFactory2(0, IID_PPV_ARGS(factory));
 
@@ -123,8 +123,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 
 		(*comp_device)->CreateTargetForHwnd(hwnd, true, comp_target);
 
-		IDCompositionVisual* compVisual;
-		(*comp_device)->CreateVisual(&compVisual);
+		(*comp_device)->CreateVisual(comp_visual);
 
 		DXGI_SWAP_CHAIN_DESC1 swapdesc{};
 		swapdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -138,8 +137,8 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 
 		(*factory)->CreateSwapChainForComposition(*d3device, &swapdesc, nullptr, swapchain);
 
-		compVisual->SetContent(*swapchain);
-		(*comp_target)->SetRoot(compVisual);
+		(*comp_visual)->SetContent(*swapchain);
+		(*comp_target)->SetRoot(*comp_visual);
 	}
 
 	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, {}, d2d_factory);
@@ -157,9 +156,8 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 			dpi
 		);
 
-		ID2D1Bitmap1* bitmap;
-		(*d2d_dc)->CreateBitmapFromDxgiSurface(*dxgi_surface, props, &bitmap);
-		(*d2d_dc)->SetTarget(bitmap);
+		(*d2d_dc)->CreateBitmapFromDxgiSurface(*dxgi_surface, props, bitmap);
+		(*d2d_dc)->SetTarget(*bitmap);
 	}
 
 	(*swapchain)->GetBuffer(1, IID_PPV_ARGS(front_buffer));
