@@ -533,6 +533,9 @@ extern BOOL just_restarted_flag;
 
 void vcr_on_controller_poll(int index, BUTTONS* input)
 {
+	// NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
+	std::lock_guard lock(vcr_mutex);
+
 	// When resetting during playback, we need to remind program of the rerecords
 	if (m_task != e_task::idle && just_reset)
 	{
