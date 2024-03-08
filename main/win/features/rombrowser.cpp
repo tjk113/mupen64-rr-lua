@@ -16,6 +16,7 @@
 #include "../r4300/r4300.h"
 #include "../Config.hpp"
 #include <assert.h>
+#include <mutex>
 #include <thread>
 #include <Uxtheme.h>
 #include "messenger.h"
@@ -33,6 +34,8 @@ int32_t rombrowser_is_loading = 0;
 
 namespace Rombrowser
 {
+	std::mutex rombrowser_mutex;
+
 	std::vector<std::string> find_available_roms()
 	{
 		std::vector<std::string> rom_paths;
@@ -250,8 +253,10 @@ namespace Rombrowser
 		ListView_InsertItem(rombrowser_hwnd, &lv_item);
 	}
 
-	void rombrowser_build_impl()
+	void build()
 	{
+		std::lock_guard lock(rombrowser_mutex);
+
 		auto start_time = std::chrono::high_resolution_clock::now();
 
 		// we disable redrawing because it would repaint after every added rom otherwise,
@@ -308,21 +313,6 @@ namespace Rombrowser
 		printf("Rombrowser loading took %dms\n",
 		       static_cast<int>((std::chrono::high_resolution_clock::now() -
 			       start_time).count() / 1'000'000));
-	}
-
-	void build()
-	{
-		if (rombrowser_is_loading)
-		{
-			return;
-		}
-
-		std::thread([]()
-		{
-			rombrowser_is_loading = 1;
-			rombrowser_build_impl();
-			rombrowser_is_loading = 0;
-		}).detach();
 	}
 
 	void rombrowser_update_size()

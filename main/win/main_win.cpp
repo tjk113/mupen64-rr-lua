@@ -1204,7 +1204,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_REFRESH_ROMBROWSER:
 				if (!emu_launched)
 				{
-					Rombrowser::build();
+					std::thread([] { Rombrowser::build(); }).detach();
 				}
 				break;
 			case IDM_SAVE_SLOT:
@@ -1622,7 +1622,7 @@ int WINAPI WinMain(
 	Messenger::broadcast(Messenger::Message::SizeChanged, rect);
 	Messenger::broadcast(Messenger::Message::AppReady, nullptr);
 
-	Rombrowser::build();
+	std::thread([] { Rombrowser::build(); }).detach();
 
 	//warning, this is ignored when debugger is attached (like visual studio)
 	SetUnhandledExceptionFilter(ExceptionReleaseTarget);

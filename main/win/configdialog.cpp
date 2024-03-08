@@ -792,7 +792,7 @@ void configdialog_show()
     }
 
     save_config();
-    Rombrowser::build();
+	std::thread([] { Rombrowser::build(); }).detach();
     update_menu_hotkey_labels();
 }
 
