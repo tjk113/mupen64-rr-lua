@@ -277,6 +277,12 @@ namespace Rombrowser
 		{
 			FILE* f = fopen(path.c_str(), "rb");
 
+			if (!f)
+			{
+				printf("[Rombrowser] Failed to read file '%s'. Skipping!\n", path.c_str());
+				continue;
+			}
+
 			fseek(f, 0, SEEK_END);
 			uint64_t len = ftell(f);
 			fseek(f, 0, SEEK_SET);
