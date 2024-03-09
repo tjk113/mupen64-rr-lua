@@ -105,7 +105,7 @@ bool just_reset;
 // Used for tracking user-invoked resets
 bool user_requested_reset;
 
-std::mutex vcr_mutex;
+std::recursive_mutex vcr_mutex;
 
 bool is_task_playback(const e_task task)
 {
@@ -534,7 +534,7 @@ extern BOOL just_restarted_flag;
 void vcr_on_controller_poll(int index, BUTTONS* input)
 {
 	// NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
-	std::lock_guard lock(vcr_mutex);
+	std::scoped_lock lock(vcr_mutex);
 
 	// When resetting during playback, we need to remind program of the rerecords
 	if (m_task != e_task::idle && just_reset)
@@ -1002,9 +1002,9 @@ int check_warn_controllers(char* warning_str) {
 VCR::Result VCR::start_playback(std::filesystem::path path)
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
-	if (!lock.owns_lock() ) {
-		printf("[VCR] start_playback busy!\n");
-		return VCR::Result::Busy;
+	if (!lock.owns_lock()) {
+		printf("[VCR] vcr_start_playback busy!\n");
+		return Result::Busy;
 	}
 
 	// Nope, doesnt work since some random user32 call in core somewhere converts it to "GUI" thread.
