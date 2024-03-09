@@ -45,15 +45,14 @@ extern std::string app_path;
 /**
  * \brief Starts the emulator
  * \param path Path to a rom or corresponding movie file
- * \returns The operation status code
  */
-int start_rom(std::filesystem::path path);
+bool start_rom(std::filesystem::path path);
 
 /**
  * \brief Stops the emulator
  * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
  */
-void close_rom(bool stop_vcr = true);
+bool close_rom(bool stop_vcr = true);
 
 /**
  * \brief Resets the emulator

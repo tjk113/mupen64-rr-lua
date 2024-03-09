@@ -437,6 +437,40 @@ static void gui_ChangeWindow()
 	}
 }
 
+void clear_save_data()
+{
+	{
+		if (FILE* f = fopen(get_sram_path().string().c_str(), "wb"))
+		{
+			extern unsigned char sram[0x8000];
+			for (unsigned char& i : sram) i = 0;
+			fwrite(sram, 1, 0x8000, f);
+			fclose(f);
+		}
+	}
+	{
+		if (FILE* f = fopen(get_eeprom_path().string().c_str(), "wb"))
+		{
+			extern unsigned char eeprom[0x8000];
+			for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+			fwrite(eeprom, 1, 0x800, f);
+			fclose(f);
+		}
+	}
+	{
+		if (FILE* f = fopen(get_mempak_path().string().c_str(), "wb"))
+		{
+			extern unsigned char mempack[4][0x8000];
+			for (auto& j : mempack)
+			{
+				for (int i = 0; i < 0x800; i++) j[i] = 0;
+				fwrite(j, 1, 0x800, f);
+			}
+			fclose(f);
+		}
+	}
+}
+
 DWORD WINAPI audio_thread(LPVOID)
 {
 	printf("Sound thread entering...\n");
@@ -507,16 +541,17 @@ DWORD WINAPI ThreadFunc(LPVOID)
 	ExitThread(0);
 }
 
-int start_rom(std::filesystem::path path){
+bool start_rom(std::filesystem::path path){
 	std::unique_lock lock(emu_cs, std::try_to_lock);
 	if(!lock.owns_lock()){
 		printf("[Core] start_rom busy!\n");
 		return 0;
 	}
 
-	// Kill any roms that are still running
-	if (emu_launched) {
-		close_rom();
+	// We can't overwrite core. Emu needs to stop first, but that might fail...
+	if (emu_launched && !close_rom()) {
+		printf("[Core] Failed to close rom before starting rom.\n");
+		return false;
 	}
 
 	Messenger::broadcast(Messenger::Message::EmuStartingChanged, true);
@@ -528,7 +563,7 @@ int start_rom(std::filesystem::path path){
 		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
 		{
 			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-			return 0;
+			return false;
 		}
 
 		const auto matching_rom = Rombrowser::find_available_rom([&movie_header] (auto header)
@@ -539,7 +574,7 @@ int start_rom(std::filesystem::path path){
 		if (matching_rom.empty())
 		{
 			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-			return 0;
+			return false;
 		}
 
 		path = matching_rom;
@@ -559,7 +594,7 @@ int start_rom(std::filesystem::path path){
 			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 		}
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-		return 0;
+		return false;
 	}
 
 	// valid rom is required to start emulation
@@ -568,7 +603,7 @@ int start_rom(std::filesystem::path path){
 		MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
 		unload_plugins();
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-		return 0;
+		return false;
 	}
 
 	timer_init(Config.fps_modifier, &ROM_HEADER);
@@ -596,20 +631,20 @@ int start_rom(std::filesystem::path path){
 	// If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
 	while (!core_executing);
 
-	return 1;
+	return true;
 }
 
-void close_rom(bool stop_vcr)
+bool close_rom(bool stop_vcr)
 {
 	std::unique_lock lock(emu_cs, std::try_to_lock);
 	if(!lock.owns_lock()){
 		printf("[Core] close_rom busy!\n");
-		return;
+		return false;
 	}
 
 	if (!emu_launched)
 	{
-		return;
+		return false;
 	}
 
 	resume_emu();
@@ -649,40 +684,7 @@ void close_rom(bool stop_vcr)
 	{
 		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	}
-}
-
-void clear_save_data()
-{
-	{
-		if (FILE* f = fopen(get_sram_path().string().c_str(), "wb"))
-		{
-			extern unsigned char sram[0x8000];
-			for (unsigned char& i : sram) i = 0;
-			fwrite(sram, 1, 0x8000, f);
-			fclose(f);
-		}
-	}
-	{
-		if (FILE* f = fopen(get_eeprom_path().string().c_str(), "wb"))
-		{
-			extern unsigned char eeprom[0x8000];
-			for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
-			fwrite(eeprom, 1, 0x800, f);
-			fclose(f);
-		}
-	}
-	{
-		if (FILE* f = fopen(get_mempak_path().string().c_str(), "wb"))
-		{
-			extern unsigned char mempack[4][0x8000];
-			for (auto& j : mempack)
-			{
-				for (int i = 0; i < 0x800; i++) j[i] = 0;
-				fwrite(j, 1, 0x800, f);
-			}
-			fclose(f);
-		}
-	}
+	return true;
 }
 
 bool reset_rom(bool reset_save_data, bool stop_vcr)
@@ -703,12 +705,22 @@ bool reset_rom(bool reset_save_data, bool stop_vcr)
 	frame_advancing = false;
 	is_restarting = true;
 
-	close_rom(stop_vcr);
+	if(!close_rom(stop_vcr))
+	{
+		is_restarting = false;
+		Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
+		return false;
+	}
 	if (reset_save_data)
 	{
 		clear_save_data();
 	}
-	start_rom(rom_path);
+	if(!start_rom(rom_path))
+	{
+		is_restarting = false;
+		Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
+		return false;
+	}
 
 	is_restarting = false;
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
@@ -1515,13 +1527,13 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-#ifdef _DEBUG
+// #ifdef _DEBUG
 	AllocConsole();
 	FILE* f = 0;
 	freopen_s(&f, "CONIN$", "r", stdin);
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
-#endif
+// #endif
 
 	Messenger::init();
 
