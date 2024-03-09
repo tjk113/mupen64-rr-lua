@@ -1830,7 +1830,6 @@ void go()
 				update_debugger();
 #endif
         }
-    	core_executing = false;
     }
     else if (dynacore == 2)
     {
@@ -1897,4 +1896,5 @@ void go()
         }
     }
     if (!dynacore && interpcore) free(PC);
+	core_executing = false;
 }

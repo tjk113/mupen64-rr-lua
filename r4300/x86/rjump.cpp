@@ -64,7 +64,6 @@ void dyna_start(void (*code)())
     {
         code();
     }
-	core_executing = false;
 }
 
 void dyna_stop()

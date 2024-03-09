@@ -3223,7 +3223,6 @@ void pure_interpreter()
         }
         CoreDbg::on_late_cycle(op, interp_addr);
     }
-	core_executing = false;
     PC->addr = interp_addr;
 }
 
