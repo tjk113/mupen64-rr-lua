@@ -102,7 +102,7 @@ uint64_t screen_updates = 0;
 
 // Used for tracking VCR-invoked resets
 bool just_reset;
-bool core_resetting_due_to_vcr;
+bool core_resetting;
 
 // Used for tracking user-invoked resets
 bool user_requested_reset;
@@ -539,7 +539,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	std::scoped_lock lock(vcr_mutex);
 
 	// After invoking a reset in VCR input poll handler, the frames generated before the reset is completed are not valid to us and must be ignored
-	if (core_resetting_due_to_vcr)
+	if (core_resetting)
 	{
 		printf("[VCR] Omitting pre-reset frame!\n");
 		return;
@@ -588,7 +588,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
 			std::thread([clear_eeprom]
 			{
-				core_resetting_due_to_vcr = true;
+				core_resetting = true;
 				reset_rom(clear_eeprom, false);
 			}).detach();
 		}
@@ -648,7 +648,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
 			std::thread([clear_eeprom]
 			{
-				core_resetting_due_to_vcr = true;
+				core_resetting = true;
 				reset_rom(clear_eeprom, false);
 			}).detach();
 		}
@@ -684,7 +684,11 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		if (user_requested_reset)
 		{
 			user_requested_reset = false;
-			std::thread([] { reset_rom(false, false); }).detach();
+			std::thread([]
+			{
+				core_resetting = true;
+				reset_rom(false, false);
+			}).detach();
 		}
 		return;
 	}
@@ -733,7 +737,11 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	if (input->Value == 0xC000)
 	{
 		printf("[VCR] Resetting during playback...\n");
-		std::thread([] { reset_rom(false, false); }).detach();
+		std::thread([]
+		{
+			core_resetting = true;
+			reset_rom(false, false);
+		}).detach();
 		// NOTE: While it doesn't seem to happen in practice, we could theoretically get another input poll generation between us signalling reset and the emu actually stopping.
 		// To prevent this, we pause it here as to not generate new frames.
 		pause_emu();
@@ -1824,7 +1832,7 @@ void VCR::init()
 	Messenger::subscribe(Messenger::Message::ResetCompleted, [](std::any)
 	{
 		just_reset = true;
-		core_resetting_due_to_vcr = false;
+		core_resetting = false;
 	});
 	Messenger::subscribe(Messenger::Message::ResetRequested, [](std::any)
 	{
