@@ -49,18 +49,6 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
     {
     case WM_INITDIALOG:
         {
-            static const char* clock_speed_multiplier_names[] = {
-                "1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6"
-            };
-
-            // Populate CPU Clock Speed Multiplier Dropdown Menu
-            for (auto& clock_speed_multiplier_name :clock_speed_multiplier_names) {
-                SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0,
-                                   (LPARAM)clock_speed_multiplier_name);
-            }
-	        const int index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1,
-	                                             (LPARAM)clock_speed_multiplier_names[Config.cpu_clock_speed_multiplier - 1]);
-            SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
 
             switch (Config.synchronization_mode)
             {
@@ -97,10 +85,6 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
                 break;
             case IDC_AV_NOSYNC:
                 Config.synchronization_mode = VCR_SYNC_NONE;
-                break;
-            case IDC_COMBO_CLOCK_SPD_MULT:
-                read_combo_box_value(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
-                Config.cpu_clock_speed_multiplier = atoi(&buf[0]);
                 break;
             default:
                 break;
@@ -529,31 +513,46 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 
     switch (message)
     {
-    case WM_INITDIALOG:
-        SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
+		case WM_INITDIALOG:
+		{
+			static const char* clock_speed_multiplier_names[] = {
+				"1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6"
+			};
 
-        CheckDlgButton(hwnd, IDC_INTERP, Config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
-        CheckDlgButton(hwnd, IDC_RECOMP, Config.core_type == 1 ? BST_CHECKED : BST_UNCHECKED);
-        CheckDlgButton(hwnd, IDC_PURE_INTERP, Config.core_type == 2 ? BST_CHECKED : BST_UNCHECKED);
+			// Populate CPU Clock Speed Multiplier Dropdown Menu
+			for (auto& clock_speed_multiplier_name : clock_speed_multiplier_names) {
+				SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0,
+								   (LPARAM)clock_speed_multiplier_name);
+			}
+			const int index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1,
+												 (LPARAM)clock_speed_multiplier_names[Config.cpu_clock_speed_multiplier - 1]);
+			SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
 
-        EnableWindow(GetDlgItem(hwnd, IDC_INTERP), !emu_launched);
-        EnableWindow(GetDlgItem(hwnd, IDC_RECOMP), !emu_launched);
-        EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
+			SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
 
-		set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
-		set_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT, Config.increment_slot);
-		set_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX, Config.vcr_0_index);
-		set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
-		set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
-		set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
-		set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
-		set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
-		set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
-		set_checkbox_state(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
-		set_checkbox_state(hwnd, IDC_CAPTUREOTHER, Config.is_capture_cropped_screen_dc);
-		SetDlgItemInt(hwnd, IDC_CAPTUREDELAY, Config.capture_delay, 0);
+			CheckDlgButton(hwnd, IDC_INTERP, Config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
+			CheckDlgButton(hwnd, IDC_RECOMP, Config.core_type == 1 ? BST_CHECKED : BST_UNCHECKED);
+			CheckDlgButton(hwnd, IDC_PURE_INTERP, Config.core_type == 2 ? BST_CHECKED : BST_UNCHECKED);
 
-        return TRUE;
+			EnableWindow(GetDlgItem(hwnd, IDC_INTERP), !emu_launched);
+			EnableWindow(GetDlgItem(hwnd, IDC_RECOMP), !emu_launched);
+			EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
+
+			set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
+			set_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT, Config.increment_slot);
+			set_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX, Config.vcr_0_index);
+			set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
+			set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
+			set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
+			set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
+			set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
+			set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
+			set_checkbox_state(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
+			set_checkbox_state(hwnd, IDC_CAPTUREOTHER, Config.is_capture_cropped_screen_dc);
+			SetDlgItemInt(hwnd, IDC_CAPTUREDELAY, Config.capture_delay, 0);
+
+			return TRUE;
+		}
 
     case WM_COMMAND:
         switch (LOWORD(w_param))
@@ -562,6 +561,13 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             MessageBox(hwnd, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame", "Info",
                        MB_OK | MB_ICONINFORMATION);
             break;
+		case IDC_COMBO_CLOCK_SPD_MULT:
+		{
+			char buf[260] = {0};
+			read_combo_box_value(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
+			Config.cpu_clock_speed_multiplier = atoi(&buf[0]);
+			break;
+		}
         case IDC_INTERP:
             if (!emu_launched)
             {
