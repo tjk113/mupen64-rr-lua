@@ -1541,6 +1541,26 @@ void init_blocks()
 }
 
 
+void print_stop_debug()
+{
+	printf("PC=%x:%x\n", (unsigned int)(PC->addr),
+		   (unsigned int)(rdram[(PC->addr & 0xFFFFFF) / 4]));
+	for (int j = 0; j < 16; j++)
+		printf("reg[%2d]:%8x%8x        reg[%d]:%8x%8x\n",
+			   j,
+			   (unsigned int)(reg[j] >> 32),
+			   (unsigned int)reg[j],
+			   j + 16,
+			   (unsigned int)(reg[j + 16] >> 32),
+			   (unsigned int)reg[j + 16]);
+	printf("hi:%8x%8x        lo:%8x%8x\n",
+		   (unsigned int)(hi >> 32),
+		   (unsigned int)hi,
+		   (unsigned int)(lo >> 32),
+		   (unsigned int)lo);
+	printf("Executed %llu (%x) instructions\n", debug_count, debug_count);
+}
+
 void core_start()
 {
 	core_executing = true;
@@ -1855,23 +1875,7 @@ void core_start()
         PC++;
     }
     debug_count += core_Count;
-    printf("PC=%x:%x\n", (unsigned int)(PC->addr),
-           (unsigned int)(rdram[(PC->addr & 0xFFFFFF) / 4]));
-    for (j = 0; j < 16; j++)
-        printf("reg[%2d]:%8x%8x        reg[%d]:%8x%8x\n",
-               j,
-               (unsigned int)(reg[j] >> 32),
-               (unsigned int)reg[j],
-               j + 16,
-               (unsigned int)(reg[j + 16] >> 32),
-               (unsigned int)reg[j + 16]);
-    printf("hi:%8x%8x        lo:%8x%8x\n",
-           (unsigned int)(hi >> 32),
-           (unsigned int)hi,
-           (unsigned int)(lo >> 32),
-           (unsigned int)lo);
-    printf("après %d instructions soit %x\n", (unsigned int)debug_count
-           , (unsigned int)debug_count);
+	print_stop_debug();
     for (i = 0; i < 0x100000; i++)
     {
         if (blocks[i] != NULL)
