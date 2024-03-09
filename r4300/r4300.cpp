@@ -1541,8 +1541,9 @@ void init_blocks()
 }
 
 
-void go()
+void core_start()
 {
+	core_executing = true;
     long long CRC = 0;
     unsigned int j;
 
@@ -1781,7 +1782,6 @@ void go()
         printf("interpreter\n");
         init_blocks();
         last_addr = PC->addr;
-    	core_executing = true;
         while (!stop)
         {
             //if ((debug_count+Count) >= 0x78a8091) break; // obj 0x16aeb8a

@@ -524,7 +524,7 @@ DWORD WINAPI ThreadFunc(LPVOID)
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 
-	go();
+	core_start();
 
 	romClosed_gfx();
 	romClosed_audio();
@@ -545,7 +545,7 @@ bool start_rom(std::filesystem::path path){
 	std::unique_lock lock(emu_cs, std::try_to_lock);
 	if(!lock.owns_lock()){
 		printf("[Core] start_rom busy!\n");
-		return 0;
+		return false;
 	}
 
 	// We can't overwrite core. Emu needs to stop first, but that might fail...

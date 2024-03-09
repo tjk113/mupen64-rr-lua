@@ -82,7 +82,11 @@ void pause_emu();
  */
 void terminate_emu();
 
-void go();
+/**
+ * \brief Hands over control to the core until terminate_emu is called
+ */
+void core_start();
+
 void pure_interpreter();
 void compare_core();
 extern void jump_to_func();
