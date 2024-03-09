@@ -70,7 +70,6 @@ HANDLE emu_thread_handle;
 HWND hwnd_plug;
 UINT update_screen_timer;
 
-static DWORD WINAPI ThreadFunc(LPVOID lpParam);
 constexpr char g_szClassName[] = "myWindowClass";
 
 HWND mainHWND;
@@ -438,6 +437,75 @@ static void gui_ChangeWindow()
 	}
 }
 
+DWORD WINAPI audio_thread(LPVOID)
+{
+	printf("Sound thread entering...\n");
+	while (true)
+	{
+		if (audio_thread_stop_requested == true) {
+			break;
+		}
+
+		if(VCR::is_seeking())
+		{
+			Sleep(1);
+			continue;
+		}
+		aiUpdate(1);
+	}
+	printf("Sound thread exiting...\n");
+	return 0;
+}
+
+DWORD WINAPI ThreadFunc(LPVOID)
+{
+	const auto start_time = std::chrono::high_resolution_clock::now();
+	init_memory();
+	vis_since_input_poll_warning_dismissed = false;
+
+	romOpen_gfx();
+	romOpen_input();
+	romOpen_audio();
+
+	dynacore = Config.core_type;
+
+	Dispatcher::invoke([]
+	{
+		for (const HWND hwnd : previously_running_luas)
+		{
+			// click start button
+			SendMessage(hwnd, WM_COMMAND,
+					MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+					(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+		}
+
+		previously_running_luas.clear();
+	});
+
+	LuaCallbacks::call_reset();
+
+	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+	audio_thread_handle = CreateThread(nullptr, 0, audio_thread, nullptr, 0, nullptr);
+
+	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
+	Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
+
+	go();
+
+	romClosed_gfx();
+	romClosed_audio();
+	romClosed_input();
+	romClosed_RSP();
+
+	closeDLL_gfx();
+	closeDLL_audio();
+	closeDLL_input();
+	closeDLL_RSP();
+
+	unload_plugins();
+
+	ExitThread(0);
+}
 
 int start_rom(std::filesystem::path path){
 	std::unique_lock lock(emu_cs, std::try_to_lock);
@@ -520,6 +588,8 @@ int start_rom(std::filesystem::path path){
 	rsp_thread.join();
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+	emu_paused = 0;
+	emu_launched = 1;
 	emu_thread_handle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
 
 	// We need to wait until the core is actually done and running before we can continue, because we release the lock
@@ -571,10 +641,9 @@ void close_rom(bool stop_vcr)
 		           MB_ICONERROR | MB_OK);
 	}
 
-
-	emu_launched = 0;
-	emu_paused = 1;
 	emu_thread_handle = nullptr;
+	emu_paused = 1;
+	emu_launched = 0;
 
 	if (!is_restarting)
 	{
@@ -646,79 +715,6 @@ bool reset_rom(bool reset_save_data, bool stop_vcr)
 	return true;
 }
 
-DWORD WINAPI audio_thread(LPVOID)
-{
-	printf("Sound thread entering...\n");
-	while (true)
-	{
-		if (audio_thread_stop_requested == true) {
-			break;
-		}
-
-		if(VCR::is_seeking())
-		{
-			Sleep(1);
-			continue;
-		}
-		aiUpdate(1);
-	}
-	printf("Sound thread exiting...\n");
-	return 0;
-}
-
-static DWORD WINAPI ThreadFunc(LPVOID lpParam)
-{
-	auto start_time = std::chrono::high_resolution_clock::now();
-	init_memory();
-	vis_since_input_poll_warning_dismissed = false;
-
-	romOpen_gfx();
-	romOpen_input();
-	romOpen_audio();
-
-	dynacore = Config.core_type;
-
-	printf("Emu thread: Emulation started....\n");
-
-	Dispatcher::invoke([]
-	{
-		for (const HWND hwnd : previously_running_luas)
-		{
-			// click start button
-			SendMessage(hwnd, WM_COMMAND,
-					MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
-					(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-		}
-
-		previously_running_luas.clear();
-	});
-
-	LuaCallbacks::call_reset();
-
-	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	emu_paused = 0;
-	emu_launched = 1;
-	audio_thread_handle = CreateThread(nullptr, 0, audio_thread, nullptr, 0, nullptr);
-
-	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
-	Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-
-	go();
-
-	romClosed_gfx();
-	romClosed_audio();
-	romClosed_input();
-	romClosed_RSP();
-
-	closeDLL_gfx();
-	closeDLL_audio();
-	closeDLL_input();
-	closeDLL_RSP();
-
-	unload_plugins();
-
-	ExitThread(0);
-}
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -1539,7 +1535,6 @@ int WINAPI WinMain(
 	CreateDirectory((app_path + "ScreenShots").c_str(), NULL);
 	CreateDirectory((app_path + "plugin").c_str(), NULL);
 
-	emu_launched = 0;
 	emu_paused = 1;
 
 	load_config();
