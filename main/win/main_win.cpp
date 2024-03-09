@@ -89,11 +89,8 @@ bool sound_allowed = true;
 // Flag which tells close_rom start_rom to skip some broadcasting and other operations
 bool is_restarting;
 
-// Lock to prevent start/stop race conditions
-std::mutex emu_start_cs;
-
-// Lock to prevent reset race conditions
-std::mutex emu_reset_cs;
+// Lock to prevent emu state change race conditions
+std::recursive_mutex emu_cs;
 
 bool paused_before_menu;
 bool paused_before_focus;
@@ -443,16 +440,15 @@ static void gui_ChangeWindow()
 
 
 int start_rom(std::filesystem::path path){
+	std::unique_lock lock(emu_cs, std::try_to_lock);
+	if(!lock.owns_lock()){
+		printf("[Core] start_rom busy!\n");
+		return 0;
+	}
 
 	// Kill any roms that are still running
 	if (emu_launched) {
 		close_rom();
-	}
-
-	std::unique_lock lock(emu_start_cs, std::try_to_lock);
-	if(!lock.owns_lock() || emu_thread_handle){
-		printf("already doing something\n");
-		return 0;
 	}
 
 	Messenger::broadcast(Messenger::Message::EmuStartingChanged, true);
@@ -535,13 +531,14 @@ int start_rom(std::filesystem::path path){
 
 void close_rom(bool stop_vcr)
 {
-	if (!emu_launched)
-	{
+	std::unique_lock lock(emu_cs, std::try_to_lock);
+	if(!lock.owns_lock()){
+		printf("[Core] close_rom busy!\n");
 		return;
 	}
 
-	std::unique_lock lock(emu_start_cs, std::try_to_lock);
-	if(!lock.owns_lock()){
+	if (!emu_launched)
+	{
 		return;
 	}
 
@@ -621,8 +618,9 @@ void clear_save_data()
 
 bool reset_rom(bool reset_save_data, bool stop_vcr)
 {
-	std::unique_lock lock(emu_reset_cs, std::try_to_lock);
+	std::unique_lock lock(emu_cs, std::try_to_lock);
 	if(!lock.owns_lock()){
+		printf("[Core] reset_rom busy!\n");
 		return false;
 	}
 
