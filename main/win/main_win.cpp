@@ -538,7 +538,7 @@ DWORD WINAPI ThreadFunc(LPVOID)
 
 	unload_plugins();
 
-	ExitThread(0);
+	return 0;
 }
 
 bool start_rom(std::filesystem::path path){
@@ -670,10 +670,11 @@ bool close_rom(bool stop_vcr)
 	// we signal the core to stop, then wait until thread exits
 	terminate_emu();
 
-	DWORD result = WaitForSingleObject(emu_thread_handle, 10'000);
+	DWORD result = WaitForSingleObject(emu_thread_handle, 2'000);
 	if (result == WAIT_TIMEOUT) {
 		MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
 		           MB_ICONERROR | MB_OK);
+		TerminateThread(emu_thread_handle, 0);
 	}
 
 	emu_thread_handle = nullptr;
