@@ -742,9 +742,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			core_resetting = true;
 			reset_rom(false, false);
 		}).detach();
-		// NOTE: While it doesn't seem to happen in practice, we could theoretically get another input poll generation between us signalling reset and the emu actually stopping.
-		// To prevent this, we pause it here as to not generate new frames.
-		pause_emu();
 	}
 
 	last_controller_data[index] = *input;
