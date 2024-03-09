@@ -113,7 +113,6 @@ set(Headers
     "../../lua/modules/savestate.h"
     "../../lua/modules/wgui.h"
     "../../main/debughook.h"
-    "../../main/disasm.h"
     "../../main/ffmpeg_capture/ffmpeg_capture.hpp"
     "../../main/guifuncs.h"
     "../../main/helpers/collection_helpers.h"
@@ -123,10 +122,10 @@ set(Headers
     "../../main/helpers/win_helpers.h"
     "../../main/lib/argh.h"
     "../../main/lib/ini.h"
-    "../../main/md5.h"
+    "../../main/lib/md5.h"
     "../../main/messenger.h"
     "../../main/Plugin.hpp"
-    "../../main/rom.h"
+    "../../r4300/rom.h"
     "../../main/savestates.h"
     "../../main/speex/arch.h"
     "../../main/speex/speex_resampler.h"
@@ -138,6 +137,7 @@ set(Headers
     "../../main/win/configdialog.h"
     "../../main/win/features/CoreDbg.h"
     "../../main/win/features/CrashHelper.h"
+    "../../main/win/features/Dispatcher.h"
     "../../main/win/features/MovieDialog.h"
     "../../main/win/features/RomBrowser.hpp"
     "../../main/win/features/Seeker.h"
@@ -153,6 +153,7 @@ set(Headers
     "../../memory/summercart.h"
     "../../memory/tlb.h"
     "../../r4300/tracelog.h"
+    "../../r4300/disasm.h"
     "../../r4300/cop1_helpers.h"
     "../../r4300/exception.h"
     "../../r4300/interrupt.h"
@@ -177,14 +178,13 @@ set(Sources
     "../../lua/LuaConsole.cpp"
 #    "../../main/adler32.c"
     "../../main/debughook.cpp"
-    "../../main/disasm.cpp"
     "../../main/ffmpeg_capture/manager_win.cpp"
     "../../main/ffmpeg_capture/readscreen_win.cpp"
     "../../main/helpers/io_helpers.cpp"
-    "../../main/md5.c"
+    "../../main/lib/md5.c"
     "../../main/messenger.cpp"
     "../../main/Plugin.cpp"
-    "../../main/rom.cpp"
+    "../../r4300/rom.cpp"
     "../../main/savestates.cpp"
     "../../main/speex/speex_resampler.c"
     "../../main/vcr.cpp"
@@ -194,6 +194,7 @@ set(Sources
     "../../main/win/configdialog.cpp"
     "../../main/win/features/CoreDbg.cpp"
     "../../main/win/features/CrashHelper.cpp"
+    "../../main/win/features/Dispatcher.cpp"
     "../../main/win/features/MGECompositor.cpp"
     "../../main/win/features/MovieDialog.cpp"
     "../../main/win/features/rombrowser.cpp"
@@ -219,6 +220,7 @@ set(Sources
     "../../r4300/cop1_l.cpp"
     "../../r4300/cop1_s.cpp"
     "../../r4300/cop1_w.cpp"
+    "../../r4300/disasm.cpp"
     "../../r4300/exception.cpp"
     "../../r4300/interrupt.cpp"
     "../../r4300/profile.cpp"
@@ -386,7 +388,7 @@ if(MSVC)
     string(CONCAT FILE_CL_OPTIONS
         "/TP"
     )
-    source_file_compile_options(../../main/md5.c ${FILE_CL_OPTIONS})
+    source_file_compile_options(../../main/lib/md5.c ${FILE_CL_OPTIONS})
     string(CONCAT FILE_CL_OPTIONS
         "/TP"
     )
@@ -394,7 +396,7 @@ if(MSVC)
     string(CONCAT FILE_CL_OPTIONS
         "/TP"
     )
-    source_file_compile_options(../../main/rom.c ${FILE_CL_OPTIONS})
+    source_file_compile_options(../../r4300/rom.c ${FILE_CL_OPTIONS})
     string(CONCAT FILE_CL_OPTIONS
         "/TP"
     )
