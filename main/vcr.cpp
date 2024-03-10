@@ -62,7 +62,7 @@ static const char* m_err_code_name[] =
 	"Unknown Error"
 };
 
-e_task m_task = e_task::idle;
+volatile e_task m_task = e_task::idle;
 std::filesystem::path movie_path;
 
 // The frame to seek to during playback, or an empty option if no seek is being performed

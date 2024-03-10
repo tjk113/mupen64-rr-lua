@@ -227,7 +227,7 @@ enum class e_task
 	playback
 };
 
-extern e_task m_task;
+extern volatile e_task m_task;
 
 bool task_is_playback(e_task task);
 bool task_is_recording(e_task task);
