@@ -624,7 +624,7 @@ bool start_rom(std::filesystem::path path){
 
 	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	emu_paused = 0;
-	emu_launched = 1;
+	emu_launched = true;
 	emu_thread_handle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
 
 	// We need to wait until the core is actually done and running before we can continue, because we release the lock
