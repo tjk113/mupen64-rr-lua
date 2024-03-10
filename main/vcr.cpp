@@ -464,7 +464,8 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 	if (movie_id != m_header.uid)
 		return NOT_FROM_THIS_MOVIE;
 
-	if (current_sample > max_sample)
+	// This means playback desync in read-only mode, but in read-write mode it's fine, as the input buffer will be copied and grown from st.
+	if (current_sample > max_sample && Config.vcr_readonly)
 		return INVALID_FRAME;
 
 	if (space_needed > size)
