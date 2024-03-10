@@ -876,7 +876,7 @@ void LuaEnvironment::create_renderer()
 		GetWindowRect(Statusbar::hwnd(), &rc);
 		window_rect.bottom -= (WORD)(rc.bottom - rc.top);
 	}
-	dc_size = { (UINT32)window_rect.right, (UINT32)window_rect.bottom };
+	dc_size = { (UINT32)abs(window_rect.right), (UINT32)abs(window_rect.bottom) };
 
 	d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
 	SetWindowLongPtr(d2d_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
