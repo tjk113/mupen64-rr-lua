@@ -1126,14 +1126,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case IDM_RESET_ROM:
-				if (!Config.is_reset_recording_enabled && confirm_user_exit())
-					break;
-
 				if (Config.is_reset_recording_enabled && vcr_is_recording())
 				{
 					Messenger::broadcast(Messenger::Message::ResetRequested, nullptr);
 					break;
 				}
+
+				if (!confirm_user_exit())
+					break;
 
 				std::thread([] { reset_rom(); }).detach();
 				break;
