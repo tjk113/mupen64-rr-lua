@@ -1528,13 +1528,13 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-// #ifdef _DEBUG
+#ifdef _DEBUG
 	AllocConsole();
 	FILE* f = 0;
 	freopen_s(&f, "CONIN$", "r", stdin);
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
-// #endif
+#endif
 
 	Messenger::init();
 
