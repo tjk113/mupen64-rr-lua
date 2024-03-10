@@ -191,7 +191,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     CONTROL         "No Synchronisation",IDC_AV_NOSYNC,"Button",BS_AUTORADIOBUTTON,12,18,120,8
     CONTROL         "Audio-Authoritative Synchronisation",IDC_AV_AUDIOSYNC,
-                    "Button",BS_AUTORADIOBUTTON,12,30,132,8
+                    "Button",BS_AUTORADIOBUTTON,12,30,150,8
     CONTROL         "Old Video Synchronisation",IDC_AV_VIDEOSYNC,"Button",BS_AUTORADIOBUTTON,12,42,144,8
     GROUPBOX        "A/V Synchronization",IDC_STATIC,6,6,216,54
 END
