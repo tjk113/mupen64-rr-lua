@@ -566,9 +566,10 @@ bool start_rom(std::filesystem::path path){
 			return false;
 		}
 
-		const auto matching_rom = Rombrowser::find_available_rom([&movie_header] (auto header)
+		const auto matching_rom = Rombrowser::find_available_rom([movie_header] (auto header)
 		{
-			return movie_header.rom_crc1 == header.CRC1;
+			strtrim((char*)header.nom, sizeof(header.nom));
+			return movie_header.rom_crc1 == header.CRC1 && !_stricmp((const char*)header.nom, movie_header.rom_name);
 		});
 
 		if (matching_rom.empty())
