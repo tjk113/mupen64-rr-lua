@@ -303,8 +303,6 @@ void on_capturing_changed(std::any data)
 	if (value)
 	{
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
-		// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
-		SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) | WS_EX_LAYERED);
 
 		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
 		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
@@ -315,8 +313,6 @@ void on_capturing_changed(std::any data)
 	} else
 	{
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
-        // we remove WS_EX_LAYERED again, because dwm sucks at dealing with layered top-level windows
-        SetWindowLong(mainHWND, GWL_EXSTYLE, GetWindowLong(mainHWND, GWL_EXSTYLE) & ~WS_EX_LAYERED);
 
 		SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
 								 SWP_NOMOVE | SWP_NOSIZE);
@@ -1578,13 +1574,14 @@ int WINAPI WinMain(
 		0,
 		g_szClassName,
 		MUPEN_VERSION,
-		WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
+		WS_OVERLAPPEDWINDOW,
 		Config.window_x, Config.window_y, Config.window_width,
 		Config.window_height,
 		NULL, NULL, hInstance, NULL);
 
 	ShowWindow(mainHWND, nCmdShow);
-	SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
+	// we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
+	SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED);
 
 	recent_roms_menu = GetSubMenu(GetSubMenu(main_menu, 0), 5);
 	recent_movies_menu = GetSubMenu(GetSubMenu(main_menu, 3), 6);
