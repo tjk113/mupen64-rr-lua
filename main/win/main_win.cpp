@@ -476,16 +476,19 @@ DWORD WINAPI audio_thread(LPVOID)
 	printf("Sound thread entering...\n");
 	while (true)
 	{
-		if (audio_thread_stop_requested == true) {
+		Sleep(1);
+
+		if (audio_thread_stop_requested == true)
+		{
 			break;
 		}
 
 		if(VCR::is_seeking())
 		{
-			Sleep(1);
 			continue;
 		}
-		aiUpdate(1);
+
+		aiUpdate(0);
 	}
 	printf("Sound thread exiting...\n");
 	return 0;
