@@ -67,6 +67,8 @@ extern unsigned long last_addr, interp_addr;
 extern char invalid_code[0x100000];
 extern unsigned long jump_to_address;
 
+std::filesystem::path get_rom_path();
+
 /**
  * \brief Resumes the emulator
  */
@@ -86,6 +88,25 @@ void terminate_emu();
  * \brief Hands over control to the core until terminate_emu is called
  */
 void core_start();
+
+/**
+ * \brief Starts the emulator
+ * \param path Path to a rom or corresponding movie file
+ */
+bool vr_start_rom(std::filesystem::path path);
+
+/**
+ * \brief Stops the emulator
+ * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
+ */
+bool vr_close_rom(bool stop_vcr = true);
+
+/**
+ * \brief Resets the emulator
+ * \param reset_save_data Whether save data (e.g.: EEPROM, SRAM, Mempak) will be reset
+ * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
+ */
+bool vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true);
 
 void pure_interpreter();
 void compare_core();

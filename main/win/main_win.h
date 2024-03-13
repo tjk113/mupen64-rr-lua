@@ -37,32 +37,9 @@ extern HWND mainHWND;
 extern HINSTANCE app_instance;
 
 extern HWND hwnd_plug;
-extern HANDLE emu_thread_handle;
 extern DWORD start_rom_id;
 
 extern std::string app_path;
-
-/**
- * \brief Starts the emulator
- * \param path Path to a rom or corresponding movie file
- */
-bool start_rom(std::filesystem::path path);
-
-/**
- * \brief Stops the emulator
- * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
- */
-bool close_rom(bool stop_vcr = true);
-
-/**
- * \brief Resets the emulator
- * \param reset_save_data Whether save data (e.g.: EEPROM, SRAM, Mempak) will be reset
- * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
- */
-bool reset_rom(bool reset_save_data = false, bool stop_vcr = true);
-
-
-
 
 /**
  * \brief Whether the statusbar needs to be updated with new input information

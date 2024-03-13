@@ -28,6 +28,7 @@
 #include "vcr.h"
 #include "helpers/string_helpers.h"
 #include "lib/argh.h"
+#include "../r4300/r4300.h"
 
 std::filesystem::path commandline_rom;
 std::filesystem::path commandline_lua;
@@ -67,7 +68,7 @@ void commandline_start_rom()
 
 	std::thread([]
 	{
-		start_rom(commandline_rom);
+		vr_start_rom(commandline_rom);
 		// Special case for "Open With..."
 		if (commandline_rom.extension() == ".m64")
 		{

@@ -63,7 +63,6 @@ t_plugin* audio_plugin = nullptr;
 t_plugin* input_plugin = nullptr;
 t_plugin* rsp_plugin = nullptr;
 
-
 std::string get_plugins_directory()
 {
 	if (Config.is_default_plugins_directory_used)

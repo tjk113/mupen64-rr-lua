@@ -590,7 +590,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			std::thread([clear_eeprom]
 			{
 				core_resetting = true;
-				reset_rom(clear_eeprom, false);
+				vr_reset_rom(clear_eeprom, false);
 			}).detach();
 		}
 	}
@@ -650,7 +650,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			std::thread([clear_eeprom]
 			{
 				core_resetting = true;
-				reset_rom(clear_eeprom, false);
+				vr_reset_rom(clear_eeprom, false);
 			}).detach();
 		}
 	}
@@ -688,7 +688,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			std::thread([]
 			{
 				core_resetting = true;
-				reset_rom(false, false);
+				vr_reset_rom(false, false);
 			}).detach();
 		}
 		return;
@@ -741,7 +741,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		std::thread([]
 		{
 			core_resetting = true;
-			reset_rom(false, false);
+			vr_reset_rom(false, false);
 		}).detach();
 	}
 
@@ -1033,7 +1033,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	// Nope, doesnt work since some random user32 call in core somewhere converts it to "GUI" thread.
 	// assert(!IsGUIThread(false));
 
-	if (!emu_launched && !start_rom(path))
+	if (!emu_launched && !vr_start_rom(path))
 	{
 		return Result::NoMatchingRom;
 	}

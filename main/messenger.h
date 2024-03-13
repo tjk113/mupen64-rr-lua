@@ -15,6 +15,11 @@ namespace Messenger
 		EmuLaunchedChanged,
 
 		/**
+		 * \brief The emulator is beginning the termination process
+		 */
+		EmuStopping,
+
+		/**
 		 * \brief The emulator paused state has changed
 		 */
 		EmuPausedChanged,

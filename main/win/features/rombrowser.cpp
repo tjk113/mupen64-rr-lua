@@ -409,7 +409,7 @@ namespace Rombrowser
 				item.iItem = i;
 				ListView_GetItem(rombrowser_hwnd, &item);
 				auto path = rombrowser_entries[item.lParam]->path;
-				std::thread([path] { start_rom(path); }).detach();
+				std::thread([path] { vr_start_rom(path); }).detach();
 			}
 			break;
 		}

@@ -61,12 +61,10 @@
 #include "helpers/win_helpers.h"
 #include "wrapper/PersistentPathDialog.h"
 
-HANDLE audio_thread_handle;
 static BOOL FullScreenMode = 0;
 int last_wheel_delta = 0;
 
 HANDLE loading_handle[4];
-HANDLE emu_thread_handle;
 HWND hwnd_plug;
 UINT update_screen_timer;
 
@@ -80,24 +78,12 @@ HMENU recent_lua_menu;
 HINSTANCE app_instance;
 
 std::string app_path = "";
-std::filesystem::path rom_path;
-
-// Whether the sound thread can call aiUpdate
-bool sound_allowed = true;
-
-// Flag which tells close_rom start_rom to skip some broadcasting and other operations
-bool is_restarting;
-
-// Lock to prevent emu state change race conditions
-std::recursive_mutex emu_cs;
 
 bool paused_before_menu;
 bool paused_before_focus;
 bool in_menu_loop;
 bool vis_since_input_poll_warning_dismissed;
 bool emu_starting;
-
-std::atomic<bool> audio_thread_stop_requested;
 
 /**
  * \brief List of lua environment map keys running before emulation stopped
@@ -244,9 +230,20 @@ void on_task_changed(std::any data)
 	update_titlebar();
 }
 
+void on_emu_stopping(std::any)
+{
+	// Remember all running lua scripts' HWNDs
+	for (const auto key : hwnd_lua_map | std::views::keys)
+	{
+		previously_running_luas.push_back(key);
+	}
+	Dispatcher::invoke(stop_all_scripts);
+}
+
 void on_emu_launched_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
+	static auto previous_value = value;
 
 	if (value)
 	{
@@ -293,7 +290,24 @@ void on_emu_launched_changed(std::any data)
 	// Some menu items, like movie ones, depend on both this and vcr task
 	on_task_changed(m_task);
 
-	Recent::add(Config.recent_rom_paths, rom_path.string(), Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
+	// Reset and restore view stuff when emulation starts
+	if (value && !previous_value)
+	{
+		Recent::add(Config.recent_rom_paths, get_rom_path().string(), Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
+		vis_since_input_poll_warning_dismissed = false;
+		Dispatcher::invoke([]
+		{
+			for (const HWND hwnd : previously_running_luas)
+			{
+				// click start button
+				SendMessage(hwnd, WM_COMMAND,
+						MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+						(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+			}
+
+			previously_running_luas.clear();
+		});
+	}
 }
 
 void on_capturing_changed(std::any data)
@@ -336,7 +350,6 @@ void on_emu_paused_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
 
-	sound_allowed = !value;
 	frame_changed = true;
 }
 
@@ -350,7 +363,7 @@ void on_vis_since_input_poll_exceeded(std::any)
 	if(!Config.crash_dialog || MessageBox(mainHWND, "An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?", "Warning",
 			   MB_ICONWARNING | MB_YESNO) == IDYES)
 	{
-		std::thread([] { close_rom(); }).detach();
+		std::thread([] { vr_close_rom(); }).detach();
 	}
 	vis_since_input_poll_warning_dismissed = true;
 }
@@ -433,302 +446,6 @@ static void gui_ChangeWindow()
 	}
 }
 
-void clear_save_data()
-{
-	{
-		if (FILE* f = fopen(get_sram_path().string().c_str(), "wb"))
-		{
-			extern unsigned char sram[0x8000];
-			for (unsigned char& i : sram) i = 0;
-			fwrite(sram, 1, 0x8000, f);
-			fclose(f);
-		}
-	}
-	{
-		if (FILE* f = fopen(get_eeprom_path().string().c_str(), "wb"))
-		{
-			extern unsigned char eeprom[0x8000];
-			for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
-			fwrite(eeprom, 1, 0x800, f);
-			fclose(f);
-		}
-	}
-	{
-		if (FILE* f = fopen(get_mempak_path().string().c_str(), "wb"))
-		{
-			extern unsigned char mempack[4][0x8000];
-			for (auto& j : mempack)
-			{
-				for (int i = 0; i < 0x800; i++) j[i] = 0;
-				fwrite(j, 1, 0x800, f);
-			}
-			fclose(f);
-		}
-	}
-}
-
-DWORD WINAPI audio_thread(LPVOID)
-{
-	printf("Sound thread entering...\n");
-	while (true)
-	{
-		Sleep(1);
-
-		if (audio_thread_stop_requested == true)
-		{
-			break;
-		}
-
-		if(VCR::is_seeking())
-		{
-			continue;
-		}
-
-		aiUpdate(0);
-	}
-	printf("Sound thread exiting...\n");
-	return 0;
-}
-
-DWORD WINAPI ThreadFunc(LPVOID)
-{
-	const auto start_time = std::chrono::high_resolution_clock::now();
-	init_memory();
-	vis_since_input_poll_warning_dismissed = false;
-
-	romOpen_gfx();
-	romOpen_input();
-	romOpen_audio();
-
-	dynacore = Config.core_type;
-
-	Dispatcher::invoke([]
-	{
-		for (const HWND hwnd : previously_running_luas)
-		{
-			// click start button
-			SendMessage(hwnd, WM_COMMAND,
-					MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
-					(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-		}
-
-		previously_running_luas.clear();
-	});
-
-	LuaCallbacks::call_reset();
-
-	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	audio_thread_handle = CreateThread(nullptr, 0, audio_thread, nullptr, 0, nullptr);
-
-	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
-	Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-
-	core_start();
-
-	romClosed_gfx();
-	romClosed_audio();
-	romClosed_input();
-	romClosed_RSP();
-
-	closeDLL_gfx();
-	closeDLL_audio();
-	closeDLL_input();
-	closeDLL_RSP();
-
-	unload_plugins();
-
-	return 0;
-}
-
-bool start_rom(std::filesystem::path path){
-	std::unique_lock lock(emu_cs, std::try_to_lock);
-	if(!lock.owns_lock()){
-		printf("[Core] start_rom busy!\n");
-		return false;
-	}
-
-	// We can't overwrite core. Emu needs to stop first, but that might fail...
-	if (emu_launched && !close_rom()) {
-		printf("[Core] Failed to close rom before starting rom.\n");
-		return false;
-	}
-
-	Messenger::broadcast(Messenger::Message::EmuStartingChanged, true);
-
-	// If we get a movie instead of a rom, we try to search the available rom lists to find one matching the movie
-	if (path.extension() == ".m64")
-	{
-		t_movie_header movie_header{};
-		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
-		{
-			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-			return false;
-		}
-
-		const auto matching_rom = Rombrowser::find_available_rom([movie_header] (auto header)
-		{
-			strtrim((char*)header.nom, sizeof(header.nom));
-			return movie_header.rom_crc1 == header.CRC1 && !_stricmp((const char*)header.nom, movie_header.rom_name);
-		});
-
-		if (matching_rom.empty())
-		{
-			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-			return false;
-		}
-
-		path = matching_rom;
-	}
-
-	rom_path = path;
-	auto start_time = std::chrono::high_resolution_clock::now();
-
-	printf("Loading plugins\n");
-	if (!load_plugins())
-	{
-		if (MessageBox(mainHWND,
-					   "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
-					   nullptr,
-					   MB_ICONQUESTION | MB_YESNO) == IDYES)
-		{
-			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
-		}
-		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-		return false;
-	}
-
-	// valid rom is required to start emulation
-	if (!rom_load(path.string().c_str()))
-	{
-		MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
-		unload_plugins();
-		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-		return false;
-	}
-
-	timer_init(Config.fps_modifier, &ROM_HEADER);
-
-	// HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
-	auto gfx_thread = std::thread(load_gfx, video_plugin->handle);
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto audio_thread = std::thread(load_audio, audio_plugin->handle);
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto input_thread = std::thread(load_input, input_plugin->handle);
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto rsp_thread = std::thread(load_rsp, rsp_plugin->handle);
-
-	gfx_thread.join();
-	audio_thread.join();
-	input_thread.join();
-	rsp_thread.join();
-
-	printf("start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	emu_paused = 0;
-	emu_launched = true;
-	emu_thread_handle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
-
-	// We need to wait until the core is actually done and running before we can continue, because we release the lock
-	// If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
-	while (!core_executing);
-
-	return true;
-}
-
-bool close_rom(bool stop_vcr)
-{
-	std::unique_lock lock(emu_cs, std::try_to_lock);
-	if(!lock.owns_lock()){
-		printf("[Core] close_rom busy!\n");
-		return false;
-	}
-
-	if (!emu_launched)
-	{
-		return false;
-	}
-
-	resume_emu();
-
-	audio_thread_stop_requested = true;
-	WaitForSingleObject(audio_thread_handle, INFINITE);
-	audio_thread_stop_requested = false;
-
-	if (stop_vcr)
-	{
-		vcr_core_stopped();
-	}
-
-	// Remember all running lua scripts' HWNDs
-	for (const auto key : hwnd_lua_map | std::views::keys)
-	{
-		previously_running_luas.push_back(key);
-	}
-	Dispatcher::invoke(stop_all_scripts);
-
-	printf("Closing emulation thread...\n");
-
-	// we signal the core to stop, then wait until thread exits
-	terminate_emu();
-
-	DWORD result = WaitForSingleObject(emu_thread_handle, 2'000);
-	if (result == WAIT_TIMEOUT) {
-		MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
-		           MB_ICONERROR | MB_OK);
-		TerminateThread(emu_thread_handle, 0);
-	}
-
-	emu_thread_handle = nullptr;
-	emu_paused = 1;
-	emu_launched = 0;
-
-	if (!is_restarting)
-	{
-		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
-	}
-	return true;
-}
-
-bool reset_rom(bool reset_save_data, bool stop_vcr)
-{
-	std::unique_lock lock(emu_cs, std::try_to_lock);
-	if(!lock.owns_lock()){
-		printf("[Core] reset_rom busy!\n");
-		return false;
-	}
-
-	if (!emu_launched)
-		return false;
-
-	// why is it so damned difficult to reset the game?
-	// right now it's hacked to exit to the GUI then re-load the ROM,
-	// but it should be possible to reset the game while it's still running
-	// simply by clearing out some memory and maybe notifying the plugins...
-	frame_advancing = false;
-	is_restarting = true;
-
-	if(!close_rom(stop_vcr))
-	{
-		is_restarting = false;
-		Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
-		return false;
-	}
-	if (reset_save_data)
-	{
-		clear_save_data();
-	}
-	if(!start_rom(rom_path))
-	{
-		is_restarting = false;
-		Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
-		return false;
-	}
-
-	is_restarting = false;
-	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
-	return true;
-}
-
-
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
@@ -750,7 +467,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
-				std::thread([path] { start_rom(path); }).detach();
+				std::thread([path] { vr_start_rom(path); }).detach();
 			} else if (extension == ".m64")
 			{
 				Config.vcr_readonly = true;
@@ -897,7 +614,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		if (confirm_user_exit())
 		{
 			std::thread([] {
-				close_rom(true);
+				vr_close_rom(true);
 				Dispatcher::invoke([] {
 					DestroyWindow(mainHWND);
 				});
@@ -1068,7 +785,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_CLOSE_ROM:
 				if (!confirm_user_exit())
 					break;
-				std::thread([] { close_rom(); }).detach();
+				std::thread([] { vr_close_rom(); }).detach();
 				break;
 			case IDM_FASTFORWARD_ON:
 				fast_forward = 1;
@@ -1135,7 +852,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!confirm_user_exit())
 					break;
 
-				std::thread([] { reset_rom(); }).detach();
+				std::thread([] { vr_reset_rom(); }).detach();
 				break;
 
 			case IDM_SETTINGS:
@@ -1194,7 +911,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					if (!path.empty())
 					{
-						std::thread([path] { start_rom(path); }).detach();
+						std::thread([path] { vr_start_rom(path); }).detach();
 					}
 				}
 				break;
@@ -1457,7 +1174,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (path.empty())
 						break;
 
-					std::thread([path] { start_rom(path); }).detach();
+					std::thread([path] { vr_start_rom(path); }).detach();
 				} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST &&
 					LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + Config.
 						recent_movie_paths.size()))
@@ -1591,6 +1308,7 @@ int WINAPI WinMain(
 	GetClientRect(mainHWND, &rect);
 
 	Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
+	Messenger::subscribe(Messenger::Message::EmuStopping, on_emu_stopping);
 	Messenger::subscribe(Messenger::Message::EmuPausedChanged, on_emu_paused_changed);
 	Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
 	Messenger::subscribe(Messenger::Message::MovieLoopChanged, on_movie_loop_changed);
