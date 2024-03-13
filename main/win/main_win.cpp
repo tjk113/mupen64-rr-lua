@@ -368,6 +368,38 @@ void on_vis_since_input_poll_exceeded(std::any)
 	vis_since_input_poll_warning_dismissed = true;
 }
 
+void on_core_result(std::any data)
+{
+	auto value = std::any_cast<Core::Result>(data);
+
+	switch (value)
+	{
+	case Core::Result::NoMatchingRom:
+		MessageBox(mainHWND,
+					   "The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.",
+					   nullptr,
+					   MB_ICONERROR);
+		break;
+	case Core::Result::PluginError:
+		if (MessageBox(mainHWND,
+					   "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
+					   nullptr,
+					   MB_ICONQUESTION | MB_YESNO) == IDYES)
+		{
+			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
+		}
+		break;
+	case Core::Result::RomInvalid:
+		MessageBox(mainHWND,
+					   "The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.",
+					   nullptr,
+					   MB_ICONERROR);
+		break;
+	default:
+		break;
+	}
+}
+
 void on_movie_loop_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
@@ -1319,6 +1351,7 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
 	Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
 	Messenger::subscribe(Messenger::Message::LagLimitExceeded, on_vis_since_input_poll_exceeded);
+	Messenger::subscribe(Messenger::Message::CoreResult, on_core_result);
 	Messenger::subscribe(Messenger::Message::EmuStartingChanged, [] (std::any data)
 	{
 		emu_starting = std::any_cast<bool>(data);

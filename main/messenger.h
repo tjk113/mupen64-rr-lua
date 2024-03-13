@@ -118,6 +118,11 @@ namespace Messenger
 		 * \brief The emu has begun or stopped its starting process
 		 */
 		EmuStartingChanged,
+
+		/**
+		 * \brief The core is reporting on the status of an operation
+		 */
+		CoreResult,
 	};
 
 	/**

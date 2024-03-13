@@ -2045,6 +2045,7 @@ Core::Result vr_start_rom(std::filesystem::path path)
 		t_movie_header movie_header{};
 		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
 		{
+			Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
 			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 			return Core::Result::RomInvalid;
 		}
@@ -2057,6 +2058,7 @@ Core::Result vr_start_rom(std::filesystem::path path)
 
 		if (matching_rom.empty())
 		{
+			Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::NoMatchingRom);
 			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 			return Core::Result::NoMatchingRom;
 		}
@@ -2070,13 +2072,7 @@ Core::Result vr_start_rom(std::filesystem::path path)
 	printf("Loading plugins\n");
 	if (!load_plugins())
 	{
-		// if (MessageBox(mainHWND,
-		// 			   "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
-		// 			   nullptr,
-		// 			   MB_ICONQUESTION | MB_YESNO) == IDYES)
-		// {
-		// 	SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
-		// }
+		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::PluginError);
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 		return Core::Result::PluginError;
 	}
@@ -2084,8 +2080,8 @@ Core::Result vr_start_rom(std::filesystem::path path)
 	// valid rom is required to start emulation
 	if (!rom_load(path.string().c_str()))
 	{
-		// MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
 		unload_plugins();
+		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 		return Core::Result::RomInvalid;
 	}
@@ -2144,15 +2140,14 @@ Core::Result vr_close_rom(bool stop_vcr)
 
 	Messenger::broadcast(Messenger::Message::EmuStopping,  nullptr);
 
-	printf("Closing emulation thread...\n");
+	printf("[Core] Stopping emulation thread...\n");
 
 	// we signal the core to stop, then wait until thread exits
 	terminate_emu();
 
 	DWORD result = WaitForSingleObject(emu_thread_handle, 2'000);
 	if (result == WAIT_TIMEOUT) {
-		// MessageBox(mainHWND, "Emu thread didn't exit in time", NULL,
-		// 		   MB_ICONERROR | MB_OK);
+		printf("[Core] Emulation thread timed out!!!\n");
 		TerminateThread(emu_thread_handle, 0);
 	}
 
