@@ -69,6 +69,25 @@ extern unsigned long jump_to_address;
 
 std::filesystem::path get_rom_path();
 
+namespace Core
+{
+	enum class Result
+	{
+		// The operation completed successfully
+		Ok,
+		// The callee is already performing another task
+		Busy,
+		// Couldn't find a rom matching the provided movie
+		NoMatchingRom,
+		// An error occured during plugin loading
+		PluginError,
+		// The ROM or alternative rom source is invalid
+		RomInvalid,
+		// The emulator isn't running yet
+		NotRunning,
+	};
+}
+
 /**
  * \brief Resumes the emulator
  */
@@ -92,21 +111,25 @@ void core_start();
 /**
  * \brief Starts the emulator
  * \param path Path to a rom or corresponding movie file
+ * \return The operation result
  */
-bool vr_start_rom(std::filesystem::path path);
+Core::Result vr_start_rom(std::filesystem::path path);
 
 /**
  * \brief Stops the emulator
  * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
+ * \return The operation result
+ * \return The operation result
  */
-bool vr_close_rom(bool stop_vcr = true);
+Core::Result vr_close_rom(bool stop_vcr = true);
 
 /**
  * \brief Resets the emulator
  * \param reset_save_data Whether save data (e.g.: EEPROM, SRAM, Mempak) will be reset
  * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
+ * \return The operation result
  */
-bool vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true);
+Core::Result vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true);
 
 void pure_interpreter();
 void compare_core();

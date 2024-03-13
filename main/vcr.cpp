@@ -1033,7 +1033,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	// Nope, doesnt work since some random user32 call in core somewhere converts it to "GUI" thread.
 	// assert(!IsGUIThread(false));
 
-	if (!emu_launched && !vr_start_rom(path))
+	if (!emu_launched && vr_start_rom(path) != Core::Result::Ok)
 	{
 		return Result::NoMatchingRom;
 	}

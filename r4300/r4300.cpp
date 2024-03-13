@@ -2019,18 +2019,22 @@ DWORD WINAPI ThreadFunc(LPVOID)
 	return 0;
 }
 
-bool vr_start_rom(std::filesystem::path path)
+Core::Result vr_start_rom(std::filesystem::path path)
 {
 	std::unique_lock lock(emu_cs, std::try_to_lock);
 	if(!lock.owns_lock()){
 		printf("[Core] vr_start_rom busy!\n");
-		return false;
+		return Core::Result::Busy;
 	}
 
 	// We can't overwrite core. Emu needs to stop first, but that might fail...
-	if (emu_launched && !vr_close_rom()) {
-		printf("[Core] Failed to close rom before starting rom.\n");
-		return false;
+	if (emu_launched) {
+		auto result = vr_close_rom();
+		if (result != Core::Result::Ok)
+		{
+			printf("[Core] Failed to close rom before starting rom.\n");
+			return result;
+		}
 	}
 
 	Messenger::broadcast(Messenger::Message::EmuStartingChanged, true);
@@ -2042,7 +2046,7 @@ bool vr_start_rom(std::filesystem::path path)
 		if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
 		{
 			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-			return false;
+			return Core::Result::RomInvalid;
 		}
 
 		const auto matching_rom = Rombrowser::find_available_rom([movie_header] (auto header)
@@ -2054,7 +2058,7 @@ bool vr_start_rom(std::filesystem::path path)
 		if (matching_rom.empty())
 		{
 			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-			return false;
+			return Core::Result::NoMatchingRom;
 		}
 
 		path = matching_rom;
@@ -2074,7 +2078,7 @@ bool vr_start_rom(std::filesystem::path path)
 		// 	SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 		// }
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-		return false;
+		return Core::Result::PluginError;
 	}
 
 	// valid rom is required to start emulation
@@ -2083,7 +2087,7 @@ bool vr_start_rom(std::filesystem::path path)
 		// MessageBox(mainHWND, "Failed to open ROM", "Error", MB_ICONERROR | MB_OK);
 		unload_plugins();
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-		return false;
+		return Core::Result::RomInvalid;
 	}
 
 	timer_init(Config.fps_modifier, &ROM_HEADER);
@@ -2111,20 +2115,20 @@ bool vr_start_rom(std::filesystem::path path)
 	// If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
 	while (!core_executing);
 
-	return true;
+	return Core::Result::Ok;
 }
 
-bool vr_close_rom(bool stop_vcr)
+Core::Result vr_close_rom(bool stop_vcr)
 {
 	std::unique_lock lock(emu_cs, std::try_to_lock);
 	if(!lock.owns_lock()){
 		printf("[Core] vr_close_rom busy!\n");
-		return false;
+		return Core::Result::Busy;
 	}
 
 	if (!emu_launched)
 	{
-		return false;
+		return Core::Result::NotRunning;
 	}
 
 	resume_emu();
@@ -2160,19 +2164,19 @@ bool vr_close_rom(bool stop_vcr)
 	{
 		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	}
-	return true;
+	return Core::Result::Ok;
 }
 
-bool vr_reset_rom(bool reset_save_data, bool stop_vcr)
+Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr)
 {
 	std::unique_lock lock(emu_cs, std::try_to_lock);
 	if(!lock.owns_lock()){
 		printf("[Core] vr_reset_rom busy!\n");
-		return false;
+		return Core::Result::Busy;
 	}
 
 	if (!emu_launched)
-		return false;
+		return Core::Result::NotRunning;
 
 	// why is it so damned difficult to reset the game?
 	// right now it's hacked to exit to the GUI then re-load the ROM,
@@ -2181,24 +2185,28 @@ bool vr_reset_rom(bool reset_save_data, bool stop_vcr)
 	frame_advancing = false;
 	is_restarting = true;
 
-	if(!vr_close_rom(stop_vcr))
+	Core::Result result = vr_close_rom(stop_vcr);
+	if (result != Core::Result::Ok)
 	{
 		is_restarting = false;
 		Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
-		return false;
+		return result;
 	}
+
 	if (reset_save_data)
 	{
 		clear_save_data();
 	}
-	if(!vr_start_rom(rom_path))
+
+	result = vr_start_rom(rom_path);
+	if (result != Core::Result::Ok)
 	{
 		is_restarting = false;
 		Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
-		return false;
+		return result;
 	}
 
 	is_restarting = false;
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
-	return true;
+	return Core::Result::Ok;
 }
