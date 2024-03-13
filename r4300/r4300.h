@@ -99,16 +99,6 @@ void resume_emu();
 void pause_emu();
 
 /**
- * \brief Terminates the emulator
- */
-void terminate_emu();
-
-/**
- * \brief Hands over control to the core until terminate_emu is called
- */
-void core_start();
-
-/**
  * \brief Starts the emulator
  * \param path Path to a rom or corresponding movie file
  * \return The operation result
@@ -136,6 +126,7 @@ void compare_core();
 extern void jump_to_func();
 void update_count();
 int check_cop1_unusable();
+void terminate_emu();
 
 #define jump_to(a) { jump_to_address = a; jump_to_func(); }
 
