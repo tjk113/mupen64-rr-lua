@@ -454,6 +454,7 @@ namespace Rombrowser
 	{
 		auto value = std::any_cast<bool>(data);
 		ShowWindow(rombrowser_hwnd, !value ? SW_SHOW : SW_HIDE);
+		rombrowser_update_size();
 	}
 
 	void init()
