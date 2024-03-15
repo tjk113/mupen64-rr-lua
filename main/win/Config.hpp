@@ -43,6 +43,8 @@ typedef struct _CONFIG
 	t_hotkey seek_to_frame_hotkey;
 	t_hotkey save_current_hotkey;
 	t_hotkey load_current_hotkey;
+	t_hotkey save_as_hotkey;
+	t_hotkey load_as_hotkey;
 	t_hotkey save_to_slot_1_hotkey;
 	t_hotkey save_to_slot_2_hotkey;
 	t_hotkey save_to_slot_3_hotkey;

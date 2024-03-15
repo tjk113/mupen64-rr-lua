@@ -372,6 +372,24 @@ CONFIG get_default_config()
 		.down_cmd = IDM_LOAD_SLOT,
 	};
 
+	config.save_as_hotkey = {
+		.identifier = "Save state as",
+		.key = 0x4E /* N */,
+		.ctrl = 1,
+		.shift = 1,
+		.alt = 0,
+		.down_cmd = IDM_SAVE_STATE_AS,
+	};
+
+	config.load_as_hotkey = {
+		.identifier = "Load state as",
+		.key = 0x4D /* M */,
+		.ctrl = 1,
+		.shift = 1,
+		.alt = 0,
+		.down_cmd = IDM_LOAD_STATE_AS,
+	};
+
 	config.save_to_slot_1_hotkey = {
 		.identifier = "Save to slot 1",
 		.key = 0x31 /* 1 */,
@@ -731,6 +749,8 @@ void update_menu_hotkey_labels()
     set_hotkey_menu_accelerators(&Config.take_screenshot_hotkey, IDM_SCREENSHOT);
     set_hotkey_menu_accelerators(&Config.save_current_hotkey, IDM_SAVE_SLOT);
     set_hotkey_menu_accelerators(&Config.load_current_hotkey, IDM_LOAD_SLOT);
+    set_hotkey_menu_accelerators(&Config.save_as_hotkey, IDM_SAVE_STATE_AS);
+    set_hotkey_menu_accelerators(&Config.load_as_hotkey, IDM_LOAD_STATE_AS);
     set_hotkey_menu_accelerators(&Config.select_slot_1_hotkey, IDM_SELECT_1);
     set_hotkey_menu_accelerators(&Config.select_slot_2_hotkey, IDM_SELECT_2);
     set_hotkey_menu_accelerators(&Config.select_slot_3_hotkey, IDM_SELECT_3);
