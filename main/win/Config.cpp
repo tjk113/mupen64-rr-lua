@@ -660,7 +660,7 @@ CONFIG get_default_config()
 		.down_cmd = (IDM_SELECT_1 - 1) + 10,
 	};
 
-	config.version = 2;
+	config.version = 3;
 	config.core_type = 1;
 	config.fps_modifier = 100;
 	config.frame_skip_frequency = 1;
