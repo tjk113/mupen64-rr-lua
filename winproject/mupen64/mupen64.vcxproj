@@ -62,7 +62,6 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../../lua;../../lib/zlib;../../main;../../lib/libdeflate;../../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -74,6 +73,8 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AdditionalOptions>/FI "../main/debughook.h" %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -110,15 +111,13 @@
       <Optimization>Full</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <CallingConvention>
-      </CallingConvention>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <BasicRuntimeChecks>
-      </BasicRuntimeChecks>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Strict</FloatingPointModel>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
