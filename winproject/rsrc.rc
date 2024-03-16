@@ -141,8 +141,6 @@ BEGIN
             MENUITEM "Start AVI Capture...",        IDM_START_CAPTURE
             MENUITEM "Start AVI From Preset...",    IDM_START_CAPTURE_PRESET
             MENUITEM SEPARATOR
-            MENUITEM "Start FFmpeg Capture...",     IDM_START_FFMPEG_CAPTURE
-            MENUITEM SEPARATOR
             MENUITEM "Stop Capture",                IDM_STOP_CAPTURE
         END
     END

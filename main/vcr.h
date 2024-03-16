@@ -7,7 +7,7 @@
 
 #ifdef __cplusplus	//don't include cpp headers when .c compilation unit includes the file
 
-#include <string>	//(also done later for ffmpeg functions)
+#include <string>
 #include <functional>
 
 #endif

@@ -154,7 +154,6 @@
     <ClInclude Include="..\..\main\lib\ini.h" />
     <ClInclude Include="..\..\main\lib\argh.h" />
     <ClInclude Include="..\..\main\debughook.h" />
-    <ClInclude Include="..\..\main\ffmpeg_capture\ffmpeg_capture.hpp" />
     <ClInclude Include="..\..\main\guifuncs.h" />
     <ClInclude Include="..\..\main\helpers\io_helpers.h" />
     <ClInclude Include="..\..\main\helpers\win_helpers.h" />
@@ -217,8 +216,6 @@
     <ClCompile Include="..\..\main\capture\EncodingManager.cpp" />
     <ClCompile Include="..\..\main\debughook.cpp" />
     <ClCompile Include="..\..\main\helpers\io_helpers.cpp" />
-    <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp" />
-    <ClCompile Include="..\..\main\ffmpeg_capture\readscreen_win.cpp" />
     <ClCompile Include="..\..\main\lib\md5.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>

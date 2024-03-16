@@ -10,6 +10,7 @@
 #include "win/main_win.h"
 #include "../../r4300/rom.h"
 #include "win/Config.hpp"
+#include "../../memory/memory.h"
 
 namespace EncodingManager
 {
@@ -182,7 +183,7 @@ namespace EncodingManager
 		readScreen(&image, &width, &height);
 		const auto end = std::chrono::high_resolution_clock::now();
 		const std::chrono::duration<double, std::milli> time = (end - start);
-		printf("ReadScreen (ffmpeg): %lf ms\n", time.count());
+		printf("ReadScreen: %lf ms\n", time.count());
 
 		if (image == nullptr)
 		{

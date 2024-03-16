@@ -2,7 +2,6 @@
 #include <filesystem>
 
 #include "Plugin.hpp"
-#include "../../memory/memory.h"
 
 namespace EncodingManager
 {

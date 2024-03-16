@@ -10,8 +10,6 @@
 #include "vcr_compress.h"
 #include "vcr_resample.h"
 
-//ffmpeg
-#include "ffmpeg_capture/ffmpeg_capture.hpp"
 #include <memory>
 
 #include "Plugin.hpp"
@@ -82,7 +80,6 @@ static char* m_input_buffer_ptr = nullptr;
 int title_length;
 char vcr_lastpath[MAX_PATH];
 
-std::unique_ptr<FFmpegManager> capture_manager;
 uint64_t screen_updates = 0;
 
 // Used for tracking VCR-invoked resets

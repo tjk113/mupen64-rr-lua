@@ -55,7 +55,6 @@
 #include "features/RomBrowser.hpp"
 #include "features/Seeker.h"
 #include "features/Statusbar.hpp"
-#include "ffmpeg_capture/ffmpeg_capture.hpp"
 #include "helpers/collection_helpers.h"
 #include "helpers/math_helpers.h"
 #include "helpers/string_helpers.h"
@@ -257,7 +256,6 @@ void on_emu_launched_changed(std::any data)
 	}
 
 	EnableMenuItem(main_menu, IDM_STATUSBAR, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, ID_AUDIT_ROMS, !value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_REFRESH_ROMBROWSER, !value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_RESET_ROM, value ? MF_ENABLED : MF_GRAYED);
@@ -322,7 +320,6 @@ void on_capturing_changed(std::any data)
 		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
 		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
 					   MF_GRAYED);
-		EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_GRAYED);
 		EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_ENABLED);
 		EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 	} else
@@ -333,7 +330,6 @@ void on_capturing_changed(std::any data)
 								 SWP_NOMOVE | SWP_NOSIZE);
 		EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_GRAYED);
 		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_ENABLED);
-		EnableMenuItem(main_menu, IDM_START_FFMPEG_CAPTURE, MF_ENABLED);
 		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
 	}
 
