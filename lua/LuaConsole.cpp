@@ -561,6 +561,7 @@ void lua_create_and_run(const char* path)
 		{"diff", LuaCore::Input::GetKeyDifference},
 		{"prompt", LuaCore::Input::InputPrompt},
 		{"get_key_name_text", LuaCore::Input::LuaGetKeyNameText},
+		// DEPRECATE: WinAPI coupling
 		{"map_virtual_key_ex", LuaCore::Input::LuaMapVirtualKeyEx},
 		{NULL, NULL}
 	};
