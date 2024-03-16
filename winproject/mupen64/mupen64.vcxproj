@@ -209,10 +209,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\lua\modules\input.h" />
     <ClCompile Include="..\..\lua\LuaCallbacks.cpp" />
-    <ClCompile Include="..\..\main\adler32.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
     <ClCompile Include="..\..\main\capture\EncodingManager.cpp" />
     <ClCompile Include="..\..\main\capture\AVIComp.cpp"/>
     <ClCompile Include="..\..\main\capture\Resampler.cpp"/>
