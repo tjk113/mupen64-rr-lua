@@ -1133,30 +1133,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				CheckMenuItem(
 					main_menu, IDM_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
-			case IDC_INCREASE_MODIFIER:
-				if (Config.fps_modifier < 50)
-					Config.fps_modifier = Config.fps_modifier + 5;
-				else if (Config.fps_modifier < 100)
-					Config.fps_modifier = Config.fps_modifier + 10;
-				else if (Config.fps_modifier < 200)
-					Config.fps_modifier = Config.fps_modifier + 25;
-				else if (Config.fps_modifier < 1000)
-					Config.fps_modifier = Config.fps_modifier + 50;
-				if (Config.fps_modifier > 1000)
-					Config.fps_modifier = 1000;
+			case IDC_DECREASE_MODIFIER:
+				Config.fps_modifier = clamp(Config.fps_modifier - 25, 25, 1000);
 				timer_init(Config.fps_modifier, &ROM_HEADER);
 				break;
-			case IDC_DECREASE_MODIFIER:
-				if (Config.fps_modifier > 200)
-					Config.fps_modifier = Config.fps_modifier - 50;
-				else if (Config.fps_modifier > 100)
-					Config.fps_modifier = Config.fps_modifier - 25;
-				else if (Config.fps_modifier > 50)
-					Config.fps_modifier = Config.fps_modifier - 10;
-				else if (Config.fps_modifier > 5)
-					Config.fps_modifier = Config.fps_modifier - 5;
-				if (Config.fps_modifier < 5)
-					Config.fps_modifier = 5;
+			case IDC_INCREASE_MODIFIER:
+				Config.fps_modifier = clamp(Config.fps_modifier + 25, 25, 1000);
 				timer_init(Config.fps_modifier, &ROM_HEADER);
 				break;
 			case IDC_RESET_MODIFIER:
