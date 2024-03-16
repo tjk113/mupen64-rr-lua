@@ -24,6 +24,7 @@
 #include <vcr.h>
 
 #include "../../r4300/tracelog.h"
+#include "capture/EncodingManager.h"
 #include "features/Statusbar.hpp"
 
 
@@ -38,7 +39,7 @@ bool confirm_user_exit()
 	    final_message.append("Movie recording ");
 	    warnings++;
     }
-    if (vcr_is_capturing())
+    if (EncodingManager::is_capturing())
     {
 	    if (warnings > 0) { final_message.append(","); }
 	    final_message.append(" AVI capture ");

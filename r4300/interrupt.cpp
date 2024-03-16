@@ -47,6 +47,7 @@
 #include "../main/win/Config.hpp"
 #include "../main/win/main_win.h"
 #include "../memory/pif.h"
+#include "capture/EncodingManager.h"
 
 unsigned long next_vi;
 int vi_field = 0;
@@ -425,6 +426,7 @@ void gen_interrupt()
         LuaCallbacks::call_interval();
         vcr_update_screen();
         vcr_on_vi();
+    	EncodingManager::at_vi();
         timer_new_vi();
         if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
         else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * Config.cpu_clock_speed_multiplier));

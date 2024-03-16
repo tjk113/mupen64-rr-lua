@@ -47,6 +47,7 @@
 #include "../../r4300/recomph.h"
 #include "../../r4300/tracelog.h"
 #include "../../winproject/resource.h"
+#include "capture/EncodingManager.h"
 #include "features/CoreDbg.h"
 #include "features/Dispatcher.h"
 #include "features/MGECompositor.h"
@@ -951,7 +952,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				DestroyWindow(mainHWND);
 				break;
 			case IDM_FULLSCREEN:
-				if (emu_launched && !vcr_is_capturing())
+				if (emu_launched && !EncodingManager::is_capturing())
 				{
 					FullScreenMode = 1 - FullScreenMode;
 					gui_ChangeWindow();
@@ -1059,19 +1060,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 
-			case IDM_START_FFMPEG_CAPTURE:
-				{
-					auto err = vcr_start_f_fmpeg_capture(
-						"ffmpeg_out.mp4",
-						"-pixel_format yuv420p -loglevel debug -y");
-					if (err == INIT_SUCCESS)
-					{
-						Statusbar::post("Recording AVI with FFmpeg");
-					} else
-						printf("Start capture error: %d\n", err);
-					break;
-				}
-
 			case IDM_START_CAPTURE_PRESET:
 			case IDM_START_CAPTURE:
 				if (emu_launched)
@@ -1085,7 +1073,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 
 					// pass false to startCapture when "last preset" option was choosen
-					if (vcr_start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == IDM_START_CAPTURE) >= 0)
+					if (EncodingManager::start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == IDM_START_CAPTURE) >= 0)
 					{
 						Statusbar::post("Recording AVI");
 					}
@@ -1093,10 +1081,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 				break;
 			case IDM_STOP_CAPTURE:
-				if (vcr_stop_capture() >= 0)
-				{
-					Statusbar::post("Capture stopped");
-				}
+				EncodingManager::stop_capture();
+				Statusbar::post("Capture stopped");
 				break;
 			case IDM_SCREENSHOT:
 				CaptureScreen(const_cast<char*>(get_screenshots_directory().c_str()));
@@ -1277,13 +1263,13 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-#ifdef _DEBUG
+// #ifdef _DEBUG
 	AllocConsole();
 	FILE* f = 0;
 	freopen_s(&f, "CONIN$", "r", stdin);
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
-#endif
+// #endif
 
 	Messenger::init();
 

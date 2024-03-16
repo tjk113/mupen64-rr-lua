@@ -32,6 +32,7 @@
 #include "LuaCallbacks.h"
 #include "messenger.h"
 #include "../memory/pif.h"
+#include "capture/EncodingManager.h"
 #include "win/features/MGECompositor.h"
 #include "win/features/RomBrowser.hpp"
 
@@ -46,7 +47,6 @@ enum
 #define MUP_HEADER_SIZE (sizeof(t_movie_header))
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? mup_header_size_old : MUP_HEADER_SIZE)
 
-enum { max_avi_size = 0x7B9ACA00 };
 BOOL dont_play = false;
 enum { buffer_growth_size = 4096 };
 
@@ -80,23 +80,9 @@ static char* m_input_buffer = nullptr;
 static unsigned long m_input_buffer_size = 0;
 static char* m_input_buffer_ptr = nullptr;
 
-static int m_capture = 0; // capture movie
-static int m_audio_freq = 33000; //0x30018;
-static int m_audio_bitrate = 16; // 16 bits
-static long double m_video_frame = 0;
-static long double m_audio_frame = 0;
-#define SOUND_BUF_SIZE (44100*2*2) // 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
-
-static char sound_buf[SOUND_BUF_SIZE];
-static char sound_buf_empty[SOUND_BUF_SIZE];
-static int sound_buf_pos = 0;
-long last_sound = 0;
-
-int avi_increment = 0;
 int title_length;
 char vcr_lastpath[MAX_PATH];
 
-bool capture_with_f_fmpeg = true;
 std::unique_ptr<FFmpegManager> capture_manager;
 uint64_t screen_updates = 0;
 
@@ -354,12 +340,6 @@ BOOL
 vcr_is_recording()
 {
 	return (m_task == e_task::recording) ? TRUE : FALSE;
-}
-
-BOOL
-vcr_is_capturing()
-{
-	return m_capture ? TRUE : FALSE;
 }
 
 // Returns the filename of the last-played movie
@@ -1276,236 +1256,28 @@ bool task_is_recording(e_task task)
 
 void vcr_update_screen()
 {
-	if (!vcr_is_capturing())
-	{
-		if (!is_frame_skipped()) {
-			if (get_video_size && read_video)
-			{
-				MGECompositor::update_screen();
-			} else
-			{
-				updateScreen();
-			}
+	if (!is_frame_skipped()) {
+		if (get_video_size && read_video)
+		{
+			MGECompositor::update_screen();
+		} else
+		{
+			updateScreen();
 		}
-
-		// we always want to invoke atvi, regardless of ff optimization
-		LuaCallbacks::call_vi();
-		return;
 	}
 
-	// capturing, update screen and call readscreen, call avi/ffmpeg stuff
-	updateScreen();
+	// we always want to invoke atvi, regardless of ff optimization
 	LuaCallbacks::call_vi();
-	void* image = nullptr;
-	long width = 0, height = 0;
-
-	const auto start = std::chrono::high_resolution_clock::now();
-	readScreen(&image, &width, &height);
-	const auto end = std::chrono::high_resolution_clock::now();
-	const std::chrono::duration<double, std::milli> time = (end - start);
-	printf("ReadScreen (ffmpeg): %lf ms\n", time.count());
-
-	if (image == nullptr)
-	{
-		printf("[VCR]: Couldn't read screen (out of memory?)\n");
-		return;
-	}
-
-	if (capture_with_f_fmpeg)
-	{
-		capture_manager->WriteVideoFrame((unsigned char*)image,
-		                                width * height * 3);
-
-		//free only with external capture, since plugin can't reuse same buffer...
-		if (readScreen != vcrcomp_internal_read_screen)
-			DllCrtFree(image);
-
-		return;
-	} else
-	{
-		if (VCRComp_GetSize() > max_avi_size)
-		{
-			static char* endptr;
-			VCRComp_finishFile();
-			if (!avi_increment)
-				endptr = avi_file_name + strlen(avi_file_name) - 4;
-			//AVIIncrement
-			sprintf(endptr, "%d.avi", ++avi_increment);
-			VCRComp_startFile(avi_file_name, width, height, get_vis_per_second(ROM_HEADER.Country_code),
-			                  0);
-		}
-	}
-
-	if (Config.synchronization_mode == VCR_SYNC_AUDIO_DUPL || Config.
-		synchronization_mode == VCR_SYNC_NONE)
-	{
-		// AUDIO SYNC
-		// This type of syncing assumes the audio is authoratative, and drops or duplicates frames to keep the video as close to
-		// it as possible. Some games stop updating the screen entirely at certain points, such as loading zones, which will cause
-		// audio to drift away by default. This method of syncing prevents this, at the cost of the video feed possibly freezing or jumping
-		// (though in practice this rarely happens - usually a loading scene just appears shorter or something).
-
-		int audio_frames = (int)(m_audio_frame - m_video_frame + 0.1);
-		// i've seen a few games only do ~0.98 frames of audio for a frame, let's account for that here
-
-		if (Config.synchronization_mode == VCR_SYNC_AUDIO_DUPL)
-		{
-			if (audio_frames < 0)
-			{
-				show_modal_info("Audio frames became negative!", nullptr);
-				vcr_stop_capture();
-				goto cleanup;
-			}
-
-			if (audio_frames == 0)
-			{
-				printf("\nDropped Frame! a/v: %Lg/%Lg", m_video_frame,
-				       m_audio_frame);
-			} else if (audio_frames > 0)
-			{
-				if (!VCRComp_addVideoFrame((unsigned char*)image))
-				{
-					show_modal_info(
-						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", nullptr);
-					vcr_stop_capture();
-					goto cleanup;
-				} else
-				{
-					m_video_frame += 1.0;
-					audio_frames--;
-				}
-			}
-
-			// can this actually happen?
-			while (audio_frames > 0)
-			{
-				if (!VCRComp_addVideoFrame((unsigned char*)image))
-				{
-					show_modal_info(
-						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", nullptr);
-					vcr_stop_capture();
-					goto cleanup;
-				} else
-				{
-					printf("\nDuped Frame! a/v: %Lg/%Lg", m_video_frame,
-					       m_audio_frame);
-					m_video_frame += 1.0;
-					audio_frames--;
-				}
-			}
-		} else /*if (Config.synchronization_mode == VCR_SYNC_NONE)*/
-		{
-			if (!VCRComp_addVideoFrame((unsigned char*)image))
-			{
-				show_modal_info(
-					"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", nullptr);
-				vcr_stop_capture();
-				goto cleanup;
-			} else
-			{
-				m_video_frame += 1.0;
-			}
-		}
-	}
-
-cleanup:
-	if (readScreen != vcrcomp_internal_read_screen)
-	{
-		if (image)
-			DllCrtFree(image);
-	}
 }
 
 
 void
 vcr_ai_dacrate_changed(const system_type type)
 {
-	if (vcr_is_capturing())
-	{
-		printf("Fatal error, audio frequency changed during capture\n");
-		vcr_stop_capture();
-		return;
-	}
 	aiDacrateChanged(type);
-
-	m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
-	switch (type)
-	{
-	case ntsc:
-		m_audio_freq = (int)(48681812 / (ai_register.ai_dacrate + 1));
-		break;
-	case pal:
-		m_audio_freq = (int)(49656530 / (ai_register.ai_dacrate + 1));
-		break;
-	case mpal:
-		m_audio_freq = (int)(48628316 / (ai_register.ai_dacrate + 1));
-		break;
-	default:
-		assert(false);
-		break;
-	}
+	EncodingManager::ai_dacrate_changed(type);
 }
 
-// assumes: len <= writeSize
-static void write_sound(char* buf, int len, const int min_write_size, const int max_write_size,
-                        const BOOL force)
-{
-	if ((len <= 0 && !force) || len > max_write_size)
-		return;
-
-	if (sound_buf_pos + len > min_write_size || force)
-	{
-		if (int len2 = vcr_get_resample_len(44100, m_audio_freq, m_audio_bitrate,
-		                                    sound_buf_pos); (len2 % 8) == 0 || len > max_write_size)
-		{
-			static short* buf2 = nullptr;
-			len2 = vcr_resample(&buf2, 44100,
-			                    reinterpret_cast<short*>(sound_buf), m_audio_freq,
-			                    m_audio_bitrate, sound_buf_pos);
-			if (len2 > 0)
-			{
-				if ((len2 % 4) != 0)
-				{
-					printf(
-						"[VCR]: Warning: Possible stereo sound error detected.\n");
-					fprintf(
-						stderr,
-						"[VCR]: Warning: Possible stereo sound error detected.\n");
-				}
-				if (!VCRComp_addAudioData((unsigned char*)buf2, len2))
-				{
-					show_modal_info(
-						"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", nullptr);
-					vcr_stop_capture();
-				}
-			}
-			sound_buf_pos = 0;
-		}
-	}
-
-	if (len > 0)
-	{
-		if ((unsigned int)(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(char))
-		{
-			MessageBox(nullptr, "Fatal error", "Sound buffer overflow", MB_ICONERROR);
-			printf("SOUND BUFFER OVERFLOW\n");
-			return;
-		}
-#ifdef _DEBUG
-		else
-		{
-			long double pro = (long double)(sound_buf_pos + len) * 100 / (
-				SOUND_BUF_SIZE * sizeof(char));
-			if (pro > 75) printf("---!!!---");
-			printf("sound buffer: %.2f%%\n", pro);
-		}
-#endif
-		memcpy(sound_buf + sound_buf_pos, (char*)buf, len);
-		sound_buf_pos += len;
-		m_audio_frame += ((len / 4) / (long double)m_audio_freq) *
-			get_vis_per_second(ROM_HEADER.Country_code);
-	}
-}
 
 // calculates how long the audio data will last
 float get_percent_of_frame(const int ai_len, const int audio_freq, const int audio_bitrate)
@@ -1524,211 +1296,8 @@ void vcr_ai_len_changed()
 	const auto buf = (char*)p;
 	const int ai_len = (int)ai_register.ai_len;
 	aiLenChanged();
-
-	// hack - mupen64 updates bitrate after calling aiDacrateChanged
-	m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
-
-	if (m_capture == 0)
-		return;
-
-	if (capture_with_f_fmpeg)
-	{
-		capture_manager->WriteAudioFrame(buf, ai_len);
-		return;
-	}
-
-	if (ai_len > 0)
-	{
-		const int len = ai_len;
-		const int write_size = 2 * m_audio_freq;
-		// we want (writeSize * 44100 / m_audioFreq) to be an integer
-
-		/*
-				// TEMP PARANOIA
-				if(len > writeSize)
-				{
-					char str [256];
-					printf("Sound AVI Output Failure: %d > %d", len, writeSize);
-					fprintf(stderr, "Sound AVI Output Failure: %d > %d", len, writeSize);
-					sprintf(str, "Sound AVI Output Failure: %d > %d", len, writeSize);
-					printError(str);
-					printWarning(str);
-					exit(0);
-				}
-		*/
-
-		if (Config.synchronization_mode == VCR_SYNC_VIDEO_SNDROP || Config.
-			synchronization_mode == VCR_SYNC_NONE)
-		{
-			// VIDEO SYNC
-			// This is the original syncing code, which adds silence to the audio track to get it to line up with video.
-			// The N64 appears to have the ability to arbitrarily disable its sound processing facilities and no audio samples
-			// are generated. When this happens, the video track will drift away from the audio. This can happen at load boundaries
-			// in some games, for example.
-			//
-			// The only new difference here is that the desync flag is checked for being greater than 1.0 instead of 0.
-			// This is because the audio and video in mupen tend to always be diverged just a little bit, but stay in sync
-			// over time. Checking if desync is not 0 causes the audio stream to to get thrashed which results in clicks
-			// and pops.
-
-			long double desync = m_video_frame - m_audio_frame;
-
-			if (Config.synchronization_mode == VCR_SYNC_NONE) // HACK
-				desync = 0;
-
-			if (desync > 1.0)
-			{
-				printf("[VCR]: Correcting for A/V desynchronization of %+Lf frames\n",desync);
-				int len3 = (int)(m_audio_freq / (long double)get_vis_per_second(ROM_HEADER.Country_code)) * (int)desync;
-				len3 <<= 2;
-				const int empty_size = len3 > write_size ? write_size : len3;
-
-				for (int i = 0; i < empty_size; i += 4)
-					*reinterpret_cast<long*>(sound_buf_empty + i) = last_sound;
-
-				while (len3 > write_size)
-				{
-					write_sound(sound_buf_empty, write_size, m_audio_freq, write_size,
-					           FALSE);
-					len3 -= write_size;
-				}
-				write_sound(sound_buf_empty, len3, m_audio_freq, write_size, FALSE);
-			} else if (desync <= -10.0)
-			{
-				printf(
-					"[VCR]: Waiting from A/V desynchronization of %+Lf frames\n",
-					desync);
-			}
-		}
-
-		write_sound(buf, len, m_audio_freq, write_size, FALSE);
-
-		last_sound = *(reinterpret_cast<long*>(buf + len) - 1);
-	}
+	EncodingManager::ai_len_changed();
 }
-
-bool vcr_start_capture(const char* path, const bool show_codec_dialog)
-{
-	if (readScreen == nullptr)
-	{
-		printf("readScreen not implemented by graphics plugin. Falling back...\n");
-		readScreen = vcrcomp_internal_read_screen;
-	}
-
-	memset(sound_buf_empty, 0, std::size(sound_buf_empty));
-	memset(sound_buf, 0, std::size(sound_buf));
-	last_sound = 0;
-	m_video_frame = 0.0;
-	m_audio_frame = 0.0;
-
-	// If we are capturing internally, we get our dimensions from the window, otherwise from the GFX plugin
-	long width = 0, height = 0;
-	if (readScreen == vcrcomp_internal_read_screen)
-	{
-		// fill in window size at avi start, which can't change
-		// scrap whatever was written there even if window didnt change, for safety
-		vcrcomp_window_info = {0};
-		get_window_info(mainHWND, vcrcomp_window_info);
-		width = vcrcomp_window_info.width & ~3;
-		height = vcrcomp_window_info.height & ~3;
-	} else
-	{
-		void* dummy;
-		readScreen(&dummy, &width, &height);
-	}
-
-	VCRComp_startFile(path, width, height, get_vis_per_second(ROM_HEADER.Country_code), show_codec_dialog);
-	m_capture = 1;
-	capture_with_f_fmpeg = false;
-	strncpy(avi_file_name, path, MAX_PATH);
-
-	Messenger::broadcast(Messenger::Message::CapturingChanged, true);
-
-	printf("[VCR]: Starting capture...\n");
-
-	return true;
-}
-
-/// <summary>
-/// Start capture using ffmpeg, if this function fails, manager (process and pipes) isn't created and error is returned.
-/// </summary>
-/// <param name="output_name">name of video file output</param>
-/// <param name="arguments">additional ffmpeg params (output stream only)</param>
-/// <returns></returns>
-int vcr_start_f_fmpeg_capture(const std::string& output_name,
-                           const std::string& arguments)
-{
-	if (!emu_launched) return INIT_EMU_NOT_LAUNCHED;
-	if (capture_manager != nullptr)
-	{
-#ifdef _DEBUG
-		printf(
-			"[VCR] Attempted to start ffmpeg capture when it was already started\n");
-#endif
-		return INIT_ALREADY_RUNNING;
-	}
-	t_window_info s_info{};
-	get_window_info(mainHWND, s_info);
-
-	InitReadScreenFFmpeg(s_info);
-	capture_manager = std::make_unique<FFmpegManager>(
-		s_info.width, s_info.height, get_vis_per_second(ROM_HEADER.Country_code), m_audio_freq,
-		arguments + " " + output_name);
-
-	auto err = capture_manager->initError;
-	if (err != INIT_SUCCESS)
-		capture_manager.reset();
-	else
-	{
-		m_capture = 1;
-		capture_with_f_fmpeg = 1;
-		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
-	}
-#ifdef _DEBUG
-	if (err == INIT_SUCCESS)
-		printf("[VCR] ffmpeg capture started\n");
-	else
-		printf("[VCR] Could not start ffmpeg capture\n");
-#endif
-	return err;
-}
-
-void vcr_stop_f_fmpeg_capture()
-{
-	if (capture_manager == nullptr) return; // no error code but its no big deal
-	m_capture = 0;
-	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
-
-	//this must be first in case object is being destroyed and other thread still sees m_capture=1
-	capture_manager.reset();
-	//apparently closing the pipes is enough to tell ffmpeg the movie ended.
-#ifdef _DEBUG
-	printf("[VCR] ffmpeg capture stopped\n");
-#endif
-}
-
-int vcr_stop_capture()
-{
-	if (capture_with_f_fmpeg)
-	{
-		vcr_stop_f_fmpeg_capture();
-		return 0;
-	}
-
-	m_capture = 0;
-	write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
-
-	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
-
-
-	SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
-	VCRComp_finishFile();
-	avi_increment = 0;
-	printf("[VCR]: Capture finished.\n");
-	return 0;
-}
-
 
 void
 vcr_core_stopped()
@@ -1746,9 +1315,6 @@ vcr_core_stopped()
 		vcr_stop_playback();
 		break;
 	}
-
-	if (m_capture != 0)
-		vcr_stop_capture();
 }
 
 void vcr_update_statusbar()
@@ -1845,7 +1411,7 @@ bool is_frame_skipped()
 		return true;
 	}
 
-	if (!fast_forward || vcr_is_capturing())
+	if (!fast_forward)
 	{
 		return false;
 	}

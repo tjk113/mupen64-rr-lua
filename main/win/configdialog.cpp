@@ -39,6 +39,8 @@
 #include <vcr.h>
 #include <cassert>
 
+#include "capture/EncodingManager.h"
+
 std::vector<t_plugin*> available_plugins;
 
 BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
@@ -52,22 +54,22 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
 
             switch (Config.synchronization_mode)
             {
-            case VCR_SYNC_AUDIO_DUPL:
+            case (int)EncodingManager::Sync::Audio:
                 CheckDlgButton(hwnd, IDC_AV_AUDIOSYNC, BST_CHECKED);
                 break;
-            case VCR_SYNC_VIDEO_SNDROP:
+            case (int)EncodingManager::Sync::Video:
                 CheckDlgButton(hwnd, IDC_AV_VIDEOSYNC, BST_CHECKED);
                 break;
-            case VCR_SYNC_NONE:
+            case (int)EncodingManager::Sync::None:
                 CheckDlgButton(hwnd, IDC_AV_NOSYNC, BST_CHECKED);
                 break;
             default:
                 break;
             }
 
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_AUDIOSYNC), !vcr_is_capturing());
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_VIDEOSYNC), !vcr_is_capturing());
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_NOSYNC), !vcr_is_capturing());
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_AUDIOSYNC), !EncodingManager::is_capturing());
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_VIDEOSYNC), !EncodingManager::is_capturing());
+            EnableWindow(GetDlgItem(hwnd, IDC_AV_NOSYNC), !EncodingManager::is_capturing());
 
             return TRUE;
         }
@@ -78,13 +80,13 @@ BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPAR
             switch (LOWORD(w_param))
             {
             case IDC_AV_AUDIOSYNC:
-                Config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
+                Config.synchronization_mode = (int)EncodingManager::Sync::Audio;
                 break;
             case IDC_AV_VIDEOSYNC:
-                Config.synchronization_mode = VCR_SYNC_VIDEO_SNDROP;
+                Config.synchronization_mode = (int)EncodingManager::Sync::Video;
                 break;
             case IDC_AV_NOSYNC:
-                Config.synchronization_mode = VCR_SYNC_NONE;
+                Config.synchronization_mode = (int)EncodingManager::Sync::None;
                 break;
             default:
                 break;

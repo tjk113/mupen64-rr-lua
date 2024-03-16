@@ -29,6 +29,7 @@
 #include "helpers/string_helpers.h"
 #include "lib/argh.h"
 #include "../r4300/r4300.h"
+#include "capture/EncodingManager.h"
 
 std::filesystem::path commandline_rom;
 std::filesystem::path commandline_lua;
@@ -114,14 +115,14 @@ void commandline_start_capture()
 		return;
 	}
 
-	vcr_start_capture(commandline_avi.string().c_str(), false);
+	EncodingManager::start_capture(commandline_avi.string().c_str(), false);
 }
 
 void commandline_on_movie_playback_stop()
 {
-	if (commandline_stop_capture_on_movie_end && vcr_is_capturing())
+	if (commandline_stop_capture_on_movie_end && EncodingManager::is_capturing())
 	{
-		vcr_stop_capture();
+		EncodingManager::stop_capture();
 	}
 
 	if (commandline_stop_capture_on_movie_end)

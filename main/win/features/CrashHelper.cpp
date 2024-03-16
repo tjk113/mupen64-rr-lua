@@ -112,7 +112,6 @@ void CrashHelper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr
 	//some flags
 	len += sprintf(log_ptr + len, "m_task:%d\n", m_task);
 	len += sprintf(log_ptr + len, "emu_launched:%d\n", emu_launched);
-	len += sprintf(log_ptr + len, "is_capturing_avi:%d\n", vcr_is_capturing());
 
 	strcpy(log_ptr, log_ptr); // ????
 }

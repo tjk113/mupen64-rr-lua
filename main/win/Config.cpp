@@ -12,6 +12,7 @@
 #include <helpers/string_helpers.h>
 
 #include "messenger.h"
+#include "capture/EncodingManager.h"
 
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;
@@ -686,7 +687,7 @@ CONFIG get_default_config()
 	config.is_internal_capture_forced = 0;
 	config.is_capture_cropped_screen_dc = 0;
 	config.capture_delay = 0;
-	config.synchronization_mode = VCR_SYNC_AUDIO_DUPL;
+	config.synchronization_mode = (int)EncodingManager::Sync::Audio;
 	config.lua_script_path.clear();
 	config.recent_lua_script_paths = {};
 	config.is_recent_scripts_frozen = 0;

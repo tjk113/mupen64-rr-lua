@@ -148,6 +148,7 @@
     <ClInclude Include="..\..\lua\modules\movie.h" />
     <ClInclude Include="..\..\lua\modules\savestate.h" />
     <ClInclude Include="..\..\lua\modules\wgui.h" />
+    <ClInclude Include="..\..\main\capture\EncodingManager.h" />
     <ClInclude Include="..\..\main\helpers\collection_helpers.h" />
     <ClInclude Include="..\..\main\helpers\math_helpers.h" />
     <ClInclude Include="..\..\main\lib\ini.h" />
@@ -213,6 +214,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\..\main\capture\EncodingManager.cpp" />
     <ClCompile Include="..\..\main\debughook.cpp" />
     <ClCompile Include="..\..\main\helpers\io_helpers.cpp" />
     <ClCompile Include="..\..\main\ffmpeg_capture\manager_win.cpp" />
@@ -319,7 +321,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\r4300\disasm.cpp"/>
+    <ClCompile Include="..\..\r4300\disasm.cpp" />
     <ClCompile Include="..\..\r4300\exception.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -348,7 +350,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\r4300\rom.cpp"/>
+    <ClCompile Include="..\..\r4300\rom.cpp" />
     <ClCompile Include="..\..\r4300\special.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>

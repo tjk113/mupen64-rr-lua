@@ -80,13 +80,6 @@ enum
 
 #define MOVIE_MAX_METADATA_SIZE (MOVIE_DESCRIPTION_DATA_SIZE > MOVIE_AUTHOR_DATA_SIZE ? MOVIE_DESCRIPTION_DATA_SIZE : MOVIE_AUTHOR_DATA_SIZE)
 
-enum
-{
-	VCR_SYNC_AUDIO_DUPL = 0,
-	VCR_SYNC_VIDEO_SNDROP = 1,
-	VCR_SYNC_NONE = 2
-};
-
 #pragma pack(push, 1)
 /**
  * \brief
@@ -241,7 +234,6 @@ extern BOOL vcr_is_idle(); // not the same as !isActive()
 extern BOOL vcr_is_starting();
 extern BOOL vcr_is_playing();
 extern BOOL vcr_is_recording();
-extern BOOL vcr_is_capturing();
 extern const char* vcr_get_movie_filename();
 extern bool vcr_is_looping();
 extern unsigned long vcr_get_length_v_is();
@@ -258,14 +250,6 @@ extern int vcr_start_record(const char* filename, unsigned short flags,
 extern int vcr_stop_record();
 
 extern int vcr_stop_playback();
-extern int vcr_stop_capture();
-
-//ffmpeg
-#ifdef __cplusplus
-int vcr_start_f_fmpeg_capture(const std::string& output_name,
-                           const std::string& arguments);
-void vcr_stop_f_fmpeg_capture();
-#endif
 
 extern void vcr_core_stopped();
 
@@ -273,14 +257,6 @@ extern void vcr_core_stopped();
  * \brief Updates the statusbar with the current VCR state
  */
 void vcr_update_statusbar();
-
-/**
- * \brief Starts an AVI capture
- * \param path The path to the AVI output file
- * \param show_codec_dialog Whether the user should be presented with a dialog to pick the capture codec
- * \return Whether the operation succeded
- */
-bool vcr_start_capture(const char* path, bool show_codec_dialog);
 
 /**
  * \brief Notifies VCR engine about controller being polled
