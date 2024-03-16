@@ -324,6 +324,8 @@ void on_capturing_changed(std::any data)
 		EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 	} else
 	{
+		SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
 
 		SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,

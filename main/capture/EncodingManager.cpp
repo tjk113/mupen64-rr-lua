@@ -60,10 +60,10 @@ namespace EncodingManager
 					if ((len2 % 4) != 0)
 					{
 						printf(
-							"[VCR]: Warning: Possible stereo sound error detected.\n");
+							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
 						fprintf(
 							stderr,
-							"[VCR]: Warning: Possible stereo sound error detected.\n");
+							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
 					}
 					if (!VCRComp_addAudioData((unsigned char*)buf2, len2))
 					{
@@ -147,24 +147,21 @@ namespace EncodingManager
 
 		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
-		printf("[VCR]: Starting capture...\n");
+		printf("[EncodingManager]: Starting capture...\n");
 
 		return true;
 	}
 
 	bool stop_capture()
 	{
-		capturing = 0;
 		write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
-
-		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
-
-
-		SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
 		VCRComp_finishFile();
 		split_count = 0;
-		printf("[VCR]: Capture finished.\n");
+
+		capturing = false;
+		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
+		printf("[EncodingManager]: Capture finished.\n");
 		return true;
 	}
 
@@ -187,7 +184,7 @@ namespace EncodingManager
 
 		if (image == nullptr)
 		{
-			printf("[VCR]: Couldn't read screen (out of memory?)\n");
+			printf("[EncodingManager]: Couldn't read screen (out of memory?)\n");
 			return;
 		}
 
@@ -325,7 +322,7 @@ namespace EncodingManager
 			if (desync > 1.0)
 			{
 				printf(
-					"[VCR]: Correcting for A/V desynchronization of %+Lf frames\n",
+					"[EncodingManager]: Correcting for A/V desynchronization of %+Lf frames\n",
 					desync);
 				int len3 = (int)(m_audio_freq / (long double)
 						get_vis_per_second(ROM_HEADER.Country_code)) * (int)
@@ -350,7 +347,7 @@ namespace EncodingManager
 			} else if (desync <= -10.0)
 			{
 				printf(
-					"[VCR]: Waiting from A/V desynchronization of %+Lf frames\n",
+					"[EncodingManager]: Waiting from A/V desynchronization of %+Lf frames\n",
 					desync);
 			}
 		}
