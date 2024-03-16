@@ -1166,7 +1166,7 @@ str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 bool VCR::can_seek_to(int32_t frame, bool relative)
 {
 	frame += relative ? m_current_sample : 0;
-	return frame < m_header.length_samples && frame > 0;
+	return frame < m_header.length_samples && frame > 0 && frame != m_current_sample;
 }
 
 VCR::Result VCR::begin_seek_to(int32_t frame, bool relative)
