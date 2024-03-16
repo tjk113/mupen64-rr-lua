@@ -82,7 +82,6 @@ uint64_t screen_updates = 0;
 
 // Used for tracking VCR-invoked resets
 bool just_reset;
-bool core_resetting;
 
 // Used for tracking user-invoked resets
 bool user_requested_reset;
@@ -510,15 +509,17 @@ extern BOOL just_restarted_flag;
 
 void vcr_on_controller_poll(int index, BUTTONS* input)
 {
-	// NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
-	std::scoped_lock lock(vcr_mutex);
-
-	// After invoking a reset in VCR input poll handler, the frames generated before the reset is completed are not valid to us and must be ignored
-	if (core_resetting)
+	// NOTE: When we call reset_rom from another thread, we only request a reset to happen in the future.
+	// Until the reset, the emu thread keeps running and potentially generating many frames.
+	// Those frames are invalid to us, because from the movie's perspective, it should be instantaneous.
+	if (emu_resetting)
 	{
 		printf("[VCR] Omitting pre-reset frame!\n");
 		return;
 	}
+
+	// NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
+	std::scoped_lock lock(vcr_mutex);
 
 	// When resetting during playback, we need to remind program of the rerecords
 	if (m_task != e_task::idle && just_reset)
@@ -563,7 +564,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
 			std::thread([clear_eeprom]
 			{
-				core_resetting = true;
 				vr_reset_rom(clear_eeprom, false);
 			}).detach();
 		}
@@ -623,7 +623,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			bool clear_eeprom = !(m_header.startFlags & MOVIE_START_FROM_EEPROM);
 			std::thread([clear_eeprom]
 			{
-				core_resetting = true;
 				vr_reset_rom(clear_eeprom, false);
 			}).detach();
 		}
@@ -661,7 +660,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			user_requested_reset = false;
 			std::thread([]
 			{
-				core_resetting = true;
 				vr_reset_rom(false, false);
 			}).detach();
 		}
@@ -714,7 +712,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		printf("[VCR] Resetting during playback...\n");
 		std::thread([]
 		{
-			core_resetting = true;
 			vr_reset_rom(false, false);
 		}).detach();
 	}
@@ -1371,7 +1368,6 @@ void VCR::init()
 	Messenger::subscribe(Messenger::Message::ResetCompleted, [](std::any)
 	{
 		just_reset = true;
-		core_resetting = false;
 	});
 	Messenger::subscribe(Messenger::Message::ResetRequested, [](std::any)
 	{

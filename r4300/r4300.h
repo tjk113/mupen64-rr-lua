@@ -43,6 +43,7 @@ extern precomp_block *blocks[0x100000], *actual;
 // TODO: use state enum
 extern volatile bool emu_launched;
 extern volatile bool emu_paused;
+extern volatile bool emu_resetting;
 extern volatile bool core_executing;
 extern int stop, llbit;
 extern long long int reg[32], hi, lo;

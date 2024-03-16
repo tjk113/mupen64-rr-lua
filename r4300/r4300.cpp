@@ -58,8 +58,6 @@ HANDLE emu_thread_handle;
 HANDLE audio_thread_handle;
 std::atomic<bool> audio_thread_stop_requested;
 
-// Flag which tells vr_close_rom vr_start_rom to skip some broadcasting and other operations
-bool is_restarting;
 
 // Lock to prevent emu state change race conditions
 std::recursive_mutex emu_cs;
@@ -70,6 +68,7 @@ extern bool ignore;
 volatile bool emu_launched = false;
 volatile bool emu_paused = false;
 volatile bool core_executing = false;
+volatile bool emu_resetting = false;
 unsigned long i, dynacore = 0, interpcore = 0;
 int stop, llbit;
 long long int reg[32], hi, lo;
@@ -2155,7 +2154,7 @@ Core::Result vr_close_rom(bool stop_vcr)
 	emu_paused = true;
 	emu_launched = false;
 
-	if (!is_restarting)
+	if (!emu_resetting)
 	{
 		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	}
@@ -2178,12 +2177,12 @@ Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr)
 	// but it should be possible to reset the game while it's still running
 	// simply by clearing out some memory and maybe notifying the plugins...
 	frame_advancing = false;
-	is_restarting = true;
+	emu_resetting = true;
 
 	Core::Result result = vr_close_rom(stop_vcr);
 	if (result != Core::Result::Ok)
 	{
-		is_restarting = false;
+		emu_resetting = false;
 		Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 		return result;
 	}
@@ -2196,12 +2195,12 @@ Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr)
 	result = vr_start_rom(rom_path);
 	if (result != Core::Result::Ok)
 	{
-		is_restarting = false;
+		emu_resetting = false;
 		Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 		return result;
 	}
 
-	is_restarting = false;
+	emu_resetting = false;
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 	return Core::Result::Ok;
 }
