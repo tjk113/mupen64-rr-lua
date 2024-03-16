@@ -18,6 +18,7 @@ namespace EncodingManager
 #define SOUND_BUF_SIZE (44100*2*2)
 
 	const auto max_avi_size = 0x7B9ACA00;
+	const auto ffmpeg_path = "C:\\ffmpeg\\bin\\ffmpeg.exe";
 
 	// 0x30018
 	int m_audio_freq = 33000;
@@ -33,12 +34,13 @@ namespace EncodingManager
 	size_t split_count = 0;
 
 	bool capturing = false;
+	Container current_container = Container::AVI;
 	std::filesystem::path capture_path;
 
 	// assumes: len <= writeSize
 	void write_sound(char* buf, int len, const int min_write_size,
-					 const int max_write_size,
-					 const BOOL force)
+	                 const int max_write_size,
+	                 const BOOL force)
 	{
 		if ((len <= 0 && !force) || len > max_write_size)
 			return;
@@ -46,15 +48,15 @@ namespace EncodingManager
 		if (sound_buf_pos + len > min_write_size || force)
 		{
 			if (int len2 = vcr_get_resample_len(44100, m_audio_freq,
-												m_audio_bitrate,
-												sound_buf_pos); (len2 % 8) == 0
+			                                    m_audio_bitrate,
+			                                    sound_buf_pos); (len2 % 8) == 0
 				|| len > max_write_size)
 			{
 				static short* buf2 = nullptr;
 				len2 = vcr_resample(&buf2, 44100,
-									reinterpret_cast<short*>(sound_buf),
-									m_audio_freq,
-									m_audio_bitrate, sound_buf_pos);
+				                    reinterpret_cast<short*>(sound_buf),
+				                    m_audio_freq,
+				                    m_audio_bitrate, sound_buf_pos);
 				if (len2 > 0)
 				{
 					if ((len2 % 4) != 0)
@@ -83,7 +85,7 @@ namespace EncodingManager
 				char))
 			{
 				MessageBox(nullptr, "Fatal error", "Sound buffer overflow",
-						   MB_ICONERROR);
+				           MB_ICONERROR);
 				printf("SOUND BUFFER OVERFLOW\n");
 				return;
 			}
@@ -108,8 +110,17 @@ namespace EncodingManager
 		return capturing;
 	}
 
-	bool start_capture(std::filesystem::path path, const bool show_codec_dialog)
+
+	bool start_capture(std::filesystem::path path, Container container,
+	                   const bool show_codec_dialog)
 	{
+		if (container == Container::MP4 && !std::filesystem::exists(ffmpeg_path))
+		{
+			return false;
+		}
+
+		current_container = container;
+
 		if (readScreen == nullptr)
 		{
 			printf(
@@ -161,6 +172,29 @@ namespace EncodingManager
 
 		capturing = false;
 		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
+
+		// If we need an mp4, we convert the avi to mp4 with ffmpeg and delete the avi
+		if (current_container == Container::MP4)
+		{
+			const auto mp4_path = std::filesystem::path(capture_path).replace_extension(".mp4");
+			const auto command = std::format(
+				R"({} -i "{}" -strict -2 "{}")",
+				ffmpeg_path,
+				capture_path.string(),
+				mp4_path.string());
+
+			const auto result = system(command.c_str());
+			if (result != 0)
+			{
+				printf(
+					"[EncodingManager]: Failed to convert AVI to MP4: %d\n",
+					result);
+				return false;
+			}
+
+			std::filesystem::remove(capture_path);
+		}
+
 		printf("[EncodingManager]: Capture finished.\n");
 		return true;
 	}
@@ -184,7 +218,8 @@ namespace EncodingManager
 
 		if (image == nullptr)
 		{
-			printf("[EncodingManager]: Couldn't read screen (out of memory?)\n");
+			printf(
+				"[EncodingManager]: Couldn't read screen (out of memory?)\n");
 			return;
 		}
 
@@ -281,7 +316,8 @@ namespace EncodingManager
 
 	void ai_len_changed()
 	{
-		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.ai_dram_addr & 0xFFFFFF));
+		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.
+			ai_dram_addr & 0xFFFFFF));
 		const auto buf = (char*)p;
 		const int ai_len = (int)ai_register.ai_len;
 
@@ -352,7 +388,8 @@ namespace EncodingManager
 			}
 		}
 
-		write_sound(static_cast<char*>(buf), len, m_audio_freq, write_size, FALSE);
+		write_sound(static_cast<char*>(buf), len, m_audio_freq, write_size,
+		            FALSE);
 		last_sound = *(reinterpret_cast<long*>(buf + len) - 1);
 	}
 

@@ -27,6 +27,22 @@ namespace EncodingManager
 	};
 
 	/**
+	 * \brief Container types for video files
+	 */
+	enum class Container
+	{
+		/**
+		 * \brief Videos will be generated as avi
+		 */
+		AVI,
+
+		/**
+		 * \brief Videos will be generated as mp4
+		 */
+		MP4,
+	};
+
+	/**
 	 * \brief Whether a capture is currently running
 	 */
 	bool is_capturing();
@@ -34,10 +50,11 @@ namespace EncodingManager
 	/**
 	 * \brief Starts capturing a video
 	 * \param path The movie's path
+	 * \param container The container to use for capturing
 	 * \param show_codec_dialog Whether the codec dialog should be shown. If false, the previously used codec or the default one will be used.
 	 * \return Whether the operation was successful
 	 */
-	bool start_capture(std::filesystem::path path, bool show_codec_dialog = true);
+	bool start_capture(std::filesystem::path path, Container container = Container::AVI, bool show_codec_dialog = true);
 
 	/**
 	 * \brief Stops capturing a video

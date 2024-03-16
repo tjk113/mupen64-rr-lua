@@ -1070,10 +1070,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
+					bool mp4 = MessageBox(mainHWND, "Should the captured video be generated as an mp4?", "Capture", MB_YESNO | MB_ICONQUESTION) == IDYES;
+					auto container = mp4 ? EncodingManager::Container::MP4 : EncodingManager::Container::AVI;
+
 					// pass false to startCapture when "last preset" option was choosen
-					if (EncodingManager::start_capture(wstring_to_string(path).c_str(), LOWORD(wParam) == IDM_START_CAPTURE) >= 0)
+					if (EncodingManager::start_capture(
+						wstring_to_string(path).c_str(),
+						container,
+						LOWORD(wParam) == IDM_START_CAPTURE) >= 0)
 					{
-						Statusbar::post("Recording AVI");
+						Statusbar::post("Capture started...");
 					}
 				}
 

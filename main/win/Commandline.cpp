@@ -115,7 +115,7 @@ void commandline_start_capture()
 		return;
 	}
 
-	EncodingManager::start_capture(commandline_avi.string().c_str(), false);
+	EncodingManager::start_capture(commandline_avi.string().c_str(), EncodingManager::Container::AVI, false);
 }
 
 void commandline_on_movie_playback_stop()

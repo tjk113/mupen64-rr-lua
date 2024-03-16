@@ -138,8 +138,8 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Video Capture"
         BEGIN
-            MENUITEM "Start AVI Capture...",        IDM_START_CAPTURE
-            MENUITEM "Start AVI From Preset...",    IDM_START_CAPTURE_PRESET
+            MENUITEM "Start Capture...",            IDM_START_CAPTURE
+            MENUITEM "Start From Preset...",        IDM_START_CAPTURE_PRESET
             MENUITEM SEPARATOR
             MENUITEM "Stop Capture",                IDM_STOP_CAPTURE
         END
