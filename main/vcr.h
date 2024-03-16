@@ -226,8 +226,6 @@ bool task_is_playback(e_task task);
 bool task_is_recording(e_task task);
 
 extern void vcr_update_screen();
-extern void vcr_ai_dacrate_changed(system_type type);
-extern void vcr_ai_len_changed();
 
 extern BOOL vcr_is_active();
 extern BOOL vcr_is_idle(); // not the same as !isActive()

@@ -46,6 +46,7 @@
 #include "summercart.h"
 #include "../main/Plugin.hpp"
 #include "../main/vcr.h"
+#include "capture/EncodingManager.h"
 
 static int frame;
 
@@ -2659,7 +2660,8 @@ void write_ai()
     {
     case 0x4:
         ai_register.ai_len = word;
-        vcr_ai_len_changed();
+    	aiLenChanged();
+    	EncodingManager::ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2725,13 +2727,15 @@ void write_ai()
             case 0x55:
             case 0x58:
             case 0x59:
-                vcr_ai_dacrate_changed(system_type::pal);
+                aiDacrateChanged(system_type::pal);
+            	EncodingManager::ai_dacrate_changed(system_type::pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                vcr_ai_dacrate_changed(system_type::ntsc);
+                aiDacrateChanged(system_type::ntsc);
+            	EncodingManager::ai_dacrate_changed(system_type::ntsc);
                 break;
             }
         }
@@ -2755,7 +2759,8 @@ void write_aib()
         *((unsigned char*)&temp
             + ((*address_low & 3) ^ S8)) = g_byte;
         ai_register.ai_len = temp;
-        vcr_ai_len_changed();
+    	aiLenChanged();
+    	EncodingManager::ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2822,13 +2827,15 @@ void write_aib()
             case 0x55:
             case 0x58:
             case 0x59:
-                vcr_ai_dacrate_changed(system_type::pal);
+                aiDacrateChanged(system_type::pal);
+            	EncodingManager::ai_dacrate_changed(system_type::pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                vcr_ai_dacrate_changed(system_type::ntsc);
+                aiDacrateChanged(system_type::ntsc);
+            	EncodingManager::ai_dacrate_changed(system_type::ntsc);
                 break;
             }
         }
@@ -2851,7 +2858,8 @@ void write_aih()
         *((unsigned short*)((unsigned char*)&temp
             + ((*address_low & 3) ^ S16))) = hword;
         ai_register.ai_len = temp;
-        vcr_ai_len_changed();
+    	aiLenChanged();
+    	EncodingManager::ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2914,13 +2922,15 @@ void write_aih()
             case 0x55:
             case 0x58:
             case 0x59:
-                vcr_ai_dacrate_changed(system_type::pal);
+                aiDacrateChanged(system_type::pal);
+            	EncodingManager::ai_dacrate_changed(system_type::pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                vcr_ai_dacrate_changed(system_type::ntsc);
+                aiDacrateChanged(system_type::ntsc);
+            	EncodingManager::ai_dacrate_changed(system_type::ntsc);
                 break;
             }
         }
@@ -2939,7 +2949,8 @@ void write_aid()
     case 0x0:
         ai_register.ai_dram_addr = dword >> 32;
         ai_register.ai_len = dword & 0xFFFFFFFF;
-        vcr_ai_len_changed();
+    	aiLenChanged();
+    	EncodingManager::ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2998,13 +3009,15 @@ void write_aid()
             case 0x55:
             case 0x58:
             case 0x59:
-                vcr_ai_dacrate_changed(system_type::pal);
+                aiDacrateChanged(system_type::pal);
+            	EncodingManager::ai_dacrate_changed(system_type::pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                vcr_ai_dacrate_changed(system_type::ntsc);
+                aiDacrateChanged(system_type::ntsc);
+            	EncodingManager::ai_dacrate_changed(system_type::ntsc);
                 break;
             }
         }

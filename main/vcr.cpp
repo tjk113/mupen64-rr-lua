@@ -32,7 +32,6 @@
 #include "LuaCallbacks.h"
 #include "messenger.h"
 #include "../memory/pif.h"
-#include "capture/EncodingManager.h"
 #include "win/features/MGECompositor.h"
 #include "win/features/RomBrowser.hpp"
 
@@ -1270,15 +1269,6 @@ void vcr_update_screen()
 	LuaCallbacks::call_vi();
 }
 
-
-void
-vcr_ai_dacrate_changed(const system_type type)
-{
-	aiDacrateChanged(type);
-	EncodingManager::ai_dacrate_changed(type);
-}
-
-
 // calculates how long the audio data will last
 float get_percent_of_frame(const int ai_len, const int audio_freq, const int audio_bitrate)
 {
@@ -1287,16 +1277,6 @@ float get_percent_of_frame(const int ai_len, const int audio_freq, const int aud
 	const float time = (float)(ai_len * 8) / ((float)audio_freq * 2.f * (float)
 		audio_bitrate); //how long the buffer can play for
 	return time / vi_len; //ratio
-}
-
-void vcr_ai_len_changed()
-{
-	const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.ai_dram_addr
-		& 0xFFFFFF));
-	const auto buf = (char*)p;
-	const int ai_len = (int)ai_register.ai_len;
-	aiLenChanged();
-	EncodingManager::ai_len_changed();
 }
 
 void
