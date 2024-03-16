@@ -366,82 +366,53 @@ void vcr_set_length_samples(const unsigned long val)
 	m_header.length_samples = val;
 }
 
-void
-vcr_movie_freeze(char** buf, unsigned long* size)
+std::optional<t_movie_freeze> VCR::freeze()
 {
-	// sanity check
 	if (!vcr_is_active())
 	{
-		return;
+		return std::nullopt;
 	}
 
-	*buf = nullptr;
-	*size = 0;
+	t_movie_freeze freeze = {
+		.size = sizeof(unsigned long) * 4 + sizeof(BUTTONS) * (m_header.length_samples + 1),
+		.uid = m_header.uid,
+		.current_sample = (unsigned long)m_current_sample,
+		.current_vi = (unsigned long)m_current_vi,
+		.length_samples = m_header.length_samples,
+	};
 
-	// compute size needed for the buffer
-	unsigned long size_needed = sizeof(m_header.uid) + sizeof(m_current_sample) +
-		sizeof(m_current_vi) + sizeof(m_header.length_samples);
-	// room for header.uid, currentFrame, and header.length_samples
-	size_needed += (unsigned long)(sizeof(BUTTONS) * (m_header.length_samples +
-		1));
-	*buf = (char*)malloc(size_needed);
-	*size = size_needed;
+	freeze.input_buffer.resize(sizeof(BUTTONS) * (m_header.length_samples + 1));
+	memcpy(freeze.input_buffer.data(), m_input_buffer, sizeof(BUTTONS) * (m_header.length_samples + 1));
 
-	char* ptr = *buf;
-	if (!ptr)
-	{
-		return;
-	}
-
-	*reinterpret_cast<unsigned long*>(ptr) = m_header.uid;
-	ptr += sizeof(m_header.uid);
-	*reinterpret_cast<unsigned long*>(ptr) = m_current_sample;
-	ptr += sizeof(m_current_sample);
-	*reinterpret_cast<unsigned long*>(ptr) = m_current_vi;
-	ptr += sizeof(m_current_vi);
-	*reinterpret_cast<unsigned long*>(ptr) = m_header.length_samples;
-	ptr += sizeof(m_header.length_samples);
-
-	memcpy(ptr, m_input_buffer, sizeof(BUTTONS) * (m_header.length_samples + 1));
+	return std::make_optional(std::move(freeze));
 }
 
-int vcr_movie_unfreeze(const char* buf, const unsigned long size)
+int VCR::unfreeze(t_movie_freeze freeze)
 {
-	// sanity check
 	if (vcr_is_idle())
 	{
-		return -1; // doesn't make sense to do that
+		return -1;
 	}
 
-	const char* ptr = buf;
-	if (size < sizeof(m_header.uid) + sizeof(m_current_sample) + sizeof(
-		m_current_vi) + sizeof(m_header.length_samples))
+	if (freeze.size <
+		sizeof(m_header.uid)
+		+ sizeof(m_current_sample)
+		+ sizeof(m_current_vi)
+		+ sizeof(m_header.length_samples))
 	{
 		return WRONG_FORMAT;
 	}
 
-	const unsigned long movie_id = *reinterpret_cast<const unsigned long*>(ptr);
-	ptr += sizeof(unsigned long);
-	const unsigned long current_sample = *reinterpret_cast<const unsigned long*>
-		(ptr);
-	ptr += sizeof(unsigned long);
-	const unsigned long current_vi = *reinterpret_cast<const unsigned long*>(
-		ptr);
-	ptr += sizeof(unsigned long);
-	const unsigned long max_sample = *reinterpret_cast<const unsigned long*>(
-		ptr);
-	ptr += sizeof(unsigned long);
+	const unsigned long space_needed = sizeof(BUTTONS) * (freeze.length_samples + 1);
 
-	const unsigned long space_needed = (sizeof(BUTTONS) * (max_sample + 1));
-
-	if (movie_id != m_header.uid)
+	if (freeze.uid != m_header.uid)
 		return NOT_FROM_THIS_MOVIE;
 
 	// This means playback desync in read-only mode, but in read-write mode it's fine, as the input buffer will be copied and grown from st.
-	if (current_sample > max_sample && Config.vcr_readonly)
+	if (freeze.current_sample > freeze.length_samples && Config.vcr_readonly)
 		return INVALID_FRAME;
 
-	if (space_needed > size)
+	if (space_needed > freeze.size)
 		return WRONG_FORMAT;
 
 	const e_task last_task = m_task;
@@ -450,7 +421,6 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		// here, we are going to take the input data from the savestate
 		// and make it the input data for the current movie, then continue
 		// writing new input data at the currentFrame pointer
-		//		change_state(MOVIE_STATE_RECORD);
 		m_task = e_task::recording;
 		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
@@ -460,15 +430,15 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		if (last_task == e_task::playback)
 			set_rom_info(&m_header);
 
-		m_current_sample = (long)current_sample;
-		m_header.length_samples = current_sample;
-		m_current_vi = (int)current_vi;
+		m_current_sample = (long)freeze.current_sample;
+		m_header.length_samples = freeze.current_sample;
+		m_current_vi = (int)freeze.current_vi;
 
 		m_header.rerecord_count++;
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 
 		reserve_buffer_space(space_needed);
-		memcpy(m_input_buffer, ptr, space_needed);
+		memcpy(m_input_buffer, freeze.input_buffer.data(), space_needed);
 		flush_movie();
 		fseek(m_file,
 		      MUP_HEADER_SIZE_CUR + (sizeof(BUTTONS) * (m_current_sample + 1)),
@@ -483,7 +453,7 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 
 		// and older savestate might have a currentFrame pointer past
 		// the end of the input data, so check for that here
-		if (current_sample > m_header.length_samples)
+		if (freeze.current_sample > m_header.length_samples)
 			return INVALID_FRAME;
 
 		m_task = e_task::playback;
@@ -491,18 +461,14 @@ int vcr_movie_unfreeze(const char* buf, const unsigned long size)
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 		flush_movie();
 
-		m_current_sample = (long)current_sample;
-		m_current_vi = (int)current_vi;
+		m_current_sample = (long)freeze.current_sample;
+		m_current_vi = (int)freeze.current_vi;
 	}
 
-	m_input_buffer_ptr = m_input_buffer + (sizeof(BUTTONS) * m_current_sample);
-
-	///	for(int controller = 0 ; controller < MOVIE_NUM_OF_POSSIBLE_CONTROLLERS ; controller++)
-	///		if((m_header.controllerFlags & MOVIE_CONTROLLER(controller)) != 0)
-	///			read_frame_controller_data(controller);
-	///	read_frame_controller_data(0); // correct if we can assume the first controller is active, which we can on all GBx/xGB systems
+	m_input_buffer_ptr = m_input_buffer + sizeof(BUTTONS) * m_current_sample;
 
 	return SUCCESS;
+
 }
 
 extern BOOL just_restarted_flag;

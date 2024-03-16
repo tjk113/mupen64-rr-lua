@@ -220,6 +220,20 @@ enum class e_task
 	playback
 };
 
+
+/**
+ * \brief The movie freeze buffer, which is used to store the movie (with only essential data) associated with a savestate inside the savestate.
+ */
+struct t_movie_freeze
+{
+	unsigned long size;
+	unsigned long uid;
+	unsigned long current_sample;
+	unsigned long current_vi;
+	unsigned long length_samples;
+	std::vector<uint8_t> input_buffer;
+};
+
 extern volatile e_task m_task;
 
 bool task_is_playback(e_task task);
@@ -238,9 +252,6 @@ extern unsigned long vcr_get_length_v_is();
 extern unsigned long vcr_get_length_samples();
 extern void vcr_set_length_v_is(unsigned long val);
 extern void vcr_set_length_samples(unsigned long val);
-
-extern void vcr_movie_freeze(char** buf, unsigned long* size);
-extern int vcr_movie_unfreeze(const char* buf, unsigned long size);
 
 
 extern int vcr_start_record(const char* filename, unsigned short flags,
@@ -338,6 +349,19 @@ namespace VCR
 	 * \brief Gets whether the VCR engine is currently performing a seek operation
 	 */
 	bool is_seeking();
+
+	/**
+	 * \brief Generates the current movie freeze buffer
+	 * \return The movie freeze buffer, or nothing
+	 */
+	std::optional<t_movie_freeze> freeze();
+
+	/**
+	 * \brief Restores the movie from a freeze buffer
+	 * \param freeze The freeze buffer
+	 * \return The operation result
+	 */
+	int unfreeze(t_movie_freeze freeze);
 }
 
 bool is_frame_skipped();

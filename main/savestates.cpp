@@ -201,21 +201,14 @@ std::vector<uint8_t> generate_savestate()
     vecwrite(b, &movie_active, sizeof(movie_active));
     if (movie_active)
     {
-        char* movie_freeze_buf = nullptr;
-        unsigned long movie_freeze_size = 0;
+    	auto movie_freeze = VCR::freeze().value();
 
-        vcr_movie_freeze(&movie_freeze_buf, &movie_freeze_size);
-        if (movie_freeze_buf)
-        {
-            vecwrite(b, &movie_freeze_size, sizeof(movie_freeze_size));
-            vecwrite(b, movie_freeze_buf, movie_freeze_size);
-            free(movie_freeze_buf);
-        }
-        else
-        {
-            printf("Failed to save movie snapshot.\n");
-            savestates_job_success = FALSE;
-        }
+    	vecwrite(b, &movie_freeze.size, sizeof(movie_freeze.size));
+    	vecwrite(b, &movie_freeze.uid, sizeof(movie_freeze.uid));
+    	vecwrite(b, &movie_freeze.current_sample, sizeof(movie_freeze.current_sample));
+    	vecwrite(b, &movie_freeze.current_vi, sizeof(movie_freeze.current_vi));
+    	vecwrite(b, &movie_freeze.length_samples, sizeof(movie_freeze.length_samples));
+    	vecwrite(b, movie_freeze.input_buffer.data(), movie_freeze.input_buffer.size());
     }
 	return b;
 }
@@ -467,16 +460,19 @@ void savestates_load_immediate()
     if (is_movie)
     {
 	    // this .st is part of a movie, we need to overwrite our current movie buffer
-
 	    // hash matches, load and verify rest of the data
-	    unsigned long movie_input_data_size = 0;
-	    memread(&ptr, &movie_input_data_size, sizeof(movie_input_data_size));
+    	t_movie_freeze freeze{};
 
-	    const auto local_movie_data = (char*)malloc(movie_input_data_size);
-	    memread(&ptr, local_movie_data, movie_input_data_size);
+	    memread(&ptr, &freeze.size, sizeof(freeze.size));
+	    memread(&ptr, &freeze.uid, sizeof(freeze.uid));
+	    memread(&ptr, &freeze.current_sample, sizeof(freeze.current_sample));
+	    memread(&ptr, &freeze.current_vi, sizeof(freeze.current_vi));
+	    memread(&ptr, &freeze.length_samples, sizeof(freeze.length_samples));
 
-	    const int code = vcr_movie_unfreeze(local_movie_data, movie_input_data_size);
-	    free(local_movie_data);
+    	freeze.input_buffer.resize(sizeof(BUTTONS) * (freeze.length_samples + 1));
+	    memread(&ptr, freeze.input_buffer.data(), freeze.input_buffer.size());
+
+	    const int code = VCR::unfreeze(freeze);
 
 	    if (code != SUCCESS && !vcr_is_idle())
 	    {
