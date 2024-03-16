@@ -46,8 +46,19 @@ namespace EncodingManager
 	 */
 	bool stop_capture();
 
+	/**
+	 * \brief Notifies the encoding manager of a new VI
+	 */
 	void at_vi();
 
+	/**
+	 * \brief Notifies the encoding manager of the audio changing
+	 */
 	void ai_len_changed();
+
+	/**
+	 * \brief Notifies the encoding manager of the DAC rate changing
+	 * \param type The emulated system's typr
+	 */
 	void ai_dacrate_changed(system_type type);
 }
