@@ -451,10 +451,11 @@ void lua_create_and_run(const char* path)
 		{"screenshot", LuaCore::Emu::Screenshot},
 
 #pragma region WinAPI
+		// DEPRECATE: WinAPI coupling
 		{"getsystemmetrics", LuaCore::Emu::GetSystemMetricsLua},
-		{"ismainwindowinforeground", LuaCore::Emu::IsMainWindowInForeground},
 		{"play_sound", LuaCore::Emu::LuaPlaySound},
 #pragma endregion
+		{"ismainwindowinforeground", LuaCore::Emu::IsMainWindowInForeground},
 
 		{NULL, NULL}
 	};
