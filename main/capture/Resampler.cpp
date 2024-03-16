@@ -1,6 +1,6 @@
 //#include "../config.h"
 
-#include "vcr_resample.h"
+#include "Resampler.h"
 #include "speex/speex_resampler.h"
 
 #include <math.h>

@@ -29,14 +29,12 @@
 
 #include <Windows.h>
 #include <Vfw.h>
-#include <commctrl.h>
 #include <cstdio>
 #include "../win/main_win.h"
-#include "../vcr_compress.h"
-#include "Config.hpp"
+#include "AVIComp.h"
+#include "../win/Config.hpp"
 #include "../Plugin.hpp"
-#include "../../winproject/resource.h"
-#include "features/Statusbar.hpp"
+#include "../win/features/Statusbar.hpp"
 
 
 static int avi_opened = 0;

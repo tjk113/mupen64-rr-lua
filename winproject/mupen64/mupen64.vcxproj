@@ -149,6 +149,8 @@
     <ClInclude Include="..\..\lua\modules\savestate.h" />
     <ClInclude Include="..\..\lua\modules\wgui.h" />
     <ClInclude Include="..\..\main\capture\EncodingManager.h" />
+    <ClInclude Include="..\..\main\capture\AVIComp.h" />
+    <ClInclude Include="..\..\main\capture\Resampler.h" />
     <ClInclude Include="..\..\main\helpers\collection_helpers.h" />
     <ClInclude Include="..\..\main\helpers\math_helpers.h" />
     <ClInclude Include="..\..\main\lib\ini.h" />
@@ -162,8 +164,6 @@
     <ClInclude Include="..\..\main\Plugin.hpp" />
     <ClInclude Include="..\..\main\savestates.h" />
     <ClInclude Include="..\..\main\vcr.h" />
-    <ClInclude Include="..\..\main\vcr_compress.h" />
-    <ClInclude Include="..\..\main\vcr_resample.h" />
     <ClInclude Include="..\..\main\speex\speex_resampler.h" />
     <ClInclude Include="..\..\main\speex\arch.h" />
     <ClInclude Include="..\..\main\win\features\CrashHelper.h" />
@@ -214,6 +214,8 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="..\..\main\capture\EncodingManager.cpp" />
+    <ClCompile Include="..\..\main\capture\AVIComp.cpp"/>
+    <ClCompile Include="..\..\main\capture\Resampler.cpp"/>
     <ClCompile Include="..\..\main\debughook.cpp" />
     <ClCompile Include="..\..\main\helpers\io_helpers.cpp" />
     <ClCompile Include="..\..\main\lib\md5.c">
@@ -230,10 +232,6 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="..\..\main\vcr.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="..\..\main\vcr_resample.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
@@ -272,12 +270,6 @@
     <ClCompile Include="..\..\main\win\timers.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="..\..\main\win\vcr_compress.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)win_vcr_compress</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)win_vcr_compress</ObjectFileName>
     </ClCompile>
     <ClCompile Include="..\..\memory\dma.cpp" />
     <ClCompile Include="..\..\memory\flashram.cpp" />

@@ -7,8 +7,6 @@
 #include "../lua/LuaConsole.h"
 
 #include "vcr.h"
-#include "vcr_compress.h"
-#include "vcr_resample.h"
 
 #include <memory>
 

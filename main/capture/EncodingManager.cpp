@@ -4,8 +4,8 @@
 
 #include "guifuncs.h"
 #include "messenger.h"
-#include "vcr_compress.h"
-#include "vcr_resample.h"
+#include "AVIComp.h"
+#include "Resampler.h"
 #include "../Plugin.hpp"
 #include "win/main_win.h"
 #include "../../r4300/rom.h"
