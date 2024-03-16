@@ -27,7 +27,7 @@
 #include "savestates.h"
 #include "vcr.h"
 #include "helpers/string_helpers.h"
-#include "lib/argh.h"
+#include "../../lib/argh.h"
 #include "../r4300/r4300.h"
 #include "capture/EncodingManager.h"
 

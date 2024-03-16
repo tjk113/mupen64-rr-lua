@@ -25,7 +25,7 @@
 #include "../main/win/configdialog.h"
 #include "../main/helpers/win_helpers.h"
 #include "../main/win/wrapper/PersistentPathDialog.h"
-#include "../main/lib/md5.h"
+#include "../lib/md5.h"
 #include <vcr.h>
 #include <gdiplus.h>
 #include <d2d1.h>

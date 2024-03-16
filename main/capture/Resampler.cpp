@@ -1,7 +1,7 @@
 //#include "../config.h"
 
 #include "Resampler.h"
-#include "speex/speex_resampler.h"
+#include "../../lib/speex/speex_resampler.h"
 
 #include <math.h>
 #include <stdio.h>
