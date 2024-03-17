@@ -299,6 +299,10 @@ namespace VCR
 		NoMatchingRom,
 		// The callee is already performing another task
 		Busy,
+		// The VCR engine is idle, but must be active to complete this operation
+		Idle,
+		// The provided freeze buffer is not from the currently active movie
+		NotFromThisMovie,
 	};
 
 	/**
@@ -359,7 +363,7 @@ namespace VCR
 	 * \param freeze The freeze buffer
 	 * \return The operation result
 	 */
-	int unfreeze(t_movie_freeze freeze);
+	Result unfreeze(t_movie_freeze freeze);
 
 	/**
 	 * \brief Stops all running tasks

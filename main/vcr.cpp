@@ -387,11 +387,11 @@ std::optional<t_movie_freeze> VCR::freeze()
 	return std::make_optional(std::move(freeze));
 }
 
-int VCR::unfreeze(t_movie_freeze freeze)
+VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 {
 	if (vcr_is_idle())
 	{
-		return -1;
+		return Result::Idle;
 	}
 
 	if (freeze.size <
@@ -400,20 +400,20 @@ int VCR::unfreeze(t_movie_freeze freeze)
 		+ sizeof(m_current_vi)
 		+ sizeof(m_header.length_samples))
 	{
-		return WRONG_FORMAT;
+		return Result::InvalidFormat;
 	}
 
 	const unsigned long space_needed = sizeof(BUTTONS) * (freeze.length_samples + 1);
 
 	if (freeze.uid != m_header.uid)
-		return NOT_FROM_THIS_MOVIE;
+		return Result::NotFromThisMovie;
 
 	// This means playback desync in read-only mode, but in read-write mode it's fine, as the input buffer will be copied and grown from st.
 	if (freeze.current_sample > freeze.length_samples && Config.vcr_readonly)
-		return INVALID_FRAME;
+		return Result::InvalidFrame;
 
 	if (space_needed > freeze.size)
-		return WRONG_FORMAT;
+		return Result::InvalidFormat;
 
 	const e_task last_task = m_task;
 	if (!Config.vcr_readonly)
@@ -454,7 +454,7 @@ int VCR::unfreeze(t_movie_freeze freeze)
 		// and older savestate might have a currentFrame pointer past
 		// the end of the input data, so check for that here
 		if (freeze.current_sample > m_header.length_samples)
-			return INVALID_FRAME;
+			return Result::InvalidFrame;
 
 		m_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
@@ -467,7 +467,7 @@ int VCR::unfreeze(t_movie_freeze freeze)
 
 	m_input_buffer_ptr = m_input_buffer + sizeof(BUTTONS) * m_current_sample;
 
-	return SUCCESS;
+	return Result::Ok;
 
 }
 

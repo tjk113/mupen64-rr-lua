@@ -472,34 +472,31 @@ void savestates_load_immediate()
     	freeze.input_buffer.resize(sizeof(BUTTONS) * (freeze.length_samples + 1));
 	    memread(&ptr, freeze.input_buffer.data(), freeze.input_buffer.size());
 
-	    const int code = VCR::unfreeze(freeze);
+	    const auto code = VCR::unfreeze(freeze);
 
-	    if (code != SUCCESS && !vcr_is_idle())
+	    if (code != VCR::Result::Ok && !vcr_is_idle())
 	    {
 		    std::string err_str = "Failed to restore movie, ";
 		    switch (code)
 		    {
-		    case NOT_FROM_THIS_MOVIE:
-			    err_str += "snapshot not from this movie";
+		    case VCR::Result::NotFromThisMovie:
+			    err_str += "the snapshot is not from this movie.";
 			    break;
-		    case NOT_FROM_A_MOVIE:
-			    err_str += "snapshot not from a movie";
+		    case VCR::Result::InvalidFrame:
+			    err_str += "the savestate frame is outside the bounds of the movie.";
 			    break;
-		    case INVALID_FRAME:
-			    err_str += "invalid frame number";
-			    break;
-		    case WRONG_FORMAT:
-			    err_str += "wrong format";
+		    case VCR::Result::InvalidFormat:
+			    err_str += "the format is invalid.";
 			    stop = true;
 			    break;
 		    default:
+		    	err_str += "an unknown error has occured.";
 			    break;
 		    }
+	    	err_str += "\r\nAre you sure you want to continue?";
 		    auto result = MessageBox(mainHWND,
-		                             (err_str +
-			                             "\r\nAre you sure you want to continue?")
-		                             .c_str(), nullptr,
-		                             MB_ICONQUESTION | MB_YESNO);
+		                             err_str.c_str(), nullptr,
+		                             MB_ICONWARNING | MB_YESNO);
 		    if (result != IDYES)
 		    {
 			    if (vcr_is_recording())
