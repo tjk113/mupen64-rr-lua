@@ -150,9 +150,15 @@ namespace EncodingManager
 			readScreen(&dummy, &width, &height);
 		}
 
-		AVIComp::start(path.string().c_str(), width, height,
+		auto result = AVIComp::start(path.string().c_str(), width, height,
 		                  get_vis_per_second(ROM_HEADER.Country_code),
 		                  show_codec_dialog);
+
+		if (result != AVIComp::Result::Ok)
+		{
+			return false;
+		}
+
 		capturing = true;
 		capture_path = path;
 

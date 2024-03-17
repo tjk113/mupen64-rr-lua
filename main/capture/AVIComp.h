@@ -9,6 +9,8 @@ namespace AVIComp
 		Ok,
 		// The user cancelled the operation
 		Cancelled,
+		// The AVI preset is invalid or doesn't exist
+		InvalidPreset,
 	};
 
 	/**
