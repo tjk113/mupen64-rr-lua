@@ -250,3 +250,20 @@ void memread(uint8_t** src, void* dest, unsigned int len)
 	memcpy(dest, *src, len);
 	*src += len;
 }
+
+std::filesystem::path with_name(std::filesystem::path path, std::string name)
+{
+	char drive[MAX_PATH] = {0};
+	char dir[MAX_PATH] = {0};
+	char filename[MAX_PATH] = {0};
+	_splitpath(path.string().c_str(), drive, dir, filename, nullptr);
+
+	return std::filesystem::path(std::string(drive) + std::string(dir) + name + path.extension().string());
+}
+
+std::string get_name(std::filesystem::path path)
+{
+	char filename[MAX_PATH] = {0};
+	_splitpath(path.string().c_str(), nullptr, nullptr, filename, nullptr);
+	return filename;
+}

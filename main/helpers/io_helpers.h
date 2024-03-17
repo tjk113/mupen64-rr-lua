@@ -91,3 +91,19 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
  * \param len The destination buffer's length
  */
 void memread(uint8_t** src, void* dest, unsigned int len);
+
+
+/**
+ * \brief Creates a new path with a different name, keeping the extension and preceeding path intact
+ * \param path A path
+ * \param name The new name
+ * \return The modified path
+ */
+std::filesystem::path with_name(std::filesystem::path path, std::string name);
+
+/**
+ * \brief Gets the name (filename without extension) of a path
+ * \param path A path
+ * \return The path's name
+ */
+std::string get_name(std::filesystem::path path);

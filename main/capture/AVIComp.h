@@ -3,6 +3,26 @@
 
 namespace AVIComp
 {
+	typedef struct VideoParams
+	{
+		/**
+		 * \brief The video file's path
+		 */
+		std::filesystem::path path;
+		/**
+		 * \brief The video stream's width
+		 */
+		uint32_t width;
+		/**
+		 * \brief The video stream's height
+		 */
+		uint32_t height;
+		/**
+		 * \brief The video stream's FPS
+		 */
+		uint32_t fps;
+	};
+
 	enum class Result
 	{
 		// The operation completed successfully
@@ -15,14 +35,11 @@ namespace AVIComp
 
 	/**
 	 * \brief Starts encoding to a new file
-	 * \param path The file's path
-	 * \param width The video stream's width
-	 * \param height The video stream's height
-	 * \param fps The video stream's FPS
+	 * \param params The parameters for encoding
 	 * \param show_codec_picker Whether the vfw codec picker should be shown. If not, the previous settings will be used. If no previous settings are available, the function will fail.
 	 * \return The operation result
 	 */
-	Result start(std::filesystem::path path, uint32_t width, uint32_t height, uint32_t fps, bool show_codec_picker);
+	Result start(VideoParams params, bool show_codec_picker);
 
 	/**
 	 * \brief Stops encoding to the current file and writes it to disk
@@ -54,8 +71,6 @@ typedef struct
 } t_window_info;
 
 extern t_window_info vcrcomp_window_info;
-
-unsigned int VCRComp_GetSize();
 
 void get_window_info(HWND hwnd, t_window_info& info);
 

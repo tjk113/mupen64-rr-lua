@@ -17,7 +17,6 @@ namespace EncodingManager
 	// 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
 #define SOUND_BUF_SIZE (44100*2*2)
 
-	const auto max_avi_size = 0x7B9ACA00;
 	const auto ffmpeg_path = "C:\\ffmpeg\\bin\\ffmpeg.exe";
 
 	// 0x30018
@@ -155,10 +154,12 @@ namespace EncodingManager
 			readScreen(&dummy, &width, &height);
 		}
 
-		auto result = AVIComp::start(path.string().c_str(), width, height,
-		                             get_vis_per_second(
-			                             ROM_HEADER.Country_code),
-		                             show_codec_dialog);
+		auto result = AVIComp::start(AVIComp::VideoParams {
+			.path = path.string().c_str(),
+			.width = (uint32_t)width,
+			.height = (uint32_t)height,
+			.fps = get_vis_per_second(ROM_HEADER.Country_code)
+		}, show_codec_dialog);
 
 		if (result != AVIComp::Result::Ok)
 		{
@@ -235,18 +236,6 @@ namespace EncodingManager
 				"[EncodingManager]: Couldn't read screen (out of memory?)\n");
 			return;
 		}
-
-
-		if (VCRComp_GetSize() > max_avi_size)
-		{
-			// TODO: Reimplement splitting
-			// VCRComp_finishFile();
-			//
-			// VCRComp_startFile(split_count, width, height,
-			//                   get_vis_per_second(ROM_HEADER.Country_code),
-			//                   0);
-		}
-
 
 		if (Config.synchronization_mode != (int)Sync::Audio && Config.
 			synchronization_mode != (int)Sync::None)

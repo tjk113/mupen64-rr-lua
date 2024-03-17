@@ -36,10 +36,16 @@
 #include "../Plugin.hpp"
 #include "../win/features/Statusbar.hpp"
 
+const auto max_avi_size = 0x7B9ACA00;
+
 static AVICOMPRESSOPTIONS* avi_options = new AVICOMPRESSOPTIONS();
 
-bool avi_opened = false;
+AVIComp::VideoParams video_params{};
 
+size_t splits = 0;
+bool splitting = false;
+
+bool avi_opened = false;
 int frame;
 BITMAPINFOHEADER infoHeader;
 PAVIFILE avi_file;
@@ -53,6 +59,44 @@ AVISTREAMINFO sound_stream_header;
 PAVISTREAM sound_stream;
 
 t_window_info vcrcomp_window_info = {0};
+
+bool load_options()
+{
+	FILE* f = fopen("avi.cfg", "rb");
+
+	if (!f)
+		return false;
+
+	fseek(f, 0, SEEK_END);
+
+	// Too small...
+	if (ftell(f) < sizeof(AVICOMPRESSOPTIONS))
+		goto error;
+
+	fseek(f, 0, SEEK_SET);
+
+	fread(avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
+
+	{
+		void* moreOptions = malloc(avi_options->cbParms);
+		fread(moreOptions, avi_options->cbParms, 1, f);
+		avi_options->lpParms = moreOptions;
+	}
+
+	fclose(f);
+	return true;
+	error:
+		fclose(f);
+	return false;
+}
+
+void save_options()
+{
+	FILE* f = fopen("avi.cfg", "wb");
+	fwrite(avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
+	fwrite(avi_options->lpParms, avi_options->cbParms, 1, f);
+	fclose(f);
+}
 
 void get_window_info(HWND hwnd, t_window_info& info)
 {
@@ -182,6 +226,18 @@ void __cdecl vcrcomp_internal_read_screen(void** dest, long* width,
 
 bool AVIComp::add_video_data(uint8_t* data)
 {
+	if (AVIFileSize > max_avi_size)
+	{
+		// If AVI file gets too big, it will corrupt or crash. Since this is a limitation the caller shouldn't care about, we split the recording silently.
+		// When splitting, filenames follow this pattern: <fname> <n>.avi
+		VideoParams new_params = video_params;
+		new_params.path = with_name(new_params.path, get_name(video_params.path) + " " + std::to_string(++splits));
+
+		splitting = true;
+		AVIComp::stop();
+		AVIComp::start(new_params, false);
+		splitting = false;
+	}
 	LONG written_len;
 	BOOL ret = AVIStreamWrite(compressed_video_stream, frame++, 1, data,
 	                          infoHeader.biSizeImage, AVIIF_KEYFRAME, NULL,
@@ -200,70 +256,35 @@ bool AVIComp::add_audio_data(uint8_t* data, size_t len)
 	return ok;
 }
 
-bool load_options()
-{
-	FILE* f = fopen("avi.cfg", "rb");
-
-	if (!f)
-		return false;
-
-	fseek(f, 0, SEEK_END);
-
-	// Too small...
-	if (ftell(f) < sizeof(AVICOMPRESSOPTIONS))
-		goto error;
-
-	fseek(f, 0, SEEK_SET);
-
-	fread(avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
-
-	{
-		void* moreOptions = malloc(avi_options->cbParms);
-		fread(moreOptions, avi_options->cbParms, 1, f);
-		avi_options->lpParms = moreOptions;
-	}
-
-	fclose(f);
-	return true;
-error:
-	fclose(f);
-	return false;
-}
-
-void save_options()
-{
-	FILE* f = fopen("avi.cfg", "wb");
-	fwrite(avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
-	fwrite(avi_options->lpParms, avi_options->cbParms, 1, f);
-	fclose(f);
-}
-
-AVIComp::Result AVIComp::start(std::filesystem::path path, uint32_t width,
-                               uint32_t height, uint32_t fps,
+AVIComp::Result AVIComp::start(VideoParams params,
                                bool show_codec_picker)
 {
+	if (!splitting)
+	{
+		video_params = params;
+	}
 	avi_opened = true;
 	AVIFileSize = 0;
 	frame = 0;
 	infoHeader.biSize = sizeof(BITMAPINFOHEADER);
-	infoHeader.biWidth = width;
-	infoHeader.biHeight = height;
+	infoHeader.biWidth = params.width;
+	infoHeader.biHeight = params.height;
 	infoHeader.biPlanes = 1;
 	infoHeader.biBitCount = 24;
 	infoHeader.biCompression = BI_RGB;
-	infoHeader.biSizeImage = width * height * 3;
+	infoHeader.biSizeImage = params.width * params.height * 3;
 	infoHeader.biXPelsPerMeter = 0;
 	infoHeader.biYPelsPerMeter = 0;
 	infoHeader.biClrUsed = 0;
 	infoHeader.biClrImportant = 0;
 
 	AVIFileInit();
-	AVIFileOpen(&avi_file, path.string().c_str(), OF_WRITE | OF_CREATE, NULL);
+	AVIFileOpen(&avi_file, params.path.string().c_str(), OF_WRITE | OF_CREATE, NULL);
 
 	ZeroMemory(&video_stream_header, sizeof(AVISTREAMINFO));
 	video_stream_header.fccType = streamtypeVIDEO;
 	video_stream_header.dwScale = 1;
-	video_stream_header.dwRate = fps;
+	video_stream_header.dwRate = params.fps;
 	video_stream_header.dwSuggestedBufferSize = 0;
 	AVIFileCreateStream(avi_file, &video_stream, &video_stream_header);
 
@@ -319,9 +340,4 @@ AVIComp::Result AVIComp::stop()
 
 	avi_opened = false;
 	return Result::Ok;
-}
-
-unsigned int VCRComp_GetSize()
-{
-	return AVIFileSize;
 }
