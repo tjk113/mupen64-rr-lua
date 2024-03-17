@@ -323,9 +323,8 @@
 #define ID_KAILLERA                     9105
 #define ID_BENCHMARK                    9106
 #define IDM_START_MOVIE_RECORDING       9205
-#define IDM_STOP_MOVIE_RECORDING        9207
 #define IDM_START_MOVIE_PLAYBACK        9208
-#define IDM_STOP_MOVIE_PLAYBACK         9209
+#define IDM_STOP_MOVIE                  9209
 #define IDM_START_CAPTURE               9210
 #define IDM_STOP_CAPTURE                9211
 #define IDM_PLAY_LATEST_MOVIE           9212

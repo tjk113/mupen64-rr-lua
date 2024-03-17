@@ -205,26 +205,7 @@ void on_task_changed(std::any data)
 {
 	auto value = std::any_cast<e_task>(data);
 
-	switch (value) {
-	case e_task::idle:
-		EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
-		EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
-		break;
-	case e_task::start_recording:
-	case e_task::start_recording_from_snapshot:
-	case e_task::start_recording_from_existing_snapshot:
-	case e_task::recording:
-		EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, MF_GRAYED);
-		EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_ENABLED);
-		break;
-	case e_task::start_playback:
-	case e_task::start_playback_from_snapshot:
-	case e_task::playback:
-		EnableMenuItem(main_menu, IDM_STOP_MOVIE_PLAYBACK, MF_ENABLED);
-		EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
-		break;
-	}
-
+	EnableMenuItem(main_menu, IDM_STOP_MOVIE, vcr_is_idle() ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(main_menu, IDM_SEEKER, (task_is_playback(value) && emu_launched) ? MF_ENABLED : MF_GRAYED);
 
 	update_titlebar();
@@ -273,7 +254,6 @@ void on_emu_launched_changed(std::any data)
 	EnableMenuItem(main_menu, IDM_SEEKER, value ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_STOP_MOVIE_RECORDING, MF_GRAYED);
 
 	if (Config.is_statusbar_enabled) CheckMenuItem(
 		main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
@@ -1019,17 +999,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Statusbar::post("Recording replay");
 				}
 				break;
-			case IDM_STOP_MOVIE_RECORDING:
-				if (!vcr_is_recording())
-					break;
-				if (vcr_stop_record() < 0)
-				{
-					show_modal_info("Couldn't stop movie recording", nullptr);
-					break;
-				}
-				ClearButtons();
-				Statusbar::post("Recording stopped");
-				break;
 			case IDM_START_MOVIE_PLAYBACK:
 				{
 					BetterEmulationLock lock;
@@ -1047,19 +1016,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					std::thread([result]{ VCR::start_playback(result.path); }).detach();
 				}
 				break;
-			case IDM_STOP_MOVIE_PLAYBACK:
-				if (vcr_is_playing())
-				{
-					if (vcr_stop_playback() < 0); // fail quietly
-					//                        MessageBox(NULL, "Couldn't stop playback.", "VCR", MB_OK);
-					else
-					{
-						ClearButtons();
-						Statusbar::post("Playback stopped");
-					}
-				}
+			case IDM_STOP_MOVIE:
+				VCR::stop_all();
+				ClearButtons();
 				break;
-
 			case IDM_START_CAPTURE_PRESET:
 			case IDM_START_CAPTURE:
 				if (emu_launched)
