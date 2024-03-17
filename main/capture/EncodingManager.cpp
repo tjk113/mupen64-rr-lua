@@ -67,7 +67,7 @@ namespace EncodingManager
 							stderr,
 							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
 					}
-					if (!VCRComp_addAudioData((unsigned char*)buf2, len2))
+					if (!AVIComp::add_audio_data((unsigned char*)buf2, len2))
 					{
 						show_modal_info(
 							"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -150,7 +150,7 @@ namespace EncodingManager
 			readScreen(&dummy, &width, &height);
 		}
 
-		VCRComp_startFile(path.string().c_str(), width, height,
+		AVIComp::start(path.string().c_str(), width, height,
 		                  get_vis_per_second(ROM_HEADER.Country_code),
 		                  show_codec_dialog);
 		capturing = true;
@@ -167,7 +167,7 @@ namespace EncodingManager
 	{
 		write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
-		VCRComp_finishFile();
+		AVIComp::stop();
 		split_count = 0;
 
 		capturing = false;
@@ -265,7 +265,7 @@ namespace EncodingManager
 				       m_audio_frame);
 			} else if (audio_frames > 0)
 			{
-				if (!VCRComp_addVideoFrame((unsigned char*)image))
+				if (!AVIComp::add_video_data((unsigned char*)image))
 				{
 					show_modal_info(
 						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -280,7 +280,7 @@ namespace EncodingManager
 			// can this actually happen?
 			while (audio_frames > 0)
 			{
-				if (!VCRComp_addVideoFrame((unsigned char*)image))
+				if (!AVIComp::add_video_data((unsigned char*)image))
 				{
 					show_modal_info(
 						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -295,7 +295,7 @@ namespace EncodingManager
 			}
 		} else
 		{
-			if (!VCRComp_addVideoFrame((unsigned char*)image))
+			if (!AVIComp::add_video_data((unsigned char*)image))
 			{
 				show_modal_info(
 					"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",

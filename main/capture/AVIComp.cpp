@@ -175,23 +175,16 @@ void __cdecl vcrcomp_internal_read_screen(void** dest, long* width, long* height
         ReleaseDC(NULL, all);
 }
 
-void VCRComp_init()
+bool AVIComp::add_video_data(uint8_t* data)
 {
-}
-
-
-BOOL VCRComp_addVideoFrame(unsigned char* data)
-{
-    extern int m_task;
-    //if (m_task == 4 || m_task == 5) return 1; //don't record frames that are during emu loading (black frames)
-    long int TempLen;
+    LONG written_len;
     BOOL ret = AVIStreamWrite(compressed_video_stream, frame++, 1, data, infoHeader.biSizeImage, AVIIF_KEYFRAME, NULL,
-                              &TempLen);
-    AVIFileSize += TempLen;
-    return (0 == ret);
+                              &written_len);
+    AVIFileSize += written_len;
+    return !ret;
 }
 
-BOOL VCRComp_addAudioData(unsigned char* data, int len)
+bool AVIComp::add_audio_data(uint8_t* data, size_t len)
 {
     BOOL ok = (0 == AVIStreamWrite(sound_stream, sample, len / sound_format.nBlockAlign, data, len, 0, NULL, NULL));
     sample += len / sound_format.nBlockAlign;
@@ -234,7 +227,7 @@ void VRComp_saveOptions()
     fclose(f);
 }
 
-void VCRComp_startFile(const char* filename, long width, long height, int fps, int New)
+AVIComp::Result AVIComp::start(std::filesystem::path path, uint32_t width, uint32_t height, uint32_t fps, bool show_codec_picker)
 {
     avi_opened = 1;
     AVIFileSize = 0;
@@ -252,7 +245,7 @@ void VCRComp_startFile(const char* filename, long width, long height, int fps, i
     infoHeader.biClrImportant = 0;
 
     AVIFileInit();
-    AVIFileOpen(&avi_file, filename, OF_WRITE | OF_CREATE, NULL);
+    AVIFileOpen(&avi_file, path.string().c_str(), OF_WRITE | OF_CREATE, NULL);
 
     ZeroMemory(&video_stream_header, sizeof(AVISTREAMINFO));
     video_stream_header.fccType = streamtypeVIDEO;
@@ -261,17 +254,17 @@ void VCRComp_startFile(const char* filename, long width, long height, int fps, i
     video_stream_header.dwSuggestedBufferSize = 0;
     AVIFileCreateStream(avi_file, &video_stream, &video_stream_header);
 
-    if (!New && pvideo_options[0] == NULL) //if hide dialog and options not found
+    if (!show_codec_picker && pvideo_options[0] == NULL) //if hide dialog and options not found
     {
-        New = !VRComp_loadOptions(); //if failed to load defaults, ask with dialog
+        show_codec_picker = !VRComp_loadOptions(); //if failed to load defaults, ask with dialog
     }
-    if (New)
+    if (show_codec_picker)
     {
         ZeroMemory(&video_options, sizeof(AVICOMPRESSOPTIONS));
         pvideo_options[0] = &video_options;
         if(!AVISaveOptions(mainHWND, 0, 1, &video_stream, pvideo_options))
         {
-            // TODO: user cancel, roll everything back
+            return AVIComp::Result::Cancelled;
         }
     }
     VRComp_saveOptions();
@@ -298,15 +291,9 @@ void VCRComp_startFile(const char* filename, long width, long height, int fps, i
     sound_stream_header.dwSampleSize = sound_format.nBlockAlign;
     AVIFileCreateStream(avi_file, &sound_stream, &sound_stream_header);
     AVIStreamSetFormat(sound_stream, 0, &sound_format, sizeof(WAVEFORMATEX));
-
-    /*ZeroMemory(&sound_options, sizeof(AVICOMPRESSOPTIONS));
-    psound_options[0] = &sound_options;
-    AVISaveOptions(mainHWND, 0, 1, &sound_stream, psound_options);
-    AVIMakeCompressedStream(&compressed_sound_stream, sound_stream, &sound_options, NULL);
-    AVIStreamSetFormat(compressed_sound_stream, 0, &sound_format, sizeof(WAVEFORMATEX));*/
 }
 
-void VCRComp_finishFile()
+AVIComp::Result AVIComp::stop()
 {
     //SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); // why is this being set when recording is stopped...
     AVIStreamClose(compressed_video_stream);
@@ -318,6 +305,7 @@ void VCRComp_finishFile()
 
     avi_opened = 0;
     printf("[VCR]: Finished AVI capture.\n");
+	return Result::Ok;
 }
 
 unsigned int VCRComp_GetSize()
