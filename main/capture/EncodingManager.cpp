@@ -11,6 +11,8 @@
 #include "../../r4300/rom.h"
 #include "win/Config.hpp"
 #include "../../memory/memory.h"
+#include "encoders/AVIEncoder.h"
+#include "encoders/Encoder.h"
 
 namespace EncodingManager
 {
@@ -35,6 +37,8 @@ namespace EncodingManager
 	bool capturing = false;
 	Container current_container = Container::AVI;
 	std::filesystem::path capture_path;
+
+	std::unique_ptr<Encoder> encoder;
 
 	// assumes: len <= writeSize
 	void write_sound(char* buf, int len, const int min_write_size,
@@ -66,7 +70,7 @@ namespace EncodingManager
 							stderr,
 							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
 					}
-					if (!AVIComp::add_audio_data((unsigned char*)buf2, len2))
+					if (!encoder->append_audio((unsigned char*)buf2, len2))
 					{
 						show_modal_info(
 							"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -111,8 +115,10 @@ namespace EncodingManager
 
 
 	bool start_capture(std::filesystem::path path, Container container,
-	                   const bool show_codec_dialog)
+	                   const bool ask_for_encoding_settings)
 	{
+		encoder = std::make_unique<AVIEncoder>();
+
 		if (container == Container::MP4 && !
 			std::filesystem::exists(ffmpeg_path))
 		{
@@ -129,7 +135,7 @@ namespace EncodingManager
 		{
 			printf(
 				"readScreen not implemented by graphics plugin. Falling back...\n");
-			readScreen = vcrcomp_internal_read_screen;
+			readScreen = internal_read_screen;
 		}
 
 		memset(sound_buf_empty, 0, sizeof(sound_buf_empty));
@@ -140,7 +146,7 @@ namespace EncodingManager
 
 		// If we are capturing internally, we get our dimensions from the window, otherwise from the GFX plugin
 		long width = 0, height = 0;
-		if (readScreen == vcrcomp_internal_read_screen)
+		if (readScreen == internal_read_screen)
 		{
 			// fill in window size at avi start, which can't change
 			// scrap whatever was written there even if window didnt change, for safety
@@ -153,14 +159,15 @@ namespace EncodingManager
 			readScreen(&dummy, &width, &height);
 		}
 
-		auto result = AVIComp::start(AVIComp::VideoParams {
+		auto result = encoder->start(Encoder::Params {
 			.path = path.string().c_str(),
 			.width = (uint32_t)width,
 			.height = (uint32_t)height,
-			.fps = get_vis_per_second(ROM_HEADER.Country_code)
-		}, show_codec_dialog);
+			.fps = get_vis_per_second(ROM_HEADER.Country_code),
+			.ask_for_encoding_settings = ask_for_encoding_settings
+		});
 
-		if (result != AVIComp::Result::Ok)
+		if (!result)
 		{
 			return false;
 		}
@@ -179,7 +186,13 @@ namespace EncodingManager
 	{
 		write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
-		AVIComp::stop();
+		if(!encoder->stop())
+		{
+			return false;
+		}
+
+		encoder.release();
+
 		split_count = 0;
 
 		capturing = false;
@@ -266,7 +279,7 @@ namespace EncodingManager
 				       m_audio_frame);
 			} else if (audio_frames > 0)
 			{
-				if (!AVIComp::add_video_data((unsigned char*)image))
+				if (!encoder->append_video((unsigned char*)image))
 				{
 					show_modal_info(
 						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -281,7 +294,7 @@ namespace EncodingManager
 			// can this actually happen?
 			while (audio_frames > 0)
 			{
-				if (!AVIComp::add_video_data((unsigned char*)image))
+				if (!encoder->append_video((unsigned char*)image))
 				{
 					show_modal_info(
 						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -296,7 +309,7 @@ namespace EncodingManager
 			}
 		} else
 		{
-			if (!AVIComp::add_video_data((unsigned char*)image))
+			if (!encoder->append_video((unsigned char*)image))
 			{
 				show_modal_info(
 					"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -308,7 +321,7 @@ namespace EncodingManager
 		}
 
 	cleanup:
-		if (readScreen != vcrcomp_internal_read_screen)
+		if (readScreen != internal_read_screen)
 		{
 			if (image)
 				DllCrtFree(image);

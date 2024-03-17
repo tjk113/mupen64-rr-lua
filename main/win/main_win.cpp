@@ -442,6 +442,113 @@ t_window_info get_window_info()
 	return info;
 }
 
+void internal_read_screen(void** dest, long* width, long* height)
+{
+	HDC mupendc, all = nullptr, copy; //all - screen; copy - buffer
+	POINT cli_tl{0, 0}; //mupen client x y
+	HBITMAP bitmap, oldbitmap;
+
+	if (Config.capture_delay)
+	{
+		Sleep(Config.capture_delay);
+	}
+
+	mupendc = GetDC(mainHWND); //only client area
+	if (Config.is_capture_cropped_screen_dc)
+	{
+		//get whole screen dc and find out where is mupen's client area
+		all = GetDC(NULL);
+		ClientToScreen(mainHWND, &cli_tl);
+	}
+
+	auto window_info = get_window_info();
+	//real width and height of emulated area must be a multiple of 4, which is apparently important for avi
+	*width = window_info.width & ~3;
+	*height = window_info.height & ~3;
+
+	// copy to a context in memory to speed up process
+	copy = CreateCompatibleDC(mupendc);
+	bitmap = CreateCompatibleBitmap(mupendc, *width, *height);
+	oldbitmap = (HBITMAP)SelectObject(copy, bitmap);
+
+	if (copy)
+	{
+		if (Config.is_capture_cropped_screen_dc)
+			BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x,
+			       cli_tl.y + (window_info.height - *height), SRCCOPY);
+		else
+			BitBlt(copy, 0, 0, *width, *height, mupendc, 0,
+			       (window_info.height - *height), SRCCOPY);
+	}
+
+	if (!copy || !bitmap)
+	{
+		if (!*dest) //don't show warning, this is initialisation phase
+			MessageBox(0, "Unexpected AVI error 1", "Error", MB_ICONERROR);
+		*dest = NULL;
+		SelectObject(copy, oldbitmap);
+		//apparently this leaks 1 pixel bitmap if not used
+		if (bitmap)
+			DeleteObject(bitmap);
+		if (copy)
+			DeleteDC(copy);
+		if (mupendc)
+			ReleaseDC(mainHWND, mupendc);
+		if (all)
+			ReleaseDC(NULL, all);
+		return;
+	}
+
+	// read the context
+	static unsigned char* buffer = NULL;
+	static unsigned int bufferSize = 0;
+	if (!buffer || bufferSize < *width * *height * 3 + 1)
+	//if buffer doesn't exist yet or changed size somehow
+	{
+		free(buffer);
+		bufferSize = *width * *height * 3 + 1;
+		buffer = (unsigned char*)malloc(bufferSize);
+	}
+
+	if (!buffer) //failed to alloc
+	{
+		MessageBox(0, "Failed to allocate memory for buffer", "Error",
+		           MB_ICONERROR);
+		*dest = NULL;
+		SelectObject(copy, oldbitmap);
+		if (bitmap)
+			DeleteObject(bitmap);
+		if (copy)
+			DeleteDC(copy);
+		if (mupendc)
+			ReleaseDC(mainHWND, mupendc);
+		if (all)
+			ReleaseDC(NULL, all);
+		return;
+	}
+
+	BITMAPINFO bmp_info;
+	bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmp_info.bmiHeader.biWidth = window_info.width;
+	bmp_info.bmiHeader.biHeight = window_info.height;
+	bmp_info.bmiHeader.biPlanes = 1;
+	bmp_info.bmiHeader.biBitCount = 24;
+	bmp_info.bmiHeader.biCompression = BI_RGB;
+
+	GetDIBits(copy, bitmap, 0, *height, buffer, &bmp_info, DIB_RGB_COLORS);
+
+	*dest = buffer;
+	SelectObject(copy, oldbitmap);
+	if (bitmap)
+		DeleteObject(bitmap);
+	if (copy)
+		DeleteDC(copy);
+	if (mupendc)
+		ReleaseDC(mainHWND, mupendc);
+	if (all)
+		ReleaseDC(NULL, all);
+}
+
 #pragma endregion
 
 void ClearButtons()
