@@ -2134,7 +2134,7 @@ Core::Result vr_close_rom(bool stop_vcr)
 
 	if (stop_vcr)
 	{
-		vcr_core_stopped();
+		VCR::stop_all();
 	}
 
 	Messenger::broadcast(Messenger::Message::EmuStopping,  nullptr);

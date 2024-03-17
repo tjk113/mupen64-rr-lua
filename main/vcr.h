@@ -260,8 +260,6 @@ extern int vcr_stop_record();
 
 extern int vcr_stop_playback();
 
-extern void vcr_core_stopped();
-
 /**
  * \brief Updates the statusbar with the current VCR state
  */
@@ -362,6 +360,12 @@ namespace VCR
 	 * \return The operation result
 	 */
 	int unfreeze(t_movie_freeze freeze);
+
+	/**
+	 * \brief Stops all running tasks
+	 * \return The operation result
+	 */
+	int stop_all();
 }
 
 bool is_frame_skipped();

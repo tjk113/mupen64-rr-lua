@@ -706,7 +706,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		return -1;
 	}
 
-	vcr_core_stopped();
+	VCR::stop_all();
 
 	char buf[MAX_PATH];
 
@@ -985,7 +985,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	}
 
 	// We can't call this after opening m_file, since it will potentially nuke it
-	vcr_core_stopped();
+	VCR::stop_all();
 
 	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
 	m_file = fopen(m_filename, "rb+");
@@ -1237,21 +1237,19 @@ float get_percent_of_frame(const int ai_len, const int audio_freq, const int aud
 	return time / vi_len; //ratio
 }
 
-void
-vcr_core_stopped()
+int VCR::stop_all()
 {
 	switch (m_task)
 	{
 	case e_task::start_recording:
 	case e_task::start_recording_from_snapshot:
 	case e_task::recording:
-		vcr_stop_record();
-		break;
+		return vcr_stop_record();
 	case e_task::start_playback:
 	case e_task::start_playback_from_snapshot:
 	case e_task::playback:
-		vcr_stop_playback();
-		break;
+		return vcr_stop_playback();
+	default: return 0;
 	}
 }
 
