@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <span>
 #include <Windows.h>
 #include <string>
 #include <vector>
@@ -65,6 +66,15 @@ void vecwrite(std::vector<uint8_t>& vec, void* data, size_t len);
  * \return The file's contents, or an empty vector if the operation failed
  */
 std::vector<uint8_t> read_file_buffer(const std::filesystem::path& path);
+
+/**
+ * \brief Writes a buffer to a file
+ * \param path The file's path
+ * \param data The buffer
+ * \return Whether the operation succeeded
+ */
+bool write_file_buffer(const std::filesystem::path& path, std::span<uint8_t> data);
+
 /**
  * \brief Decompresses an (optionally) gzip-compressed byte vector
  * \param vec The byte vector

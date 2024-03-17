@@ -3,6 +3,7 @@
 #include <libdeflate.h>
 #include <Windows.h>
 #include <shlobj.h>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -183,6 +184,21 @@ std::vector<uint8_t> read_file_buffer(const std::filesystem::path& path)
 
 	fclose(f);
 	return b;
+}
+
+bool write_file_buffer(const std::filesystem::path& path, std::span<uint8_t> data)
+{
+	FILE* f = fopen(path.string().c_str(), "wb");
+
+	if (!f)
+	{
+		return false;
+	}
+
+	fwrite(data.data(), sizeof(uint8_t), data.size(), f);
+	fclose(f);
+
+	return true;
 }
 
 std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
