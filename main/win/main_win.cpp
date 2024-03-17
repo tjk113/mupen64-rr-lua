@@ -1161,8 +1161,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					bool mp4 = MessageBox(mainHWND, "Should the captured video be generated as an mp4?", "Capture", MB_YESNO | MB_ICONQUESTION) == IDYES;
-					auto container = mp4 ? EncodingManager::Container::MP4 : EncodingManager::Container::AVI;
+					bool vfw = MessageBox(mainHWND, "Use VFW for capturing?", "Capture", MB_YESNO | MB_ICONQUESTION) == IDYES;
+					auto container = vfw ? EncodingManager::EncoderType::VFW : EncodingManager::EncoderType::FFmpeg;
 
 					// pass false to startCapture when "last preset" option was choosen
 					if (EncodingManager::start_capture(

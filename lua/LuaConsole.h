@@ -27,7 +27,6 @@
 #include <stack>
 
 #include "Plugin.hpp"
-#include "../main/capture/AVIComp.h"
 
 typedef struct s_window_procedure_params {
 	HWND wnd;

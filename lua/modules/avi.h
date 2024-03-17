@@ -10,7 +10,7 @@ namespace LuaCore::Avi
 		const char* fname = lua_tostring(L, 1);
 
 		if (!EncodingManager::is_capturing())
-			EncodingManager::start_capture(fname, EncodingManager::Container::AVI, false);
+			EncodingManager::start_capture(fname, EncodingManager::EncoderType::VFW, false);
 		else
 			luaL_error(
 				L,

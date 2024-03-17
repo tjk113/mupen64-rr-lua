@@ -4,7 +4,6 @@
 
 #include "guifuncs.h"
 #include "messenger.h"
-#include "AVIComp.h"
 #include "Resampler.h"
 #include "../Plugin.hpp"
 #include "win/main_win.h"
@@ -13,6 +12,7 @@
 #include "../../memory/memory.h"
 #include "encoders/AVIEncoder.h"
 #include "encoders/Encoder.h"
+#include "encoders/FFmpegEncoder.h"
 
 namespace EncodingManager
 {
@@ -35,10 +35,10 @@ namespace EncodingManager
 	size_t split_count = 0;
 
 	bool capturing = false;
-	Container current_container = Container::AVI;
+	EncoderType current_container;
 	std::filesystem::path capture_path;
 
-	std::unique_ptr<Encoder> encoder;
+	std::unique_ptr<Encoder> m_encoder;
 
 	// assumes: len <= writeSize
 	void write_sound(char* buf, int len, const int min_write_size,
@@ -70,7 +70,7 @@ namespace EncodingManager
 							stderr,
 							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
 					}
-					if (!encoder->append_audio((unsigned char*)buf2, len2))
+					if (!m_encoder->append_audio((unsigned char*)buf2, len2))
 					{
 						show_modal_info(
 							"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -114,22 +114,21 @@ namespace EncodingManager
 	}
 
 
-	bool start_capture(std::filesystem::path path, Container container,
+	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
 	                   const bool ask_for_encoding_settings)
 	{
-		encoder = std::make_unique<AVIEncoder>();
-
-		if (container == Container::MP4 && !
-			std::filesystem::exists(ffmpeg_path))
-		{
-			MessageBox(mainHWND,
-			           std::format(
-				           "Can't encode to MP4 without ffmpeg.\r\nPlease ensure ffmpeg is present at \"{}\" and try again.",
-				           ffmpeg_path).c_str(), nullptr, MB_ICONERROR | MB_OK);
-			return false;
+		switch (encoder_type) {
+		case EncoderType::VFW:
+			m_encoder = std::make_unique<AVIEncoder>();
+			break;
+		case EncoderType::FFmpeg:
+			m_encoder = std::make_unique<FFmpegEncoder>();
+			break;
+		default:
+			assert(false);
 		}
 
-		current_container = container;
+		current_container = encoder_type;
 
 		if (readScreen == nullptr)
 		{
@@ -159,7 +158,7 @@ namespace EncodingManager
 			readScreen(&dummy, &width, &height);
 		}
 
-		auto result = encoder->start(Encoder::Params {
+		auto result = m_encoder->start(Encoder::Params {
 			.path = path.string().c_str(),
 			.width = (uint32_t)width,
 			.height = (uint32_t)height,
@@ -186,40 +185,17 @@ namespace EncodingManager
 	{
 		write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
-		if(!encoder->stop())
+		if(!m_encoder->stop())
 		{
 			return false;
 		}
 
-		encoder.release();
+		m_encoder.release();
 
 		split_count = 0;
 
 		capturing = false;
 		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
-
-		// If we need an mp4, we convert the avi to mp4 with ffmpeg and delete the avi
-		if (current_container == Container::MP4)
-		{
-			const auto mp4_path = std::filesystem::path(capture_path).
-				replace_extension(".mp4");
-			const auto command = std::format(
-				R"({} -i "{}" -strict -2 "{}")",
-				ffmpeg_path,
-				capture_path.string(),
-				mp4_path.string());
-
-			const auto result = system(command.c_str());
-			if (result != 0)
-			{
-				printf(
-					"[EncodingManager]: Failed to convert AVI to MP4: %d\n",
-					result);
-				return false;
-			}
-
-			std::filesystem::remove(capture_path);
-		}
 
 		printf("[EncodingManager]: Capture finished.\n");
 		return true;
@@ -279,7 +255,7 @@ namespace EncodingManager
 				       m_audio_frame);
 			} else if (audio_frames > 0)
 			{
-				if (!encoder->append_video((unsigned char*)image))
+				if (!m_encoder->append_video((unsigned char*)image))
 				{
 					show_modal_info(
 						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -294,7 +270,7 @@ namespace EncodingManager
 			// can this actually happen?
 			while (audio_frames > 0)
 			{
-				if (!encoder->append_video((unsigned char*)image))
+				if (!m_encoder->append_video((unsigned char*)image))
 				{
 					show_modal_info(
 						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -309,7 +285,7 @@ namespace EncodingManager
 			}
 		} else
 		{
-			if (!encoder->append_video((unsigned char*)image))
+			if (!m_encoder->append_video((unsigned char*)image))
 			{
 				show_modal_info(
 					"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",

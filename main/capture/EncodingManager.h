@@ -27,19 +27,19 @@ namespace EncodingManager
 	};
 
 	/**
-	 * \brief Container types for video files
+	 * \brief A data stream encoder type
 	 */
-	enum class Container
+	enum class EncoderType
 	{
 		/**
-		 * \brief Videos will be generated as avi
+		 * \brief Microsoft's VFW
 		 */
-		AVI,
+		VFW,
 
 		/**
-		 * \brief Videos will be generated as mp4
+		 * \brief The FFmpeg library
 		 */
-		MP4,
+		FFmpeg,
 	};
 
 	/**
@@ -50,11 +50,11 @@ namespace EncodingManager
 	/**
 	 * \brief Starts capturing a video
 	 * \param path The movie's path
-	 * \param container The container to use for capturing
+	 * \param encoder_type The encoder to use for capturing
 	 * \param ask_for_encoding_settings Whether the codec dialog should be shown. If false, the previously used codec or the default one will be used.
 	 * \return Whether the operation was successful
 	 */
-	bool start_capture(std::filesystem::path path, Container container = Container::AVI, bool ask_for_encoding_settings = true);
+	bool start_capture(std::filesystem::path path, EncoderType encoder_type, bool ask_for_encoding_settings = true);
 
 	/**
 	 * \brief Stops capturing a video
