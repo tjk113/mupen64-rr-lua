@@ -229,15 +229,6 @@ CONFIG get_default_config()
 		.down_cmd = IDM_START_MOVIE_PLAYBACK,
 	};
 
-	config.stop_movie_playback_hotkey = {
-		.identifier = "Stop movie playback",
-		.key = 0x58 /* X */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
-		.down_cmd = IDM_STOP_MOVIE_PLAYBACK,
-	};
-
 	config.start_movie_recording_hotkey = {
 		.identifier = "Start movie recording",
 		.key = 0x52 /* R */,
@@ -247,13 +238,13 @@ CONFIG get_default_config()
 		.down_cmd = IDM_START_MOVIE_RECORDING,
 	};
 
-	config.stop_movie_recording_hotkey = {
-		.identifier = "Stop movie recording",
+	config.stop_movie_hotkey = {
+		.identifier = "Stop movie",
 		.key = 0x43 /* C */,
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_STOP_MOVIE_RECORDING,
+		.down_cmd = IDM_STOP_MOVIE,
 	};
 
 	config.take_screenshot_hotkey = {
@@ -661,7 +652,7 @@ CONFIG get_default_config()
 		.down_cmd = (IDM_SELECT_1 - 1) + 10,
 	};
 
-	config.version = 3;
+	config.version = 4;
 	config.core_type = 1;
 	config.fps_modifier = 100;
 	config.frame_skip_frequency = 1;
@@ -744,9 +735,8 @@ void update_menu_hotkey_labels()
 
     set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, IDM_VCR_READONLY);
     set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, IDM_START_MOVIE_PLAYBACK);
-    set_hotkey_menu_accelerators(&Config.stop_movie_playback_hotkey, IDM_STOP_MOVIE_PLAYBACK);
     set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, IDM_START_MOVIE_RECORDING);
-    set_hotkey_menu_accelerators(&Config.stop_movie_recording_hotkey, IDM_STOP_MOVIE_RECORDING);
+    set_hotkey_menu_accelerators(&Config.stop_movie_hotkey, IDM_STOP_MOVIE);
     set_hotkey_menu_accelerators(&Config.take_screenshot_hotkey, IDM_SCREENSHOT);
     set_hotkey_menu_accelerators(&Config.save_current_hotkey, IDM_SAVE_SLOT);
     set_hotkey_menu_accelerators(&Config.load_current_hotkey, IDM_LOAD_SLOT);

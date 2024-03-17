@@ -27,9 +27,8 @@ typedef struct _CONFIG
 	t_hotkey pause_hotkey;
 	t_hotkey toggle_read_only_hotkey;
 	t_hotkey start_movie_playback_hotkey;
-	t_hotkey stop_movie_playback_hotkey;
 	t_hotkey start_movie_recording_hotkey;
-	t_hotkey stop_movie_recording_hotkey;
+	t_hotkey stop_movie_hotkey;
 	t_hotkey take_screenshot_hotkey;
 	t_hotkey play_latest_movie_hotkey;
 	t_hotkey load_rom_hotkey;
