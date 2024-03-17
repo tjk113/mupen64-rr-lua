@@ -144,10 +144,9 @@ namespace EncodingManager
 		{
 			// fill in window size at avi start, which can't change
 			// scrap whatever was written there even if window didnt change, for safety
-			vcrcomp_window_info = {0};
-			get_window_info(mainHWND, vcrcomp_window_info);
-			width = vcrcomp_window_info.width & ~3;
-			height = vcrcomp_window_info.height & ~3;
+			auto info = get_window_info();
+			width = info.width & ~3;
+			height = info.height & ~3;
 		} else
 		{
 			void* dummy;

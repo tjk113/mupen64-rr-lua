@@ -553,10 +553,11 @@ namespace LuaCore::Wgui
 				L, "LoadScreen not initialized! Something has gone wrong.");
 			return 0;
 		}
+		auto info = get_window_info();
 		// set the selected object of hsrcDC to hbwindow
 		SelectObject(lua->hsrcDC, lua->hbitmap);
 		// copy from the window device context to the bitmap device context
-		BitBlt(lua->hsrcDC, 0, 0, lua->windowSize.width, lua->windowSize.height, lua->hwindowDC, 0,
+		BitBlt(lua->hsrcDC, 0, 0, info.width, info.height, lua->hwindowDC, 0,
 		       0, SRCCOPY);
 
 		Gdiplus::Bitmap* out = new Gdiplus::Bitmap(lua->hbitmap, nullptr);

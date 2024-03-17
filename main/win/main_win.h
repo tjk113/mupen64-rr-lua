@@ -57,3 +57,14 @@ public:
 	BetterEmulationLock();
 	~BetterEmulationLock();
 };
+
+typedef struct
+{
+	long width;
+	long height;
+	long statusbar_height;
+} t_window_info;
+
+extern t_window_info window_info;
+
+t_window_info get_window_info();

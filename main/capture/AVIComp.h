@@ -62,17 +62,6 @@ namespace AVIComp
 	 */
 	bool add_audio_data(uint8_t* data, size_t len);
 }
-typedef struct
-{
-	long width;
-	long height;
-	long toolbar_height;
-	long statusbar_height;
-} t_window_info;
-
-extern t_window_info vcrcomp_window_info;
-
-void get_window_info(HWND hwnd, t_window_info& info);
 
 /**
  * \brief Writes the emulator's current emulation front buffer into the destination buffer

@@ -1059,13 +1059,12 @@ void LuaEnvironment::LoadScreenInit()
 	// Create a handle to the main window Device Context
 	hsrcDC = CreateCompatibleDC(hwindowDC); // Create a DC to copy the screen to
 
-	get_window_info(mainHWND, windowSize);
-	windowSize.height -= 1; // ¯\_(ツ)_/¯
-	printf("LoadScreen Size: %d x %d\n", windowSize.width, windowSize.height);
+	auto info = get_window_info();
+	info.height -= 1; // ¯\_(ツ)_/¯
+	printf("LoadScreen Size: %d x %d\n", info.width, info.height);
 
 	// create an hbitmap
-	hbitmap = CreateCompatibleBitmap(hwindowDC, windowSize.width,
-									 windowSize.height);
+	hbitmap = CreateCompatibleBitmap(hwindowDC, info.width, info.height);
 
 	LoadScreenInitialized = true;
 }

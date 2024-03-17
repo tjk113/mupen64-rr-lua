@@ -58,8 +58,6 @@ WAVEFORMATEX sound_format;
 AVISTREAMINFO sound_stream_header;
 PAVISTREAM sound_stream;
 
-t_window_info vcrcomp_window_info = {0};
-
 bool load_options()
 {
 	FILE* f = fopen("avi.cfg", "rb");
@@ -85,8 +83,8 @@ bool load_options()
 
 	fclose(f);
 	return true;
-	error:
-		fclose(f);
+error:
+	fclose(f);
 	return false;
 }
 
@@ -96,27 +94,6 @@ void save_options()
 	fwrite(avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
 	fwrite(avi_options->lpParms, avi_options->cbParms, 1, f);
 	fclose(f);
-}
-
-void get_window_info(HWND hwnd, t_window_info& info)
-{
-	RECT client_rect = {0}, statusbar_rect = {0};
-
-	GetClientRect(hwnd, &client_rect);
-
-	// full client dimensions including statusbar
-	info.width = client_rect.right - client_rect.left;
-	info.height = client_rect.bottom - client_rect.top;
-
-	info.toolbar_height = 0;
-
-	if (Statusbar::hwnd())
-		GetClientRect(Statusbar::hwnd(), &statusbar_rect);
-	info.statusbar_height = statusbar_rect.bottom - statusbar_rect.top;
-
-	//subtract size of toolbar and statusbar from buffer dimensions
-	//if video plugin knows about this, whole game screen should be captured. Most of the plugins do.
-	info.height -= info.toolbar_height + info.statusbar_height;
 }
 
 // "internal" readScreen, used when plugin doesn't implement it
@@ -140,9 +117,10 @@ void __cdecl vcrcomp_internal_read_screen(void** dest, long* width,
 		ClientToScreen(mainHWND, &cli_tl);
 	}
 
+	auto window_info = get_window_info();
 	//real width and height of emulated area must be a multiple of 4, which is apparently important for avi
-	*width = vcrcomp_window_info.width & ~3;
-	*height = vcrcomp_window_info.height & ~3;
+	*width = window_info.width & ~3;
+	*height = window_info.height & ~3;
 
 	// copy to a context in memory to speed up process
 	copy = CreateCompatibleDC(mupendc);
@@ -153,12 +131,10 @@ void __cdecl vcrcomp_internal_read_screen(void** dest, long* width,
 	{
 		if (Config.is_capture_cropped_screen_dc)
 			BitBlt(copy, 0, 0, *width, *height, all, cli_tl.x,
-			       cli_tl.y + vcrcomp_window_info.toolbar_height + (
-				       vcrcomp_window_info.height - *height), SRCCOPY);
+			       cli_tl.y + (window_info.height - *height), SRCCOPY);
 		else
 			BitBlt(copy, 0, 0, *width, *height, mupendc, 0,
-			       vcrcomp_window_info.toolbar_height + (vcrcomp_window_info.
-				       height - *height), SRCCOPY);
+			       (window_info.height - *height), SRCCOPY);
 	}
 
 	if ((!avi_opened || !copy || !bitmap))
@@ -231,7 +207,9 @@ bool AVIComp::add_video_data(uint8_t* data)
 		// If AVI file gets too big, it will corrupt or crash. Since this is a limitation the caller shouldn't care about, we split the recording silently.
 		// When splitting, filenames follow this pattern: <fname> <n>.avi
 		VideoParams new_params = video_params;
-		new_params.path = with_name(new_params.path, get_name(video_params.path) + " " + std::to_string(++splits));
+		new_params.path = with_name(new_params.path,
+		                            get_name(video_params.path) + " " +
+		                            std::to_string(++splits));
 
 		splitting = true;
 		AVIComp::stop();
@@ -279,7 +257,8 @@ AVIComp::Result AVIComp::start(VideoParams params,
 	infoHeader.biClrImportant = 0;
 
 	AVIFileInit();
-	AVIFileOpen(&avi_file, params.path.string().c_str(), OF_WRITE | OF_CREATE, NULL);
+	AVIFileOpen(&avi_file, params.path.string().c_str(), OF_WRITE | OF_CREATE,
+	            NULL);
 
 	ZeroMemory(&video_stream_header, sizeof(AVISTREAMINFO));
 	video_stream_header.fccType = streamtypeVIDEO;

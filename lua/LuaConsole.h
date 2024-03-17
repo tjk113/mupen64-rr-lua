@@ -179,7 +179,6 @@ public:
 	bool LoadScreenInitialized = false;
 	// LoadScreen variables
 	HDC hwindowDC, hsrcDC;
-	t_window_info windowSize{};
 	HBITMAP hbitmap;
 
 	HBRUSH brush;

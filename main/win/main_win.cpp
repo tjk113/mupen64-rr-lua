@@ -420,6 +420,28 @@ BetterEmulationLock::~BetterEmulationLock()
 		resume_emu();
 }
 
+t_window_info get_window_info()
+{
+	t_window_info info;
+
+	RECT client_rect = {};
+	GetClientRect(mainHWND, &client_rect);
+
+	// full client dimensions including statusbar
+	info.width = client_rect.right - client_rect.left;
+	info.height = client_rect.bottom - client_rect.top;
+
+	RECT statusbar_rect = {0};
+	if (Statusbar::hwnd())
+		GetClientRect(Statusbar::hwnd(), &statusbar_rect);
+	info.statusbar_height = statusbar_rect.bottom - statusbar_rect.top;
+
+	//subtract size of toolbar and statusbar from buffer dimensions
+	//if video plugin knows about this, whole game screen should be captured. Most of the plugins do.
+	info.height -= info.statusbar_height;
+	return info;
+}
+
 #pragma endregion
 
 void ClearButtons()
