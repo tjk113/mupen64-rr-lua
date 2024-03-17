@@ -114,8 +114,13 @@ namespace EncodingManager
 	bool start_capture(std::filesystem::path path, Container container,
 	                   const bool show_codec_dialog)
 	{
-		if (container == Container::MP4 && !std::filesystem::exists(ffmpeg_path))
+		if (container == Container::MP4 && !
+			std::filesystem::exists(ffmpeg_path))
 		{
+			MessageBox(mainHWND,
+			           std::format(
+				           "Can't encode to MP4 without ffmpeg.\r\nPlease ensure ffmpeg is present at \"{}\" and try again.",
+				           ffmpeg_path).c_str(), nullptr, MB_ICONERROR | MB_OK);
 			return false;
 		}
 
@@ -151,8 +156,9 @@ namespace EncodingManager
 		}
 
 		auto result = AVIComp::start(path.string().c_str(), width, height,
-		                  get_vis_per_second(ROM_HEADER.Country_code),
-		                  show_codec_dialog);
+		                             get_vis_per_second(
+			                             ROM_HEADER.Country_code),
+		                             show_codec_dialog);
 
 		if (result != AVIComp::Result::Ok)
 		{
@@ -182,7 +188,8 @@ namespace EncodingManager
 		// If we need an mp4, we convert the avi to mp4 with ffmpeg and delete the avi
 		if (current_container == Container::MP4)
 		{
-			const auto mp4_path = std::filesystem::path(capture_path).replace_extension(".mp4");
+			const auto mp4_path = std::filesystem::path(capture_path).
+				replace_extension(".mp4");
 			const auto command = std::format(
 				R"({} -i "{}" -strict -2 "{}")",
 				ffmpeg_path,
