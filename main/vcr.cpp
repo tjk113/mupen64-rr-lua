@@ -1213,18 +1213,7 @@ bool task_is_recording(e_task task)
 
 void vcr_update_screen()
 {
-	if (!is_frame_skipped()) {
-		if (get_video_size && read_video)
-		{
-			MGECompositor::update_screen();
-		} else
-		{
-			updateScreen();
-		}
-	}
 
-	// we always want to invoke atvi, regardless of ff optimization
-	LuaCallbacks::call_vi();
 }
 
 // calculates how long the audio data will last

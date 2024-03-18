@@ -239,8 +239,6 @@ extern volatile e_task m_task;
 bool task_is_playback(e_task task);
 bool task_is_recording(e_task task);
 
-extern void vcr_update_screen();
-
 extern BOOL vcr_is_active();
 extern BOOL vcr_is_idle(); // not the same as !isActive()
 extern BOOL vcr_is_starting();

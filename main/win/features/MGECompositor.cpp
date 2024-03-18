@@ -9,7 +9,6 @@ namespace MGECompositor
 {
 	const auto class_name = "game_control";
 
-	HWND parent_hwnd;
 	HWND control_hwnd;
 	long last_width = 0;
 	long last_height = 0;
@@ -41,7 +40,6 @@ namespace MGECompositor
 
 	void create(HWND hwnd)
 	{
-		parent_hwnd = hwnd;
 		control_hwnd = CreateWindow(class_name, "", WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, hwnd, nullptr, GetModuleHandle(nullptr), nullptr);
 	}
 

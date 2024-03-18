@@ -48,6 +48,7 @@
 #include "../main/win/main_win.h"
 #include "../memory/pif.h"
 #include "capture/EncodingManager.h"
+#include "win/features/MGECompositor.h"
 
 unsigned long next_vi;
 int vi_field = 0;
@@ -424,7 +425,16 @@ void gen_interrupt()
     case VI_INT:
     	lag_count++;
         LuaCallbacks::call_interval();
-        vcr_update_screen();
+    	if (!is_frame_skipped()) {
+    		if (get_video_size && read_video)
+    		{
+    			MGECompositor::update_screen();
+    		} else
+    		{
+    			updateScreen();
+    		}
+    	}
+    	LuaCallbacks::call_vi();
         vcr_on_vi();
     	EncodingManager::at_vi();
         timer_new_vi();
