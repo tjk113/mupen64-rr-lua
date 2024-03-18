@@ -60,6 +60,11 @@ namespace MGECompositor
 		});
 	}
 
+	bool available()
+	{
+		return get_video_size && read_video;
+	}
+
 	void update_screen()
 	{
 		get_video_size(&width, &height);
@@ -86,5 +91,12 @@ namespace MGECompositor
 		last_height = height;
 
 		InvalidateRect(control_hwnd, &control_rect, false);
+	}
+
+	void read_screen(void** dest, long* width, long* height)
+	{
+		*dest = video_buf;
+		*width = MGECompositor::width;
+		*height = MGECompositor::height;
 	}
 }

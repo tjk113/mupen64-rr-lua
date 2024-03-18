@@ -13,6 +13,7 @@
 #include "encoders/AVIEncoder.h"
 #include "encoders/Encoder.h"
 #include "encoders/FFmpegEncoder.h"
+#include "win/features/MGECompositor.h"
 
 namespace EncodingManager
 {
@@ -113,6 +114,36 @@ namespace EncodingManager
 		return capturing;
 	}
 
+	auto effective_readscreen()
+	{
+		if (Config.is_internal_capture_forced)
+		{
+			return internal_read_screen;
+		}
+
+		if (MGECompositor::available())
+		{
+			return MGECompositor::read_screen;
+		}
+
+		if (!readScreen)
+		{
+			return internal_read_screen;
+		}
+
+		return readScreen;
+	}
+
+	void dummy_free(void*){};
+
+	auto effective_readscreen_free()
+	{
+		if (Config.is_internal_capture_forced || !readScreen || MGECompositor::available())
+		{
+			return dummy_free;
+		}
+		return DllCrtFree;
+	}
 
 	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
 	                   const bool ask_for_encoding_settings)
@@ -130,13 +161,6 @@ namespace EncodingManager
 
 		current_container = encoder_type;
 
-		if (readScreen == nullptr)
-		{
-			printf(
-				"readScreen not implemented by graphics plugin. Falling back...\n");
-			readScreen = internal_read_screen;
-		}
-
 		memset(sound_buf_empty, 0, sizeof(sound_buf_empty));
 		memset(sound_buf, 0, sizeof(sound_buf));
 		last_sound = 0;
@@ -145,18 +169,8 @@ namespace EncodingManager
 
 		// If we are capturing internally, we get our dimensions from the window, otherwise from the GFX plugin
 		long width = 0, height = 0;
-		if (readScreen == internal_read_screen)
-		{
-			// fill in window size at avi start, which can't change
-			// scrap whatever was written there even if window didnt change, for safety
-			auto info = get_window_info();
-			width = info.width & ~3;
-			height = info.height & ~3;
-		} else
-		{
-			void* dummy;
-			readScreen(&dummy, &width, &height);
-		}
+		void* dummy;
+		effective_readscreen()(&dummy, &width, &height);
 
 		auto result = m_encoder->start(Encoder::Params {
 			.path = path.string().c_str(),
@@ -213,7 +227,7 @@ namespace EncodingManager
 		long width = 0, height = 0;
 
 		const auto start = std::chrono::high_resolution_clock::now();
-		readScreen(&image, &width, &height);
+		effective_readscreen()(&image, &width, &height);
 		const auto end = std::chrono::high_resolution_clock::now();
 		const std::chrono::duration<double, std::milli> time = (end - start);
 		printf("ReadScreen: %lf ms\n", time.count());
@@ -297,11 +311,7 @@ namespace EncodingManager
 		}
 
 	cleanup:
-		if (readScreen != internal_read_screen)
-		{
-			if (image)
-				DllCrtFree(image);
-		}
+		effective_readscreen_free()(image);
 	}
 
 	void ai_len_changed()

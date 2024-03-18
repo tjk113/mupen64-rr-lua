@@ -426,7 +426,7 @@ void gen_interrupt()
     	lag_count++;
         LuaCallbacks::call_interval();
     	if (!is_frame_skipped()) {
-    		if (get_video_size && read_video)
+    		if (MGECompositor::available())
     		{
     			MGECompositor::update_screen();
     		} else
