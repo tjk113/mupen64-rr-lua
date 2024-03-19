@@ -64,6 +64,11 @@ std::recursive_mutex emu_cs;
 
 std::filesystem::path rom_path;
 
+std::unique_ptr<Plugin> video_plugin;
+std::unique_ptr<Plugin> audio_plugin;
+std::unique_ptr<Plugin> input_plugin;
+std::unique_ptr<Plugin> rsp_plugin;
+
 extern bool ignore;
 volatile bool emu_launched = false;
 volatile bool emu_paused = false;
@@ -2013,7 +2018,11 @@ DWORD WINAPI ThreadFunc(LPVOID)
 	closeDLL_input();
 	closeDLL_RSP();
 
-	unload_plugins();
+	// TODO: Good opportunity to cache these
+	video_plugin.reset();
+	audio_plugin.reset();
+	input_plugin.reset();
+	rsp_plugin.reset();
 
 	return 0;
 }
@@ -2069,17 +2078,31 @@ Core::Result vr_start_rom(std::filesystem::path path)
 	auto start_time = std::chrono::high_resolution_clock::now();
 
 	printf("Loading plugins\n");
-	if (!load_plugins())
+
+	auto video_pl = Plugin::create(Config.selected_video_plugin);
+	auto audio_pl = Plugin::create(Config.selected_audio_plugin);
+	auto input_pl = Plugin::create(Config.selected_input_plugin);
+	auto rsp_pl = Plugin::create(Config.selected_rsp_plugin);
+
+	if (!video_pl.has_value() || !audio_pl.has_value() || !input_pl.has_value() || !rsp_pl.has_value())
 	{
+		video_pl.reset();
+		audio_pl.reset();
+		input_pl.reset();
+		rsp_pl.reset();
 		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::PluginError);
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 		return Core::Result::PluginError;
 	}
 
+	video_plugin = std::move(video_pl.value());
+	audio_plugin = std::move(audio_pl.value());
+	input_plugin = std::move(input_pl.value());
+	rsp_plugin = std::move(rsp_pl.value());
+
 	// valid rom is required to start emulation
 	if (!rom_load(path.string().c_str()))
 	{
-		unload_plugins();
 		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 		return Core::Result::RomInvalid;
@@ -2088,13 +2111,13 @@ Core::Result vr_start_rom(std::filesystem::path path)
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 
 	// HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
-	auto gfx_thread = std::thread(load_gfx, ::video_plugin->handle);
+	auto gfx_thread = std::thread([] { video_plugin->load_into_globals(); });
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto audio_thread = std::thread(load_audio, ::audio_plugin->handle);
+	auto audio_thread = std::thread([] { audio_plugin->load_into_globals(); });
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto input_thread = std::thread(load_input, ::input_plugin->handle);
+	auto input_thread = std::thread([] { input_plugin->load_into_globals(); });
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto rsp_thread = std::thread(load_rsp, ::rsp_plugin->handle);
+	auto rsp_thread = std::thread([] { rsp_plugin->load_into_globals(); });
 
 	gfx_thread.join();
 	audio_thread.join();

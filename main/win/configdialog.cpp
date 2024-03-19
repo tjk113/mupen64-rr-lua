@@ -41,7 +41,7 @@
 
 #include "capture/EncodingManager.h"
 
-std::vector<t_plugin*> available_plugins;
+std::vector<std::unique_ptr<Plugin>> available_plugins;
 
 BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
@@ -335,7 +335,7 @@ void update_plugin_selection(const HWND hwnd, const int32_t id, const std::files
 {
 	for (int i = 0; i < SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0); ++i)
 	{
-		if (const auto plugin = (t_plugin*)SendDlgItemMessage(hwnd, id, CB_GETITEMDATA, i, 0); plugin->path == path)
+		if (const auto plugin = (Plugin*)SendDlgItemMessage(hwnd, id, CB_GETITEMDATA, i, 0); plugin->path() == path)
 		{
 			SendDlgItemMessage(hwnd, id, CB_SETCURSEL, i, 0);
 			break;
@@ -343,11 +343,11 @@ void update_plugin_selection(const HWND hwnd, const int32_t id, const std::files
 	}
 }
 
-t_plugin* get_selected_plugin(const HWND hwnd, const int id)
+Plugin* get_selected_plugin(const HWND hwnd, const int id)
 {
     const int i = SendDlgItemMessage(hwnd, id, CB_GETCURSEL, 0, 0);
     const auto res = SendDlgItemMessage(hwnd, id, CB_GETITEMDATA, i, 0);
-	return res == CB_ERR ? nullptr : (t_plugin*)res;
+	return res == CB_ERR ? nullptr : (Plugin*)res;
 }
 
 BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
@@ -361,47 +361,34 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         EndDialog(hwnd, IDOK);
         break;
     case WM_INITDIALOG:
+		available_plugins = get_available_plugins();
 
-    	// When the emu is running, we know that the plugins are locked and the comboboxes can't reveal new items, so we reuse the previous results
-    	// There's also the possibility that we don't have any "previous results", so we do the search normally in that case
-	    if (!emu_launched || available_plugins.empty())
-	    {
-    		for (auto plugin : available_plugins)
+    	for (const auto& plugin : available_plugins)
+    	{
+    		int32_t id = 0;
+    		switch (plugin->type())
     		{
-    			plugin_destroy(&plugin);
+    		case plugin_type::video:
+    			id = IDC_COMBO_GFX;
+    			break;
+    		case plugin_type::audio:
+    			id = IDC_COMBO_SOUND;
+    			break;
+    		case plugin_type::input:
+    			id = IDC_COMBO_INPUT;
+    			break;
+    		case plugin_type::rsp:
+    			id = IDC_COMBO_RSP;
+    			break;
+    		default:
+    			assert(false);
+    			break;
     		}
-
-        	available_plugins = get_available_plugins();
-	    }
-
-        for (const auto& plugin : available_plugins)
-        {
-            int32_t id = 0;
-
-            switch (plugin->type)
-            {
-            case plugin_type::video:
-                id = IDC_COMBO_GFX;
-                break;
-            case plugin_type::audio:
-                id = IDC_COMBO_SOUND;
-                break;
-            case plugin_type::input:
-                id = IDC_COMBO_INPUT;
-                break;
-            case plugin_type::rsp:
-                id = IDC_COMBO_RSP;
-                break;
-            default:
-                assert(false);
-                break;
-            }
-            // we add the string and associate a pointer to the plugin with the item
-            const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
-
-            SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, (LPARAM)plugin->name.c_str());
-            SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin);
-        }
+    		// we add the string and associate a pointer to the plugin with the item
+    		const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
+    		SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, (LPARAM)plugin->name().c_str());
+    		SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin.get());
+    	}
 
         update_plugin_selection(hwnd, IDC_COMBO_GFX, Config.selected_video_plugin);
         update_plugin_selection(hwnd, IDC_COMBO_SOUND, Config.selected_audio_plugin);
@@ -431,51 +418,51 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         {
         case IDM_VIDEO_SETTINGS:
             hwnd_plug = hwnd;
-            plugin_config(get_selected_plugin(hwnd, IDC_COMBO_GFX));
+        	get_selected_plugin(hwnd, IDC_COMBO_GFX)->config();
             break;
         case IDGFXTEST:
             hwnd_plug = hwnd;
-            plugin_test(get_selected_plugin(hwnd, IDC_COMBO_GFX));
+            get_selected_plugin(hwnd, IDC_COMBO_GFX)->test();
             break;
         case IDGFXABOUT:
             hwnd_plug = hwnd;
-            plugin_about(get_selected_plugin(hwnd, IDC_COMBO_GFX));
+            get_selected_plugin(hwnd, IDC_COMBO_GFX)->about();
             break;
         case IDM_INPUT_SETTINGS:
             hwnd_plug = hwnd;
-            plugin_config(get_selected_plugin(hwnd, IDC_COMBO_INPUT));
+            get_selected_plugin(hwnd, IDC_COMBO_INPUT)->config();
             break;
         case IDINPUTTEST:
             hwnd_plug = hwnd;
-            plugin_test(get_selected_plugin(hwnd, IDC_COMBO_INPUT));
+            get_selected_plugin(hwnd, IDC_COMBO_INPUT)->test();
             break;
         case IDINPUTABOUT:
             hwnd_plug = hwnd;
-            plugin_about(get_selected_plugin(hwnd, IDC_COMBO_INPUT));
+            get_selected_plugin(hwnd, IDC_COMBO_INPUT)->about();
             break;
         case IDM_AUDIO_SETTINGS:
             hwnd_plug = hwnd;
-            plugin_config(get_selected_plugin(hwnd, IDC_COMBO_SOUND));
+            get_selected_plugin(hwnd, IDC_COMBO_SOUND)->config();
             break;
         case IDSOUNDTEST:
             hwnd_plug = hwnd;
-            plugin_test(get_selected_plugin(hwnd, IDC_COMBO_SOUND));
+            get_selected_plugin(hwnd, IDC_COMBO_SOUND)->test();
             break;
         case IDSOUNDABOUT:
             hwnd_plug = hwnd;
-            plugin_about(get_selected_plugin(hwnd, IDC_COMBO_SOUND));
+            get_selected_plugin(hwnd, IDC_COMBO_SOUND)->about();
             break;
         case IDM_RSP_SETTINGS:
             hwnd_plug = hwnd;
-            plugin_config(get_selected_plugin(hwnd, IDC_COMBO_RSP));
+        	get_selected_plugin(hwnd, IDC_COMBO_RSP)->config();
             break;
         case IDRSPTEST:
             hwnd_plug = hwnd;
-            plugin_test(get_selected_plugin(hwnd, IDC_COMBO_RSP));
+        	get_selected_plugin(hwnd, IDC_COMBO_RSP)->test();
             break;
         case IDRSPABOUT:
             hwnd_plug = hwnd;
-            plugin_about(get_selected_plugin(hwnd, IDC_COMBO_RSP));
+        	get_selected_plugin(hwnd, IDC_COMBO_RSP)->about();
             break;
         default:
             break;
@@ -486,19 +473,19 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         {
 	        if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_GFX); plugin != nullptr)
 	        {
-	        	Config.selected_video_plugin = plugin->path.string();
+	        	Config.selected_video_plugin = plugin->path().string();
 	        }
         	if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_SOUND); plugin != nullptr)
         	{
-        		Config.selected_audio_plugin = plugin->path.string();
+        		Config.selected_audio_plugin = plugin->path().string();
         	}
         	if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_INPUT); plugin != nullptr)
         	{
-        		Config.selected_input_plugin = plugin->path.string();
+        		Config.selected_input_plugin = plugin->path().string();
         	}
         	if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_RSP); plugin != nullptr)
         	{
-        		Config.selected_rsp_plugin = plugin->path.string();
+        		Config.selected_rsp_plugin = plugin->path().string();
         	}
         }
         break;

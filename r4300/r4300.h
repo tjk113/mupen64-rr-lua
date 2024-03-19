@@ -36,11 +36,16 @@
 #include "../memory/tlb.h"
 #include "rom.h"
 #include "win/Config.hpp"
+#include "../main/Plugin.hpp"
 
 extern precomp_instr* PC;
 
 extern precomp_block *blocks[0x100000], *actual;
-// TODO: use state enum
+
+extern std::unique_ptr<Plugin> video_plugin;
+extern std::unique_ptr<Plugin> audio_plugin;
+extern std::unique_ptr<Plugin> input_plugin;
+extern std::unique_ptr<Plugin> rsp_plugin;
 extern volatile bool emu_launched;
 extern volatile bool emu_paused;
 extern volatile bool emu_resetting;

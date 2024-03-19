@@ -140,13 +140,13 @@ static void set_rom_info(t_movie_header* header)
 	header->audio_plugin_name[0] = '\0';
 	header->rsp_plugin_name[0] = '\0';
 
-	strncpy(header->video_plugin_name, video_plugin->name.c_str(),
+	strncpy(header->video_plugin_name, video_plugin->name().c_str(),
 	        64);
-	strncpy(header->input_plugin_name, input_plugin->name.c_str(),
+	strncpy(header->input_plugin_name, input_plugin->name().c_str(),
 	        64);
-	strncpy(header->audio_plugin_name, audio_plugin->name.c_str(),
+	strncpy(header->audio_plugin_name, audio_plugin->name().c_str(),
 	        64);
-	strncpy(header->rsp_plugin_name, rsp_plugin->name.c_str(), 64);
+	strncpy(header->rsp_plugin_name, rsp_plugin->name().c_str(), 64);
 }
 
 static void reserve_buffer_space(const unsigned long space_needed)

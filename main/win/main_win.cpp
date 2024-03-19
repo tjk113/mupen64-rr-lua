@@ -863,34 +863,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_AUDIO_SETTINGS:
 			case IDM_RSP_SETTINGS:
 				{
-					// If emu isn't launched, we don't have any loaded plugins, so we gotta load them first
+					// TODO: Uhhh, what here
 					if (!emu_launched)
 					{
-						load_plugins();
+						break;
 					}
 
 					hwnd_plug = mainHWND;
-					t_plugin* plugin = video_plugin;
+					auto plugin = video_plugin.get();
 					switch (LOWORD(wParam))
 					{
 					case IDM_INPUT_SETTINGS:
-						plugin = input_plugin;
+						plugin = input_plugin.get();
 						break;
 					case IDM_AUDIO_SETTINGS:
-						plugin = audio_plugin;
+						plugin = audio_plugin.get();
 						break;
 					case IDM_RSP_SETTINGS:
-						plugin = rsp_plugin;
+						plugin = rsp_plugin.get();
 						break;
 					}
 
-					// plugin can be null when no plugins are available, but it's handled internally
-					plugin_config(plugin);
-
-					if (!emu_launched)
-					{
-						unload_plugins();
-					}
+					plugin->config();
 				}
 				break;
 			case IDM_LOAD_LUA:
