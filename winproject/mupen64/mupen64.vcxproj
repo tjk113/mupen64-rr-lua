@@ -195,6 +195,11 @@
     <ClInclude Include="..\..\r4300\x86\interpret.h" />
     <ClInclude Include="..\..\r4300\x86\regcache.h" />
     <ClInclude Include="..\..\lua\LuaConsole.h" />
+    <ClInclude Include="..\..\shared\helpers\collection_helpers.h" />
+    <ClInclude Include="..\..\shared\helpers\io_helpers.h" />
+    <ClInclude Include="..\..\shared\helpers\math_helpers.h" />
+    <ClInclude Include="..\..\shared\helpers\string_helpers.h" />
+    <ClInclude Include="..\..\shared\helpers\win_helpers.h" />
     <ClInclude Include="..\resource.h" />
     <ClInclude Include="..\..\shared\guifuncs.h" />
   </ItemGroup>
