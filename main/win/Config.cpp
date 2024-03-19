@@ -220,6 +220,15 @@ CONFIG get_default_config()
 		.down_cmd = IDM_VCR_READONLY,
 	};
 
+	config.toggle_movie_loop_hotkey = {
+		.identifier = "Toggle movie loop",
+		.key = 'L',
+		.ctrl = 0,
+		.shift = 1,
+		.alt = 0,
+		.down_cmd = IDM_LOOP_MOVIE,
+	};
+
 	config.start_movie_playback_hotkey = {
 		.identifier = "Start movie playback",
 		.key = 0x50 /* P */,
@@ -263,6 +272,33 @@ CONFIG get_default_config()
 		.shift = 1,
 		.alt = 0,
 		.down_cmd = IDM_PLAY_LATEST_MOVIE,
+	};
+
+	config.load_latest_script_hotkey = {
+		.identifier = "Load latest script",
+		.key = 'K',
+		.ctrl = 1,
+		.shift = 1,
+		.alt = 0,
+		.down_cmd = IDM_LOAD_LATEST_LUA,
+	};
+
+	config.new_lua_hotkey = {
+		.identifier = "New Lua Instance",
+		.key = 'N',
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.down_cmd = IDM_LOAD_LUA,
+	};
+
+	config.close_all_lua_hotkey = {
+		.identifier = "Close all Lua Instances",
+		.key = 'W',
+		.ctrl = 1,
+		.shift = 1,
+		.alt = 0,
+		.down_cmd = IDM_CLOSE_ALL_LUA,
 	};
 
 	config.load_rom_hotkey = {
@@ -652,7 +688,7 @@ CONFIG get_default_config()
 		.down_cmd = (IDM_SELECT_1 - 1) + 10,
 	};
 
-	config.version = 4;
+	config.version = 5;
 	config.core_type = 1;
 	config.fps_modifier = 100;
 	config.frame_skip_frequency = 1;
@@ -734,6 +770,7 @@ void update_menu_hotkey_labels()
     set_hotkey_menu_accelerators(&Config.frame_advance_hotkey, IDM_FRAMEADVANCE);
 
     set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, IDM_VCR_READONLY);
+    set_hotkey_menu_accelerators(&Config.toggle_movie_loop_hotkey, IDM_LOOP_MOVIE);
     set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, IDM_START_MOVIE_PLAYBACK);
     set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, IDM_START_MOVIE_RECORDING);
     set_hotkey_menu_accelerators(&Config.stop_movie_hotkey, IDM_STOP_MOVIE);
@@ -761,7 +798,9 @@ void update_menu_hotkey_labels()
 	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, IDM_FULLSCREEN);
 	set_hotkey_menu_accelerators(&Config.settings_hotkey, IDM_SETTINGS);
 	set_hotkey_menu_accelerators(&Config.toggle_statusbar_hotkey, IDM_STATUSBAR);
-
+    set_hotkey_menu_accelerators(&Config.load_latest_script_hotkey, IDM_LOAD_LATEST_LUA);
+    set_hotkey_menu_accelerators(&Config.close_all_lua_hotkey, IDM_CLOSE_ALL_LUA);
+    set_hotkey_menu_accelerators(&Config.new_lua_hotkey, IDM_LOAD_LUA);
     set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, IDM_PLAY_LATEST_MOVIE);
     set_hotkey_menu_accelerators(&Config.seek_to_frame_hotkey, IDM_SEEKER);
 }

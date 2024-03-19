@@ -26,11 +26,15 @@ typedef struct _CONFIG
 	t_hotkey frame_advance_hotkey;
 	t_hotkey pause_hotkey;
 	t_hotkey toggle_read_only_hotkey;
+	t_hotkey toggle_movie_loop_hotkey;
 	t_hotkey start_movie_playback_hotkey;
 	t_hotkey start_movie_recording_hotkey;
 	t_hotkey stop_movie_hotkey;
 	t_hotkey take_screenshot_hotkey;
 	t_hotkey play_latest_movie_hotkey;
+	t_hotkey load_latest_script_hotkey;
+	t_hotkey new_lua_hotkey;
+	t_hotkey close_all_lua_hotkey;
 	t_hotkey load_rom_hotkey;
 	t_hotkey close_rom_hotkey;
 	t_hotkey reset_rom_hotkey;
