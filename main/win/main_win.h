@@ -68,11 +68,3 @@ typedef struct
 extern t_window_info window_info;
 
 t_window_info get_window_info();
-
-/**
- * \brief Writes the emulator's current emulation front buffer into the destination buffer
- * \param dest The buffer holding video data of size <c>width * height</c>
- * \param width The buffer's width
- * \param height The buffer's height
- */
-void __cdecl internal_read_screen(void** dest, long* width, long* height);

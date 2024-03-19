@@ -41,6 +41,85 @@ namespace EncodingManager
 
 	std::unique_ptr<Encoder> m_encoder;
 
+
+	/**
+	 * \brief Writes the window contents overlaid with lua into the front buffer
+	 * \param dest The buffer holding video data of size <c>width * height</c>
+	 * \param width The buffer's width
+	 * \param height The buffer's height
+	 */
+	void readscreen_window(void** dest, long* width, long* height)
+	{
+		const auto info = get_window_info();
+		*width = info.width & ~3;
+		*height = info.height & ~3;
+		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
+
+		HDC dc = GetDC(mainHWND);
+		HDC compat_dc = CreateCompatibleDC(dc);
+		HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
+
+		SelectObject(compat_dc, bitmap);
+
+		BitBlt(compat_dc, 0, 0, *width, *height, dc, 0, 0, SRCCOPY);
+
+		BITMAPINFO bmp_info{};
+		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmp_info.bmiHeader.biWidth = info.width;
+		bmp_info.bmiHeader.biHeight = info.height;
+		bmp_info.bmiHeader.biPlanes = 1;
+		bmp_info.bmiHeader.biBitCount = 24;
+		bmp_info.bmiHeader.biCompression = BI_RGB;
+
+		GetDIBits(compat_dc, bitmap, 0, *height, *dest, &bmp_info, DIB_RGB_COLORS);
+
+		SelectObject(compat_dc, nullptr);
+		DeleteObject(bitmap);
+		DeleteDC(compat_dc);
+		ReleaseDC(mainHWND, dc);
+	}
+
+	/**
+	 * \brief Writes the desktop contents cropped to the window into the front buffer
+	 * \param dest The buffer holding video data of size <c>width * height</c>
+	 * \param width The buffer's width
+	 * \param height The buffer's height
+	 */
+	void readscreen_desktop(void** dest, long* width, long* height)
+	{
+		const auto info = get_window_info();
+		*width = info.width & ~3;
+		*height = info.height & ~3;
+		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
+
+		POINT pt{};
+		ClientToScreen(mainHWND, &pt);
+
+		HDC dc = GetDC(nullptr);
+		HDC compat_dc = CreateCompatibleDC(dc);
+		HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
+
+		SelectObject(compat_dc, bitmap);
+
+		BitBlt(compat_dc, 0, 0, *width, *height, dc, pt.x,
+				   pt.y + (info.height - *height), SRCCOPY);
+
+		BITMAPINFO bmp_info{};
+		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmp_info.bmiHeader.biWidth = info.width;
+		bmp_info.bmiHeader.biHeight = info.height;
+		bmp_info.bmiHeader.biPlanes = 1;
+		bmp_info.bmiHeader.biBitCount = 24;
+		bmp_info.bmiHeader.biCompression = BI_RGB;
+
+		GetDIBits(compat_dc, bitmap, 0, *height, *dest, &bmp_info, DIB_RGB_COLORS);
+
+		SelectObject(compat_dc, nullptr);
+		DeleteObject(bitmap);
+		DeleteDC(compat_dc);
+		ReleaseDC(nullptr, dc);
+	}
+
 	// assumes: len <= writeSize
 	void write_sound(char* buf, int len, const int min_write_size,
 	                 const int max_write_size,
@@ -116,9 +195,11 @@ namespace EncodingManager
 
 	auto effective_readscreen()
 	{
+		auto internal_func = Config.is_capture_cropped_screen_dc ? readscreen_desktop : readscreen_window;
+
 		if (Config.is_internal_capture_forced)
 		{
-			return internal_read_screen;
+			return internal_func;
 		}
 
 		if (MGECompositor::available())
@@ -128,7 +209,7 @@ namespace EncodingManager
 
 		if (!readScreen)
 		{
-			return internal_read_screen;
+			return internal_func;
 		}
 
 		return readScreen;
@@ -138,7 +219,12 @@ namespace EncodingManager
 
 	auto effective_readscreen_free()
 	{
-		if (Config.is_internal_capture_forced || !readScreen || MGECompositor::available())
+		if (Config.is_internal_capture_forced)
+		{
+			return free;
+		}
+
+		if (!readScreen || MGECompositor::available())
 		{
 			return dummy_free;
 		}
@@ -221,6 +307,11 @@ namespace EncodingManager
 		if (!capturing)
 		{
 			return;
+		}
+
+		if (Config.capture_delay)
+		{
+			Sleep(Config.capture_delay);
 		}
 
 		void* image = nullptr;
