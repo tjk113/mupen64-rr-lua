@@ -539,7 +539,7 @@ std::optional<std::unique_ptr<Plugin>> Plugin::create(
 	if (!get_dll_info)
 	{
 		FreeLibrary(module);
-		return nullptr;
+		return std::nullopt;
 	}
 
 	PLUGIN_INFO plugin_info;
@@ -559,12 +559,14 @@ std::optional<std::unique_ptr<Plugin>> Plugin::create(
 	plugin->m_version = plugin_info.Version;
 	plugin->m_module = module;
 
+	printf("[Plugin] Created plugin %s\n", plugin->m_name.c_str());
 	return plugin;
 }
 
 Plugin::~Plugin()
 {
 	FreeLibrary(m_module);
+	printf("[Plugin] Destroyed plugin %s\n", m_name.c_str());
 }
 
 void Plugin::config()
@@ -685,6 +687,37 @@ void Plugin::about()
 
 void Plugin::load_into_globals()
 {
+	switch (m_type) {
+	case video:
+		load_gfx(m_module);
+		break;
+	case audio:
+		load_audio(m_module);
+		break;
+	case input:
+		load_input(m_module);
+		break;
+	case rsp:
+		load_rsp(m_module);
+		break;
+	}
+}
+
+std::vector<std::unique_ptr<Plugin>> get_available_plugins()
+{
+	std::vector<std::unique_ptr<Plugin>> plugins;
+	std::vector<std::string> files = get_files_with_extension_in_directory(
+		get_plugins_directory(), "dll");
+
+	for (const auto& file : files)
+	{
+		auto plugin = Plugin::create(file);
+		if (plugin.has_value())
+		{
+			plugins.push_back(std::move(plugin.value()));
+		}
+	}
+	return plugins;
 }
 
 void setup_dummy_info()

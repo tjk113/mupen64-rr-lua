@@ -19,7 +19,7 @@
 #include "../r4300/r4300.h"
 #include "../r4300/disasm.h"
 #include "../r4300/recomp.h"
-#include "../main/Plugin.hpp"
+#include "../r4300/Plugin.hpp"
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/configdialog.h"

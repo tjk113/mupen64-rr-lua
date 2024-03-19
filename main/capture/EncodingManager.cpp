@@ -5,7 +5,7 @@
 #include "guifuncs.h"
 #include "messenger.h"
 #include "Resampler.h"
-#include "../Plugin.hpp"
+#include "../../r4300/Plugin.hpp"
 #include "win/main_win.h"
 #include "../../r4300/rom.h"
 #include "win/Config.hpp"

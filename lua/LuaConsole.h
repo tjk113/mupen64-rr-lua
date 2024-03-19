@@ -26,7 +26,7 @@
 #include <mutex>
 #include <stack>
 
-#include "Plugin.hpp"
+#include "../r4300/Plugin.hpp"
 
 typedef struct s_window_procedure_params {
 	HWND wnd;

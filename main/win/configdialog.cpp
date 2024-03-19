@@ -27,7 +27,7 @@
 #include "../lua/LuaConsole.h"
 #include "main_win.h"
 #include "../../winproject/resource.h"
-#include "../Plugin.hpp"
+#include "../../r4300/Plugin.hpp"
 #include "features/RomBrowser.hpp"
 #include "timers.h"
 #include "Config.hpp"

@@ -40,7 +40,7 @@
 #include "macros.h"
 #include "exception.h"
 #include "LuaCallbacks.h"
-#include "../main/Plugin.hpp"
+#include "../r4300/Plugin.hpp"
 #include "../main/win/timers.h"
 #include "../main/savestates.h"
 #include "../main/vcr.h"

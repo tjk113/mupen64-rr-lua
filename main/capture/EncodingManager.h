@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <filesystem>
 
-#include "Plugin.hpp"
+#include "../../r4300/Plugin.hpp"
 
 namespace EncodingManager
 {

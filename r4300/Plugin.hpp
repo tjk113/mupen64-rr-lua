@@ -319,6 +319,9 @@ public:
 	 */
 	static std::optional<std::unique_ptr<Plugin>> create(std::filesystem::path path);
 
+	Plugin() = default;
+	~Plugin();
+
 	/**
 	 * \brief Opens the plugin configuration dialog
 	 */
@@ -340,19 +343,41 @@ public:
 	void load_into_globals();
 
 	/**
+	 * \brief Gets the plugin's path
+	 */
+	auto path() const
+	{
+		return m_path;
+	}
+
+	/**
 	 * \brief Gets the plugin's name
 	 */
-	std::string name() const;
+	auto name() const
+	{
+		return m_name;
+	}
+
+	/**
+	 * \brief Gets the plugin's type
+	 */
+	auto type() const
+	{
+		return m_type;
+	}
 
 private:
-	Plugin() = default;
-	~Plugin();
 	std::filesystem::path m_path;
 	std::string m_name;
 	plugin_type m_type;
 	uint16_t m_version;
 	HMODULE m_module;
 };
+
+/**
+ * \brief Gets all available plugins
+ */
+std::vector<std::unique_ptr<Plugin>> get_available_plugins();
 
 
 /// <summary>

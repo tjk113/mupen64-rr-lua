@@ -36,7 +36,7 @@
 #include "../memory/tlb.h"
 #include "rom.h"
 #include "win/Config.hpp"
-#include "../main/Plugin.hpp"
+#include "Plugin.hpp"
 
 extern precomp_instr* PC;
 

@@ -37,7 +37,7 @@
 #include "messenger.h"
 #include "timers.h"
 #include "../guifuncs.h"
-#include "../Plugin.hpp"
+#include "../../r4300/Plugin.hpp"
 #include "../../r4300/rom.h"
 #include "../savestates.h"
 #include "../vcr.h"

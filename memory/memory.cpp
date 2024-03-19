@@ -44,7 +44,7 @@
 #include "pif.h"
 #include "flashram.h"
 #include "summercart.h"
-#include "../main/Plugin.hpp"
+#include "../r4300/Plugin.hpp"
 #include "../main/vcr.h"
 #include "capture/EncodingManager.h"
 
