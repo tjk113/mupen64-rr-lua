@@ -7,6 +7,19 @@
 #include <vector>
 
 /**
+ * \brief Records the execution time of a scope
+ */
+class ScopeTimer
+{
+public:
+	ScopeTimer(std::string name);
+	~ScopeTimer();
+private:
+	std::string m_name;
+	std::chrono::time_point<std::chrono::steady_clock> start_time;
+};
+
+/**
  * \brief Gets all files with a specific file extension directly under a directory
  * \param directory The path joiner-terminated directory
  * \param extension The file extension with no period

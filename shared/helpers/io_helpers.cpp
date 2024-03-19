@@ -7,6 +7,17 @@
 #include <string>
 #include <vector>
 
+ScopeTimer::ScopeTimer(std::string name)
+{
+	m_name = name;
+	start_time = std::chrono::high_resolution_clock::now();
+}
+
+ScopeTimer::~ScopeTimer()
+{
+	printf("%s took %dms\n", m_name.c_str(), static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+}
+
 std::vector<std::string> get_files_with_extension_in_directory(
 	std::string directory, const std::string& extension)
 {
