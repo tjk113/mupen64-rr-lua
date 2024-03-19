@@ -24,7 +24,7 @@
 #include <chrono>
 #include <Windows.h>
 #include "win/Config.hpp"
-#include "guifuncs.h"
+#include <guifuncs.h>
 #include "LuaCallbacks.h"
 #include "messenger.h"
 #include "../memory/pif.h"

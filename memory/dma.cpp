@@ -38,7 +38,7 @@
 #include "pif.h"
 #include "flashram.h"
 #include "summercart.h"
-#include "../main/guifuncs.h"
+#include <guifuncs.h>
 #include "../r4300/ops.h"
 #include "..\main\win\features\CoreDbg.h"
 #include "savestates.h"

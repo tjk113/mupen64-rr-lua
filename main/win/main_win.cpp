@@ -36,7 +36,7 @@
 #include "LuaConsole.h"
 #include "messenger.h"
 #include "timers.h"
-#include "../guifuncs.h"
+#include <guifuncs.h>
 #include "../../r4300/Plugin.hpp"
 #include "../../r4300/rom.h"
 #include "../savestates.h"

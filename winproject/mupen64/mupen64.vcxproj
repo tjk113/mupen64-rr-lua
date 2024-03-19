@@ -60,7 +60,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../lua;../../lib/zlib;../../main;../../lib/libdeflate;../../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lua;../../shared;../../lib/zlib;../../main;../../lib/libdeflate;../../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -79,7 +79,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../../lib/zlib;../../lua;../../lib/libdeflate;../../lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../lib/zlib;../../lua;../../shared;../../lib/libdeflate;../../lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -96,7 +96,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../../lib/zlib;../../main;../../lua;../../lib/libdeflate;../../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lib/zlib;../../main;../../lua;../../shared;../../lib/libdeflate;../../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -122,7 +122,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../../lib/zlib;../../lua;../../lib/libdeflate;../../lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../lib/zlib;../../lua;../../shared;../../lib/libdeflate;../../lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -153,12 +153,7 @@
     <ClInclude Include="..\..\main\capture\encoders\FFmpegEncoder.h" />
     <ClInclude Include="..\..\main\capture\EncodingManager.h" />
     <ClInclude Include="..\..\main\capture\Resampler.h" />
-    <ClInclude Include="..\..\main\helpers\collection_helpers.h" />
-    <ClInclude Include="..\..\main\helpers\math_helpers.h" />
     <ClInclude Include="..\..\main\debughook.h" />
-    <ClInclude Include="..\..\main\guifuncs.h" />
-    <ClInclude Include="..\..\main\helpers\io_helpers.h" />
-    <ClInclude Include="..\..\main\helpers\win_helpers.h" />
     <ClInclude Include="..\..\main\messenger.h" />
     <ClInclude Include="..\..\main\savestates.h" />
     <ClInclude Include="..\..\main\vcr.h" />
@@ -176,7 +171,6 @@
     <ClInclude Include="..\..\main\win\main_win.h" />
     <ClInclude Include="..\..\main\win\timers.h" />
     <ClInclude Include="..\..\main\win\wrapper\PersistentPathDialog.h" />
-    <ClInclude Include="..\..\main\helpers\string_helpers.h" />
     <ClInclude Include="..\..\memory\dma.h" />
     <ClInclude Include="..\..\memory\flashram.h" />
     <ClInclude Include="..\..\memory\memory.h" />
@@ -202,6 +196,7 @@
     <ClInclude Include="..\..\r4300\x86\regcache.h" />
     <ClInclude Include="..\..\lua\LuaConsole.h" />
     <ClInclude Include="..\resource.h" />
+    <ClInclude Include="..\..\shared\guifuncs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\speex\speex_resampler.c">
@@ -218,7 +213,6 @@
     <ClCompile Include="..\..\main\capture\EncodingManager.cpp" />
     <ClCompile Include="..\..\main\capture\Resampler.cpp" />
     <ClCompile Include="..\..\main\debughook.cpp" />
-    <ClCompile Include="..\..\main\helpers\io_helpers.cpp" />
     <ClCompile Include="..\..\main\messenger.cpp" />
     <ClCompile Include="..\..\main\savestates.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
@@ -245,10 +239,6 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="..\..\main\win\configdialog.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="..\..\main\win\guifuncs.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
@@ -381,7 +371,7 @@
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;_VC80_UPGRADE=0x0710;_MBCS;</PreprocessorDefinitions>
       <EnablePREfast>false</EnablePREfast>
       <OmitFramePointers>false</OmitFramePointers>
-      <AdditionalIncludeDirectories>../../lua;../../lib/zlib;../../main;../../lib/libdeflate;../../lib/xxhash;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lua;../../shared;../../lib/zlib;../../main;../../lib/libdeflate;../../lib/xxhash;</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4018;4244;</DisableSpecificWarnings>
       <AdditionalOptions>/FI "../main/debughook.h" </AdditionalOptions>
       <SDLCheck>true</SDLCheck>
@@ -483,6 +473,8 @@
     </ClCompile>
     <ClCompile Include="..\..\lua\LuaConsole.cpp" />
     <ClCompile Include="..\..\main\win\wrapper\PersistentPathDialog.cpp" />
+    <ClCompile Include="..\..\shared\guifuncs.cpp"/>
+    <ClCompile Include="..\..\shared\helpers\io_helpers.cpp"/>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\rsrc.rc" />

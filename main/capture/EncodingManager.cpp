@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "guifuncs.h"
+#include <guifuncs.h>
 #include "messenger.h"
 #include "Resampler.h"
 #include "../../r4300/Plugin.hpp"

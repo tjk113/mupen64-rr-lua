@@ -31,7 +31,7 @@
 #include <libdeflate.h>
 #include <stdlib.h>
 #include <string>
-#include "guifuncs.h"
+#include <guifuncs.h>
 #include "LuaCallbacks.h"
 #include "messenger.h"
 #include "../r4300/rom.h"

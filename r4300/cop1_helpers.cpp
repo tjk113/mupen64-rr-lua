@@ -3,7 +3,7 @@
 #include "exception.h"
 #include "cop1_helpers.h"
 
-#include "guifuncs.h"
+#include <guifuncs.h>
 
 
 float largest_denormal_float = 1.1754942106924411e-38f; // (1U << 23) - 1
