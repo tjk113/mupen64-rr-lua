@@ -766,43 +766,15 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
 
 void update_menu_hotkey_labels()
 {
-	set_hotkey_menu_accelerators(&Config.pause_hotkey, IDM_PAUSE);
-    set_hotkey_menu_accelerators(&Config.frame_advance_hotkey, IDM_FRAMEADVANCE);
-
-    set_hotkey_menu_accelerators(&Config.toggle_read_only_hotkey, IDM_VCR_READONLY);
-    set_hotkey_menu_accelerators(&Config.toggle_movie_loop_hotkey, IDM_LOOP_MOVIE);
-    set_hotkey_menu_accelerators(&Config.start_movie_playback_hotkey, IDM_START_MOVIE_PLAYBACK);
-    set_hotkey_menu_accelerators(&Config.start_movie_recording_hotkey, IDM_START_MOVIE_RECORDING);
-    set_hotkey_menu_accelerators(&Config.stop_movie_hotkey, IDM_STOP_MOVIE);
-    set_hotkey_menu_accelerators(&Config.take_screenshot_hotkey, IDM_SCREENSHOT);
-    set_hotkey_menu_accelerators(&Config.save_current_hotkey, IDM_SAVE_SLOT);
-    set_hotkey_menu_accelerators(&Config.load_current_hotkey, IDM_LOAD_SLOT);
-    set_hotkey_menu_accelerators(&Config.save_as_hotkey, IDM_SAVE_STATE_AS);
-    set_hotkey_menu_accelerators(&Config.load_as_hotkey, IDM_LOAD_STATE_AS);
-    set_hotkey_menu_accelerators(&Config.select_slot_1_hotkey, IDM_SELECT_1);
-    set_hotkey_menu_accelerators(&Config.select_slot_2_hotkey, IDM_SELECT_2);
-    set_hotkey_menu_accelerators(&Config.select_slot_3_hotkey, IDM_SELECT_3);
-    set_hotkey_menu_accelerators(&Config.select_slot_4_hotkey, IDM_SELECT_4);
-    set_hotkey_menu_accelerators(&Config.select_slot_5_hotkey, IDM_SELECT_5);
-    set_hotkey_menu_accelerators(&Config.select_slot_6_hotkey, IDM_SELECT_6);
-    set_hotkey_menu_accelerators(&Config.select_slot_7_hotkey, IDM_SELECT_7);
-    set_hotkey_menu_accelerators(&Config.select_slot_8_hotkey, IDM_SELECT_8);
-    set_hotkey_menu_accelerators(&Config.select_slot_9_hotkey, IDM_SELECT_9);
-    set_hotkey_menu_accelerators(&Config.select_slot_10_hotkey, IDM_SELECT_10);
-
-	set_hotkey_menu_accelerators(&Config.load_rom_hotkey, IDM_LOAD_ROM);
-	set_hotkey_menu_accelerators(&Config.close_rom_hotkey, IDM_CLOSE_ROM);
-	set_hotkey_menu_accelerators(&Config.reset_rom_hotkey, IDM_RESET_ROM);
-	set_hotkey_menu_accelerators(&Config.load_latest_rom_hotkey, IDM_LOAD_LATEST_ROM);
-	set_hotkey_menu_accelerators(&Config.refresh_rombrowser_hotkey, IDM_REFRESH_ROMBROWSER);
-	set_hotkey_menu_accelerators(&Config.fullscreen_hotkey, IDM_FULLSCREEN);
-	set_hotkey_menu_accelerators(&Config.settings_hotkey, IDM_SETTINGS);
-	set_hotkey_menu_accelerators(&Config.toggle_statusbar_hotkey, IDM_STATUSBAR);
-    set_hotkey_menu_accelerators(&Config.load_latest_script_hotkey, IDM_LOAD_LATEST_LUA);
-    set_hotkey_menu_accelerators(&Config.close_all_lua_hotkey, IDM_CLOSE_ALL_LUA);
-    set_hotkey_menu_accelerators(&Config.new_lua_hotkey, IDM_LOAD_LUA);
-    set_hotkey_menu_accelerators(&Config.play_latest_movie_hotkey, IDM_PLAY_LATEST_MOVIE);
-    set_hotkey_menu_accelerators(&Config.seek_to_frame_hotkey, IDM_SEEKER);
+	for (auto hotkey : hotkeys)
+	{
+		// Only set accelerator if hotkey has a down command and the command is valid menu item identifier
+		auto state = GetMenuState(GetMenu(mainHWND), hotkey->down_cmd, MF_BYCOMMAND);
+		if (hotkey->down_cmd && state != -1)
+		{
+			set_hotkey_menu_accelerators(hotkey, hotkey->down_cmd);
+		}
+	}
 }
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          int32_t is_reading, t_hotkey* hotkey)
