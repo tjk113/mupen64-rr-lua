@@ -1346,26 +1346,6 @@ int WINAPI WinMain(
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 
-		for (t_hotkey* hotkey : hotkeys)
-		{
-			// modifier-only checks, cannot be obtained through windows messaging...
-			if (!hotkey->key && (hotkey->shift || hotkey->ctrl || hotkey->alt))
-			{
-				if (((GetKeyState(VK_SHIFT) & 0x8000) ? 1 : 0) ==
-						hotkey->shift
-						&& ((GetKeyState(VK_CONTROL) & 0x8000) ? 1 : 0) ==
-						hotkey->ctrl
-						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) ==
-						hotkey->alt)
-				{
-					SendMessage(mainHWND, WM_COMMAND, hotkey->down_cmd,
-								0);
-				}
-
-			}
-
-		}
-
 	}
 
 
