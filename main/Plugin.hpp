@@ -309,63 +309,51 @@ typedef struct
 	DWORD height;
 } FrameBufferInfo;
 
-
-typedef struct s_plugin
+class Plugin
 {
-	std::filesystem::path path;
-	std::string name;
-	plugin_type type;
-	uint16_t version;
-	HMODULE handle;
-} t_plugin;
+public:
+	/**
+	 * \brief Tries to create a plugin from the given path
+	 * \param path The path to a plugin
+	 * \return A pointer to the plugin, or nothing if the plugin couldn't be created
+	 */
+	static std::optional<std::unique_ptr<Plugin>> create(std::filesystem::path path);
 
-extern t_plugin* video_plugin;
-extern t_plugin* audio_plugin;
-extern t_plugin* input_plugin;
-extern t_plugin* rsp_plugin;
+	/**
+	 * \brief Opens the plugin configuration dialog
+	 */
+	void config();
 
-/**
- * \return A vector of available plugin
- */
-std::vector<t_plugin*> get_available_plugins();
+	/**
+	 * \brief Opens the plugin test dialog
+	 */
+	void test();
 
+	/**
+	 * \brief Opens the plugin about dialog
+	 */
+	void about();
 
-/**
- * \brief Destroys a plugin and releases the library handle
- * \param plugin Double pointer to the plugin to be destroyed
- * \remarks The inner pointer will be mutated
- */
-void plugin_destroy(t_plugin** plugin);
+	/**
+	 * \brief Loads the plugin's exported functions into the globals
+	 */
+	void load_into_globals();
 
-/// <summary>
-/// Opens a plugin's configuration dialog, if it exists
-/// </summary>
-void plugin_config(t_plugin* plugin);
+	/**
+	 * \brief Gets the plugin's name
+	 */
+	std::string name() const;
 
-/// <summary>
-/// Opens a plugin's test dialog, if it exists
-/// </summary>
-void plugin_test(t_plugin* plugin);
+private:
+	Plugin() = default;
+	~Plugin();
+	std::filesystem::path m_path;
+	std::string m_name;
+	plugin_type m_type;
+	uint16_t m_version;
+	HMODULE m_module;
+};
 
-/// <summary>
-/// Opens a plugin's about dialog, if it exists
-/// </summary>
-void plugin_about(t_plugin* plugin);
-
-/// <summary>
-/// Searches for plugins and loads their exported functions into the globals
-/// </summary>
-bool load_plugins();
-
-/**
- * \brief Unloads all loaded plugins
- */
-void unload_plugins();
-
-void load_gfx(HMODULE);
-void load_audio(HMODULE);
-void load_input(HMODULE);
-void load_rsp(HMODULE);
 
 /// <summary>
 /// Initializes dummy info used by per-plugin functions
