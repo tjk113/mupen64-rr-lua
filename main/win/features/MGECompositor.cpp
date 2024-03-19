@@ -2,7 +2,7 @@
 #include <Windows.h>
 
 #include "messenger.h"
-#include "Plugin.hpp"
+#include "../../r4300/Plugin.hpp"
 #include "win/main_win.h"
 
 namespace MGECompositor
