@@ -55,10 +55,10 @@
 #include "features/RomBrowser.hpp"
 #include "features/Seeker.h"
 #include "features/Statusbar.hpp"
-#include "helpers/collection_helpers.h"
-#include "helpers/math_helpers.h"
-#include "helpers/string_helpers.h"
-#include "helpers/win_helpers.h"
+#include <helpers/collection_helpers.h>
+#include <helpers/math_helpers.h>
+#include <helpers/string_helpers.h>
+#include <helpers/win_helpers.h>
 #include "wrapper/PersistentPathDialog.h"
 
 static BOOL FullScreenMode = 0;

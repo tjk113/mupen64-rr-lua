@@ -20,8 +20,8 @@
 #include "messenger.h"
 #include "vcr.h"
 #include "../../memory/pif.h"
-#include "../helpers/win_helpers.h"
-#include "helpers/collection_helpers.h"
+#include <helpers/win_helpers.h>
+#include <helpers/collection_helpers.h>
 
 bool frame_changed = true;
 extern int m_current_vi;

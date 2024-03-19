@@ -3,7 +3,7 @@
 
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
-#include "../../main/helpers/win_helpers.h"
+#include <helpers/win_helpers.h>
 
 namespace LuaCore::Wgui
 {

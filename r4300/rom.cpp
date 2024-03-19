@@ -39,8 +39,8 @@
 #include "../memory/memory.h"
 #include "../lib/md5.h"
 #include "../main/win/Config.hpp"
-#include "helpers/io_helpers.h"
-#include "helpers/string_helpers.h"
+#include <helpers/io_helpers.h>
+#include <helpers/string_helpers.h>
 
 uint8_t* rom;
 size_t rom_size;

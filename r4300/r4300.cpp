@@ -44,7 +44,7 @@
 #include "messenger.h"
 #include "savestates.h"
 #include "../lua/LuaConsole.h"
-#include "helpers/string_helpers.h"
+#include <helpers/string_helpers.h>
 #include "win/timers.h"
 #include "win/features/Dispatcher.h"
 #include "win/features/RomBrowser.hpp"

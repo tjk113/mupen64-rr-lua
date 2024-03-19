@@ -23,7 +23,7 @@
 #include "../main/vcr.h"
 #include "../main/savestates.h"
 #include "../main/win/configdialog.h"
-#include "../main/helpers/win_helpers.h"
+#include <helpers/win_helpers.h>
 #include "../main/win/wrapper/PersistentPathDialog.h"
 #include "../lib/md5.h"
 #include <vcr.h>
@@ -36,7 +36,7 @@
 #include <queue>
 #include <assert.h>
 
-#include "helpers/string_helpers.h"
+#include <helpers/string_helpers.h>
 #include "win/features/Statusbar.hpp"
 
 #include <Windows.h>

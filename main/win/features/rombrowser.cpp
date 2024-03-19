@@ -11,8 +11,8 @@
 #include "Statusbar.hpp"
 #include "../main_win.h"
 #include "../../winproject/resource.h"
-#include "helpers/io_helpers.h"
-#include "helpers/string_helpers.h"
+#include <helpers/io_helpers.h>
+#include <helpers/string_helpers.h>
 #include "../r4300/r4300.h"
 #include "../Config.hpp"
 #include <assert.h>

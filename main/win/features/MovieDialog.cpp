@@ -8,12 +8,12 @@
 #include "win/main_win.h"
 #include "win/Config.hpp"
 #include "../winproject/resource.h"
-#include "helpers/string_helpers.h"
-#include "helpers/win_helpers.h"
+#include <helpers/string_helpers.h>
+#include <helpers/win_helpers.h>
 #include "win/wrapper/PersistentPathDialog.h"
 #include <CommCtrl.h>
 
-#include "helpers/math_helpers.h"
+#include <helpers/math_helpers.h>
 
 namespace MovieDialog
 {
