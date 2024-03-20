@@ -15,7 +15,6 @@
 
 namespace Seeker
 {
-
 	HWND current_hwnd;
 
 	LRESULT CALLBACK SeekerProc(HWND hwnd, UINT Message, WPARAM wParam,
@@ -44,8 +43,7 @@ namespace Seeker
 				bool relative = Config.seeker_value[0] == '-' || Config.seeker_value[0] == '+';
 				int32_t frame = std::stoi(Config.seeker_value);
 				EnableWindow(GetDlgItem(hwnd, IDOK), Config.seeker_value.size() > 1 && VCR::can_seek_to(frame, relative));
-			}
-			catch(...)
+			} catch (...)
 			{
 				EnableWindow(GetDlgItem(hwnd, IDOK), false);
 			}
@@ -53,14 +51,14 @@ namespace Seeker
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
-		case IDC_SEEKER_FRAME:
-			{
-				char str[260] = {0};
-				GetDlgItemText(hwnd, IDC_SEEKER_FRAME, str, std::size(str));
-				Config.seeker_value = str;
-				SendMessage(hwnd, WM_UPDATE_SEEK_ALLOWED, 0, 0);
-			}
-			break;
+			case IDC_SEEKER_FRAME:
+				{
+					char str[260] = {0};
+					GetDlgItemText(hwnd, IDC_SEEKER_FRAME, str, std::size(str));
+					Config.seeker_value = str;
+					SendMessage(hwnd, WM_UPDATE_SEEK_ALLOWED, 0, 0);
+				}
+				break;
 			case IDOK:
 				{
 					// Relative seek is activated by typing + or - in front of number
@@ -70,8 +68,7 @@ namespace Seeker
 					try
 					{
 						frame = std::stoi(Config.seeker_value);
-					}
-					catch(...)
+					} catch (...)
 					{
 						break;
 					}
@@ -111,18 +108,18 @@ namespace Seeker
 		std::thread([]
 		{
 			DialogBox(GetModuleHandle(NULL),
-				  MAKEINTRESOURCE(IDD_SEEKER), mainHWND,
-				  (DLGPROC)SeekerProc);
+			          MAKEINTRESOURCE(IDD_SEEKER), mainHWND,
+			          (DLGPROC)SeekerProc);
 			current_hwnd = nullptr;
 		}).detach();
 	}
 
 	void init()
 	{
-		Messenger::subscribe(Messenger::Message::SeekCompleted, [] (std::any)
+		Messenger::subscribe(Messenger::Message::SeekCompleted, [](std::any)
 		{
 			if (!current_hwnd)
-			 return;
+				return;
 			SendMessage(current_hwnd, WM_SEEK_COMPLETED, 0, 0);
 		});
 	}

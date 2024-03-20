@@ -4,7 +4,6 @@
 
 namespace LuaCore::Joypad
 {
-
 	static int lua_get_joypad(lua_State* L)
 	{
 		int i = luaL_optinteger(L, 1, 1) - 1;

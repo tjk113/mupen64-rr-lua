@@ -68,11 +68,11 @@ namespace LuaCore::Wgui
 		wndRect.bottom -= wndRect.top;
 		wndRect.right -= wndRect.left;
 		int w = luaL_checkinteger(L, 1),
-			h = luaL_checkinteger(L, 2);
+		    h = luaL_checkinteger(L, 2);
 		SetWindowPos(mainHWND, 0, 0, 0,
-					 w + (wndRect.right - clientRect.right),
-					 h + (wndRect.bottom - clientRect.bottom),
-					 SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
+		             w + (wndRect.right - clientRect.right),
+		             h + (wndRect.bottom - clientRect.bottom),
+		             SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
 
 
 		// we need to recreate the renderer to accomodate for size changes (this cant be done in-place)
@@ -540,7 +540,6 @@ namespace LuaCore::Wgui
 		luaL_error(L, "Incorrect number of arguments");
 		return 0;
 	}
-
 
 
 	static int LoadScreen(lua_State* L)

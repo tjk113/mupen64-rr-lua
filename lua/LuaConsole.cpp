@@ -76,197 +76,199 @@ static uint32_t bitmap_color_mask = RGB(255, 0, 255);
 static HBRUSH alpha_mask_brush = CreateSolidBrush(bitmap_color_mask);
 
 
+uint64_t inputCount = 0;
 
-	uint64_t inputCount = 0;
-
-	int getn(lua_State*);
+int getn(lua_State*);
 
 
-	int AtPanic(lua_State* L);
-	extern const luaL_Reg globalFuncs[];
-	extern const luaL_Reg emuFuncs[];
-	extern const luaL_Reg wguiFuncs[];
-	extern const luaL_Reg d2dFuncs[];
-	extern const luaL_Reg memoryFuncs[];
-	extern const luaL_Reg inputFuncs[];
-	extern const luaL_Reg joypadFuncs[];
-	extern const luaL_Reg movieFuncs[];
-	extern const luaL_Reg savestateFuncs[];
-	extern const luaL_Reg ioHelperFuncs[];
-	extern const luaL_Reg aviFuncs[];
-	extern const char* const REG_ATSTOP;
+int AtPanic(lua_State* L);
+extern const luaL_Reg globalFuncs[];
+extern const luaL_Reg emuFuncs[];
+extern const luaL_Reg wguiFuncs[];
+extern const luaL_Reg d2dFuncs[];
+extern const luaL_Reg memoryFuncs[];
+extern const luaL_Reg inputFuncs[];
+extern const luaL_Reg joypadFuncs[];
+extern const luaL_Reg movieFuncs[];
+extern const luaL_Reg savestateFuncs[];
+extern const luaL_Reg ioHelperFuncs[];
+extern const luaL_Reg aviFuncs[];
+extern const char* const REG_ATSTOP;
 
-	int AtPanic(lua_State* L)
+int AtPanic(lua_State* L)
+{
+	printf("Lua panic: %s\n", lua_tostring(L, -1));
+	MessageBox(mainHWND, lua_tostring(L, -1), "Lua Panic", 0);
+	return 0;
+}
+
+extern const char* const REG_WINDOWMESSAGE;
+
+void invoke_callbacks_with_key_on_all_instances(
+	std::function<int(lua_State*)> function, const char* key)
+{
+	// We need to copy the map, since it might be modified during iteration
+	auto map = hwnd_lua_map;
+	for (auto pair : map)
 	{
-		printf("Lua panic: %s\n", lua_tostring(L, -1));
-		MessageBox(mainHWND, lua_tostring(L, -1), "Lua Panic", 0);
-		return 0;
+		if (!pair.second->invoke_callbacks_with_key(function, key))
+			continue;
+
+		LuaEnvironment::destroy(pair.second);
 	}
+}
 
-	extern const char* const REG_WINDOWMESSAGE;
+BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
 
-	void invoke_callbacks_with_key_on_all_instances(
-		std::function<int(lua_State*)> function, const char* key)
+INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
+                            LPARAM lParam)
+{
+	switch (msg)
 	{
-		// We need to copy the map, since it might be modified during iteration
-		auto map = hwnd_lua_map;
-		for (auto pair : map)
+	case WM_INITDIALOG:
 		{
-			if(!pair.second->invoke_callbacks_with_key(function, key))
-				continue;
+			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+			              Config.lua_script_path.c_str());
+			return TRUE;
+		}
+	case WM_CLOSE:
+		DestroyWindow(wnd);
+		return TRUE;
+	case WM_DESTROY:
+		{
+			if (hwnd_lua_map.contains(wnd))
+			{
+				LuaEnvironment::destroy(hwnd_lua_map[wnd]);
+			}
+			return TRUE;
+		}
+	case WM_COMMAND:
+		return WmCommand(wnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
+	case WM_SIZE:
+		{
+			RECT window_rect = {0};
+			GetClientRect(wnd, &window_rect);
 
-			LuaEnvironment::destroy(pair.second);
+			HWND console_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
+			RECT console_rect = get_window_rect_client_space(wnd, console_hwnd);
+			SetWindowPos(console_hwnd, nullptr, 0, 0, window_rect.right - console_rect.left * 2, window_rect.bottom - console_rect.top, SWP_NOMOVE);
+
+			HWND path_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH);
+			RECT path_rect = get_window_rect_client_space(wnd, path_hwnd);
+			SetWindowPos(path_hwnd, nullptr, 0, 0, window_rect.right - console_rect.left * 2, path_rect.bottom - path_rect.top, SWP_NOMOVE);
+			if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
+			break;
 		}
 	}
+	return FALSE;
+}
 
-	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
-
-	INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
-	                            LPARAM lParam)
+void SetButtonState(HWND wnd, bool state)
+{
+	if (!IsWindow(wnd)) return;
+	const HWND state_button = GetDlgItem(wnd, IDC_BUTTON_LUASTATE);
+	const HWND stop_button = GetDlgItem(wnd, IDC_BUTTON_LUASTOP);
+	if (state)
 	{
-		switch (msg)
+		SetWindowText(state_button, "Restart");
+		EnableWindow(stop_button, TRUE);
+	} else
+	{
+		SetWindowText(state_button, "Run");
+		EnableWindow(stop_button, FALSE);
+	}
+}
+
+BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control)
+{
+	switch (id)
+	{
+	case IDC_BUTTON_LUASTATE:
 		{
-		case WM_INITDIALOG:
+			char path[MAX_PATH] = {0};
+			GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+			              path, MAX_PATH);
+
+			// if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
+			if (hwnd_lua_map.contains(wnd))
 			{
-				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-				              Config.lua_script_path.c_str());
-				return TRUE;
+				LuaEnvironment::destroy(hwnd_lua_map[wnd]);
 			}
-		case WM_CLOSE:
-			DestroyWindow(wnd);
+
+			// now spool up a new one
+			auto status = LuaEnvironment::create(path, wnd);
+			Messenger::broadcast(Messenger::Message::ScriptStarted, std::filesystem::path(path));
+
+			if (status.first == nullptr)
+			{
+				// failed, we give user some info and thats it
+				ConsoleWrite(wnd, (status.second + "\r\n").c_str());
+			} else
+			{
+				// it worked, we can set up associations and sync ui state
+				hwnd_lua_map[wnd] = status.first;
+				SetButtonState(wnd, true);
+			}
+
 			return TRUE;
-		case WM_DESTROY:
+		}
+	case IDC_BUTTON_LUASTOP:
+		{
+			if (hwnd_lua_map.contains(wnd))
 			{
-				if (hwnd_lua_map.contains(wnd)) {
-					LuaEnvironment::destroy(hwnd_lua_map[wnd]);
-				}
-				return TRUE;
+				LuaEnvironment::destroy(hwnd_lua_map[wnd]);
+				SetButtonState(wnd, false);
 			}
-		case WM_COMMAND:
-			return WmCommand(wnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
-		case WM_SIZE:
+			return TRUE;
+		}
+	case IDC_BUTTON_LUABROWSE:
+		{
+			auto path = show_persistent_open_dialog("o_lua", wnd, L"*.lua");
+
+			if (path.empty())
 			{
-				RECT window_rect = {0};
-				GetClientRect(wnd, &window_rect);
-
-				HWND console_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
-				RECT console_rect = get_window_rect_client_space(wnd, console_hwnd);
-				SetWindowPos(console_hwnd, nullptr, 0, 0, window_rect.right - console_rect.left * 2, window_rect.bottom - console_rect.top, SWP_NOMOVE);
-
-				HWND path_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH);
-				RECT path_rect = get_window_rect_client_space(wnd, path_hwnd);
-				SetWindowPos(path_hwnd, nullptr, 0, 0, window_rect.right - console_rect.left * 2, path_rect.bottom - path_rect.top, SWP_NOMOVE);
-				if (wParam == SIZE_MINIMIZED) SetFocus(mainHWND);
 				break;
 			}
-		}
-		return FALSE;
-	}
 
-	void SetButtonState(HWND wnd, bool state)
-	{
-		if (!IsWindow(wnd)) return;
-		const HWND state_button = GetDlgItem(wnd, IDC_BUTTON_LUASTATE);
-		const HWND stop_button = GetDlgItem(wnd, IDC_BUTTON_LUASTOP);
-		if (state)
-		{
-			SetWindowText(state_button, "Restart");
-			EnableWindow(stop_button, TRUE);
-		} else
-		{
-			SetWindowText(state_button, "Run");
-			EnableWindow(stop_button, FALSE);
-		}
-	}
-
-	BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control)
-	{
-		switch (id)
-		{
-		case IDC_BUTTON_LUASTATE:
-			{
-				char path[MAX_PATH] = {0};
-				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-				              path, MAX_PATH);
-
-				// if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
-				if (hwnd_lua_map.contains(wnd)) {
-					LuaEnvironment::destroy(hwnd_lua_map[wnd]);
-				}
-
-				// now spool up a new one
-				auto status = LuaEnvironment::create(path, wnd);
-				Messenger::broadcast(Messenger::Message::ScriptStarted, std::filesystem::path(path));
-
-				if (status.first == nullptr) {
-					// failed, we give user some info and thats it
-					ConsoleWrite(wnd, (status.second + "\r\n").c_str());
-				} else {
-					// it worked, we can set up associations and sync ui state
-					hwnd_lua_map[wnd] = status.first;
-					SetButtonState(wnd, true);
-				}
-
-				return TRUE;
-			}
-		case IDC_BUTTON_LUASTOP:
-			{
-				if (hwnd_lua_map.contains(wnd)) {
-					LuaEnvironment::destroy(hwnd_lua_map[wnd]);
-					SetButtonState(wnd, false);
-				}
-				return TRUE;
-			}
-		case IDC_BUTTON_LUABROWSE:
-			{
-				auto path = show_persistent_open_dialog("o_lua", wnd, L"*.lua");
-
-				if (path.empty())
-				{
-					break;
-				}
-
-				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), wstring_to_string(path).c_str());
-				return TRUE;
-			}
-		case IDC_BUTTON_LUAEDIT:
-			{
-				CHAR buf[MAX_PATH];
-				GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-				              buf, MAX_PATH);
-				if (buf == NULL || buf[0] == '\0')
-					/* || strlen(buf)>MAX_PATH*/
-					return FALSE;
-				// previously , clicking edit with empty path will open current directory in explorer, which is very bad
-
-				ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
-				return TRUE;
-			}
-		case IDC_BUTTON_LUACLEAR:
-			if (GetAsyncKeyState(VK_MENU))
-			{
-				// clear path
-				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
-				return TRUE;
-			}
-
-			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
+			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), wstring_to_string(path).c_str());
 			return TRUE;
 		}
-		return FALSE;
+	case IDC_BUTTON_LUAEDIT:
+		{
+			CHAR buf[MAX_PATH];
+			GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+			              buf, MAX_PATH);
+			if (buf == NULL || buf[0] == '\0')
+				/* || strlen(buf)>MAX_PATH*/
+				return FALSE;
+			// previously , clicking edit with empty path will open current directory in explorer, which is very bad
+
+			ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
+			return TRUE;
+		}
+	case IDC_BUTTON_LUACLEAR:
+		if (GetAsyncKeyState(VK_MENU))
+		{
+			// clear path
+			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
+			return TRUE;
+		}
+
+		SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
+		return TRUE;
 	}
+	return FALSE;
+}
 
-	HWND lua_create()
-	{
-		HWND hwnd = CreateDialogParam(app_instance,
-		                             MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
-		                             DialogProc,
-		                             NULL);
-		ShowWindow(hwnd, SW_SHOW);
-		return hwnd;
-	}
-
-
+HWND lua_create()
+{
+	HWND hwnd = CreateDialogParam(app_instance,
+	                              MAKEINTRESOURCE(IDD_LUAWINDOW), mainHWND,
+	                              DialogProc,
+	                              NULL);
+	ShowWindow(hwnd, SW_SHOW);
+	return hwnd;
+}
 
 
 void lua_exit()
@@ -275,330 +277,328 @@ void lua_exit()
 }
 
 void lua_create_and_run(const char* path)
+{
+	printf("Creating lua window...\n");
+	auto hwnd = lua_create();
+
+	printf("Setting path...\n");
+	// set the textbox content to match the path
+	SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
+
+	printf("Simulating run button click...\n");
+	// click run button
+	SendMessage(hwnd, WM_COMMAND,
+	            MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+	            (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+}
+
+
+void ConsoleWrite(HWND wnd, const char* str)
+{
+	HWND console = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
+
+	int length = GetWindowTextLength(console);
+	if (length >= 0x7000)
 	{
-		printf("Creating lua window...\n");
-		auto hwnd = lua_create();
-
-		printf("Setting path...\n");
-		// set the textbox content to match the path
-		SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
-
-		printf("Simulating run button click...\n");
-		// click run button
-		SendMessage(hwnd, WM_COMMAND,
-						MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
-						(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+		SendMessage(console, EM_SETSEL, 0, length / 2);
+		SendMessage(console, EM_REPLACESEL, false, (LPARAM)"");
+		length = GetWindowTextLength(console);
 	}
+	SendMessage(console, EM_SETSEL, length, length);
+	SendMessage(console, EM_REPLACESEL, false, (LPARAM)str);
+}
 
-
-	void ConsoleWrite(HWND wnd, const char* str)
+LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam,
+                               LPARAM lParam)
+{
+	switch (msg)
 	{
-		HWND console = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
-
-		int length = GetWindowTextLength(console);
-		if (length >= 0x7000)
-		{
-			SendMessage(console, EM_SETSEL, 0, length / 2);
-			SendMessage(console, EM_REPLACESEL, false, (LPARAM)"");
-			length = GetWindowTextLength(console);
-		}
-		SendMessage(console, EM_SETSEL, length, length);
-		SendMessage(console, EM_REPLACESEL, false, (LPARAM)str);
+	case WM_CREATE:
+	case WM_DESTROY:
+		return 0;
 	}
+	return DefWindowProc(wnd, msg, wParam, lParam);
+}
 
-	LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam,
-	                               LPARAM lParam)
-	{
-		switch (msg)
-		{
-		case WM_CREATE:
-		case WM_DESTROY:
-			return 0;
-		}
-		return DefWindowProc(wnd, msg, wParam, lParam);
-	}
+LuaEnvironment* GetLuaClass(lua_State* L)
+{
+	lua_getfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
+	auto lua = (LuaEnvironment*)lua_topointer(L, -1);
+	lua_pop(L, 1);
+	return lua;
+}
 
-	LuaEnvironment* GetLuaClass(lua_State* L)
+void SetLuaClass(lua_State* L, void* lua)
+{
+	lua_pushlightuserdata(L, lua);
+	lua_setfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
+	//lua_pop(L, 1); //iteresting, it worked before
+}
+
+int GetErrorMessage(lua_State* L)
+{
+	return 1;
+}
+
+int getn(lua_State* L)
+{
+	lua_pushinteger(L, luaL_len(L, -1));
+	return 1;
+}
+
+int RegisterFunction(lua_State* L, const char* key)
+{
+	lua_getfield(L, LUA_REGISTRYINDEX, key);
+	if (lua_isnil(L, -1))
 	{
-		lua_getfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
-		auto lua = (LuaEnvironment*)lua_topointer(L, -1);
 		lua_pop(L, 1);
-		return lua;
-	}
-
-	void SetLuaClass(lua_State* L, void* lua)
-	{
-		lua_pushlightuserdata(L, lua);
-		lua_setfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
-		//lua_pop(L, 1); //iteresting, it worked before
-	}
-
-	int GetErrorMessage(lua_State* L)
-	{
-		return 1;
-	}
-
-	int getn(lua_State* L)
-	{
-		lua_pushinteger(L, luaL_len(L, -1));
-		return 1;
-	}
-
-	int RegisterFunction(lua_State* L, const char* key)
-	{
+		lua_newtable(L);
+		lua_setfield(L, LUA_REGISTRYINDEX, key);
 		lua_getfield(L, LUA_REGISTRYINDEX, key);
-		if (lua_isnil(L, -1))
+	}
+	int i = luaL_len(L, -1) + 1;
+	lua_pushinteger(L, i);
+	lua_pushvalue(L, -3); //
+	lua_settable(L, -3);
+	lua_pop(L, 1);
+	return i;
+}
+
+void UnregisterFunction(lua_State* L, const char* key)
+{
+	lua_getfield(L, LUA_REGISTRYINDEX, key);
+	if (lua_isnil(L, -1))
+	{
+		lua_pop(L, 1);
+		lua_newtable(L); //�Ƃ肠����
+	}
+	int n = luaL_len(L, -1);
+	for (LUA_INTEGER i = 0; i < n; i++)
+	{
+		lua_pushinteger(L, 1 + i);
+		lua_gettable(L, -2);
+		if (lua_rawequal(L, -1, -3))
 		{
 			lua_pop(L, 1);
-			lua_newtable(L);
-			lua_setfield(L, LUA_REGISTRYINDEX, key);
-			lua_getfield(L, LUA_REGISTRYINDEX, key);
-		}
-		int i = luaL_len(L, -1) + 1;
-		lua_pushinteger(L, i);
-		lua_pushvalue(L, -3); //
-		lua_settable(L, -3);
-		lua_pop(L, 1);
-		return i;
-	}
-
-	void UnregisterFunction(lua_State* L, const char* key)
-	{
-		lua_getfield(L, LUA_REGISTRYINDEX, key);
-		if (lua_isnil(L, -1))
-		{
-			lua_pop(L, 1);
-			lua_newtable(L); //�Ƃ肠����
-		}
-		int n = luaL_len(L, -1);
-		for (LUA_INTEGER i = 0; i < n; i++)
-		{
+			lua_getglobal(L, "table");
+			lua_getfield(L, -1, "remove");
+			lua_pushvalue(L, -3);
 			lua_pushinteger(L, 1 + i);
-			lua_gettable(L, -2);
-			if (lua_rawequal(L, -1, -3))
-			{
-				lua_pop(L, 1);
-				lua_getglobal(L, "table");
-				lua_getfield(L, -1, "remove");
-				lua_pushvalue(L, -3);
-				lua_pushinteger(L, 1 + i);
-				lua_call(L, 2, 0);
-				lua_pop(L, 2);
-				return;
-			}
-			lua_pop(L, 1);
+			lua_call(L, 2, 0);
+			lua_pop(L, 2);
+			return;
 		}
 		lua_pop(L, 1);
-		lua_pushfstring(L, "unregisterFunction(%s): not found function",
-		                key);
-		lua_error(L);
 	}
+	lua_pop(L, 1);
+	lua_pushfstring(L, "unregisterFunction(%s): not found function",
+	                key);
+	lua_error(L);
+}
 
-	// 000000 | 0000 0000 0000 000 | stype(5) = 10101 |001111
-	const ULONG BREAKPOINTSYNC_MAGIC_STYPE = 0x15;
-	const ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
-		(BREAKPOINTSYNC_MAGIC_STYPE << 6);
+// 000000 | 0000 0000 0000 000 | stype(5) = 10101 |001111
+const ULONG BREAKPOINTSYNC_MAGIC_STYPE = 0x15;
+const ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
+	(BREAKPOINTSYNC_MAGIC_STYPE << 6);
 
 
-	// these begin and end comments help to generate documentation
-	// please don't remove them
+// these begin and end comments help to generate documentation
+// please don't remove them
 
-	// begin lua funcs
-	const luaL_Reg globalFuncs[] = {
-		{"print", LuaCore::Global::Print},
-		{"printx", LuaCore::Global::PrintX},
-		{"tostringex", LuaCore::Global::ToStringExs},
-		{"stop", LuaCore::Global::StopScript},
-		{NULL, NULL}
-	};
+// begin lua funcs
+const luaL_Reg globalFuncs[] = {
+	{"print", LuaCore::Global::Print},
+	{"printx", LuaCore::Global::PrintX},
+	{"tostringex", LuaCore::Global::ToStringExs},
+	{"stop", LuaCore::Global::StopScript},
+	{NULL, NULL}
+};
 
-	const luaL_Reg emuFuncs[] = {
-		{"console", LuaCore::Emu::ConsoleWriteLua},
-		{"statusbar", LuaCore::Emu::StatusbarWrite},
+const luaL_Reg emuFuncs[] = {
+	{"console", LuaCore::Emu::ConsoleWriteLua},
+	{"statusbar", LuaCore::Emu::StatusbarWrite},
 
-		{"atvi", LuaCore::Emu::RegisterVI},
-		{"atupdatescreen", LuaCore::Emu::RegisterUpdateScreen},
-		{"atdrawd2d", LuaCore::Emu::RegisterAtDrawD2D},
-		{"atinput", LuaCore::Emu::RegisterInput},
-		{"atstop", LuaCore::Emu::RegisterStop},
-		{"atwindowmessage", LuaCore::Emu::RegisterWindowMessage},
-		{"atinterval", LuaCore::Emu::RegisterInterval},
-		{"atplaymovie", LuaCore::Emu::RegisterPlayMovie},
-		{"atstopmovie", LuaCore::Emu::RegisterStopMovie},
-		{"atloadstate", LuaCore::Emu::RegisterLoadState},
-		{"atsavestate", LuaCore::Emu::RegisterSaveState},
-		{"atreset", LuaCore::Emu::RegisterReset},
+	{"atvi", LuaCore::Emu::RegisterVI},
+	{"atupdatescreen", LuaCore::Emu::RegisterUpdateScreen},
+	{"atdrawd2d", LuaCore::Emu::RegisterAtDrawD2D},
+	{"atinput", LuaCore::Emu::RegisterInput},
+	{"atstop", LuaCore::Emu::RegisterStop},
+	{"atwindowmessage", LuaCore::Emu::RegisterWindowMessage},
+	{"atinterval", LuaCore::Emu::RegisterInterval},
+	{"atplaymovie", LuaCore::Emu::RegisterPlayMovie},
+	{"atstopmovie", LuaCore::Emu::RegisterStopMovie},
+	{"atloadstate", LuaCore::Emu::RegisterLoadState},
+	{"atsavestate", LuaCore::Emu::RegisterSaveState},
+	{"atreset", LuaCore::Emu::RegisterReset},
 
-		{"framecount", LuaCore::Emu::GetVICount},
-		{"samplecount", LuaCore::Emu::GetSampleCount},
-		{"inputcount", LuaCore::Emu::GetInputCount},
+	{"framecount", LuaCore::Emu::GetVICount},
+	{"samplecount", LuaCore::Emu::GetSampleCount},
+	{"inputcount", LuaCore::Emu::GetInputCount},
 
-		// DEPRECATE: This is completely useless
-		{"getversion", LuaCore::Emu::GetMupenVersion},
+	// DEPRECATE: This is completely useless
+	{"getversion", LuaCore::Emu::GetMupenVersion},
 
-		{"pause", LuaCore::Emu::EmuPause},
-		{"getpause", LuaCore::Emu::GetEmuPause},
-		{"getspeed", LuaCore::Emu::GetSpeed},
-		{"get_ff", LuaCore::Emu::GetFastForward},
-		{"set_ff", LuaCore::Emu::SetFastForward},
-		{"speed", LuaCore::Emu::SetSpeed},
-		{"speedmode", LuaCore::Emu::SetSpeedMode},
-		// DEPRECATE: This is completely useless
-		{"setgfx", LuaCore::Emu::SetGFX},
+	{"pause", LuaCore::Emu::EmuPause},
+	{"getpause", LuaCore::Emu::GetEmuPause},
+	{"getspeed", LuaCore::Emu::GetSpeed},
+	{"get_ff", LuaCore::Emu::GetFastForward},
+	{"set_ff", LuaCore::Emu::SetFastForward},
+	{"speed", LuaCore::Emu::SetSpeed},
+	{"speedmode", LuaCore::Emu::SetSpeedMode},
+	// DEPRECATE: This is completely useless
+	{"setgfx", LuaCore::Emu::SetGFX},
 
-		{"getaddress", LuaCore::Emu::GetAddress},
+	{"getaddress", LuaCore::Emu::GetAddress},
 
-		{"screenshot", LuaCore::Emu::Screenshot},
+	{"screenshot", LuaCore::Emu::Screenshot},
 
 #pragma region WinAPI
-		// DEPRECATE: WinAPI coupling
-		{"getsystemmetrics", LuaCore::Emu::GetSystemMetricsLua},
-		{"play_sound", LuaCore::Emu::LuaPlaySound},
+	// DEPRECATE: WinAPI coupling
+	{"getsystemmetrics", LuaCore::Emu::GetSystemMetricsLua},
+	{"play_sound", LuaCore::Emu::LuaPlaySound},
 #pragma endregion
-		{"ismainwindowinforeground", LuaCore::Emu::IsMainWindowInForeground},
+	{"ismainwindowinforeground", LuaCore::Emu::IsMainWindowInForeground},
 
-		{NULL, NULL}
-	};
-	const luaL_Reg memoryFuncs[] = {
-		// memory conversion functions
-		{"inttofloat", LuaCore::Memory::LuaIntToFloat},
-		{"inttodouble", LuaCore::Memory::LuaIntToDouble},
-		{"floattoint", LuaCore::Memory::LuaFloatToInt},
-		{"doubletoint", LuaCore::Memory::LuaDoubleToInt},
-		{"qwordtonumber", LuaCore::Memory::LuaQWordToNumber},
+	{NULL, NULL}
+};
+const luaL_Reg memoryFuncs[] = {
+	// memory conversion functions
+	{"inttofloat", LuaCore::Memory::LuaIntToFloat},
+	{"inttodouble", LuaCore::Memory::LuaIntToDouble},
+	{"floattoint", LuaCore::Memory::LuaFloatToInt},
+	{"doubletoint", LuaCore::Memory::LuaDoubleToInt},
+	{"qwordtonumber", LuaCore::Memory::LuaQWordToNumber},
 
-		// word = 2 bytes
-		// reading functions
-		{"readbytesigned", LuaCore::Memory::LuaReadByteSigned},
-		{"readbyte", LuaCore::Memory::LuaReadByteUnsigned},
-		{"readwordsigned", LuaCore::Memory::LuaReadWordSigned},
-		{"readword", LuaCore::Memory::LuaReadWordUnsigned},
-		{"readdwordsigned", LuaCore::Memory::LuaReadDWordSigned},
-		{"readdword", LuaCore::Memory::LuaReadDWorldUnsigned},
-		{"readqwordsigned", LuaCore::Memory::LuaReadQWordSigned},
-		{"readqword", LuaCore::Memory::LuaReadQWordUnsigned},
-		{"readfloat", LuaCore::Memory::LuaReadFloat},
-		{"readdouble", LuaCore::Memory::LuaReadDouble},
-		{"readsize", LuaCore::Memory::LuaReadSize},
+	// word = 2 bytes
+	// reading functions
+	{"readbytesigned", LuaCore::Memory::LuaReadByteSigned},
+	{"readbyte", LuaCore::Memory::LuaReadByteUnsigned},
+	{"readwordsigned", LuaCore::Memory::LuaReadWordSigned},
+	{"readword", LuaCore::Memory::LuaReadWordUnsigned},
+	{"readdwordsigned", LuaCore::Memory::LuaReadDWordSigned},
+	{"readdword", LuaCore::Memory::LuaReadDWorldUnsigned},
+	{"readqwordsigned", LuaCore::Memory::LuaReadQWordSigned},
+	{"readqword", LuaCore::Memory::LuaReadQWordUnsigned},
+	{"readfloat", LuaCore::Memory::LuaReadFloat},
+	{"readdouble", LuaCore::Memory::LuaReadDouble},
+	{"readsize", LuaCore::Memory::LuaReadSize},
 
-		// writing functions
-		// all of these are assumed to be unsigned
-		{"writebyte", LuaCore::Memory::LuaWriteByteUnsigned},
-		{"writeword", LuaCore::Memory::LuaWriteWordUnsigned},
-		{"writedword", LuaCore::Memory::LuaWriteDWordUnsigned},
-		{"writeqword", LuaCore::Memory::LuaWriteQWordUnsigned},
-		{"writefloat", LuaCore::Memory::LuaWriteFloatUnsigned},
-		{"writedouble", LuaCore::Memory::LuaWriteDoubleUnsigned},
+	// writing functions
+	// all of these are assumed to be unsigned
+	{"writebyte", LuaCore::Memory::LuaWriteByteUnsigned},
+	{"writeword", LuaCore::Memory::LuaWriteWordUnsigned},
+	{"writedword", LuaCore::Memory::LuaWriteDWordUnsigned},
+	{"writeqword", LuaCore::Memory::LuaWriteQWordUnsigned},
+	{"writefloat", LuaCore::Memory::LuaWriteFloatUnsigned},
+	{"writedouble", LuaCore::Memory::LuaWriteDoubleUnsigned},
 
-		{"writesize", LuaCore::Memory::LuaWriteSize},
+	{"writesize", LuaCore::Memory::LuaWriteSize},
 
-		{NULL, NULL}
-	};
+	{NULL, NULL}
+};
 
-	const luaL_Reg wguiFuncs[] = {
-		{"setbrush", LuaCore::Wgui::set_brush},
-		{"setpen", LuaCore::Wgui::set_pen},
-		{"setcolor", LuaCore::Wgui::set_text_color},
-		{"setbk", LuaCore::Wgui::SetBackgroundColor},
-		{"setfont", LuaCore::Wgui::SetFont},
-		{"text", LuaCore::Wgui::LuaTextOut},
-		{"drawtext", LuaCore::Wgui::LuaDrawText},
-		{"drawtextalt", LuaCore::Wgui::LuaDrawTextAlt},
-		{"gettextextent", LuaCore::Wgui::GetTextExtent},
-		{"rect", LuaCore::Wgui::DrawRect},
-		{"fillrect", LuaCore::Wgui::FillRect},
-		/*<GDIPlus>*/
-		// GDIPlus functions marked with "a" suffix
-		{"fillrecta", LuaCore::Wgui::FillRectAlpha},
-		{"fillellipsea", LuaCore::Wgui::FillEllipseAlpha},
-		{"fillpolygona", LuaCore::Wgui::FillPolygonAlpha},
-		{"loadimage", LuaCore::Wgui::LuaLoadImage},
-		{"deleteimage", LuaCore::Wgui::DeleteImage},
-		{"drawimage", LuaCore::Wgui::DrawImage},
-		{"loadscreen", LuaCore::Wgui::LoadScreen},
-		{"loadscreenreset", LuaCore::Wgui::LoadScreenReset},
-		{"getimageinfo", LuaCore::Wgui::GetImageInfo},
-		/*</GDIPlus*/
-		{"ellipse", LuaCore::Wgui::DrawEllipse},
-		{"polygon", LuaCore::Wgui::DrawPolygon},
-		{"line", LuaCore::Wgui::DrawLine},
-		{"info", LuaCore::Wgui::GetGUIInfo},
-		{"resize", LuaCore::Wgui::ResizeWindow},
-		{"setclip", LuaCore::Wgui::SetClip},
-		{"resetclip", LuaCore::Wgui::ResetClip},
-		{NULL, NULL}
-	};
+const luaL_Reg wguiFuncs[] = {
+	{"setbrush", LuaCore::Wgui::set_brush},
+	{"setpen", LuaCore::Wgui::set_pen},
+	{"setcolor", LuaCore::Wgui::set_text_color},
+	{"setbk", LuaCore::Wgui::SetBackgroundColor},
+	{"setfont", LuaCore::Wgui::SetFont},
+	{"text", LuaCore::Wgui::LuaTextOut},
+	{"drawtext", LuaCore::Wgui::LuaDrawText},
+	{"drawtextalt", LuaCore::Wgui::LuaDrawTextAlt},
+	{"gettextextent", LuaCore::Wgui::GetTextExtent},
+	{"rect", LuaCore::Wgui::DrawRect},
+	{"fillrect", LuaCore::Wgui::FillRect},
+	/*<GDIPlus>*/
+	// GDIPlus functions marked with "a" suffix
+	{"fillrecta", LuaCore::Wgui::FillRectAlpha},
+	{"fillellipsea", LuaCore::Wgui::FillEllipseAlpha},
+	{"fillpolygona", LuaCore::Wgui::FillPolygonAlpha},
+	{"loadimage", LuaCore::Wgui::LuaLoadImage},
+	{"deleteimage", LuaCore::Wgui::DeleteImage},
+	{"drawimage", LuaCore::Wgui::DrawImage},
+	{"loadscreen", LuaCore::Wgui::LoadScreen},
+	{"loadscreenreset", LuaCore::Wgui::LoadScreenReset},
+	{"getimageinfo", LuaCore::Wgui::GetImageInfo},
+	/*</GDIPlus*/
+	{"ellipse", LuaCore::Wgui::DrawEllipse},
+	{"polygon", LuaCore::Wgui::DrawPolygon},
+	{"line", LuaCore::Wgui::DrawLine},
+	{"info", LuaCore::Wgui::GetGUIInfo},
+	{"resize", LuaCore::Wgui::ResizeWindow},
+	{"setclip", LuaCore::Wgui::SetClip},
+	{"resetclip", LuaCore::Wgui::ResetClip},
+	{NULL, NULL}
+};
 
-	const luaL_Reg d2dFuncs[] = {
-		{"create_brush", LuaCore::D2D::create_brush},
-		{"free_brush", LuaCore::D2D::free_brush},
+const luaL_Reg d2dFuncs[] = {
+	{"create_brush", LuaCore::D2D::create_brush},
+	{"free_brush", LuaCore::D2D::free_brush},
 
-		{"clear", LuaCore::D2D::clear},
-		{"fill_rectangle", LuaCore::D2D::fill_rectangle},
-		{"draw_rectangle", LuaCore::D2D::draw_rectangle},
-		{"fill_ellipse", LuaCore::D2D::fill_ellipse},
-		{"draw_ellipse", LuaCore::D2D::draw_ellipse},
-		{"draw_line", LuaCore::D2D::draw_line},
-		{"draw_text", LuaCore::D2D::draw_text},
-		{"get_text_size", LuaCore::D2D::measure_text},
-		{"push_clip", LuaCore::D2D::push_clip},
-		{"pop_clip", LuaCore::D2D::pop_clip},
-		{"fill_rounded_rectangle", LuaCore::D2D::fill_rounded_rectangle},
-		{"draw_rounded_rectangle", LuaCore::D2D::draw_rounded_rectangle},
-		{"load_image", LuaCore::D2D::load_image},
-		{"free_image", LuaCore::D2D::free_image},
-		{"draw_image", LuaCore::D2D::draw_image},
-		{"get_image_info", LuaCore::D2D::get_image_info},
-		{"set_text_antialias_mode", LuaCore::D2D::set_text_antialias_mode},
-		{"set_antialias_mode", LuaCore::D2D::set_antialias_mode},
+	{"clear", LuaCore::D2D::clear},
+	{"fill_rectangle", LuaCore::D2D::fill_rectangle},
+	{"draw_rectangle", LuaCore::D2D::draw_rectangle},
+	{"fill_ellipse", LuaCore::D2D::fill_ellipse},
+	{"draw_ellipse", LuaCore::D2D::draw_ellipse},
+	{"draw_line", LuaCore::D2D::draw_line},
+	{"draw_text", LuaCore::D2D::draw_text},
+	{"get_text_size", LuaCore::D2D::measure_text},
+	{"push_clip", LuaCore::D2D::push_clip},
+	{"pop_clip", LuaCore::D2D::pop_clip},
+	{"fill_rounded_rectangle", LuaCore::D2D::fill_rounded_rectangle},
+	{"draw_rounded_rectangle", LuaCore::D2D::draw_rounded_rectangle},
+	{"load_image", LuaCore::D2D::load_image},
+	{"free_image", LuaCore::D2D::free_image},
+	{"draw_image", LuaCore::D2D::draw_image},
+	{"get_image_info", LuaCore::D2D::get_image_info},
+	{"set_text_antialias_mode", LuaCore::D2D::set_text_antialias_mode},
+	{"set_antialias_mode", LuaCore::D2D::set_antialias_mode},
 
-		{"draw_to_image", LuaCore::D2D::draw_to_image},
-		{NULL, NULL}
-	};
+	{"draw_to_image", LuaCore::D2D::draw_to_image},
+	{NULL, NULL}
+};
 
-	const luaL_Reg inputFuncs[] = {
-		{"get", LuaCore::Input::get_keys},
-		{"diff", LuaCore::Input::GetKeyDifference},
-		{"prompt", LuaCore::Input::InputPrompt},
-		{"get_key_name_text", LuaCore::Input::LuaGetKeyNameText},
-		// DEPRECATE: WinAPI coupling
-		{"map_virtual_key_ex", LuaCore::Input::LuaMapVirtualKeyEx},
-		{NULL, NULL}
-	};
-	const luaL_Reg joypadFuncs[] = {
-		{"get", LuaCore::Joypad::lua_get_joypad},
-		{"set", LuaCore::Joypad::lua_set_joypad},
-		// OBSOLETE: Cross-module reach
-		{"count", LuaCore::Emu::GetInputCount},
-		{NULL, NULL}
-	};
+const luaL_Reg inputFuncs[] = {
+	{"get", LuaCore::Input::get_keys},
+	{"diff", LuaCore::Input::GetKeyDifference},
+	{"prompt", LuaCore::Input::InputPrompt},
+	{"get_key_name_text", LuaCore::Input::LuaGetKeyNameText},
+	// DEPRECATE: WinAPI coupling
+	{"map_virtual_key_ex", LuaCore::Input::LuaMapVirtualKeyEx},
+	{NULL, NULL}
+};
+const luaL_Reg joypadFuncs[] = {
+	{"get", LuaCore::Joypad::lua_get_joypad},
+	{"set", LuaCore::Joypad::lua_set_joypad},
+	// OBSOLETE: Cross-module reach
+	{"count", LuaCore::Emu::GetInputCount},
+	{NULL, NULL}
+};
 
-	const luaL_Reg movieFuncs[] = {
-		{"play", LuaCore::Movie::PlayMovie},
-		{"stop", LuaCore::Movie::StopMovie},
-		{"get_filename", LuaCore::Movie::GetMovieFilename},
-		{"get_readonly", LuaCore::Movie::GetVCRReadOnly},
-		{"set_readonly", LuaCore::Movie::SetVCRReadOnly},
-		{NULL, NULL}
-	};
+const luaL_Reg movieFuncs[] = {
+	{"play", LuaCore::Movie::PlayMovie},
+	{"stop", LuaCore::Movie::StopMovie},
+	{"get_filename", LuaCore::Movie::GetMovieFilename},
+	{"get_readonly", LuaCore::Movie::GetVCRReadOnly},
+	{"set_readonly", LuaCore::Movie::SetVCRReadOnly},
+	{NULL, NULL}
+};
 
-	const luaL_Reg savestateFuncs[] = {
-		{"savefile", LuaCore::Savestate::SaveFileSavestate},
-		{"loadfile", LuaCore::Savestate::LoadFileSavestate},
-		{NULL, NULL}
-	};
-	const luaL_Reg ioHelperFuncs[] = {
-		{"filediag", LuaCore::IOHelper::LuaFileDialog},
-		{NULL, NULL}
-	};
-	const luaL_Reg aviFuncs[] = {
-		{"startcapture", LuaCore::Avi::StartCapture},
-		{"stopcapture", LuaCore::Avi::StopCapture},
-		{NULL, NULL}
-	};
-	// end lua funcs
-
-
+const luaL_Reg savestateFuncs[] = {
+	{"savefile", LuaCore::Savestate::SaveFileSavestate},
+	{"loadfile", LuaCore::Savestate::LoadFileSavestate},
+	{NULL, NULL}
+};
+const luaL_Reg ioHelperFuncs[] = {
+	{"filediag", LuaCore::IOHelper::LuaFileDialog},
+	{NULL, NULL}
+};
+const luaL_Reg aviFuncs[] = {
+	{"startcapture", LuaCore::Avi::StartCapture},
+	{"stopcapture", LuaCore::Avi::StopCapture},
+	{NULL, NULL}
+};
+// end lua funcs
 
 
 void instrStr1(unsigned long pc, unsigned long w, char* p1)
@@ -751,11 +751,13 @@ EmulationLock::~EmulationLock()
 	printf("Emulation Unlock\n");
 }
 
-void close_all_scripts() {
+void close_all_scripts()
+{
 	assert(IsGUIThread(false));
 
 	// we mutate the map's nodes while iterating, so we have to make a copy
-	for (auto copy = std::map(hwnd_lua_map); const auto fst : copy | std::views::keys) {
+	for (auto copy = std::map(hwnd_lua_map); const auto fst : copy | std::views::keys)
+	{
 		SendMessage(fst, WM_CLOSE, 0, 0);
 	}
 	assert(hwnd_lua_map.empty());
@@ -766,11 +768,11 @@ void stop_all_scripts()
 	assert(IsGUIThread(false));
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	auto copy = std::map(hwnd_lua_map);
-	for (const auto key : copy | std::views::keys) {
+	for (const auto key : copy | std::views::keys)
+	{
 		SendMessage(key, WM_COMMAND,
-					MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
-					(LPARAM)GetDlgItem(key, IDC_BUTTON_LUASTOP));
-
+		            MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
+		            (LPARAM)GetDlgItem(key, IDC_BUTTON_LUASTOP));
 	}
 	assert(hwnd_lua_map.empty());
 }
@@ -842,7 +844,6 @@ LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 
 void lua_init()
 {
-
 	Gdiplus::GdiplusStartupInput startup_input;
 	GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
 
@@ -877,9 +878,10 @@ void LuaEnvironment::create_renderer()
 		GetWindowRect(Statusbar::hwnd(), &rc);
 		window_rect.bottom -= (WORD)(rc.bottom - rc.top);
 	}
-	dc_size = { (UINT32)abs(window_rect.right), (UINT32)abs(window_rect.bottom) };
+	dc_size = {(UINT32)abs(window_rect.right), (UINT32)abs(window_rect.bottom)};
 
-	d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
+	d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr,
+	                                  GetModuleHandle(nullptr), nullptr);
 	SetWindowLongPtr(d2d_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	DWriteCreateFactory(
@@ -888,7 +890,8 @@ void LuaEnvironment::create_renderer()
 		reinterpret_cast<IUnknown**>(&dw_factory)
 	);
 
-	if(!create_composition_surface(d2d_overlay_hwnd, dc_size, &factory, &dxgiadapter, &d3device, &dxdevice, &bitmap, &comp_visual, &comp_device, &comp_target, &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc, &dxgi_surface, &dxgi_surface_resource, &front_buffer))
+	if (!create_composition_surface(d2d_overlay_hwnd, dc_size, &factory, &dxgiadapter, &d3device, &dxdevice, &bitmap, &comp_visual, &comp_device, &comp_target,
+	                                &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc, &dxgi_surface, &dxgi_surface_resource, &front_buffer))
 	{
 		printf("Failed to set up composition\n");
 		return;
@@ -898,11 +901,12 @@ void LuaEnvironment::create_renderer()
 
 	auto gdi_dc = GetDC(mainHWND);
 	gdi_back_dc = CreateCompatibleDC(gdi_dc);
-	gdi_bmp = CreateCompatibleBitmap(gdi_dc,dc_size.width, dc_size.height);
+	gdi_bmp = CreateCompatibleBitmap(gdi_dc, dc_size.width, dc_size.height);
 	SelectObject(gdi_back_dc, gdi_bmp);
 	ReleaseDC(mainHWND, gdi_dc);
 
-	gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, gdi_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr, GetModuleHandle(nullptr), nullptr);
+	gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, gdi_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr,
+	                                  GetModuleHandle(nullptr), nullptr);
 	SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 	SetLayeredWindowAttributes(gdi_overlay_hwnd, bitmap_color_mask, 0, LWA_COLORKEY);
 
@@ -919,16 +923,19 @@ void LuaEnvironment::destroy_renderer()
 
 	printf("Destroying Lua renderer...\n");
 
-	for (auto const& [_, val] : dw_text_layouts) {
+	for (auto const& [_, val] : dw_text_layouts)
+	{
 		val->Release();
 	}
 	dw_text_layouts.clear();
 
-	while (!d2d_render_target_stack.empty()) {
+	while (!d2d_render_target_stack.empty())
+	{
 		d2d_render_target_stack.pop();
 	}
 
-	for (auto x : image_pool) {
+	for (auto x : image_pool)
+	{
 		delete x;
 	}
 	image_pool.clear();
@@ -958,7 +965,8 @@ void LuaEnvironment::destroy_renderer()
 	gdi_back_dc = nullptr;
 }
 
-void LuaEnvironment::destroy(LuaEnvironment* lua_environment) {
+void LuaEnvironment::destroy(LuaEnvironment* lua_environment)
+{
 	hwnd_lua_map.erase(lua_environment->hwnd);
 	delete lua_environment;
 }
@@ -994,7 +1002,8 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 	return std::make_pair(lua_environment, error_str);
 }
 
-LuaEnvironment::~LuaEnvironment() {
+LuaEnvironment::~LuaEnvironment()
+{
 	invoke_callbacks_with_key(LuaCallbacks::state_stop, REG_ATSTOP);
 	SelectObject(gdi_back_dc, nullptr);
 	DeleteObject(brush);
@@ -1010,19 +1019,23 @@ LuaEnvironment::~LuaEnvironment() {
 //calls all functions that lua script has defined as callbacks, reads them from registry
 //returns true at fail
 bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> function,
-							   const char* key) {
+                                               const char* key)
+{
 	assert(IsGUIThread(false));
 	lua_getfield(L, LUA_REGISTRYINDEX, key);
 	//shouldn't ever happen but could cause kernel panic
-	if lua_isnil(L, -1) {
+	if lua_isnil(L, -1)
+	{
 		lua_pop(L, 1);
 		return false;
 	}
 	int n = luaL_len(L, -1);
-	for (LUA_INTEGER i = 0; i < n; i++) {
+	for (LUA_INTEGER i = 0; i < n; i++)
+	{
 		lua_pushinteger(L, 1 + i);
 		lua_gettable(L, -2);
-		if (function(L)) {\
+		if (function(L))
+		{\
 			const char* str = lua_tostring(L, -1);
 			ConsoleWrite(hwnd, str);
 			ConsoleWrite(hwnd, "\r\n");
@@ -1045,10 +1058,10 @@ void LuaEnvironment::LoadScreenDelete()
 void LuaEnvironment::invalidate_visuals()
 {
 	RECT rect;
- 	GetClientRect(this->d2d_overlay_hwnd, &rect);
+	GetClientRect(this->d2d_overlay_hwnd, &rect);
 
- 	InvalidateRect(this->d2d_overlay_hwnd, &rect, false);
- 	InvalidateRect(this->gdi_overlay_hwnd, &rect, false);
+	InvalidateRect(this->d2d_overlay_hwnd, &rect, false);
+	InvalidateRect(this->gdi_overlay_hwnd, &rect, false);
 }
 
 void LuaEnvironment::LoadScreenInit()
@@ -1069,20 +1082,24 @@ void LuaEnvironment::LoadScreenInit()
 	LoadScreenInitialized = true;
 }
 
-void register_as_package(lua_State* lua_state, const char* name, const luaL_Reg regs[]) {
+void register_as_package(lua_State* lua_state, const char* name, const luaL_Reg regs[])
+{
 	if (name == nullptr)
 	{
 		const luaL_Reg* p = regs;
-		do {
+		do
+		{
 			lua_register(lua_state, p->name, p->func);
-		} while ((++p)->func);
+		}
+		while ((++p)->func);
 		return;
 	}
 	luaL_newlib(lua_state, regs);
 	lua_setglobal(lua_state, name);
 }
 
-void LuaEnvironment::register_functions() {
+void LuaEnvironment::register_functions()
+{
 	luaL_openlibs(L);
 
 	register_as_package(L, nullptr, globalFuncs);

@@ -102,7 +102,7 @@ namespace EncodingManager
 		SelectObject(compat_dc, bitmap);
 
 		BitBlt(compat_dc, 0, 0, *width, *height, dc, pt.x,
-				   pt.y + (info.height - *height), SRCCOPY);
+		       pt.y + (info.height - *height), SRCCOPY);
 
 		BITMAPINFO bmp_info{};
 		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -199,14 +199,16 @@ namespace EncodingManager
 		{
 			return MGECompositor::available() ? MGECompositor::read_screen : readScreen;
 		}
-		if(Config.capture_mode == 1)
+		if (Config.capture_mode == 1)
 		{
 			return readscreen_window;
 		}
 		return readscreen_desktop;
 	}
 
-	void dummy_free(void*){};
+	void dummy_free(void*)
+	{
+	};
 
 	auto effective_readscreen_free()
 	{
@@ -220,12 +222,14 @@ namespace EncodingManager
 	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
 	                   const bool ask_for_encoding_settings)
 	{
-		if (!effective_readscreen()) {
+		if (!effective_readscreen())
+		{
 			MessageBox(mainHWND, "Couldn't find a readScreen candidate.\r\nTry selecting another capture mode.", "Capture", MB_ICONERROR | MB_OK);
 			return false;
 		}
 
-		switch (encoder_type) {
+		switch (encoder_type)
+		{
 		case EncoderType::VFW:
 			m_encoder = std::make_unique<AVIEncoder>();
 			break;
@@ -249,7 +253,7 @@ namespace EncodingManager
 		void* dummy;
 		effective_readscreen()(&dummy, &width, &height);
 
-		auto result = m_encoder->start(Encoder::Params {
+		auto result = m_encoder->start(Encoder::Params{
 			.path = path.string().c_str(),
 			.width = (uint32_t)width,
 			.height = (uint32_t)height,
@@ -276,7 +280,7 @@ namespace EncodingManager
 	{
 		write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
-		if(!m_encoder->stop())
+		if (!m_encoder->stop())
 		{
 			return false;
 		}

@@ -12,8 +12,6 @@ extern long m_current_sample;
 
 namespace LuaCore::Emu
 {
-
-
 	static int GetVICount(lua_State* L)
 	{
 		lua_pushinteger(L, m_current_vi);
@@ -31,6 +29,7 @@ namespace LuaCore::Emu
 		lua_pushinteger(L, inputCount);
 		return 1;
 	}
+
 	static int RegisterUpdateScreen(lua_State* L)
 	{
 		if (lua_toboolean(L, 2))
@@ -45,6 +44,7 @@ namespace LuaCore::Emu
 		}
 		return 0;
 	}
+
 	static int RegisterAtDrawD2D(lua_State* L)
 	{
 		if (lua_toboolean(L, 2))
@@ -292,13 +292,16 @@ namespace LuaCore::Emu
 
 	static int SetSpeedMode(lua_State* L)
 	{
-		if (!strcmp(luaL_checkstring(L, 1), "normal")) {
+		if (!strcmp(luaL_checkstring(L, 1), "normal"))
+		{
 			Config.fps_modifier = 100;
-		} else {
+		} else
+		{
 			Config.fps_modifier = 10000;
 		}
 		return 0;
 	}
+
 	static int GetAddress(lua_State* L)
 	{
 		struct NameAndVariable

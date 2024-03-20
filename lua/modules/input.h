@@ -119,7 +119,6 @@ namespace LuaCore::Input
 	}
 
 
-
 	static int LuaGetKeyNameText(lua_State* L)
 	{
 		char name[100] = {0};
@@ -137,8 +136,9 @@ namespace LuaCore::Input
 			L, MapVirtualKeyEx(u_code, u_map_type, GetKeyboardLayout(0)));
 		return 1;
 	}
+
 	static INT_PTR CALLBACK InputPromptProc(HWND wnd, UINT msg, WPARAM wParam,
-									 LPARAM lParam)
+	                                        LPARAM lParam)
 	{
 		static lua_State* L;
 		switch (msg)
@@ -148,7 +148,7 @@ namespace LuaCore::Input
 				L = (lua_State*)lParam;
 				std::string str(luaL_optstring(L, 2, ""));
 				SetWindowText(wnd,
-							  luaL_optstring(L, 1, "input:"));
+				              luaL_optstring(L, 1, "input:"));
 				std::string::size_type p = 0;
 				while ((p = str.find('\n', p)) != std::string::npos)
 				{
@@ -156,33 +156,33 @@ namespace LuaCore::Input
 					p += 2;
 				}
 				SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT),
-							  str.c_str());
+				              str.c_str());
 				SetFocus(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT));
 				break;
 			}
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
-		case IDOK:
-			{
-				HWND inp = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
-				int size = GetWindowTextLength(inp) + 1;
-				char* buf = new char[size];
-				GetWindowText(inp, buf, size);
-				std::string str(buf);
-				delete[] buf;
-				std::string::size_type p = 0;
-				while ((p = str.find("\r\n", p)) != std::string::npos)
+			case IDOK:
 				{
-					str.replace(p, 2, "\n");
-					p += 1;
+					HWND inp = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
+					int size = GetWindowTextLength(inp) + 1;
+					char* buf = new char[size];
+					GetWindowText(inp, buf, size);
+					std::string str(buf);
+					delete[] buf;
+					std::string::size_type p = 0;
+					while ((p = str.find("\r\n", p)) != std::string::npos)
+					{
+						str.replace(p, 2, "\n");
+						p += 1;
+					}
+					lua_pushstring(L, str.c_str());
+					EndDialog(wnd, 0);
+					break;
 				}
-				lua_pushstring(L, str.c_str());
-				EndDialog(wnd, 0);
-				break;
-			}
-		case IDCANCEL:
-			lua_pushnil(L);
+			case IDCANCEL:
+				lua_pushnil(L);
 				EndDialog(wnd, 1);
 				break;
 			}
@@ -190,11 +190,12 @@ namespace LuaCore::Input
 		}
 		return FALSE;
 	}
+
 	static int InputPrompt(lua_State* L)
 	{
 		DialogBoxParam(app_instance,
-					   MAKEINTRESOURCE(IDD_LUAINPUTPROMPT), mainHWND,
-					   InputPromptProc, (LPARAM)L);
+		               MAKEINTRESOURCE(IDD_LUAINPUTPROMPT), mainHWND,
+		               InputPromptProc, (LPARAM)L);
 		return 1;
 	}
 }

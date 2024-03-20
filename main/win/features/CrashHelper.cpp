@@ -85,11 +85,11 @@ void CrashHelper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr
 #endif
 		char exception_code_friendly[1024]{};
 		get_exception_code_friendly_name(exception_pointers_ptr,
-		                             exception_code_friendly);
+		                                 exception_code_friendly);
 		len += sprintf(log_ptr + len, "Exception code: %s (0x%08x)\n",
 		               exception_code_friendly,
 		               (int)exception_pointers_ptr->ExceptionRecord->
-		                                          ExceptionCode);
+		                                            ExceptionCode);
 	} else
 	{
 		//emu info

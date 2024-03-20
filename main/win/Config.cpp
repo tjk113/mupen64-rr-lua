@@ -34,12 +34,10 @@ void set_menu_accelerator(int element_id, const char* acc)
 		sprintf(string, "%s\t%s", string, acc);
 
 	ModifyMenu(GetMenu(mainHWND), element_id, MF_BYCOMMAND | MF_STRING, element_id, string);
-
 }
 
 void set_hotkey_menu_accelerators(t_hotkey* hotkey, int menu_item_id)
 {
-
 	const std::string hotkey_str = hotkey_to_string(hotkey);
 	set_menu_accelerator(menu_item_id, hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
 }
@@ -762,13 +760,13 @@ void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkey)
 }
 
 void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
-							 int menuItemID)
+                             int menuItemID)
 {
 	std::string hotkey_str = hotkey_to_string(hotkey);
 	SetDlgItemText(hwnd, idc, hotkey_str.c_str());
 
-		set_menu_accelerator(menuItemID,
-						   hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+	set_menu_accelerator(menuItemID,
+	                     hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
 }
 
 
@@ -784,6 +782,7 @@ void update_menu_hotkey_labels()
 		}
 	}
 }
+
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          int32_t is_reading, t_hotkey* hotkey)
 {
@@ -807,7 +806,7 @@ void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
+void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          const int32_t is_reading, int32_t* value)
 {
 	if (is_reading)
@@ -825,7 +824,7 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
+void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          const int32_t is_reading, std::string& value)
 {
 	if (is_reading)
@@ -843,7 +842,7 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
+void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          const int32_t is_reading, std::vector<std::string>& value)
 {
 	if (is_reading)
@@ -872,31 +871,35 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 	}
 }
 
-void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
-						 const int32_t is_reading, std::map<std::string, std::wstring>& value)
+void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
+                         const int32_t is_reading, std::map<std::string, std::wstring>& value)
 {
-	if (is_reading) {
+	if (is_reading)
+	{
 		// if the virtual map doesn't exist just leave the vector empty, as attempting to read will crash
-		if (!ini.has(field_name)) {
+		if (!ini.has(field_name))
+		{
 			return;
 		}
 		auto& map = ini[field_name];
-		for (auto& pair : map) {
+		for (auto& pair : map)
+		{
 			value[pair.first] = string_to_wstring(pair.second);
 		}
-	} else {
+	} else
+	{
 		// create virtual map:
 		// [field_name]
 		// value = value
-		for (auto &pair : value) {
+		for (auto& pair : value)
+		{
 			ini[field_name][pair.first] = wstring_to_string(pair.second);
 		}
 	}
-
 }
 
-void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
-                        const int32_t is_reading, std::vector<int32_t>& value)
+void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
+                         const int32_t is_reading, std::vector<int32_t>& value)
 {
 	if (is_reading)
 	{
@@ -924,8 +927,6 @@ void handle_config_value(mINI::INIStructure& ini, const std::string &field_name,
 		}
 	}
 }
-
-
 
 
 std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
@@ -1090,7 +1091,8 @@ void load_config()
 		Config.window_height = default_config.window_height;
 	}
 
-	if (Config.rombrowser_column_widths.size() < 4) {
+	if (Config.rombrowser_column_widths.size() < 4)
+	{
 		// something's malformed, fuck off and use default values
 		Config.rombrowser_column_widths = default_config.rombrowser_column_widths;
 	}
@@ -1171,4 +1173,3 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
 	//we checked all keys and none of them was pressed, so give up
 	return 0;
 }
-

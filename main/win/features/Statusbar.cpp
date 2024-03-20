@@ -27,7 +27,7 @@ namespace Statusbar
 
 	void post(const std::string& text, Section section)
 	{
-		 SendMessage(statusbar_hwnd, SB_SETTEXT, (int)section, (LPARAM)text.c_str());
+		SendMessage(statusbar_hwnd, SB_SETTEXT, (int)section, (LPARAM)text.c_str());
 	}
 
 	void emu_launched_changed(std::any data)
@@ -104,11 +104,10 @@ namespace Statusbar
 		Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged,
 		                     statusbar_visibility_changed);
 		Messenger::subscribe(Messenger::Message::TaskChanged,
-							 on_task_changed);
+		                     on_task_changed);
 		Messenger::subscribe(Messenger::Message::RerecordsChanged,
-							 on_rerecords_changed);
+		                     on_rerecords_changed);
 		Messenger::subscribe(Messenger::Message::SlotChanged,
-							 on_slot_changed);
-
+		                     on_slot_changed);
 	}
 }

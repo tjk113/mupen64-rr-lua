@@ -35,71 +35,71 @@
 
 void MFC1()
 {
-    if (check_cop1_unusable()) return;
-    rrt32 = *((long*)reg_cop1_simple[core_rfs]);
-    sign_extended(core_rrt);
-    PC++;
+	if (check_cop1_unusable()) return;
+	rrt32 = *((long*)reg_cop1_simple[core_rfs]);
+	sign_extended(core_rrt);
+	PC++;
 }
 
 void DMFC1()
 {
-    if (check_cop1_unusable()) return;
-    core_rrt = *((long long*)reg_cop1_double[core_rfs]);
-    PC++;
+	if (check_cop1_unusable()) return;
+	core_rrt = *((long long*)reg_cop1_double[core_rfs]);
+	PC++;
 }
 
 void CFC1()
 {
-    if (check_cop1_unusable()) return;
-    if (core_rfs == 31)
-    {
-        rrt32 = FCR31;
-        sign_extended(core_rrt);
-    }
-    if (core_rfs == 0)
-    {
-        rrt32 = FCR0;
-        sign_extended(core_rrt);
-    }
-    PC++;
+	if (check_cop1_unusable()) return;
+	if (core_rfs == 31)
+	{
+		rrt32 = FCR31;
+		sign_extended(core_rrt);
+	}
+	if (core_rfs == 0)
+	{
+		rrt32 = FCR0;
+		sign_extended(core_rrt);
+	}
+	PC++;
 }
 
 void MTC1()
 {
-    if (check_cop1_unusable()) return;
-    *((long*)reg_cop1_simple[core_rfs]) = rrt32;
-    PC++;
+	if (check_cop1_unusable()) return;
+	*((long*)reg_cop1_simple[core_rfs]) = rrt32;
+	PC++;
 }
 
 void DMTC1()
 {
-    if (check_cop1_unusable()) return;
-    *((long long*)reg_cop1_double[core_rfs]) = core_rrt;
-    PC++;
+	if (check_cop1_unusable()) return;
+	*((long long*)reg_cop1_double[core_rfs]) = core_rrt;
+	PC++;
 }
 
 void CTC1()
 {
-    if (check_cop1_unusable()) return;
-    if (core_rfs == 31)
-        FCR31 = rrt32;
-    switch ((FCR31 & 3))
-    {
-    case 0:
-        rounding_mode = ROUND_MODE;
-        break;
-    case 1:
-        rounding_mode = TRUNC_MODE;
-        break;
-    case 2:
-        rounding_mode = CEIL_MODE;
-        break;
-    case 3:
-        rounding_mode = FLOOR_MODE;
-        break;
-    }
-    set_rounding();
-    //if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n", 
-    //				   (int)((FCR31 >> 7) & 0x1F));
-    PC++;
+	if (check_cop1_unusable()) return;
+	if (core_rfs == 31)
+		FCR31 = rrt32;
+	switch ((FCR31 & 3))
+	{
+	case 0:
+		rounding_mode = ROUND_MODE;
+		break;
+	case 1:
+		rounding_mode = TRUNC_MODE;
+		break;
+	case 2:
+		rounding_mode = CEIL_MODE;
+		break;
+	case 3:
+		rounding_mode = FLOOR_MODE;
+		break;
+	}
+	set_rounding();
+	//if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n", 
+	//				   (int)((FCR31 >> 7) & 0x1F));
+	PC++;
 }

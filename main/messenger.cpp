@@ -15,13 +15,13 @@ namespace Messenger
 		for (auto subscriber : subscribers)
 		{
 			if (std::get<0>(subscriber) != message)
-			 continue;
+				continue;
 			std::get<1>(subscriber)(data);
 		}
 	}
 
 	std::function<void()> subscribe(Message message,
-		std::function<void(std::any)> callback)
+	                                std::function<void(std::any)> callback)
 	{
 		auto index = subscribers.size();
 		subscribers.emplace_back(message, callback);

@@ -29,7 +29,7 @@ namespace MGECompositor
 				HDC hdc = BeginPaint(hwnd, &ps);
 
 				StretchDIBits(hdc, control_rect.top, control_rect.left, control_rect.right, control_rect.bottom, 0, 0, width, height, video_buf,
-							  &bmp_info, DIB_RGB_COLORS, SRCCOPY);
+				              &bmp_info, DIB_RGB_COLORS, SRCCOPY);
 
 				EndPaint(hwnd, &ps);
 				return 0;

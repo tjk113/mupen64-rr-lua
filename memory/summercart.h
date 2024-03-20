@@ -17,8 +17,8 @@ struct summercart
 
 extern struct summercart summercart;
 
-void save_summercart(const char *filename);
-void load_summercart(const char *filename);
+void save_summercart(const char* filename);
+void load_summercart(const char* filename);
 void init_summercart();
 unsigned long read_summercart(unsigned long address);
 void write_summercart(unsigned long address, unsigned long value);

@@ -47,5 +47,4 @@ namespace LuaCore::Movie
 		Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 		return 0;
 	}
-
 }

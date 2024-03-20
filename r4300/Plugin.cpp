@@ -687,7 +687,8 @@ void Plugin::about()
 
 void Plugin::load_into_globals()
 {
-	switch (m_type) {
+	switch (m_type)
+	{
 	case video:
 		load_gfx(m_module);
 		break;

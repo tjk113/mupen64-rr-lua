@@ -97,8 +97,8 @@ bool AVIEncoder::append_video(uint8_t* image)
 		// When splitting, filenames follow this pattern: <fname> <n>.avi
 		Encoder::Params new_params = video_params;
 		new_params.path = with_name(new_params.path,
-									get_name(video_params.path) + " " +
-									std::to_string(++splits));
+		                            get_name(video_params.path) + " " +
+		                            std::to_string(++splits));
 
 		splitting = true;
 		stop();
@@ -107,8 +107,8 @@ bool AVIEncoder::append_video(uint8_t* image)
 	}
 	LONG written_len;
 	BOOL ret = AVIStreamWrite(compressed_video_stream, frame++, 1, image,
-							  infoHeader.biSizeImage, AVIIF_KEYFRAME, NULL,
-							  &written_len);
+	                          infoHeader.biSizeImage, AVIIF_KEYFRAME, NULL,
+	                          &written_len);
 	AVIFileSize += written_len;
 	return !ret;
 }
@@ -116,8 +116,8 @@ bool AVIEncoder::append_video(uint8_t* image)
 bool AVIEncoder::append_audio(uint8_t* audio, size_t length)
 {
 	BOOL ok = (0 == AVIStreamWrite(sound_stream, sample,
-								   length / sound_format.nBlockAlign, audio, length, 0,
-								   NULL, NULL));
+	                               length / sound_format.nBlockAlign, audio, length, 0,
+	                               NULL, NULL));
 	sample += length / sound_format.nBlockAlign;
 	AVIFileSize += length;
 	return ok;
@@ -158,8 +158,7 @@ bool AVIEncoder::load_options()
 	fclose(f);
 	return true;
 
-	error:
-		fclose(f);
+error:
+	fclose(f);
 	return false;
 }
-

@@ -53,6 +53,7 @@ struct BetterEmulationLock
 {
 private:
 	bool was_paused;
+
 public:
 	BetterEmulationLock();
 	~BetterEmulationLock();

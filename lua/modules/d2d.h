@@ -209,22 +209,22 @@ namespace LuaCore::D2D
 
 			auto wtext = string_to_wstring(text);
 			lua->dw_factory->CreateTextLayout(wtext.c_str(), wtext.length(),
-											  text_format,
-											  rectangle.right - rectangle.left,
-											  rectangle.bottom - rectangle.top,
-											  &text_layout);
+			                                  text_format,
+			                                  rectangle.right - rectangle.left,
+			                                  rectangle.bottom - rectangle.top,
+			                                  &text_layout);
 
 			lua->dw_text_layouts[params_hash] = text_layout;
 			text_format->Release();
 		}
 
 		lua->d2d_render_target_stack.top()->DrawTextLayout({
-				.x = rectangle.left,
-				.y = rectangle.top,
-			}, lua->dw_text_layouts[params_hash], brush,
-			static_cast<
-				D2D1_DRAW_TEXT_OPTIONS>(
-				options));
+			                                                   .x = rectangle.left,
+			                                                   .y = rectangle.top,
+		                                                   }, lua->dw_text_layouts[params_hash], brush,
+		                                                   static_cast<
+			                                                   D2D1_DRAW_TEXT_OPTIONS>(
+			                                                   options));
 
 		return 0;
 	}

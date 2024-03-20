@@ -43,6 +43,7 @@ enum
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? mup_header_size_old : MUP_HEADER_SIZE)
 
 BOOL dont_play = false;
+
 enum { buffer_growth_size = 4096 };
 
 static const char* m_err_code_name[] =
@@ -294,7 +295,7 @@ VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header
 		return Result::BadFile;
 	}
 
-	if(read_movie_header(buf, &new_header) != SUCCESS)
+	if (read_movie_header(buf, &new_header) != SUCCESS)
 	{
 		return Result::InvalidFormat;
 	}
@@ -468,7 +469,6 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 	m_input_buffer_ptr = m_input_buffer + sizeof(BUTTONS) * m_current_sample;
 
 	return Result::Ok;
-
 }
 
 extern BOOL just_restarted_flag;
@@ -698,10 +698,11 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 int
 vcr_start_record(const char* filename, const unsigned short flags,
-                const char* author_utf8, const char* description_utf8)
+                 const char* author_utf8, const char* description_utf8)
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
-	if (!lock.owns_lock()) {
+	if (!lock.owns_lock())
+	{
 		printf("[VCR] vcr_start_record busy!\n");
 		return -1;
 	}
@@ -742,8 +743,9 @@ vcr_start_record(const char* filename, const unsigned short flags,
 			if (MessageBox(
 				nullptr,
 				"Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?",
-				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO) return -
-				1;
+				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO)
+				return -
+					1;
 			break; //
 		}
 	}
@@ -815,7 +817,8 @@ int
 vcr_stop_record()
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
-	if (!lock.owns_lock()) {
+	if (!lock.owns_lock())
+	{
 		printf("[VCR] vcr_stop_record busy!\n");
 		return -1;
 	}
@@ -925,35 +928,44 @@ std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 }
 
 
-int check_warn_controllers(char* warning_str) {
-	for (int i = 0; i < 4; ++i) {
+int check_warn_controllers(char* warning_str)
+{
+	for (int i = 0; i < 4; ++i)
+	{
 		if (!Controls[i].Present && (m_header.controller_flags &
-			CONTROLLER_X_PRESENT(i))) {
+			CONTROLLER_X_PRESENT(i)))
+		{
 			sprintf(warning_str,
-				   "Error: You have controller %d disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n", (i + 1));
+			        "Error: You have controller %d disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n",
+			        (i + 1));
 			return 0;
 		}
 		if (Controls[i].Present && !(m_header.controller_flags &
 			CONTROLLER_X_PRESENT(i)))
 			sprintf(warning_str,
-				   "Warning: You have controller %d enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n", (i + 1));
-		else {
+			        "Warning: You have controller %d enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n",
+			        (i + 1));
+		else
+		{
 			if (Controls[i].Present && (Controls[i].Plugin !=
 				controller_extension::mempak) && (m_header.
-					controller_flags & CONTROLLER_X_MEMPAK(i)))
+				controller_flags & CONTROLLER_X_MEMPAK(i)))
 				sprintf(warning_str,
-					   "Warning: Controller %d has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", (i + 1));
+				        "Warning: Controller %d has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
+				        (i + 1));
 			if (Controls[i].Present && (Controls[i].Plugin !=
 				controller_extension::rumblepak) && (m_header.
-					controller_flags & CONTROLLER_X_RUMBLE(i)))
+				controller_flags & CONTROLLER_X_RUMBLE(i)))
 				sprintf(warning_str,
-					   "Warning: Controller %d has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", (i + 1));
+				        "Warning: Controller %d has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
+				        (i + 1));
 			if (Controls[i].Present && (Controls[i].Plugin !=
 				controller_extension::none) && !(m_header.
-					controller_flags & (CONTROLLER_X_MEMPAK(i) |
-						CONTROLLER_X_RUMBLE(i))))
+				controller_flags & (CONTROLLER_X_MEMPAK(i) |
+					CONTROLLER_X_RUMBLE(i))))
 				sprintf(warning_str,
-					   "Warning: Controller %d does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", (i + 1));
+				        "Warning: Controller %d does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
+				        (i + 1));
 		}
 	}
 	return 1;
@@ -962,7 +974,8 @@ int check_warn_controllers(char* warning_str) {
 VCR::Result VCR::start_playback(std::filesystem::path path)
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
-	if (!lock.owns_lock()) {
+	if (!lock.owns_lock())
+	{
 		printf("[VCR] vcr_start_playback busy!\n");
 		return Result::Busy;
 	}
@@ -1022,7 +1035,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	}
 
 	char dummy[1024] = {0};
-	if(!check_warn_controllers(dummy))
+	if (!check_warn_controllers(dummy))
 	{
 		fclose(m_file);
 		return Result::InvalidControllers;
@@ -1040,7 +1053,9 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	{
 		if (MessageBox(
 				nullptr,
-				std::format("The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?", m_header.rom_name, (const char*)ROM_HEADER.nom).c_str(),
+				std::format(
+					"The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?",
+					m_header.rom_name, (const char*)ROM_HEADER.nom).c_str(),
 				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
 			==
 			IDNO)
@@ -1054,11 +1069,13 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 			Country_code)
 		{
 			if (MessageBox(
-				nullptr,
-				std::format("The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?", m_header.rom_country, ROM_HEADER.Country_code).c_str(),
-				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
-			==
-			IDNO)
+					nullptr,
+					std::format(
+						"The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?",
+						m_header.rom_country, ROM_HEADER.Country_code).c_str(),
+					"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
+				==
+				IDNO)
 			{
 				fclose(m_file);
 				return Result::Cancelled;
@@ -1073,10 +1090,10 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 				(unsigned int)m_header.rom_crc1,
 				(unsigned int)ROM_HEADER.CRC1);
 			if (MessageBox(
-				nullptr,
-str,				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
-			==
-			IDNO)
+					nullptr,
+					str, "VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
+				==
+				IDNO)
 			{
 				fclose(m_file);
 				return Result::Cancelled;
@@ -1168,7 +1185,8 @@ bool VCR::is_seeking()
 int vcr_stop_playback()
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
-	if (!lock.owns_lock()) {
+	if (!lock.owns_lock())
+	{
 		printf("[VCR] vcr_stop_playback busy!\n");
 		return -1;
 	}
@@ -1206,14 +1224,15 @@ bool task_is_playback(e_task task)
 	return task == e_task::playback || task == e_task::start_playback || task ==
 		e_task::start_playback_from_snapshot;
 }
+
 bool task_is_recording(e_task task)
 {
-	return task == e_task::recording || task == e_task::start_recording || task == e_task::start_recording_from_existing_snapshot || task == e_task::start_recording_from_snapshot;
+	return task == e_task::recording || task == e_task::start_recording || task == e_task::start_recording_from_existing_snapshot || task ==
+		e_task::start_recording_from_snapshot;
 }
 
 void vcr_update_screen()
 {
-
 }
 
 // calculates how long the audio data will last
@@ -1283,7 +1302,8 @@ void vcr_update_statusbar()
 
 	if (vcr_is_playing())
 	{
-		std::string vcr_info = std::format("{} / {} ({} / {}) ", m_current_vi - index_adjustment, vcr_get_length_v_is(), m_current_sample - index_adjustment, vcr_get_length_samples());
+		std::string vcr_info = std::format("{} / {} ({} / {}) ", m_current_vi - index_adjustment, vcr_get_length_v_is(), m_current_sample - index_adjustment,
+		                                   vcr_get_length_samples());
 		Statusbar::post(vcr_info);
 	}
 }

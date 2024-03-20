@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,13 +43,13 @@ struct vhd
 #define vhd_64(val) _byteswap_uint64(val)
 #endif
 
-static void vhd_copy(struct vhd *vhd, FILE *dst, FILE *src, void *buf, unsigned int n)
+static void vhd_copy(struct vhd* vhd, FILE* dst, FILE* src, void* buf, unsigned int n)
 {
 	unsigned long long len;
 	fseek(src, -512, SEEK_END);
 	fread(vhd, 1, sizeof(struct vhd), src);
 	fseek(src, 0, SEEK_SET);
-	for (len = vhd_64(vhd->disk_size)/512; len > 0; len -= n)
+	for (len = vhd_64(vhd->disk_size) / 512; len > 0; len -= n)
 	{
 		if (n > len) n = len;
 		fread(buf, n, 512, src);
@@ -60,11 +59,11 @@ static void vhd_copy(struct vhd *vhd, FILE *dst, FILE *src, void *buf, unsigned 
 
 struct summercart summercart;
 
-static char *get_sd_path()
+static char* get_sd_path()
 {
 	auto saves_path = get_saves_directory();
-	char *path;
-	if ((path = (char *)malloc(strlen(saves_path.string().c_str())+8+1)))
+	char* path;
+	if ((path = (char*)malloc(strlen(saves_path.string().c_str()) + 8 + 1)))
 	{
 		strcpy(path, saves_path.string().c_str());
 		strcat(path, "card.vhd");
@@ -72,10 +71,10 @@ static char *get_sd_path()
 	return path;
 }
 
-static char *get_st_path(const char *filename)
+static char* get_st_path(const char* filename)
 {
-	char *path;
-	if ((path = (char *)malloc(strlen(filename)+4+1)))
+	char* path;
+	if ((path = (char*)malloc(strlen(filename) + 4 + 1)))
 	{
 		strcpy(path, filename);
 		strcat(path, ".vhd");
@@ -83,13 +82,13 @@ static char *get_st_path(const char *filename)
 	return path;
 }
 
-static int sd_error(const char *text, const char *caption)
+static int sd_error(const char* text, const char* caption)
 {
 	show_modal_info(text, caption);
 	return -1;
 }
 
-static int sd_seek(FILE *fp, const char *caption)
+static int sd_seek(FILE* fp, const char* caption)
 {
 	struct vhd vhd;
 	unsigned long sector = summercart.sd_sector;
@@ -98,20 +97,20 @@ static int sd_seek(FILE *fp, const char *caption)
 	if (fread(&vhd, 1, sizeof(struct vhd), fp) != sizeof(struct vhd)) return sd_error("Read error.", caption);
 	if (memcmp(vhd.cookie, "conectix", 8)) return sd_error("Invalid VHD file.", caption);
 	if (vhd_32(vhd.type) != 2) return sd_error("Invalid VHD type: must be a fixed disk.", caption);
-	if ((long long)sector+count > vhd_64(vhd.disk_size)/512) return -1;
-	if (fseek(fp, 512*(long long)sector, SEEK_SET)) return sd_error("Seek(2) error.", caption);
+	if ((long long)sector + count > vhd_64(vhd.disk_size) / 512) return -1;
+	if (fseek(fp, 512 * (long long)sector, SEEK_SET)) return sd_error("Seek(2) error.", caption);
 	return 0;
 }
 
 static void sd_read()
 {
 	unsigned long i;
-	FILE *fp;
-	char *path;
-	char *ptr = NULL;
+	FILE* fp;
+	char* path;
+	char* ptr = NULL;
 	unsigned long addr = summercart.data0 & 0x1fffffff;
 	unsigned long count = summercart.data1;
-	unsigned long size = 512*count;
+	unsigned long size = 512 * count;
 	if (count > 131072) return;
 	if ((path = get_sd_path()))
 	{
@@ -120,40 +119,38 @@ static void sd_read()
 			char s = S8;
 			if (!sd_seek(fp, "SD read error"))
 			{
-				if (addr >= 0x1ffe0000 && addr+size <= 0x1ffe2000)
+				if (addr >= 0x1ffe0000 && addr + size <= 0x1ffe2000)
 				{
 					addr -= 0x1ffe0000;
 					ptr = summercart.buffer;
 				}
-				if (addr >= 0x10000000 && addr+size <= 0x14000000)
+				if (addr >= 0x10000000 && addr + size <= 0x14000000)
 				{
 					s ^= summercart.sd_byteswap;
 					addr -= 0x10000000;
-					ptr = (char *)rom;
+					ptr = (char*)rom;
 				}
 			}
 			if (ptr)
 			{
-				for (i = 0; i < size; i++) ptr[(addr+i)^s] = fgetc(fp);
+				for (i = 0; i < size; i++) ptr[(addr + i) ^ s] = fgetc(fp);
 				summercart.status = 0;
 			}
 			fclose(fp);
-		}
-		else sd_error("Could not open SD image file.", "SD read error");
+		} else sd_error("Could not open SD image file.", "SD read error");
 		free(path);
-	}
-	else sd_error("Could not generate SD image path.", "SD read error");
+	} else sd_error("Could not generate SD image path.", "SD read error");
 }
 
 static void sd_write()
 {
 	unsigned long i;
-	FILE *fp;
-	char *path;
-	char *ptr = NULL;
+	FILE* fp;
+	char* path;
+	char* ptr = NULL;
 	unsigned long addr = summercart.data0 & 0x1fffffff;
 	unsigned long count = summercart.data1;
-	unsigned long size = 512*count;
+	unsigned long size = 512 * count;
 	if (count > 131072) return;
 	if ((path = get_sd_path()))
 	{
@@ -161,40 +158,38 @@ static void sd_write()
 		{
 			if (!sd_seek(fp, "SD write error"))
 			{
-				if (addr >= 0x1ffe0000 && addr+size <= 0x1ffe2000)
+				if (addr >= 0x1ffe0000 && addr + size <= 0x1ffe2000)
 				{
 					addr -= 0x1ffe0000;
 					ptr = summercart.buffer;
 				}
-				if (addr >= 0x10000000 && addr+size <= 0x14000000)
+				if (addr >= 0x10000000 && addr + size <= 0x14000000)
 				{
 					addr -= 0x10000000;
-					ptr = (char *)rom;
+					ptr = (char*)rom;
 				}
 			}
 			if (ptr)
 			{
-				for (i = 0; i < size; i++) fputc(ptr[(addr+i)^S8], fp);
+				for (i = 0; i < size; i++) fputc(ptr[(addr + i) ^ S8], fp);
 				summercart.status = 0;
 			}
 			fclose(fp);
-		}
-		else sd_error("Could not open SD image file.", "SD write error");
+		} else sd_error("Could not open SD image file.", "SD write error");
 		free(path);
-	}
-	else sd_error("Could not generate SD image path.", "SD write error");
+	} else sd_error("Could not generate SD image path.", "SD write error");
 }
 
 void save_summercart(const char* filename)
 {
 	unsigned int n;
-	void *buf;
-	char *sdp;
-	char *stp;
-	FILE *sdf;
-	FILE *stf;
+	void* buf;
+	char* sdp;
+	char* stp;
+	FILE* sdf;
+	FILE* stf;
 	struct vhd vhd;
-	if ((buf = malloc(512*(n = 128))))
+	if ((buf = malloc(512 * (n = 128))))
 	{
 		if ((sdp = get_sd_path()))
 		{
@@ -208,32 +203,27 @@ void save_summercart(const char* filename)
 						fwrite(&summercart, 1, sizeof(struct summercart), stf);
 						fwrite(&vhd, 1, sizeof(struct vhd), stf);
 						fclose(stf);
-					}
-					else sd_error("Could not open SD state file.", "Save error");
+					} else sd_error("Could not open SD state file.", "Save error");
 					fclose(sdf);
-				}
-				else sd_error("Could not open SD image file.", "Save error");
+				} else sd_error("Could not open SD image file.", "Save error");
 				free(stp);
-			}
-			else sd_error("Could not generate SD state path.", "Save error");
+			} else sd_error("Could not generate SD state path.", "Save error");
 			free(sdp);
-		}
-		else sd_error("Could not generate SD image path.", "Save error");
+		} else sd_error("Could not generate SD image path.", "Save error");
 		free(buf);
-	}
-	else sd_error("Could not allocate buffer.", "Save error");
+	} else sd_error("Could not allocate buffer.", "Save error");
 }
 
-void load_summercart(const char *filename)
+void load_summercart(const char* filename)
 {
 	unsigned int n;
-	void *buf;
-	char *stp;
-	char *sdp;
-	FILE *stf;
-	FILE *sdf;
+	void* buf;
+	char* stp;
+	char* sdp;
+	FILE* stf;
+	FILE* sdf;
 	struct vhd vhd;
-	if ((buf = malloc(512*(n = 128))))
+	if ((buf = malloc(512 * (n = 128))))
 	{
 		if ((stp = get_st_path(filename)))
 		{
@@ -247,20 +237,15 @@ void load_summercart(const char *filename)
 						fread(&summercart, 1, sizeof(struct summercart), stf);
 						fwrite(&vhd, 1, sizeof(struct vhd), sdf);
 						fclose(sdf);
-					}
-					else sd_error("Could not open SD image file.", "Load error");
+					} else sd_error("Could not open SD image file.", "Load error");
 					fclose(stf);
-				}
-				else sd_error("Could not open SD state file.", "Load error");
+				} else sd_error("Could not open SD state file.", "Load error");
 				free(sdp);
-			}
-			else sd_error("Could not generate SD image path.", "Load error");
+			} else sd_error("Could not generate SD image path.", "Load error");
 			free(stp);
-		}
-		else sd_error("Could not generate SD state path.", "Load error");
+		} else sd_error("Could not generate SD state path.", "Load error");
 		free(buf);
-	}
-	else sd_error("Could not allocate buffer.", "Load error");
+	} else sd_error("Could not allocate buffer.", "Load error");
 }
 
 void init_summercart()
@@ -323,8 +308,7 @@ void write_summercart(unsigned long address, unsigned long value)
 					{
 						summercart.data1 = summercart.cfg_rom_write;
 						summercart.cfg_rom_write = 1;
-					}
-					else
+					} else
 					{
 						summercart.data1 = summercart.cfg_rom_write;
 						summercart.cfg_rom_write = 0;

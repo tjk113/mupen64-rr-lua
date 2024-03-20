@@ -7,8 +7,8 @@
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp
 
-std::wstring show_persistent_open_dialog(const std::string &id, HWND hwnd,
-                                         const std::wstring &filter)
+std::wstring show_persistent_open_dialog(const std::string& id, HWND hwnd,
+                                         const std::wstring& filter)
 {
 	IFileDialog* pFileDialog = nullptr;
 	IShellItem* pShellItem = nullptr;
@@ -60,8 +60,8 @@ cleanUp:
 	return succeeded ? Config.persistent_folder_paths[id] : std::wstring();
 }
 
-std::wstring show_persistent_save_dialog(const std::string &id, HWND hwnd,
-                                         const std::wstring &filter)
+std::wstring show_persistent_save_dialog(const std::string& id, HWND hwnd,
+                                         const std::wstring& filter)
 {
 	IFileDialog* pFileDialog = nullptr;
 	IShellItem* pShellItem = nullptr;
@@ -120,7 +120,7 @@ cleanUp:
 	return succeeded ? Config.persistent_folder_paths[id] : std::wstring();
 }
 
-std::wstring show_persistent_folder_dialog(const std::string &id, HWND hwnd)
+std::wstring show_persistent_folder_dialog(const std::string& id, HWND hwnd)
 {
 	std::wstring final_path;
 	IFileDialog* pfd;
@@ -128,25 +128,25 @@ std::wstring show_persistent_folder_dialog(const std::string &id, HWND hwnd)
 		CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER,
 			IID_PPV_ARGS(&pfd))))
 	{
-			std::wstring restored_path = Config.persistent_folder_paths.contains(id)
-								 ? Config.persistent_folder_paths[id]
-								 : get_desktop_path();
+		std::wstring restored_path = Config.persistent_folder_paths.contains(id)
+			                             ? Config.persistent_folder_paths[id]
+			                             : get_desktop_path();
 
-			PIDLIST_ABSOLUTE pidl;
+		PIDLIST_ABSOLUTE pidl;
 
-			printf("Folder dialog %s restored %ls\n", id.c_str(), restored_path.c_str());
-			HRESULT hresult = SHParseDisplayName(
-				restored_path.c_str(), nullptr, &pidl, SFGAO_FOLDER, nullptr);
+		printf("Folder dialog %s restored %ls\n", id.c_str(), restored_path.c_str());
+		HRESULT hresult = SHParseDisplayName(
+			restored_path.c_str(), nullptr, &pidl, SFGAO_FOLDER, nullptr);
+		if (SUCCEEDED(hresult))
+		{
+			IShellItem* psi;
+			hresult = SHCreateShellItem(nullptr, nullptr, pidl, &psi);
 			if (SUCCEEDED(hresult))
 			{
-				IShellItem* psi;
-				hresult = SHCreateShellItem(nullptr, nullptr, pidl, &psi);
-				if (SUCCEEDED(hresult))
-				{
-					pfd->SetFolder(psi);
-				}
-				ILFree(pidl);
+				pfd->SetFolder(psi);
 			}
+			ILFree(pidl);
+		}
 
 
 		DWORD dwOptions;

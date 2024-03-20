@@ -14,7 +14,7 @@
  * \param value The value to push
  * \param max_size The size to limit the queue to
  */
-template<typename T>
+template <typename T>
 void circular_push(std::deque<T>& vec, const T value, const size_t max_size = 30)
 {
 	if (vec.size() > max_size)
@@ -25,7 +25,7 @@ void circular_push(std::deque<T>& vec, const T value, const size_t max_size = 30
 	vec.push_back(value);
 }
 
-template<typename T>
+template <typename T>
 T collection_average(std::deque<T>& vec)
 {
 	T sum = 0.0f;
@@ -35,4 +35,3 @@ T collection_average(std::deque<T>& vec)
 	}
 	return sum / vec.size();
 }
-

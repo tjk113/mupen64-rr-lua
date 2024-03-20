@@ -28,7 +28,8 @@
 
 #include "../r4300/Plugin.hpp"
 
-typedef struct s_window_procedure_params {
+typedef struct s_window_procedure_params
+{
 	HWND wnd;
 	UINT msg;
 	WPARAM w_param;
@@ -77,7 +78,7 @@ void stop_all_scripts();
  * \param key The function's registration key
  */
 void invoke_callbacks_with_key_on_all_instances(
-		std::function<int(lua_State*)> function, const char* key);
+	std::function<int(lua_State*)> function, const char* key);
 
 void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
@@ -105,7 +106,8 @@ struct EmulationLock
 };
 
 
-class LuaEnvironment {
+class LuaEnvironment
+{
 public:
 	/**
 	 * \brief Creates a lua environment and runs it if the operation succeeds
@@ -197,7 +199,7 @@ public:
 	//calls all functions that lua script has defined as callbacks, reads them from registry
 	//returns true at fail
 	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
-								   const char* key);
+	                               const char* key);
 
 	// Deletes all the variables used in LoadScreen (avoid memory leaks)
 	void LoadScreenDelete();
@@ -210,11 +212,8 @@ public:
 	HWND hwnd;
 	lua_State* L;
 
-
-
 private:
 	void register_functions();
-
 };
 
 extern uint64_t inputCount;

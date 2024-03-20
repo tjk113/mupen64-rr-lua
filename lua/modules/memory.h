@@ -228,6 +228,7 @@ namespace LuaCore::Memory
 		}
 		return 0;
 	}
+
 	static int LuaIntToFloat(lua_State* L)
 	{
 		ULONG n = luaL_checknumber(L, 1);
@@ -262,6 +263,7 @@ namespace LuaCore::Memory
 		lua_pushnumber(L, n);
 		return 1;
 	}
+
 	template <typename T>
 	void PushT(lua_State* L, T value)
 	{

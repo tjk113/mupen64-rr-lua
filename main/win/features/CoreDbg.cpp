@@ -54,7 +54,7 @@ namespace CoreDbg
 				break;
 
 			SetWindowText(GetDlgItem(hwnd, IDC_COREDBG_TOGGLEPAUSE),
-					  coredbg_resumed ? "Pause" : "Resume");
+			              coredbg_resumed ? "Pause" : "Resume");
 			break;
 		case WM_COMMAND:
 			switch (LOWORD(w_param))
@@ -123,11 +123,11 @@ namespace CoreDbg
 
 			char disasm[255] = {0};
 			DisassembleInstruction(disasm,
-								   cpu_state.opcode,
-								   cpu_state.address);
+			                       cpu_state.opcode,
+			                       cpu_state.address);
 
 			auto str = std::format("{} ({:#08x}, {:#08x})", disasm,
-								   cpu_state.opcode, cpu_state.address);
+			                       cpu_state.opcode, cpu_state.address);
 			ListBox_InsertString(GetDlgItem(hwnd, IDC_COREDBG_LIST), 0, str.c_str());
 		}
 	}

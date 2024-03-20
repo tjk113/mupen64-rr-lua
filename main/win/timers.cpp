@@ -70,10 +70,12 @@ void timer_new_vi()
 		// if we're playing game normally with no frame advance or ff and overstepping max time between frames,
 		// we need to sleep to compensate the additional time
 		if (const auto vi_time_diff = current_vi_time - last_vi_time; !
-			ff && !frame_advancing && vi_time_diff < max_vi_s_ms) {
+			ff && !frame_advancing && vi_time_diff < max_vi_s_ms)
+		{
 			auto sleep_time = max_vi_s_ms - vi_time_diff;
 			if (sleep_time.count() > 0 && sleep_time <
-				std::chrono::milliseconds(700)) {
+				std::chrono::milliseconds(700))
+			{
 				// we try to sleep for the overstepped time, but must account for sleeping inaccuracies
 				const auto goal_sleep = max_vi_s_ms - vi_time_diff -
 					last_sleep_error;
@@ -86,7 +88,8 @@ void timer_new_vi()
 				// sleeping inaccuracy is difference between actual time spent sleeping and the goal sleep
 				// this value isnt usually too large
 				last_sleep_error = end_sleep - start_sleep - goal_sleep;
-			} else {
+			} else
+			{
 				// sleep time is unreasonable, log it and reset related state
 				const auto casted = std::chrono::duration_cast<
 					std::chrono::milliseconds>(sleep_time).count();

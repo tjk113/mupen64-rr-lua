@@ -36,7 +36,8 @@ static int32_t get_checkbox_state(const HWND hwnd, const int32_t id)
 		       : FALSE;
 }
 
-static int32_t get_primary_monitor_refresh_rate() {
+static int32_t get_primary_monitor_refresh_rate()
+{
 	DISPLAY_DEVICE dd;
 	dd.cb = sizeof(dd);
 	EnumDisplayDevices(NULL, 0, &dd, 0);
@@ -59,7 +60,8 @@ static void read_combo_box_value(const HWND hwnd, const int resource_id, char* r
  * \param seconds The seconds to sleep for
  * \remarks https://blat-blatnik.github.io/computerBear/making-accurate-sleep-function/
  */
-static void accurate_sleep(double seconds) {
+static void accurate_sleep(double seconds)
+{
 	using namespace std;
 	using namespace std::chrono;
 
@@ -68,7 +70,8 @@ static void accurate_sleep(double seconds) {
 	static double m2 = 0;
 	static int64_t count = 1;
 
-	while (seconds > estimate) {
+	while (seconds > estimate)
+	{
 		auto start = high_resolution_clock::now();
 		this_thread::sleep_for(milliseconds(1));
 		auto end = high_resolution_clock::now();
@@ -79,7 +82,7 @@ static void accurate_sleep(double seconds) {
 		++count;
 		double delta = observed - mean;
 		mean += delta / count;
-		m2   += delta * (observed - mean);
+		m2 += delta * (observed - mean);
 		double stddev = sqrt(m2 / (count - 1));
 		estimate = mean + stddev;
 	}
@@ -106,13 +109,18 @@ static RECT get_window_rect_client_space(HWND parent, HWND child)
 	};
 }
 
-static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory2** factory, IDXGIAdapter1** dxgiadapter, ID3D11Device** d3device, IDXGIDevice1** dxdevice, ID2D1Bitmap1** bitmap, IDCompositionVisual** comp_visual, IDCompositionDevice** comp_device, IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device, ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface** dxgi_surface, ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
+static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory2** factory, IDXGIAdapter1** dxgiadapter, ID3D11Device** d3device,
+                                       IDXGIDevice1** dxdevice, ID2D1Bitmap1** bitmap, IDCompositionVisual** comp_visual, IDCompositionDevice** comp_device,
+                                       IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device,
+                                       ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface** dxgi_surface,
+                                       ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
 {
 	CreateDXGIFactory2(0, IID_PPV_ARGS(factory));
 
 	(*factory)->EnumAdapters1(0, dxgiadapter);
 
-	D3D11CreateDevice(*dxgiadapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, d3device, nullptr, d3d_dc);
+	D3D11CreateDevice(*dxgiadapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, d3device, nullptr,
+	                  d3d_dc);
 
 	(*d3device)->QueryInterface(dxdevice);
 
@@ -177,6 +185,6 @@ static void set_statusbar_parts(HWND hwnd, std::vector<int32_t> parts)
 		new_parts[i] = accumulator;
 	}
 	SendMessage(hwnd, SB_SETPARTS,
-				new_parts.size(),
-				(LPARAM)new_parts.data());
+	            new_parts.size(),
+	            (LPARAM)new_parts.data());
 }

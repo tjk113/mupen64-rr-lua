@@ -259,17 +259,17 @@ namespace MovieDialog
 		ListView_DeleteAllItems(grid_hwnd);
 
 		metadata.emplace_back(std::make_pair("ROM", std::format("{} ({}, {})",
-		                                                       (char*)header.rom_name,
-		                                                       country_code_to_country_name(header.rom_country),
-		                                                       std::format("{:#08x}", header.rom_crc1))));
+		                                                        (char*)header.rom_name,
+		                                                        country_code_to_country_name(header.rom_country),
+		                                                        std::format("{:#08x}", header.rom_crc1))));
 
 		metadata.emplace_back(std::make_pair("Length",
-											 std::format(
-												 "{} ({} input)",
-												 header.length_vis,
-												 header.length_samples)));
+		                                     std::format(
+			                                     "{} ({} input)",
+			                                     header.length_vis,
+			                                     header.length_samples)));
 		metadata.emplace_back(std::make_pair("Duration", format_duration((double)header.length_vis / (double)header.
-			vis_per_second)));
+			                                     vis_per_second)));
 		metadata.emplace_back(
 			std::make_pair("Rerecords", std::to_string(header.rerecord_count)));
 
@@ -295,8 +295,6 @@ namespace MovieDialog
 			metadata.emplace_back(
 				std::make_pair(std::format("Controller {}", i + 1), tempbuf));
 		}
-
-
 
 
 		{

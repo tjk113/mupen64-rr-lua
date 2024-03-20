@@ -11,33 +11,33 @@ double largest_denormal_double = 2.225073858507201e-308; // (1ULL << 52) - 1
 
 void fail_float(const char* msg)
 {
-    char buf[200];
-    sprintf(buf, "%s; PC = 0x%lx", msg, interpcore ? interp_addr : PC->addr);
-    printf("%s\n", buf);
-    show_modal_info(buf, "Floating Point Error");
+	char buf[200];
+	sprintf(buf, "%s; PC = 0x%lx", msg, interpcore ? interp_addr : PC->addr);
+	printf("%s\n", buf);
+	show_modal_info(buf, "Floating Point Error");
 
-    core_Cause = 15 << 2;
-    exception_general();
+	core_Cause = 15 << 2;
+	exception_general();
 }
 
 void fail_float_input()
 {
-    fail_float("Operation on denormal/nan");
+	fail_float("Operation on denormal/nan");
 }
 
 void fail_float_input_arg(double x)
 {
-    char buf[100];
-    sprintf(buf, "Operation on denormal/nan: %lg", x);
-    fail_float(buf);
+	char buf[100];
+	sprintf(buf, "Operation on denormal/nan: %lg", x);
+	fail_float(buf);
 }
 
 void fail_float_output()
 {
-    fail_float("Float operation resulted in nan");
+	fail_float("Float operation resulted in nan");
 }
 
 void fail_float_convert()
 {
-    fail_float("Out-of-range float conversion");
+	fail_float("Out-of-range float conversion");
 }

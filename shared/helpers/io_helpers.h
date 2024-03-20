@@ -14,6 +14,7 @@ class ScopeTimer
 public:
 	ScopeTimer(std::string name);
 	~ScopeTimer();
+
 private:
 	std::string m_name;
 	std::chrono::time_point<std::chrono::steady_clock> start_time;

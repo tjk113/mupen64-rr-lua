@@ -148,12 +148,12 @@ namespace Recent
 	std::string element_at(std::vector<std::string> vec, int first_menu_id, int menu_id)
 	{
 		const int index = menu_id - first_menu_id;
-		if (index >= 0 && index < vec.size()) {
+		if (index >= 0 && index < vec.size())
+		{
 			return vec[index];
 		}
 		return "";
 	}
-
 }
 
 std::string get_screenshots_directory()
@@ -231,11 +231,11 @@ void on_emu_launched_changed(std::any data)
 	if (value)
 	{
 		SetWindowLong(mainHWND, GWL_STYLE,
-					  GetWindowLong(mainHWND, GWL_STYLE) & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
+		              GetWindowLong(mainHWND, GWL_STYLE) & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
 	} else
 	{
 		SetWindowLong(mainHWND, GWL_STYLE,
-			  GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME | WS_MAXIMIZEBOX);
+		              GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME | WS_MAXIMIZEBOX);
 	}
 
 	EnableMenuItem(main_menu, IDM_STATUSBAR, !value ? MF_ENABLED : MF_GRAYED);
@@ -257,15 +257,19 @@ void on_emu_launched_changed(std::any data)
 	EnableMenuItem(main_menu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
 
-	if (Config.is_statusbar_enabled) CheckMenuItem(
-		main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
+	if (Config.is_statusbar_enabled)
+		CheckMenuItem(
+			main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
 	else CheckMenuItem(main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
-	if (Config.is_recent_movie_paths_frozen) CheckMenuItem(
-		main_menu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
-	if (Config.is_recent_scripts_frozen) CheckMenuItem(
-		main_menu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
-	if (Config.is_recent_rom_paths_frozen) CheckMenuItem(
-		main_menu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
+	if (Config.is_recent_movie_paths_frozen)
+		CheckMenuItem(
+			main_menu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
+	if (Config.is_recent_scripts_frozen)
+		CheckMenuItem(
+			main_menu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
+	if (Config.is_recent_rom_paths_frozen)
+		CheckMenuItem(
+			main_menu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
 
 	update_titlebar();
 	// Some menu items, like movie ones, depend on both this and vcr task
@@ -282,8 +286,8 @@ void on_emu_launched_changed(std::any data)
 			{
 				// click start button
 				SendMessage(hwnd, WM_COMMAND,
-						MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
-						(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+				            MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+				            (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
 			}
 
 			previously_running_luas.clear();
@@ -301,7 +305,7 @@ void on_capturing_changed(std::any data)
 
 		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
 		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
-					   MF_GRAYED);
+		               MF_GRAYED);
 		EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_ENABLED);
 		EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 	} else
@@ -311,7 +315,7 @@ void on_capturing_changed(std::any data)
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
 
 		SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
-								 SWP_NOMOVE | SWP_NOSIZE);
+		             SWP_NOMOVE | SWP_NOSIZE);
 		EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_GRAYED);
 		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_ENABLED);
 		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
@@ -341,8 +345,11 @@ void on_vis_since_input_poll_exceeded(std::any)
 		return;
 	}
 
-	if(!Config.crash_dialog || MessageBox(mainHWND, "An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?", "Warning",
-			   MB_ICONWARNING | MB_YESNO) == IDYES)
+	if (!Config.crash_dialog || MessageBox(
+		mainHWND,
+		"An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
+		"Warning",
+		MB_ICONWARNING | MB_YESNO) == IDYES)
 	{
 		std::thread([] { vr_close_rom(); }).detach();
 	}
@@ -357,24 +364,24 @@ void on_core_result(std::any data)
 	{
 	case Core::Result::NoMatchingRom:
 		MessageBox(mainHWND,
-					   "The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.",
-					   nullptr,
-					   MB_ICONERROR);
+		           "The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.",
+		           nullptr,
+		           MB_ICONERROR);
 		break;
 	case Core::Result::PluginError:
 		if (MessageBox(mainHWND,
-					   "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
-					   nullptr,
-					   MB_ICONQUESTION | MB_YESNO) == IDYES)
+		               "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
+		               nullptr,
+		               MB_ICONQUESTION | MB_YESNO) == IDYES)
 		{
 			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 		}
 		break;
 	case Core::Result::RomInvalid:
 		MessageBox(mainHWND,
-					   "The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.",
-					   nullptr,
-					   MB_ICONERROR);
+		           "The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.",
+		           nullptr,
+		           MB_ICONERROR);
 		break;
 	default:
 		break;
@@ -386,13 +393,13 @@ void on_movie_loop_changed(std::any data)
 	auto value = std::any_cast<bool>(data);
 
 	CheckMenuItem(main_menu, IDM_LOOP_MOVIE,
-				  MF_BYCOMMAND | (value
-									  ? MFS_CHECKED
-									  : MFS_UNCHECKED));
+	              MF_BYCOMMAND | (value
+		                              ? MFS_CHECKED
+		                              : MFS_UNCHECKED));
 
 	Statusbar::post(value
-							 ? "Movies restart after ending"
-							 : "Movies stop after ending");
+		                ? "Movies restart after ending"
+		                : "Movies stop after ending");
 }
 
 void on_readonly_changed(std::any data)
@@ -400,13 +407,13 @@ void on_readonly_changed(std::any data)
 	auto value = std::any_cast<bool>(data);
 
 	CheckMenuItem(main_menu, IDM_VCR_READONLY,
-				  MF_BYCOMMAND | (value
-									  ? MFS_CHECKED
-									  : MFS_UNCHECKED));
+	              MF_BYCOMMAND | (value
+		                              ? MFS_CHECKED
+		                              : MFS_UNCHECKED));
 
 	Statusbar::post(value
-							 ? "Read-only"
-							 : "Read/write");
+		                ? "Read-only"
+		                : "Read/write");
 }
 
 
@@ -504,11 +511,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				Config.vcr_readonly = true;
 				Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 				std::thread([fname] { VCR::start_playback(fname); }).detach();
-			}else if (extension == ".st" || extension == ".savestate")
+			} else if (extension == ".st" || extension == ".savestate")
 			{
 				if (!emu_launched) break;
 				savestates_do_file(fname, e_st_job::load);
-			} else if(extension == ".lua")
+			} else if (extension == ".lua")
 			{
 				lua_create_and_run(path.string().c_str());
 			}
@@ -592,7 +599,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEWHEEL:
 		last_wheel_delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
-		// https://github.com/mkdasher/mupen64-rr-lua-/issues/190
+	// https://github.com/mkdasher/mupen64-rr-lua-/issues/190
 		LuaCallbacks::call_window_message(hwnd, Message, wParam, lParam);
 		break;
 	case WM_NOTIFY:
@@ -650,9 +657,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 		if (confirm_user_exit())
 		{
-			std::thread([] {
+			std::thread([]
+			{
 				vr_close_rom(true);
-				Dispatcher::invoke([] {
+				Dispatcher::invoke([]
+				{
 					DestroyWindow(mainHWND);
 				});
 			}).detach();
@@ -807,7 +816,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					auto result = MessageBox(mainHWND, "Should the trace log be generated in a binary format?", "Trace Logger", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1);
+					auto result = MessageBox(mainHWND, "Should the trace log be generated in a binary format?", "Trace Logger",
+					                         MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1);
 
 					tracelog::start(wstring_to_string(path).c_str(), result == IDYES);
 					ModifyMenu(main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Stop &Trace Logger");
@@ -991,7 +1001,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					BetterEmulationLock lock;
 
-					auto path = show_persistent_open_dialog("o_state", hwnd, L"*.st;*.savestate;*.st0;*.st1;*.st2;*.st3;*.st4;*.st5;*.st6;*.st7;*.st8;*.st9,*.st10");
+					auto path = show_persistent_open_dialog("o_state", hwnd,
+					                                        L"*.st;*.savestate;*.st0;*.st1;*.st2;*.st3;*.st4;*.st5;*.st6;*.st7;*.st8;*.st9,*.st10");
 					if (path.empty())
 					{
 						break;
@@ -1012,7 +1023,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 
 					if (vcr_start_record(
-							result.path.string().c_str(), result.start_flag, result.author.c_str(), result.description.c_str()) < 0)
+						result.path.string().c_str(), result.start_flag, result.author.c_str(), result.description.c_str()) < 0)
 					{
 						show_modal_info(std::format("Couldn't start recording of {}", result.path.string()).c_str(), nullptr);
 						break;
@@ -1037,7 +1048,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					Config.pause_at_frame = result.pause_at;
 					Config.pause_at_last_frame = result.pause_at_last;
 
-					std::thread([result]{ VCR::start_playback(result.path); }).detach();
+					std::thread([result] { VCR::start_playback(result.path); }).detach();
 				}
 				break;
 			case IDM_STOP_MOVIE:
@@ -1088,21 +1099,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_FREEZE_RECENT_ROMS:
 				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS,
-							  (Config.is_recent_rom_paths_frozen ^= 1)
-								  ? MF_CHECKED
-								  : MF_UNCHECKED);
+				              (Config.is_recent_rom_paths_frozen ^= 1)
+					              ? MF_CHECKED
+					              : MF_UNCHECKED);
 				break;
 			case IDM_FREEZE_RECENT_MOVIES:
 				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_MOVIES,
-							  (Config.is_recent_movie_paths_frozen ^= 1)
-								  ? MF_CHECKED
-								  : MF_UNCHECKED);
+				              (Config.is_recent_movie_paths_frozen ^= 1)
+					              ? MF_CHECKED
+					              : MF_UNCHECKED);
 				break;
 			case IDM_FREEZE_RECENT_LUA:
 				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_LUA,
-							  (Config.is_recent_scripts_frozen ^= 1)
-								  ? MF_CHECKED
-								  : MF_UNCHECKED);
+				              (Config.is_recent_scripts_frozen ^= 1)
+					              ? MF_CHECKED
+					              : MF_UNCHECKED);
 				break;
 			case IDM_LOAD_LATEST_LUA:
 				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_LUA_RECENT, 0), 0);
@@ -1144,7 +1155,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						CheckMenuItem(main_menu, i, MF_UNCHECKED);
 					}
 					CheckMenuItem(main_menu, LOWORD(wParam), MF_CHECKED);
-
 				} else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <=
 					ID_SAVE_10)
 				{
@@ -1158,7 +1168,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					savestates_do_slot(slot, e_st_job::load);
 				} else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST &&
 					LOWORD(wParam) < (ID_RECENTROMS_FIRST + Config.
-						recent_rom_paths.size()))
+					                                        recent_rom_paths.size()))
 				{
 					auto path = Recent::element_at(Config.recent_rom_paths, ID_RECENTROMS_FIRST, LOWORD(wParam));
 					if (path.empty())
@@ -1167,7 +1177,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					std::thread([path] { vr_start_rom(path); }).detach();
 				} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST &&
 					LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + Config.
-						recent_movie_paths.size()))
+					                                          recent_movie_paths.size()))
 				{
 					auto path = Recent::element_at(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, LOWORD(wParam));
 					if (path.empty())
@@ -1175,7 +1185,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					Config.vcr_readonly = true;
 					Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
-					std::thread([path] { VCR::start_playback(path);}).detach();
+					std::thread([path] { VCR::start_playback(path); }).detach();
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
 				{
@@ -1218,15 +1228,20 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 
 	int result = 0;
 
-	if (is_continuable) {
+	if (is_continuable)
+	{
 		TaskDialog(mainHWND, app_instance, L"Error",
-			L"An error has occured", L"A crash log has been automatically generated. You can choose to continue program execution.", TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
-	} else {
+		           L"An error has occured", L"A crash log has been automatically generated. You can choose to continue program execution.",
+		           TDCBF_RETRY_BUTTON | TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
+	} else
+	{
 		TaskDialog(mainHWND, app_instance, L"Error",
-			L"An error has occured", L"A crash log has been automatically generated. The program will now exit.", TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, &result);
+		           L"An error has occured", L"A crash log has been automatically generated. The program will now exit.", TDCBF_CLOSE_BUTTON, TD_ERROR_ICON,
+		           &result);
 	}
 
-	if (result == IDCLOSE) {
+	if (result == IDCLOSE)
+	{
 		return EXCEPTION_EXECUTE_HANDLER;
 	}
 	return EXCEPTION_CONTINUE_EXECUTION;
@@ -1235,13 +1250,13 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-// #ifdef _DEBUG
+	// #ifdef _DEBUG
 	AllocConsole();
 	FILE* f = 0;
 	freopen_s(&f, "CONIN$", "r", stdin);
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	freopen_s(&f, "CONOUT$", "w", stderr);
-// #endif
+	// #endif
 
 	Messenger::init();
 
@@ -1310,7 +1325,7 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
 	Messenger::subscribe(Messenger::Message::LagLimitExceeded, on_vis_since_input_poll_exceeded);
 	Messenger::subscribe(Messenger::Message::CoreResult, on_core_result);
-	Messenger::subscribe(Messenger::Message::EmuStartingChanged, [] (std::any data)
+	Messenger::subscribe(Messenger::Message::EmuStartingChanged, [](std::any data)
 	{
 		emu_starting = std::any_cast<bool>(data);
 		update_titlebar();
@@ -1358,4 +1373,3 @@ int WINAPI WinMain(
 
 	return (int)msg.wParam;
 }
-

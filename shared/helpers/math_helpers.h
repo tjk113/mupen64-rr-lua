@@ -10,7 +10,7 @@
  * \param max The upper bound
  * \return The value, limited to the specified range
  */
-template<typename T>
+template <typename T>
 static T clamp(const T value, const T min, const T max)
 {
 	if (value > max)
@@ -62,11 +62,11 @@ static std::string format_duration(size_t seconds)
 
 	if (hours >= 1.0)
 		sprintf(tempbuf, "%d hours and %.1f minutes", (unsigned int)hours,
-				(float)minutes);
+		        (float)minutes);
 	else if (minutes >= 1.0)
 		sprintf(tempbuf, "%d minutes and %.0f seconds",
-				(unsigned int)minutes,
-				(float)seconds);
+		        (unsigned int)minutes,
+		        (float)seconds);
 	else if (seconds > 0)
 		sprintf(tempbuf, "%.1f seconds", (float)seconds);
 	else

@@ -33,4 +33,3 @@ namespace Statusbar
  	*/
 	void post(const std::string& text, Section section = Section::VCR);
 }
-

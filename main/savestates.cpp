@@ -67,7 +67,7 @@ bool fix_new_st = true;
 bool st_skip_dma = false;
 
 //last bit seems to be free
-enum { new_st_fixed_bit = (1<<31) };
+enum { new_st_fixed_bit = (1 << 31) };
 
 constexpr int buflen = 1024;
 constexpr int first_block_size = 0xA02BB4 - 32; //32 is md5 hash
@@ -126,22 +126,22 @@ std::vector<uint8_t> generate_savestate()
 {
 	std::vector<uint8_t> b;
 
-    vecwrite(b, rom_md5, 32);
+	vecwrite(b, rom_md5, 32);
 
-    //if fixing enabled...
-    if (fix_new_st)
-    {
-        //this is code taken from dma.c:dma_si_read(), it finishes up the dma.
-        //it copies data from pif (should contain commands and controller states), updates count reg and adds SI interrupt to queue
-        //so why does old mupen and mupen64plus dislike savestates without doing this? well in case of mario 64 it leaves pif command buffer uninitialised
-        //and it never can poll input properly (hence the inability to frame advance which is handled inside controller read).
+	//if fixing enabled...
+	if (fix_new_st)
+	{
+		//this is code taken from dma.c:dma_si_read(), it finishes up the dma.
+		//it copies data from pif (should contain commands and controller states), updates count reg and adds SI interrupt to queue
+		//so why does old mupen and mupen64plus dislike savestates without doing this? well in case of mario 64 it leaves pif command buffer uninitialised
+		//and it never can poll input properly (hence the inability to frame advance which is handled inside controller read).
 
-        //But we dont want to do this then load such .st and dma again... so I notify mupen about this in .st,
-        //since .st is filled up to the brim with data (not even a single unused offset) I have to store one bit in... rdram manufacturer register
-        //this 99.999% wont break on any game, and that bit will be cleared by mupen64plus converter as well, so only old old mupen ever sees this trick.
+		//But we dont want to do this then load such .st and dma again... so I notify mupen about this in .st,
+		//since .st is filled up to the brim with data (not even a single unused offset) I have to store one bit in... rdram manufacturer register
+		//this 99.999% wont break on any game, and that bit will be cleared by mupen64plus converter as well, so only old old mupen ever sees this trick.
 
-        //update: I stumbled upon a .st that had the bit set, but didn't have SI_INT in queue,
-        //so it froze game, so there exists a way to cause that somehow
+		//update: I stumbled upon a .st that had the bit set, but didn't have SI_INT in queue,
+		//so it froze game, so there exists a way to cause that somehow
 		if (get_event(SI_INT) == 0) //if there is no interrupt, add it, otherwise dont care
 		{
 			for (size_t i = 0; i < (64 / 4); i++)
@@ -151,65 +151,65 @@ std::vector<uint8_t> generate_savestate()
 			rdram_register.rdram_device_manuf |= new_st_fixed_bit;
 			st_skip_dma = true;
 		}
-        //hack end
-    }
-    vecwrite(b, &rdram_register, sizeof(RDRAM_register));
-    vecwrite(b, &MI_register, sizeof(mips_register));
-    vecwrite(b, &pi_register, sizeof(PI_register));
-    vecwrite(b, &sp_register, sizeof(SP_register));
-    vecwrite(b, &rsp_register, sizeof(RSP_register));
-    vecwrite(b, &si_register, sizeof(SI_register));
-    vecwrite(b, &vi_register, sizeof(VI_register));
-    vecwrite(b, &ri_register, sizeof(RI_register));
-    vecwrite(b, &ai_register, sizeof(AI_register));
-    vecwrite(b, &dpc_register, sizeof(DPC_register));
-    vecwrite(b, &dps_register, sizeof(DPS_register));
-    vecwrite(b, rdram, 0x800000);
-    vecwrite(b, SP_DMEM, 0x1000);
-    vecwrite(b, SP_IMEM, 0x1000);
-    vecwrite(b, PIF_RAM, 0x40);
+		//hack end
+	}
+	vecwrite(b, &rdram_register, sizeof(RDRAM_register));
+	vecwrite(b, &MI_register, sizeof(mips_register));
+	vecwrite(b, &pi_register, sizeof(PI_register));
+	vecwrite(b, &sp_register, sizeof(SP_register));
+	vecwrite(b, &rsp_register, sizeof(RSP_register));
+	vecwrite(b, &si_register, sizeof(SI_register));
+	vecwrite(b, &vi_register, sizeof(VI_register));
+	vecwrite(b, &ri_register, sizeof(RI_register));
+	vecwrite(b, &ai_register, sizeof(AI_register));
+	vecwrite(b, &dpc_register, sizeof(DPC_register));
+	vecwrite(b, &dps_register, sizeof(DPS_register));
+	vecwrite(b, rdram, 0x800000);
+	vecwrite(b, SP_DMEM, 0x1000);
+	vecwrite(b, SP_IMEM, 0x1000);
+	vecwrite(b, PIF_RAM, 0x40);
 
 	char buf[1024];
-    save_flashram_infos(buf);
-    vecwrite(b, buf, 24);
-    vecwrite(b, tlb_LUT_r, 0x100000);
-    vecwrite(b, tlb_LUT_w, 0x100000);
-    vecwrite(b, &llbit, 4);
-    vecwrite(b, reg, 32 * 8);
-    for (size_t i = 0; i < 32; i++)
-        vecwrite(b, reg_cop0 + i, 8); // *8 for compatibility with old versions purpose
-    vecwrite(b, &lo, 8);
-    vecwrite(b, &hi, 8);
-    vecwrite(b, reg_cop1_fgr_64, 32 * 8);
-    vecwrite(b, &FCR0, 4);
-    vecwrite(b, &FCR31, 4);
-    vecwrite(b, tlb_e, 32 * sizeof(tlb));
-    if (!dynacore && interpcore)
-        vecwrite(b, &interp_addr, 4);
-    else
-        vecwrite(b, &PC->addr, 4);
+	save_flashram_infos(buf);
+	vecwrite(b, buf, 24);
+	vecwrite(b, tlb_LUT_r, 0x100000);
+	vecwrite(b, tlb_LUT_w, 0x100000);
+	vecwrite(b, &llbit, 4);
+	vecwrite(b, reg, 32 * 8);
+	for (size_t i = 0; i < 32; i++)
+		vecwrite(b, reg_cop0 + i, 8); // *8 for compatibility with old versions purpose
+	vecwrite(b, &lo, 8);
+	vecwrite(b, &hi, 8);
+	vecwrite(b, reg_cop1_fgr_64, 32 * 8);
+	vecwrite(b, &FCR0, 4);
+	vecwrite(b, &FCR31, 4);
+	vecwrite(b, tlb_e, 32 * sizeof(tlb));
+	if (!dynacore && interpcore)
+		vecwrite(b, &interp_addr, 4);
+	else
+		vecwrite(b, &PC->addr, 4);
 
-    vecwrite(b, &next_interrupt, 4);
-    vecwrite(b, &next_vi, 4);
-    vecwrite(b, &vi_field, 4);
+	vecwrite(b, &next_interrupt, 4);
+	vecwrite(b, &next_vi, 4);
+	vecwrite(b, &vi_field, 4);
 
 	const int len = save_eventqueue_infos(buf);
-    vecwrite(b, buf, len);
+	vecwrite(b, buf, len);
 
-    // re-recording
-    BOOL movie_active = vcr_is_active();
-    vecwrite(b, &movie_active, sizeof(movie_active));
-    if (movie_active)
-    {
-    	auto movie_freeze = VCR::freeze().value();
+	// re-recording
+	BOOL movie_active = vcr_is_active();
+	vecwrite(b, &movie_active, sizeof(movie_active));
+	if (movie_active)
+	{
+		auto movie_freeze = VCR::freeze().value();
 
-    	vecwrite(b, &movie_freeze.size, sizeof(movie_freeze.size));
-    	vecwrite(b, &movie_freeze.uid, sizeof(movie_freeze.uid));
-    	vecwrite(b, &movie_freeze.current_sample, sizeof(movie_freeze.current_sample));
-    	vecwrite(b, &movie_freeze.current_vi, sizeof(movie_freeze.current_vi));
-    	vecwrite(b, &movie_freeze.length_samples, sizeof(movie_freeze.length_samples));
-    	vecwrite(b, movie_freeze.input_buffer.data(), movie_freeze.input_buffer.size());
-    }
+		vecwrite(b, &movie_freeze.size, sizeof(movie_freeze.size));
+		vecwrite(b, &movie_freeze.uid, sizeof(movie_freeze.uid));
+		vecwrite(b, &movie_freeze.current_sample, sizeof(movie_freeze.current_sample));
+		vecwrite(b, &movie_freeze.current_vi, sizeof(movie_freeze.current_vi));
+		vecwrite(b, &movie_freeze.length_samples, sizeof(movie_freeze.length_samples));
+		vecwrite(b, movie_freeze.input_buffer.data(), movie_freeze.input_buffer.size());
+	}
 	return b;
 }
 
@@ -225,9 +225,8 @@ void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& 
 
 void savestates_save_immediate()
 {
-
 	const auto start_time = std::chrono::high_resolution_clock::now();
-    savestates_job_success = TRUE;
+	savestates_job_success = TRUE;
 
 	const auto st = generate_savestate();
 
@@ -247,7 +246,7 @@ void savestates_save_immediate()
 		{
 			savestates_set_slot(st_slot + 1);
 		}
- 	}
+	}
 
 	if (st_medium == e_st_medium::slot || st_medium == e_st_medium::path)
 	{
@@ -300,61 +299,61 @@ void savestates_save_immediate()
 /// <param name="firstBlock"></param>
 void load_memory_from_buffer(uint8_t* p)
 {
-    memread(&p, &rdram_register, sizeof(RDRAM_register));
-    if (rdram_register.rdram_device_manuf & new_st_fixed_bit)
-    {
-        rdram_register.rdram_device_manuf &= ~new_st_fixed_bit; //remove the trick
-        st_skip_dma = true; //tell dma.c to skip it
-    }
-    memread(&p, &MI_register, sizeof(mips_register));
-    memread(&p, &pi_register, sizeof(PI_register));
-    memread(&p, &sp_register, sizeof(SP_register));
-    memread(&p, &rsp_register, sizeof(RSP_register));
-    memread(&p, &si_register, sizeof(SI_register));
-    memread(&p, &vi_register, sizeof(VI_register));
-    memread(&p, &ri_register, sizeof(RI_register));
-    memread(&p, &ai_register, sizeof(AI_register));
-    memread(&p, &dpc_register, sizeof(DPC_register));
-    memread(&p, &dps_register, sizeof(DPS_register));
-    memread(&p, rdram, 0x800000);
-    memread(&p, SP_DMEM, 0x1000);
-    memread(&p, SP_IMEM, 0x1000);
-    memread(&p, PIF_RAM, 0x40);
+	memread(&p, &rdram_register, sizeof(RDRAM_register));
+	if (rdram_register.rdram_device_manuf & new_st_fixed_bit)
+	{
+		rdram_register.rdram_device_manuf &= ~new_st_fixed_bit; //remove the trick
+		st_skip_dma = true; //tell dma.c to skip it
+	}
+	memread(&p, &MI_register, sizeof(mips_register));
+	memread(&p, &pi_register, sizeof(PI_register));
+	memread(&p, &sp_register, sizeof(SP_register));
+	memread(&p, &rsp_register, sizeof(RSP_register));
+	memread(&p, &si_register, sizeof(SI_register));
+	memread(&p, &vi_register, sizeof(VI_register));
+	memread(&p, &ri_register, sizeof(RI_register));
+	memread(&p, &ai_register, sizeof(AI_register));
+	memread(&p, &dpc_register, sizeof(DPC_register));
+	memread(&p, &dps_register, sizeof(DPS_register));
+	memread(&p, rdram, 0x800000);
+	memread(&p, SP_DMEM, 0x1000);
+	memread(&p, SP_IMEM, 0x1000);
+	memread(&p, PIF_RAM, 0x40);
 
-    char buf[4 * 32];
-    memread(&p, buf, 24);
-    load_flashram_infos(buf);
+	char buf[4 * 32];
+	memread(&p, buf, 24);
+	load_flashram_infos(buf);
 
-    memread(&p, tlb_LUT_r, 0x100000);
-    memread(&p, tlb_LUT_w, 0x100000);
+	memread(&p, tlb_LUT_r, 0x100000);
+	memread(&p, tlb_LUT_w, 0x100000);
 
-    memread(&p, &llbit, 4);
-    memread(&p, reg, 32 * 8);
-    for (int i = 0; i < 32; i++)
-    {
-        memread(&p, reg_cop0 + i, 4);
-        memread(&p, buf, 4); // for compatibility with old versions purpose
-    }
-    memread(&p, &lo, 8);
-    memread(&p, &hi, 8);
-    memread(&p, reg_cop1_fgr_64, 32 * 8);
-    memread(&p, &FCR0, 4);
-    memread(&p, &FCR31, 4);
-    memread(&p, tlb_e, 32 * sizeof(tlb));
-    if (!dynacore && interpcore)
-        memread(&p, &interp_addr, 4);
-    else
-    {
-        uint32_t target_addr;
-        memread(&p, &target_addr, 4);
-        for (char& i : invalid_code)
-	        i = 1;
-        jump_to(target_addr)
-    }
+	memread(&p, &llbit, 4);
+	memread(&p, reg, 32 * 8);
+	for (int i = 0; i < 32; i++)
+	{
+		memread(&p, reg_cop0 + i, 4);
+		memread(&p, buf, 4); // for compatibility with old versions purpose
+	}
+	memread(&p, &lo, 8);
+	memread(&p, &hi, 8);
+	memread(&p, reg_cop1_fgr_64, 32 * 8);
+	memread(&p, &FCR0, 4);
+	memread(&p, &FCR31, 4);
+	memread(&p, tlb_e, 32 * sizeof(tlb));
+	if (!dynacore && interpcore)
+		memread(&p, &interp_addr, 4);
+	else
+	{
+		uint32_t target_addr;
+		memread(&p, &target_addr, 4);
+		for (char& i : invalid_code)
+			i = 1;
+		jump_to(target_addr)
+	}
 
-    memread(&p, &next_interrupt, 4);
-    memread(&p, &next_vi, 4);
-    memread(&p, &vi_field, 4);
+	memread(&p, &next_interrupt, 4);
+	memread(&p, &next_vi, 4);
+	memread(&p, &vi_field, 4);
 }
 
 /// <summary>
@@ -365,17 +364,17 @@ void savestates_load_immediate()
 {
 	const auto start_time = std::chrono::high_resolution_clock::now();
 
-    /*rough .st format :
-    0x0 - 0xA02BB0 : memory, registers, stuff like that, known size
-    0xA02BB4 - ??? : interrupt queue, dynamic size (cap 1kB)
-    ??? - ??????   : m64 info, also dynamic, no cap
-    More precise info can be seen on github
-    */
+	/*rough .st format :
+	0x0 - 0xA02BB0 : memory, registers, stuff like that, known size
+	0xA02BB4 - ??? : interrupt queue, dynamic size (cap 1kB)
+	??? - ??????   : m64 info, also dynamic, no cap
+	More precise info can be seen on github
+	*/
 	char buf[buflen]{};
-    //handle to st
-    int len;
+	//handle to st
+	int len;
 
-    savestates_job_success = TRUE;
+	savestates_job_success = TRUE;
 
 	std::filesystem::path new_st_path = st_path;
 	std::filesystem::path new_sd_path = "";
@@ -383,7 +382,7 @@ void savestates_load_immediate()
 
 	if (Config.use_summercart) load_summercart(new_sd_path.string().c_str());
 
-    std::vector<uint8_t> st_buf;
+	std::vector<uint8_t> st_buf;
 
 	switch (st_medium)
 	{
@@ -397,18 +396,18 @@ void savestates_load_immediate()
 			st_buf = st_buffers[st_key];
 		}
 		break;
-		default: assert(false);
+	default: assert(false);
 	}
 
-    if (st_buf.empty())
-    {
-    	Statusbar::post(std::format("{} not found", new_st_path.filename().string()));
-        savestates_job_success = FALSE;
-        return;
-    }
+	if (st_buf.empty())
+	{
+		Statusbar::post(std::format("{} not found", new_st_path.filename().string()));
+		savestates_job_success = FALSE;
+		return;
+	}
 
 	std::vector<uint8_t> decompressed_buf = auto_decompress(st_buf);
-	if(decompressed_buf.empty())
+	if (decompressed_buf.empty())
 	{
 		MessageBox(mainHWND, "Failed to decompress savestate", nullptr, MB_ICONERROR);
 		savestates_job_success = FALSE;
@@ -419,118 +418,123 @@ void savestates_load_immediate()
 	// find another way of doing this
 	auto ptr = decompressed_buf.data();
 
-    // compare current rom hash with one stored in state
+	// compare current rom hash with one stored in state
 	char md5[33] = {0};
-    memread(&ptr, &md5, 32);
+	memread(&ptr, &md5, 32);
 
-	if (memcmp(md5, rom_md5, 32)) {
+	if (memcmp(md5, rom_md5, 32))
+	{
+		auto result = MessageBox(
+			mainHWND, std::format(
+				"The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?",
+				md5).c_str(), nullptr, MB_ICONQUESTION | MB_YESNO);
 
-		auto result = MessageBox(mainHWND, std::format("The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?", md5).c_str(), nullptr, MB_ICONQUESTION | MB_YESNO);
-
-		if (result != IDYES) {
+		if (result != IDYES)
+		{
 			savestates_job_success = FALSE;
 			return;
 		}
 	}
 
-    // new version does one bigass gzread for first part of .st (static size)
-    memread(&ptr, first_block, first_block_size);
+	// new version does one bigass gzread for first part of .st (static size)
+	memread(&ptr, first_block, first_block_size);
 
-    // now read interrupt queue into buf
-    for (len = 0; len < buflen; len += 8)
-    {
-        memread(&ptr, buf + len, 4);
-        if (*reinterpret_cast<unsigned long*>(&buf[len]) == 0xFFFFFFFF)
-            break;
-        memread(&ptr, buf + len + 4, 4);
-    }
-    if (len == buflen)
-    {
-        // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
-        fprintf(stderr, "Snapshot event queue terminator not reached.\n");
-        savestates_job_success = FALSE;
-        Statusbar::post("Event queue too long (corrupted?)");
-        savestates_job_success = FALSE;
-        return;
-    }
+	// now read interrupt queue into buf
+	for (len = 0; len < buflen; len += 8)
+	{
+		memread(&ptr, buf + len, 4);
+		if (*reinterpret_cast<unsigned long*>(&buf[len]) == 0xFFFFFFFF)
+			break;
+		memread(&ptr, buf + len + 4, 4);
+	}
+	if (len == buflen)
+	{
+		// Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
+		fprintf(stderr, "Snapshot event queue terminator not reached.\n");
+		savestates_job_success = FALSE;
+		Statusbar::post("Event queue too long (corrupted?)");
+		savestates_job_success = FALSE;
+		return;
+	}
 
-    uint32_t is_movie;
-    memread(&ptr, &is_movie, sizeof(is_movie));
+	uint32_t is_movie;
+	memread(&ptr, &is_movie, sizeof(is_movie));
 
-    if (is_movie)
-    {
-	    // this .st is part of a movie, we need to overwrite our current movie buffer
-	    // hash matches, load and verify rest of the data
-    	t_movie_freeze freeze{};
+	if (is_movie)
+	{
+		// this .st is part of a movie, we need to overwrite our current movie buffer
+		// hash matches, load and verify rest of the data
+		t_movie_freeze freeze{};
 
-	    memread(&ptr, &freeze.size, sizeof(freeze.size));
-	    memread(&ptr, &freeze.uid, sizeof(freeze.uid));
-	    memread(&ptr, &freeze.current_sample, sizeof(freeze.current_sample));
-	    memread(&ptr, &freeze.current_vi, sizeof(freeze.current_vi));
-	    memread(&ptr, &freeze.length_samples, sizeof(freeze.length_samples));
+		memread(&ptr, &freeze.size, sizeof(freeze.size));
+		memread(&ptr, &freeze.uid, sizeof(freeze.uid));
+		memread(&ptr, &freeze.current_sample, sizeof(freeze.current_sample));
+		memread(&ptr, &freeze.current_vi, sizeof(freeze.current_vi));
+		memread(&ptr, &freeze.length_samples, sizeof(freeze.length_samples));
 
-    	freeze.input_buffer.resize(sizeof(BUTTONS) * (freeze.length_samples + 1));
-	    memread(&ptr, freeze.input_buffer.data(), freeze.input_buffer.size());
+		freeze.input_buffer.resize(sizeof(BUTTONS) * (freeze.length_samples + 1));
+		memread(&ptr, freeze.input_buffer.data(), freeze.input_buffer.size());
 
-	    const auto code = VCR::unfreeze(freeze);
+		const auto code = VCR::unfreeze(freeze);
 
-	    if (code != VCR::Result::Ok && !vcr_is_idle())
-	    {
-		    std::string err_str = "Failed to restore movie, ";
-		    switch (code)
-		    {
-		    case VCR::Result::NotFromThisMovie:
-			    err_str += "the snapshot is not from this movie.";
-			    break;
-		    case VCR::Result::InvalidFrame:
-			    err_str += "the savestate frame is outside the bounds of the movie.";
-			    break;
-		    case VCR::Result::InvalidFormat:
-			    err_str += "the format is invalid.";
-			    stop = true;
-			    break;
-		    default:
-		    	err_str += "an unknown error has occured.";
-			    break;
-		    }
-	    	err_str += "\r\nAre you sure you want to continue?";
-		    auto result = MessageBox(mainHWND,
-		                             err_str.c_str(), nullptr,
-		                             MB_ICONWARNING | MB_YESNO);
-		    if (result != IDYES)
-		    {
-			    if (vcr_is_recording())
-			    {
-				    vcr_stop_record();
-			    }
-			    if (vcr_is_playing())
-			    {
-				    vcr_stop_playback();
-			    }
-			    savestates_job_success = FALSE;
-			    goto failedLoad;
-		    }
-	    }
-    }
-    else
-    {
-	    if (vcr_is_active())
-	    {
-	    	auto result = MessageBox(mainHWND, "Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?", nullptr, MB_ICONQUESTION | MB_YESNO);
-		    if (result != IDYES)
-		    {
-		    	savestates_job_success = FALSE;
-		    	return;
-		    }
-	    }
+		if (code != VCR::Result::Ok && !vcr_is_idle())
+		{
+			std::string err_str = "Failed to restore movie, ";
+			switch (code)
+			{
+			case VCR::Result::NotFromThisMovie:
+				err_str += "the snapshot is not from this movie.";
+				break;
+			case VCR::Result::InvalidFrame:
+				err_str += "the savestate frame is outside the bounds of the movie.";
+				break;
+			case VCR::Result::InvalidFormat:
+				err_str += "the format is invalid.";
+				stop = true;
+				break;
+			default:
+				err_str += "an unknown error has occured.";
+				break;
+			}
+			err_str += "\r\nAre you sure you want to continue?";
+			auto result = MessageBox(mainHWND,
+			                         err_str.c_str(), nullptr,
+			                         MB_ICONWARNING | MB_YESNO);
+			if (result != IDYES)
+			{
+				if (vcr_is_recording())
+				{
+					vcr_stop_record();
+				}
+				if (vcr_is_playing())
+				{
+					vcr_stop_playback();
+				}
+				savestates_job_success = FALSE;
+				goto failedLoad;
+			}
+		}
+	} else
+	{
+		if (vcr_is_active())
+		{
+			auto result = MessageBox(
+				mainHWND, "Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?", nullptr,
+				MB_ICONQUESTION | MB_YESNO);
+			if (result != IDYES)
+			{
+				savestates_job_success = FALSE;
+				return;
+			}
+		}
 
-	    // at this point we know the savestate is safe to be loaded (done after else block)
-    }
+		// at this point we know the savestate is safe to be loaded (done after else block)
+	}
 
-    // so far loading success! overwrite memory
-    load_eventqueue_infos(buf);
-    load_memory_from_buffer(first_block);
-    LuaCallbacks::call_load_state();
+	// so far loading success! overwrite memory
+	load_eventqueue_infos(buf);
+	load_memory_from_buffer(first_block);
+	LuaCallbacks::call_load_state();
 	if (st_medium == e_st_medium::path)
 	{
 		Statusbar::post(std::format("Loaded {}", new_st_path.filename().string()));
@@ -540,24 +544,23 @@ void savestates_load_immediate()
 		Statusbar::post(std::format("Loaded slot {}", st_slot + 1));
 	}
 failedLoad:
-    extern bool ignore;
-    //legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
-    //This should cause issues anyway but libultra seems to be flexible (this means there's a chance it fails).
-    //For safety, load .sts in dynarec because it completely avoids this issue by being differently coded
-    old_st = (interp_addr == 0x80000180 || PC->addr == 0x80000180);
-    //doubled because can't just reuse this variable
-    if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && !dynacore))
-        ignore = true;
-    if (!dynacore && interpcore)
-    {
-        //printf(".st jump: %x, stopped here:%x\n", interp_addr, last_addr);
-        last_addr = interp_addr;
-    }
-    else
-    {
-        //printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
-        last_addr = PC->addr;
-    }
+	extern bool ignore;
+	//legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
+	//This should cause issues anyway but libultra seems to be flexible (this means there's a chance it fails).
+	//For safety, load .sts in dynarec because it completely avoids this issue by being differently coded
+	old_st = (interp_addr == 0x80000180 || PC->addr == 0x80000180);
+	//doubled because can't just reuse this variable
+	if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && !dynacore))
+		ignore = true;
+	if (!dynacore && interpcore)
+	{
+		//printf(".st jump: %x, stopped here:%x\n", interp_addr, last_addr);
+		last_addr = interp_addr;
+	} else
+	{
+		//printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
+		last_addr = PC->addr;
+	}
 
 	printf("Savestate loading took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
@@ -582,4 +585,3 @@ void savestates_do_slot(const int32_t slot, const e_st_job job)
 	savestates_job = job;
 	st_medium = e_st_medium::slot;
 }
-

@@ -35,6 +35,4 @@ private:
 	WAVEFORMATEX sound_format;
 	AVISTREAMINFO sound_stream_header;
 	PAVISTREAM sound_stream;
-
-
 };
