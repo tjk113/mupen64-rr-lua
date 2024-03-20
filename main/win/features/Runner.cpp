@@ -9,8 +9,8 @@
 
 #include "LuaConsole.h"
 #include "messenger.h"
-#include "vcr.h"
 #include "win/Config.hpp"
+#include "../../r4300/vcr.h"
 #include "../../r4300/r4300.h"
 
 namespace Runner

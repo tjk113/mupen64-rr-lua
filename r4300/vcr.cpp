@@ -1,20 +1,11 @@
-//#include "../config.h"
-#include <cassert>
-
-#include "win/main_win.h"
-#include "win/features/Statusbar.hpp"
-#include "../r4300/r4300.h"
-#include "../lua/LuaConsole.h"
 
 #include "vcr.h"
-
+#include <cassert>
+#include <win/main_win.h>
+#include <win/features/Statusbar.hpp>
+#include <win/features/RomBrowser.hpp>
+#include <win/Config.hpp>
 #include <memory>
-
-#include "../r4300/Plugin.hpp"
-#include "../r4300/rom.h"
-#include "../memory/savestates.h"
-#include "../memory/memory.h"
-
 #include <filesystem>
 #include <cerrno>
 #include <malloc.h>
@@ -23,13 +14,14 @@
 #include <ctime>
 #include <chrono>
 #include <Windows.h>
-#include "win/Config.hpp"
-#include <guifuncs.h>
-#include "LuaCallbacks.h"
-#include "messenger.h"
+#include "r4300.h"
+#include "Plugin.hpp"
+#include "rom.h"
+#include "../memory/savestates.h"
 #include "../memory/pif.h"
-#include "win/features/MGECompositor.h"
-#include "win/features/RomBrowser.hpp"
+#include <LuaCallbacks.h>
+#include <LuaConsole.h>
+#include "messenger.h"
 
 // M64\0x1a
 enum

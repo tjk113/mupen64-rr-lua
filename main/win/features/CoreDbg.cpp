@@ -5,12 +5,12 @@
 #include "CoreDbg.h"
 
 #include <stdio.h>
-#include "vcr.h"
 #include <Windows.h>
 #include <Windowsx.h>
 #include <commctrl.h>
 
 #include "../../r4300/r4300.h"
+#include "../../r4300/vcr.h"
 #include "../../memory/memory.h"
 #include "../../r4300/disasm.h"
 

@@ -2,9 +2,9 @@
 #include <Windows.h>
 
 #include "../r4300/rom.h"
+#include "../r4300/vcr.h"
 #include "../memory/savestates.h"
 #include "Statusbar.hpp"
-#include "vcr.h"
 #include "win/main_win.h"
 #include "win/Config.hpp"
 #include "../winproject/resource.h"

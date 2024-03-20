@@ -155,7 +155,6 @@
         <ClInclude Include="..\..\main\capture\Resampler.h"/>
         <ClInclude Include="..\..\main\debughook.h"/>
         <ClInclude Include="..\..\main\messenger.h"/>
-        <ClInclude Include="..\..\main\vcr.h"/>
         <ClInclude Include="..\..\main\win\features\CrashHelper.h"/>
         <ClInclude Include="..\..\main\win\features\CoreDbg.h"/>
         <ClInclude Include="..\..\main\win\features\Dispatcher.h"/>
@@ -191,6 +190,7 @@
         <ClInclude Include="..\..\r4300\recomph.h"/>
         <ClInclude Include="..\..\r4300\rom.h"/>
         <ClInclude Include="..\..\r4300\tracelog.h"/>
+        <ClInclude Include="..\..\r4300\vcr.h" />
         <ClInclude Include="..\..\r4300\x86\assemble.h"/>
         <ClInclude Include="..\..\r4300\x86\gcop1_helpers.h"/>
         <ClInclude Include="..\..\r4300\x86\interpret.h"/>
@@ -220,10 +220,6 @@
         <ClCompile Include="..\..\main\capture\Resampler.cpp"/>
         <ClCompile Include="..\..\main\debughook.cpp"/>
         <ClCompile Include="..\..\main\messenger.cpp"/>
-        <ClCompile Include="..\..\main\vcr.cpp">
-            <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-            <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-        </ClCompile>
         <ClCompile Include="..\..\main\win\features\CrashHelper.cpp"/>
         <ClCompile Include="..\..\main\win\features\CoreDbg.cpp"/>
         <ClCompile Include="..\..\main\win\features\Dispatcher.cpp"/>
@@ -335,6 +331,7 @@
             <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)r4300_tlb</ObjectFileName>
         </ClCompile>
         <ClCompile Include="..\..\r4300\tracelog.cpp"/>
+        <ClCompile Include="..\..\r4300\vcr.cpp"/>
         <ClCompile Include="..\..\r4300\x86\assemble.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>

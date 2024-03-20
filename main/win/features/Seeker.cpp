@@ -5,7 +5,7 @@
 
 #include "messenger.h"
 #include "Statusbar.hpp"
-#include "vcr.h"
+#include "../../r4300/vcr.h"
 #include "../main_win.h"
 #include "../../winproject/resource.h"
 #include "win/Config.hpp"
