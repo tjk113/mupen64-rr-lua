@@ -34,3 +34,20 @@
 bool confirm_user_exit();
 
 void show_modal_info(const char* str, const char* title);
+
+/**
+ * \brief Asks the user a yes/no question
+ * \param str The dialog content
+ * \param title The dialog title
+ * \param warning Whether the tone of the message is perceived as a warning
+ * \return Whether the user answered yes
+ */
+bool show_ask_dialog(const char* str, const char* title, bool warning = false);
+
+
+/**
+ * \brief Shows the user a warning
+ * \param str The dialog content
+ * \param title The dialog title
+ */
+void show_warning(const char* str, const char* title);

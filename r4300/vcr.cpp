@@ -19,6 +19,8 @@
 #include "../memory/pif.h"
 #include <LuaCallbacks.h>
 #include <LuaConsole.h>
+
+#include "guifuncs.h"
 #include "messenger.h"
 
 // M64\0x1a
@@ -31,6 +33,11 @@ enum
 
 #define MUP_HEADER_SIZE (sizeof(t_movie_header))
 #define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? mup_header_size_old : MUP_HEADER_SIZE)
+
+const auto rawdata_warning_message = "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?";
+const auto rom_name_warning_message = "The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+const auto rom_country_warning_message = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+const auto rom_crc_warning_message = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
 
 BOOL dont_play = false;
 
@@ -730,13 +737,12 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	{
 		if (Present && RawData)
 		{
-			if (MessageBox(
-				nullptr,
-				"Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?",
-				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING) == IDNO)
-				return -
-					1;
-			break; //
+			bool proceed = show_ask_dialog(rawdata_warning_message, "VCR", true);
+			if (!proceed)
+			{
+				return -1;
+			}
+			break;
 		}
 	}
 
@@ -1002,12 +1008,8 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		if (!Present || !RawData)
 			continue;
 
-		if (MessageBox(
-				nullptr,
-				"Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?",
-				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
-			==
-			IDNO)
+		bool proceed = show_ask_dialog(rawdata_warning_message, "VCR", true);
+		if (!proceed)
 		{
 			fclose(m_file);
 			return Result::Cancelled;
@@ -1025,22 +1027,15 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
 	if (strlen(dummy) > 0)
 	{
-		MessageBox(
-			nullptr,
-			dummy, "VCR", MB_OK | MB_TOPMOST | MB_ICONWARNING);
+		show_warning(dummy, "VCR");
 	}
 
 	if (_stricmp(m_header.rom_name,
 	             (const char*)ROM_HEADER.nom) != 0)
 	{
-		if (MessageBox(
-				nullptr,
-				std::format(
-					"The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?",
-					m_header.rom_name, (const char*)ROM_HEADER.nom).c_str(),
-				"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
-			==
-			IDNO)
+		bool proceed = show_ask_dialog(std::format(rom_name_warning_message, m_header.rom_name, (const char*)ROM_HEADER.nom).c_str(), "VCR", true);
+
+		if (!proceed)
 		{
 			fclose(m_file);
 			return Result::Cancelled;
@@ -1050,14 +1045,8 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		if (m_header.rom_country != ROM_HEADER.
 			Country_code)
 		{
-			if (MessageBox(
-					nullptr,
-					std::format(
-						"The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?",
-						m_header.rom_country, ROM_HEADER.Country_code).c_str(),
-					"VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
-				==
-				IDNO)
+			bool proceed = show_ask_dialog(std::format(rom_country_warning_message, m_header.rom_country, ROM_HEADER.Country_code).c_str(), "VCR", true);
+			if (!proceed)
 			{
 				fclose(m_file);
 				return Result::Cancelled;
@@ -1068,14 +1057,12 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 			char str[512] = {0};
 			sprintf(
 				str,
-				"The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?",
+				rom_crc_warning_message,
 				(unsigned int)m_header.rom_crc1,
 				(unsigned int)ROM_HEADER.CRC1);
-			if (MessageBox(
-					nullptr,
-					str, "VCR", MB_YESNO | MB_TOPMOST | MB_ICONWARNING)
-				==
-				IDNO)
+
+			bool proceed = show_ask_dialog(str, "VCR", true);
+			if (!proceed)
 			{
 				fclose(m_file);
 				return Result::Cancelled;

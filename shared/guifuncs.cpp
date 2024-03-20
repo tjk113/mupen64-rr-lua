@@ -19,9 +19,9 @@
 #include <commctrl.h>
 #include "guifuncs.h"
 #include <win/main_win.h>
-#include <vcr.h>
 
 #include "../../r4300/tracelog.h"
+#include "../../r4300/vcr.h"
 #include "capture/EncodingManager.h"
 
 
@@ -60,4 +60,14 @@ bool confirm_user_exit()
 void show_modal_info(const char* str, const char* title)
 {
 	MessageBox(mainHWND, str, title, MB_OK | MB_ICONINFORMATION);
+}
+
+bool show_ask_dialog(const char* str, const char* title, bool warning)
+{
+	return MessageBox(mainHWND, str, title, MB_YESNO | (warning ? MB_ICONWARNING : MB_ICONQUESTION)) == IDYES;
+}
+
+void show_warning(const char* str, const char* title)
+{
+	MessageBox(mainHWND, str, title, MB_YESNO | MB_ICONWARNING);
 }
