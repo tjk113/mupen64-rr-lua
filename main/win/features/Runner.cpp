@@ -53,7 +53,7 @@ namespace Runner
 					auto ctl = GetDlgItem(hwnd, id);
 					for (auto path : paths)
 					{
-						auto index = ListBox_AddString(ctl, std::filesystem::path(path).string().c_str());
+						auto index = ListBox_AddString(ctl, std::filesystem::path(path).filename().string().c_str());
 
 						char* buffer = new char[path.size() + 1]();
 						memcpy(buffer, path.data(), path.size());
