@@ -92,6 +92,8 @@
 #define IDC_SEEKER_FRAME                1035
 #define IDC_MOVIE_INFO_TEMPLATE         1036
 #define IDC_ENCODE_MODE                 1037
+#define IDC_ENCODE_MODE2                1038
+#define IDC_ENCODE_SYNC                 1038
 #define IDM_FULLSCREEN                  1061
 #define IDM_PAUSE                       1062
 #define IDM_FRAMEADVANCE                1063

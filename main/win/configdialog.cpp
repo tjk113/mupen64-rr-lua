@@ -43,66 +43,6 @@
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
 
-BOOL CALLBACK other_options_proc(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
-{
-	NMHDR FAR* l_nmhdr = nullptr;
-    memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        {
-
-            switch (Config.synchronization_mode)
-            {
-            case (int)EncodingManager::Sync::Audio:
-                CheckDlgButton(hwnd, IDC_AV_AUDIOSYNC, BST_CHECKED);
-                break;
-            case (int)EncodingManager::Sync::Video:
-                CheckDlgButton(hwnd, IDC_AV_VIDEOSYNC, BST_CHECKED);
-                break;
-            case (int)EncodingManager::Sync::None:
-                CheckDlgButton(hwnd, IDC_AV_NOSYNC, BST_CHECKED);
-                break;
-            default:
-                break;
-            }
-
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_AUDIOSYNC), !EncodingManager::is_capturing());
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_VIDEOSYNC), !EncodingManager::is_capturing());
-            EnableWindow(GetDlgItem(hwnd, IDC_AV_NOSYNC), !EncodingManager::is_capturing());
-
-            return TRUE;
-        }
-    case WM_COMMAND:
-        {
-            char buf[50];
-            // TODO: move into wm_notify psn_apply
-            switch (LOWORD(w_param))
-            {
-            case IDC_AV_AUDIOSYNC:
-                Config.synchronization_mode = (int)EncodingManager::Sync::Audio;
-                break;
-            case IDC_AV_VIDEOSYNC:
-                Config.synchronization_mode = (int)EncodingManager::Sync::Video;
-                break;
-            case IDC_AV_NOSYNC:
-                Config.synchronization_mode = (int)EncodingManager::Sync::None;
-                break;
-            default:
-                break;
-            }
-
-            break;
-        }
-    default:
-        return FALSE;
-    }
-    return TRUE;
-}
-
-
-
-
 BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM)
 {
     switch (message)
@@ -505,10 +445,13 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 		case WM_INITDIALOG:
 		{
 			static const char* clock_speed_multiplier_names[] = {
-				"1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6"
+				"1 - Default", "2 - 'Lagless'", "3", "4", "5", "6"
 			};
 			static const char* capture_mode_names[] = {
 				"External capture", "Internal capture window", "Internal capture desktop",
+			};
+			static const char* capture_sync_names[] = {
+				"No Sync", "Audio Sync", "Video Sync",
 			};
 
 			// Populate CPU Clock Speed Multiplier Dropdown Menu
@@ -525,6 +468,12 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			}
 			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_ENCODE_MODE), Config.capture_mode);
 
+			for (auto& name : capture_sync_names) {
+				SendDlgItemMessage(hwnd, IDC_ENCODE_SYNC, CB_ADDSTRING, 0,
+								   (LPARAM)name);
+			}
+			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_ENCODE_SYNC), Config.synchronization_mode);
+
 			SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
 
 			CheckDlgButton(hwnd, IDC_INTERP, Config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
@@ -534,6 +483,8 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			EnableWindow(GetDlgItem(hwnd, IDC_INTERP), !emu_launched);
 			EnableWindow(GetDlgItem(hwnd, IDC_RECOMP), !emu_launched);
 			EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
+			EnableWindow(GetDlgItem(hwnd, IDC_ENCODE_MODE), !EncodingManager::is_capturing());
+			EnableWindow(GetDlgItem(hwnd, IDC_ENCODE_SYNC), !EncodingManager::is_capturing());
 
 			set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
 			set_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT, Config.increment_slot);
@@ -566,6 +517,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 		case IDC_ENCODE_MODE:
 		{
 			Config.capture_mode = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_ENCODE_MODE));
+			break;
+		}
+		case IDC_ENCODE_SYNC:
+		{
+			Config.synchronization_mode = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_ENCODE_SYNC));
 			break;
 		}
         case IDC_INTERP:
@@ -751,7 +707,7 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 
 void configdialog_show()
 {
-    PROPSHEETPAGE psp[5] = {{0}};
+    PROPSHEETPAGE psp[4] = {{0}};
     for (auto& i : psp)
     {
 	    i.dwSize = sizeof(PROPSHEETPAGE);
@@ -774,10 +730,6 @@ void configdialog_show()
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
     psp[3].pfnDlgProc = hotkeys_proc;
     psp[3].pszTitle = "Hotkeys";
-
-    psp[4].pszTemplate = MAKEINTRESOURCE(IDD_OTHER_OPTIONS_DIALOG);
-    psp[4].pfnDlgProc = other_options_proc;
-    psp[4].pszTitle = "Other";
 
 	PROPSHEETHEADER psh = {0};
     psh.dwSize = sizeof(PROPSHEETHEADER);
