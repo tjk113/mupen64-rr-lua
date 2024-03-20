@@ -2,7 +2,7 @@
 #include <Windows.h>
 
 #include "../r4300/rom.h"
-#include "savestates.h"
+#include "../memory/savestates.h"
 #include "Statusbar.hpp"
 #include "vcr.h"
 #include "win/main_win.h"

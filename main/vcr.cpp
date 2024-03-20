@@ -12,7 +12,7 @@
 
 #include "../r4300/Plugin.hpp"
 #include "../r4300/rom.h"
-#include "savestates.h"
+#include "../memory/savestates.h"
 #include "../memory/memory.h"
 
 #include <filesystem>

@@ -155,7 +155,6 @@
         <ClInclude Include="..\..\main\capture\Resampler.h"/>
         <ClInclude Include="..\..\main\debughook.h"/>
         <ClInclude Include="..\..\main\messenger.h"/>
-        <ClInclude Include="..\..\main\savestates.h"/>
         <ClInclude Include="..\..\main\vcr.h"/>
         <ClInclude Include="..\..\main\win\features\CrashHelper.h"/>
         <ClInclude Include="..\..\main\win\features\CoreDbg.h"/>
@@ -177,6 +176,7 @@
         <ClInclude Include="..\..\memory\memory.h"/>
         <ClInclude Include="..\..\memory\pif.h"/>
         <ClInclude Include="..\..\memory\pif2.h"/>
+        <ClInclude Include="..\..\memory\savestates.h" />
         <ClInclude Include="..\..\memory\tlb.h"/>
         <ClInclude Include="..\..\memory\summercart.h"/>
         <ClInclude Include="..\..\r4300\cop1_helpers.h"/>
@@ -220,10 +220,6 @@
         <ClCompile Include="..\..\main\capture\Resampler.cpp"/>
         <ClCompile Include="..\..\main\debughook.cpp"/>
         <ClCompile Include="..\..\main\messenger.cpp"/>
-        <ClCompile Include="..\..\main\savestates.cpp">
-            <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-            <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-        </ClCompile>
         <ClCompile Include="..\..\main\vcr.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -261,6 +257,7 @@
         <ClCompile Include="..\..\memory\flashram.cpp"/>
         <ClCompile Include="..\..\memory\memory.cpp"/>
         <ClCompile Include="..\..\memory\pif.cpp"/>
+        <ClCompile Include="..\..\memory\savestates.cpp"/>
         <ClCompile Include="..\..\memory\tlb.cpp"/>
         <ClCompile Include="..\..\memory\summercart.cpp"/>
         <ClCompile Include="..\..\r4300\bc.cpp">

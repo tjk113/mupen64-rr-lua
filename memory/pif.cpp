@@ -45,7 +45,7 @@
 #include "../r4300/r4300.h"
 #include "../r4300/Plugin.hpp"
 #include "../main/vcr.h"
-#include "../main/savestates.h"
+#include "savestates.h"
 #include "../main/win/Config.hpp"
 #include "win/main_win.h"
 

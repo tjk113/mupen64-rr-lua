@@ -24,7 +24,7 @@
 #include "LuaConsole.h"
 #include "main_win.h"
 #include "messenger.h"
-#include "savestates.h"
+#include "../memory/savestates.h"
 #include "vcr.h"
 #include <helpers/string_helpers.h>
 #include "../../lib/argh.h"

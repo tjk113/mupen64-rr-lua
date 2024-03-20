@@ -42,7 +42,7 @@
 #include "LuaCallbacks.h"
 #include "../r4300/Plugin.hpp"
 #include "../main/win/timers.h"
-#include "../main/savestates.h"
+#include "../memory/savestates.h"
 #include "../main/vcr.h"
 #include "../main/win/Config.hpp"
 #include "../main/win/main_win.h"

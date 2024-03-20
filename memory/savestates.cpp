@@ -31,20 +31,19 @@
 #include <libdeflate.h>
 #include <stdlib.h>
 #include <string>
-#include <guifuncs.h>
-#include "LuaCallbacks.h"
-#include "messenger.h"
-#include "../r4300/rom.h"
-#include "vcr.h"
+#include <win/Config.hpp>
+#include <win/main_win.h>
+#include <win/features/Statusbar.hpp>
+#include "flashram.h"
+#include <LuaCallbacks.h>
+#include "memory.h"
+#include "summercart.h"
 #include "../lua/LuaConsole.h"
-#include "../memory/flashram.h"
-#include "../memory/memory.h"
-#include "../memory/summercart.h"
+#include "../main/vcr.h"
+#include "../main/messenger.h"
 #include "../r4300/interrupt.h"
 #include "../r4300/r4300.h"
-#include "win/Config.hpp"
-#include "win/main_win.h"
-#include "win/features/Statusbar.hpp"
+#include "../r4300/rom.h"
 
 std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;

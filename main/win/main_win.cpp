@@ -39,8 +39,8 @@
 #include <guifuncs.h>
 #include "../../r4300/Plugin.hpp"
 #include "../../r4300/rom.h"
-#include "../savestates.h"
 #include "../vcr.h"
+#include "../../memory/savestates.h"
 #include "../../memory/memory.h"
 #include "../../memory/pif.h"
 #include "../../r4300/r4300.h"
