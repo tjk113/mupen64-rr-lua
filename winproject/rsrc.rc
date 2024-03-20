@@ -133,6 +133,7 @@ BEGIN
         MENUITEM "Show &RAM start...",          IDM_RAMSTART
         MENUITEM "Start &Trace Logger...",      IDM_TRACELOG
         MENUITEM "&CoreDbg...",                 IDM_COREDBG
+        MENUITEM "&Run...",                     IDM_RUNNER
         MENUITEM "&Seek to...",                 IDM_SEEKER
         MENUITEM SEPARATOR
         POPUP "Video Capture"

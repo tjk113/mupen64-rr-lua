@@ -382,6 +382,15 @@ CONFIG get_default_config()
 		.down_cmd = IDM_SEEKER,
 	};
 
+	config.run_hotkey = {
+		.identifier = "Run",
+		.key = 'P',
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.down_cmd = IDM_RUNNER,
+	};
+
 	config.save_current_hotkey = {
 		.identifier = "Save to current slot",
 		.key = 0x49 /* I */,

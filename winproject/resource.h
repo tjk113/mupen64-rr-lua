@@ -463,10 +463,11 @@
 #define IDM_FASTFORWARD_ON              40066
 #define IDM_FASTFORWARD_OFF             40067
 #define IDC_STATUSBARZEROINDEX          40068
+#define IDM_RUNNER						40069
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
