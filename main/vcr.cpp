@@ -304,19 +304,19 @@ VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header
 	return Result::Ok;
 }
 
-BOOL
+bool
 vcr_is_active()
 {
 	return (m_task == e_task::recording || m_task == e_task::playback) ? TRUE : FALSE;
 }
 
-BOOL
+bool
 vcr_is_idle()
 {
 	return (m_task == e_task::idle) ? TRUE : FALSE;
 }
 
-BOOL
+bool
 vcr_is_starting()
 {
 	return (m_task == e_task::start_playback || m_task == e_task::start_playback_from_snapshot)
@@ -324,13 +324,13 @@ vcr_is_starting()
 		       : FALSE;
 }
 
-BOOL
+bool
 vcr_is_playing()
 {
 	return (m_task == e_task::playback) ? TRUE : FALSE;
 }
 
-BOOL
+bool
 vcr_is_recording()
 {
 	return (m_task == e_task::recording) ? TRUE : FALSE;

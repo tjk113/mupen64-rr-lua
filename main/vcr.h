@@ -1,16 +1,7 @@
-#ifndef VCR_H
-#define VCR_H
-
-# include <Windows.h>
-
-#include "../r4300/Plugin.hpp"
-
-#ifdef __cplusplus	//don't include cpp headers when .c compilation unit includes the file
-
+#pragma once
 #include <string>
 #include <functional>
-
-#endif
+#include "../r4300/Plugin.hpp"
 
 enum
 {
@@ -239,11 +230,11 @@ extern volatile e_task m_task;
 bool task_is_playback(e_task task);
 bool task_is_recording(e_task task);
 
-extern BOOL vcr_is_active();
-extern BOOL vcr_is_idle(); // not the same as !isActive()
-extern BOOL vcr_is_starting();
-extern BOOL vcr_is_playing();
-extern BOOL vcr_is_recording();
+extern bool vcr_is_active();
+extern bool vcr_is_idle(); // not the same as !isActive()
+extern bool vcr_is_starting();
+extern bool vcr_is_playing();
+extern bool vcr_is_recording();
 extern const char* vcr_get_movie_filename();
 extern bool vcr_is_looping();
 extern unsigned long vcr_get_length_v_is();
@@ -374,5 +365,3 @@ bool is_frame_skipped();
 extern char vcr_lastpath[MAX_PATH];
 extern uint64_t screen_updates;
 extern std::filesystem::path movie_path;
-
-#endif // VCR_H
