@@ -39,7 +39,7 @@
 #include <guifuncs.h>
 #include "../../r4300/Plugin.hpp"
 #include "../../r4300/rom.h"
-#include "../vcr.h"
+#include "../../r4300/vcr.h"
 #include "../../memory/savestates.h"
 #include "../../memory/memory.h"
 #include "../../memory/pif.h"
@@ -206,9 +206,19 @@ void on_script_started(std::any data)
 void on_task_changed(std::any data)
 {
 	auto value = std::any_cast<e_task>(data);
+	static auto previous_value = value;
 
 	EnableMenuItem(main_menu, IDM_STOP_MOVIE, vcr_is_idle() ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(main_menu, IDM_SEEKER, (task_is_playback(value) && emu_launched) ? MF_ENABLED : MF_GRAYED);
+
+	if (!task_is_recording(value) && task_is_recording(previous_value))
+	{
+		Statusbar::post("Recording stopped");
+	}
+	if (!task_is_playback(value) && task_is_playback(previous_value))
+	{
+		Statusbar::post("Playback stopped");
+	}
 
 	update_titlebar();
 }
@@ -675,7 +685,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (frame_changed)
 			{
-				vcr_update_statusbar();
+				Statusbar::post(VCR::get_input_text(), Statusbar::Section::Input);
+				Statusbar::post(VCR::get_status_text(), Statusbar::Section::VCR);
+
 				frame_changed = false;
 			}
 

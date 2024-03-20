@@ -250,11 +250,6 @@ extern int vcr_stop_record();
 extern int vcr_stop_playback();
 
 /**
- * \brief Updates the statusbar with the current VCR state
- */
-void vcr_update_statusbar();
-
-/**
  * \brief Notifies VCR engine about controller being polled
  * \param index The polled controller's index
  * \param input The controller's input data
@@ -359,6 +354,16 @@ namespace VCR
 	 * \return The operation result
 	 */
 	int stop_all();
+
+	/**
+	 * \brief Gets the text representation of the last frame's inputs
+	 */
+	const char* get_input_text();
+
+	/**
+	 * \brief Gets the text representation of the VCR state's inputs
+	 */
+	const char* get_status_text();
 }
 
 bool is_frame_skipped();

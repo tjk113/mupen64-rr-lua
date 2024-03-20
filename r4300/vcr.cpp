@@ -2,7 +2,6 @@
 #include "vcr.h"
 #include <cassert>
 #include <win/main_win.h>
-#include <win/features/Statusbar.hpp>
 #include <win/features/RomBrowser.hpp>
 #include <win/Config.hpp>
 #include <memory>
@@ -848,26 +847,18 @@ vcr_stop_record()
 
 	if (m_task == e_task::recording)
 	{
-		//		long end = -1;
-
 		set_rom_info(&m_header);
-
 		flush_movie();
 
 		m_task = e_task::idle;
 
-		//		fwrite( &end, 1, sizeof (long), m_file );
-		//		fwrite( &m_header.length_samples, 1, sizeof (long), m_file );
 		fclose(m_file);
-
 		m_file = nullptr;
 
 		truncate_movie();
 
 		printf("[VCR]: Record stopped. Recorded %ld input samples\n",
 		       m_header.length_samples);
-
-		Statusbar::post("Stopped recording");
 
 		ret_val = 0;
 	}
@@ -1192,7 +1183,6 @@ int vcr_stop_playback()
 	if (is_task_playback(m_task))
 	{
 		m_task = e_task::idle;
-		Statusbar::post("Stopped playback");
 
 		if (m_input_buffer)
 		{
@@ -1253,51 +1243,62 @@ int VCR::stop_all()
 	}
 }
 
-void vcr_update_statusbar()
+const char* VCR::get_input_text()
 {
+	static char text[1024]{};
+	memset(text, 0, sizeof(text));
+
 	BUTTONS b = last_controller_data[0];
-	std::string input_info = std::format("({}, {}) ", (int)b.Y_AXIS, (int)b.X_AXIS);
-	if (b.START_BUTTON) input_info += "S";
-	if (b.Z_TRIG) input_info += "Z";
-	if (b.A_BUTTON) input_info += "A";
-	if (b.B_BUTTON) input_info += "B";
-	if (b.L_TRIG) input_info += "L";
-	if (b.R_TRIG) input_info += "R";
+	sprintf(text, "(%d, %d) ", b.Y_AXIS, b.X_AXIS);
+	if (b.START_BUTTON) strcat(text, "S");
+	if (b.Z_TRIG) strcat(text, "Z");
+	if (b.A_BUTTON) strcat(text, "A");
+	if (b.B_BUTTON) strcat(text, "B");
+	if (b.L_TRIG) strcat(text, "L");
+	if (b.R_TRIG) strcat(text, "R");
 	if (b.U_CBUTTON || b.D_CBUTTON || b.L_CBUTTON ||
 		b.R_CBUTTON)
 	{
-		input_info += " C";
-		if (b.U_CBUTTON) input_info += "^";
-		if (b.D_CBUTTON) input_info += "v";
-		if (b.L_CBUTTON) input_info += "<";
-		if (b.R_CBUTTON) input_info += ">";
+		strcat(text, " C");
+		if (b.U_CBUTTON) strcat(text, "^");
+		if (b.D_CBUTTON) strcat(text, "v");
+		if (b.L_CBUTTON) strcat(text, "<");
+		if (b.R_CBUTTON) strcat(text, ">");
 	}
 	if (b.U_DPAD || b.D_DPAD || b.L_DPAD || b.
 		R_DPAD)
 	{
-		input_info += " D";
-		if (b.U_DPAD) input_info += "^";
-		if (b.D_DPAD) input_info += "v";
-		if (b.L_DPAD) input_info += "<";
-		if (b.R_DPAD) input_info += ">";
+		strcat(text, "D");
+		if (b.U_DPAD) strcat(text, "^");
+		if (b.D_DPAD) strcat(text, "v");
+		if (b.L_DPAD) strcat(text, "<");
+		if (b.R_DPAD) strcat(text, ">");
 	}
+	return text;
+}
+
+const char* VCR::get_status_text()
+{
+	static char text[1024]{};
+	memset(text, 0, sizeof(text));
 
 	auto index_adjustment = (Config.vcr_0_index ? 1 : 0);
 
-	Statusbar::post(input_info, Statusbar::Section::Input);
-
 	if (vcr_is_recording())
 	{
-		std::string vcr_info = std::format("{} ({}) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
-		Statusbar::post(vcr_info, Statusbar::Section::VCR);
+		sprintf(text, "%d (%d) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
 	}
 
 	if (vcr_is_playing())
 	{
-		std::string vcr_info = std::format("{} / {} ({} / {}) ", m_current_vi - index_adjustment, vcr_get_length_v_is(), m_current_sample - index_adjustment,
-		                                   vcr_get_length_samples());
-		Statusbar::post(vcr_info);
+		sprintf(text, "%d / %d (%d / %d) ",
+			m_current_vi - index_adjustment,
+			vcr_get_length_v_is(),
+			m_current_sample - index_adjustment,
+			vcr_get_length_samples());
 	}
+
+	return text;
 }
 
 void vcr_on_vi()
