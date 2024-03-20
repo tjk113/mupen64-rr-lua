@@ -15,11 +15,11 @@ namespace Dispatcher
 	{
 		std::lock_guard lock(dispatcher_mutex);
 		funcs.push(func);
+		SendMessage(mainHWND, WM_EXECUTE_DISPATCHER, 0, 0);
 	}
 
 	void execute()
 	{
-		std::lock_guard lock(dispatcher_mutex);
 		while (!funcs.empty())
 		{
 			funcs.front()();

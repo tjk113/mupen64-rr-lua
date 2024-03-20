@@ -631,6 +631,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_FOCUS_MAIN_WINDOW:
 		SetFocus(mainHWND);
 		break;
+	case WM_EXECUTE_DISPATCHER:
+		Dispatcher::execute();
+		break;
 	case WM_CREATE:
 		main_menu = GetMenu(hwnd);
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
@@ -1338,16 +1341,8 @@ int WINAPI WinMain(
 	// raise continuable exception
 	//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
-	while (true)
+	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		// HACK: Execute dispatcher with higher priority than messages, since we don't want big queues of, for example, WM_PAINT, to clog stuff up
-		Dispatcher::execute();
-
-		if(!GetMessage(&msg, NULL, 0, 0))
-		{
-			break;
-		}
-
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
