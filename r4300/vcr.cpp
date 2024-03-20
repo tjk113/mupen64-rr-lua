@@ -2,7 +2,6 @@
 #include "vcr.h"
 #include <cassert>
 #include <win/main_win.h>
-#include <win/features/RomBrowser.hpp>
 #include <win/Config.hpp>
 #include <memory>
 #include <filesystem>
