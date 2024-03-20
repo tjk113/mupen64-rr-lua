@@ -12,7 +12,7 @@ end_of_line = crlf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
-max_line_length = 80
+max_line_length = 160
 
 # Visual C++ Code Style settings
 
