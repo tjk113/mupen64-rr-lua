@@ -59,6 +59,8 @@
 #include <helpers/math_helpers.h>
 #include <helpers/string_helpers.h>
 #include <helpers/win_helpers.h>
+
+#include "features/Runner.h"
 #include "wrapper/PersistentPathDialog.h"
 
 static BOOL FullScreenMode = 0;
@@ -903,6 +905,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					BetterEmulationLock lock;
 					Seeker::show();
+				}
+				break;
+			case IDM_RUNNER:
+				{
+					BetterEmulationLock lock;
+					Runner::show();
 				}
 				break;
 			case IDM_RAMSTART:

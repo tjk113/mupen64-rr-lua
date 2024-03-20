@@ -8,6 +8,7 @@
 #define IDR_MYMENU                      101
 #define IDM_SETTINGS                    105
 #define IDD_SEEKER                      107
+#define IDD_RUNNER                      109
 #define IDD_MAIN                        128
 #define IDM_LOAD_ROM                    129
 #define IDC_INTERP                      130
@@ -78,9 +79,13 @@
 #define IDC_HOTKEY_CLEAR                1019
 #define IDC_LIST1                       1019
 #define IDC_COREDBG_LIST                1019
+#define IDC_LIST_ROMS                   1019
 #define IDD_ABOUT                       1020
 #define IDC_USESUMMERCART               1021
 #define IDC_CAPTUREOTHER                1022
+#define IDC_LIST_MOVIES                 1022
+#define IDC_LIST3                       1024
+#define IDC_LIST_SCRIPTS                1024
 #define IDC_CAPTUREDELAY                1026
 #define IDC_RADIO_FROM_START            1027
 #define IDC_RADIO_FROM_ST               1028
@@ -463,14 +468,14 @@
 #define IDM_FASTFORWARD_ON              40066
 #define IDM_FASTFORWARD_OFF             40067
 #define IDC_STATUSBARZEROINDEX          40068
-#define IDM_RUNNER						40069
+#define IDM_RUNNER                      40069
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        109
+#define _APS_NEXT_RESOURCE_VALUE        111
 #define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1038
 #define _APS_NEXT_SYMED_VALUE           104

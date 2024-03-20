@@ -163,6 +163,7 @@
     <ClInclude Include="..\..\main\win\features\MGECompositor.h" />
     <ClInclude Include="..\..\main\win\features\MovieDialog.h" />
     <ClInclude Include="..\..\main\win\features\RomBrowser.hpp" />
+    <ClInclude Include="..\..\main\win\features\Runner.h" />
     <ClInclude Include="..\..\main\win\features\Seeker.h" />
     <ClInclude Include="..\..\main\win\features\Statusbar.hpp" />
     <ClInclude Include="..\..\main\win\Commandline.h" />
@@ -233,6 +234,7 @@
     <ClCompile Include="..\..\main\win\features\MGECompositor.cpp" />
     <ClCompile Include="..\..\main\win\features\MovieDialog.cpp" />
     <ClCompile Include="..\..\main\win\features\RomBrowser.cpp" />
+    <ClCompile Include="..\..\main\win\features\Runner.cpp" />
     <ClCompile Include="..\..\main\win\features\Seeker.cpp" />
     <ClCompile Include="..\..\main\win\features\Statusbar.cpp" />
     <ClCompile Include="..\..\main\win\Commandline.cpp">
