@@ -7,7 +7,7 @@
 #include "Config.hpp"
 #include "main_win.h"
 #include "../r4300/r4300.h"
-#include "../vcr.h"
+#include "../r4300/vcr.h"
 #include "../lib/ini.h"
 #include <helpers/string_helpers.h>
 

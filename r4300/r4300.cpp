@@ -28,7 +28,7 @@
 **/
 
 //#include "../config.h"
-#include "../main/vcr.h"
+#include "vcr.h"
 #include "r4300.h"
 #include "ops.h"
 #include "../memory/memory.h"

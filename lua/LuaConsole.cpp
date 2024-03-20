@@ -20,13 +20,12 @@
 #include "../r4300/disasm.h"
 #include "../r4300/recomp.h"
 #include "../r4300/Plugin.hpp"
-#include "../main/vcr.h"
+#include "../r4300/vcr.h"
 #include "../memory/savestates.h"
 #include "../main/win/configdialog.h"
 #include <helpers/win_helpers.h>
 #include "../main/win/wrapper/PersistentPathDialog.h"
 #include "../lib/md5.h"
-#include <vcr.h>
 #include <gdiplus.h>
 #include <d2d1.h>
 #include <d2d1helper.h>

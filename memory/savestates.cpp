@@ -39,11 +39,11 @@
 #include "memory.h"
 #include "summercart.h"
 #include "../lua/LuaConsole.h"
-#include "../main/vcr.h"
 #include "../main/messenger.h"
 #include "../r4300/interrupt.h"
 #include "../r4300/r4300.h"
 #include "../r4300/rom.h"
+#include "../r4300/vcr.h"
 
 std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;

@@ -35,8 +35,8 @@
 #include <helpers/string_helpers.h>
 #include <helpers/win_helpers.h>
 #include "../r4300/r4300.h"
+#include "../r4300/vcr.h"
 #include "configdialog.h"
-#include <vcr.h>
 #include <cassert>
 
 #include "capture/EncodingManager.h"

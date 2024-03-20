@@ -45,7 +45,7 @@
 #include "flashram.h"
 #include "summercart.h"
 #include "../r4300/Plugin.hpp"
-#include "../main/vcr.h"
+#include "../r4300/vcr.h"
 #include "capture/EncodingManager.h"
 
 static int frame;

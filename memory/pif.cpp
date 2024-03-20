@@ -44,7 +44,7 @@
 #include "pif2.h"
 #include "../r4300/r4300.h"
 #include "../r4300/Plugin.hpp"
-#include "../main/vcr.h"
+#include "../r4300/vcr.h"
 #include "savestates.h"
 #include "../main/win/Config.hpp"
 #include "win/main_win.h"

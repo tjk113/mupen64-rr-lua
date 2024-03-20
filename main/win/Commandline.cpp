@@ -25,10 +25,10 @@
 #include "main_win.h"
 #include "messenger.h"
 #include "../memory/savestates.h"
-#include "vcr.h"
 #include <helpers/string_helpers.h>
 #include "../../lib/argh.h"
 #include "../r4300/r4300.h"
+#include "../r4300/vcr.h"
 #include "capture/EncodingManager.h"
 
 std::filesystem::path commandline_rom;

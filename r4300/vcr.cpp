@@ -11,7 +11,6 @@
 #include <cstring>
 #include <ctime>
 #include <chrono>
-#include <Windows.h>
 #include "r4300.h"
 #include "Plugin.hpp"
 #include "rom.h"
