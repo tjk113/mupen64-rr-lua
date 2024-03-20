@@ -485,9 +485,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 	switch (Message)
 	{
-	case WM_EXECUTE_DISPATCHER:
-		Dispatcher::execute();
-		break;
 	case WM_DROPFILES:
 		{
 			auto drop = (HDROP)wParam;
@@ -1341,11 +1338,18 @@ int WINAPI WinMain(
 	// raise continuable exception
 	//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
-	while (GetMessage(&msg, NULL, 0, 0) != 0)
+	while (true)
 	{
+		// HACK: Execute dispatcher with higher priority than messages, since we don't want big queues of, for example, WM_PAINT, to clog stuff up
+		Dispatcher::execute();
+
+		if(!GetMessage(&msg, NULL, 0, 0))
+		{
+			break;
+		}
+
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-
 	}
 
 
