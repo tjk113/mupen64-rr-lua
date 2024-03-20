@@ -711,8 +711,7 @@ CONFIG get_default_config()
 	config.rombrowser_column_widths = {24, 240, 240, 120};
 	config.is_rombrowser_recursion_enabled = 0;
 	config.is_reset_recording_enabled = 1;
-	config.is_internal_capture_forced = 0;
-	config.is_capture_cropped_screen_dc = 0;
+	config.capture_mode = 0;
 	config.capture_delay = 0;
 	config.synchronization_mode = (int)EncodingManager::Sync::Audio;
 	config.lua_script_path.clear();
@@ -992,8 +991,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(is_recent_movie_paths_frozen)
 	HANDLE_P_VALUE(is_rombrowser_recursion_enabled)
 	HANDLE_P_VALUE(is_reset_recording_enabled)
-	HANDLE_P_VALUE(is_internal_capture_forced)
-	HANDLE_P_VALUE(is_capture_cropped_screen_dc)
+	HANDLE_P_VALUE(capture_mode)
 	HANDLE_P_VALUE(capture_delay)
 	HANDLE_P_VALUE(synchronization_mode)
 	HANDLE_VALUE(lua_script_path)

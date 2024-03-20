@@ -1,4 +1,4 @@
-﻿#include "EncodingManager.h"
+#include "EncodingManager.h"
 
 #include <cassert>
 
@@ -195,45 +195,36 @@ namespace EncodingManager
 
 	auto effective_readscreen()
 	{
-		auto internal_func = Config.is_capture_cropped_screen_dc ? readscreen_desktop : readscreen_window;
-
-		if (Config.is_internal_capture_forced)
+		if (Config.capture_mode == 0)
 		{
-			return internal_func;
+			return MGECompositor::available() ? MGECompositor::read_screen : readScreen;
 		}
-
-		if (MGECompositor::available())
+		if(Config.capture_mode == 1)
 		{
-			return MGECompositor::read_screen;
+			return readscreen_window;
 		}
-
-		if (!readScreen)
-		{
-			return internal_func;
-		}
-
-		return readScreen;
+		return readscreen_desktop;
 	}
 
 	void dummy_free(void*){};
 
 	auto effective_readscreen_free()
 	{
-		if (Config.is_internal_capture_forced)
+		if (Config.capture_mode == 0)
 		{
-			return free;
+			return MGECompositor::available() ? dummy_free : DllCrtFree;
 		}
-
-		if (!readScreen || MGECompositor::available())
-		{
-			return dummy_free;
-		}
-		return DllCrtFree;
+		return free;
 	}
 
 	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
 	                   const bool ask_for_encoding_settings)
 	{
+		if (!effective_readscreen()) {
+			MessageBox(mainHWND, "Couldn't find a readScreen candidate.\r\nTry selecting another capture mode.", "Capture", MB_ICONERROR | MB_OK);
+			return false;
+		}
+
 		switch (encoder_type) {
 		case EncoderType::VFW:
 			m_encoder = std::make_unique<AVIEncoder>();

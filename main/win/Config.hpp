@@ -204,16 +204,13 @@ typedef struct _CONFIG
 	int32_t is_reset_recording_enabled;
 
 	/// <summary>
-	/// Whether video will forcibly be captured by mupen itself
+	/// The strategy to use when capturing video
 	/// <para/>
-	/// false = video capture might be performed by video plugin
+	/// 0 = Use the video plugin's readScreen or read_video (MGE)
+	/// 1 = Internal capture of window
+	/// 2 = Internal capture of screen cropped to window
 	/// </summary>
-	int32_t is_internal_capture_forced;
-
-	/// <summary>
-	/// Whether the video capture is performed by cropping the screen to mupen's client area
-	/// </summary>
-	int32_t is_capture_cropped_screen_dc;
+	int32_t capture_mode;
 
 	/// <summary>
 	/// The delay (in milliseconds) before capturing the window

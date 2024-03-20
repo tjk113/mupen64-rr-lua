@@ -507,15 +507,23 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			static const char* clock_speed_multiplier_names[] = {
 				"1 - Legacy Mupen Lag Emulation", "2 - 'Lagless'", "3", "4", "5", "6"
 			};
+			static const char* capture_mode_names[] = {
+				"External capture", "Internal capture window", "Internal capture desktop",
+			};
 
 			// Populate CPU Clock Speed Multiplier Dropdown Menu
 			for (auto& clock_speed_multiplier_name : clock_speed_multiplier_names) {
 				SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0,
 								   (LPARAM)clock_speed_multiplier_name);
 			}
-			const int index = SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1,
-												 (LPARAM)clock_speed_multiplier_names[Config.cpu_clock_speed_multiplier - 1]);
-			SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, index, 0);
+			SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1,
+				(LPARAM)clock_speed_multiplier_names[Config.cpu_clock_speed_multiplier - 1]), 0);
+
+			for (auto& name : capture_mode_names) {
+				SendDlgItemMessage(hwnd, IDC_ENCODE_MODE, CB_ADDSTRING, 0,
+								   (LPARAM)name);
+			}
+			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_ENCODE_MODE), Config.capture_mode);
 
 			SetDlgItemInt(hwnd, IDC_SKIPFREQ, Config.frame_skip_frequency, 0);
 
@@ -536,8 +544,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
 			set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
 			set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
-			set_checkbox_state(hwnd, IDC_FORCEINTERNAL, Config.is_internal_capture_forced);
-			set_checkbox_state(hwnd, IDC_CAPTUREOTHER, Config.is_capture_cropped_screen_dc);
 			SetDlgItemInt(hwnd, IDC_CAPTUREDELAY, Config.capture_delay, 0);
 
 			return TRUE;
@@ -555,6 +561,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			char buf[260] = {0};
 			read_combo_box_value(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
 			Config.cpu_clock_speed_multiplier = atoi(&buf[0]);
+			break;
+		}
+		case IDC_ENCODE_MODE:
+		{
+			Config.capture_mode = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_ENCODE_MODE));
 			break;
 		}
         case IDC_INTERP:
@@ -593,8 +604,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			Config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);
 			Config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);
 			Config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);
-			Config.is_internal_capture_forced = get_checkbox_state(hwnd, IDC_FORCEINTERNAL);
-			Config.is_capture_cropped_screen_dc = get_checkbox_state(hwnd, IDC_CAPTUREOTHER);
 			Config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, nullptr, 0);
         }
         break;
