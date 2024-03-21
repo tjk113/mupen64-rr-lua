@@ -218,7 +218,7 @@ void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& 
 
 	if (st_medium == e_st_medium::slot)
 	{
-		st_path = std::format("{}{}.st{}", get_saves_directory().string(), (const char*)ROM_HEADER.nom, std::to_string(st_slot));
+		st_path = std::format("{}{} {}.st{}", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(st_slot));
 	}
 }
 
