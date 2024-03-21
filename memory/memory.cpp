@@ -1302,8 +1302,11 @@ void update_SP()
 			//processAList();
 			rsp_register.rsp_pc &= 0xFFF;
 			start_section(AUDIO_SECTION);
-			//if (!IGNORE_RSP) doRspCycles(100); //cursed, also watch out because it increases frame second time here
-			doRspCycles(100);
+
+			if (!fast_forward || !Config.fastforward_silent)
+			{
+				doRspCycles(100);
+			}
 			end_section(AUDIO_SECTION);
 			rsp_register.rsp_pc |= save_pc;
 
@@ -1316,7 +1319,10 @@ void update_SP()
 		{
 			//printf("other task\n");
 			rsp_register.rsp_pc &= 0xFFF;
-			doRspCycles(100);
+			if (!fast_forward || !Config.fastforward_silent)
+			{
+				doRspCycles(100);
+			}
 			rsp_register.rsp_pc |= save_pc;
 
 			MI_register.mi_intr_reg &= ~0x1;

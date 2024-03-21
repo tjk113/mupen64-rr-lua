@@ -1947,6 +1947,11 @@ DWORD WINAPI audio_thread(LPVOID)
 			break;
 		}
 
+		if (fast_forward && Config.fastforward_silent)
+		{
+			continue;
+		}
+
 		if (VCR::is_seeking())
 		{
 			continue;

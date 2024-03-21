@@ -113,6 +113,12 @@ typedef struct _CONFIG
 	int32_t frame_skip_frequency = 1;
 
 	/// <summary>
+	/// Whether fast-forward will mute audio
+	/// This option improves performance by skipping additional doRspCycles calls, but may cause issues
+	/// </summary>
+	int32_t fastforward_silent = 0;
+
+	/// <summary>
 	/// Whether a playing movie will loop upon ending
 	/// </summary>
 	int32_t is_movie_loop_enabled;
