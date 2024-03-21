@@ -692,60 +692,6 @@ CONFIG get_default_config()
 		.down_cmd = (IDM_SELECT_1 - 1) + 10,
 	};
 
-	config.version = 5;
-	config.core_type = 1;
-	config.fps_modifier = 100;
-	config.frame_skip_frequency = 1;
-	config.is_movie_loop_enabled = 0;
-	config.cpu_clock_speed_multiplier = 1;
-	config.is_unfocused_pause_enabled = 0;
-	config.is_statusbar_enabled = 1;
-	config.is_default_plugins_directory_used = 1;
-	config.is_default_saves_directory_used = 1;
-	config.is_default_screenshots_directory_used = 1;
-	config.plugins_directory.clear();
-	config.saves_directory.clear();
-	config.screenshots_directory.clear();
-	config.states_path.clear();
-	config.recent_rom_paths = {};
-	config.recent_movie_paths = {};
-	config.is_recent_movie_paths_frozen = 0;
-	config.rombrowser_sorted_column = 2;
-	config.rombrowser_sort_ascending = 1;
-	config.rombrowser_column_widths = {24, 240, 240, 120};
-	config.is_rombrowser_recursion_enabled = 0;
-	config.is_reset_recording_enabled = 1;
-	config.capture_mode = 0;
-	config.capture_delay = 0;
-	config.synchronization_mode = (int)EncodingManager::Sync::Audio;
-	config.lua_script_path.clear();
-	config.recent_lua_script_paths = {};
-	config.is_recent_scripts_frozen = 0;
-	config.use_summercart = 0;
-	config.is_round_towards_zero_enabled = 0;
-	config.is_float_exception_propagation_enabled = 0;
-	config.is_audio_delay_enabled = 1;
-	config.is_compiled_jump_enabled = 1;
-	config.selected_video_plugin.clear();
-	config.selected_audio_plugin.clear();
-	config.selected_input_plugin.clear();
-	config.selected_rsp_plugin.clear();
-	config.last_movie_type = 1;
-	config.last_movie_author = "Unknown Author";
-	config.window_x = CW_USEDEFAULT;
-	config.window_y = CW_USEDEFAULT;
-	config.window_width = 640;
-	config.window_height = 480;
-	config.fast_reset = 0;
-	config.vcr_0_index = 0;
-	config.increment_slot = 0;
-	config.pause_at_frame = -1;
-	config.pause_at_last_frame = 0;
-	config.vcr_readonly = 0;
-	config.crash_dialog = 1;
-	config.max_lag = 480;
-	config.seeker_value = "";
-
 	return config;
 }
 

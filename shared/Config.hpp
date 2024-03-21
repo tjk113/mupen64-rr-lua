@@ -85,7 +85,7 @@ typedef struct _CONFIG
 	/// <summary>
 	/// The config protocol version
 	/// </summary>
-	int32_t version;
+	int32_t version = 5;
 
 	/// <summary>
 	/// The currently selected core type
@@ -94,22 +94,23 @@ typedef struct _CONFIG
 	/// 1 - Dynamic Recompiler
 	/// 2 - Pure Interpreter
 	/// </summary>
-	int32_t core_type;
+	int32_t core_type = 1;
 
 	/// <summary>
 	/// The target FPS modifier as a percentage
 	/// <para/>
 	/// (100 = default)
 	/// </summary>
-	int32_t fps_modifier;
+	int32_t fps_modifier = 100;
 
 	/// <summary>
 	/// The frequency at which frames are skipped during fast-forward
 	/// <para/>
 	/// 0 = skip all frames
+	/// 1 = skip no frames
 	/// >0 = every nth frame is skipped
 	/// </summary>
-	int32_t frame_skip_frequency;
+	int32_t frame_skip_frequency = 1;
 
 	/// <summary>
 	/// Whether a playing movie will loop upon ending
@@ -122,7 +123,7 @@ typedef struct _CONFIG
 	/// 1 = original clock speed
 	/// high number = approach native clock speed
 	/// </summary>
-	int32_t cpu_clock_speed_multiplier;
+	int32_t cpu_clock_speed_multiplier = 1;
 
 	/// <summary>
 	/// Whether emulation will pause when the main window loses focus
@@ -132,22 +133,22 @@ typedef struct _CONFIG
 	/// <summary>
 	/// Whether the statusbar is enabled
 	/// </summary>
-	int32_t is_statusbar_enabled;
+	int32_t is_statusbar_enabled = 1;
 
 	/// <summary>
 	/// Whether the default plugins directory will be used (otherwise, falls back to <see cref="plugins_directory"/>)
 	/// </summary>
-	int32_t is_default_plugins_directory_used;
+	int32_t is_default_plugins_directory_used = 1;
 
 	/// <summary>
 	/// Whether the default save directory will be used (otherwise, falls back to <see cref="saves_directory"/>)
 	/// </summary>
-	int32_t is_default_saves_directory_used;
+	int32_t is_default_saves_directory_used = 1;
 
 	/// <summary>
 	/// Whether the default screenshot directory will be used (otherwise, falls back to <see cref="screenshots_directory"/>)
 	/// </summary>
-	int32_t is_default_screenshots_directory_used;
+	int32_t is_default_screenshots_directory_used = 1;
 
 	/// <summary>
 	/// The plugin directory
@@ -211,7 +212,7 @@ typedef struct _CONFIG
 	/// 1 = Internal capture of window
 	/// 2 = Internal capture of screen cropped to window
 	/// </summary>
-	int32_t capture_mode;
+	int32_t capture_mode = 2;
 
 	/// <summary>
 	/// The delay (in milliseconds) before capturing the window
@@ -227,7 +228,7 @@ typedef struct _CONFIG
 	/// 1 - Audio Sync
 	/// 2 - Video Sync
 	/// </summary>
-	int32_t synchronization_mode;
+	int32_t synchronization_mode = 1;
 
 	/// <summary>
 	/// The lua script path
@@ -262,12 +263,12 @@ typedef struct _CONFIG
 	/// <summary>
 	/// Whether audio interrupts will be delayed
 	/// </summary>
-	int32_t is_audio_delay_enabled;
+	int32_t is_audio_delay_enabled = 1;
 
 	/// <summary>
 	/// Whether jmp instructions will cause the following code to be JIT'd by dynarec
 	/// </summary>
-	int32_t is_compiled_jump_enabled;
+	int32_t is_compiled_jump_enabled = 1;
 
 	/// <summary>
 	/// The path of the currently selected video plugin
@@ -302,27 +303,27 @@ typedef struct _CONFIG
 	/// <summary>
 	/// The main window's X position
 	/// </summary>
-	int32_t window_x;
+	int32_t window_x = ((int)0x80000000);
 
 	/// <summary>
 	/// The main window's Y position
 	/// </summary>
-	int32_t window_y;
+	int32_t window_y = ((int)0x80000000);
 
 	/// <summary>
 	/// The main window's width
 	/// </summary>
-	int32_t window_width;
+	int32_t window_width = 640;
 
 	/// <summary>
 	/// The main window's height
 	/// </summary>
-	int32_t window_height;
+	int32_t window_height = 480;
 
 	/// <summary>
 	/// The width of rombrowser columns by index
 	/// </summary>
-	std::vector<std::int32_t> rombrowser_column_widths;
+	std::vector<std::int32_t> rombrowser_column_widths = {24, 240, 240, 120};
 
 	/// <summary>
 	/// The index of the currently sorted column, or -1 if none is sorted
@@ -332,7 +333,7 @@ typedef struct _CONFIG
 	/// <summary>
 	/// Whether the selected column is sorted in an ascending order
 	/// </summary>
-	int32_t rombrowser_sort_ascending;
+	int32_t rombrowser_sort_ascending = 1;
 
 	/// <summary>
 	/// A map of persistent path dialog IDs and the respective value
@@ -358,7 +359,7 @@ typedef struct _CONFIG
 	/// The movie frame to automatically pause at
 	/// -1 none
 	/// </summary>
-	int32_t pause_at_frame;
+	int32_t pause_at_frame = -1;
 
 	/// <summary>
 	/// Whether to pause at the last movie frame
@@ -373,13 +374,13 @@ typedef struct _CONFIG
 	/// <summary>
 	/// Whether mupen will display a dialog upon crashing
 	/// </summary>
-	int32_t crash_dialog;
+	int32_t crash_dialog = 1;
 
 	/// <summary>
 	/// The maximum amount of VIs allowed to be generated since the last input poll before a warning dialog is shown
 	/// 0 - no warning
 	/// </summary>
-	int32_t max_lag;
+	int32_t max_lag = 480;
 
 	/// <summary>
 	/// The current seeker input value
