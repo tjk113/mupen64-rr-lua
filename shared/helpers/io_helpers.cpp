@@ -132,9 +132,9 @@ std::wstring strip_extension(const std::wstring& path)
 	return path;
 }
 
-void copy_to_clipboard(HWND owner, const std::string& str)
+void copy_to_clipboard(void* owner, const std::string& str)
 {
-	OpenClipboard(owner);
+	OpenClipboard((HWND)owner);
 	EmptyClipboard();
 	HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, str.size() + 1);
 	if (hg)

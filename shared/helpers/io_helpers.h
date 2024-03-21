@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <span>
-#include <Windows.h>
 #include <string>
 #include <vector>
 
@@ -53,7 +52,7 @@ std::wstring strip_extension(const std::wstring& path);
  * \param owner The clipboard content's owner window
  * \param str The string to be copied
  */
-void copy_to_clipboard(HWND owner, const std::string& str);
+void copy_to_clipboard(void* owner, const std::string& str);
 
 /**
  * \brief Gets the path to the current user's desktop
