@@ -306,14 +306,9 @@ void load_gfx(HMODULE handle)
 	initiateGFX(gfx_info);
 }
 
-void load_input(HMODULE handle)
+void load_input(uint16_t version, HMODULE handle)
 {
 	int i;
-	PLUGIN_INFO PluginInfo;
-
-	getDllInfo = (GETDLLINFO)GetProcAddress(
-		handle, "GetDllInfo");
-	getDllInfo(&PluginInfo);
 
 	closeDLL_input = (CLOSEDLL_INPUT)GetProcAddress(handle, "CloseDLL");
 	controllerCommand = (CONTROLLERCOMMAND)GetProcAddress(handle, "ControllerCommand");
@@ -321,7 +316,7 @@ void load_input(HMODULE handle)
 		handle, "GetKeys");
 	setKeys = (SETKEYS)GetProcAddress(
 		handle, "SetKeys");
-	if (PluginInfo.Version == 0x0101)
+	if (version == 0x0101)
 		initiateControllers = (INITIATECONTROLLERS)GetProcAddress(handle, "InitiateControllers");
 	else
 		old_initiateControllers = (OLD_INITIATECONTROLLERS)GetProcAddress(handle, "InitiateControllers");
@@ -358,7 +353,7 @@ void load_input(HMODULE handle)
 		Controls[i].RawData = FALSE;
 		Controls[i].Plugin = controller_extension::none;
 	}
-	if (PluginInfo.Version == 0x0101)
+	if (version == 0x0101)
 	{
 		initiateControllers(control_info);
 	} else
@@ -621,7 +616,7 @@ void Plugin::load_into_globals()
 		load_audio((HMODULE)m_module);
 		break;
 	case input:
-		load_input((HMODULE)m_module);
+		load_input(m_version, (HMODULE)m_module);
 		break;
 	case rsp:
 		load_rsp((HMODULE)m_module);

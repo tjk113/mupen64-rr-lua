@@ -433,6 +433,14 @@ public:
 		return m_type;
 	}
 
+	/**
+	 * \brief Gets the plugin's version
+	 */
+	auto version() const
+	{
+		return m_version;
+	}
+
 private:
 	std::filesystem::path m_path;
 	std::string m_name;
