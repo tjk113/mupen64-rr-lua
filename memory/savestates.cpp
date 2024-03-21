@@ -31,7 +31,7 @@
 #include <libdeflate.h>
 #include <stdlib.h>
 #include <string>
-#include <win/Config.hpp>
+#include <shared/Config.hpp>
 #include <win/main_win.h>
 #include <win/features/Statusbar.hpp>
 #include "flashram.h"

@@ -9,7 +9,7 @@
 #include "RomBrowser.hpp"
 #include "../../winproject/resource.h"
 #include <helpers/win_helpers.h>
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 #include "win/main_win.h"
 
 

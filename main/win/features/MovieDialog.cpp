@@ -6,7 +6,7 @@
 #include "../memory/savestates.h"
 #include "Statusbar.hpp"
 #include "win/main_win.h"
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 #include "../winproject/resource.h"
 #include <helpers/string_helpers.h>
 #include <helpers/win_helpers.h>

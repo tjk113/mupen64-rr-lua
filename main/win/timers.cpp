@@ -16,7 +16,7 @@
 #include "../../lua/LuaConsole.h"
 
 #include "timers.h"
-#include "Config.hpp"
+#include <shared/Config.hpp>
 #include <shared/messenger.h>
 #include "../../memory/pif.h"
 #include "../../r4300/vcr.h"

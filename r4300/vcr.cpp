@@ -2,7 +2,7 @@
 #include "vcr.h"
 #include <cassert>
 #include <win/main_win.h>
-#include <win/Config.hpp>
+#include <shared/Config.hpp>
 #include <memory>
 #include <filesystem>
 #include <cerrno>

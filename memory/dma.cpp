@@ -42,7 +42,7 @@
 #include "../r4300/ops.h"
 #include "..\main\win\features\CoreDbg.h"
 #include "savestates.h"
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 
 unsigned char sram[0x8000];
 

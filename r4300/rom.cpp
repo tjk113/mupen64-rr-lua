@@ -38,7 +38,7 @@
 #include "rom.h"
 #include "../memory/memory.h"
 #include "../lib/md5.h"
-#include "../main/win/Config.hpp"
+#include <shared/Config.hpp>
 #include <helpers/io_helpers.h>
 #include <helpers/string_helpers.h>
 

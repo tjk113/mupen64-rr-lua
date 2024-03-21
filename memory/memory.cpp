@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../main/win/Config.hpp"
+#include <shared/Config.hpp>
 #include "../main/win/timers.h"
 
 #include "memory.h"

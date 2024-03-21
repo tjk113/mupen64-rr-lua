@@ -33,7 +33,7 @@
 #include "../ops.h"
 #include "interpret.h"
 #include "gcop1_helpers.h"
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 
 static void gencheck_eax_valid(int stackBase)
 {

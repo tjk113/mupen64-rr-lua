@@ -44,7 +44,7 @@
 
 #include "tracelog.h"
 #include "..\main\win\features\CoreDbg.h"
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 
 #ifdef DBG
 extern int debugger_mode;

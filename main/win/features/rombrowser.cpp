@@ -14,7 +14,7 @@
 #include <helpers/io_helpers.h>
 #include <helpers/string_helpers.h>
 #include "../r4300/r4300.h"
-#include "../Config.hpp"
+#include <shared/Config.hpp>
 #include <assert.h>
 #include <mutex>
 #include <thread>

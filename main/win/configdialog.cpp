@@ -30,7 +30,7 @@
 #include "../../r4300/Plugin.hpp"
 #include "features/RomBrowser.hpp"
 #include "timers.h"
-#include "Config.hpp"
+#include <shared/Config.hpp>
 #include "wrapper/PersistentPathDialog.h"
 #include <helpers/string_helpers.h>
 #include <helpers/win_helpers.h>

@@ -3,7 +3,7 @@
 #include <Psapi.h>
 #include "../r4300/r4300.h"
 #include "../r4300/vcr.h"
-#include "../Config.hpp"
+#include <shared/Config.hpp>
 
 
 int CrashHelper::find_module_name(char* error, void* addr, const int len)

@@ -37,7 +37,7 @@
 #include "../exception.h"
 #include "interpret.h"
 #include "../lua/LuaConsole.h"
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 
 
 void gensll()

@@ -44,7 +44,7 @@
 #include "../r4300/vcr.h"
 #include "../main/win/timers.h"
 #include "../memory/savestates.h"
-#include "../main/win/Config.hpp"
+#include <shared/Config.hpp>
 #include "../main/win/main_win.h"
 #include "../memory/pif.h"
 #include "capture/EncodingManager.h"

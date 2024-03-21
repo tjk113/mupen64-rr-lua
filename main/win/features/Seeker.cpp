@@ -8,7 +8,7 @@
 #include "../../r4300/vcr.h"
 #include "../main_win.h"
 #include "../../winproject/resource.h"
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 
 #define WM_SEEK_COMPLETED (WM_USER + 11)
 #define WM_UPDATE_SEEK_ALLOWED (WM_USER + 12)

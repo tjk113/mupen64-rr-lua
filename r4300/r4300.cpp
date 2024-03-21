@@ -43,7 +43,7 @@
 #include <helpers/string_helpers.h>
 #include "win/timers.h"
 #include "win/features/RomBrowser.hpp"
-#include <win/Config.hpp>
+#include <shared/Config.hpp>
 
 #ifdef DBG
 extern int debugger_mode;

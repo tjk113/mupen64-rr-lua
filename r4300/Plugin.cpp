@@ -34,7 +34,7 @@
 #include <assert.h>
 
 #include "../r4300/rom.h"
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
 #include <win/main_win.h>

@@ -46,7 +46,7 @@
 #include "../r4300/Plugin.hpp"
 #include "../r4300/vcr.h"
 #include "savestates.h"
-#include "../main/win/Config.hpp"
+#include <shared/Config.hpp>
 #include "win/main_win.h"
 
 unsigned char eeprom[0x800];

@@ -36,7 +36,7 @@
 #include "../../memory/memory.h"
 #include "../macros.h"
 #include "interpret.h"
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 
 void genbltz_test()
 {

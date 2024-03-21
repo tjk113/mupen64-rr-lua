@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <helpers/io_helpers.h>
 #include <helpers/string_helpers.h>
-#include "win/Config.hpp"
+#include <shared/Config.hpp>
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp
 
