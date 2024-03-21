@@ -1999,6 +1999,15 @@ DWORD WINAPI ThreadFunc(LPVOID)
 	input_plugin.reset();
 	rsp_plugin.reset();
 
+	emu_thread_handle = nullptr;
+	emu_paused = true;
+	emu_launched = false;
+
+	if (!emu_resetting)
+	{
+		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
+	}
+
 	return 0;
 }
 
@@ -2152,14 +2161,6 @@ Core::Result vr_close_rom(bool stop_vcr)
 		TerminateThread(emu_thread_handle, 0);
 	}
 
-	emu_thread_handle = nullptr;
-	emu_paused = true;
-	emu_launched = false;
-
-	if (!emu_resetting)
-	{
-		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
-	}
 	return Core::Result::Ok;
 }
 
