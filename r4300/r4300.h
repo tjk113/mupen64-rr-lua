@@ -31,11 +31,9 @@
 #define R4300_H
 
 #include <stdio.h>
-#include <string.h>
 #include "recomp.h"
 #include "../memory/tlb.h"
 #include "rom.h"
-#include "win/Config.hpp"
 #include "Plugin.hpp"
 
 extern precomp_instr* PC;

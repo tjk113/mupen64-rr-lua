@@ -344,7 +344,7 @@ namespace Rombrowser
 	}
 
 
-	void notify(LPARAM lparam)
+	void notify(long lparam)
 	{
 		switch (((LPNMHDR)lparam)->code)
 		{

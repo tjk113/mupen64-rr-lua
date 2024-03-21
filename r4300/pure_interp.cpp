@@ -27,13 +27,11 @@
  *
 **/
 
-#include "../lua/LuaConsole.h"
-
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <float.h>
+#include <thread>
+
 #include "r4300.h"
 #include "exception.h"
 #include "../memory/memory.h"
@@ -3188,7 +3186,7 @@ void pure_interpreter()
 #endif
 		while (!coredbg_resumed)
 		{
-			Sleep(10);
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 		CoreDbg::on_late_cycle(op, interp_addr);
 	}

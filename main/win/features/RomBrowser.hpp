@@ -17,7 +17,6 @@
 #pragma once
 
 #include <functional>
-#include <Windows.h>
 #include <vector>
 #include <string>
 #include "../../r4300/rom.h"
@@ -38,7 +37,7 @@ namespace Rombrowser
  	* \brief Notifies the rombrowser of a parent receiving the WM_NOTIFY message
  	* \param lparam The lparam value associated with the current message processing pass
  	*/
-	void notify(LPARAM lparam);
+	void notify(long lparam);
 
 	/**
 	 * \brief Finds the first rom from the available ROM list which matches the predicate

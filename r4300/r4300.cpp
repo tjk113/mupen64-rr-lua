@@ -27,7 +27,6 @@
  *
 **/
 
-//#include "../config.h"
 #include "vcr.h"
 #include "r4300.h"
 #include "ops.h"
@@ -37,17 +36,14 @@
 #include "interrupt.h"
 #include "macros.h"
 #include "recomp.h"
-#include "recomph.h"
 #include <malloc.h>
-
 #include "LuaCallbacks.h"
 #include "messenger.h"
 #include "../memory/savestates.h"
-#include "../lua/LuaConsole.h"
 #include <helpers/string_helpers.h>
 #include "win/timers.h"
-#include "win/features/Dispatcher.h"
 #include "win/features/RomBrowser.hpp"
+#include <win/Config.hpp>
 
 #ifdef DBG
 extern int debugger_mode;
