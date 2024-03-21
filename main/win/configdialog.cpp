@@ -277,10 +277,11 @@ void update_plugin_selection(const HWND hwnd, const int32_t id, const std::files
 	{
 		if (const auto plugin = (Plugin*)SendDlgItemMessage(hwnd, id, CB_GETITEMDATA, i, 0); plugin->path() == path)
 		{
-			SendDlgItemMessage(hwnd, id, CB_SETCURSEL, i, 0);
+			ComboBox_SetCurSel(GetDlgItem(hwnd, id), i);
 			break;
 		}
 	}
+	SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(id, 0), 0);
 }
 
 Plugin* get_selected_plugin(const HWND hwnd, const int id)
@@ -301,61 +302,99 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 		EndDialog(hwnd, IDOK);
 		break;
 	case WM_INITDIALOG:
-		available_plugins = get_available_plugins();
-
-		for (const auto& plugin : available_plugins)
 		{
-			int32_t id = 0;
-			switch (plugin->type())
+			available_plugins = get_available_plugins();
+
+			for (const auto& plugin : available_plugins)
 			{
-			case plugin_type::video:
-				id = IDC_COMBO_GFX;
-				break;
-			case plugin_type::audio:
-				id = IDC_COMBO_SOUND;
-				break;
-			case plugin_type::input:
-				id = IDC_COMBO_INPUT;
-				break;
-			case plugin_type::rsp:
-				id = IDC_COMBO_RSP;
-				break;
-			default:
-				assert(false);
-				break;
+				int32_t id = 0;
+				switch (plugin->type())
+				{
+				case plugin_type::video:
+					id = IDC_COMBO_GFX;
+					break;
+				case plugin_type::audio:
+					id = IDC_COMBO_SOUND;
+					break;
+				case plugin_type::input:
+					id = IDC_COMBO_INPUT;
+					break;
+				case plugin_type::rsp:
+					id = IDC_COMBO_RSP;
+					break;
+				default:
+					assert(false);
+					break;
+				}
+				// we add the string and associate a pointer to the plugin with the item
+				const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
+				SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, (LPARAM)plugin->name().c_str());
+				SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin.get());
 			}
-			// we add the string and associate a pointer to the plugin with the item
-			const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
-			SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, (LPARAM)plugin->name().c_str());
-			SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin.get());
+
+			update_plugin_selection(hwnd, IDC_COMBO_GFX, Config.selected_video_plugin);
+			update_plugin_selection(hwnd, IDC_COMBO_SOUND, Config.selected_audio_plugin);
+			update_plugin_selection(hwnd, IDC_COMBO_INPUT, Config.selected_input_plugin);
+			update_plugin_selection(hwnd, IDC_COMBO_RSP, Config.selected_rsp_plugin);
+
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), !emu_launched);
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), !emu_launched);
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), !emu_launched);
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
+
+			SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
+							   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_DISPLAY),
+												 IMAGE_BITMAP, 0, 0, 0));
+			SendDlgItemMessage(hwnd, IDB_CONTROL, STM_SETIMAGE, IMAGE_BITMAP,
+							   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_CONTROL),
+												 IMAGE_BITMAP, 0, 0, 0));
+			SendDlgItemMessage(hwnd, IDB_SOUND, STM_SETIMAGE, IMAGE_BITMAP,
+							   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_SOUND),
+												 IMAGE_BITMAP, 0, 0, 0));
+			SendDlgItemMessage(hwnd, IDB_RSP, STM_SETIMAGE, IMAGE_BITMAP,
+							   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_RSP),
+												 IMAGE_BITMAP, 0, 0, 0));
+			return TRUE;
 		}
-
-		update_plugin_selection(hwnd, IDC_COMBO_GFX, Config.selected_video_plugin);
-		update_plugin_selection(hwnd, IDC_COMBO_SOUND, Config.selected_audio_plugin);
-		update_plugin_selection(hwnd, IDC_COMBO_INPUT, Config.selected_input_plugin);
-		update_plugin_selection(hwnd, IDC_COMBO_RSP, Config.selected_rsp_plugin);
-
-		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), !emu_launched);
-		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), !emu_launched);
-		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), !emu_launched);
-		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
-
-		SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
-		                   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_DISPLAY),
-		                                     IMAGE_BITMAP, 0, 0, 0));
-		SendDlgItemMessage(hwnd, IDB_CONTROL, STM_SETIMAGE, IMAGE_BITMAP,
-		                   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_CONTROL),
-		                                     IMAGE_BITMAP, 0, 0, 0));
-		SendDlgItemMessage(hwnd, IDB_SOUND, STM_SETIMAGE, IMAGE_BITMAP,
-		                   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_SOUND),
-		                                     IMAGE_BITMAP, 0, 0, 0));
-		SendDlgItemMessage(hwnd, IDB_RSP, STM_SETIMAGE, IMAGE_BITMAP,
-		                   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_RSP),
-		                                     IMAGE_BITMAP, 0, 0, 0));
-		return TRUE;
 	case WM_COMMAND:
 		switch (LOWORD(w_param))
 		{
+	case IDC_COMBO_GFX:
+	case IDC_COMBO_SOUND:
+	case IDC_COMBO_INPUT:
+	case IDC_COMBO_RSP:
+		{
+			auto has_plugin_selected =
+							ComboBox_GetItemData(GetDlgItem(hwnd, LOWORD(w_param)), ComboBox_GetCurSel(GetDlgItem(hwnd, LOWORD(w_param))))
+							&& ComboBox_GetCurSel(GetDlgItem(hwnd, LOWORD(w_param))) != CB_ERR;
+
+			switch (LOWORD(w_param))
+			{
+			case IDC_COMBO_GFX:
+				EnableWindow(GetDlgItem(hwnd, IDM_VIDEO_SETTINGS), has_plugin_selected);
+				EnableWindow(GetDlgItem(hwnd, IDGFXTEST), has_plugin_selected);
+				EnableWindow(GetDlgItem(hwnd, IDGFXABOUT), has_plugin_selected);
+				break;
+			case IDC_COMBO_SOUND:
+				EnableWindow(GetDlgItem(hwnd, IDM_AUDIO_SETTINGS), has_plugin_selected);
+				EnableWindow(GetDlgItem(hwnd, IDSOUNDTEST), has_plugin_selected);
+				EnableWindow(GetDlgItem(hwnd, IDSOUNDABOUT), has_plugin_selected);
+				break;
+			case IDC_COMBO_INPUT:
+				EnableWindow(GetDlgItem(hwnd, IDM_INPUT_SETTINGS), has_plugin_selected);
+				EnableWindow(GetDlgItem(hwnd, IDINPUTTEST), has_plugin_selected);
+				EnableWindow(GetDlgItem(hwnd, IDINPUTABOUT), has_plugin_selected);
+				break;
+			case IDC_COMBO_RSP:
+				EnableWindow(GetDlgItem(hwnd, IDM_RSP_SETTINGS), has_plugin_selected);
+				EnableWindow(GetDlgItem(hwnd, IDRSPTEST), has_plugin_selected);
+				EnableWindow(GetDlgItem(hwnd, IDRSPABOUT), has_plugin_selected);
+				break;
+			default:
+				break;
+			}
+			break;
+		}
 		case IDM_VIDEO_SETTINGS:
 			hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_GFX)->config();
