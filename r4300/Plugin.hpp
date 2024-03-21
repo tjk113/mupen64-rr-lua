@@ -29,7 +29,6 @@
 **/
 
 #include <memory>
-#include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -65,46 +64,46 @@ enum system_type
 
 typedef struct
 {
-	WORD Version;
-	WORD Type;
+	unsigned short Version;
+	unsigned short Type;
 	char Name[100];
 
 	/* If DLL supports memory these memory options then set them to TRUE or FALSE
 	   if it does not support it */
-	BOOL NormalMemory; /* a normal BYTE array */
-	BOOL MemoryBswaped; /* a normal BYTE array where the memory has been pre
+	int NormalMemory; /* a normal unsigned char array */
+	int MemoryBswaped; /* a normal unsigned char array where the memory has been pre
 							 bswap on a dword (32 bits) boundry */
 } PLUGIN_INFO;
 
 typedef struct
 {
-	HINSTANCE hInst;
-	// Whether the memory has been pre-byteswapped on a DWORD boundary
-	BOOL MemoryBswaped;
-	BYTE* RDRAM;
-	BYTE* DMEM;
-	BYTE* IMEM;
+	void* hInst;
+	// Whether the memory has been pre-byteswapped on a unsigned long boundary
+	int MemoryBswaped;
+	unsigned char* RDRAM;
+	unsigned char* DMEM;
+	unsigned char* IMEM;
 
-	DWORD* MI_INTR_REG;
+	unsigned long* MI_INTR_REG;
 
-	DWORD* SP_MEM_ADDR_REG;
-	DWORD* SP_DRAM_ADDR_REG;
-	DWORD* SP_RD_LEN_REG;
-	DWORD* SP_WR_LEN_REG;
-	DWORD* SP_STATUS_REG;
-	DWORD* SP_DMA_FULL_REG;
-	DWORD* SP_DMA_BUSY_REG;
-	DWORD* SP_PC_REG;
-	DWORD* SP_SEMAPHORE_REG;
+	unsigned long* SP_MEM_ADDR_REG;
+	unsigned long* SP_DRAM_ADDR_REG;
+	unsigned long* SP_RD_LEN_REG;
+	unsigned long* SP_WR_LEN_REG;
+	unsigned long* SP_STATUS_REG;
+	unsigned long* SP_DMA_FULL_REG;
+	unsigned long* SP_DMA_BUSY_REG;
+	unsigned long* SP_PC_REG;
+	unsigned long* SP_SEMAPHORE_REG;
 
-	DWORD* DPC_START_REG;
-	DWORD* DPC_END_REG;
-	DWORD* DPC_CURRENT_REG;
-	DWORD* DPC_STATUS_REG;
-	DWORD* DPC_CLOCK_REG;
-	DWORD* DPC_BUFBUSY_REG;
-	DWORD* DPC_PIPEBUSY_REG;
-	DWORD* DPC_TMEM_REG;
+	unsigned long* DPC_START_REG;
+	unsigned long* DPC_END_REG;
+	unsigned long* DPC_CURRENT_REG;
+	unsigned long* DPC_STATUS_REG;
+	unsigned long* DPC_CLOCK_REG;
+	unsigned long* DPC_BUFBUSY_REG;
+	unsigned long* DPC_PIPEBUSY_REG;
+	unsigned long* DPC_TMEM_REG;
 
 	void (__cdecl*CheckInterrupts)(void);
 	void (__cdecl*ProcessDlistList)(void);
@@ -115,87 +114,87 @@ typedef struct
 
 typedef struct
 {
-	HWND hWnd; /* Render window */
-	HWND hStatusBar;
+	void* hWnd; /* Render window */
+	void* hStatusBar;
 	/* if render window does not have a status bar then this is NULL */
 
-	BOOL MemoryBswaped; // If this is set to TRUE, then the memory has been pre
+	int MemoryBswaped; // If this is set to TRUE, then the memory has been pre
 	//   bswap on a dword (32 bits) boundry
 	//	eg. the first 8 bytes are stored like this:
 	//        4 3 2 1   8 7 6 5
 
-	BYTE* HEADER; // This is the rom header (first 40h bytes of the rom
+	unsigned char* HEADER; // This is the rom header (first 40h bytes of the rom
 	// This will be in the same memory format as the rest of the memory.
-	BYTE* RDRAM;
-	BYTE* DMEM;
-	BYTE* IMEM;
+	unsigned char* RDRAM;
+	unsigned char* DMEM;
+	unsigned char* IMEM;
 
-	DWORD* MI_INTR_REG;
+	unsigned long* MI_INTR_REG;
 
-	DWORD* DPC_START_REG;
-	DWORD* DPC_END_REG;
-	DWORD* DPC_CURRENT_REG;
-	DWORD* DPC_STATUS_REG;
-	DWORD* DPC_CLOCK_REG;
-	DWORD* DPC_BUFBUSY_REG;
-	DWORD* DPC_PIPEBUSY_REG;
-	DWORD* DPC_TMEM_REG;
+	unsigned long* DPC_START_REG;
+	unsigned long* DPC_END_REG;
+	unsigned long* DPC_CURRENT_REG;
+	unsigned long* DPC_STATUS_REG;
+	unsigned long* DPC_CLOCK_REG;
+	unsigned long* DPC_BUFBUSY_REG;
+	unsigned long* DPC_PIPEBUSY_REG;
+	unsigned long* DPC_TMEM_REG;
 
-	DWORD* VI_STATUS_REG;
-	DWORD* VI_ORIGIN_REG;
-	DWORD* VI_WIDTH_REG;
-	DWORD* VI_INTR_REG;
-	DWORD* VI_V_CURRENT_LINE_REG;
-	DWORD* VI_TIMING_REG;
-	DWORD* VI_V_SYNC_REG;
-	DWORD* VI_H_SYNC_REG;
-	DWORD* VI_LEAP_REG;
-	DWORD* VI_H_START_REG;
-	DWORD* VI_V_START_REG;
-	DWORD* VI_V_BURST_REG;
-	DWORD* VI_X_SCALE_REG;
-	DWORD* VI_Y_SCALE_REG;
+	unsigned long* VI_STATUS_REG;
+	unsigned long* VI_ORIGIN_REG;
+	unsigned long* VI_WIDTH_REG;
+	unsigned long* VI_INTR_REG;
+	unsigned long* VI_V_CURRENT_LINE_REG;
+	unsigned long* VI_TIMING_REG;
+	unsigned long* VI_V_SYNC_REG;
+	unsigned long* VI_H_SYNC_REG;
+	unsigned long* VI_LEAP_REG;
+	unsigned long* VI_H_START_REG;
+	unsigned long* VI_V_START_REG;
+	unsigned long* VI_V_BURST_REG;
+	unsigned long* VI_X_SCALE_REG;
+	unsigned long* VI_Y_SCALE_REG;
 
 	void (__cdecl*CheckInterrupts)(void);
 } GFX_INFO;
 
 typedef struct
 {
-	HWND hwnd;
-	HINSTANCE hinst;
+	void* hwnd;
+	void* hinst;
 
-	BOOL MemoryBswaped; // If this is set to TRUE, then the memory has been pre
+	int MemoryBswaped; // If this is set to TRUE, then the memory has been pre
 	//   bswap on a dword (32 bits) boundry
 	//	eg. the first 8 bytes are stored like this:
 	//        4 3 2 1   8 7 6 5
-	BYTE* HEADER; // This is the rom header (first 40h bytes of the rom
+	unsigned char* HEADER; // This is the rom header (first 40h bytes of the rom
 	// This will be in the same memory format as the rest of the memory.
-	BYTE* RDRAM;
-	BYTE* DMEM;
-	BYTE* IMEM;
+	unsigned char* RDRAM;
+	unsigned char* DMEM;
+	unsigned char* IMEM;
 
-	DWORD* MI_INTR_REG;
+	unsigned long* MI_INTR_REG;
 
-	DWORD* AI_DRAM_ADDR_REG;
-	DWORD* AI_LEN_REG;
-	DWORD* AI_CONTROL_REG;
-	DWORD* AI_STATUS_REG;
-	DWORD* AI_DACRATE_REG;
-	DWORD* AI_BITRATE_REG;
+	unsigned long* AI_DRAM_ADDR_REG;
+	unsigned long* AI_LEN_REG;
+	unsigned long* AI_CONTROL_REG;
+	unsigned long* AI_STATUS_REG;
+	unsigned long* AI_DACRATE_REG;
+	unsigned long* AI_BITRATE_REG;
 
 	void (__cdecl*CheckInterrupts)(void);
 } AUDIO_INFO;
 
 typedef struct
 {
-	BOOL Present;
-	BOOL RawData;
+	int Present;
+	int RawData;
 	int Plugin;
 } CONTROL;
 
 typedef union
 {
-	DWORD Value;
+	unsigned long Value;
 
 	struct
 	{
@@ -225,88 +224,156 @@ typedef union
 
 typedef struct
 {
-	HWND hMainWindow;
-	HINSTANCE hinst;
+	void* hMainWindow;
+	void* hinst;
 
-	BOOL MemoryBswaped; // If this is set to TRUE, then the memory has been pre
+	int MemoryBswaped; // If this is set to TRUE, then the memory has been pre
 	//   bswap on a dword (32 bits) boundry, only effects header.
 	//	eg. the first 8 bytes are stored like this:
 	//        4 3 2 1   8 7 6 5
-	BYTE* HEADER; // This is the rom header (first 40h bytes of the rom)
+	unsigned char* HEADER; // This is the rom header (first 40h bytes of the rom)
 	CONTROL* Controls; // A pointer to an array of 4 controllers .. eg:
 	// CONTROL Controls[4];
 } CONTROL_INFO;
 
-static DWORD __cdecl dummy_doRspCycles(DWORD Cycles) { return Cycles; };
+static unsigned long __cdecl dummy_doRspCycles(unsigned long Cycles) { return Cycles; };
 
 extern CONTROL Controls[4];
 
-extern void (__cdecl*getDllInfo)(PLUGIN_INFO* PluginInfo);
-extern void (__cdecl*dllConfig)(HWND hParent);
-extern void (__cdecl*dllTest)(HWND hParent);
-extern void (__cdecl*dllAbout)(HWND hParent);
 
-extern void (__cdecl*changeWindow)();
-extern void (__cdecl*closeDLL_gfx)();
-extern BOOL (__cdecl*initiateGFX)(GFX_INFO Gfx_Info);
-extern void (__cdecl*processDList)();
-extern void (__cdecl*processRDPList)();
-extern void (__cdecl*romClosed_gfx)();
-extern void (__cdecl*romOpen_gfx)();
-extern void (__cdecl*showCFB)();
-extern void (__cdecl*updateScreen)();
-extern void (__cdecl*viStatusChanged)();
-extern void (__cdecl*viWidthChanged)();
-extern void (__cdecl*readScreen)(void** dest, long* width, long* height);
-extern void (__cdecl*DllCrtFree)(void* block);
+#pragma region Base Functions
 
-extern void (__cdecl*get_video_size)(long* width, long* height);
-extern void (__cdecl*read_video)(void** buffer);
+typedef void (__cdecl*GETDLLINFO)(PLUGIN_INFO*);
+typedef void (__cdecl*DLLCONFIG)(void*);
+typedef void (__cdecl*DLLTEST)(void*);
+typedef void (__cdecl*DLLABOUT)(void*);
+extern GETDLLINFO getDllInfo;
+extern DLLCONFIG dllConfig;
+extern DLLTEST dllTest;
+extern DLLABOUT dllAbout;
 
-extern void (__cdecl*aiDacrateChanged)(int SystemType);
-extern void (__cdecl*aiLenChanged)();
-extern DWORD (__cdecl*aiReadLength)();
-extern void (__cdecl*closeDLL_audio)();
-extern BOOL (__cdecl*initiateAudio)(AUDIO_INFO Audio_Info);
-extern void (__cdecl*processAList)();
-extern void (__cdecl*romClosed_audio)();
-extern void (__cdecl*romOpen_audio)();
+#pragma endregion
 
-extern void (__cdecl*closeDLL_input)();
-extern void (__cdecl*controllerCommand)(int Control, BYTE* Command);
-extern void (__cdecl*getKeys)(int Control, BUTTONS* Keys);
-extern void (__cdecl*setKeys)(int Control, BUTTONS Keys);
-extern void (__cdecl*initiateControllers)(CONTROL_INFO ControlInfo);
-extern void (__cdecl*readController)(int Control, BYTE* Command);
-extern void (__cdecl*romClosed_input)();
-extern void (__cdecl*romOpen_input)();
-extern void (__cdecl*keyDown)(WPARAM wParam, LPARAM lParam);
-extern void (__cdecl*keyUp)(WPARAM wParam, LPARAM lParam);
+#pragma region Video Functions
 
-extern void (__cdecl*closeDLL_RSP)();
-extern DWORD (__cdecl*doRspCycles)(DWORD Cycles);
-extern void (__cdecl*initiateRSP)(RSP_INFO Rsp_Info, DWORD* CycleCount);
-extern void (__cdecl*romClosed_RSP)();
+typedef void (__cdecl*CHANGEWINDOW)();
+typedef void (__cdecl*CLOSEDLL_GFX)();
+typedef int  (__cdecl*INITIATEGFX)(GFX_INFO);
+typedef void (__cdecl*PROCESSDLIST)();
+typedef void (__cdecl*PROCESSRDPLIST)();
+typedef void (__cdecl*ROMCLOSED_GFX)();
+typedef void (__cdecl*ROMOPEN_GFX)();
+typedef void (__cdecl*SHOWCFB)();
+typedef void (__cdecl*UPDATESCREEN)();
+typedef void (__cdecl*VISTATUSCHANGED)();
+typedef void (__cdecl*VIWIDTHCHANGED)();
+typedef void (__cdecl*READSCREEN)(void**, long*, long*);
+typedef void (__cdecl*DLLCRTFREE)(void*);
+typedef void (__cdecl*MOVESCREEN)(int, int);
+typedef void (__cdecl*CAPTURESCREEN)(char*);
+typedef void (__cdecl*GETVIDEOSIZE)(long*, long*);
+typedef void (__cdecl*READVIDEO)(void**);
+typedef void (__cdecl*FBREAD)(unsigned long);
+typedef void (__cdecl*FBWRITE)(unsigned long addr, unsigned long size);
+typedef void (__cdecl*FBGETFRAMEBUFFERINFO)(void*);
+extern CHANGEWINDOW changeWindow;
+extern CLOSEDLL_GFX closeDLL_gfx;
+extern INITIATEGFX initiateGFX;
+extern PROCESSDLIST processDList;
+extern PROCESSRDPLIST processRDPList;
+extern ROMCLOSED_GFX romClosed_gfx;
+extern ROMOPEN_GFX romOpen_gfx;
+extern SHOWCFB showCFB;
+extern UPDATESCREEN updateScreen;
+extern VISTATUSCHANGED viStatusChanged;
+extern VIWIDTHCHANGED viWidthChanged;
+extern READSCREEN readScreen;
+extern DLLCRTFREE DllCrtFree;
+extern MOVESCREEN moveScreen;
+extern CAPTURESCREEN CaptureScreen;
+// Mupen Graphics Extension, currently only implemented by bettergln64/ngl64
+extern GETVIDEOSIZE get_video_size;
+extern READVIDEO read_video;
+// Framebuffer Extension
+extern FBREAD fBRead;
+extern FBWRITE fBWrite;
+extern FBGETFRAMEBUFFERINFO fBGetFrameBufferInfo;
 
-extern void (__cdecl*fBRead)(DWORD addr);
-extern void (__cdecl*fBWrite)(DWORD addr, DWORD size);
-extern void (__cdecl*fBGetFrameBufferInfo)(void* p);
+#pragma endregion
 
-extern void (__cdecl*moveScreen)(int xpos, int ypos);
-extern void (__cdecl*CaptureScreen)(char* Directory);
-extern void (__cdecl*old_initiateControllers)(HWND hMainWindow,
-                                              CONTROL Controls[4]);
-extern void (__cdecl*aiUpdate)(BOOL Wait);
+#pragma region Audio Functions
+
+typedef void 		  (__cdecl*AIDACRATECHANGED)(int system_type);
+typedef void 		  (__cdecl*AILENCHANGED)();
+typedef unsigned long (__cdecl*AIREADLENGTH)();
+typedef void 		  (__cdecl*CLOSEDLL_AUDIO)();
+typedef int 		  (__cdecl*INITIATEAUDIO)(AUDIO_INFO);
+typedef void 		  (__cdecl*PROCESSALIST)();
+typedef void 		  (__cdecl*ROMCLOSED_AUDIO)();
+typedef void 		  (__cdecl*ROMOPEN_AUDIO)();
+typedef void 		  (__cdecl*AIUPDATE)(int wait);
+extern AIDACRATECHANGED aiDacrateChanged;
+extern AILENCHANGED aiLenChanged;
+extern AIREADLENGTH aiReadLength;
+extern CLOSEDLL_AUDIO closeDLL_audio;
+extern INITIATEAUDIO initiateAudio;
+extern PROCESSALIST processAList;
+extern ROMCLOSED_AUDIO romClosed_audio;
+extern ROMOPEN_AUDIO romOpen_audio;
+extern AIUPDATE aiUpdate;
+
+#pragma endregion
+
+#pragma region Input Functions
+
+typedef void  (__cdecl*CLOSEDLL_INPUT)();
+typedef void  (__cdecl*CONTROLLERCOMMAND)(int controller, unsigned char* command);
+typedef void  (__cdecl*GETKEYS)(int controller, BUTTONS* keys);
+typedef void  (__cdecl*SETKEYS)(int controller, BUTTONS keys);
+typedef void  (__cdecl*OLD_INITIATECONTROLLERS)(void* hwnd, CONTROL controls[4]);
+typedef void  (__cdecl*INITIATECONTROLLERS)(CONTROL_INFO control_info);
+typedef void  (__cdecl*READCONTROLLER)(int controller, unsigned char* command);
+typedef void  (__cdecl*ROMCLOSED_INPUT)();
+typedef void  (__cdecl*ROMOPEN_INPUT)();
+typedef void  (__cdecl*KEYDOWN)(unsigned int wParam, long lParam);
+typedef void  (__cdecl*KEYUP)(unsigned int wParam, long lParam);
+extern CLOSEDLL_INPUT closeDLL_input;
+extern CONTROLLERCOMMAND controllerCommand;
+extern GETKEYS getKeys;
+extern SETKEYS setKeys;
+extern OLD_INITIATECONTROLLERS old_initiateControllers;
+extern INITIATECONTROLLERS initiateControllers;
+extern READCONTROLLER readController;
+extern ROMCLOSED_INPUT romClosed_input;
+extern ROMOPEN_INPUT romOpen_input;
+extern KEYDOWN keyDown;
+extern KEYUP keyUp;
+
+#pragma endregion
+
+#pragma region RSP Functions
+
+typedef void		   (__cdecl*CLOSEDLL_RSP)();
+typedef unsigned long  (__cdecl*DORSPCYCLES)(unsigned long);
+typedef void		   (__cdecl*INITIATERSP)(RSP_INFO rsp_info, unsigned long* cycles);
+typedef void		   (__cdecl*ROMCLOSED_RSP)();
+extern CLOSEDLL_RSP closeDLL_RSP;
+extern DORSPCYCLES doRspCycles;
+extern INITIATERSP initiateRSP;
+extern ROMCLOSED_RSP romClosed_RSP;
+
+#pragma endregion
+
 
 // ReSharper restore CppInconsistentNaming
 
 // frame buffer plugin spec extension
 typedef struct
 {
-	DWORD addr;
-	DWORD size;
-	DWORD width;
-	DWORD height;
+	unsigned long addr;
+	unsigned long size;
+	unsigned long width;
+	unsigned long height;
 } FrameBufferInfo;
 
 class Plugin
@@ -371,7 +438,7 @@ private:
 	std::string m_name;
 	plugin_type m_type;
 	uint16_t m_version;
-	HMODULE m_module;
+	void* m_module;
 };
 
 /**
