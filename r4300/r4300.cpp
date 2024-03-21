@@ -1996,12 +1996,6 @@ DWORD WINAPI ThreadFunc(LPVOID)
 	closeDLL_input();
 	closeDLL_RSP();
 
-	// TODO: Good opportunity to cache these
-	video_plugin.reset();
-	audio_plugin.reset();
-	input_plugin.reset();
-	rsp_plugin.reset();
-
 	emu_thread_handle = nullptr;
 	emu_paused = true;
 	emu_launched = false;
@@ -2068,26 +2062,41 @@ Core::Result vr_start_rom(std::filesystem::path path)
 
 	printf("Loading plugins\n");
 
-	auto video_pl = Plugin::create(Config.selected_video_plugin);
-	auto audio_pl = Plugin::create(Config.selected_audio_plugin);
-	auto input_pl = Plugin::create(Config.selected_input_plugin);
-	auto rsp_pl = Plugin::create(Config.selected_rsp_plugin);
-
-	if (!video_pl.has_value() || !audio_pl.has_value() || !input_pl.has_value() || !rsp_pl.has_value())
+	if (video_plugin.get() && audio_plugin.get() && input_plugin.get() && rsp_plugin.get()
+		&& video_plugin->path() == Config.selected_video_plugin
+		&& audio_plugin->path() == Config.selected_audio_plugin
+		&& input_plugin->path() == Config.selected_input_plugin
+		&& rsp_plugin->path() == Config.selected_rsp_plugin)
 	{
-		video_pl.reset();
-		audio_pl.reset();
-		input_pl.reset();
-		rsp_pl.reset();
-		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::PluginError);
-		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-		return Core::Result::PluginError;
-	}
+		printf("[Core] Plugins unchanged, reusing...\n");
+	} else
+	{
+		video_plugin.reset();
+		audio_plugin.reset();
+		input_plugin.reset();
+		rsp_plugin.reset();
 
-	video_plugin = std::move(video_pl.value());
-	audio_plugin = std::move(audio_pl.value());
-	input_plugin = std::move(input_pl.value());
-	rsp_plugin = std::move(rsp_pl.value());
+		auto video_pl = Plugin::create(Config.selected_video_plugin);
+		auto audio_pl = Plugin::create(Config.selected_audio_plugin);
+		auto input_pl = Plugin::create(Config.selected_input_plugin);
+		auto rsp_pl = Plugin::create(Config.selected_rsp_plugin);
+
+		if (!video_pl.has_value() || !audio_pl.has_value() || !input_pl.has_value() || !rsp_pl.has_value())
+		{
+			video_pl.reset();
+			audio_pl.reset();
+			input_pl.reset();
+			rsp_pl.reset();
+			Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::PluginError);
+			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
+			return Core::Result::PluginError;
+		}
+
+		video_plugin = std::move(video_pl.value());
+		audio_plugin = std::move(audio_pl.value());
+		input_plugin = std::move(input_pl.value());
+		rsp_plugin = std::move(rsp_pl.value());
+	}
 
 	// valid rom is required to start emulation
 	if (!rom_load(path.string().c_str()))
