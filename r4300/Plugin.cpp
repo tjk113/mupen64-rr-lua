@@ -508,6 +508,10 @@ void Plugin::config()
 		{
 			if (!emu_launched)
 			{
+				// NOTE: Since olden days, dummy render target hwnd was the statusbar.
+				dummy_gfx_info.hWnd = Statusbar::hwnd();
+				dummy_gfx_info.hStatusBar = Statusbar::hwnd();
+
 				auto initiateGFX = (INITIATEGFX)GetProcAddress((HMODULE)m_module, "InitiateGFX");
 				if (initiateGFX && !initiateGFX(dummy_gfx_info))
 				{
@@ -649,8 +653,7 @@ void setup_dummy_info()
 	int i;
 
 	/////// GFX ///////////////////////////
-	dummy_gfx_info.hWnd = Statusbar::hwnd();
-	dummy_gfx_info.hStatusBar = Statusbar::hwnd();
+
 	dummy_gfx_info.MemoryBswaped = TRUE;
 	dummy_gfx_info.HEADER = (BYTE*)dummy_header;
 	dummy_gfx_info.RDRAM = (BYTE*)rdram;

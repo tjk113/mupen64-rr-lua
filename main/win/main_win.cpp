@@ -1286,7 +1286,6 @@ int WINAPI WinMain(
 
 	load_config();
 	lua_init();
-	setup_dummy_info();
 
 	WNDCLASSEX wc = {0};
 	MSG msg;
@@ -1350,6 +1349,7 @@ int WINAPI WinMain(
 	Cli::init();
 	Seeker::init();
 	savestates_init();
+	setup_dummy_info();
 
 	update_menu_hotkey_labels();
 

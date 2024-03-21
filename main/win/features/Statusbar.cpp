@@ -99,6 +99,7 @@ namespace Statusbar
 
 	void init()
 	{
+		create();
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged,
 		                     emu_launched_changed);
 		Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged,
