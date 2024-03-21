@@ -38,7 +38,7 @@
 #include "recomp.h"
 #include <malloc.h>
 #include "LuaCallbacks.h"
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "../memory/savestates.h"
 #include <helpers/string_helpers.h>
 #include "win/timers.h"

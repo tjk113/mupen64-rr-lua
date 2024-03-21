@@ -20,7 +20,7 @@
 #include <LuaConsole.h>
 
 #include "guifuncs.h"
-#include "messenger.h"
+#include <shared/messenger.h>
 
 // M64\0x1a
 enum

@@ -34,7 +34,7 @@
 #include "LuaCallbacks.h"
 #include "features/CrashHelper.h"
 #include "LuaConsole.h"
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "timers.h"
 #include <guifuncs.h>
 #include "../../r4300/Plugin.hpp"

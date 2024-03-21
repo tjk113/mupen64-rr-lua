@@ -8,7 +8,7 @@
 #include <win/main_win.h>
 
 #include "LuaConsole.h"
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "win/Config.hpp"
 #include "../../r4300/vcr.h"
 #include "../../r4300/r4300.h"

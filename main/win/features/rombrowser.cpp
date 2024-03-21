@@ -19,7 +19,7 @@
 #include <mutex>
 #include <thread>
 #include <Uxtheme.h>
-#include "messenger.h"
+#include <shared/messenger.h>
 
 using t_rombrowser_entry = struct s_rombrowser_entry
 {

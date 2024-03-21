@@ -11,7 +11,7 @@
 #include "../lib/ini.h"
 #include <helpers/string_helpers.h>
 
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "capture/EncodingManager.h"
 
 CONFIG Config;

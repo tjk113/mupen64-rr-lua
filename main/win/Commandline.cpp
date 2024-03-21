@@ -23,7 +23,7 @@
 
 #include "LuaConsole.h"
 #include "main_win.h"
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "../memory/savestates.h"
 #include <helpers/string_helpers.h>
 #include "../../lib/argh.h"

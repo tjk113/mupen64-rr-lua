@@ -17,7 +17,7 @@
 
 #include "timers.h"
 #include "Config.hpp"
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "../../memory/pif.h"
 #include "../../r4300/vcr.h"
 #include <helpers/win_helpers.h>

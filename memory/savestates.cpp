@@ -39,7 +39,7 @@
 #include "memory.h"
 #include "summercart.h"
 #include "../lua/LuaConsole.h"
-#include "../main/messenger.h"
+#include <shared/messenger.h>
 #include "../r4300/interrupt.h"
 #include "../r4300/r4300.h"
 #include "../r4300/rom.h"

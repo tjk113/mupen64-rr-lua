@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <commctrl.h>
 
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "../r4300/r4300.h"
 #include "../../r4300/vcr.h"
 #include "RomBrowser.hpp"

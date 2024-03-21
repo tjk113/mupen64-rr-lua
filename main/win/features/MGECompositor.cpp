@@ -1,7 +1,7 @@
 ﻿#include "MGECompositor.h"
 #include <Windows.h>
 
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "../../r4300/Plugin.hpp"
 #include "win/main_win.h"
 

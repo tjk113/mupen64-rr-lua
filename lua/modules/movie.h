@@ -1,7 +1,7 @@
 #include <include/lua.h>
 #include <Windows.h>
 
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "../../main/win/main_win.h"
 
 namespace LuaCore::Movie

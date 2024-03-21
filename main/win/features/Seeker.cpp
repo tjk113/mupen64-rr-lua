@@ -3,7 +3,7 @@
 #include <thread>
 #include <Windows.h>
 
-#include "messenger.h"
+#include <shared/messenger.h>
 #include "Statusbar.hpp"
 #include "../../r4300/vcr.h"
 #include "../main_win.h"
