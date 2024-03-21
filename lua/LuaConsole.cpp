@@ -40,7 +40,7 @@
 
 #include <Windows.h>
 
-#include "LuaCallbacks.h"
+#include <shared/LuaCallbacks.h>
 #include "modules/avi.h"
 #include "modules/d2d.h"
 #include "modules/emu.h"

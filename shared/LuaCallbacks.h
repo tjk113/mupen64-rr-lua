@@ -2,16 +2,14 @@
 
 // Lua callback interface
 
-#include <Windows.h>
-#include "include/lua.hpp"
+#include <lua/include/lua.hpp>
 
 namespace LuaCallbacks
 {
 	/**
 	 * \brief Notifies all lua instances of a window message
-	 * \remark TODO: Deprecate this, as it creates windows dependency in header
 	 */
-	void call_window_message(HWND, UINT, WPARAM, LPARAM);
+	void call_window_message(void*, unsigned int, unsigned int, long);
 
 	/**
 	 * \brief Notifies all lua instances of a visual interrupt

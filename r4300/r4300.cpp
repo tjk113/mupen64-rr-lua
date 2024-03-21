@@ -37,13 +37,16 @@
 #include "macros.h"
 #include "recomp.h"
 #include <malloc.h>
-#include "LuaCallbacks.h"
+#include <shared/LuaCallbacks.h>
 #include <shared/messenger.h>
 #include "../memory/savestates.h"
 #include <helpers/string_helpers.h>
 #include "win/timers.h"
 #include "win/features/RomBrowser.hpp"
 #include <shared/Config.hpp>
+
+// Threading crap
+#include <Windows.h>
 
 #ifdef DBG
 extern int debugger_mode;

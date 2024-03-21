@@ -31,7 +31,7 @@
 #include "Commandline.h"
 #include <shared/Config.hpp>
 #include "configdialog.h"
-#include "LuaCallbacks.h"
+#include <shared/LuaCallbacks.h>
 #include "features/CrashHelper.h"
 #include "LuaConsole.h"
 #include <shared/messenger.h>

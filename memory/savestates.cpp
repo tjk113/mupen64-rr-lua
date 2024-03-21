@@ -35,7 +35,7 @@
 #include <win/main_win.h>
 #include <win/features/Statusbar.hpp>
 #include "flashram.h"
-#include <LuaCallbacks.h>
+#include <shared/LuaCallbacks.h>
 #include "memory.h"
 #include "summercart.h"
 #include "../lua/LuaConsole.h"

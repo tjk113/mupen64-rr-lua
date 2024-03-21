@@ -50,12 +50,12 @@ namespace LuaCallbacks
 	}
 
 #pragma region Call Implementations
-	void call_window_message(HWND wnd, UINT msg, WPARAM w, LPARAM l)
+	void call_window_message(void* wnd, unsigned int msg, unsigned int w, long l)
 	{
 		RET_IF_EMPTY;
 		// Invoking dispatcher here isn't allowed, as it would lead to infinite recursion
 		window_proc_params = {
-			.wnd = wnd,
+			.wnd = (HWND)wnd,
 			.msg = msg,
 			.w_param = w,
 			.l_param = l

@@ -16,7 +16,7 @@
 #include "rom.h"
 #include "../memory/savestates.h"
 #include "../memory/pif.h"
-#include <LuaCallbacks.h>
+#include <shared/LuaCallbacks.h>
 #include <LuaConsole.h>
 
 #include "guifuncs.h"

@@ -136,7 +136,6 @@
         </Link>
     </ItemDefinitionGroup>
     <ItemGroup>
-        <ClInclude Include="..\..\lua\LuaCallbacks.h"/>
         <ClInclude Include="..\..\lua\modules\avi.h"/>
         <ClInclude Include="..\..\lua\modules\d2d.h"/>
         <ClInclude Include="..\..\lua\modules\emu.h"/>
@@ -200,6 +199,7 @@
         <ClInclude Include="..\..\shared\helpers\math_helpers.h"/>
         <ClInclude Include="..\..\shared\helpers\string_helpers.h"/>
         <ClInclude Include="..\..\shared\helpers\win_helpers.h"/>
+        <ClInclude Include="..\..\shared\LuaCallbacks.h" />
         <ClInclude Include="..\..\shared\messenger.h" />
         <ClInclude Include="..\resource.h"/>
         <ClInclude Include="..\..\shared\guifuncs.h"/>
@@ -213,7 +213,6 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\lua\LuaCallbacks.cpp"/>
         <ClCompile Include="..\..\main\capture\encoders\AVIEncoder.cpp"/>
         <ClCompile Include="..\..\main\capture\encoders\FFmpegEncoder.cpp"/>
         <ClCompile Include="..\..\main\capture\EncodingManager.cpp"/>
@@ -393,6 +392,7 @@
         <ClCompile Include="..\..\shared\Config.cpp"/>
         <ClCompile Include="..\..\shared\guifuncs.cpp"/>
         <ClCompile Include="..\..\shared\helpers\io_helpers.cpp"/>
+        <ClCompile Include="..\..\shared\LuaCallbacks.cpp"/>
         <ClCompile Include="..\..\shared\messenger.cpp"/>
     </ItemGroup>
     <ItemGroup>
