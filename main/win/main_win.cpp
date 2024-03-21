@@ -1277,9 +1277,7 @@ int WINAPI WinMain(
 
 	// ensure folders exist!
 	CreateDirectory((app_path + "save").c_str(), NULL);
-	CreateDirectory((app_path + "Mempaks").c_str(), NULL);
-	CreateDirectory((app_path + "Lang").c_str(), NULL);
-	CreateDirectory((app_path + "ScreenShots").c_str(), NULL);
+	CreateDirectory((app_path + "screenshot").c_str(), NULL);
 	CreateDirectory((app_path + "plugin").c_str(), NULL);
 
 	emu_paused = 1;
