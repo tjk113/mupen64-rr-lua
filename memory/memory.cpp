@@ -43,6 +43,7 @@
 #include "../r4300/ops.h"
 #include "pif.h"
 #include "flashram.h"
+#include "guifuncs.h"
 #include "summercart.h"
 #include "../r4300/Plugin.hpp"
 #include "../r4300/vcr.h"
@@ -3668,7 +3669,7 @@ void read_sc_regh()
 
 void read_sc_regd()
 {
-	MessageBox(NULL, "el RCP no tiene la segunda palabra :(", "error", MB_OK | MB_ICONERROR | MB_TOPMOST);
+	show_warning("read_sc_regd not supported by RCP", "Error");
 	stop = 1;
 }
 

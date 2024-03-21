@@ -73,7 +73,7 @@ static unsigned long m_input_buffer_size = 0;
 static char* m_input_buffer_ptr = nullptr;
 
 int title_length;
-char vcr_lastpath[MAX_PATH];
+char vcr_lastpath[260];
 
 uint64_t screen_updates = 0;
 
