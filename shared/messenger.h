@@ -55,16 +55,6 @@ namespace Messenger
 		TaskChanged,
 
 		/**
-		 * \brief The VCR engine has begun recording a movie
-		 */
-		MovieRecordingStarted,
-
-		/**
-		 * \brief The VCR engine has begun playing back a movie
-		 */
-		MoviePlaybackStarted,
-
-		/**
 		 * \brief The Lua engine has started a script
 		 */
 		ScriptStarted,

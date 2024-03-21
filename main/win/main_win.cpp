@@ -191,12 +191,6 @@ void update_titlebar()
 
 #pragma region Change notifications
 
-void on_movie_recording_or_playback_started(std::any data)
-{
-	auto value = std::any_cast<std::filesystem::path>(data);
-	Recent::add(Config.recent_movie_paths, value.string(), Config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, recent_movies_menu);
-}
-
 void on_script_started(std::any data)
 {
 	auto value = std::any_cast<std::filesystem::path>(data);
@@ -218,6 +212,12 @@ void on_task_changed(std::any data)
 	if (!task_is_playback(value) && task_is_playback(previous_value))
 	{
 		Statusbar::post("Playback stopped");
+	}
+
+	if ((task_is_recording(value) && !task_is_recording(previous_value))
+		|| (task_is_playback(value) && !task_is_playback(previous_value)) && !movie_path.empty())
+	{
+		Recent::add(Config.recent_movie_paths, movie_path.string(), Config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, recent_movies_menu);
 	}
 
 	update_titlebar();
@@ -1317,7 +1317,7 @@ int WINAPI WinMain(
 	SetWindowLong(mainHWND, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED);
 
 	recent_roms_menu = GetSubMenu(GetSubMenu(main_menu, 0), 5);
-	recent_movies_menu = GetSubMenu(GetSubMenu(main_menu, 3), 6);
+	recent_movies_menu = GetSubMenu(GetSubMenu(main_menu, 3), 5);
 	recent_lua_menu = GetSubMenu(GetSubMenu(main_menu, 6), 2);
 
 	RECT rect{};
@@ -1330,8 +1330,6 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::MovieLoopChanged, on_movie_loop_changed);
 	Messenger::subscribe(Messenger::Message::ReadonlyChanged, on_readonly_changed);
 	Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
-	Messenger::subscribe(Messenger::Message::MovieRecordingStarted, on_movie_recording_or_playback_started);
-	Messenger::subscribe(Messenger::Message::MoviePlaybackStarted, on_movie_recording_or_playback_started);
 	Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
 	Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
 	Messenger::subscribe(Messenger::Message::LagLimitExceeded, on_vis_since_input_poll_exceeded);

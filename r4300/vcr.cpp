@@ -801,7 +801,6 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	m_current_sample = 0;
 	m_current_vi = 0;
 
-	Messenger::broadcast(Messenger::Message::MovieRecordingStarted, movie_path);
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 	return 0;
@@ -1104,7 +1103,6 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		m_task = e_task::start_playback;
 	}
 
-	Messenger::broadcast(Messenger::Message::MoviePlaybackStarted, movie_path);
 	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
 	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)m_header.rerecord_count);
 	LuaCallbacks::call_play_movie();
