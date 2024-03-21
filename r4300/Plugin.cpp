@@ -40,6 +40,7 @@
 #include <win/main_win.h>
 #include <dbghelp.h>
 
+#include "guifuncs.h"
 #include "win/features/Statusbar.hpp"
 
 extern HWND mainHWND;
@@ -504,89 +505,91 @@ void Plugin::config()
 	switch (m_type)
 	{
 	case plugin_type::video:
-		if (!emu_launched)
 		{
-			initiateGFX = (INITIATEGFX)GetProcAddress((HMODULE)m_module, "InitiateGFX");
-			if (!initiateGFX(dummy_gfx_info))
+			if (!emu_launched)
 			{
-				MessageBox(mainHWND, "Failed to initiate gfx plugin.", nullptr,
-				           MB_ICONERROR);
+				auto initiateGFX = (INITIATEGFX)GetProcAddress((HMODULE)m_module, "InitiateGFX");
+				if (initiateGFX && !initiateGFX(dummy_gfx_info))
+				{
+					show_modal_info("Couldn't initialize video plugin.", nullptr);
+				}
 			}
-		}
 
-		dllConfig = (DLLCONFIG)GetProcAddress(
-			(HMODULE)m_module, "DllConfig");
-		if (dllConfig) dllConfig(hwnd_plug);
+			auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
+			if (dllConfig) dllConfig(hwnd_plug);
 
-		if (!emu_launched)
-		{
-			closeDLL_gfx = (CLOSEDLL_GFX)GetProcAddress(
-				(HMODULE)m_module, "CloseDLL");
-			if (closeDLL_gfx) closeDLL_gfx();
+			if (!emu_launched)
+			{
+				auto closeDLL_gfx = (CLOSEDLL_GFX)GetProcAddress((HMODULE)m_module, "CloseDLL");
+				if (closeDLL_gfx) closeDLL_gfx();
+			}
+			break;
 		}
-		break;
 	case plugin_type::audio:
-		if (!emu_launched)
 		{
-			initiateAudio = (INITIATEAUDIO)GetProcAddress((HMODULE)m_module, "InitiateAudio");
-			if (!initiateAudio(dummy_audio_info))
+			if (!emu_launched)
 			{
-				MessageBox(mainHWND, "Failed to initiate audio plugin.",
-				           nullptr,
-				           MB_ICONERROR);
+				auto initiateAudio = (INITIATEAUDIO)GetProcAddress((HMODULE)m_module, "InitiateAudio");
+				if (initiateAudio && !initiateAudio(dummy_audio_info))
+				{
+					show_modal_info("Couldn't initialize audio plugin.", nullptr);
+				}
 			}
-		}
 
-		dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
-		if (dllConfig) dllConfig(hwnd_plug);
-		if (!emu_launched)
-		{
-			closeDLL_audio = (CLOSEDLL_AUDIO)GetProcAddress((HMODULE)m_module, "CloseDLL");
-			if (closeDLL_audio) closeDLL_audio();
+			auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
+			if (dllConfig) dllConfig(hwnd_plug);
+
+			if (!emu_launched)
+			{
+				auto closeDLL_audio = (CLOSEDLL_AUDIO)GetProcAddress((HMODULE)m_module, "CloseDLL");
+				if (closeDLL_audio) closeDLL_audio();
+			}
+			break;
 		}
-		break;
 	case plugin_type::input:
-		if (!emu_launched)
 		{
-			if (m_version == 0x0101)
+			if (!emu_launched)
 			{
-				initiateControllers = (INITIATECONTROLLERS)GetProcAddress((HMODULE)m_module, "InitiateControllers");
-				initiateControllers(dummy_control_info);
-			} else
-			{
-				old_initiateControllers = (OLD_INITIATECONTROLLERS)GetProcAddress((HMODULE)m_module, "InitiateControllers");
-				old_initiateControllers(mainHWND, Controls);
+				if (m_version == 0x0101)
+				{
+					auto initiateControllers = (INITIATECONTROLLERS)GetProcAddress((HMODULE)m_module, "InitiateControllers");
+					if(initiateControllers) initiateControllers(dummy_control_info);
+				} else
+				{
+					auto old_initiateControllers = (OLD_INITIATECONTROLLERS)GetProcAddress((HMODULE)m_module, "InitiateControllers");
+					if(old_initiateControllers) old_initiateControllers(mainHWND, Controls);
+				}
 			}
+
+			auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
+			if (dllConfig) dllConfig(hwnd_plug);
+
+			if (!emu_launched)
+			{
+				auto closeDLL_input = (CLOSEDLL_INPUT)GetProcAddress((HMODULE)m_module, "CloseDLL");
+				if (closeDLL_input) closeDLL_input();
+			}
+			break;
 		}
-
-		dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
-		if (dllConfig) dllConfig(hwnd_plug);
-
-		if (!emu_launched)
-		{
-			closeDLL_input = (CLOSEDLL_INPUT)GetProcAddress(
-				(HMODULE)m_module, "CloseDLL");
-			if (closeDLL_input) closeDLL_input();
-		}
-
-		break;
 	case plugin_type::rsp:
-		if (!emu_launched)
 		{
-			initiateRSP = (INITIATERSP)GetProcAddress((HMODULE)m_module, "InitiateRSP");
-			DWORD i = 0;
-			initiateRSP(dummy_rsp_info, (DWORD*)&i);
-		}
+			if (!emu_launched)
+			{
+				auto initiateRSP = (INITIATERSP)GetProcAddress((HMODULE)m_module, "InitiateRSP");
+				unsigned long i = 0;
+				if(initiateRSP) initiateRSP(dummy_rsp_info, &i);
+			}
 
-		dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
-		if (dllConfig) dllConfig(hwnd_plug);
+			auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
+			if (dllConfig) dllConfig(hwnd_plug);
 
-		if (!emu_launched)
-		{
-			closeDLL_RSP = (CLOSEDLL_RSP)GetProcAddress((HMODULE)m_module, "CloseDLL");
-			if (closeDLL_RSP) closeDLL_RSP();
+			if (!emu_launched)
+			{
+				auto closeDLL_RSP = (CLOSEDLL_RSP)GetProcAddress((HMODULE)m_module, "CloseDLL");
+				if (closeDLL_RSP) closeDLL_RSP();
+			}
+			break;
 		}
-		break;
 	default:
 		assert(false);
 		break;
