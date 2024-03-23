@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <Windows.h>
 
 namespace MGECompositor
@@ -31,4 +31,12 @@ namespace MGECompositor
  	* \param height The buffer's height
  	*/
 	void read_screen(void** dest, long* width, long* height);
+
+	/**
+	 * \brief Draws the given data to the MGE surface
+	 * \param data The buffer holding video data of size <c>width * height</c>
+	 * \param width The buffer's width
+	 * \param height The buffer's height
+	 */
+	void load_screen(void* data, long width, long height);
 }

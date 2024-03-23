@@ -1,4 +1,4 @@
-﻿#include "MGECompositor.h"
+#include "MGECompositor.h"
 #include <Windows.h>
 
 #include <shared/messenger.h>
@@ -7,17 +7,21 @@
 
 namespace MGECompositor
 {
+	struct VideoBuffer
+	{
+		long last_width = 0;
+		long last_height = 0;
+		long width = 0;
+		long height = 0;
+		void* buffer = nullptr;
+		BITMAPINFO bmp_info{};
+	};
 	const auto class_name = "game_control";
 
 	HWND control_hwnd;
-	long last_width = 0;
-	long last_height = 0;
-	long width = 0;
-	long height = 0;
-	void* video_buf = nullptr;
 
-	RECT control_rect{};
-	BITMAPINFO bmp_info{};
+	VideoBuffer internal_buffer{};
+	VideoBuffer external_buffer{};
 
 	LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
@@ -25,11 +29,27 @@ namespace MGECompositor
 		{
 		case WM_PAINT:
 			{
+				auto vbuf = (VideoBuffer*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+				if (!vbuf) {
+					break;
+				}
 				PAINTSTRUCT ps;
 				HDC hdc = BeginPaint(hwnd, &ps);
-
-				StretchDIBits(hdc, control_rect.top, control_rect.left, control_rect.right, control_rect.bottom, 0, 0, width, height, video_buf,
-				              &bmp_info, DIB_RGB_COLORS, SRCCOPY);
+				
+				RECT rect{};
+				GetClientRect(hwnd, &rect);
+				StretchDIBits(hdc,
+				              rect.top,
+				              rect.left,
+				              rect.right,
+				              rect.bottom,
+				              0, 0,
+							  vbuf->bmp_info.bmiHeader.biWidth,
+							  vbuf->bmp_info.bmiHeader.biHeight,
+							  vbuf->buffer,
+				              &(vbuf->bmp_info),
+				              DIB_RGB_COLORS,
+				              SRCCOPY);
 
 				EndPaint(hwnd, &ps);
 				return 0;
@@ -53,6 +73,12 @@ namespace MGECompositor
 		wndclass.lpszClassName = class_name;
 		RegisterClass(&wndclass);
 
+		internal_buffer.bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		internal_buffer.bmp_info.bmiHeader.biPlanes = 1;
+		internal_buffer.bmp_info.bmiHeader.biBitCount = 24;
+		internal_buffer.bmp_info.bmiHeader.biCompression = BI_RGB;
+		external_buffer.bmp_info = internal_buffer.bmp_info;
+
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, [](std::any data)
 		{
 			auto value = std::any_cast<bool>(data);
@@ -67,36 +93,48 @@ namespace MGECompositor
 
 	void update_screen()
 	{
-		get_video_size(&width, &height);
+		get_video_size(&internal_buffer.width, &internal_buffer.height);
 
-		if (width != last_width || height != last_height)
+		if (internal_buffer.width != internal_buffer.last_width || internal_buffer.height != internal_buffer.last_height)
 		{
-			printf("MGE Compositor: Video size %dx%d\n", width, height);
-			free(video_buf);
-			video_buf = malloc(width * height * 3);
+			SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&internal_buffer);
+			printf("MGE Compositor: Video size %dx%d\n", internal_buffer.width, internal_buffer.height);
 
-			bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-			bmp_info.bmiHeader.biWidth = width;
-			bmp_info.bmiHeader.biHeight = height;
-			bmp_info.bmiHeader.biPlanes = 1;
-			bmp_info.bmiHeader.biBitCount = 24;
-			bmp_info.bmiHeader.biCompression = BI_RGB;
-			MoveWindow(control_hwnd, 0, 0, width, height, true);
-			GetClientRect(control_hwnd, &control_rect);
+			free(internal_buffer.buffer);
+			internal_buffer.buffer = malloc(internal_buffer.width * internal_buffer.height * 3);
+			internal_buffer.bmp_info.bmiHeader.biWidth = internal_buffer.width;
+			internal_buffer.bmp_info.bmiHeader.biHeight = internal_buffer.height;
+			MoveWindow(control_hwnd, 0, 0, internal_buffer.width, internal_buffer.height, true);
 		}
 
-		read_video(&video_buf);
+		read_video(&internal_buffer.buffer);
 
-		last_width = width;
-		last_height = height;
+		internal_buffer.last_width = internal_buffer.width;
+		internal_buffer.last_height = internal_buffer.height;
 
-		InvalidateRect(control_hwnd, &control_rect, false);
+		RedrawWindow(control_hwnd, NULL, NULL, RDW_INVALIDATE);
 	}
 
 	void read_screen(void** dest, long* width, long* height)
 	{
-		*dest = video_buf;
-		*width = MGECompositor::width;
-		*height = MGECompositor::height;
+		*dest = internal_buffer.buffer;
+		*width = internal_buffer.width;
+		*height = internal_buffer.height;
+	}
+
+	void load_screen(void* data, long width, long height)
+	{
+		SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&external_buffer);
+
+		external_buffer.bmp_info.bmiHeader.biWidth = external_buffer.width = width;
+		external_buffer.bmp_info.bmiHeader.biHeight = external_buffer.height = height;
+
+		free(external_buffer.buffer);
+		external_buffer.buffer = malloc(external_buffer.width * external_buffer.height * 3);
+		memcpy(external_buffer.buffer, data, external_buffer.width * external_buffer.height * 3);
+
+		MoveWindow(control_hwnd, 0, 0, width, height, true);
+		RedrawWindow(control_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
+		SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&internal_buffer);
 	}
 }
