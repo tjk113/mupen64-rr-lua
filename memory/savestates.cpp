@@ -44,6 +44,7 @@
 #include "../r4300/r4300.h"
 #include "../r4300/rom.h"
 #include "../r4300/vcr.h"
+#include "win/features/MGECompositor.h"
 
 std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;
@@ -72,6 +73,8 @@ constexpr int buflen = 1024;
 constexpr int first_block_size = 0xA02BB4 - 32; //32 is md5 hash
 uint8_t first_block[first_block_size] = {0};
 
+// Demarcator for new screenshot section
+char screen_section[] = "SCR";
 
 std::filesystem::path get_saves_directory()
 {
@@ -209,6 +212,20 @@ std::vector<uint8_t> generate_savestate()
 		vecwrite(b, &movie_freeze.length_samples, sizeof(movie_freeze.length_samples));
 		vecwrite(b, movie_freeze.input_buffer.data(), movie_freeze.input_buffer.size());
 	}
+
+	if (MGECompositor::available() && Config.st_screenshot)
+	{
+		void* video;
+		long width;
+		long height;
+		MGECompositor::read_screen(&video, &width, &height);
+
+		vecwrite(b, screen_section, sizeof(screen_section));
+		vecwrite(b, &width, sizeof(width));
+		vecwrite(b, &height, sizeof(height));
+		vecwrite(b, video, width * height * 3);
+	}
+
 	return b;
 }
 
@@ -218,7 +235,8 @@ void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& 
 
 	if (st_medium == e_st_medium::slot)
 	{
-		st_path = std::format("{}{} {}.st{}", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(st_slot));
+		st_path = std::format("{}{} {}.st{}", get_saves_directory().string(), (const char*)ROM_HEADER.nom,
+		                      country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(st_slot));
 	}
 }
 
@@ -529,10 +547,42 @@ void savestates_load_immediate()
 
 		// at this point we know the savestate is safe to be loaded (done after else block)
 	}
+	{
+		printf("[Savestates] %d bytes remaining\n", decompressed_buf.size() - (ptr - decompressed_buf.data()));
+		long video_width = 0;
+		long video_height = 0;
+		void* video_buffer = nullptr;
+		if (decompressed_buf.size() - (ptr - decompressed_buf.data()) > 0)
+		{
+			char scr_section[sizeof(screen_section)] = {0};
+			memread(&ptr, scr_section, sizeof(screen_section));
 
-	// so far loading success! overwrite memory
-	load_eventqueue_infos(buf);
-	load_memory_from_buffer(first_block);
+			if (!memcmp(scr_section, screen_section, sizeof(screen_section)))
+			{
+				printf("[Savestates] Restoring screen buffer...\n");
+				memread(&ptr, &video_width, sizeof(video_width));
+				memread(&ptr, &video_height, sizeof(video_height));
+
+				video_buffer = malloc(video_width * video_height * 3);
+				memread(&ptr, video_buffer, video_width * video_height * 3);
+			}
+		}
+
+		// so far loading success! overwrite memory
+		load_eventqueue_infos(buf);
+		load_memory_from_buffer(first_block);
+
+		if (MGECompositor::available() && video_buffer)
+		{
+			long current_width, current_height;
+			MGECompositor::read_screen(nullptr, &current_width, &current_height);
+			if (current_width == video_width && current_height == video_height)
+			{
+				MGECompositor::load_screen(video_buffer, video_width, video_height);
+				free(video_buffer);
+			}
+		}
+	}
 	LuaCallbacks::call_load_state();
 	if (st_medium == e_st_medium::path)
 	{

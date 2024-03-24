@@ -16,6 +16,7 @@ namespace MGECompositor
 		void* buffer = nullptr;
 		BITMAPINFO bmp_info{};
 	};
+
 	const auto class_name = "game_control";
 
 	HWND control_hwnd;
@@ -30,12 +31,13 @@ namespace MGECompositor
 		case WM_PAINT:
 			{
 				auto vbuf = (VideoBuffer*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-				if (!vbuf) {
+				if (!vbuf)
+				{
 					break;
 				}
 				PAINTSTRUCT ps;
 				HDC hdc = BeginPaint(hwnd, &ps);
-				
+
 				RECT rect{};
 				GetClientRect(hwnd, &rect);
 				StretchDIBits(hdc,
@@ -44,9 +46,9 @@ namespace MGECompositor
 				              rect.right,
 				              rect.bottom,
 				              0, 0,
-							  vbuf->bmp_info.bmiHeader.biWidth,
-							  vbuf->bmp_info.bmiHeader.biHeight,
-							  vbuf->buffer,
+				              vbuf->bmp_info.bmiHeader.biWidth,
+				              vbuf->bmp_info.bmiHeader.biHeight,
+				              vbuf->buffer,
 				              &(vbuf->bmp_info),
 				              DIB_RGB_COLORS,
 				              SRCCOPY);
@@ -117,9 +119,18 @@ namespace MGECompositor
 
 	void read_screen(void** dest, long* width, long* height)
 	{
-		*dest = internal_buffer.buffer;
-		*width = internal_buffer.width;
-		*height = internal_buffer.height;
+		if (dest)
+		{
+			*dest = internal_buffer.buffer;
+		}
+		if (width)
+		{
+			*width = internal_buffer.width;
+		}
+		if (height)
+		{
+			*height = internal_buffer.height;
+		}
 	}
 
 	void load_screen(void* data, long width, long height)
