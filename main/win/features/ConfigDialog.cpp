@@ -13,33 +13,24 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-/*
-#if !defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0500)
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500
-#endif
-*/
 
 #include <shlobj.h>
 #include <cstdio>
 #include <vector>
-
-#include "../lua/LuaConsole.h"
-#include "main_win.h"
-#include "../../winproject/resource.h"
-#include "../../r4300/Plugin.hpp"
-#include "features/RomBrowser.hpp"
-#include "timers.h"
+#include <cassert>
+#include <lua/LuaConsole.h>
+#include <win/main_win.h>
+#include <winproject/resource.h>
+#include <r4300/Plugin.hpp>
+#include <win/features/RomBrowser.hpp>
+#include <win/timers.h>
 #include <shared/Config.hpp>
-#include "wrapper/PersistentPathDialog.h"
+#include <win/wrapper/PersistentPathDialog.h>
 #include <helpers/string_helpers.h>
 #include <helpers/win_helpers.h>
-#include "../r4300/r4300.h"
-#include "../r4300/vcr.h"
+#include <r4300/r4300.h>
 #include "configdialog.h"
-#include <cassert>
-
-#include "capture/EncodingManager.h"
+#include <main/capture/EncodingManager.h>
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
 

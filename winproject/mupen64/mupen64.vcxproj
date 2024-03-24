@@ -153,6 +153,7 @@
         <ClInclude Include="..\..\main\capture\EncodingManager.h"/>
         <ClInclude Include="..\..\main\capture\Resampler.h"/>
         <ClInclude Include="..\..\main\debughook.h"/>
+        <ClInclude Include="..\..\main\win\features\ConfigDialog.h" />
         <ClInclude Include="..\..\main\win\features\CrashHelper.h"/>
         <ClInclude Include="..\..\main\win\features\CoreDbg.h"/>
         <ClInclude Include="..\..\main\win\features\Dispatcher.h"/>
@@ -163,7 +164,6 @@
         <ClInclude Include="..\..\main\win\features\Seeker.h"/>
         <ClInclude Include="..\..\main\win\features\Statusbar.hpp"/>
         <ClInclude Include="..\..\main\win\Commandline.h"/>
-        <ClInclude Include="..\..\main\win\configdialog.h"/>
         <ClInclude Include="..\..\main\win\main_win.h"/>
         <ClInclude Include="..\..\main\win\timers.h"/>
         <ClInclude Include="..\..\main\win\wrapper\PersistentPathDialog.h"/>
@@ -218,6 +218,7 @@
         <ClCompile Include="..\..\main\capture\EncodingManager.cpp"/>
         <ClCompile Include="..\..\main\capture\Resampler.cpp"/>
         <ClCompile Include="..\..\main\debughook.cpp"/>
+        <ClCompile Include="..\..\main\win\features\ConfigDialog.cpp" />
         <ClCompile Include="..\..\main\win\features\CrashHelper.cpp"/>
         <ClCompile Include="..\..\main\win\features\CoreDbg.cpp"/>
         <ClCompile Include="..\..\main\win\features\Dispatcher.cpp"/>
@@ -228,10 +229,6 @@
         <ClCompile Include="..\..\main\win\features\Seeker.cpp"/>
         <ClCompile Include="..\..\main\win\features\Statusbar.cpp"/>
         <ClCompile Include="..\..\main\win\Commandline.cpp">
-            <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-            <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-        </ClCompile>
-        <ClCompile Include="..\..\main\win\configdialog.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>

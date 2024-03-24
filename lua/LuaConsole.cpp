@@ -22,7 +22,6 @@
 #include "../r4300/Plugin.hpp"
 #include "../r4300/vcr.h"
 #include "../memory/savestates.h"
-#include "../main/win/configdialog.h"
 #include <helpers/win_helpers.h>
 #include "../main/win/wrapper/PersistentPathDialog.h"
 #include "../lib/md5.h"

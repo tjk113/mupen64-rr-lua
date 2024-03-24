@@ -30,7 +30,7 @@
 
 #include "Commandline.h"
 #include <shared/Config.hpp>
-#include "configdialog.h"
+#include <win/features/ConfigDialog.h>
 #include <shared/LuaCallbacks.h>
 #include "features/CrashHelper.h"
 #include "LuaConsole.h"
