@@ -119,6 +119,11 @@ typedef struct _CONFIG
 	int32_t fastforward_silent = 0;
 
 	/// <summary>
+	/// Saves video buffer to savestates, slow!
+	/// </summary>
+	int32_t st_screenshot;
+
+	/// <summary>
 	/// Whether a playing movie will loop upon ending
 	/// </summary>
 	int32_t is_movie_loop_enabled;
