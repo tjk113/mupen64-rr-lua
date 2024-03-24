@@ -41,7 +41,7 @@
 #include <shared/messenger.h>
 #include "../memory/savestates.h"
 #include <helpers/string_helpers.h>
-#include "win/timers.h"
+#include <r4300/timers.h>
 #include "win/features/RomBrowser.hpp"
 #include <shared/Config.hpp>
 

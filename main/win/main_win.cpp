@@ -35,7 +35,7 @@
 #include "features/CrashHelper.h"
 #include "LuaConsole.h"
 #include <shared/messenger.h>
-#include "timers.h"
+#include <r4300/timers.h>
 #include <guifuncs.h>
 #include "../../r4300/Plugin.hpp"
 #include "../../r4300/rom.h"

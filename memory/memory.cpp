@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <shared/Config.hpp>
-#include "../main/win/timers.h"
+#include <r4300/timers.h>
 
 #include "memory.h"
 #include "dma.h"

@@ -51,7 +51,7 @@
 #include "modules/movie.h"
 #include "modules/savestate.h"
 #include "modules/wgui.h"
-#include "win/timers.h"
+#include <r4300/timers.h>
 
 extern unsigned long op;
 extern void (*interp_ops[64])(void);

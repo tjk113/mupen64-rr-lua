@@ -23,7 +23,7 @@
 #include <winproject/resource.h>
 #include <r4300/Plugin.hpp>
 #include <win/features/RomBrowser.hpp>
-#include <win/timers.h>
+#include <r4300/timers.h>
 #include <shared/Config.hpp>
 #include <win/wrapper/PersistentPathDialog.h>
 #include <helpers/string_helpers.h>

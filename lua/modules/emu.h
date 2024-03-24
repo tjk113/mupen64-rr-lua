@@ -4,7 +4,7 @@
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
 #include "../../memory/pif.h"
-#include "win/timers.h"
+#include <r4300/timers.h>
 #include "win/features/Statusbar.hpp"
 
 extern int m_current_vi;
