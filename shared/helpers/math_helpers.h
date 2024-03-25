@@ -46,30 +46,13 @@ static float get_rate_per_second_from_times(std::deque<std::chrono::high_resolut
 }
 
 /**
- * \brief Formats a duration into a string
+ * \brief Formats a duration into a string of format HH:MM:SS
  * \param seconds The duration in seconds
  * \return The formatted duration
  */
 static std::string format_duration(size_t seconds)
 {
-	char tempbuf[260]{};
-	double minutes = seconds / 60.0;
-	if ((bool)seconds)
-		seconds = fmod(seconds, 60.0);
-	double hours = minutes / 60.0;
-	if ((bool)minutes)
-		minutes = fmod(minutes, 60.0);
-
-	if (hours >= 1.0)
-		sprintf(tempbuf, "%d hours and %.1f minutes", (unsigned int)hours,
-		        (float)minutes);
-	else if (minutes >= 1.0)
-		sprintf(tempbuf, "%d minutes and %.0f seconds",
-		        (unsigned int)minutes,
-		        (float)seconds);
-	else if (seconds > 0)
-		sprintf(tempbuf, "%.1f seconds", (float)seconds);
-	else
-		strcpy(tempbuf, "0 seconds");
-	return std::string(tempbuf);
+	char str[260] = {0};
+	sprintf_s(str, "%02u:%02u:%02u", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+	return str;
 }

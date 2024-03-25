@@ -268,8 +268,7 @@ namespace MovieDialog
 			                                     "{} ({} input)",
 			                                     header.length_vis,
 			                                     header.length_samples)));
-		metadata.emplace_back(std::make_pair("Duration", format_duration((double)header.length_vis / (double)header.
-			                                     vis_per_second)));
+		metadata.emplace_back(std::make_pair("Duration", format_duration((double)header.length_vis / (double)header.vis_per_second)));
 		metadata.emplace_back(
 			std::make_pair("Rerecords", std::to_string(header.rerecord_count)));
 
