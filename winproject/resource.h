@@ -84,6 +84,8 @@
 #define IDC_USESUMMERCART               1021
 #define IDC_CAPTUREOTHER                1022
 #define IDC_LIST_MOVIES                 1022
+#define IDC_USESUMMERCART2              1022
+#define IDC_SAVE_VIDEO_TO_ST            1022
 #define IDC_LIST3                       1024
 #define IDC_LIST_SCRIPTS                1024
 #define IDC_CAPTUREDELAY                1026

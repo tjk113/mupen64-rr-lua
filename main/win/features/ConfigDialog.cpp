@@ -524,6 +524,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			set_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT, Config.increment_slot);
 			set_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX, Config.vcr_0_index);
 			set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
+			set_checkbox_state(hwnd, IDC_SAVE_VIDEO_TO_ST, Config.st_screenshot);
 			set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
 			set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
 			set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
@@ -589,6 +590,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			Config.vcr_0_index = get_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX);
 			Config.is_unfocused_pause_enabled = get_checkbox_state(hwnd, IDC_PAUSENOTACTIVE);
 			Config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
+			Config.st_screenshot = get_checkbox_state(hwnd, IDC_SAVE_VIDEO_TO_ST);
 			Config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
 			Config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
 			Config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);
