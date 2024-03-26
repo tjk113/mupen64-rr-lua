@@ -127,6 +127,7 @@ static const int MemoryMaxCount = 0xFFFF;
 
 int init_memory()
 {
+	g_total_frames = 0;
 	lag_count = 0;
 
 	int i;
@@ -1228,7 +1229,7 @@ void update_SP()
 
 			// NOTE: we increment this here, and not in vcr_updatescreen, since invocation of vcr_updatescreen depends on vi interrupts, which dont get generated if we skip rsp
 			// if that happens, then we never increment screen_updates and thus are stuck in incorrect state
-			screen_updates++;
+			g_total_frames++;
 			if (!is_frame_skipped())
 				doRspCycles(100);
 

@@ -48,6 +48,7 @@ extern volatile bool emu_launched;
 extern volatile bool emu_paused;
 extern volatile bool emu_resetting;
 extern volatile bool core_executing;
+extern size_t g_total_frames;
 extern int stop, llbit;
 extern long long int reg[32], hi, lo;
 extern long long int local_rs, local_rt;

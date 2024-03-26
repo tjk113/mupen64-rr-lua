@@ -73,6 +73,8 @@ volatile bool emu_launched = false;
 volatile bool emu_paused = false;
 volatile bool core_executing = false;
 volatile bool emu_resetting = false;
+size_t g_total_frames = 0;
+
 unsigned long i, dynacore = 0, interpcore = 0;
 int stop, llbit;
 long long int reg[32], hi, lo;

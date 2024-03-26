@@ -61,7 +61,6 @@ static char* m_input_buffer_ptr = nullptr;
 
 int title_length;
 
-uint64_t screen_updates = 0;
 
 // Used for tracking VCR-invoked resets
 bool just_reset;
@@ -1280,5 +1279,5 @@ bool is_frame_skipped()
 		return false;
 	}
 
-	return screen_updates % Config.frame_skip_frequency != 0;
+	return g_total_frames % Config.frame_skip_frequency != 0;
 }

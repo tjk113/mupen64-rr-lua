@@ -366,5 +366,4 @@ namespace VCR
 }
 
 bool is_frame_skipped();
-extern uint64_t screen_updates;
 extern std::filesystem::path movie_path;
