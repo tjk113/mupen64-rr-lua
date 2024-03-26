@@ -2100,12 +2100,17 @@ Core::Result vr_start_rom(std::filesystem::path path)
 		rsp_plugin = std::move(rsp_pl.value());
 	}
 
-	// valid rom is required to start emulation
-	if (!rom_load(path.string().c_str()))
+	if (emu_resetting)
 	{
-		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
-		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-		return Core::Result::RomInvalid;
+		rom_restore();
+	} else
+	{
+		if (!rom_load(path.string().c_str()))
+		{
+			Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
+			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
+			return Core::Result::RomInvalid;
+		}
 	}
 
 	timer_init(Config.fps_modifier, &ROM_HEADER);

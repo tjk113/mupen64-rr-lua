@@ -43,6 +43,8 @@
 #include <helpers/string_helpers.h>
 
 uint8_t* rom;
+// Unmodified rom kept in here for restoring the externally mutable rom between restarts
+uint8_t* original_rom;
 size_t rom_size;
 char rom_md5[33];
 
@@ -155,13 +157,24 @@ void rom_byteswap(uint8_t* rom)
 	}
 }
 
+void rom_restore()
+{
+	if (!rom || !original_rom)
+	{
+		return;
+	}
+	memcpy(rom, original_rom, rom_size);
+}
+
 
 bool rom_load(std::filesystem::path path)
 {
 	if (rom)
 	{
 		free(rom);
+		free(original_rom);
 		rom = nullptr;
+		original_rom = nullptr;
 	}
 
 	auto rom_buf = read_file_buffer(path);
@@ -177,7 +190,9 @@ bool rom_load(std::filesystem::path path)
 	if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
 
 	rom = (unsigned char*)malloc(taille);
+	original_rom = (unsigned char*)malloc(taille);
 	memcpy(rom, decompressed_rom.data(), rom_size);
+	memcpy(original_rom, decompressed_rom.data(), rom_size);
 
 	uint8_t tmp;
 	if (rom[0] == 0x37)
@@ -208,10 +223,9 @@ bool rom_load(std::filesystem::path path)
 	)
 	{
 		printf("wrong file format !\n");
-		free(rom);
-		rom = nullptr;
 		return false;
 	}
+
 	printf("rom loaded succesfully\n");
 
 	memcpy(&ROM_HEADER, rom, sizeof(t_rom_header));

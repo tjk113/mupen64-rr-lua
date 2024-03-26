@@ -80,3 +80,8 @@ uint32_t get_vis_per_second(uint16_t country_code);
  * \param rom The rom buffer
  */
 void rom_byteswap(uint8_t* rom);
+
+/**
+ * \brief Restores the rom array to the previous rom buffer
+ */
+void rom_restore();
