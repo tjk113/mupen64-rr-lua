@@ -43,9 +43,6 @@
 #include "guifuncs.h"
 #include "win/features/Statusbar.hpp"
 
-extern HWND mainHWND;
-extern HINSTANCE app_instance;
-
 CONTROL Controls[4];
 
 GFX_INFO dummy_gfx_info;
@@ -137,6 +134,15 @@ static void __cdecl dummy_fBGetFrameBufferInfo(void* p)
 {
 };
 
+static void __cdecl dummy_readScreen(void**, long*, long*)
+{
+}
+
+
+static void __cdecl dummy_moveScreen(int, int)
+{
+}
+
 GETDLLINFO getDllInfo;
 DLLCONFIG dllConfig;
 DLLTEST dllTest;
@@ -224,54 +230,35 @@ auto get_dll_crt_free(HMODULE handle)
 	return free;
 }
 
+#define FUNC(target, type, fallback, name) target = (type)GetProcAddress(handle, name); if(!target) target = fallback
+
 void load_gfx(HMODULE handle)
 {
-	changeWindow = (CHANGEWINDOW)GetProcAddress(handle, "ChangeWindow");
-	closeDLL_gfx = (CLOSEDLL_GFX)GetProcAddress(handle, "CloseDLL");
-	dllAbout = (DLLABOUT)GetProcAddress(handle, "DllAbout");
-	dllConfig = (DLLCONFIG)GetProcAddress(handle, "DllConfig");
-	dllTest = (DLLTEST)GetProcAddress(handle, "DllTest");
-	initiateGFX = (INITIATEGFX)GetProcAddress(handle, "InitiateGFX");
-	processDList = (PROCESSDLIST)GetProcAddress(handle, "ProcessDList");
-	processRDPList = (PROCESSRDPLIST)GetProcAddress(handle, "ProcessRDPList");
-	romClosed_gfx = (ROMCLOSED_GFX)GetProcAddress(handle, "RomClosed");
-	romOpen_gfx = (ROMOPEN_GFX)GetProcAddress(handle, "RomOpen");
-	showCFB = (SHOWCFB)GetProcAddress(handle, "ShowCFB");
-	updateScreen = (UPDATESCREEN)GetProcAddress(handle, "UpdateScreen");
-	viStatusChanged = (VISTATUSCHANGED)GetProcAddress(handle, "ViStatusChanged");
-	viWidthChanged = (VIWIDTHCHANGED)GetProcAddress(handle, "ViWidthChanged");
-	moveScreen = (MOVESCREEN)GetProcAddress(handle, "MoveScreen");
-	CaptureScreen = (CAPTURESCREEN)GetProcAddress(handle, "CaptureScreen");
-	readScreen = (READSCREEN)GetProcAddress(handle, "ReadScreen");
-
-	if (readScreen == nullptr)
-	{
-		// we dont have the primary ReadScreen, so plugin is probably gln which only exports ReadScreen2
-		readScreen = (READSCREEN)GetProcAddress(handle, "ReadScreen2");
-	}
+	FUNC(changeWindow, CHANGEWINDOW, dummy_void, "ChangeWindow");
+	FUNC(closeDLL_gfx, CLOSEDLL_GFX, dummy_void, "CloseDLL");
+	FUNC(dllAbout, DLLABOUT, nullptr, "DllAbout");
+	FUNC(dllConfig, DLLCONFIG, nullptr, "DllConfig");
+	FUNC(dllTest, DLLTEST, nullptr, "DllTest");
+	FUNC(initiateGFX, INITIATEGFX, dummy_initiateGFX, "InitiateGFX");
+	FUNC(processDList, PROCESSDLIST, dummy_void, "ProcessDList");
+	FUNC(processRDPList, PROCESSRDPLIST, dummy_void, "ProcessRDPList");
+	FUNC(romClosed_gfx, ROMCLOSED_GFX, dummy_void, "RomClosed");
+	FUNC(romOpen_gfx, ROMOPEN_GFX, dummy_void, "RomOpen");
+	FUNC(showCFB, SHOWCFB, dummy_void, "ShowCFB");
+	FUNC(updateScreen, UPDATESCREEN, dummy_void, "UpdateScreen");
+	FUNC(viStatusChanged, VISTATUSCHANGED, dummy_void, "ViStatusChanged");
+	FUNC(viWidthChanged, VIWIDTHCHANGED, dummy_void, "ViWidthChanged");
+	FUNC(moveScreen, MOVESCREEN, dummy_moveScreen, "MoveScreen");
+	FUNC(CaptureScreen, CAPTURESCREEN, nullptr, "CaptureScreen");
+	FUNC(readScreen, READSCREEN, (READSCREEN)GetProcAddress(handle, "ReadScreen2"), "ReadScreen");
+	FUNC(get_video_size, GETVIDEOSIZE, nullptr, "mge_get_video_size");
+	FUNC(read_video, READVIDEO, nullptr, "mge_read_video");
+	FUNC(fBRead, FBREAD, dummy_fBRead, "FBRead");
+	FUNC(fBWrite, FBWRITE, dummy_fBWrite, "FBWrite");
+	FUNC(fBGetFrameBufferInfo, FBGETFRAMEBUFFERINFO, dummy_fBGetFrameBufferInfo, "FBGetFrameBufferInfo");
 
 	// ReadScreen returns a plugin-allocated buffer which must be freed by the same CRT
 	DllCrtFree = get_dll_crt_free(handle);
-
-	get_video_size = (GETVIDEOSIZE)GetProcAddress(handle, "mge_get_video_size");
-	read_video = (READVIDEO)GetProcAddress(handle, "mge_read_video");
-	fBRead = (FBREAD)GetProcAddress(handle, "FBRead");
-	fBWrite = (FBWRITE)GetProcAddress(handle, "FBWrite");
-	fBGetFrameBufferInfo = (FBGETFRAMEBUFFERINFO)GetProcAddress(handle, "FBGetFrameBufferInfo");
-
-	if (changeWindow == nullptr) changeWindow = dummy_void;
-	if (closeDLL_gfx == nullptr) closeDLL_gfx = dummy_void;
-	if (initiateGFX == nullptr) initiateGFX = dummy_initiateGFX;
-	if (processDList == nullptr) processDList = dummy_void;
-	if (processRDPList == nullptr) processRDPList = dummy_void;
-	if (romClosed_gfx == nullptr) romClosed_gfx = dummy_void;
-	if (romOpen_gfx == nullptr) romOpen_gfx = dummy_void;
-	if (showCFB == nullptr) showCFB = dummy_void;
-	if (updateScreen == nullptr) updateScreen = dummy_void;
-	if (viStatusChanged == nullptr) viStatusChanged = dummy_void;
-	if (viWidthChanged == nullptr) viWidthChanged = dummy_void;
-	if (CaptureScreen == nullptr) CaptureScreen = (CAPTURESCREEN)dummy_void;
-	if (moveScreen == nullptr) moveScreen = (MOVESCREEN)dummy_void;
 
 	gfx_info.hWnd = mainHWND;
 	gfx_info.hStatusBar = Config.is_statusbar_enabled ? Statusbar::hwnd() : nullptr;
@@ -309,50 +296,33 @@ void load_gfx(HMODULE handle)
 
 void load_input(uint16_t version, HMODULE handle)
 {
-	int i;
-
-	closeDLL_input = (CLOSEDLL_INPUT)GetProcAddress(handle, "CloseDLL");
-	controllerCommand = (CONTROLLERCOMMAND)GetProcAddress(handle, "ControllerCommand");
-	getKeys = (GETKEYS)GetProcAddress(
-		handle, "GetKeys");
-	setKeys = (SETKEYS)GetProcAddress(
-		handle, "SetKeys");
+	FUNC(closeDLL_input, CLOSEDLL_INPUT, dummy_void, "CloseDLL");
+	FUNC(controllerCommand, CONTROLLERCOMMAND, dummy_controllerCommand, "ControllerCommand");
+	FUNC(getKeys, GETKEYS, dummy_getKeys, "GetKeys");
+	FUNC(setKeys, SETKEYS, dummy_setKeys, "SetKeys");
 	if (version == 0x0101)
-		initiateControllers = (INITIATECONTROLLERS)GetProcAddress(handle, "InitiateControllers");
-	else
-		old_initiateControllers = (OLD_INITIATECONTROLLERS)GetProcAddress(handle, "InitiateControllers");
-
-	readController = (READCONTROLLER)GetProcAddress(handle, "ReadController");
-	romClosed_input = (ROMCLOSED_INPUT)GetProcAddress(handle, "RomClosed");
-	romOpen_input = (ROMOPEN_INPUT)GetProcAddress(handle, "RomOpen");
-	keyDown = (KEYDOWN)GetProcAddress(handle, "WM_KeyDown");
-	keyUp = (KEYUP)GetProcAddress(handle, "WM_KeyUp");
-
-	if (closeDLL_input == nullptr) closeDLL_input = dummy_void;
-	if (controllerCommand == nullptr)
-		controllerCommand =
-			dummy_controllerCommand;
-	if (getKeys == nullptr) getKeys = dummy_getKeys;
-	if (setKeys == nullptr) setKeys = dummy_setKeys;
-	if (initiateControllers == nullptr)
-		initiateControllers =
-			dummy_initiateControllers;
-	if (readController == nullptr) readController = dummy_readController;
-	if (romClosed_input == nullptr) romClosed_input = dummy_void;
-	if (romOpen_input == nullptr) romOpen_input = dummy_void;
-	if (keyDown == nullptr) keyDown = dummy_keyDown;
-	if (keyUp == nullptr) keyUp = dummy_keyUp;
+	{
+		FUNC(initiateControllers, INITIATECONTROLLERS, dummy_initiateControllers, "InitiateControllers");
+	} else
+	{
+		FUNC(old_initiateControllers, OLD_INITIATECONTROLLERS, nullptr, "InitiateControllers");
+	}
+	FUNC(readController, READCONTROLLER, dummy_readController, "ReadController");
+	FUNC(romClosed_input, ROMCLOSED_INPUT, dummy_void, "RomClosed");
+	FUNC(romOpen_input, ROMOPEN_INPUT, dummy_void, "RomOpen");
+	FUNC(keyDown, KEYDOWN, dummy_keyDown, "WM_KeyDown");
+	FUNC(keyUp, KEYUP, dummy_keyUp, "WM_KeyUp");
 
 	control_info.hMainWindow = mainHWND;
 	control_info.hinst = app_instance;
 	control_info.MemoryBswaped = TRUE;
 	control_info.HEADER = rom;
 	control_info.Controls = Controls;
-	for (i = 0; i < 4; i++)
+	for (auto& controller : Controls)
 	{
-		Controls[i].Present = FALSE;
-		Controls[i].RawData = FALSE;
-		Controls[i].Plugin = controller_extension::none;
+		controller.Present = FALSE;
+		controller.RawData = FALSE;
+		controller.Plugin = controller_extension::none;
 	}
 	if (version == 0x0101)
 	{
@@ -366,39 +336,24 @@ void load_input(uint16_t version, HMODULE handle)
 
 void load_audio(HMODULE handle)
 {
-	closeDLL_audio = (CLOSEDLL_AUDIO)GetProcAddress(handle, "CloseDLL");
-	aiDacrateChanged = (AIDACRATECHANGED)GetProcAddress(handle, "AiDacrateChanged");
-	aiLenChanged = (AILENCHANGED)GetProcAddress(handle, "AiLenChanged");
-	aiReadLength = (AIREADLENGTH)GetProcAddress(handle, "AiReadLength");
-	initiateAudio = (INITIATEAUDIO)GetProcAddress(handle, "InitiateAudio");
-	romClosed_audio = (ROMCLOSED_AUDIO)GetProcAddress(handle, "RomClosed");
-	romOpen_audio = (ROMOPEN_AUDIO)GetProcAddress(handle, "RomOpen");
-	processAList = (PROCESSALIST)GetProcAddress(handle, "ProcessAList");
-	aiUpdate = (AIUPDATE)GetProcAddress(handle, "AiUpdate");
-
-	if (aiDacrateChanged == nullptr)
-		aiDacrateChanged =
-			dummy_aiDacrateChanged;
-	if (aiLenChanged == nullptr) aiLenChanged = dummy_void;
-	if (aiReadLength == nullptr) aiReadLength = dummy_aiReadLength;
-	if (aiUpdate == nullptr) aiUpdate = dummy_aiUpdate;
-	if (closeDLL_audio == nullptr) closeDLL_audio = dummy_void;
-	if (initiateAudio == nullptr) initiateAudio = dummy_initiateAudio;
-	if (processAList == nullptr) processAList = dummy_void;
-	if (romClosed_audio == nullptr) romClosed_audio = dummy_void;
-	if (romOpen_audio == nullptr) romOpen_audio = dummy_void;
+	FUNC(closeDLL_audio, CLOSEDLL_AUDIO, dummy_void, "CloseDLL");
+	FUNC(aiDacrateChanged, AIDACRATECHANGED, dummy_aiDacrateChanged, "AiDacrateChanged");
+	FUNC(aiLenChanged, AILENCHANGED, dummy_void, "AiLenChanged");
+	FUNC(aiReadLength, AIREADLENGTH, dummy_aiReadLength, "AiReadLength");
+	FUNC(initiateAudio, INITIATEAUDIO, dummy_initiateAudio, "InitiateAudio");
+	FUNC(romClosed_audio, ROMCLOSED_AUDIO, dummy_void, "RomClosed");
+	FUNC(romOpen_audio, ROMOPEN_AUDIO, dummy_void, "RomOpen");
+	FUNC(processAList, PROCESSALIST, dummy_void, "ProcessAList");
+	FUNC(aiUpdate, AIUPDATE, dummy_aiUpdate, "AiUpdate");
 
 	audio_info.hwnd = mainHWND;
 	audio_info.hinst = app_instance;
 	audio_info.MemoryBswaped = TRUE;
 	audio_info.HEADER = rom;
-
 	audio_info.RDRAM = (BYTE*)rdram;
 	audio_info.DMEM = (BYTE*)SP_DMEM;
 	audio_info.IMEM = (BYTE*)SP_IMEM;
-
 	audio_info.MI_INTR_REG = &dummy; //&(MI_register.mi_intr_reg);
-
 	audio_info.AI_DRAM_ADDR_REG = &(ai_register.ai_dram_addr);
 	audio_info.AI_LEN_REG = &(ai_register.ai_len);
 	audio_info.AI_CONTROL_REG = &(ai_register.ai_control);
@@ -412,17 +367,10 @@ void load_audio(HMODULE handle)
 
 void load_rsp(HMODULE handle)
 {
-	int i = 4;
-
-	closeDLL_RSP = (CLOSEDLL_RSP)GetProcAddress(handle, "CloseDLL");
-	doRspCycles = (DORSPCYCLES)GetProcAddress(handle, "DoRspCycles");
-	initiateRSP = (INITIATERSP)GetProcAddress(handle, "InitiateRSP");
-	romClosed_RSP = (ROMCLOSED_RSP)GetProcAddress(handle, "RomClosed");
-
-	if (closeDLL_RSP == nullptr) closeDLL_RSP = dummy_void;
-	if (doRspCycles == nullptr) doRspCycles = dummy_doRspCycles;
-	if (initiateRSP == nullptr) initiateRSP = dummy_initiateRSP;
-	if (romClosed_RSP == nullptr) romClosed_RSP = dummy_void;
+	FUNC(closeDLL_RSP, CLOSEDLL_RSP, dummy_void, "CloseDLL");
+	FUNC(doRspCycles, DORSPCYCLES, dummy_doRspCycles, "DoRspCycles");
+	FUNC(initiateRSP, INITIATERSP, dummy_initiateRSP, "InitiateRSP");
+	FUNC(romClosed_RSP, ROMCLOSED_RSP, dummy_void, "RomClosed");
 
 	rsp_info.MemoryBswaped = TRUE;
 	rsp_info.RDRAM = (BYTE*)rdram;
@@ -451,6 +399,8 @@ void load_rsp(HMODULE handle)
 	rsp_info.ProcessAlistList = processAList;
 	rsp_info.ProcessRdpList = processRDPList;
 	rsp_info.ShowCFB = showCFB;
+
+	int i = 4;
 	initiateRSP(rsp_info, (DWORD*)&i);
 }
 
