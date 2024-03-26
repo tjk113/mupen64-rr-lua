@@ -522,18 +522,8 @@ void update_pif_read(bool stcheck)
 					)
 					{
 						readController(channel, &PIF_RAMb[i]);
-						last_controller_data[channel] = *(BUTTONS*)&PIF_RAMb[i + 3];
-						LuaCallbacks::call_input(channel);
-						if (0 <= channel && channel < 4)
-						{
-							if (overwrite_controller_data[channel])
-							{
-								*(BUTTONS*)&PIF_RAMb[i + 3] =
-									last_controller_data[channel] =
-									last_controller_data[channel];
-								overwrite_controller_data[channel] = false;
-							}
-						}
+						auto ptr = (BUTTONS*)&PIF_RAMb[i + 3];
+						LuaCallbacks::call_input(ptr, channel);
 					} else
 						internal_ReadController(channel, &PIF_RAMb[i]);
 				}
