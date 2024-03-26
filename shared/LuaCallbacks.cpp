@@ -50,6 +50,11 @@ namespace LuaCallbacks
 	}
 
 #pragma region Call Implementations
+	BUTTONS get_last_controller_data(int index)
+	{
+		return last_controller_data[index];
+	}
+
 	void call_window_message(void* wnd, unsigned int msg, unsigned int w, long l)
 	{
 		RET_IF_EMPTY;
@@ -74,16 +79,28 @@ namespace LuaCallbacks
 		});
 	}
 
-	void call_input(int n)
+	void call_input(BUTTONS* input, int index)
 	{
 		RET_IF_EMPTY;
-		Dispatcher::invoke([n]
+
+		// NOTE: Special callback, we store the input data for all scripts to access via joypad.get(n)
+		// If they request a change via joypad.set(n, input), we change the input
+		last_controller_data[index] = *input;
+
+		Dispatcher::invoke([=]
 		{
-			current_input_n = n;
+			current_input_n = index;
 			invoke_callbacks_with_key_on_all_instances(
 				AtInput, REG_ATINPUT);
 			inputCount++;
 		});
+
+		if (overwrite_controller_data[index])
+		{
+			*input = new_controller_data[index];
+			last_controller_data[index] = *input;
+			overwrite_controller_data[index] = false;
+		}
 	}
 
 	void call_interval()

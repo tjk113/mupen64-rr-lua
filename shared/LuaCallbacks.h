@@ -4,8 +4,15 @@
 
 #include <lua/include/lua.hpp>
 
+#include "r4300/Plugin.hpp"
+
 namespace LuaCallbacks
 {
+	/**
+	 * \brief Gets the last controller data for a controller index
+	 */
+	BUTTONS get_last_controller_data(int index);
+
 	/**
 	 * \brief Notifies all lua instances of a window message
 	 */
@@ -18,9 +25,10 @@ namespace LuaCallbacks
 
 	/**
 	 * \brief Notifies all lua instances of an input poll
-	 * \param n The polled controller's index
+	 * \param input Pointer to the input data, can be modified by Lua scripts during this function
+	 * \param index The index of the controller being polled
 	 */
-	void call_input(int n);
+	void call_input(BUTTONS* input, int index);
 
 	/**
 	 * \brief Notifies all lua instances of the heartbeat while paused
