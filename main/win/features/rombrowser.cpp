@@ -16,6 +16,7 @@
 #include "../r4300/r4300.h"
 #include <shared/Config.hpp>
 #include <assert.h>
+#include <future>
 #include <mutex>
 #include <thread>
 #include <Uxtheme.h>
@@ -253,9 +254,14 @@ namespace Rombrowser
 		ListView_InsertItem(rombrowser_hwnd, &lv_item);
 	}
 
-	void build()
+	void build_impl()
 	{
-		std::lock_guard lock(rombrowser_mutex);
+		std::unique_lock lock(rombrowser_mutex, std::try_to_lock);
+		if (!lock.owns_lock())
+		{
+			printf("[Rombrowser] build_impl busy!\n");
+			return;
+		}
 
 		auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -316,9 +322,15 @@ namespace Rombrowser
 		}
 		rombrowser_update_sort();
 		SendMessage(rombrowser_hwnd, WM_SETREDRAW, TRUE, 0);
+		Sleep(400);
 		printf("Rombrowser loading took %dms\n",
-		       static_cast<int>((std::chrono::high_resolution_clock::now() -
-			       start_time).count() / 1'000'000));
+			   static_cast<int>((std::chrono::high_resolution_clock::now() -
+				   start_time).count() / 1'000'000));
+	}
+
+	void build()
+	{
+		std::thread(build_impl).detach();
 	}
 
 	void rombrowser_update_size()

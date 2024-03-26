@@ -784,6 +784,6 @@ void configdialog_show()
 	}
 
 	save_config();
-	std::thread([] { Rombrowser::build(); }).detach();
+	Rombrowser::build();
 	update_menu_hotkey_labels();
 }
