@@ -1,7 +1,6 @@
 
 #include "vcr.h"
 #include <cassert>
-#include <win/main_win.h>
 #include <shared/Config.hpp>
 #include <memory>
 #include <filesystem>
@@ -11,16 +10,20 @@
 #include <cstring>
 #include <ctime>
 #include <chrono>
+#include <mutex>
+
 #include "r4300.h"
 #include "Plugin.hpp"
 #include "rom.h"
 #include "../memory/savestates.h"
 #include "../memory/pif.h"
 #include <shared/LuaCallbacks.h>
-#include <LuaConsole.h>
 
 #include "guifuncs.h"
 #include <shared/messenger.h>
+
+// TODO: Use STL for file APIs
+#include <Windows.h>
 
 // M64\0x1a
 enum
@@ -38,7 +41,7 @@ const auto rom_name_warning_message = "The movie was recorded on the rom '{}', b
 const auto rom_country_warning_message = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto rom_crc_warning_message = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
 
-BOOL dont_play = false;
+bool dont_play = false;
 
 enum { buffer_growth_size = 4096 };
 
@@ -60,8 +63,8 @@ std::filesystem::path movie_path;
 // The frame to seek to during playback, or an empty option if no seek is being performed
 std::optional<size_t> seek_to_frame;
 
-static char m_filename[MAX_PATH];
-static char avi_file_name[MAX_PATH];
+static char m_filename[260];
+static char avi_file_name[260];
 static FILE* m_file = nullptr;
 static t_movie_header m_header;
 
@@ -303,33 +306,31 @@ VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header
 bool
 vcr_is_active()
 {
-	return (m_task == e_task::recording || m_task == e_task::playback) ? TRUE : FALSE;
+	return m_task == e_task::recording || m_task == e_task::playback;
 }
 
 bool
 vcr_is_idle()
 {
-	return (m_task == e_task::idle) ? TRUE : FALSE;
+	return m_task == e_task::idle;
 }
 
 bool
 vcr_is_starting()
 {
-	return (m_task == e_task::start_playback || m_task == e_task::start_playback_from_snapshot)
-		       ? TRUE
-		       : FALSE;
+	return m_task == e_task::start_playback || m_task == e_task::start_playback_from_snapshot;
 }
 
 bool
 vcr_is_playing()
 {
-	return (m_task == e_task::playback) ? TRUE : FALSE;
+	return m_task == e_task::playback;
 }
 
 bool
 vcr_is_recording()
 {
-	return (m_task == e_task::recording) ? TRUE : FALSE;
+	return m_task == e_task::recording;
 }
 
 // Returns the filename of the last-played movie
@@ -467,8 +468,6 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 	return Result::Ok;
 }
 
-extern BOOL just_restarted_flag;
-
 void vcr_on_controller_poll(int index, BUTTONS* input)
 {
 	// NOTE: When we call reset_rom from another thread, we only request a reset to happen in the future.
@@ -493,16 +492,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	if (!is_task_playback(m_task))
 	{
 		getKeys(index, input);
-		last_controller_data[index] = *input;
-		LuaCallbacks::call_input(index);
-
-		// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
-		if (overwrite_controller_data[index])
-		{
-			*input = new_controller_data[index];
-			last_controller_data[index] = *input;
-			overwrite_controller_data[index] = false;
-		}
+		LuaCallbacks::call_input(input, index);
 	}
 
 	if (m_task == e_task::idle)
@@ -678,16 +668,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		}).detach();
 	}
 
-	last_controller_data[index] = *input;
-	LuaCallbacks::call_input(index);
-
-	// if lua requested a joypad change, we overwrite the data with lua's changed value for this cycle
-	if (overwrite_controller_data[index])
-	{
-		*input = new_controller_data[index];
-		last_controller_data[index] = *input;
-		overwrite_controller_data[index] = false;
-	}
+	LuaCallbacks::call_input(input, index);
 	m_current_sample++;
 }
 
@@ -705,12 +686,12 @@ vcr_start_record(const char* filename, const unsigned short flags,
 
 	VCR::stop_all();
 
-	char buf[MAX_PATH];
+	char buf[260];
 
 	// m_filename will be overwritten later in the function if
 	// MOVIE_START_FROM_EXISTING_SNAPSHOT is true, but it doesn't
 	// matter enough to make this a conditional thing
-	strncpy(m_filename, filename, MAX_PATH);
+	strncpy(m_filename, filename, sizeof(m_filename));
 
 	// open record file
 	strcpy(buf, m_filename);
@@ -719,7 +700,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 		const char* s1 = strrchr(buf, '\\');
 		if (const char* s2 = strrchr(buf, '/'); !dot || ((s1 && s1 > dot) || (s2 && s2 > dot)))
 		{
-			strncat(buf, ".m64", MAX_PATH);
+			strncat(buf, ".m64", 260);
 		}
 	}
 	m_file = fopen(buf, "wb");
@@ -771,7 +752,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
 		printf("[VCR]: Loading state...\n");
-		strncpy(m_filename, filename, MAX_PATH);
+		strncpy(m_filename, filename, sizeof(m_filename));
 		savestates_do_file(strip_extension(m_filename) + ".st", e_st_job::load);
 
 		// set this to the normal snapshot flag to maintain compatibility
@@ -821,7 +802,7 @@ vcr_stop_record()
 
 	if (m_task == e_task::start_recording)
 	{
-		char buf[MAX_PATH];
+		char buf[260];
 
 		m_task = e_task::idle;
 		if (m_file)
@@ -833,14 +814,14 @@ vcr_stop_record()
 
 		strcpy(buf, m_filename);
 
-		strncat(m_filename, ".st", MAX_PATH);
+		strncat(m_filename, ".st", sizeof(m_filename));
 
 		if (_unlink(buf) < 0)
 			fprintf(stderr, "[VCR]: Couldn't remove save state: %s\n",
 			        strerror(errno));
 
 		strcpy(buf, m_filename);
-		strncat(m_filename, ".m64", MAX_PATH);
+		strncat(m_filename, ".m64", sizeof(m_filename));
 		if (_unlink(buf) < 0)
 			fprintf(stderr, "[VCR]: Couldn't remove recorded file: %s\n",
 			        strerror(errno));
@@ -883,9 +864,9 @@ std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 	// To allow multiple m64s to reference on st, we construct the st name from the m64 name up to the first point only
 	// movie.a.m64 => movie.st
 	// movie.m64   => movie.st
-	char drive[MAX_PATH] = {0};
-	char dir[MAX_PATH] = {0};
-	char filename[MAX_PATH] = {0};
+	char drive[260] = {0};
+	char dir[260] = {0};
+	char filename[260] = {0};
 	_splitpath(path.string().c_str(), drive, dir, filename, nullptr);
 
 	auto dot_index = std::string(filename).find_first_of(".");
@@ -974,7 +955,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		return Result::NoMatchingRom;
 	}
 
-	strncpy(m_filename, path.string().c_str(), MAX_PATH);
+	strncpy(m_filename, path.string().c_str(), sizeof(m_filename));
 
 	auto movie_buf = read_file_buffer(path);
 
@@ -1231,7 +1212,7 @@ const char* VCR::get_input_text()
 	static char text[1024]{};
 	memset(text, 0, sizeof(text));
 
-	BUTTONS b = last_controller_data[0];
+	BUTTONS b = LuaCallbacks::get_last_controller_data(0);
 	sprintf(text, "(%d, %d) ", b.Y_AXIS, b.X_AXIS);
 	if (b.START_BUTTON) strcat(text, "S");
 	if (b.Z_TRIG) strcat(text, "Z");
