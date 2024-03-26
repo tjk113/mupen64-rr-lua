@@ -235,7 +235,6 @@ extern bool vcr_is_idle(); // not the same as !isActive()
 extern bool vcr_is_starting();
 extern bool vcr_is_playing();
 extern bool vcr_is_recording();
-extern const char* vcr_get_movie_filename();
 extern bool vcr_is_looping();
 extern unsigned long vcr_get_length_v_is();
 extern unsigned long vcr_get_length_samples();
@@ -367,6 +366,5 @@ namespace VCR
 }
 
 bool is_frame_skipped();
-extern char vcr_lastpath[260];
 extern uint64_t screen_updates;
 extern std::filesystem::path movie_path;

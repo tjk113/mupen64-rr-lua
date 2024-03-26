@@ -41,21 +41,7 @@ const auto rom_name_warning_message = "The movie was recorded on the rom '{}', b
 const auto rom_country_warning_message = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto rom_crc_warning_message = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
 
-bool dont_play = false;
-
 enum { buffer_growth_size = 4096 };
-
-static const char* m_err_code_name[] =
-{
-	"Success",
-	"Wrong Format",
-	"Wrong Version",
-	"File Not Found",
-	"Not From This Movie",
-	"Not From A Movie",
-	"Invalid Frame",
-	"Unknown Error"
-};
 
 volatile e_task m_task = e_task::idle;
 std::filesystem::path movie_path;
@@ -63,8 +49,6 @@ std::filesystem::path movie_path;
 // The frame to seek to during playback, or an empty option if no seek is being performed
 std::optional<size_t> seek_to_frame;
 
-static char m_filename[260];
-static char avi_file_name[260];
 static FILE* m_file = nullptr;
 static t_movie_header m_header;
 
@@ -76,7 +60,6 @@ static unsigned long m_input_buffer_size = 0;
 static char* m_input_buffer_ptr = nullptr;
 
 int title_length;
-char vcr_lastpath[260];
 
 uint64_t screen_updates = 0;
 
@@ -168,7 +151,7 @@ static void truncate_movie()
 	const long trunc_len = MUP_HEADER_SIZE + sizeof(BUTTONS) * (m_header.
 		length_samples);
 
-	if (const HANDLE file_handle = CreateFile(m_filename, GENERIC_WRITE, 0, nullptr,
+	if (const HANDLE file_handle = CreateFile(movie_path.string().c_str(), GENERIC_WRITE, 0, nullptr,
 	                                          OPEN_EXISTING, 0, nullptr); file_handle != nullptr)
 	{
 		SetFilePointer(file_handle, trunc_len, nullptr, FILE_BEGIN);
@@ -331,12 +314,6 @@ bool
 vcr_is_recording()
 {
 	return m_task == e_task::recording;
-}
-
-// Returns the filename of the last-played movie
-const char* vcr_get_movie_filename()
-{
-	return m_filename;
 }
 
 bool vcr_is_looping()
@@ -686,15 +663,8 @@ vcr_start_record(const char* filename, const unsigned short flags,
 
 	VCR::stop_all();
 
-	char buf[260];
-
-	// m_filename will be overwritten later in the function if
-	// MOVIE_START_FROM_EXISTING_SNAPSHOT is true, but it doesn't
-	// matter enough to make this a conditional thing
-	strncpy(m_filename, filename, sizeof(m_filename));
-
-	// open record file
-	strcpy(buf, m_filename);
+	char buf[260]{};
+	strncpy(buf, movie_path.string().c_str(), sizeof(buf));
 	{
 		const char* dot = strrchr(buf, '.');
 		const char* s1 = strrchr(buf, '\\');
@@ -703,6 +673,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 			strncat(buf, ".m64", 260);
 		}
 	}
+
 	m_file = fopen(buf, "wb");
 	if (m_file == nullptr)
 	{
@@ -712,6 +683,8 @@ vcr_start_record(const char* filename, const unsigned short flags,
 			filename, strerror(errno));
 		return -1;
 	}
+
+	movie_path = filename;
 
 	for (auto& [Present, RawData, Plugin] : Controls)
 	{
@@ -747,25 +720,20 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	{
 		// save state
 		printf("[VCR]: Saving state...\n");
-		savestates_do_file(strip_extension(m_filename) + ".st", e_st_job::save);
+		savestates_do_file(std::filesystem::path(movie_path).replace_extension(".st"), e_st_job::save);
 		m_task = e_task::start_recording_from_snapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
 		printf("[VCR]: Loading state...\n");
-		strncpy(m_filename, filename, sizeof(m_filename));
-		savestates_do_file(strip_extension(m_filename) + ".st", e_st_job::load);
-
+		savestates_do_file(std::filesystem::path(movie_path).replace_extension(".st"), e_st_job::load);
 		// set this to the normal snapshot flag to maintain compatibility
 		m_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
-
 		m_task = e_task::start_recording_from_existing_snapshot;
 	} else
 	{
 		m_task = e_task::start_recording;
 	}
 
-	// NOTE: Previously, movie_path was set to buf here, which is the st path
-	movie_path = filename;
 	set_rom_info(&m_header);
 
 	// utf8 strings are also null-terminated so this method still works
@@ -802,8 +770,6 @@ vcr_stop_record()
 
 	if (m_task == e_task::start_recording)
 	{
-		char buf[260];
-
 		m_task = e_task::idle;
 		if (m_file)
 		{
@@ -811,20 +777,8 @@ vcr_stop_record()
 			m_file = nullptr;
 		}
 		printf("[VCR]: Removing files (nothing recorded)\n");
-
-		strcpy(buf, m_filename);
-
-		strncat(m_filename, ".st", sizeof(m_filename));
-
-		if (_unlink(buf) < 0)
-			fprintf(stderr, "[VCR]: Couldn't remove save state: %s\n",
-			        strerror(errno));
-
-		strcpy(buf, m_filename);
-		strncat(m_filename, ".m64", sizeof(m_filename));
-		if (_unlink(buf) < 0)
-			fprintf(stderr, "[VCR]: Couldn't remove recorded file: %s\n",
-			        strerror(errno));
+		_unlink(std::filesystem::path(movie_path).replace_extension(".m64").string().c_str());
+		_unlink(std::filesystem::path(movie_path).replace_extension(".st").string().c_str());
 
 		ret_val = 0;
 	}
@@ -955,8 +909,6 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		return Result::NoMatchingRom;
 	}
 
-	strncpy(m_filename, path.string().c_str(), sizeof(m_filename));
-
 	auto movie_buf = read_file_buffer(path);
 
 	if (movie_buf.empty())
@@ -968,7 +920,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	VCR::stop_all();
 
 	// NOTE: Previously, a code path would try to look for corresponding .m64 if a non-m64 extension file is provided.
-	m_file = fopen(m_filename, "rb+");
+	m_file = fopen(path.string().c_str(), "rb+");
 	if (!m_file)
 	{
 		return Result::BadFile;
@@ -1054,7 +1006,6 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	// Reset VCR-related state
 	m_current_sample = 0;
 	m_current_vi = 0;
-	strcpy(vcr_lastpath, m_filename);
 	movie_path = path;
 
 	// Read input stream into buffer, then point to first element
