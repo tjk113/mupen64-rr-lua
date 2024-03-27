@@ -197,8 +197,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control)
 
 			if (status.first == nullptr)
 			{
-				// failed, we give user some info and thats it
-				ConsoleWrite(wnd, (status.second + "\r\n").c_str());
+				LuaEnvironment::print_con(wnd, status.second + "\r\n");
 			} else
 			{
 				// it worked, we can set up associations and sync ui state
@@ -286,22 +285,6 @@ void lua_create_and_run(const char* path)
 	SendMessage(hwnd, WM_COMMAND,
 	            MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
 	            (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-}
-
-
-void ConsoleWrite(HWND wnd, const char* str)
-{
-	HWND console = GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE);
-
-	int length = GetWindowTextLength(console);
-	if (length >= 0x7000)
-	{
-		SendMessage(console, EM_SETSEL, 0, length / 2);
-		SendMessage(console, EM_REPLACESEL, false, (LPARAM)"");
-		length = GetWindowTextLength(console);
-	}
-	SendMessage(console, EM_SETSEL, length, length);
-	SendMessage(console, EM_REPLACESEL, false, (LPARAM)str);
 }
 
 LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam,
@@ -596,145 +579,6 @@ const luaL_Reg aviFuncs[] = {
 };
 // end lua funcs
 
-
-void instrStr1(unsigned long pc, unsigned long w, char* p1)
-{
-	char*& p = p1;
-	INSTDECODE decode;
-	const char* const x = "0123456789abcdef";
-#define HEX8(n) 	p[0] = x[(r4300word)(n)>>28&0xF];\
-	p[1] = x[(r4300word)(n)>>24&0xF];\
-	p[2] = x[(r4300word)(n)>>20&0xF];\
-	p[3] = x[(r4300word)(n)>>16&0xF];\
-	p[4] = x[(r4300word)(n)>>12&0xF];\
-	p[5] = x[(r4300word)(n)>>8&0xF];\
-	p[6] = x[(r4300word)(n)>>4&0xF];\
-	p[7] = x[(r4300word)(n)&0xF];\
-	p+=8;
-
-	DecodeInstruction(w, &decode);
-	HEX8(pc);
-	*(p++) = ':';
-	*(p++) = ' ';
-	HEX8(w);
-	*(p++) = ' ';
-	const char* ps = p;
-	if (w == 0x00000000)
-	{
-		*(p++) = 'n';
-		*(p++) = 'o';
-		*(p++) = 'p';
-	} else
-	{
-		for (const char* q = GetOpecodeString(&decode); *q; q++)
-		{
-			*(p++) = *q;
-		}
-		*(p++) = ' ';
-		p = GetOperandString(p, &decode, pc);
-	}
-	for (int i = p - ps + 3; i < 24; i += 4)
-	{
-		*(p++) = '\t';
-	}
-	*(p++) = ';';
-	INSTOPERAND& o = decode.operand;
-#define REGCPU(n) if((n)!=0){\
-			for(const char *l = CPURegisterName[n]; *l; l++){\
-				*(p++) = *l;\
-			}\
-			*(p++) = '=';\
-			HEX8(reg[n]);\
-	}
-#define REGCPU2(n,m) \
-		REGCPU(n);\
-		if((n)!=(m)&&(m)!=0){C;REGCPU(m);}
-	//10�i��
-#define REGFPU(n) *(p++)='f';\
-			*(p++)=x[(n)/10];\
-			*(p++)=x[(n)%10];\
-			*(p++) = '=';\
-			p+=sprintf(p,"%f",*reg_cop1_simple[n])
-#define REGFPU2(n,m) REGFPU(n);\
-		if((n)!=(m)){C;REGFPU(m);}
-#define C *(p++) = ','
-
-	if (delay_slot)
-	{
-		*(p++) = '#';
-	}
-	switch (decode.format)
-	{
-	case INSTF_NONE:
-		break;
-	case INSTF_J:
-	case INSTF_0BRANCH:
-		break;
-	case INSTF_LUI:
-		break;
-	case INSTF_1BRANCH:
-	case INSTF_JR:
-	case INSTF_ISIGN:
-	case INSTF_IUNSIGN:
-		REGCPU(o.i.rs);
-		break;
-	case INSTF_2BRANCH:
-		REGCPU2(o.i.rs, o.i.rt);
-		break;
-	case INSTF_ADDRW:
-		REGCPU(o.i.rt);
-		if (o.i.rt != 0) { C; }
-	case INSTF_ADDRR:
-		*(p++) = '@';
-		*(p++) = '=';
-		HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
-		break;
-	case INSTF_LFW:
-		REGFPU(o.lf.ft);
-		C;
-	case INSTF_LFR:
-		*(p++) = '@';
-		*(p++) = '=';
-		HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
-		break;
-	case INSTF_R1:
-		REGCPU(o.r.rd);
-		break;
-	case INSTF_R2:
-		REGCPU2(o.i.rs, o.i.rt);
-		break;
-	case INSTF_R3:
-		REGCPU2(o.i.rs, o.i.rt);
-		break;
-	case INSTF_MTC0:
-	case INSTF_MTC1:
-	case INSTF_SA:
-		REGCPU(o.r.rt);
-		break;
-	case INSTF_R2F:
-		REGFPU(o.cf.fs);
-		break;
-	case INSTF_R3F:
-	case INSTF_C:
-		REGFPU2(o.cf.fs, o.cf.ft);
-		break;
-	case INSTF_MFC0:
-		break;
-	case INSTF_MFC1:
-		REGFPU(((FPUREG)o.r.rs));
-		break;
-	case INSTF_COUNT:
-		break;
-	}
-	p1[strlen(p1)] = '\0';
-#undef HEX8
-#undef REGCPU
-#undef REGFPU
-#undef REGCPU2
-#undef REGFPU2
-#undef C
-}
-
 EmulationLock::EmulationLock()
 {
 	printf("Emulation Lock\n");
@@ -967,6 +811,21 @@ void LuaEnvironment::destroy(LuaEnvironment* lua_environment)
 	delete lua_environment;
 }
 
+void LuaEnvironment::print_con(HWND hwnd, std::string text)
+{
+	HWND con_wnd = GetDlgItem(hwnd, IDC_TEXTBOX_LUACONSOLE);
+
+	int length = GetWindowTextLength(con_wnd);
+	if (length >= 0x7000)
+	{
+		SendMessage(con_wnd, EM_SETSEL, 0, length / 2);
+		SendMessage(con_wnd, EM_REPLACESEL, false, (LPARAM)"");
+		length = GetWindowTextLength(con_wnd);
+	}
+	SendMessage(con_wnd, EM_SETSEL, length, length);
+	SendMessage(con_wnd, EM_REPLACESEL, false, (LPARAM)text.c_str());
+}
+
 std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::path path, HWND wnd)
 {
 	auto lua_environment = new LuaEnvironment();
@@ -1033,8 +892,7 @@ bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> fu
 		if (function(L))
 		{\
 			const char* str = lua_tostring(L, -1);
-			ConsoleWrite(hwnd, str);
-			ConsoleWrite(hwnd, "\r\n");
+			this->print(std::string(str) + "\r\n");
 			printf("Lua error: %s\n", str);
 			return true;
 		}

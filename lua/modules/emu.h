@@ -365,7 +365,7 @@ namespace LuaCore::Emu
 	//emu
 	static int ConsoleWriteLua(lua_State* L)
 	{
-		ConsoleWrite(GetLuaClass(L)->hwnd, lua_tostring(L, 1));
+		GetLuaClass(L)->print(lua_tostring(L, 1));
 		return 0;
 	}
 

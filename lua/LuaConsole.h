@@ -54,10 +54,6 @@ void lua_create_and_run(const char* path);
  */
 HWND lua_create();
 
-
-void ConsoleWrite(HWND wnd, const char* str);
-
-
 /**
  * \brief Stops all lua scripts and closes their windows
  */
@@ -75,8 +71,6 @@ void stop_all_scripts();
  */
 void invoke_callbacks_with_key_on_all_instances(
 	std::function<int(lua_State*)> function, const char* key);
-
-void instrStr1(unsigned long pc, unsigned long w, char* buffer);
 
 static const char* const REG_LUACLASS = "C";
 static const char* const REG_ATUPDATESCREEN = "S";
@@ -118,6 +112,13 @@ public:
 	 * \param lua_environment The lua environment to destroy
 	 */
 	static void destroy(LuaEnvironment* lua_environment);
+
+	/**
+	 * \brief Prints text to a lua environment dialog's console
+	 * \param hwnd Handle to a lua environment dialog of IDD_LUAWINDOW
+	 * \param text The text to display
+	 */
+	static void print_con(HWND hwnd, std::string text);
 
 	// The path to the current lua script
 	std::filesystem::path path;
@@ -207,6 +208,15 @@ public:
 	void LoadScreenInit();
 	HWND hwnd;
 	lua_State* L;
+
+	/**
+	 * \brief Prints text to the environment's console
+	 * \param text The text to print
+	 */
+	void print(std::string text) const
+	{
+		print_con(hwnd, text);
+	}
 
 private:
 	void register_functions();

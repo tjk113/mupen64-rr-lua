@@ -14,10 +14,7 @@ namespace LuaCore::Global
 		lua_pushcfunction(L, ToStringExs);
 		lua_insert(L, 1);
 		lua_call(L, lua_gettop(L) - 1, 1);
-		const char* str = lua_tostring(L, 1);
-		HWND wnd = GetLuaClass(L)->hwnd;
-		ConsoleWrite(wnd, str);
-		ConsoleWrite(wnd, "\r\n");
+		GetLuaClass(L)->print(std::string(lua_tostring(L, 1)) + "\r\n");
 		return 0;
 	}
 
@@ -172,7 +169,7 @@ namespace LuaCore::Global
 			lua_pop(L, 1);
 			if (i != len - 1) { str.append("\t"); }
 		}
-		ConsoleWrite(GetLuaClass(L)->hwnd, str.append("\r\n").c_str());
+		GetLuaClass(L)->print(str + "\r\n");
 		return 1;
 	}
 }
