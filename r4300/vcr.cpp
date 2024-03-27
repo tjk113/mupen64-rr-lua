@@ -40,6 +40,7 @@ const auto rawdata_warning_message = "Warning: One of the active controllers of 
 const auto rom_name_warning_message = "The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto rom_country_warning_message = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto rom_crc_warning_message = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
+const auto truncate_message = "Failed to truncate the movie file. The movie may be corrupted.";
 
 enum { buffer_growth_size = 4096 };
 
@@ -150,13 +151,24 @@ static void truncate_movie()
 	const long trunc_len = MUP_HEADER_SIZE + sizeof(BUTTONS) * (m_header.
 		length_samples);
 
-	if (const HANDLE file_handle = CreateFile(movie_path.string().c_str(), GENERIC_WRITE, 0, nullptr,
-	                                          OPEN_EXISTING, 0, nullptr); file_handle != nullptr)
+	HANDLE file_handle = CreateFile(
+		movie_path.string().c_str(),
+		GENERIC_WRITE,
+		0,
+		nullptr,
+		OPEN_EXISTING,
+		0,
+		nullptr);
+
+	if (file_handle == INVALID_HANDLE_VALUE)
 	{
-		SetFilePointer(file_handle, trunc_len, nullptr, FILE_BEGIN);
-		SetEndOfFile(file_handle);
-		CloseHandle(file_handle);
+		show_modal_info(truncate_message, "VCR");
+		return;
 	}
+
+	SetFilePointer(file_handle, trunc_len, nullptr, FILE_BEGIN);
+	SetEndOfFile(file_handle);
+	CloseHandle(file_handle);
 }
 
 static int read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
@@ -930,6 +942,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	{
 		// FIXME: The results don't collide, but use typed errors anyway!!!
 		fclose(m_file);
+		m_file = nullptr;
 		return Result::InvalidFormat;
 	}
 
@@ -942,6 +955,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		if (!proceed)
 		{
 			fclose(m_file);
+			m_file = nullptr;
 			return Result::Cancelled;
 		}
 
@@ -952,6 +966,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	if (!check_warn_controllers(dummy))
 	{
 		fclose(m_file);
+		m_file = nullptr;
 		return Result::InvalidControllers;
 	}
 
@@ -968,6 +983,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		if (!proceed)
 		{
 			fclose(m_file);
+			m_file = nullptr;
 			return Result::Cancelled;
 		}
 	} else
@@ -979,6 +995,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 			if (!proceed)
 			{
 				fclose(m_file);
+				m_file = nullptr;
 				return Result::Cancelled;
 			}
 		} else if (m_header.rom_crc1 != ROM_HEADER.
@@ -995,6 +1012,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 			if (!proceed)
 			{
 				fclose(m_file);
+				m_file = nullptr;
 				return Result::Cancelled;
 			}
 		}
@@ -1024,6 +1042,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		if (st_path.empty())
 		{
 			fclose(m_file);
+			m_file = nullptr;
 			return Result::InvalidSavestate;
 		}
 
@@ -1091,6 +1110,7 @@ int vcr_stop_playback()
 	if (m_file && m_task != e_task::start_recording && m_task != e_task::recording)
 	{
 		fclose(m_file);
+		m_file = nullptr;
 		m_file = nullptr;
 	}
 
