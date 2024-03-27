@@ -1,15 +1,14 @@
 #include <Windows.h>
 #include <winuser.h>
 #include <cstdio>
-#include <win/features/RomBrowser.hpp>
+#include <main/win/features/RomBrowser.hpp>
 #include "../../winproject/resource.h"
 #include "Config.hpp"
-#include <win/main_win.h>
+#include <main/win/main_win.h>
 #include "../lib/ini.h"
-#include <helpers/string_helpers.h>
-
+#include <shared/helpers/string_helpers.h>
 #include <shared/messenger.h>
-#include "capture/EncodingManager.h"
+#include <main/capture/EncodingManager.h>
 
 CONFIG Config;
 std::vector<t_hotkey*> hotkeys;

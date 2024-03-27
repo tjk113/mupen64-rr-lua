@@ -1,8 +1,8 @@
 #include "CrashHelper.h"
 #include "../main_win.h"
 #include <Psapi.h>
-#include "../r4300/r4300.h"
-#include "../r4300/vcr.h"
+#include <r4300/r4300.h>
+#include <r4300/vcr.h>
 #include <shared/Config.hpp>
 
 

@@ -1,11 +1,15 @@
-#include <include/lua.h>
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
 #include <Windows.h>
 
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
 #include "../../memory/pif.h"
 #include <r4300/timers.h>
-#include "win/features/Statusbar.hpp"
+#include <main/win/features/Statusbar.hpp>
 
 extern int m_current_vi;
 extern long m_current_sample;

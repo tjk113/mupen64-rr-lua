@@ -19,17 +19,16 @@
 #include <Windows.h>
 #include "Commandline.h"
 
-#include <iostream>
-
-#include "LuaConsole.h"
+#include <thread>
+#include <lua/LuaConsole.h>
 #include "main_win.h"
 #include <shared/messenger.h>
-#include "../memory/savestates.h"
-#include <helpers/string_helpers.h>
+#include <memory/savestates.h>
+#include <shared/helpers/string_helpers.h>
 #include "../../lib/argh.h"
-#include "../r4300/r4300.h"
-#include "../r4300/vcr.h"
-#include "capture/EncodingManager.h"
+#include <r4300/r4300.h>
+#include <r4300/vcr.h>
+#include <main/capture/EncodingManager.h>
 
 std::filesystem::path commandline_rom;
 std::filesystem::path commandline_lua;

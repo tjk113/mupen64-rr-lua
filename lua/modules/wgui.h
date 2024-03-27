@@ -1,9 +1,13 @@
-#include <include/lua.h>
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
 #include <Windows.h>
 
 #include "LuaConsole.h"
 #include "../../main/win/main_win.h"
-#include <helpers/win_helpers.h>
+#include <shared/helpers/win_helpers.h>
 
 namespace LuaCore::Wgui
 {

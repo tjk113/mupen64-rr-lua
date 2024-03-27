@@ -5,9 +5,9 @@
 #include <Windowsx.h>
 
 #include "../../winproject/resource.h"
-#include <win/main_win.h>
+#include <main/win/main_win.h>
 
-#include "LuaConsole.h"
+#include <lua/LuaConsole.h>
 #include <shared/messenger.h>
 #include <shared/Config.hpp>
 #include "../../r4300/vcr.h"

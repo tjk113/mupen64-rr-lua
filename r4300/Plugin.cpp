@@ -37,11 +37,11 @@
 #include <shared/Config.hpp>
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
-#include <win/main_win.h>
+#include <main/win/main_win.h>
+#include <main/win/features/Statusbar.hpp>
 #include <dbghelp.h>
 
-#include "guifuncs.h"
-#include "win/features/Statusbar.hpp"
+#include <shared/guifuncs.h>
 
 CONTROL Controls[4];
 

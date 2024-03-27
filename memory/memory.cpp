@@ -43,11 +43,11 @@
 #include "../r4300/ops.h"
 #include "pif.h"
 #include "flashram.h"
-#include "guifuncs.h"
+#include <shared/guifuncs.h>
 #include "summercart.h"
 #include "../r4300/Plugin.hpp"
 #include "../r4300/vcr.h"
-#include "capture/EncodingManager.h"
+#include <main/capture/EncodingManager.h>
 
 static int frame;
 

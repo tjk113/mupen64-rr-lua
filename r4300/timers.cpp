@@ -19,7 +19,7 @@
 #include <shared/messenger.h>
 #include <memory/pif.h>
 #include <r4300/vcr.h>
-#include <helpers/collection_helpers.h>
+#include <shared/helpers/collection_helpers.h>
 
 bool frame_changed = true;
 extern int m_current_vi;

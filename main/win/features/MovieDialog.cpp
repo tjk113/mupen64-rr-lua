@@ -1,19 +1,19 @@
 #include "MovieDialog.h"
 #include <Windows.h>
 
-#include "../r4300/rom.h"
-#include "../r4300/vcr.h"
-#include "../memory/savestates.h"
+#include <r4300/rom.h>
+#include <r4300/vcr.h>
+#include <memory/savestates.h>
 #include "Statusbar.hpp"
-#include "win/main_win.h"
+#include <main/win/main_win.h>
 #include <shared/Config.hpp>
-#include "../winproject/resource.h"
-#include <helpers/string_helpers.h>
-#include <helpers/win_helpers.h>
-#include "win/wrapper/PersistentPathDialog.h"
+#include <winproject/resource.h>
+#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/win_helpers.h>
+#include <shared/helpers/math_helpers.h>
+#include <main/win/wrapper/PersistentPathDialog.h>
 #include <CommCtrl.h>
 
-#include <helpers/math_helpers.h>
 
 namespace MovieDialog
 {

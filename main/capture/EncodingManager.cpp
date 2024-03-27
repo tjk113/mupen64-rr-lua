@@ -2,18 +2,18 @@
 
 #include <cassert>
 
-#include <guifuncs.h>
+#include <shared/guifuncs.h>
 #include <shared/messenger.h>
 #include "Resampler.h"
 #include "../../r4300/Plugin.hpp"
-#include "win/main_win.h"
+#include <main/win/main_win.h>
 #include "../../r4300/rom.h"
 #include <shared/Config.hpp>
 #include "../../memory/memory.h"
 #include "encoders/AVIEncoder.h"
 #include "encoders/Encoder.h"
 #include "encoders/FFmpegEncoder.h"
-#include "win/features/MGECompositor.h"
+#include <main/win/features/MGECompositor.h>
 
 namespace EncodingManager
 {

@@ -1,6 +1,8 @@
-#include <include/lua.h>
-#include <Windows.h>
-#include "../../main/win/main_win.h"
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
 
 namespace LuaCore::Joypad
 {

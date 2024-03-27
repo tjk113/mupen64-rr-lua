@@ -3,7 +3,7 @@
 
 #include <shared/messenger.h>
 #include "../../r4300/Plugin.hpp"
-#include "win/main_win.h"
+#include <main/win/main_win.h>
 
 namespace MGECompositor
 {

@@ -1,8 +1,9 @@
-#include <include/lua.h>
-#include <Windows.h>
-
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
 #include <shared/messenger.h>
-#include "../../main/win/main_win.h"
 
 namespace LuaCore::Movie
 {

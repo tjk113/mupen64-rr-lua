@@ -1,8 +1,12 @@
-#include <include/lua.h>
+#pragma once
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
 #include <Windows.h>
 #include <assert.h>
 #include <xxh64.h>
-#include "../../main/win/main_win.h"
 
 namespace LuaCore::D2D
 {

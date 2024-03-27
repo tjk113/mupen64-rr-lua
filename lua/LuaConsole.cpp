@@ -2,7 +2,6 @@
 
 */
 
-
 #include "LuaConsole.h"
 #include <cstdlib>
 #include <vector>
@@ -12,9 +11,8 @@
 #include <list>
 #include <filesystem>
 #include "../../winproject/resource.h"
-#include "win/main_win.h"
+#include <main/win/main_win.h>
 #include <shared/Config.hpp>
-#include "include/lua.hpp"
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
 #include "../r4300/disasm.h"
@@ -22,7 +20,7 @@
 #include "../r4300/Plugin.hpp"
 #include "../r4300/vcr.h"
 #include "../memory/savestates.h"
-#include <helpers/win_helpers.h>
+#include <shared/helpers/win_helpers.h>
 #include "../main/win/wrapper/PersistentPathDialog.h"
 #include "../lib/md5.h"
 #include <gdiplus.h>
@@ -34,8 +32,8 @@
 #include <queue>
 #include <assert.h>
 
-#include <helpers/string_helpers.h>
-#include "win/features/Statusbar.hpp"
+#include <shared/helpers/string_helpers.h>
+#include <main/win/features/Statusbar.hpp>
 
 #include <Windows.h>
 

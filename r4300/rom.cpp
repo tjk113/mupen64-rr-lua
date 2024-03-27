@@ -39,8 +39,8 @@
 #include "../memory/memory.h"
 #include "../lib/md5.h"
 #include <shared/Config.hpp>
-#include <helpers/io_helpers.h>
-#include <helpers/string_helpers.h>
+#include <shared/helpers/io_helpers.h>
+#include <shared/helpers/string_helpers.h>
 
 uint8_t* rom;
 // Unmodified rom kept in here for restoring the externally mutable rom between restarts

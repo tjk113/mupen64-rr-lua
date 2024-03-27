@@ -32,8 +32,8 @@
 #include <stdlib.h>
 #include <string>
 #include <shared/Config.hpp>
-#include <win/main_win.h>
-#include <win/features/Statusbar.hpp>
+#include <main/win/main_win.h>
+#include <main/win/features/Statusbar.hpp>
 #include "flashram.h"
 #include <shared/LuaCallbacks.h>
 #include "memory.h"
@@ -44,7 +44,7 @@
 #include "../r4300/r4300.h"
 #include "../r4300/rom.h"
 #include "../r4300/vcr.h"
-#include "win/features/MGECompositor.h"
+#include <main/win/features/MGECompositor.h>
 
 std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;

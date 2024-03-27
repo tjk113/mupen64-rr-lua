@@ -1,6 +1,9 @@
-#include <include/lua.h>
-#include <Windows.h>
-#include "../../main/win/main_win.h"
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
+#include <main/win/wrapper/PersistentPathDialog.h>
 
 namespace LuaCore::IOHelper
 {

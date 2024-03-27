@@ -36,7 +36,7 @@
 #include "../macros.h"
 #include "../exception.h"
 #include "interpret.h"
-#include "../lua/LuaConsole.h"
+#include <shared/LuaCallbacks.h>
 #include <shared/Config.hpp>
 
 

@@ -14,15 +14,15 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <LuaConsole.h>
+#include <lua/LuaConsole.h>
 #include <Windows.h>
 #include <commctrl.h>
 #include "guifuncs.h"
-#include <win/main_win.h>
+#include <main/win/main_win.h>
 
 #include "../../r4300/tracelog.h"
 #include "../../r4300/vcr.h"
-#include "capture/EncodingManager.h"
+#include <main/capture/EncodingManager.h>
 
 
 bool confirm_user_exit()

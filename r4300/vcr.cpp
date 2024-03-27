@@ -19,7 +19,7 @@
 #include "../memory/pif.h"
 #include <shared/LuaCallbacks.h>
 
-#include "guifuncs.h"
+#include <shared/guifuncs.h>
 #include <shared/messenger.h>
 
 // TODO: Use STL for file APIs

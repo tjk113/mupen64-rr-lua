@@ -1,4 +1,8 @@
-#include <include/lua.h>
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
 #include <Windows.h>
 #include "../../main/win/main_win.h"
 

@@ -47,7 +47,7 @@
 #include "../r4300/vcr.h"
 #include "savestates.h"
 #include <shared/Config.hpp>
-#include "win/main_win.h"
+#include <main/win/main_win.h>
 
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];

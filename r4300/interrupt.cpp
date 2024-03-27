@@ -47,8 +47,8 @@
 #include <shared/Config.hpp>
 #include "../main/win/main_win.h"
 #include "../memory/pif.h"
-#include "capture/EncodingManager.h"
-#include "win/features/MGECompositor.h"
+#include <main/capture/EncodingManager.h>
+#include <main/win/features/MGECompositor.h>
 
 unsigned long next_vi;
 int vi_field = 0;

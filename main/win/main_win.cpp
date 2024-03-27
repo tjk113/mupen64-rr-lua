@@ -30,13 +30,13 @@
 
 #include "Commandline.h"
 #include <shared/Config.hpp>
-#include <win/features/ConfigDialog.h>
+#include <main/win/features/ConfigDialog.h>
 #include <shared/LuaCallbacks.h>
 #include "features/CrashHelper.h"
-#include "LuaConsole.h"
+#include <lua/LuaConsole.h>
 #include <shared/messenger.h>
 #include <r4300/timers.h>
-#include <guifuncs.h>
+#include <shared/guifuncs.h>
 #include "../../r4300/Plugin.hpp"
 #include "../../r4300/rom.h"
 #include "../../r4300/vcr.h"
@@ -47,7 +47,7 @@
 #include "../../r4300/recomph.h"
 #include "../../r4300/tracelog.h"
 #include "../../winproject/resource.h"
-#include "capture/EncodingManager.h"
+#include <main/capture/EncodingManager.h>
 #include "features/CoreDbg.h"
 #include "features/Dispatcher.h"
 #include "features/MGECompositor.h"
@@ -55,10 +55,10 @@
 #include "features/RomBrowser.hpp"
 #include "features/Seeker.h"
 #include "features/Statusbar.hpp"
-#include <helpers/collection_helpers.h>
-#include <helpers/math_helpers.h>
-#include <helpers/string_helpers.h>
-#include <helpers/win_helpers.h>
+#include <shared/helpers/collection_helpers.h>
+#include <shared/helpers/math_helpers.h>
+#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/win_helpers.h>
 
 #include "features/Runner.h"
 #include "wrapper/PersistentPathDialog.h"

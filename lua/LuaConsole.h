@@ -1,29 +1,25 @@
-#ifndef LUA_CONSOLE_H
-#define LUA_CONSOLE_H
+#pragma once
 
-#include "include/lua.hpp"
-
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
 #include <Windows.h>
 #include <locale>
-#include <iostream>
 #include <string>
-#include <sstream>
 #include <map>
 #include <cstdint>
 #include <gdiplus.h>
 #include <d2d1.h>
 #include <d2d1_3.h>
-#include <d2d1helper.h>
 #include <dcomp.h>
 #include <d3d11.h>
 #include <dwrite.h>
-#include <wincodec.h>
 #include <functional>
 #include <queue>
-#include "../lib/md5.h"
 #include <assert.h>
 #include <filesystem>
-#include <mutex>
 #include <stack>
 
 #include "../r4300/Plugin.hpp"
@@ -254,5 +250,3 @@ int RegisterFunction(lua_State* L, const char* key);
  * \param key The function's key
  */
 void UnregisterFunction(lua_State* L, const char* key);
-
-#endif

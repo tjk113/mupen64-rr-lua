@@ -40,9 +40,9 @@
 #include <shared/LuaCallbacks.h>
 #include <shared/messenger.h>
 #include "../memory/savestates.h"
-#include <helpers/string_helpers.h>
+#include <shared/helpers/string_helpers.h>
 #include <r4300/timers.h>
-#include "win/features/RomBrowser.hpp"
+#include <main/win/features/RomBrowser.hpp>
 #include <shared/Config.hpp>
 
 // Threading crap

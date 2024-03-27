@@ -1,13 +1,14 @@
-#include <LuaConsole.h>
+#include <lua/LuaConsole.h>
 
 #include "../../../winproject/resource.h"
-#include "../main/win/main_win.h"
+#include <main/win/main_win.h>
 #include "CoreDbg.h"
 
 #include <stdio.h>
 #include <Windows.h>
 #include <Windowsx.h>
 #include <commctrl.h>
+#include <thread>
 
 #include "../../r4300/r4300.h"
 #include "../../r4300/vcr.h"

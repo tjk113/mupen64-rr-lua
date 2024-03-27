@@ -4,7 +4,7 @@
 
 #include "../r4300/r4300.h"
 #include "memory.h"
-#include <guifuncs.h>
+#include <shared/guifuncs.h>
 
 #include "summercart.h"
 

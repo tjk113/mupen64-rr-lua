@@ -1,7 +1,10 @@
-#include <include/lua.h>
-#include <Windows.h>
-#include "../../main/win/main_win.h"
-#include "capture/EncodingManager.h"
+#pragma once
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
+#include <main/capture/EncodingManager.h>
 
 namespace LuaCore::Avi
 {
