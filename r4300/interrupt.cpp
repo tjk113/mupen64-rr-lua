@@ -29,8 +29,6 @@
 
 //#include "../config.h"
 
-#include "../lua/LuaConsole.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 

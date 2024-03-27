@@ -32,8 +32,6 @@
 //#define DEBUG_PIF //don't define if you don't need spam
 #endif
 
-#include "../lua/LuaConsole.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 
