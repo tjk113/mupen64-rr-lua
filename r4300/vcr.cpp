@@ -22,18 +22,14 @@
 #include <shared/guifuncs.h>
 #include <shared/messenger.h>
 
-#include <Windows.h>
-
 // M64\0x1a
 enum
 {
 	mup_magic = (0x1a34364d),
 	mup_version = (3),
-	mup_header_size_old = (512)
 };
 
 #define MUP_HEADER_SIZE (sizeof(t_movie_header))
-#define MUP_HEADER_SIZE_CUR (m_header.version <= 2 ? mup_header_size_old : MUP_HEADER_SIZE)
 
 const auto rawdata_warning_message = "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?";
 const auto rom_name_warning_message = "The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?";
@@ -130,11 +126,13 @@ static void set_rom_info(t_movie_header* header)
 
 static int read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
 {
-	if (buf.size() < mup_header_size_old)
+	const auto old_header_size = 512;
+
+	if (buf.size() < old_header_size)
 		return WRONG_FORMAT;
 
 	t_movie_header new_header = {};
-	memcpy(&new_header, buf.data(), mup_header_size_old);
+	memcpy(&new_header, buf.data(), old_header_size);
 
 	if (new_header.magic != mup_magic)
 		return WRONG_FORMAT;
