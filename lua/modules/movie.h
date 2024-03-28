@@ -27,7 +27,7 @@ namespace LuaCore::Movie
 	{
 		if (vcr_is_starting() || vcr_is_playing())
 		{
-			lua_pushstring(L, movie_path.string().c_str());
+			lua_pushstring(L, g_movie_path.string().c_str());
 		} else
 		{
 			luaL_error(L, "No movie is currently playing");

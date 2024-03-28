@@ -4,8 +4,6 @@
 #include <shared/Config.hpp>
 #include <memory>
 #include <filesystem>
-#include <cerrno>
-#include <malloc.h>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -29,29 +27,23 @@ enum
 	mup_version = (3),
 };
 
-#define MUP_HEADER_SIZE (sizeof(t_movie_header))
-
 const auto rawdata_warning_message = "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?";
 const auto rom_name_warning_message = "The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto rom_country_warning_message = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto rom_crc_warning_message = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto truncate_message = "Failed to truncate the movie file. The movie may be corrupted.";
 
-volatile e_task m_task = e_task::idle;
-std::filesystem::path movie_path;
+volatile e_task g_task = e_task::idle;
 
 // The frame to seek to during playback, or an empty option if no seek is being performed
 std::optional<size_t> seek_to_frame;
 
 t_movie_header g_header;
 std::vector<BUTTONS> g_movie_inputs;
+std::filesystem::path g_movie_path;
 
 long m_current_sample = -1;
-// should = length_samples when recording, and be < length_samples when playing
 int m_current_vi = -1;
-
-int title_length;
-
 
 // Used for tracking VCR-invoked resets
 bool just_reset;
@@ -64,13 +56,13 @@ std::recursive_mutex vcr_mutex;
 // Writes the movie header + inputs to current movie_path
 bool write_movie()
 {
-	std::filesystem::remove(movie_path);
-	FILE* f = fopen(movie_path.string().c_str(), "wb");
+	std::filesystem::remove(g_movie_path);
+	FILE* f = fopen(g_movie_path.string().c_str(), "wb");
 	if (!f)
 	{
 		return false;
 	}
-	fwrite(&g_header, MUP_HEADER_SIZE, 1, f);
+	fwrite(&g_header, sizeof(t_movie_header), 1, f);
 	fwrite(g_movie_inputs.data(), sizeof(BUTTONS), g_header.length_samples, f);
 	fclose(f);
 	return true;
@@ -198,7 +190,7 @@ static int read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
 		strncpy(new_header.author, new_header.old_author_info, 48);
 		strncpy(new_header.description, new_header.old_description, 80);
 	}
-	if (new_header.version == 3 && buf.size() < MUP_HEADER_SIZE)
+	if (new_header.version == 3 && buf.size() < sizeof(t_movie_header))
 	{
 		return WRONG_FORMAT;
 	}
@@ -237,31 +229,31 @@ VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header
 bool
 vcr_is_active()
 {
-	return m_task == e_task::recording || m_task == e_task::playback;
+	return g_task == e_task::recording || g_task == e_task::playback;
 }
 
 bool
 vcr_is_idle()
 {
-	return m_task == e_task::idle;
+	return g_task == e_task::idle;
 }
 
 bool
 vcr_is_starting()
 {
-	return m_task == e_task::start_playback || m_task == e_task::start_playback_from_snapshot;
+	return g_task == e_task::start_playback || g_task == e_task::start_playback_from_snapshot;
 }
 
 bool
 vcr_is_playing()
 {
-	return m_task == e_task::playback;
+	return g_task == e_task::playback;
 }
 
 bool
 vcr_is_recording()
 {
-	return m_task == e_task::recording;
+	return g_task == e_task::recording;
 }
 
 bool vcr_is_looping()
@@ -338,14 +330,14 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 	if (space_needed > freeze.size)
 		return Result::InvalidFormat;
 
-	const e_task last_task = m_task;
+	const e_task last_task = g_task;
 	if (!Config.vcr_readonly)
 	{
 		// here, we are going to take the input data from the savestate
 		// and make it the input data for the current movie, then continue
 		// writing new input data at the currentFrame pointer
-		m_task = e_task::recording;
-		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+		g_task = e_task::recording;
+		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 
 		// update header with new ROM info
@@ -374,8 +366,8 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		if (freeze.current_sample > g_header.length_samples)
 			return Result::InvalidFrame;
 
-		m_task = e_task::playback;
-		Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+		g_task = e_task::playback;
+		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 
 		m_current_sample = (long)freeze.current_sample;
@@ -400,32 +392,32 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	std::scoped_lock lock(vcr_mutex);
 
 	// When resetting during playback, we need to remind program of the rerecords
-	if (m_task != e_task::idle && just_reset)
+	if (g_task != e_task::idle && just_reset)
 	{
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 	}
 
 	// if we aren't playing back a movie, our data source isn't movie
-	if (!is_task_playback(m_task))
+	if (!is_task_playback(g_task))
 	{
 		getKeys(index, input);
 		LuaCallbacks::call_input(input, index);
 	}
 
-	if (m_task == e_task::idle)
+	if (g_task == e_task::idle)
 		return;
 
 
 	// We need to handle start tasks first, as logic after it depends on the task being modified
-	if (m_task == e_task::start_recording)
+	if (g_task == e_task::start_recording)
 	{
 		if (just_reset)
 		{
 			m_current_sample = 0;
 			m_current_vi = 0;
-			m_task = e_task::recording;
+			g_task = e_task::recording;
 			just_reset = false;
-			Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 			Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 		} else
 		{
@@ -438,54 +430,54 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		}
 	}
 
-	if (m_task == e_task::start_recording_from_snapshot)
+	if (g_task == e_task::start_recording_from_snapshot)
 	{
 		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Snapshot...\n");
-			m_task = e_task::recording;
+			g_task = e_task::recording;
 			*input = {0};
 		}
 	}
 
-	if (m_task == e_task::start_recording_from_existing_snapshot)
+	if (g_task == e_task::start_recording_from_existing_snapshot)
 	{
 		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Existing Snapshot...\n");
-			m_task = e_task::recording;
+			g_task = e_task::recording;
 			*input = {0};
 		}
 	}
 
-	if (m_task == e_task::start_playback_from_snapshot)
+	if (g_task == e_task::start_playback_from_snapshot)
 	{
 		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
 			if (!savestates_job_success)
 			{
-				m_task = e_task::idle;
+				g_task = e_task::idle;
 				getKeys(index, input);
 				return;
 			}
 			printf("[VCR]: Starting playback...\n");
-			m_task = e_task::playback;
+			g_task = e_task::playback;
 		}
 	}
 
 
-	if (m_task == e_task::start_playback)
+	if (g_task == e_task::start_playback)
 	{
 		if (just_reset)
 		{
 			m_current_sample = 0;
 			m_current_vi = 0;
-			m_task = e_task::playback;
+			g_task = e_task::playback;
 			just_reset = false;
-			Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 			Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 		} else
 		{
@@ -497,7 +489,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		}
 	}
 
-	if (m_task == e_task::recording)
+	if (g_task == e_task::recording)
 	{
 		if (user_requested_reset)
 		{
@@ -523,7 +515,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	}
 
 	// our input source is movie, input plugin is overriden
-	if (m_task != e_task::playback)
+	if (g_task != e_task::playback)
 		return;
 
 	// This if previously also checked for if the VI is over the amount specified in the header,
@@ -534,7 +526,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 		if (Config.is_movie_loop_enabled)
 		{
-			VCR::start_playback(movie_path);
+			VCR::start_playback(g_movie_path);
 			return;
 		}
 
@@ -588,7 +580,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	}
 
 	VCR::stop_all();
-	movie_path = filename;
+	g_movie_path = filename;
 
 	for (auto& [Present, RawData, Plugin] : Controls)
 	{
@@ -607,7 +599,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	Config.vcr_readonly = 0;
 	Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 
-	memset(&g_header, 0, MUP_HEADER_SIZE);
+	memset(&g_header, 0, sizeof(t_movie_header));
 
 	g_header.magic = mup_magic;
 	g_header.version = mup_version;
@@ -622,18 +614,18 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	{
 		// save state
 		printf("[VCR]: Saving state...\n");
-		savestates_do_file(std::filesystem::path(movie_path).replace_extension(".st"), e_st_job::save);
-		m_task = e_task::start_recording_from_snapshot;
+		savestates_do_file(std::filesystem::path(g_movie_path).replace_extension(".st"), e_st_job::save);
+		g_task = e_task::start_recording_from_snapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
 		printf("[VCR]: Loading state...\n");
-		savestates_do_file(std::filesystem::path(movie_path).replace_extension(".st"), e_st_job::load);
+		savestates_do_file(std::filesystem::path(g_movie_path).replace_extension(".st"), e_st_job::load);
 		// set this to the normal snapshot flag to maintain compatibility
 		g_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
-		m_task = e_task::start_recording_from_existing_snapshot;
+		g_task = e_task::start_recording_from_existing_snapshot;
 	} else
 	{
-		m_task = e_task::start_recording;
+		g_task = e_task::start_recording;
 	}
 
 	set_rom_info(&g_header);
@@ -650,7 +642,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 	m_current_sample = 0;
 	m_current_vi = 0;
 
-	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 	return 0;
 }
@@ -666,22 +658,22 @@ vcr_stop_record()
 		return -1;
 	}
 
-	if (!task_is_recording(m_task))
+	if (!task_is_recording(g_task))
 	{
 		return -1;
 	}
 
-	if (m_task == e_task::start_recording)
+	if (g_task == e_task::start_recording)
 	{
-		m_task = e_task::idle;
+		g_task = e_task::idle;
 		printf("[VCR]: Removing files (nothing recorded)\n");
-		_unlink(std::filesystem::path(movie_path).replace_extension(".m64").string().c_str());
-		_unlink(std::filesystem::path(movie_path).replace_extension(".st").string().c_str());
+		_unlink(std::filesystem::path(g_movie_path).replace_extension(".m64").string().c_str());
+		_unlink(std::filesystem::path(g_movie_path).replace_extension(".st").string().c_str());
 	}
 
-	if (m_task == e_task::recording)
+	if (g_task == e_task::recording)
 	{
-		m_task = e_task::idle;
+		g_task = e_task::idle;
 
 		write_movie();
 
@@ -689,7 +681,7 @@ vcr_stop_record()
 			   g_header.length_samples);
 	}
 
-	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 }
 
 std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
@@ -807,7 +799,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
 	g_movie_inputs = {};
 	g_movie_inputs.resize(g_header.length_samples);
-	memcpy(g_movie_inputs.data(), movie_buf.data() + MUP_HEADER_SIZE, sizeof(BUTTONS) * g_header.length_samples);
+	memcpy(g_movie_inputs.data(), movie_buf.data() + sizeof(t_movie_header), sizeof(BUTTONS) * g_header.length_samples);
 
 	for (auto& [Present, RawData, Plugin] : Controls)
 	{
@@ -874,14 +866,14 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	// Reset VCR-related state
 	m_current_sample = 0;
 	m_current_vi = 0;
-	movie_path = path;
+	g_movie_path = path;
 
 	if (g_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 	{
 		printf("[VCR]: Loading state...\n");
 
 		// Load appropriate state for movie
-		auto st_path = find_savestate_for_movie(movie_path);
+		auto st_path = find_savestate_for_movie(g_movie_path);
 
 		if (st_path.empty())
 		{
@@ -889,13 +881,13 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		}
 
 		savestates_do_file(st_path, e_st_job::load);
-		m_task = e_task::start_playback_from_snapshot;
+		g_task = e_task::start_playback_from_snapshot;
 	} else
 	{
-		m_task = e_task::start_playback;
+		g_task = e_task::start_playback;
 	}
 
-	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 	LuaCallbacks::call_play_movie();
 	return Result::Ok;
@@ -923,7 +915,7 @@ VCR::Result VCR::begin_seek_to(int32_t frame, bool relative)
 	if (m_current_sample > frame)
 	{
 		vcr_stop_playback();
-		start_playback(movie_path);
+		start_playback(g_movie_path);
 	}
 
 	return Result::Ok;
@@ -949,11 +941,11 @@ int vcr_stop_playback()
 		return -1;
 	}
 
-	if (!is_task_playback(m_task))
+	if (!is_task_playback(g_task))
 		return -1;
 
-	m_task = e_task::idle;
-	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+	g_task = e_task::idle;
+	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 	LuaCallbacks::call_stop_movie();
 	return 0;
 }
@@ -987,7 +979,7 @@ float get_percent_of_frame(const int ai_len, const int audio_freq, const int aud
 
 int VCR::stop_all()
 {
-	switch (m_task)
+	switch (g_task)
 	{
 	case e_task::start_recording:
 	case e_task::start_recording_from_snapshot:
@@ -1088,7 +1080,7 @@ void vcr_on_vi()
 
 void VCR::init()
 {
-	Messenger::broadcast(Messenger::Message::TaskChanged, m_task);
+	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 	Messenger::subscribe(Messenger::Message::ResetCompleted, [](std::any)
 	{
 		just_reset = true;

@@ -179,10 +179,10 @@ void update_titlebar()
 		text += std::format(" - {}", reinterpret_cast<char*>(ROM_HEADER.nom));
 	}
 
-	if (m_task != e_task::idle)
+	if (g_task != e_task::idle)
 	{
 		char movie_filename[MAX_PATH] = {0};
-		_splitpath(movie_path.string().c_str(), nullptr, nullptr, movie_filename, nullptr);
+		_splitpath(g_movie_path.string().c_str(), nullptr, nullptr, movie_filename, nullptr);
 		text += std::format(" - {}", movie_filename);
 	}
 
@@ -215,9 +215,9 @@ void on_task_changed(std::any data)
 	}
 
 	if ((task_is_recording(value) && !task_is_recording(previous_value))
-		|| (task_is_playback(value) && !task_is_playback(previous_value)) && !movie_path.empty())
+		|| (task_is_playback(value) && !task_is_playback(previous_value)) && !g_movie_path.empty())
 	{
-		Recent::add(Config.recent_movie_paths, movie_path.string(), Config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, recent_movies_menu);
+		Recent::add(Config.recent_movie_paths, g_movie_path.string(), Config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, recent_movies_menu);
 	}
 
 	update_titlebar();
@@ -283,7 +283,7 @@ void on_emu_launched_changed(std::any data)
 
 	update_titlebar();
 	// Some menu items, like movie ones, depend on both this and vcr task
-	on_task_changed(m_task);
+	on_task_changed(g_task);
 
 	// Reset and restore view stuff when emulation starts
 	if (value && !previous_value)

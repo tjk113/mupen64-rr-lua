@@ -225,7 +225,7 @@ struct t_movie_freeze
 	std::vector<uint8_t> input_buffer;
 };
 
-extern volatile e_task m_task;
+extern volatile e_task g_task;
 
 bool task_is_playback(e_task task);
 bool task_is_recording(e_task task);
@@ -366,4 +366,4 @@ namespace VCR
 }
 
 bool is_frame_skipped();
-extern std::filesystem::path movie_path;
+extern std::filesystem::path g_movie_path;
