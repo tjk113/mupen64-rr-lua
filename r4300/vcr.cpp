@@ -522,7 +522,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// but that can cause movies to end playback early on laggy plugins.
 	if (m_current_sample >= (long)g_header.length_samples)
 	{
-		vcr_stop_playback();
+		VCR::stop_all();
 
 		if (Config.is_movie_loop_enabled)
 		{
@@ -567,20 +567,18 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	m_current_sample++;
 }
 
-
-int
-vcr_start_record(const char* filename, const unsigned short flags,
-                 const char* author_utf8, const char* description_utf8)
+VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::string author,
+	std::string description)
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
 	if (!lock.owns_lock())
 	{
 		printf("[VCR] vcr_start_record busy!\n");
-		return -1;
+		return Result::Busy;
 	}
 
 	VCR::stop_all();
-	g_movie_path = filename;
+	g_movie_path = path;
 
 	for (auto& [Present, RawData, Plugin] : Controls)
 	{
@@ -589,7 +587,7 @@ vcr_start_record(const char* filename, const unsigned short flags,
 			bool proceed = show_ask_dialog(rawdata_warning_message, "VCR", true);
 			if (!proceed)
 			{
-				return -1;
+				return Result::Cancelled;
 			}
 			break;
 		}
@@ -630,21 +628,26 @@ vcr_start_record(const char* filename, const unsigned short flags,
 
 	set_rom_info(&g_header);
 
-	// utf8 strings are also null-terminated so this method still works
-	if (author_utf8)
-		strncpy(g_header.author, author_utf8, MOVIE_AUTHOR_DATA_SIZE);
-	g_header.author[MOVIE_AUTHOR_DATA_SIZE - 1] = '\0';
-	if (description_utf8)
-		strncpy(g_header.description, description_utf8,
-		        MOVIE_DESCRIPTION_DATA_SIZE);
-	g_header.description[MOVIE_DESCRIPTION_DATA_SIZE - 1] = '\0';
+	memset(g_header.author, 0, MOVIE_AUTHOR_DATA_SIZE);
+	if (author.size() > MOVIE_AUTHOR_DATA_SIZE)
+	{
+		author.resize(MOVIE_AUTHOR_DATA_SIZE);
+	}
+	strncpy(g_header.author, author.data(), author.size());
+
+	memset(g_header.description, 0, MOVIE_DESCRIPTION_DATA_SIZE);
+	if (description.size() > MOVIE_DESCRIPTION_DATA_SIZE)
+	{
+		description.resize(MOVIE_DESCRIPTION_DATA_SIZE);
+	}
+	strncpy(g_header.description, description.data(), description.size());
 
 	m_current_sample = 0;
 	m_current_vi = 0;
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
-	return 0;
+	return Result::Ok;
 }
 
 
@@ -914,7 +917,7 @@ VCR::Result VCR::begin_seek_to(int32_t frame, bool relative)
 	// We need to backtrack by restarting playback if we're ahead of the frame
 	if (m_current_sample > frame)
 	{
-		vcr_stop_playback();
+		VCR::stop_all();
 		start_playback(g_movie_path);
 	}
 

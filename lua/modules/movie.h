@@ -19,7 +19,7 @@ namespace LuaCore::Movie
 
 	static int StopMovie(lua_State* L)
 	{
-		vcr_stop_playback();
+		VCR::stop_all();
 		return 0;
 	}
 

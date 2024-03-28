@@ -519,14 +519,7 @@ void savestates_load_immediate()
 			                         MB_ICONWARNING | MB_YESNO);
 			if (result != IDYES)
 			{
-				if (vcr_is_recording())
-				{
-					vcr_stop_record();
-				}
-				if (vcr_is_playing())
-				{
-					vcr_stop_playback();
-				}
+				VCR::stop_all();
 				savestates_job_success = FALSE;
 				goto failedLoad;
 			}

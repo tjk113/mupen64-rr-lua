@@ -241,13 +241,6 @@ extern unsigned long vcr_get_length_samples();
 extern void vcr_set_length_v_is(unsigned long val);
 extern void vcr_set_length_samples(unsigned long val);
 
-
-extern int vcr_start_record(const char* filename, unsigned short flags,
-                            const char* author_utf8, const char* description_utf8);
-extern int vcr_stop_record();
-
-extern int vcr_stop_playback();
-
 /**
  * \brief Notifies VCR engine about controller being polled
  * \param index The polled controller's index
@@ -307,6 +300,16 @@ namespace VCR
  	* \return The error code
  	*/
 	Result start_playback(std::filesystem::path path);
+
+	/**
+	 * \brief Starts recording a movie
+	 * \param path The movie's path
+	 * \param flags Start flags, see MOVIE_START_FROM_X
+	 * \param author The movie author's name
+	 * \param description The movie's description
+	 * \return The operation result
+	 */
+	Result start_record(std::filesystem::path path, uint16_t flags, std::string author = "(no author)", std::string description = "(no description)");
 
 	/**
 	 * \brief Computes whether a seek operation is possible

@@ -1034,10 +1034,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					if (vcr_start_record(
-						result.path.string().c_str(), result.start_flag, result.author.c_str(), result.description.c_str()) < 0)
+					if (VCR::start_record(result.path, result.start_flag, result.author, result.description) != VCR::Result::Ok)
 					{
-						show_modal_info(std::format("Couldn't start recording of {}", result.path.string()).c_str(), nullptr);
+						show_warning(std::format("Couldn't start recording of {}", result.path.string()).c_str(), nullptr);
 						break;
 					}
 
