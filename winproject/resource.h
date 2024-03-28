@@ -90,6 +90,8 @@
 #define IDC_LIST_SCRIPTS                1024
 #define IDC_CAPTUREDELAY                1026
 #define IDC_RADIO_FROM_START            1027
+#define IDC_CAPTUREDELAY2               1027
+#define IDC_EDIT_MAX_LAG                1027
 #define IDC_RADIO_FROM_ST               1028
 #define IDC_RADIO_FROM_EEPROM           1029
 #define IDC_RADIO_FROM_EXISTING_ST      1030
@@ -459,6 +461,7 @@
 #define IDC_COMBO_CLOCK_SPD_MULT        40056
 #define IDC_CLOCK_SPD_MULT_TEXT         40057
 #define IDC_COMBO_CLOCK_SPD_MULT2       40057
+#define IDC_CLOCK_SPD_MULT2             40057
 #define IDD_MUPENERROR                  40058
 #define IDC_ERROR_PANIC_IGNORE          40059
 #define IDC_ERROR_PANIC_CLOSE           40060

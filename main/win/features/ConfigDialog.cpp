@@ -531,6 +531,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
 			set_checkbox_state(hwnd, IDC_RECORD_RESETS, Config.is_reset_recording_enabled);
 			SetDlgItemInt(hwnd, IDC_CAPTUREDELAY, Config.capture_delay, 0);
+			SetDlgItemInt(hwnd, IDC_EDIT_MAX_LAG, Config.max_lag, 0);
 
 			return TRUE;
 		}
@@ -597,6 +598,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			Config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);
 			Config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);
 			Config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, nullptr, 0);
+			Config.max_lag = GetDlgItemInt(hwnd, IDC_EDIT_MAX_LAG, nullptr, 0);
 		}
 		break;
 	default:
