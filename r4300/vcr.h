@@ -222,7 +222,7 @@ struct t_movie_freeze
 	unsigned long current_sample;
 	unsigned long current_vi;
 	unsigned long length_samples;
-	std::vector<uint8_t> input_buffer;
+	std::vector<BUTTONS> input_buffer;
 };
 
 extern volatile e_task g_task;

@@ -210,7 +210,7 @@ std::vector<uint8_t> generate_savestate()
 		vecwrite(b, &movie_freeze.current_sample, sizeof(movie_freeze.current_sample));
 		vecwrite(b, &movie_freeze.current_vi, sizeof(movie_freeze.current_vi));
 		vecwrite(b, &movie_freeze.length_samples, sizeof(movie_freeze.length_samples));
-		vecwrite(b, movie_freeze.input_buffer.data(), movie_freeze.input_buffer.size());
+		vecwrite(b, movie_freeze.input_buffer.data(), movie_freeze.input_buffer.size() * sizeof(BUTTONS));
 	}
 
 	if (MGECompositor::available() && Config.st_screenshot)

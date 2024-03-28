@@ -288,6 +288,8 @@ std::optional<t_movie_freeze> VCR::freeze()
 		return std::nullopt;
 	}
 
+	assert(g_movie_inputs.size() == g_header.length_samples);
+
 	t_movie_freeze freeze = {
 		.size = sizeof(unsigned long) * 4 + sizeof(BUTTONS) * (g_header.length_samples + 1),
 		.uid = g_header.uid,
@@ -296,8 +298,10 @@ std::optional<t_movie_freeze> VCR::freeze()
 		.length_samples = g_header.length_samples,
 	};
 
-	freeze.input_buffer.resize(sizeof(BUTTONS) * (g_header.length_samples + 1));
-	memcpy(freeze.input_buffer.data(), g_movie_inputs.data(), sizeof(BUTTONS) * (g_header.length_samples + 1));
+	printf("[VCR] Freezing %d samples...\n", g_movie_inputs.size());
+	freeze.input_buffer = std::vector(g_movie_inputs);
+	// NOTE: Nonsense old mupen compat, freeze buffer has one extra frame at the end?
+	freeze.input_buffer.push_back(freeze.input_buffer.back());
 
 	return std::make_optional(std::move(freeze));
 }
@@ -351,8 +355,11 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		g_header.rerecord_count++;
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 
-		g_movie_inputs.resize(freeze.length_samples + 1);
-		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), space_needed);
+		printf("[VCR] Unfreezing %d samples\n", freeze.length_samples);
+
+		// NOTE: Here, we ignore the last frame
+		g_movie_inputs.resize(freeze.length_samples);
+		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.length_samples);
 	} else
 	{
 		// here, we are going to keep the input data from the movie file
@@ -598,6 +605,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 
 	memset(&g_header, 0, sizeof(t_movie_header));
+	g_movie_inputs = {};
 
 	g_header.magic = mup_magic;
 	g_header.version = mup_version;
