@@ -342,7 +342,7 @@ namespace MovieDialog
 		record_params.author = Config.last_movie_author;
 		record_params.description = "";
 
-		DialogBox(GetModuleHandle(NULL),
+		DialogBox(app_instance,
 		          MAKEINTRESOURCE(IDD_MOVIE_PLAYBACK_DIALOG), mainHWND,
 		          (DLGPROC)MovieInspectorProc);
 

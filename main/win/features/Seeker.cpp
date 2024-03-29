@@ -107,7 +107,7 @@ namespace Seeker
 		// We need to run the dialog on another thread, since we don't want to block the main one
 		std::thread([]
 		{
-			DialogBox(GetModuleHandle(NULL),
+			DialogBox(app_instance,
 			          MAKEINTRESOURCE(IDD_SEEKER), mainHWND,
 			          (DLGPROC)SeekerProc);
 			current_hwnd = nullptr;

@@ -690,7 +690,7 @@ void lua_init()
 	WNDCLASS wndclass = {0};
 	wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
 	wndclass.lpfnWndProc = (WNDPROC)d2d_overlay_wndproc;
-	wndclass.hInstance = GetModuleHandle(nullptr);
+	wndclass.hInstance = app_instance;
 	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndclass.lpszClassName = d2d_overlay_class;
 	RegisterClass(&wndclass);
@@ -721,7 +721,7 @@ void LuaEnvironment::create_renderer()
 	dc_size = {(UINT32)abs(window_rect.right), (UINT32)abs(window_rect.bottom)};
 
 	d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr,
-	                                  GetModuleHandle(nullptr), nullptr);
+	                                  app_instance, nullptr);
 	SetWindowLongPtr(d2d_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	DWriteCreateFactory(
@@ -746,7 +746,7 @@ void LuaEnvironment::create_renderer()
 	ReleaseDC(mainHWND, gdi_dc);
 
 	gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, gdi_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr,
-	                                  GetModuleHandle(nullptr), nullptr);
+	                                  app_instance, nullptr);
 	SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 	SetLayeredWindowAttributes(gdi_overlay_hwnd, bitmap_color_mask, 0, LWA_COLORKEY);
 

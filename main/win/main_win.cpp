@@ -1278,8 +1278,6 @@ int WINAPI WinMain(
 	CreateDirectory((app_path + "screenshot").c_str(), NULL);
 	CreateDirectory((app_path + "plugin").c_str(), NULL);
 
-	emu_paused = 1;
-
 	load_config();
 	lua_init();
 

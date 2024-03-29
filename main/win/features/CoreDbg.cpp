@@ -103,7 +103,7 @@ namespace CoreDbg
 	{
 		std::thread([]
 		{
-			DialogBox(GetModuleHandle(0),
+			DialogBox(app_instance,
 			          MAKEINTRESOURCE(IDD_COREDBG),
 			          0,
 			          coredbg_dlgproc);

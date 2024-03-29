@@ -40,7 +40,7 @@ BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w
 	{
 	case WM_INITDIALOG:
 		SendDlgItemMessage(hwnd, IDB_LOGO, STM_SETIMAGE, IMAGE_BITMAP,
-		                   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_LOGO),
+		                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_LOGO),
 		                                     IMAGE_BITMAP, 0, 0, 0));
 		return TRUE;
 
@@ -73,7 +73,7 @@ BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w
 
 void configdialog_about()
 {
-	DialogBox(GetModuleHandle(NULL),
+	DialogBox(app_instance,
 	          MAKEINTRESOURCE(IDD_ABOUT), mainHWND,
 	          about_dlg_proc);
 }
@@ -334,16 +334,16 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
 
 			SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
-							   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_DISPLAY),
+							   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_DISPLAY),
 												 IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_CONTROL, STM_SETIMAGE, IMAGE_BITMAP,
-							   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_CONTROL),
+							   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_CONTROL),
 												 IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_SOUND, STM_SETIMAGE, IMAGE_BITMAP,
-							   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_SOUND),
+							   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_SOUND),
 												 IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_RSP, STM_SETIMAGE, IMAGE_BITMAP,
-							   (LPARAM)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_RSP),
+							   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_RSP),
 												 IMAGE_BITMAP, 0, 0, 0));
 			return TRUE;
 		}

@@ -121,7 +121,7 @@ namespace Runner
 
 	void show()
 	{
-		DialogBox(GetModuleHandle(NULL),
+		DialogBox(app_instance,
 		          MAKEINTRESOURCE(IDD_RUNNER), mainHWND,
 		          (DLGPROC)WndProc);
 	}
