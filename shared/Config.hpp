@@ -116,7 +116,12 @@ typedef struct _CONFIG
 	/// Whether fast-forward will mute audio
 	/// This option improves performance by skipping additional doRspCycles calls, but may cause issues
 	/// </summary>
-	int32_t fastforward_silent = 0;
+	int32_t fastforward_silent;
+
+	/// <summary>
+	/// Whether lag frames will cause updateScreen to be invoked
+	/// </summary>
+	int32_t skip_rendering_lag;
 
 	/// <summary>
 	/// Saves video buffer to savestates, slow!

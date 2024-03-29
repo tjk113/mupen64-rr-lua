@@ -415,36 +415,39 @@ void gen_interrupt()
 		break;
 
 	case VI_INT:
-		lag_count++;
-		LuaCallbacks::call_interval();
-		if (!is_frame_skipped())
 		{
-			if (MGECompositor::available())
+			lag_count++;
+			LuaCallbacks::call_interval();
+			// NOTE: It's ok to not update screen when lagging
+			auto skip = Config.skip_rendering_lag && lag_count > 1;
+			if (!is_frame_skipped() || skip)
 			{
-				MGECompositor::update_screen();
-			} else
-			{
-				updateScreen();
+				if (MGECompositor::available())
+				{
+					MGECompositor::update_screen();
+				} else
+				{
+					updateScreen();
+				}
 			}
+			LuaCallbacks::call_vi();
+			vcr_on_vi();
+			EncodingManager::at_vi();
+			timer_new_vi();
+			if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
+			else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * Config.cpu_clock_speed_multiplier));
+			// this is the place
+			next_vi += vi_register.vi_delay;
+			if (vi_register.vi_status & 0x40) vi_field = 1 - vi_field;
+			else vi_field = 0;
+
+			remove_interrupt_event();
+			add_interrupt_event_count(VI_INT, next_vi);
+			//++frame_count;
+			//total_vi += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - starttime).count();
+			MI_register.mi_intr_reg |= 0x08;
+			break;
 		}
-		LuaCallbacks::call_vi();
-		vcr_on_vi();
-		EncodingManager::at_vi();
-		timer_new_vi();
-		if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
-		else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * Config.cpu_clock_speed_multiplier));
-	// this is the place
-		next_vi += vi_register.vi_delay;
-		if (vi_register.vi_status & 0x40) vi_field = 1 - vi_field;
-		else vi_field = 0;
-
-		remove_interrupt_event();
-		add_interrupt_event_count(VI_INT, next_vi);
-	//++frame_count;
-	//total_vi += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - starttime).count();
-		MI_register.mi_intr_reg |= 0x08;
-		break;
-
 	case COMPARE_INT: // game can set Compare register to some value, and make a timer like that
 		//printf("COMPARE, count: %x\n", q->count);
 		remove_interrupt_event();
