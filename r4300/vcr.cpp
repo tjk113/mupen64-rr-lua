@@ -625,19 +625,18 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 }
 
 
-int
-vcr_stop_record()
+VCR::Result vcr_stop_record()
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
 	if (!lock.owns_lock())
 	{
 		printf("[VCR] vcr_stop_record busy!\n");
-		return -1;
+		return VCR::Result::Busy;
 	}
 
 	if (!task_is_recording(g_task))
 	{
-		return -1;
+		return VCR::Result::Ok;
 	}
 
 	if (g_task == e_task::start_recording)
@@ -909,22 +908,22 @@ bool VCR::is_seeking()
 	return seek_to_frame.has_value();
 }
 
-int vcr_stop_playback()
+VCR::Result vcr_stop_playback()
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
 	if (!lock.owns_lock())
 	{
 		printf("[VCR] vcr_stop_playback busy!\n");
-		return -1;
+		return VCR::Result::Busy;
 	}
 
 	if (!is_task_playback(g_task))
-		return -1;
+		return VCR::Result::Ok;
 
 	g_task = e_task::idle;
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 	LuaCallbacks::call_stop_movie();
-	return 0;
+	return VCR::Result::Ok;
 }
 
 
@@ -954,7 +953,7 @@ float get_percent_of_frame(const int ai_len, const int audio_freq, const int aud
 	return time / vi_len; //ratio
 }
 
-int VCR::stop_all()
+VCR::Result VCR::stop_all()
 {
 	switch (g_task)
 	{
@@ -966,7 +965,8 @@ int VCR::stop_all()
 	case e_task::start_playback_from_snapshot:
 	case e_task::playback:
 		return vcr_stop_playback();
-	default: return 0;
+	default:
+		return Result::Ok;
 	}
 }
 

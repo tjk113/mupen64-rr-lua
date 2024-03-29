@@ -348,7 +348,7 @@ namespace VCR
 	 * \brief Stops all running tasks
 	 * \return The operation result
 	 */
-	int stop_all();
+	Result stop_all();
 
 	/**
 	 * \brief Gets the text representation of the last frame's inputs
