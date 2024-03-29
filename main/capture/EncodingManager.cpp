@@ -130,13 +130,13 @@ namespace EncodingManager
 
 		if (sound_buf_pos + len > min_write_size || force)
 		{
-			if (int len2 = vcr_get_resample_len(44100, m_audio_freq,
+			if (int len2 = rsmp_get_resample_len(44100, m_audio_freq,
 			                                    m_audio_bitrate,
 			                                    sound_buf_pos); (len2 % 8) == 0
 				|| len > max_write_size)
 			{
 				static short* buf2 = nullptr;
-				len2 = vcr_resample(&buf2, 44100,
+				len2 = rsmp_resample(&buf2, 44100,
 				                    reinterpret_cast<short*>(sound_buf),
 				                    m_audio_freq,
 				                    m_audio_bitrate, sound_buf_pos);

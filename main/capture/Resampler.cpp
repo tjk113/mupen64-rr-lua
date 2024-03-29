@@ -1,17 +1,14 @@
-//#include "../config.h"
-
 #include "Resampler.h"
-#include "../../lib/speex/speex_resampler.h"
+#include <cmath>
+#include <cstdio>
+#include <lib/speex/speex_resampler.h>
 
-#include <math.h>
-#include <stdio.h>
+SpeexResamplerState* speex_ctx = NULL;
+short in_samps[44100 * 2 * 2]; // big enough i guess?
+short out_samps[44100 * 2 * 2]; // big enough i guess?
+int err = 0;
 
-static SpeexResamplerState* speex_ctx = NULL;
-static short in_samps[44100 * 2 * 2]; // big enough i guess?
-static short out_samps[44100 * 2 * 2]; // big enough i guess?
-static int err = 0;
-
-static int rates_changed(const int cur_in, const int cur_out)
+int rates_changed(const int cur_in, const int cur_out)
 {
 	static spx_uint32_t in;
 	static spx_uint32_t out;
@@ -20,7 +17,7 @@ static int rates_changed(const int cur_in, const int cur_out)
 }
 
 int
-vcr_get_resample_len(const int dst_freq, const int src_freq, const int src_bitrate, int src_len)
+rsmp_get_resample_len(const int dst_freq, const int src_freq, const int src_bitrate, int src_len)
 {
 	// convert bitrate to 16 bits
 	if (src_bitrate != 16)
@@ -38,7 +35,7 @@ vcr_get_resample_len(const int dst_freq, const int src_freq, const int src_bitra
 }
 
 int
-vcr_resample(short** dst, const int dst_freq,
+rsmp_resample(short** dst, const int dst_freq,
              const short* src, const int src_freq, const int src_bitrate, const int src_len)
 {
 	if (src_bitrate != 16)
