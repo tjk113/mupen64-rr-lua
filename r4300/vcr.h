@@ -5,28 +5,6 @@
 
 enum
 {
-	SUCCESS = (0),
-	WRONG_FORMAT = (1),
-	WRONG_VERSION = (2),
-	FILE_NOT_FOUND = (3),
-	NOT_FROM_THIS_MOVIE = (4),
-	NOT_FROM_A_MOVIE = (5),
-	INVALID_FRAME = (6),
-	UNKNOWN_ERROR = (7)
-};
-
-enum
-{
-	VCR_PLAYBACK_SUCCESS = (0),
-	VCR_PLAYBACK_ERROR = (-1),
-	VCR_PLAYBACK_SAVESTATE_MISSING = (-2),
-	VCR_PLAYBACK_FILE_BUSY = (-3),
-	VCR_PLAYBACK_INCOMPATIBLE = (-4),
-	VCR_PLAYBACK_NO_MATCHING_ROM = (-5),
-};
-
-enum
-{
 	MOVIE_START_FROM_SNAPSHOT = (1 << 0),
 	MOVIE_START_FROM_NOTHING = (1 << 1),
 	MOVIE_START_FROM_EEPROM = (1 << 2),
@@ -34,42 +12,8 @@ enum
 };
 
 #define CONTROLLER_X_PRESENT(x)	(1<<(x))
-
-enum
-{
-	CONTROLLER_1_PRESENT = (1 << 0),
-	CONTROLLER_2_PRESENT = (1 << 1),
-	CONTROLLER_3_PRESENT = (1 << 2),
-	CONTROLLER_4_PRESENT = (1 << 3)
-};
-
 #define CONTROLLER_X_MEMPAK(x)	(1<<((x)+4))
-
-enum
-{
-	CONTROLLER_1_MEMPAK = (1 << 4),
-	CONTROLLER_2_MEMPAK = (1 << 5),
-	CONTROLLER_3_MEMPAK = (1 << 6),
-	CONTROLLER_4_MEMPAK = (1 << 7)
-};
-
 #define CONTROLLER_X_RUMBLE(x)	(1<<((x)+8))
-
-enum
-{
-	CONTROLLER_1_RUMBLE = (1 << 8),
-	CONTROLLER_2_RUMBLE = (1 << 9),
-	CONTROLLER_3_RUMBLE = (1 << 10),
-	CONTROLLER_4_RUMBLE = (1 << 11)
-};
-
-enum
-{
-	MOVIE_AUTHOR_DATA_SIZE = (222),
-	MOVIE_DESCRIPTION_DATA_SIZE = (256)
-};
-
-#define MOVIE_MAX_METADATA_SIZE (MOVIE_DESCRIPTION_DATA_SIZE > MOVIE_AUTHOR_DATA_SIZE ? MOVIE_DESCRIPTION_DATA_SIZE : MOVIE_AUTHOR_DATA_SIZE)
 
 #pragma pack(push, 1)
 /**
@@ -190,12 +134,12 @@ typedef struct
 	/**
 	 * \brief The name of the movie's author as a UTF-8 string
 	 */
-	char author[MOVIE_AUTHOR_DATA_SIZE];
+	char author[222];
 
 	/**
 	 * \brief A description of what the movie is about as a UTF-8 string
 	 */
-	char description[MOVIE_DESCRIPTION_DATA_SIZE];
+	char description[256];
 } t_movie_header;
 #pragma pack(pop)
 

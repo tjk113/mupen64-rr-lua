@@ -79,9 +79,9 @@ namespace MovieDialog
 				}
 				SendMessage(GetDlgItem(hwnd, IDC_INI_DESCRIPTION),
 				            EM_SETLIMITTEXT,
-				            MOVIE_DESCRIPTION_DATA_SIZE, 0);
+				            sizeof(t_movie_header::description), 0);
 				SendMessage(GetDlgItem(hwnd, IDC_INI_AUTHOR), EM_SETLIMITTEXT,
-				            MOVIE_AUTHOR_DATA_SIZE,
+				            sizeof(t_movie_header::author),
 				            0);
 
 				SetDlgItemText(hwnd, IDC_INI_AUTHOR,
@@ -176,7 +176,7 @@ namespace MovieDialog
 				}
 			case IDC_INI_AUTHOR:
 				{
-					char author[MOVIE_AUTHOR_DATA_SIZE] = {0};
+					char author[sizeof(t_movie_header::author)] = {0};
 					GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, author,
 					                std::size(author));
 					record_params.author = author;
@@ -184,7 +184,7 @@ namespace MovieDialog
 				}
 			case IDC_INI_DESCRIPTION:
 				{
-					char description[MOVIE_DESCRIPTION_DATA_SIZE] = {0};
+					char description[sizeof(t_movie_header::description)] = {0};
 					GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, description,
 					                std::size(description));
 					record_params.description = description;
@@ -295,64 +295,8 @@ namespace MovieDialog
 				std::make_pair(std::format("Controller {}", i + 1), tempbuf));
 		}
 
-
-		{
-			// convert utf8 metadata to windows widechar
-			WCHAR wszMeta[MOVIE_MAX_METADATA_SIZE];
-			if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-			                        header.author, -1, wszMeta,
-			                        MOVIE_AUTHOR_DATA_SIZE))
-			{
-				SetLastError(0);
-				SetWindowTextW(GetDlgItem(hwnd, IDC_INI_AUTHOR), wszMeta);
-				if (GetLastError() == ERROR_CALL_NOT_IMPLEMENTED)
-				{
-					// not implemented on this system - convert as best we can to 1-byte characters and set with that
-					// TODO: load unicows.dll instead so SetWindowTextW won't fail even on Win98/ME
-					char ansiStr[MOVIE_AUTHOR_DATA_SIZE];
-					WideCharToMultiByte(CP_ACP, 0, wszMeta, -1, ansiStr,
-					                    MOVIE_AUTHOR_DATA_SIZE, NULL, NULL);
-					SetWindowTextA(GetDlgItem(hwnd, IDC_INI_AUTHOR), ansiStr);
-
-					if (ansiStr[0] == '\0')
-						SetWindowTextA(GetDlgItem(hwnd, IDC_INI_AUTHOR),
-						               "(too lazy to type name)");
-
-					SetLastError(0);
-				} else
-				{
-					if (wszMeta[0] == '\0')
-						SetWindowTextW(GetDlgItem(hwnd, IDC_INI_AUTHOR),
-						               L"(too lazy to type name)");
-				}
-			}
-			if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-			                        header.description, -1, wszMeta,
-			                        MOVIE_DESCRIPTION_DATA_SIZE))
-			{
-				SetWindowTextW(GetDlgItem(hwnd, IDC_INI_DESCRIPTION), wszMeta);
-				if (GetLastError() == ERROR_CALL_NOT_IMPLEMENTED)
-				{
-					char ansiStr[MOVIE_DESCRIPTION_DATA_SIZE];
-					WideCharToMultiByte(CP_ACP, 0, wszMeta, -1, ansiStr,
-					                    MOVIE_DESCRIPTION_DATA_SIZE, NULL,
-					                    NULL);
-					SetWindowTextA(GetDlgItem(hwnd, IDC_INI_DESCRIPTION),
-					               ansiStr);
-
-					if (ansiStr[0] == '\0')
-						SetWindowTextA(GetDlgItem(hwnd, IDC_INI_DESCRIPTION),
-						               "(no description entered)");
-
-					SetLastError(0);
-				} else
-				{
-					if (wszMeta[0] == '\0')
-						SetWindowTextW(GetDlgItem(hwnd, IDC_INI_DESCRIPTION),
-						               L"(no description entered)");
-				}
-			}
-		}
+		SetDlgItemText(hwnd, IDC_INI_AUTHOR, header.author);
+		SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, header.description);
 
 		CheckDlgButton(hwnd, IDC_RADIO_FROM_ST,
 		               header.startFlags ==

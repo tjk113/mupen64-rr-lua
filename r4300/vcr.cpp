@@ -602,17 +602,17 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 
 	set_rom_info(&g_header);
 
-	memset(g_header.author, 0, MOVIE_AUTHOR_DATA_SIZE);
-	if (author.size() > MOVIE_AUTHOR_DATA_SIZE)
+	memset(g_header.author, 0, sizeof(t_movie_header::author));
+	if (author.size() > sizeof(t_movie_header::author))
 	{
-		author.resize(MOVIE_AUTHOR_DATA_SIZE);
+		author.resize(sizeof(t_movie_header::author));
 	}
 	strncpy(g_header.author, author.data(), author.size());
 
-	memset(g_header.description, 0, MOVIE_DESCRIPTION_DATA_SIZE);
-	if (description.size() > MOVIE_DESCRIPTION_DATA_SIZE)
+	memset(g_header.description, 0, sizeof(t_movie_header::description));
+	if (description.size() > sizeof(t_movie_header::description))
 	{
-		description.resize(MOVIE_DESCRIPTION_DATA_SIZE);
+		description.resize(sizeof(t_movie_header::description));
 	}
 	strncpy(g_header.description, description.data(), description.size());
 
