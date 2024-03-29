@@ -169,8 +169,6 @@ struct t_movie_freeze
 	std::vector<BUTTONS> input_buffer;
 };
 
-extern volatile e_task g_task;
-
 bool task_is_playback(e_task task);
 bool task_is_recording(e_task task);
 
@@ -305,7 +303,16 @@ namespace VCR
 	 * \brief Gets the text representation of the VCR state's inputs
 	 */
 	const char* get_status_text();
+
+	/**
+	 * \brief Gets the current movie path. Only valid when task is not idle.
+	 */
+	std::filesystem::path get_path();
+
+	/**
+	 * \brief Gets the current task
+	 */
+	e_task get_task();
 }
 
 bool is_frame_skipped();
-extern std::filesystem::path g_movie_path;

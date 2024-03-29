@@ -1024,6 +1024,16 @@ const char* VCR::get_status_text()
 	return text;
 }
 
+std::filesystem::path VCR::get_path()
+{
+	return g_movie_path;
+}
+
+e_task VCR::get_task()
+{
+	return g_task;
+}
+
 void vcr_on_vi()
 {
 	m_current_vi++;

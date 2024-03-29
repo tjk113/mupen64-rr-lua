@@ -25,13 +25,13 @@ namespace LuaCore::Movie
 
 	static int GetMovieFilename(lua_State* L)
 	{
-		if (g_task == e_task::idle)
+		if (VCR::get_task() == e_task::idle)
 		{
 			luaL_error(L, "No movie is currently playing");
 			lua_pushstring(L, "");
 		} else
 		{
-			lua_pushstring(L, g_movie_path.string().c_str());
+			lua_pushstring(L, VCR::get_path().string().c_str());
 		}
 		return 1;
 	}
