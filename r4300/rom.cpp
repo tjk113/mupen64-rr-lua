@@ -192,7 +192,6 @@ bool rom_load(std::filesystem::path path)
 	rom = (unsigned char*)malloc(taille);
 	original_rom = (unsigned char*)malloc(taille);
 	memcpy(rom, decompressed_rom.data(), rom_size);
-	memcpy(original_rom, decompressed_rom.data(), rom_size);
 
 	uint8_t tmp;
 	if (rom[0] == 0x37)
@@ -248,6 +247,12 @@ bool rom_load(std::filesystem::path path)
 		for (size_t i = 0; i < 16; i++) sprintf(arg + i * 2, "%02X", digest[i]);
 		strcpy(rom_md5, arg);
 	}
+
+	auto roml = (unsigned long*)rom;
+	for (size_t i = 0; i < (rom_size / 4); i++)
+		roml[i] = sl(roml[i]);
+
+	memcpy(original_rom, rom, rom_size);
 
 	return true;
 }

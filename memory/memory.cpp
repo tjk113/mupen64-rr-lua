@@ -132,12 +132,6 @@ int init_memory()
 
 	int i;
 
-	//swap rom
-	unsigned long* roml;
-	roml = (unsigned long*)rom;
-	for (i = 0; i < (rom_size / 4); i++)
-		roml[i] = sl(roml[i]);
-
 	//init hash tables
 	for (i = 0; i < MemoryMaxCount; i++)
 	{
