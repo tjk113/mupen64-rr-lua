@@ -37,7 +37,7 @@
 static FILE* f;
 static int pipe_opened = 0;
 static long long int comp_reg[32];
-extern unsigned long op;
+extern unsigned long vr_op;
 extern unsigned long interp_addr;
 static unsigned long old_op;
 int compare_core_mode = 0;
@@ -58,7 +58,7 @@ void display_error(const char* txt)
 	}
 	printf("%x, %x\n", (unsigned int)reg_cop0[9], (unsigned int)comp_reg2[9]);
 	printf("erreur @:%x\n", (int)old_op);
-	printf("erreur @:%x\n", (int)op);
+	printf("erreur @:%x\n", (int)vr_op);
 
 	if (!strcmp(txt, "gpr"))
 	{
@@ -180,7 +180,7 @@ void compare_core()
 		/*fread (comp_reg, 4, 1, f);
 		if (memcmp(&FCR31, comp_reg, 4))
 		  display_error();*/
-		old_op = op;
+		old_op = vr_op;
 	} else
 	{
 		//if (reg_cop0[9] > 0x6800000) printf("PC=%x\n", (int)PC->addr);

@@ -51,7 +51,7 @@
 #include "modules/wgui.h"
 #include <r4300/timers.h>
 
-extern unsigned long op;
+extern unsigned long vr_op;
 extern void (*interp_ops[64])(void);
 
 extern int fast_memory;

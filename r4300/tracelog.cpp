@@ -4,7 +4,7 @@
 #include "r4300.h"
 
 // TODO: Rename to less generic name, e.g.: vr_op
-extern unsigned long op;
+extern unsigned long vr_op;
 
 namespace tracelog
 {
@@ -303,10 +303,10 @@ namespace tracelog
 	{
 		if (!use_binary)
 		{
-			log(interp_addr, op);
+			log(interp_addr, vr_op);
 		} else
 		{
-			log_bin(interp_addr, op);
+			log_bin(interp_addr, vr_op);
 		}
 	}
 

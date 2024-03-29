@@ -30,9 +30,6 @@ extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
 
 extern int last_wheel_delta;
 
-// TODO: remove
-extern int recording;
-
 extern HWND mainHWND;
 extern HINSTANCE app_instance;
 

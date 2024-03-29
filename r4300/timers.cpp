@@ -98,7 +98,6 @@ void timer_new_vi()
 		}
 
 		last_vi_time = std::chrono::high_resolution_clock::now();
-		// TODO: Reimplement game crash detection, but properly
 	}
 	timepoints_mutex.lock();
 	circular_push(new_vi_times, std::chrono::high_resolution_clock::now());

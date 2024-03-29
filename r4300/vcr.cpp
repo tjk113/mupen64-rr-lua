@@ -439,7 +439,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 	if (g_task == e_task::start_recording_from_snapshot)
 	{
-		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Snapshot...\n");
@@ -450,7 +449,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 	if (g_task == e_task::start_recording_from_existing_snapshot)
 	{
-		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
 			printf("[VCR]: Starting recording from Existing Snapshot...\n");
@@ -461,7 +459,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 	if (g_task == e_task::start_playback_from_snapshot)
 	{
-		// TODO: maybe call st generation like normal and remove the "start_x" states
 		if (savestates_job == e_st_job::none)
 		{
 			if (!savestates_job_success)

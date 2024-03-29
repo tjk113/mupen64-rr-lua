@@ -31,7 +31,6 @@ using t_rombrowser_entry = struct s_rombrowser_entry
 
 HWND rombrowser_hwnd = nullptr;
 std::vector<t_rombrowser_entry*> rombrowser_entries;
-int32_t rombrowser_is_loading = 0;
 
 namespace Rombrowser
 {

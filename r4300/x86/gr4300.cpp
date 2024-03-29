@@ -39,7 +39,7 @@
 #include "interpret.h"
 #include <shared/Config.hpp>
 
-extern unsigned long op; //pure_interp.c
+extern unsigned long vr_op; //pure_interp.c
 extern unsigned long src; //recomp.c
 
 precomp_instr fake_instr;
@@ -81,7 +81,7 @@ void gendebug()
 	mov_m32_reg32((unsigned long*)&edi, EDI);
 
 	mov_m32_imm32((unsigned long*)(&PC), (unsigned long)(dst));
-	mov_m32_imm32((unsigned long*)(&op), (unsigned long)(src));
+	mov_m32_imm32((unsigned long*)(&vr_op), (unsigned long)(src));
 	mov_reg32_imm32(EAX, (unsigned long)debug);
 	call_reg32(EAX);
 

@@ -779,7 +779,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_AUDIO_SETTINGS:
 			case IDM_RSP_SETTINGS:
 				{
-					// TODO: Uhhh, what here
 					if (!emu_launched)
 					{
 						break;

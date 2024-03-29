@@ -52,7 +52,7 @@ extern void update_debugger();
 #endif
 
 unsigned long interp_addr;
-unsigned long op;
+unsigned long vr_op;
 static long skip;
 
 bool ignore;
@@ -65,7 +65,7 @@ extern unsigned long next_vi;
 
 static void NI()
 {
-	printf("NI:%x\n", (unsigned int)op);
+	printf("NI:%x\n", (unsigned int)vr_op);
 	stop = 1;
 }
 
@@ -117,7 +117,7 @@ static void JR()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	interp_addr = local_rs32;
@@ -132,7 +132,7 @@ static void JALR()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if (!skip_jump)
@@ -511,7 +511,7 @@ static void BLTZ()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if (local_rs < 0)
@@ -541,7 +541,7 @@ static void BGEZ()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if (local_rs >= 0)
@@ -573,7 +573,7 @@ static void BLTZL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		interp_addr += (local_immediate - 1) * 4;
@@ -605,7 +605,7 @@ static void BGEZL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		interp_addr += (local_immediate - 1) * 4;
@@ -638,7 +638,7 @@ static void BLTZAL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		if (local_rs < 0)
@@ -672,7 +672,7 @@ static void BGEZAL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		if (local_rs >= 0)
@@ -708,7 +708,7 @@ static void BLTZALL()
 			interp_addr += 4;
 			delay_slot = 1;
 			prefetch();
-			interp_ops[((op >> 26) & 0x3F)]();
+			interp_ops[((vr_op >> 26) & 0x3F)]();
 			update_count();
 			delay_slot = 0;
 			interp_addr += (local_immediate - 1) * 4;
@@ -744,7 +744,7 @@ static void BGEZALL()
 			interp_addr += 4;
 			delay_slot = 1;
 			prefetch();
-			interp_ops[((op >> 26) & 0x3F)]();
+			interp_ops[((vr_op >> 26) & 0x3F)]();
 			update_count();
 			delay_slot = 0;
 			interp_addr += (local_immediate - 1) * 4;
@@ -1128,7 +1128,7 @@ static void MTC0()
 
 static void TLB()
 {
-	interp_tlb[(op & 0x3F)]();
+	interp_tlb[(vr_op & 0x3F)]();
 }
 
 static void (*interp_cop0[32])(void) =
@@ -1159,7 +1159,7 @@ static void BC1F()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if ((FCR31 & 0x800000) == 0)
@@ -1188,7 +1188,7 @@ static void BC1T()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if ((FCR31 & 0x800000) != 0)
@@ -1219,7 +1219,7 @@ static void BC1FL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		interp_addr += (local_immediate - 1) * 4;
@@ -1251,7 +1251,7 @@ static void BC1TL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		interp_addr += (local_immediate - 1) * 4;
@@ -2144,27 +2144,27 @@ static void CTC1()
 
 static void BC()
 {
-	interp_cop1_bc[(op >> 16) & 3]();
+	interp_cop1_bc[(vr_op >> 16) & 3]();
 }
 
 static void S()
 {
-	interp_cop1_s[(op & 0x3F)]();
+	interp_cop1_s[(vr_op & 0x3F)]();
 }
 
 static void D()
 {
-	interp_cop1_d[(op & 0x3F)]();
+	interp_cop1_d[(vr_op & 0x3F)]();
 }
 
 static void W()
 {
-	interp_cop1_w[(op & 0x3F)]();
+	interp_cop1_w[(vr_op & 0x3F)]();
 }
 
 static void L()
 {
-	interp_cop1_l[(op & 0x3F)]();
+	interp_cop1_l[(vr_op & 0x3F)]();
 }
 
 static void (*interp_cop1[32])(void) =
@@ -2177,12 +2177,12 @@ static void (*interp_cop1[32])(void) =
 
 static void SPECIAL()
 {
-	interp_special[(op & 0x3F)]();
+	interp_special[(vr_op & 0x3F)]();
 }
 
 static void REGIMM()
 {
-	interp_regimm[((op >> 16) & 0x1F)]();
+	interp_regimm[((vr_op >> 16) & 0x1F)]();
 }
 
 //skips idle loop and advances to next interrupt
@@ -2207,7 +2207,7 @@ static void J()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	interp_addr = naddr;
@@ -2225,7 +2225,7 @@ static void JAL()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if (!skip_jump)
@@ -2251,7 +2251,7 @@ static void BEQ()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if (local_rs == local_rt && !ignore)
@@ -2272,7 +2272,7 @@ static void BNE()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if (local_rs != local_rt)
@@ -2292,7 +2292,7 @@ static void BLEZ()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if (local_rs <= 0)
@@ -2312,7 +2312,7 @@ static void BGTZ()
 	interp_addr += 4;
 	delay_slot = 1;
 	prefetch();
-	interp_ops[((op >> 26) & 0x3F)]();
+	interp_ops[((vr_op >> 26) & 0x3F)]();
 	update_count();
 	delay_slot = 0;
 	if (local_rs > 0)
@@ -2382,13 +2382,13 @@ static void LUI()
 
 static void COP0()
 {
-	interp_cop0[((op >> 21) & 0x1F)]();
+	interp_cop0[((vr_op >> 21) & 0x1F)]();
 }
 
 static void COP1()
 {
 	if (check_cop1_unusable()) return;
-	interp_cop1[((op >> 21) & 0x1F)]();
+	interp_cop1[((vr_op >> 21) & 0x1F)]();
 }
 
 static void BEQL()
@@ -2415,7 +2415,7 @@ static void BEQL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		interp_addr += (local_immediate - 1) * 4;
@@ -2452,7 +2452,7 @@ static void BNEL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		interp_addr += (local_immediate - 1) * 4;
@@ -2488,7 +2488,7 @@ static void BLEZL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		interp_addr += (local_immediate - 1) * 4;
@@ -2524,7 +2524,7 @@ static void BGTZL()
 		interp_addr += 4;
 		delay_slot = 1;
 		prefetch();
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		update_count();
 		delay_slot = 0;
 		interp_addr += (local_immediate - 1) * 4;
@@ -3119,19 +3119,19 @@ void prefetch()
 	{
 		if (/*(interp_addr >= 0x80000000) && */(interp_addr < 0x80800000))
 		{
-			op = *(unsigned long*)&((unsigned char*)rdram)[(interp_addr & 0xFFFFFF)];
+			vr_op = *(unsigned long*)&((unsigned char*)rdram)[(interp_addr & 0xFFFFFF)];
 			/*if ((debug_count+Count) > 0xabaa20)
 			  printf("count:%x, add:%x, op:%x, l%d\n", (int)(Count+debug_count),
 			     interp_addr, op, line);*/
-			prefetch_opcode(op);
+			prefetch_opcode(vr_op);
 		} else if ((interp_addr >= 0xa4000000) && (interp_addr < 0xa4001000))
 		{
-			op = SP_DMEM[(interp_addr & 0xFFF) / 4];
-			prefetch_opcode(op);
+			vr_op = SP_DMEM[(interp_addr & 0xFFF) / 4];
+			prefetch_opcode(vr_op);
 		} else if ((interp_addr > 0xb0000000))
 		{
-			op = ((unsigned long*)rom)[(interp_addr & 0xFFFFFFF) / 4];
-			prefetch_opcode(op);
+			vr_op = ((unsigned long*)rom)[(interp_addr & 0xFFFFFFF) / 4];
+			prefetch_opcode(vr_op);
 		} else
 		{
 			//unmapped memory exception
@@ -3175,7 +3175,7 @@ void pure_interpreter()
 #endif
 		//if (Count > 0x2000000) printf("inter:%x,%x\n", interp_addr,op);
 		//if ((Count+debug_count) > 0xabaa2c) stop=1;
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 		ignore = false;
 
 		//Count = (unsigned long)Count + 2;
@@ -3188,7 +3188,7 @@ void pure_interpreter()
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
-		CoreDbg::on_late_cycle(op, interp_addr);
+		CoreDbg::on_late_cycle(vr_op, interp_addr);
 	}
 	PC->addr = interp_addr;
 }
@@ -3204,7 +3204,7 @@ void interprete_section(unsigned long addr)
 		if (tracelog::active())
 			tracelog::log_pure();
 		PC->addr = interp_addr;
-		interp_ops[((op >> 26) & 0x3F)]();
+		interp_ops[((vr_op >> 26) & 0x3F)]();
 #ifdef DBG
 		PC->addr = interp_addr;
 		if (debugger_mode) update_debugger();
