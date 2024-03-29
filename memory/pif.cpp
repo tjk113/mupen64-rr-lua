@@ -188,10 +188,10 @@ void internal_ReadController(int Control, BYTE* Command)
 	case 1:
 		if (Controls[Control].Present)
 		{
-			BUTTONS Keys;
 			lag_count = 0;
-			vcr_on_controller_poll(Control, &Keys);
-			*((unsigned long*)(Command + 3)) = Keys.Value;
+			BUTTONS input = {0};
+			vcr_on_controller_poll(Control, &input);
+			*((unsigned long*)(Command + 3)) = input.Value;
 #ifdef COMPARE_CORE
 				check_input_sync(Command + 3);
 #endif
