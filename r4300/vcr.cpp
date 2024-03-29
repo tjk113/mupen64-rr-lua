@@ -239,12 +239,6 @@ vcr_is_idle()
 }
 
 bool
-vcr_is_starting()
-{
-	return g_task == e_task::start_playback || g_task == e_task::start_playback_from_snapshot;
-}
-
-bool
 vcr_is_playing()
 {
 	return g_task == e_task::playback;
@@ -254,31 +248,6 @@ bool
 vcr_is_recording()
 {
 	return g_task == e_task::recording;
-}
-
-bool vcr_is_looping()
-{
-	return Config.is_movie_loop_enabled;
-}
-
-unsigned long vcr_get_length_v_is()
-{
-	return vcr_is_active() ? g_header.length_vis : 0;
-}
-
-unsigned long vcr_get_length_samples()
-{
-	return vcr_is_active() ? g_header.length_samples : 0;
-}
-
-void vcr_set_length_v_is(const unsigned long val)
-{
-	g_header.length_vis = val;
-}
-
-void vcr_set_length_samples(const unsigned long val)
-{
-	g_header.length_samples = val;
 }
 
 std::optional<t_movie_freeze> VCR::freeze()
@@ -1051,9 +1020,9 @@ const char* VCR::get_status_text()
 	{
 		sprintf(text, "%d / %d (%d / %d) ",
 			m_current_vi - index_adjustment,
-			vcr_get_length_v_is(),
+			g_header.length_vis,
 			m_current_sample - index_adjustment,
-			vcr_get_length_samples());
+			g_header.length_samples);
 	}
 
 	return text;
@@ -1062,8 +1031,9 @@ const char* VCR::get_status_text()
 void vcr_on_vi()
 {
 	m_current_vi++;
+
 	if (vcr_is_recording())
-		vcr_set_length_v_is(m_current_vi);
+		g_header.length_vis = m_current_vi;
 	if (!vcr_is_playing())
 		return;
 
