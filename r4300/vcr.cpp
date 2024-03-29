@@ -116,21 +116,21 @@ static void set_rom_info(t_movie_header* header)
 	strncpy(header->rsp_plugin_name, rsp_plugin->name().c_str(), 64);
 }
 
-static int read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
+static VCR::Result read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
 {
 	const auto old_header_size = 512;
 
 	if (buf.size() < old_header_size)
-		return WRONG_FORMAT;
+		return VCR::Result::InvalidFormat;
 
 	t_movie_header new_header = {};
 	memcpy(&new_header, buf.data(), old_header_size);
 
 	if (new_header.magic != mup_magic)
-		return WRONG_FORMAT;
+		return VCR::Result::InvalidFormat;
 
 	if (new_header.version <= 0 || new_header.version > mup_version)
-		return WRONG_VERSION;
+		return VCR::Result::InvalidVersion;
 
 	if (new_header.version == 1 || new_header.version == 2)
 	{
@@ -192,12 +192,12 @@ static int read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
 	}
 	if (new_header.version == 3 && buf.size() < sizeof(t_movie_header))
 	{
-		return WRONG_FORMAT;
+		return VCR::Result::InvalidFormat;
 	}
 
 	*header = new_header;
 
-	return SUCCESS;
+	return VCR::Result::Ok;
 }
 
 VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header)
@@ -217,13 +217,10 @@ VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header
 		return Result::BadFile;
 	}
 
-	if (read_movie_header(buf, &new_header) != SUCCESS)
-	{
-		return Result::InvalidFormat;
-	}
-
+	const auto result = read_movie_header(buf, &new_header);
 	*header = new_header;
-	return Result::Ok;
+
+	return result;
 }
 
 bool
@@ -766,11 +763,10 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	// We can't call this after opening m_file, since it will potentially nuke it
 	VCR::stop_all();
 
-	const int code = read_movie_header(movie_buf, &g_header);
-	if (code != SUCCESS)
+	const auto result = read_movie_header(movie_buf, &g_header);
+	if (result != Result::Ok)
 	{
-		// FIXME: The results don't collide, but use typed errors anyway!!!
-		return Result::InvalidFormat;
+		return result;
 	}
 
 	g_movie_inputs = {};

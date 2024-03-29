@@ -216,6 +216,8 @@ namespace VCR
 		Idle,
 		// The provided freeze buffer is not from the currently active movie
 		NotFromThisMovie,
+		// The movie's version is invalid
+		InvalidVersion,
 	};
 
 	/**
