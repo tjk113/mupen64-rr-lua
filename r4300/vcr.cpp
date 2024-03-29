@@ -269,6 +269,9 @@ std::optional<t_movie_freeze> VCR::freeze()
 	// NOTE: Nonsense old mupen compat, freeze buffer has one extra frame at the end?
 	freeze.input_buffer.push_back(freeze.input_buffer.back());
 
+	// Also probably a good time to flush the movie
+	write_movie();
+
 	return std::make_optional(std::move(freeze));
 }
 
