@@ -230,16 +230,9 @@ extern volatile e_task g_task;
 bool task_is_playback(e_task task);
 bool task_is_recording(e_task task);
 
-extern bool vcr_is_active();
-extern bool vcr_is_idle(); // not the same as !isActive()
-extern bool vcr_is_starting();
-extern bool vcr_is_playing();
-extern bool vcr_is_recording();
-extern bool vcr_is_looping();
-extern unsigned long vcr_get_length_v_is();
-extern unsigned long vcr_get_length_samples();
-extern void vcr_set_length_v_is(unsigned long val);
-extern void vcr_set_length_samples(unsigned long val);
+bool vcr_is_active();
+bool vcr_is_idle();
+bool vcr_is_recording();
 
 /**
  * \brief Notifies VCR engine about controller being polled
