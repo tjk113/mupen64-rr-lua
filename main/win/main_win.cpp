@@ -705,8 +705,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			if (time - last_statusbar_update > std::chrono::seconds(1))
 			{
 				timepoints_mutex.lock();
-				Statusbar::post(std::format("FPS: {:.1f}", get_rate_per_second_from_times(new_frame_times)), Statusbar::Section::FPS);
-				Statusbar::post(std::format("VI/s: {:.1f}", get_rate_per_second_from_times(new_vi_times)), Statusbar::Section::VIs);
+				Statusbar::post(std::format("FPS: {:.1f}", get_rate_per_second_from_deltas(g_frame_deltas)), Statusbar::Section::FPS);
+				Statusbar::post(std::format("VI/s: {:.1f}", get_rate_per_second_from_deltas(g_vi_deltas)), Statusbar::Section::VIs);
 				timepoints_mutex.unlock();
 				last_statusbar_update = time;
 			}

@@ -46,6 +46,26 @@ static float get_rate_per_second_from_times(std::deque<std::chrono::high_resolut
 }
 
 /**
+ * \brief Computes the average rate of entries in the time queue per second (e.g.: FPS from frame deltas)
+ * \param times A circular buffer of deltas
+ * \return The average rate per second from the delta in the queue
+ */
+static float get_rate_per_second_from_deltas(const std::span<float>& times)
+{
+	size_t count = 0;
+	float sum = 0.0f;
+	for (const auto& time : times)
+	{
+		if (time > 0.0f)
+		{
+			sum += time;
+			count++;
+		}
+	}
+	return count > 0 ? 1000.0f / (sum / count) : 0.0f;
+}
+
+/**
  * \brief Formats a duration into a string of format HH:MM:SS
  * \param seconds The duration in seconds
  * \return The formatted duration

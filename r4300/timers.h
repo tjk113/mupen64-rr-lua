@@ -23,14 +23,16 @@
 
 typedef std::chrono::high_resolution_clock::time_point time_point;
 
+const size_t max_deltas = 60;
+
 /// Frame invalidation flag: cleared by consumer
 extern bool frame_changed;
 
-/// Timepoints at which new frame happened
-extern std::deque<time_point> new_frame_times;
+/// Time deltas between frames
+extern float g_frame_deltas[max_deltas];
 
-/// Timepoints at which new VI happened
-extern std::deque<time_point> new_vi_times;
+/// Time deltas between VIs
+extern float g_vi_deltas[max_deltas];
 
 extern std::mutex timepoints_mutex;
 
