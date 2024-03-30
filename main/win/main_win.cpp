@@ -498,6 +498,15 @@ static void gui_ChangeWindow()
 	}
 }
 
+void open_console()
+{
+	AllocConsole();
+	FILE* f = 0;
+	freopen_s(&f, "CONIN$", "r", stdin);
+	freopen_s(&f, "CONOUT$", "w", stdout);
+	freopen_s(&f, "CONOUT$", "w", stderr);
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	char path_buffer[_MAX_PATH];
@@ -961,6 +970,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 					break;
 				}
+			case IDM_CONSOLE:
+				open_console();
+				break;
 			case IDM_LOAD_ROM:
 				{
 					BetterEmulationLock lock;
@@ -1261,11 +1273,7 @@ int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 #ifdef _DEBUG
-	AllocConsole();
-	FILE* f = 0;
-	freopen_s(&f, "CONIN$", "r", stdin);
-	freopen_s(&f, "CONOUT$", "w", stdout);
-	freopen_s(&f, "CONOUT$", "w", stderr);
+	open_console();
 #endif
 
 	Messenger::init();
