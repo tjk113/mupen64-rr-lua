@@ -1970,7 +1970,22 @@ DWORD WINAPI audio_thread(LPVOID)
 
 DWORD WINAPI ThreadFunc(LPVOID)
 {
-	const auto start_time = std::chrono::high_resolution_clock::now();
+	auto start_time = std::chrono::high_resolution_clock::now();
+
+	// HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
+	auto gfx_plugin_thread = std::thread([] { video_plugin->load_into_globals(); });
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	auto audio_plugin_thread = std::thread([] { audio_plugin->load_into_globals(); });
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	auto input_plugin_thread = std::thread([] { input_plugin->load_into_globals(); });
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	auto rsp_plugin_thread = std::thread([] { rsp_plugin->load_into_globals(); });
+
+	gfx_plugin_thread.join();
+	audio_plugin_thread.join();
+	input_plugin_thread.join();
+	rsp_plugin_thread.join();
+
 	init_memory();
 
 	romOpen_gfx();
@@ -1979,13 +1994,13 @@ DWORD WINAPI ThreadFunc(LPVOID)
 
 	dynacore = Config.core_type;
 
-	printf("emu thread entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	audio_thread_handle = CreateThread(nullptr, 0, audio_thread, nullptr, 0, nullptr);
 
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
 	LuaCallbacks::call_reset();
 
+	printf("[Core] Emu thread entry took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	core_start();
 
 	romClosed_gfx();
@@ -2012,6 +2027,8 @@ DWORD WINAPI ThreadFunc(LPVOID)
 
 Core::Result vr_start_rom(std::filesystem::path path)
 {
+	auto start_time = std::chrono::high_resolution_clock::now();
+
 	std::unique_lock lock(emu_cs, std::try_to_lock);
 	if (!lock.owns_lock())
 	{
@@ -2060,7 +2077,6 @@ Core::Result vr_start_rom(std::filesystem::path path)
 	}
 
 	rom_path = path;
-	auto start_time = std::chrono::high_resolution_clock::now();
 
 	printf("Loading plugins\n");
 
@@ -2115,22 +2131,9 @@ Core::Result vr_start_rom(std::filesystem::path path)
 
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 
-	// HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
-	auto gfx_thread = std::thread([] { video_plugin->load_into_globals(); });
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto audio_thread = std::thread([] { audio_plugin->load_into_globals(); });
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto input_thread = std::thread([] { input_plugin->load_into_globals(); });
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	auto rsp_thread = std::thread([] { rsp_plugin->load_into_globals(); });
+	printf("[Core] vr_start_rom entry took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 
-	gfx_thread.join();
-	audio_thread.join();
-	input_thread.join();
-	rsp_thread.join();
-
-	printf("vr_start_rom entry %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-	emu_paused = 0;
+	emu_paused = false;
 	emu_launched = true;
 	emu_thread_handle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
 
