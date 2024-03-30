@@ -124,6 +124,13 @@ typedef struct _CONFIG
 	int32_t skip_rendering_lag;
 
 	/// <summary>
+	/// Maximum number of entries into the rom cache
+	/// <para/>
+	/// 0 = disabled
+	/// </summary>
+	int32_t rom_cache_size;
+
+	/// <summary>
 	/// Saves video buffer to savestates, slow!
 	/// </summary>
 	int32_t st_screenshot;

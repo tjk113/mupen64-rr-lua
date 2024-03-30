@@ -36,15 +36,18 @@
 #include <cstdlib>
 #include <cstring>
 #include "rom.h"
+
+#include <unordered_map>
+
 #include "../memory/memory.h"
 #include "../lib/md5.h"
 #include <shared/Config.hpp>
 #include <shared/helpers/io_helpers.h>
 #include <shared/helpers/string_helpers.h>
 
+std::unordered_map<std::filesystem::path, uint8_t*> rom_cache;
+
 uint8_t* rom;
-// Unmodified rom kept in here for restoring the externally mutable rom between restarts
-uint8_t* original_rom;
 size_t rom_size;
 char rom_md5[33];
 
@@ -157,24 +160,19 @@ void rom_byteswap(uint8_t* rom)
 	}
 }
 
-void rom_restore()
-{
-	if (!rom || !original_rom)
-	{
-		return;
-	}
-	memcpy(rom, original_rom, rom_size);
-}
-
-
 bool rom_load(std::filesystem::path path)
 {
+	if (rom_cache.contains(path))
+	{
+		printf("[Core] Loading cached ROM...\n");
+		memcpy(rom, rom_cache[path], rom_size);
+		return true;
+	}
+
 	if (rom)
 	{
 		free(rom);
-		free(original_rom);
 		rom = nullptr;
-		original_rom = nullptr;
 	}
 
 	auto rom_buf = read_file_buffer(path);
@@ -190,7 +188,6 @@ bool rom_load(std::filesystem::path path)
 	if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
 
 	rom = (unsigned char*)malloc(taille);
-	original_rom = (unsigned char*)malloc(taille);
 	memcpy(rom, decompressed_rom.data(), rom_size);
 
 	uint8_t tmp;
@@ -252,7 +249,13 @@ bool rom_load(std::filesystem::path path)
 	for (size_t i = 0; i < (rom_size / 4); i++)
 		roml[i] = sl(roml[i]);
 
-	memcpy(original_rom, rom, rom_size);
+	if (rom_cache.size() < Config.rom_cache_size)
+	{
+		printf("[Core] Putting ROM in cache... (%d/%d full)\n", rom_cache.size(), Config.rom_cache_size);
+		auto cached_rom = (unsigned char*)malloc(taille);
+		memcpy(cached_rom, rom, rom_size);
+		rom_cache[path] = cached_rom;
+	}
 
 	return true;
 }

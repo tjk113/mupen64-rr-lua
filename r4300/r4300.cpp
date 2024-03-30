@@ -2117,17 +2117,11 @@ Core::Result vr_start_rom(std::filesystem::path path)
 		rsp_plugin = std::move(rsp_pl.value());
 	}
 
-	if (emu_resetting)
+	if (!rom_load(path.string().c_str()))
 	{
-		rom_restore();
-	} else
-	{
-		if (!rom_load(path.string().c_str()))
-		{
-			Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
-			Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-			return Core::Result::RomInvalid;
-		}
+		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
+		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
+		return Core::Result::RomInvalid;
 	}
 
 	timer_init(Config.fps_modifier, &ROM_HEADER);
