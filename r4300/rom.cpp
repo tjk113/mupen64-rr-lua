@@ -45,7 +45,7 @@
 #include <shared/helpers/io_helpers.h>
 #include <shared/helpers/string_helpers.h>
 
-std::unordered_map<std::filesystem::path, uint8_t*> rom_cache;
+std::unordered_map<std::filesystem::path, std::pair<uint8_t*, size_t>> rom_cache;
 
 uint8_t* rom;
 size_t rom_size;
@@ -162,17 +162,18 @@ void rom_byteswap(uint8_t* rom)
 
 bool rom_load(std::filesystem::path path)
 {
-	if (rom_cache.contains(path))
-	{
-		printf("[Core] Loading cached ROM...\n");
-		memcpy(rom, rom_cache[path], rom_size);
-		return true;
-	}
-
 	if (rom)
 	{
 		free(rom);
 		rom = nullptr;
+	}
+
+	if (rom_cache.contains(path))
+	{
+		printf("[Core] Loading cached ROM...\n");
+		rom = (unsigned char*)malloc(rom_cache[path].second);
+		memcpy(rom, rom_cache[path].first, rom_cache[path].second);
+		return true;
 	}
 
 	auto rom_buf = read_file_buffer(path);
@@ -252,9 +253,9 @@ bool rom_load(std::filesystem::path path)
 	if (rom_cache.size() < Config.rom_cache_size)
 	{
 		printf("[Core] Putting ROM in cache... (%d/%d full)\n", rom_cache.size(), Config.rom_cache_size);
-		auto cached_rom = (unsigned char*)malloc(taille);
-		memcpy(cached_rom, rom, rom_size);
-		rom_cache[path] = cached_rom;
+		auto data = (uint8_t*)malloc(taille);
+		memcpy(data, rom, taille);
+		rom_cache[path] = std::make_pair(data, taille);
 	}
 
 	return true;
