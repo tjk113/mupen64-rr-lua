@@ -63,7 +63,6 @@
 #include "features/Runner.h"
 #include "wrapper/PersistentPathDialog.h"
 
-static BOOL FullScreenMode = 0;
 int last_wheel_delta = 0;
 
 HANDLE loading_handle[4];
@@ -426,6 +425,17 @@ void on_readonly_changed(std::any data)
 		                : "Read/write");
 }
 
+void on_fullscreen_changed(std::any data)
+{
+	auto value = std::any_cast<bool>(data);
+
+	CheckMenuItem(main_menu, IDM_FULLSCREEN,
+				  MF_BYCOMMAND | (value
+									  ? MFS_CHECKED
+									  : MFS_UNCHECKED));
+
+	ShowCursor(!value);
+}
 
 BetterEmulationLock::BetterEmulationLock()
 {
@@ -483,19 +493,6 @@ std::string get_app_full_path()
 	strcat(ret, dirn);
 
 	return ret;
-}
-
-static void gui_ChangeWindow()
-{
-	if (FullScreenMode)
-	{
-		ShowCursor(FALSE);
-		changeWindow();
-	} else
-	{
-		changeWindow();
-		ShowCursor(TRUE);
-	}
 }
 
 void open_console()
@@ -633,7 +630,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_MOVE:
 		{
-			if (emu_launched && !FullScreenMode)
+			if (core_executing)
 			{
 				moveScreen((int)wParam, lParam);
 			}
@@ -647,10 +644,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_SIZE:
 		{
-			if (!FullScreenMode)
-			{
-				SendMessage(Statusbar::hwnd(), WM_SIZE, 0, 0);
-			}
+			SendMessage(Statusbar::hwnd(), WM_SIZE, 0, 0);
 			RECT rect{};
 			GetClientRect(mainHWND, &rect);
 			Messenger::broadcast(Messenger::Message::SizeChanged, rect);
@@ -989,11 +983,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				DestroyWindow(mainHWND);
 				break;
 			case IDM_FULLSCREEN:
-				if (emu_launched && !EncodingManager::is_capturing())
-				{
-					FullScreenMode = 1 - FullScreenMode;
-					gui_ChangeWindow();
-				}
+				toggle_fullscreen_mode();
 				break;
 			case IDM_REFRESH_ROMBROWSER:
 				if (!emu_launched)
@@ -1336,6 +1326,7 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
 	Messenger::subscribe(Messenger::Message::LagLimitExceeded, on_vis_since_input_poll_exceeded);
 	Messenger::subscribe(Messenger::Message::CoreResult, on_core_result);
+	Messenger::subscribe(Messenger::Message::FullscreenChanged, on_fullscreen_changed);
 	Messenger::subscribe(Messenger::Message::EmuStartingChanged, [](std::any data)
 	{
 		emu_starting = std::any_cast<bool>(data);

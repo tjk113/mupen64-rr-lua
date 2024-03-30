@@ -126,6 +126,11 @@ Core::Result vr_close_rom(bool stop_vcr = true);
  */
 Core::Result vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true);
 
+/**
+ * \brief Toggles between fullscreen and windowed mode
+ */
+void toggle_fullscreen_mode();
+
 void pure_interpreter();
 void compare_core();
 extern void jump_to_func();

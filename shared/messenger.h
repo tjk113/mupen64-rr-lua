@@ -113,6 +113,11 @@ namespace Messenger
 		 * \brief The core is reporting on the status of an operation
 		 */
 		CoreResult,
+
+		/**
+		 * \brief The fullscreen mode has changed
+		 */
+		FullscreenChanged,
 	};
 
 	/**

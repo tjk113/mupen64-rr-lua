@@ -74,6 +74,7 @@ volatile bool emu_paused = false;
 volatile bool core_executing = false;
 volatile bool emu_resetting = false;
 size_t g_total_frames = 0;
+bool fullscreen = false;
 
 unsigned long i, dynacore = 0, interpcore = 0;
 int stop, llbit;
@@ -2229,4 +2230,11 @@ Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr)
 	emu_resetting = false;
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 	return Core::Result::Ok;
+}
+
+void toggle_fullscreen_mode()
+{
+	changeWindow();
+	fullscreen ^= true;
+	Messenger::broadcast(Messenger::Message::FullscreenChanged, fullscreen);
 }
