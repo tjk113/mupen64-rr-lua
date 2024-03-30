@@ -751,16 +751,16 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	// Nope, doesnt work since some random user32 call in core somewhere converts it to "GUI" thread.
 	// assert(!IsGUIThread(false));
 
-	if (!emu_launched && vr_start_rom(path) != Core::Result::Ok)
-	{
-		return Result::NoMatchingRom;
-	}
-
 	auto movie_buf = read_file_buffer(path);
 
 	if (movie_buf.empty())
 	{
 		return Result::BadFile;
+	}
+
+	if (!emu_launched && vr_start_rom(path) != Core::Result::Ok)
+	{
+		return Result::NoMatchingRom;
 	}
 
 	// We can't call this after opening m_file, since it will potentially nuke it
