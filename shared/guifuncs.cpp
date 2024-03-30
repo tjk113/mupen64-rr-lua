@@ -69,5 +69,5 @@ bool show_ask_dialog(const char* str, const char* title, bool warning)
 
 void show_warning(const char* str, const char* title)
 {
-	MessageBox(mainHWND, str, title, MB_YESNO | MB_ICONWARNING);
+	MessageBox(mainHWND, str, title, MB_ICONWARNING);
 }
