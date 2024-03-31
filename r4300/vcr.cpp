@@ -523,7 +523,8 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	}
 
 	// Use inputs from movie, also notify input plugin of override via setKeys
-	*input = g_movie_inputs[m_current_sample];
+	printf("[VCR] Reading frame %d on controller %d (i = %d)\n", m_current_sample, index, m_current_sample + index);
+	*input = g_movie_inputs[m_current_sample + index];
 	setKeys(index, *input);
 
 	//no readable code because 120 star tas can't get this right >:(
