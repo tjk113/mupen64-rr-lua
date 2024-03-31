@@ -131,6 +131,11 @@ Core::Result vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true);
  */
 void toggle_fullscreen_mode();
 
+/**
+ * \brief Gets the fullscreen state
+ */
+bool vr_is_fullscreen();
+
 void pure_interpreter();
 void compare_core();
 extern void jump_to_func();

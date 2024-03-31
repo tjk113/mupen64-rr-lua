@@ -201,9 +201,6 @@ void on_task_changed(std::any data)
 	auto value = std::any_cast<e_task>(data);
 	static auto previous_value = value;
 
-	EnableMenuItem(main_menu, IDM_STOP_MOVIE, vcr_is_idle() ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(main_menu, IDM_SEEKER, (task_is_playback(value) && emu_launched) ? MF_ENABLED : MF_GRAYED);
-
 	if (!task_is_recording(value) && task_is_recording(previous_value))
 	{
 		Statusbar::post("Recording stopped");
@@ -247,38 +244,6 @@ void on_emu_launched_changed(std::any data)
 		              GetWindowLong(mainHWND, GWL_STYLE) | WS_THICKFRAME | WS_MAXIMIZEBOX);
 	}
 
-	EnableMenuItem(main_menu, IDM_STATUSBAR, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, ID_AUDIT_ROMS, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_REFRESH_ROMBROWSER, !value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_RESET_ROM, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_SCREENSHOT, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_LOAD_STATE_AS, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_LOAD_SLOT, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_SAVE_STATE_AS, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_SAVE_SLOT, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_FULLSCREEN, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_FRAMEADVANCE, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_PAUSE, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, EMU_PLAY, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_CLOSE_ROM, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_TRACELOG, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_SEEKER, value ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_COREDBG, value && Config.core_type == 2 ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, value ? MF_ENABLED : MF_GRAYED);
-
-	if (Config.is_statusbar_enabled)
-		CheckMenuItem(
-			main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_CHECKED);
-	else CheckMenuItem(main_menu, IDM_STATUSBAR, MF_BYCOMMAND | MF_UNCHECKED);
-	if (Config.is_recent_movie_paths_frozen)
-		CheckMenuItem(
-			main_menu, IDM_FREEZE_RECENT_MOVIES, MF_BYCOMMAND | MF_CHECKED);
-	if (Config.is_recent_scripts_frozen)
-		CheckMenuItem(
-			main_menu, IDM_FREEZE_RECENT_LUA, MF_BYCOMMAND | MF_CHECKED);
-	if (Config.is_recent_rom_paths_frozen)
-		CheckMenuItem(
-			main_menu, IDM_FREEZE_RECENT_ROMS, MF_BYCOMMAND | MF_CHECKED);
 
 	update_titlebar();
 	// Some menu items, like movie ones, depend on both this and vcr task
@@ -311,23 +276,10 @@ void on_capturing_changed(std::any data)
 	if (value)
 	{
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) & ~WS_MINIMIZEBOX);
-
-		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_GRAYED);
-		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET,
-		               MF_GRAYED);
-		EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_ENABLED);
-		EnableMenuItem(main_menu, IDM_FULLSCREEN, MF_GRAYED);
 	} else
 	{
 		SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
 		SetWindowLong(mainHWND, GWL_STYLE, GetWindowLong(mainHWND, GWL_STYLE) | WS_MINIMIZEBOX);
-
-		SetWindowPos(mainHWND, HWND_TOP, 0, 0, 0, 0,
-		             SWP_NOMOVE | SWP_NOSIZE);
-		EnableMenuItem(main_menu, IDM_STOP_CAPTURE, MF_GRAYED);
-		EnableMenuItem(main_menu, IDM_START_CAPTURE, MF_ENABLED);
-		EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, MF_ENABLED);
 	}
 
 	update_titlebar();
@@ -401,10 +353,7 @@ void on_movie_loop_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
 
-	CheckMenuItem(main_menu, IDM_LOOP_MOVIE,
-	              MF_BYCOMMAND | (value
-		                              ? MFS_CHECKED
-		                              : MFS_UNCHECKED));
+
 
 	Statusbar::post(value
 		                ? "Movies restart after ending"
@@ -415,11 +364,6 @@ void on_readonly_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
 
-	CheckMenuItem(main_menu, IDM_VCR_READONLY,
-	              MF_BYCOMMAND | (value
-		                              ? MFS_CHECKED
-		                              : MFS_UNCHECKED));
-
 	Statusbar::post(value
 		                ? "Read-only"
 		                : "Read/write");
@@ -428,11 +372,6 @@ void on_readonly_changed(std::any data)
 void on_fullscreen_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
-
-	CheckMenuItem(main_menu, IDM_FULLSCREEN,
-				  MF_BYCOMMAND | (value
-									  ? MFS_CHECKED
-									  : MFS_UNCHECKED));
 
 	ShowCursor(!value);
 }
@@ -723,8 +662,45 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_INITMENU:
+	case WM_INITMENUPOPUP:
 		{
-			CheckMenuItem(main_menu, IDM_PAUSE, MF_BYCOMMAND | (paused_before_menu ? MF_CHECKED : MF_UNCHECKED));
+			EnableMenuItem(main_menu, IDM_CLOSE_ROM, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_RESET_ROM, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_PAUSE,  emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_FRAMEADVANCE, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_SCREENSHOT, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_SAVE_SLOT, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_LOAD_SLOT, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_SAVE_STATE_AS, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_LOAD_STATE_AS, emu_launched ? MF_ENABLED : MF_GRAYED);
+			for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
+			{
+				EnableMenuItem(main_menu, i, emu_launched ? MF_ENABLED : MF_GRAYED);
+			}
+			EnableMenuItem(main_menu, IDM_FULLSCREEN, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_STATUSBAR, !emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_STOP_MOVIE, vcr_is_active() ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_TRACELOG, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_COREDBG, (emu_launched && Config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_SEEKER, (emu_launched && task_is_playback(VCR::get_task())) ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_START_CAPTURE, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_STOP_CAPTURE, (emu_launched && EncodingManager::is_capturing()) ? MF_ENABLED : MF_GRAYED);
+
+			CheckMenuItem(main_menu, IDM_STATUSBAR, Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS, Config.is_recent_rom_paths_frozen ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_MOVIES, Config.is_recent_movie_paths_frozen ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_LUA, Config.is_recent_scripts_frozen ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_LOOP_MOVIE, Config.is_movie_loop_enabled ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_VCR_READONLY, Config.vcr_readonly ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_FULLSCREEN, vr_is_fullscreen() ? MF_CHECKED : MF_UNCHECKED);
+
+			for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
+			{
+				CheckMenuItem(main_menu, i, MF_UNCHECKED);
+			}
+			CheckMenuItem(main_menu, LOWORD(wParam), MF_CHECKED);
 		}
 		break;
 	case WM_ENTERMENULOOP:
@@ -1110,22 +1086,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				Recent::build(Config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu, true);
 				break;
 			case IDM_FREEZE_RECENT_ROMS:
-				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS,
-				              (Config.is_recent_rom_paths_frozen ^= 1)
-					              ? MF_CHECKED
-					              : MF_UNCHECKED);
+				Config.is_recent_rom_paths_frozen ^= true;
 				break;
 			case IDM_FREEZE_RECENT_MOVIES:
-				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_MOVIES,
-				              (Config.is_recent_movie_paths_frozen ^= 1)
-					              ? MF_CHECKED
-					              : MF_UNCHECKED);
+				Config.is_recent_movie_paths_frozen ^= true;
 				break;
 			case IDM_FREEZE_RECENT_LUA:
-				CheckMenuItem(main_menu, IDM_FREEZE_RECENT_LUA,
-				              (Config.is_recent_scripts_frozen ^= 1)
-					              ? MF_CHECKED
-					              : MF_UNCHECKED);
+				Config.is_recent_scripts_frozen ^= true;
 				break;
 			case IDM_LOAD_LATEST_LUA:
 				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_LUA_RECENT, 0), 0);
@@ -1139,8 +1106,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_STATUSBAR:
 				Config.is_statusbar_enabled ^= true;
 				Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
-				CheckMenuItem(
-					main_menu, IDM_STATUSBAR, MF_BYCOMMAND | (Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED));
 				break;
 			case IDC_DECREASE_MODIFIER:
 				Config.fps_modifier = clamp(Config.fps_modifier - 25, 25, 1000);
@@ -1160,13 +1125,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					auto slot = LOWORD(wParam) - IDM_SELECT_1;
 					savestates_set_slot(slot);
-
-					// set checked state for only the currently selected save
-					for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
-					{
-						CheckMenuItem(main_menu, i, MF_UNCHECKED);
-					}
-					CheckMenuItem(main_menu, LOWORD(wParam), MF_CHECKED);
 				} else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <=
 					ID_SAVE_10)
 				{

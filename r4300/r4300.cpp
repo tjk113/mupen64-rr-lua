@@ -2232,3 +2232,8 @@ void toggle_fullscreen_mode()
 	fullscreen ^= true;
 	Messenger::broadcast(Messenger::Message::FullscreenChanged, fullscreen);
 }
+
+bool vr_is_fullscreen()
+{
+	return fullscreen;
+}
