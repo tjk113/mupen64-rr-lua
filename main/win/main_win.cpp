@@ -217,6 +217,7 @@ void on_task_changed(std::any data)
 	}
 
 	update_titlebar();
+	SendMessage(mainHWND, WM_INITMENU, 0, 0);
 }
 
 void on_emu_stopping(std::any)
@@ -267,6 +268,7 @@ void on_emu_launched_changed(std::any data)
 			previously_running_luas.clear();
 		});
 	}
+	SendMessage(mainHWND, WM_INITMENU, 0, 0);
 }
 
 void on_capturing_changed(std::any data)
@@ -283,20 +285,19 @@ void on_capturing_changed(std::any data)
 	}
 
 	update_titlebar();
+	SendMessage(mainHWND, WM_INITMENU, 0, 0);
 }
 
 void on_speed_modifier_changed(std::any data)
 {
 	auto value = std::any_cast<int32_t>(data);
-
 	Statusbar::post(std::format("Speed limit: {}%", value));
 }
 
 void on_emu_paused_changed(std::any data)
 {
-	auto value = std::any_cast<bool>(data);
-
 	frame_changed = true;
+	SendMessage(mainHWND, WM_INITMENU, 0, 0);
 }
 
 void on_vis_since_input_poll_exceeded(std::any)
@@ -352,28 +353,26 @@ void on_core_result(std::any data)
 void on_movie_loop_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
-
-
-
 	Statusbar::post(value
 		                ? "Movies restart after ending"
 		                : "Movies stop after ending");
+	SendMessage(mainHWND, WM_INITMENU, 0, 0);
 }
 
 void on_readonly_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
-
 	Statusbar::post(value
 		                ? "Read-only"
 		                : "Read/write");
+	SendMessage(mainHWND, WM_INITMENU, 0, 0);
 }
 
 void on_fullscreen_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
-
 	ShowCursor(!value);
+	SendMessage(mainHWND, WM_INITMENU, 0, 0);
 }
 
 BetterEmulationLock::BetterEmulationLock()
@@ -662,7 +661,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_INITMENU:
-	case WM_INITMENUPOPUP:
 		{
 			EnableMenuItem(main_menu, IDM_CLOSE_ROM, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_RESET_ROM, emu_launched ? MF_ENABLED : MF_GRAYED);
