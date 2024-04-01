@@ -33,6 +33,7 @@
 #include <main/capture/EncodingManager.h>
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
+std::vector<HWND> tooltips;
 
 BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM)
 {
@@ -334,58 +335,58 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
 
 			SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
-							   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_DISPLAY),
-												 IMAGE_BITMAP, 0, 0, 0));
+			                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_DISPLAY),
+			                                     IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_CONTROL, STM_SETIMAGE, IMAGE_BITMAP,
-							   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_CONTROL),
-												 IMAGE_BITMAP, 0, 0, 0));
+			                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_CONTROL),
+			                                     IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_SOUND, STM_SETIMAGE, IMAGE_BITMAP,
-							   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_SOUND),
-												 IMAGE_BITMAP, 0, 0, 0));
+			                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_SOUND),
+			                                     IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_RSP, STM_SETIMAGE, IMAGE_BITMAP,
-							   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_RSP),
-												 IMAGE_BITMAP, 0, 0, 0));
+			                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_RSP),
+			                                     IMAGE_BITMAP, 0, 0, 0));
 			return TRUE;
 		}
 	case WM_COMMAND:
 		switch (LOWORD(w_param))
 		{
-	case IDC_COMBO_GFX:
-	case IDC_COMBO_SOUND:
-	case IDC_COMBO_INPUT:
-	case IDC_COMBO_RSP:
-		{
-			auto has_plugin_selected =
-							ComboBox_GetItemData(GetDlgItem(hwnd, LOWORD(w_param)), ComboBox_GetCurSel(GetDlgItem(hwnd, LOWORD(w_param))))
-							&& ComboBox_GetCurSel(GetDlgItem(hwnd, LOWORD(w_param))) != CB_ERR;
-
-			switch (LOWORD(w_param))
+		case IDC_COMBO_GFX:
+		case IDC_COMBO_SOUND:
+		case IDC_COMBO_INPUT:
+		case IDC_COMBO_RSP:
 			{
-			case IDC_COMBO_GFX:
-				EnableWindow(GetDlgItem(hwnd, IDM_VIDEO_SETTINGS), has_plugin_selected);
-				EnableWindow(GetDlgItem(hwnd, IDGFXTEST), has_plugin_selected);
-				EnableWindow(GetDlgItem(hwnd, IDGFXABOUT), has_plugin_selected);
-				break;
-			case IDC_COMBO_SOUND:
-				EnableWindow(GetDlgItem(hwnd, IDM_AUDIO_SETTINGS), has_plugin_selected);
-				EnableWindow(GetDlgItem(hwnd, IDSOUNDTEST), has_plugin_selected);
-				EnableWindow(GetDlgItem(hwnd, IDSOUNDABOUT), has_plugin_selected);
-				break;
-			case IDC_COMBO_INPUT:
-				EnableWindow(GetDlgItem(hwnd, IDM_INPUT_SETTINGS), has_plugin_selected);
-				EnableWindow(GetDlgItem(hwnd, IDINPUTTEST), has_plugin_selected);
-				EnableWindow(GetDlgItem(hwnd, IDINPUTABOUT), has_plugin_selected);
-				break;
-			case IDC_COMBO_RSP:
-				EnableWindow(GetDlgItem(hwnd, IDM_RSP_SETTINGS), has_plugin_selected);
-				EnableWindow(GetDlgItem(hwnd, IDRSPTEST), has_plugin_selected);
-				EnableWindow(GetDlgItem(hwnd, IDRSPABOUT), has_plugin_selected);
-				break;
-			default:
+				auto has_plugin_selected =
+					ComboBox_GetItemData(GetDlgItem(hwnd, LOWORD(w_param)), ComboBox_GetCurSel(GetDlgItem(hwnd, LOWORD(w_param))))
+					&& ComboBox_GetCurSel(GetDlgItem(hwnd, LOWORD(w_param))) != CB_ERR;
+
+				switch (LOWORD(w_param))
+				{
+				case IDC_COMBO_GFX:
+					EnableWindow(GetDlgItem(hwnd, IDM_VIDEO_SETTINGS), has_plugin_selected);
+					EnableWindow(GetDlgItem(hwnd, IDGFXTEST), has_plugin_selected);
+					EnableWindow(GetDlgItem(hwnd, IDGFXABOUT), has_plugin_selected);
+					break;
+				case IDC_COMBO_SOUND:
+					EnableWindow(GetDlgItem(hwnd, IDM_AUDIO_SETTINGS), has_plugin_selected);
+					EnableWindow(GetDlgItem(hwnd, IDSOUNDTEST), has_plugin_selected);
+					EnableWindow(GetDlgItem(hwnd, IDSOUNDABOUT), has_plugin_selected);
+					break;
+				case IDC_COMBO_INPUT:
+					EnableWindow(GetDlgItem(hwnd, IDM_INPUT_SETTINGS), has_plugin_selected);
+					EnableWindow(GetDlgItem(hwnd, IDINPUTTEST), has_plugin_selected);
+					EnableWindow(GetDlgItem(hwnd, IDINPUTABOUT), has_plugin_selected);
+					break;
+				case IDC_COMBO_RSP:
+					EnableWindow(GetDlgItem(hwnd, IDM_RSP_SETTINGS), has_plugin_selected);
+					EnableWindow(GetDlgItem(hwnd, IDRSPTEST), has_plugin_selected);
+					EnableWindow(GetDlgItem(hwnd, IDRSPABOUT), has_plugin_selected);
+					break;
+				default:
+					break;
+				}
 				break;
 			}
-			break;
-		}
 		case IDM_VIDEO_SETTINGS:
 			hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_GFX)->config();
@@ -474,6 +475,22 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 	{
 	case WM_INITDIALOG:
 		{
+			tooltips.push_back(create_tooltip(hwnd, IDC_PAUSENOTACTIVE, "When checked, emulation pauses when the main window is not in focus"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_STATUSBARZEROINDEX, "When checked, Indicies in the statusbar, such as VCR frame counts, start at 0 instead of 1"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_SKIPFREQ, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_RECORD_RESETS, "When checked, mid-recording resets are recorded to the movie"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_CAPTUREDELAY, "Miliseconds to wait before capturing a frame. Useful for syncing with external programs"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_USESUMMERCART, "When checked, the core emulates an attached summercart"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_SAVE_VIDEO_TO_ST, "When checked, screenshots are saved to generated savestates. Only supported by MGE-implementing plugins"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_MODE, "The video source to use for capturing video frames"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_SYNC, "The strategy to use for synchronizing video and audio during capture"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_AUDIO_DELAY, "When checked, audio interrupts are delayed\r\nRecommended: On (Off causes issues with savestates)"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_COMPILED_JUMP, "When checked, jump instructions are compiled by Dynamic Recompiler\r\nRecommended: On (Off is slower)"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_ROUNDTOZERO, "When checked, floating point numbers are rounded towards zero"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_AUTOINCREMENTSAVESLOT, "When checked, saving to a slot will increase the currently selected slot number by 1"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_EMULATEFLOATCRASHES, "When checked, float operations which crash on real hardware will crash the core"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_EDIT_MAX_LAG, "The maximum amount of lag frames before the core emits a warning.\r\n0 = Disabled"));
+
 			static const char* clock_speed_multiplier_names[] = {
 				"1 - Default", "2 - 'Lagless'", "3", "4", "5", "6"
 			};
@@ -601,6 +618,15 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			Config.max_lag = GetDlgItemInt(hwnd, IDC_EDIT_MAX_LAG, nullptr, 0);
 		}
 		break;
+	case WM_DESTROY:
+		{
+			for (auto tooltip : tooltips)
+			{
+				DestroyWindow(tooltip);
+			}
+			tooltips.clear();
+			break;
+		}
 	default:
 		return FALSE;
 	}

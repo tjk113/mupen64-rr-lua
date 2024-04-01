@@ -188,3 +188,24 @@ static void set_statusbar_parts(HWND hwnd, std::vector<int32_t> parts)
 	            new_parts.size(),
 	            (LPARAM)new_parts.data());
 }
+
+static HWND create_tooltip(HWND hwnd, int id, const char* text)
+{
+	HWND hwnd_tip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+	                              WS_POPUP | TTS_ALWAYSTIP | TTS_USEVISUALSTYLE,
+	                              CW_USEDEFAULT, CW_USEDEFAULT,
+	                              CW_USEDEFAULT, CW_USEDEFAULT,
+	                              hwnd, NULL,
+	                              GetModuleHandle(0), NULL);
+
+	TOOLINFO info = {0};
+	info.cbSize = sizeof(info);
+	info.hwnd = hwnd;
+	info.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+	info.uId = (UINT_PTR)GetDlgItem(hwnd, id);
+	// FIXME: why does ms want mutable string for this
+	info.lpszText = const_cast<LPSTR>(text);
+	SendMessage(hwnd_tip, TTM_ADDTOOL, 0, (LPARAM)&info);
+
+	return hwnd_tip;
+}
