@@ -87,7 +87,7 @@ extern const luaL_Reg inputFuncs[];
 extern const luaL_Reg joypadFuncs[];
 extern const luaL_Reg movieFuncs[];
 extern const luaL_Reg savestateFuncs[];
-extern const luaL_Reg ioHelperFuncs[];
+extern const luaL_Reg iohelperFuncs[];
 extern const luaL_Reg aviFuncs[];
 extern const char* const REG_ATSTOP;
 
@@ -568,7 +568,7 @@ const luaL_Reg savestateFuncs[] = {
 	{"loadfile", LuaCore::Savestate::LoadFileSavestate},
 	{NULL, NULL}
 };
-const luaL_Reg ioHelperFuncs[] = {
+const luaL_Reg iohelperFuncs[] = {
 	{"filediag", LuaCore::IOHelper::LuaFileDialog},
 	{NULL, NULL}
 };
@@ -965,7 +965,7 @@ void LuaEnvironment::register_functions()
 	register_as_package(L, "joypad", joypadFuncs);
 	register_as_package(L, "movie", movieFuncs);
 	register_as_package(L, "savestate", savestateFuncs);
-	register_as_package(L, "iohelper", ioHelperFuncs);
+	register_as_package(L, "iohelper", iohelperFuncs);
 	register_as_package(L, "avi", aviFuncs);
 
 	// COMPAT: table.getn deprecated, replaced by # prefix
