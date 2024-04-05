@@ -265,9 +265,10 @@ std::optional<t_movie_freeze> VCR::freeze()
 	};
 
 	printf("[VCR] Freezing %d samples...\n", g_movie_inputs.size());
+
 	freeze.input_buffer = std::vector(g_movie_inputs);
-	// NOTE: Nonsense old mupen compat, freeze buffer has one extra frame at the end?
-	freeze.input_buffer.push_back(freeze.input_buffer.back());
+	// NOTE: Nonsense old mupen compat, freeze buffer has one uninitialized garbage frame at the end...
+	freeze.input_buffer.push_back((BUTTONS)0xCDCDCDCD);
 
 	// Also probably a good time to flush the movie
 	write_movie();
@@ -376,6 +377,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// if we aren't playing back a movie, our data source isn't movie
 	if (!is_task_playback(g_task))
 	{
+		printf("[VCR] Calling getKeys\n");
 		getKeys(index, input);
 		LuaCallbacks::call_input(input, index);
 	}
@@ -475,6 +477,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		g_movie_inputs.push_back(*input);
 		g_header.length_samples++;
 		m_current_sample++;
+		printf("[VCR] Recording frame %d\n", g_header.length_samples);
 
 		if (user_requested_reset)
 		{
