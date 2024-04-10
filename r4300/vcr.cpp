@@ -254,7 +254,7 @@ std::optional<t_movie_freeze> VCR::freeze()
 		return std::nullopt;
 	}
 
-	assert(g_movie_inputs.size() == g_header.length_samples);
+	assert(g_movie_inputs.size() >= g_header.length_samples);
 
 	t_movie_freeze freeze = {
 		.size = sizeof(unsigned long) * 4 + sizeof(BUTTONS) * (g_header.length_samples + 1),
@@ -264,11 +264,13 @@ std::optional<t_movie_freeze> VCR::freeze()
 		.length_samples = g_header.length_samples,
 	};
 
-	printf("[VCR] Freezing %d samples...\n", g_movie_inputs.size());
+	printf("[VCR] Freezing %d samples...\n", g_header.length_samples);
+
 
 	freeze.input_buffer = std::vector(g_movie_inputs);
 	// NOTE: Nonsense old mupen compat, freeze buffer has one uninitialized garbage frame at the end...
 	freeze.input_buffer.push_back((BUTTONS)0xCDCDCDCD);
+	freeze.input_buffer.resize(g_header.length_samples);
 
 	// Also probably a good time to flush the movie
 	write_movie();
@@ -304,6 +306,9 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 	if (space_needed > freeze.size)
 		return Result::InvalidFormat;
 
+	m_current_sample = (long)freeze.current_sample;
+	m_current_vi = (int)freeze.current_vi;
+
 	const e_task last_task = g_task;
 	if (!Config.vcr_readonly)
 	{
@@ -318,16 +323,13 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		if (last_task == e_task::playback)
 			set_rom_info(&g_header);
 
-		m_current_sample = (long)freeze.current_sample;
 		g_header.length_samples = freeze.current_sample;
-		m_current_vi = (int)freeze.current_vi;
 
 		g_header.rerecord_count++;
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 
 		printf("[VCR] Unfreezing %d samples\n", freeze.length_samples);
 
-		// NOTE: Here, we ignore the last frame
 		g_movie_inputs.resize(freeze.length_samples);
 		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.length_samples);
 	} else
@@ -340,16 +342,15 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 		// and older savestate might have a currentFrame pointer past
 		// the end of the input data, so check for that here
-		if (freeze.current_sample > g_header.length_samples)
-			return Result::InvalidFrame;
 
 		g_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 
-		m_current_sample = (long)freeze.current_sample;
-		m_current_vi = (int)freeze.current_vi;
+
 	}
+
+
 
 	return Result::Ok;
 }
