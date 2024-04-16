@@ -266,11 +266,10 @@ std::optional<t_movie_freeze> VCR::freeze()
 
 	printf("[VCR] Freezing %d samples...\n", g_header.length_samples);
 
-
-	freeze.input_buffer = std::vector(g_movie_inputs);
-	// NOTE: Nonsense old mupen compat, freeze buffer has one uninitialized garbage frame at the end...
-	freeze.input_buffer.push_back((BUTTONS)0xCDCDCDCD);
-	freeze.input_buffer.resize(g_header.length_samples);
+	// NOTE: The frozen input buffer is weird: its length is traditionally equal to length_samples + 1, which means the last frame is garbage data
+	freeze.input_buffer = {};
+	freeze.input_buffer.resize(g_header.length_samples + 1);
+	memcpy(freeze.input_buffer.data(), g_movie_inputs.data(), sizeof(BUTTONS) * g_header.length_samples);
 
 	// Also probably a good time to flush the movie
 	write_movie();
@@ -318,6 +317,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		g_task = e_task::recording;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		write_movie();
 
 		// update header with new ROM info
 		if (last_task == e_task::playback)
@@ -346,11 +346,9 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		g_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
-
-
 	}
 
-
+	write_movie();
 
 	return Result::Ok;
 }
