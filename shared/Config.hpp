@@ -432,14 +432,6 @@ void save_config();
  */
 void load_config();
 
-/// <summary>
-/// Waits until the user inputs a valid key sequence, then fills out the hotkey
-/// </summary>
-/// <returns>
-/// Whether a hotkey has successfully been picked
-/// </returns>
-int32_t get_user_hotkey(t_hotkey* hotkey);
-
 /**
  * \brief Updates all menu hotkey accelerator labels to the appropriate config values
  */
