@@ -116,7 +116,7 @@
             <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
             <BufferSecurityCheck>true</BufferSecurityCheck>
             <FloatingPointModel>Strict</FloatingPointModel>
-            <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+            <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
             <LanguageStandard>stdcpplatest</LanguageStandard>
             <SDLCheck>true</SDLCheck>
             <MultiProcessorCompilation>true</MultiProcessorCompilation>
