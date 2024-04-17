@@ -50,6 +50,9 @@ namespace CoreDbg
 			KillTimer(hwnd, ui_timer);
 			EndDialog(hwnd, LOWORD(w_param));
 			return TRUE;
+		case WM_CLOSE:
+			EndDialog(hwnd, IDOK);
+			break;
 		case WM_TIMER:
 			if (!ui_invalidated)
 				break;
