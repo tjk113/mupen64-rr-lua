@@ -81,11 +81,11 @@ namespace LuaCallbacks
 
 	void call_input(BUTTONS* input, int index)
 	{
-		RET_IF_EMPTY;
-
 		// NOTE: Special callback, we store the input data for all scripts to access via joypad.get(n)
 		// If they request a change via joypad.set(n, input), we change the input
 		last_controller_data[index] = *input;
+
+		RET_IF_EMPTY;
 
 		Dispatcher::invoke([=]
 		{
