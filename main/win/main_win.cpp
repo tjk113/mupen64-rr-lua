@@ -91,6 +91,45 @@ bool emu_starting;
  */
 std::vector<HWND> previously_running_luas;
 
+
+void set_menu_accelerator(int element_id, const char* acc)
+{
+	char string[256] = {0};
+	GetMenuString(GetMenu(mainHWND), element_id, string, std::size(string), MF_BYCOMMAND);
+
+	MENUITEMINFO menuinfo;
+
+	// make sure there is tab character (accelerator marker)
+	char* tab = strrchr(string, '\t');
+	if (tab)
+		*tab = '\0';
+	if (strcmp(acc, ""))
+		sprintf(string, "%s\t%s", string, acc);
+
+	ModifyMenu(GetMenu(mainHWND), element_id, MF_BYCOMMAND | MF_STRING, element_id, string);
+}
+
+void set_hotkey_menu_accelerators(t_hotkey* hotkey, int menu_item_id)
+{
+	const std::string hotkey_str = hotkey_to_string(hotkey);
+	set_menu_accelerator(menu_item_id, hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+}
+
+void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkey)
+{
+	SetDlgItemText(hwnd, idc, hotkey_to_string(hotkey).c_str());
+}
+
+void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
+							 int menuItemID)
+{
+	std::string hotkey_str = hotkey_to_string(hotkey);
+	SetDlgItemText(hwnd, idc, hotkey_str.c_str());
+
+	set_menu_accelerator(menuItemID,
+						 hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+}
+
 namespace Recent
 {
 	void build(std::vector<std::string>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
@@ -373,6 +412,20 @@ void on_fullscreen_changed(std::any data)
 	auto value = std::any_cast<bool>(data);
 	ShowCursor(!value);
 	SendMessage(mainHWND, WM_INITMENU, 0, 0);
+}
+
+void on_config_loaded(std::any)
+{
+	for (auto hotkey : g_config_hotkeys)
+	{
+		// Only set accelerator if hotkey has a down command and the command is valid menu item identifier
+		auto state = GetMenuState(GetMenu(mainHWND), hotkey->down_cmd, MF_BYCOMMAND);
+		if (hotkey->down_cmd && state != -1)
+		{
+			set_hotkey_menu_accelerators(hotkey, hotkey->down_cmd);
+		}
+	}
+	Rombrowser::build();
 }
 
 BetterEmulationLock::BetterEmulationLock()
@@ -1284,6 +1337,7 @@ int WINAPI WinMain(
 	Messenger::subscribe(Messenger::Message::LagLimitExceeded, on_vis_since_input_poll_exceeded);
 	Messenger::subscribe(Messenger::Message::CoreResult, on_core_result);
 	Messenger::subscribe(Messenger::Message::FullscreenChanged, on_fullscreen_changed);
+	Messenger::subscribe(Messenger::Message::ConfigLoaded, on_config_loaded);
 	Messenger::subscribe(Messenger::Message::EmuStartingChanged, [](std::any data)
 	{
 		emu_starting = std::any_cast<bool>(data);
@@ -1299,8 +1353,6 @@ int WINAPI WinMain(
 	savestates_init();
 	setup_dummy_info();
 
-	update_menu_hotkey_labels();
-
 	Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu);
 	Recent::build(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu);
 	Recent::build(Config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu);
@@ -1312,8 +1364,7 @@ int WINAPI WinMain(
 	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 	Messenger::broadcast(Messenger::Message::SizeChanged, rect);
 	Messenger::broadcast(Messenger::Message::AppReady, nullptr);
-
-	Rombrowser::build();
+	Messenger::broadcast(Messenger::Message::ConfigLoaded, nullptr);
 
 	//warning, this is ignored when debugger is attached (like visual studio)
 	SetUnhandledExceptionFilter(ExceptionReleaseTarget);

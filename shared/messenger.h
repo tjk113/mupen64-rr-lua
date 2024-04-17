@@ -80,6 +80,11 @@ namespace Messenger
 		ConfigSaving,
 
 		/**
+		 * \brief The config has been loaded and values have changed
+		 */
+		ConfigLoaded,
+
+		/**
 		 * \brief The rerecord count of the currently recorded movie changed
 		 */
 		RerecordsChanged,

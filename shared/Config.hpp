@@ -436,8 +436,3 @@ void save_config();
  * \brief Restores the config state from the config file
  */
 void load_config();
-
-/**
- * \brief Updates all menu hotkey accelerator labels to the appropriate config values
- */
-void update_menu_hotkey_labels();

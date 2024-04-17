@@ -32,6 +32,8 @@
 #include "configdialog.h"
 #include <main/capture/EncodingManager.h>
 
+#include <shared/messenger.h>
+
 std::vector<std::unique_ptr<Plugin>> available_plugins;
 std::vector<HWND> tooltips;
 
@@ -894,6 +896,5 @@ void configdialog_show()
 	}
 
 	save_config();
-	Rombrowser::build();
-	update_menu_hotkey_labels();
+	Messenger::broadcast(Messenger::Message::ConfigLoaded, nullptr);
 }

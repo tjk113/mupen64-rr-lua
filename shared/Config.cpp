@@ -13,30 +13,6 @@
 CONFIG Config;
 std::vector<t_hotkey*> g_config_hotkeys;
 
-void set_menu_accelerator(int element_id, const char* acc)
-{
-	char string[256] = {0};
-	GetMenuString(GetMenu(mainHWND), element_id, string, std::size(string), MF_BYCOMMAND);
-
-	MENUITEMINFO menuinfo;
-
-	// make sure there is tab character (accelerator marker)
-	char* tab = strrchr(string, '\t');
-	if (tab)
-		*tab = '\0';
-	if (strcmp(acc, ""))
-		sprintf(string, "%s\t%s", string, acc);
-
-	ModifyMenu(GetMenu(mainHWND), element_id, MF_BYCOMMAND | MF_STRING, element_id, string);
-}
-
-void set_hotkey_menu_accelerators(t_hotkey* hotkey, int menu_item_id)
-{
-	const std::string hotkey_str = hotkey_to_string(hotkey);
-	set_menu_accelerator(menu_item_id, hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
-}
-
-
 std::string hotkey_to_string(t_hotkey* hotkey)
 {
 	char buf[260] = {0};
@@ -693,35 +669,6 @@ CONFIG get_default_config()
 
 CONFIG default_config = get_default_config();
 
-void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkey)
-{
-	SetDlgItemText(hwnd, idc, hotkey_to_string(hotkey).c_str());
-}
-
-void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
-                             int menuItemID)
-{
-	std::string hotkey_str = hotkey_to_string(hotkey);
-	SetDlgItemText(hwnd, idc, hotkey_str.c_str());
-
-	set_menu_accelerator(menuItemID,
-	                     hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
-}
-
-
-void update_menu_hotkey_labels()
-{
-	for (auto hotkey : g_config_hotkeys)
-	{
-		// Only set accelerator if hotkey has a down command and the command is valid menu item identifier
-		auto state = GetMenuState(GetMenu(mainHWND), hotkey->down_cmd, MF_BYCOMMAND);
-		if (hotkey->down_cmd && state != -1)
-		{
-			set_hotkey_menu_accelerators(hotkey, hotkey->down_cmd);
-		}
-	}
-}
-
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          int32_t is_reading, t_hotkey* hotkey)
 {
@@ -1005,6 +952,8 @@ void load_config()
 		// something's malformed, fuck off and use default values
 		Config.rombrowser_column_widths = default_config.rombrowser_column_widths;
 	}
+
+	Messenger::broadcast(Messenger::Message::ConfigLoaded, nullptr);
 }
 
 void init_config()
