@@ -11,9 +11,7 @@
 #include <main/capture/EncodingManager.h>
 
 CONFIG Config;
-std::vector<t_hotkey*> hotkeys;
-const auto first_offset = offsetof(CONFIG, fast_forward_hotkey);
-const auto last_offset = offsetof(CONFIG, select_slot_10_hotkey);
+std::vector<t_hotkey*> g_config_hotkeys;
 
 void set_menu_accelerator(int element_id, const char* acc)
 {
@@ -153,7 +151,6 @@ std::string hotkey_to_string(t_hotkey* hotkey)
 	}
 	return std::string(buf);
 }
-
 
 CONFIG get_default_config()
 {
@@ -714,7 +711,7 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
 
 void update_menu_hotkey_labels()
 {
-	for (auto hotkey : hotkeys)
+	for (auto hotkey : g_config_hotkeys)
 	{
 		// Only set accelerator if hotkey has a down command and the command is valid menu item identifier
 		auto state = GetMenuState(GetMenu(mainHWND), hotkey->down_cmd, MF_BYCOMMAND);
@@ -843,33 +840,25 @@ void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          const int32_t is_reading, std::vector<int32_t>& value)
 {
+	std::vector<std::string> string_values;
+	for (const auto int_value : value)
+	{
+		string_values.push_back(std::to_string(int_value));
+	}
+
+	handle_config_value(ini, field_name, is_reading, string_values);
+
 	if (is_reading)
 	{
-		int vector_length = 0;
-		for (size_t i = 0; i < INT32_MAX; i++)
+		for (int i = 0; i < value.size(); ++i)
 		{
-			if (!ini["Config"].has(field_name + "_" + std::to_string(i)))
-			{
-				vector_length = i;
-				break;
-			}
-		}
-		value.clear();
-		for (size_t i = 0; i < vector_length; i++)
-		{
-			value.push_back(
-				std::stoi(ini["Config"][field_name + "_" + std::to_string(i)]));
-		}
-	} else
-	{
-		for (size_t i = 0; i < value.size(); i++)
-		{
-			ini["Config"][field_name + "_" + std::to_string(i)] =
-				std::to_string(value[i]);
+			value[i] = std::stoi(string_values[i]);
 		}
 	}
 }
 
+const auto first_offset = offsetof(CONFIG, fast_forward_hotkey);
+const auto last_offset = offsetof(CONFIG, select_slot_10_hotkey);
 
 std::vector<t_hotkey*> collect_hotkeys(const CONFIG* config)
 {
@@ -895,31 +884,13 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 
 	if (is_reading)
 	{
-		// our config is empty, so hotkeys are missing identifiers and commands
-		// we need to copy the identifiers from a default config
-		// FIXME: this assumes that the loaded config's hotkeys map 1:1 to the current hotkeys, which may not be the case
-		auto hotkey_pointers = collect_hotkeys(&default_config);
-		for (size_t i = 0; i < hotkey_pointers.size(); i++)
-		{
-			auto hotkey = &(((t_hotkey*)&Config)[i]);
-			hotkey->identifier = std::string(
-				hotkey_pointers[i]->identifier);
-			hotkey->down_cmd = hotkey_pointers[i]->
-				down_cmd;
-			hotkey->up_cmd = hotkey_pointers[i]->
-				up_cmd;
-		}
+		// We need to fill the config with latest default values first, because some "new" fields might not exist in the ini
+		Config = get_default_config();
 	}
 
-
-	auto hotkey_pointers = collect_hotkeys(&Config);
-
-	hotkeys.clear();
-	for (auto hotkey_pointer : hotkey_pointers)
+	for (auto hotkey : g_config_hotkeys)
 	{
-		handle_config_value(ini, hotkey_pointer->identifier, is_reading,
-		                    hotkey_pointer);
-		hotkeys.push_back(hotkey_pointer);
+		handle_config_value(ini, hotkey->identifier, is_reading, hotkey);
 	}
 
 	HANDLE_P_VALUE(version)
@@ -1007,8 +978,7 @@ void save_config()
 
 void load_config()
 {
-	struct stat buf;
-	if (stat(get_config_path().c_str(), &buf) != 0)
+	if (!std::filesystem::exists(get_config_path()))
 	{
 		printf("[CONFIG] Default config file does not exist. Generating...\n");
 		Config = get_default_config();
@@ -1020,13 +990,6 @@ void load_config()
 	file.read(ini);
 
 	ini = handle_config_ini(true, ini);
-
-	if (Config.version < default_config.version)
-	{
-		printf("[CONFIG] Config file is outdated and will probably cause issues. Generating...\n");
-		Config = get_default_config();
-		save_config();
-	}
 
 	// handle edge case: closing while minimized produces bogus values for position
 	if (Config.window_x < -10'000 || Config.window_y < -10'000)
@@ -1042,4 +1005,9 @@ void load_config()
 		// something's malformed, fuck off and use default values
 		Config.rombrowser_column_widths = default_config.rombrowser_column_widths;
 	}
+}
+
+void init_config()
+{
+	g_config_hotkeys = collect_hotkeys(&Config);
 }

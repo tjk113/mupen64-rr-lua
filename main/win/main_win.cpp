@@ -479,7 +479,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYDOWN:
 		{
 			BOOL hit = FALSE;
-			for (const t_hotkey* hotkey : hotkeys)
+			for (t_hotkey* hotkey : g_config_hotkeys)
 			{
 				if ((int)wParam == hotkey->key)
 				{
@@ -514,7 +514,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		{
 			BOOL hit = FALSE;
-			for (const t_hotkey* hotkey : hotkeys)
+			for (t_hotkey* hotkey : g_config_hotkeys)
 			{
 				if (!hotkey->up_cmd)
 				{
@@ -1232,6 +1232,7 @@ int WINAPI WinMain(
 	CreateDirectory((app_path + "screenshot").c_str(), NULL);
 	CreateDirectory((app_path + "plugin").c_str(), NULL);
 
+	init_config();
 	load_config();
 	lua_init();
 

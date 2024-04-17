@@ -413,7 +413,7 @@ typedef struct _CONFIG
 #pragma pack(pop)
 
 extern "C" CONFIG Config;
-extern std::vector<t_hotkey*> hotkeys;
+extern std::vector<t_hotkey*> g_config_hotkeys;
 
 /**
  * \brief Gets the string representation of a hotkey
@@ -421,6 +421,11 @@ extern std::vector<t_hotkey*> hotkeys;
  * \return The hotkey as a string
  */
 std::string hotkey_to_string(t_hotkey* hotkey);
+
+/**
+ * \brief Initializes the config subsystem
+ */
+void init_config();
 
 /**
  * \brief Saves the current config state to the config file

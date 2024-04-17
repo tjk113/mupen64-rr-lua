@@ -758,7 +758,7 @@ void build_hotkey_list(HWND hwnd)
 
 	ListBox_ResetContent(list_hwnd);
 
-	for (t_hotkey* hotkey : hotkeys)
+	for (t_hotkey* hotkey : g_config_hotkeys)
 	{
 		std::string hotkey_string = hotkey_to_string_overview(hotkey);
 
