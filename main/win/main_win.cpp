@@ -430,14 +430,28 @@ void on_config_loaded(std::any)
 
 BetterEmulationLock::BetterEmulationLock()
 {
-	was_paused = emu_paused;
-	pause_emu();
+	if (in_menu_loop)
+	{
+		was_paused = paused_before_menu;
+
+		// This fires before WM_EXITMENULOOP (which restores the paused_before_menu state), so we need to trick it...
+		paused_before_menu = true;
+	} else
+	{
+		was_paused = emu_paused;
+		pause_emu();
+	}
 }
 
 BetterEmulationLock::~BetterEmulationLock()
 {
-	if (!was_paused)
+	if (was_paused)
+	{
+		pause_emu();
+	} else
+	{
 		resume_emu();
+	}
 }
 
 t_window_info get_window_info()
@@ -768,7 +782,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			Sleep(60);
 			in_menu_loop = false;
-			if (!paused_before_menu)
+			if (paused_before_menu)
+			{
+				pause_emu();
+			} else
 			{
 				resume_emu();
 			}
