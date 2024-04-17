@@ -70,7 +70,7 @@ bool write_movie()
 
 bool is_task_playback(const e_task task)
 {
-	return task == e_task::start_playback || task == e_task::start_playback_from_snapshot || task == e_task::playback;
+	return task == e_task::start_playback_from_reset || task == e_task::start_playback_from_snapshot || task == e_task::playback;
 }
 
 static void set_rom_info(t_movie_header* header)
@@ -386,7 +386,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 
 	// We need to handle start tasks first, as logic after it depends on the task being modified
-	if (g_task == e_task::start_recording)
+	if (g_task == e_task::start_recording_from_reset)
 	{
 		if (just_reset)
 		{
@@ -443,7 +443,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	}
 
 
-	if (g_task == e_task::start_playback)
+	if (g_task == e_task::start_playback_from_reset)
 	{
 		if (just_reset)
 		{
@@ -600,7 +600,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 		g_task = e_task::start_recording_from_existing_snapshot;
 	} else
 	{
-		g_task = e_task::start_recording;
+		g_task = e_task::start_recording_from_reset;
 	}
 
 	set_rom_info(&g_header);
@@ -642,7 +642,7 @@ VCR::Result vcr_stop_record()
 		return VCR::Result::Ok;
 	}
 
-	if (g_task == e_task::start_recording)
+	if (g_task == e_task::start_recording_from_reset)
 	{
 		g_task = e_task::idle;
 		printf("[VCR]: Removing files (nothing recorded)\n");
@@ -862,7 +862,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		g_task = e_task::start_playback_from_snapshot;
 	} else
 	{
-		g_task = e_task::start_playback;
+		g_task = e_task::start_playback_from_reset;
 	}
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
@@ -931,13 +931,13 @@ VCR::Result vcr_stop_playback()
 
 bool task_is_playback(e_task task)
 {
-	return task == e_task::playback || task == e_task::start_playback || task ==
+	return task == e_task::playback || task == e_task::start_playback_from_reset || task ==
 		e_task::start_playback_from_snapshot;
 }
 
 bool task_is_recording(e_task task)
 {
-	return task == e_task::recording || task == e_task::start_recording || task == e_task::start_recording_from_existing_snapshot || task ==
+	return task == e_task::recording || task == e_task::start_recording_from_reset || task == e_task::start_recording_from_existing_snapshot || task ==
 		e_task::start_recording_from_snapshot;
 }
 
@@ -959,11 +959,11 @@ VCR::Result VCR::stop_all()
 {
 	switch (g_task)
 	{
-	case e_task::start_recording:
+	case e_task::start_recording_from_reset:
 	case e_task::start_recording_from_snapshot:
 	case e_task::recording:
 		return vcr_stop_record();
-	case e_task::start_playback:
+	case e_task::start_playback_from_reset:
 	case e_task::start_playback_from_snapshot:
 	case e_task::playback:
 		return vcr_stop_playback();

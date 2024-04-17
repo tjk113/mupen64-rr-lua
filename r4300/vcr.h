@@ -146,11 +146,11 @@ typedef struct
 enum class e_task
 {
 	idle,
-	start_recording,
+	start_recording_from_reset,
 	start_recording_from_snapshot,
 	start_recording_from_existing_snapshot,
 	recording,
-	start_playback,
+	start_playback_from_reset,
 	start_playback_from_snapshot,
 	playback
 };
