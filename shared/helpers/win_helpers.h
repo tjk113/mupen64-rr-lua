@@ -192,7 +192,7 @@ static void set_statusbar_parts(HWND hwnd, std::vector<int32_t> parts)
 static HWND create_tooltip(HWND hwnd, int id, const char* text)
 {
 	HWND hwnd_tip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
-	                              WS_POPUP | TTS_ALWAYSTIP | TTS_USEVISUALSTYLE,
+	                              WS_POPUP | TTS_NOPREFIX,
 	                              CW_USEDEFAULT, CW_USEDEFAULT,
 	                              CW_USEDEFAULT, CW_USEDEFAULT,
 	                              hwnd, NULL,
@@ -206,6 +206,8 @@ static HWND create_tooltip(HWND hwnd, int id, const char* text)
 	// FIXME: why does ms want mutable string for this
 	info.lpszText = const_cast<LPSTR>(text);
 	SendMessage(hwnd_tip, TTM_ADDTOOL, 0, (LPARAM)&info);
+	// Multiline tooltips only work if you specify a max width because of course they do
+	SendMessage(hwnd_tip, TTM_SETMAXTIPWIDTH, 0, 999999);
 
 	return hwnd_tip;
 }

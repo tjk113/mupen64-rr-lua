@@ -568,12 +568,12 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			tooltips.push_back(create_tooltip(hwnd, IDC_SAVE_VIDEO_TO_ST, "When checked, screenshots are saved to generated savestates. Only supported by MGE-implementing plugins"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_MODE, "The video source to use for capturing video frames"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_SYNC, "The strategy to use for synchronizing video and audio during capture"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_AUDIO_DELAY, "When checked, audio interrupts are delayed\r\nRecommended: On (Off causes issues with savestates)"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_COMPILED_JUMP, "When checked, jump instructions are compiled by Dynamic Recompiler\r\nRecommended: On (Off is slower)"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_AUDIO_DELAY, "When checked, audio interrupts are delayed\nRecommended: On (Off causes issues with savestates)"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_COMPILED_JUMP, "When checked, jump instructions are compiled by Dynamic Recompiler\nRecommended: On (Off is slower)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ROUNDTOZERO, "When checked, floating point numbers are rounded towards zero"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_AUTOINCREMENTSAVESLOT, "When checked, saving to a slot will increase the currently selected slot number by 1"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_EMULATEFLOATCRASHES, "When checked, float operations which crash on real hardware will crash the core"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_EDIT_MAX_LAG, "The maximum amount of lag frames before the core emits a warning.\r\n0 = Disabled"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_EDIT_MAX_LAG, "The maximum amount of lag frames before the core emits a warning\n0 = Disabled"));
 
 			static const char* clock_speed_multiplier_names[] = {
 				"1 - Default", "2 - 'Lagless'", "3", "4", "5", "6"
