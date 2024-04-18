@@ -224,32 +224,14 @@ VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header
 }
 
 bool
-vcr_is_active()
-{
-	return g_task == e_task::recording || g_task == e_task::playback;
-}
-
-bool
-vcr_is_idle()
-{
-	return g_task == e_task::idle;
-}
-
-bool
 vcr_is_playing()
 {
 	return g_task == e_task::playback;
 }
 
-bool
-vcr_is_recording()
-{
-	return g_task == e_task::recording;
-}
-
 std::optional<t_movie_freeze> VCR::freeze()
 {
-	if (!vcr_is_active())
+	if (VCR::get_task() == e_task::idle)
 	{
 		return std::nullopt;
 	}
@@ -279,7 +261,7 @@ std::optional<t_movie_freeze> VCR::freeze()
 
 VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 {
-	if (vcr_is_idle())
+	if (VCR::get_task() == e_task::idle)
 	{
 		return Result::Idle;
 	}
@@ -1013,7 +995,7 @@ const char* VCR::get_status_text()
 
 	auto index_adjustment = (Config.vcr_0_index ? 1 : 0);
 
-	if (vcr_is_recording())
+	if (VCR::get_task() == e_task::recording)
 	{
 		sprintf(text, "%d (%d) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
 	}
@@ -1044,7 +1026,7 @@ void vcr_on_vi()
 {
 	m_current_vi++;
 
-	if (vcr_is_recording())
+	if (VCR::get_task() == e_task::recording)
 		g_header.length_vis = m_current_vi;
 	if (!vcr_is_playing())
 		return;

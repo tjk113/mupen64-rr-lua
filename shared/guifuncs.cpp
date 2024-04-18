@@ -31,7 +31,7 @@ bool confirm_user_exit()
 	int warnings = 0;
 
 	std::string final_message;
-	if (vcr_is_recording())
+	if (VCR::get_task() == e_task::recording)
 	{
 		final_message.append("Movie recording ");
 		warnings++;

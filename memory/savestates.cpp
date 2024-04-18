@@ -199,7 +199,7 @@ std::vector<uint8_t> generate_savestate()
 	vecwrite(b, buf, len);
 
 	// re-recording
-	BOOL movie_active = vcr_is_active();
+	BOOL movie_active = VCR::get_task() != e_task::idle;
 	vecwrite(b, &movie_active, sizeof(movie_active));
 	if (movie_active)
 	{
@@ -494,7 +494,7 @@ void savestates_load_immediate()
 
 		const auto code = VCR::unfreeze(freeze);
 
-		if (code != VCR::Result::Ok && !vcr_is_idle())
+		if (code != VCR::Result::Ok && VCR::get_task() != e_task::idle)
 		{
 			std::string err_str = "Failed to restore movie, ";
 			switch (code)
@@ -526,7 +526,7 @@ void savestates_load_immediate()
 		}
 	} else
 	{
-		if (vcr_is_active())
+		if (VCR::get_task() != e_task::idle)
 		{
 			auto result = MessageBox(
 				mainHWND, "Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?", nullptr,

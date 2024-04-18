@@ -172,10 +172,6 @@ struct t_movie_freeze
 bool task_is_playback(e_task task);
 bool task_is_recording(e_task task);
 
-bool vcr_is_active();
-bool vcr_is_idle();
-bool vcr_is_recording();
-
 /**
  * \brief Notifies VCR engine about controller being polled
  * \param index The polled controller's index

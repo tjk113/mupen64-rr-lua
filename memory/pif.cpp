@@ -516,7 +516,7 @@ void update_pif_read(bool stcheck)
 					// this is incompatible with VCR!
 					if (Controls[channel].Present &&
 						Controls[channel].RawData
-						&& vcr_is_idle()
+						&& VCR::get_task() == e_task::idle
 					)
 					{
 						readController(channel, &PIF_RAMb[i]);

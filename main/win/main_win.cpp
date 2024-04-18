@@ -745,7 +745,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			EnableMenuItem(main_menu, IDM_FULLSCREEN, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_STATUSBAR, !emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, emu_launched ? MF_ENABLED : MF_GRAYED);
-			EnableMenuItem(main_menu, IDM_STOP_MOVIE, vcr_is_active() ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_STOP_MOVIE, (VCR::get_task() != e_task::idle) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_TRACELOG, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_COREDBG, (emu_launched && Config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_SEEKER, (emu_launched && task_is_playback(VCR::get_task())) ? MF_ENABLED : MF_GRAYED);
@@ -942,7 +942,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case IDM_RESET_ROM:
-				if (Config.is_reset_recording_enabled && vcr_is_recording())
+				if (Config.is_reset_recording_enabled && VCR::get_task() == e_task::recording)
 				{
 					Messenger::broadcast(Messenger::Message::ResetRequested, nullptr);
 					break;
