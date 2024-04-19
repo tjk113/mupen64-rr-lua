@@ -406,47 +406,45 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 		std::wstring path = string_to_wstring(luaL_checkstring(L, 1));
-		printf("LoadImage: %ws\n", path.c_str());
-		Gdiplus::Bitmap* img = new Gdiplus::Bitmap(path.c_str());
+
+		auto img = new Gdiplus::Bitmap(path.c_str());
 		if (!img || img->GetLastStatus())
 		{
 			luaL_error(L, "Couldn't find image '%s'", path.c_str());
 			return 0;
 		}
-		lua->image_pool.push_back(img);
-		lua_pushinteger(L, lua->image_pool.size()); //return the identifier (index+1)
+
+		lua->image_pool_index++;
+		lua->image_pool[lua->image_pool_index] = img;
+
+		lua_pushinteger(L, lua->image_pool_index);
 		return 1;
 	}
 
 	static int DeleteImage(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		// Clears one or all images from imagePool
-		unsigned int clearIndex = luaL_checkinteger(L, 1);
-		if (clearIndex == 0)
+		size_t key = luaL_checkinteger(L, 1);
+
+		if (key == 0)
 		{
-			// If clearIndex is 0, clear all images
 			printf("Deleting all images\n");
-			for (auto x : lua->image_pool)
+			for (auto& val : lua->image_pool | std::views::values)
 			{
-				delete x;
+				delete val;
 			}
 			lua->image_pool.clear();
 		} else
 		{
-			// If clear index is not 0, clear 1 image
-			if (clearIndex <= lua->image_pool.size())
+			if (!lua->image_pool.contains(key))
 			{
-				printf("Deleting image index %d (%d in lua)\n", clearIndex - 1,
-				       clearIndex);
-				delete lua->image_pool[clearIndex - 1];
-				lua->image_pool.erase(lua->image_pool.begin() + clearIndex - 1);
-			} else
-			{
-				// Error if the image doesn't exist
 				luaL_error(L, "Argument #1: Image index doesn't exist");
 				return 0;
 			}
+
+			delete lua->image_pool[key];
+			lua->image_pool[key] = nullptr;
+			lua->image_pool.erase(key);
 		}
 		return 0;
 	}
@@ -454,10 +452,9 @@ namespace LuaCore::Wgui
 	static int DrawImage(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		size_t pool_index = luaL_checkinteger(L, 1) - 1; // because lua
+		size_t key = luaL_checkinteger(L, 1);
 
-		// Error if the image doesn't exist
-		if (pool_index > lua->image_pool.size() - 1)
+		if (!lua->image_pool.contains(key))
 		{
 			luaL_error(L, "Argument #1: Image index doesn't exist");
 			return 0;
@@ -467,7 +464,7 @@ namespace LuaCore::Wgui
 		unsigned int args = lua_gettop(L);
 
 		Gdiplus::Graphics gfx(lua->gdi_back_dc);
-		Gdiplus::Bitmap* img = lua->image_pool[pool_index];
+		Gdiplus::Bitmap* img = lua->image_pool[key];
 
 		// Original DrawImage
 		if (args == 3)
@@ -558,10 +555,10 @@ namespace LuaCore::Wgui
 
 		Gdiplus::Bitmap* out = new Gdiplus::Bitmap(lua->loadscreen_bmp, nullptr);
 
-		lua->image_pool.push_back(out);
+		lua->image_pool_index++;
+		lua->image_pool[lua->image_pool_index] = out;
 
-		lua_pushinteger(L, lua->image_pool.size());
-
+		lua_pushinteger(L, lua->image_pool_index);
 		return 1;
 	}
 
@@ -576,17 +573,15 @@ namespace LuaCore::Wgui
 	static int GetImageInfo(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
+		size_t key = luaL_checkinteger(L, 1);
 
-
-		unsigned int imgIndex = luaL_checkinteger(L, 1) - 1;
-
-		if (imgIndex > lua->image_pool.size() - 1)
+		if (!lua->image_pool.contains(key))
 		{
-			luaL_error(L, "Argument #1: Invalid image index");
+			luaL_error(L, "Argument #1: Image index doesn't exist");
 			return 0;
 		}
 
-		Gdiplus::Bitmap* img = lua->image_pool[imgIndex];
+		Gdiplus::Bitmap* img = lua->image_pool[key];
 
 		lua_newtable(L);
 		lua_pushinteger(L, img->GetWidth());

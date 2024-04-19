@@ -754,6 +754,9 @@ void LuaEnvironment::create_renderer()
 		reinterpret_cast<IUnknown**>(&dw_factory)
 	);
 
+	// Key 0 is reserved for clearing the image pool, too late to change it now...
+	image_pool_index = 1;
+
 	if (!create_composition_surface(d2d_overlay_hwnd, dc_size, &factory, &dxgiadapter, &d3device, &dxdevice, &bitmap, &comp_visual, &comp_device, &comp_target,
 	                                &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc, &dxgi_surface, &dxgi_surface_resource, &front_buffer))
 	{
@@ -800,9 +803,9 @@ void LuaEnvironment::destroy_renderer()
 		d2d_render_target_stack.pop();
 	}
 
-	for (auto x : image_pool)
+	for (auto& val : image_pool | std::views::values)
 	{
-		delete x;
+		delete val;
 	}
 	image_pool.clear();
 

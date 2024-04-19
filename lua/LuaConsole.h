@@ -169,10 +169,11 @@ public:
 	// The stack of render targets. The top is used for D2D calls.
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
 
-	// The pool of GDI+ images.
-	// The user receives handles, which are indicies into this array.
-	// BUG: When deleting an image, all handles after it become invalid. The user is not aware of this happening, and it affects global state (can be caused by libraries)
-	std::vector<Gdiplus::Bitmap*> image_pool;
+	// Pool of GDI+ images
+	std::unordered_map<size_t, Gdiplus::Bitmap*> image_pool;
+
+	// Amount of generated images, just used to generate uids for image pool
+	size_t image_pool_index;
 
 	HDC loadscreen_dc;
 	HBITMAP loadscreen_bmp;
@@ -182,6 +183,8 @@ public:
 	HFONT font;
 	COLORREF col, bkcol;
 	int bkmode;
+
+
 
 	/**
 	 * \brief Destroys and stops the environment
