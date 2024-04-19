@@ -700,6 +700,30 @@ void lua_init()
 	RegisterClass(&wndclass);
 }
 
+void LuaEnvironment::create_loadscreen()
+{
+	if (loadscreen_dc)
+	{
+		return;
+	}
+	auto gdi_dc = GetDC(mainHWND);
+	loadscreen_dc = CreateCompatibleDC(gdi_dc);
+	loadscreen_bmp = CreateCompatibleBitmap(gdi_dc, dc_size.width, dc_size.height);
+	SelectObject(loadscreen_dc, loadscreen_bmp);
+	ReleaseDC(mainHWND, gdi_dc);
+}
+
+void LuaEnvironment::destroy_loadscreen()
+{
+	if (!loadscreen_dc)
+	{
+		return;
+	}
+	SelectObject(loadscreen_dc, nullptr);
+	DeleteDC(loadscreen_dc);
+	DeleteObject(loadscreen_bmp);
+	loadscreen_dc = nullptr;
+}
 
 void LuaEnvironment::create_renderer()
 {
@@ -752,6 +776,8 @@ void LuaEnvironment::create_renderer()
 
 	// If we don't fill up the DC with the key first, it never becomes "transparent"
 	FillRect(gdi_back_dc, &window_rect, alpha_mask_brush);
+
+	create_loadscreen();
 }
 
 void LuaEnvironment::destroy_renderer()
@@ -803,6 +829,8 @@ void LuaEnvironment::destroy_renderer()
 	DeleteDC(gdi_back_dc);
 	DeleteObject(gdi_bmp);
 	gdi_back_dc = nullptr;
+
+	destroy_loadscreen();
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment)
@@ -901,14 +929,6 @@ bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> fu
 	return false;
 }
 
-void LuaEnvironment::LoadScreenDelete()
-{
-	ReleaseDC(mainHWND, hwindowDC);
-	DeleteDC(hsrcDC);
-
-	LoadScreenInitialized = false;
-}
-
 void LuaEnvironment::invalidate_visuals()
 {
 	RECT rect;
@@ -916,24 +936,6 @@ void LuaEnvironment::invalidate_visuals()
 
 	InvalidateRect(this->d2d_overlay_hwnd, &rect, false);
 	InvalidateRect(this->gdi_overlay_hwnd, &rect, false);
-}
-
-void LuaEnvironment::LoadScreenInit()
-{
-	if (LoadScreenInitialized) LoadScreenDelete();
-
-	hwindowDC = GetDC(mainHWND);
-	// Create a handle to the main window Device Context
-	hsrcDC = CreateCompatibleDC(hwindowDC); // Create a DC to copy the screen to
-
-	auto info = get_window_info();
-	info.height -= 1; // ¯\_(ツ)_/¯
-	printf("LoadScreen Size: %d x %d\n", info.width, info.height);
-
-	// create an hbitmap
-	hbitmap = CreateCompatibleBitmap(hwindowDC, info.width, info.height);
-
-	LoadScreenInitialized = true;
 }
 
 void register_as_package(lua_State* lua_state, const char* name, const luaL_Reg regs[])

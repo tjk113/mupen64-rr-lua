@@ -174,10 +174,8 @@ public:
 	// BUG: When deleting an image, all handles after it become invalid. The user is not aware of this happening, and it affects global state (can be caused by libraries)
 	std::vector<Gdiplus::Bitmap*> image_pool;
 
-	bool LoadScreenInitialized = false;
-	// LoadScreen variables
-	HDC hwindowDC, hsrcDC;
-	HBITMAP hbitmap;
+	HDC loadscreen_dc;
+	HBITMAP loadscreen_bmp;
 
 	HBRUSH brush;
 	HPEN pen;
@@ -193,19 +191,17 @@ public:
 	void create_renderer();
 	void destroy_renderer();
 
+	void create_loadscreen();
+	void destroy_loadscreen();
+
 	//calls all functions that lua script has defined as callbacks, reads them from registry
 	//returns true at fail
 	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
 	                               const char* key);
 
-	// Deletes all the variables used in LoadScreen (avoid memory leaks)
-	void LoadScreenDelete();
-
 	// Invalidates the composition layer
 	void invalidate_visuals();
 
-	// Initializes everything needed for LoadScreen
-	void LoadScreenInit();
 	HWND hwnd;
 	lua_State* L;
 

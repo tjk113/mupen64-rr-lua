@@ -550,20 +550,13 @@ namespace LuaCore::Wgui
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 
-		if (!lua->LoadScreenInitialized)
-		{
-			luaL_error(
-				L, "LoadScreen not initialized! Something has gone wrong.");
-			return 0;
-		}
-		auto info = get_window_info();
-		// set the selected object of hsrcDC to hbwindow
-		SelectObject(lua->hsrcDC, lua->hbitmap);
-		// copy from the window device context to the bitmap device context
-		BitBlt(lua->hsrcDC, 0, 0, info.width, info.height, lua->hwindowDC, 0,
-		       0, SRCCOPY);
+		// Copy screen into the loadscreen dc
+		auto dc = GetDC(mainHWND);
+		BitBlt(lua->loadscreen_dc, 0, 0, lua->dc_size.width, lua->dc_size.height, dc, 0,
+			   0, SRCCOPY);
+		ReleaseDC(mainHWND, dc);
 
-		Gdiplus::Bitmap* out = new Gdiplus::Bitmap(lua->hbitmap, nullptr);
+		Gdiplus::Bitmap* out = new Gdiplus::Bitmap(lua->loadscreen_bmp, nullptr);
 
 		lua->image_pool.push_back(out);
 
@@ -575,7 +568,8 @@ namespace LuaCore::Wgui
 	static int LoadScreenReset(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
-		lua->LoadScreenInit();
+		lua->destroy_loadscreen();
+		lua->create_loadscreen();
 		return 0;
 	}
 
