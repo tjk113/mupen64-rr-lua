@@ -95,7 +95,7 @@ bool write_file_buffer(const std::filesystem::path& path, std::span<uint8_t> dat
  * \return The decompressed byte vector
  */
 std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
-                                     size_t initial_size = 10'500'000);
+                                     size_t initial_size = 0xB624F0);
 
 /**
  * \brief Reads source data into the destination, advancing the source pointer by <c>len</c>
