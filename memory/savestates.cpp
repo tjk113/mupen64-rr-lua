@@ -565,7 +565,8 @@ void savestates_load_immediate()
 		load_eventqueue_infos(buf);
 		load_memory_from_buffer(first_block);
 
-		if (MGECompositor::available() && video_buffer)
+		// NOTE: We don't want to restore screen buffer while seeking, since it creates a short ugly flicker when the movie restarts by loading state
+		if (MGECompositor::available() && video_buffer && !VCR::is_seeking())
 		{
 			long current_width, current_height;
 			MGECompositor::read_screen(nullptr, &current_width, &current_height);
