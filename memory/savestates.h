@@ -89,16 +89,14 @@ void savestates_init();
 /**
  * \brief Reads emu state and generates a savestate depending on the st global state
  * \remarks If <c>savestates_job_use_slot</c> is specified, <c>st_slot</c> will be used to construct the savestate's path, otherwise <c>st_path</c> will be used
- *
- * This function should only be called by the core, other callers shall use <c>savestates_exec</c>
+ * \warning This function must only be called from the emulation thread. Other callers must use the <c>savestates_do_x</c> family.
  */
 void savestates_save_immediate();
 
 /**
  * \brief Overwrites emu state from a read savestate depending on the st global state
  * \remarks If <c>savestates_job_use_slot</c> is specified, <c>st_slot</c> will be used to construct the savestate's path, otherwise <c>st_path</c> will be used
- *
- * This function should only be called by the core, other callers shall use <c>savestates_exec</c>
+ * \warning This function must only be called from the emulation thread. Other callers must use the <c>savestates_do_x</c> family.
  */
 void savestates_load_immediate();
 
