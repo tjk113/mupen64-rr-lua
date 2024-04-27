@@ -308,6 +308,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		g_header.length_samples = freeze.current_sample;
 
 		g_header.rerecord_count++;
+		Config.total_rerecords++;
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 
 		printf("[VCR] Unfreezing %d samples\n", freeze.length_samples);

@@ -475,6 +475,7 @@
 #define IDC_STATUSBARZEROINDEX          40068
 #define IDM_RUNNER                      40069
 #define IDM_CONSOLE                     40070
+#define IDM_STATS                       40071
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

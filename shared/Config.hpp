@@ -88,6 +88,16 @@ typedef struct _CONFIG
 	int32_t version = 5;
 
 	/// <summary>
+	/// Statistic - Amount of state loads during recording
+	/// </summary>
+	uint64_t total_rerecords;
+
+	/// <summary>
+	/// Statistic - Amount of emulated frames
+	/// </summary>
+	uint64_t total_frames;
+
+	/// <summary>
 	/// The currently selected core type
 	/// <para/>
 	/// 0 - Cached Interpreter

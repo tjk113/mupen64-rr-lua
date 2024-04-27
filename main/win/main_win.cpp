@@ -1008,6 +1008,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 					break;
 				}
+			case IDM_STATS:
+				{
+					BetterEmulationLock lock;
+
+					auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", string_to_wstring(format_duration(Config.total_frames / 30)), Config.total_rerecords);
+
+					MessageBoxW(mainHWND,
+									str.c_str(),
+									L"Statistics",
+									MB_ICONINFORMATION);
+					break;
+				}
 			case IDM_CONSOLE:
 				open_console();
 				break;

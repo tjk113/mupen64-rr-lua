@@ -711,6 +711,24 @@ void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
 }
 
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
+						 const int32_t is_reading, uint64_t* value)
+{
+	if (is_reading)
+	{
+		// keep the default value if the key doesnt exist
+		// it will be created upon saving anyway
+		if (!ini["Config"].has(field_name))
+		{
+			return;
+		}
+		*value = std::stoull(ini["Config"][field_name]);
+	} else
+	{
+		ini["Config"][field_name] = std::to_string(*value);
+	}
+}
+
+void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          const int32_t is_reading, std::string& value)
 {
 	if (is_reading)
@@ -841,6 +859,8 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	}
 
 	HANDLE_P_VALUE(version)
+	HANDLE_P_VALUE(total_rerecords)
+	HANDLE_P_VALUE(total_frames)
 	HANDLE_P_VALUE(core_type)
 	HANDLE_P_VALUE(fps_modifier)
 	HANDLE_P_VALUE(frame_skip_frequency)
