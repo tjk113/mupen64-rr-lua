@@ -220,16 +220,6 @@ namespace LuaCore::Emu
 		return 0;
 	}
 
-
-	static int GetSystemMetricsLua(lua_State* L)
-	{
-		LuaEnvironment* lua = GetLuaClass(L);
-
-		lua_pushinteger(L, GetSystemMetrics(luaL_checkinteger(L, 1)));
-
-		return 1;
-	}
-
 	static int IsMainWindowInForeground(lua_State* L)
 	{
 		LuaEnvironment* lua = GetLuaClass(L);

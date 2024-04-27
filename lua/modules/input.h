@@ -131,16 +131,6 @@ namespace LuaCore::Input
 		lua_pushstring(L, name);
 		return 1;
 	}
-
-	static int LuaMapVirtualKeyEx(lua_State* L)
-	{
-		auto u_code = luaL_checkinteger(L, 1);
-		auto u_map_type = luaL_checkinteger(L, 2);
-		lua_pushinteger(
-			L, MapVirtualKeyEx(u_code, u_map_type, GetKeyboardLayout(0)));
-		return 1;
-	}
-
 	static INT_PTR CALLBACK InputPromptProc(HWND wnd, UINT msg, WPARAM wParam,
 	                                        LPARAM lParam)
 	{

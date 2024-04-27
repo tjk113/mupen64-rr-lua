@@ -432,8 +432,6 @@ const luaL_Reg emuFuncs[] = {
 	{"screenshot", LuaCore::Emu::Screenshot},
 
 #pragma region WinAPI
-	// DEPRECATE: WinAPI coupling
-	{"getsystemmetrics", LuaCore::Emu::GetSystemMetricsLua},
 	{"play_sound", LuaCore::Emu::LuaPlaySound},
 #pragma endregion
 	{"ismainwindowinforeground", LuaCore::Emu::IsMainWindowInForeground},
@@ -542,8 +540,6 @@ const luaL_Reg inputFuncs[] = {
 	{"diff", LuaCore::Input::GetKeyDifference},
 	{"prompt", LuaCore::Input::InputPrompt},
 	{"get_key_name_text", LuaCore::Input::LuaGetKeyNameText},
-	// DEPRECATE: WinAPI coupling
-	{"map_virtual_key_ex", LuaCore::Input::LuaMapVirtualKeyEx},
 	{NULL, NULL}
 };
 const luaL_Reg joypadFuncs[] = {
@@ -993,6 +989,12 @@ void LuaEnvironment::register_functions()
 
 	// COMPAT: emu.isreadonly deprecated, forwarded to movie.get_readonly
 	luaL_dostring(L, "emu.isreadonly = movie.get_readonly");
+
+	// DEPRECATED: input.map_virtual_key_ex couples to WinAPI
+	luaL_dostring(L, "input.map_virtual_key_ex = function() print('input.map_virtual_key_ex has been deprecated') end");
+
+	// DEPRECATED: emu.getsystemmetrics couples to WinAPI
+	luaL_dostring(L, "emu.getsystemmetrics = function() print('emu.getsystemmetrics has been deprecated') end");
 
 	// os.execute poses security risks
 	luaL_dostring(L, "os.execute = function() print('os.execute is disabled') end");
