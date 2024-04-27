@@ -245,12 +245,12 @@ namespace VCR
 	Result start_record(std::filesystem::path path, uint16_t flags, std::string author = "(no author)", std::string description = "(no description)");
 
 	/**
-	 * \brief Computes whether a seek operation is possible
+	 * \brief Gets information about a seek operation
 	 * \param frame The frame to seek to
 	 * \param relative Whether the seek is relative to the current frame
-	 * \return Whether the specified parameters allow a seek operation
+	 * \return A pair containing whether the specified parameters allow a seek operation and the effective frame
 	 */
-	bool can_seek_to(int32_t frame, bool relative);
+	std::pair<bool, size_t> get_seek_info(int32_t frame, bool relative);
 
 	/**
 	 * \brief Begins seeking to a frame in the currently playing movie

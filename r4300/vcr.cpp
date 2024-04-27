@@ -854,17 +854,28 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	return Result::Ok;
 }
 
-bool VCR::can_seek_to(int32_t frame, bool relative)
+size_t get_intended_frame(int32_t frame, bool relative)
 {
 	frame += relative ? m_current_sample : 0;
-	return frame < g_header.length_samples && frame > 0 && frame != m_current_sample;
+	if (relative)
+	{
+		frame %= g_header.length_samples;
+	}
+	return frame;
+}
+
+std::pair<bool, size_t> VCR::get_seek_info(int32_t frame, bool relative)
+{
+	frame = get_intended_frame(frame, relative);
+	bool allowed = frame < g_header.length_samples && frame > 0 && frame != m_current_sample;
+	return std::make_pair(allowed, frame);
 }
 
 VCR::Result VCR::begin_seek_to(int32_t frame, bool relative)
 {
-	frame += relative ? m_current_sample : 0;
-
-	if (!can_seek_to(frame, relative))
+	const auto [valid, effective_frame] = get_seek_info(frame, relative);
+	frame = effective_frame;
+	if (!valid)
 	{
 		return Result::InvalidFrame;
 	}

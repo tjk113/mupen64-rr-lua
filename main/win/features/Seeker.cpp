@@ -42,7 +42,7 @@ namespace Seeker
 			{
 				bool relative = Config.seeker_value[0] == '-' || Config.seeker_value[0] == '+';
 				int32_t frame = std::stoi(Config.seeker_value);
-				EnableWindow(GetDlgItem(hwnd, IDOK), Config.seeker_value.size() > 1 && VCR::can_seek_to(frame, relative));
+				EnableWindow(GetDlgItem(hwnd, IDOK), Config.seeker_value.size() > 1 && VCR::get_seek_info(frame, relative).first);
 			} catch (...)
 			{
 				EnableWindow(GetDlgItem(hwnd, IDOK), false);
