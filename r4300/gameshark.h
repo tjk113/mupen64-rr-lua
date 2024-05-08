@@ -9,19 +9,28 @@ namespace Gameshark
 {
 	/**
 	 * \brief Represents a gameshark script
+	 * \warning Thread-unsafe
 	 */
 	class Script
 	{
 	public:
 		/**
-		 * \brief Pauses the execution of the script
+		 * \brief Sets the resumed state
+		 * \param resumed Whether the script is allowed to execute code
 		 */
-		void pause();
+		void set_resumed(bool resumed)
+		{
+			m_resumed = resumed;
+		}
 
 		/**
-		 * \brief Resumes the execution of the script
+		 * \brief Sets the state of the GS button
+		 * \param state The new state
 		 */
-		void resume();
+		void set_gs_button(bool state)
+		{
+			m_gs_button = state;
+		}
 
 		/**
 		 * \brief Executes the script code
@@ -36,7 +45,12 @@ namespace Gameshark
 		static std::optional<std::shared_ptr<Script>> compile(const std::string& code);
 
 	private:
+		// Whether the script code gets executed
 		bool m_resumed = true;
+
+		// Whether the GS button is pushed
+		bool m_gs_button = false;
+
 		// Pair 1st element tells us whether instruction is a conditional. That's required for special treatment of buggy kaze blj anywhere code
 		std::vector<std::tuple<bool, std::function<bool()>>> m_instructions;
 	};

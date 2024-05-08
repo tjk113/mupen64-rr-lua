@@ -8,18 +8,13 @@
 
 std::vector<std::shared_ptr<Gameshark::Script>> scripts;
 
-void Gameshark::Script::pause()
-{
-	m_resumed = false;
-}
-
-void Gameshark::Script::resume()
-{
-	m_resumed = true;
-}
-
 void Gameshark::Script::execute()
 {
+	if (!m_resumed)
+	{
+		return;
+	}
+
 	bool execute = true;
 	for (auto instruction : m_instructions)
 	{
@@ -103,7 +98,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			// Write byte if script is resumed (GS button pressed)
 			script->m_instructions.emplace_back(std::make_tuple(false, [address, val, &script]
 			{
-				if (script->m_resumed)
+				if (script->m_gs_button)
 				{
 					LuaCore::Memory::StoreRDRAMSafe<UCHAR>(address, val & 0xFF);
 				}
@@ -114,7 +109,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			// Write word if script is resumed (GS button pressed)
 			script->m_instructions.emplace_back(std::make_tuple(false, [address, val, &script]
 			{
-				if (script->m_resumed)
+				if (script->m_gs_button)
 				{
 					LuaCore::Memory::StoreRDRAMSafe<USHORT>(address, val);
 				}
