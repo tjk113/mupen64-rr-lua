@@ -47,6 +47,8 @@
 #include <shared/Config.hpp>
 #include <main/win/main_win.h>
 
+#include "r4300/gameshark.h"
+
 unsigned char eeprom[0x800];
 unsigned char mempack[4][0x8000];
 int frame_advancing = 0;
@@ -188,6 +190,8 @@ void internal_ReadController(int Control, BYTE* Command)
 	case 1:
 		if (Controls[Control].Present)
 		{
+			Gameshark::execute();
+
 			lag_count = 0;
 			BUTTONS input = {0};
 			vcr_on_controller_poll(Control, &input);

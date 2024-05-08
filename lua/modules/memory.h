@@ -3,10 +3,14 @@ extern "C" {
 #include <lauxlib.h>
 #include <lualib.h>
 }
+#include <memory/memory.h>
 #include <Windows.h>
 
 namespace LuaCore::Memory
 {
+	static unsigned char* const rdramb = (unsigned char*)rdram;
+	const unsigned long AddrMask = 0x7FFFFF;
+
 	static DWORD LuaCheckIntegerU(lua_State* L, int i = -1)
 	{
 		return (DWORD)luaL_checknumber(L, i);
@@ -35,12 +39,10 @@ namespace LuaCore::Memory
 		lua_settable(L, -3);
 	}
 
-	//memory
-	unsigned char* const rdramb = (unsigned char*)rdram;
-	const unsigned long AddrMask = 0x7FFFFF;
+
 
 	template <typename T>
-	ULONG ToAddr(ULONG addr)
+	static ULONG ToAddr(ULONG addr)
 	{
 		return sizeof(T) == 4
 			       ? addr
@@ -52,13 +54,13 @@ namespace LuaCore::Memory
 	}
 
 	template <typename T>
-	T LoadRDRAMSafe(unsigned long addr)
+	static T LoadRDRAMSafe(unsigned long addr)
 	{
 		return *((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask))));
 	}
 
 	template <typename T>
-	void StoreRDRAMSafe(unsigned long addr, T value)
+	static void StoreRDRAMSafe(unsigned long addr, T value)
 	{
 		*((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask)))) = value;
 	}
@@ -268,13 +270,13 @@ namespace LuaCore::Memory
 	}
 
 	template <typename T>
-	void PushT(lua_State* L, T value)
+	static void PushT(lua_State* L, T value)
 	{
 		LuaPushIntU(L, value);
 	}
 
 	template <>
-	void PushT<ULONGLONG>(lua_State* L, ULONGLONG value)
+	static void PushT<ULONGLONG>(lua_State* L, ULONGLONG value)
 	{
 		LuaPushQword(L, value);
 	}
@@ -293,13 +295,13 @@ namespace LuaCore::Memory
 	}
 
 	template <typename T>
-	T CheckT(lua_State* L, int i)
+	static T CheckT(lua_State* L, int i)
 	{
 		return LuaCheckIntegerU(L, i);
 	}
 
 	template <>
-	ULONGLONG CheckT<ULONGLONG>(lua_State* L, int i)
+	static ULONGLONG CheckT<ULONGLONG>(lua_State* L, int i)
 	{
 		return LuaCheckQWord(L, i);
 	}
