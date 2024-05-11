@@ -892,6 +892,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_FASTFORWARD_OFF:
 				fast_forward = 0;
 				break;
+			case IDM_GS_ON:
+				set_gs_button(true);
+				break;
+			case IDM_GS_OFF:
+				set_gs_button(false);
+				break;
 			case IDM_PAUSE:
 				{
 					// FIXME: While this is a beautiful and clean solution, there has to be a better way to handle this

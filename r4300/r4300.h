@@ -136,6 +136,16 @@ void toggle_fullscreen_mode();
  */
 bool vr_is_fullscreen();
 
+/**
+ * \brief Gets the GS button state
+ */
+bool get_gs_button();
+
+/**
+ * \brief Sets the GS button state
+ */
+void set_gs_button(bool);
+
 void pure_interpreter();
 void compare_core();
 extern void jump_to_func();

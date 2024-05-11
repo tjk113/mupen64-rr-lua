@@ -4,6 +4,8 @@
 #include <vector>
 
 #include <lua/modules/memory.h>
+
+#include "r4300.h"
 #include "shared/helpers/string_helpers.h"
 
 std::vector<std::shared_ptr<Gameshark::Script>> scripts;
@@ -98,7 +100,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			// Write byte if script is resumed (GS button pressed)
 			script->m_instructions.emplace_back(std::make_tuple(false, [address, val, &script]
 			{
-				if (script->m_gs_button)
+				if (get_gs_button())
 				{
 					LuaCore::Memory::StoreRDRAMSafe<UCHAR>(address, val & 0xFF);
 				}
@@ -109,7 +111,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			// Write word if script is resumed (GS button pressed)
 			script->m_instructions.emplace_back(std::make_tuple(false, [address, val, &script]
 			{
-				if (script->m_gs_button)
+				if (get_gs_button())
 				{
 					LuaCore::Memory::StoreRDRAMSafe<USHORT>(address, val);
 				}

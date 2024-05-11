@@ -77,6 +77,7 @@ volatile bool core_executing = false;
 volatile bool emu_resetting = false;
 size_t g_total_frames = 0;
 bool fullscreen = false;
+bool gs_button = false;
 
 unsigned long i, dynacore = 0, interpcore = 0;
 int stop, llbit;
@@ -2242,4 +2243,14 @@ void toggle_fullscreen_mode()
 bool vr_is_fullscreen()
 {
 	return fullscreen;
+}
+
+bool get_gs_button()
+{
+	return gs_button;
+}
+
+void set_gs_button(bool value)
+{
+	gs_button = value;
 }

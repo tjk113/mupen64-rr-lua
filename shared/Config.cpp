@@ -142,6 +142,16 @@ CONFIG get_default_config()
 		.up_cmd = IDM_FASTFORWARD_OFF
 	};
 
+	config.gs_hotkey = {
+		.identifier = "GS Button",
+		.key = 'G',
+		.ctrl = 0,
+		.shift = 0,
+		.alt = 0,
+		.down_cmd = IDM_GS_ON,
+		.up_cmd = IDM_GS_OFF
+	};
+
 	config.speed_down_hotkey = {
 		.identifier = "Speed down",
 		.key = VK_OEM_MINUS,

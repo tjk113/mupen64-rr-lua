@@ -24,15 +24,6 @@ namespace Gameshark
 		}
 
 		/**
-		 * \brief Sets the state of the GS button
-		 * \param state The new state
-		 */
-		void set_gs_button(bool state)
-		{
-			m_gs_button = state;
-		}
-
-		/**
 		 * \brief Executes the script code
 		 */
 		void execute();
@@ -47,9 +38,6 @@ namespace Gameshark
 	private:
 		// Whether the script code gets executed
 		bool m_resumed = true;
-
-		// Whether the GS button is pushed
-		bool m_gs_button = false;
 
 		// Pair 1st element tells us whether instruction is a conditional. That's required for special treatment of buggy kaze blj anywhere code
 		std::vector<std::tuple<bool, std::function<bool()>>> m_instructions;
