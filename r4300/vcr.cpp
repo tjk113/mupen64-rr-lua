@@ -223,6 +223,28 @@ VCR::Result VCR::parse_header(std::filesystem::path path, t_movie_header* header
 	return result;
 }
 
+VCR::Result VCR::read_movie_inputs(std::filesystem::path path, std::vector<BUTTONS>& inputs)
+{
+	t_movie_header header = {};
+	const auto result = parse_header(path, &header);
+	if (result != Result::Ok)
+	{
+		return result;
+	}
+
+	auto buf = read_file_buffer(path);
+
+	if (buf.size() < sizeof(t_movie_header) + sizeof(BUTTONS) * header.length_samples)
+	{
+		return Result::InvalidFormat;
+	}
+
+	inputs.resize(header.length_samples);
+	memcpy(inputs.data(), buf.data() + sizeof(t_movie_header), sizeof(BUTTONS) * header.length_samples);
+
+	return Result::Ok;
+}
+
 bool
 vcr_is_playing()
 {

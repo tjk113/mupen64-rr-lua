@@ -228,6 +228,14 @@ namespace VCR
 	Result parse_header(std::filesystem::path path, t_movie_header* header);
 
 	/**
+	 * \brief Reads the inputs from a movie
+	 * \param path The movie's path
+	 * \param inputs The button collection to fill
+	 * \return The operation result
+	 */
+	Result read_movie_inputs(std::filesystem::path path, std::vector<BUTTONS>& inputs);
+
+	/**
  	* \brief Starts playing back a movie
  	* \param path The movie's path
  	* \return The error code

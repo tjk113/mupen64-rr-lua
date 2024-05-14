@@ -21,6 +21,67 @@ namespace MovieDialog
 	bool is_readonly;
 	HWND grid_hwnd;
 
+	size_t count_button_presses(const std::vector<BUTTONS>& buttons, const int mask)
+	{
+		size_t accumulator = 0;
+		bool pressed = false;
+		for (const auto btn : buttons)
+		{
+			const bool value = !!(btn.Value >> mask & 1);
+
+			if (value && !pressed)
+			{
+				accumulator++;
+				pressed = true;
+			} else if (!value)
+			{
+				pressed = false;
+			}
+		}
+		return accumulator;
+	}
+
+	size_t count_unused_inputs(const std::vector<BUTTONS>& buttons)
+	{
+		size_t accumulator = 0;
+		for (const auto btn : buttons)
+		{
+			if (btn.Value == 0)
+			{
+				accumulator++;
+			}
+		}
+		return accumulator;
+	}
+
+	size_t count_joystick_frames(const std::vector<BUTTONS>& buttons)
+	{
+		size_t accumulator = 0;
+		for (const auto btn : buttons)
+		{
+			if (btn.X_AXIS != 0 || btn.Y_AXIS != 0)
+			{
+				accumulator++;
+			}
+		}
+		return accumulator;
+	}
+
+	size_t count_input_changes(const std::vector<BUTTONS>& buttons)
+	{
+		size_t accumulator = 0;
+		BUTTONS last_input = {0};
+		for (const auto btn : buttons)
+		{
+			if (btn.Value != last_input.Value)
+			{
+				accumulator++;
+			}
+			last_input = btn;
+		}
+		return accumulator;
+	}
+
 	LRESULT CALLBACK MovieInspectorProc(HWND hwnd, UINT Message, WPARAM wParam,
 	                                    LPARAM lParam)
 	{
@@ -254,6 +315,13 @@ namespace MovieDialog
 			return FALSE;
 		}
 
+		std::vector<BUTTONS> inputs = {};
+
+		if (VCR::read_movie_inputs(record_params.path, inputs) != VCR::Result::Ok)
+		{
+			return FALSE;
+		}
+
 		std::vector<std::pair<std::string, std::string>> metadata;
 
 		ListView_DeleteAllItems(grid_hwnd);
@@ -294,6 +362,37 @@ namespace MovieDialog
 			metadata.emplace_back(
 				std::make_pair(std::format("Controller {}", i + 1), tempbuf));
 		}
+
+		metadata.emplace_back(
+			std::make_pair("A Presses", std::to_string(count_button_presses(inputs, 7))));
+		metadata.emplace_back(
+			std::make_pair("B Presses", std::to_string(count_button_presses(inputs, 6))));
+		metadata.emplace_back(
+			std::make_pair("Z Presses", std::to_string(count_button_presses(inputs, 5))));
+		metadata.emplace_back(
+			std::make_pair("S Presses", std::to_string(count_button_presses(inputs, 4))));
+		metadata.emplace_back(
+			std::make_pair("R Presses", std::to_string(count_button_presses(inputs, 12))));
+
+		metadata.emplace_back(
+			std::make_pair("C^ Presses", std::to_string(count_button_presses(inputs, 11))));
+		metadata.emplace_back(
+			std::make_pair("Cv Presses", std::to_string(count_button_presses(inputs, 10))));
+		metadata.emplace_back(
+			std::make_pair("C< Presses", std::to_string(count_button_presses(inputs, 9))));
+		metadata.emplace_back(
+			std::make_pair("C> Presses", std::to_string(count_button_presses(inputs, 8))));
+
+		const auto lag_frames = max(0, (int64_t)header.length_vis - 2 * (int64_t)header.length_samples);
+		metadata.emplace_back(
+			std::make_pair("Lag Frames (approximation)", std::to_string(lag_frames)));
+		metadata.emplace_back(
+			std::make_pair("Unused Inputs", std::to_string(count_unused_inputs(inputs))));
+		metadata.emplace_back(
+			std::make_pair("Joystick Frames", std::to_string(count_joystick_frames(inputs))));
+		metadata.emplace_back(
+			std::make_pair("Input Changes", std::to_string(count_input_changes(inputs))));
+
 
 		SetDlgItemText(hwnd, IDC_INI_AUTHOR, header.author);
 		SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, header.description);
