@@ -194,6 +194,11 @@ static VCR::Result read_movie_header(std::vector<uint8_t> buf, t_movie_header* h
 	{
 		return VCR::Result::InvalidFormat;
 	}
+	if (new_header.version == 3)
+	{
+		memcpy(new_header.author, buf.data() + 0x222, 222);
+		memcpy(new_header.description, buf.data() + 0x300, 256);
+	}
 
 	*header = new_header;
 
