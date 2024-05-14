@@ -283,9 +283,10 @@ std::optional<t_movie_freeze> VCR::freeze()
 
 VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 {
-	if (VCR::get_task() == e_task::idle)
+	// Unfreezing isn't valid during start or idle states
+	if (VCR::get_task() != e_task::recording && VCR::get_task() != e_task::playback)
 	{
-		return Result::Idle;
+		return Result::NeedsPlaybackOrRecording;
 	}
 
 	if (freeze.size <

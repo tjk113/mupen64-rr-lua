@@ -494,7 +494,7 @@ void savestates_load_immediate()
 
 		const auto code = VCR::unfreeze(freeze);
 
-		if (code != VCR::Result::Ok && VCR::get_task() != e_task::idle)
+		if (code != VCR::Result::Ok && (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback))
 		{
 			std::string err_str = "Failed to restore movie, ";
 			switch (code)

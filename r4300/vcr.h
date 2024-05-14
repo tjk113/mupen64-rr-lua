@@ -212,6 +212,8 @@ namespace VCR
 		NotFromThisMovie,
 		// The movie's version is invalid
 		InvalidVersion,
+		// The operation requires a playback or recording task
+		NeedsPlaybackOrRecording,
 	};
 
 	/**
