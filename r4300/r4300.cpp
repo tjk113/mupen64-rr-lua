@@ -2130,7 +2130,7 @@ Core::Result vr_start_rom(std::filesystem::path path)
 	}
 
 	// Open the EEPROM
-	g_eeprom_file = fopen(get_eeprom_path().string().c_str(), "rb");
+	g_eeprom_file = fopen(get_eeprom_path().string().c_str(), "rb+");
 
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 
@@ -2167,7 +2167,6 @@ Core::Result vr_close_rom(bool stop_vcr)
 
 	resume_emu();
 
-	fclose(g_eeprom_file);
 	audio_thread_stop_requested = true;
 	WaitForSingleObject(audio_thread_handle, INFINITE);
 	audio_thread_stop_requested = false;
@@ -2190,6 +2189,9 @@ Core::Result vr_close_rom(bool stop_vcr)
 		printf("[Core] Emulation thread timed out!!!\n");
 		TerminateThread(emu_thread_handle, 0);
 	}
+
+	fflush(g_eeprom_file);
+	fclose(g_eeprom_file);
 
 	return Core::Result::Ok;
 }
