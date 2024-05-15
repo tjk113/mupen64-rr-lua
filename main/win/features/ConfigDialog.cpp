@@ -213,6 +213,12 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
 		SetDlgItemText(hwnd, IDC_SAVES_DIR, Config.saves_directory.c_str());
 		SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory.c_str());
 
+		if (emu_launched)
+		{
+			EnableWindow(GetDlgItem(hwnd, IDC_DEFAULT_SAVES_CHECK), FALSE);
+			EnableWindow(GetDlgItem(hwnd, IDC_SAVES_DIR), FALSE);
+			EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SAVES_DIR), FALSE);
+		}
 		break;
 	case WM_NOTIFY:
 		if (l_nmhdr->code == PSN_APPLY)

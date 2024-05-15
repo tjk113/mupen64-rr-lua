@@ -104,6 +104,8 @@ int trunc_mode = TRUNC_MODE, round_mode = ROUND_MODE, ceil_mode = CEIL_MODE, flo
 short x87_status_word;
 void (*code)();
 
+FILE* g_eeprom_file;
+
 /*#define check_memory() \
    if (!invalid_code[address>>12]) \
 	   invalid_code[address>>12] = 1;*/
@@ -2127,6 +2129,9 @@ Core::Result vr_start_rom(std::filesystem::path path)
 		return Core::Result::RomInvalid;
 	}
 
+	// Open the EEPROM
+	g_eeprom_file = fopen(get_eeprom_path().string().c_str(), "rb");
+
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 
 	printf("[Core] vr_start_rom entry took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
@@ -2162,6 +2167,7 @@ Core::Result vr_close_rom(bool stop_vcr)
 
 	resume_emu();
 
+	fclose(g_eeprom_file);
 	audio_thread_stop_requested = true;
 	WaitForSingleObject(audio_thread_handle, INFINITE);
 	audio_thread_stop_requested = false;

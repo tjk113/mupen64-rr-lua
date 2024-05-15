@@ -72,6 +72,8 @@ extern unsigned long last_addr, interp_addr;
 extern char invalid_code[0x100000];
 extern unsigned long jump_to_address;
 
+extern FILE* g_eeprom_file;
+
 std::filesystem::path get_rom_path();
 
 namespace Core

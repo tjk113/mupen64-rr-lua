@@ -95,34 +95,19 @@ void EepromCommand(BYTE* Command)
 		break;
 	case 4: // read
 		{
-			auto filename = get_eeprom_path();
-			FILE* f = fopen(filename.string().c_str(), "rb");
-			if (f)
-			{
-				fread(eeprom, 1, 0x800, f);
-				fclose(f);
-			} else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+			fseek(g_eeprom_file, 0, SEEK_SET);
+			fread(eeprom, 1, 0x800, g_eeprom_file);
 			memcpy(&Command[4], eeprom + Command[3] * 8, 8);
 		}
 		break;
 	case 5: // write
 		{
-			auto filename = get_eeprom_path();
-			FILE* f = fopen(filename.string().c_str(), "rb");
-			if (f)
-			{
-				fread(eeprom, 1, 0x800, f);
-				fclose(f);
-			} else for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+			fseek(g_eeprom_file, 0, SEEK_SET);
+			fread(eeprom, 1, 0x800, g_eeprom_file);
 			memcpy(eeprom + Command[3] * 8, &Command[4], 8);
-			f = fopen(filename.string().c_str(), "wb");
-			if (!f)
-			{
-				printf("[Core] EEPROM write fail due to no file handle");
-				return;
-			}
-			fwrite(eeprom, 1, 0x800, f);
-			fclose(f);
+
+			fseek(g_eeprom_file, 0, SEEK_SET);
+			fwrite(eeprom, 1, 0x800, g_eeprom_file);
 		}
 		break;
 	default:
