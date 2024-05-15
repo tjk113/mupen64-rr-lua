@@ -1119,6 +1119,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
+					VCR::replace_author_info(result.path, result.author, result.description);
+
 					Config.pause_at_frame = result.pause_at;
 					Config.pause_at_last_frame = result.pause_at_last;
 

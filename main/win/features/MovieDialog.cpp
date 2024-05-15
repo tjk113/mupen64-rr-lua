@@ -87,7 +87,7 @@ namespace MovieDialog
 	{
 		// List of dialog item IDs that shouldn't be interactable when in a specific mode
 		const std::vector disabled_on_play = {
-			IDC_INI_AUTHOR, IDC_INI_DESCRIPTION, IDC_RADIO_FROM_START,
+			IDC_RADIO_FROM_START,
 			IDC_RADIO_FROM_ST, IDC_RADIO_FROM_EEPROM, IDC_RADIO_FROM_EXISTING_ST
 		};
 		const std::vector disabled_on_record = {
@@ -159,8 +159,20 @@ namespace MovieDialog
 				return FALSE;
 			}
 		case WM_DESTROY:
-			DestroyWindow(grid_hwnd);
-			break;
+			{
+				char author[sizeof(t_movie_header::author)] = {0};
+				GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, author,
+								std::size(author));
+				record_params.author = author;
+
+				char description[sizeof(t_movie_header::description)] = {0};
+				GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, description,
+								std::size(description));
+				record_params.description = description;
+
+				DestroyWindow(grid_hwnd);
+				break;
+			}
 		case WM_CLOSE:
 			EndDialog(hwnd, IDCANCEL);
 			break;
@@ -234,22 +246,6 @@ namespace MovieDialog
 					record_params.path = path;
 
 					goto refresh;
-				}
-			case IDC_INI_AUTHOR:
-				{
-					char author[sizeof(t_movie_header::author)] = {0};
-					GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, author,
-					                std::size(author));
-					record_params.author = author;
-					break;
-				}
-			case IDC_INI_DESCRIPTION:
-				{
-					char description[sizeof(t_movie_header::description)] = {0};
-					GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, description,
-					                std::size(description));
-					record_params.description = description;
-					break;
 				}
 			case IDC_MOVIE_BROWSE:
 				{

@@ -254,6 +254,16 @@ namespace VCR
 	 */
 	Result start_record(std::filesystem::path path, uint16_t flags, std::string author = "(no author)", std::string description = "(no description)");
 
+
+	/**
+	 * \brief Replaces the author and description information of a movie
+	 * \param path The movie's path
+	 * \param author The movie author's name
+	 * \param description The movie's description
+	 * \return The operation result
+	 */
+	Result replace_author_info(std::filesystem::path path, std::string author, std::string description);
+
 	/**
 	 * \brief Gets information about a seek operation
 	 * \param frame The frame to seek to

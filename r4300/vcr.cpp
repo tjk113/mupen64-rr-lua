@@ -638,6 +638,39 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	return Result::Ok;
 }
 
+VCR::Result VCR::replace_author_info(std::filesystem::path path, std::string author, std::string description)
+{
+	FILE* f = fopen(path.string().c_str(), "rb+");
+	if (!f)
+	{
+		return Result::BadFile;
+	}
+
+	if (author.size() > 222 || description.size() > 256)
+	{
+		return Result::InvalidFormat;
+	}
+
+	fseek(f, 0x222, SEEK_SET);
+	for (int i = 0; i < 222; ++i)
+	{
+		fputc(0, f);
+	}
+	fseek(f, 0x222, SEEK_SET);
+	fwrite(author.data(), 1, author.size(), f);
+
+	fseek(f, 0x300, SEEK_SET);
+	for (int i = 0; i < 256; ++i)
+	{
+		fputc(0, f);
+	}
+	fseek(f, 0x300, SEEK_SET);
+	fwrite(description.data(), 1, description.size(), f);
+
+	fflush(f);
+	fclose(f);
+	return Result::Ok;
+}
 
 VCR::Result vcr_stop_record()
 {
