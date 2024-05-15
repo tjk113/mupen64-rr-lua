@@ -2,6 +2,7 @@
 // Von Microsoft Visual C++ generierte Includedatei.
 // Verwendet durch rsrc.rc
 //
+#define IDOK2                           3
 #define MAX_LUA_OPEN_AND_RUN_INSTANCES  100
 #define MIN_WINDOW_H                    100
 #define MIN_WINDOW_W                    100
@@ -9,6 +10,7 @@
 #define IDM_SETTINGS                    105
 #define IDD_SEEKER                      107
 #define IDD_RUNNER                      109
+#define IDD_MOVIE_EDITOR                111
 #define IDD_MAIN                        128
 #define IDM_LOAD_ROM                    129
 #define IDC_INTERP                      130
@@ -99,10 +101,14 @@
 #define IDC_RADIO1                      1033
 #define IDC_EDIT1                       1035
 #define IDC_SEEKER_FRAME                1035
+#define IDC_MOVIE_A_PATH                1035
 #define IDC_MOVIE_INFO_TEMPLATE         1036
 #define IDC_ENCODE_MODE                 1037
 #define IDC_ENCODE_MODE2                1038
 #define IDC_ENCODE_SYNC                 1038
+#define IDC_MOVIE_A_BROWSE              1038
+#define IDC_EDIT_MOVIE_AUTHOR           1039
+#define IDC_EDIT_MOVIE_AUTHOR2          1040
 #define IDM_FULLSCREEN                  1061
 #define IDM_PAUSE                       1062
 #define IDM_FRAMEADVANCE                1063
@@ -476,18 +482,17 @@
 #define IDM_RUNNER                      40069
 #define IDM_CONSOLE                     40070
 #define IDM_STATS                       40071
-#define IDM_GS_ON              			40072
-#define IDM_GS_OFF             			40073
-
+#define IDM_GS_ON                       40072
+#define IDM_GS_OFF                      40073
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        111
+#define _APS_NEXT_RESOURCE_VALUE        113
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1038
+#define _APS_NEXT_CONTROL_VALUE         1040
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
