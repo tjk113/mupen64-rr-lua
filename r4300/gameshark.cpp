@@ -41,10 +41,11 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 	size_t serial_offset = 0;
 	size_t serial_diff = 0;
 
-	for (auto line : lines)
+	for (const auto& line : lines)
 	{
-		if (line[0] == '$' || line[0] == '-')
+		if (line[0] == '$' || line[0] == '-' || line.size() < 13)
 		{
+			printf("[GS] Line skipped\n");
 			continue;
 		}
 
