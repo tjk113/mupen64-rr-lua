@@ -49,7 +49,37 @@ namespace Cheats
 					}
 					auto script = Gameshark::scripts[selected_index];
 					script->set_resumed(IsDlgButtonChecked(hwnd, IDC_CHECK_CHEAT_ENABLED) == BST_CHECKED);
-					break;
+					goto rebuild_list;
+				}
+
+			case IDC_CHEAT_APPLY:
+				{
+					auto lb_hwnd = GetDlgItem(hwnd, IDC_LIST_CHEATS);
+					auto selected_index = ListBox_GetCurSel(lb_hwnd);
+					if (selected_index == -1)
+					{
+						break;
+					}
+
+					const bool prev_resumed = Gameshark::scripts[selected_index]->resumed();
+
+					char code[4096]{};
+					Edit_GetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT), code, sizeof(code));
+
+					char name[256]{};
+					Edit_GetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT_NAME), name, sizeof(name));
+
+					// Replace with script recompiled with new code, while keeping some properties
+					// Old script goes out of ref
+					auto script = Gameshark::Script::compile(code);
+
+					if (!script.has_value())
+						break;
+
+					script.value()->set_name(name);
+					script.value()->set_resumed(prev_resumed);
+					Gameshark::scripts[selected_index] = script.value();
+					goto rebuild_list;
 				}
 			default: break;
 			}
@@ -70,6 +100,7 @@ namespace Cheats
 			CheckDlgButton(hwnd, IDC_CHECK_CHEAT_ENABLED,
 			               Gameshark::scripts[selected_index]->resumed() ? BST_CHECKED : BST_UNCHECKED);
 			SetDlgItemText(hwnd, IDC_EDIT_CHEAT, Gameshark::scripts[selected_index]->code().c_str());
+			Edit_SetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT_NAME), Gameshark::scripts[selected_index]->name().c_str());
 		}
 		return FALSE;
 
@@ -77,11 +108,14 @@ namespace Cheats
 	rebuild_list:
 		{
 			auto lb_hwnd = GetDlgItem(hwnd, IDC_LIST_CHEATS);
+			auto prev_index = ListBox_GetCurSel(lb_hwnd);
 			ListBox_ResetContent(lb_hwnd);
 			for (auto script : Gameshark::scripts)
 			{
-				ListBox_AddString(lb_hwnd, script->name().c_str());
+				auto name = !script->resumed() ? script->name() + " (Disabled)" : script->name();
+				ListBox_AddString(lb_hwnd, name.c_str());
 			}
+			ListBox_SetCurSel(lb_hwnd, prev_index);
 			goto update_selection;
 		}
 	}

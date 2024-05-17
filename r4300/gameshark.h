@@ -15,12 +15,9 @@ namespace Gameshark
 	{
 	public:
 		/**
-		 * \brief Gets the resumed state
+		 * \brief Executes the script code
 		 */
-		bool resumed() const
-		{
-			return m_resumed;
-		}
+		void execute();
 
 		/**
 		 * \brief Sets the resumed state
@@ -32,9 +29,21 @@ namespace Gameshark
 		}
 
 		/**
-		 * \brief Executes the script code
+		 * \brief Sets the script's name
+		 * \param name A name describing the script's functionality
 		 */
-		void execute();
+		void set_name(std::string name)
+		{
+			m_name = name;
+		}
+
+		/**
+		 * \brief Gets the resumed state
+		 */
+		bool resumed() const
+		{
+			return m_resumed;
+		}
 
 		/**
 		 * \brief Gets the script's name
@@ -70,7 +79,7 @@ namespace Gameshark
 		std::string m_name = "Unnamed Script";
 
 		// The script's code. Can't be mutated after creation.
-		std::string m_code = "Unnamed Script";
+		std::string m_code;
 	};
 
 	/**

@@ -750,6 +750,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			EnableMenuItem(main_menu, IDM_TRACELOG, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_COREDBG, (emu_launched && Config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_SEEKER, (emu_launched && task_is_playback(VCR::get_task())) ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_CHEATS, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_START_CAPTURE, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_STOP_CAPTURE, (emu_launched && EncodingManager::is_capturing()) ? MF_ENABLED : MF_GRAYED);
@@ -989,7 +990,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case IDM_CHEATS:
-				Cheats::show();
+				{
+					BetterEmulationLock lock;
+					Cheats::show();
+				}
 				break;
 			case IDM_RAMSTART:
 				{
