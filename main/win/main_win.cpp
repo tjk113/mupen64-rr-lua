@@ -60,6 +60,7 @@
 #include <shared/helpers/string_helpers.h>
 #include <shared/helpers/win_helpers.h>
 
+#include "features/Cheats.h"
 #include "features/Runner.h"
 #include "wrapper/PersistentPathDialog.h"
 
@@ -986,6 +987,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					BetterEmulationLock lock;
 					Runner::show();
 				}
+				break;
+			case IDM_CHEATS:
+				Cheats::show();
 				break;
 			case IDM_RAMSTART:
 				{

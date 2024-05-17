@@ -136,6 +136,7 @@ BEGIN
         MENUITEM "Start &Trace Logger...",      IDM_TRACELOG
         MENUITEM "&CoreDbg...",                 IDM_COREDBG
         MENUITEM "&Run...",                     IDM_RUNNER
+        MENUITEM "C&heats...",                  IDM_CHEATS
         MENUITEM "&Seek to...",                 IDM_SEEKER
         MENUITEM SEPARATOR
         POPUP "Video Capture"
@@ -664,6 +665,17 @@ BEGIN
     LTEXT           "Description",IDC_STATIC,7,61,100,14,SS_CENTERIMAGE
 END
 
+IDD_CHEATS DIALOGEX 0, 0, 271, 231
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Cheats"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST_CHEATS,7,7,257,119,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_CHEAT,7,141,257,83,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | ES_READONLY
+    CONTROL         "Enabled",IDC_CHECK_CHEAT_ENABLED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,59,126,93,14
+    PUSHBUTTON      "New",IDC_NEW_CHEAT,7,126,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -708,6 +720,16 @@ BEGIN
         HORZGUIDE, 75
         HORZGUIDE, 113
     END
+
+    IDD_CHEATS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 264
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 224
+        HORZGUIDE, 126
+        HORZGUIDE, 140
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -728,6 +750,11 @@ BEGIN
 END
 
 IDD_MOVIE_EDITOR AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_CHEATS AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

@@ -1,5 +1,6 @@
 ﻿#include "gameshark.h"
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -8,7 +9,10 @@
 #include "r4300.h"
 #include "shared/helpers/string_helpers.h"
 
-std::vector<std::shared_ptr<Gameshark::Script>> scripts;
+namespace Gameshark
+{
+	std::vector<std::shared_ptr<Gameshark::Script>> scripts;
+}
 
 void Gameshark::Script::execute()
 {
@@ -160,12 +164,8 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 		}
 	}
 
+	script->m_code = std::string(code);
 	return std::make_optional(script);
-}
-
-void Gameshark::add_script(std::shared_ptr<Script> script)
-{
-	scripts.emplace_back(script);
 }
 
 void Gameshark::execute()

@@ -2144,10 +2144,6 @@ Core::Result vr_start_rom(std::filesystem::path path)
 	// If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
 	while (!core_executing);
 
-	// Execute L to levitate code
-	// auto script = Gameshark::Script::compile("D033AFA1 0020\n8133B1BC 4220\nD033AFA1 0020\n8133B17C 0300\nD033AFA1 0020\n8133B17E 0880");
-	// Gameshark::add_script(script.value());
-
 	return Core::Result::Ok;
 }
 

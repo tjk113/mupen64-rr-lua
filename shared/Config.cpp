@@ -368,6 +368,15 @@ CONFIG get_default_config()
 		.down_cmd = IDM_RUNNER,
 	};
 
+	config.cheats_hotkey = {
+		.identifier = "Open Cheats dialog",
+		.key = 'U',
+		.ctrl = 1,
+		.shift = 0,
+		.alt = 0,
+		.down_cmd = IDM_CHEATS,
+	};
+
 	config.save_current_hotkey = {
 		.identifier = "Save to current slot",
 		.key = 0x49 /* I */,

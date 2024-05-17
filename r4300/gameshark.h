@@ -15,6 +15,14 @@ namespace Gameshark
 	{
 	public:
 		/**
+		 * \brief Gets the resumed state
+		 */
+		bool resumed() const
+		{
+			return m_resumed;
+		}
+
+		/**
 		 * \brief Sets the resumed state
 		 * \param resumed Whether the script is allowed to execute code
 		 */
@@ -29,6 +37,22 @@ namespace Gameshark
 		void execute();
 
 		/**
+		 * \brief Gets the script's name
+		 */
+		std::string name() const
+		{
+			return m_name;
+		}
+
+		/**
+		 * \brief Gets the script's code
+		 */
+		std::string code() const
+		{
+			return m_code;
+		}
+
+		/**
 		 * \brief Compiles a script from a string
 		 * \param code The script code
 		 * \return The compiled script, or none if the script is invalid
@@ -41,13 +65,18 @@ namespace Gameshark
 
 		// Pair 1st element tells us whether instruction is a conditional. That's required for special treatment of buggy kaze blj anywhere code
 		std::vector<std::tuple<bool, std::function<bool()>>> m_instructions;
+
+		// The script's name. FIXME: This should be read from the script
+		std::string m_name = "Unnamed Script";
+
+		// The script's code. Can't be mutated after creation.
+		std::string m_code = "Unnamed Script";
 	};
 
 	/**
-	 * \brief Adds a script to the gameshark execution list
-	 * \param script The script
+	 * \brief The gameshark execution list's scripts
 	 */
-	void add_script(std::shared_ptr<Script> script);
+	extern std::vector<std::shared_ptr<Script>> scripts;
 
 	/**
 	 * \brief Executes the gameshark code
