@@ -282,6 +282,15 @@ namespace VCR
 	Result begin_seek_to(int32_t frame, bool relative);
 
 	/**
+	 * \brief Converts a freeze buffer into a movie, trying to reconstruct as much as possible
+	 * \param freeze The freeze buffer to convert
+	 * \param header The generated header
+	 * \param inputs The generated inputs
+	 * \return The operation result
+	 */
+	Result convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_movie_header& header, std::vector<BUTTONS>& inputs);
+
+	/**
 	 * \brief Stops the current seek operation
 	 */
 	void stop_seek();

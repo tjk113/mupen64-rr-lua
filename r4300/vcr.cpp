@@ -954,6 +954,19 @@ VCR::Result VCR::begin_seek_to(int32_t frame, bool relative)
 	return Result::Ok;
 }
 
+VCR::Result VCR::convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_movie_header& header, std::vector<BUTTONS>& inputs)
+{
+	header.magic = mup_magic;
+	header.version = mup_version;
+	header.uid = freeze.uid;
+	header.length_samples = freeze.length_samples;
+	header.startFlags = MOVIE_START_FROM_NOTHING;
+	header.length_vis = UINT32_MAX;
+	set_rom_info(&header);
+	inputs = freeze.input_buffer;
+	return Result::Ok;
+}
+
 void VCR::stop_seek()
 {
 	seek_to_frame.reset();
