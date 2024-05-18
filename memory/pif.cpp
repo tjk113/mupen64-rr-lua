@@ -251,16 +251,12 @@ void internal_ControllerCommand(int Control, BYTE* Command)
 						address &= 0xFFE0;
 						if (address <= 0x7FE0)
 						{
-							auto filename = get_mempak_path();
-							FILE* f = fopen(filename.string().c_str(), "rb");
-							if (f)
-							{
-								fread(mempack[0], 1, 0x8000, f);
-								fread(mempack[1], 1, 0x8000, f);
-								fread(mempack[2], 1, 0x8000, f);
-								fread(mempack[3], 1, 0x8000, f);
-								fclose(f);
-							} else format_mempacks();
+							fseek(g_mpak_file, 0, SEEK_SET);
+							fread(mempack[0], 1, 0x8000, g_mpak_file);
+							fread(mempack[1], 1, 0x8000, g_mpak_file);
+							fread(mempack[2], 1, 0x8000, g_mpak_file);
+							fread(mempack[3], 1, 0x8000, g_mpak_file);
+
 							memcpy(&Command[5], &mempack[Control][address], 0x20);
 						} else
 						{
@@ -295,23 +291,19 @@ void internal_ControllerCommand(int Control, BYTE* Command)
 						address &= 0xFFE0;
 						if (address <= 0x7FE0)
 						{
-							auto filename = get_mempak_path();
-							FILE* f = fopen(filename.string().c_str(), "rb");
-							if (f)
-							{
-								fread(mempack[0], 1, 0x8000, f);
-								fread(mempack[1], 1, 0x8000, f);
-								fread(mempack[2], 1, 0x8000, f);
-								fread(mempack[3], 1, 0x8000, f);
-								fclose(f);
-							} else format_mempacks();
+							fseek(g_mpak_file, 0, SEEK_SET);
+							fread(mempack[0], 1, 0x8000, g_mpak_file);
+							fread(mempack[1], 1, 0x8000, g_mpak_file);
+							fread(mempack[2], 1, 0x8000, g_mpak_file);
+							fread(mempack[3], 1, 0x8000, g_mpak_file);
+
 							memcpy(&mempack[Control][address], &Command[5], 0x20);
-							f = fopen(filename.string().c_str(), "wb");
-							fwrite(mempack[0], 1, 0x8000, f);
-							fwrite(mempack[1], 1, 0x8000, f);
-							fwrite(mempack[2], 1, 0x8000, f);
-							fwrite(mempack[3], 1, 0x8000, f);
-							fclose(f);
+
+							fseek(g_mpak_file, 0, SEEK_SET);
+							fwrite(mempack[0], 1, 0x8000, g_mpak_file);
+							fwrite(mempack[1], 1, 0x8000, g_mpak_file);
+							fwrite(mempack[2], 1, 0x8000, g_mpak_file);
+							fwrite(mempack[3], 1, 0x8000, g_mpak_file);
 						}
 						Command[0x25] = mempack_crc(&Command[5]);
 					}

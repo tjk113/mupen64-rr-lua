@@ -105,6 +105,9 @@ short x87_status_word;
 void (*code)();
 
 FILE* g_eeprom_file;
+FILE* g_sram_file;
+FILE* g_fram_file;
+FILE* g_mpak_file;
 
 /*#define check_memory() \
    if (!invalid_code[address>>12]) \
@@ -1915,40 +1918,33 @@ void core_start()
 void clear_save_data()
 {
 	{
-		if (FILE* f = fopen(get_sram_path().string().c_str(), "wb"))
-		{
-			extern unsigned char sram[0x8000];
-			for (unsigned char& i : sram) i = 0;
-			fwrite(sram, 1, 0x8000, f);
-			fclose(f);
-		}
+		extern unsigned char sram[0x8000];
+		for (unsigned char& i : sram) i = 0;
+		fseek(g_sram_file, 0, SEEK_SET);
+		fwrite(sram, 1, 0x8000, g_sram_file);
 	}
 	{
-		if (FILE* f = fopen(get_eeprom_path().string().c_str(), "wb"))
-		{
-			extern unsigned char eeprom[0x8000];
-			for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
-			fwrite(eeprom, 1, 0x800, f);
-			fclose(f);
-		}
+		extern unsigned char eeprom[0x8000];
+		for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
+		fseek(g_eeprom_file, 0, SEEK_SET);
+		fwrite(eeprom, 1, 0x800, g_eeprom_file);
 	}
 	{
-		if (FILE* f = fopen(get_mempak_path().string().c_str(), "wb"))
+		fseek(g_mpak_file, 0, SEEK_SET);
+		extern unsigned char mempack[4][0x8000];
+		for (auto& j : mempack)
 		{
-			extern unsigned char mempack[4][0x8000];
-			for (auto& j : mempack)
-			{
-				for (int i = 0; i < 0x800; i++) j[i] = 0;
-				fwrite(j, 1, 0x800, f);
-			}
-			fclose(f);
+			for (int i = 0; i < 0x800; i++) j[i] = 0;
+			fwrite(j, 1, 0x800, g_mpak_file);
 		}
 	}
 }
 
 bool open_core_file_stream(const std::filesystem::path& path, FILE** file)
 {
-	if (exists(path))
+	printf("[Core] Opening core stream from %s...\n", path.string().c_str());
+
+	if (!exists(path))
 	{
 		FILE* f = fopen(path.string().c_str(), "w");
 		if (!f)
@@ -2146,7 +2142,10 @@ Core::Result vr_start_rom(std::filesystem::path path)
 	}
 
 	// Open all the save file streams
-	if(!open_core_file_stream(get_eeprom_path(), &g_eeprom_file))
+	if(!open_core_file_stream(get_eeprom_path(), &g_eeprom_file)
+		|| !open_core_file_stream(get_sram_path(), &g_sram_file)
+		|| !open_core_file_stream(get_flashram_path(), &g_fram_file)
+		|| !open_core_file_stream(get_mempak_path(), &g_mpak_file))
 	{
 		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::FileOpenFailed);
 		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
@@ -2208,7 +2207,13 @@ Core::Result vr_close_rom(bool stop_vcr)
 	}
 
 	fflush(g_eeprom_file);
+	fflush(g_sram_file);
+	fflush(g_fram_file);
+	fflush(g_mpak_file);
 	fclose(g_eeprom_file);
+	fclose(g_sram_file);
+	fclose(g_fram_file);
+	fclose(g_mpak_file);
 
 	return Core::Result::Ok;
 }

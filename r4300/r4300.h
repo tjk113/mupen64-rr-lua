@@ -73,6 +73,9 @@ extern char invalid_code[0x100000];
 extern unsigned long jump_to_address;
 
 extern FILE* g_eeprom_file;
+extern FILE* g_sram_file;
+extern FILE* g_fram_file;
+extern FILE* g_mpak_file;
 
 std::filesystem::path get_rom_path();
 
