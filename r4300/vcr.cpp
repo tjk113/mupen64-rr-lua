@@ -339,10 +339,10 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		Config.total_rerecords++;
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 
-		printf("[VCR] Unfreezing %d samples\n", freeze.length_samples);
+		printf("[VCR] Unfreezing %d samples\n", freeze.current_sample);
 
-		g_movie_inputs.resize(freeze.length_samples);
-		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.length_samples);
+		g_movie_inputs.resize(freeze.current_sample);
+		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.current_sample);
 	} else
 	{
 		// here, we are going to keep the input data from the movie file
