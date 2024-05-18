@@ -49,8 +49,6 @@
 
 #include "r4300/gameshark.h"
 
-unsigned char eeprom[0x800];
-unsigned char mempack[4][0x8000];
 int frame_advancing = 0;
 int fast_forward = 0;
 // Amount of VIs since last input poll

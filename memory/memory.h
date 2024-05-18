@@ -30,6 +30,8 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#include <stdint.h>
+
 int init_memory();
 #define read_word_in_memory() readmem[address>>16]()
 #define read_byte_in_memory() readmemb[address>>16]()
@@ -45,6 +47,10 @@ extern unsigned long* SP_IMEM;
 extern unsigned long PIF_RAM[0x40 / 4];
 extern unsigned char* PIF_RAMb;
 extern unsigned long rdram[0x800000 / 4];
+extern uint8_t sram[0x8000];
+extern uint8_t flashram[0x20000];
+extern uint8_t eeprom[0x800];
+extern uint8_t mempack[4][0x8000];
 extern unsigned long address, word;
 extern unsigned char g_byte;
 extern unsigned short hword;

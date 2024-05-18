@@ -1918,20 +1918,17 @@ void core_start()
 void clear_save_data()
 {
 	{
-		extern unsigned char sram[0x8000];
 		for (unsigned char& i : sram) i = 0;
 		fseek(g_sram_file, 0, SEEK_SET);
 		fwrite(sram, 1, 0x8000, g_sram_file);
 	}
 	{
-		extern unsigned char eeprom[0x8000];
 		for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
 		fseek(g_eeprom_file, 0, SEEK_SET);
 		fwrite(eeprom, 1, 0x800, g_eeprom_file);
 	}
 	{
 		fseek(g_mpak_file, 0, SEEK_SET);
-		extern unsigned char mempack[4][0x8000];
 		for (auto& j : mempack)
 		{
 			for (int i = 0; i < 0x800; i++) j[i] = 0;

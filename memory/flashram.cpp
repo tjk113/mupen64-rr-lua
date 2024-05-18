@@ -48,7 +48,6 @@ typedef enum flashram_mode
 
 static int mode;
 static unsigned long long status;
-static unsigned char flashram[0x20000];
 static unsigned long erase_offset, write_pointer;
 
 void save_flashram_infos(char* buf)

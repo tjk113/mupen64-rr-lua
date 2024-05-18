@@ -44,8 +44,6 @@
 #include "savestates.h"
 #include <shared/Config.hpp>
 
-unsigned char sram[0x8000];
-
 void dma_pi_read()
 {
 	unsigned long longueur;
