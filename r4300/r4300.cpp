@@ -1915,28 +1915,6 @@ void core_start()
 	core_executing = false;
 }
 
-void clear_save_data()
-{
-	{
-		for (unsigned char& i : sram) i = 0;
-		fseek(g_sram_file, 0, SEEK_SET);
-		fwrite(sram, 1, 0x8000, g_sram_file);
-	}
-	{
-		for (int i = 0; i < 0x800; i++) eeprom[i] = 0;
-		fseek(g_eeprom_file, 0, SEEK_SET);
-		fwrite(eeprom, 1, 0x800, g_eeprom_file);
-	}
-	{
-		fseek(g_mpak_file, 0, SEEK_SET);
-		for (auto& j : mempack)
-		{
-			for (int i = 0; i < 0x800; i++) j[i] = 0;
-			fwrite(j, 1, 0x800, g_mpak_file);
-		}
-	}
-}
-
 bool open_core_file_stream(const std::filesystem::path& path, FILE** file)
 {
 	printf("[Core] Opening core stream from %s...\n", path.string().c_str());
@@ -1953,6 +1931,39 @@ bool open_core_file_stream(const std::filesystem::path& path, FILE** file)
 	}
 	*file = fopen(path.string().c_str(), "rb+");
 	return *file != nullptr;
+}
+
+
+void clear_save_data()
+{
+	open_core_file_stream(get_eeprom_path(), &g_eeprom_file);
+	open_core_file_stream(get_sram_path(), &g_sram_file);
+	open_core_file_stream(get_flashram_path(), &g_fram_file);
+	open_core_file_stream(get_mempak_path(), &g_mpak_file);
+
+	{
+		memset(sram, 0, sizeof(sram));
+		fseek(g_sram_file, 0, SEEK_SET);
+		fwrite(sram, 1, 0x8000, g_sram_file);
+	}
+	{
+		memset(eeprom, 0, sizeof(eeprom));
+		fseek(g_eeprom_file, 0, SEEK_SET);
+		fwrite(eeprom, 1, 0x800, g_eeprom_file);
+	}
+	{
+		fseek(g_mpak_file, 0, SEEK_SET);
+		for (auto buf : mempack)
+		{
+			memset(buf, 0, sizeof(mempack) / 4);
+			fwrite(buf, 1, 0x800, g_mpak_file);
+		}
+	}
+
+	fclose(g_eeprom_file);
+	fclose(g_sram_file);
+	fclose(g_fram_file);
+	fclose(g_mpak_file);
 }
 
 DWORD WINAPI audio_thread(LPVOID)
