@@ -92,6 +92,8 @@ namespace Core
 		RomInvalid,
 		// The emulator isn't running yet
 		NotRunning,
+		// Failed to open core streams
+		FileOpenFailed,
 	};
 }
 

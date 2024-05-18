@@ -1946,6 +1946,22 @@ void clear_save_data()
 	}
 }
 
+bool open_core_file_stream(const std::filesystem::path& path, FILE** file)
+{
+	if (exists(path))
+	{
+		FILE* f = fopen(path.string().c_str(), "w");
+		if (!f)
+		{
+			return false;
+		}
+		fflush(f);
+		fclose(f);
+	}
+	*file = fopen(path.string().c_str(), "rb+");
+	return *file != nullptr;
+}
+
 DWORD WINAPI audio_thread(LPVOID)
 {
 	printf("Sound thread entering...\n");
@@ -2129,8 +2145,13 @@ Core::Result vr_start_rom(std::filesystem::path path)
 		return Core::Result::RomInvalid;
 	}
 
-	// Open the EEPROM
-	g_eeprom_file = fopen(get_eeprom_path().string().c_str(), "rb+");
+	// Open all the save file streams
+	if(!open_core_file_stream(get_eeprom_path(), &g_eeprom_file))
+	{
+		Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::FileOpenFailed);
+		Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
+		return Core::Result::FileOpenFailed;
+	}
 
 	timer_init(Config.fps_modifier, &ROM_HEADER);
 

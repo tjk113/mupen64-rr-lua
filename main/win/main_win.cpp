@@ -385,6 +385,12 @@ void on_core_result(std::any data)
 		           nullptr,
 		           MB_ICONERROR);
 		break;
+	case Core::Result::FileOpenFailed:
+		MessageBox(mainHWND,
+				   "Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.",
+				   nullptr,
+				   MB_ICONERROR);
+		break;
 	default:
 		break;
 	}
