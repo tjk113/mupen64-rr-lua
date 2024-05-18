@@ -494,7 +494,7 @@ void savestates_load_immediate()
 
 		const auto code = VCR::unfreeze(freeze);
 
-		if (code != VCR::Result::Ok && (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback))
+		if (code != VCR::Result::Ok && VCR::get_task() != e_task::idle)
 		{
 			std::string err_str = "Failed to restore movie, ";
 			switch (code)
@@ -526,7 +526,7 @@ void savestates_load_immediate()
 		}
 	} else
 	{
-		if (VCR::get_task() != e_task::idle)
+		if (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback)
 		{
 			auto result = MessageBox(
 				mainHWND, "Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?", nullptr,
