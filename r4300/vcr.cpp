@@ -387,7 +387,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// if we aren't playing back a movie, our data source isn't movie
 	if (!is_task_playback(g_task))
 	{
-		printf("[VCR] Calling getKeys\n");
 		getKeys(index, input);
 		LuaCallbacks::call_input(input, index);
 	}

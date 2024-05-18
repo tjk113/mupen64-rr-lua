@@ -700,6 +700,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (frame_changed)
 			{
+				screen_invalidated = true;
+
 				Statusbar::post(VCR::get_input_text(), Statusbar::Section::Input);
 				Statusbar::post(VCR::get_status_text(), Statusbar::Section::VCR);
 

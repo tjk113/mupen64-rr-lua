@@ -420,7 +420,11 @@ void gen_interrupt()
 			LuaCallbacks::call_interval();
 			// NOTE: It's ok to not update screen when lagging
 			auto skip = Config.skip_rendering_lag && lag_count > 1;
-			if (!is_frame_skipped() || skip)
+			if (!screen_invalidated)
+			{
+				printf("skipping paint\n");
+			}
+			if (screen_invalidated && !is_frame_skipped() || skip)
 			{
 				if (MGECompositor::available())
 				{
@@ -429,6 +433,7 @@ void gen_interrupt()
 				{
 					updateScreen();
 				}
+				screen_invalidated = false;
 			}
 			LuaCallbacks::call_vi();
 			vcr_on_vi();
