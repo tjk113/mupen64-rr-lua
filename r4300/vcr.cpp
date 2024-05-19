@@ -56,6 +56,8 @@ std::recursive_mutex vcr_mutex;
 // Writes the movie header + inputs to current movie_path
 bool write_movie()
 {
+	printf("[VCR] Flushing movie to %s...\n", g_movie_path.string().c_str());
+
 	std::filesystem::remove(g_movie_path);
 	FILE* f = fopen(g_movie_path.string().c_str(), "wb");
 	if (!f)
@@ -273,8 +275,6 @@ std::optional<t_movie_freeze> VCR::freeze()
 		.length_samples = g_header.length_samples,
 	};
 
-	printf("[VCR] Freezing %d samples...\n", g_header.length_samples);
-
 	// NOTE: The frozen input buffer is weird: its length is traditionally equal to length_samples + 1, which means the last frame is garbage data
 	freeze.input_buffer = {};
 	freeze.input_buffer.resize(g_header.length_samples + 1);
@@ -339,8 +339,6 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		Config.total_rerecords++;
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 
-		printf("[VCR] Unfreezing %d samples\n", freeze.current_sample);
-
 		g_movie_inputs.resize(freeze.current_sample);
 		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.current_sample);
 	} else
@@ -371,7 +369,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// Those frames are invalid to us, because from the movie's perspective, it should be instantaneous.
 	if (emu_resetting)
 	{
-		printf("[VCR] Omitting pre-reset frame!\n");
+		printf("[VCR] Skipping pre-reset frame\n");
 		return;
 	}
 
@@ -421,7 +419,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	{
 		if (savestates_job == e_st_job::none)
 		{
-			printf("[VCR]: Starting recording from Snapshot...\n");
+			printf("[VCR] Starting recording from Snapshot...\n");
 			g_task = e_task::recording;
 			*input = {0};
 		}
@@ -431,7 +429,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	{
 		if (savestates_job == e_st_job::none)
 		{
-			printf("[VCR]: Starting recording from Existing Snapshot...\n");
+			printf("[VCR] Starting recording from Existing Snapshot...\n");
 			g_task = e_task::recording;
 			*input = {0};
 		}
@@ -447,7 +445,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 				getKeys(index, input);
 				return;
 			}
-			printf("[VCR]: Starting playback...\n");
+			printf("[VCR] Starting playback...\n");
 			g_task = e_task::playback;
 		}
 	}
@@ -535,7 +533,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	}
 
 	// Use inputs from movie, also notify input plugin of override via setKeys
-	printf("[VCR] Reading frame %d on controller %d (i = %d)\n", m_current_sample, index, m_current_sample + index);
 	*input = g_movie_inputs[m_current_sample + index];
 	setKeys(index, *input);
 
@@ -598,12 +595,12 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	if (flags & MOVIE_START_FROM_SNAPSHOT)
 	{
 		// save state
-		printf("[VCR]: Saving state...\n");
+		printf("[VCR] Saving state...\n");
 		savestates_do_file(std::filesystem::path(g_movie_path).replace_extension(".st"), e_st_job::save);
 		g_task = e_task::start_recording_from_snapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
-		printf("[VCR]: Loading state...\n");
+		printf("[VCR] Loading state...\n");
 		savestates_do_file(std::filesystem::path(g_movie_path).replace_extension(".st"), e_st_job::load);
 		// set this to the normal snapshot flag to maintain compatibility
 		g_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
@@ -688,7 +685,7 @@ VCR::Result vcr_stop_record()
 	if (g_task == e_task::start_recording_from_reset)
 	{
 		g_task = e_task::idle;
-		printf("[VCR]: Removing files (nothing recorded)\n");
+		printf("[VCR] Removing files (nothing recorded)\n");
 		_unlink(std::filesystem::path(g_movie_path).replace_extension(".m64").string().c_str());
 		_unlink(std::filesystem::path(g_movie_path).replace_extension(".st").string().c_str());
 	}
@@ -699,7 +696,7 @@ VCR::Result vcr_stop_record()
 
 		write_movie();
 
-		printf("[VCR]: Record stopped. Recorded %ld input samples\n",
+		printf("[VCR] Recording stopped. Recorded %ld input samples\n",
 			   g_header.length_samples);
 	}
 
@@ -891,7 +888,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
 	if (g_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
 	{
-		printf("[VCR]: Loading state...\n");
+		printf("[VCR] Loading state...\n");
 
 		// Load appropriate state for movie
 		auto st_path = find_savestate_for_movie(g_movie_path);
