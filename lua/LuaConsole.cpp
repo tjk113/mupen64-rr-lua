@@ -738,7 +738,10 @@ void LuaEnvironment::create_renderer()
 		GetWindowRect(Statusbar::hwnd(), &rc);
 		window_rect.bottom -= (WORD)(rc.bottom - rc.top);
 	}
-	dc_size = {(UINT32)abs(window_rect.right), (UINT32)abs(window_rect.bottom)};
+
+	// NOTE: We don't want negative or zero size on any axis, as that messes up comp surface creation
+	dc_size = {(UINT32)max(1, window_rect.right), (UINT32)max(1, window_rect.bottom)};
+	printf("Lua dc size: %d %d\n", dc_size.width, dc_size.height);
 
 	d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr,
 	                                  app_instance, nullptr);

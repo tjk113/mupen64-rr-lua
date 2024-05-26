@@ -682,6 +682,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 		if (confirm_user_exit())
 		{
+			close_all_scripts();
 			std::thread([]
 			{
 				vr_close_rom(true);
