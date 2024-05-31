@@ -275,6 +275,8 @@ void lua_exit()
 
 void lua_create_and_run(const char* path)
 {
+	assert(is_on_gui_thread());
+
 	printf("Creating lua window...\n");
 	auto hwnd = lua_create();
 
@@ -591,7 +593,7 @@ EmulationLock::~EmulationLock()
 
 void close_all_scripts()
 {
-	assert(IsGUIThread(false));
+	assert(is_on_gui_thread());
 
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	for (auto copy = std::map(hwnd_lua_map); const auto fst : copy | std::views::keys)
@@ -603,7 +605,8 @@ void close_all_scripts()
 
 void stop_all_scripts()
 {
-	assert(IsGUIThread(false));
+	assert(is_on_gui_thread());
+
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	auto copy = std::map(hwnd_lua_map);
 	for (const auto key : copy | std::views::keys)
@@ -729,6 +732,7 @@ void LuaEnvironment::create_renderer()
 	{
 		return;
 	}
+
 	printf("Creating multi-target renderer for Lua...\n");
 
 	RECT window_rect;
@@ -860,6 +864,8 @@ void LuaEnvironment::print_con(HWND hwnd, std::string text)
 
 std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::path path, HWND wnd)
 {
+	assert(is_on_gui_thread());
+
 	auto lua_environment = new LuaEnvironment();
 
 	lua_environment->hwnd = wnd;
@@ -908,7 +914,8 @@ LuaEnvironment::~LuaEnvironment()
 bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> function,
                                                const char* key)
 {
-	assert(IsGUIThread(false));
+	assert(is_on_gui_thread());
+
 	lua_getfield(L, LUA_REGISTRYINDEX, key);
 	//shouldn't ever happen but could cause kernel panic
 	if lua_isnil(L, -1)

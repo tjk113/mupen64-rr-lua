@@ -791,9 +791,6 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		return Result::Busy;
 	}
 
-	// Nope, doesnt work since some random user32 call in core somewhere converts it to "GUI" thread.
-	// assert(!IsGUIThread(false));
-
 	auto movie_buf = read_file_buffer(path);
 
 	if (movie_buf.empty())

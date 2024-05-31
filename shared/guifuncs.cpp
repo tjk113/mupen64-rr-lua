@@ -96,3 +96,8 @@ void show_information(const char* str, const char* title)
 		MessageBox(mainHWND, str, title, MB_OK | MB_ICONINFORMATION);
 	}
 }
+
+bool is_on_gui_thread()
+{
+	return GetCurrentThreadId() == g_ui_thread_id;
+}

@@ -28,6 +28,8 @@
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
 
+extern DWORD g_ui_thread_id;
+
 extern int last_wheel_delta;
 
 extern HWND mainHWND;

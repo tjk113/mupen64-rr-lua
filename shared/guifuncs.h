@@ -67,3 +67,8 @@ void show_error(const char* str, const char* title = nullptr);
  * \param title The dialog title
  */
 void show_information(const char* str, const char* title = nullptr);
+
+/**
+ * \brief Whether the current execution is on the UI thread
+ */
+bool is_on_gui_thread();

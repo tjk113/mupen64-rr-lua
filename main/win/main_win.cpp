@@ -66,6 +66,8 @@
 
 int last_wheel_delta = 0;
 
+DWORD g_ui_thread_id;
+
 HANDLE loading_handle[4];
 HWND hwnd_plug;
 UINT update_screen_timer;
@@ -1309,6 +1311,8 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 int WINAPI WinMain(
 	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	g_ui_thread_id = GetCurrentThreadId();
+
 #ifdef _DEBUG
 	open_console();
 #endif
@@ -1347,7 +1351,7 @@ int WINAPI WinMain(
 		0,
 		g_szClassName,
 		MUPEN_VERSION,
-		WS_OVERLAPPEDWINDOW,
+		WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
 		Config.window_x, Config.window_y, Config.window_width,
 		Config.window_height,
 		NULL, NULL, hInstance, NULL);

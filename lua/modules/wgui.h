@@ -1,3 +1,5 @@
+#include "shared/guifuncs.h"
+
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
@@ -64,6 +66,8 @@ namespace LuaCore::Wgui
 
 	static int ResizeWindow(lua_State* L)
 	{
+		assert(is_on_gui_thread());
+
 		LuaEnvironment* lua = GetLuaClass(L);
 
 		RECT clientRect, wndRect;
