@@ -102,7 +102,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			}));
 		} else if (opcode == "88")
 		{
-			// Write byte if script is resumed (GS button pressed)
+			// Write byte if GS button pressed
 			script->m_instructions.emplace_back(std::make_tuple(false, [address, val, &script]
 			{
 				if (get_gs_button())
@@ -113,7 +113,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			}));
 		} else if (opcode == "89")
 		{
-			// Write word if script is resumed (GS button pressed)
+			// Write word if GS button pressed
 			script->m_instructions.emplace_back(std::make_tuple(false, [address, val, &script]
 			{
 				if (get_gs_button())
