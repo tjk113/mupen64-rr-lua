@@ -251,6 +251,7 @@ namespace EncodingManager
 		long width = 0, height = 0;
 		void* dummy;
 		effective_readscreen()(&dummy, &width, &height);
+		effective_readscreen_free()(dummy);
 
 		auto result = m_encoder->start(Encoder::Params{
 			.path = path.string().c_str(),
@@ -271,7 +272,7 @@ namespace EncodingManager
 
 		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
-		printf("[EncodingManager]: Starting capture...\n");
+		printf("[EncodingManager]: Starting capture at %d x %d...\n", width, height);
 
 		return true;
 	}
