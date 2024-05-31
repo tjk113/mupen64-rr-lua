@@ -84,6 +84,7 @@ std::string CrashHelper::generate_log(const _EXCEPTION_POINTERS* exception_point
 	str += "RSP: " + Config.selected_rsp_plugin + "\n";
 	str += "VCR Task: " + std::to_string(static_cast<int>(VCR::get_task())) + "\n";
 	str += "Emu Launched: " + std::to_string(emu_launched) + "\n";
+	str += "------------------------------------\n\n";
 
 	return str;
 }

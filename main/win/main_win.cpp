@@ -1287,7 +1287,7 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	// Always generate crash log first, because we'll close when modeless
 	auto crash_log = CrashHelper::generate_log(ExceptionInfo);
 
-	FILE* f = fopen("crash.log", "w+");
+	FILE* f = fopen("crash.log", "a+");
 	fputs(crash_log.c_str(), f);
 	fclose(f);
 
