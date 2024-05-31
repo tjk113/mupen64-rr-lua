@@ -57,6 +57,12 @@ void commandline_set()
 	{
 		commandline_rom = cmdl[1];
 	}
+
+	// COMPAT: Old mupen closes emu when movie ends and avi flag is specified.
+	if (!commandline_avi.empty())
+	{
+		commandline_stop_emu_on_movie_end = true;
+	}
 }
 
 void commandline_start_rom()
