@@ -347,7 +347,7 @@ void on_vis_since_input_poll_exceeded(std::any)
 		return;
 	}
 
-	if (!Config.crash_dialog || MessageBox(
+	if (Config.silent_mode || MessageBox(
 		mainHWND,
 		"An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
 		"Warning",
@@ -1291,7 +1291,7 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	fputs(crash_log.c_str(), f);
 	fclose(f);
 
-	if (!Config.crash_dialog)
+	if (Config.silent_mode)
 	{
 		return EXCEPTION_EXECUTE_HANDLER;
 	}

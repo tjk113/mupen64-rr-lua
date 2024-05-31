@@ -407,9 +407,9 @@ typedef struct _CONFIG
 	int32_t vcr_readonly;
 
 	/// <summary>
-	/// Whether mupen will display a dialog upon crashing
+	/// Whether mupen will avoid showing modals and other elements which require user interaction
 	/// </summary>
-	int32_t crash_dialog = 1;
+	int32_t silent_mode = 0;
 
 	/// <summary>
 	/// The maximum amount of VIs allowed to be generated since the last input poll before a warning dialog is shown
