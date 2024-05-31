@@ -94,7 +94,14 @@ void commandline_start_lua()
 		return;
 	}
 
-	lua_create_and_run(commandline_lua.string().c_str());
+	// To run multiple lua scripts, a semicolon-separated list is provided
+	std::stringstream stream;
+	std::string script;
+	stream << commandline_lua.string();
+	while(std::getline(stream, script, ';'))
+	{
+		lua_create_and_run(script.c_str());
+	}
 }
 
 void commandline_start_movie()
