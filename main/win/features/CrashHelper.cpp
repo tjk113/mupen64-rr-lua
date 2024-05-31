@@ -71,7 +71,11 @@ std::string CrashHelper::generate_log(const _EXCEPTION_POINTERS* exception_point
 {
 	std::string str;
 
+	SYSTEMTIME time;
+	GetSystemTime(&time);
+
 	str += std::string(MUPEN_VERSION) + "\n";
+	str += std::format("{:02}/{:02}/{} {:02}:{:02}:{:02}\n", time.wDay, time.wMonth, time.wYear, time.wHour, time.wMinute, time.wSecond);
 	str += get_metadata_for_exception_address(exception_pointers_ptr->ExceptionRecord->ExceptionAddress) + "\n";
 	str += get_exception_code_friendly_name(exception_pointers_ptr) + "\n";
 	str += "Video: " + Config.selected_video_plugin + "\n";
