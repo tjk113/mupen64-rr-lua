@@ -278,10 +278,16 @@ namespace EncodingManager
 
 	bool stop_capture()
 	{
+		if (!is_capturing())
+		{
+			return true;
+		}
+
 		write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
 		if (!m_encoder->stop())
 		{
+			show_error("Failed to stop encoding.", "Capture");
 			return false;
 		}
 

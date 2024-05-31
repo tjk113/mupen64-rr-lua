@@ -38,8 +38,7 @@ std::filesystem::path commandline_lua;
 std::filesystem::path commandline_st;
 std::filesystem::path commandline_movie;
 std::filesystem::path commandline_avi;
-bool commandline_stop_capture_on_movie_end;
-bool commandline_stop_emu_on_movie_end;
+bool commandline_close_on_movie_end;
 
 
 void commandline_set()
@@ -47,13 +46,12 @@ void commandline_set()
 	argh::parser cmdl(__argc, __argv,
 	                  argh::parser::PREFER_PARAM_FOR_UNREG_OPTION);
 
-	commandline_rom = cmdl({ "--rom", "-g" }, "").str();
-	commandline_lua = cmdl({ "--lua", "-lua" }, "").str();
-	commandline_st = cmdl({ "--st", "-st" }, "").str();
-	commandline_movie = cmdl({ "--movie", "-m64" }, "").str();
-	commandline_avi = cmdl({ "--avi", "-avi"}, "").str();
-	commandline_stop_capture_on_movie_end = cmdl["--stop-capture-on-movie-end"];
-	commandline_stop_emu_on_movie_end = cmdl["--stop-emu-on-movie-end"];
+	commandline_rom = cmdl({"--rom", "-g"}, "").str();
+	commandline_lua = cmdl({"--lua", "-lua"}, "").str();
+	commandline_st = cmdl({"--st", "-st"}, "").str();
+	commandline_movie = cmdl({"--movie", "-m64"}, "").str();
+	commandline_avi = cmdl({"--avi", "-avi"}, "").str();
+	commandline_close_on_movie_end = cmdl["--close-on-movie-end"];
 
 	// handle "Open With...":
 	if (cmdl.size() == 2 && cmdl.params().empty())
@@ -64,7 +62,7 @@ void commandline_set()
 	// COMPAT: Old mupen closes emu when movie ends and avi flag is specified.
 	if (!commandline_avi.empty())
 	{
-		commandline_stop_emu_on_movie_end = true;
+		commandline_close_on_movie_end = true;
 	}
 }
 
@@ -109,7 +107,7 @@ void commandline_start_lua()
 		std::stringstream stream;
 		std::string script;
 		stream << commandline_lua.string();
-		while(std::getline(stream, script, ';'))
+		while (std::getline(stream, script, ';'))
 		{
 			lua_create_and_run(script.c_str());
 		}
@@ -139,14 +137,10 @@ void commandline_start_capture()
 
 void commandline_on_movie_playback_stop()
 {
-	if (commandline_stop_capture_on_movie_end && EncodingManager::is_capturing())
+	if (commandline_close_on_movie_end)
 	{
 		EncodingManager::stop_capture();
-	}
-
-	if (commandline_stop_capture_on_movie_end)
-	{
-		SendMessage(mainHWND, WM_DESTROY, 0, 0);
+		SendMessage(mainHWND, WM_CLOSE, 0, 0);
 	}
 }
 
@@ -156,7 +150,6 @@ namespace Cli
 	{
 		auto value = std::any_cast<e_task>(data);
 		static auto previous_value = value;
-
 
 		if (task_is_playback(previous_value) && !task_is_playback(value))
 		{
