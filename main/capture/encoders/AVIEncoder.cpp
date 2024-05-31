@@ -39,12 +39,14 @@ bool AVIEncoder::start(Params params)
 	{
 		if (!AVISaveOptions(mainHWND, 0, 1, &video_stream, &avi_options))
 		{
+			printf("[AVIEncoder] Failed to save options\n");
 			return false;
 		}
 	} else
 	{
 		if (!load_options())
 		{
+			printf("[AVIEncoder] Failed to load options\n");
 			return false;
 		}
 	}
