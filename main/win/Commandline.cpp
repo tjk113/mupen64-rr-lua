@@ -132,15 +132,21 @@ void commandline_start_capture()
 		return;
 	}
 
-	EncodingManager::start_capture(commandline_avi.string().c_str(), EncodingManager::EncoderType::VFW, false);
+	Dispatcher::invoke([]
+	{
+		EncodingManager::start_capture(commandline_avi.string().c_str(), EncodingManager::EncoderType::VFW, false);
+	});
 }
 
 void commandline_on_movie_playback_stop()
 {
 	if (commandline_close_on_movie_end)
 	{
-		EncodingManager::stop_capture();
-		SendMessage(mainHWND, WM_CLOSE, 0, 0);
+		Dispatcher::invoke([]
+		{
+			EncodingManager::stop_capture();
+			SendMessage(mainHWND, WM_CLOSE, 0, 0);
+		});
 	}
 }
 
