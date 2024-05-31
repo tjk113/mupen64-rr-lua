@@ -30,6 +30,8 @@
 #include <r4300/vcr.h>
 #include <main/capture/EncodingManager.h>
 
+#include "features/Dispatcher.h"
+
 std::filesystem::path commandline_rom;
 std::filesystem::path commandline_lua;
 std::filesystem::path commandline_st;
@@ -100,14 +102,17 @@ void commandline_start_lua()
 		return;
 	}
 
-	// To run multiple lua scripts, a semicolon-separated list is provided
-	std::stringstream stream;
-	std::string script;
-	stream << commandline_lua.string();
-	while(std::getline(stream, script, ';'))
+	Dispatcher::invoke([&]
 	{
-		lua_create_and_run(script.c_str());
-	}
+		// To run multiple lua scripts, a semicolon-separated list is provided
+		std::stringstream stream;
+		std::string script;
+		stream << commandline_lua.string();
+		while(std::getline(stream, script, ';'))
+		{
+			lua_create_and_run(script.c_str());
+		}
+	});
 }
 
 void commandline_start_movie()
