@@ -51,6 +51,8 @@
 #include "modules/wgui.h"
 #include <r4300/timers.h>
 
+#include "shared/guifuncs.h"
+
 extern unsigned long vr_op;
 extern void (*interp_ops[64])(void);
 
@@ -94,7 +96,7 @@ extern const char* const REG_ATSTOP;
 int AtPanic(lua_State* L)
 {
 	printf("Lua panic: %s\n", lua_tostring(L, -1));
-	MessageBox(mainHWND, lua_tostring(L, -1), "Lua Panic", 0);
+	show_error(lua_tostring(L, -1), "Lua Panic");
 	return 0;
 }
 

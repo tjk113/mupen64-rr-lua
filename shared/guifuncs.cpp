@@ -71,3 +71,8 @@ void show_warning(const char* str, const char* title)
 {
 	MessageBox(mainHWND, str, title, MB_ICONWARNING);
 }
+
+void show_error(const char* str, const char* title)
+{
+	MessageBox(mainHWND, str, title, MB_ICONERROR);
+}

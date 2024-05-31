@@ -167,8 +167,7 @@ namespace EncodingManager
 			if ((unsigned int)(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(
 				char))
 			{
-				MessageBox(nullptr, "Fatal error", "Sound buffer overflow",
-				           MB_ICONERROR);
+				show_error("Sound buffer overflow");
 				printf("SOUND BUFFER OVERFLOW\n");
 				return;
 			}
@@ -224,7 +223,7 @@ namespace EncodingManager
 	{
 		if (!effective_readscreen())
 		{
-			MessageBox(mainHWND, "Couldn't find a readScreen candidate.\r\nTry selecting another capture mode.", "Capture", MB_ICONERROR | MB_OK);
+			show_error("Couldn't find a readScreen candidate.\r\nTry selecting another capture mode.", "Capture");
 			return false;
 		}
 
@@ -344,7 +343,7 @@ namespace EncodingManager
 		{
 			if (audio_frames < 0)
 			{
-				show_modal_info("Audio frames became negative!", nullptr);
+				show_modal_info("Audio frames became negative!");
 				stop_capture();
 				goto cleanup;
 			}

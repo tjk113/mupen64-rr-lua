@@ -46,6 +46,8 @@
 #include <main/win/features/MGECompositor.h>
 #include <assert.h>
 
+#include "shared/guifuncs.h"
+
 std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;
 std::string st_key;
@@ -426,7 +428,7 @@ void savestates_load_immediate()
 	std::vector<uint8_t> decompressed_buf = auto_decompress(st_buf);
 	if (decompressed_buf.empty())
 	{
-		MessageBox(mainHWND, "Failed to decompress savestate", nullptr, MB_ICONERROR);
+		show_error("Failed to decompress savestate", nullptr);
 		savestates_job_success = FALSE;
 		return;
 	}
@@ -441,12 +443,11 @@ void savestates_load_immediate()
 
 	if (memcmp(md5, rom_md5, 32))
 	{
-		auto result = MessageBox(
-			mainHWND, std::format(
+		auto result = show_ask_dialog(std::format(
 				"The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?",
-				md5).c_str(), nullptr, MB_ICONQUESTION | MB_YESNO);
+				md5).c_str());
 
-		if (result != IDYES)
+		if (!result)
 		{
 			savestates_job_success = FALSE;
 			return;
@@ -514,10 +515,8 @@ void savestates_load_immediate()
 				break;
 			}
 			err_str += "\r\nAre you sure you want to continue?";
-			auto result = MessageBox(mainHWND,
-			                         err_str.c_str(), nullptr,
-			                         MB_ICONWARNING | MB_YESNO);
-			if (result != IDYES)
+			auto result = show_ask_dialog(err_str.c_str(), nullptr, true);
+			if (!result)
 			{
 				VCR::stop_all();
 				savestates_job_success = FALSE;
@@ -528,10 +527,8 @@ void savestates_load_immediate()
 	{
 		if (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback)
 		{
-			auto result = MessageBox(
-				mainHWND, "Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?", nullptr,
-				MB_ICONQUESTION | MB_YESNO);
-			if (result != IDYES)
+			auto result = show_ask_dialog("Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?");
+			if (!result)
 			{
 				savestates_job_success = FALSE;
 				return;
