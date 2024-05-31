@@ -31,6 +31,7 @@
 #include <main/capture/EncodingManager.h>
 
 #include "features/Dispatcher.h"
+#include "shared/Config.hpp"
 
 std::filesystem::path commandline_rom;
 std::filesystem::path commandline_lua;
@@ -122,6 +123,7 @@ void commandline_start_movie()
 		return;
 	}
 
+	Config.vcr_readonly = true;
 	std::thread([] { VCR::start_playback(commandline_movie); }).detach();
 }
 
