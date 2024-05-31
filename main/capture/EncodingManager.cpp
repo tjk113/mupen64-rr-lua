@@ -262,6 +262,7 @@ namespace EncodingManager
 
 		if (!result)
 		{
+			show_error("Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", "Capture");
 			return false;
 		}
 
