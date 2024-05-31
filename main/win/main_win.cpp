@@ -347,11 +347,9 @@ void on_vis_since_input_poll_exceeded(std::any)
 		return;
 	}
 
-	if (Config.silent_mode || MessageBox(
-		mainHWND,
+	if (Config.silent_mode || show_ask_dialog(
 		"An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
-		"Warning",
-		MB_ICONWARNING | MB_YESNO) == IDYES)
+		"Warning", true))
 	{
 		std::thread([] { vr_close_rom(); }).detach();
 	}
@@ -365,31 +363,19 @@ void on_core_result(std::any data)
 	switch (value)
 	{
 	case Core::Result::NoMatchingRom:
-		MessageBox(mainHWND,
-		           "The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.",
-		           nullptr,
-		           MB_ICONERROR);
+		show_error("The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.");
 		break;
 	case Core::Result::PluginError:
-		if (MessageBox(mainHWND,
-		               "Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?",
-		               nullptr,
-		               MB_ICONQUESTION | MB_YESNO) == IDYES)
+		if (show_ask_dialog("Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?"))
 		{
 			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 		}
 		break;
 	case Core::Result::RomInvalid:
-		MessageBox(mainHWND,
-		           "The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.",
-		           nullptr,
-		           MB_ICONERROR);
+		show_error("The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.");
 		break;
 	case Core::Result::FileOpenFailed:
-		MessageBox(mainHWND,
-				   "Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.",
-				   nullptr,
-				   MB_ICONERROR);
+		show_error("Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.");
 		break;
 	default:
 		break;
