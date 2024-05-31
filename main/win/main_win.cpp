@@ -1284,13 +1284,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 // kaboom
 LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 {
-	// generate crash log
-
-	char crash_log[1024 * 4] = {0};
-	CrashHelper::generate_log(ExceptionInfo, crash_log);
+	// Always generate crash log first, because we'll close when modeless
+	auto crash_log = CrashHelper::generate_log(ExceptionInfo);
 
 	FILE* f = fopen("crash.log", "w+");
-	fputs(crash_log, f);
+	fputs(crash_log.c_str(), f);
 	fclose(f);
 
 	if (!Config.crash_dialog)
@@ -1427,7 +1425,7 @@ int WINAPI WinMain(
 	//RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
 	//
 	// raise continuable exception
-	//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
+	RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
