@@ -1425,7 +1425,7 @@ int WINAPI WinMain(
 	//RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
 	//
 	// raise continuable exception
-	RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
+	//RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
