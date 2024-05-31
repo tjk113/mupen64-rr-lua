@@ -465,7 +465,7 @@ void Plugin::config()
 				auto initiateGFX = (INITIATEGFX)GetProcAddress((HMODULE)m_module, "InitiateGFX");
 				if (initiateGFX && !initiateGFX(dummy_gfx_info))
 				{
-					show_modal_info("Couldn't initialize video plugin.");
+					show_information("Couldn't initialize video plugin.");
 				}
 			}
 
@@ -486,7 +486,7 @@ void Plugin::config()
 				auto initiateAudio = (INITIATEAUDIO)GetProcAddress((HMODULE)m_module, "InitiateAudio");
 				if (initiateAudio && !initiateAudio(dummy_audio_info))
 				{
-					show_modal_info("Couldn't initialize audio plugin.");
+					show_information("Couldn't initialize audio plugin.");
 				}
 			}
 

@@ -27,13 +27,15 @@
  *
 **/
 
+#pragma once
+
 /**
  * \brief Demands user confirmation for an exit action
  * \return Whether the action is allowed
+ * \remarks If the user has chosen to not use modals, this function will return true by default
  */
 bool confirm_user_exit();
 
-void show_modal_info(const char* str, const char* title = nullptr);
 
 /**
  * \brief Asks the user a yes/no question
@@ -41,20 +43,27 @@ void show_modal_info(const char* str, const char* title = nullptr);
  * \param title The dialog title
  * \param warning Whether the tone of the message is perceived as a warning
  * \return Whether the user answered yes
+ * \remarks If the user has chosen to not use modals, this function will return true by default
  */
 bool show_ask_dialog(const char* str, const char* title = nullptr, bool warning = false);
 
-
 /**
- * \brief Shows the user a warning
+ * \brief Shows the user a warning dialog
  * \param str The dialog content
  * \param title The dialog title
  */
 void show_warning(const char* str, const char* title = nullptr);
 
 /**
- * \brief Shows the user an error
+ * \brief Shows the user an error dialog
  * \param str The dialog content
  * \param title The dialog title
  */
 void show_error(const char* str, const char* title = nullptr);
+
+/**
+ * \brief Shows the user an information dialog
+ * \param str The dialog content
+ * \param title The dialog title
+ */
+void show_information(const char* str, const char* title = nullptr);

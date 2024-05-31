@@ -24,9 +24,16 @@
 #include "../../r4300/vcr.h"
 #include <main/capture/EncodingManager.h>
 
+#include "Config.hpp"
+
 
 bool confirm_user_exit()
 {
+	if (Config.silent_mode)
+	{
+		return true;
+	}
+
 	int res = 0;
 	int warnings = 0;
 
@@ -57,22 +64,35 @@ bool confirm_user_exit()
 	return res == IDYES || warnings == 0;
 }
 
-void show_modal_info(const char* str, const char* title)
-{
-	MessageBox(mainHWND, str, title, MB_OK | MB_ICONINFORMATION);
-}
-
 bool show_ask_dialog(const char* str, const char* title, bool warning)
 {
+	if (Config.silent_mode)
+	{
+		return true;
+	}
 	return MessageBox(mainHWND, str, title, MB_YESNO | (warning ? MB_ICONWARNING : MB_ICONQUESTION)) == IDYES;
 }
 
 void show_warning(const char* str, const char* title)
 {
-	MessageBox(mainHWND, str, title, MB_ICONWARNING);
+	if (!Config.silent_mode)
+	{
+		MessageBox(mainHWND, str, title, MB_ICONWARNING);
+	}
 }
 
 void show_error(const char* str, const char* title)
 {
-	MessageBox(mainHWND, str, title, MB_ICONERROR);
+	if (!Config.silent_mode)
+	{
+		MessageBox(mainHWND, str, title, MB_ICONERROR);
+	}
+}
+
+void show_information(const char* str, const char* title)
+{
+	if (!Config.silent_mode)
+	{
+		MessageBox(mainHWND, str, title, MB_OK | MB_ICONINFORMATION);
+	}
 }

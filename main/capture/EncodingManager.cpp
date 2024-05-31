@@ -152,7 +152,7 @@ namespace EncodingManager
 					}
 					if (!m_encoder->append_audio((unsigned char*)buf2, len2))
 					{
-						show_modal_info(
+						show_information(
 							"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
 							nullptr);
 						stop_capture();
@@ -343,7 +343,7 @@ namespace EncodingManager
 		{
 			if (audio_frames < 0)
 			{
-				show_modal_info("Audio frames became negative!");
+				show_information("Audio frames became negative!");
 				stop_capture();
 				goto cleanup;
 			}
@@ -356,7 +356,7 @@ namespace EncodingManager
 			{
 				if (!m_encoder->append_video((unsigned char*)image))
 				{
-					show_modal_info(
+					show_information(
 						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
 						nullptr);
 					stop_capture();
@@ -371,7 +371,7 @@ namespace EncodingManager
 			{
 				if (!m_encoder->append_video((unsigned char*)image))
 				{
-					show_modal_info(
+					show_information(
 						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
 						nullptr);
 					stop_capture();
@@ -386,7 +386,7 @@ namespace EncodingManager
 		{
 			if (!m_encoder->append_video((unsigned char*)image))
 			{
-				show_modal_info(
+				show_information(
 					"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
 					nullptr);
 				stop_capture();
