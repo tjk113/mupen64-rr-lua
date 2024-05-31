@@ -44,11 +44,11 @@ void commandline_set()
 	argh::parser cmdl(__argc, __argv,
 	                  argh::parser::PREFER_PARAM_FOR_UNREG_OPTION);
 
-	commandline_rom = cmdl("--rom", "").str();
-	commandline_lua = cmdl("--lua", "").str();
-	commandline_st = cmdl("--st", "").str();
-	commandline_movie = cmdl("--movie", "").str();
-	commandline_avi = cmdl("--avi", "").str();
+	commandline_rom = cmdl({ "--rom", "-g" }, "").str();
+	commandline_lua = cmdl({ "--lua", "-lua" }, "").str();
+	commandline_st = cmdl({ "--st", "-st" }, "").str();
+	commandline_movie = cmdl({ "--movie", "-m64" }, "").str();
+	commandline_avi = cmdl({ "--avi", "-avi"}, "").str();
 	commandline_stop_capture_on_movie_end = cmdl["--stop-capture-on-movie-end"];
 	commandline_stop_emu_on_movie_end = cmdl["--stop-emu-on-movie-end"];
 
