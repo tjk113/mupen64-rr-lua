@@ -1,4 +1,4 @@
-﻿#include "AVIEncoder.h"
+#include "AVIEncoder.h"
 
 #include <shared/helpers/io_helpers.h>
 #include <main/win/main_win.h>
@@ -34,6 +34,9 @@ bool AVIEncoder::start(Params params)
 	video_stream_header.dwRate = params.fps;
 	video_stream_header.dwSuggestedBufferSize = 0;
 	AVIFileCreateStream(avi_file, &video_stream, &video_stream_header);
+
+	// Sometimes the current directory is messed up when reaching this
+	SetCurrentDirectory(app_path.c_str());
 
 	if (params.ask_for_encoding_settings)
 	{
