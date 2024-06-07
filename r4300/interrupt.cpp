@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Mupen64 - interrupt.c
  * Copyright (C) 2002 Hacktarux
  *
@@ -420,7 +420,7 @@ void gen_interrupt()
 			LuaCallbacks::call_interval();
 			// NOTE: It's ok to not update screen when lagging
 			auto skip = Config.skip_rendering_lag && lag_count > 1;
-			if (screen_invalidated && !is_frame_skipped() || skip)
+			if (EncodingManager::is_capturing() || (screen_invalidated && !is_frame_skipped() || skip))
 			{
 				if (MGECompositor::available())
 				{
