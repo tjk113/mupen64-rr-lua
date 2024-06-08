@@ -100,8 +100,6 @@ void set_menu_accelerator(int element_id, const char* acc)
 	char string[256] = {0};
 	GetMenuString(GetMenu(mainHWND), element_id, string, std::size(string), MF_BYCOMMAND);
 
-	MENUITEMINFO menuinfo;
-
 	// make sure there is tab character (accelerator marker)
 	char* tab = strrchr(string, '\t');
 	if (tab)
@@ -1150,12 +1148,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					bool vfw = MessageBox(mainHWND, "Use VFW for capturing?", "Capture", MB_YESNO | MB_ICONQUESTION) == IDYES;
 					auto container = vfw ? EncodingManager::EncoderType::VFW : EncodingManager::EncoderType::FFmpeg;
+					bool ask_preset = LOWORD(wParam) == IDM_START_CAPTURE;
 
 					// pass false to startCapture when "last preset" option was choosen
 					if (EncodingManager::start_capture(
 						wstring_to_string(path).c_str(),
 						container,
-						LOWORD(wParam) == IDM_START_CAPTURE) >= 0)
+						ask_preset))
 					{
 						Statusbar::post("Capture started...");
 					}
@@ -1308,8 +1307,7 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
 
-int WINAPI WinMain(
-	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
 	g_ui_thread_id = GetCurrentThreadId();
 

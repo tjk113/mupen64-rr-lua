@@ -152,8 +152,6 @@ void flashram_command(unsigned long command)
 void dma_read_flashram()
 {
 	int i;
-	char* filename;
-	FILE* f;
 
 	switch (mode)
 	{

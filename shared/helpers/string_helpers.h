@@ -86,6 +86,12 @@ inline static std::wstring string_to_wstring(const std::string& str)
 {
 	const auto wstr = static_cast<wchar_t*>(calloc(str.length(), sizeof(wchar_t) + 1));
 
+	if (!wstr)
+	{
+		// Is it appropriate to fail silently...
+		return L"";
+	}
+
 	mbstowcs(wstr, str.c_str(), str.length());
 
 	auto wstdstr = std::wstring(wstr);

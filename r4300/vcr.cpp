@@ -701,6 +701,7 @@ VCR::Result vcr_stop_record()
 	}
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+	return VCR::Result::Ok;
 }
 
 std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
