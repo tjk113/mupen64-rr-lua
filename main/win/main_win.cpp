@@ -308,7 +308,14 @@ void on_emu_launched_changed(std::any data)
 			previously_running_luas.clear();
 		});
 	}
+
+	if (!value && previous_value)
+	{
+		SetWindowPos(mainHWND, nullptr, 0, 0, Config.window_width, Config.window_height, SWP_NOMOVE);
+	}
+
 	SendMessage(mainHWND, WM_INITMENU, 0, 0);
+	previous_value = value;
 }
 
 void on_capturing_changed(std::any data)
@@ -632,10 +639,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 				moveScreen((int)wParam, lParam);
 			}
+
 			RECT rect = {0};
 			GetWindowRect(mainHWND, &rect);
 			Config.window_x = rect.left;
 			Config.window_y = rect.top;
+
+			if (core_executing)
+			{
+				// We don't need to remember the dimensions set by gfx plugin
+				break;
+			}
+
 			Config.window_width = rect.right - rect.left;
 			Config.window_height = rect.bottom - rect.top;
 			break;
