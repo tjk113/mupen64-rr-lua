@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <any>
 #include <functional>
 
@@ -123,6 +123,11 @@ namespace Messenger
 		 * \brief The fullscreen mode has changed
 		 */
 		FullscreenChanged,
+
+		/**
+		 * \brief The audio dacrate has changed
+		 */
+		DacrateChanged,
 	};
 
 	/**

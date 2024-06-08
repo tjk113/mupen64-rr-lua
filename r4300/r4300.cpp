@@ -59,7 +59,6 @@ HANDLE emu_thread_handle;
 HANDLE audio_thread_handle;
 std::atomic<bool> audio_thread_stop_requested;
 
-
 // Lock to prevent emu state change race conditions
 std::recursive_mutex emu_cs;
 

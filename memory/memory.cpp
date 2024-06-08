@@ -48,7 +48,8 @@
 #include "../r4300/Plugin.hpp"
 #include "../r4300/vcr.h"
 #include <main/capture/EncodingManager.h>
-
+#include <shared/messenger.h>
+	
 static int frame;
 
 /* definitions of the rcp's structures and memory area */
@@ -2728,14 +2729,14 @@ void write_ai()
 			case 0x58:
 			case 0x59:
 				aiDacrateChanged(system_type::pal);
-				EncodingManager::ai_dacrate_changed(system_type::pal);
+				Messenger::broadcast(Messenger::Message::DacrateChanged, system_type::pal);
 				break;
 			case 0x37:
 			case 0x41:
 			case 0x45:
 			case 0x4a:
 				aiDacrateChanged(system_type::ntsc);
-				EncodingManager::ai_dacrate_changed(system_type::ntsc);
+				Messenger::broadcast(Messenger::Message::DacrateChanged, system_type::ntsc);
 				break;
 			}
 		}
@@ -2827,14 +2828,14 @@ void write_aib()
 			case 0x58:
 			case 0x59:
 				aiDacrateChanged(system_type::pal);
-				EncodingManager::ai_dacrate_changed(system_type::pal);
+				Messenger::broadcast(Messenger::Message::DacrateChanged, system_type::pal);
 				break;
 			case 0x37:
 			case 0x41:
 			case 0x45:
 			case 0x4a:
 				aiDacrateChanged(system_type::ntsc);
-				EncodingManager::ai_dacrate_changed(system_type::ntsc);
+				Messenger::broadcast(Messenger::Message::DacrateChanged, system_type::ntsc);
 				break;
 			}
 		}
@@ -2921,14 +2922,14 @@ void write_aih()
 			case 0x58:
 			case 0x59:
 				aiDacrateChanged(system_type::pal);
-				EncodingManager::ai_dacrate_changed(system_type::pal);
+				Messenger::broadcast(Messenger::Message::DacrateChanged, system_type::pal);
 				break;
 			case 0x37:
 			case 0x41:
 			case 0x45:
 			case 0x4a:
 				aiDacrateChanged(system_type::ntsc);
-				EncodingManager::ai_dacrate_changed(system_type::ntsc);
+				Messenger::broadcast(Messenger::Message::DacrateChanged, system_type::ntsc);
 				break;
 			}
 		}
@@ -3007,14 +3008,14 @@ void write_aid()
 			case 0x58:
 			case 0x59:
 				aiDacrateChanged(system_type::pal);
-				EncodingManager::ai_dacrate_changed(system_type::pal);
+				Messenger::broadcast(Messenger::Message::DacrateChanged, system_type::pal);
 				break;
 			case 0x37:
 			case 0x41:
 			case 0x45:
 			case 0x4a:
 				aiDacrateChanged(system_type::ntsc);
-				EncodingManager::ai_dacrate_changed(system_type::ntsc);
+				Messenger::broadcast(Messenger::Message::DacrateChanged, system_type::ntsc);
 				break;
 			}
 		}

@@ -14,6 +14,7 @@
 #include "encoders/Encoder.h"
 #include "encoders/FFmpegEncoder.h"
 #include <main/win/features/MGECompositor.h>
+#include <r4300/r4300.h>
 
 namespace EncodingManager
 {
@@ -40,7 +41,6 @@ namespace EncodingManager
 	std::filesystem::path capture_path;
 
 	std::unique_ptr<Encoder> m_encoder;
-
 
 	/**
 	 * \brief Writes the window contents overlaid with lua into the front buffer
@@ -486,11 +486,13 @@ namespace EncodingManager
 		last_sound = *(reinterpret_cast<long*>(buf + len) - 1);
 	}
 
-	void ai_dacrate_changed(system_type type)
+	void ai_dacrate_changed(std::any data)
 	{
+		auto type = std::any_cast<system_type>(data);
+
 		if (capturing)
 		{
-			printf("Fatal error, audio frequency changed during capture\n");
+			show_error("Audio frequency changed during capture.\r\nThe capture will be stopped.", "Capture");
 			stop_capture();
 			return;
 		}
@@ -511,5 +513,11 @@ namespace EncodingManager
 			assert(false);
 			break;
 		}
+		printf("[EncodingManager] m_audio_freq: %d\n", m_audio_freq);
+	}
+
+	void init()
+	{
+		Messenger::subscribe(Messenger::Message::DacrateChanged, ai_dacrate_changed);
 	}
 }

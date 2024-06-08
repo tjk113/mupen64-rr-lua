@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <filesystem>
 
 #include "../../r4300/Plugin.hpp"
@@ -48,6 +48,11 @@ namespace EncodingManager
 	bool is_capturing();
 
 	/**
+	 * \brief Initializes the encoding manager
+	 */
+	void init();
+
+	/**
 	 * \brief Starts capturing a video
 	 * \param path The movie's path
 	 * \param encoder_type The encoder to use for capturing
@@ -71,10 +76,4 @@ namespace EncodingManager
 	 * \brief Notifies the encoding manager of the audio changing
 	 */
 	void ai_len_changed();
-
-	/**
-	 * \brief Notifies the encoding manager of the DAC rate changing
-	 * \param type The emulated system's typr
-	 */
-	void ai_dacrate_changed(system_type type);
 }

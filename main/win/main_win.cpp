@@ -1390,6 +1390,7 @@ int WINAPI WinMain(
 	Statusbar::init();
 	Rombrowser::init();
 	VCR::init();
+	EncodingManager::init();
 	Cli::init();
 	Seeker::init();
 	savestates_init();

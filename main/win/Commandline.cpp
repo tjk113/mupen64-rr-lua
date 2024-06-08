@@ -39,7 +39,7 @@ std::filesystem::path commandline_st;
 std::filesystem::path commandline_movie;
 std::filesystem::path commandline_avi;
 bool commandline_close_on_movie_end;
-
+bool dacrate_changed;
 
 void commandline_set()
 {
@@ -172,19 +172,12 @@ namespace Cli
 		if (!value)
 			return;
 
+		dacrate_changed = false;
+
 		// start movies, st and lua scripts
 		commandline_load_st();
 		commandline_start_lua();
 		commandline_start_movie();
-
-		// HACK:
-		// starting capture immediately won't work, since sample rate will change at game startup, thus terminating the capture
-		// as a workaround, we wait a bit before starting the capture
-		std::thread([]
-		{
-			Sleep(1000);
-			commandline_start_capture();
-		}).detach();
 	}
 
 	void on_app_ready(std::any)
@@ -192,11 +185,24 @@ namespace Cli
 		commandline_start_rom();
 	}
 
+	void on_dacrate_changed(std::any)
+	{
+		if (dacrate_changed)
+		{
+			return;
+		}
+
+		commandline_start_capture();
+		dacrate_changed = true;
+	}
+
+
 	void init()
 	{
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, on_emu_launched_changed);
 		Messenger::subscribe(Messenger::Message::AppReady, on_app_ready);
 		Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
+		Messenger::subscribe(Messenger::Message::DacrateChanged, on_dacrate_changed);
 		commandline_set();
 	}
 }
