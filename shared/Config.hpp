@@ -248,7 +248,7 @@ typedef struct _CONFIG
 	/// 2 = Internal capture of screen cropped to window
 	/// 3 = Use the video plugin's readScreen or read_video (MGE) composited with lua scripts
 	/// </summary>
-	int32_t capture_mode = 2;
+	int32_t capture_mode = 3;
 
 	/// <summary>
 	/// The delay (in milliseconds) before capturing the window
