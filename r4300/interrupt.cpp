@@ -418,9 +418,11 @@ void gen_interrupt()
 		{
 			lag_count++;
 			LuaCallbacks::call_interval();
+
 			// NOTE: It's ok to not update screen when lagging
-			auto skip = Config.skip_rendering_lag && lag_count > 1;
-			if (EncodingManager::is_capturing() || (screen_invalidated && !is_frame_skipped() || skip))
+			auto skip = (Config.skip_rendering_lag && lag_count > 1) || is_frame_skipped();
+			auto update = EncodingManager::is_capturing() ? true : (screen_invalidated ? !skip : false);
+			if (update)
 			{
 				if (MGECompositor::available())
 				{
