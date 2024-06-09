@@ -146,20 +146,8 @@ namespace EncodingManager
 		rs_bmp_info.bmiHeader.biWidth = rs_w;
 		rs_bmp_info.bmiHeader.biHeight = rs_h;
 
-		StretchDIBits(compat_dc,
-							  0,
-							  0,
-							  rs_w,
-							  rs_h,
-							  0, 0,
-							  rs_w,
-							  rs_h,
-							  rs_buf,
-							  &rs_bmp_info,
-							  DIB_RGB_COLORS,
-							  SRCCOPY);
+		SetDIBits(compat_dc, bitmap, 0, *height, rs_buf, &rs_bmp_info, DIB_RGB_COLORS);
 		
-
 		// Then also composite the lua's dxgi surfaces
 		for (auto& pair : hwnd_lua_map)
 		{
