@@ -16,6 +16,7 @@
 #include <main/win/features/MGECompositor.h>
 #include <r4300/r4300.h>
 #include <lua/LuaConsole.h>
+#include <main/win/features/Dispatcher.h>
 
 namespace EncodingManager
 {
@@ -147,22 +148,24 @@ namespace EncodingManager
 		rs_bmp_info.bmiHeader.biHeight = rs_h;
 
 		SetDIBits(compat_dc, bitmap, 0, *height, rs_buf, &rs_bmp_info, DIB_RGB_COLORS);
-		
-		// Then also composite the lua's dxgi surfaces
-		for (auto& pair : hwnd_lua_map)
-		{
-			HDC dc;
-			pair.second->dxgi_surface->GetDC(false, &dc);
-			BLENDFUNCTION func = {
-				.BlendOp = AC_SRC_OVER,
-				.BlendFlags = 0,
-				.SourceConstantAlpha = 255,
-				.AlphaFormat = AC_SRC_ALPHA
-			};
 
-			AlphaBlend(compat_dc, 0, 0, info.width, info.height, dc, 0, 0, info.width, info.height, func);
-			pair.second->dxgi_surface->ReleaseDC(nullptr);
-		}
+		// Then also composite the lua's dxgi surfaces
+		// This must be done from the UI thread, because the DXGI surface would be called from multiple threads otherwise
+		Dispatcher::invoke([&] {
+			for (auto& pair : hwnd_lua_map) {
+				HDC dc;
+				pair.second->dxgi_surface->GetDC(false, &dc);
+				BLENDFUNCTION func = {
+					.BlendOp = AC_SRC_OVER,
+					.BlendFlags = 0,
+					.SourceConstantAlpha = 255,
+					.AlphaFormat = AC_SRC_ALPHA
+				};
+
+				AlphaBlend(compat_dc, 0, 0, info.width, info.height, dc, 0, 0, info.width, info.height, func);
+				pair.second->dxgi_surface->ReleaseDC(nullptr);
+			}
+		});
 
 		BITMAPINFO bmp_info{};
 		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);

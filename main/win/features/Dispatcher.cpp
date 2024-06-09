@@ -1,10 +1,11 @@
-﻿#include "Dispatcher.h"
+#include "Dispatcher.h"
 
 #include <assert.h>
 #include <mutex>
 #include <queue>
 #include <Windows.h>
 #include "../main_win.h"
+#include <shared/guifuncs.h>
 
 namespace Dispatcher
 {
@@ -13,6 +14,12 @@ namespace Dispatcher
 
 	void invoke(const std::function<void()>& func)
 	{
+		if (is_on_gui_thread())
+		{
+			func();
+			return;
+		}
+
 		std::lock_guard lock(dispatcher_mutex);
 		funcs.push(func);
 		SendMessage(mainHWND, WM_EXECUTE_DISPATCHER, 0, 0);
