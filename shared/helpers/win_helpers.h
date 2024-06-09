@@ -112,7 +112,7 @@ static RECT get_window_rect_client_space(HWND parent, HWND child)
 static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory2** factory, IDXGIAdapter1** dxgiadapter, ID3D11Device** d3device,
                                        IDXGIDevice1** dxdevice, ID2D1Bitmap1** bitmap, IDCompositionVisual** comp_visual, IDCompositionDevice** comp_device,
                                        IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device,
-                                       ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface** dxgi_surface,
+                                       ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface1** dxgi_surface,
                                        ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
 {
 	CreateDXGIFactory2(0, IID_PPV_ARGS(factory));
@@ -142,6 +142,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 		swapdesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		swapdesc.Width = size.width;
 		swapdesc.Height = size.height;
+		swapdesc.Flags = DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE;
 
 		(*factory)->CreateSwapChainForComposition(*d3device, &swapdesc, nullptr, swapchain);
 
@@ -158,16 +159,17 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 
 		const UINT dpi = GetDpiForWindow(hwnd);
 		const D2D1_BITMAP_PROPERTIES1 props = D2D1::BitmapProperties1(
-			D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+			D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_GDI_COMPATIBLE,
 			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
 			dpi,
 			dpi
 		);
 
 		(*d2d_dc)->CreateBitmapFromDxgiSurface(*dxgi_surface, props, bitmap);
+		
 		(*d2d_dc)->SetTarget(*bitmap);
 	}
-
+	
 	(*swapchain)->GetBuffer(1, IID_PPV_ARGS(front_buffer));
 	(*dxgi_surface)->QueryInterface(dxgi_surface_resource);
 

@@ -15,6 +15,7 @@
 #include "encoders/FFmpegEncoder.h"
 #include <main/win/features/MGECompositor.h>
 #include <r4300/r4300.h>
+#include <lua/LuaConsole.h>
 
 namespace EncodingManager
 {
@@ -120,6 +121,77 @@ namespace EncodingManager
 		ReleaseDC(nullptr, dc);
 	}
 
+	void readscreen_hybrid(void** dest, long* width, long* height)
+	{
+		const auto info = get_window_info();
+		*width = info.width & ~3;
+		*height = info.height & ~3;
+		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
+
+		HDC dc = GetDC(mainHWND);
+		HDC compat_dc = CreateCompatibleDC(dc);
+		HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
+
+		SelectObject(compat_dc, bitmap);
+
+		// Composite the raw readscreen output
+		void* rs_buf;
+		long rs_w, rs_h;
+		MGECompositor::read_screen(&rs_buf, &rs_w, &rs_h);
+		BITMAPINFO rs_bmp_info {};
+		rs_bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		rs_bmp_info.bmiHeader.biPlanes = 1;
+		rs_bmp_info.bmiHeader.biBitCount = 24;
+		rs_bmp_info.bmiHeader.biCompression = BI_RGB;
+		rs_bmp_info.bmiHeader.biWidth = rs_w;
+		rs_bmp_info.bmiHeader.biHeight = rs_h;
+
+		StretchDIBits(compat_dc,
+							  0,
+							  0,
+							  rs_w,
+							  rs_h,
+							  0, 0,
+							  rs_w,
+							  rs_h,
+							  rs_buf,
+							  &rs_bmp_info,
+							  DIB_RGB_COLORS,
+							  SRCCOPY);
+		
+
+		// Then also composite the lua's dxgi surfaces
+		for (auto& pair : hwnd_lua_map)
+		{
+			HDC dc;
+			pair.second->dxgi_surface->GetDC(false, &dc);
+			BLENDFUNCTION func = {
+				.BlendOp = AC_SRC_OVER,
+				.BlendFlags = 0,
+				.SourceConstantAlpha = 255,
+				.AlphaFormat = AC_SRC_ALPHA
+			};
+
+			AlphaBlend(compat_dc, 0, 0, info.width, info.height, dc, 0, 0, info.width, info.height, func);
+			pair.second->dxgi_surface->ReleaseDC(nullptr);
+		}
+
+		BITMAPINFO bmp_info{};
+		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmp_info.bmiHeader.biWidth = info.width;
+		bmp_info.bmiHeader.biHeight = info.height;
+		bmp_info.bmiHeader.biPlanes = 1;
+		bmp_info.bmiHeader.biBitCount = 24;
+		bmp_info.bmiHeader.biCompression = BI_RGB;
+
+		GetDIBits(compat_dc, bitmap, 0, *height, *dest, &bmp_info, DIB_RGB_COLORS);
+
+		SelectObject(compat_dc, nullptr);
+		DeleteObject(bitmap);
+		DeleteDC(compat_dc);
+		ReleaseDC(mainHWND, dc);
+	}
+
 	// assumes: len <= writeSize
 	void write_sound(char* buf, int len, const int min_write_size,
 	                 const int max_write_size,
@@ -202,7 +274,11 @@ namespace EncodingManager
 		{
 			return readscreen_window;
 		}
-		return readscreen_desktop;
+		if (Config.capture_mode == 2)
+		{
+			return readscreen_desktop;
+		}
+		return readscreen_hybrid;
 	}
 
 	void dummy_free(void*)

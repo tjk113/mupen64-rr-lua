@@ -585,7 +585,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 				"1 - Default", "2 - 'Lagless'", "3", "4", "5", "6"
 			};
 			static const char* capture_mode_names[] = {
-				"External capture", "Internal capture window", "Internal capture desktop",
+				"External capture", "Internal capture window", "Internal capture desktop", "Hybrid",
 			};
 			static const char* capture_sync_names[] = {
 				"No Sync", "Audio Sync", "Video Sync",

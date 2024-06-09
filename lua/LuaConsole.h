@@ -138,7 +138,7 @@ public:
 	ID2D1Factory3* d2d_factory;
 	ID2D1Device2* d2d_device;
 	ID2D1DeviceContext2* d2d_dc;
-	IDXGISurface* dxgi_surface;
+	IDXGISurface1* dxgi_surface;
 	ID3D11Resource* dxgi_surface_resource;
 	ID3D11Resource* front_buffer;
 
