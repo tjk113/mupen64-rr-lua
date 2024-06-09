@@ -4,7 +4,8 @@
 #include <shared/messenger.h>
 #include "../../r4300/Plugin.hpp"
 #include <main/win/main_win.h>
-
+#include <shared/guifuncs.h>
+#include <cassert>
 namespace MGECompositor
 {
 	struct VideoBuffer
@@ -20,6 +21,8 @@ namespace MGECompositor
 	const auto class_name = "game_control";
 
 	HWND control_hwnd;
+	HDC control_dc = nullptr;
+	HBITMAP control_bmp = nullptr;
 
 	VideoBuffer internal_buffer{};
 	VideoBuffer external_buffer{};
@@ -101,6 +104,18 @@ namespace MGECompositor
 		{
 			SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&internal_buffer);
 			printf("MGE Compositor: Video size %dx%d\n", internal_buffer.width, internal_buffer.height);
+
+			if (control_dc) {
+				SelectObject(control_dc, nullptr);
+				DeleteObject(control_dc);
+				DeleteObject(control_bmp);
+			}
+
+			auto dc = GetDC(control_hwnd);
+			control_dc = CreateCompatibleDC(dc);
+			control_bmp = CreateCompatibleBitmap(control_dc, internal_buffer.width, internal_buffer.height);
+			SelectObject(control_dc, control_bmp);
+			ReleaseDC(control_hwnd, dc);
 
 			free(internal_buffer.buffer);
 			internal_buffer.buffer = malloc(internal_buffer.width * internal_buffer.height * 3);
