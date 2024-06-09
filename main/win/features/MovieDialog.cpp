@@ -174,6 +174,7 @@ namespace MovieDialog
 				break;
 			}
 		case WM_CLOSE:
+			record_params.path.clear();
 			EndDialog(hwnd, IDCANCEL);
 			break;
 		case WM_COMMAND:
