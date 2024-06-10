@@ -432,22 +432,21 @@ namespace EncodingManager
 		{
 			if (audio_frames < 0)
 			{
-				show_information("Audio frames became negative!");
+				show_error("Audio frames became negative!", "Capture");
 				stop_capture();
 				goto cleanup;
 			}
 
 			if (audio_frames == 0)
 			{
-				printf("\nDropped Frame! a/v: %Lg/%Lg", m_video_frame,
-				       m_audio_frame);
+				printf("Dropped Frame! a/v: %Lg/%Lg\n", m_video_frame, m_audio_frame);
 			} else if (audio_frames > 0)
 			{
 				if (!m_encoder->append_video((unsigned char*)image))
 				{
-					show_information(
-						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
-						nullptr);
+					show_error(
+						"Failed to append frame to video.\nPerhaps you ran out of memory?",
+						"Capture");
 					stop_capture();
 					goto cleanup;
 				}
@@ -460,13 +459,13 @@ namespace EncodingManager
 			{
 				if (!m_encoder->append_video((unsigned char*)image))
 				{
-					show_information(
-						"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
-						nullptr);
+					show_error(
+						"Failed to append frame to video.\nPerhaps you ran out of memory?",
+						"Capture");
 					stop_capture();
 					goto cleanup;
 				}
-				printf("\nDuped Frame! a/v: %Lg/%Lg", m_video_frame,
+				printf("Duped Frame! a/v: %Lg/%Lg\n", m_video_frame,
 				       m_audio_frame);
 				m_video_frame += 1.0;
 				audio_frames--;
@@ -475,9 +474,9 @@ namespace EncodingManager
 		{
 			if (!m_encoder->append_video((unsigned char*)image))
 			{
-				show_information(
-					"Video codec failure!\nA call to addVideoFrame() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
-					nullptr);
+				show_error(
+						"Failed to append frame to video.\nPerhaps you ran out of memory?",
+						"Capture");
 				stop_capture();
 				goto cleanup;
 			}
