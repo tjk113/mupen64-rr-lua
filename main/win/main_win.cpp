@@ -1019,9 +1019,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					        "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>",
 					        proc_name, ram_start);
 
+					static const auto ramstart_str = "The RAM start is {}.\r\nDo you want to copy the generated STROOP config line to your clipboard?";
+
+					
 					const auto stroop_str = std::string(stroop_c);
-					if (MessageBoxA(mainHWND,
-					                "Do you want to copy the generated STROOP config line to your clipboard?",
+					if (MessageBox(mainHWND,
+					                std::format(ramstart_str, ram_start).c_str(),
 					                "STROOP",
 					                MB_ICONINFORMATION | MB_TASKMODAL |
 					                MB_YESNO) == IDYES)
