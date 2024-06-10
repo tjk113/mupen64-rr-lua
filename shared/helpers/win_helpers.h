@@ -142,7 +142,6 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 		swapdesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		swapdesc.Width = size.width;
 		swapdesc.Height = size.height;
-		swapdesc.Flags = DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE;
 
 		(*factory)->CreateSwapChainForComposition(*d3device, &swapdesc, nullptr, swapchain);
 
