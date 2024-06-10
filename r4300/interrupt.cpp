@@ -419,10 +419,13 @@ void gen_interrupt()
 			lag_count++;
 			LuaCallbacks::call_interval();
 
-			// NOTE: It's ok to not update screen when lagging
+			// NOTE: It's ok to not update screen when lagging, doesn't cause any obvious issues
 			auto skip = (Config.skip_rendering_lag && lag_count > 1) || is_frame_skipped();
 			auto update = EncodingManager::is_capturing() ? true : (screen_invalidated ? !skip : false);
-			if (update)
+
+			// NOTE: When frame advancing, screen_invalidated has a higher change of being false despite the fact it should be true
+			// The update-limiting logic doesn't apply in frameadvance because there are no high-frequency updates
+			if (update || frame_advancing)
 			{
 				if (MGECompositor::available())
 				{
