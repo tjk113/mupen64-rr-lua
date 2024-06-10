@@ -154,7 +154,6 @@ namespace EncodingManager
 		Dispatcher::invoke([&] {
 			for (auto& pair : hwnd_lua_map) {
 				HDC dc;
-				pair.second->dxgi_surface->GetDC(false, &dc);
 				BLENDFUNCTION func = {
 					.BlendOp = AC_SRC_OVER,
 					.BlendFlags = 0,
@@ -162,8 +161,23 @@ namespace EncodingManager
 					.AlphaFormat = AC_SRC_ALPHA
 				};
 
+				ID3D11Resource* rc;
+				pair.second->dxgi_surface->QueryInterface(&rc);
+
+				ID3D11DeviceContext* ctx;
+				pair.second->d3device->GetImmediateContext(&ctx);
+				ctx->CopySubresourceRegion(pair.second->d3d_gdi_tex, 0, 0, 0, 0, rc, 0, nullptr);
+				
+				IDXGISurface1* dxgi_surface;
+				pair.second->d3d_gdi_tex->QueryInterface(&dxgi_surface);
+				dxgi_surface->GetDC(false, &dc);
+
 				AlphaBlend(compat_dc, 0, 0, info.width, info.height, dc, 0, 0, info.width, info.height, func);
-				pair.second->dxgi_surface->ReleaseDC(nullptr);
+
+				dxgi_surface->ReleaseDC(nullptr);
+				ctx->Release();
+				dxgi_surface->Release();
+				rc->Release();
 			}
 		});
 

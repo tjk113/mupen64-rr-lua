@@ -141,6 +141,7 @@ public:
 	IDXGISurface1* dxgi_surface;
 	ID3D11Resource* dxgi_surface_resource;
 	ID3D11Resource* front_buffer;
+	ID3D11Texture2D* d3d_gdi_tex;
 
 #pragma endregion
 

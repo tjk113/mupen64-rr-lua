@@ -763,7 +763,7 @@ void LuaEnvironment::create_renderer()
 	image_pool_index = 1;
 
 	if (!create_composition_surface(d2d_overlay_hwnd, dc_size, &factory, &dxgiadapter, &d3device, &dxdevice, &bitmap, &comp_visual, &comp_device, &comp_target,
-	                                &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc, &dxgi_surface, &dxgi_surface_resource, &front_buffer))
+	                                &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc, &dxgi_surface, &dxgi_surface_resource, &front_buffer, &d3d_gdi_tex))
 	{
 		printf("Failed to set up composition\n");
 		return;
@@ -815,6 +815,7 @@ void LuaEnvironment::destroy_renderer()
 	image_pool.clear();
 
 	DestroyWindow(d2d_overlay_hwnd);
+	d3d_gdi_tex->Release();
 	front_buffer->Release();
 	dxgi_surface_resource->Release();
 	dxgi_surface->Release();

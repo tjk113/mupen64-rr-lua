@@ -113,7 +113,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
                                        IDXGIDevice1** dxdevice, ID2D1Bitmap1** bitmap, IDCompositionVisual** comp_visual, IDCompositionDevice** comp_device,
                                        IDCompositionTarget** comp_target, IDXGISwapChain1** swapchain, ID2D1Factory3** d2d_factory, ID2D1Device2** d2d_device,
                                        ID3D11DeviceContext** d3d_dc, ID2D1DeviceContext2** d2d_dc, IDXGISurface1** dxgi_surface,
-                                       ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer)
+                                       ID3D11Resource** dxgi_surface_resource, ID3D11Resource** front_buffer, ID3D11Texture2D** d3d_gdi_tex)
 {
 	CreateDXGIFactory2(0, IID_PPV_ARGS(factory));
 
@@ -149,7 +149,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 		(*comp_visual)->SetContent(*swapchain);
 		(*comp_target)->SetRoot(*comp_visual);
 	}
-
+	
 	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, {}, d2d_factory);
 	(*d2d_factory)->CreateDevice(*dxdevice, d2d_device);
 	{
@@ -159,7 +159,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 
 		const UINT dpi = GetDpiForWindow(hwnd);
 		const D2D1_BITMAP_PROPERTIES1 props = D2D1::BitmapProperties1(
-			D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_GDI_COMPATIBLE,
+			D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
 			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
 			dpi,
 			dpi
@@ -169,7 +169,21 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 		
 		(*d2d_dc)->SetTarget(*bitmap);
 	}
-	
+
+	// Since the swapchain can't be gdi-compatible, we need a gdi-compatible texture which we blit the swapbuffer onto
+	D3D11_TEXTURE2D_DESC desc{};
+	desc.Width = size.width;
+	desc.Height = size.height;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	desc.SampleDesc = { .Count = 1, .Quality = 0 };
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+
+	HRESULT hr = (*d3device)->CreateTexture2D(&desc, nullptr, d3d_gdi_tex);
+
 	(*swapchain)->GetBuffer(1, IID_PPV_ARGS(front_buffer));
 	(*dxgi_surface)->QueryInterface(dxgi_surface_resource);
 
