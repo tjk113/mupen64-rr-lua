@@ -16,13 +16,16 @@ namespace MGECompositor
 		long height = 0;
 		void* buffer = nullptr;
 		BITMAPINFO bmp_info{};
+		// Optional DIB for perf
+		HBITMAP dib = nullptr;
+		// Optional DC backing the dib
+		HDC dc = nullptr;
 	};
 
 	const auto class_name = "game_control";
 
+	
 	HWND control_hwnd;
-	HDC control_dc = nullptr;
-	HBITMAP control_bmp = nullptr;
 
 	VideoBuffer internal_buffer{};
 	VideoBuffer external_buffer{};
@@ -43,18 +46,26 @@ namespace MGECompositor
 
 				RECT rect{};
 				GetClientRect(hwnd, &rect);
-				StretchDIBits(hdc,
-				              rect.top,
-				              rect.left,
-				              rect.right,
-				              rect.bottom,
-				              0, 0,
-				              vbuf->bmp_info.bmiHeader.biWidth,
-				              vbuf->bmp_info.bmiHeader.biHeight,
-				              vbuf->buffer,
-				              &(vbuf->bmp_info),
-				              DIB_RGB_COLORS,
-				              SRCCOPY);
+				if (vbuf->dib)
+				{
+					BitBlt(hdc, 0, 0, vbuf->bmp_info.bmiHeader.biWidth,
+						vbuf->bmp_info.bmiHeader.biHeight, vbuf->dc, 0, 0, SRCCOPY);
+				} else
+				{
+					StretchDIBits(hdc,
+							  rect.top,
+							  rect.left,
+							  rect.right,
+							  rect.bottom,
+							  0, 0,
+							  vbuf->bmp_info.bmiHeader.biWidth,
+							  vbuf->bmp_info.bmiHeader.biHeight,
+							  vbuf->buffer,
+							  &(vbuf->bmp_info),
+							  DIB_RGB_COLORS,
+							  SRCCOPY);
+				}
+				
 
 				EndPaint(hwnd, &ps);
 				return 0;
@@ -105,22 +116,22 @@ namespace MGECompositor
 			SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&internal_buffer);
 			printf("MGE Compositor: Video size %dx%d\n", internal_buffer.width, internal_buffer.height);
 
-			if (control_dc) {
-				SelectObject(control_dc, nullptr);
-				DeleteObject(control_dc);
-				DeleteObject(control_bmp);
+			internal_buffer.bmp_info.bmiHeader.biWidth = internal_buffer.width;
+			internal_buffer.bmp_info.bmiHeader.biHeight = internal_buffer.height;
+
+			if (internal_buffer.dib) {
+				SelectObject(internal_buffer.dc, nullptr);
+				DeleteObject(internal_buffer.dc);
+				DeleteObject(internal_buffer.dib);
 			}
 
 			auto dc = GetDC(control_hwnd);
-			control_dc = CreateCompatibleDC(dc);
-			control_bmp = CreateCompatibleBitmap(control_dc, internal_buffer.width, internal_buffer.height);
-			SelectObject(control_dc, control_bmp);
+			internal_buffer.dc = CreateCompatibleDC(dc);
+			internal_buffer.dib = CreateDIBSection(internal_buffer.dc, &internal_buffer.bmp_info, DIB_RGB_COLORS, &internal_buffer.buffer, nullptr, 0);
+			SelectObject(internal_buffer.dc, internal_buffer.dib);
+
 			ReleaseDC(control_hwnd, dc);
 
-			free(internal_buffer.buffer);
-			internal_buffer.buffer = malloc(internal_buffer.width * internal_buffer.height * 3);
-			internal_buffer.bmp_info.bmiHeader.biWidth = internal_buffer.width;
-			internal_buffer.bmp_info.bmiHeader.biHeight = internal_buffer.height;
 			MoveWindow(control_hwnd, 0, 0, internal_buffer.width, internal_buffer.height, true);
 		}
 
