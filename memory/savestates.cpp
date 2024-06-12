@@ -89,22 +89,22 @@ std::filesystem::path get_saves_directory()
 
 std::filesystem::path get_sram_path()
 {
-	return std::format("{}{}.sra", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+	return std::format("{}{} {}.sra", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_eeprom_path()
 {
-	return std::format("{}{}.eep", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+	return std::format("{}{} {}.eep", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_flashram_path()
 {
-	return std::format("{}{}.fla", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+	return std::format("{}{} {}.fla", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_mempak_path()
 {
-	return std::format("{}{}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+	return std::format("{}{} {}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 void savestates_init()
