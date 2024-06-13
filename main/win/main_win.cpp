@@ -1162,14 +1162,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					bool vfw = MessageBox(mainHWND, "Use VFW for capturing?", "Capture", MB_YESNO | MB_ICONQUESTION) == IDYES;
-					auto container = vfw ? EncodingManager::EncoderType::VFW : EncodingManager::EncoderType::FFmpeg;
+					//bool vfw = MessageBox(mainHWND, "Use VFW for capturing?", "Capture", MB_YESNO | MB_ICONQUESTION) == IDYES;
+					//auto container = vfw ? EncodingManager::EncoderType::VFW : EncodingManager::EncoderType::FFmpeg;
 					bool ask_preset = LOWORD(wParam) == IDM_START_CAPTURE;
 
 					// pass false to startCapture when "last preset" option was choosen
 					if (EncodingManager::start_capture(
 						wstring_to_string(path).c_str(),
-						container,
+						EncodingManager::EncoderType::VFW,
 						ask_preset))
 					{
 						Statusbar::post("Capture started...");
