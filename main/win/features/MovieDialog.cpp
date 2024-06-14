@@ -242,9 +242,11 @@ namespace MovieDialog
 			case IDC_INI_MOVIEFILE:
 				{
 					char path[MAX_PATH] = {0};
-					GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path,
-					               std::size(path));
+					GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path, std::size(path));
 					record_params.path = path;
+
+					// User might not provide the m64 extension, so just force it to have that
+					record_params.path.replace_extension(".m64");
 
 					goto refresh;
 				}
