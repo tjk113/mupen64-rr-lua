@@ -161,3 +161,26 @@ inline static void strtrim(char* str, size_t len)
 		}
 	}
 }
+
+static size_t str_nth_occurence(const std::string& str, const std::string& searched, size_t nth)
+{
+	if (searched.empty() || nth <= 0) {
+		return std::string::npos;
+	}
+
+	size_t pos = 0;
+	int count = 0;
+
+	while (count < nth) {
+		pos = str.find(searched, pos);
+		if (pos == std::string::npos) {
+			return std::string::npos;
+		}
+		count++;
+		if (count < nth) {
+			pos += searched.size();
+		}
+	}
+
+	return pos;
+}

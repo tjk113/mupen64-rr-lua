@@ -19,6 +19,7 @@
 
 #include <shared/guifuncs.h>
 #include <shared/messenger.h>
+#include <shared/helpers/string_helpers.h>
 
 // M64\0x1a
 enum
@@ -706,57 +707,46 @@ VCR::Result vcr_stop_record()
 
 std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 {
+
 	// To allow multiple m64s to reference on st, we construct the st name from the m64 name up to the first point only
-	// movie.a.m64 => movie.st
-	// movie.m64   => movie.st
+	// A.m64 -> A.st
+	// A.B.m64 -> A.st, A.B.st
+	// A.B.C.m64->A.st, A.B.st, A.B.C.st
+
+
 	char drive[260] = {0};
 	char dir[260] = {0};
 	char filename[260] = {0};
 	_splitpath(path.string().c_str(), drive, dir, filename, nullptr);
 
-	auto dot_index = std::string(filename).find_first_of(".");
-	std::string name;
-	if (dot_index == std::string::npos)
+	size_t i = 0;
+	while (true)
 	{
-		name = filename;
-	} else
-	{
-		name = std::string(filename).substr(0, dot_index);
+		auto result = str_nth_occurence(filename, ".", i + 1);
+		std::string matched_filename = "";
+
+		// Standard case, no st sharing
+		if (result == std::string::npos)
+		{
+			matched_filename = filename;
+		}
+		else
+		{
+			matched_filename = std::string(filename).substr(0, result);
+		}
+
+		auto st = std::string(drive) + std::string(dir) + matched_filename + ".st";
+		if (std::filesystem::exists(st)) {
+			return st;
+		}
+
+		st = std::string(drive) + std::string(dir) + matched_filename + ".savestate";
+		if (std::filesystem::exists(st)) {
+			return st;
+		}
+
+		i++;
 	}
-
-	auto st = std::string(drive) + std::string(dir) + strip_extension(name) + ".st";
-	if (std::filesystem::exists(st))
-	{
-		return st;
-	}
-
-	st = std::string(drive) + std::string(dir) + strip_extension(name) + ".savestate";
-	if (std::filesystem::exists(st))
-	{
-		return st;
-	}
-
-	// Sometimes, filenames contain dots but dont use the st sharing behaviour
-	// 
-	// Star_Revenge_6.25_LADX_stuff_1_USA_-_Copie.m64
-	// Star_Revenge_6.25_LADX_stuff_1_USA_-_Copie.st
-	//				 ^
-	//
-	// In these cases, we try the same st + savestate search with the filename again.
-
-	st = std::string(drive) + std::string(dir) + filename + ".st";
-	if (std::filesystem::exists(st))
-	{
-		return st;
-	}
-
-	st = std::string(drive) + std::string(dir) + filename + ".savestate";
-	if (std::filesystem::exists(st))
-	{
-		return st;
-	}
-
-	// Concerning case, st just doesn't exist...
 
 	return "";
 }
