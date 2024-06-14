@@ -2085,10 +2085,10 @@ Core::Result vr_start_rom(std::filesystem::path path)
 			return Core::Result::RomInvalid;
 		}
 
-		const auto matching_rom = Rombrowser::find_available_rom([movie_header](auto header)
+		const auto matching_rom = Rombrowser::find_available_rom([&](auto header)
 		{
 			strtrim((char*)header.nom, sizeof(header.nom));
-			return movie_header.rom_crc1 == header.CRC1 && !_stricmp((const char*)header.nom, movie_header.rom_name);
+			return movie_header.rom_crc1 == header.CRC1 && !_strnicmp((const char*)header.nom, movie_header.rom_name, 20);
 		});
 
 		if (matching_rom.empty())
