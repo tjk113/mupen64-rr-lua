@@ -775,7 +775,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			{
 				CheckMenuItem(main_menu, i, MF_UNCHECKED);
 			}
-			CheckMenuItem(main_menu, LOWORD(wParam), MF_CHECKED);
+			CheckMenuItem(main_menu, IDM_SELECT_1 + savestates_get_slot(), MF_CHECKED);
 		}
 		break;
 	case WM_ENTERMENULOOP:

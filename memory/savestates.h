@@ -82,6 +82,11 @@ std::filesystem::path get_mempak_path();
 void savestates_set_slot(size_t slot);
 
 /**
+ * \brief Gets the selected slot
+ */
+size_t savestates_get_slot();
+
+/**
  * \brief Initializes the savestate system
  */
 void savestates_init();

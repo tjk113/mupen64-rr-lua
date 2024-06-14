@@ -126,6 +126,11 @@ void savestates_set_slot(size_t slot)
 	Messenger::broadcast(Messenger::Message::SlotChanged, st_slot);
 }
 
+size_t savestates_get_slot()
+{
+	return st_slot;
+}
+
 std::vector<uint8_t> generate_savestate()
 {
 	std::vector<uint8_t> b;
