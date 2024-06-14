@@ -736,6 +736,28 @@ std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 		return st;
 	}
 
+	// Sometimes, filenames contain dots but dont use the st sharing behaviour
+	// 
+	// Star_Revenge_6.25_LADX_stuff_1_USA_-_Copie.m64
+	// Star_Revenge_6.25_LADX_stuff_1_USA_-_Copie.st
+	//				 ^
+	//
+	// In these cases, we try the same st + savestate search with the filename again.
+
+	st = std::string(drive) + std::string(dir) + filename + ".st";
+	if (std::filesystem::exists(st))
+	{
+		return st;
+	}
+
+	st = std::string(drive) + std::string(dir) + filename + ".savestate";
+	if (std::filesystem::exists(st))
+	{
+		return st;
+	}
+
+	// Concerning case, st just doesn't exist...
+
 	return "";
 }
 
