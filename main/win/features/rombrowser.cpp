@@ -321,7 +321,7 @@ namespace Rombrowser
 		}
 		rombrowser_update_sort();
 		SendMessage(rombrowser_hwnd, WM_SETREDRAW, TRUE, 0);
-		Sleep(400);
+
 		printf("Rombrowser loading took %dms\n",
 			   static_cast<int>((std::chrono::high_resolution_clock::now() -
 				   start_time).count() / 1'000'000));
