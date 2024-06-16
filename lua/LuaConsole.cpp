@@ -769,6 +769,11 @@ void LuaEnvironment::create_renderer()
 	}
 
 	d2d_render_target_stack.push(d2d_dc);
+	dw_text_layouts = MicroLRU::Cache<uint64_t, IDWriteTextLayout*>(128, [&] (auto value)
+	{
+		// printf("[Lua] Evicting text layout..\n");
+		value->Release();
+	});
 
 	auto gdi_dc = GetDC(mainHWND);
 	gdi_back_dc = CreateCompatibleDC(gdi_dc);
@@ -796,10 +801,6 @@ void LuaEnvironment::destroy_renderer()
 
 	printf("Destroying Lua renderer...\n");
 
-	for (auto const& [_, val] : dw_text_layouts)
-	{
-		val->Release();
-	}
 	dw_text_layouts.clear();
 
 	while (!d2d_render_target_stack.empty())

@@ -191,6 +191,8 @@ namespace LuaCore::D2D
 
 		if (!lua->dw_text_layouts.contains(params_hash))
 		{
+			// printf("[Lua] Adding layout to cache... (%d elements)\n", lua->dw_text_layouts.size());
+
 			IDWriteTextFormat* text_format;
 
 			lua->dw_factory->CreateTextFormat(
@@ -218,14 +220,15 @@ namespace LuaCore::D2D
 			                                  rectangle.bottom - rectangle.top,
 			                                  &text_layout);
 
-			lua->dw_text_layouts[params_hash] = text_layout;
+			lua->dw_text_layouts.add(params_hash, text_layout);
 			text_format->Release();
 		}
 
+		auto layout = lua->dw_text_layouts.get(params_hash);
 		lua->d2d_render_target_stack.top()->DrawTextLayout({
 			                                                   .x = rectangle.left,
 			                                                   .y = rectangle.top,
-		                                                   }, lua->dw_text_layouts[params_hash], brush,
+		                                                   }, layout.value(), brush,
 		                                                   static_cast<
 			                                                   D2D1_DRAW_TEXT_OPTIONS>(
 			                                                   options));

@@ -1,4 +1,5 @@
 #pragma once
+#include "lib/microlru.h"
 
 extern "C" {
 #include <lua.h>
@@ -167,7 +168,7 @@ public:
 	IDWriteFactory* dw_factory = nullptr;
 
 	// The cache for DirectWrite text layouts
-	std::unordered_map<uint64_t, IDWriteTextLayout*> dw_text_layouts;
+	MicroLRU::Cache<uint64_t, IDWriteTextLayout*> dw_text_layouts;
 
 	// The stack of render targets. The top is used for D2D calls.
 	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
@@ -187,7 +188,10 @@ public:
 	COLORREF col, bkcol;
 	int bkmode;
 
+	LuaEnvironment()
+	{
 
+	};
 
 	/**
 	 * \brief Destroys and stops the environment

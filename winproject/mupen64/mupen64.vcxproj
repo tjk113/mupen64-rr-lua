@@ -139,6 +139,7 @@
         </Link>
     </ItemDefinitionGroup>
     <ItemGroup>
+        <ClInclude Include="..\..\lib\microlru.h" />
         <ClInclude Include="..\..\lua\modules\avi.h"/>
         <ClInclude Include="..\..\lua\modules\d2d.h"/>
         <ClInclude Include="..\..\lua\modules\emu.h"/>
