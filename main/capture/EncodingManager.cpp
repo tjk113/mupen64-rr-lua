@@ -129,17 +129,10 @@ namespace EncodingManager
 		*height = info.height & ~3;
 		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
 
-		HDC dc = GetDC(mainHWND);
-		HDC compat_dc = CreateCompatibleDC(dc);
-		HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
-
-		SelectObject(compat_dc, bitmap);
-
-		// Composite the raw readscreen output
 		void* rs_buf;
 		long rs_w, rs_h;
 		MGECompositor::read_screen(&rs_buf, &rs_w, &rs_h);
-		BITMAPINFO rs_bmp_info {};
+		BITMAPINFO rs_bmp_info{};
 		rs_bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		rs_bmp_info.bmiHeader.biPlanes = 1;
 		rs_bmp_info.bmiHeader.biBitCount = 24;
@@ -147,11 +140,20 @@ namespace EncodingManager
 		rs_bmp_info.bmiHeader.biWidth = rs_w;
 		rs_bmp_info.bmiHeader.biHeight = rs_h;
 
-		SetDIBits(compat_dc, bitmap, 0, *height, rs_buf, &rs_bmp_info, DIB_RGB_COLORS);
-
-		// Then also composite the lua's dxgi surfaces
-		// This must be done from the UI thread, because the DXGI surface would be called from multiple threads otherwise
+		// UI resources, must be accessed from UI thread
+		// To avoid GDI weirdness with cross-thread resources, we do all GDI work on UI thread.
 		Dispatcher::invoke([&] {
+			GdiFlush();
+
+			HDC dc = GetDC(mainHWND);
+			HDC compat_dc = CreateCompatibleDC(dc);
+			HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
+			SelectObject(compat_dc, bitmap);
+
+			// Composite the raw readscreen output
+			SetDIBits(compat_dc, bitmap, 0, *height, rs_buf, &rs_bmp_info, DIB_RGB_COLORS);
+
+			// First, composite the lua's dxgi surfaces
 			for (auto& pair : hwnd_lua_map) {
 				HDC dc;
 				BLENDFUNCTION func = {
@@ -167,34 +169,40 @@ namespace EncodingManager
 				ID3D11DeviceContext* ctx;
 				pair.second->d3device->GetImmediateContext(&ctx);
 				ctx->CopySubresourceRegion(pair.second->d3d_gdi_tex, 0, 0, 0, 0, rc, 0, nullptr);
-				
+
 				IDXGISurface1* dxgi_surface;
 				pair.second->d3d_gdi_tex->QueryInterface(&dxgi_surface);
 				dxgi_surface->GetDC(false, &dc);
 
-				AlphaBlend(compat_dc, 0, 0, info.width, info.height, dc, 0, 0, info.width, info.height, func);
+				AlphaBlend(compat_dc, 0, 0, *width, *height, dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, func);
 
 				dxgi_surface->ReleaseDC(nullptr);
 				ctx->Release();
 				dxgi_surface->Release();
 				rc->Release();
 			}
+
+			// Then, blit the GDI back DCs
+			for (auto& pair : hwnd_lua_map) {
+				//BitBlt(compat_dc, 0, 0, *width, *height, pair.second->gdi_back_dc, 0, 0, SRCCOPY);
+				TransparentBlt(compat_dc, 0, 0, *width, *height, pair.second->gdi_back_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, lua_gdi_color_mask);
+			}
+
+			BITMAPINFO bmp_info{};
+			bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			bmp_info.bmiHeader.biWidth = *width;
+			bmp_info.bmiHeader.biHeight = *height;
+			bmp_info.bmiHeader.biPlanes = 1;
+			bmp_info.bmiHeader.biBitCount = 24;
+			bmp_info.bmiHeader.biCompression = BI_RGB;
+
+			GetDIBits(compat_dc, bitmap, 0, *height, *dest, &bmp_info, DIB_RGB_COLORS);
+
+			SelectObject(compat_dc, nullptr);
+			DeleteObject(bitmap);
+			DeleteDC(compat_dc);
+			ReleaseDC(mainHWND, dc);
 		});
-
-		BITMAPINFO bmp_info{};
-		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmp_info.bmiHeader.biWidth = info.width;
-		bmp_info.bmiHeader.biHeight = info.height;
-		bmp_info.bmiHeader.biPlanes = 1;
-		bmp_info.bmiHeader.biBitCount = 24;
-		bmp_info.bmiHeader.biCompression = BI_RGB;
-
-		GetDIBits(compat_dc, bitmap, 0, *height, *dest, &bmp_info, DIB_RGB_COLORS);
-
-		SelectObject(compat_dc, nullptr);
-		DeleteObject(bitmap);
-		DeleteDC(compat_dc);
-		ReleaseDC(mainHWND, dc);
 	}
 
 	// assumes: len <= writeSize

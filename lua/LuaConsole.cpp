@@ -70,8 +70,7 @@ auto gdi_overlay_class = "lua_gdi_overlay";
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
-static uint32_t bitmap_color_mask = RGB(255, 0, 255);
-static HBRUSH alpha_mask_brush = CreateSolidBrush(bitmap_color_mask);
+static HBRUSH alpha_mask_brush = CreateSolidBrush(lua_gdi_color_mask);
 
 
 uint64_t inputCount = 0;
@@ -780,7 +779,7 @@ void LuaEnvironment::create_renderer()
 	gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, gdi_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, mainHWND, nullptr,
 	                                  app_instance, nullptr);
 	SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
-	SetLayeredWindowAttributes(gdi_overlay_hwnd, bitmap_color_mask, 0, LWA_COLORKEY);
+	SetLayeredWindowAttributes(gdi_overlay_hwnd, lua_gdi_color_mask, 0, LWA_COLORKEY);
 
 	// If we don't fill up the DC with the key first, it never becomes "transparent"
 	FillRect(gdi_back_dc, &window_rect, alpha_mask_brush);

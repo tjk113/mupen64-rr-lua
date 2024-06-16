@@ -89,6 +89,8 @@ static const char* const REG_ATLOADSTATE = "LS";
 static const char* const REG_ATSAVESTATE = "SS";
 static const char* const REG_ATRESET = "RE";
 
+static uint32_t lua_gdi_color_mask = RGB(255, 0, 255);
+
 struct EmulationLock
 {
 	EmulationLock();
