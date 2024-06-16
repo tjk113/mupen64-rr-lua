@@ -174,7 +174,7 @@ namespace EncodingManager
 				pair.second->d3d_gdi_tex->QueryInterface(&dxgi_surface);
 				dxgi_surface->GetDC(false, &dc);
 
-				AlphaBlend(compat_dc, 0, 0, *width, *height, dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, func);
+				AlphaBlend(compat_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, func);
 
 				dxgi_surface->ReleaseDC(nullptr);
 				ctx->Release();
@@ -185,7 +185,7 @@ namespace EncodingManager
 			// Then, blit the GDI back DCs
 			for (auto& pair : hwnd_lua_map) {
 				//BitBlt(compat_dc, 0, 0, *width, *height, pair.second->gdi_back_dc, 0, 0, SRCCOPY);
-				TransparentBlt(compat_dc, 0, 0, *width, *height, pair.second->gdi_back_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, lua_gdi_color_mask);
+				TransparentBlt(compat_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, pair.second->gdi_back_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, lua_gdi_color_mask);
 			}
 
 			BITMAPINFO bmp_info{};
