@@ -35,9 +35,6 @@ bool AVIEncoder::start(Params params)
 	video_stream_header.dwSuggestedBufferSize = 0;
 	AVIFileCreateStream(avi_file, &video_stream, &video_stream_header);
 
-	// Sometimes the current directory is messed up when reaching this
-	SetCurrentDirectory(app_path.c_str());
-
 	if (params.ask_for_encoding_settings)
 	{
 		if (!AVISaveOptions(mainHWND, 0, 1, &video_stream, &avi_options))

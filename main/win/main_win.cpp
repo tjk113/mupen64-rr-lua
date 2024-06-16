@@ -1334,6 +1334,10 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	Messenger::init();
 
 	app_path = get_app_full_path();
+
+	// CWD is sometimes messed up when running from CLI, so we fix it here
+	SetCurrentDirectory(app_path.c_str());
+
 	app_instance = hInstance;
 
 	// ensure folders exist!
