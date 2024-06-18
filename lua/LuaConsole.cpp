@@ -950,6 +950,12 @@ void LuaEnvironment::invalidate_visuals()
 	InvalidateRect(this->gdi_overlay_hwnd, &rect, false);
 }
 
+void LuaEnvironment::repaint_visuals()
+{
+	RedrawWindow(this->d2d_overlay_hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW);
+	RedrawWindow(this->gdi_overlay_hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW);
+}
+
 void register_as_package(lua_State* lua_state, const char* name, const luaL_Reg regs[])
 {
 	if (name == nullptr)

@@ -212,6 +212,9 @@ public:
 	// Invalidates the composition layer
 	void invalidate_visuals();
 
+	// Repaints the composition layer
+	void repaint_visuals();
+
 	HWND hwnd;
 	lua_State* L;
 
