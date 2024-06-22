@@ -28,21 +28,12 @@ IDB_CONTROL             BITMAP                  "icons\\Control.bmp"
 
 IDB_DISPLAY             BITMAP                  "icons\\Display.bmp"
 
-IDB_DOWN_ARROW          BITMAP                  "icons\\down_arrow.bmp"
-
 IDB_LOGO                BITMAP                  "icons\\logo.bmp"
 
 IDB_RSP                 BITMAP                  "icons\\RSP.bmp"
 
 IDB_SOUND               BITMAP                  "icons\\Sound.bmp"
 
-IDB_UP_ARROW            BITMAP                  "icons\\up_arrow.bmp"
-
-IDB_LOGO_BW             BITMAP                  "icons\\logobw.bmp"
-
-IDB_LOGO_PAUSE          BITMAP                  "icons\\pause.bmp"
-
-IDB_LOGO_RESUME         BITMAP                  "icons\\resume.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////

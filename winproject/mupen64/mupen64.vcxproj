@@ -404,23 +404,18 @@
         <Image Include="..\icons\Control.bmp"/>
         <Image Include="..\icons\demo.ico"/>
         <Image Include="..\icons\Display.bmp"/>
-        <Image Include="..\icons\down_arrow.bmp"/>
         <Image Include="..\icons\europe.ico"/>
         <Image Include="..\icons\france.ico"/>
         <Image Include="..\icons\germany.ico"/>
         <Image Include="..\icons\italy.ico"/>
         <Image Include="..\icons\japan.ico"/>
         <Image Include="..\icons\logo.bmp"/>
-        <Image Include="..\icons\logobw.bmp"/>
         <Image Include="..\icons\m64big.ico"/>
         <Image Include="..\icons\m64small.ico"/>
-        <Image Include="..\icons\pause.bmp"/>
-        <Image Include="..\icons\resume.bmp"/>
         <Image Include="..\icons\RSP.bmp"/>
         <Image Include="..\icons\Sound.bmp"/>
         <Image Include="..\icons\spain.ico"/>
         <Image Include="..\icons\unknown.ico"/>
-        <Image Include="..\icons\up_arrow.bmp"/>
         <Image Include="..\icons\usa.ico"/>
     </ItemGroup>
     <ItemGroup>

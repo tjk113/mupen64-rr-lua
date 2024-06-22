@@ -50,7 +50,6 @@
 #define IDM_AUDIO_SETTINGS              165
 #define IDSOUNDTEST                     166
 #define IDSOUNDABOUT                    167
-#define IDB_UP_ARROW                    168
 #define IDB_DOWN_ARROW                  169
 #define IDI_SIF                         170
 #define IDI_M64ICONSMALL                180
@@ -448,7 +447,6 @@
 #define IDM_FREEZE_RECENT_LUA           40014
 #define IDD_OTHER_OPTIONS_DIALOG        40015
 #define IDC_OTHEROPTIONS                40016
-#define IDB_LOGO_BW                     40029
 #define IDD_COREDBG                     40031
 #define IDC_COREDBG_GROUPBOX            40032
 #define IDC_COREDBG_TOGGLEPAUSE         40033
@@ -497,7 +495,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        115
