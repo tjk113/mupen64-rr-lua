@@ -273,7 +273,6 @@ void on_emu_stopping(std::any)
 void on_emu_launched_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
-	static auto previous_value = value;
 
 	if (value)
 	{
@@ -291,7 +290,7 @@ void on_emu_launched_changed(std::any data)
 	on_task_changed(VCR::get_task());
 
 	// Reset and restore view stuff when emulation starts
-	if (value && !previous_value)
+	if (value)
 	{
 		Recent::add(Config.recent_rom_paths, get_rom_path().string(), Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
 		vis_since_input_poll_warning_dismissed = false;
@@ -309,13 +308,12 @@ void on_emu_launched_changed(std::any data)
 		});
 	}
 
-	if (!value && previous_value)
+	if (!value)
 	{
 		SetWindowPos(mainHWND, nullptr, 0, 0, Config.window_width, Config.window_height, SWP_NOMOVE);
 	}
 
 	SendMessage(mainHWND, WM_INITMENU, 0, 0);
-	previous_value = value;
 }
 
 void on_capturing_changed(std::any data)
@@ -1021,7 +1019,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					static const auto ramstart_str = "The RAM start is {}.\r\nDo you want to copy the generated STROOP config line to your clipboard?";
 
-					
+
 					const auto stroop_str = std::string(stroop_c);
 					if (MessageBox(mainHWND,
 					                std::format(ramstart_str, ram_start).c_str(),
