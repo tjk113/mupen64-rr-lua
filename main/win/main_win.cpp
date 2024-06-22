@@ -258,6 +258,7 @@ void on_task_changed(std::any data)
 
 	update_titlebar();
 	SendMessage(mainHWND, WM_INITMENU, 0, 0);
+	previous_value = value;
 }
 
 void on_emu_stopping(std::any)
