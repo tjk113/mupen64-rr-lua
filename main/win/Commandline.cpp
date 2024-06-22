@@ -41,6 +41,10 @@ std::filesystem::path commandline_avi;
 bool commandline_close_on_movie_end;
 bool dacrate_changed;
 
+bool is_movie_from_start;
+bool first_emu_launched = true;
+bool first_dacrate_changed = true;
+
 void commandline_set()
 {
 	argh::parser cmdl(__argc, __argv,
@@ -63,6 +67,17 @@ void commandline_set()
 	if (!commandline_avi.empty())
 	{
 		commandline_close_on_movie_end = true;
+	}
+
+	// HACK: When playing a movie from start, the rom will start normally and signal us to do our work via EmuLaunchedChanged.
+	// The work is started, but then the rom is reset. At that point, the dacrate changes and breaks the capture in some cases.
+	// To avoid this, we store the movie's start flag prior to doing anything, and ignore the first EmuLaunchedChanged if it's set.
+	const auto movie_path = commandline_rom.extension() == ".m64" ? commandline_rom : commandline_movie;
+	if (!movie_path.empty())
+	{
+		t_movie_header hdr{};
+		VCR::parse_header(movie_path, &hdr);
+		is_movie_from_start = hdr.startFlags & MOVIE_START_FROM_NOTHING;
 	}
 }
 
@@ -145,7 +160,7 @@ void commandline_on_movie_playback_stop()
 		Dispatcher::invoke([]
 		{
 			EncodingManager::stop_capture();
-			SendMessage(mainHWND, WM_CLOSE, 0, 0);
+			PostMessage(mainHWND, WM_CLOSE, 0, 0);
 		});
 	}
 }
@@ -172,6 +187,13 @@ namespace Cli
 		if (!value)
 			return;
 
+		if (first_emu_launched && is_movie_from_start)
+		{
+			printf("[Cli] Ignoring EmuLaunchedChanged due to from-start movie first reset!\n");
+			first_emu_launched = false;
+			return;
+		}
+
 		dacrate_changed = false;
 
 		// start movies, st and lua scripts
@@ -189,6 +211,13 @@ namespace Cli
 	{
 		if (dacrate_changed)
 		{
+			return;
+		}
+
+		if (first_dacrate_changed && is_movie_from_start)
+		{
+			printf("[Cli] Ignoring DacrateChanged due to from-start movie first reset!\n");
+			first_dacrate_changed = false;
 			return;
 		}
 
