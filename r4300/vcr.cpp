@@ -59,8 +59,7 @@ bool write_movie()
 {
 	printf("[VCR] Flushing movie to %s...\n", g_movie_path.string().c_str());
 
-	std::filesystem::remove(g_movie_path);
-	FILE* f = fopen(g_movie_path.string().c_str(), "wb");
+	FILE* f = fopen(g_movie_path.string().c_str(), "wb+");
 	if (!f)
 	{
 		return false;
