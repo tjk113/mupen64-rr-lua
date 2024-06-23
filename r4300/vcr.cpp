@@ -341,6 +341,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 		g_movie_inputs.resize(freeze.current_sample);
 		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.current_sample);
+		write_movie();
 	} else
 	{
 		// here, we are going to keep the input data from the movie file
@@ -349,15 +350,11 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		// with the on-disk recording data, but it's easily solved
 		// by loading another savestate or playing the movie from the beginning
 
-		// and older savestate might have a currentFrame pointer past
-		// the end of the input data, so check for that here
-
 		g_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 	}
 
-	write_movie();
 
 	return Result::Ok;
 }
