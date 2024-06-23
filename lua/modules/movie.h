@@ -48,4 +48,41 @@ namespace LuaCore::Movie
 		Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
 		return 0;
 	}
+
+	static int begin_seek_to(lua_State* L)
+	{
+		size_t frame = lua_tointeger(L, 1);
+		bool relative = lua_toboolean(L, 2);
+
+		lua_pushinteger(L, static_cast<size_t>(VCR::begin_seek_to(frame, relative)));
+		return 1;
+	}
+
+	static int get_seek_info(lua_State* L)
+	{
+		size_t frame = lua_tointeger(L, 1);
+		bool relative = lua_toboolean(L, 2);
+
+		const auto pair = VCR::get_seek_info(frame, relative);
+
+		lua_newtable(L);
+		lua_pushboolean(L, pair.first);
+		lua_rawseti(L, -2, 1);
+		lua_pushinteger(L, pair.second);
+		lua_rawseti(L, -2, 2);
+
+		return 1;
+	}
+
+	static int stop_seek(lua_State* L)
+	{
+		VCR::stop_seek();
+		return 0;
+	}
+
+	static int is_seeking(lua_State* L)
+	{
+		lua_pushboolean(L, VCR::is_seeking());
+		return 1;
+	}
 }

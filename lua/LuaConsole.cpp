@@ -559,6 +559,10 @@ const luaL_Reg movieFuncs[] = {
 	{"get_filename", LuaCore::Movie::GetMovieFilename},
 	{"get_readonly", LuaCore::Movie::GetVCRReadOnly},
 	{"set_readonly", LuaCore::Movie::SetVCRReadOnly},
+	{"begin_seek_to", LuaCore::Movie::begin_seek_to},
+	{"get_seek_info", LuaCore::Movie::get_seek_info},
+	{"stop_seek", LuaCore::Movie::stop_seek},
+	{"is_seeking", LuaCore::Movie::is_seeking},
 	{NULL, NULL}
 };
 
