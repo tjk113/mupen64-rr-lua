@@ -1,4 +1,4 @@
-﻿#include "Seeker.h"
+#include "Seeker.h"
 
 #include <thread>
 #include <Windows.h>
@@ -11,11 +11,11 @@
 #include <shared/Config.hpp>
 
 #define WM_SEEK_COMPLETED (WM_USER + 11)
-#define WM_UPDATE_SEEK_ALLOWED (WM_USER + 12)
 
 namespace Seeker
 {
 	HWND current_hwnd;
+	UINT_PTR refresh_timer;
 
 	LRESULT CALLBACK SeekerProc(HWND hwnd, UINT Message, WPARAM wParam,
 	                            LPARAM lParam)
@@ -23,44 +23,52 @@ namespace Seeker
 		switch (Message)
 		{
 		case WM_INITDIALOG:
+			refresh_timer = SetTimer(hwnd, NULL, 1000 / 10, nullptr);
 			current_hwnd = hwnd;
 			SetDlgItemText(hwnd, IDC_SEEKER_FRAME, Config.seeker_value.c_str());
 			SetFocus(GetDlgItem(hwnd, IDC_SEEKER_FRAME));
+			SendMessage(hwnd, WM_SEEK_COMPLETED, 0, 0);
 			break;
 		case WM_DESTROY:
+			KillTimer(hwnd, refresh_timer);
 			VCR::stop_seek();
 			break;
 		case WM_CLOSE:
 			EndDialog(hwnd, IDCANCEL);
 			break;
 		case WM_SEEK_COMPLETED:
-			EnableWindow(GetDlgItem(hwnd, IDOK), true);
-			SendMessage(hwnd, WM_UPDATE_SEEK_ALLOWED, 0, 0);
+			SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Idle");
+			SetDlgItemText(hwnd, IDC_SEEKER_START, "Start");
 			break;
-		case WM_UPDATE_SEEK_ALLOWED:
-			try
+		case WM_TIMER:
 			{
-				bool relative = Config.seeker_value[0] == '-' || Config.seeker_value[0] == '+';
-				int32_t frame = std::stoi(Config.seeker_value);
-				EnableWindow(GetDlgItem(hwnd, IDOK), Config.seeker_value.size() > 1 && VCR::get_seek_info(frame, relative).first);
-			} catch (...)
-			{
-				EnableWindow(GetDlgItem(hwnd, IDOK), false);
+				if (!VCR::is_seeking())
+				{
+					break;
+				}
+				auto [current, total] = VCR::get_seek_completion();
+				const auto str = std::format("Seeked {:.2f}%", static_cast<float>(current) / static_cast<float>(total) * 100.0);
+				SetDlgItemText(hwnd, IDC_SEEKER_STATUS, str.c_str());
+				break;
 			}
-			break;
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
 			case IDC_SEEKER_FRAME:
 				{
-					char str[260] = {0};
+					char str[260]{};
 					GetDlgItemText(hwnd, IDC_SEEKER_FRAME, str, std::size(str));
 					Config.seeker_value = str;
-					SendMessage(hwnd, WM_UPDATE_SEEK_ALLOWED, 0, 0);
 				}
 				break;
-			case IDOK:
+			case IDC_SEEKER_START:
 				{
+					if (VCR::is_seeking())
+					{
+						VCR::stop_seek();
+						break;
+					}
+
 					// Relative seek is activated by typing + or - in front of number
 					bool relative = Config.seeker_value[0] == '-' || Config.seeker_value[0] == '+';
 
@@ -70,19 +78,17 @@ namespace Seeker
 						frame = std::stoi(Config.seeker_value);
 					} catch (...)
 					{
+						SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Invalid input");
 						break;
 					}
 
 					if (VCR::begin_seek_to(frame, relative) != VCR::Result::Ok)
 					{
-						MessageBox(
-							hwnd,
-							"Failed to begin seeking.\r\nVerify the inputs and try again.",
-							nullptr, MB_ICONERROR);
+						SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Couldn't seek");
 						break;
 					}
 
-					EnableWindow(GetDlgItem(hwnd, IDOK), false);
+					SetDlgItemText(hwnd, IDC_SEEKER_START, "Stop");
 					break;
 				}
 			case IDCANCEL:
