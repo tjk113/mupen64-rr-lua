@@ -273,6 +273,11 @@ namespace VCR
 	std::pair<bool, size_t> get_seek_info(int32_t frame, bool relative);
 
 	/**
+	 * \brief Gets the completion status of the current seek operation. If no seek operation is active, both pair values are 0.
+	 */
+	std::pair<size_t, size_t> get_seek_completion();
+
+	/**
 	 * \brief Begins seeking to a frame in the currently playing movie
 	 * \param frame The frame to seek to
 	 * \param relative Whether the seek is relative to the current frame

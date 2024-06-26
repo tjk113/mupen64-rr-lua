@@ -934,6 +934,16 @@ std::pair<bool, size_t> VCR::get_seek_info(int32_t frame, bool relative)
 	return std::make_pair(allowed, frame);
 }
 
+std::pair<size_t, size_t> VCR::get_seek_completion()
+{
+	if (!VCR::is_seeking())
+	{
+		return std::make_pair(0, 0);
+	}
+
+	return std::make_pair(m_current_sample, seek_to_frame.value());
+}
+
 VCR::Result VCR::begin_seek_to(int32_t frame, bool relative)
 {
 	const auto [valid, effective_frame] = get_seek_info(frame, relative);
