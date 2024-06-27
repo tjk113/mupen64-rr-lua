@@ -299,7 +299,7 @@ namespace EncodingManager
 		{
 			return readscreen_desktop;
 		}
-		return readscreen_hybrid;
+		return MGECompositor::available() ? readscreen_hybrid : nullptr;
 	}
 
 	void dummy_free(void*)
