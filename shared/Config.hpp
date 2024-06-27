@@ -186,6 +186,11 @@ typedef struct _CONFIG
 	int32_t is_default_screenshots_directory_used = 1;
 
 	/// <summary>
+	/// Whether the default backups directory will be used (otherwise, falls back to <see cref="backups_directory"/>)
+	/// </summary>
+	int32_t is_default_backups_directory_used = 1;
+
+	/// <summary>
 	/// The plugin directory
 	/// </summary>
 	std::string plugins_directory;
@@ -204,6 +209,11 @@ typedef struct _CONFIG
 	/// The savestate directory
 	/// </summary>
 	std::string states_path;
+
+	/// <summary>
+	/// The movie backups directory
+	/// </summary>
+	std::string backups_directory;
 
 	/// <summary>
 	/// The recently opened roms' paths
@@ -406,6 +416,11 @@ typedef struct _CONFIG
 	/// Whether VCR operates in read-only mode
 	/// </summary>
 	int32_t vcr_readonly;
+
+	/// <summary>
+	/// Whether VCR creates movie backups
+	/// </summary>
+	int32_t vcr_backups;
 
 	/// <summary>
 	/// Whether mupen will avoid showing modals and other elements which require user interaction

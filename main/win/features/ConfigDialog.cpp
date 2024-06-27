@@ -208,10 +208,17 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
 			EnableWindow(GetDlgItem(hwnd, IDC_SCREENSHOTS_DIR), FALSE);
 			EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SCREENSHOTS_DIR), FALSE);
 		}
+		if (Config.is_default_backups_directory_used)
+		{
+			SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_BACKUPS_CHECK), BM_SETCHECK, BST_CHECKED, 0);
+			EnableWindow(GetDlgItem(hwnd, IDC_BACKUPS_DIR), FALSE);
+			EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_BACKUPS_DIR), FALSE);
+		}
 
 		SetDlgItemText(hwnd, IDC_PLUGINS_DIR, Config.plugins_directory.c_str());
 		SetDlgItemText(hwnd, IDC_SAVES_DIR, Config.saves_directory.c_str());
 		SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory.c_str());
+		SetDlgItemText(hwnd, IDC_BACKUPS_DIR, Config.backups_directory.c_str());
 
 		if (emu_launched)
 		{
@@ -244,6 +251,13 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
 			GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, str, MAX_PATH);
 			Config.screenshots_directory = std::string(str);
 			Config.is_default_screenshots_directory_used = selected;
+
+			selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_BACKUPS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
+						   ? TRUE
+						   : FALSE;
+			GetDlgItemText(hwnd, IDC_BACKUPS_DIR, str, MAX_PATH);
+			Config.backups_directory = std::string(str);
+			Config.is_default_backups_directory_used = selected;
 		}
 		break;
 	case WM_COMMAND:
@@ -285,6 +299,14 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
 				                                                       BM_GETCHECK, 0, 0);
 				EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), !Config.is_default_plugins_directory_used);
 				EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), !Config.is_default_plugins_directory_used);
+			}
+			break;
+		case IDC_DEFAULT_BACKUPS_CHECK:
+			{
+				Config.is_default_backups_directory_used = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_BACKUPS_CHECK),
+																	   BM_GETCHECK, 0, 0);
+				EnableWindow(GetDlgItem(hwnd, IDC_BACKUPS_DIR), !Config.is_default_backups_directory_used);
+				EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_BACKUPS_DIR), !Config.is_default_backups_directory_used);
 			}
 			break;
 		case IDC_PLUGIN_DIRECTORY_HELP:
@@ -341,6 +363,17 @@ BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM 
 				}
 				Config.screenshots_directory = wstring_to_string(path) + "\\";
 				SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, Config.screenshots_directory.c_str());
+			}
+			break;
+		case IDC_CHOOSE_BACKUPS_DIR:
+			{
+				const auto path = show_persistent_folder_dialog("f_backups", hwnd);
+				if (path.empty())
+				{
+					break;
+				}
+				Config.backups_directory = wstring_to_string(path) + "\\";
+				SetDlgItemText(hwnd, IDC_BACKUPS_DIR, Config.backups_directory.c_str());
 			}
 			break;
 		default:
@@ -577,6 +610,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_AUDIO_DELAY, "When checked, audio interrupts are delayed\nRecommended: On (Off causes issues with savestates)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_COMPILED_JUMP, "When checked, jump instructions are compiled by Dynamic Recompiler\nRecommended: On (Off is slower)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ROUNDTOZERO, "When checked, floating point numbers are rounded towards zero"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_MOVIE_BACKUPS, "When checked, a backup of the currently playing movie is created when loading a savestate.\nRecommended: On (Off on systems with slow disk speeds)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_AUTOINCREMENTSAVESLOT, "When checked, saving to a slot will increase the currently selected slot number by 1"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_EMULATEFLOATCRASHES, "When checked, float operations which crash on real hardware will crash the core"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_EDIT_MAX_LAG, "The maximum amount of lag frames before the core emits a warning\n0 = Disabled"));
@@ -633,6 +667,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			set_checkbox_state(hwnd, IDC_USESUMMERCART, Config.use_summercart);
 			set_checkbox_state(hwnd, IDC_SAVE_VIDEO_TO_ST, Config.st_screenshot);
 			set_checkbox_state(hwnd, IDC_ROUNDTOZERO, Config.is_round_towards_zero_enabled);
+			set_checkbox_state(hwnd, IDC_MOVIE_BACKUPS, Config.vcr_backups);
 			set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, Config.is_float_exception_propagation_enabled);
 			set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, Config.is_audio_delay_enabled);
 			set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, Config.is_compiled_jump_enabled);
@@ -700,6 +735,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			Config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
 			Config.st_screenshot = get_checkbox_state(hwnd, IDC_SAVE_VIDEO_TO_ST);
 			Config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
+			Config.vcr_backups = get_checkbox_state(hwnd, IDC_MOVIE_BACKUPS);
 			Config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
 			Config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);
 			Config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);

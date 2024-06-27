@@ -54,20 +54,50 @@ bool user_requested_reset;
 
 std::recursive_mutex vcr_mutex;
 
-// Writes the movie header + inputs to current movie_path
-bool write_movie()
+std::filesystem::path get_backups_directory()
 {
-	printf("[VCR] Flushing movie to %s...\n", g_movie_path.string().c_str());
+	if (Config.is_default_backups_directory_used)
+	{
+		return "backups\\";
+	}
+	return Config.backups_directory;
+}
 
-	FILE* f = fopen(g_movie_path.string().c_str(), "wb+");
+bool write_movie_impl(const t_movie_header* hdr, const std::vector<BUTTONS>& inputs, const std::filesystem::path& path)
+{
+	printf("[VCR] write_movie_impl to %s...\n", g_movie_path.string().c_str());
+
+	FILE* f = fopen(path.string().c_str(), "wb+");
 	if (!f)
 	{
 		return false;
 	}
-	fwrite(&g_header, sizeof(t_movie_header), 1, f);
-	fwrite(g_movie_inputs.data(), sizeof(BUTTONS), g_header.length_samples, f);
+
+	fwrite(hdr, sizeof(t_movie_header), 1, f);
+	fwrite(inputs.data(), sizeof(BUTTONS), hdr->length_samples, f);
 	fclose(f);
 	return true;
+}
+
+// Writes the movie header + inputs to current movie_path
+bool write_movie()
+{
+	printf("[VCR] Flushing current movie...\n");
+
+	return write_movie_impl(&g_header, g_movie_inputs, g_movie_path);
+}
+
+bool write_backup()
+{
+	if (!Config.vcr_backups)
+	{
+		return true;
+	}
+
+	printf("[VCR] Backing up movie...\n");
+	const auto filename = std::format("{} - {}.m64", g_movie_path.stem().string(), static_cast<uint64_t>(time(nullptr)));
+
+	return write_movie_impl(&g_header, g_movie_inputs, get_backups_directory() / filename);
 }
 
 bool is_task_playback(const e_task task)
@@ -338,6 +368,9 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		g_header.rerecord_count++;
 		Config.total_rerecords++;
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+
+		// Before overwriting the input buffer, save a backup
+		write_backup();
 
 		g_movie_inputs.resize(freeze.current_sample);
 		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.current_sample);

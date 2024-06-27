@@ -118,7 +118,7 @@
 #define IDC_EDIT2                       1043
 #define IDC_EDIT_CHEAT_NAME             1043
 #define IDC_SEEKER_START                1044
-#define IDC_SEEKER_STATUS             1045
+#define IDC_SEEKER_STATUS               1045
 #define IDM_FULLSCREEN                  1061
 #define IDM_PAUSE                       1062
 #define IDM_FRAMEADVANCE                1063
@@ -221,6 +221,7 @@
 #define IDC_DEFAULT_SCREENSHOTS_CHECK   4001
 #define IDC_DEFAULT_SAVES_CHECK         4002
 #define IDC_DEFAULT_PLUGINS_DIR         4003
+#define IDC_DEFAULT_BACKUPS_CHECK       4003
 #define IDC_DEFAULT_SAVES_DIR           4004
 #define IDC_DEFAULT_SCREENSHOTS_DIR     4005
 #define IDC_PLUGINS_GROUP               4012
@@ -230,6 +231,8 @@
 #define IDC_CHOOSE_PLUGINS_DIR          4016
 #define IDC_SCREENSHOTS_DIR             4017
 #define IDC_CHOOSE_SCREENSHOTS_DIR      4018
+#define IDC_BACKUPS_DIR                 4020
+#define IDC_CHOOSE_BACKUPS_DIR          4021
 #define IDI_GFX                         4101
 #define IDI_INPUT                       4103
 #define IDI_SOUND                       4104
@@ -494,10 +497,12 @@
 #define IDM_GS_ON                       40072
 #define IDM_GS_OFF                      40073
 #define IDM_CHEATS                      40074
+#define IDC_BACKUPS_GROUP               40075
+#define IDC_MOVIE_BACKUPS               40076
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        115

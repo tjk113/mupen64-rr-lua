@@ -82,7 +82,7 @@ std::filesystem::path get_saves_directory()
 {
 	if (Config.is_default_saves_directory_used)
 	{
-		return app_path + "Save\\";
+		return app_path + "save\\";
 	}
 	return Config.saves_directory;
 }

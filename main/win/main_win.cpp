@@ -1344,8 +1344,9 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	// ensure folders exist!
 	CreateDirectory((app_path + "save").c_str(), NULL);
-	CreateDirectory((app_path + "screenshot").c_str(), NULL);
+	CreateDirectory((app_path + "screenshots").c_str(), NULL);
 	CreateDirectory((app_path + "plugin").c_str(), NULL);
+	CreateDirectory((app_path + "backups").c_str(), NULL);
 
 	init_config();
 	load_config();
