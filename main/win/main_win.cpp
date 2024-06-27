@@ -311,6 +311,7 @@ void on_emu_launched_changed(std::any data)
 
 	if (!value)
 	{
+		printf("[View] Restoring window size to %dx%d...\n", Config.window_width, Config.window_height);
 		SetWindowPos(mainHWND, nullptr, 0, 0, Config.window_width, Config.window_height, SWP_NOMOVE);
 	}
 
@@ -643,15 +644,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			GetWindowRect(mainHWND, &rect);
 			Config.window_x = rect.left;
 			Config.window_y = rect.top;
-
-			if (core_executing)
-			{
-				// We don't need to remember the dimensions set by gfx plugin
-				break;
-			}
-
-			Config.window_width = rect.right - rect.left;
-			Config.window_height = rect.bottom - rect.top;
 			break;
 		}
 	case WM_SIZE:
@@ -660,6 +652,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			RECT rect{};
 			GetClientRect(mainHWND, &rect);
 			Messenger::broadcast(Messenger::Message::SizeChanged, rect);
+
+			if (core_executing || emu_launched)
+			{
+				// We don't need to remember the dimensions set by gfx plugin
+				break;
+			}
+
+			Config.window_width = rect.right - rect.left;
+			Config.window_height = rect.bottom - rect.top;
+			printf("%dx%d\n", Config.window_width, Config.window_height);
+
 			break;
 		}
 	case WM_FOCUS_MAIN_WINDOW:
