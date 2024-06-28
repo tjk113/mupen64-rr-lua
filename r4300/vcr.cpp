@@ -105,6 +105,52 @@ bool is_task_playback(const e_task task)
 	return task == e_task::start_playback_from_reset || task == e_task::start_playback_from_snapshot || task == e_task::playback;
 }
 
+std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
+{
+
+	// To allow multiple m64s to reference on st, we construct the st name from the m64 name up to the first point only
+	// A.m64 -> A.st
+	// A.B.m64 -> A.st, A.B.st
+	// A.B.C.m64->A.st, A.B.st, A.B.C.st
+
+
+	char drive[260] = {0};
+	char dir[260] = {0};
+	char filename[260] = {0};
+	_splitpath(path.string().c_str(), drive, dir, filename, nullptr);
+
+	size_t i = 0;
+	while (true)
+	{
+		auto result = str_nth_occurence(filename, ".", i + 1);
+		std::string matched_filename = "";
+
+		// Standard case, no st sharing
+		if (result == std::string::npos)
+		{
+			matched_filename = filename;
+		}
+		else
+		{
+			matched_filename = std::string(filename).substr(0, result);
+		}
+
+		auto st = std::string(drive) + std::string(dir) + matched_filename + ".st";
+		if (std::filesystem::exists(st)) {
+			return st;
+		}
+
+		st = std::string(drive) + std::string(dir) + matched_filename + ".savestate";
+		if (std::filesystem::exists(st)) {
+			return st;
+		}
+
+		i++;
+	}
+
+	return "";
+}
+
 static void set_rom_info(t_movie_header* header)
 {
 	header->vis_per_second = get_vis_per_second(ROM_HEADER.Country_code);
@@ -654,8 +700,13 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
 		printf("[VCR] Loading state...\n");
-		// FIXME: Don't we have to use the clever savestate path resolver here?
-		savestates_do_file(std::filesystem::path(g_movie_path).replace_extension(".st"), e_st_job::load);
+		auto st_path = find_savestate_for_movie(g_movie_path);
+		if (st_path.empty())
+		{
+			return Result::InvalidSavestate;
+		}
+		savestates_do_file(st_path, e_st_job::load);
+
 		// set this to the normal snapshot flag to maintain compatibility
 		g_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
 		g_task = e_task::start_recording_from_existing_snapshot;
@@ -757,53 +808,6 @@ VCR::Result vcr_stop_record()
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 	return VCR::Result::Ok;
 }
-
-std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
-{
-
-	// To allow multiple m64s to reference on st, we construct the st name from the m64 name up to the first point only
-	// A.m64 -> A.st
-	// A.B.m64 -> A.st, A.B.st
-	// A.B.C.m64->A.st, A.B.st, A.B.C.st
-
-
-	char drive[260] = {0};
-	char dir[260] = {0};
-	char filename[260] = {0};
-	_splitpath(path.string().c_str(), drive, dir, filename, nullptr);
-
-	size_t i = 0;
-	while (true)
-	{
-		auto result = str_nth_occurence(filename, ".", i + 1);
-		std::string matched_filename = "";
-
-		// Standard case, no st sharing
-		if (result == std::string::npos)
-		{
-			matched_filename = filename;
-		}
-		else
-		{
-			matched_filename = std::string(filename).substr(0, result);
-		}
-
-		auto st = std::string(drive) + std::string(dir) + matched_filename + ".st";
-		if (std::filesystem::exists(st)) {
-			return st;
-		}
-
-		st = std::string(drive) + std::string(dir) + matched_filename + ".savestate";
-		if (std::filesystem::exists(st)) {
-			return st;
-		}
-
-		i++;
-	}
-
-	return "";
-}
-
 
 int check_warn_controllers(char* warning_str)
 {
