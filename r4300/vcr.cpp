@@ -145,10 +145,14 @@ std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 			return st;
 		}
 
+		if (result == std::string::npos)
+		{
+			// Failed the existence checks at all permutations, failed search...
+			return "";
+		}
+
 		i++;
 	}
-
-	return "";
 }
 
 static void set_rom_info(t_movie_header* header)
