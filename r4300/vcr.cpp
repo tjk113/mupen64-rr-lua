@@ -580,6 +580,28 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	m_current_sample++;
 }
 
+// Generates a savestate path for a newly created movie.
+// Consists of the movie path, but with the stem trimmed at the first dot and with .st extension
+std::filesystem::path get_savestate_path_for_new_movie(std::filesystem::path path)
+{
+	auto result = str_nth_occurence(path.stem().string(), ".", 1);
+
+	// Standard case, no st shortcutting
+	if (result == std::string::npos)
+	{
+		path.replace_extension(".st");
+		return path;
+	}
+
+	char drive[260]{};
+	char dir[260]{};
+	_splitpath(path.string().c_str(), drive, dir, nullptr, nullptr);
+
+	auto stem = path.stem().string().substr(0, result);
+
+	return std::string(drive) + std::string(dir) + stem + ".st";
+}
+
 VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::string author,
 	std::string description)
 {
@@ -622,15 +644,17 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	g_header.rerecord_count = 0;
 	g_header.startFlags = flags;
 
+
 	if (flags & MOVIE_START_FROM_SNAPSHOT)
 	{
 		// save state
 		printf("[VCR] Saving state...\n");
-		savestates_do_file(std::filesystem::path(g_movie_path).replace_extension(".st"), e_st_job::save);
+		savestates_do_file(get_savestate_path_for_new_movie(g_movie_path), e_st_job::save);
 		g_task = e_task::start_recording_from_snapshot;
 	} else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
 	{
 		printf("[VCR] Loading state...\n");
+		// FIXME: Don't we have to use the clever savestate path resolver here?
 		savestates_do_file(std::filesystem::path(g_movie_path).replace_extension(".st"), e_st_job::load);
 		// set this to the normal snapshot flag to maintain compatibility
 		g_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
