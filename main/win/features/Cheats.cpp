@@ -1,4 +1,4 @@
-﻿#include "Cheats.h"
+#include "Cheats.h"
 
 #include <Windows.h>
 #include <Windowsx.h>
@@ -38,6 +38,18 @@ namespace Cheats
 						Gameshark::scripts.push_back(script.value());
 						goto rebuild_list;
 					}
+					break;
+				}
+			case IDC_REMOVE_CHEAT:
+				{
+					auto lb_hwnd = GetDlgItem(hwnd, IDC_LIST_CHEATS);
+					auto selected_index = ListBox_GetCurSel(lb_hwnd);
+					if (selected_index == -1) {
+						break;
+					}
+
+					Gameshark::scripts.erase(Gameshark::scripts.begin() + selected_index);
+					goto rebuild_list;
 					break;
 				}
 			case IDC_CHECK_CHEAT_ENABLED:
