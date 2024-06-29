@@ -4,6 +4,7 @@
 #include <Windowsx.h>
 #include <main/win/main_win.h>
 #include <winproject/resource.h>
+#include <shared/guifuncs.h>
 
 #include "r4300/gameshark.h"
 
@@ -74,7 +75,10 @@ namespace Cheats
 					auto script = Gameshark::Script::compile(code);
 
 					if (!script.has_value())
+					{
+						show_error("Cheat code could not be compiled.\r\nVerify that the syntax is correct.", nullptr, hwnd);
 						break;
+					}
 
 					script.value()->set_name(name);
 					script.value()->set_resumed(prev_resumed);
