@@ -64,36 +64,36 @@ bool confirm_user_exit()
 	return res == IDYES || warnings == 0;
 }
 
-bool show_ask_dialog(const char* str, const char* title, bool warning)
+bool show_ask_dialog(const char* str, const char* title, bool warning, void* hwnd)
 {
 	if (Config.silent_mode)
 	{
 		return true;
 	}
-	return MessageBox(mainHWND, str, title, MB_YESNO | (warning ? MB_ICONWARNING : MB_ICONQUESTION)) == IDYES;
+	return MessageBox(static_cast<HWND>(hwnd ? hwnd : mainHWND), str, title, MB_YESNO | (warning ? MB_ICONWARNING : MB_ICONQUESTION)) == IDYES;
 }
 
-void show_warning(const char* str, const char* title)
+void show_warning(const char* str, const char* title, void* hwnd)
 {
 	if (!Config.silent_mode)
 	{
-		MessageBox(mainHWND, str, title, MB_ICONWARNING);
+		MessageBox(static_cast<HWND>(hwnd ? hwnd : mainHWND), str, title, MB_ICONWARNING);
 	}
 }
 
-void show_error(const char* str, const char* title)
+void show_error(const char* str, const char* title, void* hwnd)
 {
 	if (!Config.silent_mode)
 	{
-		MessageBox(mainHWND, str, title, MB_ICONERROR);
+		MessageBox(static_cast<HWND>(hwnd ? hwnd : mainHWND), str, title, MB_ICONERROR);
 	}
 }
 
-void show_information(const char* str, const char* title)
+void show_information(const char* str, const char* title, void* hwnd)
 {
 	if (!Config.silent_mode)
 	{
-		MessageBox(mainHWND, str, title, MB_OK | MB_ICONINFORMATION);
+		MessageBox(static_cast<HWND>(hwnd ? hwnd : mainHWND), str, title, MB_OK | MB_ICONINFORMATION);
 	}
 }
 
