@@ -420,7 +420,7 @@ typedef struct _CONFIG
 	/// <summary>
 	/// Whether VCR creates movie backups
 	/// </summary>
-	int32_t vcr_backups;
+	int32_t vcr_backups = 1;
 
 	/// <summary>
 	/// Whether mupen will avoid showing modals and other elements which require user interaction
