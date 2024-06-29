@@ -736,7 +736,8 @@ void LuaEnvironment::create_renderer()
 		return;
 	}
 
-	if (CoInitialize(nullptr) != S_OK)
+	auto hr = CoInitialize(nullptr);
+	if (hr != S_OK && hr != S_FALSE && hr != RPC_E_CHANGED_MODE)
 	{
 		show_error("Failed to initialize COM.\r\nVerify that your system is up-to-date.");
 		return;

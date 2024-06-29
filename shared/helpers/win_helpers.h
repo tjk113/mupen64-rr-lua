@@ -235,7 +235,9 @@ class COMInitializer
 public:
 	COMInitializer()
 	{
-		m_init = CoInitialize(nullptr) == S_OK;
+		auto hr = CoInitialize(nullptr);
+		m_init = !(hr != S_OK && hr != S_FALSE && hr != RPC_E_CHANGED_MODE);
+
 		if(!m_init)
 		{
 			printf("[COMInitializer] Failed to initialize COM");
