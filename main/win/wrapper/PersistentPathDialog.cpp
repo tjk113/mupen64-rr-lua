@@ -4,12 +4,14 @@
 #include <shared/helpers/io_helpers.h>
 #include <shared/helpers/string_helpers.h>
 #include <shared/Config.hpp>
+#include <shared/helpers/win_helpers.h>
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp
 
 std::wstring show_persistent_open_dialog(const std::string& id, HWND hwnd,
                                          const std::wstring& filter)
 {
+	COMInitializer com_initializer;
 	IFileDialog* pFileDialog = nullptr;
 	IShellItem* pShellItem = nullptr;
 	PWSTR pFilePath = nullptr;
@@ -63,6 +65,7 @@ cleanUp:
 std::wstring show_persistent_save_dialog(const std::string& id, HWND hwnd,
                                          const std::wstring& filter)
 {
+	COMInitializer com_initializer;
 	IFileDialog* pFileDialog = nullptr;
 	IShellItem* pShellItem = nullptr;
 	PWSTR pFilePath = nullptr;
@@ -122,6 +125,7 @@ cleanUp:
 
 std::wstring show_persistent_folder_dialog(const std::string& id, HWND hwnd)
 {
+	COMInitializer com_initializer;
 	std::wstring final_path;
 	IFileDialog* pfd;
 	if (SUCCEEDED(

@@ -148,7 +148,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 		(*comp_visual)->SetContent(*swapchain);
 		(*comp_target)->SetRoot(*comp_visual);
 	}
-	
+
 	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, {}, d2d_factory);
 	(*d2d_factory)->CreateDevice(*dxdevice, d2d_device);
 	{
@@ -165,7 +165,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 		);
 
 		(*d2d_dc)->CreateBitmapFromDxgiSurface(*dxgi_surface, props, bitmap);
-		
+
 		(*d2d_dc)->SetTarget(*bitmap);
 	}
 
@@ -226,3 +226,28 @@ static HWND create_tooltip(HWND hwnd, int id, const char* text)
 
 	return hwnd_tip;
 }
+
+/**
+ * \brief Initializes COM within the object's scope for the current thread
+ */
+class COMInitializer
+{
+public:
+	COMInitializer()
+	{
+		m_init = CoInitialize(nullptr) == S_OK;
+		if(!m_init)
+		{
+			printf("[COMInitializer] Failed to initialize COM");
+		}
+	}
+	~COMInitializer()
+	{
+		if (m_init)
+		{
+			CoUninitialize();
+		}
+	}
+private:
+	bool m_init;
+};

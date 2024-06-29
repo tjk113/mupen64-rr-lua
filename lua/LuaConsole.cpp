@@ -736,6 +736,12 @@ void LuaEnvironment::create_renderer()
 		return;
 	}
 
+	if (CoInitialize(nullptr) != S_OK)
+	{
+		show_error("Failed to initialize COM.\r\nVerify that your system is up-to-date.");
+		return;
+	}
+
 	printf("Creating multi-target renderer for Lua...\n");
 
 	RECT window_rect;
@@ -844,6 +850,7 @@ void LuaEnvironment::destroy_renderer()
 	gdi_back_dc = nullptr;
 
 	destroy_loadscreen();
+	CoUninitialize();
 }
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment)
