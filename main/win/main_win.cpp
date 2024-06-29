@@ -274,6 +274,7 @@ void on_emu_stopping(std::any)
 void on_emu_launched_changed(std::any data)
 {
 	auto value = std::any_cast<bool>(data);
+	static auto previous_value = value;
 
 	if (value)
 	{
@@ -309,13 +310,14 @@ void on_emu_launched_changed(std::any data)
 		});
 	}
 
-	if (!value)
+	if (!value && previous_value)
 	{
 		printf("[View] Restoring window size to %dx%d...\n", Config.window_width, Config.window_height);
 		SetWindowPos(mainHWND, nullptr, 0, 0, Config.window_width, Config.window_height, SWP_NOMOVE);
 	}
 
 	SendMessage(mainHWND, WM_INITMENU, 0, 0);
+	previous_value = value;
 }
 
 void on_capturing_changed(std::any data)
@@ -659,9 +661,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			}
 
+			// Window creation expects the size with nc area, so it's easiest to just use the window rect here
+			GetWindowRect(hwnd, &rect);
 			Config.window_width = rect.right - rect.left;
 			Config.window_height = rect.bottom - rect.top;
-			printf("%dx%d\n", Config.window_width, Config.window_height);
 
 			break;
 		}
@@ -1367,6 +1370,8 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	RegisterClassEx(&wc);
 	MGECompositor::init();
+
+	printf("[View] Restoring window @ (%d|%d) %dx%d...\n", Config.window_x, Config.window_y, Config.window_width, Config.window_height);
 
 	mainHWND = CreateWindowEx(
 		0,
