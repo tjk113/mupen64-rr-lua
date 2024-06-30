@@ -8,6 +8,7 @@ namespace Statusbar
 {
 	enum class Section
 	{
+		Notification,
 		VCR,
 		Input,
 		Rerecords,
@@ -31,5 +32,5 @@ namespace Statusbar
  	* \param text The text to be displayed
  	* \param section The statusbar section to display the text in
  	*/
-	void post(const std::string& text, Section section = Section::VCR);
+	void post(const std::string& text, Section section = Section::Notification);
 }

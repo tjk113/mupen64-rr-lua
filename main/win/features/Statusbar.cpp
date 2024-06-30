@@ -15,7 +15,7 @@
 
 namespace Statusbar
 {
-	const std::vector emu_parts = {220, 120, 90, 80, 80, 90, -1};
+	const std::vector emu_parts = {200, 200, 77, 77, 77, 77, 77, -1};
 	const std::vector idle_parts = {400, -1};
 
 	HWND statusbar_hwnd;
