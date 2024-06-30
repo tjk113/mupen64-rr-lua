@@ -15,6 +15,8 @@
 
 namespace Runner
 {
+	int32_t last_selected_id = -1;
+
 	void run_auto(int id, std::filesystem::path path)
 	{
 		switch (id)
@@ -48,6 +50,7 @@ namespace Runner
 		{
 		case WM_INITDIALOG:
 			{
+				last_selected_id = -1;
 				auto populate_with_paths = [&](const int id, std::vector<std::string> paths)
 				{
 					auto ctl = GetDlgItem(hwnd, id);
@@ -66,9 +69,6 @@ namespace Runner
 				populate_with_paths(IDC_LIST_SCRIPTS, Config.recent_lua_script_paths);
 				break;
 			}
-		case WM_DESTROY:
-
-			break;
 		case WM_CLOSE:
 			EndDialog(hwnd, IDCANCEL);
 			break;
@@ -81,6 +81,12 @@ namespace Runner
 				if (HIWORD(wParam) == LBN_DBLCLK)
 				{
 					auto index = ListBox_GetCurSel(GetDlgItem(hwnd, LOWORD(wParam)));
+
+					if (index == -1)
+					{
+						break;
+					}
+
 					auto buffer = (char*)ListBox_GetItemData(GetDlgItem(hwnd, LOWORD(wParam)), index);
 					std::filesystem::path path(buffer);
 					delete buffer;
@@ -89,23 +95,29 @@ namespace Runner
 
 					run_auto(LOWORD(wParam), path);
 				}
+				if (HIWORD(wParam) == LBN_SELCHANGE)
+				{
+					// Clear the selections of the other items
+					for (auto id : {IDC_LIST_ROMS, IDC_LIST_MOVIES, IDC_LIST_SCRIPTS})
+					{
+						if (id == LOWORD(wParam))
+						{
+							continue;
+						}
+						ListBox_SetCurSel(GetDlgItem(hwnd, id), -1);
+					}
+
+					last_selected_id = LOWORD(wParam);
+				}
 				break;
 			case IDOK:
 				{
-					auto ctl_hwnd = GetFocus();
-					if (!ctl_hwnd)
-					{
-						break;
-					}
-					char name[260]{};
-					GetClassName(ctl_hwnd, name, sizeof(name));
-					if (lstrcmpi(name, "ListBox"))
+					if (!last_selected_id)
 					{
 						break;
 					}
 
-					SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(GetDlgCtrlID(ctl_hwnd), LBN_DBLCLK), 0);
-
+					SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(last_selected_id, LBN_DBLCLK), 0);
 					break;
 				}
 			case IDCANCEL:
