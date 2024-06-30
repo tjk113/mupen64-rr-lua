@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <commctrl.h>
+#include <numeric>
 
 #include <shared/messenger.h>
 #include <r4300/r4300.h>
@@ -33,8 +34,13 @@ namespace Statusbar
 	void emu_launched_changed(std::any data)
 	{
 		auto value = std::any_cast<bool>(data);
+		static auto previous_value = value;
 
-		if (!statusbar_hwnd) return;
+		if (!statusbar_hwnd)
+		{
+			previous_value = value;
+			return;
+		}
 
 		auto parts = value ? emu_parts : idle_parts;
 
@@ -44,7 +50,33 @@ namespace Statusbar
 			SendMessage(statusbar_hwnd, SB_SETTEXT, i, (LPARAM)"");
 		}
 
-		set_statusbar_parts(statusbar_hwnd, parts);
+		// When starting the emu, we want to scale the statusbar segments to the window size
+		if (value)
+		{
+			RECT rect{};
+			GetClientRect(mainHWND, &rect);
+
+			// Compute the desired size of the statusbar and use that for the scaling factor
+			auto desired_size = std::accumulate(parts.begin(), parts.end() - 1, 0);
+
+			auto scale = static_cast<float>(rect.right - rect.left) / static_cast<float>(desired_size);
+
+			printf("[Statusbar] Scale: %f\n", scale);
+
+			for (auto& part : parts)
+			{
+				part = static_cast<int>(part * scale);
+			}
+
+			set_statusbar_parts(statusbar_hwnd, parts);
+		}
+
+		if (!value && previous_value)
+		{
+			set_statusbar_parts(statusbar_hwnd, parts);
+		}
+
+		previous_value = value;
 	}
 
 	void create()
