@@ -841,27 +841,31 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_AUDIO_SETTINGS:
 			case IDM_RSP_SETTINGS:
 				{
-					if (!emu_launched)
-					{
-						break;
-					}
-
+					// FIXME: Is it safe to load multiple plugin instances? This assumes they cooperate and dont overwrite eachother's files...
+					// It does seem fine tho, since the config dialog is modal and core is paused
 					hwnd_plug = mainHWND;
-					auto plugin = video_plugin.get();
+					std::optional<std::unique_ptr<Plugin>> plugin;
+
 					switch (LOWORD(wParam))
 					{
+					case IDM_VIDEO_SETTINGS:
+						plugin = Plugin::create(Config.selected_video_plugin);
+						break;
 					case IDM_INPUT_SETTINGS:
-						plugin = input_plugin.get();
+						plugin = Plugin::create(Config.selected_audio_plugin);
 						break;
 					case IDM_AUDIO_SETTINGS:
-						plugin = audio_plugin.get();
+						plugin = Plugin::create(Config.selected_input_plugin);
 						break;
 					case IDM_RSP_SETTINGS:
-						plugin = rsp_plugin.get();
+						plugin = Plugin::create(Config.selected_rsp_plugin);
 						break;
 					}
 
-					plugin->config();
+					if (plugin.has_value())
+					{
+						plugin.value()->config();
+					}
 				}
 				break;
 			case IDM_LOAD_LUA:
