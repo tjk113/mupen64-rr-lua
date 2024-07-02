@@ -49,6 +49,7 @@
 #include "../r4300/vcr.h"
 #include <main/capture/EncodingManager.h>
 #include <shared/messenger.h>
+#include <Windows.h>
 	
 static int frame;
 
@@ -64,7 +65,7 @@ RI_register ri_register;
 AI_register ai_register;
 DPC_register dpc_register;
 DPS_register dps_register;
-unsigned long rdram[0x800000 / 4];
+unsigned long* rdram = (unsigned long*) VirtualAlloc(NULL, 0x800000, MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE);
 uint8_t sram[0x8000];
 uint8_t flashram[0x20000];
 uint8_t eeprom[0x800];
