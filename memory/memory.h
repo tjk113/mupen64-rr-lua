@@ -46,7 +46,7 @@ extern unsigned char* SP_DMEMb;
 extern unsigned long* SP_IMEM;
 extern unsigned long PIF_RAM[0x40 / 4];
 extern unsigned char* PIF_RAMb;
-extern unsigned long rdram[0x800000 / 4];
+extern unsigned long* rdram;
 extern uint8_t sram[0x8000];
 extern uint8_t flashram[0x20000];
 extern uint8_t eeprom[0x800];
