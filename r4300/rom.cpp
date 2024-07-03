@@ -45,8 +45,6 @@
 #include <shared/helpers/io_helpers.h>
 #include <shared/helpers/string_helpers.h>
 
-#include <Windows.h>
-
 std::unordered_map<std::filesystem::path, std::pair<uint8_t*, size_t>> rom_cache;
 
 uint8_t* rom;
@@ -166,14 +164,14 @@ bool rom_load(std::filesystem::path path)
 {
 	if (rom)
 	{
-		VirtualFree(rom, 0, MEM_RELEASE);
+		free(rom);
 		rom = nullptr;
 	}
 
 	if (rom_cache.contains(path))
 	{
 		printf("[Core] Loading cached ROM...\n");
-		rom = (unsigned char*)VirtualAlloc(NULL, rom_cache[path].second, MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE);
+		rom = (unsigned char*)malloc(rom_cache[path].second);
 		memcpy(rom, rom_cache[path].first, rom_cache[path].second);
 		return true;
 	}
@@ -190,7 +188,7 @@ bool rom_load(std::filesystem::path path)
 	unsigned long taille = rom_size;
 	if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
 
-	rom = (unsigned char*)VirtualAlloc(NULL, taille, MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE);
+	rom = (unsigned char*)malloc(taille);
 	memcpy(rom, decompressed_rom.data(), rom_size);
 
 	uint8_t tmp;
