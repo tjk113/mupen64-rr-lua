@@ -318,6 +318,15 @@ namespace EncodingManager
 	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
 	                   const bool ask_for_encoding_settings)
 	{
+		if (is_capturing())
+		{
+			if(!stop_capture())
+			{
+				printf("[EncodingManager]: Couldn't start capture because the previous capture couldn't be stopped.\n");
+				return false;
+			}
+		}
+
 		if (!effective_readscreen())
 		{
 			show_error("Couldn't find a readScreen candidate.\r\nTry selecting another capture mode.", "Capture");
