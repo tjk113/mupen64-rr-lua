@@ -852,10 +852,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						plugin = Plugin::create(Config.selected_video_plugin);
 						break;
 					case IDM_INPUT_SETTINGS:
-						plugin = Plugin::create(Config.selected_audio_plugin);
+						plugin = Plugin::create(Config.selected_input_plugin);
 						break;
 					case IDM_AUDIO_SETTINGS:
-						plugin = Plugin::create(Config.selected_input_plugin);
+						plugin = Plugin::create(Config.selected_audio_plugin);
 						break;
 					case IDM_RSP_SETTINGS:
 						plugin = Plugin::create(Config.selected_rsp_plugin);
