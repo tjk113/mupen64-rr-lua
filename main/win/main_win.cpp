@@ -122,13 +122,95 @@ void SetDlgItemHotkey(HWND hwnd, int idc, t_hotkey* hotkey)
 }
 
 void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
-							 int menuItemID)
+                             int menuItemID)
 {
 	std::string hotkey_str = hotkey_to_string(hotkey);
 	SetDlgItemText(hwnd, idc, hotkey_str.c_str());
 
 	set_menu_accelerator(menuItemID,
-						 hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+	                     hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+}
+
+std::map<Action, int> config_action_menu_id_map = {
+	{Action::FastforwardOn, IDM_FASTFORWARD_ON},
+	{Action::FastforwardOff, IDM_FASTFORWARD_OFF},
+	{Action::GamesharkOn, IDM_GS_ON},
+	{Action::GamesharkOff, IDM_GS_OFF},
+	{Action::SpeedDown, IDC_DECREASE_MODIFIER},
+	{Action::SpeedUp, IDC_INCREASE_MODIFIER},
+	{Action::FrameAdvance, IDM_FRAMEADVANCE},
+	{Action::Pause, IDM_PAUSE},
+	{Action::ToggleReadOnly, IDM_VCR_READONLY},
+	{Action::ToggleMovieLoop, IDM_LOOP_MOVIE},
+	{Action::StartMoviePlayback, IDM_START_MOVIE_PLAYBACK},
+	{Action::StartMovieRecording, IDM_START_MOVIE_RECORDING},
+	{Action::StopMovie, IDM_STOP_MOVIE},
+	{Action::TakeScreenshot, IDM_SCREENSHOT},
+	{Action::PlayLatestMovie, IDM_PLAY_LATEST_MOVIE},
+	{Action::LoadLatestScript, IDM_LOAD_LATEST_LUA},
+	{Action::NewLua, IDM_LOAD_LUA},
+	{Action::CloseAllLua, IDM_CLOSE_ALL_LUA},
+	{Action::LoadRom, IDM_LOAD_ROM},
+	{Action::CloseRom, IDM_CLOSE_ROM},
+	{Action::ResetRom, IDM_RESET_ROM},
+	{Action::LoadLatestRom, IDM_LOAD_LATEST_ROM},
+	{Action::Fullscreen, IDM_FULLSCREEN},
+	{Action::Settings, IDM_SETTINGS},
+	{Action::ToggleStatusbar, IDM_STATUSBAR},
+	{Action::RefreshRomBrowser, IDM_REFRESH_ROMBROWSER},
+	{Action::OpenSeeker, IDM_SEEKER},
+	{Action::OpenRunner, IDM_RUNNER},
+	{Action::OpenCheats, IDM_CHEATS},
+	{Action::SaveSlot, IDM_SAVE_SLOT},
+	{Action::LoadSlot, IDM_LOAD_SLOT},
+	{Action::SaveAs, IDM_SAVE_STATE_AS},
+	{Action::LoadAs, IDM_LOAD_STATE_AS},
+	{Action::SaveSlot1, (ID_SAVE_1 - 1) + 1},
+	{Action::SaveSlot2, (ID_SAVE_1 - 1) + 2},
+	{Action::SaveSlot3, (ID_SAVE_1 - 1) + 3},
+	{Action::SaveSlot4, (ID_SAVE_1 - 1) + 4},
+	{Action::SaveSlot5, (ID_SAVE_1 - 1) + 5},
+	{Action::SaveSlot6, (ID_SAVE_1 - 1) + 6},
+	{Action::SaveSlot7, (ID_SAVE_1 - 1) + 7},
+	{Action::SaveSlot8, (ID_SAVE_1 - 1) + 8},
+	{Action::SaveSlot9, (ID_SAVE_1 - 1) + 9},
+	{Action::SaveSlot10, (ID_SAVE_1 - 1) + 10},
+	{Action::LoadSlot1, (ID_LOAD_1 - 1) + 1},
+	{Action::LoadSlot2, (ID_LOAD_1 - 1) + 2},
+	{Action::LoadSlot3, (ID_LOAD_1 - 1) + 3},
+	{Action::LoadSlot4, (ID_LOAD_1 - 1) + 4},
+	{Action::LoadSlot5, (ID_LOAD_1 - 1) + 5},
+	{Action::LoadSlot6, (ID_LOAD_1 - 1) + 6},
+	{Action::LoadSlot7, (ID_LOAD_1 - 1) + 7},
+	{Action::LoadSlot8, (ID_LOAD_1 - 1) + 8},
+	{Action::LoadSlot9, (ID_LOAD_1 - 1) + 9},
+	{Action::LoadSlot10, (ID_LOAD_1 - 1) + 10},
+	{Action::SelectSlot1, (IDM_SELECT_1 - 1) + 1},
+	{Action::SelectSlot2, (IDM_SELECT_1 - 1) + 2},
+	{Action::SelectSlot3, (IDM_SELECT_1 - 1) + 3},
+	{Action::SelectSlot4, (IDM_SELECT_1 - 1) + 4},
+	{Action::SelectSlot5, (IDM_SELECT_1 - 1) + 5},
+	{Action::SelectSlot6, (IDM_SELECT_1 - 1) + 6},
+	{Action::SelectSlot7, (IDM_SELECT_1 - 1) + 7},
+	{Action::SelectSlot8, (IDM_SELECT_1 - 1) + 8},
+	{Action::SelectSlot9, (IDM_SELECT_1 - 1) + 9},
+	{Action::SelectSlot10, (IDM_SELECT_1 - 1) + 10},
+};
+
+/**
+ * \brief Converts a config action to its respective menu ID
+ * \param action The action to convert
+ * \returns The converted ID, or 0 if no match is found.
+ * \remark In case of some toggle actions, the IDs dont map to a menu item, but only to an identifier which is handled in WM_COMMAND
+ */
+int config_action_to_menu_id(Action action)
+{
+	if (!config_action_menu_id_map.contains(action))
+	{
+		printf("[View] No menu ID found for action %d\n", static_cast<int>(action));
+		return 0;
+	}
+	return config_action_menu_id_map[action];
 }
 
 namespace Recent
@@ -421,10 +503,11 @@ void on_config_loaded(std::any)
 	for (auto hotkey : g_config_hotkeys)
 	{
 		// Only set accelerator if hotkey has a down command and the command is valid menu item identifier
-		auto state = GetMenuState(GetMenu(mainHWND), hotkey->down_cmd, MF_BYCOMMAND);
-		if (hotkey->down_cmd && state != -1)
+		auto down_cmd = config_action_to_menu_id(hotkey->down_cmd);
+		auto state = GetMenuState(GetMenu(mainHWND), down_cmd, MF_BYCOMMAND);
+		if (down_cmd && state != -1)
 		{
-			set_hotkey_menu_accelerators(hotkey, hotkey->down_cmd);
+			set_hotkey_menu_accelerators(hotkey, down_cmd);
 		}
 	}
 	Rombrowser::build();
@@ -559,15 +642,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkey->
 						alt)
 					{
+						auto down_cmd = config_action_to_menu_id(hotkey->down_cmd);
 						// We only want to send it if the corresponding menu item exists and is enabled
-						auto state = GetMenuState(main_menu, hotkey->down_cmd, MF_BYCOMMAND);
+						auto state = GetMenuState(main_menu, down_cmd, MF_BYCOMMAND);
 						if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
 						{
-							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), hotkey->down_cmd);
+							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), down_cmd);
 							continue;
 						}
-						printf("Sent down %s (%d)\n", hotkey->identifier.c_str(), hotkey->down_cmd);
-						SendMessage(mainHWND, WM_COMMAND, hotkey->down_cmd, 0);
+						printf("Sent down %s (%d)\n", hotkey->identifier.c_str(), down_cmd);
+						SendMessage(mainHWND, WM_COMMAND, down_cmd, 0);
 						hit = TRUE;
 					}
 				}
@@ -585,7 +669,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			BOOL hit = FALSE;
 			for (t_hotkey* hotkey : g_config_hotkeys)
 			{
-				if (!hotkey->up_cmd)
+				if (hotkey->up_cmd == Action::None)
 				{
 					continue;
 				}
@@ -599,15 +683,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						&& ((GetKeyState(VK_MENU) & 0x8000) ? 1 : 0) == hotkey->
 						alt)
 					{
+						auto up_cmd = config_action_to_menu_id(hotkey->up_cmd);
 						// We only want to send it if the corresponding menu item exists and is enabled
-						auto state = GetMenuState(main_menu, hotkey->up_cmd, MF_BYCOMMAND);
+						auto state = GetMenuState(main_menu, up_cmd, MF_BYCOMMAND);
 						if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
 						{
-							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), hotkey->up_cmd);
+							printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), up_cmd);
 							continue;
 						}
-						printf("Sent up %s (%d)\n", hotkey->identifier.c_str(), hotkey->up_cmd);
-						SendMessage(mainHWND, WM_COMMAND, hotkey->up_cmd, 0);
+						printf("Sent up %s (%d)\n", hotkey->identifier.c_str(), up_cmd);
+						SendMessage(mainHWND, WM_COMMAND, up_cmd, 0);
 						hit = TRUE;
 					}
 				}
@@ -745,7 +830,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			EnableMenuItem(main_menu, IDM_CLOSE_ROM, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_RESET_ROM, emu_launched ? MF_ENABLED : MF_GRAYED);
-			EnableMenuItem(main_menu, IDM_PAUSE,  emu_launched ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_PAUSE, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_FRAMEADVANCE, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_SCREENSHOT, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_SAVE_SLOT, emu_launched ? MF_ENABLED : MF_GRAYED);
@@ -1033,10 +1118,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					const auto stroop_str = std::string(stroop_c);
 					if (MessageBox(mainHWND,
-					                std::format(ramstart_str, ram_start).c_str(),
-					                "STROOP",
-					                MB_ICONINFORMATION | MB_TASKMODAL |
-					                MB_YESNO) == IDYES)
+					               std::format(ramstart_str, ram_start).c_str(),
+					               "STROOP",
+					               MB_ICONINFORMATION | MB_TASKMODAL |
+					               MB_YESNO) == IDYES)
 					{
 						copy_to_clipboard(mainHWND, stroop_str);
 					}
@@ -1046,12 +1131,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					BetterEmulationLock lock;
 
-					auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", string_to_wstring(format_duration(Config.total_frames / 30)), Config.total_rerecords);
+					auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", string_to_wstring(format_duration(Config.total_frames / 30)),
+					                       Config.total_rerecords);
 
 					MessageBoxW(mainHWND,
-									str.c_str(),
-									L"Statistics",
-									MB_ICONINFORMATION);
+					            str.c_str(),
+					            L"Statistics",
+					            MB_ICONINFORMATION);
 					break;
 				}
 			case IDM_CONSOLE:
@@ -1450,8 +1536,10 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	// We need to set the core updateScreen flag at 60 FPS.
 	// WM_TIMER isn't stable enough and the other multimedia or callback timers are too annoying
-	std::thread([] {
-		while (true) {
+	std::thread([]
+	{
+		while (true)
+		{
 			screen_invalidated = true;
 			timeBeginPeriod(1);
 			Sleep(1000 / 60);

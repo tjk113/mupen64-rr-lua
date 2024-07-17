@@ -5,6 +5,77 @@
 #include <vector>
 #include <map>
 
+/**
+ * \brief Action that can be triggered by a hotkey
+ */
+enum class Action
+{
+	None,
+	FastforwardOn,
+	FastforwardOff,
+	GamesharkOn,
+	GamesharkOff,
+	SpeedDown,
+	SpeedUp,
+	FrameAdvance,
+	Pause,
+	ToggleReadOnly,
+	ToggleMovieLoop,
+	StartMoviePlayback,
+	StartMovieRecording,
+	StopMovie,
+	TakeScreenshot,
+	PlayLatestMovie,
+	LoadLatestScript,
+	NewLua,
+	CloseAllLua,
+	LoadRom,
+	CloseRom,
+	ResetRom,
+	LoadLatestRom,
+	Fullscreen,
+	Settings,
+	ToggleStatusbar,
+	RefreshRomBrowser,
+	OpenSeeker,
+	OpenRunner,
+	OpenCheats,
+	SaveSlot,
+	LoadSlot,
+	SaveAs,
+	LoadAs,
+	SaveSlot1,
+	SaveSlot2,
+	SaveSlot3,
+	SaveSlot4,
+	SaveSlot5,
+	SaveSlot6,
+	SaveSlot7,
+	SaveSlot8,
+	SaveSlot9,
+	SaveSlot10,
+	LoadSlot1,
+	LoadSlot2,
+	LoadSlot3,
+	LoadSlot4,
+	LoadSlot5,
+	LoadSlot6,
+	LoadSlot7,
+	LoadSlot8,
+	LoadSlot9,
+	LoadSlot10,
+	SelectSlot1,
+	SelectSlot2,
+	SelectSlot3,
+	SelectSlot4,
+	SelectSlot5,
+	SelectSlot6,
+	SelectSlot7,
+	SelectSlot8,
+	SelectSlot9,
+	SelectSlot10,
+};
+
 typedef struct t_hotkey
 {
 	std::string identifier;
@@ -12,9 +83,10 @@ typedef struct t_hotkey
 	int32_t ctrl;
 	int32_t shift;
 	int32_t alt;
-	int32_t down_cmd;
-	int32_t up_cmd;
+	Action down_cmd;
+	Action up_cmd;
 } t_hotkey;
+
 
 #pragma pack(push, 1)
 typedef struct _CONFIG

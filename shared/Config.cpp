@@ -1,11 +1,10 @@
+#include "Config.hpp"
 #include <Windows.h>
 #include <winuser.h>
 #include <cstdio>
 #include <main/win/features/RomBrowser.hpp>
-#include "../../winproject/resource.h"
-#include "Config.hpp"
 #include <main/win/main_win.h>
-#include "../lib/ini.h"
+#include <lib/ini.h>
 #include <shared/helpers/string_helpers.h>
 #include <shared/messenger.h>
 #include <main/capture/EncodingManager.h>
@@ -138,8 +137,8 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_FASTFORWARD_ON,
-		.up_cmd = IDM_FASTFORWARD_OFF
+		.down_cmd = Action::FastforwardOn,
+		.up_cmd = Action::FastforwardOff
 	};
 
 	config.gs_hotkey = {
@@ -148,8 +147,8 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_GS_ON,
-		.up_cmd = IDM_GS_OFF
+		.down_cmd = Action::GamesharkOn,
+		.up_cmd = Action::GamesharkOff
 	};
 
 	config.speed_down_hotkey = {
@@ -158,7 +157,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDC_DECREASE_MODIFIER,
+		.down_cmd = Action::SpeedDown,
 	};
 
 	config.speed_up_hotkey = {
@@ -167,7 +166,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDC_INCREASE_MODIFIER,
+		.down_cmd = Action::SpeedUp,
 	};
 
 	config.frame_advance_hotkey = {
@@ -176,7 +175,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_FRAMEADVANCE,
+		.down_cmd = Action::FrameAdvance,
 	};
 
 	config.pause_hotkey = {
@@ -185,7 +184,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_PAUSE,
+		.down_cmd = Action::Pause,
 	};
 
 	config.toggle_read_only_hotkey = {
@@ -194,7 +193,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_VCR_READONLY,
+		.down_cmd = Action::ToggleReadOnly,
 	};
 
 	config.toggle_movie_loop_hotkey = {
@@ -203,7 +202,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_LOOP_MOVIE,
+		.down_cmd = Action::ToggleMovieLoop,
 	};
 
 	config.start_movie_playback_hotkey = {
@@ -212,7 +211,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_START_MOVIE_PLAYBACK,
+		.down_cmd = Action::StartMoviePlayback,
 	};
 
 	config.start_movie_recording_hotkey = {
@@ -221,7 +220,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_START_MOVIE_RECORDING,
+		.down_cmd = Action::StartMovieRecording,
 	};
 
 	config.stop_movie_hotkey = {
@@ -230,7 +229,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_STOP_MOVIE,
+		.down_cmd = Action::StopMovie,
 	};
 
 	config.take_screenshot_hotkey = {
@@ -239,7 +238,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_SCREENSHOT,
+		.down_cmd = Action::TakeScreenshot,
 	};
 
 	config.play_latest_movie_hotkey = {
@@ -248,7 +247,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_PLAY_LATEST_MOVIE,
+		.down_cmd = Action::PlayLatestMovie,
 	};
 
 	config.load_latest_script_hotkey = {
@@ -257,7 +256,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_LOAD_LATEST_LUA,
+		.down_cmd = Action::LoadLatestScript,
 	};
 
 	config.new_lua_hotkey = {
@@ -266,7 +265,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_LOAD_LUA,
+		.down_cmd = Action::NewLua,
 	};
 
 	config.close_all_lua_hotkey = {
@@ -275,7 +274,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_CLOSE_ALL_LUA,
+		.down_cmd = Action::CloseAllLua,
 	};
 
 	config.load_rom_hotkey = {
@@ -284,7 +283,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_LOAD_ROM,
+		.down_cmd = Action::LoadRom,
 	};
 
 	config.close_rom_hotkey = {
@@ -293,7 +292,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_CLOSE_ROM,
+		.down_cmd = Action::CloseRom,
 	};
 
 	config.reset_rom_hotkey = {
@@ -302,7 +301,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_RESET_ROM,
+		.down_cmd = Action::ResetRom,
 	};
 
 	config.load_latest_rom_hotkey = {
@@ -311,7 +310,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_LOAD_LATEST_ROM,
+		.down_cmd = Action::LoadLatestRom,
 	};
 
 	config.fullscreen_hotkey = {
@@ -320,7 +319,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 1,
-		.down_cmd = IDM_FULLSCREEN,
+		.down_cmd = Action::Fullscreen,
 	};
 
 	config.settings_hotkey = {
@@ -329,7 +328,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_SETTINGS,
+		.down_cmd = Action::Settings,
 	};
 
 	config.toggle_statusbar_hotkey = {
@@ -338,7 +337,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 1,
-		.down_cmd = IDM_STATUSBAR,
+		.down_cmd = Action::ToggleStatusbar,
 	};
 
 	config.refresh_rombrowser_hotkey = {
@@ -347,7 +346,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_REFRESH_ROMBROWSER,
+		.down_cmd = Action::RefreshRomBrowser,
 	};
 
 	config.seek_to_frame_hotkey = {
@@ -356,7 +355,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_SEEKER,
+		.down_cmd = Action::OpenSeeker,
 	};
 
 	config.run_hotkey = {
@@ -365,7 +364,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_RUNNER,
+		.down_cmd = Action::OpenRunner,
 	};
 
 	config.cheats_hotkey = {
@@ -374,7 +373,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_CHEATS,
+		.down_cmd = Action::OpenCheats,
 	};
 
 	config.save_current_hotkey = {
@@ -383,7 +382,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_SAVE_SLOT,
+		.down_cmd = Action::SaveSlot,
 	};
 
 	config.load_current_hotkey = {
@@ -392,7 +391,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = IDM_LOAD_SLOT,
+		.down_cmd = Action::LoadSlot,
 	};
 
 	config.save_as_hotkey = {
@@ -401,7 +400,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_SAVE_STATE_AS,
+		.down_cmd = Action::SaveAs,
 	};
 
 	config.load_as_hotkey = {
@@ -410,7 +409,7 @@ CONFIG get_default_config()
 		.ctrl = 1,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = IDM_LOAD_STATE_AS,
+		.down_cmd = Action::LoadAs,
 	};
 
 	config.save_to_slot_1_hotkey = {
@@ -419,7 +418,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 1,
+		.down_cmd = Action::SaveSlot1,
 	};
 
 	config.save_to_slot_2_hotkey = {
@@ -428,7 +427,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 2,
+		.down_cmd = Action::SaveSlot2,
 	};
 
 	config.save_to_slot_3_hotkey = {
@@ -437,7 +436,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 3,
+		.down_cmd = Action::SaveSlot3,
 	};
 
 	config.save_to_slot_4_hotkey = {
@@ -446,7 +445,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 4,
+		.down_cmd = Action::SaveSlot4,
 	};
 
 	config.save_to_slot_5_hotkey = {
@@ -455,7 +454,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 5,
+		.down_cmd = Action::SaveSlot5,
 	};
 
 	config.save_to_slot_6_hotkey = {
@@ -464,7 +463,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 6,
+		.down_cmd = Action::SaveSlot6,
 	};
 
 	config.save_to_slot_7_hotkey = {
@@ -473,7 +472,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 7,
+		.down_cmd = Action::SaveSlot7,
 	};
 
 	config.save_to_slot_8_hotkey = {
@@ -482,7 +481,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 8,
+		.down_cmd = Action::SaveSlot8,
 	};
 
 	config.save_to_slot_9_hotkey = {
@@ -491,7 +490,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 9,
+		.down_cmd = Action::SaveSlot9,
 	};
 
 	config.save_to_slot_10_hotkey = {
@@ -500,7 +499,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 1,
 		.alt = 0,
-		.down_cmd = (ID_SAVE_1 - 1) + 10,
+		.down_cmd = Action::SaveSlot10,
 	};
 
 	config.load_from_slot_1_hotkey = {
@@ -509,7 +508,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 1,
+		.down_cmd = Action::LoadSlot1,
 	};
 
 	config.load_from_slot_2_hotkey = {
@@ -518,7 +517,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 2,
+		.down_cmd = Action::LoadSlot2,
 	};
 
 	config.load_from_slot_3_hotkey = {
@@ -527,7 +526,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 3,
+		.down_cmd = Action::LoadSlot3,
 	};
 
 	config.load_from_slot_4_hotkey = {
@@ -536,7 +535,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 4,
+		.down_cmd = Action::LoadSlot4,
 	};
 
 	config.load_from_slot_5_hotkey = {
@@ -545,7 +544,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 5,
+		.down_cmd = Action::LoadSlot5,
 	};
 
 	config.load_from_slot_6_hotkey = {
@@ -554,7 +553,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 6,
+		.down_cmd = Action::LoadSlot6,
 	};
 
 	config.load_from_slot_7_hotkey = {
@@ -563,7 +562,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 7,
+		.down_cmd = Action::LoadSlot7,
 	};
 
 	config.load_from_slot_8_hotkey = {
@@ -572,7 +571,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 8,
+		.down_cmd = Action::LoadSlot8,
 	};
 
 	config.load_from_slot_9_hotkey = {
@@ -581,7 +580,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 9,
+		.down_cmd = Action::LoadSlot9,
 	};
 
 	config.load_from_slot_10_hotkey = {
@@ -590,7 +589,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (ID_LOAD_1 - 1) + 10,
+		.down_cmd = Action::LoadSlot10,
 	};
 
 	config.select_slot_1_hotkey = {
@@ -599,7 +598,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 1,
+		.down_cmd = Action::SelectSlot1,
 	};
 
 	config.select_slot_2_hotkey = {
@@ -608,7 +607,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 2,
+		.down_cmd = Action::SelectSlot2,
 	};
 
 	config.select_slot_3_hotkey = {
@@ -617,7 +616,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 3,
+		.down_cmd = Action::SelectSlot3,
 	};
 
 	config.select_slot_4_hotkey = {
@@ -626,7 +625,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 4,
+		.down_cmd = Action::SelectSlot4,
 	};
 
 	config.select_slot_5_hotkey = {
@@ -635,7 +634,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 5,
+		.down_cmd = Action::SelectSlot5,
 	};
 
 	config.select_slot_6_hotkey = {
@@ -644,7 +643,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 6,
+		.down_cmd = Action::SelectSlot6,
 	};
 
 	config.select_slot_7_hotkey = {
@@ -653,7 +652,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 7,
+		.down_cmd = Action::SelectSlot7,
 	};
 
 	config.select_slot_8_hotkey = {
@@ -662,7 +661,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 8,
+		.down_cmd = Action::SelectSlot8,
 	};
 
 	config.select_slot_9_hotkey = {
@@ -671,7 +670,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 9,
+		.down_cmd = Action::SelectSlot9,
 	};
 
 	config.select_slot_10_hotkey = {
@@ -680,7 +679,7 @@ CONFIG get_default_config()
 		.ctrl = 0,
 		.shift = 0,
 		.alt = 0,
-		.down_cmd = (IDM_SELECT_1 - 1) + 10,
+		.down_cmd = Action::SelectSlot10,
 	};
 
 	return config;
@@ -730,7 +729,7 @@ void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
 }
 
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
-						 const int32_t is_reading, uint64_t* value)
+                         const int32_t is_reading, uint64_t* value)
 {
 	if (is_reading)
 	{
