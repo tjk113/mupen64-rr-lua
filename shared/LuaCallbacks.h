@@ -1,14 +1,12 @@
 ﻿#pragma once
 
-// Lua callback interface
-
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
 }
 
-#include "r4300/Plugin.hpp"
+#include <shared/types/CoreTypes.h>
 
 namespace LuaCallbacks
 {

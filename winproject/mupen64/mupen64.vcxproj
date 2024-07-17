@@ -206,8 +206,9 @@
         <ClInclude Include="..\..\shared\helpers\win_helpers.h"/>
         <ClInclude Include="..\..\shared\LuaCallbacks.h" />
         <ClInclude Include="..\..\shared\messenger.h" />
-        <ClInclude Include="..\resource.h"/>
-        <ClInclude Include="..\..\shared\guifuncs.h"/>
+        <ClInclude Include="..\..\shared\types\CoreTypes.h" />
+        <ClInclude Include="..\resource.h" />
+        <ClInclude Include="..\..\shared\guifuncs.h" />
     </ItemGroup>
     <ItemGroup>
         <ClCompile Include="..\..\lib\speex\speex_resampler.c">
@@ -218,37 +219,37 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\main\capture\encoders\AVIEncoder.cpp"/>
-        <ClCompile Include="..\..\main\capture\encoders\FFmpegEncoder.cpp"/>
-        <ClCompile Include="..\..\main\capture\EncodingManager.cpp"/>
-        <ClCompile Include="..\..\main\capture\Resampler.cpp"/>
+        <ClCompile Include="..\..\main\capture\encoders\AVIEncoder.cpp" />
+        <ClCompile Include="..\..\main\capture\encoders\FFmpegEncoder.cpp" />
+        <ClCompile Include="..\..\main\capture\EncodingManager.cpp" />
+        <ClCompile Include="..\..\main\capture\Resampler.cpp" />
         <ClCompile Include="..\..\main\win\features\Cheats.cpp" />
         <ClCompile Include="..\..\main\win\features\ConfigDialog.cpp" />
-        <ClCompile Include="..\..\main\win\features\CrashHelper.cpp"/>
-        <ClCompile Include="..\..\main\win\features\CoreDbg.cpp"/>
-        <ClCompile Include="..\..\main\win\features\Dispatcher.cpp"/>
-        <ClCompile Include="..\..\main\win\features\MGECompositor.cpp"/>
-        <ClCompile Include="..\..\main\win\features\MovieDialog.cpp"/>
-        <ClCompile Include="..\..\main\win\features\RomBrowser.cpp"/>
-        <ClCompile Include="..\..\main\win\features\Runner.cpp"/>
-        <ClCompile Include="..\..\main\win\features\Seeker.cpp"/>
-        <ClCompile Include="..\..\main\win\features\Statusbar.cpp"/>
+        <ClCompile Include="..\..\main\win\features\CrashHelper.cpp" />
+        <ClCompile Include="..\..\main\win\features\CoreDbg.cpp" />
+        <ClCompile Include="..\..\main\win\features\Dispatcher.cpp" />
+        <ClCompile Include="..\..\main\win\features\MGECompositor.cpp" />
+        <ClCompile Include="..\..\main\win\features\MovieDialog.cpp" />
+        <ClCompile Include="..\..\main\win\features\RomBrowser.cpp" />
+        <ClCompile Include="..\..\main\win\features\Runner.cpp" />
+        <ClCompile Include="..\..\main\win\features\Seeker.cpp" />
+        <ClCompile Include="..\..\main\win\features\Statusbar.cpp" />
         <ClCompile Include="..\..\main\win\Commandline.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\main\win\guifuncs.cpp"/>
+        <ClCompile Include="..\..\main\win\guifuncs.cpp" />
         <ClCompile Include="..\..\main\win\main_win.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\memory\dma.cpp"/>
-        <ClCompile Include="..\..\memory\flashram.cpp"/>
-        <ClCompile Include="..\..\memory\memory.cpp"/>
-        <ClCompile Include="..\..\memory\pif.cpp"/>
-        <ClCompile Include="..\..\memory\savestates.cpp"/>
-        <ClCompile Include="..\..\memory\tlb.cpp"/>
-        <ClCompile Include="..\..\memory\summercart.cpp"/>
+        <ClCompile Include="..\..\memory\dma.cpp" />
+        <ClCompile Include="..\..\memory\flashram.cpp" />
+        <ClCompile Include="..\..\memory\memory.cpp" />
+        <ClCompile Include="..\..\memory\pif.cpp" />
+        <ClCompile Include="..\..\memory\savestates.cpp" />
+        <ClCompile Include="..\..\memory\tlb.cpp" />
+        <ClCompile Include="..\..\memory\summercart.cpp" />
         <ClCompile Include="..\..\r4300\bc.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -269,7 +270,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\cop1_helpers.cpp"/>
+        <ClCompile Include="..\..\r4300\cop1_helpers.cpp" />
         <ClCompile Include="..\..\r4300\cop1_l.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -282,7 +283,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\disasm.cpp"/>
+        <ClCompile Include="..\..\r4300\disasm.cpp" />
         <ClCompile Include="..\..\r4300\exception.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -292,7 +293,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\Plugin.cpp"/>
+        <ClCompile Include="..\..\r4300\Plugin.cpp" />
         <ClCompile Include="..\..\r4300\profile.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -313,20 +314,20 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\rom.cpp"/>
+        <ClCompile Include="..\..\r4300\rom.cpp" />
         <ClCompile Include="..\..\r4300\special.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\timers.cpp"/>
+        <ClCompile Include="..\..\r4300\timers.cpp" />
         <ClCompile Include="..\..\r4300\tlb.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
             <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)r4300_tlb</ObjectFileName>
             <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)r4300_tlb</ObjectFileName>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\tracelog.cpp"/>
-        <ClCompile Include="..\..\r4300\vcr.cpp"/>
+        <ClCompile Include="..\..\r4300\tracelog.cpp" />
+        <ClCompile Include="..\..\r4300\vcr.cpp" />
         <ClCompile Include="..\..\r4300\x86\assemble.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -351,7 +352,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\r4300\x86\gcop1_helpers.cpp"/>
+        <ClCompile Include="..\..\r4300\x86\gcop1_helpers.cpp" />
         <ClCompile Include="..\..\r4300\x86\gcop1_l.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -388,38 +389,38 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\lua\LuaConsole.cpp"/>
-        <ClCompile Include="..\..\main\win\wrapper\PersistentPathDialog.cpp"/>
-        <ClCompile Include="..\..\shared\Config.cpp"/>
-        <ClCompile Include="..\..\shared\helpers\io_helpers.cpp"/>
-        <ClCompile Include="..\..\shared\LuaCallbacks.cpp"/>
-        <ClCompile Include="..\..\shared\messenger.cpp"/>
+        <ClCompile Include="..\..\lua\LuaConsole.cpp" />
+        <ClCompile Include="..\..\main\win\wrapper\PersistentPathDialog.cpp" />
+        <ClCompile Include="..\..\shared\Config.cpp" />
+        <ClCompile Include="..\..\shared\helpers\io_helpers.cpp" />
+        <ClCompile Include="..\..\shared\LuaCallbacks.cpp" />
+        <ClCompile Include="..\..\shared\messenger.cpp" />
     </ItemGroup>
     <ItemGroup>
-        <ResourceCompile Include="..\rsrc.rc"/>
+        <ResourceCompile Include="..\rsrc.rc" />
     </ItemGroup>
     <ItemGroup>
-        <Image Include="..\icons\austral.ico"/>
-        <Image Include="..\icons\beta.ico"/>
-        <Image Include="..\icons\Control.bmp"/>
-        <Image Include="..\icons\demo.ico"/>
-        <Image Include="..\icons\Display.bmp"/>
-        <Image Include="..\icons\europe.ico"/>
-        <Image Include="..\icons\france.ico"/>
-        <Image Include="..\icons\germany.ico"/>
-        <Image Include="..\icons\italy.ico"/>
-        <Image Include="..\icons\japan.ico"/>
-        <Image Include="..\icons\logo.bmp"/>
-        <Image Include="..\icons\m64big.ico"/>
-        <Image Include="..\icons\m64small.ico"/>
-        <Image Include="..\icons\RSP.bmp"/>
-        <Image Include="..\icons\Sound.bmp"/>
-        <Image Include="..\icons\spain.ico"/>
-        <Image Include="..\icons\unknown.ico"/>
-        <Image Include="..\icons\usa.ico"/>
+        <Image Include="..\icons\austral.ico" />
+        <Image Include="..\icons\beta.ico" />
+        <Image Include="..\icons\Control.bmp" />
+        <Image Include="..\icons\demo.ico" />
+        <Image Include="..\icons\Display.bmp" />
+        <Image Include="..\icons\europe.ico" />
+        <Image Include="..\icons\france.ico" />
+        <Image Include="..\icons\germany.ico" />
+        <Image Include="..\icons\italy.ico" />
+        <Image Include="..\icons\japan.ico" />
+        <Image Include="..\icons\logo.bmp" />
+        <Image Include="..\icons\m64big.ico" />
+        <Image Include="..\icons\m64small.ico" />
+        <Image Include="..\icons\RSP.bmp" />
+        <Image Include="..\icons\Sound.bmp" />
+        <Image Include="..\icons\spain.ico" />
+        <Image Include="..\icons\unknown.ico" />
+        <Image Include="..\icons\usa.ico" />
     </ItemGroup>
     <ItemGroup>
-        <Manifest Include="..\mupen64.exe.manifest"/>
+        <Manifest Include="..\mupen64.exe.manifest" />
     </ItemGroup>
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
     <ImportGroup Label="ExtensionTargets">
