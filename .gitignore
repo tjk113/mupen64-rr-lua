@@ -3,7 +3,7 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
-winproject/mupen64/.idea
+**/.idea/workspace.xml **/.idea/tasks.xml
 
 # User-specific files
 *.rsuser
