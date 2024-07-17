@@ -43,8 +43,9 @@
 #include "../memory/tlb.h"
 
 #include "tracelog.h"
-#include <view/gui/features/CoreDbg.h>
 #include <shared/Config.hpp>
+
+#include "debugger.h"
 
 #ifdef DBG
 extern int debugger_mode;
@@ -3184,11 +3185,11 @@ void pure_interpreter()
 		PC->addr = interp_addr;
 		if (debugger_mode) update_debugger();
 #endif
-		while (!coredbg_resumed)
+		while (!Debugger::is_resumed())
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
-		CoreDbg::on_late_cycle(vr_op, interp_addr);
+		Debugger::on_late_cycle(vr_op, interp_addr);
 	}
 	PC->addr = interp_addr;
 }

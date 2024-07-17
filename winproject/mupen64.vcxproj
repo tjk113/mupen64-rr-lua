@@ -147,6 +147,7 @@
         <ClInclude Include="..\core\memory\savestates.h"/>
         <ClInclude Include="..\core\memory\summercart.h"/>
         <ClInclude Include="..\core\memory\tlb.h"/>
+        <ClInclude Include="..\core\r4300\debugger.h" />
         <ClInclude Include="..\core\r4300\ops.h"/>
         <ClInclude Include="..\core\r4300\cop1_helpers.h"/>
         <ClInclude Include="..\core\r4300\disasm.h"/>
@@ -217,6 +218,7 @@
         <ClCompile Include="..\core\memory\savestates.cpp"/>
         <ClCompile Include="..\core\memory\summercart.cpp"/>
         <ClCompile Include="..\core\memory\tlb.cpp"/>
+        <ClCompile Include="..\core\r4300\debugger.cpp" />
         <ClCompile Include="..\core\r4300\pure_interp.cpp"/>
         <ClCompile Include="..\core\r4300\compare_core.cpp"/>
         <ClCompile Include="..\core\r4300\cop0.cpp"/>
