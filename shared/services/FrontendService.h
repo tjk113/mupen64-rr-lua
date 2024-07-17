@@ -55,6 +55,12 @@ void show_error(const char* str, const char* title = nullptr, void* hwnd = nullp
 void show_information(const char* str, const char* title = nullptr, void* hwnd = nullptr);
 
 /**
+ * \brief Displays text in the primary section of the statusbar
+ * \param text The text to show in the statusbar
+ */
+void statusbar_post(const std::string& text);
+
+/**
  * \brief Whether the current execution is on the UI thread
  */
 bool is_on_gui_thread();
@@ -96,11 +102,6 @@ void* get_plugin_config_parent_handle();
  * \brief Gets whether the view prefers the core to not skip rendering any frames
  */
 bool get_prefers_no_render_skip();
-
-/**
- * \brief Updates the screen with the current visual information
- */
-void update_screen();
 
 /**
  * \brief Notifies the frontend of a new VI

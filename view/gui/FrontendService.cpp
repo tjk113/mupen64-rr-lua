@@ -7,7 +7,7 @@
 #include <core/r4300/vcr.h>
 #include <view/capture/EncodingManager.h>
 #include <shared/Config.hpp>
-#include <view/gui/features/MGECompositor.h>
+#include <shared/services/MGECompositor.h>
 
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
@@ -80,6 +80,11 @@ void show_information(const char* str, const char* title, void* hwnd)
 	{
 		MessageBox(static_cast<HWND>(hwnd ? hwnd : mainHWND), str, title, MB_OK | MB_ICONINFORMATION);
 	}
+}
+
+void statusbar_post(const std::string& text)
+{
+	Statusbar::post(text);
 }
 
 bool is_on_gui_thread()
@@ -279,17 +284,6 @@ void* get_plugin_config_parent_handle()
 bool get_prefers_no_render_skip()
 {
 	return EncodingManager::is_capturing();
-}
-
-void update_screen()
-{
-	if (MGECompositor::available())
-	{
-		MGECompositor::update_screen();
-	} else
-	{
-		updateScreen();
-	}
 }
 
 void at_vi()

@@ -1,6 +1,6 @@
 #pragma once
-#include <Windows.h>
 
+// TODO: Perhaps not the best idea to shove it in shared layer, since it still exposes the create() and init() APIs, but it works for now
 namespace MGECompositor
 {
 	/**
@@ -17,7 +17,7 @@ namespace MGECompositor
 	 * \brief Creates the MGE control
 	 * \param hwnd The control's parent
 	 */
-	void create(HWND hwnd);
+	void create(void* hwnd);
 
 	/**
 	 * \brief Updates the game screen

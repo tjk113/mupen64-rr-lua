@@ -1,4 +1,4 @@
-#include "MGECompositor.h"
+#include <shared/services/MGECompositor.h>
 #include <Windows.h>
 
 #include <shared/messenger.h>
@@ -74,9 +74,9 @@ namespace MGECompositor
 		return DefWindowProc(hwnd, msg, wparam, lparam);
 	}
 
-	void create(HWND hwnd)
+	void create(void* hwnd)
 	{
-		control_hwnd = CreateWindow(class_name, "", WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, hwnd, nullptr, app_instance, nullptr);
+		control_hwnd = CreateWindow(class_name, "", WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, (HWND)hwnd, nullptr, app_instance, nullptr);
 	}
 
 	void init()
