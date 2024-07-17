@@ -1,6 +1,5 @@
-﻿#include "LuaCallbacks.h"
+﻿#include <shared/LuaCallbacks.h>
 #include <lua/LuaConsole.h>
-#include "../main/win/main_win.h"
 #include <main/win/features/Dispatcher.h>
 
 namespace LuaCallbacks

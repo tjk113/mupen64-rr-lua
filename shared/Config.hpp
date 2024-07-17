@@ -14,7 +14,6 @@ enum class KeyCode
 	Minus,
 	Plus,
 	Five,
-
 };
 
 /**
