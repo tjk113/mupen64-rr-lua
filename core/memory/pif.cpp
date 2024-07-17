@@ -38,13 +38,13 @@
 #include "memory.h"
 #include "pif.h"
 
-#include <thread>
 #include <shared/services/LuaService.h>
 #include "pif2.h"
 #include "../r4300/r4300.h"
 #include <core/r4300/Plugin.hpp>
 #include "../r4300/vcr.h"
 #include "savestates.h"
+#include <view/gui/main_win.h>
 #include <core/r4300/gameshark.h>
 
 int frame_advancing = 0;
@@ -68,7 +68,7 @@ void print_pif() {
 // 16kb eeprom flag
 #define EXTENDED_EEPROM (0)
 
-void EepromCommand(uint8_t* Command)
+void EepromCommand(BYTE* Command)
 {
 	switch (Command[2])
 	{
@@ -164,7 +164,7 @@ unsigned char mempack_crc(unsigned char* data)
 }
 
 
-void internal_ReadController(int Control, uint8_t* Command)
+void internal_ReadController(int Control, BYTE* Command)
 {
 	switch (Command[2])
 	{
@@ -199,7 +199,7 @@ void internal_ReadController(int Control, uint8_t* Command)
 	}
 }
 
-void internal_ControllerCommand(int Control, uint8_t* Command)
+void internal_ControllerCommand(int Control, BYTE* Command)
 {
 	switch (Command[2])
 	{
@@ -448,7 +448,7 @@ void update_pif_read(bool stcheck)
 						pause_emu();
 						while (emu_paused)
 						{
-							std::this_thread::sleep_for(std::chrono::milliseconds(10));
+							Sleep(10);
 							LuaCallbacks::call_interval();
 							// COMPAT: Old input lua expects atvi to be called when paused (due to a bug in the invalidation)...
 							LuaCallbacks::call_vi();
