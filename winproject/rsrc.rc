@@ -566,7 +566,7 @@ END
 // RT_MANIFEST
 //
 
-1                       RT_MANIFEST             "mupen64.exe.manifest"
+1                       RT_MANIFEST             "app.manifest"
 
 
 #ifdef APSTUDIO_INVOKED

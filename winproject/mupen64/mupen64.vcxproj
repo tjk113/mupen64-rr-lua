@@ -419,7 +419,7 @@
         <Image Include="..\icons\usa.ico" />
     </ItemGroup>
     <ItemGroup>
-        <Manifest Include="..\mupen64.exe.manifest" />
+        <Manifest Include="..\app.manifest" />
     </ItemGroup>
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
     <ImportGroup Label="ExtensionTargets">
