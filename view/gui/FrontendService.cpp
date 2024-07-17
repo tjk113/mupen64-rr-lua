@@ -7,7 +7,7 @@
 #include <core/r4300/vcr.h>
 #include <view/capture/EncodingManager.h>
 #include <shared/Config.hpp>
-
+#include <view/gui/features/MGECompositor.h>
 #include "features/Statusbar.hpp"
 
 bool confirm_user_exit()
@@ -272,6 +272,27 @@ void* get_statusbar_handle()
 void* get_plugin_config_parent_handle()
 {
 	return hwnd_plug;
+}
+
+bool get_prefers_no_render_skip()
+{
+	return EncodingManager::is_capturing();
+}
+
+void update_screen()
+{
+	if (MGECompositor::available())
+	{
+		MGECompositor::update_screen();
+	} else
+	{
+		updateScreen();
+	}
+}
+
+void at_vi()
+{
+	EncodingManager::at_vi();
 }
 
 

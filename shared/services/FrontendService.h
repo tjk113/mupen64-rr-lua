@@ -8,6 +8,8 @@
 
 #include <shared/Config.hpp>
 
+// TODO: Move this into a namespace
+
 /**
  * \brief Demands user confirmation for an exit action
  * \return Whether the action is allowed
@@ -87,3 +89,18 @@ void* get_statusbar_handle();
  * \brief Gets the native handle of the parent window of the plugin configuration dialog
  */
 void* get_plugin_config_parent_handle();
+
+/**
+ * \brief Gets whether the view prefers the core to not skip rendering any frames
+ */
+bool get_prefers_no_render_skip();
+
+/**
+ * \brief Updates the screen with the current visual information
+ */
+void update_screen();
+
+/**
+ * \brief Notifies the frontend of a new VI
+ */
+void at_vi();

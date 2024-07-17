@@ -44,8 +44,7 @@
 #include "../memory/savestates.h"
 #include <shared/Config.hpp>
 #include "../memory/pif.h"
-#include <view/capture/EncodingManager.h>
-#include <view/gui/features/MGECompositor.h>
+#include <shared/services/FrontendService.h>
 
 unsigned long next_vi;
 int vi_field = 0;
@@ -420,24 +419,18 @@ void gen_interrupt()
 
 			// NOTE: It's ok to not update screen when lagging, doesn't cause any obvious issues
 			auto skip = (Config.skip_rendering_lag && lag_count > 1) || is_frame_skipped();
-			auto update = EncodingManager::is_capturing() ? true : (screen_invalidated ? !skip : false);
+			auto update = get_prefers_no_render_skip() ? true : (screen_invalidated ? !skip : false);
 
 			// NOTE: When frame advancing, screen_invalidated has a higher change of being false despite the fact it should be true
 			// The update-limiting logic doesn't apply in frameadvance because there are no high-frequency updates
 			if (update || frame_advancing)
 			{
-				if (MGECompositor::available())
-				{
-					MGECompositor::update_screen();
-				} else
-				{
-					updateScreen();
-				}
+				update_screen();
 				screen_invalidated = false;
 			}
 			LuaCallbacks::call_vi();
 			vcr_on_vi();
-			EncodingManager::at_vi();
+			at_vi();
 			timer_new_vi();
 			if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
 			else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * Config.cpu_clock_speed_multiplier));
