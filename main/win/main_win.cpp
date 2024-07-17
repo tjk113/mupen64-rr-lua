@@ -55,7 +55,6 @@
 #include "features/RomBrowser.hpp"
 #include "features/Seeker.h"
 #include "features/Statusbar.hpp"
-#include <shared/helpers/collection_helpers.h>
 #include <shared/helpers/math_helpers.h>
 #include <shared/helpers/string_helpers.h>
 #include <shared/helpers/win_helpers.h>

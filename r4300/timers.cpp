@@ -19,7 +19,6 @@
 #include <shared/messenger.h>
 #include <memory/pif.h>
 #include <r4300/vcr.h>
-#include <shared/helpers/collection_helpers.h>
 
 bool frame_changed = true;
 extern int m_current_vi;
@@ -43,7 +42,7 @@ void timer_init(int32_t speed_modifier, t_rom_header* rom_header)
 	const double max_vi_s = get_vis_per_second(rom_header->Country_code);
 	max_vi_s_ms = std::chrono::duration<double, std::milli>(
 		1000.0 / (max_vi_s * static_cast<double>(speed_modifier) / 100));
-	
+
 	last_frame_time = std::chrono::high_resolution_clock::now();
 	last_vi_time = std::chrono::high_resolution_clock::now();
 
