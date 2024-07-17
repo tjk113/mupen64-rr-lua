@@ -17,14 +17,12 @@
 #include <lua/LuaConsole.h>
 #include <Windows.h>
 #include <commctrl.h>
-#include "guifuncs.h"
+#include <shared/guifuncs.h>
 #include <main/win/main_win.h>
-
-#include "../../r4300/tracelog.h"
-#include "../../r4300/vcr.h"
+#include <r4300/tracelog.h>
+#include <r4300/vcr.h>
 #include <main/capture/EncodingManager.h>
-
-#include "Config.hpp"
+#include <shared/Config.hpp>
 
 
 bool confirm_user_exit()

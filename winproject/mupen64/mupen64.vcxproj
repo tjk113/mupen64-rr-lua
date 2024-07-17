@@ -237,6 +237,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
+        <ClCompile Include="..\..\main\win\guifuncs.cpp"/>
         <ClCompile Include="..\..\main\win\main_win.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
@@ -390,7 +391,6 @@
         <ClCompile Include="..\..\lua\LuaConsole.cpp"/>
         <ClCompile Include="..\..\main\win\wrapper\PersistentPathDialog.cpp"/>
         <ClCompile Include="..\..\shared\Config.cpp"/>
-        <ClCompile Include="..\..\shared\guifuncs.cpp"/>
         <ClCompile Include="..\..\shared\helpers\io_helpers.cpp"/>
         <ClCompile Include="..\..\shared\LuaCallbacks.cpp"/>
         <ClCompile Include="..\..\shared\messenger.cpp"/>
