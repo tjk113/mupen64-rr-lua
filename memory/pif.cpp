@@ -38,7 +38,7 @@
 #include "memory.h"
 #include "pif.h"
 
-#include <shared/LuaCallbacks.h>
+#include <shared/services/LuaService.h>
 #include "pif2.h"
 #include "../r4300/r4300.h"
 #include "../r4300/Plugin.hpp"

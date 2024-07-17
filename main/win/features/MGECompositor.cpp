@@ -4,7 +4,7 @@
 #include <shared/messenger.h>
 #include "../../r4300/Plugin.hpp"
 #include <main/win/main_win.h>
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 #include <cassert>
 namespace MGECompositor
 {
@@ -24,7 +24,7 @@ namespace MGECompositor
 
 	const auto class_name = "game_control";
 
-	
+
 	HWND control_hwnd;
 
 	VideoBuffer internal_buffer{};
@@ -65,7 +65,7 @@ namespace MGECompositor
 							  DIB_RGB_COLORS,
 							  SRCCOPY);
 				}
-				
+
 
 				EndPaint(hwnd, &ps);
 				return 0;

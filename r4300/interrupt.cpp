@@ -37,7 +37,7 @@
 #include "r4300.h"
 #include "macros.h"
 #include "exception.h"
-#include <shared/LuaCallbacks.h>
+#include <shared/services/LuaService.h>
 #include "../r4300/Plugin.hpp"
 #include "../r4300/vcr.h"
 #include <r4300/timers.h>

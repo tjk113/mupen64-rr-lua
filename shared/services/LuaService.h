@@ -1,5 +1,11 @@
 ﻿#pragma once
 
+/*
+ *	Interface for Lua-related calls originating from core layer to the view layer
+ *
+ *	Must be implemented in the view layer.
+ */
+
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>

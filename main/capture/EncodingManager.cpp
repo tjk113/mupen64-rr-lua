@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 #include <shared/messenger.h>
 #include "Resampler.h"
 #include "../../r4300/Plugin.hpp"

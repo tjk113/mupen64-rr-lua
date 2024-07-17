@@ -41,7 +41,7 @@
 #include <main/win/features/Statusbar.hpp>
 #include <dbghelp.h>
 
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 
 CONTROL Controls[4];
 

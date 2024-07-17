@@ -1,4 +1,4 @@
-#include "shared/guifuncs.h"
+#include "shared/services/FrontendService.h"
 
 extern "C" {
 #include <lua.h>

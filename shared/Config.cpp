@@ -4,7 +4,7 @@
 #include <lib/ini.h>
 #include <shared/helpers/string_helpers.h>
 #include <shared/messenger.h>
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 
 CONFIG Config;
 std::vector<t_hotkey*> g_config_hotkeys;

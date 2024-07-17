@@ -37,7 +37,7 @@
 #include "macros.h"
 #include "recomp.h"
 #include <malloc.h>
-#include <shared/LuaCallbacks.h>
+#include <shared/services/LuaService.h>
 #include <shared/messenger.h>
 #include "../memory/savestates.h"
 #include <shared/helpers/string_helpers.h>

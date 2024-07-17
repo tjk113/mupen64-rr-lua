@@ -43,13 +43,13 @@
 #include "../r4300/ops.h"
 #include "pif.h"
 #include "flashram.h"
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 #include "summercart.h"
 #include "../r4300/Plugin.hpp"
 #include "../r4300/vcr.h"
 #include <main/capture/EncodingManager.h>
 #include <shared/messenger.h>
-	
+
 static int frame;
 
 /* definitions of the rcp's structures and memory area */

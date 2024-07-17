@@ -4,7 +4,7 @@
 #include <Windowsx.h>
 #include <main/win/main_win.h>
 #include <winproject/resource.h>
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 
 #include "r4300/gameshark.h"
 

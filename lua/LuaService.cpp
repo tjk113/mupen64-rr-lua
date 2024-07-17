@@ -1,4 +1,4 @@
-﻿#include <shared/LuaCallbacks.h>
+﻿#include <shared/services/LuaService.h>
 #include <lua/LuaConsole.h>
 #include <main/win/features/Dispatcher.h>
 

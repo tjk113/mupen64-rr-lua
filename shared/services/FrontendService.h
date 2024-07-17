@@ -2,6 +2,8 @@
 
 /*
  *	Interface for calls originating from core or shared layer to the view layer
+ *
+ *	Must be implemented in the view layer.
  */
 
 #include <shared/Config.hpp>

@@ -31,12 +31,12 @@
 #include "Commandline.h"
 #include <shared/Config.hpp>
 #include <main/win/features/ConfigDialog.h>
-#include <shared/LuaCallbacks.h>
+#include <shared/services/LuaService.h>
 #include "features/CrashHelper.h"
 #include <lua/LuaConsole.h>
 #include <shared/messenger.h>
 #include <r4300/timers.h>
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 #include "../../r4300/Plugin.hpp"
 #include "../../r4300/rom.h"
 #include "../../r4300/vcr.h"

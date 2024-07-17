@@ -15,9 +15,9 @@
 #include "rom.h"
 #include "../memory/savestates.h"
 #include "../memory/pif.h"
-#include <shared/LuaCallbacks.h>
+#include <shared/services/LuaService.h>
 
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 #include <shared/messenger.h>
 #include <shared/helpers/string_helpers.h>
 

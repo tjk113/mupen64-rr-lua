@@ -35,7 +35,7 @@
 #include <main/win/main_win.h>
 #include <main/win/features/Statusbar.hpp>
 #include "flashram.h"
-#include <shared/LuaCallbacks.h>
+#include <shared/services/LuaService.h>
 #include "memory.h"
 #include "summercart.h"
 #include <shared/messenger.h>
@@ -46,7 +46,7 @@
 #include <main/win/features/MGECompositor.h>
 #include <assert.h>
 
-#include "shared/guifuncs.h"
+#include "shared/services/FrontendService.h"
 
 std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;

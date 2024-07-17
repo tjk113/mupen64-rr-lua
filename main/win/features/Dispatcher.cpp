@@ -5,7 +5,7 @@
 #include <queue>
 #include <Windows.h>
 #include "../main_win.h"
-#include <shared/guifuncs.h>
+#include <shared/services/FrontendService.h>
 
 namespace Dispatcher
 {

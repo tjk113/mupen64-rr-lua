@@ -203,11 +203,11 @@
         <ClInclude Include="..\..\shared\helpers\math_helpers.h"/>
         <ClInclude Include="..\..\shared\helpers\string_helpers.h"/>
         <ClInclude Include="..\..\shared\helpers\win_helpers.h"/>
-        <ClInclude Include="..\..\shared\LuaCallbacks.h" />
         <ClInclude Include="..\..\shared\messenger.h" />
+        <ClInclude Include="..\..\shared\services\FrontendService.h" />
+        <ClInclude Include="..\..\shared\services\LuaService.h" />
         <ClInclude Include="..\..\shared\types\CoreTypes.h" />
         <ClInclude Include="..\resource.h" />
-        <ClInclude Include="..\..\shared\guifuncs.h" />
     </ItemGroup>
     <ItemGroup>
         <ClCompile Include="..\..\lib\speex\speex_resampler.c">
@@ -218,7 +218,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\lua\LuaCallbacks.cpp"/>
+        <ClCompile Include="..\..\lua\LuaService.cpp" />
         <ClCompile Include="..\..\main\capture\encoders\AVIEncoder.cpp" />
         <ClCompile Include="..\..\main\capture\encoders\FFmpegEncoder.cpp" />
         <ClCompile Include="..\..\main\capture\EncodingManager.cpp" />
@@ -238,7 +238,7 @@
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
         </ClCompile>
-        <ClCompile Include="..\..\main\win\guifuncs.cpp" />
+        <ClCompile Include="..\..\main\win\FrontendService.cpp" />
         <ClCompile Include="..\..\main\win\main_win.cpp">
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
             <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>

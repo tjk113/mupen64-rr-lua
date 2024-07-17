@@ -37,7 +37,7 @@
 
 #include <Windows.h>
 
-#include <shared/LuaCallbacks.h>
+#include <shared/services/LuaService.h>
 #include "modules/avi.h"
 #include "modules/d2d.h"
 #include "modules/emu.h"
@@ -51,7 +51,7 @@
 #include "modules/wgui.h"
 #include <r4300/timers.h>
 
-#include "shared/guifuncs.h"
+#include "shared/services/FrontendService.h"
 
 extern unsigned long vr_op;
 extern void (*interp_ops[64])(void);
