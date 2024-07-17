@@ -42,9 +42,8 @@
 #include "../memory/savestates.h"
 #include <shared/helpers/string_helpers.h>
 #include <core/r4300/timers.h>
-#include <view/gui/features/RomBrowser.hpp>
 #include <shared/Config.hpp>
-
+#include <shared/services/FrontendService.h>
 // Threading crap
 #include <Windows.h>
 
@@ -2085,7 +2084,7 @@ Core::Result vr_start_rom(std::filesystem::path path)
 			return Core::Result::RomInvalid;
 		}
 
-		const auto matching_rom = Rombrowser::find_available_rom([&](auto header)
+		const auto matching_rom = find_available_rom([&](auto header)
 		{
 			strtrim((char*)header.nom, sizeof(header.nom));
 			return movie_header.rom_crc1 == header.CRC1 && !_strnicmp((const char*)header.nom, movie_header.rom_name, 20);

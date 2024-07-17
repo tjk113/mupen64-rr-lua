@@ -30,26 +30,7 @@
 
 #include <filesystem>
 #include <string>
-
-typedef struct s_rom_header
-{
-	unsigned char init_PI_BSB_DOM1_LAT_REG;
-	unsigned char init_PI_BSB_DOM1_PGS_REG;
-	unsigned char init_PI_BSB_DOM1_PWD_REG;
-	unsigned char init_PI_BSB_DOM1_PGS_REG2;
-	unsigned long ClockRate;
-	unsigned long PC;
-	unsigned long Release;
-	unsigned long CRC1;
-	unsigned long CRC2;
-	unsigned long Unknown[2];
-	unsigned char nom[20];
-	unsigned long unknown;
-	unsigned long Manufacturer_ID;
-	unsigned short Cartridge_ID;
-	unsigned short Country_code;
-	unsigned long Boot_Code[1008];
-} t_rom_header;
+#include <shared/types/CoreTypes.h>
 
 extern uint8_t* rom;
 extern size_t rom_size;

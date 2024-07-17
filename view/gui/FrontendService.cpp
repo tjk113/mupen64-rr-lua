@@ -8,6 +8,8 @@
 #include <view/capture/EncodingManager.h>
 #include <shared/Config.hpp>
 #include <view/gui/features/MGECompositor.h>
+
+#include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
 
 bool confirm_user_exit()
@@ -293,6 +295,11 @@ void update_screen()
 void at_vi()
 {
 	EncodingManager::at_vi();
+}
+
+std::string find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
+{
+	return Rombrowser::find_available_rom(predicate);
 }
 
 

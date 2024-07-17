@@ -7,6 +7,8 @@
  */
 
 #include <shared/Config.hpp>
+#include <shared/types/CoreTypes.h>
+#include <functional>
 
 // TODO: Move this into a namespace
 
@@ -104,3 +106,10 @@ void update_screen();
  * \brief Notifies the frontend of a new VI
  */
 void at_vi();
+
+/**
+ * \brief Finds the first rom from the available ROM list which matches the predicate
+ * \param predicate A predicate which determines if the rom matches
+ * \return The rom's path, or an empty string if no rom was found
+ */
+std::string find_available_rom(const std::function<bool(const t_rom_header&)>& predicate);
