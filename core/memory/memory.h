@@ -33,6 +33,7 @@
 #include <stdint.h>
 
 int init_memory();
+constexpr unsigned long AddrMask = 0x7FFFFF;
 #define read_word_in_memory() readmem[address>>16]()
 #define read_byte_in_memory() readmemb[address>>16]()
 #define read_hword_in_memory() readmemh[address>>16]()
@@ -47,6 +48,7 @@ extern unsigned long* SP_IMEM;
 extern unsigned long PIF_RAM[0x40 / 4];
 extern unsigned char* PIF_RAMb;
 extern unsigned long rdram[0x800000 / 4];
+extern uint8_t* rdramb;
 extern uint8_t sram[0x8000];
 extern uint8_t flashram[0x20000];
 extern uint8_t eeprom[0x800];
@@ -437,5 +439,41 @@ void write_sc_regd();
 
 void update_SP();
 void update_DPC();
+
+template <typename T>
+uint32_t ToAddr(uint32_t addr)
+{
+	return sizeof(T) == 4
+			   ? addr
+			   : sizeof(T) == 2
+			   ? addr ^ S16
+			   : sizeof(T) == 1
+			   ? addr ^ S8
+			   : throw"ToAddr: sizeof(T)";
+}
+
+/**
+ * \brief Gets the value at the specified address from RDRAM
+ * \tparam T The value's type
+ * \param addr The start address of the value
+ * \return The value at the address
+ */
+template <typename T>
+extern T LoadRDRAMSafe(uint32_t addr)
+{
+	return *((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask))));
+}
+
+/**
+ * \brief Sets the value at the specified address in RDRAM
+ * \tparam T The value's type
+ * \param addr The start address of the value
+ * \param value The value to set
+ */
+template <typename T>
+extern void StoreRDRAMSafe(uint32_t addr, T value)
+{
+	*((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask)))) = value;
+}
 
 #endif

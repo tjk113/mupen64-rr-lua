@@ -69,7 +69,7 @@ uint8_t sram[0x8000];
 uint8_t flashram[0x20000];
 uint8_t eeprom[0x800];
 uint8_t mempack[4][0x8000];
-unsigned char* rdramb = (unsigned char*)(rdram);
+uint8_t* rdramb = (uint8_t*)rdram;
 unsigned long SP_DMEM[0x1000 / 4 * 2];
 unsigned long* SP_IMEM = SP_DMEM + 0x1000 / 4;
 unsigned char* SP_DMEMb = (unsigned char*)(SP_DMEM);

@@ -8,9 +8,6 @@ extern "C" {
 
 namespace LuaCore::Memory
 {
-	static unsigned char* const rdramb = (unsigned char*)rdram;
-	const unsigned long AddrMask = 0x7FFFFF;
-
 	static DWORD LuaCheckIntegerU(lua_State* L, int i = -1)
 	{
 		return (DWORD)luaL_checknumber(L, i);
@@ -37,32 +34,6 @@ namespace LuaCore::Memory
 		lua_pushinteger(L, 2);
 		lua_pushinteger(L, x & 0xFFFFFFFF);
 		lua_settable(L, -3);
-	}
-
-
-
-	template <typename T>
-	static ULONG ToAddr(ULONG addr)
-	{
-		return sizeof(T) == 4
-			       ? addr
-			       : sizeof(T) == 2
-			       ? addr ^ S16
-			       : sizeof(T) == 1
-			       ? addr ^ S8
-			       : throw"ToAddr: sizeof(T)";
-	}
-
-	template <typename T>
-	static T LoadRDRAMSafe(unsigned long addr)
-	{
-		return *((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask))));
-	}
-
-	template <typename T>
-	static void StoreRDRAMSafe(unsigned long addr, T value)
-	{
-		*((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask)))) = value;
 	}
 
 	// Read functions

@@ -1,10 +1,8 @@
 ﻿#include "gameshark.h"
 
-#include <set>
 #include <string>
 #include <vector>
-
-#include <view/lua/modules/memory.h>
+#include <core/memory/memory.h>
 
 #include "r4300.h"
 #include "shared/helpers/string_helpers.h"
@@ -75,7 +73,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 				// Madghostek: if not, change WB to WW
 				script->m_instructions.emplace_back(std::make_tuple(false, [=]
 				{
-					LuaCore::Memory::StoreRDRAMSafe<UCHAR>(address + serial_offset * i, val + serial_diff * i);
+					StoreRDRAMSafe<uint8_t>(address + serial_offset * i, val + serial_diff * i);
 					return true;
 				}));
 			}
@@ -89,7 +87,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			// Write byte
 			script->m_instructions.emplace_back(std::make_tuple(false, [=]
 			{
-				LuaCore::Memory::StoreRDRAMSafe<UCHAR>(address, val & 0xFF);
+				StoreRDRAMSafe<uint8_t>(address, val & 0xFF);
 				return true;
 			}));
 		} else if (opcode == "81" || opcode == "A1")
@@ -97,7 +95,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			// Write word
 			script->m_instructions.emplace_back(std::make_tuple(false, [=]
 			{
-				LuaCore::Memory::StoreRDRAMSafe<USHORT>(address, val);
+				StoreRDRAMSafe<uint16_t>(address, val);
 				return true;
 			}));
 		} else if (opcode == "88")
@@ -107,7 +105,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			{
 				if (get_gs_button())
 				{
-					LuaCore::Memory::StoreRDRAMSafe<UCHAR>(address, val & 0xFF);
+					StoreRDRAMSafe<uint8_t>(address, val & 0xFF);
 				}
 				return true;
 			}));
@@ -118,7 +116,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			{
 				if (get_gs_button())
 				{
-					LuaCore::Memory::StoreRDRAMSafe<USHORT>(address, val);
+					StoreRDRAMSafe<uint16_t>(address, val);
 				}
 				return true;
 			}));
@@ -127,28 +125,28 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 			// Byte equality comparison
 			script->m_instructions.emplace_back(std::make_tuple(true, [=]
 			{
-				return LuaCore::Memory::LoadRDRAMSafe<UCHAR>(address) == val & 0xFF;
+				return LoadRDRAMSafe<uint8_t>(address) == val & 0xFF;
 			}));
 		} else if (opcode == "D1")
 		{
 			// Word equality comparison
 			script->m_instructions.emplace_back(std::make_tuple(true, [=]
 			{
-				return LuaCore::Memory::LoadRDRAMSafe<USHORT>(address) == val;
+				return LoadRDRAMSafe<uint16_t>(address) == val;
 			}));
 		} else if (opcode == "D2")
 		{
 			// Byte inequality comparison
 			script->m_instructions.emplace_back(std::make_tuple(true, [=]
 			{
-				return LuaCore::Memory::LoadRDRAMSafe<UCHAR>(address) != val & 0xFF;
+				return LoadRDRAMSafe<uint8_t>(address) != val & 0xFF;
 			}));
 		} else if (opcode == "D3")
 		{
 			// Word inequality comparison
 			script->m_instructions.emplace_back(std::make_tuple(true, [=]
 			{
-				return LuaCore::Memory::LoadRDRAMSafe<USHORT>(address) != val;
+				return LoadRDRAMSafe<uint16_t>(address) != val;
 			}));
 		} else if (opcode == "50")
 		{
