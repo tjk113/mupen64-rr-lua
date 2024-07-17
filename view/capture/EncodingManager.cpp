@@ -13,7 +13,7 @@
 #include "encoders/AVIEncoder.h"
 #include "encoders/Encoder.h"
 #include "encoders/FFmpegEncoder.h"
-#include <shared/services/MGECompositor.h>
+#include <view/gui/features/MGECompositor.h>
 #include <core/r4300/r4300.h>
 #include <view/lua/LuaConsole.h>
 #include <view/gui/features/Dispatcher.h>

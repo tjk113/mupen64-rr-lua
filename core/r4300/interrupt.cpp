@@ -45,7 +45,6 @@
 #include <shared/Config.hpp>
 #include "../memory/pif.h"
 #include <shared/services/FrontendService.h>
-#include <shared/services/MGECompositor.h>
 
 unsigned long next_vi;
 int vi_field = 0;
@@ -426,13 +425,7 @@ void gen_interrupt()
 			// The update-limiting logic doesn't apply in frameadvance because there are no high-frequency updates
 			if (update || frame_advancing)
 			{
-				if (MGECompositor::available())
-				{
-					MGECompositor::update_screen();
-				} else
-				{
-					updateScreen();
-				}
+				update_screen();
 				screen_invalidated = false;
 			}
 			LuaCallbacks::call_vi();

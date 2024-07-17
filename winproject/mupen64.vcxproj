@@ -176,7 +176,6 @@
         <ClInclude Include="..\shared\messenger.h"/>
         <ClInclude Include="..\shared\services\FrontendService.h"/>
         <ClInclude Include="..\shared\services\LuaService.h"/>
-        <ClInclude Include="..\shared\services\MGECompositor.h" />
         <ClInclude Include="..\shared\types\CoreTypes.h"/>
         <ClInclude Include="..\view\capture\encoders\AVIEncoder.h"/>
         <ClInclude Include="..\view\capture\encoders\Encoder.h"/>
@@ -189,6 +188,7 @@
         <ClInclude Include="..\view\gui\features\CoreDbg.h"/>
         <ClInclude Include="..\view\gui\features\CrashHelper.h"/>
         <ClInclude Include="..\view\gui\features\Dispatcher.h"/>
+        <ClInclude Include="..\view\gui\features\MGECompositor.h"/>
         <ClInclude Include="..\view\gui\features\MovieDialog.h"/>
         <ClInclude Include="..\view\gui\features\RomBrowser.hpp"/>
         <ClInclude Include="..\view\gui\features\Runner.h"/>

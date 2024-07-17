@@ -50,7 +50,7 @@
 #include <view/capture/EncodingManager.h>
 #include "features/CoreDbg.h"
 #include "features/Dispatcher.h"
-#include <shared/services/MGECompositor.h>
+#include "features/MGECompositor.h"
 #include "features/MovieDialog.h"
 #include "features/RomBrowser.hpp"
 #include "features/Seeker.h"

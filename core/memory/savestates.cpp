@@ -32,6 +32,8 @@
 #include <stdlib.h>
 #include <string>
 #include <shared/Config.hpp>
+#include <view/gui/main_win.h>
+#include <view/gui/features/Statusbar.hpp>
 #include "flashram.h"
 #include <shared/services/LuaService.h>
 #include "memory.h"
@@ -41,9 +43,10 @@
 #include "../r4300/r4300.h"
 #include "../r4300/rom.h"
 #include "../r4300/vcr.h"
+#include <view/gui/features/MGECompositor.h>
 #include <assert.h>
-#include <shared/services/FrontendService.h>
-#include <shared/services/MGECompositor.h>
+
+#include "shared/services/FrontendService.h"
 
 std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;
@@ -79,7 +82,7 @@ std::filesystem::path get_saves_directory()
 {
 	if (Config.is_default_saves_directory_used)
 	{
-		return get_app_path().string() + "save\\";
+		return app_path + "save\\";
 	}
 	return Config.saves_directory;
 }
@@ -203,7 +206,7 @@ std::vector<uint8_t> generate_savestate()
 	vecwrite(b, buf, len);
 
 	// re-recording
-	bool movie_active = VCR::get_task() != e_task::idle;
+	BOOL movie_active = VCR::get_task() != e_task::idle;
 	vecwrite(b, &movie_active, sizeof(movie_active));
 	if (movie_active)
 	{
@@ -247,14 +250,14 @@ void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& 
 void savestates_save_immediate()
 {
 	const auto start_time = std::chrono::high_resolution_clock::now();
-	savestates_job_success = true;
+	savestates_job_success = TRUE;
 
 	const auto st = generate_savestate();
 
 	if (!savestates_job_success)
 	{
-		statusbar_post("Failed to save savestate");
-		savestates_job_success = false;
+		Statusbar::post("Failed to save savestate");
+		savestates_job_success = FALSE;
 		return;
 	}
 
@@ -289,8 +292,8 @@ void savestates_save_immediate()
 
 		if (f == nullptr)
 		{
-			statusbar_post("Failed to save savestate");
-			savestates_job_success = false;
+			Statusbar::post("Failed to save savestate");
+			savestates_job_success = FALSE;
 			return;
 		}
 
@@ -299,10 +302,10 @@ void savestates_save_immediate()
 
 		if (st_medium == e_st_medium::path)
 		{
-			statusbar_post(std::format("Saved {}", new_st_path.filename().string()));
+			Statusbar::post(std::format("Saved {}", new_st_path.filename().string()));
 		} else
 		{
-			statusbar_post(std::format("Saved slot {}", st_slot + 1));
+			Statusbar::post(std::format("Saved slot {}", st_slot + 1));
 		}
 	} else
 	{
@@ -395,7 +398,7 @@ void savestates_load_immediate()
 	//handle to st
 	int len;
 
-	savestates_job_success = true;
+	savestates_job_success = TRUE;
 
 	std::filesystem::path new_st_path = st_path;
 	std::filesystem::path new_sd_path = "";
@@ -422,8 +425,8 @@ void savestates_load_immediate()
 
 	if (st_buf.empty())
 	{
-		statusbar_post(std::format("{} not found", new_st_path.filename().string()));
-		savestates_job_success = false;
+		Statusbar::post(std::format("{} not found", new_st_path.filename().string()));
+		savestates_job_success = FALSE;
 		return;
 	}
 
@@ -431,7 +434,7 @@ void savestates_load_immediate()
 	if (decompressed_buf.empty())
 	{
 		show_error("Failed to decompress savestate", nullptr);
-		savestates_job_success = false;
+		savestates_job_success = FALSE;
 		return;
 	}
 
@@ -451,7 +454,7 @@ void savestates_load_immediate()
 
 		if (!result)
 		{
-			savestates_job_success = false;
+			savestates_job_success = FALSE;
 			return;
 		}
 	}
@@ -471,8 +474,9 @@ void savestates_load_immediate()
 	{
 		// Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
 		fprintf(stderr, "Snapshot event queue terminator not reached.\n");
-		statusbar_post("Event queue too long (corrupted?)");
-		savestates_job_success = false;
+		savestates_job_success = FALSE;
+		Statusbar::post("Event queue too long (corrupted?)");
+		savestates_job_success = FALSE;
 		return;
 	}
 
@@ -520,7 +524,7 @@ void savestates_load_immediate()
 			if (!result)
 			{
 				VCR::stop_all();
-				savestates_job_success = false;
+				savestates_job_success = FALSE;
 				goto failedLoad;
 			}
 		}
@@ -531,7 +535,7 @@ void savestates_load_immediate()
 			auto result = show_ask_dialog("Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?");
 			if (!result)
 			{
-				savestates_job_success = false;
+				savestates_job_success = FALSE;
 				return;
 			}
 		}
@@ -578,11 +582,11 @@ void savestates_load_immediate()
 	LuaCallbacks::call_load_state();
 	if (st_medium == e_st_medium::path)
 	{
-		statusbar_post(std::format("Loaded {}", new_st_path.filename().string()));
+		Statusbar::post(std::format("Loaded {}", new_st_path.filename().string()));
 	}
 	if (st_medium == e_st_medium::slot)
 	{
-		statusbar_post(std::format("Loaded slot {}", st_slot + 1));
+		Statusbar::post(std::format("Loaded slot {}", st_slot + 1));
 	}
 failedLoad:
 	extern bool ignore;
