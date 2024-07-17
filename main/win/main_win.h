@@ -20,6 +20,8 @@
 #include <string>
 #include <functional>
 #include <filesystem>
+#include <shared/Config.hpp>
+
 #define MUPEN_VERSION "Mupen 64 1.1.8"
 
 #define WM_FOCUS_MAIN_WINDOW (WM_USER + 17)
@@ -68,3 +70,10 @@ typedef struct
 extern t_window_info window_info;
 
 t_window_info get_window_info();
+
+/**
+ * \brief Gets the string representation of a hotkey
+ * \param hotkey The hotkey to convert
+ * \return The hotkey as a string
+ */
+std::string hotkey_to_string(const t_hotkey* hotkey);

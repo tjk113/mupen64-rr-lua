@@ -6,6 +6,18 @@
 #include <map>
 
 /**
+ * \brief Key codes for hotkeys
+ */
+enum class KeyCode
+{
+	Tab,
+	Minus,
+	Plus,
+	Five,
+
+};
+
+/**
  * \brief Action that can be triggered by a hotkey
  */
 enum class Action
@@ -514,13 +526,6 @@ typedef struct _CONFIG
 
 extern "C" CONFIG Config;
 extern std::vector<t_hotkey*> g_config_hotkeys;
-
-/**
- * \brief Gets the string representation of a hotkey
- * \param hotkey The hotkey to convert
- * \return The hotkey as a string
- */
-std::string hotkey_to_string(t_hotkey* hotkey);
 
 /**
  * \brief Initializes the config subsystem

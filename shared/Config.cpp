@@ -1,6 +1,4 @@
 #include "Config.hpp"
-#include <Windows.h>
-#include <winuser.h>
 #include <cstdio>
 #include <filesystem>
 #include <lib/ini.h>
@@ -11,675 +9,318 @@
 CONFIG Config;
 std::vector<t_hotkey*> g_config_hotkeys;
 
-std::string hotkey_to_string(t_hotkey* hotkey)
-{
-	char buf[260] = {0};
-	const int k = hotkey->key;
-
-	if (!hotkey->ctrl && !hotkey->shift && !hotkey->alt && !hotkey->key)
-	{
-		return "(nothing)";
-	}
-
-	if (hotkey->ctrl)
-		strcat(buf, "Ctrl ");
-	if (hotkey->shift)
-		strcat(buf, "Shift ");
-	if (hotkey->alt)
-		strcat(buf, "Alt ");
-	if (k)
-	{
-		char buf2[64] = {0};
-		if ((k >= 0x30 && k <= 0x39) || (k >= 0x41 && k <= 0x5A))
-			sprintf(buf2, "%c", static_cast<char>(k));
-		else if ((k >= VK_F1 && k <= VK_F24))
-			sprintf(buf2, "F%d", k - (VK_F1 - 1));
-		else if ((k >= VK_NUMPAD0 && k <= VK_NUMPAD9))
-			sprintf(buf2, "Num%d", k - VK_NUMPAD0);
-		else
-			switch (k)
-			{
-			case VK_SPACE: strcpy(buf2, "Space");
-				break;
-			case VK_BACK: strcpy(buf2, "Backspace");
-				break;
-			case VK_TAB: strcpy(buf2, "Tab");
-				break;
-			case VK_CLEAR: strcpy(buf2, "Clear");
-				break;
-			case VK_RETURN: strcpy(buf2, "Enter");
-				break;
-			case VK_PAUSE: strcpy(buf2, "Pause");
-				break;
-			case VK_CAPITAL: strcpy(buf2, "Caps");
-				break;
-			case VK_PRIOR: strcpy(buf2, "PageUp");
-				break;
-			case VK_NEXT: strcpy(buf2, "PageDn");
-				break;
-			case VK_END: strcpy(buf2, "End");
-				break;
-			case VK_HOME: strcpy(buf2, "Home");
-				break;
-			case VK_LEFT: strcpy(buf2, "Left");
-				break;
-			case VK_UP: strcpy(buf2, "Up");
-				break;
-			case VK_RIGHT: strcpy(buf2, "Right");
-				break;
-			case VK_DOWN: strcpy(buf2, "Down");
-				break;
-			case VK_SELECT: strcpy(buf2, "Select");
-				break;
-			case VK_PRINT: strcpy(buf2, "Print");
-				break;
-			case VK_SNAPSHOT: strcpy(buf2, "PrintScrn");
-				break;
-			case VK_INSERT: strcpy(buf2, "Insert");
-				break;
-			case VK_DELETE: strcpy(buf2, "Delete");
-				break;
-			case VK_HELP: strcpy(buf2, "Help");
-				break;
-			case VK_MULTIPLY: strcpy(buf2, "Num*");
-				break;
-			case VK_ADD: strcpy(buf2, "Num+");
-				break;
-			case VK_SUBTRACT: strcpy(buf2, "Num-");
-				break;
-			case VK_DECIMAL: strcpy(buf2, "Num.");
-				break;
-			case VK_DIVIDE: strcpy(buf2, "Num/");
-				break;
-			case VK_NUMLOCK: strcpy(buf2, "NumLock");
-				break;
-			case VK_SCROLL: strcpy(buf2, "ScrollLock");
-				break;
-			case /*VK_OEM_PLUS*/0xBB: strcpy(buf2, "=+");
-				break;
-			case /*VK_OEM_MINUS*/0xBD: strcpy(buf2, "-_");
-				break;
-			case /*VK_OEM_COMMA*/0xBC: strcpy(buf2, ",");
-				break;
-			case /*VK_OEM_PERIOD*/0xBE: strcpy(buf2, ".");
-				break;
-			case VK_OEM_7: strcpy(buf2, "'\"");
-				break;
-			case VK_OEM_6: strcpy(buf2, "]}");
-				break;
-			case VK_OEM_5: strcpy(buf2, "\\|");
-				break;
-			case VK_OEM_4: strcpy(buf2, "[{");
-				break;
-			case VK_OEM_3: strcpy(buf2, "`~");
-				break;
-			case VK_OEM_2: strcpy(buf2, "/?");
-				break;
-			case VK_OEM_1: strcpy(buf2, ";:");
-				break;
-			default:
-				sprintf(buf2, "(%d)", k);
-				break;
-			}
-		strcat(buf, buf2);
-	}
-	return std::string(buf);
-}
-
 CONFIG get_default_config()
 {
 	CONFIG config = {};
 
 	config.fast_forward_hotkey = {
 		.identifier = "Fast-forward",
-		.key = VK_TAB,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::FastforwardOn,
 		.up_cmd = Action::FastforwardOff
 	};
 
 	config.gs_hotkey = {
 		.identifier = "GS Button",
-		.key = 'G',
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::GamesharkOn,
 		.up_cmd = Action::GamesharkOff
 	};
 
 	config.speed_down_hotkey = {
 		.identifier = "Speed down",
-		.key = VK_OEM_MINUS,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SpeedDown,
 	};
 
 	config.speed_up_hotkey = {
 		.identifier = "Speed up",
-		.key = VK_OEM_PLUS,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SpeedUp,
 	};
 
 	config.frame_advance_hotkey = {
 		.identifier = "Frame advance",
-		.key = VK_OEM_5,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::FrameAdvance,
 	};
 
 	config.pause_hotkey = {
 		.identifier = "Pause",
-		.key = VK_PAUSE,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::Pause,
 	};
 
 	config.toggle_read_only_hotkey = {
 		.identifier = "Toggle read-only",
-		.key = 0x52 /* R */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::ToggleReadOnly,
 	};
 
 	config.toggle_movie_loop_hotkey = {
 		.identifier = "Toggle movie loop",
-		.key = 'L',
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::ToggleMovieLoop,
 	};
 
 	config.start_movie_playback_hotkey = {
 		.identifier = "Start movie playback",
-		.key = 0x50 /* P */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::StartMoviePlayback,
 	};
 
 	config.start_movie_recording_hotkey = {
 		.identifier = "Start movie recording",
-		.key = 0x52 /* R */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::StartMovieRecording,
 	};
 
 	config.stop_movie_hotkey = {
 		.identifier = "Stop movie",
-		.key = 0x43 /* C */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::StopMovie,
 	};
 
 	config.take_screenshot_hotkey = {
 		.identifier = "Take screenshot",
-		.key = VK_F12,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::TakeScreenshot,
 	};
 
 	config.play_latest_movie_hotkey = {
 		.identifier = "Play latest movie",
-		.key = 0x54 /* T */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::PlayLatestMovie,
 	};
 
 	config.load_latest_script_hotkey = {
 		.identifier = "Load latest script",
-		.key = 'K',
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::LoadLatestScript,
 	};
 
 	config.new_lua_hotkey = {
 		.identifier = "New Lua Instance",
-		.key = 'N',
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::NewLua,
 	};
 
 	config.close_all_lua_hotkey = {
 		.identifier = "Close all Lua Instances",
-		.key = 'W',
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::CloseAllLua,
 	};
 
 	config.load_rom_hotkey = {
 		.identifier = "Load ROM",
-		.key = 0x4F /* O */,
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadRom,
 	};
 
 	config.close_rom_hotkey = {
 		.identifier = "Close ROM",
-		.key = 0x57 /* W */,
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::CloseRom,
 	};
 
 	config.reset_rom_hotkey = {
 		.identifier = "Reset ROM",
-		.key = 0x52 /* R */,
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::ResetRom,
 	};
 
 	config.load_latest_rom_hotkey = {
 		.identifier = "Load Latest ROM",
-		.key = 0x4F /* O */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::LoadLatestRom,
 	};
 
 	config.fullscreen_hotkey = {
 		.identifier = "Toggle Fullscreen",
-		.key = VK_RETURN,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 1,
 		.down_cmd = Action::Fullscreen,
 	};
 
 	config.settings_hotkey = {
 		.identifier = "Show Settings",
-		.key = 0x53 /* S */,
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::Settings,
 	};
 
 	config.toggle_statusbar_hotkey = {
 		.identifier = "Toggle Statusbar",
-		.key = 0x53 /* S */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 1,
 		.down_cmd = Action::ToggleStatusbar,
 	};
 
 	config.refresh_rombrowser_hotkey = {
 		.identifier = "Refresh Rombrowser",
-		.key = VK_F5,
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::RefreshRomBrowser,
 	};
 
 	config.seek_to_frame_hotkey = {
 		.identifier = "Seek to frame",
-		.key = 0x47,
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::OpenSeeker,
 	};
 
 	config.run_hotkey = {
 		.identifier = "Run",
-		.key = 'P',
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::OpenRunner,
 	};
 
 	config.cheats_hotkey = {
 		.identifier = "Open Cheats dialog",
-		.key = 'U',
-		.ctrl = 1,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::OpenCheats,
 	};
 
 	config.save_current_hotkey = {
 		.identifier = "Save to current slot",
-		.key = 0x49 /* I */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot,
 	};
 
 	config.load_current_hotkey = {
 		.identifier = "Load from current slot",
-		.key = 0x50 /* P */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot,
 	};
 
 	config.save_as_hotkey = {
 		.identifier = "Save state as",
-		.key = 0x4E /* N */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveAs,
 	};
 
 	config.load_as_hotkey = {
 		.identifier = "Load state as",
-		.key = 0x4D /* M */,
-		.ctrl = 1,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::LoadAs,
 	};
 
 	config.save_to_slot_1_hotkey = {
 		.identifier = "Save to slot 1",
-		.key = 0x31 /* 1 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot1,
 	};
 
 	config.save_to_slot_2_hotkey = {
 		.identifier = "Save to slot 2",
-		.key = 0x32 /* 2 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot2,
 	};
 
 	config.save_to_slot_3_hotkey = {
 		.identifier = "Save to slot 3",
-		.key = 0x33 /* 3 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot3,
 	};
 
 	config.save_to_slot_4_hotkey = {
 		.identifier = "Save to slot 4",
-		.key = 0x34 /* 4 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot4,
 	};
 
 	config.save_to_slot_5_hotkey = {
 		.identifier = "Save to slot 5",
-		.key = 0x35 /* 5 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot5,
 	};
 
 	config.save_to_slot_6_hotkey = {
 		.identifier = "Save to slot 6",
-		.key = 0x36 /* 6 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot6,
 	};
 
 	config.save_to_slot_7_hotkey = {
 		.identifier = "Save to slot 7",
-		.key = 0x37 /* 7 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot7,
 	};
 
 	config.save_to_slot_8_hotkey = {
 		.identifier = "Save to slot 8",
-		.key = 0x38 /* 8 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot8,
 	};
 
 	config.save_to_slot_9_hotkey = {
 		.identifier = "Save to slot 9",
-		.key = 0x39 /* 9 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot9,
 	};
 
 	config.save_to_slot_10_hotkey = {
 		.identifier = "Save to slot 10",
-		.key = 0x30 /* 0 */,
-		.ctrl = 0,
-		.shift = 1,
-		.alt = 0,
 		.down_cmd = Action::SaveSlot10,
 	};
 
 	config.load_from_slot_1_hotkey = {
 		.identifier = "Load from slot 1",
-		.key = VK_F1,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot1,
 	};
 
 	config.load_from_slot_2_hotkey = {
 		.identifier = "Load from slot 2",
-		.key = VK_F2,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot2,
 	};
 
 	config.load_from_slot_3_hotkey = {
 		.identifier = "Load from slot 3",
-		.key = VK_F3,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot3,
 	};
 
 	config.load_from_slot_4_hotkey = {
 		.identifier = "Load from slot 4",
-		.key = VK_F4,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot4,
 	};
 
 	config.load_from_slot_5_hotkey = {
 		.identifier = "Load from slot 5",
-		.key = VK_F5,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot5,
 	};
 
 	config.load_from_slot_6_hotkey = {
 		.identifier = "Load from slot 6",
-		.key = VK_F6,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot6,
 	};
 
 	config.load_from_slot_7_hotkey = {
 		.identifier = "Load from slot 7",
-		.key = VK_F7,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot7,
 	};
 
 	config.load_from_slot_8_hotkey = {
 		.identifier = "Load from slot 8",
-		.key = VK_F8,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot8,
 	};
 
 	config.load_from_slot_9_hotkey = {
 		.identifier = "Load from slot 9",
-		.key = VK_F9,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot9,
 	};
 
 	config.load_from_slot_10_hotkey = {
 		.identifier = "Load from slot 10",
-		.key = VK_F10,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::LoadSlot10,
 	};
 
 	config.select_slot_1_hotkey = {
 		.identifier = "Select slot 1",
-		.key = 0x31 /* 1 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot1,
 	};
 
 	config.select_slot_2_hotkey = {
 		.identifier = "Select slot 2",
-		.key = 0x32 /* 2 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot2,
 	};
 
 	config.select_slot_3_hotkey = {
 		.identifier = "Select slot 3",
-		.key = 0x33 /* 3 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot3,
 	};
 
 	config.select_slot_4_hotkey = {
 		.identifier = "Select slot 4",
-		.key = 0x34 /* 4 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot4,
 	};
 
 	config.select_slot_5_hotkey = {
 		.identifier = "Select slot 5",
-		.key = 0x35 /* 5 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot5,
 	};
 
 	config.select_slot_6_hotkey = {
 		.identifier = "Select slot 6",
-		.key = 0x36 /* 6 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot6,
 	};
 
 	config.select_slot_7_hotkey = {
 		.identifier = "Select slot 7",
-		.key = 0x37 /* 7 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot7,
 	};
 
 	config.select_slot_8_hotkey = {
 		.identifier = "Select slot 8",
-		.key = 0x38 /* 8 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot8,
 	};
 
 	config.select_slot_9_hotkey = {
 		.identifier = "Select slot 9",
-		.key = 0x39 /* 9 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot9,
 	};
 
 	config.select_slot_10_hotkey = {
 		.identifier = "Select slot 10",
-		.key = 0x30 /* 0 */,
-		.ctrl = 0,
-		.shift = 0,
-		.alt = 0,
 		.down_cmd = Action::SelectSlot10,
 	};
+
+	set_default_hotkey_keys(&config);
 
 	return config;
 }
