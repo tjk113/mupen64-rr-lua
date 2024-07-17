@@ -4,7 +4,7 @@ on: [push]
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: winproject/mupen64/mupen64.sln
+  SOLUTION_FILE_PATH: winproject/mupen64.sln
 
   BUILD_CONFIGURATION: Release 
 
@@ -27,5 +27,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: mupen-artifact
-        path: winproject/mupen64/bin/mupen64.exe
+        path: winproject/bin/mupen64.exe
         retention-days: 7
