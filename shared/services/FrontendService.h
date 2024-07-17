@@ -67,3 +67,23 @@ std::filesystem::path get_app_path();
  * FIXME: While this works for now, storing platform-dependent keycodes in the config will make config files incompatible across platforms.
  */
 void set_default_hotkey_keys(CONFIG* config);
+
+/**
+ * \brief Gets the native handle of the app instance
+ */
+void* get_app_instance_handle();
+
+/**
+ * \brief Gets the native handle of the main emulator window
+ */
+void* get_main_window_handle();
+
+/**
+ * \brief Gets the native handle of the statusbar. Can be null.
+ */
+void* get_statusbar_handle();
+
+/**
+ * \brief Gets the native handle of the parent window of the plugin configuration dialog
+ */
+void* get_plugin_config_parent_handle();

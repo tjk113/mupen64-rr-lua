@@ -8,6 +8,8 @@
 #include <view/capture/EncodingManager.h>
 #include <shared/Config.hpp>
 
+#include "features/Statusbar.hpp"
+
 bool confirm_user_exit()
 {
 	if (Config.silent_mode)
@@ -251,3 +253,25 @@ void set_default_hotkey_keys(CONFIG* config)
 
 	config->select_slot_10_hotkey.key = '0';
 }
+
+void* get_app_instance_handle()
+{
+	return app_instance;
+}
+
+void* get_main_window_handle()
+{
+	return mainHWND;
+}
+
+void* get_statusbar_handle()
+{
+	return Statusbar::hwnd();
+}
+
+void* get_plugin_config_parent_handle()
+{
+	return hwnd_plug;
+}
+
+

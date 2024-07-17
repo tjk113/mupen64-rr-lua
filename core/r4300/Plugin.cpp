@@ -37,11 +37,12 @@
 #include <shared/Config.hpp>
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
-#include <view/gui/main_win.h>
-#include <view/gui/features/Statusbar.hpp>
+#include <shared/services/FrontendService.h>
+
+// TODO: Get away from this...
+#include <Windows.h>
 #include <dbghelp.h>
 
-#include <shared/services/FrontendService.h>
 
 CONTROL Controls[4];
 
@@ -60,7 +61,7 @@ std::string get_plugins_directory()
 {
 	if (Config.is_default_plugins_directory_used)
 	{
-		return app_path + "plugin\\";
+		return get_app_path().string() + "plugin\\";
 	}
 	return Config.plugins_directory;
 }
@@ -260,8 +261,8 @@ void load_gfx(HMODULE handle)
 	// ReadScreen returns a plugin-allocated buffer which must be freed by the same CRT
 	DllCrtFree = get_dll_crt_free(handle);
 
-	gfx_info.hWnd = mainHWND;
-	gfx_info.hStatusBar = Config.is_statusbar_enabled ? Statusbar::hwnd() : nullptr;
+	gfx_info.hWnd = get_main_window_handle();
+	gfx_info.hStatusBar = Config.is_statusbar_enabled ? get_statusbar_handle() : nullptr;
 	gfx_info.MemoryBswaped = TRUE;
 	gfx_info.HEADER = rom;
 	gfx_info.RDRAM = (BYTE*)rdram;
@@ -313,8 +314,8 @@ void load_input(uint16_t version, HMODULE handle)
 	FUNC(keyDown, KEYDOWN, dummy_keyDown, "WM_KeyDown");
 	FUNC(keyUp, KEYUP, dummy_keyUp, "WM_KeyUp");
 
-	control_info.hMainWindow = mainHWND;
-	control_info.hinst = app_instance;
+	control_info.hMainWindow = get_main_window_handle();
+	control_info.hinst = get_app_instance_handle();
 	control_info.MemoryBswaped = TRUE;
 	control_info.HEADER = rom;
 	control_info.Controls = Controls;
@@ -329,7 +330,7 @@ void load_input(uint16_t version, HMODULE handle)
 		initiateControllers(control_info);
 	} else
 	{
-		old_initiateControllers(mainHWND, Controls);
+		old_initiateControllers(get_main_window_handle(), Controls);
 	}
 }
 
@@ -346,8 +347,8 @@ void load_audio(HMODULE handle)
 	FUNC(processAList, PROCESSALIST, dummy_void, "ProcessAList");
 	FUNC(aiUpdate, AIUPDATE, dummy_aiUpdate, "AiUpdate");
 
-	audio_info.hwnd = mainHWND;
-	audio_info.hinst = app_instance;
+	audio_info.hwnd = get_main_window_handle();
+	audio_info.hinst = get_app_instance_handle();
 	audio_info.MemoryBswaped = TRUE;
 	audio_info.HEADER = rom;
 	audio_info.RDRAM = (BYTE*)rdram;
@@ -459,8 +460,8 @@ void Plugin::config()
 			if (!emu_launched)
 			{
 				// NOTE: Since olden days, dummy render target hwnd was the statusbar.
-				dummy_gfx_info.hWnd = Statusbar::hwnd();
-				dummy_gfx_info.hStatusBar = Statusbar::hwnd();
+				dummy_gfx_info.hWnd = get_statusbar_handle();
+				dummy_gfx_info.hStatusBar = get_statusbar_handle();
 
 				auto initiateGFX = (INITIATEGFX)GetProcAddress((HMODULE)m_module, "InitiateGFX");
 				if (initiateGFX && !initiateGFX(dummy_gfx_info))
@@ -470,7 +471,7 @@ void Plugin::config()
 			}
 
 			auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
-			if (dllConfig) dllConfig(hwnd_plug);
+			if (dllConfig) dllConfig(get_plugin_config_parent_handle());
 
 			if (!emu_launched)
 			{
@@ -491,7 +492,7 @@ void Plugin::config()
 			}
 
 			auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
-			if (dllConfig) dllConfig(hwnd_plug);
+			if (dllConfig) dllConfig(get_plugin_config_parent_handle());
 
 			if (!emu_launched)
 			{
@@ -511,12 +512,12 @@ void Plugin::config()
 				} else
 				{
 					auto old_initiateControllers = (OLD_INITIATECONTROLLERS)GetProcAddress((HMODULE)m_module, "InitiateControllers");
-					if(old_initiateControllers) old_initiateControllers(mainHWND, Controls);
+					if(old_initiateControllers) old_initiateControllers(get_main_window_handle(), Controls);
 				}
 			}
 
 			auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
-			if (dllConfig) dllConfig(hwnd_plug);
+			if (dllConfig) dllConfig(get_plugin_config_parent_handle());
 
 			if (!emu_launched)
 			{
@@ -535,7 +536,7 @@ void Plugin::config()
 			}
 
 			auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
-			if (dllConfig) dllConfig(hwnd_plug);
+			if (dllConfig) dllConfig(get_plugin_config_parent_handle());
 
 			if (!emu_launched)
 			{
@@ -553,13 +554,13 @@ void Plugin::config()
 void Plugin::test()
 {
 	dllTest = (DLLTEST)GetProcAddress((HMODULE)m_module, "DllTest");
-	if (dllTest) dllTest(hwnd_plug);
+	if (dllTest) dllTest(get_plugin_config_parent_handle());
 }
 
 void Plugin::about()
 {
 	dllAbout = (DLLABOUT)GetProcAddress((HMODULE)m_module, "DllAbout");
-	if (dllAbout) dllAbout(hwnd_plug);
+	if (dllAbout) dllAbout(get_plugin_config_parent_handle());
 }
 
 void Plugin::load_into_globals()
@@ -635,8 +636,8 @@ void setup_dummy_info()
 	dummy_gfx_info.CheckInterrupts = dummy_void;
 
 	/////// AUDIO /////////////////////////
-	dummy_audio_info.hwnd = mainHWND;
-	dummy_audio_info.hinst = app_instance;
+	dummy_audio_info.hwnd = get_main_window_handle();
+	dummy_audio_info.hinst = get_app_instance_handle();
 	dummy_audio_info.MemoryBswaped = TRUE;
 	dummy_audio_info.HEADER = (BYTE*)dummy_header;
 	dummy_audio_info.RDRAM = (BYTE*)rdram;
@@ -652,8 +653,8 @@ void setup_dummy_info()
 	dummy_audio_info.CheckInterrupts = dummy_void;
 
 	///// CONTROLS ///////////////////////////
-	dummy_control_info.hMainWindow = mainHWND;
-	dummy_control_info.hinst = app_instance;
+	dummy_control_info.hMainWindow = get_main_window_handle();
+	dummy_control_info.hinst = get_app_instance_handle();
 	dummy_control_info.MemoryBswaped = TRUE;
 	dummy_control_info.HEADER = (BYTE*)dummy_header;
 	dummy_control_info.Controls = Controls;
