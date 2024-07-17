@@ -37,7 +37,6 @@
 #include "recomph.h"
 #include "rom.h"
 #include "tracelog.h"
-#include <view/lua/LuaConsole.h>
 
 // global variables :
 precomp_instr* dst; // destination structure for the recompiled instruction
@@ -2486,7 +2485,7 @@ void recompile_all()
 	memset(invalid_code, 1, 0x100000);
 }
 
-void recompile_now(ULONG addr)
+void recompile_now(uint32_t addr)
 {
 	//NOTCOMPILED���B�����ɃR���p�C�����ʂ�ops�Ȃǂ��~�������Ɏg��
 	if ((addr >> 16) == 0xa400)

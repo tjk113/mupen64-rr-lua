@@ -30,6 +30,8 @@
 #ifndef RECOMP_H
 #define RECOMP_H
 
+#include <cstdint>
+
 #include "x86/assemble.h"
 
 typedef struct _precomp_instr
@@ -110,7 +112,7 @@ void dyna_stop();
  * \brief Recompiles the block at the specified address
  * \param addr The virtual address to invalidate
  */
-void recompile_now(unsigned long addr);
+void recompile_now(uint32_t addr);
 
 /**
  * \brief Invalidates all blocks
