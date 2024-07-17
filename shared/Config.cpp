@@ -2,12 +2,11 @@
 #include <Windows.h>
 #include <winuser.h>
 #include <cstdio>
-#include <main/win/features/RomBrowser.hpp>
-#include <main/win/main_win.h>
+#include <filesystem>
 #include <lib/ini.h>
 #include <shared/helpers/string_helpers.h>
 #include <shared/messenger.h>
-#include <main/capture/EncodingManager.h>
+#include <shared/guifuncs.h>
 
 CONFIG Config;
 std::vector<t_hotkey*> g_config_hotkeys;
@@ -945,9 +944,10 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	return ini;
 }
 
+// TODO: Should return std::filesystem::path
 std::string get_config_path()
 {
-	return app_path + "config.ini";
+	return get_app_path().string() + "config.ini";
 }
 
 void save_config()
