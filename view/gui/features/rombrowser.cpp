@@ -12,6 +12,7 @@
 #include "../../winproject/resource.h"
 #include <shared/helpers/io_helpers.h>
 #include <shared/helpers/string_helpers.h>
+#include <shared/services/IOService.h>
 #include <view/helpers/IOHelpers.h>
 #include <view/helpers/StringHelpers.h>
 #include <core/r4300/r4300.h>
@@ -54,7 +55,7 @@ namespace Rombrowser
 		{
 			for (auto path : Config.rombrowser_rom_paths)
 			{
-				auto file_paths = get_files_with_extension_in_directory(
+				auto file_paths = IOService::get_files_with_extension_in_directory(
 					path, "*");
 				rom_paths.insert(rom_paths.end(), file_paths.begin(),
 								 file_paths.end());

@@ -173,6 +173,7 @@
         <ClInclude Include="..\shared\helpers\string_helpers.h"/>
         <ClInclude Include="..\shared\messenger.h"/>
         <ClInclude Include="..\shared\services\FrontendService.h"/>
+        <ClInclude Include="..\shared\services\IOService.h" />
         <ClInclude Include="..\shared\services\LuaService.h"/>
         <ClInclude Include="..\shared\types\CoreTypes.h"/>
         <ClInclude Include="..\view\capture\encoders\AVIEncoder.h"/>
@@ -287,6 +288,7 @@
         <ClCompile Include="..\view\gui\features\Seeker.cpp"/>
         <ClCompile Include="..\view\gui\features\Statusbar.cpp"/>
         <ClCompile Include="..\view\gui\FrontendService.cpp"/>
+        <ClCompile Include="..\view\gui\IOService.cpp" />
         <ClCompile Include="..\view\gui\main_win.cpp"/>
         <ClCompile Include="..\view\gui\wrapper\PersistentPathDialog.cpp"/>
         <ClCompile Include="..\view\lua\LuaConsole.cpp"/>

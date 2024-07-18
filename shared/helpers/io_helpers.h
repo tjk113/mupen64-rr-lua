@@ -2,16 +2,7 @@
 
 #include <filesystem>
 #include <span>
-#include <string>
 #include <vector>
-
-/**
- * \brief Gets all files with a specific file extension directly under a directory
- * \param directory The path joiner-terminated directory
- * \param extension The file extension with no period
- */
-std::vector<std::string> get_files_with_extension_in_directory(
-	std::string directory, const std::string& extension);
 
 /**
  * \brief Writes data to a vector at its tail end based on its size, expanding it as needed

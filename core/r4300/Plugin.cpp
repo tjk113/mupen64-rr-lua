@@ -38,11 +38,11 @@
 #include "../memory/memory.h"
 #include "../r4300/r4300.h"
 #include <shared/services/FrontendService.h>
+#include <shared/services/IOService.h>
 
 // TODO: Get away from this...
 #include <Windows.h>
 #include <dbghelp.h>
-
 
 CONTROL Controls[4];
 
@@ -585,7 +585,7 @@ void Plugin::load_into_globals()
 std::vector<std::unique_ptr<Plugin>> get_available_plugins()
 {
 	std::vector<std::unique_ptr<Plugin>> plugins;
-	std::vector<std::string> files = get_files_with_extension_in_directory(
+	std::vector<std::string> files = IOService::get_files_with_extension_in_directory(
 		get_plugins_directory(), "dll");
 
 	for (const auto& file : files)
