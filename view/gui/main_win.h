@@ -77,3 +77,10 @@ t_window_info get_window_info();
  * \return The hotkey as a string
  */
 std::string hotkey_to_string(const t_hotkey* hotkey);
+
+/**
+ * \brief Demands user confirmation for an exit action
+ * \return Whether the action is allowed
+ * \remarks If the user has chosen to not use modals, this function will return true by default
+ */
+bool confirm_user_exit();

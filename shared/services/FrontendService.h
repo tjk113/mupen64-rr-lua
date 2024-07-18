@@ -13,13 +13,6 @@
 // TODO: Move this into a namespace
 
 /**
- * \brief Demands user confirmation for an exit action
- * \return Whether the action is allowed
- * \remarks If the user has chosen to not use modals, this function will return true by default
- */
-bool confirm_user_exit();
-
-/**
  * \brief Asks the user a yes/no question
  * \param str The dialog content
  * \param title The dialog title

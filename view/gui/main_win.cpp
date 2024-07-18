@@ -678,6 +678,43 @@ t_window_info get_window_info()
 
 #pragma endregion
 
+bool confirm_user_exit()
+{
+	if (Config.silent_mode)
+	{
+		return true;
+	}
+
+	int res = 0;
+	int warnings = 0;
+
+	std::string final_message;
+	if (VCR::get_task() == e_task::recording)
+	{
+		final_message.append("Movie recording ");
+		warnings++;
+	}
+	if (EncodingManager::is_capturing())
+	{
+		if (warnings > 0) { final_message.append(","); }
+		final_message.append(" AVI capture ");
+		warnings++;
+	}
+	if (tracelog::active())
+	{
+		if (warnings > 0) { final_message.append(","); }
+		final_message.append(" Trace logging ");
+		warnings++;
+	}
+	final_message.
+		append("is running. Are you sure you want to stop emulation?");
+	if (warnings > 0)
+		res = MessageBox(mainHWND, final_message.c_str(), "Stop emulation?",
+						 MB_YESNO | MB_ICONWARNING);
+
+	return res == IDYES || warnings == 0;
+}
+
 void ClearButtons()
 {
 	BUTTONS zero = {0};
