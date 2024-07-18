@@ -860,7 +860,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		last_wheel_delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
 	// https://github.com/mkdasher/mupen64-rr-lua-/issues/190
-		LuaCallbacks::call_window_message(hwnd, Message, wParam, lParam);
+		LuaService::call_window_message(hwnd, Message, wParam, lParam);
 		break;
 	case WM_NOTIFY:
 		{

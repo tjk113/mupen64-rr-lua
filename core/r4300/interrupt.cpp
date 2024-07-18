@@ -415,7 +415,7 @@ void gen_interrupt()
 	case VI_INT:
 		{
 			lag_count++;
-			LuaCallbacks::call_interval();
+			LuaService::call_interval();
 
 			// NOTE: It's ok to not update screen when lagging, doesn't cause any obvious issues
 			auto skip = (Config.skip_rendering_lag && lag_count > 1) || is_frame_skipped();
@@ -428,7 +428,7 @@ void gen_interrupt()
 				update_screen();
 				screen_invalidated = false;
 			}
-			LuaCallbacks::call_vi();
+			LuaService::call_vi();
 			vcr_on_vi();
 			at_vi();
 			timer_new_vi();

@@ -449,9 +449,9 @@ void update_pif_read(bool stcheck)
 						while (emu_paused)
 						{
 							std::this_thread::sleep_for(std::chrono::milliseconds(10));
-							LuaCallbacks::call_interval();
+							LuaService::call_interval();
 							// COMPAT: Old input lua expects atvi to be called when paused (due to a bug in the invalidation)...
-							LuaCallbacks::call_vi();
+							LuaService::call_vi();
 
 							// TODO: maybe unify this and the other calls outside paused loop with some pump function like savestates_process_job()
 							if (savestates_job == e_st_job::save && stAllowed)
@@ -498,7 +498,7 @@ void update_pif_read(bool stcheck)
 					{
 						readController(channel, &PIF_RAMb[i]);
 						auto ptr = (BUTTONS*)&PIF_RAMb[i + 3];
-						LuaCallbacks::call_input(ptr, channel);
+						LuaService::call_input(ptr, channel);
 					} else
 						internal_ReadController(channel, &PIF_RAMb[i]);
 				}

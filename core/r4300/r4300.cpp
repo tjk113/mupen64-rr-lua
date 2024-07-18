@@ -2022,7 +2022,7 @@ DWORD WINAPI ThreadFunc(LPVOID)
 
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-	LuaCallbacks::call_reset();
+	LuaService::call_reset();
 
 	printf("[Core] Emu thread entry took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 	core_start();

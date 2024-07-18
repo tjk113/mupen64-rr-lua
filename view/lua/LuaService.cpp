@@ -2,7 +2,7 @@
 #include <view/lua/LuaConsole.h>
 #include <view/gui/features/Dispatcher.h>
 
-namespace LuaCallbacks
+namespace LuaService
 {
 	// OPTIMIZATION: If no lua scripts are running, skip the deeper lua path
 #define RET_IF_EMPTY { if(hwnd_lua_map.empty()) return; }

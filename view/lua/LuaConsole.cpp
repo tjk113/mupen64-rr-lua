@@ -638,7 +638,7 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 			lua->d3d_dc->CopyResource(lua->dxgi_surface_resource, lua->front_buffer);
 			lua->d2d_dc->SetTransform(D2D1::Matrix3x2F::Identity());
 
-			bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATDRAWD2D);
+			bool failed = lua->invoke_callbacks_with_key(LuaService::state_update_screen, REG_ATDRAWD2D);
 
 			lua->d2d_dc->EndDraw();
 			lua->dxgi_swapchain->Present(0, 0);
@@ -669,7 +669,7 @@ LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 			HDC dc = BeginPaint(hwnd, &ps);
 			GetClientRect(hwnd, &rect);
 
-			bool failed = lua->invoke_callbacks_with_key(LuaCallbacks::state_update_screen, REG_ATUPDATESCREEN);
+			bool failed = lua->invoke_callbacks_with_key(LuaService::state_update_screen, REG_ATUPDATESCREEN);
 
 			BitBlt(dc, 0, 0, lua->dc_size.width, lua->dc_size.height, lua->gdi_back_dc, 0, 0, SRCCOPY);
 
@@ -910,7 +910,7 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
 
 LuaEnvironment::~LuaEnvironment()
 {
-	invoke_callbacks_with_key(LuaCallbacks::state_stop, REG_ATSTOP);
+	invoke_callbacks_with_key(LuaService::state_stop, REG_ATSTOP);
 	SelectObject(gdi_back_dc, nullptr);
 	DeleteObject(brush);
 	DeleteObject(pen);

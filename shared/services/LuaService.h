@@ -14,12 +14,14 @@ extern "C" {
 
 #include <shared/types/CoreTypes.h>
 
-namespace LuaCallbacks
+namespace LuaService
 {
 	/**
 	 * \brief Gets the last controller data for a controller index
 	 */
 	BUTTONS get_last_controller_data(int index);
+
+#pragma region Callbacks
 
 	/**
 	 * \brief Notifies all lua instances of a window message
@@ -67,6 +69,7 @@ namespace LuaCallbacks
 	 * \brief Notifies all lua instances of the rom being reset
 	 */
 	void call_reset();
+#pragma endregion
 
 #pragma region Raw Calls
 	int state_update_screen(lua_State* L);

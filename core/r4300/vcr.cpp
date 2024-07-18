@@ -466,7 +466,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	if (!is_task_playback(g_task))
 	{
 		getKeys(index, input);
-		LuaCallbacks::call_input(input, index);
+		LuaService::call_input(input, index);
 	}
 
 	if (g_task == e_task::idle)
@@ -626,7 +626,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		}).detach();
 	}
 
-	LuaCallbacks::call_input(input, index);
+	LuaService::call_input(input, index);
 	m_current_sample++;
 }
 
@@ -978,7 +978,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
-	LuaCallbacks::call_play_movie();
+	LuaService::call_play_movie();
 	return Result::Ok;
 }
 
@@ -1069,7 +1069,7 @@ VCR::Result vcr_stop_playback()
 
 	g_task = e_task::idle;
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-	LuaCallbacks::call_stop_movie();
+	LuaService::call_stop_movie();
 	return VCR::Result::Ok;
 }
 
@@ -1122,7 +1122,7 @@ const char* VCR::get_input_text()
 	static char text[1024]{};
 	memset(text, 0, sizeof(text));
 
-	BUTTONS b = LuaCallbacks::get_last_controller_data(0);
+	BUTTONS b = LuaService::get_last_controller_data(0);
 	sprintf(text, "(%d, %d) ", b.Y_AXIS, b.X_AXIS);
 	if (b.START_BUTTON) strcat(text, "S");
 	if (b.Z_TRIG) strcat(text, "Z");

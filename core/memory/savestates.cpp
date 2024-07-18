@@ -310,7 +310,7 @@ void savestates_save_immediate()
 		st_buffers[st_key] = st;
 	}
 
-	LuaCallbacks::call_save_state();
+	LuaService::call_save_state();
 	printf("Savestate saving took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
@@ -575,7 +575,7 @@ void savestates_load_immediate()
 			}
 		}
 	}
-	LuaCallbacks::call_load_state();
+	LuaService::call_load_state();
 	if (st_medium == e_st_medium::path)
 	{
 		show_statusbar(std::format("Loaded {}", new_st_path.filename().string()).c_str());
