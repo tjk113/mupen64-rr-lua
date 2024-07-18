@@ -9,7 +9,7 @@
 #include <core/r4300/vcr.h>
 #include "RomBrowser.hpp"
 #include "../../winproject/resource.h"
-#include <shared/helpers/win_helpers.h>
+#include <view/helpers/WinHelpers.h>
 #include <shared/Config.hpp>
 #include <view/gui/main_win.h>
 

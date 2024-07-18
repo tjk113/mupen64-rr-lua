@@ -1,6 +1,6 @@
 #include "AVIEncoder.h"
 
-#include <shared/helpers/io_helpers.h>
+#include <view/helpers/IOHelpers.h>
 #include <view/gui/main_win.h>
 
 bool AVIEncoder::start(Params params)

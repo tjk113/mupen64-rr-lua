@@ -9,7 +9,7 @@ extern "C" {
 
 #include "LuaConsole.h"
 #include <view/gui/main_win.h>
-#include <shared/helpers/win_helpers.h>
+#include <view/helpers/WinHelpers.h>
 
 namespace LuaCore::Wgui
 {

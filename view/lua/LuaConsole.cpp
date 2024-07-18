@@ -20,7 +20,7 @@
 #include <core/r4300/vcr.h>
 #include <core/memory/savestates.h>
 #include <core/r4300/Plugin.hpp>
-#include <shared/helpers/win_helpers.h>
+#include <view/helpers/WinHelpers.h>
 #include <view/gui/wrapper/PersistentPathDialog.h>
 #include <lib/md5.h>
 #include <gdiplus.h>

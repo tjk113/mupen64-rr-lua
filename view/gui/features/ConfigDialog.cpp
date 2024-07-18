@@ -27,7 +27,8 @@
 #include <shared/Config.hpp>
 #include <view/gui/wrapper/PersistentPathDialog.h>
 #include <shared/helpers/string_helpers.h>
-#include <shared/helpers/win_helpers.h>
+#include <view/helpers/WinHelpers.h>
+#include <view/helpers/StringHelpers.h>
 #include <core/r4300/r4300.h>
 #include "configdialog.h"
 #include <view/capture/EncodingManager.h>
@@ -36,6 +37,7 @@
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
 std::vector<HWND> tooltips;
+
 
 /// <summary>
 /// Waits until the user inputs a valid key sequence, then fills out the hotkey

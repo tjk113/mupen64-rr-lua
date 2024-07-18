@@ -170,9 +170,7 @@
         <ClInclude Include="..\lib\microlru.h"/>
         <ClInclude Include="..\shared\Config.hpp"/>
         <ClInclude Include="..\shared\helpers\io_helpers.h"/>
-        <ClInclude Include="..\shared\helpers\math_helpers.h"/>
         <ClInclude Include="..\shared\helpers\string_helpers.h"/>
-        <ClInclude Include="..\shared\helpers\win_helpers.h"/>
         <ClInclude Include="..\shared\messenger.h"/>
         <ClInclude Include="..\shared\services\FrontendService.h"/>
         <ClInclude Include="..\shared\services\LuaService.h"/>
@@ -182,6 +180,10 @@
         <ClInclude Include="..\view\capture\encoders\FFmpegEncoder.h"/>
         <ClInclude Include="..\view\capture\EncodingManager.h"/>
         <ClInclude Include="..\view\capture\Resampler.h"/>
+        <ClInclude Include="..\view\helpers\IOHelpers.h" />
+        <ClInclude Include="..\view\helpers\MathHelpers.h" />
+        <ClInclude Include="..\view\helpers\StringHelpers.h" />
+        <ClInclude Include="..\view\helpers\WinHelpers.h"/>
         <ClInclude Include="..\view\gui\Commandline.h"/>
         <ClInclude Include="..\view\gui\features\Cheats.h"/>
         <ClInclude Include="..\view\gui\features\ConfigDialog.h"/>

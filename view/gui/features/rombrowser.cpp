@@ -5,7 +5,6 @@
 #include <vector>
 #include <commctrl.h>
 #include "RomBrowser.hpp"
-
 #include <chrono>
 
 #include "Statusbar.hpp"
@@ -13,6 +12,8 @@
 #include "../../winproject/resource.h"
 #include <shared/helpers/io_helpers.h>
 #include <shared/helpers/string_helpers.h>
+#include <view/helpers/IOHelpers.h>
+#include <view/helpers/StringHelpers.h>
 #include <core/r4300/r4300.h>
 #include <shared/Config.hpp>
 #include <assert.h>

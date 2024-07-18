@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Windows.h>
 #include <Windowsx.h>
 #include <CommCtrl.h>
@@ -55,43 +56,6 @@ static void read_combo_box_value(const HWND hwnd, const int resource_id, char* r
 	SendDlgItemMessage(hwnd, resource_id, CB_GETLBTEXT, index, (LPARAM)ret);
 }
 
-/**
- * \brief Accurately sleeps for the specified amount of time
- * \param seconds The seconds to sleep for
- * \remarks https://blat-blatnik.github.io/computerBear/making-accurate-sleep-function/
- */
-static void accurate_sleep(double seconds)
-{
-	using namespace std;
-	using namespace std::chrono;
-
-	static double estimate = 5e-3;
-	static double mean = 5e-3;
-	static double m2 = 0;
-	static int64_t count = 1;
-
-	while (seconds > estimate)
-	{
-		auto start = high_resolution_clock::now();
-		this_thread::sleep_for(milliseconds(1));
-		auto end = high_resolution_clock::now();
-
-		double observed = (end - start).count() / 1e9;
-		seconds -= observed;
-
-		++count;
-		double delta = observed - mean;
-		mean += delta / count;
-		m2 += delta * (observed - mean);
-		double stddev = sqrt(m2 / (count - 1));
-		estimate = mean + stddev;
-	}
-
-	// spin lock
-	auto start = high_resolution_clock::now();
-	while ((high_resolution_clock::now() - start).count() / 1e9 < seconds);
-}
-
 
 static RECT get_window_rect_client_space(HWND parent, HWND child)
 {
@@ -119,7 +83,8 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 
 	(*factory)->EnumAdapters1(0, dxgiadapter);
 
-	D3D11CreateDevice(*dxgiadapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_SINGLETHREADED, nullptr, 0, D3D11_SDK_VERSION, d3device, nullptr,
+	D3D11CreateDevice(*dxgiadapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_SINGLETHREADED, nullptr, 0,
+	                  D3D11_SDK_VERSION, d3device, nullptr,
 	                  d3d_dc);
 
 	(*d3device)->QueryInterface(dxdevice);
@@ -176,7 +141,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-	desc.SampleDesc = { .Count = 1, .Quality = 0 };
+	desc.SampleDesc = {.Count = 1, .Quality = 0};
 	desc.Usage = D3D11_USAGE_DEFAULT;
 	desc.BindFlags = D3D11_BIND_RENDER_TARGET;
 	desc.MiscFlags = D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
@@ -188,7 +153,6 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 
 	return true;
 }
-
 
 static void set_statusbar_parts(HWND hwnd, std::vector<int32_t> parts)
 {
@@ -207,11 +171,11 @@ static void set_statusbar_parts(HWND hwnd, std::vector<int32_t> parts)
 static HWND create_tooltip(HWND hwnd, int id, const char* text)
 {
 	HWND hwnd_tip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
-	                              WS_POPUP | TTS_NOPREFIX,
-	                              CW_USEDEFAULT, CW_USEDEFAULT,
-	                              CW_USEDEFAULT, CW_USEDEFAULT,
-	                              hwnd, NULL,
-	                              GetModuleHandle(0), NULL);
+	                               WS_POPUP | TTS_NOPREFIX,
+	                               CW_USEDEFAULT, CW_USEDEFAULT,
+	                               CW_USEDEFAULT, CW_USEDEFAULT,
+	                               hwnd, NULL,
+	                               GetModuleHandle(0), NULL);
 
 	TOOLINFO info = {0};
 	info.cbSize = sizeof(info);
@@ -228,6 +192,30 @@ static HWND create_tooltip(HWND hwnd, int id, const char* text)
 }
 
 /**
+ * \brief Copies a string to the clipboard
+ * \param owner The clipboard content's owner window
+ * \param str The string to be copied
+ */
+static void copy_to_clipboard(void* owner, const std::string& str)
+{
+	OpenClipboard((HWND)owner);
+	EmptyClipboard();
+	HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, str.size() + 1);
+	if (hg)
+	{
+		memcpy(GlobalLock(hg), str.c_str(), str.size() + 1);
+		GlobalUnlock(hg);
+		SetClipboardData(CF_TEXT, hg);
+		CloseClipboard();
+		GlobalFree(hg);
+	} else
+	{
+		printf("Failed to copy\n");
+		CloseClipboard();
+	}
+}
+
+/**
  * \brief Initializes COM within the object's scope for the current thread
  */
 class COMInitializer
@@ -238,11 +226,12 @@ public:
 		auto hr = CoInitialize(nullptr);
 		m_init = !(hr != S_OK && hr != S_FALSE && hr != RPC_E_CHANGED_MODE);
 
-		if(!m_init)
+		if (!m_init)
 		{
 			printf("[COMInitializer] Failed to initialize COM");
 		}
 	}
+
 	~COMInitializer()
 	{
 		if (m_init)
@@ -250,6 +239,8 @@ public:
 			CoUninitialize();
 		}
 	}
+
 private:
 	bool m_init;
 };
+

@@ -9,9 +9,10 @@
 #include <shared/Config.hpp>
 #include <winproject/resource.h>
 #include <shared/helpers/string_helpers.h>
-#include <shared/helpers/win_helpers.h>
-#include <shared/helpers/math_helpers.h>
+#include <view/helpers/WinHelpers.h>
+#include <view/helpers/MathHelpers.h>
 #include <view/gui/wrapper/PersistentPathDialog.h>
+#include <view/helpers/IOHelpers.h>
 #include <CommCtrl.h>
 
 

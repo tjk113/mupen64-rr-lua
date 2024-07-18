@@ -4,7 +4,8 @@
 #include <shared/helpers/io_helpers.h>
 #include <shared/helpers/string_helpers.h>
 #include <shared/Config.hpp>
-#include <shared/helpers/win_helpers.h>
+#include <view/helpers/WinHelpers.h>
+#include <view/helpers/IOHelpers.h>
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp
 

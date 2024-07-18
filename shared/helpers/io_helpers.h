@@ -6,64 +6,12 @@
 #include <vector>
 
 /**
- * \brief Records the execution time of a scope
- */
-class ScopeTimer
-{
-public:
-	ScopeTimer(std::string name);
-	~ScopeTimer();
-
-private:
-	std::string m_name;
-	std::chrono::time_point<std::chrono::steady_clock> start_time;
-};
-
-/**
  * \brief Gets all files with a specific file extension directly under a directory
  * \param directory The path joiner-terminated directory
  * \param extension The file extension with no period
  */
 std::vector<std::string> get_files_with_extension_in_directory(
 	std::string directory, const std::string& extension);
-/**
- * \brief Gets all files under all subdirectory of a specific directory, including the directory's shallow files
- * \param directory The path joiner-terminated directory
- */
-std::vector<std::string> get_files_in_subdirectories(
-	std::string directory);
-
-/**
- * \brief Removes the extension from a path
- * \param path The path to remove the extension from
- * \return The path without an extension
- */
-std::string strip_extension(const std::string& path);
-
-/**
- * \brief Removes the extension from a path
- * \param path The path to remove the extension from
- * \return The path without an extension
- */
-std::wstring strip_extension(const std::wstring& path);
-
-/**
- * \brief Copies a string to the clipboard
- * \param owner The clipboard content's owner window
- * \param str The string to be copied
- */
-void copy_to_clipboard(void* owner, const std::string& str);
-
-/**
- * \brief Gets the path to the current user's desktop
- */
-std::wstring get_desktop_path();
-
-/**
- * \brief Gets whether a file is accessible
- * \param path The file to check against
- */
-bool is_file_accessible(const std::filesystem::path& path);
 
 /**
  * \brief Writes data to a vector at its tail end based on its size, expanding it as needed
@@ -104,19 +52,3 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
  * \param len The destination buffer's length
  */
 void memread(uint8_t** src, void* dest, unsigned int len);
-
-
-/**
- * \brief Creates a new path with a different name, keeping the extension and preceeding path intact
- * \param path A path
- * \param name The new name
- * \return The modified path
- */
-std::filesystem::path with_name(std::filesystem::path path, std::string name);
-
-/**
- * \brief Gets the name (filename without extension) of a path
- * \param path A path
- * \return The path's name
- */
-std::string get_name(std::filesystem::path path);
