@@ -302,6 +302,11 @@ void at_vi()
 	EncodingManager::at_vi();
 }
 
+void ai_len_changed()
+{
+	EncodingManager::ai_len_changed();
+}
+
 std::string find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
 {
 	return Rombrowser::find_available_rom(predicate);

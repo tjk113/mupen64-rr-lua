@@ -47,7 +47,6 @@
 #include "summercart.h"
 #include <core/r4300/Plugin.hpp>
 #include "../r4300/vcr.h"
-#include <view/capture/EncodingManager.h>
 #include <shared/messenger.h>
 
 static int frame;
@@ -2663,7 +2662,7 @@ void write_ai()
 	case 0x4:
 		ai_register.ai_len = word;
 		aiLenChanged();
-		EncodingManager::ai_len_changed();
+		ai_len_changed();
 		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:
@@ -2761,7 +2760,7 @@ void write_aib()
 			+ ((*address_low & 3) ^ S8)) = g_byte;
 		ai_register.ai_len = temp;
 		aiLenChanged();
-		EncodingManager::ai_len_changed();
+		ai_len_changed();
 		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:
@@ -2859,7 +2858,7 @@ void write_aih()
 			+ ((*address_low & 3) ^ S16))) = hword;
 		ai_register.ai_len = temp;
 		aiLenChanged();
-		EncodingManager::ai_len_changed();
+		ai_len_changed();
 		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:
@@ -2949,7 +2948,7 @@ void write_aid()
 		ai_register.ai_dram_addr = dword >> 32;
 		ai_register.ai_len = dword & 0xFFFFFFFF;
 		aiLenChanged();
-		EncodingManager::ai_len_changed();
+		ai_len_changed();
 		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:

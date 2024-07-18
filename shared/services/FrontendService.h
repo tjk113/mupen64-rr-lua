@@ -114,6 +114,11 @@ void update_screen();
 void at_vi();
 
 /**
+ * \brief Notifies the frontend of the audio changing
+ */
+void ai_len_changed();
+
+/**
  * \brief Finds the first rom from the available ROM list which matches the predicate
  * \param predicate A predicate which determines if the rom matches
  * \return The rom's path, or an empty string if no rom was found
