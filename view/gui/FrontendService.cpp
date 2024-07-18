@@ -82,6 +82,11 @@ void show_information(const char* str, const char* title, void* hwnd)
 	}
 }
 
+void show_statusbar(const char* str)
+{
+	Statusbar::post(str);
+}
+
 bool is_on_gui_thread()
 {
 	return GetCurrentThreadId() == g_ui_thread_id;
@@ -300,6 +305,16 @@ void at_vi()
 std::string find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
 {
 	return Rombrowser::find_available_rom(predicate);
+}
+
+void mge_read_screen(void** dest, long* width, long* height)
+{
+	MGECompositor::read_screen(dest, width, height);
+}
+
+void mge_load_screen(void* data, long width, long height)
+{
+	MGECompositor::load_screen(data, width, height);
 }
 
 

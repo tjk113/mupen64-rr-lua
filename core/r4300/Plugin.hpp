@@ -287,3 +287,11 @@ std::vector<std::unique_ptr<Plugin>> get_available_plugins();
 /// Initializes dummy info used by per-plugin functions
 /// </summary>
 void setup_dummy_info();
+
+/**
+ * \brief Whether the MGE compositor is available
+ */
+inline bool is_mge_available()
+{
+	return get_video_size && read_video;
+}

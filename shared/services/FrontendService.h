@@ -55,6 +55,12 @@ void show_error(const char* str, const char* title = nullptr, void* hwnd = nullp
 void show_information(const char* str, const char* title = nullptr, void* hwnd = nullptr);
 
 /**
+ * \brief Shows text in the statusbar
+ * \param str The text
+ */
+void show_statusbar(const char* str);
+
+/**
  * \brief Whether the current execution is on the UI thread
  */
 bool is_on_gui_thread();
@@ -113,3 +119,19 @@ void at_vi();
  * \return The rom's path, or an empty string if no rom was found
  */
 std::string find_available_rom(const std::function<bool(const t_rom_header&)>& predicate);
+
+/**
+ * \brief Writes the MGE compositor's current emulation front buffer into the destination buffer
+ * \param dest The buffer holding video data of size <c>width * height</c>
+ * \param width The buffer's width
+ * \param height The buffer's height
+ */
+void mge_read_screen(void** dest, long* width, long* height);
+
+/**
+ * \brief Draws the given data to the MGE surface
+ * \param data The buffer holding video data of size <c>width * height</c>
+ * \param width The buffer's width
+ * \param height The buffer's height
+ */
+void mge_load_screen(void* data, long width, long height);
