@@ -1,8 +1,5 @@
 #pragma once
 
-extern bool dma_read_enabled;
-extern bool coredbg_resumed;
-
 namespace CoreDbg
 {
 	/**

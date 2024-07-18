@@ -12,8 +12,7 @@
 #include <core/r4300/r4300.h>
 #include <core/r4300/disasm.h>
 
-bool dma_read_enabled = true;
-bool coredbg_resumed = true;
+#include "core/r4300/debugger.h"
 
 namespace CoreDbg
 {
@@ -55,14 +54,14 @@ namespace CoreDbg
 				break;
 
 			SetWindowText(GetDlgItem(hwnd, IDC_COREDBG_TOGGLEPAUSE),
-			              coredbg_resumed ? "Pause" : "Resume");
+			              Debugger::get_resumed() ? "Pause" : "Resume");
 			break;
 		case WM_COMMAND:
 			switch (LOWORD(w_param))
 			{
 			case IDC_COREDBG_CART_TILT:
-				dma_read_enabled = !IsDlgButtonChecked(
-					hwnd, IDC_COREDBG_CART_TILT);
+				Debugger::set_dma_read_enabled(!IsDlgButtonChecked(
+					hwnd, IDC_COREDBG_CART_TILT));
 				break;
 			case IDC_COREDBG_RSP_TOGGLE:
 
@@ -83,10 +82,10 @@ namespace CoreDbg
 				// set step flag and resume
 				// the flag is cleared at the end of the current cycle
 				cycle_advance = true;
-				coredbg_resumed = true;
+				Debugger::set_is_resumed(true);
 				break;
 			case IDC_COREDBG_TOGGLEPAUSE:
-				coredbg_resumed ^= true;
+				Debugger::set_is_resumed(!Debugger::get_resumed());
 				ui_invalidated = true;
 				break;
 			default:
@@ -119,7 +118,7 @@ namespace CoreDbg
 		if (cycle_advance)
 		{
 			cycle_advance = false;
-			coredbg_resumed = false;
+			Debugger::set_is_resumed(false);
 			ui_invalidated = true;
 
 			char disasm[255] = {0};

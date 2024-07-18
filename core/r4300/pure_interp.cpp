@@ -3185,7 +3185,7 @@ void pure_interpreter()
 		PC->addr = interp_addr;
 		if (debugger_mode) update_debugger();
 #endif
-		while (!Debugger::is_resumed())
+		while (!Debugger::get_resumed())
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}

@@ -40,9 +40,10 @@
 #include "summercart.h"
 #include <shared/services/FrontendService.h>
 #include "../r4300/ops.h"
-#include <view/gui/features/CoreDbg.h>
 #include "savestates.h"
 #include <shared/Config.hpp>
+
+#include "core/r4300/debugger.h"
 
 void dma_pi_read()
 {
@@ -185,8 +186,8 @@ void dma_pi_write()
 			unsigned long rdram_address2 = pi_register.pi_dram_addr_reg + i + 0xa0000000;
 
 			((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-				!dma_read_enabled
-					? (255)
+				!Debugger::get_dma_read_enabled()
+					? 0xFF
 					: rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
 
 			if (!invalid_code[rdram_address1 >> 12])
@@ -202,8 +203,8 @@ void dma_pi_write()
 		for (i = 0; i < longueur; i++)
 		{
 			((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-				!dma_read_enabled
-					? (255)
+				!Debugger::get_dma_read_enabled()
+					? 0xFF
 					: rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
 		}
 	}
