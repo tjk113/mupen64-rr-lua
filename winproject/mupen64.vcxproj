@@ -269,7 +269,6 @@
         <ClCompile Include="..\lib\speex\speex_resampler.c"/>
         <ClCompile Include="..\lib\md5.c"/>
         <ClCompile Include="..\shared\Config.cpp"/>
-        <ClCompile Include="..\shared\helpers\io_helpers.cpp"/>
         <ClCompile Include="..\shared\messenger.cpp"/>
         <ClCompile Include="..\view\capture\encoders\AVIEncoder.cpp"/>
         <ClCompile Include="..\view\capture\encoders\FFmpegEncoder.cpp"/>
