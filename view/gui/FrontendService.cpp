@@ -50,11 +50,6 @@ void FrontendService::show_statusbar(const char* str)
 	Statusbar::post(str);
 }
 
-bool FrontendService::is_on_gui_thread()
-{
-	return GetCurrentThreadId() == g_ui_thread_id;
-}
-
 std::filesystem::path FrontendService::get_app_path()
 {
 	return app_path;

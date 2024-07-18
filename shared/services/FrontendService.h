@@ -54,11 +54,6 @@ namespace FrontendService
 	void show_statusbar(const char* str);
 
 	/**
-	 * \brief Whether the current execution is on the UI thread
-	 */
-	bool is_on_gui_thread();
-
-	/**
 	 * \brief Gets the path to the directory containing the mupen64 executable
 	 */
 	std::filesystem::path get_app_path();

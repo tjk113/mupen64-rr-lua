@@ -84,3 +84,8 @@ std::string hotkey_to_string(const t_hotkey* hotkey);
  * \remarks If the user has chosen to not use modals, this function will return true by default
  */
 bool confirm_user_exit();
+
+/**
+ * \brief Whether the current execution is on the UI thread
+ */
+bool is_on_gui_thread();

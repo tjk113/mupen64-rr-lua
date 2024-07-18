@@ -715,6 +715,11 @@ bool confirm_user_exit()
 	return res == IDYES || warnings == 0;
 }
 
+bool is_on_gui_thread()
+{
+	return GetCurrentThreadId() == g_ui_thread_id;
+}
+
 void ClearButtons()
 {
 	BUTTONS zero = {0};

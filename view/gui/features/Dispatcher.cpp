@@ -14,7 +14,7 @@ namespace Dispatcher
 
 	void invoke(const std::function<void()>& func)
 	{
-		if (FrontendService::is_on_gui_thread())
+		if (is_on_gui_thread())
 		{
 			func();
 			return;
