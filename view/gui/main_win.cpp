@@ -553,7 +553,7 @@ void on_vis_since_input_poll_exceeded(std::any)
 		return;
 	}
 
-	if (Config.silent_mode || show_ask_dialog(
+	if (Config.silent_mode || FrontendService::show_ask_dialog(
 		"An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
 		"Warning", true))
 	{
@@ -569,19 +569,19 @@ void on_core_result(std::any data)
 	switch (value)
 	{
 	case Core::Result::NoMatchingRom:
-		show_error("The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.");
+		FrontendService::show_error("The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.");
 		break;
 	case Core::Result::PluginError:
-		if (show_ask_dialog("Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?"))
+		if (FrontendService::show_ask_dialog("Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?"))
 		{
 			SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 		}
 		break;
 	case Core::Result::RomInvalid:
-		show_error("The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.");
+		FrontendService::show_error("The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.");
 		break;
 	case Core::Result::FileOpenFailed:
-		show_error("Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.");
+		FrontendService::show_error("Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.");
 		break;
 	default:
 		break;
@@ -1365,7 +1365,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					if (VCR::start_record(result.path, result.start_flag, result.author, result.description) != VCR::Result::Ok)
 					{
-						show_warning(std::format("Couldn't start recording of {}", result.path.string()).c_str(), nullptr);
+						FrontendService::show_warning(std::format("Couldn't start recording of {}", result.path.string()).c_str(), nullptr);
 						break;
 					}
 

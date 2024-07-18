@@ -95,7 +95,7 @@ extern const char* const REG_ATSTOP;
 int AtPanic(lua_State* L)
 {
 	printf("Lua panic: %s\n", lua_tostring(L, -1));
-	show_error(lua_tostring(L, -1), "Lua Panic");
+	FrontendService::show_error(lua_tostring(L, -1), "Lua Panic");
 	return 0;
 }
 
@@ -274,7 +274,7 @@ void lua_exit()
 
 void lua_create_and_run(const char* path)
 {
-	assert(is_on_gui_thread());
+	assert(FrontendService::is_on_gui_thread());
 
 	printf("Creating lua window...\n");
 	auto hwnd = lua_create();
@@ -596,7 +596,7 @@ EmulationLock::~EmulationLock()
 
 void close_all_scripts()
 {
-	assert(is_on_gui_thread());
+	assert(FrontendService::is_on_gui_thread());
 
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	for (auto copy = std::map(hwnd_lua_map); const auto fst : copy | std::views::keys)
@@ -608,7 +608,7 @@ void close_all_scripts()
 
 void stop_all_scripts()
 {
-	assert(is_on_gui_thread());
+	assert(FrontendService::is_on_gui_thread());
 
 	// we mutate the map's nodes while iterating, so we have to make a copy
 	auto copy = std::map(hwnd_lua_map);
@@ -739,7 +739,7 @@ void LuaEnvironment::create_renderer()
 	auto hr = CoInitialize(nullptr);
 	if (hr != S_OK && hr != S_FALSE && hr != RPC_E_CHANGED_MODE)
 	{
-		show_error("Failed to initialize COM.\r\nVerify that your system is up-to-date.");
+		FrontendService::show_error("Failed to initialize COM.\r\nVerify that your system is up-to-date.");
 		return;
 	}
 
@@ -877,7 +877,7 @@ void LuaEnvironment::print_con(HWND hwnd, std::string text)
 
 std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::path path, HWND wnd)
 {
-	assert(is_on_gui_thread());
+	assert(FrontendService::is_on_gui_thread());
 
 	auto lua_environment = new LuaEnvironment();
 
@@ -927,7 +927,7 @@ LuaEnvironment::~LuaEnvironment()
 bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> function,
                                                const char* key)
 {
-	assert(is_on_gui_thread());
+	assert(FrontendService::is_on_gui_thread());
 
 	lua_getfield(L, LUA_REGISTRYINDEX, key);
 	//shouldn't ever happen but could cause kernel panic

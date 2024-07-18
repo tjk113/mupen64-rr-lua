@@ -12,7 +12,7 @@
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
 
-bool show_ask_dialog(const char* str, const char* title, bool warning, void* hwnd)
+bool FrontendService::show_ask_dialog(const char* str, const char* title, bool warning, void* hwnd)
 {
 	if (Config.silent_mode)
 	{
@@ -21,7 +21,7 @@ bool show_ask_dialog(const char* str, const char* title, bool warning, void* hwn
 	return MessageBox(static_cast<HWND>(hwnd ? hwnd : mainHWND), str, title, MB_YESNO | (warning ? MB_ICONWARNING : MB_ICONQUESTION)) == IDYES;
 }
 
-void show_warning(const char* str, const char* title, void* hwnd)
+void FrontendService::show_warning(const char* str, const char* title, void* hwnd)
 {
 	if (!Config.silent_mode)
 	{
@@ -29,7 +29,7 @@ void show_warning(const char* str, const char* title, void* hwnd)
 	}
 }
 
-void show_error(const char* str, const char* title, void* hwnd)
+void FrontendService::show_error(const char* str, const char* title, void* hwnd)
 {
 	if (!Config.silent_mode)
 	{
@@ -37,7 +37,7 @@ void show_error(const char* str, const char* title, void* hwnd)
 	}
 }
 
-void show_information(const char* str, const char* title, void* hwnd)
+void FrontendService::show_information(const char* str, const char* title, void* hwnd)
 {
 	if (!Config.silent_mode)
 	{
@@ -45,22 +45,22 @@ void show_information(const char* str, const char* title, void* hwnd)
 	}
 }
 
-void show_statusbar(const char* str)
+void FrontendService::show_statusbar(const char* str)
 {
 	Statusbar::post(str);
 }
 
-bool is_on_gui_thread()
+bool FrontendService::is_on_gui_thread()
 {
 	return GetCurrentThreadId() == g_ui_thread_id;
 }
 
-std::filesystem::path get_app_path()
+std::filesystem::path FrontendService::get_app_path()
 {
 	return app_path;
 }
 
-void set_default_hotkey_keys(CONFIG* config)
+void FrontendService::set_default_hotkey_keys(CONFIG* config)
 {
 	config->fast_forward_hotkey.key = VK_TAB;
 
@@ -224,32 +224,32 @@ void set_default_hotkey_keys(CONFIG* config)
 	config->select_slot_10_hotkey.key = '0';
 }
 
-void* get_app_instance_handle()
+void* FrontendService::get_app_instance_handle()
 {
 	return app_instance;
 }
 
-void* get_main_window_handle()
+void* FrontendService::get_main_window_handle()
 {
 	return mainHWND;
 }
 
-void* get_statusbar_handle()
+void* FrontendService::get_statusbar_handle()
 {
 	return Statusbar::hwnd();
 }
 
-void* get_plugin_config_parent_handle()
+void* FrontendService::get_plugin_config_parent_handle()
 {
 	return hwnd_plug;
 }
 
-bool get_prefers_no_render_skip()
+bool FrontendService::get_prefers_no_render_skip()
 {
 	return EncodingManager::is_capturing();
 }
 
-void update_screen()
+void FrontendService::update_screen()
 {
 	if (MGECompositor::available())
 	{
@@ -260,27 +260,27 @@ void update_screen()
 	}
 }
 
-void at_vi()
+void FrontendService::at_vi()
 {
 	EncodingManager::at_vi();
 }
 
-void ai_len_changed()
+void FrontendService::ai_len_changed()
 {
 	EncodingManager::ai_len_changed();
 }
 
-std::string find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
+std::string FrontendService::find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
 {
 	return Rombrowser::find_available_rom(predicate);
 }
 
-void mge_read_screen(void** dest, long* width, long* height)
+void FrontendService::mge_read_screen(void** dest, long* width, long* height)
 {
 	MGECompositor::read_screen(dest, width, height);
 }
 
-void mge_load_screen(void* data, long width, long height)
+void FrontendService::mge_load_screen(void* data, long width, long height)
 {
 	MGECompositor::load_screen(data, width, height);
 }

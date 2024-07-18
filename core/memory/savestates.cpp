@@ -79,7 +79,7 @@ std::filesystem::path get_saves_directory()
 {
 	if (Config.is_default_saves_directory_used)
 	{
-		return get_app_path().string() + "save\\";
+		return FrontendService::get_app_path().string() + "save\\";
 	}
 	return Config.saves_directory;
 }
@@ -222,7 +222,7 @@ std::vector<uint8_t> generate_savestate()
 		void* video;
 		long width;
 		long height;
-		mge_read_screen(&video, &width, &height);
+		FrontendService::mge_read_screen(&video, &width, &height);
 
 		vecwrite(b, screen_section, sizeof(screen_section));
 		vecwrite(b, &width, sizeof(width));
@@ -253,7 +253,7 @@ void savestates_save_immediate()
 
 	if (!savestates_job_success)
 	{
-		show_statusbar("Failed to save savestate");
+		FrontendService::show_statusbar("Failed to save savestate");
 		savestates_job_success = false;
 		return;
 	}
@@ -289,7 +289,7 @@ void savestates_save_immediate()
 
 		if (f == nullptr)
 		{
-			show_statusbar("Failed to save savestate");
+			FrontendService::show_statusbar("Failed to save savestate");
 			savestates_job_success = false;
 			return;
 		}
@@ -299,10 +299,10 @@ void savestates_save_immediate()
 
 		if (st_medium == e_st_medium::path)
 		{
-			show_statusbar(std::format("Saved {}", new_st_path.filename().string()).c_str());
+			FrontendService::show_statusbar(std::format("Saved {}", new_st_path.filename().string()).c_str());
 		} else
 		{
-			show_statusbar(std::format("Saved slot {}", st_slot + 1).c_str());
+			FrontendService::show_statusbar(std::format("Saved slot {}", st_slot + 1).c_str());
 		}
 	} else
 	{
@@ -422,7 +422,7 @@ void savestates_load_immediate()
 
 	if (st_buf.empty())
 	{
-		show_statusbar(std::format("{} not found", new_st_path.filename().string()).c_str());
+		FrontendService::show_statusbar(std::format("{} not found", new_st_path.filename().string()).c_str());
 		savestates_job_success = false;
 		return;
 	}
@@ -430,7 +430,7 @@ void savestates_load_immediate()
 	std::vector<uint8_t> decompressed_buf = auto_decompress(st_buf);
 	if (decompressed_buf.empty())
 	{
-		show_error("Failed to decompress savestate", nullptr);
+		FrontendService::show_error("Failed to decompress savestate", nullptr);
 		savestates_job_success = false;
 		return;
 	}
@@ -445,7 +445,7 @@ void savestates_load_immediate()
 
 	if (memcmp(md5, rom_md5, 32))
 	{
-		auto result = show_ask_dialog(std::format(
+		auto result = FrontendService::show_ask_dialog(std::format(
 				"The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?",
 				md5).c_str());
 
@@ -471,7 +471,7 @@ void savestates_load_immediate()
 	{
 		// Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
 		fprintf(stderr, "Snapshot event queue terminator not reached.\n");
-		show_statusbar("Event queue too long (corrupted?)");
+		FrontendService::show_statusbar("Event queue too long (corrupted?)");
 		savestates_job_success = false;
 		return;
 	}
@@ -516,7 +516,7 @@ void savestates_load_immediate()
 				break;
 			}
 			err_str += "\r\nAre you sure you want to continue?";
-			auto result = show_ask_dialog(err_str.c_str(), nullptr, true);
+			auto result = FrontendService::show_ask_dialog(err_str.c_str(), nullptr, true);
 			if (!result)
 			{
 				VCR::stop_all();
@@ -528,7 +528,7 @@ void savestates_load_immediate()
 	{
 		if (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback)
 		{
-			auto result = show_ask_dialog("Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?");
+			auto result = FrontendService::show_ask_dialog("Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?");
 			if (!result)
 			{
 				savestates_job_success = false;
@@ -567,10 +567,10 @@ void savestates_load_immediate()
 		if (is_mge_available() && video_buffer && !VCR::is_seeking())
 		{
 			long current_width, current_height;
-			mge_read_screen(nullptr, &current_width, &current_height);
+			FrontendService::mge_read_screen(nullptr, &current_width, &current_height);
 			if (current_width == video_width && current_height == video_height)
 			{
-				mge_load_screen(video_buffer, video_width, video_height);
+				FrontendService::mge_load_screen(video_buffer, video_width, video_height);
 				free(video_buffer);
 			}
 		}
@@ -578,11 +578,11 @@ void savestates_load_immediate()
 	LuaService::call_load_state();
 	if (st_medium == e_st_medium::path)
 	{
-		show_statusbar(std::format("Loaded {}", new_st_path.filename().string()).c_str());
+		FrontendService::show_statusbar(std::format("Loaded {}", new_st_path.filename().string()).c_str());
 	}
 	if (st_medium == e_st_medium::slot)
 	{
-		show_statusbar(std::format("Loaded slot {}", st_slot + 1).c_str());
+		FrontendService::show_statusbar(std::format("Loaded slot {}", st_slot + 1).c_str());
 	}
 failedLoad:
 	extern bool ignore;

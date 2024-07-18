@@ -320,7 +320,7 @@ CONFIG get_default_config()
 		.down_cmd = Action::SelectSlot10,
 	};
 
-	set_default_hotkey_keys(&config);
+	FrontendService::set_default_hotkey_keys(&config);
 
 	return config;
 }
@@ -588,7 +588,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 // TODO: Should return std::filesystem::path
 std::string get_config_path()
 {
-	return get_app_path().string() + "config.ini";
+	return FrontendService::get_app_path().string() + "config.ini";
 }
 
 void save_config()

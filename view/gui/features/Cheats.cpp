@@ -88,7 +88,7 @@ namespace Cheats
 
 					if (!script.has_value())
 					{
-						show_error("Cheat code could not be compiled.\r\nVerify that the syntax is correct.", nullptr, hwnd);
+						FrontendService::show_error("Cheat code could not be compiled.\r\nVerify that the syntax is correct.", nullptr, hwnd);
 						break;
 					}
 

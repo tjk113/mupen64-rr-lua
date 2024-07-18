@@ -84,7 +84,7 @@ static char* get_st_path(const char* filename)
 
 static int sd_error(const char* text, const char* caption)
 {
-	show_information(text, caption);
+	FrontendService::show_information(text, caption);
 	return -1;
 }
 

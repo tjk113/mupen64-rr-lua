@@ -245,7 +245,7 @@ namespace EncodingManager
 					}
 					if (!m_encoder->append_audio((unsigned char*)buf2, len2))
 					{
-						show_information(
+						FrontendService::show_information(
 							"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
 							nullptr);
 						stop_capture();
@@ -260,7 +260,7 @@ namespace EncodingManager
 			if ((unsigned int)(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(
 				char))
 			{
-				show_error("Sound buffer overflow");
+				FrontendService::show_error("Sound buffer overflow");
 				printf("SOUND BUFFER OVERFLOW\n");
 				return;
 			}
@@ -329,7 +329,7 @@ namespace EncodingManager
 
 		if (!effective_readscreen())
 		{
-			show_error("Couldn't find a readScreen candidate.\r\nTry selecting another capture mode.", "Capture");
+			FrontendService::show_error("Couldn't find a readScreen candidate.\r\nTry selecting another capture mode.", "Capture");
 			return false;
 		}
 
@@ -369,7 +369,7 @@ namespace EncodingManager
 
 		if (!result)
 		{
-			show_error("Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", "Capture");
+			FrontendService::show_error("Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", "Capture");
 			return false;
 		}
 
@@ -394,7 +394,7 @@ namespace EncodingManager
 
 		if (!m_encoder->stop())
 		{
-			show_error("Failed to stop encoding.", "Capture");
+			FrontendService::show_error("Failed to stop encoding.", "Capture");
 			return false;
 		}
 
@@ -457,7 +457,7 @@ namespace EncodingManager
 		{
 			if (audio_frames < 0)
 			{
-				show_error("Audio frames became negative!", "Capture");
+				FrontendService::show_error("Audio frames became negative!", "Capture");
 				stop_capture();
 				goto cleanup;
 			}
@@ -469,7 +469,7 @@ namespace EncodingManager
 			{
 				if (!m_encoder->append_video((unsigned char*)image))
 				{
-					show_error(
+					FrontendService::show_error(
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 					stop_capture();
@@ -484,7 +484,7 @@ namespace EncodingManager
 			{
 				if (!m_encoder->append_video((unsigned char*)image))
 				{
-					show_error(
+					FrontendService::show_error(
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 					stop_capture();
@@ -499,7 +499,7 @@ namespace EncodingManager
 		{
 			if (!m_encoder->append_video((unsigned char*)image))
 			{
-				show_error(
+				FrontendService::show_error(
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 				stop_capture();
@@ -597,7 +597,7 @@ namespace EncodingManager
 
 		if (capturing)
 		{
-			show_error("Audio frequency changed during capture.\r\nThe capture will be stopped.", "Capture");
+			FrontendService::show_error("Audio frequency changed during capture.\r\nThe capture will be stopped.", "Capture");
 			stop_capture();
 			return;
 		}

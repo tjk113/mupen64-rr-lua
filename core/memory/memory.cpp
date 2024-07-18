@@ -2662,7 +2662,7 @@ void write_ai()
 	case 0x4:
 		ai_register.ai_len = word;
 		aiLenChanged();
-		ai_len_changed();
+		FrontendService::ai_len_changed();
 		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:
@@ -2760,7 +2760,7 @@ void write_aib()
 			+ ((*address_low & 3) ^ S8)) = g_byte;
 		ai_register.ai_len = temp;
 		aiLenChanged();
-		ai_len_changed();
+		FrontendService::ai_len_changed();
 		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:
@@ -2858,7 +2858,7 @@ void write_aih()
 			+ ((*address_low & 3) ^ S16))) = hword;
 		ai_register.ai_len = temp;
 		aiLenChanged();
-		ai_len_changed();
+		FrontendService::ai_len_changed();
 		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:
@@ -2948,7 +2948,7 @@ void write_aid()
 		ai_register.ai_dram_addr = dword >> 32;
 		ai_register.ai_len = dword & 0xFFFFFFFF;
 		aiLenChanged();
-		ai_len_changed();
+		FrontendService::ai_len_changed();
 		switch (ROM_HEADER.Country_code & 0xFF)
 		{
 		case 0x44:
@@ -3675,7 +3675,7 @@ void read_sc_regh()
 
 void read_sc_regd()
 {
-	show_warning("read_sc_regd not supported by RCP", "Error");
+	FrontendService::show_warning("read_sc_regd not supported by RCP", "Error");
 	stop = 1;
 }
 

@@ -669,7 +669,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	{
 		if (Present && RawData)
 		{
-			bool proceed = show_ask_dialog(rawdata_warning_message, "VCR", true);
+			bool proceed = FrontendService::show_ask_dialog(rawdata_warning_message, "VCR", true);
 			if (!proceed)
 			{
 				return Result::Cancelled;
@@ -895,7 +895,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		if (!Present || !RawData)
 			continue;
 
-		bool proceed = show_ask_dialog(rawdata_warning_message, "VCR", true);
+		bool proceed = FrontendService::show_ask_dialog(rawdata_warning_message, "VCR", true);
 		if (!proceed)
 		{
 			return Result::Cancelled;
@@ -912,13 +912,13 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
 	if (strlen(dummy) > 0)
 	{
-		show_warning(dummy, "VCR");
+		FrontendService::show_warning(dummy, "VCR");
 	}
 
 	if (_stricmp(g_header.rom_name,
 	             (const char*)ROM_HEADER.nom) != 0)
 	{
-		bool proceed = show_ask_dialog(std::format(rom_name_warning_message, g_header.rom_name, (const char*)ROM_HEADER.nom).c_str(), "VCR", true);
+		bool proceed = FrontendService::show_ask_dialog(std::format(rom_name_warning_message, g_header.rom_name, (const char*)ROM_HEADER.nom).c_str(), "VCR", true);
 
 		if (!proceed)
 		{
@@ -929,7 +929,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		if (g_header.rom_country != ROM_HEADER.
 			Country_code)
 		{
-			bool proceed = show_ask_dialog(std::format(rom_country_warning_message, g_header.rom_country, ROM_HEADER.Country_code).c_str(), "VCR", true);
+			bool proceed = FrontendService::show_ask_dialog(std::format(rom_country_warning_message, g_header.rom_country, ROM_HEADER.Country_code).c_str(), "VCR", true);
 			if (!proceed)
 			{
 				return Result::Cancelled;
@@ -944,7 +944,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 				(unsigned int)g_header.rom_crc1,
 				(unsigned int)ROM_HEADER.CRC1);
 
-			bool proceed = show_ask_dialog(str, "VCR", true);
+			bool proceed = FrontendService::show_ask_dialog(str, "VCR", true);
 			if (!proceed)
 			{
 				return Result::Cancelled;
