@@ -45,7 +45,6 @@
 #include <shared/Config.hpp>
 #include <shared/services/FrontendService.h>
 // Threading crap
-#include <Windows.h>
 
 #include "gameshark.h"
 
@@ -54,8 +53,9 @@ extern int debugger_mode;
 extern void update_debugger();
 #endif
 
-HANDLE emu_thread_handle;
-HANDLE audio_thread_handle;
+std::thread emu_thread_handle;
+std::thread audio_thread_handle;
+
 std::atomic<bool> audio_thread_stop_requested;
 
 // Lock to prevent emu state change race conditions
@@ -1874,11 +1874,6 @@ void core_start()
 		init_blocks();
 
 		auto code_addr = actual->code + (actual->block[0x40 / 4].local_addr);
-		DWORD dummy;
-		if (!VirtualProtectEx(GetCurrentProcess(), code_addr, actual->code_length, PAGE_EXECUTE_READWRITE, &dummy))
-		{
-			printf("VirtualProtectEx failed\n");
-		}
 
 		code = (void (*)(void))(code_addr);
 		dyna_start(code);
@@ -1964,12 +1959,12 @@ void clear_save_data()
 	fclose(g_mpak_file);
 }
 
-DWORD WINAPI audio_thread(LPVOID)
+void audio_thread()
 {
 	printf("Sound thread entering...\n");
 	while (true)
 	{
-		Sleep(1);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
 		if (audio_thread_stop_requested == true)
 		{
@@ -1989,10 +1984,9 @@ DWORD WINAPI audio_thread(LPVOID)
 		aiUpdate(0);
 	}
 	printf("Sound thread exiting...\n");
-	return 0;
 }
 
-DWORD WINAPI ThreadFunc(LPVOID)
+void emu_thread()
 {
 	auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -2018,7 +2012,7 @@ DWORD WINAPI ThreadFunc(LPVOID)
 
 	dynacore = Config.core_type;
 
-	audio_thread_handle = CreateThread(nullptr, 0, audio_thread, nullptr, 0, nullptr);
+	audio_thread_handle = std::thread(audio_thread);
 
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
 	Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
@@ -2037,7 +2031,6 @@ DWORD WINAPI ThreadFunc(LPVOID)
 	closeDLL_input();
 	closeDLL_RSP();
 
-	emu_thread_handle = nullptr;
 	emu_paused = true;
 	emu_launched = false;
 
@@ -2045,8 +2038,6 @@ DWORD WINAPI ThreadFunc(LPVOID)
 	{
 		Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	}
-
-	return 0;
 }
 
 Core::Result vr_start_rom(std::filesystem::path path)
@@ -2164,7 +2155,7 @@ Core::Result vr_start_rom(std::filesystem::path path)
 
 	emu_paused = false;
 	emu_launched = true;
-	emu_thread_handle = CreateThread(NULL, 0, ThreadFunc, NULL, 0, nullptr);
+	emu_thread_handle = std::thread(emu_thread);
 
 	// We need to wait until the core is actually done and running before we can continue, because we release the lock
 	// If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
@@ -2190,7 +2181,7 @@ Core::Result vr_close_rom(bool stop_vcr)
 	resume_emu();
 
 	audio_thread_stop_requested = true;
-	WaitForSingleObject(audio_thread_handle, INFINITE);
+	audio_thread_handle.join();
 	audio_thread_stop_requested = false;
 
 	if (stop_vcr)
@@ -2205,12 +2196,7 @@ Core::Result vr_close_rom(bool stop_vcr)
 	// we signal the core to stop, then wait until thread exits
 	terminate_emu();
 
-	DWORD result = WaitForSingleObject(emu_thread_handle, 2'000);
-	if (result == WAIT_TIMEOUT)
-	{
-		printf("[Core] Emulation thread timed out!!!\n");
-		TerminateThread(emu_thread_handle, 0);
-	}
+	emu_thread_handle.join();
 
 	fflush(g_eeprom_file);
 	fflush(g_sram_file);
