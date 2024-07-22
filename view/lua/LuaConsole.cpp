@@ -51,6 +51,7 @@
 #include "modules/wgui.h"
 #include <core/r4300/timers.h>
 
+#include "presenters/DCompPresenter.h"
 #include "shared/services/FrontendService.h"
 
 extern unsigned long vr_op;
@@ -634,15 +635,11 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 			BeginPaint(hwnd, &ps);
 			GetClientRect(hwnd, &rect);
 
-			lua->d2d_dc->BeginDraw();
-			lua->d3d_dc->CopyResource(lua->dxgi_surface_resource, lua->front_buffer);
-			lua->d2d_dc->SetTransform(D2D1::Matrix3x2F::Identity());
+			lua->presenter->begin_present();
 
 			bool failed = lua->invoke_callbacks_with_key(LuaService::state_update_screen, REG_ATDRAWD2D);
 
-			lua->d2d_dc->EndDraw();
-			lua->dxgi_swapchain->Present(0, 0);
-			lua->comp_device->Commit();
+			lua->presenter->end_present();
 
 			if (failed)
 			{
@@ -772,14 +769,10 @@ void LuaEnvironment::create_renderer()
 	// Key 0 is reserved for clearing the image pool, too late to change it now...
 	image_pool_index = 1;
 
-	if (!create_composition_surface(d2d_overlay_hwnd, dc_size, &factory, &dxgiadapter, &d3device, &dxdevice, &bitmap, &comp_visual, &comp_device, &comp_target,
-	                                &dxgi_swapchain, &d2d_factory, &d2d_device, &d3d_dc, &d2d_dc, &dxgi_surface, &dxgi_surface_resource, &front_buffer, &d3d_gdi_tex))
-	{
-		printf("Failed to set up composition\n");
-		return;
-	}
+	presenter = new DCompPresenter();
+	presenter->init(d2d_overlay_hwnd);
 
-	d2d_render_target_stack.push(d2d_dc);
+	d2d_render_target_stack.push(presenter->dc());
 	dw_text_layouts = MicroLRU::Cache<uint64_t, IDWriteTextLayout*>(128, [&] (auto value)
 	{
 		// printf("[Lua] Evicting text layout..\n");
@@ -805,7 +798,7 @@ void LuaEnvironment::create_renderer()
 
 void LuaEnvironment::destroy_renderer()
 {
-	if (!d2d_dc)
+	if (!presenter)
 	{
 		return;
 	}
@@ -826,23 +819,8 @@ void LuaEnvironment::destroy_renderer()
 	image_pool.clear();
 
 	DestroyWindow(d2d_overlay_hwnd);
-	d3d_gdi_tex->Release();
-	front_buffer->Release();
-	dxgi_surface_resource->Release();
-	dxgi_surface->Release();
-	d2d_dc->Release();
-	d3d_dc->Release();
-	comp_device->Release();
-	comp_target->Release();
-	dxgi_swapchain->Release();
-	d2d_factory->Release();
-	d2d_device->Release();
-	comp_visual->Release();
-	bitmap->Release();
-	dxdevice->Release();
-	d3device->Release();
-	dxgiadapter->Release();
-	factory->Release();
+	delete presenter;
+	presenter = nullptr;
 
 	DestroyWindow(gdi_overlay_hwnd);
 	SelectObject(gdi_back_dc, nullptr);

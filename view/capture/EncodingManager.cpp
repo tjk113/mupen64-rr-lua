@@ -163,36 +163,11 @@ namespace EncodingManager
 
 			// First, composite the lua's dxgi surfaces
 			for (auto& pair : hwnd_lua_map) {
-				HDC dc;
-				BLENDFUNCTION func = {
-					.BlendOp = AC_SRC_OVER,
-					.BlendFlags = 0,
-					.SourceConstantAlpha = 255,
-					.AlphaFormat = AC_SRC_ALPHA
-				};
-
-				ID3D11Resource* rc;
-				pair.second->dxgi_surface->QueryInterface(&rc);
-
-				ID3D11DeviceContext* ctx;
-				pair.second->d3device->GetImmediateContext(&ctx);
-				ctx->CopySubresourceRegion(pair.second->d3d_gdi_tex, 0, 0, 0, 0, rc, 0, nullptr);
-
-				IDXGISurface1* dxgi_surface;
-				pair.second->d3d_gdi_tex->QueryInterface(&dxgi_surface);
-				dxgi_surface->GetDC(false, &dc);
-
-				AlphaBlend(compat_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, func);
-
-				dxgi_surface->ReleaseDC(nullptr);
-				ctx->Release();
-				dxgi_surface->Release();
-				rc->Release();
+				pair.second->presenter->blit(compat_dc, { 0, 0, (LONG)pair.second->presenter->size().width, (LONG)pair.second->presenter->size().height });
 			}
 
 			// Then, blit the GDI back DCs
 			for (auto& pair : hwnd_lua_map) {
-				//BitBlt(compat_dc, 0, 0, *width, *height, pair.second->gdi_back_dc, 0, 0, SRCCOPY);
 				TransparentBlt(compat_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, pair.second->gdi_back_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, lua_gdi_color_mask);
 			}
 
