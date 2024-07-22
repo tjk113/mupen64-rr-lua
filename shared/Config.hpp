@@ -87,6 +87,12 @@ enum class Action
 	SelectSlot10,
 };
 
+enum class PresenterType : int32_t
+{
+	DirectComposition,
+	GDI
+};
+
 typedef struct t_hotkey
 {
 	std::string identifier;
@@ -342,6 +348,11 @@ typedef struct _CONFIG
 	/// 3 = Use the video plugin's readScreen or read_video (MGE) composited with lua scripts
 	/// </summary>
 	int32_t capture_mode = 3;
+
+	/// <summary>
+	/// The presenter to use for Lua scripts
+	/// </summary>
+	int32_t presenter_type = static_cast<int32_t>(PresenterType::DirectComposition);
 
 	/// <summary>
 	/// The delay (in milliseconds) before capturing the window

@@ -14,7 +14,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Neutral (Standard) resources
+// Neutral (Default) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
@@ -277,35 +277,37 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Interface",IDC_MESSAGES,6,6,216,42
-    GROUPBOX        "Flow",IDC_FPSTITLE,6,54,215,30
-    GROUPBOX        "Core",IDC_CPUCORE,6,156,216,120
-    CONTROL         "Interpreter",IDC_INTERP,"Button",BS_AUTORADIOBUTTON,12,168,96,8
-    CONTROL         "Dynamic Recompiler",IDC_RECOMP,"Button",BS_AUTORADIOBUTTON,12,181,96,8
-    CONTROL         "Pure Interpreter",IDC_PURE_INTERP,"Button",BS_AUTORADIOBUTTON,12,192,96,8
-    EDITTEXT        IDC_SKIPFREQ,114,66,78,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Fast forward skip frequency:",IDC_FASTFORWARDSKIPFREQ,12,66,96,12,SS_CENTERIMAGE
-    PUSHBUTTON      "?",IDC_SKIPFREQUENCY_HELP,198,66,14,12
-    CONTROL         "Audio Delay",IDC_ENABLE_AUDIO_DELAY,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,12,204,96,8
-    CONTROL         "Compiled Jump",IDC_ENABLE_COMPILED_JUMP,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,12,216,96,8
-    CONTROL         "Emulate float crashes",IDC_EMULATEFLOATCRASHES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,216,96,8
-    CONTROL         "WiiVC Rounding",IDC_ROUNDTOZERO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,228,96,10
-    CONTROL         "Movie Backups",IDC_MOVIE_BACKUPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,228,96,10
+    GROUPBOX        "Flow",IDC_FPSTITLE,6,48,215,30
+    GROUPBOX        "Core",IDC_CPUCORE,6,162,216,101
+    CONTROL         "Interpreter",IDC_INTERP,"Button",BS_AUTORADIOBUTTON,12,174,96,8
+    CONTROL         "Dynamic Recompiler",IDC_RECOMP,"Button",BS_AUTORADIOBUTTON,12,187,96,8
+    CONTROL         "Pure Interpreter",IDC_PURE_INTERP,"Button",BS_AUTORADIOBUTTON,12,198,96,8
+    EDITTEXT        IDC_SKIPFREQ,114,60,78,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Fast forward skip frequency:",IDC_FASTFORWARDSKIPFREQ,12,60,96,12,SS_CENTERIMAGE
+    PUSHBUTTON      "?",IDC_SKIPFREQUENCY_HELP,198,60,14,12
+    CONTROL         "Audio Delay",IDC_ENABLE_AUDIO_DELAY,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,12,210,96,8
+    CONTROL         "Compiled Jump",IDC_ENABLE_COMPILED_JUMP,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,12,222,96,8
+    CONTROL         "Emulate float crashes",IDC_EMULATEFLOATCRASHES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,222,96,8
+    CONTROL         "WiiVC Rounding",IDC_ROUNDTOZERO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,234,96,10
+    CONTROL         "Movie Backups",IDC_MOVIE_BACKUPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,234,96,10
     CONTROL         "Pause when unfocused",IDC_PAUSENOTACTIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,18,96,8
-    GROUPBOX        "Capture",IDC_FPSTITLE2,6,84,215,66
-    CONTROL         "Record resets",IDC_RECORD_RESETS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,96,100,8
-    CONTROL         "Emulate SD Card",IDC_USESUMMERCART,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,108,96,8
-    LTEXT           "Capture delay:",IDC_STATIC,114,96,49,12,SS_CENTERIMAGE
-    EDITTEXT        IDC_CAPTUREDELAY,168,96,42,12,ES_AUTOHSCROLL | ES_NUMBER
+    GROUPBOX        "Capture",IDC_FPSTITLE2,6,79,215,83
+    CONTROL         "Record resets",IDC_RECORD_RESETS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,91,100,8
+    CONTROL         "Emulate SD Card",IDC_USESUMMERCART,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,103,96,8
+    LTEXT           "Capture delay:",IDC_STATIC,114,91,49,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_CAPTUREDELAY,168,91,42,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Statusbar 0-index",IDC_STATUSBARZEROINDEX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,30,96,8
     CONTROL         "Autoincrement save slot",IDC_AUTOINCREMENTSAVESLOT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,204,96,8
-    LTEXT           "CPU Clock Speed Multiplier",IDC_CLOCK_SPD_MULT,12,240,96,12,SS_CENTERIMAGE
-    COMBOBOX        IDC_COMBO_CLOCK_SPD_MULT,108,240,108,100,CBS_DROPDOWNLIST | WS_TABSTOP
-    COMBOBOX        IDC_ENCODE_MODE,12,132,96,100,CBS_DROPDOWNLIST | WS_TABSTOP
-    COMBOBOX        IDC_ENCODE_SYNC,120,132,96,100,CBS_DROPDOWNLIST | WS_TABSTOP
-    CONTROL         "Save video to savestates",IDC_SAVE_VIDEO_TO_ST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,120,96,8
-    LTEXT           "Max lag frames:",IDC_CLOCK_SPD_MULT2,114,168,54,12,SS_CENTERIMAGE
-    EDITTEXT        IDC_EDIT_MAX_LAG,168,168,42,12,ES_AUTOHSCROLL | ES_NUMBER
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,210,96,8
+    LTEXT           "CPU Clock Speed Multiplier",IDC_CLOCK_SPD_MULT,12,246,96,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_CLOCK_SPD_MULT,108,246,108,100,CBS_DROPDOWNLIST | WS_TABSTOP
+    COMBOBOX        IDC_ENCODE_MODE,12,127,96,100,CBS_DROPDOWNLIST | WS_TABSTOP
+    COMBOBOX        IDC_ENCODE_SYNC,120,127,96,100,CBS_DROPDOWNLIST | WS_TABSTOP
+    CONTROL         "Save video to savestates",IDC_SAVE_VIDEO_TO_ST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,115,96,8
+    LTEXT           "Max lag frames:",IDC_CLOCK_SPD_MULT2,114,174,54,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_EDIT_MAX_LAG,168,174,42,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Lua Presenter:",IDC_TEXT_LUA_PRESENTER,12,145,60,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_LUA_PRESENTER,66,145,150,100,CBS_DROPDOWNLIST | WS_TABSTOP
 END
 
 IDD_MOVIE_DIALOG DIALOGEX 0, 0, 343, 218
@@ -605,12 +607,12 @@ BEGIN
                             "Starts AVI capture with previous codec and preset (avi.cfg)"
 END
 
-#endif    // Neutral (Standard) resources
+#endif    // Neutral (Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Deutsch (Deutschland) resources
+// German (Germany) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
 LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
@@ -761,12 +763,12 @@ BEGIN
     0
 END
 
-#endif    // Deutsch (Deutschland) resources
+#endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Englisch (USA) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -781,7 +783,7 @@ BEGIN
     0
 END
 
-#endif    // Englisch (USA) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

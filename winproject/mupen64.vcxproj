@@ -211,6 +211,7 @@
         <ClInclude Include="..\view\lua\modules\savestate.h"/>
         <ClInclude Include="..\view\lua\modules\wgui.h"/>
         <ClInclude Include="..\view\lua\presenters\DCompPresenter.h" />
+        <ClInclude Include="..\view\lua\presenters\GDIPresenter.h" />
         <ClInclude Include="..\view\lua\presenters\Presenter.h" />
         <ClInclude Include="resource.h" />
     </ItemGroup>
@@ -294,6 +295,7 @@
         <ClCompile Include="..\view\lua\LuaConsole.cpp" />
         <ClCompile Include="..\view\lua\LuaService.cpp" />
         <ClCompile Include="..\view\lua\presenters\DCompPresenter.cpp" />
+        <ClCompile Include="..\view\lua\presenters\GDIPresenter.cpp" />
     </ItemGroup>
     <ItemGroup>
         <Image Include="icons\austral.ico" />
