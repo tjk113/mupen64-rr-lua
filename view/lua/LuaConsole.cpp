@@ -52,6 +52,7 @@
 #include <core/r4300/timers.h>
 
 #include "presenters/DCompPresenter.h"
+#include "presenters/GDIPresenter.h"
 #include "shared/services/FrontendService.h"
 
 extern unsigned long vr_op;
@@ -70,9 +71,6 @@ auto d2d_overlay_class = "lua_d2d_overlay";
 auto gdi_overlay_class = "lua_gdi_overlay";
 
 std::map<HWND, LuaEnvironment*> hwnd_lua_map;
-
-static HBRUSH alpha_mask_brush = CreateSolidBrush(lua_gdi_color_mask);
-
 
 uint64_t inputCount = 0;
 
@@ -769,8 +767,19 @@ void LuaEnvironment::create_renderer()
 	// Key 0 is reserved for clearing the image pool, too late to change it now...
 	image_pool_index = 1;
 
-	presenter = new DCompPresenter();
-	presenter->init(d2d_overlay_hwnd);
+	if (Config.presenter_type != static_cast<int32_t>(PresenterType::GDI))
+	{
+		presenter = new DCompPresenter();
+	} else
+	{
+		presenter = new GDIPresenter();
+	}
+
+	if(!presenter->init(d2d_overlay_hwnd))
+	{
+		FrontendService::show_error("Failed to initialize presenter.\r\nVerify that your system supports the selected presenter.");
+		return;
+	}
 
 	d2d_render_target_stack.push(presenter->dc());
 	dw_text_layouts = MicroLRU::Cache<uint64_t, IDWriteTextLayout*>(128, [&] (auto value)

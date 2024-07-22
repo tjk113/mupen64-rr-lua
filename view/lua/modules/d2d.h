@@ -84,7 +84,7 @@ namespace LuaCore::D2D
 
 		D2D1::ColorF color = D2D_GET_COLOR(L, 1);
 
-		lua->d2d_render_target_stack.top()->Clear(color);
+		lua->d2d_render_target_stack.top()->Clear(lua->presenter->adjust_clear_color(color));
 
 		return 0;
 	}
