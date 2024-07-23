@@ -24,7 +24,7 @@ public:
 
 	/**
 	 * \brief Initializes the presenter
-	 * \param hwnd The window associated with the presenter
+	 * \param hwnd The window associated with the presenter. The window must be a child window and have the WS_EX_LAYERED style.
 	 * \return Whether the operation succeeded
 	 */
 	virtual bool init(HWND hwnd) = 0;
