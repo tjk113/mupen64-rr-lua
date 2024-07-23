@@ -24,7 +24,7 @@
 #include "main_win.h"
 #include <shared/messenger.h>
 #include <core/memory/savestates.h>
-#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/StringHelpers.h>
 #include "../../lib/argh.h"
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>

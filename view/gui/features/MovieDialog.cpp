@@ -8,7 +8,7 @@
 #include <view/gui/main_win.h>
 #include <shared/Config.hpp>
 #include <winproject/resource.h>
-#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/StringHelpers.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/helpers/MathHelpers.h>
 #include <view/gui/wrapper/PersistentPathDialog.h>

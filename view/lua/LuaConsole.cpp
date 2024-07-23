@@ -32,7 +32,7 @@
 #include <queue>
 #include <assert.h>
 
-#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/StringHelpers.h>
 #include <view/gui/features/Statusbar.hpp>
 
 #include <Windows.h>

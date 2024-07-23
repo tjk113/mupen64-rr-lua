@@ -42,8 +42,8 @@
 #include "../memory/memory.h"
 #include <lib/md5.h>
 #include <shared/Config.hpp>
-#include <shared/helpers/io_helpers.h>
-#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/IOHelpers.h>
+#include <shared/helpers/StringHelpers.h>
 
 std::unordered_map<std::filesystem::path, std::pair<uint8_t*, size_t>> rom_cache;
 

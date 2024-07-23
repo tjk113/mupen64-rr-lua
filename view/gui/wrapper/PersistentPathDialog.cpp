@@ -1,8 +1,8 @@
 #include "PersistentPathDialog.h"
 #include <shlobj.h>
 #include <cstdio>
-#include <shared/helpers/io_helpers.h>
-#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/IOHelpers.h>
+#include <shared/helpers/StringHelpers.h>
 #include <shared/Config.hpp>
 #include <view/helpers/WinHelpers.h>
 #include <view/helpers/IOHelpers.h>

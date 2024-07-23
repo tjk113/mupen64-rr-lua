@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <lib/ini.h>
-#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/StringHelpers.h>
 #include <shared/messenger.h>
 #include <shared/services/FrontendService.h>
 

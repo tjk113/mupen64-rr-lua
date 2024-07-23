@@ -26,7 +26,7 @@
 #include <core/r4300/timers.h>
 #include <shared/Config.hpp>
 #include <view/gui/wrapper/PersistentPathDialog.h>
-#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/StringHelpers.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/helpers/StringHelpers.h>
 #include <core/r4300/r4300.h>

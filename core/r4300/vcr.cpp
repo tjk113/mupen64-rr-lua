@@ -19,7 +19,7 @@
 
 #include <shared/services/FrontendService.h>
 #include <shared/messenger.h>
-#include <shared/helpers/string_helpers.h>
+#include <shared/helpers/StringHelpers.h>
 
 // M64\0x1a
 enum
