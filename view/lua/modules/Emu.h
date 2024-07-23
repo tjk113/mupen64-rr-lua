@@ -6,7 +6,7 @@ extern "C" {
 #include <Windows.h>
 
 #include "LuaConsole.h"
-#include <view/gui/main_win.h>
+#include <view/gui/Main.h>
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
 #include <core/r4300/timers.h>
@@ -225,8 +225,8 @@ namespace LuaCore::Emu
 	{
 		LuaEnvironment* lua = GetLuaClass(L);
 		lua_pushboolean(
-			L, GetForegroundWindow() == mainHWND || GetActiveWindow() ==
-			mainHWND);
+			L, GetForegroundWindow() == g_main_hwnd || GetActiveWindow() ==
+			g_main_hwnd);
 		return 1;
 	}
 

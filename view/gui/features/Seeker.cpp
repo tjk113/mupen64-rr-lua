@@ -6,7 +6,7 @@
 #include <shared/messenger.h>
 #include "Statusbar.hpp"
 #include <core/r4300/vcr.h>
-#include "../main_win.h"
+#include "../Main.h"
 #include "../../winproject/resource.h"
 #include <shared/Config.hpp>
 
@@ -113,8 +113,8 @@ namespace Seeker
 		// We need to run the dialog on another thread, since we don't want to block the main one
 		std::thread([]
 		{
-			DialogBox(app_instance,
-			          MAKEINTRESOURCE(IDD_SEEKER), mainHWND,
+			DialogBox(g_app_instance,
+			          MAKEINTRESOURCE(IDD_SEEKER), g_main_hwnd,
 			          (DLGPROC)SeekerProc);
 			current_hwnd = nullptr;
 		}).detach();

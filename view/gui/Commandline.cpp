@@ -21,7 +21,7 @@
 
 #include <thread>
 #include <view/lua/LuaConsole.h>
-#include "main_win.h"
+#include "Main.h"
 #include <shared/messenger.h>
 #include <core/memory/savestates.h>
 #include <shared/helpers/StringHelpers.h>
@@ -160,7 +160,7 @@ void commandline_on_movie_playback_stop()
 		Dispatcher::invoke([]
 		{
 			EncodingManager::stop_capture();
-			PostMessage(mainHWND, WM_CLOSE, 0, 0);
+			PostMessage(g_main_hwnd, WM_CLOSE, 0, 0);
 		});
 	}
 }

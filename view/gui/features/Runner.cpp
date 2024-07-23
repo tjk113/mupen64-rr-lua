@@ -5,7 +5,7 @@
 #include <Windowsx.h>
 
 #include "../../winproject/resource.h"
-#include <view/gui/main_win.h>
+#include <view/gui/Main.h>
 
 #include <view/lua/LuaConsole.h>
 #include <shared/messenger.h>
@@ -133,8 +133,8 @@ namespace Runner
 
 	void show()
 	{
-		DialogBox(app_instance,
-		          MAKEINTRESOURCE(IDD_RUNNER), mainHWND,
+		DialogBox(g_app_instance,
+		          MAKEINTRESOURCE(IDD_RUNNER), g_main_hwnd,
 		          (DLGPROC)WndProc);
 	}
 }

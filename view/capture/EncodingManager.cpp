@@ -6,7 +6,7 @@
 #include <shared/messenger.h>
 #include "Resampler.h"
 #include <core/r4300/Plugin.hpp>
-#include <view/gui/main_win.h>
+#include <view/gui/Main.h>
 #include <core/r4300/rom.h>
 #include <shared/Config.hpp>
 #include <core/memory/memory.h>
@@ -57,7 +57,7 @@ namespace EncodingManager
 		*height = info.height & ~3;
 		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
 
-		HDC dc = GetDC(mainHWND);
+		HDC dc = GetDC(g_main_hwnd);
 		HDC compat_dc = CreateCompatibleDC(dc);
 		HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
 
@@ -78,7 +78,7 @@ namespace EncodingManager
 		SelectObject(compat_dc, nullptr);
 		DeleteObject(bitmap);
 		DeleteDC(compat_dc);
-		ReleaseDC(mainHWND, dc);
+		ReleaseDC(g_main_hwnd, dc);
 	}
 
 	/**
@@ -95,7 +95,7 @@ namespace EncodingManager
 		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
 
 		POINT pt{};
-		ClientToScreen(mainHWND, &pt);
+		ClientToScreen(g_main_hwnd, &pt);
 
 		HDC dc = GetDC(nullptr);
 		HDC compat_dc = CreateCompatibleDC(dc);
@@ -153,7 +153,7 @@ namespace EncodingManager
 
 			GdiFlush();
 
-			HDC dc = GetDC(mainHWND);
+			HDC dc = GetDC(g_main_hwnd);
 			HDC compat_dc = CreateCompatibleDC(dc);
 			HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
 			SelectObject(compat_dc, bitmap);
@@ -184,7 +184,7 @@ namespace EncodingManager
 			SelectObject(compat_dc, nullptr);
 			DeleteObject(bitmap);
 			DeleteDC(compat_dc);
-			ReleaseDC(mainHWND, dc);
+			ReleaseDC(g_main_hwnd, dc);
 		});
 	}
 

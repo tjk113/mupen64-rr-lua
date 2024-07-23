@@ -5,7 +5,7 @@
 #include <core/r4300/vcr.h>
 #include <core/memory/savestates.h>
 #include "Statusbar.hpp"
-#include <view/gui/main_win.h>
+#include <view/gui/Main.h>
 #include <shared/Config.hpp>
 #include <winproject/resource.h>
 #include <shared/helpers/StringHelpers.h>
@@ -111,7 +111,7 @@ namespace MovieDialog
 				                           grid_rect.right - grid_rect.left,
 				                           grid_rect.bottom - grid_rect.top,
 				                           hwnd, nullptr,
-				                           app_instance,
+				                           g_app_instance,
 				                           NULL);
 
 				ListView_SetExtendedListViewStyle(grid_hwnd,
@@ -441,8 +441,8 @@ namespace MovieDialog
 		record_params.author = g_config.last_movie_author;
 		record_params.description = "";
 
-		DialogBox(app_instance,
-		          MAKEINTRESOURCE(IDD_MOVIE_PLAYBACK_DIALOG), mainHWND,
+		DialogBox(g_app_instance,
+		          MAKEINTRESOURCE(IDD_MOVIE_PLAYBACK_DIALOG), g_main_hwnd,
 		          (DLGPROC)MovieInspectorProc);
 
 		return record_params;

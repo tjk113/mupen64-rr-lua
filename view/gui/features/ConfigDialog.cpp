@@ -19,7 +19,7 @@
 #include <vector>
 #include <cassert>
 #include <view/lua/LuaConsole.h>
-#include <view/gui/main_win.h>
+#include <view/gui/Main.h>
 #include <winproject/resource.h>
 #include <core/r4300/Plugin.hpp>
 #include <view/gui/features/RomBrowser.hpp>
@@ -127,7 +127,7 @@ BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w
 	{
 	case WM_INITDIALOG:
 		SendDlgItemMessage(hwnd, IDB_LOGO, STM_SETIMAGE, IMAGE_BITMAP,
-		                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_LOGO),
+		                   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_LOGO),
 		                                     IMAGE_BITMAP, 0, 0, 0));
 		return TRUE;
 
@@ -160,8 +160,8 @@ BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w
 
 void configdialog_about()
 {
-	DialogBox(app_instance,
-	          MAKEINTRESOURCE(IDD_ABOUT), mainHWND,
+	DialogBox(g_app_instance,
+	          MAKEINTRESOURCE(IDD_ABOUT), g_main_hwnd,
 	          about_dlg_proc);
 }
 
@@ -460,16 +460,16 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
 
 			SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
-			                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_DISPLAY),
+			                   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_DISPLAY),
 			                                     IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_CONTROL, STM_SETIMAGE, IMAGE_BITMAP,
-			                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_CONTROL),
+			                   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_CONTROL),
 			                                     IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_SOUND, STM_SETIMAGE, IMAGE_BITMAP,
-			                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_SOUND),
+			                   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_SOUND),
 			                                     IMAGE_BITMAP, 0, 0, 0));
 			SendDlgItemMessage(hwnd, IDB_RSP, STM_SETIMAGE, IMAGE_BITMAP,
-			                   (LPARAM)LoadImage(app_instance, MAKEINTRESOURCE(IDB_RSP),
+			                   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_RSP),
 			                                     IMAGE_BITMAP, 0, 0, 0));
 			return TRUE;
 		}
@@ -513,51 +513,51 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 				break;
 			}
 		case IDM_VIDEO_SETTINGS:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_GFX)->config();
 			break;
 		case IDGFXTEST:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_GFX)->test();
 			break;
 		case IDGFXABOUT:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_GFX)->about();
 			break;
 		case IDM_INPUT_SETTINGS:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_INPUT)->config();
 			break;
 		case IDINPUTTEST:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_INPUT)->test();
 			break;
 		case IDINPUTABOUT:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_INPUT)->about();
 			break;
 		case IDM_AUDIO_SETTINGS:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_SOUND)->config();
 			break;
 		case IDSOUNDTEST:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_SOUND)->test();
 			break;
 		case IDSOUNDABOUT:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_SOUND)->about();
 			break;
 		case IDM_RSP_SETTINGS:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_RSP)->config();
 			break;
 		case IDRSPTEST:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_RSP)->test();
 			break;
 		case IDRSPABOUT:
-			hwnd_plug = hwnd;
+			g_hwnd_plug = hwnd;
 			get_selected_plugin(hwnd, IDC_COMBO_RSP)->about();
 			break;
 		default:
@@ -921,7 +921,7 @@ void configdialog_show()
 	{
 		i.dwSize = sizeof(PROPSHEETPAGE);
 		i.dwFlags = PSP_USETITLE;
-		i.hInstance = app_instance;
+		i.hInstance = g_app_instance;
 	}
 
 	psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
@@ -943,8 +943,8 @@ void configdialog_show()
 	PROPSHEETHEADER psh = {0};
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
-	psh.hwndParent = mainHWND;
-	psh.hInstance = app_instance;
+	psh.hwndParent = g_main_hwnd;
+	psh.hInstance = g_app_instance;
 	psh.pszCaption = "Settings";
 	psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
 	psh.ppsp = (LPCPROPSHEETPAGE)&psp;

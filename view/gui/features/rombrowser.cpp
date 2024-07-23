@@ -8,7 +8,7 @@
 #include <chrono>
 
 #include "Statusbar.hpp"
-#include "../main_win.h"
+#include "../Main.h"
 #include "../../winproject/resource.h"
 #include <shared/helpers/IOHelpers.h>
 #include <shared/helpers/StringHelpers.h>
@@ -133,7 +133,7 @@ namespace Rombrowser
 		assert(rombrowser_hwnd == nullptr);
 
 		RECT rcl{}, rtool{}, rstatus{};
-		GetClientRect(mainHWND, &rcl);
+		GetClientRect(g_main_hwnd, &rcl);
 		GetWindowRect(Statusbar::hwnd(), &rstatus);
 
 		rombrowser_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
@@ -145,8 +145,8 @@ namespace Rombrowser
 		                                 rcl.bottom - rcl.top - rtool.bottom +
 		                                 rtool
 		                                 .top - rstatus.bottom + rstatus.top,
-		                                 mainHWND, (HMENU)IDC_ROMLIST,
-		                                 app_instance,
+		                                 g_main_hwnd, (HMENU)IDC_ROMLIST,
+		                                 g_app_instance,
 		                                 NULL);
 		ListView_SetExtendedListViewStyle(rombrowser_hwnd,
 		                                  LVS_EX_GRIDLINES |
@@ -160,27 +160,27 @@ namespace Rombrowser
 			ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 11, 0);
 		HICON hIcon;
 
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_GERMANY));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_GERMANY));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_USA));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_USA));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_JAPAN));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_JAPAN));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_EUROPE));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_EUROPE));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_AUSTRALIA));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_AUSTRALIA));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_ITALIA));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_ITALIA));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_FRANCE));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_FRANCE));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_SPAIN));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_SPAIN));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_UNKNOWN));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_UNKNOWN));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_DEMO));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_DEMO));
 		ImageList_AddIcon(hSmall, hIcon);
-		hIcon = LoadIcon(app_instance, MAKEINTRESOURCE(IDI_BETA));
+		hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_BETA));
 		ImageList_AddIcon(hSmall, hIcon);
 		ListView_SetImageList(rombrowser_hwnd, hSmall, LVSIL_SMALL);
 
@@ -345,7 +345,7 @@ namespace Rombrowser
 		RECT rc, rc_main;
 		WORD n_width, n_height;
 		int32_t y = 0;
-		GetClientRect(mainHWND, &rc_main);
+		GetClientRect(g_main_hwnd, &rc_main);
 		n_width = rc_main.right - rc_main.left;
 		n_height = rc_main.bottom - rc_main.top;
 		if (Statusbar::hwnd())
