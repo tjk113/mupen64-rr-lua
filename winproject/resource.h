@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Von Microsoft Visual C++ generierte Includedatei.
-// Verwendet durch rsrc.rc
+// Microsoft Visual C++ generated include file.
+// Used by rsrc.rc
 //
 #define MAX_LUA_OPEN_AND_RUN_INSTANCES  100
 #define MIN_WINDOW_H                    100
@@ -109,6 +109,7 @@
 #define IDC_ENCODE_SYNC                 1038
 #define IDC_MOVIE_A_BROWSE              1038
 #define IDC_EDIT_MOVIE_AUTHOR           1039
+#define IDC_COMBO_LUA_PRESENTER         1039
 #define IDC_EDIT_MOVIE_AUTHOR2          1040
 #define IDC_CHECK_CHEAT_ENABLED         1040
 #define IDC_NEW_CHEAT                   1041
@@ -181,6 +182,8 @@
 #define IDC_SKIPFREQ                    2265
 #define IDC_0INDEX                      2266
 #define IDC_FASTFORWARDSKIPFREQ         2268
+#define IDC_FASTFORWARDSKIPFREQ2        2269
+#define IDC_TEXT_LUA_PRESENTER          2269
 #define IDM_SAVE_SLOT                   3000
 #define IDM_SAVE_STATE_AS               3001
 #define IDM_LOAD_SLOT                   3002

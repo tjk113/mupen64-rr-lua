@@ -609,6 +609,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			tooltips.push_back(create_tooltip(hwnd, IDC_SAVE_VIDEO_TO_ST, "When checked, screenshots are saved to generated savestates. Only supported by MGE-implementing plugins"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_MODE, "The video source to use for capturing video frames"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_SYNC, "The strategy to use for synchronizing video and audio during capture"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_COMBO_LUA_PRESENTER, "The presenter type to use for displaying and capturing Lua graphics\nRecommended: DirectComposition (on Windows systems)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_AUDIO_DELAY, "When checked, audio interrupts are delayed\nRecommended: On (Off causes issues with savestates)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_COMPILED_JUMP, "When checked, jump instructions are compiled by Dynamic Recompiler\nRecommended: On (Off is slower)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ROUNDTOZERO, "When checked, floating point numbers are rounded towards zero"));
@@ -622,6 +623,9 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			};
 			static const char* capture_mode_names[] = {
 				"External capture", "Internal capture window", "Internal capture desktop", "Hybrid",
+			};
+			static const char* presenter_type_names[] = {
+				"DirectComposition", "GDI",
 			};
 			static const char* capture_sync_names[] = {
 				"No Sync", "Audio Sync", "Video Sync",
@@ -644,6 +648,13 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			}
 			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_ENCODE_MODE), Config.capture_mode);
 
+			for (auto& name : presenter_type_names)
+			{
+				SendDlgItemMessage(hwnd, IDC_COMBO_LUA_PRESENTER, CB_ADDSTRING, 0,
+								   (LPARAM)name);
+			}
+			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER), Config.presenter_type);
+
 			for (auto& name : capture_sync_names)
 			{
 				SendDlgItemMessage(hwnd, IDC_ENCODE_SYNC, CB_ADDSTRING, 0,
@@ -662,6 +673,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
 			EnableWindow(GetDlgItem(hwnd, IDC_ENCODE_MODE), !EncodingManager::is_capturing());
 			EnableWindow(GetDlgItem(hwnd, IDC_ENCODE_SYNC), !EncodingManager::is_capturing());
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER), hwnd_lua_map.empty());
 
 			set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, Config.is_unfocused_pause_enabled);
 			set_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT, Config.increment_slot);
@@ -702,6 +714,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 		case IDC_ENCODE_SYNC:
 			{
 				Config.synchronization_mode = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_ENCODE_SYNC));
+				break;
+			}
+	case IDC_COMBO_LUA_PRESENTER:
+			{
+				Config.presenter_type = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER));
 				break;
 			}
 		case IDC_INTERP:

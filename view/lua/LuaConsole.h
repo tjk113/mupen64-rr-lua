@@ -1,5 +1,6 @@
 #pragma once
 #include "lib/microlru.h"
+#include "presenters/Presenter.h"
 
 extern "C" {
 #include <lua.h>
@@ -13,9 +14,7 @@ extern "C" {
 #include <cstdint>
 #include <gdiplus.h>
 #include <d2d1.h>
-#include <d2d1_3.h>
 #include <dcomp.h>
-#include <d3d11.h>
 #include <dwrite.h>
 #include <functional>
 #include <queue>
@@ -91,6 +90,7 @@ static const char* const REG_ATSAVESTATE = "SS";
 static const char* const REG_ATRESET = "RE";
 
 static uint32_t lua_gdi_color_mask = RGB(255, 0, 255);
+static HBRUSH alpha_mask_brush = CreateSolidBrush(lua_gdi_color_mask);
 
 struct EmulationLock
 {
@@ -126,27 +126,8 @@ public:
 	// The path to the current lua script
 	std::filesystem::path path;
 
-#pragma region Composition
-
-	IDXGIFactory2* factory;
-	IDXGIAdapter1* dxgiadapter;
-	ID3D11Device* d3device;
-	IDXGIDevice1* dxdevice;
-	ID2D1Bitmap1* bitmap;
-	IDCompositionVisual* comp_visual;
-	ID3D11DeviceContext* d3d_dc;
-	IDCompositionDevice* comp_device;
-	IDCompositionTarget* comp_target;
-	IDXGISwapChain1* dxgi_swapchain;
-	ID2D1Factory3* d2d_factory;
-	ID2D1Device2* d2d_device;
-	ID2D1DeviceContext2* d2d_dc;
-	IDXGISurface1* dxgi_surface;
-	ID3D11Resource* dxgi_surface_resource;
-	ID3D11Resource* front_buffer;
-	ID3D11Texture2D* d3d_gdi_tex;
-
-#pragma endregion
+	// The current presenter, or null
+	Presenter* presenter;
 
 	// The Direct2D overlay control handle
 	HWND d2d_overlay_hwnd;
