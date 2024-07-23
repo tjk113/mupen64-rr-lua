@@ -63,6 +63,7 @@ public:
 	 * \brief Blits the presenter's contents to a DC at the specified position
 	 * \param hdc The target DC
 	 * \param rect The target bounds
+	 * \remark Fully transparent pixels in the presenter buffer will remain unchanged in the target DC
 	 */
 	virtual void blit(HDC hdc, RECT rect) = 0;
 };
