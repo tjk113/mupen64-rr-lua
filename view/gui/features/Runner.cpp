@@ -28,10 +28,10 @@ namespace Runner
 			}).detach();
 			break;
 		case IDC_LIST_MOVIES:
-			Config.vcr_readonly = true;
+			g_config.vcr_readonly = true;
 			Messenger::broadcast(
 				Messenger::Message::ReadonlyChanged,
-				(bool)Config.vcr_readonly);
+				(bool)g_config.vcr_readonly);
 			std::thread([=]
 			{
 				VCR::start_playback(path);
@@ -64,9 +64,9 @@ namespace Runner
 						ListBox_SetItemData(ctl, index, reinterpret_cast<LPARAM>(buffer));
 					}
 				};
-				populate_with_paths(IDC_LIST_ROMS, Config.recent_rom_paths);
-				populate_with_paths(IDC_LIST_MOVIES, Config.recent_movie_paths);
-				populate_with_paths(IDC_LIST_SCRIPTS, Config.recent_lua_script_paths);
+				populate_with_paths(IDC_LIST_ROMS, g_config.recent_rom_paths);
+				populate_with_paths(IDC_LIST_MOVIES, g_config.recent_movie_paths);
+				populate_with_paths(IDC_LIST_SCRIPTS, g_config.recent_lua_script_paths);
 				break;
 			}
 		case WM_CLOSE:

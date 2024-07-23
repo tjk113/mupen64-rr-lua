@@ -124,7 +124,7 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
 	case WM_INITDIALOG:
 		{
 			SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-			              Config.lua_script_path.c_str());
+			              g_config.lua_script_path.c_str());
 			return TRUE;
 		}
 	case WM_CLOSE:
@@ -767,7 +767,7 @@ void LuaEnvironment::create_renderer()
 	// Key 0 is reserved for clearing the image pool, too late to change it now...
 	image_pool_index = 1;
 
-	if (Config.presenter_type != static_cast<int32_t>(PresenterType::GDI))
+	if (g_config.presenter_type != static_cast<int32_t>(PresenterType::GDI))
 	{
 		presenter = new DCompPresenter();
 	} else

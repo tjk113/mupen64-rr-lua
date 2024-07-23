@@ -395,11 +395,11 @@ namespace Recent
 
 std::string get_screenshots_directory()
 {
-	if (Config.is_default_screenshots_directory_used)
+	if (g_config.is_default_screenshots_directory_used)
 	{
 		return app_path + "screenshots\\";
 	}
-	return Config.screenshots_directory;
+	return g_config.screenshots_directory;
 }
 
 void update_titlebar()
@@ -431,7 +431,7 @@ void update_titlebar()
 void on_script_started(std::any data)
 {
 	auto value = std::any_cast<std::filesystem::path>(data);
-	Recent::add(Config.recent_lua_script_paths, value.string(), Config.is_recent_scripts_frozen, ID_LUA_RECENT, recent_lua_menu);
+	Recent::add(g_config.recent_lua_script_paths, value.string(), g_config.is_recent_scripts_frozen, ID_LUA_RECENT, recent_lua_menu);
 }
 
 void on_task_changed(std::any data)
@@ -451,7 +451,7 @@ void on_task_changed(std::any data)
 	if ((task_is_recording(value) && !task_is_recording(previous_value))
 		|| (task_is_playback(value) && !task_is_playback(previous_value)) && !VCR::get_path().empty())
 	{
-		Recent::add(Config.recent_movie_paths, VCR::get_path().string(), Config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, recent_movies_menu);
+		Recent::add(g_config.recent_movie_paths, VCR::get_path().string(), g_config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, recent_movies_menu);
 	}
 
 	update_titlebar();
@@ -492,7 +492,7 @@ void on_emu_launched_changed(std::any data)
 	// Reset and restore view stuff when emulation starts
 	if (value)
 	{
-		Recent::add(Config.recent_rom_paths, get_rom_path().string(), Config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
+		Recent::add(g_config.recent_rom_paths, get_rom_path().string(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, recent_roms_menu);
 		vis_since_input_poll_warning_dismissed = false;
 		Dispatcher::invoke([]
 		{
@@ -510,8 +510,8 @@ void on_emu_launched_changed(std::any data)
 
 	if (!value && previous_value)
 	{
-		printf("[View] Restoring window size to %dx%d...\n", Config.window_width, Config.window_height);
-		SetWindowPos(mainHWND, nullptr, 0, 0, Config.window_width, Config.window_height, SWP_NOMOVE);
+		printf("[View] Restoring window size to %dx%d...\n", g_config.window_width, g_config.window_height);
+		SetWindowPos(mainHWND, nullptr, 0, 0, g_config.window_width, g_config.window_height, SWP_NOMOVE);
 	}
 
 	SendMessage(mainHWND, WM_INITMENU, 0, 0);
@@ -554,7 +554,7 @@ void on_vis_since_input_poll_exceeded(std::any)
 		return;
 	}
 
-	if (Config.silent_mode || FrontendService::show_ask_dialog(
+	if (g_config.silent_mode || FrontendService::show_ask_dialog(
 		"An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
 		"Warning", true))
 	{
@@ -681,7 +681,7 @@ t_window_info get_window_info()
 
 bool confirm_user_exit()
 {
-	if (Config.silent_mode)
+	if (g_config.silent_mode)
 	{
 		return true;
 	}
@@ -772,8 +772,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				std::thread([path] { vr_start_rom(path); }).detach();
 			} else if (extension == ".m64")
 			{
-				Config.vcr_readonly = true;
-				Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
+				g_config.vcr_readonly = true;
+				Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
 				std::thread([fname] { VCR::start_playback(fname); }).detach();
 			} else if (extension == ".st" || extension == ".savestate")
 			{
@@ -887,8 +887,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			RECT rect = {0};
 			GetWindowRect(mainHWND, &rect);
-			Config.window_x = rect.left;
-			Config.window_y = rect.top;
+			g_config.window_x = rect.left;
+			g_config.window_y = rect.top;
 			break;
 		}
 	case WM_SIZE:
@@ -906,8 +906,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			// Window creation expects the size with nc area, so it's easiest to just use the window rect here
 			GetWindowRect(hwnd, &rect);
-			Config.window_width = rect.right - rect.left;
-			Config.window_height = rect.bottom - rect.top;
+			g_config.window_width = rect.right - rect.left;
+			g_config.window_height = rect.bottom - rect.top;
 
 			break;
 		}
@@ -1004,19 +1004,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			EnableMenuItem(main_menu, IDM_START_MOVIE_RECORDING, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_STOP_MOVIE, (VCR::get_task() != e_task::idle) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_TRACELOG, emu_launched ? MF_ENABLED : MF_GRAYED);
-			EnableMenuItem(main_menu, IDM_COREDBG, (emu_launched && Config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(main_menu, IDM_COREDBG, (emu_launched && g_config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_SEEKER, (emu_launched && task_is_playback(VCR::get_task())) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_CHEATS, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_START_CAPTURE, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_START_CAPTURE_PRESET, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(main_menu, IDM_STOP_CAPTURE, (emu_launched && EncodingManager::is_capturing()) ? MF_ENABLED : MF_GRAYED);
 
-			CheckMenuItem(main_menu, IDM_STATUSBAR, Config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED);
-			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS, Config.is_recent_rom_paths_frozen ? MF_CHECKED : MF_UNCHECKED);
-			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_MOVIES, Config.is_recent_movie_paths_frozen ? MF_CHECKED : MF_UNCHECKED);
-			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_LUA, Config.is_recent_scripts_frozen ? MF_CHECKED : MF_UNCHECKED);
-			CheckMenuItem(main_menu, IDM_LOOP_MOVIE, Config.is_movie_loop_enabled ? MF_CHECKED : MF_UNCHECKED);
-			CheckMenuItem(main_menu, IDM_VCR_READONLY, Config.vcr_readonly ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_STATUSBAR, g_config.is_statusbar_enabled ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_ROMS, g_config.is_recent_rom_paths_frozen ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_MOVIES, g_config.is_recent_movie_paths_frozen ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_FREEZE_RECENT_LUA, g_config.is_recent_scripts_frozen ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_LOOP_MOVIE, g_config.is_movie_loop_enabled ? MF_CHECKED : MF_UNCHECKED);
+			CheckMenuItem(main_menu, IDM_VCR_READONLY, g_config.vcr_readonly ? MF_CHECKED : MF_UNCHECKED);
 			CheckMenuItem(main_menu, IDM_FULLSCREEN, vr_is_fullscreen() ? MF_CHECKED : MF_UNCHECKED);
 
 			for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
@@ -1052,7 +1052,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_ACTIVATE:
 		UpdateWindow(hwnd);
 
-		if (!Config.is_unfocused_pause_enabled)
+		if (!g_config.is_unfocused_pause_enabled)
 		{
 			break;
 		}
@@ -1092,16 +1092,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					switch (LOWORD(wParam))
 					{
 					case IDM_VIDEO_SETTINGS:
-						plugin = Plugin::create(Config.selected_video_plugin);
+						plugin = Plugin::create(g_config.selected_video_plugin);
 						break;
 					case IDM_INPUT_SETTINGS:
-						plugin = Plugin::create(Config.selected_input_plugin);
+						plugin = Plugin::create(g_config.selected_input_plugin);
 						break;
 					case IDM_AUDIO_SETTINGS:
-						plugin = Plugin::create(Config.selected_audio_plugin);
+						plugin = Plugin::create(g_config.selected_audio_plugin);
 						break;
 					case IDM_RSP_SETTINGS:
-						plugin = Plugin::create(Config.selected_rsp_plugin);
+						plugin = Plugin::create(g_config.selected_rsp_plugin);
 						break;
 					}
 
@@ -1195,13 +1195,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case IDM_VCR_READONLY:
-				Config.vcr_readonly ^= true;
-				Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
+				g_config.vcr_readonly ^= true;
+				Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
 				break;
 
 			case IDM_LOOP_MOVIE:
-				Config.is_movie_loop_enabled ^= true;
-				Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)Config.is_movie_loop_enabled);
+				g_config.is_movie_loop_enabled ^= true;
+				Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)g_config.is_movie_loop_enabled);
 				break;
 
 
@@ -1210,7 +1210,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case IDM_RESET_ROM:
-				if (Config.is_reset_recording_enabled && VCR::get_task() == e_task::recording)
+				if (g_config.is_reset_recording_enabled && VCR::get_task() == e_task::recording)
 				{
 					Messenger::broadcast(Messenger::Message::ResetRequested, nullptr);
 					break;
@@ -1289,8 +1289,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				{
 					BetterEmulationLock lock;
 
-					auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", string_to_wstring(format_duration(Config.total_frames / 30)),
-					                       Config.total_rerecords);
+					auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", string_to_wstring(format_duration(g_config.total_frames / 30)),
+					                       g_config.total_rerecords);
 
 					MessageBoxW(mainHWND,
 					            str.c_str(),
@@ -1375,7 +1375,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 
-					Config.last_movie_author = result.author;
+					g_config.last_movie_author = result.author;
 
 					Statusbar::post("Recording replay");
 				}
@@ -1393,8 +1393,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					VCR::replace_author_info(result.path, result.author, result.description);
 
-					Config.pause_at_frame = result.pause_at;
-					Config.pause_at_last_frame = result.pause_at_last;
+					g_config.pause_at_frame = result.pause_at;
+					g_config.pause_at_last_frame = result.pause_at_last;
 
 					std::thread([result] { VCR::start_playback(result.path); }).detach();
 				}
@@ -1438,22 +1438,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				CaptureScreen(const_cast<char*>(get_screenshots_directory().c_str()));
 				break;
 			case IDM_RESET_RECENT_ROMS:
-				Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu, true);
+				Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu, true);
 				break;
 			case IDM_RESET_RECENT_MOVIES:
-				Recent::build(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu, true);
+				Recent::build(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu, true);
 				break;
 			case IDM_RESET_RECENT_LUA:
-				Recent::build(Config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu, true);
+				Recent::build(g_config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu, true);
 				break;
 			case IDM_FREEZE_RECENT_ROMS:
-				Config.is_recent_rom_paths_frozen ^= true;
+				g_config.is_recent_rom_paths_frozen ^= true;
 				break;
 			case IDM_FREEZE_RECENT_MOVIES:
-				Config.is_recent_movie_paths_frozen ^= true;
+				g_config.is_recent_movie_paths_frozen ^= true;
 				break;
 			case IDM_FREEZE_RECENT_LUA:
-				Config.is_recent_scripts_frozen ^= true;
+				g_config.is_recent_scripts_frozen ^= true;
 				break;
 			case IDM_LOAD_LATEST_LUA:
 				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_LUA_RECENT, 0), 0);
@@ -1465,20 +1465,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				SendMessage(mainHWND, WM_COMMAND, MAKEWPARAM(ID_RECENTMOVIES_FIRST, 0), 0);
 				break;
 			case IDM_STATUSBAR:
-				Config.is_statusbar_enabled ^= true;
-				Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
+				g_config.is_statusbar_enabled ^= true;
+				Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)g_config.is_statusbar_enabled);
 				break;
 			case IDC_DECREASE_MODIFIER:
-				Config.fps_modifier = clamp(Config.fps_modifier - 25, 25, 1000);
-				timer_init(Config.fps_modifier, &ROM_HEADER);
+				g_config.fps_modifier = clamp(g_config.fps_modifier - 25, 25, 1000);
+				timer_init(g_config.fps_modifier, &ROM_HEADER);
 				break;
 			case IDC_INCREASE_MODIFIER:
-				Config.fps_modifier = clamp(Config.fps_modifier + 25, 25, 1000);
-				timer_init(Config.fps_modifier, &ROM_HEADER);
+				g_config.fps_modifier = clamp(g_config.fps_modifier + 25, 25, 1000);
+				timer_init(g_config.fps_modifier, &ROM_HEADER);
 				break;
 			case IDC_RESET_MODIFIER:
-				Config.fps_modifier = 100;
-				timer_init(Config.fps_modifier, &ROM_HEADER);
+				g_config.fps_modifier = 100;
+				timer_init(g_config.fps_modifier, &ROM_HEADER);
 				break;
 			default:
 				if (LOWORD(wParam) >= IDM_SELECT_1 && LOWORD(wParam)
@@ -1498,29 +1498,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					auto slot = LOWORD(wParam) - ID_LOAD_1;
 					savestates_do_slot(slot, e_st_job::load);
 				} else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST &&
-					LOWORD(wParam) < (ID_RECENTROMS_FIRST + Config.
+					LOWORD(wParam) < (ID_RECENTROMS_FIRST + g_config.
 					                                        recent_rom_paths.size()))
 				{
-					auto path = Recent::element_at(Config.recent_rom_paths, ID_RECENTROMS_FIRST, LOWORD(wParam));
+					auto path = Recent::element_at(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, LOWORD(wParam));
 					if (path.empty())
 						break;
 
 					std::thread([path] { vr_start_rom(path); }).detach();
 				} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST &&
-					LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + Config.
+					LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + g_config.
 					                                          recent_movie_paths.size()))
 				{
-					auto path = Recent::element_at(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, LOWORD(wParam));
+					auto path = Recent::element_at(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, LOWORD(wParam));
 					if (path.empty())
 						break;
 
-					Config.vcr_readonly = true;
-					Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
+					g_config.vcr_readonly = true;
+					Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
 					std::thread([path] { VCR::start_playback(path); }).detach();
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
-					ID_LUA_RECENT + Config.recent_lua_script_paths.size()))
+					ID_LUA_RECENT + g_config.recent_lua_script_paths.size()))
 				{
-					auto path = Recent::element_at(Config.recent_lua_script_paths, ID_LUA_RECENT, LOWORD(wParam));
+					auto path = Recent::element_at(g_config.recent_lua_script_paths, ID_LUA_RECENT, LOWORD(wParam));
 					if (path.empty())
 						break;
 
@@ -1547,7 +1547,7 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 	fputs(crash_log.c_str(), f);
 	fclose(f);
 
-	if (Config.silent_mode)
+	if (g_config.silent_mode)
 	{
 		return EXCEPTION_EXECUTE_HANDLER;
 	}
@@ -1619,15 +1619,15 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	RegisterClassEx(&wc);
 	MGECompositor::init();
 
-	printf("[View] Restoring window @ (%d|%d) %dx%d...\n", Config.window_x, Config.window_y, Config.window_width, Config.window_height);
+	printf("[View] Restoring window @ (%d|%d) %dx%d...\n", g_config.window_x, g_config.window_y, g_config.window_width, g_config.window_height);
 
 	mainHWND = CreateWindowEx(
 		0,
 		g_szClassName,
 		MUPEN_VERSION,
 		WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
-		Config.window_x, Config.window_y, Config.window_width,
-		Config.window_height,
+		g_config.window_x, g_config.window_y, g_config.window_width,
+		g_config.window_height,
 		NULL, NULL, hInstance, NULL);
 
 	ShowWindow(mainHWND, nCmdShow);
@@ -1670,13 +1670,13 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	savestates_init();
 	setup_dummy_info();
 
-	Recent::build(Config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu);
-	Recent::build(Config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu);
-	Recent::build(Config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu);
+	Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, recent_roms_menu);
+	Recent::build(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, recent_movies_menu);
+	Recent::build(g_config.recent_lua_script_paths, ID_LUA_RECENT, recent_lua_menu);
 
-	Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)Config.is_statusbar_enabled);
-	Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)Config.is_movie_loop_enabled);
-	Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)Config.vcr_readonly);
+	Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)g_config.is_statusbar_enabled);
+	Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)g_config.is_movie_loop_enabled);
+	Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
 	Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
 	Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 	Messenger::broadcast(Messenger::Message::SizeChanged, rect);

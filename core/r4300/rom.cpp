@@ -186,7 +186,7 @@ bool rom_load(std::filesystem::path path)
 
 	rom_size = decompressed_rom.size();
 	unsigned long taille = rom_size;
-	if (Config.use_summercart && taille < 0x4000000) taille = 0x4000000;
+	if (g_config.use_summercart && taille < 0x4000000) taille = 0x4000000;
 
 	rom = (unsigned char*)malloc(taille);
 	memcpy(rom, decompressed_rom.data(), rom_size);
@@ -250,9 +250,9 @@ bool rom_load(std::filesystem::path path)
 	for (size_t i = 0; i < (rom_size / 4); i++)
 		roml[i] = sl(roml[i]);
 
-	if (rom_cache.size() < Config.rom_cache_size)
+	if (rom_cache.size() < g_config.rom_cache_size)
 	{
-		printf("[Core] Putting ROM in cache... (%d/%d full)\n", rom_cache.size(), Config.rom_cache_size);
+		printf("[Core] Putting ROM in cache... (%d/%d full)\n", rom_cache.size(), g_config.rom_cache_size);
 		auto data = (uint8_t*)malloc(taille);
 		memcpy(data, rom, taille);
 		rom_cache[path] = std::make_pair(data, taille);

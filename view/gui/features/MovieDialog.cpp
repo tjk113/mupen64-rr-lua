@@ -147,7 +147,7 @@ namespace MovieDialog
 				            0);
 
 				SetDlgItemText(hwnd, IDC_INI_AUTHOR,
-				               Config.last_movie_author.c_str());
+				               g_config.last_movie_author.c_str());
 				SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, "");
 
 				SetDlgItemText(hwnd, IDC_INI_MOVIEFILE,
@@ -197,7 +197,7 @@ namespace MovieDialog
 					record_params.pause_at_last = IsDlgButtonChecked(
 						hwnd, IDC_PAUSE_AT_END);
 
-					Config.last_movie_type = record_params.start_flag;
+					g_config.last_movie_type = record_params.start_flag;
 
 					if (record_params.start_flag ==
 						MOVIE_START_FROM_EXISTING_SNAPSHOT)
@@ -437,8 +437,8 @@ namespace MovieDialog
 		record_params.path = std::format("{} ({}).m64", (char*)ROM_HEADER.nom,
 		                                 country_code_to_country_name(
 			                                 ROM_HEADER.Country_code));
-		record_params.start_flag = Config.last_movie_type;
-		record_params.author = Config.last_movie_author;
+		record_params.start_flag = g_config.last_movie_type;
+		record_params.author = g_config.last_movie_author;
 		record_params.description = "";
 
 		DialogBox(app_instance,

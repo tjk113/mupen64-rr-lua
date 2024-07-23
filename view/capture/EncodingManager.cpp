@@ -262,15 +262,15 @@ namespace EncodingManager
 
 	auto effective_readscreen()
 	{
-		if (Config.capture_mode == 0)
+		if (g_config.capture_mode == 0)
 		{
 			return MGECompositor::available() ? MGECompositor::read_screen : readScreen;
 		}
-		if (Config.capture_mode == 1)
+		if (g_config.capture_mode == 1)
 		{
 			return readscreen_window;
 		}
-		if (Config.capture_mode == 2)
+		if (g_config.capture_mode == 2)
 		{
 			return readscreen_desktop;
 		}
@@ -283,7 +283,7 @@ namespace EncodingManager
 
 	auto effective_readscreen_free()
 	{
-		if (Config.capture_mode == 0)
+		if (g_config.capture_mode == 0)
 		{
 			return MGECompositor::available() ? dummy_free : DllCrtFree;
 		}
@@ -392,9 +392,9 @@ namespace EncodingManager
 			return;
 		}
 
-		if (Config.capture_delay)
+		if (g_config.capture_delay)
 		{
-			Sleep(Config.capture_delay);
+			Sleep(g_config.capture_delay);
 		}
 
 		void* image = nullptr;
@@ -413,7 +413,7 @@ namespace EncodingManager
 			return;
 		}
 
-		if (Config.synchronization_mode != (int)Sync::Audio && Config.
+		if (g_config.synchronization_mode != (int)Sync::Audio && g_config.
 			synchronization_mode != (int)Sync::None)
 		{
 			return;
@@ -428,7 +428,7 @@ namespace EncodingManager
 		int audio_frames = (int)(m_audio_frame - m_video_frame + 0.1);
 		// i've seen a few games only do ~0.98 frames of audio for a frame, let's account for that here
 
-		if (Config.synchronization_mode == (int)Sync::Audio)
+		if (g_config.synchronization_mode == (int)Sync::Audio)
 		{
 			if (audio_frames < 0)
 			{
@@ -509,7 +509,7 @@ namespace EncodingManager
 		const int write_size = 2 * m_audio_freq;
 		// we want (writeSize * 44100 / m_audioFreq) to be an integer
 
-		if (Config.synchronization_mode == (int)Sync::Video || Config.
+		if (g_config.synchronization_mode == (int)Sync::Video || g_config.
 			synchronization_mode == (int)Sync::None)
 		{
 			// VIDEO SYNC
@@ -525,7 +525,7 @@ namespace EncodingManager
 
 			long double desync = m_video_frame - m_audio_frame;
 
-			if (Config.synchronization_mode == (int)Sync::None) // HACK
+			if (g_config.synchronization_mode == (int)Sync::None) // HACK
 				desync = 0;
 
 			if (desync > 1.0)
