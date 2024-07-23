@@ -11,13 +11,13 @@ public:
 	void begin_present() override;
 	void end_present() override;
 	void blit(HDC hdc, RECT rect) override;
-	D2D1::ColorF adjust_clear_color(const D2D1::ColorF color) const override;
+	D2D1::ColorF adjust_clear_color(D2D1::ColorF color) const override;
 
 private:
-	HWND m_hwnd;
+	D2D1_SIZE_U m_size {};
+	HWND m_hwnd = nullptr;
 	ID2D1Factory* m_d2d_factory = nullptr;
 	ID2D1DCRenderTarget* m_d2d_render_target = nullptr;
-	D2D1_SIZE_U m_size;
-	HDC m_gdi_back_dc;
-	HBITMAP m_gdi_bmp;
+	HDC m_gdi_back_dc = nullptr;
+	HBITMAP m_gdi_bmp = nullptr;
 };
