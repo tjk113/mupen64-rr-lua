@@ -38,7 +38,7 @@
 #include "recomp.h"
 #include <malloc.h>
 #include <shared/services/LuaService.h>
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include "../memory/savestates.h"
 #include <shared/helpers/StringHelpers.h>
 #include <core/r4300/timers.h>

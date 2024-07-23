@@ -33,7 +33,7 @@
 #include <core/r4300/tracelog.h>
 #include <core/r4300/vcr.h>
 #include <shared/Config.hpp>
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include <shared/helpers/StringHelpers.h>
 #include <shared/services/FrontendService.h>
 #include <shared/services/LuaService.h>

@@ -8,7 +8,7 @@
 #include <view/gui/Main.h>
 
 #include <view/lua/LuaConsole.h>
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include <shared/Config.hpp>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>

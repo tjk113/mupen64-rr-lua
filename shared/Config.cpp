@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <lib/ini.h>
 #include <shared/helpers/StringHelpers.h>
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include <shared/services/FrontendService.h>
 
 t_config g_config;

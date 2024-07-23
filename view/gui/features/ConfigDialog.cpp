@@ -33,7 +33,7 @@
 #include "configdialog.h"
 #include <view/capture/EncodingManager.h>
 
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
 std::vector<HWND> tooltips;

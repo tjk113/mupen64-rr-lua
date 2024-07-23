@@ -3,7 +3,7 @@ extern "C" {
 #include <lauxlib.h>
 #include <lualib.h>
 }
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 
 namespace LuaCore::Movie
 {

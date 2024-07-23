@@ -18,7 +18,7 @@
 #include <shared/services/LuaService.h>
 
 #include <shared/services/FrontendService.h>
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include <shared/helpers/StringHelpers.h>
 
 // M64\0x1a

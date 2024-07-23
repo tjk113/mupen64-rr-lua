@@ -47,7 +47,7 @@
 #include "summercart.h"
 #include <core/r4300/Plugin.hpp>
 #include "../r4300/vcr.h"
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 
 static int frame;
 

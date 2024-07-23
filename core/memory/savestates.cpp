@@ -36,7 +36,7 @@
 #include <shared/services/LuaService.h>
 #include "memory.h"
 #include "summercart.h"
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include "../r4300/interrupt.h"
 #include "../r4300/r4300.h"
 #include "../r4300/rom.h"

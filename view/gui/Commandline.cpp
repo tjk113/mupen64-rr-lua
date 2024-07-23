@@ -22,7 +22,7 @@
 #include <thread>
 #include <view/lua/LuaConsole.h>
 #include "Main.h"
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include <core/memory/savestates.h>
 #include <shared/helpers/StringHelpers.h>
 #include "../../lib/argh.h"

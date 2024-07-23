@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include <shared/services/FrontendService.h>
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include "Resampler.h"
 #include <core/r4300/Plugin.hpp>
 #include <view/gui/Main.h>

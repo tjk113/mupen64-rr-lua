@@ -4,7 +4,7 @@
 #include <commctrl.h>
 #include <numeric>
 
-#include <shared/messenger.h>
+#include <shared/Messenger.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include "RomBrowser.hpp"
