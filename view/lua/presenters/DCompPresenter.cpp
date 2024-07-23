@@ -40,7 +40,7 @@ bool DCompPresenter::init(HWND hwnd)
 	return true;
 }
 
-ID2D1RenderTarget* DCompPresenter::dc()
+ID2D1RenderTarget* DCompPresenter::dc() const
 {
 	return m_d2d_dc;
 }

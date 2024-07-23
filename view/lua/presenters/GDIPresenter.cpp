@@ -46,7 +46,7 @@ bool GDIPresenter::init(HWND hwnd)
 	return true;
 }
 
-ID2D1RenderTarget* GDIPresenter::dc()
+ID2D1RenderTarget* GDIPresenter::dc() const
 {
 	return m_d2d_render_target;
 }

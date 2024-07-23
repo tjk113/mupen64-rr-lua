@@ -1,13 +1,20 @@
 #pragma once
-#include <cstdint>
+
 #include <d2d1.h>
 #include <Windows.h>
 
+/**
+ * A presenter is responsible for the following:
+ *
+ *	- Holding a Direct2D render target and exposing it to its Lua instance via dc()
+ *	- Drawing the Direct2D render target graphics to a control provided externally
+ *	- Blitting its graphics to arbitrary DCs
+ */
 class Presenter
 {
 public:
 	/**
-	 * \brief Destroys the presenter and cleans up its resources
+	 * Destroys the presenter and cleans up its resources
 	 */
 	virtual ~Presenter() = default;
 
@@ -21,7 +28,7 @@ public:
 	/**
 	 * Gets the presenter's DC
 	 */
-	virtual ID2D1RenderTarget* dc() = 0;
+	virtual ID2D1RenderTarget* dc() const = 0;
 
 	/**
 	 * Gets the backing texture size

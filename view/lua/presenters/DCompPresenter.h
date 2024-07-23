@@ -11,7 +11,7 @@ class DCompPresenter : public Presenter
 public:
 	~DCompPresenter() override;
 	bool init(HWND hwnd) override;
-	ID2D1RenderTarget* dc() override;
+	ID2D1RenderTarget* dc() const override;
 	void begin_present() override;
 	void end_present() override;
 	void blit(HDC hdc, RECT rect) override;
