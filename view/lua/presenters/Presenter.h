@@ -9,6 +9,10 @@
  *	- Holding a Direct2D render target and exposing it to its Lua instance via dc()
  *	- Drawing the Direct2D render target graphics to a control provided externally
  *	- Blitting its graphics to arbitrary DCs
+ *
+ *	The init() method must be called and have succeeded prior to calling other functions.
+ *
+ *	This class is not thread-safe.
  */
 class Presenter
 {
