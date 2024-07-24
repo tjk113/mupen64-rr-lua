@@ -17,4 +17,8 @@ A clear and concise description of what you want to happen.
 
 # Pros and Cons
 
-The benefits and potential downsides of the proposal.
+- The benefit of the proposal.
+
+---
+
+- The downsides of the proposal.
