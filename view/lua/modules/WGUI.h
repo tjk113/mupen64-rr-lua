@@ -13,16 +13,6 @@ extern "C" {
 
 namespace LuaCore::Wgui
 {
-	//Gui
-	//�v���O�C���ɕ�����Ă邩�玩�R�ɏo���Ȃ��H
-	//�Ƃ������E�B���h�E�ɒ��ڏ����Ă���
-	//�Ƃ肠������������E�B���h�E�ɒ�������
-	typedef struct COLORNAME
-	{
-		const char* name;
-		COLORREF value;
-	} COLORNAME;
-
 	const int hexTable[256] = {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -32,7 +22,8 @@ namespace LuaCore::Wgui
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 10, 11, 12, 13, 14, 15, 0, 0, 0, 0, 0, 0, 0, 0,
 	};
-	const COLORNAME colors[] = {
+
+	const std::unordered_map<std::string, COLORREF> color_map = {
 		{"white", 0xFFFFFFFF},
 		{"black", 0xFF000000},
 		{"clear", 0x00000000},
@@ -46,7 +37,6 @@ namespace LuaCore::Wgui
 		{"cyan", 0xFFFFFF00},
 		{"blue", 0xFFFF0000},
 		{"purple", 0xFFFF0080},
-		{NULL}
 	};
 
 	static int GetGUIInfo(lua_State* L)
@@ -122,15 +112,10 @@ namespace LuaCore::Wgui
 			}
 		} else
 		{
-			const COLORNAME* p = colors;
-			do
+			if (color_map.contains(s))
 			{
-				if (lstrcmpi(s, p->name) == 0)
-				{
-					return (alpha ? 0xFFFFFFFF : 0xFFFFFF) & p->value;
-				}
+				return (alpha ? 0xFFFFFFFF : 0xFFFFFF) & color_map.at(s);
 			}
-			while ((++p)->name);
 		}
 		return (alpha ? 0xFF000000 : 0x00000000) | def;
 	}
