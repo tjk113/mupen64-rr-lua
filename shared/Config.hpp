@@ -392,6 +392,7 @@ typedef struct Config
 
 	/// <summary>
 	/// Whether floats will be truncated when rounding
+	/// TODO: Rename to wii_vc_emulation
 	/// </summary>
 	int32_t is_round_towards_zero_enabled;
 

@@ -33,6 +33,8 @@ const auto rom_name_warning_message = "The movie was recorded on the rom '{}', b
 const auto rom_country_warning_message = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto rom_crc_warning_message = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto truncate_message = "Failed to truncate the movie file. The movie may be corrupted.";
+const auto wii_vc_mismatch_a_warning_message = "The movie was recorded with WiiVC mode enabled, but is being played back with it disabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+const auto wii_vc_mismatch_b_warning_message = "The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 
 volatile e_task g_task = e_task::idle;
 
@@ -200,7 +202,8 @@ static void set_rom_info(t_movie_header* header)
 
 static VCR::Result read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
 {
-	const auto old_header_size = 512;
+	const t_movie_header default_hdr{};
+	constexpr auto old_header_size = 512;
 
 	if (buf.size() < old_header_size)
 		return VCR::Result::InvalidFormat;
@@ -214,6 +217,14 @@ static VCR::Result read_movie_header(std::vector<uint8_t> buf, t_movie_header* h
 	if (new_header.version <= 0 || new_header.version > mup_version)
 		return VCR::Result::InvalidVersion;
 
+	// The extended version number can't exceed the latest one, obviously...
+	if (new_header.extended_version > default_hdr.extended_version)
+		return VCR::Result::InvalidExtendedVersion;
+
+	// Old movies filled with non-zero data in this section get rejected. This may potentially need to be relaxed if problems arise.
+	if (new_header.extended_version == 0 && new_header.extended_flags.data != 0)
+		return VCR::Result::BadExtendedData;
+	
 	if (new_header.version == 1 || new_header.version == 2)
 	{
 		// attempt to recover screwed-up plugin data caused by
@@ -698,11 +709,14 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	g_config.vcr_readonly = 0;
 	Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
 
+	const t_movie_header default_hdr{};
 	memset(&g_header, 0, sizeof(t_movie_header));
 	g_movie_inputs = {};
 
 	g_header.magic = mup_magic;
 	g_header.version = mup_version;
+	g_header.extended_version = default_hdr.extended_version;
+	g_header.extended_flags.wii_vc = g_config.is_round_towards_zero_enabled;
 	g_header.uid = (unsigned long)time(nullptr);
 	g_header.length_vis = 0;
 	g_header.length_samples = 0;
@@ -931,6 +945,21 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		FrontendService::show_warning(dummy, "VCR");
 	}
 
+	if (g_header.extended_version != 0)
+	{
+		printf("[VCR] Movie has extended version %d\n", g_header.extended_version);
+
+		if (g_config.is_round_towards_zero_enabled != g_header.extended_flags.wii_vc)
+		{
+			bool proceed = FrontendService::show_ask_dialog(g_header.extended_flags.wii_vc ? wii_vc_mismatch_a_warning_message : wii_vc_mismatch_b_warning_message, "VCR", true);
+
+			if (!proceed)
+			{
+				return Result::Cancelled;
+			}
+		}
+	}
+	
 	if (_stricmp(g_header.rom_name,
 	             (const char*)ROM_HEADER.nom) != 0)
 	{

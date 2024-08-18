@@ -17,9 +17,32 @@ enum
 
 #pragma pack(push, 1)
 /**
+ * The movie flag bitfield for extended movies.  
+ */
+typedef union ExtendedMovieFlags
+{
+	uint8_t data;
+
+	struct
+	{
+		/**
+		 * Whether the movie was recorded with WiiVC mode enabled.
+		 */
+		bool wii_vc : 1;
+		bool unused_1 : 1;
+		bool unused_2 : 1;
+		bool unused_3 : 1;
+		bool unused_4 : 1;
+		bool unused_5 : 1;
+		bool unused_6 : 1;
+		bool unused_7 : 1;
+	};
+} t_extended_movie_flags;
+
+/**
  * \brief
  */
-typedef struct
+typedef struct MovieHeader
 {
 	/**
 	 * \brief <c>M64\0x1a</c>
@@ -60,7 +83,15 @@ typedef struct
 	 */
 	unsigned char num_controllers;
 
-	unsigned short reserved1;
+	/**
+	 * The extended format version. Old movies have it set to <c>0</c>.  
+	 */
+	uint8_t extended_version = 1;
+
+	/**
+	 * The extended movie flags. Only valid if <c>extended_version != 0</c>.
+	 */
+	t_extended_movie_flags extended_flags;
 
 	/**
 	 * \brief Amount of input samples in the movie, ideally equal to <c>(file_length - 1024) / 4</c>
@@ -212,6 +243,10 @@ namespace VCR
 		NotFromThisMovie,
 		// The movie's version is invalid
 		InvalidVersion,
+		// The movie's extended version is invalid
+		InvalidExtendedVersion,
+		// The data in the extended format sections is invalid
+		BadExtendedData,
 		// The operation requires a playback or recording task
 		NeedsPlaybackOrRecording,
 	};
