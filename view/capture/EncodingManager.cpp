@@ -131,7 +131,13 @@ namespace EncodingManager
 
 		void* rs_buf;
 		long rs_w, rs_h;
-		MGECompositor::read_screen(&rs_buf, &rs_w, &rs_h);
+		if (MGECompositor::available())
+		{
+			MGECompositor::read_screen(&rs_buf, &rs_w, &rs_h);
+		} else
+		{
+			readScreen(&rs_buf, &rs_w, &rs_h);
+		}
 		BITMAPINFO rs_bmp_info{};
 		rs_bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		rs_bmp_info.bmiHeader.biPlanes = 1;
@@ -260,21 +266,21 @@ namespace EncodingManager
 		return capturing;
 	}
 
-	auto effective_readscreen()
+	void(* effective_readscreen())(void** dest, long* width, long* height)
 	{
-		if (g_config.capture_mode == 0)
+		switch (g_config.capture_mode)
 		{
+		case 0:
 			return MGECompositor::available() ? MGECompositor::read_screen : readScreen;
-		}
-		if (g_config.capture_mode == 1)
-		{
+		case 1:
 			return readscreen_window;
-		}
-		if (g_config.capture_mode == 2)
-		{
+		case 2:
 			return readscreen_desktop;
+		case 3:
+			return readscreen_hybrid;
+		default:
+			return nullptr;
 		}
-		return MGECompositor::available() ? readscreen_hybrid : nullptr;
 	}
 
 	void dummy_free(void*)
@@ -283,7 +289,7 @@ namespace EncodingManager
 
 	auto effective_readscreen_free()
 	{
-		if (g_config.capture_mode == 0)
+		if (g_config.capture_mode == 0 || g_config.capture_mode == 3)
 		{
 			return MGECompositor::available() ? dummy_free : DllCrtFree;
 		}
