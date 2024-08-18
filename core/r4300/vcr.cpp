@@ -490,7 +490,11 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
 			std::thread([clear_eeprom]
 			{
-				vr_reset_rom(clear_eeprom, false, true);
+				auto result = vr_reset_rom(clear_eeprom, false, true);
+				if (result != Core::Result::Ok)
+				{
+					FrontendService::show_error("Failed to reset the rom when initiating a from-start recording.");
+				}
 			}).detach();
 		}
 	}
@@ -546,7 +550,11 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
 			std::thread([clear_eeprom]
 			{
-				vr_reset_rom(clear_eeprom, false, true);
+				auto result = vr_reset_rom(clear_eeprom, false, true);
+				if (result != Core::Result::Ok)
+				{
+					FrontendService::show_error("Failed to reset the rom when playing back a from-start movie.");
+				}
 			}).detach();
 		}
 	}
@@ -571,7 +579,11 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			user_requested_reset = false;
 			std::thread([]
 			{
-				vr_reset_rom(false, false, true);
+				auto result = vr_reset_rom(false, false, true);
+				if (result != Core::Result::Ok)
+				{
+					FrontendService::show_error("Failed to reset the rom following a user-invoked reset.");
+				}
 			}).detach();
 		}
 		return;
@@ -622,7 +634,11 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		printf("[VCR] Resetting during playback...\n");
 		std::thread([]
 		{
-			vr_reset_rom(false, false, true);
+			auto result = vr_reset_rom(false, false, true);
+			if (result != Core::Result::Ok)
+			{
+				FrontendService::show_error("Failed to reset the rom following a movie-invoked reset.");
+			}
 		}).detach();
 	}
 
