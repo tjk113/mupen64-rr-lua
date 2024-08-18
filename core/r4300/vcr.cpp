@@ -728,7 +728,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	g_header.version = mup_version;
 	
 	g_header.extended_version = default_hdr.extended_version;
-	g_header.extended_flags.wii_vc = g_config.is_round_towards_zero_enabled;
+	g_header.extended_flags.wii_vc = g_config.wii_vc_emulation;
 	g_header.extended_data = default_hdr.extended_data;
 	
 	g_header.uid = (unsigned long)time(nullptr);
@@ -963,7 +963,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	{
 		printf("[VCR] Movie has extended version %d\n", g_header.extended_version);
 
-		if (g_config.is_round_towards_zero_enabled != g_header.extended_flags.wii_vc)
+		if (g_config.wii_vc_emulation != g_header.extended_flags.wii_vc)
 		{
 			bool proceed = FrontendService::show_ask_dialog(g_header.extended_flags.wii_vc ? wii_vc_mismatch_a_warning_message : wii_vc_mismatch_b_warning_message, "VCR", true);
 

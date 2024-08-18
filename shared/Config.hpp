@@ -391,10 +391,9 @@ typedef struct Config
 	int32_t use_summercart;
 
 	/// <summary>
-	/// Whether floats will be truncated when rounding
-	/// TODO: Rename to wii_vc_emulation
+	/// Whether WiiVC emulation is enabled. Causes truncation instead of rounding when performing certain casts.
 	/// </summary>
-	int32_t is_round_towards_zero_enabled;
+	int32_t wii_vc_emulation;
 
 	/// <summary>
 	/// Whether floating point exceptions will propagate and crash the emulator
