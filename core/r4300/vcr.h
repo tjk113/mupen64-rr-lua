@@ -40,6 +40,31 @@ typedef union ExtendedMovieFlags
 } t_extended_movie_flags;
 
 /**
+ * Additional data for extended movies. Must be 32 bytes large.
+ */
+typedef struct ExtendedMovieData
+{
+	/**
+	 * Special authorship information, such as the program which created the movie.
+	 */
+	uint8_t authorship_tag[4] = { 0x4D, 0x55, 0x50, 0x4E };
+
+	/**
+	 * Additional data regarding bruteforcing.
+	 */
+	uint32_t bruteforce_extra_data;
+
+	/**
+	 * The movie's rerecord count, but in double width.
+	 */
+	uint64_t rerecord_count;
+
+	uint64_t unused_1;
+	uint64_t unused_2;
+	
+} t_extended_movie_data;
+
+/**
  * \brief
  */
 typedef struct MovieHeader
@@ -111,7 +136,10 @@ typedef struct MovieHeader
 	 */
 	unsigned long controller_flags;
 
-	unsigned long reserved_flags[8];
+	/**
+	 * The extended movie data. Only valid if <c>extended_version != 0</c>.
+	 */
+	t_extended_movie_data extended_data{};
 
 	/**
 	 * \brief The name of the movie's author

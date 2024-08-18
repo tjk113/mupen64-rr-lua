@@ -715,8 +715,11 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 
 	g_header.magic = mup_magic;
 	g_header.version = mup_version;
+	
 	g_header.extended_version = default_hdr.extended_version;
 	g_header.extended_flags.wii_vc = g_config.is_round_towards_zero_enabled;
+	g_header.extended_data = default_hdr.extended_data;
+	
 	g_header.uid = (unsigned long)time(nullptr);
 	g_header.length_vis = 0;
 	g_header.length_samples = 0;
