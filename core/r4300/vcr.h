@@ -55,12 +55,13 @@ typedef struct ExtendedMovieData
 	uint32_t bruteforce_extra_data;
 
 	/**
-	 * The movie's rerecord count, but in double width.
+	 * The high word of the amount of loaded states during recording.
 	 */
-	uint64_t rerecord_count;
+	uint32_t rerecord_count;
 
 	uint64_t unused_1;
 	uint64_t unused_2;
+	uint32_t unused_3;
 	
 } t_extended_movie_data;
 
@@ -90,7 +91,7 @@ typedef struct MovieHeader
 	unsigned long length_vis;
 
 	/**
-	 * \brief Amount of loaded states during recording
+	 * \brief The low word of the amount of loaded states during recording.
 	 */
 	unsigned long rerecord_count;
 
@@ -386,7 +387,7 @@ namespace VCR
 	 * \return The operation result
 	 */
 	Result stop_all();
-
+	
 	/**
 	 * \brief Gets the text representation of the last frame's inputs
 	 */

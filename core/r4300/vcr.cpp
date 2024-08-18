@@ -107,6 +107,17 @@ bool is_task_playback(const e_task task)
 	return task == e_task::start_playback_from_reset || task == e_task::start_playback_from_snapshot || task == e_task::playback;
 }
 
+uint64_t get_rerecord_count()
+{
+	return static_cast<uint64_t>(g_header.extended_data.rerecord_count) << 32 | g_header.rerecord_count;
+}
+
+void set_rerecord_count(const uint64_t value)
+{
+	g_header.rerecord_count = static_cast<uint32_t>(value & 0xFFFFFFFF);
+	g_header.extended_data.rerecord_count = static_cast<uint32_t>(value >> 32);
+}
+
 std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
 {
 
@@ -417,7 +428,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		// writing new input data at the currentFrame pointer
 		g_task = e_task::recording;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 		write_movie();
 
 		// update header with new ROM info
@@ -426,9 +437,9 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 		g_header.length_samples = freeze.current_sample;
 
-		g_header.rerecord_count++;
+		set_rerecord_count(get_rerecord_count() + 1);
 		g_config.total_rerecords++;
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 
 		// Before overwriting the input buffer, save a backup
 		write_backup();
@@ -445,7 +456,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 		g_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	}
 	
 	write_movie();
@@ -470,7 +481,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// When resetting during playback, we need to remind program of the rerecords
 	if (g_task != e_task::idle && just_reset)
 	{
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	}
 
 	// if we aren't playing back a movie, our data source isn't movie
@@ -494,7 +505,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			g_task = e_task::recording;
 			just_reset = false;
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-			Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+			Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 		} else
 		{
 			// We need to fully reset rom prior to actually pushing any samples to the buffer
@@ -555,7 +566,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			g_task = e_task::playback;
 			just_reset = false;
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-			Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+			Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 		} else
 		{
 			bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
@@ -724,7 +735,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	g_header.length_vis = 0;
 	g_header.length_samples = 0;
 
-	g_header.rerecord_count = 0;
+	set_rerecord_count(0);
 	g_header.startFlags = flags;
 
 
@@ -772,7 +783,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	m_current_vi = 0;
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+	Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	return Result::Ok;
 }
 
@@ -1025,7 +1036,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	}
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+	Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	LuaService::call_play_movie();
 	return Result::Ok;
 }
