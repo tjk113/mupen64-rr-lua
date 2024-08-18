@@ -2210,15 +2210,8 @@ Core::Result vr_close_rom(bool stop_vcr)
 	return Core::Result::Ok;
 }
 
-Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr)
+Core::Result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
 {
-	std::unique_lock lock(emu_cs, std::try_to_lock);
-	if (!lock.owns_lock())
-	{
-		printf("[Core] vr_reset_rom busy!\n");
-		return Core::Result::Busy;
-	}
-
 	if (!emu_launched)
 		return Core::Result::NotRunning;
 
@@ -2253,6 +2246,24 @@ Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr)
 	emu_resetting = false;
 	Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
 	return Core::Result::Ok;
+}
+
+Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
+{
+	if (wait)
+	{
+		std::lock_guard lock(emu_cs);
+		return vr_reset_rom_impl(reset_save_data, stop_vcr);
+	}
+
+	std::unique_lock lock(emu_cs, std::try_to_lock);
+	if (!lock.owns_lock())
+	{
+		printf("[Core] vr_reset_rom busy!\n");
+		return Core::Result::Busy;
+	}
+
+	return vr_reset_rom_impl(reset_save_data, stop_vcr);
 }
 
 void toggle_fullscreen_mode()

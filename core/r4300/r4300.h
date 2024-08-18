@@ -130,9 +130,10 @@ Core::Result vr_close_rom(bool stop_vcr = true);
  * \brief Resets the emulator
  * \param reset_save_data Whether save data (e.g.: EEPROM, SRAM, Mempak) will be reset
  * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
+ * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
  * \return The operation result
  */
-Core::Result vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true);
+Core::Result vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true, bool wait = false);
 
 /**
  * \brief Toggles between fullscreen and windowed mode
