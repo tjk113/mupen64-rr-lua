@@ -274,8 +274,6 @@ namespace VCR
 		InvalidVersion,
 		// The movie's extended version is invalid
 		InvalidExtendedVersion,
-		// The data in the extended format sections is invalid
-		BadExtendedData,
 		// The operation requires a playback or recording task
 		NeedsPlaybackOrRecording,
 	};

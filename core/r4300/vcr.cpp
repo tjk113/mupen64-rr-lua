@@ -35,6 +35,7 @@ const auto rom_crc_warning_message = "The movie was recorded with a ROM that has
 const auto truncate_message = "Failed to truncate the movie file. The movie may be corrupted.";
 const auto wii_vc_mismatch_a_warning_message = "The movie was recorded with WiiVC mode enabled, but is being played back with it disabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto wii_vc_mismatch_b_warning_message = "The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+const auto old_movie_extended_section_nonzero_message = "The movie was recorded prior to the extended format being available, but contains data in an extended format section.\r\nThe movie may be corrupted. Are you sure you want to continue?";
 
 volatile e_task g_task = e_task::idle;
 
@@ -231,10 +232,6 @@ static VCR::Result read_movie_header(std::vector<uint8_t> buf, t_movie_header* h
 	// The extended version number can't exceed the latest one, obviously...
 	if (new_header.extended_version > default_hdr.extended_version)
 		return VCR::Result::InvalidExtendedVersion;
-
-	// Old movies filled with non-zero data in this section get rejected. This may potentially need to be relaxed if problems arise.
-	if (new_header.extended_version == 0 && new_header.extended_flags.data != 0)
-		return VCR::Result::BadExtendedData;
 	
 	if (new_header.version == 1 || new_header.version == 2)
 	{
@@ -971,6 +968,13 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 			{
 				return Result::Cancelled;
 			}
+		}
+	} else
+	{
+		// Old movies filled with non-zero data in this section are suspicious, we'll warn the user.
+		if (g_header.extended_flags.data != 0)
+		{
+			FrontendService::show_warning(old_movie_extended_section_nonzero_message, "VCR");
 		}
 	}
 	
