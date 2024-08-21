@@ -13,13 +13,16 @@
 #include "r4300.h"
 #include "Plugin.hpp"
 #include "rom.h"
-#include "../memory/savestates.h"
-#include "../memory/pif.h"
+#include <core/memory/savestates.h>
+#include <core/memory/pif.h>
+#include <core/r4300/timers.h>
+
 #include <shared/services/LuaService.h>
 
 #include <shared/services/FrontendService.h>
 #include <shared/Messenger.h>
 #include <shared/helpers/StringHelpers.h>
+
 
 // M64\0x1a
 enum
@@ -442,7 +445,10 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
 	}
-	
+
+	// When loading a state, the statusbar should update with new information before the next frame happens.
+	frame_changed = true;
+
 	write_movie();
 	
 	return Result::Ok;
