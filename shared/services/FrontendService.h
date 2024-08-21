@@ -13,6 +13,26 @@
 namespace FrontendService
 {
 	/**
+	 * The tone of a dialog.
+	 */
+	enum class DialogType
+	{
+		Error,
+		Warning,
+		Information,
+	};
+	
+	/**
+	 * Prompts the user to pick a choice from a provided collection of choices.
+	 * \param choices The collection of choices.
+	 * \param str The dialog content.
+	 * \param title The dialog title.
+	 * \param hwnd The parent window
+	 * \return The index of the chosen choice
+	 */
+	size_t show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title = nullptr, DialogType type = DialogType::Warning, void* hwnd = nullptr);
+	
+	/**
 	 * \brief Asks the user a yes/no question
 	 * \param str The dialog content
 	 * \param title The dialog title

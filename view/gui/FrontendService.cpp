@@ -12,6 +12,45 @@
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
 
+size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, DialogType type, void* hwnd)
+{
+	std::vector<TASKDIALOG_BUTTON> buttons;
+
+	buttons.reserve(choices.size());
+	for (int i = 0; i < choices.size(); ++i)
+	{
+		buttons.push_back({ i, choices[i].c_str() });
+	}
+
+	auto icon = TD_ERROR_ICON;
+	switch (type) {
+	case DialogType::Error:
+		icon = TD_ERROR_ICON;
+		break;
+	case DialogType::Warning:
+		icon = TD_WARNING_ICON;
+		break;
+	case DialogType::Information:
+		icon = TD_INFORMATION_ICON;
+		break;
+	}
+	
+	TASKDIALOGCONFIG task_dialog_config = {
+		.cbSize = sizeof(TASKDIALOGCONFIG),
+		.hwndParent = static_cast<HWND>(hwnd ? hwnd : g_main_hwnd),
+		.pszWindowTitle = title,
+		.pszMainIcon = icon,
+		.pszContent = str,
+		.cButtons = buttons.size(),
+		.pButtons = buttons.data(),
+	};
+
+	int pressed_button = -1;
+	TaskDialogIndirect(&task_dialog_config, &pressed_button, NULL, NULL);
+
+	return pressed_button;
+}
+
 bool FrontendService::show_ask_dialog(const char* str, const char* title, bool warning, void* hwnd)
 {
 	if (g_config.silent_mode)
