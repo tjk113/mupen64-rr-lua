@@ -612,7 +612,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			tooltips.push_back(create_tooltip(hwnd, IDC_COMBO_LUA_PRESENTER, "The presenter type to use for displaying and capturing Lua graphics\nRecommended: DirectComposition (on Windows systems)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_AUDIO_DELAY, "When checked, audio interrupts are delayed\nRecommended: On (Off causes issues with savestates)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_COMPILED_JUMP, "When checked, jump instructions are compiled by Dynamic Recompiler\nRecommended: On (Off is slower)"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_ROUNDTOZERO, "When checked, floating point numbers are rounded towards zero"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_WIIVC, "When checked, the core emulates WiiVC behaviour.\nThis includes truncation instead of rounding when performing certain casts."));
 			tooltips.push_back(create_tooltip(hwnd, IDC_MOVIE_BACKUPS, "When checked, a backup of the currently playing movie is created when loading a savestate.\nRecommended: On (Off on systems with slow disk speeds)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_AUTOINCREMENTSAVESLOT, "When checked, saving to a slot will increase the currently selected slot number by 1"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_EMULATEFLOATCRASHES, "When checked, float operations which crash on real hardware will crash the core"));
@@ -680,7 +680,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			set_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX, g_config.vcr_0_index);
 			set_checkbox_state(hwnd, IDC_USESUMMERCART, g_config.use_summercart);
 			set_checkbox_state(hwnd, IDC_SAVE_VIDEO_TO_ST, g_config.st_screenshot);
-			set_checkbox_state(hwnd, IDC_ROUNDTOZERO, g_config.is_round_towards_zero_enabled);
+			set_checkbox_state(hwnd, IDC_WIIVC, g_config.wii_vc_emulation);
 			set_checkbox_state(hwnd, IDC_MOVIE_BACKUPS, g_config.vcr_backups);
 			set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, g_config.is_float_exception_propagation_enabled);
 			set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, g_config.is_audio_delay_enabled);
@@ -753,7 +753,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			g_config.is_unfocused_pause_enabled = get_checkbox_state(hwnd, IDC_PAUSENOTACTIVE);
 			g_config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
 			g_config.st_screenshot = get_checkbox_state(hwnd, IDC_SAVE_VIDEO_TO_ST);
-			g_config.is_round_towards_zero_enabled = get_checkbox_state(hwnd, IDC_ROUNDTOZERO);
+			g_config.wii_vc_emulation = get_checkbox_state(hwnd, IDC_WIIVC);
 			g_config.vcr_backups = get_checkbox_state(hwnd, IDC_MOVIE_BACKUPS);
 			g_config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
 			g_config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);

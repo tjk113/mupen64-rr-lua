@@ -349,7 +349,7 @@ void gencvt_s_d()
 	gencallinterp((unsigned long)CVT_S_D, 0);
 #else
 	gencheck_cop1_unusable();
-	if (g_config.is_round_towards_zero_enabled)
+	if (g_config.wii_vc_emulation)
 	{
 		fldcw_m16((unsigned short*)&trunc_mode);
 	}
@@ -359,7 +359,7 @@ void gencvt_s_d()
 	gencheck_result_valid_s();
 	mov_eax_memoffs32((unsigned long*)(&reg_cop1_simple[dst->f.cf.fd]));
 	fstp_preg32_dword(EAX);
-	if (g_config.is_round_towards_zero_enabled)
+	if (g_config.wii_vc_emulation)
 	{
 		fldcw_m16((unsigned short*)&rounding_mode);
 	}

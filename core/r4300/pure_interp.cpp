@@ -1813,7 +1813,7 @@ static void FLOOR_W_D()
 static void CVT_S_D()
 {
 	CHECK_INPUT(*reg_cop1_double[core_cffs]);
-	if (g_config.is_round_towards_zero_enabled)
+	if (g_config.wii_vc_emulation)
 	{
 		set_trunc();
 	} else
