@@ -82,6 +82,12 @@ bool write_movie_impl(const t_movie_header* hdr, const std::vector<BUTTONS>& inp
 // Writes the movie header + inputs to current movie_path
 bool write_movie()
 {
+	if (!task_is_recording(g_task))
+	{
+		printf("[VCR] Tried to flush current movie while not in recording task\n");
+		return true;
+	}
+	
 	printf("[VCR] Flushing current movie...\n");
 
 	return write_movie_impl(&g_header, g_movie_inputs, g_movie_path);
@@ -759,8 +765,34 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	return Result::Ok;
 }
 
-VCR::Result VCR::replace_author_info(std::filesystem::path path, std::string author, std::string description)
+VCR::Result VCR::replace_author_info(const std::filesystem::path& path, const std::string& author, const std::string& description)
 {
+	// We don't want to fopen with rb+ as it changes the last modified date, unless the author info actually needs to change, so
+	// we skip that step if the values remain identical
+	
+	// 1. Read movie header
+	const auto buf = read_file_buffer(path);
+	
+	if (buf.empty())
+	{
+		return Result::BadFile;
+	}
+
+	t_movie_header hdr{};
+	auto result = read_movie_header(buf, &hdr);
+
+	if (result != Result::Ok)
+	{
+		return result;
+	}
+
+	// 2. Compare author and description fields, and short-circuit if they remained identical
+	if (!strcmp(hdr.author, author.c_str()) && !strcmp(hdr.description, description.c_str()))
+	{
+		printf("[VCR] Movie author or description didn't change, returning early...");
+		return Result::Ok;
+	}
+	
 	FILE* f = fopen(path.string().c_str(), "rb+");
 	if (!f)
 	{

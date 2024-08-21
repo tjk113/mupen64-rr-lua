@@ -262,7 +262,7 @@ namespace VCR
 	 * \param description The movie's description
 	 * \return The operation result
 	 */
-	Result replace_author_info(std::filesystem::path path, std::string author, std::string description);
+	Result replace_author_info(const std::filesystem::path& path, const std::string& author, const std::string& description);
 
 	/**
 	 * \brief Gets information about a seek operation
