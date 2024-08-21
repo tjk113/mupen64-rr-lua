@@ -17,9 +17,58 @@ enum
 
 #pragma pack(push, 1)
 /**
+ * The movie flag bitfield for extended movies.  
+ */
+typedef union ExtendedMovieFlags
+{
+	uint8_t data;
+
+	struct
+	{
+		/**
+		 * Whether the movie was recorded with WiiVC mode enabled.
+		 */
+		bool wii_vc : 1;
+		bool unused_1 : 1;
+		bool unused_2 : 1;
+		bool unused_3 : 1;
+		bool unused_4 : 1;
+		bool unused_5 : 1;
+		bool unused_6 : 1;
+		bool unused_7 : 1;
+	};
+} t_extended_movie_flags;
+
+/**
+ * Additional data for extended movies. Must be 32 bytes large.
+ */
+typedef struct ExtendedMovieData
+{
+	/**
+	 * Special authorship information, such as the program which created the movie.
+	 */
+	uint8_t authorship_tag[4] = { 0x4D, 0x55, 0x50, 0x4E };
+
+	/**
+	 * Additional data regarding bruteforcing.
+	 */
+	uint32_t bruteforce_extra_data;
+
+	/**
+	 * The high word of the amount of loaded states during recording.
+	 */
+	uint32_t rerecord_count;
+
+	uint64_t unused_1;
+	uint64_t unused_2;
+	uint32_t unused_3;
+	
+} t_extended_movie_data;
+
+/**
  * \brief
  */
-typedef struct
+typedef struct MovieHeader
 {
 	/**
 	 * \brief <c>M64\0x1a</c>
@@ -42,7 +91,7 @@ typedef struct
 	unsigned long length_vis;
 
 	/**
-	 * \brief Amount of loaded states during recording
+	 * \brief The low word of the amount of loaded states during recording.
 	 */
 	unsigned long rerecord_count;
 
@@ -60,7 +109,15 @@ typedef struct
 	 */
 	unsigned char num_controllers;
 
-	unsigned short reserved1;
+	/**
+	 * The extended format version. Old movies have it set to <c>0</c>.  
+	 */
+	uint8_t extended_version = 1;
+
+	/**
+	 * The extended movie flags. Only valid if <c>extended_version != 0</c>.
+	 */
+	t_extended_movie_flags extended_flags;
 
 	/**
 	 * \brief Amount of input samples in the movie, ideally equal to <c>(file_length - 1024) / 4</c>
@@ -80,7 +137,10 @@ typedef struct
 	 */
 	unsigned long controller_flags;
 
-	unsigned long reserved_flags[8];
+	/**
+	 * The extended movie data. Only valid if <c>extended_version != 0</c>.
+	 */
+	t_extended_movie_data extended_data{};
 
 	/**
 	 * \brief The name of the movie's author
@@ -212,6 +272,8 @@ namespace VCR
 		NotFromThisMovie,
 		// The movie's version is invalid
 		InvalidVersion,
+		// The movie's extended version is invalid
+		InvalidExtendedVersion,
 		// The operation requires a playback or recording task
 		NeedsPlaybackOrRecording,
 	};
@@ -323,7 +385,7 @@ namespace VCR
 	 * \return The operation result
 	 */
 	Result stop_all();
-
+	
 	/**
 	 * \brief Gets the text representation of the last frame's inputs
 	 */

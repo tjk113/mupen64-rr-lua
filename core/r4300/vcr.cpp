@@ -36,6 +36,9 @@ const auto rom_name_warning_message = "The movie was recorded on the rom '{}', b
 const auto rom_country_warning_message = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto rom_crc_warning_message = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto truncate_message = "Failed to truncate the movie file. The movie may be corrupted.";
+const auto wii_vc_mismatch_a_warning_message = "The movie was recorded with WiiVC mode enabled, but is being played back with it disabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+const auto wii_vc_mismatch_b_warning_message = "The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+const auto old_movie_extended_section_nonzero_message = "The movie was recorded prior to the extended format being available, but contains data in an extended format section.\r\nThe movie may be corrupted. Are you sure you want to continue?";
 
 volatile e_task g_task = e_task::idle;
 
@@ -112,6 +115,17 @@ bool write_backup()
 bool is_task_playback(const e_task task)
 {
 	return task == e_task::start_playback_from_reset || task == e_task::start_playback_from_snapshot || task == e_task::playback;
+}
+
+uint64_t get_rerecord_count()
+{
+	return static_cast<uint64_t>(g_header.extended_data.rerecord_count) << 32 | g_header.rerecord_count;
+}
+
+void set_rerecord_count(const uint64_t value)
+{
+	g_header.rerecord_count = static_cast<uint32_t>(value & 0xFFFFFFFF);
+	g_header.extended_data.rerecord_count = static_cast<uint32_t>(value >> 32);
 }
 
 std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
@@ -209,7 +223,8 @@ static void set_rom_info(t_movie_header* header)
 
 static VCR::Result read_movie_header(std::vector<uint8_t> buf, t_movie_header* header)
 {
-	const auto old_header_size = 512;
+	const t_movie_header default_hdr{};
+	constexpr auto old_header_size = 512;
 
 	if (buf.size() < old_header_size)
 		return VCR::Result::InvalidFormat;
@@ -223,6 +238,10 @@ static VCR::Result read_movie_header(std::vector<uint8_t> buf, t_movie_header* h
 	if (new_header.version <= 0 || new_header.version > mup_version)
 		return VCR::Result::InvalidVersion;
 
+	// The extended version number can't exceed the latest one, obviously...
+	if (new_header.extended_version > default_hdr.extended_version)
+		return VCR::Result::InvalidExtendedVersion;
+	
 	if (new_header.version == 1 || new_header.version == 2)
 	{
 		// attempt to recover screwed-up plugin data caused by
@@ -415,7 +434,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		// writing new input data at the currentFrame pointer
 		g_task = e_task::recording;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 		write_movie();
 
 		// update header with new ROM info
@@ -424,9 +443,9 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 		g_header.length_samples = freeze.current_sample;
 
-		g_header.rerecord_count++;
+		set_rerecord_count(get_rerecord_count() + 1);
 		g_config.total_rerecords++;
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 
 		// Before overwriting the input buffer, save a backup
 		write_backup();
@@ -443,7 +462,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 		g_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	}
 
 	// When loading a state, the statusbar should update with new information before the next frame happens.
@@ -471,7 +490,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// When resetting during playback, we need to remind program of the rerecords
 	if (g_task != e_task::idle && just_reset)
 	{
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	}
 
 	// if we aren't playing back a movie, our data source isn't movie
@@ -495,7 +514,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			g_task = e_task::recording;
 			just_reset = false;
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-			Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+			Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 		} else
 		{
 			// We need to fully reset rom prior to actually pushing any samples to the buffer
@@ -556,7 +575,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			g_task = e_task::playback;
 			just_reset = false;
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-			Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+			Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 		} else
 		{
 			bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
@@ -710,16 +729,22 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	g_config.vcr_readonly = 0;
 	Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
 
+	const t_movie_header default_hdr{};
 	memset(&g_header, 0, sizeof(t_movie_header));
 	g_movie_inputs = {};
 
 	g_header.magic = mup_magic;
 	g_header.version = mup_version;
+	
+	g_header.extended_version = default_hdr.extended_version;
+	g_header.extended_flags.wii_vc = g_config.wii_vc_emulation;
+	g_header.extended_data = default_hdr.extended_data;
+	
 	g_header.uid = (unsigned long)time(nullptr);
 	g_header.length_vis = 0;
 	g_header.length_samples = 0;
 
-	g_header.rerecord_count = 0;
+	set_rerecord_count(0);
 	g_header.startFlags = flags;
 
 
@@ -767,7 +792,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	m_current_vi = 0;
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+	Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	return Result::Ok;
 }
 
@@ -969,6 +994,28 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 		FrontendService::show_warning(dummy, "VCR");
 	}
 
+	if (g_header.extended_version != 0)
+	{
+		printf("[VCR] Movie has extended version %d\n", g_header.extended_version);
+
+		if (g_config.wii_vc_emulation != g_header.extended_flags.wii_vc)
+		{
+			bool proceed = FrontendService::show_ask_dialog(g_header.extended_flags.wii_vc ? wii_vc_mismatch_a_warning_message : wii_vc_mismatch_b_warning_message, "VCR", true);
+
+			if (!proceed)
+			{
+				return Result::Cancelled;
+			}
+		}
+	} else
+	{
+		// Old movies filled with non-zero data in this section are suspicious, we'll warn the user.
+		if (g_header.extended_flags.data != 0)
+		{
+			FrontendService::show_warning(old_movie_extended_section_nonzero_message, "VCR");
+		}
+	}
+	
 	if (_stricmp(g_header.rom_name,
 	             (const char*)ROM_HEADER.nom) != 0)
 	{
@@ -1031,7 +1078,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	}
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-	Messenger::broadcast(Messenger::Message::RerecordsChanged, (uint64_t)g_header.rerecord_count);
+	Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	LuaService::call_play_movie();
 	return Result::Ok;
 }

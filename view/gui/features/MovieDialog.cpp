@@ -338,7 +338,7 @@ namespace MovieDialog
 			                                     header.length_samples)));
 		metadata.emplace_back(std::make_pair("Duration", format_duration((double)header.length_vis / (double)header.vis_per_second)));
 		metadata.emplace_back(
-			std::make_pair("Rerecords", std::to_string(header.rerecord_count)));
+			std::make_pair("Rerecords", std::to_string(static_cast<uint64_t>(header.extended_data.rerecord_count) << 32 | header.rerecord_count)));
 
 		metadata.emplace_back(
 			std::make_pair("Video Plugin", header.video_plugin_name));
@@ -362,6 +362,15 @@ namespace MovieDialog
 			metadata.emplace_back(
 				std::make_pair(std::format("Controller {}", i + 1), tempbuf));
 		}
+
+		metadata.emplace_back(
+			std::make_pair("WiiVC", header.extended_version == 0 ? "Unknown" : (header.extended_flags.wii_vc ? "Enabled" : "Disabled")));
+
+		char authorship[5] = {0};
+		memcpy(authorship, header.extended_data.authorship_tag, sizeof(header.extended_data.authorship_tag));
+		
+		metadata.emplace_back(
+			std::make_pair("Authorship", header.extended_version == 0 ? "Unknown" : authorship));
 
 		metadata.emplace_back(
 			std::make_pair("A Presses", std::to_string(count_button_presses(inputs, 7))));
