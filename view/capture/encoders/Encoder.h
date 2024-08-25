@@ -23,6 +23,10 @@ public:
 		 */
 		uint32_t fps;
 		/**
+		 * \brief The audio stream's bitrate
+		 */
+		uint32_t arate;
+		/**
 		 * \brief Ask the user for encoding settings
 		 */
 		bool ask_for_encoding_settings;

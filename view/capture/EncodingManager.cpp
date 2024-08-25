@@ -23,8 +23,6 @@ namespace EncodingManager
 	// 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
 #define SOUND_BUF_SIZE (44100*2*2)
 
-	const auto ffmpeg_path = "C:\\ffmpeg\\bin\\ffmpeg.exe";
-
 	// 0x30018
 	int m_audio_freq = 33000;
 	int m_audio_bitrate = 16;
@@ -345,6 +343,7 @@ namespace EncodingManager
 			.width = (uint32_t)width,
 			.height = (uint32_t)height,
 			.fps = get_vis_per_second(ROM_HEADER.Country_code),
+			.arate = (uint32_t)m_audio_freq,
 			.ask_for_encoding_settings = ask_for_encoding_settings
 		});
 
