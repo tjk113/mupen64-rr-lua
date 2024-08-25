@@ -14,10 +14,11 @@ constexpr char BASE_OPTIONS[] = VIDEO_OPTIONS "-i \\\\.\\pipe\\mupenvideo" AUDIO
 
 bool FFmpegEncoder::start(Params params)
 {
-    this->m_params = params;
-
+    m_params = params;
+    m_params.path.replace_extension(".mp4");
+    
     constexpr auto bufsize_video = 2048;
-    const auto bufsize_audio = params.arate * 8;
+    const auto bufsize_audio = m_params.arate * 8;
 
     m_video_pipe = CreateNamedPipe(
         "\\\\.\\pipe\\mupenvideo", // pipe name 
@@ -54,13 +55,13 @@ bool FFmpegEncoder::start(Params params)
         return false;
     }
 
-    std::string cmd_options = "-pixel_format yuv420p " + params.path.string();
+    std::string cmd_options = "-pixel_format yuv420p " + m_params.path.string();
     // construct commandline
     // when micrisoft fixes c++20 this will use std::format instead
     {
         char buf[256];
         //@TODO: set audio format
-        snprintf(buf, sizeof(buf), BASE_OPTIONS, params.width, params.height, params.fps, params.arate);
+        snprintf(buf, sizeof(buf), BASE_OPTIONS, m_params.width, m_params.height, m_params.fps, m_params.arate);
 
         //prepend
         cmd_options = buf + cmd_options;
