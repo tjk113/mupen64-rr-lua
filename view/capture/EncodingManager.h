@@ -1,6 +1,10 @@
 #pragma once
 #include <filesystem>
 
+/**
+ * Provides encoding functionality to the view.
+ * \warning This namespace is not thread-safe unless otherwise specified.
+ */
 namespace EncodingManager
 {
 	/**
@@ -42,6 +46,7 @@ namespace EncodingManager
 
 	/**
 	 * \brief Whether a capture is currently running
+	 * \remarks This method is thread-safe.
 	 */
 	bool is_capturing();
 

@@ -33,13 +33,9 @@ namespace EncodingManager
 	char sound_buf_empty[SOUND_BUF_SIZE];
 	int sound_buf_pos = 0;
 	long last_sound = 0;
-
-	size_t split_count = 0;
-
-	bool capturing = false;
-	EncoderType current_container;
-	std::filesystem::path capture_path;
-
+	
+	std::atomic m_capturing = false;
+	EncoderType m_encoder_type;
 	std::unique_ptr<Encoder> m_encoder;
 
 	/**
@@ -261,7 +257,7 @@ namespace EncodingManager
 
 	bool is_capturing()
 	{
-		return capturing;
+		return m_capturing;
 	}
 
 	void(* effective_readscreen())(void** dest, long* width, long* height)
@@ -297,6 +293,8 @@ namespace EncodingManager
 	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
 	                   const bool ask_for_encoding_settings)
 	{
+		assert(is_on_gui_thread());
+		
 		if (is_capturing())
 		{
 			if(!stop_capture())
@@ -324,7 +322,7 @@ namespace EncodingManager
 			assert(false);
 		}
 
-		current_container = encoder_type;
+		m_encoder_type = encoder_type;
 
 		memset(sound_buf_empty, 0, sizeof(sound_buf_empty));
 		memset(sound_buf, 0, sizeof(sound_buf));
@@ -353,8 +351,7 @@ namespace EncodingManager
 			return false;
 		}
 
-		capturing = true;
-		capture_path = path;
+		m_capturing = true;
 
 		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
@@ -365,6 +362,8 @@ namespace EncodingManager
 
 	bool stop_capture()
 	{
+		assert(is_on_gui_thread());
+		
 		if (!is_capturing())
 		{
 			return true;
@@ -379,10 +378,8 @@ namespace EncodingManager
 		}
 
 		m_encoder.release();
-
-		split_count = 0;
-
-		capturing = false;
+		
+		m_capturing = false;
 		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 
 		printf("[EncodingManager]: Capture finished.\n");
@@ -392,7 +389,9 @@ namespace EncodingManager
 
 	void at_vi()
 	{
-		if (!capturing)
+		assert(is_on_gui_thread());
+		
+		if (!m_capturing)
 		{
 			return;
 		}
@@ -494,6 +493,8 @@ namespace EncodingManager
 
 	void ai_len_changed()
 	{
+		assert(is_on_gui_thread());
+		
 		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.
 			ai_dram_addr & 0xFFFFFF));
 		const auto buf = (char*)p;
@@ -501,7 +502,7 @@ namespace EncodingManager
 
 		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
 
-		if (!capturing)
+		if (!m_capturing)
 		{
 			return;
 		}
@@ -575,7 +576,7 @@ namespace EncodingManager
 	{
 		auto type = std::any_cast<system_type>(data);
 
-		if (capturing)
+		if (m_capturing)
 		{
 			FrontendService::show_error("Audio frequency changed during capture.\r\nThe capture will be stopped.", "Capture");
 			stop_capture();
@@ -603,6 +604,8 @@ namespace EncodingManager
 
 	void init()
 	{
+		assert(is_on_gui_thread());
+		
 		Messenger::subscribe(Messenger::Message::DacrateChanged, ai_dacrate_changed);
 	}
 }

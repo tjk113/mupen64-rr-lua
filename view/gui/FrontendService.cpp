@@ -9,6 +9,7 @@
 #include <shared/Config.hpp>
 #include <view/gui/features/MGECompositor.h>
 
+#include "features/Dispatcher.h"
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
 
@@ -296,12 +297,18 @@ void FrontendService::update_screen()
 
 void FrontendService::at_vi()
 {
-	EncodingManager::at_vi();
+	Dispatcher::invoke([]
+	{
+		EncodingManager::at_vi();
+	});
 }
 
 void FrontendService::ai_len_changed()
 {
-	EncodingManager::ai_len_changed();
+	Dispatcher::invoke([]
+	{
+		EncodingManager::ai_len_changed();
+	});
 }
 
 std::string FrontendService::find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
