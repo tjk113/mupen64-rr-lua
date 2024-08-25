@@ -55,7 +55,7 @@ bool FFmpegEncoder::start(Params params)
         return false;
     }
 
-    std::string cmd_options = "-pixel_format yuv420p " + m_params.path.string();
+    std::string cmd_options = "-vf \"vflip,format=yuv420p\" " + m_params.path.string();
     // construct commandline
     // when micrisoft fixes c++20 this will use std::format instead
     {
