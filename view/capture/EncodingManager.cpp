@@ -340,8 +340,8 @@ namespace EncodingManager
 
 		auto result = m_encoder->start(Encoder::Params{
 			.path = path.string().c_str(),
-			.width = (uint32_t)width,
-			.height = (uint32_t)height,
+			.width =  (uint32_t)width & ~3, // Video dimensions need to be floored to multiple of 4 
+			.height = (uint32_t)height & ~3,
 			.fps = get_vis_per_second(ROM_HEADER.Country_code),
 			.arate = (uint32_t)m_audio_freq,
 			.ask_for_encoding_settings = ask_for_encoding_settings
