@@ -1,9 +1,12 @@
-﻿#pragma once
+#pragma once
 #include <filesystem>
+#include <functional>
 
 class Encoder
 {
 public:
+	typedef void(__cdecl* FREE_FUNC)(void*);
+
 	struct Params
 	{
 		/**
@@ -30,6 +33,14 @@ public:
 		 * \brief Ask the user for encoding settings
 		 */
 		bool ask_for_encoding_settings;
+		/**
+		 * \brief A function which frees buffers received via <c>append_video</c>.
+		 */
+		FREE_FUNC video_free;
+		/**
+		 * \brief A function which frees buffers received via <c>append_audio</c>.
+		 */
+		FREE_FUNC audio_free;
 	};
 
 	/**
@@ -52,14 +63,14 @@ public:
 
 	/**
 	 * \brief Adds one frame of video data
-	 * \param image The video buffer
+	 * \param image The video buffer. Must be freed with the provided video free function.
 	 * \return Whether the operation succeeded
 	 */
 	virtual bool append_video(uint8_t* image) = 0;
 
 	/**
 	 * \brief Adds samples of audio data
-	 * \param audio The audio buffer
+	 * \param audio The audio buffer. Must be freed with the provided audio free function.
 	 * \param length The audio length
 	 * \return Whether the operation succeeded
 	 */

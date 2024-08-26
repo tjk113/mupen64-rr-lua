@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Encoder.h"
 
@@ -17,11 +17,11 @@ public:
     bool append_audio(uint8_t* audio, size_t length) override;
 
 private:
+	bool append_audio_impl(uint8_t* audio, size_t length, bool needs_free);
     bool WritePipe(HANDLE pipe, char* buffer, unsigned bufferSize);
     void WriteVideoThread();
     void WriteAudioThread();
     bool _WriteVideoFrame(unsigned char* buffer, unsigned bufferSize);
-    bool _WriteAudioFrame(char* buffer, unsigned bufferSize);
     
     Params m_params{};
 
@@ -37,11 +37,11 @@ private:
 
     std::thread m_audio_thread;
     std::mutex m_audio_queue_mutex{};
-    std::queue<std::vector<char>> m_audio_queue; // queue for sound frames to write to ffmpeg
+    std::queue<std::tuple<uint8_t*, size_t, bool>> m_audio_queue; // queue for sound frames to write to ffmpeg
 
     std::thread m_video_thread;
     std::mutex m_video_queue_mutex{};
-    std::queue<std::vector<unsigned char>> m_video_queue; // queue for sound frames to write to ffmpeg
+    std::queue<std::tuple<uint8_t*, bool>> m_video_queue; // queue for sound frames to write to ffmpeg
 
     bool m_last_write_was_video{};
 };

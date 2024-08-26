@@ -204,10 +204,16 @@ namespace EncodingManager
 				|| len > max_write_size)
 			{
 				static short* buf2 = nullptr;
+
 				len2 = rsmp_resample(&buf2, 44100,
 				                    reinterpret_cast<short*>(sound_buf),
 				                    m_audio_freq,
 				                    m_audio_bitrate, sound_buf_pos);
+
+				// We need to allocate another buffer for the handoff....
+				auto secondary_buf = static_cast<short*>(calloc(len2, sizeof(short)));
+				memcpy(secondary_buf, buf2, len2);
+
 				if (len2 > 0)
 				{
 					if ((len2 % 4) != 0)
@@ -218,7 +224,7 @@ namespace EncodingManager
 							stderr,
 							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
 					}
-					if (!m_encoder->append_audio((unsigned char*)buf2, len2))
+					if (!m_encoder->append_audio(reinterpret_cast<uint8_t*>(secondary_buf), len2))
 					{
 						FrontendService::show_information(
 							"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -281,13 +287,26 @@ namespace EncodingManager
 	{
 	};
 
-	auto effective_readscreen_free()
+	void(*get_effective_readscreen_free())(void*)
 	{
-		if (g_config.capture_mode == 0 || g_config.capture_mode == 3)
+		switch (g_config.capture_mode)
 		{
-			return MGECompositor::available() ? dummy_free : DllCrtFree;
+			case 0:
+				return MGECompositor::available() ? dummy_free : DllCrtFree;
+			case 1:
+				return free;
+			case 2:
+				return free;
+			case 3:
+				return free;
+			default:
+				return nullptr;
 		}
-		return free;
+	}
+
+	void effective_readscreen_free(void* buf)
+	{
+		get_effective_readscreen_free()(buf);
 	}
 
 	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
@@ -334,7 +353,7 @@ namespace EncodingManager
 		long width = 0, height = 0;
 		void* dummy;
 		effective_readscreen()(&dummy, &width, &height);
-		effective_readscreen_free()(dummy);
+		get_effective_readscreen_free()(dummy);
 
 		auto result = m_encoder->start(Encoder::Params{
 			.path = path.string().c_str(),
@@ -342,7 +361,9 @@ namespace EncodingManager
 			.height = (uint32_t)height & ~3,
 			.fps = get_vis_per_second(ROM_HEADER.Country_code),
 			.arate = (uint32_t)m_audio_freq,
-			.ask_for_encoding_settings = ask_for_encoding_settings
+			.ask_for_encoding_settings = ask_for_encoding_settings,
+			.video_free = effective_readscreen_free,
+			.audio_free = free,
 		});
 
 		if (!result)
@@ -438,7 +459,7 @@ namespace EncodingManager
 			{
 				FrontendService::show_error("Audio frames became negative!", "Capture");
 				stop_capture();
-				goto cleanup;
+				return;
 			}
 
 			if (audio_frames == 0)
@@ -452,7 +473,7 @@ namespace EncodingManager
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 					stop_capture();
-					goto cleanup;
+					return;
 				}
 				m_video_frame += 1.0;
 				audio_frames--;
@@ -467,7 +488,7 @@ namespace EncodingManager
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 					stop_capture();
-					goto cleanup;
+					return;
 				}
 				printf("Duped Frame! a/v: %Lg/%Lg\n", m_video_frame,
 				       m_audio_frame);
@@ -482,13 +503,10 @@ namespace EncodingManager
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 				stop_capture();
-				goto cleanup;
+				return;
 			}
 			m_video_frame += 1.0;
 		}
-
-	cleanup:
-		effective_readscreen_free()(image);
 	}
 
 	void ai_len_changed()

@@ -112,6 +112,7 @@ bool AVIEncoder::append_video(uint8_t* image)
 	                          infoHeader.biSizeImage, AVIIF_KEYFRAME, NULL,
 	                          &written_len);
 	AVIFileSize += written_len;
+	video_params.video_free(image);
 	return !ret;
 }
 
@@ -122,6 +123,7 @@ bool AVIEncoder::append_audio(uint8_t* audio, size_t length)
 	                               NULL, NULL));
 	sample += length / sound_format.nBlockAlign;
 	AVIFileSize += length;
+	video_params.audio_free(audio);
 	return ok;
 }
 
