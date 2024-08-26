@@ -1,5 +1,6 @@
 #pragma once
 #include <filesystem>
+#include <shared/Config.hpp>
 
 /**
  * Provides encoding functionality to the view.
@@ -26,22 +27,6 @@ namespace EncodingManager
 		 * \brief The video stream dictates the audio stream's rate
 		 */
 		Video,
-	};
-
-	/**
-	 * \brief A data stream encoder type
-	 */
-	enum class EncoderType
-	{
-		/**
-		 * \brief Microsoft's VFW
-		 */
-		VFW,
-
-		/**
-		 * \brief The FFmpeg library
-		 */
-		FFmpeg,
 	};
 
 	/**

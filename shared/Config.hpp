@@ -93,6 +93,22 @@ enum class PresenterType : int32_t
 	GDI
 };
 
+/**
+  * \brief A data stream encoder type
+  */
+enum class EncoderType : int32_t
+{
+	/**
+	 * \brief Microsoft's VFW
+	 */
+	VFW,
+
+	/**
+	 * \brief The FFmpeg library
+	 */
+	FFmpeg,
+};
+
 typedef struct Hotkey
 {
 	std::string identifier;
@@ -354,6 +370,11 @@ typedef struct Config
 	/// </summary>
 	int32_t presenter_type = static_cast<int32_t>(PresenterType::DirectComposition);
 
+	/// <summary>
+	/// The encoder to use for capturing.
+	/// </summary>
+	int32_t encoder_type = static_cast<int32_t>(EncoderType::VFW);
+	
 	/// <summary>
 	/// The delay (in milliseconds) before capturing the window
 	/// <para/>

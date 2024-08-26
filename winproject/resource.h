@@ -112,6 +112,7 @@
 #define IDC_COMBO_LUA_PRESENTER         1039
 #define IDC_EDIT_MOVIE_AUTHOR2          1040
 #define IDC_CHECK_CHEAT_ENABLED         1040
+#define IDC_COMBO_ENCODER               1040
 #define IDC_NEW_CHEAT                   1041
 #define IDC_CHEAT_APPLY                 1042
 #define IDC_EDIT2                       1043
@@ -184,6 +185,7 @@
 #define IDC_FASTFORWARDSKIPFREQ         2268
 #define IDC_FASTFORWARDSKIPFREQ2        2269
 #define IDC_TEXT_LUA_PRESENTER          2269
+#define IDC_TEXT_ENCODER                2270
 #define IDM_SAVE_SLOT                   3000
 #define IDM_SAVE_STATE_AS               3001
 #define IDM_LOAD_SLOT                   3002

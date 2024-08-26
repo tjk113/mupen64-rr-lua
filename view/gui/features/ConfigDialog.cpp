@@ -610,6 +610,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_MODE, "The video source to use for capturing video frames"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_SYNC, "The strategy to use for synchronizing video and audio during capture"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_COMBO_LUA_PRESENTER, "The presenter type to use for displaying and capturing Lua graphics\nRecommended: DirectComposition (on Windows systems)"));
+			tooltips.push_back(create_tooltip(hwnd, IDC_COMBO_ENCODER, "The encoder to use when capturing.\nVFW: Widely supported but slow\nFFmpeg: Requires separate installation but offers better performance"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_AUDIO_DELAY, "When checked, audio interrupts are delayed\nRecommended: On (Off causes issues with savestates)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_COMPILED_JUMP, "When checked, jump instructions are compiled by Dynamic Recompiler\nRecommended: On (Off is slower)"));
 			tooltips.push_back(create_tooltip(hwnd, IDC_WIIVC, "When checked, the core emulates WiiVC behaviour.\nThis includes truncation instead of rounding when performing certain casts."));
@@ -629,6 +630,9 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			};
 			static const char* capture_sync_names[] = {
 				"No Sync", "Audio Sync", "Video Sync",
+			};
+			static const char* encoder_type_names[] = {
+				"VFW", "FFmpeg",
 			};
 
 			// Populate CPU Clock Speed Multiplier Dropdown Menu
@@ -655,6 +659,13 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			}
 			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER), g_config.presenter_type);
 
+			for (auto& name : encoder_type_names)
+			{
+				SendDlgItemMessage(hwnd, IDC_COMBO_ENCODER, CB_ADDSTRING, 0,
+								   (LPARAM)name);
+			}
+			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_COMBO_ENCODER), g_config.encoder_type);
+			
 			for (auto& name : capture_sync_names)
 			{
 				SendDlgItemMessage(hwnd, IDC_ENCODE_SYNC, CB_ADDSTRING, 0,
@@ -674,6 +685,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			EnableWindow(GetDlgItem(hwnd, IDC_ENCODE_MODE), !EncodingManager::is_capturing());
 			EnableWindow(GetDlgItem(hwnd, IDC_ENCODE_SYNC), !EncodingManager::is_capturing());
 			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER), hwnd_lua_map.empty());
+			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_ENCODER), !EncodingManager::is_capturing());
 
 			set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, g_config.is_unfocused_pause_enabled);
 			set_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT, g_config.increment_slot);
@@ -719,6 +731,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 	case IDC_COMBO_LUA_PRESENTER:
 			{
 				g_config.presenter_type = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER));
+				break;
+			}
+	case IDC_COMBO_ENCODER:
+			{
+				g_config.encoder_type = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_COMBO_ENCODER));
 				break;
 			}
 		case IDC_INTERP:

@@ -1404,7 +1404,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					// pass false to startCapture when "last preset" option was choosen
 					if (EncodingManager::start_capture(
 						wstring_to_string(path).c_str(),
-						EncodingManager::EncoderType::FFmpeg,
+						static_cast<EncoderType>(g_config.encoder_type),
 						ask_preset))
 					{
 						Statusbar::post("Capture started...");

@@ -149,7 +149,7 @@ void commandline_start_capture()
 
 	Dispatcher::invoke([]
 	{
-		EncodingManager::start_capture(commandline_avi.string().c_str(), EncodingManager::EncoderType::VFW, false);
+		EncodingManager::start_capture(commandline_avi.string().c_str(), static_cast<EncoderType>(g_config.encoder_type), false);
 	});
 }
 
