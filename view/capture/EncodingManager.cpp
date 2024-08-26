@@ -360,7 +360,7 @@ namespace EncodingManager
 			.width =  (uint32_t)width & ~3, // Video dimensions need to be floored to multiple of 4 
 			.height = (uint32_t)height & ~3,
 			.fps = get_vis_per_second(ROM_HEADER.Country_code),
-			.arate = (uint32_t)m_audio_freq,
+			.arate = 44100,
 			.ask_for_encoding_settings = ask_for_encoding_settings,
 			.video_free = effective_readscreen_free,
 			.audio_free = free,
