@@ -42,6 +42,4 @@ private:
     std::thread m_video_thread;
     std::mutex m_video_queue_mutex{};
     std::queue<std::tuple<uint8_t*, bool>> m_video_queue; // queue for sound frames to write to ffmpeg
-
-    bool m_last_write_was_video{};
 };

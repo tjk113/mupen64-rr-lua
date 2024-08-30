@@ -110,7 +110,6 @@ bool FFmpegEncoder::stop()
 
 bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length, bool needs_free)
 {
-	m_last_write_was_video = false;
 	m_audio_queue_mutex.lock();
 	this->m_audio_queue.push(std::make_tuple(audio, length, needs_free));
 	m_audio_queue_mutex.unlock();
@@ -121,12 +120,6 @@ bool FFmpegEncoder::append_video(uint8_t* image)
 {
     const auto buf_size = m_params.width * m_params.height * 3;
 
-    if (m_last_write_was_video)
-    {
-        // write frame of silence (I don't know if there's a way to do this without buffer)
-		append_audio_impl(m_silence_buffer, m_params.arate / 16, false);
-    }
-    m_last_write_was_video = true;
     m_video_queue_mutex.lock();
     this->m_video_queue.push(std::make_tuple(image, true));
     m_video_queue_mutex.unlock();
@@ -203,7 +196,7 @@ void FFmpegEncoder::WriteAudioThread()
 void FFmpegEncoder::WriteVideoThread()
 {
     // a special variable is used, since it's hard to guarantee that, for example, VCR_isCapturing() will be correct.
-    // waits until the queue is empty, then stops
+    // waits until the queue is empty, then stopss
     while (!this->m_stop_thread) // || !this->audioQueue.empty())
     {
         if (!this->m_video_queue.empty())
