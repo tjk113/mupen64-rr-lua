@@ -16,7 +16,7 @@ bool FFmpegEncoder::start(Params params)
 {
     m_params = params;
     m_params.path.replace_extension(".mp4");
-    
+
     constexpr auto bufsize_video = 2048;
     const auto bufsize_audio = m_params.arate * 8;
 
@@ -88,8 +88,8 @@ bool FFmpegEncoder::start(Params params)
 
     m_silence_buffer = static_cast<uint8_t*>(calloc(params.arate, 1));
 
-    m_video_thread = std::thread(&FFmpegEncoder::WriteVideoThread, this);
-    m_audio_thread = std::thread(&FFmpegEncoder::WriteAudioThread, this);
+    m_video_thread = std::thread(&FFmpegEncoder::write_video_thread, this);
+    m_audio_thread = std::thread(&FFmpegEncoder::write_audio_thread, this);
 
     return true;
 }
@@ -97,23 +97,23 @@ bool FFmpegEncoder::start(Params params)
 bool FFmpegEncoder::stop()
 {
     m_stop_thread = true;
-	DisconnectNamedPipe(m_video_pipe);
-	DisconnectNamedPipe(m_audio_pipe);
-	WaitForSingleObject(m_pi.hProcess, INFINITE);
+    DisconnectNamedPipe(m_video_pipe);
+    DisconnectNamedPipe(m_audio_pipe);
+    WaitForSingleObject(m_pi.hProcess, INFINITE);
     CloseHandle(m_pi.hProcess);
     CloseHandle(m_pi.hThread);
-	m_audio_thread.join();
-	m_video_thread.join();
+    m_audio_thread.join();
+    m_video_thread.join();
     free(m_silence_buffer);
-	return true;
+    return true;
 }
 
 bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length, bool needs_free)
 {
-	m_audio_queue_mutex.lock();
-	this->m_audio_queue.push(std::make_tuple(audio, length, needs_free));
-	m_audio_queue_mutex.unlock();
-	return true;
+    m_audio_queue_mutex.lock();
+    this->m_audio_queue.push(std::make_tuple(audio, length, needs_free));
+    m_audio_queue_mutex.unlock();
+    return true;
 }
 
 bool FFmpegEncoder::append_video(uint8_t* image)
@@ -128,54 +128,47 @@ bool FFmpegEncoder::append_video(uint8_t* image)
 
 bool FFmpegEncoder::append_audio(uint8_t* audio, size_t length)
 {
-	return append_audio_impl(audio, length, true);
+    return append_audio_impl(audio, length, true);
 }
 
-bool FFmpegEncoder::WritePipe(HANDLE pipe, char* buffer, unsigned bufferSize)
+bool write_pipe_checked(const HANDLE pipe, const char* buffer, const unsigned buffer_size)
 {
     DWORD written{};
-    auto res = WriteFile(pipe, buffer, bufferSize, &written, NULL);
-    if (written != bufferSize or res != TRUE)
+    auto res = WriteFile(pipe, buffer, buffer_size, &written, NULL);
+    if (written != buffer_size or res != TRUE)
     {
         return false;
     }
     return true;
 }
 
-bool FFmpegEncoder::_WriteVideoFrame(unsigned char* buffer, unsigned bufferSize)
+void FFmpegEncoder::write_audio_thread()
 {
-    return WritePipe(m_video_pipe, (char*)buffer, bufferSize);
-}
-
-void FFmpegEncoder::WriteAudioThread()
-{
-    // a special variable is used, since it's hard to guarantee that, for example, VCR_isCapturing() will be correct.
-    // waits until the queue is empty, then stops (this is commented out)
-    while (!this->m_stop_thread) // || !this->audioQueue.empty()) 
+    while (!this->m_stop_thread)
     {
         if (!this->m_audio_queue.empty())
         {
-            //printf("Writing audio (thread)\n");
             this->m_audio_queue_mutex.lock();
             auto tuple = this->m_audio_queue.front();
             this->m_audio_queue_mutex.unlock();
 
-			auto buf = std::get<0>(tuple);
-			auto len = std::get<1>(tuple);
-			auto needs_free = std::get<2>(tuple);
+            auto buf = std::get<0>(tuple);
+            auto len = std::get<1>(tuple);
+            auto needs_free = std::get<2>(tuple);
 
-			auto result = WritePipe(m_audio_pipe, (char*)buf, len);
+            auto result = write_pipe_checked(m_audio_pipe, (char*)buf, len);
 
             if (result)
             {
-                //printf(">writing audio success\n");
-				this->m_audio_queue_mutex.lock();
-				// We don't want to free our own silence buffer :P
-				if (needs_free)
-				{
-					m_params.audio_free(buf);
-				}
-                this->m_audio_queue.pop(); //only remove when write succesfull
+                this->m_audio_queue_mutex.lock();
+
+                // We don't want to free our own silence buffer :P
+                if (needs_free)
+                {
+                    m_params.audio_free(buf);
+                }
+                this->m_audio_queue.pop();
+
                 this->m_audio_queue_mutex.unlock();
             }
             else
@@ -185,7 +178,6 @@ void FFmpegEncoder::WriteAudioThread()
         }
         else
         {
-            // sleep?
             Sleep(10);
         }
     }
@@ -193,31 +185,33 @@ void FFmpegEncoder::WriteAudioThread()
     printf(">>>Remaining audio queue stuff: %d\n", this->m_audio_queue.size());
 }
 
-void FFmpegEncoder::WriteVideoThread()
+void FFmpegEncoder::write_video_thread()
 {
-    // a special variable is used, since it's hard to guarantee that, for example, VCR_isCapturing() will be correct.
-    // waits until the queue is empty, then stopss
-    while (!this->m_stop_thread) // || !this->audioQueue.empty())
+    while (!this->m_stop_thread)
     {
         if (!this->m_video_queue.empty())
         {
-            //printf("Writing video (thread)\n");
             this->m_video_queue_mutex.lock();
+
             auto tuple = this->m_video_queue.front();
+
             this->m_video_queue_mutex.unlock();
 
-			auto buf = std::get<0>(tuple);
-			auto needs_free = std::get<1>(tuple);
+            auto buf = std::get<0>(tuple);
+            auto needs_free = std::get<1>(tuple);
 
-            if (WritePipe(m_video_pipe, (char*)buf, m_params.width * m_params.height * 3)) // waits here
+            auto result = write_pipe_checked(m_video_pipe, (char*)buf, m_params.width * m_params.height * 3);
+
+            if (result)
             {
-                // printf(">writing video success\n");
                 this->m_video_queue_mutex.lock();
-				if (needs_free)
-				{
-					m_params.video_free(buf);
-				}
-                this->m_video_queue.pop(); //only remove when write succesfull
+
+                if (needs_free)
+                {
+                    m_params.video_free(buf);
+                }
+                this->m_video_queue.pop();
+
                 this->m_video_queue_mutex.unlock();
             }
             else
@@ -227,7 +221,6 @@ void FFmpegEncoder::WriteVideoThread()
         }
         else
         {
-            // sleep?
             Sleep(10);
         }
     }

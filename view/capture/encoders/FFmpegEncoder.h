@@ -18,10 +18,8 @@ public:
 
 private:
 	bool append_audio_impl(uint8_t* audio, size_t length, bool needs_free);
-    bool WritePipe(HANDLE pipe, char* buffer, unsigned bufferSize);
-    void WriteVideoThread();
-    void WriteAudioThread();
-    bool _WriteVideoFrame(unsigned char* buffer, unsigned bufferSize);
+    void write_video_thread();
+    void write_audio_thread();
     
     Params m_params{};
 
