@@ -2,6 +2,8 @@
 
 #include <shared/Config.hpp>
 
+#include "shared/services/FrontendService.h"
+
 bool FFmpegEncoder::start(Params params)
 {
     m_params = params;
@@ -60,7 +62,7 @@ bool FFmpegEncoder::start(Params params)
             AUDIO_PIPE_NAME,
             m_params.path.string().c_str());
 
-    if (!CreateProcess("C:/ffmpeg/bin/ffmpeg.exe",
+    if (!CreateProcess(g_config.ffmpeg_path.c_str(),
                        options,
                        NULL,
                        NULL,
@@ -72,7 +74,7 @@ bool FFmpegEncoder::start(Params params)
                        &m_pi)
     )
     {
-        MessageBox(NULL, "Could not start ffmpeg process! Does ffmpeg exist on disk?", "Error", MB_ICONERROR);
+        FrontendService::show_error(std::format("Could not start ffmpeg process! Does ffmpeg exist on disk at '{}'?", g_config.ffmpeg_path).c_str());
         printf("CreateProcess failed (%d).\n", GetLastError());
         CloseHandle(m_video_pipe);
         CloseHandle(m_audio_pipe);

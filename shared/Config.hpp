@@ -386,6 +386,11 @@ typedef struct Config
 	/// FFmpeg post-stream option format string which is used when capturing using the FFmpeg encoder type
 	/// </summary>
 	std::string ffmpeg_final_options = " -thread_queue_size 4 -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 -i %s -thread_queue_size 64 -f s16le -ar %d -ac 2 -channel_layout stereo -i %s -vf \"vflip,format=yuv420p\" %s";
+
+	/// <summary>
+	/// FFmpeg binary path
+	/// </summary>
+	std::string ffmpeg_path = "C:\\ffmpeg\\bin\\ffmpeg.exe";
 	
 	/// <summary>
 	/// The audio-video synchronization mode
