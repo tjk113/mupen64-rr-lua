@@ -14,9 +14,9 @@
 #include "encoders/Encoder.h"
 #include "encoders/FFmpegEncoder.h"
 #include <view/gui/features/MGECompositor.h>
-#include <core/r4300/r4300.h>
 #include <view/lua/LuaConsole.h>
 #include <view/gui/features/Dispatcher.h>
+#include <view/helpers/IOHelpers.h>
 
 namespace EncodingManager
 {
@@ -425,16 +425,14 @@ namespace EncodingManager
 		void* image = nullptr;
 		long width = 0, height = 0;
 
-		const auto start = std::chrono::high_resolution_clock::now();
-		effective_readscreen()(&image, &width, &height);
-		const auto end = std::chrono::high_resolution_clock::now();
-		const std::chrono::duration<double, std::milli> time = (end - start);
-		printf("ReadScreen: %lf ms\n", time.count());
-
+		{
+			ScopeTimer timer("ReadScreen");
+			effective_readscreen()(&image, &width, &height);
+		}
+		
 		if (image == nullptr)
 		{
-			printf(
-				"[EncodingManager]: Couldn't read screen (out of memory?)\n");
+			printf("[EncodingManager]: Couldn't read screen (out of memory?)\n");
 			return;
 		}
 
