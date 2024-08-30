@@ -381,11 +381,11 @@ typedef struct Config
 	/// May be useful when capturing other windows alongside mupen
 	/// </summary>
 	int32_t capture_delay;
-
+	
 	/// <summary>
-	/// FFmpeg options which will be appended to the argument list when capturing using the FFmpeg encoder type
+	/// FFmpeg post-stream option format string which is used when capturing using the FFmpeg encoder type
 	/// </summary>
-	std::string additional_ffmpeg_options;
+	std::string ffmpeg_final_options = " -thread_queue_size 4 -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 -i %s -thread_queue_size 64 -f s16le -ar %d -ac 2 -channel_layout stereo -i %s -vf \"vflip,format=yuv420p\" %s";
 	
 	/// <summary>
 	/// The audio-video synchronization mode

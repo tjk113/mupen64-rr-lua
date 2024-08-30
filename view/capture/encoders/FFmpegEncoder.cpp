@@ -2,18 +2,6 @@
 
 #include <shared/Config.hpp>
 
-//format signed 16 bit samples little endian
-//rate taken from m_audioFreq
-//two channels (always like that on n64)
-#define AUDIO_OPTIONS " -thread_queue_size 64 -f s16le -ar %d -ac 2 -channel_layout stereo "
-
-// rawvideo demuxer,
-// video size and framerate prepared in manager constructor when values are known
-// pixel format is bgr24, because that's what windows uses
-#define VIDEO_OPTIONS " -thread_queue_size 4 -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 "
-
-constexpr char BASE_OPTIONS[] = VIDEO_OPTIONS "-i \\\\.\\pipe\\mupenvideo" AUDIO_OPTIONS "-i \\\\.\\pipe\\mupenaudio ";
-
 bool FFmpegEncoder::start(Params params)
 {
     m_params = params;
@@ -22,16 +10,19 @@ bool FFmpegEncoder::start(Params params)
     constexpr auto bufsize_video = 2048;
     const auto bufsize_audio = m_params.arate * 8;
 
+#define VIDEO_PIPE_NAME "\\\\.\\pipe\\mupenvideo"
+#define AUDIO_PIPE_NAME "\\\\.\\pipe\\mupenaudio"
+
     m_video_pipe = CreateNamedPipe(
-        "\\\\.\\pipe\\mupenvideo", // pipe name 
-        PIPE_ACCESS_OUTBOUND, // read/write access 
-        PIPE_TYPE_BYTE | // message type pipe 
-        PIPE_READMODE_BYTE | // message-read mode 
-        PIPE_WAIT, // blocking mode
-        PIPE_UNLIMITED_INSTANCES, // max. instances  
-        bufsize_video, // output buffer size 
-        0, // input buffer size 
-        0, // client time-out 
+        VIDEO_PIPE_NAME,
+        PIPE_ACCESS_OUTBOUND, 
+        PIPE_TYPE_BYTE |
+        PIPE_READMODE_BYTE |
+        PIPE_WAIT,
+        PIPE_UNLIMITED_INSTANCES,
+        bufsize_video,
+        0,
+        0,
         NULL); // default security attribute 
 
     if (!m_video_pipe)
@@ -40,7 +31,7 @@ bool FFmpegEncoder::start(Params params)
     }
 
     m_audio_pipe = CreateNamedPipe(
-        "\\\\.\\pipe\\mupenaudio",
+        AUDIO_PIPE_NAME,
         PIPE_ACCESS_OUTBOUND,
         PIPE_TYPE_BYTE |
         PIPE_READMODE_BYTE |
@@ -57,28 +48,28 @@ bool FFmpegEncoder::start(Params params)
         return false;
     }
 
-    std::string cmd_options = "-vf \"vflip,format=yuv420p\" " + m_params.path.string();
-    // construct commandline
-    // when micrisoft fixes c++20 this will use std::format instead
-    {
-        char buf[256];
-        //@TODO: set audio format
-        snprintf(buf, sizeof(buf), BASE_OPTIONS, m_params.width, m_params.height, m_params.fps, m_params.arate);
 
-        //prepend
-        cmd_options = buf + cmd_options + g_config.additional_ffmpeg_options;
-    }
+    char options[360] = {0};
+    sprintf(options,
+            g_config.ffmpeg_final_options.c_str(),
+            m_params.width,
+            m_params.height,
+            m_params.fps,
+            VIDEO_PIPE_NAME,
+            m_params.arate,
+            AUDIO_PIPE_NAME,
+            m_params.path.string().c_str());
 
     if (!CreateProcess("C:/ffmpeg/bin/ffmpeg.exe",
-                       cmd_options.data(), //non-const
-                       NULL, // Process handle not inheritable
-                       NULL, // Thread handle not inheritable
-                       FALSE, // Set handle inheritance to FALSE
+                       options,
+                       NULL,
+                       NULL,
+                       FALSE,
                        DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
-                       NULL, // Use parent's environment block
-                       NULL, // Use parent's starting directory 
-                       &m_si, // Pointer to STARTUPINFO structure
-                       &m_pi) // Pointer to PROCESS_INFORMATION structure
+                       NULL,
+                       NULL,
+                       &m_si,
+                       &m_pi)
     )
     {
         MessageBox(NULL, "Could not start ffmpeg process! Does ffmpeg exist on disk?", "Error", MB_ICONERROR);
