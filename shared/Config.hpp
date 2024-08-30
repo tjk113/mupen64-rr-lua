@@ -383,6 +383,11 @@ typedef struct Config
 	int32_t capture_delay;
 
 	/// <summary>
+	/// FFmpeg options which will be appended to the argument list when capturing using the FFmpeg encoder type
+	/// </summary>
+	std::string additional_ffmpeg_options;
+	
+	/// <summary>
 	/// The audio-video synchronization mode
 	/// <para/>
 	/// 0 - No Sync

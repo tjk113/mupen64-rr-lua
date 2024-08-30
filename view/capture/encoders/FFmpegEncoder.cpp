@@ -1,5 +1,7 @@
 #include "FFmpegEncoder.h"
 
+#include <shared/Config.hpp>
+
 //format signed 16 bit samples little endian
 //rate taken from m_audioFreq
 //two channels (always like that on n64)
@@ -64,7 +66,7 @@ bool FFmpegEncoder::start(Params params)
         snprintf(buf, sizeof(buf), BASE_OPTIONS, m_params.width, m_params.height, m_params.fps, m_params.arate);
 
         //prepend
-        cmd_options = buf + cmd_options;
+        cmd_options = buf + cmd_options + g_config.additional_ffmpeg_options;
     }
 
     if (!CreateProcess("C:/ffmpeg/bin/ffmpeg.exe",
