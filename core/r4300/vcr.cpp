@@ -709,6 +709,14 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 		return Result::Busy;
 	}
 
+	if (flags != MOVIE_START_FROM_SNAPSHOT
+		&& flags != MOVIE_START_FROM_NOTHING
+		&& flags != MOVIE_START_FROM_EEPROM
+		&& flags != MOVIE_START_FROM_EXISTING_SNAPSHOT)
+	{
+		return VCR::Result::InvalidStartType;
+	}
+	
 	VCR::stop_all();
 	g_movie_path = path;
 

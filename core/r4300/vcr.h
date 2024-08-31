@@ -276,6 +276,8 @@ namespace VCR
 		InvalidExtendedVersion,
 		// The operation requires a playback or recording task
 		NeedsPlaybackOrRecording,
+		// The provided start type is invalid.
+		InvalidStartType,
 	};
 
 	/**
