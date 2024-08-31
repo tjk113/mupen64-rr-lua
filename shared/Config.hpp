@@ -433,7 +433,7 @@ typedef struct Config
 	/// <summary>
 	/// The last known value of the record movie dialog's "start type" field
 	/// </summary>
-	int32_t last_movie_type;
+	int32_t last_movie_type = 1; // (MOVIE_START_FROM_SNAPSHOT)
 
 	/// <summary>
 	/// The last known value of the record movie dialog's "author" field
