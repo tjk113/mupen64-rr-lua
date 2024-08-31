@@ -22,7 +22,7 @@
 #include <filesystem>
 #include <shared/Config.hpp>
 
-#define MUPEN_VERSION "Mupen 64 1.1.8"
+#define MUPEN_VERSION "Mupen 64 1.1.9"
 
 #define WM_FOCUS_MAIN_WINDOW (WM_USER + 17)
 #define WM_EXECUTE_DISPATCHER (WM_USER + 18)
