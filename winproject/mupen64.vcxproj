@@ -167,6 +167,7 @@
         <ClInclude Include="..\core\r4300\x86\interpret.h"/>
         <ClInclude Include="..\core\r4300\x86\regcache.h"/>
         <ClInclude Include="..\lib\microlru.h"/>
+        <ClInclude Include="..\shared\AsyncExecutor.h" />
         <ClInclude Include="..\shared\Config.hpp"/>
         <ClInclude Include="..\shared\helpers\IOHelpers.h" />
         <ClInclude Include="..\shared\helpers\StringHelpers.h" />
@@ -270,6 +271,7 @@
         <ClCompile Include="..\core\r4300\bc.cpp" />
         <ClCompile Include="..\lib\speex\speex_resampler.c" />
         <ClCompile Include="..\lib\md5.c" />
+        <ClCompile Include="..\shared\AsyncExecutor.cpp" />
         <ClCompile Include="..\shared\Config.cpp" />
         <ClCompile Include="..\shared\Messenger.cpp" />
         <ClCompile Include="..\view\capture\encoders\AVIEncoder.cpp" />

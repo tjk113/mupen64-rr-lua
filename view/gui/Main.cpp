@@ -55,6 +55,7 @@
 #include "features/Statusbar.hpp"
 #include "features/Cheats.h"
 #include "features/Runner.h"
+#include "shared/AsyncExecutor.h"
 #include "wrapper/PersistentPathDialog.h"
 
 DWORD g_ui_thread_id;
@@ -908,7 +909,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		save_config();
 		KillTimer(g_main_hwnd, g_update_screen_timer);
-		Dispatcher::stop();
+		AsyncExecutor::stop();
 		PostQuitMessage(0);
 		break;
 	case WM_CLOSE:
@@ -1568,7 +1569,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 #endif
 
 	Messenger::init();
-	Dispatcher::init();
+	AsyncExecutor::init();
 	
 	g_app_path = get_app_full_path();
 
