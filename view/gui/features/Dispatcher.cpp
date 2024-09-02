@@ -13,7 +13,7 @@ namespace Dispatcher
     std::mutex g_ui_mutex;
 
     std::queue<std::function<void()>> g_async_queue;
-    std::mutex g_async_mutex;
+    std::recursive_mutex g_async_mutex;
     std::atomic g_async_stop = false;
     std::thread g_async_thread;
 
@@ -56,6 +56,12 @@ namespace Dispatcher
         std::lock_guard lock(g_ui_mutex);
         g_ui_queue.push(func);
         SendMessage(g_main_hwnd, WM_EXECUTE_DISPATCHER, 0, 0);
+    }
+
+    void invoke_async(const std::function<void()>& func)
+    {
+        std::lock_guard lock(g_async_mutex);
+        g_async_queue.push(func);
     }
 
     void execute_ui()
