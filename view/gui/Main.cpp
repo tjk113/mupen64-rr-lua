@@ -448,7 +448,7 @@ void on_emu_stopping(std::any)
 	{
 		g_previously_running_luas.push_back(key);
 	}
-	Dispatcher::invoke(stop_all_scripts);
+	Dispatcher::invoke_ui(stop_all_scripts);
 }
 
 void on_emu_launched_changed(std::any data)
@@ -476,7 +476,7 @@ void on_emu_launched_changed(std::any data)
 	{
 		Recent::add(g_config.recent_rom_paths, get_rom_path().string(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, g_recent_roms_menu);
 		g_vis_since_input_poll_warning_dismissed = false;
-		Dispatcher::invoke([]
+		Dispatcher::invoke_ui([]
 		{
 			for (const HWND hwnd : g_previously_running_luas)
 			{
@@ -897,7 +897,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		SetFocus(g_main_hwnd);
 		break;
 	case WM_EXECUTE_DISPATCHER:
-		Dispatcher::execute();
+		Dispatcher::execute_ui();
 		break;
 	case WM_CREATE:
 		g_main_menu = GetMenu(hwnd);
@@ -908,6 +908,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		save_config();
 		KillTimer(g_main_hwnd, g_update_screen_timer);
+		Dispatcher::stop();
 		PostQuitMessage(0);
 		break;
 	case WM_CLOSE:
@@ -917,7 +918,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			std::thread([]
 			{
 				vr_close_rom(true);
-				Dispatcher::invoke([]
+				Dispatcher::invoke_ui([]
 				{
 					DestroyWindow(g_main_hwnd);
 				});
@@ -1567,7 +1568,8 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 #endif
 
 	Messenger::init();
-
+	Dispatcher::init();
+	
 	g_app_path = get_app_full_path();
 
 	// CWD is sometimes messed up when running from CLI, so we fix it here
