@@ -31,6 +31,7 @@
 #include <view/capture/EncodingManager.h>
 
 #include "features/Dispatcher.h"
+#include "shared/AsyncExecutor.h"
 #include "shared/Config.hpp"
 
 std::filesystem::path commandline_rom;
@@ -88,7 +89,7 @@ void commandline_start_rom()
 		return;
 	}
 
-	std::thread([]
+	AsyncExecutor::invoke_async([]
 	{
 		vr_start_rom(commandline_rom);
 		// Special case for "Open With..."
@@ -96,7 +97,7 @@ void commandline_start_rom()
 		{
 			VCR::start_playback(commandline_rom);
 		}
-	}).detach();
+	});
 }
 
 void commandline_load_st()
@@ -137,7 +138,10 @@ void commandline_start_movie()
 	}
 
 	g_config.vcr_readonly = true;
-	std::thread([] { VCR::start_playback(commandline_movie); }).detach();
+	AsyncExecutor::invoke_async([]
+	{
+		VCR::start_playback(commandline_movie);
+	});
 }
 
 void commandline_start_capture()

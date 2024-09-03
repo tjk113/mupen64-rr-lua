@@ -58,6 +58,12 @@
 #include "shared/AsyncExecutor.h"
 #include "wrapper/PersistentPathDialog.h"
 
+// Throwaway actions which can be spammed get keys as to not clog up the async executor queue 
+#define ASYNC_KEY_CLOSE_ROM (1)
+#define ASYNC_KEY_START_ROM (2)
+#define ASYNC_KEY_RESET_ROM (3)
+#define ASYNC_KEY_PLAY_MOVIE (4)
+
 DWORD g_ui_thread_id;
 HWND g_hwnd_plug;
 UINT g_update_screen_timer;
@@ -541,7 +547,10 @@ void on_vis_since_input_poll_exceeded(std::any)
 		"An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
 		"Warning", true))
 	{
-		std::thread([] { vr_close_rom(); }).detach();
+		AsyncExecutor::invoke_async([]
+		{
+			vr_close_rom();
+		});
 	}
 	g_vis_since_input_poll_warning_dismissed = true;
 }
@@ -752,12 +761,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 			if (extension == ".n64" || extension == ".z64" || extension == ".v64" || extension == ".rom")
 			{
-				std::thread([path] { vr_start_rom(path); }).detach();
+				AsyncExecutor::invoke_async([path]
+				{
+					vr_start_rom(path);
+				});
 			} else if (extension == ".m64")
 			{
 				g_config.vcr_readonly = true;
 				Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
-				std::thread([fname] { VCR::start_playback(fname); }).detach();
+				AsyncExecutor::invoke_async([fname]
+				{
+					VCR::start_playback(fname);
+				});
 			} else if (extension == ".st" || extension == ".savestate")
 			{
 				if (!emu_launched) break;
@@ -1130,7 +1145,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_CLOSE_ROM:
 				if (!confirm_user_exit())
 					break;
-				std::thread([] { vr_close_rom(); }).detach();
+				AsyncExecutor::invoke_async([]
+				{
+					vr_close_rom();
+				}, ASYNC_KEY_CLOSE_ROM);
 				break;
 			case IDM_FASTFORWARD_ON:
 				fast_forward = 1;
@@ -1203,7 +1221,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				if (!confirm_user_exit())
 					break;
 
-				std::thread([] { vr_reset_rom(); }).detach();
+				AsyncExecutor::invoke_async([]
+				{
+					vr_reset_rom();
+				}, ASYNC_KEY_RESET_ROM);
 				break;
 
 			case IDM_SETTINGS:
@@ -1293,7 +1314,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					if (!path.empty())
 					{
-						std::thread([path] { vr_start_rom(path); }).detach();
+						AsyncExecutor::invoke_async([path]
+						{
+							vr_start_rom(path);
+						});
 					}
 				}
 				break;
@@ -1380,7 +1404,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					g_config.pause_at_frame = result.pause_at;
 					g_config.pause_at_last_frame = result.pause_at_last;
 
-					std::thread([result] { VCR::start_playback(result.path); }).detach();
+					AsyncExecutor::invoke_async([result]
+					{
+						VCR::start_playback(result.path);
+					});
 				}
 				break;
 			case IDM_STOP_MOVIE:
@@ -1489,7 +1516,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (path.empty())
 						break;
 
-					std::thread([path] { vr_start_rom(path); }).detach();
+					AsyncExecutor::invoke_async([path]
+					{
+						vr_start_rom(path);
+					}, ASYNC_KEY_START_ROM);
 				} else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST &&
 					LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + g_config.
 					                                          recent_movie_paths.size()))
@@ -1500,7 +1530,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 					g_config.vcr_readonly = true;
 					Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
-					std::thread([path] { VCR::start_playback(path); }).detach();
+					AsyncExecutor::invoke_async([path]
+					{
+						VCR::start_playback(path);
+					}, ASYNC_KEY_PLAY_MOVIE);
 				} else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
 					ID_LUA_RECENT + g_config.recent_lua_script_paths.size()))
 				{

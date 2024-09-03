@@ -24,6 +24,8 @@
 #include <Uxtheme.h>
 #include <shared/Messenger.h>
 
+#include "shared/AsyncExecutor.h"
+
 using t_rombrowser_entry = struct s_rombrowser_entry
 {
 	std::string path;
@@ -422,7 +424,10 @@ namespace Rombrowser
 				item.iItem = i;
 				ListView_GetItem(rombrowser_hwnd, &item);
 				auto path = rombrowser_entries[item.lParam]->path;
-				std::thread([path] { vr_start_rom(path); }).detach();
+				AsyncExecutor::invoke_async([path]
+				{
+					vr_start_rom(path);
+				});
 			}
 			break;
 		}
