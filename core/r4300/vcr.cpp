@@ -23,6 +23,8 @@
 #include <shared/Messenger.h>
 #include <shared/helpers/StringHelpers.h>
 
+#include "shared/AsyncExecutor.h"
+
 
 // M64\0x1a
 enum
@@ -519,14 +521,14 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		{
 			// We need to fully reset rom prior to actually pushing any samples to the buffer
 			bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
-			std::thread([clear_eeprom]
+			AsyncExecutor::invoke_async([clear_eeprom]
 			{
 				auto result = vr_reset_rom(clear_eeprom, false, true);
 				if (result != Core::Result::Ok)
 				{
 					FrontendService::show_error("Failed to reset the rom when initiating a from-start recording.");
 				}
-			}).detach();
+			});
 		}
 	}
 
@@ -579,14 +581,14 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		} else
 		{
 			bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
-			std::thread([clear_eeprom]
+			AsyncExecutor::invoke_async([clear_eeprom]
 			{
 				auto result = vr_reset_rom(clear_eeprom, false, true);
 				if (result != Core::Result::Ok)
 				{
 					FrontendService::show_error("Failed to reset the rom when playing back a from-start movie.");
 				}
-			}).detach();
+			});
 		}
 	}
 
@@ -608,14 +610,14 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		if (user_requested_reset)
 		{
 			user_requested_reset = false;
-			std::thread([]
+			AsyncExecutor::invoke_async([]
 			{
 				auto result = vr_reset_rom(false, false, true);
 				if (result != Core::Result::Ok)
 				{
 					FrontendService::show_error("Failed to reset the rom following a user-invoked reset.");
 				}
-			}).detach();
+			});
 		}
 		return;
 	}
@@ -663,14 +665,14 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	if (input->Value == 0xC000)
 	{
 		printf("[VCR] Resetting during playback...\n");
-		std::thread([]
+		AsyncExecutor::invoke_async([]
 		{
 			auto result = vr_reset_rom(false, false, true);
 			if (result != Core::Result::Ok)
 			{
 				FrontendService::show_error("Failed to reset the rom following a movie-invoked reset.");
 			}
-		}).detach();
+		});
 	}
 
 	LuaService::call_input(input, index);
