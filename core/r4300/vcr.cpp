@@ -888,10 +888,10 @@ VCR::Result vcr_stop_record()
 
 	if (g_task == e_task::recording)
 	{
-		g_task = e_task::idle;
-
 		write_movie();
-
+		
+		g_task = e_task::idle;
+		
 		printf("[VCR] Recording stopped. Recorded %ld input samples\n",
 			   g_header.length_samples);
 	}
