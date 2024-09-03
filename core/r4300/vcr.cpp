@@ -107,7 +107,7 @@ bool write_backup()
 	}
 
 	printf("[VCR] Backing up movie...\n");
-	const auto filename = std::format("{} - {}.m64", g_movie_path.stem().string(), static_cast<uint64_t>(time(nullptr)));
+	const auto filename = std::format("{}.{}.m64", g_movie_path.stem().string(), static_cast<uint64_t>(time(nullptr)));
 
 	return write_movie_impl(&g_header, g_movie_inputs, get_backups_directory() / filename);
 }
