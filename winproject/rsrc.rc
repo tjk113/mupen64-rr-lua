@@ -410,6 +410,8 @@ IDI_UNKNOWN             ICON                    "icons\\unknown.ico"
 
 IDI_USA                 ICON                    "icons\\usa.ico"
 
+IDI_DENY                ICON                    "icons\\deny.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

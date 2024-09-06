@@ -939,6 +939,12 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 										   g_app_instance,
 										   NULL);
 
+			HIMAGELIST image_list = ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 1, 0);
+			HICON icon;
+			icon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_DENY));
+			
+			ImageList_AddIcon(image_list, icon);
+			ListView_SetImageList(g_lv_hwnd, image_list, LVSIL_SMALL);
 			ListView_EnableGroupView(g_lv_hwnd, true);
 			ListView_SetExtendedListViewStyle(g_lv_hwnd,
 											  LVS_EX_FULLROWSELECT |
@@ -962,12 +968,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			ListView_InsertColumn(g_lv_hwnd, 0, &lv_column);
 			lv_column.pszText = (LPTSTR)"Value";
 			ListView_InsertColumn(g_lv_hwnd, 1, &lv_column);
-			lv_column.pszText = (LPTSTR)"Description";
-			ListView_InsertColumn(g_lv_hwnd, 2, &lv_column);
 			
 			LVITEM lv_item = {0};
-			lv_item.mask = LVIF_TEXT | LVIF_GROUPID | LVIF_PARAM;
+			lv_item.mask = LVIF_TEXT | LVIF_GROUPID | LVIF_PARAM | LVIF_IMAGE;
 			lv_item.pszText = LPSTR_TEXTCALLBACK;
+			lv_item.iImage = I_IMAGECALLBACK;
 			for (int i = 0; i < g_option_items.size(); ++i)
 			{
 				lv_item.iGroupId = g_option_items[i].group_id;
@@ -1062,6 +1067,12 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 					{
 						auto plvdi = (NMLVDISPINFO*)l_param;
 						t_options_item options_item = g_option_items[plvdi->item.lParam];
+
+						if(plvdi->item.mask & LVIF_IMAGE ) 
+						{
+							plvdi->item.iImage = options_item.is_readonly() ? 0 : 1;
+						}
+						
 						switch (plvdi->item.iSubItem)
 						{
 						case 0:
