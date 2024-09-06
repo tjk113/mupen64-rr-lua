@@ -501,6 +501,7 @@
 #define IDM_CHEATS                      40074
 #define IDC_BACKUPS_GROUP               40075
 #define IDC_MOVIE_BACKUPS               40076
+#define IDC_SETTINGS_LV                 40077
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

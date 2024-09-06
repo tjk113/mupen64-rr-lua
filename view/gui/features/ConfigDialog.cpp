@@ -34,10 +34,103 @@
 #include <view/capture/EncodingManager.h>
 
 #include <shared/Messenger.h>
+#include <Windows.h>
+
+
+/**
+ * Represents a group of options in the settings.
+ */
+typedef struct
+{
+	/**
+	 * The group's unique identifier.
+	 */
+	size_t id;
+	
+	/**
+	 * The group's name.
+	 */
+	std::wstring name;
+	
+} t_options_group;
+
+/**
+ * Represents a settings option.
+ */
+typedef struct OptionsItem
+{
+	enum class Type
+	{
+		Invalid,
+		Bool,
+		Number,
+		Enum,
+	};
+	
+	/**
+	 * The group this option belongs to.
+	 */
+	size_t group_id = -1;
+	
+	/**
+	 * The option's name.
+	 */
+	std::string name;
+
+	/**
+	 * The option's backing data.
+	 */
+	int32_t* data = nullptr;
+	
+	/**
+	 * The option's backing data type.
+	 */
+	Type type = Type::Invalid;
+	
+	/**
+	 * Possible predefined values (e.g.: enum values) for an option along with a name.
+	 *
+	 * Only applicable when <c>type == Type::Enum<c>.
+	 */
+	std::vector<std::pair<std::string, int32_t>> possible_values = {};
+
+	/**
+	 * Whether the option can be changed. Useful for values which shouldn't be changed during emulation. 
+	 */
+	bool readonly = false;
+
+	/**
+	 * Gets the value name for the current backing data, or "" if no match is found.
+	 */
+	std::string get_value_name()
+	{
+		if (type == Type::Bool)
+		{
+			return *data ? "ON" : "OFF";
+		}
+
+		if (type == Type::Number)
+		{
+			return std::to_string(*data);
+		}
+		
+		for (auto [name, val] : possible_values)
+		{
+			if (*data == val)
+			{
+				return name;
+			}
+		}
+		
+		return "";
+	}
+} t_options_item;
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
 std::vector<HWND> tooltips;
-
+std::vector<t_options_group> g_option_groups;
+std::vector<t_options_item> g_option_items;
+HWND g_lv_hwnd;
 
 /// <summary>
 /// Waits until the user inputs a valid key sequence, then fills out the hotkey
@@ -591,6 +684,170 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 	return TRUE;
 }
 
+void get_config_listview_items(std::vector<t_options_group>& groups, std::vector<t_options_item>& options)
+{
+	t_options_group interface_group = {
+		.id = 1,
+		.name = L"Interface"
+	};
+
+	t_options_group flow_group = {
+		.id = 2,
+		.name = L"Flow"
+	};
+
+	t_options_group capture_group = {
+		.id = 3,
+		.name = L"Capture"
+	};
+
+	t_options_group core_group = {
+		.id = 4,
+		.name = L"Core"
+	};
+
+	groups = {interface_group, flow_group, capture_group, core_group};
+
+	options = {
+		t_options_item {
+			.group_id = interface_group.id,
+			.name = "Statusbar 0-index",
+			.data = &g_config.vcr_0_index,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = interface_group.id,
+			.name = "Pause when unfocused",
+			.data = &g_config.is_unfocused_pause_enabled,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = interface_group.id,
+			.name = "Lua Presenter",
+			.data = &g_config.presenter_type,
+			.type = t_options_item::Type::Enum,
+			.possible_values = {
+				std::make_pair("DirectComposition", (int32_t)PresenterType::DirectComposition),
+				std::make_pair("GDI", (int32_t)PresenterType::GDI),
+			},
+		},
+
+		t_options_item {
+			.group_id = capture_group.id,
+			.name = "Capture delay",
+			.data = &g_config.capture_delay,
+			.type = t_options_item::Type::Number,
+		},
+		t_options_item {
+			.group_id = capture_group.id,
+			.name = "Capture mode",
+			.data = &g_config.capture_mode,
+			.type = t_options_item::Type::Enum,
+			.possible_values = {
+				std::make_pair("Plugin", 0),
+				std::make_pair("Window", 1),
+				std::make_pair("Screen", 2),
+				std::make_pair("Hybrid", 3),
+			},
+		},
+		t_options_item {
+			.group_id = capture_group.id,
+			.name = "Capture sync",
+			.data = &g_config.synchronization_mode,
+			.type = t_options_item::Type::Enum,
+			.possible_values = {
+				std::make_pair("None", 0),
+				std::make_pair("Audio", 1),
+				std::make_pair("Video", 2),
+			},
+		},
+
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Type",
+			.data = &g_config.core_type,
+			.type = t_options_item::Type::Enum,
+			.possible_values = {
+				std::make_pair("Interpreter", 0),
+				std::make_pair("Dynamic Recompiler", 1),
+				std::make_pair("Pure Interpreter", 2),
+			},
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "CPU Clock Speed Multiplier",
+			.data = &g_config.cpu_clock_speed_multiplier,
+			.type = t_options_item::Type::Number,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Max Lag Frames",
+			.data = &g_config.max_lag,
+			.type = t_options_item::Type::Number,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Audio Delay",
+			.data = &g_config.is_audio_delay_enabled,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Compiled Jump",
+			.data = &g_config.is_compiled_jump_enabled,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "WiiVC Mode",
+			.data = &g_config.wii_vc_emulation,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Auto-increment Slot",
+			.data = &g_config.increment_slot,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Emulate Float Crashes",
+			.data = &g_config.is_float_exception_propagation_enabled,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Movie Backups",
+			.data = &g_config.vcr_backups,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Fast-Forward Skip Frequency",
+			.data = &g_config.frame_skip_frequency,
+			.type = t_options_item::Type::Number,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Record Resets",
+			.data = &g_config.is_reset_recording_enabled,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Emulate SD Card",
+			.data = &g_config.is_reset_recording_enabled,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Instant Savestate Update",
+			.data = &g_config.st_screenshot,
+			.type = t_options_item::Type::Bool,
+		},
+	};
+}
+
 BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
 	NMHDR FAR* l_nmhdr = nullptr;
@@ -600,95 +857,70 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 	{
 	case WM_INITDIALOG:
 		{
-			tooltips.push_back(create_tooltip(hwnd, IDC_PAUSENOTACTIVE, "When checked, emulation pauses when the main window is not in focus"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_STATUSBARZEROINDEX, "When checked, Indicies in the statusbar, such as VCR frame counts, start at 0 instead of 1"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_SKIPFREQ, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_RECORD_RESETS, "When checked, mid-recording resets are recorded to the movie"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_CAPTUREDELAY, "Miliseconds to wait before capturing a frame. Useful for syncing with external programs"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_USESUMMERCART, "When checked, the core emulates an attached summercart"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_SAVE_VIDEO_TO_ST, "When checked, screenshots are saved to generated savestates. Only supported by MGE-implementing plugins"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_MODE, "The video source to use for capturing video frames"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_ENCODE_SYNC, "The strategy to use for synchronizing video and audio during capture"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_COMBO_LUA_PRESENTER, "The presenter type to use for displaying and capturing Lua graphics\nRecommended: DirectComposition (on Windows systems)"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_AUDIO_DELAY, "When checked, audio interrupts are delayed\nRecommended: On (Off causes issues with savestates)"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_ENABLE_COMPILED_JUMP, "When checked, jump instructions are compiled by Dynamic Recompiler\nRecommended: On (Off is slower)"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_WIIVC, "When checked, the core emulates WiiVC behaviour.\nThis includes truncation instead of rounding when performing certain casts."));
-			tooltips.push_back(create_tooltip(hwnd, IDC_MOVIE_BACKUPS, "When checked, a backup of the currently playing movie is created when loading a savestate.\nRecommended: On (Off on systems with slow disk speeds)"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_AUTOINCREMENTSAVESLOT, "When checked, saving to a slot will increase the currently selected slot number by 1"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_EMULATEFLOATCRASHES, "When checked, float operations which crash on real hardware will crash the core"));
-			tooltips.push_back(create_tooltip(hwnd, IDC_EDIT_MAX_LAG, "The maximum amount of lag frames before the core emits a warning\n0 = Disabled"));
-
-			static const char* clock_speed_multiplier_names[] = {
-				"1 - Default", "2 - 'Lagless'", "3", "4", "5", "6"
-			};
-			static const char* capture_mode_names[] = {
-				"External capture", "Internal capture window", "Internal capture desktop", "Hybrid",
-			};
-			static const char* presenter_type_names[] = {
-				"DirectComposition", "GDI",
-			};
-			static const char* capture_sync_names[] = {
-				"No Sync", "Audio Sync", "Video Sync",
-			};
-
-			// Populate CPU Clock Speed Multiplier Dropdown Menu
-			for (auto& clock_speed_multiplier_name : clock_speed_multiplier_names)
+			if (g_lv_hwnd)
 			{
-				SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_ADDSTRING, 0,
-				                   (LPARAM)clock_speed_multiplier_name);
+				DestroyWindow(g_lv_hwnd);
 			}
-			SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_SETCURSEL, SendDlgItemMessage(hwnd, IDC_COMBO_CLOCK_SPD_MULT, CB_FINDSTRINGEXACT, -1,
-			                                                                                    (LPARAM)clock_speed_multiplier_names[g_config.
-				                                                                                    cpu_clock_speed_multiplier - 1]), 0);
 
-			for (auto& name : capture_mode_names)
+			g_option_groups.clear();
+			g_option_items.clear();
+			get_config_listview_items(g_option_groups, g_option_items);
+			
+			RECT grid_rect {};
+			GetClientRect(hwnd, &grid_rect);
+			
+			g_lv_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
+										   WS_TABSTOP | WS_VISIBLE | WS_CHILD |
+										   LVS_SINGLESEL | LVS_REPORT |
+										   LVS_SHOWSELALWAYS | LVS_ALIGNTOP,
+										   grid_rect.left, grid_rect.top,
+										   grid_rect.right - grid_rect.left,
+										   grid_rect.bottom - grid_rect.top,
+										   hwnd, (HMENU)IDC_SETTINGS_LV,
+										   g_app_instance,
+										   NULL);
+
+			ListView_EnableGroupView(g_lv_hwnd, true);
+			ListView_SetExtendedListViewStyle(g_lv_hwnd,
+											  LVS_EX_FULLROWSELECT |
+											  LVS_EX_DOUBLEBUFFER);
+
+			for (auto group : g_option_groups)
 			{
-				SendDlgItemMessage(hwnd, IDC_ENCODE_MODE, CB_ADDSTRING, 0,
-				                   (LPARAM)name);
+				LVGROUP lvgroup;
+				lvgroup.cbSize    = sizeof(LVGROUP);
+				lvgroup.mask      = LVGF_HEADER | LVGF_GROUPID;
+				// FIXME: This is concerning, but seems to work
+				lvgroup.pszHeader = const_cast<wchar_t*>(group.name.c_str());
+				lvgroup.iGroupId  = group.id;
+				ListView_InsertGroup(g_lv_hwnd, -1, &lvgroup);
 			}
-			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_ENCODE_MODE), g_config.capture_mode);
+			
+			LVCOLUMN lv_column = {0};
+			lv_column.mask = LVCF_FMT | LVCF_DEFAULTWIDTH | LVCF_TEXT | LVCF_SUBITEM;
 
-			for (auto& name : presenter_type_names)
+			lv_column.pszText = (LPTSTR)"Name";
+			ListView_InsertColumn(g_lv_hwnd, 0, &lv_column);
+			lv_column.pszText = (LPTSTR)"Value";
+			ListView_InsertColumn(g_lv_hwnd, 1, &lv_column);
+			lv_column.pszText = (LPTSTR)"Description";
+			ListView_InsertColumn(g_lv_hwnd, 2, &lv_column);
+			
+			LVITEM lv_item = {0};
+			lv_item.mask = LVIF_TEXT | LVIF_GROUPID | LVIF_PARAM;
+			lv_item.pszText = LPSTR_TEXTCALLBACK;
+			for (int i = 0; i < g_option_items.size(); ++i)
 			{
-				SendDlgItemMessage(hwnd, IDC_COMBO_LUA_PRESENTER, CB_ADDSTRING, 0,
-								   (LPARAM)name);
+				lv_item.iGroupId = g_option_items[i].group_id;
+				lv_item.lParam = i;
+				lv_item.iItem = i;
+				ListView_InsertItem(g_lv_hwnd, &lv_item);
 			}
-			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER), g_config.presenter_type);
-
-			for (auto& name : capture_sync_names)
-			{
-				SendDlgItemMessage(hwnd, IDC_ENCODE_SYNC, CB_ADDSTRING, 0,
-				                   (LPARAM)name);
-			}
-			ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_ENCODE_SYNC), g_config.synchronization_mode);
-
-			SetDlgItemInt(hwnd, IDC_SKIPFREQ, g_config.frame_skip_frequency, 0);
-
-			CheckDlgButton(hwnd, IDC_INTERP, g_config.core_type == 0 ? BST_CHECKED : BST_UNCHECKED);
-			CheckDlgButton(hwnd, IDC_RECOMP, g_config.core_type == 1 ? BST_CHECKED : BST_UNCHECKED);
-			CheckDlgButton(hwnd, IDC_PURE_INTERP, g_config.core_type == 2 ? BST_CHECKED : BST_UNCHECKED);
-
-			EnableWindow(GetDlgItem(hwnd, IDC_INTERP), !emu_launched);
-			EnableWindow(GetDlgItem(hwnd, IDC_RECOMP), !emu_launched);
-			EnableWindow(GetDlgItem(hwnd, IDC_PURE_INTERP), !emu_launched);
-			EnableWindow(GetDlgItem(hwnd, IDC_ENCODE_MODE), !EncodingManager::is_capturing());
-			EnableWindow(GetDlgItem(hwnd, IDC_ENCODE_SYNC), !EncodingManager::is_capturing());
-			EnableWindow(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER), hwnd_lua_map.empty());
-
-			set_checkbox_state(hwnd, IDC_PAUSENOTACTIVE, g_config.is_unfocused_pause_enabled);
-			set_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT, g_config.increment_slot);
-			set_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX, g_config.vcr_0_index);
-			set_checkbox_state(hwnd, IDC_USESUMMERCART, g_config.use_summercart);
-			set_checkbox_state(hwnd, IDC_SAVE_VIDEO_TO_ST, g_config.st_screenshot);
-			set_checkbox_state(hwnd, IDC_WIIVC, g_config.wii_vc_emulation);
-			set_checkbox_state(hwnd, IDC_MOVIE_BACKUPS, g_config.vcr_backups);
-			set_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES, g_config.is_float_exception_propagation_enabled);
-			set_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY, g_config.is_audio_delay_enabled);
-			set_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP, g_config.is_compiled_jump_enabled);
-			set_checkbox_state(hwnd, IDC_RECORD_RESETS, g_config.is_reset_recording_enabled);
-			SetDlgItemInt(hwnd, IDC_CAPTUREDELAY, g_config.capture_delay, 0);
-			SetDlgItemInt(hwnd, IDC_EDIT_MAX_LAG, g_config.max_lag, 0);
-
+			
+			ListView_SetColumnWidth(g_lv_hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
+			ListView_SetColumnWidth(g_lv_hwnd, 1, LVSCW_AUTOSIZE_USEHEADER);
+			ListView_SetColumnWidth(g_lv_hwnd, 2, LVSCW_AUTOSIZE_USEHEADER);
+			
 			return TRUE;
 		}
 
@@ -745,24 +977,62 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 		break;
 
 	case WM_NOTIFY:
-		if (l_nmhdr->code == PSN_APPLY)
 		{
-			g_config.frame_skip_frequency = (int)GetDlgItemInt(hwnd, IDC_SKIPFREQ, nullptr, 0);
-			g_config.increment_slot = get_checkbox_state(hwnd, IDC_AUTOINCREMENTSAVESLOT);
-			g_config.vcr_0_index = get_checkbox_state(hwnd, IDC_STATUSBARZEROINDEX);
-			g_config.is_unfocused_pause_enabled = get_checkbox_state(hwnd, IDC_PAUSENOTACTIVE);
-			g_config.use_summercart = get_checkbox_state(hwnd, IDC_USESUMMERCART);
-			g_config.st_screenshot = get_checkbox_state(hwnd, IDC_SAVE_VIDEO_TO_ST);
-			g_config.wii_vc_emulation = get_checkbox_state(hwnd, IDC_WIIVC);
-			g_config.vcr_backups = get_checkbox_state(hwnd, IDC_MOVIE_BACKUPS);
-			g_config.is_float_exception_propagation_enabled = get_checkbox_state(hwnd, IDC_EMULATEFLOATCRASHES);
-			g_config.is_audio_delay_enabled = get_checkbox_state(hwnd, IDC_ENABLE_AUDIO_DELAY);
-			g_config.is_compiled_jump_enabled = get_checkbox_state(hwnd, IDC_ENABLE_COMPILED_JUMP);
-			g_config.is_reset_recording_enabled = get_checkbox_state(hwnd, IDC_RECORD_RESETS);
-			g_config.capture_delay = GetDlgItemInt(hwnd, IDC_CAPTUREDELAY, nullptr, 0);
-			g_config.max_lag = GetDlgItemInt(hwnd, IDC_EDIT_MAX_LAG, nullptr, 0);
+			if (w_param == IDC_SETTINGS_LV)
+			{
+				switch (((LPNMHDR)l_param)->code)
+				{
+				case LVN_GETDISPINFO:
+					{
+						NMLVDISPINFO* plvdi = (NMLVDISPINFO*)l_param;
+						t_options_item options_item = g_option_items[plvdi->item.lParam];
+						switch (plvdi->item.iSubItem)
+						{
+						case 0:
+							strcpy(plvdi->item.pszText, options_item.name.c_str());
+							break;
+						case 1:
+							strcpy(plvdi->item.pszText, options_item.get_value_name().c_str());
+							break;
+						}
+						break;
+					}
+				case NM_DBLCLK:
+					{
+						int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+
+						if (i == -1) break;
+
+						LVITEM item = {0};
+						item.mask = LVIF_PARAM;
+						item.iItem = i;
+						ListView_GetItem(g_lv_hwnd, &item);
+						
+						auto option_item = g_option_items[item.lParam];
+
+						// TODO: Perhaps gray out readonly values too?
+						if (option_item.readonly)
+						{
+							break;
+						}
+						
+						// For bools, just flip the value...
+						if (option_item.type == OptionsItem::Type::Bool)
+						{
+							*option_item.data ^= true;
+							goto update;
+						}
+
+						update:
+						ListView_Update(g_lv_hwnd, i);
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			break;
 		}
-		break;
 	case WM_DESTROY:
 		{
 			for (auto tooltip : tooltips)
