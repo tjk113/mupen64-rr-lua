@@ -100,9 +100,9 @@ typedef struct OptionsItem
 	std::function<bool()> is_readonly = [] { return false; };
 
 	/**
-	 * Gets the value name for the current backing data, or the provided default name if no match is found.
+	 * Gets the value name for the current backing data, or a fallback name if no match is found.
 	 */
-	std::wstring get_value_name(std::wstring default_name = L"Invalid Value")
+	std::wstring get_value_name()
 	{
 		if (type == Type::Bool)
 		{
@@ -122,7 +122,7 @@ typedef struct OptionsItem
 			}
 		}
 		
-		return default_name;
+		return std::format(L"Unknown value ({})", *data);
 	}
 } t_options_item;
 
