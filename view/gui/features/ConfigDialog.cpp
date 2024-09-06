@@ -741,13 +741,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 
 		t_options_item {
 			.group_id = capture_group.id,
-			.name = "Capture delay",
+			.name = "Delay",
 			.data = &g_config.capture_delay,
 			.type = t_options_item::Type::Number,
 		},
 		t_options_item {
 			.group_id = capture_group.id,
-			.name = "Capture mode",
+			.name = "Mode",
 			.data = &g_config.capture_mode,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
@@ -763,7 +763,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		},
 		t_options_item {
 			.group_id = capture_group.id,
-			.name = "Capture sync",
+			.name = "Sync",
 			.data = &g_config.synchronization_mode,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
