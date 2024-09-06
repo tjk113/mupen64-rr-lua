@@ -427,7 +427,11 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 	m_current_vi = (int)freeze.current_vi;
 
 	const e_task last_task = g_task;
-	if (!g_config.vcr_readonly)
+
+	// When starting playback in RW mode, we don't want overwrite the movie savestate which we're currently unfreezing from...
+	const bool is_task_starting_playback = g_task == e_task::start_playback_from_reset || g_task == e_task::start_playback_from_snapshot;
+
+	if (!g_config.vcr_readonly && !is_task_starting_playback)
 	{
 		// here, we are going to take the input data from the savestate
 		// and make it the input data for the current movie, then continue
