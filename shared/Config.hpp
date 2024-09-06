@@ -535,6 +535,7 @@ typedef struct Config
 #pragma pack(pop)
 
 extern t_config g_config;
+extern const t_config g_default_config;
 extern std::vector<t_hotkey*> g_config_hotkeys;
 
 /**

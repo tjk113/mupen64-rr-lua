@@ -1005,6 +1005,42 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			
 			break;
 		}
+	case WM_CONTEXTMENU:
+		{
+			int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+
+			if (i == -1) break;
+
+			LVITEM item = {0};
+			item.mask = LVIF_PARAM;
+			item.iItem = i;
+			ListView_GetItem(g_lv_hwnd, &item);
+						
+			auto option_item = g_option_items[item.lParam];
+			
+			HMENU h_menu = CreatePopupMenu();
+			AppendMenu(h_menu, MF_STRING, 1, "Reset to default");
+
+			const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param), hwnd, 0);
+
+			if (offset < 0)
+			{
+				break;
+			}
+
+			if (offset == 1)
+			{
+				// Find the field offset for the option relative to g_config and grab the equivalent from the default config, then overwrite
+				// Masterpiece of safety
+				auto field_offset = (char*)option_item.data - (char*)&g_config;
+				auto default_equivalent = *(int32_t*)((char*)&g_default_config + field_offset);
+				*option_item.data = default_equivalent;
+			}
+			
+			ListView_Update(g_lv_hwnd, i);
+			DestroyMenu(h_menu);
+		}
+		break;
 	case WM_COMMAND:
 		switch (LOWORD(w_param))
 		{
