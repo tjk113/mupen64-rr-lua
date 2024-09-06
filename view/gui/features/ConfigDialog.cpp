@@ -92,26 +92,26 @@ typedef struct OptionsItem
 	 *
 	 * Only applicable when <c>type == Type::Enum<c>.
 	 */
-	std::vector<std::pair<std::string, int32_t>> possible_values = {};
+	std::vector<std::pair<std::wstring, int32_t>> possible_values = {};
 
 	/**
-	 * Whether the option can be changed. Useful for values which shouldn't be changed during emulation. 
+	 * Function which returns whether the option can be changed. Useful for values which shouldn't be changed during emulation. 
 	 */
-	bool readonly = false;
+	std::function<bool()> is_readonly = [] { return false; };
 
 	/**
-	 * Gets the value name for the current backing data, or "" if no match is found.
+	 * Gets the value name for the current backing data, or the provided default name if no match is found.
 	 */
-	std::string get_value_name()
+	std::wstring get_value_name(std::wstring default_name = L"Invalid Value")
 	{
 		if (type == Type::Bool)
 		{
-			return *data ? "ON" : "OFF";
+			return *data ? L"Enabled" : L"-";
 		}
 
 		if (type == Type::Number)
 		{
-			return std::to_string(*data);
+			return std::to_wstring(*data);
 		}
 		
 		for (auto [name, val] : possible_values)
@@ -122,7 +122,7 @@ typedef struct OptionsItem
 			}
 		}
 		
-		return "";
+		return default_name;
 	}
 } t_options_item;
 
@@ -727,8 +727,12 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.data = &g_config.presenter_type,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
-				std::make_pair("DirectComposition", (int32_t)PresenterType::DirectComposition),
-				std::make_pair("GDI", (int32_t)PresenterType::GDI),
+				std::make_pair(L"DirectComposition", (int32_t)PresenterType::DirectComposition),
+				std::make_pair(L"GDI", (int32_t)PresenterType::GDI),
+			},
+			.is_readonly = []
+			{
+				return !hwnd_lua_map.empty();
 			},
 		},
 
@@ -744,10 +748,14 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.data = &g_config.capture_mode,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
-				std::make_pair("Plugin", 0),
-				std::make_pair("Window", 1),
-				std::make_pair("Screen", 2),
-				std::make_pair("Hybrid", 3),
+				std::make_pair(L"Plugin", 0),
+				std::make_pair(L"Window", 1),
+				std::make_pair(L"Screen", 2),
+				std::make_pair(L"Hybrid", 3),
+			},
+			.is_readonly = []
+			{
+				return EncodingManager::is_capturing();
 			},
 		},
 		t_options_item {
@@ -756,9 +764,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.data = &g_config.synchronization_mode,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
-				std::make_pair("None", 0),
-				std::make_pair("Audio", 1),
-				std::make_pair("Video", 2),
+				std::make_pair(L"None", 0),
+				std::make_pair(L"Audio", 1),
+				std::make_pair(L"Video", 2),
+			},
+			.is_readonly = []
+			{
+				return EncodingManager::is_capturing();
 			},
 		},
 
@@ -768,9 +780,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.data = &g_config.core_type,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
-				std::make_pair("Interpreter", 0),
-				std::make_pair("Dynamic Recompiler", 1),
-				std::make_pair("Pure Interpreter", 2),
+				std::make_pair(L"Interpreter", 0),
+				std::make_pair(L"Dynamic Recompiler", 1),
+				std::make_pair(L"Pure Interpreter", 2),
+			},
+			.is_readonly = []
+			{
+				return emu_launched;
 			},
 		},
 		t_options_item {
@@ -984,7 +1000,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 				{
 				case LVN_GETDISPINFO:
 					{
-						NMLVDISPINFO* plvdi = (NMLVDISPINFO*)l_param;
+						auto plvdi = (NMLVDISPINFO*)l_param;
 						t_options_item options_item = g_option_items[plvdi->item.lParam];
 						switch (plvdi->item.iSubItem)
 						{
@@ -992,7 +1008,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 							strcpy(plvdi->item.pszText, options_item.name.c_str());
 							break;
 						case 1:
-							strcpy(plvdi->item.pszText, options_item.get_value_name().c_str());
+							strcpy(plvdi->item.pszText, wstring_to_string(options_item.get_value_name()).c_str());
 							break;
 						}
 						break;
@@ -1011,7 +1027,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 						auto option_item = g_option_items[item.lParam];
 
 						// TODO: Perhaps gray out readonly values too?
-						if (option_item.readonly)
+						if (option_item.is_readonly())
 						{
 							break;
 						}
@@ -1023,6 +1039,49 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 							goto update;
 						}
 
+						// For enums, cycle through the possible values
+						if (option_item.type == OptionsItem::Type::Enum)
+						{
+
+							// 1. Find the index of the currently selected item, while falling back to the first possible value if there's no match
+							size_t current_value = option_item.possible_values[0].second;
+							for (auto possible_value : option_item.possible_values | std::views::values)
+							{
+								if(*option_item.data == possible_value)
+								{
+									current_value = possible_value;
+									break;
+								}
+							}
+
+							// 2. Find the lowest and highest values in the vector
+							int32_t min_possible_value = INT32_MAX;
+							int32_t max_possible_value = INT32_MIN;
+							for (const auto& val : option_item.possible_values | std::views::values)
+							{
+								if (val > max_possible_value)
+								{
+									max_possible_value = val;
+								}
+								if (val < min_possible_value)
+								{
+									min_possible_value = val;
+								}
+							}
+
+							// 2. Bump it, wrapping around if needed
+							current_value++;
+							if (current_value > max_possible_value)
+							{
+								current_value = min_possible_value;
+							}
+
+							// 3. Apply the change
+							*option_item.data = current_value;
+							
+							goto update;
+						}
+						
 						update:
 						ListView_Update(g_lv_hwnd, i);
 					}
