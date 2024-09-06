@@ -1041,58 +1041,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			DestroyMenu(h_menu);
 		}
 		break;
-	case WM_COMMAND:
-		switch (LOWORD(w_param))
-		{
-		case IDC_SKIPFREQUENCY_HELP:
-			MessageBox(hwnd, "0 = Skip all frames, 1 = Show all frames, n = show every nth frame", "Info",
-			           MB_OK | MB_ICONINFORMATION);
-			break;
-		case IDC_COMBO_CLOCK_SPD_MULT:
-			{
-				char buf[260] = {0};
-				read_combo_box_value(hwnd, IDC_COMBO_CLOCK_SPD_MULT, buf);
-				g_config.cpu_clock_speed_multiplier = atoi(&buf[0]);
-				break;
-			}
-		case IDC_ENCODE_MODE:
-			{
-				g_config.capture_mode = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_ENCODE_MODE));
-				break;
-			}
-		case IDC_ENCODE_SYNC:
-			{
-				g_config.synchronization_mode = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_ENCODE_SYNC));
-				break;
-			}
-	case IDC_COMBO_LUA_PRESENTER:
-			{
-				g_config.presenter_type = ComboBox_GetCurSel(GetDlgItem(hwnd, IDC_COMBO_LUA_PRESENTER));
-				break;
-			}
-		case IDC_INTERP:
-			if (!emu_launched)
-			{
-				g_config.core_type = 0;
-			}
-			break;
-		case IDC_RECOMP:
-			if (!emu_launched)
-			{
-				g_config.core_type = 1;
-			}
-			break;
-		case IDC_PURE_INTERP:
-			if (!emu_launched)
-			{
-				g_config.core_type = 2;
-			}
-			break;
-		default:
-			break;
-		}
-		break;
-
 	case WM_NOTIFY:
 		{
 			if (w_param == IDC_SETTINGS_LV)
