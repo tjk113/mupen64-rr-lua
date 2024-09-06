@@ -36,6 +36,7 @@
 #include <shared/Messenger.h>
 #include <Windows.h>
 
+#define WM_EDIT_END (WM_USER + 19)
 
 /**
  * Represents a group of options in the settings.
@@ -131,6 +132,8 @@ std::vector<HWND> tooltips;
 std::vector<t_options_group> g_option_groups;
 std::vector<t_options_item> g_option_items;
 HWND g_lv_hwnd;
+HWND g_edit_hwnd;
+size_t g_edit_option_item_index;
 
 /// <summary>
 /// Waits until the user inputs a valid key sequence, then fills out the hotkey
@@ -864,6 +867,46 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 	};
 }
 
+LRESULT CALLBACK InlineEditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
+{
+	switch (msg)
+	{
+	case WM_GETDLGCODE:
+		{
+			if (wParam == VK_RETURN)
+			{
+				goto apply;
+			}
+			if (wParam == VK_ESCAPE)
+			{
+				DestroyWindow(hwnd);
+			}
+			break;
+		}
+	case WM_KILLFOCUS:
+		goto apply;
+	case WM_NCDESTROY:
+		RemoveWindowSubclass(hwnd, InlineEditBoxProc, sId);
+		g_edit_hwnd = nullptr;
+		break;
+	default:
+		break;
+	}
+	
+	return DefSubclassProc(hwnd, msg, wParam, lParam);
+
+	apply:
+
+	char str[MAX_PATH] = {0};
+	Edit_GetText(hwnd, str, sizeof(str));
+	
+	SendMessage(GetParent(hwnd), WM_EDIT_END, 0, (LPARAM)str);
+	
+	DestroyWindow(hwnd);
+
+	return DefSubclassProc(hwnd, msg, wParam, lParam);
+}
+
 BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
 	NMHDR FAR* l_nmhdr = nullptr;
@@ -939,7 +982,24 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			
 			return TRUE;
 		}
+	case WM_EDIT_END:
+		{
+			auto str = (char*)l_param;
 
+			try
+			{
+				auto result = std::stoi(str);
+				*g_option_items[g_edit_option_item_index].data = result;
+			}
+			catch (...)
+			{
+				// ignored
+			}
+
+			ListView_Update(g_lv_hwnd, g_edit_option_item_index);
+			
+			break;
+		}
 	case WM_COMMAND:
 		switch (LOWORD(w_param))
 		{
@@ -1036,7 +1096,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 						if (option_item.type == OptionsItem::Type::Bool)
 						{
 							*option_item.data ^= true;
-							goto update;
 						}
 
 						// For enums, cycle through the possible values
@@ -1078,11 +1137,34 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 
 							// 3. Apply the change
 							*option_item.data = current_value;
+						}
+
+						// For numbers, create a textbox over the value cell for inline editing
+						if (option_item.type == OptionsItem::Type::Number)
+						{
+							if (g_edit_hwnd)
+							{
+								DestroyWindow(g_edit_hwnd);
+							}
 							
-							goto update;
+							g_edit_option_item_index = item.lParam;
+							
+							RECT item_rect{};
+							ListView_GetSubItemRect(g_lv_hwnd, i, 1, LVIR_LABEL, &item_rect);
+							
+							g_edit_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD | WS_VISIBLE | WS_TABSTOP, item_rect.left,
+								   item_rect.top,
+								   item_rect.right - item_rect.left, item_rect.bottom - item_rect.top,
+								   hwnd, 0, g_app_instance, 0);
+							
+							SendMessage(g_edit_hwnd, WM_SETFONT, (WPARAM)SendMessage(g_lv_hwnd, WM_GETFONT, 0, 0), 0);
+							
+							SetWindowSubclass(g_edit_hwnd, InlineEditBoxProc, 0, 0);
+							Edit_SetText(g_edit_hwnd, std::to_string(*option_item.data).c_str());
+							
+							PostMessage(hwnd, WM_NEXTDLGCTL, (WPARAM)g_edit_hwnd, TRUE);
 						}
 						
-						update:
 						ListView_Update(g_lv_hwnd, i);
 					}
 					break;
