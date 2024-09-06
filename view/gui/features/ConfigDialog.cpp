@@ -79,6 +79,11 @@ typedef struct OptionsItem
 	std::string name;
 
 	/**
+	 * The option's tooltip.
+	 */
+	std::string tooltip;
+	
+	/**
 	 * The option's backing data.
 	 */
 	int32_t* data = nullptr;
@@ -715,18 +720,21 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		t_options_item {
 			.group_id = interface_group.id,
 			.name = "Statusbar 0-index",
+			.tooltip = "Show indicies in the statusbar, such as VCR frame counts, relative to 0 instead of 1.",
 			.data = &g_config.vcr_0_index,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = interface_group.id,
 			.name = "Pause when unfocused",
+			.tooltip = "Pause emulation when the main window isn't in focus.",
 			.data = &g_config.is_unfocused_pause_enabled,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = interface_group.id,
 			.name = "Lua Presenter",
+			.tooltip = "The presenter type to use for displaying and capturing Lua graphics.\nRecommended: DirectComposition",
 			.data = &g_config.presenter_type,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
@@ -742,12 +750,14 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		t_options_item {
 			.group_id = capture_group.id,
 			.name = "Delay",
+			.tooltip = "Miliseconds to wait before capturing a frame. Useful for syncing with external programs.",
 			.data = &g_config.capture_delay,
 			.type = t_options_item::Type::Number,
 		},
 		t_options_item {
 			.group_id = capture_group.id,
 			.name = "Mode",
+			.tooltip = "The video source to use for capturing video frames.\nPlugin - Captures frames solely from the video plugin\nWindow - Captures frames from the main window\nScreen - Captures screenshots of the current display and crops them to Mupen\nHybrid - Combines video plugin capture and interal Lua composition (recommended)",
 			.data = &g_config.capture_mode,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
@@ -764,6 +774,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		t_options_item {
 			.group_id = capture_group.id,
 			.name = "Sync",
+			.tooltip = "The strategy to use for synchronizing video and audio during capture.\nNone - No synchronization\nAudio - Audio is synchronized to video\nVideo - Video is synchronized to audio",
 			.data = &g_config.synchronization_mode,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
@@ -780,6 +791,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Type",
+			.tooltip = "The core type to utilize for emulation.\nInterpreter - Slow and relatively accurate\nDynamic Recompiler - Fast, possibly less accurate, and only for x86 processors\nPure Interpreter - Very slow and accurate",
 			.data = &g_config.core_type,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
@@ -794,73 +806,85 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		},
 		t_options_item {
 			.group_id = core_group.id,
-			.name = "CPU Clock Speed Multiplier",
+			.name = "CPU Factor",
+			.tooltip = "The factor to multiply the CPU clock speed by.\nValues above 1 are effectively 'lagless'.",
 			.data = &g_config.cpu_clock_speed_multiplier,
 			.type = t_options_item::Type::Number,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Max Lag Frames",
+			.tooltip = "The maximum amount of lag frames before the core emits a warning\n0 - Disabled",
 			.data = &g_config.max_lag,
 			.type = t_options_item::Type::Number,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Audio Delay",
+			.tooltip = "Whether to delay audio interrupts\nEnabled - More stability",
 			.data = &g_config.is_audio_delay_enabled,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Compiled Jump",
+			.tooltip = "Whether to compile jumps\nEnabled - More stability",
 			.data = &g_config.is_compiled_jump_enabled,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "WiiVC Mode",
+			.tooltip = "Enables WiiVC emulation.",
 			.data = &g_config.wii_vc_emulation,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Auto-increment Slot",
+			.tooltip = "Automatically increment the save slot upon saving a state.",
 			.data = &g_config.increment_slot,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Emulate Float Crashes",
+			.tooltip = "Emulate float operation-related crashes which would also crash on real hardware",
 			.data = &g_config.is_float_exception_propagation_enabled,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Movie Backups",
+			.tooltip = "Generate a backup of the currently recorded movie when loading a savestate.\nBackups are saved in the backups folder.",
 			.data = &g_config.vcr_backups,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Fast-Forward Skip Frequency",
+			.tooltip = "Skip rendering every nth frame when in fast-forward mode.\n0 - Render nothing\n1 - Render every frame\nn - Render every nth frame",
 			.data = &g_config.frame_skip_frequency,
 			.type = t_options_item::Type::Number,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Record Resets",
+			.tooltip = "Record manually performed resets to the current movie.\nThese resets will be repeated when the movie is played back.",
 			.data = &g_config.is_reset_recording_enabled,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Emulate SD Card",
+			.tooltip = "Enable SD card emulation.\nRequires a VHD-formatted SD card file named card.vhd in the same folder as Mupen.",
 			.data = &g_config.is_reset_recording_enabled,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item {
 			.group_id = core_group.id,
 			.name = "Instant Savestate Update",
+			.tooltip = "Saves and loads game graphics to savestates to allow instant graphics updates when loading savestates.\nGreatly increases savestate saving and loading time.",
 			.data = &g_config.st_screenshot,
 			.type = t_options_item::Type::Bool,
 		},
@@ -947,8 +971,10 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			ListView_SetImageList(g_lv_hwnd, image_list, LVSIL_SMALL);
 			ListView_EnableGroupView(g_lv_hwnd, true);
 			ListView_SetExtendedListViewStyle(g_lv_hwnd,
-											  LVS_EX_FULLROWSELECT |
-											  LVS_EX_DOUBLEBUFFER);
+											  LVS_EX_FULLROWSELECT
+											  | LVS_EX_DOUBLEBUFFER
+											  | LVS_EX_INFOTIP
+											  | LVS_EX_LABELTIP);
 
 			for (auto group : g_option_groups)
 			{
@@ -1066,6 +1092,26 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 							strcpy(plvdi->item.pszText, wstring_to_string(options_item.get_value_name()).c_str());
 							break;
 						}
+						break;
+					}
+				case LVN_GETINFOTIP:
+					{
+						auto getinfotip = (LPNMLVGETINFOTIP)l_param;
+
+						LVITEM item = {0};
+						item.mask = LVIF_PARAM;
+						item.iItem = getinfotip->iItem;
+						ListView_GetItem(g_lv_hwnd, &item);
+						
+						auto option_item = g_option_items[item.lParam];
+
+						if (option_item.tooltip.empty())
+						{
+							break;
+						}
+						
+						strcpy_s(getinfotip->pszText, getinfotip->cchTextMax, option_item.tooltip.c_str());
+						
 						break;
 					}
 				case NM_DBLCLK:
