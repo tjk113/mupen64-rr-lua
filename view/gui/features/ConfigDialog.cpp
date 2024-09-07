@@ -110,7 +110,7 @@ typedef struct OptionsItem
 	/**
 	 * Gets the value name for the current backing data, or a fallback name if no match is found.
 	 */
-	std::wstring get_value_name()
+	std::wstring get_value_name() const
 	{
 		if (type == Type::Bool)
 		{
@@ -132,6 +132,19 @@ typedef struct OptionsItem
 		
 		return std::format(L"Unknown value ({})", *data);
 	}
+
+	/**
+	 * Maps the option's data to another config struct
+	 * \param config The new config structure
+	 * \return The address of the data in the config structure
+	 */
+	int32_t* get_data_ptr_in_other_config(const t_config* config) const
+	{
+		// Find the field offset for the option relative to g_config and grab the equivalent from the default config
+		auto field_offset = (char*)data - (char*)&g_config;
+		return (int32_t*)((char*)config + field_offset);
+	}
+	
 } t_options_item;
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
@@ -141,6 +154,7 @@ std::vector<t_options_item> g_option_items;
 HWND g_lv_hwnd;
 HWND g_edit_hwnd;
 size_t g_edit_option_item_index;
+t_config g_prev_config;
 
 /// <summary>
 /// Waits until the user inputs a valid key sequence, then fills out the hotkey
@@ -982,12 +996,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 										   g_app_instance,
 										   NULL);
 
-			HIMAGELIST image_list = ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 1, 0);
-			HICON icon;
-			icon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_DENY));
-			
-			ImageList_AddIcon(image_list, icon);
+			HIMAGELIST image_list = ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 2, 0);
+			ImageList_AddIcon(image_list, LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_DENY)));
+			ImageList_AddIcon(image_list, LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_CHANGED)));
 			ListView_SetImageList(g_lv_hwnd, image_list, LVSIL_SMALL);
+			
 			ListView_EnableGroupView(g_lv_hwnd, true);
 			ListView_SetExtendedListViewStyle(g_lv_hwnd,
 											  LVS_EX_FULLROWSELECT
@@ -1075,14 +1088,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 				break;
 			}
 
-			// Find the field offset for the option relative to g_config and grab the equivalent from the default config, then overwrite
-			// Masterpiece of safety
-			auto field_offset = (char*)option_item.data - (char*)&g_config;
-			auto default_equivalent = *(int32_t*)((char*)&g_default_config + field_offset);
+			int32_t* default_equivalent = option_item.get_data_ptr_in_other_config(&g_default_config);
 			
 			if (offset == 1)
 			{
-				*option_item.data = default_equivalent;
+				*option_item.data = *default_equivalent;
 				ListView_Update(g_lv_hwnd, i);
 			}
 
@@ -1102,7 +1112,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 					{
 						str += std::format(L"{} - {}", pair.second, pair.first);
 
-						if (pair.second == default_equivalent)
+						if (pair.second == *default_equivalent)
 						{
 							str += L" (default)";
 						}
@@ -1130,7 +1140,17 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 
 						if(plvdi->item.mask & LVIF_IMAGE ) 
 						{
-							plvdi->item.iImage = options_item.is_readonly() ? 0 : 1;
+							plvdi->item.iImage = 50;
+							
+							if (*options_item.get_data_ptr_in_other_config(&g_prev_config) != *options_item.data)
+							{
+								plvdi->item.iImage = 1;
+							}
+							
+							if (options_item.is_readonly())
+							{
+								plvdi->item.iImage = 0;
+							}
 						}
 						
 						switch (plvdi->item.iSubItem)
@@ -1456,11 +1476,11 @@ void configdialog_show()
 	psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
 	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
 
-	const t_config old_config = g_config;
+	g_prev_config = g_config;
 
 	if (!PropertySheet(&psh))
 	{
-		g_config = old_config;
+		g_config = g_prev_config;
 	}
 
 	save_config();
