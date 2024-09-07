@@ -1043,9 +1043,10 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			ListView_GetItem(g_lv_hwnd, &item);
 						
 			auto option_item = g_option_items[item.lParam];
+			auto readonly = option_item.is_readonly();
 			
 			HMENU h_menu = CreatePopupMenu();
-			AppendMenu(h_menu, MF_STRING, 1, "Reset to default");
+			AppendMenu(h_menu, MF_STRING | (readonly ? MF_DISABLED : MF_ENABLED), 1, "Reset to default");
 
 			const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param), hwnd, 0);
 
