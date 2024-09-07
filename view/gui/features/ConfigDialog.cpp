@@ -766,7 +766,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		t_options_item {
 			.group_id = capture_group.id,
 			.name = "Mode",
-			.tooltip = L"The video source to use for capturing video frames.\nPlugin - Captures frames solely from the video plugin\nWindow - Captures frames from the main window\nScreen - Captures screenshots of the current display and crops them to Mupen\nHybrid - Combines video plugin capture and interal Lua composition (recommended)",
+			.tooltip = L"The video source to use for capturing video frames.\nPlugin - Captures frames solely from the video plugin\nWindow - Captures frames from the main window\nScreen - Captures screenshots of the current display and crops them to Mupen\nHybrid - Combines video plugin capture and internal Lua composition (recommended)",
 			.data = &g_config.capture_mode,
 			.type = t_options_item::Type::Enum,
 			.possible_values = {
