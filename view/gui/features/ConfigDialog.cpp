@@ -748,6 +748,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 				return !hwnd_lua_map.empty();
 			},
 		},
+		t_options_item {
+			.group_id = interface_group.id,
+			.name = "Silent Mode",
+			.tooltip = L"Suppresses all dialogs and chooses reasonable defaults for multiple-choice dialogs.\nCan cause data loss during normal usage; only enable in automation scenarios!",
+			.data = &g_config.silent_mode,
+			.type = t_options_item::Type::Bool,
+		},
 
 		t_options_item {
 			.group_id = capture_group.id,
@@ -889,6 +896,20 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.tooltip = L"Saves and loads game graphics to savestates to allow instant graphics updates when loading savestates.\nGreatly increases savestate saving and loading time.",
 			.data = &g_config.st_screenshot,
 			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "Skip rendering lag",
+			.tooltip = L"Prevents calls to updateScreen during lag.\nMight improve performance on some video plugins at the cost of stability.",
+			.data = &g_config.skip_rendering_lag,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item {
+			.group_id = core_group.id,
+			.name = "ROM Cache Size",
+			.tooltip = L"Size of the ROM cache.\nImproves ROM loading performance at the cost of data staleness and high memory usage.\n0 - Disabled\nn - Maximum of n ROMs kept in cache",
+			.data = &g_config.rom_cache_size,
+			.type = t_options_item::Type::Number,
 		},
 	};
 }
