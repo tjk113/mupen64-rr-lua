@@ -944,10 +944,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 			{
 				DestroyWindow(g_lv_hwnd);
 			}
-
-			g_option_groups.clear();
-			g_option_items.clear();
-			get_config_listview_items(g_option_groups, g_option_items);
 			
 			RECT grid_rect {};
 			GetClientRect(hwnd, &grid_rect);
@@ -1365,6 +1361,11 @@ BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_p
 		return FALSE;
 	}
 	return TRUE;
+}
+
+void configdialog_init()
+{
+	get_config_listview_items(g_option_groups, g_option_items);
 }
 
 void configdialog_show()
