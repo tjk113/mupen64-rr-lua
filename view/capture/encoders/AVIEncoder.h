@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Encoder.h"
 
 
@@ -14,25 +14,30 @@ public:
 	bool append_audio(uint8_t* audio, size_t length) override;
 
 private:
-	static constexpr auto max_avi_size = 0x7B9ACA00;
+	static constexpr auto MAX_AVI_SIZE = 0x7B9ACA00;
 
 	bool save_options();
 	bool load_options();
 
-	AVICOMPRESSOPTIONS* avi_options = new AVICOMPRESSOPTIONS();
-	Encoder::Params video_params{};
-	size_t splits = 0;
-	bool splitting = false;
-	bool avi_opened = false;
-	int frame;
-	BITMAPINFOHEADER infoHeader;
-	PAVIFILE avi_file;
-	AVISTREAMINFO video_stream_header;
-	PAVISTREAM video_stream;
-	PAVISTREAM compressed_video_stream;
-	int sample;
-	unsigned int AVIFileSize;
-	WAVEFORMATEX sound_format;
-	AVISTREAMINFO sound_stream_header;
-	PAVISTREAM sound_stream;
+	Params m_params{};
+	AVICOMPRESSOPTIONS* m_avi_options = new AVICOMPRESSOPTIONS();
+	
+	bool m_splitting = false;
+	size_t m_splits = 0;
+	
+	size_t m_frame = 0;
+	size_t m_sample = 0;
+	
+	BITMAPINFOHEADER m_info_hdr{};
+	PAVIFILE m_avi_file{};
+	
+	AVISTREAMINFO m_video_stream_hdr{};
+	PAVISTREAM m_video_stream{};
+	PAVISTREAM m_compressed_video_stream{};
+
+	AVISTREAMINFO m_sound_stream_hdr{};
+	PAVISTREAM m_sound_stream{};
+	WAVEFORMATEX m_sound_format{};
+	
+	size_t m_avi_file_size = 0;
 };

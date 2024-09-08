@@ -5,39 +5,38 @@
 
 bool AVIEncoder::start(Params params)
 {
-	if (!splitting)
+	if (!m_splitting)
 	{
-		video_params = params;
+		m_params = params;
 	}
-	avi_opened = true;
-	AVIFileSize = 0;
-	frame = 0;
-	infoHeader.biSize = sizeof(BITMAPINFOHEADER);
-	infoHeader.biWidth = params.width;
-	infoHeader.biHeight = params.height;
-	infoHeader.biPlanes = 1;
-	infoHeader.biBitCount = 24;
-	infoHeader.biCompression = BI_RGB;
-	infoHeader.biSizeImage = params.width * params.height * 3;
-	infoHeader.biXPelsPerMeter = 0;
-	infoHeader.biYPelsPerMeter = 0;
-	infoHeader.biClrUsed = 0;
-	infoHeader.biClrImportant = 0;
+	m_avi_file_size = 0;
+	m_frame = 0;
+	m_info_hdr.biSize = sizeof(BITMAPINFOHEADER);
+	m_info_hdr.biWidth = params.width;
+	m_info_hdr.biHeight = params.height;
+	m_info_hdr.biPlanes = 1;
+	m_info_hdr.biBitCount = 24;
+	m_info_hdr.biCompression = BI_RGB;
+	m_info_hdr.biSizeImage = params.width * params.height * 3;
+	m_info_hdr.biXPelsPerMeter = 0;
+	m_info_hdr.biYPelsPerMeter = 0;
+	m_info_hdr.biClrUsed = 0;
+	m_info_hdr.biClrImportant = 0;
 
 	AVIFileInit();
-	AVIFileOpen(&avi_file, params.path.string().c_str(), OF_WRITE | OF_CREATE,
+	AVIFileOpen(&m_avi_file, params.path.string().c_str(), OF_WRITE | OF_CREATE,
 	            NULL);
 
-	ZeroMemory(&video_stream_header, sizeof(AVISTREAMINFO));
-	video_stream_header.fccType = streamtypeVIDEO;
-	video_stream_header.dwScale = 1;
-	video_stream_header.dwRate = params.fps;
-	video_stream_header.dwSuggestedBufferSize = 0;
-	AVIFileCreateStream(avi_file, &video_stream, &video_stream_header);
+	ZeroMemory(&m_video_stream_hdr, sizeof(AVISTREAMINFO));
+	m_video_stream_hdr.fccType = streamtypeVIDEO;
+	m_video_stream_hdr.dwScale = 1;
+	m_video_stream_hdr.dwRate = params.fps;
+	m_video_stream_hdr.dwSuggestedBufferSize = 0;
+	AVIFileCreateStream(m_avi_file, &m_video_stream, &m_video_stream_hdr);
 
 	if (params.ask_for_encoding_settings)
 	{
-		if (!AVISaveOptions(g_main_hwnd, 0, 1, &video_stream, &avi_options))
+		if (!AVISaveOptions(g_main_hwnd, 0, 1, &m_video_stream, &m_avi_options))
 		{
 			printf("[AVIEncoder] Failed to save options\n");
 			return false;
@@ -52,86 +51,85 @@ bool AVIEncoder::start(Params params)
 	}
 
 	save_options();
-	AVIMakeCompressedStream(&compressed_video_stream, video_stream,
-	                        avi_options, NULL);
-	AVIStreamSetFormat(compressed_video_stream, 0, &infoHeader,
-	                   infoHeader.biSize + infoHeader.biClrUsed * sizeof(
+	AVIMakeCompressedStream(&m_compressed_video_stream, m_video_stream,
+	                        m_avi_options, NULL);
+	AVIStreamSetFormat(m_compressed_video_stream, 0, &m_info_hdr,
+	                   m_info_hdr.biSize + m_info_hdr.biClrUsed * sizeof(
 		                   RGBQUAD));
 
-	sample = 0;
-	sound_format.wFormatTag = WAVE_FORMAT_PCM;
-	sound_format.nChannels = 2;
-	sound_format.nSamplesPerSec = 44100;
-	sound_format.nAvgBytesPerSec = 44100 * (2 * 16 / 8);
-	sound_format.nBlockAlign = 2 * 16 / 8;
-	sound_format.wBitsPerSample = 16;
-	sound_format.cbSize = 0;
+	m_sample = 0;
+	m_sound_format.wFormatTag = WAVE_FORMAT_PCM;
+	m_sound_format.nChannels = 2;
+	m_sound_format.nSamplesPerSec = 44100;
+	m_sound_format.nAvgBytesPerSec = 44100 * (2 * 16 / 8);
+	m_sound_format.nBlockAlign = 2 * 16 / 8;
+	m_sound_format.wBitsPerSample = 16;
+	m_sound_format.cbSize = 0;
 
-	ZeroMemory(&sound_stream_header, sizeof(AVISTREAMINFO));
-	sound_stream_header.fccType = streamtypeAUDIO;
-	sound_stream_header.dwQuality = (DWORD)-1;
-	sound_stream_header.dwScale = sound_format.nBlockAlign;
-	sound_stream_header.dwInitialFrames = 1;
-	sound_stream_header.dwRate = sound_format.nAvgBytesPerSec;
-	sound_stream_header.dwSampleSize = sound_format.nBlockAlign;
-	AVIFileCreateStream(avi_file, &sound_stream, &sound_stream_header);
-	AVIStreamSetFormat(sound_stream, 0, &sound_format, sizeof(WAVEFORMATEX));
+	ZeroMemory(&m_sound_stream_hdr, sizeof(AVISTREAMINFO));
+	m_sound_stream_hdr.fccType = streamtypeAUDIO;
+	m_sound_stream_hdr.dwQuality = (DWORD)-1;
+	m_sound_stream_hdr.dwScale = m_sound_format.nBlockAlign;
+	m_sound_stream_hdr.dwInitialFrames = 1;
+	m_sound_stream_hdr.dwRate = m_sound_format.nAvgBytesPerSec;
+	m_sound_stream_hdr.dwSampleSize = m_sound_format.nBlockAlign;
+	AVIFileCreateStream(m_avi_file, &m_sound_stream, &m_sound_stream_hdr);
+	AVIStreamSetFormat(m_sound_stream, 0, &m_sound_format, sizeof(WAVEFORMATEX));
 	return true;
 }
 
 bool AVIEncoder::stop()
 {
-	AVIStreamClose(compressed_video_stream);
-	AVIStreamRelease(video_stream);
-	AVIStreamClose(sound_stream);
-	AVIFileClose(avi_file);
+	AVIStreamClose(m_compressed_video_stream);
+	AVIStreamRelease(m_video_stream);
+	AVIStreamClose(m_sound_stream);
+	AVIFileClose(m_avi_file);
 	AVIFileExit();
 
-	avi_opened = false;
 	return true;
 }
 
 bool AVIEncoder::append_video(uint8_t* image)
 {
-	if (AVIFileSize > max_avi_size)
+	if (m_avi_file_size > MAX_AVI_SIZE)
 	{
 		// If AVI file gets too big, it will corrupt or crash. Since this is a limitation the caller shouldn't care about, we split the recording silently.
 		// When splitting, filenames follow this pattern: <fname> <n>.avi
-		Encoder::Params new_params = video_params;
+		Params new_params = m_params;
 		new_params.path = with_name(new_params.path,
-		                            get_name(video_params.path) + " " +
-		                            std::to_string(++splits));
+		                            get_name(m_params.path) + " " +
+		                            std::to_string(++m_splits));
 
-		splitting = true;
+		m_splitting = true;
 		stop();
 		start(new_params);
-		splitting = false;
+		m_splitting = false;
 	}
 	LONG written_len;
-	BOOL ret = AVIStreamWrite(compressed_video_stream, frame++, 1, image,
-	                          infoHeader.biSizeImage, AVIIF_KEYFRAME, NULL,
+	BOOL ret = AVIStreamWrite(m_compressed_video_stream, m_frame++, 1, image,
+	                          m_info_hdr.biSizeImage, AVIIF_KEYFRAME, NULL,
 	                          &written_len);
-	AVIFileSize += written_len;
-	video_params.video_free(image);
+	m_avi_file_size += written_len;
+	m_params.video_free(image);
 	return !ret;
 }
 
 bool AVIEncoder::append_audio(uint8_t* audio, size_t length)
 {
-	BOOL ok = (0 == AVIStreamWrite(sound_stream, sample,
-	                               length / sound_format.nBlockAlign, audio, length, 0,
+	BOOL ok = (0 == AVIStreamWrite(m_sound_stream, m_sample,
+	                               length / m_sound_format.nBlockAlign, audio, length, 0,
 	                               NULL, NULL));
-	sample += length / sound_format.nBlockAlign;
-	AVIFileSize += length;
-	video_params.audio_free(audio);
+	m_sample += length / m_sound_format.nBlockAlign;
+	m_avi_file_size += length;
+	m_params.audio_free(audio);
 	return ok;
 }
 
 bool AVIEncoder::save_options()
 {
 	FILE* f = fopen("avi.cfg", "wb");
-	fwrite(avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
-	fwrite(avi_options->lpParms, avi_options->cbParms, 1, f);
+	fwrite(m_avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
+	fwrite(m_avi_options->lpParms, m_avi_options->cbParms, 1, f);
 	fclose(f);
 	return true;
 }
@@ -151,12 +149,12 @@ bool AVIEncoder::load_options()
 
 	fseek(f, 0, SEEK_SET);
 
-	fread(avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
+	fread(m_avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
 
 	{
-		void* moreOptions = malloc(avi_options->cbParms);
-		fread(moreOptions, avi_options->cbParms, 1, f);
-		avi_options->lpParms = moreOptions;
+		void* moreOptions = malloc(m_avi_options->cbParms);
+		fread(moreOptions, m_avi_options->cbParms, 1, f);
+		m_avi_options->lpParms = moreOptions;
 	}
 
 	fclose(f);
