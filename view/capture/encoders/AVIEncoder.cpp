@@ -34,7 +34,7 @@ bool AVIEncoder::start(Params params)
 	m_video_stream_hdr.dwSuggestedBufferSize = 0;
 	AVIFileCreateStream(m_avi_file, &m_video_stream, &m_video_stream_hdr);
 
-	if (params.ask_for_encoding_settings)
+	if (params.ask_for_encoding_settings && !m_splitting)
 	{
 		if (!AVISaveOptions(g_main_hwnd, 0, 1, &m_video_stream, &m_avi_options))
 		{
