@@ -779,6 +779,21 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		},
 		t_options_item {
 			.group_id = capture_group.id,
+			.name = "Encoder",
+			.tooltip = L"The encoder to use when generating an output file.\nVFW - Slow but stable (recommended)\nFFmpeg - Fast but less stable",
+			.data = &g_config.encoder_type,
+			.type = t_options_item::Type::Enum,
+			.possible_values = {
+				std::make_pair(L"VFW", (int32_t)EncoderType::VFW),
+				std::make_pair(L"FFmpeg", (int32_t)EncoderType::FFmpeg),
+			},
+			.is_readonly = []
+			{
+				return EncodingManager::is_capturing();
+			},
+		},
+		t_options_item {
+			.group_id = capture_group.id,
 			.name = "Mode",
 			.tooltip = L"The video source to use for capturing video frames.\nPlugin - Captures frames solely from the video plugin\nWindow - Captures frames from the main window\nScreen - Captures screenshots of the current display and crops them to Mupen\nHybrid - Combines video plugin capture and internal Lua composition (recommended)",
 			.data = &g_config.capture_mode,
