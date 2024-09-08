@@ -107,7 +107,7 @@ bool write_backup()
 	}
 
 	printf("[VCR] Backing up movie...\n");
-	const auto filename = std::format("{} - {}.m64", g_movie_path.stem().string(), static_cast<uint64_t>(time(nullptr)));
+	const auto filename = std::format("{}.{}.m64", g_movie_path.stem().string(), static_cast<uint64_t>(time(nullptr)));
 
 	return write_movie_impl(&g_header, g_movie_inputs, get_backups_directory() / filename);
 }
@@ -422,12 +422,16 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 	if (space_needed > freeze.size)
 		return Result::InvalidFormat;
-
+	
 	m_current_sample = (long)freeze.current_sample;
 	m_current_vi = (int)freeze.current_vi;
 
 	const e_task last_task = g_task;
-	if (!g_config.vcr_readonly)
+
+	// When starting playback in RW mode, we don't want overwrite the movie savestate which we're currently unfreezing from...
+	const bool is_task_starting_playback = g_task == e_task::start_playback_from_reset || g_task == e_task::start_playback_from_snapshot;
+
+	if (!g_config.vcr_readonly && !is_task_starting_playback)
 	{
 		// here, we are going to take the input data from the savestate
 		// and make it the input data for the current movie, then continue
@@ -435,7 +439,6 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		g_task = e_task::recording;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
-		write_movie();
 
 		// update header with new ROM info
 		if (last_task == e_task::playback)
@@ -452,6 +455,8 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 		g_movie_inputs.resize(freeze.current_sample);
 		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.current_sample);
+
+		write_movie();
 	} else
 	{
 		// here, we are going to keep the input data from the movie file
@@ -460,6 +465,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		// with the on-disk recording data, but it's easily solved
 		// by loading another savestate or playing the movie from the beginning
 
+		write_movie();
 		g_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
@@ -467,8 +473,6 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 
 	// When loading a state, the statusbar should update with new information before the next frame happens.
 	frame_changed = true;
-
-	write_movie();
 	
 	return Result::Ok;
 }
@@ -709,6 +713,14 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 		return Result::Busy;
 	}
 
+	if (flags != MOVIE_START_FROM_SNAPSHOT
+		&& flags != MOVIE_START_FROM_NOTHING
+		&& flags != MOVIE_START_FROM_EEPROM
+		&& flags != MOVIE_START_FROM_EXISTING_SNAPSHOT)
+	{
+		return VCR::Result::InvalidStartType;
+	}
+	
 	VCR::stop_all();
 	g_movie_path = path;
 
@@ -880,10 +892,10 @@ VCR::Result vcr_stop_record()
 
 	if (g_task == e_task::recording)
 	{
-		g_task = e_task::idle;
-
 		write_movie();
-
+		
+		g_task = e_task::idle;
+		
 		printf("[VCR] Recording stopped. Recorded %ld input samples\n",
 			   g_header.length_samples);
 	}

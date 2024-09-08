@@ -904,6 +904,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		g_update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
 		MGECompositor::create(hwnd);
+		configdialog_init();
 		return TRUE;
 	case WM_DESTROY:
 		save_config();

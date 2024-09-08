@@ -13,9 +13,6 @@
 #define IDD_CHEATS                      113
 #define IDD_MAIN                        128
 #define IDM_LOAD_ROM                    129
-#define IDC_INTERP                      130
-#define IDC_RECOMP                      131
-#define IDC_PURE_INTERP                 132
 #define IDB_LOGO                        133
 #define IDC_LOGO                        134
 #define IDC_COMBO_GFX                   135
@@ -63,7 +60,6 @@
 #define IDRSPABOUT                      204
 #define IDC_MAIN_STATUS                 1002
 #define IDC_PLUGIN_DEFAULT              1003
-#define IDC_SKIPFREQUENCY_HELP          1003
 #define IDD_DIRECTORIES                 1004
 #define IDC_ROMBROWSER_DIR_LIST         1006
 #define IDC_ADD_BROWSER_DIR             1007
@@ -104,12 +100,8 @@
 #define IDC_MOVIE_A_PATH                1035
 #define IDC_EDIT_CHEAT                  1035
 #define IDC_MOVIE_INFO_TEMPLATE         1036
-#define IDC_ENCODE_MODE                 1037
-#define IDC_ENCODE_MODE2                1038
-#define IDC_ENCODE_SYNC                 1038
 #define IDC_MOVIE_A_BROWSE              1038
 #define IDC_EDIT_MOVIE_AUTHOR           1039
-#define IDC_COMBO_LUA_PRESENTER         1039
 #define IDC_EDIT_MOVIE_AUTHOR2          1040
 #define IDC_CHECK_CHEAT_ENABLED         1040
 #define IDC_COMBO_ENCODER               1040
@@ -480,9 +472,7 @@
 #define IDM_LOAD_LATEST_ROM             40053
 #define IDC_LAG_EMULATION               40054
 #define IDC_CLOCK_SPD_MULT              40055
-#define IDC_COMBO_CLOCK_SPD_MULT        40056
 #define IDC_CLOCK_SPD_MULT_TEXT         40057
-#define IDC_COMBO_CLOCK_SPD_MULT2       40057
 #define IDC_CLOCK_SPD_MULT2             40057
 #define IDD_MUPENERROR                  40058
 #define IDC_ERROR_PANIC_IGNORE          40059
@@ -502,7 +492,9 @@
 #define IDM_GS_OFF                      40073
 #define IDM_CHEATS                      40074
 #define IDC_BACKUPS_GROUP               40075
-#define IDC_MOVIE_BACKUPS               40076
+#define IDC_SETTINGS_LV                 40077
+#define IDI_DENY                        40078
+#define IDI_CHANGED                     40079
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

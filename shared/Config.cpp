@@ -325,7 +325,7 @@ t_config get_default_config()
 	return config;
 }
 
-t_config default_config = get_default_config();
+const t_config g_default_config = get_default_config();
 
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          int32_t is_reading, t_hotkey* hotkey)
@@ -627,16 +627,16 @@ void load_config()
 	// handle edge case: closing while minimized produces bogus values for position
 	if (g_config.window_x < -10'000 || g_config.window_y < -10'000)
 	{
-		g_config.window_x = default_config.window_x;
-		g_config.window_y = default_config.window_y;
-		g_config.window_width = default_config.window_width;
-		g_config.window_height = default_config.window_height;
+		g_config.window_x = g_default_config.window_x;
+		g_config.window_y = g_default_config.window_y;
+		g_config.window_width = g_default_config.window_width;
+		g_config.window_height = g_default_config.window_height;
 	}
 
 	if (g_config.rombrowser_column_widths.size() < 4)
 	{
 		// something's malformed, fuck off and use default values
-		g_config.rombrowser_column_widths = default_config.rombrowser_column_widths;
+		g_config.rombrowser_column_widths = g_default_config.rombrowser_column_widths;
 	}
 
 	Messenger::broadcast(Messenger::Message::ConfigLoaded, nullptr);

@@ -14,5 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 #pragma once
+
+void configdialog_init();
 void configdialog_show();
 void configdialog_about();
