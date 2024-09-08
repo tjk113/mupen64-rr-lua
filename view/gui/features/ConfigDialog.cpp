@@ -769,6 +769,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.data = &g_config.silent_mode,
 			.type = t_options_item::Type::Bool,
 		},
+		t_options_item {
+			.group_id = interface_group.id,
+			.name = "Keep working directory",
+			.tooltip = L"Keep the working directory specified by the caller program at startup.\nWhen disabled, mupen changes the working directory to its current path.",
+			.data = &g_config.keep_default_working_directory,
+			.type = t_options_item::Type::Bool,
+		},
 
 		t_options_item {
 			.group_id = capture_group.id,

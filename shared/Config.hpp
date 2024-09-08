@@ -402,6 +402,11 @@ typedef struct Config
 	int32_t synchronization_mode = 1;
 
 	/// <summary>
+	/// When enabled, mupen won't change the working directory to its current path at startup
+	/// </summary>
+	int32_t keep_default_working_directory;
+	
+	/// <summary>
 	/// The lua script path
 	/// </summary>
 	std::string lua_script_path;

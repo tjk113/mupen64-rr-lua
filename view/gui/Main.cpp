@@ -1571,7 +1571,11 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	g_app_path = get_app_full_path();
 
+	char cwd[MAX_PATH] = {0};
+	GetCurrentDirectory(sizeof(cwd), cwd);
+	
 	// CWD is sometimes messed up when running from CLI, so we fix it here
+	// Needs to be fixed prior to loading config, since that uses a relative path
 	SetCurrentDirectory(g_app_path.c_str());
 
 	g_app_instance = hInstance;
@@ -1586,6 +1590,15 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	load_config();
 	lua_init();
 
+	if (g_config.keep_default_working_directory)
+	{
+		SetCurrentDirectory(cwd);
+	}
+
+	// Log cwd again for fun
+	GetCurrentDirectory(sizeof(cwd), cwd);
+	printf("cwd: %s\n", cwd);
+	
 	WNDCLASSEX wc = {0};
 	MSG msg;
 
