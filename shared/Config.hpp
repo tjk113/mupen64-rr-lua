@@ -93,6 +93,22 @@ enum class PresenterType : int32_t
 	GDI
 };
 
+/**
+  * \brief A data stream encoder type
+  */
+enum class EncoderType : int32_t
+{
+	/**
+	 * \brief Microsoft's VFW
+	 */
+	VFW,
+
+	/**
+	 * \brief The FFmpeg library
+	 */
+	FFmpeg,
+};
+
 typedef struct Hotkey
 {
 	std::string identifier;
@@ -355,12 +371,27 @@ typedef struct Config
 	int32_t presenter_type = static_cast<int32_t>(PresenterType::DirectComposition);
 
 	/// <summary>
+	/// The encoder to use for capturing.
+	/// </summary>
+	int32_t encoder_type = static_cast<int32_t>(EncoderType::VFW);
+	
+	/// <summary>
 	/// The delay (in milliseconds) before capturing the window
 	/// <para/>
 	/// May be useful when capturing other windows alongside mupen
 	/// </summary>
 	int32_t capture_delay;
+	
+	/// <summary>
+	/// FFmpeg post-stream option format string which is used when capturing using the FFmpeg encoder type
+	/// </summary>
+	std::string ffmpeg_final_options = " -thread_queue_size 4 -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 -i %s -thread_queue_size 64 -f s16le -ar %d -ac 2 -channel_layout stereo -i %s -vf \"vflip,format=yuv420p\" %s";
 
+	/// <summary>
+	/// FFmpeg binary path
+	/// </summary>
+	std::string ffmpeg_path = "C:\\ffmpeg\\bin\\ffmpeg.exe";
+	
 	/// <summary>
 	/// The audio-video synchronization mode
 	/// <para/>

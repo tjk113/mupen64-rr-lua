@@ -14,16 +14,14 @@
 #include "encoders/Encoder.h"
 #include "encoders/FFmpegEncoder.h"
 #include <view/gui/features/MGECompositor.h>
-#include <core/r4300/r4300.h>
 #include <view/lua/LuaConsole.h>
 #include <view/gui/features/Dispatcher.h>
+#include <view/helpers/IOHelpers.h>
 
 namespace EncodingManager
 {
 	// 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
 #define SOUND_BUF_SIZE (44100*2*2)
-
-	const auto ffmpeg_path = "C:\\ffmpeg\\bin\\ffmpeg.exe";
 
 	// 0x30018
 	int m_audio_freq = 33000;
@@ -35,13 +33,9 @@ namespace EncodingManager
 	char sound_buf_empty[SOUND_BUF_SIZE];
 	int sound_buf_pos = 0;
 	long last_sound = 0;
-
-	size_t split_count = 0;
-
-	bool capturing = false;
-	EncoderType current_container;
-	std::filesystem::path capture_path;
-
+	
+	std::atomic m_capturing = false;
+	EncoderType m_encoder_type;
 	std::unique_ptr<Encoder> m_encoder;
 
 	/**
@@ -210,10 +204,16 @@ namespace EncodingManager
 				|| len > max_write_size)
 			{
 				static short* buf2 = nullptr;
+
 				len2 = rsmp_resample(&buf2, 44100,
 				                    reinterpret_cast<short*>(sound_buf),
 				                    m_audio_freq,
 				                    m_audio_bitrate, sound_buf_pos);
+
+				// We need to allocate another buffer for the handoff....
+				auto secondary_buf = static_cast<short*>(calloc(len2, sizeof(short)));
+				memcpy(secondary_buf, buf2, len2);
+
 				if (len2 > 0)
 				{
 					if ((len2 % 4) != 0)
@@ -224,7 +224,7 @@ namespace EncodingManager
 							stderr,
 							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
 					}
-					if (!m_encoder->append_audio((unsigned char*)buf2, len2))
+					if (!m_encoder->append_audio(reinterpret_cast<uint8_t*>(secondary_buf), len2))
 					{
 						FrontendService::show_information(
 							"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -263,7 +263,7 @@ namespace EncodingManager
 
 	bool is_capturing()
 	{
-		return capturing;
+		return m_capturing;
 	}
 
 	void(* effective_readscreen())(void** dest, long* width, long* height)
@@ -287,18 +287,33 @@ namespace EncodingManager
 	{
 	};
 
-	auto effective_readscreen_free()
+	void(*get_effective_readscreen_free())(void*)
 	{
-		if (g_config.capture_mode == 0 || g_config.capture_mode == 3)
+		switch (g_config.capture_mode)
 		{
-			return MGECompositor::available() ? dummy_free : DllCrtFree;
+			case 0:
+				return MGECompositor::available() ? dummy_free : DllCrtFree;
+			case 1:
+				return free;
+			case 2:
+				return free;
+			case 3:
+				return free;
+			default:
+				return nullptr;
 		}
-		return free;
+	}
+
+	void effective_readscreen_free(void* buf)
+	{
+		get_effective_readscreen_free()(buf);
 	}
 
 	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
 	                   const bool ask_for_encoding_settings)
 	{
+		assert(is_on_gui_thread());
+		
 		if (is_capturing())
 		{
 			if(!stop_capture())
@@ -326,7 +341,7 @@ namespace EncodingManager
 			assert(false);
 		}
 
-		current_container = encoder_type;
+		m_encoder_type = encoder_type;
 
 		memset(sound_buf_empty, 0, sizeof(sound_buf_empty));
 		memset(sound_buf, 0, sizeof(sound_buf));
@@ -338,14 +353,17 @@ namespace EncodingManager
 		long width = 0, height = 0;
 		void* dummy;
 		effective_readscreen()(&dummy, &width, &height);
-		effective_readscreen_free()(dummy);
+		get_effective_readscreen_free()(dummy);
 
 		auto result = m_encoder->start(Encoder::Params{
 			.path = path.string().c_str(),
-			.width = (uint32_t)width,
-			.height = (uint32_t)height,
+			.width =  (uint32_t)width & ~3, // Video dimensions need to be floored to multiple of 4 
+			.height = (uint32_t)height & ~3,
 			.fps = get_vis_per_second(ROM_HEADER.Country_code),
-			.ask_for_encoding_settings = ask_for_encoding_settings
+			.arate = 44100,
+			.ask_for_encoding_settings = ask_for_encoding_settings,
+			.video_free = effective_readscreen_free,
+			.audio_free = free,
 		});
 
 		if (!result)
@@ -354,8 +372,7 @@ namespace EncodingManager
 			return false;
 		}
 
-		capturing = true;
-		capture_path = path;
+		m_capturing = true;
 
 		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
@@ -366,6 +383,8 @@ namespace EncodingManager
 
 	bool stop_capture()
 	{
+		assert(is_on_gui_thread());
+		
 		if (!is_capturing())
 		{
 			return true;
@@ -380,10 +399,8 @@ namespace EncodingManager
 		}
 
 		m_encoder.release();
-
-		split_count = 0;
-
-		capturing = false;
+		
+		m_capturing = false;
 		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 
 		printf("[EncodingManager]: Capture finished.\n");
@@ -393,7 +410,9 @@ namespace EncodingManager
 
 	void at_vi()
 	{
-		if (!capturing)
+		assert(is_on_gui_thread());
+		
+		if (!m_capturing)
 		{
 			return;
 		}
@@ -406,16 +425,14 @@ namespace EncodingManager
 		void* image = nullptr;
 		long width = 0, height = 0;
 
-		const auto start = std::chrono::high_resolution_clock::now();
-		effective_readscreen()(&image, &width, &height);
-		const auto end = std::chrono::high_resolution_clock::now();
-		const std::chrono::duration<double, std::milli> time = (end - start);
-		printf("ReadScreen: %lf ms\n", time.count());
-
+		{
+			ScopeTimer timer("ReadScreen");
+			effective_readscreen()(&image, &width, &height);
+		}
+		
 		if (image == nullptr)
 		{
-			printf(
-				"[EncodingManager]: Couldn't read screen (out of memory?)\n");
+			printf("[EncodingManager]: Couldn't read screen (out of memory?)\n");
 			return;
 		}
 
@@ -440,7 +457,7 @@ namespace EncodingManager
 			{
 				FrontendService::show_error("Audio frames became negative!", "Capture");
 				stop_capture();
-				goto cleanup;
+				return;
 			}
 
 			if (audio_frames == 0)
@@ -454,7 +471,7 @@ namespace EncodingManager
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 					stop_capture();
-					goto cleanup;
+					return;
 				}
 				m_video_frame += 1.0;
 				audio_frames--;
@@ -469,7 +486,7 @@ namespace EncodingManager
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 					stop_capture();
-					goto cleanup;
+					return;
 				}
 				printf("Duped Frame! a/v: %Lg/%Lg\n", m_video_frame,
 				       m_audio_frame);
@@ -484,17 +501,16 @@ namespace EncodingManager
 						"Failed to append frame to video.\nPerhaps you ran out of memory?",
 						"Capture");
 				stop_capture();
-				goto cleanup;
+				return;
 			}
 			m_video_frame += 1.0;
 		}
-
-	cleanup:
-		effective_readscreen_free()(image);
 	}
 
 	void ai_len_changed()
 	{
+		assert(is_on_gui_thread());
+		
 		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.
 			ai_dram_addr & 0xFFFFFF));
 		const auto buf = (char*)p;
@@ -502,7 +518,7 @@ namespace EncodingManager
 
 		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
 
-		if (!capturing)
+		if (!m_capturing)
 		{
 			return;
 		}
@@ -576,7 +592,7 @@ namespace EncodingManager
 	{
 		auto type = std::any_cast<system_type>(data);
 
-		if (capturing)
+		if (m_capturing)
 		{
 			FrontendService::show_error("Audio frequency changed during capture.\r\nThe capture will be stopped.", "Capture");
 			stop_capture();
@@ -604,6 +620,8 @@ namespace EncodingManager
 
 	void init()
 	{
+		assert(is_on_gui_thread());
+		
 		Messenger::subscribe(Messenger::Message::DacrateChanged, ai_dacrate_changed);
 	}
 }

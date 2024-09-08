@@ -1,6 +1,11 @@
 #pragma once
 #include <filesystem>
+#include <shared/Config.hpp>
 
+/**
+ * Provides encoding functionality to the view.
+ * \warning This namespace is not thread-safe unless otherwise specified.
+ */
 namespace EncodingManager
 {
 	/**
@@ -25,23 +30,8 @@ namespace EncodingManager
 	};
 
 	/**
-	 * \brief A data stream encoder type
-	 */
-	enum class EncoderType
-	{
-		/**
-		 * \brief Microsoft's VFW
-		 */
-		VFW,
-
-		/**
-		 * \brief The FFmpeg library
-		 */
-		FFmpeg,
-	};
-
-	/**
 	 * \brief Whether a capture is currently running
+	 * \remarks This method is thread-safe.
 	 */
 	bool is_capturing();
 
