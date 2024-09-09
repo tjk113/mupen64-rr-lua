@@ -6,17 +6,6 @@
 #include <map>
 
 /**
- * \brief Key codes for hotkeys
- */
-enum class KeyCode
-{
-	Tab,
-	Minus,
-	Plus,
-	Five,
-};
-
-/**
  * \brief Action that can be triggered by a hotkey
  */
 enum class Action
