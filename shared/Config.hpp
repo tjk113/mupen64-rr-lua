@@ -394,6 +394,11 @@ typedef struct Config
 	/// When enabled, mupen won't change the working directory to its current path at startup
 	/// </summary>
 	int32_t keep_default_working_directory;
+
+	/// <summary>
+	/// Whether the async executor is used for async calls. If disabled, a new thread is spawned for each call (legacy behaviour).
+	/// </summary>
+	int32_t use_async_executor;
 	
 	/// <summary>
 	/// The lua script path

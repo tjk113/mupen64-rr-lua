@@ -6,6 +6,8 @@
 #include <condition_variable>
 #include <atomic>
 
+#include "Config.hpp"
+
 std::deque<std::pair<size_t, std::function<void()>>> g_task_queue;
 std::mutex g_queue_mutex;
 std::condition_variable g_task_cv;
@@ -56,6 +58,12 @@ void AsyncExecutor::stop()
 
 void AsyncExecutor::invoke_async(const std::function<void()>& func, size_t key)
 {
+    if (!g_config.use_async_executor)
+    {
+        std::thread(func).detach();
+        return;
+    }
+    
     {
         std::lock_guard lock(g_queue_mutex);
 

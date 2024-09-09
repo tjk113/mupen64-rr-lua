@@ -776,6 +776,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.data = &g_config.keep_default_working_directory,
 			.type = t_options_item::Type::Bool,
 		},
+		t_options_item {
+			.group_id = interface_group.id,
+			.name = "Use Async Executor",
+			.tooltip = L"Whether the new async executor is used for async calls.\nLowers interaction latency in general usecases.\nOn - Each call is put on the async execution queue\nOff - Each call runs on a newly created thread (legacy behaviour)",
+			.data = &g_config.use_async_executor,
+			.type = t_options_item::Type::Bool,
+		},
 
 		t_options_item {
 			.group_id = capture_group.id,
