@@ -297,7 +297,7 @@ void FrontendService::update_screen()
 
 void FrontendService::at_vi()
 {
-	Dispatcher::invoke([]
+	Dispatcher::invoke_ui([]
 	{
 		EncodingManager::at_vi();
 	});
@@ -305,7 +305,7 @@ void FrontendService::at_vi()
 
 void FrontendService::ai_len_changed()
 {
-	Dispatcher::invoke([]
+	Dispatcher::invoke_ui([]
 	{
 		EncodingManager::ai_len_changed();
 	});
