@@ -9,28 +9,28 @@
 
 namespace Dispatcher
 {
-	std::queue<std::function<void()>> funcs;
-	std::mutex dispatcher_mutex;
+    std::queue<std::function<void()>> g_ui_queue;
+    std::mutex g_ui_mutex;
 
-	void invoke(const std::function<void()>& func)
-	{
-		if (is_on_gui_thread())
-		{
-			func();
-			return;
-		}
+    void invoke_ui(const std::function<void()>& func)
+    {
+        if (is_on_gui_thread())
+        {
+            func();
+            return;
+        }
 
-		std::lock_guard lock(dispatcher_mutex);
-		funcs.push(func);
-		SendMessage(g_main_hwnd, WM_EXECUTE_DISPATCHER, 0, 0);
-	}
+        std::lock_guard lock(g_ui_mutex);
+        g_ui_queue.push(func);
+        SendMessage(g_main_hwnd, WM_EXECUTE_DISPATCHER, 0, 0);
+    }
 
-	void execute()
-	{
-		while (!funcs.empty())
-		{
-			funcs.front()();
-			funcs.pop();
-		}
-	}
+    void execute_ui()
+    {
+        while (!g_ui_queue.empty())
+        {
+            g_ui_queue.front()();
+            g_ui_queue.pop();
+        }
+    }
 }

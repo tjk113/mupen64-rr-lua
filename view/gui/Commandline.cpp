@@ -31,6 +31,7 @@
 #include <view/capture/EncodingManager.h>
 
 #include "features/Dispatcher.h"
+#include "shared/AsyncExecutor.h"
 #include "shared/Config.hpp"
 
 std::filesystem::path commandline_rom;
@@ -88,7 +89,7 @@ void commandline_start_rom()
 		return;
 	}
 
-	std::thread([]
+	AsyncExecutor::invoke_async([]
 	{
 		vr_start_rom(commandline_rom);
 		// Special case for "Open With..."
@@ -96,7 +97,7 @@ void commandline_start_rom()
 		{
 			VCR::start_playback(commandline_rom);
 		}
-	}).detach();
+	});
 }
 
 void commandline_load_st()
@@ -116,7 +117,7 @@ void commandline_start_lua()
 		return;
 	}
 
-	Dispatcher::invoke([&]
+	Dispatcher::invoke_ui([&]
 	{
 		// To run multiple lua scripts, a semicolon-separated list is provided
 		std::stringstream stream;
@@ -137,7 +138,10 @@ void commandline_start_movie()
 	}
 
 	g_config.vcr_readonly = true;
-	std::thread([] { VCR::start_playback(commandline_movie); }).detach();
+	AsyncExecutor::invoke_async([]
+	{
+		VCR::start_playback(commandline_movie);
+	});
 }
 
 void commandline_start_capture()
@@ -147,7 +151,7 @@ void commandline_start_capture()
 		return;
 	}
 
-	Dispatcher::invoke([]
+	Dispatcher::invoke_ui([]
 	{
 		EncodingManager::start_capture(commandline_avi.string().c_str(), static_cast<EncoderType>(g_config.encoder_type), false);
 	});
@@ -157,7 +161,7 @@ void commandline_on_movie_playback_stop()
 {
 	if (commandline_close_on_movie_end)
 	{
-		Dispatcher::invoke([]
+		Dispatcher::invoke_ui([]
 		{
 			EncodingManager::stop_capture();
 			PostMessage(g_main_hwnd, WM_CLOSE, 0, 0);

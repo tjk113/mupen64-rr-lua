@@ -13,6 +13,8 @@
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 
+#include "shared/AsyncExecutor.h"
+
 namespace Runner
 {
 	int32_t last_selected_id = -1;
@@ -22,20 +24,20 @@ namespace Runner
 		switch (id)
 		{
 		case IDC_LIST_ROMS:
-			std::thread([path]
+			AsyncExecutor::invoke_async([path]
 			{
 				vr_start_rom(path);
-			}).detach();
+			});
 			break;
 		case IDC_LIST_MOVIES:
 			g_config.vcr_readonly = true;
 			Messenger::broadcast(
 				Messenger::Message::ReadonlyChanged,
 				(bool)g_config.vcr_readonly);
-			std::thread([=]
+			AsyncExecutor::invoke_async([=]
 			{
 				VCR::start_playback(path);
-			}).detach();
+			});
 			break;
 		case IDC_LIST_SCRIPTS:
 			lua_create_and_run(path.string().c_str());
