@@ -68,6 +68,7 @@ typedef struct OptionsItem
 		Bool,
 		Number,
 		Enum,
+		String,
 	};
 	
 	/**
@@ -89,6 +90,11 @@ typedef struct OptionsItem
 	 * The option's backing data.
 	 */
 	int32_t* data = nullptr;
+
+	/**
+	 * The option's backing data as a string, used when type == Type::String
+	 */
+	std::string* data_str;
 	
 	/**
 	 * The option's backing data type.
@@ -121,6 +127,11 @@ typedef struct OptionsItem
 		{
 			return std::to_wstring(*data);
 		}
+
+		if (type == Type::String)
+		{
+			return string_to_wstring(*data_str);
+		}
 		
 		for (auto [name, val] : possible_values)
 		{
@@ -134,14 +145,25 @@ typedef struct OptionsItem
 	}
 
 	/**
-	 * Maps the option's data to another config struct
-	 * \param config The new config structure
-	 * \return The address of the data in the config structure
+	 * Gets the option's default value from another config struct.
 	 */
-	int32_t* get_data_ptr_in_other_config(const t_config* config) const
+	void* get_default_value_ptr(const t_config* config) const
 	{
 		// Find the field offset for the option relative to g_config and grab the equivalent from the default config
-		auto field_offset = (char*)data - (char*)&g_config;
+		size_t field_offset;
+		if (type == Type::String)
+		{
+			field_offset = (char*)data_str - (char*)&g_config;
+		} else
+		{
+			field_offset = (char*)data - (char*)&g_config;
+		}
+
+		if (type == Type::String)
+		{
+			return (std::string*)((char*)config + field_offset);
+		}
+		
 		return (int32_t*)((char*)config + field_offset);
 	}
 	
@@ -839,6 +861,17 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 				return EncodingManager::is_capturing();
 			},
 		},
+		t_options_item {
+			.group_id = capture_group.id,
+			.name = "FFmpeg Arguments",
+			.tooltip = L"The argument format string to be passed to FFmpeg when capturing.",
+			.data_str = &g_config.ffmpeg_final_options,
+			.type = t_options_item::Type::String,
+			.is_readonly = []
+			{
+				return EncodingManager::is_capturing();
+			},
+		},
 
 		t_options_item {
 			.group_id = core_group.id,
@@ -987,7 +1020,7 @@ LRESULT CALLBACK InlineEditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 
 	apply:
 
-	char str[MAX_PATH] = {0};
+	char str[MAX_PATH * 3] = {0};
 	Edit_GetText(hwnd, str, sizeof(str));
 	
 	SendMessage(GetParent(hwnd), WM_EDIT_END, 0, (LPARAM)str);
@@ -995,6 +1028,48 @@ LRESULT CALLBACK InlineEditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 	DestroyWindow(hwnd);
 
 	return DefSubclassProc(hwnd, msg, wParam, lParam);
+}
+
+INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+	case WM_INITDIALOG:
+		{
+			auto option_item = g_option_items[g_edit_option_item_index];
+			auto edit_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
+
+			SetWindowText(wnd, std::format("Edit '{}'", option_item.name).c_str());
+			Edit_SetText(edit_hwnd, option_item.data_str->c_str());
+			
+			SetFocus(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT));
+			break;
+		}
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDOK:
+			{
+				auto edit_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
+			
+				auto len = Edit_GetTextLength(edit_hwnd);
+				auto str = (char*)calloc(len, 1);
+				Edit_GetText(edit_hwnd, str, len);
+			
+				*g_option_items[g_edit_option_item_index].data_str = str;
+
+				free(str);
+			
+				EndDialog(wnd, 0);
+				break;
+			}
+		case IDCANCEL:
+			EndDialog(wnd, 1);
+			break;
+		}
+		break;
+	}
+	return FALSE;
 }
 
 BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
@@ -1078,16 +1153,22 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 		{
 			auto str = (char*)l_param;
 
-			try
+			if (g_option_items[g_edit_option_item_index].type == OptionsItem::Type::Number)
 			{
-				auto result = std::stoi(str);
-				*g_option_items[g_edit_option_item_index].data = result;
-			}
-			catch (...)
+				try
+				{
+					auto result = std::stoi(str);
+					*g_option_items[g_edit_option_item_index].data = result;
+				}
+				catch (...)
+				{
+					// ignored
+				}
+			} else
 			{
-				// ignored
+				*g_option_items[g_edit_option_item_index].data_str = str;
 			}
-
+			
 			ListView_Update(g_lv_hwnd, g_edit_option_item_index);
 			
 			break;
@@ -1117,11 +1198,18 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 				break;
 			}
 
-			int32_t* default_equivalent = option_item.get_data_ptr_in_other_config(&g_default_config);
+			void* default_equivalent = option_item.get_default_value_ptr(&g_default_config);
 			
 			if (offset == 1)
 			{
-				*option_item.data = *default_equivalent;
+				if (option_item.type == OptionsItem::Type::String)
+				{
+					*option_item.data_str = *(std::string*)default_equivalent;
+				} else
+				{
+					*option_item.data = *(int32_t*)default_equivalent;
+				}
+				
 				ListView_Update(g_lv_hwnd, i);
 			}
 
@@ -1140,8 +1228,8 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 					for (auto pair : option_item.possible_values)
 					{
 						str += std::format(L"{} - {}", pair.second, pair.first);
-
-						if (pair.second == *default_equivalent)
+						
+						if (pair.second == *(int32_t*)default_equivalent)
 						{
 							str += L" (default)";
 						}
@@ -1169,11 +1257,14 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 
 						if(plvdi->item.mask & LVIF_IMAGE ) 
 						{
-							plvdi->item.iImage = 50;
+							void* default_value_ptr = options_item.get_default_value_ptr(&g_prev_config);
 							
-							if (*options_item.get_data_ptr_in_other_config(&g_prev_config) != *options_item.data)
+							if (options_item.type == OptionsItem::Type::String)
 							{
-								plvdi->item.iImage = 1;
+								plvdi->item.iImage = *(std::string*)default_value_ptr == *options_item.data_str ? 50 : 1;
+							} else
+							{
+								plvdi->item.iImage = *(int32_t*)default_value_ptr == *options_item.data ? 50 : 1;
 							}
 							
 							if (options_item.is_readonly())
@@ -1279,6 +1370,13 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 							*option_item.data = current_value;
 						}
 
+						// For strings, allow editing in a dialog (since it might be a multiline string and we can't really handle that below)
+						if (option_item.type == OptionsItem::Type::String)
+						{
+							g_edit_option_item_index = item.lParam;
+							DialogBoxParam(g_app_instance, MAKEINTRESOURCE(IDD_LUAINPUTPROMPT), hwnd, EditStringDialogProc, 0);
+						}
+						
 						// For numbers, create a textbox over the value cell for inline editing
 						if (option_item.type == OptionsItem::Type::Number)
 						{
@@ -1300,6 +1398,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 							SendMessage(g_edit_hwnd, WM_SETFONT, (WPARAM)SendMessage(g_lv_hwnd, WM_GETFONT, 0, 0), 0);
 							
 							SetWindowSubclass(g_edit_hwnd, InlineEditBoxProc, 0, 0);
+
 							Edit_SetText(g_edit_hwnd, std::to_string(*option_item.data).c_str());
 							
 							PostMessage(hwnd, WM_NEXTDLGCTL, (WPARAM)g_edit_hwnd, TRUE);
