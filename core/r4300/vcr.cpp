@@ -870,6 +870,16 @@ VCR::Result VCR::replace_author_info(const std::filesystem::path& path, const st
 	return Result::Ok;
 }
 
+std::pair<size_t, size_t> VCR::get_seek_completion()
+{
+	if (!VCR::is_seeking())
+	{
+		return std::make_pair(0, 0);
+	}
+
+	return std::make_pair(m_current_sample, seek_to_frame.value());
+}
+
 VCR::Result vcr_stop_record()
 {
 	std::unique_lock lock(vcr_mutex, std::try_to_lock);
@@ -1097,38 +1107,38 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	return Result::Ok;
 }
 
-size_t get_intended_frame(int32_t frame, bool relative)
+bool can_seek_to(size_t frame)
 {
-	frame += relative ? m_current_sample : 0;
-	if (relative)
+	return frame < g_header.length_samples && frame > 0 && frame != m_current_sample;
+}
+
+size_t compute_sample_from_seek_string(const std::string& str)
+{
+	try
 	{
-		frame %= g_header.length_samples;
+		if (str[0] == '-' || str[0] == '+')
+		{
+			return m_current_sample + std::stoi(str);
+		}
+
+		if (str[0] == '^')
+		{
+			return g_header.length_samples - std::stoi(str.substr(1));
+		}
+
+		return std::stoi(str);
 	}
-	return frame;
-}
-
-std::pair<bool, size_t> VCR::get_seek_info(int32_t frame, bool relative)
-{
-	frame = get_intended_frame(frame, relative);
-	bool allowed = frame < g_header.length_samples && frame > 0 && frame != m_current_sample;
-	return std::make_pair(allowed, frame);
-}
-
-std::pair<size_t, size_t> VCR::get_seek_completion()
-{
-	if (!VCR::is_seeking())
+	catch (...)
 	{
-		return std::make_pair(0, 0);
+		return SIZE_MAX;
 	}
-
-	return std::make_pair(m_current_sample, seek_to_frame.value());
 }
 
-VCR::Result VCR::begin_seek_to(int32_t frame, bool relative)
+VCR::Result VCR::begin_seek(std::string str)
 {
-	const auto [valid, effective_frame] = get_seek_info(frame, relative);
-	frame = effective_frame;
-	if (!valid)
+	auto frame = compute_sample_from_seek_string(str);
+
+	if (frame == SIZE_MAX || !can_seek_to(frame))
 	{
 		return Result::InvalidFrame;
 	}

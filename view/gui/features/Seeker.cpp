@@ -16,7 +16,7 @@ namespace Seeker
 {
 	HWND current_hwnd;
 	UINT_PTR refresh_timer;
-
+	
 	LRESULT CALLBACK SeekerProc(HWND hwnd, UINT Message, WPARAM wParam,
 	                            LPARAM lParam)
 	{
@@ -68,21 +68,8 @@ namespace Seeker
 						VCR::stop_seek();
 						break;
 					}
-
-					// Relative seek is activated by typing + or - in front of number
-					bool relative = g_config.seeker_value[0] == '-' || g_config.seeker_value[0] == '+';
-
-					int32_t frame;
-					try
-					{
-						frame = std::stoi(g_config.seeker_value);
-					} catch (...)
-					{
-						SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Invalid input");
-						break;
-					}
-
-					if (VCR::begin_seek_to(frame, relative) != VCR::Result::Ok)
+					
+					if (VCR::begin_seek(g_config.seeker_value) != VCR::Result::Ok)
 					{
 						SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Couldn't seek");
 						break;

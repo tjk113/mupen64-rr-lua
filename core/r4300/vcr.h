@@ -327,28 +327,25 @@ namespace VCR
 	 * \return The operation result
 	 */
 	Result replace_author_info(const std::filesystem::path& path, const std::string& author, const std::string& description);
-
-	/**
-	 * \brief Gets information about a seek operation
-	 * \param frame The frame to seek to
-	 * \param relative Whether the seek is relative to the current frame
-	 * \return A pair containing whether the specified parameters allow a seek operation and the effective frame
-	 */
-	std::pair<bool, size_t> get_seek_info(int32_t frame, bool relative);
-
+	
 	/**
 	 * \brief Gets the completion status of the current seek operation. If no seek operation is active, both pair values are 0.
 	 */
 	std::pair<size_t, size_t> get_seek_completion();
-
+	
 	/**
 	 * \brief Begins seeking to a frame in the currently playing movie
-	 * \param frame The frame to seek to
-	 * \param relative Whether the seek is relative to the current frame
+	 * \param str A seek format string
 	 * \return The operation result
 	 * \remarks When the seek operation completes, the SeekCompleted message will be sent
+	 *
+	 * Seek string format possibilities:
+	 *	"n" - Frame
+	 *	"+n", "-n" - Relative to current sample
+	 *	"^n" - Sample n from the end
+	 *	
 	 */
-	Result begin_seek_to(int32_t frame, bool relative);
+	Result begin_seek(std::string str);
 
 	/**
 	 * \brief Converts a freeze buffer into a movie, trying to reconstruct as much as possible

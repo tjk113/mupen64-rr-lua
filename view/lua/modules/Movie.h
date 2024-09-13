@@ -51,24 +51,24 @@ namespace LuaCore::Movie
 
 	static int begin_seek_to(lua_State* L)
 	{
+		// FIXME, COMPAT: The underlying API has changed and this function must change too
 		size_t frame = lua_tointeger(L, 1);
 		bool relative = lua_toboolean(L, 2);
 
-		lua_pushinteger(L, static_cast<size_t>(VCR::begin_seek_to(frame, relative)));
+		lua_pushinteger(L, 0);
 		return 1;
 	}
 
 	static int get_seek_info(lua_State* L)
 	{
+		// FIXME, COMPAT: The underlying API has changed and this function must change too
 		size_t frame = lua_tointeger(L, 1);
 		bool relative = lua_toboolean(L, 2);
-
-		const auto pair = VCR::get_seek_info(frame, relative);
-
+		
 		lua_newtable(L);
-		lua_pushboolean(L, pair.first);
+		lua_pushboolean(L, 0);
 		lua_rawseti(L, -2, 1);
-		lua_pushinteger(L, pair.second);
+		lua_pushinteger(L, 0);
 		lua_rawseti(L, -2, 2);
 
 		return 1;
