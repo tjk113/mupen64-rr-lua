@@ -558,8 +558,7 @@ const luaL_Reg movieFuncs[] = {
 	{"get_filename", LuaCore::Movie::GetMovieFilename},
 	{"get_readonly", LuaCore::Movie::GetVCRReadOnly},
 	{"set_readonly", LuaCore::Movie::SetVCRReadOnly},
-	{"begin_seek_to", LuaCore::Movie::begin_seek_to},
-	{"get_seek_info", LuaCore::Movie::get_seek_info},
+	{"begin_seek", LuaCore::Movie::begin_seek},
 	{"stop_seek", LuaCore::Movie::stop_seek},
 	{"is_seeking", LuaCore::Movie::is_seeking},
 	{NULL, NULL}
@@ -1014,6 +1013,12 @@ void LuaEnvironment::register_functions()
 	// DEPRECATED: emu.getsystemmetrics couples to WinAPI
 	luaL_dostring(L, "emu.getsystemmetrics = function() print('emu.getsystemmetrics has been deprecated') end");
 
+	// DEPRECATED: movie.begin_seek_to doesn't exist anymore
+	luaL_dostring(L, "movie.begin_seek_to = function() print('movie.begin_seek_to has been deprecated, use movie.begin_seek instead') end");
+
+	// DEPRECATED: movie.get_seek_info doesn't exist anymore
+	luaL_dostring(L, "movie.get_seek_info = function() print('movie.get_seek_info has been deprecated, use movie.begin_seek instead') end");
+	
 	// os.execute poses security risks
 	luaL_dostring(L, "os.execute = function() print('os.execute is disabled') end");
 }

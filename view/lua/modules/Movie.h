@@ -4,6 +4,7 @@ extern "C" {
 #include <lualib.h>
 }
 #include <shared/Messenger.h>
+#include <core/r4300/vcr.h>
 
 namespace LuaCore::Movie
 {
@@ -49,28 +50,11 @@ namespace LuaCore::Movie
 		return 0;
 	}
 
-	static int begin_seek_to(lua_State* L)
+	static int begin_seek(lua_State* L)
 	{
-		// FIXME, COMPAT: The underlying API has changed and this function must change too
-		size_t frame = lua_tointeger(L, 1);
-		bool relative = lua_toboolean(L, 2);
+		std::string str = lua_tostring(L, 1);
 
-		lua_pushinteger(L, 0);
-		return 1;
-	}
-
-	static int get_seek_info(lua_State* L)
-	{
-		// FIXME, COMPAT: The underlying API has changed and this function must change too
-		size_t frame = lua_tointeger(L, 1);
-		bool relative = lua_toboolean(L, 2);
-		
-		lua_newtable(L);
-		lua_pushboolean(L, 0);
-		lua_rawseti(L, -2, 1);
-		lua_pushinteger(L, 0);
-		lua_rawseti(L, -2, 2);
-
+		lua_pushinteger(L, static_cast<int32_t>(VCR::begin_seek(str)));
 		return 1;
 	}
 
