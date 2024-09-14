@@ -69,6 +69,12 @@ namespace LuaService
 	 * \brief Notifies all lua instances of the rom being reset
 	 */
 	void call_reset();
+
+	/**
+	 * \brief Notifies all lua instances of a seek operation completing
+	 */
+	void call_seek_completed();
+	
 #pragma endregion
 
 #pragma region Raw Calls

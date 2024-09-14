@@ -621,6 +621,11 @@ void on_config_loaded(std::any)
 	Rombrowser::build();
 }
 
+void on_seek_completed(std::any)
+{
+	LuaService::call_seek_completed();
+}
+
 BetterEmulationLock::BetterEmulationLock()
 {
 	if (g_in_menu_loop)
@@ -1686,6 +1691,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	Messenger::subscribe(Messenger::Message::CoreResult, on_core_result);
 	Messenger::subscribe(Messenger::Message::FullscreenChanged, on_fullscreen_changed);
 	Messenger::subscribe(Messenger::Message::ConfigLoaded, on_config_loaded);
+	Messenger::subscribe(Messenger::Message::SeekCompleted, on_seek_completed);
 	Messenger::subscribe(Messenger::Message::EmuStartingChanged, [](std::any data)
 	{
 		g_emu_starting = std::any_cast<bool>(data);

@@ -161,5 +161,15 @@ namespace LuaService
 				CallTop, REG_ATRESET);
 		});
 	}
+
+	void call_seek_completed()
+	{
+		RET_IF_EMPTY;
+		Dispatcher::invoke_ui([]
+		{
+			invoke_callbacks_with_key_on_all_instances(
+				CallTop, REG_ATSEEKCOMPLETED);
+		});
+	}
 #pragma endregion
 }

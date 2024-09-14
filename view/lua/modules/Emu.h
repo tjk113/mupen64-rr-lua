@@ -215,6 +215,21 @@ namespace LuaCore::Emu
 		return 0;
 	}
 
+	static int RegisterSeekCompleted(lua_State* L)
+	{
+		if (lua_toboolean(L, 2))
+		{
+			lua_pop(L, 1);
+			UnregisterFunction(L, REG_ATSEEKCOMPLETED);
+		} else
+		{	
+			if (lua_gettop(L) == 2)
+				lua_pop(L, 1);
+			RegisterFunction(L, REG_ATSEEKCOMPLETED);
+		}
+		return 0;
+	}
+
 	static int Screenshot(lua_State* L)
 	{
 		CaptureScreen((char*)luaL_checkstring(L, 1));

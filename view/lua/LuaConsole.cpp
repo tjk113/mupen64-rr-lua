@@ -411,6 +411,7 @@ const luaL_Reg emuFuncs[] = {
 	{"atloadstate", LuaCore::Emu::RegisterLoadState},
 	{"atsavestate", LuaCore::Emu::RegisterSaveState},
 	{"atreset", LuaCore::Emu::RegisterReset},
+	{"atseekcompleted", LuaCore::Emu::RegisterSeekCompleted},
 
 	{"framecount", LuaCore::Emu::GetVICount},
 	{"samplecount", LuaCore::Emu::GetSampleCount},
