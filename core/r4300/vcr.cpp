@@ -874,7 +874,7 @@ std::pair<size_t, size_t> VCR::get_seek_completion()
 {
 	if (!VCR::is_seeking())
 	{
-		return std::make_pair(0, 0);
+		return std::make_pair(m_current_sample, SIZE_MAX);
 	}
 
 	return std::make_pair(m_current_sample, seek_to_frame.value());
