@@ -1246,7 +1246,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			case IDM_COREDBG:
-				CoreDbg::start();
+				CoreDbg::show();
 				break;
 			case IDM_SEEKER:
 				{
@@ -1609,6 +1609,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	Messenger::init();
 	AsyncExecutor::init();
+	CoreDbg::init();
 	
 	g_app_path = get_app_full_path();
 

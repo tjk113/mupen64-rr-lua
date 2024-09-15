@@ -3,14 +3,12 @@
 namespace CoreDbg
 {
 	/**
-	 * \brief Starts the core debugger
+	 * \brief Shows the CoreDbg dialog
 	 */
-	void start();
-
+	void show();
+	
 	/**
-	 * \brief Notifies the debugger of a processor cycle ending
-	 * \param opcode The processor's opcode
-	 * \param address The processor's address
+	 * Initializes CoreDbg
 	 */
-	void on_late_cycle(unsigned long opcode, unsigned long address);
+	void init();
 }

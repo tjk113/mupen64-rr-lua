@@ -129,6 +129,16 @@ namespace Messenger
 		 * \brief The audio dacrate has changed
 		 */
 		DacrateChanged,
+
+		/**
+		 * \brief The debugger-tracked CPU state has changed
+		 */
+		DebuggerCpuStateChanged,
+
+		/**
+		 * \brief The CPU resumed state has changed
+		 */
+		DebuggerResumedChanged,
 	};
 
 	/**
