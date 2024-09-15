@@ -4,7 +4,7 @@
 #include <Windows.h>
 
 #include <shared/Messenger.h>
-#include "Statusbar.hpp"
+#include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include "../Main.h"
 #include "../../winproject/resource.h"
@@ -69,7 +69,7 @@ namespace Seeker
 						break;
 					}
 					
-					if (VCR::begin_seek(g_config.seeker_value) != VCR::Result::Ok)
+					if (VCR::begin_seek(g_config.seeker_value, true) != VCR::Result::Ok)
 					{
 						SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Couldn't seek");
 						break;

@@ -53,8 +53,9 @@ namespace LuaCore::Movie
 	static int begin_seek(lua_State* L)
 	{
 		std::string str = lua_tostring(L, 1);
-
-		lua_pushinteger(L, static_cast<int32_t>(VCR::begin_seek(str)));
+		bool pause_at_end = lua_toboolean(L, 2);
+		
+		lua_pushinteger(L, static_cast<int32_t>(VCR::begin_seek(str, pause_at_end)));
 		return 1;
 	}
 

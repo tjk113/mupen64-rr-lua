@@ -337,6 +337,7 @@ namespace VCR
 	/**
 	 * \brief Begins seeking to a frame in the currently playing movie
 	 * \param str A seek format string
+	 * \param pause_at_end Whether the emu should be paused when the seek operation ends
 	 * \return The operation result
 	 * \remarks When the seek operation completes, the SeekCompleted message will be sent
 	 *
@@ -346,7 +347,7 @@ namespace VCR
 	 *	"^n" - Sample n from the end
 	 *	
 	 */
-	Result begin_seek(std::string str);
+	Result begin_seek(std::string str, bool pause_at_end);
 
 	/**
 	 * \brief Converts a freeze buffer into a movie, trying to reconstruct as much as possible

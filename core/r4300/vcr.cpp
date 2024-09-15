@@ -46,6 +46,7 @@ volatile e_task g_task = e_task::idle;
 
 // The frame to seek to during playback, or an empty option if no seek is being performed
 std::optional<size_t> seek_to_frame;
+bool g_seek_pause_at_end;
 
 t_movie_header g_header;
 std::vector<BUTTONS> g_movie_inputs;
@@ -647,11 +648,13 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		return;
 	}
 
-	// Off-by-one because we are already inside input poll, so pauseEmu will be delayed by one frame
-	if (seek_to_frame.has_value() && m_current_sample >= seek_to_frame.value() - 1)
+	if (seek_to_frame.has_value() && m_current_sample == seek_to_frame.value())
 	{
-		pause_emu();
 		VCR::stop_seek();
+		if (g_seek_pause_at_end)
+		{
+			pause_emu();
+		}
 	}
 
 	if (!(g_header.controller_flags & CONTROLLER_X_PRESENT(index)))
@@ -961,12 +964,7 @@ int check_warn_controllers(char* warning_str)
 
 VCR::Result VCR::start_playback(std::filesystem::path path)
 {
-	std::unique_lock lock(vcr_mutex, std::try_to_lock);
-	if (!lock.owns_lock())
-	{
-		printf("[VCR] vcr_start_playback busy!\n");
-		return Result::Busy;
-	}
+	
 
 	auto movie_buf = read_file_buffer(path);
 
@@ -1134,7 +1132,7 @@ size_t compute_sample_from_seek_string(const std::string& str)
 	}
 }
 
-VCR::Result VCR::begin_seek(std::string str)
+VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 {
 	auto frame = compute_sample_from_seek_string(str);
 
@@ -1144,13 +1142,34 @@ VCR::Result VCR::begin_seek(std::string str)
 	}
 
 	seek_to_frame = std::make_optional(frame);
+	g_seek_pause_at_end = pause_at_end;
 	resume_emu();
 
 	// We need to backtrack by restarting playback if we're ahead of the frame
 	if (m_current_sample > frame)
 	{
 		VCR::stop_all();
-		start_playback(g_movie_path);
+
+		// HACK: Since the VCR lock might be held, we'll just call start_playback over and over until it clears up
+		// TODO: Only using the async executor's dedup functionality and removing the "Busy" codes would fix all of this 
+		while (true)
+		{
+			auto result = start_playback(g_movie_path);
+			
+			if (result == Result::Ok)
+			{
+				break;
+			}
+			
+			if (result == Result::Busy)
+			{
+				continue;
+			}
+
+			// Can we even recover from this cleanly?
+			return result;
+		}
+		
 	}
 
 	return Result::Ok;
