@@ -69,4 +69,17 @@ namespace LuaCore::Movie
 		lua_pushboolean(L, VCR::is_seeking());
 		return 1;
 	}
+
+	static int get_seek_completion(lua_State* L)
+	{
+		auto result = VCR::get_seek_completion();
+		
+		lua_newtable(L);
+		lua_pushinteger(L, result.first);
+		lua_rawseti(L, -2, 1);
+		lua_pushinteger(L, result.second);
+		lua_rawseti(L, -2, 2);
+		
+		return 1;
+	}
 }

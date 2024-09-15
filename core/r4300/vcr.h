@@ -329,7 +329,8 @@ namespace VCR
 	Result replace_author_info(const std::filesystem::path& path, const std::string& author, const std::string& description);
 	
 	/**
-	 * \brief Gets the completion status of the current seek operation. If no seek operation is active, both pair values are 0.
+	 * \brief Gets the completion status of the current seek operation.
+	 * If no seek operation is active, the first value is the current sample and the second one is SIZE_MAX.
 	 */
 	std::pair<size_t, size_t> get_seek_completion();
 	
