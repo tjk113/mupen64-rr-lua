@@ -582,18 +582,6 @@ const luaL_Reg aviFuncs[] = {
 };
 // end lua funcs
 
-EmulationLock::EmulationLock()
-{
-	printf("Emulation Lock\n");
-	pause_emu();
-}
-
-EmulationLock::~EmulationLock()
-{
-	resume_emu();
-	printf("Emulation Unlock\n");
-}
-
 void close_all_scripts()
 {
 	assert(is_on_gui_thread());

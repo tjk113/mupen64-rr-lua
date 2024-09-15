@@ -10,7 +10,8 @@ namespace LuaCore::IOHelper
 	// IO
 	static int LuaFileDialog(lua_State* L)
 	{
-		EmulationLock lock;
+		BetterEmulationLock lock;
+		
 		auto filter = string_to_wstring(std::string(luaL_checkstring(L, 1)));
 		const int32_t type = luaL_checkinteger(L, 2);
 

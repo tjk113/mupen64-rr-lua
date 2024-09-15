@@ -93,13 +93,6 @@ static const char* const REG_ATSEEKCOMPLETED = "SC";
 static uint32_t lua_gdi_color_mask = RGB(255, 0, 255);
 static HBRUSH alpha_mask_brush = CreateSolidBrush(lua_gdi_color_mask);
 
-struct EmulationLock
-{
-	EmulationLock();
-	~EmulationLock();
-};
-
-
 class LuaEnvironment
 {
 public:
