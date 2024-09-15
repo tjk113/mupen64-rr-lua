@@ -70,7 +70,7 @@ namespace CoreDbg
                 auto str = std::format("{} ({:#08x}, {:#08x})", disasm, g_cpu_state.opcode, g_cpu_state.address);
                 ListBox_InsertString(list_hwnd, 0, str.c_str());
 
-                if (ListBox_GetCount(list_hwnd) > 5)
+                if (ListBox_GetCount(list_hwnd) > 1024)
                 {
                     ListBox_DeleteString(list_hwnd, ListBox_GetCount(list_hwnd) - 1);
                 }
