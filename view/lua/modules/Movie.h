@@ -1,3 +1,5 @@
+#include "shared/AsyncExecutor.h"
+
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
@@ -14,7 +16,7 @@ namespace LuaCore::Movie
 		const char* fname = lua_tostring(L, 1);
 		g_config.vcr_readonly = true;
 		Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
-		std::thread([fname] { VCR::start_playback(fname); }).detach();
+		AsyncExecutor::invoke_async([=] { VCR::start_playback(fname); });
 		return 0;
 	}
 
