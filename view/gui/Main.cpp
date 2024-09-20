@@ -54,6 +54,7 @@
 #include "features/Seeker.h"
 #include "features/Statusbar.hpp"
 #include "features/Cheats.h"
+#include "features/PianoRoll.h"
 #include "features/Runner.h"
 #include "shared/AsyncExecutor.h"
 #include "wrapper/PersistentPathDialog.h"
@@ -118,6 +119,7 @@ const std::map<Action, int> ACTION_ID_MAP = {
 	{Action::RefreshRomBrowser, IDM_REFRESH_ROMBROWSER},
 	{Action::OpenSeeker, IDM_SEEKER},
 	{Action::OpenRunner, IDM_RUNNER},
+	{Action::OpenPianoRoll, IDM_PIANO_ROLL},
 	{Action::OpenCheats, IDM_CHEATS},
 	{Action::SaveSlot, IDM_SAVE_SLOT},
 	{Action::LoadSlot, IDM_LOAD_SLOT},
@@ -925,6 +927,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
 		g_update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
 		MGECompositor::create(hwnd);
+		PianoRoll::init();
 		configdialog_init();
 		return TRUE;
 	case WM_DESTROY:
@@ -1011,6 +1014,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			EnableMenuItem(g_main_menu, IDM_TRACELOG, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_COREDBG, (emu_launched && g_config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_SEEKER, (emu_launched && task_is_playback(VCR::get_task())) ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(g_main_menu, IDM_PIANO_ROLL, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_CHEATS, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_START_CAPTURE, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_START_CAPTURE_PRESET, emu_launched ? MF_ENABLED : MF_GRAYED);
@@ -1259,6 +1263,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					BetterEmulationLock lock;
 					Runner::show();
 				}
+				break;
+			case IDM_PIANO_ROLL:
+				PianoRoll::show();
 				break;
 			case IDM_CHEATS:
 				{

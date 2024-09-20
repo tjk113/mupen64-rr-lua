@@ -178,6 +178,9 @@ void FrontendService::set_default_hotkey_keys(t_config* config)
 	config->cheats_hotkey.key = 'U';
 	config->cheats_hotkey.ctrl = true;
 
+	config->piano_roll_hotkey.key = 'K';
+	config->piano_roll_hotkey.ctrl = true;
+	
 	config->save_current_hotkey.key = 'I';
 
 	config->load_current_hotkey.key = 'I';

@@ -145,6 +145,11 @@ t_config get_default_config()
 		.down_cmd = Action::OpenRunner,
 	};
 
+	config.piano_roll_hotkey = {
+		.identifier = "Open Piano Roll",
+		.down_cmd = Action::OpenPianoRoll,
+	};
+	
 	config.cheats_hotkey = {
 		.identifier = "Open Cheats dialog",
 		.down_cmd = Action::OpenCheats,

@@ -39,6 +39,7 @@ enum class Action
 	RefreshRomBrowser,
 	OpenSeeker,
 	OpenRunner,
+	OpenPianoRoll,
 	OpenCheats,
 	SaveSlot,
 	LoadSlot,
@@ -140,6 +141,7 @@ typedef struct Config
 	t_hotkey refresh_rombrowser_hotkey;
 	t_hotkey seek_to_frame_hotkey;
 	t_hotkey run_hotkey;
+	t_hotkey piano_roll_hotkey;
 	t_hotkey cheats_hotkey;
 	t_hotkey save_current_hotkey;
 	t_hotkey load_current_hotkey;

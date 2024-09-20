@@ -406,6 +406,11 @@ namespace VCR
 	 * \brief Gets the current task
 	 */
 	e_task get_task();
+
+	/**
+	 * Gets a copy of the current input buffer
+	 */
+	std::vector<BUTTONS> get_inputs();
 }
 
 bool is_frame_skipped();

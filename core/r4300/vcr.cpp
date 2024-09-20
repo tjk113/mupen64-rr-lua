@@ -1329,6 +1329,12 @@ e_task VCR::get_task()
 	return g_task;
 }
 
+std::vector<BUTTONS> VCR::get_inputs()
+{
+	// FIXME: This isn't thread-safe.
+	return g_movie_inputs;
+}
+
 void vcr_on_vi()
 {
 	m_current_vi++;
