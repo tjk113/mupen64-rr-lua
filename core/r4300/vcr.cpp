@@ -441,6 +441,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		// writing new input data at the currentFrame pointer
 		g_task = e_task::recording;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+		Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 
 		// update header with new ROM info
@@ -471,12 +472,15 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		write_movie();
 		g_task = e_task::playback;
 		Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+		Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	}
 
 	// When loading a state, the statusbar should update with new information before the next frame happens.
 	frame_changed = true;
 	
+	Messenger::broadcast(Messenger::Message::UnfreezeCompleted, nullptr);
+
 	return Result::Ok;
 }
 
@@ -521,6 +525,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			g_task = e_task::recording;
 			just_reset = false;
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+			Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 			Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 		} else
 		{
@@ -582,6 +587,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			g_task = e_task::playback;
 			just_reset = false;
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+			Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 			Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 		} else
 		{
@@ -610,6 +616,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		g_movie_inputs.push_back(*input);
 		g_header.length_samples++;
 		m_current_sample++;
+		Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 		printf("[VCR] Recording frame %d\n", g_header.length_samples);
 
 		if (user_requested_reset)
@@ -684,6 +691,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 
 	LuaService::call_input(input, index);
 	m_current_sample++;
+	Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 }
 
 // Generates a savestate path for a newly created movie.
@@ -809,6 +817,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
 	m_current_vi = 0;
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+	Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 	Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	return Result::Ok;
 }
@@ -1100,6 +1109,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 	}
 
 	Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+	Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 	Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
 	LuaService::call_play_movie();
 	return Result::Ok;

@@ -499,6 +499,7 @@
 #define IDI_CHANGED                     40079
 #define IDM_PIANO_ROLL                  40080
 #define IDC_PIANO_ROLL_LV               40081
+#define IDI_CURRENT                     40082
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

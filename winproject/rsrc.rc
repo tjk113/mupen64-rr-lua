@@ -415,6 +415,8 @@ IDI_DENY                ICON                    "icons\\deny.ico"
 
 IDI_CHANGED             ICON                    "icons\\changed.ico"
 
+IDI_CURRENT             ICON                    "icons\\current.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

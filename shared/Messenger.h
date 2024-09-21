@@ -56,6 +56,16 @@ namespace Messenger
 		TaskChanged,
 
 		/**
+		 * \brief The current VCR sample index changed
+		 */
+		CurrentSampleChanged,
+
+		/**
+		 * \brief A VCR unfreeze operation has completed
+		 */
+		UnfreezeCompleted,
+
+		/**
 		 * \brief The Lua engine has started a script
 		 */
 		ScriptStarted,
