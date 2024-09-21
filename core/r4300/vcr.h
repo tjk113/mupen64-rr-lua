@@ -411,6 +411,19 @@ namespace VCR
 	 * Gets a copy of the current input buffer
 	 */
 	std::vector<BUTTONS> get_inputs();
+
+	/**
+	 * Begins a warp modification operation. A "warp modification operation" is the changing of sample data which is temporally behind the current sample.
+	 *
+	 * The emulator will rewind to the specified sample index, apply the specified input value, and then return to the
+	 * sample prior to the warp modification.
+	 *
+	 * This operation is long-running and status is reported via the WarpModifyCompleted message.
+	 * 
+	 * \param sample The sample index to apply the value at.
+	 * \param value The input value to apply.
+	 */
+	void begin_warp_modify(size_t sample, BUTTONS value);
 }
 
 bool is_frame_skipped();
