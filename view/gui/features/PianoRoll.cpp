@@ -18,13 +18,18 @@ namespace PianoRoll
     HWND g_lv_hwnd = nullptr;
     std::vector<BUTTONS> g_inputs{};
 
-    void update_item_count()
-    {
-        if (!g_hwnd || VCR::get_task() != e_task::recording)
-        {
-            return;
-        }
-    }
+
+    // Whether a drag operation is happening
+    bool g_lv_dragging = false;
+
+    // The value of the cell under the mouse at the time when the drag operation started
+    bool g_lv_drag_initial_value = false;
+
+    // The column index of the drag operation. Dragging is not supported for non-button columns (n < 3).
+    size_t g_lv_drag_column = 0;
+
+    // Whether the drag operation should unset the affected buttons regardless of the initial value
+    bool g_lv_drag_unset = false;
 
     void update_enabled_state()
     {
@@ -64,6 +69,138 @@ namespace PianoRoll
         }
     }
 
+    unsigned get_input_value_from_column_index(BUTTONS btn, size_t i)
+    {
+        switch (i)
+        {
+        case 3:
+            return btn.R_DPAD;
+        case 4:
+            return btn.A_BUTTON;
+        case 5:
+            return btn.B_BUTTON;
+        case 6:
+            return btn.Z_TRIG;
+        case 7:
+            return btn.U_CBUTTON;
+        case 8:
+            return btn.L_CBUTTON;
+        case 9:
+            return btn.R_CBUTTON;
+        case 10:
+            return btn.D_CBUTTON;
+        default:
+            assert(false);
+            break;
+        }
+    }
+
+    void set_input_value_from_column_index(BUTTONS* btn, size_t i, bool value)
+    {
+        switch (i)
+        {
+        case 3:
+            btn->R_DPAD = value;
+            break;
+        case 4:
+            btn->A_BUTTON = value;
+            break;
+        case 5:
+            btn->B_BUTTON = value;
+            break;
+        case 6:
+            btn->Z_TRIG = value;
+            break;
+        case 7:
+            btn->U_CBUTTON = value;
+            break;
+        case 8:
+            btn->L_CBUTTON = value;
+            break;
+        case 9:
+            btn->R_CBUTTON = value;
+            break;
+        case 10:
+            btn->D_CBUTTON = value;
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    }
+
+    LRESULT CALLBACK ListViewProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
+    {
+        switch (msg)
+        {
+        case WM_LBUTTONDOWN:
+        case WM_RBUTTONDOWN:
+            {
+                LVHITTESTINFO lplvhtti{};
+                GetCursorPos(&lplvhtti.pt);
+                ScreenToClient(hwnd, &lplvhtti.pt);
+                ListView_SubItemHitTest(hwnd, &lplvhtti);
+
+                if (lplvhtti.iSubItem <= 2)
+                {
+                    break;
+                }
+
+                auto input = g_inputs[lplvhtti.iItem];
+
+                g_lv_dragging = true;
+                g_lv_drag_column = lplvhtti.iSubItem;
+                g_lv_drag_initial_value = !get_input_value_from_column_index(input, g_lv_drag_column);
+                g_lv_drag_unset = GetKeyState(VK_RBUTTON) & 0x100;
+                
+                goto handle_mouse_move;
+            }
+        case WM_MOUSEMOVE:
+            goto handle_mouse_move;
+        case WM_NCDESTROY:
+            RemoveWindowSubclass(hwnd, ListViewProc, sId);
+            break;
+        default:
+            break;
+        }
+
+    def:
+        return DefSubclassProc(hwnd, msg, wParam, lParam);
+
+    handle_mouse_move:
+
+        // Disable dragging if the corresponding mouse button was released. More reliable to do this here instead of MOUSE_XBUTTONDOWN.
+        if (!g_lv_drag_unset && !(GetKeyState(VK_LBUTTON) & 0x100))
+        {
+            g_lv_dragging = false;
+        }
+        
+        if (g_lv_drag_unset && !(GetKeyState(VK_RBUTTON) & 0x100))
+        {
+            g_lv_dragging = false;
+        }
+
+        if (!g_lv_dragging)
+        {
+            goto def;
+        }
+
+        LVHITTESTINFO lplvhtti{};
+        GetCursorPos(&lplvhtti.pt);
+        ScreenToClient(hwnd, &lplvhtti.pt);
+        ListView_SubItemHitTest(hwnd, &lplvhtti);
+
+        if (lplvhtti.iItem >= g_inputs.size())
+        {
+            printf("[PianoRoll] iItem out of range\n");
+            goto def;
+        }
+
+        set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], g_lv_drag_column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
+
+        ListView_Update(hwnd, lplvhtti.iItem);
+    }
+
     LRESULT CALLBACK PianoRollProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     {
         switch (Message)
@@ -91,7 +228,7 @@ namespace PianoRoll
                                            hwnd, (HMENU)IDC_PIANO_ROLL_LV,
                                            g_app_instance,
                                            NULL);
-
+                SetWindowSubclass(g_lv_hwnd, ListViewProc, 0, 0);
                 ListView_SetExtendedListViewStyle(g_lv_hwnd,
                                                   LVS_EX_GRIDLINES |
                                                   LVS_EX_FULLROWSELECT |
@@ -302,6 +439,8 @@ namespace PianoRoll
 
             g_inputs = VCR::get_inputs();
             ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
+
+            ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
 
             SetWindowRedraw(g_lv_hwnd, true);
         });
