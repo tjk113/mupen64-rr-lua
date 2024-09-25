@@ -219,10 +219,11 @@ namespace PianoRoll
                 auto dwStyle = WS_TABSTOP
                     | WS_VISIBLE
                     | WS_CHILD
-                    | LVS_NOSORTHEADER
                     | LVS_REPORT
-                    | LVS_SHOWSELALWAYS
                     | LVS_ALIGNTOP
+                    | LVS_NOSORTHEADER
+                    | LVS_SHOWSELALWAYS
+                    | LVS_SINGLESEL
                     | LVS_OWNERDATA;
 
                 g_lv_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
@@ -234,10 +235,11 @@ namespace PianoRoll
                                            g_app_instance,
                                            NULL);
                 SetWindowSubclass(g_lv_hwnd, ListViewProc, 0, 0);
+                
                 ListView_SetExtendedListViewStyle(g_lv_hwnd,
-                                                  LVS_EX_GRIDLINES |
-                                                  LVS_EX_FULLROWSELECT |
-                                                  LVS_EX_DOUBLEBUFFER);
+                                                  LVS_EX_GRIDLINES
+                                                  | LVS_EX_FULLROWSELECT
+                                                  | LVS_EX_DOUBLEBUFFER);
 
                 HIMAGELIST image_list = ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 1, 0);
                 ImageList_AddIcon(image_list, LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_CURRENT)));
@@ -407,25 +409,27 @@ namespace PianoRoll
         {
             auto value = std::any_cast<long>(data);
             static auto previous_value = value;
-
-            // printf("Sample: %d, Buffer size: %d\n", value, VCR::get_inputs().size());
-
+            
             if (VCR::get_task() == e_task::recording)
             {
                 g_inputs = VCR::get_inputs();
-                ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
+                ListView_SetItemCountEx(g_lv_hwnd, g_inputs.size(), LVSICF_NOSCROLL);
             }
 
             ListView_Update(g_lv_hwnd, previous_value);
             ListView_Update(g_lv_hwnd, value);
 
-            if (VCR::get_task() == e_task::recording)
+            // We don't want to force a scroll during seek/warp modify
+            if (VCR::get_seek_completion().second != SIZE_MAX)
             {
-                ListView_EnsureVisible(g_lv_hwnd, value - 1, false);
-            }
-            else
-            {
-                ListView_EnsureVisible(g_lv_hwnd, value, false);
+                if (VCR::get_task() == e_task::recording)
+                {
+                    ListView_EnsureVisible(g_lv_hwnd, value - 1, false);
+                }
+                else
+                {
+                    ListView_EnsureVisible(g_lv_hwnd, value, false);
+                }
             }
 
             previous_value = value;
