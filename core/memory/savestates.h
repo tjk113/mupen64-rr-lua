@@ -29,19 +29,20 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
 
 enum class e_st_job
 {
-	none,
-	save,
-	load
+    none,
+    save,
+    load
 };
 
 enum class e_st_medium
 {
-	slot,
-	path,
-	memory
+    slot,
+    path,
+    memory
 };
 
 extern std::filesystem::path st_path;
@@ -106,20 +107,25 @@ void savestates_save_immediate();
 void savestates_load_immediate();
 
 /**
+ * Creates an in-memory savestate and calls the provided callback with the savestate buffer 
+ * \param callback A callback that will be called with the savestate's data
+ */
+void savestates_save_memory(const std::function<void(const std::vector<uint8_t>&)>& callback);
+
+/**
+ * \brief Loads a savestate from an in-memory buffer
+ * \param buffer A buffer containing the savestate
+ * \remarks The operation won't complete immediately
+ */
+void savestates_load_memory(const std::vector<uint8_t>& buffer);
+
+/**
  * \brief Executes a savestate operation to a path
  * \param path The savestate's path
  * \param job The job to set
  * \remarks The operation won't complete immediately
  */
 void savestates_do_file(const std::filesystem::path& path, e_st_job job);
-
-/**
- * \brief Executes a savestate operation in-memory
- * \param key The savestate's key
- * \param job The job to set
- * \remarks The operation won't complete immediately
- */
-void savestates_do_memory(const std::string key, e_st_job job);
 
 /**
  * \brief Executes a savestate operation to a slot
