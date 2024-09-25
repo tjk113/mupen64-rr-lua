@@ -198,6 +198,11 @@ namespace PianoRoll
 
         set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], g_lv_drag_column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
 
+        if (lplvhtti.iItem < VCR::get_seek_completion().first)
+        {
+            VCR::begin_warp_modify(std::to_string(lplvhtti.iItem), g_inputs[lplvhtti.iItem]);
+        }
+        
         ListView_Update(hwnd, lplvhtti.iItem);
     }
 
