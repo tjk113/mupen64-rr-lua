@@ -215,6 +215,11 @@ enum class e_task
 	playback
 };
 
+enum class e_warp_modify_status
+{
+	none,
+	warping,
+};
 
 /**
  * \brief The movie freeze buffer, which is used to store the movie (with only essential data) associated with a savestate inside the savestate.
@@ -278,6 +283,12 @@ namespace VCR
 		NeedsPlaybackOrRecording,
 		// The provided start type is invalid.
 		InvalidStartType,
+		// Another warp modify operation is already running
+		WarpModifyAlreadyRunning,
+		// Warp modifications can only be performed during recording
+		WarpModifyNeedsRecordingTask,
+		// Another seek operation is already running
+		SeekAlreadyRunning,
 	};
 
 	/**
@@ -335,7 +346,7 @@ namespace VCR
 	std::pair<size_t, size_t> get_seek_completion();
 	
 	/**
-	 * \brief Begins seeking to a frame in the currently playing movie
+	 * \brief Begins seeking to a frame in the currently movie.
 	 * \param str A seek format string
 	 * \param pause_at_end Whether the emu should be paused when the seek operation ends
 	 * \return The operation result
@@ -418,12 +429,14 @@ namespace VCR
 	 * The emulator will rewind to the specified sample index, apply the specified input value, and then return to the
 	 * sample prior to the warp modification.
 	 *
-	 * This operation is long-running and status is reported via the WarpModifyCompleted message.
+	 * This operation is long-running and status is reported via the WarpModifyStatusChanged message.
+	 * A successful warp modify operation can be detected by the status changing from warping to none with no errors inbetween. 
 	 * 
-	 * \param sample The sample index to apply the value at.
+	 * \param str A seek format string
 	 * \param value The input value to apply.
+	 * \return The operation result
 	 */
-	void begin_warp_modify(size_t sample, BUTTONS value);
+	Result begin_warp_modify(std::string str, BUTTONS value);
 }
 
 bool is_frame_skipped();

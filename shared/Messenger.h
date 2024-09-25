@@ -66,6 +66,11 @@ namespace Messenger
 		UnfreezeCompleted,
 
 		/**
+		 * \brief The VCR warp modify status has changed
+		 */
+		WarpModifyStatusChanged,
+
+		/**
 		 * \brief The Lua engine has started a script
 		 */
 		ScriptStarted,

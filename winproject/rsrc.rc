@@ -156,6 +156,10 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Close All",                  IDM_CLOSE_ALL_LUA
     END
+    POPUP "&Debug"
+    BEGIN
+        MENUITEM "Warp modify back 10f, press A",           IDM_DEBUG_WARP_MODIFY
+    END
 END
 
 

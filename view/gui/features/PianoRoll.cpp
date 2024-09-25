@@ -403,7 +403,7 @@ namespace PianoRoll
             auto value = std::any_cast<long>(data);
             static auto previous_value = value;
 
-            printf("Sample: %d, Buffer size: %d\n", value, VCR::get_inputs().size());
+            // printf("Sample: %d, Buffer size: %d\n", value, VCR::get_inputs().size());
 
             if (VCR::get_task() == e_task::recording)
             {

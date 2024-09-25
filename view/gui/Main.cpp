@@ -1013,7 +1013,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			EnableMenuItem(g_main_menu, IDM_STOP_MOVIE, (VCR::get_task() != e_task::idle) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_TRACELOG, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_COREDBG, (emu_launched && g_config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
-			EnableMenuItem(g_main_menu, IDM_SEEKER, (emu_launched && task_is_playback(VCR::get_task())) ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(g_main_menu, IDM_SEEKER, (emu_launched && VCR::get_task() != e_task::idle) ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_PIANO_ROLL, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_CHEATS, emu_launched ? MF_ENABLED : MF_GRAYED);
 			EnableMenuItem(g_main_menu, IDM_START_CAPTURE, emu_launched ? MF_ENABLED : MF_GRAYED);
@@ -1129,6 +1129,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			case IDM_CLOSE_ALL_LUA:
 				close_all_scripts();
 				break;
+			case IDM_DEBUG_WARP_MODIFY:
+				{
+					auto result = VCR::begin_warp_modify("-10", {  .A_BUTTON = 1 });
+					if (result != VCR::Result::Ok)
+					{
+						FrontendService::show_error(std::to_string((int32_t)result).c_str());
+					}
+					break;
+				}
 			case IDM_TRACELOG:
 				{
 					if (tracelog::active())

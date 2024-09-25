@@ -41,12 +41,21 @@ const auto truncate_message = "Failed to truncate the movie file. The movie may 
 const auto wii_vc_mismatch_a_warning_message = "The movie was recorded with WiiVC mode enabled, but is being played back with it disabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto wii_vc_mismatch_b_warning_message = "The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 const auto old_movie_extended_section_nonzero_message = "The movie was recorded prior to the extended format being available, but contains data in an extended format section.\r\nThe movie may be corrupted. Are you sure you want to continue?";
+const auto warp_modify_seekback_failed_message = "Failed to seek back during a warp modify operation, error code {}.\r\nPiano roll might be desynced.";
 
 volatile e_task g_task = e_task::idle;
 
 // The frame to seek to during playback, or an empty option if no seek is being performed
 std::optional<size_t> seek_to_frame;
 bool g_seek_pause_at_end;
+
+auto g_warp_modify_status = e_warp_modify_status::none;
+size_t g_warp_modify_start_frame = 0;
+size_t g_warp_modify_target_frame = 0;
+BUTTONS g_warp_modify_value{};
+// SAFETY: Used to check that the input vector wasnt clobbered somewhere during warping
+std::vector<BUTTONS> g_warp_modify_movie_inputs_at_start_of_warp;
+
 
 t_movie_header g_header;
 std::vector<BUTTONS> g_movie_inputs;
@@ -448,19 +457,23 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 		if (last_task == e_task::playback)
 			set_rom_info(&g_header);
 
-		g_header.length_samples = freeze.current_sample;
-
 		set_rerecord_count(get_rerecord_count() + 1);
 		g_config.total_rerecords++;
 		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
+		
+		if (g_warp_modify_status == e_warp_modify_status::none)
+		{
+			g_header.length_samples = freeze.current_sample;
+		
+			// Before overwriting the input buffer, save a backup
+			write_backup();
 
-		// Before overwriting the input buffer, save a backup
-		write_backup();
+			g_movie_inputs.resize(freeze.current_sample);
+			memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.current_sample);
 
-		g_movie_inputs.resize(freeze.current_sample);
-		memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.current_sample);
-
-		write_movie();
+			write_movie();
+		}
+		
 	} else
 	{
 		// here, we are going to keep the input data from the movie file
@@ -484,38 +497,8 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 	return Result::Ok;
 }
 
-void vcr_on_controller_poll(int index, BUTTONS* input)
+void vcr_handle_starting_tasks(int index, BUTTONS* input)
 {
-	// NOTE: When we call reset_rom from another thread, we only request a reset to happen in the future.
-	// Until the reset, the emu thread keeps running and potentially generating many frames.
-	// Those frames are invalid to us, because from the movie's perspective, it should be instantaneous.
-	if (emu_resetting)
-	{
-		printf("[VCR] Skipping pre-reset frame\n");
-		return;
-	}
-
-	// NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
-	std::scoped_lock lock(vcr_mutex);
-
-	// When resetting during playback, we need to remind program of the rerecords
-	if (g_task != e_task::idle && just_reset)
-	{
-		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
-	}
-
-	// if we aren't playing back a movie, our data source isn't movie
-	if (!is_task_playback(g_task))
-	{
-		getKeys(index, input);
-		LuaService::call_input(input, index);
-	}
-
-	if (g_task == e_task::idle)
-		return;
-
-
-	// We need to handle start tasks first, as logic after it depends on the task being modified
 	if (g_task == e_task::start_recording_from_reset)
 	{
 		if (just_reset)
@@ -524,6 +507,9 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			m_current_vi = 0;
 			g_task = e_task::recording;
 			just_reset = false;
+			printf("[VCR] Creating savestate for warp modify...\n");
+			savestates_do_memory(std::to_string(m_current_sample), e_st_job::save);
+			
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 			Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 			Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
@@ -549,6 +535,9 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			printf("[VCR] Starting recording from Snapshot...\n");
 			g_task = e_task::recording;
 			*input = {0};
+
+			printf("[VCR] Creating savestate for warp modify...\n");
+			savestates_do_memory(std::to_string(m_current_sample), e_st_job::save);
 		}
 	}
 
@@ -559,6 +548,9 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			printf("[VCR] Starting recording from Existing Snapshot...\n");
 			g_task = e_task::recording;
 			*input = {0};
+			
+			printf("[VCR] Creating savestate for warp modify...\n");
+			savestates_do_memory(std::to_string(m_current_sample), e_st_job::save);
 		}
 	}
 
@@ -602,9 +594,21 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 			});
 		}
 	}
+}
 
-	if (g_task == e_task::recording)
+void vcr_handle_recording(int index, BUTTONS* input)
+{
+	if (g_task != e_task::recording)
 	{
+		return;
+	}
+	
+	// Warp modify recording: the recording input source is the input buffer on all frames but the overriden one (along with the reset override).
+	if (g_warp_modify_status == e_warp_modify_status::warping)
+	{
+		// Input buffer mustn't change in size during warp modify
+		assert(g_movie_inputs.size() == g_warp_modify_movie_inputs_at_start_of_warp.size());
+		
 		if (user_requested_reset)
 		{
 			*input = {
@@ -612,12 +616,16 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 				.Reserved2 = 1,
 			};
 		}
+		
+		if (m_current_sample == g_warp_modify_target_frame - 1)
+		{
+			printf("[VCR] Overriding input at frame %d!\n", m_current_sample);
+			g_movie_inputs[m_current_sample] = g_warp_modify_value;
+		}
 
-		g_movie_inputs.push_back(*input);
-		g_header.length_samples++;
+		*input = g_movie_inputs[m_current_sample];
 		m_current_sample++;
 		Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
-		printf("[VCR] Recording frame %d\n", g_header.length_samples);
 
 		if (user_requested_reset)
 		{
@@ -631,12 +639,48 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 				}
 			});
 		}
+		
 		return;
 	}
 
-	// our input source is movie, input plugin is overriden
+	// Regular recording: the recording input source is the input plugin (along with the reset override)
+	if (user_requested_reset)
+	{
+		*input = {
+			.Reserved1 = 1,
+			.Reserved2 = 1,
+		};
+	} else
+	{
+		getKeys(index, input);
+		LuaService::call_input(input, index);
+	}
+
+	g_movie_inputs.push_back(*input);
+	g_header.length_samples++;
+	m_current_sample++;
+	Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
+
+	if (user_requested_reset)
+	{
+		user_requested_reset = false;
+		AsyncExecutor::invoke_async([]
+		{
+			auto result = vr_reset_rom(false, false, true);
+			if (result != Core::Result::Ok)
+			{
+				FrontendService::show_error("Failed to reset the rom following a user-invoked reset.");
+			}
+		});
+	}
+}
+
+void vcr_handle_playback(int index, BUTTONS* input)
+{
 	if (g_task != e_task::playback)
+	{
 		return;
+	}
 
 	// This if previously also checked for if the VI is over the amount specified in the header,
 	// but that can cause movies to end playback early on laggy plugins.
@@ -655,22 +699,13 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		return;
 	}
 
-	if (seek_to_frame.has_value() && m_current_sample == seek_to_frame.value())
-	{
-		VCR::stop_seek();
-		if (g_seek_pause_at_end)
-		{
-			pause_emu();
-		}
-	}
-
 	if (!(g_header.controller_flags & CONTROLLER_X_PRESENT(index)))
 	{
 		// disconnected controls are forced to have no input during playback
 		*input = {0};
 		return;
 	}
-
+	
 	// Use inputs from movie, also notify input plugin of override via setKeys
 	*input = g_movie_inputs[m_current_sample + index];
 	setKeys(index, *input);
@@ -692,6 +727,65 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	LuaService::call_input(input, index);
 	m_current_sample++;
 	Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
+}
+
+void vcr_stop_seek_if_needed()
+{
+	if (!seek_to_frame.has_value())
+	{
+		return;
+	}
+
+	assert(g_task != e_task::idle);
+
+	// Pausing is off-by-one
+	if (m_current_sample == seek_to_frame.value() - 1 && g_seek_pause_at_end)
+	{
+		pause_emu();
+	}
+	
+	if (m_current_sample == seek_to_frame.value())
+	{
+		printf("[VCR] Seek stopped by engine at frame %d, expected %d", m_current_sample, seek_to_frame.value());
+		VCR::stop_seek();
+	}
+}
+
+void vcr_on_controller_poll(int index, BUTTONS* input)
+{
+	// NOTE: When we call reset_rom from another thread, we only request a reset to happen in the future.
+	// Until the reset, the emu thread keeps running and potentially generating many frames.
+	// Those frames are invalid to us, because from the movie's perspective, it should be instantaneous.
+	if (emu_resetting)
+	{
+		printf("[VCR] Skipping pre-reset frame\n");
+		return;
+	}
+
+	// NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
+	std::scoped_lock lock(vcr_mutex);
+
+	// When resetting during playback, we need to remind program of the rerecords
+	if (g_task != e_task::idle && just_reset)
+	{
+		Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
+	}
+
+	if (g_task == e_task::idle)
+	{
+		getKeys(index, input);
+		LuaService::call_input(input, index);
+		return;
+	}
+	
+	vcr_stop_seek_if_needed();
+	
+	// We need to handle start tasks first, as logic after it depends on the task being modified
+	vcr_handle_starting_tasks(index, input);
+
+	vcr_handle_recording(index, input);
+
+	vcr_handle_playback(index, input);
 }
 
 // Generates a savestate path for a newly created movie.
@@ -973,8 +1067,6 @@ int check_warn_controllers(char* warning_str)
 
 VCR::Result VCR::start_playback(std::filesystem::path path)
 {
-	
-
 	auto movie_buf = read_file_buffer(path);
 
 	if (movie_buf.empty())
@@ -1117,7 +1209,9 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
 bool can_seek_to(size_t frame)
 {
-	return frame < g_header.length_samples && frame > 0 && frame != m_current_sample;
+	return frame < g_header.length_samples
+		&& frame > 0;
+		// && frame != m_current_sample;
 }
 
 size_t compute_sample_from_seek_string(const std::string& str)
@@ -1144,6 +1238,11 @@ size_t compute_sample_from_seek_string(const std::string& str)
 
 VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 {
+	if (seek_to_frame.has_value())
+	{
+		return Result::SeekAlreadyRunning;
+	}
+	
 	auto frame = compute_sample_from_seek_string(str);
 
 	if (frame == SIZE_MAX || !can_seek_to(frame))
@@ -1154,10 +1253,18 @@ VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 	seek_to_frame = std::make_optional(frame);
 	g_seek_pause_at_end = pause_at_end;
 	resume_emu();
-
-	// We need to backtrack by restarting playback if we're ahead of the frame
+	
+	// We need to backtrack somehow if we're ahead of the frame
 	if (m_current_sample > frame)
 	{
+		// If we're recording, the easiest way is to load the first-frame st
+		// TODO: Create savestates at regular intervals and select the latest one to speed this up
+		if (g_task == e_task::recording)
+		{
+			savestates_do_memory("0", e_st_job::load);
+			return Result::Ok;
+		}
+		
 		VCR::stop_all();
 
 		// HACK: Since the VCR lock might be held, we'll just call start_playback over and over until it clears up
@@ -1200,8 +1307,21 @@ VCR::Result VCR::convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_
 
 void VCR::stop_seek()
 {
+	if (!seek_to_frame.has_value())
+	{
+		printf("[VCR] Tried to call stop_seek with no seek operation running\n");
+		return;
+	}
+	
 	seek_to_frame.reset();
 	Messenger::broadcast(Messenger::Message::SeekCompleted, nullptr);
+
+	if (g_warp_modify_status == e_warp_modify_status::warping)
+	{
+		g_warp_modify_status = e_warp_modify_status::none;
+		Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
+	}
+	
 }
 
 bool VCR::is_seeking()
@@ -1238,20 +1358,6 @@ bool task_is_recording(e_task task)
 {
 	return task == e_task::recording || task == e_task::start_recording_from_reset || task == e_task::start_recording_from_existing_snapshot || task ==
 		e_task::start_recording_from_snapshot;
-}
-
-void vcr_update_screen()
-{
-}
-
-// calculates how long the audio data will last
-float get_percent_of_frame(const int ai_len, const int audio_freq, const int audio_bitrate)
-{
-	const int limit = get_vis_per_second(ROM_HEADER.Country_code);
-	const float vi_len = 1.f / (float)limit; //how much seconds one VI lasts
-	const float time = (float)(ai_len * 8) / ((float)audio_freq * 2.f * (float)
-		audio_bitrate); //how long the buffer can play for
-	return time / vi_len; //ratio
 }
 
 VCR::Result VCR::stop_all()
@@ -1310,8 +1416,15 @@ const char* VCR::get_status_text()
 	static char text[1024]{};
 	memset(text, 0, sizeof(text));
 
+	// TODO: Remove 0 index option, as it's wrong
 	auto index_adjustment = (g_config.vcr_0_index ? 1 : 0);
 
+	if (g_warp_modify_status == e_warp_modify_status::warping)
+	{
+		sprintf(text, "Warping (%.2f), edit at %d", ((float)m_current_sample / (float)g_header.length_samples) * 100.0f, g_warp_modify_target_frame);
+		return text;
+	}
+	
 	if (VCR::get_task() == e_task::recording)
 	{
 		sprintf(text, "%d (%d) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
@@ -1345,11 +1458,49 @@ std::vector<BUTTONS> VCR::get_inputs()
 	return g_movie_inputs;
 }
 
+VCR::Result VCR::begin_warp_modify(std::string str, BUTTONS value)
+{
+	if (g_warp_modify_status != e_warp_modify_status::none)
+	{
+		return Result::WarpModifyAlreadyRunning;
+	}
+
+	if (g_task != e_task::recording)
+	{
+		return Result::WarpModifyNeedsRecordingTask;
+	}
+
+	g_warp_modify_target_frame = compute_sample_from_seek_string(str);
+
+	if (g_warp_modify_target_frame == SIZE_MAX)
+	{
+		return Result::InvalidFrame;
+	}
+	
+	g_warp_modify_status = e_warp_modify_status::warping;
+	g_warp_modify_value = value;
+	g_warp_modify_start_frame = m_current_sample;
+	g_warp_modify_movie_inputs_at_start_of_warp = g_movie_inputs;
+	
+	const auto result = begin_seek(std::to_string(m_current_sample - 1), emu_paused);
+
+	if (result != Result::Ok)
+	{
+		g_warp_modify_status = e_warp_modify_status::none;
+		return result;
+	}
+
+	resume_emu();
+	
+	Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
+	return Result::Ok;
+}
+
 void vcr_on_vi()
 {
 	m_current_vi++;
 
-	if (VCR::get_task() == e_task::recording)
+	if (VCR::get_task() == e_task::recording && g_warp_modify_status == e_warp_modify_status::none)
 		g_header.length_vis = m_current_vi;
 	if (!vcr_is_playing())
 		return;

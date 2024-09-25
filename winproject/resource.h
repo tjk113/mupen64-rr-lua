@@ -500,6 +500,7 @@
 #define IDM_PIANO_ROLL                  40080
 #define IDC_PIANO_ROLL_LV               40081
 #define IDI_CURRENT                     40082
+#define IDM_DEBUG_WARP_MODIFY           40083
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
