@@ -1240,9 +1240,8 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
 bool can_seek_to(size_t frame)
 {
-	return frame < g_header.length_samples
+	return frame <= g_header.length_samples
 		&& frame > 0;
-		// && frame != m_current_sample;
 }
 
 size_t compute_sample_from_seek_string(const std::string& str)
@@ -1305,6 +1304,17 @@ VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 		return Result::InvalidFrame;
 	}
 
+	// We need to adjust the end frame if we're pausing at the end... lol
+	if (pause_at_end)
+	{
+		frame--;
+
+		if (!can_seek_to(frame))
+		{
+			return Result::InvalidFrame;
+		}
+	}
+	
 	seek_to_frame = std::make_optional(frame);
 	g_seek_pause_at_end = pause_at_end;
 	resume_emu();
@@ -1315,7 +1325,7 @@ VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 		if (g_task == e_task::recording)
 		{
 			const auto target_sample = g_warp_modify_status == e_warp_modify_status::warping
-				? g_warp_modify_first_difference_frame : m_current_sample;
+				? g_warp_modify_first_difference_frame : frame;
 			
 			const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
 
@@ -1380,7 +1390,6 @@ void VCR::stop_seek()
 		g_warp_modify_status = e_warp_modify_status::none;
 		Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
 	}
-	
 }
 
 bool VCR::is_seeking()
@@ -1567,7 +1576,7 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 	g_warp_modify_start_frame = m_current_sample;
 	g_warp_modify_inputs = inputs;
 	
-	const auto result = begin_seek(std::to_string(m_current_sample - 1), emu_paused || frame_advancing);
+	const auto result = begin_seek(std::to_string(m_current_sample), emu_paused || frame_advancing);
 
 	if (result != Result::Ok)
 	{
