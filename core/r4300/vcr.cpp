@@ -52,7 +52,6 @@ bool g_seek_pause_at_end;
 std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 
 auto g_warp_modify_status = e_warp_modify_status::none;
-size_t g_warp_modify_start_frame = 0;
 size_t g_warp_modify_first_difference_frame = 0;
 std::vector<BUTTONS> g_warp_modify_inputs{};
 
@@ -499,7 +498,22 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 void vcr_create_n_frame_savestate(size_t frame)
 {
 	assert(m_current_sample == frame);
-	printf("[VCR] Creating seek savestate at frame %d\n", frame);
+
+	// If our seek savestate map is getting too large, we'll start purging the oldest ones (but not the first one!!!)
+	if (g_seek_savestates.size() > g_config.seek_savestate_max_count)
+	{
+		for (int i = 1; i < g_header.length_samples; ++i)
+		{
+			if (g_seek_savestates.contains(i))
+			{
+				std::println("[VCR] Map too large! Purging seek savestate at frame {}...", i);
+				g_seek_savestates.erase(i);
+				break;
+			}
+		}
+	}
+
+	std::println("[VCR] Creating seek savestate at frame {}...", frame);
 	savestates_save_memory([=](auto buf)
 	{
 		g_seek_savestates[frame] = buf;
@@ -776,7 +790,7 @@ void vcr_create_seek_savestates()
 
 	if (m_current_sample % g_config.seek_savestate_interval == 0)
 	{
-		vcr_create_n_frame_savestate(m_current_sample);;
+		vcr_create_n_frame_savestate(m_current_sample);
 	}
 }
 
@@ -1573,7 +1587,6 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 	}
 	
 	g_warp_modify_status = e_warp_modify_status::warping;
-	g_warp_modify_start_frame = m_current_sample;
 	g_warp_modify_inputs = inputs;
 	
 	const auto result = begin_seek(std::to_string(m_current_sample), emu_paused || frame_advancing);
@@ -1584,7 +1597,7 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 		return result;
 	}
 	
-	std::println("[VCR] Warp modify started at frame {}", g_warp_modify_start_frame);
+	std::println("[VCR] Warp modify started at frame {}", m_current_sample);
 	Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
 	return Result::Ok;
 }

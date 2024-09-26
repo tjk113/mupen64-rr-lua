@@ -933,6 +933,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		},
 		t_options_item {
 			.group_id = core_group.id,
+			.name = "Savestate Max Count",
+			.tooltip = L"The maximum amount of savestates to keep in memory for seeking.\nHigher numbers might cause an out of memory exception.",
+			.data = &g_config.seek_savestate_max_count,
+			.type = t_options_item::Type::Number,
+		},
+		t_options_item {
+			.group_id = core_group.id,
 			.name = "Auto-increment Slot",
 			.tooltip = L"Automatically increment the save slot upon saving a state.",
 			.data = &g_config.increment_slot,

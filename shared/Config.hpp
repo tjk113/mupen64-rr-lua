@@ -421,6 +421,11 @@ typedef struct Config
 	/// The save interval for warp modify savestates in frames
 	/// </summary>
 	int32_t seek_savestate_interval = 60;
+
+	/// <summary>
+	/// The maximum amount of warp modify savestates to keep in memory
+	/// </summary>
+	int32_t seek_savestate_max_count = 5;
 	
 	/// <summary>
 	/// SD card emulation
