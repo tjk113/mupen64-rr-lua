@@ -462,6 +462,20 @@ namespace PianoRoll
         case WM_CLOSE:
             EndDialog(hwnd, IDCANCEL);
             break;
+        case WM_SIZE:
+            {
+                HWND gp_hwnd = GetDlgItem(hwnd, IDC_STATIC);
+                
+                RECT rect{};
+                GetClientRect(hwnd, &rect);
+
+                RECT lv_rect = get_window_rect_client_space(hwnd, g_lv_hwnd);
+                RECT gp_rect = get_window_rect_client_space(hwnd, gp_hwnd);
+                
+                SetWindowPos(g_lv_hwnd, nullptr, 0, 0, rect.right - 10 - lv_rect.left, rect.bottom - 10 - lv_rect.top, SWP_NOMOVE | SWP_NOZORDER);
+                SetWindowPos(gp_hwnd, nullptr, 0, 0, gp_rect.right - gp_rect.left, rect.bottom - 10 - gp_rect.top, SWP_NOMOVE | SWP_NOZORDER);
+                break;
+            }
         case WM_COMMAND:
             switch (LOWORD(wParam))
             {
