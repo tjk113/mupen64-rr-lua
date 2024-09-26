@@ -13,6 +13,8 @@
 #include "view/helpers/WinHelpers.h"
 #include "winproject/resource.h"
 
+import std;
+
 namespace PianoRoll
 {
     std::atomic<HWND> g_hwnd = nullptr;
@@ -174,6 +176,8 @@ namespace PianoRoll
         {
             goto def;
         }
+
+        bool prev_lv_dragging = g_lv_dragging;
         
         // Disable dragging if the corresponding mouse button was released. More reliable to do this here instead of MOUSE_XBUTTONDOWN.
         if (!g_lv_drag_unset && !(GetKeyState(VK_LBUTTON) & 0x100))
@@ -188,6 +192,18 @@ namespace PianoRoll
 
         if (!g_lv_dragging)
         {
+            if (prev_lv_dragging)
+            {
+                // Drag operation ended, so we'll do the warp modify
+                std::println("[PianoRoll] Edit end, applying...");
+
+                auto result = VCR::begin_warp_modify(g_inputs);
+
+                if (result != VCR::Result::Ok)
+                {
+                    FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str());
+                }
+            }
             goto def;
         }
 
@@ -202,17 +218,9 @@ namespace PianoRoll
             goto def;
         }
 
+        // During a drag operation, we just mutate the input vector in memory and update the listview without doing anything with the core.
+        // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
         set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], g_lv_drag_column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
-
-        if (lplvhtti.iItem < VCR::get_seek_completion().first)
-        {
-            auto result = VCR::begin_warp_modify(g_inputs);
-
-            if (result != VCR::Result::Ok)
-            {
-                FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str());
-            }
-        }
         
         ListView_Update(hwnd, lplvhtti.iItem);
     }
