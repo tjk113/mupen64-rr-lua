@@ -747,16 +747,14 @@ void vcr_stop_seek_if_needed()
 
 	std::println("[VCR] Seek {}/{}", m_current_sample, seek_to_frame.value());
 
-	// Pausing is off-by-one
-	if (m_current_sample == seek_to_frame.value() - 1 && g_seek_pause_at_end)
-	{
-		pause_emu();
-	}
-	
 	if (m_current_sample >= seek_to_frame.value())
 	{
 		std::println("[VCR] Seek finished at frame {} (target: {})", m_current_sample, seek_to_frame.value());
 		VCR::stop_seek();
+		if (g_seek_pause_at_end)
+		{
+			pause_emu();
+		}
 	}
 }
 
