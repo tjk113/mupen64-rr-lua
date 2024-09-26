@@ -196,8 +196,8 @@ namespace PianoRoll
                 if (abs(y) <= 8)
                     y = 0;
 
-                g_inputs[i].X_AXIS = x;
-                g_inputs[i].Y_AXIS = y;
+                g_inputs[i].X_AXIS = y;
+                g_inputs[i].Y_AXIS = x;
 
                 RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
 
