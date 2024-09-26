@@ -17,8 +17,11 @@ import std;
 
 namespace PianoRoll
 {
+    const auto JOYSTICK_CLASS = "PianoRollJoystick";
+    
     std::atomic<HWND> g_hwnd = nullptr;
     HWND g_lv_hwnd = nullptr;
+    HWND g_joy_hwnd = nullptr;
     std::vector<BUTTONS> g_inputs{};
 
 
@@ -34,6 +37,19 @@ namespace PianoRoll
     // Whether the drag operation should unset the affected buttons regardless of the initial value
     bool g_lv_drag_unset = false;
 
+    // Whether a joystick drag operation is happening
+    bool g_joy_drag = false;
+
+    void apply_inputs()
+    {
+        auto result = VCR::begin_warp_modify(g_inputs);
+
+        if (result != VCR::Result::Ok)
+        {
+            FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str());
+        }
+    }
+    
     void update_enabled_state()
     {
         if (!g_hwnd)
@@ -132,6 +148,129 @@ namespace PianoRoll
         }
     }
 
+    LRESULT CALLBACK JoystickProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+    {
+        switch (msg)
+        {
+        case WM_LBUTTONDOWN:
+            g_joy_drag = true;
+            SetCapture(hwnd);
+            break;
+        case WM_MOUSEMOVE:
+            {
+                if (!g_joy_drag)
+                {
+                    break;
+                }
+
+                // Apply the joystick input...
+                if (!(GetKeyState(VK_LBUTTON) & 0x100))
+                {
+                    ReleaseCapture();
+                    apply_inputs();
+                    g_joy_drag = false;
+                    break;
+                }
+
+                int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+
+                if (i == -1) break;
+
+                POINT pt;
+                GetCursorPos(&pt);
+                ScreenToClient(hwnd, &pt);
+    
+                RECT pic_rect;
+                GetWindowRect(hwnd, &pic_rect);
+                int x = (pt.x * UINT8_MAX / (signed)(pic_rect.right - pic_rect.left) - INT8_MAX + 1);
+                int y = -(pt.y * UINT8_MAX / (signed)(pic_rect.bottom - pic_rect.top) - INT8_MAX + 1);
+
+                if (x > INT8_MAX || y > INT8_MAX || x < INT8_MIN || y < INT8_MIN)
+                {
+                    int div = max(abs(x), abs(y));
+                    x = x * INT8_MAX / div;
+                    y = y * INT8_MAX / div;
+                }
+                    
+                if (abs(x) <= 8)
+                    x = 0;
+                if (abs(y) <= 8)
+                    y = 0;
+
+                g_inputs[i].X_AXIS = x;
+                g_inputs[i].Y_AXIS = y;
+
+                RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
+                
+                break;
+            }
+        case WM_PAINT:
+            {
+                int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+
+                if (i == -1) break;
+                
+                BUTTONS input = g_inputs[i];
+
+                PAINTSTRUCT ps;
+                RECT rect;
+                HDC hdc = BeginPaint(hwnd, &ps);
+                GetClientRect(hwnd, &rect);
+
+                RECT rect2 = rect;
+                // Shrink the bounds a bit because we'd draw over the bounds and dirty the window otherwise
+                constexpr int margin = 3;
+                rect2.left += margin;
+                rect2.right -= margin;
+                rect2.top += margin;
+                rect2.bottom -= margin;
+                
+                POINT bmp_size = {rect2.right - rect2.left, rect2.bottom - rect2.top};
+                
+                int mid_x = bmp_size.x / 2 + margin;
+                int mid_y = bmp_size.y / 2 + margin;
+                int stick_x = ((input.Y_AXIS + 128) * bmp_size.x / 256) + rect2.left;
+                int stick_y = ((-input.X_AXIS + 128) * bmp_size.y / 256) + rect2.top;
+                
+                HPEN outline_pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+                HPEN line_pen = CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
+                HPEN tip_pen = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
+                
+                FillRect(hdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
+
+                SelectObject(hdc, outline_pen);
+                Ellipse(hdc, rect2.left, rect2.top, rect2.right, rect2.bottom);
+                
+                MoveToEx(hdc, margin, mid_y, NULL);
+                LineTo(hdc, bmp_size.x + margin, mid_y);
+                MoveToEx(hdc, mid_x, margin, NULL);
+                LineTo(hdc, mid_x, bmp_size.y + margin);
+
+                SelectObject(hdc, line_pen);
+                MoveToEx(hdc, mid_x, mid_y, nullptr);
+                LineTo(hdc, stick_x, stick_y);
+
+                SelectObject(hdc, tip_pen);
+                MoveToEx(hdc, stick_x, stick_y, NULL);
+                LineTo(hdc, stick_x, stick_y);
+
+                SelectObject(hdc, nullptr);
+                
+                EndPaint(hwnd, &ps);
+                
+                DeleteObject(outline_pen);
+                DeleteObject(line_pen);
+                DeleteObject(tip_pen);
+                
+                return 0;
+            }
+        default:
+            break;
+        }
+
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+    
     LRESULT CALLBACK ListViewProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
     {
         switch (msg)
@@ -197,12 +336,7 @@ namespace PianoRoll
                 // Drag operation ended, so we'll do the warp modify
                 std::println("[PianoRoll] Edit end, applying...");
 
-                auto result = VCR::begin_warp_modify(g_inputs);
-
-                if (result != VCR::Result::Ok)
-                {
-                    FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str());
-                }
+                apply_inputs();
             }
             goto def;
         }
@@ -232,7 +366,8 @@ namespace PianoRoll
         case WM_INITDIALOG:
             {
                 g_hwnd = hwnd;
-
+                g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 14, 23, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
+                
                 RECT grid_rect = get_window_rect_client_space(hwnd, GetDlgItem(hwnd, IDC_LIST_PIANO_ROLL));
 
                 auto dwStyle = WS_TABSTOP
@@ -315,6 +450,7 @@ namespace PianoRoll
             }
         case WM_DESTROY:
             DestroyWindow(g_lv_hwnd);
+            DestroyWindow(g_joy_hwnd);
             g_lv_hwnd = nullptr;
             g_hwnd = nullptr;
             break;
@@ -336,6 +472,16 @@ namespace PianoRoll
                 {
                     switch (((LPNMHDR)lParam)->code)
                     {
+                    case LVN_ITEMCHANGED:
+                        {
+                            const auto nmlv = (NMLISTVIEW*)lParam;
+
+                            if ((nmlv->uNewState ^  nmlv->uOldState) & LVIS_SELECTED) {
+                                RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
+                            }
+                            
+                            break;
+                        }
                     case LVN_GETDISPINFO:
                         {
                             const auto plvdi = (NMLVDISPINFO*)lParam;
@@ -448,7 +594,7 @@ namespace PianoRoll
 
             ListView_Update(g_lv_hwnd, previous_value);
             ListView_Update(g_lv_hwnd, value);
-
+            
             // We don't want to force a scroll during seek/warp modify
             if (VCR::get_seek_completion().second != SIZE_MAX)
             {
@@ -488,6 +634,14 @@ namespace PianoRoll
         {
             update_enabled_state();
         });
+
+        WNDCLASS wndclass = {0};
+        wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
+        wndclass.lpfnWndProc = (WNDPROC)JoystickProc;
+        wndclass.hInstance = g_app_instance;
+        wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wndclass.lpszClassName = JOYSTICK_CLASS;
+        RegisterClass(&wndclass);
     }
 
     void show()

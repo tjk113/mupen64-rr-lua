@@ -114,7 +114,6 @@
 #define IDC_SEEKER_STATUS               1045
 #define IDC_REMOVE_CHEAT                1046
 #define IDC_LIST_PIANO_ROLL             1047
-#define IDC_JOYSTICK_PIANO_ROLL         1048
 #define IDM_FULLSCREEN                  1061
 #define IDM_PAUSE                       1062
 #define IDM_FRAMEADVANCE                1063
