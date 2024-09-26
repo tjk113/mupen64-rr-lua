@@ -423,6 +423,7 @@ namespace VCR
 	 */
 	std::vector<BUTTONS> get_inputs();
 
+	// TODO: Make this take an entire input buffer with same size as the current one!
 	/**
 	 * Begins a warp modification operation. A "warp modification operation" is the changing of sample data which is temporally behind the current sample.
 	 *

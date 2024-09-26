@@ -620,6 +620,8 @@ void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
 void savestates_load_memory(const std::vector<uint8_t>& buffer)
 {
 	g_st_buf = buffer;
+	savestates_job = e_st_job::load;
+	st_medium = e_st_medium::memory;
 }
 
 void savestates_do_slot(const int32_t slot, const e_st_job job)

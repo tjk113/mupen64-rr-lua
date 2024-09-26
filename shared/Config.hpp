@@ -418,6 +418,11 @@ typedef struct Config
 	int32_t is_recent_scripts_frozen;
 
 	/// <summary>
+	/// The save interval for warp modify savestates in frames
+	/// </summary>
+	int32_t seek_savestate_interval = 60;
+	
+	/// <summary>
 	/// SD card emulation
 	/// </summary>
 	int32_t use_summercart;

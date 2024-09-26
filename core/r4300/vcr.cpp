@@ -25,6 +25,7 @@
 
 #include "shared/AsyncExecutor.h"
 
+import std;
 
 // M64\0x1a
 enum
@@ -48,13 +49,14 @@ volatile e_task g_task = e_task::idle;
 // The frame to seek to during playback, or an empty option if no seek is being performed
 std::optional<size_t> seek_to_frame;
 bool g_seek_pause_at_end;
+std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 
 auto g_warp_modify_status = e_warp_modify_status::none;
 size_t g_warp_modify_start_frame = 0;
 size_t g_warp_modify_target_frame = 0;
 BUTTONS g_warp_modify_value{};
-// SAFETY: Used to check that the input vector wasnt clobbered somewhere during warping
-std::vector<BUTTONS> g_warp_modify_movie_inputs_at_start_of_warp;
+// SAFETY: Used to check that the input vector hasnt changed size somewhere during warping
+size_t g_warp_modify_movie_input_size_at_start_of_warp;
 
 
 t_movie_header g_header;
@@ -497,6 +499,16 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
 	return Result::Ok;
 }
 
+void vcr_create_n_frame_savestate(size_t frame)
+{
+	assert(m_current_sample == frame);
+	printf("[VCR] Creating seek savestate at frame %d\n", frame);
+	savestates_save_memory([=](auto buf)
+	{
+		g_seek_savestates[frame] = buf;
+	});
+}
+
 void vcr_handle_starting_tasks(int index, BUTTONS* input)
 {
 	if (g_task == e_task::start_recording_from_reset)
@@ -507,8 +519,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
 			m_current_vi = 0;
 			g_task = e_task::recording;
 			just_reset = false;
-			printf("[VCR] Creating savestate for warp modify...\n");
-			savestates_do_memory(std::to_string(m_current_sample), e_st_job::save);
+			vcr_create_n_frame_savestate(0);
 			
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 			Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
@@ -536,8 +547,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
 			g_task = e_task::recording;
 			*input = {0};
 
-			printf("[VCR] Creating savestate for warp modify...\n");
-			savestates_do_memory(std::to_string(m_current_sample), e_st_job::save);
+			vcr_create_n_frame_savestate(0);
 		}
 	}
 
@@ -549,8 +559,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
 			g_task = e_task::recording;
 			*input = {0};
 			
-			printf("[VCR] Creating savestate for warp modify...\n");
-			savestates_do_memory(std::to_string(m_current_sample), e_st_job::save);
+			vcr_create_n_frame_savestate(0);
 		}
 	}
 
@@ -607,7 +616,7 @@ void vcr_handle_recording(int index, BUTTONS* input)
 	if (g_warp_modify_status == e_warp_modify_status::warping)
 	{
 		// Input buffer mustn't change in size during warp modify
-		assert(g_movie_inputs.size() == g_warp_modify_movie_inputs_at_start_of_warp.size());
+		assert(g_movie_inputs.size() == g_warp_modify_movie_input_size_at_start_of_warp);
 		
 		if (user_requested_reset)
 		{
@@ -751,6 +760,19 @@ void vcr_stop_seek_if_needed()
 	}
 }
 
+void vcr_create_seek_savestates()
+{
+	if (g_task == e_task::idle)
+	{
+		return;
+	}
+
+	if (m_current_sample % g_config.seek_savestate_interval == 0)
+	{
+		vcr_create_n_frame_savestate(m_current_sample);;
+	}
+}
+
 void vcr_on_controller_poll(int index, BUTTONS* input)
 {
 	// NOTE: When we call reset_rom from another thread, we only request a reset to happen in the future.
@@ -783,6 +805,8 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 	// We need to handle start tasks first, as logic after it depends on the task being modified
 	vcr_handle_starting_tasks(index, input);
 
+	vcr_create_seek_savestates();
+	
 	vcr_handle_recording(index, input);
 
 	vcr_handle_playback(index, input);
@@ -1236,6 +1260,30 @@ size_t compute_sample_from_seek_string(const std::string& str)
 	}
 }
 
+size_t vcr_find_closest_savestate_before_frame(size_t frame)
+{
+	int32_t lowest_distance = INT32_MAX;
+	size_t lowest_distance_frame = 0;
+	for (const auto slot_frame : g_seek_savestates | std::views::keys)
+	{
+		// Current and future sts are invalid for rewinding
+		if (slot_frame >= frame)
+		{
+			continue;
+		}
+
+		auto distance = frame - slot_frame;
+
+		if (distance < lowest_distance)
+		{
+			lowest_distance = distance;
+			lowest_distance_frame = slot_frame;
+		}
+	}
+	
+	return lowest_distance_frame;
+}
+
 VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 {
 	if (seek_to_frame.has_value())
@@ -1257,11 +1305,10 @@ VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 	// We need to backtrack somehow if we're ahead of the frame
 	if (m_current_sample > frame)
 	{
-		// If we're recording, the easiest way is to load the first-frame st
-		// TODO: Create savestates at regular intervals and select the latest one to speed this up
 		if (g_task == e_task::recording)
 		{
-			savestates_do_memory("0", e_st_job::load);
+			const auto closest_key = vcr_find_closest_savestate_before_frame(m_current_sample);
+			savestates_load_memory(g_seek_savestates[closest_key]);
 			return Result::Ok;
 		}
 		
@@ -1362,6 +1409,9 @@ bool task_is_recording(e_task task)
 
 VCR::Result VCR::stop_all()
 {
+	printf("[VCR] Clearing seek savestates...\n");
+	g_seek_savestates.clear();
+	
 	switch (g_task)
 	{
 	case e_task::start_recording_from_reset:
@@ -1480,7 +1530,8 @@ VCR::Result VCR::begin_warp_modify(std::string str, BUTTONS value)
 	g_warp_modify_status = e_warp_modify_status::warping;
 	g_warp_modify_value = value;
 	g_warp_modify_start_frame = m_current_sample;
-	g_warp_modify_movie_inputs_at_start_of_warp = g_movie_inputs;
+	g_warp_modify_movie_input_size_at_start_of_warp = g_movie_inputs.size();
+	
 	
 	const auto result = begin_seek(std::to_string(m_current_sample - 1), emu_paused);
 
@@ -1492,6 +1543,7 @@ VCR::Result VCR::begin_warp_modify(std::string str, BUTTONS value)
 
 	resume_emu();
 	
+	std::println("[VCR] Warp modify started at frame {}", g_warp_modify_start_frame);
 	Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
 	return Result::Ok;
 }
