@@ -197,7 +197,8 @@ namespace PianoRoll
                 g_inputs[i].Y_AXIS = x;
 
                 RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
-
+                ListView_Update(g_lv_hwnd, i);
+                
                 break;
             }
         case WM_PAINT:
@@ -456,6 +457,8 @@ namespace PianoRoll
 
                 refresh_full();
 
+                SendMessage(hwnd, WM_SIZE, 0, 0);
+                
                 break;
             }
         case WM_DESTROY:
