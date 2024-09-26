@@ -200,7 +200,7 @@ namespace PianoRoll
 
         if (lplvhtti.iItem < VCR::get_seek_completion().first)
         {
-            VCR::begin_warp_modify(std::to_string(lplvhtti.iItem), g_inputs[lplvhtti.iItem]);
+            VCR::begin_warp_modify(g_inputs);
         }
         
         ListView_Update(hwnd, lplvhtti.iItem);

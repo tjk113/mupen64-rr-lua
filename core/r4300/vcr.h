@@ -287,6 +287,10 @@ namespace VCR
 		WarpModifyAlreadyRunning,
 		// Warp modifications can only be performed during recording
 		WarpModifyNeedsRecordingTask,
+		// The size of the provided input buffer does not match the current input buffer
+		WarpModifyInputsSizeMismatch,
+		// The provided input buffer is identical to the current input buffer
+		WarpModifyInputsIdentical,
 		// Another seek operation is already running
 		SeekAlreadyRunning,
 	};
@@ -423,21 +427,19 @@ namespace VCR
 	 */
 	std::vector<BUTTONS> get_inputs();
 
-	// TODO: Make this take an entire input buffer with same size as the current one!
 	/**
 	 * Begins a warp modification operation. A "warp modification operation" is the changing of sample data which is temporally behind the current sample.
 	 *
-	 * The emulator will rewind to the specified sample index, apply the specified input value, and then return to the
-	 * sample prior to the warp modification.
+	 * The VCR engine will find the last common sample between the current input buffer and the provided one.
+	 * Then, the closest savestate prior to that sample will be loaded and recording will be resumed with the modified inputs up to the sample the function was called at.
 	 *
 	 * This operation is long-running and status is reported via the WarpModifyStatusChanged message.
 	 * A successful warp modify operation can be detected by the status changing from warping to none with no errors inbetween. 
 	 * 
-	 * \param str A seek format string
-	 * \param value The input value to apply.
+	 * \param inputs The input buffer to use.
 	 * \return The operation result
 	 */
-	Result begin_warp_modify(std::string str, BUTTONS value);
+	Result begin_warp_modify(const std::vector<BUTTONS>& inputs);
 }
 
 bool is_frame_skipped();

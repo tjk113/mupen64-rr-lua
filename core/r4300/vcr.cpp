@@ -53,11 +53,8 @@ std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 
 auto g_warp_modify_status = e_warp_modify_status::none;
 size_t g_warp_modify_start_frame = 0;
-size_t g_warp_modify_target_frame = 0;
-BUTTONS g_warp_modify_value{};
-// SAFETY: Used to check that the input vector hasnt changed size somewhere during warping
-size_t g_warp_modify_movie_input_size_at_start_of_warp;
-
+size_t g_warp_modify_first_difference_frame = 0;
+std::vector<BUTTONS> g_warp_modify_inputs{};
 
 t_movie_header g_header;
 std::vector<BUTTONS> g_movie_inputs;
@@ -612,11 +609,12 @@ void vcr_handle_recording(int index, BUTTONS* input)
 		return;
 	}
 	
-	// Warp modify recording: the recording input source is the input buffer on all frames but the overriden one (along with the reset override).
+	// Warp modify recording:
+	// the recording input source is the input buffer on all frames prior to the first difference (along with the reset override).
 	if (g_warp_modify_status == e_warp_modify_status::warping)
 	{
 		// Input buffer mustn't change in size during warp modify
-		assert(g_movie_inputs.size() == g_warp_modify_movie_input_size_at_start_of_warp);
+		assert(g_movie_inputs.size() == g_warp_modify_inputs.size());
 		
 		if (user_requested_reset)
 		{
@@ -626,10 +624,10 @@ void vcr_handle_recording(int index, BUTTONS* input)
 			};
 		}
 		
-		if (m_current_sample == g_warp_modify_target_frame - 1)
+		if (m_current_sample >= g_warp_modify_first_difference_frame)
 		{
-			printf("[VCR] Overriding input at frame %d!\n", m_current_sample);
-			g_movie_inputs[m_current_sample] = g_warp_modify_value;
+			std::println("[VCR] Overriding input at frame {}", m_current_sample);
+			g_movie_inputs[m_current_sample] = g_warp_modify_inputs[m_current_sample];
 		}
 
 		*input = g_movie_inputs[m_current_sample];
@@ -747,15 +745,17 @@ void vcr_stop_seek_if_needed()
 
 	assert(g_task != e_task::idle);
 
+	std::println("[VCR] Seek {}/{}", m_current_sample, seek_to_frame.value());
+
 	// Pausing is off-by-one
 	if (m_current_sample == seek_to_frame.value() - 1 && g_seek_pause_at_end)
 	{
 		pause_emu();
 	}
 	
-	if (m_current_sample == seek_to_frame.value())
+	if (m_current_sample >= seek_to_frame.value())
 	{
-		printf("[VCR] Seek stopped by engine at frame %d, expected %d", m_current_sample, seek_to_frame.value());
+		std::println("[VCR] Seek finished at frame {} (target: {})", m_current_sample, seek_to_frame.value());
 		VCR::stop_seek();
 	}
 }
@@ -799,9 +799,9 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
 		LuaService::call_input(input, index);
 		return;
 	}
-	
+
 	vcr_stop_seek_if_needed();
-	
+
 	// We need to handle start tasks first, as logic after it depends on the task being modified
 	vcr_handle_starting_tasks(index, input);
 
@@ -1307,7 +1307,12 @@ VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 	{
 		if (g_task == e_task::recording)
 		{
-			const auto closest_key = vcr_find_closest_savestate_before_frame(m_current_sample);
+			const auto target_sample = g_warp_modify_status == e_warp_modify_status::warping
+				? g_warp_modify_first_difference_frame : m_current_sample;
+			
+			const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
+
+			std::println("[VCR] Seeking backwards during recording to frame {}, closest savestate at {}", target_sample, closest_key);
 			savestates_load_memory(g_seek_savestates[closest_key]);
 			return Result::Ok;
 		}
@@ -1471,7 +1476,7 @@ const char* VCR::get_status_text()
 
 	if (g_warp_modify_status == e_warp_modify_status::warping)
 	{
-		sprintf(text, "Warping (%.2f), edit at %d", ((float)m_current_sample / (float)g_header.length_samples) * 100.0f, g_warp_modify_target_frame);
+		sprintf(text, "Warping (%d, %.0f%%), edit at %d", m_current_sample, ((float)m_current_sample / (float)g_header.length_samples) * 100.0f, g_warp_modify_first_difference_frame);
 		return text;
 	}
 	
@@ -1508,7 +1513,26 @@ std::vector<BUTTONS> VCR::get_inputs()
 	return g_movie_inputs;
 }
 
-VCR::Result VCR::begin_warp_modify(std::string str, BUTTONS value)
+/// Finds the first input difference between two input vectors. Returns SIZE_MAX - 1 if they are identical and SIZE_MAX if they are of different sizes. 
+size_t vcr_find_first_input_difference(const std::vector<BUTTONS>& first, const std::vector<BUTTONS>& second)
+{
+	if (first.size() != second.size())
+	{
+		return SIZE_MAX;
+	}
+
+	for (int i = 0; i < first.size(); ++i)
+	{
+		if (first[i].Value != second[i].Value)
+		{
+			return i;
+		}
+	}
+
+	return SIZE_MAX - 1;
+}
+
+VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 {
 	if (g_warp_modify_status != e_warp_modify_status::none)
 	{
@@ -1520,18 +1544,21 @@ VCR::Result VCR::begin_warp_modify(std::string str, BUTTONS value)
 		return Result::WarpModifyNeedsRecordingTask;
 	}
 
-	g_warp_modify_target_frame = compute_sample_from_seek_string(str);
+	g_warp_modify_first_difference_frame = vcr_find_first_input_difference(g_movie_inputs, inputs);
 
-	if (g_warp_modify_target_frame == SIZE_MAX)
+	if (g_warp_modify_first_difference_frame == SIZE_MAX)
 	{
-		return Result::InvalidFrame;
+		return Result::WarpModifyInputsSizeMismatch;
+	}
+
+	if (g_warp_modify_first_difference_frame == SIZE_MAX - 1)
+	{
+		return Result::WarpModifyInputsIdentical;
 	}
 	
 	g_warp_modify_status = e_warp_modify_status::warping;
-	g_warp_modify_value = value;
 	g_warp_modify_start_frame = m_current_sample;
-	g_warp_modify_movie_input_size_at_start_of_warp = g_movie_inputs.size();
-	
+	g_warp_modify_inputs = inputs;
 	
 	const auto result = begin_seek(std::to_string(m_current_sample - 1), emu_paused);
 

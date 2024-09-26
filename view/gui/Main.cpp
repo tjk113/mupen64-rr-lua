@@ -1131,7 +1131,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				break;
 			case IDM_DEBUG_WARP_MODIFY:
 				{
-					auto result = VCR::begin_warp_modify("-10", {  .A_BUTTON = 1 });
+					auto inputs = VCR::get_inputs();
+					inputs[inputs.size() - 10].A_BUTTON = 1;
+					
+					auto result = VCR::begin_warp_modify(inputs);
 					if (result != VCR::Result::Ok)
 					{
 						FrontendService::show_error(std::to_string((int32_t)result).c_str());
