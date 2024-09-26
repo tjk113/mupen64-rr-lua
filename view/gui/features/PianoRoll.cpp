@@ -23,8 +23,7 @@ namespace PianoRoll
     HWND g_lv_hwnd = nullptr;
     HWND g_joy_hwnd = nullptr;
     std::vector<BUTTONS> g_inputs{};
-
-
+    
     // Whether a drag operation is happening
     bool g_lv_dragging = false;
 
@@ -579,10 +578,9 @@ namespace PianoRoll
             auto value = std::any_cast<e_task>(data);
             static auto previous_value = value;
 
-            printf("[PianoRoll] TaskChanged from %d to %d\n", previous_value, value);
-
             if (value != previous_value)
             {
+                std::println("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
                 refresh_full();
                 update_enabled_state();
             }
@@ -595,18 +593,17 @@ namespace PianoRoll
             auto value = std::any_cast<long>(data);
             static auto previous_value = value;
 
-            if (VCR::get_task() == e_task::recording)
-            {
-                g_inputs = VCR::get_inputs();
-                ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
-            }
-
-            ListView_Update(g_lv_hwnd, previous_value);
-            ListView_Update(g_lv_hwnd, value);
-
-            // We don't want to force a scroll during seek/warp modify
             if (VCR::get_warp_modify_status() == e_warp_modify_status::none)
             {
+                if (VCR::get_task() == e_task::recording)
+                {
+                    g_inputs = VCR::get_inputs();
+                    ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
+                }
+
+                ListView_Update(g_lv_hwnd, previous_value);
+                ListView_Update(g_lv_hwnd, value);
+                
                 if (VCR::get_task() == e_task::recording)
                 {
                     ListView_EnsureVisible(g_lv_hwnd, value - 1, false);
@@ -622,7 +619,7 @@ namespace PianoRoll
 
         Messenger::subscribe(Messenger::Message::UnfreezeCompleted, [](std::any)
         {
-            if (g_config.vcr_readonly)
+            if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping)
             {
                 return;
             }
@@ -634,10 +631,7 @@ namespace PianoRoll
             g_inputs = VCR::get_inputs();
             ListView_SetItemCount(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()));
 
-            if (VCR::get_warp_modify_status() == e_warp_modify_status::none)
-            {
-                ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
-            }
+            ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
 
             SetWindowRedraw(g_lv_hwnd, true);
         });
