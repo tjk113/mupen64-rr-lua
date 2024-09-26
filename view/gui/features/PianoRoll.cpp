@@ -23,7 +23,7 @@ namespace PianoRoll
     HWND g_lv_hwnd = nullptr;
     HWND g_joy_hwnd = nullptr;
     std::vector<BUTTONS> g_inputs{};
-    
+
     // Whether a drag operation is happening
     bool g_lv_dragging = false;
 
@@ -207,9 +207,12 @@ namespace PianoRoll
             {
                 int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
 
-                if (i == -1) break;
+                BUTTONS input = {0};
 
-                BUTTONS input = g_inputs[i];
+                if (i != -1)
+                {
+                    input = g_inputs[i];
+                }
 
                 PAINTSTRUCT ps;
                 RECT rect;
@@ -304,7 +307,7 @@ namespace PianoRoll
             if (g_lv_dragging)
             {
                 g_lv_dragging = false;
-                apply_inputs();   
+                apply_inputs();
             }
             break;
         case WM_NCDESTROY:
@@ -316,7 +319,7 @@ namespace PianoRoll
 
     def:
         return DefSubclassProc(hwnd, msg, wParam, lParam);
-        
+
     handle_mouse_move:
 
         if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
@@ -361,6 +364,7 @@ namespace PianoRoll
         // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
         set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], g_lv_drag_column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
 
+        ListView_SetItemState(g_lv_hwnd, lplvhtti.iItem, LVIS_SELECTED, LVIS_SELECTED);
         ListView_Update(hwnd, lplvhtti.iItem);
     }
 
@@ -371,7 +375,7 @@ namespace PianoRoll
         case WM_INITDIALOG:
             {
                 g_hwnd = hwnd;
-                g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 14, 23, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
+                g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 14, 30, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
 
                 RECT grid_rect = get_window_rect_client_space(hwnd, GetDlgItem(hwnd, IDC_LIST_PIANO_ROLL));
 
@@ -465,13 +469,13 @@ namespace PianoRoll
         case WM_SIZE:
             {
                 HWND gp_hwnd = GetDlgItem(hwnd, IDC_STATIC);
-                
+
                 RECT rect{};
                 GetClientRect(hwnd, &rect);
 
                 RECT lv_rect = get_window_rect_client_space(hwnd, g_lv_hwnd);
                 RECT gp_rect = get_window_rect_client_space(hwnd, gp_hwnd);
-                
+
                 SetWindowPos(g_lv_hwnd, nullptr, 0, 0, rect.right - 10 - lv_rect.left, rect.bottom - 10 - lv_rect.top, SWP_NOMOVE | SWP_NOZORDER);
                 SetWindowPos(gp_hwnd, nullptr, 0, 0, gp_rect.right - gp_rect.left, rect.bottom - 10 - gp_rect.top, SWP_NOMOVE | SWP_NOZORDER);
                 break;
@@ -497,6 +501,7 @@ namespace PianoRoll
 
                             if ((nmlv->uNewState ^ nmlv->uOldState) & LVIS_SELECTED)
                             {
+                                SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", nmlv->iItem).c_str());
                                 RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
                             }
 
@@ -617,7 +622,7 @@ namespace PianoRoll
 
                 ListView_Update(g_lv_hwnd, previous_value);
                 ListView_Update(g_lv_hwnd, value);
-                
+
                 if (VCR::get_task() == e_task::recording)
                 {
                     ListView_EnsureVisible(g_lv_hwnd, value - 1, false);
