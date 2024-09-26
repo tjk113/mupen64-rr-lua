@@ -147,6 +147,12 @@ namespace PianoRoll
             g_joy_drag = true;
             SetCapture(hwnd);
             break;
+        case WM_LBUTTONUP:
+            if (!g_joy_drag)
+            {
+                break;
+            }
+            goto lmb_up;
         case WM_MOUSEMOVE:
             {
                 if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
@@ -162,10 +168,7 @@ namespace PianoRoll
                 // Apply the joystick input...
                 if (!(GetKeyState(VK_LBUTTON) & 0x100))
                 {
-                    ReleaseCapture();
-                    apply_inputs();
-                    g_joy_drag = false;
-                    break;
+                    goto lmb_up;
                 }
 
                 int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
@@ -268,7 +271,14 @@ namespace PianoRoll
             break;
         }
 
+        def:
         return DefWindowProc(hwnd, msg, wParam, lParam);
+
+        lmb_up:
+        ReleaseCapture();
+        apply_inputs();
+        g_joy_drag = false;
+        goto def;
     }
 
     LRESULT CALLBACK ListViewProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
