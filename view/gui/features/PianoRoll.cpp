@@ -8,6 +8,7 @@
 
 #include "core/r4300/vcr.h"
 #include "shared/Messenger.h"
+#include "shared/services/FrontendService.h"
 #include "view/gui/Main.h"
 #include "view/helpers/WinHelpers.h"
 #include "winproject/resource.h"
@@ -38,7 +39,7 @@ namespace PianoRoll
             return;
         }
 
-        const bool enabled = VCR::get_task() != e_task::idle;
+        const bool enabled = VCR::get_task() != e_task::idle && VCR::get_warp_modify_status() == e_warp_modify_status::none;
 
         EnableWindow(g_lv_hwnd, enabled);
     }
@@ -200,7 +201,12 @@ namespace PianoRoll
 
         if (lplvhtti.iItem < VCR::get_seek_completion().first)
         {
-            VCR::begin_warp_modify(g_inputs);
+            auto result = VCR::begin_warp_modify(g_inputs);
+
+            if (result != VCR::Result::Ok)
+            {
+                FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str());
+            }
         }
         
         ListView_Update(hwnd, lplvhtti.iItem);
@@ -424,7 +430,7 @@ namespace PianoRoll
             if (VCR::get_task() == e_task::recording)
             {
                 g_inputs = VCR::get_inputs();
-                ListView_SetItemCountEx(g_lv_hwnd, g_inputs.size(), LVSICF_NOSCROLL);
+                ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
             }
 
             ListView_Update(g_lv_hwnd, previous_value);
@@ -458,11 +464,16 @@ namespace PianoRoll
             ListView_DeleteAllItems(g_lv_hwnd);
 
             g_inputs = VCR::get_inputs();
-            ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
+            ListView_SetItemCount(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()));
 
             ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
 
             SetWindowRedraw(g_lv_hwnd, true);
+        });
+
+        Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, [](std::any data)
+        {
+            update_enabled_state();
         });
     }
 
