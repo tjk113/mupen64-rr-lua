@@ -49,18 +49,6 @@ namespace PianoRoll
         }
     }
 
-    void update_enabled_state()
-    {
-        if (!g_hwnd)
-        {
-            return;
-        }
-
-        const bool enabled = VCR::get_task() != e_task::idle && VCR::get_warp_modify_status() == e_warp_modify_status::none;
-
-        EnableWindow(g_lv_hwnd, enabled);
-    }
-
     void refresh_full()
     {
         if (!g_hwnd)
@@ -152,11 +140,20 @@ namespace PianoRoll
         switch (msg)
         {
         case WM_LBUTTONDOWN:
+            if (VCR::get_task() == e_task::idle)
+            {
+                break;
+            }
             g_joy_drag = true;
             SetCapture(hwnd);
             break;
         case WM_MOUSEMOVE:
             {
+                if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+                {
+                    g_joy_drag = false;
+                }
+
                 if (!g_joy_drag)
                 {
                     break;
@@ -288,6 +285,11 @@ namespace PianoRoll
                 if (lplvhtti.iSubItem <= 2 || lplvhtti.iItem < 0)
                 {
                     printf("[PianoRoll] Ignoring WM_LBUTTONDOWN/WM_RBUTTONDOWN with bad iSubItem/iItem\n");
+                    break;
+                }
+
+                if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+                {
                     break;
                 }
 
@@ -453,7 +455,6 @@ namespace PianoRoll
                 ListView_DeleteColumn(g_lv_hwnd, 0);
 
                 refresh_full();
-                update_enabled_state();
 
                 break;
             }
@@ -601,7 +602,6 @@ namespace PianoRoll
             {
                 std::println("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
                 refresh_full();
-                update_enabled_state();
             }
 
             previous_value = value;
@@ -653,11 +653,6 @@ namespace PianoRoll
             ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
 
             SetWindowRedraw(g_lv_hwnd, true);
-        });
-
-        Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, [](std::any data)
-        {
-            update_enabled_state();
         });
 
         WNDCLASS wndclass = {0};
