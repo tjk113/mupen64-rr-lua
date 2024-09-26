@@ -760,6 +760,15 @@ void vcr_stop_seek_if_needed()
 	}
 }
 
+bool VCR::allows_core_pause()
+{
+	if (!VCR::is_seeking())
+	{
+		return true;
+	}
+	return m_current_sample == seek_to_frame.value() - 1 && g_seek_pause_at_end;
+}
+
 void vcr_create_seek_savestates()
 {
 	if (g_task == e_task::idle)
@@ -1560,19 +1569,22 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 	g_warp_modify_start_frame = m_current_sample;
 	g_warp_modify_inputs = inputs;
 	
-	const auto result = begin_seek(std::to_string(m_current_sample - 1), emu_paused);
+	const auto result = begin_seek(std::to_string(m_current_sample - 1), emu_paused || frame_advancing);
 
 	if (result != Result::Ok)
 	{
 		g_warp_modify_status = e_warp_modify_status::none;
 		return result;
 	}
-
-	resume_emu();
 	
 	std::println("[VCR] Warp modify started at frame {}", g_warp_modify_start_frame);
 	Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
 	return Result::Ok;
+}
+
+e_warp_modify_status VCR::get_warp_modify_status()
+{
+	return g_warp_modify_status;
 }
 
 void vcr_on_vi()
