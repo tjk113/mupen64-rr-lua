@@ -170,6 +170,11 @@ namespace PianoRoll
 
     handle_mouse_move:
 
+        if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+        {
+            goto def;
+        }
+        
         // Disable dragging if the corresponding mouse button was released. More reliable to do this here instead of MOUSE_XBUTTONDOWN.
         if (!g_lv_drag_unset && !(GetKeyState(VK_LBUTTON) & 0x100))
         {
