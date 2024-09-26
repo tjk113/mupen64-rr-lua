@@ -243,6 +243,7 @@ namespace PianoRoll
 
                 HIMAGELIST image_list = ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 1, 0);
                 ImageList_AddIcon(image_list, LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_CURRENT)));
+                ImageList_AddIcon(image_list, LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_MARKER)));
                 ListView_SetImageList(g_lv_hwnd, image_list, LVSIL_SMALL);
 
                 LVCOLUMN lv_column{};
@@ -338,7 +339,17 @@ namespace PianoRoll
                             case 0:
                                 {
                                     auto current_sample = VCR::get_seek_completion().first;
-                                    plvdi->item.iImage = current_sample == plvdi->item.iItem ? 0 : 999;
+                                    if (current_sample == plvdi->item.iItem)
+                                    {
+                                        plvdi->item.iImage = 0;
+                                    } else if(plvdi->item.iItem % g_config.seek_savestate_interval == 0)
+                                    {
+                                        plvdi->item.iImage = 1;
+                                    } else
+                                    {
+                                        plvdi->item.iImage = 999;
+                                    }
+                                    
                                     strcpy(plvdi->item.pszText, std::to_string(plvdi->item.iItem).c_str());
                                     break;
                                 }

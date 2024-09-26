@@ -421,6 +421,8 @@ IDI_CHANGED             ICON                    "icons\\changed.ico"
 
 IDI_CURRENT             ICON                    "icons\\current.ico"
 
+IDI_MARKER              ICON                    "icons\\marker.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
