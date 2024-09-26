@@ -300,6 +300,14 @@ namespace PianoRoll
             }
         case WM_MOUSEMOVE:
             goto handle_mouse_move;
+        case WM_LBUTTONUP:
+        case WM_RBUTTONUP:
+            if (g_lv_dragging)
+            {
+                g_lv_dragging = false;
+                apply_inputs();   
+            }
+            break;
         case WM_NCDESTROY:
             RemoveWindowSubclass(hwnd, ListViewProc, sId);
             break;
@@ -309,7 +317,7 @@ namespace PianoRoll
 
     def:
         return DefSubclassProc(hwnd, msg, wParam, lParam);
-
+        
     handle_mouse_move:
 
         if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
@@ -334,9 +342,6 @@ namespace PianoRoll
         {
             if (prev_lv_dragging)
             {
-                // Drag operation ended, so we'll do the warp modify
-                std::println("[PianoRoll] Edit end, applying...");
-
                 apply_inputs();
             }
             goto def;
