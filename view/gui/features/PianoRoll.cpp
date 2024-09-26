@@ -18,7 +18,7 @@ import std;
 namespace PianoRoll
 {
     const auto JOYSTICK_CLASS = "PianoRollJoystick";
-    
+
     std::atomic<HWND> g_hwnd = nullptr;
     HWND g_lv_hwnd = nullptr;
     HWND g_joy_hwnd = nullptr;
@@ -46,10 +46,10 @@ namespace PianoRoll
 
         if (result != VCR::Result::Ok)
         {
-            FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str());
+            FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str(), "Piano Roll", g_hwnd);
         }
     }
-    
+
     void update_enabled_state()
     {
         if (!g_hwnd)
@@ -179,7 +179,7 @@ namespace PianoRoll
                 POINT pt;
                 GetCursorPos(&pt);
                 ScreenToClient(hwnd, &pt);
-    
+
                 RECT pic_rect;
                 GetWindowRect(hwnd, &pic_rect);
                 int x = (pt.x * UINT8_MAX / (signed)(pic_rect.right - pic_rect.left) - INT8_MAX + 1);
@@ -191,7 +191,7 @@ namespace PianoRoll
                     x = x * INT8_MAX / div;
                     y = y * INT8_MAX / div;
                 }
-                    
+
                 if (abs(x) <= 8)
                     x = 0;
                 if (abs(y) <= 8)
@@ -201,7 +201,7 @@ namespace PianoRoll
                 g_inputs[i].Y_AXIS = y;
 
                 RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
-                
+
                 break;
             }
         case WM_PAINT:
@@ -209,7 +209,7 @@ namespace PianoRoll
                 int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
 
                 if (i == -1) break;
-                
+
                 BUTTONS input = g_inputs[i];
 
                 PAINTSTRUCT ps;
@@ -224,23 +224,23 @@ namespace PianoRoll
                 rect2.right -= margin;
                 rect2.top += margin;
                 rect2.bottom -= margin;
-                
+
                 POINT bmp_size = {rect2.right - rect2.left, rect2.bottom - rect2.top};
-                
+
                 int mid_x = bmp_size.x / 2 + margin;
                 int mid_y = bmp_size.y / 2 + margin;
                 int stick_x = ((input.Y_AXIS + 128) * bmp_size.x / 256) + rect2.left;
                 int stick_y = ((-input.X_AXIS + 128) * bmp_size.y / 256) + rect2.top;
-                
+
                 HPEN outline_pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
                 HPEN line_pen = CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
                 HPEN tip_pen = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
-                
+
                 FillRect(hdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
 
                 SelectObject(hdc, outline_pen);
                 Ellipse(hdc, rect2.left, rect2.top, rect2.right, rect2.bottom);
-                
+
                 MoveToEx(hdc, margin, mid_y, NULL);
                 LineTo(hdc, bmp_size.x + margin, mid_y);
                 MoveToEx(hdc, mid_x, margin, NULL);
@@ -255,13 +255,13 @@ namespace PianoRoll
                 LineTo(hdc, stick_x, stick_y);
 
                 SelectObject(hdc, nullptr);
-                
+
                 EndPaint(hwnd, &ps);
-                
+
                 DeleteObject(outline_pen);
                 DeleteObject(line_pen);
                 DeleteObject(tip_pen);
-                
+
                 return 0;
             }
         default:
@@ -270,7 +270,7 @@ namespace PianoRoll
 
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
-    
+
     LRESULT CALLBACK ListViewProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
     {
         switch (msg)
@@ -283,8 +283,9 @@ namespace PianoRoll
                 ScreenToClient(hwnd, &lplvhtti.pt);
                 ListView_SubItemHitTest(hwnd, &lplvhtti);
 
-                if (lplvhtti.iSubItem <= 2)
+                if (lplvhtti.iSubItem <= 2 || lplvhtti.iItem < 0)
                 {
+                    printf("[PianoRoll] Ignoring WM_LBUTTONDOWN/WM_RBUTTONDOWN with bad iSubItem/iItem\n");
                     break;
                 }
 
@@ -294,7 +295,7 @@ namespace PianoRoll
                 g_lv_drag_column = lplvhtti.iSubItem;
                 g_lv_drag_initial_value = !get_input_value_from_column_index(input, g_lv_drag_column);
                 g_lv_drag_unset = GetKeyState(VK_RBUTTON) & 0x100;
-                
+
                 goto handle_mouse_move;
             }
         case WM_MOUSEMOVE:
@@ -317,13 +318,13 @@ namespace PianoRoll
         }
 
         bool prev_lv_dragging = g_lv_dragging;
-        
+
         // Disable dragging if the corresponding mouse button was released. More reliable to do this here instead of MOUSE_XBUTTONDOWN.
         if (!g_lv_drag_unset && !(GetKeyState(VK_LBUTTON) & 0x100))
         {
             g_lv_dragging = false;
         }
-        
+
         if (g_lv_drag_unset && !(GetKeyState(VK_RBUTTON) & 0x100))
         {
             g_lv_dragging = false;
@@ -355,7 +356,7 @@ namespace PianoRoll
         // During a drag operation, we just mutate the input vector in memory and update the listview without doing anything with the core.
         // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
         set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], g_lv_drag_column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
-        
+
         ListView_Update(hwnd, lplvhtti.iItem);
     }
 
@@ -367,7 +368,7 @@ namespace PianoRoll
             {
                 g_hwnd = hwnd;
                 g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 14, 23, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
-                
+
                 RECT grid_rect = get_window_rect_client_space(hwnd, GetDlgItem(hwnd, IDC_LIST_PIANO_ROLL));
 
                 auto dwStyle = WS_TABSTOP
@@ -389,7 +390,7 @@ namespace PianoRoll
                                            g_app_instance,
                                            NULL);
                 SetWindowSubclass(g_lv_hwnd, ListViewProc, 0, 0);
-                
+
                 ListView_SetExtendedListViewStyle(g_lv_hwnd,
                                                   LVS_EX_GRIDLINES
                                                   | LVS_EX_FULLROWSELECT
@@ -476,19 +477,20 @@ namespace PianoRoll
                         {
                             const auto nmlv = (NMLISTVIEW*)lParam;
 
-                            if ((nmlv->uNewState ^  nmlv->uOldState) & LVIS_SELECTED) {
+                            if ((nmlv->uNewState ^ nmlv->uOldState) & LVIS_SELECTED)
+                            {
                                 RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
                             }
-                            
+
                             break;
                         }
                     case LVN_GETDISPINFO:
                         {
                             const auto plvdi = (NMLVDISPINFO*)lParam;
 
-                            if (plvdi->item.iItem == -1)
+                            if (plvdi->item.iItem < 0)
                             {
-                                printf("[PianoRoll] LVN_GETDISPINFO with -1 iItem?\n");
+                                printf("[PianoRoll] Ignoring LVN_GETDISPINFO with bad iItem\n");
                                 break;
                             }
 
@@ -507,14 +509,16 @@ namespace PianoRoll
                                     if (current_sample == plvdi->item.iItem)
                                     {
                                         plvdi->item.iImage = 0;
-                                    } else if(plvdi->item.iItem % g_config.seek_savestate_interval == 0)
+                                    }
+                                    else if (plvdi->item.iItem % g_config.seek_savestate_interval == 0)
                                     {
                                         plvdi->item.iImage = 1;
-                                    } else
+                                    }
+                                    else
                                     {
                                         plvdi->item.iImage = 999;
                                     }
-                                    
+
                                     strcpy(plvdi->item.pszText, std::to_string(plvdi->item.iItem).c_str());
                                     break;
                                 }
@@ -585,7 +589,7 @@ namespace PianoRoll
         {
             auto value = std::any_cast<long>(data);
             static auto previous_value = value;
-            
+
             if (VCR::get_task() == e_task::recording)
             {
                 g_inputs = VCR::get_inputs();
@@ -594,9 +598,9 @@ namespace PianoRoll
 
             ListView_Update(g_lv_hwnd, previous_value);
             ListView_Update(g_lv_hwnd, value);
-            
+
             // We don't want to force a scroll during seek/warp modify
-            if (VCR::get_seek_completion().second != SIZE_MAX)
+            if (VCR::get_warp_modify_status() == e_warp_modify_status::none)
             {
                 if (VCR::get_task() == e_task::recording)
                 {
@@ -625,7 +629,10 @@ namespace PianoRoll
             g_inputs = VCR::get_inputs();
             ListView_SetItemCount(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()));
 
-            ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
+            if (VCR::get_warp_modify_status() == e_warp_modify_status::none)
+            {
+                ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
+            }
 
             SetWindowRedraw(g_lv_hwnd, true);
         });
