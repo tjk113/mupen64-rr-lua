@@ -39,7 +39,21 @@ namespace PianoRoll
     // Whether a joystick drag operation is happening
     bool g_joy_drag = false;
 
-    void apply_inputs()
+    /**
+     * Gets whether inputs can be modified. Affects both the piano roll and the joystick.
+     */
+    bool can_modify_inputs()
+    {
+        return VCR::get_warp_modify_status() == e_warp_modify_status::none
+            && VCR::get_seek_completion().second == SIZE_MAX
+            && VCR::get_task() == e_task::recording
+            && !g_config.vcr_readonly;
+    }
+
+    /**
+     * Applies the g_inputs buffer to the core.
+     */
+    void apply_input_buffer()
     {
         auto result = VCR::begin_warp_modify(g_inputs);
 
@@ -49,19 +63,23 @@ namespace PianoRoll
         }
     }
 
-    void refresh_full()
+    /**
+     * Refreshes the piano roll listview and the joystick, re-querying the current inputs from the core.
+     */
+    void update_inputs()
     {
         if (!g_hwnd)
         {
             return;
         }
 
+        // If VCR is idle, we can't really show anything.
         if (VCR::get_task() == e_task::idle)
         {
             ListView_DeleteAllItems(g_lv_hwnd);
-            return;
         }
 
+        // In playback mode, the input buffer can't change so we're safe to only pull it once.
         if (VCR::get_task() == e_task::playback)
         {
             SetWindowRedraw(g_lv_hwnd, false);
@@ -70,11 +88,20 @@ namespace PianoRoll
 
             g_inputs = VCR::get_inputs();
             ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
+            std::println("[PianoRoll] Pulled inputs from core for playback mode, count: {}", g_inputs.size());
 
             SetWindowRedraw(g_lv_hwnd, true);
         }
+
+        RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
     }
 
+    /**
+     * Gets a button value from a BUTTONS struct at a given column index.
+     * \param btn The BUTTONS struct to get the value from
+     * \param i The column index. Must be in the range [3, 10] inclusive.
+     * \return The button value at the given column index
+     */
     unsigned get_input_value_from_column_index(BUTTONS btn, size_t i)
     {
         switch (i)
@@ -97,10 +124,16 @@ namespace PianoRoll
             return btn.D_CBUTTON;
         default:
             assert(false);
-            break;
+            return -1;
         }
     }
 
+    /**
+     * Sets a button value in a BUTTONS struct at a given column index.
+     * \param btn The BUTTONS struct to set the value in
+     * \param i The column index. Must be in the range [3, 10] inclusive.
+     * \param value The button value to set
+     */
     void set_input_value_from_column_index(BUTTONS* btn, size_t i, bool value)
     {
         switch (i)
@@ -135,12 +168,86 @@ namespace PianoRoll
         }
     }
 
-    LRESULT CALLBACK JoystickProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+    void on_task_changed(std::any data)
+    {
+        auto value = std::any_cast<e_task>(data);
+        static auto previous_value = value;
+
+        if (value != previous_value)
+        {
+            std::println("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
+            update_inputs();
+        }
+
+        previous_value = value;
+    }
+
+    void on_current_sample_changed(std::any data)
+    {
+        auto value = std::any_cast<long>(data);
+        static auto previous_value = value;
+
+        if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+        {
+            goto exit;
+        }
+
+        if (VCR::get_task() == e_task::idle)
+        {
+            goto exit;
+        }
+
+        if (VCR::get_task() == e_task::recording)
+        {
+            g_inputs = VCR::get_inputs();
+            ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
+        }
+
+        ListView_Update(g_lv_hwnd, previous_value);
+        ListView_Update(g_lv_hwnd, value);
+
+        if (VCR::get_task() == e_task::recording)
+        {
+            ListView_EnsureVisible(g_lv_hwnd, value - 1, false);
+        }
+        else
+        {
+            ListView_EnsureVisible(g_lv_hwnd, value, false);
+        }
+
+
+    exit:
+        previous_value = value;
+    }
+
+    void on_unfreeze_completed(std::any)
+    {
+        if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+        {
+            return;
+        }
+
+        SetWindowRedraw(g_lv_hwnd, false);
+
+        ListView_DeleteAllItems(g_lv_hwnd);
+
+        g_inputs = VCR::get_inputs();
+        ListView_SetItemCount(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()));
+
+        ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
+
+        SetWindowRedraw(g_lv_hwnd, true);
+    }
+
+    /**
+     * The window procedure for the joystick control. 
+     */
+    LRESULT CALLBACK joystick_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         switch (msg)
         {
         case WM_LBUTTONDOWN:
-            if (VCR::get_task() == e_task::idle)
+            if (!can_modify_inputs())
             {
                 break;
             }
@@ -155,7 +262,7 @@ namespace PianoRoll
             goto lmb_up;
         case WM_MOUSEMOVE:
             {
-                if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+                if (!can_modify_inputs())
                 {
                     g_joy_drag = false;
                 }
@@ -201,7 +308,7 @@ namespace PianoRoll
 
                 RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
                 ListView_Update(g_lv_hwnd, i);
-                
+
                 break;
             }
         case WM_PAINT:
@@ -271,17 +378,30 @@ namespace PianoRoll
             break;
         }
 
-        def:
+    def:
         return DefWindowProc(hwnd, msg, wParam, lParam);
 
-        lmb_up:
+    lmb_up:
         ReleaseCapture();
-        apply_inputs();
+        apply_input_buffer();
         g_joy_drag = false;
         goto def;
     }
 
-    LRESULT CALLBACK ListViewProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
+    /**
+     * Called when the selection in the piano roll listview changes.
+     * \param index The index of the selected item
+     */
+    void on_piano_roll_selection_changed(size_t index)
+    {
+        SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", index).c_str());
+        RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
+    }
+
+    /**
+     * The window procedure for the listview control. 
+     */
+    LRESULT CALLBACK list_view_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR)
     {
         switch (msg)
         {
@@ -299,7 +419,7 @@ namespace PianoRoll
                     break;
                 }
 
-                if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+                if (!can_modify_inputs())
                 {
                     break;
                 }
@@ -320,11 +440,11 @@ namespace PianoRoll
             if (g_lv_dragging)
             {
                 g_lv_dragging = false;
-                apply_inputs();
+                apply_input_buffer();
             }
             break;
         case WM_NCDESTROY:
-            RemoveWindowSubclass(hwnd, ListViewProc, sId);
+            RemoveWindowSubclass(hwnd, list_view_proc, sId);
             break;
         default:
             break;
@@ -335,7 +455,7 @@ namespace PianoRoll
 
     handle_mouse_move:
 
-        if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+        if (!can_modify_inputs())
         {
             goto def;
         }
@@ -357,7 +477,7 @@ namespace PianoRoll
         {
             if (prev_lv_dragging)
             {
-                apply_inputs();
+                apply_input_buffer();
             }
             goto def;
         }
@@ -381,9 +501,12 @@ namespace PianoRoll
         ListView_Update(hwnd, lplvhtti.iItem);
     }
 
-    LRESULT CALLBACK PianoRollProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
+    /**
+     * The window procedure for the piano roll dialog. 
+     */
+    LRESULT CALLBACK dialog_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
-        switch (Message)
+        switch (msg)
         {
         case WM_INITDIALOG:
             {
@@ -410,7 +533,7 @@ namespace PianoRoll
                                            hwnd, (HMENU)IDC_PIANO_ROLL_LV,
                                            g_app_instance,
                                            NULL);
-                SetWindowSubclass(g_lv_hwnd, ListViewProc, 0, 0);
+                SetWindowSubclass(g_lv_hwnd, list_view_proc, 0, 0);
 
                 ListView_SetExtendedListViewStyle(g_lv_hwnd,
                                                   LVS_EX_GRIDLINES
@@ -465,10 +588,13 @@ namespace PianoRoll
 
                 ListView_DeleteColumn(g_lv_hwnd, 0);
 
-                refresh_full();
-
+                // Manually call all the setup-related callbacks
+                update_inputs();
+                on_task_changed(VCR::get_task());
+                // ReSharper disable once CppRedundantCastExpression
+                on_current_sample_changed(static_cast<long>(VCR::get_seek_completion().first));
                 SendMessage(hwnd, WM_SIZE, 0, 0);
-                
+
                 break;
             }
         case WM_DESTROY:
@@ -515,8 +641,7 @@ namespace PianoRoll
 
                             if ((nmlv->uNewState ^ nmlv->uOldState) & LVIS_SELECTED)
                             {
-                                SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", nmlv->iItem).c_str());
-                                RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
+                                on_piano_roll_selection_changed(nmlv->iItem);
                             }
 
                             break;
@@ -604,73 +729,16 @@ namespace PianoRoll
         return FALSE;
     }
 
+
     void init()
     {
-        Messenger::subscribe(Messenger::Message::TaskChanged, [](std::any data)
-        {
-            auto value = std::any_cast<e_task>(data);
-            static auto previous_value = value;
-
-            if (value != previous_value)
-            {
-                std::println("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
-                refresh_full();
-            }
-
-            previous_value = value;
-        });
-
-        Messenger::subscribe(Messenger::Message::CurrentSampleChanged, [](std::any data)
-        {
-            auto value = std::any_cast<long>(data);
-            static auto previous_value = value;
-
-            if (VCR::get_warp_modify_status() == e_warp_modify_status::none)
-            {
-                if (VCR::get_task() == e_task::recording)
-                {
-                    g_inputs = VCR::get_inputs();
-                    ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
-                }
-
-                ListView_Update(g_lv_hwnd, previous_value);
-                ListView_Update(g_lv_hwnd, value);
-
-                if (VCR::get_task() == e_task::recording)
-                {
-                    ListView_EnsureVisible(g_lv_hwnd, value - 1, false);
-                }
-                else
-                {
-                    ListView_EnsureVisible(g_lv_hwnd, value, false);
-                }
-            }
-
-            previous_value = value;
-        });
-
-        Messenger::subscribe(Messenger::Message::UnfreezeCompleted, [](std::any)
-        {
-            if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping)
-            {
-                return;
-            }
-
-            SetWindowRedraw(g_lv_hwnd, false);
-
-            ListView_DeleteAllItems(g_lv_hwnd);
-
-            g_inputs = VCR::get_inputs();
-            ListView_SetItemCount(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()));
-
-            ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
-
-            SetWindowRedraw(g_lv_hwnd, true);
-        });
+        Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
+        Messenger::subscribe(Messenger::Message::CurrentSampleChanged, on_current_sample_changed);
+        Messenger::subscribe(Messenger::Message::UnfreezeCompleted, on_unfreeze_completed);
 
         WNDCLASS wndclass = {0};
         wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
-        wndclass.lpfnWndProc = (WNDPROC)JoystickProc;
+        wndclass.lpfnWndProc = (WNDPROC)joystick_proc;
         wndclass.hInstance = g_app_instance;
         wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
         wndclass.lpszClassName = JOYSTICK_CLASS;
@@ -687,7 +755,7 @@ namespace PianoRoll
 
         std::thread([]
         {
-            DialogBox(g_app_instance, MAKEINTRESOURCE(IDD_PIANO_ROLL), 0, (DLGPROC)PianoRollProc);
+            DialogBox(g_app_instance, MAKEINTRESOURCE(IDD_PIANO_ROLL), 0, (DLGPROC)dialog_proc);
         }).detach();
     }
 }
