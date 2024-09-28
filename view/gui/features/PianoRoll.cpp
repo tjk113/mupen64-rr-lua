@@ -1,6 +1,6 @@
 #include "PianoRoll.h"
 
-#include <assert.h>
+#include <cassert>
 #include <thread>
 #include <Windows.h>
 #include <windowsx.h>
@@ -22,6 +22,9 @@ namespace PianoRoll
     std::atomic<HWND> g_hwnd = nullptr;
     HWND g_lv_hwnd = nullptr;
     HWND g_joy_hwnd = nullptr;
+
+    // The input buffer for the piano roll, which is a copy of the inputs from the core and is modified by the user. When editing operations end, this buffer
+    // is provided to begin_warp_modify and thereby applied to the core, changing the resulting emulator state.
     std::vector<BUTTONS> g_inputs{};
 
     // Whether a drag operation is happening
@@ -59,6 +62,17 @@ namespace PianoRoll
 
         if (result != VCR::Result::Ok)
         {
+            // Since we do optimistic updates, we need to revert the changes we made to the input buffer to avoid visual desync
+            SetWindowRedraw(g_lv_hwnd, false);
+
+            ListView_DeleteAllItems(g_lv_hwnd);
+
+            g_inputs = VCR::get_inputs();
+            ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
+            std::println("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_inputs.size());
+
+            SetWindowRedraw(g_lv_hwnd, true);
+            
             FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str(), "Piano Roll", g_hwnd);
         }
     }
