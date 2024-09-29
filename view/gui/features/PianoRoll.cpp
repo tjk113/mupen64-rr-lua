@@ -182,6 +182,23 @@ namespace PianoRoll
         }
     }
 
+    /**
+     * Ensures that the currently relevant item is visible in the piano roll listview.
+     */
+    void ensure_relevant_item_visible()
+    {
+        int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+
+        if (i == -1)
+        {
+            auto current_sample = VCR::get_seek_completion().first;
+            ListView_EnsureVisible(g_lv_hwnd, VCR::get_task() == e_task::recording ? current_sample - 1 : current_sample, false);
+            return;
+        }
+
+        ListView_EnsureVisible(g_lv_hwnd, i, false);
+    }
+    
     void on_task_changed(std::any data)
     {
         auto value = std::any_cast<e_task>(data);
@@ -220,15 +237,7 @@ namespace PianoRoll
         ListView_Update(g_lv_hwnd, previous_value);
         ListView_Update(g_lv_hwnd, value);
 
-        if (VCR::get_task() == e_task::recording)
-        {
-            ListView_EnsureVisible(g_lv_hwnd, value - 1, false);
-        }
-        else
-        {
-            ListView_EnsureVisible(g_lv_hwnd, value, false);
-        }
-
+        ensure_relevant_item_visible();
 
     exit:
         previous_value = value;
@@ -246,11 +255,11 @@ namespace PianoRoll
         ListView_DeleteAllItems(g_lv_hwnd);
 
         g_inputs = VCR::get_inputs();
-        ListView_SetItemCount(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()));
-
-        ListView_EnsureVisible(g_lv_hwnd, VCR::get_seek_completion().first, false);
-
+        ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
+        
         SetWindowRedraw(g_lv_hwnd, true);
+        
+        ensure_relevant_item_visible();
     }
 
     /**
