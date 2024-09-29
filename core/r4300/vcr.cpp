@@ -53,6 +53,8 @@ std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 
 auto g_warp_modify_status = e_warp_modify_status::none;
 size_t g_warp_modify_first_difference_frame = 0;
+
+// FIXME: Is this thing even required, can't we just overwrite the input buffer immediately when starting warp modify?
 std::vector<BUTTONS> g_warp_modify_inputs{};
 
 t_movie_header g_header;
@@ -759,8 +761,14 @@ void vcr_stop_seek_if_needed()
 
 	assert(g_task != e_task::idle);
 
-	std::println("[VCR] Seek {}/{}", m_current_sample, seek_to_frame.value());
+	std::println("[VCR] Seeking... ({}/{})", m_current_sample, seek_to_frame.value());
 
+	if (m_current_sample > seek_to_frame.value())
+	{
+		// NOTE: If this is reached, there is a bug somewhere (probably race condition)
+		FrontendService::show_warning("Seek frame exceeded without seek having been stopped!\nPlease report this issue along with the steps required to reproduce it.", "VCR");
+	}
+	
 	if (m_current_sample >= seek_to_frame.value())
 	{
 		std::println("[VCR] Seek finished at frame {} (target: {})", m_current_sample, seek_to_frame.value());
@@ -1304,18 +1312,20 @@ size_t vcr_find_closest_savestate_before_frame(size_t frame)
 	return lowest_distance_frame;
 }
 
-VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
+VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, bool warp_modify)
 {
+	std::scoped_lock lock(vcr_mutex);
+	
 	if (seek_to_frame.has_value())
 	{
-		return Result::SeekAlreadyRunning;
+		return VCR::Result::SeekAlreadyRunning;
 	}
 	
 	auto frame = compute_sample_from_seek_string(str);
 
 	if (frame == SIZE_MAX || !can_seek_to(frame))
 	{
-		return Result::InvalidFrame;
+		return VCR::Result::InvalidFrame;
 	}
 
 	// We need to adjust the end frame if we're pausing at the end... lol
@@ -1325,27 +1335,29 @@ VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 
 		if (!can_seek_to(frame))
 		{
-			return Result::InvalidFrame;
+			return VCR::Result::InvalidFrame;
 		}
 	}
 	
 	seek_to_frame = std::make_optional(frame);
 	g_seek_pause_at_end = pause_at_end;
-	resume_emu();
+	if (resume)
+	{
+		resume_emu();
+	}
 	
 	// We need to backtrack somehow if we're ahead of the frame
 	if (m_current_sample > frame)
 	{
 		if (g_task == e_task::recording)
 		{
-			const auto target_sample = g_warp_modify_status == e_warp_modify_status::warping
-				? g_warp_modify_first_difference_frame : frame;
+			const auto target_sample = warp_modify ? g_warp_modify_first_difference_frame : frame;
 			
 			const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
 
 			std::println("[VCR] Seeking backwards during recording to frame {}, closest savestate at {}", target_sample, closest_key);
 			savestates_load_memory(g_seek_savestates[closest_key]);
-			return Result::Ok;
+			return VCR::Result::Ok;
 		}
 		
 		VCR::stop_all();
@@ -1354,14 +1366,14 @@ VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 		// TODO: Only using the async executor's dedup functionality and removing the "Busy" codes would fix all of this 
 		while (true)
 		{
-			auto result = start_playback(g_movie_path);
+			auto result = VCR::start_playback(g_movie_path);
 			
-			if (result == Result::Ok)
+			if (result == VCR::Result::Ok)
 			{
 				break;
 			}
 			
-			if (result == Result::Busy)
+			if (result == VCR::Result::Busy)
 			{
 				continue;
 			}
@@ -1372,7 +1384,12 @@ VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
 		
 	}
 
-	return Result::Ok;
+	return VCR::Result::Ok;
+}
+
+VCR::Result VCR::begin_seek(std::string str, bool pause_at_end)
+{
+	return vcr_begin_seek_impl(str, pause_at_end, true, false);
 }
 
 VCR::Result VCR::convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_movie_header& header, std::vector<BUTTONS>& inputs)
@@ -1390,6 +1407,10 @@ VCR::Result VCR::convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_
 
 void VCR::stop_seek()
 {
+	// We need to acquire the mutex here, as this function is also called during input poll
+	// and having two of these running at the same time is bad for obvious reasons 
+	std::scoped_lock lock(vcr_mutex);
+	
 	if (!seek_to_frame.has_value())
 	{
 		printf("[VCR] Tried to call stop_seek with no seek operation running\n");
@@ -1543,14 +1564,9 @@ std::vector<BUTTONS> VCR::get_inputs()
 	return g_movie_inputs;
 }
 
-/// Finds the first input difference between two input vectors. Returns SIZE_MAX - 1 if they are identical and SIZE_MAX if they are of different sizes. 
+/// Finds the first input difference between two input vectors. Returns SIZE_MAX if they are identical. 
 size_t vcr_find_first_input_difference(const std::vector<BUTTONS>& first, const std::vector<BUTTONS>& second)
 {
-	if (first.size() != second.size())
-	{
-		return SIZE_MAX;
-	}
-
 	for (int i = 0; i < first.size(); ++i)
 	{
 		if (first[i].Value != second[i].Value)
@@ -1559,11 +1575,13 @@ size_t vcr_find_first_input_difference(const std::vector<BUTTONS>& first, const 
 		}
 	}
 
-	return SIZE_MAX - 1;
+	return SIZE_MAX;
 }
 
 VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 {
+	std::scoped_lock lock(vcr_mutex);
+	
 	if (g_warp_modify_status != e_warp_modify_status::none)
 	{
 		return Result::WarpModifyAlreadyRunning;
@@ -1578,25 +1596,43 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 
 	if (g_warp_modify_first_difference_frame == SIZE_MAX)
 	{
-		return Result::WarpModifyInputsSizeMismatch;
+		std::println("[VCR] Warp modify inputs are identical to current input buffer, doing nothing...");
+		
+		g_warp_modify_status = e_warp_modify_status::warping;
+		Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
+
+		g_warp_modify_status = e_warp_modify_status::none;
+		Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
+
+		return Result::Ok;
 	}
 
-	if (g_warp_modify_first_difference_frame == SIZE_MAX - 1)
+	if (g_warp_modify_first_difference_frame > m_current_sample)
 	{
-		return Result::WarpModifyInputsIdentical;
+		std::println("[VCR] First different frame is in the future (current sample: {}, first differenece: {}), copying inputs with no seek...", m_current_sample, g_warp_modify_first_difference_frame);
+		
+		g_movie_inputs = inputs;
+		
+		g_warp_modify_status = e_warp_modify_status::warping;
+		Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
+
+		g_warp_modify_status = e_warp_modify_status::none;
+		Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
+
+		return Result::Ok;
+	}
+	
+	const auto result = vcr_begin_seek_impl(std::to_string(m_current_sample), emu_paused || frame_advancing, false, true);
+
+	if (result != Result::Ok)
+	{
+		return result;
 	}
 	
 	g_warp_modify_status = e_warp_modify_status::warping;
 	g_warp_modify_inputs = inputs;
-	
-	const auto result = begin_seek(std::to_string(m_current_sample), emu_paused || frame_advancing);
+	resume_emu();
 
-	if (result != Result::Ok)
-	{
-		g_warp_modify_status = e_warp_modify_status::none;
-		return result;
-	}
-	
 	std::println("[VCR] Warp modify started at frame {}", m_current_sample);
 	Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
 	return Result::Ok;
