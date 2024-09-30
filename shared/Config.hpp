@@ -426,7 +426,12 @@ typedef struct Config
 	/// The maximum amount of warp modify savestates to keep in memory
 	/// </summary>
 	int32_t seek_savestate_max_count = 20;
-	
+
+	/// <summary>
+	/// Whether piano roll edits are constrained to the column they started on
+	/// </summary>
+	int32_t piano_roll_constrain_edit_to_column;
+
 	/// <summary>
 	/// SD card emulation
 	/// </summary>

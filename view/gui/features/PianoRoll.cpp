@@ -516,10 +516,16 @@ namespace PianoRoll
             printf("[PianoRoll] iItem out of range\n");
             goto def;
         }
-
+        
+        if (!g_config.piano_roll_constrain_edit_to_column && lplvhtti.iSubItem <= 2)
+        {
+            goto def;   
+        }
+        
         // During a drag operation, we just mutate the input vector in memory and update the listview without doing anything with the core.
         // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
-        set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], g_lv_drag_column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
+        const auto column = g_config.piano_roll_constrain_edit_to_column ? g_lv_drag_column : lplvhtti.iSubItem;
+        set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
 
         ListView_SetItemState(g_lv_hwnd, lplvhtti.iItem, LVIS_SELECTED, LVIS_SELECTED);
         ListView_Update(hwnd, lplvhtti.iItem);

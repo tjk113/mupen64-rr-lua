@@ -737,22 +737,27 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		.name = L"Interface"
 	};
 
-	t_options_group flow_group = {
+	t_options_group piano_roll_group = {
 		.id = 2,
+		.name = L"Piano Roll"
+	};
+
+	t_options_group flow_group = {
+		.id = 3,
 		.name = L"Flow"
 	};
 
 	t_options_group capture_group = {
-		.id = 3,
+		.id = 4,
 		.name = L"Capture"
 	};
 
 	t_options_group core_group = {
-		.id = 4,
+		.id = 5,
 		.name = L"Core"
 	};
 
-	groups = {interface_group, flow_group, capture_group, core_group};
+	groups = {interface_group, piano_roll_group, flow_group, capture_group, core_group};
 
 	options = {
 		t_options_item {
@@ -803,6 +808,14 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.name = "Use Async Executor",
 			.tooltip = L"Whether the new async executor is used for async calls.\nLowers interaction latency in general usecases.\nOn - Each call is put on the async execution queue\nOff - Each call runs on a newly created thread (legacy behaviour)",
 			.data = &g_config.use_async_executor,
+			.type = t_options_item::Type::Bool,
+		},
+		
+		t_options_item {
+			.group_id = piano_roll_group.id,
+			.name = "Constrain edit to column",
+			.tooltip = L"Whether piano roll edits are constrained to the column they started on.",
+			.data = &g_config.piano_roll_constrain_edit_to_column,
 			.type = t_options_item::Type::Bool,
 		},
 
