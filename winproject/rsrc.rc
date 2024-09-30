@@ -159,6 +159,7 @@ BEGIN
     POPUP "&Debug"
     BEGIN
         MENUITEM "Warp modify back 10f, press A",           IDM_DEBUG_WARP_MODIFY
+        MENUITEM "Benchmark messenger",                     IDM_BENCHMARK_MESSENGER
     END
 END
 

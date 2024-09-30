@@ -57,6 +57,7 @@
 #include "features/PianoRoll.h"
 #include "features/Runner.h"
 #include "shared/AsyncExecutor.h"
+#include "view/helpers/IOHelpers.h"
 #include "wrapper/PersistentPathDialog.h"
 
 // Throwaway actions which can be spammed get keys as to not clog up the async executor queue 
@@ -1141,6 +1142,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					}
 					break;
 				}
+			case IDM_BENCHMARK_MESSENGER:
+				{
+					ScopeTimer timer("Messenger");
+					for (int i = 0; i < 10'000'000; ++i)
+					{
+						Messenger::broadcast(Messenger::Message::None, 5);
+					}
+				}
+				break;
 			case IDM_TRACELOG:
 				{
 					if (tracelog::active())
