@@ -532,7 +532,6 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
 			m_current_vi = 0;
 			g_task = e_task::recording;
 			just_reset = false;
-			vcr_create_n_frame_savestate(0);
 			
 			Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
 			Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
@@ -559,8 +558,6 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
 			printf("[VCR] Starting recording from Snapshot...\n");
 			g_task = e_task::recording;
 			*input = {0};
-
-			vcr_create_n_frame_savestate(0);
 		}
 	}
 
@@ -571,8 +568,6 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
 			printf("[VCR] Starting recording from Existing Snapshot...\n");
 			g_task = e_task::recording;
 			*input = {0};
-			
-			vcr_create_n_frame_savestate(0);
 		}
 	}
 
