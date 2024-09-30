@@ -11,6 +11,11 @@ namespace Messenger
 	enum class Message
 	{
 		/**
+		 * \brief Debug message used for benchmarking which should not be subscribed to.
+		 */
+		None,
+		
+		/**
 		 * \brief The emulator launched state has changed
 		 */
 		EmuLaunchedChanged,
@@ -156,6 +161,8 @@ namespace Messenger
 		DebuggerResumedChanged,
 	};
 
+	using t_user_callback = std::function<void(std::any)>;
+
 	/**
 	 * \brief Initializes the messenger
 	 */
@@ -176,5 +183,5 @@ namespace Messenger
 	 * \return A function which, when called, unsubscribes from the message
 	 * \remark This method is not thread-safe.
 	 */
-	std::function<void()> subscribe(Message message, std::function<void(std::any)> callback);
+	std::function<void()> subscribe(Message message, t_user_callback callback);
 }
