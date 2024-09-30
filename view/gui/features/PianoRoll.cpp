@@ -352,7 +352,7 @@ namespace PianoRoll
 
                 RECT rect2 = rect;
                 // Shrink the bounds a bit because we'd draw over the bounds and dirty the window otherwise
-                constexpr int margin = 3;
+                constexpr int margin = 1;
                 rect2.left += margin;
                 rect2.right -= margin;
                 rect2.top += margin;
