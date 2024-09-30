@@ -276,7 +276,7 @@ namespace PianoRoll
             }
             g_joy_drag = true;
             SetCapture(hwnd);
-            break;
+            goto mouse_move;
         case WM_LBUTTONUP:
             if (!g_joy_drag)
             {
@@ -284,56 +284,7 @@ namespace PianoRoll
             }
             goto lmb_up;
         case WM_MOUSEMOVE:
-            {
-                if (!can_modify_inputs())
-                {
-                    g_joy_drag = false;
-                }
-
-                if (!g_joy_drag)
-                {
-                    break;
-                }
-
-                // Apply the joystick input...
-                if (!(GetKeyState(VK_LBUTTON) & 0x100))
-                {
-                    goto lmb_up;
-                }
-
-                int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
-
-                if (i == -1) break;
-
-                POINT pt;
-                GetCursorPos(&pt);
-                ScreenToClient(hwnd, &pt);
-
-                RECT pic_rect;
-                GetWindowRect(hwnd, &pic_rect);
-                int x = (pt.x * UINT8_MAX / (signed)(pic_rect.right - pic_rect.left) - INT8_MAX + 1);
-                int y = -(pt.y * UINT8_MAX / (signed)(pic_rect.bottom - pic_rect.top) - INT8_MAX + 1);
-
-                if (x > INT8_MAX || y > INT8_MAX || x < INT8_MIN || y < INT8_MIN)
-                {
-                    int div = max(abs(x), abs(y));
-                    x = x * INT8_MAX / div;
-                    y = y * INT8_MAX / div;
-                }
-
-                if (abs(x) <= 8)
-                    x = 0;
-                if (abs(y) <= 8)
-                    y = 0;
-
-                g_inputs[i].X_AXIS = y;
-                g_inputs[i].Y_AXIS = x;
-
-                RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
-                ListView_Update(g_lv_hwnd, i);
-
-                break;
-            }
+            goto mouse_move;
         case WM_PAINT:
             {
                 int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
@@ -409,6 +360,56 @@ namespace PianoRoll
         apply_input_buffer();
         g_joy_drag = false;
         goto def;
+
+    mouse_move:
+        if (!can_modify_inputs())
+        {
+            g_joy_drag = false;
+        }
+
+        if (!g_joy_drag)
+        {
+            goto def;
+        }
+
+        // Apply the joystick input...
+        if (!(GetKeyState(VK_LBUTTON) & 0x100))
+        {
+            goto lmb_up;
+        }
+
+        int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+
+        if (i == -1) goto def;
+
+        POINT pt;
+        GetCursorPos(&pt);
+        ScreenToClient(hwnd, &pt);
+
+        RECT pic_rect;
+        GetWindowRect(hwnd, &pic_rect);
+        int x = (pt.x * UINT8_MAX / (signed)(pic_rect.right - pic_rect.left) - INT8_MAX + 1);
+        int y = -(pt.y * UINT8_MAX / (signed)(pic_rect.bottom - pic_rect.top) - INT8_MAX + 1);
+
+        if (x > INT8_MAX || y > INT8_MAX || x < INT8_MIN || y < INT8_MIN)
+        {
+            int div = max(abs(x), abs(y));
+            x = x * INT8_MAX / div;
+            y = y * INT8_MAX / div;
+        }
+
+        if (abs(x) <= 8)
+            x = 0;
+        if (abs(y) <= 8)
+            y = 0;
+
+        g_inputs[i].X_AXIS = y;
+        g_inputs[i].Y_AXIS = x;
+        
+        RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
+        ListView_Update(g_lv_hwnd, i);
+        goto def;
+        
     }
 
     /**
