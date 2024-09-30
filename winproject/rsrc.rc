@@ -159,6 +159,7 @@ BEGIN
     POPUP "&Debug"
     BEGIN
         MENUITEM "Warp modify back 10f, press A",           IDM_DEBUG_WARP_MODIFY
+        MENUITEM "Stress warp modify",                      IDM_STRESS_WARP_MODIFY
         MENUITEM "Benchmark messenger",                     IDM_BENCHMARK_MESSENGER
     END
 END
@@ -664,8 +665,8 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX 
 CAPTION "Piano Roll"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "",IDC_LIST_PIANO_ROLL,161,7,241,275,NOT WS_VISIBLE | WS_BORDER
-    GROUPBOX        "Input",IDC_STATIC,7,7,154,275
+    LTEXT           "",IDC_LIST_PIANO_ROLL,105,7,241,275,NOT WS_VISIBLE | WS_BORDER
+    GROUPBOX        "Input",IDC_STATIC,7,7,95,275
 END
 
 
