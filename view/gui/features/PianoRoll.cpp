@@ -24,10 +24,13 @@ namespace PianoRoll
     HWND g_lv_hwnd = nullptr;
     HWND g_joy_hwnd = nullptr;
 
+    // Selected indicies in the piano roll listview.
+    std::vector<size_t> g_selected_indicies;
+    
     // The input buffer for the piano roll, which is a copy of the inputs from the core and is modified by the user. When editing operations end, this buffer
     // is provided to begin_warp_modify and thereby applied to the core, changing the resulting emulator state.
     std::vector<BUTTONS> g_inputs{};
-
+    
     // Whether a drag operation is happening
     bool g_lv_dragging = false;
 
@@ -443,10 +446,6 @@ namespace PianoRoll
             goto lmb_up;
         }
 
-        int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
-
-        if (i == -1) goto def;
-
         POINT pt;
         GetCursorPos(&pt);
         ScreenToClient(hwnd, &pt);
@@ -468,21 +467,39 @@ namespace PianoRoll
         if (abs(y) <= 8)
             y = 0;
 
-        g_inputs[i].X_AXIS = y;
-        g_inputs[i].Y_AXIS = x;
-
+        SetWindowRedraw(g_lv_hwnd, false);
+        for (auto selected_index : g_selected_indicies)
+        {
+            g_inputs[selected_index].X_AXIS = y;
+            g_inputs[selected_index].Y_AXIS = x;
+            ListView_Update(g_lv_hwnd, selected_index);
+        }
+        SetWindowRedraw(g_lv_hwnd, true);
+        
         RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
-        ListView_Update(g_lv_hwnd, i);
         goto def;
     }
 
     /**
      * Called when the selection in the piano roll listview changes.
-     * \param index The index of the selected item
      */
-    void on_piano_roll_selection_changed(size_t index)
+    void on_piano_roll_selection_changed()
     {
-        SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", index).c_str());
+        g_selected_indicies = get_listview_selection(g_lv_hwnd);
+        
+        if (g_selected_indicies.empty())
+        {
+            SetDlgItemText(g_hwnd, IDC_STATIC, "Input");
+        }
+        else if (g_selected_indicies.size() == 1)
+        {
+            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", g_selected_indicies[0]).c_str());
+        }
+        else
+        {
+            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - {} frames selected", g_selected_indicies.size()).c_str());
+        }
+
         RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
     }
 
@@ -616,7 +633,6 @@ namespace PianoRoll
                     | LVS_ALIGNTOP
                     | LVS_NOSORTHEADER
                     | LVS_SHOWSELALWAYS
-                    | LVS_SINGLESEL
                     | LVS_OWNERDATA;
 
                 g_lv_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, nullptr,
@@ -668,7 +684,7 @@ namespace PianoRoll
                     lv_column.pszText = (LPTSTR)get_button_name_from_column_index(i);
                     ListView_InsertColumn(g_lv_hwnd, i + 1, &lv_column);
                 }
-                
+
                 ListView_DeleteColumn(g_lv_hwnd, 0);
 
                 // Manually call all the setup-related callbacks
@@ -724,11 +740,14 @@ namespace PianoRoll
 
                             if ((nmlv->uNewState ^ nmlv->uOldState) & LVIS_SELECTED)
                             {
-                                on_piano_roll_selection_changed(nmlv->iItem);
+                                on_piano_roll_selection_changed();
                             }
 
                             break;
                         }
+                    case LVN_ODSTATECHANGED:
+                        on_piano_roll_selection_changed();
+                        break;
                     case LVN_GETDISPINFO:
                         {
                             const auto plvdi = (NMLVDISPINFO*)lParam;
