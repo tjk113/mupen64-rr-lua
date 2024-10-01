@@ -502,6 +502,7 @@
 #define IDM_DEBUG_WARP_MODIFY           40083
 #define IDI_MARKER                      40084
 #define IDM_BENCHMARK_MESSENGER         40085
+#define IDM_STRESS_WARP_MODIFY          40086
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
