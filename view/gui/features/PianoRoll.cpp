@@ -10,6 +10,7 @@
 #include "shared/Messenger.h"
 #include "shared/services/FrontendService.h"
 #include "view/gui/Main.h"
+#include "view/helpers/IOHelpers.h"
 #include "view/helpers/WinHelpers.h"
 #include "winproject/resource.h"
 
@@ -107,7 +108,7 @@ namespace PianoRoll
             SetWindowRedraw(g_lv_hwnd, true);
         }
 
-        RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
+        RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
     }
 
     /**
@@ -295,53 +296,51 @@ namespace PianoRoll
                 {
                     input = g_inputs[i];
                 }
-
+                
                 PAINTSTRUCT ps;
                 RECT rect;
                 HDC hdc = BeginPaint(hwnd, &ps);
+                HDC cdc = CreateCompatibleDC(hdc);
                 GetClientRect(hwnd, &rect);
 
-                RECT rect2 = rect;
-                // Shrink the bounds a bit because we'd draw over the bounds and dirty the window otherwise
-                constexpr int margin = 1;
-                rect2.left += margin;
-                rect2.right -= margin;
-                rect2.top += margin;
-                rect2.bottom -= margin;
+                HBITMAP bmp = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
+                SelectObject(cdc, bmp);
 
-                POINT bmp_size = {rect2.right - rect2.left, rect2.bottom - rect2.top};
-
-                int mid_x = bmp_size.x / 2 + margin;
-                int mid_y = bmp_size.y / 2 + margin;
-                int stick_x = ((input.Y_AXIS + 128) * bmp_size.x / 256) + rect2.left;
-                int stick_y = ((-input.X_AXIS + 128) * bmp_size.y / 256) + rect2.top;
+                const int mid_x = rect.right / 2;
+                const int mid_y = rect.bottom / 2;
+                const int stick_x = (input.Y_AXIS + 128) * rect.right / 256;
+                const int stick_y = (-input.X_AXIS + 128) * rect.bottom / 256;
 
                 HPEN outline_pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
                 HPEN line_pen = CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
                 HPEN tip_pen = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
 
-                FillRect(hdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
+                FillRect(cdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
 
-                SelectObject(hdc, outline_pen);
-                Ellipse(hdc, rect2.left, rect2.top, rect2.right, rect2.bottom);
+                SelectObject(cdc, outline_pen);
+                Ellipse(cdc, 0, 0, rect.right, rect.bottom);
 
-                MoveToEx(hdc, margin, mid_y, NULL);
-                LineTo(hdc, bmp_size.x + margin, mid_y);
-                MoveToEx(hdc, mid_x, margin, NULL);
-                LineTo(hdc, mid_x, bmp_size.y + margin);
+                MoveToEx(cdc, 0, mid_y, nullptr);
+                LineTo(cdc, rect.right, mid_y);
+                MoveToEx(cdc, mid_x, 0, nullptr);
+                LineTo(cdc, mid_x, rect.bottom);
 
-                SelectObject(hdc, line_pen);
-                MoveToEx(hdc, mid_x, mid_y, nullptr);
-                LineTo(hdc, stick_x, stick_y);
+                SelectObject(cdc, line_pen);
+                MoveToEx(cdc, mid_x, mid_y, nullptr);
+                LineTo(cdc, stick_x, stick_y);
 
-                SelectObject(hdc, tip_pen);
-                MoveToEx(hdc, stick_x, stick_y, NULL);
-                LineTo(hdc, stick_x, stick_y);
+                SelectObject(cdc, tip_pen);
+                MoveToEx(cdc, stick_x, stick_y, nullptr);
+                LineTo(cdc, stick_x, stick_y);
 
-                SelectObject(hdc, nullptr);
+                SelectObject(cdc, nullptr);
 
+                BitBlt(hdc, 0, 0, rect.right, rect.bottom, cdc, 0, 0, SRCCOPY);
+                
                 EndPaint(hwnd, &ps);
 
+                DeleteDC(cdc);
+                DeleteObject(bmp);
                 DeleteObject(outline_pen);
                 DeleteObject(line_pen);
                 DeleteObject(tip_pen);
@@ -406,7 +405,7 @@ namespace PianoRoll
         g_inputs[i].X_AXIS = y;
         g_inputs[i].Y_AXIS = x;
         
-        RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
+        RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
         ListView_Update(g_lv_hwnd, i);
         goto def;
         
@@ -419,7 +418,7 @@ namespace PianoRoll
     void on_piano_roll_selection_changed(size_t index)
     {
         SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", index).c_str());
-        RedrawWindow(g_joy_hwnd, NULL, NULL, RDW_INVALIDATE);
+        RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
     }
 
     /**
@@ -555,14 +554,14 @@ namespace PianoRoll
                     | LVS_SINGLESEL
                     | LVS_OWNERDATA;
 
-                g_lv_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
+                g_lv_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, nullptr,
                                            dwStyle,
                                            grid_rect.left, grid_rect.top,
                                            grid_rect.right - grid_rect.left,
                                            grid_rect.bottom - grid_rect.top,
                                            hwnd, (HMENU)IDC_PIANO_ROLL_LV,
                                            g_app_instance,
-                                           NULL);
+                nullptr);
                 SetWindowSubclass(g_lv_hwnd, list_view_proc, 0, 0);
 
                 ListView_SetExtendedListViewStyle(g_lv_hwnd,
@@ -770,7 +769,7 @@ namespace PianoRoll
         wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
         wndclass.lpfnWndProc = (WNDPROC)joystick_proc;
         wndclass.hInstance = g_app_instance;
-        wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wndclass.hCursor = LoadCursor(nullptr, IDC_ARROW);
         wndclass.lpszClassName = JOYSTICK_CLASS;
         RegisterClass(&wndclass);
     }
