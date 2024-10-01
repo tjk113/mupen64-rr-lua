@@ -73,7 +73,7 @@ namespace PianoRoll
             std::println("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_inputs.size());
 
             SetWindowRedraw(g_lv_hwnd, true);
-            
+
             FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str(), "Piano Roll", g_hwnd);
         }
     }
@@ -114,7 +114,7 @@ namespace PianoRoll
     /**
      * Gets a button value from a BUTTONS struct at a given column index.
      * \param btn The BUTTONS struct to get the value from
-     * \param i The column index. Must be in the range [3, 10] inclusive.
+     * \param i The column index. Must be in the range [3, 15] inclusive.
      * \return The button value at the given column index
      */
     unsigned get_input_value_from_column_index(BUTTONS btn, size_t i)
@@ -122,21 +122,31 @@ namespace PianoRoll
         switch (i)
         {
         case 3:
-            return btn.R_DPAD;
-        case 4:
             return btn.A_BUTTON;
-        case 5:
+        case 4:
             return btn.B_BUTTON;
-        case 6:
+        case 5:
             return btn.Z_TRIG;
+        case 6:
+            return btn.R_TRIG;
         case 7:
-            return btn.U_CBUTTON;
+            return btn.START_BUTTON;
         case 8:
-            return btn.L_CBUTTON;
+            return btn.U_CBUTTON;
         case 9:
-            return btn.R_CBUTTON;
+            return btn.L_CBUTTON;
         case 10:
+            return btn.R_CBUTTON;
+        case 11:
             return btn.D_CBUTTON;
+        case 12:
+            return btn.U_DPAD;
+        case 13:
+            return btn.L_DPAD;
+        case 14:
+            return btn.R_DPAD;
+        case 15:
+            return btn.D_DPAD;
         default:
             assert(false);
             return -1;
@@ -146,7 +156,7 @@ namespace PianoRoll
     /**
      * Sets a button value in a BUTTONS struct at a given column index.
      * \param btn The BUTTONS struct to set the value in
-     * \param i The column index. Must be in the range [3, 10] inclusive.
+     * \param i The column index. Must be in the range [3, 15] inclusive.
      * \param value The button value to set
      */
     void set_input_value_from_column_index(BUTTONS* btn, size_t i, bool value)
@@ -154,32 +164,88 @@ namespace PianoRoll
         switch (i)
         {
         case 3:
-            btn->R_DPAD = value;
-            break;
-        case 4:
             btn->A_BUTTON = value;
             break;
-        case 5:
+        case 4:
             btn->B_BUTTON = value;
             break;
-        case 6:
+        case 5:
             btn->Z_TRIG = value;
             break;
+        case 6:
+            btn->R_TRIG = value;
+            break;
         case 7:
-            btn->U_CBUTTON = value;
+            btn->START_BUTTON = value;
             break;
         case 8:
-            btn->L_CBUTTON = value;
+            btn->U_CBUTTON = value;
             break;
         case 9:
-            btn->R_CBUTTON = value;
+            btn->L_CBUTTON = value;
             break;
         case 10:
+            btn->R_CBUTTON = value;
+            break;
+        case 11:
             btn->D_CBUTTON = value;
+            break;
+        case 12:
+            btn->U_DPAD = value;
+            break;
+        case 13:
+            btn->L_DPAD = value;
+            break;
+        case 14:
+            btn->R_DPAD = value;
+            break;
+        case 15:
+            btn->D_DPAD = value;
             break;
         default:
             assert(false);
             break;
+        }
+    }
+
+    /**
+     * Gets the button name from a column index.
+     * \param i The column index. Must be in the range [3, 15] inclusive.
+     * \return The name of the button at the specified column index.
+     */
+    const char* get_button_name_from_column_index(size_t i)
+    {
+        switch (i)
+        {
+        case 3:
+            return "A";
+        case 4:
+            return "B";
+        case 5:
+            return "Z";
+        case 6:
+            return "R";
+        case 7:
+            return "S";
+        case 8:
+            return "C^";
+        case 9:
+            return "C<";
+        case 10:
+            return "C>";
+        case 11:
+            return "Cv";
+        case 12:
+            return "D^";
+        case 13:
+            return "D<";
+        case 14:
+            return "D>";
+        case 15:
+            return "Dv";
+        default:
+            assert(false);
+            return nullptr;
         }
     }
 
@@ -199,7 +265,7 @@ namespace PianoRoll
 
         ListView_EnsureVisible(g_lv_hwnd, i, false);
     }
-    
+
     void on_task_changed(std::any data)
     {
         auto value = std::any_cast<e_task>(data);
@@ -257,9 +323,9 @@ namespace PianoRoll
 
         g_inputs = VCR::get_inputs();
         ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
-        
+
         SetWindowRedraw(g_lv_hwnd, true);
-        
+
         ensure_relevant_item_visible();
     }
 
@@ -296,7 +362,7 @@ namespace PianoRoll
                 {
                     input = g_inputs[i];
                 }
-                
+
                 PAINTSTRUCT ps;
                 RECT rect;
                 HDC hdc = BeginPaint(hwnd, &ps);
@@ -336,7 +402,7 @@ namespace PianoRoll
                 SelectObject(cdc, nullptr);
 
                 BitBlt(hdc, 0, 0, rect.right, rect.bottom, cdc, 0, 0, SRCCOPY);
-                
+
                 EndPaint(hwnd, &ps);
 
                 DeleteDC(cdc);
@@ -404,11 +470,10 @@ namespace PianoRoll
 
         g_inputs[i].X_AXIS = y;
         g_inputs[i].Y_AXIS = x;
-        
+
         RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
         ListView_Update(g_lv_hwnd, i);
         goto def;
-        
     }
 
     /**
@@ -515,12 +580,12 @@ namespace PianoRoll
             printf("[PianoRoll] iItem out of range\n");
             goto def;
         }
-        
+
         if (!g_config.piano_roll_constrain_edit_to_column && lplvhtti.iSubItem <= 2)
         {
-            goto def;   
+            goto def;
         }
-        
+
         // During a drag operation, we just mutate the input vector in memory and update the listview without doing anything with the core.
         // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
         const auto column = g_config.piano_roll_constrain_edit_to_column ? g_lv_drag_column : lplvhtti.iSubItem;
@@ -561,7 +626,7 @@ namespace PianoRoll
                                            grid_rect.bottom - grid_rect.top,
                                            hwnd, (HMENU)IDC_PIANO_ROLL_LV,
                                            g_app_instance,
-                nullptr);
+                                           nullptr);
                 SetWindowSubclass(g_lv_hwnd, list_view_proc, 0, 0);
 
                 ListView_SetExtendedListViewStyle(g_lv_hwnd,
@@ -598,23 +663,12 @@ namespace PianoRoll
 
                 lv_column.cx = 30;
 
-                lv_column.pszText = (LPTSTR)"R";
-                ListView_InsertColumn(g_lv_hwnd, 4, &lv_column);
-                lv_column.pszText = (LPTSTR)"A";
-                ListView_InsertColumn(g_lv_hwnd, 5, &lv_column);
-                lv_column.pszText = (LPTSTR)"B";
-                ListView_InsertColumn(g_lv_hwnd, 6, &lv_column);
-                lv_column.pszText = (LPTSTR)"Z";
-                ListView_InsertColumn(g_lv_hwnd, 7, &lv_column);
-                lv_column.pszText = (LPTSTR)"C^";
-                ListView_InsertColumn(g_lv_hwnd, 8, &lv_column);
-                lv_column.pszText = (LPTSTR)"C<";
-                ListView_InsertColumn(g_lv_hwnd, 9, &lv_column);
-                lv_column.pszText = (LPTSTR)"C>";
-                ListView_InsertColumn(g_lv_hwnd, 10, &lv_column);
-                lv_column.pszText = (LPTSTR)"Cv";
-                ListView_InsertColumn(g_lv_hwnd, 11, &lv_column);
-
+                for (int i = 3; i <= 15; ++i)
+                {
+                    lv_column.pszText = (LPTSTR)get_button_name_from_column_index(i);
+                    ListView_InsertColumn(g_lv_hwnd, i + 1, &lv_column);
+                }
+                
                 ListView_DeleteColumn(g_lv_hwnd, 0);
 
                 // Manually call all the setup-related callbacks
@@ -719,32 +773,13 @@ namespace PianoRoll
                             case 2:
                                 strcpy(plvdi->item.pszText, std::to_string(input.X_AXIS).c_str());
                                 break;
-                            case 3:
-                                strcpy(plvdi->item.pszText, input.R_DPAD ? "R" : "");
-                                break;
-                            case 4:
-                                strcpy(plvdi->item.pszText, input.A_BUTTON ? "A" : "");
-                                break;
-                            case 5:
-                                strcpy(plvdi->item.pszText, input.B_BUTTON ? "B" : "");
-                                break;
-                            case 6:
-                                strcpy(plvdi->item.pszText, input.Z_TRIG ? "Z" : "");
-                                break;
-                            case 7:
-                                strcpy(plvdi->item.pszText, input.U_CBUTTON ? "C^" : "");
-                                break;
-                            case 8:
-                                strcpy(plvdi->item.pszText, input.L_CBUTTON ? "C<" : "");
-                                break;
-                            case 9:
-                                strcpy(plvdi->item.pszText, input.R_CBUTTON ? "C>" : "");
-                                break;
-                            case 10:
-                                strcpy(plvdi->item.pszText, input.D_CBUTTON ? "Cv" : "");
-                                break;
                             default:
-                                break;
+                                {
+                                    auto value = get_input_value_from_column_index(input, plvdi->item.iSubItem);
+                                    auto name = get_button_name_from_column_index(plvdi->item.iSubItem);
+                                    strcpy(plvdi->item.pszText, value ? name : "");
+                                    break;
+                                }
                             }
                         }
                         break;
