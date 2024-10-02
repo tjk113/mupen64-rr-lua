@@ -26,11 +26,34 @@ namespace PianoRoll
 
     // Selected indicies in the piano roll listview.
     std::vector<size_t> g_selected_indicies;
-    
+
+    // The clipboard buffer for piano roll copy/paste operations. Must be sorted ascendingly.
+    //
+    // Due to allowing sparse ("extended") selections, we might have gaps in the clipboard buffer as well as the selected indicies when pasting.
+    // When a gap-containing clipboard buffer is pasted into the piano roll, the selection acts as a mask.
+    //
+    // A----
+    // -----
+    // @@@@@ << Gap!
+    // -B---
+    // A----
+    //
+    // results in...
+    //
+    // $$$$$ << Unaffected, outside of selection!
+    // ----- [[[ Selection start
+    // $$$$$ << Unaffected
+    // -B---
+    // $$$$$ <<< Unaffected ]]] Selection end
+    //
+    // This also applies for the inverse (gapless clipboard buffer and g_selected_indicies with gaps).
+    //
+    std::vector<std::optional<BUTTONS>> g_clipboard{};
+
     // The input buffer for the piano roll, which is a copy of the inputs from the core and is modified by the user. When editing operations end, this buffer
     // is provided to begin_warp_modify and thereby applied to the core, changing the resulting emulator state.
     std::vector<BUTTONS> g_inputs{};
-    
+
     // Whether a drag operation is happening
     bool g_lv_dragging = false;
 
@@ -252,6 +275,94 @@ namespace PianoRoll
         }
     }
 
+    /**
+     * Prints a dump of the clipboard
+     */
+    void print_clipboard_dump()
+    {
+        std::println("[PianoRoll] ------------- Dump Begin -------------");
+        std::println("[PianoRoll] Clipboard of length {}", g_clipboard.size());
+        for (auto item : g_clipboard)
+        {
+            item.has_value() ? std::println("[PianoRoll] {:#06x}", item.value().Value) : std::println("[PianoRoll] ------");
+        }
+        std::println("[PianoRoll] ------------- Dump End -------------");
+    }
+        
+    /**
+     * Copies the selected inputs to the clipboard.
+     */
+    void copy_inputs()
+    {
+        if (g_selected_indicies.empty())
+        {
+            return;
+        }
+
+        if (g_selected_indicies.size() == 1)
+        {
+            g_clipboard = {g_inputs[g_selected_indicies[0]]};
+            return;
+        }
+        
+        const size_t min = g_selected_indicies[0];
+        const size_t max = g_selected_indicies[g_selected_indicies.size() - 1];
+
+        g_clipboard.clear();
+        g_clipboard.reserve(max - min);
+        
+        for (auto i = min; i <= max; ++i)
+        {
+            // FIXME: Precompute this, create a map, do anything but not this bru
+            const bool gap = std::ranges::find(g_selected_indicies, i) == g_selected_indicies.end();
+            // HACK: nullopt acquired via explicit constructor call...
+            std::optional<BUTTONS> opt;
+            g_clipboard.push_back(gap ? opt : g_inputs[i]);
+        }
+
+        print_clipboard_dump();
+    }
+
+    /**
+     * Pastes the selected inputs from the clipboard into the piano roll.
+     */
+    void paste_inputs()
+    {
+        if (g_clipboard.empty() || g_selected_indicies.empty() || !can_modify_inputs())
+        {
+            return;
+        }
+
+        SetWindowRedraw(g_lv_hwnd, false);
+
+        // TODO: Implement
+
+        SetWindowRedraw(g_lv_hwnd, true);
+    }
+    
+    /**
+     * Zeroes out all inputs in the current selection
+     */
+    void clear_inputs_in_selection()
+    {
+        if (g_selected_indicies.empty() || !can_modify_inputs())
+        {
+            return;
+        }
+
+        SetWindowRedraw(g_lv_hwnd, false);
+
+        for (auto i : g_selected_indicies)
+        {
+            g_inputs[i] = {0};
+            ListView_Update(g_lv_hwnd, i);
+        }
+
+        SetWindowRedraw(g_lv_hwnd, true);
+        
+        apply_input_buffer();
+    }
+    
     /**
      * Ensures that the currently relevant item is visible in the piano roll listview.
      */
@@ -475,7 +586,7 @@ namespace PianoRoll
             ListView_Update(g_lv_hwnd, selected_index);
         }
         SetWindowRedraw(g_lv_hwnd, true);
-        
+
         RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
         goto def;
     }
@@ -486,7 +597,7 @@ namespace PianoRoll
     void on_piano_roll_selection_changed()
     {
         g_selected_indicies = get_listview_selection(g_lv_hwnd);
-        
+
         if (g_selected_indicies.empty())
         {
             SetDlgItemText(g_hwnd, IDC_STATIC, "Input");
@@ -551,6 +662,33 @@ namespace PianoRoll
         case WM_NCDESTROY:
             RemoveWindowSubclass(hwnd, list_view_proc, sId);
             break;
+        case WM_KEYDOWN:
+            {
+                if (wParam == VK_BACK)
+                {
+                    clear_inputs_in_selection();
+                    break;
+                }
+                
+                if (!(GetKeyState(VK_CONTROL) & 0x8000))
+                {
+                    break;
+                }
+
+                if (wParam == 'C')
+                {
+                    copy_inputs();
+                    break;
+                }
+
+                if (lParam == 'C')
+                {
+                    paste_inputs();
+                    break;
+                }
+                break;
+            }
+
         default:
             break;
         }
