@@ -7,6 +7,7 @@
 #include <commctrl.h>
 
 #include "core/r4300/vcr.h"
+#include "shared/AsyncExecutor.h"
 #include "shared/Messenger.h"
 #include "shared/services/FrontendService.h"
 #include "view/gui/Main.h"
@@ -85,23 +86,28 @@ namespace PianoRoll
      */
     void apply_input_buffer()
     {
-        auto result = VCR::begin_warp_modify(g_inputs);
-
-        if (result != VCR::Result::Ok)
+        // This might be called from UI thread, thus grabbing the VCR lock.
+        // Problem is that the VCR lock is already grabbed by the core thread because current sample changed message is executed on core thread.
+        AsyncExecutor::invoke_async([]()
         {
-            // Since we do optimistic updates, we need to revert the changes we made to the input buffer to avoid visual desync
-            SetWindowRedraw(g_lv_hwnd, false);
+            auto result = VCR::begin_warp_modify(g_inputs);
 
-            ListView_DeleteAllItems(g_lv_hwnd);
+            if (result != VCR::Result::Ok)
+            {
+                // Since we do optimistic updates, we need to revert the changes we made to the input buffer to avoid visual desync
+                SetWindowRedraw(g_lv_hwnd, false);
 
-            g_inputs = VCR::get_inputs();
-            ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
-            std::println("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_inputs.size());
+                ListView_DeleteAllItems(g_lv_hwnd);
 
-            SetWindowRedraw(g_lv_hwnd, true);
+                g_inputs = VCR::get_inputs();
+                ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
+                std::println("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_inputs.size());
 
-            FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str(), "Piano Roll", g_hwnd);
-        }
+                SetWindowRedraw(g_lv_hwnd, true);
+
+                FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str(), "Piano Roll", g_hwnd);
+            }
+        });
     }
 
     /**
@@ -351,7 +357,7 @@ namespace PianoRoll
         {
             ListView_SetItemState(g_lv_hwnd, selected_index, 0, LVIS_SELECTED);
         }
-        
+
         for (auto& selected_index : new_selected_indicies)
         {
             selected_index += offset;
@@ -362,7 +368,7 @@ namespace PianoRoll
             ListView_SetItemState(g_lv_hwnd, selected_index, LVIS_SELECTED, LVIS_SELECTED);
         }
     }
-    
+
     /**
      * Pastes the selected inputs from the clipboard into the piano roll.
      */
@@ -401,7 +407,7 @@ namespace PianoRoll
         SetWindowRedraw(g_lv_hwnd, false);
 
         size_t last_modified_index = g_selected_indicies[0];
-        
+
         if (g_selected_indicies.size() == 1)
         {
             // 1-sized selection indicates a bulk copy, where copy all the inputs over (and ignore the clipboard gaps)
@@ -442,11 +448,11 @@ namespace PianoRoll
         // Move selection start to the last modified index to allow cool block-wise pasting
         const size_t offset = last_modified_index - g_selected_indicies[0] + 1;
         shift_selection(offset);
-        
+
         ensure_relevant_item_visible();
-        
+
         SetWindowRedraw(g_lv_hwnd, true);
-        
+
         apply_input_buffer();
     }
 
