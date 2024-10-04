@@ -377,9 +377,10 @@ namespace PianoRoll
             }
 
             SetWindowRedraw(g_lv_hwnd, true);
-            return;
         }
-        
+
+        apply_input_buffer();
+
         // TODO: Implement other cases 
     }
 
