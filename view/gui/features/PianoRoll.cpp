@@ -372,7 +372,7 @@ namespace PianoRoll
     /**
      * Pastes the selected inputs from the clipboard into the piano roll.
      */
-    void paste_inputs()
+    void paste_inputs(bool merge)
     {
         if (g_clipboard.empty() || g_selected_indicies.empty() || !can_modify_inputs())
         {
@@ -415,7 +415,7 @@ namespace PianoRoll
             {
                 if (item.has_value() && i < g_inputs.size())
                 {
-                    g_inputs[i] = item.value();
+                    g_inputs[i] = merge ? BUTTONS { g_inputs[i].Value | item.value().Value } : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -433,7 +433,7 @@ namespace PianoRoll
 
                 if (item.has_value() && i < g_inputs.size() && included)
                 {
-                    g_inputs[i] = item.value();
+                    g_inputs[i] = merge ? BUTTONS { g_inputs[i].Value | item.value().Value } : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -793,7 +793,7 @@ namespace PianoRoll
 
                 if (wParam == 'V')
                 {
-                    paste_inputs();
+                    paste_inputs(GetKeyState(VK_SHIFT) & 0x8000);
                     break;
                 }
                 break;
