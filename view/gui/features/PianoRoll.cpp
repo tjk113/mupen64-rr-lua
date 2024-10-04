@@ -288,7 +288,7 @@ namespace PianoRoll
         }
         std::println("[PianoRoll] ------------- Dump End -------------");
     }
-        
+
     /**
      * Copies the selected inputs to the clipboard.
      */
@@ -304,13 +304,13 @@ namespace PianoRoll
             g_clipboard = {g_inputs[g_selected_indicies[0]]};
             return;
         }
-        
+
         const size_t min = g_selected_indicies[0];
         const size_t max = g_selected_indicies[g_selected_indicies.size() - 1];
 
         g_clipboard.clear();
         g_clipboard.reserve(max - min);
-        
+
         for (auto i = min; i <= max; ++i)
         {
             // FIXME: Precompute this, create a map, do anything but not this bru
@@ -333,13 +333,56 @@ namespace PianoRoll
             return;
         }
 
-        SetWindowRedraw(g_lv_hwnd, false);
+        bool clipboard_has_gaps = false;
+        for (auto item : g_clipboard)
+        {
+            if (!item.has_value())
+            {
+                clipboard_has_gaps = true;
+                break;
+            }
+        }
 
-        // TODO: Implement
+        bool selection_has_gaps = false;
+        if (g_selected_indicies.size() > 1)
+        {
+            for (int i = 1; i < g_selected_indicies.size(); ++i)
+            {
+                if (g_selected_indicies[i] - g_selected_indicies[i - 1] > 1)
+                {
+                    selection_has_gaps = true;
+                    break;
+                }
+            }
+        }
 
-        SetWindowRedraw(g_lv_hwnd, true);
+        std::println("[PianoRoll] Clipboard/selection gaps: {}, {}", clipboard_has_gaps, selection_has_gaps);
+
+        // 1-sized selection indicates a bulk copy, where copy all the inputs over (and ignore the clipboard gaps)
+        if (g_selected_indicies.size() == 1)
+        {
+            size_t i = g_selected_indicies[0];
+            
+            SetWindowRedraw(g_lv_hwnd, false);
+
+            for (auto item : g_clipboard)
+            {
+                if (item.has_value())
+                {
+                    g_inputs[i] = item.value();
+                    ListView_Update(g_lv_hwnd, i);
+                }
+
+                i++;
+            }
+
+            SetWindowRedraw(g_lv_hwnd, true);
+            return;
+        }
+        
+        // TODO: Implement other cases 
     }
-    
+
     /**
      * Zeroes out all inputs in the current selection
      */
@@ -359,10 +402,10 @@ namespace PianoRoll
         }
 
         SetWindowRedraw(g_lv_hwnd, true);
-        
+
         apply_input_buffer();
     }
-    
+
     /**
      * Ensures that the currently relevant item is visible in the piano roll listview.
      */
@@ -669,7 +712,7 @@ namespace PianoRoll
                     clear_inputs_in_selection();
                     break;
                 }
-                
+
                 if (!(GetKeyState(VK_CONTROL) & 0x8000))
                 {
                     break;
@@ -681,7 +724,7 @@ namespace PianoRoll
                     break;
                 }
 
-                if (lParam == 'C')
+                if (wParam == 'V')
                 {
                     paste_inputs();
                     break;
