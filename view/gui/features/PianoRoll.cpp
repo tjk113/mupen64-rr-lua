@@ -789,7 +789,6 @@ namespace PianoRoll
         const auto column = g_config.piano_roll_constrain_edit_to_column ? g_lv_drag_column : lplvhtti.iSubItem;
         set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
 
-        ListView_SetItemState(g_lv_hwnd, lplvhtti.iItem, LVIS_SELECTED, LVIS_SELECTED);
         ListView_Update(hwnd, lplvhtti.iItem);
     }
 
