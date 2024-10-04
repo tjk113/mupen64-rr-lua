@@ -405,9 +405,7 @@ namespace PianoRoll
         std::println("[PianoRoll] Clipboard/selection gaps: {}, {}", clipboard_has_gaps, selection_has_gaps);
 
         SetWindowRedraw(g_lv_hwnd, false);
-
-        size_t last_modified_index = g_selected_indicies[0];
-
+        
         if (g_selected_indicies.size() == 1)
         {
             // 1-sized selection indicates a bulk copy, where copy all the inputs over (and ignore the clipboard gaps)
@@ -415,9 +413,8 @@ namespace PianoRoll
 
             for (auto item : g_clipboard)
             {
-                if (item.has_value())
+                if (item.has_value() && i < g_inputs.size())
                 {
-                    last_modified_index = i;
                     g_inputs[i] = item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
@@ -434,9 +431,8 @@ namespace PianoRoll
             {
                 const bool included = std::ranges::find(g_selected_indicies, i) != g_selected_indicies.end();
 
-                if (item.has_value() && included)
+                if (item.has_value() && i < g_inputs.size() && included)
                 {
-                    last_modified_index = i;
                     g_inputs[i] = item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
@@ -445,8 +441,8 @@ namespace PianoRoll
             }
         }
 
-        // Move selection start to the last modified index to allow cool block-wise pasting
-        const size_t offset = last_modified_index - g_selected_indicies[0] + 1;
+        // Move selection to allow cool block-wise pasting
+        const size_t offset = g_selected_indicies[g_selected_indicies.size() - 1] - g_selected_indicies[0] + 1;
         shift_selection(offset);
 
         ensure_relevant_item_visible();
@@ -477,6 +473,28 @@ namespace PianoRoll
         SetWindowRedraw(g_lv_hwnd, true);
 
         apply_input_buffer();
+    }
+
+    void update_groupbox_status_text()
+    {
+        if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+        {
+            SetDlgItemText(g_hwnd, IDC_STATIC, "Input - Warping...");
+            return;
+        }
+        
+        if (g_selected_indicies.empty())
+        {
+            SetDlgItemText(g_hwnd, IDC_STATIC, "Input");
+        }
+        else if (g_selected_indicies.size() == 1)
+        {
+            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", g_selected_indicies[0]).c_str());
+        }
+        else
+        {
+            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - {} frames selected", g_selected_indicies.size()).c_str());
+        }
     }
 
     void on_task_changed(std::any data)
@@ -542,6 +560,11 @@ namespace PianoRoll
         ensure_relevant_item_visible();
     }
 
+    void on_warp_modify_status_changed(std::any)
+    {
+        update_groupbox_status_text();
+    }
+    
     /**
      * The window procedure for the joystick control. 
      */
@@ -697,19 +720,7 @@ namespace PianoRoll
     {
         g_selected_indicies = get_listview_selection(g_lv_hwnd);
 
-        if (g_selected_indicies.empty())
-        {
-            SetDlgItemText(g_hwnd, IDC_STATIC, "Input");
-        }
-        else if (g_selected_indicies.size() == 1)
-        {
-            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", g_selected_indicies[0]).c_str());
-        }
-        else
-        {
-            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - {} frames selected", g_selected_indicies.size()).c_str());
-        }
-
+        update_groupbox_status_text();
         RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
     }
 
@@ -928,6 +939,7 @@ namespace PianoRoll
                 on_task_changed(VCR::get_task());
                 // ReSharper disable once CppRedundantCastExpression
                 on_current_sample_changed(static_cast<long>(VCR::get_seek_completion().first));
+                update_groupbox_status_text();
                 SendMessage(hwnd, WM_SIZE, 0, 0);
 
                 break;
@@ -1054,6 +1066,7 @@ namespace PianoRoll
         Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
         Messenger::subscribe(Messenger::Message::CurrentSampleChanged, on_current_sample_changed);
         Messenger::subscribe(Messenger::Message::UnfreezeCompleted, on_unfreeze_completed);
+        Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed);
 
         WNDCLASS wndclass = {0};
         wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
