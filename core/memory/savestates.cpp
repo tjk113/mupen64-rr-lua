@@ -581,6 +581,10 @@ void savestates_load_immediate()
 	{
 		FrontendService::show_statusbar(std::format("Loaded slot {}", st_slot + 1).c_str());
 	}
+	if (st_medium == e_st_medium::memory)
+	{
+		g_st_callback(decompressed_buf);
+	}
 failedLoad:
 	extern bool ignore;
 	//legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
@@ -617,8 +621,9 @@ void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
 	st_medium = e_st_medium::path;
 }
 
-void savestates_load_memory(const std::vector<uint8_t>& buffer)
+void savestates_load_memory(const std::vector<uint8_t>& buffer, const std::function<void(const std::vector<uint8_t>&)>& callback)
 {
+	g_st_callback = callback;
 	g_st_buf = buffer;
 	savestates_job = e_st_job::load;
 	st_medium = e_st_medium::memory;

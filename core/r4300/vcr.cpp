@@ -1351,7 +1351,7 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
 			const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
 
 			std::println("[VCR] Seeking backwards during recording to frame {}, closest savestate at {}", target_sample, closest_key);
-			savestates_load_memory(g_seek_savestates[closest_key]);
+			savestates_load_memory(g_seek_savestates[closest_key], [](auto){});
 			return VCR::Result::Ok;
 		}
 		

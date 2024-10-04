@@ -115,9 +115,10 @@ void savestates_save_memory(const std::function<void(const std::vector<uint8_t>&
 /**
  * \brief Loads a savestate from an in-memory buffer
  * \param buffer A buffer containing the savestate
+ * \param callback A callback that will be called with the savestate's data upon the load operation completing
  * \remarks The operation won't complete immediately
  */
-void savestates_load_memory(const std::vector<uint8_t>& buffer);
+void savestates_load_memory(const std::vector<uint8_t>& buffer, const std::function<void(const std::vector<uint8_t>&)>& callback);
 
 /**
  * \brief Executes a savestate operation to a path
