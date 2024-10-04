@@ -358,12 +358,12 @@ namespace PianoRoll
 
         std::println("[PianoRoll] Clipboard/selection gaps: {}, {}", clipboard_has_gaps, selection_has_gaps);
 
-        // 1-sized selection indicates a bulk copy, where copy all the inputs over (and ignore the clipboard gaps)
+        SetWindowRedraw(g_lv_hwnd, false);
+
         if (g_selected_indicies.size() == 1)
         {
+            // 1-sized selection indicates a bulk copy, where copy all the inputs over (and ignore the clipboard gaps)
             size_t i = g_selected_indicies[0];
-            
-            SetWindowRedraw(g_lv_hwnd, false);
 
             for (auto item : g_clipboard)
             {
@@ -375,13 +375,28 @@ namespace PianoRoll
 
                 i++;
             }
+        }
+        else
+        {
+            // Standard case: selection is a mask
+            size_t i = g_selected_indicies[0];
 
-            SetWindowRedraw(g_lv_hwnd, true);
+            for (auto item : g_clipboard)
+            {
+                const bool included = std::ranges::find(g_selected_indicies, i) != g_selected_indicies.end();
+
+                if (item.has_value() && included)
+                {
+                    g_inputs[i] = item.value();
+                    ListView_Update(g_lv_hwnd, i);
+                }
+
+                i++;
+            }
         }
 
+        SetWindowRedraw(g_lv_hwnd, true);
         apply_input_buffer();
-
-        // TODO: Implement other cases 
     }
 
     /**
