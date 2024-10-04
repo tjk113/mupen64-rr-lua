@@ -290,6 +290,23 @@ namespace PianoRoll
     }
 
     /**
+     * Ensures that the currently relevant item is visible in the piano roll listview.
+     */
+    void ensure_relevant_item_visible()
+    {
+        int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+
+        if (i == -1)
+        {
+            auto current_sample = VCR::get_seek_completion().first;
+            ListView_EnsureVisible(g_lv_hwnd, VCR::get_task() == e_task::recording ? current_sample - 1 : current_sample, false);
+            return;
+        }
+
+        ListView_EnsureVisible(g_lv_hwnd, i, false);
+    }
+
+    /**
      * Copies the selected inputs to the clipboard.
      */
     void copy_inputs()
@@ -323,6 +340,29 @@ namespace PianoRoll
         print_clipboard_dump();
     }
 
+    /**
+     * Shifts the selection by the specified amount.
+     */
+    void shift_selection(const size_t offset)
+    {
+        std::vector new_selected_indicies = g_selected_indicies;
+
+        for (const auto selected_index : new_selected_indicies)
+        {
+            ListView_SetItemState(g_lv_hwnd, selected_index, 0, LVIS_SELECTED);
+        }
+        
+        for (auto& selected_index : new_selected_indicies)
+        {
+            selected_index += offset;
+        }
+
+        for (const auto selected_index : new_selected_indicies)
+        {
+            ListView_SetItemState(g_lv_hwnd, selected_index, LVIS_SELECTED, LVIS_SELECTED);
+        }
+    }
+    
     /**
      * Pastes the selected inputs from the clipboard into the piano roll.
      */
@@ -360,6 +400,8 @@ namespace PianoRoll
 
         SetWindowRedraw(g_lv_hwnd, false);
 
+        size_t last_modified_index = g_selected_indicies[0];
+        
         if (g_selected_indicies.size() == 1)
         {
             // 1-sized selection indicates a bulk copy, where copy all the inputs over (and ignore the clipboard gaps)
@@ -369,6 +411,7 @@ namespace PianoRoll
             {
                 if (item.has_value())
                 {
+                    last_modified_index = i;
                     g_inputs[i] = item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
@@ -387,6 +430,7 @@ namespace PianoRoll
 
                 if (item.has_value() && included)
                 {
+                    last_modified_index = i;
                     g_inputs[i] = item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
@@ -395,7 +439,14 @@ namespace PianoRoll
             }
         }
 
+        // Move selection start to the last modified index to allow cool block-wise pasting
+        const size_t offset = last_modified_index - g_selected_indicies[0] + 1;
+        shift_selection(offset);
+        
+        ensure_relevant_item_visible();
+        
         SetWindowRedraw(g_lv_hwnd, true);
+        
         apply_input_buffer();
     }
 
@@ -420,23 +471,6 @@ namespace PianoRoll
         SetWindowRedraw(g_lv_hwnd, true);
 
         apply_input_buffer();
-    }
-
-    /**
-     * Ensures that the currently relevant item is visible in the piano roll listview.
-     */
-    void ensure_relevant_item_visible()
-    {
-        int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
-
-        if (i == -1)
-        {
-            auto current_sample = VCR::get_seek_completion().first;
-            ListView_EnsureVisible(g_lv_hwnd, VCR::get_task() == e_task::recording ? current_sample - 1 : current_sample, false);
-            return;
-        }
-
-        ListView_EnsureVisible(g_lv_hwnd, i, false);
     }
 
     void on_task_changed(std::any data)
@@ -471,7 +505,7 @@ namespace PianoRoll
         if (VCR::get_task() == e_task::recording)
         {
             g_inputs = VCR::get_inputs();
-            ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
+            ListView_SetItemCountEx(g_lv_hwnd, g_inputs.size(), LVSICF_NOSCROLL);
         }
 
         ListView_Update(g_lv_hwnd, previous_value);
