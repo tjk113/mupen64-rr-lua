@@ -11,9 +11,23 @@ namespace Messenger
 #define ASSERT_NOT_CHANGING
 #endif
 
-    std::vector<std::pair<Message, t_user_callback>> g_subscribers;
+    // Represents a subscriber to a message.
+    struct Subscriber
+    {
+        // A unique identifier.
+        size_t uid;
+
+        // The callback function.
+        t_user_callback cb;
+    };
+
+    std::vector<std::pair<Message, Subscriber>> g_subscribers;
+    
     std::unordered_map<Message, std::vector<t_user_callback>> g_subscriber_cache;
 
+    // UID accumulator for generating unique subscriber IDs. Only write operation is increment.
+    size_t g_uid_accumulator;
+    
     // Safety flag for debugging, used to track if the subscriber list is being modified while broadcasting.
     std::atomic g_changing = false;
 
@@ -30,7 +44,7 @@ namespace Messenger
 
         for (const auto& [key, func] : g_subscribers)
         {
-            g_subscriber_cache[key].push_back(func);
+            g_subscriber_cache[key].push_back(func.cb);
         }
     }
 
@@ -41,7 +55,7 @@ namespace Messenger
         for (const auto& subscriber : g_subscriber_cache[message])
         {
             ASSERT_NOT_CHANGING;
-            
+
             subscriber(data);
         }
     }
@@ -50,17 +64,21 @@ namespace Messenger
     {
         g_changing = true;
 
-        auto index = g_subscribers.size();
-        g_subscribers.emplace_back(message, callback);
+        Subscriber subscriber = { g_uid_accumulator++, callback };
+        
+        g_subscribers.emplace_back(message, subscriber);
         rebuild_subscriber_cache();
 
         g_changing = false;
 
-        return [index]
+        return [=]
         {
             g_changing = true;
 
-            g_subscribers.erase(g_subscribers.begin() + index);
+            std::erase_if(g_subscribers, [=] (const auto& pair)
+            {
+                return pair.second.uid == subscriber.uid;
+            });
             rebuild_subscriber_cache();
 
             g_changing = false;
