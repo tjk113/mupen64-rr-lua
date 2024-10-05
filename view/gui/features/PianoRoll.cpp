@@ -405,7 +405,7 @@ namespace PianoRoll
         std::println("[PianoRoll] Clipboard/selection gaps: {}, {}", clipboard_has_gaps, selection_has_gaps);
 
         SetWindowRedraw(g_lv_hwnd, false);
-        
+
         if (g_selected_indicies.size() == 1)
         {
             // 1-sized selection indicates a bulk copy, where copy all the inputs over (and ignore the clipboard gaps)
@@ -415,7 +415,7 @@ namespace PianoRoll
             {
                 if (item.has_value() && i < g_inputs.size())
                 {
-                    g_inputs[i] = merge ? BUTTONS { g_inputs[i].Value | item.value().Value } : item.value();
+                    g_inputs[i] = merge ? BUTTONS{g_inputs[i].Value | item.value().Value} : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -433,7 +433,7 @@ namespace PianoRoll
 
                 if (item.has_value() && i < g_inputs.size() && included)
                 {
-                    g_inputs[i] = merge ? BUTTONS { g_inputs[i].Value | item.value().Value } : item.value();
+                    g_inputs[i] = merge ? BUTTONS{g_inputs[i].Value | item.value().Value} : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -482,7 +482,7 @@ namespace PianoRoll
             SetDlgItemText(g_hwnd, IDC_STATIC, "Input - Warping...");
             return;
         }
-        
+
         if (g_selected_indicies.empty())
         {
             SetDlgItemText(g_hwnd, IDC_STATIC, "Input");
@@ -564,7 +564,7 @@ namespace PianoRoll
     {
         update_groupbox_status_text();
     }
-    
+
     /**
      * The window procedure for the joystick control. 
      */
@@ -1063,11 +1063,6 @@ namespace PianoRoll
 
     void init()
     {
-        Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
-        Messenger::subscribe(Messenger::Message::CurrentSampleChanged, on_current_sample_changed);
-        Messenger::subscribe(Messenger::Message::UnfreezeCompleted, on_unfreeze_completed);
-        Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed);
-
         WNDCLASS wndclass = {0};
         wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
         wndclass.lpfnWndProc = (WNDPROC)joystick_proc;
@@ -1087,7 +1082,19 @@ namespace PianoRoll
 
         std::thread([]
         {
+            std::vector<std::function<void()>> unsubscribe_funcs;
+            unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed));
+            unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::CurrentSampleChanged, on_current_sample_changed));
+            unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::UnfreezeCompleted, on_unfreeze_completed));
+            unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed));
+
             DialogBox(g_app_instance, MAKEINTRESOURCE(IDD_PIANO_ROLL), 0, (DLGPROC)dialog_proc);
+
+            std::println("[PianoRoll] Unsubscribing from {} messages...", unsubscribe_funcs.size());
+            for (auto unsubscribe_func : unsubscribe_funcs)
+            {
+                unsubscribe_func();
+            }
         }).detach();
     }
 }
