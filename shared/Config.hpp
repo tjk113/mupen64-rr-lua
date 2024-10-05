@@ -433,6 +433,11 @@ typedef struct Config
 	int32_t piano_roll_constrain_edit_to_column;
 
 	/// <summary>
+	/// Maximum size of the undo/redo stack. 
+	/// </summary>
+	int32_t piano_roll_undo_stack_size = 100;
+	
+	/// <summary>
 	/// SD card emulation
 	/// </summary>
 	int32_t use_summercart;

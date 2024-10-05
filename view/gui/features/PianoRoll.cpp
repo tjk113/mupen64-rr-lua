@@ -25,8 +25,16 @@ namespace PianoRoll
     HWND g_lv_hwnd = nullptr;
     HWND g_joy_hwnd = nullptr;
 
-    // Selected indicies in the piano roll listview.
-    std::vector<size_t> g_selected_indicies;
+    // Represents the current state of the piano roll.
+    struct PianoRollState
+    {
+        // The input buffer for the piano roll, which is a copy of the inputs from the core and is modified by the user. When editing operations end, this buffer
+        // is provided to begin_warp_modify and thereby applied to the core, changing the resulting emulator state.
+        std::vector<BUTTONS> inputs;
+
+        // Selected indicies in the piano roll listview.
+        std::vector<size_t> selected_indicies;
+    };
 
     // The clipboard buffer for piano roll copy/paste operations. Must be sorted ascendingly.
     //
@@ -47,13 +55,9 @@ namespace PianoRoll
     // -B---
     // $$$$$ <<< Unaffected ]]] Selection end
     //
-    // This also applies for the inverse (gapless clipboard buffer and g_selected_indicies with gaps).
+    // This also applies for the inverse (gapless clipboard buffer and g_piano_roll_state.selected_indicies with gaps).
     //
     std::vector<std::optional<BUTTONS>> g_clipboard{};
-
-    // The input buffer for the piano roll, which is a copy of the inputs from the core and is modified by the user. When editing operations end, this buffer
-    // is provided to begin_warp_modify and thereby applied to the core, changing the resulting emulator state.
-    std::vector<BUTTONS> g_inputs{};
 
     // Whether a drag operation is happening
     bool g_lv_dragging = false;
@@ -70,6 +74,15 @@ namespace PianoRoll
     // Whether a joystick drag operation is happening
     bool g_joy_drag = false;
 
+    // The current piano roll state.
+    PianoRollState g_piano_roll_state;
+
+    // Undo/redo stack for the piano roll.
+    std::deque<PianoRollState> g_piano_roll_states;
+
+    // Stack index for the piano roll undo/redo stack. 0 = top, 1 = 2nd from top, etc...
+    size_t g_piano_roll_state_index;
+
     /**
      * Gets whether inputs can be modified. Affects both the piano roll and the joystick.
      */
@@ -79,35 +92,6 @@ namespace PianoRoll
             && VCR::get_seek_completion().second == SIZE_MAX
             && VCR::get_task() == e_task::recording
             && !g_config.vcr_readonly;
-    }
-
-    /**
-     * Applies the g_inputs buffer to the core.
-     */
-    void apply_input_buffer()
-    {
-        // This might be called from UI thread, thus grabbing the VCR lock.
-        // Problem is that the VCR lock is already grabbed by the core thread because current sample changed message is executed on core thread.
-        AsyncExecutor::invoke_async([]()
-        {
-            auto result = VCR::begin_warp_modify(g_inputs);
-
-            if (result != VCR::Result::Ok)
-            {
-                // Since we do optimistic updates, we need to revert the changes we made to the input buffer to avoid visual desync
-                SetWindowRedraw(g_lv_hwnd, false);
-
-                ListView_DeleteAllItems(g_lv_hwnd);
-
-                g_inputs = VCR::get_inputs();
-                ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
-                std::println("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_inputs.size());
-
-                SetWindowRedraw(g_lv_hwnd, true);
-
-                FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str(), "Piano Roll", g_hwnd);
-            }
-        });
     }
 
     /**
@@ -133,9 +117,9 @@ namespace PianoRoll
 
             ListView_DeleteAllItems(g_lv_hwnd);
 
-            g_inputs = VCR::get_inputs();
-            ListView_SetItemCount(g_lv_hwnd, g_inputs.size());
-            std::println("[PianoRoll] Pulled inputs from core for playback mode, count: {}", g_inputs.size());
+            g_piano_roll_state.inputs = VCR::get_inputs();
+            ListView_SetItemCount(g_lv_hwnd, g_piano_roll_state.inputs.size());
+            std::println("[PianoRoll] Pulled inputs from core for playback mode, count: {}", g_piano_roll_state.inputs.size());
 
             SetWindowRedraw(g_lv_hwnd, true);
         }
@@ -317,19 +301,19 @@ namespace PianoRoll
      */
     void copy_inputs()
     {
-        if (g_selected_indicies.empty())
+        if (g_piano_roll_state.selected_indicies.empty())
         {
             return;
         }
 
-        if (g_selected_indicies.size() == 1)
+        if (g_piano_roll_state.selected_indicies.size() == 1)
         {
-            g_clipboard = {g_inputs[g_selected_indicies[0]]};
+            g_clipboard = {g_piano_roll_state.inputs[g_piano_roll_state.selected_indicies[0]]};
             return;
         }
 
-        const size_t min = g_selected_indicies[0];
-        const size_t max = g_selected_indicies[g_selected_indicies.size() - 1];
+        const size_t min = g_piano_roll_state.selected_indicies[0];
+        const size_t max = g_piano_roll_state.selected_indicies[g_piano_roll_state.selected_indicies.size() - 1];
 
         g_clipboard.clear();
         g_clipboard.reserve(max - min);
@@ -337,10 +321,10 @@ namespace PianoRoll
         for (auto i = min; i <= max; ++i)
         {
             // FIXME: Precompute this, create a map, do anything but not this bru
-            const bool gap = std::ranges::find(g_selected_indicies, i) == g_selected_indicies.end();
+            const bool gap = std::ranges::find(g_piano_roll_state.selected_indicies, i) == g_piano_roll_state.selected_indicies.end();
             // HACK: nullopt acquired via explicit constructor call...
             std::optional<BUTTONS> opt;
-            g_clipboard.push_back(gap ? opt : g_inputs[i]);
+            g_clipboard.push_back(gap ? opt : g_piano_roll_state.inputs[i]);
         }
 
         print_clipboard_dump();
@@ -351,7 +335,7 @@ namespace PianoRoll
      */
     void shift_selection(const size_t offset)
     {
-        std::vector new_selected_indicies = g_selected_indicies;
+        std::vector new_selected_indicies = g_piano_roll_state.selected_indicies;
 
         for (const auto selected_index : new_selected_indicies)
         {
@@ -370,11 +354,70 @@ namespace PianoRoll
     }
 
     /**
+    * Pushes the current piano roll state to the undo stack. Should be called after operations which change the piano roll state.
+    */
+    void push_state_to_undo_stack()
+    {
+        if (g_piano_roll_states.size() > g_config.piano_roll_undo_stack_size)
+        {
+            g_piano_roll_states.pop_back();
+        }
+
+        g_piano_roll_states.push_front(g_piano_roll_state);
+        g_piano_roll_state_index++;
+    }
+
+    /**
+     * Applies the g_piano_roll_state.inputs buffer to the core.
+     */
+    void apply_input_buffer()
+    {
+        // This might be called from UI thread, thus grabbing the VCR lock.
+        // Problem is that the VCR lock is already grabbed by the core thread because current sample changed message is executed on core thread.
+        AsyncExecutor::invoke_async([]
+        {
+            auto result = VCR::begin_warp_modify(g_piano_roll_state.inputs);
+
+            if (result == VCR::Result::Ok)
+            {
+                push_state_to_undo_stack();
+            }
+            else
+            {
+                // Since we do optimistic updates, we need to revert the changes we made to the input buffer to avoid visual desync
+                SetWindowRedraw(g_lv_hwnd, false);
+
+                ListView_DeleteAllItems(g_lv_hwnd);
+
+                g_piano_roll_state.inputs = VCR::get_inputs();
+                ListView_SetItemCount(g_lv_hwnd, g_piano_roll_state.inputs.size());
+                std::println("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_piano_roll_state.inputs.size());
+
+                SetWindowRedraw(g_lv_hwnd, true);
+
+                FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str(), "Piano Roll", g_hwnd);
+            }
+        });
+    }
+
+    /**
+     * Sets the piano roll state to the specified value, updating everything accordingly and also applying the input buffer.
+     * This is an expensive and slow operation.
+     */
+    void set_piano_roll_state(const PianoRollState& piano_roll_state)
+    {
+        g_piano_roll_state = piano_roll_state;
+        ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
+        set_listview_selection(g_lv_hwnd, g_piano_roll_state.selected_indicies);
+        apply_input_buffer();
+    }
+
+    /**
      * Pastes the selected inputs from the clipboard into the piano roll.
      */
     void paste_inputs(bool merge)
     {
-        if (g_clipboard.empty() || g_selected_indicies.empty() || !can_modify_inputs())
+        if (g_clipboard.empty() || g_piano_roll_state.selected_indicies.empty() || !can_modify_inputs())
         {
             return;
         }
@@ -390,11 +433,11 @@ namespace PianoRoll
         }
 
         bool selection_has_gaps = false;
-        if (g_selected_indicies.size() > 1)
+        if (g_piano_roll_state.selected_indicies.size() > 1)
         {
-            for (int i = 1; i < g_selected_indicies.size(); ++i)
+            for (int i = 1; i < g_piano_roll_state.selected_indicies.size(); ++i)
             {
-                if (g_selected_indicies[i] - g_selected_indicies[i - 1] > 1)
+                if (g_piano_roll_state.selected_indicies[i] - g_piano_roll_state.selected_indicies[i - 1] > 1)
                 {
                     selection_has_gaps = true;
                     break;
@@ -406,16 +449,16 @@ namespace PianoRoll
 
         SetWindowRedraw(g_lv_hwnd, false);
 
-        if (g_selected_indicies.size() == 1)
+        if (g_piano_roll_state.selected_indicies.size() == 1)
         {
             // 1-sized selection indicates a bulk copy, where copy all the inputs over (and ignore the clipboard gaps)
-            size_t i = g_selected_indicies[0];
+            size_t i = g_piano_roll_state.selected_indicies[0];
 
             for (auto item : g_clipboard)
             {
-                if (item.has_value() && i < g_inputs.size())
+                if (item.has_value() && i < g_piano_roll_state.inputs.size())
                 {
-                    g_inputs[i] = merge ? BUTTONS{g_inputs[i].Value | item.value().Value} : item.value();
+                    g_piano_roll_state.inputs[i] = merge ? BUTTONS{g_piano_roll_state.inputs[i].Value | item.value().Value} : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -425,15 +468,15 @@ namespace PianoRoll
         else
         {
             // Standard case: selection is a mask
-            size_t i = g_selected_indicies[0];
+            size_t i = g_piano_roll_state.selected_indicies[0];
 
             for (auto item : g_clipboard)
             {
-                const bool included = std::ranges::find(g_selected_indicies, i) != g_selected_indicies.end();
+                const bool included = std::ranges::find(g_piano_roll_state.selected_indicies, i) != g_piano_roll_state.selected_indicies.end();
 
-                if (item.has_value() && i < g_inputs.size() && included)
+                if (item.has_value() && i < g_piano_roll_state.inputs.size() && included)
                 {
-                    g_inputs[i] = merge ? BUTTONS{g_inputs[i].Value | item.value().Value} : item.value();
+                    g_piano_roll_state.inputs[i] = merge ? BUTTONS{g_piano_roll_state.inputs[i].Value | item.value().Value} : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -442,7 +485,7 @@ namespace PianoRoll
         }
 
         // Move selection to allow cool block-wise pasting
-        const size_t offset = g_selected_indicies[g_selected_indicies.size() - 1] - g_selected_indicies[0] + 1;
+        const size_t offset = g_piano_roll_state.selected_indicies[g_piano_roll_state.selected_indicies.size() - 1] - g_piano_roll_state.selected_indicies[0] + 1;
         shift_selection(offset);
 
         ensure_relevant_item_visible();
@@ -453,20 +496,62 @@ namespace PianoRoll
     }
 
     /**
+     * Restores the piano roll state to the last stored state.
+     */
+    bool undo()
+    {
+        if (g_piano_roll_states.size() <= 1)
+        {
+            return false;
+        }
+
+        if (g_piano_roll_state_index <= 0)
+        {
+            return false;
+        }
+
+        g_piano_roll_state_index--;
+        set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
+        
+        return true;
+    }
+
+    /**
+     * Restores the piano roll state to the next stored state.
+     */
+    bool redo()
+    {
+        if (g_piano_roll_states.size() <= 1)
+        {
+            return false;
+        }
+
+        if (g_piano_roll_state_index + 1 >= g_piano_roll_states.size())
+        {
+            return false;
+        }
+
+        g_piano_roll_state_index++;
+        set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
+
+        return true;
+    }
+
+    /**
      * Zeroes out all inputs in the current selection
      */
     void clear_inputs_in_selection()
     {
-        if (g_selected_indicies.empty() || !can_modify_inputs())
+        if (g_piano_roll_state.selected_indicies.empty() || !can_modify_inputs())
         {
             return;
         }
 
         SetWindowRedraw(g_lv_hwnd, false);
 
-        for (auto i : g_selected_indicies)
+        for (auto i : g_piano_roll_state.selected_indicies)
         {
-            g_inputs[i] = {0};
+            g_piano_roll_state.inputs[i] = {0};
             ListView_Update(g_lv_hwnd, i);
         }
 
@@ -483,17 +568,17 @@ namespace PianoRoll
             return;
         }
 
-        if (g_selected_indicies.empty())
+        if (g_piano_roll_state.selected_indicies.empty())
         {
             SetDlgItemText(g_hwnd, IDC_STATIC, "Input");
         }
-        else if (g_selected_indicies.size() == 1)
+        else if (g_piano_roll_state.selected_indicies.size() == 1)
         {
-            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", g_selected_indicies[0]).c_str());
+            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - Frame {}", g_piano_roll_state.selected_indicies[0]).c_str());
         }
         else
         {
-            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - {} frames selected", g_selected_indicies.size()).c_str());
+            SetDlgItemText(g_hwnd, IDC_STATIC, std::format("Input - {} frames selected", g_piano_roll_state.selected_indicies.size()).c_str());
         }
     }
 
@@ -528,8 +613,8 @@ namespace PianoRoll
 
         if (VCR::get_task() == e_task::recording)
         {
-            g_inputs = VCR::get_inputs();
-            ListView_SetItemCountEx(g_lv_hwnd, g_inputs.size(), LVSICF_NOSCROLL);
+            g_piano_roll_state.inputs = VCR::get_inputs();
+            ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
         }
 
         ListView_Update(g_lv_hwnd, previous_value);
@@ -552,8 +637,8 @@ namespace PianoRoll
 
         ListView_DeleteAllItems(g_lv_hwnd);
 
-        g_inputs = VCR::get_inputs();
-        ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_inputs.size()), LVSICF_NOSCROLL);
+        g_piano_roll_state.inputs = VCR::get_inputs();
+        ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_piano_roll_state.inputs.size()), LVSICF_NOSCROLL);
 
         SetWindowRedraw(g_lv_hwnd, true);
 
@@ -596,7 +681,7 @@ namespace PianoRoll
 
                 if (i != -1)
                 {
-                    input = g_inputs[i];
+                    input = g_piano_roll_state.inputs[i];
                 }
 
                 PAINTSTRUCT ps;
@@ -701,10 +786,10 @@ namespace PianoRoll
             y = 0;
 
         SetWindowRedraw(g_lv_hwnd, false);
-        for (auto selected_index : g_selected_indicies)
+        for (auto selected_index : g_piano_roll_state.selected_indicies)
         {
-            g_inputs[selected_index].X_AXIS = y;
-            g_inputs[selected_index].Y_AXIS = x;
+            g_piano_roll_state.inputs[selected_index].X_AXIS = y;
+            g_piano_roll_state.inputs[selected_index].Y_AXIS = x;
             ListView_Update(g_lv_hwnd, selected_index);
         }
         SetWindowRedraw(g_lv_hwnd, true);
@@ -718,7 +803,7 @@ namespace PianoRoll
      */
     void on_piano_roll_selection_changed()
     {
-        g_selected_indicies = get_listview_selection(g_lv_hwnd);
+        g_piano_roll_state.selected_indicies = get_listview_selection(g_lv_hwnd);
 
         update_groupbox_status_text();
         RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
@@ -750,7 +835,7 @@ namespace PianoRoll
                     break;
                 }
 
-                auto input = g_inputs[lplvhtti.iItem];
+                auto input = g_piano_roll_state.inputs[lplvhtti.iItem];
 
                 g_lv_dragging = true;
                 g_lv_drag_column = lplvhtti.iSubItem;
@@ -796,6 +881,19 @@ namespace PianoRoll
                     paste_inputs(GetKeyState(VK_SHIFT) & 0x8000);
                     break;
                 }
+
+                if (wParam == 'Z')
+                {
+                    undo();
+                    break;
+                }
+
+                if (wParam == 'Y')
+                {
+                    redo();
+                    break;
+                }
+
                 break;
             }
 
@@ -840,7 +938,7 @@ namespace PianoRoll
         ScreenToClient(hwnd, &lplvhtti.pt);
         ListView_SubItemHitTest(hwnd, &lplvhtti);
 
-        if (lplvhtti.iItem >= g_inputs.size())
+        if (lplvhtti.iItem >= g_piano_roll_state.inputs.size())
         {
             printf("[PianoRoll] iItem out of range\n");
             goto def;
@@ -854,7 +952,7 @@ namespace PianoRoll
         // During a drag operation, we just mutate the input vector in memory and update the listview without doing anything with the core.
         // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
         const auto column = g_config.piano_roll_constrain_edit_to_column ? g_lv_drag_column : lplvhtti.iSubItem;
-        set_input_value_from_column_index(&g_inputs[lplvhtti.iItem], column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
+        set_input_value_from_column_index(&g_piano_roll_state.inputs[lplvhtti.iItem], column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
 
         ListView_Update(hwnd, lplvhtti.iItem);
     }
@@ -1011,7 +1109,7 @@ namespace PianoRoll
                                 break;
                             }
 
-                            auto input = g_inputs[plvdi->item.iItem];
+                            auto input = g_piano_roll_state.inputs[plvdi->item.iItem];
 
                             switch (plvdi->item.iSubItem)
                             {

@@ -246,6 +246,32 @@ static std::vector<size_t> get_listview_selection(const HWND hwnd)
 }
 
 /**
+ * Sets the listview selection based on a vector of indicies.
+ * \param hwnd Handle to a listview.
+ * \param indicies A vector containing the selected indicies.
+ */
+static void set_listview_selection(const HWND hwnd, const std::vector<size_t>& indicies)
+{
+	if (!IsWindow(hwnd))
+	{
+		return;
+	}
+	
+	auto selection = get_listview_selection(hwnd);
+
+	for (const auto& idx : selection)
+	{
+		ListView_SetItemState(hwnd, idx, 0, LVIS_SELECTED);
+	}
+	
+	for (const auto& idx : indicies)
+	{
+		ListView_SetItemState(hwnd, idx, LVIS_SELECTED, LVIS_SELECTED);
+	}
+}
+
+
+/**
  * \brief Initializes COM within the object's scope for the current thread
  */
 class COMInitializer

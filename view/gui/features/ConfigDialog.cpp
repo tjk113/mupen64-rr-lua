@@ -818,6 +818,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.data = &g_config.piano_roll_constrain_edit_to_column,
 			.type = t_options_item::Type::Bool,
 		},
+		t_options_item {
+			.group_id = piano_roll_group.id,
+			.name = "Undo stack size",
+			.tooltip = L"Maximum size of the undo/redo stack.",
+			.data = &g_config.piano_roll_undo_stack_size,
+			.type = t_options_item::Type::Number,
+		},
 
 		t_options_item {
 			.group_id = capture_group.id,
