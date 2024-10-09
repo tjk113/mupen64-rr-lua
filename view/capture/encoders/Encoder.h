@@ -5,8 +5,6 @@
 class Encoder
 {
 public:
-	typedef void(__cdecl* FREE_FUNC)(void*);
-
 	struct Params
 	{
 		/**
@@ -33,14 +31,6 @@ public:
 		 * \brief Ask the user for encoding settings
 		 */
 		bool ask_for_encoding_settings;
-		/**
-		 * \brief A function which frees buffers received via <c>append_video</c>.
-		 */
-		FREE_FUNC video_free;
-		/**
-		 * \brief A function which frees buffers received via <c>append_audio</c>.
-		 */
-		FREE_FUNC audio_free;
 	};
 
 	/**

@@ -134,18 +134,22 @@ namespace FrontendService
 	std::string find_available_rom(const std::function<bool(const t_rom_header&)>& predicate);
 
 	/**
-	 * \brief Writes the MGE compositor's current emulation front buffer into the destination buffer
-	 * \param dest The buffer holding video data of size <c>width * height</c>
-	 * \param width The buffer's width
-	 * \param height The buffer's height
+	 * Gets the current video size from the MGE compositor
+	 * \param width The video width
+	 * \param height The video height
 	 */
-	void mge_read_screen(void** dest, long* width, long* height);
+	void mge_get_video_size(long* width, long* height);
+	
+	/**
+	 * \brief Writes the MGE compositor's current emulation front buffer into the destination buffer.
+	 * \param buffer The video buffer. Must be at least of size <c>width * height * 3</c>, as acquired by <c>mge_get_video_size</c>.
+	 */
+	void mge_copy_video(void* buffer);
 
 	/**
 	 * \brief Draws the given data to the MGE surface
-	 * \param data The buffer holding video data of size <c>width * height</c>
-	 * \param width The buffer's width
-	 * \param height The buffer's height
+	 * \param data The buffer holding video data. Must be at least of size <c>width * height * 3</c>, as acquired by <c>mge_get_video_size</c>.
+	 * \remarks The video buffer's size must match the current video size provided by <c>get_video_size</c>.
 	 */
-	void mge_load_screen(void* data, long width, long height);
+	void mge_load_screen(void* data);
 }
