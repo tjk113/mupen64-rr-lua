@@ -319,14 +319,17 @@ std::string FrontendService::find_available_rom(const std::function<bool(const t
 	return Rombrowser::find_available_rom(predicate);
 }
 
-void FrontendService::mge_read_screen(void** dest, long* width, long* height)
+void FrontendService::mge_get_video_size(long* width, long* height)
 {
-	MGECompositor::read_screen(dest, width, height);
+	MGECompositor::get_video_size(width, height);
 }
 
-void FrontendService::mge_load_screen(void* data, long width, long height)
+void FrontendService::mge_copy_video(void* buffer)
 {
-	MGECompositor::load_screen(data, width, height);
+	MGECompositor::copy_video(buffer);
 }
 
-
+void FrontendService::mge_load_screen(void* data)
+{
+	MGECompositor::load_screen(data);
+}

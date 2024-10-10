@@ -1,11 +1,15 @@
 #include "FFmpegEncoder.h"
 
+#include <assert.h>
 #include <shared/Config.hpp>
 
 #include "shared/services/FrontendService.h"
 
 bool FFmpegEncoder::start(Params params)
 {
+    // TODO: Fix this to work with the new system
+    assert(false);
+    
     m_params = params;
     m_params.path.replace_extension(".mp4");
 
@@ -160,7 +164,7 @@ void FFmpegEncoder::write_audio_thread()
                 // We don't want to free our own silence buffer :P
                 if (needs_free)
                 {
-                    m_params.audio_free(buf);
+                    // m_params.audio_free(buf);
                 }
                 this->m_audio_queue.pop();
 
@@ -203,7 +207,7 @@ void FFmpegEncoder::write_video_thread()
 
                 if (needs_free)
                 {
-                    m_params.video_free(buf);
+                    // m_params.video_free(buf);
                 }
                 this->m_video_queue.pop();
 

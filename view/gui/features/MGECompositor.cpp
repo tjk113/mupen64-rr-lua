@@ -98,18 +98,18 @@ namespace MGECompositor
 		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, [](std::any data)
 		{
 			auto value = std::any_cast<bool>(data);
-			ShowWindow(control_hwnd, (value && get_video_size && read_video) ? SW_SHOW : SW_HIDE);
+			ShowWindow(control_hwnd, (value && available()) ? SW_SHOW : SW_HIDE);
 		});
 	}
 
 	bool available()
 	{
-		return get_video_size && read_video;
+		return ::get_video_size && read_video;
 	}
 
 	void update_screen()
 	{
-		get_video_size(&internal_buffer.width, &internal_buffer.height);
+		::get_video_size(&internal_buffer.width, &internal_buffer.height);
 
 		if (internal_buffer.width != internal_buffer.last_width || internal_buffer.height != internal_buffer.last_height)
 		{
@@ -143,12 +143,8 @@ namespace MGECompositor
 		RedrawWindow(control_hwnd, NULL, NULL, RDW_INVALIDATE);
 	}
 
-	void read_screen(void** dest, long* width, long* height)
+	void get_video_size(long* width, long* height)
 	{
-		if (dest)
-		{
-			*dest = internal_buffer.buffer;
-		}
 		if (width)
 		{
 			*width = internal_buffer.width;
@@ -159,18 +155,26 @@ namespace MGECompositor
 		}
 	}
 
-	void load_screen(void* data, long width, long height)
+	void copy_video(void* buffer)
+	{
+		memcpy(buffer, internal_buffer.buffer, internal_buffer.width * internal_buffer.height * 3);
+	}
+
+	void load_screen(void* data)
 	{
 		SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&external_buffer);
 
-		external_buffer.bmp_info.bmiHeader.biWidth = external_buffer.width = width;
-		external_buffer.bmp_info.bmiHeader.biHeight = external_buffer.height = height;
+		external_buffer.width = internal_buffer.width;
+		external_buffer.height = internal_buffer.height;
+		
+		external_buffer.bmp_info.bmiHeader.biWidth = external_buffer.width;
+		external_buffer.bmp_info.bmiHeader.biHeight = external_buffer.height;
 
 		free(external_buffer.buffer);
 		external_buffer.buffer = malloc(external_buffer.width * external_buffer.height * 3);
 		memcpy(external_buffer.buffer, data, external_buffer.width * external_buffer.height * 3);
 
-		MoveWindow(control_hwnd, 0, 0, width, height, true);
+		MoveWindow(control_hwnd, 0, 0, external_buffer.width, external_buffer.height, true);
 		RedrawWindow(control_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 		SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&internal_buffer);
 	}

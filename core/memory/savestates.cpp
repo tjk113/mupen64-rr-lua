@@ -220,10 +220,12 @@ std::vector<uint8_t> generate_savestate()
 
 	if (is_mge_available() && g_config.st_screenshot)
 	{
-		void* video;
 		long width;
 		long height;
-		FrontendService::mge_read_screen(&video, &width, &height);
+		FrontendService::mge_get_video_size(&width, &height);
+		
+		void* video = malloc(width * height * 3);
+		FrontendService::mge_copy_video(video);
 
 		vecwrite(b, screen_section, sizeof(screen_section));
 		vecwrite(b, &width, sizeof(width));
@@ -564,10 +566,10 @@ void savestates_load_immediate()
 		if (is_mge_available() && video_buffer && !VCR::is_seeking())
 		{
 			long current_width, current_height;
-			FrontendService::mge_read_screen(nullptr, &current_width, &current_height);
+			FrontendService::mge_get_video_size(&current_width, &current_height);
 			if (current_width == video_width && current_height == video_height)
 			{
-				FrontendService::mge_load_screen(video_buffer, video_width, video_height);
+				FrontendService::mge_load_screen(video_buffer);
 				free(video_buffer);
 			}
 		}

@@ -20,608 +20,598 @@
 
 namespace EncodingManager
 {
-	// 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
+    // 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
 #define SOUND_BUF_SIZE (44100*2*2)
 
-	// 0x30018
-	int m_audio_freq = 33000;
-	int m_audio_bitrate = 16;
-	long double m_video_frame = 0;
-	long double m_audio_frame = 0;
+    // 0x30018
+    int m_audio_freq = 33000;
+    int m_audio_bitrate = 16;
+    long double m_video_frame = 0;
+    long double m_audio_frame = 0;
 
-	char sound_buf[SOUND_BUF_SIZE];
-	char sound_buf_empty[SOUND_BUF_SIZE];
-	int sound_buf_pos = 0;
-	long last_sound = 0;
-	
-	std::atomic m_capturing = false;
-	EncoderType m_encoder_type;
-	std::unique_ptr<Encoder> m_encoder;
+    // Video buffer, allocated once when recording starts and freed when it ends.
+    uint8_t* m_video_buf = nullptr;
+    long m_video_width;
+    long m_video_height;
 
-	/**
-	 * \brief Writes the window contents overlaid with lua into the front buffer
-	 * \param dest The buffer holding video data of size <c>width * height</c>
-	 * \param width The buffer's width
-	 * \param height The buffer's height
-	 */
-	void readscreen_window(void** dest, long* width, long* height)
-	{
-		const auto info = get_window_info();
-		*width = info.width & ~3;
-		*height = info.height & ~3;
-		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
+    char sound_buf[SOUND_BUF_SIZE];
+    char sound_buf_empty[SOUND_BUF_SIZE];
+    int sound_buf_pos = 0;
+    long last_sound = 0;
 
-		HDC dc = GetDC(g_main_hwnd);
-		HDC compat_dc = CreateCompatibleDC(dc);
-		HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
+    std::atomic m_capturing = false;
+    EncoderType m_encoder_type;
+    std::unique_ptr<Encoder> m_encoder;
 
-		SelectObject(compat_dc, bitmap);
+    void readscreen_plugin()
+    {
+        if (MGECompositor::available())
+        {
+            MGECompositor::copy_video(m_video_buf);
+        }
+        else
+        {
+            void* buf = nullptr;
+            long width;
+            long height;
+            readScreen(&buf, &width, &height);
+            DllCrtFree(buf);
+        }
+    }
 
-		BitBlt(compat_dc, 0, 0, *width, *height, dc, 0, 0, SRCCOPY);
+    void readscreen_window()
+    {
+        HDC dc = GetDC(g_main_hwnd);
+        HDC compat_dc = CreateCompatibleDC(dc);
+        HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
 
-		BITMAPINFO bmp_info{};
-		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmp_info.bmiHeader.biWidth = info.width;
-		bmp_info.bmiHeader.biHeight = info.height;
-		bmp_info.bmiHeader.biPlanes = 1;
-		bmp_info.bmiHeader.biBitCount = 24;
-		bmp_info.bmiHeader.biCompression = BI_RGB;
+        SelectObject(compat_dc, bitmap);
 
-		GetDIBits(compat_dc, bitmap, 0, *height, *dest, &bmp_info, DIB_RGB_COLORS);
+        BitBlt(compat_dc, 0, 0, m_video_width, m_video_height, dc, 0, 0, SRCCOPY);
 
-		SelectObject(compat_dc, nullptr);
-		DeleteObject(bitmap);
-		DeleteDC(compat_dc);
-		ReleaseDC(g_main_hwnd, dc);
-	}
+        BITMAPINFO bmp_info{};
+        bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmp_info.bmiHeader.biWidth = m_video_width;
+        bmp_info.bmiHeader.biHeight = m_video_height;
+        bmp_info.bmiHeader.biPlanes = 1;
+        bmp_info.bmiHeader.biBitCount = 24;
+        bmp_info.bmiHeader.biCompression = BI_RGB;
 
-	/**
-	 * \brief Writes the desktop contents cropped to the window into the front buffer
-	 * \param dest The buffer holding video data of size <c>width * height</c>
-	 * \param width The buffer's width
-	 * \param height The buffer's height
-	 */
-	void readscreen_desktop(void** dest, long* width, long* height)
-	{
-		const auto info = get_window_info();
-		*width = info.width & ~3;
-		*height = info.height & ~3;
-		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
+        GetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
 
-		POINT pt{};
-		ClientToScreen(g_main_hwnd, &pt);
+        SelectObject(compat_dc, nullptr);
+        DeleteObject(bitmap);
+        DeleteDC(compat_dc);
+        ReleaseDC(g_main_hwnd, dc);
+    }
 
-		HDC dc = GetDC(nullptr);
-		HDC compat_dc = CreateCompatibleDC(dc);
-		HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
+    void readscreen_desktop()
+    {
+        POINT pt{};
+        ClientToScreen(g_main_hwnd, &pt);
 
-		SelectObject(compat_dc, bitmap);
+        HDC dc = GetDC(nullptr);
+        HDC compat_dc = CreateCompatibleDC(dc);
+        HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
 
-		BitBlt(compat_dc, 0, 0, *width, *height, dc, pt.x,
-		       pt.y + (info.height - *height), SRCCOPY);
+        SelectObject(compat_dc, bitmap);
 
-		BITMAPINFO bmp_info{};
-		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmp_info.bmiHeader.biWidth = info.width;
-		bmp_info.bmiHeader.biHeight = info.height;
-		bmp_info.bmiHeader.biPlanes = 1;
-		bmp_info.bmiHeader.biBitCount = 24;
-		bmp_info.bmiHeader.biCompression = BI_RGB;
+        BitBlt(compat_dc, 0, 0, m_video_width, m_video_height, dc, pt.x,
+               pt.y, SRCCOPY);
 
-		GetDIBits(compat_dc, bitmap, 0, *height, *dest, &bmp_info, DIB_RGB_COLORS);
+        BITMAPINFO bmp_info{};
+        bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmp_info.bmiHeader.biWidth = m_video_width;
+        bmp_info.bmiHeader.biHeight = m_video_height;
+        bmp_info.bmiHeader.biPlanes = 1;
+        bmp_info.bmiHeader.biBitCount = 24;
+        bmp_info.bmiHeader.biCompression = BI_RGB;
 
-		SelectObject(compat_dc, nullptr);
-		DeleteObject(bitmap);
-		DeleteDC(compat_dc);
-		ReleaseDC(nullptr, dc);
-	}
+        GetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
 
-	void readscreen_hybrid(void** dest, long* width, long* height)
-	{
-		const auto info = get_window_info();
-		*width = info.width & ~3;
-		*height = info.height & ~3;
-		*dest = (uint8_t*)malloc(*width * *height * 3 + 1);
+        SelectObject(compat_dc, nullptr);
+        DeleteObject(bitmap);
+        DeleteDC(compat_dc);
+        ReleaseDC(nullptr, dc);
+    }
 
-		void* rs_buf;
-		long rs_w, rs_h;
-		if (MGECompositor::available())
-		{
-			MGECompositor::read_screen(&rs_buf, &rs_w, &rs_h);
-		} else
-		{
-			readScreen(&rs_buf, &rs_w, &rs_h);
-		}
-		BITMAPINFO rs_bmp_info{};
-		rs_bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		rs_bmp_info.bmiHeader.biPlanes = 1;
-		rs_bmp_info.bmiHeader.biBitCount = 24;
-		rs_bmp_info.bmiHeader.biCompression = BI_RGB;
-		rs_bmp_info.bmiHeader.biWidth = rs_w;
-		rs_bmp_info.bmiHeader.biHeight = rs_h;
+    void readscreen_hybrid()
+    {
+        if (MGECompositor::available())
+        {
+            MGECompositor::copy_video(m_video_buf);
+        }
+        else
+        {
+            void* buf = nullptr;
+            long width;
+            long height;
+            readScreen(&buf, &width, &height);
+            memcpy(m_video_buf, buf, width * height * 3);
+            DllCrtFree(buf);
+        }
 
-		// UI resources, must be accessed from UI thread
-		// To avoid GDI weirdness with cross-thread resources, we do all GDI work on UI thread.
-		Dispatcher::invoke_ui([&] {
+        BITMAPINFO rs_bmp_info{};
+        rs_bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        rs_bmp_info.bmiHeader.biPlanes = 1;
+        rs_bmp_info.bmiHeader.biBitCount = 24;
+        rs_bmp_info.bmiHeader.biCompression = BI_RGB;
+        rs_bmp_info.bmiHeader.biWidth = m_video_width;
+        rs_bmp_info.bmiHeader.biHeight = m_video_height;
 
-			// Since atupdatescreen might not have occured for a long time, we force it now.
-			// This avoids "outdated" visuals, which are otherwise acceptable during normal gameplay, being blitted to the video stream.
-			for (auto& pair : hwnd_lua_map)
-			{
-				pair.second->repaint_visuals();
-			}
+        // UI resources, must be accessed from UI thread
+        // To avoid GDI weirdness with cross-thread resources, we do all GDI work on UI thread.
+        Dispatcher::invoke_ui([&]
+        {
+            // Since atupdatescreen might not have occured for a long time, we force it now.
+            // This avoids "outdated" visuals, which are otherwise acceptable during normal gameplay, being blitted to the video stream.
+            for (auto& pair : hwnd_lua_map)
+            {
+                pair.second->repaint_visuals();
+            }
 
-			GdiFlush();
+            GdiFlush();
 
-			HDC dc = GetDC(g_main_hwnd);
-			HDC compat_dc = CreateCompatibleDC(dc);
-			HBITMAP bitmap = CreateCompatibleBitmap(dc, *width, *height);
-			SelectObject(compat_dc, bitmap);
+            HDC dc = GetDC(g_main_hwnd);
+            HDC compat_dc = CreateCompatibleDC(dc);
+            HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
+            SelectObject(compat_dc, bitmap);
 
-			// Composite the raw readscreen output
-			SetDIBits(compat_dc, bitmap, 0, *height, rs_buf, &rs_bmp_info, DIB_RGB_COLORS);
+            // Composite the raw readscreen output
+            SetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &rs_bmp_info, DIB_RGB_COLORS);
 
-			// First, composite the lua's dxgi surfaces
-			for (auto& pair : hwnd_lua_map) {
-				pair.second->presenter->blit(compat_dc, { 0, 0, (LONG)pair.second->presenter->size().width, (LONG)pair.second->presenter->size().height });
-			}
+            // First, composite the lua's dxgi surfaces
+            for (auto& pair : hwnd_lua_map)
+            {
+                pair.second->presenter->blit(compat_dc, {0, 0, (LONG)pair.second->presenter->size().width, (LONG)pair.second->presenter->size().height});
+            }
 
-			// Then, blit the GDI back DCs
-			for (auto& pair : hwnd_lua_map) {
-				TransparentBlt(compat_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, pair.second->gdi_back_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, lua_gdi_color_mask);
-			}
+            // Then, blit the GDI back DCs
+            for (auto& pair : hwnd_lua_map)
+            {
+                TransparentBlt(compat_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, pair.second->gdi_back_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, lua_gdi_color_mask);
+            }
 
-			BITMAPINFO bmp_info{};
-			bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-			bmp_info.bmiHeader.biWidth = *width;
-			bmp_info.bmiHeader.biHeight = *height;
-			bmp_info.bmiHeader.biPlanes = 1;
-			bmp_info.bmiHeader.biBitCount = 24;
-			bmp_info.bmiHeader.biCompression = BI_RGB;
+            BITMAPINFO bmp_info{};
+            bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+            bmp_info.bmiHeader.biWidth = m_video_width;
+            bmp_info.bmiHeader.biHeight = m_video_height;
+            bmp_info.bmiHeader.biPlanes = 1;
+            bmp_info.bmiHeader.biBitCount = 24;
+            bmp_info.bmiHeader.biCompression = BI_RGB;
 
-			GetDIBits(compat_dc, bitmap, 0, *height, *dest, &bmp_info, DIB_RGB_COLORS);
+            GetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
 
-			SelectObject(compat_dc, nullptr);
-			DeleteObject(bitmap);
-			DeleteDC(compat_dc);
-			ReleaseDC(g_main_hwnd, dc);
-		});
-	}
+            SelectObject(compat_dc, nullptr);
+            DeleteObject(bitmap);
+            DeleteDC(compat_dc);
+            ReleaseDC(g_main_hwnd, dc);
+        });
+    }
 
-	// assumes: len <= writeSize
-	void write_sound(char* buf, int len, const int min_write_size,
-	                 const int max_write_size,
-	                 const BOOL force)
-	{
-		if ((len <= 0 && !force) || len > max_write_size)
-			return;
+    // assumes: len <= writeSize
+    void write_sound(char* buf, int len, const int min_write_size,
+                     const int max_write_size,
+                     const BOOL force)
+    {
+        if ((len <= 0 && !force) || len > max_write_size)
+            return;
 
-		if (sound_buf_pos + len > min_write_size || force)
-		{
-			if (int len2 = rsmp_get_resample_len(44100, m_audio_freq,
-			                                    m_audio_bitrate,
-			                                    sound_buf_pos); (len2 % 8) == 0
-				|| len > max_write_size)
-			{
-				static short* buf2 = nullptr;
+        if (sound_buf_pos + len > min_write_size || force)
+        {
+            if (int len2 = rsmp_get_resample_len(44100, m_audio_freq,
+                                                 m_audio_bitrate,
+                                                 sound_buf_pos); (len2 % 8) == 0
+                || len > max_write_size)
+            {
+                static short* buf2 = nullptr;
 
-				len2 = rsmp_resample(&buf2, 44100,
-				                    reinterpret_cast<short*>(sound_buf),
-				                    m_audio_freq,
-				                    m_audio_bitrate, sound_buf_pos);
+                len2 = rsmp_resample(&buf2, 44100,
+                                     reinterpret_cast<short*>(sound_buf),
+                                     m_audio_freq,
+                                     m_audio_bitrate, sound_buf_pos);
 
-				// We need to allocate another buffer for the handoff....
-				auto secondary_buf = static_cast<short*>(calloc(len2, sizeof(short)));
-				memcpy(secondary_buf, buf2, len2);
+                // We need to allocate another buffer for the handoff....
+                auto secondary_buf = static_cast<short*>(calloc(len2, sizeof(short)));
+                memcpy(secondary_buf, buf2, len2);
 
-				if (len2 > 0)
-				{
-					if ((len2 % 4) != 0)
-					{
-						printf(
-							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
-						fprintf(
-							stderr,
-							"[EncodingManager]: Warning: Possible stereo sound error detected.\n");
-					}
-					if (!m_encoder->append_audio(reinterpret_cast<uint8_t*>(secondary_buf), len2))
-					{
-						FrontendService::show_information(
-							"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
-							nullptr);
-						stop_capture();
-					}
-				}
-				sound_buf_pos = 0;
-			}
-		}
+                if (len2 > 0)
+                {
+                    if ((len2 % 4) != 0)
+                    {
+                        printf(
+                            "[EncodingManager]: Warning: Possible stereo sound error detected.\n");
+                        fprintf(
+                            stderr,
+                            "[EncodingManager]: Warning: Possible stereo sound error detected.\n");
+                    }
+                    if (!m_encoder->append_audio(reinterpret_cast<uint8_t*>(secondary_buf), len2))
+                    {
+                        FrontendService::show_information(
+                            "Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
+                            nullptr);
+                        stop_capture();
+                    }
+                }
+                sound_buf_pos = 0;
+            }
+        }
 
-		if (len > 0)
-		{
-			if ((unsigned int)(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(
-				char))
-			{
-				FrontendService::show_error("Sound buffer overflow");
-				printf("SOUND BUFFER OVERFLOW\n");
-				return;
-			}
+        if (len > 0)
+        {
+            if ((unsigned int)(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(
+                char))
+            {
+                FrontendService::show_error("Sound buffer overflow");
+                printf("SOUND BUFFER OVERFLOW\n");
+                return;
+            }
 #ifdef _DEBUG
-			else
-			{
-				long double pro = (long double)(sound_buf_pos + len) * 100 / (
-					SOUND_BUF_SIZE * sizeof(char));
-				if (pro > 75) printf("---!!!---");
-				printf("sound buffer: %.2f%%\n", pro);
-			}
+            else
+            {
+                long double pro = (long double)(sound_buf_pos + len) * 100 / (
+                    SOUND_BUF_SIZE * sizeof(char));
+                if (pro > 75) printf("---!!!---");
+                printf("sound buffer: %.2f%%\n", pro);
+            }
 #endif
-			memcpy(sound_buf + sound_buf_pos, (char*)buf, len);
-			sound_buf_pos += len;
-			m_audio_frame += ((len / 4) / (long double)m_audio_freq) *
-				get_vis_per_second(ROM_HEADER.Country_code);
-		}
-	}
+            memcpy(sound_buf + sound_buf_pos, (char*)buf, len);
+            sound_buf_pos += len;
+            m_audio_frame += ((len / 4) / (long double)m_audio_freq) *
+                get_vis_per_second(ROM_HEADER.Country_code);
+        }
+    }
 
-	bool is_capturing()
-	{
-		return m_capturing;
-	}
+    bool is_capturing()
+    {
+        return m_capturing;
+    }
 
-	void(* effective_readscreen())(void** dest, long* width, long* height)
-	{
-		switch (g_config.capture_mode)
-		{
-		case 0:
-			return MGECompositor::available() ? MGECompositor::read_screen : readScreen;
-		case 1:
-			return readscreen_window;
-		case 2:
-			return readscreen_desktop;
-		case 3:
-			return readscreen_hybrid;
-		default:
-			return nullptr;
-		}
-	}
+    void read_screen()
+    {
+        if (g_config.capture_mode == 0)
+        {
+            readscreen_plugin();
+        }
+        else if (g_config.capture_mode == 1)
+        {
+            readscreen_window();
+        }
+        else if (g_config.capture_mode == 2)
+        {
+            readscreen_desktop();
+        }
+        else if (g_config.capture_mode == 3)
+        {
+            readscreen_hybrid();
+        }
+        else
+        {
+            assert(false);
+        }
+    }
 
-	void dummy_free(void*)
-	{
-	};
+    void get_video_dimensions(long* width, long* height)
+    {
+        if (g_config.capture_mode == 0)
+        {
+            if (MGECompositor::available())
+            {
+                MGECompositor::get_video_size(width, height);
+            }
+            else
+            {
+                void* buf = nullptr;
+                readScreen(&buf, width, height);
+                DllCrtFree(buf);
+            }
+        }
+        else if (g_config.capture_mode == 1 || g_config.capture_mode == 2 || g_config.capture_mode == 3)
+        {
+            const auto info = get_window_info();
+            *width = info.width & ~3;
+            *height = info.height & ~3;
+        }
+        else
+        {
+            assert(false);
+        }
+    }
 
-	void(*get_effective_readscreen_free())(void*)
-	{
-		switch (g_config.capture_mode)
-		{
-			case 0:
-				return MGECompositor::available() ? dummy_free : DllCrtFree;
-			case 1:
-				return free;
-			case 2:
-				return free;
-			case 3:
-				return free;
-			default:
-				return nullptr;
-		}
-	}
+    bool start_capture(std::filesystem::path path, EncoderType encoder_type,
+                       const bool ask_for_encoding_settings)
+    {
+        assert(is_on_gui_thread());
 
-	void effective_readscreen_free(void* buf)
-	{
-		get_effective_readscreen_free()(buf);
-	}
+        if (is_capturing())
+        {
+            if (!stop_capture())
+            {
+                printf("[EncodingManager]: Couldn't start capture because the previous capture couldn't be stopped.\n");
+                return false;
+            }
+        }
 
-	bool start_capture(std::filesystem::path path, EncoderType encoder_type,
-	                   const bool ask_for_encoding_settings)
-	{
-		assert(is_on_gui_thread());
-		
-		if (is_capturing())
-		{
-			if(!stop_capture())
-			{
-				printf("[EncodingManager]: Couldn't start capture because the previous capture couldn't be stopped.\n");
-				return false;
-			}
-		}
+        switch (encoder_type)
+        {
+        case EncoderType::VFW:
+            m_encoder = std::make_unique<AVIEncoder>();
+            break;
+        case EncoderType::FFmpeg:
+            m_encoder = std::make_unique<FFmpegEncoder>();
+            break;
+        default:
+            assert(false);
+        }
 
-		if (!effective_readscreen())
-		{
-			FrontendService::show_error("Couldn't find a readScreen candidate.\r\nTry selecting another capture mode.", "Capture");
-			return false;
-		}
+        m_encoder_type = encoder_type;
 
-		switch (encoder_type)
-		{
-		case EncoderType::VFW:
-			m_encoder = std::make_unique<AVIEncoder>();
-			break;
-		case EncoderType::FFmpeg:
-			m_encoder = std::make_unique<FFmpegEncoder>();
-			break;
-		default:
-			assert(false);
-		}
+        memset(sound_buf_empty, 0, sizeof(sound_buf_empty));
+        memset(sound_buf, 0, sizeof(sound_buf));
+        last_sound = 0;
+        m_video_frame = 0.0;
+        m_audio_frame = 0.0;
 
-		m_encoder_type = encoder_type;
+        free(m_video_buf);
+        get_video_dimensions(&m_video_width, &m_video_height);
+        m_video_buf = (uint8_t*)malloc(m_video_width * m_video_height * 3);
 
-		memset(sound_buf_empty, 0, sizeof(sound_buf_empty));
-		memset(sound_buf, 0, sizeof(sound_buf));
-		last_sound = 0;
-		m_video_frame = 0.0;
-		m_audio_frame = 0.0;
+        auto result = m_encoder->start(Encoder::Params{
+            .path = path.string().c_str(),
+            .width = (uint32_t)m_video_width,
+            .height = (uint32_t)m_video_height,
+            .fps = get_vis_per_second(ROM_HEADER.Country_code),
+            .arate = 44100,
+            .ask_for_encoding_settings = ask_for_encoding_settings,
+        });
 
-		// If we are capturing internally, we get our dimensions from the window, otherwise from the GFX plugin
-		long width = 0, height = 0;
-		void* dummy;
-		effective_readscreen()(&dummy, &width, &height);
-		get_effective_readscreen_free()(dummy);
+        if (!result)
+        {
+            FrontendService::show_error("Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", "Capture");
+            return false;
+        }
 
-		auto result = m_encoder->start(Encoder::Params{
-			.path = path.string().c_str(),
-			.width =  (uint32_t)width & ~3, // Video dimensions need to be floored to multiple of 4 
-			.height = (uint32_t)height & ~3,
-			.fps = get_vis_per_second(ROM_HEADER.Country_code),
-			.arate = 44100,
-			.ask_for_encoding_settings = ask_for_encoding_settings,
-			.video_free = effective_readscreen_free,
-			.audio_free = free,
-		});
+        m_capturing = true;
 
-		if (!result)
-		{
-			FrontendService::show_error("Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", "Capture");
-			return false;
-		}
+        Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
-		m_capturing = true;
+        printf("[EncodingManager]: Starting capture at %d x %d...\n", m_video_width, m_video_height);
 
-		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
+        return true;
+    }
 
-		printf("[EncodingManager]: Starting capture at %d x %d...\n", width, height);
+    bool stop_capture()
+    {
+        assert(is_on_gui_thread());
 
-		return true;
-	}
+        if (!is_capturing())
+        {
+            return true;
+        }
 
-	bool stop_capture()
-	{
-		assert(is_on_gui_thread());
-		
-		if (!is_capturing())
-		{
-			return true;
-		}
+        write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
 
-		write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
+        if (!m_encoder->stop())
+        {
+            FrontendService::show_error("Failed to stop encoding.", "Capture");
+            return false;
+        }
 
-		if (!m_encoder->stop())
-		{
-			FrontendService::show_error("Failed to stop encoding.", "Capture");
-			return false;
-		}
+        m_encoder.release();
 
-		m_encoder.release();
-		
-		m_capturing = false;
-		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
+        m_capturing = false;
+        Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 
-		printf("[EncodingManager]: Capture finished.\n");
-		return true;
-	}
+        printf("[EncodingManager]: Capture finished.\n");
+        return true;
+    }
 
 
-	void at_vi()
-	{
-		assert(is_on_gui_thread());
-		
-		if (!m_capturing)
-		{
-			return;
-		}
+    void at_vi()
+    {
+        assert(is_on_gui_thread());
 
-		if (g_config.capture_delay)
-		{
-			Sleep(g_config.capture_delay);
-		}
+        if (!m_capturing)
+        {
+            return;
+        }
 
-		void* image = nullptr;
-		long width = 0, height = 0;
+        if (g_config.capture_delay)
+        {
+            Sleep(g_config.capture_delay);
+        }
 
-		{
-			ScopeTimer timer("ReadScreen");
-			effective_readscreen()(&image, &width, &height);
-		}
-		
-		if (image == nullptr)
-		{
-			printf("[EncodingManager]: Couldn't read screen (out of memory?)\n");
-			return;
-		}
+        read_screen();
 
-		if (g_config.synchronization_mode != (int)Sync::Audio && g_config.
-			synchronization_mode != (int)Sync::None)
-		{
-			return;
-		}
+        if (g_config.synchronization_mode != (int)Sync::Audio && g_config.
+            synchronization_mode != (int)Sync::None)
+        {
+            return;
+        }
 
-		// AUDIO SYNC
-		// This type of syncing assumes the audio is authoratative, and drops or duplicates frames to keep the video as close to
-		// it as possible. Some games stop updating the screen entirely at certain points, such as loading zones, which will cause
-		// audio to drift away by default. This method of syncing prevents this, at the cost of the video feed possibly freezing or jumping
-		// (though in practice this rarely happens - usually a loading scene just appears shorter or something).
+        // AUDIO SYNC
+        // This type of syncing assumes the audio is authoratative, and drops or duplicates frames to keep the video as close to
+        // it as possible. Some games stop updating the screen entirely at certain points, such as loading zones, which will cause
+        // audio to drift away by default. This method of syncing prevents this, at the cost of the video feed possibly freezing or jumping
+        // (though in practice this rarely happens - usually a loading scene just appears shorter or something).
 
-		int audio_frames = (int)(m_audio_frame - m_video_frame + 0.1);
-		// i've seen a few games only do ~0.98 frames of audio for a frame, let's account for that here
+        int audio_frames = (int)(m_audio_frame - m_video_frame + 0.1);
+        // i've seen a few games only do ~0.98 frames of audio for a frame, let's account for that here
 
-		if (g_config.synchronization_mode == (int)Sync::Audio)
-		{
-			if (audio_frames < 0)
-			{
-				FrontendService::show_error("Audio frames became negative!", "Capture");
-				stop_capture();
-				return;
-			}
+        if (g_config.synchronization_mode == (int)Sync::Audio)
+        {
+            if (audio_frames < 0)
+            {
+                FrontendService::show_error("Audio frames became negative!", "Capture");
+                stop_capture();
+                return;
+            }
 
-			if (audio_frames == 0)
-			{
-				printf("Dropped Frame! a/v: %Lg/%Lg\n", m_video_frame, m_audio_frame);
-			} else if (audio_frames > 0)
-			{
-				if (!m_encoder->append_video((unsigned char*)image))
-				{
-					FrontendService::show_error(
-						"Failed to append frame to video.\nPerhaps you ran out of memory?",
-						"Capture");
-					stop_capture();
-					return;
-				}
-				m_video_frame += 1.0;
-				audio_frames--;
-			}
+            if (audio_frames == 0)
+            {
+                printf("Dropped Frame! a/v: %Lg/%Lg\n", m_video_frame, m_audio_frame);
+            }
+            else if (audio_frames > 0)
+            {
+                if (!m_encoder->append_video(m_video_buf))
+                {
+                    FrontendService::show_error(
+                        "Failed to append frame to video.\nPerhaps you ran out of memory?",
+                        "Capture");
+                    stop_capture();
+                    return;
+                }
+                m_video_frame += 1.0;
+                audio_frames--;
+            }
 
-			// can this actually happen?
-			while (audio_frames > 0)
-			{
-				if (!m_encoder->append_video((unsigned char*)image))
-				{
-					FrontendService::show_error(
-						"Failed to append frame to video.\nPerhaps you ran out of memory?",
-						"Capture");
-					stop_capture();
-					return;
-				}
-				printf("Duped Frame! a/v: %Lg/%Lg\n", m_video_frame,
-				       m_audio_frame);
-				m_video_frame += 1.0;
-				audio_frames--;
-			}
-		} else
-		{
-			if (!m_encoder->append_video((unsigned char*)image))
-			{
-				FrontendService::show_error(
-						"Failed to append frame to video.\nPerhaps you ran out of memory?",
-						"Capture");
-				stop_capture();
-				return;
-			}
-			m_video_frame += 1.0;
-		}
-	}
+            // can this actually happen?
+            while (audio_frames > 0)
+            {
+                if (!m_encoder->append_video(m_video_buf))
+                {
+                    FrontendService::show_error(
+                        "Failed to append frame to video.\nPerhaps you ran out of memory?",
+                        "Capture");
+                    stop_capture();
+                    return;
+                }
+                printf("Duped Frame! a/v: %Lg/%Lg\n", m_video_frame,
+                       m_audio_frame);
+                m_video_frame += 1.0;
+                audio_frames--;
+            }
+        }
+        else
+        {
+            if (!m_encoder->append_video(m_video_buf))
+            {
+                FrontendService::show_error(
+                    "Failed to append frame to video.\nPerhaps you ran out of memory?",
+                    "Capture");
+                stop_capture();
+                return;
+            }
+            m_video_frame += 1.0;
+        }
+    }
 
-	void ai_len_changed()
-	{
-		assert(is_on_gui_thread());
-		
-		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.
-			ai_dram_addr & 0xFFFFFF));
-		const auto buf = (char*)p;
-		const int ai_len = (int)ai_register.ai_len;
+    void ai_len_changed()
+    {
+        assert(is_on_gui_thread());
 
-		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
+        const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.
+            ai_dram_addr & 0xFFFFFF));
+        const auto buf = (char*)p;
+        const int ai_len = (int)ai_register.ai_len;
 
-		if (!m_capturing)
-		{
-			return;
-		}
+        m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
+
+        if (!m_capturing)
+        {
+            return;
+        }
 
 
-		if (ai_len <= 0)
-			return;
+        if (ai_len <= 0)
+            return;
 
-		const int len = ai_len;
-		const int write_size = 2 * m_audio_freq;
-		// we want (writeSize * 44100 / m_audioFreq) to be an integer
+        const int len = ai_len;
+        const int write_size = 2 * m_audio_freq;
+        // we want (writeSize * 44100 / m_audioFreq) to be an integer
 
-		if (g_config.synchronization_mode == (int)Sync::Video || g_config.
-			synchronization_mode == (int)Sync::None)
-		{
-			// VIDEO SYNC
-			// This is the original syncing code, which adds silence to the audio track to get it to line up with video.
-			// The N64 appears to have the ability to arbitrarily disable its sound processing facilities and no audio samples
-			// are generated. When this happens, the video track will drift away from the audio. This can happen at load boundaries
-			// in some games, for example.
-			//
-			// The only new difference here is that the desync flag is checked for being greater than 1.0 instead of 0.
-			// This is because the audio and video in mupen tend to always be diverged just a little bit, but stay in sync
-			// over time. Checking if desync is not 0 causes the audio stream to to get thrashed which results in clicks
-			// and pops.
+        if (g_config.synchronization_mode == (int)Sync::Video || g_config.
+            synchronization_mode == (int)Sync::None)
+        {
+            // VIDEO SYNC
+            // This is the original syncing code, which adds silence to the audio track to get it to line up with video.
+            // The N64 appears to have the ability to arbitrarily disable its sound processing facilities and no audio samples
+            // are generated. When this happens, the video track will drift away from the audio. This can happen at load boundaries
+            // in some games, for example.
+            //
+            // The only new difference here is that the desync flag is checked for being greater than 1.0 instead of 0.
+            // This is because the audio and video in mupen tend to always be diverged just a little bit, but stay in sync
+            // over time. Checking if desync is not 0 causes the audio stream to to get thrashed which results in clicks
+            // and pops.
 
-			long double desync = m_video_frame - m_audio_frame;
+            long double desync = m_video_frame - m_audio_frame;
 
-			if (g_config.synchronization_mode == (int)Sync::None) // HACK
-				desync = 0;
+            if (g_config.synchronization_mode == (int)Sync::None) // HACK
+                desync = 0;
 
-			if (desync > 1.0)
-			{
-				printf(
-					"[EncodingManager]: Correcting for A/V desynchronization of %+Lf frames\n",
-					desync);
-				int len3 = (int)(m_audio_freq / (long double)
-						get_vis_per_second(ROM_HEADER.Country_code)) * (int)
-					desync;
-				len3 <<= 2;
-				const int empty_size =
-					len3 > write_size ? write_size : len3;
+            if (desync > 1.0)
+            {
+                printf(
+                    "[EncodingManager]: Correcting for A/V desynchronization of %+Lf frames\n",
+                    desync);
+                int len3 = (int)(m_audio_freq / (long double)
+                        get_vis_per_second(ROM_HEADER.Country_code)) * (int)
+                    desync;
+                len3 <<= 2;
+                const int empty_size =
+                    len3 > write_size ? write_size : len3;
 
-				for (int i = 0; i < empty_size; i += 4)
-					*reinterpret_cast<long*>(sound_buf_empty + i) =
-						last_sound;
+                for (int i = 0; i < empty_size; i += 4)
+                    *reinterpret_cast<long*>(sound_buf_empty + i) =
+                        last_sound;
 
-				while (len3 > write_size)
-				{
-					write_sound(sound_buf_empty, write_size, m_audio_freq,
-					            write_size,
-					            FALSE);
-					len3 -= write_size;
-				}
-				write_sound(sound_buf_empty, len3, m_audio_freq, write_size,
-				            FALSE);
-			} else if (desync <= -10.0)
-			{
-				printf(
-					"[EncodingManager]: Waiting from A/V desynchronization of %+Lf frames\n",
-					desync);
-			}
-		}
+                while (len3 > write_size)
+                {
+                    write_sound(sound_buf_empty, write_size, m_audio_freq,
+                                write_size,
+                                FALSE);
+                    len3 -= write_size;
+                }
+                write_sound(sound_buf_empty, len3, m_audio_freq, write_size,
+                            FALSE);
+            }
+            else if (desync <= -10.0)
+            {
+                printf(
+                    "[EncodingManager]: Waiting from A/V desynchronization of %+Lf frames\n",
+                    desync);
+            }
+        }
 
-		write_sound(static_cast<char*>(buf), len, m_audio_freq, write_size,
-		            FALSE);
-		last_sound = *(reinterpret_cast<long*>(buf + len) - 1);
-	}
+        write_sound(static_cast<char*>(buf), len, m_audio_freq, write_size,
+                    FALSE);
+        last_sound = *(reinterpret_cast<long*>(buf + len) - 1);
+    }
 
-	void ai_dacrate_changed(std::any data)
-	{
-		auto type = std::any_cast<system_type>(data);
+    void ai_dacrate_changed(std::any data)
+    {
+        auto type = std::any_cast<system_type>(data);
 
-		if (m_capturing)
-		{
-			FrontendService::show_error("Audio frequency changed during capture.\r\nThe capture will be stopped.", "Capture");
-			stop_capture();
-			return;
-		}
+        if (m_capturing)
+        {
+            FrontendService::show_error("Audio frequency changed during capture.\r\nThe capture will be stopped.", "Capture");
+            stop_capture();
+            return;
+        }
 
-		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
-		switch (type)
-		{
-		case ntsc:
-			m_audio_freq = (int)(48681812 / (ai_register.ai_dacrate + 1));
-			break;
-		case pal:
-			m_audio_freq = (int)(49656530 / (ai_register.ai_dacrate + 1));
-			break;
-		case mpal:
-			m_audio_freq = (int)(48628316 / (ai_register.ai_dacrate + 1));
-			break;
-		default:
-			assert(false);
-			break;
-		}
-		printf("[EncodingManager] m_audio_freq: %d\n", m_audio_freq);
-	}
+        m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
+        switch (type)
+        {
+        case ntsc:
+            m_audio_freq = (int)(48681812 / (ai_register.ai_dacrate + 1));
+            break;
+        case pal:
+            m_audio_freq = (int)(49656530 / (ai_register.ai_dacrate + 1));
+            break;
+        case mpal:
+            m_audio_freq = (int)(48628316 / (ai_register.ai_dacrate + 1));
+            break;
+        default:
+            assert(false);
+            break;
+        }
+        printf("[EncodingManager] m_audio_freq: %d\n", m_audio_freq);
+    }
 
-	void init()
-	{
-		assert(is_on_gui_thread());
-		
-		Messenger::subscribe(Messenger::Message::DacrateChanged, ai_dacrate_changed);
-	}
+    void init()
+    {
+        assert(is_on_gui_thread());
+
+        Messenger::subscribe(Messenger::Message::DacrateChanged, ai_dacrate_changed);
+    }
 }
