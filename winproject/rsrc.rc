@@ -128,6 +128,7 @@ BEGIN
         MENUITEM "&Run...",                     IDM_RUNNER
         MENUITEM "C&heats...",                  IDM_CHEATS
         MENUITEM "&Seek to...",                 IDM_SEEKER
+        MENUITEM "&Piano Roll...",              IDM_PIANO_ROLL
         MENUITEM SEPARATOR
         POPUP "Video Capture"
         BEGIN
@@ -154,6 +155,12 @@ BEGIN
         MENUITEM "Load &Latest Script",         IDM_LOAD_LATEST_LUA
         MENUITEM SEPARATOR
         MENUITEM "&Close All",                  IDM_CLOSE_ALL_LUA
+    END
+    POPUP "&Debug"
+    BEGIN
+        MENUITEM "Warp modify back 10f, press A",           IDM_DEBUG_WARP_MODIFY
+        MENUITEM "Stress warp modify",                      IDM_STRESS_WARP_MODIFY
+        MENUITEM "Benchmark messenger",                     IDM_BENCHMARK_MESSENGER
     END
 END
 
@@ -414,6 +421,10 @@ IDI_DENY                ICON                    "icons\\deny.ico"
 
 IDI_CHANGED             ICON                    "icons\\changed.ico"
 
+IDI_CURRENT             ICON                    "icons\\current.ico"
+
+IDI_MARKER              ICON                    "icons\\marker.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -649,6 +660,15 @@ BEGIN
     PUSHBUTTON      "Remove",IDC_REMOVE_CHEAT,67,126,45,14
 END
 
+IDD_PIANO_ROLL DIALOGEX 0, 0, 426, 320
+STYLE DS_SETFONT | DS_MODALFRAME | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Piano Roll"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "",IDC_LIST_PIANO_ROLL,105,7,241,275,NOT WS_VISIBLE | WS_BORDER
+    GROUPBOX        "Input",IDC_STATIC,7,7,95,275
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -705,6 +725,15 @@ BEGIN
         HORZGUIDE, 126
         HORZGUIDE, 199
     END
+
+    IDD_PIANO_ROLL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 402
+        VERTGUIDE, 161
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 282
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -730,6 +759,11 @@ BEGIN
 END
 
 IDD_CHEATS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PIANO_ROLL AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

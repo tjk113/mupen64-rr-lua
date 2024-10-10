@@ -45,10 +45,11 @@
 
 #include <shared/services/FrontendService.h>
 
-std::unordered_map<std::string, std::vector<uint8_t>> st_buffers;
 size_t st_slot = 0;
-std::string st_key;
+std::vector<uint8_t> g_st_buf;
+std::function<void(const std::vector<uint8_t>&)> g_st_callback;
 std::filesystem::path st_path;
+
 e_st_job savestates_job = e_st_job::none;
 e_st_medium st_medium = e_st_medium::path;
 bool savestates_job_success = true;
@@ -293,7 +294,7 @@ void savestates_save_immediate()
 			savestates_job_success = false;
 			return;
 		}
-
+		
 		fwrite(compressed_buffer.data(), compressed_buffer.size(), 1, f);
 		fclose(f);
 
@@ -306,8 +307,7 @@ void savestates_save_immediate()
 		}
 	} else
 	{
-		// Keep uncompressed buffer in memory
-		st_buffers[st_key] = st;
+		g_st_callback(st);
 	}
 
 	LuaService::call_save_state();
@@ -412,10 +412,7 @@ void savestates_load_immediate()
 		st_buf = read_file_buffer(new_st_path);
 		break;
 	case e_st_medium::memory:
-		if (st_buffers.contains(st_key))
-		{
-			st_buf = st_buffers[st_key];
-		}
+		st_buf = g_st_buf;
 		break;
 	default: assert(false);
 	}
@@ -584,6 +581,10 @@ void savestates_load_immediate()
 	{
 		FrontendService::show_statusbar(std::format("Loaded slot {}", st_slot + 1).c_str());
 	}
+	if (st_medium == e_st_medium::memory)
+	{
+		g_st_callback(decompressed_buf);
+	}
 failedLoad:
 	extern bool ignore;
 	//legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
@@ -606,6 +607,13 @@ failedLoad:
 	printf("Savestate loading took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
+void savestates_save_memory(const std::function<void(const std::vector<uint8_t>&)>& callback)
+{
+	g_st_callback = callback;
+	savestates_job = e_st_job::save;
+	st_medium = e_st_medium::memory;
+}
+
 void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
 {
 	st_path = path;
@@ -613,10 +621,11 @@ void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
 	st_medium = e_st_medium::path;
 }
 
-void savestates_do_memory(const std::string key, e_st_job job)
+void savestates_load_memory(const std::vector<uint8_t>& buffer, const std::function<void(const std::vector<uint8_t>&)>& callback)
 {
-	st_key = key;
-	savestates_job = job;
+	g_st_callback = callback;
+	g_st_buf = buffer;
+	savestates_job = e_st_job::load;
 	st_medium = e_st_medium::memory;
 }
 

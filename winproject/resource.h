@@ -11,6 +11,7 @@
 #define IDD_RUNNER                      109
 #define IDD_MOVIE_EDITOR                111
 #define IDD_CHEATS                      113
+#define IDD_PIANO_ROLL                  116
 #define IDD_MAIN                        128
 #define IDM_LOAD_ROM                    129
 #define IDB_LOGO                        133
@@ -112,6 +113,7 @@
 #define IDC_SEEKER_START                1044
 #define IDC_SEEKER_STATUS               1045
 #define IDC_REMOVE_CHEAT                1046
+#define IDC_LIST_PIANO_ROLL             1047
 #define IDM_FULLSCREEN                  1061
 #define IDM_PAUSE                       1062
 #define IDM_FRAMEADVANCE                1063
@@ -494,15 +496,22 @@
 #define IDC_SETTINGS_LV                 40077
 #define IDI_DENY                        40078
 #define IDI_CHANGED                     40079
+#define IDM_PIANO_ROLL                  40080
+#define IDC_PIANO_ROLL_LV               40081
+#define IDI_CURRENT                     40082
+#define IDM_DEBUG_WARP_MODIFY           40083
+#define IDI_MARKER                      40084
+#define IDM_BENCHMARK_MESSENGER         40085
+#define IDM_STRESS_WARP_MODIFY          40086
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        115
+#define _APS_NEXT_RESOURCE_VALUE        118
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1047
+#define _APS_NEXT_CONTROL_VALUE         1049
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

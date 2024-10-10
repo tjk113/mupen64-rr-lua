@@ -145,6 +145,11 @@ t_config get_default_config()
 		.down_cmd = Action::OpenRunner,
 	};
 
+	config.piano_roll_hotkey = {
+		.identifier = "Open Piano Roll",
+		.down_cmd = Action::OpenPianoRoll,
+	};
+	
 	config.cheats_hotkey = {
 		.identifier = "Open Cheats dialog",
 		.down_cmd = Action::OpenCheats,
@@ -557,6 +562,10 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_VALUE(lua_script_path)
 	HANDLE_VALUE(recent_lua_script_paths)
 	HANDLE_P_VALUE(is_recent_scripts_frozen)
+	HANDLE_P_VALUE(seek_savestate_interval)
+	HANDLE_P_VALUE(seek_savestate_max_count)
+	HANDLE_P_VALUE(piano_roll_constrain_edit_to_column)
+	HANDLE_P_VALUE(piano_roll_undo_stack_size)
 	HANDLE_P_VALUE(use_summercart)
 	HANDLE_P_VALUE(wii_vc_emulation)
 	HANDLE_P_VALUE(is_float_exception_propagation_enabled)

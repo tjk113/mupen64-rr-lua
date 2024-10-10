@@ -134,6 +134,11 @@ void resume_emu()
 
 void pause_emu()
 {
+	if (!VCR::allows_core_pause())
+	{
+		return;
+	}
+	
 	if (emu_launched)
 	{
 		emu_paused = 1;

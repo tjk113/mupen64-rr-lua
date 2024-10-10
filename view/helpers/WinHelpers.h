@@ -22,6 +22,7 @@
 #include <dwrite.h>
 #include <wincodec.h>
 #include <thread>
+#include <cassert>
 
 static void set_checkbox_state(const HWND hwnd, const int32_t id,
                                int32_t is_checked)
@@ -214,6 +215,61 @@ static void copy_to_clipboard(void* owner, const std::string& str)
 		CloseClipboard();
 	}
 }
+
+/**
+ * Gets the selected indicies of a listview.
+ * \param hwnd Handle to a listview.
+ * \return A vector containing the selected indicies.
+ * \remark https://github.com/dotnet/winforms/blob/c9a58e92a1d0140bb4f91691db8055bcd91524f8/src/System.Windows.Forms/src/System/Windows/Forms/Controls/ListView/ListView.SelectedListViewItemCollection.cs#L33
+ */
+static std::vector<size_t> get_listview_selection(const HWND hwnd)
+{
+	const size_t count = ListView_GetSelectedCount(hwnd);
+
+	std::vector<size_t> indicies(count);
+	
+	int display_index = -1;
+	
+	for (size_t i = 0; i < count; ++i)
+	{
+		const int fidx = ListView_GetNextItem(hwnd, display_index, LVNI_SELECTED);
+
+		if (fidx > 0)
+		{
+			indicies[i] = fidx;
+			display_index = fidx;
+		}
+	}
+
+	
+	return indicies;
+}
+
+/**
+ * Sets the listview selection based on a vector of indicies.
+ * \param hwnd Handle to a listview.
+ * \param indicies A vector containing the selected indicies.
+ */
+static void set_listview_selection(const HWND hwnd, const std::vector<size_t>& indicies)
+{
+	if (!IsWindow(hwnd))
+	{
+		return;
+	}
+	
+	auto selection = get_listview_selection(hwnd);
+
+	for (const auto& idx : selection)
+	{
+		ListView_SetItemState(hwnd, idx, 0, LVIS_SELECTED);
+	}
+	
+	for (const auto& idx : indicies)
+	{
+		ListView_SetItemState(hwnd, idx, LVIS_SELECTED, LVIS_SELECTED);
+	}
+}
+
 
 /**
  * \brief Initializes COM within the object's scope for the current thread
