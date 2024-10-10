@@ -911,9 +911,9 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		},
 		t_options_item {
 			.group_id = core_group.id,
-			.name = "CPU Factor",
-			.tooltip = L"The factor to multiply the CPU clock speed by.\nValues above 1 are effectively 'lagless'.",
-			.data = &g_config.cpu_clock_speed_multiplier,
+			.name = "Counter Factor",
+			.tooltip = L"The CPU's counter factor.\nValues above 1 are effectively 'lagless'.",
+			.data = &g_config.counter_factor,
 			.type = t_options_item::Type::Number,
 		},
 		t_options_item {

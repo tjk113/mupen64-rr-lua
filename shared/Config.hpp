@@ -249,12 +249,9 @@ typedef struct Config
 	int32_t is_movie_loop_enabled;
 
 	/// <summary>
-	/// The emulated CPU's clock speed multiplier
-	/// <para/>
-	/// 1 = original clock speed
-	/// high number = approach native clock speed
+	/// The CPU's counter factor. Higher values will generate less lag frames in-game at the cost of higher native CPU usage.
 	/// </summary>
-	int32_t cpu_clock_speed_multiplier = 1;
+	int32_t counter_factor = 1;
 
 	/// <summary>
 	/// Whether emulation will pause when the main window loses focus
