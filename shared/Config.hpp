@@ -420,7 +420,7 @@ typedef struct Config
 	/// <summary>
 	/// The save interval for warp modify savestates in frames
 	/// </summary>
-	int32_t seek_savestate_interval = 10;
+	int32_t seek_savestate_interval = 100;
 
 	/// <summary>
 	/// The maximum amount of warp modify savestates to keep in memory
