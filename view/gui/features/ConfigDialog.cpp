@@ -120,7 +120,7 @@ typedef struct OptionsItem
 	{
 		if (type == Type::Bool)
 		{
-			return *data ? L"Enabled" : L"-";
+			return *data ? L"On" : L"Off";
 		}
 
 		if (type == Type::Number)
