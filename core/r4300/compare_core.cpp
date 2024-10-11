@@ -37,7 +37,6 @@
 static FILE* f;
 static int pipe_opened = 0;
 static long long int comp_reg[32];
-extern unsigned long vr_op;
 extern unsigned long interp_addr;
 static unsigned long old_op;
 int compare_core_mode = 0;

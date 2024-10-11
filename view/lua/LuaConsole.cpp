@@ -55,11 +55,6 @@
 #include "presenters/GDIPresenter.h"
 #include "shared/services/FrontendService.h"
 
-extern unsigned long vr_op;
-extern void (*interp_ops[64])(void);
-
-extern int fast_memory;
-
 std::vector<std::string> recent_closed_lua;
 
 BUTTONS last_controller_data[4];

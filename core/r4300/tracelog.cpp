@@ -3,9 +3,6 @@
 #include "disasm.h"
 #include "r4300.h"
 
-// TODO: Rename to less generic name, e.g.: vr_op
-extern unsigned long vr_op;
-
 namespace tracelog
 {
 	bool enabled = false;

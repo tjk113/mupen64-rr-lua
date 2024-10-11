@@ -37,9 +37,11 @@
 #include "Plugin.hpp"
 
 extern precomp_instr* PC;
+extern unsigned long vr_op;
 
 extern precomp_block *blocks[0x100000], *actual;
-
+extern void (*interp_ops[64])(void);
+extern int fast_memory;
 extern std::unique_ptr<Plugin> video_plugin;
 extern std::unique_ptr<Plugin> audio_plugin;
 extern std::unique_ptr<Plugin> input_plugin;

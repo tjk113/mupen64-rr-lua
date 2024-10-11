@@ -39,7 +39,6 @@
 #include "interpret.h"
 #include <shared/Config.hpp>
 
-extern unsigned long vr_op; //pure_interp.c
 extern unsigned long src; //recomp.c
 
 precomp_instr fake_instr;
