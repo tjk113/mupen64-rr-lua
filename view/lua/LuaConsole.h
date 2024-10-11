@@ -39,11 +39,6 @@ typedef struct s_window_procedure_params
 void lua_init();
 
 /**
- * \brief Exits the lua subsystem
- */
-void lua_exit();
-
-/**
  * \brief Creates a lua window and runs the specified script
  * \param path The script's path
  */

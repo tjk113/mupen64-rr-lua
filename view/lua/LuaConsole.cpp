@@ -49,7 +49,6 @@ BUTTONS last_controller_data[4];
 BUTTONS new_controller_data[4];
 bool overwrite_controller_data[4];
 
-ULONG_PTR gdi_plus_token;
 auto d2d_overlay_class = "lua_d2d_overlay";
 auto gdi_overlay_class = "lua_gdi_overlay";
 
@@ -57,10 +56,6 @@ std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
 uint64_t inputCount = 0;
 
-int getn(lua_State*);
-
-
-int AtPanic(lua_State* L);
 extern const luaL_Reg globalFuncs[];
 extern const luaL_Reg emuFuncs[];
 extern const luaL_Reg wguiFuncs[];
@@ -72,12 +67,14 @@ extern const luaL_Reg movieFuncs[];
 extern const luaL_Reg savestateFuncs[];
 extern const luaL_Reg iohelperFuncs[];
 extern const luaL_Reg aviFuncs[];
-extern const char* const REG_ATSTOP;
 
-int AtPanic(lua_State* L)
+int at_panic(lua_State* L)
 {
-    printf("Lua panic: %s\n", lua_tostring(L, -1));
-    FrontendService::show_error(lua_tostring(L, -1), "Lua Panic");
+    const auto message = lua_tostring(L, -1);
+    
+    printf("Lua panic: %s\n", message);
+    FrontendService::show_error(message, "Lua");
+    
     return 0;
 }
 
@@ -250,12 +247,6 @@ HWND lua_create()
     return hwnd;
 }
 
-
-void lua_exit()
-{
-    Gdiplus::GdiplusShutdown(gdi_plus_token);
-}
-
 void lua_create_and_run(const char* path)
 {
     assert(is_on_gui_thread());
@@ -303,12 +294,6 @@ void SetLuaClass(lua_State* L, void* lua)
 
 int GetErrorMessage(lua_State* L)
 {
-    return 1;
-}
-
-int getn(lua_State* L)
-{
-    lua_pushinteger(L, luaL_len(L, -1));
     return 1;
 }
 
@@ -657,9 +642,6 @@ LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 
 void lua_init()
 {
-    Gdiplus::GdiplusStartupInput startup_input;
-    GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
-
     WNDCLASS wndclass = {0};
     wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
     wndclass.lpfnWndProc = (WNDPROC)d2d_overlay_wndproc;
@@ -852,7 +834,7 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
     lua_environment->col = lua_environment->bkcol = 0;
     lua_environment->bkmode = TRANSPARENT;
     lua_environment->L = luaL_newstate();
-    lua_atpanic(lua_environment->L, AtPanic);
+    lua_atpanic(lua_environment->L, at_panic);
     SetLuaClass(lua_environment->L, lua_environment);
     lua_environment->register_functions();
     lua_environment->create_renderer();

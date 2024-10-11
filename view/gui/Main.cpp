@@ -84,6 +84,8 @@ bool g_in_menu_loop;
 bool g_vis_since_input_poll_warning_dismissed;
 bool g_emu_starting;
 
+ULONG_PTR gdi_plus_token;
+
 /**
  * \brief List of lua environment map keys running before emulation stopped
  */
@@ -942,6 +944,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         save_config();
         KillTimer(g_main_hwnd, g_update_screen_timer);
         AsyncExecutor::stop();
+        Gdiplus::GdiplusShutdown(gdi_plus_token);
         PostQuitMessage(0);
         break;
     case WM_CLOSE:
@@ -1651,6 +1654,9 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	open_console();
 #endif
 
+    Gdiplus::GdiplusStartupInput startup_input;
+    GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
+    
     Messenger::init();
     AsyncExecutor::init();
     CoreDbg::init();
