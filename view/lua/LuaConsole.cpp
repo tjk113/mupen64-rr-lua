@@ -3,41 +3,31 @@
 */
 
 #include "LuaConsole.h"
-#include <cstdlib>
-#include <vector>
 #include <algorithm>
-#include <string>
-#include <map>
-#include <list>
-#include <filesystem>
-#include "../../winproject/resource.h"
-#include <view/gui/Main.h>
-#include <shared/Config.hpp>
-#include <core/memory/memory.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/disasm.h>
-#include <core/r4300/recomp.h>
-#include <core/r4300/vcr.h>
-#include <core/memory/savestates.h>
-#include <core/r4300/Plugin.hpp>
-#include <view/helpers/WinHelpers.h>
-#include <view/gui/wrapper/PersistentPathDialog.h>
-#include <lib/md5.h>
-#include <gdiplus.h>
-#include <d2d1.h>
-#include <d2d1helper.h>
-#include <dwrite.h>
-#include <wincodec.h>
-#include <functional>
-#include <queue>
 #include <assert.h>
-
-#include <shared/helpers/StringHelpers.h>
-#include <view/gui/features/Statusbar.hpp>
-
+#include <cstdlib>
+#include <d2d1.h>
+#include <dwrite.h>
+#include <filesystem>
+#include <functional>
+#include <gdiplus.h>
+#include <map>
+#include <string>
+#include <vector>
+#include <wincodec.h>
 #include <Windows.h>
-
+#include <core/memory/memory.h>
+#include <core/r4300/Plugin.hpp>
+#include <core/r4300/r4300.h>
+#include <core/r4300/timers.h>
+#include <shared/Config.hpp>
+#include <shared/helpers/StringHelpers.h>
 #include <shared/services/LuaService.h>
+#include <view/gui/Main.h>
+#include <view/gui/features/Statusbar.hpp>
+#include <view/gui/wrapper/PersistentPathDialog.h>
+#include <view/helpers/WinHelpers.h>
+#include <winproject/resource.h>
 #include "modules/AVI.h"
 #include "modules/D2D.h"
 #include "modules/Emu.h"
@@ -49,8 +39,6 @@
 #include "modules/Movie.h"
 #include "modules/Savestate.h"
 #include "modules/WGUI.h"
-#include <core/r4300/timers.h>
-
 #include "presenters/DCompPresenter.h"
 #include "presenters/GDIPresenter.h"
 #include "shared/services/FrontendService.h"
