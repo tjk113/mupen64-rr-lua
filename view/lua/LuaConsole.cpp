@@ -56,29 +56,15 @@ std::map<HWND, LuaEnvironment*> hwnd_lua_map;
 
 uint64_t inputCount = 0;
 
-extern const luaL_Reg globalFuncs[];
-extern const luaL_Reg emuFuncs[];
-extern const luaL_Reg wguiFuncs[];
-extern const luaL_Reg d2dFuncs[];
-extern const luaL_Reg memoryFuncs[];
-extern const luaL_Reg inputFuncs[];
-extern const luaL_Reg joypadFuncs[];
-extern const luaL_Reg movieFuncs[];
-extern const luaL_Reg savestateFuncs[];
-extern const luaL_Reg iohelperFuncs[];
-extern const luaL_Reg aviFuncs[];
-
 int at_panic(lua_State* L)
 {
     const auto message = lua_tostring(L, -1);
-    
+
     printf("Lua panic: %s\n", message);
     FrontendService::show_error(message, "Lua");
-    
+
     return 0;
 }
-
-extern const char* const REG_WINDOWMESSAGE;
 
 void invoke_callbacks_with_key_on_all_instances(
     std::function<int(lua_State*)> function, const char* key)
