@@ -7,6 +7,7 @@ extern "C" {
 #include <lauxlib.h>
 #include <lualib.h>
 }
+
 #include <Windows.h>
 #include <locale>
 #include <string>
@@ -26,10 +27,10 @@ extern "C" {
 
 typedef struct s_window_procedure_params
 {
-	HWND wnd;
-	UINT msg;
-	WPARAM w_param;
-	LPARAM l_param;
+    HWND wnd;
+    UINT msg;
+    WPARAM w_param;
+    LPARAM l_param;
 } t_window_procedure_params;
 
 /**
@@ -70,7 +71,7 @@ void stop_all_scripts();
  * \param key The function's registration key
  */
 void invoke_callbacks_with_key_on_all_instances(
-	std::function<int(lua_State*)> function, const char* key);
+    std::function<int(lua_State*)> function, const char* key);
 
 static const char* const REG_LUACLASS = "C";
 static const char* const REG_ATUPDATESCREEN = "S";
@@ -96,114 +97,113 @@ static HBRUSH alpha_mask_brush = CreateSolidBrush(lua_gdi_color_mask);
 class LuaEnvironment
 {
 public:
-	/**
-	 * \brief Creates a lua environment and runs it if the operation succeeds
-	 * \param path The script path
-	 * \param wnd The associated window
-	 * \return A pointer to a lua environment object, or NULL if the operation failed and an error string
-	 */
-	static std::pair<LuaEnvironment*, std::string> create(std::filesystem::path path, HWND wnd);
+    /**
+     * \brief Creates a lua environment and runs it if the operation succeeds
+     * \param path The script path
+     * \param wnd The associated window
+     * \return A pointer to a lua environment object, or NULL if the operation failed and an error string
+     */
+    static std::pair<LuaEnvironment*, std::string> create(std::filesystem::path path, HWND wnd);
 
-	/**
-	 * \brief Stops, destroys and removes a lua environment from the environment map
-	 * \param lua_environment The lua environment to destroy
-	 */
-	static void destroy(LuaEnvironment* lua_environment);
+    /**
+     * \brief Stops, destroys and removes a lua environment from the environment map
+     * \param lua_environment The lua environment to destroy
+     */
+    static void destroy(LuaEnvironment* lua_environment);
 
-	/**
-	 * \brief Prints text to a lua environment dialog's console
-	 * \param hwnd Handle to a lua environment dialog of IDD_LUAWINDOW
-	 * \param text The text to display
-	 */
-	static void print_con(HWND hwnd, std::string text);
+    /**
+     * \brief Prints text to a lua environment dialog's console
+     * \param hwnd Handle to a lua environment dialog of IDD_LUAWINDOW
+     * \param text The text to display
+     */
+    static void print_con(HWND hwnd, std::string text);
 
-	// The path to the current lua script
-	std::filesystem::path path;
+    // The path to the current lua script
+    std::filesystem::path path;
 
-	// The current presenter, or null
-	Presenter* presenter;
+    // The current presenter, or null
+    Presenter* presenter;
 
-	// The Direct2D overlay control handle
-	HWND d2d_overlay_hwnd;
+    // The Direct2D overlay control handle
+    HWND d2d_overlay_hwnd;
 
-	// The GDI/GDI+ overlay control handle
-	HWND gdi_overlay_hwnd;
+    // The GDI/GDI+ overlay control handle
+    HWND gdi_overlay_hwnd;
 
-	// The DC for GDI/GDI+ drawings
-	// This DC is special, since commands can be issued to it anytime and it's never cleared
-	HDC gdi_back_dc = nullptr;
+    // The DC for GDI/GDI+ drawings
+    // This DC is special, since commands can be issued to it anytime and it's never cleared
+    HDC gdi_back_dc = nullptr;
 
-	// The bitmap for GDI/GDI+ drawings
-	HBITMAP gdi_bmp;
+    // The bitmap for GDI/GDI+ drawings
+    HBITMAP gdi_bmp;
 
-	// Dimensions of the drawing surfaces
-	D2D1_SIZE_U dc_size;
+    // Dimensions of the drawing surfaces
+    D2D1_SIZE_U dc_size;
 
-	// The DirectWrite factory, whose lifetime is the renderer's
-	IDWriteFactory* dw_factory = nullptr;
+    // The DirectWrite factory, whose lifetime is the renderer's
+    IDWriteFactory* dw_factory = nullptr;
 
-	// The cache for DirectWrite text layouts
-	MicroLRU::Cache<uint64_t, IDWriteTextLayout*> dw_text_layouts;
+    // The cache for DirectWrite text layouts
+    MicroLRU::Cache<uint64_t, IDWriteTextLayout*> dw_text_layouts;
 
-	// The stack of render targets. The top is used for D2D calls.
-	std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
+    // The stack of render targets. The top is used for D2D calls.
+    std::stack<ID2D1RenderTarget*> d2d_render_target_stack;
 
-	// Pool of GDI+ images
-	std::unordered_map<size_t, Gdiplus::Bitmap*> image_pool;
+    // Pool of GDI+ images
+    std::unordered_map<size_t, Gdiplus::Bitmap*> image_pool;
 
-	// Amount of generated images, just used to generate uids for image pool
-	size_t image_pool_index;
+    // Amount of generated images, just used to generate uids for image pool
+    size_t image_pool_index;
 
-	HDC loadscreen_dc;
-	HBITMAP loadscreen_bmp;
+    HDC loadscreen_dc;
+    HBITMAP loadscreen_bmp;
 
-	HBRUSH brush;
-	HPEN pen;
-	HFONT font;
-	COLORREF col, bkcol;
-	int bkmode;
+    HBRUSH brush;
+    HPEN pen;
+    HFONT font;
+    COLORREF col, bkcol;
+    int bkmode;
 
-	LuaEnvironment()
-	{
+    LuaEnvironment()
+    {
+    };
 
-	};
+    /**
+     * \brief Destroys and stops the environment
+     */
+    ~LuaEnvironment();
 
-	/**
-	 * \brief Destroys and stops the environment
-	 */
-	~LuaEnvironment();
+    void create_renderer();
+    void destroy_renderer();
 
-	void create_renderer();
-	void destroy_renderer();
+    void create_loadscreen();
+    void destroy_loadscreen();
 
-	void create_loadscreen();
-	void destroy_loadscreen();
+    //calls all functions that lua script has defined as callbacks, reads them from registry
+    //returns true at fail
+    bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
+                                   const char* key);
 
-	//calls all functions that lua script has defined as callbacks, reads them from registry
-	//returns true at fail
-	bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
-	                               const char* key);
+    // Invalidates the composition layer
+    void invalidate_visuals();
 
-	// Invalidates the composition layer
-	void invalidate_visuals();
+    // Repaints the composition layer
+    void repaint_visuals();
 
-	// Repaints the composition layer
-	void repaint_visuals();
+    HWND hwnd;
+    lua_State* L;
 
-	HWND hwnd;
-	lua_State* L;
-
-	/**
-	 * \brief Prints text to the environment's console
-	 * \param text The text to print
-	 */
-	void print(std::string text) const
-	{
-		print_con(hwnd, text);
-	}
+    /**
+     * \brief Prints text to the environment's console
+     * \param text The text to print
+     */
+    void print(std::string text) const
+    {
+        print_con(hwnd, text);
+    }
 
 private:
-	void register_functions();
+    void register_functions();
 };
 
 extern uint64_t inputCount;

@@ -512,7 +512,7 @@ namespace PianoRoll
 
         g_piano_roll_state_index--;
         set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
-        
+
         return true;
     }
 

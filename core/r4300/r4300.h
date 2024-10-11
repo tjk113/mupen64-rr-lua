@@ -84,23 +84,23 @@ std::filesystem::path get_rom_path();
 
 namespace Core
 {
-	enum class Result
-	{
-		// The operation completed successfully
-		Ok,
-		// The callee is already performing another task
-		Busy,
-		// Couldn't find a rom matching the provided movie
-		NoMatchingRom,
-		// An error occured during plugin loading
-		PluginError,
-		// The ROM or alternative rom source is invalid
-		RomInvalid,
-		// The emulator isn't running yet
-		NotRunning,
-		// Failed to open core streams
-		FileOpenFailed,
-	};
+    enum class Result
+    {
+        // The operation completed successfully
+        Ok,
+        // The callee is already performing another task
+        Busy,
+        // Couldn't find a rom matching the provided movie
+        NoMatchingRom,
+        // An error occured during plugin loading
+        PluginError,
+        // The ROM or alternative rom source is invalid
+        RomInvalid,
+        // The emulator isn't running yet
+        NotRunning,
+        // Failed to open core streams
+        FileOpenFailed,
+    };
 }
 
 /**

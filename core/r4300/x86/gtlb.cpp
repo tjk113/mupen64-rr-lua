@@ -35,47 +35,47 @@
 
 void gentlbwi()
 {
-	gencallinterp((unsigned long)TLBWI, 0);
-	/*dst->local_addr = code_length;
-	mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-	mov_reg32_imm32(EAX, (unsigned long)(TLBWI));
-	call_reg32(EAX);
-	genupdate_system(0);*/
+    gencallinterp((unsigned long)TLBWI, 0);
+    /*dst->local_addr = code_length;
+    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    mov_reg32_imm32(EAX, (unsigned long)(TLBWI));
+    call_reg32(EAX);
+    genupdate_system(0);*/
 }
 
 void gentlbp()
 {
-	gencallinterp((unsigned long)TLBP, 0);
-	/*dst->local_addr = code_length;
-	mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-	mov_reg32_imm32(EAX, (unsigned long)(TLBP));
-	call_reg32(EAX);
-	genupdate_system(0);*/
+    gencallinterp((unsigned long)TLBP, 0);
+    /*dst->local_addr = code_length;
+    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    mov_reg32_imm32(EAX, (unsigned long)(TLBP));
+    call_reg32(EAX);
+    genupdate_system(0);*/
 }
 
 void gentlbr()
 {
-	gencallinterp((unsigned long)TLBR, 0);
-	/*dst->local_addr = code_length;
-	mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-	mov_reg32_imm32(EAX, (unsigned long)(TLBR));
-	call_reg32(EAX);
-	genupdate_system(0);*/
+    gencallinterp((unsigned long)TLBR, 0);
+    /*dst->local_addr = code_length;
+    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    mov_reg32_imm32(EAX, (unsigned long)(TLBR));
+    call_reg32(EAX);
+    genupdate_system(0);*/
 }
 
 void generet()
 {
-	gencallinterp((unsigned long)ERET, 1);
-	/*dst->local_addr = code_length;
-	mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-	genupdate_system(0);
-	mov_reg32_imm32(EAX, (unsigned long)(ERET));
-	call_reg32(EAX);
-	mov_reg32_imm32(EAX, (unsigned long)(jump_code));
-	jmp_reg32(EAX);*/
+    gencallinterp((unsigned long)ERET, 1);
+    /*dst->local_addr = code_length;
+    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    genupdate_system(0);
+    mov_reg32_imm32(EAX, (unsigned long)(ERET));
+    call_reg32(EAX);
+    mov_reg32_imm32(EAX, (unsigned long)(jump_code));
+    jmp_reg32(EAX);*/
 }
 
 void gentlbwr()
 {
-	gencallinterp((unsigned long)TLBWR, 0);
+    gencallinterp((unsigned long)TLBWR, 0);
 }

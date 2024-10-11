@@ -40,31 +40,31 @@
 
 void dyna_jump()
 {
-	if (PC->reg_cache_infos.need_map)
-		*return_address = (unsigned long)(PC->reg_cache_infos.jump_wrapper);
-	else
-		*return_address = (unsigned long)(actual->code + PC->local_addr);
-	/*asm("mov return_address, %%esp \n"
-	    "ret                       \n"
-	    :
-	    :
-	    : "memory");*/
+    if (PC->reg_cache_infos.need_map)
+        *return_address = (unsigned long)(PC->reg_cache_infos.jump_wrapper);
+    else
+        *return_address = (unsigned long)(actual->code + PC->local_addr);
+    /*asm("mov return_address, %%esp \n"
+        "ret                       \n"
+        :
+        :
+        : "memory");*/
 }
 
 jmp_buf g_jmp_state;
 
 void dyna_start(void (*code)())
 {
-	// code() ‚Ì‚Ç‚±‚©‚Å stop ‚ª true ‚É‚È‚Á‚½ŽžAdyna_stop() ‚ªŒÄ‚Î‚êAlongjmp() ‚Å setjmp() ‚µ‚½‚Æ‚±‚ë‚É–ß‚é
-	// –ß‚Á‚Ä‚«‚½ setjmp() ‚Í 1 ‚ð•Ô‚·‚Ì‚ÅAdyna_start() I—¹
-	// ƒŒƒWƒXƒ^ ebx, esi, edi, ebp ‚Ì•Û‘¶‚Æ•œŒ³‚ª•K—v‚¾‚ªAsetjmp() ‚ª‚â‚Á‚Ä‚­‚ê‚é
-	if (setjmp(g_jmp_state) == 0)
-	{
-		code();
-	}
+    // code() ‚Ì‚Ç‚±‚©‚Å stop ‚ª true ‚É‚È‚Á‚½ŽžAdyna_stop() ‚ªŒÄ‚Î‚êAlongjmp() ‚Å setjmp() ‚µ‚½‚Æ‚±‚ë‚É–ß‚é
+    // –ß‚Á‚Ä‚«‚½ setjmp() ‚Í 1 ‚ð•Ô‚·‚Ì‚ÅAdyna_start() I—¹
+    // ƒŒƒWƒXƒ^ ebx, esi, edi, ebp ‚Ì•Û‘¶‚Æ•œŒ³‚ª•K—v‚¾‚ªAsetjmp() ‚ª‚â‚Á‚Ä‚­‚ê‚é
+    if (setjmp(g_jmp_state) == 0)
+    {
+        code();
+    }
 }
 
 void dyna_stop()
 {
-	longjmp(g_jmp_state, 1); // goto dyna_start()
+    longjmp(g_jmp_state, 1); // goto dyna_start()
 }

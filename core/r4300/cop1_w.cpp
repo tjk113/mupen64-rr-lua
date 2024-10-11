@@ -33,16 +33,16 @@
 
 void CVT_S_W()
 {
-	if (check_cop1_unusable()) return;
-	set_rounding();
-	*reg_cop1_simple[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
-	PC++;
+    if (check_cop1_unusable()) return;
+    set_rounding();
+    *reg_cop1_simple[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
+    PC++;
 }
 
 void CVT_D_W()
 {
-	if (check_cop1_unusable()) return;
-	set_rounding();
-	*reg_cop1_double[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
-	PC++;
+    if (check_cop1_unusable()) return;
+    set_rounding();
+    *reg_cop1_double[core_cffd] = *((long*)reg_cop1_simple[core_cffs]);
+    PC++;
 }

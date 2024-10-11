@@ -22,12 +22,12 @@ namespace Messenger
     };
 
     std::vector<std::pair<Message, Subscriber>> g_subscribers;
-    
+
     std::unordered_map<Message, std::vector<t_user_callback>> g_subscriber_cache;
 
     // UID accumulator for generating unique subscriber IDs. Only write operation is increment.
     size_t g_uid_accumulator;
-    
+
     // Safety flag for debugging, used to track if the subscriber list is being modified while broadcasting.
     std::atomic g_changing = false;
 
@@ -64,8 +64,8 @@ namespace Messenger
     {
         g_changing = true;
 
-        Subscriber subscriber = { g_uid_accumulator++, callback };
-        
+        Subscriber subscriber = {g_uid_accumulator++, callback};
+
         g_subscribers.emplace_back(message, subscriber);
         rebuild_subscriber_cache();
 
@@ -75,7 +75,7 @@ namespace Messenger
         {
             g_changing = true;
 
-            std::erase_if(g_subscribers, [=] (const auto& pair)
+            std::erase_if(g_subscribers, [=](const auto& pair)
             {
                 return pair.second.uid == subscriber.uid;
             });

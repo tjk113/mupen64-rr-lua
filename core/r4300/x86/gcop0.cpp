@@ -37,19 +37,19 @@
 //static unsigned long pMFC0 = (unsigned long)(MFC0);
 void genmfc0()
 {
-	gencallinterp((unsigned long)MFC0, 0);
-	/*dst->local_addr = code_length;
-	mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-	call_m32((unsigned long *)(&pMFC0));
-	genupdate_system(0);*/
+    gencallinterp((unsigned long)MFC0, 0);
+    /*dst->local_addr = code_length;
+    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    call_m32((unsigned long *)(&pMFC0));
+    genupdate_system(0);*/
 }
 
 //static unsigned long pMTC0 = (unsigned long)(MTC0);
 void genmtc0()
 {
-	gencallinterp((unsigned long)MTC0, 0);
-	/*dst->local_addr = code_length;
-	mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-	call_m32((unsigned long *)(&pMTC0));
-	genupdate_system(0);*/
+    gencallinterp((unsigned long)MTC0, 0);
+    /*dst->local_addr = code_length;
+    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    call_m32((unsigned long *)(&pMTC0));
+    genupdate_system(0);*/
 }

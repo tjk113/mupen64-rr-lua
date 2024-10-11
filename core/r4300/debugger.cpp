@@ -69,7 +69,7 @@ void Debugger::on_late_cycle(unsigned long opcode, unsigned long address)
         .opcode = opcode,
         .address = address,
     };
-    
+
     if (g_instruction_advancing)
     {
         g_instruction_advancing = false;
@@ -77,7 +77,7 @@ void Debugger::on_late_cycle(unsigned long opcode, unsigned long address)
         Messenger::broadcast(Messenger::Message::DebuggerCpuStateChanged, g_cpu_state);
         Messenger::broadcast(Messenger::Message::DebuggerResumedChanged, g_resumed);
     }
-    
+
     while (!g_resumed)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

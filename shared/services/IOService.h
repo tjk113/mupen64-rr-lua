@@ -11,10 +11,10 @@
 
 namespace IOService
 {
-	/**
+    /**
       * \brief Gets all files with a specific file extension directly under a directory
       * \param directory The path joiner-terminated directory
       * \param extension The file extension with no period
       */
-	std::vector<std::string> get_files_with_extension_in_directory(const std::string& directory, const std::string& extension);
+    std::vector<std::string> get_files_with_extension_in_directory(const std::string& directory, const std::string& extension);
 }

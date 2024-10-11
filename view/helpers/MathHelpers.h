@@ -13,15 +13,15 @@
 template <typename T>
 static T clamp(const T value, const T min, const T max)
 {
-	if (value > max)
-	{
-		return max;
-	}
-	if (value < min)
-	{
-		return min;
-	}
-	return value;
+    if (value > max)
+    {
+        return max;
+    }
+    if (value < min)
+    {
+        return min;
+    }
+    return value;
 }
 
 /**
@@ -31,17 +31,17 @@ static T clamp(const T value, const T min, const T max)
  */
 static float get_rate_per_second_from_deltas(const std::span<float>& times)
 {
-	size_t count = 0;
-	float sum = 0.0f;
-	for (const auto& time : times)
-	{
-		if (time > 0.0f)
-		{
-			sum += time;
-			count++;
-		}
-	}
-	return count > 0 ? 1000.0f / (sum / count) : 0.0f;
+    size_t count = 0;
+    float sum = 0.0f;
+    for (const auto& time : times)
+    {
+        if (time > 0.0f)
+        {
+            sum += time;
+            count++;
+        }
+    }
+    return count > 0 ? 1000.0f / (sum / count) : 0.0f;
 }
 
 /**
@@ -51,7 +51,7 @@ static float get_rate_per_second_from_deltas(const std::span<float>& times)
  */
 static std::string format_duration(size_t seconds)
 {
-	char str[260] = {0};
-	sprintf_s(str, "%02u:%02u:%02u", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
-	return str;
+    char str[260] = {0};
+    sprintf_s(str, "%02u:%02u:%02u", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+    return str;
 }

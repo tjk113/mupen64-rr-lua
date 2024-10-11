@@ -18,9 +18,9 @@
 
 namespace Cli
 {
-	/**
-	 * \brief Initializes the CLI
-	 */
-	void init();
+    /**
+     * \brief Initializes the CLI
+     */
+    void init();
 }
 #endif

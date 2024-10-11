@@ -53,18 +53,18 @@ extern bool is_primary_statusbar_invalidated;
 struct BetterEmulationLock
 {
 private:
-	bool was_paused;
+    bool was_paused;
 
 public:
-	BetterEmulationLock();
-	~BetterEmulationLock();
+    BetterEmulationLock();
+    ~BetterEmulationLock();
 };
 
 typedef struct
 {
-	long width;
-	long height;
-	long statusbar_height;
+    long width;
+    long height;
+    long statusbar_height;
 } t_window_info;
 
 extern t_window_info window_info;

@@ -2,8 +2,8 @@
 
 namespace Runner
 {
-	/**
-	 * \brief Shows the runner dialog
-	 */
-	void show();
+    /**
+     * \brief Shows the runner dialog
+     */
+    void show();
 }

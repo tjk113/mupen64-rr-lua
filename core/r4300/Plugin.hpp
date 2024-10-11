@@ -39,26 +39,26 @@
 
 enum plugin_type
 {
-	video = 2,
-	audio = 3,
-	input = 4,
-	rsp = 1,
+    video = 2,
+    audio = 3,
+    input = 4,
+    rsp = 1,
 };
 
 enum controller_extension
 {
-	none = 1,
-	mempak = 2,
-	rumblepak = 3,
-	transferpak = 4,
-	raw = 5
+    none = 1,
+    mempak = 2,
+    rumblepak = 3,
+    transferpak = 4,
+    raw = 5
 };
 
 enum system_type
 {
-	ntsc,
-	pal,
-	mpal
+    ntsc,
+    pal,
+    mpal
 };
 
 // ReSharper disable CppInconsistentNaming
@@ -86,7 +86,7 @@ extern DLLABOUT dllAbout;
 
 typedef void (__cdecl*CHANGEWINDOW)();
 typedef void (__cdecl*CLOSEDLL_GFX)();
-typedef int  (__cdecl*INITIATEGFX)(GFX_INFO);
+typedef int (__cdecl*INITIATEGFX)(GFX_INFO);
 typedef void (__cdecl*PROCESSDLIST)();
 typedef void (__cdecl*PROCESSRDPLIST)();
 typedef void (__cdecl*ROMCLOSED_GFX)();
@@ -131,15 +131,15 @@ extern FBGETFRAMEBUFFERINFO fBGetFrameBufferInfo;
 
 #pragma region Audio Functions
 
-typedef void 		  (__cdecl*AIDACRATECHANGED)(int system_type);
-typedef void 		  (__cdecl*AILENCHANGED)();
+typedef void (__cdecl*AIDACRATECHANGED)(int system_type);
+typedef void (__cdecl*AILENCHANGED)();
 typedef unsigned long (__cdecl*AIREADLENGTH)();
-typedef void 		  (__cdecl*CLOSEDLL_AUDIO)();
-typedef int 		  (__cdecl*INITIATEAUDIO)(AUDIO_INFO);
-typedef void 		  (__cdecl*PROCESSALIST)();
-typedef void 		  (__cdecl*ROMCLOSED_AUDIO)();
-typedef void 		  (__cdecl*ROMOPEN_AUDIO)();
-typedef void 		  (__cdecl*AIUPDATE)(int wait);
+typedef void (__cdecl*CLOSEDLL_AUDIO)();
+typedef int (__cdecl*INITIATEAUDIO)(AUDIO_INFO);
+typedef void (__cdecl*PROCESSALIST)();
+typedef void (__cdecl*ROMCLOSED_AUDIO)();
+typedef void (__cdecl*ROMOPEN_AUDIO)();
+typedef void (__cdecl*AIUPDATE)(int wait);
 extern AIDACRATECHANGED aiDacrateChanged;
 extern AILENCHANGED aiLenChanged;
 extern AIREADLENGTH aiReadLength;
@@ -154,17 +154,17 @@ extern AIUPDATE aiUpdate;
 
 #pragma region Input Functions
 
-typedef void  (__cdecl*CLOSEDLL_INPUT)();
-typedef void  (__cdecl*CONTROLLERCOMMAND)(int controller, unsigned char* command);
-typedef void  (__cdecl*GETKEYS)(int controller, BUTTONS* keys);
-typedef void  (__cdecl*SETKEYS)(int controller, BUTTONS keys);
-typedef void  (__cdecl*OLD_INITIATECONTROLLERS)(void* hwnd, CONTROL controls[4]);
-typedef void  (__cdecl*INITIATECONTROLLERS)(CONTROL_INFO control_info);
-typedef void  (__cdecl*READCONTROLLER)(int controller, unsigned char* command);
-typedef void  (__cdecl*ROMCLOSED_INPUT)();
-typedef void  (__cdecl*ROMOPEN_INPUT)();
-typedef void  (__cdecl*KEYDOWN)(unsigned int wParam, long lParam);
-typedef void  (__cdecl*KEYUP)(unsigned int wParam, long lParam);
+typedef void (__cdecl*CLOSEDLL_INPUT)();
+typedef void (__cdecl*CONTROLLERCOMMAND)(int controller, unsigned char* command);
+typedef void (__cdecl*GETKEYS)(int controller, BUTTONS* keys);
+typedef void (__cdecl*SETKEYS)(int controller, BUTTONS keys);
+typedef void (__cdecl*OLD_INITIATECONTROLLERS)(void* hwnd, CONTROL controls[4]);
+typedef void (__cdecl*INITIATECONTROLLERS)(CONTROL_INFO control_info);
+typedef void (__cdecl*READCONTROLLER)(int controller, unsigned char* command);
+typedef void (__cdecl*ROMCLOSED_INPUT)();
+typedef void (__cdecl*ROMOPEN_INPUT)();
+typedef void (__cdecl*KEYDOWN)(unsigned int wParam, long lParam);
+typedef void (__cdecl*KEYUP)(unsigned int wParam, long lParam);
 extern CLOSEDLL_INPUT closeDLL_input;
 extern CONTROLLERCOMMAND controllerCommand;
 extern GETKEYS getKeys;
@@ -181,10 +181,10 @@ extern KEYUP keyUp;
 
 #pragma region RSP Functions
 
-typedef void		   (__cdecl*CLOSEDLL_RSP)();
-typedef unsigned long  (__cdecl*DORSPCYCLES)(unsigned long);
-typedef void		   (__cdecl*INITIATERSP)(RSP_INFO rsp_info, unsigned long* cycles);
-typedef void		   (__cdecl*ROMCLOSED_RSP)();
+typedef void (__cdecl*CLOSEDLL_RSP)();
+typedef unsigned long (__cdecl*DORSPCYCLES)(unsigned long);
+typedef void (__cdecl*INITIATERSP)(RSP_INFO rsp_info, unsigned long* cycles);
+typedef void (__cdecl*ROMCLOSED_RSP)();
 extern CLOSEDLL_RSP closeDLL_RSP;
 extern DORSPCYCLES doRspCycles;
 extern INITIATERSP initiateRSP;
@@ -198,83 +198,83 @@ extern ROMCLOSED_RSP romClosed_RSP;
 // frame buffer plugin spec extension
 typedef struct
 {
-	unsigned long addr;
-	unsigned long size;
-	unsigned long width;
-	unsigned long height;
+    unsigned long addr;
+    unsigned long size;
+    unsigned long width;
+    unsigned long height;
 } FrameBufferInfo;
 
 class Plugin
 {
 public:
-	/**
-	 * \brief Tries to create a plugin from the given path
-	 * \param path The path to a plugin
-	 * \return A pointer to the plugin, or nothing if the plugin couldn't be created
-	 */
-	static std::optional<std::unique_ptr<Plugin>> create(std::filesystem::path path);
+    /**
+     * \brief Tries to create a plugin from the given path
+     * \param path The path to a plugin
+     * \return A pointer to the plugin, or nothing if the plugin couldn't be created
+     */
+    static std::optional<std::unique_ptr<Plugin>> create(std::filesystem::path path);
 
-	Plugin() = default;
-	~Plugin();
+    Plugin() = default;
+    ~Plugin();
 
-	/**
-	 * \brief Opens the plugin configuration dialog
-	 */
-	void config();
+    /**
+     * \brief Opens the plugin configuration dialog
+     */
+    void config();
 
-	/**
-	 * \brief Opens the plugin test dialog
-	 */
-	void test();
+    /**
+     * \brief Opens the plugin test dialog
+     */
+    void test();
 
-	/**
-	 * \brief Opens the plugin about dialog
-	 */
-	void about();
+    /**
+     * \brief Opens the plugin about dialog
+     */
+    void about();
 
-	/**
-	 * \brief Loads the plugin's exported functions into the globals
-	 */
-	void load_into_globals();
+    /**
+     * \brief Loads the plugin's exported functions into the globals
+     */
+    void load_into_globals();
 
-	/**
-	 * \brief Gets the plugin's path
-	 */
-	auto path() const
-	{
-		return m_path;
-	}
+    /**
+     * \brief Gets the plugin's path
+     */
+    auto path() const
+    {
+        return m_path;
+    }
 
-	/**
-	 * \brief Gets the plugin's name
-	 */
-	auto name() const
-	{
-		return m_name;
-	}
+    /**
+     * \brief Gets the plugin's name
+     */
+    auto name() const
+    {
+        return m_name;
+    }
 
-	/**
-	 * \brief Gets the plugin's type
-	 */
-	auto type() const
-	{
-		return m_type;
-	}
+    /**
+     * \brief Gets the plugin's type
+     */
+    auto type() const
+    {
+        return m_type;
+    }
 
-	/**
-	 * \brief Gets the plugin's version
-	 */
-	auto version() const
-	{
-		return m_version;
-	}
+    /**
+     * \brief Gets the plugin's version
+     */
+    auto version() const
+    {
+        return m_version;
+    }
 
 private:
-	std::filesystem::path m_path;
-	std::string m_name;
-	plugin_type m_type;
-	uint16_t m_version;
-	void* m_module;
+    std::filesystem::path m_path;
+    std::string m_name;
+    plugin_type m_type;
+    uint16_t m_version;
+    void* m_module;
 };
 
 /**
@@ -293,5 +293,5 @@ void setup_dummy_info();
  */
 inline bool is_mge_available()
 {
-	return get_video_size && read_video;
+    return get_video_size && read_video;
 }

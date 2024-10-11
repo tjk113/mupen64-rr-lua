@@ -17,10 +17,10 @@ public:
     bool append_audio(uint8_t* audio, size_t length) override;
 
 private:
-	bool append_audio_impl(uint8_t* audio, size_t length, bool needs_free);
+    bool append_audio_impl(uint8_t* audio, size_t length, bool needs_free);
     void write_video_thread();
     void write_audio_thread();
-    
+
     Params m_params{};
 
     STARTUPINFO m_si{};

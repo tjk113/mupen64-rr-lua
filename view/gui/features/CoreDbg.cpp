@@ -61,7 +61,7 @@ namespace CoreDbg
         case WM_DEBUGGER_CPU_STATE_UPDATED:
             {
                 HWND list_hwnd = GetDlgItem(g_hwnd, IDC_COREDBG_LIST);
-                
+
                 char disasm[255] = {0};
                 DisassembleInstruction(disasm,
                                        g_cpu_state.opcode,
@@ -107,7 +107,7 @@ namespace CoreDbg
                 SendMessage(g_hwnd, WM_DEBUGGER_CPU_STATE_UPDATED, 0, 0);
             }
         });
-        
+
         Messenger::subscribe(Messenger::Message::DebuggerResumedChanged, [](std::any data)
         {
             if (g_hwnd)

@@ -63,7 +63,7 @@ void AsyncExecutor::invoke_async(const std::function<void()>& func, size_t key)
         std::thread(func).detach();
         return;
     }
-    
+
     {
         std::lock_guard lock(g_queue_mutex);
 

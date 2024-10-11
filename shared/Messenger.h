@@ -5,183 +5,183 @@
 
 namespace Messenger
 {
-	/**
-	 * \brief Types of messages
-	 */
-	enum class Message
-	{
-		/**
-		 * \brief Debug message used for benchmarking which should not be subscribed to.
-		 */
-		None,
-		
-		/**
-		 * \brief The emulator launched state has changed
-		 */
-		EmuLaunchedChanged,
+    /**
+     * \brief Types of messages
+     */
+    enum class Message
+    {
+        /**
+         * \brief Debug message used for benchmarking which should not be subscribed to.
+         */
+        None,
 
-		/**
-		 * \brief The emulator is beginning the termination process
-		 */
-		EmuStopping,
+        /**
+         * \brief The emulator launched state has changed
+         */
+        EmuLaunchedChanged,
 
-		/**
-		 * \brief The emulator paused state has changed
-		 */
-		EmuPausedChanged,
+        /**
+         * \brief The emulator is beginning the termination process
+         */
+        EmuStopping,
 
-		/**
-		 * \brief The video capturing state has changed
-		 */
-		CapturingChanged,
+        /**
+         * \brief The emulator paused state has changed
+         */
+        EmuPausedChanged,
 
-		/**
-		 * \brief The statusbar visibility has changed
-		 */
-		StatusbarVisibilityChanged,
+        /**
+         * \brief The video capturing state has changed
+         */
+        CapturingChanged,
 
-		/**
-		 * \brief The main window size changed
-		 */
-		SizeChanged,
+        /**
+         * \brief The statusbar visibility has changed
+         */
+        StatusbarVisibilityChanged,
 
-		/**
-		 * \brief The movie loop state changed
-		 */
-		MovieLoopChanged,
+        /**
+         * \brief The main window size changed
+         */
+        SizeChanged,
 
-		/**
-		 * \brief The VCR read-only state changed
-		 */
-		ReadonlyChanged,
+        /**
+         * \brief The movie loop state changed
+         */
+        MovieLoopChanged,
 
-		/**
-		 * \brief The VCR task changed
-		 */
-		TaskChanged,
+        /**
+         * \brief The VCR read-only state changed
+         */
+        ReadonlyChanged,
 
-		/**
-		 * \brief The current VCR sample index changed
-		 */
-		CurrentSampleChanged,
+        /**
+         * \brief The VCR task changed
+         */
+        TaskChanged,
 
-		/**
-		 * \brief A VCR unfreeze operation has completed
-		 */
-		UnfreezeCompleted,
+        /**
+         * \brief The current VCR sample index changed
+         */
+        CurrentSampleChanged,
 
-		/**
-		 * \brief The VCR warp modify status has changed
-		 */
-		WarpModifyStatusChanged,
+        /**
+         * \brief A VCR unfreeze operation has completed
+         */
+        UnfreezeCompleted,
 
-		/**
-		 * \brief The Lua engine has started a script
-		 */
-		ScriptStarted,
+        /**
+         * \brief The VCR warp modify status has changed
+         */
+        WarpModifyStatusChanged,
 
-		/**
-		 * \brief The main window has been created
-		 */
-		AppReady,
+        /**
+         * \brief The Lua engine has started a script
+         */
+        ScriptStarted,
 
-		/**
-		 * \brief The emulator has finished resetting
-		 */
-		ResetCompleted,
+        /**
+         * \brief The main window has been created
+         */
+        AppReady,
 
-		/**
-		 * \brief The user has requested a reset. The reset won't be performed after the message is handled.
-		 */
-		ResetRequested,
+        /**
+         * \brief The emulator has finished resetting
+         */
+        ResetCompleted,
 
-		/**
-		 * \brief The config will begin saving soon
-		 */
-		ConfigSaving,
+        /**
+         * \brief The user has requested a reset. The reset won't be performed after the message is handled.
+         */
+        ResetRequested,
 
-		/**
-		 * \brief The config has been loaded and values have changed
-		 */
-		ConfigLoaded,
+        /**
+         * \brief The config will begin saving soon
+         */
+        ConfigSaving,
 
-		/**
-		 * \brief The rerecord count of the currently recorded movie changed
-		 */
-		RerecordsChanged,
+        /**
+         * \brief The config has been loaded and values have changed
+         */
+        ConfigLoaded,
 
-		/**
-		 * \brief The currently selected save slot changed
-		 */
-		SlotChanged,
+        /**
+         * \brief The rerecord count of the currently recorded movie changed
+         */
+        RerecordsChanged,
 
-		/**
-		 * \brief A VCR seek operation has completed
-		 */
-		SeekCompleted,
+        /**
+         * \brief The currently selected save slot changed
+         */
+        SlotChanged,
 
-		/**
-		 * \brief The core speed modifier has changed
-		 */
-		SpeedModifierChanged,
+        /**
+         * \brief A VCR seek operation has completed
+         */
+        SeekCompleted,
 
-		/**
-		 * \brief The threhsold of VIs since the last input poll has been exceeded
-		 */
-		LagLimitExceeded,
+        /**
+         * \brief The core speed modifier has changed
+         */
+        SpeedModifierChanged,
 
-		/**
-		 * \brief The emu has begun or stopped its starting process
-		 */
-		EmuStartingChanged,
+        /**
+         * \brief The threhsold of VIs since the last input poll has been exceeded
+         */
+        LagLimitExceeded,
 
-		/**
-		 * \brief The core is reporting on the status of an operation
-		 */
-		CoreResult,
+        /**
+         * \brief The emu has begun or stopped its starting process
+         */
+        EmuStartingChanged,
 
-		/**
-		 * \brief The fullscreen mode has changed
-		 */
-		FullscreenChanged,
+        /**
+         * \brief The core is reporting on the status of an operation
+         */
+        CoreResult,
 
-		/**
-		 * \brief The audio dacrate has changed
-		 */
-		DacrateChanged,
+        /**
+         * \brief The fullscreen mode has changed
+         */
+        FullscreenChanged,
 
-		/**
-		 * \brief The debugger-tracked CPU state has changed
-		 */
-		DebuggerCpuStateChanged,
+        /**
+         * \brief The audio dacrate has changed
+         */
+        DacrateChanged,
 
-		/**
-		 * \brief The CPU resumed state has changed
-		 */
-		DebuggerResumedChanged,
-	};
+        /**
+         * \brief The debugger-tracked CPU state has changed
+         */
+        DebuggerCpuStateChanged,
 
-	using t_user_callback = std::function<void(std::any)>;
+        /**
+         * \brief The CPU resumed state has changed
+         */
+        DebuggerResumedChanged,
+    };
 
-	/**
-	 * \brief Initializes the messenger
-	 */
-	void init();
+    using t_user_callback = std::function<void(std::any)>;
 
-	/**
-	 * \brief Broadcasts a message to all listeners
-	 * \param message The message type
-	 * \param data The message data
-	 * \remark This method is thread-safe, but mustn't be called concurrently with subscribe()
-	 */
-	void broadcast(Message message, std::any data);
+    /**
+     * \brief Initializes the messenger
+     */
+    void init();
 
-	/**
-	 * \brief Subscribe to a message
-	 * \param message The message type to listen for
-	 * \param callback The callback to be invoked upon receiving the specified message type
-	 * \return A function which, when called, unsubscribes from the message
-	 * \remark This method is not thread-safe.
-	 */
-	std::function<void()> subscribe(Message message, t_user_callback callback);
+    /**
+     * \brief Broadcasts a message to all listeners
+     * \param message The message type
+     * \param data The message data
+     * \remark This method is thread-safe, but mustn't be called concurrently with subscribe()
+     */
+    void broadcast(Message message, std::any data);
+
+    /**
+     * \brief Subscribe to a message
+     * \param message The message type to listen for
+     * \param callback The callback to be invoked upon receiving the specified message type
+     * \return A function which, when called, unsubscribes from the message
+     * \remark This method is not thread-safe.
+     */
+    std::function<void()> subscribe(Message message, t_user_callback callback);
 }

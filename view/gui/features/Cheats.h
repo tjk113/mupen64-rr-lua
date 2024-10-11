@@ -2,8 +2,8 @@
 
 namespace Cheats
 {
-	/**
-	 * \brief Shows the cheats dialog
-	 */
-	void show();
+    /**
+     * \brief Shows the cheats dialog
+     */
+    void show();
 }

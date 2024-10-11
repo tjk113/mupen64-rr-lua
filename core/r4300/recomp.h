@@ -36,68 +36,68 @@
 
 typedef struct _precomp_instr
 {
-	void (*ops)();
+    void (*ops)();
 
-	union
-	{
-		struct
-		{
-			long long int* rs;
-			long long int* rt;
-			short immediate;
-		} i;
+    union
+    {
+        struct
+        {
+            long long int* rs;
+            long long int* rt;
+            short immediate;
+        } i;
 
-		struct
-		{
-			unsigned long inst_index;
-		} j;
+        struct
+        {
+            unsigned long inst_index;
+        } j;
 
-		struct
-		{
-			long long int* rs;
-			long long int* rt;
-			long long int* rd;
-			unsigned char sa;
-			unsigned char nrd;
-		} r;
+        struct
+        {
+            long long int* rs;
+            long long int* rt;
+            long long int* rd;
+            unsigned char sa;
+            unsigned char nrd;
+        } r;
 
-		struct
-		{
-			unsigned char base;
-			unsigned char ft;
-			short offset;
-		} lf;
+        struct
+        {
+            unsigned char base;
+            unsigned char ft;
+            short offset;
+        } lf;
 
-		struct
-		{
-			unsigned char ft;
-			unsigned char fs;
-			unsigned char fd;
-		} cf;
+        struct
+        {
+            unsigned char ft;
+            unsigned char fs;
+            unsigned char fd;
+        } cf;
 #ifdef LUA_BREAKPOINTSYNC_INTERP
 		unsigned char stype;
 #endif
-	} f;
+    } f;
 
-	unsigned long addr;
-	unsigned long local_addr;
-	reg_cache_struct reg_cache_infos;
-	void (*s_ops)();
-	unsigned long src;
+    unsigned long addr;
+    unsigned long local_addr;
+    reg_cache_struct reg_cache_infos;
+    void (*s_ops)();
+    unsigned long src;
 } precomp_instr;
 
 typedef struct _precomp_block
 {
-	precomp_instr* block;
-	unsigned int start;
-	unsigned int end;
-	unsigned char* code;
-	unsigned int code_length;
-	unsigned int max_code_length;
-	void* jumps_table;
-	int jumps_number;
-	//unsigned char md5[16];
-	unsigned long adler32;
+    precomp_instr* block;
+    unsigned int start;
+    unsigned int end;
+    unsigned char* code;
+    unsigned int code_length;
+    unsigned int max_code_length;
+    void* jumps_table;
+    int jumps_number;
+    //unsigned char md5[16];
+    unsigned long adler32;
 } precomp_block;
 
 void recompile_block(long* source, precomp_block* block, unsigned long func);

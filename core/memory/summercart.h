@@ -3,16 +3,16 @@
 
 struct summercart
 {
-	char buffer[8192];
-	unsigned long status;
-	unsigned long data0;
-	unsigned long data1;
-	unsigned long sd_sector;
-	char cfg_rom_write;
-	char sd_byteswap;
-	char unlock;
-	char lock_seq;
-	char pad[492];
+    char buffer[8192];
+    unsigned long status;
+    unsigned long data0;
+    unsigned long data1;
+    unsigned long sd_sector;
+    char cfg_rom_write;
+    char sd_byteswap;
+    char unlock;
+    char lock_seq;
+    char pad[492];
 };
 
 extern struct summercart summercart;

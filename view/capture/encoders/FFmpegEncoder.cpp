@@ -9,7 +9,7 @@ bool FFmpegEncoder::start(Params params)
 {
     // TODO: Fix this to work with the new system
     assert(false);
-    
+
     m_params = params;
     m_params.path.replace_extension(".mp4");
 
@@ -21,7 +21,7 @@ bool FFmpegEncoder::start(Params params)
 
     m_video_pipe = CreateNamedPipe(
         VIDEO_PIPE_NAME,
-        PIPE_ACCESS_OUTBOUND, 
+        PIPE_ACCESS_OUTBOUND,
         PIPE_TYPE_BYTE |
         PIPE_READMODE_BYTE |
         PIPE_WAIT,
