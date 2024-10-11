@@ -456,7 +456,7 @@ void on_task_changed(std::any data)
 void on_emu_stopping(std::any)
 {
     // Remember all running lua scripts' HWNDs
-    for (const auto key : hwnd_lua_map | std::views::keys)
+    for (const auto key : g_hwnd_lua_map | std::views::keys)
     {
         g_previously_running_luas.push_back(key);
     }
@@ -977,7 +977,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
             // NOTE: We don't invalidate the controls in their WM_PAINT, since that generates too many WM_PAINTs and fills up the message queue
             // Instead, we invalidate them driven by not so high-freq heartbeat like previously.
-            for (auto map : hwnd_lua_map)
+            for (auto map : g_hwnd_lua_map)
             {
                 map.second->invalidate_visuals();
             }

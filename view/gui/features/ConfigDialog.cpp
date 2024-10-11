@@ -785,7 +785,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             },
             .is_readonly = []
             {
-                return !hwnd_lua_map.empty();
+                return !g_hwnd_lua_map.empty();
             },
         },
         t_options_item{

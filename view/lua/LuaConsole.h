@@ -159,9 +159,7 @@ public:
     COLORREF col, bkcol;
     int bkmode;
 
-    LuaEnvironment()
-    {
-    };
+    LuaEnvironment() = default;
 
     /**
      * \brief Destroys and stops the environment
@@ -218,7 +216,7 @@ extern BUTTONS new_controller_data[4];
  */
 extern bool overwrite_controller_data[4];
 
-extern std::map<HWND, LuaEnvironment*> hwnd_lua_map;
+extern std::map<HWND, LuaEnvironment*> g_hwnd_lua_map;
 
 /**
  * \brief Gets the lua environment associated to a lua state

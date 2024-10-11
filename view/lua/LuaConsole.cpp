@@ -43,16 +43,14 @@
 #include "presenters/GDIPresenter.h"
 #include "shared/services/FrontendService.h"
 
-std::vector<std::string> recent_closed_lua;
+const auto D2D_OVERLAY_CLASS = "lua_d2d_overlay";
+const auto GDI_OVERLAY_CLASS = "lua_gdi_overlay";
 
 BUTTONS last_controller_data[4];
 BUTTONS new_controller_data[4];
 bool overwrite_controller_data[4];
 
-auto d2d_overlay_class = "lua_d2d_overlay";
-auto gdi_overlay_class = "lua_gdi_overlay";
-
-std::map<HWND, LuaEnvironment*> hwnd_lua_map;
+std::map<HWND, LuaEnvironment*> g_hwnd_lua_map;
 
 uint64_t inputCount = 0;
 
@@ -70,7 +68,7 @@ void invoke_callbacks_with_key_on_all_instances(
     std::function<int(lua_State*)> function, const char* key)
 {
     // We need to copy the map, since it might be modified during iteration
-    auto map = hwnd_lua_map;
+    auto map = g_hwnd_lua_map;
     for (auto pair : map)
     {
         if (!pair.second->invoke_callbacks_with_key(function, key))
@@ -98,9 +96,9 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
         return TRUE;
     case WM_DESTROY:
         {
-            if (hwnd_lua_map.contains(wnd))
+            if (g_hwnd_lua_map.contains(wnd))
             {
-                LuaEnvironment::destroy(hwnd_lua_map[wnd]);
+                LuaEnvironment::destroy(g_hwnd_lua_map[wnd]);
             }
             return TRUE;
         }
@@ -153,9 +151,9 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control)
                           path, MAX_PATH);
 
             // if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
-            if (hwnd_lua_map.contains(wnd))
+            if (g_hwnd_lua_map.contains(wnd))
             {
-                LuaEnvironment::destroy(hwnd_lua_map[wnd]);
+                LuaEnvironment::destroy(g_hwnd_lua_map[wnd]);
             }
 
             // now spool up a new one
@@ -169,7 +167,7 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control)
             else
             {
                 // it worked, we can set up associations and sync ui state
-                hwnd_lua_map[wnd] = status.first;
+                g_hwnd_lua_map[wnd] = status.first;
                 SetButtonState(wnd, true);
             }
 
@@ -177,9 +175,9 @@ BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control)
         }
     case IDC_BUTTON_LUASTOP:
         {
-            if (hwnd_lua_map.contains(wnd))
+            if (g_hwnd_lua_map.contains(wnd))
             {
-                LuaEnvironment::destroy(hwnd_lua_map[wnd]);
+                LuaEnvironment::destroy(g_hwnd_lua_map[wnd]);
                 SetButtonState(wnd, false);
             }
             return TRUE;
@@ -543,11 +541,11 @@ void close_all_scripts()
     assert(is_on_gui_thread());
 
     // we mutate the map's nodes while iterating, so we have to make a copy
-    for (auto copy = std::map(hwnd_lua_map); const auto fst : copy | std::views::keys)
+    for (auto copy = std::map(g_hwnd_lua_map); const auto fst : copy | std::views::keys)
     {
         SendMessage(fst, WM_CLOSE, 0, 0);
     }
-    assert(hwnd_lua_map.empty());
+    assert(g_hwnd_lua_map.empty());
 }
 
 void stop_all_scripts()
@@ -555,14 +553,14 @@ void stop_all_scripts()
     assert(is_on_gui_thread());
 
     // we mutate the map's nodes while iterating, so we have to make a copy
-    auto copy = std::map(hwnd_lua_map);
+    auto copy = std::map(g_hwnd_lua_map);
     for (const auto key : copy | std::views::keys)
     {
         SendMessage(key, WM_COMMAND,
                     MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
                     (LPARAM)GetDlgItem(key, IDC_BUTTON_LUASTOP));
     }
-    assert(hwnd_lua_map.empty());
+    assert(g_hwnd_lua_map.empty());
 }
 
 LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
@@ -633,11 +631,11 @@ void lua_init()
     wndclass.lpfnWndProc = (WNDPROC)d2d_overlay_wndproc;
     wndclass.hInstance = g_app_instance;
     wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wndclass.lpszClassName = d2d_overlay_class;
+    wndclass.lpszClassName = D2D_OVERLAY_CLASS;
     RegisterClass(&wndclass);
 
     wndclass.lpfnWndProc = (WNDPROC)gdi_overlay_wndproc;
-    wndclass.lpszClassName = gdi_overlay_class;
+    wndclass.lpszClassName = GDI_OVERLAY_CLASS;
     RegisterClass(&wndclass);
 }
 
@@ -696,7 +694,7 @@ void LuaEnvironment::create_renderer()
     dc_size = {(UINT32)max(1, window_rect.right), (UINT32)max(1, window_rect.bottom)};
     printf("Lua dc size: %d %d\n", dc_size.width, dc_size.height);
 
-    d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, d2d_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
+    d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, D2D_OVERLAY_CLASS, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
                                       g_app_instance, nullptr);
     SetWindowLongPtr(d2d_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
@@ -737,7 +735,7 @@ void LuaEnvironment::create_renderer()
     SelectObject(gdi_back_dc, gdi_bmp);
     ReleaseDC(g_main_hwnd, gdi_dc);
 
-    gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, gdi_overlay_class, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
+    gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, GDI_OVERLAY_CLASS, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
                                       g_app_instance, nullptr);
     SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
     SetLayeredWindowAttributes(gdi_overlay_hwnd, lua_gdi_color_mask, 0, LWA_COLORKEY);
@@ -786,7 +784,7 @@ void LuaEnvironment::destroy_renderer()
 
 void LuaEnvironment::destroy(LuaEnvironment* lua_environment)
 {
-    hwnd_lua_map.erase(lua_environment->hwnd);
+    g_hwnd_lua_map.erase(lua_environment->hwnd);
     delete lua_environment;
 }
 

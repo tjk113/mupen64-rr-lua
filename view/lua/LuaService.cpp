@@ -5,7 +5,7 @@
 namespace LuaService
 {
     // OPTIMIZATION: If no lua scripts are running, skip the deeper lua path
-#define RET_IF_EMPTY { if(hwnd_lua_map.empty()) return; }
+#define RET_IF_EMPTY { if(g_hwnd_lua_map.empty()) return; }
 
     t_window_procedure_params window_proc_params = {0};
     int current_input_n = 0;

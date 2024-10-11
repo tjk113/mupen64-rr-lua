@@ -145,7 +145,7 @@ namespace EncodingManager
         {
             // Since atupdatescreen might not have occured for a long time, we force it now.
             // This avoids "outdated" visuals, which are otherwise acceptable during normal gameplay, being blitted to the video stream.
-            for (auto& pair : hwnd_lua_map)
+            for (auto& pair : g_hwnd_lua_map)
             {
                 pair.second->repaint_visuals();
             }
@@ -161,13 +161,13 @@ namespace EncodingManager
             SetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &rs_bmp_info, DIB_RGB_COLORS);
 
             // First, composite the lua's dxgi surfaces
-            for (auto& pair : hwnd_lua_map)
+            for (auto& pair : g_hwnd_lua_map)
             {
                 pair.second->presenter->blit(compat_dc, {0, 0, (LONG)pair.second->presenter->size().width, (LONG)pair.second->presenter->size().height});
             }
 
             // Then, blit the GDI back DCs
-            for (auto& pair : hwnd_lua_map)
+            for (auto& pair : g_hwnd_lua_map)
             {
                 TransparentBlt(compat_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, pair.second->gdi_back_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, lua_gdi_color_mask);
             }
