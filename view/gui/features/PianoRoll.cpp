@@ -951,10 +951,26 @@ namespace PianoRoll
 
         // During a drag operation, we just mutate the input vector in memory and update the listview without doing anything with the core.
         // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
-        const auto column = g_config.piano_roll_constrain_edit_to_column ? g_lv_drag_column : lplvhtti.iSubItem;
-        set_input_value_from_column_index(&g_piano_roll_state.inputs[lplvhtti.iItem], column, g_lv_drag_unset ? 0 : g_lv_drag_initial_value);
 
+        const auto column = g_config.piano_roll_constrain_edit_to_column ? g_lv_drag_column : lplvhtti.iSubItem;
+        const auto new_value = g_lv_drag_unset ? 0 : g_lv_drag_initial_value;
+
+        SetWindowRedraw(g_lv_hwnd, false);
+
+        set_input_value_from_column_index(&g_piano_roll_state.inputs[lplvhtti.iItem], column, new_value);
         ListView_Update(hwnd, lplvhtti.iItem);
+
+        // If we are editing a row inside the selection, we want to copy the value of the newly edited row to all the other ones
+        if (std::ranges::find(g_piano_roll_state.selected_indicies, lplvhtti.iItem) != g_piano_roll_state.selected_indicies.end())
+        {
+            for (const auto& i : g_piano_roll_state.selected_indicies)
+            {
+                g_piano_roll_state.inputs[i] = g_piano_roll_state.inputs[lplvhtti.iItem];
+                ListView_Update(hwnd, i);
+            }
+        }
+
+        SetWindowRedraw(g_lv_hwnd, true);
     }
 
     /**
