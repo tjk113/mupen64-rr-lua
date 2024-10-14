@@ -331,29 +331,6 @@ namespace PianoRoll
     }
 
     /**
-     * Shifts the selection by the specified amount.
-     */
-    void shift_selection(const size_t offset)
-    {
-        std::vector new_selected_indicies = g_piano_roll_state.selected_indicies;
-
-        for (const auto selected_index : new_selected_indicies)
-        {
-            ListView_SetItemState(g_lv_hwnd, selected_index, 0, LVIS_SELECTED);
-        }
-
-        for (auto& selected_index : new_selected_indicies)
-        {
-            selected_index += offset;
-        }
-
-        for (const auto selected_index : new_selected_indicies)
-        {
-            ListView_SetItemState(g_lv_hwnd, selected_index, LVIS_SELECTED, LVIS_SELECTED);
-        }
-    }
-
-    /**
     * Pushes the current piano roll state to the undo stack. Should be called after operations which change the piano roll state.
     */
     void push_state_to_undo_stack()
@@ -486,7 +463,7 @@ namespace PianoRoll
 
         // Move selection to allow cool block-wise pasting
         const size_t offset = g_piano_roll_state.selected_indicies[g_piano_roll_state.selected_indicies.size() - 1] - g_piano_roll_state.selected_indicies[0] + 1;
-        shift_selection(offset);
+        shift_listview_selection(g_lv_hwnd, offset);
 
         ensure_relevant_item_visible();
 

@@ -247,6 +247,31 @@ static std::vector<size_t> get_listview_selection(const HWND hwnd)
 }
 
 /**
+ * Shifts the listview selection by the specified amount. Retains sparse selections. Selections which fall outside the bounds of the item range after shifting are dropped.  
+ * \param hwnd Handle to a listview.
+ * \param offset The shift amount.
+ */
+static void shift_listview_selection(const HWND hwnd, const int32_t offset)
+{
+    auto selection = get_listview_selection(hwnd);
+
+    for (const auto selected_index : selection)
+    {
+        ListView_SetItemState(hwnd, selected_index, 0, LVIS_SELECTED);
+    }
+
+    for (auto& selected_index : selection)
+    {
+        selected_index += offset;
+    }
+
+    for (const auto selected_index : selection)
+    {
+        ListView_SetItemState(hwnd, selected_index, LVIS_SELECTED, LVIS_SELECTED);
+    }
+}
+
+/**
  * Sets the listview selection based on a vector of indicies.
  * \param hwnd Handle to a listview.
  * \param indicies A vector containing the selected indicies.
