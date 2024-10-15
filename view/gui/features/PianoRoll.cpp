@@ -84,6 +84,9 @@ namespace PianoRoll
     // Stack index for the piano roll undo/redo stack. 0 = top, 1 = 2nd from top, etc...
     size_t g_piano_roll_state_index;
 
+    // Copy of seek savestate frame map from VCR.
+    std::unordered_map<size_t, bool> g_seek_savestate_frames;
+    
     /**
      * Gets whether inputs can be modified. Affects both the piano roll and the joystick.
      */
@@ -652,6 +655,18 @@ namespace PianoRoll
         update_groupbox_status_text();
     }
 
+    void on_seek_savestate_changed(std::any data)
+    {
+        if (!g_hwnd)
+        {
+            return;
+        }
+        
+        auto value = std::any_cast<size_t>(data);
+        g_seek_savestate_frames = VCR::get_seek_savestate_frames();
+        ListView_Update(g_lv_hwnd, value);
+    }
+
     /**
      * The window procedure for the joystick control. 
      */
@@ -1064,6 +1079,7 @@ namespace PianoRoll
                 // ReSharper disable once CppRedundantCastExpression
                 on_current_sample_changed(static_cast<long>(VCR::get_seek_completion().first));
                 update_groupbox_status_text();
+                update_history_listbox();
                 SendMessage(hwnd, WM_SIZE, 0, 0);
 
                 break;
@@ -1146,7 +1162,7 @@ namespace PianoRoll
                                     {
                                         plvdi->item.iImage = 0;
                                     }
-                                    else if (plvdi->item.iItem % g_config.seek_savestate_interval == 0)
+                                    else if (g_seek_savestate_frames.contains(plvdi->item.iItem))
                                     {
                                         plvdi->item.iImage = 1;
                                     }
@@ -1211,6 +1227,7 @@ namespace PianoRoll
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::CurrentSampleChanged, on_current_sample_changed));
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::UnfreezeCompleted, on_unfreeze_completed));
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed));
+            unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::SeekSavestateChanged, on_seek_savestate_changed));
 
             DialogBox(g_app_instance, MAKEINTRESOURCE(IDD_PIANO_ROLL), 0, (DLGPROC)dialog_proc);
 
