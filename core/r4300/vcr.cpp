@@ -627,9 +627,6 @@ void vcr_handle_recording(int index, BUTTONS* input)
     // the recording input source is the input buffer on all frames prior to the first difference (along with the reset override).
     if (g_warp_modify_status == e_warp_modify_status::warping)
     {
-        // Input buffer mustn't change in size during warp modify
-        assert(g_movie_inputs.size() == g_warp_modify_inputs.size());
-
         if (user_requested_reset)
         {
             *input = {
