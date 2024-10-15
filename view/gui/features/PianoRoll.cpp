@@ -24,6 +24,7 @@ namespace PianoRoll
     std::atomic<HWND> g_hwnd = nullptr;
     HWND g_lv_hwnd = nullptr;
     HWND g_joy_hwnd = nullptr;
+    HWND g_hist_hwnd = nullptr;
 
     // Represents the current state of the piano roll.
     struct PianoRollState
@@ -331,10 +332,29 @@ namespace PianoRoll
     }
 
     /**
+    * Updates the history listbox with the current state of the undo/redo stack.
+    */
+    void update_history_listbox()
+    {
+        SetWindowRedraw(g_hist_hwnd, false);
+        ListBox_ResetContent(g_hist_hwnd);
+        
+        for (size_t i = 0; i < g_piano_roll_states.size(); ++i)
+        {
+            ListBox_AddString(g_hist_hwnd, std::format("Snapshot {}", i).c_str());
+        }
+
+        ListBox_SetCurSel(g_hist_hwnd, g_piano_roll_state_index);
+        SetWindowRedraw(g_hist_hwnd, true);
+    }
+
+    /**
     * Pushes the current piano roll state to the undo stack. Should be called after operations which change the piano roll state.
     */
     void push_state_to_undo_stack()
     {
+        std::println("[PianoRoll] Pushing state to undo stack...");
+        
         if (g_piano_roll_states.size() > g_config.piano_roll_undo_stack_size)
         {
             g_piano_roll_states.pop_back();
@@ -342,6 +362,8 @@ namespace PianoRoll
 
         g_piano_roll_states.push_front(g_piano_roll_state);
         g_piano_roll_state_index++;
+        
+        update_history_listbox();
     }
 
     /**
@@ -376,7 +398,7 @@ namespace PianoRoll
             }
         });
     }
-
+    
     /**
      * Sets the piano roll state to the specified value, updating everything accordingly and also applying the input buffer.
      * This is an expensive and slow operation.
@@ -387,6 +409,7 @@ namespace PianoRoll
         ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
         set_listview_selection(g_lv_hwnd, g_piano_roll_state.selected_indicies);
         apply_input_buffer();
+        update_history_listbox();
     }
 
     /**
@@ -489,7 +512,8 @@ namespace PianoRoll
 
         g_piano_roll_state_index--;
         set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
-
+        update_history_listbox();
+        
         return true;
     }
 
@@ -510,7 +534,8 @@ namespace PianoRoll
 
         g_piano_roll_state_index++;
         set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
-
+        update_history_listbox();
+        
         return true;
     }
 
@@ -836,7 +861,7 @@ namespace PianoRoll
             break;
         case WM_KEYDOWN:
             {
-                if (wParam == VK_BACK)
+                if (wParam == VK_BACK || wParam == VK_DELETE)
                 {
                     clear_inputs_in_selection();
                     break;
@@ -961,6 +986,14 @@ namespace PianoRoll
             {
                 g_hwnd = hwnd;
                 g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 17, 30, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
+                CreateWindowEx(0, WC_STATIC, "History", WS_CHILD | WS_VISIBLE | WS_GROUP | SS_LEFT | SS_CENTERIMAGE , 17, 166, 131, 15, g_hwnd, nullptr, g_app_instance, nullptr);
+                g_hist_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTBOX, "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOINTEGRALHEIGHT, 17, 186, 131, 181, g_hwnd, nullptr, g_app_instance, nullptr);
+                
+                EnumChildWindows(hwnd, [](HWND hwnd, LPARAM font)
+                {
+                    SendMessage(hwnd, WM_SETFONT, (WPARAM)font, 0);
+                    return TRUE;
+                }, SendMessage(hwnd, WM_GETFONT, 0, 0));
 
                 RECT grid_rect = get_window_rect_client_space(hwnd, GetDlgItem(hwnd, IDC_LIST_PIANO_ROLL));
 
@@ -1036,9 +1069,9 @@ namespace PianoRoll
                 break;
             }
         case WM_DESTROY:
-            DestroyWindow(g_lv_hwnd);
-            DestroyWindow(g_joy_hwnd);
+            EnumChildWindows(hwnd, [](HWND hwnd, LPARAM) { DestroyWindow(hwnd); return TRUE; }, 0);
             g_lv_hwnd = nullptr;
+            g_hist_hwnd = nullptr;
             g_hwnd = nullptr;
             break;
         case WM_CLOSE:
