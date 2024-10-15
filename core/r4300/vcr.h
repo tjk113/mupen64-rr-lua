@@ -430,12 +430,11 @@ namespace VCR
      *
      * This operation is long-running and status is reported via the WarpModifyStatusChanged message.
      * A successful warp modify operation can be detected by the status changing from warping to none with no errors inbetween. 
-     *
-     * TODO: Define and handle case where current sample is changed by the buffer. 
      * 
      * If the provided buffer is identical to the current input buffer (in both content and size), the operation will succeed with no seek.
      * 
      * If the provided buffer is larger than the current input buffer and the first differing input is after the current sample, the operation will succeed with no seek.
+     * The input buffer will be overwritten with the provided buffer and when the modified frames are reached in the future, they will be "applied" like in playback mode.
      * 
      * \param inputs The input buffer to use.
      * \return The operation result
