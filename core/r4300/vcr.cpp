@@ -508,6 +508,7 @@ void vcr_create_n_frame_savestate(size_t frame)
             {
                 std::println("[VCR] Map too large! Purging seek savestate at frame {}...", i);
                 g_seek_savestates.erase(i);
+                Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)i);
                 break;
             }
         }
@@ -517,6 +518,7 @@ void vcr_create_n_frame_savestate(size_t frame)
     savestates_save_memory([=](auto buf)
     {
         g_seek_savestates[frame] = buf;
+        Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)frame);
     });
 }
 
@@ -1442,7 +1444,15 @@ bool task_is_recording(e_task task)
 VCR::Result VCR::stop_all()
 {
     printf("[VCR] Clearing seek savestates...\n");
+    
+    auto prev_seek_savestates = g_seek_savestates | std::views::keys;
+    
     g_seek_savestates.clear();
+    
+    for (auto frame : prev_seek_savestates)
+    {
+        Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)frame);
+    }
 
     switch (g_task)
     {
@@ -1621,6 +1631,23 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 e_warp_modify_status VCR::get_warp_modify_status()
 {
     return g_warp_modify_status;
+}
+
+std::unordered_map<size_t, bool> VCR::get_seek_savestate_frames()
+{
+    std::unordered_map<size_t, bool> map;
+
+    for (const auto& key : g_seek_savestates | std::views::keys)
+    {
+        map[key] = true;
+    }
+    
+    return map;
+}
+
+bool VCR::has_seek_savestate_at_frame(const size_t frame)
+{
+    return g_seek_savestates.contains(frame);
 }
 
 void vcr_on_vi()

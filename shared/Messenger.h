@@ -76,6 +76,11 @@ namespace Messenger
         WarpModifyStatusChanged,
 
         /**
+         * \brief The VCR engine has created or destroyed a seek savestate at the specified frame.
+         */
+        SeekSavestateChanged,
+
+        /**
          * \brief The Lua engine has started a script
          */
         ScriptStarted,

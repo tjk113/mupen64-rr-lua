@@ -447,6 +447,18 @@ namespace VCR
     e_warp_modify_status get_warp_modify_status();
 
     /**
+     * Gets the current seek savestate frames.
+     * Keys are frame numbers, values are unimportant and abscence of a seek savestate at a frame is marked by the respective key not existing.
+     */
+    std::unordered_map<size_t, bool> get_seek_savestate_frames();
+
+    /**
+     * Gets whether a seek savestate exists at the specified frame.
+     * The returned state changes when the <c>SeekSavestatesChanged</c> message is sent. 
+     */
+    bool has_seek_savestate_at_frame(size_t frame);
+
+    /**
      * HACK: The VCR engine can prevent the core from pausing. Gets whether the core should be allowed to pause.
      */
     bool allows_core_pause();
