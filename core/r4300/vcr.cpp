@@ -53,9 +53,6 @@ std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 auto g_warp_modify_status = e_warp_modify_status::none;
 size_t g_warp_modify_first_difference_frame = 0;
 
-// FIXME: Is this thing even required, can't we just overwrite the input buffer immediately when starting warp modify?
-std::vector<BUTTONS> g_warp_modify_inputs{};
-
 t_movie_header g_header;
 std::vector<BUTTONS> g_movie_inputs;
 std::filesystem::path g_movie_path;
@@ -623,44 +620,10 @@ void vcr_handle_recording(int index, BUTTONS* input)
         return;
     }
 
-    // Warp modify recording:
-    // the recording input source is the input buffer on all frames prior to the first difference (along with the reset override).
-    if (g_warp_modify_status == e_warp_modify_status::warping)
-    {
-        if (user_requested_reset)
-        {
-            *input = {
-                .Reserved1 = 1,
-                .Reserved2 = 1,
-            };
-        }
-
-        if (m_current_sample >= g_warp_modify_first_difference_frame)
-        {
-            std::println("[VCR] Overriding input at frame {}", m_current_sample);
-            g_movie_inputs[m_current_sample] = g_warp_modify_inputs[m_current_sample];
-        }
-
-        *input = g_movie_inputs[m_current_sample];
-        m_current_sample++;
-        Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
-
-        if (user_requested_reset)
-        {
-            user_requested_reset = false;
-            AsyncExecutor::invoke_async([]
-            {
-                auto result = vr_reset_rom(false, false, true);
-                if (result != Core::Result::Ok)
-                {
-                    FrontendService::show_error("Failed to reset the rom following a user-invoked reset.");
-                }
-            });
-        }
-
-        return;
-    }
-
+    // When the movie has more frames after the current one than the buffer has, we need to use the buffer data instead of the plugin
+    const auto effective_index = m_current_sample + index;
+    bool use_inputs_from_buffer = g_movie_inputs.size() > effective_index || g_warp_modify_status == e_warp_modify_status::warping;
+    
     // Regular recording: the recording input source is the input plugin (along with the reset override)
     if (user_requested_reset)
     {
@@ -671,12 +634,22 @@ void vcr_handle_recording(int index, BUTTONS* input)
     }
     else
     {
-        getKeys(index, input);
-        LuaService::call_input(input, index);
+        if (use_inputs_from_buffer)
+        {
+            *input = g_movie_inputs[effective_index];
+        } else
+        {
+            getKeys(index, input);
+            LuaService::call_input(input, index);
+        }
     }
 
-    g_movie_inputs.push_back(*input);
-    g_header.length_samples++;
+    if (!use_inputs_from_buffer)
+    {
+        g_movie_inputs.push_back(*input);
+        g_header.length_samples++;
+    }
+    
     m_current_sample++;
     Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 
@@ -1615,6 +1588,7 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
         std::println("[VCR] First different frame is in the future (current sample: {}, first differenece: {}), copying inputs with no seek...", m_current_sample, g_warp_modify_first_difference_frame);
 
         g_movie_inputs = inputs;
+        g_header.length_samples = g_movie_inputs.size();
 
         g_warp_modify_status = e_warp_modify_status::warping;
         Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
@@ -1633,7 +1607,10 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
     }
 
     g_warp_modify_status = e_warp_modify_status::warping;
-    g_warp_modify_inputs = inputs;
+    
+    g_movie_inputs = inputs;
+    g_header.length_samples = g_movie_inputs.size();
+    
     resume_emu();
 
     std::println("[VCR] Warp modify started at frame {}", m_current_sample);
