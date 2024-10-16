@@ -1,8 +1,66 @@
 #pragma once
 
 #include <algorithm>
+#include <locale>
+#include <cctype>
 #include <vector>
-#include <algorithm>
+
+static bool ichar_equals(char a, char b)
+{
+    return std::tolower(static_cast<unsigned char>(a)) ==
+        std::tolower(static_cast<unsigned char>(b));
+}
+
+static bool iequals(std::string_view lhs, std::string_view rhs)
+{
+    return std::ranges::equal(lhs, rhs, ichar_equals);
+}
+    
+static std::string to_lower(std::string a)
+{
+    std::ranges::transform(a, a.begin(),
+                           [](unsigned char c) { return std::tolower(c); });
+    return a;
+}
+
+static bool contains(const std::string& a, const std::string& b)
+{
+    return a.find(b) != std::string::npos;
+}
+
+// https://stackoverflow.com/q/7571937
+template <typename T>
+std::vector<T> erase_indices(const std::vector<T>& data, std::vector<size_t>& indices_to_delete)
+{
+    if (indices_to_delete.empty())
+        return data;
+
+    std::vector<T> ret;
+    ret.reserve(data.size() - indices_to_delete.size());
+
+    std::sort(indices_to_delete.begin(), indices_to_delete.end());
+
+    // new we can assume there is at least 1 element to delete. copy blocks at a time.
+    typename std::vector<T>::const_iterator itBlockBegin = data.begin();
+    for (std::vector<size_t>::const_iterator it = indices_to_delete.begin(); it != indices_to_delete.end(); ++it)
+    {
+        typename std::vector<T>::const_iterator itBlockEnd = data.begin() + *it;
+        if (itBlockBegin != itBlockEnd)
+        {
+            std::copy(itBlockBegin, itBlockEnd, std::back_inserter(ret));
+        }
+        itBlockBegin = itBlockEnd + 1;
+    }
+
+    // copy last block.
+    if (itBlockBegin != data.end())
+    {
+        std::copy(itBlockBegin, data.end(), std::back_inserter(ret));
+    }
+
+    return ret;
+}
+
 
 /**
  * Converts a string to a wstring. Returns an empty string on fail.

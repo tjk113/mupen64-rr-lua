@@ -34,13 +34,12 @@
 #include <core/r4300/vcr.h>
 #include <shared/Config.hpp>
 #include <shared/Messenger.h>
-#include <shared/helpers/StringHelpers.h>
+#include <shared/helpers/StlExtensions.h>
 #include <shared/services/FrontendService.h>
 #include <shared/services/LuaService.h>
 #include <view/capture/EncodingManager.h>
 #include <view/gui/features/ConfigDialog.h>
 #include <view/helpers/MathHelpers.h>
-#include <view/helpers/StringHelpers.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/lua/LuaConsole.h>
 #include <winproject/resource.h>

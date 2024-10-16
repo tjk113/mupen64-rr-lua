@@ -2,7 +2,7 @@
 #include <shlobj.h>
 #include <cstdio>
 #include <shared/helpers/IOHelpers.h>
-#include <shared/helpers/StringHelpers.h>
+#include <shared/helpers/StlExtensions.h>
 #include <shared/Config.hpp>
 #include <view/helpers/WinHelpers.h>
 #include <view/helpers/IOHelpers.h>

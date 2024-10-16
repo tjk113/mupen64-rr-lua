@@ -21,7 +21,7 @@
 #include <core/r4300/r4300.h>
 #include <core/r4300/timers.h>
 #include <shared/Config.hpp>
-#include <shared/helpers/StringHelpers.h>
+#include <shared/helpers/StlExtensions.h>
 #include <shared/services/LuaService.h>
 #include <view/gui/Main.h>
 #include <view/gui/features/Statusbar.hpp>

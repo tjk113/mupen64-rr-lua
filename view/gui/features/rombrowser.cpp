@@ -10,11 +10,9 @@
 #include "Statusbar.hpp"
 #include "../Main.h"
 #include "../../winproject/resource.h"
-#include <shared/helpers/IOHelpers.h>
-#include <shared/helpers/StringHelpers.h>
+#include <shared/helpers/StlExtensions.h>
 #include <shared/services/IOService.h>
 #include <view/helpers/IOHelpers.h>
-#include <view/helpers/StringHelpers.h>
 #include <core/r4300/r4300.h>
 #include <shared/Config.hpp>
 #include <assert.h>

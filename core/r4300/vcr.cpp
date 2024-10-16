@@ -20,7 +20,7 @@
 
 #include <shared/services/FrontendService.h>
 #include <shared/Messenger.h>
-#include <shared/helpers/StringHelpers.h>
+#include <shared/helpers/StlExtensions.h>
 
 #include "shared/AsyncExecutor.h"
 

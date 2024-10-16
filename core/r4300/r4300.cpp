@@ -40,7 +40,7 @@
 #include <shared/services/LuaService.h>
 #include <shared/Messenger.h>
 #include "../memory/savestates.h"
-#include <shared/helpers/StringHelpers.h>
+#include <shared/helpers/StlExtensions.h>
 #include <core/r4300/timers.h>
 #include <shared/Config.hpp>
 #include <shared/services/FrontendService.h>

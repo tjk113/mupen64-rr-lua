@@ -565,6 +565,25 @@ namespace PianoRoll
         apply_input_buffer();
     }
 
+    /**
+     * Deletes all inputs in the current selection, removing them from the input buffer.
+     */
+    void delete_inputs_in_selection()
+    {
+        if (g_piano_roll_state.selected_indicies.empty() || !can_modify_inputs())
+        {
+            return;
+        }
+
+        SetWindowRedraw(g_lv_hwnd, false);
+
+        
+        
+        SetWindowRedraw(g_lv_hwnd, true);
+
+        apply_input_buffer();
+    }
+
     void update_groupbox_status_text()
     {
         if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
@@ -841,10 +860,11 @@ namespace PianoRoll
                 AppendMenu(h_menu, base_style | MF_STRING, 2, "Paste\tCtrl+V");
                 AppendMenu(h_menu, base_style | MF_STRING, 3, "Undo\tCtrl+Z");
                 AppendMenu(h_menu, base_style | MF_STRING, 4, "Redo\tCtrl+Y");
-                AppendMenu(h_menu, base_style | MF_STRING, 5, "Clear\tDelete");
+                AppendMenu(h_menu, base_style | MF_STRING, 5, "Clear\tBackspace");
+                AppendMenu(h_menu, base_style | MF_STRING, 6, "Delete\tDelete");
 
                 const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), hwnd, 0);
-                
+
                 switch (offset)
                 {
                 case 1:
@@ -861,6 +881,9 @@ namespace PianoRoll
                     break;
                 case 5:
                     clear_inputs_in_selection();
+                    break;
+                case 6:
+                    delete_inputs_in_selection();
                     break;
                 default:
                     break;

@@ -22,13 +22,11 @@
 #include <view/gui/Main.h>
 #include <winproject/resource.h>
 #include <core/r4300/Plugin.hpp>
-#include <view/gui/features/RomBrowser.hpp>
 #include <core/r4300/timers.h>
 #include <shared/Config.hpp>
 #include <view/gui/wrapper/PersistentPathDialog.h>
-#include <shared/helpers/StringHelpers.h>
+#include <shared/helpers/StlExtensions.h>
 #include <view/helpers/WinHelpers.h>
-#include <view/helpers/StringHelpers.h>
 #include <core/r4300/r4300.h>
 #include "configdialog.h"
 #include <view/capture/EncodingManager.h>

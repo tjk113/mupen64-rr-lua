@@ -174,7 +174,7 @@
     <ClInclude Include="..\shared\AsyncExecutor.h" />
     <ClInclude Include="..\shared\Config.hpp" />
     <ClInclude Include="..\shared\helpers\IOHelpers.h" />
-    <ClInclude Include="..\shared\helpers\StringHelpers.h" />
+    <ClInclude Include="..\shared\helpers\StlExtensions.h" />
     <ClInclude Include="..\shared\Messenger.h" />
     <ClInclude Include="..\shared\services\FrontendService.h" />
     <ClInclude Include="..\shared\services\IOService.h" />
@@ -188,7 +188,6 @@
     <ClInclude Include="..\view\gui\features\PianoRoll.h" />
     <ClInclude Include="..\view\helpers\IOHelpers.h" />
     <ClInclude Include="..\view\helpers\MathHelpers.h" />
-    <ClInclude Include="..\view\helpers\StringHelpers.h" />
     <ClInclude Include="..\view\helpers\WinHelpers.h" />
     <ClInclude Include="..\view\gui\Commandline.h" />
     <ClInclude Include="..\view\gui\features\Cheats.h" />
