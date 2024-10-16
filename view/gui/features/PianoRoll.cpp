@@ -12,7 +12,6 @@
 #include "shared/helpers/StlExtensions.h"
 #include "shared/services/FrontendService.h"
 #include "view/gui/Main.h"
-#include "view/helpers/IOHelpers.h"
 #include "view/helpers/WinHelpers.h"
 #include "winproject/resource.h"
 
@@ -20,11 +19,19 @@ import std;
 
 namespace PianoRoll
 {
+#pragma region Variables
     const auto JOYSTICK_CLASS = "PianoRollJoystick";
 
+    // The piano roll dialog's handle.
     std::atomic<HWND> g_hwnd = nullptr;
+
+    // The piano roll listview's handle.
     HWND g_lv_hwnd = nullptr;
+
+    // The piano roll joystick's handle.
     HWND g_joy_hwnd = nullptr;
+
+    // The piano roll history listbox's handle.
     HWND g_hist_hwnd = nullptr;
 
     // Represents the current state of the piano roll.
@@ -87,6 +94,10 @@ namespace PianoRoll
 
     // Copy of seek savestate frame map from VCR.
     std::unordered_map<size_t, bool> g_seek_savestate_frames;
+
+#pragma endregion
+
+#pragma region Implementations
 
     /**
      * Gets whether inputs can be modified. Affects both the piano roll and the joystick.
@@ -608,6 +619,10 @@ namespace PianoRoll
         }
     }
 
+#pragma endregion
+
+#pragma region Message Handlers
+
     void on_task_changed(std::any data)
     {
         auto value = std::any_cast<e_task>(data);
@@ -687,6 +702,10 @@ namespace PianoRoll
         g_seek_savestate_frames = VCR::get_seek_savestate_frames();
         ListView_Update(g_lv_hwnd, value);
     }
+
+#pragma endregion
+
+#pragma region Message Loops
 
     /**
      * The window procedure for the joystick control. 
@@ -900,7 +919,7 @@ namespace PianoRoll
                 GetCursorPos(&lplvhtti.pt);
                 ScreenToClient(hwnd, &lplvhtti.pt);
                 ListView_SubItemHitTest(hwnd, &lplvhtti);
-                
+
                 if (lplvhtti.iItem < 0 || lplvhtti.iItem >= g_piano_roll_state.inputs.size())
                 {
                     printf("[PianoRoll] iItem out of range\n");
@@ -915,7 +934,7 @@ namespace PianoRoll
                     });
                     break;
                 }
-                
+
                 if (!can_modify_inputs())
                 {
                     break;
@@ -1029,7 +1048,7 @@ namespace PianoRoll
         GetCursorPos(&lplvhtti.pt);
         ScreenToClient(hwnd, &lplvhtti.pt);
         ListView_SubItemHitTest(hwnd, &lplvhtti);
-        
+
         if (lplvhtti.iItem < 0 || lplvhtti.iItem >= g_piano_roll_state.inputs.size())
         {
             printf("[PianoRoll] iItem out of range\n");
@@ -1074,20 +1093,20 @@ namespace PianoRoll
         {
         case WM_INITDIALOG:
             {
+                // We create all the child controls here because windows dialog scaling would mess our stuff up when mixing dialog manager and manual creation 
                 g_hwnd = hwnd;
                 g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 17, 30, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
                 CreateWindowEx(0, WC_STATIC, "History", WS_CHILD | WS_VISIBLE | WS_GROUP | SS_LEFT | SS_CENTERIMAGE, 17, 166, 131, 15, g_hwnd, nullptr, g_app_instance, nullptr);
                 g_hist_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTBOX, "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOINTEGRALHEIGHT, 17, 186, 131, 181, g_hwnd, nullptr, g_app_instance, nullptr);
 
+                // Some controls don't get the font set by default, so we do it manually
                 EnumChildWindows(hwnd, [](HWND hwnd, LPARAM font)
                 {
                     SendMessage(hwnd, WM_SETFONT, (WPARAM)font, 0);
                     return TRUE;
                 }, SendMessage(hwnd, WM_GETFONT, 0, 0));
 
-                RECT grid_rect = get_window_rect_client_space(hwnd, GetDlgItem(hwnd, IDC_LIST_PIANO_ROLL));
-
-                auto dwStyle = WS_TABSTOP
+                const auto lv_style = WS_TABSTOP
                     | WS_VISIBLE
                     | WS_CHILD
                     | LVS_REPORT
@@ -1096,8 +1115,10 @@ namespace PianoRoll
                     | LVS_SHOWSELALWAYS
                     | LVS_OWNERDATA;
 
+                RECT grid_rect = get_window_rect_client_space(hwnd, GetDlgItem(hwnd, IDC_LIST_PIANO_ROLL));
+
                 g_lv_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, nullptr,
-                                           dwStyle,
+                                           lv_style,
                                            grid_rect.left, grid_rect.top,
                                            grid_rect.right - grid_rect.left,
                                            grid_rect.bottom - grid_rect.top,
@@ -1197,80 +1218,83 @@ namespace PianoRoll
             break;
         case WM_NOTIFY:
             {
-                if (wParam == IDC_PIANO_ROLL_LV)
+                if (wParam != IDC_PIANO_ROLL_LV)
                 {
-                    switch (((LPNMHDR)lParam)->code)
+                    break;
+                }
+
+                switch (((LPNMHDR)lParam)->code)
+                {
+                case LVN_ITEMCHANGED:
                     {
-                    case LVN_ITEMCHANGED:
+                        const auto nmlv = (NMLISTVIEW*)lParam;
+
+                        if ((nmlv->uNewState ^ nmlv->uOldState) & LVIS_SELECTED)
                         {
-                            const auto nmlv = (NMLISTVIEW*)lParam;
-
-                            if ((nmlv->uNewState ^ nmlv->uOldState) & LVIS_SELECTED)
-                            {
-                                on_piano_roll_selection_changed();
-                            }
-
-                            break;
+                            on_piano_roll_selection_changed();
                         }
-                    case LVN_ODSTATECHANGED:
-                        on_piano_roll_selection_changed();
-                        break;
-                    case LVN_GETDISPINFO:
-                        {
-                            const auto plvdi = (NMLVDISPINFO*)lParam;
 
-                            if (plvdi->item.iItem < 0 || plvdi->item.iItem >= g_piano_roll_state.inputs.size())
-                            {
-                                printf("[PianoRoll] iItem out of range\n");
-                                break;
-                            }
-
-                            if (!(plvdi->item.mask & LVIF_TEXT))
-                            {
-                                break;
-                            }
-
-                            auto input = g_piano_roll_state.inputs[plvdi->item.iItem];
-
-                            switch (plvdi->item.iSubItem)
-                            {
-                            case 0:
-                                {
-                                    auto current_sample = VCR::get_seek_completion().first;
-                                    if (current_sample == plvdi->item.iItem)
-                                    {
-                                        plvdi->item.iImage = 0;
-                                    }
-                                    else if (g_seek_savestate_frames.contains(plvdi->item.iItem))
-                                    {
-                                        plvdi->item.iImage = 1;
-                                    }
-                                    else
-                                    {
-                                        plvdi->item.iImage = 999;
-                                    }
-
-                                    strcpy(plvdi->item.pszText, std::to_string(plvdi->item.iItem).c_str());
-                                    break;
-                                }
-                            case 1:
-                                strcpy(plvdi->item.pszText, std::to_string(input.Y_AXIS).c_str());
-                                break;
-                            case 2:
-                                strcpy(plvdi->item.pszText, std::to_string(input.X_AXIS).c_str());
-                                break;
-                            default:
-                                {
-                                    auto value = get_input_value_from_column_index(input, plvdi->item.iSubItem);
-                                    auto name = get_button_name_from_column_index(plvdi->item.iSubItem);
-                                    strcpy(plvdi->item.pszText, value ? name : "");
-                                    break;
-                                }
-                            }
-                        }
                         break;
                     }
+                case LVN_ODSTATECHANGED:
+                    on_piano_roll_selection_changed();
+                    break;
+                case LVN_GETDISPINFO:
+                    {
+                        const auto plvdi = (NMLVDISPINFO*)lParam;
+
+                        if (plvdi->item.iItem < 0 || plvdi->item.iItem >= g_piano_roll_state.inputs.size())
+                        {
+                            printf("[PianoRoll] iItem out of range\n");
+                            break;
+                        }
+
+                        if (!(plvdi->item.mask & LVIF_TEXT))
+                        {
+                            break;
+                        }
+
+                        auto input = g_piano_roll_state.inputs[plvdi->item.iItem];
+
+                        switch (plvdi->item.iSubItem)
+                        {
+                        case 0:
+                            {
+                                auto current_sample = VCR::get_seek_completion().first;
+                                if (current_sample == plvdi->item.iItem)
+                                {
+                                    plvdi->item.iImage = 0;
+                                }
+                                else if (g_seek_savestate_frames.contains(plvdi->item.iItem))
+                                {
+                                    plvdi->item.iImage = 1;
+                                }
+                                else
+                                {
+                                    plvdi->item.iImage = 999;
+                                }
+
+                                strcpy(plvdi->item.pszText, std::to_string(plvdi->item.iItem).c_str());
+                                break;
+                            }
+                        case 1:
+                            strcpy(plvdi->item.pszText, std::to_string(input.Y_AXIS).c_str());
+                            break;
+                        case 2:
+                            strcpy(plvdi->item.pszText, std::to_string(input.X_AXIS).c_str());
+                            break;
+                        default:
+                            {
+                                auto value = get_input_value_from_column_index(input, plvdi->item.iSubItem);
+                                auto name = get_button_name_from_column_index(plvdi->item.iSubItem);
+                                strcpy(plvdi->item.pszText, value ? name : "");
+                                break;
+                            }
+                        }
+                    }
+                    break;
                 }
+
                 break;
             }
         default:
@@ -1279,6 +1303,7 @@ namespace PianoRoll
         return FALSE;
     }
 
+#pragma endregion
 
     void init()
     {
