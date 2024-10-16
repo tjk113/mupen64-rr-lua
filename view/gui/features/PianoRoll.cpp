@@ -360,7 +360,8 @@ namespace PianoRoll
             ListBox_AddString(g_hist_hwnd, std::format("Snapshot {}", i + 1).c_str());
         }
 
-        ListBox_SetCurSel(g_hist_hwnd, g_piano_roll_state_index);
+        ListBox_SetCurSel(g_hist_hwnd, g_piano_roll_state_index - 1);
+        
         SetWindowRedraw(g_hist_hwnd, true);
     }
 
@@ -453,7 +454,7 @@ namespace PianoRoll
      */
     bool undo()
     {
-        return shift_history(-2);
+        return shift_history(-1);
     }
 
     /**
