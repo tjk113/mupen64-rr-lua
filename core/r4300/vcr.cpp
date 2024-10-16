@@ -1564,6 +1564,7 @@ size_t vcr_find_first_input_difference(const std::vector<BUTTONS>& first, const 
                 return i;
             }
         }
+        return std::max(0, (int)min_size - 1);
     }
     else
     {
@@ -1574,9 +1575,8 @@ size_t vcr_find_first_input_difference(const std::vector<BUTTONS>& first, const 
                 return i;
             }
         }
+        return SIZE_MAX;
     }
-
-    return SIZE_MAX;
 }
 
 VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
