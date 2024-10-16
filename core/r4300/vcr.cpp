@@ -1593,6 +1593,11 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
         return Result::WarpModifyNeedsRecordingTask;
     }
 
+    if (inputs.empty())
+    {
+        return Result::WarpModifyEmptyInputBuffer;
+    }
+    
     g_warp_modify_first_difference_frame = vcr_find_first_input_difference(g_movie_inputs, inputs);
 
     if (g_warp_modify_first_difference_frame == SIZE_MAX)
