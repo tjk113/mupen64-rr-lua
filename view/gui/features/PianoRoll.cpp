@@ -86,7 +86,7 @@ namespace PianoRoll
 
     // Copy of seek savestate frame map from VCR.
     std::unordered_map<size_t, bool> g_seek_savestate_frames;
-    
+
     /**
      * Gets whether inputs can be modified. Affects both the piano roll and the joystick.
      */
@@ -341,7 +341,7 @@ namespace PianoRoll
     {
         SetWindowRedraw(g_hist_hwnd, false);
         ListBox_ResetContent(g_hist_hwnd);
-        
+
         for (size_t i = 0; i < g_piano_roll_states.size(); ++i)
         {
             ListBox_AddString(g_hist_hwnd, std::format("Snapshot {}", i).c_str());
@@ -357,7 +357,7 @@ namespace PianoRoll
     void push_state_to_undo_stack()
     {
         std::println("[PianoRoll] Pushing state to undo stack...");
-        
+
         if (g_piano_roll_states.size() > g_config.piano_roll_undo_stack_size)
         {
             g_piano_roll_states.pop_back();
@@ -365,7 +365,7 @@ namespace PianoRoll
 
         g_piano_roll_states.push_front(g_piano_roll_state);
         g_piano_roll_state_index++;
-        
+
         update_history_listbox();
     }
 
@@ -401,7 +401,7 @@ namespace PianoRoll
             }
         });
     }
-    
+
     /**
      * Sets the piano roll state to the specified value, updating everything accordingly and also applying the input buffer.
      * This is an expensive and slow operation.
@@ -516,7 +516,7 @@ namespace PianoRoll
         g_piano_roll_state_index--;
         set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
         update_history_listbox();
-        
+
         return true;
     }
 
@@ -538,7 +538,7 @@ namespace PianoRoll
         g_piano_roll_state_index++;
         set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
         update_history_listbox();
-        
+
         return true;
     }
 
@@ -661,7 +661,7 @@ namespace PianoRoll
         {
             return;
         }
-        
+
         auto value = std::any_cast<size_t>(data);
         g_seek_savestate_frames = VCR::get_seek_savestate_frames();
         ListView_Update(g_lv_hwnd, value);
@@ -833,6 +833,41 @@ namespace PianoRoll
     {
         switch (msg)
         {
+        case WM_CONTEXTMENU:
+            {
+                HMENU h_menu = CreatePopupMenu();
+                const auto base_style = can_modify_inputs() ? MF_ENABLED : MF_DISABLED;
+                AppendMenu(h_menu, base_style | MF_STRING, 1, "Copy\tCtrl+C");
+                AppendMenu(h_menu, base_style | MF_STRING, 2, "Paste\tCtrl+V");
+                AppendMenu(h_menu, base_style | MF_STRING, 3, "Undo\tCtrl+Z");
+                AppendMenu(h_menu, base_style | MF_STRING, 4, "Redo\tCtrl+Y");
+                AppendMenu(h_menu, base_style | MF_STRING, 5, "Clear\tDelete");
+
+                const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), hwnd, 0);
+                
+                switch (offset)
+                {
+                case 1:
+                    copy_inputs();
+                    break;
+                case 2:
+                    paste_inputs(false);
+                    break;
+                case 3:
+                    undo();
+                    break;
+                case 4:
+                    redo();
+                    break;
+                case 5:
+                    clear_inputs_in_selection();
+                    break;
+                default:
+                    break;
+                }
+
+                break;
+            }
         case WM_LBUTTONDOWN:
         case WM_RBUTTONDOWN:
             {
@@ -1001,9 +1036,9 @@ namespace PianoRoll
             {
                 g_hwnd = hwnd;
                 g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 17, 30, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
-                CreateWindowEx(0, WC_STATIC, "History", WS_CHILD | WS_VISIBLE | WS_GROUP | SS_LEFT | SS_CENTERIMAGE , 17, 166, 131, 15, g_hwnd, nullptr, g_app_instance, nullptr);
+                CreateWindowEx(0, WC_STATIC, "History", WS_CHILD | WS_VISIBLE | WS_GROUP | SS_LEFT | SS_CENTERIMAGE, 17, 166, 131, 15, g_hwnd, nullptr, g_app_instance, nullptr);
                 g_hist_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTBOX, "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOINTEGRALHEIGHT, 17, 186, 131, 181, g_hwnd, nullptr, g_app_instance, nullptr);
-                
+
                 EnumChildWindows(hwnd, [](HWND hwnd, LPARAM font)
                 {
                     SendMessage(hwnd, WM_SETFONT, (WPARAM)font, 0);
@@ -1085,7 +1120,11 @@ namespace PianoRoll
                 break;
             }
         case WM_DESTROY:
-            EnumChildWindows(hwnd, [](HWND hwnd, LPARAM) { DestroyWindow(hwnd); return TRUE; }, 0);
+            EnumChildWindows(hwnd, [](HWND hwnd, LPARAM)
+            {
+                DestroyWindow(hwnd);
+                return TRUE;
+            }, 0);
             g_lv_hwnd = nullptr;
             g_hist_hwnd = nullptr;
             g_hwnd = nullptr;
