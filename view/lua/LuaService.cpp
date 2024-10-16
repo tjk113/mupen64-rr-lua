@@ -1,6 +1,6 @@
 ﻿#include <shared/services/LuaService.h>
 #include <view/lua/LuaConsole.h>
-#include <view/gui/features/Dispatcher.h>
+#include <view/gui/Main.h>
 
 namespace LuaService
 {
@@ -71,7 +71,7 @@ namespace LuaService
     void call_vi()
     {
         RET_IF_EMPTY;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             invoke_callbacks_with_key_on_all_instances(
                 AtVI, REG_ATVI);
@@ -86,7 +86,7 @@ namespace LuaService
 
         RET_IF_EMPTY;
 
-        Dispatcher::invoke_ui([=]
+        g_main_window_dispatcher->invoke([=]
         {
             current_input_n = index;
             invoke_callbacks_with_key_on_all_instances(
@@ -105,7 +105,7 @@ namespace LuaService
     void call_interval()
     {
         RET_IF_EMPTY;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             invoke_callbacks_with_key_on_all_instances(
                 CallTop, REG_ATINTERVAL);
@@ -115,7 +115,7 @@ namespace LuaService
     void call_play_movie()
     {
         RET_IF_EMPTY;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             invoke_callbacks_with_key_on_all_instances(
                 CallTop, REG_ATPLAYMOVIE);
@@ -125,7 +125,7 @@ namespace LuaService
     void call_stop_movie()
     {
         RET_IF_EMPTY;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             invoke_callbacks_with_key_on_all_instances(
                 CallTop, REG_ATSTOPMOVIE);
@@ -135,7 +135,7 @@ namespace LuaService
     void call_load_state()
     {
         RET_IF_EMPTY;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             invoke_callbacks_with_key_on_all_instances(
                 CallTop, REG_ATLOADSTATE);
@@ -145,7 +145,7 @@ namespace LuaService
     void call_save_state()
     {
         RET_IF_EMPTY;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             invoke_callbacks_with_key_on_all_instances(
                 CallTop, REG_ATSAVESTATE);
@@ -155,7 +155,7 @@ namespace LuaService
     void call_reset()
     {
         RET_IF_EMPTY;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             invoke_callbacks_with_key_on_all_instances(
                 CallTop, REG_ATRESET);
@@ -165,7 +165,7 @@ namespace LuaService
     void call_seek_completed()
     {
         RET_IF_EMPTY;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             invoke_callbacks_with_key_on_all_instances(
                 CallTop, REG_ATSEEKCOMPLETED);

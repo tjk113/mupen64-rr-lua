@@ -18,9 +18,9 @@
 
 #include <Windows.h>
 #include <string>
-#include <functional>
 #include <filesystem>
 #include <shared/Config.hpp>
+#include <view/gui/features/Dispatcher.h>
 
 #define MUPEN_VERSION "Mupen 64 1.1.9"
 
@@ -41,6 +41,7 @@ extern HWND g_hwnd_plug;
 extern DWORD start_rom_id;
 
 extern std::string g_app_path;
+extern std::shared_ptr<Dispatcher> g_main_window_dispatcher;
 
 /**
  * \brief Whether the statusbar needs to be updated with new input information

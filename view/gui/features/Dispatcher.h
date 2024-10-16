@@ -1,17 +1,38 @@
 ﻿#pragma once
 #include <functional>
+#include <mutex>
+#include <queue>
+#include <Windows.h>
 
-namespace Dispatcher
+/**
+ * Represents a dispatcher that can execute functions on a specific thread.
+ */
+class Dispatcher
 {
+public:
     /**
-     * \brief Executes a function on the UI thread
+     * Creates a new dispatcher.
+     * \param thread_id The dispatcher's target thread id.
+     * \param execute_callback The callback that will be called when the queue has to be executed on the target thread.
+     */
+    explicit Dispatcher(const DWORD thread_id, const std::function<void()>& execute_callback) : m_execute_callback(execute_callback), m_thread_id(thread_id)
+    {
+    }
+
+    /**
+     * \brief Executes a function on the dispatcher's thread.
      * \param func The function to be executed
      */
-    void invoke_ui(const std::function<void()>& func);
+    void invoke(const std::function<void()>& func);
 
     /**
-     * \brief Executes the pending functions
-     * \remarks Must be called from the UI thread
+     * \brief Executes the pending functions on the current thread.
      */
-    void execute_ui();
-}
+    void execute();
+
+private:
+    std::function<void()> m_execute_callback;
+    DWORD m_thread_id;
+    std::queue<std::function<void()>> m_ui_queue;
+    std::mutex m_ui_mutex;
+};

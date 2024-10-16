@@ -75,6 +75,7 @@ HMENU g_recent_movies_menu;
 HMENU g_recent_lua_menu;
 HINSTANCE g_app_instance;
 std::string g_app_path;
+std::shared_ptr<Dispatcher> g_main_window_dispatcher;
 
 int g_last_wheel_delta = 0;
 bool g_paused_before_menu;
@@ -459,7 +460,7 @@ void on_emu_stopping(std::any)
     {
         g_previously_running_luas.push_back(key);
     }
-    Dispatcher::invoke_ui(stop_all_scripts);
+    g_main_window_dispatcher->invoke(stop_all_scripts);
 }
 
 void on_emu_launched_changed(std::any data)
@@ -488,7 +489,7 @@ void on_emu_launched_changed(std::any data)
     {
         Recent::add(g_config.recent_rom_paths, get_rom_path().string(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, g_recent_roms_menu);
         g_vis_since_input_poll_warning_dismissed = false;
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             for (const HWND hwnd : g_previously_running_luas)
             {
@@ -929,9 +930,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         SetFocus(g_main_hwnd);
         break;
     case WM_EXECUTE_DISPATCHER:
-        Dispatcher::execute_ui();
+        g_main_window_dispatcher->execute();
         break;
     case WM_CREATE:
+        g_main_window_dispatcher = std::make_unique<Dispatcher>(g_ui_thread_id, []
+        {
+            SendMessage(g_main_hwnd, WM_EXECUTE_DISPATCHER, 0, 0);
+        });
         g_main_menu = GetMenu(hwnd);
         GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
         g_update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
@@ -953,7 +958,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             std::thread([]
             {
                 vr_close_rom(true);
-                Dispatcher::invoke_ui([]
+                g_main_window_dispatcher->invoke([]
                 {
                     DestroyWindow(g_main_hwnd);
                 });
@@ -1650,12 +1655,12 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_ui_thread_id = GetCurrentThreadId();
 
 #ifdef _DEBUG
-	open_console();
+    open_console();
 #endif
 
     Gdiplus::GdiplusStartupInput startup_input;
     GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
-    
+
     Messenger::init();
     AsyncExecutor::init();
     CoreDbg::init();

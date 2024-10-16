@@ -117,7 +117,7 @@ void commandline_start_lua()
         return;
     }
 
-    Dispatcher::invoke_ui([&]
+    g_main_window_dispatcher->invoke([&]
     {
         // To run multiple lua scripts, a semicolon-separated list is provided
         std::stringstream stream;
@@ -151,7 +151,7 @@ void commandline_start_capture()
         return;
     }
 
-    Dispatcher::invoke_ui([]
+    g_main_window_dispatcher->invoke([]
     {
         EncodingManager::start_capture(commandline_avi.string().c_str(), static_cast<EncoderType>(g_config.encoder_type), false);
     });
@@ -161,7 +161,7 @@ void commandline_on_movie_playback_stop()
 {
     if (commandline_close_on_movie_end)
     {
-        Dispatcher::invoke_ui([]
+        g_main_window_dispatcher->invoke([]
         {
             EncodingManager::stop_capture();
             PostMessage(g_main_hwnd, WM_CLOSE, 0, 0);
