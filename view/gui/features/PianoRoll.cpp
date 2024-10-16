@@ -361,7 +361,7 @@ namespace PianoRoll
         }
 
         ListBox_SetCurSel(g_hist_hwnd, g_piano_roll_state_index);
-        
+
         SetWindowRedraw(g_hist_hwnd, true);
     }
 
@@ -448,7 +448,7 @@ namespace PianoRoll
         g_piano_roll_state_index = new_index;
         set_piano_roll_state(g_piano_roll_history[g_piano_roll_state_index]);
     }
-    
+
     /**
      * Restores the piano roll state to the last stored state.
      */
@@ -612,6 +612,14 @@ namespace PianoRoll
         }
     }
 
+    /**
+     * Gets whether the joystick control can be interacted with by the user.
+     */
+    bool can_joystick_be_modified()
+    {
+        return !g_piano_roll_state.selected_indicies.empty() && can_modify_inputs();
+    }
+
 #pragma endregion
 
 #pragma region Message Handlers
@@ -682,7 +690,13 @@ namespace PianoRoll
     void on_warp_modify_status_changed(std::any)
     {
         update_groupbox_status_text();
+        RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
     }
+
+	void on_seek_completed(std::any)
+	{
+		RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
+	}
 
     void on_seek_savestate_changed(std::any data)
     {
@@ -698,7 +712,23 @@ namespace PianoRoll
 
 #pragma endregion
 
-#pragma region Message Loops
+#pragma region Message Loops, Visuals
+
+    void get_joystick_pens(HPEN* outline_pen, HPEN* line_pen, HPEN* tip_pen)
+    {
+        if (can_joystick_be_modified())
+        {
+            *outline_pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+            *line_pen = CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
+            *tip_pen = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
+        }
+        else
+        {
+            *outline_pen = CreatePen(PS_SOLID, 1, RGB(204, 204, 204));
+            *line_pen = CreatePen(PS_SOLID, 3, RGB(229, 229, 229));
+            *tip_pen = CreatePen(PS_SOLID, 7, RGB(235, 235, 235));
+        }
+    }
 
     /**
      * The window procedure for the joystick control. 
@@ -708,7 +738,7 @@ namespace PianoRoll
         switch (msg)
         {
         case WM_LBUTTONDOWN:
-            if (!can_modify_inputs())
+            if (!can_joystick_be_modified())
             {
                 break;
             }
@@ -725,14 +755,17 @@ namespace PianoRoll
             goto mouse_move;
         case WM_PAINT:
             {
-                int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+                BUTTONS input = {0};
 
-                if (i < 0 || i >= g_piano_roll_state.inputs.size())
+                HPEN outline_pen;
+                HPEN line_pen;
+                HPEN tip_pen;
+                get_joystick_pens(&outline_pen, &line_pen, &tip_pen);
+
+                if (!g_piano_roll_state.selected_indicies.empty())
                 {
-                    break;
+                    input = g_piano_roll_state.inputs[g_piano_roll_state.selected_indicies[0]];
                 }
-
-                BUTTONS input = g_piano_roll_state.inputs[i];
 
                 PAINTSTRUCT ps;
                 RECT rect;
@@ -747,10 +780,6 @@ namespace PianoRoll
                 const int mid_y = rect.bottom / 2;
                 const int stick_x = (input.Y_AXIS + 128) * rect.right / 256;
                 const int stick_y = (-input.X_AXIS + 128) * rect.bottom / 256;
-
-                HPEN outline_pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-                HPEN line_pen = CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
-                HPEN tip_pen = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
 
                 FillRect(cdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
 
@@ -1212,7 +1241,7 @@ namespace PianoRoll
             if ((HWND)lParam == g_hist_hwnd && HIWORD(wParam) == LBN_SELCHANGE)
             {
                 auto index = ListBox_GetCurSel(g_hist_hwnd);
-                    
+
                 if (index < 0 || index >= g_piano_roll_history.size())
                 {
                     break;
@@ -1337,6 +1366,7 @@ namespace PianoRoll
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::CurrentSampleChanged, on_current_sample_changed));
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::UnfreezeCompleted, on_unfreeze_completed));
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed));
+            unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::SeekCompleted, on_seek_completed));
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::SeekSavestateChanged, on_seek_savestate_changed));
 
             DialogBox(g_app_instance, MAKEINTRESOURCE(IDD_PIANO_ROLL), 0, (DLGPROC)dialog_proc);
