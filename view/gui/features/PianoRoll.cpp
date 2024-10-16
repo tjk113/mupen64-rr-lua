@@ -427,6 +427,50 @@ namespace PianoRoll
         apply_input_buffer();
         update_history_listbox();
     }
+    
+    /**
+     * Restores the piano roll state to the last stored state.
+     */
+    bool undo()
+    {
+        if (g_piano_roll_states.size() <= 1)
+        {
+            return false;
+        }
+
+        if (g_piano_roll_state_index <= 0)
+        {
+            return false;
+        }
+
+        g_piano_roll_state_index--;
+        set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
+        update_history_listbox();
+
+        return true;
+    }
+
+    /**
+     * Restores the piano roll state to the next stored state.
+     */
+    bool redo()
+    {
+        if (g_piano_roll_states.size() <= 1)
+        {
+            return false;
+        }
+
+        if (g_piano_roll_state_index + 1 >= g_piano_roll_states.size())
+        {
+            return false;
+        }
+
+        g_piano_roll_state_index++;
+        set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
+        update_history_listbox();
+
+        return true;
+    }
 
     /**
      * Pastes the selected inputs from the clipboard into the piano roll.
@@ -509,50 +553,6 @@ namespace PianoRoll
         SetWindowRedraw(g_lv_hwnd, true);
 
         apply_input_buffer();
-    }
-
-    /**
-     * Restores the piano roll state to the last stored state.
-     */
-    bool undo()
-    {
-        if (g_piano_roll_states.size() <= 1)
-        {
-            return false;
-        }
-
-        if (g_piano_roll_state_index <= 0)
-        {
-            return false;
-        }
-
-        g_piano_roll_state_index--;
-        set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
-        update_history_listbox();
-
-        return true;
-    }
-
-    /**
-     * Restores the piano roll state to the next stored state.
-     */
-    bool redo()
-    {
-        if (g_piano_roll_states.size() <= 1)
-        {
-            return false;
-        }
-
-        if (g_piano_roll_state_index + 1 >= g_piano_roll_states.size())
-        {
-            return false;
-        }
-
-        g_piano_roll_state_index++;
-        set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
-        update_history_listbox();
-
-        return true;
     }
 
     /**
