@@ -360,7 +360,7 @@ namespace PianoRoll
             ListBox_AddString(g_hist_hwnd, std::format("Snapshot {}", i + 1).c_str());
         }
 
-        ListBox_SetCurSel(g_hist_hwnd, g_piano_roll_state_index - 1);
+        ListBox_SetCurSel(g_hist_hwnd, g_piano_roll_state_index);
         
         SetWindowRedraw(g_hist_hwnd, true);
     }
@@ -378,7 +378,7 @@ namespace PianoRoll
         }
 
         g_piano_roll_history.push_back(g_piano_roll_state);
-        g_piano_roll_state_index++;
+        g_piano_roll_state_index = min(g_piano_roll_state_index + 1, g_piano_roll_history.size() - 1);
 
         std::println("[PianoRoll] Undo stack size: {}. Current index: {}.", g_piano_roll_history.size(), g_piano_roll_state_index);
         update_history_listbox();
