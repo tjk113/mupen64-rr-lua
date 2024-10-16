@@ -22,6 +22,9 @@ namespace PianoRoll
 #pragma region Variables
     const auto JOYSTICK_CLASS = "PianoRollJoystick";
 
+    // The piano roll dispatcher.
+    std::shared_ptr<Dispatcher> g_piano_roll_dispatcher;
+
     // The piano roll dialog's handle.
     std::atomic<HWND> g_hwnd = nullptr;
 
@@ -626,88 +629,101 @@ namespace PianoRoll
 
     void on_task_changed(std::any data)
     {
-        auto value = std::any_cast<e_task>(data);
-        static auto previous_value = value;
-
-        if (value != previous_value)
+        g_piano_roll_dispatcher->invoke([&]
         {
-            std::println("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
-            update_inputs();
-        }
+            auto value = std::any_cast<e_task>(data);
+            static auto previous_value = value;
 
-        previous_value = value;
+            if (value != previous_value)
+            {
+                std::println("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
+                update_inputs();
+            }
+
+            previous_value = value;
+        });
     }
 
     void on_current_sample_changed(std::any data)
     {
-        auto value = std::any_cast<long>(data);
-        static auto previous_value = value;
-
-        if (VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
+        g_piano_roll_dispatcher->invoke([&]
         {
-            goto exit;
-        }
+            auto value = std::any_cast<long>(data);
+            static auto previous_value = value;
 
-        if (VCR::get_task() == e_task::idle)
-        {
-            goto exit;
-        }
+            if (VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
+            {
+                goto exit;
+            }
 
-        if (VCR::get_task() == e_task::recording)
-        {
-            g_piano_roll_state.inputs = VCR::get_inputs();
-            ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
-        }
+            if (VCR::get_task() == e_task::idle)
+            {
+                goto exit;
+            }
 
-        ListView_Update(g_lv_hwnd, previous_value);
-        ListView_Update(g_lv_hwnd, value);
+            if (VCR::get_task() == e_task::recording)
+            {
+                g_piano_roll_state.inputs = VCR::get_inputs();
+                ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
+            }
 
-        ensure_relevant_item_visible();
+            ListView_Update(g_lv_hwnd, previous_value);
+            ListView_Update(g_lv_hwnd, value);
 
-    exit:
-        previous_value = value;
+            ensure_relevant_item_visible();
+
+        exit:
+            previous_value = value;
+        });
     }
 
     void on_unfreeze_completed(std::any)
     {
-        if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
+        g_piano_roll_dispatcher->invoke([&]
         {
-            return;
-        }
+            if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
+            {
+                return;
+            }
 
-        SetWindowRedraw(g_lv_hwnd, false);
+            SetWindowRedraw(g_lv_hwnd, false);
 
-        ListView_DeleteAllItems(g_lv_hwnd);
+            ListView_DeleteAllItems(g_lv_hwnd);
 
-        g_piano_roll_state.inputs = VCR::get_inputs();
-        ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_piano_roll_state.inputs.size()), LVSICF_NOSCROLL);
+            g_piano_roll_state.inputs = VCR::get_inputs();
+            ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_piano_roll_state.inputs.size()), LVSICF_NOSCROLL);
 
-        SetWindowRedraw(g_lv_hwnd, true);
+            SetWindowRedraw(g_lv_hwnd, true);
 
-        ensure_relevant_item_visible();
+            ensure_relevant_item_visible();
+        });
     }
 
     void on_warp_modify_status_changed(std::any)
     {
-        update_groupbox_status_text();
-        RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
+        g_piano_roll_dispatcher->invoke([&]
+        {
+            update_groupbox_status_text();
+            RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
+        });
     }
 
-	void on_seek_completed(std::any)
-	{
-		RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
-	}
+    void on_seek_completed(std::any)
+    {
+        g_piano_roll_dispatcher->invoke([&]
+        {
+            RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
+        });
+    }
 
     void on_seek_savestate_changed(std::any data)
     {
-        if (!g_hwnd)
+        g_piano_roll_dispatcher->invoke([&]
         {
-            return;
-        }
-
-        auto value = std::any_cast<size_t>(data);
-        g_seek_savestate_frames = VCR::get_seek_savestate_frames();
-        ListView_Update(g_lv_hwnd, value);
+            auto value = std::any_cast<size_t>(data);
+            g_seek_savestate_frames = VCR::get_seek_savestate_frames();
+            ListView_Update(g_lv_hwnd, value);
+        });
     }
 
 #pragma endregion
@@ -1113,6 +1129,9 @@ namespace PianoRoll
     {
         switch (msg)
         {
+        case WM_EXECUTE_DISPATCHER:
+            g_piano_roll_dispatcher->execute();
+            break;
         case WM_INITDIALOG:
             {
                 // We create all the child controls here because windows dialog scaling would mess our stuff up when mixing dialog manager and manual creation 
@@ -1361,6 +1380,14 @@ namespace PianoRoll
 
         std::thread([]
         {
+            g_piano_roll_dispatcher = std::make_shared<Dispatcher>(GetCurrentThreadId(), [&]()
+            {
+                if (g_hwnd)
+                {
+                    SendMessage(g_hwnd, WM_EXECUTE_DISPATCHER, 0, 0);
+                }
+            });
+
             std::vector<std::function<void()>> unsubscribe_funcs;
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed));
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::CurrentSampleChanged, on_current_sample_changed));
