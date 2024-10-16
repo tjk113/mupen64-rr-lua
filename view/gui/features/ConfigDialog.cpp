@@ -824,13 +824,6 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = piano_roll_group.id,
-            .name = "Seek on frame click",
-            .tooltip = L"Whether clicking on the frame number column in the piano roll will seek to the respective frame.",
-            .data = &g_config.piano_roll_seek_on_frame_click,
-            .type = t_options_item::Type::Bool,
-        },
-        t_options_item{
-            .group_id = piano_roll_group.id,
             .name = "Keep selection visible",
             .tooltip = L"Whether the piano roll will try to keep the selection visible when the frame changes.",
             .data = &g_config.piano_roll_keep_selection_visible,

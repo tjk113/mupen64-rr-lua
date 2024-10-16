@@ -433,12 +433,7 @@ typedef struct Config
     /// Maximum size of the undo/redo stack. 
     /// </summary>
     int32_t piano_roll_undo_stack_size = 100;
-
-    /// <summary>
-    /// Whether clicking on the frame number column in the piano roll will seek to the respective frame 
-    /// </summary>
-    int32_t piano_roll_seek_on_frame_click = 1;
-
+    
     /// <summary>
     /// Whether the piano roll will try to keep the selection visible when the frame changes
     /// </summary>
