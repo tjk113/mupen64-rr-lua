@@ -157,31 +157,31 @@ namespace PianoRoll
     {
         switch (i)
         {
-        case 3:
-            return btn.A_BUTTON;
         case 4:
-            return btn.B_BUTTON;
+            return btn.A_BUTTON;
         case 5:
-            return btn.Z_TRIG;
+            return btn.B_BUTTON;
         case 6:
-            return btn.R_TRIG;
+            return btn.Z_TRIG;
         case 7:
-            return btn.START_BUTTON;
+            return btn.R_TRIG;
         case 8:
-            return btn.U_CBUTTON;
+            return btn.START_BUTTON;
         case 9:
-            return btn.L_CBUTTON;
+            return btn.U_CBUTTON;
         case 10:
-            return btn.R_CBUTTON;
+            return btn.L_CBUTTON;
         case 11:
-            return btn.D_CBUTTON;
+            return btn.R_CBUTTON;
         case 12:
-            return btn.U_DPAD;
+            return btn.D_CBUTTON;
         case 13:
-            return btn.L_DPAD;
+            return btn.U_DPAD;
         case 14:
-            return btn.R_DPAD;
+            return btn.L_DPAD;
         case 15:
+            return btn.R_DPAD;
+        case 16:
             return btn.D_DPAD;
         default:
             assert(false);
@@ -199,43 +199,43 @@ namespace PianoRoll
     {
         switch (i)
         {
-        case 3:
+        case 4:
             btn->A_BUTTON = value;
             break;
-        case 4:
+        case 5:
             btn->B_BUTTON = value;
             break;
-        case 5:
+        case 6:
             btn->Z_TRIG = value;
             break;
-        case 6:
+        case 7:
             btn->R_TRIG = value;
             break;
-        case 7:
+        case 8:
             btn->START_BUTTON = value;
             break;
-        case 8:
+        case 9:
             btn->U_CBUTTON = value;
             break;
-        case 9:
+        case 10:
             btn->L_CBUTTON = value;
             break;
-        case 10:
+        case 11:
             btn->R_CBUTTON = value;
             break;
-        case 11:
+        case 12:
             btn->D_CBUTTON = value;
             break;
-        case 12:
+        case 13:
             btn->U_DPAD = value;
             break;
-        case 13:
+        case 14:
             btn->L_DPAD = value;
             break;
-        case 14:
+        case 15:
             btn->R_DPAD = value;
             break;
-        case 15:
+        case 16:
             btn->D_DPAD = value;
             break;
         default:
@@ -253,31 +253,31 @@ namespace PianoRoll
     {
         switch (i)
         {
-        case 3:
-            return "A";
         case 4:
-            return "B";
+            return "A";
         case 5:
-            return "Z";
+            return "B";
         case 6:
-            return "R";
+            return "Z";
         case 7:
-            return "S";
+            return "R";
         case 8:
-            return "C^";
+            return "S";
         case 9:
-            return "C<";
+            return "C^";
         case 10:
-            return "C>";
+            return "C<";
         case 11:
-            return "Cv";
+            return "C>";
         case 12:
-            return "D^";
+            return "Cv";
         case 13:
-            return "D<";
+            return "D^";
         case 14:
-            return "D>";
+            return "D<";
         case 15:
+            return "D>";
+        case 16:
             return "Dv";
         default:
             assert(false);
@@ -964,13 +964,13 @@ namespace PianoRoll
                     goto def;
                 }
 
-                if (lplvhtti.iSubItem <= 2)
+                if (lplvhtti.iSubItem == 0)
                 {
                     AsyncExecutor::invoke_async([=]
                     {
                         VCR::begin_seek(std::to_string(lplvhtti.iItem), true);
                     });
-                    break;
+                    return 0;
                 }
 
                 if (!can_modify_inputs())
@@ -1188,21 +1188,22 @@ namespace PianoRoll
                 lv_column.pszText = (LPTSTR)"";
                 ListView_InsertColumn(g_lv_hwnd, 0, &lv_column);
 
-                lv_column.cx = 65;
-
-                lv_column.pszText = (LPTSTR)"Frame";
+                lv_column.cx = 26;
+                lv_column.pszText = (LPTSTR)"";
                 ListView_InsertColumn(g_lv_hwnd, 1, &lv_column);
 
-                lv_column.cx = 40;
-
-                lv_column.pszText = (LPTSTR)"X";
+                lv_column.cx = 65;
+                lv_column.pszText = (LPTSTR)"Frame";
                 ListView_InsertColumn(g_lv_hwnd, 2, &lv_column);
-                lv_column.pszText = (LPTSTR)"Y";
+
+                lv_column.cx = 40;
+                lv_column.pszText = (LPTSTR)"X";
                 ListView_InsertColumn(g_lv_hwnd, 3, &lv_column);
+                lv_column.pszText = (LPTSTR)"Y";
+                ListView_InsertColumn(g_lv_hwnd, 4, &lv_column);
 
                 lv_column.cx = 30;
-
-                for (int i = 3; i <= 15; ++i)
+                for (int i = 4; i <= 15; ++i)
                 {
                     lv_column.pszText = (LPTSTR)get_button_name_from_column_index(i);
                     ListView_InsertColumn(g_lv_hwnd, i + 1, &lv_column);
@@ -1314,7 +1315,7 @@ namespace PianoRoll
                         {
                         case 0:
                             {
-                                auto current_sample = VCR::get_seek_completion().first;
+                                const auto current_sample = VCR::get_seek_completion().first;
                                 if (current_sample == plvdi->item.iItem)
                                 {
                                     plvdi->item.iImage = 0;
@@ -1328,13 +1329,15 @@ namespace PianoRoll
                                     plvdi->item.iImage = 999;
                                 }
 
-                                strcpy(plvdi->item.pszText, std::to_string(plvdi->item.iItem).c_str());
                                 break;
                             }
                         case 1:
-                            strcpy(plvdi->item.pszText, std::to_string(input.Y_AXIS).c_str());
+                            strcpy(plvdi->item.pszText, std::to_string(plvdi->item.iItem).c_str());
                             break;
                         case 2:
+                            strcpy(plvdi->item.pszText, std::to_string(input.Y_AXIS).c_str());
+                            break;
+                        case 3:
                             strcpy(plvdi->item.pszText, std::to_string(input.X_AXIS).c_str());
                             break;
                         default:
