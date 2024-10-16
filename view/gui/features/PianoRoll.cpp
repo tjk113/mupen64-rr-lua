@@ -576,8 +576,11 @@ namespace PianoRoll
             return;
         }
 
-        g_piano_roll_state.inputs = erase_indices(g_piano_roll_state.inputs, g_piano_roll_state.selected_indicies);
+        std::vector<size_t> selected_indicies(g_piano_roll_state.selected_indicies.begin(), g_piano_roll_state.selected_indicies.end());
+        g_piano_roll_state.inputs = erase_indices(g_piano_roll_state.inputs, selected_indicies);
         ListView_RedrawItems(g_lv_hwnd, 0, ListView_GetItemCount(g_lv_hwnd));
+        const int32_t offset = g_piano_roll_state.selected_indicies[g_piano_roll_state.selected_indicies.size() - 1] - g_piano_roll_state.selected_indicies[0] + 1;
+        shift_listview_selection(g_lv_hwnd, -offset);
 
         apply_input_buffer();
     }
@@ -713,10 +716,13 @@ namespace PianoRoll
 
                 BUTTONS input = {0};
 
-                if (i != -1)
+                if (i < 0 || i >= g_piano_roll_state.inputs.size())
                 {
-                    input = g_piano_roll_state.inputs[i];
+                    break;
                 }
+
+                input = g_piano_roll_state.inputs[i];
+
 
                 PAINTSTRUCT ps;
                 RECT rect;
@@ -1216,7 +1222,7 @@ namespace PianoRoll
                             {
                                 break;
                             }
-                            
+
                             auto input = g_piano_roll_state.inputs[plvdi->item.iItem];
 
                             switch (plvdi->item.iSubItem)
