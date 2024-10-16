@@ -293,7 +293,7 @@ namespace PianoRoll
 
         if (i == -1)
         {
-            auto current_sample = VCR::get_seek_completion().first;
+            auto current_sample = min(ListView_GetItemCount(g_lv_hwnd), VCR::get_seek_completion().first + 10);
             ListView_EnsureVisible(g_lv_hwnd, VCR::get_task() == e_task::recording ? current_sample - 1 : current_sample, false);
             return;
         }
