@@ -786,6 +786,9 @@ void vcr_create_seek_savestates()
 
 void vcr_on_controller_poll(int index, BUTTONS* input)
 {
+    // NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
+    std::scoped_lock lock(vcr_mutex);
+
     // NOTE: When we call reset_rom from another thread, we only request a reset to happen in the future.
     // Until the reset, the emu thread keeps running and potentially generating many frames.
     // Those frames are invalid to us, because from the movie's perspective, it should be instantaneous.
@@ -794,17 +797,14 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
         printf("[VCR] Skipping pre-reset frame\n");
         return;
     }
-
+    
     // Frames between seek savestate load request and actual load are invalid for the same reason as pre-reset frames.
     if (g_seek_savestate_loading)
     {
         std::println("[VCR] Skipping pre-seek savestate load frame");
         return;
     }
-
-    // NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
-    std::scoped_lock lock(vcr_mutex);
-
+    
     // When resetting during playback, we need to remind program of the rerecords
     if (g_task != e_task::idle && just_reset)
     {
@@ -1355,6 +1355,7 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
             savestates_load_memory(g_seek_savestates[closest_key], [=](auto)
             {
                 std::println("[VCR] Seek savestate at frame {} loaded!", closest_key);
+                std::scoped_lock l(vcr_mutex);
                 g_seek_savestate_loading = false;
             });
             return VCR::Result::Ok;
