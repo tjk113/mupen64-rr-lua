@@ -714,15 +714,12 @@ namespace PianoRoll
             {
                 int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
 
-                BUTTONS input = {0};
-
                 if (i < 0 || i >= g_piano_roll_state.inputs.size())
                 {
                     break;
                 }
 
-                input = g_piano_roll_state.inputs[i];
-
+                BUTTONS input = g_piano_roll_state.inputs[i];
 
                 PAINTSTRUCT ps;
                 RECT rect;
@@ -903,10 +900,16 @@ namespace PianoRoll
                 ScreenToClient(hwnd, &lplvhtti.pt);
                 ListView_SubItemHitTest(hwnd, &lplvhtti);
 
-                if (lplvhtti.iSubItem <= 2 || lplvhtti.iItem < 0)
+                if (lplvhtti.iSubItem <= 2)
                 {
-                    printf("[PianoRoll] Ignoring WM_LBUTTONDOWN/WM_RBUTTONDOWN with bad iSubItem/iItem\n");
+                    printf("[PianoRoll] iSubItem out of range\n");
                     break;
+                }
+                
+                if (lplvhtti.iItem < 0 || lplvhtti.iItem >= g_piano_roll_state.inputs.size())
+                {
+                    printf("[PianoRoll] iItem out of range\n");
+                    goto def;
                 }
 
                 if (!can_modify_inputs())
@@ -1022,8 +1025,8 @@ namespace PianoRoll
         GetCursorPos(&lplvhtti.pt);
         ScreenToClient(hwnd, &lplvhtti.pt);
         ListView_SubItemHitTest(hwnd, &lplvhtti);
-
-        if (lplvhtti.iItem >= g_piano_roll_state.inputs.size())
+        
+        if (lplvhtti.iItem < 0 || lplvhtti.iItem >= g_piano_roll_state.inputs.size())
         {
             printf("[PianoRoll] iItem out of range\n");
             goto def;
@@ -1214,7 +1217,7 @@ namespace PianoRoll
 
                             if (plvdi->item.iItem < 0 || plvdi->item.iItem >= g_piano_roll_state.inputs.size())
                             {
-                                printf("[PianoRoll] Ignoring LVN_GETDISPINFO with iItem out of range\n");
+                                printf("[PianoRoll] iItem out of range\n");
                                 break;
                             }
 
