@@ -593,6 +593,28 @@ namespace PianoRoll
         apply_input_buffer();
     }
 
+    /**
+     * Appends the specified amount of empty frames at the start of the current selection.
+     */
+    bool insert_frames(size_t count)
+    {
+        if (!can_modify_inputs() || g_piano_roll_state.selected_indicies.empty())
+        {
+            return false;
+        }
+
+        for (int i = 0; i < count; ++i)
+        {
+            g_piano_roll_state.inputs.insert(g_piano_roll_state.inputs.begin() + g_piano_roll_state.selected_indicies[0] + 1, {0});
+        }
+
+        ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
+
+        apply_input_buffer();
+        
+        return true;
+    }
+    
     void update_groupbox_status_text()
     {
         if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
@@ -915,12 +937,15 @@ namespace PianoRoll
             {
                 HMENU h_menu = CreatePopupMenu();
                 const auto base_style = can_modify_inputs() ? MF_ENABLED : MF_DISABLED;
-                AppendMenu(h_menu, base_style | MF_STRING, 1, "Copy\tCtrl+C");
+                AppendMenu(h_menu, MF_STRING, 1, "Copy\tCtrl+C");
                 AppendMenu(h_menu, base_style | MF_STRING, 2, "Paste\tCtrl+V");
+                AppendMenu(h_menu, MF_SEPARATOR, 0, nullptr);
                 AppendMenu(h_menu, base_style | MF_STRING, 3, "Undo\tCtrl+Z");
                 AppendMenu(h_menu, base_style | MF_STRING, 4, "Redo\tCtrl+Y");
+                AppendMenu(h_menu, MF_SEPARATOR, 0, nullptr);
                 AppendMenu(h_menu, base_style | MF_STRING, 5, "Clear\tBackspace");
                 AppendMenu(h_menu, base_style | MF_STRING, 6, "Delete\tDelete");
+                AppendMenu(h_menu, base_style | MF_STRING, 7, "Insert frame\tInsert");
 
                 const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), hwnd, 0);
 
@@ -943,6 +968,9 @@ namespace PianoRoll
                     break;
                 case 6:
                     delete_inputs_in_selection();
+                    break;
+                case 7:
+                    insert_frames(1);
                     break;
                 default:
                     break;
@@ -1011,6 +1039,12 @@ namespace PianoRoll
                 if (wParam == VK_DELETE)
                 {
                     delete_inputs_in_selection();
+                    break;
+                }
+
+                if (wParam == VK_INSERT)
+                {
+                    insert_frames(1);
                     break;
                 }
 
