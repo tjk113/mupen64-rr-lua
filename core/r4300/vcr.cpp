@@ -625,7 +625,7 @@ void vcr_handle_recording(int index, BUTTONS* input)
     // When the movie has more frames after the current one than the buffer has, we need to use the buffer data instead of the plugin
     const auto effective_index = m_current_sample + index;
     bool use_inputs_from_buffer = g_movie_inputs.size() > effective_index || g_warp_modify_status == e_warp_modify_status::warping;
-    
+
     // Regular recording: the recording input source is the input plugin (along with the reset override)
     if (user_requested_reset)
     {
@@ -639,7 +639,8 @@ void vcr_handle_recording(int index, BUTTONS* input)
         if (use_inputs_from_buffer)
         {
             *input = g_movie_inputs[effective_index];
-        } else
+        }
+        else
         {
             getKeys(index, input);
             LuaService::call_input(input, index);
@@ -651,7 +652,7 @@ void vcr_handle_recording(int index, BUTTONS* input)
         g_movie_inputs.push_back(*input);
         g_header.length_samples++;
     }
-    
+
     m_current_sample++;
     Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
 
@@ -1444,11 +1445,11 @@ bool task_is_recording(e_task task)
 VCR::Result VCR::stop_all()
 {
     printf("[VCR] Clearing seek savestates...\n");
-    
+
     auto prev_seek_savestates = g_seek_savestates | std::views::keys;
-    
+
     g_seek_savestates.clear();
-    
+
     for (auto frame : prev_seek_savestates)
     {
         Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)frame);
@@ -1553,11 +1554,25 @@ std::vector<BUTTONS> VCR::get_inputs()
 /// Finds the first input difference between two input vectors. Returns SIZE_MAX if they are identical. 
 size_t vcr_find_first_input_difference(const std::vector<BUTTONS>& first, const std::vector<BUTTONS>& second)
 {
-    for (int i = 0; i < first.size(); ++i)
+    if (first.size() != second.size())
     {
-        if (first[i].Value != second[i].Value)
+        const auto min_size = std::min(first.size(), second.size());
+        for (int i = 0; i < min_size; ++i)
         {
-            return i;
+            if (first[i].Value != second[i].Value)
+            {
+                return i;
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < first.size(); ++i)
+        {
+            if (first[i].Value != second[i].Value)
+            {
+                return i;
+            }
         }
     }
 
@@ -1609,7 +1624,9 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
         return Result::Ok;
     }
 
-    const auto result = vcr_begin_seek_impl(std::to_string(m_current_sample), emu_paused || frame_advancing, false, true);
+    const auto target_sample = std::min(inputs.size(), (size_t)m_current_sample);
+
+    const auto result = vcr_begin_seek_impl(std::to_string(target_sample), emu_paused || frame_advancing, false, true);
 
     if (result != Result::Ok)
     {
@@ -1617,10 +1634,10 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
     }
 
     g_warp_modify_status = e_warp_modify_status::warping;
-    
+
     g_movie_inputs = inputs;
     g_header.length_samples = g_movie_inputs.size();
-    
+
     resume_emu();
 
     std::println("[VCR] Warp modify started at frame {}", m_current_sample);
@@ -1641,7 +1658,7 @@ std::unordered_map<size_t, bool> VCR::get_seek_savestate_frames()
     {
         map[key] = true;
     }
-    
+
     return map;
 }
 

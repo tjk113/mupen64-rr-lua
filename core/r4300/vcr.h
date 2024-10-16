@@ -435,6 +435,8 @@ namespace VCR
      * 
      * If the provided buffer is larger than the current input buffer and the first differing input is after the current sample, the operation will succeed with no seek.
      * The input buffer will be overwritten with the provided buffer and when the modified frames are reached in the future, they will be "applied" like in playback mode.
+     *
+     * If the provided buffer is smaller than the current input buffer, the VCR engine will seek to the last frame and otherwise perform the warp modification as normal.
      * 
      * \param inputs The input buffer to use.
      * \return The operation result
