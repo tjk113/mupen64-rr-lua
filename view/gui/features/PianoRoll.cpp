@@ -96,6 +96,7 @@ namespace PianoRoll
         return VCR::get_warp_modify_status() == e_warp_modify_status::none
             && VCR::get_seek_completion().second == SIZE_MAX
             && VCR::get_task() == e_task::recording
+            && !VCR::is_seeking()
             && !g_config.vcr_readonly;
     }
 
@@ -899,12 +900,6 @@ namespace PianoRoll
                 GetCursorPos(&lplvhtti.pt);
                 ScreenToClient(hwnd, &lplvhtti.pt);
                 ListView_SubItemHitTest(hwnd, &lplvhtti);
-
-                if (lplvhtti.iSubItem <= 2)
-                {
-                    printf("[PianoRoll] iSubItem out of range\n");
-                    break;
-                }
                 
                 if (lplvhtti.iItem < 0 || lplvhtti.iItem >= g_piano_roll_state.inputs.size())
                 {
@@ -912,6 +907,15 @@ namespace PianoRoll
                     goto def;
                 }
 
+                if (lplvhtti.iSubItem <= 2)
+                {
+                    AsyncExecutor::invoke_async([=]
+                    {
+                        VCR::begin_seek(std::to_string(lplvhtti.iItem), true);
+                    });
+                    break;
+                }
+                
                 if (!can_modify_inputs())
                 {
                     break;
