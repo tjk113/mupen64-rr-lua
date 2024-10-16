@@ -642,7 +642,7 @@ namespace PianoRoll
         auto value = std::any_cast<long>(data);
         static auto previous_value = value;
 
-        if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+        if (VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
         {
             goto exit;
         }
@@ -669,7 +669,7 @@ namespace PianoRoll
 
     void on_unfreeze_completed(std::any)
     {
-        if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+        if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
         {
             return;
         }
