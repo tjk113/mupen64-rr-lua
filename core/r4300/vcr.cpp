@@ -48,6 +48,7 @@ volatile e_task g_task = e_task::idle;
 // The frame to seek to during playback, or an empty option if no seek is being performed
 std::optional<size_t> seek_to_frame;
 bool g_seek_pause_at_end;
+bool g_seek_savestate_loading;
 std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 
 auto g_warp_modify_status = e_warp_modify_status::none;
@@ -437,10 +438,18 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
     m_current_vi = (int)freeze.current_vi;
 
     const e_task last_task = g_task;
-
+    
     // When starting playback in RW mode, we don't want overwrite the movie savestate which we're currently unfreezing from...
     const bool is_task_starting_playback = g_task == e_task::start_playback_from_reset || g_task == e_task::start_playback_from_snapshot;
 
+    // When unfreezing during a seek while recording, we don't want to overwrite the input buffer.
+    // Instead, we'll just update the current sample.
+    if (g_task == e_task::recording && seek_to_frame.has_value())
+    {
+        Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
+        goto finish;
+    }
+    
     if (!g_config.vcr_readonly && !is_task_starting_playback)
     {
         // here, we are going to take the input data from the savestate
@@ -487,6 +496,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
         Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
     }
 
+    finish:
     // When loading a state, the statusbar should update with new information before the next frame happens.
     frame_changed = true;
 
@@ -782,6 +792,13 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
     if (emu_resetting)
     {
         printf("[VCR] Skipping pre-reset frame\n");
+        return;
+    }
+
+    // Frames between seek savestate load request and actual load are invalid for the same reason as pre-reset frames.
+    if (g_seek_savestate_loading)
+    {
+        std::println("[VCR] Skipping pre-seek savestate load frame");
         return;
     }
 
@@ -1333,9 +1350,12 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
 
             const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
 
-            std::println("[VCR] Seeking backwards during recording to frame {}, closest savestate at {}", target_sample, closest_key);
-            savestates_load_memory(g_seek_savestates[closest_key], [](auto)
+            std::println("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
+            g_seek_savestate_loading = true;
+            savestates_load_memory(g_seek_savestates[closest_key], [=](auto)
             {
+                std::println("[VCR] Seek savestate at frame {} loaded!", closest_key);
+                g_seek_savestate_loading = false;
             });
             return VCR::Result::Ok;
         }
