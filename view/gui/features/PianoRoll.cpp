@@ -86,8 +86,8 @@ namespace PianoRoll
     // The current piano roll state.
     PianoRollState g_piano_roll_state;
 
-    // Undo/redo stack for the piano roll.
-    std::deque<PianoRollState> g_piano_roll_states;
+    // State history for the piano roll. Used by undo/redo.
+    std::deque<PianoRollState> g_piano_roll_history;
 
     // Stack index for the piano roll undo/redo stack. 0 = top, 1 = 2nd from top, etc...
     size_t g_piano_roll_state_index;
@@ -355,9 +355,9 @@ namespace PianoRoll
         SetWindowRedraw(g_hist_hwnd, false);
         ListBox_ResetContent(g_hist_hwnd);
 
-        for (size_t i = 0; i < g_piano_roll_states.size(); ++i)
+        for (size_t i = 0; i < g_piano_roll_history.size(); ++i)
         {
-            ListBox_AddString(g_hist_hwnd, std::format("Snapshot {}", i).c_str());
+            ListBox_AddString(g_hist_hwnd, std::format("Snapshot {}", i + 1).c_str());
         }
 
         ListBox_SetCurSel(g_hist_hwnd, g_piano_roll_state_index);
@@ -365,37 +365,41 @@ namespace PianoRoll
     }
 
     /**
-    * Pushes the current piano roll state to the undo stack. Should be called after operations which change the piano roll state.
+    * Pushes the current piano roll state to the history. Should be called after operations which change the piano roll state.
     */
-    void push_state_to_undo_stack()
+    void push_state_to_history()
     {
         std::println("[PianoRoll] Pushing state to undo stack...");
 
-        if (g_piano_roll_states.size() > g_config.piano_roll_undo_stack_size)
+        if (g_piano_roll_history.size() > g_config.piano_roll_undo_stack_size)
         {
-            g_piano_roll_states.pop_back();
+            g_piano_roll_history.pop_back();
         }
 
-        g_piano_roll_states.push_front(g_piano_roll_state);
+        g_piano_roll_history.push_back(g_piano_roll_state);
         g_piano_roll_state_index++;
 
+        std::println("[PianoRoll] Undo stack size: {}. Current index: {}.", g_piano_roll_history.size(), g_piano_roll_state_index);
         update_history_listbox();
     }
 
     /**
      * Applies the g_piano_roll_state.inputs buffer to the core.
      */
-    void apply_input_buffer()
+    void apply_input_buffer(bool push_to_history = true)
     {
         // This might be called from UI thread, thus grabbing the VCR lock.
         // Problem is that the VCR lock is already grabbed by the core thread because current sample changed message is executed on core thread.
-        AsyncExecutor::invoke_async([]
+        AsyncExecutor::invoke_async([=]
         {
             auto result = VCR::begin_warp_modify(g_piano_roll_state.inputs);
 
             if (result == VCR::Result::Ok)
             {
-                push_state_to_undo_stack();
+                if (push_to_history)
+                {
+                    push_state_to_history();
+                }
             }
             else
             {
@@ -424,8 +428,24 @@ namespace PianoRoll
         g_piano_roll_state = piano_roll_state;
         ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
         set_listview_selection(g_lv_hwnd, g_piano_roll_state.selected_indicies);
-        apply_input_buffer();
+        apply_input_buffer(false);
         update_history_listbox();
+    }
+
+    /**
+     * Shifts the history index by the specified offset and applies the changes. 
+     */
+    bool shift_history(int offset)
+    {
+        auto new_index = g_piano_roll_state_index + offset;
+
+        if (new_index < 0 || new_index >= g_piano_roll_history.size())
+        {
+            return false;
+        }
+
+        g_piano_roll_state_index = new_index;
+        set_piano_roll_state(g_piano_roll_history[g_piano_roll_state_index]);
     }
     
     /**
@@ -433,21 +453,7 @@ namespace PianoRoll
      */
     bool undo()
     {
-        if (g_piano_roll_states.size() <= 1)
-        {
-            return false;
-        }
-
-        if (g_piano_roll_state_index <= 0)
-        {
-            return false;
-        }
-
-        g_piano_roll_state_index--;
-        set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
-        update_history_listbox();
-
-        return true;
+        return shift_history(-2);
     }
 
     /**
@@ -455,21 +461,7 @@ namespace PianoRoll
      */
     bool redo()
     {
-        if (g_piano_roll_states.size() <= 1)
-        {
-            return false;
-        }
-
-        if (g_piano_roll_state_index + 1 >= g_piano_roll_states.size())
-        {
-            return false;
-        }
-
-        g_piano_roll_state_index++;
-        set_piano_roll_state(g_piano_roll_states[g_piano_roll_state_index]);
-        update_history_listbox();
-
-        return true;
+        return shift_history(1);
     }
 
     /**
@@ -1097,7 +1089,7 @@ namespace PianoRoll
                 g_hwnd = hwnd;
                 g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 17, 30, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
                 CreateWindowEx(0, WC_STATIC, "History", WS_CHILD | WS_VISIBLE | WS_GROUP | SS_LEFT | SS_CENTERIMAGE, 17, 166, 131, 15, g_hwnd, nullptr, g_app_instance, nullptr);
-                g_hist_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTBOX, "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOINTEGRALHEIGHT, 17, 186, 131, 181, g_hwnd, nullptr, g_app_instance, nullptr);
+                g_hist_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTBOX, "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOINTEGRALHEIGHT | LBS_NOTIFY, 17, 186, 131, 181, g_hwnd, nullptr, g_app_instance, nullptr);
 
                 // Some controls don't get the font set by default, so we do it manually
                 EnumChildWindows(hwnd, [](HWND hwnd, LPARAM font)
@@ -1214,6 +1206,19 @@ namespace PianoRoll
                 EndDialog(hwnd, IDCANCEL);
                 break;
             default: break;
+            }
+
+            if ((HWND)lParam == g_hist_hwnd && HIWORD(wParam) == LBN_SELCHANGE)
+            {
+                auto index = ListBox_GetCurSel(g_hist_hwnd);
+                    
+                if (index < 0 || index >= g_piano_roll_history.size())
+                {
+                    break;
+                }
+
+                g_piano_roll_state_index = index;
+                set_piano_roll_state(g_piano_roll_history[index]);
             }
             break;
         case WM_NOTIFY:
