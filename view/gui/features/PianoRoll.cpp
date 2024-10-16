@@ -651,7 +651,7 @@ namespace PianoRoll
 
     void on_task_changed(std::any data)
     {
-        g_piano_roll_dispatcher->invoke([&]
+        g_piano_roll_dispatcher->invoke([=]
         {
             auto value = std::any_cast<e_task>(data);
             static auto previous_value = value;
@@ -668,7 +668,7 @@ namespace PianoRoll
 
     void on_current_sample_changed(std::any data)
     {
-        g_piano_roll_dispatcher->invoke([&]
+        g_piano_roll_dispatcher->invoke([=]
         {
             auto value = std::any_cast<long>(data);
             static auto previous_value = value;
@@ -701,7 +701,7 @@ namespace PianoRoll
 
     void on_unfreeze_completed(std::any)
     {
-        g_piano_roll_dispatcher->invoke([&]
+        g_piano_roll_dispatcher->invoke([=]
         {
             if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
             {
@@ -723,7 +723,7 @@ namespace PianoRoll
 
     void on_warp_modify_status_changed(std::any)
     {
-        g_piano_roll_dispatcher->invoke([&]
+        g_piano_roll_dispatcher->invoke([=]
         {
             update_groupbox_status_text();
             RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
@@ -732,7 +732,7 @@ namespace PianoRoll
 
     void on_seek_completed(std::any)
     {
-        g_piano_roll_dispatcher->invoke([&]
+        g_piano_roll_dispatcher->invoke([=]
         {
             RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
         });
@@ -740,7 +740,7 @@ namespace PianoRoll
 
     void on_seek_savestate_changed(std::any data)
     {
-        g_piano_roll_dispatcher->invoke([&]
+        g_piano_roll_dispatcher->invoke([=]
         {
             auto value = std::any_cast<size_t>(data);
             g_seek_savestate_frames = VCR::get_seek_savestate_frames();
