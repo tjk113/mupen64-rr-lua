@@ -28,34 +28,29 @@ static bool contains(const std::string& a, const std::string& b)
     return a.find(b) != std::string::npos;
 }
 
-// https://stackoverflow.com/q/7571937
+/**
+ * Erases the specified indicies in a vector.
+ * \tparam T The vector's contained type.
+ * \param data The vector.
+ * \param indices_to_delete The indices to delete. 
+ * \return The vector with the indicies removed. 
+ */
 template <typename T>
 std::vector<T> erase_indices(const std::vector<T>& data, std::vector<size_t>& indices_to_delete)
 {
     if (indices_to_delete.empty())
         return data;
 
-    std::vector<T> ret;
-    ret.reserve(data.size() - indices_to_delete.size());
+    std::vector<T> ret = data;
 
-    std::sort(indices_to_delete.begin(), indices_to_delete.end());
-
-    // new we can assume there is at least 1 element to delete. copy blocks at a time.
-    typename std::vector<T>::const_iterator itBlockBegin = data.begin();
-    for (std::vector<size_t>::const_iterator it = indices_to_delete.begin(); it != indices_to_delete.end(); ++it)
+    std::ranges::sort(indices_to_delete, std::greater<>());
+    for (auto i : indices_to_delete)
     {
-        typename std::vector<T>::const_iterator itBlockEnd = data.begin() + *it;
-        if (itBlockBegin != itBlockEnd)
+        if (i >= ret.size())
         {
-            std::copy(itBlockBegin, itBlockEnd, std::back_inserter(ret));
+            continue;
         }
-        itBlockBegin = itBlockEnd + 1;
-    }
-
-    // copy last block.
-    if (itBlockBegin != data.end())
-    {
-        std::copy(itBlockBegin, data.end(), std::back_inserter(ret));
+        ret.erase(ret.begin() + i);
     }
 
     return ret;
