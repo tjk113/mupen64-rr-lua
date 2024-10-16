@@ -817,8 +817,8 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = piano_roll_group.id,
-            .name = "Undo stack size",
-            .tooltip = L"Maximum size of the undo/redo stack.",
+            .name = "History size",
+            .tooltip = L"Maximum size of the history list.",
             .data = &g_config.piano_roll_undo_stack_size,
             .type = t_options_item::Type::Number,
         },
