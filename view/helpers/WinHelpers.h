@@ -253,7 +253,8 @@ static std::vector<size_t> get_listview_selection(const HWND hwnd)
  */
 static void shift_listview_selection(const HWND hwnd, const int32_t offset)
 {
-    auto selection = get_listview_selection(hwnd);
+    auto raw_selection = get_listview_selection(hwnd);
+    std::vector<int64_t> selection(raw_selection.begin(), raw_selection.end());
 
     for (const auto selected_index : selection)
     {
@@ -262,9 +263,9 @@ static void shift_listview_selection(const HWND hwnd, const int32_t offset)
 
     for (auto& selected_index : selection)
     {
-        selected_index += offset;
+        selected_index = max(selected_index + offset, 0);
     }
-
+    
     for (const auto selected_index : selection)
     {
         ListView_SetItemState(hwnd, selected_index, LVIS_SELECTED, LVIS_SELECTED);
