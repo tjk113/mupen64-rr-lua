@@ -9,6 +9,7 @@
 #include "core/r4300/vcr.h"
 #include "shared/AsyncExecutor.h"
 #include "shared/Messenger.h"
+#include "shared/helpers/StlExtensions.h"
 #include "shared/services/FrontendService.h"
 #include "view/gui/Main.h"
 #include "view/helpers/IOHelpers.h"
@@ -575,11 +576,8 @@ namespace PianoRoll
             return;
         }
 
-        SetWindowRedraw(g_lv_hwnd, false);
-
-        
-        
-        SetWindowRedraw(g_lv_hwnd, true);
+        g_piano_roll_state.inputs = erase_indices(g_piano_roll_state.inputs, g_piano_roll_state.selected_indicies);
+        ListView_RedrawItems(g_lv_hwnd, 0, ListView_GetItemCount(g_lv_hwnd));
 
         apply_input_buffer();
     }
@@ -934,9 +932,15 @@ namespace PianoRoll
             break;
         case WM_KEYDOWN:
             {
-                if (wParam == VK_BACK || wParam == VK_DELETE)
+                if (wParam == VK_BACK)
                 {
                     clear_inputs_in_selection();
+                    break;
+                }
+
+                if (wParam == VK_DELETE)
+                {
+                    delete_inputs_in_selection();
                     break;
                 }
 
@@ -1202,9 +1206,9 @@ namespace PianoRoll
                         {
                             const auto plvdi = (NMLVDISPINFO*)lParam;
 
-                            if (plvdi->item.iItem < 0)
+                            if (plvdi->item.iItem < 0 || plvdi->item.iItem >= g_piano_roll_state.inputs.size())
                             {
-                                printf("[PianoRoll] Ignoring LVN_GETDISPINFO with bad iItem\n");
+                                printf("[PianoRoll] Ignoring LVN_GETDISPINFO with iItem out of range\n");
                                 break;
                             }
 
@@ -1212,7 +1216,7 @@ namespace PianoRoll
                             {
                                 break;
                             }
-
+                            
                             auto input = g_piano_roll_state.inputs[plvdi->item.iItem];
 
                             switch (plvdi->item.iSubItem)
