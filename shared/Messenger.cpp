@@ -2,6 +2,8 @@
 
 #include <assert.h>
 #include <atomic>
+#include <print>
+#include <thread>
 
 namespace Messenger
 {
@@ -28,8 +30,8 @@ namespace Messenger
     // UID accumulator for generating unique subscriber IDs. Only write operation is increment.
     size_t g_uid_accumulator;
 
-    // Safety flag for debugging, used to track if the subscriber list is being modified while broadcasting.
-    std::atomic g_changing = false;
+    // Whether a message is currently being broadcasted. Used to wait when subscribing.
+    std::atomic g_broadcasting = 0;
 
     void init()
     {
@@ -50,38 +52,36 @@ namespace Messenger
 
     void broadcast(const Message message, std::any data)
     {
-        ASSERT_NOT_CHANGING;
+        ++g_broadcasting;
 
         for (const auto& subscriber : g_subscriber_cache[message])
         {
-            ASSERT_NOT_CHANGING;
-
             subscriber(data);
         }
+
+        --g_broadcasting;
     }
 
     std::function<void()> subscribe(Message message, t_user_callback callback)
     {
-        g_changing = true;
-
+        while (g_broadcasting != 0)
+        {
+            std::println("[Messenger] Waiting for broadcast to finish before subscribing...");
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        
         Subscriber subscriber = {g_uid_accumulator++, callback};
 
         g_subscribers.emplace_back(message, subscriber);
         rebuild_subscriber_cache();
 
-        g_changing = false;
-
         return [=]
         {
-            g_changing = true;
-
             std::erase_if(g_subscribers, [=](const auto& pair)
             {
                 return pair.second.uid == subscriber.uid;
             });
             rebuild_subscriber_cache();
-
-            g_changing = false;
         };
     }
 }

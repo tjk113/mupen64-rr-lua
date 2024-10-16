@@ -177,7 +177,7 @@ namespace Messenger
      * \brief Broadcasts a message to all listeners
      * \param message The message type
      * \param data The message data
-     * \remark This method is thread-safe, but mustn't be called concurrently with subscribe()
+     * \remark This method is thread-safe.
      */
     void broadcast(Message message, std::any data);
 
@@ -186,7 +186,7 @@ namespace Messenger
      * \param message The message type to listen for
      * \param callback The callback to be invoked upon receiving the specified message type
      * \return A function which, when called, unsubscribes from the message
-     * \remark This method is not thread-safe.
+     * \remark This method is thread-safe.
      */
     std::function<void()> subscribe(Message message, t_user_callback callback);
 }
