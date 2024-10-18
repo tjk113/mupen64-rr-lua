@@ -193,7 +193,7 @@ namespace Cli
 
         if (first_emu_launched && is_movie_from_start)
         {
-            printf("[Cli] Ignoring EmuLaunchedChanged due to from-start movie first reset!\n");
+            g_view_logger->info("[Cli] Ignoring EmuLaunchedChanged due to from-start movie first reset!");
             first_emu_launched = false;
             return;
         }
@@ -220,7 +220,7 @@ namespace Cli
 
         if (first_dacrate_changed && is_movie_from_start)
         {
-            printf("[Cli] Ignoring DacrateChanged due to from-start movie first reset!\n");
+            g_view_logger->info("[Cli] Ignoring DacrateChanged due to from-start movie first reset!");
             first_dacrate_changed = false;
             return;
         }

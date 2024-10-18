@@ -192,7 +192,7 @@ namespace LuaCore::D2D
 
         if (!lua->dw_text_layouts.contains(params_hash))
         {
-            // printf("[Lua] Adding layout to cache... (%d elements)\n", lua->dw_text_layouts.size());
+            // g_view_logger->info("[Lua] Adding layout to cache... ({} elements)\n", lua->dw_text_layouts.size());
 
             IDWriteTextFormat* text_format;
 
@@ -379,7 +379,7 @@ namespace LuaCore::D2D
 
         if (!SUCCEEDED(hr))
         {
-            printf("D2D image fail HRESULT %d\n", hr);
+            g_view_logger->info("D2D image fail HRESULT {}", hr);
             pIWICFactory->Release();
             return 0;
         }

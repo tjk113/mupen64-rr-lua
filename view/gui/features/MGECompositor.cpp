@@ -116,7 +116,7 @@ namespace MGECompositor
         if (internal_buffer.width != internal_buffer.last_width || internal_buffer.height != internal_buffer.last_height)
         {
             SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&internal_buffer);
-            printf("MGE Compositor: Video size %dx%d\n", internal_buffer.width, internal_buffer.height);
+            g_view_logger->info("MGE Compositor: Video size %dx{}", internal_buffer.width, internal_buffer.height);
 
             internal_buffer.bmp_info.bmiHeader.biWidth = internal_buffer.width;
             internal_buffer.bmp_info.bmiHeader.biHeight = internal_buffer.height;

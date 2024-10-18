@@ -20,6 +20,7 @@
 #include <string>
 #include <filesystem>
 #include <shared/Config.hpp>
+#include <spdlog/logger.h>
 #include <view/gui/features/Dispatcher.h>
 
 #define MUPEN_VERSION "Mupen 64 1.1.9"
@@ -42,6 +43,7 @@ extern DWORD start_rom_id;
 
 extern std::string g_app_path;
 extern std::shared_ptr<Dispatcher> g_main_window_dispatcher;
+extern std::shared_ptr<spdlog::logger> g_view_logger;
 
 /**
  * \brief Whether the statusbar needs to be updated with new input information

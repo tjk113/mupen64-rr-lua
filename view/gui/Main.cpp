@@ -42,6 +42,8 @@
 #include <view/helpers/MathHelpers.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/lua/LuaConsole.h>
+#include <lib/spdlog/spdlog.h>
+#include <lib/spdlog/sinks/basic_file_sink.h>
 #include <winproject/resource.h>
 #include "Commandline.h"
 #include "features/CoreDbg.h"
@@ -56,6 +58,7 @@
 #include "features/PianoRoll.h"
 #include "features/Runner.h"
 #include "shared/AsyncExecutor.h"
+#include "shared/services/LoggingService.h"
 #include "view/helpers/IOHelpers.h"
 #include "wrapper/PersistentPathDialog.h"
 
@@ -76,6 +79,9 @@ HMENU g_recent_lua_menu;
 HINSTANCE g_app_instance;
 std::string g_app_path;
 std::shared_ptr<Dispatcher> g_main_window_dispatcher;
+std::shared_ptr<spdlog::logger> g_core_logger;
+std::shared_ptr<spdlog::logger> g_shared_logger;
+std::shared_ptr<spdlog::logger> g_view_logger;
 
 int g_last_wheel_delta = 0;
 bool g_paused_before_menu;
@@ -201,7 +207,7 @@ int config_action_to_menu_id(Action action)
 {
     if (!ACTION_ID_MAP.contains(action))
     {
-        printf("[View] No menu ID found for action %d\n", static_cast<int>(action));
+        g_view_logger->info("[View] No menu ID found for action {}", static_cast<int>(action));
         return 0;
     }
     return ACTION_ID_MAP.at(action);
@@ -505,7 +511,7 @@ void on_emu_launched_changed(std::any data)
 
     if (!value && previous_value)
     {
-        printf("[View] Restoring window size to %dx%d...\n", g_config.window_width, g_config.window_height);
+        g_view_logger->info("[View] Restoring window size to %dx{}...", g_config.window_width, g_config.window_height);
         SetWindowPos(g_main_hwnd, nullptr, 0, 0, g_config.window_width, g_config.window_height, SWP_NOMOVE);
     }
 
@@ -820,10 +826,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         auto state = GetMenuState(g_main_menu, down_cmd, MF_BYCOMMAND);
                         if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
                         {
-                            printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), down_cmd);
+                            g_view_logger->info("Dismissed {} ({})", hotkey->identifier.c_str(), down_cmd);
                             continue;
                         }
-                        printf("Sent down %s (%d)\n", hotkey->identifier.c_str(), down_cmd);
+                        g_view_logger->info("Sent down {} ({})", hotkey->identifier.c_str(), down_cmd);
                         SendMessage(g_main_hwnd, WM_COMMAND, down_cmd, 0);
                         hit = TRUE;
                     }
@@ -861,10 +867,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         auto state = GetMenuState(g_main_menu, up_cmd, MF_BYCOMMAND);
                         if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
                         {
-                            printf("Dismissed %s (%d)\n", hotkey->identifier.c_str(), up_cmd);
+                            g_view_logger->info("Dismissed {} ({})", hotkey->identifier.c_str(), up_cmd);
                             continue;
                         }
-                        printf("Sent up %s (%d)\n", hotkey->identifier.c_str(), up_cmd);
+                        g_view_logger->info("Sent up {} ({})", hotkey->identifier.c_str(), up_cmd);
                         SendMessage(g_main_hwnd, WM_COMMAND, up_cmd, 0);
                         hit = TRUE;
                     }
@@ -1652,11 +1658,24 @@ LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
-    g_ui_thread_id = GetCurrentThreadId();
-
 #ifdef _DEBUG
-    open_console();
+	open_console();
+
+    std::vector<spdlog::sink_ptr> core_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
+    std::vector<spdlog::sink_ptr> shared_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
+    std::vector<spdlog::sink_ptr> view_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
+    g_core_logger = std::make_shared<spdlog::logger>("Core", begin(core_sinks), end(core_sinks));
+    g_shared_logger = std::make_shared<spdlog::logger>("Shared", begin(shared_sinks), end(shared_sinks));
+    g_view_logger = std::make_shared<spdlog::logger>("View", begin(view_sinks), end(view_sinks));
+#else
+    g_core_logger = spdlog::basic_logger_mt("Core", "mupen.log");
+    g_shared_logger = spdlog::basic_logger_mt("Shared", "mupen.log");
+    g_view_logger = spdlog::basic_logger_mt("View", "mupen.log");
 #endif
+
+    g_view_logger->info("WinMain");
+    
+    g_ui_thread_id = GetCurrentThreadId();
 
     Gdiplus::GdiplusStartupInput startup_input;
     GdiplusStartup(&gdi_plus_token, &startup_input, NULL);
@@ -1693,7 +1712,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     // Log cwd again for fun
     GetCurrentDirectory(sizeof(cwd), cwd);
-    printf("cwd: %s\n", cwd);
+    g_view_logger->info("cwd: {}", cwd);
 
     WNDCLASSEX wc = {0};
     MSG msg;
@@ -1711,7 +1730,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     RegisterClassEx(&wc);
     MGECompositor::init();
 
-    printf("[View] Restoring window @ (%d|%d) %dx%d...\n", g_config.window_x, g_config.window_y, g_config.window_width, g_config.window_height);
+    g_view_logger->info("[View] Restoring window @ ({}|{}) %dx{}...", g_config.window_x, g_config.window_y, g_config.window_width, g_config.window_height);
 
     g_main_hwnd = CreateWindowEx(
         0,

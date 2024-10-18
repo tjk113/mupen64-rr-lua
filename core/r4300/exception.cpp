@@ -27,6 +27,8 @@
  *
 **/
 
+#include <shared/services/LoggingService.h>
+
 #include "exception.h"
 #include "r4300.h"
 #include "macros.h"
@@ -38,7 +40,7 @@ extern unsigned long interp_addr;
 //Unused, this seems to be handled in pure_interp.c prefetch()
 void address_error_exception()
 {
-    printf("address_error_exception\n");
+    g_core_logger->error("address_error_exception");
     stop = 1;
 }
 
@@ -48,17 +50,17 @@ void TLB_invalid_exception()
     if (delay_slot)
     {
         skip_jump = 1;
-        printf("delay slot\nTLB refill exception\n");
+        g_core_logger->error("delay slot\nTLB refill exception");
         stop = 1;
     }
-    printf("TLB invalid exception\n");
+    g_core_logger->error("TLB invalid exception");
     stop = 1;
 }
 
 //Unused, 64-bit miss (is this even used on n64?)
 void XTLB_refill_exception(unsigned long long int addresse)
 {
-    printf("XTLB refill exception\n");
+    g_core_logger->error("XTLB refill exception");
     stop = 1;
 }
 
@@ -66,7 +68,7 @@ void XTLB_refill_exception(unsigned long long int addresse)
 void TLB_refill_exception(unsigned long address, int w)
 {
     int usual_handler = 0, i;
-    //printf("TLB_refill_exception:%x\n", address);
+    //g_core_logger->error("TLB_refill_exception:{:#06x}\n", address);
     if (!dynacore && w != 2) update_count();
     if (w == 1)
         core_Cause = (3 << 2);
@@ -157,21 +159,21 @@ void TLB_refill_exception(unsigned long address, int w)
 //Unused, aka TLB modified Exception, entry is not writable
 void TLB_mod_exception()
 {
-    printf("TLB mod exception\n");
+    g_core_logger->error("TLB mod exception");
     stop = 1;
 }
 
 //Unused
 void integer_overflow_exception()
 {
-    printf("integer overflow exception\n");
+    g_core_logger->error("integer overflow exception");
     stop = 1;
 }
 
 //Unused, handled somewhere else
 void coprocessor_unusable_exception()
 {
-    printf("coprocessor_unusable_exception\n");
+    g_core_logger->error("coprocessor_unusable_exception");
     stop = 1;
 }
 
@@ -188,7 +190,7 @@ void exception_general()
     else
         core_EPC = interp_addr;
 
-    //printf("exception, Cause: %x EPC: %x \n", Cause, EPC);
+    //g_core_logger->error("exception, Cause: {:#06x} EPC: {:#06x} \n", Cause, EPC);
 
     //Highest bit of Cause tells if exception has been executed in branch delay slot
     //delay_slot seems to always be 0 or 1, why is there reference to 3 ?

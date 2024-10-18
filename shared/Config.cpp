@@ -5,6 +5,7 @@
 #include <shared/helpers/StlExtensions.h>
 #include <shared/Messenger.h>
 #include <shared/services/FrontendService.h>
+#include <shared/services/LoggingService.h>
 
 t_config g_config;
 std::vector<t_hotkey*> g_config_hotkeys;
@@ -504,7 +505,7 @@ std::vector<t_hotkey*> collect_hotkeys(const t_config* config)
     for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1; i++)
     {
         auto hotkey = &(((t_hotkey*)config)[i]);
-        printf("Hotkey[%d]: %s\n", i, hotkey->identifier.c_str());
+        g_shared_logger->info("Hotkey[{}]: {}", i, hotkey->identifier.c_str());
         vec.push_back(hotkey);
     }
 
@@ -631,7 +632,7 @@ void load_config()
 {
     if (!std::filesystem::exists(get_config_path()))
     {
-        printf("[CONFIG] Default config file does not exist. Generating...\n");
+        g_shared_logger->info("[CONFIG] Default config file does not exist. Generating...");
         g_config = get_default_config();
         save_config();
     }

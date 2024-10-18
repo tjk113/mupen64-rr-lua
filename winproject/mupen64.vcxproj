@@ -60,7 +60,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../;../lib/zlib;../lib/lua/include;../lib/libdeflate;../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../;../lib;../lib/zlib;../lib/lua/include;../lib/libdeflate;../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -100,7 +100,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../;../lib/zlib;../lib/lua/include;../lib/libdeflate;../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../;../lib;../lib/zlib;../lib/lua/include;../lib/libdeflate;../lib/xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -178,6 +178,7 @@
     <ClInclude Include="..\shared\Messenger.h" />
     <ClInclude Include="..\shared\services\FrontendService.h" />
     <ClInclude Include="..\shared\services\IOService.h" />
+    <ClInclude Include="..\shared\services\LoggingService.h" />
     <ClInclude Include="..\shared\services\LuaService.h" />
     <ClInclude Include="..\shared\types\CoreTypes.h" />
     <ClInclude Include="..\view\capture\encoders\AVIEncoder.h" />

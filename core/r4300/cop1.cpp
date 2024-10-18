@@ -99,7 +99,7 @@ void CTC1()
         break;
     }
     set_rounding();
-    //if ((FCR31 >> 7) & 0x1F) printf("FPU Exception enabled : %x\n", 
+    //if ((FCR31 >> 7) & 0x1F) g_core_logger->info("FPU Exception enabled : {:#06x}", 
     //				   (int)((FCR31 >> 7) & 0x1F));
     PC++;
 }

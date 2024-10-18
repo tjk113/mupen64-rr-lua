@@ -80,7 +80,7 @@ std::filesystem::path get_backups_directory()
 
 bool write_movie_impl(const t_movie_header* hdr, const std::vector<BUTTONS>& inputs, const std::filesystem::path& path)
 {
-    printf("[VCR] write_movie_impl to %s...\n", g_movie_path.string().c_str());
+    g_core_logger->info("[VCR] write_movie_impl to {}...", g_movie_path.string().c_str());
 
     FILE* f = fopen(path.string().c_str(), "wb+");
     if (!f)
@@ -99,11 +99,11 @@ bool write_movie()
 {
     if (!task_is_recording(g_task))
     {
-        printf("[VCR] Tried to flush current movie while not in recording task\n");
+        g_core_logger->info("[VCR] Tried to flush current movie while not in recording task");
         return true;
     }
 
-    printf("[VCR] Flushing current movie...\n");
+    g_core_logger->info("[VCR] Flushing current movie...");
 
     return write_movie_impl(&g_header, g_movie_inputs, g_movie_path);
 }
@@ -115,7 +115,7 @@ bool write_backup()
         return true;
     }
 
-    printf("[VCR] Backing up movie...\n");
+    g_core_logger->info("[VCR] Backing up movie...");
     const auto filename = std::format("{}.{}.m64", g_movie_path.stem().string(), static_cast<uint64_t>(time(nullptr)));
 
     return write_movie_impl(&g_header, g_movie_inputs, get_backups_directory() / filename);
@@ -516,7 +516,7 @@ void vcr_create_n_frame_savestate(size_t frame)
         {
             if (g_seek_savestates.contains(i))
             {
-                std::println("[VCR] Map too large! Purging seek savestate at frame {}...", i);
+                g_core_logger->info("[VCR] Map too large! Purging seek savestate at frame {}...", i);
                 g_seek_savestates.erase(i);
                 Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)i);
                 break;
@@ -524,7 +524,7 @@ void vcr_create_n_frame_savestate(size_t frame)
         }
     }
 
-    std::println("[VCR] Creating seek savestate at frame {}...", frame);
+    g_core_logger->info("[VCR] Creating seek savestate at frame {}...", frame);
     savestates_save_memory([=](auto buf)
     {
         g_seek_savestates[frame] = buf;
@@ -566,7 +566,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
     {
         if (savestates_job == e_st_job::none)
         {
-            printf("[VCR] Starting recording from Snapshot...\n");
+            g_core_logger->info("[VCR] Starting recording from Snapshot...");
             g_task = e_task::recording;
             *input = {0};
         }
@@ -576,7 +576,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
     {
         if (savestates_job == e_st_job::none)
         {
-            printf("[VCR] Starting recording from Existing Snapshot...\n");
+            g_core_logger->info("[VCR] Starting recording from Existing Snapshot...");
             g_task = e_task::recording;
             *input = {0};
         }
@@ -592,7 +592,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
                 getKeys(index, input);
                 return;
             }
-            printf("[VCR] Starting playback...\n");
+            g_core_logger->info("[VCR] Starting playback...");
             g_task = e_task::playback;
         }
     }
@@ -718,7 +718,7 @@ void vcr_handle_playback(int index, BUTTONS* input)
     //no readable code because 120 star tas can't get this right >:(
     if (input->Value == 0xC000)
     {
-        printf("[VCR] Resetting during playback...\n");
+        g_core_logger->info("[VCR] Resetting during playback...");
         AsyncExecutor::invoke_async([]
         {
             auto result = vr_reset_rom(false, false, true);
@@ -743,7 +743,7 @@ void vcr_stop_seek_if_needed()
 
     assert(g_task != e_task::idle);
 
-    std::println("[VCR] Seeking... ({}/{})", m_current_sample, seek_to_frame.value());
+    g_core_logger->info("[VCR] Seeking... ({}/{})", m_current_sample, seek_to_frame.value());
 
     if (m_current_sample > seek_to_frame.value())
     {
@@ -753,7 +753,7 @@ void vcr_stop_seek_if_needed()
 
     if (m_current_sample >= seek_to_frame.value())
     {
-        std::println("[VCR] Seek finished at frame {} (target: {})", m_current_sample, seek_to_frame.value());
+        g_core_logger->info("[VCR] Seek finished at frame {} (target: {})", m_current_sample, seek_to_frame.value());
         VCR::stop_seek();
         if (g_seek_pause_at_end)
         {
@@ -794,14 +794,14 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
     // Those frames are invalid to us, because from the movie's perspective, it should be instantaneous.
     if (emu_resetting)
     {
-        printf("[VCR] Skipping pre-reset frame\n");
+        g_core_logger->info("[VCR] Skipping pre-reset frame");
         return;
     }
     
     // Frames between seek savestate load request and actual load are invalid for the same reason as pre-reset frames.
     if (g_seek_savestate_loading)
     {
-        std::println("[VCR] Skipping pre-seek savestate load frame");
+        g_core_logger->info("[VCR] Skipping pre-seek savestate load frame");
         return;
     }
     
@@ -858,7 +858,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
     std::unique_lock lock(vcr_mutex, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        printf("[VCR] vcr_start_record busy!\n");
+        g_core_logger->info("[VCR] vcr_start_record busy!");
         return Result::Busy;
     }
 
@@ -912,13 +912,13 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
     if (flags & MOVIE_START_FROM_SNAPSHOT)
     {
         // save state
-        printf("[VCR] Saving state...\n");
+        g_core_logger->info("[VCR] Saving state...");
         savestates_do_file(get_savestate_path_for_new_movie(g_movie_path), e_st_job::save);
         g_task = e_task::start_recording_from_snapshot;
     }
     else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
     {
-        printf("[VCR] Loading state...\n");
+        g_core_logger->info("[VCR] Loading state...");
         auto st_path = find_savestate_for_movie(g_movie_path);
         if (st_path.empty())
         {
@@ -984,7 +984,7 @@ VCR::Result VCR::replace_author_info(const std::filesystem::path& path, const st
     // 2. Compare author and description fields, and short-circuit if they remained identical
     if (!strcmp(hdr.author, author.c_str()) && !strcmp(hdr.description, description.c_str()))
     {
-        printf("[VCR] Movie author or description didn't change, returning early...");
+        g_core_logger->info("[VCR] Movie author or description didn't change, returning early...");
         return Result::Ok;
     }
 
@@ -1035,7 +1035,7 @@ VCR::Result vcr_stop_record()
     std::unique_lock lock(vcr_mutex, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        printf("[VCR] vcr_stop_record busy!\n");
+        g_core_logger->info("[VCR] vcr_stop_record busy!");
         return VCR::Result::Busy;
     }
 
@@ -1047,7 +1047,7 @@ VCR::Result vcr_stop_record()
     if (g_task == e_task::start_recording_from_reset)
     {
         g_task = e_task::idle;
-        printf("[VCR] Removing files (nothing recorded)\n");
+        g_core_logger->info("[VCR] Removing files (nothing recorded)");
         _unlink(std::filesystem::path(g_movie_path).replace_extension(".m64").string().c_str());
         _unlink(std::filesystem::path(g_movie_path).replace_extension(".st").string().c_str());
     }
@@ -1058,7 +1058,7 @@ VCR::Result vcr_stop_record()
 
         g_task = e_task::idle;
 
-        printf("[VCR] Recording stopped. Recorded %ld input samples\n",
+        g_core_logger->info("[VCR] Recording stopped. Recorded %ld input samples",
                g_header.length_samples);
     }
 
@@ -1163,7 +1163,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
     if (g_header.extended_version != 0)
     {
-        printf("[VCR] Movie has extended version %d\n", g_header.extended_version);
+        g_core_logger->info("[VCR] Movie has extended version {}", g_header.extended_version);
 
         if (g_config.wii_vc_emulation != g_header.extended_flags.wii_vc)
         {
@@ -1230,7 +1230,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
     if (g_header.startFlags & MOVIE_START_FROM_SNAPSHOT)
     {
-        printf("[VCR] Loading state...\n");
+        g_core_logger->info("[VCR] Loading state...");
 
         // Load appropriate state for movie
         auto st_path = find_savestate_for_movie(g_movie_path);
@@ -1350,11 +1350,11 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
 
             const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
 
-            std::println("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
+            g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
             g_seek_savestate_loading = true;
             savestates_load_memory(g_seek_savestates[closest_key], [=](auto)
             {
-                std::println("[VCR] Seek savestate at frame {} loaded!", closest_key);
+                g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
                 std::scoped_lock l(vcr_mutex);
                 g_seek_savestate_loading = false;
             });
@@ -1413,7 +1413,7 @@ void VCR::stop_seek()
 
     if (!seek_to_frame.has_value())
     {
-        printf("[VCR] Tried to call stop_seek with no seek operation running\n");
+        g_core_logger->info("[VCR] Tried to call stop_seek with no seek operation running");
         return;
     }
 
@@ -1437,7 +1437,7 @@ VCR::Result vcr_stop_playback()
     std::unique_lock lock(vcr_mutex, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        printf("[VCR] vcr_stop_playback busy!\n");
+        g_core_logger->info("[VCR] vcr_stop_playback busy!");
         return VCR::Result::Busy;
     }
 
@@ -1465,7 +1465,7 @@ bool task_is_recording(e_task task)
 
 VCR::Result VCR::stop_all()
 {
-    printf("[VCR] Clearing seek savestates...\n");
+    g_core_logger->info("[VCR] Clearing seek savestates...");
 
     auto prev_seek_savestates = g_seek_savestates | std::views::keys;
 
@@ -1623,7 +1623,7 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 
     if (g_warp_modify_first_difference_frame == SIZE_MAX)
     {
-        std::println("[VCR] Warp modify inputs are identical to current input buffer, doing nothing...");
+        g_core_logger->info("[VCR] Warp modify inputs are identical to current input buffer, doing nothing...");
 
         g_warp_modify_status = e_warp_modify_status::warping;
         Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
@@ -1636,7 +1636,7 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 
     if (g_warp_modify_first_difference_frame > m_current_sample)
     {
-        std::println("[VCR] First different frame is in the future (current sample: {}, first differenece: {}), copying inputs with no seek...", m_current_sample, g_warp_modify_first_difference_frame);
+        g_core_logger->info("[VCR] First different frame is in the future (current sample: {}, first differenece: {}), copying inputs with no seek...", m_current_sample, g_warp_modify_first_difference_frame);
 
         g_movie_inputs = inputs;
         g_header.length_samples = g_movie_inputs.size();
@@ -1666,7 +1666,7 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 
     resume_emu();
 
-    std::println("[VCR] Warp modify started at frame {}", m_current_sample);
+    g_core_logger->info("[VCR] Warp modify started at frame {}", m_current_sample);
     Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
     return Result::Ok;
 }

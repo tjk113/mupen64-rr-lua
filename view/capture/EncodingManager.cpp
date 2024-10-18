@@ -219,7 +219,7 @@ namespace EncodingManager
                 {
                     if ((len2 % 4) != 0)
                     {
-                        printf(
+                        g_view_logger->info(
                             "[EncodingManager]: Warning: Possible stereo sound error detected.\n");
                         fprintf(
                             stderr,
@@ -243,7 +243,7 @@ namespace EncodingManager
                 char))
             {
                 FrontendService::show_error("Sound buffer overflow");
-                printf("SOUND BUFFER OVERFLOW\n");
+                g_view_logger->info("SOUND BUFFER OVERFLOW");
                 return;
             }
 #ifdef _DEBUG
@@ -251,8 +251,8 @@ namespace EncodingManager
             {
                 long double pro = (long double)(sound_buf_pos + len) * 100 / (
                     SOUND_BUF_SIZE * sizeof(char));
-                if (pro > 75) printf("---!!!---");
-                printf("sound buffer: %.2f%%\n", pro);
+                if (pro > 75) g_view_logger->info("---!!!---");
+                g_view_logger->info("sound buffer: %.2f%%", pro);
             }
 #endif
             memcpy(sound_buf + sound_buf_pos, (char*)buf, len);
@@ -327,7 +327,7 @@ namespace EncodingManager
         {
             if (!stop_capture())
             {
-                printf("[EncodingManager]: Couldn't start capture because the previous capture couldn't be stopped.\n");
+                g_view_logger->info("[EncodingManager]: Couldn't start capture because the previous capture couldn't be stopped.");
                 return false;
             }
         }
@@ -375,7 +375,7 @@ namespace EncodingManager
 
         Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
-        printf("[EncodingManager]: Starting capture at %d x %d...\n", m_video_width, m_video_height);
+        g_view_logger->info("[EncodingManager]: Starting capture at {} x {}...", m_video_width, m_video_height);
 
         return true;
     }
@@ -402,7 +402,7 @@ namespace EncodingManager
         m_capturing = false;
         Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 
-        printf("[EncodingManager]: Capture finished.\n");
+        g_view_logger->info("[EncodingManager]: Capture finished.");
         return true;
     }
 
@@ -449,7 +449,7 @@ namespace EncodingManager
 
             if (audio_frames == 0)
             {
-                printf("Dropped Frame! a/v: %Lg/%Lg\n", m_video_frame, m_audio_frame);
+                g_view_logger->info("Dropped Frame! a/v: %Lg/%Lg", m_video_frame, m_audio_frame);
             }
             else if (audio_frames > 0)
             {
@@ -476,7 +476,7 @@ namespace EncodingManager
                     stop_capture();
                     return;
                 }
-                printf("Duped Frame! a/v: %Lg/%Lg\n", m_video_frame,
+                g_view_logger->info("Duped Frame! a/v: %Lg/%Lg", m_video_frame,
                        m_audio_frame);
                 m_video_frame += 1.0;
                 audio_frames--;
@@ -541,7 +541,7 @@ namespace EncodingManager
 
             if (desync > 1.0)
             {
-                printf(
+                g_view_logger->info(
                     "[EncodingManager]: Correcting for A/V desynchronization of %+Lf frames\n",
                     desync);
                 int len3 = (int)(m_audio_freq / (long double)
@@ -567,7 +567,7 @@ namespace EncodingManager
             }
             else if (desync <= -10.0)
             {
-                printf(
+                g_view_logger->info(
                     "[EncodingManager]: Waiting from A/V desynchronization of %+Lf frames\n",
                     desync);
             }
@@ -605,7 +605,7 @@ namespace EncodingManager
             assert(false);
             break;
         }
-        printf("[EncodingManager] m_audio_freq: %d\n", m_audio_freq);
+        g_view_logger->info("[EncodingManager] m_audio_freq: {}", m_audio_freq);
     }
 
     void init()

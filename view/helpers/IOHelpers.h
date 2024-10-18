@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 #include <Windows.h>
+#include <shared/services/LoggingService.h>
+#include <view/gui/Main.h>
 
 /**
  * \brief Records the execution time of a scope
@@ -26,7 +28,7 @@ public:
 
     void print_duration()
     {
-        printf("[ScopeTimer] %s took %dms\n", m_name.c_str(), static_cast<int>((std::chrono::high_resolution_clock::now() - m_start_time).count() / 1'000'000));
+        g_view_logger->info("[ScopeTimer] {} took %dms", m_name.c_str(), static_cast<int>((std::chrono::high_resolution_clock::now() - m_start_time).count() / 1'000'000));
     }
 
 private:

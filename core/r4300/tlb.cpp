@@ -450,7 +450,7 @@ void ERET()
     update_count();
     if (core_Status & 0x4)
     {
-        printf("erreur dans ERET\n");
+        g_core_logger->error("erreur dans ERET");
         stop = 1;
     }
     else

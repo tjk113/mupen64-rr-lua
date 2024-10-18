@@ -23,6 +23,7 @@
 #include <wincodec.h>
 #include <thread>
 #include <cassert>
+#include <view/gui/Main.h>
 
 static void set_checkbox_state(const HWND hwnd, const int32_t id,
                                int32_t is_checked)
@@ -212,7 +213,7 @@ static void copy_to_clipboard(void* owner, const std::string& str)
     }
     else
     {
-        printf("Failed to copy\n");
+        g_view_logger->info("Failed to copy");
         CloseClipboard();
     }
 }
@@ -311,7 +312,7 @@ public:
 
         if (!m_init)
         {
-            printf("[COMInitializer] Failed to initialize COM");
+            g_view_logger->info("[COMInitializer] Failed to initialize COM");
         }
     }
 

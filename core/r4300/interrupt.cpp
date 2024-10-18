@@ -72,14 +72,14 @@ void print_queue()
 {
     interrupt_queue* aux;
     //if (Count < 0x7000000) return;
-    printf("------------------ %x\n", (unsigned int)core_Count);
+    g_core_logger->info("------------------ {:#06x}", (unsigned int)core_Count);
     aux = q;
     while (aux != NULL)
     {
-        printf("Count:%x, %x\n", (unsigned int)aux->count, aux->type);
+        g_core_logger->info("Count:{:#06x}, {:#06x}", (unsigned int)aux->count, aux->type);
         aux = aux->next;
     }
-    printf("------------------\n");
+    g_core_logger->info("------------------");
     //getchar();
 }
 
@@ -136,7 +136,7 @@ void add_interrupt_event(int type, unsigned long delay)
 
     if (get_event(type))
     {
-        printf("two events of type %x in queue\n", type);
+        g_core_logger->info("two events of type {:#06x} in queue", type);
         print_queue();
     }
     interrupt_queue* aux = q;
@@ -287,9 +287,9 @@ int save_eventqueue_infos(char* buf)
 {
 #ifdef _DEBUG
 	if (get_event(SI_INT))
-		printf("SI_INT in queue, good\n");
+		g_core_logger->info("SI_INT in queue, good");
 	else
-		printf("SI_INT not found\n");
+		g_core_logger->info("SI_INT not found");
 #endif
     int len = 0;
     interrupt_queue* aux = q;
@@ -372,7 +372,7 @@ void gen_interrupt()
 {
     //auto starttime = std::chrono::high_resolution_clock::now();
     //if (!skip_jump)
-    //printf("interrupt:%x (%x)\n", q->type, Count);
+    //g_core_logger->info("interrupt:{:#06x} ({:#06x})", q->type, Count);
 
     // dyna_stop()��longjmp()���邽�߁A�������O�ŃR���X�g���N�g����ƃf�X�g���N�^���Ă΂�Ȃ�
     if (stop)
@@ -411,7 +411,7 @@ void gen_interrupt()
     switch (q->type)
     {
     case SPECIAL_INT: // does nothing, spammed when Count is close to rolling over
-        //printf("SPECIAL, count: %x\n", q->count);
+        //g_core_logger->info("SPECIAL, count: {:#06x}", q->count);
         if (core_Count > 0x10000000) return;
         remove_interrupt_event();
         add_interrupt_event_count(SPECIAL_INT, 0);
@@ -453,7 +453,7 @@ void gen_interrupt()
             break;
         }
     case COMPARE_INT: // game can set Compare register to some value, and make a timer like that
-        //printf("COMPARE, count: %x\n", q->count);
+        //g_core_logger->info("COMPARE, count: {:#06x}", q->count);
         remove_interrupt_event();
         core_Count += 2;
         add_interrupt_event_count(COMPARE_INT, core_Compare);
@@ -461,14 +461,14 @@ void gen_interrupt()
         break;
 
     case CHECK_INT: //fake interrupt used to trigger exception handler (when interrupt is pending)
-        //printf("CHECK, count: %x\n", q->count);
+        //g_core_logger->info("CHECK, count: {:#06x}", q->count);
         remove_interrupt_event();
         break;
 
     //serial interface, means that PIF copy/write happened (controllers)
     //notice this is spammed a lot during loading
     case SI_INT:
-        //printf("SI, count: %x\n", q->count);
+        //g_core_logger->info("SI, count: {:#06x}", q->count);
         PIF_RAMb[0x3F] = 0x0;
         remove_interrupt_event();
         MI_register.mi_intr_reg |= 0x02;
@@ -477,14 +477,14 @@ void gen_interrupt()
 
     //peripherial interface, dma between cartridge and rdram finished
     case PI_INT:
-        //printf("PI, count: %x\n", q->count);
+        //g_core_logger->info("PI, count: {:#06x}", q->count);
         remove_interrupt_event();
         MI_register.mi_intr_reg |= 0x10;
         pi_register.read_pi_status_reg &= ~3; //PI_STATUS_DMA_BUSY | PI_STATUS_IO_BUSY clear
         break;
 
     case AI_INT:
-        //printf("AI, count: %x\n", q->count);
+        //g_core_logger->info("AI, count: {:#06x}", q->count);
         if (ai_register.ai_status & 0x80000000) // full
         {
             unsigned long ai_event = get_event(AI_INT);
@@ -510,7 +510,7 @@ void gen_interrupt()
         break;
 
     case SP_INT: //related to rsp
-        //printf("SP, count: %x\n", q->count);
+        //g_core_logger->info("SP, count: {:#06x}", q->count);
         remove_interrupt_event();
         sp_register.sp_status_reg |= 0x303;
     //sp_register.signal1 = 1;
@@ -523,7 +523,7 @@ void gen_interrupt()
         break;
 
     case DP_INT:
-        //printf("DP, count: %x\n", q->count);
+        //g_core_logger->info("DP, count: {:#06x}", q->count);
         remove_interrupt_event();
         dpc_register.dpc_status &= ~2;
         dpc_register.dpc_status |= 0x81;
@@ -531,7 +531,7 @@ void gen_interrupt()
         break;
 
     default:
-        //printf("!!!!!!!!!!DEFAULT\n");
+        //g_core_logger->info("!!!!!!!!!!DEFAULT");
         remove_interrupt_event();
         break;
     }

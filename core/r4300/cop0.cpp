@@ -37,7 +37,7 @@ void MFC0()
     switch (PC->f.r.nrd)
     {
     case 1:
-        printf("lecture de Random\n");
+        g_core_logger->error("lecture de Random");
         stop = 1;
     default:
         rrt32 = reg_cop0[PC->f.r.nrd];
@@ -54,7 +54,7 @@ void MTC0()
         core_Index = core_rrt & 0x8000003F;
         if ((core_Index & 0x3F) > 31)
         {
-            printf("il y a plus de 32 TLB\n");
+            g_core_logger->error("il y a plus de 32 TLB");
             stop = 1;
         }
         break;
@@ -133,7 +133,7 @@ void MTC0()
     case 13: // Cause
         if (core_rrt != 0)
         {
-            printf("écriture dans Cause\n");
+            g_core_logger->error("écriture dans Cause");
             stop = 1;
         }
         else
@@ -162,7 +162,7 @@ void MTC0()
         core_TagHi = 0;
         break;
     default:
-        printf("unknown mtc0 write : %d\n", PC->f.r.nrd);
+        g_core_logger->error("unknown mtc0 write : {}\n", PC->f.r.nrd);
         stop = 1;
     }
     PC++;

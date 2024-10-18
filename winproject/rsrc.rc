@@ -122,7 +122,6 @@ BEGIN
     BEGIN
         MENUITEM "Show &RAM start...",          IDM_RAMSTART
         MENUITEM "Show St&atistics...",         IDM_STATS
-        MENUITEM "Show &Debug Console...",      IDM_CONSOLE
         MENUITEM "Start &Trace Logger...",      IDM_TRACELOG
         MENUITEM "&CoreDbg...",                 IDM_COREDBG
         MENUITEM "&Run...",                     IDM_RUNNER

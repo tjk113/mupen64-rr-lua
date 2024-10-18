@@ -1,4 +1,6 @@
 #include <cstdio>
+#include <shared/services/LoggingService.h>
+
 #include "r4300.h"
 #include "exception.h"
 #include "cop1_helpers.h"
@@ -13,7 +15,7 @@ void fail_float(const char* msg)
 {
     char buf[200];
     sprintf(buf, "%s; PC = 0x%lx", msg, interpcore ? interp_addr : PC->addr);
-    printf("%s\n", buf);
+    g_core_logger->error("{}\n", buf);
     FrontendService::show_information(buf, "Floating Point Error");
 
     core_Cause = 15 << 2;

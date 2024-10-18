@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <shared/helpers/IOHelpers.h>
 #include <shared/helpers/StlExtensions.h>
+#include <shared/services/LoggingService.h>
 #include <shared/Config.hpp>
 #include <view/helpers/WinHelpers.h>
 #include <view/helpers/IOHelpers.h>
@@ -39,10 +40,10 @@ std::wstring show_persistent_open_dialog(const std::string& id, HWND hwnd,
         std::wstring restored_path = g_config.persistent_folder_paths.contains(id)
                                          ? g_config.persistent_folder_paths[id]
                                          : get_desktop_path();
-        printf("Open dialog %s restored %ls\n", id.c_str(), restored_path.c_str());
+        g_view_logger->info("Open dialog {} restored {}\n", id.c_str(), wstring_to_string(restored_path));
         if (SHCreateItemFromParsingName(restored_path.c_str(), nullptr,
                                         IID_PPV_ARGS(&shlPtr)) != S_OK)
-            printf(
+            g_view_logger->info(
                 "Unable to create IShellItem from parsing lastPath name");
     }
     FAILSAFE(pFileDialog->SetFolder(shlPtr));
@@ -92,10 +93,10 @@ std::wstring show_persistent_save_dialog(const std::string& id, HWND hwnd,
         std::wstring restored_path = g_config.persistent_folder_paths.contains(id)
                                          ? g_config.persistent_folder_paths[id]
                                          : get_desktop_path();
-        printf("Save dialog %s restored %ls\n", id.c_str(), restored_path.c_str());
+        g_view_logger->info("Save dialog {} restored %ls\n", id.c_str(), wstring_to_string(restored_path));
         if (SHCreateItemFromParsingName(restored_path.c_str(), nullptr,
                                         IID_PPV_ARGS(&shlPtr)) != S_OK)
-            printf(
+            g_view_logger->info(
                 "Unable to create IShellItem from parsing lastPath name");
     }
 
@@ -139,7 +140,7 @@ std::wstring show_persistent_folder_dialog(const std::string& id, HWND hwnd)
 
         PIDLIST_ABSOLUTE pidl;
 
-        printf("Folder dialog %s restored %ls\n", id.c_str(), restored_path.c_str());
+        g_view_logger->info("Folder dialog {} restored %ls\n", id.c_str(), wstring_to_string(restored_path));
         HRESULT hresult = SHParseDisplayName(
             restored_path.c_str(), nullptr, &pidl, SFGAO_FOLDER, nullptr);
         if (SUCCEEDED(hresult))

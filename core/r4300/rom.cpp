@@ -55,22 +55,22 @@ t_rom_header ROM_HEADER;
 
 void print_rom_info()
 {
-    printf("--- Rom Info ---\n");
-    printf("%x %x %x %x\n", ROM_HEADER.init_PI_BSB_DOM1_LAT_REG,
+    g_core_logger->info("--- Rom Info ---");
+    g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x}", ROM_HEADER.init_PI_BSB_DOM1_LAT_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PGS_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PWD_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PGS_REG2);
-    printf("Clock rate: %x\n", sl((unsigned int)ROM_HEADER.ClockRate));
-    printf("Version: %x\n", sl((unsigned int)ROM_HEADER.Release));
-    printf("CRC: %x %x\n", sl((unsigned int)ROM_HEADER.CRC1), sl((unsigned int)ROM_HEADER.CRC2));
-    printf("Name: %s\n", (char*)ROM_HEADER.nom);
-    if (sl(ROM_HEADER.Manufacturer_ID) == 'N') printf("Manufacturer: Nintendo\n");
-    else printf("Manufacturer: %x\n", (unsigned int)(ROM_HEADER.Manufacturer_ID));
-    printf("Cartridge ID: %x\n", ROM_HEADER.Cartridge_ID);
-    printf("Size: %d\n", rom_size);
-    printf("PC: %x\n", sl((unsigned int)ROM_HEADER.PC));
-    printf("Country: %s", country_code_to_country_name(ROM_HEADER.Country_code).c_str());
-    printf("----------------\n");
+    g_core_logger->info("Clock rate: {:#06x}", sl((unsigned int)ROM_HEADER.ClockRate));
+    g_core_logger->info("Version: {:#06x}", sl((unsigned int)ROM_HEADER.Release));
+    g_core_logger->info("CRC: {:#06x} {:#06x}", sl((unsigned int)ROM_HEADER.CRC1), sl((unsigned int)ROM_HEADER.CRC2));
+    g_core_logger->info("Name: {}", (char*)ROM_HEADER.nom);
+    if (sl(ROM_HEADER.Manufacturer_ID) == 'N') g_core_logger->info("Manufacturer: Nintendo");
+    else g_core_logger->info("Manufacturer: {:#06x}", (unsigned int)(ROM_HEADER.Manufacturer_ID));
+    g_core_logger->info("Cartridge ID: {:#06x}", ROM_HEADER.Cartridge_ID);
+    g_core_logger->info("Size: {}", rom_size);
+    g_core_logger->info("PC: {:#06x}\n", sl((unsigned int)ROM_HEADER.PC));
+    g_core_logger->info("Country: {}", country_code_to_country_name(ROM_HEADER.Country_code).c_str());
+    g_core_logger->info("----------------");
 }
 
 std::string country_code_to_country_name(uint16_t country_code)
@@ -170,7 +170,7 @@ bool rom_load(std::filesystem::path path)
 
     if (rom_cache.contains(path))
     {
-        printf("[Core] Loading cached ROM...\n");
+        g_core_logger->info("[Core] Loading cached ROM...");
         rom = (unsigned char*)malloc(rom_cache[path].second);
         memcpy(rom, rom_cache[path].first, rom_cache[path].second);
         return true;
@@ -220,11 +220,11 @@ bool rom_load(std::filesystem::path path)
 
     )
     {
-        printf("wrong file format !\n");
+        g_core_logger->info("wrong file format !");
         return false;
     }
 
-    printf("rom loaded succesfully\n");
+    g_core_logger->info("rom loaded succesfully");
 
     memcpy(&ROM_HEADER, rom, sizeof(t_rom_header));
     ROM_HEADER.unknown = 0;
@@ -253,7 +253,7 @@ bool rom_load(std::filesystem::path path)
 
     if (rom_cache.size() < g_config.rom_cache_size)
     {
-        printf("[Core] Putting ROM in cache... (%d/%d full)\n", rom_cache.size(), g_config.rom_cache_size);
+        g_core_logger->info("[Core] Putting ROM in cache... ({}/{} full)\n", rom_cache.size(), g_config.rom_cache_size);
         auto data = (uint8_t*)malloc(taille);
         memcpy(data, rom, taille);
         rom_cache[path] = std::make_pair(data, taille);

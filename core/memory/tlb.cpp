@@ -59,7 +59,7 @@ unsigned long virtual_to_physical_address(unsigned long addresse, int w)
         if (tlb_LUT_r[addresse >> 12])
             return (tlb_LUT_r[addresse >> 12] & 0xFFFFF000) | (addresse & 0xFFF);
     }
-    //printf("tlb exception !!! @ %x, %x, add:%x\n", addresse, w, interp_addr);
+    //g_core_logger->warn("tlb exception !!! @ {:#06x}, {:#06x}, add:{:#06x}", addresse, w, interp_addr);
     //getchar();
     TLB_refill_exception(addresse, w);
     //return 0x80000000;
@@ -115,14 +115,14 @@ unsigned long virtual_to_physical_address(unsigned long addresse, int w)
             }
           else
             {
-           printf("tlb refill inconnu\n");
+           g_core_logger->warn("tlb refill inconnu");
            TLB_refill_exception(addresse,w);
             }
        }
       }
     BadVAddr = addresse;
     TLB_refill_exception(addresse,w);
-    //printf("TLB refill exception\n");
+    //g_core_logger->warn("TLB refill exception");
     return 0x80000000;*/
 }
 

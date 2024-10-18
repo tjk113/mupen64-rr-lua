@@ -60,7 +60,7 @@ void refresh_stat() {
 		unsigned int end =
 			((tv.tv_sec % 1000000) * 1000) + (tv.tv_usec / 1000);
 		time_in_section[0] = end - last_start[0];
-		printf("gfx=%f%% - audio=%f%% - compiler=%f%%, idle=%f%%\r",
+		g_core_logger->info("gfx=%f%% - audio=%f%% - compiler=%f%%, idle=%f%%",
 			100.0f * (float)time_in_section[1] / (float)time_in_section[0],
 			100.0f * (float)time_in_section[2] / (float)time_in_section[0],
 			100.0f * (float)time_in_section[3] / (float)time_in_section[0],

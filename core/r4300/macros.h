@@ -74,7 +74,7 @@
 #define check_PC \
 if (PC->addr == actual->fin) \
 { \
-printf("changement de block\n"); \
+g_core_logger->error("changement de block"); \
 stop=1; \
 }
 

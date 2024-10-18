@@ -130,7 +130,7 @@ void flashram_command(unsigned long command)
         case STATUS_MODE:
             break;
         default:
-            printf("unknown flashram command with mode:%x\n", (int)mode);
+            g_core_logger->warn("unknown flashram command with mode:{:#06x}", (int)mode);
             stop = 1;
         }
         mode = NOPES_MODE;
@@ -144,7 +144,7 @@ void flashram_command(unsigned long command)
         status = 0x11118004f0000000LL;
         break;
     default:
-        printf("unknown flashram command:%x\n", (int)command);
+        g_core_logger->warn("unknown flashram command:{:#06x}", (int)command);
     //stop=1;
     }
 }
@@ -170,7 +170,7 @@ void dma_read_flashram()
             break;
         }
     default:
-        printf("unknown dma_read_flashram:%x\n", mode);
+        g_core_logger->warn("unknown dma_read_flashram:{:#06x}", mode);
         stop = 1;
     }
 }
@@ -183,7 +183,7 @@ void dma_write_flashram()
         write_pointer = pi_register.pi_dram_addr_reg;
         break;
     default:
-        printf("unknown dma_read_flashram:%x\n", mode);
+        g_core_logger->warn("unknown dma_read_flashram:{:#06x}", mode);
         stop = 1;
     }
 }

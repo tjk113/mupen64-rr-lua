@@ -58,7 +58,7 @@ int at_panic(lua_State* L)
 {
     const auto message = lua_tostring(L, -1);
 
-    printf("Lua panic: %s\n", message);
+    g_view_logger->info("Lua panic: {}", message);
     FrontendService::show_error(message, "Lua");
 
     return 0;
@@ -235,14 +235,14 @@ void lua_create_and_run(const char* path)
 {
     assert(is_on_gui_thread());
 
-    printf("Creating lua window...\n");
+    g_view_logger->info("Creating lua window...");
     auto hwnd = lua_create();
 
-    printf("Setting path...\n");
+    g_view_logger->info("Setting path...");
     // set the textbox content to match the path
     SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
 
-    printf("Simulating run button click...\n");
+    g_view_logger->info("Simulating run button click...");
     // click run button
     SendMessage(hwnd, WM_COMMAND,
                 MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
@@ -678,7 +678,7 @@ void LuaEnvironment::create_renderer()
         return;
     }
 
-    printf("Creating multi-target renderer for Lua...\n");
+    g_view_logger->info("Creating multi-target renderer for Lua...");
 
     RECT window_rect;
     GetClientRect(g_main_hwnd, &window_rect);
@@ -692,7 +692,7 @@ void LuaEnvironment::create_renderer()
 
     // NOTE: We don't want negative or zero size on any axis, as that messes up comp surface creation
     dc_size = {(UINT32)max(1, window_rect.right), (UINT32)max(1, window_rect.bottom)};
-    printf("Lua dc size: %d %d\n", dc_size.width, dc_size.height);
+    g_view_logger->info("Lua dc size: {} {}", dc_size.width, dc_size.height);
 
     d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, D2D_OVERLAY_CLASS, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
                                       g_app_instance, nullptr);
@@ -725,7 +725,7 @@ void LuaEnvironment::create_renderer()
     d2d_render_target_stack.push(presenter->dc());
     dw_text_layouts = MicroLRU::Cache<uint64_t, IDWriteTextLayout*>(128, [&](auto value)
     {
-        // printf("[Lua] Evicting text layout..\n");
+        // g_view_logger->info("[Lua] Evicting text layout..");
         value->Release();
     });
 
@@ -753,7 +753,7 @@ void LuaEnvironment::destroy_renderer()
         return;
     }
 
-    printf("Destroying Lua renderer...\n");
+    g_view_logger->info("Destroying Lua renderer...");
 
     dw_text_layouts.clear();
 
@@ -847,7 +847,7 @@ LuaEnvironment::~LuaEnvironment()
     L = NULL;
     SetButtonState(hwnd, false);
     this->destroy_renderer();
-    printf("Lua destroyed\n");
+    g_view_logger->info("Lua destroyed");
 }
 
 //calls all functions that lua script has defined as callbacks, reads them from registry
@@ -873,7 +873,7 @@ bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> fu
         {\
             const char* str = lua_tostring(L, -1);
             this->print(std::string(str) + "\r\n");
-            printf("Lua error: %s\n", str);
+            g_view_logger->info("Lua error: {}", str);
             return true;
         }
     }

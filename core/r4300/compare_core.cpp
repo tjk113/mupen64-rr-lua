@@ -45,27 +45,27 @@ void display_error(const char* txt)
 {
     int i;
     unsigned long* comp_reg2 = (unsigned long*)comp_reg;
-    printf("err: %s\n", txt);
+    g_core_logger->error("err: {}", txt);
     if (interpcore)
     {
-        printf("addr:%x\n", (int)interp_addr);
-        if (!strcmp(txt, "PC")) printf("%x - %x\n", (int)interp_addr, *(int*)&comp_reg[0]);
+        g_core_logger->info("addr:{:#06x}", (int)interp_addr);
+        if (!strcmp(txt, "PC")) g_core_logger->info("{:#06x} - {:#06x}", (int)interp_addr, *(int*)&comp_reg[0]);
     }
     else
     {
-        printf("addr:%x\n", (int)PC->addr);
-        if (!strcmp(txt, "PC")) printf("%x - %x\n", (int)PC->addr, *(int*)&comp_reg[0]);
+        g_core_logger->info("addr:{:#06x}", (int)PC->addr);
+        if (!strcmp(txt, "PC")) g_core_logger->info("{:#06x} - {:#06x}", (int)PC->addr, *(int*)&comp_reg[0]);
     }
-    printf("%x, %x\n", (unsigned int)reg_cop0[9], (unsigned int)comp_reg2[9]);
-    printf("erreur @:%x\n", (int)old_op);
-    printf("erreur @:%x\n", (int)vr_op);
+    g_core_logger->info("{:#06x}, {:#06x}", (unsigned int)reg_cop0[9], (unsigned int)comp_reg2[9]);
+    g_core_logger->info("erreur @:{:#06x}", (int)old_op);
+    g_core_logger->info("erreur @:{:#06x}", (int)vr_op);
 
     if (!strcmp(txt, "gpr"))
     {
         for (i = 0; i < 32; i++)
         {
             if (reg[i] != comp_reg[i])
-                printf("reg[%d]=%llx != reg[%d]=%llx\n",
+                g_core_logger->info("reg[{}]=%llx != reg[{}]=%llx",
                        i, reg[i], i, comp_reg[i]);
         }
     }
@@ -74,14 +74,14 @@ void display_error(const char* txt)
         for (i = 0; i < 32; i++)
         {
             if (reg_cop0[i] != comp_reg2[i])
-                printf("reg_cop0[%d]=%x != reg_cop0[%d]=%x\n",
+                g_core_logger->info("reg_cop0[{}]={:#06x} != reg_cop0[{}]={:#06x}",
                        i, (unsigned int)reg_cop0[i], i, (unsigned int)comp_reg2[i]);
         }
     }
     /*for (i=0; i<32; i++)
       {
      if (reg_cop0[i] != comp_reg[i])
-       printf("reg_cop0[%d]=%llx != reg[%d]=%llx\n",
+       g_core_logger->info("reg_cop0[{}]=%llx != reg[{}]=%llx",
           i, reg_cop0[i], i, comp_reg[i]);
       }*/
 
@@ -186,7 +186,7 @@ void compare_core()
     }
     else
     {
-        //if (reg_cop0[9] > 0x6800000) printf("PC=%x\n", (int)PC->addr);
+        //if (reg_cop0[9] > 0x6800000) g_core_logger->info("PC={:#06x}", (int)PC->addr);
         if (pipe_opened != 2)
         {
             if (f) fclose(f);

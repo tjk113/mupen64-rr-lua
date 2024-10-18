@@ -38,7 +38,7 @@ bool AVIEncoder::start(Params params)
     {
         if (!AVISaveOptions(g_main_hwnd, 0, 1, &m_video_stream, &m_avi_options))
         {
-            printf("[AVIEncoder] Failed to save options\n");
+            g_view_logger->info("[AVIEncoder] Failed to save options");
             return false;
         }
     }
@@ -46,7 +46,7 @@ bool AVIEncoder::start(Params params)
     {
         if (!load_options())
         {
-            printf("[AVIEncoder] Failed to load options\n");
+            g_view_logger->info("[AVIEncoder] Failed to load options");
             return false;
         }
     }

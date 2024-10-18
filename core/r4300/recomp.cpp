@@ -2188,7 +2188,7 @@ void init_block(long* source, precomp_block* block)
     int i, length, already_exist = 1;
     static int init_length;
     start_section(COMPILER_SECTION);
-    //printf("init block recompiled %x\n", (int)block->start);
+    //g_core_logger->info("init block recompiled {:#06x}\n", (int)block->start);
 
     length = (block->end - block->start) / 4;
 
@@ -2427,7 +2427,7 @@ void recompile_block(long* source, precomp_block* block, unsigned long func)
         block->max_code_length = max_code_length;
         free_assembler(&block->jumps_table, &block->jumps_number);
     }
-    //printf("block recompiled (%x-%x)\n", (int)func, (int)(block->start+i*4));
+    //g_core_logger->info("block recompiled ({:#06x}-%x)\n", (int)func, (int)(block->start+i*4));
     //getchar();
     end_section(COMPILER_SECTION);
 }

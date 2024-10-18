@@ -4,6 +4,7 @@
 #include <span>
 #include <vector>
 #include <libdeflate.h>
+#include <shared/services/LoggingService.h>
 
 /**
  * \brief Writes data to a vector at its tail end based on its size, expanding it as needed
@@ -77,7 +78,7 @@ static std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
     if (vec.size() < 2 || vec[0] != 0x1F && vec[1] != 0x8B)
     {
         // vec is decompressed already
-        printf("Already decompressed\n");
+        g_shared_logger->info("Already decompressed");
         // we need a copy, not ref
         std::vector<uint8_t> out_vec = vec;
         return out_vec;
@@ -97,7 +98,7 @@ static std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
         if (result == LIBDEFLATE_SHORT_OUTPUT || result ==
             LIBDEFLATE_INSUFFICIENT_SPACE)
         {
-            printf("Buffer size of %d insufficient...\n", buf_size);
+            g_shared_logger->info("Buffer size of {} insufficient...", buf_size);
             buf_size *= 2;
             continue;
         }
@@ -106,7 +107,7 @@ static std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec,
     }
     libdeflate_free_decompressor(decompressor);
 
-    printf("Found size %d...\n", buf_size);
+    g_shared_logger->info("Found size {}...", buf_size);
     out_buf = static_cast<uint8_t*>(realloc(out_buf, buf_size));
     std::vector<uint8_t> out_vec;
     out_vec.resize(buf_size);

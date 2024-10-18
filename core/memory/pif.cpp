@@ -58,7 +58,7 @@ void check_input_sync(unsigned char* value);
 void print_pif() {
 	int i;
 	for (i = 0; i < (64 / 8); i++)
-		printf("%x %x %x %x | %x %x %x %x\n",
+		g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
 			PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
 			PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
 	//getchar();
@@ -108,7 +108,7 @@ void EepromCommand(uint8_t* Command)
         }
         break;
     default:
-        printf("unknown command in EepromCommand : %x\n", Command[2]);
+        g_core_logger->warn("unknown command in EepromCommand : {:#06x}", Command[2]);
     }
 }
 
@@ -328,13 +328,13 @@ void update_pif_write()
     int i = 0, channel = 0;
     /*#ifdef DEBUG_PIF
         if (input_delay) {
-            printf("------------- write -------------\n");
+            g_core_logger->info("------------- write -------------");
         }
         else {
-            printf("---------- before write ---------\n");
+            g_core_logger->info("---------- before write ---------");
         }
         print_pif();
-        printf("---------------------------------\n");
+        g_core_logger->info("---------------------------------");
     #endif*/
     if (PIF_RAMb[0x3F] > 1)
     {
@@ -349,9 +349,9 @@ void update_pif_write()
                     return;
                 }
             }
-            printf("unknown pif2 code:\n");
+            g_core_logger->info("unknown pif2 code:");
             for (i = (64 - 2 * 8) / 8; i < (64 / 8); i++)
-                printf("%x %x %x %x | %x %x %x %x\n",
+                g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
                        PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
                        PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
             break;
@@ -359,7 +359,7 @@ void update_pif_write()
             PIF_RAMb[0x3F] = 0;
             break;
         default:
-            printf("error in update_pif_write : %x\n", PIF_RAMb[0x3F]);
+            g_core_logger->info("error in update_pif_write : {:#06x}", PIF_RAMb[0x3F]);
         }
         return;
     }
@@ -387,7 +387,7 @@ void update_pif_write()
                 else if (channel == 4)
                     EepromCommand(&PIF_RAMb[i]);
                 else
-                    printf("channel >= 4 in update_pif_write\n");
+                    g_core_logger->info("channel >= 4 in update_pif_write");
                 i += PIF_RAMb[i] + (PIF_RAMb[(i + 1)] & 0x3F) + 1;
                 channel++;
             }
@@ -400,11 +400,11 @@ void update_pif_write()
     controllerCommand(-1, NULL);
     /*#ifdef DEBUG_PIF
         if (!one_frame_delay) {
-            printf("---------- after write ----------\n");
+            g_core_logger->info("---------- after write ----------");
         }
         print_pif();
         if (!one_frame_delay) {
-            printf("---------------------------------\n");
+            g_core_logger->info("---------------------------------");
         }
     #endif*/
 }
@@ -412,14 +412,14 @@ void update_pif_write()
 
 void update_pif_read(bool stcheck)
 {
-    //printf("pif entry\n");
+    //g_core_logger->info("pif entry");
     int i = 0, channel = 0;
     bool once = emu_paused | frame_advancing; //used to pause only once during controller routine
     bool stAllowed = true; //used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
-	printf("---------- before read ----------\n");
+	g_core_logger->info("---------- before read ----------");
 	print_pif();
-	printf("---------------------------------\n");
+	g_core_logger->info("---------------------------------");
 #endif
     while (i < 0x40)
     {
@@ -490,7 +490,7 @@ void update_pif_read(bool stcheck)
                     if (old_st)
                     {
                         //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
-                        printf("old st detected\n");
+                        g_core_logger->info("old st detected");
                         old_st = false;
                         return;
                     }
@@ -522,9 +522,9 @@ void update_pif_read(bool stcheck)
     readController(-1, NULL);
 
 #ifdef DEBUG_PIF
-	printf("---------- after read -----------\n");
+	g_core_logger->info("---------- after read -----------");
 	print_pif();
-	printf("---------------------------------\n");
+	g_core_logger->info("---------------------------------");
 #endif
-    //printf("pif exit\n");
+    //g_core_logger->info("pif exit");
 }

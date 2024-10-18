@@ -443,14 +443,13 @@ std::optional<std::unique_ptr<Plugin>> Plugin::create(
     plugin->m_version = plugin_info.Version;
     plugin->m_module = module;
 
-    printf("[Plugin] Created plugin %s\n", plugin->m_name.c_str());
+    g_core_logger->info("[Plugin] Created plugin {}", plugin->m_name);
     return plugin;
 }
 
 Plugin::~Plugin()
 {
     FreeLibrary((HMODULE)m_module);
-    printf("[Plugin] Destroyed plugin %s\n", m_name.c_str());
 }
 
 void Plugin::config()

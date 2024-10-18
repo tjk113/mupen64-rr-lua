@@ -5,6 +5,7 @@
 #include <thread>
 #include <condition_variable>
 #include <atomic>
+#include <shared/services/LoggingService.h>
 
 #include "Config.hpp"
 
@@ -73,7 +74,7 @@ void AsyncExecutor::invoke_async(const std::function<void()>& func, size_t key)
             {
                 if (task_key == key)
                 {
-                    printf("[AsyncExecutor] Function with key %u already exists in the queue.\n", key);
+                    g_shared_logger->info("[AsyncExecutor] Function with key %u already exists in the queue.", key);
                     return;
                 }
             }

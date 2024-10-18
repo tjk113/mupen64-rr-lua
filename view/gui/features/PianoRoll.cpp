@@ -139,7 +139,7 @@ namespace PianoRoll
 
             g_piano_roll_state.inputs = VCR::get_inputs();
             ListView_SetItemCount(g_lv_hwnd, g_piano_roll_state.inputs.size());
-            std::println("[PianoRoll] Pulled inputs from core for playback mode, count: {}", g_piano_roll_state.inputs.size());
+            g_view_logger->info("[PianoRoll] Pulled inputs from core for playback mode, count: {}", g_piano_roll_state.inputs.size());
 
             SetWindowRedraw(g_lv_hwnd, true);
         }
@@ -290,13 +290,13 @@ namespace PianoRoll
      */
     void print_clipboard_dump()
     {
-        std::println("[PianoRoll] ------------- Dump Begin -------------");
-        std::println("[PianoRoll] Clipboard of length {}", g_clipboard.size());
+        g_view_logger->info("[PianoRoll] ------------- Dump Begin -------------");
+        g_view_logger->info("[PianoRoll] Clipboard of length {}", g_clipboard.size());
         for (auto item : g_clipboard)
         {
-            item.has_value() ? std::println("[PianoRoll] {:#06x}", item.value().Value) : std::println("[PianoRoll] ------");
+            item.has_value() ? g_view_logger->info("[PianoRoll] {:#06x}", item.value().Value) : g_view_logger->info("[PianoRoll] ------");
         }
-        std::println("[PianoRoll] ------------- Dump End -------------");
+        g_view_logger->info("[PianoRoll] ------------- Dump End -------------");
     }
 
     /**
@@ -373,7 +373,7 @@ namespace PianoRoll
     */
     void push_state_to_history()
     {
-        std::println("[PianoRoll] Pushing state to undo stack...");
+        g_view_logger->info("[PianoRoll] Pushing state to undo stack...");
 
         if (g_piano_roll_history.size() > g_config.piano_roll_undo_stack_size)
         {
@@ -383,7 +383,7 @@ namespace PianoRoll
         g_piano_roll_history.push_back(g_piano_roll_state);
         g_piano_roll_state_index = min(g_piano_roll_state_index + 1, g_piano_roll_history.size() - 1);
 
-        std::println("[PianoRoll] Undo stack size: {}. Current index: {}.", g_piano_roll_history.size(), g_piano_roll_state_index);
+        g_view_logger->info("[PianoRoll] Undo stack size: {}. Current index: {}.", g_piano_roll_history.size(), g_piano_roll_state_index);
         update_history_listbox();
     }
 
@@ -414,7 +414,7 @@ namespace PianoRoll
 
                 g_piano_roll_state.inputs = VCR::get_inputs();
                 ListView_SetItemCount(g_lv_hwnd, g_piano_roll_state.inputs.size());
-                std::println("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_piano_roll_state.inputs.size());
+                g_view_logger->info("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_piano_roll_state.inputs.size());
 
                 SetWindowRedraw(g_lv_hwnd, true);
 
@@ -501,7 +501,7 @@ namespace PianoRoll
             }
         }
 
-        std::println("[PianoRoll] Clipboard/selection gaps: {}, {}", clipboard_has_gaps, selection_has_gaps);
+        g_view_logger->info("[PianoRoll] Clipboard/selection gaps: {}, {}", clipboard_has_gaps, selection_has_gaps);
 
         SetWindowRedraw(g_lv_hwnd, false);
 
@@ -658,7 +658,7 @@ namespace PianoRoll
 
             if (value != previous_value)
             {
-                std::println("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
+                g_view_logger->info("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
                 update_inputs();
             }
 
@@ -988,7 +988,7 @@ namespace PianoRoll
 
                 if (lplvhtti.iItem < 0 || lplvhtti.iItem >= g_piano_roll_state.inputs.size())
                 {
-                    printf("[PianoRoll] iItem out of range\n");
+                    g_view_logger->info("[PianoRoll] iItem out of range");
                     goto def;
                 }
 
@@ -1123,7 +1123,7 @@ namespace PianoRoll
 
         if (lplvhtti.iItem < 0 || lplvhtti.iItem >= g_piano_roll_state.inputs.size())
         {
-            printf("[PianoRoll] iItem out of range\n");
+            g_view_logger->info("[PianoRoll] iItem out of range");
             goto def;
         }
 
@@ -1334,7 +1334,7 @@ namespace PianoRoll
 
                         if (plvdi->item.iItem < 0 || plvdi->item.iItem >= g_piano_roll_state.inputs.size())
                         {
-                            printf("[PianoRoll] iItem out of range\n");
+                            g_view_logger->info("[PianoRoll] iItem out of range");
                             break;
                         }
 
@@ -1435,7 +1435,7 @@ namespace PianoRoll
 
             DialogBox(g_app_instance, MAKEINTRESOURCE(IDD_PIANO_ROLL), 0, (DLGPROC)dialog_proc);
 
-            std::println("[PianoRoll] Unsubscribing from {} messages...", unsubscribe_funcs.size());
+            g_view_logger->info("[PianoRoll] Unsubscribing from {} messages...", unsubscribe_funcs.size());
             for (auto unsubscribe_func : unsubscribe_funcs)
             {
                 unsubscribe_func();

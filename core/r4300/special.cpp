@@ -200,7 +200,7 @@ void DIV()
         sign_extended(lo);
         sign_extended(hi);
     }
-    else printf("div\n");
+    else g_core_logger->info("div");
     PC++;
 }
 
@@ -213,7 +213,7 @@ void DIVU()
         sign_extended(lo);
         sign_extended(hi);
     }
-    else printf("divu\n");
+    else g_core_logger->info("divu");
     PC++;
 }
 
@@ -297,7 +297,7 @@ void DDIV()
         lo = (long long int)core_rrs / (long long int)core_rrt;
         hi = (long long int)core_rrs % (long long int)core_rrt;
     }
-    //   else printf("ddiv\n");
+    //   else g_core_logger->info("ddiv");
     PC++;
 }
 
@@ -308,7 +308,7 @@ void DDIVU()
         lo = (unsigned long long int)core_rrs / (unsigned long long int)core_rrt;
         hi = (unsigned long long int)core_rrs % (unsigned long long int)core_rrt;
     }
-    //   else printf("ddivu\n");
+    //   else g_core_logger->info("ddivu");
     PC++;
 }
 
@@ -410,7 +410,7 @@ void TEQ()
 {
     if (core_rrs == core_rrt)
     {
-        printf("trap exception in teq\n");
+        g_core_logger->info("trap exception in teq");
         stop = 1;
     }
     PC++;

@@ -48,7 +48,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
     {
         if (line[0] == '$' || line[0] == '-' || line.size() < 13)
         {
-            printf("[GS] Line skipped\n");
+            g_core_logger->info("[GS] Line skipped");
             continue;
         }
 
@@ -67,7 +67,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 
         if (serial)
         {
-            printf("[GS] Compiling %u serial byte writes...\n", serial_count);
+            g_core_logger->info("[GS] Compiling %u serial byte writes...", serial_count);
 
             for (size_t i = 0; i < serial_count; ++i)
             {
@@ -168,7 +168,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
         }
         else
         {
-            printf("[GS] Illegal instruction %s\n", opcode.c_str());
+            g_core_logger->error("[GS] Illegal instruction {}\n", opcode.c_str());
             return std::nullopt;
         }
     }

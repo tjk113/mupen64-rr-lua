@@ -4,6 +4,7 @@
 #include <atomic>
 #include <print>
 #include <thread>
+#include <shared/services/LoggingService.h>
 
 namespace Messenger
 {
@@ -40,7 +41,7 @@ namespace Messenger
     {
         while (g_broadcasting != 0)
         {
-            std::println("[Messenger] Waiting for broadcast end...");
+            g_shared_logger->info("[Messenger] Waiting for broadcast end...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
@@ -49,7 +50,7 @@ namespace Messenger
     {
         while (g_subscribing != 0)
         {
-            std::println("[Messenger] Waiting for subscribe end...");
+            g_shared_logger->info("[Messenger] Waiting for subscribe end...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }

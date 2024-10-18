@@ -2,6 +2,8 @@
 
 #include <assert.h>
 #include <shared/Config.hpp>
+#include <shared/services/LoggingService.h>
+#include <view/gui/Main.h>
 
 #include "shared/services/FrontendService.h"
 
@@ -79,7 +81,7 @@ bool FFmpegEncoder::start(Params params)
     )
     {
         FrontendService::show_error(std::format("Could not start ffmpeg process! Does ffmpeg exist on disk at '{}'?", g_config.ffmpeg_path).c_str());
-        printf("CreateProcess failed (%d).\n", GetLastError());
+        g_view_logger->info("CreateProcess failed ({}).", GetLastError());
         CloseHandle(m_video_pipe);
         CloseHandle(m_audio_pipe);
         return false;
@@ -172,7 +174,7 @@ void FFmpegEncoder::write_audio_thread()
             }
             else
             {
-                printf(">>>>>>>>>>>>>>>writing audio fail, queue size: %d\n", this->m_audio_queue.size());
+                g_view_logger->info(">>>>>>>>>>>>>>>writing audio fail, queue size: {}\n", this->m_audio_queue.size());
             }
         }
         else
@@ -181,7 +183,7 @@ void FFmpegEncoder::write_audio_thread()
         }
     }
 
-    printf(">>>Remaining audio queue stuff: %d\n", this->m_audio_queue.size());
+    g_view_logger->info(">>>Remaining audio queue stuff: {}\n", this->m_audio_queue.size());
 }
 
 void FFmpegEncoder::write_video_thread()
@@ -215,7 +217,7 @@ void FFmpegEncoder::write_video_thread()
             }
             else
             {
-                printf(">>>>>>>>>>>>>>>writing video fail, queue size: %d\n", this->m_video_queue.size());
+                g_view_logger->info(">>>>>>>>>>>>>>>writing video fail, queue size: {}\n", this->m_video_queue.size());
             }
         }
         else
@@ -224,5 +226,5 @@ void FFmpegEncoder::write_video_thread()
         }
     }
 
-    printf(">>>Remaining video queue stuff: %d\n", this->m_video_queue.size());
+    g_view_logger->info(">>>Remaining video queue stuff: {}\n", this->m_video_queue.size());
 }

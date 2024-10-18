@@ -261,7 +261,7 @@ namespace Rombrowser
         std::unique_lock lock(rombrowser_mutex, std::try_to_lock);
         if (!lock.owns_lock())
         {
-            printf("[Rombrowser] build_impl busy!\n");
+            g_view_logger->info("[Rombrowser] build_impl busy!");
             return;
         }
 
@@ -287,7 +287,7 @@ namespace Rombrowser
 
             if (!f)
             {
-                printf("[Rombrowser] Failed to read file '%s'. Skipping!\n", path.c_str());
+                g_view_logger->info("[Rombrowser] Failed to read file '{}'. Skipping!\n", path.c_str());
                 continue;
             }
 
@@ -325,7 +325,7 @@ namespace Rombrowser
         rombrowser_update_sort();
         SendMessage(rombrowser_hwnd, WM_SETREDRAW, TRUE, 0);
 
-        printf("Rombrowser loading took %dms\n",
+        g_view_logger->info("Rombrowser loading took {}ms",
                static_cast<int>((std::chrono::high_resolution_clock::now() -
                    start_time).count() / 1'000'000));
     }

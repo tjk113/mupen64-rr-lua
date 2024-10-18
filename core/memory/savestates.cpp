@@ -316,7 +316,7 @@ void savestates_save_immediate()
     }
 
     LuaService::call_save_state();
-    printf("Savestate saving took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core_logger->info("Savestate saving took %dms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
 /// <summary>
@@ -542,7 +542,7 @@ void savestates_load_immediate()
         // at this point we know the savestate is safe to be loaded (done after else block)
     }
     {
-        printf("[Savestates] %d bytes remaining\n", decompressed_buf.size() - (ptr - decompressed_buf.data()));
+        g_core_logger->info("[Savestates] {} bytes remaining", decompressed_buf.size() - (ptr - decompressed_buf.data()));
         long video_width = 0;
         long video_height = 0;
         void* video_buffer = nullptr;
@@ -553,7 +553,7 @@ void savestates_load_immediate()
 
             if (!memcmp(scr_section, screen_section, sizeof(screen_section)))
             {
-                printf("[Savestates] Restoring screen buffer...\n");
+                g_core_logger->info("[Savestates] Restoring screen buffer...");
                 memread(&ptr, &video_width, sizeof(video_width));
                 memread(&ptr, &video_height, sizeof(video_height));
 
@@ -602,16 +602,16 @@ failedLoad:
         ignore = true;
     if (!dynacore && interpcore)
     {
-        //printf(".st jump: %x, stopped here:%x\n", interp_addr, last_addr);
+        //g_core_logger->info(".st jump: {:#06x}, stopped here:{:#06x}", interp_addr, last_addr);
         last_addr = interp_addr;
     }
     else
     {
-        //printf(".st jump: %x, stopped here:%x\n", PC->addr, last_addr);
+        //g_core_logger->info(".st jump: {:#06x}, stopped here:{:#06x}", PC->addr, last_addr);
         last_addr = PC->addr;
     }
 
-    printf("Savestate loading took %dms\n", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core_logger->info("Savestate loading took %dms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
 void savestates_save_memory(const std::function<void(const std::vector<uint8_t>&)>& callback)
