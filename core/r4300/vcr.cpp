@@ -747,8 +747,8 @@ void vcr_stop_seek_if_needed()
 
     if (m_current_sample > seek_to_frame.value())
     {
-        // NOTE: If this is reached, there is a bug somewhere (probably race condition)
-        FrontendService::show_warning("Seek frame exceeded without seek having been stopped!\nPlease report this issue along with the steps required to reproduce it.", "VCR");
+        g_core_logger->error("Seek frame exceeded without seek having been stopped. ({}/{})", m_current_sample, seek_to_frame.value());
+        FrontendService::show_error("Seek frame exceeded without seek having been stopped!\nThis incident has been logged, please report this issue along with the log file.", "VCR");
     }
 
     if (m_current_sample >= seek_to_frame.value())
