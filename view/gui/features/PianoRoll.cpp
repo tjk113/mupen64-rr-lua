@@ -1000,8 +1000,8 @@ namespace PianoRoll
                     });
                     return 0;
                 }
-
-                if (!can_modify_inputs())
+                
+                if (!can_modify_inputs() || lplvhtti.iSubItem < 4)
                 {
                     break;
                 }
