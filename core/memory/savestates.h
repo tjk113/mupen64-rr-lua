@@ -52,6 +52,9 @@ extern bool st_skip_dma;
 extern bool old_st;
 extern bool savestates_job_success;
 
+using t_savestate_save_callback = std::function<void(const std::vector<uint8_t>&)>;
+using t_savestate_load_callback = std::function<void(const std::vector<uint8_t>&)>;
+
 /**
  * \brief Gets the path to the save directory
  */
@@ -110,7 +113,7 @@ void savestates_load_immediate();
  * Creates an in-memory savestate and calls the provided callback with the savestate buffer 
  * \param callback A callback that will be called with the savestate's data
  */
-void savestates_save_memory(const std::function<void(const std::vector<uint8_t>&)>& callback);
+void savestates_save_memory(const t_savestate_save_callback& callback);
 
 /**
  * \brief Loads a savestate from an in-memory buffer
@@ -118,7 +121,7 @@ void savestates_save_memory(const std::function<void(const std::vector<uint8_t>&
  * \param callback A callback that will be called with the savestate's data upon the load operation completing
  * \remarks The operation won't complete immediately
  */
-void savestates_load_memory(const std::vector<uint8_t>& buffer, const std::function<void(const std::vector<uint8_t>&)>& callback);
+void savestates_load_memory(const std::vector<uint8_t>& buffer, const t_savestate_load_callback& callback);
 
 /**
  * \brief Executes a savestate operation to a path

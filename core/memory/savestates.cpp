@@ -42,17 +42,21 @@
 #include "../r4300/rom.h"
 #include "../r4300/vcr.h"
 #include <cassert>
+#include <queue>
 
 #include <shared/services/FrontendService.h>
 
 size_t st_slot = 0;
 std::vector<uint8_t> g_st_buf;
-std::function<void(const std::vector<uint8_t>&)> g_st_callback;
 std::filesystem::path st_path;
 
 e_st_job savestates_job = e_st_job::none;
 e_st_medium st_medium = e_st_medium::path;
 bool savestates_job_success = true;
+
+std::mutex g_st_callback_queue_mutex;
+std::queue<t_savestate_load_callback> g_st_save_callbacks;
+std::queue<t_savestate_load_callback> g_st_load_callbacks;
 
 // st that comes from no delay fix mupen, it has some differences compared to new st:
 // - one frame of input is "embedded", that is the pif ram holds already fetched controller info.
@@ -312,7 +316,8 @@ void savestates_save_immediate()
     }
     else
     {
-        g_st_callback(st);
+        g_st_save_callbacks.front()(st);
+        g_st_save_callbacks.pop();
     }
 
     LuaService::call_save_state();
@@ -589,7 +594,8 @@ void savestates_load_immediate()
     }
     if (st_medium == e_st_medium::memory)
     {
-        g_st_callback(decompressed_buf);
+        g_st_load_callbacks.front()(decompressed_buf);
+        g_st_load_callbacks.pop();
     }
 failedLoad:
     extern bool ignore;
@@ -614,13 +620,6 @@ failedLoad:
     g_core_logger->info("Savestate loading took %dms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
-void savestates_save_memory(const std::function<void(const std::vector<uint8_t>&)>& callback)
-{
-    g_st_callback = callback;
-    savestates_job = e_st_job::save;
-    st_medium = e_st_medium::memory;
-}
-
 void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
 {
     st_path = path;
@@ -628,17 +627,40 @@ void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
     st_medium = e_st_medium::path;
 }
 
-void savestates_load_memory(const std::vector<uint8_t>& buffer, const std::function<void(const std::vector<uint8_t>&)>& callback)
-{
-    g_st_callback = callback;
-    g_st_buf = buffer;
-    savestates_job = e_st_job::load;
-    st_medium = e_st_medium::memory;
-}
-
 void savestates_do_slot(const int32_t slot, const e_st_job job)
 {
     savestates_set_slot(slot == -1 ? st_slot : slot);
     savestates_job = job;
     st_medium = e_st_medium::slot;
+}
+
+void savestates_save_memory(const t_savestate_save_callback& callback)
+{
+    std::scoped_lock lock(g_st_callback_queue_mutex);
+
+    if (!g_st_save_callbacks.empty())
+    {
+        g_core_logger->error("Tried to save memory savestate while another one was already queued.");
+        return;
+    }
+    
+    g_st_save_callbacks.push(callback);
+    savestates_job = e_st_job::save;
+    st_medium = e_st_medium::memory;
+}
+
+void savestates_load_memory(const std::vector<uint8_t>& buffer, const t_savestate_load_callback& callback)
+{
+    std::scoped_lock lock(g_st_callback_queue_mutex);
+
+    if (!g_st_load_callbacks.empty())
+    {
+        g_core_logger->error("Tried to load memory savestate while another one was already queued.");
+        return;
+    }
+    
+    g_st_load_callbacks.push(callback);
+    g_st_buf = buffer;
+    savestates_job = e_st_job::load;
+    st_medium = e_st_medium::memory;
 }
