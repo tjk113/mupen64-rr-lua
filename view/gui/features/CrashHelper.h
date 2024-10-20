@@ -7,5 +7,9 @@
 /// </summary>
 namespace CrashHelper
 {
-    std::string generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr);
+    /**
+     * Logs a crash to the view logger.
+     * \param exception_pointers_ptr The exception pointers
+     */
+    void log_crash(_EXCEPTION_POINTERS* exception_pointers_ptr);
 }

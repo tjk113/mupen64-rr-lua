@@ -2,12 +2,10 @@
 
 #include <filesystem>
 #include <shlobj_core.h>
-#include <span>
 #include <string>
 #include <vector>
 #include <Windows.h>
-#include <shared/services/LoggingService.h>
-#include <view/gui/Main.h>
+#include "view/gui/Loggers.h"
 
 /**
  * \brief Records the execution time of a scope

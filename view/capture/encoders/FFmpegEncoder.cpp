@@ -4,6 +4,7 @@
 #include <shared/Config.hpp>
 #include <shared/services/LoggingService.h>
 #include <view/gui/Main.h>
+#include <view/gui/Loggers.h>
 
 #include "shared/services/FrontendService.h"
 

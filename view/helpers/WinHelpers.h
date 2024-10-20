@@ -24,6 +24,7 @@
 #include <thread>
 #include <cassert>
 #include <view/gui/Main.h>
+#include <view/gui/Loggers.h>
 
 static void set_checkbox_state(const HWND hwnd, const int32_t id,
                                int32_t is_checked)

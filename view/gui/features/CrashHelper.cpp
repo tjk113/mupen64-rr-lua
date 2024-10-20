@@ -1,9 +1,10 @@
 #include "CrashHelper.h"
-#include "../Main.h"
 #include <Psapi.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include <shared/Config.hpp>
+#include <view/gui/Main.h>
+#include <view/gui/Loggers.h>
 
 /**
  * \brief Gets additional information about the exception address
@@ -67,24 +68,20 @@ std::string get_exception_code_friendly_name(const _EXCEPTION_POINTERS* exceptio
 }
 
 
-std::string CrashHelper::generate_log(const _EXCEPTION_POINTERS* exception_pointers_ptr)
+void CrashHelper::log_crash(_EXCEPTION_POINTERS* exception_pointers_ptr)
 {
-    std::string str;
-
     SYSTEMTIME time;
     GetSystemTime(&time);
 
-    str += std::string(MUPEN_VERSION) + "\n";
-    str += std::format("{:02}/{:02}/{} {:02}:{:02}:{:02}\n", time.wDay, time.wMonth, time.wYear, time.wHour, time.wMinute, time.wSecond);
-    str += get_metadata_for_exception_address(exception_pointers_ptr->ExceptionRecord->ExceptionAddress) + "\n";
-    str += get_exception_code_friendly_name(exception_pointers_ptr) + "\n";
-    str += "Video: " + g_config.selected_video_plugin + "\n";
-    str += "Audio: " + g_config.selected_audio_plugin + "\n";
-    str += "Input: " + g_config.selected_input_plugin + "\n";
-    str += "RSP: " + g_config.selected_rsp_plugin + "\n";
-    str += "VCR Task: " + std::to_string(static_cast<int>(VCR::get_task())) + "\n";
-    str += "Emu Launched: " + std::to_string(emu_launched) + "\n";
-    str += "------------------------------------\n\n";
-
-    return str;
+    g_view_logger->error("Crash!");
+    g_view_logger->error(MUPEN_VERSION);
+    g_view_logger->error(std::format("{:02}/{:02}/{} {:02}:{:02}:{:02}", time.wDay, time.wMonth, time.wYear, time.wHour, time.wMinute, time.wSecond));
+    g_view_logger->error(get_metadata_for_exception_address(exception_pointers_ptr->ExceptionRecord->ExceptionAddress));
+    g_view_logger->error(get_exception_code_friendly_name(exception_pointers_ptr));
+    g_view_logger->error("Video: {}", g_config.selected_video_plugin);
+    g_view_logger->error("Audio: {}", g_config.selected_audio_plugin);
+    g_view_logger->error("Input: {}", g_config.selected_input_plugin);
+    g_view_logger->error("RSP: {}", g_config.selected_rsp_plugin);
+    g_view_logger->error("VCR Task: {}", static_cast<int>(VCR::get_task()));
+    g_view_logger->error("Emu Launched: {}", emu_launched);
 }

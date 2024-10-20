@@ -46,6 +46,7 @@
 #include <lib/spdlog/sinks/basic_file_sink.h>
 #include <winproject/resource.h>
 #include "Commandline.h"
+#include "Loggers.h"
 #include "features/CoreDbg.h"
 #include "features/CrashHelper.h"
 #include "features/Dispatcher.h"
@@ -79,9 +80,6 @@ HMENU g_recent_lua_menu;
 HINSTANCE g_app_instance;
 std::string g_app_path;
 std::shared_ptr<Dispatcher> g_main_window_dispatcher;
-std::shared_ptr<spdlog::logger> g_core_logger;
-std::shared_ptr<spdlog::logger> g_shared_logger;
-std::shared_ptr<spdlog::logger> g_view_logger;
 
 int g_last_wheel_delta = 0;
 bool g_paused_before_menu;
@@ -1619,12 +1617,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 // kaboom
 LONG WINAPI ExceptionReleaseTarget(_EXCEPTION_POINTERS* ExceptionInfo)
 {
-    // Always generate crash log first, because we'll close when modeless
-    auto crash_log = CrashHelper::generate_log(ExceptionInfo);
-
-    FILE* f = fopen("crash.log", "a+");
-    fputs(crash_log.c_str(), f);
-    fclose(f);
+    CrashHelper::log_crash(ExceptionInfo);
 
     if (g_config.silent_mode)
     {
@@ -1660,18 +1653,9 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 {
 #ifdef _DEBUG
 	open_console();
-
-    std::vector<spdlog::sink_ptr> core_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
-    std::vector<spdlog::sink_ptr> shared_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
-    std::vector<spdlog::sink_ptr> view_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
-    g_core_logger = std::make_shared<spdlog::logger>("Core", begin(core_sinks), end(core_sinks));
-    g_shared_logger = std::make_shared<spdlog::logger>("Shared", begin(shared_sinks), end(shared_sinks));
-    g_view_logger = std::make_shared<spdlog::logger>("View", begin(view_sinks), end(view_sinks));
-#else
-    g_core_logger = spdlog::basic_logger_mt("Core", "mupen.log");
-    g_shared_logger = spdlog::basic_logger_mt("Shared", "mupen.log");
-    g_view_logger = spdlog::basic_logger_mt("View", "mupen.log");
 #endif
+
+    Loggers::init();
 
     g_view_logger->info("WinMain");
     
@@ -1802,7 +1786,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     //RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
     //
     // raise continuable exception
-    //RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
+    RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
     // We need to set the core updateScreen flag at 60 FPS.
     // WM_TIMER isn't stable enough and the other multimedia or callback timers are too annoying

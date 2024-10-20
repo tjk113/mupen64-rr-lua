@@ -4,8 +4,8 @@
 #include <shared/Messenger.h>
 #include <core/r4300/Plugin.hpp>
 #include <view/gui/Main.h>
-#include <shared/services/FrontendService.h>
 #include <cassert>
+#include <view/gui/Loggers.h>
 
 namespace MGECompositor
 {

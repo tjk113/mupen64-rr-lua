@@ -12,6 +12,7 @@
 #include <view/helpers/WinHelpers.h>
 #include <shared/Config.hpp>
 #include <view/gui/Main.h>
+#include <view/gui/Loggers.h>
 
 
 namespace Statusbar

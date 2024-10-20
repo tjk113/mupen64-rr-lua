@@ -22,6 +22,7 @@
 #include <thread>
 #include <view/lua/LuaConsole.h>
 #include "Main.h"
+#include "Loggers.h"
 #include <shared/Messenger.h>
 #include <core/memory/savestates.h>
 #include <shared/helpers/StlExtensions.h>

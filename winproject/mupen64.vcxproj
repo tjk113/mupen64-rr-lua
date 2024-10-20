@@ -187,6 +187,7 @@
     <ClInclude Include="..\view\capture\EncodingManager.h" />
     <ClInclude Include="..\view\capture\Resampler.h" />
     <ClInclude Include="..\view\gui\features\PianoRoll.h" />
+    <ClInclude Include="..\view\gui\Loggers.h" />
     <ClInclude Include="..\view\helpers\IOHelpers.h" />
     <ClInclude Include="..\view\helpers\MathHelpers.h" />
     <ClInclude Include="..\view\helpers\WinHelpers.h" />
@@ -298,6 +299,7 @@
     <ClCompile Include="..\view\gui\features\Statusbar.cpp" />
     <ClCompile Include="..\view\gui\FrontendService.cpp" />
     <ClCompile Include="..\view\gui\IOService.cpp" />
+    <ClCompile Include="..\view\gui\Loggers.cpp" />
     <ClCompile Include="..\view\gui\Main.cpp" />
     <ClCompile Include="..\view\gui\wrapper\PersistentPathDialog.cpp" />
     <ClCompile Include="..\view\lua\LuaConsole.cpp" />
