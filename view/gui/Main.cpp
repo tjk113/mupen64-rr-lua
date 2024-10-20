@@ -1786,7 +1786,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     //RaiseException(EXCEPTION_ACCESS_VIOLATION, EXCEPTION_NONCONTINUABLE, NULL, NULL);
     //
     // raise continuable exception
-    RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
+    // RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
     // We need to set the core updateScreen flag at 60 FPS.
     // WM_TIMER isn't stable enough and the other multimedia or callback timers are too annoying
