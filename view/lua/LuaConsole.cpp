@@ -50,6 +50,8 @@ BUTTONS last_controller_data[4];
 BUTTONS new_controller_data[4];
 bool overwrite_controller_data[4];
 
+std::atomic g_d2d_drawing_section = false;
+
 std::map<HWND, LuaEnvironment*> g_hwnd_lua_map;
 
 uint64_t inputCount = 0;
@@ -569,6 +571,15 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
     {
     case WM_PAINT:
         {
+			// NOTE: Sometimes, this control receives a WM_PAINT message while execution is already in WM_PAINT, causing us to call begin_present twice in a row...
+			// Usually this shouldn't happen, but the shell file dialog API causes this by messing with the parent window's message loop.
+			if (g_d2d_drawing_section)
+			{
+				g_view_logger->warn("Tried to clobber a D2D drawing section!");
+				break;
+			}
+
+			g_d2d_drawing_section = true;
             auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
             PAINTSTRUCT ps;
@@ -577,7 +588,6 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             GetClientRect(hwnd, &rect);
 
             lua->presenter->begin_present();
-
             bool failed = lua->invoke_callbacks_with_key(LuaService::state_update_screen, REG_ATDRAWD2D);
 
             lua->presenter->end_present();
@@ -588,6 +598,7 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             }
 
             EndPaint(hwnd, &ps);
+			g_d2d_drawing_section = false;
             return 0;
         }
     }
