@@ -80,7 +80,22 @@ void invoke_callbacks_with_key_on_all_instances(
     }
 }
 
-BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control);
+void set_button_state(HWND wnd, bool state)
+{
+    if (!IsWindow(wnd)) return;
+    const HWND state_button = GetDlgItem(wnd, IDC_BUTTON_LUASTATE);
+    const HWND stop_button = GetDlgItem(wnd, IDC_BUTTON_LUASTOP);
+    if (state)
+    {
+        SetWindowText(state_button, "Restart");
+        EnableWindow(stop_button, TRUE);
+    }
+    else
+    {
+        SetWindowText(state_button, "Run");
+        EnableWindow(stop_button, FALSE);
+    }
+}
 
 INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
                             LPARAM lParam)
@@ -105,7 +120,86 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
             return TRUE;
         }
     case WM_COMMAND:
-        return WmCommand(wnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
+        {
+            switch (LOWORD(wParam))
+            {
+            case IDC_BUTTON_LUASTATE:
+                {
+                    char path[MAX_PATH] = {0};
+                    GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+                                  path, MAX_PATH);
+
+                    // if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
+                    if (g_hwnd_lua_map.contains(wnd))
+                    {
+                        LuaEnvironment::destroy(g_hwnd_lua_map[wnd]);
+                    }
+
+                    // now spool up a new one
+                    auto status = LuaEnvironment::create(path, wnd);
+                    Messenger::broadcast(Messenger::Message::ScriptStarted, std::filesystem::path(path));
+
+                    if (status.first == nullptr)
+                    {
+                        LuaEnvironment::print_con(wnd, status.second + "\r\n");
+                    }
+                    else
+                    {
+                        // it worked, we can set up associations and sync ui state
+                        g_hwnd_lua_map[wnd] = status.first;
+                        set_button_state(wnd, true);
+                    }
+
+                    return TRUE;
+                }
+            case IDC_BUTTON_LUASTOP:
+                {
+                    if (g_hwnd_lua_map.contains(wnd))
+                    {
+                        LuaEnvironment::destroy(g_hwnd_lua_map[wnd]);
+                        set_button_state(wnd, false);
+                    }
+                    return TRUE;
+                }
+            case IDC_BUTTON_LUABROWSE:
+                {
+                    auto path = show_persistent_open_dialog("o_lua", wnd, L"*.lua");
+
+                    if (path.empty())
+                    {
+                        break;
+                    }
+
+                    SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), wstring_to_string(path).c_str());
+                    return TRUE;
+                }
+            case IDC_BUTTON_LUAEDIT:
+                {
+                    CHAR buf[MAX_PATH];
+                    GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
+                                  buf, MAX_PATH);
+                    if (buf == NULL || buf[0] == '\0')
+                        /* || strlen(buf)>MAX_PATH*/
+                        return FALSE;
+                    // previously , clicking edit with empty path will open current directory in explorer, which is very bad
+
+                    ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
+                    return TRUE;
+                }
+            case IDC_BUTTON_LUACLEAR:
+                if (GetAsyncKeyState(VK_MENU))
+                {
+                    // clear path
+                    SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
+                    return TRUE;
+                }
+
+                SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
+                return TRUE;
+            default:
+                break;
+            }
+        }
     case WM_SIZE:
         {
             RECT window_rect = {0};
@@ -121,104 +215,6 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
             if (wParam == SIZE_MINIMIZED) SetFocus(g_main_hwnd);
             break;
         }
-    }
-    return FALSE;
-}
-
-void SetButtonState(HWND wnd, bool state)
-{
-    if (!IsWindow(wnd)) return;
-    const HWND state_button = GetDlgItem(wnd, IDC_BUTTON_LUASTATE);
-    const HWND stop_button = GetDlgItem(wnd, IDC_BUTTON_LUASTOP);
-    if (state)
-    {
-        SetWindowText(state_button, "Restart");
-        EnableWindow(stop_button, TRUE);
-    }
-    else
-    {
-        SetWindowText(state_button, "Run");
-        EnableWindow(stop_button, FALSE);
-    }
-}
-
-BOOL WmCommand(HWND wnd, WORD id, WORD code, HWND control)
-{
-    switch (id)
-    {
-    case IDC_BUTTON_LUASTATE:
-        {
-            char path[MAX_PATH] = {0};
-            GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-                          path, MAX_PATH);
-
-            // if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
-            if (g_hwnd_lua_map.contains(wnd))
-            {
-                LuaEnvironment::destroy(g_hwnd_lua_map[wnd]);
-            }
-
-            // now spool up a new one
-            auto status = LuaEnvironment::create(path, wnd);
-            Messenger::broadcast(Messenger::Message::ScriptStarted, std::filesystem::path(path));
-
-            if (status.first == nullptr)
-            {
-                LuaEnvironment::print_con(wnd, status.second + "\r\n");
-            }
-            else
-            {
-                // it worked, we can set up associations and sync ui state
-                g_hwnd_lua_map[wnd] = status.first;
-                SetButtonState(wnd, true);
-            }
-
-            return TRUE;
-        }
-    case IDC_BUTTON_LUASTOP:
-        {
-            if (g_hwnd_lua_map.contains(wnd))
-            {
-                LuaEnvironment::destroy(g_hwnd_lua_map[wnd]);
-                SetButtonState(wnd, false);
-            }
-            return TRUE;
-        }
-    case IDC_BUTTON_LUABROWSE:
-        {
-            auto path = show_persistent_open_dialog("o_lua", wnd, L"*.lua");
-
-            if (path.empty())
-            {
-                break;
-            }
-
-            SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), wstring_to_string(path).c_str());
-            return TRUE;
-        }
-    case IDC_BUTTON_LUAEDIT:
-        {
-            CHAR buf[MAX_PATH];
-            GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-                          buf, MAX_PATH);
-            if (buf == NULL || buf[0] == '\0')
-                /* || strlen(buf)>MAX_PATH*/
-                return FALSE;
-            // previously , clicking edit with empty path will open current directory in explorer, which is very bad
-
-            ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
-            return TRUE;
-        }
-    case IDC_BUTTON_LUACLEAR:
-        if (GetAsyncKeyState(VK_MENU))
-        {
-            // clear path
-            SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
-            return TRUE;
-        }
-
-        SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
-        return TRUE;
     }
     return FALSE;
 }
@@ -571,15 +567,15 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
     {
     case WM_PAINT:
         {
-			// NOTE: Sometimes, this control receives a WM_PAINT message while execution is already in WM_PAINT, causing us to call begin_present twice in a row...
-			// Usually this shouldn't happen, but the shell file dialog API causes this by messing with the parent window's message loop.
-			if (g_d2d_drawing_section)
-			{
-				g_view_logger->warn("Tried to clobber a D2D drawing section!");
-				break;
-			}
+            // NOTE: Sometimes, this control receives a WM_PAINT message while execution is already in WM_PAINT, causing us to call begin_present twice in a row...
+            // Usually this shouldn't happen, but the shell file dialog API causes this by messing with the parent window's message loop.
+            if (g_d2d_drawing_section)
+            {
+                g_view_logger->warn("Tried to clobber a D2D drawing section!");
+                break;
+            }
 
-			g_d2d_drawing_section = true;
+            g_d2d_drawing_section = true;
             auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
             PAINTSTRUCT ps;
@@ -598,7 +594,7 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             }
 
             EndPaint(hwnd, &ps);
-			g_d2d_drawing_section = false;
+            g_d2d_drawing_section = false;
             return 0;
         }
     }
@@ -856,7 +852,7 @@ LuaEnvironment::~LuaEnvironment()
     DeleteObject(font);
     lua_close(L);
     L = NULL;
-    SetButtonState(hwnd, false);
+    set_button_state(hwnd, false);
     this->destroy_renderer();
     g_view_logger->info("Lua destroyed");
 }
