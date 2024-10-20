@@ -227,7 +227,7 @@ std::vector<uint8_t> generate_savestate()
         long width;
         long height;
         FrontendService::mge_get_video_size(&width, &height);
-
+		
         void* video = malloc(width * height * 3);
         FrontendService::mge_copy_video(video);
 
@@ -235,6 +235,8 @@ std::vector<uint8_t> generate_savestate()
         vecwrite(b, &width, sizeof(width));
         vecwrite(b, &height, sizeof(height));
         vecwrite(b, video, width * height * 3);
+
+		free(video);
     }
 
     return b;
