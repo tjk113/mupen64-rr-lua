@@ -62,7 +62,7 @@ namespace Statusbar
 
             auto scale = static_cast<float>(rect.right - rect.left) / static_cast<float>(desired_size);
 
-            g_view_logger->info("[Statusbar] Scale: %f", scale);
+            g_view_logger->info("[Statusbar] Scale: {}", scale);
 
             for (auto& part : parts)
             {
