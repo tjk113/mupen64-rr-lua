@@ -3196,6 +3196,8 @@ void pure_interpreter()
     stop = 0;
     PC = (precomp_instr*)malloc(sizeof(precomp_instr));
     last_addr = interp_addr;
+    core_executing = true;
+    g_core_logger->info("core_executing: {}", core_executing);
     while (!stop)
     {
         //if (interp_addr == 0x10022d08) stop = 1;

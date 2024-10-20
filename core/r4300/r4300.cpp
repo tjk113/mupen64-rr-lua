@@ -1604,7 +1604,6 @@ void print_stop_debug()
 
 void core_start()
 {
-    core_executing = true;
     long long CRC = 0;
     unsigned int j;
 
@@ -1843,6 +1842,8 @@ void core_start()
         g_core_logger->info("interpreter");
         init_blocks();
         last_addr = PC->addr;
+        core_executing = true;
+        g_core_logger->info("core_executing: {}", core_executing);
         while (!stop)
         {
             //if ((debug_count+Count) >= 0x78a8091) break; // obj 0x16aeb8a
