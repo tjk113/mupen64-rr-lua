@@ -321,7 +321,7 @@ void savestates_save_immediate()
     }
 
     LuaService::call_save_state();
-    g_core_logger->info("Savestate saving took %dms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core_logger->info("Savestate saving took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
 /// <summary>
@@ -617,7 +617,7 @@ failedLoad:
         last_addr = PC->addr;
     }
 
-    g_core_logger->info("Savestate loading took %dms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core_logger->info("Savestate loading took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
 void savestates_do_file(const std::filesystem::path& path, const e_st_job job)

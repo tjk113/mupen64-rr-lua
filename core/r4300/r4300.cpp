@@ -2049,7 +2049,7 @@ void emu_thread()
     Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
     LuaService::call_reset();
 
-    g_core_logger->info("[Core] Emu thread entry took %dms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core_logger->info("[Core] Emu thread entry took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
     core_start();
 
     romClosed_gfx();
@@ -2183,7 +2183,7 @@ Core::Result vr_start_rom(std::filesystem::path path)
 
     timer_init(g_config.fps_modifier, &ROM_HEADER);
 
-    g_core_logger->info("[Core] vr_start_rom entry took %dms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core_logger->info("[Core] vr_start_rom entry took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 
     emu_paused = false;
     emu_launched = true;

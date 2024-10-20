@@ -65,7 +65,7 @@ void display_error(const char* txt)
         for (i = 0; i < 32; i++)
         {
             if (reg[i] != comp_reg[i])
-                g_core_logger->info("reg[{}]=%llx != reg[{}]=%llx",
+                g_core_logger->info("reg[{}]={:#08x} != reg[{}]={:#08x}",
                        i, reg[i], i, comp_reg[i]);
         }
     }

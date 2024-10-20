@@ -67,7 +67,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 
         if (serial)
         {
-            g_core_logger->info("[GS] Compiling %u serial byte writes...", serial_count);
+            g_core_logger->info("[GS] Compiling {} serial byte writes...", serial_count);
 
             for (size_t i = 0; i < serial_count; ++i)
             {

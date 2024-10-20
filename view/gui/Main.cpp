@@ -509,7 +509,7 @@ void on_emu_launched_changed(std::any data)
 
     if (!value && previous_value)
     {
-        g_view_logger->info("[View] Restoring window size to %dx{}...", g_config.window_width, g_config.window_height);
+        g_view_logger->info("[View] Restoring window size to {}x{}...", g_config.window_width, g_config.window_height);
         SetWindowPos(g_main_hwnd, nullptr, 0, 0, g_config.window_width, g_config.window_height, SWP_NOMOVE);
     }
 
@@ -1714,7 +1714,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     RegisterClassEx(&wc);
     MGECompositor::init();
 
-    g_view_logger->info("[View] Restoring window @ ({}|{}) %dx{}...", g_config.window_x, g_config.window_y, g_config.window_width, g_config.window_height);
+    g_view_logger->info("[View] Restoring window @ ({}|{}) {}x{}...", g_config.window_x, g_config.window_y, g_config.window_width, g_config.window_height);
 
     g_main_hwnd = CreateWindowEx(
         0,
