@@ -438,7 +438,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
     m_current_vi = (int)freeze.current_vi;
 
     const e_task last_task = g_task;
-    
+
     // When starting playback in RW mode, we don't want overwrite the movie savestate which we're currently unfreezing from...
     const bool is_task_starting_playback = g_task == e_task::start_playback_from_reset || g_task == e_task::start_playback_from_snapshot;
 
@@ -449,7 +449,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
         Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
         goto finish;
     }
-    
+
     if (!g_config.vcr_readonly && !is_task_starting_playback)
     {
         // here, we are going to take the input data from the savestate
@@ -496,7 +496,7 @@ VCR::Result VCR::unfreeze(t_movie_freeze freeze)
         Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
     }
 
-    finish:
+finish:
     // When loading a state, the statusbar should update with new information before the next frame happens.
     frame_changed = true;
 
@@ -527,7 +527,7 @@ void vcr_create_n_frame_savestate(size_t frame)
     g_core_logger->info("[VCR] Creating seek savestate at frame {}...", frame);
     savestates_save_memory([frame](auto buf)
     {
-		g_core_logger->info("[VCR] Seek savestate at frame {} of size {} completed", frame, buf.size());
+        g_core_logger->info("[VCR] Seek savestate at frame {} of size {} completed", frame, buf.size());
         g_seek_savestates[frame] = buf;
         Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)frame);
     });
@@ -798,14 +798,14 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
         g_core_logger->info("[VCR] Skipping pre-reset frame");
         return;
     }
-    
+
     // Frames between seek savestate load request and actual load are invalid for the same reason as pre-reset frames.
     if (g_seek_savestate_loading)
     {
         g_core_logger->info("[VCR] Skipping pre-seek savestate load frame");
         return;
     }
-    
+
     // When resetting during playback, we need to remind program of the rerecords
     if (g_task != e_task::idle && just_reset)
     {
@@ -1060,7 +1060,7 @@ VCR::Result vcr_stop_record()
         g_task = e_task::idle;
 
         g_core_logger->info("[VCR] Recording stopped. Recorded %ld input samples",
-               g_header.length_samples);
+                            g_header.length_samples);
     }
 
     Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
@@ -1347,29 +1347,37 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
     {
         if (g_task == e_task::recording)
         {
-            const auto target_sample = warp_modify ? g_warp_modify_first_difference_frame : frame;
-
-            const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
-
-            g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
-            g_seek_savestate_loading = true;
-            const bool result = savestates_load_memory(g_seek_savestates[closest_key], [=](auto)
+            if (g_config.seek_savestate_interval == 0)
             {
-                g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
-                std::scoped_lock l(vcr_mutex);
-                g_seek_savestate_loading = false;
-            });
-
-            if (!result)
-            {
-                // FIXME: This *might* cause issues since we already set seek_to_frame previously, 
-                // thus opening us up to other threads reading the seek operation status during this and the initiation section.
-                FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
-                seek_to_frame.reset();
-                return VCR::Result::SeekSavestateLoadFailed;
+                // TODO: We can't backtrack using savestates, so we'd have to restart into playback mode...
+                FrontendService::show_error("The seek savestate interval can't be 0 when seeking backwards during recording.", "VCR");
+                return VCR::Result::SeekSavestateIntervalZero;
             }
-            
-            return VCR::Result::Ok;
+            else
+            {
+                const auto target_sample = warp_modify ? g_warp_modify_first_difference_frame : frame;
+                const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
+
+                g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
+                g_seek_savestate_loading = true;
+                const bool result = savestates_load_memory(g_seek_savestates[closest_key], [=](auto)
+                {
+                    g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
+                    std::scoped_lock l(vcr_mutex);
+                    g_seek_savestate_loading = false;
+                });
+
+                if (!result)
+                {
+                    // FIXME: This *might* cause issues since we already set seek_to_frame previously, 
+                    // thus opening us up to other threads reading the seek operation status during this and the initiation section.
+                    FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
+                    seek_to_frame.reset();
+                    return VCR::Result::SeekSavestateLoadFailed;
+                }
+
+                return VCR::Result::Ok;
+            }
         }
 
         VCR::stop_all();
@@ -1629,7 +1637,7 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
     {
         return Result::WarpModifyEmptyInputBuffer;
     }
-    
+
     g_warp_modify_first_difference_frame = vcr_find_first_input_difference(g_movie_inputs, inputs);
 
     if (g_warp_modify_first_difference_frame == SIZE_MAX)

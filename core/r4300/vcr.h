@@ -292,6 +292,8 @@ namespace VCR
         SeekAlreadyRunning,
         // The seek operation could not be initiated due to a savestate not being loaded successfully 
         SeekSavestateLoadFailed,
+        // The seek operation can't be initiated because the seek savestate interval is 0
+        SeekSavestateIntervalZero,
     };
 
     /**
