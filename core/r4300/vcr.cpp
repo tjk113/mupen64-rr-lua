@@ -48,7 +48,7 @@ volatile e_task g_task = e_task::idle;
 // The frame to seek to during playback, or an empty option if no seek is being performed
 std::optional<size_t> seek_to_frame;
 bool g_seek_pause_at_end;
-bool g_seek_savestate_loading;
+std::atomic g_seek_savestate_loading = false;
 std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 
 auto g_warp_modify_status = e_warp_modify_status::none;
