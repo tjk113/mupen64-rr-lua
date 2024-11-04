@@ -1353,12 +1353,22 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
 
             g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
             g_seek_savestate_loading = true;
-            savestates_load_memory(g_seek_savestates[closest_key], [=](auto)
+            const bool result = savestates_load_memory(g_seek_savestates[closest_key], [=](auto)
             {
                 g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
                 std::scoped_lock l(vcr_mutex);
                 g_seek_savestate_loading = false;
             });
+
+            if (!result)
+            {
+                // FIXME: This *might* cause issues since we already set seek_to_frame previously, 
+                // thus opening us up to other threads reading the seek operation status during this and the initiation section.
+                FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
+                seek_to_frame.reset();
+                return VCR::Result::SeekSavestateLoadFailed;
+            }
+            
             return VCR::Result::Ok;
         }
 

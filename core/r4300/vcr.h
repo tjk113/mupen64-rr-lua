@@ -290,6 +290,8 @@ namespace VCR
         WarpModifyEmptyInputBuffer,
         // Another seek operation is already running
         SeekAlreadyRunning,
+        // The seek operation could not be initiated due to a savestate not being loaded successfully 
+        SeekSavestateLoadFailed,
     };
 
     /**
