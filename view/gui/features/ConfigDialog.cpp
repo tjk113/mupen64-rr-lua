@@ -952,7 +952,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         t_options_item{
             .group_id = core_group.id,
             .name = "Savestate Interval",
-            .tooltip = L"The interval at which to create savestates for seeking.\nHigher numbers will reduce the seek duration at cost of emulator performance.\n0 - Seek savestate generation disabled",
+            .tooltip = L"The interval at which to create savestates for seeking.\nHigher numbers will reduce the seek duration at cost of emulator performance.\n0 - Seek savestate generation disabled\nRecommended: 100",
             .data = &g_config.seek_savestate_interval,
             .type = t_options_item::Type::Number,
         },
