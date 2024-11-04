@@ -116,6 +116,14 @@ namespace PianoRoll
     }
 
     /**
+     * Gets whether a seek operation can be initiated.
+     */
+    bool can_seek()
+    {
+        return g_config.seek_savestate_interval > 0;
+    }
+
+    /**
      * Refreshes the piano roll listview and the joystick, re-querying the current inputs from the core.
      */
     void update_inputs()
@@ -612,10 +620,10 @@ namespace PianoRoll
         ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
 
         apply_input_buffer();
-        
+
         return true;
     }
-    
+
     void update_groupbox_status_text()
     {
         if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
@@ -995,13 +1003,18 @@ namespace PianoRoll
 
                 if (lplvhtti.iSubItem == 0)
                 {
+                    if (!can_seek())
+                    {
+                        break;
+                    }
+                    
                     AsyncExecutor::invoke_async([=]
                     {
                         VCR::begin_seek(std::to_string(lplvhtti.iItem), true);
                     });
                     return 0;
                 }
-                
+
                 if (!can_modify_inputs() || lplvhtti.iSubItem < 4)
                 {
                     break;
