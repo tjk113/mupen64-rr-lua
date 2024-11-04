@@ -111,7 +111,8 @@ namespace PianoRoll
             && VCR::get_seek_completion().second == SIZE_MAX
             && VCR::get_task() == e_task::recording
             && !VCR::is_seeking()
-            && !g_config.vcr_readonly;
+            && !g_config.vcr_readonly
+            && g_config.seek_savestate_interval > 0;
     }
 
     /**
