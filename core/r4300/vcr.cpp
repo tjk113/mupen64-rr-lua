@@ -774,7 +774,7 @@ bool VCR::allows_core_pause()
 
 void vcr_create_seek_savestates()
 {
-    if (g_task == e_task::idle)
+    if (g_task == e_task::idle || g_config.seek_savestate_interval == 0)
     {
         return;
     }
