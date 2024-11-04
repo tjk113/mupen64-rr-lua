@@ -636,33 +636,37 @@ void savestates_do_slot(const int32_t slot, const e_st_job job)
     st_medium = e_st_medium::slot;
 }
 
-void savestates_save_memory(const t_savestate_save_callback& callback)
+bool savestates_save_memory(const t_savestate_save_callback& callback)
 {
     std::scoped_lock lock(g_st_callback_queue_mutex);
 
     if (!g_st_save_callbacks.empty())
     {
         g_core_logger->error("Tried to save memory savestate while another one was already queued.");
-        return;
+        return false;
     }
     
     g_st_save_callbacks.push(callback);
     savestates_job = e_st_job::save;
     st_medium = e_st_medium::memory;
+
+    return true;
 }
 
-void savestates_load_memory(const std::vector<uint8_t>& buffer, const t_savestate_load_callback& callback)
+bool savestates_load_memory(const std::vector<uint8_t>& buffer, const t_savestate_load_callback& callback)
 {
     std::scoped_lock lock(g_st_callback_queue_mutex);
 
     if (!g_st_load_callbacks.empty())
     {
         g_core_logger->error("Tried to load memory savestate while another one was already queued.");
-        return;
+        return false;
     }
     
     g_st_load_callbacks.push(callback);
     g_st_buf = buffer;
     savestates_job = e_st_job::load;
     st_medium = e_st_medium::memory;
+
+    return true;
 }

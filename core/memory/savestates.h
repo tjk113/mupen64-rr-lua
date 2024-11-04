@@ -112,16 +112,18 @@ void savestates_load_immediate();
 /**
  * Creates an in-memory savestate and calls the provided callback with the savestate buffer 
  * \param callback A callback that will be called with the savestate's data
+ * \return Whether the operation was successfully initiated.
  */
-void savestates_save_memory(const t_savestate_save_callback& callback);
+bool savestates_save_memory(const t_savestate_save_callback& callback);
 
 /**
  * \brief Loads a savestate from an in-memory buffer
  * \param buffer A buffer containing the savestate
  * \param callback A callback that will be called with the savestate's data upon the load operation completing
  * \remarks The operation won't complete immediately
+ * \return Whether the operation was successfully initiated.
  */
-void savestates_load_memory(const std::vector<uint8_t>& buffer, const t_savestate_load_callback& callback);
+bool savestates_load_memory(const std::vector<uint8_t>& buffer, const t_savestate_load_callback& callback);
 
 /**
  * \brief Executes a savestate operation to a path
