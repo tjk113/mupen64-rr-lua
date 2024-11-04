@@ -131,6 +131,9 @@ namespace EncodingManager
             DllCrtFree(buf);
         }
 
+        long raw_video_width, raw_video_height;
+        MGECompositor::get_video_size(&raw_video_width, &raw_video_height);
+
         BITMAPINFO rs_bmp_info{};
         rs_bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
         rs_bmp_info.bmiHeader.biPlanes = 1;
@@ -157,8 +160,29 @@ namespace EncodingManager
             HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
             SelectObject(compat_dc, bitmap);
 
-            // Composite the raw readscreen output
-            SetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &rs_bmp_info, DIB_RGB_COLORS);
+            {
+                BITMAPINFO bmp_info{};
+                bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+                bmp_info.bmiHeader.biPlanes = 1;
+                bmp_info.bmiHeader.biBitCount = 24;
+                bmp_info.bmiHeader.biWidth = raw_video_width;
+                bmp_info.bmiHeader.biHeight = raw_video_height;
+                bmp_info.bmiHeader.biCompression = BI_RGB;
+
+                // Copy the raw readscreen output
+                StretchDIBits(compat_dc,
+                                      0,
+                                      0,
+                                      raw_video_width,
+                                      raw_video_height,
+                                      0, 0,
+                                      raw_video_width,
+                                      raw_video_height,
+                                      m_video_buf,
+                                      &bmp_info,
+                                      DIB_RGB_COLORS,
+                                      SRCCOPY);
+            }
 
             // First, composite the lua's dxgi surfaces
             for (auto& pair : g_hwnd_lua_map)
