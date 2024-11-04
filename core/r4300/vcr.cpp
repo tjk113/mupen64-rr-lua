@@ -525,8 +525,9 @@ void vcr_create_n_frame_savestate(size_t frame)
     }
 
     g_core_logger->info("[VCR] Creating seek savestate at frame {}...", frame);
-    savestates_save_memory([&](auto buf)
+    savestates_save_memory([frame](auto buf)
     {
+		g_core_logger->info("[VCR] Seek savestate at frame {} of size {} completed", frame, buf.size());
         g_seek_savestates[frame] = buf;
         Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)frame);
     });
