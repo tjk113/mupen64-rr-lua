@@ -318,6 +318,8 @@ void savestates_save_immediate()
     }
     else
     {
+        std::scoped_lock lock(g_st_callback_queue_mutex);
+
         g_st_save_callbacks.front()(st);
         g_st_save_callbacks.pop();
     }
@@ -596,6 +598,8 @@ void savestates_load_immediate()
     }
     if (st_medium == e_st_medium::memory)
     {
+        std::scoped_lock lock(g_st_callback_queue_mutex);
+
         g_st_load_callbacks.front()(decompressed_buf);
         g_st_load_callbacks.pop();
     }
