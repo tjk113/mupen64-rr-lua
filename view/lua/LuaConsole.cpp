@@ -246,18 +246,6 @@ void lua_create_and_run(const char* path)
                 (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
 }
 
-LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam,
-                               LPARAM lParam)
-{
-    switch (msg)
-    {
-    case WM_CREATE:
-    case WM_DESTROY:
-        return 0;
-    }
-    return DefWindowProc(wnd, msg, wParam, lParam);
-}
-
 LuaEnvironment* get_lua_class(lua_State* lua_state)
 {
     return g_lua_env_map[lua_state];
