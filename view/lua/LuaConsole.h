@@ -85,6 +85,7 @@ static const auto REG_ATLOADSTATE = "LS";
 static const auto REG_ATSAVESTATE = "SS";
 static const auto REG_ATRESET = "RE";
 static const auto REG_ATSEEKCOMPLETED = "SC";
+static const auto REG_ATWARPMODIFYSTATUSCHANGED = "WS";
 
 static uint32_t lua_gdi_color_mask = RGB(255, 0, 255);
 static HBRUSH alpha_mask_brush = CreateSolidBrush(lua_gdi_color_mask);

@@ -1682,11 +1682,11 @@ VCR::Result VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 
     g_movie_inputs = inputs;
     g_header.length_samples = g_movie_inputs.size();
+    g_core_logger->info("[VCR] Warp modify started at frame {}", m_current_sample);
+    Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
 
     resume_emu();
 
-    g_core_logger->info("[VCR] Warp modify started at frame {}", m_current_sample);
-    Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, g_warp_modify_status);
     return Result::Ok;
 }
 

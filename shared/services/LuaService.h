@@ -12,6 +12,7 @@ extern "C" {
 #include <lualib.h>
 }
 
+#include <cstdint>
 #include <shared/types/CoreTypes.h>
 
 namespace LuaService
@@ -74,6 +75,11 @@ namespace LuaService
      * \brief Notifies all lua instances of a seek operation completing
      */
     void call_seek_completed();
+ 
+    /**
+     * \brief Notifies all lua instances of a warp modify operation's status changing
+     */
+    void call_warp_modify_status_changed(int32_t status);
 
 #pragma endregion
 

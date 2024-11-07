@@ -637,6 +637,13 @@ void on_seek_completed(std::any)
     LuaService::call_seek_completed();
 }
 
+
+void on_warp_modify_status_changed(std::any data)
+{
+    auto value = std::any_cast<e_warp_modify_status>(data);
+    LuaService::call_warp_modify_status_changed(static_cast<int32_t>(value));
+}
+
 BetterEmulationLock::BetterEmulationLock()
 {
     if (g_in_menu_loop)
@@ -1750,6 +1757,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Messenger::subscribe(Messenger::Message::FullscreenChanged, on_fullscreen_changed);
     Messenger::subscribe(Messenger::Message::ConfigLoaded, on_config_loaded);
     Messenger::subscribe(Messenger::Message::SeekCompleted, on_seek_completed);
+    Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed);
     Messenger::subscribe(Messenger::Message::EmuStartingChanged, [](std::any data)
     {
         g_emu_starting = std::any_cast<bool>(data);
