@@ -53,6 +53,7 @@ bool overwrite_controller_data[4];
 std::atomic g_d2d_drawing_section = false;
 
 std::map<HWND, LuaEnvironment*> g_hwnd_lua_map;
+std::unordered_map<lua_State*, LuaEnvironment*> g_lua_env_map;
 
 uint64_t inputCount = 0;
 
@@ -257,24 +258,9 @@ LRESULT CALLBACK LuaGUIWndProc(HWND wnd, UINT msg, WPARAM wParam,
     return DefWindowProc(wnd, msg, wParam, lParam);
 }
 
-LuaEnvironment* GetLuaClass(lua_State* L)
+LuaEnvironment* get_lua_class(lua_State* lua_state)
 {
-    lua_getfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
-    auto lua = (LuaEnvironment*)lua_topointer(L, -1);
-    lua_pop(L, 1);
-    return lua;
-}
-
-void SetLuaClass(lua_State* L, void* lua)
-{
-    lua_pushlightuserdata(L, lua);
-    lua_setfield(L, LUA_REGISTRYINDEX, REG_LUACLASS);
-    //lua_pop(L, 1); //iteresting, it worked before
-}
-
-int GetErrorMessage(lua_State* L)
-{
-    return 1;
+    return g_lua_env_map[lua_state];
 }
 
 int RegisterFunction(lua_State* L, const char* key)
@@ -810,6 +796,15 @@ void LuaEnvironment::print_con(HWND hwnd, std::string text)
     SendMessage(con_wnd, EM_REPLACESEL, false, (LPARAM)text.c_str());
 }
 
+void rebuild_lua_env_map()
+{
+    g_lua_env_map.clear();
+    for (const auto& val : g_hwnd_lua_map | std::views::values)
+    {
+        g_lua_env_map[val->L] = val;
+    }
+}
+
 std::string LuaEnvironment::create(const std::filesystem::path& path, HWND wnd)
 {
     assert(is_on_gui_thread());
@@ -826,23 +821,25 @@ std::string LuaEnvironment::create(const std::filesystem::path& path, HWND wnd)
     lua_environment->bkmode = TRANSPARENT;
     lua_environment->L = luaL_newstate();
     lua_atpanic(lua_environment->L, at_panic);
-    SetLuaClass(lua_environment->L, lua_environment);
     lua_environment->register_functions();
     lua_environment->create_renderer();
 
     // NOTE: We need to add the lua to the global map already since it may receive callbacks while its executing the global code
     g_hwnd_lua_map[lua_environment->hwnd] = lua_environment;
+    rebuild_lua_env_map();
+
     bool has_error = luaL_dofile(lua_environment->L, lua_environment->path.string().c_str());
 
     std::string error_msg;
     if (has_error)
     {
         g_hwnd_lua_map.erase(lua_environment->hwnd);
+        rebuild_lua_env_map();
         error_msg = lua_tostring(lua_environment->L, -1);
         delete lua_environment;
         lua_environment = nullptr;
     }
-
+    
     return error_msg;
 }
 

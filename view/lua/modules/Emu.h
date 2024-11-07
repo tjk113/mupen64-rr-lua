@@ -268,7 +268,7 @@ namespace LuaCore::Emu
 
     static int IsMainWindowInForeground(lua_State* L)
     {
-        LuaEnvironment* lua = GetLuaClass(L);
+        LuaEnvironment* lua = get_lua_class(L);
         lua_pushboolean(
             L, GetForegroundWindow() == g_main_hwnd || GetActiveWindow() ==
             g_main_hwnd);
@@ -403,7 +403,7 @@ namespace LuaCore::Emu
     //emu
     static int ConsoleWriteLua(lua_State* L)
     {
-        GetLuaClass(L)->print(lua_tostring(L, 1));
+        get_lua_class(L)->print(lua_tostring(L, 1));
         return 0;
     }
 
