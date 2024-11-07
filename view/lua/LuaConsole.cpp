@@ -67,17 +67,24 @@ int at_panic(lua_State* L)
     return 0;
 }
 
-void invoke_callbacks_with_key_on_all_instances(
-    std::function<int(lua_State*)> function, const char* key)
+void invoke_callbacks_with_key_on_all_instances(const std::function<int(lua_State*)>& function, const char* key)
 {
-    // We need to copy the map, since it might be modified during iteration
-    auto map = g_hwnd_lua_map;
-    for (auto pair : map)
+    // OPTIMIZATION: Store destruction-queued scripts in queue and destroy them after iteration to avoid having to clone the queue
+    // This is somehow faster lol
+    
+    std::queue<LuaEnvironment*> destruction_queue;
+    for (const auto& env : g_hwnd_lua_map | std::views::values)
     {
-        if (!pair.second->invoke_callbacks_with_key(function, key))
-            continue;
+        if (env->invoke_callbacks_with_key(function, key))
+        {
+            destruction_queue.push(env);
+        }
+    }
 
-        LuaEnvironment::destroy(pair.second);
+    while (!destruction_queue.empty())
+    {
+        LuaEnvironment::destroy(destruction_queue.front());
+        destruction_queue.pop();
     }
 }
 
@@ -847,8 +854,7 @@ LuaEnvironment::~LuaEnvironment()
 
 //calls all functions that lua script has defined as callbacks, reads them from registry
 //returns true at fail
-bool LuaEnvironment::invoke_callbacks_with_key(std::function<int(lua_State*)> function,
-                                               const char* key)
+bool LuaEnvironment::invoke_callbacks_with_key(const std::function<int(lua_State*)>& function, const char* key)
 {
     assert(is_on_gui_thread());
 

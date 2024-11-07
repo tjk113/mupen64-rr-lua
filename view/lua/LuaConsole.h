@@ -66,7 +66,7 @@ void stop_all_scripts();
  * \param key The function's registration key
  */
 void invoke_callbacks_with_key_on_all_instances(
-    std::function<int(lua_State*)> function, const char* key);
+ const std::function<int(lua_State*)>& function, const char* key);
 
 static const auto REG_LUACLASS = "C";
 static const auto REG_ATUPDATESCREEN = "S";
@@ -175,8 +175,7 @@ public:
 
     //calls all functions that lua script has defined as callbacks, reads them from registry
     //returns true at fail
-    bool invoke_callbacks_with_key(std::function<int(lua_State*)> function,
-                                   const char* key);
+    bool invoke_callbacks_with_key(const std::function<int(lua_State*)>& function, const char* key);
 
     // Invalidates the composition layer
     void invalidate_visuals();
