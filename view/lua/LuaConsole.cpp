@@ -136,17 +136,15 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
                     }
 
                     // now spool up a new one
-                    auto status = LuaEnvironment::create(path, wnd);
+                    const auto error_msg = LuaEnvironment::create(path, wnd);
                     Messenger::broadcast(Messenger::Message::ScriptStarted, std::filesystem::path(path));
 
-                    if (status.first == nullptr)
+                    if (!error_msg.empty())
                     {
-                        LuaEnvironment::print_con(wnd, status.second + "\r\n");
+                        LuaEnvironment::print_con(wnd, error_msg + "\r\n");
                     }
                     else
                     {
-                        // it worked, we can set up associations and sync ui state
-                        g_hwnd_lua_map[wnd] = status.first;
                         set_button_state(wnd, true);
                     }
 
@@ -812,7 +810,7 @@ void LuaEnvironment::print_con(HWND hwnd, std::string text)
     SendMessage(con_wnd, EM_REPLACESEL, false, (LPARAM)text.c_str());
 }
 
-std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::path path, HWND wnd)
+std::string LuaEnvironment::create(const std::filesystem::path& path, HWND wnd)
 {
     assert(is_on_gui_thread());
 
@@ -832,17 +830,20 @@ std::pair<LuaEnvironment*, std::string> LuaEnvironment::create(std::filesystem::
     lua_environment->register_functions();
     lua_environment->create_renderer();
 
-    bool error = luaL_dofile(lua_environment->L, lua_environment->path.string().c_str());
+    // NOTE: We need to add the lua to the global map already since it may receive callbacks while its executing the global code
+    g_hwnd_lua_map[lua_environment->hwnd] = lua_environment;
+    bool has_error = luaL_dofile(lua_environment->L, lua_environment->path.string().c_str());
 
-    std::string error_str;
-    if (error)
+    std::string error_msg;
+    if (has_error)
     {
-        error_str = lua_tostring(lua_environment->L, -1);
+        g_hwnd_lua_map.erase(lua_environment->hwnd);
+        error_msg = lua_tostring(lua_environment->L, -1);
         delete lua_environment;
         lua_environment = nullptr;
     }
 
-    return std::make_pair(lua_environment, error_str);
+    return error_msg;
 }
 
 LuaEnvironment::~LuaEnvironment()

@@ -94,12 +94,12 @@ class LuaEnvironment
 {
 public:
     /**
-     * \brief Creates a lua environment and runs it if the operation succeeds
+     * \brief Creates a lua environment, adding it to the global map and running it if the operation succeeds
      * \param path The script path
      * \param wnd The associated window
-     * \return A pointer to a lua environment object, or NULL if the operation failed and an error string
+     * \return An error string, or an empty string if the operation succeeded
      */
-    static std::pair<LuaEnvironment*, std::string> create(std::filesystem::path path, HWND wnd);
+    static std::string create(const std::filesystem::path& path, HWND wnd);
 
     /**
      * \brief Stops, destroys and removes a lua environment from the environment map
