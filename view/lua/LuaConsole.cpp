@@ -515,6 +515,7 @@ const luaL_Reg movieFuncs[] = {
     {"stop_seek", LuaCore::Movie::stop_seek},
     {"is_seeking", LuaCore::Movie::is_seeking},
     {"get_seek_completion", LuaCore::Movie::get_seek_completion},
+    {"begin_warp_modify", LuaCore::Movie::begin_warp_modify},
     {NULL, NULL}
 };
 

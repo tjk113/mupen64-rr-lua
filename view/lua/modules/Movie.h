@@ -87,4 +87,116 @@ namespace LuaCore::Movie
 
         return 1;
     }
+
+    /**
+     * Begins a warp modify operation.
+     *
+     * Accepts a table of inputs as:
+     *
+     * {
+     *   {A = true, B = true, Z = true },
+     *   {A = true, B = true, Start = true },
+     * }
+     *
+     * Inputs which are not specified stay at their default value, 0.
+     * 
+     * \param L 
+     * \return 
+     */
+    static int begin_warp_modify(lua_State* L)
+    {
+        std::vector<BUTTONS> inputs;
+        
+        luaL_checktype(L, 1, LUA_TTABLE);
+        lua_pushnil(L);
+        while (lua_next(L, 1))
+        {
+            luaL_checktype(L, -1, LUA_TTABLE);
+            lua_pushnil(L);
+            BUTTONS buttons{};
+            while (lua_next(L, -2))
+            {
+                std::string key = lua_tostring(L, -2);
+                if (lua_toboolean(L, -1))
+                {
+                    if (key == "right")
+                    {
+                        buttons.R_DPAD = 1;
+                    }
+                    else if (key == "left")
+                    {
+                        buttons.L_DPAD = 1;
+                    }
+                    else if (key == "down")
+                    {
+                        buttons.D_DPAD = 1;
+                    }
+                    else if (key == "up")
+                    {
+                        buttons.U_DPAD = 1;
+                    }
+                    else if (key == "start")
+                    {
+                        buttons.START_BUTTON = 1;
+                    }
+                    else if (key == "Z")
+                    {
+                        buttons.Z_TRIG = 1;
+                    }
+                    else if (key == "B")
+                    {
+                        buttons.B_BUTTON = 1;
+                    }
+                    else if (key == "A")
+                    {
+                        buttons.A_BUTTON = 1;
+                    }
+                    else if (key == "Cright")
+                    {
+                        buttons.R_CBUTTON = 1;
+                    }
+                    else if (key == "Cleft")
+                    {
+                        buttons.L_CBUTTON = 1;
+                    }
+                    else if (key == "Cdown")
+                    {
+                        buttons.D_CBUTTON = 1;
+                    }
+                    else if (key == "Cup")
+                    {
+                        buttons.U_CBUTTON = 1;
+                    }
+                    else if (key == "R")
+                    {
+                        buttons.R_TRIG = 1;
+                    }
+                    else if (key == "L")
+                    {
+                        buttons.L_TRIG = 1;
+                    }
+                }
+                if (lua_tointeger(L, -1))
+                {
+                    auto value = luaL_checkinteger(L, -1);
+                    if (key == "X")
+                    {
+                        buttons.X_AXIS = value;
+                    }
+                    if (key == "Y")
+                    {
+                        buttons.Y_AXIS = value;
+                    }
+                }
+                lua_pop(L, 1);
+            }
+            inputs.push_back(buttons);
+            lua_pop(L, 1);
+        }
+
+        auto result = VCR::begin_warp_modify(inputs);
+        
+        lua_pushinteger(L, static_cast<int32_t>(result));
+        return 1;
+    }
 }
