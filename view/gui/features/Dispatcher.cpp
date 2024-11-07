@@ -9,16 +9,16 @@ void Dispatcher::invoke(const std::function<void()>& func)
         return;
     }
 
-    std::lock_guard lock(m_ui_mutex);
-    m_ui_queue.push(func);
+    std::lock_guard lock(m_mutex);
+    m_queue.push(func);
     m_execute_callback();
 }
 
 void Dispatcher::execute()
 {
-    while (!m_ui_queue.empty())
+    while (!m_queue.empty())
     {
-        m_ui_queue.front()();
-        m_ui_queue.pop();
+        m_queue.front()();
+        m_queue.pop();
     }
 }

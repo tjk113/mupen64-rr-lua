@@ -33,6 +33,6 @@ public:
 private:
     std::function<void()> m_execute_callback;
     DWORD m_thread_id;
-    std::queue<std::function<void()>> m_ui_queue;
-    std::mutex m_ui_mutex;
+    std::queue<std::function<void()>> m_queue;
+    std::mutex m_mutex;
 };
