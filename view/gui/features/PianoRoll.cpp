@@ -809,7 +809,7 @@ namespace PianoRoll
                 HPEN tip_pen;
                 get_joystick_pens(&outline_pen, &line_pen, &tip_pen);
 
-                if (!g_piano_roll_state.selected_indicies.empty())
+                if (!g_piano_roll_state.selected_indicies.empty() && g_piano_roll_state.selected_indicies[0] < g_piano_roll_state.inputs.size())
                 {
                     input = g_piano_roll_state.inputs[g_piano_roll_state.selected_indicies[0]];
                 }
