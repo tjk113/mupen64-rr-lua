@@ -160,6 +160,7 @@ BEGIN
         MENUITEM "Warp modify back 10f, press A",           IDM_DEBUG_WARP_MODIFY
         MENUITEM "Stress warp modify",                      IDM_STRESS_WARP_MODIFY
         MENUITEM "Benchmark messenger",                     IDM_BENCHMARK_MESSENGER
+        MENUITEM "Benchmark Lua callback",                  IDM_BENCHMARK_LUA_CALLBACK
     END
 END
 

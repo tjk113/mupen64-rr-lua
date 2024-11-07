@@ -1177,6 +1177,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     }
                 }
                 break;
+            case IDM_BENCHMARK_LUA_CALLBACK:
+                {
+                    FrontendService::show_information("Make sure the Lua script is running and the registered atreset body is empty.");
+                    ScopeTimer timer("100,000,000x call_reset");
+                    for (int i = 0; i < 100'000'000; ++i)
+                    {
+                        LuaService::call_reset();
+                    }
+                }
+                break;
             case IDM_TRACELOG:
                 {
                     if (tracelog::active())
