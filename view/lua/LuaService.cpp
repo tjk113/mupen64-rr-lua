@@ -10,32 +10,15 @@ namespace LuaService
     t_window_procedure_params window_proc_params = {0};
     int current_input_n = 0;
 
-    //generic function used for all of the At... callbacks, calls function from stack top.
-    int CallTop(lua_State* L)
+    int pcall_no_params(lua_State* L)
     {
         return lua_pcall(L, 0, 0, 0);
     }
-
-    int state_update_screen(lua_State* L)
-    {
-        return lua_pcall(L, 0, 0, 0);
-    }
-
-    int AtVI(lua_State* L)
-    {
-        return lua_pcall(L, 0, 0, 0);
-    }
-
 
     int AtInput(lua_State* L)
     {
         lua_pushinteger(L, current_input_n);
         return lua_pcall(L, 1, 0, 0);
-    }
-
-    int state_stop(lua_State* L)
-    {
-        return lua_pcall(L, 0, 0, 0);
     }
 
     int AtWindowMessage(lua_State* L)
@@ -64,8 +47,7 @@ namespace LuaService
             .w_param = w,
             .l_param = l
         };
-        invoke_callbacks_with_key_on_all_instances(
-            AtWindowMessage, REG_WINDOWMESSAGE);
+        invoke_callbacks_with_key_on_all_instances(AtWindowMessage, REG_WINDOWMESSAGE);
     }
 
     void call_vi()
@@ -73,8 +55,7 @@ namespace LuaService
         RET_IF_EMPTY;
         g_main_window_dispatcher->invoke([]
         {
-            invoke_callbacks_with_key_on_all_instances(
-                AtVI, REG_ATVI);
+            invoke_callbacks_with_key_on_all_instances(pcall_no_params, REG_ATVI);
         });
     }
 
@@ -89,8 +70,7 @@ namespace LuaService
         g_main_window_dispatcher->invoke([=]
         {
             current_input_n = index;
-            invoke_callbacks_with_key_on_all_instances(
-                AtInput, REG_ATINPUT);
+            invoke_callbacks_with_key_on_all_instances(AtInput, REG_ATINPUT);
             inputCount++;
         });
 
@@ -107,8 +87,7 @@ namespace LuaService
         RET_IF_EMPTY;
         g_main_window_dispatcher->invoke([]
         {
-            invoke_callbacks_with_key_on_all_instances(
-                CallTop, REG_ATINTERVAL);
+            invoke_callbacks_with_key_on_all_instances(pcall_no_params, REG_ATINTERVAL);
         });
     }
 
@@ -117,8 +96,7 @@ namespace LuaService
         RET_IF_EMPTY;
         g_main_window_dispatcher->invoke([]
         {
-            invoke_callbacks_with_key_on_all_instances(
-                CallTop, REG_ATPLAYMOVIE);
+            invoke_callbacks_with_key_on_all_instances(pcall_no_params, REG_ATPLAYMOVIE);
         });
     }
 
@@ -127,8 +105,7 @@ namespace LuaService
         RET_IF_EMPTY;
         g_main_window_dispatcher->invoke([]
         {
-            invoke_callbacks_with_key_on_all_instances(
-                CallTop, REG_ATSTOPMOVIE);
+            invoke_callbacks_with_key_on_all_instances(pcall_no_params, REG_ATSTOPMOVIE);
         });
     }
 
@@ -137,8 +114,7 @@ namespace LuaService
         RET_IF_EMPTY;
         g_main_window_dispatcher->invoke([]
         {
-            invoke_callbacks_with_key_on_all_instances(
-                CallTop, REG_ATLOADSTATE);
+            invoke_callbacks_with_key_on_all_instances(pcall_no_params, REG_ATLOADSTATE);
         });
     }
 
@@ -147,8 +123,7 @@ namespace LuaService
         RET_IF_EMPTY;
         g_main_window_dispatcher->invoke([]
         {
-            invoke_callbacks_with_key_on_all_instances(
-                CallTop, REG_ATSAVESTATE);
+            invoke_callbacks_with_key_on_all_instances(pcall_no_params, REG_ATSAVESTATE);
         });
     }
 
@@ -157,8 +132,7 @@ namespace LuaService
         RET_IF_EMPTY;
         g_main_window_dispatcher->invoke([]
         {
-            invoke_callbacks_with_key_on_all_instances(
-                CallTop, REG_ATRESET);
+            invoke_callbacks_with_key_on_all_instances(pcall_no_params, REG_ATRESET);
         });
     }
 
@@ -167,8 +141,7 @@ namespace LuaService
         RET_IF_EMPTY;
         g_main_window_dispatcher->invoke([]
         {
-            invoke_callbacks_with_key_on_all_instances(
-                CallTop, REG_ATSEEKCOMPLETED);
+            invoke_callbacks_with_key_on_all_instances(pcall_no_params, REG_ATSEEKCOMPLETED);
         });
     }
 

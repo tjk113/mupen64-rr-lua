@@ -84,7 +84,6 @@ namespace LuaService
 #pragma endregion
 
 #pragma region Raw Calls
-    int state_update_screen(lua_State* L);
-    int state_stop(lua_State* L);
+     int pcall_no_params(lua_State* L);
 #pragma endregion
 }

@@ -57,6 +57,7 @@ std::unordered_map<lua_State*, LuaEnvironment*> g_lua_env_map;
 
 uint64_t inputCount = 0;
 
+
 int at_panic(lua_State* L)
 {
     const auto message = lua_tostring(L, -1);
@@ -565,7 +566,7 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             GetClientRect(hwnd, &rect);
 
             lua->presenter->begin_present();
-            bool failed = lua->invoke_callbacks_with_key(LuaService::state_update_screen, REG_ATDRAWD2D);
+            bool failed = lua->invoke_callbacks_with_key(LuaService::pcall_no_params, REG_ATDRAWD2D);
 
             lua->presenter->end_present();
 
@@ -595,7 +596,7 @@ LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             HDC dc = BeginPaint(hwnd, &ps);
             GetClientRect(hwnd, &rect);
 
-            bool failed = lua->invoke_callbacks_with_key(LuaService::state_update_screen, REG_ATUPDATESCREEN);
+            bool failed = lua->invoke_callbacks_with_key(LuaService::pcall_no_params, REG_ATUPDATESCREEN);
 
             BitBlt(dc, 0, 0, lua->dc_size.width, lua->dc_size.height, lua->gdi_back_dc, 0, 0, SRCCOPY);
 
@@ -840,7 +841,7 @@ std::string LuaEnvironment::create(const std::filesystem::path& path, HWND wnd)
 
 LuaEnvironment::~LuaEnvironment()
 {
-    invoke_callbacks_with_key(LuaService::state_stop, REG_ATSTOP);
+    invoke_callbacks_with_key(LuaService::pcall_no_params, REG_ATSTOP);
     SelectObject(gdi_back_dc, nullptr);
     DeleteObject(brush);
     DeleteObject(pen);
