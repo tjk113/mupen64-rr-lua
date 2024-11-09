@@ -85,9 +85,12 @@ namespace PianoRoll
     // Whether the drag operation should unset the affected buttons regardless of the initial value
     bool g_lv_drag_unset = false;
 
+    // HACK: Flag used to not show context menu when dragging in the button columns
+    bool g_lv_ignore_context_menu = false;
+    
     // Whether a joystick drag operation is happening
     bool g_joy_drag = false;
-
+    
     // The current piano roll state.
     PianoRollState g_piano_roll_state;
 
@@ -976,6 +979,12 @@ namespace PianoRoll
         {
         case WM_CONTEXTMENU:
             {
+                if (g_lv_ignore_context_menu)
+                {
+                    g_lv_ignore_context_menu = false;
+                    break;
+                }
+                
                 HMENU h_menu = CreatePopupMenu();
                 const auto base_style = can_modify_inputs() ? MF_ENABLED : MF_DISABLED;
                 AppendMenu(h_menu, MF_STRING, 1, "Copy\tCtrl+C");
@@ -1049,6 +1058,7 @@ namespace PianoRoll
 
                     g_lv_drag_initial_value = !get_input_value_from_column_index(input, g_lv_drag_column);
                     g_lv_drag_unset = GetKeyState(VK_RBUTTON) & 0x100;
+                    g_lv_ignore_context_menu = GetKeyState(VK_RBUTTON) & 0x100;
                 }
 
                 goto handle_mouse_move;
