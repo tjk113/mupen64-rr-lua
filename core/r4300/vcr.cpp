@@ -1363,7 +1363,7 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
                     std::vector<size_t> to_erase;
                     for (const auto sample : g_seek_savestates | std::views::keys)
                     {
-                        if (sample > target_sample)
+                        if (sample >= target_sample)
                         {
                             to_erase.push_back(sample);
                         }
