@@ -1311,8 +1311,13 @@ size_t vcr_find_closest_savestate_before_frame(size_t frame)
 VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, bool warp_modify)
 {
     std::scoped_lock lock(vcr_mutex);
-
+    
     if (seek_to_frame.has_value())
+    {
+        return VCR::Result::SeekAlreadyRunning;
+    }
+
+    if (g_seek_savestate_loading)
     {
         return VCR::Result::SeekAlreadyRunning;
     }
