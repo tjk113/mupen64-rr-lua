@@ -1154,11 +1154,11 @@ namespace PianoRoll
             goto def;
         }
 
-        if (!g_config.piano_roll_constrain_edit_to_column && lplvhtti.iSubItem <= 2)
+        if (!g_config.piano_roll_constrain_edit_to_column && lplvhtti.iSubItem < 4)
         {
             goto def;
         }
-
+        
         // During a drag operation, we just mutate the input vector in memory and update the listview without doing anything with the core.
         // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
 
