@@ -614,10 +614,36 @@ std::string get_config_path()
     return FrontendService::get_app_path().string() + "config.ini";
 }
 
+/// Modifies the config to apply value limits and other constraints 
+void config_apply_limits()
+{
+    // handle edge case: closing while minimized produces bogus values for position
+    if (g_config.window_x < -10'000 || g_config.window_y < -10'000)
+    {
+        g_config.window_x = g_default_config.window_x;
+        g_config.window_y = g_default_config.window_y;
+        g_config.window_width = g_default_config.window_width;
+        g_config.window_height = g_default_config.window_height;
+    }
+
+    if (g_config.rombrowser_column_widths.size() < 4)
+    {
+        // something's malformed, fuck off and use default values
+        g_config.rombrowser_column_widths = g_default_config.rombrowser_column_widths;
+    }
+
+    // Causes too many issues
+    if (g_config.seek_savestate_interval == 1)
+    {
+        g_config.seek_savestate_interval = 2;
+    }
+}
+
 void save_config()
 {
     Messenger::broadcast(Messenger::Message::ConfigSaving, nullptr);
-
+    config_apply_limits();
+    
     std::remove(get_config_path().c_str());
 
     mINI::INIFile file(get_config_path());
@@ -643,20 +669,7 @@ void load_config()
 
     ini = handle_config_ini(true, ini);
 
-    // handle edge case: closing while minimized produces bogus values for position
-    if (g_config.window_x < -10'000 || g_config.window_y < -10'000)
-    {
-        g_config.window_x = g_default_config.window_x;
-        g_config.window_y = g_default_config.window_y;
-        g_config.window_width = g_default_config.window_width;
-        g_config.window_height = g_default_config.window_height;
-    }
-
-    if (g_config.rombrowser_column_widths.size() < 4)
-    {
-        // something's malformed, fuck off and use default values
-        g_config.rombrowser_column_widths = g_default_config.rombrowser_column_widths;
-    }
+    config_apply_limits();
 
     Messenger::broadcast(Messenger::Message::ConfigLoaded, nullptr);
 }
