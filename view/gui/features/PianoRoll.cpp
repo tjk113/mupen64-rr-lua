@@ -1116,7 +1116,7 @@ namespace PianoRoll
 
         if (!g_lv_dragging)
         {
-            if (prev_lv_dragging)
+            if (prev_lv_dragging && can_modify_inputs())
             {
                 apply_input_buffer();
             }
