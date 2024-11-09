@@ -77,7 +77,7 @@ namespace PianoRoll
     // The value of the cell under the mouse at the time when the drag operation started
     bool g_lv_drag_initial_value = false;
 
-    // The column index of the drag operation. Dragging is not supported for non-button columns (n < 3).
+    // The column index of the drag operation.
     size_t g_lv_drag_column = 0;
 
     // Whether the drag operation should unset the affected buttons regardless of the initial value
@@ -1001,31 +1001,23 @@ namespace PianoRoll
                     goto def;
                 }
 
-                if (lplvhtti.iSubItem == 0)
-                {
-                    if (!can_seek())
-                    {
-                        break;
-                    }
-                    
-                    AsyncExecutor::invoke_async([=]
-                    {
-                        VCR::begin_seek(std::to_string(lplvhtti.iItem), true);
-                    });
-                    return 0;
-                }
-
-                if (!can_modify_inputs() || lplvhtti.iSubItem < 4)
+                // Don't start a dragging operation if we're trying to modify read-only inputs
+                if (!can_modify_inputs() && lplvhtti.iSubItem >= 4)
                 {
                     break;
                 }
 
-                auto input = g_piano_roll_state.inputs[lplvhtti.iItem];
-
                 g_lv_dragging = true;
                 g_lv_drag_column = lplvhtti.iSubItem;
-                g_lv_drag_initial_value = !get_input_value_from_column_index(input, g_lv_drag_column);
-                g_lv_drag_unset = GetKeyState(VK_RBUTTON) & 0x100;
+
+                // Case for button dragging: store some info about the clicked button
+                if (lplvhtti.iSubItem >= 4)
+                {
+                    auto input = g_piano_roll_state.inputs[lplvhtti.iItem];
+
+                    g_lv_drag_initial_value = !get_input_value_from_column_index(input, g_lv_drag_column);
+                    g_lv_drag_unset = GetKeyState(VK_RBUTTON) & 0x100;
+                }
 
                 goto handle_mouse_move;
             }
@@ -1102,15 +1094,10 @@ namespace PianoRoll
         return DefSubclassProc(hwnd, msg, wParam, lParam);
 
     handle_mouse_move:
-
-        if (!can_modify_inputs())
-        {
-            goto def;
-        }
-
-        bool prev_lv_dragging = g_lv_dragging;
-
+        
         // Disable dragging if the corresponding mouse button was released. More reliable to do this here instead of MOUSE_XBUTTONDOWN.
+        const bool prev_lv_dragging = g_lv_dragging;
+
         if (!g_lv_drag_unset && !(GetKeyState(VK_LBUTTON) & 0x100))
         {
             g_lv_dragging = false;
@@ -1138,6 +1125,26 @@ namespace PianoRoll
         if (lplvhtti.iItem < 0 || lplvhtti.iItem >= g_piano_roll_state.inputs.size())
         {
             g_view_logger->info("[PianoRoll] iItem out of range");
+            goto def;
+        }
+
+        // Case for dragging the playhead: seek to the desired frame
+        if (g_lv_drag_column == 0)
+        {
+            if (!can_seek())
+            {
+                goto def;
+            }
+
+            AsyncExecutor::invoke_async([=]
+            {
+                VCR::begin_seek(std::to_string(lplvhtti.iItem), true);
+            });
+            return 0;
+        }
+
+        if (!can_modify_inputs())
+        {
             goto def;
         }
 
