@@ -407,6 +407,12 @@ namespace PianoRoll
      */
     void apply_input_buffer(bool push_to_history = true)
     {
+        if (!can_modify_inputs())
+        {
+            g_view_logger->warn("[PianoRoll] Tried to call apply_input_buffer, but can_modify_inputs() == false.");
+            return;
+        }
+        
         // This might be called from UI thread, thus grabbing the VCR lock.
         // Problem is that the VCR lock is already grabbed by the core thread because current sample changed message is executed on core thread.
         AsyncExecutor::invoke_async([=]
@@ -1152,7 +1158,7 @@ namespace PianoRoll
 
         if (!g_lv_dragging)
         {
-            if (prev_lv_dragging && can_modify_inputs())
+            if (prev_lv_dragging)
             {
                 apply_input_buffer();
             }
