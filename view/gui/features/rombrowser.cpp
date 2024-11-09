@@ -9,7 +9,7 @@
 
 #include "Statusbar.hpp"
 #include "../Main.h"
-#include "../../winproject/resource.h"
+#include <view/resource.h>
 #include <shared/helpers/StlExtensions.h>
 #include <shared/services/IOService.h>
 #include <view/helpers/IOHelpers.h>

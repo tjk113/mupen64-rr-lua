@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <Windowsx.h>
 #include <view/gui/Main.h>
-#include <winproject/resource.h>
+#include <view/resource.h>
 #include <shared/services/FrontendService.h>
 
 #include <core/r4300/gameshark.h>

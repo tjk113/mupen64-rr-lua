@@ -7,7 +7,7 @@
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include "../Main.h"
-#include "../../winproject/resource.h"
+#include <view/resource.h>
 #include <shared/Config.hpp>
 
 #define WM_SEEK_COMPLETED (WM_USER + 11)

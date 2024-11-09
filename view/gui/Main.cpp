@@ -44,7 +44,7 @@
 #include <view/lua/LuaConsole.h>
 #include <lib/spdlog/spdlog.h>
 #include <lib/spdlog/sinks/basic_file_sink.h>
-#include <winproject/resource.h>
+#include <view/resource.h>
 #include "Commandline.h"
 #include "Loggers.h"
 #include "features/CoreDbg.h"

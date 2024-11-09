@@ -1,6 +1,6 @@
 #include <view/lua/LuaConsole.h>
 
-#include "../../../winproject/resource.h"
+#include <view/resource.h>
 #include <view/gui/Main.h>
 #include "CoreDbg.h"
 

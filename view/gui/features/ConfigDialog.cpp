@@ -20,7 +20,7 @@
 #include <cassert>
 #include <view/lua/LuaConsole.h>
 #include <view/gui/Main.h>
-#include <winproject/resource.h>
+#include <view/resource.h>
 #include <core/r4300/Plugin.hpp>
 #include <core/r4300/timers.h>
 #include <shared/Config.hpp>

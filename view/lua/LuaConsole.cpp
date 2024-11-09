@@ -27,7 +27,7 @@
 #include <view/gui/features/Statusbar.hpp>
 #include <view/gui/wrapper/PersistentPathDialog.h>
 #include <view/helpers/WinHelpers.h>
-#include <winproject/resource.h>
+#include <view/resource.h>
 #include "modules/AVI.h"
 #include "modules/D2D.h"
 #include "modules/Emu.h"

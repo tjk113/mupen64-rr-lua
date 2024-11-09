@@ -15,7 +15,7 @@
 #include "shared/services/FrontendService.h"
 #include "view/gui/Main.h"
 #include "view/helpers/WinHelpers.h"
-#include "winproject/resource.h"
+#include <view/resource.h>
 
 import std;
 

@@ -220,7 +220,7 @@
     <ClInclude Include="..\view\lua\presenters\DCompPresenter.h" />
     <ClInclude Include="..\view\lua\presenters\GDIPresenter.h" />
     <ClInclude Include="..\view\lua\presenters\Presenter.h" />
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="..\view\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\core\memory\dma.cpp" />
@@ -308,29 +308,29 @@
     <ClCompile Include="..\view\lua\presenters\GDIPresenter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icons\austral.ico" />
-    <Image Include="icons\beta.ico" />
-    <Image Include="icons\changed.ico" />
-    <Image Include="icons\Control.bmp" />
-    <Image Include="icons\demo.ico" />
-    <Image Include="icons\deny.ico" />
-    <Image Include="icons\Display.bmp" />
-    <Image Include="icons\europe.ico" />
-    <Image Include="icons\france.ico" />
-    <Image Include="icons\germany.ico" />
-    <Image Include="icons\italy.ico" />
-    <Image Include="icons\japan.ico" />
-    <Image Include="icons\logo.bmp" />
-    <Image Include="icons\m64big.ico" />
-    <Image Include="icons\m64small.ico" />
-    <Image Include="icons\RSP.bmp" />
-    <Image Include="icons\Sound.bmp" />
-    <Image Include="icons\spain.ico" />
-    <Image Include="icons\unknown.ico" />
-    <Image Include="icons\usa.ico" />
+    <Image Include="..\view\icons\austral.ico" />
+    <Image Include="..\view\icons\beta.ico" />
+    <Image Include="..\view\icons\changed.ico" />
+    <Image Include="..\view\icons\Control.bmp" />
+    <Image Include="..\view\icons\demo.ico" />
+    <Image Include="..\view\icons\deny.ico" />
+    <Image Include="..\view\icons\Display.bmp" />
+    <Image Include="..\view\icons\europe.ico" />
+    <Image Include="..\view\icons\france.ico" />
+    <Image Include="..\view\icons\germany.ico" />
+    <Image Include="..\view\icons\italy.ico" />
+    <Image Include="..\view\icons\japan.ico" />
+    <Image Include="..\view\icons\logo.bmp" />
+    <Image Include="..\view\icons\m64big.ico" />
+    <Image Include="..\view\icons\m64small.ico" />
+    <Image Include="..\view\icons\RSP.bmp" />
+    <Image Include="..\view\icons\Sound.bmp" />
+    <Image Include="..\view\icons\spain.ico" />
+    <Image Include="..\view\icons\unknown.ico" />
+    <Image Include="..\view\icons\usa.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="rsrc.rc" />
+    <ResourceCompile Include="..\view\rsrc.rc" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="app.manifest" />
