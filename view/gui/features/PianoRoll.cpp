@@ -6,6 +6,8 @@
 #include <windowsx.h>
 #include <commctrl.h>
 
+#include "core/memory/pif.h"
+#include "core/r4300/r4300.h"
 #include "core/r4300/vcr.h"
 #include "shared/AsyncExecutor.h"
 #include "shared/Messenger.h"
@@ -112,7 +114,8 @@ namespace PianoRoll
             && VCR::get_task() == e_task::recording
             && !VCR::is_seeking()
             && !g_config.vcr_readonly
-            && g_config.seek_savestate_interval > 0;
+            && g_config.seek_savestate_interval > 0
+            && emu_paused;
     }
 
     /**
@@ -632,6 +635,12 @@ namespace PianoRoll
             return;
         }
 
+        if (!emu_paused)
+        {
+            SetDlgItemText(g_hwnd, IDC_STATIC, "Input - Resumed, no edits");
+            return;
+        }
+        
         if (g_piano_roll_state.selected_indicies.empty())
         {
             SetDlgItemText(g_hwnd, IDC_STATIC, "Input");
@@ -763,6 +772,21 @@ namespace PianoRoll
         });
     }
 
+    void on_emu_paused_changed(std::any)
+    {
+        // Redrawing during frame advance (paused on, then off next frame) causes ugly flicker, so we'll just not do that
+        if (frame_advancing && !emu_paused)
+        {
+            return;
+        }
+        
+        g_piano_roll_dispatcher->invoke([=]
+        {
+            update_groupbox_status_text();
+            RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
+        });
+    }
+
 #pragma endregion
 
 #pragma region Message Loops, Visuals
@@ -820,6 +844,8 @@ namespace PianoRoll
                     input = g_piano_roll_state.inputs[g_piano_roll_state.selected_indicies[0]];
                 }
 
+                g_view_logger->info("[PianoRoll] Joystick repaint, can_joystick_be_modified: {}", can_joystick_be_modified());
+                
                 PAINTSTRUCT ps;
                 RECT rect;
                 HDC hdc = BeginPaint(hwnd, &ps);
@@ -1459,6 +1485,7 @@ namespace PianoRoll
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed));
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::SeekCompleted, on_seek_completed));
             unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::SeekSavestateChanged, on_seek_savestate_changed));
+            unsubscribe_funcs.push_back(Messenger::subscribe(Messenger::Message::EmuPausedChanged, on_emu_paused_changed));
 
             DialogBox(g_app_instance, MAKEINTRESOURCE(IDD_PIANO_ROLL), 0, (DLGPROC)dialog_proc);
 
