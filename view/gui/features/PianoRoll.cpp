@@ -712,7 +712,7 @@ namespace PianoRoll
     {
         g_piano_roll_dispatcher->invoke([=]
         {
-            if (g_config.vcr_readonly || VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
+            if (VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
             {
                 return;
             }
@@ -722,7 +722,13 @@ namespace PianoRoll
             ListView_DeleteAllItems(g_lv_hwnd);
 
             g_piano_roll_state.inputs = VCR::get_inputs();
-            ListView_SetItemCountEx(g_lv_hwnd, min(VCR::get_seek_completion().first, g_piano_roll_state.inputs.size()), LVSICF_NOSCROLL);
+
+            const auto item_count = VCR::get_task() == e_task::recording
+                                        ? min(VCR::get_seek_completion().first, g_piano_roll_state.inputs.size())
+                                        : g_piano_roll_state.inputs.size();
+
+            g_view_logger->info("[PianoRoll] Setting item count to {} (input count: {})...", item_count, g_piano_roll_state.inputs.size());
+            ListView_SetItemCountEx(g_lv_hwnd, item_count, LVSICF_NOSCROLL);
 
             SetWindowRedraw(g_lv_hwnd, true);
 
@@ -1094,7 +1100,7 @@ namespace PianoRoll
         return DefSubclassProc(hwnd, msg, wParam, lParam);
 
     handle_mouse_move:
-        
+
         // Disable dragging if the corresponding mouse button was released. More reliable to do this here instead of MOUSE_XBUTTONDOWN.
         const bool prev_lv_dragging = g_lv_dragging;
 
