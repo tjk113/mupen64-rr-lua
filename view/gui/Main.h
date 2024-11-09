@@ -23,7 +23,7 @@
 #include <spdlog/logger.h>
 #include <view/gui/features/Dispatcher.h>
 
-#define MUPEN_VERSION "Mupen 64 1.1.9"
+#define MUPEN_VERSION "Mupen 64 1.1.9-rc2"
 
 #define WM_FOCUS_MAIN_WINDOW (WM_USER + 17)
 #define WM_EXECUTE_DISPATCHER (WM_USER + 18)
