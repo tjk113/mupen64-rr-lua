@@ -184,7 +184,7 @@ void FrontendService::set_default_hotkey_keys(t_config* config)
 
     config->save_current_hotkey.key = 'I';
 
-    config->load_current_hotkey.key = 'I';
+    config->load_current_hotkey.key = 'P';
 
     config->save_as_hotkey.key = 'N';
     config->save_as_hotkey.ctrl = true;
