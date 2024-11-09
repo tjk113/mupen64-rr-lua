@@ -1356,6 +1356,26 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
             else
             {
                 const auto target_sample = warp_modify ? g_warp_modify_first_difference_frame : frame;
+
+                // All seek savestates after the target frame need to be purged, as the user will invalidate them by overwriting inputs prior to them
+                if (!g_config.vcr_readonly)
+                {
+                    std::vector<size_t> to_erase;
+                    for (const auto sample : g_seek_savestates | std::views::keys)
+                    {
+                        if (sample > target_sample)
+                        {
+                            to_erase.push_back(sample);
+                        }
+                    }
+                    for (const auto sample : to_erase)
+                    {
+                        g_core_logger->info("[VCR] Erasing now-invalidated seek savestate at frame {}...", sample);
+                        g_seek_savestates.erase(sample);
+                        Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)sample);
+                    }
+                }
+                
                 const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
 
                 g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
