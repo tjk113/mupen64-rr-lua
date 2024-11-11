@@ -509,17 +509,17 @@ void vcr_create_n_frame_savestate(size_t frame)
 {
     assert(m_current_sample == frame);
 
-	// OPTIMIZATION: When seeking, we can skip creating seek savestates until near the end where we know they wont be purged
-	if (VCR::is_seeking())
-	{
-		const auto frames_from_end_where_savestates_start_appearing = g_config.seek_savestate_interval * g_config.seek_savestate_max_count;
-		const auto seek_completion = VCR::get_seek_completion();
-		if (seek_completion.second - seek_completion.first > frames_from_end_where_savestates_start_appearing)
-		{
-			g_core_logger->info("[VCR] Omitting creation of seek savestate because distance to seek end is big enough");
-			return;
-		}
-	}
+    // OPTIMIZATION: When seeking, we can skip creating seek savestates until near the end where we know they wont be purged
+    if (VCR::is_seeking())
+    {
+        const auto frames_from_end_where_savestates_start_appearing = g_config.seek_savestate_interval * g_config.seek_savestate_max_count;
+        const auto seek_completion = VCR::get_seek_completion();
+        if (seek_completion.second - seek_completion.first > frames_from_end_where_savestates_start_appearing)
+        {
+            g_core_logger->info("[VCR] Omitting creation of seek savestate because distance to seek end is big enough");
+            return;
+        }
+    }
 
     // If our seek savestate map is getting too large, we'll start purging the oldest ones (but not the first one!!!)
     if (g_seek_savestates.size() > g_config.seek_savestate_max_count)
@@ -540,13 +540,13 @@ void vcr_create_n_frame_savestate(size_t frame)
     Savestates::do_memory({}, Savestates::Job::Save, [frame](Savestates::Result result, const auto& buf)
     {
         std::scoped_lock lock(vcr_mutex);
-        
+
         if (result != Savestates::Result::Ok)
         {
             FrontendService::show_error(std::format("Failed to save seek savestate at frame {}.", frame).c_str(), "VCR");
             return;
         }
-        
+
         g_core_logger->info("[VCR] Seek savestate at frame {} of size {} completed", frame, buf.size());
         g_seek_savestates[frame] = buf;
         Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)frame);
@@ -902,7 +902,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
         Savestates::do_file(get_savestate_path_for_new_movie(g_movie_path), Savestates::Job::Save, [](Savestates::Result result, auto)
         {
             std::scoped_lock lock(vcr_mutex);
-            
+
             if (result != Savestates::Result::Ok)
             {
                 FrontendService::show_error("Failed to load savestate while starting recording.\nRecording will be stopped.", "VCR");
@@ -919,7 +919,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
     else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
     {
         // TODO: Verify that this flag still works after st task rewrite
-        
+
         g_core_logger->info("[VCR] Loading state...");
         auto st_path = find_savestate_for_movie(g_movie_path);
         if (st_path.empty())
@@ -930,11 +930,11 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
         // set this to the normal snapshot flag to maintain compatibility
         g_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
         g_task = e_task::start_recording_from_existing_snapshot;
-        
+
         Savestates::do_file(st_path, Savestates::Job::Load, [](Savestates::Result result, auto)
         {
             std::scoped_lock lock(vcr_mutex);
-            
+
             if (result != Savestates::Result::Ok)
             {
                 FrontendService::show_error("Failed to load savestate while starting recording.\nRecording will be stopped.", "VCR");
@@ -1263,17 +1263,17 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
         Savestates::do_file(st_path, Savestates::Job::Load, [](Savestates::Result result, auto)
         {
             std::scoped_lock lock(vcr_mutex);
-            
-           if (result != Savestates::Result::Ok)
-           {
-               FrontendService::show_error("Failed to load savestate while starting playback.\nRecording will be stopped.", "VCR");
-               VCR::stop_all();
-               return;
-           }
 
-           g_core_logger->info("[VCR] Starting playback from snapshot...");
-           g_task = e_task::playback;
-           // FIXME: Doesn't this need a message broadcast?
+            if (result != Savestates::Result::Ok)
+            {
+                FrontendService::show_error("Failed to load savestate while starting playback.\nRecording will be stopped.", "VCR");
+                VCR::stop_all();
+                return;
+            }
+
+            g_core_logger->info("[VCR] Starting playback from snapshot...");
+            g_task = e_task::playback;
+            // FIXME: Doesn't this need a message broadcast?
         });
     }
     else
@@ -1417,18 +1417,23 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
 
                 g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
                 g_seek_savestate_loading = true;
-                Savestates::do_memory(g_seek_savestates[closest_key], Savestates::Job::Load, [=](Savestates::Result result, auto buf)
+
+                // NOTE: This needs to go through AsyncExecutor (despite us already being on a worker thread) or it will cause a deadlock.
+                AsyncExecutor::invoke_async([=]
                 {
-					std::scoped_lock l(vcr_mutex);
-
-                    if (result != Savestates::Result::Ok)
+                    Savestates::do_memory(g_seek_savestates[closest_key], Savestates::Job::Load, [=](Savestates::Result result, auto buf)
                     {
-                        FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
-                        VCR::stop_seek();
-                    }
+                        std::scoped_lock l(vcr_mutex);
 
-                    g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
-                    g_seek_savestate_loading = false;
+                        if (result != Savestates::Result::Ok)
+                        {
+                            FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
+                            VCR::stop_seek();
+                        }
+
+                        g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
+                        g_seek_savestate_loading = false;
+                    });
                 });
 
                 return VCR::Result::Ok;
