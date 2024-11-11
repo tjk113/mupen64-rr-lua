@@ -46,6 +46,7 @@ extern std::unique_ptr<Plugin> video_plugin;
 extern std::unique_ptr<Plugin> audio_plugin;
 extern std::unique_ptr<Plugin> input_plugin;
 extern std::unique_ptr<Plugin> rsp_plugin;
+extern bool g_vr_beq_ignore_jmp;
 extern volatile bool emu_launched;
 extern volatile bool emu_paused;
 extern volatile bool emu_resetting;

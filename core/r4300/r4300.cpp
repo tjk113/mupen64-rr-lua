@@ -68,7 +68,7 @@ std::unique_ptr<Plugin> audio_plugin;
 std::unique_ptr<Plugin> input_plugin;
 std::unique_ptr<Plugin> rsp_plugin;
 
-extern bool ignore;
+bool g_vr_beq_ignore_jmp;
 volatile bool emu_launched = false;
 volatile bool emu_paused = false;
 volatile bool core_executing = false;
@@ -295,7 +295,7 @@ void BEQ()
     PC->ops();
     update_count();
     delay_slot = 0;
-    if (local_rs == local_rt && !skip_jump && !ignore)
+    if (local_rs == local_rt && !skip_jump && !g_vr_beq_ignore_jmp)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
@@ -1880,7 +1880,7 @@ void core_start()
 			compare_core();
 #endif
             PC->ops();
-            ignore = false;
+            g_vr_beq_ignore_jmp = false;
             /*if (j!= (Count & 0xFFF00000))
               {
              j = (Count & 0xFFF00000);

@@ -55,9 +55,6 @@ bool g_st_old;
 // right now its hardcoded to enabled
 bool g_st_skip_dma = false;
 
-// Ridiculous hack, see savestates_load_immediate_impl.
-extern bool ignore;
-
 namespace Savestates
 {
     /// Represents a task to be performed by the savestate system.
@@ -645,7 +642,7 @@ namespace Savestates
         g_st_old = (interp_addr == 0x80000180 || PC->addr == 0x80000180);
         //doubled because can't just reuse this variable
         if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && !dynacore))
-            ignore = true;
+            g_vr_beq_ignore_jmp = true;
         if (!dynacore && interpcore)
         {
             //g_core_logger->info(".st jump: {:#06x}, stopped here:{:#06x}", interp_addr, last_addr);
