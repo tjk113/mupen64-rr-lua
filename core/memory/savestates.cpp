@@ -646,6 +646,47 @@ namespace Savestates
     }
 
     /**
+     * Simplifies the task queue by removing duplicates. Only slot-based tasks are affected for now.
+     */
+    void savestates_simplify_tasks()
+    {
+        std::scoped_lock lock(g_task_mutex);
+        g_core_logger->info("[ST] Simplifying task queue...");
+
+        std::vector<size_t> duplicate_indicies{};
+
+        
+        // De-dup slot-based save tasks
+        // 1. Loop through all tasks
+        for (size_t i = 0; i < g_tasks.size(); i++)
+        {
+            const auto& task = g_tasks[i];
+            
+            if (task.medium != Medium::Slot)
+                continue;
+
+            // 2. If a slot task is detected, loop through all other tasks up to the next load task to find duplicates
+            for (size_t j = i + 1; j < g_tasks.size(); j++)
+            {
+                const auto& other_task = g_tasks[j];
+
+                if (other_task.job == Job::Load)
+                {
+                    break;
+                }
+                
+                if (other_task.medium == Medium::Slot && task.params.slot == other_task.params.slot)
+                {
+                    g_core_logger->info("[ST] Found duplicate slot task at index {}", j);
+                    duplicate_indicies.push_back(j);
+                }
+            }
+        }
+
+        g_tasks = erase_indices(g_tasks, duplicate_indicies);
+    }
+    
+    /**
      * Logs the current task queue.
      */
     void savestates_log_tasks()
@@ -705,8 +746,8 @@ namespace Savestates
 
         if (!g_tasks.empty())
         {
-            g_core_logger->info("[ST] Processing {} tasks...", g_st_tasks.size());
             g_core_logger->info("[ST] Processing {} tasks...", g_tasks.size());
+            savestates_simplify_tasks();
             savestates_log_tasks();
         }
         else
