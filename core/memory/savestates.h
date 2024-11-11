@@ -31,9 +31,10 @@
 #include <filesystem>
 #include <functional>
 
-// TODO: Move to namespace
+extern bool g_st_skip_dma;
+extern bool g_st_old;
 
-namespace Savestate
+namespace Savestates
 {
     enum class Result
     {
@@ -42,96 +43,98 @@ namespace Savestate
         // The operation failed
         Failed,
     };
+
+    enum class Job
+    {
+        // A save operation
+        Save,
+        // A load operation
+        Load
+    };
+
+
+    enum class Medium
+    {
+        // The target medium is a slot (0-9).
+        Slot,
+        // The target medium is a file with a path.
+        Path,
+        // The target medium is in-memory.
+        Memory
+    };
+ 
+    using t_savestate_callback = std::function<void(Savestates::Result result, const std::vector<uint8_t>&)>;
+
+    /**
+     * \brief Gets the path to the save directory
+     */
+    std::filesystem::path get_saves_directory();
+
+    /**
+     * \brief Gets the path to the current rom's SRAM file
+     */
+    std::filesystem::path get_sram_path();
+
+    /**
+     * \brief Gets the path to the current rom's EEPROM file
+     */
+    std::filesystem::path get_eeprom_path();
+
+    /**
+     * \brief Gets the path to the current rom's flashram file
+     */
+    std::filesystem::path get_flashram_path();
+
+    /**
+     * \brief Gets the path to the current rom's mempak file
+     */
+    std::filesystem::path get_mempak_path();
+
+    /**
+     * \brief Sets the selected slot
+     */
+    void set_slot(size_t slot);
+
+    /**
+     * \brief Gets the selected slot
+     */
+    size_t get_slot();
+
+    /**
+     * \brief Initializes the savestate system
+     */
+    void init();
+
+    /**
+     * \brief Does the pending savestate work.
+     * \warning This function must only be called from the emulation thread. Other callers must use the <c>savestates_do_x</c> family.
+     */
+    void do_work();
+
+    /**
+     * \brief Executes a savestate operation to a path
+     * \param path The savestate's path
+     * \param job The job to set
+     * \param callback The callback to call when the operation is complete. Can be null.
+     * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
+     */
+    void do_file(const std::filesystem::path& path, Job job, const t_savestate_callback& callback = nullptr);
+
+    /**
+     * \brief Executes a savestate operation to a slot
+     * \param slot The slot to construct the savestate path with, or -1 if the current one should be used
+     * \param job The job to set
+     * \param callback The callback to call when the operation is complete. Can be null.
+     * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
+     */
+    void do_slot(int32_t slot, Job job, const t_savestate_callback& callback = nullptr);
+
+    /**
+     * Executes a savestate operation in-memory.
+     * \param buffer The buffer to use for the operation. Can be empty if the <see cref="job"/> is <see cref="e_st_job::save"/>.
+     * \param job The job to set.
+     * \param callback The callback to call when the operation is complete. Can be null.
+     * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
+     */
+    void do_memory(const std::vector<uint8_t>& buffer, Job job, const t_savestate_callback& callback = nullptr);
 }
-
-enum class e_st_job
-{
-    none,
-    save,
-    load
-};
-
-enum class e_st_medium
-{
-    slot,
-    path,
-    memory
-};
-
-extern bool g_st_skip_dma;
-extern bool g_st_old;
-
-using t_savestate_callback = std::function<void(Savestate::Result result, const std::vector<uint8_t>&)>;
-
-/**
- * \brief Gets the path to the save directory
- */
-std::filesystem::path get_saves_directory();
-
-/**
- * \brief Gets the path to the current rom's SRAM file
- */
-std::filesystem::path get_sram_path();
-
-/**
- * \brief Gets the path to the current rom's EEPROM file
- */
-std::filesystem::path get_eeprom_path();
-
-/**
- * \brief Gets the path to the current rom's flashram file
- */
-std::filesystem::path get_flashram_path();
-
-/**
- * \brief Gets the path to the current rom's mempak file
- */
-std::filesystem::path get_mempak_path();
-
-/**
- * \brief Sets the selected slot
- */
-void savestates_set_slot(size_t slot);
-
-/**
- * \brief Gets the selected slot
- */
-size_t savestates_get_slot();
-
-/**
- * \brief Initializes the savestate system
- */
-void savestates_init();
-
-/**
- * \brief Does the pending savestate work.
- * \warning This function must only be called from the emulation thread. Other callers must use the <c>savestates_do_x</c> family.
- */
-void savestates_do_work();
-
-/**
- * \brief Executes a savestate operation to a path
- * \param path The savestate's path
- * \param job The job to set
- * \param callback The callback to call when the operation is complete. Can be null.
- * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
- */
-void savestates_do_file(const std::filesystem::path& path, e_st_job job, const t_savestate_callback& callback = nullptr);
-
-/**
- * \brief Executes a savestate operation to a slot
- * \param slot The slot to construct the savestate path with, or -1 if the current one should be used
- * \param job The job to set
- * \param callback The callback to call when the operation is complete. Can be null.
- * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
- */
-void savestates_do_slot(int32_t slot, e_st_job job, const t_savestate_callback& callback = nullptr);
-
-/**
- * Executes a savestate operation in-memory.
- * \param buffer The buffer to use for the operation. Can be empty if the <see cref="job"/> is <see cref="e_st_job::save"/>.
- * \param job The job to set.
- * \param callback The callback to call when the operation is complete. Can be null.
- * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
- */
-void savestates_do_memory(const std::vector<uint8_t>& buffer, e_st_job job, const t_savestate_callback& callback = nullptr);

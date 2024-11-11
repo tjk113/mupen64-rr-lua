@@ -463,13 +463,13 @@ void update_pif_read()
 
                             if (stAllowed)
                             {
-                                savestates_do_work();
+                                Savestates::do_work();
                             }
                         }
                     }
                     if (stAllowed)
                     {
-                        savestates_do_work();
+                        Savestates::do_work();
                     }
                     if (g_st_old)
                     {

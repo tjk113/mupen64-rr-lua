@@ -108,7 +108,7 @@ void commandline_load_st()
         return;
     }
 
-    savestates_do_file(commandline_st.c_str(), e_st_job::load);
+    Savestates::do_file(commandline_st.c_str(), Savestates::Job::Load);
 }
 
 void commandline_start_lua()

@@ -10,13 +10,13 @@ namespace LuaCore::Savestate
 {
     static int SaveFileSavestate(lua_State* L)
     {
-        savestates_do_file(lua_tostring(L, 1), e_st_job::save);
+        ::Savestates::do_file(lua_tostring(L, 1), ::Savestates::Job::Save);
         return 0;
     }
 
     static int LoadFileSavestate(lua_State* L)
     {
-        savestates_do_file(lua_tostring(L, 1), e_st_job::load);
+        ::Savestates::do_file(lua_tostring(L, 1), ::Savestates::Job::Load);
         return 0;
     }
 }

@@ -805,7 +805,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 if (!emu_launched) break;
                 AsyncExecutor::invoke_async([=]
                 {
-                    savestates_do_file(fname, e_st_job::load);
+                    Savestates::do_file(fname, Savestates::Job::Load);
                 });
             }
             else if (extension == ".lua")
@@ -1061,7 +1061,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 CheckMenuItem(g_main_menu, i, MF_UNCHECKED);
             }
-            CheckMenuItem(g_main_menu, IDM_SELECT_1 + savestates_get_slot(), MF_CHECKED);
+            CheckMenuItem(g_main_menu, IDM_SELECT_1 + Savestates::get_slot(), MF_CHECKED);
         }
         break;
     case WM_ENTERMENULOOP:
@@ -1411,7 +1411,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDM_SAVE_SLOT:
                 AsyncExecutor::invoke_async([=]
                 {
-                    savestates_do_slot(-1, e_st_job::save);
+                    Savestates::do_slot(-1, Savestates::Job::Save);
                 });
                 break;
             case IDM_SAVE_STATE_AS:
@@ -1426,14 +1426,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     AsyncExecutor::invoke_async([=]
                     {
-                        savestates_do_file(path, e_st_job::save);
+                        Savestates::do_file(path, Savestates::Job::Save);
                     });
                 }
                 break;
             case IDM_LOAD_SLOT:
                 AsyncExecutor::invoke_async([=]
                 {
-                    savestates_do_slot(-1, e_st_job::load);
+                    Savestates::do_slot(-1, Savestates::Job::Load);
                 });
                 break;
             case IDM_LOAD_STATE_AS:
@@ -1449,7 +1449,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     AsyncExecutor::invoke_async([=]
                     {
-                        savestates_do_file(path, e_st_job::load);
+                        Savestates::do_file(path, Savestates::Job::Load);
                     });
                 }
                 break;
@@ -1583,7 +1583,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     <= IDM_SELECT_10)
                 {
                     auto slot = LOWORD(wParam) - IDM_SELECT_1;
-                    savestates_set_slot(slot);
+                    Savestates::set_slot(slot);
                 }
                 else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <=
                     ID_SAVE_10)
@@ -1592,7 +1592,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     // if emu is paused and no console state is changing, we can safely perform st op instantly
                     AsyncExecutor::invoke_async([=]
                     {
-                        savestates_do_slot(slot, e_st_job::save);
+                        Savestates::do_slot(slot, Savestates::Job::Save);
                     });
                 }
                 else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <=
@@ -1601,7 +1601,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     auto slot = LOWORD(wParam) - ID_LOAD_1;
                     AsyncExecutor::invoke_async([=]
                     {
-                        savestates_do_slot(slot, e_st_job::load);
+                        Savestates::do_slot(slot, Savestates::Job::Load);
                     });
                 }
                 else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST &&
@@ -1802,7 +1802,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     EncodingManager::init();
     Cli::init();
     Seeker::init();
-    savestates_init();
+    Savestates::init();
     setup_dummy_info();
 
     Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, g_recent_roms_menu);
