@@ -37,14 +37,16 @@
 #include "memory.h"
 #include "summercart.h"
 #include <shared/Messenger.h>
-#include "../r4300/interrupt.h"
-#include "../r4300/r4300.h"
-#include "../r4300/rom.h"
-#include "../r4300/vcr.h"
+#include <core/r4300/interrupt.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/rom.h>
+#include <core/r4300/vcr.h>
 #include <cassert>
 #include <queue>
 
 #include <shared/services/FrontendService.h>
+
+#include "shared/helpers/StlExtensions.h"
 
 // st that comes from no delay fix mupen, it has some differences compared to new st:
 // - one frame of input is "embedded", that is the pif ram holds already fetched controller info.
@@ -88,21 +90,28 @@ namespace Savestates
         t_params params{};
     };
 
-    std::recursive_mutex g_task_mutex;
-    std::vector<t_savestate_task> g_st_tasks;
+    // Enable fixing .st to work for old mupen and m64p
+    constexpr bool FIX_NEW_ST = true;
 
-    // enable fixing .st to work for old mupen (and m64plus)
-    bool fix_new_st = true;
+    // Bit to set in RDRAM register to indicate that the savestate has been fixed
+    constexpr auto RDRAM_DEVICE_MANUF_NEW_FIX_BIT = (1 << 31);
 
-    //last bit seems to be free
-    enum { new_st_fixed_bit = (1 << 31) };
-
-    constexpr int buflen = 1024;
+    constexpr int BUFLEN = 1024;
     constexpr int first_block_size = 0xA02BB4 - 32; //32 is md5 hash
+
+    // The task vector mutex. Locked when accessing the task vector.
+    std::recursive_mutex g_task_mutex;
+
+    // The task vector, which contains the task queue to be performed by the savestate system.
+    std::vector<t_savestate_task> g_tasks;
+
     uint8_t first_block[first_block_size] = {0};
 
     // Demarcator for new screenshot section
     char screen_section[] = "SCR";
+
+    // Buffer used for storing event queue data during loading
+    char event_queue_buf[BUFLEN] = {0};
 
     std::filesystem::path get_saves_directory()
     {
@@ -133,20 +142,30 @@ namespace Savestates
         return std::format("{}{} {}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
     }
 
+    void get_paths_for_task(const t_savestate_task& task, std::filesystem::path& st_path, std::filesystem::path& sd_path)
+    {
+        sd_path = std::format("{}{}.sd", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+
+        if (task.medium == Medium::Slot)
+        {
+            st_path = std::format(
+                "{}{} {}.st{}",
+                get_saves_directory().string(),
+                (const char*)ROM_HEADER.nom,
+                country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(task.params.slot));
+        }
+    }
+
     void init()
     {
     }
 
-    /// <summary>
-    /// overwrites emu memory with given data. Make sure to call load_eventqueue_infos as well!!!
-    /// </summary>
-    /// <param name="firstBlock"></param>
     void load_memory_from_buffer(uint8_t* p)
     {
         memread(&p, &rdram_register, sizeof(RDRAM_register));
-        if (rdram_register.rdram_device_manuf & new_st_fixed_bit)
+        if (rdram_register.rdram_device_manuf & RDRAM_DEVICE_MANUF_NEW_FIX_BIT)
         {
-            rdram_register.rdram_device_manuf &= ~new_st_fixed_bit; //remove the trick
+            rdram_register.rdram_device_manuf &= ~RDRAM_DEVICE_MANUF_NEW_FIX_BIT; //remove the trick
             g_st_skip_dma = true; //tell dma.c to skip it
         }
         memread(&p, &MI_register, sizeof(mips_register));
@@ -204,10 +223,12 @@ namespace Savestates
     {
         std::vector<uint8_t> b;
 
+        b.reserve(0xB624F0);
+
         vecwrite(b, rom_md5, 32);
 
         //if fixing enabled...
-        if (fix_new_st)
+        if (FIX_NEW_ST)
         {
             //this is code taken from dma.c:dma_si_read(), it finishes up the dma.
             //it copies data from pif (should contain commands and controller states), updates count reg and adds SI interrupt to queue
@@ -226,7 +247,7 @@ namespace Savestates
                     rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
                 update_count();
                 add_interrupt_event(SI_INT, /*0x100*/0x900);
-                rdram_register.rdram_device_manuf |= new_st_fixed_bit;
+                rdram_register.rdram_device_manuf |= RDRAM_DEVICE_MANUF_NEW_FIX_BIT;
                 g_st_skip_dma = true;
             }
             //hack end
@@ -309,20 +330,6 @@ namespace Savestates
         return b;
     }
 
-    void get_effective_paths(const t_savestate_task& task, std::filesystem::path& st_path, std::filesystem::path& sd_path)
-    {
-        sd_path = std::format("{}{}.sd", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
-
-        if (task.medium == Medium::Slot)
-        {
-            st_path = std::format(
-                "{}{} {}.st{}",
-                get_saves_directory().string(),
-                (const char*)ROM_HEADER.nom,
-                country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(task.params.slot));
-        }
-    }
-
     void savestates_save_immediate_impl(const t_savestate_task& task)
     {
         const auto start_time = std::chrono::high_resolution_clock::now();
@@ -347,7 +354,7 @@ namespace Savestates
             // Always save summercart for some reason
             std::filesystem::path new_st_path = task.params.path;
             std::filesystem::path new_sd_path = "";
-            get_effective_paths(task, new_st_path, new_sd_path);
+            get_paths_for_task(task, new_st_path, new_sd_path);
             if (g_config.use_summercart) save_summercart(new_sd_path.string().c_str());
 
             // Generate compressed buffer
@@ -404,13 +411,13 @@ namespace Savestates
         ??? - ??????   : m64 info, also dynamic, no cap
         More precise info can be seen on github
         */
-        char buf[buflen]{};
+        memset(event_queue_buf, 0, sizeof(event_queue_buf));
         //handle to st
         int len;
 
         std::filesystem::path new_st_path = task.params.path;
         std::filesystem::path new_sd_path = "";
-        get_effective_paths(task, new_st_path, new_sd_path);
+        get_paths_for_task(task, new_st_path, new_sd_path);
 
         if (g_config.use_summercart) load_summercart(new_sd_path.string().c_str());
 
@@ -477,14 +484,14 @@ namespace Savestates
         memread(&ptr, first_block, first_block_size);
 
         // now read interrupt queue into buf
-        for (len = 0; len < buflen; len += 8)
+        for (len = 0; len < BUFLEN; len += 8)
         {
-            memread(&ptr, buf + len, 4);
-            if (*reinterpret_cast<unsigned long*>(&buf[len]) == 0xFFFFFFFF)
+            memread(&ptr, event_queue_buf + len, 4);
+            if (*reinterpret_cast<unsigned long*>(&event_queue_buf[len]) == 0xFFFFFFFF)
                 break;
-            memread(&ptr, buf + len + 4, 4);
+            memread(&ptr, event_queue_buf + len + 4, 4);
         }
-        if (len == buflen)
+        if (len == BUFLEN)
         {
             // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
             FrontendService::show_statusbar("Event queue too long (corrupted?)");
@@ -586,7 +593,7 @@ namespace Savestates
             }
 
             // so far loading success! overwrite memory
-            load_eventqueue_infos(buf);
+            load_eventqueue_infos(event_queue_buf);
             load_memory_from_buffer(first_block);
 
             // NOTE: We don't want to restore screen buffer while seeking, since it creates a short ugly flicker when the movie restarts by loading state
@@ -645,7 +652,7 @@ namespace Savestates
     {
         std::scoped_lock lock(g_task_mutex);
         g_core_logger->info("[ST] Begin task dump");
-        for (const auto& task : g_st_tasks)
+        for (const auto& task : g_tasks)
         {
             std::string job_str = (task.job == Job::Save) ? "Save" : "Load";
             std::string medium_str;
@@ -677,7 +684,7 @@ namespace Savestates
         std::scoped_lock lock(g_task_mutex);
 
         bool encountered_load = false;
-        for (const auto& task : g_st_tasks)
+        for (const auto& task : g_tasks)
         {
             if (task.job == Job::Save && encountered_load)
             {
@@ -696,9 +703,10 @@ namespace Savestates
     {
         std::scoped_lock lock(g_task_mutex);
 
-        if (!g_st_tasks.empty())
+        if (!g_tasks.empty())
         {
             g_core_logger->info("[ST] Processing {} tasks...", g_st_tasks.size());
+            g_core_logger->info("[ST] Processing {} tasks...", g_tasks.size());
             savestates_log_tasks();
         }
         else
@@ -706,7 +714,7 @@ namespace Savestates
             return;
         }
 
-        for (const auto& task : g_st_tasks)
+        for (const auto& task : g_tasks)
         {
             if (task.job == Job::Save)
             {
@@ -717,21 +725,21 @@ namespace Savestates
                 savestates_load_immediate_impl(task);
             }
         }
-        g_st_tasks.clear();
+        g_tasks.clear();
     }
 
 
     void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback)
     {
         std::scoped_lock lock(g_task_mutex);
-        g_st_tasks.insert(g_st_tasks.begin(), t_savestate_task{
-                              .job = job,
-                              .medium = Medium::Path,
-                              .callback = callback,
-                              .params = {
-                                  .path = path
-                              }
-                          });
+        g_tasks.insert(g_tasks.begin(), t_savestate_task{
+                           .job = job,
+                           .medium = Medium::Path,
+                           .callback = callback,
+                           .params = {
+                               .path = path
+                           }
+                       });
         savestates_warn_if_load_after_save();
     }
 
@@ -739,28 +747,28 @@ namespace Savestates
     {
         std::scoped_lock lock(g_task_mutex);
 
-        g_st_tasks.insert(g_st_tasks.begin(), t_savestate_task{
-                              .job = job,
-                              .medium = Medium::Slot,
-                              .callback = callback,
-                              .params = {
-                                  .slot = (size_t)slot
-                              }
-                          });
+        g_tasks.insert(g_tasks.begin(), t_savestate_task{
+                           .job = job,
+                           .medium = Medium::Slot,
+                           .callback = callback,
+                           .params = {
+                               .slot = (size_t)slot
+                           }
+                       });
         savestates_warn_if_load_after_save();
     }
 
     void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback)
     {
         std::scoped_lock lock(g_task_mutex);
-        g_st_tasks.insert(g_st_tasks.begin(), t_savestate_task{
-                              .job = job,
-                              .medium = Medium::Memory,
-                              .callback = callback,
-                              .params = {
-                                  .buffer = buffer
-                              },
-                          });
+        g_tasks.insert(g_tasks.begin(), t_savestate_task{
+                           .job = job,
+                           .medium = Medium::Memory,
+                           .callback = callback,
+                           .params = {
+                               .buffer = buffer
+                           },
+                       });
         savestates_warn_if_load_after_save();
     }
 }
