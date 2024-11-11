@@ -539,6 +539,8 @@ void vcr_create_n_frame_savestate(size_t frame)
     g_core_logger->info("[VCR] Creating seek savestate at frame {}...", frame);
     Savestates::do_memory({}, Savestates::Job::Save, [frame](Savestates::Result result, const auto& buf)
     {
+        std::scoped_lock lock(vcr_mutex);
+        
         if (result != Savestates::Result::Ok)
         {
             FrontendService::show_error(std::format("Failed to save seek savestate at frame {}.", frame).c_str(), "VCR");
@@ -1417,7 +1419,7 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
                 g_seek_savestate_loading = true;
                 Savestates::do_memory(g_seek_savestates[closest_key], Savestates::Job::Load, [=](Savestates::Result result, auto buf)
                 {
-					std::scoped_lock lock(vcr_mutex);
+					std::scoped_lock l(vcr_mutex);
 
                     if (result != Savestates::Result::Ok)
                     {
@@ -1426,7 +1428,6 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
                     }
 
                     g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
-                    std::scoped_lock l(vcr_mutex);
                     g_seek_savestate_loading = false;
                 });
 
