@@ -509,6 +509,18 @@ void vcr_create_n_frame_savestate(size_t frame)
 {
     assert(m_current_sample == frame);
 
+	// OPTIMIZATION: When seeking, we can skip creating seek savestates until near the end where we know they wont be purged
+	if (VCR::is_seeking())
+	{
+		const auto frames_from_end_where_savestates_start_appearing = g_config.seek_savestate_interval * g_config.seek_savestate_max_count;
+		const auto seek_completion = VCR::get_seek_completion();
+		if (seek_completion.second - seek_completion.first > frames_from_end_where_savestates_start_appearing)
+		{
+			g_core_logger->info("[VCR] Omitting creation of seek savestate because distance to seek end is big enough");
+			return;
+		}
+	}
+
     // If our seek savestate map is getting too large, we'll start purging the oldest ones (but not the first one!!!)
     if (g_seek_savestates.size() > g_config.seek_savestate_max_count)
     {
