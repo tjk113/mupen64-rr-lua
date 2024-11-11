@@ -803,7 +803,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             else if (extension == ".st" || extension == ".savestate")
             {
                 if (!emu_launched) break;
-                savestates_do_file(fname, e_st_job::load);
+                AsyncExecutor::invoke_async([=]
+                {
+                    savestates_do_file(fname, e_st_job::load);
+                });
             }
             else if (extension == ".lua")
             {
@@ -1406,7 +1409,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
                 break;
             case IDM_SAVE_SLOT:
-                savestates_do_slot(-1, e_st_job::save);
+                AsyncExecutor::invoke_async([=]
+                {
+                    savestates_do_slot(-1, e_st_job::save);
+                });
                 break;
             case IDM_SAVE_STATE_AS:
                 {
@@ -1418,11 +1424,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    savestates_do_file(path, e_st_job::save);
+                    AsyncExecutor::invoke_async([=]
+                    {
+                        savestates_do_file(path, e_st_job::save);
+                    });
                 }
                 break;
             case IDM_LOAD_SLOT:
-                savestates_do_slot(-1, e_st_job::load);
+                AsyncExecutor::invoke_async([=]
+                {
+                    savestates_do_slot(-1, e_st_job::load);
+                });
                 break;
             case IDM_LOAD_STATE_AS:
                 {
@@ -1435,7 +1447,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    savestates_do_file(path, e_st_job::load);
+                    AsyncExecutor::invoke_async([=]
+                    {
+                        savestates_do_file(path, e_st_job::load);
+                    });
                 }
                 break;
             case IDM_START_MOVIE_RECORDING:
@@ -1575,13 +1590,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     auto slot = LOWORD(wParam) - ID_SAVE_1;
                     // if emu is paused and no console state is changing, we can safely perform st op instantly
-                    savestates_do_slot(slot, e_st_job::save);
+                    AsyncExecutor::invoke_async([=]
+                    {
+                        savestates_do_slot(slot, e_st_job::save);
+                    });
                 }
                 else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <=
                     ID_LOAD_10)
                 {
                     auto slot = LOWORD(wParam) - ID_LOAD_1;
-                    savestates_do_slot(slot, e_st_job::load);
+                    AsyncExecutor::invoke_async([=]
+                    {
+                        savestates_do_slot(slot, e_st_job::load);
+                    });
                 }
                 else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST &&
                     LOWORD(wParam) < (ID_RECENTROMS_FIRST + g_config.

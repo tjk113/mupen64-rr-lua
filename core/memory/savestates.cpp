@@ -46,29 +46,53 @@
 
 #include <shared/services/FrontendService.h>
 
-size_t st_slot = 0;
-std::vector<uint8_t> g_st_buf;
-std::filesystem::path st_path;
+/// Represents a task to be performed by the savestate system.
+struct t_savestate_task
+{
+    struct t_params
+    {
+        /// The savestate slot.
+        /// Valid if the task's medium is <see cref="e_st_medium::slot"/>.
+        size_t slot;
 
-e_st_job savestates_job = e_st_job::none;
-e_st_medium st_medium = e_st_medium::path;
-bool savestates_job_success = true;
+        /// The path to the savestate file.
+        /// Valid if the task's medium is <see cref="e_st_medium::path"/>.
+        std::filesystem::path path;
 
-std::mutex g_st_callback_queue_mutex;
-std::queue<t_savestate_load_callback> g_st_save_callbacks;
-std::queue<t_savestate_load_callback> g_st_load_callbacks;
+        /// The buffer containing the savestate data.
+        /// Valid if the task's medium is <see cref="e_st_medium::memory"/> and the job is <see cref="e_st_job::load"/>.
+        std::vector<uint8_t> buffer;
+    };
+
+    /// The job to perform.
+    e_st_job job;
+
+    /// The savestate's source or target medium.
+    e_st_medium medium;
+
+    /// Callback to invoke when the task finishes. Can be null.
+    t_savestate_callback callback = nullptr;
+
+    /// The task's parameters. Only one field in the struct is valid at a time.
+    t_params params{};
+};
+
+size_t st_slot;
+
+std::recursive_mutex g_task_mutex;
+std::vector<t_savestate_task> g_st_tasks;
 
 // st that comes from no delay fix mupen, it has some differences compared to new st:
 // - one frame of input is "embedded", that is the pif ram holds already fetched controller info.
 // - execution continues at exception handler (after input poll) at 0x80000180.
-bool old_st;
+bool g_st_old;
 
 // enable fixing .st to work for old mupen (and m64plus)
 bool fix_new_st = true;
 
 // read savestate save function for more info
 // right now its hardcoded to enabled
-bool st_skip_dma = false;
+bool g_st_skip_dma = false;
 
 //last bit seems to be free
 enum { new_st_fixed_bit = (1 << 31) };
@@ -133,6 +157,69 @@ size_t savestates_get_slot()
     return st_slot;
 }
 
+/// <summary>
+/// overwrites emu memory with given data. Make sure to call load_eventqueue_infos as well!!!
+/// </summary>
+/// <param name="firstBlock"></param>
+void load_memory_from_buffer(uint8_t* p)
+{
+    memread(&p, &rdram_register, sizeof(RDRAM_register));
+    if (rdram_register.rdram_device_manuf & new_st_fixed_bit)
+    {
+        rdram_register.rdram_device_manuf &= ~new_st_fixed_bit; //remove the trick
+        g_st_skip_dma = true; //tell dma.c to skip it
+    }
+    memread(&p, &MI_register, sizeof(mips_register));
+    memread(&p, &pi_register, sizeof(PI_register));
+    memread(&p, &sp_register, sizeof(SP_register));
+    memread(&p, &rsp_register, sizeof(RSP_register));
+    memread(&p, &si_register, sizeof(SI_register));
+    memread(&p, &vi_register, sizeof(VI_register));
+    memread(&p, &ri_register, sizeof(RI_register));
+    memread(&p, &ai_register, sizeof(AI_register));
+    memread(&p, &dpc_register, sizeof(DPC_register));
+    memread(&p, &dps_register, sizeof(DPS_register));
+    memread(&p, rdram, 0x800000);
+    memread(&p, SP_DMEM, 0x1000);
+    memread(&p, SP_IMEM, 0x1000);
+    memread(&p, PIF_RAM, 0x40);
+
+    char buf[4 * 32];
+    memread(&p, buf, 24);
+    load_flashram_infos(buf);
+
+    memread(&p, tlb_LUT_r, 0x100000);
+    memread(&p, tlb_LUT_w, 0x100000);
+
+    memread(&p, &llbit, 4);
+    memread(&p, reg, 32 * 8);
+    for (int i = 0; i < 32; i++)
+    {
+        memread(&p, reg_cop0 + i, 4);
+        memread(&p, buf, 4); // for compatibility with old versions purpose
+    }
+    memread(&p, &lo, 8);
+    memread(&p, &hi, 8);
+    memread(&p, reg_cop1_fgr_64, 32 * 8);
+    memread(&p, &FCR0, 4);
+    memread(&p, &FCR31, 4);
+    memread(&p, tlb_e, 32 * sizeof(tlb));
+    if (!dynacore && interpcore)
+        memread(&p, &interp_addr, 4);
+    else
+    {
+        uint32_t target_addr;
+        memread(&p, &target_addr, 4);
+        for (char& i : invalid_code)
+            i = 1;
+        jump_to(target_addr)
+    }
+
+    memread(&p, &next_interrupt, 4);
+    memread(&p, &next_vi, 4);
+    memread(&p, &vi_field, 4);
+}
+
 std::vector<uint8_t> generate_savestate()
 {
     std::vector<uint8_t> b;
@@ -160,7 +247,7 @@ std::vector<uint8_t> generate_savestate()
             update_count();
             add_interrupt_event(SI_INT, /*0x100*/0x900);
             rdram_register.rdram_device_manuf |= new_st_fixed_bit;
-            st_skip_dma = true;
+            g_st_skip_dma = true;
         }
         //hack end
     }
@@ -227,7 +314,7 @@ std::vector<uint8_t> generate_savestate()
         long width;
         long height;
         FrontendService::mge_get_video_size(&width, &height);
-		
+
         void* video = malloc(width * height * 3);
         FrontendService::mge_copy_video(video);
 
@@ -236,38 +323,30 @@ std::vector<uint8_t> generate_savestate()
         vecwrite(b, &height, sizeof(height));
         vecwrite(b, video, width * height * 3);
 
-		free(video);
+        free(video);
     }
 
     return b;
 }
 
-void get_effective_paths(std::filesystem::path& st_path, std::filesystem::path& sd_path)
+void get_effective_paths(const t_savestate_task& task, std::filesystem::path& st_path, std::filesystem::path& sd_path)
 {
     sd_path = std::format("{}{}.sd", get_saves_directory().string(), (const char*)ROM_HEADER.nom);
 
-    if (st_medium == e_st_medium::slot)
+    if (task.medium == e_st_medium::slot)
     {
         st_path = std::format("{}{} {}.st{}", get_saves_directory().string(), (const char*)ROM_HEADER.nom,
                               country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(st_slot));
     }
 }
 
-void savestates_save_immediate()
+void savestates_save_immediate_impl(const t_savestate_task& task)
 {
     const auto start_time = std::chrono::high_resolution_clock::now();
-    savestates_job_success = true;
 
     const auto st = generate_savestate();
 
-    if (!savestates_job_success)
-    {
-        FrontendService::show_statusbar("Failed to save savestate");
-        savestates_job_success = false;
-        return;
-    }
-
-    if (st_medium == e_st_medium::slot && g_config.increment_slot)
+    if (task.medium == e_st_medium::slot && g_config.increment_slot)
     {
         if (st_slot >= 9)
         {
@@ -279,12 +358,12 @@ void savestates_save_immediate()
         }
     }
 
-    if (st_medium == e_st_medium::slot || st_medium == e_st_medium::path)
+    if (task.medium == e_st_medium::slot || task.medium == e_st_medium::path)
     {
         // Always save summercart for some reason
-        std::filesystem::path new_st_path = st_path;
+        std::filesystem::path new_st_path = task.params.path;
         std::filesystem::path new_sd_path = "";
-        get_effective_paths(new_st_path, new_sd_path);
+        get_effective_paths(task, new_st_path, new_sd_path);
         if (g_config.use_summercart) save_summercart(new_sd_path.string().c_str());
 
         // Generate compressed buffer
@@ -299,15 +378,17 @@ void savestates_save_immediate()
 
         if (f == nullptr)
         {
-            FrontendService::show_statusbar("Failed to save savestate");
-            savestates_job_success = false;
+            if (task.callback)
+            {
+                task.callback(Savestate::Result::Failed, st);
+            }
             return;
         }
 
         fwrite(compressed_buffer.data(), compressed_buffer.size(), 1, f);
         fclose(f);
 
-        if (st_medium == e_st_medium::path)
+        if (task.medium == e_st_medium::path)
         {
             FrontendService::show_statusbar(std::format("Saved {}", new_st_path.filename().string()).c_str());
         }
@@ -316,86 +397,20 @@ void savestates_save_immediate()
             FrontendService::show_statusbar(std::format("Saved slot {}", st_slot + 1).c_str());
         }
     }
-    else
+
+    if (task.callback)
     {
-        std::scoped_lock lock(g_st_callback_queue_mutex);
-
-        g_st_save_callbacks.front()(st);
-        g_st_save_callbacks.pop();
+        task.callback(Savestate::Result::Ok, st);
     }
-
     LuaService::call_save_state();
     g_core_logger->info("Savestate saving took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
-}
-
-/// <summary>
-/// overwrites emu memory with given data. Make sure to call load_eventqueue_infos as well!!!
-/// </summary>
-/// <param name="firstBlock"></param>
-void load_memory_from_buffer(uint8_t* p)
-{
-    memread(&p, &rdram_register, sizeof(RDRAM_register));
-    if (rdram_register.rdram_device_manuf & new_st_fixed_bit)
-    {
-        rdram_register.rdram_device_manuf &= ~new_st_fixed_bit; //remove the trick
-        st_skip_dma = true; //tell dma.c to skip it
-    }
-    memread(&p, &MI_register, sizeof(mips_register));
-    memread(&p, &pi_register, sizeof(PI_register));
-    memread(&p, &sp_register, sizeof(SP_register));
-    memread(&p, &rsp_register, sizeof(RSP_register));
-    memread(&p, &si_register, sizeof(SI_register));
-    memread(&p, &vi_register, sizeof(VI_register));
-    memread(&p, &ri_register, sizeof(RI_register));
-    memread(&p, &ai_register, sizeof(AI_register));
-    memread(&p, &dpc_register, sizeof(DPC_register));
-    memread(&p, &dps_register, sizeof(DPS_register));
-    memread(&p, rdram, 0x800000);
-    memread(&p, SP_DMEM, 0x1000);
-    memread(&p, SP_IMEM, 0x1000);
-    memread(&p, PIF_RAM, 0x40);
-
-    char buf[4 * 32];
-    memread(&p, buf, 24);
-    load_flashram_infos(buf);
-
-    memread(&p, tlb_LUT_r, 0x100000);
-    memread(&p, tlb_LUT_w, 0x100000);
-
-    memread(&p, &llbit, 4);
-    memread(&p, reg, 32 * 8);
-    for (int i = 0; i < 32; i++)
-    {
-        memread(&p, reg_cop0 + i, 4);
-        memread(&p, buf, 4); // for compatibility with old versions purpose
-    }
-    memread(&p, &lo, 8);
-    memread(&p, &hi, 8);
-    memread(&p, reg_cop1_fgr_64, 32 * 8);
-    memread(&p, &FCR0, 4);
-    memread(&p, &FCR31, 4);
-    memread(&p, tlb_e, 32 * sizeof(tlb));
-    if (!dynacore && interpcore)
-        memread(&p, &interp_addr, 4);
-    else
-    {
-        uint32_t target_addr;
-        memread(&p, &target_addr, 4);
-        for (char& i : invalid_code)
-            i = 1;
-        jump_to(target_addr)
-    }
-
-    memread(&p, &next_interrupt, 4);
-    memread(&p, &next_vi, 4);
-    memread(&p, &vi_field, 4);
 }
 
 /// <summary>
 /// First decompresses file into buffer, then before overwriting emulator memory checks if its good
 /// </summary>
 /// <param name="silence_not_found_error"></param>
-void savestates_load_immediate()
+void savestates_load_immediate_impl(const t_savestate_task& task)
 {
     const auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -409,24 +424,22 @@ void savestates_load_immediate()
     //handle to st
     int len;
 
-    savestates_job_success = true;
-
-    std::filesystem::path new_st_path = st_path;
+    std::filesystem::path new_st_path = task.params.path;
     std::filesystem::path new_sd_path = "";
-    get_effective_paths(new_st_path, new_sd_path);
+    get_effective_paths(task, new_st_path, new_sd_path);
 
     if (g_config.use_summercart) load_summercart(new_sd_path.string().c_str());
 
     std::vector<uint8_t> st_buf;
 
-    switch (st_medium)
+    switch (task.medium)
     {
     case e_st_medium::slot:
     case e_st_medium::path:
         st_buf = read_file_buffer(new_st_path);
         break;
     case e_st_medium::memory:
-        st_buf = g_st_buf;
+        st_buf = task.params.buffer;
         break;
     default: assert(false);
     }
@@ -434,7 +447,10 @@ void savestates_load_immediate()
     if (st_buf.empty())
     {
         FrontendService::show_statusbar(std::format("{} not found", new_st_path.filename().string()).c_str());
-        savestates_job_success = false;
+        if (task.callback)
+        {
+            task.callback(Savestate::Result::Failed, {});
+        }
         return;
     }
 
@@ -442,7 +458,10 @@ void savestates_load_immediate()
     if (decompressed_buf.empty())
     {
         FrontendService::show_error("Failed to decompress savestate", nullptr);
-        savestates_job_success = false;
+        if (task.callback)
+        {
+            task.callback(Savestate::Result::Failed, {});
+        }
         return;
     }
 
@@ -462,7 +481,10 @@ void savestates_load_immediate()
 
         if (!result)
         {
-            savestates_job_success = false;
+            if (task.callback)
+            {
+                task.callback(Savestate::Result::Failed, {});
+            }
             return;
         }
     }
@@ -481,9 +503,11 @@ void savestates_load_immediate()
     if (len == buflen)
     {
         // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
-        fprintf(stderr, "Snapshot event queue terminator not reached.\n");
         FrontendService::show_statusbar("Event queue too long (corrupted?)");
-        savestates_job_success = false;
+        if (task.callback)
+        {
+            task.callback(Savestate::Result::Failed, {});
+        }
         return;
     }
 
@@ -531,7 +555,10 @@ void savestates_load_immediate()
             if (!result)
             {
                 VCR::stop_all();
-                savestates_job_success = false;
+                if (task.callback)
+                {
+                    task.callback(Savestate::Result::Failed, {});
+                }
                 goto failedLoad;
             }
         }
@@ -543,7 +570,10 @@ void savestates_load_immediate()
             auto result = FrontendService::show_ask_dialog("Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?");
             if (!result)
             {
-                savestates_job_success = false;
+                if (task.callback)
+                {
+                    task.callback(Savestate::Result::Failed, {});
+                }
                 return;
             }
         }
@@ -588,27 +618,26 @@ void savestates_load_immediate()
         }
     }
     LuaService::call_load_state();
-    if (st_medium == e_st_medium::path)
+    if (task.medium == e_st_medium::path)
     {
         FrontendService::show_statusbar(std::format("Loaded {}", new_st_path.filename().string()).c_str());
     }
-    if (st_medium == e_st_medium::slot)
+    if (task.medium == e_st_medium::slot)
     {
         FrontendService::show_statusbar(std::format("Loaded slot {}", st_slot + 1).c_str());
     }
-    if (st_medium == e_st_medium::memory)
-    {
-        std::scoped_lock lock(g_st_callback_queue_mutex);
 
-        g_st_load_callbacks.front()(decompressed_buf);
-        g_st_load_callbacks.pop();
+    if (task.callback)
+    {
+        task.callback(Savestate::Result::Ok, decompressed_buf);
     }
+
 failedLoad:
     extern bool ignore;
     //legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
     //This should cause issues anyway but libultra seems to be flexible (this means there's a chance it fails).
     //For safety, load .sts in dynarec because it completely avoids this issue by being differently coded
-    old_st = (interp_addr == 0x80000180 || PC->addr == 0x80000180);
+    g_st_old = (interp_addr == 0x80000180 || PC->addr == 0x80000180);
     //doubled because can't just reuse this variable
     if (interp_addr == 0x80000180 || (PC->addr == 0x80000180 && !dynacore))
         ignore = true;
@@ -626,51 +655,129 @@ failedLoad:
     g_core_logger->info("Savestate loading took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 }
 
-void savestates_do_file(const std::filesystem::path& path, const e_st_job job)
+/**
+ * Logs the current task queue.
+ */
+void savestates_log_tasks()
 {
-    st_path = path;
-    savestates_job = job;
-    st_medium = e_st_medium::path;
+    std::scoped_lock lock(g_task_mutex);
+    g_core_logger->info("[ST] Begin task dump");
+    for (const auto& task : g_st_tasks)
+    {
+        std::string job_str = (task.job == e_st_job::save) ? "Save" : "Load";
+        std::string medium_str;
+        switch (task.medium)
+        {
+        case e_st_medium::slot:
+            medium_str = "Slot";
+            break;
+        case e_st_medium::path:
+            medium_str = "Path";
+            break;
+        case e_st_medium::memory:
+            medium_str = "Memory";
+            break;
+        default:
+            medium_str = "Unknown";
+            break;
+        }
+        g_core_logger->info("[ST] \tTask: Job = {}, Medium = {}", job_str, medium_str);
+    }
+    g_core_logger->info("[ST] End task dump");
 }
 
-void savestates_do_slot(const int32_t slot, const e_st_job job)
+/**
+ * Warns if a savestate load task is scheduled after a save task.
+ */
+void savestates_warn_if_load_after_save()
 {
+    std::scoped_lock lock(g_task_mutex);
+
+    bool encountered_load = false;
+    for (const auto& task : g_st_tasks)
+    {
+        if (task.job == e_st_job::save && encountered_load)
+        {
+            g_core_logger->warn("[ST] A savestate save task is scheduled after a load task. This may cause unexpected behavior for the caller.");
+            break;
+        }
+
+        if (task.job == e_st_job::load)
+        {
+            encountered_load = true;
+        }
+    }
+}
+
+void savestates_do_work()
+{
+    std::scoped_lock lock(g_task_mutex);
+
+    if (!g_st_tasks.empty())
+    {
+        g_core_logger->info("[ST] Processing {} tasks...", g_st_tasks.size());
+        savestates_log_tasks();
+    }
+    else
+    {
+        return;
+    }
+
+    for (const auto& task : g_st_tasks)
+    {
+        if (task.job == e_st_job::save)
+        {
+            savestates_save_immediate_impl(task);
+        }
+        else
+        {
+            savestates_load_immediate_impl(task);
+        }
+    }
+    g_st_tasks.clear();
+}
+
+
+void savestates_do_file(const std::filesystem::path& path, const e_st_job job, const t_savestate_callback& callback)
+{
+    std::scoped_lock lock(g_task_mutex);
+    g_st_tasks.insert(g_st_tasks.begin(), t_savestate_task{
+                          .job = job,
+                          .medium = e_st_medium::path,
+                          .callback = callback,
+                          .params = {
+                              .path = path
+                          }
+                      });
+    savestates_warn_if_load_after_save();
+}
+
+void savestates_do_slot(const int32_t slot, const e_st_job job, const t_savestate_callback& callback)
+{
+    std::scoped_lock lock(g_task_mutex);
     savestates_set_slot(slot == -1 ? st_slot : slot);
-    savestates_job = job;
-    st_medium = e_st_medium::slot;
+
+    g_st_tasks.insert(g_st_tasks.begin(), t_savestate_task{
+                          .job = job,
+                          .medium = e_st_medium::slot,
+                          .callback = callback,
+                          .params = {
+                              .slot = (size_t)slot
+                          }
+                      });
+    savestates_warn_if_load_after_save();
 }
 
-bool savestates_save_memory(const t_savestate_save_callback& callback)
+void savestates_do_memory(const std::vector<uint8_t>& buffer, const e_st_job job, const t_savestate_callback& callback)
 {
-    std::scoped_lock lock(g_st_callback_queue_mutex);
-
-    if (!g_st_save_callbacks.empty())
-    {
-        g_core_logger->error("Tried to save memory savestate while another one was already queued.");
-        return false;
-    }
-    
-    g_st_save_callbacks.push(callback);
-    savestates_job = e_st_job::save;
-    st_medium = e_st_medium::memory;
-
-    return true;
-}
-
-bool savestates_load_memory(const std::vector<uint8_t>& buffer, const t_savestate_load_callback& callback)
-{
-    std::scoped_lock lock(g_st_callback_queue_mutex);
-
-    if (!g_st_load_callbacks.empty())
-    {
-        g_core_logger->error("Tried to load memory savestate while another one was already queued.");
-        return false;
-    }
-    
-    g_st_load_callbacks.push(callback);
-    g_st_buf = buffer;
-    savestates_job = e_st_job::load;
-    st_medium = e_st_medium::memory;
-
-    return true;
+    std::scoped_lock lock(g_task_mutex);
+    g_st_tasks.insert(g_st_tasks.begin(), t_savestate_task{
+                          .job = job,
+                          .medium = e_st_medium::memory,
+                          .callback = callback,
+                          .params = {
+                              .buffer = buffer
+                          },
+                      });
+    savestates_warn_if_load_after_save();
 }

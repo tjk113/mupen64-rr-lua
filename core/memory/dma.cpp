@@ -299,13 +299,13 @@ void dma_si_read()
         g_core_logger->warn("unknown SI use");
         stop = 1;
     }
-    update_pif_read(true);
+    update_pif_read();
     for (i = 0; i < (64 / 4); i++)
         rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
-    if (!st_skip_dma) //st already did this, see savestates.cpp, we still copy pif ram tho because it has new inputs
+    if (!g_st_skip_dma) //st already did this, see savestates.cpp, we still copy pif ram tho because it has new inputs
     {
         update_count();
         add_interrupt_event(SI_INT, /*0x100*/0x900);
     }
-    st_skip_dma = false;
+    g_st_skip_dma = false;
 }

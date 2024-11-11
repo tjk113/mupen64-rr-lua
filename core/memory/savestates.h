@@ -31,6 +31,19 @@
 #include <filesystem>
 #include <functional>
 
+// TODO: Move to namespace
+
+namespace Savestate
+{
+    enum class Result
+    {
+        // The operation completed successfully
+        Ok,
+        // The operation failed
+        Failed,
+    };
+}
+
 enum class e_st_job
 {
     none,
@@ -45,15 +58,10 @@ enum class e_st_medium
     memory
 };
 
-extern std::filesystem::path st_path;
-extern e_st_job savestates_job;
-extern e_st_medium st_medium;
-extern bool st_skip_dma;
-extern bool old_st;
-extern bool savestates_job_success;
+extern bool g_st_skip_dma;
+extern bool g_st_old;
 
-using t_savestate_save_callback = std::function<void(const std::vector<uint8_t>&)>;
-using t_savestate_load_callback = std::function<void(const std::vector<uint8_t>&)>;
+using t_savestate_callback = std::function<void(Savestate::Result result, const std::vector<uint8_t>&)>;
 
 /**
  * \brief Gets the path to the save directory
@@ -96,47 +104,34 @@ size_t savestates_get_slot();
 void savestates_init();
 
 /**
- * \brief Reads emu state and generates a savestate depending on the st global state
- * \remarks If <c>savestates_job_use_slot</c> is specified, <c>st_slot</c> will be used to construct the savestate's path, otherwise <c>st_path</c> will be used
+ * \brief Does the pending savestate work.
  * \warning This function must only be called from the emulation thread. Other callers must use the <c>savestates_do_x</c> family.
  */
-void savestates_save_immediate();
-
-/**
- * \brief Overwrites emu state from a read savestate depending on the st global state
- * \remarks If <c>savestates_job_use_slot</c> is specified, <c>st_slot</c> will be used to construct the savestate's path, otherwise <c>st_path</c> will be used
- * \warning This function must only be called from the emulation thread. Other callers must use the <c>savestates_do_x</c> family.
- */
-void savestates_load_immediate();
-
-/**
- * Creates an in-memory savestate and calls the provided callback with the savestate buffer 
- * \param callback A callback that will be called with the savestate's data
- * \return Whether the operation was successfully initiated.
- */
-bool savestates_save_memory(const t_savestate_save_callback& callback);
-
-/**
- * \brief Loads a savestate from an in-memory buffer
- * \param buffer A buffer containing the savestate
- * \param callback A callback that will be called with the savestate's data upon the load operation completing
- * \remarks The operation won't complete immediately
- * \return Whether the operation was successfully initiated.
- */
-bool savestates_load_memory(const std::vector<uint8_t>& buffer, const t_savestate_load_callback& callback);
+void savestates_do_work();
 
 /**
  * \brief Executes a savestate operation to a path
  * \param path The savestate's path
  * \param job The job to set
- * \remarks The operation won't complete immediately
+ * \param callback The callback to call when the operation is complete. Can be null.
+ * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
  */
-void savestates_do_file(const std::filesystem::path& path, e_st_job job);
+void savestates_do_file(const std::filesystem::path& path, e_st_job job, const t_savestate_callback& callback = nullptr);
 
 /**
  * \brief Executes a savestate operation to a slot
  * \param slot The slot to construct the savestate path with, or -1 if the current one should be used
  * \param job The job to set
- * \remarks The operation won't complete immediately
+ * \param callback The callback to call when the operation is complete. Can be null.
+ * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
  */
-void savestates_do_slot(int32_t slot, e_st_job job);
+void savestates_do_slot(int32_t slot, e_st_job job, const t_savestate_callback& callback = nullptr);
+
+/**
+ * Executes a savestate operation in-memory.
+ * \param buffer The buffer to use for the operation. Can be empty if the <see cref="job"/> is <see cref="e_st_job::save"/>.
+ * \param job The job to set.
+ * \param callback The callback to call when the operation is complete. Can be null.
+ * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
+ */
+void savestates_do_memory(const std::vector<uint8_t>& buffer, e_st_job job, const t_savestate_callback& callback = nullptr);

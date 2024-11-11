@@ -410,7 +410,7 @@ void update_pif_write()
 }
 
 
-void update_pif_read(bool stcheck)
+void update_pif_read()
 {
     //g_core_logger->info("pif entry");
     int i = 0, channel = 0;
@@ -461,37 +461,21 @@ void update_pif_read(bool stcheck)
                             // COMPAT: Old input lua expects atvi to be called when paused (due to a bug in the invalidation)...
                             LuaService::call_vi();
 
-                            // TODO: maybe unify this and the other calls outside paused loop with some pump function like savestates_process_job()
-                            if (savestates_job == e_st_job::save && stAllowed)
+                            if (stAllowed)
                             {
-                                savestates_save_immediate();
-                                savestates_job = e_st_job::none;
-                            }
-                            if (savestates_job == e_st_job::load && stAllowed)
-                            {
-                                savestates_load_immediate();
-                                savestates_job = e_st_job::none;
+                                savestates_do_work();
                             }
                         }
                     }
-                    if (stcheck)
+                    if (stAllowed)
                     {
-                        if (savestates_job == e_st_job::save && stAllowed)
-                        {
-                            savestates_save_immediate();
-                            savestates_job = e_st_job::none;
-                        }
+                        savestates_do_work();
                     }
-                    if (savestates_job == e_st_job::load && stAllowed)
-                    {
-                        savestates_load_immediate();
-                        savestates_job = e_st_job::none;
-                    }
-                    if (old_st)
+                    if (g_st_old)
                     {
                         //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
                         g_core_logger->info("old st detected");
-                        old_st = false;
+                        g_st_old = false;
                         return;
                     }
                     stAllowed = false;

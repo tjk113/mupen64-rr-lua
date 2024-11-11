@@ -525,8 +525,14 @@ void vcr_create_n_frame_savestate(size_t frame)
     }
 
     g_core_logger->info("[VCR] Creating seek savestate at frame {}...", frame);
-    savestates_save_memory([frame](auto buf)
+    savestates_do_memory({}, e_st_job::save, [frame](Savestate::Result result, auto buf)
     {
+        if (result != Savestate::Result::Ok)
+        {
+            FrontendService::show_error(std::format("Failed to save seek savestate at frame {}.", frame).c_str(), "VCR");
+            return;
+        }
+        
         g_core_logger->info("[VCR] Seek savestate at frame {} of size {} completed", frame, buf.size());
         g_seek_savestates[frame] = buf;
         Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)frame);
@@ -562,42 +568,6 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
             });
         }
     }
-
-    if (g_task == e_task::start_recording_from_snapshot)
-    {
-        if (savestates_job == e_st_job::none)
-        {
-            g_core_logger->info("[VCR] Starting recording from Snapshot...");
-            g_task = e_task::recording;
-            *input = {0};
-        }
-    }
-
-    if (g_task == e_task::start_recording_from_existing_snapshot)
-    {
-        if (savestates_job == e_st_job::none)
-        {
-            g_core_logger->info("[VCR] Starting recording from Existing Snapshot...");
-            g_task = e_task::recording;
-            *input = {0};
-        }
-    }
-
-    if (g_task == e_task::start_playback_from_snapshot)
-    {
-        if (savestates_job == e_st_job::none)
-        {
-            if (!savestates_job_success)
-            {
-                g_task = e_task::idle;
-                getKeys(index, input);
-                return;
-            }
-            g_core_logger->info("[VCR] Starting playback...");
-            g_task = e_task::playback;
-        }
-    }
-
 
     if (g_task == e_task::start_playback_from_reset)
     {
@@ -914,22 +884,55 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
     {
         // save state
         g_core_logger->info("[VCR] Saving state...");
-        savestates_do_file(get_savestate_path_for_new_movie(g_movie_path), e_st_job::save);
         g_task = e_task::start_recording_from_snapshot;
+        savestates_do_file(get_savestate_path_for_new_movie(g_movie_path), e_st_job::save, [](Savestate::Result result, auto)
+        {
+            std::scoped_lock lock(vcr_mutex);
+            
+            if (result != Savestate::Result::Ok)
+            {
+                FrontendService::show_error("Failed to load savestate while starting recording.\nRecording will be stopped.", "VCR");
+                VCR::stop_all();
+                return;
+            }
+
+            g_core_logger->info("[VCR] Starting recording from snapshot...");
+            g_task = e_task::recording;
+            // FIXME: Doesn't this need a message broadcast?
+            // TODO: Also, what about clearing the input on first frame
+        });
     }
     else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
     {
+        // TODO: Verify that this flag still works after st task rewrite
+        
         g_core_logger->info("[VCR] Loading state...");
         auto st_path = find_savestate_for_movie(g_movie_path);
         if (st_path.empty())
         {
             return Result::InvalidSavestate;
         }
-        savestates_do_file(st_path, e_st_job::load);
 
         // set this to the normal snapshot flag to maintain compatibility
         g_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
         g_task = e_task::start_recording_from_existing_snapshot;
+        
+        savestates_do_file(st_path, e_st_job::load, [](Savestate::Result result, auto)
+        {
+            std::scoped_lock lock(vcr_mutex);
+            
+            if (result != Savestate::Result::Ok)
+            {
+                FrontendService::show_error("Failed to load savestate while starting recording.\nRecording will be stopped.", "VCR");
+                VCR::stop_all();
+                return;
+            }
+
+            g_core_logger->info("[VCR] Starting recording from existing snapshot...");
+            g_task = e_task::recording;
+            // FIXME: Doesn't this need a message broadcast?
+            // TODO: Also, what about clearing the input on first frame
+        });
     }
     else
     {
@@ -1241,8 +1244,23 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
             return Result::InvalidSavestate;
         }
 
-        savestates_do_file(st_path, e_st_job::load);
         g_task = e_task::start_playback_from_snapshot;
+
+        savestates_do_file(st_path, e_st_job::load, [](Savestate::Result result, auto)
+        {
+            std::scoped_lock lock(vcr_mutex);
+            
+           if (result != Savestate::Result::Ok)
+           {
+               FrontendService::show_error("Failed to load savestate while starting playback.\nRecording will be stopped.", "VCR");
+               VCR::stop_all();
+               return;
+           }
+
+           g_core_logger->info("[VCR] Starting playback from snapshot...");
+           g_task = e_task::playback;
+           // FIXME: Doesn't this need a message broadcast?
+        });
     }
     else
     {
@@ -1311,7 +1329,7 @@ size_t vcr_find_closest_savestate_before_frame(size_t frame)
 VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, bool warp_modify)
 {
     std::scoped_lock lock(vcr_mutex);
-    
+
     if (seek_to_frame.has_value())
     {
         return VCR::Result::SeekAlreadyRunning;
@@ -1380,26 +1398,23 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
                         Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)sample);
                     }
                 }
-                
+
                 const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
 
                 g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
                 g_seek_savestate_loading = true;
-                const bool result = savestates_load_memory(g_seek_savestates[closest_key], [=](auto)
+                savestates_do_memory(g_seek_savestates[closest_key], e_st_job::load, [=](Savestate::Result result, auto buf)
                 {
+                    if (result != Savestate::Result::Ok)
+                    {
+                        FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
+                        VCR::stop_seek();
+                    }
+
                     g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
                     std::scoped_lock l(vcr_mutex);
                     g_seek_savestate_loading = false;
                 });
-
-                if (!result)
-                {
-                    // FIXME: This *might* cause issues since we already set seek_to_frame previously, 
-                    // thus opening us up to other threads reading the seek operation status during this and the initiation section.
-                    FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
-                    seek_to_frame.reset();
-                    return VCR::Result::SeekSavestateLoadFailed;
-                }
 
                 return VCR::Result::Ok;
             }
