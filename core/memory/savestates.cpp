@@ -88,14 +88,11 @@ namespace Savestates
         t_params params{};
     };
 
-    size_t st_slot;
-
     std::recursive_mutex g_task_mutex;
     std::vector<t_savestate_task> g_st_tasks;
 
     // enable fixing .st to work for old mupen (and m64plus)
     bool fix_new_st = true;
-
 
     //last bit seems to be free
     enum { new_st_fixed_bit = (1 << 31) };
@@ -138,26 +135,6 @@ namespace Savestates
 
     void init()
     {
-        Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, [](std::any data)
-        {
-            auto value = std::any_cast<bool>(data);
-
-            if (value)
-            {
-                Savestates::set_slot(st_slot);
-            }
-        });
-    }
-
-    void set_slot(size_t slot)
-    {
-        st_slot = slot;
-        Messenger::broadcast(Messenger::Message::SlotChanged, st_slot);
-    }
-
-    size_t get_slot()
-    {
-        return st_slot;
     }
 
     /// <summary>
@@ -338,8 +315,11 @@ namespace Savestates
 
         if (task.medium == Medium::Slot)
         {
-            st_path = std::format("{}{} {}.st{}", get_saves_directory().string(), (const char*)ROM_HEADER.nom,
-                                  country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(st_slot));
+            st_path = std::format(
+                "{}{} {}.st{}",
+                get_saves_directory().string(),
+                (const char*)ROM_HEADER.nom,
+                country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(task.params.slot));
         }
     }
 
@@ -349,15 +329,16 @@ namespace Savestates
 
         const auto st = generate_savestate();
 
+        // Is this the right place to do this? Perhaps it should be done in do_slot...
         if (task.medium == Medium::Slot && g_config.increment_slot)
         {
-            if (st_slot >= 9)
+            if (g_config.st_slot >= 9)
             {
-                set_slot(0);
+                g_config.st_slot = 0;
             }
             else
             {
-                set_slot(st_slot + 1);
+                g_config.st_slot++;
             }
         }
 
@@ -397,7 +378,7 @@ namespace Savestates
             }
             else
             {
-                FrontendService::show_statusbar(std::format("Saved slot {}", st_slot + 1).c_str());
+                FrontendService::show_statusbar(std::format("Saved slot {}", task.params.slot + 1).c_str());
             }
         }
 
@@ -627,7 +608,7 @@ namespace Savestates
         }
         if (task.medium == Medium::Slot)
         {
-            FrontendService::show_statusbar(std::format("Loaded slot {}", st_slot + 1).c_str());
+            FrontendService::show_statusbar(std::format("Loaded slot {}", task.params.slot + 1).c_str());
         }
 
         if (task.callback)
@@ -757,7 +738,6 @@ namespace Savestates
     void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback)
     {
         std::scoped_lock lock(g_task_mutex);
-        set_slot(slot == -1 ? st_slot : slot);
 
         g_st_tasks.insert(g_st_tasks.begin(), t_savestate_task{
                               .job = job,

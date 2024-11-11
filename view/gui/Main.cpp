@@ -505,6 +505,8 @@ void on_emu_launched_changed(std::any data)
 
             g_previously_running_luas.clear();
         });
+        
+        Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
     }
 
     if (!value && previous_value)
@@ -512,7 +514,7 @@ void on_emu_launched_changed(std::any data)
         g_view_logger->info("[View] Restoring window size to {}x{}...", g_config.window_width, g_config.window_height);
         SetWindowPos(g_main_hwnd, nullptr, 0, 0, g_config.window_width, g_config.window_height, SWP_NOMOVE);
     }
-
+    
     SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
     previous_value = value;
 }
@@ -1061,7 +1063,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 CheckMenuItem(g_main_menu, i, MF_UNCHECKED);
             }
-            CheckMenuItem(g_main_menu, IDM_SELECT_1 + Savestates::get_slot(), MF_CHECKED);
+            CheckMenuItem(g_main_menu, IDM_SELECT_1 + g_config.st_slot, MF_CHECKED);
         }
         break;
     case WM_ENTERMENULOOP:
@@ -1411,7 +1413,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDM_SAVE_SLOT:
                 AsyncExecutor::invoke_async([=]
                 {
-                    Savestates::do_slot(-1, Savestates::Job::Save);
+                    Savestates::do_slot(g_config.st_slot, Savestates::Job::Save);
                 });
                 break;
             case IDM_SAVE_STATE_AS:
@@ -1433,7 +1435,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDM_LOAD_SLOT:
                 AsyncExecutor::invoke_async([=]
                 {
-                    Savestates::do_slot(-1, Savestates::Job::Load);
+                    Savestates::do_slot(g_config.st_slot, Savestates::Job::Load);
                 });
                 break;
             case IDM_LOAD_STATE_AS:
@@ -1583,7 +1585,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     <= IDM_SELECT_10)
                 {
                     auto slot = LOWORD(wParam) - IDM_SELECT_1;
-                    Savestates::set_slot(slot);
+                    g_config.st_slot = slot;
+                    Messenger::broadcast(Messenger::Message::SlotChanged, static_cast<size_t>(g_config.st_slot));
                 }
                 else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <=
                     ID_SAVE_10)

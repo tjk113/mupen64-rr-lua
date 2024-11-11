@@ -91,16 +91,6 @@ namespace Savestates
     std::filesystem::path get_mempak_path();
 
     /**
-     * \brief Sets the selected slot
-     */
-    void set_slot(size_t slot);
-
-    /**
-     * \brief Gets the selected slot
-     */
-    size_t get_slot();
-
-    /**
      * \brief Initializes the savestate system
      */
     void init();
@@ -122,7 +112,7 @@ namespace Savestates
 
     /**
      * \brief Executes a savestate operation to a slot
-     * \param slot The slot to construct the savestate path with, or -1 if the current one should be used
+     * \param slot The slot to construct the savestate path with.
      * \param job The job to set
      * \param callback The callback to call when the operation is complete. Can be null.
      * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
