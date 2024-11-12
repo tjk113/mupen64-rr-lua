@@ -42,6 +42,8 @@ namespace Savestates
         Ok,
         // The operation failed
         Failed,
+		// The user cancelled the operation
+		Cancelled,
     };
 
     enum class Job

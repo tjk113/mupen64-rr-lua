@@ -232,7 +232,7 @@ namespace Savestates
             }
             //hack end
         }
-        
+
         vecwrite(b, rom_md5, 32);
         vecwrite(b, &rdram_register, sizeof(RDRAM_register));
         vecwrite(b, &MI_register, sizeof(mips_register));
@@ -427,7 +427,7 @@ namespace Savestates
             {
                 if (task.callback)
                 {
-                    task.callback(Savestates::Result::Failed, {});
+                    task.callback(Savestates::Result::Cancelled, {});
                 }
                 return;
             }
@@ -502,7 +502,7 @@ namespace Savestates
                     VCR::stop_all();
                     if (task.callback)
                     {
-                        task.callback(Savestates::Result::Failed, {});
+                        task.callback(Savestates::Result::Cancelled, {});
                     }
                     goto failedLoad;
                 }
@@ -517,7 +517,7 @@ namespace Savestates
                 {
                     if (task.callback)
                     {
-                        task.callback(Savestates::Result::Failed, {});
+                        task.callback(Savestates::Result::Cancelled, {});
                     }
                     return;
                 }
@@ -733,6 +733,10 @@ namespace Savestates
             {
                 FrontendService::show_statusbar(std::format("{} {}", job == Job::Save ? "Saved" : "Loaded", path.filename().string()).c_str());
             }
+            else if (result == Result::Cancelled)
+            {
+                FrontendService::show_statusbar(std::format("Cancelled {}", job == Job::Save ? "save" : "load").c_str());
+            }
             else
             {
                 FrontendService::show_error(std::format("Failed to {} {}.\nVerify that the savestate is valid and accessible.", job == Job::Save ? "save" : "load", path.filename().string()).c_str(), "Savestate");
@@ -767,6 +771,10 @@ namespace Savestates
             if (result == Result::Ok)
             {
                 FrontendService::show_statusbar(std::format("{} slot {}", job == Job::Save ? "Saved" : "Loaded", slot + 1).c_str());
+            }
+            else if (result == Result::Cancelled)
+            {
+                FrontendService::show_statusbar(std::format("Cancelled {}", job == Job::Save ? "save" : "load").c_str());
             }
             else
             {
