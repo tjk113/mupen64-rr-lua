@@ -330,7 +330,9 @@ namespace Savestates
             if (g_config.use_summercart) save_summercart(new_sd_path.string().c_str());
 
             // Generate compressed buffer
-            std::vector<uint8_t> compressed_buffer = st;
+            std::vector<uint8_t> compressed_buffer;
+            compressed_buffer.resize(st.size());
+            
             const auto compressor = libdeflate_alloc_compressor(6);
             const size_t final_size = libdeflate_gzip_compress(compressor, st.data(), st.size(), compressed_buffer.data(), compressed_buffer.size());
             libdeflate_free_compressor(compressor);
