@@ -49,6 +49,7 @@ volatile e_task g_task = e_task::idle;
 std::optional<size_t> seek_to_frame;
 bool g_seek_pause_at_end;
 std::atomic g_seek_savestate_loading = false;
+std::atomic g_emu_resetting = false;
 std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 
 auto g_warp_modify_status = e_warp_modify_status::none;
@@ -60,9 +61,6 @@ std::filesystem::path g_movie_path;
 
 long m_current_sample = -1;
 int m_current_vi = -1;
-
-// Used for tracking VCR-invoked resets
-bool just_reset;
 
 // Used for tracking user-invoked resets
 bool user_requested_reset;
@@ -555,59 +553,6 @@ void vcr_create_n_frame_savestate(size_t frame)
 
 void vcr_handle_starting_tasks(int index, BUTTONS* input)
 {
-    if (g_task == e_task::start_recording_from_reset)
-    {
-        if (just_reset)
-        {
-            m_current_sample = 0;
-            m_current_vi = 0;
-            g_task = e_task::recording;
-            just_reset = false;
-
-            Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-            Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
-            Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
-        }
-        else
-        {
-            // We need to fully reset rom prior to actually pushing any samples to the buffer
-            bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
-            AsyncExecutor::invoke_async([clear_eeprom]
-            {
-                auto result = vr_reset_rom(clear_eeprom, false, true);
-                if (result != Core::Result::Ok)
-                {
-                    FrontendService::show_error("Failed to reset the rom when initiating a from-start recording.");
-                }
-            });
-        }
-    }
-
-    if (g_task == e_task::start_playback_from_reset)
-    {
-        if (just_reset)
-        {
-            m_current_sample = 0;
-            m_current_vi = 0;
-            g_task = e_task::playback;
-            just_reset = false;
-            Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-            Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
-            Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
-        }
-        else
-        {
-            bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
-            AsyncExecutor::invoke_async([clear_eeprom]
-            {
-                auto result = vr_reset_rom(clear_eeprom, false, true);
-                if (result != Core::Result::Ok)
-                {
-                    FrontendService::show_error("Failed to reset the rom when playing back a from-start movie.");
-                }
-            });
-        }
-    }
 }
 
 void vcr_handle_recording(int index, BUTTONS* input)
@@ -654,13 +599,20 @@ void vcr_handle_recording(int index, BUTTONS* input)
     if (user_requested_reset)
     {
         user_requested_reset = false;
+        g_emu_resetting = true;
         AsyncExecutor::invoke_async([]
         {
             auto result = vr_reset_rom(false, false, true);
+
+            std::scoped_lock lock(vcr_mutex);
+            
+            g_emu_resetting = false;
+            
             if (result != Core::Result::Ok)
             {
                 FrontendService::show_error("Failed to reset the rom following a user-invoked reset.");
             }
+            
         });
     }
 }
@@ -703,14 +655,23 @@ void vcr_handle_playback(int index, BUTTONS* input)
     //no readable code because 120 star tas can't get this right >:(
     if (input->Value == 0xC000)
     {
+        g_emu_resetting = true;
         g_core_logger->info("[VCR] Resetting during playback...");
         AsyncExecutor::invoke_async([]
         {
             auto result = vr_reset_rom(false, false, true);
+
+            std::scoped_lock lock(vcr_mutex);
+
             if (result != Core::Result::Ok)
             {
-                FrontendService::show_error("Failed to reset the rom following a movie-invoked reset.");
+                FrontendService::show_error("Failed to reset the rom following a movie-invoked reset.\nRecording will be stopped.", "VCR");
+                VCR::stop_all();
+                g_emu_resetting = false;
+                return;
             }
+
+            g_emu_resetting = false;
         });
     }
 
@@ -777,7 +738,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
     // NOTE: When we call reset_rom from another thread, we only request a reset to happen in the future.
     // Until the reset, the emu thread keeps running and potentially generating many frames.
     // Those frames are invalid to us, because from the movie's perspective, it should be instantaneous.
-    if (emu_resetting)
+    if (g_emu_resetting)
     {
         g_core_logger->info("[VCR] Skipping pre-reset frame");
         return;
@@ -788,12 +749,6 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
     {
         g_core_logger->info("[VCR] Skipping pre-seek savestate load frame");
         return;
-    }
-
-    // When resetting during playback, we need to remind program of the rerecords
-    if (g_task != e_task::idle && just_reset)
-    {
-        Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
     }
 
     if (g_task == e_task::idle)
@@ -950,7 +905,33 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
     }
     else
     {
+        g_emu_resetting = true;
         g_task = e_task::start_recording_from_reset;
+
+        // We need to fully reset rom prior to actually pushing any samples to the buffer
+        bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
+        AsyncExecutor::invoke_async([clear_eeprom]
+        {
+            const auto result = vr_reset_rom(clear_eeprom, false, true);
+
+            std::scoped_lock lock(vcr_mutex);
+
+            if (result != Core::Result::Ok)
+            {
+                FrontendService::show_error("Failed to reset the rom when initiating a from-start recording.\nRecording will be stopped.", "VCR");
+                VCR::stop_all();
+                g_emu_resetting = false;
+                return;
+            }
+            
+            g_emu_resetting = false;
+            m_current_sample = 0;
+            m_current_vi = 0;
+            g_task = e_task::recording;
+            Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+            Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
+            Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
+        });
     }
 
     set_rom_info(&g_header);
@@ -1129,6 +1110,8 @@ int check_warn_controllers(char* warning_str)
 
 VCR::Result VCR::start_playback(std::filesystem::path path)
 {
+    std::scoped_lock lock(vcr_mutex);
+
     auto movie_buf = read_file_buffer(path);
 
     if (movie_buf.empty())
@@ -1273,18 +1256,48 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
             g_core_logger->info("[VCR] Starting playback from snapshot...");
             g_task = e_task::playback;
-            // FIXME: Doesn't this need a message broadcast?
+            Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+            Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
+            Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
         });
     }
     else
     {
         g_task = e_task::start_playback_from_reset;
+        g_emu_resetting = true;
+
+        bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
+        AsyncExecutor::invoke_async([clear_eeprom]
+        {
+            const auto result = vr_reset_rom(clear_eeprom, false, true);
+
+            std::scoped_lock lock(vcr_mutex);
+
+            if (result != Core::Result::Ok)
+            {
+                FrontendService::show_error("Failed to reset the rom when playing back a from-start movie.\nPlayback will be stopped.", "VCR");
+                VCR::stop_all();
+                g_emu_resetting = false;
+                return;
+            }
+
+            g_emu_resetting = false;
+            m_current_sample = 0;
+            m_current_vi = 0;
+            g_task = e_task::playback;
+            Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+            Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
+            Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
+        });
     }
 
     Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
     Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
     Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
+
+    // FIXME: Move this into the actual starting sections, and document it :p
     LuaService::call_play_movie();
+
     return Result::Ok;
 }
 
@@ -1803,10 +1816,6 @@ void vcr_on_vi()
 void VCR::init()
 {
     Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-    Messenger::subscribe(Messenger::Message::ResetCompleted, [](std::any)
-    {
-        just_reset = true;
-    });
     Messenger::subscribe(Messenger::Message::ResetRequested, [](std::any)
     {
         user_requested_reset = true;
