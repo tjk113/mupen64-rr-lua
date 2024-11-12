@@ -506,7 +506,6 @@ void on_emu_launched_changed(std::any data)
             g_previously_running_luas.clear();
         });
         
-        Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
     }
 
     if (!value && previous_value)
