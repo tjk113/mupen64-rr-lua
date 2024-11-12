@@ -306,7 +306,7 @@ namespace Savestates
 
     void savestates_save_immediate_impl(const t_savestate_task& task)
     {
-        const auto start_time = std::chrono::high_resolution_clock::now();
+        ScopeTimer timer("Savestate saving", g_core_logger);
 
         const auto st = generate_savestate();
 
@@ -368,21 +368,14 @@ namespace Savestates
             task.callback(Savestates::Result::Ok, st);
         }
         LuaService::call_save_state();
-        g_core_logger->info("Savestate saving took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+
     }
 
     void savestates_load_immediate_impl(const t_savestate_task& task)
     {
-        const auto start_time = std::chrono::high_resolution_clock::now();
-
-        /*rough .st format :
-        0x0 - 0xA02BB0 : memory, registers, stuff like that, known size
-        0xA02BB4 - ??? : interrupt queue, dynamic size (cap 1kB)
-        ??? - ??????   : m64 info, also dynamic, no cap
-        More precise info can be seen on github
-        */
+        ScopeTimer timer("Savestate loading", g_core_logger);
+        
         memset(event_queue_buf, 0, sizeof(event_queue_buf));
-        //handle to st
         int len;
 
         std::filesystem::path new_st_path = task.params.path;
@@ -611,8 +604,6 @@ namespace Savestates
             //g_core_logger->info(".st jump: {:#06x}, stopped here:{:#06x}", PC->addr, last_addr);
             last_addr = PC->addr;
         }
-
-        g_core_logger->info("Savestate loading took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
     }
 
     /**
