@@ -66,31 +66,6 @@ namespace Savestates
     using t_savestate_callback = std::function<void(Savestates::Result result, const std::vector<uint8_t>&)>;
 
     /**
-     * \brief Gets the path to the save directory
-     */
-    std::filesystem::path get_saves_directory();
-
-    /**
-     * \brief Gets the path to the current rom's SRAM file
-     */
-    std::filesystem::path get_sram_path();
-
-    /**
-     * \brief Gets the path to the current rom's EEPROM file
-     */
-    std::filesystem::path get_eeprom_path();
-
-    /**
-     * \brief Gets the path to the current rom's flashram file
-     */
-    std::filesystem::path get_flashram_path();
-
-    /**
-     * \brief Gets the path to the current rom's mempak file
-     */
-    std::filesystem::path get_mempak_path();
-
-    /**
      * \brief Initializes the savestate system
      */
     void init();

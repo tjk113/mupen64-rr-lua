@@ -61,7 +61,7 @@ struct summercart summercart;
 
 static char* get_sd_path()
 {
-    auto saves_path = Savestates::get_saves_directory();
+    auto saves_path = get_saves_directory();
     char* path;
     if ((path = (char*)malloc(strlen(saves_path.string().c_str()) + 8 + 1)))
     {

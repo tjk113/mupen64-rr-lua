@@ -158,6 +158,11 @@ bool get_gs_button();
  */
 void set_gs_button(bool);
 
+/**
+ * \brief Gets the path to the save directory
+ */
+std::filesystem::path get_saves_directory();
+
 void pure_interpreter();
 void compare_core();
 extern void jump_to_func();

@@ -113,35 +113,6 @@ namespace Savestates
     // Buffer used for storing event queue data during loading
     char event_queue_buf[BUFLEN] = {0};
 
-    std::filesystem::path get_saves_directory()
-    {
-        if (g_config.is_default_saves_directory_used)
-        {
-            return FrontendService::get_app_path().string() + "save\\";
-        }
-        return g_config.saves_directory;
-    }
-
-    std::filesystem::path get_sram_path()
-    {
-        return std::format("{}{} {}.sra", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
-    }
-
-    std::filesystem::path get_eeprom_path()
-    {
-        return std::format("{}{} {}.eep", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
-    }
-
-    std::filesystem::path get_flashram_path()
-    {
-        return std::format("{}{} {}.fla", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
-    }
-
-    std::filesystem::path get_mempak_path()
-    {
-        return std::format("{}{} {}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
-    }
-
     void get_paths_for_task(const t_savestate_task& task, std::filesystem::path& st_path, std::filesystem::path& sd_path)
     {
         sd_path = std::format("{}{}.sd", get_saves_directory().string(), (const char*)ROM_HEADER.nom);

@@ -121,6 +121,35 @@ std::filesystem::path get_rom_path()
     return rom_path;
 }
 
+std::filesystem::path get_saves_directory()
+{
+    if (g_config.is_default_saves_directory_used)
+    {
+        return FrontendService::get_app_path().string() + "save\\";
+    }
+    return g_config.saves_directory;
+}
+
+std::filesystem::path get_sram_path()
+{
+    return std::format("{}{} {}.sra", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+}
+
+std::filesystem::path get_eeprom_path()
+{
+    return std::format("{}{} {}.eep", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+}
+
+std::filesystem::path get_flashram_path()
+{
+    return std::format("{}{} {}.fla", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+}
+
+std::filesystem::path get_mempak_path()
+{
+    return std::format("{}{} {}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+}
+
 void resume_emu()
 {
     if (emu_launched)
@@ -1961,10 +1990,10 @@ bool open_core_file_stream(const std::filesystem::path& path, FILE** file)
 
 void clear_save_data()
 {
-    open_core_file_stream(Savestates::get_eeprom_path(), &g_eeprom_file);
-    open_core_file_stream(Savestates::get_sram_path(), &g_sram_file);
-    open_core_file_stream(Savestates::get_flashram_path(), &g_fram_file);
-    open_core_file_stream(Savestates::get_mempak_path(), &g_mpak_file);
+    open_core_file_stream(get_eeprom_path(), &g_eeprom_file);
+    open_core_file_stream(get_sram_path(), &g_sram_file);
+    open_core_file_stream(get_flashram_path(), &g_fram_file);
+    open_core_file_stream(get_mempak_path(), &g_mpak_file);
 
     {
         memset(sram, 0, sizeof(sram));
@@ -2172,10 +2201,10 @@ Core::Result vr_start_rom(std::filesystem::path path)
     }
 
     // Open all the save file streams
-    if (!open_core_file_stream(Savestates::get_eeprom_path(), &g_eeprom_file)
-        || !open_core_file_stream(Savestates::get_sram_path(), &g_sram_file)
-        || !open_core_file_stream(Savestates::get_flashram_path(), &g_fram_file)
-        || !open_core_file_stream(Savestates::get_mempak_path(), &g_mpak_file))
+    if (!open_core_file_stream(get_eeprom_path(), &g_eeprom_file)
+        || !open_core_file_stream(get_sram_path(), &g_sram_file)
+        || !open_core_file_stream(get_flashram_path(), &g_fram_file)
+        || !open_core_file_stream(get_mempak_path(), &g_mpak_file))
     {
         Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::FileOpenFailed);
         Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
