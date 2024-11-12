@@ -350,15 +350,6 @@ namespace Savestates
 
             fwrite(compressed_buffer.data(), compressed_buffer.size(), 1, f);
             fclose(f);
-
-            if (task.medium == Medium::Path)
-            {
-                FrontendService::show_statusbar(std::format("Saved {}", new_st_path.filename().string()).c_str());
-            }
-            else
-            {
-                FrontendService::show_statusbar(std::format("Saved slot {}", task.params.slot + 1).c_str());
-            }
         }
 
         if (task.callback)
@@ -568,15 +559,8 @@ namespace Savestates
                 }
             }
         }
+        
         LuaService::call_load_state();
-        if (task.medium == Medium::Path)
-        {
-            FrontendService::show_statusbar(std::format("Loaded {}", new_st_path.filename().string()).c_str());
-        }
-        if (task.medium == Medium::Slot)
-        {
-            FrontendService::show_statusbar(std::format("Loaded slot {}", task.params.slot + 1).c_str());
-        }
 
         if (task.callback)
         {
@@ -739,14 +723,34 @@ namespace Savestates
     {
         g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
-        g_tasks.insert(g_tasks.begin(), t_savestate_task{
-                           .job = job,
-                           .medium = Medium::Path,
-                           .callback = callback,
-                           .params = {
-                               .path = path
-                           }
-                       });
+
+        auto pre_callback = [=](const Result result, const std::vector<uint8_t>& buffer)
+        {
+            if (result == Result::Ok)
+            {
+                FrontendService::show_statusbar(std::format("{} {}", job == Job::Save ? "Saved" : "Loaded", path.filename().string()).c_str());
+            }
+            else
+            {
+                FrontendService::show_error(std::format("Failed to {} {}.\nVerify that the savestate is valid and accessible.", job == Job::Save ? "save" : "load", path.filename().string()).c_str(), "Savestate");
+            }
+
+            if (callback)
+            {
+                callback(result, buffer);
+            }
+        };
+
+        const t_savestate_task task = {
+            .job = job,
+            .medium = Medium::Path,
+            .callback = pre_callback,
+            .params = {
+                .path = path
+            }
+        };
+
+        g_tasks.insert(g_tasks.begin(), task);
         savestates_warn_if_load_after_save();
     }
 
@@ -755,14 +759,33 @@ namespace Savestates
         g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
 
-        g_tasks.insert(g_tasks.begin(), t_savestate_task{
-                           .job = job,
-                           .medium = Medium::Slot,
-                           .callback = callback,
-                           .params = {
-                               .slot = (size_t)slot
-                           }
-                       });
+        auto pre_callback = [=](const Result result, const std::vector<uint8_t>& buffer)
+        {
+            if (result == Result::Ok)
+            {
+                FrontendService::show_statusbar(std::format("{} slot {}", job == Job::Save ? "Saved" : "Loaded", slot + 1).c_str());
+            }
+            else
+            {
+                FrontendService::show_error(std::format("Failed to {} slot {}.\nVerify that the savestate is valid and accessible.", job == Job::Save ? "save" : "load", slot + 1).c_str(), "Savestate");
+            }
+
+            if (callback)
+            {
+                callback(result, buffer);
+            }
+        };
+
+        const t_savestate_task task = {
+            .job = job,
+            .medium = Medium::Slot,
+            .callback = pre_callback,
+            .params = {
+                .slot = static_cast<size_t>(slot)
+            }
+        };
+
+        g_tasks.insert(g_tasks.begin(), task);
         savestates_warn_if_load_after_save();
     }
 
@@ -770,14 +793,17 @@ namespace Savestates
     {
         g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
-        g_tasks.insert(g_tasks.begin(), t_savestate_task{
-                           .job = job,
-                           .medium = Medium::Memory,
-                           .callback = callback,
-                           .params = {
-                               .buffer = buffer
-                           },
-                       });
+
+        const t_savestate_task task = {
+            .job = job,
+            .medium = Medium::Memory,
+            .callback = callback,
+            .params = {
+                .buffer = buffer
+            }
+        };
+
+        g_tasks.insert(g_tasks.begin(), task);
         savestates_warn_if_load_after_save();
     }
 }
