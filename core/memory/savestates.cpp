@@ -28,25 +28,23 @@
 **/
 
 #include "savestates.h"
+#include <cassert>
 #include <libdeflate.h>
+#include <queue>
 #include <stdlib.h>
 #include <string>
-#include <shared/Config.hpp>
-#include "flashram.h"
-#include <shared/services/LuaService.h>
-#include "memory.h"
-#include "summercart.h"
-#include <shared/Messenger.h>
 #include <core/r4300/interrupt.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/rom.h>
 #include <core/r4300/vcr.h>
-#include <cassert>
-#include <queue>
-
+#include <shared/Config.hpp>
+#include <shared/Messenger.h>
+#include <shared/services/LuaService.h>
 #include <shared/services/FrontendService.h>
-
-#include "shared/helpers/StlExtensions.h"
+#include <shared/helpers/StlExtensions.h>
+#include "flashram.h"
+#include "memory.h"
+#include "summercart.h"
 
 // st that comes from no delay fix mupen, it has some differences compared to new st:
 // - one frame of input is "embedded", that is the pif ram holds already fetched controller info.
@@ -96,25 +94,25 @@ namespace Savestates
     // Bit to set in RDRAM register to indicate that the savestate has been fixed
     constexpr auto RDRAM_DEVICE_MANUF_NEW_FIX_BIT = (1 << 31);
 
-    constexpr int first_block_size = 0xA02BB4 - 32; //32 is md5 hash
 
     // Whether there are any elements in the task vector.
     // Used to avoid locking the mutex (and slowing the emu thread down a bit) if there are no tasks to process.
     std::atomic g_has_work = false;
-    
+
     // The task vector mutex. Locked when accessing the task vector.
     std::recursive_mutex g_task_mutex;
 
     // The task vector, which contains the task queue to be performed by the savestate system.
     std::vector<t_savestate_task> g_tasks;
 
-    uint8_t first_block[first_block_size] = {0};
-
     // Demarcator for new screenshot section
     char screen_section[] = "SCR";
 
     // Buffer used for storing event queue data during loading
-    char event_queue_buf[1024] = {0};
+    char g_event_queue_buf[1024]{};
+
+    // Buffer used for storing st data up to event queue
+    uint8_t g_first_block[0xA02BB4 - 32]{};
 
     void get_paths_for_task(const t_savestate_task& task, std::filesystem::path& st_path, std::filesystem::path& sd_path)
     {
@@ -368,14 +366,13 @@ namespace Savestates
             task.callback(Savestates::Result::Ok, st);
         }
         LuaService::call_save_state();
-
     }
 
     void savestates_load_immediate_impl(const t_savestate_task& task)
     {
         ScopeTimer timer("Savestate loading", g_core_logger);
-        
-        memset(event_queue_buf, 0, sizeof(event_queue_buf));
+
+        memset(g_event_queue_buf, 0, sizeof(g_event_queue_buf));
         int len;
 
         std::filesystem::path new_st_path = task.params.path;
@@ -444,17 +441,17 @@ namespace Savestates
         }
 
         // new version does one bigass gzread for first part of .st (static size)
-        memread(&ptr, first_block, first_block_size);
+        memread(&ptr, g_first_block, sizeof(g_first_block));
 
         // now read interrupt queue into buf
-        for (len = 0; len < sizeof(event_queue_buf); len += 8)
+        for (len = 0; len < sizeof(g_event_queue_buf); len += 8)
         {
-            memread(&ptr, event_queue_buf + len, 4);
-            if (*reinterpret_cast<unsigned long*>(&event_queue_buf[len]) == 0xFFFFFFFF)
+            memread(&ptr, g_event_queue_buf + len, 4);
+            if (*reinterpret_cast<unsigned long*>(&g_event_queue_buf[len]) == 0xFFFFFFFF)
                 break;
-            memread(&ptr, event_queue_buf + len + 4, 4);
+            memread(&ptr, g_event_queue_buf + len + 4, 4);
         }
-        if (len == sizeof(event_queue_buf))
+        if (len == sizeof(g_event_queue_buf))
         {
             // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
             FrontendService::show_statusbar("Event queue too long (corrupted?)");
@@ -556,8 +553,8 @@ namespace Savestates
             }
 
             // so far loading success! overwrite memory
-            load_eventqueue_infos(event_queue_buf);
-            load_memory_from_buffer(first_block);
+            load_eventqueue_infos(g_event_queue_buf);
+            load_memory_from_buffer(g_first_block);
 
             // NOTE: We don't want to restore screen buffer while seeking, since it creates a short ugly flicker when the movie restarts by loading state
             if (is_mge_available() && video_buffer && !VCR::is_seeking())
@@ -616,13 +613,13 @@ namespace Savestates
 
         std::vector<size_t> duplicate_indicies{};
 
-        
+
         // De-dup slot-based save tasks
         // 1. Loop through all tasks
         for (size_t i = 0; i < g_tasks.size(); i++)
         {
             const auto& task = g_tasks[i];
-            
+
             if (task.medium != Medium::Slot)
                 continue;
 
@@ -635,7 +632,7 @@ namespace Savestates
                 {
                     break;
                 }
-                
+
                 if (other_task.medium == Medium::Slot && task.params.slot == other_task.params.slot)
                 {
                     g_core_logger->info("[ST] Found duplicate slot task at index {}", j);
@@ -646,7 +643,7 @@ namespace Savestates
 
         g_tasks = erase_indices(g_tasks, duplicate_indicies);
     }
-    
+
     /**
      * Logs the current task queue.
      */
@@ -707,7 +704,7 @@ namespace Savestates
         {
             return;
         }
-        
+
         std::scoped_lock lock(g_task_mutex);
 
         if (!g_tasks.empty())
