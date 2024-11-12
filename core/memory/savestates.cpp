@@ -99,6 +99,10 @@ namespace Savestates
     constexpr int BUFLEN = 1024;
     constexpr int first_block_size = 0xA02BB4 - 32; //32 is md5 hash
 
+    // Whether there are any elements in the task vector.
+    // Used to avoid locking the mutex (and slowing the emu thread down a bit) if there are no tasks to process.
+    std::atomic g_has_work = false;
+    
     // The task vector mutex. Locked when accessing the task vector.
     std::recursive_mutex g_task_mutex;
 
@@ -713,6 +717,11 @@ namespace Savestates
 
     void do_work()
     {
+        if (!g_has_work)
+        {
+            return;
+        }
+        
         std::scoped_lock lock(g_task_mutex);
 
         if (!g_tasks.empty())
@@ -738,11 +747,14 @@ namespace Savestates
             }
         }
         g_tasks.clear();
+
+        g_has_work = false;
     }
 
 
     void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback)
     {
+        g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
         g_tasks.insert(g_tasks.begin(), t_savestate_task{
                            .job = job,
@@ -757,6 +769,7 @@ namespace Savestates
 
     void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback)
     {
+        g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
 
         g_tasks.insert(g_tasks.begin(), t_savestate_task{
@@ -772,6 +785,7 @@ namespace Savestates
 
     void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback)
     {
+        g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
         g_tasks.insert(g_tasks.begin(), t_savestate_task{
                            .job = job,
