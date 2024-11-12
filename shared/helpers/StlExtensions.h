@@ -4,6 +4,36 @@
 #include <locale>
 #include <cctype>
 #include <vector>
+#include <lib/spdlog/spdlog.h>
+
+/**
+ * \brief Records the execution time of a scope
+ */
+class ScopeTimer
+{
+public:
+    ScopeTimer(const std::string& name, const std::shared_ptr<spdlog::logger>& logger)
+    {
+        m_name = name;
+        m_logger = logger;
+        m_start_time = std::chrono::high_resolution_clock::now();
+    }
+
+    ~ScopeTimer()
+    {
+        print_duration();
+    }
+
+    void print_duration() const
+    {
+        m_logger->info("[ScopeTimer] {}: {}ms", m_name.c_str(), static_cast<int>((std::chrono::high_resolution_clock::now() - m_start_time).count() / 1'000'000));
+    }
+
+private:
+    std::string m_name;
+    std::shared_ptr<spdlog::logger> m_logger;
+    std::chrono::time_point<std::chrono::steady_clock> m_start_time;
+};
 
 static bool ichar_equals(char a, char b)
 {

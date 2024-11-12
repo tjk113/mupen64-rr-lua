@@ -96,7 +96,6 @@ namespace Savestates
     // Bit to set in RDRAM register to indicate that the savestate has been fixed
     constexpr auto RDRAM_DEVICE_MANUF_NEW_FIX_BIT = (1 << 31);
 
-    constexpr int BUFLEN = 1024;
     constexpr int first_block_size = 0xA02BB4 - 32; //32 is md5 hash
 
     // Whether there are any elements in the task vector.
@@ -115,7 +114,7 @@ namespace Savestates
     char screen_section[] = "SCR";
 
     // Buffer used for storing event queue data during loading
-    char event_queue_buf[BUFLEN] = {0};
+    char event_queue_buf[1024] = {0};
 
     void get_paths_for_task(const t_savestate_task& task, std::filesystem::path& st_path, std::filesystem::path& sd_path)
     {
@@ -372,10 +371,6 @@ namespace Savestates
         g_core_logger->info("Savestate saving took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
     }
 
-    /// <summary>
-    /// First decompresses file into buffer, then before overwriting emulator memory checks if its good
-    /// </summary>
-    /// <param name="silence_not_found_error"></param>
     void savestates_load_immediate_impl(const t_savestate_task& task)
     {
         const auto start_time = std::chrono::high_resolution_clock::now();
@@ -459,14 +454,14 @@ namespace Savestates
         memread(&ptr, first_block, first_block_size);
 
         // now read interrupt queue into buf
-        for (len = 0; len < BUFLEN; len += 8)
+        for (len = 0; len < sizeof(event_queue_buf); len += 8)
         {
             memread(&ptr, event_queue_buf + len, 4);
             if (*reinterpret_cast<unsigned long*>(&event_queue_buf[len]) == 0xFFFFFFFF)
                 break;
             memread(&ptr, event_queue_buf + len + 4, 4);
         }
-        if (len == BUFLEN)
+        if (len == sizeof(event_queue_buf))
         {
             // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
             FrontendService::show_statusbar("Event queue too long (corrupted?)");

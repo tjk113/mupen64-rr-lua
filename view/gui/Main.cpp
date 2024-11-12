@@ -1174,7 +1174,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
             case IDM_BENCHMARK_MESSENGER:
                 {
-                    ScopeTimer timer("Messenger");
+                    ScopeTimer timer("Messenger", g_view_logger);
                     for (int i = 0; i < 10'000'000; ++i)
                     {
                         Messenger::broadcast(Messenger::Message::None, 5);
@@ -1184,7 +1184,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDM_BENCHMARK_LUA_CALLBACK:
                 {
                     FrontendService::show_information("Make sure the Lua script is running and the registered atreset body is empty.");
-                    ScopeTimer timer("100,000,000x call_reset");
+                    ScopeTimer timer("100,000,000x call_reset", g_view_logger);
                     for (int i = 0; i < 100'000'000; ++i)
                     {
                         LuaService::call_reset();
