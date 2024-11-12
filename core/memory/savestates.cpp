@@ -373,7 +373,6 @@ namespace Savestates
         ScopeTimer timer("Savestate loading", g_core_logger);
 
         memset(g_event_queue_buf, 0, sizeof(g_event_queue_buf));
-        int len;
 
         std::filesystem::path new_st_path = task.params.path;
         std::filesystem::path new_sd_path = "";
@@ -444,6 +443,7 @@ namespace Savestates
         memread(&ptr, g_first_block, sizeof(g_first_block));
 
         // now read interrupt queue into buf
+        int len;
         for (len = 0; len < sizeof(g_event_queue_buf); len += 8)
         {
             memread(&ptr, g_event_queue_buf + len, 4);
