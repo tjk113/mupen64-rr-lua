@@ -108,6 +108,9 @@ namespace Savestates
     // Demarcator for new screenshot section
     char screen_section[] = "SCR";
 
+    // Buffer used for storing flashram data during loading
+    char g_flashram_buf[1024]{};
+
     // Buffer used for storing event queue data during loading
     char g_event_queue_buf[1024]{};
 
@@ -197,9 +200,13 @@ namespace Savestates
 
         b.reserve(0xB624F0);
 
-        vecwrite(b, rom_md5, 32);
+        memset(g_flashram_buf, 0, sizeof(g_flashram_buf));
+        memset(g_event_queue_buf, 0, sizeof(g_event_queue_buf));
 
-        //if fixing enabled...
+        save_flashram_infos(g_flashram_buf);
+        const int event_queue_len = save_eventqueue_infos(g_event_queue_buf);
+        uint32_t movie_active = VCR::get_task() != e_task::idle;
+
         if (FIX_NEW_ST)
         {
             //this is code taken from dma.c:dma_si_read(), it finishes up the dma.
@@ -215,6 +222,7 @@ namespace Savestates
             //so it froze game, so there exists a way to cause that somehow
             if (get_event(SI_INT) == 0) //if there is no interrupt, add it, otherwise dont care
             {
+                g_core_logger->warn("[ST] No SI interrupt in queue, adding one...");
                 for (size_t i = 0; i < (64 / 4); i++)
                     rdram[si_register.si_dram_addr / 4 + i] = sl(PIF_RAM[i]);
                 update_count();
@@ -224,6 +232,8 @@ namespace Savestates
             }
             //hack end
         }
+        
+        vecwrite(b, rom_md5, 32);
         vecwrite(b, &rdram_register, sizeof(RDRAM_register));
         vecwrite(b, &MI_register, sizeof(mips_register));
         vecwrite(b, &pi_register, sizeof(PI_register));
@@ -239,10 +249,7 @@ namespace Savestates
         vecwrite(b, SP_DMEM, 0x1000);
         vecwrite(b, SP_IMEM, 0x1000);
         vecwrite(b, PIF_RAM, 0x40);
-
-        char buf[1024];
-        save_flashram_infos(buf);
-        vecwrite(b, buf, 24);
+        vecwrite(b, g_flashram_buf, 24);
         vecwrite(b, tlb_LUT_r, 0x100000);
         vecwrite(b, tlb_LUT_w, 0x100000);
         vecwrite(b, &llbit, 4);
@@ -259,16 +266,10 @@ namespace Savestates
             vecwrite(b, &interp_addr, 4);
         else
             vecwrite(b, &PC->addr, 4);
-
         vecwrite(b, &next_interrupt, 4);
         vecwrite(b, &next_vi, 4);
         vecwrite(b, &vi_field, 4);
-
-        const int len = save_eventqueue_infos(buf);
-        vecwrite(b, buf, len);
-
-        // re-recording
-        uint32_t movie_active = VCR::get_task() != e_task::idle;
+        vecwrite(b, g_event_queue_buf, event_queue_len);
         vecwrite(b, &movie_active, sizeof(movie_active));
         if (movie_active)
         {
@@ -332,7 +333,7 @@ namespace Savestates
             // Generate compressed buffer
             std::vector<uint8_t> compressed_buffer;
             compressed_buffer.resize(st.size());
-            
+
             const auto compressor = libdeflate_alloc_compressor(6);
             const size_t final_size = libdeflate_gzip_compress(compressor, st.data(), st.size(), compressed_buffer.data(), compressed_buffer.size());
             libdeflate_free_compressor(compressor);
@@ -561,7 +562,7 @@ namespace Savestates
                 }
             }
         }
-        
+
         LuaService::call_load_state();
 
         if (task.callback)
