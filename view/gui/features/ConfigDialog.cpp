@@ -1510,6 +1510,10 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                             RedrawWindow(g_lv_hwnd, nullptr, nullptr, RDW_UPDATENOW);
                             get_user_hotkey(hotkey);
                             g_hotkey_active_index.reset();
+
+                            ListView_SetItemState(g_lv_hwnd, i, 0, LVIS_SELECTED);
+                            ListView_SetItemState(g_lv_hwnd, i + 1, LVIS_SELECTED, LVIS_SELECTED);
+                            ListView_EnsureVisible(g_lv_hwnd, i + 1, false);
                         }
                         
                         ListView_Update(g_lv_hwnd, i);
