@@ -8,33 +8,6 @@
 #include "view/gui/Loggers.h"
 
 /**
- * \brief Records the execution time of a scope
- */
-class ScopeTimer
-{
-public:
-    ScopeTimer(std::string name)
-    {
-        m_name = name;
-        m_start_time = std::chrono::high_resolution_clock::now();
-    }
-
-    ~ScopeTimer()
-    {
-        print_duration();
-    }
-
-    void print_duration()
-    {
-        g_view_logger->info("[ScopeTimer] {} took {}ms", m_name.c_str(), static_cast<int>((std::chrono::high_resolution_clock::now() - m_start_time).count() / 1'000'000));
-    }
-
-private:
-    std::string m_name;
-    std::chrono::time_point<std::chrono::steady_clock> m_start_time;
-};
-
-/**
  * \brief Gets all files under all subdirectory of a specific directory, including the directory's shallow files
  * \param directory The path joiner-terminated directory
  */

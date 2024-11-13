@@ -57,8 +57,6 @@ unsigned long interp_addr;
 unsigned long vr_op;
 static long skip;
 
-bool ignore;
-
 void prefetch();
 
 extern void (*interp_ops[])(void);
@@ -2276,7 +2274,7 @@ static void BEQ()
     interp_ops[((vr_op >> 26) & 0x3F)]();
     update_count();
     delay_slot = 0;
-    if (local_rs == local_rt && !ignore)
+    if (local_rs == local_rt && !g_vr_beq_ignore_jmp)
         interp_addr += (local_immediate - 1) * 4;
     last_addr = interp_addr;
     if (next_interrupt <= core_Count) gen_interrupt();
@@ -3209,7 +3207,7 @@ void pure_interpreter()
         //if (Count > 0x2000000) g_core_logger->info("inter:%x,%x", interp_addr,op);
         //if ((Count+debug_count) > 0xabaa2c) stop=1;
         interp_ops[((vr_op >> 26) & 0x3F)]();
-        ignore = false;
+        g_vr_beq_ignore_jmp = false;
 
         //Count = (unsigned long)Count + 2;
         //if (interp_addr == 0x80000180) last_addr = interp_addr;

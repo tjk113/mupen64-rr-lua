@@ -221,6 +221,11 @@ typedef struct Config
     int32_t frame_skip_frequency = 1;
 
     /// <summary>
+    /// The current savestate slot index (0-9).
+    /// </summary>
+    int32_t st_slot;
+    
+    /// <summary>
     /// Whether fast-forward will mute audio
     /// This option improves performance by skipping additional doRspCycles calls, but may cause issues
     /// </summary>

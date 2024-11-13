@@ -216,11 +216,7 @@ namespace MovieDialog
                             break;
                         }
 
-                        st_path = path;
-                        st_medium = e_st_medium::path;
-
-                        std::filesystem::path movie_path = strip_extension(path)
-                            + ".m64";
+                        std::filesystem::path movie_path = strip_extension(path) + ".m64";
 
                         if (exists(movie_path))
                         {

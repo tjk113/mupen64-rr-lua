@@ -70,6 +70,9 @@ namespace Statusbar
             }
 
             set_statusbar_parts(statusbar_hwnd, parts);
+
+            // Update this at first start, otherwise it doesnt initially appear
+            Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
         }
 
         if (!value && previous_value)

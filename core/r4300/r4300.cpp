@@ -68,7 +68,7 @@ std::unique_ptr<Plugin> audio_plugin;
 std::unique_ptr<Plugin> input_plugin;
 std::unique_ptr<Plugin> rsp_plugin;
 
-extern bool ignore;
+bool g_vr_beq_ignore_jmp;
 volatile bool emu_launched = false;
 volatile bool emu_paused = false;
 volatile bool core_executing = false;
@@ -119,6 +119,35 @@ FILE* g_mpak_file;
 std::filesystem::path get_rom_path()
 {
     return rom_path;
+}
+
+std::filesystem::path get_saves_directory()
+{
+    if (g_config.is_default_saves_directory_used)
+    {
+        return FrontendService::get_app_path().string() + "save\\";
+    }
+    return g_config.saves_directory;
+}
+
+std::filesystem::path get_sram_path()
+{
+    return std::format("{}{} {}.sra", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+}
+
+std::filesystem::path get_eeprom_path()
+{
+    return std::format("{}{} {}.eep", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+}
+
+std::filesystem::path get_flashram_path()
+{
+    return std::format("{}{} {}.fla", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+}
+
+std::filesystem::path get_mempak_path()
+{
+    return std::format("{}{} {}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 void resume_emu()
@@ -295,7 +324,7 @@ void BEQ()
     PC->ops();
     update_count();
     delay_slot = 0;
-    if (local_rs == local_rt && !skip_jump && !ignore)
+    if (local_rs == local_rt && !skip_jump && !g_vr_beq_ignore_jmp)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
@@ -1880,7 +1909,7 @@ void core_start()
 			compare_core();
 #endif
             PC->ops();
-            ignore = false;
+            g_vr_beq_ignore_jmp = false;
             /*if (j!= (Count & 0xFFF00000))
               {
              j = (Count & 0xFFF00000);

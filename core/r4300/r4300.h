@@ -46,9 +46,9 @@ extern std::unique_ptr<Plugin> video_plugin;
 extern std::unique_ptr<Plugin> audio_plugin;
 extern std::unique_ptr<Plugin> input_plugin;
 extern std::unique_ptr<Plugin> rsp_plugin;
+extern bool g_vr_beq_ignore_jmp;
 extern volatile bool emu_launched;
 extern volatile bool emu_paused;
-extern volatile bool emu_resetting;
 extern volatile bool core_executing;
 extern size_t g_total_frames;
 extern int stop, llbit;
@@ -156,6 +156,11 @@ bool get_gs_button();
  * \brief Sets the GS button state
  */
 void set_gs_button(bool);
+
+/**
+ * \brief Gets the path to the save directory
+ */
+std::filesystem::path get_saves_directory();
 
 void pure_interpreter();
 void compare_core();
