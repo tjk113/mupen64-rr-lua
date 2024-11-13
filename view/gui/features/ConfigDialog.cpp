@@ -1141,6 +1141,147 @@ INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM 
     return FALSE;
 }
 
+bool begin_listview_edit(HWND hwnd)
+{
+    int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+
+    if (i == -1) return false;
+
+    LVITEM item = {0};
+    item.mask = LVIF_PARAM;
+    item.iItem = i;
+    ListView_GetItem(g_lv_hwnd, &item);
+
+    auto option_item = g_option_items[item.lParam];
+
+    // TODO: Perhaps gray out readonly values too?
+    if (option_item.is_readonly())
+    {
+        return false;
+    }
+
+    // For bools, just flip the value...
+    if (option_item.type == OptionsItem::Type::Bool)
+    {
+        *option_item.data ^= true;
+    }
+
+    // For enums, cycle through the possible values
+    if (option_item.type == OptionsItem::Type::Enum)
+    {
+        // 1. Find the index of the currently selected item, while falling back to the first possible value if there's no match
+        size_t current_value = option_item.possible_values[0].second;
+        for (auto possible_value : option_item.possible_values | std::views::values)
+        {
+            if (*option_item.data == possible_value)
+            {
+                current_value = possible_value;
+                break;
+            }
+        }
+
+        // 2. Find the lowest and highest values in the vector
+        int32_t min_possible_value = INT32_MAX;
+        int32_t max_possible_value = INT32_MIN;
+        for (const auto& val : option_item.possible_values | std::views::values)
+        {
+            if (val > max_possible_value)
+            {
+                max_possible_value = val;
+            }
+            if (val < min_possible_value)
+            {
+                min_possible_value = val;
+            }
+        }
+
+        // 2. Bump it, wrapping around if needed
+        current_value++;
+        if (current_value > max_possible_value)
+        {
+            current_value = min_possible_value;
+        }
+
+        // 3. Apply the change
+        *option_item.data = current_value;
+    }
+
+    // For strings, allow editing in a dialog (since it might be a multiline string and we can't really handle that below)
+    if (option_item.type == OptionsItem::Type::String)
+    {
+        g_edit_option_item_index = item.lParam;
+        DialogBoxParam(g_app_instance, MAKEINTRESOURCE(IDD_LUAINPUTPROMPT), hwnd, EditStringDialogProc, 0);
+    }
+
+    // For numbers, create a textbox over the value cell for inline editing
+    if (option_item.type == OptionsItem::Type::Number)
+    {
+        if (g_edit_hwnd)
+        {
+            DestroyWindow(g_edit_hwnd);
+        }
+
+        g_edit_option_item_index = item.lParam;
+
+        RECT item_rect{};
+        ListView_GetSubItemRect(g_lv_hwnd, i, 1, LVIR_LABEL, &item_rect);
+
+        g_edit_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD | WS_VISIBLE | WS_TABSTOP, item_rect.left,
+                                     item_rect.top,
+                                     item_rect.right - item_rect.left, item_rect.bottom - item_rect.top,
+                                     hwnd, 0, g_app_instance, 0);
+
+        SendMessage(g_edit_hwnd, WM_SETFONT, (WPARAM)SendMessage(g_lv_hwnd, WM_GETFONT, 0, 0), 0);
+
+        SetWindowSubclass(g_edit_hwnd, InlineEditBoxProc, 0, 0);
+
+        Edit_SetText(g_edit_hwnd, std::to_string(*option_item.data).c_str());
+
+        PostMessage(hwnd, WM_NEXTDLGCTL, (WPARAM)g_edit_hwnd, TRUE);
+    }
+
+    // For hotkeys, accept keyboard inputs
+    if (option_item.type == OptionsItem::Type::Hotkey)
+    {
+        t_hotkey* hotkey = (t_hotkey*)option_item.data;
+        g_hotkey_active_index = std::make_optional(i);
+        ListView_Update(g_lv_hwnd, i);
+        RedrawWindow(g_lv_hwnd, nullptr, nullptr, RDW_UPDATENOW);
+        get_user_hotkey(hotkey);
+        g_hotkey_active_index.reset();
+
+        ListView_SetItemState(g_lv_hwnd, i, 0, LVIS_SELECTED);
+        ListView_SetItemState(g_lv_hwnd, i + 1, LVIS_SELECTED, LVIS_SELECTED);
+        ListView_EnsureVisible(g_lv_hwnd, i + 1, false);
+    }
+
+    ListView_Update(g_lv_hwnd, i);
+    return true;
+}
+
+
+LRESULT CALLBACK list_view_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param, UINT_PTR, DWORD_PTR)
+{
+    switch (msg)
+    {
+    case WM_KEYDOWN:
+        if (w_param == VK_SPACE)
+        {
+            return TRUE;
+        }
+        break;
+    case WM_KEYUP:
+        if (w_param == VK_SPACE && begin_listview_edit(hwnd))
+        {
+            return TRUE;
+        }
+        break;
+    default:
+        break;
+    }
+    return DefSubclassProc(hwnd, msg, w_param, l_param);
+}
+
 BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
     NMHDR FAR* l_nmhdr = nullptr;
@@ -1168,6 +1309,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                                        hwnd, (HMENU)IDC_SETTINGS_LV,
                                        g_app_instance,
                                        NULL);
+            SetWindowSubclass(g_lv_hwnd, list_view_proc, 0, 0);
 
             HIMAGELIST image_list = ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 2, 0);
             ImageList_AddIcon(image_list, LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_DENY)));
@@ -1276,7 +1418,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                 {
                     *option_item.data_str = *(std::string*)default_equivalent;
                 }
-                else if(option_item.type == OptionsItem::Type::Hotkey)
+                else if (option_item.type == OptionsItem::Type::Hotkey)
                 {
                     auto default_hotkey = (t_hotkey*)default_equivalent;
                     auto current_hotkey = (t_hotkey*)option_item.data;
@@ -1352,7 +1494,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                                     && default_hotkey->ctrl == current_hotkey->ctrl
                                     && default_hotkey->alt == current_hotkey->alt
                                     && default_hotkey->shift == current_hotkey->shift;
-                                
+
                                 plvdi->item.iImage = same ? 50 : 1;
                             }
                             else
@@ -1403,120 +1545,9 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                         break;
                     }
                 case NM_DBLCLK:
+                    if (begin_listview_edit(hwnd))
                     {
-                        int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
-
-                        if (i == -1) break;
-
-                        LVITEM item = {0};
-                        item.mask = LVIF_PARAM;
-                        item.iItem = i;
-                        ListView_GetItem(g_lv_hwnd, &item);
-
-                        auto option_item = g_option_items[item.lParam];
-
-                        // TODO: Perhaps gray out readonly values too?
-                        if (option_item.is_readonly())
-                        {
-                            break;
-                        }
-
-                        // For bools, just flip the value...
-                        if (option_item.type == OptionsItem::Type::Bool)
-                        {
-                            *option_item.data ^= true;
-                        }
-
-                        // For enums, cycle through the possible values
-                        if (option_item.type == OptionsItem::Type::Enum)
-                        {
-                            // 1. Find the index of the currently selected item, while falling back to the first possible value if there's no match
-                            size_t current_value = option_item.possible_values[0].second;
-                            for (auto possible_value : option_item.possible_values | std::views::values)
-                            {
-                                if (*option_item.data == possible_value)
-                                {
-                                    current_value = possible_value;
-                                    break;
-                                }
-                            }
-
-                            // 2. Find the lowest and highest values in the vector
-                            int32_t min_possible_value = INT32_MAX;
-                            int32_t max_possible_value = INT32_MIN;
-                            for (const auto& val : option_item.possible_values | std::views::values)
-                            {
-                                if (val > max_possible_value)
-                                {
-                                    max_possible_value = val;
-                                }
-                                if (val < min_possible_value)
-                                {
-                                    min_possible_value = val;
-                                }
-                            }
-
-                            // 2. Bump it, wrapping around if needed
-                            current_value++;
-                            if (current_value > max_possible_value)
-                            {
-                                current_value = min_possible_value;
-                            }
-
-                            // 3. Apply the change
-                            *option_item.data = current_value;
-                        }
-
-                        // For strings, allow editing in a dialog (since it might be a multiline string and we can't really handle that below)
-                        if (option_item.type == OptionsItem::Type::String)
-                        {
-                            g_edit_option_item_index = item.lParam;
-                            DialogBoxParam(g_app_instance, MAKEINTRESOURCE(IDD_LUAINPUTPROMPT), hwnd, EditStringDialogProc, 0);
-                        }
-
-                        // For numbers, create a textbox over the value cell for inline editing
-                        if (option_item.type == OptionsItem::Type::Number)
-                        {
-                            if (g_edit_hwnd)
-                            {
-                                DestroyWindow(g_edit_hwnd);
-                            }
-
-                            g_edit_option_item_index = item.lParam;
-
-                            RECT item_rect{};
-                            ListView_GetSubItemRect(g_lv_hwnd, i, 1, LVIR_LABEL, &item_rect);
-
-                            g_edit_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD | WS_VISIBLE | WS_TABSTOP, item_rect.left,
-                                                         item_rect.top,
-                                                         item_rect.right - item_rect.left, item_rect.bottom - item_rect.top,
-                                                         hwnd, 0, g_app_instance, 0);
-
-                            SendMessage(g_edit_hwnd, WM_SETFONT, (WPARAM)SendMessage(g_lv_hwnd, WM_GETFONT, 0, 0), 0);
-
-                            SetWindowSubclass(g_edit_hwnd, InlineEditBoxProc, 0, 0);
-
-                            Edit_SetText(g_edit_hwnd, std::to_string(*option_item.data).c_str());
-
-                            PostMessage(hwnd, WM_NEXTDLGCTL, (WPARAM)g_edit_hwnd, TRUE);
-                        }
-
-                        // For hotkeys, accept keyboard inputs
-                        if (option_item.type == OptionsItem::Type::Hotkey)
-                        {
-                            t_hotkey* hotkey = (t_hotkey*)option_item.data;
-                            g_hotkey_active_index = std::make_optional(i);
-                            ListView_Update(g_lv_hwnd, i);
-                            RedrawWindow(g_lv_hwnd, nullptr, nullptr, RDW_UPDATENOW);
-                            get_user_hotkey(hotkey);
-                            g_hotkey_active_index.reset();
-
-                            ListView_SetItemState(g_lv_hwnd, i, 0, LVIS_SELECTED);
-                            ListView_SetItemState(g_lv_hwnd, i + 1, LVIS_SELECTED, LVIS_SELECTED);
-                            ListView_EnsureVisible(g_lv_hwnd, i + 1, false);
-                        }
-                        
-                        ListView_Update(g_lv_hwnd, i);
+                        return TRUE;
                     }
                     break;
                 default:
