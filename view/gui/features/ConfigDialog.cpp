@@ -67,6 +67,7 @@ typedef struct OptionsItem
         Number,
         Enum,
         String,
+        Hotkey,
     };
 
     /**
@@ -129,6 +130,12 @@ typedef struct OptionsItem
         if (type == Type::String)
         {
             return string_to_wstring(*data_str);
+        }
+
+        if (type == Type::Hotkey)
+        {
+            auto hotkey_ptr = reinterpret_cast<t_hotkey*>(data);
+            return string_to_wstring(hotkey_to_string(hotkey_ptr));
         }
 
         for (auto [name, val] : possible_values)
@@ -755,7 +762,12 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         .name = L"Core"
     };
 
-    groups = {interface_group, piano_roll_group, flow_group, capture_group, core_group};
+    t_options_group hotkey_group = {
+        .id = 6,
+        .name = L"Hotkeys"
+    };
+
+    groups = {interface_group, piano_roll_group, flow_group, capture_group, core_group, hotkey_group};
 
     options = {
         t_options_item{
@@ -1031,6 +1043,17 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .type = t_options_item::Type::Number,
         },
     };
+
+    for (const auto hotkey : g_config_hotkeys)
+    {
+        options.push_back(t_options_item{
+            .group_id = hotkey_group.id,
+            .name = hotkey->identifier,
+            .tooltip = string_to_wstring(std::format("{} hotkey.\nAction down: #{}\nAction up: #{}", hotkey->identifier, (int32_t)hotkey->down_cmd, (int32_t)hotkey->up_cmd)),
+            .data = reinterpret_cast<int32_t*>(hotkey),
+            .type = t_options_item::Type::Hotkey,
+        });
+    }
 }
 
 LRESULT CALLBACK InlineEditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
@@ -1250,6 +1273,15 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                 {
                     *option_item.data_str = *(std::string*)default_equivalent;
                 }
+                else if(option_item.type == OptionsItem::Type::Hotkey)
+                {
+                    auto default_hotkey = (t_hotkey*)default_equivalent;
+                    auto current_hotkey = (t_hotkey*)option_item.data;
+                    current_hotkey->key = default_hotkey->key;
+                    current_hotkey->ctrl = default_hotkey->ctrl;
+                    current_hotkey->alt = default_hotkey->alt;
+                    current_hotkey->shift = default_hotkey->shift;
+                }
                 else
                 {
                     *option_item.data = *(int32_t*)default_equivalent;
@@ -1307,6 +1339,18 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                             if (options_item.type == OptionsItem::Type::String)
                             {
                                 plvdi->item.iImage = *(std::string*)default_value_ptr == *options_item.data_str ? 50 : 1;
+                            }
+                            else if (options_item.type == OptionsItem::Type::Hotkey)
+                            {
+                                auto default_hotkey = (t_hotkey*)default_value_ptr;
+                                auto current_hotkey = (t_hotkey*)options_item.data;
+
+                                bool same = default_hotkey->key == current_hotkey->key
+                                    && default_hotkey->ctrl == current_hotkey->ctrl
+                                    && default_hotkey->alt == current_hotkey->alt
+                                    && default_hotkey->shift == current_hotkey->shift;
+                                
+                                plvdi->item.iImage = same ? 50 : 1;
                             }
                             else
                             {
@@ -1449,6 +1493,13 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                             PostMessage(hwnd, WM_NEXTDLGCTL, (WPARAM)g_edit_hwnd, TRUE);
                         }
 
+                        // For hotkeys, accept keyboard inputs
+                        if (option_item.type == OptionsItem::Type::Hotkey)
+                        {
+                            t_hotkey* hotkey = (t_hotkey*)option_item.data;
+                            get_user_hotkey(hotkey);    
+                        }
+                        
                         ListView_Update(g_lv_hwnd, i);
                     }
                     break;
@@ -1473,142 +1524,6 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
     return TRUE;
 }
 
-std::string hotkey_to_string_overview(t_hotkey* hotkey)
-{
-    return hotkey->identifier + " (" + hotkey_to_string(hotkey) + ")";
-}
-
-void on_hotkey_selection_changed(const HWND dialog_hwnd)
-{
-    HWND list_hwnd = GetDlgItem(dialog_hwnd, IDC_HOTKEY_LIST);
-    HWND enable_hwnd = GetDlgItem(dialog_hwnd, IDC_HOTKEY_CLEAR);
-    HWND edit_hwnd = GetDlgItem(dialog_hwnd, IDC_SELECTED_HOTKEY_TEXT);
-    HWND assign_hwnd = GetDlgItem(dialog_hwnd, IDC_HOTKEY_ASSIGN_SELECTED);
-
-    char selected_identifier[MAX_PATH] = {0};
-    SendMessage(list_hwnd, LB_GETTEXT, SendMessage(list_hwnd, LB_GETCURSEL, 0, 0), (LPARAM)selected_identifier);
-
-    int32_t selected_index = ListBox_GetCurSel(list_hwnd);
-
-    EnableWindow(enable_hwnd, selected_index != -1);
-    EnableWindow(edit_hwnd, selected_index != -1);
-    EnableWindow(assign_hwnd, selected_index != -1);
-
-    SetWindowText(assign_hwnd, "Assign...");
-
-    if (selected_index == -1)
-    {
-        SetWindowText(edit_hwnd, "");
-        return;
-    }
-
-    auto hotkey = (t_hotkey*)ListBox_GetItemData(list_hwnd, selected_index);
-    SetWindowText(edit_hwnd, hotkey_to_string(hotkey).c_str());
-}
-
-void build_hotkey_list(HWND hwnd)
-{
-    HWND list_hwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
-
-    char search_query_c[MAX_PATH] = {0};
-    GetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, search_query_c, std::size(search_query_c));
-    std::string search_query = search_query_c;
-
-    ListBox_ResetContent(list_hwnd);
-
-    for (t_hotkey* hotkey : g_config_hotkeys)
-    {
-        std::string hotkey_string = hotkey_to_string_overview(hotkey);
-
-        if (!search_query.empty())
-        {
-            if (!contains(to_lower(hotkey_string), to_lower(search_query))
-                && !contains(to_lower(hotkey->identifier), to_lower(search_query)))
-            {
-                continue;
-            }
-        }
-
-        int32_t index = ListBox_GetCount(list_hwnd);
-        ListBox_AddString(list_hwnd, hotkey_string.c_str());
-        ListBox_SetItemData(list_hwnd, index, hotkey);
-    }
-}
-
-BOOL CALLBACK hotkeys_proc(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM)
-{
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        {
-            SetDlgItemText(hwnd, IDC_HOTKEY_SEARCH, "");
-            on_hotkey_selection_changed(hwnd);
-            return TRUE;
-        }
-    case WM_COMMAND:
-        {
-            HWND list_hwnd = GetDlgItem(hwnd, IDC_HOTKEY_LIST);
-            const int event = HIWORD(w_param);
-            const int id = LOWORD(w_param);
-            switch (id)
-            {
-            case IDC_HOTKEY_LIST:
-                if (event == LBN_SELCHANGE)
-                {
-                    on_hotkey_selection_changed(hwnd);
-                }
-                if (event == LBN_DBLCLK)
-                {
-                    on_hotkey_selection_changed(hwnd);
-                    SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDC_HOTKEY_ASSIGN_SELECTED, BN_CLICKED), (LPARAM)GetDlgItem(hwnd, IDC_HOTKEY_ASSIGN_SELECTED));
-                }
-                break;
-            case IDC_HOTKEY_ASSIGN_SELECTED:
-                {
-                    int32_t index = ListBox_GetCurSel(list_hwnd);
-                    if (index == -1)
-                    {
-                        break;
-                    }
-                    auto hotkey = (t_hotkey*)ListBox_GetItemData(list_hwnd, index);
-                    SetDlgItemText(hwnd, id, "...");
-                    get_user_hotkey(hotkey);
-
-                    build_hotkey_list(hwnd);
-                    ListBox_SetCurSel(list_hwnd, (index + 1) % ListBox_GetCount(list_hwnd));
-                    on_hotkey_selection_changed(hwnd);
-                }
-                break;
-            case IDC_HOTKEY_SEARCH:
-                {
-                    build_hotkey_list(hwnd);
-                }
-                break;
-            case IDC_HOTKEY_CLEAR:
-                {
-                    int32_t index = ListBox_GetCurSel(list_hwnd);
-                    if (index == -1)
-                    {
-                        break;
-                    }
-                    auto hotkey = (t_hotkey*)ListBox_GetItemData(list_hwnd, index);
-                    hotkey->key = 0;
-                    hotkey->ctrl = 0;
-                    hotkey->shift = 0;
-                    hotkey->alt = 0;
-                    build_hotkey_list(hwnd);
-                    on_hotkey_selection_changed(hwnd);
-                }
-                break;
-            }
-        }
-        break;
-    default:
-        return FALSE;
-    }
-    return TRUE;
-}
-
 void configdialog_init()
 {
     get_config_listview_items(g_option_groups, g_option_items);
@@ -1616,7 +1531,7 @@ void configdialog_init()
 
 void configdialog_show()
 {
-    PROPSHEETPAGE psp[4] = {{0}};
+    PROPSHEETPAGE psp[3] = {{0}};
     for (auto& i : psp)
     {
         i.dwSize = sizeof(PROPSHEETPAGE);
@@ -1635,10 +1550,6 @@ void configdialog_show()
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
     psp[2].pfnDlgProc = general_cfg;
     psp[2].pszTitle = "General";
-
-    psp[3].pszTemplate = MAKEINTRESOURCE(IDD_NEW_HOTKEY_DIALOG);
-    psp[3].pfnDlgProc = hotkeys_proc;
-    psp[3].pszTitle = "Hotkeys";
 
     PROPSHEETHEADER psh = {0};
     psh.dwSize = sizeof(PROPSHEETHEADER);
