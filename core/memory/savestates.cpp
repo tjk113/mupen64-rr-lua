@@ -309,19 +309,6 @@ namespace Savestates
 
         const auto st = generate_savestate();
 
-        // Is this the right place to do this? Perhaps it should be done in do_slot...
-        if (task.medium == Medium::Slot && g_config.increment_slot)
-        {
-            if (g_config.st_slot >= 9)
-            {
-                g_config.st_slot = 0;
-            }
-            else
-            {
-                g_config.st_slot++;
-            }
-        }
-
         if (task.medium == Medium::Slot || task.medium == Medium::Path)
         {
             // Always save summercart for some reason
@@ -764,8 +751,15 @@ namespace Savestates
     void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback)
     {
         g_has_work = true;
+        
         std::scoped_lock lock(g_task_mutex);
 
+        if (g_config.increment_slot)
+        {
+            g_config.st_slot >= 9 ? g_config.st_slot = 0 : g_config.st_slot++;
+            Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
+        }
+        
         auto pre_callback = [=](const Result result, const std::vector<uint8_t>& buffer)
         {
             if (result == Result::Ok)
