@@ -183,6 +183,9 @@ HWND g_edit_hwnd;
 size_t g_edit_option_item_index;
 t_config g_prev_config;
 
+// Index of the hotkey currently being entered, if any
+std::optional<size_t> g_hotkey_active_index;
+
 /// <summary>
 /// Waits until the user inputs a valid key sequence, then fills out the hotkey
 /// </summary>
@@ -1369,6 +1372,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                             strcpy(plvdi->item.pszText, options_item.name.c_str());
                             break;
                         case 1:
+                            if (g_hotkey_active_index.has_value() && g_hotkey_active_index.value() == plvdi->item.iItem)
+                            {
+                                strcpy(plvdi->item.pszText, "...");
+                                break;
+                            }
                             strcpy(plvdi->item.pszText, wstring_to_string(options_item.get_value_name()).c_str());
                             break;
                         }
@@ -1497,7 +1505,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                         if (option_item.type == OptionsItem::Type::Hotkey)
                         {
                             t_hotkey* hotkey = (t_hotkey*)option_item.data;
-                            get_user_hotkey(hotkey);    
+                            g_hotkey_active_index = std::make_optional(i);
+                            ListView_Update(g_lv_hwnd, i);
+                            RedrawWindow(g_lv_hwnd, nullptr, nullptr, RDW_UPDATENOW);
+                            get_user_hotkey(hotkey);
+                            g_hotkey_active_index.reset();
                         }
                         
                         ListView_Update(g_lv_hwnd, i);
