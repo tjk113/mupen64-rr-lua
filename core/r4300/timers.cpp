@@ -19,6 +19,7 @@
 #include <shared/Messenger.h>
 #include <core/memory/pif.h>
 #include <core/r4300/vcr.h>
+#include <core/r4300/r4300.h>
 
 bool frame_changed = true;
 extern int m_current_vi;
@@ -74,7 +75,7 @@ void timer_new_vi()
     {
         Messenger::broadcast(Messenger::Message::LagLimitExceeded, nullptr);
     }
-    bool ff = fast_forward || VCR::is_seeking();
+    bool ff = fast_forward || VCR::is_seeking() || g_vr_benchmark_enabled;
 
     const auto current_vi_time = std::chrono::high_resolution_clock::now();
 

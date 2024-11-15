@@ -80,6 +80,8 @@ extern FILE* g_sram_file;
 extern FILE* g_fram_file;
 extern FILE* g_mpak_file;
 
+extern bool g_vr_benchmark_enabled;
+
 std::filesystem::path get_rom_path();
 
 namespace Core
@@ -101,6 +103,17 @@ namespace Core
         // Failed to open core streams
         FileOpenFailed,
     };
+
+    /**
+     * Starts a benchmark section. Must be stopped with <see cref="stop_benchmark"/>.
+     */
+    void start_benchmark();
+
+    /**
+     * Stops the currently running benchmark section.
+     * \return The amount of frames per real-time second during the benchmark. If no benchmark is running, 0 is returned.
+     */
+    double stop_benchmark();
 }
 
 /**
@@ -161,6 +174,7 @@ void set_gs_button(bool);
  * \brief Gets the path to the save directory
  */
 std::filesystem::path get_saves_directory();
+
 
 void pure_interpreter();
 void compare_core();

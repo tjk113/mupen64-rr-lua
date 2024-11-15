@@ -102,6 +102,10 @@ int trunc_mode = TRUNC_MODE, round_mode = ROUND_MODE, ceil_mode = CEIL_MODE, flo
 short x87_status_word;
 void (*code)();
 
+bool g_vr_benchmark_enabled = false;
+time_point g_vr_benchmark_start_time{};
+size_t g_vr_benchmark_start_frames = 0;
+
 FILE* g_eeprom_file;
 FILE* g_sram_file;
 FILE* g_fram_file;
@@ -119,6 +123,34 @@ FILE* g_mpak_file;
 std::filesystem::path get_rom_path()
 {
     return rom_path;
+}
+
+void Core::start_benchmark()
+{
+	if (g_vr_benchmark_enabled)
+	{
+		return;
+	}
+
+	g_vr_benchmark_enabled = true;
+	g_vr_benchmark_start_time = std::chrono::high_resolution_clock::now();
+	g_vr_benchmark_start_frames = g_total_frames;
+}
+
+double Core::stop_benchmark()
+{
+    if (!g_vr_benchmark_enabled)
+    {
+        return 0;
+    }
+    
+	g_vr_benchmark_enabled = false;
+
+	const auto end_time = std::chrono::high_resolution_clock::now();
+	const auto elapsed_frames = g_total_frames - g_vr_benchmark_start_frames;
+	const auto elapsed_time = end_time - g_vr_benchmark_start_time;
+
+	return static_cast<double>(elapsed_frames) / (static_cast<double>(elapsed_time.count()) / 1000000000.0);
 }
 
 std::filesystem::path get_saves_directory()
