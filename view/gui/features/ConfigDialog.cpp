@@ -1402,6 +1402,11 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             HMENU h_menu = CreatePopupMenu();
             AppendMenu(h_menu, MF_STRING | (readonly ? MF_DISABLED : MF_ENABLED), 1, "Reset to default");
             AppendMenu(h_menu, MF_STRING, 2, "More info...");
+            if (option_item.type == OptionsItem::Type::Hotkey)
+            {
+                AppendMenu(h_menu, MF_SEPARATOR, 3, "");
+                AppendMenu(h_menu, MF_STRING, 4, "Clear");
+            }
 
             const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param), hwnd, 0);
 
@@ -1461,6 +1466,16 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                 }
 
                 FrontendService::show_information(wstring_to_string(str).c_str(), "Information", hwnd);
+            }
+
+            if (offset == 4 && option_item.type == OptionsItem::Type::Hotkey)
+            {
+                auto current_hotkey = (t_hotkey*)option_item.data;
+                current_hotkey->key = 0;
+                current_hotkey->ctrl = 0;
+                current_hotkey->alt = 0;
+                current_hotkey->shift = 0;
+                ListView_Update(g_lv_hwnd, i);
             }
 
             DestroyMenu(h_menu);
