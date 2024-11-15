@@ -12,6 +12,23 @@ std::shared_ptr<spdlog::logger> g_view_logger;
 
 void Loggers::init()
 {
+    HANDLE h_file = CreateFile("mupen.log", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+    if (h_file != INVALID_HANDLE_VALUE)
+    {
+        LARGE_INTEGER size{};
+        GetFileSizeEx(h_file, &size);
+
+        // Clear log file if bigger than 50MB
+        if (size.QuadPart > 50ull * 1024ull * 1024ull)
+        {
+			SetFilePointerEx(h_file, {.QuadPart = 0}, nullptr, FILE_BEGIN);
+			SetEndOfFile(h_file);
+        }
+
+		CloseHandle(h_file);
+    }
+    
 #ifdef _DEBUG
     std::vector<spdlog::sink_ptr> core_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
     std::vector<spdlog::sink_ptr> shared_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
