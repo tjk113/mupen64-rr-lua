@@ -9,9 +9,11 @@
 #include <shared/Config.hpp>
 #include <view/gui/features/MGECompositor.h>
 
+#include "Loggers.h"
 #include "features/Dispatcher.h"
 #include "features/RomBrowser.hpp"
 #include "features/Statusbar.hpp"
+#include "shared/helpers/StlExtensions.h"
 
 size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, DialogType type, void* hwnd)
 {
@@ -50,11 +52,14 @@ size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstri
     int pressed_button = -1;
     TaskDialogIndirect(&task_dialog_config, &pressed_button, NULL, NULL);
 
+    g_view_logger->info("[FrontendService] show_multiple_choice_dialog: '{}', answer: {}", wstring_to_string(str), pressed_button > 0 ? wstring_to_string(choices[pressed_button]) : "?");
+    
     return pressed_button;
 }
 
 bool FrontendService::show_ask_dialog(const char* str, const char* title, bool warning, void* hwnd)
 {
+    g_view_logger->info("[FrontendService] show_ask_dialog: '{}'", str);
     if (g_config.silent_mode)
     {
         return true;
@@ -64,6 +69,7 @@ bool FrontendService::show_ask_dialog(const char* str, const char* title, bool w
 
 void FrontendService::show_warning(const char* str, const char* title, void* hwnd)
 {
+    g_view_logger->info("[FrontendService] show_warning: '{}'", str);
     if (!g_config.silent_mode)
     {
         MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_ICONWARNING);
@@ -72,6 +78,7 @@ void FrontendService::show_warning(const char* str, const char* title, void* hwn
 
 void FrontendService::show_error(const char* str, const char* title, void* hwnd)
 {
+    g_view_logger->info("[FrontendService] show_error: '{}'", str);
     if (!g_config.silent_mode)
     {
         MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_ICONERROR);
@@ -80,6 +87,7 @@ void FrontendService::show_error(const char* str, const char* title, void* hwnd)
 
 void FrontendService::show_information(const char* str, const char* title, void* hwnd)
 {
+    g_view_logger->info("[FrontendService] show_information: '{}'", str);
     if (!g_config.silent_mode)
     {
         MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_OK | MB_ICONINFORMATION);
