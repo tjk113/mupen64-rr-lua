@@ -172,6 +172,33 @@ typedef struct OptionsItem
 
         return (int32_t*)((char*)config + field_offset);
     }
+
+    /**
+     * Resets the value of the option to the default value.
+     */
+    void reset_to_default()
+    {
+        void* default_equivalent = get_default_value_ptr(&g_default_config);
+
+        if (type == Type::String)
+        {
+            *data_str = *(std::string*)default_equivalent;
+        }
+        else if (type == Type::Hotkey)
+        {
+            auto default_hotkey = (t_hotkey*)default_equivalent;
+            auto current_hotkey = (t_hotkey*)data;
+            current_hotkey->key = default_hotkey->key;
+            current_hotkey->ctrl = default_hotkey->ctrl;
+            current_hotkey->alt = default_hotkey->alt;
+            current_hotkey->shift = default_hotkey->shift;
+        }
+        else
+        {
+            *data = *(int32_t*)default_equivalent;
+        }
+    }
+    
 } t_options_item;
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
@@ -1259,7 +1286,6 @@ bool begin_listview_edit(HWND hwnd)
     return true;
 }
 
-
 LRESULT CALLBACK list_view_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param, UINT_PTR, DWORD_PTR)
 {
     switch (msg)
@@ -1407,7 +1433,9 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                 AppendMenu(h_menu, MF_SEPARATOR, 3, "");
                 AppendMenu(h_menu, MF_STRING, 4, "Clear");
             }
-
+            AppendMenu(h_menu, MF_SEPARATOR, 100, "");
+            AppendMenu(h_menu, MF_STRING, 5, "Reset all to default");
+            
             const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param), hwnd, 0);
 
             if (offset < 0)
@@ -1419,23 +1447,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 
             if (offset == 1)
             {
-                if (option_item.type == OptionsItem::Type::String)
-                {
-                    *option_item.data_str = *(std::string*)default_equivalent;
-                }
-                else if (option_item.type == OptionsItem::Type::Hotkey)
-                {
-                    auto default_hotkey = (t_hotkey*)default_equivalent;
-                    auto current_hotkey = (t_hotkey*)option_item.data;
-                    current_hotkey->key = default_hotkey->key;
-                    current_hotkey->ctrl = default_hotkey->ctrl;
-                    current_hotkey->alt = default_hotkey->alt;
-                    current_hotkey->shift = default_hotkey->shift;
-                }
-                else
-                {
-                    *option_item.data = *(int32_t*)default_equivalent;
-                }
+                option_item.reset_to_default();
 
                 ListView_Update(g_lv_hwnd, i);
             }
@@ -1478,6 +1490,15 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                 ListView_Update(g_lv_hwnd, i);
             }
 
+            if (offset == 5)
+            {
+                for (auto& v : g_option_items)
+                {
+                    v.reset_to_default();
+                }
+                ListView_RedrawItems(g_lv_hwnd, 0, ListView_GetItemCount(g_lv_hwnd));
+            }
+            
             DestroyMenu(h_menu);
         }
         break;
