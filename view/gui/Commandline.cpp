@@ -96,7 +96,8 @@ void commandline_start_rom()
         // Special case for "Open With..."
         if (commandline_rom.extension() == ".m64")
         {
-            VCR::start_playback(commandline_rom);
+            auto result = VCR::start_playback(commandline_rom);
+            show_error_dialog_for_result(result);
         }
     });
 }
@@ -141,7 +142,8 @@ void commandline_start_movie()
     g_config.vcr_readonly = true;
     AsyncExecutor::invoke_async([]
     {
-        VCR::start_playback(commandline_movie);
+        auto result = VCR::start_playback(commandline_movie);
+        show_error_dialog_for_result(result);
     });
 }
 

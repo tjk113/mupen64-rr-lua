@@ -22,6 +22,7 @@
 #include <shared/Config.hpp>
 #include <spdlog/logger.h>
 #include <view/gui/features/Dispatcher.h>
+#include <core/r4300/vcr.h>
 
 #define MUPEN_VERSION "Mupen 64 1.1.9-rc2"
 
@@ -91,3 +92,11 @@ bool confirm_user_exit();
  * \brief Whether the current execution is on the UI thread
  */
 bool is_on_gui_thread();
+
+/**
+* Shows an error dialog for a VCR result. If the result indicates no error, no work is done.
+* \param result The result to show an error dialog for.
+* \param hwnd The parent window handle for the spawned dialog. If null, the main window is used.
+* \returns Whether the function was able to show an error dialog.
+*/
+bool show_error_dialog_for_result(VCR::Result result, void* hwnd = nullptr);

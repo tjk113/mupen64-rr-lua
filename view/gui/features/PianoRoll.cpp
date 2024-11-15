@@ -438,8 +438,8 @@ namespace PianoRoll
                 g_view_logger->info("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_piano_roll_state.inputs.size());
 
                 SetWindowRedraw(g_lv_hwnd, true);
-
-                FrontendService::show_error(std::format("Failed to initiate the warp modify operation, error code {}.", (int32_t)result).c_str(), "Piano Roll", g_hwnd);
+                
+                show_error_dialog_for_result(result, g_hwnd);
             }
         });
     }

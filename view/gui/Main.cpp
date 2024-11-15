@@ -164,6 +164,86 @@ const std::map<Action, int> ACTION_ID_MAP = {
     {Action::SelectSlot10, (IDM_SELECT_1 - 1) + 10},
 };
 
+bool show_error_dialog_for_result(const VCR::Result result, void* hwnd)
+{
+    if (result == VCR::Result::Ok || result == VCR::Result::Cancelled)
+    {
+        return false;
+    }
+
+    g_view_logger->error("[View] VCR error {}", static_cast<int32_t>(result));
+
+    std::string error;
+    
+    switch (result)
+    {
+    case VCR::Result::InvalidFormat:
+        error = "The provided data has an invalid format.";
+        break;
+    case VCR::Result::BadFile:
+        error = "The provided file is inaccessible or does not exist.";
+        break;
+    case VCR::Result::InvalidControllers:
+        error = "The controller configuration is invalid.";
+        break;
+    case VCR::Result::InvalidSavestate:
+        error = "The movie's savestate is missing or invalid.";
+        break;
+    case VCR::Result::InvalidFrame:
+        error = "The resulting frame is outside the bounds of the movie.";
+        break;
+    case VCR::Result::NoMatchingRom:
+        error = "There is no rom which matches this movie.";
+        break;
+    case VCR::Result::Busy:
+        error = "The VCR engine is busy.";
+        break;
+    case VCR::Result::Idle:
+        error = "The VCR engine is idle, but must be active to complete this operation.";
+        break;
+    case VCR::Result::NotFromThisMovie:
+        error = "The provided freeze buffer is not from the currently active movie.";
+        break;
+    case VCR::Result::InvalidVersion:
+        error = "The movie's version is invalid.";
+        break;
+    case VCR::Result::InvalidExtendedVersion:
+        error = "The movie's extended version is invalid.";
+        break;
+    case VCR::Result::NeedsPlaybackOrRecording:
+        error = "The operation requires a playback or recording task.";
+        break;
+    case VCR::Result::InvalidStartType:
+        error = "The provided start type is invalid.";
+        break;
+    case VCR::Result::WarpModifyAlreadyRunning:
+        error = "Another warp modify operation is already running.";
+        break;
+    case VCR::Result::WarpModifyNeedsRecordingTask:
+        error = "Warp modifications can only be performed during recording.";
+        break;
+    case VCR::Result::WarpModifyEmptyInputBuffer:
+        error = "The provided input buffer is empty.";
+        break;
+    case VCR::Result::SeekAlreadyRunning:
+        error = "Another seek operation is already running.";
+        break;
+    case VCR::Result::SeekSavestateLoadFailed:
+        error = "The seek operation could not be initiated due to a savestate not being loaded successfully.";
+        break;
+    case VCR::Result::SeekSavestateIntervalZero:
+        error = "The seek operation can't be initiated because the seek savestate interval is 0.";
+        break;
+    default:
+        FrontendService::show_error(std::format("Unknown error (error code {}).", static_cast<int32_t>(result)).c_str(), "VCR", hwnd);
+        return true;
+    }
+
+    FrontendService::show_error(std::format("{} (error code {})", error, static_cast<int32_t>(result)).c_str(), "VCR", hwnd);
+
+    return true;
+}
+
 void set_menu_accelerator(int element_id, const char* acc)
 {
     char string[256] = {0};
@@ -798,7 +878,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
                 AsyncExecutor::invoke_async([fname]
                 {
-                    VCR::start_playback(fname);
+                    auto result = VCR::start_playback(fname);
+                    show_error_dialog_for_result(result);
                 });
             }
             else if (extension == ".st" || extension == ".savestate")
@@ -1170,10 +1251,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     inputs[inputs.size() - 10].A_BUTTON = 1;
 
                     auto result = VCR::begin_warp_modify(inputs);
-                    if (result != VCR::Result::Ok)
-                    {
-                        FrontendService::show_error(std::to_string((int32_t)result).c_str());
-                    }
+                    show_error_dialog_for_result(result);
+                    
                     break;
                 }
             case IDM_BENCHMARK_MESSENGER:
@@ -1471,20 +1550,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     BetterEmulationLock lock;
 
-                    auto result = MovieDialog::show(false);
+                    auto movie_dialog_result = MovieDialog::show(false);
 
-                    if (result.path.empty())
+                    if (movie_dialog_result.path.empty())
                     {
                         break;
                     }
 
-                    if (VCR::start_record(result.path, result.start_flag, result.author, result.description) != VCR::Result::Ok)
+                    auto vcr_result = VCR::start_record(movie_dialog_result.path, movie_dialog_result.start_flag, movie_dialog_result.author, movie_dialog_result.description);
+                    if (show_error_dialog_for_result(vcr_result))
                     {
-                        FrontendService::show_warning(std::format("Couldn't start recording of {}", result.path.string()).c_str(), nullptr);
                         break;
                     }
 
-                    g_config.last_movie_author = result.author;
+                    g_config.last_movie_author = movie_dialog_result.author;
 
                     Statusbar::post("Recording replay");
                 }
@@ -1507,7 +1586,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     AsyncExecutor::invoke_async([result]
                     {
-                        VCR::start_playback(result.path);
+                        auto vcr_result = VCR::start_playback(result.path);
+                        show_error_dialog_for_result(vcr_result);
                     });
                 }
                 break;
@@ -1644,7 +1724,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
                     AsyncExecutor::invoke_async([path]
                     {
-                        VCR::start_playback(path);
+                        auto result = VCR::start_playback(path);
+                        show_error_dialog_for_result(result);
                     }, ASYNC_KEY_PLAY_MOVIE);
                 }
                 else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
