@@ -1785,7 +1785,10 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_recent_roms_menu = GetSubMenu(GetSubMenu(g_main_menu, 0), 5);
     g_recent_movies_menu = GetSubMenu(GetSubMenu(g_main_menu, 3), 5);
     g_recent_lua_menu = GetSubMenu(GetSubMenu(g_main_menu, 6), 2);
-
+#ifndef _DEBUG
+    DeleteMenu(g_main_menu, 7, MF_BYPOSITION);
+#endif
+    
     RECT rect{};
     GetClientRect(g_main_hwnd, &rect);
 
