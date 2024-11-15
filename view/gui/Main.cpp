@@ -1004,11 +1004,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             // We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
             if (time - last_statusbar_update > std::chrono::seconds(1))
             {
-                timepoints_mutex.lock();
-                Statusbar::post(std::format("FPS: {:.1f}", get_rate_per_second_from_deltas(g_frame_deltas)), Statusbar::Section::FPS);
-                Statusbar::post(std::format("VI/s: {:.1f}", get_rate_per_second_from_deltas(g_vi_deltas)), Statusbar::Section::VIs);
-                timepoints_mutex.unlock();
-                last_statusbar_update = time;
+				timepoints_mutex.lock();
+				auto fps = get_rate_per_second_from_deltas(g_frame_deltas);
+				auto vis = get_rate_per_second_from_deltas(g_vi_deltas);
+				timepoints_mutex.unlock();
+
+				Statusbar::post(std::format("FPS: {:.1f}", fps), Statusbar::Section::FPS);
+				Statusbar::post(std::format("VI/s: {:.1f}", vis), Statusbar::Section::VIs);
+
+				last_statusbar_update = time;
             }
         }
         break;
