@@ -1195,6 +1195,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     }
                 }
                 break;
+            case IDM_BENCHMARK_CORE_START:
+            	Core::start_benchmark();
+				break;
+            case IDM_BENCHMARK_CORE_STOP:
+	            {
+					auto fps = Core::stop_benchmark();
+					FrontendService::show_information(std::format("FPS: {:2f}", fps).c_str());
+					break;
+	            }
             case IDM_TRACELOG:
                 {
                     if (tracelog::active())
