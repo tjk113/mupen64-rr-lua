@@ -24,8 +24,6 @@
 
 #include "shared/AsyncExecutor.h"
 
-import std;
-
 // M64\0x1a
 enum
 {

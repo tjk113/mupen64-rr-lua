@@ -17,8 +17,6 @@
 #include "view/helpers/WinHelpers.h"
 #include <view/resource.h>
 
-import std;
-
 namespace PianoRoll
 {
 #pragma region Variables
