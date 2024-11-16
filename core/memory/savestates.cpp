@@ -772,7 +772,7 @@ namespace Savestates
             }
             else
             {
-                FrontendService::show_error(std::format("Failed to {} slot {}.\nVerify that the savestate is valid and accessible.", job == Job::Save ? "save" : "load", slot + 1).c_str(), "Savestate");
+                FrontendService::show_statusbar(std::format("Failed to {} slot {}", job == Job::Save ? "save" : "load", slot + 1).c_str());
             }
 
             if (callback)
