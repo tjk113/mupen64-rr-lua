@@ -193,8 +193,10 @@ void terminate_emu();
 #define CEIL_MODE 0xA3F
 #define FLOOR_MODE 0x63F
 
-#define GFX_SECTION 0
-#define AUDIO_SECTION 1
+#define VR_SECTION_RSP 0
+#define VR_SECTION_TIMER 1
+#define VR_SECTION_LUA_ATINTERVAL 2
+#define VR_SECTION_LUA_ATVI 3
 
 void start_section(int section_type);
 void end_section(int section_type);

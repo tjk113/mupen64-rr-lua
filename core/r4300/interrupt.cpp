@@ -421,8 +421,11 @@ void gen_interrupt()
     case VI_INT:
         {
             lag_count++;
+            
+            start_section(VR_SECTION_LUA_ATINTERVAL);
             LuaService::call_interval();
-
+            end_section(VR_SECTION_LUA_ATINTERVAL);
+            
             // NOTE: It's ok to not update screen when lagging, doesn't cause any obvious issues
             auto skip = (g_config.skip_rendering_lag && lag_count > 1) || is_frame_skipped();
             auto update = FrontendService::get_prefers_no_render_skip() ? true : (screen_invalidated ? !skip : false);
@@ -434,10 +437,18 @@ void gen_interrupt()
                 FrontendService::update_screen();
                 screen_invalidated = false;
             }
+            
+            start_section(VR_SECTION_LUA_ATVI);
             LuaService::call_vi();
+            end_section(VR_SECTION_LUA_ATVI);
+            
             vcr_on_vi();
             FrontendService::at_vi();
+            
+            start_section(VR_SECTION_TIMER);
             timer_new_vi();
+            end_section(VR_SECTION_TIMER);
+            
             if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
             else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * g_config.counter_factor));
             // this is the place

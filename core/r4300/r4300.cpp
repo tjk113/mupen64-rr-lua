@@ -105,8 +105,8 @@ void (*code)();
 bool g_vr_benchmark_enabled = false;
 time_point g_vr_benchmark_start_time{};
 size_t g_vr_benchmark_start_frames = 0;
-uint64_t g_vr_benchmark_time_in_section[2];
-time_point g_vr_benchmark_last_start[2];
+uint64_t g_vr_benchmark_time_in_section[5];
+time_point g_vr_benchmark_last_start[5];
 
 FILE* g_eeprom_file;
 FILE* g_sram_file;
@@ -155,8 +155,10 @@ double Core::stop_benchmark()
     const auto elapsed_time = end_time - g_vr_benchmark_start_time;
 
     g_core_logger->info("[Core] Profile results:");
-    g_core_logger->info("[Core] \tGFX: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[GFX_SECTION]) / static_cast<double>(elapsed_time.count()) * 100.0);
-    g_core_logger->info("[Core] \tAudio: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[AUDIO_SECTION]) / static_cast<double>(elapsed_time.count()) * 100.0);
+    g_core_logger->info("[Core] \tRSP: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[VR_SECTION_RSP]) / static_cast<double>(elapsed_time.count()) * 100.0);
+    g_core_logger->info("[Core] \tTimer: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[VR_SECTION_TIMER]) / static_cast<double>(elapsed_time.count()) * 100.0);
+    g_core_logger->info("[Core] \tLua AtInterval: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[VR_SECTION_LUA_ATINTERVAL]) / static_cast<double>(elapsed_time.count()) * 100.0);
+    g_core_logger->info("[Core] \tLua AtVI: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[VR_SECTION_LUA_ATVI]) / static_cast<double>(elapsed_time.count()) * 100.0);
 
     return static_cast<double>(elapsed_frames) / (static_cast<double>(elapsed_time.count()) / 1000000000.0);
 }

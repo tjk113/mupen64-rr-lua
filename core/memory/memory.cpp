@@ -1223,18 +1223,22 @@ void update_SP()
 
             //processDList();
             rsp_register.rsp_pc &= 0xFFF;
-            start_section(GFX_SECTION);
 
             // NOTE: we increment this here, and not in vcr_updatescreen, since invocation of vcr_updatescreen depends on vi interrupts, which dont get generated if we skip rsp
             // if that happens, then we never increment screen_updates and thus are stuck in incorrect state
             g_total_frames++;
             g_config.total_frames++;
             if (!is_frame_skipped())
+            {
+                start_section(VR_SECTION_RSP);
                 doRspCycles(100);
+                end_section(VR_SECTION_RSP);
+            }
 
-            end_section(GFX_SECTION);
             rsp_register.rsp_pc |= save_pc;
+            start_section(VR_SECTION_TIMER);
             timer_new_frame();
+            end_section(VR_SECTION_TIMER);
 
             MI_register.mi_intr_reg &= ~0x21;
             sp_register.sp_status_reg &= ~0x303;
@@ -1302,13 +1306,13 @@ void update_SP()
         {
             //processAList();
             rsp_register.rsp_pc &= 0xFFF;
-            start_section(AUDIO_SECTION);
 
             if (!fast_forward || !g_config.fastforward_silent)
             {
+                start_section(VR_SECTION_RSP);
                 doRspCycles(100);
+                end_section(VR_SECTION_RSP);
             }
-            end_section(AUDIO_SECTION);
             rsp_register.rsp_pc |= save_pc;
 
             MI_register.mi_intr_reg &= ~0x1;
@@ -1323,7 +1327,9 @@ void update_SP()
             rsp_register.rsp_pc &= 0xFFF;
             if (!fast_forward || !g_config.fastforward_silent)
             {
+                start_section(VR_SECTION_RSP);
                 doRspCycles(100);
+                end_section(VR_SECTION_RSP);
             }
             rsp_register.rsp_pc |= save_pc;
 
