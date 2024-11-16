@@ -47,7 +47,7 @@ volatile e_task g_task = e_task::idle;
 std::optional<size_t> seek_to_frame;
 bool g_seek_pause_at_end;
 std::atomic g_seek_savestate_loading = false;
-std::atomic g_emu_resetting = false;
+std::atomic g_reset_pending = false;
 std::unordered_map<size_t, std::vector<uint8_t>> g_seek_savestates;
 
 auto g_warp_modify_status = e_warp_modify_status::none;
@@ -597,20 +597,19 @@ void vcr_handle_recording(int index, BUTTONS* input)
     if (user_requested_reset)
     {
         user_requested_reset = false;
-        g_emu_resetting = true;
+        g_reset_pending = true;
         AsyncExecutor::invoke_async([]
         {
             auto result = vr_reset_rom(false, false, true);
 
             std::scoped_lock lock(vcr_mutex);
-            
-            g_emu_resetting = false;
-            
+
+            g_reset_pending = false;
+
             if (result != Core::Result::Ok)
             {
                 FrontendService::show_error("Failed to reset the rom following a user-invoked reset.");
             }
-            
         });
     }
 }
@@ -653,7 +652,7 @@ void vcr_handle_playback(int index, BUTTONS* input)
     //no readable code because 120 star tas can't get this right >:(
     if (input->Value == 0xC000)
     {
-        g_emu_resetting = true;
+        g_reset_pending = true;
         g_core_logger->info("[VCR] Resetting during playback...");
         AsyncExecutor::invoke_async([]
         {
@@ -665,11 +664,11 @@ void vcr_handle_playback(int index, BUTTONS* input)
             {
                 FrontendService::show_error("Failed to reset the rom following a movie-invoked reset.\nRecording will be stopped.", "VCR");
                 VCR::stop_all();
-                g_emu_resetting = false;
+                g_reset_pending = false;
                 return;
             }
 
-            g_emu_resetting = false;
+            g_reset_pending = false;
         });
     }
 
@@ -736,7 +735,7 @@ void vcr_on_controller_poll(int index, BUTTONS* input)
     // NOTE: When we call reset_rom from another thread, we only request a reset to happen in the future.
     // Until the reset, the emu thread keeps running and potentially generating many frames.
     // Those frames are invalid to us, because from the movie's perspective, it should be instantaneous.
-    if (g_emu_resetting)
+    if (g_reset_pending)
     {
         g_core_logger->info("[VCR] Skipping pre-reset frame");
         return;
@@ -884,26 +883,29 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
         g_header.startFlags = MOVIE_START_FROM_SNAPSHOT;
         g_task = e_task::start_recording_from_existing_snapshot;
 
-        Savestates::do_file(st_path, Savestates::Job::Load, [](Savestates::Result result, auto)
+        AsyncExecutor::invoke_async([=]
         {
-            std::scoped_lock lock(vcr_mutex);
-
-            if (result != Savestates::Result::Ok)
+            Savestates::do_file(st_path, Savestates::Job::Load, [](Savestates::Result result, auto)
             {
-                FrontendService::show_error("Failed to load savestate while starting recording.\nRecording will be stopped.", "VCR");
-                VCR::stop_all();
-                return;
-            }
+                std::scoped_lock lock(vcr_mutex);
 
-            g_core_logger->info("[VCR] Starting recording from existing snapshot...");
-            g_task = e_task::recording;
-            // FIXME: Doesn't this need a message broadcast?
-            // TODO: Also, what about clearing the input on first frame
+                if (result != Savestates::Result::Ok)
+                {
+                    FrontendService::show_error("Failed to load savestate while starting recording.\nRecording will be stopped.", "VCR");
+                    VCR::stop_all();
+                    return;
+                }
+
+                g_core_logger->info("[VCR] Starting recording from existing snapshot...");
+                g_task = e_task::recording;
+                // FIXME: Doesn't this need a message broadcast?
+                // TODO: Also, what about clearing the input on first frame
+            });
         });
     }
     else
     {
-        g_emu_resetting = true;
+        g_reset_pending = true;
         g_task = e_task::start_recording_from_reset;
 
         // We need to fully reset rom prior to actually pushing any samples to the buffer
@@ -918,11 +920,11 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
             {
                 FrontendService::show_error("Failed to reset the rom when initiating a from-start recording.\nRecording will be stopped.", "VCR");
                 VCR::stop_all();
-                g_emu_resetting = false;
+                g_reset_pending = false;
                 return;
             }
-            
-            g_emu_resetting = false;
+
+            g_reset_pending = false;
             m_current_sample = 0;
             m_current_vi = 0;
             g_task = e_task::recording;
@@ -1241,28 +1243,31 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
         g_task = e_task::start_playback_from_snapshot;
 
-        Savestates::do_file(st_path, Savestates::Job::Load, [](Savestates::Result result, auto)
+        AsyncExecutor::invoke_async([=]
         {
-            std::scoped_lock lock(vcr_mutex);
-
-            if (result != Savestates::Result::Ok)
+            Savestates::do_file(st_path, Savestates::Job::Load, [](const Savestates::Result result, auto)
             {
-                FrontendService::show_error("Failed to load savestate while starting playback.\nRecording will be stopped.", "VCR");
-                VCR::stop_all();
-                return;
-            }
+                std::scoped_lock lock(vcr_mutex);
 
-            g_core_logger->info("[VCR] Starting playback from snapshot...");
-            g_task = e_task::playback;
-            Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
-            Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
-            Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
+                if (result != Savestates::Result::Ok)
+                {
+                    FrontendService::show_error("Failed to load savestate while starting playback.\nRecording will be stopped.", "VCR");
+                    VCR::stop_all();
+                    return;
+                }
+
+                g_core_logger->info("[VCR] Starting playback from snapshot...");
+                g_task = e_task::playback;
+                Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
+                Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
+                Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
+            });
         });
     }
     else
     {
         g_task = e_task::start_playback_from_reset;
-        g_emu_resetting = true;
+        g_reset_pending = true;
 
         bool clear_eeprom = !(g_header.startFlags & MOVIE_START_FROM_EEPROM);
         AsyncExecutor::invoke_async([clear_eeprom]
@@ -1275,11 +1280,11 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
             {
                 FrontendService::show_error("Failed to reset the rom when playing back a from-start movie.\nPlayback will be stopped.", "VCR");
                 VCR::stop_all();
-                g_emu_resetting = false;
+                g_reset_pending = false;
                 return;
             }
 
-            g_emu_resetting = false;
+            g_reset_pending = false;
             m_current_sample = 0;
             m_current_vi = 0;
             g_task = e_task::playback;
