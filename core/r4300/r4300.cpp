@@ -105,6 +105,8 @@ void (*code)();
 bool g_vr_benchmark_enabled = false;
 time_point g_vr_benchmark_start_time{};
 size_t g_vr_benchmark_start_frames = 0;
+uint64_t g_vr_benchmark_time_in_section[2];
+time_point g_vr_benchmark_last_start[2];
 
 FILE* g_eeprom_file;
 FILE* g_sram_file;
@@ -127,14 +129,16 @@ std::filesystem::path get_rom_path()
 
 void Core::start_benchmark()
 {
-	if (g_vr_benchmark_enabled)
-	{
-		return;
-	}
+    if (g_vr_benchmark_enabled)
+    {
+        return;
+    }
 
-	g_vr_benchmark_enabled = true;
-	g_vr_benchmark_start_time = std::chrono::high_resolution_clock::now();
-	g_vr_benchmark_start_frames = g_total_frames;
+    g_vr_benchmark_enabled = true;
+    g_vr_benchmark_start_time = std::chrono::high_resolution_clock::now();
+    g_vr_benchmark_start_frames = g_total_frames;
+    memset(g_vr_benchmark_time_in_section, 0, std::size(g_vr_benchmark_time_in_section));
+    memset(g_vr_benchmark_last_start, 0, std::size(g_vr_benchmark_last_start));
 }
 
 double Core::stop_benchmark()
@@ -143,14 +147,38 @@ double Core::stop_benchmark()
     {
         return 0;
     }
-    
-	g_vr_benchmark_enabled = false;
 
-	const auto end_time = std::chrono::high_resolution_clock::now();
-	const auto elapsed_frames = g_total_frames - g_vr_benchmark_start_frames;
-	const auto elapsed_time = end_time - g_vr_benchmark_start_time;
+    g_vr_benchmark_enabled = false;
 
-	return static_cast<double>(elapsed_frames) / (static_cast<double>(elapsed_time.count()) / 1000000000.0);
+    const auto end_time = std::chrono::high_resolution_clock::now();
+    const auto elapsed_frames = g_total_frames - g_vr_benchmark_start_frames;
+    const auto elapsed_time = end_time - g_vr_benchmark_start_time;
+
+    g_core_logger->info("[Core] Profile results:");
+    g_core_logger->info("[Core] \tGFX: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[GFX_SECTION]) / static_cast<double>(elapsed_time.count()) * 100.0);
+    g_core_logger->info("[Core] \tAudio: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[AUDIO_SECTION]) / static_cast<double>(elapsed_time.count()) * 100.0);
+
+    return static_cast<double>(elapsed_frames) / (static_cast<double>(elapsed_time.count()) / 1000000000.0);
+}
+
+void start_section(int section_type)
+{
+#ifdef VR_PROFILE
+    if (g_vr_benchmark_last_start[section_type].time_since_epoch() != std::chrono::seconds(0))
+    {
+        end_section(section_type);
+    }
+    g_vr_benchmark_last_start[section_type] = std::chrono::high_resolution_clock::now();
+#endif
+}
+
+void end_section(int section_type)
+{
+#ifdef VR_PROFILE
+    g_vr_benchmark_time_in_section[section_type] += (std::chrono::high_resolution_clock::now() - g_vr_benchmark_last_start[section_type]).count();
+    g_vr_benchmark_last_start[section_type] = std::chrono::high_resolution_clock::time_point{std::chrono::seconds(0)};
+    // g_core_logger->info("[Core] Section {} elapsed {:.4f}s", section_type, g_vr_benchmark_time_in_section[section_type] / 1000000000.0);
+#endif
 }
 
 std::filesystem::path get_saves_directory()
@@ -1646,20 +1674,20 @@ void init_blocks()
 void print_stop_debug()
 {
     g_core_logger->info("PC={:#08x}:{:#08x}", (unsigned int)(PC->addr),
-           (unsigned int)(rdram[(PC->addr & 0xFFFFFF) / 4]));
+                        (unsigned int)(rdram[(PC->addr & 0xFFFFFF) / 4]));
     for (int j = 0; j < 16; j++)
         g_core_logger->info("reg[{}]:{:#08x}{:#08x}        reg[{}]:{:#08x}{:#08x}",
-               j,
-               (unsigned int)(reg[j] >> 32),
-               (unsigned int)reg[j],
-               j + 16,
-               (unsigned int)(reg[j + 16] >> 32),
-               (unsigned int)reg[j + 16]);
+                            j,
+                            (unsigned int)(reg[j] >> 32),
+                            (unsigned int)reg[j],
+                            j + 16,
+                            (unsigned int)(reg[j + 16] >> 32),
+                            (unsigned int)reg[j + 16]);
     g_core_logger->info("hi:{:#08x}{:#08x}        lo:{:#08x}{:#08x}",
-           (unsigned int)(hi >> 32),
-           (unsigned int)hi,
-           (unsigned int)(lo >> 32),
-           (unsigned int)lo);
+                        (unsigned int)(hi >> 32),
+                        (unsigned int)hi,
+                        (unsigned int)(lo >> 32),
+                        (unsigned int)lo);
     g_core_logger->info("Executed {} ({:#08x}) instructions", debug_count, debug_count);
 }
 

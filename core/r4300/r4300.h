@@ -30,6 +30,8 @@
 #ifndef R4300_H
 #define R4300_H
 
+#define VR_PROFILE _DEBUG
+
 #include <stdio.h>
 #include "recomp.h"
 #include "../memory/tlb.h"
@@ -191,38 +193,11 @@ void terminate_emu();
 #define CEIL_MODE 0xA3F
 #define FLOOR_MODE 0x63F
 
-// profiling
-
-#define GFX_SECTION 1
-#define AUDIO_SECTION 2
-#define COMPILER_SECTION 3
-#define IDLE_SECTION 4
-
-#ifndef __WIN32__
-
-//#define PROFILE
-
-#ifdef PROFILE
+#define GFX_SECTION 0
+#define AUDIO_SECTION 1
 
 void start_section(int section_type);
 void end_section(int section_type);
-void refresh_stat();
-
-#else
-
-#define start_section(a)
-#define end_section(a)
-#define refresh_stat()
-
-#endif
-
-#else
-
-#define start_section(a)
-#define end_section(a)
-#define refresh_stat()
-
-#endif
 
 #endif
 

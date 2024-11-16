@@ -2187,7 +2187,6 @@ void init_block(long* source, precomp_block* block)
 {
     int i, length, already_exist = 1;
     static int init_length;
-    start_section(COMPILER_SECTION);
     //g_core_logger->info("init block recompiled {:#06x}\n", (int)block->start);
 
     length = (block->end - block->start) / 4;
@@ -2319,7 +2318,6 @@ void init_block(long* source, precomp_block* block)
             init_block(NULL, blocks[(block->start - 0x20000000) >> 12]);
         }
     }
-    end_section(COMPILER_SECTION);
 }
 
 /**********************************************************************
@@ -2328,7 +2326,6 @@ void init_block(long* source, precomp_block* block)
 void recompile_block(long* source, precomp_block* block, unsigned long func)
 {
     int i, length, finished = 0;
-    start_section(COMPILER_SECTION);
     length = (block->end - block->start) / 4;
     dst_block = block;
 
@@ -2429,7 +2426,6 @@ void recompile_block(long* source, precomp_block* block, unsigned long func)
     }
     //g_core_logger->info("block recompiled ({:#06x}-%x)\n", (int)func, (int)(block->start+i*4));
     //getchar();
-    end_section(COMPILER_SECTION);
 }
 
 int is_jump()
