@@ -521,7 +521,6 @@ static double get_rate_per_second_from_deltas(const std::span<timer_delta>& time
             count++;
         }
     }
-    g_view_logger->info("{}", sum);
     return count > 0 ? 1000.0 / (sum / count) : 0.0;
 }
 
