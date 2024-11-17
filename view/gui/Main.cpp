@@ -872,6 +872,12 @@ void open_console()
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
+    if (Message == WM_EXECUTE_DISPATCHER)
+    {
+        g_main_window_dispatcher->execute();
+        return TRUE;
+    }
+
     char path_buffer[_MAX_PATH];
 
     switch (Message)
@@ -1044,9 +1050,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         }
     case WM_FOCUS_MAIN_WINDOW:
         SetFocus(g_main_hwnd);
-        break;
-    case WM_EXECUTE_DISPATCHER:
-        g_main_window_dispatcher->execute();
         break;
     case WM_CREATE:
         g_main_window_dispatcher = std::make_unique<Dispatcher>(g_ui_thread_id, []
