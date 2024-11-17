@@ -3,6 +3,26 @@
 #include <Windows.h>
 #include <DbgHelp.h>
 
+#include "shared/services/FrontendService.h"
+
+void* PlatformService::load_library(const char* path)
+{
+    return LoadLibrary(path);
+}
+
+void PlatformService::free_library(void* module)
+{
+    if (!FreeLibrary((HMODULE)module))
+    {
+        FrontendService::show_error(std::format("Failed to free library {:#06x}.", (unsigned long)module).c_str());
+    }
+}
+
+void* PlatformService::get_function_in_module(void* module, const char* name)
+{
+    return GetProcAddress((HMODULE)module, name);
+}
+
 void (* PlatformService::get_free_function_in_module(void* module))(void*)
 {
     auto dll_crt_free = (DLLCRTFREE)GetProcAddress((HMODULE)module, "DllCrtFree");

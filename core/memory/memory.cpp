@@ -48,6 +48,7 @@
 #include <core/r4300/Plugin.hpp>
 #include "../r4300/vcr.h"
 #include <shared/Messenger.h>
+#include <shared/services/LoggingService.h>
 
 static int frame;
 

@@ -33,6 +33,7 @@
 #include "../memory/memory.h"
 #include <core/r4300/Plugin.hpp>
 #include "../r4300/recomph.h"
+#include <shared/services/LoggingService.h>
 
 static FILE* f;
 static int pipe_opened = 0;

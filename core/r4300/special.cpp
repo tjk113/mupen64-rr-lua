@@ -33,6 +33,7 @@
 #include "ops.h"
 #include "exception.h"
 #include "macros.h"
+#include <shared/services/LoggingService.h>
 
 void NOP()
 {

@@ -45,6 +45,7 @@
 #include <shared/Config.hpp>
 #include "../memory/pif.h"
 #include <shared/services/FrontendService.h>
+#include <shared/services/LoggingService.h>
 
 typedef struct _interrupt_queue
 {

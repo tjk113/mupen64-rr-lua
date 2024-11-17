@@ -32,6 +32,7 @@
 #include "../memory/memory.h"
 #include "ops.h"
 #include "macros.h"
+#include <shared/services/LoggingService.h>
 
 void BLTZ()
 {

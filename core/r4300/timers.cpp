@@ -20,6 +20,7 @@
 #include <core/memory/pif.h>
 #include <core/r4300/vcr.h>
 #include <core/r4300/r4300.h>
+#include <shared/services/LoggingService.h>
 
 bool frame_changed = true;
 extern int m_current_vi;

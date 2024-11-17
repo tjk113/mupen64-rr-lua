@@ -46,6 +46,7 @@
 #include "../r4300/vcr.h"
 #include "savestates.h"
 #include <core/r4300/gameshark.h>
+#include <shared/services/LoggingService.h>
 
 int frame_advancing = 0;
 int fast_forward = 0;

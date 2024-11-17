@@ -44,6 +44,7 @@
 #include <core/r4300/timers.h>
 #include <shared/Config.hpp>
 #include <shared/services/FrontendService.h>
+#include <shared/services/LoggingService.h>
 // Threading crap
 
 #include "gameshark.h"

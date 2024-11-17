@@ -42,6 +42,7 @@
 #include <shared/services/LuaService.h>
 #include <shared/services/FrontendService.h>
 #include <shared/helpers/StlExtensions.h>
+#include <shared/services/LoggingService.h>
 #include "flashram.h"
 #include "memory.h"
 #include "summercart.h"

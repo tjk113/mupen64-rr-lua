@@ -33,7 +33,7 @@
 #include "recomph.h"
 #include "interrupt.h"
 #include "../memory/memory.h"
-
+#include <shared/services/LoggingService.h>
 #include <zlib.h>
 
 uLong ZEXPORT adler32(uLong adler, const Bytef* buf, uInt len);

@@ -31,6 +31,7 @@
 #include "macros.h"
 #include "ops.h"
 #include "interrupt.h"
+#include <shared/services/LoggingService.h>
 
 void MFC0()
 {

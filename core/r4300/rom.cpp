@@ -44,6 +44,7 @@
 #include <shared/Config.hpp>
 #include <shared/helpers/IOHelpers.h>
 #include <shared/helpers/StlExtensions.h>
+#include <shared/services/LoggingService.h>
 
 std::unordered_map<std::filesystem::path, std::pair<uint8_t*, size_t>> rom_cache;
 

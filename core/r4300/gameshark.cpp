@@ -6,6 +6,7 @@
 
 #include "r4300.h"
 #include "shared/helpers/StlExtensions.h"
+#include <shared/services/LoggingService.h>
 
 namespace Gameshark
 {

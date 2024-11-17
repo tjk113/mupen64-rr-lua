@@ -42,8 +42,8 @@
 #include "../r4300/ops.h"
 #include "savestates.h"
 #include <shared/Config.hpp>
-
 #include "core/r4300/debugger.h"
+#include <shared/services/LoggingService.h>
 
 void dma_pi_read()
 {

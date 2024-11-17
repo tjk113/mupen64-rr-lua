@@ -38,8 +38,8 @@
 #include <shared/services/FrontendService.h>
 #include <shared/services/IOService.h>
 #include <shared/services/PlatformService.h>
+#include <shared/services/LoggingService.h>
 
-HWND a;
 CONTROL Controls[4];
 
 GFX_INFO dummy_gfx_info;
@@ -67,11 +67,11 @@ static void __cdecl dummy_void()
 {
 }
 
-static int __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info) { return TRUE; }
+static int __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info) { return 1; }
 
 static int __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info)
 {
-    return TRUE;
+    return 1;
 }
 
 static void __cdecl dummy_initiateControllers(CONTROL_INFO Control_Info)
@@ -82,13 +82,13 @@ static void __cdecl dummy_aiDacrateChanged(int SystemType)
 {
 }
 
-static DWORD __cdecl dummy_aiReadLength() { return 0; }
+static unsigned long __cdecl dummy_aiReadLength() { return 0; }
 
-static void __cdecl dummy_aiUpdate(BOOL)
+static void __cdecl dummy_aiUpdate(int32_t)
 {
 }
 
-static void __cdecl dummy_controllerCommand(int Control, BYTE* Command)
+static void __cdecl dummy_controllerCommand(int Control, uint8_t* Command)
 {
 }
 
@@ -100,15 +100,15 @@ static void __cdecl dummy_setKeys(int Control, BUTTONS Keys)
 {
 }
 
-static void __cdecl dummy_readController(int Control, BYTE* Command)
+static void __cdecl dummy_readController(int Control, uint8_t* Command)
 {
 }
 
-static void __cdecl dummy_keyDown(WPARAM wParam, LPARAM lParam)
+static void __cdecl dummy_keyDown(unsigned int wParam, long lParam)
 {
 }
 
-static void __cdecl dummy_keyUp(WPARAM wParam, LPARAM lParam)
+static void __cdecl dummy_keyUp(unsigned int wParam, long lParam)
 {
 }
 
@@ -119,11 +119,11 @@ static void __cdecl dummy_initiateRSP(RSP_INFO Rsp_Info,
 {
 };
 
-static void __cdecl dummy_fBRead(DWORD addr)
+static void __cdecl dummy_fBRead(unsigned long addr)
 {
 };
 
-static void __cdecl dummy_fBWrite(DWORD addr, DWORD size)
+static void __cdecl dummy_fBWrite(unsigned long addr, unsigned long size)
 {
 };
 
@@ -193,9 +193,9 @@ DORSPCYCLES doRspCycles = dummy_doRspCycles;
 INITIATERSP initiateRSP = dummy_initiateRSP;
 ROMCLOSED_RSP romClosed_RSP = dummy_void;
 
-#define FUNC(target, type, fallback, name) target = (type)GetProcAddress(handle, name); if(!target) target = fallback
+#define FUNC(target, type, fallback, name) target = (type)PlatformService::get_function_in_module(handle, name); if(!target) target = fallback
 
-void load_gfx(HMODULE handle)
+void load_gfx(void* handle)
 {
     FUNC(changeWindow, CHANGEWINDOW, dummy_void, "ChangeWindow");
     FUNC(closeDLL_gfx, CLOSEDLL_GFX, dummy_void, "CloseDLL");
@@ -213,7 +213,7 @@ void load_gfx(HMODULE handle)
     FUNC(viWidthChanged, VIWIDTHCHANGED, dummy_void, "ViWidthChanged");
     FUNC(moveScreen, MOVESCREEN, dummy_moveScreen, "MoveScreen");
     FUNC(CaptureScreen, CAPTURESCREEN, nullptr, "CaptureScreen");
-    FUNC(readScreen, READSCREEN, (READSCREEN)GetProcAddress(handle, "ReadScreen2"), "ReadScreen");
+    FUNC(readScreen, READSCREEN, (READSCREEN)PlatformService::get_function_in_module(handle, "ReadScreen2"), "ReadScreen");
     FUNC(get_video_size, GETVIDEOSIZE, nullptr, "mge_get_video_size");
     FUNC(read_video, READVIDEO, nullptr, "mge_read_video");
     FUNC(fBRead, FBREAD, dummy_fBRead, "FBRead");
@@ -225,11 +225,11 @@ void load_gfx(HMODULE handle)
 
     gfx_info.hWnd = FrontendService::get_main_window_handle();
     gfx_info.hStatusBar = g_config.is_statusbar_enabled ? FrontendService::get_statusbar_handle() : nullptr;
-    gfx_info.MemoryBswaped = TRUE;
+    gfx_info.MemoryBswaped = 1;
     gfx_info.HEADER = rom;
-    gfx_info.RDRAM = (BYTE*)rdram;
-    gfx_info.DMEM = (BYTE*)SP_DMEM;
-    gfx_info.IMEM = (BYTE*)SP_IMEM;
+    gfx_info.RDRAM = (uint8_t*)rdram;
+    gfx_info.DMEM = (uint8_t*)SP_DMEM;
+    gfx_info.IMEM = (uint8_t*)SP_IMEM;
     gfx_info.MI_INTR_REG = &(MI_register.mi_intr_reg);
     gfx_info.DPC_START_REG = &(dpc_register.dpc_start);
     gfx_info.DPC_END_REG = &(dpc_register.dpc_end);
@@ -257,7 +257,7 @@ void load_gfx(HMODULE handle)
     initiateGFX(gfx_info);
 }
 
-void load_input(uint16_t version, HMODULE handle)
+void load_input(uint16_t version, void* handle)
 {
     FUNC(closeDLL_input, CLOSEDLL_INPUT, dummy_void, "CloseDLL");
     FUNC(controllerCommand, CONTROLLERCOMMAND, dummy_controllerCommand, "ControllerCommand");
@@ -279,13 +279,13 @@ void load_input(uint16_t version, HMODULE handle)
 
     control_info.hMainWindow = FrontendService::get_main_window_handle();
     control_info.hinst = FrontendService::get_app_instance_handle();
-    control_info.MemoryBswaped = TRUE;
+    control_info.MemoryBswaped = 1;
     control_info.HEADER = rom;
     control_info.Controls = Controls;
     for (auto& controller : Controls)
     {
-        controller.Present = FALSE;
-        controller.RawData = FALSE;
+        controller.Present = 0;
+        controller.RawData = 0;
         controller.Plugin = controller_extension::none;
     }
     if (version == 0x0101)
@@ -299,7 +299,7 @@ void load_input(uint16_t version, HMODULE handle)
 }
 
 
-void load_audio(HMODULE handle)
+void load_audio(void* handle)
 {
     FUNC(closeDLL_audio, CLOSEDLL_AUDIO, dummy_void, "CloseDLL");
     FUNC(aiDacrateChanged, AIDACRATECHANGED, dummy_aiDacrateChanged, "AiDacrateChanged");
@@ -313,11 +313,11 @@ void load_audio(HMODULE handle)
 
     audio_info.hwnd = FrontendService::get_main_window_handle();
     audio_info.hinst = FrontendService::get_app_instance_handle();
-    audio_info.MemoryBswaped = TRUE;
+    audio_info.MemoryBswaped = 1;
     audio_info.HEADER = rom;
-    audio_info.RDRAM = (BYTE*)rdram;
-    audio_info.DMEM = (BYTE*)SP_DMEM;
-    audio_info.IMEM = (BYTE*)SP_IMEM;
+    audio_info.RDRAM = (uint8_t*)rdram;
+    audio_info.DMEM = (uint8_t*)SP_DMEM;
+    audio_info.IMEM = (uint8_t*)SP_IMEM;
     audio_info.MI_INTR_REG = &dummy; //&(MI_register.mi_intr_reg);
     audio_info.AI_DRAM_ADDR_REG = &(ai_register.ai_dram_addr);
     audio_info.AI_LEN_REG = &(ai_register.ai_len);
@@ -330,17 +330,17 @@ void load_audio(HMODULE handle)
     initiateAudio(audio_info);
 }
 
-void load_rsp(HMODULE handle)
+void load_rsp(void* handle)
 {
     FUNC(closeDLL_RSP, CLOSEDLL_RSP, dummy_void, "CloseDLL");
     FUNC(doRspCycles, DORSPCYCLES, dummy_doRspCycles, "DoRspCycles");
     FUNC(initiateRSP, INITIATERSP, dummy_initiateRSP, "InitiateRSP");
     FUNC(romClosed_RSP, ROMCLOSED_RSP, dummy_void, "RomClosed");
 
-    rsp_info.MemoryBswaped = TRUE;
-    rsp_info.RDRAM = (BYTE*)rdram;
-    rsp_info.DMEM = (BYTE*)SP_DMEM;
-    rsp_info.IMEM = (BYTE*)SP_IMEM;
+    rsp_info.MemoryBswaped = 1;
+    rsp_info.RDRAM = (uint8_t*)rdram;
+    rsp_info.DMEM = (uint8_t*)SP_DMEM;
+    rsp_info.IMEM = (uint8_t*)SP_IMEM;
     rsp_info.MI_INTR_REG = &MI_register.mi_intr_reg;
     rsp_info.SP_MEM_ADDR_REG = &sp_register.sp_mem_addr_reg;
     rsp_info.SP_DRAM_ADDR_REG = &sp_register.sp_dram_addr_reg;
@@ -366,25 +366,25 @@ void load_rsp(HMODULE handle)
     rsp_info.ShowCFB = showCFB;
 
     int i = 4;
-    initiateRSP(rsp_info, (DWORD*)&i);
+    initiateRSP(rsp_info, (unsigned long*)&i);
 }
 
 std::optional<std::unique_ptr<Plugin>> Plugin::create(
     std::filesystem::path path)
 {
-    HMODULE module = LoadLibrary(path.string().c_str());
+    void* module = PlatformService::load_library(path.string().c_str());
 
     if (module == nullptr)
     {
         return std::nullopt;
     }
 
-    const auto get_dll_info = (GETDLLINFO)GetProcAddress(
+    const auto get_dll_info = (GETDLLINFO)PlatformService::get_function_in_module(
         module, "GetDllInfo");
 
     if (!get_dll_info)
     {
-        FreeLibrary(module);
+        PlatformService::free_library(module);
         return std::nullopt;
     }
 
@@ -411,7 +411,7 @@ std::optional<std::unique_ptr<Plugin>> Plugin::create(
 
 Plugin::~Plugin()
 {
-    FreeLibrary((HMODULE)m_module);
+    PlatformService::free_library((void*)m_module);
 }
 
 void Plugin::config()
@@ -426,19 +426,19 @@ void Plugin::config()
                 dummy_gfx_info.hWnd = FrontendService::get_statusbar_handle();
                 dummy_gfx_info.hStatusBar = FrontendService::get_statusbar_handle();
 
-                auto initiateGFX = (INITIATEGFX)GetProcAddress((HMODULE)m_module, "InitiateGFX");
+                auto initiateGFX = (INITIATEGFX)PlatformService::get_function_in_module((void*)m_module, "InitiateGFX");
                 if (initiateGFX && !initiateGFX(dummy_gfx_info))
                 {
                     FrontendService::show_information("Couldn't initialize video plugin.");
                 }
             }
 
-            auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
+            auto dllConfig = (DLLCONFIG)PlatformService::get_function_in_module((void*)m_module, "DllConfig");
             if (dllConfig) dllConfig(FrontendService::get_plugin_config_parent_handle());
 
             if (!emu_launched)
             {
-                auto closeDLL_gfx = (CLOSEDLL_GFX)GetProcAddress((HMODULE)m_module, "CloseDLL");
+                auto closeDLL_gfx = (CLOSEDLL_GFX)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
                 if (closeDLL_gfx) closeDLL_gfx();
             }
             break;
@@ -447,19 +447,19 @@ void Plugin::config()
         {
             if (!emu_launched)
             {
-                auto initiateAudio = (INITIATEAUDIO)GetProcAddress((HMODULE)m_module, "InitiateAudio");
+                auto initiateAudio = (INITIATEAUDIO)PlatformService::get_function_in_module((void*)m_module, "InitiateAudio");
                 if (initiateAudio && !initiateAudio(dummy_audio_info))
                 {
                     FrontendService::show_information("Couldn't initialize audio plugin.");
                 }
             }
 
-            auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
+            auto dllConfig = (DLLCONFIG)PlatformService::get_function_in_module((void*)m_module, "DllConfig");
             if (dllConfig) dllConfig(FrontendService::get_plugin_config_parent_handle());
 
             if (!emu_launched)
             {
-                auto closeDLL_audio = (CLOSEDLL_AUDIO)GetProcAddress((HMODULE)m_module, "CloseDLL");
+                auto closeDLL_audio = (CLOSEDLL_AUDIO)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
                 if (closeDLL_audio) closeDLL_audio();
             }
             break;
@@ -470,22 +470,22 @@ void Plugin::config()
             {
                 if (m_version == 0x0101)
                 {
-                    auto initiateControllers = (INITIATECONTROLLERS)GetProcAddress((HMODULE)m_module, "InitiateControllers");
+                    auto initiateControllers = (INITIATECONTROLLERS)PlatformService::get_function_in_module((void*)m_module, "InitiateControllers");
                     if (initiateControllers) initiateControllers(dummy_control_info);
                 }
                 else
                 {
-                    auto old_initiateControllers = (OLD_INITIATECONTROLLERS)GetProcAddress((HMODULE)m_module, "InitiateControllers");
+                    auto old_initiateControllers = (OLD_INITIATECONTROLLERS)PlatformService::get_function_in_module((void*)m_module, "InitiateControllers");
                     if (old_initiateControllers) old_initiateControllers(FrontendService::get_main_window_handle(), Controls);
                 }
             }
 
-            auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
+            auto dllConfig = (DLLCONFIG)PlatformService::get_function_in_module((void*)m_module, "DllConfig");
             if (dllConfig) dllConfig(FrontendService::get_plugin_config_parent_handle());
 
             if (!emu_launched)
             {
-                auto closeDLL_input = (CLOSEDLL_INPUT)GetProcAddress((HMODULE)m_module, "CloseDLL");
+                auto closeDLL_input = (CLOSEDLL_INPUT)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
                 if (closeDLL_input) closeDLL_input();
             }
             break;
@@ -494,17 +494,17 @@ void Plugin::config()
         {
             if (!emu_launched)
             {
-                auto initiateRSP = (INITIATERSP)GetProcAddress((HMODULE)m_module, "InitiateRSP");
+                auto initiateRSP = (INITIATERSP)PlatformService::get_function_in_module((void*)m_module, "InitiateRSP");
                 unsigned long i = 0;
                 if (initiateRSP) initiateRSP(dummy_rsp_info, &i);
             }
 
-            auto dllConfig = (DLLCONFIG)GetProcAddress((HMODULE)m_module, "DllConfig");
+            auto dllConfig = (DLLCONFIG)PlatformService::get_function_in_module((void*)m_module, "DllConfig");
             if (dllConfig) dllConfig(FrontendService::get_plugin_config_parent_handle());
 
             if (!emu_launched)
             {
-                auto closeDLL_RSP = (CLOSEDLL_RSP)GetProcAddress((HMODULE)m_module, "CloseDLL");
+                auto closeDLL_RSP = (CLOSEDLL_RSP)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
                 if (closeDLL_RSP) closeDLL_RSP();
             }
             break;
@@ -517,13 +517,13 @@ void Plugin::config()
 
 void Plugin::test()
 {
-    dllTest = (DLLTEST)GetProcAddress((HMODULE)m_module, "DllTest");
+    dllTest = (DLLTEST)PlatformService::get_function_in_module((void*)m_module, "DllTest");
     if (dllTest) dllTest(FrontendService::get_plugin_config_parent_handle());
 }
 
 void Plugin::about()
 {
-    dllAbout = (DLLABOUT)GetProcAddress((HMODULE)m_module, "DllAbout");
+    dllAbout = (DLLABOUT)PlatformService::get_function_in_module((void*)m_module, "DllAbout");
     if (dllAbout) dllAbout(FrontendService::get_plugin_config_parent_handle());
 }
 
@@ -532,16 +532,16 @@ void Plugin::load_into_globals()
     switch (m_type)
     {
     case video:
-        load_gfx((HMODULE)m_module);
+        load_gfx((void*)m_module);
         break;
     case audio:
-        load_audio((HMODULE)m_module);
+        load_audio((void*)m_module);
         break;
     case input:
-        load_input(m_version, (HMODULE)m_module);
+        load_input(m_version, (void*)m_module);
         break;
     case rsp:
-        load_rsp((HMODULE)m_module);
+        load_rsp((void*)m_module);
         break;
     }
 }
@@ -569,11 +569,11 @@ void setup_dummy_info()
 
     /////// GFX ///////////////////////////
 
-    dummy_gfx_info.MemoryBswaped = TRUE;
-    dummy_gfx_info.HEADER = (BYTE*)dummy_header;
-    dummy_gfx_info.RDRAM = (BYTE*)rdram;
-    dummy_gfx_info.DMEM = (BYTE*)SP_DMEM;
-    dummy_gfx_info.IMEM = (BYTE*)SP_IMEM;
+    dummy_gfx_info.MemoryBswaped = 1;
+    dummy_gfx_info.HEADER = (uint8_t*)dummy_header;
+    dummy_gfx_info.RDRAM = (uint8_t*)rdram;
+    dummy_gfx_info.DMEM = (uint8_t*)SP_DMEM;
+    dummy_gfx_info.IMEM = (uint8_t*)SP_IMEM;
     dummy_gfx_info.MI_INTR_REG = &(MI_register.mi_intr_reg);
     dummy_gfx_info.DPC_START_REG = &(dpc_register.dpc_start);
     dummy_gfx_info.DPC_END_REG = &(dpc_register.dpc_end);
@@ -602,11 +602,11 @@ void setup_dummy_info()
     /////// AUDIO /////////////////////////
     dummy_audio_info.hwnd = FrontendService::get_main_window_handle();
     dummy_audio_info.hinst = FrontendService::get_app_instance_handle();
-    dummy_audio_info.MemoryBswaped = TRUE;
-    dummy_audio_info.HEADER = (BYTE*)dummy_header;
-    dummy_audio_info.RDRAM = (BYTE*)rdram;
-    dummy_audio_info.DMEM = (BYTE*)SP_DMEM;
-    dummy_audio_info.IMEM = (BYTE*)SP_IMEM;
+    dummy_audio_info.MemoryBswaped = 1;
+    dummy_audio_info.HEADER = (uint8_t*)dummy_header;
+    dummy_audio_info.RDRAM = (uint8_t*)rdram;
+    dummy_audio_info.DMEM = (uint8_t*)SP_DMEM;
+    dummy_audio_info.IMEM = (uint8_t*)SP_IMEM;
     dummy_audio_info.MI_INTR_REG = &(MI_register.mi_intr_reg);
     dummy_audio_info.AI_DRAM_ADDR_REG = &(ai_register.ai_dram_addr);
     dummy_audio_info.AI_LEN_REG = &(ai_register.ai_len);
@@ -619,21 +619,21 @@ void setup_dummy_info()
     ///// CONTROLS ///////////////////////////
     dummy_control_info.hMainWindow = FrontendService::get_main_window_handle();
     dummy_control_info.hinst = FrontendService::get_app_instance_handle();
-    dummy_control_info.MemoryBswaped = TRUE;
-    dummy_control_info.HEADER = (BYTE*)dummy_header;
+    dummy_control_info.MemoryBswaped = 1;
+    dummy_control_info.HEADER = (uint8_t*)dummy_header;
     dummy_control_info.Controls = Controls;
     for (i = 0; i < 4; i++)
     {
-        Controls[i].Present = FALSE;
-        Controls[i].RawData = FALSE;
+        Controls[i].Present = 0;
+        Controls[i].RawData = 0;
         Controls[i].Plugin = controller_extension::none;
     }
 
     //////// RSP /////////////////////////////
-    dummy_rsp_info.MemoryBswaped = TRUE;
-    dummy_rsp_info.RDRAM = (BYTE*)rdram;
-    dummy_rsp_info.DMEM = (BYTE*)SP_DMEM;
-    dummy_rsp_info.IMEM = (BYTE*)SP_IMEM;
+    dummy_rsp_info.MemoryBswaped = 1;
+    dummy_rsp_info.RDRAM = (uint8_t*)rdram;
+    dummy_rsp_info.DMEM = (uint8_t*)SP_DMEM;
+    dummy_rsp_info.IMEM = (uint8_t*)SP_IMEM;
     dummy_rsp_info.MI_INTR_REG = &MI_register.mi_intr_reg;
     dummy_rsp_info.SP_MEM_ADDR_REG = &sp_register.sp_mem_addr_reg;
     dummy_rsp_info.SP_DRAM_ADDR_REG = &sp_register.sp_dram_addr_reg;
