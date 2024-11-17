@@ -175,6 +175,7 @@
     <ClInclude Include="..\shared\services\IOService.h" />
     <ClInclude Include="..\shared\services\LoggingService.h" />
     <ClInclude Include="..\shared\services\LuaService.h" />
+    <ClInclude Include="..\shared\services\PlatformService.h" />
     <ClInclude Include="..\shared\types\CoreTypes.h" />
     <ClInclude Include="..\view\capture\encoders\AVIEncoder.h" />
     <ClInclude Include="..\view\capture\encoders\Encoder.h" />
@@ -300,6 +301,7 @@
     <ClCompile Include="..\view\lua\LuaService.cpp" />
     <ClCompile Include="..\view\lua\presenters\DCompPresenter.cpp" />
     <ClCompile Include="..\view\lua\presenters\GDIPresenter.cpp" />
+    <ClCompile Include="..\view\PlatformService.cpp"/>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\view\icons\austral.ico" />

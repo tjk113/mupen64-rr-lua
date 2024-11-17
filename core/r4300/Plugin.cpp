@@ -30,20 +30,16 @@
 
 // ReSharper disable CppCStyleCast
 #include "Plugin.hpp"
-
 #include <assert.h>
-
-#include "../r4300/rom.h"
+#include <core/r4300/rom.h>
 #include <shared/Config.hpp>
-#include "../memory/memory.h"
-#include "../r4300/r4300.h"
+#include <core/memory/memory.h>
+#include <core/r4300/r4300.h>
 #include <shared/services/FrontendService.h>
 #include <shared/services/IOService.h>
+#include <shared/services/PlatformService.h>
 
-// TODO: Get away from this...
-#include <Windows.h>
-#include <dbghelp.h>
-
+HWND a;
 CONTROL Controls[4];
 
 GFX_INFO dummy_gfx_info;
@@ -197,40 +193,6 @@ DORSPCYCLES doRspCycles = dummy_doRspCycles;
 INITIATERSP initiateRSP = dummy_initiateRSP;
 ROMCLOSED_RSP romClosed_RSP = dummy_void;
 
-// Gets module's runtime free function
-auto get_dll_crt_free(HMODULE handle)
-{
-    auto dll_crt_free = (DLLCRTFREE)GetProcAddress(
-        handle, "DllCrtFree");
-    if (dll_crt_free != nullptr) return dll_crt_free;
-
-    ULONG size;
-    auto import_descriptor = (PIMAGE_IMPORT_DESCRIPTOR)
-        ImageDirectoryEntryToDataEx(handle, true, IMAGE_DIRECTORY_ENTRY_IMPORT,
-                                    &size, nullptr);
-    if (import_descriptor != nullptr)
-    {
-        while (import_descriptor->Characteristics && import_descriptor->Name)
-        {
-            auto importDllName = (LPCSTR)((PBYTE)handle + import_descriptor->
-                Name);
-            auto importDllHandle = GetModuleHandleA(importDllName);
-            if (importDllHandle != nullptr)
-            {
-                dll_crt_free = (DLLCRTFREE)GetProcAddress(
-                    importDllHandle, "free");
-                if (dll_crt_free != nullptr) return dll_crt_free;
-            }
-
-            import_descriptor++;
-        }
-    }
-
-
-    // this is probably always wrong
-    return free;
-}
-
 #define FUNC(target, type, fallback, name) target = (type)GetProcAddress(handle, name); if(!target) target = fallback
 
 void load_gfx(HMODULE handle)
@@ -259,7 +221,7 @@ void load_gfx(HMODULE handle)
     FUNC(fBGetFrameBufferInfo, FBGETFRAMEBUFFERINFO, dummy_fBGetFrameBufferInfo, "FBGetFrameBufferInfo");
 
     // ReadScreen returns a plugin-allocated buffer which must be freed by the same CRT
-    DllCrtFree = get_dll_crt_free(handle);
+    DllCrtFree = PlatformService::get_free_function_in_module(handle);
 
     gfx_info.hWnd = FrontendService::get_main_window_handle();
     gfx_info.hStatusBar = g_config.is_statusbar_enabled ? FrontendService::get_statusbar_handle() : nullptr;

@@ -34,10 +34,10 @@
 #endif
 
 #include <stdio.h>
-#include "recomp.h"
-#include "../memory/tlb.h"
-#include "rom.h"
-#include "Plugin.hpp"
+#include <core/r4300/recomp.h>
+#include <core/memory/tlb.h>
+#include <core/r4300/rom.h>
+#include <core/r4300/Plugin.hpp>
 
 extern precomp_instr* PC;
 extern unsigned long vr_op;
