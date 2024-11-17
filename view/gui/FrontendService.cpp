@@ -310,6 +310,11 @@ void FrontendService::update_screen()
 
 void FrontendService::at_vi()
 {
+    if (!EncodingManager::is_capturing())
+    {
+        return;
+    }
+    
     g_main_window_dispatcher->invoke([]
     {
         EncodingManager::at_vi();
@@ -318,6 +323,11 @@ void FrontendService::at_vi()
 
 void FrontendService::ai_len_changed()
 {
+    if (!EncodingManager::is_capturing())
+    {
+        return;
+    }
+    
     g_main_window_dispatcher->invoke([]
     {
         EncodingManager::ai_len_changed();
