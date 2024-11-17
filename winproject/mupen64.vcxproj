@@ -85,8 +85,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <Profile>true</Profile>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <ResourceCompile>
@@ -133,7 +132,7 @@
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <Profile>false</Profile>
+      <Profile>true</Profile>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
