@@ -55,8 +55,8 @@ typedef struct _interrupt_queue
 
 static interrupt_queue* q = NULL;
 
-interrupt_queue g_pool[128 * 2]{};
-bool g_pool_used[sizeof(g_pool)]{};
+interrupt_queue g_pool[128]{};
+uint8_t g_pool_used[sizeof(g_pool)]{};
 size_t g_known_unused_index = SIZE_MAX;
 
 /**
