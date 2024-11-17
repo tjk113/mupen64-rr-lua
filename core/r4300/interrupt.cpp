@@ -55,14 +55,84 @@ typedef struct _interrupt_queue
 
 static interrupt_queue* q = NULL;
 
+interrupt_queue g_pool[128 * 2]{};
+bool g_pool_used[sizeof(g_pool)]{};
+size_t g_known_unused_index = SIZE_MAX;
+
+/**
+ * Allocates an item in the interrupt pool.
+ */
+interrupt_queue* pool_alloc()
+{
+    size_t unused_index = SIZE_MAX;
+
+    // OPTIMIZATION: If we know that there is an unused index, use it
+    if (g_known_unused_index != SIZE_MAX)
+    {
+        unused_index = g_known_unused_index;
+    }
+    else
+    {
+        for (int i = 0; i < sizeof(g_pool); ++i)
+        {
+            if (g_pool_used[i] == false)
+            {
+                unused_index = i;
+                break;
+            }
+        }
+        assert(unused_index != SIZE_MAX);
+    }
+    
+    g_pool_used[unused_index] = true;
+    g_known_unused_index = SIZE_MAX;
+    
+    return &g_pool[unused_index];
+}
+
+/**
+ * Frees an interrupt from the pool, allowing it to be reused.
+ */
+void pool_free(const interrupt_queue* ptr)
+{
+    const auto index_in_pool = ptr - static_cast<void*>(&g_pool);
+
+#ifdef _DEBUG
+    size_t index = SIZE_MAX;
+    for (int i = 0; i < sizeof(g_pool); ++i)
+    {
+        if (&g_pool[i] == ptr)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    FMT_ASSERT(index != SIZE_MAX, "pool_free: tried to free pointer that is not in the pool");
+    FMT_ASSERT(index == index_in_pool, "pool_free: index mismatch");
+#endif
+
+    g_pool_used[index_in_pool] = false;
+    g_known_unused_index = index_in_pool;
+}
+
+/**
+ * Clears the pool.
+ */
+void pool_clear()
+{
+    memset(g_pool_used, 0, std::size(g_pool_used));
+    g_known_unused_index = SIZE_MAX;
+}
+
 void clear_queue()
 {
     while (q != NULL)
     {
         interrupt_queue* aux = q->next;
-        free(q);
         q = aux;
     }
+    pool_clear();
 }
 
 void print_queue()
@@ -146,7 +216,7 @@ void add_interrupt_event(int type, unsigned long delay)
 
     if (q == NULL)
     {
-        q = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+        q = pool_alloc();
         q->next = NULL;
         q->count = count;
         q->type = type;
@@ -158,7 +228,7 @@ void add_interrupt_event(int type, unsigned long delay)
     // finds place in queue to insert the interrupt ( its sorted )
     if (before_event(count, q->count, q->type) && !special)
     {
-        q = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+        q = pool_alloc();
         q->next = aux;
         q->count = count;
         q->type = type;
@@ -173,7 +243,7 @@ void add_interrupt_event(int type, unsigned long delay)
 
     if (aux->next == NULL)
     {
-        aux->next = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+        aux->next = pool_alloc();
         aux = aux->next;
         aux->next = NULL;
         aux->count = count;
@@ -186,7 +256,7 @@ void add_interrupt_event(int type, unsigned long delay)
             while (aux->next != NULL && aux->next->count == count)
                 aux = aux->next;
         aux2 = aux->next;
-        aux->next = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+        aux->next = pool_alloc();
         aux = aux->next;
         aux->next = aux2;
         aux->count = count;
@@ -214,7 +284,7 @@ void remove_interrupt_event()
 {
     interrupt_queue* aux = q->next;
     if (q->type == SPECIAL_INT) SPECIAL_done = 1;
-    free(q);
+    pool_free(q);
     q = aux;
     if (q != NULL && (q->count > core_Count || (core_Count - q->count) < 0x80000000))
         next_interrupt = q->count;
@@ -251,7 +321,7 @@ void remove_event(int type)
     if (q->type == type)
     {
         aux = aux->next;
-        free(q);
+        pool_free(q);
         q = aux;
         return;
     }
@@ -260,7 +330,7 @@ void remove_event(int type)
     if (aux->next != NULL) // it's a type int
     {
         interrupt_queue* aux2 = aux->next->next;
-        free(aux->next);
+        pool_free(aux->next);
         aux->next = aux2;
     }
 }
@@ -283,10 +353,10 @@ void translate_event_queue(unsigned long base)
 int save_eventqueue_infos(char* buf)
 {
 #ifdef _DEBUG
-	if (get_event(SI_INT))
-		g_core_logger->info("SI_INT in queue, good");
-	else
-		g_core_logger->info("SI_INT not found");
+    if (get_event(SI_INT))
+        g_core_logger->info("SI_INT in queue, good");
+    else
+        g_core_logger->info("SI_INT not found");
 #endif
     int len = 0;
     interrupt_queue* aux = q;
@@ -347,14 +417,14 @@ void check_interrupt()
     {
         if (q == NULL)
         {
-            q = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+            q = pool_alloc();
             q->next = NULL;
             q->count = core_Count;
             q->type = CHECK_INT;
         }
         else
         {
-            interrupt_queue* aux = (interrupt_queue*)malloc(sizeof(interrupt_queue));
+            interrupt_queue* aux = pool_alloc();
             aux->next = q;
             aux->count = core_Count;
             aux->type = CHECK_INT;
@@ -418,11 +488,11 @@ void gen_interrupt()
     case VI_INT:
         {
             lag_count++;
-            
+
             start_section(VR_SECTION_LUA_ATINTERVAL);
             LuaService::call_interval();
             end_section(VR_SECTION_LUA_ATINTERVAL);
-            
+
             // NOTE: It's ok to not update screen when lagging, doesn't cause any obvious issues
             auto skip = (g_config.skip_rendering_lag && lag_count > 1) || is_frame_skipped();
             auto update = FrontendService::get_prefers_no_render_skip() ? true : (screen_invalidated ? !skip : false);
@@ -434,18 +504,18 @@ void gen_interrupt()
                 FrontendService::update_screen();
                 screen_invalidated = false;
             }
-            
+
             start_section(VR_SECTION_LUA_ATVI);
             LuaService::call_vi();
             end_section(VR_SECTION_LUA_ATVI);
-            
+
             vcr_on_vi();
             FrontendService::at_vi();
-            
+
             start_section(VR_SECTION_TIMER);
             timer_new_vi();
             end_section(VR_SECTION_TIMER);
-            
+
             if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
             else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * g_config.counter_factor));
             // this is the place
