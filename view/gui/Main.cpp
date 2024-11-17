@@ -902,7 +902,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     show_error_dialog_for_result(result);
                 });
             }
-            else if (extension == ".st" || extension == ".savestate")
+            else if (extension == ".st" || extension == ".savestate" || extension == ".st0" || extension == ".st1" || extension == ".st2" || extension == ".st3" || extension == ".st4" || extension == ".st5" || extension == ".st6" || extension == ".st7" || extension == ".st8" || extension == ".st9")
             {
                 if (!emu_launched) break;
                 AsyncExecutor::invoke_async([=]
