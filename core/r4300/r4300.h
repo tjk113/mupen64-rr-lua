@@ -27,10 +27,11 @@
  *
 **/
 
-#ifndef R4300_H
-#define R4300_H
+#pragma once
 
-#define VR_PROFILE _DEBUG
+#ifdef _DEBUG
+#define VR_PROFILE (1)
+#endif
 
 #include <stdio.h>
 #include "recomp.h"
@@ -78,6 +79,7 @@ extern unsigned long jump_to_address;
 extern std::atomic<bool> screen_invalidated;
 extern int vi_field;
 extern unsigned long next_vi;
+extern int compare_core_mode;
 
 extern FILE* g_eeprom_file;
 extern FILE* g_sram_file;
@@ -200,10 +202,10 @@ void terminate_emu();
 #define VR_SECTION_LUA_ATINTERVAL 2
 #define VR_SECTION_LUA_ATVI 3
 
+#ifdef VR_PROFILE
 void start_section(int section_type);
 void end_section(int section_type);
-
+#else
+#define start_section(x)
+#define end_section(x)
 #endif
-
-//#define COMPARE_CORE
-extern int compare_core_mode;

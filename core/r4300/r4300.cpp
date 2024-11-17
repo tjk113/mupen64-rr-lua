@@ -165,25 +165,26 @@ double Core::stop_benchmark()
     return static_cast<double>(elapsed_frames) / (static_cast<double>(elapsed_time.count()) / 1000000000.0);
 }
 
+#ifdef VR_PROFILE
+
 void start_section(int section_type)
 {
-#ifdef VR_PROFILE
     if (g_vr_benchmark_last_start[section_type].time_since_epoch() != std::chrono::seconds(0))
     {
         end_section(section_type);
     }
     g_vr_benchmark_last_start[section_type] = std::chrono::high_resolution_clock::now();
-#endif
 }
 
 void end_section(int section_type)
 {
-#ifdef VR_PROFILE
     g_vr_benchmark_time_in_section[section_type] += (std::chrono::high_resolution_clock::now() - g_vr_benchmark_last_start[section_type]).count();
     g_vr_benchmark_last_start[section_type] = std::chrono::high_resolution_clock::time_point{std::chrono::seconds(0)};
     // g_core_logger->info("[Core] Section {} elapsed {:.4f}s", section_type, g_vr_benchmark_time_in_section[section_type] / 1000000000.0);
-#endif
 }
+
+#endif
+
 
 std::filesystem::path get_saves_directory()
 {
