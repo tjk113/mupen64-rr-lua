@@ -274,6 +274,7 @@
     <ClCompile Include="..\lib\md5.c" />
     <ClCompile Include="..\shared\AsyncExecutor.cpp" />
     <ClCompile Include="..\shared\Config.cpp" />
+    <ClCompile Include="..\shared\helpers\IOHelpers.cpp" />
     <ClCompile Include="..\shared\Messenger.cpp" />
     <ClCompile Include="..\view\capture\encoders\AVIEncoder.cpp" />
     <ClCompile Include="..\view\capture\encoders\FFmpegEncoder.cpp" />
