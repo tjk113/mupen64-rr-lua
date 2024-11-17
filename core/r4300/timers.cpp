@@ -27,13 +27,14 @@ extern long m_current_sample;
 
 std::chrono::duration<double, std::milli> max_vi_s_ms;
 
-float g_frame_deltas[max_deltas] = {0};
-float g_vi_deltas[max_deltas] = {0};
+double g_frame_deltas[max_deltas]{};
+std::mutex g_frame_deltas_mutex;
+
+double g_vi_deltas[max_deltas]{};
+std::mutex g_vi_deltas_mutex;
 
 size_t frame_deltas_ptr = 0;
 size_t vi_deltas_ptr = 0;
-
-std::mutex timepoints_mutex;
 
 time_point last_vi_time;
 time_point last_frame_time;
@@ -60,9 +61,9 @@ void timer_new_frame()
 {
     const auto current_frame_time = std::chrono::high_resolution_clock::now();
 
-    timepoints_mutex.lock();
-    g_frame_deltas[frame_deltas_ptr] = std::chrono::duration<double, std::milli>(current_frame_time - last_frame_time).count();
-    timepoints_mutex.unlock();
+    g_frame_deltas_mutex.lock();
+    g_frame_deltas[frame_deltas_ptr] = (current_frame_time - last_frame_time).count() / 1000000.0;
+    g_frame_deltas_mutex.unlock();
     frame_deltas_ptr = (frame_deltas_ptr + 1) % max_deltas;
 
     frame_changed = true;
@@ -75,9 +76,9 @@ void timer_new_vi()
     {
         Messenger::broadcast(Messenger::Message::LagLimitExceeded, nullptr);
     }
-    bool ff = fast_forward || VCR::is_seeking() || g_vr_benchmark_enabled;
+    const bool ff = fast_forward || VCR::is_seeking() || g_vr_benchmark_enabled;
 
-    const auto current_vi_time = std::chrono::high_resolution_clock::now();
+    auto current_vi_time = std::chrono::high_resolution_clock::now();
 
     if (!ff)
     {
@@ -103,6 +104,9 @@ void timer_new_vi()
                 // sleeping inaccuracy is difference between actual time spent sleeping and the goal sleep
                 // this value isnt usually too large
                 last_sleep_error = end_sleep - start_sleep - goal_sleep;
+
+                // This value is used later to calculate the deltas so we need to reassign it here to cut out the sleep time from the current delta
+                current_vi_time = std::chrono::high_resolution_clock::now();
             }
             else
             {
@@ -115,10 +119,9 @@ void timer_new_vi()
         }
     }
 
-    timepoints_mutex.lock();
-    g_vi_deltas[vi_deltas_ptr] = std::chrono::duration<double, std::milli>(
-        current_vi_time - last_vi_time).count();
-    timepoints_mutex.unlock();
+    g_vi_deltas_mutex.lock();
+    g_vi_deltas[vi_deltas_ptr] = (current_vi_time - last_vi_time).count() / 1000000.0;
+    g_vi_deltas_mutex.unlock();
     vi_deltas_ptr = (vi_deltas_ptr + 1) % max_deltas;
 
     last_vi_time = std::chrono::high_resolution_clock::now();

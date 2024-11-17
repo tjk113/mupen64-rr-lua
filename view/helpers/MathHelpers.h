@@ -29,19 +29,19 @@ static T clamp(const T value, const T min, const T max)
  * \param times A circular buffer of deltas
  * \return The average rate per second from the delta in the queue
  */
-static float get_rate_per_second_from_deltas(const std::span<float>& times)
+static double get_rate_per_second_from_deltas(const std::span<double>& times)
 {
     size_t count = 0;
-    float sum = 0.0f;
+    double sum = 0.0;
     for (const auto& time : times)
     {
-        if (time > 0.0f)
+        if (time > 0.0)
         {
             sum += time;
             count++;
         }
     }
-    return count > 0 ? 1000.0f / (sum / count) : 0.0f;
+    return count > 0 ? 1000.0 / (sum / count) : 0.0;
 }
 
 /**

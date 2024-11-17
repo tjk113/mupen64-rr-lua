@@ -29,12 +29,12 @@ const size_t max_deltas = 60;
 extern bool frame_changed;
 
 /// Time deltas between frames
-extern float g_frame_deltas[max_deltas];
+extern double g_frame_deltas[max_deltas];
+extern std::mutex g_frame_deltas_mutex;
 
 /// Time deltas between VIs
-extern float g_vi_deltas[max_deltas];
-
-extern std::mutex timepoints_mutex;
+extern double g_vi_deltas[max_deltas];
+extern std::mutex g_vi_deltas_mutex;
 
 /**
  * \brief Initializes timer code with the specified values

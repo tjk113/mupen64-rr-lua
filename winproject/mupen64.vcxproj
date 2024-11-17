@@ -241,7 +241,6 @@
     <ClCompile Include="..\core\r4300\gameshark.cpp" />
     <ClCompile Include="..\core\r4300\interrupt.cpp" />
     <ClCompile Include="..\core\r4300\Plugin.cpp" />
-    <ClCompile Include="..\core\r4300\profile.cpp" />
     <ClCompile Include="..\core\r4300\r4300.cpp" />
     <ClCompile Include="..\core\r4300\recomp.cpp" />
     <ClCompile Include="..\core\r4300\regimm.cpp" />
