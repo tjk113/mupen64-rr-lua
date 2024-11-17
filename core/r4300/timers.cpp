@@ -27,10 +27,10 @@ extern long m_current_sample;
 
 std::chrono::duration<double, std::milli> max_vi_s_ms;
 
-double g_frame_deltas[max_deltas]{};
+timer_delta g_frame_deltas[max_deltas]{};
 std::mutex g_frame_deltas_mutex;
 
-double g_vi_deltas[max_deltas]{};
+timer_delta g_vi_deltas[max_deltas]{};
 std::mutex g_vi_deltas_mutex;
 
 size_t frame_deltas_ptr = 0;
@@ -48,8 +48,14 @@ void timer_init(int32_t speed_modifier, t_rom_header* rom_header)
     last_frame_time = std::chrono::high_resolution_clock::now();
     last_vi_time = std::chrono::high_resolution_clock::now();
 
-    memset(g_frame_deltas, 0, sizeof(g_frame_deltas));
-    memset(g_vi_deltas, 0, sizeof(g_vi_deltas));
+    for (auto& delta : g_frame_deltas)
+    {
+        delta = {};
+    }
+    for (auto& delta : g_vi_deltas)
+    {
+        delta = {};
+    }
 
     frame_deltas_ptr = 0;
     vi_deltas_ptr = 0;
@@ -62,7 +68,7 @@ void timer_new_frame()
     const auto current_frame_time = std::chrono::high_resolution_clock::now();
 
     g_frame_deltas_mutex.lock();
-    g_frame_deltas[frame_deltas_ptr] = (current_frame_time - last_frame_time).count() / 1000000.0;
+    g_frame_deltas[frame_deltas_ptr] = current_frame_time - last_frame_time;
     g_frame_deltas_mutex.unlock();
     frame_deltas_ptr = (frame_deltas_ptr + 1) % max_deltas;
 
@@ -120,7 +126,7 @@ void timer_new_vi()
     }
 
     g_vi_deltas_mutex.lock();
-    g_vi_deltas[vi_deltas_ptr] = (current_vi_time - last_vi_time).count() / 1000000.0;
+    g_vi_deltas[vi_deltas_ptr] = current_vi_time - last_vi_time;
     g_vi_deltas_mutex.unlock();
     vi_deltas_ptr = (vi_deltas_ptr + 1) % max_deltas;
 

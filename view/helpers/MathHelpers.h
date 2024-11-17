@@ -25,26 +25,6 @@ static T clamp(const T value, const T min, const T max)
 }
 
 /**
- * \brief Computes the average rate of entries in the time queue per second (e.g.: FPS from frame deltas)
- * \param times A circular buffer of deltas
- * \return The average rate per second from the delta in the queue
- */
-static double get_rate_per_second_from_deltas(const std::span<double>& times)
-{
-    size_t count = 0;
-    double sum = 0.0;
-    for (const auto& time : times)
-    {
-        if (time > 0.0)
-        {
-            sum += time;
-            count++;
-        }
-    }
-    return count > 0 ? 1000.0 / (sum / count) : 0.0;
-}
-
-/**
  * \brief Formats a duration into a string of format HH:MM:SS
  * \param seconds The duration in seconds
  * \return The formatted duration

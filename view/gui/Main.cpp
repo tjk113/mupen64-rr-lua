@@ -504,6 +504,27 @@ void update_titlebar()
     SetWindowText(g_main_hwnd, text.c_str());
 }
 
+/**
+ * \brief Computes the average rate of entries in the time queue per second (e.g.: FPS from frame deltas)
+ * \param times A circular buffer of deltas
+ * \return The average rate per second from the delta in the queue
+ */
+static double get_rate_per_second_from_deltas(const std::span<timer_delta>& times)
+{
+    size_t count = 0;
+    double sum = 0.0;
+    for (const auto& time : times)
+    {
+        if (time.count() > 0.0)
+        {
+            sum += time.count() / 1000000.0;
+            count++;
+        }
+    }
+    g_view_logger->info("{}", sum);
+    return count > 0 ? 1000.0 / (sum / count) : 0.0;
+}
+
 #pragma region Change notifications
 
 void on_script_started(std::any data)
