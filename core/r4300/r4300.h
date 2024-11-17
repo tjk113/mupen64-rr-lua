@@ -76,6 +76,8 @@ extern unsigned long last_addr, interp_addr;
 extern char invalid_code[0x100000];
 extern unsigned long jump_to_address;
 extern std::atomic<bool> screen_invalidated;
+extern int vi_field;
+extern unsigned long next_vi;
 
 extern FILE* g_eeprom_file;
 extern FILE* g_sram_file;

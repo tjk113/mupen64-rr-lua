@@ -46,9 +46,6 @@
 #include "../memory/pif.h"
 #include <shared/services/FrontendService.h>
 
-unsigned long next_vi;
-int vi_field = 0;
-
 typedef struct _interrupt_queue
 {
     int type;

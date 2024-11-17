@@ -31,9 +31,6 @@ void compare_interrupt();
 void gen_dp();
 void init_interrupt();
 
-extern int vi_field;
-extern unsigned long next_vi;
-
 void gen_interrupt();
 void check_interrupt();
 
