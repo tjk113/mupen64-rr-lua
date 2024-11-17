@@ -40,10 +40,16 @@ namespace Savestates
     {
         // The operation completed successfully
         Ok,
-        // The operation failed
-        Failed,
-		// The user cancelled the operation
-		Cancelled,
+        // The savestate file wasn't found
+        NotFound,
+        // The savestate couldn't be written to disk
+        FileWriteError,
+        // Couldn't decompress the savestate
+        DecompressionError,
+        // The event queue was too long
+        EventQueueTooLong,
+        // The user cancelled the operation
+        Cancelled,
     };
 
     enum class Job
@@ -64,7 +70,7 @@ namespace Savestates
         // The target medium is in-memory.
         Memory
     };
- 
+
     using t_savestate_callback = std::function<void(Savestates::Result result, const std::vector<uint8_t>&)>;
 
     /**

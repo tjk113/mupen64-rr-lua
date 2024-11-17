@@ -333,7 +333,7 @@ namespace Savestates
             {
                 if (task.callback)
                 {
-                    task.callback(Savestates::Result::Failed, st);
+                    task.callback(Savestates::Result::FileWriteError, st);
                 }
                 return;
             }
@@ -377,10 +377,9 @@ namespace Savestates
 
         if (st_buf.empty())
         {
-            FrontendService::show_statusbar(std::format("{} not found", new_st_path.filename().string()).c_str());
             if (task.callback)
             {
-                task.callback(Savestates::Result::Failed, {});
+                task.callback(Result::NotFound, {});
             }
             return;
         }
@@ -388,10 +387,9 @@ namespace Savestates
         std::vector<uint8_t> decompressed_buf = auto_decompress(st_buf);
         if (decompressed_buf.empty())
         {
-            FrontendService::show_error("Failed to decompress savestate", nullptr);
             if (task.callback)
             {
-                task.callback(Savestates::Result::Failed, {});
+                task.callback(Result::DecompressionError, {});
             }
             return;
         }
@@ -435,10 +433,9 @@ namespace Savestates
         if (len == sizeof(g_event_queue_buf))
         {
             // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
-            FrontendService::show_statusbar("Event queue too long (corrupted?)");
             if (task.callback)
             {
-                task.callback(Savestates::Result::Failed, {});
+                task.callback(Result::EventQueueTooLong, {});
             }
             return;
         }
@@ -726,7 +723,7 @@ namespace Savestates
             }
             else
             {
-                FrontendService::show_error(std::format("Failed to {} {}.\nVerify that the savestate is valid and accessible.", job == Job::Save ? "save" : "load", path.filename().string()).c_str(), "Savestate");
+                FrontendService::show_error(std::format("Failed to {} {} (error code {}).\nVerify that the savestate is valid and accessible.", job == Job::Save ? "save" : "load", path.filename().string(), (int32_t)result).c_str(), "Savestate");
             }
 
             if (callback)
@@ -751,7 +748,7 @@ namespace Savestates
     void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback)
     {
         g_has_work = true;
-        
+
         std::scoped_lock lock(g_task_mutex);
 
         if (g_config.increment_slot)
@@ -759,7 +756,7 @@ namespace Savestates
             g_config.st_slot >= 9 ? g_config.st_slot = 0 : g_config.st_slot++;
             Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
         }
-        
+
         auto pre_callback = [=](const Result result, const std::vector<uint8_t>& buffer)
         {
             if (result == Result::Ok)
