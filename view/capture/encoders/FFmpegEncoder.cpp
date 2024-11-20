@@ -58,12 +58,12 @@ bool FFmpegEncoder::start(Params params)
     }
 
 
-	static char options[4096]{};
-	memset(options, 0, sizeof(options));
+    static char options[4096]{};
+    memset(options, 0, sizeof(options));
 
     sprintf(options,
-			g_config.ffmpeg_final_options.data(),
-			m_params.width,
+            g_config.ffmpeg_final_options.data(),
+            m_params.width,
             m_params.height,
             m_params.fps,
             VIDEO_PIPE_NAME,
@@ -71,8 +71,8 @@ bool FFmpegEncoder::start(Params params)
             AUDIO_PIPE_NAME,
             m_params.path.string().data());
 
-	g_view_logger->info("[FFmpegEncoder] Starting encode with commandline:");
-	g_view_logger->info("[FFmpegEncoder] {}", options);
+    g_view_logger->info("[FFmpegEncoder] Starting encode with commandline:");
+    g_view_logger->info("[FFmpegEncoder] {}", options);
 
     if (!CreateProcess(g_config.ffmpeg_path.c_str(),
                        options,
@@ -98,7 +98,7 @@ bool FFmpegEncoder::start(Params params)
     m_video_thread = std::thread(&FFmpegEncoder::write_video_thread, this);
     m_audio_thread = std::thread(&FFmpegEncoder::write_audio_thread, this);
 
-	Sleep(500);
+    Sleep(500);
 
     return true;
 }
@@ -172,10 +172,11 @@ void FFmpegEncoder::write_audio_thread()
 
             auto result = write_pipe_checked(m_audio_pipe, (char*)buf, len);
 
-			// We don't want to free our own silence buffer :P
-			if (needs_free) {
-				free(buf);
-			}
+            // We don't want to free our own silence buffer :P
+            if (needs_free)
+            {
+                free(buf);
+            }
 
             if (result)
             {
@@ -193,8 +194,11 @@ void FFmpegEncoder::write_audio_thread()
             Sleep(10);
         }
     }
-    
-    g_view_logger->info(">>>Remaining audio queue stuff: {}\n", this->m_audio_queue.size());
+
+    if (this->m_audio_queue.size() > 0)
+    {
+        FrontendService::show_warning(std::format("Capture stopped with {} audio seconds remaining in queue!\nThe capture might be corrupted.", this->m_audio_queue.size()).c_str());
+    }
 }
 
 void FFmpegEncoder::write_video_thread()
@@ -217,8 +221,8 @@ void FFmpegEncoder::write_video_thread()
             }
             else
             {
-				//g_view_logger->error("[FFmpegEncoder] write_video_thread fail, queue: {}, error: {}\n", this->m_video_queue.size(), GetLastError());
-			}
+                //g_view_logger->error("[FFmpegEncoder] write_video_thread fail, queue: {}, error: {}\n", this->m_video_queue.size(), GetLastError());
+            }
         }
         else
         {
@@ -226,5 +230,8 @@ void FFmpegEncoder::write_video_thread()
         }
     }
 
-    g_view_logger->info(">>>Remaining video queue stuff: {}\n", this->m_video_queue.size());
+    if (this->m_video_queue.size() > 0)
+    {
+        FrontendService::show_warning(std::format("Capture stopped with {} video frames remaining in queue!\nThe capture might be corrupted.", this->m_video_queue.size()).c_str());
+    }
 }
