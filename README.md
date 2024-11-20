@@ -27,7 +27,14 @@ If any issues arise or you need help, join the [discord server](https://discord.
 Cutting-edge features with potential instability are available for download as a zipped binary under the latest commit's artifact. 
 
 # Compiling
+
 Open the [solution](https://github.com/mkdasher/mupen64-rr-lua-/blob/dev/winproject/mupen64/mupen64_2017.sln) with your IDE of choice (VS20XX and Rider are recommended) and build the solution.
+
+<sup>
+For Rider users: 
+</sup>
+
+It's recommended to disable "Use external console" (Run > Modify Run Configuration...), as it breaks spdlog's text coloring and reduces both startup and runtime performance.
 
 # Structure
 
