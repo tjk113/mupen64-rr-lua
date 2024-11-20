@@ -41,4 +41,7 @@ void Loggers::init()
     g_shared_logger = spdlog::basic_logger_mt("Shared", "mupen.log");
     g_view_logger = spdlog::basic_logger_mt("View", "mupen.log");
 #endif
+    g_core_logger->set_level(spdlog::level::trace);
+    g_shared_logger->set_level(spdlog::level::trace);
+    g_view_logger->set_level(spdlog::level::trace);
 }
