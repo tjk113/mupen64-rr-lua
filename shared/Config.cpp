@@ -398,6 +398,8 @@ void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
 void handle_config_value(mINI::INIStructure& ini, const std::string& field_name,
                          const int32_t is_reading, std::string& value)
 {
+    // BUG: Leading whitespace seems to be dropped by mINI after a roundtrip!!!
+    
     if (is_reading)
     {
         // keep the default value if the key doesnt exist
