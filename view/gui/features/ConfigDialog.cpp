@@ -1149,7 +1149,7 @@ INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM 
                 auto edit_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
 
                 auto len = Edit_GetTextLength(edit_hwnd);
-                auto str = (char*)calloc(len, 1);
+                auto str = static_cast<char*>(calloc(len + 1, 1));
                 Edit_GetText(edit_hwnd, str, len);
 
                 *g_option_items[g_edit_option_item_index].data_str = str;
