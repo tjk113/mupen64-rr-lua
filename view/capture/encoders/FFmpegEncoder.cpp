@@ -113,6 +113,12 @@ bool FFmpegEncoder::stop()
     CloseHandle(m_pi.hThread);
     m_audio_thread.join();
     m_video_thread.join();
+
+    if (this->m_video_queue.size() > 0 || this->m_audio_queue.size() > 0)
+    {
+        FrontendService::show_warning(std::format("Capture stopped with {} video, {} audio elements remaining in queue!\nThe capture might be corrupted.", this->m_video_queue.size(), this->m_audio_queue.size()).c_str());
+    }
+
     free(m_silence_buffer);
     return true;
 }
@@ -194,11 +200,6 @@ void FFmpegEncoder::write_audio_thread()
             Sleep(10);
         }
     }
-
-    if (this->m_audio_queue.size() > 0)
-    {
-        FrontendService::show_warning(std::format("Capture stopped with {} audio seconds remaining in queue!\nThe capture might be corrupted.", this->m_audio_queue.size()).c_str());
-    }
 }
 
 void FFmpegEncoder::write_video_thread()
@@ -228,10 +229,5 @@ void FFmpegEncoder::write_video_thread()
         {
             Sleep(10);
         }
-    }
-
-    if (this->m_video_queue.size() > 0)
-    {
-        FrontendService::show_warning(std::format("Capture stopped with {} video frames remaining in queue!\nThe capture might be corrupted.", this->m_video_queue.size()).c_str());
     }
 }
