@@ -930,6 +930,17 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = capture_group.id,
+            .name = "FFmpeg Path",
+            .tooltip = L"The path to the FFmpeg executable to use for capturing.",
+            .data_str = &g_config.ffmpeg_path,
+            .type = t_options_item::Type::String,
+            .is_readonly = []
+            {
+                return EncodingManager::is_capturing();
+            },
+        },
+        t_options_item{
+            .group_id = capture_group.id,
             .name = "FFmpeg Arguments",
             .tooltip = L"The argument format string to be passed to FFmpeg when capturing.",
             .data_str = &g_config.ffmpeg_final_options,
