@@ -223,22 +223,11 @@ namespace EncodingManager
 
         if (sound_buf_pos + len > min_write_size || force)
         {
-            if (int len2 = rsmp_get_resample_len(44100, m_audio_freq,
-                                                 m_audio_bitrate,
-                                                 sound_buf_pos); (len2 % 8) == 0
-                || len > max_write_size)
+			int len2 = rsmp_get_resample_len(44100, m_audio_freq, m_audio_bitrate, sound_buf_pos);
+            if ((len2 % 8) == 0 || len > max_write_size)
             {
                 static short* buf2 = nullptr;
-
-                len2 = rsmp_resample(&buf2, 44100,
-                                     reinterpret_cast<short*>(sound_buf),
-                                     m_audio_freq,
-                                     m_audio_bitrate, sound_buf_pos);
-
-                // We need to allocate another buffer for the handoff....
-                auto secondary_buf = static_cast<short*>(calloc(len2, sizeof(short)));
-                memcpy(secondary_buf, buf2, len2);
-
+                len2 = rsmp_resample(&buf2, 44100, reinterpret_cast<short*>(sound_buf), m_audio_freq, m_audio_bitrate, sound_buf_pos);
                 if (len2 > 0)
                 {
                     if ((len2 % 4) != 0)
@@ -249,7 +238,7 @@ namespace EncodingManager
                             stderr,
                             "[EncodingManager]: Warning: Possible stereo sound error detected.\n");
                     }
-                    if (!m_encoder->append_audio(reinterpret_cast<uint8_t*>(secondary_buf), len2))
+                    if (!m_encoder->append_audio(reinterpret_cast<uint8_t*>(buf2), len2))
                     {
                         FrontendService::show_information(
                             "Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
@@ -264,7 +253,7 @@ namespace EncodingManager
         if (len > 0)
         {
             if ((unsigned int)(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(
-                char))
+                char)) 
             {
                 FrontendService::show_error("Sound buffer overflow");
                 g_view_logger->info("SOUND BUFFER OVERFLOW");
@@ -275,8 +264,7 @@ namespace EncodingManager
             {
                 long double pro = (long double)(sound_buf_pos + len) * 100 / (
                     SOUND_BUF_SIZE * sizeof(char));
-                if (pro > 75) g_view_logger->info("---!!!---");
-                g_view_logger->info("sound buffer: %.2f%%", pro);
+                if (pro > 75) g_view_logger->warn("Audio buffer almost full ({:.0f}%)!", pro);
             }
 #endif
             memcpy(sound_buf + sound_buf_pos, (char*)buf, len);
@@ -385,7 +373,7 @@ namespace EncodingManager
             .width = (uint32_t)m_video_width,
             .height = (uint32_t)m_video_height,
             .fps = get_vis_per_second(ROM_HEADER.Country_code),
-            .arate = 44100,
+            .arate = (uint32_t)m_audio_freq,
             .ask_for_encoding_settings = ask_for_encoding_settings,
         });
 
@@ -446,6 +434,12 @@ namespace EncodingManager
         }
 
         read_screen();
+
+        if (g_config.encoder_type == static_cast<int32_t>(EncoderType::FFmpeg))
+        {
+			m_encoder->append_video(m_video_buf);
+			return;
+        }
 
         if (g_config.synchronization_mode != (int)Sync::Audio && g_config.
             synchronization_mode != (int)Sync::None)
@@ -536,9 +530,14 @@ namespace EncodingManager
             return;
         }
 
-
         if (ai_len <= 0)
             return;
+
+		if (g_config.encoder_type == static_cast<int32_t>(EncoderType::FFmpeg))
+		{
+			m_encoder->append_audio(reinterpret_cast<uint8_t*>(buf), ai_len);
+			return;
+		}
 
         const int len = ai_len;
         const int write_size = 2 * m_audio_freq;
