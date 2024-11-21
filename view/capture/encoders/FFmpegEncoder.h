@@ -34,9 +34,11 @@ private:
 
     std::thread m_audio_thread;
     std::mutex m_audio_queue_mutex{};
+	std::condition_variable m_audio_cv{};
     std::queue<std::tuple<uint8_t*, size_t, bool>> m_audio_queue;
 
     std::thread m_video_thread;
     std::mutex m_video_queue_mutex{};
+	std::condition_variable m_video_cv{};
     std::queue<uint8_t*> m_video_queue;
 };

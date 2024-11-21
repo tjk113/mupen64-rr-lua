@@ -171,17 +171,17 @@ namespace EncodingManager
 
                 // Copy the raw readscreen output
                 StretchDIBits(compat_dc,
-                                      0,
-                                      0,
-                                      raw_video_width,
-                                      raw_video_height,
-                                      0, 0,
-                                      raw_video_width,
-                                      raw_video_height,
-                                      m_video_buf,
-                                      &bmp_info,
-                                      DIB_RGB_COLORS,
-                                      SRCCOPY);
+                              0,
+                              0,
+                              raw_video_width,
+                              raw_video_height,
+                              0, 0,
+                              raw_video_width,
+                              raw_video_height,
+                              m_video_buf,
+                              &bmp_info,
+                              DIB_RGB_COLORS,
+                              SRCCOPY);
             }
 
             // First, composite the lua's dxgi surfaces
@@ -223,11 +223,12 @@ namespace EncodingManager
 
         if (sound_buf_pos + len > min_write_size || force)
         {
-			int len2 = rsmp_get_resample_len(44100, m_audio_freq, m_audio_bitrate, sound_buf_pos);
+            int len2 = rsmp_get_resample_len(44100, m_audio_freq, m_audio_bitrate, sound_buf_pos);
             if ((len2 % 8) == 0 || len > max_write_size)
             {
                 static short* buf2 = nullptr;
                 len2 = rsmp_resample(&buf2, 44100, reinterpret_cast<short*>(sound_buf), m_audio_freq, m_audio_bitrate, sound_buf_pos);
+
                 if (len2 > 0)
                 {
                     if ((len2 % 4) != 0)
@@ -253,7 +254,7 @@ namespace EncodingManager
         if (len > 0)
         {
             if ((unsigned int)(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(
-                char)) 
+                char))
             {
                 FrontendService::show_error("Sound buffer overflow");
                 g_view_logger->info("SOUND BUFFER OVERFLOW");
@@ -400,8 +401,11 @@ namespace EncodingManager
         {
             return true;
         }
-
-        write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
+        
+        if (m_encoder_type == EncoderType::VFW)
+        {
+            write_sound(nullptr, 0, m_audio_freq, m_audio_freq * 2, TRUE);
+        }
 
         if (!m_encoder->stop())
         {
@@ -437,8 +441,8 @@ namespace EncodingManager
 
         if (g_config.encoder_type == static_cast<int32_t>(EncoderType::FFmpeg))
         {
-			m_encoder->append_video(m_video_buf);
-			return;
+            m_encoder->append_video(m_video_buf);
+            return;
         }
 
         if (g_config.synchronization_mode != (int)Sync::Audio && g_config.
@@ -495,7 +499,7 @@ namespace EncodingManager
                     return;
                 }
                 g_view_logger->info("Duped Frame! a/v: %Lg/%Lg", m_video_frame,
-                       m_audio_frame);
+                                    m_audio_frame);
                 m_video_frame += 1.0;
                 audio_frames--;
             }
@@ -533,11 +537,11 @@ namespace EncodingManager
         if (ai_len <= 0)
             return;
 
-		if (g_config.encoder_type == static_cast<int32_t>(EncoderType::FFmpeg))
-		{
-			m_encoder->append_audio(reinterpret_cast<uint8_t*>(buf), ai_len);
-			return;
-		}
+        if (g_config.encoder_type == static_cast<int32_t>(EncoderType::FFmpeg))
+        {
+            m_encoder->append_audio(reinterpret_cast<uint8_t*>(buf), ai_len);
+            return;
+        }
 
         const int len = ai_len;
         const int write_size = 2 * m_audio_freq;

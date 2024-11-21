@@ -8,7 +8,6 @@
 
 #include "shared/services/FrontendService.h"
 
-
 bool FFmpegEncoder::start(Params params)
 {
     m_params = params;
@@ -25,14 +24,12 @@ bool FFmpegEncoder::start(Params params)
     m_video_pipe = CreateNamedPipe(
         VIDEO_PIPE_NAME,
         PIPE_ACCESS_OUTBOUND,
-        PIPE_TYPE_BYTE |
-        PIPE_READMODE_BYTE |
-        PIPE_WAIT,
+        PIPE_TYPE_BYTE | PIPE_WAIT,
         PIPE_UNLIMITED_INSTANCES,
         bufsize_video,
+        bufsize_video,
         0,
-        0,
-        NULL); // default security attribute 
+        nullptr);
 
     if (!m_video_pipe)
     {
@@ -42,21 +39,18 @@ bool FFmpegEncoder::start(Params params)
     m_audio_pipe = CreateNamedPipe(
         AUDIO_PIPE_NAME,
         PIPE_ACCESS_OUTBOUND,
-        PIPE_TYPE_BYTE |
-        PIPE_READMODE_BYTE |
-        PIPE_WAIT,
+        PIPE_TYPE_BYTE | PIPE_WAIT,
         PIPE_UNLIMITED_INSTANCES,
         bufsize_audio,
+        bufsize_audio,
         0,
-        0,
-        NULL);
+        nullptr);
 
     if (!m_audio_pipe)
     {
         CloseHandle(m_video_pipe);
         return false;
     }
-
 
     static char options[4096]{};
     memset(options, 0, sizeof(options));
@@ -76,12 +70,12 @@ bool FFmpegEncoder::start(Params params)
 
     if (!CreateProcess(g_config.ffmpeg_path.c_str(),
                        options,
-                       NULL,
-                       NULL,
+                       nullptr,
+                       nullptr,
                        FALSE,
                        NULL,
-                       NULL,
-                       NULL,
+                       nullptr,
+                       nullptr,
                        &m_si,
                        &m_pi)
     )
@@ -106,6 +100,8 @@ bool FFmpegEncoder::start(Params params)
 bool FFmpegEncoder::stop()
 {
     m_stop_thread = true;
+	m_video_cv.notify_all();
+	m_audio_cv.notify_all();
     DisconnectNamedPipe(m_video_pipe);
     DisconnectNamedPipe(m_audio_pipe);
     WaitForSingleObject(m_pi.hProcess, INFINITE);
@@ -114,7 +110,7 @@ bool FFmpegEncoder::stop()
     m_audio_thread.join();
     m_video_thread.join();
 
-    if (this->m_video_queue.size() > 0 || this->m_audio_queue.size() > 0)
+    if (!this->m_video_queue.empty() || !this->m_audio_queue.empty())
     {
         FrontendService::show_warning(std::format("Capture stopped with {} video, {} audio elements remaining in queue!\nThe capture might be corrupted.", this->m_video_queue.size(), this->m_audio_queue.size()).c_str());
     }
@@ -123,12 +119,31 @@ bool FFmpegEncoder::stop()
     return true;
 }
 
+static bool write_pipe_checked(const HANDLE pipe, const char* buffer, const unsigned buffer_size, const bool is_video)
+{
+	DWORD written = 0;
+	const auto result = WriteFile(pipe, buffer, buffer_size, &written, nullptr);
+	if (written != buffer_size || !result) {
+		//g_view_logger->error("[FFmpegEncoder] Error writing to {} pipe, error code {}", is_video ? "video" : "audio", GetLastError());
+		return false;
+	}
+
+	return true;
+}
+
 bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length, bool needs_free)
 {
+    auto buf = static_cast<uint8_t*>(malloc(length));
+    memcpy(buf, audio, length);
+
     m_last_write_was_video = false;
-    m_audio_queue_mutex.lock();
-    this->m_audio_queue.emplace(audio, length, needs_free);
-    m_audio_queue_mutex.unlock();
+
+	{
+		std::lock_guard lock(m_audio_queue_mutex);
+		this->m_audio_queue.emplace(buf, length, needs_free);
+	}
+	m_audio_cv.notify_one();
+
     return true;
 }
 
@@ -136,98 +151,76 @@ bool FFmpegEncoder::append_video(uint8_t* image)
 {
     if (m_last_write_was_video)
     {
-        g_view_logger->info("[FFmpegEncoder] writing silence buffer, length {}\n", m_params.arate / 16);
+        g_view_logger->info("[FFmpegEncoder] writing silence buffer, length {}", m_params.arate / 16);
         append_audio_impl(m_silence_buffer, m_params.arate / 16, false);
     }
     m_last_write_was_video = true;
-    m_video_queue_mutex.lock();
-    this->m_video_queue.push(image);
-    m_video_queue_mutex.unlock();
+
+    auto buf = static_cast<uint8_t*>(malloc(m_params.width * m_params.height * 3));
+    memcpy(buf, image, m_params.width * m_params.height * 3);
+
+	{
+		std::lock_guard lock(m_video_queue_mutex);
+		m_video_queue.push(buf);
+	}
+	m_video_cv.notify_one();
+
     return true;
 }
 
 bool FFmpegEncoder::append_audio(uint8_t* audio, size_t length)
 {
-    return append_audio_impl(audio, length, false);
-}
+    auto buf = static_cast<uint8_t*>(malloc(length));
+    memcpy(buf, audio, length);
 
-bool write_pipe_checked(const HANDLE pipe, const char* buffer, const unsigned buffer_size)
-{
-    DWORD written{};
-    const auto res = WriteFile(pipe, buffer, buffer_size, &written, nullptr);
-    if (written != buffer_size or res != TRUE)
-    {
-        return false;
-    }
-    return true;
+    return append_audio_impl(buf, length, true);
 }
 
 void FFmpegEncoder::write_audio_thread()
 {
+    g_view_logger->trace("[FFmpegEncoder] Audio thread ready");
+
     while (!this->m_stop_thread)
     {
-        if (!this->m_audio_queue.empty())
-        {
-            this->m_audio_queue_mutex.lock();
-            auto tuple = this->m_audio_queue.front();
-            this->m_audio_queue_mutex.unlock();
+		std::unique_lock lock(m_audio_queue_mutex);
+		m_audio_cv.wait(lock, [this] { return !m_audio_queue.empty() || m_stop_thread; });
 
-            auto buf = std::get<0>(tuple);
-            auto len = std::get<1>(tuple);
-            auto needs_free = std::get<2>(tuple);
+        if (this->m_audio_queue.empty())
+			continue;
 
-            auto result = write_pipe_checked(m_audio_pipe, (char*)buf, len);
+		auto tuple = this->m_audio_queue.front();
+		this->m_audio_queue.pop();
+		lock.unlock();
 
-            // We don't want to free our own silence buffer :P
-            if (needs_free)
-            {
-                free(buf);
-            }
+		const auto buf = std::get<0>(tuple);
+		const auto len = std::get<1>(tuple);
+		const auto needs_free = std::get<2>(tuple);
 
-            if (result)
-            {
-                this->m_audio_queue_mutex.lock();
-                this->m_audio_queue.pop();
-                this->m_audio_queue_mutex.unlock();
-            }
-            else
-            {
-                //g_view_logger->error("[FFmpegEncoder] write_audio_thread fail, queue: {}, error: {}\n", this->m_audio_queue.size(), GetLastError());
-            }
-        }
-        else
-        {
-            Sleep(10);
-        }
+		write_pipe_checked(m_audio_pipe, (char*)buf, len, false);
+		if (needs_free)
+		{
+			free(buf);
+		}
     }
 }
 
 void FFmpegEncoder::write_video_thread()
 {
+    g_view_logger->trace("[FFmpegEncoder] Video thread ready");
+
     while (!this->m_stop_thread)
     {
-        if (!this->m_video_queue.empty())
-        {
-            this->m_video_queue_mutex.lock();
-            auto video_buf = this->m_video_queue.front();
-            this->m_video_queue_mutex.unlock();
+		std::unique_lock lock(m_video_queue_mutex);
+		m_video_cv.wait(lock, [this] { return !m_video_queue.empty() || m_stop_thread; });
 
-            auto result = write_pipe_checked(m_video_pipe, (char*)video_buf, m_params.width * m_params.height * 3);
+		if (m_video_queue.empty())
+			continue;
 
-            if (result)
-            {
-                this->m_video_queue_mutex.lock();
-                this->m_video_queue.pop();
-                this->m_video_queue_mutex.unlock();
-            }
-            else
-            {
-                //g_view_logger->error("[FFmpegEncoder] write_video_thread fail, queue: {}, error: {}\n", this->m_video_queue.size(), GetLastError());
-            }
-        }
-        else
-        {
-            Sleep(10);
-        }
+		auto video_buf = this->m_video_queue.front();
+		this->m_video_queue.pop();
+		lock.unlock();
+
+		write_pipe_checked(m_video_pipe, (char*)video_buf, m_params.width * m_params.height * 3, true);
+		free(video_buf);
     }
 }

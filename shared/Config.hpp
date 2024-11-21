@@ -224,7 +224,7 @@ typedef struct Config
     /// The current savestate slot index (0-9).
     /// </summary>
     int32_t st_slot;
-    
+
     /// <summary>
     /// Whether fast-forward will mute audio
     /// This option improves performance by skipping additional doRspCycles calls, but may cause issues
@@ -378,8 +378,11 @@ typedef struct Config
     /// <summary>
     /// FFmpeg post-stream option format string which is used when capturing using the FFmpeg encoder type
     /// </summary>
-    std::string ffmpeg_final_options = "-thread_queue_size 4 -f rawvideo -video_size %dx%d -framerate %d -pixel_format bgr24 -i %s -thread_queue_size 64 -f s16le -ar %d -ac 2 -channel_layout stereo -i %s -vf \"vflip,format=yuv420p\" %s";
-
+    std::string ffmpeg_final_options =
+        "-y -f rawvideo -pixel_format bgr24 -video_size %dx%d -framerate %d -i %s "\
+        "-f s16le -sample_rate %d -ac 2 -channel_layout stereo -i %s "\
+        "-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -vf \"vflip\" -loglevel debug %s";
+    
     /// <summary>
     /// FFmpeg binary path
     /// </summary>
@@ -438,7 +441,7 @@ typedef struct Config
     /// Maximum size of the undo/redo stack. 
     /// </summary>
     int32_t piano_roll_undo_stack_size = 100;
-    
+
     /// <summary>
     /// Whether the piano roll will try to keep the selection visible when the frame changes
     /// </summary>
