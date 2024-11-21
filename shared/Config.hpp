@@ -381,7 +381,7 @@ typedef struct Config
     std::string ffmpeg_final_options =
         "-y -f rawvideo -pixel_format bgr24 -video_size %dx%d -framerate %d -i %s "\
         "-f s16le -sample_rate %d -ac 2 -channel_layout stereo -i %s "\
-        "-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -vf \"vflip\" -loglevel debug %s";
+        "-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -vf \"vflip\" -loglevel debug -f mp4 %s";
     
     /// <summary>
     /// FFmpeg binary path
