@@ -1288,8 +1288,8 @@ bool begin_listview_edit(HWND hwnd)
         get_user_hotkey(hotkey);
         g_hotkey_active_index.reset();
 
-        ListView_SetItemState(g_lv_hwnd, i, 0, LVIS_SELECTED);
-        ListView_SetItemState(g_lv_hwnd, i + 1, LVIS_SELECTED, LVIS_SELECTED);
+        ListView_SetItemState(g_lv_hwnd, i, 0, LVIS_SELECTED | LVIS_FOCUSED);
+        ListView_SetItemState(g_lv_hwnd, i + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
         ListView_EnsureVisible(g_lv_hwnd, i + 1, false);
     }
 
