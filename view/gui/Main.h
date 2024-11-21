@@ -24,7 +24,7 @@
 #include <view/gui/features/Dispatcher.h>
 #include <core/r4300/vcr.h>
 
-#define MUPEN_VERSION "Mupen 64 1.1.9-rc5"
+#define MUPEN_VERSION "Mupen 64 1.1.9-rc6"
 
 #define WM_FOCUS_MAIN_WINDOW (WM_USER + 17)
 #define WM_EXECUTE_DISPATCHER (WM_USER + 18)
