@@ -1147,7 +1147,7 @@ INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM 
             auto edit_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
 
             SetWindowText(wnd, std::format("Edit '{}'", option_item.name).c_str());
-            Edit_SetText(edit_hwnd, option_item.data_str->c_str());
+            Edit_SetText(edit_hwnd, option_item.data_str->data());
 
             SetFocus(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT));
             break;
@@ -1159,8 +1159,8 @@ INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM 
             {
                 auto edit_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
 
-                auto len = Edit_GetTextLength(edit_hwnd);
-                auto str = static_cast<char*>(calloc(len + 1, 1));
+                auto len = Edit_GetTextLength(edit_hwnd) + 1;
+                auto str = static_cast<char*>(calloc(len, 1));
                 Edit_GetText(edit_hwnd, str, len);
 
                 *g_option_items[g_edit_option_item_index].data_str = str;
