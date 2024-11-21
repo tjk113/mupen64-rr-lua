@@ -11,7 +11,6 @@
 bool FFmpegEncoder::start(Params params)
 {
     m_params = params;
-    m_params.path.replace_extension(".mp4");
 
     const auto bufsize_video = 2048;
     const auto bufsize_audio = m_params.arate * 8;

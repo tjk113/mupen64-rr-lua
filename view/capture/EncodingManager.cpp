@@ -25,12 +25,15 @@ namespace EncodingManager
     // 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
 #define SOUND_BUF_SIZE (44100*2*2)
 
+    std::filesystem::path m_current_path;
+    
     // 0x30018
     int m_audio_freq = 33000;
     int m_audio_bitrate = 16;
     long double m_video_frame = 0;
     long double m_audio_frame = 0;
-
+    size_t m_total_frames = 0;
+    
     // Video buffer, allocated once when recording starts and freed when it ends.
     uint8_t* m_video_buf = nullptr;
     long m_video_width;
@@ -45,6 +48,7 @@ namespace EncodingManager
     EncoderType m_encoder_type;
     std::unique_ptr<Encoder> m_encoder;
 
+    
     void readscreen_plugin()
     {
         if (MGECompositor::available())
@@ -333,8 +337,7 @@ namespace EncodingManager
         }
     }
 
-    bool start_capture(std::filesystem::path path, EncoderType encoder_type,
-                       const bool ask_for_encoding_settings)
+    bool start_capture(std::filesystem::path path, EncoderType encoder_type, const bool ask_for_encoding_settings)
     {
         assert(is_on_gui_thread());
 
@@ -360,12 +363,19 @@ namespace EncodingManager
         }
 
         m_encoder_type = encoder_type;
+        m_current_path = path;
 
+        if (encoder_type == EncoderType::FFmpeg)
+        {
+            m_current_path.replace_extension(".mp4");
+        }
+        
         memset(sound_buf_empty, 0, sizeof(sound_buf_empty));
         memset(sound_buf, 0, sizeof(sound_buf));
         last_sound = 0;
         m_video_frame = 0.0;
         m_audio_frame = 0.0;
+        m_total_frames = 0;
 
         free(m_video_buf);
         get_video_dimensions(&m_video_width, &m_video_height);
@@ -380,7 +390,7 @@ namespace EncodingManager
         }
 
         auto result = m_encoder->start(Encoder::Params{
-            .path = path.string().c_str(),
+            .path = m_current_path,
             .width = (uint32_t)m_video_width,
             .height = (uint32_t)m_video_height,
             .fps = get_vis_per_second(ROM_HEADER.Country_code),
@@ -448,8 +458,9 @@ namespace EncodingManager
         {
             Sleep(g_config.capture_delay);
         }
-
+        
         read_screen();
+        m_total_frames++;
 
         if (g_config.encoder_type == static_cast<int32_t>(EncoderType::FFmpeg))
         {
@@ -615,6 +626,16 @@ namespace EncodingManager
         write_sound(static_cast<char*>(buf), len, m_audio_freq, write_size,
                     FALSE);
         last_sound = *(reinterpret_cast<long*>(buf + len) - 1);
+    }
+
+    size_t get_video_frame()
+    {
+        return m_total_frames;
+    }
+
+    std::filesystem::path get_current_path()
+    {
+        return m_current_path;
     }
 
     void ai_dacrate_changed(std::any data)

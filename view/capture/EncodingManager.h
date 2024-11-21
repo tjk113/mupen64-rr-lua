@@ -64,4 +64,14 @@ namespace EncodingManager
      * \brief Notifies the encoding manager of the audio changing
      */
     void ai_len_changed();
+
+    /**
+     * Gets the current video frame index.
+     */
+    size_t get_video_frame();
+
+    /**
+     * Gets the current output path.
+     */
+    std::filesystem::path get_current_path();
 }

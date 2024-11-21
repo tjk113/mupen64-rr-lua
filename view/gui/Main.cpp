@@ -174,7 +174,7 @@ bool show_error_dialog_for_result(const VCR::Result result, void* hwnd)
     g_view_logger->error("[View] VCR error {}", static_cast<int32_t>(result));
 
     std::string error;
-    
+
     switch (result)
     {
     case VCR::Result::InvalidFormat:
@@ -501,6 +501,11 @@ void update_titlebar()
         text += std::format(" - {}", movie_filename);
     }
 
+    if (EncodingManager::is_capturing())
+    {
+        text += std::format(" - {}", EncodingManager::get_current_path().filename().string());
+    }
+
     SetWindowText(g_main_hwnd, text.c_str());
 }
 
@@ -605,7 +610,6 @@ void on_emu_launched_changed(std::any data)
 
             g_previously_running_luas.clear();
         });
-        
     }
 
     if (!value && previous_value)
@@ -613,7 +617,7 @@ void on_emu_launched_changed(std::any data)
         g_view_logger->info("[View] Restoring window size to {}x{}...", g_config.window_width, g_config.window_height);
         SetWindowPos(g_main_hwnd, nullptr, 0, 0, g_config.window_width, g_config.window_height, SWP_NOMOVE);
     }
-    
+
     SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
     previous_value = value;
 }
@@ -1093,7 +1097,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             if (frame_changed)
             {
                 Statusbar::post(VCR::get_input_text(), Statusbar::Section::Input);
-                Statusbar::post(VCR::get_status_text(), Statusbar::Section::VCR);
+
+                if (EncodingManager::is_capturing())
+                {
+                    if (VCR::get_task() == e_task::idle)
+                    {
+                        Statusbar::post(std::format("{}", EncodingManager::get_video_frame()), Statusbar::Section::VCR);
+                    }
+                    else
+                    {
+                        Statusbar::post(std::format("{}({})", VCR::get_status_text(), EncodingManager::get_video_frame()), Statusbar::Section::VCR);
+                    }
+                }
+                else
+                {
+                    Statusbar::post(VCR::get_status_text(), Statusbar::Section::VCR);
+                }
 
                 frame_changed = false;
             }
@@ -1116,10 +1135,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 auto vis = get_rate_per_second_from_deltas(g_vi_deltas);
                 g_vi_deltas_mutex.unlock();
 
-				Statusbar::post(std::format("FPS: {:.1f}", fps), Statusbar::Section::FPS);
-				Statusbar::post(std::format("VI/s: {:.1f}", vis), Statusbar::Section::VIs);
+                Statusbar::post(std::format("FPS: {:.1f}", fps), Statusbar::Section::FPS);
+                Statusbar::post(std::format("VI/s: {:.1f}", vis), Statusbar::Section::VIs);
 
-				last_statusbar_update = time;
+                last_statusbar_update = time;
             }
         }
         break;
@@ -1278,7 +1297,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     auto result = VCR::begin_warp_modify(inputs);
                     show_error_dialog_for_result(result);
-                    
+
                     break;
                 }
             case IDM_BENCHMARK_MESSENGER:
@@ -1301,14 +1320,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
                 break;
             case IDM_BENCHMARK_CORE_START:
-            	Core::start_benchmark();
-				break;
+                Core::start_benchmark();
+                break;
             case IDM_BENCHMARK_CORE_STOP:
-	            {
-					auto fps = Core::stop_benchmark();
-					FrontendService::show_information(std::format("FPS: {:2f}", fps).c_str());
-					break;
-	            }
+                {
+                    auto fps = Core::stop_benchmark();
+                    FrontendService::show_information(std::format("FPS: {:2f}", fps).c_str());
+                    break;
+                }
             case IDM_TRACELOG:
                 {
                     if (tracelog::active())
@@ -1818,7 +1837,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Loggers::init();
 
     g_view_logger->info("WinMain");
-    
+
     g_ui_thread_id = GetCurrentThreadId();
 
     Gdiplus::GdiplusStartupInput startup_input;
@@ -1894,7 +1913,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_recent_lua_menu = GetSubMenu(GetSubMenu(g_main_menu, 6), 2);
 #ifndef _DEBUG
 #endif
-    
+
     RECT rect{};
     GetClientRect(g_main_hwnd, &rect);
 
