@@ -369,12 +369,20 @@ namespace EncodingManager
         get_video_dimensions(&m_video_width, &m_video_height);
         m_video_buf = (uint8_t*)malloc(m_video_width * m_video_height * 3);
 
+		uint32_t real_audio_freq = m_audio_freq;
+
+		// NOTE: We provide resampled 44.1kHz to the AVI encoder, but not to ffmpeg
+        if (m_encoder_type == EncoderType::VFW)
+        {
+			real_audio_freq = 44100;
+        }
+
         auto result = m_encoder->start(Encoder::Params{
             .path = path.string().c_str(),
             .width = (uint32_t)m_video_width,
             .height = (uint32_t)m_video_height,
             .fps = get_vis_per_second(ROM_HEADER.Country_code),
-            .arate = (uint32_t)m_audio_freq,
+            .arate = real_audio_freq,
             .ask_for_encoding_settings = ask_for_encoding_settings,
         });
 
