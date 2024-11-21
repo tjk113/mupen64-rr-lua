@@ -21,6 +21,7 @@
 #include <shared/services/FrontendService.h>
 #include <shared/Messenger.h>
 #include <shared/helpers/StlExtensions.h>
+#include <shared/services/LoggingService.h>
 
 #include "shared/AsyncExecutor.h"
 
