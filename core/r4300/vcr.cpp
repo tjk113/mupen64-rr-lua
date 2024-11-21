@@ -1828,6 +1828,11 @@ void VCR::init()
 
 bool is_frame_skipped()
 {
+	if (g_vr_no_frameskip)
+	{
+		return false;
+	}
+
     if (VCR::is_seeking())
     {
         return true;

@@ -87,6 +87,7 @@ extern FILE* g_fram_file;
 extern FILE* g_mpak_file;
 
 extern bool g_vr_benchmark_enabled;
+extern bool g_vr_no_frameskip;
 
 std::filesystem::path get_rom_path();
 

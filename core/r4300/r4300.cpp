@@ -111,6 +111,8 @@ size_t g_vr_benchmark_start_frames = 0;
 uint64_t g_vr_benchmark_time_in_section[5];
 time_point g_vr_benchmark_last_start[5];
 
+bool g_vr_no_frameskip;
+
 FILE* g_eeprom_file;
 FILE* g_sram_file;
 FILE* g_fram_file;

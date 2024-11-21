@@ -18,6 +18,8 @@
 #include <view/gui/features/Dispatcher.h>
 #include <view/helpers/IOHelpers.h>
 
+#include "core/r4300/r4300.h"
+
 namespace EncodingManager
 {
     // 44100=1s sample, soundbuffer capable of holding 4s future data in circular buffer
@@ -393,6 +395,7 @@ namespace EncodingManager
         }
 
         m_capturing = true;
+		g_vr_no_frameskip = true;
 
         Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
@@ -424,6 +427,7 @@ namespace EncodingManager
         m_encoder.release();
 
         m_capturing = false;
+		g_vr_no_frameskip = false;
         Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 
         g_view_logger->info("[EncodingManager]: Capture finished.");
