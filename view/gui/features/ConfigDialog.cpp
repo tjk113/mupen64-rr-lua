@@ -888,7 +888,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .type = t_options_item::Type::Enum,
             .possible_values = {
                 std::make_pair(L"VFW", (int32_t)EncoderType::VFW),
-                std::make_pair(L"FFmpeg (unstable)", (int32_t)EncoderType::FFmpeg),
+                std::make_pair(L"FFmpeg (experimental)", (int32_t)EncoderType::FFmpeg),
             },
             .is_readonly = []
             {
