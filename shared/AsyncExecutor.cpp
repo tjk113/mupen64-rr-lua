@@ -61,7 +61,18 @@ void AsyncExecutor::invoke_async(const std::function<void()>& func, size_t key)
 {
     if (!g_config.use_async_executor)
     {
-        std::thread(func).detach();
+        if (g_config.async_executor_cuzz)
+        {
+            std::thread([=]
+            {
+                Sleep(500);
+                func();
+            }).detach();
+        }
+        else
+        {
+            std::thread(func).detach();
+        }
         return;
     }
 

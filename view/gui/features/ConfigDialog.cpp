@@ -850,6 +850,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .data = &g_config.use_async_executor,
             .type = t_options_item::Type::Bool,
         },
+        t_options_item{
+            .group_id = interface_group.id,
+            .name = "Async Executor Cuzz",
+            .tooltip = L"Whether the async executor will apply concurrency fuzzing. When enabled, task execution will be delayed to expose delayed task execution handling deficiencies at the callsite.\nDo not enable unless you are debugging the async executor.",
+            .data = &g_config.async_executor_cuzz,
+            .type = t_options_item::Type::Bool,
+        },
 
         t_options_item{
             .group_id = piano_roll_group.id,
