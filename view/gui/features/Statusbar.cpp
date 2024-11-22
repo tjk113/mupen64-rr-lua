@@ -44,6 +44,16 @@ namespace Statusbar
 
         auto scale = static_cast<float>(rect.right - rect.left) / static_cast<float>(desired_size);
 
+        if (!g_config.statusbar_scale_down)
+        {
+            scale = max(scale, 1.0f);
+        }
+        
+        if (!g_config.statusbar_scale_up)
+        {
+            scale = min(scale, 1.0f);
+        }
+
         g_view_logger->info("[Statusbar] Scale: {}", scale);
 
         for (auto& part : parts)

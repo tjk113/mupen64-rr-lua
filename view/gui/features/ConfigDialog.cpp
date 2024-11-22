@@ -809,6 +809,20 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = interface_group.id,
+            .name = "Statusbar allow scale down",
+            .tooltip = L"Whether the statusbar is allowed to scale its segments down.",
+            .data = &g_config.statusbar_scale_down,
+            .type = t_options_item::Type::Bool,
+        },
+        t_options_item{
+            .group_id = interface_group.id,
+            .name = "Statusbar allow scale up",
+            .tooltip = L"Whether the statusbar is allowed to scale its segments up.",
+            .data = &g_config.statusbar_scale_up,
+            .type = t_options_item::Type::Bool,
+        },
+        t_options_item{
+            .group_id = interface_group.id,
             .name = "Pause when unfocused",
             .tooltip = L"Pause emulation when the main window isn't in focus.",
             .data = &g_config.is_unfocused_pause_enabled,

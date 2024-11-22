@@ -269,6 +269,16 @@ typedef struct Config
     int32_t is_statusbar_enabled = 1;
 
     /// <summary>
+    /// Whether the statusbar is allowed to scale its segments down.
+    /// </summary>
+    int32_t statusbar_scale_down = 1;
+    
+    /// <summary>
+    /// Whether the statusbar is allowed to scale its segments up.
+    /// </summary>
+    int32_t statusbar_scale_up;
+    
+    /// <summary>
     /// Whether the default plugins directory will be used (otherwise, falls back to <see cref="plugins_directory"/>)
     /// </summary>
     int32_t is_default_plugins_directory_used = 1;
