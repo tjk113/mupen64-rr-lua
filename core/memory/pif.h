@@ -35,7 +35,6 @@ void update_pif_write();
 void update_pif_read();
 
 extern int frame_advancing;
-extern int fast_forward;
 extern size_t lag_count;
 
 #endif

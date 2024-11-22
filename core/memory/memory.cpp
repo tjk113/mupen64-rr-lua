@@ -1308,7 +1308,7 @@ void update_SP()
             //processAList();
             rsp_register.rsp_pc &= 0xFFF;
 
-            if (!fast_forward || !g_config.fastforward_silent)
+            if (!g_vr_fast_forward || !g_config.fastforward_silent)
             {
                 start_section(VR_SECTION_RSP);
                 doRspCycles(100);
@@ -1326,7 +1326,7 @@ void update_SP()
         {
             //g_core_logger->info("other task");
             rsp_register.rsp_pc &= 0xFFF;
-            if (!fast_forward || !g_config.fastforward_silent)
+            if (!g_vr_fast_forward || !g_config.fastforward_silent)
             {
                 start_section(VR_SECTION_RSP);
                 doRspCycles(100);

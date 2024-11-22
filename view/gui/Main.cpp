@@ -87,6 +87,7 @@ bool g_paused_before_focus;
 bool g_in_menu_loop;
 bool g_vis_since_input_poll_warning_dismissed;
 bool g_emu_starting;
+bool g_fast_forward;
 
 ULONG_PTR gdi_plus_token;
 
@@ -749,6 +750,11 @@ void on_warp_modify_status_changed(std::any data)
     LuaService::call_warp_modify_status_changed(static_cast<int32_t>(value));
 }
 
+void update_core_fast_forward(std::any)
+{
+    g_vr_fast_forward = g_fast_forward || VCR::is_seeking() || g_vr_benchmark_enabled;
+}
+
 BetterEmulationLock::BetterEmulationLock()
 {
     if (g_in_menu_loop)
@@ -1323,11 +1329,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case IDM_BENCHMARK_CORE_START:
                 Core::start_benchmark();
+                Messenger::broadcast(Messenger::Message::FastForwardNeedsUpdate, nullptr);
                 break;
             case IDM_BENCHMARK_CORE_STOP:
                 {
                     auto fps = Core::stop_benchmark();
                     FrontendService::show_information(std::format("FPS: {:2f}", fps).c_str());
+                    Messenger::broadcast(Messenger::Message::FastForwardNeedsUpdate, nullptr);
                     break;
                 }
             case IDM_TRACELOG:
@@ -1362,10 +1370,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }, ASYNC_KEY_CLOSE_ROM);
                 break;
             case IDM_FASTFORWARD_ON:
-                fast_forward = 1;
+                g_fast_forward = true;
+                Messenger::broadcast(Messenger::Message::FastForwardNeedsUpdate, nullptr);
                 break;
             case IDM_FASTFORWARD_OFF:
-                fast_forward = 0;
+                g_fast_forward = false;
+                Messenger::broadcast(Messenger::Message::FastForwardNeedsUpdate, nullptr);
                 break;
             case IDM_GS_ON:
                 set_gs_button(true);
@@ -1945,6 +1955,11 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Messenger::subscribe(Messenger::Message::ConfigLoaded, on_config_loaded);
     Messenger::subscribe(Messenger::Message::SeekCompleted, on_seek_completed);
     Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed);
+    Messenger::subscribe(Messenger::Message::FastForwardNeedsUpdate, update_core_fast_forward);
+    Messenger::subscribe(Messenger::Message::SeekStatusChanged, [] (std::any)
+    {
+        update_core_fast_forward(nullptr);
+    });
     Messenger::subscribe(Messenger::Message::EmuStartingChanged, [](std::any data)
     {
         g_emu_starting = std::any_cast<bool>(data);

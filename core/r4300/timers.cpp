@@ -83,11 +83,10 @@ void timer_new_vi()
     {
         Messenger::broadcast(Messenger::Message::LagLimitExceeded, nullptr);
     }
-    const bool ff = fast_forward || VCR::is_seeking() || g_vr_benchmark_enabled;
 
     auto current_vi_time = std::chrono::high_resolution_clock::now();
 
-    if (!ff)
+    if (!g_vr_fast_forward)
     {
         static std::chrono::duration<double, std::nano> last_sleep_error;
         // if we're playing game normally with no frame advance or ff and overstepping max time between frames,

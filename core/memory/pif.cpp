@@ -49,7 +49,6 @@
 #include <shared/services/LoggingService.h>
 
 int frame_advancing = 0;
-int fast_forward = 0;
 // Amount of VIs since last input poll
 size_t lag_count;
 

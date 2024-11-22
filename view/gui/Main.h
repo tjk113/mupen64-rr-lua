@@ -51,6 +51,11 @@ extern std::shared_ptr<Dispatcher> g_main_window_dispatcher;
 extern bool is_primary_statusbar_invalidated;
 
 /**
+ * The view ff flag. Combined with other flags to determine the core fast-forward value.
+ */
+extern bool g_fast_forward;
+
+/**
  * \brief Pauses the emulation during the object's lifetime, resuming it if previously paused upon being destroyed
  */
 struct BetterEmulationLock

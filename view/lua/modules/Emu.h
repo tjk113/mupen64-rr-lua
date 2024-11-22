@@ -1,3 +1,5 @@
+#include "shared/Messenger.h"
+
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
@@ -321,13 +323,14 @@ namespace LuaCore::Emu
 
     static int GetFastForward(lua_State* L)
     {
-        lua_pushboolean(L, fast_forward);
+        lua_pushboolean(L, g_fast_forward);
         return 1;
     }
 
     static int SetFastForward(lua_State* L)
     {
-        fast_forward = lua_toboolean(L, 1);
+        g_fast_forward = lua_toboolean(L, 1);
+        Messenger::broadcast(Messenger::Message::FastForwardNeedsUpdate, nullptr);
         return 0;
     }
 

@@ -104,6 +104,7 @@ short x87_status_word;
 void (*code)();
 unsigned long next_vi;
 int vi_field = 0;
+bool g_vr_fast_forward;
 
 bool g_vr_benchmark_enabled = false;
 time_point g_vr_benchmark_start_time{};
@@ -2103,7 +2104,7 @@ void audio_thread()
             break;
         }
 
-        if (fast_forward && g_config.fastforward_silent)
+        if (g_vr_fast_forward && g_config.fastforward_silent)
         {
             continue;
         }

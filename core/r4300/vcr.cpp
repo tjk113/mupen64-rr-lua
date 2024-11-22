@@ -1393,6 +1393,7 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
 
     seek_to_frame = std::make_optional(frame);
     g_seek_pause_at_end = pause_at_end;
+    Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
     if (resume)
     {
         resume_emu();
@@ -1516,6 +1517,7 @@ void VCR::stop_seek()
     }
 
     seek_to_frame.reset();
+    Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
     Messenger::broadcast(Messenger::Message::SeekCompleted, nullptr);
 
     if (g_warp_modify_status == e_warp_modify_status::warping)
@@ -1840,7 +1842,7 @@ bool is_frame_skipped()
         return true;
     }
 
-    if (!fast_forward)
+    if (!g_vr_fast_forward)
     {
         return false;
     }

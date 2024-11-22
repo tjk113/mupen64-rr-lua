@@ -126,6 +126,11 @@ namespace Messenger
         SeekCompleted,
 
         /**
+         * \brief The seek status has changed.
+         */
+        SeekStatusChanged,
+     
+        /**
          * \brief The core speed modifier has changed
          */
         SpeedModifierChanged,
@@ -154,6 +159,11 @@ namespace Messenger
          * \brief The audio dacrate has changed
          */
         DacrateChanged,
+
+        /**
+         * \brief The core fast-forward flag (g_vr_fast_forward) needs updating.
+         */
+        FastForwardNeedsUpdate,
 
         /**
          * \brief The debugger-tracked CPU state has changed
