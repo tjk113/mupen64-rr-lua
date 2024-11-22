@@ -495,7 +495,7 @@ void gen_interrupt()
             end_section(VR_SECTION_LUA_ATINTERVAL);
 
             // NOTE: It's ok to not update screen when lagging, doesn't cause any obvious issues
-            auto skip = (g_config.skip_rendering_lag && lag_count > 1) || is_frame_skipped();
+            auto skip = (g_config.skip_rendering_lag && lag_count > 1) || g_vr_frame_skipped;
             auto update = FrontendService::get_prefers_no_render_skip() ? true : (screen_invalidated ? !skip : false);
 
             // NOTE: When frame advancing, screen_invalidated has a higher change of being false despite the fact it should be true

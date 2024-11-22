@@ -1229,7 +1229,8 @@ void update_SP()
             // if that happens, then we never increment screen_updates and thus are stuck in incorrect state
             g_total_frames++;
             g_config.total_frames++;
-            if (!is_frame_skipped())
+            g_vr_frame_skipped = is_frame_skipped();
+            if (!g_vr_frame_skipped)
             {
                 start_section(VR_SECTION_RSP);
                 doRspCycles(100);

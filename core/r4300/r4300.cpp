@@ -105,6 +105,7 @@ void (*code)();
 unsigned long next_vi;
 int vi_field = 0;
 bool g_vr_fast_forward;
+bool g_vr_frame_skipped;
 
 bool g_vr_benchmark_enabled = false;
 time_point g_vr_benchmark_start_time{};

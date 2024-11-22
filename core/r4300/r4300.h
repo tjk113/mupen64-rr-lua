@@ -81,6 +81,7 @@ extern int vi_field;
 extern unsigned long next_vi;
 extern int compare_core_mode;
 extern bool g_vr_fast_forward;
+extern bool g_vr_frame_skipped;
 
 extern FILE* g_eeprom_file;
 extern FILE* g_sram_file;
