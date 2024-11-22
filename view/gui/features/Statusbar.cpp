@@ -32,6 +32,28 @@ namespace Statusbar
         SendMessage(statusbar_hwnd, SB_SETTEXT, (int)section, (LPARAM)text.c_str());
     }
 
+    void update_size()
+    {
+        auto parts = emu_launched ? emu_parts : idle_parts;
+
+        RECT rect{};
+        GetClientRect(g_main_hwnd, &rect);
+
+        // Compute the desired size of the statusbar and use that for the scaling factor
+        auto desired_size = std::accumulate(parts.begin(), parts.end() - 1, 0);
+
+        auto scale = static_cast<float>(rect.right - rect.left) / static_cast<float>(desired_size);
+
+        g_view_logger->info("[Statusbar] Scale: {}", scale);
+
+        for (auto& part : parts)
+        {
+            part = static_cast<int>(part * scale);
+        }
+
+        set_statusbar_parts(statusbar_hwnd, parts);
+    }
+
     void emu_launched_changed(std::any data)
     {
         auto value = std::any_cast<bool>(data);
@@ -43,8 +65,6 @@ namespace Statusbar
             return;
         }
 
-        auto parts = value ? emu_parts : idle_parts;
-
         // We don't want to keep the weird crap from previous state, so let's clear everything
         for (int i = 0; i < 255; ++i)
         {
@@ -54,30 +74,13 @@ namespace Statusbar
         // When starting the emu, we want to scale the statusbar segments to the window size
         if (value)
         {
-            RECT rect{};
-            GetClientRect(g_main_hwnd, &rect);
-
-            // Compute the desired size of the statusbar and use that for the scaling factor
-            auto desired_size = std::accumulate(parts.begin(), parts.end() - 1, 0);
-
-            auto scale = static_cast<float>(rect.right - rect.left) / static_cast<float>(desired_size);
-
-            g_view_logger->info("[Statusbar] Scale: {}", scale);
-
-            for (auto& part : parts)
-            {
-                part = static_cast<int>(part * scale);
-            }
-
-            set_statusbar_parts(statusbar_hwnd, parts);
-
             // Update this at first start, otherwise it doesnt initially appear
             Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
         }
 
         if (!value && previous_value)
         {
-            set_statusbar_parts(statusbar_hwnd, parts);
+            set_statusbar_parts(statusbar_hwnd, value ? emu_parts : idle_parts);
         }
 
         previous_value = value;
@@ -133,6 +136,11 @@ namespace Statusbar
         post(std::format("Slot {}", value + 1), Section::Slot);
     }
 
+    void on_size_changed(std::any)
+    {
+        update_size();
+    }
+
     void init()
     {
         create();
@@ -146,5 +154,7 @@ namespace Statusbar
                              on_rerecords_changed);
         Messenger::subscribe(Messenger::Message::SlotChanged,
                              on_slot_changed);
+        Messenger::subscribe(Messenger::Message::SizeChanged,
+                             on_size_changed);
     }
 }
