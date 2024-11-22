@@ -109,7 +109,12 @@ void commandline_load_st()
         return;
     }
 
-    Savestates::do_file(commandline_st.c_str(), Savestates::Job::Load);
+    ++g_vr_wait_before_input_poll;
+    AsyncExecutor::invoke_async([=]
+    {
+        --g_vr_wait_before_input_poll;
+        Savestates::do_file(commandline_st.c_str(), Savestates::Job::Load);
+    });
 }
 
 void commandline_start_lua()

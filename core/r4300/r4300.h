@@ -88,6 +88,7 @@ extern FILE* g_mpak_file;
 
 extern bool g_vr_benchmark_enabled;
 extern bool g_vr_no_frameskip;
+extern std::atomic<int32_t> g_vr_wait_before_input_poll;
 
 std::filesystem::path get_rom_path();
 

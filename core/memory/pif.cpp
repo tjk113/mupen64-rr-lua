@@ -415,7 +415,7 @@ void update_pif_read()
 {
     //g_core_logger->info("pif entry");
     int i = 0, channel = 0;
-    bool once = emu_paused | frame_advancing; //used to pause only once during controller routine
+    bool once = emu_paused | frame_advancing | g_vr_wait_before_input_poll; //used to pause only once during controller routine
     bool stAllowed = true; //used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
 	g_core_logger->info("---------- before read ----------");
@@ -446,15 +446,29 @@ void update_pif_read()
                 if (channel < 4)
                 {
                     static int controllerRead = 999;
-
+                    
                     // frame advance - pause before every 'frame of input',
                     // which is manually resumed to enter 1 input and emulate until being
                     // paused here again before the next input
                     if (once && channel <= controllerRead && (&PIF_RAMb[i])[2] == 1)
                     {
                         once = false;
-                        frame_advancing = 0;
-                        pause_emu();
+
+                        if (g_vr_wait_before_input_poll == 0)
+                        {
+                            frame_advancing = 0;
+                            pause_emu();
+                        }
+
+                        while (g_vr_wait_before_input_poll)
+                        {
+                            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                            if (stAllowed)
+                            {
+                                Savestates::do_work();
+                            }
+                        }
+                        
                         while (emu_paused)
                         {
                             std::this_thread::sleep_for(std::chrono::milliseconds(10));

@@ -915,8 +915,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             else if (extension == ".st" || extension == ".savestate" || extension == ".st0" || extension == ".st1" || extension == ".st2" || extension == ".st3" || extension == ".st4" || extension == ".st5" || extension == ".st6" || extension == ".st7" || extension == ".st8" || extension == ".st9")
             {
                 if (!emu_launched) break;
+                ++g_vr_wait_before_input_poll;
                 AsyncExecutor::invoke_async([=]
                 {
+                    --g_vr_wait_before_input_poll;
                     Savestates::do_file(fname, Savestates::Job::Load);
                 });
             }
@@ -1547,8 +1549,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
                 break;
             case IDM_SAVE_SLOT:
+                ++g_vr_wait_before_input_poll;
                 AsyncExecutor::invoke_async([=]
                 {
+                    --g_vr_wait_before_input_poll;
                     Savestates::do_slot(g_config.st_slot, Savestates::Job::Save);
                 });
                 break;
@@ -1562,15 +1566,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
+                    ++g_vr_wait_before_input_poll;
                     AsyncExecutor::invoke_async([=]
                     {
+                        --g_vr_wait_before_input_poll;
                         Savestates::do_file(path, Savestates::Job::Save);
                     });
                 }
                 break;
             case IDM_LOAD_SLOT:
+                ++g_vr_wait_before_input_poll;
                 AsyncExecutor::invoke_async([=]
                 {
+                    --g_vr_wait_before_input_poll;
                     Savestates::do_slot(g_config.st_slot, Savestates::Job::Load);
                 });
                 break;
@@ -1585,8 +1593,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
+                    ++g_vr_wait_before_input_poll;
                     AsyncExecutor::invoke_async([=]
                     {
+                        --g_vr_wait_before_input_poll;
                         Savestates::do_file(path, Savestates::Job::Load);
                     });
                 }
@@ -1729,9 +1739,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     ID_SAVE_10)
                 {
                     auto slot = LOWORD(wParam) - ID_SAVE_1;
-                    // if emu is paused and no console state is changing, we can safely perform st op instantly
+                    ++g_vr_wait_before_input_poll;
                     AsyncExecutor::invoke_async([=]
                     {
+                        --g_vr_wait_before_input_poll;
                         Savestates::do_slot(slot, Savestates::Job::Save);
                     });
                 }
@@ -1739,8 +1750,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     ID_LOAD_10)
                 {
                     auto slot = LOWORD(wParam) - ID_LOAD_1;
+                    ++g_vr_wait_before_input_poll;
                     AsyncExecutor::invoke_async([=]
                     {
+                        --g_vr_wait_before_input_poll;
                         Savestates::do_slot(slot, Savestates::Job::Load);
                     });
                 }

@@ -113,6 +113,9 @@ time_point g_vr_benchmark_last_start[5];
 
 bool g_vr_no_frameskip;
 
+// When true, the core will wait for the flag to be 0 before continuing input poll. It will hang around in the emu_paused loop during that.
+std::atomic<int32_t> g_vr_wait_before_input_poll = 0;
+
 FILE* g_eeprom_file;
 FILE* g_sram_file;
 FILE* g_fram_file;
