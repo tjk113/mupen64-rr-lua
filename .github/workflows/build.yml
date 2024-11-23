@@ -12,10 +12,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
-      with:
-        vs-prerelease: true
+    - name: Install Visual Studio 2022 Preview
+      run: |
+        choco install visualstudio2022-preview --no-progress --yes
+        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify ^
+          --channelId Preview ^
+          --add Microsoft.VisualStudio.Workload.NativeDesktop ^
+          --includeRecommended ^
+          --passive ^
+          --norestart
+
+    - name: Verify Visual Studio version
+      run: |
+        "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\devenv.exe" /?
       
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
