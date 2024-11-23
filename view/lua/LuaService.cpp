@@ -148,10 +148,10 @@ namespace LuaService
     void call_warp_modify_status_changed(const int32_t status)
     {
         RET_IF_EMPTY;
-        g_main_window_dispatcher->invoke([&]
+        g_main_window_dispatcher->invoke([=]
         {
             invoke_callbacks_with_key_on_all_instances(
-                [&](lua_State* L)
+                [=](lua_State* L)
                 {
                     lua_pushinteger(L, status);
                     return lua_pcall(L, 1, 0, 0);
