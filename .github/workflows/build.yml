@@ -14,7 +14,9 @@ jobs:
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
-
+      with:
+        vs-prerelease: true
+      
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild winproject/mupen64.sln -t:rebuild -verbosity:diag -property:Configuration=Release
