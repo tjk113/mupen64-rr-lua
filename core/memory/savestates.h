@@ -40,6 +40,8 @@ namespace Savestates
     {
         // The operation completed successfully
         Ok,
+        // The core isn't launched
+        CoreNotLaunched,
         // The savestate file wasn't found
         NotFound,
         // The savestate couldn't be written to disk

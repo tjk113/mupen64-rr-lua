@@ -706,9 +706,26 @@ namespace Savestates
         g_has_work = false;
     }
 
+    /**
+     * Gets whether work can currently be enqueued.
+     */
+    bool can_push_work()
+    {
+        return emu_launched;
+    }
 
     void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback)
     {
+        if (!can_push_work())
+        {
+            g_core_logger->trace("[ST] do_file: Can't enqueue work.");
+            if (callback)
+            {
+                callback(Result::CoreNotLaunched, {});
+            }
+            return;
+        }
+
         g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
 
@@ -748,6 +765,16 @@ namespace Savestates
 
     void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback)
     {
+        if (!can_push_work())
+        {
+            g_core_logger->trace("[ST] do_slot: Can't enqueue work.");
+            if (callback)
+            {
+                callback(Result::CoreNotLaunched, {});
+            }
+            return;
+        }
+
         g_has_work = true;
 
         std::scoped_lock lock(g_task_mutex);
@@ -794,6 +821,16 @@ namespace Savestates
 
     void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback)
     {
+        if (!can_push_work())
+        {
+            g_core_logger->trace("[ST] do_memory: Can't enqueue work.");
+            if (callback)
+            {
+                callback(Result::CoreNotLaunched, {});
+            }
+            return;
+        }
+        
         g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
 
