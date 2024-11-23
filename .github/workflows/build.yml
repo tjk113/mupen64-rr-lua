@@ -15,12 +15,12 @@ jobs:
     - name: Install Visual Studio 2022 Preview
       run: |
         choco install visualstudio2022-preview --no-progress --yes
-        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify ^
-          --channelId Preview ^
-          --add Microsoft.VisualStudio.Workload.NativeDesktop ^
-          --includeRecommended ^
-          --passive ^
-          --norestart
+        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify `
+          --channelId Preview `
+          --add Microsoft.VisualStudio.Workload.NativeDesktop `
+          --includeRecommended `
+          --passive `
+          --norestarts
 
     - name: Verify Visual Studio version
       run: |
