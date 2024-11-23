@@ -1147,9 +1147,15 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
         return Result::BadFile;
     }
 
-    if (!emu_launched && vr_start_rom(path) != Core::Result::Ok)
+    if (!core_executing)
     {
-        return Result::NoMatchingRom;
+        const auto result = vr_start_rom(path, true);
+
+        if (result != Core::Result::Ok)
+        {
+            FrontendService::show_error(std::format("vr_start_rom failed with error code {}", static_cast<int32_t>(result)).c_str(), "VCR");
+            return Result::NoMatchingRom;
+        }
     }
 
     // We can't call this after opening m_file, since it will potentially nuke it
