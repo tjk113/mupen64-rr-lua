@@ -2155,7 +2155,7 @@ void emu_thread()
 
     g_core_logger->info("[Core] Emu thread entry took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
     core_start();
-
+    
     romClosed_gfx();
     romClosed_audio();
     romClosed_input();
@@ -2175,21 +2175,54 @@ void emu_thread()
     }
 }
 
-Core::Result vr_start_rom(std::filesystem::path path)
-{
-    auto start_time = std::chrono::high_resolution_clock::now();
 
-    std::unique_lock lock(emu_cs, std::try_to_lock);
-    if (!lock.owns_lock())
+Core::Result vr_close_rom_impl(bool stop_vcr)
+{
+    if (!emu_launched)
     {
-        g_core_logger->info("[Core] vr_start_rom busy!");
-        return Core::Result::Busy;
+        return Core::Result::NotRunning;
     }
 
+    resume_emu();
+
+    audio_thread_stop_requested = true;
+    audio_thread_handle.join();
+    audio_thread_stop_requested = false;
+
+    if (stop_vcr)
+    {
+        VCR::stop_all();
+    }
+
+    Messenger::broadcast(Messenger::Message::EmuStopping, nullptr);
+
+    g_core_logger->info("[Core] Stopping emulation thread...");
+
+    // we signal the core to stop, then wait until thread exits
+    terminate_emu();
+
+    emu_thread_handle.join();
+
+    fflush(g_eeprom_file);
+    fflush(g_sram_file);
+    fflush(g_fram_file);
+    fflush(g_mpak_file);
+    fclose(g_eeprom_file);
+    fclose(g_sram_file);
+    fclose(g_fram_file);
+    fclose(g_mpak_file);
+
+    return Core::Result::Ok;
+}
+
+Core::Result vr_start_rom_impl(std::filesystem::path path)
+{
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
     // We can't overwrite core. Emu needs to stop first, but that might fail...
     if (emu_launched)
     {
-        auto result = vr_close_rom();
+        auto result = vr_close_rom_impl(true);
         if (result != Core::Result::Ok)
         {
             g_core_logger->info("[Core] Failed to close rom before starting rom.");
@@ -2300,50 +2333,40 @@ Core::Result vr_start_rom(std::filesystem::path path)
     return Core::Result::Ok;
 }
 
-Core::Result vr_close_rom(bool stop_vcr)
+Core::Result vr_start_rom(std::filesystem::path path, bool wait)
 {
+    if (wait)
+    {
+        std::lock_guard lock(emu_cs);
+        return vr_start_rom_impl(path);
+    }
+
     std::unique_lock lock(emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        g_core_logger->info("[Core] vr_close_rom busy!");
+        g_core_logger->warn("[Core] vr_start_rom busy!");
         return Core::Result::Busy;
     }
 
-    if (!emu_launched)
+    return vr_start_rom_impl(path);
+}
+
+Core::Result vr_close_rom(bool stop_vcr, bool wait)
+{
+    if (wait)
     {
-        return Core::Result::NotRunning;
+        std::lock_guard lock(emu_cs);
+        return vr_close_rom_impl(stop_vcr);
     }
 
-    resume_emu();
-
-    audio_thread_stop_requested = true;
-    audio_thread_handle.join();
-    audio_thread_stop_requested = false;
-
-    if (stop_vcr)
+    std::unique_lock lock(emu_cs, std::try_to_lock);
+    if (!lock.owns_lock())
     {
-        VCR::stop_all();
+        g_core_logger->warn("[Core] vr_close_rom busy!");
+        return Core::Result::Busy;
     }
 
-    Messenger::broadcast(Messenger::Message::EmuStopping, nullptr);
-
-    g_core_logger->info("[Core] Stopping emulation thread...");
-
-    // we signal the core to stop, then wait until thread exits
-    terminate_emu();
-
-    emu_thread_handle.join();
-
-    fflush(g_eeprom_file);
-    fflush(g_sram_file);
-    fflush(g_fram_file);
-    fflush(g_mpak_file);
-    fclose(g_eeprom_file);
-    fclose(g_sram_file);
-    fclose(g_fram_file);
-    fclose(g_mpak_file);
-
-    return Core::Result::Ok;
+    return vr_close_rom_impl(stop_vcr);
 }
 
 Core::Result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)

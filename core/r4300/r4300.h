@@ -139,17 +139,18 @@ void pause_emu();
 /**
  * \brief Starts the emulator
  * \param path Path to a rom or corresponding movie file
+ * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
  * \return The operation result
  */
-Core::Result vr_start_rom(std::filesystem::path path);
+Core::Result vr_start_rom(std::filesystem::path path, bool wait = false);
 
 /**
  * \brief Stops the emulator
  * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
- * \return The operation result
+ * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
  * \return The operation result
  */
-Core::Result vr_close_rom(bool stop_vcr = true);
+Core::Result vr_close_rom(bool stop_vcr = true, bool wait = false);
 
 /**
  * \brief Resets the emulator
