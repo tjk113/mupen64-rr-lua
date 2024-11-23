@@ -43,7 +43,7 @@ bool GDIPresenter::init(HWND hwnd)
                       &m_d2d_factory);
     m_d2d_factory->CreateDCRenderTarget(&props, &m_d2d_render_target);
 
-    RECT dc_rect = {0, 0, m_size.width, m_size.height};
+    RECT dc_rect = {0, 0, (LONG)m_size.width, (LONG)m_size.height};
     m_d2d_render_target->BindDC(m_gdi_back_dc, &dc_rect);
 
     return true;

@@ -424,7 +424,7 @@ namespace LuaCore::Wgui
         if (key == 0)
         {
             g_view_logger->info("Deleting all images");
-            for (auto& val : lua->image_pool | std::views::values)
+            for (auto& [_, val] : lua->image_pool)
             {
                 delete val;
             }

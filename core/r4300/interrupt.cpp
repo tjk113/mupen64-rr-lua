@@ -96,7 +96,7 @@ interrupt_queue* pool_alloc()
  */
 void pool_free(const interrupt_queue* ptr)
 {
-    const auto index_in_pool = ptr - static_cast<void*>(&g_pool);
+    const auto index_in_pool = ptr - (interrupt_queue*)&g_pool;
 
 #ifdef _DEBUG
     size_t index = SIZE_MAX;

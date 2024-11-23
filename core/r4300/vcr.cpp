@@ -32,15 +32,15 @@ enum
     mup_version = (3),
 };
 
-const auto rawdata_warning_message = "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?";
-const auto rom_name_warning_message = "The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?";
-const auto rom_country_warning_message = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
-const auto rom_crc_warning_message = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
-const auto truncate_message = "Failed to truncate the movie file. The movie may be corrupted.";
-const auto wii_vc_mismatch_a_warning_message = "The movie was recorded with WiiVC mode enabled, but is being played back with it disabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
-const auto wii_vc_mismatch_b_warning_message = "The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
-const auto old_movie_extended_section_nonzero_message = "The movie was recorded prior to the extended format being available, but contains data in an extended format section.\r\nThe movie may be corrupted. Are you sure you want to continue?";
-const auto warp_modify_seekback_failed_message = "Failed to seek back during a warp modify operation, error code {}.\r\nPiano roll might be desynced.";
+constexpr auto RAWDATA_WARNING_MESSAGE = "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?";
+constexpr auto ROM_NAME_WARNING_MESSAGE = "The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto ROM_COUNTRY_WARNING_MESSAGE = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto ROM_CRC_WARNING_MESSAGE = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto TRUNCATE_MESSAGE = "Failed to truncate the movie file. The movie may be corrupted.";
+constexpr auto WII_VC_MISMATCH_A_WARNING_MESSAGE = "The movie was recorded with WiiVC mode enabled, but is being played back with it disabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto WII_VC_MISMATCH_B_WARNING_MESSAGE = "The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE = "The movie was recorded prior to the extended format being available, but contains data in an extended format section.\r\nThe movie may be corrupted. Are you sure you want to continue?";
+constexpr auto WARP_MODIFY_SEEKBACK_FAILED_MESSAGE = "Failed to seek back during a warp modify operation, error code {}.\r\nPiano roll might be desynced.";
 
 volatile e_task g_task = e_task::idle;
 
@@ -868,7 +868,7 @@ VCR::Result VCR::start_record(std::filesystem::path path, uint16_t flags, std::s
     {
         if (Present && RawData)
         {
-            bool proceed = FrontendService::show_ask_dialog(rawdata_warning_message, "VCR", true);
+            bool proceed = FrontendService::show_ask_dialog(RAWDATA_WARNING_MESSAGE, "VCR", true);
             if (!proceed)
             {
                 return Result::Cancelled;
@@ -1182,7 +1182,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
         if (!Present || !RawData)
             continue;
 
-        bool proceed = FrontendService::show_ask_dialog(rawdata_warning_message, "VCR", true);
+        bool proceed = FrontendService::show_ask_dialog(RAWDATA_WARNING_MESSAGE, "VCR", true);
         if (!proceed)
         {
             return Result::Cancelled;
@@ -1208,7 +1208,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
         if (g_config.wii_vc_emulation != g_header.extended_flags.wii_vc)
         {
-            bool proceed = FrontendService::show_ask_dialog(g_header.extended_flags.wii_vc ? wii_vc_mismatch_a_warning_message : wii_vc_mismatch_b_warning_message, "VCR", true);
+            bool proceed = FrontendService::show_ask_dialog(g_header.extended_flags.wii_vc ? WII_VC_MISMATCH_A_WARNING_MESSAGE : WII_VC_MISMATCH_B_WARNING_MESSAGE, "VCR", true);
 
             if (!proceed)
             {
@@ -1221,14 +1221,14 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
         // Old movies filled with non-zero data in this section are suspicious, we'll warn the user.
         if (g_header.extended_flags.data != 0)
         {
-            FrontendService::show_warning(old_movie_extended_section_nonzero_message, "VCR");
+            FrontendService::show_warning(OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE, "VCR");
         }
     }
 
     if (_stricmp(g_header.rom_name,
                  (const char*)ROM_HEADER.nom) != 0)
     {
-        bool proceed = FrontendService::show_ask_dialog(std::format(rom_name_warning_message, g_header.rom_name, (const char*)ROM_HEADER.nom).c_str(), "VCR", true);
+        bool proceed = FrontendService::show_ask_dialog(std::format(ROM_NAME_WARNING_MESSAGE, g_header.rom_name, (const char*)ROM_HEADER.nom).c_str(), "VCR", true);
 
         if (!proceed)
         {
@@ -1240,7 +1240,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
         if (g_header.rom_country != ROM_HEADER.
             Country_code)
         {
-            bool proceed = FrontendService::show_ask_dialog(std::format(rom_country_warning_message, g_header.rom_country, ROM_HEADER.Country_code).c_str(), "VCR", true);
+            bool proceed = FrontendService::show_ask_dialog(std::format(ROM_COUNTRY_WARNING_MESSAGE, g_header.rom_country, ROM_HEADER.Country_code).c_str(), "VCR", true);
             if (!proceed)
             {
                 return Result::Cancelled;
@@ -1252,7 +1252,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
             char str[512] = {0};
             sprintf(
                 str,
-                rom_crc_warning_message,
+                ROM_CRC_WARNING_MESSAGE,
                 (unsigned int)g_header.rom_crc1,
                 (unsigned int)ROM_HEADER.CRC1);
 
@@ -1351,7 +1351,7 @@ size_t vcr_find_closest_savestate_before_frame(size_t frame)
 {
     int32_t lowest_distance = INT32_MAX;
     size_t lowest_distance_frame = 0;
-    for (const auto slot_frame : g_seek_savestates | std::views::keys)
+    for (const auto& [slot_frame, _] : g_seek_savestates)
     {
         // Current and future sts are invalid for rewinding
         if (slot_frame >= frame)
@@ -1430,7 +1430,7 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
                 if (!g_config.vcr_readonly)
                 {
                     std::vector<size_t> to_erase;
-                    for (const auto sample : g_seek_savestates | std::views::keys)
+                    for (const auto& [sample, _] : g_seek_savestates)
                     {
                         if (sample >= target_sample)
                         {
@@ -1579,13 +1579,20 @@ VCR::Result VCR::stop_all()
 {
     g_core_logger->info("[VCR] Clearing seek savestates...");
 
-    auto prev_seek_savestates = g_seek_savestates | std::views::keys;
+    // FIXME: Don't we need to grab the VCR lock here???
+    
+    std::vector<size_t> prev_seek_savestate_keys;
+    prev_seek_savestate_keys.reserve(g_seek_savestates.size());
+    for (const auto& [key, _] : g_seek_savestates)
+    {
+        prev_seek_savestate_keys.push_back(key);
+    }
 
     g_seek_savestates.clear();
 
-    for (auto frame : prev_seek_savestates)
+    for (const auto frame : prev_seek_savestate_keys)
     {
-        Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)frame);
+        Messenger::broadcast(Messenger::Message::SeekSavestateChanged, frame);
     }
 
     switch (g_task)
@@ -1792,7 +1799,7 @@ std::unordered_map<size_t, bool> VCR::get_seek_savestate_frames()
 {
     std::unordered_map<size_t, bool> map;
 
-    for (const auto& key : g_seek_savestates | std::views::keys)
+    for (const auto& [key, _] : g_seek_savestates)
     {
         map[key] = true;
     }

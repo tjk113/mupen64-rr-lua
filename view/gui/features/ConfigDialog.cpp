@@ -1230,7 +1230,7 @@ bool begin_listview_edit(HWND hwnd)
     {
         // 1. Find the index of the currently selected item, while falling back to the first possible value if there's no match
         size_t current_value = option_item.possible_values[0].second;
-        for (auto possible_value : option_item.possible_values | std::views::values)
+        for (const auto& [_, possible_value] : option_item.possible_values)
         {
             if (*option_item.data == possible_value)
             {
@@ -1242,7 +1242,7 @@ bool begin_listview_edit(HWND hwnd)
         // 2. Find the lowest and highest values in the vector
         int32_t min_possible_value = INT32_MAX;
         int32_t max_possible_value = INT32_MIN;
-        for (const auto& val : option_item.possible_values | std::views::values)
+        for (const auto& [_, val] : option_item.possible_values)
         {
             if (val > max_possible_value)
             {

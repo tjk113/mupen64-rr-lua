@@ -72,9 +72,9 @@ void invoke_callbacks_with_key_on_all_instances(const std::function<int(lua_Stat
 {
     // OPTIMIZATION: Store destruction-queued scripts in queue and destroy them after iteration to avoid having to clone the queue
     // This is somehow faster lol
-    
+
     std::queue<LuaEnvironment*> destruction_queue;
-    for (const auto& env : g_hwnd_lua_map | std::views::values)
+    for (const auto& [_, env] : g_hwnd_lua_map)
     {
         if (env->invoke_callbacks_with_key(function, key))
         {
@@ -521,7 +521,8 @@ void close_all_scripts()
     assert(is_on_gui_thread());
 
     // we mutate the map's nodes while iterating, so we have to make a copy
-    for (auto copy = std::map(g_hwnd_lua_map); const auto fst : copy | std::views::keys)
+    auto copy = std::map(g_hwnd_lua_map);
+    for (const auto [fst, _] : copy)
     {
         SendMessage(fst, WM_CLOSE, 0, 0);
     }
@@ -534,7 +535,7 @@ void stop_all_scripts()
 
     // we mutate the map's nodes while iterating, so we have to make a copy
     auto copy = std::map(g_hwnd_lua_map);
-    for (const auto key : copy | std::views::keys)
+    for (const auto [key, _] : copy)
     {
         SendMessage(key, WM_COMMAND,
                     MAKEWPARAM(IDC_BUTTON_LUASTOP, BN_CLICKED),
@@ -751,7 +752,7 @@ void LuaEnvironment::destroy_renderer()
         d2d_render_target_stack.pop();
     }
 
-    for (auto& val : image_pool | std::views::values)
+    for (auto& [_, val] : image_pool)
     {
         delete val;
     }
@@ -795,7 +796,7 @@ void LuaEnvironment::print_con(HWND hwnd, std::string text)
 void rebuild_lua_env_map()
 {
     g_lua_env_map.clear();
-    for (const auto& val : g_hwnd_lua_map | std::views::values)
+    for (const auto& [_, val] : g_hwnd_lua_map)
     {
         g_lua_env_map[val->L] = val;
     }
@@ -835,7 +836,7 @@ std::string LuaEnvironment::create(const std::filesystem::path& path, HWND wnd)
         delete lua_environment;
         lua_environment = nullptr;
     }
-    
+
     return error_msg;
 }
 

@@ -81,7 +81,7 @@ void AsyncExecutor::invoke_async(const std::function<void()>& func, size_t key)
 
         if (key)
         {
-            for (auto& task_key : g_task_queue | std::views::keys)
+            for (auto& [task_key, _] : g_task_queue)
             {
                 if (task_key == key)
                 {

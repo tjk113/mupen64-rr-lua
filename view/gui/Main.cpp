@@ -566,7 +566,7 @@ void on_task_changed(std::any data)
 void on_emu_stopping(std::any)
 {
     // Remember all running lua scripts' HWNDs
-    for (const auto key : g_hwnd_lua_map | std::views::keys)
+    for (const auto [key, _] : g_hwnd_lua_map)
     {
         g_previously_running_luas.push_back(key);
     }
@@ -1501,12 +1501,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                             "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>",
                             proc_name, ram_start);
 
-                    static const auto ramstart_str = "The RAM start is {}.\r\nDo you want to copy the generated STROOP config line to your clipboard?";
-
+                    constexpr auto RAMSTART_MESSAGE = "The RAM start is {}.\r\nDo you want to copy the generated STROOP config line to your clipboard?";
 
                     const auto stroop_str = std::string(stroop_c);
                     if (MessageBox(g_main_hwnd,
-                                   std::format(ramstart_str, ram_start).c_str(),
+                                   std::format(RAMSTART_MESSAGE, ram_start).c_str(),
                                    "STROOP",
                                    MB_ICONINFORMATION | MB_TASKMODAL |
                                    MB_YESNO) == IDYES)
@@ -1956,7 +1955,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Messenger::subscribe(Messenger::Message::SeekCompleted, on_seek_completed);
     Messenger::subscribe(Messenger::Message::WarpModifyStatusChanged, on_warp_modify_status_changed);
     Messenger::subscribe(Messenger::Message::FastForwardNeedsUpdate, update_core_fast_forward);
-    Messenger::subscribe(Messenger::Message::SeekStatusChanged, [] (std::any)
+    Messenger::subscribe(Messenger::Message::SeekStatusChanged, [](std::any)
     {
         update_core_fast_forward(nullptr);
     });
