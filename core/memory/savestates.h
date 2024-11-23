@@ -87,6 +87,11 @@ namespace Savestates
     void do_work();
 
     /**
+     * Clears the work queue.
+     */
+    void clear_work();
+ 
+    /**
      * \brief Executes a savestate operation to a path
      * \param path The savestate's path
      * \param job The job to set

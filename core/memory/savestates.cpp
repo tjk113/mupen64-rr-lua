@@ -706,6 +706,13 @@ namespace Savestates
         g_has_work = false;
     }
 
+    void clear_work()
+    {
+        std::scoped_lock lock(g_task_mutex);
+        g_core_logger->trace("[ST] Clearing {} tasks...", g_tasks.size());
+        g_tasks.clear();
+    }
+
     /**
      * Gets whether work can currently be enqueued.
      */

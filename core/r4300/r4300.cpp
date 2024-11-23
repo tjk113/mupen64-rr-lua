@@ -2139,6 +2139,7 @@ void emu_thread()
     rsp_plugin_thread.join();
 
     init_memory();
+    Savestates::clear_work();
 
     romOpen_gfx();
     romOpen_input();
