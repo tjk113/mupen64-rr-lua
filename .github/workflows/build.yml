@@ -14,18 +14,9 @@ jobs:
 
     - name: Install Visual Studio 2022 Preview
       run: |
-        choco install visualstudio2022-preview --no-progress --yes
-        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify `
-          --channelId Preview `
-          --add Microsoft.VisualStudio.Workload.NativeDesktop `
-          --includeRecommended `
-          --passive `
-          --norestarts
+        cd "C:\Program Files (x86)\Microsoft Visual Studio\Installer" \
+        .\vs_installer.exe modify --channelId VisualStudio.17.Preview
 
-    - name: Verify Visual Studio version
-      run: |
-        "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\devenv.exe" /?
-      
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild winproject/mupen64.sln -t:rebuild -verbosity:diag -property:Configuration=Release
