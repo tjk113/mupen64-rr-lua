@@ -52,14 +52,14 @@ size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstri
     int pressed_button = -1;
     TaskDialogIndirect(&task_dialog_config, &pressed_button, NULL, NULL);
 
-    g_view_logger->info("[FrontendService] show_multiple_choice_dialog: '{}', answer: {}", wstring_to_string(str), pressed_button > 0 ? wstring_to_string(choices[pressed_button]) : "?");
+    g_view_logger->trace("[FrontendService] show_multiple_choice_dialog: '{}', answer: {}", wstring_to_string(str), pressed_button > 0 ? wstring_to_string(choices[pressed_button]) : "?");
     
     return pressed_button;
 }
 
 bool FrontendService::show_ask_dialog(const char* str, const char* title, bool warning, void* hwnd)
 {
-    g_view_logger->info("[FrontendService] show_ask_dialog: '{}'", str);
+    g_view_logger->trace("[FrontendService] show_ask_dialog: '{}'", str);
     if (g_config.silent_mode)
     {
         return true;
@@ -69,7 +69,7 @@ bool FrontendService::show_ask_dialog(const char* str, const char* title, bool w
 
 void FrontendService::show_warning(const char* str, const char* title, void* hwnd)
 {
-    g_view_logger->info("[FrontendService] show_warning: '{}'", str);
+    g_view_logger->warn("[FrontendService] show_warning: '{}'", str);
     if (!g_config.silent_mode)
     {
         MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_ICONWARNING);
@@ -78,7 +78,7 @@ void FrontendService::show_warning(const char* str, const char* title, void* hwn
 
 void FrontendService::show_error(const char* str, const char* title, void* hwnd)
 {
-    g_view_logger->info("[FrontendService] show_error: '{}'", str);
+    g_view_logger->error("[FrontendService] show_error: '{}'", str);
     if (!g_config.silent_mode)
     {
         MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_ICONERROR);
