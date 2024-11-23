@@ -1138,8 +1138,8 @@ int check_warn_controllers(char* warning_str)
 
 VCR::Result VCR::start_playback(std::filesystem::path path)
 {
-    std::scoped_lock lock(vcr_mutex);
-
+    std::unique_lock lock(vcr_mutex);
+	
     auto movie_buf = read_file_buffer(path);
 
     if (movie_buf.empty())
@@ -1149,6 +1149,10 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
     if (!core_executing)
     {
+		// NOTE: We need to unlock the VCR mutex during the vr_start_rom call, as it needs the core to continue execution in order to exit.
+		// If we kept the lock, the core would become permanently stuck waiting for it to be released in on_controller_poll.
+		lock.unlock();
+
         const auto result = vr_start_rom(path, true);
 
         if (result != Core::Result::Ok)
@@ -1156,6 +1160,8 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
             FrontendService::show_error(std::format("vr_start_rom failed with error code {}", static_cast<int32_t>(result)).c_str(), "VCR");
             return Result::NoMatchingRom;
         }
+
+		lock.lock();
     }
 
     // We can't call this after opening m_file, since it will potentially nuke it
