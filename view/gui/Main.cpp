@@ -1034,6 +1034,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 moveScreen((int)wParam, lParam);
             }
 
+            if (IsIconic(g_main_hwnd))
+            {
+                // GetWindowRect values are nonsense when minimized
+                break;
+            }
+            
             RECT rect = {0};
             GetWindowRect(g_main_hwnd, &rect);
             g_config.window_x = rect.left;
@@ -1053,6 +1059,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
+            if (IsIconic(g_main_hwnd))
+            {
+                // GetWindowRect values are nonsense when minimized
+                break;
+            }
+            
             // Window creation expects the size with nc area, so it's easiest to just use the window rect here
             GetWindowRect(hwnd, &rect);
             g_config.window_width = rect.right - rect.left;
