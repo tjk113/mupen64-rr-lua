@@ -95,11 +95,6 @@ namespace Savestates
     // Bit to set in RDRAM register to indicate that the savestate has been fixed
     constexpr auto RDRAM_DEVICE_MANUF_NEW_FIX_BIT = (1 << 31);
 
-
-    // Whether there are any elements in the task vector.
-    // Used to avoid locking the mutex (and slowing the emu thread down a bit) if there are no tasks to process.
-    std::atomic g_has_work = false;
-
     // The task vector mutex. Locked when accessing the task vector.
     std::recursive_mutex g_task_mutex;
 
@@ -672,23 +667,16 @@ namespace Savestates
 
     void do_work()
     {
-        if (!g_has_work)
-        {
-            return;
-        }
-
         std::scoped_lock lock(g_task_mutex);
 
-        if (!g_tasks.empty())
-        {
-            g_core_logger->info("[ST] Processing {} tasks...", g_tasks.size());
-            savestates_simplify_tasks();
-            savestates_log_tasks();
-        }
-        else
+        if (g_tasks.empty())
         {
             return;
         }
+
+        g_core_logger->info("[ST] Processing {} tasks...", g_tasks.size());
+        savestates_simplify_tasks();
+        savestates_log_tasks();
 
         for (const auto& task : g_tasks)
         {
@@ -702,8 +690,6 @@ namespace Savestates
             }
         }
         g_tasks.clear();
-
-        g_has_work = false;
     }
 
     void clear_work()
@@ -733,7 +719,6 @@ namespace Savestates
             return;
         }
 
-        g_has_work = true;
         std::scoped_lock lock(g_task_mutex);
 
         auto pre_callback = [=](const Result result, const std::vector<uint8_t>& buffer)
@@ -781,8 +766,6 @@ namespace Savestates
             }
             return;
         }
-
-        g_has_work = true;
 
         std::scoped_lock lock(g_task_mutex);
 
@@ -837,8 +820,7 @@ namespace Savestates
             }
             return;
         }
-        
-        g_has_work = true;
+
         std::scoped_lock lock(g_task_mutex);
 
         const t_savestate_task task = {
