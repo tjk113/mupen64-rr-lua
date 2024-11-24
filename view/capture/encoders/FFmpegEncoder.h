@@ -28,6 +28,8 @@ private:
     HANDLE m_audio_pipe{};
 
     uint8_t* m_silence_buffer{};
+    uint8_t* m_blank_buffer{};
+    size_t m_dropped_frames = 0;
 
     bool m_stop_thread = false;
     bool m_last_write_was_video = false;
@@ -40,5 +42,5 @@ private:
     std::thread m_video_thread;
     std::mutex m_video_queue_mutex{};
 	std::condition_variable m_video_cv{};
-    std::queue<uint8_t*> m_video_queue;
+    std::queue<std::pair<uint8_t*, bool>> m_video_queue;
 };
