@@ -24,21 +24,28 @@ bool AVIEncoder::start(Params params)
     m_info_hdr.biClrImportant = 0;
 
     AVIFileInit();
-    AVIFileOpen(&m_avi_file, params.path.string().c_str(), OF_WRITE | OF_CREATE,
-                NULL);
+    if (AVIFileOpen(&m_avi_file, params.path.string().c_str(), OF_WRITE | OF_CREATE, NULL))
+    {
+		stop();
+		return false;
+    }
 
     ZeroMemory(&m_video_stream_hdr, sizeof(AVISTREAMINFO));
     m_video_stream_hdr.fccType = streamtypeVIDEO;
     m_video_stream_hdr.dwScale = 1;
     m_video_stream_hdr.dwRate = params.fps;
     m_video_stream_hdr.dwSuggestedBufferSize = 0;
-    AVIFileCreateStream(m_avi_file, &m_video_stream, &m_video_stream_hdr);
+    if (AVIFileCreateStream(m_avi_file, &m_video_stream, &m_video_stream_hdr))
+    {
+		stop();
+		return false;
+    }
 
     if (params.ask_for_encoding_settings && !m_splitting)
     {
         if (!AVISaveOptions(g_main_hwnd, 0, 1, &m_video_stream, &m_avi_options))
         {
-            g_view_logger->info("[AVIEncoder] Failed to save options");
+            g_view_logger->error("[AVIEncoder] Failed to save options");
             return false;
         }
     }
@@ -46,17 +53,24 @@ bool AVIEncoder::start(Params params)
     {
         if (!load_options())
         {
-            g_view_logger->info("[AVIEncoder] Failed to load options");
+            g_view_logger->error("[AVIEncoder] Failed to load options");
             return false;
         }
     }
 
     save_options();
-    AVIMakeCompressedStream(&m_compressed_video_stream, m_video_stream,
-                            m_avi_options, NULL);
-    AVIStreamSetFormat(m_compressed_video_stream, 0, &m_info_hdr,
-                       m_info_hdr.biSize + m_info_hdr.biClrUsed * sizeof(
-                           RGBQUAD));
+
+    if (AVIMakeCompressedStream(&m_compressed_video_stream, m_video_stream, m_avi_options, NULL) != AVIERR_OK)
+    {
+		stop();
+		return false;
+    }
+
+    if (AVIStreamSetFormat(m_compressed_video_stream, 0, &m_info_hdr, m_info_hdr.biSize + m_info_hdr.biClrUsed * sizeof(RGBQUAD)) != AVIERR_OK)
+    {
+		stop();
+		return false;
+    }
 
     m_sample = 0;
     m_sound_format.wFormatTag = WAVE_FORMAT_PCM;
@@ -74,8 +88,16 @@ bool AVIEncoder::start(Params params)
     m_sound_stream_hdr.dwInitialFrames = 1;
     m_sound_stream_hdr.dwRate = m_sound_format.nAvgBytesPerSec;
     m_sound_stream_hdr.dwSampleSize = m_sound_format.nBlockAlign;
-    AVIFileCreateStream(m_avi_file, &m_sound_stream, &m_sound_stream_hdr);
-    AVIStreamSetFormat(m_sound_stream, 0, &m_sound_format, sizeof(WAVEFORMATEX));
+    if (AVIFileCreateStream(m_avi_file, &m_sound_stream, &m_sound_stream_hdr))
+    {
+		stop();
+		return false;
+    }
+    if (AVIStreamSetFormat(m_sound_stream, 0, &m_sound_format, sizeof(WAVEFORMATEX)) != AVIERR_OK)
+    {
+		stop();
+		return false;
+    }
     return true;
 }
 
@@ -92,6 +114,8 @@ bool AVIEncoder::stop()
 
 bool AVIEncoder::append_video(uint8_t* image)
 {
+	auto a = image[(m_params.width * m_params.height * 3)];
+
     if (m_avi_file_size > MAX_AVI_SIZE)
     {
         // If AVI file gets too big, it will corrupt or crash. Since this is a limitation the caller shouldn't care about, we split the recording silently.
