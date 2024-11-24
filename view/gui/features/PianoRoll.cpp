@@ -417,28 +417,31 @@ namespace PianoRoll
         {
             auto result = VCR::begin_warp_modify(g_piano_roll_state.inputs);
 
-            if (result == VCR::Result::Ok)
+            g_piano_roll_dispatcher->invoke([=]
             {
-                if (push_to_history)
+                if (result == VCR::Result::Ok)
                 {
-                    push_state_to_history();
+                    if (push_to_history)
+                    {
+                        push_state_to_history();
+                    }
                 }
-            }
-            else
-            {
-                // Since we do optimistic updates, we need to revert the changes we made to the input buffer to avoid visual desync
-                SetWindowRedraw(g_lv_hwnd, false);
+                else
+                {
+                    // Since we do optimistic updates, we need to revert the changes we made to the input buffer to avoid visual desync
+                    SetWindowRedraw(g_lv_hwnd, false);
 
-                ListView_DeleteAllItems(g_lv_hwnd);
+                    ListView_DeleteAllItems(g_lv_hwnd);
 
-                g_piano_roll_state.inputs = VCR::get_inputs();
-                ListView_SetItemCount(g_lv_hwnd, g_piano_roll_state.inputs.size());
-                g_view_logger->info("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_piano_roll_state.inputs.size());
+                    g_piano_roll_state.inputs = VCR::get_inputs();
+                    ListView_SetItemCount(g_lv_hwnd, g_piano_roll_state.inputs.size());
+                    g_view_logger->info("[PianoRoll] Pulled inputs from core for recording mode due to warp modify failing, count: {}", g_piano_roll_state.inputs.size());
 
-                SetWindowRedraw(g_lv_hwnd, true);
-                
-                show_error_dialog_for_result(result, g_hwnd);
-            }
+                    SetWindowRedraw(g_lv_hwnd, true);
+
+                    show_error_dialog_for_result(result, g_hwnd);
+                }
+            });
         });
     }
 
