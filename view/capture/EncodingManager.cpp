@@ -444,6 +444,16 @@ namespace EncodingManager
         return true;
     }
 
+	void append_video_frame()
+    {
+		if (m_encoder->append_video(m_video_buf))
+            return;
+
+        FrontendService::show_error(
+            "Failed to append frame to video.\nPerhaps you ran out of memory?",
+            "Capture");
+        stop_capture();
+    }
 
     void at_vi()
     {
@@ -464,7 +474,7 @@ namespace EncodingManager
 
         if (g_config.encoder_type == static_cast<int32_t>(EncoderType::FFmpeg))
         {
-            m_encoder->append_video(m_video_buf);
+            append_video_frame();
             return;
         }
 
@@ -498,14 +508,7 @@ namespace EncodingManager
             }
             else if (audio_frames > 0)
             {
-                if (!m_encoder->append_video(m_video_buf))
-                {
-                    FrontendService::show_error(
-                        "Failed to append frame to video.\nPerhaps you ran out of memory?",
-                        "Capture");
-                    stop_capture();
-                    return;
-                }
+                append_video_frame();
                 m_video_frame += 1.0;
                 audio_frames--;
             }
@@ -513,14 +516,7 @@ namespace EncodingManager
             // can this actually happen?
             while (audio_frames > 0)
             {
-                if (!m_encoder->append_video(m_video_buf))
-                {
-                    FrontendService::show_error(
-                        "Failed to append frame to video.\nPerhaps you ran out of memory?",
-                        "Capture");
-                    stop_capture();
-                    return;
-                }
+                append_video_frame();
                 g_view_logger->info("Duped Frame! a/v: %Lg/%Lg", m_video_frame,
                                     m_audio_frame);
                 m_video_frame += 1.0;
@@ -529,14 +525,7 @@ namespace EncodingManager
         }
         else
         {
-            if (!m_encoder->append_video(m_video_buf))
-            {
-                FrontendService::show_error(
-                    "Failed to append frame to video.\nPerhaps you ran out of memory?",
-                    "Capture");
-                stop_capture();
-                return;
-            }
+            append_video_frame();
             m_video_frame += 1.0;
         }
     }
