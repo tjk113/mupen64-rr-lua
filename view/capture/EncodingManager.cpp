@@ -61,6 +61,7 @@ namespace EncodingManager
             long width;
             long height;
             readScreen(&buf, &width, &height);
+			memcpy(m_video_buf, buf, width * height * 3);
             DllCrtFree(buf);
         }
     }
@@ -123,19 +124,7 @@ namespace EncodingManager
 
     void readscreen_hybrid()
     {
-        if (MGECompositor::available())
-        {
-            MGECompositor::copy_video(m_video_buf);
-        }
-        else
-        {
-            void* buf = nullptr;
-            long width;
-            long height;
-            readScreen(&buf, &width, &height);
-            memcpy(m_video_buf, buf, width * height * 3);
-            DllCrtFree(buf);
-        }
+		readscreen_plugin();
 
         long raw_video_width, raw_video_height;
         MGECompositor::get_video_size(&raw_video_width, &raw_video_height);
@@ -290,6 +279,13 @@ namespace EncodingManager
     {
         if (g_config.capture_mode == 0)
         {
+			if (!MGECompositor::available() && !readScreen)
+			{
+				FrontendService::show_error("The current video plugin has no readScreen implementation.\nPlugin capture is not possible.", "Capture");
+				stop_capture();
+				return;
+			}
+
             readscreen_plugin();
         }
         else if (g_config.capture_mode == 1)
@@ -302,6 +298,12 @@ namespace EncodingManager
         }
         else if (g_config.capture_mode == 3)
         {
+	        if (!MGECompositor::available() && !readScreen)
+	        {
+				FrontendService::show_error("The current video plugin has no readScreen implementation.\nHybrid capture is not possible.", "Capture");
+				stop_capture();
+				return;
+	        }
             readscreen_hybrid();
         }
         else
