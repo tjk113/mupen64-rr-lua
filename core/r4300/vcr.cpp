@@ -562,7 +562,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
 
             std::scoped_lock lock(vcr_mutex);
             g_reset_pending = false;
-            
+
             if (result != Core::Result::Ok)
             {
                 FrontendService::show_error("Failed to reset the rom when initiating a from-start recording.\nRecording will be stopped.", "VCR");
@@ -589,7 +589,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
 
             std::scoped_lock lock(vcr_mutex);
             g_reset_pending = false;
-            
+
             if (result != Core::Result::Ok)
             {
                 FrontendService::show_error("Failed to reset the rom when playing back a from-start movie.\nPlayback will be stopped.", "VCR");
@@ -1139,7 +1139,7 @@ int check_warn_controllers(char* warning_str)
 VCR::Result VCR::start_playback(std::filesystem::path path)
 {
     std::unique_lock lock(vcr_mutex);
-	
+
     auto movie_buf = read_file_buffer(path);
 
     if (movie_buf.empty())
@@ -1149,9 +1149,9 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
 
     if (!core_executing)
     {
-		// NOTE: We need to unlock the VCR mutex during the vr_start_rom call, as it needs the core to continue execution in order to exit.
-		// If we kept the lock, the core would become permanently stuck waiting for it to be released in on_controller_poll.
-		lock.unlock();
+        // NOTE: We need to unlock the VCR mutex during the vr_start_rom call, as it needs the core to continue execution in order to exit.
+        // If we kept the lock, the core would become permanently stuck waiting for it to be released in on_controller_poll.
+        lock.unlock();
 
         const auto result = vr_start_rom(path, true);
 
@@ -1161,7 +1161,7 @@ VCR::Result VCR::start_playback(std::filesystem::path path)
             return Result::NoMatchingRom;
         }
 
-		lock.lock();
+        lock.lock();
     }
 
     // We can't call this after opening m_file, since it will potentially nuke it
@@ -1412,87 +1412,77 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
     }
 
     // We need to backtrack somehow if we're ahead of the frame
-    if (m_current_sample > frame)
+    if (m_current_sample <= frame)
     {
-        if (g_task == e_task::recording)
+        return VCR::Result::Ok;
+    }
+
+    if (g_task == e_task::playback)
+    {
+        const auto result = VCR::start_playback(g_movie_path);
+        if (result != VCR::Result::Ok)
         {
-            if (g_config.seek_savestate_interval == 0)
-            {
-                // TODO: We can't backtrack using savestates, so we'd have to restart into playback mode...
-                FrontendService::show_error("The seek savestate interval can't be 0 when seeking backwards during recording.", "VCR");
-                return VCR::Result::SeekSavestateIntervalZero;
-            }
-            else
-            {
-                const auto target_sample = warp_modify ? g_warp_modify_first_difference_frame : frame;
-
-                // All seek savestates after the target frame need to be purged, as the user will invalidate them by overwriting inputs prior to them
-                if (!g_config.vcr_readonly)
-                {
-                    std::vector<size_t> to_erase;
-                    for (const auto& [sample, _] : g_seek_savestates)
-                    {
-                        if (sample >= target_sample)
-                        {
-                            to_erase.push_back(sample);
-                        }
-                    }
-                    for (const auto sample : to_erase)
-                    {
-                        g_core_logger->info("[VCR] Erasing now-invalidated seek savestate at frame {}...", sample);
-                        g_seek_savestates.erase(sample);
-                        Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)sample);
-                    }
-                }
-
-                const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
-
-                g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
-                g_seek_savestate_loading = true;
-
-                // NOTE: This needs to go through AsyncExecutor (despite us already being on a worker thread) or it will cause a deadlock.
-                AsyncExecutor::invoke_async([=]
-                {
-                    Savestates::do_memory(g_seek_savestates[closest_key], Savestates::Job::Load, [=](Savestates::Result result, auto buf)
-                    {
-                        std::scoped_lock l(vcr_mutex);
-
-                        if (result != Savestates::Result::Ok)
-                        {
-                            FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
-                            VCR::stop_seek();
-                        }
-
-                        g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
-                        g_seek_savestate_loading = false;
-                    });
-                });
-
-                return VCR::Result::Ok;
-            }
-        }
-
-        VCR::stop_all();
-
-        // HACK: Since the VCR lock might be held, we'll just call start_playback over and over until it clears up
-        // TODO: Only using the async executor's dedup functionality and removing the "Busy" codes would fix all of this 
-        while (true)
-        {
-            auto result = VCR::start_playback(g_movie_path);
-
-            if (result == VCR::Result::Ok)
-            {
-                break;
-            }
-
-            if (result == VCR::Result::Busy)
-            {
-                continue;
-            }
-
-            // Can we even recover from this cleanly?
+            g_core_logger->error("[VCR] vcr_begin_seek_impl: VCR::start_playback failed with error code {}", static_cast<int32_t>(result));
+            seek_to_frame.reset();
+            Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
             return result;
         }
+        return VCR::Result::Ok;
+    }
+
+    if (g_task == e_task::recording)
+    {
+        if (g_config.seek_savestate_interval == 0)
+        {
+            // TODO: We can't backtrack using savestates, so we'd have to restart into recording mode while restoring the buffer, leave it for the next release...
+            FrontendService::show_error("The seek savestate interval can't be 0 when seeking backwards during recording.", "VCR");
+            return VCR::Result::SeekSavestateIntervalZero;
+        }
+
+        const auto target_sample = warp_modify ? g_warp_modify_first_difference_frame : frame;
+
+        // All seek savestates after the target frame need to be purged, as the user will invalidate them by overwriting inputs prior to them
+        if (!g_config.vcr_readonly)
+        {
+            std::vector<size_t> to_erase;
+            for (const auto& [sample, _] : g_seek_savestates)
+            {
+                if (sample >= target_sample)
+                {
+                    to_erase.push_back(sample);
+                }
+            }
+            for (const auto sample : to_erase)
+            {
+                g_core_logger->info("[VCR] Erasing now-invalidated seek savestate at frame {}...", sample);
+                g_seek_savestates.erase(sample);
+                Messenger::broadcast(Messenger::Message::SeekSavestateChanged, (size_t)sample);
+            }
+        }
+
+        const auto closest_key = vcr_find_closest_savestate_before_frame(target_sample);
+
+        g_core_logger->info("[VCR] Seeking backwards during recording to frame {}, loading closest savestate at {}...", target_sample, closest_key);
+        g_seek_savestate_loading = true;
+
+        // NOTE: This needs to go through AsyncExecutor (despite us already being on a worker thread) or it will cause a deadlock.
+        AsyncExecutor::invoke_async([=]
+        {
+            Savestates::do_memory(g_seek_savestates[closest_key], Savestates::Job::Load, [=](Savestates::Result result, auto buf)
+            {
+                if (result != Savestates::Result::Ok)
+                {
+                    FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
+                    g_seek_savestate_loading = false;
+                    VCR::stop_seek();
+                }
+
+                g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
+                g_seek_savestate_loading = false;
+            });
+        });
+
+        return VCR::Result::Ok;
     }
 
     return VCR::Result::Ok;
@@ -1580,7 +1570,7 @@ VCR::Result VCR::stop_all()
     g_core_logger->info("[VCR] Clearing seek savestates...");
 
     // FIXME: Don't we need to grab the VCR lock here???
-    
+
     std::vector<size_t> prev_seek_savestate_keys;
     prev_seek_savestate_keys.reserve(g_seek_savestates.size());
     for (const auto& [key, _] : g_seek_savestates)
