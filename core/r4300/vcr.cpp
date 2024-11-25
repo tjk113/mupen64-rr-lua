@@ -630,7 +630,13 @@ void vcr_handle_recording(int index, BUTTONS* input)
     {
         if (use_inputs_from_buffer)
         {
+			
             *input = g_movie_inputs[effective_index];
+
+			const auto prev_input = *input;
+			// NOTE: We want to notify Lua of inputs but won't actually accept the new values
+			LuaService::call_input(input, index);
+			*input = prev_input;
         }
         else
         {
