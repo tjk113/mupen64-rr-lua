@@ -149,7 +149,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
     desc.BindFlags = D3D11_BIND_RENDER_TARGET;
     desc.MiscFlags = D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
 
-    HRESULT hr = (*d3device)->CreateTexture2D(&desc, nullptr, d3d_gdi_tex);
+	(*d3device)->CreateTexture2D(&desc, nullptr, d3d_gdi_tex);
 
     (*swapchain)->GetBuffer(1, IID_PPV_ARGS(front_buffer));
     (*dxgi_surface)->QueryInterface(dxgi_surface_resource);
