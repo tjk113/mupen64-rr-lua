@@ -799,12 +799,17 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         .name = L"Core"
     };
 
+	t_options_group lua_group = {
+		.id = ++id,
+		.name = L"Lua"
+	};
+
     t_options_group hotkey_group = {
         .id = ++id,
         .name = L"Hotkeys"
     };
 
-    groups = {interface_group, statusbar_group, piano_roll_group, flow_group, capture_group, core_group, hotkey_group};
+    groups = {interface_group, statusbar_group, piano_roll_group, flow_group, capture_group, core_group, lua_group, hotkey_group};
 
     options = {
         t_options_item{
@@ -813,21 +818,6 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .tooltip = L"Pause emulation when the main window isn't in focus.",
             .data = &g_config.is_unfocused_pause_enabled,
             .type = t_options_item::Type::Bool,
-        },
-        t_options_item{
-            .group_id = interface_group.id,
-            .name = "Lua Presenter",
-            .tooltip = L"The presenter type to use for displaying and capturing Lua graphics.\nRecommended: DirectComposition",
-            .data = &g_config.presenter_type,
-            .type = t_options_item::Type::Enum,
-            .possible_values = {
-                std::make_pair(L"DirectComposition", (int32_t)PresenterType::DirectComposition),
-                std::make_pair(L"GDI", (int32_t)PresenterType::GDI),
-            },
-            .is_readonly = []
-            {
-                return !g_hwnd_lua_map.empty();
-            },
         },
         t_options_item{
             .group_id = interface_group.id,
@@ -1112,6 +1102,21 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .data = &g_config.rom_cache_size,
             .type = t_options_item::Type::Number,
         },
+
+		t_options_item{
+			.group_id = lua_group.id,
+			.name = "Presenter",
+			.tooltip = L"The presenter type to use for displaying and capturing Lua graphics.\nRecommended: DirectComposition",
+			.data = &g_config.presenter_type,
+			.type = t_options_item::Type::Enum,
+			.possible_values = {
+				std::make_pair(L"DirectComposition", (int32_t)PresenterType::DirectComposition),
+				std::make_pair(L"GDI", (int32_t)PresenterType::GDI),
+			},
+			.is_readonly = [] {
+				return !g_hwnd_lua_map.empty();
+			},
+		},
     };
 
     for (const auto hotkey : g_config_hotkeys)
