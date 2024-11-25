@@ -1427,6 +1427,40 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
 
     if (g_task == e_task::playback)
     {
+		// Fast path: use seek savestates
+		// FIXME: Duplicated code, a bit ugly
+		if (g_config.seek_savestate_interval != 0)
+		{
+			g_core_logger->trace("[VCR] vcr_begin_seek_impl: playback, fast path");
+
+			// FIXME: Might be better to have read-only as an individual flag for each savestate, cause as it is now, we're overwriting global state for  this... 
+			g_config.vcr_readonly = true;
+			Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
+
+			const auto closest_key = vcr_find_closest_savestate_before_frame(frame);
+
+			g_core_logger->info("[VCR] Seeking during playback to frame {}, loading closest savestate at {}...", frame, closest_key);
+			g_seek_savestate_loading = true;
+
+			// NOTE: This needs to go through AsyncExecutor (despite us already being on a worker thread) or it will cause a deadlock.
+			AsyncExecutor::invoke_async([=] {
+				Savestates::do_memory(g_seek_savestates[closest_key], Savestates::Job::Load, [=](Savestates::Result result, auto buf) {
+					if (result != Savestates::Result::Ok) {
+						FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
+						g_seek_savestate_loading = false;
+						VCR::stop_seek();
+					}
+
+					g_core_logger->info("[VCR] Seek savestate at frame {} loaded!", closest_key);
+					g_seek_savestate_loading = false;
+				});
+			});
+
+			return VCR::Result::Ok;
+		}
+
+		g_core_logger->trace("[VCR] vcr_begin_seek_impl: playback, slow path");
+
         const auto result = VCR::start_playback(g_movie_path);
         if (result != VCR::Result::Ok)
         {
