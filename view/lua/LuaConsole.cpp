@@ -309,12 +309,6 @@ void UnregisterFunction(lua_State* L, const char* key)
     lua_error(L);
 }
 
-// 000000 | 0000 0000 0000 000 | stype(5) = 10101 |001111
-const ULONG BREAKPOINTSYNC_MAGIC_STYPE = 0x15;
-const ULONG BREAKPOINTSYNC_MAGIC = 0x0000000F |
-    (BREAKPOINTSYNC_MAGIC_STYPE << 6);
-
-
 // these begin and end comments help to generate documentation
 // please don't remove them
 
