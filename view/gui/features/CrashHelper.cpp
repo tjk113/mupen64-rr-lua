@@ -1,5 +1,6 @@
 #include "CrashHelper.h"
 #include <Psapi.h>
+#include <stacktrace>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include <shared/Config.hpp>
@@ -73,15 +74,24 @@ void CrashHelper::log_crash(_EXCEPTION_POINTERS* exception_pointers_ptr)
     SYSTEMTIME time;
     GetSystemTime(&time);
 
-    g_view_logger->error("Crash!");
-    g_view_logger->error(MUPEN_VERSION);
-    g_view_logger->error(std::format("{:02}/{:02}/{} {:02}:{:02}:{:02}", time.wDay, time.wMonth, time.wYear, time.wHour, time.wMinute, time.wSecond));
-    g_view_logger->error(get_metadata_for_exception_address(exception_pointers_ptr->ExceptionRecord->ExceptionAddress));
-    g_view_logger->error(get_exception_code_friendly_name(exception_pointers_ptr));
-    g_view_logger->error("Video: {}", g_config.selected_video_plugin);
-    g_view_logger->error("Audio: {}", g_config.selected_audio_plugin);
-    g_view_logger->error("Input: {}", g_config.selected_input_plugin);
-    g_view_logger->error("RSP: {}", g_config.selected_rsp_plugin);
-    g_view_logger->error("VCR Task: {}", static_cast<int>(VCR::get_task()));
-    g_view_logger->error("Emu Launched: {}", emu_launched);
+    g_view_logger->critical("Crash!");
+    g_view_logger->critical(MUPEN_VERSION);
+    g_view_logger->critical(std::format("{:02}/{:02}/{} {:02}:{:02}:{:02}", time.wDay, time.wMonth, time.wYear, time.wHour, time.wMinute, time.wSecond));
+    g_view_logger->critical(get_metadata_for_exception_address(exception_pointers_ptr->ExceptionRecord->ExceptionAddress));
+    g_view_logger->critical(get_exception_code_friendly_name(exception_pointers_ptr));
+    g_view_logger->critical("Video: {}", g_config.selected_video_plugin);
+    g_view_logger->critical("Audio: {}", g_config.selected_audio_plugin);
+    g_view_logger->critical("Input: {}", g_config.selected_input_plugin);
+    g_view_logger->critical("RSP: {}", g_config.selected_rsp_plugin);
+    g_view_logger->critical("VCR Task: {}", static_cast<int>(VCR::get_task()));
+    g_view_logger->critical("Emu Launched: {}", emu_launched);
+    
+    const std::stacktrace st = std::stacktrace::current();
+    g_view_logger->critical("Stacktrace:");
+    for (const auto& stacktrace_entry : st)
+    {
+        g_view_logger->critical(std::to_string(stacktrace_entry));
+    }
+
+    g_view_logger->flush();
 }

@@ -22,13 +22,13 @@ void Loggers::init()
         // Clear log file if bigger than 50MB
         if (size.QuadPart > 50ull * 1024ull * 1024ull)
         {
-			SetFilePointerEx(h_file, {.QuadPart = 0}, nullptr, FILE_BEGIN);
-			SetEndOfFile(h_file);
+            SetFilePointerEx(h_file, {.QuadPart = 0}, nullptr, FILE_BEGIN);
+            SetEndOfFile(h_file);
         }
 
-		CloseHandle(h_file);
+        CloseHandle(h_file);
     }
-    
+
 #ifdef _DEBUG
     std::vector<spdlog::sink_ptr> core_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
     std::vector<spdlog::sink_ptr> shared_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
@@ -44,4 +44,7 @@ void Loggers::init()
     g_core_logger->set_level(spdlog::level::trace);
     g_shared_logger->set_level(spdlog::level::trace);
     g_view_logger->set_level(spdlog::level::trace);
+    g_core_logger->flush_on(spdlog::level::err);
+    g_shared_logger->flush_on(spdlog::level::err);
+    g_view_logger->flush_on(spdlog::level::err);
 }
