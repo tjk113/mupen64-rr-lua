@@ -279,7 +279,7 @@ static void shift_listview_selection(const HWND hwnd, const int32_t offset)
  * \param hwnd Handle to a listview.
  * \param indicies A vector containing the selected indicies.
  */
-static void set_listview_selection(const HWND hwnd, const std::vector<size_t>& indicies)
+static void set_listview_selection(const HWND hwnd, const std::vector<size_t> indicies)
 {
     if (!IsWindow(hwnd))
     {

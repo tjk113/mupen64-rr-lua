@@ -48,6 +48,9 @@ namespace PianoRoll
         std::vector<size_t> selected_indicies;
     };
 
+	// Whether the current copy of the VCR inputs is desynced from the remote one.
+	bool g_inputs_different;
+
     // The clipboard buffer for piano roll copy/paste operations. Must be sorted ascendingly.
     //
     // Due to allowing sparse ("extended") selections, we might have gaps in the clipboard buffer as well as the selected indicies when pasting.
@@ -405,6 +408,12 @@ namespace PianoRoll
      */
     void apply_input_buffer(bool push_to_history = true)
     {
+	    if (!g_inputs_different)
+	    {
+			g_view_logger->trace("[PianoRoll] Ignoring apply_input_buffer because inputs didn't change.");
+			return;
+	    }
+
         if (!can_modify_inputs())
         {
             g_view_logger->warn("[PianoRoll] Tried to call apply_input_buffer, but can_modify_inputs() == false.");
@@ -441,6 +450,8 @@ namespace PianoRoll
 
                     show_error_dialog_for_result(result, g_hwnd);
                 }
+
+				g_inputs_different = false;
             });
         });
     }
@@ -449,9 +460,10 @@ namespace PianoRoll
      * Sets the piano roll state to the specified value, updating everything accordingly and also applying the input buffer.
      * This is an expensive and slow operation.
      */
-    void set_piano_roll_state(const PianoRollState& piano_roll_state)
+    void set_piano_roll_state(const PianoRollState piano_roll_state)
     {
         g_piano_roll_state = piano_roll_state;
+		g_inputs_different = true;
         ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
         set_listview_selection(g_lv_hwnd, g_piano_roll_state.selected_indicies);
         apply_input_buffer(false);
@@ -570,6 +582,7 @@ namespace PianoRoll
 
         SetWindowRedraw(g_lv_hwnd, true);
 
+		g_inputs_different = true;
         apply_input_buffer();
     }
 
@@ -593,6 +606,7 @@ namespace PianoRoll
 
         SetWindowRedraw(g_lv_hwnd, true);
 
+		g_inputs_different = true;
         apply_input_buffer();
     }
 
@@ -612,6 +626,7 @@ namespace PianoRoll
         const int32_t offset = g_piano_roll_state.selected_indicies[g_piano_roll_state.selected_indicies.size() - 1] - g_piano_roll_state.selected_indicies[0] + 1;
         shift_listview_selection(g_lv_hwnd, -offset);
 
+		g_inputs_different = true;
         apply_input_buffer();
     }
 
@@ -632,6 +647,7 @@ namespace PianoRoll
 
         ListView_SetItemCountEx(g_lv_hwnd, g_piano_roll_state.inputs.size(), LVSICF_NOSCROLL);
 
+		g_inputs_different = true;
         apply_input_buffer();
 
         return true;
@@ -751,6 +767,7 @@ namespace PianoRoll
 
             SetWindowRedraw(g_lv_hwnd, true);
 
+			g_inputs_different = true;
             ensure_relevant_item_visible();
         });
     }
@@ -961,7 +978,7 @@ namespace PianoRoll
             ListView_Update(g_lv_hwnd, selected_index);
         }
         SetWindowRedraw(g_lv_hwnd, true);
-
+		g_inputs_different = true;
         RedrawWindow(g_joy_hwnd, nullptr, nullptr, RDW_INVALIDATE);
         goto def;
     }
@@ -1161,7 +1178,7 @@ namespace PianoRoll
         {
             if (prev_lv_dragging)
             {
-                apply_input_buffer();
+				apply_input_buffer();
             }
             goto def;
         }
@@ -1224,6 +1241,9 @@ namespace PianoRoll
         }
 
         SetWindowRedraw(g_lv_hwnd, true);
+		g_inputs_different = true;
+
+		goto def;
     }
 
     /**
@@ -1487,7 +1507,7 @@ namespace PianoRoll
 
         std::thread([]
         {
-            g_piano_roll_dispatcher = std::make_shared<Dispatcher>(GetCurrentThreadId(), [&]()
+            g_piano_roll_dispatcher = std::make_shared<Dispatcher>(GetCurrentThreadId(), []()
             {
                 if (g_hwnd)
                 {
