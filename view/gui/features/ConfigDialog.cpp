@@ -804,12 +804,17 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		.name = L"Lua"
 	};
 
+	t_options_group debug_group = {
+		.id = ++id,
+		.name = L"Debug"
+	};
+
     t_options_group hotkey_group = {
         .id = ++id,
         .name = L"Hotkeys"
     };
 
-    groups = {interface_group, statusbar_group, piano_roll_group, flow_group, capture_group, core_group, lua_group, hotkey_group};
+    groups = {interface_group, statusbar_group, piano_roll_group, flow_group, capture_group, core_group, lua_group, debug_group, hotkey_group};
 
     options = {
         t_options_item{
@@ -838,13 +843,6 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .name = "Use Async Executor",
             .tooltip = L"Whether the new async executor is used for async calls.\nLowers interaction latency in general usecases.\nOn - Each call is put on the async execution queue\nOff - Each call runs on a newly created thread (legacy behaviour)",
             .data = &g_config.use_async_executor,
-            .type = t_options_item::Type::Bool,
-        },
-        t_options_item{
-            .group_id = interface_group.id,
-            .name = "Async Executor Cuzz",
-            .tooltip = L"Whether the async executor will apply concurrency fuzzing. When enabled, task execution will be delayed to expose delayed task execution handling deficiencies at the callsite.\nDo not enable unless you are debugging the async executor.",
-            .data = &g_config.async_executor_cuzz,
             .type = t_options_item::Type::Bool,
         },
 
@@ -1117,6 +1115,14 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 				return !g_hwnd_lua_map.empty();
 			},
 		},
+
+		t_options_item{
+			.group_id = debug_group.id,
+			.name = "Async Executor Cuzz",
+			.tooltip = L"Whether the async executor will apply concurrency fuzzing. When enabled, task execution will be delayed to expose delayed task execution handling deficiencies at the callsite.\nDo not enable unless you are debugging the async executor.",
+			.data = &g_config.async_executor_cuzz,
+			.type = t_options_item::Type::Bool,
+		},
     };
 
     for (const auto hotkey : g_config_hotkeys)
@@ -1129,6 +1135,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .type = t_options_item::Type::Hotkey,
         });
     }
+
 }
 
 LRESULT CALLBACK InlineEditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR dwRefData)
