@@ -1,4 +1,4 @@
-﻿#include "gameshark.h"
+#include "gameshark.h"
 
 #include <string>
 #include <vector>
@@ -106,7 +106,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
         else if (opcode == "88")
         {
             // Write byte if GS button pressed
-            script->m_instructions.emplace_back(std::make_tuple(false, [address, val, &script]
+            script->m_instructions.emplace_back(std::make_tuple(false, [=]
             {
                 if (get_gs_button())
                 {
@@ -118,7 +118,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
         else if (opcode == "89")
         {
             // Write word if GS button pressed
-            script->m_instructions.emplace_back(std::make_tuple(false, [address, val, &script]
+            script->m_instructions.emplace_back(std::make_tuple(false, [=]
             {
                 if (get_gs_button())
                 {
@@ -132,7 +132,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
             // Byte equality comparison
             script->m_instructions.emplace_back(std::make_tuple(true, [=]
             {
-                return LoadRDRAMSafe<uint8_t>(address) == val & 0xFF;
+                return LoadRDRAMSafe<uint8_t>(address) == (val & 0xFF);
             }));
         }
         else if (opcode == "D1")
@@ -148,7 +148,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
             // Byte inequality comparison
             script->m_instructions.emplace_back(std::make_tuple(true, [=]
             {
-                return LoadRDRAMSafe<uint8_t>(address) != val & 0xFF;
+                return LoadRDRAMSafe<uint8_t>(address) != (val & 0xFF);
             }));
         }
         else if (opcode == "D3")
