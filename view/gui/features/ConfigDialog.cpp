@@ -767,60 +767,46 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 
 void get_config_listview_items(std::vector<t_options_group>& groups, std::vector<t_options_item>& options)
 {
-    t_options_group interface_group = {
-        .id = 1,
-        .name = L"Interface"
-    };
+	size_t id = 1;
+
+	t_options_group interface_group = {
+		.id = ++id,
+		.name = L"Interface"
+	};
+
+	t_options_group statusbar_group = {
+		.id = ++id,
+		.name = L"Statusbar"
+	};
 
     t_options_group piano_roll_group = {
-        .id = 2,
+        .id = ++id,
         .name = L"Piano Roll"
     };
 
     t_options_group flow_group = {
-        .id = 3,
+        .id = ++id,
         .name = L"Flow"
     };
 
     t_options_group capture_group = {
-        .id = 4,
+        .id = ++id,
         .name = L"Capture"
     };
 
     t_options_group core_group = {
-        .id = 5,
+        .id = ++id,
         .name = L"Core"
     };
 
     t_options_group hotkey_group = {
-        .id = 6,
+        .id = ++id,
         .name = L"Hotkeys"
     };
 
-    groups = {interface_group, piano_roll_group, flow_group, capture_group, core_group, hotkey_group};
+    groups = {interface_group, statusbar_group, piano_roll_group, flow_group, capture_group, core_group, hotkey_group};
 
     options = {
-        t_options_item{
-            .group_id = interface_group.id,
-            .name = "Statusbar 0-index",
-            .tooltip = L"Show indicies in the statusbar, such as VCR frame counts, relative to 0 instead of 1.",
-            .data = &g_config.vcr_0_index,
-            .type = t_options_item::Type::Bool,
-        },
-        t_options_item{
-            .group_id = interface_group.id,
-            .name = "Statusbar allow scale down",
-            .tooltip = L"Whether the statusbar is allowed to scale its segments down.",
-            .data = &g_config.statusbar_scale_down,
-            .type = t_options_item::Type::Bool,
-        },
-        t_options_item{
-            .group_id = interface_group.id,
-            .name = "Statusbar allow scale up",
-            .tooltip = L"Whether the statusbar is allowed to scale its segments up.",
-            .data = &g_config.statusbar_scale_up,
-            .type = t_options_item::Type::Bool,
-        },
         t_options_item{
             .group_id = interface_group.id,
             .name = "Pause when unfocused",
@@ -871,6 +857,28 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .data = &g_config.async_executor_cuzz,
             .type = t_options_item::Type::Bool,
         },
+
+		t_options_item{
+			.group_id = statusbar_group.id,
+			.name = "Zero-index",
+			.tooltip = L"Show indicies in the statusbar, such as VCR frame counts, relative to 0 instead of 1.",
+			.data = &g_config.vcr_0_index,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item{
+			.group_id = statusbar_group.id,
+			.name = "Scale down to fit window",
+			.tooltip = L"Whether the statusbar is allowed to scale its segments down.",
+			.data = &g_config.statusbar_scale_down,
+			.type = t_options_item::Type::Bool,
+		},
+		t_options_item{
+			.group_id = statusbar_group.id,
+			.name = "Scale up to fill window",
+			.tooltip = L"Whether the statusbar is allowed to scale its segments up.",
+			.data = &g_config.statusbar_scale_up,
+			.type = t_options_item::Type::Bool,
+		},
 
         t_options_item{
             .group_id = piano_roll_group.id,
