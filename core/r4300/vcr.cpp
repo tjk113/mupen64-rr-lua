@@ -1406,6 +1406,14 @@ VCR::Result vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume,
     seek_to_frame = std::make_optional(frame);
     g_seek_pause_at_end = pause_at_end;
     Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
+
+	if (!warp_modify && pause_at_end && m_current_sample == frame + 1)
+	{
+		g_core_logger->trace("[VCR] Early-stopping seek: already at frame {}.", frame);
+		VCR::stop_seek();
+		return VCR::Result::Ok;
+	}
+
     if (resume)
     {
         resume_emu();
