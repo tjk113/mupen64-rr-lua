@@ -305,26 +305,25 @@
     <ClCompile Include="..\view\PlatformService.cpp"/>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\view\icons\austral.ico" />
-    <Image Include="..\view\icons\beta.ico" />
+    <Image Include="..\view\icons\flag_unknown.ico" />
+    <Image Include="..\view\icons\flag_beta.ico" />
+    <Image Include="..\view\icons\flag_us.ico" />
+    <Image Include="..\view\icons\flag_au.ico" />
+    <Image Include="..\view\icons\flag_sp.ico" />
+    <Image Include="..\view\icons\flag_demo.ico" />
+    <Image Include="..\view\icons\flag_eu.ico" />
+    <Image Include="..\view\icons\flag_fr.ico" />
+    <Image Include="..\view\icons\flag_de.ico" />
+    <Image Include="..\view\icons\flag_it.ico" />
+    <Image Include="..\view\icons\flag_jp.ico" />
+    <Image Include="..\view\icons\logo_48.ico" />
+    <Image Include="..\view\icons\logo_16.ico" />
     <Image Include="..\view\icons\changed.ico" />
-    <Image Include="..\view\icons\Control.bmp" />
-    <Image Include="..\view\icons\demo.ico" />
     <Image Include="..\view\icons\deny.ico" />
-    <Image Include="..\view\icons\Display.bmp" />
-    <Image Include="..\view\icons\europe.ico" />
-    <Image Include="..\view\icons\france.ico" />
-    <Image Include="..\view\icons\germany.ico" />
-    <Image Include="..\view\icons\italy.ico" />
-    <Image Include="..\view\icons\japan.ico" />
-    <Image Include="..\view\icons\logo.bmp" />
-    <Image Include="..\view\icons\m64big.ico" />
-    <Image Include="..\view\icons\m64small.ico" />
-    <Image Include="..\view\icons\RSP.bmp" />
-    <Image Include="..\view\icons\Sound.bmp" />
-    <Image Include="..\view\icons\spain.ico" />
-    <Image Include="..\view\icons\unknown.ico" />
-    <Image Include="..\view\icons\usa.ico" />
+    <Image Include="..\view\icons\plugin_video.bmp" />
+    <Image Include="..\view\icons\plugin_audio.bmp" />
+    <Image Include="..\view\icons\plugin_input.bmp" />
+    <Image Include="..\view\icons\plugin_rsp.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\view\rsrc.rc" />

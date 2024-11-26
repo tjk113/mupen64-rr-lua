@@ -14,7 +14,6 @@
 #define IDD_PIANO_ROLL                  116
 #define IDD_SETTINGS_PLUGINS                        128
 #define IDM_LOAD_ROM                    129
-#define IDB_LOGO                        133
 #define IDC_LOGO                        134
 #define IDC_COMBO_GFX                   135
 #define IDM_VIDEO_SETTINGS              136

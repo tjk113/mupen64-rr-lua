@@ -299,12 +299,6 @@ BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w
 {
     switch (message)
     {
-    case WM_INITDIALOG:
-        SendDlgItemMessage(hwnd, IDB_LOGO, STM_SETIMAGE, IMAGE_BITMAP,
-                           (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_LOGO),
-                                             IMAGE_BITMAP, 0, 0, 0));
-        return TRUE;
-
     case WM_CLOSE:
         EndDialog(hwnd, IDOK);
         break;

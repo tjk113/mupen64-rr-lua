@@ -24,15 +24,13 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
 // Bitmap
 //
 
-IDB_CONTROL             BITMAP                  "icons\\Control.bmp"
+IDB_CONTROL             BITMAP                  "icons\\plugin_input.bmp"
 
-IDB_DISPLAY             BITMAP                  "icons\\Display.bmp"
+IDB_DISPLAY             BITMAP                  "icons\\plugin_video.bmp"
 
-IDB_LOGO                BITMAP                  "icons\\logo.bmp"
+IDB_RSP                 BITMAP                  "icons\\plugin_rsp.bmp"
 
-IDB_RSP                 BITMAP                  "icons\\RSP.bmp"
-
-IDB_SOUND               BITMAP                  "icons\\Sound.bmp"
+IDB_SOUND               BITMAP                  "icons\\plugin_audio.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -320,31 +318,31 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_M64ICONBIG          ICON                    "icons\\m64big.ico"
+IDI_M64ICONBIG          ICON                    "icons\\logo_48.ico"
 
-IDI_AUSTRALIA           ICON                    "icons\\austral.ico"
+IDI_AUSTRALIA           ICON                    "icons\\flag_au.ico"
 
-IDI_BETA                ICON                    "icons\\beta.ico"
+IDI_BETA                ICON                    "icons\\flag_beta.ico"
 
-IDI_DEMO                ICON                    "icons\\demo.ico"
+IDI_DEMO                ICON                    "icons\\flag_demo.ico"
 
-IDI_EUROPE              ICON                    "icons\\europe.ico"
+IDI_EUROPE              ICON                    "icons\\flag_eu.ico"
 
-IDI_FRANCE              ICON                    "icons\\france.ico"
+IDI_FRANCE              ICON                    "icons\\flag_fr.ico"
 
-IDI_GERMANY             ICON                    "icons\\germany.ico"
+IDI_GERMANY             ICON                    "icons\\flag_de.ico"
 
-IDI_ITALIA              ICON                    "icons\\italy.ico"
+IDI_ITALIA              ICON                    "icons\\flag_it.ico"
 
-IDI_JAPAN               ICON                    "icons\\japan.ico"
+IDI_JAPAN               ICON                    "icons\\flag_jp.ico"
 
-IDI_M64ICONSMALL        ICON                    "icons\\m64small.ico"
+IDI_M64ICONSMALL        ICON                    "icons\\logo_16.ico"
 
-IDI_SPAIN               ICON                    "icons\\spain.ico"
+IDI_SPAIN               ICON                    "icons\\flag_sp.ico"
 
-IDI_UNKNOWN             ICON                    "icons\\unknown.ico"
+IDI_UNKNOWN             ICON                    "icons\\flag_unknown.ico"
 
-IDI_USA                 ICON                    "icons\\usa.ico"
+IDI_USA                 ICON                    "icons\\flag_us.ico"
 
 IDI_DENY                ICON                    "icons\\deny.ico"
 
