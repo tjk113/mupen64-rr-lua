@@ -221,6 +221,7 @@ std::optional<size_t> g_hotkey_active_index;
 /// </returns>
 int32_t get_user_hotkey(t_hotkey* hotkey)
 {
+    MSG msg;
     int i, j;
     int lc = 0, ls = 0, la = 0;
     for (i = 0; i < 500; i++)
@@ -265,6 +266,8 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                     hotkey->shift = GetAsyncKeyState(VK_SHIFT) ? 1 : 0;
                     hotkey->ctrl = GetAsyncKeyState(VK_CONTROL) ? 1 : 0;
                     hotkey->alt = GetAsyncKeyState(VK_MENU) ? 1 : 0;
+                    while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+                    
                     return 1;
                 }
 
@@ -272,7 +275,8 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 hotkey->shift = 0;
                 hotkey->ctrl = 0;
                 hotkey->alt = 0;
-
+                while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+                
                 return 0;
             }
             if (j == VK_CONTROL && lc)
@@ -281,6 +285,8 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 hotkey->shift = 0;
                 hotkey->ctrl = 1;
                 hotkey->alt = 0;
+                while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+                
                 return 1;
             }
             if (j == VK_SHIFT && ls)
@@ -289,6 +295,8 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 hotkey->shift = 1;
                 hotkey->ctrl = 0;
                 hotkey->alt = 0;
+                while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+                
                 return 1;
             }
             if (j == VK_MENU && la)
@@ -297,6 +305,8 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 hotkey->shift = 0;
                 hotkey->ctrl = 0;
                 hotkey->alt = 1;
+                while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+                
                 return 1;
             }
         }
