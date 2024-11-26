@@ -32,10 +32,8 @@ namespace Statusbar
         SendMessage(statusbar_hwnd, SB_SETTEXT, (int)section, (LPARAM)text.c_str());
     }
 
-    void update_size()
+    void update_size(std::vector<int32_t> parts)
     {
-        auto parts = emu_launched ? emu_parts : idle_parts;
-
         RECT rect{};
         GetClientRect(g_main_hwnd, &rect);
 
@@ -88,10 +86,7 @@ namespace Statusbar
             Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
         }
 
-        if (!value && previous_value)
-        {
-            set_statusbar_parts(statusbar_hwnd, value ? emu_parts : idle_parts);
-        }
+        update_size(value ? emu_parts : idle_parts);
 
         previous_value = value;
     }
@@ -154,7 +149,7 @@ namespace Statusbar
 
     void on_size_changed(std::any)
     {
-        update_size();
+        update_size(emu_launched ? emu_parts : idle_parts);
     }
 
     void init()
