@@ -165,82 +165,132 @@ const std::map<Action, int> ACTION_ID_MAP = {
     {Action::SelectSlot10, (IDM_SELECT_1 - 1) + 10},
 };
 
-bool show_error_dialog_for_result(const VCR::Result result, void* hwnd)
+bool show_error_dialog_for_result(const CoreResult result, void* hwnd)
 {
-    if (result == VCR::Result::Ok || result == VCR::Result::Cancelled)
+    if (result == CoreResult::Ok
+        || result == CoreResult::ST_Cancelled
+        || result == CoreResult::VCR_Cancelled)
     {
         return false;
     }
 
-    g_view_logger->error("[View] VCR error {}", static_cast<int32_t>(result));
+    g_view_logger->error("[View] show_error_dialog_for_result: CoreType::{}", static_cast<int32_t>(result));
 
+    std::string module;
     std::string error;
 
     switch (result)
     {
-    case VCR::Result::InvalidFormat:
+#pragma region VCR
+    case CoreResult::VCR_InvalidFormat:
+        module = "VCR";
         error = "The provided data has an invalid format.";
         break;
-    case VCR::Result::BadFile:
+    case CoreResult::VCR_BadFile:
+        module = "VCR";
         error = "The provided file is inaccessible or does not exist.";
         break;
-    case VCR::Result::InvalidControllers:
+    case CoreResult::VCR_InvalidControllers:
+        module = "VCR";
         error = "The controller configuration is invalid.";
         break;
-    case VCR::Result::InvalidSavestate:
+    case CoreResult::VCR_InvalidSavestate:
+        module = "VCR";
         error = "The movie's savestate is missing or invalid.";
         break;
-    case VCR::Result::InvalidFrame:
+    case CoreResult::VCR_InvalidFrame:
+        module = "VCR";
         error = "The resulting frame is outside the bounds of the movie.";
         break;
-    case VCR::Result::NoMatchingRom:
+    case CoreResult::VCR_NoMatchingRom:
+        module = "VCR";
         error = "There is no rom which matches this movie.";
         break;
-    case VCR::Result::Busy:
+    case CoreResult::VCR_Busy:
+        module = "VCR";
         error = "The VCR engine is busy.";
         break;
-    case VCR::Result::Idle:
+    case CoreResult::VCR_Idle:
+        module = "VCR";
         error = "The VCR engine is idle, but must be active to complete this operation.";
         break;
-    case VCR::Result::NotFromThisMovie:
+    case CoreResult::VCR_NotFromThisMovie:
+        module = "VCR";
         error = "The provided freeze buffer is not from the currently active movie.";
         break;
-    case VCR::Result::InvalidVersion:
+    case CoreResult::VCR_InvalidVersion:
+        module = "VCR";
         error = "The movie's version is invalid.";
         break;
-    case VCR::Result::InvalidExtendedVersion:
+    case CoreResult::VCR_InvalidExtendedVersion:
+        module = "VCR";
         error = "The movie's extended version is invalid.";
         break;
-    case VCR::Result::NeedsPlaybackOrRecording:
+    case CoreResult::VCR_NeedsPlaybackOrRecording:
+        module = "VCR";
         error = "The operation requires a playback or recording task.";
         break;
-    case VCR::Result::InvalidStartType:
+    case CoreResult::VCR_InvalidStartType:
+        module = "VCR";
         error = "The provided start type is invalid.";
         break;
-    case VCR::Result::WarpModifyAlreadyRunning:
+    case CoreResult::VCR_WarpModifyAlreadyRunning:
+        module = "VCR";
         error = "Another warp modify operation is already running.";
         break;
-    case VCR::Result::WarpModifyNeedsRecordingTask:
+    case CoreResult::VCR_WarpModifyNeedsRecordingTask:
+        module = "VCR";
         error = "Warp modifications can only be performed during recording.";
         break;
-    case VCR::Result::WarpModifyEmptyInputBuffer:
+    case CoreResult::VCR_WarpModifyEmptyInputBuffer:
+        module = "VCR";
         error = "The provided input buffer is empty.";
         break;
-    case VCR::Result::SeekAlreadyRunning:
+    case CoreResult::VCR_SeekAlreadyRunning:
+        module = "VCR";
         error = "Another seek operation is already running.";
         break;
-    case VCR::Result::SeekSavestateLoadFailed:
+    case CoreResult::VCR_SeekSavestateLoadFailed:
+        module = "VCR";
         error = "The seek operation could not be initiated due to a savestate not being loaded successfully.";
         break;
-    case VCR::Result::SeekSavestateIntervalZero:
+    case CoreResult::VCR_SeekSavestateIntervalZero:
+        module = "VCR";
         error = "The seek operation can't be initiated because the seek savestate interval is 0.";
         break;
+#pragma endregion
+#pragma region VR
+    case CoreResult::VR_NoMatchingRom:
+        module = "Core";
+        error = "The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.";
+        break;
+    case CoreResult::VR_PluginError:
+        module = "Core";
+        if (FrontendService::show_ask_dialog("Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?"))
+        {
+            SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
+        }
+        break;
+    case CoreResult::VR_RomInvalid:
+        module = "Core";
+        error = "The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.";
+        break;
+    case CoreResult::VR_FileOpenFailed:
+        module = "Core";
+        error = "Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.";
+        break;
+#pragma endregion
     default:
-        FrontendService::show_error(std::format("Unknown error (error code {}).", static_cast<int32_t>(result)).c_str(), "VCR", hwnd);
+        module = "Unknown";
+        error = "Unknown error.";
         return true;
     }
 
-    FrontendService::show_error(std::format("{} (error code {})", error, static_cast<int32_t>(result)).c_str(), "VCR", hwnd);
+    if (!error.empty())
+    {
+        const auto title = std::format("{} Error {}", module, static_cast<int32_t>(result));
+        FrontendService::show_error(error.c_str(), title.c_str(), hwnd);
+    }
 
     return true;
 }
@@ -664,38 +714,14 @@ void on_vis_since_input_poll_exceeded(std::any)
         "An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
         "Warning", true))
     {
+        // TODO: Send IDM_CLOSE_ROM instead... probably better :P
         AsyncExecutor::invoke_async([]
         {
-            vr_close_rom();
+            const auto result = vr_close_rom();
+            show_error_dialog_for_result(result);
         });
     }
     g_vis_since_input_poll_warning_dismissed = true;
-}
-
-void on_core_result(std::any data)
-{
-    auto value = std::any_cast<Core::Result>(data);
-
-    switch (value)
-    {
-    case Core::Result::NoMatchingRom:
-        FrontendService::show_error("The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.");
-        break;
-    case Core::Result::PluginError:
-        if (FrontendService::show_ask_dialog("Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?"))
-        {
-            SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
-        }
-        break;
-    case Core::Result::RomInvalid:
-        FrontendService::show_error("The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.");
-        break;
-    case Core::Result::FileOpenFailed:
-        FrontendService::show_error("Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.");
-        break;
-    default:
-        break;
-    }
 }
 
 void on_movie_loop_changed(std::any data)
@@ -905,7 +931,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 AsyncExecutor::invoke_async([path]
                 {
-                    vr_start_rom(path);
+                    const auto result = vr_start_rom(path);
+                    show_error_dialog_for_result(result);
                 });
             }
             else if (extension == ".m64")
@@ -1039,7 +1066,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 // GetWindowRect values are nonsense when minimized
                 break;
             }
-            
+
             RECT rect = {0};
             GetWindowRect(g_main_hwnd, &rect);
             g_config.window_x = rect.left;
@@ -1064,7 +1091,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 // GetWindowRect values are nonsense when minimized
                 break;
             }
-            
+
             // Window creation expects the size with nc area, so it's easiest to just use the window rect here
             GetWindowRect(hwnd, &rect);
             g_config.window_width = rect.right - rect.left;
@@ -1378,7 +1405,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     break;
                 AsyncExecutor::invoke_async([]
                 {
-                    vr_close_rom();
+                    const auto result = vr_close_rom();
+                    show_error_dialog_for_result(result);
                 }, ASYNC_KEY_CLOSE_ROM);
                 break;
             case IDM_FASTFORWARD_ON:
@@ -1457,7 +1485,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                 AsyncExecutor::invoke_async([]
                 {
-                    vr_reset_rom();
+                    const auto result = vr_reset_rom();
+                    show_error_dialog_for_result(result);
                 }, ASYNC_KEY_RESET_ROM);
                 break;
 
@@ -1552,7 +1581,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     {
                         AsyncExecutor::invoke_async([path]
                         {
-                            vr_start_rom(path);
+                            const auto result = vr_start_rom(path);
+                            show_error_dialog_for_result(result);
                         });
                     }
                 }
@@ -1788,7 +1818,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     AsyncExecutor::invoke_async([path]
                     {
-                        vr_start_rom(path);
+                        const auto result = vr_start_rom(path);
+                        show_error_dialog_for_result(result);
                     }, ASYNC_KEY_START_ROM);
                 }
                 else if (LOWORD(wParam) >= ID_RECENTMOVIES_FIRST &&
@@ -1961,7 +1992,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
     Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);
     Messenger::subscribe(Messenger::Message::LagLimitExceeded, on_vis_since_input_poll_exceeded);
-    Messenger::subscribe(Messenger::Message::CoreResult, on_core_result);
     Messenger::subscribe(Messenger::Message::FullscreenChanged, on_fullscreen_changed);
     Messenger::subscribe(Messenger::Message::ConfigLoaded, on_config_loaded);
     Messenger::subscribe(Messenger::Message::SeekCompleted, on_seek_completed);

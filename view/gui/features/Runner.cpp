@@ -26,7 +26,8 @@ namespace Runner
         case IDC_LIST_ROMS:
             AsyncExecutor::invoke_async([path]
             {
-                vr_start_rom(path);
+                const auto result = vr_start_rom(path);
+                show_error_dialog_for_result(result);
             });
             break;
         case IDC_LIST_MOVIES:

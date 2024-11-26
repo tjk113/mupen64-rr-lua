@@ -425,7 +425,8 @@ namespace Rombrowser
                 auto path = rombrowser_entries[item.lParam]->path;
                 AsyncExecutor::invoke_async([path]
                 {
-                    vr_start_rom(path);
+                    const auto result = vr_start_rom(path);
+                    show_error_dialog_for_result(result);
                 });
             }
             break;

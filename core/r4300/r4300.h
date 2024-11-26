@@ -96,24 +96,6 @@ std::filesystem::path get_rom_path();
 
 namespace Core
 {
-    enum class Result
-    {
-        // The operation completed successfully
-        Ok,
-        // The callee is already performing another task
-        Busy,
-        // Couldn't find a rom matching the provided movie
-        NoMatchingRom,
-        // An error occured during plugin loading
-        PluginError,
-        // The ROM or alternative rom source is invalid
-        RomInvalid,
-        // The emulator isn't running yet
-        NotRunning,
-        // Failed to open core streams
-        FileOpenFailed,
-    };
-
     /**
      * Starts a benchmark section. Must be stopped with <see cref="stop_benchmark"/>.
      */
@@ -142,7 +124,7 @@ void pause_emu();
  * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
  * \return The operation result
  */
-Core::Result vr_start_rom(std::filesystem::path path, bool wait = false);
+CoreResult vr_start_rom(std::filesystem::path path, bool wait = false);
 
 /**
  * \brief Stops the emulator
@@ -150,7 +132,7 @@ Core::Result vr_start_rom(std::filesystem::path path, bool wait = false);
  * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
  * \return The operation result
  */
-Core::Result vr_close_rom(bool stop_vcr = true, bool wait = false);
+CoreResult vr_close_rom(bool stop_vcr = true, bool wait = false);
 
 /**
  * \brief Resets the emulator
@@ -159,7 +141,7 @@ Core::Result vr_close_rom(bool stop_vcr = true, bool wait = false);
  * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
  * \return The operation result
  */
-Core::Result vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true, bool wait = false);
+CoreResult vr_reset_rom(bool reset_save_data = false, bool stop_vcr = true, bool wait = false);
 
 /**
  * \brief Toggles between fullscreen and windowed mode

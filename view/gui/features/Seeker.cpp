@@ -69,7 +69,7 @@ namespace Seeker
                         break;
                     }
 
-                    if (VCR::begin_seek(g_config.seeker_value, true) != VCR::Result::Ok)
+                    if (VCR::begin_seek(g_config.seeker_value, true) != CoreResult::Ok)
                     {
                         SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Couldn't seek");
                         break;

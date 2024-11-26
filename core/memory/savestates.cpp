@@ -329,7 +329,7 @@ namespace Savestates
             {
                 if (task.callback)
                 {
-                    task.callback(Savestates::Result::FileWriteError, st);
+                    task.callback(CoreResult::ST_FileWriteError, st);
                 }
                 return;
             }
@@ -340,7 +340,7 @@ namespace Savestates
 
         if (task.callback)
         {
-            task.callback(Savestates::Result::Ok, st);
+            task.callback(CoreResult::Ok, st);
         }
         LuaService::call_save_state();
     }
@@ -375,7 +375,7 @@ namespace Savestates
         {
             if (task.callback)
             {
-                task.callback(Result::NotFound, {});
+                task.callback(CoreResult::ST_NotFound, {});
             }
             return;
         }
@@ -385,7 +385,7 @@ namespace Savestates
         {
             if (task.callback)
             {
-                task.callback(Result::DecompressionError, {});
+                task.callback(CoreResult::ST_DecompressionError, {});
             }
             return;
         }
@@ -408,7 +408,7 @@ namespace Savestates
             {
                 if (task.callback)
                 {
-                    task.callback(Savestates::Result::Cancelled, {});
+                    task.callback(CoreResult::ST_Cancelled, {});
                 }
                 return;
             }
@@ -431,7 +431,7 @@ namespace Savestates
             // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
             if (task.callback)
             {
-                task.callback(Result::EventQueueTooLong, {});
+                task.callback(CoreResult::ST_EventQueueTooLong, {});
             }
             return;
         }
@@ -456,18 +456,18 @@ namespace Savestates
 
             const auto code = VCR::unfreeze(freeze);
 
-            if (code != VCR::Result::Ok && VCR::get_task() != e_task::idle)
+            if (code != CoreResult::Ok && VCR::get_task() != e_task::idle)
             {
                 std::string err_str = "Failed to restore movie, ";
                 switch (code)
                 {
-                case VCR::Result::NotFromThisMovie:
+                case CoreResult::VCR_NotFromThisMovie:
                     err_str += "the snapshot is not from this movie.";
                     break;
-                case VCR::Result::InvalidFrame:
+                case CoreResult::VCR_InvalidFrame:
                     err_str += "the savestate frame is outside the bounds of the movie.";
                     break;
-                case VCR::Result::InvalidFormat:
+                case CoreResult::VCR_InvalidFormat:
                     err_str += "the format is invalid.";
                     stop = true;
                     break;
@@ -482,7 +482,7 @@ namespace Savestates
                     VCR::stop_all();
                     if (task.callback)
                     {
-                        task.callback(Savestates::Result::Cancelled, {});
+                        task.callback(CoreResult::ST_Cancelled, {});
                     }
                     goto failedLoad;
                 }
@@ -497,7 +497,7 @@ namespace Savestates
                 {
                     if (task.callback)
                     {
-                        task.callback(Savestates::Result::Cancelled, {});
+                        task.callback(CoreResult::ST_Cancelled, {});
                     }
                     return;
                 }
@@ -547,7 +547,7 @@ namespace Savestates
 
         if (task.callback)
         {
-            task.callback(Savestates::Result::Ok, decompressed_buf);
+            task.callback(CoreResult::Ok, decompressed_buf);
         }
 
     failedLoad:
@@ -714,20 +714,20 @@ namespace Savestates
             g_core_logger->trace("[ST] do_file: Can't enqueue work.");
             if (callback)
             {
-                callback(Result::CoreNotLaunched, {});
+                callback(CoreResult::ST_CoreNotLaunched, {});
             }
             return;
         }
 
         std::scoped_lock lock(g_task_mutex);
 
-        auto pre_callback = [=](const Result result, const std::vector<uint8_t>& buffer)
+        auto pre_callback = [=](const CoreResult result, const std::vector<uint8_t>& buffer)
         {
-            if (result == Result::Ok)
+            if (result == CoreResult::Ok)
             {
                 FrontendService::show_statusbar(std::format("{} {}", job == Job::Save ? "Saved" : "Loaded", path.filename().string()).c_str());
             }
-            else if (result == Result::Cancelled)
+            else if (result == CoreResult::ST_Cancelled)
             {
                 FrontendService::show_statusbar(std::format("Cancelled {}", job == Job::Save ? "save" : "load").c_str());
             }
@@ -762,7 +762,7 @@ namespace Savestates
             g_core_logger->trace("[ST] do_slot: Can't enqueue work.");
             if (callback)
             {
-                callback(Result::CoreNotLaunched, {});
+                callback(CoreResult::ST_CoreNotLaunched, {});
             }
             return;
         }
@@ -775,13 +775,13 @@ namespace Savestates
             Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
         }
 
-        auto pre_callback = [=](const Result result, const std::vector<uint8_t>& buffer)
+        auto pre_callback = [=](const CoreResult result, const std::vector<uint8_t>& buffer)
         {
-            if (result == Result::Ok)
+            if (result == CoreResult::Ok)
             {
                 FrontendService::show_statusbar(std::format("{} slot {}", job == Job::Save ? "Saved" : "Loaded", slot + 1).c_str());
             }
-            else if (result == Result::Cancelled)
+            else if (result == CoreResult::ST_Cancelled)
             {
                 FrontendService::show_statusbar(std::format("Cancelled {}", job == Job::Save ? "save" : "load").c_str());
             }
@@ -816,7 +816,7 @@ namespace Savestates
             g_core_logger->trace("[ST] do_memory: Can't enqueue work.");
             if (callback)
             {
-                callback(Result::CoreNotLaunched, {});
+                callback(CoreResult::ST_CoreNotLaunched, {});
             }
             return;
         }

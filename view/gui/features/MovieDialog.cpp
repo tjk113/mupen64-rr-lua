@@ -309,14 +309,14 @@ namespace MovieDialog
         char tempbuf[260] = {0};
         t_movie_header header = {};
 
-        if (VCR::parse_header(record_params.path, &header) != VCR::Result::Ok)
+        if (VCR::parse_header(record_params.path, &header) != CoreResult::Ok)
         {
             return FALSE;
         }
 
         std::vector<BUTTONS> inputs = {};
 
-        if (VCR::read_movie_inputs(record_params.path, inputs) != VCR::Result::Ok)
+        if (VCR::read_movie_inputs(record_params.path, inputs) != CoreResult::Ok)
         {
             return FALSE;
         }

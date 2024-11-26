@@ -30,30 +30,13 @@
 
 #include <filesystem>
 #include <functional>
+#include <shared/types/CoreTypes.h>
 
 extern bool g_st_skip_dma;
 extern bool g_st_old;
 
 namespace Savestates
 {
-    enum class Result
-    {
-        // The operation completed successfully
-        Ok,
-        // The core isn't launched
-        CoreNotLaunched,
-        // The savestate file wasn't found
-        NotFound,
-        // The savestate couldn't be written to disk
-        FileWriteError,
-        // Couldn't decompress the savestate
-        DecompressionError,
-        // The event queue was too long
-        EventQueueTooLong,
-        // The user cancelled the operation
-        Cancelled,
-    };
-
     enum class Job
     {
         // A save operation
@@ -73,7 +56,7 @@ namespace Savestates
         Memory
     };
 
-    using t_savestate_callback = std::function<void(Savestates::Result result, const std::vector<uint8_t>&)>;
+    using t_savestate_callback = std::function<void(CoreResult result, const std::vector<uint8_t>&)>;
 
     /**
      * \brief Initializes the savestate system
@@ -90,7 +73,7 @@ namespace Savestates
      * Clears the work queue.
      */
     void clear_work();
- 
+
     /**
      * \brief Executes a savestate operation to a path
      * \param path The savestate's path

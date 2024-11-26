@@ -1,6 +1,90 @@
 ﻿// ReSharper disable CppInconsistentNaming
 #pragma once
 
+/**
+ * An enum containing results that can be returned by the core.
+ */
+enum class CoreResult
+{
+    // TODO: Maybe unify all Busy and Cancelled results?
+    
+    // The operation completed successfully
+    Ok,
+
+#pragma region VCR
+    // The provided data has an invalid format
+    VCR_InvalidFormat,
+    // The provided file is inaccessible or does not exist
+    VCR_BadFile,
+    // The user cancelled the operation
+    VCR_Cancelled,
+    // The controller configuration is invalid
+    VCR_InvalidControllers,
+    // The movie's savestate is missing or invalid
+    VCR_InvalidSavestate,
+    // The resulting frame is outside the bounds of the movie
+    VCR_InvalidFrame,
+    // There is no rom which matches this movie
+    VCR_NoMatchingRom,
+    // The callee is already performing another task
+    VCR_Busy,
+    // The VCR engine is idle, but must be active to complete this operation
+    VCR_Idle,
+    // The provided freeze buffer is not from the currently active movie
+    VCR_NotFromThisMovie,
+    // The movie's version is invalid
+    VCR_InvalidVersion,
+    // The movie's extended version is invalid
+    VCR_InvalidExtendedVersion,
+    // The operation requires a playback or recording task
+    VCR_NeedsPlaybackOrRecording,
+    // The provided start type is invalid.
+    VCR_InvalidStartType,
+    // Another warp modify operation is already running
+    VCR_WarpModifyAlreadyRunning,
+    // Warp modifications can only be performed during recording
+    VCR_WarpModifyNeedsRecordingTask,
+    // The provided input buffer is empty
+    VCR_WarpModifyEmptyInputBuffer,
+    // Another seek operation is already running
+    VCR_SeekAlreadyRunning,
+    // The seek operation could not be initiated due to a savestate not being loaded successfully 
+    VCR_SeekSavestateLoadFailed,
+    // The seek operation can't be initiated because the seek savestate interval is 0
+    VCR_SeekSavestateIntervalZero,
+#pragma endregion
+
+#pragma region VR
+    // The callee is already performing another task
+    VR_Busy,
+    // Couldn't find a rom matching the provided movie
+    VR_NoMatchingRom,
+    // An error occured during plugin loading
+    VR_PluginError,
+    // The ROM or alternative rom source is invalid
+    VR_RomInvalid,
+    // The emulator isn't running yet
+    VR_NotRunning,
+    // Failed to open core streams
+    VR_FileOpenFailed,
+#pragma endregion
+
+#pragma region Savestates
+    // The core isn't launched
+    ST_CoreNotLaunched,
+    // The savestate file wasn't found
+    ST_NotFound,
+    // The savestate couldn't be written to disk
+    ST_FileWriteError,
+    // Couldn't decompress the savestate
+    ST_DecompressionError,
+    // The event queue was too long
+    ST_EventQueueTooLong,
+    // The user cancelled the operation
+    ST_Cancelled,
+#pragma endregion
+};
+
 typedef struct
 {
     unsigned short Version;

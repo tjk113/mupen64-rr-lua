@@ -2155,7 +2155,7 @@ void emu_thread()
 
     g_core_logger->info("[Core] Emu thread entry took {}ms", static_cast<int>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
     core_start();
-    
+
     romClosed_gfx();
     romClosed_audio();
     romClosed_input();
@@ -2176,11 +2176,11 @@ void emu_thread()
 }
 
 
-Core::Result vr_close_rom_impl(bool stop_vcr)
+CoreResult vr_close_rom_impl(bool stop_vcr)
 {
     if (!emu_launched)
     {
-        return Core::Result::NotRunning;
+        return CoreResult::VR_NotRunning;
     }
 
     resume_emu();
@@ -2212,18 +2212,18 @@ Core::Result vr_close_rom_impl(bool stop_vcr)
     fclose(g_fram_file);
     fclose(g_mpak_file);
 
-    return Core::Result::Ok;
+    return CoreResult::Ok;
 }
 
-Core::Result vr_start_rom_impl(std::filesystem::path path)
+CoreResult vr_start_rom_impl(std::filesystem::path path)
 {
     auto start_time = std::chrono::high_resolution_clock::now();
-    
+
     // We can't overwrite core. Emu needs to stop first, but that might fail...
     if (emu_launched)
     {
         auto result = vr_close_rom_impl(true);
-        if (result != Core::Result::Ok)
+        if (result != CoreResult::Ok)
         {
             g_core_logger->info("[Core] Failed to close rom before starting rom.");
             return result;
@@ -2236,11 +2236,10 @@ Core::Result vr_start_rom_impl(std::filesystem::path path)
     if (path.extension() == ".m64")
     {
         t_movie_header movie_header{};
-        if (VCR::parse_header(path, &movie_header) != VCR::Result::Ok)
+        if (VCR::parse_header(path, &movie_header) != CoreResult::Ok)
         {
-            Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
             Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-            return Core::Result::RomInvalid;
+            return CoreResult::VR_RomInvalid;
         }
 
         const auto matching_rom = FrontendService::find_available_rom([&](auto header)
@@ -2251,9 +2250,8 @@ Core::Result vr_start_rom_impl(std::filesystem::path path)
 
         if (matching_rom.empty())
         {
-            Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::NoMatchingRom);
             Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-            return Core::Result::NoMatchingRom;
+            return CoreResult::VR_NoMatchingRom;
         }
 
         path = matching_rom;
@@ -2289,9 +2287,8 @@ Core::Result vr_start_rom_impl(std::filesystem::path path)
             audio_pl.reset();
             input_pl.reset();
             rsp_pl.reset();
-            Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::PluginError);
             Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-            return Core::Result::PluginError;
+            return CoreResult::VR_PluginError;
         }
 
         video_plugin = std::move(video_pl.value());
@@ -2302,9 +2299,8 @@ Core::Result vr_start_rom_impl(std::filesystem::path path)
 
     if (!rom_load(path.string().c_str()))
     {
-        Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::RomInvalid);
         Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-        return Core::Result::RomInvalid;
+        return CoreResult::VR_RomInvalid;
     }
 
     // Open all the save file streams
@@ -2313,9 +2309,8 @@ Core::Result vr_start_rom_impl(std::filesystem::path path)
         || !open_core_file_stream(get_flashram_path(), &g_fram_file)
         || !open_core_file_stream(get_mempak_path(), &g_mpak_file))
     {
-        Messenger::broadcast(Messenger::Message::CoreResult, Core::Result::FileOpenFailed);
         Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-        return Core::Result::FileOpenFailed;
+        return CoreResult::VR_FileOpenFailed;
     }
 
     timer_init(g_config.fps_modifier, &ROM_HEADER);
@@ -2330,10 +2325,10 @@ Core::Result vr_start_rom_impl(std::filesystem::path path)
     // If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
     while (!core_executing);
 
-    return Core::Result::Ok;
+    return CoreResult::Ok;
 }
 
-Core::Result vr_start_rom(std::filesystem::path path, bool wait)
+CoreResult vr_start_rom(std::filesystem::path path, bool wait)
 {
     if (wait)
     {
@@ -2345,13 +2340,13 @@ Core::Result vr_start_rom(std::filesystem::path path, bool wait)
     if (!lock.owns_lock())
     {
         g_core_logger->warn("[Core] vr_start_rom busy!");
-        return Core::Result::Busy;
+        return CoreResult::VR_Busy;
     }
 
     return vr_start_rom_impl(path);
 }
 
-Core::Result vr_close_rom(bool stop_vcr, bool wait)
+CoreResult vr_close_rom(bool stop_vcr, bool wait)
 {
     if (wait)
     {
@@ -2363,16 +2358,16 @@ Core::Result vr_close_rom(bool stop_vcr, bool wait)
     if (!lock.owns_lock())
     {
         g_core_logger->warn("[Core] vr_close_rom busy!");
-        return Core::Result::Busy;
+        return CoreResult::VR_Busy;
     }
 
     return vr_close_rom_impl(stop_vcr);
 }
 
-Core::Result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
+CoreResult vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
 {
     if (!emu_launched)
-        return Core::Result::NotRunning;
+        return CoreResult::VR_NotRunning;
 
     // why is it so damned difficult to reset the game?
     // right now it's hacked to exit to the GUI then re-load the ROM,
@@ -2381,8 +2376,8 @@ Core::Result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
     frame_advancing = false;
     emu_resetting = true;
 
-    Core::Result result = vr_close_rom(stop_vcr);
-    if (result != Core::Result::Ok)
+    CoreResult result = vr_close_rom(stop_vcr);
+    if (result != CoreResult::Ok)
     {
         emu_resetting = false;
         Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
@@ -2395,7 +2390,7 @@ Core::Result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
     }
 
     result = vr_start_rom(rom_path);
-    if (result != Core::Result::Ok)
+    if (result != CoreResult::Ok)
     {
         emu_resetting = false;
         Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
@@ -2404,10 +2399,10 @@ Core::Result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
 
     emu_resetting = false;
     Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
-    return Core::Result::Ok;
+    return CoreResult::Ok;
 }
 
-Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
+CoreResult vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
 {
     if (wait)
     {
@@ -2419,7 +2414,7 @@ Core::Result vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
     if (!lock.owns_lock())
     {
         g_core_logger->info("[Core] vr_reset_rom busy!");
-        return Core::Result::Busy;
+        return CoreResult::VR_Busy;
     }
 
     return vr_reset_rom_impl(reset_save_data, stop_vcr);

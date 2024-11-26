@@ -250,52 +250,6 @@ void vcr_on_vi();
 
 namespace VCR
 {
-    enum class Result
-    {
-        // The operation completed successfully
-        Ok,
-        // The provided data has an invalid format
-        InvalidFormat,
-        // The provided file is inaccessible or does not exist
-        BadFile,
-        // The user cancelled the operation
-        Cancelled,
-        // The controller configuration is invalid
-        InvalidControllers,
-        // The movie's savestate is missing or invalid
-        InvalidSavestate,
-        // The resulting frame is outside the bounds of the movie
-        InvalidFrame,
-        // There is no rom which matches this movie
-        NoMatchingRom,
-        // The callee is already performing another task
-        Busy,
-        // The VCR engine is idle, but must be active to complete this operation
-        Idle,
-        // The provided freeze buffer is not from the currently active movie
-        NotFromThisMovie,
-        // The movie's version is invalid
-        InvalidVersion,
-        // The movie's extended version is invalid
-        InvalidExtendedVersion,
-        // The operation requires a playback or recording task
-        NeedsPlaybackOrRecording,
-        // The provided start type is invalid.
-        InvalidStartType,
-        // Another warp modify operation is already running
-        WarpModifyAlreadyRunning,
-        // Warp modifications can only be performed during recording
-        WarpModifyNeedsRecordingTask,
-        // The provided input buffer is empty
-        WarpModifyEmptyInputBuffer,
-        // Another seek operation is already running
-        SeekAlreadyRunning,
-        // The seek operation could not be initiated due to a savestate not being loaded successfully 
-        SeekSavestateLoadFailed,
-        // The seek operation can't be initiated because the seek savestate interval is 0
-        SeekSavestateIntervalZero,
-    };
-
     /**
      * \brief Initializes the VCR engine
      */
@@ -307,7 +261,7 @@ namespace VCR
      * \param header The header to fill
      * \return The operation result
      */
-    Result parse_header(std::filesystem::path path, t_movie_header* header);
+    CoreResult parse_header(std::filesystem::path path, t_movie_header* header);
 
     /**
      * \brief Reads the inputs from a movie
@@ -315,14 +269,14 @@ namespace VCR
      * \param inputs The button collection to fill
      * \return The operation result
      */
-    Result read_movie_inputs(std::filesystem::path path, std::vector<BUTTONS>& inputs);
+    CoreResult read_movie_inputs(std::filesystem::path path, std::vector<BUTTONS>& inputs);
 
     /**
      * \brief Starts playing back a movie
      * \param path The movie's path
-     * \return The error code
+     * \return The operation result
      */
-    Result start_playback(std::filesystem::path path);
+    CoreResult start_playback(std::filesystem::path path);
 
     /**
      * \brief Starts recording a movie
@@ -332,8 +286,7 @@ namespace VCR
      * \param description The movie's description
      * \return The operation result
      */
-    Result start_record(std::filesystem::path path, uint16_t flags, std::string author = "(no author)", std::string description = "(no description)");
-
+    CoreResult start_record(std::filesystem::path path, uint16_t flags, std::string author = "(no author)", std::string description = "(no description)");
 
     /**
      * \brief Replaces the author and description information of a movie
@@ -342,7 +295,7 @@ namespace VCR
      * \param description The movie's description
      * \return The operation result
      */
-    Result replace_author_info(const std::filesystem::path& path, const std::string& author, const std::string& description);
+    CoreResult replace_author_info(const std::filesystem::path& path, const std::string& author, const std::string& description);
 
     /**
      * \brief Gets the completion status of the current seek operation.
@@ -363,7 +316,7 @@ namespace VCR
      *	"^n" - Sample n from the end
      *	
      */
-    Result begin_seek(std::string str, bool pause_at_end);
+    CoreResult begin_seek(std::string str, bool pause_at_end);
 
     /**
      * \brief Converts a freeze buffer into a movie, trying to reconstruct as much as possible
@@ -372,7 +325,7 @@ namespace VCR
      * \param inputs The generated inputs
      * \return The operation result
      */
-    Result convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_movie_header& header, std::vector<BUTTONS>& inputs);
+    CoreResult convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_movie_header& header, std::vector<BUTTONS>& inputs);
 
     /**
      * \brief Stops the current seek operation
@@ -395,13 +348,13 @@ namespace VCR
      * \param freeze The freeze buffer
      * \return The operation result
      */
-    Result unfreeze(t_movie_freeze freeze);
+    CoreResult unfreeze(t_movie_freeze freeze);
 
     /**
      * \brief Stops all running tasks
      * \return The operation result
      */
-    Result stop_all();
+    CoreResult stop_all();
 
     /**
      * \brief Gets the text representation of the last frame's inputs
@@ -449,7 +402,7 @@ namespace VCR
      * \param inputs The input buffer to use.
      * \return The operation result
      */
-    Result begin_warp_modify(const std::vector<BUTTONS>& inputs);
+    CoreResult begin_warp_modify(const std::vector<BUTTONS>& inputs);
 
     /**
      * Gets the warp modify status

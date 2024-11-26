@@ -92,11 +92,13 @@ void commandline_start_rom()
 
     AsyncExecutor::invoke_async([]
     {
-        vr_start_rom(commandline_rom);
+        const auto result = vr_start_rom(commandline_rom);
+        show_error_dialog_for_result(result);
+        
         // Special case for "Open With..."
         if (commandline_rom.extension() == ".m64")
         {
-            auto result = VCR::start_playback(commandline_rom);
+            const auto result = VCR::start_playback(commandline_rom);
             show_error_dialog_for_result(result);
         }
     });

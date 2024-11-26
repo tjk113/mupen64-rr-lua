@@ -431,7 +431,7 @@ namespace PianoRoll
 
             g_piano_roll_dispatcher->invoke([=]
             {
-                if (result == VCR::Result::Ok)
+                if (result == CoreResult::Ok)
                 {
                     if (push_to_history)
                     {
