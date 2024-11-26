@@ -21,6 +21,7 @@ namespace MovieDialog
     t_record_params record_params;
     bool is_readonly;
     HWND grid_hwnd;
+    bool g_is_closing;
 
     size_t count_button_presses(const std::vector<BUTTONS>& buttons, const int mask)
     {
@@ -177,6 +178,7 @@ namespace MovieDialog
             }
         case WM_CLOSE:
             record_params.path.clear();
+            g_is_closing = true;
             EndDialog(hwnd, IDCANCEL);
             break;
         case WM_COMMAND:
@@ -236,10 +238,17 @@ namespace MovieDialog
             case IDC_CANCEL:
             case IDCANCEL:
                 record_params.path.clear();
+                g_is_closing = true;
                 EndDialog(hwnd, IDCANCEL);
                 break;
             case IDC_INI_MOVIEFILE:
                 {
+                    if (g_is_closing)
+                    {
+                        g_view_logger->warn("[MovieDialog] Tried to update movie file path while closing dialog");
+                        break;
+                    }
+                    
                     char path[MAX_PATH] = {0};
                     GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path, std::size(path));
                     record_params.path = path;
@@ -448,6 +457,7 @@ namespace MovieDialog
         record_params.start_flag = g_config.last_movie_type;
         record_params.author = g_config.last_movie_author;
         record_params.description = "";
+        g_is_closing = false;
 
         DialogBox(g_app_instance,
                   MAKEINTRESOURCE(IDD_MOVIE_PLAYBACK_DIALOG), g_main_hwnd,
