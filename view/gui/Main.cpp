@@ -733,15 +733,6 @@ void on_movie_loop_changed(std::any data)
     SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
 }
 
-void on_readonly_changed(std::any data)
-{
-    auto value = std::any_cast<bool>(data);
-    Statusbar::post(value
-                        ? "Read-only"
-                        : "Read/write");
-    SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
-}
-
 void on_fullscreen_changed(std::any data)
 {
     auto value = std::any_cast<bool>(data);
@@ -1987,7 +1978,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Messenger::subscribe(Messenger::Message::EmuPausedChanged, on_emu_paused_changed);
     Messenger::subscribe(Messenger::Message::CapturingChanged, on_capturing_changed);
     Messenger::subscribe(Messenger::Message::MovieLoopChanged, on_movie_loop_changed);
-    Messenger::subscribe(Messenger::Message::ReadonlyChanged, on_readonly_changed);
     Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
     Messenger::subscribe(Messenger::Message::ScriptStarted, on_script_started);
     Messenger::subscribe(Messenger::Message::SpeedModifierChanged, on_speed_modifier_changed);

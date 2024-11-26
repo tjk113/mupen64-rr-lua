@@ -17,7 +17,7 @@
 
 namespace Statusbar
 {
-    const std::vector emu_parts = {200, 200, 77, 77, 77, 77, 77, -1};
+    const std::vector emu_parts = {150, 150, 75, 75, 75, 75, 75, 75, -1};
     const std::vector idle_parts = {400, -1};
 
     HWND statusbar_hwnd;
@@ -48,7 +48,7 @@ namespace Statusbar
         {
             scale = max(scale, 1.0f);
         }
-        
+
         if (!g_config.statusbar_scale_up)
         {
             scale = min(scale, 1.0f);
@@ -124,6 +124,12 @@ namespace Statusbar
         }
     }
 
+    void on_readonly_changed(std::any data)
+    {
+        auto value = std::any_cast<bool>(data);
+        post(value ? "Read-only" : "Read/write", Section::Readonly);
+    }
+
     void on_rerecords_changed(std::any data)
     {
         auto value = std::any_cast<uint64_t>(data);
@@ -158,6 +164,8 @@ namespace Statusbar
                              emu_launched_changed);
         Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged,
                              statusbar_visibility_changed);
+        Messenger::subscribe(Messenger::Message::ReadonlyChanged,
+                             on_readonly_changed);
         Messenger::subscribe(Messenger::Message::TaskChanged,
                              on_task_changed);
         Messenger::subscribe(Messenger::Message::RerecordsChanged,
