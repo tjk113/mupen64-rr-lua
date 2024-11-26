@@ -461,7 +461,6 @@ namespace Savestates
                 const auto result = FrontendService::show_ask_dialog(err_str.c_str(), nullptr, true);
                 if (!result)
                 {
-                    VCR::stop_all();
                     task.callback(CoreResult::ST_Cancelled, {});
                     goto failedLoad;
                 }
