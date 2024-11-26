@@ -1710,7 +1710,7 @@ void configdialog_show()
         i.hInstance = g_app_instance;
     }
 
-    psp[0].pszTemplate = MAKEINTRESOURCE(IDD_MAIN);
+    psp[0].pszTemplate = MAKEINTRESOURCE(IDD_SETTINGS_PLUGINS);
     psp[0].pfnDlgProc = plugins_cfg;
     psp[0].pszTitle = "Plugins";
 
@@ -1718,7 +1718,7 @@ void configdialog_show()
     psp[1].pfnDlgProc = directories_cfg;
     psp[1].pszTitle = "Directories";
 
-    psp[2].pszTemplate = MAKEINTRESOURCE(IDD_MESSAGES);
+    psp[2].pszTemplate = MAKEINTRESOURCE(IDD_SETTINGS_GENERAL);
     psp[2].pfnDlgProc = general_cfg;
     psp[2].pszTitle = "General";
 

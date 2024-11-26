@@ -12,7 +12,7 @@
 #define IDD_MOVIE_EDITOR                111
 #define IDD_CHEATS                      113
 #define IDD_PIANO_ROLL                  116
-#define IDD_MAIN                        128
+#define IDD_SETTINGS_PLUGINS                        128
 #define IDM_LOAD_ROM                    129
 #define IDB_LOGO                        133
 #define IDC_LOGO                        134
@@ -125,7 +125,6 @@
 #define RUNDLGORD                       1545
 #define IDC_MANAGE_LINK                 1592
 #define ID_POPUP_ROM_SETTING            2000
-#define IDD_ROM_SETTING_DIALOG          2001
 #define IDC_OK                          2003
 #define IDC_CANCEL                      2004
 #define IDC_ROM_CRC1                    2006
@@ -164,7 +163,7 @@
 #define IDC_CURRENT_ROM_TEXT            2107
 #define IDC_CURRENT_ROM                 2108
 #define ID_GENERATE_ROM_INFO            2200
-#define IDD_MESSAGES                    2250
+#define IDD_SETTINGS_GENERAL                    2250
 #define IDC_MESSAGES                    2255
 #define IDC_LIMITFPS                    2257
 #define IDC_FPSTITLE                    2258
@@ -448,7 +447,6 @@
 #define IDC_GITREPO                     40011
 #define IDM_RESET_RECENT_LUA            40013
 #define IDM_FREEZE_RECENT_LUA           40014
-#define IDD_OTHER_OPTIONS_DIALOG        40015
 #define IDC_OTHEROPTIONS                40016
 #define IDD_COREDBG                     40031
 #define IDC_COREDBG_GROUPBOX            40032
@@ -475,13 +473,11 @@
 #define IDC_CLOCK_SPD_MULT              40055
 #define IDC_CLOCK_SPD_MULT_TEXT         40057
 #define IDC_CLOCK_SPD_MULT2             40057
-#define IDD_MUPENERROR                  40058
 #define IDC_ERROR_PANIC_IGNORE          40059
 #define IDC_ERROR_PANIC_CLOSE           40060
 #define IDC_CRASHREPORT                 40061
 #define IDC_ERRORTEXT                   40062
 #define IDC_ERROR_PICTUREBOX            40063
-#define IDD_NEW_HOTKEY_DIALOG           40064
 #define IDM_SEEKER                      40065
 #define IDM_FASTFORWARD_ON              40066
 #define IDM_FASTFORWARD_OFF             40067
