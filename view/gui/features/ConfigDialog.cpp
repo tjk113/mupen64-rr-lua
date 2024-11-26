@@ -1554,13 +1554,21 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 
             if (offset == 5)
             {
+                const auto result = FrontendService::show_ask_dialog("Are you sure you want to reset all settings to default?", "Reset all to default", false, hwnd);
+
+                if (!result)
+                {
+                    goto destroy_menu;
+                }
+                
                 for (auto& v : g_option_items)
                 {
                     v.reset_to_default();
                 }
                 ListView_RedrawItems(g_lv_hwnd, 0, ListView_GetItemCount(g_lv_hwnd));
             }
-            
+
+            destroy_menu:
             DestroyMenu(h_menu);
         }
         break;
