@@ -37,6 +37,9 @@ namespace PianoRoll
     // The piano roll history listbox's handle.
     HWND g_hist_hwnd = nullptr;
 
+    // The status text handle.
+    HWND g_status_hwnd = nullptr;
+    
     // Represents the current state of the piano roll.
     struct PianoRollState
     {
@@ -663,7 +666,7 @@ namespace PianoRoll
 
         if (!emu_paused)
         {
-            SetDlgItemText(g_hwnd, IDC_STATIC, "Input - Resumed, no edits");
+            SetDlgItemText(g_hwnd, IDC_STATIC, "Input - Resumed (readonly)");
             return;
         }
         
@@ -704,6 +707,15 @@ namespace PianoRoll
             {
                 g_view_logger->info("[PianoRoll] Processing TaskChanged from {} to {}", (int32_t)previous_value, (int32_t)value);
                 update_inputs();
+            }
+
+            if (g_config.seek_savestate_interval == 0)
+            {
+                SetWindowText(g_status_hwnd, "Piano Roll read-only.\nSeek savestate interval must be greater than 0.");
+            }
+            else
+            {
+                SetWindowText(g_status_hwnd, "");
             }
 
             previous_value = value;
@@ -1263,6 +1275,7 @@ namespace PianoRoll
                 g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 17, 30, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
                 CreateWindowEx(0, WC_STATIC, "History", WS_CHILD | WS_VISIBLE | WS_GROUP | SS_LEFT | SS_CENTERIMAGE, 17, 166, 131, 15, g_hwnd, nullptr, g_app_instance, nullptr);
                 g_hist_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTBOX, "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOINTEGRALHEIGHT | LBS_NOTIFY, 17, 186, 131, 181, g_hwnd, nullptr, g_app_instance, nullptr);
+                g_status_hwnd = CreateWindowEx(0, WC_STATIC, "", WS_CHILD | WS_VISIBLE | WS_GROUP | SS_LEFT, 17, 370, 131, 60, g_hwnd, nullptr, g_app_instance, nullptr);
 
                 // Some controls don't get the font set by default, so we do it manually
                 EnumChildWindows(hwnd, [](HWND hwnd, LPARAM font)
