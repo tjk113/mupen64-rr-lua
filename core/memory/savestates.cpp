@@ -82,8 +82,8 @@ namespace Savestates
         /// The savestate's source or target medium.
         Medium medium;
 
-        /// Callback to invoke when the task finishes. Can be null.
-        t_savestate_callback callback = nullptr;
+        /// Callback to invoke when the task finishes. Mustn't be null.
+        t_savestate_callback callback;
 
         /// The task's parameters. Only one field in the struct is valid at a time.
         t_params params{};
@@ -327,10 +327,7 @@ namespace Savestates
 
             if (f == nullptr)
             {
-                if (task.callback)
-                {
-                    task.callback(CoreResult::ST_FileWriteError, st);
-                }
+                task.callback(CoreResult::ST_FileWriteError, st);
                 return;
             }
 
@@ -338,10 +335,7 @@ namespace Savestates
             fclose(f);
         }
 
-        if (task.callback)
-        {
-            task.callback(CoreResult::Ok, st);
-        }
+        task.callback(CoreResult::Ok, st);
         LuaService::call_save_state();
     }
 
@@ -373,20 +367,14 @@ namespace Savestates
 
         if (st_buf.empty())
         {
-            if (task.callback)
-            {
-                task.callback(CoreResult::ST_NotFound, {});
-            }
+            task.callback(CoreResult::ST_NotFound, {});
             return;
         }
 
         std::vector<uint8_t> decompressed_buf = auto_decompress(st_buf);
         if (decompressed_buf.empty())
         {
-            if (task.callback)
-            {
-                task.callback(CoreResult::ST_DecompressionError, {});
-            }
+            task.callback(CoreResult::ST_DecompressionError, {});
             return;
         }
 
@@ -406,10 +394,7 @@ namespace Savestates
 
             if (!result)
             {
-                if (task.callback)
-                {
-                    task.callback(CoreResult::ST_Cancelled, {});
-                }
+                task.callback(CoreResult::ST_Cancelled, {});
                 return;
             }
         }
@@ -429,10 +414,7 @@ namespace Savestates
         if (len == sizeof(g_event_queue_buf))
         {
             // Exhausted the buffer and still no terminator. Prevents the buffer overflow "Queuecrush".
-            if (task.callback)
-            {
-                task.callback(CoreResult::ST_EventQueueTooLong, {});
-            }
+            task.callback(CoreResult::ST_EventQueueTooLong, {});
             return;
         }
 
@@ -469,21 +451,18 @@ namespace Savestates
                     break;
                 case CoreResult::VCR_InvalidFormat:
                     err_str += "the format is invalid.";
-                    stop = true;
                     break;
                 default:
                     err_str += "an unknown error has occured.";
                     break;
                 }
                 err_str += "\r\nAre you sure you want to continue?";
-                auto result = FrontendService::show_ask_dialog(err_str.c_str(), nullptr, true);
+
+                const auto result = FrontendService::show_ask_dialog(err_str.c_str(), nullptr, true);
                 if (!result)
                 {
                     VCR::stop_all();
-                    if (task.callback)
-                    {
-                        task.callback(CoreResult::ST_Cancelled, {});
-                    }
+                    task.callback(CoreResult::ST_Cancelled, {});
                     goto failedLoad;
                 }
             }
@@ -495,10 +474,7 @@ namespace Savestates
                 auto result = FrontendService::show_ask_dialog("Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?");
                 if (!result)
                 {
-                    if (task.callback)
-                    {
-                        task.callback(CoreResult::ST_Cancelled, {});
-                    }
+                    task.callback(CoreResult::ST_Cancelled, {});
                     return;
                 }
             }
@@ -544,11 +520,7 @@ namespace Savestates
         }
 
         LuaService::call_load_state();
-
-        if (task.callback)
-        {
-            task.callback(CoreResult::Ok, decompressed_buf);
-        }
+        task.callback(CoreResult::Ok, decompressed_buf);
 
     failedLoad:
         //legacy .st fix, makes BEQ instruction ignore jump, because .st writes new address explictly.
