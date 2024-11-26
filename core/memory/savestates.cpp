@@ -444,21 +444,21 @@ namespace Savestates
                 switch (code)
                 {
                 case CoreResult::VCR_NotFromThisMovie:
-                    err_str += "the snapshot is not from this movie.";
+                    err_str += "the savestate is not from this movie.";
                     break;
                 case CoreResult::VCR_InvalidFrame:
                     err_str += "the savestate frame is outside the bounds of the movie.";
                     break;
                 case CoreResult::VCR_InvalidFormat:
-                    err_str += "the format is invalid.";
+                    err_str += "the savestate freeze buffer format is invalid.";
                     break;
                 default:
                     err_str += "an unknown error has occured.";
                     break;
                 }
-                err_str += "\r\nAre you sure you want to continue?";
+                err_str += " Loading the savestate might desynchronize the movie.\r\nAre you sure you want to continue?";
 
-                const auto result = FrontendService::show_ask_dialog(err_str.c_str(), nullptr, true);
+                const auto result = FrontendService::show_ask_dialog(err_str.c_str(), "Savestate", true);
                 if (!result)
                 {
                     task.callback(CoreResult::ST_Cancelled, {});
@@ -470,7 +470,7 @@ namespace Savestates
         {
             if (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback)
             {
-                auto result = FrontendService::show_ask_dialog("Loading a non-movie savestate during movie playback might desynchronize playback.\r\nAre you sure you want to continue?");
+                const auto result = FrontendService::show_ask_dialog("The savestate is not from a movie. Loading it might desynchronize the movie.\r\nAre you sure you want to continue?", "Savestate", true);
                 if (!result)
                 {
                     task.callback(CoreResult::ST_Cancelled, {});
