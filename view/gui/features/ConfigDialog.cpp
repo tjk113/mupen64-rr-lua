@@ -1554,6 +1554,24 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
 
             if (offset == 5)
             {
+                // If some settings can't be changed, we'll bail
+                bool can_all_be_changed = true;
+                
+                for (const auto& item : g_option_items)
+                {
+                    if (!item.is_readonly())
+                        continue;
+                    
+                    can_all_be_changed = false;
+                    break;
+                }
+
+                if (!can_all_be_changed)
+                {
+                    FrontendService::show_warning("Some settings can't be reset, as they are currently read-only. Try again with emulation stopped.\nNo changes have been made to the settings.", "Reset all to default", hwnd);
+                    goto destroy_menu;
+                }
+                
                 const auto result = FrontendService::show_ask_dialog("Are you sure you want to reset all settings to default?", "Reset all to default", false, hwnd);
 
                 if (!result)
