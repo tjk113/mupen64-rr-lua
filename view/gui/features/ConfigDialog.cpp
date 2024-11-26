@@ -232,6 +232,11 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 VK_RMENU || j == VK_LSHIFT || j == VK_RSHIFT)
                 continue;
 
+            if (GetAsyncKeyState(VK_RBUTTON))
+            {
+                return 1;
+            }
+            
             if (GetAsyncKeyState(j) & 0x8000)
             {
                 // HACK to avoid exiting all the way out of the dialog on pressing escape to clear a hotkeys
@@ -262,7 +267,12 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                     hotkey->alt = GetAsyncKeyState(VK_MENU) ? 1 : 0;
                     return 1;
                 }
-                memset(hotkey, 0, sizeof(t_hotkey)); // clear key on escape
+
+                hotkey->key = 0;
+                hotkey->shift = 0;
+                hotkey->ctrl = 0;
+                hotkey->alt = 0;
+
                 return 0;
             }
             if (j == VK_CONTROL && lc)
@@ -1634,7 +1644,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                         case 1:
                             if (g_hotkey_active_index.has_value() && g_hotkey_active_index.value() == plvdi->item.iItem)
                             {
-                                strcpy(plvdi->item.pszText, "...");
+                                strcpy(plvdi->item.pszText, "... (RMB to cancel)");
                                 break;
                             }
                             strcpy(plvdi->item.pszText, wstring_to_string(options_item.get_value_name()).c_str());
