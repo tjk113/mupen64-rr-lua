@@ -779,9 +779,9 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		.name = L"Statusbar"
 	};
 
-    t_options_group piano_roll_group = {
+    t_options_group seek_piano_roll_group = {
         .id = ++id,
-        .name = L"Piano Roll"
+        .name = L"Seek / Piano Roll"
     };
 
     t_options_group flow_group = {
@@ -814,7 +814,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         .name = L"Hotkeys"
     };
 
-    groups = {interface_group, statusbar_group, piano_roll_group, flow_group, capture_group, core_group, lua_group, debug_group, hotkey_group};
+    groups = {interface_group, statusbar_group, seek_piano_roll_group, flow_group, capture_group, core_group, lua_group, debug_group, hotkey_group};
 
     options = {
         t_options_item{
@@ -869,21 +869,39 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		},
 
         t_options_item{
-            .group_id = piano_roll_group.id,
+            .group_id = seek_piano_roll_group.id,
+            .name = "Savestate Interval",
+            .tooltip = L"The interval at which to create savestates for seeking. Piano Roll is exclusively read-only if this value is 0.\nHigher numbers will reduce the seek duration at cost of emulator performance, a value of 1 is not allowed.\n0 - Seek savestate generation disabled\nRecommended: 100",
+            .data = &g_config.seek_savestate_interval,
+            .type = t_options_item::Type::Number,
+            .is_readonly = []
+            {
+                return VCR::get_task() != e_task::idle;
+            },
+        },
+        t_options_item{
+            .group_id = seek_piano_roll_group.id,
+            .name = "Savestate Max Count",
+            .tooltip = L"The maximum amount of savestates to keep in memory for seeking.\nHigher numbers might cause an out of memory exception.",
+            .data = &g_config.seek_savestate_max_count,
+            .type = t_options_item::Type::Number,
+        },
+        t_options_item{
+            .group_id = seek_piano_roll_group.id,
             .name = "Constrain edit to column",
             .tooltip = L"Whether piano roll edits are constrained to the column they started on.",
             .data = &g_config.piano_roll_constrain_edit_to_column,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
-            .group_id = piano_roll_group.id,
+            .group_id = seek_piano_roll_group.id,
             .name = "History size",
             .tooltip = L"Maximum size of the history list.",
             .data = &g_config.piano_roll_undo_stack_size,
             .type = t_options_item::Type::Number,
         },
         t_options_item{
-            .group_id = piano_roll_group.id,
+            .group_id = seek_piano_roll_group.id,
             .name = "Keep selection visible",
             .tooltip = L"Whether the piano roll will try to keep the selection visible when the frame changes.",
             .data = &g_config.piano_roll_keep_selection_visible,
@@ -1018,24 +1036,6 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .tooltip = L"Enables WiiVC emulation.",
             .data = &g_config.wii_vc_emulation,
             .type = t_options_item::Type::Bool,
-        },
-        t_options_item{
-            .group_id = core_group.id,
-            .name = "Savestate Interval",
-            .tooltip = L"The interval at which to create savestates for seeking.\nHigher numbers will reduce the seek duration at cost of emulator performance, a value of 1 is not allowed.\n0 - Seek savestate generation disabled\nRecommended: 100",
-            .data = &g_config.seek_savestate_interval,
-            .type = t_options_item::Type::Number,
-            .is_readonly = []
-            {
-                return VCR::get_task() != e_task::idle;
-            },
-        },
-        t_options_item{
-            .group_id = core_group.id,
-            .name = "Savestate Max Count",
-            .tooltip = L"The maximum amount of savestates to keep in memory for seeking.\nHigher numbers might cause an out of memory exception.",
-            .data = &g_config.seek_savestate_max_count,
-            .type = t_options_item::Type::Number,
         },
         t_options_item{
             .group_id = core_group.id,
@@ -1220,6 +1220,18 @@ INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM 
     return FALSE;
 }
 
+/**
+ * Advances the settings listview's selection by one.
+ */
+void advance_listview_selection()
+{
+    int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+    if (i == -1) return;
+    ListView_SetItemState(g_lv_hwnd, i, 0, LVIS_SELECTED | LVIS_FOCUSED);
+    ListView_SetItemState(g_lv_hwnd, i + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+    ListView_EnsureVisible(g_lv_hwnd, i + 1, false);
+}
+
 bool begin_listview_edit(HWND hwnd)
 {
     int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
@@ -1329,9 +1341,7 @@ bool begin_listview_edit(HWND hwnd)
         get_user_hotkey(hotkey);
         g_hotkey_active_index.reset();
 
-        ListView_SetItemState(g_lv_hwnd, i, 0, LVIS_SELECTED | LVIS_FOCUSED);
-        ListView_SetItemState(g_lv_hwnd, i + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-        ListView_EnsureVisible(g_lv_hwnd, i + 1, false);
+        advance_listview_selection();
     }
 
     ListView_Update(g_lv_hwnd, i);
