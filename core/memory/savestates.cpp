@@ -199,8 +199,6 @@ namespace Savestates
         memset(g_flashram_buf, 0, sizeof(g_flashram_buf));
         memset(g_event_queue_buf, 0, sizeof(g_event_queue_buf));
 
-        save_flashram_infos(g_flashram_buf);
-        const int event_queue_len = save_eventqueue_infos(g_event_queue_buf);
         uint32_t movie_active = VCR::get_task() != e_task::idle;
 
         if (FIX_NEW_ST)
@@ -228,6 +226,10 @@ namespace Savestates
             }
             //hack end
         }
+
+    	// NOTE: This saving needs to be done **after** the fixing block, as it is now. See previous regression in f9d58f639c798cbc26bbb808b1c3dbd834ffe2d9.
+    	save_flashram_infos(g_flashram_buf);
+    	const int event_queue_len = save_eventqueue_infos(g_event_queue_buf);
 
         vecwrite(b, rom_md5, 32);
         vecwrite(b, &rdram_register, sizeof(RDRAM_register));
