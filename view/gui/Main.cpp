@@ -1539,7 +1539,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     char stroop_c[1024] = {0};
                     sprintf(stroop_c,
-                            "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\"/>",
+                            "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\" autoDetect=\"true\"/>",
                             proc_name, ram_start);
 
                     constexpr auto RAMSTART_MESSAGE = "The RAM start is {}.\r\nDo you want to copy the generated STROOP config line to your clipboard?";
