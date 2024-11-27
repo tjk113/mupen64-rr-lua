@@ -10,6 +10,7 @@ namespace Statusbar
     {
         Notification,
         VCR,
+        Readonly,
         Input,
         Rerecords,
         FPS,
