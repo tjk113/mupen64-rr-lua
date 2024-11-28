@@ -69,13 +69,15 @@ namespace Seeker
                         break;
                     }
 
+            		SetDlgItemText(hwnd, IDC_SEEKER_START, "Stop");
+
                     if (VCR::begin_seek(g_config.seeker_value, true) != CoreResult::Ok)
                     {
+                    	SetDlgItemText(hwnd, IDC_SEEKER_START, "Start");
                         SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Couldn't seek");
                         break;
                     }
 
-                    SetDlgItemText(hwnd, IDC_SEEKER_START, "Stop");
                     break;
                 }
             case IDCANCEL:
