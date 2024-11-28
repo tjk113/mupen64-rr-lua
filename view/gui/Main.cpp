@@ -63,7 +63,7 @@
 #include "view/helpers/IOHelpers.h"
 #include "wrapper/PersistentPathDialog.h"
 
-// Throwaway actions which can be spammed get keys as to not clog up the async executor queue 
+// Throwaway actions which can be spammed get keys as to not clog up the async executor queue
 #define ASYNC_KEY_CLOSE_ROM (1)
 #define ASYNC_KEY_START_ROM (2)
 #define ASYNC_KEY_RESET_ROM (3)
@@ -462,14 +462,17 @@ namespace Recent
 {
     void build(std::vector<std::string>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
     {
-        for (size_t i = 0; i < vec.size(); i++)
-        {
-            if (vec[i].empty())
-            {
-                continue;
-            }
-            DeleteMenu(g_main_menu, first_menu_id + i, MF_BYCOMMAND);
-        }
+    	assert(is_on_gui_thread());
+
+    	// First 3 items aren't dynamic and shouldn't be deleted
+    	constexpr int FIXED_ITEM_COUNT = 3;
+
+    	const int child_count = GetMenuItemCount(parent_menu) - FIXED_ITEM_COUNT;
+
+	    for (int i = 0; i < child_count; ++i)
+	    {
+	    	DeleteMenu(parent_menu, FIXED_ITEM_COUNT + i, MF_BYPOSITION);
+	    }
 
         if (reset)
         {
@@ -498,6 +501,8 @@ namespace Recent
 
     void add(std::vector<std::string>& vec, std::string val, bool frozen, int first_menu_id, HMENU parent_menu)
     {
+    	assert(is_on_gui_thread());
+
         if (frozen)
         {
             return;
@@ -584,33 +589,37 @@ static double get_rate_per_second_from_deltas(const std::span<timer_delta>& time
 
 void on_script_started(std::any data)
 {
-    auto value = std::any_cast<std::filesystem::path>(data);
-    Recent::add(g_config.recent_lua_script_paths, value.string(), g_config.is_recent_scripts_frozen, ID_LUA_RECENT, g_recent_lua_menu);
+	g_main_window_dispatcher->invoke([=]
+	{
+		auto value = std::any_cast<std::filesystem::path>(data);
+		Recent::add(g_config.recent_lua_script_paths, value.string(), g_config.is_recent_scripts_frozen, ID_LUA_RECENT, g_recent_lua_menu);
+	});
 }
 
 void on_task_changed(std::any data)
 {
-    auto value = std::any_cast<e_task>(data);
-    static auto previous_value = value;
+	g_main_window_dispatcher->invoke([=]
+	{
+    	auto value = std::any_cast<e_task>(data);
+    	static auto previous_value = value;
+		if (!task_is_recording(value) && task_is_recording(previous_value))
+		{
+			Statusbar::post("Recording stopped");
+		}
+		if (!task_is_playback(value) && task_is_playback(previous_value))
+		{
+			Statusbar::post("Playback stopped");
+		}
 
-    if (!task_is_recording(value) && task_is_recording(previous_value))
-    {
-        Statusbar::post("Recording stopped");
-    }
-    if (!task_is_playback(value) && task_is_playback(previous_value))
-    {
-        Statusbar::post("Playback stopped");
-    }
+		if ((task_is_recording(value) && !task_is_recording(previous_value)) || task_is_playback(value) && !task_is_playback(previous_value) && !VCR::get_path().empty())
+		{
+			Recent::add(g_config.recent_movie_paths, VCR::get_path().string(), g_config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
+		}
 
-    if ((task_is_recording(value) && !task_is_recording(previous_value))
-        || (task_is_playback(value) && !task_is_playback(previous_value)) && !VCR::get_path().empty())
-    {
-        Recent::add(g_config.recent_movie_paths, VCR::get_path().string(), g_config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
-    }
-
-    update_titlebar();
-    SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
-    previous_value = value;
+		update_titlebar();
+		SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
+		previous_value = value;
+	});
 }
 
 void on_emu_stopping(std::any)
@@ -625,70 +634,73 @@ void on_emu_stopping(std::any)
 
 void on_emu_launched_changed(std::any data)
 {
-    auto value = std::any_cast<bool>(data);
-    static auto previous_value = value;
+	g_main_window_dispatcher->invoke([=]
+	{
+		auto value = std::any_cast<bool>(data);
+		static auto previous_value = value;
 
-    if (value)
-    {
-        SetWindowLong(g_main_hwnd, GWL_STYLE,
-                      GetWindowLong(g_main_hwnd, GWL_STYLE) & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
-    }
-    else
-    {
-        SetWindowLong(g_main_hwnd, GWL_STYLE,
-                      GetWindowLong(g_main_hwnd, GWL_STYLE) | WS_THICKFRAME | WS_MAXIMIZEBOX);
-    }
+		const auto window_style =  GetWindowLong(g_main_hwnd, GWL_STYLE);
+		if (value)
+		{
+			SetWindowLong(g_main_hwnd, GWL_STYLE, window_style & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
+		}
+		else
+		{
+			SetWindowLong(g_main_hwnd, GWL_STYLE, window_style | WS_THICKFRAME | WS_MAXIMIZEBOX);
+		}
 
+		update_titlebar();
+		// Some menu items, like movie ones, depend on both this and vcr task
+		on_task_changed(VCR::get_task());
 
-    update_titlebar();
-    // Some menu items, like movie ones, depend on both this and vcr task
-    on_task_changed(VCR::get_task());
+		// Reset and restore view stuff when emulation starts
+		if (value)
+		{
+			g_vis_since_input_poll_warning_dismissed = false;
 
-    // Reset and restore view stuff when emulation starts
-    if (value)
-    {
-        Recent::add(g_config.recent_rom_paths, get_rom_path().string(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, g_recent_roms_menu);
-        g_vis_since_input_poll_warning_dismissed = false;
-        g_main_window_dispatcher->invoke([]
-        {
-            for (const HWND hwnd : g_previously_running_luas)
-            {
-                // click start button
-                SendMessage(hwnd, WM_COMMAND,
-                            MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
-                            (LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
-            }
+			Recent::add(g_config.recent_rom_paths, get_rom_path().string(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, g_recent_roms_menu);
 
-            g_previously_running_luas.clear();
-        });
-    }
+			for (const HWND hwnd : g_previously_running_luas)
+			{
+				// click start button
+				SendMessage(hwnd, WM_COMMAND,
+							MAKEWPARAM(IDC_BUTTON_LUASTATE, BN_CLICKED),
+							(LPARAM)GetDlgItem(hwnd, IDC_BUTTON_LUASTATE));
+			}
 
-    if (!value && previous_value)
-    {
-        g_view_logger->info("[View] Restoring window size to {}x{}...", g_config.window_width, g_config.window_height);
-        SetWindowPos(g_main_hwnd, nullptr, 0, 0, g_config.window_width, g_config.window_height, SWP_NOMOVE);
-    }
+			g_previously_running_luas.clear();
+		}
 
-    SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
-    previous_value = value;
+		if (!value && previous_value)
+		{
+			g_view_logger->info("[View] Restoring window size to {}x{}...", g_config.window_width, g_config.window_height);
+			SetWindowPos(g_main_hwnd, nullptr, 0, 0, g_config.window_width, g_config.window_height, SWP_NOMOVE);
+		}
+
+		SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
+		previous_value = value;
+	});
 }
 
 void on_capturing_changed(std::any data)
 {
-    auto value = std::any_cast<bool>(data);
+	g_main_window_dispatcher->invoke([=]
+	{
+		auto value = std::any_cast<bool>(data);
 
-    if (value)
-    {
-        SetWindowLong(g_main_hwnd, GWL_STYLE, GetWindowLong(g_main_hwnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
-    }
-    else
-    {
-        SetWindowPos(g_main_hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        SetWindowLong(g_main_hwnd, GWL_STYLE, GetWindowLong(g_main_hwnd, GWL_STYLE) | WS_MINIMIZEBOX);
-    }
+		if (value)
+		{
+			SetWindowLong(g_main_hwnd, GWL_STYLE, GetWindowLong(g_main_hwnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+		}
+		else
+		{
+			SetWindowPos(g_main_hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			SetWindowLong(g_main_hwnd, GWL_STYLE, GetWindowLong(g_main_hwnd, GWL_STYLE) | WS_MINIMIZEBOX);
+		}
 
-    update_titlebar();
-    SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
+		update_titlebar();
+		SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
+	});
 }
 
 void on_speed_modifier_changed(std::any data)
@@ -735,9 +747,12 @@ void on_movie_loop_changed(std::any data)
 
 void on_fullscreen_changed(std::any data)
 {
-    auto value = std::any_cast<bool>(data);
-    ShowCursor(!value);
-    SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
+	g_main_window_dispatcher->invoke([=]
+	{
+		auto value = std::any_cast<bool>(data);
+		ShowCursor(!value);
+		SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
+	});
 }
 
 void on_config_loaded(std::any)
