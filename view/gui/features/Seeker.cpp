@@ -23,11 +23,14 @@ namespace Seeker
         switch (Message)
         {
         case WM_INITDIALOG:
-            refresh_timer = SetTimer(hwnd, NULL, 1000 / 10, nullptr);
             current_hwnd = hwnd;
+
+        	SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Idle");
+        	SetDlgItemText(hwnd, IDC_SEEKER_START, "Start");
             SetDlgItemText(hwnd, IDC_SEEKER_FRAME, g_config.seeker_value.c_str());
+
+            refresh_timer = SetTimer(hwnd, NULL, 1000 / 10, nullptr);
             SetFocus(GetDlgItem(hwnd, IDC_SEEKER_FRAME));
-            SendMessage(hwnd, WM_SEEK_COMPLETED, 0, 0);
             break;
         case WM_DESTROY:
             KillTimer(hwnd, refresh_timer);
@@ -37,7 +40,7 @@ namespace Seeker
             EndDialog(hwnd, IDCANCEL);
             break;
         case WM_SEEK_COMPLETED:
-            SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Idle");
+            SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Seek completed");
             SetDlgItemText(hwnd, IDC_SEEKER_START, "Start");
             break;
         case WM_TIMER:
