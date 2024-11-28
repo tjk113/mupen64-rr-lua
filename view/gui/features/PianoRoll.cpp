@@ -39,7 +39,7 @@ namespace PianoRoll
 
     // The status text handle.
     HWND g_status_hwnd = nullptr;
-    
+
     // Represents the current state of the piano roll.
     struct PianoRollState
     {
@@ -91,10 +91,10 @@ namespace PianoRoll
 
     // HACK: Flag used to not show context menu when dragging in the button columns
     bool g_lv_ignore_context_menu = false;
-    
+
     // Whether a joystick drag operation is happening
     bool g_joy_drag = false;
-    
+
     // The current piano roll state.
     PianoRollState g_piano_roll_state;
 
@@ -422,7 +422,7 @@ namespace PianoRoll
             g_view_logger->warn("[PianoRoll] Tried to call apply_input_buffer, but can_modify_inputs() == false.");
             return;
         }
-        
+
         // This might be called from UI thread, thus grabbing the VCR lock.
         // Problem is that the VCR lock is already grabbed by the core thread because current sample changed message is executed on core thread.
         AsyncExecutor::invoke_async([=]
@@ -474,7 +474,7 @@ namespace PianoRoll
     }
 
     /**
-     * Shifts the history index by the specified offset and applies the changes. 
+     * Shifts the history index by the specified offset and applies the changes.
      */
     bool shift_history(int offset)
     {
@@ -669,7 +669,7 @@ namespace PianoRoll
             SetDlgItemText(g_hwnd, IDC_STATIC, "Input - Resumed (readonly)");
             return;
         }
-        
+
         if (g_piano_roll_state.selected_indicies.empty())
         {
             SetDlgItemText(g_hwnd, IDC_STATIC, "Input");
@@ -711,7 +711,7 @@ namespace PianoRoll
 
             if (g_config.seek_savestate_interval == 0)
             {
-                SetWindowText(g_status_hwnd, "Piano Roll read-only.\nSeek savestate interval must be greater than 0.");
+                SetWindowText(g_status_hwnd, "Piano Roll read-only.\nSeek savestates must be enabled.");
             }
             else
             {
@@ -818,7 +818,7 @@ namespace PianoRoll
         {
             return;
         }
-        
+
         g_piano_roll_dispatcher->invoke([=]
         {
             update_groupbox_status_text();
@@ -847,7 +847,7 @@ namespace PianoRoll
     }
 
     /**
-     * The window procedure for the joystick control. 
+     * The window procedure for the joystick control.
      */
     LRESULT CALLBACK joystick_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
@@ -884,7 +884,7 @@ namespace PianoRoll
                 }
 
                 g_view_logger->info("[PianoRoll] Joystick repaint, can_joystick_be_modified: {}", can_joystick_be_modified());
-                
+
                 PAINTSTRUCT ps;
                 RECT rect;
                 HDC hdc = BeginPaint(hwnd, &ps);
@@ -1007,7 +1007,7 @@ namespace PianoRoll
     }
 
     /**
-     * The window procedure for the listview control. 
+     * The window procedure for the listview control.
      */
     LRESULT CALLBACK list_view_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sId, DWORD_PTR)
     {
@@ -1020,7 +1020,7 @@ namespace PianoRoll
                     g_lv_ignore_context_menu = false;
                     break;
                 }
-                
+
                 HMENU h_menu = CreatePopupMenu();
                 const auto base_style = can_modify_inputs() ? MF_ENABLED : MF_DISABLED;
                 AppendMenu(h_menu, MF_STRING, 1, "Copy\tCtrl+C");
@@ -1230,7 +1230,7 @@ namespace PianoRoll
         {
             goto def;
         }
-        
+
         // During a drag operation, we just mutate the input vector in memory and update the listview without doing anything with the core.
         // Only when the drag ends do we actually apply the changes to the core via begin_warp_modify
 
@@ -1259,7 +1259,7 @@ namespace PianoRoll
     }
 
     /**
-     * The window procedure for the piano roll dialog. 
+     * The window procedure for the piano roll dialog.
      */
     LRESULT CALLBACK dialog_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
@@ -1270,7 +1270,7 @@ namespace PianoRoll
             break;
         case WM_INITDIALOG:
             {
-                // We create all the child controls here because windows dialog scaling would mess our stuff up when mixing dialog manager and manual creation 
+                // We create all the child controls here because windows dialog scaling would mess our stuff up when mixing dialog manager and manual creation
                 g_hwnd = hwnd;
                 g_joy_hwnd = CreateWindowEx(WS_EX_STATICEDGE, JOYSTICK_CLASS, "", WS_CHILD | WS_VISIBLE, 17, 30, 131, 131, g_hwnd, nullptr, g_app_instance, nullptr);
                 CreateWindowEx(0, WC_STATIC, "History", WS_CHILD | WS_VISIBLE | WS_GROUP | SS_LEFT | SS_CENTERIMAGE, 17, 166, 131, 15, g_hwnd, nullptr, g_app_instance, nullptr);
