@@ -42,6 +42,7 @@ namespace Seeker
         case WM_SEEK_COMPLETED:
             SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Seek completed");
             SetDlgItemText(hwnd, IDC_SEEKER_START, "Start");
+        	SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, "");
             break;
         case WM_TIMER:
             {
@@ -73,11 +74,16 @@ namespace Seeker
                     }
 
             		SetDlgItemText(hwnd, IDC_SEEKER_START, "Stop");
+                    if (g_config.seek_savestate_interval == 0)
+                    {
+                    	SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, "Seek savestates disabled. Seeking backwards will be slower.");
+                    }
 
                     if (VCR::begin_seek(g_config.seeker_value, true) != CoreResult::Ok)
                     {
                     	SetDlgItemText(hwnd, IDC_SEEKER_START, "Start");
                         SetDlgItemText(hwnd, IDC_SEEKER_STATUS, "Couldn't seek");
+                    	SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, "");
                         break;
                     }
 
