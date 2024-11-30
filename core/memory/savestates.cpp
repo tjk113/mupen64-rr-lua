@@ -742,7 +742,7 @@ namespace Savestates
 
         std::scoped_lock lock(g_task_mutex);
 
-        if (g_config.increment_slot)
+        if (g_config.increment_slot && job == Job::Save)
         {
             g_config.st_slot >= 9 ? g_config.st_slot = 0 : g_config.st_slot++;
             Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
