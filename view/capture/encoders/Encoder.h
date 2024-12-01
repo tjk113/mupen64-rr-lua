@@ -62,7 +62,8 @@ public:
      * \brief Adds samples of audio data
      * \param audio The audio buffer. Must be freed with the provided audio free function.
      * \param length The audio length
+     * \param bitrate The audio bitrate
      * \return Whether the operation succeeded
      */
-    virtual bool append_audio(uint8_t* audio, size_t length) = 0;
+    virtual bool append_audio(uint8_t* audio, size_t length, uint8_t bitrate) = 0;
 };

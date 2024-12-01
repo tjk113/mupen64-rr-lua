@@ -11,7 +11,7 @@
 bool FFmpegEncoder::start(Params params)
 {
     m_params = params;
-    
+
     const auto bufsize_video = 2048;
     const auto bufsize_audio = m_params.arate * 8;
 
@@ -172,7 +172,7 @@ bool FFmpegEncoder::append_video(uint8_t* image)
     {
         g_view_logger->error("[FFmpegEncoder] Out of memory, writing blank video frame");
         ++m_dropped_frames;
-        
+
         {
             std::lock_guard lock(m_video_queue_mutex);
             m_video_queue.emplace(m_blank_buffer, false);
@@ -192,7 +192,7 @@ bool FFmpegEncoder::append_video(uint8_t* image)
     return true;
 }
 
-bool FFmpegEncoder::append_audio(uint8_t* audio, size_t length)
+bool FFmpegEncoder::append_audio(uint8_t* audio, size_t length, uint8_t)
 {
     auto buf = static_cast<uint8_t*>(malloc(length));
     memcpy(buf, audio, length);
