@@ -45,7 +45,7 @@ size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstri
         .pszWindowTitle = title,
         .pszMainIcon = icon,
         .pszContent = str,
-        .cButtons = buttons.size(),
+        .cButtons = (UINT)buttons.size(),
         .pButtons = buttons.data(),
     };
 

@@ -23,7 +23,7 @@ namespace CoreDbg
     std::atomic<HWND> g_hwnd = nullptr;
     Debugger::t_cpu_state g_cpu_state{};
 
-    BOOL CALLBACK coredbg_dlgproc(HWND hwnd, UINT msg, WPARAM w_param,
+	INT_PTR CALLBACK coredbg_dlgproc(HWND hwnd, UINT msg, WPARAM w_param,
                                   LPARAM l_param)
     {
         switch (msg)

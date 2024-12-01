@@ -384,7 +384,7 @@ std::optional<t_movie_freeze> VCR::freeze()
     assert(g_movie_inputs.size() >= g_header.length_samples);
 
     t_movie_freeze freeze = {
-        .size = sizeof(unsigned long) * 4 + sizeof(BUTTONS) * (g_header.length_samples + 1),
+        .size = (unsigned long)(sizeof(unsigned long) * 4 + sizeof(BUTTONS) * (g_header.length_samples + 1)),
         .uid = g_header.uid,
         .current_sample = (unsigned long)m_current_sample,
         .current_vi = (unsigned long)m_current_vi,
