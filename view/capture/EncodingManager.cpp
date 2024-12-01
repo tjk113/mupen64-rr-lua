@@ -381,33 +381,15 @@ namespace EncodingManager
 		stop_capture();
 	}
 
-	void update_audio_bitrate()
-	{
-		const auto prev_audio_bitrate = m_audio_bitrate;
-		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
-
-		if (!m_capturing)
-		{
-			return;
-		}
-
-		if (m_audio_bitrate == prev_audio_bitrate)
-			return;
-
-		FrontendService::show_error("Audio bitrate changed during capture.\r\nThe capture will be stopped.", "Capture");
-		stop_capture();
-	}
-
 	void ai_len_changed()
 	{
 		assert(is_on_gui_thread());
 
-		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.
-			ai_dram_addr & 0xFFFFFF));
+		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.ai_dram_addr & 0xFFFFFF));
 		const auto buf = (char*)p;
 		const int ai_len = (int)ai_register.ai_len;
 
-		update_audio_bitrate();
+		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
 
 		if (!m_capturing)
 		{
@@ -447,7 +429,7 @@ namespace EncodingManager
 			return;
 		}
 
-		update_audio_bitrate();
+		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
 
 		switch (type)
 		{
