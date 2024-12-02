@@ -105,3 +105,8 @@ bool is_on_gui_thread();
 * \returns Whether the function was able to show an error dialog.
 */
 bool show_error_dialog_for_result(CoreResult result, void* hwnd = nullptr);
+
+/**
+ * \brief Gets all available plugins
+ */
+std::vector<std::unique_ptr<Plugin>> get_available_plugins();

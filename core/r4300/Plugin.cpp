@@ -53,15 +53,6 @@ AUDIO_INFO audio_info;
 CONTROL_INFO control_info;
 RSP_INFO rsp_info;
 
-std::string get_plugins_directory()
-{
-    if (g_config.is_default_plugins_directory_used)
-    {
-        return FrontendService::get_app_path().string() + "plugin\\";
-    }
-    return g_config.plugins_directory;
-}
-
 /* dummy functions to prevent mupen from crashing if a plugin is missing */
 static void __cdecl dummy_void()
 {
@@ -544,23 +535,6 @@ void Plugin::load_into_globals()
         load_rsp((void*)m_module);
         break;
     }
-}
-
-std::vector<std::unique_ptr<Plugin>> get_available_plugins()
-{
-    std::vector<std::unique_ptr<Plugin>> plugins;
-    std::vector<std::string> files = IOService::get_files_with_extension_in_directory(
-        get_plugins_directory(), "dll");
-
-    for (const auto& file : files)
-    {
-        auto plugin = Plugin::create(file);
-        if (plugin.has_value())
-        {
-            plugins.push_back(std::move(plugin.value()));
-        }
-    }
-    return plugins;
 }
 
 void setup_dummy_info()

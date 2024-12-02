@@ -276,12 +276,6 @@ private:
     void* m_module;
 };
 
-/**
- * \brief Gets all available plugins
- */
-std::vector<std::unique_ptr<Plugin>> get_available_plugins();
-
-
 /// <summary>
 /// Initializes dummy info used by per-plugin functions
 /// </summary>
