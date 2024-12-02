@@ -35,47 +35,47 @@
 
 void gentlbwi()
 {
-    gencallinterp((unsigned long)TLBWI, 0);
+    gencallinterp((uint32_t)TLBWI, 0);
     /*dst->local_addr = code_length;
-    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-    mov_reg32_imm32(EAX, (unsigned long)(TLBWI));
+    mov_m32_imm32((void *)(&PC), (uint32_t)(dst));
+    mov_reg32_imm32(EAX, (uint32_t)(TLBWI));
     call_reg32(EAX);
     genupdate_system(0);*/
 }
 
 void gentlbp()
 {
-    gencallinterp((unsigned long)TLBP, 0);
+    gencallinterp((uint32_t)TLBP, 0);
     /*dst->local_addr = code_length;
-    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-    mov_reg32_imm32(EAX, (unsigned long)(TLBP));
+    mov_m32_imm32((void *)(&PC), (uint32_t)(dst));
+    mov_reg32_imm32(EAX, (uint32_t)(TLBP));
     call_reg32(EAX);
     genupdate_system(0);*/
 }
 
 void gentlbr()
 {
-    gencallinterp((unsigned long)TLBR, 0);
+    gencallinterp((uint32_t)TLBR, 0);
     /*dst->local_addr = code_length;
-    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
-    mov_reg32_imm32(EAX, (unsigned long)(TLBR));
+    mov_m32_imm32((void *)(&PC), (uint32_t)(dst));
+    mov_reg32_imm32(EAX, (uint32_t)(TLBR));
     call_reg32(EAX);
     genupdate_system(0);*/
 }
 
 void generet()
 {
-    gencallinterp((unsigned long)ERET, 1);
+    gencallinterp((uint32_t)ERET, 1);
     /*dst->local_addr = code_length;
-    mov_m32_imm32((void *)(&PC), (unsigned long)(dst));
+    mov_m32_imm32((void *)(&PC), (uint32_t)(dst));
     genupdate_system(0);
-    mov_reg32_imm32(EAX, (unsigned long)(ERET));
+    mov_reg32_imm32(EAX, (uint32_t)(ERET));
     call_reg32(EAX);
-    mov_reg32_imm32(EAX, (unsigned long)(jump_code));
+    mov_reg32_imm32(EAX, (uint32_t)(jump_code));
     jmp_reg32(EAX);*/
 }
 
 void gentlbwr()
 {
-    gencallinterp((unsigned long)TLBWR, 0);
+    gencallinterp((uint32_t)TLBWR, 0);
 }

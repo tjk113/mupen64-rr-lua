@@ -22,7 +22,7 @@
 #include <core/r4300/rom.h>
 
 typedef std::chrono::high_resolution_clock::time_point time_point;
-typedef std::common_type_t<std::chrono::duration<long long, std::ratio<1, 1000000000>>, std::chrono::duration<long long, std::ratio<1, 1000000000>>> timer_delta;
+typedef std::common_type_t<std::chrono::duration<int64_t, std::ratio<1, 1000000000>>, std::chrono::duration<int64_t, std::ratio<1, 1000000000>>> timer_delta;
 
 const size_t max_deltas = 60;
 

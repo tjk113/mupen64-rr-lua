@@ -50,7 +50,7 @@ bool Debugger::get_rsp_enabled()
 
 void Debugger::set_rsp_enabled(bool value)
 {
-    // Stash the original plugin-provided doRspCycles once 
+    // Stash the original plugin-provided doRspCycles once
     if (!g_original_do_rsp_cycles)
     {
         g_original_do_rsp_cycles = doRspCycles;
@@ -63,7 +63,7 @@ void Debugger::set_rsp_enabled(bool value)
         doRspCycles = dummy_doRspCycles;
 }
 
-void Debugger::on_late_cycle(unsigned long opcode, unsigned long address)
+void Debugger::on_late_cycle(uint32_t opcode, uint32_t address)
 {
     g_cpu_state = {
         .opcode = opcode,

@@ -36,7 +36,7 @@
 void MFC1()
 {
     if (check_cop1_unusable()) return;
-    rrt32 = *((long*)reg_cop1_simple[core_rfs]);
+    rrt32 = *((int32_t*)reg_cop1_simple[core_rfs]);
     sign_extended(core_rrt);
     PC++;
 }
@@ -44,7 +44,7 @@ void MFC1()
 void DMFC1()
 {
     if (check_cop1_unusable()) return;
-    core_rrt = *((long long*)reg_cop1_double[core_rfs]);
+    core_rrt = *((int64_t*)reg_cop1_double[core_rfs]);
     PC++;
 }
 
@@ -67,14 +67,14 @@ void CFC1()
 void MTC1()
 {
     if (check_cop1_unusable()) return;
-    *((long*)reg_cop1_simple[core_rfs]) = rrt32;
+    *((int32_t*)reg_cop1_simple[core_rfs]) = rrt32;
     PC++;
 }
 
 void DMTC1()
 {
     if (check_cop1_unusable()) return;
-    *((long long*)reg_cop1_double[core_rfs]) = core_rrt;
+    *((int64_t*)reg_cop1_double[core_rfs]) = core_rrt;
     PC++;
 }
 
@@ -99,7 +99,7 @@ void CTC1()
         break;
     }
     set_rounding();
-    //if ((FCR31 >> 7) & 0x1F) g_core_logger->info("FPU Exception enabled : {:#06x}", 
-    //				   (int)((FCR31 >> 7) & 0x1F));
+    //if ((FCR31 >> 7) & 0x1F) g_core_logger->info("FPU Exception enabled : {:#06x}",
+    //				   (int32_t)((FCR31 >> 7) & 0x1F));
     PC++;
 }

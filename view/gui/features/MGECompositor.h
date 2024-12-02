@@ -1,6 +1,6 @@
 #pragma once
 #include <Windows.h>
-
+#include <cstdint>
 namespace MGECompositor
 {
     /**
@@ -29,7 +29,7 @@ namespace MGECompositor
      * \param width The video width. If null, the width is not written.
      * \param height The video height. If null, the height is not written.
      */
-    void get_video_size(long* width, long* height);
+    void get_video_size(int32_t* width, int32_t* height);
 
     /**
      * \brief Writes the MGE compositor's current emulation front buffer into the destination buffer.

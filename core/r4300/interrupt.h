@@ -27,6 +27,10 @@
  *
 **/
 
+#pragma once
+
+#include <cstdint>
+
 void compare_interrupt();
 void gen_dp();
 void init_interrupt();
@@ -34,13 +38,13 @@ void init_interrupt();
 void gen_interrupt();
 void check_interrupt();
 
-void translate_event_queue(unsigned long base);
-void remove_event(int type);
-void add_interrupt_event_count(int type, unsigned long count);
-void add_interrupt_event(int type, unsigned long delay);
-unsigned long get_event(int type);
+void translate_event_queue(uint32_t base);
+void remove_event(int32_t type);
+void add_interrupt_event_count(int32_t type, uint32_t count);
+void add_interrupt_event(int32_t type, uint32_t delay);
+uint32_t get_event(int32_t type);
 
-int save_eventqueue_infos(char* buf);
+int32_t save_eventqueue_infos(char* buf);
 void load_eventqueue_infos(char* buf);
 
 #define VI_INT      0x001

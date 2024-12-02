@@ -61,15 +61,15 @@ void print_rom_info()
            ROM_HEADER.init_PI_BSB_DOM1_PGS_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PWD_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PGS_REG2);
-    g_core_logger->info("Clock rate: {:#06x}", sl((unsigned int)ROM_HEADER.ClockRate));
-    g_core_logger->info("Version: {:#06x}", sl((unsigned int)ROM_HEADER.Release));
-    g_core_logger->info("CRC: {:#06x} {:#06x}", sl((unsigned int)ROM_HEADER.CRC1), sl((unsigned int)ROM_HEADER.CRC2));
+    g_core_logger->info("Clock rate: {:#06x}", sl((uint32_t)ROM_HEADER.ClockRate));
+    g_core_logger->info("Version: {:#06x}", sl((uint32_t)ROM_HEADER.Release));
+    g_core_logger->info("CRC: {:#06x} {:#06x}", sl((uint32_t)ROM_HEADER.CRC1), sl((uint32_t)ROM_HEADER.CRC2));
     g_core_logger->info("Name: {}", (char*)ROM_HEADER.nom);
     if (sl(ROM_HEADER.Manufacturer_ID) == 'N') g_core_logger->info("Manufacturer: Nintendo");
-    else g_core_logger->info("Manufacturer: {:#06x}", (unsigned int)(ROM_HEADER.Manufacturer_ID));
+    else g_core_logger->info("Manufacturer: {:#06x}", (uint32_t)(ROM_HEADER.Manufacturer_ID));
     g_core_logger->info("Cartridge ID: {:#06x}", ROM_HEADER.Cartridge_ID);
     g_core_logger->info("Size: {}", rom_size);
-    g_core_logger->info("PC: {:#06x}\n", sl((unsigned int)ROM_HEADER.PC));
+    g_core_logger->info("PC: {:#06x}\n", sl((uint32_t)ROM_HEADER.PC));
     g_core_logger->info("Country: {}", country_code_to_country_name(ROM_HEADER.Country_code).c_str());
     g_core_logger->info("----------------");
 }
@@ -186,7 +186,7 @@ bool rom_load(std::filesystem::path path)
     }
 
     rom_size = decompressed_rom.size();
-    unsigned long taille = rom_size;
+    uint32_t taille = rom_size;
     if (g_config.use_summercart && taille < 0x4000000) taille = 0x4000000;
 
     rom = (unsigned char*)malloc(taille);
@@ -248,7 +248,7 @@ bool rom_load(std::filesystem::path path)
         strcpy(rom_md5, arg);
     }
 
-    auto roml = (unsigned long*)rom;
+    auto roml = (uint32_t*)rom;
     for (size_t i = 0; i < (rom_size / 4); i++)
         roml[i] = sl(roml[i]);
 

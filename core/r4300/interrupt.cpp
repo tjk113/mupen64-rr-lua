@@ -49,8 +49,8 @@
 
 typedef struct _interrupt_queue
 {
-    int type;
-    unsigned long count;
+    int32_t type;
+    uint32_t count;
     struct _interrupt_queue* next;
 } interrupt_queue;
 
@@ -74,7 +74,7 @@ interrupt_queue* pool_alloc()
     }
     else
     {
-        for (int i = 0; i < sizeof(g_pool); ++i)
+        for (int32_t i = 0; i < sizeof(g_pool); ++i)
         {
             if (g_pool_used[i] == false)
             {
@@ -84,10 +84,10 @@ interrupt_queue* pool_alloc()
         }
         assert(unused_index != SIZE_MAX);
     }
-    
+
     g_pool_used[unused_index] = true;
     g_known_unused_index = SIZE_MAX;
-    
+
     return &g_pool[unused_index];
 }
 
@@ -100,7 +100,7 @@ void pool_free(const interrupt_queue* ptr)
 
 #ifdef _DEBUG
     size_t index = SIZE_MAX;
-    for (int i = 0; i < sizeof(g_pool); ++i)
+    for (int32_t i = 0; i < sizeof(g_pool); ++i)
     {
         if (&g_pool[i] == ptr)
         {
@@ -140,18 +140,18 @@ void print_queue()
 {
     interrupt_queue* aux;
     //if (Count < 0x7000000) return;
-    g_core_logger->info("------------------ {:#06x}", (unsigned int)core_Count);
+    g_core_logger->info("------------------ {:#06x}", (uint32_t)core_Count);
     aux = q;
     while (aux != NULL)
     {
-        g_core_logger->info("Count:{:#06x}, {:#06x}", (unsigned int)aux->count, aux->type);
+        g_core_logger->info("Count:{:#06x}, {:#06x}", (uint32_t)aux->count, aux->type);
         aux = aux->next;
     }
     g_core_logger->info("------------------");
     //getchar();
 }
 
-static int SPECIAL_done = 0;
+static int32_t SPECIAL_done = 0;
 
 /// <summary>
 /// Checks if evt1 will happen before evt2
@@ -160,7 +160,7 @@ static int SPECIAL_done = 0;
 /// <param name="evt2"></param>
 /// <param name="type2"></param>
 /// <returns></returns>
-int before_event(unsigned long evt1, unsigned long evt2, int type2)
+int32_t before_event(uint32_t evt1, uint32_t evt2, int32_t type2)
 {
     if (evt1 - core_Count < 0x80000000)
     {
@@ -194,10 +194,10 @@ int before_event(unsigned long evt1, unsigned long evt2, int type2)
 /// </summary>
 /// <param name="type">type of interrupt</param>
 /// <param name="delay">how much to wait</param>
-void add_interrupt_event(int type, unsigned long delay)
+void add_interrupt_event(int32_t type, uint32_t delay)
 {
-    unsigned long count = core_Count + delay/**2*/;
-    int special = 0;
+    uint32_t count = core_Count + delay/**2*/;
+    int32_t special = 0;
 
     if (type == SPECIAL_INT /*|| type == COMPARE_INT*/) special = 1;
     if (core_Count > 0x80000000) SPECIAL_done = 0;
@@ -276,7 +276,7 @@ void add_interrupt_event(int type, unsigned long delay)
 /// </summary>
 /// <param name="type">type of interrupt</param>
 /// <param name="count">when to make this interrupt happen</param>
-void add_interrupt_event_count(int type, unsigned long count)
+void add_interrupt_event_count(int32_t type, uint32_t count)
 {
     add_interrupt_event(type, (count - core_Count)/*/2*/);
 }
@@ -298,7 +298,7 @@ void remove_interrupt_event()
 /// </summary>
 /// <param name="type">type of interrupt, see interrupt.h</param>
 /// <returns></returns>
-unsigned long get_event(int type)
+uint32_t get_event(int32_t type)
 {
     interrupt_queue* aux = q;
     if (q == NULL) return 0;
@@ -315,7 +315,7 @@ unsigned long get_event(int type)
 /// finds and removes this type of event from queue
 /// </summary>
 /// <param name="type">interrupt type to find</param>
-void remove_event(int type)
+void remove_event(int32_t type)
 {
     interrupt_queue* aux = q;
     if (q == NULL) return;
@@ -328,7 +328,7 @@ void remove_event(int type)
     }
     while (aux->next != NULL && aux->next->type != type)
         aux = aux->next;
-    if (aux->next != NULL) // it's a type int
+    if (aux->next != NULL) // it's a type int32_t
     {
         interrupt_queue* aux2 = aux->next->next;
         pool_free(aux->next);
@@ -336,7 +336,7 @@ void remove_event(int type)
     }
 }
 
-void translate_event_queue(unsigned long base)
+void translate_event_queue(uint32_t base)
 {
     interrupt_queue* aux;
     remove_event(COMPARE_INT);
@@ -351,7 +351,7 @@ void translate_event_queue(unsigned long base)
     add_interrupt_event_count(SPECIAL_INT, 0);
 }
 
-int save_eventqueue_infos(char* buf)
+int32_t save_eventqueue_infos(char* buf)
 {
 #ifdef _DEBUG
     if (get_event(SI_INT))
@@ -359,11 +359,11 @@ int save_eventqueue_infos(char* buf)
     else
         g_core_logger->info("SI_INT not found");
 #endif
-    int len = 0;
+    int32_t len = 0;
     interrupt_queue* aux = q;
     if (q == NULL)
     {
-        *((unsigned long*)&buf[0]) = 0xFFFFFFFF;
+        *((uint32_t*)&buf[0]) = 0xFFFFFFFF;
         return 4;
     }
     while (aux != NULL)
@@ -373,18 +373,18 @@ int save_eventqueue_infos(char* buf)
         len += 8;
         aux = aux->next;
     }
-    *((unsigned long*)&buf[len]) = 0xFFFFFFFF;
+    *((uint32_t*)&buf[len]) = 0xFFFFFFFF;
     return len + 4;
 }
 
 void load_eventqueue_infos(char* buf)
 {
-    int len = 0;
+    int32_t len = 0;
     clear_queue();
-    while (*((unsigned long*)&buf[len]) != 0xFFFFFFFF)
+    while (*((uint32_t*)&buf[len]) != 0xFFFFFFFF)
     {
-        int type = *((unsigned long*)&buf[len]);
-        unsigned long count = *((unsigned long*)&buf[len + 4]);
+        int32_t type = *((uint32_t*)&buf[len]);
+        uint32_t count = *((uint32_t*)&buf[len + 4]);
         add_interrupt_event_count(type, count);
         len += 8;
     }
@@ -467,7 +467,7 @@ void gen_interrupt()
             /*if ((Cause & (2 << 2)) && (Cause & 0x80000000))
               jump_to(skip_jump+4);
             else*/
-            unsigned long dest = skip_jump;
+            uint32_t dest = skip_jump;
             skip_jump = 0;
             jump_to(dest);
             last_addr = PC->addr;
@@ -566,7 +566,7 @@ void gen_interrupt()
         //g_core_logger->info("AI, count: {:#06x}", q->count);
         if (ai_register.ai_status & 0x80000000) // full
         {
-            unsigned long ai_event = get_event(AI_INT);
+            uint32_t ai_event = get_event(AI_INT);
             remove_interrupt_event();
             ai_register.ai_status &= ~0x80000000;
             ai_register.current_delay = ai_register.next_delay;

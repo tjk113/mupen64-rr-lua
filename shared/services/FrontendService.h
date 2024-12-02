@@ -138,7 +138,7 @@ namespace FrontendService
      * \param width The video width
      * \param height The video height
      */
-    void mge_get_video_size(long* width, long* height);
+    void mge_get_video_size(int32_t* width, int32_t* height);
 
     /**
      * \brief Writes the MGE compositor's current emulation front buffer into the destination buffer.

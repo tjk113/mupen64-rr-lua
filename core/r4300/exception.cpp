@@ -35,7 +35,7 @@
 #include "../memory/memory.h"
 #include "recomph.h"
 
-extern unsigned long interp_addr;
+extern uint32_t interp_addr;
 
 //Unused, this seems to be handled in pure_interp.c prefetch()
 void address_error_exception()
@@ -58,16 +58,16 @@ void TLB_invalid_exception()
 }
 
 //Unused, 64-bit miss (is this even used on n64?)
-void XTLB_refill_exception(unsigned long long int addresse)
+void XTLB_refill_exception(uint64_t addresse)
 {
     g_core_logger->error("XTLB refill exception");
     stop = 1;
 }
 
 //Means no such virtual->physical translation exists
-void TLB_refill_exception(unsigned long address, int w)
+void TLB_refill_exception(uint32_t address, int32_t w)
 {
-    int usual_handler = 0, i;
+    int32_t usual_handler = 0, i;
     //g_core_logger->error("TLB_refill_exception:{:#06x}\n", address);
     if (!dynacore && w != 2) update_count();
     if (w == 1)

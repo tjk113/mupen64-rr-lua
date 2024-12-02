@@ -32,7 +32,7 @@
 
 void address_error_exception();
 void TLB_invalid_exception();
-void TLB_refill_exception(unsigned long addresse, int w);
+void TLB_refill_exception(uint32_t addresse, int32_t w);
 void TLB_mod_exception();
 void integer_overflow_exception();
 void coprocessor_unusable_exception();

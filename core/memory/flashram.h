@@ -27,12 +27,12 @@
  *
 **/
 
-extern int use_flashram;
+extern int32_t use_flashram;
 
 
 void init_flashram();
-void flashram_command(unsigned long command);
-unsigned long flashram_status();
+void flashram_command(uint32_t command);
+uint32_t flashram_status();
 void dma_read_flashram();
 void dma_write_flashram();
 

@@ -14,20 +14,20 @@
 struct vhd
 {
     char cookie[8];
-    unsigned long feature;
-    unsigned long version;
-    unsigned long long next;
-    unsigned long stamp;
+    uint32_t feature;
+    uint32_t version;
+    uint64_t next;
+    uint32_t stamp;
     char creator_app[4];
-    unsigned long creator_version;
+    uint32_t creator_version;
     char creator_os[4];
-    unsigned long long disk_size;
-    unsigned long long data_size;
-    unsigned short ncylinder;
+    uint64_t disk_size;
+    uint64_t data_size;
+    uint16_t ncylinder;
     unsigned char nhead;
     unsigned char nsector;
-    unsigned long type;
-    unsigned long checksum;
+    uint32_t type;
+    uint32_t checksum;
     char guid[16];
     unsigned char saved_state;
     char pad[427];
@@ -43,9 +43,9 @@ struct vhd
 #define vhd_64(val) _byteswap_uint64(val)
 #endif
 
-static void vhd_copy(struct vhd* vhd, FILE* dst, FILE* src, void* buf, unsigned int n)
+static void vhd_copy(struct vhd* vhd, FILE* dst, FILE* src, void* buf, uint32_t n)
 {
-    unsigned long long len;
+    uint64_t len;
     fseek(src, -512, SEEK_END);
     fread(vhd, 1, sizeof(struct vhd), src);
     fseek(src, 0, SEEK_SET);
@@ -82,35 +82,35 @@ static char* get_st_path(const char* filename)
     return path;
 }
 
-static int sd_error(const char* text, const char* caption)
+static int32_t sd_error(const char* text, const char* caption)
 {
     FrontendService::show_information(text, caption);
     return -1;
 }
 
-static int sd_seek(FILE* fp, const char* caption)
+static int32_t sd_seek(FILE* fp, const char* caption)
 {
     struct vhd vhd;
-    unsigned long sector = summercart.sd_sector;
-    unsigned long count = summercart.data1;
+    uint32_t sector = summercart.sd_sector;
+    uint32_t count = summercart.data1;
     if (fseek(fp, -512, SEEK_END)) return sd_error("Seek(1) error.", caption);
     if (fread(&vhd, 1, sizeof(struct vhd), fp) != sizeof(struct vhd)) return sd_error("Read error.", caption);
     if (memcmp(vhd.cookie, "conectix", 8)) return sd_error("Invalid VHD file.", caption);
     if (vhd_32(vhd.type) != 2) return sd_error("Invalid VHD type: must be a fixed disk.", caption);
-    if ((long long)sector + count > vhd_64(vhd.disk_size) / 512) return -1;
-    if (fseek(fp, 512 * (long long)sector, SEEK_SET)) return sd_error("Seek(2) error.", caption);
+    if ((int64_t)sector + count > vhd_64(vhd.disk_size) / 512) return -1;
+    if (fseek(fp, 512 * (int64_t)sector, SEEK_SET)) return sd_error("Seek(2) error.", caption);
     return 0;
 }
 
 static void sd_read()
 {
-    unsigned long i;
+    uint32_t i;
     FILE* fp;
     char* path;
     char* ptr = NULL;
-    unsigned long addr = summercart.data0 & 0x1fffffff;
-    unsigned long count = summercart.data1;
-    unsigned long size = 512 * count;
+    uint32_t addr = summercart.data0 & 0x1fffffff;
+    uint32_t count = summercart.data1;
+    uint32_t size = 512 * count;
     if (count > 131072) return;
     if ((path = get_sd_path()))
     {
@@ -146,13 +146,13 @@ static void sd_read()
 
 static void sd_write()
 {
-    unsigned long i;
+    uint32_t i;
     FILE* fp;
     char* path;
     char* ptr = NULL;
-    unsigned long addr = summercart.data0 & 0x1fffffff;
-    unsigned long count = summercart.data1;
-    unsigned long size = 512 * count;
+    uint32_t addr = summercart.data0 & 0x1fffffff;
+    uint32_t count = summercart.data1;
+    uint32_t size = 512 * count;
     if (count > 131072) return;
     if ((path = get_sd_path()))
     {
@@ -186,7 +186,7 @@ static void sd_write()
 
 void save_summercart(const char* filename)
 {
-    unsigned int n;
+    uint32_t n;
     void* buf;
     char* sdp;
     char* stp;
@@ -225,7 +225,7 @@ void save_summercart(const char* filename)
 
 void load_summercart(const char* filename)
 {
-    unsigned int n;
+    uint32_t n;
     void* buf;
     char* stp;
     char* sdp;
@@ -267,7 +267,7 @@ void init_summercart()
     memset(&summercart, 0, sizeof(struct summercart));
 }
 
-unsigned long read_summercart(unsigned long address)
+uint32_t read_summercart(uint32_t address)
 {
     switch (address & 0xFFFC)
     {
@@ -287,7 +287,7 @@ unsigned long read_summercart(unsigned long address)
     return 0;
 }
 
-void write_summercart(unsigned long address, unsigned long value)
+void write_summercart(uint32_t address, uint32_t value)
 {
     switch (address & 0xFFFC)
     {

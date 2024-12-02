@@ -23,8 +23,8 @@
 #include <shared/services/LoggingService.h>
 
 bool frame_changed = true;
-extern int m_current_vi;
-extern long m_current_sample;
+extern int32_t m_current_vi;
+extern int32_t m_current_sample;
 
 std::chrono::duration<double, std::milli> max_vi_s_ms;
 

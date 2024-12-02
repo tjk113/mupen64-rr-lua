@@ -34,25 +34,25 @@
 
 void init_cache(precomp_instr* start);
 void free_all_registers();
-void free_register(int reg);
-int allocate_register(unsigned long* addr);
-int allocate_64_register1(unsigned long* addr);
-int allocate_64_register2(unsigned long* addr);
-int is64(unsigned long* addr);
+void free_register(int32_t reg);
+int32_t allocate_register(uint32_t* addr);
+int32_t allocate_64_register1(uint32_t* addr);
+int32_t allocate_64_register2(uint32_t* addr);
+int32_t is64(uint32_t* addr);
 void build_wrapper(precomp_instr*, unsigned char*, precomp_block*);
-void build_wrappers(precomp_instr*, int, int, precomp_block*);
-int lru_register();
-int allocate_register_w(unsigned long* addr);
-int allocate_64_register1_w(unsigned long* addr);
-int allocate_64_register2_w(unsigned long* addr);
-void set_register_state(int reg, unsigned long* addr, int dirty);
-void set_64_register_state(int reg1, int reg2, unsigned long* addr, int dirty);
-void lock_register(int reg);
-void unlock_register(int reg);
-void allocate_register_manually(int reg, unsigned long* addr);
-void allocate_register_manually_w(int reg, unsigned long* addr, int load);
-void force_32(int reg);
-int lru_register_exc1(int exc1);
+void build_wrappers(precomp_instr*, int32_t, int32_t, precomp_block*);
+int32_t lru_register();
+int32_t allocate_register_w(uint32_t* addr);
+int32_t allocate_64_register1_w(uint32_t* addr);
+int32_t allocate_64_register2_w(uint32_t* addr);
+void set_register_state(int32_t reg, uint32_t* addr, int32_t dirty);
+void set_64_register_state(int32_t reg1, int32_t reg2, uint32_t* addr, int32_t dirty);
+void lock_register(int32_t reg);
+void unlock_register(int32_t reg);
+void allocate_register_manually(int32_t reg, uint32_t* addr);
+void allocate_register_manually_w(int32_t reg, uint32_t* addr, int32_t load);
+void force_32(int32_t reg);
+int32_t lru_register_exc1(int32_t exc1);
 void simplify_access();
 
 #endif // REGCACHE_H

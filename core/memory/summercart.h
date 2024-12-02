@@ -4,10 +4,10 @@
 struct summercart
 {
     char buffer[8192];
-    unsigned long status;
-    unsigned long data0;
-    unsigned long data1;
-    unsigned long sd_sector;
+    uint32_t status;
+    uint32_t data0;
+    uint32_t data1;
+    uint32_t sd_sector;
     char cfg_rom_write;
     char sd_byteswap;
     char unlock;
@@ -20,7 +20,7 @@ extern struct summercart summercart;
 void save_summercart(const char* filename);
 void load_summercart(const char* filename);
 void init_summercart();
-unsigned long read_summercart(unsigned long address);
-void write_summercart(unsigned long address, unsigned long value);
+uint32_t read_summercart(uint32_t address);
+void write_summercart(uint32_t address, uint32_t value);
 
 #endif

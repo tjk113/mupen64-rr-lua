@@ -49,5 +49,5 @@ namespace Debugger
      * \param opcode The processor's opcode
      * \param address The processor's address
      */
-    void on_late_cycle(unsigned long opcode, unsigned long address);
+    void on_late_cycle(uint32_t opcode, uint32_t address);
 }

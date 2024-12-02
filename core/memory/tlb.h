@@ -30,41 +30,43 @@
 #ifndef TLB_H
 #define TLB_H
 
+#include <cstdint>
+
 typedef struct _tlb
 {
-    short mask;
-    long vpn2;
+    int16_t mask;
+    int32_t vpn2;
     char g;
     unsigned char asid;
-    long pfn_even;
+    int32_t pfn_even;
     char c_even;
     char d_even;
     char v_even;
-    long pfn_odd;
+    int32_t pfn_odd;
     char c_odd;
     char d_odd;
     char v_odd;
     char r;
-    //long check_parity_mask;
+    //int32_t check_parity_mask;
 
-    unsigned long start_even;
-    unsigned long end_even;
-    unsigned long phys_even;
-    unsigned long start_odd;
-    unsigned long end_odd;
-    unsigned long phys_odd;
+    uint32_t start_even;
+    uint32_t end_even;
+    uint32_t phys_even;
+    uint32_t start_odd;
+    uint32_t end_odd;
+    uint32_t phys_odd;
 } tlb;
 
-extern unsigned long tlb_LUT_r[0x100000];
-extern unsigned long tlb_LUT_w[0x100000];
-unsigned long virtual_to_physical_address(unsigned long addresse, int w);
-int probe_nop(unsigned long address);
+extern uint32_t tlb_LUT_r[0x100000];
+extern uint32_t tlb_LUT_w[0x100000];
+uint32_t virtual_to_physical_address(uint32_t addresse, int32_t w);
+int32_t probe_nop(uint32_t address);
 
-//unsigned long& get_tlb_LUT_r(int index)
+//uint32_t& get_tlb_LUT_r(int32_t index)
 //{
 //	return ::tlb_LUT_r[index];
 //}
-//unsigned long& get_tlb_LUT_w(int index)
+//uint32_t& get_tlb_LUT_w(int32_t index)
 //{
 //	return ::tlb_LUT_w[index];
 //}
