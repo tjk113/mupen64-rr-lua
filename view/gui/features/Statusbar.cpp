@@ -95,7 +95,40 @@ namespace Statusbar
 		},
 		{
 			StatusbarLayout::ModernWithReadonly, t_segment_layout{
-				.emu_parts = {},
+				.emu_parts = {
+					t_segment{
+						.section = Section::Notification,
+						.width = 150,
+					},
+					t_segment{
+						.section = Section::VCR,
+						.width = 150,
+					},
+					t_segment{
+						.section = Section::Readonly,
+						.width = 80,
+					},
+					t_segment{
+						.section = Section::Input,
+						.width = 80,
+					},
+					t_segment{
+						.section = Section::Rerecords,
+						.width = 80,
+					},
+					t_segment{
+						.section = Section::FPS,
+						.width = 80,
+					},
+					t_segment{
+						.section = Section::VIs,
+						.width = 80,
+					},
+					t_segment{
+						.section = Section::Slot,
+						.width = 80,
+					},
+				},
 				.idle_parts = {},
 			}
 		}
