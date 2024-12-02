@@ -503,6 +503,7 @@
 #define IDM_BENCHMARK_CORE_START        40089
 #define IDM_BENCHMARK_CORE_STOP         40090
 #define IDC_SEEKER_SUBTEXT              40091
+#define IDC_VERSION_TEXT                40092
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
