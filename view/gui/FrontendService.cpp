@@ -53,7 +53,7 @@ size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstri
     TaskDialogIndirect(&task_dialog_config, &pressed_button, NULL, NULL);
 
     g_view_logger->trace("[FrontendService] show_multiple_choice_dialog: '{}', answer: {}", wstring_to_string(str), pressed_button > 0 ? wstring_to_string(choices[pressed_button]) : "?");
-    
+
     return pressed_button;
 }
 
@@ -314,7 +314,7 @@ void FrontendService::at_vi()
     {
         return;
     }
-    
+
     g_main_window_dispatcher->invoke([]
     {
         EncodingManager::at_vi();
@@ -327,7 +327,7 @@ void FrontendService::ai_len_changed()
     {
         return;
     }
-    
+
     g_main_window_dispatcher->invoke([]
     {
         EncodingManager::ai_len_changed();
@@ -339,7 +339,7 @@ std::string FrontendService::find_available_rom(const std::function<bool(const t
     return Rombrowser::find_available_rom(predicate);
 }
 
-void FrontendService::mge_get_video_size(long* width, long* height)
+void FrontendService::mge_get_video_size(int32_t* width, int32_t* height)
 {
     MGECompositor::get_video_size(width, height);
 }

@@ -32,21 +32,21 @@
 
 #include "recomp.h"
 
-extern int code_length;
-extern int max_code_length;
+extern int32_t code_length;
+extern int32_t max_code_length;
 extern unsigned char** inst_pointer;
 extern precomp_block* dst_block;
-extern int jump_marker;
-extern unsigned long* return_address;
-extern int fast_memory;
+extern int32_t jump_marker;
+extern uint32_t* return_address;
+extern int32_t fast_memory;
 
-void passe2(precomp_instr* dest, int start, int end, precomp_block* block);
-void init_assembler(void* block_jumps_table, int block_jumps_number);
-void free_assembler(void** block_jumps_table, int* block_jumps_number);
+void passe2(precomp_instr* dest, int32_t start, int32_t end, precomp_block* block);
+void init_assembler(void* block_jumps_table, int32_t block_jumps_number);
+void free_assembler(void** block_jumps_table, int32_t* block_jumps_number);
 
-void gencallinterp(unsigned long addr, int jump);
+void gencallinterp(uint32_t addr, int32_t jump);
 
-void genupdate_system(int type);
+void genupdate_system(int32_t type);
 void genbnel();
 void genblezl();
 void genlw();

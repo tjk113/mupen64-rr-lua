@@ -36,34 +36,10 @@
 #include <shared/helpers/IOHelpers.h>
 #include <shared/types/CoreTypes.h>
 
-enum plugin_type
-{
-    video = 2,
-    audio = 3,
-    input = 4,
-    rsp = 1,
-};
-
-enum controller_extension
-{
-    none = 1,
-    mempak = 2,
-    rumblepak = 3,
-    transferpak = 4,
-    raw = 5
-};
-
-enum system_type
-{
-    ntsc,
-    pal,
-    mpal
-};
-
 // ReSharper disable CppInconsistentNaming
 
 
-static unsigned long __cdecl dummy_doRspCycles(unsigned long Cycles) { return Cycles; };
+static uint32_t __cdecl dummy_doRspCycles(uint32_t Cycles) { return Cycles; };
 
 extern CONTROL Controls[4];
 
@@ -85,7 +61,7 @@ extern DLLABOUT dllAbout;
 
 typedef void (__cdecl*CHANGEWINDOW)();
 typedef void (__cdecl*CLOSEDLL_GFX)();
-typedef int (__cdecl*INITIATEGFX)(GFX_INFO);
+typedef int32_t (__cdecl*INITIATEGFX)(GFX_INFO);
 typedef void (__cdecl*PROCESSDLIST)();
 typedef void (__cdecl*PROCESSRDPLIST)();
 typedef void (__cdecl*ROMCLOSED_GFX)();
@@ -94,14 +70,14 @@ typedef void (__cdecl*SHOWCFB)();
 typedef void (__cdecl*UPDATESCREEN)();
 typedef void (__cdecl*VISTATUSCHANGED)();
 typedef void (__cdecl*VIWIDTHCHANGED)();
-typedef void (__cdecl*READSCREEN)(void**, long*, long*);
+typedef void (__cdecl*READSCREEN)(void**, int32_t*, int32_t*);
 typedef void (__cdecl*DLLCRTFREE)(void*);
-typedef void (__cdecl*MOVESCREEN)(int, int);
+typedef void (__cdecl*MOVESCREEN)(int32_t, int32_t);
 typedef void (__cdecl*CAPTURESCREEN)(char*);
-typedef void (__cdecl*GETVIDEOSIZE)(long*, long*);
+typedef void (__cdecl*GETVIDEOSIZE)(int32_t*, int32_t*);
 typedef void (__cdecl*READVIDEO)(void**);
-typedef void (__cdecl*FBREAD)(unsigned long);
-typedef void (__cdecl*FBWRITE)(unsigned long addr, unsigned long size);
+typedef void (__cdecl*FBREAD)(uint32_t);
+typedef void (__cdecl*FBWRITE)(uint32_t addr, uint32_t size);
 typedef void (__cdecl*FBGETFRAMEBUFFERINFO)(void*);
 extern CHANGEWINDOW changeWindow;
 extern CLOSEDLL_GFX closeDLL_gfx;
@@ -130,15 +106,15 @@ extern FBGETFRAMEBUFFERINFO fBGetFrameBufferInfo;
 
 #pragma region Audio Functions
 
-typedef void (__cdecl*AIDACRATECHANGED)(int system_type);
+typedef void (__cdecl*AIDACRATECHANGED)(int32_t system_type);
 typedef void (__cdecl*AILENCHANGED)();
-typedef unsigned long (__cdecl*AIREADLENGTH)();
+typedef uint32_t (__cdecl*AIREADLENGTH)();
 typedef void (__cdecl*CLOSEDLL_AUDIO)();
-typedef int (__cdecl*INITIATEAUDIO)(AUDIO_INFO);
+typedef int32_t (__cdecl*INITIATEAUDIO)(AUDIO_INFO);
 typedef void (__cdecl*PROCESSALIST)();
 typedef void (__cdecl*ROMCLOSED_AUDIO)();
 typedef void (__cdecl*ROMOPEN_AUDIO)();
-typedef void (__cdecl*AIUPDATE)(int wait);
+typedef void (__cdecl*AIUPDATE)(int32_t wait);
 extern AIDACRATECHANGED aiDacrateChanged;
 extern AILENCHANGED aiLenChanged;
 extern AIREADLENGTH aiReadLength;
@@ -154,16 +130,16 @@ extern AIUPDATE aiUpdate;
 #pragma region Input Functions
 
 typedef void (__cdecl*CLOSEDLL_INPUT)();
-typedef void (__cdecl*CONTROLLERCOMMAND)(int controller, unsigned char* command);
-typedef void (__cdecl*GETKEYS)(int controller, BUTTONS* keys);
-typedef void (__cdecl*SETKEYS)(int controller, BUTTONS keys);
+typedef void (__cdecl*CONTROLLERCOMMAND)(int32_t controller, unsigned char* command);
+typedef void (__cdecl*GETKEYS)(int32_t controller, BUTTONS* keys);
+typedef void (__cdecl*SETKEYS)(int32_t controller, BUTTONS keys);
 typedef void (__cdecl*OLD_INITIATECONTROLLERS)(void* hwnd, CONTROL controls[4]);
 typedef void (__cdecl*INITIATECONTROLLERS)(CONTROL_INFO control_info);
-typedef void (__cdecl*READCONTROLLER)(int controller, unsigned char* command);
+typedef void (__cdecl*READCONTROLLER)(int32_t controller, unsigned char* command);
 typedef void (__cdecl*ROMCLOSED_INPUT)();
 typedef void (__cdecl*ROMOPEN_INPUT)();
-typedef void (__cdecl*KEYDOWN)(unsigned int wParam, long lParam);
-typedef void (__cdecl*KEYUP)(unsigned int wParam, long lParam);
+typedef void (__cdecl*KEYDOWN)(uint32_t wParam, int32_t lParam);
+typedef void (__cdecl*KEYUP)(uint32_t wParam, int32_t lParam);
 extern CLOSEDLL_INPUT closeDLL_input;
 extern CONTROLLERCOMMAND controllerCommand;
 extern GETKEYS getKeys;
@@ -181,8 +157,8 @@ extern KEYUP keyUp;
 #pragma region RSP Functions
 
 typedef void (__cdecl*CLOSEDLL_RSP)();
-typedef unsigned long (__cdecl*DORSPCYCLES)(unsigned long);
-typedef void (__cdecl*INITIATERSP)(RSP_INFO rsp_info, unsigned long* cycles);
+typedef uint32_t (__cdecl*DORSPCYCLES)(uint32_t);
+typedef void (__cdecl*INITIATERSP)(RSP_INFO rsp_info, uint32_t* cycles);
 typedef void (__cdecl*ROMCLOSED_RSP)();
 extern CLOSEDLL_RSP closeDLL_RSP;
 extern DORSPCYCLES doRspCycles;
@@ -197,10 +173,10 @@ extern ROMCLOSED_RSP romClosed_RSP;
 // frame buffer plugin spec extension
 typedef struct
 {
-    unsigned long addr;
-    unsigned long size;
-    unsigned long width;
-    unsigned long height;
+    uint32_t addr;
+    uint32_t size;
+    uint32_t width;
+    uint32_t height;
 } FrameBufferInfo;
 
 class Plugin
@@ -271,7 +247,7 @@ public:
 private:
     std::filesystem::path m_path;
     std::string m_name;
-    plugin_type m_type;
+    PluginType m_type;
     uint16_t m_version;
     void* m_module;
 };

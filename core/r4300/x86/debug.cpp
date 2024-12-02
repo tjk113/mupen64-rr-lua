@@ -41,16 +41,16 @@ void debug()
 	compare_core();
 #endif
     //if (Count > 0x8000000)
-    //g_core_logger->info("PC->addr:{:#06x}:{:#06x}\n",(int)PC->addr,
-    /*(int)SP_DMEM[(PC->addr - 0xa4000000)/4]*/
-    //(int)rdram[(PC->addr & 0xFFFFFF)/4]);
-    //g_core_logger->info("count:{:#06x}\n", (int)(Count));
+    //g_core_logger->info("PC->addr:{:#06x}:{:#06x}\n",(int32_t)PC->addr,
+    /*(int32_t)SP_DMEM[(PC->addr - 0xa4000000)/4]*/
+    //(int32_t)rdram[(PC->addr & 0xFFFFFF)/4]);
+    //g_core_logger->info("count:{:#06x}\n", (int32_t)(Count));
     /*if (debug_count + Count >= 0x80000000)
       g_core_logger->info("debug : {:#06x}: {:#06x}\n",
-         (unsigned int)(PC->addr),
-         (unsigned int)rdram[(PC->addr&0xFFFFFF)/4]);*/
+         (uint32_t)(PC->addr),
+         (uint32_t)rdram[(PC->addr&0xFFFFFF)/4]);*/
     /*if (debug_count + Count >= 0x8000000) {
-       g_core_logger->info("debug : {:#06x}\n", (unsigned int)(PC->addr));
+       g_core_logger->info("debug : {:#06x}\n", (uint32_t)(PC->addr));
        if (0x8018ddd8>actual->debut && 0x8018ddd8<actual->fin) {
       g_core_logger->info("ff: {:#06x}\n", //rdram[0x18ddd8/4]
             actual->code[actual->block[(0x8018ddd8-actual->debut)/4].local_addr]);
@@ -62,7 +62,7 @@ void debug()
     //if ((debug_count + Count) >= 0x5f61bc0)
     /*if ((debug_count + Count) == 0xf203ae0)
       {
-     int j;
+     int32_t j;
      for (j=0; j<NBR_BLOCKS; j++)
        {
           if (aux[j].debut) {
@@ -75,26 +75,26 @@ void debug()
       }
     if ((debug_count + Count) >= 0xf203ae0)
       {
-     int j;
+     int32_t j;
      g_core_logger->info ("inst:{:#06x}\n",
-         (unsigned int)rdram[(PC->addr&0xFFFFFF)/4]);
-     g_core_logger->info ("PC={:#06x}\n", (unsigned int)((PC+1)->addr));
+         (uint32_t)rdram[(PC->addr&0xFFFFFF)/4]);
+     g_core_logger->info ("PC={:#06x}\n", (uint32_t)((PC+1)->addr));
      for (j=0; j<16; j++)
        g_core_logger->info ("reg[{}]:{:#06x}{:#06x}       reg[{}]:{:#06x}{:#06x}\n",
            j,
-           (unsigned int)(reg[j] >> 32),
-           (unsigned int)reg[j],
+           (uint32_t)(reg[j] >> 32),
+           (uint32_t)reg[j],
            j+16,
-           (unsigned int)(reg[j+16] >> 32),
-           (unsigned int)reg[j+16]);
+           (uint32_t)(reg[j+16] >> 32),
+           (uint32_t)reg[j+16]);
      g_core_logger->info("hi:{:#06x}{:#06x}        lo:{:#06x}{:#06x}\n",
-            (unsigned int)(hi >> 32),
-            (unsigned int)hi,
-            (unsigned int)(lo >> 32),
-            (unsigned int)lo);
+            (uint32_t)(hi >> 32),
+            (uint32_t)hi,
+            (uint32_t)(lo >> 32),
+            (uint32_t)lo);
      g_core_logger->info("après {} instructions soit {:#06x}\n",
-            (unsigned int)(debug_count+Count),
-            (unsigned int)(debug_count+Count));
+            (uint32_t)(debug_count+Count),
+            (uint32_t)(debug_count+Count));
      getchar();
       }*/
 }

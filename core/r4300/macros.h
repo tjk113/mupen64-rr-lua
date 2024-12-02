@@ -30,9 +30,9 @@
 #ifndef MACROS_H
 #define MACROS_H
 
-#define sign_extended(a) a = (long long)((long)a)
-#define sign_extendedb(a) a = (long long)((char)a)
-#define sign_extendedh(a) a = (long long)((short)a)
+#define sign_extended(a) a = (int64_t)((int32_t)a)
+#define sign_extendedb(a) a = (int64_t)((char)a)
+#define sign_extendedh(a) a = (int64_t)((int16_t)a)
 
 #define core_rrt *PC->f.r.rt
 #define core_rrd *PC->f.r.rd
@@ -58,17 +58,17 @@
 
 // 32 bits macros
 #ifndef _BIG_ENDIAN
-#define rrt32 *((long*)PC->f.r.rt)
-#define rrd32 *((long*)PC->f.r.rd)
-#define rrs32 *((long*)PC->f.r.rs)
-#define irs32 *((long*)PC->f.i.rs)
-#define irt32 *((long*)PC->f.i.rt)
+#define rrt32 *((int32_t*)PC->f.r.rt)
+#define rrd32 *((int32_t*)PC->f.r.rd)
+#define rrs32 *((int32_t*)PC->f.r.rs)
+#define irs32 *((int32_t*)PC->f.i.rs)
+#define irt32 *((int32_t*)PC->f.i.rt)
 #else
-#define rrt32 *((long*)PC->f.r.rt+1)
-#define rrd32 *((long*)PC->f.r.rd+1)
-#define rrs32 *((long*)PC->f.r.rs+1)
-#define irs32 *((long*)PC->f.i.rs+1)
-#define irt32 *((long*)PC->f.i.rt+1)
+#define rrt32 *((int32_t*)PC->f.r.rt+1)
+#define rrd32 *((int32_t*)PC->f.r.rd+1)
+#define rrs32 *((int32_t*)PC->f.r.rs+1)
+#define irs32 *((int32_t*)PC->f.i.rs+1)
+#define irt32 *((int32_t*)PC->f.i.rt+1)
 #endif
 
 #define check_PC \
@@ -150,8 +150,8 @@ stop=1; \
 #define FLOAT_CONVERT(input_width, output_width) *dest = *src
 #endif
 
-#define FLOAT_CONVERT_L_S(s,d) { float* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(dword, qword); }
-#define FLOAT_CONVERT_W_S(s,d) { float* src = s; long* dest = (long*)d; FLOAT_CONVERT(dword, dword); }
-#define FLOAT_CONVERT_L_D(s,d) { double* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(qword, dword); }
-#define FLOAT_CONVERT_W_D(s,d) { double* src = s; long* dest = (long*)d; FLOAT_CONVERT(qword, qword); }
+#define FLOAT_CONVERT_L_S(s,d) { float* src = s; int64_t* dest = (int64_t*)d; FLOAT_CONVERT(dword, qword); }
+#define FLOAT_CONVERT_W_S(s,d) { float* src = s; int32_t* dest = (int32_t*)d; FLOAT_CONVERT(dword, dword); }
+#define FLOAT_CONVERT_L_D(s,d) { double* src = s; int64_t* dest = (int64_t*)d; FLOAT_CONVERT(qword, dword); }
+#define FLOAT_CONVERT_W_D(s,d) { double* src = s; int32_t* dest = (int32_t*)d; FLOAT_CONVERT(qword, qword); }
 #endif

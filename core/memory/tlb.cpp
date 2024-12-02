@@ -42,14 +42,14 @@
 #include <shared/services/LoggingService.h>
 #include <zlib.h>
 
-unsigned long tlb_LUT_r[0x100000];
-unsigned long tlb_LUT_w[0x100000];
-extern unsigned long interp_addr;
-int jump_marker = 0;
+uint32_t tlb_LUT_r[0x100000];
+uint32_t tlb_LUT_w[0x100000];
+extern uint32_t interp_addr;
+int32_t jump_marker = 0;
 
 uLong ZEXPORT adler32(uLong adler, const Bytef* buf, uInt len);
 
-unsigned long virtual_to_physical_address(unsigned long addresse, int w)
+uint32_t virtual_to_physical_address(uint32_t addresse, int32_t w)
 {
 	if (addresse >= 0x7f000000 && addresse < 0x80000000) // golden eye hack (it uses TLB a lot)
 	{
@@ -74,7 +74,7 @@ unsigned long virtual_to_physical_address(unsigned long addresse, int w)
 	TLB_refill_exception(addresse, w);
 	//return 0x80000000;
 	return 0x00000000;
-	/*int i;
+	/*int32_t i;
 	for (i=0; i<32; i++)
 	  {
 	 if ((tlb_e[i].vpn2 & ~(tlb_e[i].mask))
@@ -136,9 +136,9 @@ unsigned long virtual_to_physical_address(unsigned long addresse, int w)
 	return 0x80000000;*/
 }
 
-int probe_nop(unsigned long address)
+int32_t probe_nop(uint32_t address)
 {
-	unsigned long a;
+	uint32_t a;
 	if (address < 0x80000000 || address > 0xc0000000)
 	{
 		if (tlb_LUT_r[address >> 12])
@@ -161,7 +161,7 @@ int probe_nop(unsigned long address)
 
 void TLBR()
 {
-    int index;
+    int32_t index;
     index = core_Index & 0x1F;
     core_PageMask = tlb_e[index].mask << 13;
     core_EntryHi = ((tlb_e[index].vpn2 << 13) | tlb_e[index].asid);
@@ -176,7 +176,7 @@ void TLBR()
 
 void TLBWI()
 {
-    unsigned int i;
+    uint32_t i;
 
     if (tlb_e[core_Index & 0x3F].v_even)
     {
@@ -187,7 +187,7 @@ void TLBWI()
                 invalid_code[i] = 1;
             if (!invalid_code[i])
             {
-                /*int j;
+                /*int32_t j;
                 md5_state_t state;
                 md5_byte_t digest[16];
                 md5_init(&state);
@@ -203,7 +203,7 @@ void TLBWI()
             }
             else if (blocks[i])
             {
-                /*int j;
+                /*int32_t j;
                 for (j=0; j<16; j++) blocks[i]->md5[j] = 0;*/
                 blocks[i]->adler32 = 0;
             }
@@ -222,7 +222,7 @@ void TLBWI()
                 invalid_code[i] = 1;
             if (!invalid_code[i])
             {
-                /*int j;
+                /*int32_t j;
                 md5_state_t state;
                 md5_byte_t digest[16];
                 md5_init(&state);
@@ -238,7 +238,7 @@ void TLBWI()
             }
             else if (blocks[i])
             {
-                /*int j;
+                /*int32_t j;
                 for (j=0; j<16; j++) blocks[i]->md5[j] = 0;*/
                 blocks[i]->adler32 = 0;
             }
@@ -288,8 +288,8 @@ void TLBWI()
             /*if (blocks[i] && (blocks[i]->md5[0] || blocks[i]->md5[1] ||
                       blocks[i]->md5[2] || blocks[i]->md5[3]))
               {
-             int j;
-             int equal = 1;
+             int32_t j;
+             int32_t equal = 1;
              md5_state_t state;
              md5_byte_t digest[16];
              md5_init(&state);
@@ -335,8 +335,8 @@ void TLBWI()
             /*if (blocks[i] && (blocks[i]->md5[0] || blocks[i]->md5[1] ||
                       blocks[i]->md5[2] || blocks[i]->md5[3]))
               {
-             int j;
-             int equal = 1;
+             int32_t j;
+             int32_t equal = 1;
              md5_state_t state;
              md5_byte_t digest[16];
              md5_init(&state);
@@ -361,7 +361,7 @@ void TLBWI()
 
 void TLBWR()
 {
-    unsigned int i;
+    uint32_t i;
     update_count();
     core_Random = (core_Count / 2 % (32 - core_Wired)) + core_Wired;
 
@@ -374,7 +374,7 @@ void TLBWR()
                 invalid_code[i] = 1;
             if (!invalid_code[i])
             {
-                /*int j;
+                /*int32_t j;
                 md5_state_t state;
                 md5_byte_t digest[16];
                 md5_init(&state);
@@ -390,7 +390,7 @@ void TLBWR()
             }
             else if (blocks[i])
             {
-                /*int j;
+                /*int32_t j;
                 for (j=0; j<16; j++) blocks[i]->md5[j] = 0;*/
                 blocks[i]->adler32 = 0;
             }
@@ -409,7 +409,7 @@ void TLBWR()
                 invalid_code[i] = 1;
             if (!invalid_code[i])
             {
-                /*int j;
+                /*int32_t j;
                 md5_state_t state;
                 md5_byte_t digest[16];
                 md5_init(&state);
@@ -425,7 +425,7 @@ void TLBWR()
             }
             else if (blocks[i])
             {
-                /*int j;
+                /*int32_t j;
                 for (j=0; j<16; j++) blocks[i]->md5[j] = 0;*/
                 blocks[i]->adler32 = 0;
             }
@@ -475,8 +475,8 @@ void TLBWR()
             /*if (blocks[i] && (blocks[i]->md5[0] || blocks[i]->md5[1] ||
                       blocks[i]->md5[2] || blocks[i]->md5[3]))
               {
-             int j;
-             int equal = 1;
+             int32_t j;
+             int32_t equal = 1;
              md5_state_t state;
              md5_byte_t digest[16];
              md5_init(&state);
@@ -522,8 +522,8 @@ void TLBWR()
             /*if (blocks[i] && (blocks[i]->md5[0] || blocks[i]->md5[1] ||
              blocks[i]->md5[2] || blocks[i]->md5[3]))
               {
-             int j;
-             int equal = 1;
+             int32_t j;
+             int32_t equal = 1;
              md5_state_t state;
              md5_byte_t digest[16];
              md5_init(&state);
@@ -548,7 +548,7 @@ void TLBWR()
 
 void TLBP()
 {
-    int i;
+    int32_t i;
     core_Index |= 0x80000000;
     for (i = 0; i < 32; i++)
     {

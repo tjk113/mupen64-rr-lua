@@ -67,9 +67,9 @@ static void __cdecl dummy_void()
 {
 }
 
-static int __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info) { return 1; }
+static int32_t __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info) { return 1; }
 
-static int __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info)
+static int32_t __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info)
 {
     return 1;
 }
@@ -78,52 +78,52 @@ static void __cdecl dummy_initiateControllers(CONTROL_INFO Control_Info)
 {
 }
 
-static void __cdecl dummy_aiDacrateChanged(int SystemType)
+static void __cdecl dummy_aiDacrateChanged(int32_t SystemType)
 {
 }
 
-static unsigned long __cdecl dummy_aiReadLength() { return 0; }
+static uint32_t __cdecl dummy_aiReadLength() { return 0; }
 
 static void __cdecl dummy_aiUpdate(int32_t)
 {
 }
 
-static void __cdecl dummy_controllerCommand(int Control, uint8_t* Command)
+static void __cdecl dummy_controllerCommand(int32_t Control, uint8_t* Command)
 {
 }
 
-static void __cdecl dummy_getKeys(int Control, BUTTONS* Keys)
+static void __cdecl dummy_getKeys(int32_t Control, BUTTONS* Keys)
 {
 }
 
-static void __cdecl dummy_setKeys(int Control, BUTTONS Keys)
+static void __cdecl dummy_setKeys(int32_t Control, BUTTONS Keys)
 {
 }
 
-static void __cdecl dummy_readController(int Control, uint8_t* Command)
+static void __cdecl dummy_readController(int32_t Control, uint8_t* Command)
 {
 }
 
-static void __cdecl dummy_keyDown(unsigned int wParam, long lParam)
+static void __cdecl dummy_keyDown(uint32_t wParam, int32_t lParam)
 {
 }
 
-static void __cdecl dummy_keyUp(unsigned int wParam, long lParam)
+static void __cdecl dummy_keyUp(uint32_t wParam, int32_t lParam)
 {
 }
 
-static unsigned long dummy;
+static uint32_t dummy;
 
 static void __cdecl dummy_initiateRSP(RSP_INFO Rsp_Info,
-                                      unsigned long* CycleCount)
+                                      uint32_t* CycleCount)
 {
 };
 
-static void __cdecl dummy_fBRead(unsigned long addr)
+static void __cdecl dummy_fBRead(uint32_t addr)
 {
 };
 
-static void __cdecl dummy_fBWrite(unsigned long addr, unsigned long size)
+static void __cdecl dummy_fBWrite(uint32_t addr, uint32_t size)
 {
 };
 
@@ -131,12 +131,12 @@ static void __cdecl dummy_fBGetFrameBufferInfo(void* p)
 {
 };
 
-static void __cdecl dummy_readScreen(void**, long*, long*)
+static void __cdecl dummy_readScreen(void**, int32_t*, int32_t*)
 {
 }
 
 
-static void __cdecl dummy_moveScreen(int, int)
+static void __cdecl dummy_moveScreen(int32_t, int32_t)
 {
 }
 
@@ -286,7 +286,7 @@ void load_input(uint16_t version, void* handle)
     {
         controller.Present = 0;
         controller.RawData = 0;
-        controller.Plugin = controller_extension::none;
+        controller.Plugin = (int32_t)ControllerExtension::None;
     }
     if (version == 0x0101)
     {
@@ -365,8 +365,8 @@ void load_rsp(void* handle)
     rsp_info.ProcessRdpList = processRDPList;
     rsp_info.ShowCFB = showCFB;
 
-    int i = 4;
-    initiateRSP(rsp_info, (unsigned long*)&i);
+    int32_t i = 4;
+    initiateRSP(rsp_info, (uint32_t*)&i);
 }
 
 std::optional<std::unique_ptr<Plugin>> Plugin::create(
@@ -401,7 +401,7 @@ std::optional<std::unique_ptr<Plugin>> Plugin::create(
 
     plugin->m_path = path;
     plugin->m_name = std::string(plugin_info.Name);
-    plugin->m_type = static_cast<plugin_type>(plugin_info.Type);
+    plugin->m_type = static_cast<PluginType>(plugin_info.Type);
     plugin->m_version = plugin_info.Version;
     plugin->m_module = module;
 
@@ -418,7 +418,7 @@ void Plugin::config()
 {
     switch (m_type)
     {
-    case plugin_type::video:
+    case PluginType::Video:
         {
             if (!emu_launched)
             {
@@ -443,7 +443,7 @@ void Plugin::config()
             }
             break;
         }
-    case plugin_type::audio:
+    case PluginType::Audio:
         {
             if (!emu_launched)
             {
@@ -464,7 +464,7 @@ void Plugin::config()
             }
             break;
         }
-    case plugin_type::input:
+    case PluginType::Input:
         {
             if (!emu_launched)
             {
@@ -490,12 +490,12 @@ void Plugin::config()
             }
             break;
         }
-    case plugin_type::rsp:
+    case PluginType::RSP:
         {
             if (!emu_launched)
             {
                 auto initiateRSP = (INITIATERSP)PlatformService::get_function_in_module((void*)m_module, "InitiateRSP");
-                unsigned long i = 0;
+                uint32_t i = 0;
                 if (initiateRSP) initiateRSP(dummy_rsp_info, &i);
             }
 
@@ -531,17 +531,17 @@ void Plugin::load_into_globals()
 {
     switch (m_type)
     {
-    case video:
-        load_gfx((void*)m_module);
+    case PluginType::Video:
+        load_gfx(m_module);
         break;
-    case audio:
-        load_audio((void*)m_module);
+    case PluginType::Audio:
+        load_audio(m_module);
         break;
-    case input:
-        load_input(m_version, (void*)m_module);
+    case PluginType::Input:
+        load_input(m_version, m_module);
         break;
-    case rsp:
-        load_rsp((void*)m_module);
+    case PluginType::RSP:
+        load_rsp(m_module);
         break;
     }
 }
@@ -565,7 +565,7 @@ std::vector<std::unique_ptr<Plugin>> get_available_plugins()
 
 void setup_dummy_info()
 {
-    int i;
+    int32_t i;
 
     /////// GFX ///////////////////////////
 
@@ -626,7 +626,7 @@ void setup_dummy_info()
     {
         Controls[i].Present = 0;
         Controls[i].RawData = 0;
-        Controls[i].Plugin = controller_extension::none;
+        Controls[i].Plugin = (int32_t)ControllerExtension::None;
     }
 
     //////// RSP /////////////////////////////

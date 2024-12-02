@@ -47,8 +47,8 @@
 
 void dma_pi_read()
 {
-    unsigned long longueur;
-    int i;
+    uint32_t longueur;
+    int32_t i;
 
     if (pi_register.pi_cart_addr_reg >= 0x08000000 &&
         pi_register.pi_cart_addr_reg < 0x08010000)
@@ -77,8 +77,8 @@ void dma_pi_read()
         {
             for (i = 0; i < longueur; i++)
             {
-                unsigned long dram = (pi_register.pi_dram_addr_reg + i);
-                unsigned long cart = (pi_register.pi_cart_addr_reg + i) - 0x1ffe0000;
+                uint32_t dram = (pi_register.pi_dram_addr_reg + i);
+                uint32_t cart = (pi_register.pi_cart_addr_reg + i) - 0x1ffe0000;
                 if (dram > 0x7FFFFF || cart > 0x1FFF) break;
                 summercart.buffer[cart ^ S8] = ((char*)rdram)[dram ^ S8];
             }
@@ -89,8 +89,8 @@ void dma_pi_read()
         {
             for (i = 0; i < longueur; i++)
             {
-                unsigned long dram = (pi_register.pi_dram_addr_reg + i);
-                unsigned long cart = (pi_register.pi_cart_addr_reg + i) - 0x10000000;
+                uint32_t dram = (pi_register.pi_dram_addr_reg + i);
+                uint32_t cart = (pi_register.pi_cart_addr_reg + i) - 0x10000000;
                 if (dram > 0x7FFFFF || cart > 0x3FFFFFF) break;
                 rom[cart ^ S8] = ((char*)rdram)[dram ^ S8];
             }
@@ -110,8 +110,8 @@ void dma_pi_read()
 
 void dma_pi_write()
 {
-    unsigned long longueur;
-    int i;
+    uint32_t longueur;
+    int32_t i;
 
     if (pi_register.pi_cart_addr_reg < 0x10000000)
     {
@@ -136,7 +136,7 @@ void dma_pi_write()
         {
         }
         else
-            g_core_logger->warn("unknown dma write:{:#06x}", (int)pi_register.pi_cart_addr_reg);
+            g_core_logger->warn("unknown dma write:{:#06x}", (int32_t)pi_register.pi_cart_addr_reg);
 
         pi_register.read_pi_status_reg |= 1;
         update_count();
@@ -152,8 +152,8 @@ void dma_pi_write()
     {
         for (i = 0; i < longueur; i++)
         {
-            unsigned long dram = (pi_register.pi_dram_addr_reg + i);
-            unsigned long cart = (pi_register.pi_cart_addr_reg + i) - 0x1ffe0000;
+            uint32_t dram = (pi_register.pi_dram_addr_reg + i);
+            uint32_t cart = (pi_register.pi_cart_addr_reg + i) - 0x1ffe0000;
             if (dram > 0x7FFFFF || cart > 0x1FFF) break;
             ((char*)rdram)[dram ^ S8] = summercart.buffer[cart ^ S8];
         }
@@ -189,8 +189,8 @@ void dma_pi_write()
     {
         for (i = 0; i < longueur; i++)
         {
-            unsigned long rdram_address1 = pi_register.pi_dram_addr_reg + i + 0x80000000;
-            unsigned long rdram_address2 = pi_register.pi_dram_addr_reg + i + 0xa0000000;
+            uint32_t rdram_address1 = pi_register.pi_dram_addr_reg + i + 0x80000000;
+            uint32_t rdram_address2 = pi_register.pi_dram_addr_reg + i + 0xa0000000;
 
             ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
                 !Debugger::get_dma_read_enabled()
@@ -244,7 +244,7 @@ void dma_pi_write()
 
 void dma_sp_write()
 {
-    int i;
+    int32_t i;
     if ((sp_register.sp_mem_addr_reg & 0x1000) > 0)
     {
         for (i = 0; i < ((sp_register.sp_rd_len_reg & 0xFFF) + 1); i++)
@@ -261,7 +261,7 @@ void dma_sp_write()
 
 void dma_sp_read()
 {
-    int i;
+    int32_t i;
     if ((sp_register.sp_mem_addr_reg & 0x1000) > 0)
     {
         for (i = 0; i < ((sp_register.sp_wr_len_reg & 0xFFF) + 1); i++)
@@ -278,7 +278,7 @@ void dma_sp_read()
 
 void dma_si_write()
 {
-    int i;
+    int32_t i;
     if (si_register.si_pif_addr_wr64b != 0x1FC007C0)
     {
         g_core_logger->warn("unknown SI use");
@@ -293,7 +293,7 @@ void dma_si_write()
 
 void dma_si_read()
 {
-    int i;
+    int32_t i;
     if (si_register.si_pif_addr_rd64b != 0x1FC007C0)
     {
         g_core_logger->warn("unknown SI use");

@@ -195,7 +195,7 @@ namespace tracelog
             *(p++) = ' ';
             p = GetOperandString(p, &decode, pc);
         }
-        for (int i = p - ps + 3; i < 24; i += 4)
+        for (int32_t i = p - ps + 3; i < 24; i += 4)
         {
             *(p++) = '\t';
         }

@@ -48,7 +48,7 @@
 #include <core/r4300/gameshark.h>
 #include <shared/services/LoggingService.h>
 
-int frame_advancing = 0;
+int32_t frame_advancing = 0;
 // Amount of VIs since last input poll
 size_t lag_count;
 
@@ -56,7 +56,7 @@ void check_input_sync(unsigned char* value);
 
 #ifdef DEBUG_PIF
 void print_pif() {
-	int i;
+	int32_t i;
 	for (i = 0; i < (64 / 8); i++)
 		g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
 			PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
@@ -134,7 +134,7 @@ void format_mempacks()
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x71, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03
     };
-    int i, j;
+    int32_t i, j;
     for (i = 0; i < 4; i++)
     {
         for (j = 0; j < 0x8000; j += 2)
@@ -148,14 +148,14 @@ void format_mempacks()
 
 unsigned char mempack_crc(unsigned char* data)
 {
-    int i;
+    int32_t i;
     unsigned char CRC = 0;
     for (i = 0; i <= 0x20; i++)
     {
-        int mask;
+        int32_t mask;
         for (mask = 0x80; mask >= 1; mask >>= 1)
         {
-            int xor_tap = (CRC & 0x80) ? 0x85 : 0x00;
+            int32_t xor_tap = (CRC & 0x80) ? 0x85 : 0x00;
             CRC <<= 1;
             if (i != 0x20 && (data[i] & mask)) CRC |= 1;
             CRC ^= xor_tap;
@@ -165,7 +165,7 @@ unsigned char mempack_crc(unsigned char* data)
 }
 
 
-void internal_ReadController(int Control, uint8_t* Command)
+void internal_ReadController(int32_t Control, uint8_t* Command)
 {
     switch (Command[2])
     {
@@ -177,7 +177,7 @@ void internal_ReadController(int Control, uint8_t* Command)
             lag_count = 0;
             BUTTONS input = {0};
             vcr_on_controller_poll(Control, &input);
-            *((unsigned long*)(Command + 3)) = input.Value;
+            *((uint32_t*)(Command + 3)) = input.Value;
 #ifdef COMPARE_CORE
 				check_input_sync(Command + 3);
 #endif
@@ -186,21 +186,21 @@ void internal_ReadController(int Control, uint8_t* Command)
     case 2: // read controller pack
         if (Controls[Control].Present)
         {
-            if (Controls[Control].Plugin == controller_extension::raw)
+            if (Controls[Control].Plugin == (int32_t)ControllerExtension::Raw)
                 if (controllerCommand) readController(Control, Command);
         }
         break;
     case 3: // write controller pack
         if (Controls[Control].Present)
         {
-            if (Controls[Control].Plugin == controller_extension::raw)
+            if (Controls[Control].Plugin == (int32_t)ControllerExtension::Raw)
                 if (controllerCommand) readController(Control, Command);
         }
         break;
     }
 }
 
-void internal_ControllerCommand(int Control, uint8_t* Command)
+void internal_ControllerCommand(int32_t Control, uint8_t* Command)
 {
     switch (Command[2])
     {
@@ -214,10 +214,10 @@ void internal_ControllerCommand(int Control, uint8_t* Command)
             Command[4] = 0x00;
             switch (Controls[Control].Plugin)
             {
-            case controller_extension::mempak:
+            case (int32_t)ControllerExtension::Mempak:
                 Command[5] = 1;
                 break;
-            case controller_extension::raw:
+            case (int32_t)ControllerExtension::Raw:
                 Command[5] = 1;
                 break;
             default:
@@ -237,9 +237,9 @@ void internal_ControllerCommand(int Control, uint8_t* Command)
         {
             switch (Controls[Control].Plugin)
             {
-            case controller_extension::mempak:
+            case (int32_t)ControllerExtension::Mempak:
                 {
-                    int address = (Command[3] << 8) | Command[4];
+                    int32_t address = (Command[3] << 8) | Command[4];
                     if (address == 0x8001)
                     {
                         memset(&Command[5], 0, 0x20);
@@ -266,7 +266,7 @@ void internal_ControllerCommand(int Control, uint8_t* Command)
                     }
                 }
                 break;
-            case controller_extension::raw:
+            case (int32_t)ControllerExtension::Raw:
                 if (controllerCommand) controllerCommand(Control, Command);
                 break;
             default:
@@ -282,9 +282,9 @@ void internal_ControllerCommand(int Control, uint8_t* Command)
         {
             switch (Controls[Control].Plugin)
             {
-            case controller_extension::mempak:
+            case (int32_t)ControllerExtension::Mempak:
                 {
-                    int address = (Command[3] << 8) | Command[4];
+                    int32_t address = (Command[3] << 8) | Command[4];
                     if (address == 0x8001)
                         Command[0x25] = mempack_crc(&Command[5]);
                     else
@@ -310,7 +310,7 @@ void internal_ControllerCommand(int Control, uint8_t* Command)
                     }
                 }
                 break;
-            case controller_extension::raw:
+            case (int32_t)ControllerExtension::Raw:
                 if (controllerCommand) controllerCommand(Control, Command);
                 break;
             default:
@@ -325,7 +325,7 @@ void internal_ControllerCommand(int Control, uint8_t* Command)
 
 void update_pif_write()
 {
-    int i = 0, channel = 0;
+    int32_t i = 0, channel = 0;
     /*#ifdef DEBUG_PIF
         if (input_delay) {
             g_core_logger->info("------------- write -------------");
@@ -413,7 +413,7 @@ void update_pif_write()
 void update_pif_read()
 {
     //g_core_logger->info("pif entry");
-    int i = 0, channel = 0;
+    int32_t i = 0, channel = 0;
     bool once = emu_paused | frame_advancing | g_vr_wait_before_input_poll; //used to pause only once during controller routine
     bool stAllowed = true; //used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
@@ -444,8 +444,8 @@ void update_pif_read()
             {
                 if (channel < 4)
                 {
-                    static int controllerRead = 999;
-                    
+                    static int32_t controllerRead = 999;
+
                     // frame advance - pause before every 'frame of input',
                     // which is manually resumed to enter 1 input and emulate until being
                     // paused here again before the next input
@@ -467,7 +467,7 @@ void update_pif_read()
                                 Savestates::do_work();
                             }
                         }
-                        
+
                         while (emu_paused)
                         {
                             std::this_thread::sleep_for(std::chrono::milliseconds(10));
