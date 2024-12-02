@@ -163,7 +163,7 @@ namespace Savestates
 
         memread(&p, &llbit, 4);
         memread(&p, reg, 32 * 8);
-        for (int i = 0; i < 32; i++)
+        for (int32_t i = 0; i < 32; i++)
         {
             memread(&p, reg_cop0 + i, 4);
             memread(&p, buf, 4); // for compatibility with old versions purpose
@@ -229,7 +229,7 @@ namespace Savestates
 
     	// NOTE: This saving needs to be done **after** the fixing block, as it is now. See previous regression in f9d58f639c798cbc26bbb808b1c3dbd834ffe2d9.
     	save_flashram_infos(g_flashram_buf);
-    	const int event_queue_len = save_eventqueue_infos(g_event_queue_buf);
+    	const int32_t event_queue_len = save_eventqueue_infos(g_event_queue_buf);
 
         vecwrite(b, rom_md5, 32);
         vecwrite(b, &rdram_register, sizeof(RDRAM_register));
@@ -283,8 +283,8 @@ namespace Savestates
 
         if (is_mge_available() && g_config.st_screenshot)
         {
-            long width;
-            long height;
+            int32_t width;
+            int32_t height;
             FrontendService::mge_get_video_size(&width, &height);
 
             void* video = malloc(width * height * 3);
@@ -405,11 +405,11 @@ namespace Savestates
         memread(&ptr, g_first_block, sizeof(g_first_block));
 
         // now read interrupt queue into buf
-        int len;
+        int32_t len;
         for (len = 0; len < sizeof(g_event_queue_buf); len += 8)
         {
             memread(&ptr, g_event_queue_buf + len, 4);
-            if (*reinterpret_cast<unsigned long*>(&g_event_queue_buf[len]) == 0xFFFFFFFF)
+            if (*reinterpret_cast<uint32_t*>(&g_event_queue_buf[len]) == 0xFFFFFFFF)
                 break;
             memread(&ptr, g_event_queue_buf + len + 4, 4);
         }
@@ -484,8 +484,8 @@ namespace Savestates
         }
         {
             g_core_logger->info("[Savestates] {} bytes remaining", decompressed_buf.size() - (ptr - decompressed_buf.data()));
-            long video_width = 0;
-            long video_height = 0;
+            int32_t video_width = 0;
+            int32_t video_height = 0;
             void* video_buffer = nullptr;
             if (decompressed_buf.size() - (ptr - decompressed_buf.data()) > 0)
             {
@@ -507,10 +507,10 @@ namespace Savestates
             load_eventqueue_infos(g_event_queue_buf);
             load_memory_from_buffer(g_first_block);
 
-            // NOTE: We don't want to restore screen buffer while seeking, since it creates a short ugly flicker when the movie restarts by loading state
+            // NOTE: We don't want to restore screen buffer while seeking, since it creates a int16_t ugly flicker when the movie restarts by loading state
             if (is_mge_available() && video_buffer && !VCR::is_seeking())
             {
-                long current_width, current_height;
+                int32_t current_width, current_height;
                 FrontendService::mge_get_video_size(&current_width, &current_height);
                 if (current_width == video_width && current_height == video_height)
                 {

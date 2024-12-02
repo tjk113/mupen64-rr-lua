@@ -15,8 +15,8 @@ extern "C" {
 #include <core/r4300/timers.h>
 #include <view/gui/features/Statusbar.hpp>
 
-extern int m_current_vi;
-extern long m_current_sample;
+extern int32_t m_current_vi;
+extern int32_t m_current_sample;
 
 namespace LuaCore::Emu
 {

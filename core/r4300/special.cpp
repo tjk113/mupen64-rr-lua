@@ -42,42 +42,42 @@ void NOP()
 
 void SLL()
 {
-    rrd32 = (unsigned long)(rrt32) << core_rsa;
+    rrd32 = (uint32_t)(rrt32) << core_rsa;
     sign_extended(core_rrd);
     PC++;
 }
 
 void SRL()
 {
-    rrd32 = (unsigned long)rrt32 >> core_rsa;
+    rrd32 = (uint32_t)rrt32 >> core_rsa;
     sign_extended(core_rrd);
     PC++;
 }
 
 void SRA()
 {
-    rrd32 = (signed long)rrt32 >> core_rsa;
+    rrd32 = (int32_t)rrt32 >> core_rsa;
     sign_extended(core_rrd);
     PC++;
 }
 
 void SLLV()
 {
-    rrd32 = (unsigned long)(rrt32) << (rrs32 & 0x1F);
+    rrd32 = (uint32_t)(rrt32) << (rrs32 & 0x1F);
     sign_extended(core_rrd);
     PC++;
 }
 
 void SRLV()
 {
-    rrd32 = (unsigned long)rrt32 >> (rrs32 & 0x1F);
+    rrd32 = (uint32_t)rrt32 >> (rrs32 & 0x1F);
     sign_extended(core_rrd);
     PC++;
 }
 
 void SRAV()
 {
-    rrd32 = (signed long)rrt32 >> (rrs32 & 0x1F);
+    rrd32 = (int32_t)rrt32 >> (rrs32 & 0x1F);
     sign_extended(core_rrd);
     PC++;
 }
@@ -97,7 +97,7 @@ void JR()
 
 void JALR()
 {
-    unsigned long long int* dest = (unsigned long long int*)PC->f.r.rd;
+    uint64_t* dest = (uint64_t*)PC->f.r.rd;
     local_rs32 = rrs32;
     PC++;
     delay_slot = 1;
@@ -162,19 +162,19 @@ void DSLLV()
 
 void DSRLV()
 {
-    core_rrd = (unsigned long long)core_rrt >> (rrs32 & 0x3F);
+    core_rrd = (uint64_t)core_rrt >> (rrs32 & 0x3F);
     PC++;
 }
 
 void DSRAV()
 {
-    core_rrd = (long long)core_rrt >> (rrs32 & 0x3F);
+    core_rrd = (int64_t)core_rrt >> (rrs32 & 0x3F);
     PC++;
 }
 
 void MULT()
 {
-    long long int temp;
+    int64_t temp;
     temp = core_rrs * core_rrt;
     hi = temp >> 32;
     lo = temp;
@@ -184,9 +184,9 @@ void MULT()
 
 void MULTU()
 {
-    unsigned long long int temp;
-    temp = (unsigned long)core_rrs * (unsigned long long)((unsigned long)core_rrt);
-    hi = (long long)temp >> 32;
+    uint64_t temp;
+    temp = (uint32_t)core_rrs * (uint64_t)((uint32_t)core_rrt);
+    hi = (int64_t)temp >> 32;
     lo = temp;
     sign_extended(lo);
     PC++;
@@ -209,8 +209,8 @@ void DIVU()
 {
     if (rrt32)
     {
-        lo = (unsigned long)rrs32 / (unsigned long)rrt32;
-        hi = (unsigned long)rrs32 % (unsigned long)rrt32;
+        lo = (uint32_t)rrs32 / (uint32_t)rrt32;
+        hi = (uint32_t)rrs32 % (uint32_t)rrt32;
         sign_extended(lo);
         sign_extended(hi);
     }
@@ -220,10 +220,10 @@ void DIVU()
 
 void DMULT()
 {
-    unsigned long long int op1, op2, op3, op4;
-    unsigned long long int result1, result2, result3, result4;
-    unsigned long long int temp1, temp2, temp3, temp4;
-    int sign = 0;
+    uint64_t op1, op2, op3, op4;
+    uint64_t result1, result2, result3, result4;
+    uint64_t temp1, temp2, temp3, temp4;
+    int32_t sign = 0;
 
     if (core_rrs < 0)
     {
@@ -266,9 +266,9 @@ void DMULT()
 
 void DMULTU()
 {
-    unsigned long long int op1, op2, op3, op4;
-    unsigned long long int result1, result2, result3, result4;
-    unsigned long long int temp1, temp2, temp3, temp4;
+    uint64_t op1, op2, op3, op4;
+    uint64_t result1, result2, result3, result4;
+    uint64_t temp1, temp2, temp3, temp4;
 
     op1 = core_rrs & 0xFFFFFFFF;
     op2 = (core_rrs >> 32) & 0xFFFFFFFF;
@@ -295,8 +295,8 @@ void DDIV()
 {
     if (core_rrt)
     {
-        lo = (long long int)core_rrs / (long long int)core_rrt;
-        hi = (long long int)core_rrs % (long long int)core_rrt;
+        lo = (int64_t)core_rrs / (int64_t)core_rrt;
+        hi = (int64_t)core_rrs % (int64_t)core_rrt;
     }
     //   else g_core_logger->info("ddiv");
     PC++;
@@ -306,8 +306,8 @@ void DDIVU()
 {
     if (core_rrt)
     {
-        lo = (unsigned long long int)core_rrs / (unsigned long long int)core_rrt;
-        hi = (unsigned long long int)core_rrs % (unsigned long long int)core_rrt;
+        lo = (uint64_t)core_rrs / (uint64_t)core_rrt;
+        hi = (uint64_t)core_rrs % (uint64_t)core_rrt;
     }
     //   else g_core_logger->info("ddivu");
     PC++;
@@ -376,7 +376,7 @@ void SLT()
 
 void SLTU()
 {
-    if ((unsigned long long)core_rrs < (unsigned long long)core_rrt)
+    if ((uint64_t)core_rrs < (uint64_t)core_rrt)
         core_rrd = 1;
     else
         core_rrd = 0;
@@ -425,7 +425,7 @@ void DSLL()
 
 void DSRL()
 {
-    core_rrd = (unsigned long long)core_rrt >> core_rsa;
+    core_rrd = (uint64_t)core_rrt >> core_rsa;
     PC++;
 }
 
@@ -443,12 +443,12 @@ void DSLL32()
 
 void DSRL32()
 {
-    core_rrd = (unsigned long long int)core_rrt >> (32 + core_rsa);
+    core_rrd = (uint64_t)core_rrt >> (32 + core_rsa);
     PC++;
 }
 
 void DSRA32()
 {
-    core_rrd = (signed long long int)core_rrt >> (32 + core_rsa);
+    core_rrd = (int64_t)core_rrt >> (32 + core_rsa);
     PC++;
 }

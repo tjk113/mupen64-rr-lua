@@ -11,10 +11,10 @@ namespace MGECompositor
 {
     struct VideoBuffer
     {
-        long last_width = 0;
-        long last_height = 0;
-        long width = 0;
-        long height = 0;
+        int32_t last_width = 0;
+        int32_t last_height = 0;
+        int32_t width = 0;
+        int32_t height = 0;
         void* buffer = nullptr;
         BITMAPINFO bmp_info{};
         // Optional DIB for perf
@@ -146,7 +146,7 @@ namespace MGECompositor
         RedrawWindow(control_hwnd, NULL, NULL, RDW_INVALIDATE);
     }
 
-    void get_video_size(long* width, long* height)
+    void get_video_size(int32_t* width, int32_t* height)
     {
         if (width)
         {

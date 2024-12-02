@@ -42,9 +42,9 @@
 void dyna_jump()
 {
     if (PC->reg_cache_infos.need_map)
-        *return_address = (unsigned long)(PC->reg_cache_infos.jump_wrapper);
+        *return_address = (uint32_t)(PC->reg_cache_infos.jump_wrapper);
     else
-        *return_address = (unsigned long)(actual->code + PC->local_addr);
+        *return_address = (uint32_t)(actual->code + PC->local_addr);
     /*asm("mov return_address, %%esp \n"
         "ret                       \n"
         :

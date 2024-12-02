@@ -58,8 +58,8 @@ t_movie_header g_header;
 std::vector<BUTTONS> g_movie_inputs;
 std::filesystem::path g_movie_path;
 
-long m_current_sample = -1;
-int m_current_vi = -1;
+int32_t m_current_sample = -1;
+int32_t m_current_vi = -1;
 
 // Used for tracking user-invoked resets
 bool user_requested_reset;
@@ -191,14 +191,14 @@ static void set_rom_info(t_movie_header* header)
     header->controller_flags = 0;
     header->num_controllers = 0;
 
-    for (int i = 0; i < 4; ++i)
+    for (int32_t i = 0; i < 4; ++i)
     {
-        if (Controls[i].Plugin == controller_extension::mempak)
+        if (Controls[i].Plugin == (int32_t)ControllerExtension::Mempak)
         {
             header->controller_flags |= CONTROLLER_X_MEMPAK(i);
         }
 
-        if (Controls[i].Plugin == controller_extension::rumblepak)
+        if (Controls[i].Plugin == (int32_t)ControllerExtension::Rumblepak)
         {
             header->controller_flags |= CONTROLLER_X_RUMBLE(i);
         }
@@ -255,7 +255,7 @@ static CoreResult read_movie_header(std::vector<uint8_t> buf, t_movie_header* he
         // version mishandling and format problems of first versions
 
 #define IS_ALPHA(x) (((x) >= 'A' && (x) <= 'Z') || ((x) >= 'a' && (x) <= 'z') || ((x) == '1'))
-        int i;
+        int32_t i;
         for (i = 0; i < 56 + 64; i++)
             if (IS_ALPHA(new_header.reserved_bytes[i])
                 && IS_ALPHA(new_header.reserved_bytes[i + 64])
@@ -384,10 +384,10 @@ std::optional<t_movie_freeze> VCR::freeze()
     assert(g_movie_inputs.size() >= g_header.length_samples);
 
     t_movie_freeze freeze = {
-        .size = sizeof(unsigned long) * 4 + sizeof(BUTTONS) * (g_header.length_samples + 1),
+        .size = (uint32_t)(sizeof(uint32_t) * 4 + sizeof(BUTTONS) * (g_header.length_samples + 1)),
         .uid = g_header.uid,
-        .current_sample = (unsigned long)m_current_sample,
-        .current_vi = (unsigned long)m_current_vi,
+        .current_sample = (uint32_t)m_current_sample,
+        .current_vi = (uint32_t)m_current_vi,
         .length_samples = g_header.length_samples,
     };
 
@@ -419,7 +419,7 @@ CoreResult VCR::unfreeze(t_movie_freeze freeze)
         return CoreResult::VCR_InvalidFormat;
     }
 
-    const unsigned long space_needed = sizeof(BUTTONS) * (freeze.length_samples + 1);
+    const uint32_t space_needed = sizeof(BUTTONS) * (freeze.length_samples + 1);
 
     if (freeze.uid != g_header.uid)
         return CoreResult::VCR_NotFromThisMovie;
@@ -431,8 +431,8 @@ CoreResult VCR::unfreeze(t_movie_freeze freeze)
     if (space_needed > freeze.size)
         return CoreResult::VCR_InvalidFormat;
 
-    m_current_sample = (long)freeze.current_sample;
-    m_current_vi = (int)freeze.current_vi;
+    m_current_sample = (int32_t)freeze.current_sample;
+    m_current_vi = (int32_t)freeze.current_vi;
 
     const e_task last_task = g_task;
 
@@ -521,7 +521,7 @@ void vcr_create_n_frame_savestate(size_t frame)
     // If our seek savestate map is getting too large, we'll start purging the oldest ones (but not the first one!!!)
     if (g_seek_savestates.size() > g_config.seek_savestate_max_count)
     {
-        for (int i = 1; i < g_header.length_samples; ++i)
+        for (int32_t i = 1; i < g_header.length_samples; ++i)
         {
             if (g_seek_savestates.contains(i))
             {
@@ -550,7 +550,7 @@ void vcr_create_n_frame_savestate(size_t frame)
     });
 }
 
-void vcr_handle_starting_tasks(int index, BUTTONS* input)
+void vcr_handle_starting_tasks(int32_t index, BUTTONS* input)
 {
     if (g_task == e_task::start_recording_from_reset)
     {
@@ -607,7 +607,7 @@ void vcr_handle_starting_tasks(int index, BUTTONS* input)
     }
 }
 
-void vcr_handle_recording(int index, BUTTONS* input)
+void vcr_handle_recording(int32_t index, BUTTONS* input)
 {
     if (g_task != e_task::recording)
     {
@@ -673,7 +673,7 @@ void vcr_handle_recording(int index, BUTTONS* input)
     }
 }
 
-void vcr_handle_playback(int index, BUTTONS* input)
+void vcr_handle_playback(int32_t index, BUTTONS* input)
 {
     if (g_task != e_task::playback)
     {
@@ -682,7 +682,7 @@ void vcr_handle_playback(int index, BUTTONS* input)
 
     // This if previously also checked for if the VI is over the amount specified in the header,
     // but that can cause movies to end playback early on laggy plugins.
-    if (m_current_sample >= (long)g_header.length_samples)
+    if (m_current_sample >= (int32_t)g_header.length_samples)
     {
         VCR::stop_all();
 
@@ -786,7 +786,7 @@ void vcr_create_seek_savestates()
     }
 }
 
-void vcr_on_controller_poll(int index, BUTTONS* input)
+void vcr_on_controller_poll(int32_t index, BUTTONS* input)
 {
     // NOTE: We mutate m_task and send task change messages in here, so we need to acquire the lock (what if playback start thread decides to beat us up midway through input poll? right...)
     std::scoped_lock lock(vcr_mutex);
@@ -897,7 +897,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
     g_header.extended_flags.wii_vc = g_config.wii_vc_emulation;
     g_header.extended_data = default_hdr.extended_data;
 
-    g_header.uid = (unsigned long)time(nullptr);
+    g_header.uid = (uint32_t)time(nullptr);
     g_header.length_vis = 0;
     g_header.length_samples = 0;
 
@@ -1013,7 +1013,7 @@ CoreResult VCR::replace_author_info(const std::filesystem::path& path, const std
         return result;
     }
 
-    // 2. Compare author and description fields, and short-circuit if they remained identical
+    // 2. Compare author and description fields, and int16_t-circuit if they remained identical
     if (!strcmp(hdr.author, author.c_str()) && !strcmp(hdr.description, description.c_str()))
     {
         g_core_logger->info("[VCR] Movie author or description didn't change, returning early...");
@@ -1032,7 +1032,7 @@ CoreResult VCR::replace_author_info(const std::filesystem::path& path, const std
     }
 
     fseek(f, 0x222, SEEK_SET);
-    for (int i = 0; i < 222; ++i)
+    for (int32_t i = 0; i < 222; ++i)
     {
         fputc(0, f);
     }
@@ -1040,7 +1040,7 @@ CoreResult VCR::replace_author_info(const std::filesystem::path& path, const std
     fwrite(author.data(), 1, author.size(), f);
 
     fseek(f, 0x300, SEEK_SET);
-    for (int i = 0; i < 256; ++i)
+    for (int32_t i = 0; i < 256; ++i)
     {
         fputc(0, f);
     }
@@ -1098,9 +1098,9 @@ CoreResult vcr_stop_record()
     return CoreResult::Ok;
 }
 
-int check_warn_controllers(char* warning_str)
+int32_t check_warn_controllers(char* warning_str)
 {
-    for (int i = 0; i < 4; ++i)
+    for (int32_t i = 0; i < 4; ++i)
     {
         if (!Controls[i].Present && (g_header.controller_flags &
             CONTROLLER_X_PRESENT(i)))
@@ -1117,21 +1117,15 @@ int check_warn_controllers(char* warning_str)
                     (i + 1));
         else
         {
-            if (Controls[i].Present && (Controls[i].Plugin !=
-                controller_extension::mempak) && (g_header.
-                controller_flags & CONTROLLER_X_MEMPAK(i)))
+            if (Controls[i].Present && (Controls[i].Plugin != (int32_t)ControllerExtension::Mempak) && (g_header.controller_flags & CONTROLLER_X_MEMPAK(i)))
                 sprintf(warning_str,
                         "Warning: Controller %d has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
                         (i + 1));
-            if (Controls[i].Present && (Controls[i].Plugin !=
-                controller_extension::rumblepak) && (g_header.
-                controller_flags & CONTROLLER_X_RUMBLE(i)))
+            if (Controls[i].Present && (Controls[i].Plugin != (int32_t)ControllerExtension::Rumblepak) && (g_header.controller_flags & CONTROLLER_X_RUMBLE(i)))
                 sprintf(warning_str,
                         "Warning: Controller %d has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
                         (i + 1));
-            if (Controls[i].Present && (Controls[i].Plugin !=
-                controller_extension::none) && !(g_header.
-                controller_flags & (CONTROLLER_X_MEMPAK(i) |
+            if (Controls[i].Present && (Controls[i].Plugin != (int32_t)ControllerExtension::None) && !(g_header.controller_flags & (CONTROLLER_X_MEMPAK(i) |
                     CONTROLLER_X_RUMBLE(i))))
                 sprintf(warning_str,
                         "Warning: Controller %d does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
@@ -1257,8 +1251,8 @@ CoreResult VCR::start_playback(std::filesystem::path path)
             sprintf(
                 str,
                 ROM_CRC_WARNING_MESSAGE,
-                (unsigned int)g_header.rom_crc1,
-                (unsigned int)ROM_HEADER.CRC1);
+                (uint32_t)g_header.rom_crc1,
+                (uint32_t)ROM_HEADER.CRC1);
 
             bool proceed = FrontendService::show_ask_dialog(str, "VCR", true);
             if (!proceed)
@@ -1437,7 +1431,7 @@ CoreResult vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, 
         {
             g_core_logger->trace("[VCR] vcr_begin_seek_impl: playback, fast path");
 
-            // FIXME: Might be better to have read-only as an individual flag for each savestate, cause as it is now, we're overwriting global state for  this... 
+            // FIXME: Might be better to have read-only as an individual flag for each savestate, cause as it is now, we're overwriting global state for  this...
             g_config.vcr_readonly = true;
             Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
 
@@ -1558,7 +1552,7 @@ CoreResult VCR::convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_m
 void VCR::stop_seek()
 {
     // We need to acquire the mutex here, as this function is also called during input poll
-    // and having two of these running at the same time is bad for obvious reasons 
+    // and having two of these running at the same time is bad for obvious reasons
     std::scoped_lock lock(vcr_mutex);
 
     if (!seek_to_frame.has_value())
@@ -1730,24 +1724,24 @@ std::vector<BUTTONS> VCR::get_inputs()
     return g_movie_inputs;
 }
 
-/// Finds the first input difference between two input vectors. Returns SIZE_MAX if they are identical. 
+/// Finds the first input difference between two input vectors. Returns SIZE_MAX if they are identical.
 size_t vcr_find_first_input_difference(const std::vector<BUTTONS>& first, const std::vector<BUTTONS>& second)
 {
     if (first.size() != second.size())
     {
         const auto min_size = std::min(first.size(), second.size());
-        for (int i = 0; i < min_size; ++i)
+        for (int32_t i = 0; i < min_size; ++i)
         {
             if (first[i].Value != second[i].Value)
             {
                 return i;
             }
         }
-        return std::max(0, (int)min_size - 1);
+        return std::max(0, (int32_t)min_size - 1);
     }
     else
     {
-        for (int i = 0; i < first.size(); ++i)
+        for (int32_t i = 0; i < first.size(); ++i)
         {
             if (first[i].Value != second[i].Value)
             {

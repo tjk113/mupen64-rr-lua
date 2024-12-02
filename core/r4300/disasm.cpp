@@ -477,7 +477,7 @@ static char* sfmt(char* b, const char* f, ...)
         case 'r':
             {
                 const char* l;
-                for (l = CPURegisterName[va_arg(v, int)]; *l; l++)
+                for (l = CPURegisterName[va_arg(v, int32_t)]; *l; l++)
                 {
                     *(q++) = *l;
                 }
@@ -486,7 +486,7 @@ static char* sfmt(char* b, const char* f, ...)
         case 'c':
             {
                 const char* l;
-                for (l = COP0RegisterName[va_arg(v, int)]; *l; l++)
+                for (l = COP0RegisterName[va_arg(v, int32_t)]; *l; l++)
                 {
                     *(q++) = *l;
                 }
@@ -494,7 +494,7 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'f':
             {
-                int f = va_arg(v, int);
+                int32_t f = va_arg(v, int32_t);
                 q[0] = 'f';
                 //decimal
                 q[1] = x[f / 10];

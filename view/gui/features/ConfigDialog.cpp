@@ -315,10 +315,13 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
     return 0;
 }
 
-BOOL CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM)
+INT_PTR CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM)
 {
     switch (message)
     {
+    case WM_INITDIALOG:
+		SetDlgItemText(hwnd, IDC_VERSION_TEXT, MUPEN_VERSION);
+    	break;
     case WM_CLOSE:
         EndDialog(hwnd, IDOK);
         break;
@@ -366,7 +369,7 @@ void build_rom_browser_path_list(const HWND dialog_hwnd)
     }
 }
 
-BOOL CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM l_param)
+INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM l_param)
 {
     [[maybe_unused]] LPITEMIDLIST pidl{};
     BROWSEINFO bi{};
@@ -596,7 +599,7 @@ Plugin* get_selected_plugin(const HWND hwnd, const int id)
     return res == CB_ERR ? nullptr : (Plugin*)res;
 }
 
-BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
+INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
     [[maybe_unused]] char path_buffer[_MAX_PATH];
     NMHDR FAR* l_nmhdr = nullptr;
@@ -622,16 +625,16 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                 int32_t id = 0;
                 switch (plugin->type())
                 {
-                case plugin_type::video:
+                case PluginType::Video:
                     id = IDC_COMBO_GFX;
                     break;
-                case plugin_type::audio:
+                case PluginType::Audio:
                     id = IDC_COMBO_SOUND;
                     break;
-                case plugin_type::input:
+                case PluginType::Input:
                     id = IDC_COMBO_INPUT;
                     break;
-                case plugin_type::rsp:
+                case PluginType::RSP:
                     id = IDC_COMBO_RSP;
                     break;
                 default:
@@ -1391,7 +1394,7 @@ LRESULT CALLBACK list_view_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_pa
     return DefSubclassProc(hwnd, msg, w_param, l_param);
 }
 
-BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
+INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
     NMHDR FAR* l_nmhdr = nullptr;
     memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));

@@ -33,8 +33,8 @@ namespace EncodingManager
 
 	// Video buffer, allocated once when recording starts and freed when it ends.
 	uint8_t* m_video_buf = nullptr;
-	long m_video_width;
-	long m_video_height;
+	int32_t m_video_width;
+	int32_t m_video_height;
 
 	std::atomic m_capturing = false;
 	EncoderType m_encoder_type;
@@ -49,8 +49,8 @@ namespace EncodingManager
 		} else
 		{
 			void* buf = nullptr;
-			long width;
-			long height;
+			int32_t width;
+			int32_t height;
 			readScreen(&buf, &width, &height);
 			memcpy(m_video_buf, buf, width * height * 3);
 			DllCrtFree(buf);
@@ -117,7 +117,7 @@ namespace EncodingManager
 	{
 		readscreen_plugin();
 
-		long raw_video_width, raw_video_height;
+		int32_t raw_video_width, raw_video_height;
 		MGECompositor::get_video_size(&raw_video_width, &raw_video_height);
 
 		BITMAPINFO rs_bmp_info{};
@@ -238,7 +238,7 @@ namespace EncodingManager
 		}
 	}
 
-	void get_video_dimensions(long* width, long* height)
+	void get_video_dimensions(int32_t* width, int32_t* height)
 	{
 		if (g_config.capture_mode == 0)
 		{
@@ -420,7 +420,7 @@ namespace EncodingManager
 
 	void ai_dacrate_changed(std::any data)
 	{
-		auto type = std::any_cast<system_type>(data);
+		auto type = std::any_cast<SystemType>(data);
 
 		if (m_capturing)
 		{
@@ -433,13 +433,13 @@ namespace EncodingManager
 
 		switch (type)
 		{
-		case ntsc:
+		case SystemType::NTSC:
 			m_audio_freq = (int)(48681812 / (ai_register.ai_dacrate + 1));
 			break;
-		case pal:
+		case SystemType::PAL:
 			m_audio_freq = (int)(49656530 / (ai_register.ai_dacrate + 1));
 			break;
-		case mpal:
+		case SystemType::MPAL:
 			m_audio_freq = (int)(48628316 / (ai_register.ai_dacrate + 1));
 			break;
 		default:

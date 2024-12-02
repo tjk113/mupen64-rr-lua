@@ -1,11 +1,13 @@
 #ifndef R4300_DISASM_H
 #define R4300_DISASM_H
 
+#include <cstdint>
+
 typedef unsigned char r4300byte;
-typedef unsigned short r4300half;
-typedef signed short r4300halfsigned;
-typedef unsigned long r4300word;
-typedef signed long r4300wordsigned;
+typedef uint16_t r4300half;
+typedef int16_t r4300halfsigned;
+typedef uint32_t r4300word;
+typedef int32_t r4300wordsigned;
 
 typedef r4300byte CPUREG;
 typedef r4300byte FPUREG;

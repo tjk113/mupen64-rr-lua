@@ -93,7 +93,7 @@ void MTC0()
     case 11: // Compare
         update_count();
         remove_event(COMPARE_INT);
-        add_interrupt_event_count(COMPARE_INT, (unsigned long)core_rrt);
+        add_interrupt_event_count(COMPARE_INT, (uint32_t)core_rrt);
         core_Compare = core_rrt;
         core_Cause = core_Cause & 0xFFFF7FFF; //Timer interrupt is clear
         break;
@@ -102,7 +102,7 @@ void MTC0()
         {
             if (core_rrt & 0x04000000)
             {
-                int i;
+                int32_t i;
                 for (i = 0; i < 32; i++)
                 {
                     reg_cop1_double[i] = (double*)&reg_cop1_fgr_64[i];
@@ -111,7 +111,7 @@ void MTC0()
             }
             else
             {
-                int i;
+                int32_t i;
                 for (i = 0; i < 32; i++)
                 {
                     if (!(i & 1))

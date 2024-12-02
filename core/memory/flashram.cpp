@@ -35,7 +35,7 @@
 #include "savestates.h"
 #include <shared/services/LoggingService.h>
 
-int use_flashram;
+int32_t use_flashram;
 
 typedef enum flashram_mode
 {
@@ -46,9 +46,9 @@ typedef enum flashram_mode
     STATUS_MODE
 } Flashram_mode;
 
-static int mode;
-static unsigned long long status;
-static unsigned long erase_offset, write_pointer;
+static int32_t mode;
+static uint64_t status;
+static uint32_t erase_offset, write_pointer;
 
 void save_flashram_infos(char* buf)
 {
@@ -74,12 +74,12 @@ void init_flashram()
     status = 0;
 }
 
-unsigned long flashram_status()
+uint32_t flashram_status()
 {
     return (status >> 32);
 }
 
-void flashram_command(unsigned long command)
+void flashram_command(uint32_t command)
 {
     switch (command & 0xff000000)
     {
@@ -107,7 +107,7 @@ void flashram_command(unsigned long command)
                 fseek(g_sram_file, 0, SEEK_SET);
                 fread(flashram, 1, 0x20000, g_sram_file);
 
-                for (int i = erase_offset; i < (erase_offset + 128); i++)
+                for (int32_t i = erase_offset; i < (erase_offset + 128); i++)
                     flashram[i ^ S8] = 0xff;
 
                 fseek(g_sram_file, 0, SEEK_SET);
@@ -119,7 +119,7 @@ void flashram_command(unsigned long command)
                 fseek(g_sram_file, 0, SEEK_SET);
                 fread(flashram, 1, 0x20000, g_sram_file);
 
-                for (int i = 0; i < 128; i++)
+                for (int32_t i = 0; i < 128; i++)
                     flashram[(erase_offset + i) ^ S8] =
                         ((unsigned char*)rdram)[(write_pointer + i) ^ S8];
 
@@ -130,7 +130,7 @@ void flashram_command(unsigned long command)
         case STATUS_MODE:
             break;
         default:
-            g_core_logger->warn("unknown flashram command with mode:{:#06x}", (int)mode);
+            g_core_logger->warn("unknown flashram command with mode:{:#06x}", (int32_t)mode);
             stop = 1;
         }
         mode = NOPES_MODE;
@@ -144,20 +144,20 @@ void flashram_command(unsigned long command)
         status = 0x11118004f0000000LL;
         break;
     default:
-        g_core_logger->warn("unknown flashram command:{:#06x}", (int)command);
+        g_core_logger->warn("unknown flashram command:{:#06x}", (int32_t)command);
     //stop=1;
     }
 }
 
 void dma_read_flashram()
 {
-    int i;
+    int32_t i;
 
     switch (mode)
     {
     case STATUS_MODE:
-        rdram[pi_register.pi_dram_addr_reg / 4] = (unsigned long)(status >> 32);
-        rdram[pi_register.pi_dram_addr_reg / 4 + 1] = (unsigned long)(status);
+        rdram[pi_register.pi_dram_addr_reg / 4] = (uint32_t)(status >> 32);
+        rdram[pi_register.pi_dram_addr_reg / 4 + 1] = (uint32_t)(status);
         break;
     case READ_MODE:
         {

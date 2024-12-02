@@ -30,9 +30,9 @@
 #ifndef MACROS_H
 #define MACROS_H
 
-#define sign_extended(a) a = (long long)((long)a)
-#define sign_extendedb(a) a = (long long)((char)a)
-#define sign_extendedh(a) a = (long long)((short)a)
+#define sign_extended(a) a = (int64_t)((int32_t)a)
+#define sign_extendedb(a) a = (int64_t)((char)a)
+#define sign_extendedh(a) a = (int64_t)((int16_t)a)
 
 #define core_rrt *PC->f.r.rt
 #define core_rrd *PC->f.r.rd
@@ -58,17 +58,17 @@
 
 // 32 bits macros
 #ifndef _BIG_ENDIAN
-#define rrt32 *((long*)PC->f.r.rt)
-#define rrd32 *((long*)PC->f.r.rd)
-#define rrs32 *((long*)PC->f.r.rs)
-#define irs32 *((long*)PC->f.i.rs)
-#define irt32 *((long*)PC->f.i.rt)
+#define rrt32 *((int32_t*)PC->f.r.rt)
+#define rrd32 *((int32_t*)PC->f.r.rd)
+#define rrs32 *((int32_t*)PC->f.r.rs)
+#define irs32 *((int32_t*)PC->f.i.rs)
+#define irt32 *((int32_t*)PC->f.i.rt)
 #else
-#define rrt32 *((long*)PC->f.r.rt+1)
-#define rrd32 *((long*)PC->f.r.rd+1)
-#define rrs32 *((long*)PC->f.r.rs+1)
-#define irs32 *((long*)PC->f.i.rs+1)
-#define irt32 *((long*)PC->f.i.rt+1)
+#define rrt32 *((int32_t*)PC->f.r.rt+1)
+#define rrd32 *((int32_t*)PC->f.r.rd+1)
+#define rrs32 *((int32_t*)PC->f.r.rs+1)
+#define irs32 *((int32_t*)PC->f.i.rs+1)
+#define irt32 *((int32_t*)PC->f.i.rt+1)
 #endif
 
 #define check_PC \
@@ -106,8 +106,6 @@ stop=1; \
 #define core_TagHi reg_cop0[29]
 #define core_ErrorEPC reg_cop0[30]
 
-#ifdef X86
-#ifdef _MSC_VER
 #define set_rounding() __asm { fldcw rounding_mode }
 #define set_trunc() __asm { fldcw trunc_mode }
 #define set_round_to_nearest() __asm { fldcw round_mode }
@@ -116,42 +114,24 @@ stop=1; \
 #define clear_x87_exceptions() __asm { fclex }
 #define read_x87_status_word() __asm { fstsw x87_status_word }
 
+#ifdef _M_X64
+
+#define FLOAT_CONVERT(_, __)
+
+#else
+
 //asm converter that respects rounding modes
 #define FLOAT_CONVERT(input_width, output_width) __asm { \
-    __asm mov eax, src \
-    __asm fld input_width ptr [eax] \
-    __asm mov eax, dest \
-    __asm fistp output_width ptr [eax] \
+__asm mov eax, src \
+__asm fld input_width ptr [eax] \
+__asm mov eax, dest \
+__asm fistp output_width ptr [eax] \
 }
-#else
-#define set_rounding() __asm__ __volatile__("fldcw %0" : : "m" (rounding_mode) : "memory")
-#define set_trunc() __asm__ __volatile__("fldcw %0" : : "m" (trunc_mode) : "memory")
-#define set_round_to_nearest() __asm__ __volatile__("fldcw %0" : : "m" (round_mode) : "memory")
-#define set_ceil() __asm__ __volatile__("fldcw %0" : : "m" (ceil_mode) : "memory")
-#define set_floor() __asm__ __volatile__("fldcw %0" : : "m" (floor_mode) : "memory")
-#define clear_x87_exceptions() __asm__ __volatile__("fclex" : : : "memory")
-#define read_x87_status_word() __asm__ __volatile__("fstsw %0" : "=m" (x87_status_word) : : "memory")
 
-#define FLOAT_CONVERT(input_width, output_width) __asm__ __volatile__( \
-    ".intel_syntax\n\t" \
-    "fld " #input_width " ptr [%V0]\n\t" \
-    "fistp " #output_width " ptr [%V1]\n\t" \
-    ".att_syntax" \
-    : : "r" (src), "r" (dest) : "memory")
-#endif // _MSC_VER
-#else
-#define set_rounding() ((void) 0)
-#define set_trunc() ((void) 0)
-#define set_round_to_nearest() ((void) 0)
-#define set_ceil() ((void) 0)
-#define set_floor() ((void) 0)
-#define clear_x87_exceptions() ((void) 0)
-#define read_x87_status_word()
-#define FLOAT_CONVERT(input_width, output_width) *dest = *src
 #endif
 
-#define FLOAT_CONVERT_L_S(s,d) { float* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(dword, qword); }
-#define FLOAT_CONVERT_W_S(s,d) { float* src = s; long* dest = (long*)d; FLOAT_CONVERT(dword, dword); }
-#define FLOAT_CONVERT_L_D(s,d) { double* src = s; long long* dest = (long long*)d; FLOAT_CONVERT(qword, dword); }
-#define FLOAT_CONVERT_W_D(s,d) { double* src = s; long* dest = (long*)d; FLOAT_CONVERT(qword, qword); }
+#define FLOAT_CONVERT_L_S(s,d) { float* src = s; int64_t* dest = (int64_t*)d;  FLOAT_CONVERT(dword, qword); }
+#define FLOAT_CONVERT_W_S(s,d) { float* src = s; int32_t* dest = (int32_t*)d;  FLOAT_CONVERT(dword, dword); }
+#define FLOAT_CONVERT_L_D(s,d) { double* src = s; int64_t* dest = (int64_t*)d; FLOAT_CONVERT(qword, dword); }
+#define FLOAT_CONVERT_W_D(s,d) { double* src = s; int32_t* dest = (int32_t*)d; FLOAT_CONVERT(qword, qword); }
 #endif
