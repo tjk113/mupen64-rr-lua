@@ -107,6 +107,23 @@ bool is_on_gui_thread();
 bool show_error_dialog_for_result(CoreResult result, void* hwnd = nullptr);
 
 /**
- * \brief Gets all available plugins
+ * Represents the result of a plugin discovery operation.
  */
-std::vector<std::unique_ptr<Plugin>> get_available_plugins();
+typedef struct
+{
+	/**
+	 * The discovered plugins matching the plugin API surface.
+	 */
+	std::vector<std::unique_ptr<Plugin>> plugins;
+
+	/**
+	 * The amonut of discovered plugins which couldn't be loaded for some reason.
+	 */
+	size_t broken_plugins;
+
+} t_plugin_discovery_result;
+
+/**
+ * Performs a plugin discovery operation.
+ */
+t_plugin_discovery_result do_plugin_discovery();

@@ -108,7 +108,7 @@ typedef struct OptionsItem
     std::vector<std::pair<std::wstring, int32_t>> possible_values = {};
 
     /**
-     * Function which returns whether the option can be changed. Useful for values which shouldn't be changed during emulation. 
+     * Function which returns whether the option can be changed. Useful for values which shouldn't be changed during emulation.
      */
     std::function<bool()> is_readonly = [] { return false; };
 
@@ -198,7 +198,7 @@ typedef struct OptionsItem
             *data = *(int32_t*)default_equivalent;
         }
     }
-    
+
 } t_options_item;
 
 std::vector<std::unique_ptr<Plugin>> available_plugins;
@@ -237,7 +237,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
             {
                 return 1;
             }
-            
+
             if (GetAsyncKeyState(j) & 0x8000)
             {
                 // HACK to avoid exiting all the way out of the dialog on pressing escape to clear a hotkeys
@@ -267,7 +267,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                     hotkey->ctrl = GetAsyncKeyState(VK_CONTROL) ? 1 : 0;
                     hotkey->alt = GetAsyncKeyState(VK_MENU) ? 1 : 0;
                     while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
-                    
+
                     return 1;
                 }
 
@@ -276,7 +276,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 hotkey->ctrl = 0;
                 hotkey->alt = 0;
                 while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
-                
+
                 return 0;
             }
             if (j == VK_CONTROL && lc)
@@ -286,7 +286,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 hotkey->ctrl = 1;
                 hotkey->alt = 0;
                 while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
-                
+
                 return 1;
             }
             if (j == VK_SHIFT && ls)
@@ -296,7 +296,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 hotkey->ctrl = 0;
                 hotkey->alt = 0;
                 while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
-                
+
                 return 1;
             }
             if (j == VK_MENU && la)
@@ -306,7 +306,7 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
                 hotkey->ctrl = 0;
                 hotkey->alt = 1;
                 while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
-                
+
                 return 1;
             }
         }
@@ -608,7 +608,14 @@ BOOL CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
         break;
     case WM_INITDIALOG:
         {
-            available_plugins = get_available_plugins();
+    		auto discovery_result = do_plugin_discovery();
+
+            available_plugins = std::move(discovery_result.plugins);
+
+		    if (discovery_result.broken_plugins > 0)
+		    {
+			    SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, std::format("Not all discovered plugins shown. {} plugin(s) failed to load.", discovery_result.broken_plugins).c_str());
+		    }
 
             for (const auto& plugin : available_plugins)
             {
@@ -1511,7 +1518,7 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             }
             AppendMenu(h_menu, MF_SEPARATOR, 100, "");
             AppendMenu(h_menu, MF_STRING, 5, "Reset all to default");
-            
+
             const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param), hwnd, 0);
 
             if (offset < 0)
@@ -1570,12 +1577,12 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
             {
                 // If some settings can't be changed, we'll bail
                 bool can_all_be_changed = true;
-                
+
                 for (const auto& item : g_option_items)
                 {
                     if (!item.is_readonly())
                         continue;
-                    
+
                     can_all_be_changed = false;
                     break;
                 }
@@ -1585,14 +1592,14 @@ BOOL CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_pa
                     FrontendService::show_warning("Some settings can't be reset, as they are currently read-only. Try again with emulation stopped.\nNo changes have been made to the settings.", "Reset all to default", hwnd);
                     goto destroy_menu;
                 }
-                
+
                 const auto result = FrontendService::show_ask_dialog("Are you sure you want to reset all settings to default?", "Reset all to default", false, hwnd);
 
                 if (!result)
                 {
                     goto destroy_menu;
                 }
-                
+
                 for (auto& v : g_option_items)
                 {
                     v.reset_to_default();

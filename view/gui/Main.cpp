@@ -913,21 +913,29 @@ std::string get_app_full_path()
     return ret;
 }
 
-std::vector<std::unique_ptr<Plugin>> get_available_plugins()
+t_plugin_discovery_result do_plugin_discovery()
 {
 	std::vector<std::unique_ptr<Plugin>> plugins;
 	std::vector<std::string> files = IOService::get_files_with_extension_in_directory(
 		get_plugins_directory(), "dll");
 
+	size_t broken_plugins = 0;
 	for (const auto& file : files)
 	{
 		auto plugin = Plugin::create(file);
 		if (plugin.has_value())
 		{
 			plugins.push_back(std::move(plugin.value()));
+			continue;
 		}
+
+		broken_plugins++;
 	}
-	return plugins;
+
+	return t_plugin_discovery_result {
+		.plugins = std::move(plugins),
+		.broken_plugins = broken_plugins
+	};
 }
 
 void open_console()
