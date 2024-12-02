@@ -870,6 +870,18 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .type = t_options_item::Type::Bool,
         },
 
+    	t_options_item{
+    		.group_id = statusbar_group.id,
+			.name = "Layout",
+			.tooltip = L"The statusbar layout preset.\nClassic - The legacy layout\nModern - The new layout containing additional information\nModern+ - The new layout, but with a section for read-only status",
+			.data = &g_config.statusbar_layout,
+			.type = t_options_item::Type::Enum,
+			.possible_values = {
+    			std::make_pair(L"Classic", (int32_t)StatusbarLayout::Classic),
+				std::make_pair(L"Modern", (int32_t)StatusbarLayout::Modern),
+				std::make_pair(L"Modern+", (int32_t)StatusbarLayout::ModernWithReadonly),
+			},
+		},
 		t_options_item{
 			.group_id = statusbar_group.id,
 			.name = "Zero-index",

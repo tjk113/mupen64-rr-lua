@@ -99,6 +99,27 @@ enum class EncoderType : int32_t
     FFmpeg,
 };
 
+/**
+ * \brief The statusbar layout preset.
+ */
+enum class StatusbarLayout : int32_t
+{
+	/**
+	 * The legacy layout.
+	 */
+	Classic,
+
+	/**
+	 * The new layout containing additional information.
+	 */
+	Modern,
+
+	/**
+	 * The new layout, but with a section for read-only status.
+	 */
+	ModernWithReadonly,
+};
+
 typedef struct Hotkey
 {
     std::string identifier;
@@ -272,12 +293,17 @@ typedef struct Config
     /// Whether the statusbar is allowed to scale its segments down.
     /// </summary>
     int32_t statusbar_scale_down = 1;
-    
+
     /// <summary>
     /// Whether the statusbar is allowed to scale its segments up.
     /// </summary>
     int32_t statusbar_scale_up;
-    
+
+	/// <summary>
+	/// The statusbar layout.
+	/// </summary>
+	int32_t statusbar_layout = static_cast<int32_t>(StatusbarLayout::Modern);
+
     /// <summary>
     /// Whether the default plugins directory will be used (otherwise, falls back to <see cref="plugins_directory"/>)
     /// </summary>
@@ -392,7 +418,7 @@ typedef struct Config
         "-y -f rawvideo -pixel_format bgr24 -video_size %dx%d -framerate %d -i %s "\
         "-f s16le -sample_rate %d -ac 2 -channel_layout stereo -i %s "\
         "-c:v libx264 -preset fast -crf 23 -c:a copy -b:a 128k -vf \"vflip\" -f mp4 %s";
-    
+
     /// <summary>
     /// FFmpeg binary path
     /// </summary>
@@ -421,7 +447,7 @@ typedef struct Config
     /// Whether the async executor will apply concurrency fuzzing. When enabled, task execution will be delayed to expose delayed task execution handling deficiencies at the callsite.
     /// </summary>
     int32_t async_executor_cuzz;
-    
+
     /// <summary>
     /// The lua script path
     /// </summary>
@@ -453,7 +479,7 @@ typedef struct Config
     int32_t piano_roll_constrain_edit_to_column;
 
     /// <summary>
-    /// Maximum size of the undo/redo stack. 
+    /// Maximum size of the undo/redo stack.
     /// </summary>
     int32_t piano_roll_undo_stack_size = 100;
 
