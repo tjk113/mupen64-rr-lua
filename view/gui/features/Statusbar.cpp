@@ -322,19 +322,50 @@ namespace Statusbar
 	void init()
 	{
 		create();
-		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged,
-		                     emu_launched_changed);
-		Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged,
-		                     statusbar_visibility_changed);
-		Messenger::subscribe(Messenger::Message::ReadonlyChanged,
-		                     on_readonly_changed);
-		Messenger::subscribe(Messenger::Message::TaskChanged,
-		                     on_task_changed);
-		Messenger::subscribe(Messenger::Message::RerecordsChanged,
-		                     on_rerecords_changed);
-		Messenger::subscribe(Messenger::Message::SlotChanged,
-		                     on_slot_changed);
-		Messenger::subscribe(Messenger::Message::SizeChanged,
-		                     on_size_changed);
+		Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, emu_launched_changed);
+		Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged, statusbar_visibility_changed);
+		Messenger::subscribe(Messenger::Message::ReadonlyChanged, on_readonly_changed);
+		Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
+		Messenger::subscribe(Messenger::Message::RerecordsChanged, on_rerecords_changed);
+		Messenger::subscribe(Messenger::Message::SlotChanged, on_slot_changed);
+		Messenger::subscribe(Messenger::Message::SizeChanged, on_size_changed);
+		Messenger::subscribe(Messenger::Message::ConfigLoaded, [](std::any)
+		{
+			std::unordered_map<Section, std::string> section_text;
+
+			for (int i = 0; i <= static_cast<int32_t>(Section::Slot); ++i)
+			{
+				const auto section = static_cast<Section>(i);
+
+				const auto segment_index = section_to_segment_index(section);
+
+				if (segment_index == SIZE_MAX)
+				{
+					continue;
+				}
+
+				const auto len = SendMessage(statusbar_hwnd, SB_GETTEXTLENGTH, segment_index, 0);
+
+				auto str = new char[len + 1]();
+
+				SendMessage(statusbar_hwnd, SB_GETTEXT, segment_index, (LPARAM)str);
+
+				section_text[section] = std::string(str);
+
+				delete[] str;
+			}
+
+			update_size();
+
+			for (int i = 0; i < 255; ++i)
+			{
+				SendMessage(statusbar_hwnd, SB_SETTEXT, i, (LPARAM)"");
+			}
+
+			for (const auto pair : section_text)
+			{
+				post(pair.second, pair.first);
+			}
+		});
 	}
 }
