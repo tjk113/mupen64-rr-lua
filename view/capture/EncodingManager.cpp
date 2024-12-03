@@ -4,7 +4,6 @@
 
 #include <shared/services/FrontendService.h>
 #include <shared/Messenger.h>
-#include "Resampler.h"
 #include <core/r4300/Plugin.hpp>
 #include <view/gui/Main.h>
 #include <core/r4300/rom.h>
@@ -16,8 +15,7 @@
 #include <view/gui/features/MGECompositor.h>
 #include <view/lua/LuaConsole.h>
 #include <view/gui/features/Dispatcher.h>
-#include <view/helpers/IOHelpers.h>
-
+#include <view/gui/Loggers.h>
 #include "core/r4300/r4300.h"
 
 namespace EncodingManager
