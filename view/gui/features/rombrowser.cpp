@@ -48,18 +48,15 @@ namespace Rombrowser
             for (auto path : g_config.rombrowser_rom_paths)
             {
                 auto file_paths = get_files_in_subdirectories(path);
-                rom_paths.insert(rom_paths.end(), file_paths.begin(),
-                                 file_paths.end());
+                rom_paths.insert(rom_paths.end(), file_paths.begin(), file_paths.end());
             }
         }
         else
         {
             for (auto path : g_config.rombrowser_rom_paths)
             {
-                auto file_paths = IOService::get_files_with_extension_in_directory(
-                    path, "*");
-                rom_paths.insert(rom_paths.end(), file_paths.begin(),
-                                 file_paths.end());
+                auto file_paths = IOService::get_files_with_extension_in_directory(path, L"*");
+                rom_paths.insert(rom_paths.end(), file_paths.begin(), file_paths.end());
             }
         }
 
