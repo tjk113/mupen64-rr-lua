@@ -33,7 +33,7 @@ namespace Gameshark
          * \brief Sets the script's name
          * \param name A name describing the script's functionality
          */
-        void set_name(std::string name)
+        void set_name(std::wstring name)
         {
             m_name = name;
         }
@@ -49,7 +49,7 @@ namespace Gameshark
         /**
          * \brief Gets the script's name
          */
-        std::string name() const
+        std::wstring name() const
         {
             return m_name;
         }
@@ -57,7 +57,7 @@ namespace Gameshark
         /**
          * \brief Gets the script's code
          */
-        std::string code() const
+        std::wstring code() const
         {
             return m_code;
         }
@@ -67,7 +67,7 @@ namespace Gameshark
          * \param code The script code
          * \return The compiled script, or none if the script is invalid
          */
-        static std::optional<std::shared_ptr<Script>> compile(const std::string& code);
+        static std::optional<std::shared_ptr<Script>> compile(const std::wstring& code);
 
     private:
         // Whether the script code gets executed
@@ -77,10 +77,10 @@ namespace Gameshark
         std::vector<std::tuple<bool, std::function<bool()>>> m_instructions;
 
         // The script's name. FIXME: This should be read from the script
-        std::string m_name = "Unnamed Script";
+        std::wstring m_name = L"Unnamed Script";
 
         // The script's code. Can't be mutated after creation.
-        std::string m_code;
+        std::wstring m_code;
     };
 
     /**
