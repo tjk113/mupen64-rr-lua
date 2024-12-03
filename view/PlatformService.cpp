@@ -5,7 +5,7 @@
 
 #include "shared/services/FrontendService.h"
 
-void* PlatformService::load_library(const char* path)
+void* PlatformService::load_library(const wchar_t* path)
 {
     return LoadLibrary(path);
 }

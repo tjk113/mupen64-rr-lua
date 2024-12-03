@@ -13,8 +13,8 @@ namespace PlatformService
      * \param path The path to the library.
      * \return The handle to the loaded library, or nullptr.
      */
-    void* load_library(const char* path);
- 
+    void* load_library(const wchar_t* path);
+
     /**
      * Frees a loaded library.
      * \param module The handle to a platform-specific module type to free.
@@ -28,7 +28,7 @@ namespace PlatformService
      * \return The function pointer, or nullptr.
      */
     void* get_function_in_module(void* module, const char* name);
- 
+
     /**
      * Gets the free() function from the C runtime of the specified module.
      * \param module The handle to a platform-specific module type to get the function from.
