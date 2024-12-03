@@ -171,7 +171,7 @@ static void set_statusbar_parts(HWND hwnd, std::vector<int32_t> parts)
                 (LPARAM)new_parts.data());
 }
 
-static HWND create_tooltip(HWND hwnd, int id, const char* text)
+static HWND create_tooltip(HWND hwnd, int id, std::wstring text)
 {
     HWND hwnd_tip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
                                    WS_POPUP | TTS_NOPREFIX,
@@ -185,8 +185,9 @@ static HWND create_tooltip(HWND hwnd, int id, const char* text)
     info.hwnd = hwnd;
     info.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
     info.uId = (UINT_PTR)GetDlgItem(hwnd, id);
-    // FIXME: why does ms want mutable string for this
-    info.lpszText = const_cast<LPSTR>(text);
+    // FIXME: Why does ms want mutable string for this, isn't this getting copied when the tool is added???
+    info.lpszText = const_cast<LPWSTR>(text.c_str());
+
     SendMessage(hwnd_tip, TTM_ADDTOOL, 0, (LPARAM)&info);
     // Multiline tooltips only work if you specify a max width because of course they do
     SendMessage(hwnd_tip, TTM_SETMAXTIPWIDTH, 0, 999999);
@@ -249,7 +250,7 @@ static std::vector<size_t> get_listview_selection(const HWND hwnd)
 }
 
 /**
- * Shifts the listview selection by the specified amount. Retains sparse selections. Selections which fall outside the bounds of the item range after shifting are dropped.  
+ * Shifts the listview selection by the specified amount. Retains sparse selections. Selections which fall outside the bounds of the item range after shifting are dropped.
  * \param hwnd Handle to a listview.
  * \param offset The shift amount.
  */
@@ -267,7 +268,7 @@ static void shift_listview_selection(const HWND hwnd, const int32_t offset)
     {
         selected_index = max(selected_index + offset, 0);
     }
-    
+
     for (const auto selected_index : selection)
     {
         ListView_SetItemState(hwnd, selected_index, LVIS_SELECTED, LVIS_SELECTED);
