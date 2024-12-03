@@ -1,31 +1,32 @@
+#include <filesystem>
 #include <shared/services/IOService.h>
 #include <string>
 #include <vector>
 #include <Windows.h>
 
-std::vector<std::string> IOService::get_files_with_extension_in_directory(std::string directory, const std::string& extension)
+#include "shared/helpers/StlExtensions.h"
+
+std::vector<std::wstring> IOService::get_files_with_extension_in_directory(std::wstring directory, const std::wstring& extension)
 {
 	if (directory.empty())
 	{
-		directory = ".\\";
+		directory = L".\\";
 	} else
 	{
-		if (directory.back() != '\\')
+		if (directory.back() != L'\\')
 		{
-			directory += "\\";
+			directory += L"\\";
 		}
 	}
 
-
 	WIN32_FIND_DATA find_file_data;
-	const HANDLE h_find = FindFirstFile((directory + "*." + extension).c_str(),
-	                                    &find_file_data);
+	const HANDLE h_find = FindFirstFile((directory + L"*." + extension).c_str(), &find_file_data);
 	if (h_find == INVALID_HANDLE_VALUE)
 	{
 		return {};
 	}
 
-	std::vector<std::string> paths;
+	std::vector<std::wstring> paths;
 
 	do
 	{
