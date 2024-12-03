@@ -726,7 +726,7 @@ namespace PianoRoll
     {
         g_piano_roll_dispatcher->invoke([=]
         {
-            auto value = std::any_cast<long>(data);
+            auto value = std::any_cast<int32_t>(data);
             static auto previous_value = value;
 
             if (VCR::get_warp_modify_status() == e_warp_modify_status::warping || VCR::is_seeking())
@@ -1352,7 +1352,7 @@ namespace PianoRoll
                 update_inputs();
                 on_task_changed(VCR::get_task());
                 // ReSharper disable once CppRedundantCastExpression
-                on_current_sample_changed(static_cast<long>(VCR::get_seek_completion().first));
+                on_current_sample_changed(static_cast<int32_t>(VCR::get_seek_completion().first));
                 update_groupbox_status_text();
                 update_history_listbox();
                 SendMessage(hwnd, WM_SIZE, 0, 0);
