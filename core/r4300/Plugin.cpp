@@ -360,10 +360,9 @@ void load_rsp(void* handle)
     initiateRSP(rsp_info, (uint32_t*)&i);
 }
 
-std::optional<std::unique_ptr<Plugin>> Plugin::create(
-    std::filesystem::path path)
+std::optional<std::unique_ptr<Plugin>> Plugin::create(std::filesystem::path path)
 {
-    void* module = PlatformService::load_library(path.string().c_str());
+    void* module = PlatformService::load_library(path.wstring().c_str());
 
     if (module == nullptr)
     {
