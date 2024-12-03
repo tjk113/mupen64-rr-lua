@@ -23,7 +23,7 @@ extern "C" {
  * optimization that is irrelevant for most use cases of libdeflate.
  */
 #ifndef LIBDEFLATEAPI
-#  if 1 && (defined(_WIN32) || defined(__CYGWIN__))
+#  if defined(LIBDEFLATE_DLL) && (defined(_WIN32) || defined(__CYGWIN__))
 #    define LIBDEFLATEAPI	__declspec(dllimport)
 #  else
 #    define LIBDEFLATEAPI
