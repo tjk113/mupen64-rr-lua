@@ -77,10 +77,10 @@ namespace Cheats
 
                     const bool prev_resumed = Gameshark::scripts[selected_index]->resumed();
 
-                    char code[4096]{};
+                    wchar_t code[4096] = {};
                     Edit_GetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT), code, sizeof(code));
 
-                    char name[256]{};
+                    wchar_t name[256] = {};
                     Edit_GetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT_NAME), name, sizeof(name));
 
                     // Replace with script recompiled with new code, while keeping some properties
