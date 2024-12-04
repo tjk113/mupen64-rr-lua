@@ -379,7 +379,7 @@ namespace PianoRoll
 
         for (size_t i = 0; i < g_piano_roll_history.size(); ++i)
         {
-            ListBox_AddString(g_hist_hwnd, std::format("Snapshot {}", i + 1).c_str());
+            ListBox_AddString(g_hist_hwnd, std::format(L"Snapshot {}", i + 1).c_str());
         }
 
         ListBox_SetCurSel(g_hist_hwnd, g_piano_roll_state_index);
@@ -1322,27 +1322,27 @@ namespace PianoRoll
                 // HACK: Insert and then delete dummy column to have all columns center-aligned
                 // https://learn.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvcolumnw#remarks
                 lv_column.cx = 1;
-                lv_column.pszText = (LPTSTR)"";
+                lv_column.pszText = const_cast<LPWSTR>(L"");
                 ListView_InsertColumn(g_lv_hwnd, 0, &lv_column);
 
                 lv_column.cx = 26;
-                lv_column.pszText = (LPTSTR)"";
+                lv_column.pszText = const_cast<LPWSTR>(L"");
                 ListView_InsertColumn(g_lv_hwnd, 1, &lv_column);
 
                 lv_column.cx = 65;
-                lv_column.pszText = (LPTSTR)"Frame";
+                lv_column.pszText = const_cast<LPWSTR>(L"Frame");
                 ListView_InsertColumn(g_lv_hwnd, 2, &lv_column);
 
                 lv_column.cx = 40;
-                lv_column.pszText = (LPTSTR)"X";
+                lv_column.pszText = const_cast<LPWSTR>(L"X");
                 ListView_InsertColumn(g_lv_hwnd, 3, &lv_column);
-                lv_column.pszText = (LPTSTR)"Y";
+                lv_column.pszText = const_cast<LPWSTR>(L"Y");
                 ListView_InsertColumn(g_lv_hwnd, 4, &lv_column);
 
                 lv_column.cx = 30;
                 for (int i = 4; i <= 15; ++i)
                 {
-                    lv_column.pszText = (LPTSTR)get_button_name_from_column_index(i);
+                    lv_column.pszText = const_cast<LPWSTR>(get_button_name_from_column_index(i));
                     ListView_InsertColumn(g_lv_hwnd, i + 1, &lv_column);
                 }
 
