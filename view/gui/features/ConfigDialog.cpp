@@ -643,7 +643,7 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
                 }
                 // we add the string and associate a pointer to the plugin with the item
                 const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
-                SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, (LPARAM)plugin->name().c_str());
+                SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(string_to_wstring(plugin->name()).c_str()));
                 SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin.get());
             }
 
@@ -1462,9 +1462,9 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
             LVCOLUMN lv_column = {0};
             lv_column.mask = LVCF_FMT | LVCF_DEFAULTWIDTH | LVCF_TEXT | LVCF_SUBITEM;
 
-            lv_column.pszText = (LPTSTR)"Name";
+            lv_column.pszText = const_cast<LPWSTR>(L"Name");
             ListView_InsertColumn(g_lv_hwnd, 0, &lv_column);
-            lv_column.pszText = (LPTSTR)"Value";
+            lv_column.pszText = const_cast<LPWSTR>(L"Value");
             ListView_InsertColumn(g_lv_hwnd, 1, &lv_column);
 
             LVITEM lv_item = {0};
