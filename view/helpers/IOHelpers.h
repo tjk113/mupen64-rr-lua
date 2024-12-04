@@ -28,7 +28,7 @@ static std::vector<std::wstring> get_files_in_subdirectories(std::wstring direct
 	std::wstring fixed_path = directory;
 	do
 	{
-		if (find_file_data.cFileName == L"." || find_file_data.cFileName == L"..")
+		if (!lstrcmpW(find_file_data.cFileName, L".") || !lstrcmpW(find_file_data.cFileName, L".."))
 			continue;
 
 		auto full_path = directory + find_file_data.cFileName;
