@@ -925,7 +925,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
             g_task = e_task::recording;
             // FIXME: Doesn't this need a message broadcast?
             // TODO: Also, what about clearing the input on first frame
-        });
+        }, true);
     }
     else if (flags & MOVIE_START_FROM_EXISTING_SNAPSHOT)
     {
@@ -959,7 +959,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
                 g_task = e_task::recording;
                 // FIXME: Doesn't this need a message broadcast?
                 // TODO: Also, what about clearing the input on first frame
-            });
+            }, true);
         });
     }
     else
@@ -1295,7 +1295,7 @@ CoreResult VCR::start_playback(std::filesystem::path path)
                 Messenger::broadcast(Messenger::Message::TaskChanged, g_task);
                 Messenger::broadcast(Messenger::Message::CurrentSampleChanged, m_current_sample);
                 Messenger::broadcast(Messenger::Message::RerecordsChanged, get_rerecord_count());
-            });
+            }, true);
         });
     }
     else
