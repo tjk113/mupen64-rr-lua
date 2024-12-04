@@ -82,23 +82,23 @@ static char* get_st_path(const char* filename)
     return path;
 }
 
-static int32_t sd_error(const char* text, const char* caption)
+static int32_t sd_error(const wchar_t* text, const wchar_t* caption)
 {
-    FrontendService::show_information(text, caption);
+    FrontendService::show_error(text, caption);
     return -1;
 }
 
-static int32_t sd_seek(FILE* fp, const char* caption)
+static int32_t sd_seek(FILE* fp, const wchar_t* caption)
 {
     struct vhd vhd;
     uint32_t sector = summercart.sd_sector;
     uint32_t count = summercart.data1;
-    if (fseek(fp, -512, SEEK_END)) return sd_error("Seek(1) error.", caption);
-    if (fread(&vhd, 1, sizeof(struct vhd), fp) != sizeof(struct vhd)) return sd_error("Read error.", caption);
-    if (memcmp(vhd.cookie, "conectix", 8)) return sd_error("Invalid VHD file.", caption);
-    if (vhd_32(vhd.type) != 2) return sd_error("Invalid VHD type: must be a fixed disk.", caption);
+    if (fseek(fp, -512, SEEK_END)) return sd_error(L"Seek(1) error.", caption);
+    if (fread(&vhd, 1, sizeof(struct vhd), fp) != sizeof(struct vhd)) return sd_error(L"Read error.", caption);
+    if (memcmp(vhd.cookie, "conectix", 8)) return sd_error(L"Invalid VHD file.", caption);
+    if (vhd_32(vhd.type) != 2) return sd_error(L"Invalid VHD type: must be a fixed disk.", caption);
     if ((int64_t)sector + count > vhd_64(vhd.disk_size) / 512) return -1;
-    if (fseek(fp, 512 * (int64_t)sector, SEEK_SET)) return sd_error("Seek(2) error.", caption);
+    if (fseek(fp, 512 * (int64_t)sector, SEEK_SET)) return sd_error(L"Seek(2) error.", caption);
     return 0;
 }
 
@@ -117,7 +117,7 @@ static void sd_read()
         if ((fp = fopen(path, "rb")))
         {
             char s = S8;
-            if (!sd_seek(fp, "SD read error"))
+            if (!sd_seek(fp, L"SD read error"))
             {
                 if (addr >= 0x1ffe0000 && addr + size <= 0x1ffe2000)
                 {
@@ -138,10 +138,10 @@ static void sd_read()
             }
             fclose(fp);
         }
-        else sd_error("Could not open SD image file.", "SD read error");
+        else sd_error(L"Could not open SD image file.", L"SD read error");
         free(path);
     }
-    else sd_error("Could not generate SD image path.", "SD read error");
+    else sd_error(L"Could not generate SD image path.", L"SD read error");
 }
 
 static void sd_write()
@@ -158,7 +158,7 @@ static void sd_write()
     {
         if ((fp = fopen(path, "r+b")))
         {
-            if (!sd_seek(fp, "SD write error"))
+            if (!sd_seek(fp, L"SD write error"))
             {
                 if (addr >= 0x1ffe0000 && addr + size <= 0x1ffe2000)
                 {
@@ -178,10 +178,10 @@ static void sd_write()
             }
             fclose(fp);
         }
-        else sd_error("Could not open SD image file.", "SD write error");
+        else sd_error(L"Could not open SD image file.", L"SD write error");
         free(path);
     }
-    else sd_error("Could not generate SD image path.", "SD write error");
+    else sd_error(L"Could not generate SD image path.", L"SD write error");
 }
 
 void save_summercart(const char* filename)
@@ -208,19 +208,19 @@ void save_summercart(const char* filename)
                         fwrite(&vhd, 1, sizeof(struct vhd), stf);
                         fclose(stf);
                     }
-                    else sd_error("Could not open SD state file.", "Save error");
+                    else sd_error(L"Could not open SD state file.", L"Save error");
                     fclose(sdf);
                 }
-                else sd_error("Could not open SD image file.", "Save error");
+                else sd_error(L"Could not open SD image file.", L"Save error");
                 free(stp);
             }
-            else sd_error("Could not generate SD state path.", "Save error");
+            else sd_error(L"Could not generate SD state path.", L"Save error");
             free(sdp);
         }
-        else sd_error("Could not generate SD image path.", "Save error");
+        else sd_error(L"Could not generate SD image path.", L"Save error");
         free(buf);
     }
-    else sd_error("Could not allocate buffer.", "Save error");
+    else sd_error(L"Could not allocate buffer.", L"Save error");
 }
 
 void load_summercart(const char* filename)
@@ -247,19 +247,19 @@ void load_summercart(const char* filename)
                         fwrite(&vhd, 1, sizeof(struct vhd), sdf);
                         fclose(sdf);
                     }
-                    else sd_error("Could not open SD image file.", "Load error");
+                    else sd_error(L"Could not open SD image file.", L"Load error");
                     fclose(stf);
                 }
-                else sd_error("Could not open SD state file.", "Load error");
+                else sd_error(L"Could not open SD state file.", L"Load error");
                 free(sdp);
             }
-            else sd_error("Could not generate SD image path.", "Load error");
+            else sd_error(L"Could not generate SD image path.", L"Load error");
             free(stp);
         }
-        else sd_error("Could not generate SD state path.", "Load error");
+        else sd_error(L"Could not generate SD state path.", L"Load error");
         free(buf);
     }
-    else sd_error("Could not allocate buffer.", "Load error");
+    else sd_error(L"Could not allocate buffer.", L"Load error");
 }
 
 void init_summercart()

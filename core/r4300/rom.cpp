@@ -70,44 +70,44 @@ void print_rom_info()
     g_core_logger->info("Cartridge ID: {:#06x}", ROM_HEADER.Cartridge_ID);
     g_core_logger->info("Size: {}", rom_size);
     g_core_logger->info("PC: {:#06x}\n", sl((uint32_t)ROM_HEADER.PC));
-    g_core_logger->info("Country: {}", country_code_to_country_name(ROM_HEADER.Country_code).c_str());
+    g_core_logger->info("Country: {}", wstring_to_string(country_code_to_country_name(ROM_HEADER.Country_code)).c_str());
     g_core_logger->info("----------------");
 }
 
-std::string country_code_to_country_name(uint16_t country_code)
+std::wstring country_code_to_country_name(uint16_t country_code)
 {
     switch (country_code & 0xFF)
     {
     case 0:
-        return "Demo";
+        return L"Demo";
     case '7':
-        return "Beta";
+        return L"Beta";
     case 0x41:
-        return "USA/Japan";
+        return L"USA/Japan";
     case 0x44:
-        return "Germany";
+        return L"Germany";
     case 0x45:
-        return "USA";
+        return L"USA";
     case 0x46:
-        return "France";
+        return L"France";
     case 'I':
-        return "Italy";
+        return L"Italy";
     case 0x4A:
-        return "Japan";
+        return L"Japan";
     case 'S':
-        return "Spain";
+        return L"Spain";
     case 0x55:
     case 0x59:
-        return "Australia";
+        return L"Australia";
     case 0x50:
     case 0x58:
     case 0x20:
     case 0x21:
     case 0x38:
     case 0x70:
-        return "Europe";
+        return L"Europe";
     default:
-        return "Unknown (" + std::to_string(country_code & 0xFF) + ")";
+        return L"Unknown (" + std::to_wstring(country_code & 0xFF) + L")";
     }
 }
 

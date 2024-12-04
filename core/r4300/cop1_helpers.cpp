@@ -11,12 +11,10 @@
 float largest_denormal_float = 1.1754942106924411e-38f; // (1U << 23) - 1
 double largest_denormal_double = 2.225073858507201e-308; // (1ULL << 52) - 1
 
-void fail_float(const char* msg)
+void fail_float(const std::wstring& msg)
 {
-    char buf[200];
-    sprintf(buf, "%s; PC = 0x%lx", msg, interpcore ? interp_addr : PC->addr);
-    g_core_logger->error("{}\n", buf);
-    FrontendService::show_information(buf, "Floating Point Error");
+	const auto buf = std::format(L"{}\nPC = {:#06x}", msg, interpcore ? interp_addr : PC->addr);
+    FrontendService::show_error(buf.c_str(), L"Floating Point Error");
 
     core_Cause = 15 << 2;
     exception_general();
@@ -24,22 +22,20 @@ void fail_float(const char* msg)
 
 void fail_float_input()
 {
-    fail_float("Operation on denormal/nan");
+    fail_float(L"Operation on denormal/nan");
 }
 
 void fail_float_input_arg(double x)
 {
-    char buf[100];
-    sprintf(buf, "Operation on denormal/nan: %lg", x);
-    fail_float(buf);
+	fail_float(std::format(L"Operation on denormal/nan: {}", x));
 }
 
 void fail_float_output()
 {
-    fail_float("Float operation resulted in nan");
+    fail_float(L"Float operation resulted in nan");
 }
 
 void fail_float_convert()
 {
-    fail_float("Out-of-range float conversion");
+    fail_float(L"Out-of-range float conversion");
 }

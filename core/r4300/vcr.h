@@ -316,7 +316,7 @@ namespace VCR
      *	"^n" - Sample n from the end
      *
      */
-    CoreResult begin_seek(std::string str, bool pause_at_end);
+    CoreResult begin_seek(std::wstring str, bool pause_at_end);
 
     /**
      * \brief Converts a freeze buffer into a movie, trying to reconstruct as much as possible
@@ -359,12 +359,12 @@ namespace VCR
     /**
      * \brief Gets the text representation of the last frame's inputs
      */
-    const char* get_input_text();
+    const wchar_t* get_input_text();
 
     /**
      * \brief Gets the text representation of the VCR state's inputs
      */
-    const char* get_status_text();
+    const wchar_t* get_status_text();
 
     /**
      * \brief Gets the current movie path. Only valid when task is not idle.

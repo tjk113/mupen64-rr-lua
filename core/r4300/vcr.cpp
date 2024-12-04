@@ -32,15 +32,15 @@ enum
     mup_version = (3),
 };
 
-constexpr auto RAWDATA_WARNING_MESSAGE = "Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?";
-constexpr auto ROM_NAME_WARNING_MESSAGE = "The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?";
-constexpr auto ROM_COUNTRY_WARNING_MESSAGE = "The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
-constexpr auto ROM_CRC_WARNING_MESSAGE = "The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
-constexpr auto TRUNCATE_MESSAGE = "Failed to truncate the movie file. The movie may be corrupted.";
-constexpr auto WII_VC_MISMATCH_A_WARNING_MESSAGE = "The movie was recorded with WiiVC mode enabled, but is being played back with it disabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
-constexpr auto WII_VC_MISMATCH_B_WARNING_MESSAGE = "The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
-constexpr auto OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE = "The movie was recorded prior to the extended format being available, but contains data in an extended format section.\r\nThe movie may be corrupted. Are you sure you want to continue?";
-constexpr auto WARP_MODIFY_SEEKBACK_FAILED_MESSAGE = "Failed to seek back during a warp modify operation, error code {}.\r\nPiano roll might be desynced.";
+constexpr auto RAWDATA_WARNING_MESSAGE = L"Warning: One of the active controllers of your input plugin is set to accept \"Raw Data\".\nThis can cause issues when recording and playing movies. Proceed?";
+constexpr auto ROM_NAME_WARNING_MESSAGE = L"The movie was recorded on the rom '{}', but is being played back on '{}'.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto ROM_COUNTRY_WARNING_MESSAGE = L"The movie was recorded on a rom with country {}, but is being played back on {}.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto ROM_CRC_WARNING_MESSAGE = L"The movie was recorded with a ROM that has CRC \"0x%X\",\nbut you are using a ROM with CRC \"0x%X\".\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto TRUNCATE_MESSAGE = L"Failed to truncate the movie file. The movie may be corrupted.";
+constexpr auto WII_VC_MISMATCH_A_WARNING_MESSAGE = L"The movie was recorded with WiiVC mode enabled, but is being played back with it disabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto WII_VC_MISMATCH_B_WARNING_MESSAGE = L"The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
+constexpr auto OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE = L"The movie was recorded prior to the extended format being available, but contains data in an extended format section.\r\nThe movie may be corrupted. Are you sure you want to continue?";
+constexpr auto WARP_MODIFY_SEEKBACK_FAILED_MESSAGE = L"Failed to seek back during a warp modify operation, error code {}.\r\nPiano roll might be desynced.";
 
 volatile e_task g_task = e_task::idle;
 
@@ -540,7 +540,7 @@ void vcr_create_n_frame_savestate(size_t frame)
 
         if (result != CoreResult::Ok)
         {
-            FrontendService::show_error(std::format("Failed to save seek savestate at frame {}.", frame).c_str(), "VCR");
+            FrontendService::show_error(std::format(L"Failed to save seek savestate at frame {}.", frame).c_str(), L"VCR");
             return;
         }
 
@@ -565,7 +565,7 @@ void vcr_handle_starting_tasks(int32_t index, BUTTONS* input)
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error("Failed to reset the rom when initiating a from-start recording.\nRecording will be stopped.", "VCR");
+                FrontendService::show_error(L"Failed to reset the rom when initiating a from-start recording.\nRecording will be stopped.", L"VCR");
                 VCR::stop_all();
                 return;
             }
@@ -592,7 +592,7 @@ void vcr_handle_starting_tasks(int32_t index, BUTTONS* input)
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error("Failed to reset the rom when playing back a from-start movie.\nPlayback will be stopped.", "VCR");
+                FrontendService::show_error(L"Failed to reset the rom when playing back a from-start movie.\nPlayback will be stopped.", L"VCR");
                 VCR::stop_all();
                 return;
             }
@@ -667,7 +667,7 @@ void vcr_handle_recording(int32_t index, BUTTONS* input)
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error("Failed to reset the rom following a user-invoked reset.");
+                FrontendService::show_error(L"Failed to reset the rom following a user-invoked reset.");
             }
         });
     }
@@ -721,7 +721,7 @@ void vcr_handle_playback(int32_t index, BUTTONS* input)
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error("Failed to reset the rom following a movie-invoked reset.\nRecording will be stopped.", "VCR");
+                FrontendService::show_error(L"Failed to reset the rom following a movie-invoked reset.\nRecording will be stopped.", L"VCR");
                 VCR::stop_all();
                 g_reset_pending = false;
                 return;
@@ -750,7 +750,7 @@ void vcr_stop_seek_if_needed()
     if (m_current_sample > seek_to_frame.value())
     {
         g_core_logger->error("Seek frame exceeded without seek having been stopped. ({}/{})", m_current_sample, seek_to_frame.value());
-        FrontendService::show_error("Seek frame exceeded without seek having been stopped!\nThis incident has been logged, please report this issue along with the log file.", "VCR");
+        FrontendService::show_error(L"Seek frame exceeded without seek having been stopped!\nThis incident has been logged, please report this issue along with the log file.", L"VCR");
     }
 
     if (m_current_sample >= seek_to_frame.value())
@@ -873,7 +873,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
     {
         if (Present && RawData)
         {
-            bool proceed = FrontendService::show_ask_dialog(RAWDATA_WARNING_MESSAGE, "VCR", true);
+            bool proceed = FrontendService::show_ask_dialog(RAWDATA_WARNING_MESSAGE, L"VCR", true);
             if (!proceed)
             {
                 return CoreResult::VCR_Cancelled;
@@ -916,7 +916,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error("Failed to load savestate while starting recording.\nRecording will be stopped.", "VCR");
+                FrontendService::show_error(L"Failed to load savestate while starting recording.\nRecording will be stopped.", L"VCR");
                 VCR::stop_all();
                 return;
             }
@@ -950,7 +950,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
 
                 if (result != CoreResult::Ok)
                 {
-                    FrontendService::show_error("Failed to load savestate while starting recording.\nRecording will be stopped.", "VCR");
+                    FrontendService::show_error(L"Failed to load savestate while starting recording.\nRecording will be stopped.", L"VCR");
                     VCR::stop_all();
                     return;
                 }
@@ -1098,37 +1098,37 @@ CoreResult vcr_stop_record()
     return CoreResult::Ok;
 }
 
-int32_t check_warn_controllers(char* warning_str)
+int32_t check_warn_controllers(wchar_t* warning_str)
 {
     for (int32_t i = 0; i < 4; ++i)
     {
         if (!Controls[i].Present && (g_header.controller_flags &
             CONTROLLER_X_PRESENT(i)))
         {
-            sprintf(warning_str,
-                    "Error: You have controller %d disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n",
+            wsprintf(warning_str,
+                    L"Error: You have controller %d disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n",
                     (i + 1));
             return 0;
         }
         if (Controls[i].Present && !(g_header.controller_flags &
             CONTROLLER_X_PRESENT(i)))
-            sprintf(warning_str,
-                    "Warning: You have controller %d enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n",
+            wsprintf(warning_str,
+                    L"Warning: You have controller %d enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n",
                     (i + 1));
         else
         {
             if (Controls[i].Present && (Controls[i].Plugin != (int32_t)ControllerExtension::Mempak) && (g_header.controller_flags & CONTROLLER_X_MEMPAK(i)))
-                sprintf(warning_str,
-                        "Warning: Controller %d has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
+                wsprintf(warning_str,
+                        L"Warning: Controller %d has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
                         (i + 1));
             if (Controls[i].Present && (Controls[i].Plugin != (int32_t)ControllerExtension::Rumblepak) && (g_header.controller_flags & CONTROLLER_X_RUMBLE(i)))
-                sprintf(warning_str,
-                        "Warning: Controller %d has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
+                wsprintf(warning_str,
+                        L"Warning: Controller %d has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
                         (i + 1));
             if (Controls[i].Present && (Controls[i].Plugin != (int32_t)ControllerExtension::None) && !(g_header.controller_flags & (CONTROLLER_X_MEMPAK(i) |
                     CONTROLLER_X_RUMBLE(i))))
-                sprintf(warning_str,
-                        "Warning: Controller %d does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
+                wsprintf(warning_str,
+                        L"Warning: Controller %d does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
                         (i + 1));
         }
     }
@@ -1180,7 +1180,7 @@ CoreResult VCR::start_playback(std::filesystem::path path)
         if (!Present || !RawData)
             continue;
 
-        bool proceed = FrontendService::show_ask_dialog(RAWDATA_WARNING_MESSAGE, "VCR", true);
+        bool proceed = FrontendService::show_ask_dialog(RAWDATA_WARNING_MESSAGE, L"VCR", true);
         if (!proceed)
         {
             return CoreResult::VCR_Cancelled;
@@ -1189,15 +1189,15 @@ CoreResult VCR::start_playback(std::filesystem::path path)
         break;
     }
 
-    char dummy[1024] = {0};
+    wchar_t dummy[1024] = {0};
     if (!check_warn_controllers(dummy))
     {
         return CoreResult::VCR_InvalidControllers;
     }
 
-    if (strlen(dummy) > 0)
+    if (lstrlenW(dummy) > 0)
     {
-        FrontendService::show_warning(dummy, "VCR");
+        FrontendService::show_warning(dummy, L"VCR");
     }
 
     if (g_header.extended_version != 0)
@@ -1206,7 +1206,7 @@ CoreResult VCR::start_playback(std::filesystem::path path)
 
         if (g_config.wii_vc_emulation != g_header.extended_flags.wii_vc)
         {
-            bool proceed = FrontendService::show_ask_dialog(g_header.extended_flags.wii_vc ? WII_VC_MISMATCH_A_WARNING_MESSAGE : WII_VC_MISMATCH_B_WARNING_MESSAGE, "VCR", true);
+            bool proceed = FrontendService::show_ask_dialog(g_header.extended_flags.wii_vc ? WII_VC_MISMATCH_A_WARNING_MESSAGE : WII_VC_MISMATCH_B_WARNING_MESSAGE, L"VCR", true);
 
             if (!proceed)
             {
@@ -1219,14 +1219,14 @@ CoreResult VCR::start_playback(std::filesystem::path path)
         // Old movies filled with non-zero data in this section are suspicious, we'll warn the user.
         if (g_header.extended_flags.data != 0)
         {
-            FrontendService::show_warning(OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE, "VCR");
+            FrontendService::show_warning(OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE, L"VCR");
         }
     }
 
     if (_stricmp(g_header.rom_name,
                  (const char*)ROM_HEADER.nom) != 0)
     {
-        bool proceed = FrontendService::show_ask_dialog(std::format(ROM_NAME_WARNING_MESSAGE, g_header.rom_name, (const char*)ROM_HEADER.nom).c_str(), "VCR", true);
+        bool proceed = FrontendService::show_ask_dialog(std::format(ROM_NAME_WARNING_MESSAGE, string_to_wstring(g_header.rom_name), string_to_wstring((char*)ROM_HEADER.nom)).c_str(), L"VCR", true);
 
         if (!proceed)
         {
@@ -1238,7 +1238,7 @@ CoreResult VCR::start_playback(std::filesystem::path path)
         if (g_header.rom_country != ROM_HEADER.
             Country_code)
         {
-            bool proceed = FrontendService::show_ask_dialog(std::format(ROM_COUNTRY_WARNING_MESSAGE, g_header.rom_country, ROM_HEADER.Country_code).c_str(), "VCR", true);
+            bool proceed = FrontendService::show_ask_dialog(std::format(ROM_COUNTRY_WARNING_MESSAGE, g_header.rom_country, ROM_HEADER.Country_code).c_str(), L"VCR", true);
             if (!proceed)
             {
                 return CoreResult::VCR_Cancelled;
@@ -1247,14 +1247,10 @@ CoreResult VCR::start_playback(std::filesystem::path path)
         else if (g_header.rom_crc1 != ROM_HEADER.
             CRC1)
         {
-            char str[512] = {0};
-            sprintf(
-                str,
-                ROM_CRC_WARNING_MESSAGE,
-                (uint32_t)g_header.rom_crc1,
-                (uint32_t)ROM_HEADER.CRC1);
+            wchar_t str[512] = {0};
+            wsprintf(str, ROM_CRC_WARNING_MESSAGE, g_header.rom_crc1, ROM_HEADER.CRC1);
 
-            bool proceed = FrontendService::show_ask_dialog(str, "VCR", true);
+            bool proceed = FrontendService::show_ask_dialog(str, L"VCR", true);
             if (!proceed)
             {
                 return CoreResult::VCR_Cancelled;
@@ -1289,7 +1285,7 @@ CoreResult VCR::start_playback(std::filesystem::path path)
 
                 if (result != CoreResult::Ok)
                 {
-                    FrontendService::show_error("Failed to load savestate while starting playback.\nRecording will be stopped.", "VCR");
+                    FrontendService::show_error(L"Failed to load savestate while starting playback.\nRecording will be stopped.", L"VCR");
                     VCR::stop_all();
                     return;
                 }
@@ -1323,7 +1319,7 @@ bool can_seek_to(size_t frame)
         && frame > 0;
 }
 
-size_t compute_sample_from_seek_string(const std::string& str)
+size_t compute_sample_from_seek_string(const std::wstring& str)
 {
     try
     {
@@ -1369,7 +1365,7 @@ size_t vcr_find_closest_savestate_before_frame(size_t frame)
     return lowest_distance_frame;
 }
 
-CoreResult vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, bool warp_modify)
+CoreResult vcr_begin_seek_impl(std::wstring str, bool pause_at_end, bool resume, bool warp_modify)
 {
     std::scoped_lock lock(vcr_mutex);
 
@@ -1447,7 +1443,7 @@ CoreResult vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, 
                 {
                     if (result != CoreResult::Ok)
                     {
-                        FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
+                        FrontendService::show_error(L"Failed to load seek savestate for seek operation.", L"VCR");
                         g_seek_savestate_loading = false;
                         VCR::stop_seek();
                     }
@@ -1478,7 +1474,7 @@ CoreResult vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, 
         if (g_config.seek_savestate_interval == 0)
         {
             // TODO: We can't backtrack using savestates, so we'd have to restart into recording mode while restoring the buffer, leave it for the next release...
-            FrontendService::show_error("The seek savestate interval can't be 0 when seeking backwards during recording.", "VCR");
+            FrontendService::show_error(L"The seek savestate interval can't be 0 when seeking backwards during recording.", L"VCR");
             return CoreResult::VCR_SeekSavestateIntervalZero;
         }
 
@@ -1515,7 +1511,7 @@ CoreResult vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, 
             {
                 if (result != CoreResult::Ok)
                 {
-                    FrontendService::show_error("Failed to load seek savestate for seek operation.", "VCR");
+                    FrontendService::show_error(L"Failed to load seek savestate for seek operation.", L"VCR");
                     g_seek_savestate_loading = false;
                     VCR::stop_seek();
                 }
@@ -1531,7 +1527,7 @@ CoreResult vcr_begin_seek_impl(std::string str, bool pause_at_end, bool resume, 
     return CoreResult::Ok;
 }
 
-CoreResult VCR::begin_seek(std::string str, bool pause_at_end)
+CoreResult VCR::begin_seek(std::wstring str, bool pause_at_end)
 {
     return vcr_begin_seek_impl(str, pause_at_end, true, false);
 }
@@ -1643,62 +1639,62 @@ CoreResult VCR::stop_all()
     }
 }
 
-const char* VCR::get_input_text()
+// TODO: Move this and get_status_text into view. This is not the core's business.
+const wchar_t* VCR::get_input_text()
 {
-    static char text[1024]{};
+    static wchar_t text[1024]{};
     memset(text, 0, sizeof(text));
 
     BUTTONS b = LuaService::get_last_controller_data(0);
-    sprintf(text, "(%d, %d) ", b.Y_AXIS, b.X_AXIS);
-    if (b.START_BUTTON) strcat(text, "S");
-    if (b.Z_TRIG) strcat(text, "Z");
-    if (b.A_BUTTON) strcat(text, "A");
-    if (b.B_BUTTON) strcat(text, "B");
-    if (b.L_TRIG) strcat(text, "L");
-    if (b.R_TRIG) strcat(text, "R");
+    wsprintf(text, L"(%d, %d) ", b.Y_AXIS, b.X_AXIS);
+    if (b.START_BUTTON) lstrcatW(text, L"S");
+    if (b.Z_TRIG) lstrcatW(text, L"Z");
+    if (b.A_BUTTON) lstrcatW(text, L"A");
+    if (b.B_BUTTON) lstrcatW(text, L"B");
+    if (b.L_TRIG) lstrcatW(text, L"L");
+    if (b.R_TRIG) lstrcatW(text, L"R");
     if (b.U_CBUTTON || b.D_CBUTTON || b.L_CBUTTON ||
         b.R_CBUTTON)
     {
-        strcat(text, " C");
-        if (b.U_CBUTTON) strcat(text, "^");
-        if (b.D_CBUTTON) strcat(text, "v");
-        if (b.L_CBUTTON) strcat(text, "<");
-        if (b.R_CBUTTON) strcat(text, ">");
+        lstrcatW(text, L" C");
+        if (b.U_CBUTTON) lstrcatW(text, L"^");
+        if (b.D_CBUTTON) lstrcatW(text, L"v");
+        if (b.L_CBUTTON) lstrcatW(text, L"<");
+        if (b.R_CBUTTON) lstrcatW(text, L">");
     }
     if (b.U_DPAD || b.D_DPAD || b.L_DPAD || b.
         R_DPAD)
     {
-        strcat(text, "D");
-        if (b.U_DPAD) strcat(text, "^");
-        if (b.D_DPAD) strcat(text, "v");
-        if (b.L_DPAD) strcat(text, "<");
-        if (b.R_DPAD) strcat(text, ">");
+        lstrcatW(text, L"D");
+        if (b.U_DPAD) lstrcatW(text, L"^");
+        if (b.D_DPAD) lstrcatW(text, L"v");
+        if (b.L_DPAD) lstrcatW(text, L"<");
+        if (b.R_DPAD) lstrcatW(text, L">");
     }
     return text;
 }
 
-const char* VCR::get_status_text()
+const wchar_t* VCR::get_status_text()
 {
-    static char text[1024]{};
+    static wchar_t text[1024]{};
     memset(text, 0, sizeof(text));
 
-    // TODO: Remove 0 index option, as it's wrong
     auto index_adjustment = (g_config.vcr_0_index ? 1 : 0);
 
     if (g_warp_modify_status == e_warp_modify_status::warping)
     {
-        sprintf(text, "Warping (%d, %.0f%%), edit at %d", m_current_sample, ((float)m_current_sample / (float)g_header.length_samples) * 100.0f, g_warp_modify_first_difference_frame);
+        wsprintfW(text, L"Warping (%d, %.0f%%), edit at %d", m_current_sample, ((float)m_current_sample / (float)g_header.length_samples) * 100.0f, g_warp_modify_first_difference_frame);
         return text;
     }
 
     if (VCR::get_task() == e_task::recording)
     {
-        sprintf(text, "%d (%d) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
+        wsprintfW(text, L"%d (%d) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
     }
 
     if (vcr_is_playing())
     {
-        sprintf(text, "%d / %d (%d / %d) ",
+        wsprintfW(text, L"%d / %d (%d / %d) ",
                 m_current_vi - index_adjustment,
                 g_header.length_vis,
                 m_current_sample - index_adjustment,
@@ -1804,7 +1800,7 @@ CoreResult VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 
     const auto target_sample = std::min(inputs.size(), (size_t)m_current_sample);
 
-    const auto result = vcr_begin_seek_impl(std::to_string(target_sample), emu_paused || frame_advancing, false, true);
+    const auto result = vcr_begin_seek_impl(std::to_wstring(target_sample), emu_paused || frame_advancing, false, true);
 
     if (result != CoreResult::Ok)
     {

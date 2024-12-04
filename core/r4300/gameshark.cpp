@@ -169,7 +169,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
         }
         else
         {
-            g_core_logger->error("[GS] Illegal instruction {}\n", opcode.c_str());
+            g_core_logger->error(L"[GS] Illegal instruction {}\n", opcode.c_str());
             return std::nullopt;
         }
     }
