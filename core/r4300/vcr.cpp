@@ -916,7 +916,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error(L"Failed to load savestate while starting recording.\nRecording will be stopped.", L"VCR");
+                FrontendService::show_error(L"Failed to save savestate while starting recording.\nRecording will be stopped.", L"VCR");
                 VCR::stop_all();
                 return;
             }
