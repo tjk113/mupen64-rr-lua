@@ -168,11 +168,8 @@ namespace Statusbar
 
 		if (segment_index == SIZE_MAX)
 		{
-			g_view_logger->warn("[Statusbar] Tried to post text to section {}, which is not available", static_cast<int32_t>(section));
 			return;
 		}
-
-		g_view_logger->trace("[Statusbar] Posting text to segment {}...", static_cast<int>(segment_index));
 
 		SendMessage(statusbar_hwnd, SB_SETTEXT, segment_index, (LPARAM)text.c_str());
 	}
