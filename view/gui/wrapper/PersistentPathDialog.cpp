@@ -10,7 +10,7 @@
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp
 
-std::wstring show_persistent_open_dialog(const std::string& id, HWND hwnd,
+std::wstring show_persistent_open_dialog(const std::wstring& id, HWND hwnd,
                                          const std::wstring& filter)
 {
     COMInitializer com_initializer;
@@ -40,7 +40,7 @@ std::wstring show_persistent_open_dialog(const std::string& id, HWND hwnd,
         std::wstring restored_path = g_config.persistent_folder_paths.contains(id)
                                          ? g_config.persistent_folder_paths[id]
                                          : get_desktop_path();
-        g_view_logger->info("Open dialog {} restored {}\n", id.c_str(), wstring_to_string(restored_path));
+        g_view_logger->info(L"Open dialog {} restored {}\n", id.c_str(), restored_path);
         if (SHCreateItemFromParsingName(restored_path.c_str(), nullptr,
                                         IID_PPV_ARGS(&shlPtr)) != S_OK)
             g_view_logger->info(
@@ -64,7 +64,7 @@ cleanUp:
     return succeeded ? g_config.persistent_folder_paths[id] : std::wstring();
 }
 
-std::wstring show_persistent_save_dialog(const std::string& id, HWND hwnd,
+std::wstring show_persistent_save_dialog(const std::wstring& id, HWND hwnd,
                                          const std::wstring& filter)
 {
     COMInitializer com_initializer;
@@ -93,7 +93,7 @@ std::wstring show_persistent_save_dialog(const std::string& id, HWND hwnd,
         std::wstring restored_path = g_config.persistent_folder_paths.contains(id)
                                          ? g_config.persistent_folder_paths[id]
                                          : get_desktop_path();
-        g_view_logger->info("Save dialog {} restored %ls\n", id.c_str(), wstring_to_string(restored_path));
+        g_view_logger->info(L"Save dialog {} restored %ls\n", id.c_str(), restored_path);
         if (SHCreateItemFromParsingName(restored_path.c_str(), nullptr,
                                         IID_PPV_ARGS(&shlPtr)) != S_OK)
             g_view_logger->info(
@@ -125,7 +125,7 @@ cleanUp:
     return succeeded ? g_config.persistent_folder_paths[id] : std::wstring();
 }
 
-std::wstring show_persistent_folder_dialog(const std::string& id, HWND hwnd)
+std::wstring show_persistent_folder_dialog(const std::wstring& id, HWND hwnd)
 {
     COMInitializer com_initializer;
     std::wstring final_path;
@@ -140,9 +140,8 @@ std::wstring show_persistent_folder_dialog(const std::string& id, HWND hwnd)
 
         PIDLIST_ABSOLUTE pidl;
 
-        g_view_logger->info("Folder dialog {} restored %ls\n", id.c_str(), wstring_to_string(restored_path));
-        HRESULT hresult = SHParseDisplayName(
-            restored_path.c_str(), nullptr, &pidl, SFGAO_FOLDER, nullptr);
+        g_view_logger->info(L"Folder dialog {} restored %ls\n", id.c_str(), restored_path);
+        HRESULT hresult = SHParseDisplayName(restored_path.c_str(), nullptr, &pidl, SFGAO_FOLDER, nullptr);
         if (SUCCEEDED(hresult))
         {
             IShellItem* psi;

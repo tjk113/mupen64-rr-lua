@@ -79,7 +79,7 @@ HMENU g_recent_roms_menu;
 HMENU g_recent_movies_menu;
 HMENU g_recent_lua_menu;
 HINSTANCE g_app_instance;
-std::string g_app_path;
+std::filesystem::path g_app_path;
 std::shared_ptr<Dispatcher> g_main_window_dispatcher;
 
 int g_last_wheel_delta = 0;
@@ -97,7 +97,7 @@ ULONG_PTR gdi_plus_token;
  */
 std::vector<HWND> g_previously_running_luas;
 
-constexpr char WND_CLASS[] = "myWindowClass";
+constexpr auto WND_CLASS = L"myWindowClass";
 
 const std::map<Action, int> ACTION_ID_MAP = {
     {Action::FastforwardOn, IDM_FASTFORWARD_ON},
@@ -177,154 +177,153 @@ bool show_error_dialog_for_result(const CoreResult result, void* hwnd)
 
     g_view_logger->error("[View] show_error_dialog_for_result: CoreType::{}", static_cast<int32_t>(result));
 
-    std::string module;
-    std::string error;
+    std::wstring module;
+    std::wstring error;
 
     switch (result)
     {
 #pragma region VCR
     case CoreResult::VCR_InvalidFormat:
-        module = "VCR";
-        error = "The provided data has an invalid format.";
+        module = L"VCR";
+        error = L"The provided data has an invalid format.";
         break;
     case CoreResult::VCR_BadFile:
-        module = "VCR";
-        error = "The provided file is inaccessible or does not exist.";
+        module = L"VCR";
+        error = L"The provided file is inaccessible or does not exist.";
         break;
     case CoreResult::VCR_InvalidControllers:
-        module = "VCR";
-        error = "The controller configuration is invalid.";
+        module = L"VCR";
+        error = L"The controller configuration is invalid.";
         break;
     case CoreResult::VCR_InvalidSavestate:
-        module = "VCR";
-        error = "The movie's savestate is missing or invalid.";
+        module = L"VCR";
+        error = L"The movie's savestate is missing or invalid.";
         break;
     case CoreResult::VCR_InvalidFrame:
-        module = "VCR";
-        error = "The resulting frame is outside the bounds of the movie.";
+        module = L"VCR";
+        error = L"The resulting frame is outside the bounds of the movie.";
         break;
     case CoreResult::VCR_NoMatchingRom:
-        module = "VCR";
-        error = "There is no rom which matches this movie.";
+        module = L"VCR";
+        error = L"There is no rom which matches this movie.";
         break;
     case CoreResult::VCR_Busy:
-        module = "VCR";
-        error = "The VCR engine is busy.";
+        module = L"VCR";
+        error = L"The VCR engine is busy.";
         break;
     case CoreResult::VCR_Idle:
-        module = "VCR";
-        error = "The VCR engine is idle, but must be active to complete this operation.";
+        module = L"VCR";
+        error = L"The VCR engine is idle, but must be active to complete this operation.";
         break;
     case CoreResult::VCR_NotFromThisMovie:
-        module = "VCR";
-        error = "The provided freeze buffer is not from the currently active movie.";
+        module = L"VCR";
+        error = L"The provided freeze buffer is not from the currently active movie.";
         break;
     case CoreResult::VCR_InvalidVersion:
-        module = "VCR";
-        error = "The movie's version is invalid.";
+        module = L"VCR";
+        error = L"The movie's version is invalid.";
         break;
     case CoreResult::VCR_InvalidExtendedVersion:
-        module = "VCR";
-        error = "The movie's extended version is invalid.";
+        module = L"VCR";
+        error = L"The movie's extended version is invalid.";
         break;
     case CoreResult::VCR_NeedsPlaybackOrRecording:
-        module = "VCR";
-        error = "The operation requires a playback or recording task.";
+        module = L"VCR";
+        error = L"The operation requires a playback or recording task.";
         break;
     case CoreResult::VCR_InvalidStartType:
-        module = "VCR";
-        error = "The provided start type is invalid.";
+        module = L"VCR";
+        error = L"The provided start type is invalid.";
         break;
     case CoreResult::VCR_WarpModifyAlreadyRunning:
-        module = "VCR";
-        error = "Another warp modify operation is already running.";
+        module = L"VCR";
+        error = L"Another warp modify operation is already running.";
         break;
     case CoreResult::VCR_WarpModifyNeedsRecordingTask:
-        module = "VCR";
-        error = "Warp modifications can only be performed during recording.";
+        module = L"VCR";
+        error = L"Warp modifications can only be performed during recording.";
         break;
     case CoreResult::VCR_WarpModifyEmptyInputBuffer:
-        module = "VCR";
-        error = "The provided input buffer is empty.";
+        module = L"VCR";
+        error = L"The provided input buffer is empty.";
         break;
     case CoreResult::VCR_SeekAlreadyRunning:
-        module = "VCR";
-        error = "Another seek operation is already running.";
+        module = L"VCR";
+        error = L"Another seek operation is already running.";
         break;
     case CoreResult::VCR_SeekSavestateLoadFailed:
-        module = "VCR";
-        error = "The seek operation could not be initiated due to a savestate not being loaded successfully.";
+        module = L"VCR";
+        error = L"The seek operation could not be initiated due to a savestate not being loaded successfully.";
         break;
     case CoreResult::VCR_SeekSavestateIntervalZero:
-        module = "VCR";
-        error = "The seek operation can't be initiated because the seek savestate interval is 0.";
+        module = L"VCR";
+        error = L"The seek operation can't be initiated because the seek savestate interval is 0.";
         break;
 #pragma endregion
 #pragma region VR
     case CoreResult::VR_NoMatchingRom:
-        module = "Core";
-        error = "The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.";
+        module = L"Core";
+        error = L"The ROM couldn't be loaded.\r\nCouldn't find an appropriate ROM.";
         break;
     case CoreResult::VR_PluginError:
-        module = "Core";
-        if (FrontendService::show_ask_dialog("Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?"))
+        module = L"Core";
+        if (FrontendService::show_ask_dialog(L"Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?"))
         {
             SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
         }
         break;
     case CoreResult::VR_RomInvalid:
-        module = "Core";
-        error = "The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.";
+        module = L"Core";
+        error = L"The ROM couldn't be loaded.\r\nVerify that the ROM is a valid N64 ROM.";
         break;
     case CoreResult::VR_FileOpenFailed:
-        module = "Core";
-        error = "Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.";
+        module = L"Core";
+        error = L"Failed to open streams to core files.\r\nVerify that Mupen is allowed disk access.";
         break;
 #pragma endregion
     default:
-        module = "Unknown";
-        error = "Unknown error.";
+        module = L"Unknown";
+        error = L"Unknown error.";
         return true;
     }
 
     if (!error.empty())
     {
-        const auto title = std::format("{} Error {}", module, static_cast<int32_t>(result));
+        const auto title = std::format(L"{} Error {}", module, static_cast<int32_t>(result));
         FrontendService::show_error(error.c_str(), title.c_str(), hwnd);
     }
 
     return true;
 }
 
-void set_menu_accelerator(int element_id, const char* acc)
+void set_menu_accelerator(int element_id, const wchar_t* acc)
 {
-    char string[256] = {0};
+    wchar_t string[256] = {0};
     GetMenuString(GetMenu(g_main_hwnd), element_id, string, std::size(string), MF_BYCOMMAND);
 
-    // make sure there is tab character (accelerator marker)
-    char* tab = strrchr(string, '\t');
+    auto tab = wcschr(string, '\t');
     if (tab)
         *tab = '\0';
-    if (strcmp(acc, ""))
-        sprintf(string, "%s\t%s", string, acc);
+    if (StrCmp(acc, L""))
+        wsprintf(string, L"%s\t%s", string, acc);
 
     ModifyMenu(GetMenu(g_main_hwnd), element_id, MF_BYCOMMAND | MF_STRING, element_id, string);
 }
 
 void set_hotkey_menu_accelerators(t_hotkey* hotkey, int menu_item_id)
 {
-    const std::string hotkey_str = hotkey_to_string(hotkey);
-    set_menu_accelerator(menu_item_id, hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+    const auto hotkey_str = hotkey_to_string(hotkey);
+    set_menu_accelerator(menu_item_id, hotkey_str == L"(nothing)" ? L"" : hotkey_str.c_str());
 }
 
 void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
                              int menuItemID)
 {
-    std::string hotkey_str = hotkey_to_string(hotkey);
+    const auto hotkey_str = hotkey_to_string(hotkey);
     SetDlgItemText(hwnd, idc, hotkey_str.c_str());
 
     set_menu_accelerator(menuItemID,
-                         hotkey_str == "(nothing)" ? "" : hotkey_str.c_str());
+                         hotkey_str == L"(nothing)" ? L"" : hotkey_str.c_str());
 }
 
 /**
@@ -344,14 +343,14 @@ int config_action_to_menu_id(Action action)
 }
 
 
-std::string hotkey_to_string(const t_hotkey* hotkey)
+std::wstring hotkey_to_string(const t_hotkey* hotkey)
 {
     char buf[260]{};
     const int k = hotkey->key;
 
     if (!hotkey->ctrl && !hotkey->shift && !hotkey->alt && !hotkey->key)
     {
-        return "(nothing)";
+        return L"(nothing)";
     }
 
     if (hotkey->ctrl)
@@ -456,12 +455,13 @@ std::string hotkey_to_string(const t_hotkey* hotkey)
             }
         strcat(buf, buf2);
     }
-    return std::string(buf);
+	// TODO: Port to Unicode properly
+    return string_to_wstring(buf);
 }
 
 namespace Recent
 {
-    void build(std::vector<std::string>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
+    void build(std::vector<std::wstring>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
     {
     	assert(is_on_gui_thread());
 
@@ -493,14 +493,14 @@ namespace Recent
             {
                 continue;
             }
-            menu_info.dwTypeData = (LPSTR)vec[i].c_str();
-            menu_info.cch = strlen(menu_info.dwTypeData);
+            menu_info.dwTypeData = vec[i].data();
+            menu_info.cch = vec[i].size();
             menu_info.wID = first_menu_id + i;
             InsertMenuItem(parent_menu, i + 3, TRUE, &menu_info);
         }
     }
 
-    void add(std::vector<std::string>& vec, std::string val, bool frozen, int first_menu_id, HMENU parent_menu)
+    void add(std::vector<std::wstring>& vec, std::wstring val, bool frozen, int first_menu_id, HMENU parent_menu)
     {
     	assert(is_on_gui_thread());
 
@@ -517,59 +517,59 @@ namespace Recent
         build(vec, first_menu_id, parent_menu);
     }
 
-    std::string element_at(std::vector<std::string> vec, int first_menu_id, int menu_id)
+    std::wstring element_at(std::vector<std::wstring> vec, int first_menu_id, int menu_id)
     {
         const int index = menu_id - first_menu_id;
         if (index >= 0 && index < vec.size())
         {
             return vec[index];
         }
-        return "";
+        return L"";
     }
 }
 
-std::string get_screenshots_directory()
+std::filesystem::path get_screenshots_directory()
 {
     if (g_config.is_default_screenshots_directory_used)
     {
-        return g_app_path + "screenshots\\";
+        return g_app_path / L"screenshots\\";
     }
     return g_config.screenshots_directory;
 }
 
-std::string get_plugins_directory()
+std::filesystem::path get_plugins_directory()
 {
 	if (g_config.is_default_plugins_directory_used)
 	{
-		return FrontendService::get_app_path().string() + "plugin\\";
+		return g_app_path / L"plugin\\";
 	}
 	return g_config.plugins_directory;
 }
 
 void update_titlebar()
 {
-    std::string text = MUPEN_VERSION;
+    std::wstring text = MUPEN_VERSION;
 
     if (g_emu_starting)
     {
-        text += " - Starting...";
+        text += L" - Starting...";
     }
 
     if (emu_launched)
     {
-        text += std::format(" - {}", reinterpret_cast<char*>(ROM_HEADER.nom));
+        text += std::format(L" - {}", string_to_wstring(reinterpret_cast<char*>(ROM_HEADER.nom)));
     }
 
     if (VCR::get_task() != e_task::idle)
     {
-        char movie_filename[MAX_PATH] = {0};
-        _splitpath(VCR::get_path().string().c_str(), nullptr, nullptr, movie_filename, nullptr);
-        text += std::format(" - {}", movie_filename);
+        wchar_t movie_filename[MAX_PATH] = {0};
+        _wsplitpath(VCR::get_path().wstring().c_str(), nullptr, nullptr, movie_filename, nullptr);
+        text += std::format(L" - {}", movie_filename);
     }
 
     if (EncodingManager::is_capturing())
     {
-        text += std::format(" - {}", EncodingManager::get_current_path().filename().string());
+        text += std::format(L" - {}", EncodingManager::get_current_path().filename().wstring());
     }
 
     SetWindowText(g_main_hwnd, text.c_str());
@@ -602,7 +602,7 @@ void on_script_started(std::any data)
 	g_main_window_dispatcher->invoke([=]
 	{
 		auto value = std::any_cast<std::filesystem::path>(data);
-		Recent::add(g_config.recent_lua_script_paths, value.string(), g_config.is_recent_scripts_frozen, ID_LUA_RECENT, g_recent_lua_menu);
+		Recent::add(g_config.recent_lua_script_paths, value.wstring(), g_config.is_recent_scripts_frozen, ID_LUA_RECENT, g_recent_lua_menu);
 	});
 }
 
@@ -614,16 +614,16 @@ void on_task_changed(std::any data)
     	static auto previous_value = value;
 		if (!task_is_recording(value) && task_is_recording(previous_value))
 		{
-			Statusbar::post("Recording stopped");
+			Statusbar::post(L"Recording stopped");
 		}
 		if (!task_is_playback(value) && task_is_playback(previous_value))
 		{
-			Statusbar::post("Playback stopped");
+			Statusbar::post(L"Playback stopped");
 		}
 
 		if ((task_is_recording(value) && !task_is_recording(previous_value)) || task_is_playback(value) && !task_is_playback(previous_value) && !VCR::get_path().empty())
 		{
-			Recent::add(g_config.recent_movie_paths, VCR::get_path().string(), g_config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
+			Recent::add(g_config.recent_movie_paths, VCR::get_path().wstring(), g_config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
 		}
 
 		update_titlebar();
@@ -668,7 +668,7 @@ void on_emu_launched_changed(std::any data)
 		{
 			g_vis_since_input_poll_warning_dismissed = false;
 
-			Recent::add(g_config.recent_rom_paths, get_rom_path().string(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, g_recent_roms_menu);
+			Recent::add(g_config.recent_rom_paths, get_rom_path().wstring(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, g_recent_roms_menu);
 
 			for (const HWND hwnd : g_previously_running_luas)
 			{
@@ -716,7 +716,7 @@ void on_capturing_changed(std::any data)
 void on_speed_modifier_changed(std::any data)
 {
     auto value = std::any_cast<int32_t>(data);
-    Statusbar::post(std::format("Speed limit: {}%", value));
+    Statusbar::post(std::format(L"Speed limit: {}%", value));
 }
 
 void on_emu_paused_changed(std::any data)
@@ -733,8 +733,8 @@ void on_vis_since_input_poll_exceeded(std::any)
     }
 
     if (g_config.silent_mode || FrontendService::show_ask_dialog(
-        "An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
-        "Warning", true))
+        L"An unusual execution pattern was detected. Continuing might leave the emulator in an unusable state.\r\nWould you like to terminate emulation?",
+        L"Warning", true))
     {
         // TODO: Send IDM_CLOSE_ROM instead... probably better :P
         AsyncExecutor::invoke_async([]
@@ -749,9 +749,7 @@ void on_vis_since_input_poll_exceeded(std::any)
 void on_movie_loop_changed(std::any data)
 {
     auto value = std::any_cast<bool>(data);
-    Statusbar::post(value
-                        ? "Movies restart after ending"
-                        : "Movies stop after ending");
+    Statusbar::post(value ? L"Movies restart after ending" : L"Movies stop after ending");
     SendMessage(g_main_hwnd, WM_INITMENU, 0, 0);
 }
 
@@ -859,28 +857,28 @@ bool confirm_user_exit()
     int res = 0;
     int warnings = 0;
 
-    std::string final_message;
+    std::wstring final_message;
     if (VCR::get_task() == e_task::recording)
     {
-        final_message.append("Movie recording ");
+        final_message.append(L"Movie recording ");
         warnings++;
     }
     if (EncodingManager::is_capturing())
     {
-        if (warnings > 0) { final_message.append(","); }
-        final_message.append(" AVI capture ");
+        if (warnings > 0) { final_message.append(L","); }
+        final_message.append(L" AVI capture ");
         warnings++;
     }
     if (tracelog::active())
     {
-        if (warnings > 0) { final_message.append(","); }
-        final_message.append(" Trace logging ");
+        if (warnings > 0) { final_message.append(L","); }
+        final_message.append(L" Trace logging ");
         warnings++;
     }
     final_message.
-        append("is running. Are you sure you want to stop emulation?");
+        append(L"is running. Are you sure you want to stop emulation?");
     if (warnings > 0)
-        res = MessageBox(g_main_hwnd, final_message.c_str(), "Stop emulation?",
+        res = MessageBox(g_main_hwnd, final_message.c_str(), L"Stop emulation?",
                          MB_YESNO | MB_ICONWARNING);
 
     return res == IDYES || warnings == 0;
@@ -900,15 +898,15 @@ void ClearButtons()
     }
 }
 
-std::string get_app_full_path()
+std::filesystem::path get_app_full_path()
 {
-    char ret[MAX_PATH] = {0};
-    char drive[_MAX_DRIVE], dirn[_MAX_DIR];
-    char path_buffer[_MAX_DIR];
+    wchar_t ret[MAX_PATH] = {0};
+    wchar_t drive[_MAX_DRIVE], dirn[_MAX_DIR];
+    wchar_t path_buffer[_MAX_DIR];
     GetModuleFileName(nullptr, path_buffer, sizeof(path_buffer));
-    _splitpath(path_buffer, drive, dirn, nullptr, nullptr);
-    strcpy(ret, drive);
-    strcat(ret, dirn);
+    _wsplitpath(path_buffer, drive, dirn, nullptr, nullptr);
+    StrCpy(ret, drive);
+    StrCat(ret, dirn);
 
     return ret;
 }
@@ -916,8 +914,7 @@ std::string get_app_full_path()
 t_plugin_discovery_result do_plugin_discovery()
 {
 	std::vector<std::unique_ptr<Plugin>> plugins;
-	std::vector<std::string> files = IOService::get_files_with_extension_in_directory(
-		get_plugins_directory(), "dll");
+	const auto files = IOService::get_files_with_extension_in_directory(get_plugins_directory(), L"dll");
 
 	size_t broken_plugins = 0;
 	for (const auto& file : files)
@@ -955,15 +952,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         return TRUE;
     }
 
-    char path_buffer[_MAX_PATH];
+    wchar_t path_buffer[_MAX_PATH]{};
 
     switch (Message)
     {
     case WM_DROPFILES:
         {
             auto drop = (HDROP)wParam;
-            char fname[MAX_PATH] = {0};
-            DragQueryFile(drop, 0, fname, sizeof(fname));
+            wchar_t fname[MAX_PATH] = {0};
+            DragQueryFile(drop, 0, fname, std::size(fname));
 
             std::filesystem::path path = fname;
             std::string extension = to_lower(path.extension().string());
@@ -998,7 +995,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             }
             else if (extension == ".lua")
             {
-                lua_create_and_run(path.string().c_str());
+                lua_create_and_run(path.wstring().c_str());
             }
             break;
         }
@@ -1022,10 +1019,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         auto state = GetMenuState(g_main_menu, down_cmd, MF_BYCOMMAND);
                         if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
                         {
-                            g_view_logger->info("Dismissed {} ({})", hotkey->identifier.c_str(), down_cmd);
+                            g_view_logger->info(L"Dismissed {} ({})", hotkey->identifier.c_str(), down_cmd);
                             continue;
                         }
-                        g_view_logger->info("Sent down {} ({})", hotkey->identifier.c_str(), down_cmd);
+                        g_view_logger->info(L"Sent down {} ({})", hotkey->identifier.c_str(), down_cmd);
                         SendMessage(g_main_hwnd, WM_COMMAND, down_cmd, 0);
                         hit = TRUE;
                     }
@@ -1063,10 +1060,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         auto state = GetMenuState(g_main_menu, up_cmd, MF_BYCOMMAND);
                         if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
                         {
-                            g_view_logger->info("Dismissed {} ({})", hotkey->identifier.c_str(), up_cmd);
+                            g_view_logger->info(L"Dismissed {} ({})", hotkey->identifier.c_str(), up_cmd);
                             continue;
                         }
-                        g_view_logger->info("Sent up {} ({})", hotkey->identifier.c_str(), up_cmd);
+                        g_view_logger->info(L"Sent up {} ({})", hotkey->identifier.c_str(), up_cmd);
                         SendMessage(g_main_hwnd, WM_COMMAND, up_cmd, 0);
                         hit = TRUE;
                     }
@@ -1190,11 +1187,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     if (VCR::get_task() == e_task::idle)
                     {
-                        Statusbar::post(std::format("{}", EncodingManager::get_video_frame()), Statusbar::Section::VCR);
+                        Statusbar::post(std::format(L"{}", EncodingManager::get_video_frame()), Statusbar::Section::VCR);
                     }
                     else
                     {
-                        Statusbar::post(std::format("{}({})", VCR::get_status_text(), EncodingManager::get_video_frame()), Statusbar::Section::VCR);
+                        Statusbar::post(std::format(L"{}({})", VCR::get_status_text(), EncodingManager::get_video_frame()), Statusbar::Section::VCR);
                     }
                 }
                 else
@@ -1223,8 +1220,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 auto vis = get_rate_per_second_from_deltas(g_vi_deltas);
                 g_vi_deltas_mutex.unlock();
 
-                Statusbar::post(std::format("FPS: {:.1f}", fps), Statusbar::Section::FPS);
-                Statusbar::post(std::format("VI/s: {:.1f}", vis), Statusbar::Section::VIs);
+                Statusbar::post(std::format(L"FPS: {:.1f}", fps), Statusbar::Section::FPS);
+                Statusbar::post(std::format(L"VI/s: {:.1f}", vis), Statusbar::Section::VIs);
 
                 last_statusbar_update = time;
             }
@@ -1399,7 +1396,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case IDM_BENCHMARK_LUA_CALLBACK:
                 {
-                    FrontendService::show_information("Make sure the Lua script is running and the registered atreset body is empty.");
+                    FrontendService::show_information(L"Make sure the Lua script is running and the registered atreset body is empty.");
                     ScopeTimer timer("100,000,000x call_reset", g_view_logger);
                     for (int i = 0; i < 100'000'000; ++i)
                     {
@@ -1414,7 +1411,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDM_BENCHMARK_CORE_STOP:
                 {
                     auto fps = Core::stop_benchmark();
-                    FrontendService::show_information(std::format("FPS: {:2f}", fps).c_str());
+                    FrontendService::show_information(std::format(L"FPS: {:2f}", fps).c_str());
                     Messenger::broadcast(Messenger::Message::FastForwardNeedsUpdate, nullptr);
                     break;
                 }
@@ -1423,22 +1420,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if (tracelog::active())
                     {
                         tracelog::stop();
-                        ModifyMenu(g_main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Start &Trace Logger...");
+                        ModifyMenu(g_main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, L"Start &Trace Logger...");
                         break;
                     }
 
-                    auto path = show_persistent_save_dialog("s_tracelog", g_main_hwnd, L"*.log");
+                    auto path = show_persistent_save_dialog(L"s_tracelog", g_main_hwnd, L"*.log");
 
                     if (path.empty())
                     {
                         break;
                     }
 
-                    auto result = MessageBox(g_main_hwnd, "Should the trace log be generated in a binary format?", "Trace Logger",
+                    auto result = MessageBox(g_main_hwnd, L"Should the trace log be generated in a binary format?", L"Trace Logger",
                                              MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1);
 
                     tracelog::start(wstring_to_string(path).c_str(), result == IDYES);
-                    ModifyMenu(g_main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, "Stop &Trace Logger");
+                    ModifyMenu(g_main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, L"Stop &Trace Logger");
                 }
                 break;
             case IDM_CLOSE_ROM:
@@ -1571,28 +1568,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     BetterEmulationLock lock;
 
-                    char ram_start[20] = {0};
-                    sprintf(ram_start, "0x%p", static_cast<void*>(rdram));
+                    wchar_t ram_start[20] = {0};
+                    wsprintfW(ram_start, L"0x%p", static_cast<void*>(rdram));
 
-                    char proc_name[MAX_PATH] = {0};
+                    wchar_t proc_name[MAX_PATH] = {0};
                     GetModuleFileName(NULL, proc_name, MAX_PATH);
-                    _splitpath(proc_name, 0, 0, proc_name, 0);
+                    _wsplitpath(proc_name, 0, 0, proc_name, 0);
 
-                    char stroop_c[1024] = {0};
-                    sprintf(stroop_c,
-                            "<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\" autoDetect=\"true\"/>",
+                    wchar_t stroop_c[1024] = {0};
+                    wsprintfW(stroop_c,
+                            L"<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\" autoDetect=\"true\"/>",
                             proc_name, ram_start);
 
-                    constexpr auto RAMSTART_MESSAGE = "The RAM start is {}.\r\nDo you want to copy the generated STROOP config line to your clipboard?";
+                    constexpr auto RAMSTART_MESSAGE = L"The RAM start is {}.\r\nDo you want to copy the generated STROOP config line to your clipboard?";
 
-                    const auto stroop_str = std::string(stroop_c);
                     if (MessageBox(g_main_hwnd,
                                    std::format(RAMSTART_MESSAGE, ram_start).c_str(),
-                                   "STROOP",
+                                   L"STROOP",
                                    MB_ICONINFORMATION | MB_TASKMODAL |
                                    MB_YESNO) == IDYES)
                     {
-                        copy_to_clipboard(g_main_hwnd, stroop_str);
+                        copy_to_clipboard(g_main_hwnd, stroop_c);
                     }
                     break;
                 }
@@ -1600,7 +1596,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     BetterEmulationLock lock;
 
-                    auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", string_to_wstring(format_duration(g_config.total_frames / 30)),
+                    auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", format_duration(g_config.total_frames / 30),
                                            g_config.total_rerecords);
 
                     MessageBoxW(g_main_hwnd,
@@ -1616,7 +1612,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     BetterEmulationLock lock;
 
-                    const auto path = show_persistent_open_dialog("o_rom", g_main_hwnd, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap");
+                    const auto path = show_persistent_open_dialog(L"o_rom", g_main_hwnd, L"*.n64;*.z64;*.v64;*.rom;*.bin;*.zip;*.usa;*.eur;*.jap");
 
                     if (!path.empty())
                     {
@@ -1652,7 +1648,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     BetterEmulationLock lock;
 
-                    auto path = show_persistent_save_dialog("s_savestate", hwnd, L"*.st;*.savestate");
+                    auto path = show_persistent_save_dialog(L"s_savestate", hwnd, L"*.st;*.savestate");
                     if (path.empty())
                     {
                         break;
@@ -1678,7 +1674,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     BetterEmulationLock lock;
 
-                    auto path = show_persistent_open_dialog("o_state", hwnd,
+                    auto path = show_persistent_open_dialog(L"o_state", hwnd,
                                                             L"*.st;*.savestate;*.st0;*.st1;*.st2;*.st3;*.st4;*.st5;*.st6;*.st7;*.st8;*.st9,*.st10");
                     if (path.empty())
                     {
@@ -1704,7 +1700,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    auto vcr_result = VCR::start_record(movie_dialog_result.path, movie_dialog_result.start_flag, movie_dialog_result.author, movie_dialog_result.description);
+                    auto vcr_result = VCR::start_record(movie_dialog_result.path,
+                    	movie_dialog_result.start_flag,
+                    	wstring_to_string(movie_dialog_result.author),
+                    	wstring_to_string(movie_dialog_result.description));
                     if (show_error_dialog_for_result(vcr_result))
                     {
                         break;
@@ -1712,7 +1711,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     g_config.last_movie_author = movie_dialog_result.author;
 
-                    Statusbar::post("Recording replay");
+                    Statusbar::post(L"Recording replay");
                 }
                 break;
             case IDM_START_MOVIE_PLAYBACK:
@@ -1726,7 +1725,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    VCR::replace_author_info(result.path, result.author, result.description);
+                    VCR::replace_author_info(result.path, wstring_to_string(result.author), wstring_to_string(result.description));
 
                     g_config.pause_at_frame = result.pause_at;
                     g_config.pause_at_last_frame = result.pause_at_last;
@@ -1748,7 +1747,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     BetterEmulationLock lock;
 
-                    auto path = show_persistent_save_dialog("s_capture", hwnd, L"*.avi");
+                    auto path = show_persistent_save_dialog(L"s_capture", hwnd, L"*.avi");
                     if (path.empty())
                     {
                         break;
@@ -1764,17 +1763,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         static_cast<EncoderType>(g_config.encoder_type),
                         ask_preset))
                     {
-                        Statusbar::post("Capture started...");
+                        Statusbar::post(L"Capture started...");
                     }
                 }
 
                 break;
             case IDM_STOP_CAPTURE:
                 EncodingManager::stop_capture();
-                Statusbar::post("Capture stopped");
+                Statusbar::post(L"Capture stopped");
                 break;
             case IDM_SCREENSHOT:
-                CaptureScreen(const_cast<char*>(get_screenshots_directory().c_str()));
+                CaptureScreen(get_screenshots_directory().string().data());
                 break;
             case IDM_RESET_RECENT_ROMS:
                 Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, g_recent_roms_menu, true);
@@ -1886,7 +1885,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if (path.empty())
                         break;
 
-                    lua_create_and_run(path.c_str());
+                    lua_create_and_run(path);
                 }
                 break;
             }
@@ -1955,8 +1954,8 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     g_app_path = get_app_full_path();
 
-    char cwd[MAX_PATH] = {0};
-    GetCurrentDirectory(sizeof(cwd), cwd);
+    wchar_t cwd[MAX_PATH] = {0};
+    GetCurrentDirectory(std::size(cwd), cwd);
 
     // CWD is sometimes messed up when running from CLI, so we fix it here
     // Needs to be fixed prior to loading config, since that uses a relative path
@@ -1965,10 +1964,10 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_app_instance = hInstance;
 
     // ensure folders exist!
-    CreateDirectory((g_app_path + "save").c_str(), NULL);
-    CreateDirectory((g_app_path + "screenshots").c_str(), NULL);
-    CreateDirectory((g_app_path + "plugin").c_str(), NULL);
-    CreateDirectory((g_app_path + "backups").c_str(), NULL);
+    CreateDirectory((g_app_path / L"save").c_str(), NULL);
+    CreateDirectory((g_app_path / L"screenshots").c_str(), NULL);
+    CreateDirectory((g_app_path / L"plugin").c_str(), NULL);
+    CreateDirectory((g_app_path / L"backups").c_str(), NULL);
 
     init_config();
     load_config();
@@ -1981,7 +1980,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     // Log cwd again for fun
     GetCurrentDirectory(sizeof(cwd), cwd);
-    g_view_logger->info("cwd: {}", cwd);
+    g_view_logger->info(L"cwd: {}", cwd);
 
     WNDCLASSEX wc = {0};
     MSG msg;

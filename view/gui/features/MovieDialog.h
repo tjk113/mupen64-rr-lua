@@ -8,8 +8,8 @@ namespace MovieDialog
     {
         std::filesystem::path path;
         unsigned short start_flag;
-        std::string author;
-        std::string description;
+        std::wstring author;
+        std::wstring description;
         int32_t pause_at;
         int32_t pause_at_last;
     };

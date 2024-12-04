@@ -42,7 +42,7 @@ void lua_init();
  * \brief Creates a lua window and runs the specified script
  * \param path The script's path
  */
-void lua_create_and_run(const char* path);
+void lua_create_and_run(const std::wstring& path);
 
 /**
  * \brief Creates a lua window

@@ -21,12 +21,12 @@
 #include <thread>
 #include <Uxtheme.h>
 #include <shared/Messenger.h>
-
+#include <view/gui/Loggers.h>
 #include "shared/AsyncExecutor.h"
 
 using t_rombrowser_entry = struct s_rombrowser_entry
 {
-    std::string path;
+    std::wstring path;
     size_t size;
     t_rom_header rom_header;
 };
@@ -38,9 +38,9 @@ namespace Rombrowser
 {
     std::mutex rombrowser_mutex;
 
-    std::vector<std::string> find_available_roms()
+    std::vector<std::wstring> find_available_roms()
     {
-        std::vector<std::string> rom_paths;
+        std::vector<std::wstring> rom_paths;
 
         // we aggregate all file paths and only filter them after we're done
         if (g_config.is_rombrowser_recursion_enabled)
@@ -60,17 +60,17 @@ namespace Rombrowser
             }
         }
 
-        std::vector<std::string> filtered_rom_paths;
+        std::vector<std::wstring> filtered_rom_paths;
 
-        std::ranges::copy_if(rom_paths, std::back_inserter(filtered_rom_paths), [](std::string val)
+        std::ranges::copy_if(rom_paths, std::back_inserter(filtered_rom_paths), [](std::wstring val)
         {
-            char c_extension[260] = {0};
-            _splitpath(val.c_str(), nullptr, nullptr, nullptr, c_extension);
+            wchar_t c_extension[260] = {0};
+            _wsplitpath(val.c_str(), nullptr, nullptr, nullptr, c_extension);
 
-            return iequals(c_extension, ".z64")
-                || iequals(c_extension, ".n64")
-                || iequals(c_extension, ".v64")
-                || iequals(c_extension, ".rom");
+            return iequals(c_extension, L".z64")
+                || iequals(c_extension, L".n64")
+                || iequals(c_extension, L".v64")
+                || iequals(c_extension, L".rom");
         });
         return filtered_rom_paths;
     }
@@ -280,11 +280,11 @@ namespace Rombrowser
         int32_t i = 0;
         for (auto& path : rom_paths)
         {
-            FILE* f = fopen(path.c_str(), "rb");
+            FILE* f = _wfopen(path.c_str(), L"rb");
 
             if (!f)
             {
-                g_view_logger->info("[Rombrowser] Failed to read file '{}'. Skipping!\n", path.c_str());
+                g_view_logger->info(L"[Rombrowser] Failed to read file '{}'. Skipping!\n", path.c_str());
                 continue;
             }
 
@@ -383,22 +383,20 @@ namespace Rombrowser
                 {
                 case 1:
                     // NOTE: The name may not be null-terminated, so we NEED to limit the size
-                    plvdi->item.pszText = (char*)rombrowser_entry->rom_header.nom;
+                    plvdi->item.pszText = const_cast<LPWSTR>(string_to_wstring((char*)rombrowser_entry->rom_header.nom).c_str());
                     break;
                 case 2:
                     {
-                        char filename[MAX_PATH] = {0};
-                        _splitpath(rombrowser_entry->path.c_str(), NULL, NULL,
+                        wchar_t filename[MAX_PATH] = {0};
+                        _wsplitpath(rombrowser_entry->path.c_str(), NULL, NULL,
                                    filename, NULL);
-                        strcpy(plvdi->item.pszText, filename);
+                        lstrcpyW(plvdi->item.pszText, filename);
                         break;
                     }
                 case 3:
                     {
-                        std::string size = std::to_string(
-                                rombrowser_entry->size / (1024 * 1024)) +
-                            " MB";
-                        strcpy(plvdi->item.pszText, size.c_str());
+                        const auto size = std::to_wstring(rombrowser_entry->size / (1024 * 1024)) + L" MB";
+                        lstrcpyW(plvdi->item.pszText, size.c_str());
                         break;
                     }
                 default:
@@ -430,13 +428,12 @@ namespace Rombrowser
         }
     }
 
-
-    std::string find_available_rom(std::function<bool(const t_rom_header&)> predicate)
+    std::wstring find_available_rom(std::function<bool(const t_rom_header&)> predicate)
     {
         auto rom_paths = find_available_roms();
         for (auto rom_path : rom_paths)
         {
-            FILE* f = fopen(rom_path.c_str(), "rb");
+            FILE* f = _wfopen(rom_path.c_str(), L"rb");
 
             fseek(f, 0, SEEK_END);
             uint64_t len = ftell(f);
@@ -462,7 +459,7 @@ namespace Rombrowser
             fclose(f);
         }
 
-        return "";
+        return L"";
     }
 
     void emu_launched_changed(std::any data)

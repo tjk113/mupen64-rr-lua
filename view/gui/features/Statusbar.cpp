@@ -171,7 +171,7 @@ namespace Statusbar
 		return SIZE_MAX;
 	}
 
-	void post(const std::string& text, Section section)
+	void post(const std::wstring& text, Section section)
 	{
 		const auto segment_index = section_to_segment_index(section);
 
@@ -289,13 +289,13 @@ namespace Statusbar
 	void on_readonly_changed(std::any data)
 	{
 		auto value = std::any_cast<bool>(data);
-		post(value ? "Read-only" : "Read/write", Section::Readonly);
+		post(value ? L"Read-only" : L"Read/write", Section::Readonly);
 	}
 
 	void on_rerecords_changed(std::any data)
 	{
 		auto value = std::any_cast<uint64_t>(data);
-		post(std::format("{} rr", value), Section::Rerecords);
+		post(std::format(L"{} rr", value), Section::Rerecords);
 	}
 
 	void on_task_changed(std::any data)
@@ -304,14 +304,14 @@ namespace Statusbar
 
 		if (value == e_task::idle)
 		{
-			post("", Section::Rerecords);
+			post(L"", Section::Rerecords);
 		}
 	}
 
 	void on_slot_changed(std::any data)
 	{
 		auto value = std::any_cast<size_t>(data);
-		post(std::format("Slot {}", value + 1), Section::Slot);
+		post(std::format(L"Slot {}", value + 1), Section::Slot);
 	}
 
 	void on_size_changed(std::any)
@@ -331,7 +331,7 @@ namespace Statusbar
 		Messenger::subscribe(Messenger::Message::SizeChanged, on_size_changed);
 		Messenger::subscribe(Messenger::Message::ConfigLoaded, [](std::any)
 		{
-			std::unordered_map<Section, std::string> section_text;
+			std::unordered_map<Section, std::wstring> section_text;
 
 			for (int i = 0; i <= static_cast<int32_t>(Section::Slot); ++i)
 			{
@@ -346,11 +346,11 @@ namespace Statusbar
 
 				const auto len = SendMessage(statusbar_hwnd, SB_GETTEXTLENGTH, segment_index, 0);
 
-				auto str = new char[len + 1]();
+				auto str = new wchar_t[len + 1]();
 
 				SendMessage(statusbar_hwnd, SB_GETTEXT, segment_index, (LPARAM)str);
 
-				section_text[section] = std::string(str);
+				section_text[section] = str;
 
 				delete[] str;
 			}

@@ -391,15 +391,18 @@ namespace LuaCore::Emu
     static int GetMupenVersion(lua_State* L)
     {
         int type = luaL_optnumber(L, 1, 0);
-        const char* version;
-        // 0 = name + version number
-        // 1 = version number
-        version = MUPEN_VERSION;
+
+    	// 0 = name + version number
+    	// 1 = version number
+
+    	std::wstring version = MUPEN_VERSION;
+
         if (type > 0)
-            version = {&MUPEN_VERSION[strlen("Mupen 64 ")]};
+        {
+	        version = version.substr(std::size("Mupen 64 "));
+        }
 
-
-        lua_pushstring(L, version);
+        lua_pushstring(L, wstring_to_string(version).c_str());
         return 1;
     }
 

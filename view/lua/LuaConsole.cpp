@@ -62,7 +62,7 @@ int at_panic(lua_State* L)
 {
     const auto message = string_to_wstring(lua_tostring(L, -1));
 
-    g_view_logger->info("Lua panic: {}", message);
+    g_view_logger->info(L"Lua panic: {}", message);
     FrontendService::show_error(message.c_str(), L"Lua");
 
     return 0;

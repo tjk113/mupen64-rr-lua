@@ -200,16 +200,16 @@ static HWND create_tooltip(HWND hwnd, int id, std::wstring text)
  * \param owner The clipboard content's owner window
  * \param str The string to be copied
  */
-static void copy_to_clipboard(void* owner, const std::string& str)
+static void copy_to_clipboard(void* owner, const std::wstring& str)
 {
     OpenClipboard((HWND)owner);
     EmptyClipboard();
-    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, str.size() + 1);
+    HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, (str.size() + 1) * sizeof(wchar_t));
     if (hg)
     {
-        memcpy(GlobalLock(hg), str.c_str(), str.size() + 1);
+        memcpy(GlobalLock(hg), str.c_str(), (str.size() + 1) * sizeof(wchar_t));
         GlobalUnlock(hg);
-        SetClipboardData(CF_TEXT, hg);
+        SetClipboardData(CF_UNICODETEXT, hg);
         CloseClipboard();
         GlobalFree(hg);
     }

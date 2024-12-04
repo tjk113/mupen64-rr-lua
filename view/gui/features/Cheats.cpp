@@ -32,7 +32,7 @@ namespace Cheats
                 goto update_selection;
             case IDC_NEW_CHEAT:
                 {
-                    auto script = Gameshark::Script::compile("D033AFA1 0020\n8133B1BC 4220\nD033AFA1 0020\n8133B17C 0300\nD033AFA1 0020\n8133B17E 0880");
+                    auto script = Gameshark::Script::compile(L"D033AFA1 0020\n8133B1BC 4220\nD033AFA1 0020\n8133B17C 0300\nD033AFA1 0020\n8133B17E 0880");
                     if (script.has_value())
                     {
                         Gameshark::scripts.push_back(script.value());
@@ -89,7 +89,7 @@ namespace Cheats
 
                     if (!script.has_value())
                     {
-                        FrontendService::show_error("Cheat code could not be compiled.\r\nVerify that the syntax is correct.", nullptr, hwnd);
+                        FrontendService::show_error(L"Cheat code could not be compiled.\r\nVerify that the syntax is correct.", nullptr, hwnd);
                         break;
                     }
 
@@ -129,7 +129,7 @@ namespace Cheats
             ListBox_ResetContent(lb_hwnd);
             for (auto script : Gameshark::scripts)
             {
-                auto name = !script->resumed() ? script->name() + " (Disabled)" : script->name();
+                auto name = !script->resumed() ? script->name() + L" (Disabled)" : script->name();
                 ListBox_AddString(lb_hwnd, name.c_str());
             }
             ListBox_SetCurSel(lb_hwnd, prev_index);
