@@ -154,33 +154,24 @@ namespace Rombrowser
         // Explorer theme is better than default, because it has selection highlight
         SetWindowTheme(rombrowser_hwnd, L"Explorer", NULL);
 
-        HIMAGELIST hSmall =
-            ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 11, 0);
-        HICON hIcon;
+        const HIMAGELIST h_small = ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 11, 0);
+        HICON h_icon;
 
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_GERMANY));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_USA));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_JAPAN));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_EUROPE));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_AUSTRALIA));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_ITALIA));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_FRANCE));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_SPAIN));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_UNKNOWN));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_DEMO));
-        ImageList_AddIcon(hSmall, hIcon);
-        hIcon = LoadIcon(g_app_instance, MAKEINTRESOURCE(IDI_BETA));
-        ImageList_AddIcon(hSmall, hIcon);
-        ListView_SetImageList(rombrowser_hwnd, hSmall, LVSIL_SMALL);
+#define ADD_ICON(id) h_icon = LoadIcon(g_app_instance, MAKEINTRESOURCE(id)); ImageList_AddIcon(h_small, h_icon)
+
+    	ADD_ICON(IDI_GERMANY);
+    	ADD_ICON(IDI_USA);
+    	ADD_ICON(IDI_JAPAN);
+    	ADD_ICON(IDI_EUROPE);
+    	ADD_ICON(IDI_AUSTRALIA);
+    	ADD_ICON(IDI_ITALIA);
+    	ADD_ICON(IDI_FRANCE);
+    	ADD_ICON(IDI_SPAIN);
+    	ADD_ICON(IDI_UNKNOWN);
+    	ADD_ICON(IDI_DEMO);
+    	ADD_ICON(IDI_BETA);
+
+        ListView_SetImageList(rombrowser_hwnd, h_small, LVSIL_SMALL);
 
         LVCOLUMN lv_column = {0};
         lv_column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
@@ -189,15 +180,15 @@ namespace Rombrowser
         lv_column.cx = g_config.rombrowser_column_widths[0];
         ListView_InsertColumn(rombrowser_hwnd, 0, &lv_column);
 
-        lv_column.pszText = (LPTSTR)"Name";
+        lv_column.pszText = const_cast<LPWSTR>(L"Name");
         lv_column.cx = g_config.rombrowser_column_widths[1];
         ListView_InsertColumn(rombrowser_hwnd, 1, &lv_column);
 
-        lv_column.pszText = (LPTSTR)"Filename";
+        lv_column.pszText = const_cast<LPWSTR>(L"Filename");
         lv_column.cx = g_config.rombrowser_column_widths[2];
         ListView_InsertColumn(rombrowser_hwnd, 2, &lv_column);
 
-        lv_column.pszText = (LPTSTR)"Size";
+        lv_column.pszText = const_cast<LPWSTR>(L"Size");
         lv_column.cx = g_config.rombrowser_column_widths[3];
         ListView_InsertColumn(rombrowser_hwnd, 3, &lv_column);
 
@@ -238,21 +229,6 @@ namespace Rombrowser
         }
     }
 
-    void rombrowser_add_rom(int32_t index, t_rombrowser_entry* rombrowser_entry)
-    {
-        rombrowser_entries.push_back(rombrowser_entry);
-
-        LV_ITEM lv_item = {0};
-
-        lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
-        lv_item.pszText = LPSTR_TEXTCALLBACK;
-        lv_item.lParam = index;
-        lv_item.iItem = index;
-        lv_item.iImage = rombrowser_country_code_to_image_index(
-            rombrowser_entry->rom_header.Country_code);
-        ListView_InsertItem(rombrowser_hwnd, &lv_item);
-    }
-
     void build_impl()
     {
         std::unique_lock lock(rombrowser_mutex, std::try_to_lock);
@@ -277,6 +253,10 @@ namespace Rombrowser
 
         auto rom_paths = find_available_roms();
 
+    	LV_ITEM lv_item = {0};
+    	lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
+    	lv_item.pszText = LPSTR_TEXTCALLBACK;
+
         int32_t i = 0;
         for (auto& path : rom_paths)
         {
@@ -289,7 +269,7 @@ namespace Rombrowser
             }
 
             fseek(f, 0, SEEK_END);
-            uint64_t len = ftell(f);
+            const size_t len = ftell(f);
             fseek(f, 0, SEEK_SET);
 
             auto rombrowser_entry = new t_rombrowser_entry;
@@ -312,11 +292,14 @@ namespace Rombrowser
                 rombrowser_entry->rom_header = header;
             }
 
-            rombrowser_add_rom(i, rombrowser_entry);
-
+        	lv_item.lParam = i;
+        	lv_item.iItem = i;
+        	lv_item.iImage = rombrowser_country_code_to_image_index(rombrowser_entry->rom_header.Country_code);
+        	ListView_InsertItem(rombrowser_hwnd, &lv_item);
 
             fclose(f);
 
+        	rombrowser_entries.push_back(rombrowser_entry);
             i++;
         }
         rombrowser_update_sort();
@@ -376,20 +359,21 @@ namespace Rombrowser
         case LVN_GETDISPINFO:
             {
                 NMLVDISPINFO* plvdi = (NMLVDISPINFO*)lparam;
-                t_rombrowser_entry* rombrowser_entry = rombrowser_entries[plvdi
-                                                                          ->
-                                                                          item.lParam];
+                const t_rombrowser_entry* rombrowser_entry = rombrowser_entries[plvdi->item.lParam];
                 switch (plvdi->item.iSubItem)
                 {
                 case 1:
-                    // NOTE: The name may not be null-terminated, so we NEED to limit the size
-                    plvdi->item.pszText = const_cast<LPWSTR>(string_to_wstring((char*)rombrowser_entry->rom_header.nom).c_str());
-                    break;
+	                {
+		                // NOTE: The name may not be null-terminated, so we NEED to limit the size
+                		char str[sizeof(t_rom_header::nom) + 1] = {0};
+                		strncpy(str, (char*)rombrowser_entry->rom_header.nom, sizeof(t_rom_header::nom));
+                		lstrcpyW(plvdi->item.pszText, string_to_wstring(str).c_str());
+                		break;
+	                }
                 case 2:
                     {
                         wchar_t filename[MAX_PATH] = {0};
-                        _wsplitpath(rombrowser_entry->path.c_str(), NULL, NULL,
-                                   filename, NULL);
+                        _wsplitpath(rombrowser_entry->path.c_str(), nullptr, nullptr, filename, nullptr);
                         lstrcpyW(plvdi->item.pszText, filename);
                         break;
                     }
