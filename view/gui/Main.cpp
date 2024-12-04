@@ -23,6 +23,7 @@
 #include <filesystem>
 #include <Shlwapi.h>
 #include <Windows.h>
+#include <format>
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
 #include <core/memory/savestates.h>
@@ -1580,16 +1581,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                             L"<Emulator name=\"Mupen 5.0 RR\" processName=\"%s\" ramStart=\"%s\" endianness=\"little\" autoDetect=\"true\"/>",
                             proc_name, ram_start);
 
-                    constexpr auto RAMSTART_MESSAGE = L"The RAM start is {}.\r\nDo you want to copy the generated STROOP config line to your clipboard?";
+            		const auto str = std::format(L"The RAM start is {}.\r\nHow would you like to proceed?", ram_start);
 
-                    if (MessageBox(g_main_hwnd,
-                                   std::format(RAMSTART_MESSAGE, ram_start).c_str(),
-                                   L"STROOP",
-                                   MB_ICONINFORMATION | MB_TASKMODAL |
-                                   MB_YESNO) == IDYES)
+            		const auto result = FrontendService::show_multiple_choice_dialog({
+						L"Copy STROOP config line",
+            			L"Close"
+            		}, str.c_str(), L"Show RAM Start", FrontendService::DialogType::Information);
+
+                    if (result == 0)
                     {
-                        copy_to_clipboard(g_main_hwnd, stroop_c);
+                    	copy_to_clipboard(g_main_hwnd, stroop_c);
                     }
+
                     break;
                 }
             case IDM_STATS:
