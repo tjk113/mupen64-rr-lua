@@ -112,7 +112,7 @@ public:
      * \param hwnd Handle to a lua environment dialog of IDD_LUAWINDOW
      * \param text The text to display
      */
-    static void print_con(HWND hwnd, std::string text);
+    static void print_con(HWND hwnd, const std::wstring& text);
 
     // The path to the current lua script
     std::filesystem::path path;
@@ -190,7 +190,7 @@ public:
      * \brief Prints text to the environment's console
      * \param text The text to print
      */
-    void print(std::string text) const
+    void print(const std::wstring& text) const
     {
         print_con(hwnd, text);
     }

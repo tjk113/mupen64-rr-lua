@@ -149,7 +149,7 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
 
                     if (!error_msg.empty())
                     {
-                        LuaEnvironment::print_con(wnd, error_msg + "\r\n");
+                        LuaEnvironment::print_con(wnd, string_to_wstring(error_msg) + L"\r\n");
                     }
                     else
                     {
@@ -769,7 +769,7 @@ void LuaEnvironment::destroy(LuaEnvironment* lua_environment)
     delete lua_environment;
 }
 
-void LuaEnvironment::print_con(HWND hwnd, std::string text)
+void LuaEnvironment::print_con(HWND hwnd, const std::wstring& text)
 {
     HWND con_wnd = GetDlgItem(hwnd, IDC_TEXTBOX_LUACONSOLE);
 
@@ -866,7 +866,7 @@ bool LuaEnvironment::invoke_callbacks_with_key(const std::function<int(lua_State
         if (function(L))
         {\
             const char* str = lua_tostring(L, -1);
-            this->print(std::string(str) + "\r\n");
+            this->print(string_to_wstring(str) + L"\r\n");
             g_view_logger->info("Lua error: {}", str);
             return true;
         }
