@@ -1689,16 +1689,28 @@ const wchar_t* VCR::get_status_text()
 
     if (VCR::get_task() == e_task::recording)
     {
-        wsprintfW(text, L"%d (%d) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
+    	if (m_current_sample - index_adjustment < 0)
+    	{
+    		memset(text, 0, sizeof(text));
+    	} else
+    	{
+    		wsprintfW(text, L"%d (%d) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
+    	}
     }
 
     if (vcr_is_playing())
     {
-        wsprintfW(text, L"%d / %d (%d / %d) ",
-                m_current_vi - index_adjustment,
-                g_header.length_vis,
-                m_current_sample - index_adjustment,
-                g_header.length_samples);
+    	if (m_current_sample - index_adjustment < 0)
+    	{
+    		memset(text, 0, sizeof(text));
+    	} else
+    	{
+    		wsprintfW(text, L"%d / %d (%d / %d) ",
+					m_current_vi - index_adjustment,
+					g_header.length_vis,
+					m_current_sample - index_adjustment,
+					g_header.length_samples);
+    	}
     }
 
     return text;
