@@ -506,7 +506,7 @@ std::vector<t_hotkey*> collect_hotkeys(const t_config* config)
 	for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1; i++)
 	{
 		auto hotkey = &(((t_hotkey*)config)[i]);
-		g_shared_logger->info("Hotkey[{}]: {}", i, hotkey->identifier.c_str());
+		g_shared_logger->info(L"Hotkey[{}]: {}", i, hotkey->identifier.c_str());
 		vec.push_back(hotkey);
 	}
 

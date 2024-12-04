@@ -35,13 +35,12 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> m_start_time;
 };
 
-static bool ichar_equals(char a, char b)
+static bool ichar_equals(wchar_t a, wchar_t b)
 {
-    return std::tolower(static_cast<unsigned char>(a)) ==
-        std::tolower(static_cast<unsigned char>(b));
+    return std::tolower(a) == std::tolower(b);
 }
 
-static bool iequals(std::string_view lhs, std::string_view rhs)
+static bool iequals(std::wstring_view lhs, std::wstring_view rhs)
 {
     return std::ranges::equal(lhs, rhs, ichar_equals);
 }
