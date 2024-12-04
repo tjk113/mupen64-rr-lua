@@ -18,9 +18,8 @@ namespace Statusbar
 {
 	typedef struct Segment
 	{
-		Section section;
+		std::vector<Section> sections;
 		size_t width;
-		bool overlap_with_previous = false;
 	} t_segment;
 
 	typedef struct
@@ -34,24 +33,19 @@ namespace Statusbar
 			StatusbarLayout::Classic, t_segment_layout{
 				.emu_parts = {
 					t_segment{
-						.section = Section::VCR,
+						.sections = {Section::VCR, Section::Notification},
 						.width = 260,
 					},
 					t_segment{
-						.section = Section::Notification,
-						.width = 260,
-						.overlap_with_previous = true,
-					},
-					t_segment{
-						.section = Section::FPS,
+						.sections = {Section::FPS},
 						.width = 70,
 					},
 					t_segment{
-						.section = Section::VIs,
+						.sections = {Section::VIs},
 						.width = 70,
 					},
 					t_segment{
-						.section = Section::Input,
+						.sections = {Section::Input},
 						.width = 140,
 					},
 				},
@@ -62,31 +56,31 @@ namespace Statusbar
 			StatusbarLayout::Modern, t_segment_layout{
 				.emu_parts = {
 					t_segment{
-						.section = Section::Notification,
+						.sections = {Section::Notification, Section::Readonly},
 						.width = 200,
 					},
 					t_segment{
-						.section = Section::VCR,
+						.sections = {Section::VCR},
 						.width = 200,
 					},
 					t_segment{
-						.section = Section::Input,
+						.sections = {Section::Input},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::Rerecords,
+						.sections = {Section::Rerecords},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::FPS,
+						.sections = {Section::FPS},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::VIs,
+						.sections = {Section::VIs},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::Slot,
+						.sections = {Section::Slot},
 						.width = 80,
 					},
 				},
@@ -97,35 +91,35 @@ namespace Statusbar
 			StatusbarLayout::ModernWithReadonly, t_segment_layout{
 				.emu_parts = {
 					t_segment{
-						.section = Section::Notification,
+						.sections = {Section::Notification},
 						.width = 150,
 					},
 					t_segment{
-						.section = Section::VCR,
+						.sections = {Section::VCR},
 						.width = 150,
 					},
 					t_segment{
-						.section = Section::Readonly,
+						.sections = {Section::Readonly},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::Input,
+						.sections = {Section::Input},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::Rerecords,
+						.sections = {Section::Rerecords},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::FPS,
+						.sections = {Section::FPS},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::VIs,
+						.sections = {Section::VIs},
 						.width = 80,
 					},
 					t_segment{
-						.section = Section::Slot,
+						.sections = {Section::Slot},
 						.width = 80,
 					},
 				},
@@ -144,23 +138,20 @@ namespace Statusbar
 
 	std::vector<t_segment> get_current_parts()
 	{
-		const t_segment_layout& layout = g_layout_map[static_cast<StatusbarLayout>(g_config.statusbar_layout)];
+		const t_segment_layout layout = g_layout_map[static_cast<StatusbarLayout>(g_config.statusbar_layout)];
 		return emu_launched ? layout.emu_parts : layout.idle_parts;
 	}
 
 	size_t section_to_segment_index(const Section section)
 	{
 		size_t i = 0;
-		auto parts = get_current_parts();
 
-		for (const auto& part : parts)
+		for (const auto& part : get_current_parts())
 		{
-			if (part.overlap_with_previous)
+			if (std::ranges::any_of(part.sections, [=](const auto s)
 			{
-				continue;
-			}
-
-			if (part.section == section)
+				return s == section;
+			}))
 			{
 				return i;
 			}
@@ -177,24 +168,23 @@ namespace Statusbar
 
 		if (segment_index == SIZE_MAX)
 		{
+			g_view_logger->warn("[Statusbar] Tried to post text to section {}, which is not available", static_cast<int32_t>(section));
 			return;
 		}
+
+		g_view_logger->trace("[Statusbar] Posting text to segment {}...", static_cast<int>(segment_index));
 
 		SendMessage(statusbar_hwnd, SB_SETTEXT, segment_index, (LPARAM)text.c_str());
 	}
 
-	void update_size()
+	void refresh_segments()
 	{
-		auto parts = get_current_parts();
+		const auto parts = get_current_parts();
 
 		std::vector<int32_t> sizes;
 		for (const auto& part : parts)
 		{
-			if (part.overlap_with_previous)
-			{
-				continue;
-			}
-			sizes.push_back(static_cast<int32_t>(part.width));
+			sizes.emplace_back(static_cast<int32_t>(part.width));
 		}
 
 		RECT rect{};
@@ -253,7 +243,7 @@ namespace Statusbar
 			Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
 		}
 
-		update_size();
+		refresh_segments();
 
 		previous_value = value;
 	}
@@ -316,7 +306,7 @@ namespace Statusbar
 
 	void on_size_changed(std::any)
 	{
-		update_size();
+		refresh_segments();
 	}
 
 	void init()
@@ -355,7 +345,7 @@ namespace Statusbar
 				delete[] str;
 			}
 
-			update_size();
+			refresh_segments();
 
 			for (int i = 0; i < 255; ++i)
 			{
