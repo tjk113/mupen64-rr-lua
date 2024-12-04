@@ -28,11 +28,11 @@
 
 #ifdef UNICODE
 
-#define MUPEN_VERSION L"Mupen 64 1.1.9 x64U"
+#define MUPEN_VERSION L"Mupen 64 1.2.0 x64U"
 
 #else
 
-#define MUPEN_VERSION L"Mupen 64 1.1.9 x64A"
+#define MUPEN_VERSION L"Mupen 64 1.2.0 x64A"
 
 #endif
 
@@ -40,11 +40,11 @@
 
 #ifdef UNICODE
 
-#define MUPEN_VERSION L"Mupen 64 1.1.9 x86U"
+#define MUPEN_VERSION L"Mupen 64 1.2.0 x86U"
 
 #else
 
-#define MUPEN_VERSION L"Mupen 64 1.1.9 x86A"
+#define MUPEN_VERSION L"Mupen 64 1.2.0 x86A"
 
 #endif
 
