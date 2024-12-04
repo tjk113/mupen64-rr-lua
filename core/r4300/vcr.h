@@ -357,16 +357,6 @@ namespace VCR
     CoreResult stop_all();
 
     /**
-     * \brief Gets the text representation of the last frame's inputs
-     */
-    const wchar_t* get_input_text();
-
-    /**
-     * \brief Gets the text representation of the VCR state's inputs
-     */
-    const wchar_t* get_status_text();
-
-    /**
      * \brief Gets the current movie path. Only valid when task is not idle.
      */
     std::filesystem::path get_path();
@@ -375,6 +365,21 @@ namespace VCR
      * \brief Gets the current task
      */
     e_task get_task();
+
+    /**
+	 * Gets the sample length of the current movie. If no movie is active, the function returns UINT32_MAX.
+	 */
+	uint32_t get_length_samples();
+
+	/**
+	 * Gets the VI length of the current movie. If no movie is active, the function returns UINT32_MAX.
+	 */
+	uint32_t get_length_vis();
+
+	/**
+	 * Gets the current VI in the current movie. If no movie is active, the function returns -1.
+	 */
+	int32_t get_current_vi();
 
     /**
      * Gets a copy of the current input buffer
@@ -408,6 +413,12 @@ namespace VCR
      * Gets the warp modify status
      */
     e_warp_modify_status get_warp_modify_status();
+
+    /**
+	 * Gets the first differing frame when performing a warp modify operation.
+	 * If no warp modify operation is active, the function returns SIZE_MAX.
+	 */
+	size_t get_warp_modify_first_difference_frame();
 
     /**
      * Gets the current seek savestate frames.

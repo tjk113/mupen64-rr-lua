@@ -1639,83 +1639,6 @@ CoreResult VCR::stop_all()
     }
 }
 
-// TODO: Move this and get_status_text into view. This is not the core's business.
-const wchar_t* VCR::get_input_text()
-{
-    static wchar_t text[1024]{};
-    memset(text, 0, sizeof(text));
-
-    BUTTONS b = LuaService::get_last_controller_data(0);
-    wsprintf(text, L"(%d, %d) ", b.Y_AXIS, b.X_AXIS);
-    if (b.START_BUTTON) lstrcatW(text, L"S");
-    if (b.Z_TRIG) lstrcatW(text, L"Z");
-    if (b.A_BUTTON) lstrcatW(text, L"A");
-    if (b.B_BUTTON) lstrcatW(text, L"B");
-    if (b.L_TRIG) lstrcatW(text, L"L");
-    if (b.R_TRIG) lstrcatW(text, L"R");
-    if (b.U_CBUTTON || b.D_CBUTTON || b.L_CBUTTON ||
-        b.R_CBUTTON)
-    {
-        lstrcatW(text, L" C");
-        if (b.U_CBUTTON) lstrcatW(text, L"^");
-        if (b.D_CBUTTON) lstrcatW(text, L"v");
-        if (b.L_CBUTTON) lstrcatW(text, L"<");
-        if (b.R_CBUTTON) lstrcatW(text, L">");
-    }
-    if (b.U_DPAD || b.D_DPAD || b.L_DPAD || b.
-        R_DPAD)
-    {
-        lstrcatW(text, L"D");
-        if (b.U_DPAD) lstrcatW(text, L"^");
-        if (b.D_DPAD) lstrcatW(text, L"v");
-        if (b.L_DPAD) lstrcatW(text, L"<");
-        if (b.R_DPAD) lstrcatW(text, L">");
-    }
-    return text;
-}
-
-const wchar_t* VCR::get_status_text()
-{
-    static wchar_t text[1024]{};
-    memset(text, 0, sizeof(text));
-
-    auto index_adjustment = (g_config.vcr_0_index ? 1 : 0);
-
-    if (g_warp_modify_status == e_warp_modify_status::warping)
-    {
-        wsprintfW(text, L"Warping (%d, %.0f%%), edit at %d", m_current_sample, ((float)m_current_sample / (float)g_header.length_samples) * 100.0f, g_warp_modify_first_difference_frame);
-        return text;
-    }
-
-    if (VCR::get_task() == e_task::recording)
-    {
-    	if (m_current_sample - index_adjustment < 0)
-    	{
-    		memset(text, 0, sizeof(text));
-    	} else
-    	{
-    		wsprintfW(text, L"%d (%d) ", m_current_vi - index_adjustment, m_current_sample - index_adjustment);
-    	}
-    }
-
-    if (vcr_is_playing())
-    {
-    	if (m_current_sample - index_adjustment < 0)
-    	{
-    		memset(text, 0, sizeof(text));
-    	} else
-    	{
-    		wsprintfW(text, L"%d / %d (%d / %d) ",
-					m_current_vi - index_adjustment,
-					g_header.length_vis,
-					m_current_sample - index_adjustment,
-					g_header.length_samples);
-    	}
-    }
-
-    return text;
-}
-
 std::filesystem::path VCR::get_path()
 {
     return g_movie_path;
@@ -1724,6 +1647,21 @@ std::filesystem::path VCR::get_path()
 e_task VCR::get_task()
 {
     return g_task;
+}
+
+uint32_t VCR::get_length_samples()
+{
+	return VCR::get_task() == e_task::idle ? UINT32_MAX : g_header.length_samples;
+}
+
+uint32_t VCR::get_length_vis()
+{
+	return VCR::get_task() == e_task::idle ? UINT32_MAX : g_header.length_vis;
+}
+
+int32_t VCR::get_current_vi()
+{
+	return VCR::get_task() == e_task::idle ? -1 : m_current_vi;
 }
 
 std::vector<BUTTONS> VCR::get_inputs()
@@ -1834,6 +1772,11 @@ CoreResult VCR::begin_warp_modify(const std::vector<BUTTONS>& inputs)
 e_warp_modify_status VCR::get_warp_modify_status()
 {
     return g_warp_modify_status;
+}
+
+size_t VCR::get_warp_modify_first_difference_frame()
+{
+	return get_warp_modify_status() == e_warp_modify_status::warping ? g_warp_modify_first_difference_frame : SIZE_MAX;
 }
 
 std::unordered_map<size_t, bool> VCR::get_seek_savestate_frames()

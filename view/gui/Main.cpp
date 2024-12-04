@@ -327,6 +327,85 @@ void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
                          hotkey_str == L"(nothing)" ? L"" : hotkey_str.c_str());
 }
 
+const wchar_t* get_input_text()
+{
+    static wchar_t text[1024]{};
+    memset(text, 0, sizeof(text));
+
+    BUTTONS b = LuaService::get_last_controller_data(0);
+    wsprintf(text, L"(%d, %d) ", b.Y_AXIS, b.X_AXIS);
+    if (b.START_BUTTON) lstrcatW(text, L"S");
+    if (b.Z_TRIG) lstrcatW(text, L"Z");
+    if (b.A_BUTTON) lstrcatW(text, L"A");
+    if (b.B_BUTTON) lstrcatW(text, L"B");
+    if (b.L_TRIG) lstrcatW(text, L"L");
+    if (b.R_TRIG) lstrcatW(text, L"R");
+    if (b.U_CBUTTON || b.D_CBUTTON || b.L_CBUTTON ||
+        b.R_CBUTTON)
+    {
+        lstrcatW(text, L" C");
+        if (b.U_CBUTTON) lstrcatW(text, L"^");
+        if (b.D_CBUTTON) lstrcatW(text, L"v");
+        if (b.L_CBUTTON) lstrcatW(text, L"<");
+        if (b.R_CBUTTON) lstrcatW(text, L">");
+    }
+    if (b.U_DPAD || b.D_DPAD || b.L_DPAD || b.
+        R_DPAD)
+    {
+        lstrcatW(text, L"D");
+        if (b.U_DPAD) lstrcatW(text, L"^");
+        if (b.D_DPAD) lstrcatW(text, L"v");
+        if (b.L_DPAD) lstrcatW(text, L"<");
+        if (b.R_DPAD) lstrcatW(text, L">");
+    }
+    return text;
+}
+
+const wchar_t* get_status_text()
+{
+    static wchar_t text[1024]{};
+    memset(text, 0, sizeof(text));
+
+    const auto index_adjustment = g_config.vcr_0_index ? 1 : 0;
+	const auto current_sample = VCR::get_seek_completion().first;
+	const auto current_vi = VCR::get_current_vi();
+	const auto is_before_start = static_cast<int64_t>(current_sample) - static_cast<int64_t>(index_adjustment) < 0;
+
+    if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
+    {
+        wsprintfW(text, L"Warping (%d, %.0f%%), edit at %d", current_sample, ((float)current_sample / (float)VCR::get_length_samples()) * 100.0f, VCR::get_warp_modify_first_difference_frame());
+        return text;
+    }
+
+    if (VCR::get_task() == e_task::recording)
+    {
+    	if (is_before_start)
+    	{
+    		memset(text, 0, sizeof(text));
+    	} else
+    	{
+    		wsprintfW(text, L"%d (%d) ", current_vi - index_adjustment, current_sample - index_adjustment);
+    	}
+    }
+
+    if (VCR::get_task() == e_task::playback)
+    {
+    	if (is_before_start)
+    	{
+    		memset(text, 0, sizeof(text));
+    	} else
+    	{
+    		wsprintfW(text, L"%d / %d (%d / %d) ",
+					current_vi - index_adjustment,
+					VCR::get_length_vis(),
+					current_sample - index_adjustment,
+					VCR::get_length_samples());
+    	}
+    }
+
+    return text;
+}
+
 /**
  * \brief Converts a config action to its respective menu ID
  * \param action The action to convert
@@ -1182,7 +1261,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
             if (frame_changed)
             {
-                Statusbar::post(VCR::get_input_text(), Statusbar::Section::Input);
+                Statusbar::post(get_input_text(), Statusbar::Section::Input);
 
                 if (EncodingManager::is_capturing())
                 {
@@ -1192,12 +1271,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     }
                     else
                     {
-                        Statusbar::post(std::format(L"{}({})", VCR::get_status_text(), EncodingManager::get_video_frame()), Statusbar::Section::VCR);
+                        Statusbar::post(std::format(L"{}({})", get_status_text(), EncodingManager::get_video_frame()), Statusbar::Section::VCR);
                     }
                 }
                 else
                 {
-                    Statusbar::post(VCR::get_status_text(), Statusbar::Section::VCR);
+                    Statusbar::post(get_status_text(), Statusbar::Section::VCR);
                 }
 
                 frame_changed = false;
