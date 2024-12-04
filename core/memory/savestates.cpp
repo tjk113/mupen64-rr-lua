@@ -87,6 +87,9 @@ namespace Savestates
 
         /// The task's parameters. Only one field in the struct is valid at a time.
         t_params params{};
+
+    	/// Whether warnings, such as those about ROM compatibility, shouldn't be shown.
+    	bool ignore_warnings;
     };
 
     // Enable fixing .st to work for old mupen and m64p
@@ -388,7 +391,7 @@ namespace Savestates
         char md5[33] = {0};
         memread(&ptr, &md5, 32);
 
-        if (memcmp(md5, rom_md5, 32))
+        if (!task.ignore_warnings && memcmp(md5, rom_md5, 32))
         {
             auto result = FrontendService::show_ask_dialog(std::format(
                 L"The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?",
@@ -440,7 +443,7 @@ namespace Savestates
 
             const auto code = VCR::unfreeze(freeze);
 
-            if (code != CoreResult::Ok && VCR::get_task() != e_task::idle)
+            if (!task.ignore_warnings && code != CoreResult::Ok && VCR::get_task() != e_task::idle)
             {
                 std::wstring err_str = L"Failed to restore movie, ";
                 switch (code)
@@ -470,7 +473,7 @@ namespace Savestates
         }
         else
         {
-            if (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback)
+            if (!task.ignore_warnings && (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback))
             {
                 const auto result = FrontendService::show_ask_dialog(L"The savestate is not from a movie. Loading it might desynchronize the movie.\r\nAre you sure you want to continue?", L"Savestate", true);
                 if (!result)
@@ -680,7 +683,7 @@ namespace Savestates
         return emu_launched;
     }
 
-    void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback)
+    void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
     {
         if (!can_push_work())
         {
@@ -721,14 +724,15 @@ namespace Savestates
             .callback = pre_callback,
             .params = {
                 .path = path
-            }
+            },
+        	.ignore_warnings = ignore_warnings,
         };
 
         g_tasks.insert(g_tasks.begin(), task);
         savestates_warn_if_load_after_save();
     }
 
-    void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback)
+    void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
     {
         if (!can_push_work())
         {
@@ -775,14 +779,15 @@ namespace Savestates
             .callback = pre_callback,
             .params = {
                 .slot = static_cast<size_t>(slot)
-            }
+            },
+        	.ignore_warnings = ignore_warnings,
         };
 
         g_tasks.insert(g_tasks.begin(), task);
         savestates_warn_if_load_after_save();
     }
 
-    void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback)
+    void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
     {
         if (!can_push_work())
         {
@@ -802,7 +807,8 @@ namespace Savestates
             .callback = callback,
             .params = {
                 .buffer = buffer
-            }
+            },
+        	.ignore_warnings = ignore_warnings,
         };
 
         g_tasks.insert(g_tasks.begin(), task);
