@@ -1204,11 +1204,11 @@ LRESULT CALLBACK InlineEditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 
 apply:
 
-	// FIXME: This doesn't handle arbitrary string length
-    wchar_t str[MAX_PATH * 3] = {};
-    Edit_GetText(hwnd, str, std::size(str));
-
-    SendMessage(GetParent(hwnd), WM_EDIT_END, 0, (LPARAM)str);
+	auto len = Edit_GetTextLength(hwnd) + 1;
+	auto str = static_cast<wchar_t*>(calloc(len, sizeof(wchar_t)));
+	Edit_GetText(hwnd, str, len);
+	SendMessage(GetParent(hwnd), WM_EDIT_END, 0, (LPARAM)str);
+	free(str);
 
     DestroyWindow(hwnd);
 
