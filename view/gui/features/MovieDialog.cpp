@@ -125,9 +125,9 @@ namespace MovieDialog
                 lv_column.mask = LVCF_FMT | LVCF_DEFAULTWIDTH | LVCF_TEXT |
                     LVCF_SUBITEM;
 
-                lv_column.pszText = (LPTSTR)"Name";
+                lv_column.pszText = const_cast<LPWSTR>(L"Name");
                 ListView_InsertColumn(grid_hwnd, 0, &lv_column);
-                lv_column.pszText = (LPTSTR)"Value";
+                lv_column.pszText = const_cast<LPWSTR>(L"Value");
                 ListView_InsertColumn(grid_hwnd, 1, &lv_column);
 
                 ListView_SetColumnWidth(grid_hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
