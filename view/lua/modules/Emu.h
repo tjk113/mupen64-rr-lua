@@ -279,7 +279,7 @@ namespace LuaCore::Emu
 
     static int LuaPlaySound(lua_State* L)
     {
-        PlaySound(luaL_checkstring(L, 1), NULL, SND_FILENAME | SND_ASYNC);
+        PlaySound(string_to_wstring(luaL_checkstring(L, 1)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
         return 1;
     }
 
@@ -378,7 +378,7 @@ namespace LuaCore::Emu
         const char* s = lua_tostring(L, 1);
         for (const NameAndVariable* p = list; p->name; p++)
         {
-            if (lstrcmpi(p->name, s) == 0)
+            if (lstrcmpiA(p->name, s) == 0)
             {
                 lua_pushinteger(L, (unsigned)p->pointer);
                 return 1;
@@ -412,7 +412,7 @@ namespace LuaCore::Emu
 
     static int StatusbarWrite(lua_State* L)
     {
-        Statusbar::post(std::string(lua_tostring(L, 1)));
+        Statusbar::post(string_to_wstring(lua_tostring(L, 1)));
         return 0;
     }
 }
