@@ -384,7 +384,7 @@ const wchar_t* get_status_text()
     		memset(text, 0, sizeof(text));
     	} else
     	{
-    		wsprintfW(text, L"%d (%d) ", current_vi - index_adjustment, current_sample - index_adjustment);
+    		wsprintfW(text, L"%d (%d) ", current_vi, current_sample - index_adjustment);
     	}
     }
 
@@ -396,7 +396,7 @@ const wchar_t* get_status_text()
     	} else
     	{
     		wsprintfW(text, L"%d / %d (%d / %d) ",
-					current_vi - index_adjustment,
+					current_vi,
 					VCR::get_length_vis(),
 					current_sample - index_adjustment,
 					VCR::get_length_samples());
