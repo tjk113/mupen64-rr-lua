@@ -41,7 +41,7 @@ namespace Runner
             });
             break;
         case IDC_LIST_SCRIPTS:
-            lua_create_and_run(path.string().c_str());
+            lua_create_and_run(path);
             break;
         }
     }
@@ -54,15 +54,15 @@ namespace Runner
         case WM_INITDIALOG:
             {
                 last_selected_id = -1;
-                auto populate_with_paths = [&](const int id, std::vector<std::string> paths)
+                auto populate_with_paths = [&](const int id, std::vector<std::wstring> paths)
                 {
                     auto ctl = GetDlgItem(hwnd, id);
                     for (auto path : paths)
                     {
-                        auto index = ListBox_AddString(ctl, std::filesystem::path(path).filename().string().c_str());
+                        auto index = ListBox_AddString(ctl, std::filesystem::path(path).filename().wstring().c_str());
 
-                        char* buffer = new char[path.size() + 1]();
-                        memcpy(buffer, path.data(), path.size());
+                        auto buffer = new wchar_t[path.size() + 1]();
+                        memcpy(buffer, path.data(), path.size() * sizeof(wchar_t));
 
                         ListBox_SetItemData(ctl, index, reinterpret_cast<LPARAM>(buffer));
                     }

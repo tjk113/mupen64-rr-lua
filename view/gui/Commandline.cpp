@@ -94,7 +94,7 @@ void commandline_start_rom()
     {
         const auto result = vr_start_rom(commandline_rom);
         show_error_dialog_for_result(result);
-        
+
         // Special case for "Open With..."
         if (commandline_rom.extension() == ".m64")
         {
@@ -129,10 +129,10 @@ void commandline_start_lua()
     g_main_window_dispatcher->invoke([&]
     {
         // To run multiple lua scripts, a semicolon-separated list is provided
-        std::stringstream stream;
-        std::string script;
-        stream << commandline_lua.string();
-        while (std::getline(stream, script, ';'))
+        std::wstringstream stream;
+        std::wstring script;
+        stream << commandline_lua.wstring();
+        while (std::getline(stream, script, L';'))
         {
             lua_create_and_run(script.c_str());
         }

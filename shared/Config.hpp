@@ -122,7 +122,7 @@ enum class StatusbarLayout : int32_t
 
 typedef struct Hotkey
 {
-    std::string identifier;
+    std::wstring identifier;
     int32_t key;
     int32_t ctrl;
     int32_t shift;
@@ -327,32 +327,32 @@ typedef struct Config
     /// <summary>
     /// The plugin directory
     /// </summary>
-    std::string plugins_directory;
+    std::wstring plugins_directory;
 
     /// <summary>
     /// The save directory
     /// </summary>
-    std::string saves_directory;
+    std::wstring saves_directory;
 
     /// <summary>
     /// The screenshot directory
     /// </summary>
-    std::string screenshots_directory;
+    std::wstring screenshots_directory;
 
     /// <summary>
     /// The savestate directory
     /// </summary>
-    std::string states_path;
+    std::wstring states_path;
 
     /// <summary>
     /// The movie backups directory
     /// </summary>
-    std::string backups_directory;
+    std::wstring backups_directory;
 
     /// <summary>
     /// The recently opened roms' paths
     /// </summary>
-    std::vector<std::string> recent_rom_paths;
+    std::vector<std::wstring> recent_rom_paths;
 
     /// <summary>
     /// Whether recently opened rom path collection is paused
@@ -362,7 +362,7 @@ typedef struct Config
     /// <summary>
     /// The recently opened movies' paths
     /// </summary>
-    std::vector<std::string> recent_movie_paths;
+    std::vector<std::wstring> recent_movie_paths;
 
     /// <summary>
     /// Whether recently opened movie path collection is paused
@@ -377,7 +377,7 @@ typedef struct Config
     /// <summary>
     /// The paths to directories which are searched for roms
     /// </summary>
-    std::vector<std::string> rombrowser_rom_paths;
+    std::vector<std::wstring> rombrowser_rom_paths;
 
     /// <summary>
     /// Whether rom resets are not recorded in movies
@@ -414,15 +414,15 @@ typedef struct Config
     /// <summary>
     /// FFmpeg post-stream option format string which is used when capturing using the FFmpeg encoder type
     /// </summary>
-    std::string ffmpeg_final_options =
-        "-y -f rawvideo -pixel_format bgr24 -video_size %dx%d -framerate %d -i %s "\
-        "-f s16le -sample_rate %d -ac 2 -channel_layout stereo -i %s "\
-        "-c:v libx264 -preset fast -crf 23 -c:a copy -b:a 128k -vf \"vflip\" -f mp4 %s";
+    std::wstring ffmpeg_final_options =
+        L"-y -f rawvideo -pixel_format bgr24 -video_size %dx%d -framerate %d -i %s "\
+        L"-f s16le -sample_rate %d -ac 2 -channel_layout stereo -i %s "\
+        L"-c:v libx264 -preset fast -crf 23 -c:a copy -b:a 128k -vf \"vflip\" -f mp4 %s";
 
     /// <summary>
     /// FFmpeg binary path
     /// </summary>
-    std::string ffmpeg_path = "C:\\ffmpeg\\bin\\ffmpeg.exe";
+    std::wstring ffmpeg_path = L"C:\\ffmpeg\\bin\\ffmpeg.exe";
 
     /// <summary>
     /// The audio-video synchronization mode
@@ -451,12 +451,12 @@ typedef struct Config
     /// <summary>
     /// The lua script path
     /// </summary>
-    std::string lua_script_path;
+    std::wstring lua_script_path;
 
     /// <summary>
     /// The recently opened lua scripts' paths
     /// </summary>
-    std::vector<std::string> recent_lua_script_paths;
+    std::vector<std::wstring> recent_lua_script_paths;
 
     /// <summary>
     /// Whether recently opened lua script path collection is paused
@@ -516,22 +516,22 @@ typedef struct Config
     /// <summary>
     /// The path of the currently selected video plugin
     /// </summary>
-    std::string selected_video_plugin;
+    std::wstring selected_video_plugin;
 
     /// <summary>
     /// The path of the currently selected audio plugin
     /// </summary>
-    std::string selected_audio_plugin;
+    std::wstring selected_audio_plugin;
 
     /// <summary>
     /// The path of the currently selected input plugin
     /// </summary>
-    std::string selected_input_plugin;
+    std::wstring selected_input_plugin;
 
     /// <summary>
     /// The path of the currently selected RSP plugin
     /// </summary>
-    std::string selected_rsp_plugin;
+    std::wstring selected_rsp_plugin;
 
     /// <summary>
     /// The last known value of the record movie dialog's "start type" field
@@ -541,7 +541,7 @@ typedef struct Config
     /// <summary>
     /// The last known value of the record movie dialog's "author" field
     /// </summary>
-    std::string last_movie_author;
+    std::wstring last_movie_author;
 
     /// <summary>
     /// The main window's X position
@@ -581,7 +581,7 @@ typedef struct Config
     /// <summary>
     /// A map of persistent path dialog IDs and the respective value
     /// </summary>
-    std::map<std::string, std::wstring> persistent_folder_paths;
+    std::map<std::wstring, std::wstring> persistent_folder_paths;
 
     /// <summary>
     /// Resets the emulator faster, but may cause issues
@@ -633,7 +633,7 @@ typedef struct Config
     /// <summary>
     /// The current seeker input value
     /// </summary>
-    std::string seeker_value;
+    std::wstring seeker_value;
 } t_config;
 #pragma pack(pop)
 

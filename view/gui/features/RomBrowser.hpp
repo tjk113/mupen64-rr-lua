@@ -44,5 +44,5 @@ namespace Rombrowser
      * \param predicate A predicate which determines if the rom matches
      * \return The rom's path, or an empty string if no rom was found
      */
-    std::string find_available_rom(std::function<bool(const t_rom_header&)> predicate);
+    std::wstring find_available_rom(std::function<bool(const t_rom_header&)> predicate);
 }

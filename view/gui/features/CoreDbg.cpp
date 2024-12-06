@@ -77,7 +77,7 @@ namespace CoreDbg
                 break;
             }
         case WM_DEBUGGER_RESUMED_UPDATED:
-            Button_SetText(GetDlgItem(g_hwnd, IDC_COREDBG_TOGGLEPAUSE), Debugger::get_resumed() ? "Pause" : "Resume");
+            Button_SetText(GetDlgItem(g_hwnd, IDC_COREDBG_TOGGLEPAUSE), Debugger::get_resumed() ? L"Pause" : L"Resume");
             break;
         default:
             return FALSE;

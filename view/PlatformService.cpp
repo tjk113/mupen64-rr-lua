@@ -5,7 +5,7 @@
 
 #include "shared/services/FrontendService.h"
 
-void* PlatformService::load_library(const char* path)
+void* PlatformService::load_library(const wchar_t* path)
 {
     return LoadLibrary(path);
 }
@@ -14,7 +14,7 @@ void PlatformService::free_library(void* module)
 {
     if (!FreeLibrary((HMODULE)module))
     {
-        FrontendService::show_error(std::format("Failed to free library {:#06x}.", (unsigned long)module).c_str());
+        FrontendService::show_error(std::format(L"Failed to free library {:#06x}.", (unsigned long)module).c_str());
     }
 }
 

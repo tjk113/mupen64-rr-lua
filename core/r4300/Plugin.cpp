@@ -360,10 +360,9 @@ void load_rsp(void* handle)
     initiateRSP(rsp_info, (uint32_t*)&i);
 }
 
-std::optional<std::unique_ptr<Plugin>> Plugin::create(
-    std::filesystem::path path)
+std::optional<std::unique_ptr<Plugin>> Plugin::create(std::filesystem::path path)
 {
-    void* module = PlatformService::load_library(path.string().c_str());
+    void* module = PlatformService::load_library(path.wstring().c_str());
 
     if (module == nullptr)
     {
@@ -420,7 +419,7 @@ void Plugin::config()
                 auto initiateGFX = (INITIATEGFX)PlatformService::get_function_in_module((void*)m_module, "InitiateGFX");
                 if (initiateGFX && !initiateGFX(dummy_gfx_info))
                 {
-                    FrontendService::show_information("Couldn't initialize video plugin.");
+                    FrontendService::show_information(L"Couldn't initialize video plugin.");
                 }
             }
 
@@ -441,7 +440,7 @@ void Plugin::config()
                 auto initiateAudio = (INITIATEAUDIO)PlatformService::get_function_in_module((void*)m_module, "InitiateAudio");
                 if (initiateAudio && !initiateAudio(dummy_audio_info))
                 {
-                    FrontendService::show_information("Couldn't initialize audio plugin.");
+                    FrontendService::show_information(L"Couldn't initialize audio plugin.");
                 }
             }
 

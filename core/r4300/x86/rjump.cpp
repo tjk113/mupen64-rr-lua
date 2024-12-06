@@ -45,11 +45,6 @@ void dyna_jump()
         *return_address = (uint32_t)(PC->reg_cache_infos.jump_wrapper);
     else
         *return_address = (uint32_t)(actual->code + PC->local_addr);
-    /*asm("mov return_address, %%esp \n"
-        "ret                       \n"
-        :
-        :
-        : "memory");*/
 }
 
 jmp_buf g_jmp_state;
@@ -60,7 +55,7 @@ void dyna_start(void (*code)())
     // –ß‚Á‚Ä‚«‚½ setjmp() ‚Í 1 ‚ð•Ô‚·‚Ì‚ÅAdyna_start() I—¹
     // ƒŒƒWƒXƒ^ ebx, esi, edi, ebp ‚Ì•Û‘¶‚Æ•œŒ³‚ª•K—v‚¾‚ªAsetjmp() ‚ª‚â‚Á‚Ä‚­‚ê‚é
     core_executing = true;
-    g_core_logger->info("core_executing: {}", core_executing);
+    g_core_logger->info(L"core_executing: {}", (bool)core_executing);
     if (setjmp(g_jmp_state) == 0)
     {
         code();

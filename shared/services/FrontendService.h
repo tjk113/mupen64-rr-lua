@@ -41,7 +41,7 @@ namespace FrontendService
      * \return Whether the user answered yes
      * \remarks If the user has chosen to not use modals, this function will return true by default
      */
-    bool show_ask_dialog(const char* str, const char* title = nullptr, bool warning = false, void* hwnd = nullptr);
+    bool show_ask_dialog(const wchar_t* str, const wchar_t* title = nullptr, bool warning = false, void* hwnd = nullptr);
 
     /**
      * \brief Shows the user a warning dialog
@@ -49,7 +49,7 @@ namespace FrontendService
      * \param title The dialog title
      * \param hwnd The parent window
      */
-    void show_warning(const char* str, const char* title = nullptr, void* hwnd = nullptr);
+    void show_warning(const wchar_t* str, const wchar_t* title = nullptr, void* hwnd = nullptr);
 
     /**
      * \brief Shows the user an error dialog
@@ -57,7 +57,7 @@ namespace FrontendService
      * \param title The dialog title
      * \param hwnd The parent window
      */
-    void show_error(const char* str, const char* title = nullptr, void* hwnd = nullptr);
+    void show_error(const wchar_t* str, const wchar_t* title = nullptr, void* hwnd = nullptr);
 
     /**
      * \brief Shows the user an information dialog
@@ -65,13 +65,13 @@ namespace FrontendService
      * \param title The dialog title
      * \param hwnd The parent window
      */
-    void show_information(const char* str, const char* title = nullptr, void* hwnd = nullptr);
+    void show_information(const wchar_t* str, const wchar_t* title = nullptr, void* hwnd = nullptr);
 
     /**
      * \brief Shows text in the statusbar
      * \param str The text
      */
-    void show_statusbar(const char* str);
+    void show_statusbar(const wchar_t* str);
 
     /**
      * \brief Gets the path to the directory containing the mupen64 executable
@@ -131,7 +131,7 @@ namespace FrontendService
      * \param predicate A predicate which determines if the rom matches
      * \return The rom's path, or an empty string if no rom was found
      */
-    std::string find_available_rom(const std::function<bool(const t_rom_header&)>& predicate);
+    std::wstring find_available_rom(const std::function<bool(const t_rom_header&)>& predicate);
 
     /**
      * Gets the current video size from the MGE compositor

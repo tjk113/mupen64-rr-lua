@@ -43,8 +43,8 @@
 #include "presenters/GDIPresenter.h"
 #include "shared/services/FrontendService.h"
 
-const auto D2D_OVERLAY_CLASS = "lua_d2d_overlay";
-const auto GDI_OVERLAY_CLASS = "lua_gdi_overlay";
+const auto D2D_OVERLAY_CLASS = L"lua_d2d_overlay";
+const auto GDI_OVERLAY_CLASS = L"lua_gdi_overlay";
 
 BUTTONS last_controller_data[4];
 BUTTONS new_controller_data[4];
@@ -60,10 +60,10 @@ uint64_t inputCount = 0;
 
 int at_panic(lua_State* L)
 {
-    const auto message = lua_tostring(L, -1);
+    const auto message = string_to_wstring(lua_tostring(L, -1));
 
-    g_view_logger->info("Lua panic: {}", message);
-    FrontendService::show_error(message, "Lua");
+    g_view_logger->info(L"Lua panic: {}", message);
+    FrontendService::show_error(message.c_str(), L"Lua");
 
     return 0;
 }
@@ -96,12 +96,12 @@ void set_button_state(HWND wnd, bool state)
     const HWND stop_button = GetDlgItem(wnd, IDC_BUTTON_LUASTOP);
     if (state)
     {
-        SetWindowText(state_button, "Restart");
+        SetWindowText(state_button, L"Restart");
         EnableWindow(stop_button, TRUE);
     }
     else
     {
-        SetWindowText(state_button, "Run");
+        SetWindowText(state_button, L"Run");
         EnableWindow(stop_button, FALSE);
     }
 }
@@ -134,9 +134,8 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
             {
             case IDC_BUTTON_LUASTATE:
                 {
-                    char path[MAX_PATH] = {0};
-                    GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-                                  path, MAX_PATH);
+                    wchar_t path[MAX_PATH] = {0};
+                    GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), path, std::size(path));
 
                     // if already running, delete and erase it (we dont want to overwrite the environment without properly disposing it)
                     if (g_hwnd_lua_map.contains(wnd))
@@ -150,7 +149,7 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
 
                     if (!error_msg.empty())
                     {
-                        LuaEnvironment::print_con(wnd, error_msg + "\r\n");
+                        LuaEnvironment::print_con(wnd, string_to_wstring(error_msg) + L"\r\n");
                     }
                     else
                     {
@@ -170,25 +169,23 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
                 }
             case IDC_BUTTON_LUABROWSE:
                 {
-                    auto path = show_persistent_open_dialog("o_lua", wnd, L"*.lua");
+                    const auto path = show_persistent_open_dialog(L"o_lua", wnd, L"*.lua");
 
                     if (path.empty())
                     {
                         break;
                     }
 
-                    SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), wstring_to_string(path).c_str());
+                    SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), path.c_str());
                     return TRUE;
                 }
             case IDC_BUTTON_LUAEDIT:
                 {
-                    CHAR buf[MAX_PATH];
-                    GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH),
-                                  buf, MAX_PATH);
+                    wchar_t buf[MAX_PATH]{};
+                    GetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), buf, std::size(buf));
+
                     if (buf == NULL || buf[0] == '\0')
-                        /* || strlen(buf)>MAX_PATH*/
                         return FALSE;
-                    // previously , clicking edit with empty path will open current directory in explorer, which is very bad
 
                     ShellExecute(0, 0, buf, 0, 0, SW_SHOW);
                     return TRUE;
@@ -197,11 +194,11 @@ INT_PTR CALLBACK DialogProc(HWND wnd, UINT msg, WPARAM wParam,
                 if (GetAsyncKeyState(VK_MENU))
                 {
                     // clear path
-                    SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), "");
+                    SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUASCRIPTPATH), L"");
                     return TRUE;
                 }
 
-                SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), "");
+                SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUACONSOLE), L"");
                 return TRUE;
             default:
                 break;
@@ -236,7 +233,7 @@ HWND lua_create()
     return hwnd;
 }
 
-void lua_create_and_run(const char* path)
+void lua_create_and_run(const std::wstring& path)
 {
     assert(is_on_gui_thread());
 
@@ -245,7 +242,7 @@ void lua_create_and_run(const char* path)
 
     g_view_logger->info("Setting path...");
     // set the textbox content to match the path
-    SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path);
+    SetWindowText(GetDlgItem(hwnd, IDC_TEXTBOX_LUASCRIPTPATH), path.c_str());
 
     g_view_logger->info("Simulating run button click...");
     // click run button
@@ -658,7 +655,7 @@ void LuaEnvironment::create_renderer()
     auto hr = CoInitialize(nullptr);
     if (hr != S_OK && hr != S_FALSE && hr != RPC_E_CHANGED_MODE)
     {
-        FrontendService::show_error("Failed to initialize COM.\r\nVerify that your system is up-to-date.");
+        FrontendService::show_error(L"Failed to initialize COM.\r\nVerify that your system is up-to-date.");
         return;
     }
 
@@ -678,7 +675,7 @@ void LuaEnvironment::create_renderer()
     dc_size = {(UINT32)max(1, window_rect.right), (UINT32)max(1, window_rect.bottom)};
     g_view_logger->info("Lua dc size: {} {}", dc_size.width, dc_size.height);
 
-    d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, D2D_OVERLAY_CLASS, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
+    d2d_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, D2D_OVERLAY_CLASS, L"", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
                                       g_app_instance, nullptr);
     SetWindowLongPtr(d2d_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
@@ -702,7 +699,7 @@ void LuaEnvironment::create_renderer()
 
     if (!presenter->init(d2d_overlay_hwnd))
     {
-        FrontendService::show_error("Failed to initialize presenter.\r\nVerify that your system supports the selected presenter.");
+        FrontendService::show_error(L"Failed to initialize presenter.\r\nVerify that your system supports the selected presenter.");
         return;
     }
 
@@ -719,7 +716,7 @@ void LuaEnvironment::create_renderer()
     SelectObject(gdi_back_dc, gdi_bmp);
     ReleaseDC(g_main_hwnd, gdi_dc);
 
-    gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, GDI_OVERLAY_CLASS, "", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
+    gdi_overlay_hwnd = CreateWindowEx(WS_EX_LAYERED, GDI_OVERLAY_CLASS, L"", WS_CHILD | WS_VISIBLE, 0, 0, dc_size.width, dc_size.height, g_main_hwnd, nullptr,
                                       g_app_instance, nullptr);
     SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, (LONG_PTR)this);
     SetLayeredWindowAttributes(gdi_overlay_hwnd, lua_gdi_color_mask, 0, LWA_COLORKEY);
@@ -772,7 +769,7 @@ void LuaEnvironment::destroy(LuaEnvironment* lua_environment)
     delete lua_environment;
 }
 
-void LuaEnvironment::print_con(HWND hwnd, std::string text)
+void LuaEnvironment::print_con(HWND hwnd, const std::wstring& text)
 {
     HWND con_wnd = GetDlgItem(hwnd, IDC_TEXTBOX_LUACONSOLE);
 
@@ -869,7 +866,7 @@ bool LuaEnvironment::invoke_callbacks_with_key(const std::function<int(lua_State
         if (function(L))
         {\
             const char* str = lua_tostring(L, -1);
-            this->print(std::string(str) + "\r\n");
+            this->print(string_to_wstring(str) + L"\r\n");
             g_view_logger->info("Lua error: {}", str);
             return true;
         }

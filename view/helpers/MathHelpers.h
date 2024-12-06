@@ -29,9 +29,9 @@ static T clamp(const T value, const T min, const T max)
  * \param seconds The duration in seconds
  * \return The formatted duration
  */
-static std::string format_duration(size_t seconds)
+static std::wstring format_duration(size_t seconds)
 {
-    char str[260] = {0};
-    sprintf_s(str, "%02u:%02u:%02u", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+    wchar_t str[480] = {};
+    wsprintfW(str, L"%02u:%02u:%02u", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
     return str;
 }

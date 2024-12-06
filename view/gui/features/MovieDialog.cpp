@@ -125,16 +125,16 @@ namespace MovieDialog
                 lv_column.mask = LVCF_FMT | LVCF_DEFAULTWIDTH | LVCF_TEXT |
                     LVCF_SUBITEM;
 
-                lv_column.pszText = (LPTSTR)"Name";
+                lv_column.pszText = const_cast<LPWSTR>(L"Name");
                 ListView_InsertColumn(grid_hwnd, 0, &lv_column);
-                lv_column.pszText = (LPTSTR)"Value";
+                lv_column.pszText = const_cast<LPWSTR>(L"Value");
                 ListView_InsertColumn(grid_hwnd, 1, &lv_column);
 
                 ListView_SetColumnWidth(grid_hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
                 ListView_SetColumnWidth(grid_hwnd, 1, LVSCW_AUTOSIZE_USEHEADER);
 
                 SetWindowText(
-                    hwnd, is_readonly ? "Play Movie" : "Record Movie");
+                    hwnd, is_readonly ? L"Play Movie" : L"Record Movie");
                 for (auto id : is_readonly
                                    ? disabled_on_play
                                    : disabled_on_record)
@@ -150,10 +150,9 @@ namespace MovieDialog
 
                 SetDlgItemText(hwnd, IDC_INI_AUTHOR,
                                g_config.last_movie_author.c_str());
-                SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, "");
+                SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, L"");
 
-                SetDlgItemText(hwnd, IDC_INI_MOVIEFILE,
-                               record_params.path.string().c_str());
+                SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, record_params.path.wstring().c_str());
 
 
                 // workaround because initial selected button is "Start"
@@ -163,14 +162,12 @@ namespace MovieDialog
             }
         case WM_DESTROY:
             {
-                char author[sizeof(t_movie_header::author)] = {0};
-                GetDlgItemTextA(hwnd, IDC_INI_AUTHOR, author,
-                                std::size(author));
+                wchar_t author[sizeof(t_movie_header::author)] = {0};
+                GetDlgItemText(hwnd, IDC_INI_AUTHOR, author, std::size(author));
                 record_params.author = author;
 
-                char description[sizeof(t_movie_header::description)] = {0};
-                GetDlgItemTextA(hwnd, IDC_INI_DESCRIPTION, description,
-                                std::size(description));
+                wchar_t description[sizeof(t_movie_header::description)] = {0};
+                GetDlgItemText(hwnd, IDC_INI_DESCRIPTION, description, std::size(description));
                 record_params.description = description;
 
                 DestroyWindow(grid_hwnd);
@@ -187,16 +184,16 @@ namespace MovieDialog
             case IDC_OK:
             case IDOK:
                 {
-                    char text[MAX_PATH] = {0};
+                    wchar_t text[MAX_PATH] = {0};
                     GetDlgItemText(hwnd, IDC_PAUSEAT_FIELD, text,
                                    std::size(text));
-                    if (strlen(text) == 0)
+                    if (lstrlenW(text) == 0)
                     {
                         record_params.pause_at = -1;
                     }
                     else
                     {
-                        record_params.pause_at = std::atoi(text);
+                        record_params.pause_at = std::wcstoul(text, nullptr, 10);
                     }
                     record_params.pause_at_last = IsDlgButtonChecked(
                         hwnd, IDC_PAUSE_AT_END);
@@ -210,7 +207,7 @@ namespace MovieDialog
                         // parent directory of the last savestate that the user saved or loaded
                         std::string path = wstring_to_string(
                             show_persistent_open_dialog(
-                                "o_movie_existing_snapshot", hwnd,
+                                L"o_movie_existing_snapshot", hwnd,
                                 L"*.st;*.savestate"));
 
                         if (path.empty())
@@ -224,8 +221,8 @@ namespace MovieDialog
                         {
                             if (MessageBox(
                                     hwnd, std::format(
-                                        "{} already exists. Are you sure want to overwrite this movie?",
-                                        movie_path.string()).c_str(), "VCR",
+                                        L"{} already exists. Are you sure want to overwrite this movie?",
+                                        movie_path.wstring()).c_str(), L"VCR",
                                     MB_YESNO) ==
                                 IDNO)
                                 break;
@@ -248,8 +245,8 @@ namespace MovieDialog
                         g_view_logger->warn("[MovieDialog] Tried to update movie file path while closing dialog");
                         break;
                     }
-                    
-                    char path[MAX_PATH] = {0};
+
+                    wchar_t path[MAX_PATH] = {0};
                     GetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path, std::size(path));
                     record_params.path = path;
 
@@ -264,21 +261,20 @@ namespace MovieDialog
                     if (is_readonly)
                     {
                         path = show_persistent_open_dialog(
-                            "o_movie", hwnd, L"*.m64;*.rec");
+                            L"o_movie", hwnd, L"*.m64;*.rec");
                     }
                     else
                     {
                         path = show_persistent_save_dialog(
-                            "s_movie", hwnd, L"*.m64;*.rec");
+                            L"s_movie", hwnd, L"*.m64;*.rec");
                     }
 
-                    if (path.size() == 0)
+                    if (path.empty())
                     {
                         break;
                     }
 
-                    SetDlgItemText(hwnd, IDC_INI_MOVIEFILE,
-                                   wstring_to_string(path).c_str());
+                    SetDlgItemText(hwnd, IDC_INI_MOVIEFILE, path.c_str());
                 }
                 break;
             case IDC_RADIO_FROM_EEPROM:
@@ -315,7 +311,7 @@ namespace MovieDialog
         return FALSE;
 
     refresh:
-        char tempbuf[260] = {0};
+        wchar_t tempbuf[520] = {0};
         t_movie_header header = {};
 
         if (VCR::parse_header(record_params.path, &header) != CoreResult::Ok)
@@ -330,89 +326,88 @@ namespace MovieDialog
             return FALSE;
         }
 
-        std::vector<std::pair<std::string, std::string>> metadata;
+        std::vector<std::pair<std::wstring, std::wstring>> metadata;
 
         ListView_DeleteAllItems(grid_hwnd);
 
-        metadata.emplace_back(std::make_pair("ROM", std::format("{} ({}, {})",
-                                                                (char*)header.rom_name,
+        metadata.emplace_back(std::make_pair(L"ROM", std::format(L"{} ({}, {})",
+                                                                string_to_wstring((char*)header.rom_name),
                                                                 country_code_to_country_name(header.rom_country),
-                                                                std::format("{:#08x}", header.rom_crc1))));
+                                                                std::format(L"{:#08x}", header.rom_crc1))));
 
-        metadata.emplace_back(std::make_pair("Length",
+        metadata.emplace_back(std::make_pair(L"Length",
                                              std::format(
-                                                 "{} ({} input)",
+                                                 L"{} ({} input)",
                                                  header.length_vis,
                                                  header.length_samples)));
-        metadata.emplace_back(std::make_pair("Duration", format_duration((double)header.length_vis / (double)header.vis_per_second)));
+        metadata.emplace_back(std::make_pair(L"Duration", format_duration((double)header.length_vis / (double)header.vis_per_second)));
         metadata.emplace_back(
-            std::make_pair("Rerecords", std::to_string(static_cast<uint64_t>(header.extended_data.rerecord_count) << 32 | header.rerecord_count)));
+            std::make_pair(L"Rerecords", std::to_wstring(static_cast<uint64_t>(header.extended_data.rerecord_count) << 32 | header.rerecord_count)));
 
         metadata.emplace_back(
-            std::make_pair("Video Plugin", header.video_plugin_name));
+            std::make_pair(L"Video Plugin", string_to_wstring(header.video_plugin_name)));
         metadata.emplace_back(
-            std::make_pair("Input Plugin", header.input_plugin_name));
+            std::make_pair(L"Input Plugin", string_to_wstring(header.input_plugin_name)));
         metadata.emplace_back(
-            std::make_pair("Sound Plugin", header.audio_plugin_name));
+            std::make_pair(L"Sound Plugin", string_to_wstring(header.audio_plugin_name)));
         metadata.emplace_back(
-            std::make_pair("RSP Plugin", header.rsp_plugin_name));
+            std::make_pair(L"RSP Plugin", string_to_wstring(header.rsp_plugin_name)));
 
         for (int i = 0; i < 4; ++i)
         {
-            strcpy(tempbuf, (header.controller_flags & CONTROLLER_X_PRESENT(i))
-                                ? "Present"
-                                : "Disconnected");
+            StrCpy(tempbuf, (header.controller_flags & CONTROLLER_X_PRESENT(i))
+                                ? L"Present"
+                                : L"Disconnected");
             if (header.controller_flags & CONTROLLER_X_MEMPAK(i))
-                strcat(tempbuf, " with mempak");
+                StrCat(tempbuf, L" with mempak");
             if (header.controller_flags & CONTROLLER_X_RUMBLE(i))
-                strcat(tempbuf, " with rumble");
+                StrCat(tempbuf, L" with rumble");
 
-            metadata.emplace_back(
-                std::make_pair(std::format("Controller {}", i + 1), tempbuf));
+            metadata.emplace_back(std::make_pair(std::format(L"Controller {}", i + 1), tempbuf));
         }
 
         metadata.emplace_back(
-            std::make_pair("WiiVC", header.extended_version == 0 ? "Unknown" : (header.extended_flags.wii_vc ? "Enabled" : "Disabled")));
+            std::make_pair(L"WiiVC", header.extended_version == 0 ? L"Unknown" : (header.extended_flags.wii_vc ? L"Enabled" : L"Disabled")));
 
         char authorship[5] = {0};
         memcpy(authorship, header.extended_data.authorship_tag, sizeof(header.extended_data.authorship_tag));
 
         metadata.emplace_back(
-            std::make_pair("Authorship", header.extended_version == 0 ? "Unknown" : authorship));
+            std::make_pair(L"Authorship", header.extended_version == 0 ? L"Unknown" : string_to_wstring(authorship)));
 
         metadata.emplace_back(
-            std::make_pair("A Presses", std::to_string(count_button_presses(inputs, 7))));
+            std::make_pair(L"A Presses", std::to_wstring(count_button_presses(inputs, 7))));
         metadata.emplace_back(
-            std::make_pair("B Presses", std::to_string(count_button_presses(inputs, 6))));
+            std::make_pair(L"B Presses", std::to_wstring(count_button_presses(inputs, 6))));
         metadata.emplace_back(
-            std::make_pair("Z Presses", std::to_string(count_button_presses(inputs, 5))));
+            std::make_pair(L"Z Presses", std::to_wstring(count_button_presses(inputs, 5))));
         metadata.emplace_back(
-            std::make_pair("S Presses", std::to_string(count_button_presses(inputs, 4))));
+            std::make_pair(L"S Presses", std::to_wstring(count_button_presses(inputs, 4))));
         metadata.emplace_back(
-            std::make_pair("R Presses", std::to_string(count_button_presses(inputs, 12))));
+            std::make_pair(L"R Presses", std::to_wstring(count_button_presses(inputs, 12))));
 
         metadata.emplace_back(
-            std::make_pair("C^ Presses", std::to_string(count_button_presses(inputs, 11))));
+            std::make_pair(L"C^ Presses", std::to_wstring(count_button_presses(inputs, 11))));
         metadata.emplace_back(
-            std::make_pair("Cv Presses", std::to_string(count_button_presses(inputs, 10))));
+            std::make_pair(L"Cv Presses", std::to_wstring(count_button_presses(inputs, 10))));
         metadata.emplace_back(
-            std::make_pair("C< Presses", std::to_string(count_button_presses(inputs, 9))));
+            std::make_pair(L"C< Presses", std::to_wstring(count_button_presses(inputs, 9))));
         metadata.emplace_back(
-            std::make_pair("C> Presses", std::to_string(count_button_presses(inputs, 8))));
+            std::make_pair(L"C> Presses", std::to_wstring(count_button_presses(inputs, 8))));
 
         const auto lag_frames = max(0, (int64_t)header.length_vis - 2 * (int64_t)header.length_samples);
         metadata.emplace_back(
-            std::make_pair("Lag Frames (approximation)", std::to_string(lag_frames)));
+            std::make_pair(L"Lag Frames (approximation)", std::to_wstring(lag_frames)));
         metadata.emplace_back(
-            std::make_pair("Unused Inputs", std::to_string(count_unused_inputs(inputs))));
+            std::make_pair(L"Unused Inputs", std::to_wstring(count_unused_inputs(inputs))));
         metadata.emplace_back(
-            std::make_pair("Joystick Frames", std::to_string(count_joystick_frames(inputs))));
+            std::make_pair(L"Joystick Frames", std::to_wstring(count_joystick_frames(inputs))));
         metadata.emplace_back(
-            std::make_pair("Input Changes", std::to_string(count_input_changes(inputs))));
+            std::make_pair(L"Input Changes", std::to_wstring(count_input_changes(inputs))));
 
 
-        SetDlgItemText(hwnd, IDC_INI_AUTHOR, header.author);
-        SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, header.description);
+        SetDlgItemText(hwnd, IDC_INI_AUTHOR, string_to_wstring(header.author).c_str());
+        SetDlgItemText(hwnd, IDC_INI_DESCRIPTION, string_to_wstring(header.description).c_str());
 
         CheckDlgButton(hwnd, IDC_RADIO_FROM_ST,
                        header.startFlags ==
@@ -451,12 +446,10 @@ namespace MovieDialog
     t_record_params show(bool readonly)
     {
         is_readonly = readonly;
-        record_params.path = std::format("{} ({}).m64", (char*)ROM_HEADER.nom,
-                                         country_code_to_country_name(
-                                             ROM_HEADER.Country_code));
+        record_params.path = std::format(L"{} ({}).m64", string_to_wstring((char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
         record_params.start_flag = g_config.last_movie_type;
         record_params.author = g_config.last_movie_author;
-        record_params.description = "";
+        record_params.description = L"";
         g_is_closing = false;
 
         DialogBox(g_app_instance,

@@ -48,7 +48,7 @@ bool rom_load(std::filesystem::path path);
  * \param country_code A rom's country code
  * \return The rom's country name
  */
-std::string country_code_to_country_name(uint16_t country_code);
+std::wstring country_code_to_country_name(uint16_t country_code);
 
 /**
  * \param country_code A rom's country code

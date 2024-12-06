@@ -34,11 +34,11 @@ void Gameshark::Script::execute()
     }
 }
 
-std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(const std::string& code)
+std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(const std::wstring& code)
 {
     auto script = std::make_shared<Script>();
 
-    auto lines = split_string(code, "\n");
+    auto lines = split_string(code, L"\n");
 
     bool serial = false;
     size_t serial_count = 0;
@@ -57,7 +57,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
 
         uint32_t address = std::stoul(line.substr(2, 6), nullptr, 16);
         uint32_t val;
-        if (line.substr(8, 1) == " ")
+        if (line.substr(8, 1) == L" ")
         {
             val = std::stoul(line.substr(9, 4), nullptr, 16);
         }
@@ -85,7 +85,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
         }
 
 
-        if (opcode == "80" || opcode == "A0")
+        if (opcode == L"80" || opcode == L"A0")
         {
             // Write byte
             script->m_instructions.emplace_back(std::make_tuple(false, [=]
@@ -94,7 +94,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
                 return true;
             }));
         }
-        else if (opcode == "81" || opcode == "A1")
+        else if (opcode == L"81" || opcode == L"A1")
         {
             // Write word
             script->m_instructions.emplace_back(std::make_tuple(false, [=]
@@ -103,7 +103,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
                 return true;
             }));
         }
-        else if (opcode == "88")
+        else if (opcode == L"88")
         {
             // Write byte if GS button pressed
             script->m_instructions.emplace_back(std::make_tuple(false, [=]
@@ -115,7 +115,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
                 return true;
             }));
         }
-        else if (opcode == "89")
+        else if (opcode == L"89")
         {
             // Write word if GS button pressed
             script->m_instructions.emplace_back(std::make_tuple(false, [=]
@@ -127,7 +127,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
                 return true;
             }));
         }
-        else if (opcode == "D0")
+        else if (opcode == L"D0")
         {
             // Byte equality comparison
             script->m_instructions.emplace_back(std::make_tuple(true, [=]
@@ -135,7 +135,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
                 return LoadRDRAMSafe<uint8_t>(address) == (val & 0xFF);
             }));
         }
-        else if (opcode == "D1")
+        else if (opcode == L"D1")
         {
             // Word equality comparison
             script->m_instructions.emplace_back(std::make_tuple(true, [=]
@@ -143,7 +143,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
                 return LoadRDRAMSafe<uint16_t>(address) == val;
             }));
         }
-        else if (opcode == "D2")
+        else if (opcode == L"D2")
         {
             // Byte inequality comparison
             script->m_instructions.emplace_back(std::make_tuple(true, [=]
@@ -151,7 +151,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
                 return LoadRDRAMSafe<uint8_t>(address) != (val & 0xFF);
             }));
         }
-        else if (opcode == "D3")
+        else if (opcode == L"D3")
         {
             // Word inequality comparison
             script->m_instructions.emplace_back(std::make_tuple(true, [=]
@@ -159,7 +159,7 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
                 return LoadRDRAMSafe<uint16_t>(address) != val;
             }));
         }
-        else if (opcode == "50")
+        else if (opcode == L"50")
         {
             // Enter serial mode, which writes multiple bytes for example
             serial = true;
@@ -169,12 +169,12 @@ std::optional<std::shared_ptr<Gameshark::Script>> Gameshark::Script::compile(con
         }
         else
         {
-            g_core_logger->error("[GS] Illegal instruction {}\n", opcode.c_str());
+            g_core_logger->error(L"[GS] Illegal instruction {}\n", opcode.c_str());
             return std::nullopt;
         }
     }
 
-    script->m_code = std::string(code);
+    script->m_code = code;
     return std::make_optional(script);
 }
 

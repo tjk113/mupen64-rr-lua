@@ -56,7 +56,7 @@ namespace LuaCore::Movie
 
     static int begin_seek(lua_State* L)
     {
-        std::string str = lua_tostring(L, 1);
+        auto str = string_to_wstring(lua_tostring(L, 1));
         bool pause_at_end = lua_toboolean(L, 2);
 
         lua_pushinteger(L, static_cast<int32_t>(VCR::begin_seek(str, pause_at_end)));
@@ -99,14 +99,14 @@ namespace LuaCore::Movie
      * }
      *
      * Inputs which are not specified stay at their default value, 0.
-     * 
-     * \param L 
-     * \return 
+     *
+     * \param L
+     * \return
      */
     static int begin_warp_modify(lua_State* L)
     {
         std::vector<BUTTONS> inputs;
-        
+
         luaL_checktype(L, 1, LUA_TTABLE);
         lua_pushnil(L);
         while (lua_next(L, 1))
@@ -195,7 +195,7 @@ namespace LuaCore::Movie
         }
 
         auto result = VCR::begin_warp_modify(inputs);
-        
+
         lua_pushinteger(L, static_cast<int32_t>(result));
         return 1;
     }

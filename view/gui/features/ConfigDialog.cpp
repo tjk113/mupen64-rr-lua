@@ -78,7 +78,7 @@ typedef struct OptionsItem
     /**
      * The option's name.
      */
-    std::string name;
+    std::wstring name;
 
     /**
      * The option's tooltip.
@@ -93,7 +93,7 @@ typedef struct OptionsItem
     /**
      * The option's backing data as a string, used when type == Type::String
      */
-    std::string* data_str;
+    std::wstring* data_str;
 
     /**
      * The option's backing data type.
@@ -129,13 +129,13 @@ typedef struct OptionsItem
 
         if (type == Type::String)
         {
-            return string_to_wstring(*data_str);
+            return *data_str;
         }
 
         if (type == Type::Hotkey)
         {
             auto hotkey_ptr = reinterpret_cast<t_hotkey*>(data);
-            return string_to_wstring(hotkey_to_string(hotkey_ptr));
+            return hotkey_to_string(hotkey_ptr);
         }
 
         for (auto [name, val] : possible_values)
@@ -182,7 +182,7 @@ typedef struct OptionsItem
 
         if (type == Type::String)
         {
-            *data_str = *(std::string*)default_equivalent;
+            *data_str = *(std::wstring*)default_equivalent;
         }
         else if (type == Type::Hotkey)
         {
@@ -334,10 +334,10 @@ INT_PTR CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARA
             break;
 
         case IDC_WEBSITE:
-            ShellExecute(nullptr, nullptr, "http://mupen64.emulation64.com", nullptr, nullptr, SW_SHOW);
+            ShellExecute(nullptr, nullptr, L"http://mupen64.emulation64.com", nullptr, nullptr, SW_SHOW);
             break;
         case IDC_GITREPO:
-            ShellExecute(nullptr, nullptr, "https://github.com/mkdasher/mupen64-rr-lua-/", nullptr, nullptr, SW_SHOW);
+            ShellExecute(nullptr, nullptr, L"https://github.com/mkdasher/mupen64-rr-lua-/", nullptr, nullptr, SW_SHOW);
             break;
         default:
             break;
@@ -362,7 +362,7 @@ void build_rom_browser_path_list(const HWND dialog_hwnd)
 
     SendMessage(hwnd, LB_RESETCONTENT, 0, 0);
 
-    for (const std::string& str : g_config.rombrowser_rom_paths)
+    for (const std::wstring& str : g_config.rombrowser_rom_paths)
     {
         SendMessage(hwnd, LB_ADDSTRING, 0,
                     (LPARAM)str.c_str());
@@ -423,33 +423,33 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
     case WM_NOTIFY:
         if (l_nmhdr->code == PSN_APPLY)
         {
-            char str[MAX_PATH] = {0};
+            wchar_t str[MAX_PATH] = {0};
             int selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                                ? TRUE
                                : FALSE;
             GetDlgItemText(hwnd, IDC_PLUGINS_DIR, str, 200);
-            g_config.plugins_directory = std::string(str);
+            g_config.plugins_directory = str;
             g_config.is_default_plugins_directory_used = selected;
 
             selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SAVES_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                            ? TRUE
                            : FALSE;
             GetDlgItemText(hwnd, IDC_SAVES_DIR, str, MAX_PATH);
-            g_config.saves_directory = std::string(str);
+            g_config.saves_directory = str;
             g_config.is_default_saves_directory_used = selected;
 
             selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                            ? TRUE
                            : FALSE;
             GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, str, MAX_PATH);
-            g_config.screenshots_directory = std::string(str);
+            g_config.screenshots_directory = str;
             g_config.is_default_screenshots_directory_used = selected;
 
             selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_BACKUPS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                            ? TRUE
                            : FALSE;
             GetDlgItemText(hwnd, IDC_BACKUPS_DIR, str, MAX_PATH);
-            g_config.backups_directory = std::string(str);
+            g_config.backups_directory = str;
             g_config.is_default_backups_directory_used = selected;
         }
         break;
@@ -462,12 +462,12 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             break;
         case IDC_ADD_BROWSER_DIR:
             {
-                const auto path = show_persistent_folder_dialog("f_roms", hwnd);
+                const auto path = show_persistent_folder_dialog(L"f_roms", hwnd);
                 if (path.empty())
                 {
                     break;
                 }
-                g_config.rombrowser_rom_paths.push_back(wstring_to_string(path));
+                g_config.rombrowser_rom_paths.push_back(path);
                 build_rom_browser_path_list(hwnd);
                 break;
             }
@@ -504,18 +504,18 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             break;
         case IDC_PLUGIN_DIRECTORY_HELP:
             {
-                MessageBox(hwnd, "Changing the plugin directory may introduce bugs to some plugins.", "Info",
+                MessageBox(hwnd, L"Changing the plugin directory may introduce bugs to some plugins.", L"Info",
                            MB_ICONINFORMATION | MB_OK);
             }
             break;
         case IDC_CHOOSE_PLUGINS_DIR:
             {
-                const auto path = show_persistent_folder_dialog("f_plugins", hwnd);
+                const auto path = show_persistent_folder_dialog(L"f_plugins", hwnd);
                 if (path.empty())
                 {
                     break;
                 }
-                g_config.plugins_directory = wstring_to_string(path) + "\\";
+                g_config.plugins_directory = path + L"\\";
                 SetDlgItemText(hwnd, IDC_PLUGINS_DIR, g_config.plugins_directory.c_str());
             }
             break;
@@ -529,12 +529,12 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             break;
         case IDC_CHOOSE_SAVES_DIR:
             {
-                const auto path = show_persistent_folder_dialog("f_saves", hwnd);
+                const auto path = show_persistent_folder_dialog(L"f_saves", hwnd);
                 if (path.empty())
                 {
                     break;
                 }
-                g_config.saves_directory = wstring_to_string(path) + "\\";
+                g_config.saves_directory = path + L"\\";
                 SetDlgItemText(hwnd, IDC_SAVES_DIR, g_config.saves_directory.c_str());
             }
             break;
@@ -549,23 +549,23 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             break;
         case IDC_CHOOSE_SCREENSHOTS_DIR:
             {
-                const auto path = show_persistent_folder_dialog("f_screenshots", hwnd);
+                const auto path = show_persistent_folder_dialog(L"f_screenshots", hwnd);
                 if (path.empty())
                 {
                     break;
                 }
-                g_config.screenshots_directory = wstring_to_string(path) + "\\";
+                g_config.screenshots_directory = path + L"\\";
                 SetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, g_config.screenshots_directory.c_str());
             }
             break;
         case IDC_CHOOSE_BACKUPS_DIR:
             {
-                const auto path = show_persistent_folder_dialog("f_backups", hwnd);
+                const auto path = show_persistent_folder_dialog(L"f_backups", hwnd);
                 if (path.empty())
                 {
                     break;
                 }
-                g_config.backups_directory = wstring_to_string(path) + "\\";
+                g_config.backups_directory = path + L"\\";
                 SetDlgItemText(hwnd, IDC_BACKUPS_DIR, g_config.backups_directory.c_str());
             }
             break;
@@ -617,7 +617,7 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
 
 		    if (discovery_result.broken_plugins > 0)
 		    {
-			    SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, std::format("Not all discovered plugins shown. {} plugin(s) failed to load.", discovery_result.broken_plugins).c_str());
+			    SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, std::format(L"Not all discovered plugins shown. {} plugin(s) failed to load.", discovery_result.broken_plugins).c_str());
 		    }
 
             for (const auto& plugin : available_plugins)
@@ -643,7 +643,7 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
                 }
                 // we add the string and associate a pointer to the plugin with the item
                 const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
-                SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, (LPARAM)plugin->name().c_str());
+                SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(string_to_wstring(plugin->name()).c_str()));
                 SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin.get());
             }
 
@@ -767,19 +767,19 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
         {
             if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_GFX); plugin != nullptr)
             {
-                g_config.selected_video_plugin = plugin->path().string();
+                g_config.selected_video_plugin = plugin->path().wstring();
             }
             if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_SOUND); plugin != nullptr)
             {
-                g_config.selected_audio_plugin = plugin->path().string();
+                g_config.selected_audio_plugin = plugin->path().wstring();
             }
             if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_INPUT); plugin != nullptr)
             {
-                g_config.selected_input_plugin = plugin->path().string();
+                g_config.selected_input_plugin = plugin->path().wstring();
             }
             if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_RSP); plugin != nullptr)
             {
-                g_config.selected_rsp_plugin = plugin->path().string();
+                g_config.selected_rsp_plugin = plugin->path().wstring();
             }
         }
         break;
@@ -843,28 +843,28 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     options = {
         t_options_item{
             .group_id = interface_group.id,
-            .name = "Pause when unfocused",
+            .name = L"Pause when unfocused",
             .tooltip = L"Pause emulation when the main window isn't in focus.",
             .data = &g_config.is_unfocused_pause_enabled,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = interface_group.id,
-            .name = "Silent Mode",
+            .name = L"Silent Mode",
             .tooltip = L"Suppresses all dialogs and chooses reasonable defaults for multiple-choice dialogs.\nCan cause data loss during normal usage; only enable in automation scenarios!",
             .data = &g_config.silent_mode,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = interface_group.id,
-            .name = "Keep working directory",
+            .name = L"Keep working directory",
             .tooltip = L"Keep the working directory specified by the caller program at startup.\nWhen disabled, mupen changes the working directory to its current path.",
             .data = &g_config.keep_default_working_directory,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = interface_group.id,
-            .name = "Use Async Executor",
+            .name = L"Use Async Executor",
             .tooltip = L"Whether the new async executor is used for async calls.\nLowers interaction latency in general usecases.\nOn - Each call is put on the async execution queue\nOff - Each call runs on a newly created thread (legacy behaviour)",
             .data = &g_config.use_async_executor,
             .type = t_options_item::Type::Bool,
@@ -872,7 +872,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 
     	t_options_item{
     		.group_id = statusbar_group.id,
-			.name = "Layout",
+			.name = L"Layout",
 			.tooltip = L"The statusbar layout preset.\nClassic - The legacy layout\nModern - The new layout containing additional information\nModern+ - The new layout, but with a section for read-only status",
 			.data = &g_config.statusbar_layout,
 			.type = t_options_item::Type::Enum,
@@ -884,21 +884,21 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 		},
 		t_options_item{
 			.group_id = statusbar_group.id,
-			.name = "Zero-index",
+			.name = L"Zero-index",
 			.tooltip = L"Show indicies in the statusbar, such as VCR frame counts, relative to 0 instead of 1.",
 			.data = &g_config.vcr_0_index,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item{
 			.group_id = statusbar_group.id,
-			.name = "Scale down to fit window",
+			.name = L"Scale down to fit window",
 			.tooltip = L"Whether the statusbar is allowed to scale its segments down.",
 			.data = &g_config.statusbar_scale_down,
 			.type = t_options_item::Type::Bool,
 		},
 		t_options_item{
 			.group_id = statusbar_group.id,
-			.name = "Scale up to fill window",
+			.name = L"Scale up to fill window",
 			.tooltip = L"Whether the statusbar is allowed to scale its segments up.",
 			.data = &g_config.statusbar_scale_up,
 			.type = t_options_item::Type::Bool,
@@ -906,7 +906,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 
         t_options_item{
             .group_id = seek_piano_roll_group.id,
-            .name = "Savestate Interval",
+            .name = L"Savestate Interval",
             .tooltip = L"The interval at which to create savestates for seeking. Piano Roll is exclusively read-only if this value is 0.\nHigher numbers will reduce the seek duration at cost of emulator performance, a value of 1 is not allowed.\n0 - Seek savestate generation disabled\nRecommended: 100",
             .data = &g_config.seek_savestate_interval,
             .type = t_options_item::Type::Number,
@@ -917,28 +917,28 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = seek_piano_roll_group.id,
-            .name = "Savestate Max Count",
+            .name = L"Savestate Max Count",
             .tooltip = L"The maximum amount of savestates to keep in memory for seeking.\nHigher numbers might cause an out of memory exception.",
             .data = &g_config.seek_savestate_max_count,
             .type = t_options_item::Type::Number,
         },
         t_options_item{
             .group_id = seek_piano_roll_group.id,
-            .name = "Constrain edit to column",
+            .name = L"Constrain edit to column",
             .tooltip = L"Whether piano roll edits are constrained to the column they started on.",
             .data = &g_config.piano_roll_constrain_edit_to_column,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = seek_piano_roll_group.id,
-            .name = "History size",
+            .name = L"History size",
             .tooltip = L"Maximum size of the history list.",
             .data = &g_config.piano_roll_undo_stack_size,
             .type = t_options_item::Type::Number,
         },
         t_options_item{
             .group_id = seek_piano_roll_group.id,
-            .name = "Keep selection visible",
+            .name = L"Keep selection visible",
             .tooltip = L"Whether the piano roll will try to keep the selection visible when the frame changes.",
             .data = &g_config.piano_roll_keep_selection_visible,
             .type = t_options_item::Type::Bool,
@@ -946,14 +946,14 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 
         t_options_item{
             .group_id = capture_group.id,
-            .name = "Delay",
+            .name = L"Delay",
             .tooltip = L"Miliseconds to wait before capturing a frame. Useful for syncing with external programs.",
             .data = &g_config.capture_delay,
             .type = t_options_item::Type::Number,
         },
         t_options_item{
             .group_id = capture_group.id,
-            .name = "Encoder",
+            .name = L"Encoder",
             .tooltip = L"The encoder to use when generating an output file.\nVFW - Slow but stable (recommended)\nFFmpeg - Fast but less stable",
             .data = &g_config.encoder_type,
             .type = t_options_item::Type::Enum,
@@ -968,7 +968,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = capture_group.id,
-            .name = "Mode",
+            .name = L"Mode",
             .tooltip = L"The video source to use for capturing video frames.\nPlugin - Captures frames solely from the video plugin\nWindow - Captures frames from the main window\nScreen - Captures screenshots of the current display and crops them to Mupen\nHybrid - Combines video plugin capture and internal Lua composition (recommended)",
             .data = &g_config.capture_mode,
             .type = t_options_item::Type::Enum,
@@ -985,7 +985,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = capture_group.id,
-            .name = "Sync",
+            .name = L"Sync",
             .tooltip = L"The strategy to use for synchronizing video and audio during capture.\nNone - No synchronization\nAudio - Audio is synchronized to video\nVideo - Video is synchronized to audio",
             .data = &g_config.synchronization_mode,
             .type = t_options_item::Type::Enum,
@@ -1001,7 +1001,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = capture_group.id,
-            .name = "FFmpeg Path",
+            .name = L"FFmpeg Path",
             .tooltip = L"The path to the FFmpeg executable to use for capturing.",
             .data_str = &g_config.ffmpeg_path,
             .type = t_options_item::Type::String,
@@ -1012,7 +1012,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = capture_group.id,
-            .name = "FFmpeg Arguments",
+            .name = L"FFmpeg Arguments",
             .tooltip = L"The argument format string to be passed to FFmpeg when capturing.",
             .data_str = &g_config.ffmpeg_final_options,
             .type = t_options_item::Type::String,
@@ -1024,7 +1024,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 
         t_options_item{
             .group_id = core_group.id,
-            .name = "Type",
+            .name = L"Type",
             .tooltip = L"The core type to utilize for emulation.\nInterpreter - Slow and relatively accurate\nDynamic Recompiler - Fast, possibly less accurate, and only for x86 processors\nPure Interpreter - Very slow and accurate",
             .data = &g_config.core_type,
             .type = t_options_item::Type::Enum,
@@ -1040,98 +1040,98 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Counter Factor",
+            .name = L"Counter Factor",
             .tooltip = L"The CPU's counter factor.\nValues above 1 are effectively 'lagless'.",
             .data = &g_config.counter_factor,
             .type = t_options_item::Type::Number,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Max Lag Frames",
+            .name = L"Max Lag Frames",
             .tooltip = L"The maximum amount of lag frames before the core emits a warning\n0 - Disabled",
             .data = &g_config.max_lag,
             .type = t_options_item::Type::Number,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Audio Delay",
+            .name = L"Audio Delay",
             .tooltip = L"Whether to delay audio interrupts\nEnabled - More stability",
             .data = &g_config.is_audio_delay_enabled,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Compiled Jump",
+            .name = L"Compiled Jump",
             .tooltip = L"Whether to compile jumps\nEnabled - More stability",
             .data = &g_config.is_compiled_jump_enabled,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "WiiVC Mode",
+            .name = L"WiiVC Mode",
             .tooltip = L"Enables WiiVC emulation.",
             .data = &g_config.wii_vc_emulation,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Auto-increment Slot",
+            .name = L"Auto-increment Slot",
             .tooltip = L"Automatically increment the save slot upon saving a state.",
             .data = &g_config.increment_slot,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Emulate Float Crashes",
+            .name = L"Emulate Float Crashes",
             .tooltip = L"Emulate float operation-related crashes which would also crash on real hardware",
             .data = &g_config.is_float_exception_propagation_enabled,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Movie Backups",
+            .name = L"Movie Backups",
             .tooltip = L"Generate a backup of the currently recorded movie when loading a savestate.\nBackups are saved in the backups folder.",
             .data = &g_config.vcr_backups,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Fast-Forward Skip Frequency",
+            .name = L"Fast-Forward Skip Frequency",
             .tooltip = L"Skip rendering every nth frame when in fast-forward mode.\n0 - Render nothing\n1 - Render every frame\nn - Render every nth frame",
             .data = &g_config.frame_skip_frequency,
             .type = t_options_item::Type::Number,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Record Resets",
+            .name = L"Record Resets",
             .tooltip = L"Record manually performed resets to the current movie.\nThese resets will be repeated when the movie is played back.",
             .data = &g_config.is_reset_recording_enabled,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Emulate SD Card",
+            .name = L"Emulate SD Card",
             .tooltip = L"Enable SD card emulation.\nRequires a VHD-formatted SD card file named card.vhd in the same folder as Mupen.",
             .data = &g_config.is_reset_recording_enabled,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Instant Savestate Update",
+            .name = L"Instant Savestate Update",
             .tooltip = L"Saves and loads game graphics to savestates to allow instant graphics updates when loading savestates.\nGreatly increases savestate saving and loading time.",
             .data = &g_config.st_screenshot,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "Skip rendering lag",
+            .name = L"Skip rendering lag",
             .tooltip = L"Prevents calls to updateScreen during lag.\nMight improve performance on some video plugins at the cost of stability.",
             .data = &g_config.skip_rendering_lag,
             .type = t_options_item::Type::Bool,
         },
         t_options_item{
             .group_id = core_group.id,
-            .name = "ROM Cache Size",
+            .name = L"ROM Cache Size",
             .tooltip = L"Size of the ROM cache.\nImproves ROM loading performance at the cost of data staleness and high memory usage.\n0 - Disabled\nn - Maximum of n ROMs kept in cache",
             .data = &g_config.rom_cache_size,
             .type = t_options_item::Type::Number,
@@ -1139,7 +1139,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 
 		t_options_item{
 			.group_id = lua_group.id,
-			.name = "Presenter",
+			.name = L"Presenter",
 			.tooltip = L"The presenter type to use for displaying and capturing Lua graphics.\nRecommended: DirectComposition",
 			.data = &g_config.presenter_type,
 			.type = t_options_item::Type::Enum,
@@ -1154,7 +1154,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 
 		t_options_item{
 			.group_id = debug_group.id,
-			.name = "Async Executor Cuzz",
+			.name = L"Async Executor Cuzz",
 			.tooltip = L"Whether the async executor will apply concurrency fuzzing. When enabled, task execution will be delayed to expose delayed task execution handling deficiencies at the callsite.\nDo not enable unless you are debugging the async executor.",
 			.data = &g_config.async_executor_cuzz,
 			.type = t_options_item::Type::Bool,
@@ -1166,7 +1166,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         options.push_back(t_options_item{
             .group_id = hotkey_group.id,
             .name = hotkey->identifier,
-            .tooltip = string_to_wstring(std::format("{} hotkey.\nAction down: #{}\nAction up: #{}", hotkey->identifier, (int32_t)hotkey->down_cmd, (int32_t)hotkey->up_cmd)),
+            .tooltip = std::format(L"{} hotkey.\nAction down: #{}\nAction up: #{}", hotkey->identifier, (int32_t)hotkey->down_cmd, (int32_t)hotkey->up_cmd),
             .data = reinterpret_cast<int32_t*>(hotkey),
             .type = t_options_item::Type::Hotkey,
         });
@@ -1204,10 +1204,11 @@ LRESULT CALLBACK InlineEditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 
 apply:
 
-    char str[MAX_PATH * 3] = {0};
-    Edit_GetText(hwnd, str, sizeof(str));
-
-    SendMessage(GetParent(hwnd), WM_EDIT_END, 0, (LPARAM)str);
+	auto len = Edit_GetTextLength(hwnd) + 1;
+	auto str = static_cast<wchar_t*>(calloc(len, sizeof(wchar_t)));
+	Edit_GetText(hwnd, str, len);
+	SendMessage(GetParent(hwnd), WM_EDIT_END, 0, (LPARAM)str);
+	free(str);
 
     DestroyWindow(hwnd);
 
@@ -1223,7 +1224,7 @@ INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM 
             auto option_item = g_option_items[g_edit_option_item_index];
             auto edit_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
 
-            SetWindowText(wnd, std::format("Edit '{}'", option_item.name).c_str());
+            SetWindowText(wnd, std::format(L"Edit '{}'", option_item.name).c_str());
             Edit_SetText(edit_hwnd, option_item.data_str->data());
 
             SetFocus(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT));
@@ -1237,7 +1238,7 @@ INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM 
                 auto edit_hwnd = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
 
                 auto len = Edit_GetTextLength(edit_hwnd) + 1;
-                auto str = static_cast<char*>(calloc(len, 1));
+                auto str = static_cast<wchar_t*>(calloc(len, sizeof(wchar_t)));
                 Edit_GetText(edit_hwnd, str, len);
 
                 *g_option_items[g_edit_option_item_index].data_str = str;
@@ -1353,7 +1354,7 @@ bool begin_listview_edit(HWND hwnd)
         RECT item_rect{};
         ListView_GetSubItemRect(g_lv_hwnd, i, 1, LVIR_LABEL, &item_rect);
 
-        g_edit_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD | WS_VISIBLE | WS_TABSTOP, item_rect.left,
+        g_edit_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP, item_rect.left,
                                      item_rect.top,
                                      item_rect.right - item_rect.left, item_rect.bottom - item_rect.top,
                                      hwnd, 0, g_app_instance, 0);
@@ -1362,7 +1363,7 @@ bool begin_listview_edit(HWND hwnd)
 
         SetWindowSubclass(g_edit_hwnd, InlineEditBoxProc, 0, 0);
 
-        Edit_SetText(g_edit_hwnd, std::to_string(*option_item.data).c_str());
+        Edit_SetText(g_edit_hwnd, std::to_wstring(*option_item.data).c_str());
 
         PostMessage(hwnd, WM_NEXTDLGCTL, (WPARAM)g_edit_hwnd, TRUE);
     }
@@ -1461,9 +1462,9 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
             LVCOLUMN lv_column = {0};
             lv_column.mask = LVCF_FMT | LVCF_DEFAULTWIDTH | LVCF_TEXT | LVCF_SUBITEM;
 
-            lv_column.pszText = (LPTSTR)"Name";
+            lv_column.pszText = const_cast<LPWSTR>(L"Name");
             ListView_InsertColumn(g_lv_hwnd, 0, &lv_column);
-            lv_column.pszText = (LPTSTR)"Value";
+            lv_column.pszText = const_cast<LPWSTR>(L"Value");
             ListView_InsertColumn(g_lv_hwnd, 1, &lv_column);
 
             LVITEM lv_item = {0};
@@ -1486,7 +1487,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
         }
     case WM_EDIT_END:
         {
-            auto str = (char*)l_param;
+            auto str = (wchar_t*)l_param;
 
             if (g_option_items[g_edit_option_item_index].type == OptionsItem::Type::Number)
             {
@@ -1524,15 +1525,15 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
             auto readonly = option_item.is_readonly();
 
             HMENU h_menu = CreatePopupMenu();
-            AppendMenu(h_menu, MF_STRING | (readonly ? MF_DISABLED : MF_ENABLED), 1, "Reset to default");
-            AppendMenu(h_menu, MF_STRING, 2, "More info...");
+            AppendMenu(h_menu, MF_STRING | (readonly ? MF_DISABLED : MF_ENABLED), 1, L"Reset to default");
+            AppendMenu(h_menu, MF_STRING, 2, L"More info...");
             if (option_item.type == OptionsItem::Type::Hotkey)
             {
-                AppendMenu(h_menu, MF_SEPARATOR, 3, "");
-                AppendMenu(h_menu, MF_STRING, 4, "Clear");
+                AppendMenu(h_menu, MF_SEPARATOR, 3, L"");
+                AppendMenu(h_menu, MF_STRING, 4, L"Clear");
             }
-            AppendMenu(h_menu, MF_SEPARATOR, 100, "");
-            AppendMenu(h_menu, MF_STRING, 5, "Reset all to default");
+            AppendMenu(h_menu, MF_SEPARATOR, 100, L"");
+            AppendMenu(h_menu, MF_STRING, 5, L"Reset all to default");
 
             const int offset = TrackPopupMenuEx(h_menu, TPM_RETURNCMD | TPM_NONOTIFY, GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param), hwnd, 0);
 
@@ -1575,7 +1576,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
                     }
                 }
 
-                FrontendService::show_information(wstring_to_string(str).c_str(), "Information", hwnd);
+                FrontendService::show_information(str.c_str(), L"Information", hwnd);
             }
 
             if (offset == 4 && option_item.type == OptionsItem::Type::Hotkey)
@@ -1604,11 +1605,11 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
 
                 if (!can_all_be_changed)
                 {
-                    FrontendService::show_warning("Some settings can't be reset, as they are currently read-only. Try again with emulation stopped.\nNo changes have been made to the settings.", "Reset all to default", hwnd);
+                    FrontendService::show_warning(L"Some settings can't be reset, as they are currently read-only. Try again with emulation stopped.\nNo changes have been made to the settings.", L"Reset all to default", hwnd);
                     goto destroy_menu;
                 }
 
-                const auto result = FrontendService::show_ask_dialog("Are you sure you want to reset all settings to default?", "Reset all to default", false, hwnd);
+                const auto result = FrontendService::show_ask_dialog(L"Are you sure you want to reset all settings to default?", L"Reset all to default", false, hwnd);
 
                 if (!result)
                 {
@@ -1643,7 +1644,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
 
                             if (options_item.type == OptionsItem::Type::String)
                             {
-                                plvdi->item.iImage = *(std::string*)default_value_ptr == *options_item.data_str ? 50 : 1;
+                                plvdi->item.iImage = *(std::wstring*)default_value_ptr == *options_item.data_str ? 50 : 1;
                             }
                             else if (options_item.type == OptionsItem::Type::Hotkey)
                             {
@@ -1671,15 +1672,15 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
                         switch (plvdi->item.iSubItem)
                         {
                         case 0:
-                            strcpy(plvdi->item.pszText, options_item.name.c_str());
+                            StrCpy(plvdi->item.pszText, options_item.name.c_str());
                             break;
                         case 1:
                             if (g_hotkey_active_index.has_value() && g_hotkey_active_index.value() == plvdi->item.iItem)
                             {
-                                strcpy(plvdi->item.pszText, "... (RMB to cancel)");
+                                StrCpy(plvdi->item.pszText, L"... (RMB to cancel)");
                                 break;
                             }
-                            strcpy(plvdi->item.pszText, wstring_to_string(options_item.get_value_name()).c_str());
+                            StrCpy(plvdi->item.pszText, options_item.get_value_name().c_str());
                             break;
                         }
                         break;
@@ -1700,7 +1701,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
                             break;
                         }
 
-                        strcpy_s(getinfotip->pszText, getinfotip->cchTextMax, wstring_to_string(option_item.tooltip).c_str());
+                        StrCpyNW(getinfotip->pszText, option_item.tooltip.c_str(), getinfotip->cchTextMax);
 
                         break;
                     }
@@ -1748,22 +1749,22 @@ void configdialog_show()
 
     psp[0].pszTemplate = MAKEINTRESOURCE(IDD_SETTINGS_PLUGINS);
     psp[0].pfnDlgProc = plugins_cfg;
-    psp[0].pszTitle = "Plugins";
+    psp[0].pszTitle = L"Plugins";
 
     psp[1].pszTemplate = MAKEINTRESOURCE(IDD_DIRECTORIES);
     psp[1].pfnDlgProc = directories_cfg;
-    psp[1].pszTitle = "Directories";
+    psp[1].pszTitle = L"Directories";
 
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_SETTINGS_GENERAL);
     psp[2].pfnDlgProc = general_cfg;
-    psp[2].pszTitle = "General";
+    psp[2].pszTitle = L"General";
 
     PROPSHEETHEADER psh = {0};
     psh.dwSize = sizeof(PROPSHEETHEADER);
     psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
     psh.hwndParent = g_main_hwnd;
     psh.hInstance = g_app_instance;
-    psh.pszCaption = "Settings";
+    psh.pszCaption = L"Settings";
     psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
 

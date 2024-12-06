@@ -23,8 +23,7 @@ namespace MGECompositor
         HDC dc = nullptr;
     };
 
-    const auto class_name = "game_control";
-
+    constexpr auto CONTROL_CLASS_NAME = L"game_control";
 
     HWND control_hwnd;
 
@@ -78,7 +77,7 @@ namespace MGECompositor
 
     void create(HWND hwnd)
     {
-        control_hwnd = CreateWindow(class_name, "", WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, hwnd, nullptr, g_app_instance, nullptr);
+        control_hwnd = CreateWindow(CONTROL_CLASS_NAME, L"", WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, hwnd, nullptr, g_app_instance, nullptr);
     }
 
     void init()
@@ -88,7 +87,7 @@ namespace MGECompositor
         wndclass.lpfnWndProc = (WNDPROC)wndproc;
         wndclass.hInstance = g_app_instance;
         wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wndclass.lpszClassName = class_name;
+        wndclass.lpszClassName = CONTROL_CLASS_NAME;
         RegisterClass(&wndclass);
 
         internal_buffer.bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);

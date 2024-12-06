@@ -109,8 +109,8 @@ void pool_free(const interrupt_queue* ptr)
         }
     }
 
-    FMT_ASSERT(index != SIZE_MAX, "pool_free: tried to free pointer that is not in the pool");
-    FMT_ASSERT(index == index_in_pool, "pool_free: index mismatch");
+    assert(index != SIZE_MAX);
+    assert(index == index_in_pool);
 #endif
 
     g_pool_used[index_in_pool] = false;

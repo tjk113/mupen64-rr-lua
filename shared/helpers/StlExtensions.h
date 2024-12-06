@@ -35,17 +35,16 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> m_start_time;
 };
 
-static bool ichar_equals(char a, char b)
+static bool ichar_equals(wchar_t a, wchar_t b)
 {
-    return std::tolower(static_cast<unsigned char>(a)) ==
-        std::tolower(static_cast<unsigned char>(b));
+    return std::tolower(a) == std::tolower(b);
 }
 
-static bool iequals(std::string_view lhs, std::string_view rhs)
+static bool iequals(std::wstring_view lhs, std::wstring_view rhs)
 {
     return std::ranges::equal(lhs, rhs, ichar_equals);
 }
-    
+
 static std::string to_lower(std::string a)
 {
     std::ranges::transform(a, a.begin(),
@@ -62,8 +61,8 @@ static bool contains(const std::string& a, const std::string& b)
  * Erases the specified indicies in a vector.
  * \tparam T The vector's contained type.
  * \param data The vector.
- * \param indices_to_delete The indices to delete. 
- * \return The vector with the indicies removed. 
+ * \param indices_to_delete The indices to delete.
+ * \return The vector with the indicies removed.
  */
 template <typename T>
 std::vector<T> erase_indices(const std::vector<T>& data, std::vector<size_t>& indices_to_delete)
@@ -133,15 +132,15 @@ static std::string wstring_to_string(const std::wstring& wstr)
  * \return A vector of string segments split by the delimiter
  * \remark See https://stackoverflow.com/a/46931770/14472122
  */
-static std::vector<std::string> split_string(const std::string& s, const std::string& delimiter)
+static std::vector<std::wstring> split_string(const std::wstring& s, const std::wstring& delimiter)
 {
     size_t pos_start = 0, pos_end;
     const size_t delim_len = delimiter.length();
-    std::vector<std::string> res;
+    std::vector<std::wstring> res;
 
-    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos)
+    while ((pos_end = s.find(delimiter, pos_start)) != std::wstring::npos)
     {
-        std::string token = s.substr(pos_start, pos_end - pos_start);
+        auto token = s.substr(pos_start, pos_end - pos_start);
         pos_start = pos_end + delim_len;
         res.push_back(token);
     }
@@ -177,9 +176,9 @@ static std::vector<std::wstring> split_wstring(const std::wstring& s, const std:
 }
 
 /**
- * Writes a nul terminator at the last space in the string 
+ * Writes a nul terminator at the last space in the string
  * \param str The string to trim
- * \param len The string's length including the nul terminator 
+ * \param len The string's length including the nul terminator
  */
 static void strtrim(char* str, size_t len)
 {

@@ -1,12 +1,12 @@
 #include "AVIEncoder.h"
 
-#include <view/helpers/IOHelpers.h>
+#include <core/r4300/rom.h>
+#include <shared/services/FrontendService.h>
+#include <view/capture/EncodingManager.h>
+#include <view/capture/Resampler.h>
 #include <view/gui/Main.h>
-
-#include "core/r4300/rom.h"
-#include "shared/services/FrontendService.h"
-#include "view/capture/EncodingManager.h"
-#include "view/capture/Resampler.h"
+#include <view/gui/Loggers.h>
+#include <view/helpers/IOHelpers.h>
 
 bool AVIEncoder::start(Params params)
 {
@@ -29,7 +29,7 @@ bool AVIEncoder::start(Params params)
 	m_info_hdr.biClrImportant = 0;
 
 	AVIFileInit();
-	if (AVIFileOpen(&m_avi_file, params.path.string().c_str(), OF_WRITE | OF_CREATE, NULL))
+	if (AVIFileOpen(&m_avi_file, params.path.wstring().c_str(), OF_WRITE | OF_CREATE, NULL))
 	{
 		stop();
 		return false;
@@ -265,15 +265,15 @@ bool AVIEncoder::write_sound(uint8_t* buf, int len, const int min_write_size, co
 				}
 
 				const BOOL ok = (0 == AVIStreamWrite(m_sound_stream, m_sample,
-				                               len2 / m_sound_format.nBlockAlign, buf2, len2, 0,
-				                               NULL, NULL));
+				                                     len2 / m_sound_format.nBlockAlign, buf2, len2, 0,
+				                                     NULL, NULL));
 				m_sample += len2 / m_sound_format.nBlockAlign;
 				m_avi_file_size += len2;
 
 				if (!ok)
 				{
 					FrontendService::show_error(
-						"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
+						L"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
 						nullptr);
 					return false;
 				}
@@ -289,7 +289,7 @@ bool AVIEncoder::write_sound(uint8_t* buf, int len, const int min_write_size, co
 
 	if (static_cast<unsigned int>(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(char))
 	{
-		FrontendService::show_error("Sound buffer overflow!\nCapture will be stopped.", "AVI Encoder");
+		FrontendService::show_error(L"Sound buffer overflow!\nCapture will be stopped.", L"AVI Encoder");
 		return false;
 	}
 

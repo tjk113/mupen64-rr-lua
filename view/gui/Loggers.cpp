@@ -12,7 +12,7 @@ std::shared_ptr<spdlog::logger> g_view_logger;
 
 void Loggers::init()
 {
-    HANDLE h_file = CreateFile("mupen.log", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE h_file = CreateFile(L"mupen.log", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     if (h_file != INVALID_HANDLE_VALUE)
     {

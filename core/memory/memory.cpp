@@ -3700,7 +3700,7 @@ void read_sc_regh()
 
 void read_sc_regd()
 {
-    FrontendService::show_warning("read_sc_regd not supported by RCP", "Error");
+    FrontendService::show_warning(L"read_sc_regd not supported by RCP", L"Error");
     stop = 1;
 }
 

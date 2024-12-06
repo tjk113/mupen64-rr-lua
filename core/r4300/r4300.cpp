@@ -205,22 +205,22 @@ std::filesystem::path get_saves_directory()
 
 std::filesystem::path get_sram_path()
 {
-    return std::format("{}{} {}.sra", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+    return std::format(L"{}{} {}.sra", get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_eeprom_path()
 {
-    return std::format("{}{} {}.eep", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+    return std::format(L"{}{} {}.eep", get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_flashram_path()
 {
-    return std::format("{}{} {}.fla", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+    return std::format(L"{}{} {}.fla", get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_mempak_path()
 {
-    return std::format("{}{} {}.mpk", get_saves_directory().string(), (const char*)ROM_HEADER.nom, country_code_to_country_name(ROM_HEADER.Country_code));
+    return std::format(L"{}{} {}.mpk", get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 void resume_emu()
@@ -1945,7 +1945,7 @@ void core_start()
         init_blocks();
         last_addr = PC->addr;
         core_executing = true;
-        g_core_logger->info("core_executing: {}", core_executing);
+        g_core_logger->info(L"core_executing: {}", (bool)core_executing);
         while (!stop)
         {
             //if ((debug_count+Count) >= 0x78a8091) break; // obj 0x16aeb8a

@@ -126,10 +126,12 @@ namespace LuaCore::Input
 
     static int LuaGetKeyNameText(lua_State* L)
     {
-        char name[100] = {0};
         auto vk = luaL_checkinteger(L, 1);
-        GetKeyNameText(vk, name, sizeof(name) / sizeof(name[0]));
-        lua_pushstring(L, name);
+
+        wchar_t name[100] = {0};
+        GetKeyNameText(vk, name, std::size(name));
+
+        lua_pushstring(L, wstring_to_string(name).c_str());
         return 1;
     }
 
@@ -143,16 +145,14 @@ namespace LuaCore::Input
             {
                 L = (lua_State*)lParam;
                 std::string str(luaL_optstring(L, 2, ""));
-                SetWindowText(wnd,
-                              luaL_optstring(L, 1, "input:"));
+                SetWindowText(wnd, string_to_wstring(luaL_optstring(L, 1, "input:")).c_str());
                 std::string::size_type p = 0;
                 while ((p = str.find('\n', p)) != std::string::npos)
                 {
                     str.replace(p, 1, "\r\n");
                     p += 2;
                 }
-                SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT),
-                              str.c_str());
+                SetWindowText(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT), string_to_wstring(str).c_str());
                 SetFocus(GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT));
                 break;
             }
@@ -163,17 +163,17 @@ namespace LuaCore::Input
                 {
                     HWND inp = GetDlgItem(wnd, IDC_TEXTBOX_LUAPROMPT);
                     int size = GetWindowTextLength(inp) + 1;
-                    char* buf = new char[size];
+                    auto buf = new wchar_t[size];
                     GetWindowText(inp, buf, size);
-                    std::string str(buf);
+                    std::wstring str(buf);
                     delete[] buf;
                     std::string::size_type p = 0;
-                    while ((p = str.find("\r\n", p)) != std::string::npos)
+                    while ((p = str.find(L"\r\n", p)) != std::string::npos)
                     {
-                        str.replace(p, 2, "\n");
+                        str.replace(p, 2, L"\n");
                         p += 1;
                     }
-                    lua_pushstring(L, str.c_str());
+                    lua_pushstring(L, wstring_to_string(str).c_str());
                     EndDialog(wnd, 0);
                     break;
                 }

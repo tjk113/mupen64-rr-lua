@@ -87,6 +87,9 @@ namespace Savestates
 
         /// The task's parameters. Only one field in the struct is valid at a time.
         t_params params{};
+
+    	/// Whether warnings, such as those about ROM compatibility, shouldn't be shown.
+    	bool ignore_warnings;
     };
 
     // Enable fixing .st to work for old mupen and m64p
@@ -120,10 +123,10 @@ namespace Savestates
         if (task.medium == Medium::Slot)
         {
             st_path = std::format(
-                "{}{} {}.st{}",
-                get_saves_directory().string(),
-                (const char*)ROM_HEADER.nom,
-                country_code_to_country_name(ROM_HEADER.Country_code), std::to_string(task.params.slot));
+                L"{}{} {}.st{}",
+                get_saves_directory().wstring(),
+                string_to_wstring((const char*)ROM_HEADER.nom),
+                country_code_to_country_name(ROM_HEADER.Country_code), std::to_wstring(task.params.slot));
         }
     }
 
@@ -388,11 +391,11 @@ namespace Savestates
         char md5[33] = {0};
         memread(&ptr, &md5, 32);
 
-        if (memcmp(md5, rom_md5, 32))
+        if (!task.ignore_warnings && memcmp(md5, rom_md5, 32))
         {
             auto result = FrontendService::show_ask_dialog(std::format(
-                "The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?",
-                md5).c_str());
+                L"The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?",
+                string_to_wstring(md5)).c_str());
 
             if (!result)
             {
@@ -440,27 +443,27 @@ namespace Savestates
 
             const auto code = VCR::unfreeze(freeze);
 
-            if (code != CoreResult::Ok && VCR::get_task() != e_task::idle)
+            if (!task.ignore_warnings && code != CoreResult::Ok && VCR::get_task() != e_task::idle)
             {
-                std::string err_str = "Failed to restore movie, ";
+                std::wstring err_str = L"Failed to restore movie, ";
                 switch (code)
                 {
                 case CoreResult::VCR_NotFromThisMovie:
-                    err_str += "the savestate is not from this movie.";
+                    err_str += L"the savestate is not from this movie.";
                     break;
                 case CoreResult::VCR_InvalidFrame:
-                    err_str += "the savestate frame is outside the bounds of the movie.";
+                    err_str += L"the savestate frame is outside the bounds of the movie.";
                     break;
                 case CoreResult::VCR_InvalidFormat:
-                    err_str += "the savestate freeze buffer format is invalid.";
+                    err_str += L"the savestate freeze buffer format is invalid.";
                     break;
                 default:
-                    err_str += "an unknown error has occured.";
+                    err_str += L"an unknown error has occured.";
                     break;
                 }
-                err_str += " Loading the savestate might desynchronize the movie.\r\nAre you sure you want to continue?";
+                err_str += L" Loading the savestate might desynchronize the movie.\r\nAre you sure you want to continue?";
 
-                const auto result = FrontendService::show_ask_dialog(err_str.c_str(), "Savestate", true);
+                const auto result = FrontendService::show_ask_dialog(err_str.c_str(), L"Savestate", true);
                 if (!result)
                 {
                     task.callback(CoreResult::ST_Cancelled, {});
@@ -470,9 +473,9 @@ namespace Savestates
         }
         else
         {
-            if (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback)
+            if (!task.ignore_warnings && (VCR::get_task() == e_task::recording || VCR::get_task() == e_task::playback))
             {
-                const auto result = FrontendService::show_ask_dialog("The savestate is not from a movie. Loading it might desynchronize the movie.\r\nAre you sure you want to continue?", "Savestate", true);
+                const auto result = FrontendService::show_ask_dialog(L"The savestate is not from a movie. Loading it might desynchronize the movie.\r\nAre you sure you want to continue?", L"Savestate", true);
                 if (!result)
                 {
                     task.callback(CoreResult::ST_Cancelled, {});
@@ -680,7 +683,7 @@ namespace Savestates
         return emu_launched;
     }
 
-    void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback)
+    void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
     {
         if (!can_push_work())
         {
@@ -698,15 +701,15 @@ namespace Savestates
         {
             if (result == CoreResult::Ok)
             {
-                FrontendService::show_statusbar(std::format("{} {}", job == Job::Save ? "Saved" : "Loaded", path.filename().string()).c_str());
+                FrontendService::show_statusbar(std::format(L"{} {}", job == Job::Save ? L"Saved" : L"Loaded", path.filename().wstring()).c_str());
             }
             else if (result == CoreResult::ST_Cancelled)
             {
-                FrontendService::show_statusbar(std::format("Cancelled {}", job == Job::Save ? "save" : "load").c_str());
+                FrontendService::show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
             }
             else
             {
-                FrontendService::show_error(std::format("Failed to {} {} (error code {}).\nVerify that the savestate is valid and accessible.", job == Job::Save ? "save" : "load", path.filename().string(), (int32_t)result).c_str(), "Savestate");
+                FrontendService::show_error(std::format(L"Failed to {} {} (error code {}).\nVerify that the savestate is valid and accessible.", job == Job::Save ? L"save" : L"load", path.filename().wstring(), (int32_t)result).c_str(), L"Savestate");
             }
 
             if (callback)
@@ -721,14 +724,15 @@ namespace Savestates
             .callback = pre_callback,
             .params = {
                 .path = path
-            }
+            },
+        	.ignore_warnings = ignore_warnings,
         };
 
         g_tasks.insert(g_tasks.begin(), task);
         savestates_warn_if_load_after_save();
     }
 
-    void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback)
+    void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
     {
         if (!can_push_work())
         {
@@ -752,15 +756,15 @@ namespace Savestates
         {
             if (result == CoreResult::Ok)
             {
-                FrontendService::show_statusbar(std::format("{} slot {}", job == Job::Save ? "Saved" : "Loaded", slot + 1).c_str());
+                FrontendService::show_statusbar(std::format(L"{} slot {}", job == Job::Save ? L"Saved" : L"Loaded", slot + 1).c_str());
             }
             else if (result == CoreResult::ST_Cancelled)
             {
-                FrontendService::show_statusbar(std::format("Cancelled {}", job == Job::Save ? "save" : "load").c_str());
+                FrontendService::show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
             }
             else
             {
-                FrontendService::show_statusbar(std::format("Failed to {} slot {}", job == Job::Save ? "save" : "load", slot + 1).c_str());
+                FrontendService::show_statusbar(std::format(L"Failed to {} slot {}", job == Job::Save ? L"save" : L"load", slot + 1).c_str());
             }
 
             if (callback)
@@ -775,14 +779,15 @@ namespace Savestates
             .callback = pre_callback,
             .params = {
                 .slot = static_cast<size_t>(slot)
-            }
+            },
+        	.ignore_warnings = ignore_warnings,
         };
 
         g_tasks.insert(g_tasks.begin(), task);
         savestates_warn_if_load_after_save();
     }
 
-    void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback)
+    void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
     {
         if (!can_push_work())
         {
@@ -802,7 +807,8 @@ namespace Savestates
             .callback = callback,
             .params = {
                 .buffer = buffer
-            }
+            },
+        	.ignore_warnings = ignore_warnings,
         };
 
         g_tasks.insert(g_tasks.begin(), task);

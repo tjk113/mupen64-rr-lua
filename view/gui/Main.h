@@ -26,11 +26,27 @@
 
 #ifdef _M_X64
 
-#define MUPEN_VERSION "Mupen 64 1.1.9 x64"
+#ifdef UNICODE
+
+#define MUPEN_VERSION L"Mupen 64 1.2.0 x64U"
 
 #else
 
-#define MUPEN_VERSION "Mupen 64 1.1.9 x86"
+#define MUPEN_VERSION L"Mupen 64 1.2.0 x64A"
+
+#endif
+
+#else
+
+#ifdef UNICODE
+
+#define MUPEN_VERSION L"Mupen 64 1.2.0 x86U"
+
+#else
+
+#define MUPEN_VERSION L"Mupen 64 1.2.0 x86A"
+
+#endif
 
 #endif
 
@@ -50,7 +66,7 @@ extern HINSTANCE g_app_instance;
 extern HWND g_hwnd_plug;
 extern DWORD start_rom_id;
 
-extern std::string g_app_path;
+extern std::filesystem::path g_app_path;
 extern std::shared_ptr<Dispatcher> g_main_window_dispatcher;
 
 /**
@@ -92,7 +108,7 @@ t_window_info get_window_info();
  * \param hotkey The hotkey to convert
  * \return The hotkey as a string
  */
-std::string hotkey_to_string(const t_hotkey* hotkey);
+std::wstring hotkey_to_string(const t_hotkey* hotkey);
 
 /**
  * \brief Demands user confirmation for an exit action
