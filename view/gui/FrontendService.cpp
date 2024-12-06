@@ -200,6 +200,9 @@ void FrontendService::set_default_hotkey_keys(t_config* config)
     config->load_as_hotkey.key = 'M';
     config->load_as_hotkey.ctrl = true;
 
+	config->undo_load_state_hotkey.key = 'Z';
+	config->undo_load_state_hotkey.ctrl = true;
+
     config->save_to_slot_1_hotkey.key = '1';
     config->save_to_slot_1_hotkey.shift = true;
 

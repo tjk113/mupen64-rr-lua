@@ -1038,6 +1038,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
                 return emu_launched;
             },
         },
+    	t_options_item{
+    		.group_id = core_group.id,
+			.name = L"Undo Savestate Load",
+			.tooltip = L"Whether undo savestate load functionality is enabled.",
+			.data = &g_config.st_undo_load,
+			.type = t_options_item::Type::Bool,
+		},
         t_options_item{
             .group_id = core_group.id,
             .name = L"Counter Factor",

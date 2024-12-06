@@ -135,6 +135,7 @@ const std::map<Action, int> ACTION_ID_MAP = {
     {Action::LoadSlot, IDM_LOAD_SLOT},
     {Action::SaveAs, IDM_SAVE_STATE_AS},
     {Action::LoadAs, IDM_LOAD_STATE_AS},
+    {Action::UndoLoadState, IDM_UNDO_LOAD_STATE},
     {Action::SaveSlot1, (ID_SAVE_1 - 1) + 1},
     {Action::SaveSlot2, (ID_SAVE_1 - 1) + 2},
     {Action::SaveSlot3, (ID_SAVE_1 - 1) + 3},
@@ -1328,6 +1329,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             EnableMenuItem(g_main_menu, IDM_LOAD_SLOT, emu_launched ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SAVE_STATE_AS, emu_launched ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_LOAD_STATE_AS, emu_launched ? MF_ENABLED : MF_GRAYED);
+            EnableMenuItem(g_main_menu, IDM_UNDO_LOAD_STATE, (emu_launched && g_config.st_undo_load) ? MF_ENABLED : MF_GRAYED);
             for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
             {
                 EnableMenuItem(g_main_menu, i, emu_launched ? MF_ENABLED : MF_GRAYED);
@@ -1771,6 +1773,39 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     });
                 }
                 break;
+            case IDM_UNDO_LOAD_STATE:
+	            {
+            		++g_vr_wait_before_input_poll;
+            		AsyncExecutor::invoke_async([=]
+					{
+						--g_vr_wait_before_input_poll;
+
+            			auto buf = Savestates::get_undo_savestate();
+
+						if (buf.empty())
+						{
+							Statusbar::post(L"No load to undo");
+							return;
+						}
+
+						Savestates::do_memory(buf, Savestates::Job::Load, [](const CoreResult result, auto)
+						{
+							if (result == CoreResult::Ok)
+							{
+								Statusbar::post(L"Undid load");
+								return;
+							}
+
+							if (result == CoreResult::ST_Cancelled)
+							{
+								return;
+							}
+
+							Statusbar::post(L"Failed to undo load");
+						});
+					});
+	            }
+            	break;
             case IDM_START_MOVIE_RECORDING:
                 {
                     BetterEmulationLock lock;

@@ -78,7 +78,7 @@ namespace Savestates
      * \brief Executes a savestate operation to a path
      * \param path The savestate's path
      * \param job The job to set
-     * \param callback The callback to call when the operation is complete. Can be null.
+     * \param callback The callback to call when the operation is complete.
      * \param ignore_warnings Whether warnings, such as those about ROM compatibility, shouldn't be shown.
      * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
      */
@@ -88,7 +88,7 @@ namespace Savestates
      * \brief Executes a savestate operation to a slot
      * \param slot The slot to construct the savestate path with.
      * \param job The job to set
-     * \param callback The callback to call when the operation is complete. Can be null.
+     * \param callback The callback to call when the operation is complete.
 	 * \param ignore_warnings Whether warnings, such as those about ROM compatibility, shouldn't be shown.
      * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
      */
@@ -98,9 +98,15 @@ namespace Savestates
      * Executes a savestate operation in-memory.
      * \param buffer The buffer to use for the operation. Can be empty if the <see cref="job"/> is <see cref="e_st_job::save"/>.
      * \param job The job to set.
-     * \param callback The callback to call when the operation is complete. Can be null.
+     * \param callback The callback to call when the operation is complete.
 	 * \param ignore_warnings Whether warnings, such as those about ROM compatibility, shouldn't be shown.
      * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
      */
     void do_memory(const std::vector<uint8_t>& buffer, Job job, const t_savestate_callback& callback = nullptr, bool ignore_warnings = false);
+
+    /**
+     * Gets the undo savestate buffer. Will be empty will no undo savestate is available.
+     */
+    std::vector<uint8_t> get_undo_savestate();
+
 }

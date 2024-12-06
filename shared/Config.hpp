@@ -45,6 +45,7 @@ enum class Action
     LoadSlot,
     SaveAs,
     LoadAs,
+    UndoLoadState,
     SaveSlot1,
     SaveSlot2,
     SaveSlot3,
@@ -168,6 +169,7 @@ typedef struct Config
     t_hotkey load_current_hotkey;
     t_hotkey save_as_hotkey;
     t_hotkey load_as_hotkey;
+    t_hotkey undo_load_state_hotkey;
     t_hotkey save_to_slot_1_hotkey;
     t_hotkey save_to_slot_2_hotkey;
     t_hotkey save_to_slot_3_hotkey;
@@ -487,6 +489,11 @@ typedef struct Config
     /// Whether the piano roll will try to keep the selection visible when the frame changes
     /// </summary>
     int32_t piano_roll_keep_selection_visible;
+
+	/// <summary>
+	/// Whether undo savestate load functionality is enabled.
+	/// </summary>
+	int32_t st_undo_load = 1;
 
     /// <summary>
     /// SD card emulation

@@ -67,6 +67,7 @@ BEGIN
         MENUITEM "Load State",                  IDM_LOAD_SLOT, GRAYED
         MENUITEM "&Save State As...",           IDM_SAVE_STATE_AS, GRAYED
         MENUITEM "&Load State As...",           IDM_LOAD_STATE_AS, GRAYED
+        MENUITEM "Undo Load State",             IDM_UNDO_LOAD_STATE, GRAYED
         MENUITEM SEPARATOR
         POPUP "Current Save S&tate"
         BEGIN

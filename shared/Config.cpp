@@ -176,6 +176,11 @@ t_config get_default_config()
 		.down_cmd = Action::LoadAs,
 	};
 
+	config.undo_load_state_hotkey = {
+		.identifier = L"Undo load state",
+		.down_cmd = Action::UndoLoadState,
+	};
+
 	config.save_to_slot_1_hotkey = {
 		.identifier = L"Save to slot 1",
 		.down_cmd = Action::SaveSlot1,
@@ -578,6 +583,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(piano_roll_constrain_edit_to_column)
 	HANDLE_P_VALUE(piano_roll_undo_stack_size)
 	HANDLE_P_VALUE(piano_roll_keep_selection_visible)
+	HANDLE_P_VALUE(st_undo_load)
 	HANDLE_P_VALUE(use_summercart)
 	HANDLE_P_VALUE(wii_vc_emulation)
 	HANDLE_P_VALUE(is_float_exception_propagation_enabled)
