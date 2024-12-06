@@ -164,20 +164,23 @@ namespace MGECompositor
 
     void load_screen(void* data)
     {
-        SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&external_buffer);
+	    g_main_window_dispatcher->invoke([=]
+	    {
+		    SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&external_buffer);
 
-        external_buffer.width = internal_buffer.width;
-        external_buffer.height = internal_buffer.height;
+		    external_buffer.width = internal_buffer.width;
+		    external_buffer.height = internal_buffer.height;
 
-        external_buffer.bmp_info.bmiHeader.biWidth = external_buffer.width;
-        external_buffer.bmp_info.bmiHeader.biHeight = external_buffer.height;
+		    external_buffer.bmp_info.bmiHeader.biWidth = external_buffer.width;
+		    external_buffer.bmp_info.bmiHeader.biHeight = external_buffer.height;
 
-        free(external_buffer.buffer);
-        external_buffer.buffer = malloc(external_buffer.width * external_buffer.height * 3);
-        memcpy(external_buffer.buffer, data, external_buffer.width * external_buffer.height * 3);
+		    free(external_buffer.buffer);
+		    external_buffer.buffer = malloc(external_buffer.width * external_buffer.height * 3);
+		    memcpy(external_buffer.buffer, data, external_buffer.width * external_buffer.height * 3);
 
-        MoveWindow(control_hwnd, 0, 0, external_buffer.width, external_buffer.height, true);
-        RedrawWindow(control_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
-        SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&internal_buffer);
+		    MoveWindow(control_hwnd, 0, 0, external_buffer.width, external_buffer.height, true);
+		    RedrawWindow(control_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
+		    SetWindowLongPtr(control_hwnd, GWLP_USERDATA, (LONG_PTR)&internal_buffer);
+	    });
     }
 }
