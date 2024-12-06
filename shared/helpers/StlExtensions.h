@@ -93,7 +93,7 @@ std::vector<T> erase_indices(const std::vector<T>& data, std::vector<size_t>& in
  */
 static std::wstring string_to_wstring(const std::string& str)
 {
-    const auto wstr = static_cast<wchar_t*>(calloc(str.length(), sizeof(wchar_t) + 1));
+    const auto wstr = static_cast<wchar_t*>(calloc(str.size() + 1, sizeof(wchar_t)));
 
     if (!wstr)
     {
@@ -104,7 +104,6 @@ static std::wstring string_to_wstring(const std::string& str)
     mbstowcs(wstr, str.c_str(), str.length());
 
     auto wstdstr = std::wstring(wstr);
-    wstdstr.resize(str.length());
 
     free(wstr);
     return wstdstr;
