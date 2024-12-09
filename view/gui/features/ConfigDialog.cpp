@@ -421,30 +421,6 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SAVES_DIR), FALSE);
         }
         break;
-    case WM_NOTIFY:
-        if (l_nmhdr->code == PSN_APPLY)
-        {
-            int selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
-                               ? TRUE
-                               : FALSE;
-            g_config.is_default_plugins_directory_used = selected;
-
-            selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SAVES_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
-                           ? TRUE
-                           : FALSE;
-            g_config.is_default_saves_directory_used = selected;
-
-            selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
-                           ? TRUE
-                           : FALSE;
-            g_config.is_default_screenshots_directory_used = selected;
-
-            selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_BACKUPS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
-                           ? TRUE
-                           : FALSE;
-            g_config.is_default_backups_directory_used = selected;
-        }
-        break;
     case WM_COMMAND:
         switch (LOWORD(w_param))
         {
@@ -465,8 +441,7 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
 			g_config.backups_directory = path;
 			break;
         case IDC_RECURSION:
-            g_config.is_rombrowser_recursion_enabled = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) ==
-                BST_CHECKED;
+            g_config.is_rombrowser_recursion_enabled = IsDlgButtonChecked(hwnd, IDC_RECURSION) == BST_CHECKED;
             break;
         case IDC_ADD_BROWSER_DIR:
             {
@@ -481,31 +456,29 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             }
         case IDC_REMOVE_BROWSER_DIR:
             {
-                if (const int32_t selected_index = SendMessage(GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST), LB_GETCURSEL, 0, 0); selected_index != -1)
-                {
-                    g_config.rombrowser_rom_paths.erase(g_config.rombrowser_rom_paths.begin() + selected_index);
-                }
-                build_rom_browser_path_list(hwnd);
-                break;
+	            const int32_t selected_index = ListBox_GetCurSel(hwnd, IDC_ROMBROWSER_DIR_LIST);
+	            if (selected_index == -1)
+	            {
+		            break;
+	            }
+	            g_config.rombrowser_rom_paths.erase(g_config.rombrowser_rom_paths.begin() + selected_index);
+	            build_rom_browser_path_list(hwnd);
+	            break;
             }
-
         case IDC_REMOVE_BROWSER_ALL:
             g_config.rombrowser_rom_paths.clear();
             build_rom_browser_path_list(hwnd);
             break;
-
         case IDC_DEFAULT_PLUGINS_CHECK:
             {
-                g_config.is_default_plugins_directory_used = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_PLUGINS_CHECK),
-                                                                         BM_GETCHECK, 0, 0);
+                g_config.is_default_plugins_directory_used = IsDlgButtonChecked(hwnd, IDC_DEFAULT_PLUGINS_CHECK) == BST_CHECKED;
                 EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), !g_config.is_default_plugins_directory_used);
                 EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), !g_config.is_default_plugins_directory_used);
             }
             break;
         case IDC_DEFAULT_BACKUPS_CHECK:
             {
-                g_config.is_default_backups_directory_used = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_BACKUPS_CHECK),
-                                                                         BM_GETCHECK, 0, 0);
+                g_config.is_default_backups_directory_used = IsDlgButtonChecked(hwnd, IDC_DEFAULT_BACKUPS_CHECK) == BST_CHECKED;
                 EnableWindow(GetDlgItem(hwnd, IDC_BACKUPS_DIR), !g_config.is_default_backups_directory_used);
                 EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_BACKUPS_DIR), !g_config.is_default_backups_directory_used);
             }
@@ -529,8 +502,7 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             break;
         case IDC_DEFAULT_SAVES_CHECK:
             {
-                g_config.is_default_saves_directory_used = SendMessage(GetDlgItem(hwnd, IDC_DEFAULT_SAVES_CHECK),
-                                                                       BM_GETCHECK, 0, 0);
+                g_config.is_default_saves_directory_used = IsDlgButtonChecked(hwnd, IDC_DEFAULT_SAVES_CHECK) == BST_CHECKED;
                 EnableWindow(GetDlgItem(hwnd, IDC_SAVES_DIR), !g_config.is_default_saves_directory_used);
                 EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SAVES_DIR), !g_config.is_default_saves_directory_used);
             }
@@ -548,11 +520,9 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             break;
         case IDC_DEFAULT_SCREENSHOTS_CHECK:
             {
-                g_config.is_default_screenshots_directory_used = SendMessage(
-                    GetDlgItem(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK), BM_GETCHECK, 0, 0);
+                g_config.is_default_screenshots_directory_used = IsDlgButtonChecked(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK) == BST_CHECKED;
                 EnableWindow(GetDlgItem(hwnd, IDC_SCREENSHOTS_DIR), !g_config.is_default_screenshots_directory_used);
-                EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SCREENSHOTS_DIR),
-                             !g_config.is_default_screenshots_directory_used);
+                EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_SCREENSHOTS_DIR), !g_config.is_default_screenshots_directory_used);
             }
             break;
         case IDC_CHOOSE_SCREENSHOTS_DIR:
