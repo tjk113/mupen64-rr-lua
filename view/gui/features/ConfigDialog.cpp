@@ -374,10 +374,11 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
     [[maybe_unused]] LPITEMIDLIST pidl{};
     BROWSEINFO bi{};
     auto l_nmhdr = (NMHDR*)&l_param;
+	wchar_t path[MAX_PATH] = {0};
+
     switch (message)
     {
     case WM_INITDIALOG:
-
         build_rom_browser_path_list(hwnd);
 
         SendMessage(GetDlgItem(hwnd, IDC_RECURSION), BM_SETCHECK,
@@ -423,39 +424,46 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
     case WM_NOTIFY:
         if (l_nmhdr->code == PSN_APPLY)
         {
-            wchar_t str[MAX_PATH] = {0};
             int selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_PLUGINS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                                ? TRUE
                                : FALSE;
-            GetDlgItemText(hwnd, IDC_PLUGINS_DIR, str, 200);
-            g_config.plugins_directory = str;
             g_config.is_default_plugins_directory_used = selected;
 
             selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SAVES_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                            ? TRUE
                            : FALSE;
-            GetDlgItemText(hwnd, IDC_SAVES_DIR, str, MAX_PATH);
-            g_config.saves_directory = str;
             g_config.is_default_saves_directory_used = selected;
 
             selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_SCREENSHOTS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                            ? TRUE
                            : FALSE;
-            GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, str, MAX_PATH);
-            g_config.screenshots_directory = str;
             g_config.is_default_screenshots_directory_used = selected;
 
             selected = SendDlgItemMessage(hwnd, IDC_DEFAULT_BACKUPS_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED
                            ? TRUE
                            : FALSE;
-            GetDlgItemText(hwnd, IDC_BACKUPS_DIR, str, MAX_PATH);
-            g_config.backups_directory = str;
             g_config.is_default_backups_directory_used = selected;
         }
         break;
     case WM_COMMAND:
         switch (LOWORD(w_param))
         {
+		case IDC_PLUGINS_DIR:
+			GetDlgItemText(hwnd, IDC_PLUGINS_DIR, path, std::size(path));
+        	g_config.plugins_directory = path;
+    	break;
+		case IDC_SAVES_DIR:
+    		GetDlgItemText(hwnd, IDC_SAVES_DIR, path, std::size(path));
+        	g_config.saves_directory = path;
+        break;
+		case IDC_SCREENSHOTS_DIR:
+			GetDlgItemText(hwnd, IDC_SCREENSHOTS_DIR, path, std::size(path));
+			g_config.screenshots_directory = path;
+			break;
+		case IDC_BACKUPS_DIR:
+			GetDlgItemText(hwnd, IDC_BACKUPS_DIR, path, std::size(path));
+			g_config.backups_directory = path;
+			break;
         case IDC_RECURSION:
             g_config.is_rombrowser_recursion_enabled = SendDlgItemMessage(hwnd, IDC_RECURSION, BM_GETCHECK, 0, 0) ==
                 BST_CHECKED;
