@@ -636,9 +636,11 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
 	    {
 		    if (plugin_discovery_result.broken_plugins > 0)
 		    {
-		    	SetDlgItemText(hwnd, IDC_PLUGIN_WARNING,
-							   std::format(L"Not all discovered plugins shown. {} plugin(s) failed to load.", plugin_discovery_result.broken_plugins).c_str());
-		    }
+		    	SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, std::format(L"Not all discovered plugins shown. {} plugin(s) failed to load.", plugin_discovery_result.broken_plugins).c_str());
+			} else
+			{
+				SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, L"");
+			}
 
     		for (const auto& plugin : plugin_discovery_result.plugins)
     		{
