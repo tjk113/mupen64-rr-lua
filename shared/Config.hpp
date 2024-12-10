@@ -306,6 +306,11 @@ typedef struct Config
 	/// </summary>
 	int32_t statusbar_layout = static_cast<int32_t>(StatusbarLayout::Modern);
 
+	/// <summary>
+	/// Whether plugins discovery is performed asynchronously. Removes potential waiting times in the config dialog.
+	/// </summary>
+	int32_t plugin_discovery_async = 1;
+
     /// <summary>
     /// Whether the default plugins directory will be used (otherwise, falls back to <see cref="plugins_directory"/>)
     /// </summary>

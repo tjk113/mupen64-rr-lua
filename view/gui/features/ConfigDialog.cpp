@@ -38,6 +38,7 @@
 #include "shared/services/FrontendService.h"
 
 #define WM_EDIT_END (WM_USER + 19)
+#define WM_PLUGIN_DISCOVERY_FINISHED (WM_USER + 22)
 
 /**
  * Represents a group of options in the settings.
@@ -201,7 +202,7 @@ typedef struct OptionsItem
 
 } t_options_item;
 
-std::vector<std::unique_ptr<Plugin>> available_plugins;
+t_plugin_discovery_result plugin_discovery_result;
 std::vector<HWND> tooltips;
 std::vector<t_options_group> g_option_groups;
 std::vector<t_options_item> g_option_items;
@@ -212,6 +213,8 @@ t_config g_prev_config;
 
 // Index of the hotkey currently being entered, if any
 std::optional<size_t> g_hotkey_active_index;
+
+std::thread g_plugin_discovery_thread;
 
 /// <summary>
 /// Waits until the user inputs a valid key sequence, then fills out the hotkey
@@ -577,6 +580,13 @@ Plugin* get_selected_plugin(const HWND hwnd, const int id)
     return res == CB_ERR ? nullptr : (Plugin*)res;
 }
 
+static void start_plugin_discovery(const HWND hwnd)
+{
+	plugin_discovery_result = do_plugin_discovery();
+
+	PostMessage(hwnd, WM_PLUGIN_DISCOVERY_FINISHED, 0, 0);
+}
+
 INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
     [[maybe_unused]] char path_buffer[_MAX_PATH];
@@ -587,68 +597,107 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
     case WM_CLOSE:
         EndDialog(hwnd, IDOK);
         break;
+    case WM_DESTROY:
+	    if (g_plugin_discovery_thread.joinable())
+	    {
+		    g_plugin_discovery_thread.join();
+	    }
+    	break;
     case WM_INITDIALOG:
         {
-    		auto discovery_result = do_plugin_discovery();
+    		SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
+							   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_DISPLAY),
+												 IMAGE_BITMAP, 0, 0, 0));
+    		SendDlgItemMessage(hwnd, IDB_CONTROL, STM_SETIMAGE, IMAGE_BITMAP,
+							   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_CONTROL),
+												 IMAGE_BITMAP, 0, 0, 0));
+    		SendDlgItemMessage(hwnd, IDB_SOUND, STM_SETIMAGE, IMAGE_BITMAP,
+							   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_SOUND),
+												 IMAGE_BITMAP, 0, 0, 0));
+    		SendDlgItemMessage(hwnd, IDB_RSP, STM_SETIMAGE, IMAGE_BITMAP,
+							   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_RSP),
+												 IMAGE_BITMAP, 0, 0, 0));
 
-            available_plugins = std::move(discovery_result.plugins);
-
-		    if (discovery_result.broken_plugins > 0)
+		    if (g_config.plugin_discovery_async)
 		    {
-			    SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, std::format(L"Not all discovered plugins shown. {} plugin(s) failed to load.", discovery_result.broken_plugins).c_str());
+		    	SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, L"Discovering plugins...");
+
+		    	g_plugin_discovery_thread = std::thread([=]
+				{
+					start_plugin_discovery(hwnd);
+				});
+		    } else
+		    {
+		    	start_plugin_discovery(hwnd);
 		    }
-
-            for (const auto& plugin : available_plugins)
-            {
-                int32_t id = 0;
-                switch (plugin->type())
-                {
-                case PluginType::Video:
-                    id = IDC_COMBO_GFX;
-                    break;
-                case PluginType::Audio:
-                    id = IDC_COMBO_SOUND;
-                    break;
-                case PluginType::Input:
-                    id = IDC_COMBO_INPUT;
-                    break;
-                case PluginType::RSP:
-                    id = IDC_COMBO_RSP;
-                    break;
-                default:
-                    assert(false);
-                    break;
-                }
-                // we add the string and associate a pointer to the plugin with the item
-                const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
-                SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(string_to_wstring(plugin->name()).c_str()));
-                SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin.get());
-            }
-
-            update_plugin_selection(hwnd, IDC_COMBO_GFX, g_config.selected_video_plugin);
-            update_plugin_selection(hwnd, IDC_COMBO_SOUND, g_config.selected_audio_plugin);
-            update_plugin_selection(hwnd, IDC_COMBO_INPUT, g_config.selected_input_plugin);
-            update_plugin_selection(hwnd, IDC_COMBO_RSP, g_config.selected_rsp_plugin);
-
-            EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), !emu_launched);
-            EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), !emu_launched);
-            EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), !emu_launched);
-            EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
-
-            SendDlgItemMessage(hwnd, IDB_DISPLAY, STM_SETIMAGE, IMAGE_BITMAP,
-                               (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_DISPLAY),
-                                                 IMAGE_BITMAP, 0, 0, 0));
-            SendDlgItemMessage(hwnd, IDB_CONTROL, STM_SETIMAGE, IMAGE_BITMAP,
-                               (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_CONTROL),
-                                                 IMAGE_BITMAP, 0, 0, 0));
-            SendDlgItemMessage(hwnd, IDB_SOUND, STM_SETIMAGE, IMAGE_BITMAP,
-                               (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_SOUND),
-                                                 IMAGE_BITMAP, 0, 0, 0));
-            SendDlgItemMessage(hwnd, IDB_RSP, STM_SETIMAGE, IMAGE_BITMAP,
-                               (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_RSP),
-                                                 IMAGE_BITMAP, 0, 0, 0));
             return TRUE;
         }
+    case WM_PLUGIN_DISCOVERY_FINISHED:
+	    {
+		    if (plugin_discovery_result.broken_plugins > 0)
+		    {
+		    	SetDlgItemText(hwnd, IDC_PLUGIN_WARNING,
+							   std::format(L"Not all discovered plugins shown. {} plugin(s) failed to load.", plugin_discovery_result.broken_plugins).c_str());
+		    }
+
+    		for (const auto& plugin : plugin_discovery_result.plugins)
+    		{
+    			int32_t id = 0;
+    			switch (plugin->type())
+    			{
+    			case PluginType::Video:
+    				id = IDC_COMBO_GFX;
+    				break;
+    			case PluginType::Audio:
+    				id = IDC_COMBO_SOUND;
+    				break;
+    			case PluginType::Input:
+    				id = IDC_COMBO_INPUT;
+    				break;
+    			case PluginType::RSP:
+    				id = IDC_COMBO_RSP;
+    				break;
+    			default:
+    				assert(false);
+    				break;
+    			}
+    			// we add the string and associate a pointer to the plugin with the item
+    			const int i = SendDlgItemMessage(hwnd, id, CB_GETCOUNT, 0, 0);
+    			SendDlgItemMessage(hwnd, id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(string_to_wstring(plugin->name()).c_str()));
+    			SendDlgItemMessage(hwnd, id, CB_SETITEMDATA, i, (LPARAM)plugin.get());
+    		}
+
+    		update_plugin_selection(hwnd, IDC_COMBO_GFX, g_config.selected_video_plugin);
+    		update_plugin_selection(hwnd, IDC_COMBO_SOUND, g_config.selected_audio_plugin);
+    		update_plugin_selection(hwnd, IDC_COMBO_INPUT, g_config.selected_input_plugin);
+    		update_plugin_selection(hwnd, IDC_COMBO_RSP, g_config.selected_rsp_plugin);
+
+    		const auto ids_to_enable = {
+    			IDM_VIDEO_SETTINGS,
+				IDM_AUDIO_SETTINGS,
+				IDM_INPUT_SETTINGS,
+				IDM_RSP_SETTINGS,
+				IDGFXTEST,
+				IDSOUNDTEST,
+				IDINPUTTEST,
+				IDRSPTEST,
+				IDGFXABOUT,
+				IDSOUNDABOUT,
+				IDINPUTABOUT,
+				IDRSPABOUT,
+			};
+
+    		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_GFX), !emu_launched);
+    		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_INPUT), !emu_launched);
+    		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_SOUND), !emu_launched);
+    		EnableWindow(GetDlgItem(hwnd, IDC_COMBO_RSP), !emu_launched);
+
+    		for (const auto& id : ids_to_enable)
+    		{
+    			EnableWindow(GetDlgItem(hwnd, id), true);
+    		}
+    		break;
+	    }
     case WM_COMMAND:
         switch (LOWORD(w_param))
         {
@@ -847,6 +896,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
             .data = &g_config.use_async_executor,
             .type = t_options_item::Type::Bool,
         },
+    	t_options_item{
+    		.group_id = interface_group.id,
+			.name = L"Async Plugin Discovery",
+			.tooltip = L"Whether plugins discovery is performed asynchronously. Removes potential waiting times in the config dialog.",
+			.data = &g_config.plugin_discovery_async,
+			.type = t_options_item::Type::Bool,
+		},
 
     	t_options_item{
     		.group_id = statusbar_group.id,
