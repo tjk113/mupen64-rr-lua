@@ -216,6 +216,9 @@ std::optional<size_t> g_hotkey_active_index;
 
 std::thread g_plugin_discovery_thread;
 
+// Whether a plugin rescan is needed. Set when modifying the plugin path.
+bool g_plugin_discovery_rescan = false;
+
 /// <summary>
 /// Waits until the user inputs a valid key sequence, then fills out the hotkey
 /// </summary>
@@ -428,9 +431,18 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
         switch (LOWORD(w_param))
         {
 		case IDC_PLUGINS_DIR:
-			GetDlgItemText(hwnd, IDC_PLUGINS_DIR, path, std::size(path));
-        	g_config.plugins_directory = path;
-    	break;
+			{
+				const auto prev_plugins_dir = g_config.plugins_directory;
+
+				GetDlgItemText(hwnd, IDC_PLUGINS_DIR, path, std::size(path));
+				g_config.plugins_directory = path;
+
+				if (g_config.plugins_directory != prev_plugins_dir)
+				{
+					g_plugin_discovery_rescan = true;
+				}
+				break;
+			}
 		case IDC_SAVES_DIR:
     		GetDlgItemText(hwnd, IDC_SAVES_DIR, path, std::size(path));
         	g_config.saves_directory = path;
@@ -582,9 +594,33 @@ Plugin* get_selected_plugin(const HWND hwnd, const int id)
 
 static void start_plugin_discovery(const HWND hwnd)
 {
+	g_view_logger->trace("[ConfigDialog] start_plugin_discovery");
 	plugin_discovery_result = do_plugin_discovery();
 
 	PostMessage(hwnd, WM_PLUGIN_DISCOVERY_FINISHED, 0, 0);
+}
+
+static void refresh_plugins_page(const HWND hwnd)
+{
+	g_view_logger->trace("[ConfigDialog] refresh_plugins_page");
+
+	if (g_config.plugin_discovery_async)
+	{
+		SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, L"Discovering plugins...");
+
+		if (g_plugin_discovery_thread.joinable())
+		{
+			g_plugin_discovery_thread.join();
+		}
+
+		g_plugin_discovery_thread = std::thread([=]
+		{
+			start_plugin_discovery(hwnd);
+		});
+	} else
+	{
+		start_plugin_discovery(hwnd);
+	}
 }
 
 INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
@@ -618,18 +654,8 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
 							   (LPARAM)LoadImage(g_app_instance, MAKEINTRESOURCE(IDB_RSP),
 												 IMAGE_BITMAP, 0, 0, 0));
 
-		    if (g_config.plugin_discovery_async)
-		    {
-		    	SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, L"Discovering plugins...");
+    		refresh_plugins_page(hwnd);
 
-		    	g_plugin_discovery_thread = std::thread([=]
-				{
-					start_plugin_discovery(hwnd);
-				});
-		    } else
-		    {
-		    	start_plugin_discovery(hwnd);
-		    }
             return TRUE;
         }
     case WM_PLUGIN_DISCOVERY_FINISHED:
@@ -641,6 +667,11 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
 			{
 				SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, L"");
 			}
+
+    		ComboBox_ResetContent(GetDlgItem(hwnd, IDC_COMBO_GFX));
+    		ComboBox_ResetContent(GetDlgItem(hwnd, IDC_COMBO_SOUND));
+    		ComboBox_ResetContent(GetDlgItem(hwnd, IDC_COMBO_INPUT));
+    		ComboBox_ResetContent(GetDlgItem(hwnd, IDC_COMBO_RSP));
 
     		for (const auto& plugin : plugin_discovery_result.plugins)
     		{
@@ -792,6 +823,11 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
         }
         break;
     case WM_NOTIFY:
+		if (l_nmhdr->code == PSN_SETACTIVE && g_plugin_discovery_rescan)
+		{
+			refresh_plugins_page(hwnd);
+			g_plugin_discovery_rescan = false;
+		}
         if (l_nmhdr->code == PSN_APPLY)
         {
             if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_GFX); plugin != nullptr)
