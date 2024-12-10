@@ -745,7 +745,7 @@ void vcr_stop_seek_if_needed()
 
     assert(g_task != e_task::idle);
 
-    g_core_logger->info("[VCR] Seeking... ({}/{})", m_current_sample, seek_to_frame.value());
+    //g_core_logger->info("[VCR] Seeking... ({}/{})", m_current_sample, seek_to_frame.value());
 
     if (m_current_sample > seek_to_frame.value())
     {
