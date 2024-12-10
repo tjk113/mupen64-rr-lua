@@ -540,7 +540,7 @@ void vcr_create_n_frame_savestate(size_t frame)
 
         if (result != CoreResult::Ok)
         {
-            FrontendService::show_error(std::format(L"Failed to save seek savestate at frame {}.", frame).c_str(), L"VCR");
+            FrontendService::show_dialog(std::format(L"Failed to save seek savestate at frame {}.", frame).c_str(), L"VCR", FrontendService::DialogType::Error);
             return;
         }
 
@@ -565,7 +565,7 @@ void vcr_handle_starting_tasks(int32_t index, BUTTONS* input)
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error(L"Failed to reset the rom when initiating a from-start recording.\nRecording will be stopped.", L"VCR");
+            	FrontendService::show_dialog(L"Failed to reset the rom when initiating a from-start recording.\nRecording will be stopped.", L"VCR", FrontendService::DialogType::Error);
                 VCR::stop_all();
                 return;
             }
@@ -592,7 +592,7 @@ void vcr_handle_starting_tasks(int32_t index, BUTTONS* input)
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error(L"Failed to reset the rom when playing back a from-start movie.\nPlayback will be stopped.", L"VCR");
+            	FrontendService::show_dialog(L"Failed to reset the rom when playing back a from-start movie.\nPlayback will be stopped.", L"VCR", FrontendService::DialogType::Error);
                 VCR::stop_all();
                 return;
             }
@@ -667,7 +667,7 @@ void vcr_handle_recording(int32_t index, BUTTONS* input)
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error(L"Failed to reset the rom following a user-invoked reset.");
+                FrontendService::show_dialog(L"Failed to reset the rom following a user-invoked reset.", L"VCR", FrontendService::DialogType::Error);
             }
         });
     }
@@ -721,7 +721,7 @@ void vcr_handle_playback(int32_t index, BUTTONS* input)
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error(L"Failed to reset the rom following a movie-invoked reset.\nRecording will be stopped.", L"VCR");
+            	FrontendService::show_dialog(L"Failed to reset the rom following a movie-invoked reset.\nRecording will be stopped.", L"VCR", FrontendService::DialogType::Error);
                 VCR::stop_all();
                 g_reset_pending = false;
                 return;
@@ -750,7 +750,7 @@ void vcr_stop_seek_if_needed()
     if (m_current_sample > seek_to_frame.value())
     {
         g_core_logger->error("Seek frame exceeded without seek having been stopped. ({}/{})", m_current_sample, seek_to_frame.value());
-        FrontendService::show_error(L"Seek frame exceeded without seek having been stopped!\nThis incident has been logged, please report this issue along with the log file.", L"VCR");
+    	FrontendService::show_dialog(L"Seek frame exceeded without seek having been stopped!\nThis incident has been logged, please report this issue along with the log file.", L"VCR", FrontendService::DialogType::Error);
     }
 
     if (m_current_sample >= seek_to_frame.value())
@@ -916,7 +916,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
 
             if (result != CoreResult::Ok)
             {
-                FrontendService::show_error(L"Failed to save savestate while starting recording.\nRecording will be stopped.", L"VCR");
+            	FrontendService::show_dialog(L"Failed to save savestate while starting recording.\nRecording will be stopped.", L"VCR", FrontendService::DialogType::Error);
                 VCR::stop_all();
                 return;
             }
@@ -950,7 +950,7 @@ CoreResult VCR::start_record(std::filesystem::path path, uint16_t flags, std::st
 
                 if (result != CoreResult::Ok)
                 {
-                    FrontendService::show_error(L"Failed to load savestate while starting recording.\nRecording will be stopped.", L"VCR");
+                	FrontendService::show_dialog(L"Failed to load savestate while starting recording.\nRecording will be stopped.", L"VCR", FrontendService::DialogType::Error);
                     VCR::stop_all();
                     return;
                 }
@@ -1197,7 +1197,7 @@ CoreResult VCR::start_playback(std::filesystem::path path)
 
     if (lstrlenW(dummy) > 0)
     {
-        FrontendService::show_warning(dummy, L"VCR");
+    	FrontendService::show_dialog(dummy, L"VCR", FrontendService::DialogType::Warning);
     }
 
     if (g_header.extended_version != 0)
@@ -1219,7 +1219,7 @@ CoreResult VCR::start_playback(std::filesystem::path path)
         // Old movies filled with non-zero data in this section are suspicious, we'll warn the user.
         if (g_header.extended_flags.data != 0)
         {
-            FrontendService::show_warning(OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE, L"VCR");
+        	FrontendService::show_dialog(OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE, L"VCR", FrontendService::DialogType::Warning);
         }
     }
 
@@ -1285,7 +1285,7 @@ CoreResult VCR::start_playback(std::filesystem::path path)
 
                 if (result != CoreResult::Ok)
                 {
-                    FrontendService::show_error(L"Failed to load savestate while starting playback.\nRecording will be stopped.", L"VCR");
+                	FrontendService::show_dialog(L"Failed to load savestate while starting playback.\nRecording will be stopped.", L"VCR", FrontendService::DialogType::Error);
                     VCR::stop_all();
                     return;
                 }
@@ -1443,7 +1443,7 @@ CoreResult vcr_begin_seek_impl(std::wstring str, bool pause_at_end, bool resume,
                 {
                     if (result != CoreResult::Ok)
                     {
-                        FrontendService::show_error(L"Failed to load seek savestate for seek operation.", L"VCR");
+                    	FrontendService::show_dialog(L"Failed to load seek savestate for seek operation.", L"VCR", FrontendService::DialogType::Error);
                         g_seek_savestate_loading = false;
                         VCR::stop_seek();
                     }
@@ -1474,7 +1474,7 @@ CoreResult vcr_begin_seek_impl(std::wstring str, bool pause_at_end, bool resume,
         if (g_config.seek_savestate_interval == 0)
         {
             // TODO: We can't backtrack using savestates, so we'd have to restart into recording mode while restoring the buffer, leave it for the next release...
-            FrontendService::show_error(L"The seek savestate interval can't be 0 when seeking backwards during recording.", L"VCR");
+        	FrontendService::show_dialog(L"The seek savestate interval can't be 0 when seeking backwards during recording.", L"VCR", FrontendService::DialogType::Error);
             return CoreResult::VCR_SeekSavestateIntervalZero;
         }
 
@@ -1511,7 +1511,7 @@ CoreResult vcr_begin_seek_impl(std::wstring str, bool pause_at_end, bool resume,
             {
                 if (result != CoreResult::Ok)
                 {
-                    FrontendService::show_error(L"Failed to load seek savestate for seek operation.", L"VCR");
+                	FrontendService::show_dialog(L"Failed to load seek savestate for seek operation.", L"VCR", FrontendService::DialogType::Error);
                     g_seek_savestate_loading = false;
                     VCR::stop_seek();
                 }

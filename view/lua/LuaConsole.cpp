@@ -63,7 +63,7 @@ int at_panic(lua_State* L)
     const auto message = string_to_wstring(lua_tostring(L, -1));
 
     g_view_logger->info(L"Lua panic: {}", message);
-    FrontendService::show_error(message.c_str(), L"Lua");
+    FrontendService::show_dialog(message.c_str(), L"Lua", FrontendService::DialogType::Error);
 
     return 0;
 }
@@ -655,7 +655,7 @@ void LuaEnvironment::create_renderer()
     auto hr = CoInitialize(nullptr);
     if (hr != S_OK && hr != S_FALSE && hr != RPC_E_CHANGED_MODE)
     {
-        FrontendService::show_error(L"Failed to initialize COM.\r\nVerify that your system is up-to-date.");
+    	FrontendService::show_dialog(L"Failed to initialize COM.\r\nVerify that your system is up-to-date.", L"Lua", FrontendService::DialogType::Error);
         return;
     }
 
@@ -699,7 +699,7 @@ void LuaEnvironment::create_renderer()
 
     if (!presenter->init(d2d_overlay_hwnd))
     {
-        FrontendService::show_error(L"Failed to initialize presenter.\r\nVerify that your system supports the selected presenter.");
+    	FrontendService::show_dialog(L"Failed to initialize presenter.\r\nVerify that your system supports the selected presenter.", L"Lua", FrontendService::DialogType::Error);
         return;
     }
 

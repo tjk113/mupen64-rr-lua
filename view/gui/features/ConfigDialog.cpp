@@ -1655,7 +1655,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
                     }
                 }
 
-                FrontendService::show_information(str.c_str(), L"Information", hwnd);
+                FrontendService::show_dialog(str.c_str(), L"Information", FrontendService::DialogType::Information, hwnd);
             }
 
             if (offset == 4 && option_item.type == OptionsItem::Type::Hotkey)
@@ -1684,7 +1684,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
 
                 if (!can_all_be_changed)
                 {
-                    FrontendService::show_warning(L"Some settings can't be reset, as they are currently read-only. Try again with emulation stopped.\nNo changes have been made to the settings.", L"Reset all to default", hwnd);
+                    FrontendService::show_dialog(L"Some settings can't be reset, as they are currently read-only. Try again with emulation stopped.\nNo changes have been made to the settings.", L"Reset all to default", FrontendService::DialogType::Warning, hwnd);
                     goto destroy_menu;
                 }
 

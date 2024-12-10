@@ -292,7 +292,7 @@ bool show_error_dialog_for_result(const CoreResult result, void* hwnd)
     if (!error.empty())
     {
         const auto title = std::format(L"{} Error {}", module, static_cast<int32_t>(result));
-        FrontendService::show_error(error.c_str(), title.c_str(), hwnd);
+    	FrontendService::show_dialog(error.c_str(), title.c_str(), FrontendService::DialogType::Error);
     }
 
     return true;
@@ -1478,7 +1478,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case IDM_BENCHMARK_LUA_CALLBACK:
                 {
-                    FrontendService::show_information(L"Make sure the Lua script is running and the registered atreset body is empty.");
+            		FrontendService::show_dialog(L"Make sure the Lua script is running and the registered atreset body is empty.", L"Benchmark Lua Callback", FrontendService::DialogType::Information);
                     ScopeTimer timer("100,000,000x call_reset", g_view_logger);
                     for (int i = 0; i < 100'000'000; ++i)
                     {
@@ -1493,7 +1493,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDM_BENCHMARK_CORE_STOP:
                 {
                     auto fps = Core::stop_benchmark();
-                    FrontendService::show_information(std::format(L"FPS: {:2f}", fps).c_str());
+            		FrontendService::show_dialog(std::format(L"FPS: {:2f}", fps).c_str(), L"Benchmark Core", FrontendService::DialogType::Information);
                     Messenger::broadcast(Messenger::Message::FastForwardNeedsUpdate, nullptr);
                     break;
                 }

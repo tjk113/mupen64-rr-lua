@@ -89,7 +89,7 @@ namespace Cheats
 
                     if (!script.has_value())
                     {
-                        FrontendService::show_error(L"Cheat code could not be compiled.\r\nVerify that the syntax is correct.", nullptr, hwnd);
+                    	FrontendService::show_dialog(L"Cheat code could not be compiled.\r\nVerify that the syntax is correct", L"Cheats", FrontendService::DialogType::Error);
                         break;
                     }
 

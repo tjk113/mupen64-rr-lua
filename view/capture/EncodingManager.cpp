@@ -209,7 +209,7 @@ namespace EncodingManager
 		{
 			if (!MGECompositor::available() && !readScreen)
 			{
-				FrontendService::show_error(L"The current video plugin has no readScreen implementation.\nPlugin capture is not possible.", L"Capture");
+				FrontendService::show_dialog(L"The current video plugin has no readScreen implementation.\nPlugin capture is not possible.", L"Capture", FrontendService::DialogType::Error);
 				stop_capture();
 				return;
 			}
@@ -225,7 +225,7 @@ namespace EncodingManager
 		{
 			if (!MGECompositor::available() && !readScreen)
 			{
-				FrontendService::show_error(L"The current video plugin has no readScreen implementation.\nHybrid capture is not possible.", L"Capture");
+				FrontendService::show_dialog(L"The current video plugin has no readScreen implementation.\nHybrid capture is not possible.", L"Capture", FrontendService::DialogType::Error);
 				stop_capture();
 				return;
 			}
@@ -312,7 +312,7 @@ namespace EncodingManager
 
 		if (!result)
 		{
-			FrontendService::show_error(L"Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", L"Capture");
+			FrontendService::show_dialog(L"Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", L"Capture", FrontendService::DialogType::Error);
 			return false;
 		}
 
@@ -337,7 +337,7 @@ namespace EncodingManager
 
 		if (!m_encoder->stop())
 		{
-			FrontendService::show_error(L"Failed to stop encoding.", L"Capture");
+			FrontendService::show_dialog(L"Failed to stop encoding.", L"Capture", FrontendService::DialogType::Error);
 			return false;
 		}
 
@@ -373,9 +373,9 @@ namespace EncodingManager
 			return;
 		}
 
-		FrontendService::show_error(
+		FrontendService::show_dialog(
 			L"Failed to append frame to video.\nPerhaps you ran out of memory?",
-			L"Capture");
+			L"Capture", FrontendService::DialogType::Error);
 		stop_capture();
 	}
 
@@ -399,9 +399,9 @@ namespace EncodingManager
 
 		if (!m_encoder->append_audio(reinterpret_cast<uint8_t*>(buf), ai_len, m_audio_bitrate))
 		{
-			FrontendService::show_error(
+			FrontendService::show_dialog(
 				L"Failed to append audio data.\nCapture will be stopped.",
-				L"Capture");
+				L"Capture", FrontendService::DialogType::Error);
 			stop_capture();
 		}
 	}
@@ -422,7 +422,7 @@ namespace EncodingManager
 
 		if (m_capturing)
 		{
-			FrontendService::show_error(L"Audio frequency changed during capture.\r\nThe capture will be stopped.", L"Capture");
+			FrontendService::show_dialog(L"Audio frequency changed during capture.\r\nThe capture will be stopped.", L"Capture", FrontendService::DialogType::Error);
 			stop_capture();
 			return;
 		}

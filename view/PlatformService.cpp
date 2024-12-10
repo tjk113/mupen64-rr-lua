@@ -14,7 +14,7 @@ void PlatformService::free_library(void* module)
 {
     if (!FreeLibrary((HMODULE)module))
     {
-        FrontendService::show_error(std::format(L"Failed to free library {:#06x}.", (unsigned long)module).c_str());
+    	FrontendService::show_dialog(std::format(L"Failed to free library {:#06x}.", (unsigned long)module).c_str(), L"Core", FrontendService::DialogType::Error);
     }
 }
 

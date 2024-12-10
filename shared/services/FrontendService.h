@@ -43,29 +43,14 @@ namespace FrontendService
      */
     bool show_ask_dialog(const wchar_t* str, const wchar_t* title = nullptr, bool warning = false, void* hwnd = nullptr);
 
-    /**
-     * \brief Shows the user a warning dialog
-     * \param str The dialog content
-     * \param title The dialog title
-     * \param hwnd The parent window
-     */
-    void show_warning(const wchar_t* str, const wchar_t* title = nullptr, void* hwnd = nullptr);
-
-    /**
-     * \brief Shows the user an error dialog
-     * \param str The dialog content
-     * \param title The dialog title
-     * \param hwnd The parent window
-     */
-    void show_error(const wchar_t* str, const wchar_t* title = nullptr, void* hwnd = nullptr);
-
-    /**
-     * \brief Shows the user an information dialog
-     * \param str The dialog content
-     * \param title The dialog title
-     * \param hwnd The parent window
-     */
-    void show_information(const wchar_t* str, const wchar_t* title = nullptr, void* hwnd = nullptr);
+	/**
+	 * \brief Shows the user a dialog.
+	 * \param str The dialog content.
+	 * \param title The dialog title.
+	 * \param type The dialog tone.
+	 * \param hwnd The parent window.
+	 */
+	void show_dialog(const wchar_t* str, const wchar_t* title = nullptr, DialogType type = DialogType::Warning, void* hwnd = nullptr);
 
     /**
      * \brief Shows text in the statusbar

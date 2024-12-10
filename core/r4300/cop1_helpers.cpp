@@ -14,7 +14,7 @@ double largest_denormal_double = 2.225073858507201e-308; // (1ULL << 52) - 1
 void fail_float(const std::wstring& msg)
 {
 	const auto buf = std::format(L"{}\nPC = {:#06x}", msg, interpcore ? interp_addr : PC->addr);
-    FrontendService::show_error(buf.c_str(), L"Floating Point Error");
+	FrontendService::show_dialog(buf.c_str(), L"Core", FrontendService::DialogType::Error);
 
     core_Cause = 15 << 2;
     exception_general();

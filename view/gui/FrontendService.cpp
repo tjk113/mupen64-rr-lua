@@ -67,31 +67,32 @@ bool FrontendService::show_ask_dialog(const wchar_t* str, const wchar_t* title, 
     return MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_YESNO | (warning ? MB_ICONWARNING : MB_ICONQUESTION)) == IDYES;
 }
 
-void FrontendService::show_warning(const wchar_t* str, const wchar_t* title, void* hwnd)
+void FrontendService::show_dialog(const wchar_t* str, const wchar_t* title, DialogType type, void* hwnd)
 {
-    g_view_logger->warn(L"[FrontendService] show_warning: '{}'", str);
-    if (!g_config.silent_mode)
-    {
-        MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_ICONWARNING);
-    }
-}
+	int icon = 0;
 
-void FrontendService::show_error(const wchar_t* str, const wchar_t* title, void* hwnd)
-{
-    g_view_logger->error(L"[FrontendService] show_error: '{}'", str);
-    if (!g_config.silent_mode)
-    {
-        MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_ICONERROR);
-    }
-}
+	switch (type)
+	{
+	case DialogType::Error:
+		g_view_logger->error(L"[FrontendService] {}", str);
+		icon = MB_ICONERROR;
+		break;
+	case DialogType::Warning:
+		g_view_logger->warn(L"[FrontendService] {}", str);
+		icon = MB_ICONWARNING;
+		break;
+	case DialogType::Information:
+		g_view_logger->info(L"[FrontendService] {}", str);
+		icon = MB_ICONINFORMATION;
+		break;
+	default:
+		assert(false);
+	}
 
-void FrontendService::show_information(const wchar_t* str, const wchar_t* title, void* hwnd)
-{
-    g_view_logger->info(L"[FrontendService] show_information: '{}'", str);
-    if (!g_config.silent_mode)
-    {
-        MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_OK | MB_ICONINFORMATION);
-    }
+	if (!g_config.silent_mode)
+	{
+		MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, icon);
+	}
 }
 
 void FrontendService::show_statusbar(const wchar_t* str)

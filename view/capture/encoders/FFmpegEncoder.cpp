@@ -79,7 +79,8 @@ bool FFmpegEncoder::start(Params params)
                        &m_pi)
     )
     {
-        FrontendService::show_error(std::format(L"Could not start ffmpeg process! Does ffmpeg exist on disk at '{}'?", g_config.ffmpeg_path).c_str());
+
+        FrontendService::show_dialog(std::format(L"Could not start ffmpeg process! Does ffmpeg exist on disk at '{}'?", g_config.ffmpeg_path).c_str(), L"FFmpeg Encoder", FrontendService::DialogType::Error);
         g_view_logger->info(L"CreateProcess failed ({}).", GetLastError());
         CloseHandle(m_video_pipe);
         CloseHandle(m_audio_pipe);
@@ -113,12 +114,12 @@ bool FFmpegEncoder::stop()
 
     if (!this->m_video_queue.empty() || !this->m_audio_queue.empty())
     {
-        FrontendService::show_warning(std::format(L"Capture stopped with {} video, {} audio elements remaining in queue!\nThe capture might be corrupted.", this->m_video_queue.size(), this->m_audio_queue.size()).c_str());
+        FrontendService::show_dialog(std::format(L"Capture stopped with {} video, {} audio elements remaining in queue!\nThe capture might be corrupted.", this->m_video_queue.size(), this->m_audio_queue.size()).c_str(), L"FFmpeg");
     }
 
     if (m_dropped_frames > 0)
     {
-        FrontendService::show_warning(std::format(L"{} frames were dropped during capture to avoid out-of-memory errors.\nThe capture might contain empty frames.", m_dropped_frames).c_str());
+        FrontendService::show_dialog(std::format(L"{} frames were dropped during capture to avoid out-of-memory errors.\nThe capture might contain empty frames.", m_dropped_frames).c_str(), L"FFmpeg");
     }
 
     free(m_silence_buffer);

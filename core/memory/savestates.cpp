@@ -755,9 +755,9 @@ namespace Savestates
 				FrontendService::show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
 			} else
 			{
-				FrontendService::show_error(std::format(L"Failed to {} {} (error code {}).\nVerify that the savestate is valid and accessible.",
-				                                        job == Job::Save ? L"save" : L"load", path.filename().wstring(), (int32_t)result).c_str(),
-				                            L"Savestate");
+				const auto message = std::format(L"Failed to {} {} (error code {}).\nVerify that the savestate is valid and accessible.",
+														job == Job::Save ? L"save" : L"load", path.filename().wstring(), (int32_t)result);
+				FrontendService::show_dialog(message.c_str(), L"Savestate", FrontendService::DialogType::Error);
 			}
 
 			if (callback)

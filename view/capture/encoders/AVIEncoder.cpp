@@ -272,9 +272,7 @@ bool AVIEncoder::write_sound(uint8_t* buf, int len, const int min_write_size, co
 
 				if (!ok)
 				{
-					FrontendService::show_error(
-						L"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?",
-						nullptr);
+					FrontendService::show_dialog(L"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", L"AVI Encoder", FrontendService::DialogType::Error);
 					return false;
 				}
 			}
@@ -289,7 +287,7 @@ bool AVIEncoder::write_sound(uint8_t* buf, int len, const int min_write_size, co
 
 	if (static_cast<unsigned int>(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(char))
 	{
-		FrontendService::show_error(L"Sound buffer overflow!\nCapture will be stopped.", L"AVI Encoder");
+		FrontendService::show_dialog(L"Sound buffer overflow!\nCapture will be stopped.", L"AVI Encoder", FrontendService::DialogType::Error);
 		return false;
 	}
 
