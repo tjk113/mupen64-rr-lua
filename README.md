@@ -26,35 +26,4 @@ If any issues arise or you need help, join the [discord server](https://discord.
 
 Cutting-edge features with potential instability are available for download as a zipped binary under the latest commit's artifact. 
 
-# Compiling
-
-Open the [solution](https://github.com/mkdasher/mupen64-rr-lua-/blob/dev/winproject/mupen64/mupen64_2017.sln) with your IDE of choice (VS20XX and Rider are recommended) and build the solution.
-
-<sup>
-For Rider users: 
-</sup>
-
-It's recommended to disable "Use external console" (Run > Modify Run Configuration...), as it breaks spdlog's text coloring and reduces both startup and runtime performance.
-
-# Structure
-
-The project is divided into 3 layers: Shared, Core, and View.
-
-## Shared
-
-The shared layer contains code with no dependencies other than the STL and project libraries (e.g.: libdeflate). 
-
-This layer contains shared code, such as helpers, contracts, core types, and the config.
-All other layers can reference the shared layer and utilize its code, hence the name.
-
-## Core
-
-The core layer contains the emulation core data and code, with access to the shared layer, STL, and project libraries.
-
-This layer must be driven by the view layer, and is allowed to call into contract functions defined in the shared layer and implemented in the view layer.
-
-## View
-
-The view layer contains references to the other layers, implements the required contracts, and drives the view layer.
-
-Platform-specific references (e.g.: Windows.h) are only permitted in the view layer.
+Visit the [Mupen64 Wiki](https://github.com/mkdasher/mupen64-rr-lua-/wiki/Contributing) for documentation!
