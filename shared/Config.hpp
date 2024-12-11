@@ -496,6 +496,11 @@ typedef struct Config
     int32_t piano_roll_keep_selection_visible;
 
 	/// <summary>
+	/// Whether the piano roll will try to keep the playhead visible when the frame changes
+	/// </summary>
+	int32_t piano_roll_keep_playhead_visible;
+
+	/// <summary>
 	/// Whether undo savestate load functionality is enabled.
 	/// </summary>
 	int32_t st_undo_load = 1;

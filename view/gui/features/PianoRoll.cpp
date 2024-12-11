@@ -324,15 +324,18 @@ namespace PianoRoll
     void ensure_relevant_item_visible()
     {
         const int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
+    	const auto current_sample = min(ListView_GetItemCount(g_lv_hwnd), VCR::get_seek_completion().first + 10);
+    	const auto playhead_sample = VCR::get_task() == e_task::recording ? current_sample - 1 : current_sample;
 
-        if (i == -1 || !g_config.piano_roll_keep_selection_visible)
+        if (g_config.piano_roll_keep_playhead_visible)
         {
-            const auto current_sample = min(ListView_GetItemCount(g_lv_hwnd), VCR::get_seek_completion().first + 10);
-            ListView_EnsureVisible(g_lv_hwnd, VCR::get_task() == e_task::recording ? current_sample - 1 : current_sample, false);
-            return;
+            ListView_EnsureVisible(g_lv_hwnd, playhead_sample, false);
         }
 
-        ListView_EnsureVisible(g_lv_hwnd, i, false);
+        if (g_config.piano_roll_keep_selection_visible && i != -1)
+        {
+			ListView_EnsureVisible(g_lv_hwnd, i, false);
+        }
     }
 
     /**

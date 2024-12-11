@@ -1011,10 +1011,17 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         t_options_item{
             .group_id = seek_piano_roll_group.id,
             .name = L"Keep selection visible",
-            .tooltip = L"Whether the piano roll will try to keep the selection visible when the frame changes.",
+            .tooltip = L"Whether the piano roll will try to keep the selection visible.",
             .data = &g_config.piano_roll_keep_selection_visible,
             .type = t_options_item::Type::Bool,
         },
+    	t_options_item{
+    		.group_id = seek_piano_roll_group.id,
+			.name = L"Keep playhead visible",
+			.tooltip = L"Whether the piano roll will try to keep the playhead visible.",
+			.data = &g_config.piano_roll_keep_playhead_visible,
+			.type = t_options_item::Type::Bool,
+		},
 
         t_options_item{
             .group_id = capture_group.id,
