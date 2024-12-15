@@ -423,7 +423,9 @@ namespace EncodingManager
 		if (m_capturing)
 		{
 			FrontendService::show_dialog(L"Audio frequency changed during capture.\r\nThe capture will be stopped.", L"Capture", FrontendService::DialogType::Error);
-			stop_capture();
+			g_main_window_dispatcher->invoke([] {
+				stop_capture();
+			});
 			return;
 		}
 
