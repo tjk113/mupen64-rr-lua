@@ -43,9 +43,10 @@ std::filesystem::path commandline_avi;
 bool commandline_close_on_movie_end;
 bool dacrate_changed;
 
+bool rom_is_movie;
 bool is_movie_from_start;
+size_t dacrate_change_count = 0;
 bool first_emu_launched = true;
-bool first_dacrate_changed = true;
 
 void commandline_set()
 {
@@ -81,6 +82,15 @@ void commandline_set()
         VCR::parse_header(movie_path, &hdr);
         is_movie_from_start = hdr.startFlags & MOVIE_START_FROM_NOTHING;
     }
+
+	rom_is_movie = commandline_rom.extension() == ".m64";
+
+	g_view_logger->trace("[CLI] commandline_rom: {}", commandline_rom.string());
+	g_view_logger->trace("[CLI] commandline_lua: {}", commandline_lua.string());
+	g_view_logger->trace("[CLI] commandline_st: {}", commandline_st.string());
+	g_view_logger->trace("[CLI] commandline_movie: {}", commandline_movie.string());
+	g_view_logger->trace("[CLI] commandline_avi: {}", commandline_avi.string());
+	g_view_logger->trace("[CLI] commandline_close_on_movie_end: {}", commandline_close_on_movie_end);
 }
 
 void commandline_start_rom()
@@ -92,15 +102,16 @@ void commandline_start_rom()
 
     AsyncExecutor::invoke_async([]
     {
-        const auto result = vr_start_rom(commandline_rom);
-        show_error_dialog_for_result(result);
-
-        // Special case for "Open With..."
-        if (commandline_rom.extension() == ".m64")
-        {
-            const auto result = VCR::start_playback(commandline_rom);
-            show_error_dialog_for_result(result);
-        }
+		if (rom_is_movie)
+		{
+			const auto result = VCR::start_playback(commandline_rom);
+			show_error_dialog_for_result(result);
+		}
+		else
+		{
+			const auto result = vr_start_rom(commandline_rom);
+			show_error_dialog_for_result(result);
+		}
     });
 }
 
@@ -201,14 +212,12 @@ namespace Cli
         if (!value)
             return;
 
-        if (first_emu_launched && is_movie_from_start)
+        if (!first_emu_launched)
         {
-            g_view_logger->info("[Cli] Ignoring EmuLaunchedChanged due to from-start movie first reset!");
-            first_emu_launched = false;
             return;
         }
 
-        dacrate_changed = false;
+		first_emu_launched = false;
 
         // start movies, st and lua scripts
         commandline_load_st();
@@ -223,20 +232,29 @@ namespace Cli
 
     void on_dacrate_changed(std::any)
     {
-        if (dacrate_changed)
-        {
-            return;
-        }
+		++dacrate_change_count;
 
-        if (first_dacrate_changed && is_movie_from_start)
-        {
-            g_view_logger->info("[Cli] Ignoring DacrateChanged due to from-start movie first reset!");
-            first_dacrate_changed = false;
-            return;
-        }
+		g_view_logger->trace("[Cli] on_dacrate_changed {}x", dacrate_change_count);
 
-        commandline_start_capture();
-        dacrate_changed = true;
+		if (!rom_is_movie && is_movie_from_start && dacrate_change_count == 3)
+		{
+			commandline_start_capture();
+		}
+
+		if (!rom_is_movie && !is_movie_from_start && dacrate_change_count == 2)
+		{
+			commandline_start_capture();
+		}
+
+		if (rom_is_movie && !is_movie_from_start && dacrate_change_count == 1)
+		{
+			commandline_start_capture();
+		}
+
+		if (rom_is_movie && is_movie_from_start && dacrate_change_count == 2)
+		{
+			commandline_start_capture();
+		}
     }
 
 
