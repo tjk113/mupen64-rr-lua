@@ -20,6 +20,11 @@ namespace Messenger
          */
         EmuLaunchedChanged,
 
+    	/**
+		 * \brief The core executing state has changed
+		 */
+    	CoreExecutingChanged,
+
         /**
          * \brief The emulator is beginning the termination process
          */
@@ -129,7 +134,7 @@ namespace Messenger
          * \brief The seek status has changed.
          */
         SeekStatusChanged,
-     
+
         /**
          * \brief The core speed modifier has changed
          */

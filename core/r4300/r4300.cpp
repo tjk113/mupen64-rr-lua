@@ -1945,6 +1945,7 @@ void core_start()
         init_blocks();
         last_addr = PC->addr;
         core_executing = true;
+    	Messenger::broadcast(Messenger::Message::CoreExecutingChanged, core_executing);
         g_core_logger->info(L"core_executing: {}", (bool)core_executing);
         while (!stop)
         {
@@ -2040,6 +2041,7 @@ void core_start()
     }
     if (!dynacore && interpcore) free(PC);
     core_executing = false;
+	Messenger::broadcast(Messenger::Message::CoreExecutingChanged, core_executing);
 }
 
 bool open_core_file_stream(const std::filesystem::path& path, FILE** file)

@@ -2181,6 +2181,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)g_config.is_movie_loop_enabled);
     Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
     Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
+    Messenger::broadcast(Messenger::Message::CoreExecutingChanged, false);
     Messenger::broadcast(Messenger::Message::CapturingChanged, false);
     Messenger::broadcast(Messenger::Message::SizeChanged, rect);
     Messenger::broadcast(Messenger::Message::AppReady, nullptr);

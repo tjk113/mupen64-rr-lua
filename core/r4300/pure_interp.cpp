@@ -45,6 +45,7 @@
 
 #include "tracelog.h"
 #include <shared/Config.hpp>
+#include <shared/Messenger.h>
 
 #include "debugger.h"
 
@@ -3195,6 +3196,7 @@ void pure_interpreter()
     PC = (precomp_instr*)malloc(sizeof(precomp_instr));
     last_addr = interp_addr;
     core_executing = true;
+	Messenger::broadcast(Messenger::Message::CoreExecutingChanged, core_executing);
     g_core_logger->info(L"core_executing: {}", (bool)core_executing);
     while (!stop)
     {
