@@ -236,6 +236,13 @@ namespace Cli
 			commandline_st.clear();
 		}
 
+		if (commandline_close_on_movie_end && g_config.is_movie_loop_enabled)
+		{
+			FrontendService::show_dialog(L"Movie loop is not allowed when closing on movie end is enabled.\nThe movie loop option will be disabled.", L"CLI",
+										 FrontendService::DialogType::Warning);
+			g_config.is_movie_loop_enabled = false;
+		}
+
 		// HACK: When playing a movie from start, the rom will start normally and signal us to do our work via EmuLaunchedChanged.
 		// The work is started, but then the rom is reset. At that point, the dacrate changes and breaks the capture in some cases.
 		// To avoid this, we store the movie's start flag prior to doing anything, and ignore the first EmuLaunchedChanged if it's set.
