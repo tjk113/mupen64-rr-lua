@@ -34,6 +34,7 @@
 #include "features/Dispatcher.h"
 #include "shared/AsyncExecutor.h"
 #include "shared/Config.hpp"
+#include "shared/services/FrontendService.h"
 
 std::filesystem::path commandline_rom;
 std::filesystem::path commandline_lua;
@@ -71,6 +72,13 @@ void commandline_set()
     {
         commandline_close_on_movie_end = true;
     }
+
+	// If an st is specified, a movie mustn't be specified
+	if (!commandline_st.empty() && !commandline_movie.empty())
+	{
+		FrontendService::show_dialog(L"Both -st and -m64 options specified in CLI parameters.\nThe -st option will be dropped.", L"CLI", FrontendService::DialogType::Error);
+		commandline_st.clear();
+	}
 
     // HACK: When playing a movie from start, the rom will start normally and signal us to do our work via EmuLaunchedChanged.
     // The work is started, but then the rom is reset. At that point, the dacrate changes and breaks the capture in some cases.
