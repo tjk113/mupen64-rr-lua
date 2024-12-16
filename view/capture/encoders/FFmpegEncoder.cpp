@@ -62,7 +62,7 @@ bool FFmpegEncoder::start(Params params)
             VIDEO_PIPE_NAME,
             m_params.arate,
             AUDIO_PIPE_NAME,
-            m_params.path.string().data());
+            m_params.path.wstring().data());
 
     g_view_logger->info(L"[FFmpegEncoder] Starting encode with commandline:");
     g_view_logger->info(L"[FFmpegEncoder] {}", options);
