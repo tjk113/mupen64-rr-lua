@@ -256,4 +256,9 @@ namespace Cli
 		g_view_logger->trace("[CLI] commandline_avi: {}", commandline_avi.string());
 		g_view_logger->trace("[CLI] commandline_close_on_movie_end: {}", commandline_close_on_movie_end);
 	}
+
+	bool wants_fast_forward()
+	{
+		return !commandline_avi.empty();
+	}
 }

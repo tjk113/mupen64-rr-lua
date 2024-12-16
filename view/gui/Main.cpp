@@ -873,7 +873,7 @@ void on_warp_modify_status_changed(std::any data)
 
 void update_core_fast_forward(std::any)
 {
-    g_vr_fast_forward = g_fast_forward || VCR::is_seeking() || g_vr_benchmark_enabled;
+    g_vr_fast_forward = g_fast_forward || VCR::is_seeking() || g_vr_benchmark_enabled || Cli::wants_fast_forward();
 }
 
 BetterEmulationLock::BetterEmulationLock()
@@ -2172,6 +2172,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Seeker::init();
     Savestates::init();
     setup_dummy_info();
+	update_core_fast_forward(nullptr);
 
     Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, g_recent_roms_menu);
     Recent::build(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
