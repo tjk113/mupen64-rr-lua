@@ -24,6 +24,7 @@
 #include <Shlwapi.h>
 #include <Windows.h>
 #include <format>
+#include <strsafe.h>
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
 #include <core/memory/savestates.h>
@@ -374,7 +375,7 @@ const wchar_t* get_status_text()
 
     if (VCR::get_warp_modify_status() == e_warp_modify_status::warping)
     {
-        wsprintfW(text, L"Warping (%d, %.0f%%), edit at %d", current_sample, ((float)current_sample / (float)VCR::get_length_samples()) * 100.0f, VCR::get_warp_modify_first_difference_frame());
+        StringCbPrintfW(text, sizeof(text), L"Warping (%.2f%%)", (double)current_sample / (double)VCR::get_length_samples() * 100.0);
         return text;
     }
 
