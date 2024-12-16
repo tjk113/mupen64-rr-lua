@@ -377,9 +377,7 @@ void build_rom_browser_path_list(const HWND dialog_hwnd)
 
 INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM l_param)
 {
-    [[maybe_unused]] LPITEMIDLIST pidl{};
-    BROWSEINFO bi{};
-    auto l_nmhdr = (NMHDR*)&l_param;
+	const auto lpnmhdr = reinterpret_cast<LPNMHDR>(l_param);
 	wchar_t path[MAX_PATH] = {0};
 
     switch (message)
@@ -566,6 +564,12 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             break;
         }
         break;
+    case WM_NOTIFY:
+	    if (lpnmhdr->code == PSN_SETACTIVE)
+	    {
+	    	g_config.settings_tab = 1;
+	    }
+    	break;
     default:
         break;
     }
@@ -625,9 +629,10 @@ static void refresh_plugins_page(const HWND hwnd)
 
 INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
+	const auto lpnmhdr = reinterpret_cast<LPNMHDR>(l_param);
+
     [[maybe_unused]] char path_buffer[_MAX_PATH];
-    NMHDR FAR* l_nmhdr = nullptr;
-    memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));
+
     switch (message)
     {
     case WM_CLOSE:
@@ -823,12 +828,18 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
         }
         break;
     case WM_NOTIFY:
-		if (l_nmhdr->code == PSN_SETACTIVE && g_plugin_discovery_rescan)
+		if (lpnmhdr->code == PSN_SETACTIVE)
 		{
-			refresh_plugins_page(hwnd);
-			g_plugin_discovery_rescan = false;
+			g_config.settings_tab = 0;
+
+			if (g_plugin_discovery_rescan)
+			{
+				refresh_plugins_page(hwnd);
+				g_plugin_discovery_rescan = false;
+			}
 		}
-        if (l_nmhdr->code == PSN_APPLY)
+
+        if (lpnmhdr->code == PSN_APPLY)
         {
             if (const auto plugin = get_selected_plugin(hwnd, IDC_COMBO_GFX); plugin != nullptr)
             {
@@ -1495,8 +1506,7 @@ LRESULT CALLBACK list_view_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_pa
 
 INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
-    NMHDR FAR* l_nmhdr = nullptr;
-    memcpy(&l_nmhdr, &l_param, sizeof(NMHDR FAR*));
+	const auto lpnmhdr = reinterpret_cast<LPNMHDR>(l_param);
 
     switch (message)
     {
@@ -1715,13 +1725,18 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
         break;
     case WM_NOTIFY:
         {
+    		if (lpnmhdr->code == PSN_SETACTIVE)
+    		{
+    			g_config.settings_tab = 2;
+    		}
+
             if (w_param == IDC_SETTINGS_LV)
             {
-                switch (((LPNMHDR)l_param)->code)
+                switch (lpnmhdr->code)
                 {
                 case LVN_GETDISPINFO:
                     {
-                        auto plvdi = (NMLVDISPINFO*)l_param;
+                        const auto plvdi = reinterpret_cast<NMLVDISPINFOW*>(l_param);
                         t_options_item options_item = g_option_items[plvdi->item.lParam];
 
                         if (plvdi->item.mask & LVIF_IMAGE)
@@ -1852,6 +1867,7 @@ void configdialog_show()
     psh.hInstance = g_app_instance;
     psh.pszCaption = L"Settings";
     psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
+    psh.nStartPage = g_config.settings_tab;
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
 
     g_prev_config = g_config;

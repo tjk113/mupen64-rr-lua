@@ -600,6 +600,11 @@ typedef struct Config
     /// </summary>
     std::map<std::wstring, std::wstring> persistent_folder_paths;
 
+	/// <summary>
+	/// The last selected settings tab's index.
+	/// </summary>
+	int32_t settings_tab;
+
     /// <summary>
     /// Resets the emulator faster, but may cause issues
     /// </summary>

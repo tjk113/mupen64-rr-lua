@@ -607,6 +607,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
 	HANDLE_P_VALUE(rombrowser_sort_ascending)
 	HANDLE_P_VALUE(rombrowser_sorted_column)
 	HANDLE_VALUE(persistent_folder_paths)
+	HANDLE_P_VALUE(settings_tab)
 	HANDLE_P_VALUE(fast_reset)
 	HANDLE_P_VALUE(vcr_0_index)
 	HANDLE_P_VALUE(increment_slot)
@@ -650,6 +651,8 @@ void config_apply_limits()
 	{
 		g_config.seek_savestate_interval = 2;
 	}
+
+	g_config.settings_tab = std::min(std::max(g_config.settings_tab, 0), 2);
 }
 
 void save_config()
