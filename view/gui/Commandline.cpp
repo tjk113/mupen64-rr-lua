@@ -137,7 +137,7 @@ void commandline_start_lua()
         return;
     }
 
-    g_main_window_dispatcher->invoke([&]
+    g_main_window_dispatcher->invoke([]
     {
         // To run multiple lua scripts, a semicolon-separated list is provided
         std::wstringstream stream;
@@ -145,7 +145,7 @@ void commandline_start_lua()
         stream << commandline_lua.wstring();
         while (std::getline(stream, script, L';'))
         {
-            lua_create_and_run(script.c_str());
+            lua_create_and_run(script);
         }
     });
 }
