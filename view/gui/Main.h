@@ -24,31 +24,25 @@
 #include <view/gui/features/Dispatcher.h>
 #include <core/r4300/vcr.h>
 
+#ifdef _DEBUG
+#define BUILD_TARGET_INFO L"-debug"
+#else
+#define BUILD_TARGET_INFO L""
+#endif
+
+#ifdef UNICODE
+#define CHARSET_INFO L""
+#else
+#define CHARSET_INFO L"-a"
+#endif
+
 #ifdef _M_X64
-
-#ifdef UNICODE
-
-#define MUPEN_VERSION L"Mupen 64 1.2.0 x64U"
-
+#define ARCH_INFO L"-x64"
 #else
-
-#define MUPEN_VERSION L"Mupen 64 1.2.0 x64A"
-
+#define ARCH_INFO L""
 #endif
 
-#else
-
-#ifdef UNICODE
-
-#define MUPEN_VERSION L"Mupen 64 1.2.0 x86U"
-
-#else
-
-#define MUPEN_VERSION L"Mupen 64 1.2.0 x86A"
-
-#endif
-
-#endif
+#define MUPEN_VERSION L"Mupen 64 1.2.0" ARCH_INFO CHARSET_INFO BUILD_TARGET_INFO
 
 #define WM_FOCUS_MAIN_WINDOW (WM_USER + 17)
 #define WM_EXECUTE_DISPATCHER (WM_USER + 18)
