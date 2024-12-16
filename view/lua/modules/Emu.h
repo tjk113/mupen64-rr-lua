@@ -399,7 +399,7 @@ namespace LuaCore::Emu
 
         if (type > 0)
         {
-	        version = version.substr(std::size("Mupen 64 "));
+	        version = version.substr(std::string("Mupen 64 ").size());
         }
 
         lua_pushstring(L, wstring_to_string(version).c_str());
