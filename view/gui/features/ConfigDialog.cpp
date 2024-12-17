@@ -1466,7 +1466,12 @@ bool begin_listview_edit(HWND hwnd)
         RECT item_rect{};
         ListView_GetSubItemRect(g_lv_hwnd, i, 1, LVIR_LABEL, &item_rect);
 
-        g_edit_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP, item_rect.left,
+    	RECT lv_rect{};
+    	GetClientRect(g_lv_hwnd, &lv_rect);
+
+    	item_rect.right = lv_rect.right;
+
+    	g_edit_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP, item_rect.left,
                                      item_rect.top,
                                      item_rect.right - item_rect.left, item_rect.bottom - item_rect.top,
                                      hwnd, 0, g_app_instance, 0);
