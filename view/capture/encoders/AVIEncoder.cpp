@@ -115,10 +115,26 @@ bool AVIEncoder::stop()
 	// TODO: Move bitrate to params
 	write_sound(nullptr, 0, RESAMPLED_FREQ, RESAMPLED_FREQ * 2, TRUE, 16);
 
-	AVIStreamClose(m_compressed_video_stream);
-	AVIStreamRelease(m_video_stream);
-	AVIStreamClose(m_sound_stream);
-	AVIFileClose(m_avi_file);
+	if (m_compressed_video_stream)
+	{
+		AVIStreamClose(m_compressed_video_stream);
+		m_compressed_video_stream = nullptr;
+	}
+	if (m_video_stream)
+	{
+		AVIStreamRelease(m_video_stream);
+		m_video_stream = nullptr;
+	}
+	if (m_sound_stream)
+	{
+		AVIStreamClose(m_sound_stream);
+		m_sound_stream = nullptr;
+	}
+	if (m_avi_file)
+	{
+		AVIFileClose(m_avi_file);
+		m_avi_file = nullptr;
+	}
 	AVIFileExit();
 
 	return true;
