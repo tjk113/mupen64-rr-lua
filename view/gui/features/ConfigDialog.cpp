@@ -1297,19 +1297,34 @@ LRESULT CALLBACK InlineEditBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         break;
     }
 
+def:
     return DefSubclassProc(hwnd, msg, wParam, lParam);
 
 apply:
 
-	auto len = Edit_GetTextLength(hwnd) + 1;
+	const auto len = Edit_GetTextLength(hwnd) + 1;
+
+    if (len <= 0)
+    {
+	    goto def;
+    }
+
 	auto str = static_cast<wchar_t*>(calloc(len, sizeof(wchar_t)));
+
+	if (!str)
+	{
+		goto def;
+	}
+
 	Edit_GetText(hwnd, str, len);
+
 	SendMessage(GetParent(hwnd), WM_EDIT_END, 0, (LPARAM)str);
+
 	free(str);
 
     DestroyWindow(hwnd);
 
-    return DefSubclassProc(hwnd, msg, wParam, lParam);
+	goto def;
 }
 
 INT_PTR CALLBACK EditStringDialogProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -1583,7 +1598,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
         }
     case WM_EDIT_END:
         {
-            auto str = (wchar_t*)l_param;
+            auto str = reinterpret_cast<wchar_t*>(l_param);
 
             if (g_option_items[g_edit_option_item_index].type == OptionsItem::Type::Number)
             {
