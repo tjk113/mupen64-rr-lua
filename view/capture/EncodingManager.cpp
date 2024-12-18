@@ -39,19 +39,29 @@ namespace EncodingManager
 	std::unique_ptr<Encoder> m_encoder;
 	std::recursive_mutex m_mutex;
 
-	void readscreen_plugin()
+	void readscreen_plugin(int32_t* width = nullptr, int32_t* height = nullptr)
 	{
 		if (MGECompositor::available())
 		{
 			MGECompositor::copy_video(m_video_buf);
+			MGECompositor::get_video_size(width, height);
 		} else
 		{
 			void* buf = nullptr;
-			int32_t width;
-			int32_t height;
-			readScreen(&buf, &width, &height);
-			memcpy(m_video_buf, buf, width * height * 3);
+			int32_t w;
+			int32_t h;
+			readScreen(&buf, &w, &h);
+			memcpy(m_video_buf, buf, w * h * 3);
 			DllCrtFree(buf);
+
+			if (width)
+			{
+				*width = w;
+			}
+			if (height)
+			{
+				*height = h;
+			}
 		}
 	}
 
@@ -119,10 +129,9 @@ namespace EncodingManager
 
 	void readscreen_hybrid()
 	{
-		readscreen_plugin();
-
 		int32_t raw_video_width, raw_video_height;
-		MGECompositor::get_video_size(&raw_video_width, &raw_video_height);
+
+		readscreen_plugin(&raw_video_width, &raw_video_height);
 
 		BITMAPINFO rs_bmp_info{};
 		rs_bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
