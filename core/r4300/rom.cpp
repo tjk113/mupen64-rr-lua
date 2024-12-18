@@ -70,7 +70,7 @@ void print_rom_info()
     g_core_logger->info("Cartridge ID: {:#06x}", ROM_HEADER.Cartridge_ID);
     g_core_logger->info("Size: {}", rom_size);
     g_core_logger->info("PC: {:#06x}\n", sl((uint32_t)ROM_HEADER.PC));
-    g_core_logger->info("Country: {}", wstring_to_string(country_code_to_country_name(ROM_HEADER.Country_code)).c_str());
+    g_core_logger->info(L"Country: {}", country_code_to_country_name(ROM_HEADER.Country_code));
     g_core_logger->info("----------------");
 }
 
