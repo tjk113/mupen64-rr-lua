@@ -15,6 +15,8 @@
 #include <view/helpers/IOHelpers.h>
 #include <CommCtrl.h>
 
+#include "shared/services/FrontendService.h"
+
 
 namespace MovieDialog
 {
@@ -205,27 +207,22 @@ namespace MovieDialog
                     {
                         // The default directory we open the file dialog window in is the
                         // parent directory of the last savestate that the user saved or loaded
-                        std::string path = wstring_to_string(
-                            show_persistent_open_dialog(
-                                L"o_movie_existing_snapshot", hwnd,
-                                L"*.st;*.savestate"));
+                        std::filesystem::path path = show_persistent_open_dialog(L"o_movie_existing_snapshot", hwnd, L"*.st;*.savestate");
 
                         if (path.empty())
                         {
                             break;
                         }
 
-                        std::filesystem::path movie_path = strip_extension(path) + ".m64";
+                    	path.replace_extension(L".exe");
 
-                        if (exists(movie_path))
+                        if (exists(path))
                         {
-                            if (MessageBox(
-                                    hwnd, std::format(
-                                        L"{} already exists. Are you sure want to overwrite this movie?",
-                                        movie_path.wstring()).c_str(), L"VCR",
-                                    MB_YESNO) ==
-                                IDNO)
-                                break;
+                        	const auto str = std::format(L"{} already exists. Are you sure want to overwrite this movie?", path.wstring());
+                        	if (!FrontendService::show_ask_dialog(str.c_str(), L"VCR", true, hwnd))
+                        	{
+                        		break;
+                        	}
                         }
                     }
 
