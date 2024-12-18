@@ -319,10 +319,7 @@ void FrontendService::at_vi()
         return;
     }
 
-    g_main_window_dispatcher->invoke([]
-    {
-        EncodingManager::at_vi();
-    });
+	EncodingManager::at_vi();
 }
 
 void FrontendService::ai_len_changed()
@@ -332,10 +329,7 @@ void FrontendService::ai_len_changed()
         return;
     }
 
-    g_main_window_dispatcher->invoke([]
-    {
-        EncodingManager::ai_len_changed();
-    });
+	EncodingManager::ai_len_changed();
 }
 
 std::wstring FrontendService::find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)

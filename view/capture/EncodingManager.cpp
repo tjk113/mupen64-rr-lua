@@ -37,7 +37,7 @@ namespace EncodingManager
 	std::atomic m_capturing = false;
 	EncoderType m_encoder_type;
 	std::unique_ptr<Encoder> m_encoder;
-
+	std::recursive_mutex m_mutex;
 
 	void readscreen_plugin()
 	{
@@ -57,58 +57,64 @@ namespace EncodingManager
 
 	void readscreen_window()
 	{
-		HDC dc = GetDC(g_main_hwnd);
-		HDC compat_dc = CreateCompatibleDC(dc);
-		HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
+		g_main_window_dispatcher->invoke([]
+		{
+			HDC dc = GetDC(g_main_hwnd);
+			HDC compat_dc = CreateCompatibleDC(dc);
+			HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
 
-		SelectObject(compat_dc, bitmap);
+			SelectObject(compat_dc, bitmap);
 
-		BitBlt(compat_dc, 0, 0, m_video_width, m_video_height, dc, 0, 0, SRCCOPY);
+			BitBlt(compat_dc, 0, 0, m_video_width, m_video_height, dc, 0, 0, SRCCOPY);
 
-		BITMAPINFO bmp_info{};
-		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmp_info.bmiHeader.biWidth = m_video_width;
-		bmp_info.bmiHeader.biHeight = m_video_height;
-		bmp_info.bmiHeader.biPlanes = 1;
-		bmp_info.bmiHeader.biBitCount = 24;
-		bmp_info.bmiHeader.biCompression = BI_RGB;
+			BITMAPINFO bmp_info{};
+			bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			bmp_info.bmiHeader.biWidth = m_video_width;
+			bmp_info.bmiHeader.biHeight = m_video_height;
+			bmp_info.bmiHeader.biPlanes = 1;
+			bmp_info.bmiHeader.biBitCount = 24;
+			bmp_info.bmiHeader.biCompression = BI_RGB;
 
-		GetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
+			GetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
 
-		SelectObject(compat_dc, nullptr);
-		DeleteObject(bitmap);
-		DeleteDC(compat_dc);
-		ReleaseDC(g_main_hwnd, dc);
+			SelectObject(compat_dc, nullptr);
+			DeleteObject(bitmap);
+			DeleteDC(compat_dc);
+			ReleaseDC(g_main_hwnd, dc);
+		});
 	}
 
 	void readscreen_desktop()
 	{
-		POINT pt{};
-		ClientToScreen(g_main_hwnd, &pt);
+		g_main_window_dispatcher->invoke([]
+		{
+			POINT pt{};
+			ClientToScreen(g_main_hwnd, &pt);
 
-		HDC dc = GetDC(nullptr);
-		HDC compat_dc = CreateCompatibleDC(dc);
-		HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
+			HDC dc = GetDC(nullptr);
+			HDC compat_dc = CreateCompatibleDC(dc);
+			HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
 
-		SelectObject(compat_dc, bitmap);
+			SelectObject(compat_dc, bitmap);
 
-		BitBlt(compat_dc, 0, 0, m_video_width, m_video_height, dc, pt.x,
-		       pt.y, SRCCOPY);
+			BitBlt(compat_dc, 0, 0, m_video_width, m_video_height, dc, pt.x,
+			       pt.y, SRCCOPY);
 
-		BITMAPINFO bmp_info{};
-		bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmp_info.bmiHeader.biWidth = m_video_width;
-		bmp_info.bmiHeader.biHeight = m_video_height;
-		bmp_info.bmiHeader.biPlanes = 1;
-		bmp_info.bmiHeader.biBitCount = 24;
-		bmp_info.bmiHeader.biCompression = BI_RGB;
+			BITMAPINFO bmp_info{};
+			bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			bmp_info.bmiHeader.biWidth = m_video_width;
+			bmp_info.bmiHeader.biHeight = m_video_height;
+			bmp_info.bmiHeader.biPlanes = 1;
+			bmp_info.bmiHeader.biBitCount = 24;
+			bmp_info.bmiHeader.biCompression = BI_RGB;
 
-		GetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
+			GetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
 
-		SelectObject(compat_dc, nullptr);
-		DeleteObject(bitmap);
-		DeleteDC(compat_dc);
-		ReleaseDC(nullptr, dc);
+			SelectObject(compat_dc, nullptr);
+			DeleteObject(bitmap);
+			DeleteDC(compat_dc);
+			ReleaseDC(nullptr, dc);
+		});
 	}
 
 	void readscreen_hybrid()
@@ -198,11 +204,6 @@ namespace EncodingManager
 		});
 	}
 
-	bool is_capturing()
-	{
-		return m_capturing;
-	}
-
 	void read_screen()
 	{
 		if (g_config.capture_mode == 0)
@@ -243,6 +244,9 @@ namespace EncodingManager
 			if (MGECompositor::available())
 			{
 				MGECompositor::get_video_size(width, height);
+			} else if(get_video_size)
+			{
+				get_video_size(width, height);
 			} else
 			{
 				void* buf = nullptr;
@@ -262,7 +266,7 @@ namespace EncodingManager
 
 	bool start_capture(std::filesystem::path path, EncoderType encoder_type, const bool ask_for_encoding_settings)
 	{
-		assert(is_on_gui_thread());
+		std::lock_guard lock(m_mutex);
 
 		if (is_capturing())
 		{
@@ -328,7 +332,7 @@ namespace EncodingManager
 
 	bool stop_capture()
 	{
-		assert(is_on_gui_thread());
+		std::lock_guard lock(m_mutex);
 
 		if (!is_capturing())
 		{
@@ -353,7 +357,7 @@ namespace EncodingManager
 
 	void at_vi()
 	{
-		assert(is_on_gui_thread());
+		std::lock_guard lock(m_mutex);
 
 		if (!m_capturing)
 		{
@@ -381,7 +385,7 @@ namespace EncodingManager
 
 	void ai_len_changed()
 	{
-		assert(is_on_gui_thread());
+		std::lock_guard lock(m_mutex);
 
 		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.ai_dram_addr & 0xFFFFFF));
 		const auto buf = (char*)p;
@@ -404,16 +408,6 @@ namespace EncodingManager
 				L"Capture", FrontendService::DialogType::Error);
 			stop_capture();
 		}
-	}
-
-	size_t get_video_frame()
-	{
-		return m_total_frames;
-	}
-
-	std::filesystem::path get_current_path()
-	{
-		return m_current_path;
 	}
 
 	void ai_dacrate_changed(std::any data)
@@ -449,10 +443,23 @@ namespace EncodingManager
 		g_view_logger->info("[EncodingManager] m_audio_freq: {}", m_audio_freq);
 	}
 
+	size_t get_video_frame()
+	{
+		return m_total_frames;
+	}
+
+	std::filesystem::path get_current_path()
+	{
+		return m_current_path;
+	}
+
+	bool is_capturing()
+	{
+		return m_capturing;
+	}
+
 	void init()
 	{
-		assert(is_on_gui_thread());
-
 		Messenger::subscribe(Messenger::Message::DacrateChanged, ai_dacrate_changed);
 	}
 }
