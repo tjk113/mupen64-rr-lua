@@ -783,11 +783,14 @@ void on_capturing_changed(std::any data)
 		if (value)
 		{
 			SetWindowLong(g_main_hwnd, GWL_STYLE, GetWindowLong(g_main_hwnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+			// NOTE: WS_EX_LAYERED fixes BitBlt'ing from the window when its off-screen, as it wouldnt redraw otherwise (relevant for Window capture mode)
+			SetWindowLong(g_main_hwnd, GWL_EXSTYLE, GetWindowLong(g_main_hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
 		}
 		else
 		{
 			SetWindowPos(g_main_hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 			SetWindowLong(g_main_hwnd, GWL_STYLE, GetWindowLong(g_main_hwnd, GWL_STYLE) | WS_MINIMIZEBOX);
+			SetWindowLong(g_main_hwnd, GWL_EXSTYLE, GetWindowLong(g_main_hwnd, GWL_EXSTYLE) & ~WS_EX_LAYERED);
 		}
 
 		update_titlebar();
@@ -2128,8 +2131,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         NULL, NULL, hInstance, NULL);
 
     ShowWindow(g_main_hwnd, nCmdShow);
-    // we apply WS_EX_LAYERED to fix off-screen blitting (off-screen window portions are not included otherwise)
-    SetWindowLong(g_main_hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES | WS_EX_LAYERED);
+    SetWindowLong(g_main_hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 
     g_recent_roms_menu = GetSubMenu(GetSubMenu(g_main_menu, 0), 5);
     g_recent_movies_menu = GetSubMenu(GetSubMenu(g_main_menu, 3), 5);
