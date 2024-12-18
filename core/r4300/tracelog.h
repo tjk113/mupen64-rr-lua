@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <filesystem>
+
 namespace tracelog
 {
     /**
@@ -13,7 +15,7 @@ namespace tracelog
      * \param binary Whether log output is in a binary format
      * \param append Whether log output will be appended to the file
      */
-    void start(const char* path, bool binary, bool append = false);
+    void start(std::filesystem::path path, bool binary, bool append = false);
 
     /**
      * \brief Stops trace logging

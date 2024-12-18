@@ -1517,7 +1517,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     auto result = MessageBox(g_main_hwnd, L"Should the trace log be generated in a binary format?", L"Trace Logger",
                                              MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1);
 
-                    tracelog::start(wstring_to_string(path).c_str(), result == IDYES);
+                    tracelog::start(path, result == IDYES);
                     ModifyMenu(g_main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, L"Stop &Trace Logger");
                 }
                 break;

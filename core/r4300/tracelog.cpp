@@ -138,10 +138,10 @@ namespace tracelog
 #undef REGFPU2
     }
 
-    void start(const char* path, bool binary, bool append)
+    void start(std::filesystem::path path, bool binary, bool append)
     {
         use_binary = binary;
-        log_file = fopen(path, "wb");
+        log_file = _wfopen(path.wstring().c_str(), L"wb");
 
         enabled = true;
         if (interpcore == 0)
