@@ -1472,19 +1472,19 @@ namespace PianoRoll
                                 break;
                             }
                         case 1:
-                            lstrcpyW(plvdi->item.pszText, std::to_wstring(plvdi->item.iItem).c_str());
+                            StrNCpy(plvdi->item.pszText, std::to_wstring(plvdi->item.iItem).c_str(), plvdi->item.cchTextMax);
                             break;
                         case 2:
-                            lstrcpyW(plvdi->item.pszText, std::to_wstring(input.Y_AXIS).c_str());
+							StrNCpy(plvdi->item.pszText, std::to_wstring(input.Y_AXIS).c_str(), plvdi->item.cchTextMax);
                             break;
                         case 3:
-                            lstrcpyW(plvdi->item.pszText, std::to_wstring(input.X_AXIS).c_str());
+							StrNCpy(plvdi->item.pszText, std::to_wstring(input.X_AXIS).c_str(), plvdi->item.cchTextMax);
                             break;
                         default:
                             {
                                 auto value = get_input_value_from_column_index(input, plvdi->item.iSubItem);
                                 auto name = get_button_name_from_column_index(plvdi->item.iSubItem);
-                                lstrcpyW(plvdi->item.pszText, value ? name : L"");
+								StrNCpy(plvdi->item.pszText, value ? name : L"", plvdi->item.cchTextMax);
                                 break;
                             }
                         }
