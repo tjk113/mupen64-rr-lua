@@ -1793,15 +1793,15 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
                         switch (plvdi->item.iSubItem)
                         {
                         case 0:
-                            StrCpy(plvdi->item.pszText, options_item.name.c_str());
+							StrNCpy(plvdi->item.pszText, options_item.name.c_str(), plvdi->item.cchTextMax);
                             break;
                         case 1:
                             if (g_hotkey_active_index.has_value() && g_hotkey_active_index.value() == plvdi->item.iItem)
                             {
-                                StrCpy(plvdi->item.pszText, L"... (RMB to cancel)");
+                                StrNCpy(plvdi->item.pszText, L"... (RMB to cancel)", plvdi->item.cchTextMax);
                                 break;
                             }
-                            StrCpy(plvdi->item.pszText, options_item.get_value_name().c_str());
+                            StrNCpy(plvdi->item.pszText, options_item.get_value_name().c_str(), plvdi->item.cchTextMax);
                             break;
                         }
                         break;
