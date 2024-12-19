@@ -163,10 +163,19 @@ bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length)
 
 bool FFmpegEncoder::append_video(uint8_t* image)
 {
-	if (lag_count > 2)
+	if (g_config.synchronization_mode == 1)
 	{
-		const auto samples_per_frame = static_cast<double>(m_params.arate) / m_params.fps;
-		append_audio_impl(m_silence_buffer, static_cast<size_t>(round(samples_per_frame)));
+		if (m_last_write_was_video)
+		{
+			return true;
+		}
+	} else if (g_config.synchronization_mode == 2)
+	{
+		if (lag_count > 2)
+		{
+			const auto samples_per_frame = static_cast<double>(m_params.arate) / m_params.fps;
+			append_audio_impl(m_silence_buffer, static_cast<size_t>(round(samples_per_frame)));
+		}
 	}
 
     m_last_write_was_video = true;
