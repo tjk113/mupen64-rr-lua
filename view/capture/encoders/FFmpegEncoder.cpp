@@ -6,6 +6,7 @@
 #include <view/gui/Main.h>
 #include <view/gui/Loggers.h>
 
+#include "core/memory/pif.h"
 #include "shared/services/FrontendService.h"
 
 bool FFmpegEncoder::start(Params params)
@@ -158,11 +159,11 @@ bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length, bool needs_
 
 bool FFmpegEncoder::append_video(uint8_t* image)
 {
-    if (m_last_write_was_video)
-    {
-        g_view_logger->info("[FFmpegEncoder] writing silence buffer, length {}", m_params.arate / 16);
-        append_audio_impl(m_silence_buffer, m_params.arate / 16, false);
-    }
+	if (lag_count > 2)
+	{
+		append_audio_impl(m_silence_buffer, m_params.arate / 64, false);
+	}
+
     m_last_write_was_video = true;
 
     auto buf = static_cast<uint8_t*>(malloc(m_params.width * m_params.height * 3));
