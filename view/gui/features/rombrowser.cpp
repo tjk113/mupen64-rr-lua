@@ -4,6 +4,7 @@
 #include <iterator>
 #include <vector>
 #include <commctrl.h>
+#include <Shlwapi.h>
 #include "RomBrowser.hpp"
 #include <chrono>
 
@@ -367,20 +368,20 @@ namespace Rombrowser
 		                // NOTE: The name may not be null-terminated, so we NEED to limit the size
                 		char str[sizeof(t_rom_header::nom) + 1] = {0};
                 		strncpy(str, (char*)rombrowser_entry->rom_header.nom, sizeof(t_rom_header::nom));
-                		lstrcpyW(plvdi->item.pszText, string_to_wstring(str).c_str());
+						StrNCpy(plvdi->item.pszText, string_to_wstring(str).c_str(), plvdi->item.cchTextMax);
                 		break;
 	                }
                 case 2:
                     {
                         wchar_t filename[MAX_PATH] = {0};
                         _wsplitpath(rombrowser_entry->path.c_str(), nullptr, nullptr, filename, nullptr);
-                        lstrcpyW(plvdi->item.pszText, filename);
+						StrNCpy(plvdi->item.pszText, filename, plvdi->item.cchTextMax);
                         break;
                     }
                 case 3:
                     {
                         const auto size = std::to_wstring(rombrowser_entry->size / (1024 * 1024)) + L" MB";
-                        lstrcpyW(plvdi->item.pszText, size.c_str());
+						StrNCpy(plvdi->item.pszText, size.c_str(), plvdi->item.cchTextMax);
                         break;
                     }
                 default:
