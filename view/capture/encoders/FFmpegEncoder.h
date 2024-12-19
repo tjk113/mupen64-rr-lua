@@ -16,7 +16,7 @@ public:
     bool append_audio(uint8_t* audio, size_t length, uint8_t bitrate) override;
 
 private:
-    bool append_audio_impl(uint8_t* audio, size_t length, bool needs_free);
+    bool append_audio_impl(uint8_t* audio, size_t length);
     void write_video_thread();
     void write_audio_thread();
 
@@ -37,7 +37,7 @@ private:
     std::thread m_audio_thread;
     std::mutex m_audio_queue_mutex{};
 	std::condition_variable m_audio_cv{};
-    std::queue<std::tuple<uint8_t*, size_t, bool>> m_audio_queue;
+    std::queue<std::tuple<uint8_t*, size_t>> m_audio_queue;
 
     std::thread m_video_thread;
     std::mutex m_video_queue_mutex{};

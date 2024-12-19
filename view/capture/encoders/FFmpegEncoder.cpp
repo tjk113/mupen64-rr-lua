@@ -141,16 +141,20 @@ static bool write_pipe_checked(const HANDLE pipe, const char* buffer, const unsi
     return true;
 }
 
-bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length, bool needs_free)
+bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length)
 {
-    auto buf = static_cast<uint8_t*>(malloc(length));
-    memcpy(buf, audio, length);
+    uint8_t* buf = m_silence_buffer;
+	if (audio != m_silence_buffer)
+	{
+		buf = static_cast<uint8_t*>(malloc(length));
+		memcpy(buf, audio, length);
+	}
 
     m_last_write_was_video = false;
 
     {
         std::lock_guard lock(m_audio_queue_mutex);
-        this->m_audio_queue.emplace(buf, length, needs_free);
+        this->m_audio_queue.emplace(buf, length);
     }
     m_audio_cv.notify_one();
 
@@ -161,7 +165,8 @@ bool FFmpegEncoder::append_video(uint8_t* image)
 {
 	if (lag_count > 2)
 	{
-		append_audio_impl(m_silence_buffer, m_params.arate / 64, false);
+		const auto samples_per_frame = static_cast<double>(m_params.arate) / m_params.fps;
+		append_audio_impl(m_silence_buffer, static_cast<size_t>(round(samples_per_frame)));
 	}
 
     m_last_write_was_video = true;
@@ -199,7 +204,7 @@ bool FFmpegEncoder::append_audio(uint8_t* audio, size_t length, uint8_t)
     auto buf = static_cast<uint8_t*>(malloc(length));
     memcpy(buf, audio, length);
 
-    return append_audio_impl(buf, length, true);
+    return append_audio_impl(buf, length);
 }
 
 void FFmpegEncoder::write_audio_thread()
@@ -220,10 +225,9 @@ void FFmpegEncoder::write_audio_thread()
 
         const auto buf = std::get<0>(tuple);
         const auto len = std::get<1>(tuple);
-        const auto needs_free = std::get<2>(tuple);
 
         write_pipe_checked(m_audio_pipe, (char*)buf, len, false);
-        if (needs_free)
+        if (buf != m_silence_buffer)
         {
             free(buf);
         }
