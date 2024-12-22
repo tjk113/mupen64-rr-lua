@@ -110,6 +110,7 @@
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <Profile>true</Profile>
       <GenerateMapFile>true</GenerateMapFile>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <ResourceCompile>
       <ShowProgress>true</ShowProgress>
@@ -193,6 +194,7 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <Profile>true</Profile>
       <GenerateMapFile>true</GenerateMapFile>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
