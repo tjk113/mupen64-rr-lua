@@ -469,7 +469,7 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             }
         case IDC_REMOVE_BROWSER_DIR:
             {
-	            const int32_t selected_index = ListBox_GetCurSel(hwnd, IDC_ROMBROWSER_DIR_LIST);
+	            const int32_t selected_index = ListBox_GetCurSel(GetDlgItem(hwnd, IDC_ROMBROWSER_DIR_LIST));
 	            if (selected_index == -1)
 	            {
 		            break;
