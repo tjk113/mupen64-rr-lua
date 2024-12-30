@@ -590,9 +590,14 @@ INT_PTR CALLBACK directories_cfg(const HWND hwnd, const UINT message, const WPAR
             break;
         case IDC_DEFAULT_PLUGINS_CHECK:
             {
+        		const auto prev = g_config.is_default_plugins_directory_used;
                 g_config.is_default_plugins_directory_used = IsDlgButtonChecked(hwnd, IDC_DEFAULT_PLUGINS_CHECK) == BST_CHECKED;
                 EnableWindow(GetDlgItem(hwnd, IDC_PLUGINS_DIR), !g_config.is_default_plugins_directory_used);
                 EnableWindow(GetDlgItem(hwnd, IDC_CHOOSE_PLUGINS_DIR), !g_config.is_default_plugins_directory_used);
+		        if (g_config.is_default_plugins_directory_used != prev)
+		        {
+			        g_plugin_discovery_rescan = true;
+		        }
             }
             break;
         case IDC_DEFAULT_BACKUPS_CHECK:
