@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 /*
  *	Interface for special platform-related functionality.
  *
@@ -11,9 +13,10 @@ namespace PlatformService
     /**
      * Loads a library from the specified path.
      * \param path The path to the library.
+     * \param error Out pointer to the error code of the operation. Can be nullptr.
      * \return The handle to the loaded library, or nullptr.
      */
-    void* load_library(const wchar_t* path);
+    void* load_library(const wchar_t* path, uint64_t* error = nullptr);
 
     /**
      * Frees a loaded library.

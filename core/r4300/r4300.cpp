@@ -2283,20 +2283,20 @@ CoreResult vr_start_rom_impl(std::filesystem::path path)
         auto input_pl = Plugin::create(g_config.selected_input_plugin);
         auto rsp_pl = Plugin::create(g_config.selected_rsp_plugin);
 
-        if (!video_pl.has_value() || !audio_pl.has_value() || !input_pl.has_value() || !rsp_pl.has_value())
+        if (video_pl.second == nullptr || audio_pl.second == nullptr || input_pl.second == nullptr || rsp_pl.second == nullptr)
         {
-            video_pl.reset();
-            audio_pl.reset();
-            input_pl.reset();
-            rsp_pl.reset();
+            video_pl.second.reset();
+            audio_pl.second.reset();
+            input_pl.second.reset();
+            rsp_pl.second.reset();
             Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
             return CoreResult::VR_PluginError;
         }
 
-        video_plugin = std::move(video_pl.value());
-        audio_plugin = std::move(audio_pl.value());
-        input_plugin = std::move(input_pl.value());
-        rsp_plugin = std::move(rsp_pl.value());
+        video_plugin = std::move(video_pl.second);
+        audio_plugin = std::move(audio_pl.second);
+        input_plugin = std::move(input_pl.second);
+        rsp_plugin = std::move(rsp_pl.second);
     }
 
     if (!rom_load(path.string().c_str()))

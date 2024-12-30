@@ -5,9 +5,14 @@
 
 #include "shared/services/FrontendService.h"
 
-void* PlatformService::load_library(const wchar_t* path)
+void* PlatformService::load_library(const wchar_t* path, uint64_t* error)
 {
-    return LoadLibrary(path);
+    auto module = LoadLibrary(path);
+	if (error)
+	{
+		*error = GetLastError();
+	}
+	return module;
 }
 
 void PlatformService::free_library(void* module)

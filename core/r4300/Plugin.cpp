@@ -360,13 +360,14 @@ void load_rsp(void* handle)
     initiateRSP(rsp_info, (uint32_t*)&i);
 }
 
-std::optional<std::unique_ptr<Plugin>> Plugin::create(std::filesystem::path path)
+std::pair<std::wstring, std::unique_ptr<Plugin>> Plugin::create(std::filesystem::path path)
 {
-    void* module = PlatformService::load_library(path.wstring().c_str());
+	uint64_t error = 0;
+    void* module = PlatformService::load_library(path.wstring().c_str(), &error);
 
     if (module == nullptr)
     {
-        return std::nullopt;
+        return std::make_pair(std::format(L"LoadLibrary (code {})", error), nullptr);
     }
 
     const auto get_dll_info = (GETDLLINFO)PlatformService::get_function_in_module(
@@ -375,7 +376,7 @@ std::optional<std::unique_ptr<Plugin>> Plugin::create(std::filesystem::path path
     if (!get_dll_info)
     {
         PlatformService::free_library(module);
-        return std::nullopt;
+    	return std::make_pair(L"GetDllInfo missing", nullptr);
     }
 
     PLUGIN_INFO plugin_info;
@@ -396,7 +397,7 @@ std::optional<std::unique_ptr<Plugin>> Plugin::create(std::filesystem::path path
     plugin->m_module = module;
 
     g_core_logger->info("[Plugin] Created plugin {}", plugin->m_name);
-    return plugin;
+	return std::make_pair(L"", std::move(plugin));
 }
 
 Plugin::~Plugin()

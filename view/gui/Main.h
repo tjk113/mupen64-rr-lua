@@ -135,9 +135,9 @@ typedef struct
 	std::vector<std::unique_ptr<Plugin>> plugins;
 
 	/**
-	 * The amonut of discovered plugins which couldn't be loaded for some reason.
+	 * Vector of discovered plugins and their results.
 	 */
-	size_t broken_plugins;
+	std::vector<std::pair<std::filesystem::path, std::wstring>> results;
 
 } t_plugin_discovery_result;
 

@@ -83,6 +83,13 @@ enum class CoreResult
 	// The user cancelled the operation
 	ST_Cancelled,
 #pragma endregion
+
+	#pragma region Plugins
+	// The plugin library couldn't be loaded
+	Pl_LoadLibraryFailed,
+	// The plugin doesn't export a GetDllInfo function
+	Pl_NoGetDllInfo,
+	#pragma endregion
 };
 
 enum class PluginType

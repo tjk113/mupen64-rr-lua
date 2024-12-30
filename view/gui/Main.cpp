@@ -25,6 +25,7 @@
 #include <Windows.h>
 #include <format>
 #include <strsafe.h>
+#include <variant>
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
 #include <core/memory/savestates.h>
@@ -1001,22 +1002,22 @@ t_plugin_discovery_result do_plugin_discovery()
 	std::vector<std::unique_ptr<Plugin>> plugins;
 	const auto files = IOService::get_files_with_extension_in_directory(get_plugins_directory(), L"dll");
 
-	size_t broken_plugins = 0;
+	std::vector<std::pair<std::filesystem::path, std::wstring>> results;
 	for (const auto& file : files)
 	{
-		auto plugin = Plugin::create(file);
-		if (plugin.has_value())
-		{
-			plugins.push_back(std::move(plugin.value()));
-			continue;
-		}
+		auto [result, plugin] = Plugin::create(file);
 
-		broken_plugins++;
+		results.emplace_back(file, result);
+
+		if (!result.empty())
+			continue;
+
+		plugins.emplace_back(std::move(plugin));
 	}
 
 	return t_plugin_discovery_result {
 		.plugins = std::move(plugins),
-		.broken_plugins = broken_plugins
+		.results = results,
 	};
 }
 
@@ -1428,27 +1429,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     // FIXME: Is it safe to load multiple plugin instances? This assumes they cooperate and dont overwrite eachother's files...
                     // It does seem fine tho, since the config dialog is modal and core is paused
                     g_hwnd_plug = g_main_hwnd;
-                    std::optional<std::unique_ptr<Plugin>> plugin;
+                    std::unique_ptr<Plugin> plugin;
 
                     switch (LOWORD(wParam))
                     {
                     case IDM_VIDEO_SETTINGS:
-                        plugin = Plugin::create(g_config.selected_video_plugin);
+                        plugin = Plugin::create(g_config.selected_video_plugin).second;
                         break;
                     case IDM_INPUT_SETTINGS:
-                        plugin = Plugin::create(g_config.selected_input_plugin);
+                        plugin = Plugin::create(g_config.selected_input_plugin).second;
                         break;
                     case IDM_AUDIO_SETTINGS:
-                        plugin = Plugin::create(g_config.selected_audio_plugin);
+                        plugin = Plugin::create(g_config.selected_audio_plugin).second;
                         break;
                     case IDM_RSP_SETTINGS:
-                        plugin = Plugin::create(g_config.selected_rsp_plugin);
+                        plugin = Plugin::create(g_config.selected_rsp_plugin).second;
                         break;
                     }
 
-                    if (plugin.has_value())
+                    if (plugin != nullptr)
                     {
-                        plugin.value()->config();
+                        plugin->config();
                     }
                 }
                 break;

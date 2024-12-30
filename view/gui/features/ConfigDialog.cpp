@@ -321,6 +321,112 @@ int32_t get_user_hotkey(t_hotkey* hotkey)
     return 0;
 }
 
+INT_PTR CALLBACK plugin_discovery_dlgproc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
+{
+	static HWND g_pldlv_hwnd;
+
+	switch (msg)
+	{
+	case WM_INITDIALOG:
+		{
+			RECT rect{};
+			GetClientRect(hwnd, &rect);
+
+			g_pldlv_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WC_LISTVIEW, NULL,
+			                              WS_TABSTOP | WS_VISIBLE | WS_CHILD |
+			                              LVS_SINGLESEL | LVS_REPORT |
+			                              LVS_SHOWSELALWAYS,
+			                              rect.left, rect.top,
+			                              rect.right - rect.left,
+			                              rect.bottom - rect.top,
+			                              hwnd, nullptr,
+			                              g_app_instance,
+			                              NULL);
+
+			ListView_SetExtendedListViewStyle(g_pldlv_hwnd,
+			                                  LVS_EX_GRIDLINES |
+			                                  LVS_EX_FULLROWSELECT |
+			                                  LVS_EX_DOUBLEBUFFER);
+
+			LVCOLUMN lv_column = {0};
+			lv_column.mask = LVCF_FMT | LVCF_DEFAULTWIDTH | LVCF_TEXT |
+			LVCF_SUBITEM;
+
+			lv_column.pszText = const_cast<LPWSTR>(L"Plugin");
+			ListView_InsertColumn(g_pldlv_hwnd, 0, &lv_column);
+			lv_column.pszText = const_cast<LPWSTR>(L"Error");
+			ListView_InsertColumn(g_pldlv_hwnd, 1, &lv_column);
+
+			LV_ITEM lv_item = {0};
+			lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
+			lv_item.pszText = LPSTR_TEXTCALLBACK;
+
+			size_t i = 0;
+			for (const auto& pair : plugin_discovery_result.results)
+			{
+				if (!pair.second.empty())
+				{
+					lv_item.lParam = i;
+					lv_item.iItem = i;
+					ListView_InsertItem(g_pldlv_hwnd, &lv_item);
+				}
+
+				i++;
+			}
+
+			ListView_SetColumnWidth(g_pldlv_hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
+			ListView_SetColumnWidth(g_pldlv_hwnd, 1, LVSCW_AUTOSIZE_USEHEADER);
+
+			return TRUE;
+		}
+	case WM_NOTIFY:
+		{
+			switch (((LPNMHDR)l_param)->code)
+			{
+			case LVN_GETDISPINFO:
+				{
+					auto plvdi = reinterpret_cast<NMLVDISPINFO*>(l_param);
+					const auto pair = plugin_discovery_result.results[plvdi->item.lParam];
+					switch (plvdi->item.iSubItem)
+					{
+					case 0:
+						StrNCpy(plvdi->item.pszText, pair.first.filename().c_str(), plvdi->item.cchTextMax);
+						break;
+					case 1:
+						{
+							StrNCpy(plvdi->item.pszText, pair.second.c_str(), plvdi->item.cchTextMax);
+							break;
+						}
+					default:
+						break;
+					}
+				}
+			default:
+				break;
+			}
+
+
+			break;
+		}
+	case WM_DESTROY:
+		EndDialog(hwnd, LOWORD(w_param));
+		return TRUE;
+	case WM_CLOSE:
+		EndDialog(hwnd, IDOK);
+		break;
+	case WM_COMMAND:
+		switch (LOWORD(w_param))
+		{
+		default:
+			break;
+		}
+		break;
+	default:
+		return FALSE;
+	}
+	return TRUE;
+}
+
 INT_PTR CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARAM w_param, LPARAM)
 {
     switch (message)
@@ -665,13 +771,22 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
         }
     case WM_PLUGIN_DISCOVERY_FINISHED:
 	    {
-		    if (plugin_discovery_result.broken_plugins > 0)
+    		std::vector<std::pair<std::filesystem::path, std::wstring>> broken_plugins;
+
+    		std::ranges::copy_if(plugin_discovery_result.results, std::back_inserter(broken_plugins), [](const auto& pair)
+    		{
+    			return !pair.second.empty();
+    		});
+
+		    if (broken_plugins.empty())
 		    {
-		    	SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, std::format(L"Not all discovered plugins shown. {} plugin(s) failed to load.", plugin_discovery_result.broken_plugins).c_str());
+				SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, L"");
 			} else
 			{
-				SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, L"");
+		    	SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, std::format(L"Not all discovered plugins shown. {} plugin(s) failed to load.", broken_plugins.size()).c_str());
 			}
+
+    		EnableWindow(GetDlgItem(hwnd, IDC_PLUGIN_DISCOVERY_INFO), !broken_plugins.empty());
 
     		ComboBox_ResetContent(GetDlgItem(hwnd, IDC_COMBO_GFX));
     		ComboBox_ResetContent(GetDlgItem(hwnd, IDC_COMBO_SOUND));
@@ -823,6 +938,9 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
             g_hwnd_plug = hwnd;
             get_selected_plugin(hwnd, IDC_COMBO_RSP)->about();
             break;
+		case IDC_PLUGIN_DISCOVERY_INFO:
+			DialogBox(g_app_instance, MAKEINTRESOURCE(IDD_PLUGIN_DISCOVERY_RESULTS), hwnd, plugin_discovery_dlgproc);
+    		break;
         default:
             break;
         }

@@ -506,6 +506,8 @@
 #define IDC_VERSION_TEXT                40092
 #define IDC_PLUGIN_WARNING              40093
 #define IDM_UNDO_LOAD_STATE             40094
+#define IDC_PLUGIN_DISCOVERY_INFO       40095
+#define IDD_PLUGIN_DISCOVERY_RESULTS    40096
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

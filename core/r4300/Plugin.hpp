@@ -185,9 +185,9 @@ public:
     /**
      * \brief Tries to create a plugin from the given path
      * \param path The path to a plugin
-     * \return A pointer to the plugin, or nothing if the plugin couldn't be created
+     * \return The operation status along with a pointer to the plugin. The pointer will be invalid if the first pair element isn't an empty string.
      */
-    static std::optional<std::unique_ptr<Plugin>> create(std::filesystem::path path);
+    static std::pair<std::wstring, std::unique_ptr<Plugin>> create(std::filesystem::path path);
 
     Plugin() = default;
     ~Plugin();
