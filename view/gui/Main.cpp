@@ -228,7 +228,7 @@ static void prompt_plugin_change()
 
 	if (result == 1)
 	{
-		// FIXME: Set config tab index to 0
+		g_config.settings_tab = 0;
 		SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
 	}
 }
