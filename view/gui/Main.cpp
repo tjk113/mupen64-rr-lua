@@ -170,6 +170,69 @@ const std::map<Action, int> ACTION_ID_MAP = {
     {Action::SelectSlot10, (IDM_SELECT_1 - 1) + 10},
 };
 
+/// Prompts the user to change their plugin selection.
+static void prompt_plugin_change()
+{
+	auto result = FrontendService::show_multiple_choice_dialog(
+		{L"Choose Default Plugins", L"Change Plugins", L"Cancel"},
+		L"One or more plugins couldn't be loaded.\r\nHow would you like to proceed?",
+		L"Core",
+		FrontendService::DialogType::Error);
+
+	if (result == 0)
+	{
+		auto plugin_discovery_result = do_plugin_discovery();
+
+		auto first_video_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
+		{
+			return plugin->type() == PluginType::Video;
+		});
+
+		auto first_audio_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
+		{
+			return plugin->type() == PluginType::Audio;
+		});
+
+		auto first_input_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
+		{
+			return plugin->type() == PluginType::Input;
+		});
+
+		auto first_rsp_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
+		{
+			return plugin->type() == PluginType::RSP;
+		});
+
+		if (first_video_plugin != plugin_discovery_result.plugins.end())
+		{
+			g_config.selected_video_plugin = first_video_plugin->get()->path();
+		}
+
+		if (first_audio_plugin != plugin_discovery_result.plugins.end())
+		{
+			g_config.selected_audio_plugin = first_audio_plugin->get()->path();
+		}
+
+		if (first_input_plugin != plugin_discovery_result.plugins.end())
+		{
+			g_config.selected_input_plugin = first_input_plugin->get()->path();
+		}
+
+		if (first_rsp_plugin != plugin_discovery_result.plugins.end())
+		{
+			g_config.selected_rsp_plugin = first_rsp_plugin->get()->path();
+		}
+
+		return;
+	}
+
+	if (result == 1)
+	{
+		// FIXME: Set config tab index to 0
+		SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
+	}
+}
+
 bool show_error_dialog_for_result(const CoreResult result, void* hwnd)
 {
     if (result == CoreResult::Ok
@@ -271,10 +334,7 @@ bool show_error_dialog_for_result(const CoreResult result, void* hwnd)
         break;
     case CoreResult::VR_PluginError:
         module = L"Core";
-        if (FrontendService::show_ask_dialog(L"Plugins couldn't be loaded.\r\nDo you want to change the selected plugins?"))
-        {
-            SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_SETTINGS, 0), 0);
-        }
+    	prompt_plugin_change();
         break;
     case CoreResult::VR_RomInvalid:
         module = L"Core";
