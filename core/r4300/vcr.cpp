@@ -376,6 +376,8 @@ vcr_is_playing()
 
 std::optional<t_movie_freeze> VCR::freeze()
 {
+	std::scoped_lock lock(vcr_mutex);
+
     if (VCR::get_task() == e_task::idle)
     {
         return std::nullopt;
@@ -404,6 +406,8 @@ std::optional<t_movie_freeze> VCR::freeze()
 
 CoreResult VCR::unfreeze(t_movie_freeze freeze)
 {
+	std::scoped_lock lock(vcr_mutex);
+
     // Unfreezing isn't valid during idle state
     if (VCR::get_task() == e_task::idle)
     {
