@@ -2141,7 +2141,6 @@ void emu_thread()
     rsp_plugin_thread.join();
 
     init_memory();
-    Savestates::clear_work();
 
     romOpen_gfx();
     romOpen_input();
@@ -2157,6 +2156,8 @@ void emu_thread()
 
     g_core_logger->info("[Core] Emu thread entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
     core_start();
+
+	Savestates::wait_for_work_processing();
 
     romClosed_gfx();
     romClosed_audio();
