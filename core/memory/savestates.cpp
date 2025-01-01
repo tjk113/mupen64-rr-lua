@@ -728,11 +728,13 @@ namespace Savestates
 	 */
 	bool can_push_work()
 	{
-		return emu_launched;
+		return core_executing;
 	}
 
 	void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
 	{
+		std::scoped_lock lock(g_task_mutex);
+
 		if (!can_push_work())
 		{
 			g_core_logger->trace("[ST] do_file: Can't enqueue work.");
@@ -742,8 +744,6 @@ namespace Savestates
 			}
 			return;
 		}
-
-		std::scoped_lock lock(g_task_mutex);
 
 		auto pre_callback = [=](const CoreResult result, const std::vector<uint8_t>& buffer)
 		{
@@ -781,6 +781,8 @@ namespace Savestates
 
 	void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
 	{
+		std::scoped_lock lock(g_task_mutex);
+
 		if (!can_push_work())
 		{
 			g_core_logger->trace("[ST] do_slot: Can't enqueue work.");
@@ -790,8 +792,6 @@ namespace Savestates
 			}
 			return;
 		}
-
-		std::scoped_lock lock(g_task_mutex);
 
 		g_config.st_slot = slot;
 		Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
@@ -836,6 +836,8 @@ namespace Savestates
 
 	void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
 	{
+		std::scoped_lock lock(g_task_mutex);
+
 		if (!can_push_work())
 		{
 			g_core_logger->trace("[ST] do_memory: Can't enqueue work.");
@@ -845,8 +847,6 @@ namespace Savestates
 			}
 			return;
 		}
-
-		std::scoped_lock lock(g_task_mutex);
 
 		const t_savestate_task task = {
 			.job = job,
