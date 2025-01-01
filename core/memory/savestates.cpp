@@ -205,7 +205,8 @@ namespace Savestates
 		memset(g_flashram_buf, 0, sizeof(g_flashram_buf));
 		memset(g_event_queue_buf, 0, sizeof(g_event_queue_buf));
 
-		uint32_t movie_active = VCR::get_task() != e_task::idle;
+		const auto freeze_result = VCR::freeze();
+		uint32_t movie_active = freeze_result.has_value();
 
 		if (FIX_NEW_ST)
 		{
@@ -277,14 +278,14 @@ namespace Savestates
 		vecwrite(b, &movie_active, sizeof(movie_active));
 		if (movie_active)
 		{
-			auto movie_freeze = VCR::freeze().value();
+			auto freeze = freeze_result.value();
 
-			vecwrite(b, &movie_freeze.size, sizeof(movie_freeze.size));
-			vecwrite(b, &movie_freeze.uid, sizeof(movie_freeze.uid));
-			vecwrite(b, &movie_freeze.current_sample, sizeof(movie_freeze.current_sample));
-			vecwrite(b, &movie_freeze.current_vi, sizeof(movie_freeze.current_vi));
-			vecwrite(b, &movie_freeze.length_samples, sizeof(movie_freeze.length_samples));
-			vecwrite(b, movie_freeze.input_buffer.data(), movie_freeze.input_buffer.size() * sizeof(BUTTONS));
+			vecwrite(b, &freeze.size, sizeof(freeze.size));
+			vecwrite(b, &freeze.uid, sizeof(freeze.uid));
+			vecwrite(b, &freeze.current_sample, sizeof(freeze.current_sample));
+			vecwrite(b, &freeze.current_vi, sizeof(freeze.current_vi));
+			vecwrite(b, &freeze.length_samples, sizeof(freeze.length_samples));
+			vecwrite(b, freeze.input_buffer.data(), freeze.input_buffer.size() * sizeof(BUTTONS));
 		}
 
 		if (is_mge_available() && g_config.st_screenshot)
@@ -717,7 +718,7 @@ namespace Savestates
 	}
 
 	void clear_work_queue()
-			{
+	{
 		std::scoped_lock lock(g_task_mutex);
 		g_tasks.clear();
 	}
