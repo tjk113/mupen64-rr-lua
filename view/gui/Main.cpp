@@ -1049,7 +1049,7 @@ std::filesystem::path get_app_full_path()
     wchar_t ret[MAX_PATH] = {0};
     wchar_t drive[_MAX_DRIVE], dirn[_MAX_DIR];
     wchar_t path_buffer[_MAX_DIR];
-    GetModuleFileName(nullptr, path_buffer, sizeof(path_buffer));
+    GetModuleFileName(nullptr, path_buffer, std::size(path_buffer));
     _wsplitpath(path_buffer, drive, dirn, nullptr, nullptr);
     StrCpy(ret, drive);
     StrCat(ret, dirn);
