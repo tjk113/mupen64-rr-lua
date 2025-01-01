@@ -1604,13 +1604,13 @@ bool task_is_recording(e_task task)
         e_task::start_recording_from_snapshot;
 }
 
-CoreResult VCR::stop_all()
+static void vcr_clear_seek_savestates()
 {
-    g_core_logger->info("[VCR] Clearing seek savestates...");
+	std::scoped_lock lock(vcr_mutex);
 
-    // FIXME: Don't we need to grab the VCR lock here???
+	g_core_logger->info("[VCR] Clearing seek savestates...");
 
-    std::vector<size_t> prev_seek_savestate_keys;
+	std::vector<size_t> prev_seek_savestate_keys;
     prev_seek_savestate_keys.reserve(g_seek_savestates.size());
     for (const auto& [key, _] : g_seek_savestates)
     {
@@ -1623,6 +1623,11 @@ CoreResult VCR::stop_all()
     {
         Messenger::broadcast(Messenger::Message::SeekSavestateChanged, frame);
     }
+}
+
+CoreResult VCR::stop_all()
+{
+	vcr_clear_seek_savestates();
 
     switch (g_task)
     {
