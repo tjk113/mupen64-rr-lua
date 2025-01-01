@@ -716,20 +716,10 @@ namespace Savestates
 		g_tasks.clear();
 	}
 
-	void wait_for_work_processing()
-	{
-		while (true)
-		{
-			g_task_mutex.lock();
-			if (g_tasks.empty())
+	void clear_work_queue()
 			{
-				g_task_mutex.unlock();
-				break;
-			}
-			g_task_mutex.unlock();
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(0));
-		}
+		std::scoped_lock lock(g_task_mutex);
+		g_tasks.clear();
 	}
 
 	/**

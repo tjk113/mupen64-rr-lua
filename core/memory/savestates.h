@@ -70,9 +70,9 @@ namespace Savestates
     void do_work();
 
     /**
-     * Waits for the work queue to be processed.
+     * Clears the work queue.
      */
-    void wait_for_work_processing();
+    void clear_work_queue();
 
     /**
      * \brief Executes a savestate operation to a path
