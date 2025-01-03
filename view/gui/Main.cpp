@@ -1425,6 +1425,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 CheckMenuItem(g_main_menu, i, MF_UNCHECKED);
             }
             CheckMenuItem(g_main_menu, IDM_SELECT_1 + g_config.st_slot, MF_CHECKED);
+
+    		Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, g_recent_roms_menu);
+    		Recent::build(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
+    		Recent::build(g_config.recent_lua_script_paths, ID_LUA_RECENT, g_recent_lua_menu);
         }
         break;
     case WM_ENTERMENULOOP:
@@ -1958,13 +1962,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 CaptureScreen(get_screenshots_directory().string().data());
                 break;
             case IDM_RESET_RECENT_ROMS:
-                Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, g_recent_roms_menu, true);
+            	g_config.recent_rom_paths.clear();
                 break;
             case IDM_RESET_RECENT_MOVIES:
-                Recent::build(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, g_recent_movies_menu, true);
+            	g_config.recent_movie_paths.clear();
                 break;
             case IDM_RESET_RECENT_LUA:
-                Recent::build(g_config.recent_lua_script_paths, ID_LUA_RECENT, g_recent_lua_menu, true);
+            	g_config.recent_lua_script_paths.clear();
                 break;
             case IDM_FREEZE_RECENT_ROMS:
                 g_config.is_recent_rom_paths_frozen ^= true;
@@ -2237,10 +2241,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Savestates::init();
     setup_dummy_info();
 	update_core_fast_forward(nullptr);
-
-    Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, g_recent_roms_menu);
-    Recent::build(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
-    Recent::build(g_config.recent_lua_script_paths, ID_LUA_RECENT, g_recent_lua_menu);
 
     Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)g_config.is_statusbar_enabled);
     Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)g_config.is_movie_loop_enabled);
