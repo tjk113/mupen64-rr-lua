@@ -604,7 +604,7 @@ std::wstring hotkey_to_string(const t_hotkey* hotkey)
 
 namespace Recent
 {
-    void build(std::vector<std::wstring>& vec, int first_menu_id, HMENU parent_menu, bool reset = false)
+    void build(std::vector<std::wstring>& vec, int first_menu_id, HMENU parent_menu)
     {
     	assert(is_on_gui_thread());
 
@@ -613,9 +613,9 @@ namespace Recent
 
     	const int child_count = GetMenuItemCount(parent_menu) - FIXED_ITEM_COUNT;
 
-	    for (int i = 0; i < child_count; ++i)
+	    for (auto i = 0; i < child_count; ++i)
 	    {
-	    	DeleteMenu(parent_menu, FIXED_ITEM_COUNT + i, MF_BYPOSITION);
+	    	DeleteMenu(parent_menu, FIXED_ITEM_COUNT, MF_BYPOSITION);
 	    }
 
         if (reset)
@@ -630,7 +630,7 @@ namespace Recent
         menu_info.fType = MFT_STRING;
         menu_info.fState = MFS_ENABLED;
 
-        for (size_t i = 0; i < vec.size(); i++)
+        for (int i = vec.size() - 1; i >= 0; --i)
         {
             if (vec[i].empty())
             {
@@ -638,8 +638,8 @@ namespace Recent
             }
             menu_info.dwTypeData = vec[i].data();
             menu_info.cch = vec[i].size();
-            menu_info.wID = first_menu_id + i;
-            InsertMenuItem(parent_menu, i + 3, TRUE, &menu_info);
+			menu_info.wID = first_menu_id + i;
+            auto result = InsertMenuItem(parent_menu, FIXED_ITEM_COUNT, TRUE, &menu_info);
         }
     }
 
@@ -655,7 +655,9 @@ namespace Recent
         {
             vec.pop_back();
         }
-        std::erase(vec, val);
+		std::erase_if(vec, [&](const auto str) {
+			return iequals(str, val) || std::filesystem::path(str).compare(val) == 0;
+		});
         vec.insert(vec.begin(), val);
         build(vec, first_menu_id, parent_menu);
     }
