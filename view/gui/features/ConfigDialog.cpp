@@ -719,6 +719,8 @@ static void refresh_plugins_page(const HWND hwnd)
 {
 	g_view_logger->trace("[ConfigDialog] refresh_plugins_page");
 
+    plugin_discovery_result = {};
+    
 	if (g_config.plugin_discovery_async)
 	{
 		SetDlgItemText(hwnd, IDC_PLUGIN_WARNING, L"Discovering plugins...");
