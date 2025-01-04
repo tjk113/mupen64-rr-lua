@@ -1379,6 +1379,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 			.data = &g_config.async_executor_cuzz,
 			.type = t_options_item::Type::Bool,
 		},
+        t_options_item{
+            .group_id = debug_group.id,
+            .name = L"Delay Plugin Discovery",
+            .tooltip = L"Whether the plugin discovery process is artificially lengthened.\nDo not enable unless you are debugging the plugin discovery system or its surrounding components.",
+            .data = &g_config.plugin_discovery_delayed,
+            .type = t_options_item::Type::Bool,
+        },
     };
 
     for (const auto hotkey : g_config_hotkeys)

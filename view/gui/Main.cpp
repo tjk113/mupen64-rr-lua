@@ -1055,6 +1055,11 @@ std::filesystem::path get_app_full_path()
 
 t_plugin_discovery_result do_plugin_discovery()
 {
+    if (g_config.plugin_discovery_delayed)
+    {
+        Sleep(1000);
+    }
+    
 	std::vector<std::unique_ptr<Plugin>> plugins;
 	const auto files = IOService::get_files_with_extension_in_directory(get_plugins_directory(), L"dll");
 

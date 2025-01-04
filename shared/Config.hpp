@@ -456,6 +456,11 @@ typedef struct Config
     int32_t async_executor_cuzz;
 
     /// <summary>
+    /// Whether the plugin discovery process is artificially lengthened.
+    /// </summary>
+    int32_t plugin_discovery_delayed;
+    
+    /// <summary>
     /// The lua script path
     /// </summary>
     std::wstring lua_script_path;
