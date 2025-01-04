@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7a1014e-899c-4e4b-ba09-1dc5ba0a6846" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../view/gui/Main.h" beforeDir="false" afterPath="$PROJECT_DIR$/../view/gui/Main.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../view/rsrc.rc" beforeDir="false" afterPath="$PROJECT_DIR$/../view/rsrc.rc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../view/gui/Main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../view/gui/Main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/projectSettingsUpdater.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/projectSettingsUpdater.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.mupen64/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -26,24 +26,20 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/mkdasher/mupen64-rr-lua-&quot;,
-    &quot;accountId&quot;: &quot;85cce8ba-dfb0-4c5c-b47e-6b54269f87bf&quot;
+    &quot;accountId&quot;: &quot;d33e01a0-7a91-48fc-ac2b-4825008f0975&quot;
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Preview/VC/Tools/MSVC/14.41.34117/include/vcruntime_string.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Preview/VC/Tools/MSVC/14.41.34117/include/vector" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Preview/VC/Tools/MSVC/14.41.34117/include/xmemory" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Preview/VC/Tools/MSVC/14.43.34618/include/format" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../lib/spdlog/common.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../lib/spdlog/sinks/wincolor_sink-inl.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../lib/speex/speex_resampler.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/repos/mupen64-rr-lua-/view/capture/EncodingManager.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/repos/mupen64-rr-lua-/view/capture/EncodingManager.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/repos/mupen64-rr-lua-/view/capture/EncodingManager.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/repos/mupen64-rr-lua-/view/capture/EncodingManager.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/repos/mupen64-rr-lua-/view/capture/encoders/FFmpegEncoder.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/repos/mupen64-rr-lua-/view/gui/Main.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/repos/mupen64-rr-lua-/view/gui/Main.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/repos/mupen64-rr-lua-/view/gui/Main.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://E:/repos/mupen64-rr-lua-/view/gui/Main.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://E:/repos/mupen64-rr-lua-/view/gui/Main.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://E:/repos/mupen64-rr-lua-/view/gui/Main.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://E:/repos/mupen64-rr-lua-/view/gui/Main.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://E:/repos/mupen64-rr-lua-/view/gui/Main.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://E:/repos/mupen64-rr-lua-/view/gui/Main.cpp" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo">{
@@ -55,32 +51,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;C++ Project.mupen64.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
-  },
-  &quot;keyToStringList&quot;: {
-    &quot;rider.external.source.directories&quot;: [
-      &quot;C:\\Users\\Alex\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\DecompilerCache&quot;,
-      &quot;C:\\Users\\Alex\\AppData\\Roaming\\JetBrains\\Rider2024.1\\resharper-host\\SourcesCache&quot;,
-      &quot;C:\\Users\\Alex\\AppData\\Local\\Symbols\\src&quot;
-    ]
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "C++ Project.mupen64.executor": "Run",
+    "C/C++ Project.mupen64.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="mupen64" type="CppProject" factoryName="C++ Project">
-      <configuration_1>
+      <configuration_1 setup="1">
         <option name="CONFIGURATION" value="Debug" />
         <option name="PLATFORM" value="Win32" />
-        <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/mupen64.vcxproj" />
         <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
         <option name="EXE_PATH" value="$(LocalDebuggerCommand)" />
         <option name="PROGRAM_PARAMETERS" value="$(LocalDebuggerCommandArguments)" />
@@ -88,11 +78,11 @@
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="1" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="AUTO_DETECT" />
+        <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/mupen64.vcxproj" />
       </configuration_1>
-      <configuration_2>
+      <configuration_2 setup="1">
         <option name="CONFIGURATION" value="Release" />
         <option name="PLATFORM" value="Win32" />
-        <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/mupen64.vcxproj" />
         <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
         <option name="EXE_PATH" value="$(LocalDebuggerCommand)" />
         <option name="PROGRAM_PARAMETERS" value="$(LocalDebuggerCommandArguments)" />
@@ -100,8 +90,10 @@
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="AUTO_DETECT" />
+        <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/mupen64.vcxproj" />
       </configuration_2>
       <option name="DEFAULT_PROJECT_PATH" value="$PROJECT_DIR$/mupen64.vcxproj" />
+      <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/mupen64.vcxproj" />
       <option name="AUTO_SELECT_PRIORITY" value="0" />
       <method v="2">
         <option name="Build" />
@@ -122,6 +114,8 @@
       <workItem from="1732201460575" duration="1641000" />
       <workItem from="1732207242453" duration="469000" />
       <workItem from="1732212055109" duration="1295000" />
+      <workItem from="1735936485266" duration="2022000" />
+      <workItem from="1735945678379" duration="1154000" />
     </task>
     <task id="LOCAL-00001" summary="Encoding: Initial attempt to stabilize ffmpeg encoding">
       <option name="closed" value="true" />
@@ -227,7 +221,23 @@
       <option name="project" value="LOCAL" />
       <updated>1732213368307</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Main/Fix: InsertMenuItem undefined behaviour at recent list build callsites">
+      <option name="closed" value="true" />
+      <created>1735948267700</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1735948267700</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Main/Dev: Use FIXED_ITEM_COUNT in Recent::build for InsertMenuItem position">
+      <option name="closed" value="true" />
+      <created>1735948309076</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1735948309076</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -250,6 +260,8 @@
     <MESSAGE value="Encoding: Fix FFmpeg instability" />
     <MESSAGE value="VCR: Add missing LoggingService include" />
     <MESSAGE value="View: Show capture information in statusbar and titlebar" />
-    <option name="LAST_COMMIT_MESSAGE" value="View: Show capture information in statusbar and titlebar" />
+    <MESSAGE value="Main/Fix: InsertMenuItem undefined behaviour at recent list build callsites" />
+    <MESSAGE value="Main/Dev: Use FIXED_ITEM_COUNT in Recent::build for InsertMenuItem position" />
+    <option name="LAST_COMMIT_MESSAGE" value="Main/Dev: Use FIXED_ITEM_COUNT in Recent::build for InsertMenuItem position" />
   </component>
 </project>

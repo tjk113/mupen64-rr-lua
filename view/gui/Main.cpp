@@ -617,13 +617,7 @@ namespace Recent
 	    {
 	    	DeleteMenu(parent_menu, FIXED_ITEM_COUNT, MF_BYPOSITION);
 	    }
-
-        if (reset)
-        {
-            vec.clear();
-            return;
-        }
-
+		
         MENUITEMINFO menu_info = {0};
         menu_info.cbSize = sizeof(MENUITEMINFO);
         menu_info.fMask = MIIM_TYPE | MIIM_ID;
