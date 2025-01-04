@@ -1504,6 +1504,71 @@ void advance_listview_selection()
     ListView_EnsureVisible(g_lv_hwnd, i + 1, false);
 }
 
+/**
+ * Checks for a hotkey conflict and, if necessary, prompts the user to fix the conflict.
+ */
+static void handle_hotkey_conflict(const HWND hwnd, t_hotkey* current_hotkey)
+{
+    const bool current_hotkey_unbound = current_hotkey->key == 0 && current_hotkey->ctrl == 0 && current_hotkey->shift == 0 && current_hotkey->alt == 0;
+    if (current_hotkey_unbound)
+    {
+        return;
+    }
+    
+    std::vector<t_hotkey*> conflicting_hotkeys;
+    for (const auto hotkey : g_config_hotkeys)
+    {
+        if (hotkey == current_hotkey)
+        {
+            continue;
+        }
+
+        if (hotkey->key == current_hotkey->key && hotkey->ctrl == current_hotkey->ctrl && hotkey->shift == current_hotkey->shift && hotkey->alt == current_hotkey->alt)
+        {
+            conflicting_hotkeys.push_back(hotkey);
+        }
+    }
+
+    if (conflicting_hotkeys.empty())
+    {
+        return;
+    }
+
+    std::wstring conflicting_hotkey_identifiers;
+    for (const auto hotkey : conflicting_hotkeys)
+    {
+        conflicting_hotkey_identifiers += L"- " + hotkey->identifier + L"\n";
+    }
+    
+    const auto str = std::format(L"The key combination {} is already used by the following hotkey(s):\n\n{}\nHow would you like to proceed?",
+        hotkey_to_string(current_hotkey), conflicting_hotkey_identifiers);
+
+    const auto result = FrontendService::show_multiple_choice_dialog({L"Discard Others", L"Discard Current", L"Proceed Anyway"}, str.c_str(), L"Hotkey Conflict", FrontendService::DialogType::Warning, hwnd);
+
+    if (result == 0)
+    {
+        for (const auto hotkey : conflicting_hotkeys)
+        {
+            hotkey->key = 0;
+            hotkey->ctrl = 0;
+            hotkey->shift = 0;
+            hotkey->alt = 0;
+        }
+
+        ListView_RedrawItems(g_lv_hwnd, 0, ListView_GetItemCount(g_lv_hwnd));
+
+        return;
+    }
+
+    if (result == 1)
+    {
+        current_hotkey->key = 0;
+        current_hotkey->ctrl = 0;
+        current_hotkey->shift = 0;
+        current_hotkey->alt = 0;
+    }
+}
+
 bool begin_listview_edit(HWND hwnd)
 {
     int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
@@ -1612,11 +1677,16 @@ bool begin_listview_edit(HWND hwnd)
     if (option_item.type == OptionsItem::Type::Hotkey)
     {
         t_hotkey* hotkey = (t_hotkey*)option_item.data;
+
+		t_hotkey prev_hotkey_data = *hotkey;
+
         g_hotkey_active_index = std::make_optional(i);
         ListView_Update(g_lv_hwnd, i);
         RedrawWindow(g_lv_hwnd, nullptr, nullptr, RDW_UPDATENOW);
         get_user_hotkey(hotkey);
         g_hotkey_active_index.reset();
+
+    	handle_hotkey_conflict(hwnd, hotkey);
 
         advance_listview_selection();
     }
