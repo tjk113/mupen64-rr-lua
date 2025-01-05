@@ -740,6 +740,35 @@ static void refresh_plugins_page(const HWND hwnd)
 	}
 }
 
+static void update_plugin_buttons_enabled_state(HWND hwnd)
+{
+    auto combobox_has_selection = [](HWND hwnd)
+    {
+        return ComboBox_GetItemData(hwnd, ComboBox_GetCurSel(hwnd)) && ComboBox_GetCurSel(hwnd) != CB_ERR;
+    };
+
+    const auto has_video_plugin_selection = combobox_has_selection(GetDlgItem(hwnd, IDC_COMBO_GFX));
+    const auto has_audio_plugin_selection = combobox_has_selection(GetDlgItem(hwnd, IDC_COMBO_SOUND));
+    const auto has_input_plugin_selection = combobox_has_selection(GetDlgItem(hwnd, IDC_COMBO_INPUT));
+    const auto has_rsp_plugin_selection = combobox_has_selection(GetDlgItem(hwnd, IDC_COMBO_RSP));
+
+    EnableWindow(GetDlgItem(hwnd, IDM_VIDEO_SETTINGS), has_video_plugin_selection);
+    EnableWindow(GetDlgItem(hwnd, IDGFXTEST), has_video_plugin_selection);
+    EnableWindow(GetDlgItem(hwnd, IDGFXABOUT), has_video_plugin_selection);
+
+    EnableWindow(GetDlgItem(hwnd, IDM_AUDIO_SETTINGS), has_audio_plugin_selection);
+    EnableWindow(GetDlgItem(hwnd, IDSOUNDTEST), has_audio_plugin_selection);
+    EnableWindow(GetDlgItem(hwnd, IDSOUNDABOUT), has_audio_plugin_selection);
+
+    EnableWindow(GetDlgItem(hwnd, IDM_INPUT_SETTINGS), has_input_plugin_selection);
+    EnableWindow(GetDlgItem(hwnd, IDINPUTTEST), has_input_plugin_selection);
+    EnableWindow(GetDlgItem(hwnd, IDINPUTABOUT), has_input_plugin_selection);
+
+    EnableWindow(GetDlgItem(hwnd, IDM_RSP_SETTINGS), has_rsp_plugin_selection);
+    EnableWindow(GetDlgItem(hwnd, IDRSPTEST), has_rsp_plugin_selection);
+    EnableWindow(GetDlgItem(hwnd, IDRSPABOUT), has_rsp_plugin_selection);
+}
+
 INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w_param, const LPARAM l_param)
 {
 	const auto lpnmhdr = reinterpret_cast<LPNMHDR>(l_param);
@@ -856,7 +885,10 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
     		{
     			EnableWindow(GetDlgItem(hwnd, id), true);
     		}
-    		break;
+
+            update_plugin_buttons_enabled_state(hwnd);
+        
+            break;
 	    }
     case WM_COMMAND:
         switch (LOWORD(w_param))
@@ -865,38 +897,8 @@ INT_PTR CALLBACK plugins_cfg(const HWND hwnd, const UINT message, const WPARAM w
         case IDC_COMBO_SOUND:
         case IDC_COMBO_INPUT:
         case IDC_COMBO_RSP:
-            {
-                auto has_plugin_selected =
-                    ComboBox_GetItemData(GetDlgItem(hwnd, LOWORD(w_param)), ComboBox_GetCurSel(GetDlgItem(hwnd, LOWORD(w_param))))
-                    && ComboBox_GetCurSel(GetDlgItem(hwnd, LOWORD(w_param))) != CB_ERR;
-
-                switch (LOWORD(w_param))
-                {
-                case IDC_COMBO_GFX:
-                    EnableWindow(GetDlgItem(hwnd, IDM_VIDEO_SETTINGS), has_plugin_selected);
-                    EnableWindow(GetDlgItem(hwnd, IDGFXTEST), has_plugin_selected);
-                    EnableWindow(GetDlgItem(hwnd, IDGFXABOUT), has_plugin_selected);
-                    break;
-                case IDC_COMBO_SOUND:
-                    EnableWindow(GetDlgItem(hwnd, IDM_AUDIO_SETTINGS), has_plugin_selected);
-                    EnableWindow(GetDlgItem(hwnd, IDSOUNDTEST), has_plugin_selected);
-                    EnableWindow(GetDlgItem(hwnd, IDSOUNDABOUT), has_plugin_selected);
-                    break;
-                case IDC_COMBO_INPUT:
-                    EnableWindow(GetDlgItem(hwnd, IDM_INPUT_SETTINGS), has_plugin_selected);
-                    EnableWindow(GetDlgItem(hwnd, IDINPUTTEST), has_plugin_selected);
-                    EnableWindow(GetDlgItem(hwnd, IDINPUTABOUT), has_plugin_selected);
-                    break;
-                case IDC_COMBO_RSP:
-                    EnableWindow(GetDlgItem(hwnd, IDM_RSP_SETTINGS), has_plugin_selected);
-                    EnableWindow(GetDlgItem(hwnd, IDRSPTEST), has_plugin_selected);
-                    EnableWindow(GetDlgItem(hwnd, IDRSPABOUT), has_plugin_selected);
-                    break;
-                default:
-                    break;
-                }
-                break;
-            }
+            update_plugin_buttons_enabled_state(hwnd);
+            break;
         case IDM_VIDEO_SETTINGS:
             g_hwnd_plug = hwnd;
             get_selected_plugin(hwnd, IDC_COMBO_GFX)->config();
