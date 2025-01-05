@@ -230,7 +230,7 @@ namespace Statusbar
 		// We don't want to keep the weird crap from previous state, so let's clear everything
 		for (int i = 0; i < 255; ++i)
 		{
-			SendMessage(statusbar_hwnd, SB_SETTEXT, i, (LPARAM)"");
+			SendMessage(statusbar_hwnd, SB_SETTEXT, i, (LPARAM)L"");
 		}
 
 		// When starting the emu, we want to scale the statusbar segments to the window size
@@ -333,20 +333,20 @@ namespace Statusbar
 
 				const auto len = SendMessage(statusbar_hwnd, SB_GETTEXTLENGTH, segment_index, 0);
 
-				auto str = new wchar_t[len + 1]();
+				auto str = (wchar_t*)calloc(len + 1, sizeof(wchar_t));
 
 				SendMessage(statusbar_hwnd, SB_GETTEXT, segment_index, (LPARAM)str);
 
 				section_text[section] = str;
 
-				delete[] str;
+				free(str);
 			}
 
 			refresh_segments();
 
 			for (int i = 0; i < 255; ++i)
 			{
-				SendMessage(statusbar_hwnd, SB_SETTEXT, i, (LPARAM)"");
+				SendMessage(statusbar_hwnd, SB_SETTEXT, i, (LPARAM)L"");
 			}
 
 			for (const auto pair : section_text)
