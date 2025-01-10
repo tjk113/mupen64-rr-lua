@@ -316,8 +316,15 @@ static CoreResult read_movie_header(std::vector<uint8_t> buf, t_movie_header* he
     {
         memcpy(new_header.author, buf.data() + 0x222, 222);
         memcpy(new_header.description, buf.data() + 0x300, 256);
-    }
 
+        const auto expected_minimum_size = sizeof(t_movie_header) + sizeof(BUTTONS) * new_header.length_samples;
+        
+        if (buf.size() < expected_minimum_size)
+        {
+            return CoreResult::VCR_InvalidFormat;
+        }
+    }
+    
     *header = new_header;
 
     return CoreResult::Ok;
