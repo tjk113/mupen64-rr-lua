@@ -7,12 +7,7 @@ namespace MGECompositor
      * \brief Initializes the MGE compositor
      */
     void init();
-
-    /**
-     * \brief Whether the MGE compositor is available with the current configuration
-     */
-    bool available();
-
+    
     /**
      * \brief Creates the MGE control
      * \param hwnd The control's parent

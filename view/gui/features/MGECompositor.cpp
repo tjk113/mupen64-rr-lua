@@ -99,13 +99,8 @@ namespace MGECompositor
         Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, [](std::any data)
         {
             auto value = std::any_cast<bool>(data);
-            ShowWindow(control_hwnd, (value && available()) ? SW_SHOW : SW_HIDE);
+            ShowWindow(control_hwnd, (value && is_mge_available()) ? SW_SHOW : SW_HIDE);
         });
-    }
-
-    bool available()
-    {
-        return ::get_video_size && read_video;
     }
 
     void update_screen()

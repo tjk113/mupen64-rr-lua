@@ -302,7 +302,7 @@ bool FrontendService::get_prefers_no_render_skip()
 
 void FrontendService::update_screen()
 {
-    if (MGECompositor::available())
+    if (is_mge_available())
     {
         MGECompositor::update_screen();
     }
