@@ -138,6 +138,7 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
+        MENUITEM "Check For &Updates",          IDM_CHECK_FOR_UPDATES
         MENUITEM "&About Mupen64...",           IDM_ABOUT
     END
     POPUP "&Lua Script"

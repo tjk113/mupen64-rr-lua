@@ -61,6 +61,7 @@
 #include "features/Cheats.h"
 #include "features/PianoRoll.h"
 #include "features/Runner.h"
+#include "features/UpdateChecker.h"
 #include "shared/AsyncExecutor.h"
 #include "shared/services/IOService.h"
 #include "shared/services/LoggingService.h"
@@ -1692,6 +1693,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     configdialog_about();
                 }
                 break;
+            case IDM_CHECK_FOR_UPDATES:
+                AsyncExecutor::invoke_async([=]
+                {
+                    UpdateChecker::check(lParam != 1);
+                });
+                break;
             case IDM_COREDBG:
                 CoreDbg::show();
                 break;
@@ -2274,6 +2281,8 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
             timeEndPeriod(1);
         }
     }).detach();
+
+    SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_CHECK_FOR_UPDATES, 0), 1);
 
     while (GetMessage(&msg, NULL, 0, 0))
     {

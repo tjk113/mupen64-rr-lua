@@ -1053,6 +1053,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = interface_group.id,
+            .name = L"Automatic Update Checking",
+            .tooltip = L"Enables automatic update checking. Requires an internet connection.",
+            .data = &g_config.automatic_update_checking,
+            .type = t_options_item::Type::Bool,
+        },
+        t_options_item{
+            .group_id = interface_group.id,
             .name = L"Silent Mode",
             .tooltip = L"Suppresses all dialogs and chooses reasonable defaults for multiple-choice dialogs.\nCan cause data loss during normal usage; only enable in automation scenarios!",
             .data = &g_config.silent_mode,

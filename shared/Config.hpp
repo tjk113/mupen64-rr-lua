@@ -209,6 +209,13 @@ typedef struct Config
     int32_t version = 5;
 
     /// <summary>
+    /// The new version of Mupen64 currently ignored by the update checker.
+    /// <para></para>
+    /// L"" means no ignored version.
+    /// </summary>
+    std::wstring ignored_version;
+    
+    /// <summary>
     /// Statistic - Amount of state loads during recording
     /// </summary>
     uint64_t total_rerecords;
@@ -646,6 +653,11 @@ typedef struct Config
     /// </summary>
     int32_t vcr_backups = 1;
 
+    /// <summary>
+    /// Whether automatic update checking is enabled.
+    /// </summary>
+    int32_t automatic_update_checking;
+    
     /// <summary>
     /// Whether mupen will avoid showing modals and other elements which require user interaction
     /// </summary>
