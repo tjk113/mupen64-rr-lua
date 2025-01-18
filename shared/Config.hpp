@@ -654,6 +654,12 @@ typedef struct Config
     int32_t vcr_backups = 1;
 
     /// <summary>
+    /// Whether movies are written using the new extended format.
+    /// If disabled, the extended format sections are set to 0.
+    /// </summary>
+    int32_t vcr_write_extended_format = 1;
+
+    /// <summary>
     /// Whether automatic update checking is enabled.
     /// </summary>
     int32_t automatic_update_checking;

@@ -1327,6 +1327,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
         },
         t_options_item{
             .group_id = core_group.id,
+            .name = L"Extended Movie Format",
+            .tooltip = L"Whether movies are written using the new extended format.\nUseful when opening movies in external programs which don't handle the new format correctly.\nIf disabled, the extended format sections are set to 0.",
+            .data = &g_config.vcr_write_extended_format,
+            .type = t_options_item::Type::Bool,
+        },
+        t_options_item{
+            .group_id = core_group.id,
             .name = L"Fast-Forward Skip Frequency",
             .tooltip = L"Skip rendering every nth frame when in fast-forward mode.\n0 - Render nothing\n1 - Render every frame\nn - Render every nth frame",
             .data = &g_config.frame_skip_frequency,
