@@ -1389,6 +1389,16 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 				return !g_hwnd_lua_map.empty();
 			},
 		},
+        t_options_item{
+			.group_id = lua_group.id,
+			.name = L"Lazy Renderer Initialization",
+			.tooltip = L"Enables lazy Lua renderer initialization. Greatly speeds up start and stop times for certain scripts.",
+			.data = &g_config.lazy_renderer_init,
+			.type = t_options_item::Type::Bool,
+			.is_readonly = [] {
+				return !g_hwnd_lua_map.empty();
+			},
+		},
 
 		t_options_item{
 			.group_id = debug_group.id,

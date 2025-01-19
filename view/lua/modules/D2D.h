@@ -59,7 +59,8 @@ namespace LuaCore::D2D
     static int create_brush(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
-
+        lua->ensure_d2d_renderer_created();
+        
         D2D1::ColorF color = D2D_GET_COLOR(L, 1);
 
         ID2D1SolidColorBrush* brush;
@@ -74,6 +75,9 @@ namespace LuaCore::D2D
 
     static int free_brush(lua_State* L)
     {
+        LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
+
         auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 1);
         brush->Release();
         return 0;
@@ -82,6 +86,7 @@ namespace LuaCore::D2D
     static int clear(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1::ColorF color = D2D_GET_COLOR(L, 1);
 
@@ -93,6 +98,7 @@ namespace LuaCore::D2D
     static int fill_rectangle(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
         auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 5);
@@ -105,6 +111,7 @@ namespace LuaCore::D2D
     static int draw_rectangle(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
         float thickness = luaL_checknumber(L, 5);
@@ -131,6 +138,7 @@ namespace LuaCore::D2D
     static int draw_ellipse(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_ELLIPSE ellipse = D2D_GET_ELLIPSE(L, 1);
         float thickness = luaL_checknumber(L, 5);
@@ -145,6 +153,7 @@ namespace LuaCore::D2D
     static int draw_line(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_POINT_2F point_a = D2D_GET_POINT(L, 1);
         D2D1_POINT_2F point_b = D2D_GET_POINT(L, 3);
@@ -161,6 +170,7 @@ namespace LuaCore::D2D
     static int draw_text(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
         auto text = std::string(luaL_checkstring(L, 5));
@@ -240,6 +250,7 @@ namespace LuaCore::D2D
     static int set_text_antialias_mode(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
         float mode = luaL_checkinteger(L, 1);
         lua->d2d_render_target_stack.top()->SetTextAntialiasMode(
             (D2D1_TEXT_ANTIALIAS_MODE)mode);
@@ -249,6 +260,7 @@ namespace LuaCore::D2D
     static int set_antialias_mode(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
         float mode = luaL_checkinteger(L, 1);
         lua->d2d_render_target_stack.top()->SetAntialiasMode(
             (D2D1_ANTIALIAS_MODE)mode);
@@ -258,6 +270,7 @@ namespace LuaCore::D2D
     static int measure_text(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         std::wstring text = string_to_wstring(
             std::string(luaL_checkstring(L, 1)));
@@ -303,6 +316,7 @@ namespace LuaCore::D2D
     static int push_clip(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_RECT_F rectangle = D2D_GET_RECT(L, 1);
 
@@ -317,6 +331,7 @@ namespace LuaCore::D2D
     static int pop_clip(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         lua->d2d_render_target_stack.top()->PopAxisAlignedClip();
 
@@ -326,6 +341,7 @@ namespace LuaCore::D2D
     static int fill_rounded_rectangle(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
         auto brush = (ID2D1SolidColorBrush*)luaL_checkinteger(L, 7);
@@ -339,6 +355,7 @@ namespace LuaCore::D2D
     static int draw_rounded_rectangle(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_ROUNDED_RECT rounded_rectangle = D2D_GET_ROUNDED_RECT(L, 1);
         float thickness = luaL_checknumber(L, 7);
@@ -353,6 +370,7 @@ namespace LuaCore::D2D
     static int load_image(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         std::string path(luaL_checkstring(L, 1));
 
@@ -412,6 +430,9 @@ namespace LuaCore::D2D
 
     static int free_image(lua_State* L)
     {
+        LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
+
         auto bmp = (ID2D1Bitmap*)luaL_checkinteger(L, 1);
         bmp->Release();
         return 0;
@@ -420,6 +441,7 @@ namespace LuaCore::D2D
     static int draw_image(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         D2D1_RECT_F destination_rectangle = D2D_GET_RECT(L, 1);
         D2D1_RECT_F source_rectangle = D2D_GET_RECT(L, 5);
@@ -440,6 +462,9 @@ namespace LuaCore::D2D
 
     static int get_image_info(lua_State* L)
     {
+        LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
+
         auto bmp = (ID2D1Bitmap*)luaL_checkinteger(L, 1);
 
         D2D1_SIZE_U size = bmp->GetPixelSize();
@@ -455,6 +480,7 @@ namespace LuaCore::D2D
     static int draw_to_image(lua_State* L)
     {
         LuaEnvironment* lua = get_lua_class(L);
+        lua->ensure_d2d_renderer_created();
 
         float width = luaL_checknumber(L, 1);
         float height = luaL_checknumber(L, 2);

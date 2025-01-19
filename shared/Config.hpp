@@ -412,7 +412,12 @@ typedef struct Config
     /// The presenter to use for Lua scripts
     /// </summary>
     int32_t presenter_type = static_cast<int32_t>(PresenterType::DirectComposition);
-
+    
+    /// <summary>
+    /// Enables lazy Lua renderer initialization. Greatly speeds up start and stop times for certain scripts. 
+    /// </summary>
+    int32_t lazy_renderer_init = 1;
+    
     /// <summary>
     /// The encoder to use for capturing.
     /// </summary>

@@ -151,6 +151,9 @@ public:
     // Amount of generated images, just used to generate uids for image pool
     size_t image_pool_index;
 
+    // Whether to ignore create_renderer() and ensure_d2d_renderer_created() calls. Used to avoid tearing down and re-creating a renderer when stopping a script.
+    bool m_ignore_renderer_creation = false;
+
     HDC loadscreen_dc;
     HBITMAP loadscreen_bmp;
 
@@ -173,6 +176,8 @@ public:
     void create_loadscreen();
     void destroy_loadscreen();
 
+    void ensure_d2d_renderer_created();
+    
     //calls all functions that lua script has defined as callbacks, reads them from registry
     //returns true at fail
     bool invoke_callbacks_with_key(const std::function<int(lua_State*)>& function, const char* key);
