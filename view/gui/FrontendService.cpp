@@ -137,6 +137,10 @@ void FrontendService::set_default_hotkey_keys(t_config* config)
     config->stop_movie_hotkey.ctrl = true;
     config->stop_movie_hotkey.shift = true;
 
+    config->create_movie_backup_hotkey.key = 'B';
+    config->create_movie_backup_hotkey.ctrl = true;
+    config->create_movie_backup_hotkey.shift = true;
+
     config->take_screenshot_hotkey.key = VK_F12;
 
     config->play_latest_movie_hotkey.key = 'T';

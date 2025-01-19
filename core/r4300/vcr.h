@@ -351,6 +351,12 @@ namespace VCR
     CoreResult unfreeze(t_movie_freeze freeze);
 
     /**
+     * \brief Writes a backup of the current movie to the backup folder.
+     * \return The operation result
+     */
+    CoreResult write_backup();
+    
+    /**
      * \brief Stops all running tasks
      * \return The operation result
      */

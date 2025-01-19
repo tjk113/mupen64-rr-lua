@@ -116,13 +116,8 @@ bool write_movie()
     return write_movie_impl(&g_header, g_movie_inputs, g_movie_path);
 }
 
-bool write_backup()
+bool write_backup_impl()
 {
-    if (!g_config.vcr_backups)
-    {
-        return true;
-    }
-
     g_core_logger->info("[VCR] Backing up movie...");
     const auto filename = std::format("{}.{}.m64", g_movie_path.stem().string(), static_cast<uint64_t>(time(nullptr)));
 
@@ -424,7 +419,7 @@ std::optional<t_movie_freeze> VCR::freeze()
 
 CoreResult VCR::unfreeze(t_movie_freeze freeze)
 {
-	std::scoped_lock lock(vcr_mutex);
+    std::scoped_lock lock(vcr_mutex);
 
     // Unfreezing isn't valid during idle state
     if (VCR::get_task() == e_task::idle)
@@ -432,11 +427,7 @@ CoreResult VCR::unfreeze(t_movie_freeze freeze)
         return CoreResult::VCR_NeedsPlaybackOrRecording;
     }
 
-    if (freeze.size <
-        sizeof(g_header.uid)
-        + sizeof(m_current_sample)
-        + sizeof(m_current_vi)
-        + sizeof(g_header.length_samples))
+    if (freeze.size < sizeof(g_header.uid) + sizeof(m_current_sample) + sizeof(m_current_vi) + sizeof(g_header.length_samples))
     {
         return CoreResult::VCR_InvalidFormat;
     }
@@ -492,7 +483,10 @@ CoreResult VCR::unfreeze(t_movie_freeze freeze)
             g_header.length_samples = freeze.current_sample;
 
             // Before overwriting the input buffer, save a backup
-            write_backup();
+            if (g_config.vcr_backups)
+            {
+                write_backup_impl();
+            }
 
             g_movie_inputs.resize(freeze.current_sample);
             memcpy(g_movie_inputs.data(), freeze.input_buffer.data(), sizeof(BUTTONS) * freeze.current_sample);
@@ -522,6 +516,12 @@ finish:
     Messenger::broadcast(Messenger::Message::UnfreezeCompleted, nullptr);
 
     return CoreResult::Ok;
+}
+
+CoreResult VCR::write_backup()
+{
+    const auto result = write_backup_impl();
+    return result ? CoreResult::Ok : CoreResult::VCR_BadFile;
 }
 
 void vcr_create_n_frame_savestate(size_t frame)

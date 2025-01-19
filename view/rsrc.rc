@@ -105,6 +105,7 @@ BEGIN
         MENUITEM "Start Movie &Playback...",    IDM_START_MOVIE_PLAYBACK
         MENUITEM SEPARATOR
         MENUITEM "St&op Movie",                 IDM_STOP_MOVIE, GRAYED
+        MENUITEM "Create Movie &Backup",        IDM_CREATE_MOVIE_BACKUP, GRAYED
         MENUITEM SEPARATOR
         POPUP "Recent Movies"
         BEGIN

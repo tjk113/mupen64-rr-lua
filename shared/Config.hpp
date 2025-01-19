@@ -24,6 +24,7 @@ enum class Action
     StartMoviePlayback,
     StartMovieRecording,
     StopMovie,
+    CreateMovieBackup,
     TakeScreenshot,
     PlayLatestMovie,
     LoadLatestScript,
@@ -148,6 +149,7 @@ typedef struct Config
     t_hotkey start_movie_playback_hotkey;
     t_hotkey start_movie_recording_hotkey;
     t_hotkey stop_movie_hotkey;
+    t_hotkey create_movie_backup_hotkey;
     t_hotkey take_screenshot_hotkey;
     t_hotkey play_latest_movie_hotkey;
     t_hotkey load_latest_script_hotkey;

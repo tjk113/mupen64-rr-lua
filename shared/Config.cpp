@@ -71,6 +71,11 @@ t_config get_default_config()
 		.down_cmd = Action::StopMovie,
 	};
 
+    config.create_movie_backup_hotkey = {
+        .identifier = L"Create Movie Backup",
+        .down_cmd = Action::CreateMovieBackup,
+    };
+
 	config.take_screenshot_hotkey = {
 		.identifier = L"Take screenshot",
 		.down_cmd = Action::TakeScreenshot,

@@ -117,6 +117,7 @@ const std::map<Action, int> ACTION_ID_MAP = {
     {Action::StartMoviePlayback, IDM_START_MOVIE_PLAYBACK},
     {Action::StartMovieRecording, IDM_START_MOVIE_RECORDING},
     {Action::StopMovie, IDM_STOP_MOVIE},
+    {Action::CreateMovieBackup, IDM_CREATE_MOVIE_BACKUP},
     {Action::TakeScreenshot, IDM_SCREENSHOT},
     {Action::PlayLatestMovie, IDM_PLAY_LATEST_MOVIE},
     {Action::LoadLatestScript, IDM_LOAD_LATEST_LUA},
@@ -1405,6 +1406,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             EnableMenuItem(g_main_menu, IDM_STATUSBAR, !emu_launched ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_START_MOVIE_RECORDING, emu_launched ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_STOP_MOVIE, (VCR::get_task() != e_task::idle) ? MF_ENABLED : MF_GRAYED);
+            EnableMenuItem(g_main_menu, IDM_CREATE_MOVIE_BACKUP, (VCR::get_task() != e_task::idle) ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_TRACELOG, emu_launched ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_COREDBG, (emu_launched && g_config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SEEKER, (emu_launched && VCR::get_task() != e_task::idle) ? MF_ENABLED : MF_GRAYED);
@@ -1935,6 +1937,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 VCR::stop_all();
                 ClearButtons();
                 break;
+            case IDM_CREATE_MOVIE_BACKUP:
+            {
+                const auto result = VCR::write_backup();
+                show_error_dialog_for_result(result);
+                break;
+            }
             case IDM_START_CAPTURE_PRESET:
             case IDM_START_CAPTURE:
                 if (emu_launched)
