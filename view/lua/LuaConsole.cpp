@@ -892,6 +892,13 @@ void LuaEnvironment::register_functions()
     register_as_package(L, "iohelper", iohelperFuncs);
     register_as_package(L, "avi", aviFuncs);
 
+    // NOTE: The default os.exit implementation calls C++ destructors before closing the main window (WM_CLOSE + WM_DESTROY),
+    // thereby ripping the program apart for the remaining section of time until the exit, which causes extremely unpredictable crashes and an impossible program state.
+    lua_getglobal(L, "os");
+    lua_pushcfunction(L, LuaCore::Global::Exit);
+    lua_setfield(L, -2, "exit");
+    lua_pop(L, 1);
+    
     // COMPAT: table.getn deprecated, replaced by # prefix
     luaL_dostring(L, "table.getn = function(t) return #t end");
 
