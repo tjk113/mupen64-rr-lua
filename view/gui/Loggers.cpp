@@ -30,17 +30,20 @@ void Loggers::init()
     }
 
 #ifdef _DEBUG
-    std::vector<spdlog::sink_ptr> core_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
-    std::vector<spdlog::sink_ptr> shared_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
-    std::vector<spdlog::sink_ptr> view_sinks = {std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>(), std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log")};
-    g_core_logger = std::make_shared<spdlog::logger>("Core", begin(core_sinks), end(core_sinks));
-    g_shared_logger = std::make_shared<spdlog::logger>("Shared", begin(shared_sinks), end(shared_sinks));
-    g_view_logger = std::make_shared<spdlog::logger>("View", begin(view_sinks), end(view_sinks));
+    spdlog::sinks_init_list sink_list = {
+        std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log"),
+        std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>()
+    };
 #else
-    g_core_logger = spdlog::basic_logger_mt("Core", "mupen.log");
-    g_shared_logger = spdlog::basic_logger_mt("Shared", "mupen.log");
-    g_view_logger = spdlog::basic_logger_mt("View", "mupen.log");
+    spdlog::sinks_init_list sink_list = {
+        std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log"),
+    };
 #endif
+    
+    g_core_logger = std::make_shared<spdlog::logger>("Core", sink_list);
+    g_shared_logger = std::make_shared<spdlog::logger>("Shared", sink_list);
+    g_view_logger = std::make_shared<spdlog::logger>("View", sink_list);
+    
     g_core_logger->set_level(spdlog::level::trace);
     g_shared_logger->set_level(spdlog::level::trace);
     g_view_logger->set_level(spdlog::level::trace);
