@@ -731,7 +731,7 @@ namespace Savestates
 		return core_executing;
 	}
 
-	void do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
+	bool do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
 	{
 		std::scoped_lock lock(g_task_mutex);
 
@@ -742,7 +742,7 @@ namespace Savestates
 			{
 				callback(CoreResult::ST_CoreNotLaunched, {});
 			}
-			return;
+			return false;
 		}
 
 		auto pre_callback = [=](const CoreResult result, const std::vector<uint8_t>& buffer)
@@ -777,9 +777,10 @@ namespace Savestates
 		};
 
 		g_tasks.insert(g_tasks.begin(), task);
+	    return true;
 	}
 
-	void do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
+	bool do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
 	{
 		std::scoped_lock lock(g_task_mutex);
 
@@ -790,7 +791,7 @@ namespace Savestates
 			{
 				callback(CoreResult::ST_CoreNotLaunched, {});
 			}
-			return;
+			return false;
 		}
 
 		g_config.st_slot = slot;
@@ -832,9 +833,10 @@ namespace Savestates
 		};
 
 		g_tasks.insert(g_tasks.begin(), task);
+	    return true;
 	}
 
-	void do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
+	bool do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
 	{
 		std::scoped_lock lock(g_task_mutex);
 
@@ -845,7 +847,7 @@ namespace Savestates
 			{
 				callback(CoreResult::ST_CoreNotLaunched, {});
 			}
-			return;
+			return false;
 		}
 
 		const t_savestate_task task = {
@@ -859,6 +861,7 @@ namespace Savestates
 		};
 
 		g_tasks.insert(g_tasks.begin(), task);
+	    return true;
 	}
 
 	std::vector<uint8_t> get_undo_savestate()

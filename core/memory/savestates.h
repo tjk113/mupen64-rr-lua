@@ -81,8 +81,9 @@ namespace Savestates
      * \param callback The callback to call when the operation is complete.
      * \param ignore_warnings Whether warnings, such as those about ROM compatibility, shouldn't be shown.
      * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
+     * \return Whether the operation was enqueued.
      */
-    void do_file(const std::filesystem::path& path, Job job, const t_savestate_callback& callback = nullptr, bool ignore_warnings = false);
+    bool do_file(const std::filesystem::path& path, Job job, const t_savestate_callback& callback = nullptr, bool ignore_warnings = false);
 
     /**
      * \brief Executes a savestate operation to a slot
@@ -91,8 +92,9 @@ namespace Savestates
      * \param callback The callback to call when the operation is complete.
 	 * \param ignore_warnings Whether warnings, such as those about ROM compatibility, shouldn't be shown.
      * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
+     * \return Whether the operation was enqueued.
      */
-    void do_slot(int32_t slot, Job job, const t_savestate_callback& callback = nullptr, bool ignore_warnings = false);
+    bool do_slot(int32_t slot, Job job, const t_savestate_callback& callback = nullptr, bool ignore_warnings = false);
 
     /**
      * Executes a savestate operation in-memory.
@@ -101,8 +103,9 @@ namespace Savestates
      * \param callback The callback to call when the operation is complete.
 	 * \param ignore_warnings Whether warnings, such as those about ROM compatibility, shouldn't be shown.
      * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
+     * \return Whether the operation was enqueued.
      */
-    void do_memory(const std::vector<uint8_t>& buffer, Job job, const t_savestate_callback& callback = nullptr, bool ignore_warnings = false);
+    bool do_memory(const std::vector<uint8_t>& buffer, Job job, const t_savestate_callback& callback = nullptr, bool ignore_warnings = false);
 
     /**
      * Gets the undo savestate buffer. Will be empty will no undo savestate is available.
