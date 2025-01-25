@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025, Mupen64 maintainers, contributors, and original authors (Hacktarux, ShadowPrince, linker).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
 #include <shared/services/PlatformService.h>
 #include <core/r4300/Plugin.hpp>
 #include <Windows.h>
