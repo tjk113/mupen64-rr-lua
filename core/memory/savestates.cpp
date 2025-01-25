@@ -794,15 +794,6 @@ namespace Savestates
 			return false;
 		}
 
-		g_config.st_slot = slot;
-		Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
-
-		if (g_config.increment_slot && job == Job::Save)
-		{
-			g_config.st_slot >= 9 ? g_config.st_slot = 0 : g_config.st_slot++;
-			Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
-		}
-
 		auto pre_callback = [=](const CoreResult result, const std::vector<uint8_t>& buffer)
 		{
 			if (result == CoreResult::Ok)
