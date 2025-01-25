@@ -2144,6 +2144,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Loggers::init();
 
     g_view_logger->info("WinMain");
+    g_view_logger->info(MUPEN_VERSION);
 
     g_ui_thread_id = GetCurrentThreadId();
 
