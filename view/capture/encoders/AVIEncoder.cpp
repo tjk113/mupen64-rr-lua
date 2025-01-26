@@ -68,7 +68,11 @@ bool AVIEncoder::start(Params params)
 		}
 	}
 
-	save_options();
+	if (!save_options())
+	{
+	    stop();
+	    return false;
+	}
 
 	if (AVIMakeCompressedStream(&m_compressed_video_stream, m_video_stream, m_avi_options, NULL) != AVIERR_OK)
 	{
@@ -338,12 +342,32 @@ bool AVIEncoder::append_video_impl(uint8_t* image)
 	return !ret;
 }
 
-bool AVIEncoder::save_options()
+bool AVIEncoder::save_options() const
 {
 	FILE* f = fopen("avi.cfg", "wb");
-	fwrite(m_avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f);
-	fwrite(m_avi_options->lpParms, m_avi_options->cbParms, 1, f);
-	fclose(f);
+
+    if (!f)
+    {
+        g_view_logger->error("[AVIEncoder] {} fopen() failed", __func__);
+        return false;
+    }
+    
+    if (fwrite(m_avi_options, sizeof(AVICOMPRESSOPTIONS), 1, f) < 1)
+    {
+        g_view_logger->error("[AVIEncoder] {} fwrite(m_avi_options) failed", __func__);
+        (void)fclose(f);
+        return false;
+    }
+    
+	if (fwrite(m_avi_options->lpParms, m_avi_options->cbParms, 1, f) < 1)
+	{
+	    g_view_logger->error("[AVIEncoder] {} fwrite(m_avi_options->lpParms) failed", __func__);
+	    (void)fclose(f);
+	    return false;
+	}
+
+    (void)fclose(f);
+    
 	return true;
 }
 

@@ -27,7 +27,7 @@ private:
 
 	bool write_sound(uint8_t* buf, int len, int min_write_size, int max_write_size, BOOL force, uint8_t bitrate);
 	bool append_video_impl(uint8_t* image);
-	bool save_options();
+	bool save_options() const;
 	bool load_options();
 
 	Params m_params{};
