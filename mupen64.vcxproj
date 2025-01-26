@@ -97,7 +97,7 @@
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4018;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -133,7 +133,7 @@
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4018;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -166,7 +166,7 @@
       <AdditionalIncludeDirectories>src/;lib/;lib/zlib;lib/lua/include;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4018;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -205,7 +205,7 @@
       <AdditionalIncludeDirectories>src/;lib/;lib/zlib-x64;lib/lua-x64/include;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4018;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
