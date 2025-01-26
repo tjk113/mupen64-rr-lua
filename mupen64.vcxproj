@@ -84,7 +84,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../;../lib;../lib/zlib;../lib/lua/include;../lib/libdeflate;../lib/xxhash;../lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/;src/lib;src/lib/zlib;src/lib/lua/include;src/lib/libdeflate;src/lib/xxhash;src/lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -102,7 +102,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;Winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../lib/zlib;../lib/lua;../lib/libdeflate;../lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>src/lib/zlib;src/lib/lua;src/lib/libdeflate;src/lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -120,7 +120,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../;../lib;../lib/zlib-x64;../lib/lua-x64/include;../lib/libdeflate-x64;../lib/xxhash;../lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/;src/lib;src/lib/zlib-x64;src/lib/lua-x64/include;src/lib/libdeflate-x64;src/lib/xxhash;src/lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -138,7 +138,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;Winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../lib/zlib-x64;../lib/lua-x64;../lib/libdeflate-x64;../lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>src/lib/zlib-x64;src/lib/lua-x64;src/lib/libdeflate-x64;src/lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -154,7 +154,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../;../lib;../lib/zlib;../lib/lua/include;../lib/libdeflate;../lib/xxhash;../lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/;src/lib;src/lib/zlib;src/lib/lua/include;src/lib/libdeflate;src/lib/xxhash;src/lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -180,7 +180,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;Winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../lib/zlib;../lib/lua;../lib/libdeflate;../lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>src/lib/zlib;src/lib/lua;src/lib/libdeflate;src/lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -193,7 +193,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../;../lib;../lib/zlib-x64;../lib/lua-x64/include;../lib/libdeflate-x64;../lib/xxhash;../lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/;src/lib;src/lib/zlib-x64;src/lib/lua-x64/include;src/lib/libdeflate-x64;src/lib/xxhash;src/lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -219,7 +219,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;Winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../lib/zlib-x64;../lib/lua-x64;../lib/libdeflate-x64;../lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>src/lib/zlib-x64;src/lib/lua-x64;src/lib/libdeflate-x64;src/lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -230,197 +230,197 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\core\memory\dma.h" />
-    <ClInclude Include="..\core\memory\flashram.h" />
-    <ClInclude Include="..\core\memory\memory.h" />
-    <ClInclude Include="..\core\memory\pif.h" />
-    <ClInclude Include="..\core\memory\pif2.h" />
-    <ClInclude Include="..\core\memory\savestates.h" />
-    <ClInclude Include="..\core\memory\summercart.h" />
-    <ClInclude Include="..\core\memory\tlb.h" />
-    <ClInclude Include="..\core\r4300\debugger.h" />
-    <ClInclude Include="..\core\r4300\ops.h" />
-    <ClInclude Include="..\core\r4300\cop1_helpers.h" />
-    <ClInclude Include="..\core\r4300\disasm.h" />
-    <ClInclude Include="..\core\r4300\exception.h" />
-    <ClInclude Include="..\core\r4300\gameshark.h" />
-    <ClInclude Include="..\core\r4300\interrupt.h" />
-    <ClInclude Include="..\core\r4300\macros.h" />
-    <ClInclude Include="..\core\r4300\Plugin.hpp" />
-    <ClInclude Include="..\core\r4300\r4300.h" />
-    <ClInclude Include="..\core\r4300\recomp.h" />
-    <ClInclude Include="..\core\r4300\recomph.h" />
-    <ClInclude Include="..\core\r4300\rom.h" />
-    <ClInclude Include="..\core\r4300\timers.h" />
-    <ClInclude Include="..\core\r4300\tracelog.h" />
-    <ClInclude Include="..\core\r4300\vcr.h" />
-    <ClInclude Include="..\core\r4300\x86\assemble.h" />
-    <ClInclude Include="..\core\r4300\x86\gcop1_helpers.h" />
-    <ClInclude Include="..\core\r4300\x86\interpret.h" />
-    <ClInclude Include="..\core\r4300\x86\regcache.h" />
-    <ClInclude Include="..\lib\microlru.h" />
-    <ClInclude Include="..\shared\AsyncExecutor.h" />
-    <ClInclude Include="..\shared\Config.hpp" />
-    <ClInclude Include="..\shared\helpers\IOHelpers.h" />
-    <ClInclude Include="..\shared\helpers\StlExtensions.h" />
-    <ClInclude Include="..\shared\Messenger.h" />
-    <ClInclude Include="..\shared\services\FrontendService.h" />
-    <ClInclude Include="..\shared\services\IOService.h" />
-    <ClInclude Include="..\shared\services\LoggingService.h" />
-    <ClInclude Include="..\shared\services\LuaService.h" />
-    <ClInclude Include="..\shared\services\PlatformService.h" />
-    <ClInclude Include="..\shared\types\CoreTypes.h" />
-    <ClInclude Include="..\view\capture\encoders\AVIEncoder.h" />
-    <ClInclude Include="..\view\capture\encoders\Encoder.h" />
-    <ClInclude Include="..\view\capture\encoders\FFmpegEncoder.h" />
-    <ClInclude Include="..\view\capture\EncodingManager.h" />
-    <ClInclude Include="..\view\capture\Resampler.h" />
-    <ClInclude Include="..\view\gui\features\PianoRoll.h" />
-    <ClInclude Include="..\view\gui\features\UpdateChecker.h" />
-    <ClInclude Include="..\view\gui\Loggers.h" />
-    <ClInclude Include="..\view\helpers\IOHelpers.h" />
-    <ClInclude Include="..\view\helpers\MathHelpers.h" />
-    <ClInclude Include="..\view\helpers\WinHelpers.h" />
-    <ClInclude Include="..\view\gui\Commandline.h" />
-    <ClInclude Include="..\view\gui\features\Cheats.h" />
-    <ClInclude Include="..\view\gui\features\ConfigDialog.h" />
-    <ClInclude Include="..\view\gui\features\CoreDbg.h" />
-    <ClInclude Include="..\view\gui\features\CrashHelper.h" />
-    <ClInclude Include="..\view\gui\features\Dispatcher.h" />
-    <ClInclude Include="..\view\gui\features\MGECompositor.h" />
-    <ClInclude Include="..\view\gui\features\MovieDialog.h" />
-    <ClInclude Include="..\view\gui\features\RomBrowser.hpp" />
-    <ClInclude Include="..\view\gui\features\Runner.h" />
-    <ClInclude Include="..\view\gui\features\Seeker.h" />
-    <ClInclude Include="..\view\gui\features\Statusbar.hpp" />
-    <ClInclude Include="..\view\gui\Main.h" />
-    <ClInclude Include="..\view\gui\wrapper\PersistentPathDialog.h" />
-    <ClInclude Include="..\view\lua\LuaConsole.h" />
-    <ClInclude Include="..\view\lua\modules\AVI.h" />
-    <ClInclude Include="..\view\lua\modules\D2D.h" />
-    <ClInclude Include="..\view\lua\modules\Emu.h" />
-    <ClInclude Include="..\view\lua\modules\Global.h" />
-    <ClInclude Include="..\view\lua\modules\Input.h" />
-    <ClInclude Include="..\view\lua\modules\IOHelper.h" />
-    <ClInclude Include="..\view\lua\modules\Joypad.h" />
-    <ClInclude Include="..\view\lua\modules\Memory.h" />
-    <ClInclude Include="..\view\lua\modules\Movie.h" />
-    <ClInclude Include="..\view\lua\modules\Savestate.h" />
-    <ClInclude Include="..\view\lua\modules\WGUI.h" />
-    <ClInclude Include="..\view\lua\presenters\DCompPresenter.h" />
-    <ClInclude Include="..\view\lua\presenters\GDIPresenter.h" />
-    <ClInclude Include="..\view\lua\presenters\Presenter.h" />
-    <ClInclude Include="..\view\resource.h" />
+    <ClInclude Include="src\core\memory\dma.h" />
+    <ClInclude Include="src\core\memory\flashram.h" />
+    <ClInclude Include="src\core\memory\memory.h" />
+    <ClInclude Include="src\core\memory\pif.h" />
+    <ClInclude Include="src\core\memory\pif2.h" />
+    <ClInclude Include="src\core\memory\savestates.h" />
+    <ClInclude Include="src\core\memory\summercart.h" />
+    <ClInclude Include="src\core\memory\tlb.h" />
+    <ClInclude Include="src\core\r4300\debugger.h" />
+    <ClInclude Include="src\core\r4300\ops.h" />
+    <ClInclude Include="src\core\r4300\cop1_helpers.h" />
+    <ClInclude Include="src\core\r4300\disasm.h" />
+    <ClInclude Include="src\core\r4300\exception.h" />
+    <ClInclude Include="src\core\r4300\gameshark.h" />
+    <ClInclude Include="src\core\r4300\interrupt.h" />
+    <ClInclude Include="src\core\r4300\macros.h" />
+    <ClInclude Include="src\core\r4300\Plugin.hpp" />
+    <ClInclude Include="src\core\r4300\r4300.h" />
+    <ClInclude Include="src\core\r4300\recomp.h" />
+    <ClInclude Include="src\core\r4300\recomph.h" />
+    <ClInclude Include="src\core\r4300\rom.h" />
+    <ClInclude Include="src\core\r4300\timers.h" />
+    <ClInclude Include="src\core\r4300\tracelog.h" />
+    <ClInclude Include="src\core\r4300\vcr.h" />
+    <ClInclude Include="src\core\r4300\x86\assemble.h" />
+    <ClInclude Include="src\core\r4300\x86\gcop1_helpers.h" />
+    <ClInclude Include="src\core\r4300\x86\interpret.h" />
+    <ClInclude Include="src\core\r4300\x86\regcache.h" />
+    <ClInclude Include="src\lib\microlru.h" />
+    <ClInclude Include="src\shared\AsyncExecutor.h" />
+    <ClInclude Include="src\shared\Config.hpp" />
+    <ClInclude Include="src\shared\helpers\IOHelpers.h" />
+    <ClInclude Include="src\shared\helpers\StlExtensions.h" />
+    <ClInclude Include="src\shared\Messenger.h" />
+    <ClInclude Include="src\shared\services\FrontendService.h" />
+    <ClInclude Include="src\shared\services\IOService.h" />
+    <ClInclude Include="src\shared\services\LoggingService.h" />
+    <ClInclude Include="src\shared\services\LuaService.h" />
+    <ClInclude Include="src\shared\services\PlatformService.h" />
+    <ClInclude Include="src\shared\types\CoreTypes.h" />
+    <ClInclude Include="src\view\capture\encoders\AVIEncoder.h" />
+    <ClInclude Include="src\view\capture\encoders\Encoder.h" />
+    <ClInclude Include="src\view\capture\encoders\FFmpegEncoder.h" />
+    <ClInclude Include="src\view\capture\EncodingManager.h" />
+    <ClInclude Include="src\view\capture\Resampler.h" />
+    <ClInclude Include="src\view\gui\features\PianoRoll.h" />
+    <ClInclude Include="src\view\gui\features\UpdateChecker.h" />
+    <ClInclude Include="src\view\gui\Loggers.h" />
+    <ClInclude Include="src\view\helpers\IOHelpers.h" />
+    <ClInclude Include="src\view\helpers\MathHelpers.h" />
+    <ClInclude Include="src\view\helpers\WinHelpers.h" />
+    <ClInclude Include="src\view\gui\Commandline.h" />
+    <ClInclude Include="src\view\gui\features\Cheats.h" />
+    <ClInclude Include="src\view\gui\features\ConfigDialog.h" />
+    <ClInclude Include="src\view\gui\features\CoreDbg.h" />
+    <ClInclude Include="src\view\gui\features\CrashHelper.h" />
+    <ClInclude Include="src\view\gui\features\Dispatcher.h" />
+    <ClInclude Include="src\view\gui\features\MGECompositor.h" />
+    <ClInclude Include="src\view\gui\features\MovieDialog.h" />
+    <ClInclude Include="src\view\gui\features\RomBrowser.hpp" />
+    <ClInclude Include="src\view\gui\features\Runner.h" />
+    <ClInclude Include="src\view\gui\features\Seeker.h" />
+    <ClInclude Include="src\view\gui\features\Statusbar.hpp" />
+    <ClInclude Include="src\view\gui\Main.h" />
+    <ClInclude Include="src\view\gui\wrapper\PersistentPathDialog.h" />
+    <ClInclude Include="src\view\lua\LuaConsole.h" />
+    <ClInclude Include="src\view\lua\modules\AVI.h" />
+    <ClInclude Include="src\view\lua\modules\D2D.h" />
+    <ClInclude Include="src\view\lua\modules\Emu.h" />
+    <ClInclude Include="src\view\lua\modules\Global.h" />
+    <ClInclude Include="src\view\lua\modules\Input.h" />
+    <ClInclude Include="src\view\lua\modules\IOHelper.h" />
+    <ClInclude Include="src\view\lua\modules\Joypad.h" />
+    <ClInclude Include="src\view\lua\modules\Memory.h" />
+    <ClInclude Include="src\view\lua\modules\Movie.h" />
+    <ClInclude Include="src\view\lua\modules\Savestate.h" />
+    <ClInclude Include="src\view\lua\modules\WGUI.h" />
+    <ClInclude Include="src\view\lua\presenters\DCompPresenter.h" />
+    <ClInclude Include="src\view\lua\presenters\GDIPresenter.h" />
+    <ClInclude Include="src\view\lua\presenters\Presenter.h" />
+    <ClInclude Include="src\view\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\core\memory\dma.cpp" />
-    <ClCompile Include="..\core\memory\flashram.cpp" />
-    <ClCompile Include="..\core\memory\memory.cpp" />
-    <ClCompile Include="..\core\memory\pif.cpp" />
-    <ClCompile Include="..\core\memory\savestates.cpp" />
-    <ClCompile Include="..\core\memory\summercart.cpp" />
-    <ClCompile Include="..\core\memory\tlb.cpp" />
-    <ClCompile Include="..\core\r4300\debugger.cpp" />
-    <ClCompile Include="..\core\r4300\pure_interp.cpp" />
-    <ClCompile Include="..\core\r4300\compare_core.cpp" />
-    <ClCompile Include="..\core\r4300\cop0.cpp" />
-    <ClCompile Include="..\core\r4300\cop1.cpp" />
-    <ClCompile Include="..\core\r4300\cop1_d.cpp" />
-    <ClCompile Include="..\core\r4300\cop1_helpers.cpp" />
-    <ClCompile Include="..\core\r4300\cop1_l.cpp" />
-    <ClCompile Include="..\core\r4300\cop1_s.cpp" />
-    <ClCompile Include="..\core\r4300\cop1_w.cpp" />
-    <ClCompile Include="..\core\r4300\disasm.cpp" />
-    <ClCompile Include="..\core\r4300\exception.cpp" />
-    <ClCompile Include="..\core\r4300\gameshark.cpp" />
-    <ClCompile Include="..\core\r4300\interrupt.cpp" />
-    <ClCompile Include="..\core\r4300\Plugin.cpp" />
-    <ClCompile Include="..\core\r4300\r4300.cpp" />
-    <ClCompile Include="..\core\r4300\recomp.cpp" />
-    <ClCompile Include="..\core\r4300\regimm.cpp" />
-    <ClCompile Include="..\core\r4300\rom.cpp" />
-    <ClCompile Include="..\core\r4300\special.cpp" />
-    <ClCompile Include="..\core\r4300\timers.cpp" />
-    <ClCompile Include="..\core\r4300\tracelog.cpp" />
-    <ClCompile Include="..\core\r4300\vcr.cpp" />
-    <ClCompile Include="..\core\r4300\x86\assemble.cpp" />
-    <ClCompile Include="..\core\r4300\x86\debug.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gbc.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gcop0.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gcop1.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gcop1_d.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gcop1_helpers.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gcop1_l.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gcop1_s.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gcop1_w.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gr4300.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gregimm.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gspecial.cpp" />
-    <ClCompile Include="..\core\r4300\x86\gtlb.cpp" />
-    <ClCompile Include="..\core\r4300\x86\regcache.cpp" />
-    <ClCompile Include="..\core\r4300\x86\rjump.cpp" />
-    <ClCompile Include="..\core\r4300\bc.cpp" />
-    <ClCompile Include="..\lib\speex\speex_resampler.c" />
-    <ClCompile Include="..\lib\md5.c" />
-    <ClCompile Include="..\shared\AsyncExecutor.cpp" />
-    <ClCompile Include="..\shared\Config.cpp" />
-    <ClCompile Include="..\shared\helpers\IOHelpers.cpp" />
-    <ClCompile Include="..\shared\Messenger.cpp" />
-    <ClCompile Include="..\view\capture\encoders\AVIEncoder.cpp" />
-    <ClCompile Include="..\view\capture\encoders\FFmpegEncoder.cpp" />
-    <ClCompile Include="..\view\capture\EncodingManager.cpp" />
-    <ClCompile Include="..\view\capture\Resampler.cpp" />
-    <ClCompile Include="..\view\gui\Commandline.cpp" />
-    <ClCompile Include="..\view\gui\features\Cheats.cpp" />
-    <ClCompile Include="..\view\gui\features\ConfigDialog.cpp" />
-    <ClCompile Include="..\view\gui\features\CoreDbg.cpp" />
-    <ClCompile Include="..\view\gui\features\CrashHelper.cpp" />
-    <ClCompile Include="..\view\gui\features\Dispatcher.cpp" />
-    <ClCompile Include="..\view\gui\features\MGECompositor.cpp" />
-    <ClCompile Include="..\view\gui\features\MovieDialog.cpp" />
-    <ClCompile Include="..\view\gui\features\PianoRoll.cpp" />
-    <ClCompile Include="..\view\gui\features\rombrowser.cpp" />
-    <ClCompile Include="..\view\gui\features\Runner.cpp" />
-    <ClCompile Include="..\view\gui\features\Seeker.cpp" />
-    <ClCompile Include="..\view\gui\features\Statusbar.cpp" />
-    <ClCompile Include="..\view\gui\features\UpdateChecker.cpp" />
-    <ClCompile Include="..\view\gui\FrontendService.cpp" />
-    <ClCompile Include="..\view\gui\IOService.cpp" />
-    <ClCompile Include="..\view\gui\Loggers.cpp" />
-    <ClCompile Include="..\view\gui\Main.cpp" />
-    <ClCompile Include="..\view\gui\wrapper\PersistentPathDialog.cpp" />
-    <ClCompile Include="..\view\lua\LuaConsole.cpp" />
-    <ClCompile Include="..\view\lua\LuaService.cpp" />
-    <ClCompile Include="..\view\lua\presenters\DCompPresenter.cpp" />
-    <ClCompile Include="..\view\lua\presenters\GDIPresenter.cpp" />
-    <ClCompile Include="..\view\PlatformService.cpp" />
+    <ClCompile Include="src\core\memory\dma.cpp" />
+    <ClCompile Include="src\core\memory\flashram.cpp" />
+    <ClCompile Include="src\core\memory\memory.cpp" />
+    <ClCompile Include="src\core\memory\pif.cpp" />
+    <ClCompile Include="src\core\memory\savestates.cpp" />
+    <ClCompile Include="src\core\memory\summercart.cpp" />
+    <ClCompile Include="src\core\memory\tlb.cpp" />
+    <ClCompile Include="src\core\r4300\debugger.cpp" />
+    <ClCompile Include="src\core\r4300\pure_interp.cpp" />
+    <ClCompile Include="src\core\r4300\compare_core.cpp" />
+    <ClCompile Include="src\core\r4300\cop0.cpp" />
+    <ClCompile Include="src\core\r4300\cop1.cpp" />
+    <ClCompile Include="src\core\r4300\cop1_d.cpp" />
+    <ClCompile Include="src\core\r4300\cop1_helpers.cpp" />
+    <ClCompile Include="src\core\r4300\cop1_l.cpp" />
+    <ClCompile Include="src\core\r4300\cop1_s.cpp" />
+    <ClCompile Include="src\core\r4300\cop1_w.cpp" />
+    <ClCompile Include="src\core\r4300\disasm.cpp" />
+    <ClCompile Include="src\core\r4300\exception.cpp" />
+    <ClCompile Include="src\core\r4300\gameshark.cpp" />
+    <ClCompile Include="src\core\r4300\interrupt.cpp" />
+    <ClCompile Include="src\core\r4300\Plugin.cpp" />
+    <ClCompile Include="src\core\r4300\r4300.cpp" />
+    <ClCompile Include="src\core\r4300\recomp.cpp" />
+    <ClCompile Include="src\core\r4300\regimm.cpp" />
+    <ClCompile Include="src\core\r4300\rom.cpp" />
+    <ClCompile Include="src\core\r4300\special.cpp" />
+    <ClCompile Include="src\core\r4300\timers.cpp" />
+    <ClCompile Include="src\core\r4300\tracelog.cpp" />
+    <ClCompile Include="src\core\r4300\vcr.cpp" />
+    <ClCompile Include="src\core\r4300\x86\assemble.cpp" />
+    <ClCompile Include="src\core\r4300\x86\debug.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gbc.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gcop0.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gcop1.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gcop1_d.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gcop1_helpers.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gcop1_l.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gcop1_s.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gcop1_w.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gr4300.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gregimm.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gspecial.cpp" />
+    <ClCompile Include="src\core\r4300\x86\gtlb.cpp" />
+    <ClCompile Include="src\core\r4300\x86\regcache.cpp" />
+    <ClCompile Include="src\core\r4300\x86\rjump.cpp" />
+    <ClCompile Include="src\core\r4300\bc.cpp" />
+    <ClCompile Include="src\lib\speex\speex_resampler.c" />
+    <ClCompile Include="src\lib\md5.c" />
+    <ClCompile Include="src\shared\AsyncExecutor.cpp" />
+    <ClCompile Include="src\shared\Config.cpp" />
+    <ClCompile Include="src\shared\helpers\IOHelpers.cpp" />
+    <ClCompile Include="src\shared\Messenger.cpp" />
+    <ClCompile Include="src\view\capture\encoders\AVIEncoder.cpp" />
+    <ClCompile Include="src\view\capture\encoders\FFmpegEncoder.cpp" />
+    <ClCompile Include="src\view\capture\EncodingManager.cpp" />
+    <ClCompile Include="src\view\capture\Resampler.cpp" />
+    <ClCompile Include="src\view\gui\Commandline.cpp" />
+    <ClCompile Include="src\view\gui\features\Cheats.cpp" />
+    <ClCompile Include="src\view\gui\features\ConfigDialog.cpp" />
+    <ClCompile Include="src\view\gui\features\CoreDbg.cpp" />
+    <ClCompile Include="src\view\gui\features\CrashHelper.cpp" />
+    <ClCompile Include="src\view\gui\features\Dispatcher.cpp" />
+    <ClCompile Include="src\view\gui\features\MGECompositor.cpp" />
+    <ClCompile Include="src\view\gui\features\MovieDialog.cpp" />
+    <ClCompile Include="src\view\gui\features\PianoRoll.cpp" />
+    <ClCompile Include="src\view\gui\features\rombrowser.cpp" />
+    <ClCompile Include="src\view\gui\features\Runner.cpp" />
+    <ClCompile Include="src\view\gui\features\Seeker.cpp" />
+    <ClCompile Include="src\view\gui\features\Statusbar.cpp" />
+    <ClCompile Include="src\view\gui\features\UpdateChecker.cpp" />
+    <ClCompile Include="src\view\gui\FrontendService.cpp" />
+    <ClCompile Include="src\view\gui\IOService.cpp" />
+    <ClCompile Include="src\view\gui\Loggers.cpp" />
+    <ClCompile Include="src\view\gui\Main.cpp" />
+    <ClCompile Include="src\view\gui\wrapper\PersistentPathDialog.cpp" />
+    <ClCompile Include="src\view\lua\LuaConsole.cpp" />
+    <ClCompile Include="src\view\lua\LuaService.cpp" />
+    <ClCompile Include="src\view\lua\presenters\DCompPresenter.cpp" />
+    <ClCompile Include="src\view\lua\presenters\GDIPresenter.cpp" />
+    <ClCompile Include="src\view\PlatformService.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\view\icons\flag_unknown.ico" />
-    <Image Include="..\view\icons\flag_beta.ico" />
-    <Image Include="..\view\icons\flag_us.ico" />
-    <Image Include="..\view\icons\flag_au.ico" />
-    <Image Include="..\view\icons\flag_sp.ico" />
-    <Image Include="..\view\icons\flag_demo.ico" />
-    <Image Include="..\view\icons\flag_eu.ico" />
-    <Image Include="..\view\icons\flag_fr.ico" />
-    <Image Include="..\view\icons\flag_de.ico" />
-    <Image Include="..\view\icons\flag_it.ico" />
-    <Image Include="..\view\icons\flag_jp.ico" />
-    <Image Include="..\view\icons\logo_48.ico" />
-    <Image Include="..\view\icons\logo_16.ico" />
-    <Image Include="..\view\icons\changed.ico" />
-    <Image Include="..\view\icons\deny.ico" />
-    <Image Include="..\view\icons\plugin_video.bmp" />
-    <Image Include="..\view\icons\plugin_audio.bmp" />
-    <Image Include="..\view\icons\plugin_input.bmp" />
-    <Image Include="..\view\icons\plugin_rsp.bmp" />
+    <Image Include="src\view\icons\flag_unknown.ico" />
+    <Image Include="src\view\icons\flag_beta.ico" />
+    <Image Include="src\view\icons\flag_us.ico" />
+    <Image Include="src\view\icons\flag_au.ico" />
+    <Image Include="src\view\icons\flag_sp.ico" />
+    <Image Include="src\view\icons\flag_demo.ico" />
+    <Image Include="src\view\icons\flag_eu.ico" />
+    <Image Include="src\view\icons\flag_fr.ico" />
+    <Image Include="src\view\icons\flag_de.ico" />
+    <Image Include="src\view\icons\flag_it.ico" />
+    <Image Include="src\view\icons\flag_jp.ico" />
+    <Image Include="src\view\icons\logo_48.ico" />
+    <Image Include="src\view\icons\logo_16.ico" />
+    <Image Include="src\view\icons\changed.ico" />
+    <Image Include="src\view\icons\deny.ico" />
+    <Image Include="src\view\icons\plugin_video.bmp" />
+    <Image Include="src\view\icons\plugin_audio.bmp" />
+    <Image Include="src\view\icons\plugin_input.bmp" />
+    <Image Include="src\view\icons\plugin_rsp.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\view\rsrc.rc" />
+    <ResourceCompile Include="src\view\rsrc.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="..\view\app.manifest" />
+    <Manifest Include="src\view\app.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
