@@ -192,7 +192,10 @@ namespace EncodingManager
 			// First, composite the lua's dxgi surfaces
 			for (auto& pair : g_hwnd_lua_map)
 			{
-				pair.second->presenter->blit(compat_dc, {0, 0, (LONG)pair.second->presenter->size().width, (LONG)pair.second->presenter->size().height});
+                if (pair.second->presenter)
+                {
+					pair.second->presenter->blit(compat_dc, {0, 0, (LONG)pair.second->presenter->size().width, (LONG)pair.second->presenter->size().height});
+                }
 			}
 
 			// Then, blit the GDI back DCs
