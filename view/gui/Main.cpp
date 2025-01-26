@@ -1789,15 +1789,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case IDM_SAVE_SLOT:
                 ++g_vr_wait_before_input_poll;
+                if (g_config.increment_slot)
+                {
+                    g_config.st_slot >= 9 ? g_config.st_slot = 0 : g_config.st_slot++;
+                    Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
+                }
                 AsyncExecutor::invoke_async([=]
                 {
                     --g_vr_wait_before_input_poll;
                     Savestates::do_slot(g_config.st_slot, Savestates::Job::Save);
-                    if (g_config.increment_slot)
-                    {
-                        g_config.st_slot >= 9 ? g_config.st_slot = 0 : g_config.st_slot++;
-                        Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
-                    }
                 });
                 break;
             case IDM_SAVE_STATE_AS:
