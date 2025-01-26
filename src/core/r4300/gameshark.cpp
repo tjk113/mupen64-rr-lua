@@ -11,8 +11,8 @@
 #include <core/memory/memory.h>
 
 #include "r4300.h"
-#include "shared/helpers/StlExtensions.h"
-#include <shared/services/LoggingService.h>
+#include "core/helpers/StlExtensions.h"
+#include <core/services/LoggingService.h>
 
 namespace Gameshark
 {

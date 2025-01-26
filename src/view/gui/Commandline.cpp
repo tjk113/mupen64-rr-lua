@@ -13,18 +13,18 @@
 #include <view/lua/LuaConsole.h>
 #include "Main.h"
 #include "Loggers.h"
-#include <shared/Messenger.h>
+#include <core/Messenger.h>
 #include <core/memory/savestates.h>
-#include <shared/helpers/StlExtensions.h>
+#include <core/helpers/StlExtensions.h>
 #include "../../lib/argh.h"
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include <view/capture/EncodingManager.h>
 
 #include "features/Dispatcher.h"
-#include "shared/AsyncExecutor.h"
-#include "shared/Config.h"
-#include "shared/services/FrontendService.h"
+#include <core/AsyncExecutor.h>
+#include "core/Config.h"
+#include "core/services/FrontendService.h"
 
 namespace Cli
 {

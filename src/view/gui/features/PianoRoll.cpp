@@ -15,10 +15,10 @@
 #include "core/memory/pif.h"
 #include "core/r4300/r4300.h"
 #include "core/r4300/vcr.h"
-#include "shared/AsyncExecutor.h"
-#include "shared/Messenger.h"
-#include "shared/helpers/StlExtensions.h"
-#include "shared/services/FrontendService.h"
+#include <core/AsyncExecutor.h>
+#include "core/Messenger.h"
+#include "core/helpers/StlExtensions.h"
+#include "core/services/FrontendService.h"
 #include "view/gui/Main.h"
 #include "view/helpers/WinHelpers.h"
 #include <view/resource.h>

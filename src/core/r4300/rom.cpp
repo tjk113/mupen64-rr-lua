@@ -13,10 +13,10 @@
 
 #include "../memory/memory.h"
 #include <md5.h>
-#include <shared/Config.h>
-#include <shared/helpers/IOHelpers.h>
-#include <shared/helpers/StlExtensions.h>
-#include <shared/services/LoggingService.h>
+#include <core/Config.h>
+#include <core/helpers/IOHelpers.h>
+#include <core/helpers/StlExtensions.h>
+#include <core/services/LoggingService.h>
 
 std::unordered_map<std::filesystem::path, std::pair<uint8_t*, size_t>> rom_cache;
 

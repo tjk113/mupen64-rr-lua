@@ -8,13 +8,13 @@
 #include "Plugin.h"
 #include <assert.h>
 #include <core/r4300/rom.h>
-#include <shared/Config.h>
+#include <core/Config.h>
 #include <core/memory/memory.h>
 #include <core/r4300/r4300.h>
-#include <shared/services/FrontendService.h>
-#include <shared/services/IOService.h>
-#include <shared/services/PlatformService.h>
-#include <shared/services/LoggingService.h>
+#include <core/services/FrontendService.h>
+#include <core/services/IOService.h>
+#include <core/services/PlatformService.h>
+#include <core/services/LoggingService.h>
 
 CONTROL Controls[4];
 

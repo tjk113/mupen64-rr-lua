@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "shared/AsyncExecutor.h"
+#include <core/AsyncExecutor.h>
 
 extern "C" {
 #include <lua.h>
@@ -12,7 +12,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <shared/Messenger.h>
+#include <core/Messenger.h>
 #include <core/r4300/vcr.h>
 
 namespace LuaCore::Movie

@@ -10,13 +10,13 @@
 #include <commctrl.h>
 #include <numeric>
 
-#include <shared/Messenger.h>
+#include <core/Messenger.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include "RomBrowser.h"
 #include <view/resource.h>
 #include <view/helpers/WinHelpers.h>
-#include <shared/Config.h>
+#include <core/Config.h>
 #include <view/gui/Main.h>
 #include <view/gui/Loggers.h>
 

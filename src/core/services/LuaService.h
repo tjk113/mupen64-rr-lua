@@ -19,7 +19,7 @@ extern "C" {
 }
 
 #include <cstdint>
-#include <shared/types/CoreTypes.h>
+#include <core/CoreTypes.h>
 
 namespace LuaService
 {

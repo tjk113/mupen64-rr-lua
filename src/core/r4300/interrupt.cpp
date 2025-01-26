@@ -14,15 +14,15 @@
 #include "r4300.h"
 #include "macros.h"
 #include "exception.h"
-#include <shared/services/LuaService.h>
+#include <core/services/LuaService.h>
 #include <core/r4300/Plugin.h>
 #include "../r4300/vcr.h"
 #include <core/r4300/timers.h>
 #include "../memory/savestates.h"
-#include <shared/Config.h>
+#include <core/Config.h>
 #include "../memory/pif.h"
-#include <shared/services/FrontendService.h>
-#include <shared/services/LoggingService.h>
+#include <core/services/FrontendService.h>
+#include <core/services/LoggingService.h>
 
 typedef struct _interrupt_queue
 {

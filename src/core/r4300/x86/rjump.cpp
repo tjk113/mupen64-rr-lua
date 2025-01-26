@@ -12,8 +12,8 @@
 #include "../ops.h"
 #include "../recomph.h"
 #include <csetjmp>
-#include <shared/services/LoggingService.h>
-#include <shared/Messenger.h>
+#include <core/services/LoggingService.h>
+#include <core/Messenger.h>
 
 // NOTE: dynarec isn't compatible with the game debugger
 

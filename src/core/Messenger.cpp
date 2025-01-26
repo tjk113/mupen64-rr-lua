@@ -10,7 +10,7 @@
 #include <atomic>
 #include <print>
 #include <thread>
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 namespace Messenger
 {

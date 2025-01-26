@@ -8,10 +8,10 @@
 #include <cstdio>
 #include <filesystem>
 #include <ini.h>
-#include <shared/helpers/StlExtensions.h>
-#include <shared/Messenger.h>
-#include <shared/services/FrontendService.h>
-#include <shared/services/LoggingService.h>
+#include <core/helpers/StlExtensions.h>
+#include <core/Messenger.h>
+#include <core/services/FrontendService.h>
+#include <core/services/LoggingService.h>
 
 t_config g_config;
 std::vector<t_hotkey*> g_config_hotkeys;

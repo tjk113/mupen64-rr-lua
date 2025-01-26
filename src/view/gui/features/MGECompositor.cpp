@@ -7,7 +7,7 @@
 #include "MGECompositor.h"
 #include <Windows.h>
 
-#include <shared/Messenger.h>
+#include <core/Messenger.h>
 #include <core/r4300/Plugin.h>
 #include <view/gui/Main.h>
 #include <cassert>

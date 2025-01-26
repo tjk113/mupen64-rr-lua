@@ -7,7 +7,7 @@
 #include "AVIEncoder.h"
 
 #include <core/r4300/rom.h>
-#include <shared/services/FrontendService.h>
+#include <core/services/FrontendService.h>
 #include <view/capture/EncodingManager.h>
 #include <view/capture/Resampler.h>
 #include <view/gui/Main.h>

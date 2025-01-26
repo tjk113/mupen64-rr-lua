@@ -240,6 +240,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="lib\microlru.h" />
+    <ClInclude Include="src\core\CoreTypes.h" />
+    <ClInclude Include="src\core\helpers\IOHelpers.h" />
+    <ClInclude Include="src\core\helpers\StlExtensions.h" />
     <ClInclude Include="src\core\memory\dma.h" />
     <ClInclude Include="src\core\memory\flashram.h" />
     <ClInclude Include="src\core\memory\memory.h" />
@@ -268,17 +271,14 @@
     <ClInclude Include="src\core\r4300\x86\gcop1_helpers.h" />
     <ClInclude Include="src\core\r4300\x86\interpret.h" />
     <ClInclude Include="src\core\r4300\x86\regcache.h" />
-    <ClInclude Include="src\shared\AsyncExecutor.h" />
-    <ClInclude Include="src\shared\Config.h" />
-    <ClInclude Include="src\shared\helpers\IOHelpers.h" />
-    <ClInclude Include="src\shared\helpers\StlExtensions.h" />
-    <ClInclude Include="src\shared\Messenger.h" />
-    <ClInclude Include="src\shared\services\FrontendService.h" />
-    <ClInclude Include="src\shared\services\IOService.h" />
-    <ClInclude Include="src\shared\services\LoggingService.h" />
-    <ClInclude Include="src\shared\services\LuaService.h" />
-    <ClInclude Include="src\shared\services\PlatformService.h" />
-    <ClInclude Include="src\shared\types\CoreTypes.h" />
+    <ClInclude Include="src\core\AsyncExecutor.h" />
+    <ClInclude Include="src\core\Config.h" />
+    <ClInclude Include="src\core\Messenger.h" />
+    <ClInclude Include="src\core\services\FrontendService.h" />
+    <ClInclude Include="src\core\services\IOService.h" />
+    <ClInclude Include="src\core\services\LoggingService.h" />
+    <ClInclude Include="src\core\services\LuaService.h" />
+    <ClInclude Include="src\core\services\PlatformService.h" />
     <ClInclude Include="src\view\capture\encoders\AVIEncoder.h" />
     <ClInclude Include="src\view\capture\encoders\Encoder.h" />
     <ClInclude Include="src\view\capture\encoders\FFmpegEncoder.h" />
@@ -324,6 +324,7 @@
   <ItemGroup>
     <ClCompile Include="lib\speex\speex_resampler.c" />
     <ClCompile Include="lib\md5.c" />
+    <ClCompile Include="src\core\helpers\IOHelpers.cpp" />
     <ClCompile Include="src\core\memory\dma.cpp" />
     <ClCompile Include="src\core\memory\flashram.cpp" />
     <ClCompile Include="src\core\memory\memory.cpp" />
@@ -371,10 +372,9 @@
     <ClCompile Include="src\core\r4300\x86\regcache.cpp" />
     <ClCompile Include="src\core\r4300\x86\rjump.cpp" />
     <ClCompile Include="src\core\r4300\bc.cpp" />
-    <ClCompile Include="src\shared\AsyncExecutor.cpp" />
-    <ClCompile Include="src\shared\Config.cpp" />
-    <ClCompile Include="src\shared\helpers\IOHelpers.cpp" />
-    <ClCompile Include="src\shared\Messenger.cpp" />
+    <ClCompile Include="src\core\AsyncExecutor.cpp" />
+    <ClCompile Include="src\core\Config.cpp" />
+    <ClCompile Include="src\core\Messenger.cpp" />
     <ClCompile Include="src\view\capture\encoders\AVIEncoder.cpp" />
     <ClCompile Include="src\view\capture\encoders\FFmpegEncoder.cpp" />
     <ClCompile Include="src\view\capture\EncodingManager.cpp" />

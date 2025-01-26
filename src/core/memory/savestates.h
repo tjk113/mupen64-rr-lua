@@ -8,7 +8,7 @@
 
 #include <filesystem>
 #include <functional>
-#include <shared/types/CoreTypes.h>
+#include <core/CoreTypes.h>
 
 extern bool g_st_skip_dma;
 extern bool g_st_old;

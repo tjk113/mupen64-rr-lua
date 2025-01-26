@@ -11,16 +11,13 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include <shared/helpers/IOHelpers.h>
-#include <shared/types/CoreTypes.h>
+#include <core/helpers/IOHelpers.h>
+#include <core/CoreTypes.h>
 
 // ReSharper disable CppInconsistentNaming
-
-
 static uint32_t __cdecl dummy_doRspCycles(uint32_t Cycles) { return Cycles; };
 
 extern CONTROL Controls[4];
-
 
 #pragma region Base Functions
 
@@ -144,7 +141,6 @@ extern INITIATERSP initiateRSP;
 extern ROMCLOSED_RSP romClosed_RSP;
 
 #pragma endregion
-
 
 // ReSharper restore CppInconsistentNaming
 

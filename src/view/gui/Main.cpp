@@ -23,11 +23,11 @@
 #include <core/r4300/timers.h>
 #include <core/r4300/tracelog.h>
 #include <core/r4300/vcr.h>
-#include <shared/Config.h>
-#include <shared/Messenger.h>
-#include <shared/helpers/StlExtensions.h>
-#include <shared/services/FrontendService.h>
-#include <shared/services/LuaService.h>
+#include <core/Config.h>
+#include <core/Messenger.h>
+#include <core/helpers/StlExtensions.h>
+#include <core/services/FrontendService.h>
+#include <core/services/LuaService.h>
 #include <view/capture/EncodingManager.h>
 #include <view/gui/features/ConfigDialog.h>
 #include <view/helpers/MathHelpers.h>
@@ -50,9 +50,9 @@
 #include "features/PianoRoll.h"
 #include "features/Runner.h"
 #include "features/UpdateChecker.h"
-#include "shared/AsyncExecutor.h"
-#include "shared/services/IOService.h"
-#include "shared/services/LoggingService.h"
+#include <core/AsyncExecutor.h>
+#include "core/services/IOService.h"
+#include "core/services/LoggingService.h"
 #include "view/helpers/IOHelpers.h"
 #include "wrapper/PersistentPathDialog.h"
 

@@ -5,12 +5,12 @@
  */
 
 #include <filesystem>
-#include <shared/services/IOService.h>
+#include <core/services/IOService.h>
 #include <string>
 #include <vector>
 #include <Windows.h>
 
-#include "shared/helpers/StlExtensions.h"
+#include "core/helpers/StlExtensions.h"
 
 std::vector<std::wstring> IOService::get_files_with_extension_in_directory(std::wstring directory, const std::wstring& extension)
 {

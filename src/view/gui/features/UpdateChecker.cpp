@@ -7,8 +7,8 @@
 #include "UpdateChecker.h"
 #include <Windows.h>
 #include <json/json.hpp>
-#include <shared/helpers/StlExtensions.h>
-#include <shared/services/FrontendService.h>
+#include <core/helpers/StlExtensions.h>
+#include <core/services/FrontendService.h>
 #include <view/gui/Loggers.h>
 #include <view/gui/Main.h>
 #include <winhttp.h>

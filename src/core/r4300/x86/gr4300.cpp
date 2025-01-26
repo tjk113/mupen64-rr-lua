@@ -14,7 +14,7 @@
 #include "regcache.h"
 #include "../exception.h"
 #include "interpret.h"
-#include <shared/Config.h>
+#include <core/Config.h>
 
 extern uint32_t src; //recomp.c
 

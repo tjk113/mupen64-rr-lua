@@ -16,14 +16,14 @@
 #include "pif.h"
 
 #include <thread>
-#include <shared/services/LuaService.h>
+#include <core/services/LuaService.h>
 #include "pif2.h"
 #include "../r4300/r4300.h"
 #include <core/r4300/Plugin.h>
 #include "../r4300/vcr.h"
 #include "savestates.h"
 #include <core/r4300/gameshark.h>
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 int32_t frame_advancing = 0;
 // Amount of VIs since last input poll

@@ -12,7 +12,7 @@
 #include "../macros.h"
 #include "interpret.h"
 #include "gcop1_helpers.h"
-#include <shared/Config.h>
+#include <core/Config.h>
 
 static void gencheck_eax_valid(int32_t stackBase)
 {

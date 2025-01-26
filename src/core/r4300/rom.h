@@ -8,7 +8,7 @@
 
 #include <filesystem>
 #include <string>
-#include <shared/types/CoreTypes.h>
+#include <core/CoreTypes.h>
 
 extern uint8_t* rom;
 extern size_t rom_size;

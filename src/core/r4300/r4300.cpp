@@ -14,14 +14,14 @@
 #include "macros.h"
 #include "recomp.h"
 #include <malloc.h>
-#include <shared/services/LuaService.h>
-#include <shared/Messenger.h>
+#include <core/services/LuaService.h>
+#include <core/Messenger.h>
 #include "../memory/savestates.h"
-#include <shared/helpers/StlExtensions.h>
+#include <core/helpers/StlExtensions.h>
 #include <core/r4300/timers.h>
-#include <shared/Config.h>
-#include <shared/services/FrontendService.h>
-#include <shared/services/LoggingService.h>
+#include <core/Config.h>
+#include <core/services/FrontendService.h>
+#include <core/services/LoggingService.h>
 // Threading crap
 
 #include "gameshark.h"

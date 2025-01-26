@@ -8,12 +8,12 @@
 
 #include <cassert>
 
-#include <shared/services/FrontendService.h>
-#include <shared/Messenger.h>
+#include <core/services/FrontendService.h>
+#include <core/Messenger.h>
 #include <core/r4300/Plugin.h>
 #include <view/gui/Main.h>
 #include <core/r4300/rom.h>
-#include <shared/Config.h>
+#include <core/Config.h>
 #include <core/memory/memory.h>
 #include "encoders/AVIEncoder.h"
 #include "encoders/Encoder.h"

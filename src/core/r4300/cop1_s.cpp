@@ -5,13 +5,13 @@
  */
 
 #include <cmath>
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 #include "r4300.h"
 #include "ops.h"
 #include "macros.h"
 #include "cop1_helpers.h"
-#include <shared/Config.h>
+#include <core/Config.h>
 
 void ADD_S()
 {

@@ -15,12 +15,12 @@
 #include "pif.h"
 #include "flashram.h"
 #include "summercart.h"
-#include <shared/services/FrontendService.h>
+#include <core/services/FrontendService.h>
 #include "../r4300/ops.h"
 #include "savestates.h"
-#include <shared/Config.h>
+#include <core/Config.h>
 #include "core/r4300/debugger.h"
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 void dma_pi_read()
 {

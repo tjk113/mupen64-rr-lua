@@ -13,19 +13,19 @@
 #include <view/resource.h>
 #include <core/r4300/Plugin.h>
 #include <core/r4300/timers.h>
-#include <shared/Config.h>
+#include <core/Config.h>
 #include <view/gui/wrapper/PersistentPathDialog.h>
-#include <shared/helpers/StlExtensions.h>
+#include <core/helpers/StlExtensions.h>
 #include <view/helpers/WinHelpers.h>
 #include <core/r4300/r4300.h>
 #include "configdialog.h"
 #include <view/capture/EncodingManager.h>
 
-#include <shared/Messenger.h>
+#include <core/Messenger.h>
 #include <Windows.h>
 
 #include "core/r4300/vcr.h"
-#include "shared/services/FrontendService.h"
+#include "core/services/FrontendService.h"
 
 #define WM_EDIT_END (WM_USER + 19)
 #define WM_PLUGIN_DISCOVERY_FINISHED (WM_USER + 22)

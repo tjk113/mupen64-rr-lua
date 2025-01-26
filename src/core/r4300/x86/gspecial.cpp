@@ -13,8 +13,8 @@
 #include "../macros.h"
 #include "../exception.h"
 #include "interpret.h"
-#include <shared/services/LuaService.h>
-#include <shared/Config.h>
+#include <core/services/LuaService.h>
+#include <core/Config.h>
 
 
 void gensll()

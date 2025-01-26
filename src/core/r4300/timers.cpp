@@ -5,12 +5,12 @@
  */
 
 #include "timers.h"
-#include <shared/Config.h>
-#include <shared/Messenger.h>
+#include <core/Config.h>
+#include <core/Messenger.h>
 #include <core/memory/pif.h>
 #include <core/r4300/vcr.h>
 #include <core/r4300/r4300.h>
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 bool frame_changed = true;
 extern int32_t m_current_vi;

@@ -19,9 +19,9 @@
 #include <functional>
 #include <gdiplus.h>
 #include <map>
-#include <shared/Config.h>
-#include <shared/helpers/StlExtensions.h>
-#include <shared/services/LuaService.h>
+#include <core/Config.h>
+#include <core/helpers/StlExtensions.h>
+#include <core/services/LuaService.h>
 #include <string>
 #include <vector>
 #include <view/gui/Main.h>
@@ -43,7 +43,7 @@
 #include "modules/WGUI.h"
 #include "presenters/DCompPresenter.h"
 #include "presenters/GDIPresenter.h"
-#include "shared/services/FrontendService.h"
+#include "core/services/FrontendService.h"
 
 const auto D2D_OVERLAY_CLASS = L"lua_d2d_overlay";
 const auto GDI_OVERLAY_CLASS = L"lua_gdi_overlay";

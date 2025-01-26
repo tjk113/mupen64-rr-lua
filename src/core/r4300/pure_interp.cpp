@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <thread>
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 #include "r4300.h"
 #include "exception.h"
@@ -20,8 +20,8 @@
 #include "../memory/tlb.h"
 
 #include "tracelog.h"
-#include <shared/Config.h>
-#include <shared/Messenger.h>
+#include <core/Config.h>
+#include <core/Messenger.h>
 
 #include "debugger.h"
 

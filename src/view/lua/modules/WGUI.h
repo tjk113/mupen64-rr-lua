@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "shared/services/FrontendService.h"
+#include "core/services/FrontendService.h"
 
 extern "C" {
 #include <lua.h>

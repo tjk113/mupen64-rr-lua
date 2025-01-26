@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 #include "exception.h"
 #include "r4300.h"

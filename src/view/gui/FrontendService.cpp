@@ -7,19 +7,19 @@
 #include <view/lua/LuaConsole.h>
 #include <Windows.h>
 #include <commctrl.h>
-#include <shared/services/FrontendService.h>
+#include <core/services/FrontendService.h>
 #include <view/gui/Main.h>
 #include <core/r4300/tracelog.h>
 #include <core/r4300/vcr.h>
 #include <view/capture/EncodingManager.h>
-#include <shared/Config.h>
+#include <core/Config.h>
 #include <view/gui/features/MGECompositor.h>
 
 #include "Loggers.h"
 #include "features/Dispatcher.h"
 #include "features/RomBrowser.h"
 #include "features/Statusbar.h"
-#include "shared/helpers/StlExtensions.h"
+#include "core/helpers/StlExtensions.h"
 
 size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, DialogType type, void* hwnd)
 {

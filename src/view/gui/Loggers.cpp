@@ -10,7 +10,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/wincolor_sink.h>
 
-#include "shared/services/LoggingService.h"
+#include "core/services/LoggingService.h"
 
 std::shared_ptr<spdlog::logger> g_core_logger;
 std::shared_ptr<spdlog::logger> g_shared_logger;

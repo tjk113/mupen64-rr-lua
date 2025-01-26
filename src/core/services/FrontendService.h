@@ -12,8 +12,8 @@
  *	Must be implemented in the view layer.
  */
 
-#include <shared/Config.h>
-#include <shared/types/CoreTypes.h>
+#include <core/Config.h>
+#include <core/CoreTypes.h>
 #include <functional>
 
 namespace FrontendService

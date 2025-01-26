@@ -6,7 +6,7 @@
 
 #include "IOHelpers.h"
 #include <libdeflate.h>
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 void vecwrite(std::vector<uint8_t>& vec, void* data, size_t len)
 {

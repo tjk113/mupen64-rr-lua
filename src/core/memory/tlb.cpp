@@ -16,7 +16,7 @@
 #include <core/r4300/recomph.h>
 #include <core/r4300/interrupt.h>
 #include "../memory/memory.h"
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 #include <zlib.h>
 
 uint32_t tlb_LUT_r[0x100000];

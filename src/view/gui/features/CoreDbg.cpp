@@ -19,7 +19,7 @@
 #include <core/r4300/disasm.h>
 
 #include "core/r4300/debugger.h"
-#include "shared/Messenger.h"
+#include "core/Messenger.h"
 
 #define WM_DEBUGGER_CPU_STATE_UPDATED (WM_USER + 20)
 #define WM_DEBUGGER_RESUMED_UPDATED (WM_USER + 21)

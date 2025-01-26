@@ -9,7 +9,7 @@
 #include "../memory/memory.h"
 #include "ops.h"
 #include "macros.h"
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 void BLTZ()
 {

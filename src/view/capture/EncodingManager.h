@@ -6,7 +6,7 @@
 
 #pragma once
 #include <filesystem>
-#include <shared/Config.h>
+#include <core/Config.h>
 
 /**
  * Provides encoding functionality to the view.

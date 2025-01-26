@@ -17,19 +17,19 @@
 #include "Statusbar.h"
 #include "../Main.h"
 #include <view/resource.h>
-#include <shared/helpers/StlExtensions.h>
-#include <shared/services/IOService.h>
+#include <core/helpers/StlExtensions.h>
+#include <core/services/IOService.h>
 #include <view/helpers/IOHelpers.h>
 #include <core/r4300/r4300.h>
-#include <shared/Config.h>
+#include <core/Config.h>
 #include <assert.h>
 #include <future>
 #include <mutex>
 #include <thread>
 #include <Uxtheme.h>
-#include <shared/Messenger.h>
+#include <core/Messenger.h>
 #include <view/gui/Loggers.h>
-#include "shared/AsyncExecutor.h"
+#include <core/AsyncExecutor.h>
 
 using t_rombrowser_entry = struct s_rombrowser_entry
 {

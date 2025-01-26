@@ -6,7 +6,7 @@
 
 #include "vcr.h"
 #include <cassert>
-#include <shared/Config.h>
+#include <core/Config.h>
 #include <memory>
 #include <filesystem>
 #include <cstdio>
@@ -22,14 +22,14 @@
 #include <core/memory/pif.h>
 #include <core/r4300/timers.h>
 
-#include <shared/services/LuaService.h>
+#include <core/services/LuaService.h>
 
-#include <shared/services/FrontendService.h>
-#include <shared/Messenger.h>
-#include <shared/helpers/StlExtensions.h>
-#include <shared/services/LoggingService.h>
+#include <core/services/FrontendService.h>
+#include <core/Messenger.h>
+#include <core/helpers/StlExtensions.h>
+#include <core/services/LoggingService.h>
 
-#include "shared/AsyncExecutor.h"
+#include <core/AsyncExecutor.h>
 
 // M64\0x1a
 enum

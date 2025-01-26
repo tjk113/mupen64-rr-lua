@@ -10,7 +10,7 @@
 #include "../r4300/r4300.h"
 #include "memory.h"
 #include "savestates.h"
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 int32_t use_flashram;
 

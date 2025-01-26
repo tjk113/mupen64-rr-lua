@@ -7,10 +7,10 @@
 #include "PersistentPathDialog.h"
 #include <shlobj.h>
 #include <cstdio>
-#include <shared/helpers/IOHelpers.h>
-#include <shared/helpers/StlExtensions.h>
-#include <shared/services/LoggingService.h>
-#include <shared/Config.h>
+#include <core/helpers/IOHelpers.h>
+#include <core/helpers/StlExtensions.h>
+#include <core/services/LoggingService.h>
+#include <core/Config.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/helpers/IOHelpers.h>
 

@@ -9,17 +9,14 @@
 #include <thread>
 #include <Windows.h>
 #include <Windowsx.h>
-
 #include <view/resource.h>
 #include <view/gui/Main.h>
-
 #include <view/lua/LuaConsole.h>
-#include <shared/Messenger.h>
-#include <shared/Config.h>
+#include <core/Messenger.h>
+#include <core/Config.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
-
-#include "shared/AsyncExecutor.h"
+#include <core/AsyncExecutor.h>
 
 namespace Runner
 {

@@ -9,7 +9,7 @@
 #include "../memory/memory.h"
 #include <core/r4300/Plugin.h>
 #include "../r4300/recomph.h"
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 static FILE* f;
 static int32_t pipe_opened = 0;

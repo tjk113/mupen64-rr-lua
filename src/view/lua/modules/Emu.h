@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "shared/Messenger.h"
+#include "core/Messenger.h"
 
 extern "C" {
 #include <lua.h>

@@ -11,8 +11,8 @@
 #include "ops.h"
 #include "macros.h"
 #include "cop1_helpers.h"
-#include <shared/Config.h>
-#include <shared/services/LoggingService.h>
+#include <core/Config.h>
+#include <core/services/LoggingService.h>
 
 void ADD_D()
 {

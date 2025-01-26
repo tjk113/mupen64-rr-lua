@@ -9,7 +9,7 @@
 
 #include <thread>
 
-#include "shared/Messenger.h"
+#include "core/Messenger.h"
 
 bool g_resumed = true;
 bool g_instruction_advancing = false;

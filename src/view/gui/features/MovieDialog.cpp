@@ -12,16 +12,16 @@
 #include <core/memory/savestates.h>
 #include "Statusbar.h"
 #include <view/gui/Main.h>
-#include <shared/Config.h>
+#include <core/Config.h>
 #include <view/resource.h>
-#include <shared/helpers/StlExtensions.h>
+#include <core/helpers/StlExtensions.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/helpers/MathHelpers.h>
 #include <view/gui/wrapper/PersistentPathDialog.h>
 #include <view/helpers/IOHelpers.h>
 #include <CommCtrl.h>
 
-#include "shared/services/FrontendService.h"
+#include "core/services/FrontendService.h"
 
 namespace MovieDialog
 {

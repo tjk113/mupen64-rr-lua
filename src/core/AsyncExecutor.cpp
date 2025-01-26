@@ -11,7 +11,7 @@
 #include <thread>
 #include <condition_variable>
 #include <atomic>
-#include <shared/services/LoggingService.h>
+#include <core/services/LoggingService.h>
 
 #include "Config.h"
 
