@@ -12,7 +12,7 @@
 #include <unordered_map>
 
 #include "../memory/memory.h"
-#include <lib/md5.h>
+#include <md5.h>
 #include <shared/Config.hpp>
 #include <shared/helpers/IOHelpers.h>
 #include <shared/helpers/StlExtensions.h>

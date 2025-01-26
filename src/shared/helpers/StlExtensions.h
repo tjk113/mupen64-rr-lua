@@ -10,7 +10,7 @@
 #include <locale>
 #include <cctype>
 #include <vector>
-#include <lib/spdlog/spdlog.h>
+#include <spdlog/spdlog.h>
 
 /**
  * \brief Records the execution time of a scope

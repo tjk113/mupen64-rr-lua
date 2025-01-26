@@ -33,8 +33,8 @@
 #include <view/helpers/MathHelpers.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/lua/LuaConsole.h>
-#include <lib/spdlog/spdlog.h>
-#include <lib/spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #include <view/resource.h>
 #include "Commandline.h"
 #include "Loggers.h"

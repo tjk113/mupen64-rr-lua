@@ -89,7 +89,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>src/;src/lib;src/lib/zlib;src/lib/lua/include;src/lib/libdeflate;src/lib/xxhash;src/lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/;lib/;lib/zlib;lib/lua/include;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -107,7 +107,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;Winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>src/lib/zlib;src/lib/lua;src/lib/libdeflate;src/lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>lib/zlib;lib/lua;lib/libdeflate;lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -125,7 +125,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>src/;src/lib;src/lib/zlib-x64;src/lib/lua-x64/include;src/lib/libdeflate-x64;src/lib/xxhash;src/lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/;lib/;lib/zlib-x64;lib/lua-x64/include;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -143,7 +143,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;Winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>src/lib/zlib-x64;src/lib/lua-x64;src/lib/libdeflate-x64;src/lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>lib/zlib-x64;lib/lua-x64;lib/libdeflate-x64;lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -159,7 +159,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src/;src/lib;src/lib/zlib;src/lib/lua/include;src/lib/libdeflate;src/lib/xxhash;src/lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/;lib/;lib/zlib;lib/lua/include;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -185,7 +185,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib-2008-x32.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;Winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>src/lib/zlib;src/lib/lua;src/lib/libdeflate;src/lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>lib/zlib;lib/lua;lib/libdeflate;lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -198,7 +198,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src/;src/lib;src/lib/zlib-x64;src/lib/lua-x64/include;src/lib/libdeflate-x64;src/lib/xxhash;src/lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/;lib/;lib/zlib-x64;lib/lua-x64/include;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -224,7 +224,7 @@
     <Link>
       <AdditionalDependencies>Shlwapi.lib;vfw32.lib;winmm.lib;propsys.lib;Comctl32.lib;zlib.lib;uxtheme.lib;Msimg32.lib;Gdiplus.lib;d2d1.lib;dwrite.lib;deflate.lib;Dbghelp.lib;lua54.lib;Dcomp.lib;D3D11.lib;DXGI.lib;Winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>src/lib/zlib-x64;src/lib/lua-x64;src/lib/libdeflate-x64;src/lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>lib/zlib-x64;lib/lua-x64;lib/libdeflate-x64;lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -235,6 +235,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="lib\microlru.h" />
     <ClInclude Include="src\core\memory\dma.h" />
     <ClInclude Include="src\core\memory\flashram.h" />
     <ClInclude Include="src\core\memory\memory.h" />
@@ -263,7 +264,6 @@
     <ClInclude Include="src\core\r4300\x86\gcop1_helpers.h" />
     <ClInclude Include="src\core\r4300\x86\interpret.h" />
     <ClInclude Include="src\core\r4300\x86\regcache.h" />
-    <ClInclude Include="src\lib\microlru.h" />
     <ClInclude Include="src\shared\AsyncExecutor.h" />
     <ClInclude Include="src\shared\Config.hpp" />
     <ClInclude Include="src\shared\helpers\IOHelpers.h" />
@@ -318,6 +318,8 @@
     <ClInclude Include="src\view\resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="lib\speex\speex_resampler.c" />
+    <ClCompile Include="lib\md5.c" />
     <ClCompile Include="src\core\memory\dma.cpp" />
     <ClCompile Include="src\core\memory\flashram.cpp" />
     <ClCompile Include="src\core\memory\memory.cpp" />
@@ -365,8 +367,6 @@
     <ClCompile Include="src\core\r4300\x86\regcache.cpp" />
     <ClCompile Include="src\core\r4300\x86\rjump.cpp" />
     <ClCompile Include="src\core\r4300\bc.cpp" />
-    <ClCompile Include="src\lib\speex\speex_resampler.c" />
-    <ClCompile Include="src\lib\md5.c" />
     <ClCompile Include="src\shared\AsyncExecutor.cpp" />
     <ClCompile Include="src\shared\Config.cpp" />
     <ClCompile Include="src\shared\helpers\IOHelpers.cpp" />

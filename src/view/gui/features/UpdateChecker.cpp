@@ -6,7 +6,7 @@
 
 #include "UpdateChecker.h"
 #include <Windows.h>
-#include <lib/json/json.hpp>
+#include <json/json.hpp>
 #include <shared/helpers/StlExtensions.h>
 #include <shared/services/FrontendService.h>
 #include <view/gui/Loggers.h>

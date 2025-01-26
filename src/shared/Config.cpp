@@ -7,7 +7,7 @@
 #include "Config.hpp"
 #include <cstdio>
 #include <filesystem>
-#include <lib/ini.h>
+#include <ini.h>
 #include <shared/helpers/StlExtensions.h>
 #include <shared/Messenger.h>
 #include <shared/services/FrontendService.h>

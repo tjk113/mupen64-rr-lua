@@ -7,7 +7,7 @@
 #include "Resampler.h"
 #include <cmath>
 #include <cstdio>
-#include <lib/speex/speex_resampler.h>
+#include <speex/speex_resampler.h>
 
 SpeexResamplerState* speex_ctx = NULL;
 short in_samps[44100 * 2 * 2]; // big enough i guess?
