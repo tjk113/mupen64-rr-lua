@@ -13,7 +13,7 @@
 #include "../../memory/memory.h"
 #include "../macros.h"
 #include "interpret.h"
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 
 void genbltz_test()
 {

@@ -10,9 +10,9 @@
 #include <core/r4300/rom.h>
 #include <core/r4300/vcr.h>
 #include <core/memory/savestates.h>
-#include "Statusbar.hpp"
+#include "Statusbar.h"
 #include <view/gui/Main.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <view/resource.h>
 #include <shared/helpers/StlExtensions.h>
 #include <view/helpers/WinHelpers.h>

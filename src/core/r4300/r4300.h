@@ -14,7 +14,7 @@
 #include <core/r4300/recomp.h>
 #include <core/memory/tlb.h>
 #include <core/r4300/rom.h>
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 
 extern precomp_instr* PC;
 extern uint32_t vr_op;

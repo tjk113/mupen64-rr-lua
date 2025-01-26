@@ -19,7 +19,7 @@
 #include <shared/services/LuaService.h>
 #include "pif2.h"
 #include "../r4300/r4300.h"
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include "../r4300/vcr.h"
 #include "savestates.h"
 #include <core/r4300/gameshark.h>

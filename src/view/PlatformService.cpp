@@ -5,7 +5,7 @@
  */
 
 #include <shared/services/PlatformService.h>
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include <Windows.h>
 #include <DbgHelp.h>
 

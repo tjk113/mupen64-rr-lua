@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "Statusbar.hpp"
+#include "Statusbar.h"
 
 #include <Windows.h>
 #include <commctrl.h>
@@ -13,10 +13,10 @@
 #include <shared/Messenger.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
-#include "RomBrowser.hpp"
+#include "RomBrowser.h"
 #include <view/resource.h>
 #include <view/helpers/WinHelpers.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <view/gui/Main.h>
 #include <view/gui/Loggers.h>
 

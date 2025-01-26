@@ -7,7 +7,7 @@
 #pragma once
 
 #include <functional>
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 
 enum
 {

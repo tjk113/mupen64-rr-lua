@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include "r4300.h"
 #include "../memory/memory.h"
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include "../r4300/recomph.h"
 #include <shared/services/LoggingService.h>
 

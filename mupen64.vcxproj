@@ -256,7 +256,7 @@
     <ClInclude Include="src\core\r4300\gameshark.h" />
     <ClInclude Include="src\core\r4300\interrupt.h" />
     <ClInclude Include="src\core\r4300\macros.h" />
-    <ClInclude Include="src\core\r4300\Plugin.hpp" />
+    <ClInclude Include="src\core\r4300\Plugin.h" />
     <ClInclude Include="src\core\r4300\r4300.h" />
     <ClInclude Include="src\core\r4300\recomp.h" />
     <ClInclude Include="src\core\r4300\recomph.h" />
@@ -269,7 +269,7 @@
     <ClInclude Include="src\core\r4300\x86\interpret.h" />
     <ClInclude Include="src\core\r4300\x86\regcache.h" />
     <ClInclude Include="src\shared\AsyncExecutor.h" />
-    <ClInclude Include="src\shared\Config.hpp" />
+    <ClInclude Include="src\shared\Config.h" />
     <ClInclude Include="src\shared\helpers\IOHelpers.h" />
     <ClInclude Include="src\shared\helpers\StlExtensions.h" />
     <ClInclude Include="src\shared\Messenger.h" />
@@ -298,10 +298,10 @@
     <ClInclude Include="src\view\gui\features\Dispatcher.h" />
     <ClInclude Include="src\view\gui\features\MGECompositor.h" />
     <ClInclude Include="src\view\gui\features\MovieDialog.h" />
-    <ClInclude Include="src\view\gui\features\RomBrowser.hpp" />
+    <ClInclude Include="src\view\gui\features\RomBrowser.h" />
     <ClInclude Include="src\view\gui\features\Runner.h" />
     <ClInclude Include="src\view\gui\features\Seeker.h" />
-    <ClInclude Include="src\view\gui\features\Statusbar.hpp" />
+    <ClInclude Include="src\view\gui\features\Statusbar.h" />
     <ClInclude Include="src\view\gui\Main.h" />
     <ClInclude Include="src\view\gui\wrapper\PersistentPathDialog.h" />
     <ClInclude Include="src\view\lua\LuaConsole.h" />
@@ -388,7 +388,7 @@
     <ClCompile Include="src\view\gui\features\MGECompositor.cpp" />
     <ClCompile Include="src\view\gui\features\MovieDialog.cpp" />
     <ClCompile Include="src\view\gui\features\PianoRoll.cpp" />
-    <ClCompile Include="src\view\gui\features\rombrowser.cpp" />
+    <ClCompile Include="src\view\gui\features\RomBrowser.cpp" />
     <ClCompile Include="src\view\gui\features\Runner.cpp" />
     <ClCompile Include="src\view\gui\features\Seeker.cpp" />
     <ClCompile Include="src\view\gui\features\Statusbar.cpp" />

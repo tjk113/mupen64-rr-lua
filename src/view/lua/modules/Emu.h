@@ -19,7 +19,7 @@ extern "C" {
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
 #include <core/r4300/timers.h>
-#include <view/gui/features/Statusbar.hpp>
+#include <view/gui/features/Statusbar.h>
 
 extern int32_t m_current_vi;
 extern int32_t m_current_sample;

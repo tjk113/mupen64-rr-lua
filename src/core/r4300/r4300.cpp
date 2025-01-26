@@ -19,7 +19,7 @@
 #include "../memory/savestates.h"
 #include <shared/helpers/StlExtensions.h>
 #include <core/r4300/timers.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <shared/services/FrontendService.h>
 #include <shared/services/LoggingService.h>
 // Threading crap

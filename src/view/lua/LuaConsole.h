@@ -29,7 +29,7 @@ extern "C" {
 #include <filesystem>
 #include <stack>
 
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 
 typedef struct s_window_procedure_params
 {

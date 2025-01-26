@@ -20,7 +20,7 @@
 #include "../memory/tlb.h"
 
 #include "tracelog.h"
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <shared/Messenger.h>
 
 #include "debugger.h"

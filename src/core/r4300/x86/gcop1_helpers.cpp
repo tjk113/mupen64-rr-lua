@@ -14,7 +14,7 @@
 #include "assemble.h"
 #include "gcop1_helpers.h"
 
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 
 static void patch_jump(uint32_t addr, uint32_t target)
 {

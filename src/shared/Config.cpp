@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "Config.hpp"
+#include "Config.h"
 #include <cstdio>
 #include <filesystem>
 #include <ini.h>

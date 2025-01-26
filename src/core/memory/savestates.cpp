@@ -14,7 +14,7 @@
 #include <core/r4300/r4300.h>
 #include <core/r4300/rom.h>
 #include <core/r4300/vcr.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <shared/Messenger.h>
 #include <shared/services/LuaService.h>
 #include <shared/services/FrontendService.h>

@@ -6,7 +6,7 @@
 
 #include "vcr.h"
 #include <cassert>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <memory>
 #include <filesystem>
 #include <cstdio>
@@ -16,7 +16,7 @@
 #include <mutex>
 
 #include "r4300.h"
-#include "Plugin.hpp"
+#include "Plugin.h"
 #include "rom.h"
 #include <core/memory/savestates.h>
 #include <core/memory/pif.h>

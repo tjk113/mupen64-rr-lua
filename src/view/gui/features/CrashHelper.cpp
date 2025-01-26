@@ -9,7 +9,7 @@
 #include <stacktrace>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <view/gui/Main.h>
 #include <view/gui/Loggers.h>
 

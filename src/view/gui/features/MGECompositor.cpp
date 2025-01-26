@@ -8,7 +8,7 @@
 #include <Windows.h>
 
 #include <shared/Messenger.h>
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include <view/gui/Main.h>
 #include <cassert>
 #include <view/gui/Loggers.h>

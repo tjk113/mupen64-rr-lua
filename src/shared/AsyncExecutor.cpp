@@ -13,7 +13,7 @@
 #include <atomic>
 #include <shared/services/LoggingService.h>
 
-#include "Config.hpp"
+#include "Config.h"
 
 std::deque<std::pair<size_t, std::function<void()>>> g_task_queue;
 std::mutex g_queue_mutex;

@@ -11,7 +11,7 @@
 #include <string>
 #include <core/r4300/rom.h>
 
-namespace Rombrowser
+namespace RomBrowser
 {
     /**
      * \brief Initializes the rombrowser

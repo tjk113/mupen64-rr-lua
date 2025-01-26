@@ -11,17 +11,17 @@
 #include <vector>
 #include <commctrl.h>
 #include <Shlwapi.h>
-#include "RomBrowser.hpp"
+#include "RomBrowser.h"
 #include <chrono>
 
-#include "Statusbar.hpp"
+#include "Statusbar.h"
 #include "../Main.h"
 #include <view/resource.h>
 #include <shared/helpers/StlExtensions.h>
 #include <shared/services/IOService.h>
 #include <view/helpers/IOHelpers.h>
 #include <core/r4300/r4300.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <assert.h>
 #include <future>
 #include <mutex>
@@ -41,7 +41,7 @@ using t_rombrowser_entry = struct s_rombrowser_entry
 HWND rombrowser_hwnd = nullptr;
 std::vector<t_rombrowser_entry*> rombrowser_entries;
 
-namespace Rombrowser
+namespace RomBrowser
 {
     std::mutex rombrowser_mutex;
 

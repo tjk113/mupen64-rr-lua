@@ -17,13 +17,13 @@
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
 #include <core/memory/savestates.h>
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/rom.h>
 #include <core/r4300/timers.h>
 #include <core/r4300/tracelog.h>
 #include <core/r4300/vcr.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <shared/Messenger.h>
 #include <shared/helpers/StlExtensions.h>
 #include <shared/services/FrontendService.h>
@@ -43,9 +43,9 @@
 #include "features/Dispatcher.h"
 #include "features/MGECompositor.h"
 #include "features/MovieDialog.h"
-#include "features/RomBrowser.hpp"
+#include "features/RomBrowser.h"
 #include "features/Seeker.h"
-#include "features/Statusbar.hpp"
+#include "features/Statusbar.h"
 #include "features/Cheats.h"
 #include "features/PianoRoll.h"
 #include "features/Runner.h"
@@ -907,7 +907,7 @@ void on_config_loaded(std::any)
             set_hotkey_menu_accelerators(hotkey, down_cmd);
         }
     }
-    Rombrowser::build();
+    RomBrowser::build();
 }
 
 void on_seek_completed(std::any)
@@ -1225,7 +1225,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
             if (wParam == IDC_ROMLIST)
             {
-                Rombrowser::notify(lParam);
+                RomBrowser::notify(lParam);
             }
             return 0;
         }
@@ -1784,7 +1784,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDM_REFRESH_ROMBROWSER:
                 if (!emu_launched)
                 {
-                    Rombrowser::build();
+                    RomBrowser::build();
                 }
                 break;
             case IDM_SAVE_SLOT:
@@ -2251,7 +2251,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     // Rombrowser needs to be initialized *after* other components, since it depends on their state smh bru
     Statusbar::init();
-    Rombrowser::init();
+    RomBrowser::init();
     VCR::init();
     EncodingManager::init();
     Cli::init();

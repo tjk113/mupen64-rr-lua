@@ -10,7 +10,7 @@
 #include "../r4300.h"
 #include "../ops.h"
 #include "interpret.h"
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 
 void genbc1f_test()
 {

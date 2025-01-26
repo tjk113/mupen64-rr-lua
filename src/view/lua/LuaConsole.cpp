@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <core/memory/memory.h>
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/timers.h>
 #include <cstdlib>
@@ -19,13 +19,13 @@
 #include <functional>
 #include <gdiplus.h>
 #include <map>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <shared/helpers/StlExtensions.h>
 #include <shared/services/LuaService.h>
 #include <string>
 #include <vector>
 #include <view/gui/Main.h>
-#include <view/gui/features/Statusbar.hpp>
+#include <view/gui/features/Statusbar.h>
 #include <view/gui/wrapper/PersistentPathDialog.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/resource.h>

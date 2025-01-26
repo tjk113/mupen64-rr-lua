@@ -12,7 +12,7 @@
  *	Must be implemented in the view layer.
  */
 
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <shared/types/CoreTypes.h>
 #include <functional>
 

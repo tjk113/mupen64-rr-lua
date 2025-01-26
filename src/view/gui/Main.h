@@ -9,7 +9,7 @@
 #include <Windows.h>
 #include <string>
 #include <filesystem>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <spdlog/logger.h>
 #include <view/gui/features/Dispatcher.h>
 #include <core/r4300/vcr.h>

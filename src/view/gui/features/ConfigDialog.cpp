@@ -11,9 +11,9 @@
 #include <view/lua/LuaConsole.h>
 #include <view/gui/Main.h>
 #include <view/resource.h>
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include <core/r4300/timers.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <view/gui/wrapper/PersistentPathDialog.h>
 #include <shared/helpers/StlExtensions.h>
 #include <view/helpers/WinHelpers.h>

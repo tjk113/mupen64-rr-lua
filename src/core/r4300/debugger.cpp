@@ -5,7 +5,7 @@
  */
 
 #include "debugger.h"
-#include "Plugin.hpp"
+#include "Plugin.h"
 
 #include <thread>
 

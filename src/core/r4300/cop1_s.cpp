@@ -11,7 +11,7 @@
 #include "ops.h"
 #include "macros.h"
 #include "cop1_helpers.h"
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 
 void ADD_S()
 {

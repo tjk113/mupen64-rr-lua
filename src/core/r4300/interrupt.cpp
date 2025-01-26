@@ -15,11 +15,11 @@
 #include "macros.h"
 #include "exception.h"
 #include <shared/services/LuaService.h>
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include "../r4300/vcr.h"
 #include <core/r4300/timers.h>
 #include "../memory/savestates.h"
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include "../memory/pif.h"
 #include <shared/services/FrontendService.h>
 #include <shared/services/LoggingService.h>

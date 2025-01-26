@@ -7,7 +7,7 @@
 #include "FFmpegEncoder.h"
 
 #include <assert.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <shared/services/LoggingService.h>
 #include <view/gui/Main.h>
 #include <view/gui/Loggers.h>

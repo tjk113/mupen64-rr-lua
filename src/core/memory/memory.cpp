@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <core/r4300/timers.h>
 
 #include "memory.h"
@@ -22,7 +22,7 @@
 #include "flashram.h"
 #include <shared/services/FrontendService.h>
 #include "summercart.h"
-#include <core/r4300/Plugin.hpp>
+#include <core/r4300/Plugin.h>
 #include "../r4300/vcr.h"
 #include <shared/Messenger.h>
 #include <shared/services/LoggingService.h>

@@ -23,7 +23,7 @@
 
 #include "features/Dispatcher.h"
 #include "shared/AsyncExecutor.h"
-#include "shared/Config.hpp"
+#include "shared/Config.h"
 #include "shared/services/FrontendService.h"
 
 namespace Cli

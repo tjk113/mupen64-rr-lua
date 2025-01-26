@@ -12,13 +12,13 @@
 #include <core/r4300/tracelog.h>
 #include <core/r4300/vcr.h>
 #include <view/capture/EncodingManager.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <view/gui/features/MGECompositor.h>
 
 #include "Loggers.h"
 #include "features/Dispatcher.h"
-#include "features/RomBrowser.hpp"
-#include "features/Statusbar.hpp"
+#include "features/RomBrowser.h"
+#include "features/Statusbar.h"
 #include "shared/helpers/StlExtensions.h"
 
 size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, DialogType type, void* hwnd)
@@ -344,7 +344,7 @@ void FrontendService::ai_len_changed()
 
 std::wstring FrontendService::find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
 {
-    return Rombrowser::find_available_rom(predicate);
+    return RomBrowser::find_available_rom(predicate);
 }
 
 void FrontendService::mge_get_video_size(int32_t* width, int32_t* height)

@@ -13,7 +13,7 @@
 
 #include "../memory/memory.h"
 #include <md5.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <shared/helpers/IOHelpers.h>
 #include <shared/helpers/StlExtensions.h>
 #include <shared/services/LoggingService.h>

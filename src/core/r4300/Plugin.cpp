@@ -5,10 +5,10 @@
  */
 
 // ReSharper disable CppCStyleCast
-#include "Plugin.hpp"
+#include "Plugin.h"
 #include <assert.h>
 #include <core/r4300/rom.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 #include <core/memory/memory.h>
 #include <core/r4300/r4300.h>
 #include <shared/services/FrontendService.h>

@@ -14,7 +14,7 @@
 #include <core/r4300/vcr.h>
 #include "../Main.h"
 #include <view/resource.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 
 #define WM_SEEK_COMPLETED (WM_USER + 11)
 

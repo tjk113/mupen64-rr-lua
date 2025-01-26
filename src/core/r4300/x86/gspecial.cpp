@@ -14,7 +14,7 @@
 #include "../exception.h"
 #include "interpret.h"
 #include <shared/services/LuaService.h>
-#include <shared/Config.hpp>
+#include <shared/Config.h>
 
 
 void gensll()
