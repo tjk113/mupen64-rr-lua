@@ -7,7 +7,6 @@
 #ifndef COP1_HELPERS_H
 #define COP1_HELPERS_H
 
-#include "stdafx.h"
 #include "macros.h"
 
 extern float largest_denormal_float;
