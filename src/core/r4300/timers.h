@@ -6,10 +6,6 @@
 
 #pragma once
 
-#include <chrono>
-#include <queue>
-#include <mutex>
-
 #include <core/r4300/rom.h>
 
 typedef std::chrono::high_resolution_clock::time_point time_point;

@@ -4,14 +4,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "FFmpegEncoder.h"
-
-#include <assert.h>
 #include <core/Config.h>
 #include <core/services/LoggingService.h>
 #include <view/gui/Main.h>
 #include <view/gui/Loggers.h>
-
 #include "core/memory/pif.h"
 #include "core/services/FrontendService.h"
 

@@ -7,8 +7,6 @@
 #pragma once
 
 #include <Windows.h>
-#include <string>
-#include <filesystem>
 #include <core/Config.h>
 #include <spdlog/logger.h>
 #include <view/gui/features/Dispatcher.h>

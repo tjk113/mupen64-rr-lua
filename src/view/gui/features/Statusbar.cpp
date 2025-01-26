@@ -4,12 +4,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "Statusbar.h"
-
 #include <Windows.h>
 #include <commctrl.h>
-#include <numeric>
-
 #include <core/Messenger.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>

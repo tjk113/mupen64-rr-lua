@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <cstdint>
-
 void compare_interrupt();
 void gen_dp();
 void init_interrupt();

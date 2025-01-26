@@ -4,11 +4,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "ops.h"
 #include "r4300.h"
 #include "macros.h"
-#include "exception.h"
-#include "../memory/memory.h"
 
 void MFC1()
 {

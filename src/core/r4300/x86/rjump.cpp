@@ -4,16 +4,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cstdlib>
-
-#include "../recomp.h"
-#include "../r4300.h"
-#include "../macros.h"
-#include "../ops.h"
-#include "../recomph.h"
-#include <csetjmp>
-#include <core/services/LoggingService.h>
+#include "stdafx.h"
 #include <core/Messenger.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomp.h>
+#include <core/r4300/recomph.h>
+#include <core/services/LoggingService.h>
 
 // NOTE: dynarec isn't compatible with the game debugger
 

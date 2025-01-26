@@ -4,9 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <math.h>
-#include <float.h>
-
+#include "stdafx.h"
 #include "r4300.h"
 #include "ops.h"
 #include "macros.h"

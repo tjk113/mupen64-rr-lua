@@ -5,8 +5,6 @@
  */
 
 #pragma once
-#include <functional>
-#include <intsafe.h>
 
 namespace AsyncExecutor
 {

@@ -4,14 +4,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <core/AsyncExecutor.h>
-
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
 }
 
+#include <core/AsyncExecutor.h>
 #include <core/Messenger.h>
 #include <core/r4300/vcr.h>
 

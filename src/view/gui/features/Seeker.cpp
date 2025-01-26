@@ -4,11 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "Seeker.h"
-
-#include <thread>
 #include <Windows.h>
-
 #include <core/Messenger.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>

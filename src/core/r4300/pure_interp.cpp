@@ -4,11 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <thread>
+#include "stdafx.h"
 #include <core/services/LoggingService.h>
-
 #include "r4300.h"
 #include "exception.h"
 #include "../memory/memory.h"
@@ -16,13 +13,10 @@
 #include "interrupt.h"
 #include "cop1_helpers.h"
 #include "rom.h"
-
 #include "../memory/tlb.h"
-
 #include "tracelog.h"
 #include <core/Config.h>
 #include <core/Messenger.h>
-
 #include "debugger.h"
 
 #ifdef DBG

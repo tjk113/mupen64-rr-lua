@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "PersistentPathDialog.h"
 #include <shlobj.h>
-#include <cstdio>
 #include <core/helpers/IOHelpers.h>
 #include <core/helpers/StlExtensions.h>
 #include <core/services/LoggingService.h>

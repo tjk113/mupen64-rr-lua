@@ -4,14 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "PianoRoll.h"
-
-#include <cassert>
-#include <thread>
 #include <Windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
-
 #include "core/memory/pif.h"
 #include "core/r4300/r4300.h"
 #include "core/r4300/vcr.h"

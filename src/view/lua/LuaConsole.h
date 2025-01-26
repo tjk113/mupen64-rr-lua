@@ -5,6 +5,7 @@
  */
  
 #pragma once
+
 #include <microlru.h>
 #include "presenters/Presenter.h"
 
@@ -15,19 +16,10 @@ extern "C" {
 }
 
 #include <Windows.h>
-#include <locale>
-#include <string>
-#include <map>
-#include <cstdint>
 #include <gdiplus.h>
 #include <d2d1.h>
 #include <dcomp.h>
 #include <dwrite.h>
-#include <functional>
-#include <queue>
-#include <assert.h>
-#include <filesystem>
-#include <stack>
 
 #include <core/r4300/Plugin.h>
 

@@ -4,23 +4,19 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-// Based on code from 1964 by Schibo and Rice
-// Slightly improved command line params parsing function to work with spaced arguments
-#include <Windows.h>
+#include "stdafx.h"
 #include "Commandline.h"
-
-#include <thread>
+#include <Windows.h>
 #include <view/lua/LuaConsole.h>
 #include "Main.h"
 #include "Loggers.h"
 #include <core/Messenger.h>
 #include <core/memory/savestates.h>
 #include <core/helpers/StlExtensions.h>
-#include "../../lib/argh.h"
+#include <argh.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include <view/capture/EncodingManager.h>
-
 #include "features/Dispatcher.h"
 #include <core/AsyncExecutor.h>
 #include "core/Config.h"

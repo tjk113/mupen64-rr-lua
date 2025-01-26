@@ -4,16 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include <Windows.h>
-#include <algorithm>
-#include <fstream>
-#include <iterator>
-#include <vector>
 #include <commctrl.h>
 #include <Shlwapi.h>
 #include "RomBrowser.h"
-#include <chrono>
-
 #include "Statusbar.h"
 #include "../Main.h"
 #include <view/resource.h>
@@ -22,10 +17,6 @@
 #include <view/helpers/IOHelpers.h>
 #include <core/r4300/r4300.h>
 #include <core/Config.h>
-#include <assert.h>
-#include <future>
-#include <mutex>
-#include <thread>
 #include <Uxtheme.h>
 #include <core/Messenger.h>
 #include <view/gui/Loggers.h>

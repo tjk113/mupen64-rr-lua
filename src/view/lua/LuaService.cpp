@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include <core/services/LuaService.h>
 #include <view/lua/LuaConsole.h>
 #include <view/gui/Main.h>

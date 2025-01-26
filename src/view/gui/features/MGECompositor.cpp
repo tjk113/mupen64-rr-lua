@@ -4,13 +4,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "MGECompositor.h"
 #include <Windows.h>
-
 #include <core/Messenger.h>
 #include <core/r4300/Plugin.h>
 #include <view/gui/Main.h>
-#include <cassert>
 #include <view/gui/Loggers.h>
 
 namespace MGECompositor

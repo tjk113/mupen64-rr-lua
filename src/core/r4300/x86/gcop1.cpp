@@ -4,15 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <stdio.h>
-#include "../recomph.h"
-#include "../recomp.h"
-#include "assemble.h"
-#include "../r4300.h"
-#include "../ops.h"
-#include "../../memory/memory.h"
-#include "../macros.h"
-#include "interpret.h"
+#include "stdafx.h"
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomp.h>
+#include <core/r4300/recomph.h>
+#include <core/r4300/x86/assemble.h>
 
 void genmfc1()
 {

@@ -6,11 +6,6 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <string>
-#include <vector>
-#include <map>
-
 /**
  * \brief Action that can be triggered by a hotkey
  */

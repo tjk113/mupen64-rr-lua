@@ -4,13 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "stdafx.h"
 #include "rom.h"
-
-#include <unordered_map>
-
 #include "../memory/memory.h"
 #include <md5.h>
 #include <core/Config.h>

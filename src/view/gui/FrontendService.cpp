@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include <view/lua/LuaConsole.h>
 #include <Windows.h>
 #include <commctrl.h>
@@ -14,7 +15,6 @@
 #include <view/capture/EncodingManager.h>
 #include <core/Config.h>
 #include <view/gui/features/MGECompositor.h>
-
 #include "Loggers.h"
 #include "features/Dispatcher.h"
 #include "features/RomBrowser.h"

@@ -6,9 +6,7 @@
 
 //#include "../config.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
+#include "stdafx.h"
 #include "interrupt.h"
 #include "../memory/memory.h"
 #include "r4300.h"

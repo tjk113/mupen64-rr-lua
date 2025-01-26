@@ -4,12 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "gameshark.h"
-
-#include <string>
-#include <vector>
 #include <core/memory/memory.h>
-
 #include "r4300.h"
 #include "core/helpers/StlExtensions.h"
 #include <core/services/LoggingService.h>

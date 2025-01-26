@@ -5,6 +5,7 @@
  */
 
 // ReSharper disable CppCStyleCast
+#include "stdafx.h"
 #include "Plugin.h"
 #include <assert.h>
 #include <core/r4300/rom.h>

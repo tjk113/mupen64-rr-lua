@@ -7,9 +7,7 @@
 #ifndef RECOMP_H
 #define RECOMP_H
 
-#include <cstdint>
-
-#include "x86/assemble.h"
+#include <core/r4300/x86/assemble.h>
 
 typedef struct _precomp_instr
 {

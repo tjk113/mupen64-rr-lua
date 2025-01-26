@@ -4,15 +4,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cstdio>
+#include "stdafx.h"
 #include <core/services/LoggingService.h>
-
 #include "r4300.h"
 #include "exception.h"
 #include "cop1_helpers.h"
-
 #include <core/services/FrontendService.h>
-
 
 float largest_denormal_float = 1.1754942106924411e-38f; // (1U << 23) - 1
 double largest_denormal_double = 2.225073858507201e-308; // (1ULL << 52) - 1

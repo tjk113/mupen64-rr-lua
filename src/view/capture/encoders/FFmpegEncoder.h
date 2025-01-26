@@ -7,10 +7,6 @@
 #pragma once
 
 #include "Encoder.h"
-
-#include <mutex>
-#include <queue>
-#include <thread>
 #include <Windows.h>
 
 class FFmpegEncoder : public Encoder

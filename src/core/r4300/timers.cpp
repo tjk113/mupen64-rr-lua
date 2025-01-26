@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "timers.h"
 #include <core/Config.h>
 #include <core/Messenger.h>

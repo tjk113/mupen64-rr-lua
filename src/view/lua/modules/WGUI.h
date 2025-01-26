@@ -13,7 +13,6 @@ extern "C" {
 }
 
 #include <Windows.h>
-
 #include "LuaConsole.h"
 #include <view/gui/Main.h>
 #include <view/helpers/WinHelpers.h>

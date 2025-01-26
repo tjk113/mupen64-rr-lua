@@ -4,18 +4,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "../r4300/r4300.h"
-#include "memory.h"
-#include <core/services/FrontendService.h>
-
+#include "stdafx.h"
 #include "summercart.h"
-
-#include "../r4300/rom.h"
-#include "savestates.h"
+#include "memory.h"
+#include <core/r4300/r4300.h>
+#include <core/r4300/rom.h>
+#include <core/services/FrontendService.h>
 
 struct vhd
 {

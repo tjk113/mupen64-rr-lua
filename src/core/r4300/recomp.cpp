@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <malloc.h>
-
+#include "stdafx.h"
 #include "ops.h"
 #include "recomp.h"
 #include "macros.h"

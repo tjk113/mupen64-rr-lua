@@ -4,10 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <filesystem>
+#include "stdafx.h"
 #include <core/services/IOService.h>
-#include <string>
-#include <vector>
 #include <Windows.h>
 
 #include "core/helpers/StlExtensions.h"

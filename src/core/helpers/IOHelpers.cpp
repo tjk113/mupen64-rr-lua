@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "IOHelpers.h"
 #include <libdeflate.h>
 #include <core/services/LoggingService.h>

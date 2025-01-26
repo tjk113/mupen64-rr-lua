@@ -6,10 +6,6 @@
  
 #pragma once
 
-#include <algorithm>
-#include <locale>
-#include <cctype>
-#include <vector>
 #include <spdlog/spdlog.h>
 
 /**

@@ -4,22 +4,21 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "dma.h"
-#include "memory.h"
-#include "../r4300/rom.h"
-#include <stdio.h>
-#include "../r4300/r4300.h"
-#include "../r4300/interrupt.h"
-#include "../r4300/macros.h"
-#include <malloc.h>
-#include "pif.h"
 #include "flashram.h"
-#include "summercart.h"
-#include <core/services/FrontendService.h>
-#include "../r4300/ops.h"
+#include "memory.h"
+#include "pif.h"
 #include "savestates.h"
-#include <core/Config.h>
+#include "stdafx.h"
+#include "summercart.h"
 #include "core/r4300/debugger.h"
+#include <core/Config.h>
+#include <core/r4300/interrupt.h>
+#include <core/r4300/macros.h>
+#include <core/r4300/ops.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/rom.h>
 #include <core/services/LoggingService.h>
 
 void dma_pi_read()

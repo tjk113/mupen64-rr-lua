@@ -6,10 +6,7 @@
 
 #pragma once
 
-#include <filesystem>
 #include <shlobj_core.h>
-#include <string>
-#include <vector>
 #include <Windows.h>
 
 /**

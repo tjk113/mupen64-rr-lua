@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include <core/services/PlatformService.h>
 #include <core/r4300/Plugin.h>
 #include <Windows.h>
 #include <DbgHelp.h>
-
 #include "core/services/FrontendService.h"
 
 void* PlatformService::load_library(const wchar_t* path, uint64_t* error)

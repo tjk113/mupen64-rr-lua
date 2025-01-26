@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "MovieDialog.h"
 #include <Windows.h>
-
 #include <core/r4300/rom.h>
 #include <core/r4300/vcr.h>
 #include <core/memory/savestates.h>

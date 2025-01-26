@@ -6,10 +6,6 @@
 
 #pragma once
 
-#include <filesystem>
-#include <span>
-#include <vector>
-
 /**
  * \brief Writes data to a vector at its tail end based on its size, expanding it as needed
  * \param vec The target vector

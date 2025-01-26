@@ -7,8 +7,6 @@
 #ifndef TLB_H
 #define TLB_H
 
-#include <cstdint>
-
 typedef struct _tlb
 {
     int16_t mask;

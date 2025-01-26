@@ -4,16 +4,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cstdio>
-#include "../recomph.h"
-#include "../recomp.h"
-#include "../r4300.h"
-#include "assemble.h"
-#include "../ops.h"
-#include "../../memory/memory.h"
-#include "../macros.h"
-#include "interpret.h"
+#include "stdafx.h"
 #include <core/Config.h>
+#include <core/r4300/ops.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomp.h>
+#include <core/r4300/recomph.h>
+#include <core/r4300/x86/assemble.h>
 
 void genbltz_test()
 {

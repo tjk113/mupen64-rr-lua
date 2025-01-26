@@ -7,8 +7,6 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <stdint.h>
-
 int32_t init_memory();
 constexpr uint32_t AddrMask = 0x7FFFFF;
 #define read_word_in_memory() readmem[address>>16]()

@@ -4,12 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "../r4300/r4300.h"
+#include "stdafx.h"
 #include "memory.h"
-#include "savestates.h"
+#include <core/r4300/r4300.h>
 #include <core/services/LoggingService.h>
 
 int32_t use_flashram;

@@ -6,8 +6,6 @@
  
 #pragma once
 
-#include <filesystem>
-
 namespace MovieDialog
 {
     struct t_record_params

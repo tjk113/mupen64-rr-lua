@@ -7,8 +7,6 @@
 #ifndef ASSEMBLE_H
 #define ASSEMBLE_H
 
-#include <cstdint>
-
 #define EAX 0
 #define ECX 1
 #define EDX 2

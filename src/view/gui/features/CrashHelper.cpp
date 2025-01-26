@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
  
+#include "stdafx.h"
 #include "CrashHelper.h"
 #include <Psapi.h>
-#include <stacktrace>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
 #include <core/Config.h>

@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cmath>
+#include "stdafx.h"
 #include <core/services/LoggingService.h>
-
 #include "r4300.h"
 #include "ops.h"
 #include "macros.h"

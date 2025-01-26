@@ -4,31 +4,21 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "vcr.h"
-#include <cassert>
 #include <core/Config.h>
-#include <memory>
-#include <filesystem>
-#include <cstdio>
-#include <cstring>
-#include <ctime>
-#include <chrono>
-#include <mutex>
-
 #include "r4300.h"
 #include "Plugin.h"
 #include "rom.h"
 #include <core/memory/savestates.h>
 #include <core/memory/pif.h>
 #include <core/r4300/timers.h>
-
 #include <core/services/LuaService.h>
-
 #include <core/services/FrontendService.h>
 #include <core/Messenger.h>
 #include <core/helpers/StlExtensions.h>
+#include <core/helpers/IOHelpers.h>
 #include <core/services/LoggingService.h>
-
 #include <core/AsyncExecutor.h>
 
 // M64\0x1a

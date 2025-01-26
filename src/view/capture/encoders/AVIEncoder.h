@@ -5,9 +5,8 @@
  */
 
 #pragma once
+
 #include "Encoder.h"
-
-
 #include <Windows.h>
 #include <Vfw.h>
 

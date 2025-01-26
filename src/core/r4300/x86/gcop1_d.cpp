@@ -4,13 +4,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "../recomph.h"
-#include "assemble.h"
-#include "../r4300.h"
-#include "../ops.h"
-#include "interpret.h"
-#include "gcop1_helpers.h"
+#include "stdafx.h"
 #include <core/Config.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomph.h>
+#include <core/r4300/x86/assemble.h>
+#include <core/r4300/x86/gcop1_helpers.h>
 
 static void gencheck_eax_valid(int32_t stackBase)
 {

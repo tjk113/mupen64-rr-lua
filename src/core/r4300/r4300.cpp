@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "vcr.h"
 #include "r4300.h"
 #include "ops.h"
@@ -13,7 +14,6 @@
 #include "interrupt.h"
 #include "macros.h"
 #include "recomp.h"
-#include <malloc.h>
 #include <core/services/LuaService.h>
 #include <core/Messenger.h>
 #include "../memory/savestates.h"

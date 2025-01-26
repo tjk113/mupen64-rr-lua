@@ -10,7 +10,6 @@
 #define VR_PROFILE (1)
 #endif
 
-#include <stdio.h>
 #include <core/r4300/recomp.h>
 #include <core/memory/tlb.h>
 #include <core/r4300/rom.h>

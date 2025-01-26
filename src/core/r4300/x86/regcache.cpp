@@ -4,12 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <stdio.h>
-
+#include "stdafx.h"
 #include "regcache.h"
-#include "../recomp.h"
-#include "../r4300.h"
-#include "../recomph.h"
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomp.h>
+#include <core/r4300/recomph.h>
 
 static uint32_t* reg_content[8];
 static precomp_instr* last_access[8];
@@ -34,7 +33,8 @@ void free_all_registers()
     int32_t i;
     for (i = 0; i < 8; i++)
     {
-        if (last_access[i]) free_register(i);
+        if (last_access[i])
+            free_register(i);
         else
         {
             while (free_since[i] <= dst)
@@ -58,8 +58,10 @@ void free_register(int32_t reg)
         return;
     }
 
-    if (last_access[reg] != NULL) last = last_access[reg] + 1;
-    else last = free_since[reg];
+    if (last_access[reg] != NULL)
+        last = last_access[reg] + 1;
+    else
+        last = free_since[reg];
 
     while (last <= dst)
     {
@@ -92,7 +94,8 @@ void free_register(int32_t reg)
             sar_reg32_imm8(reg, 31);
             mov_m32_reg32((uint32_t*)reg_content[reg] + 1, reg);
         }
-        else mov_m32_reg32(reg_content[r64[reg]], r64[reg]);
+        else
+            mov_m32_reg32(reg_content[r64[reg]], r64[reg]);
     }
     last_access[reg] = NULL;
     free_since[reg] = dst + 1;
@@ -184,7 +187,8 @@ int32_t allocate_register(uint32_t* addr)
         }
     }
 
-    if (last_access[reg]) free_register(reg);
+    if (last_access[reg])
+        free_register(reg);
     else
     {
         while (free_since[reg] <= dst)
@@ -299,7 +303,8 @@ int32_t is64(uint32_t* addr)
     {
         if (last_access[i] != NULL && reg_content[i] == addr)
         {
-            if (r64[i] == -1) return 0;
+            if (r64[i] == -1)
+                return 0;
             return 1;
         }
     }
@@ -352,7 +357,8 @@ int32_t allocate_register_w(uint32_t* addr)
         }
     }
 
-    if (last_access[reg]) free_register(reg);
+    if (last_access[reg])
+        free_register(reg);
     else
     {
         while (free_since[reg] <= dst)
@@ -383,7 +389,8 @@ int32_t allocate_64_register1_w(uint32_t* addr)
             {
                 allocate_register_w(addr);
                 reg2 = lru_register();
-                if (last_access[reg2]) free_register(reg2);
+                if (last_access[reg2])
+                    free_register(reg2);
                 r64[i] = reg2;
                 r64[reg2] = i;
                 last_access[reg2] = dst;
@@ -407,7 +414,8 @@ int32_t allocate_64_register1_w(uint32_t* addr)
 
     reg1 = allocate_register_w(addr);
     reg2 = lru_register();
-    if (last_access[reg2]) free_register(reg2);
+    if (last_access[reg2])
+        free_register(reg2);
     else
     {
         while (free_since[reg2] <= dst)
@@ -438,7 +446,8 @@ int32_t allocate_64_register2_w(uint32_t* addr)
             {
                 allocate_register_w(addr);
                 reg2 = lru_register();
-                if (last_access[reg2]) free_register(reg2);
+                if (last_access[reg2])
+                    free_register(reg2);
                 r64[i] = reg2;
                 r64[reg2] = i;
                 last_access[reg2] = dst;
@@ -462,7 +471,8 @@ int32_t allocate_64_register2_w(uint32_t* addr)
 
     reg1 = allocate_register_w(addr);
     reg2 = lru_register();
-    if (last_access[reg2]) free_register(reg2);
+    if (last_access[reg2])
+        free_register(reg2);
     else
     {
         while (free_since[reg2] <= dst)
@@ -573,7 +583,8 @@ void allocate_register_manually(int32_t reg, uint32_t* addr)
         return;
     }
 
-    if (last_access[reg]) free_register(reg);
+    if (last_access[reg])
+        free_register(reg);
     else
     {
         while (free_since[reg] <= dst)
@@ -611,7 +622,8 @@ void allocate_register_manually(int32_t reg, uint32_t* addr)
             mov_reg32_reg32(reg, i);
             last_access[reg] = dst;
             r64[reg] = r64[i];
-            if (r64[reg] != -1) r64[r64[reg]] = reg;
+            if (r64[reg] != -1)
+                r64[r64[reg]] = reg;
             dirty[reg] = dirty[i];
             reg_content[reg] = reg_content[i];
             free_since[i] = dst + 1;
@@ -667,7 +679,8 @@ void allocate_register_manually_w(int32_t reg, uint32_t* addr, int32_t load)
         return;
     }
 
-    if (last_access[reg]) free_register(reg);
+    if (last_access[reg])
+        free_register(reg);
     else
     {
         while (free_since[reg] <= dst)
@@ -782,7 +795,7 @@ void build_wrapper(precomp_instr* instr, unsigned char* code, precomp_block* blo
             code[j++] = 0x8B;
             code[j++] = (i << 3) | 5;
             *((uint32_t*)&code[j]) =
-                (uint32_t)instr->reg_cache_infos.needed_registers[i];
+            (uint32_t)instr->reg_cache_infos.needed_registers[i];
             j += 4;
         }
     }
@@ -792,7 +805,8 @@ void build_wrapper(precomp_instr* instr, unsigned char* code, precomp_block* blo
 
 void build_wrappers(precomp_instr* instr, int32_t start, int32_t end, precomp_block* block)
 {
-    int32_t i, reg;;
+    int32_t i, reg;
+    ;
     for (i = start; i < end; i++)
     {
         instr[i].reg_cache_infos.need_map = 0;
@@ -812,5 +826,6 @@ void simplify_access()
 {
     int32_t i;
     dst->local_addr = code_length;
-    for (i = 0; i < 8; i++) dst->reg_cache_infos.needed_registers[i] = NULL;
+    for (i = 0; i < 8; i++)
+        dst->reg_cache_infos.needed_registers[i] = NULL;
 }

@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-extern int32_t use_flashram;
+#pragma once
 
+extern int32_t use_flashram;
 
 void init_flashram();
 void flashram_command(uint32_t command);

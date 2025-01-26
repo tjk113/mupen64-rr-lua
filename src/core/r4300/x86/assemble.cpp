@@ -4,11 +4,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "assemble.h"
-#include "../recomph.h"
-#include <malloc.h>
-#include <stdio.h>
-#include "../r4300.h"
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomph.h>
 
 typedef struct _jump_table
 {

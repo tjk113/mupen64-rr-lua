@@ -4,17 +4,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <stdio.h>
-#include <assert.h>
-#include "../recomph.h"
-#include "../r4300.h"
-#include "../exception.h"
-#include "../macros.h"
-#include "../cop1_helpers.h"
-#include "assemble.h"
-#include "gcop1_helpers.h"
-
+#include "stdafx.h"
 #include <core/Config.h>
+#include <core/r4300/cop1_helpers.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomph.h>
+#include <core/r4300/x86/assemble.h>
+#include <core/r4300/x86/gcop1_helpers.h>
 
 static void patch_jump(uint32_t addr, uint32_t target)
 {

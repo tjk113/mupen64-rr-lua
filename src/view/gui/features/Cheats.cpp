@@ -4,14 +4,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "Cheats.h"
-
 #include <Windows.h>
 #include <Windowsx.h>
 #include <view/gui/Main.h>
 #include <view/resource.h>
 #include <core/services/FrontendService.h>
-
 #include <core/r4300/gameshark.h>
 
 namespace Cheats

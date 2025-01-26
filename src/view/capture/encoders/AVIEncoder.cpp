@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "AVIEncoder.h"
+#include "stdafx.h"
 
+#include "AVIEncoder.h"
 #include <core/r4300/rom.h>
 #include <core/services/FrontendService.h>
 #include <view/capture/EncodingManager.h>

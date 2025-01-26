@@ -4,10 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include <shlobj.h>
-#include <cstdio>
-#include <vector>
-#include <cassert>
 #include <view/lua/LuaConsole.h>
 #include <view/gui/Main.h>
 #include <view/resource.h>
@@ -20,10 +18,8 @@
 #include <core/r4300/r4300.h>
 #include "configdialog.h"
 #include <view/capture/EncodingManager.h>
-
 #include <core/Messenger.h>
 #include <Windows.h>
-
 #include "core/r4300/vcr.h"
 #include "core/services/FrontendService.h"
 

@@ -4,21 +4,18 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "savestates.h"
-#include <cassert>
 #include <libdeflate.h>
-#include <queue>
-#include <stdlib.h>
-#include <string>
 #include <core/r4300/interrupt.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/rom.h>
 #include <core/r4300/vcr.h>
 #include <core/Config.h>
-#include <core/Messenger.h>
 #include <core/services/LuaService.h>
 #include <core/services/FrontendService.h>
 #include <core/helpers/StlExtensions.h>
+#include <core/helpers/IOHelpers.h>
 #include <core/services/LoggingService.h>
 #include "flashram.h"
 #include "memory.h"

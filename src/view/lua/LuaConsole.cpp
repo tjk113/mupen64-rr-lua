@@ -4,26 +4,19 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "LuaConsole.h"
 #include <Windows.h>
-#include <algorithm>
-#include <assert.h>
 #include <core/memory/memory.h>
 #include <core/r4300/Plugin.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/timers.h>
-#include <cstdlib>
 #include <d2d1.h>
 #include <dwrite.h>
-#include <filesystem>
-#include <functional>
 #include <gdiplus.h>
-#include <map>
 #include <core/Config.h>
 #include <core/helpers/StlExtensions.h>
 #include <core/services/LuaService.h>
-#include <string>
-#include <vector>
 #include <view/gui/Main.h>
 #include <view/gui/features/Statusbar.h>
 #include <view/gui/wrapper/PersistentPathDialog.h>

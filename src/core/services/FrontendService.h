@@ -14,7 +14,6 @@
 
 #include <core/Config.h>
 #include <core/CoreTypes.h>
-#include <functional>
 
 namespace FrontendService
 {

@@ -4,17 +4,16 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "assemble.h"
-#include "../r4300.h"
-#include "../macros.h"
-#include "../../memory/memory.h"
-#include "../interrupt.h"
-#include "../ops.h"
-#include "../recomph.h"
-#include "regcache.h"
-#include "../exception.h"
-#include "interpret.h"
+#include "stdafx.h"
 #include <core/Config.h>
+#include <core/memory/memory.h>
+#include <core/r4300/interrupt.h>
+#include <core/r4300/macros.h>
+#include <core/r4300/ops.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomph.h>
+#include <core/r4300/x86/assemble.h>
+#include <core/r4300/x86/regcache.h>
 
 extern uint32_t src; //recomp.c
 

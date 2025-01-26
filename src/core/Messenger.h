@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include <any>
-#include <functional>
-
 namespace Messenger
 {
     /**

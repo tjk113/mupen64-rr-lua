@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "Resampler.h"
-#include <cmath>
-#include <cstdio>
 #include <speex/speex_resampler.h>
 
 SpeexResamplerState* speex_ctx = NULL;

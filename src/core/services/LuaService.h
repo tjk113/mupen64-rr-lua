@@ -18,7 +18,6 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <cstdint>
 #include <core/CoreTypes.h>
 
 namespace LuaService

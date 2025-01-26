@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include <functional>
-#include <vector>
-#include <string>
 #include <core/r4300/rom.h>
 
 namespace RomBrowser

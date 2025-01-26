@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "Runner.h"
-
-#include <thread>
 #include <Windows.h>
 #include <Windowsx.h>
 #include <view/resource.h>

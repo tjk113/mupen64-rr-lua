@@ -4,10 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "EncodingManager.h"
-
-#include <cassert>
-
 #include <core/services/FrontendService.h>
 #include <core/Messenger.h>
 #include <core/r4300/Plugin.h>

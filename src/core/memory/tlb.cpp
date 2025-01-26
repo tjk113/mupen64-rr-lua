@@ -4,20 +4,18 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "tlb.h"
 #include "memory.h"
-#include "../r4300/rom.h"
-#include "../r4300/r4300.h"
-#include "../r4300/exception.h"
-#include "../r4300/macros.h"
+#include <zlib.h>
+#include <core/r4300/exception.h>
+#include <core/r4300/interrupt.h>
+#include <core/r4300/macros.h>
 #include <core/r4300/ops.h>
 #include <core/r4300/r4300.h>
-#include <core/r4300/macros.h>
 #include <core/r4300/recomph.h>
-#include <core/r4300/interrupt.h>
-#include "../memory/memory.h"
+#include <core/r4300/rom.h>
 #include <core/services/LoggingService.h>
-#include <zlib.h>
 
 uint32_t tlb_LUT_r[0x100000];
 uint32_t tlb_LUT_w[0x100000];

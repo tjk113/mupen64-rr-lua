@@ -4,12 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "Messenger.h"
-
-#include <assert.h>
-#include <atomic>
-#include <print>
-#include <thread>
 #include <core/services/LoggingService.h>
 
 namespace Messenger

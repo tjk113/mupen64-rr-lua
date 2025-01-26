@@ -4,11 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "debugger.h"
 #include "Plugin.h"
-
-#include <thread>
-
 #include "core/Messenger.h"
 
 bool g_resumed = true;

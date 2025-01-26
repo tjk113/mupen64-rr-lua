@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <filesystem>
-#include <string>
 #include <core/CoreTypes.h>
 
 extern uint8_t* rom;

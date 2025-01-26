@@ -5,6 +5,7 @@
  */
 
 #pragma once
+
 #include "Presenter.h"
 
 class GDIPresenter : public Presenter

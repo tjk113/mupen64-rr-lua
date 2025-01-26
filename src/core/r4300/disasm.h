@@ -7,8 +7,6 @@
 #ifndef R4300_DISASM_H
 #define R4300_DISASM_H
 
-#include <cstdint>
-
 typedef unsigned char r4300byte;
 typedef uint16_t r4300half;
 typedef int16_t r4300halfsigned;

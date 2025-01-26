@@ -4,26 +4,17 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-//#include "../config.h"
-#ifdef _DEBUG
-//#define DEBUG_PIF //don't define if you don't need spam
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "memory.h"
+#include "stdafx.h"
 #include "pif.h"
-
-#include <thread>
-#include <core/services/LuaService.h>
+#include "memory.h"
 #include "pif2.h"
-#include "../r4300/r4300.h"
-#include <core/r4300/Plugin.h>
-#include "../r4300/vcr.h"
 #include "savestates.h"
+#include <core/r4300/Plugin.h>
 #include <core/r4300/gameshark.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/vcr.h>
 #include <core/services/LoggingService.h>
+#include <core/services/LuaService.h>
 
 int32_t frame_advancing = 0;
 // Amount of VIs since last input poll

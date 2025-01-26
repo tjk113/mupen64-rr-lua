@@ -4,27 +4,23 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-//#include "../config.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <core/Config.h>
-#include <core/r4300/timers.h>
-
+#include "stdafx.h"
 #include "memory.h"
 #include "dma.h"
-#include "../r4300/r4300.h"
-#include "../r4300/macros.h"
-#include "../r4300/interrupt.h"
-#include "../r4300/recomph.h"
-#include "../r4300/ops.h"
-#include "pif.h"
 #include "flashram.h"
-#include <core/services/FrontendService.h>
+#include "pif.h"
 #include "summercart.h"
-#include <core/r4300/Plugin.h>
-#include "../r4300/vcr.h"
+#include <core/Config.h>
 #include <core/Messenger.h>
+#include <core/r4300/Plugin.h>
+#include <core/r4300/interrupt.h>
+#include <core/r4300/macros.h>
+#include <core/r4300/ops.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomph.h>
+#include <core/r4300/timers.h>
+#include <core/r4300/vcr.h>
+#include <core/services/FrontendService.h>
 #include <core/services/LoggingService.h>
 
 static int32_t frame;

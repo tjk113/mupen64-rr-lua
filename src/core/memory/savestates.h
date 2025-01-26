@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <filesystem>
-#include <functional>
 #include <core/CoreTypes.h>
 
 extern bool g_st_skip_dma;

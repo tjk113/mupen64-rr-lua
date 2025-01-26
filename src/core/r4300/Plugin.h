@@ -6,12 +6,6 @@
  
 #pragma once
 
-#include <memory>
-#include <stdlib.h>
-#include <string>
-#include <vector>
-#include <functional>
-#include <core/helpers/IOHelpers.h>
 #include <core/CoreTypes.h>
 
 // ReSharper disable CppInconsistentNaming

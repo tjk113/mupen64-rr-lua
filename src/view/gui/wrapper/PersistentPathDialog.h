@@ -7,7 +7,6 @@
 #pragma once
 
 #include <Windows.h>
-#include <string>
 
 /**
  * \brief Shows a file selection dialog

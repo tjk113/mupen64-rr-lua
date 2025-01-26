@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "DCompPresenter.h"
-
 #include <view/helpers/WinHelpers.h>
 
 DCompPresenter::~DCompPresenter()

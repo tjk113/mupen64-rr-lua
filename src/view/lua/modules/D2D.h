@@ -5,6 +5,7 @@
  */
 
 #pragma once
+
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
@@ -12,7 +13,6 @@ extern "C" {
 }
 
 #include <Windows.h>
-#include <assert.h>
 #include <xxh64.h>
 
 namespace LuaCore::D2D

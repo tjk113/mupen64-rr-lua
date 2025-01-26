@@ -4,14 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <stdio.h>
-#include "../recomp.h"
-#include "../recomph.h"
-#include "assemble.h"
-#include "../r4300.h"
-#include "../ops.h"
+#include "stdafx.h"
+#include <core/r4300/ops.h>
+#include <core/r4300/recomph.h>
 
-//static uint32_t pMFC0 = (uint32_t)(MFC0);
+// static uint32_t pMFC0 = (uint32_t)(MFC0);
 void genmfc0()
 {
     gencallinterp((uint32_t)MFC0, 0);

@@ -4,12 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "assemble.h"
-#include <stdio.h>
-#include "../r4300.h"
-#include "../macros.h"
-#include "../../memory/memory.h"
-#include "../recomph.h"
+#include "stdafx.h"
+#include <core/r4300/x86/assemble.h>
 
 void debug()
 {

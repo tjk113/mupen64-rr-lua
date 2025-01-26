@@ -4,16 +4,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "Main.h"
-
-
 #include <commctrl.h>
-#include <filesystem>
 #include <Shlwapi.h>
 #include <Windows.h>
-#include <format>
 #include <strsafe.h>
-#include <variant>
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
 #include <core/memory/savestates.h>

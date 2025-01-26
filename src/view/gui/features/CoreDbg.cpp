@@ -4,20 +4,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include <view/lua/LuaConsole.h>
-
 #include <view/resource.h>
 #include <view/gui/Main.h>
 #include "CoreDbg.h"
-
-#include <stdio.h>
 #include <Windows.h>
 #include <Windowsx.h>
-#include <thread>
-
 #include <core/r4300/r4300.h>
 #include <core/r4300/disasm.h>
-
 #include "core/r4300/debugger.h"
 #include "core/Messenger.h"
 

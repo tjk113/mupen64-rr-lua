@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <cstdint>
-
 /*
  *	Interface for special platform-related functionality.
  *

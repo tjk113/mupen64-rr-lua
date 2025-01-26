@@ -4,15 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "AsyncExecutor.h"
-
-#include <mutex>
-#include <queue>
-#include <thread>
-#include <condition_variable>
-#include <atomic>
 #include <core/services/LoggingService.h>
-
 #include "Config.h"
 
 std::deque<std::pair<size_t, std::function<void()>>> g_task_queue;
