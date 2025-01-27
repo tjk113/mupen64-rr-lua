@@ -637,7 +637,9 @@ void LuaEnvironment::ensure_d2d_renderer_created()
     }
 
     d2d_render_target_stack.push(presenter->dc());
-    dw_text_layouts = MicroLRU::Cache<uint64_t, IDWriteTextLayout*>(128, [&](auto value) { value->Release(); });
+    dw_text_layouts = MicroLRU::Cache<uint64_t, IDWriteTextLayout*>(512, [&](auto value) { 
+        value->Release(); 
+    });
 }
 
 void LuaEnvironment::create_renderer()
