@@ -691,10 +691,11 @@ namespace Savestates
 		g_tasks.clear();
 	}
 
-	void clear_work_queue()
+	void on_core_stop()
 	{
 		std::scoped_lock lock(g_task_mutex);
 		g_tasks.clear();
+	    g_undo_savestate.clear();
 	}
 
 	/**

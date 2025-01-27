@@ -46,9 +46,9 @@ namespace Savestates
     void do_work();
 
     /**
-     * Clears the work queue.
+     * Clears the work queue and the undo savestate.
      */
-    void clear_work_queue();
+    void on_core_stop();
 
     /**
      * \brief Executes a savestate operation to a path
