@@ -12,9 +12,7 @@
  *	Must be implemented in the view layer.
  */
 
-extern "C" {
-#include <lua.h>
-}
+struct lua_State;
 
 #include <core/CoreTypes.h>
 

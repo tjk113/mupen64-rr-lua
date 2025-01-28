@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>mupen64</ProjectName>
+    <ProjectName>Views.Win32</ProjectName>
+    <RootNamespace>Views.Win32</RootNamespace>
     <ProjectGuid>{83B5BB38-A6A7-432B-AF4D-2AE840F5621C}</ProjectGuid>
-    <RootNamespace>mupen64</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -123,7 +123,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>lib/zlib;lib/lua;lib/libdeflate;lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)views_win32_debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -162,7 +162,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>lib/zlib-x64;lib/lua-x64;lib/libdeflate-x64;lib/xxhash;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)mupen64_debug.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)views_win32_debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -254,44 +254,6 @@
   <ItemGroup>
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="lib\microlru.h" />
-    <ClInclude Include="src\core\CoreTypes.h" />
-    <ClInclude Include="src\core\helpers\IOHelpers.h" />
-    <ClInclude Include="src\core\helpers\StlExtensions.h" />
-    <ClInclude Include="src\core\memory\pif_lut.h" />
-    <ClInclude Include="src\core\memory\dma.h" />
-    <ClInclude Include="src\core\memory\flashram.h" />
-    <ClInclude Include="src\core\memory\memory.h" />
-    <ClInclude Include="src\core\memory\pif.h" />
-    <ClInclude Include="src\core\memory\savestates.h" />
-    <ClInclude Include="src\core\memory\summercart.h" />
-    <ClInclude Include="src\core\memory\tlb.h" />
-    <ClInclude Include="src\core\r4300\debugger.h" />
-    <ClInclude Include="src\core\r4300\ops.h" />
-    <ClInclude Include="src\core\r4300\cop1_helpers.h" />
-    <ClInclude Include="src\core\r4300\disasm.h" />
-    <ClInclude Include="src\core\r4300\exception.h" />
-    <ClInclude Include="src\core\r4300\gameshark.h" />
-    <ClInclude Include="src\core\r4300\interrupt.h" />
-    <ClInclude Include="src\core\r4300\macros.h" />
-    <ClInclude Include="src\core\r4300\Plugin.h" />
-    <ClInclude Include="src\core\r4300\r4300.h" />
-    <ClInclude Include="src\core\r4300\recomp.h" />
-    <ClInclude Include="src\core\r4300\recomph.h" />
-    <ClInclude Include="src\core\r4300\rom.h" />
-    <ClInclude Include="src\core\r4300\timers.h" />
-    <ClInclude Include="src\core\r4300\tracelog.h" />
-    <ClInclude Include="src\core\r4300\vcr.h" />
-    <ClInclude Include="src\core\r4300\x86\assemble.h" />
-    <ClInclude Include="src\core\r4300\x86\gcop1_helpers.h" />
-    <ClInclude Include="src\core\r4300\x86\regcache.h" />
-    <ClInclude Include="src\core\AsyncExecutor.h" />
-    <ClInclude Include="src\core\Config.h" />
-    <ClInclude Include="src\core\Messenger.h" />
-    <ClInclude Include="src\core\services\FrontendService.h" />
-    <ClInclude Include="src\core\services\IOService.h" />
-    <ClInclude Include="src\core\services\LoggingService.h" />
-    <ClInclude Include="src\core\services\LuaService.h" />
-    <ClInclude Include="src\core\services\PlatformService.h" />
     <ClInclude Include="src\view\capture\encoders\AVIEncoder.h" />
     <ClInclude Include="src\view\capture\encoders\Encoder.h" />
     <ClInclude Include="src\view\capture\encoders\FFmpegEncoder.h" />
@@ -354,58 +316,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\core\helpers\IOHelpers.cpp" />
-    <ClCompile Include="src\core\memory\pif_lut.cpp" />
-    <ClCompile Include="src\core\memory\dma.cpp" />
-    <ClCompile Include="src\core\memory\flashram.cpp" />
-    <ClCompile Include="src\core\memory\memory.cpp" />
-    <ClCompile Include="src\core\memory\pif.cpp" />
-    <ClCompile Include="src\core\memory\savestates.cpp" />
-    <ClCompile Include="src\core\memory\summercart.cpp" />
-    <ClCompile Include="src\core\memory\tlb.cpp" />
-    <ClCompile Include="src\core\r4300\debugger.cpp" />
-    <ClCompile Include="src\core\r4300\pure_interp.cpp" />
-    <ClCompile Include="src\core\r4300\compare_core.cpp" />
-    <ClCompile Include="src\core\r4300\cop0.cpp" />
-    <ClCompile Include="src\core\r4300\cop1.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_d.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_helpers.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_l.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_s.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_w.cpp" />
-    <ClCompile Include="src\core\r4300\disasm.cpp" />
-    <ClCompile Include="src\core\r4300\exception.cpp" />
-    <ClCompile Include="src\core\r4300\gameshark.cpp" />
-    <ClCompile Include="src\core\r4300\interrupt.cpp" />
-    <ClCompile Include="src\core\r4300\Plugin.cpp" />
-    <ClCompile Include="src\core\r4300\r4300.cpp" />
-    <ClCompile Include="src\core\r4300\recomp.cpp" />
-    <ClCompile Include="src\core\r4300\regimm.cpp" />
-    <ClCompile Include="src\core\r4300\rom.cpp" />
-    <ClCompile Include="src\core\r4300\special.cpp" />
-    <ClCompile Include="src\core\r4300\timers.cpp" />
-    <ClCompile Include="src\core\r4300\tracelog.cpp" />
-    <ClCompile Include="src\core\r4300\vcr.cpp" />
-    <ClCompile Include="src\core\r4300\x86\assemble.cpp" />
-    <ClCompile Include="src\core\r4300\x86\debug.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gbc.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop0.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_d.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_helpers.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_l.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_s.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_w.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gr4300.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gregimm.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gspecial.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gtlb.cpp" />
-    <ClCompile Include="src\core\r4300\x86\regcache.cpp" />
-    <ClCompile Include="src\core\r4300\x86\rjump.cpp" />
-    <ClCompile Include="src\core\r4300\bc.cpp" />
-    <ClCompile Include="src\core\AsyncExecutor.cpp" />
-    <ClCompile Include="src\core\Config.cpp" />
-    <ClCompile Include="src\core\Messenger.cpp" />
     <ClCompile Include="src\view\capture\encoders\AVIEncoder.cpp" />
     <ClCompile Include="src\view\capture\encoders\FFmpegEncoder.cpp" />
     <ClCompile Include="src\view\capture\EncodingManager.cpp" />
@@ -462,6 +372,11 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="src\view\app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Core\Core.vcxproj">
+      <Project>{30467598-d6de-4adf-8098-ce1da988b88a}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
