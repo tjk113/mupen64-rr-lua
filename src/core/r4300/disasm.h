@@ -6,15 +6,6 @@
 
 #pragma once
 
-typedef unsigned char r4300byte;
-typedef uint16_t r4300half;
-typedef int16_t r4300halfsigned;
-typedef uint32_t r4300word;
-typedef int32_t r4300wordsigned;
-
-typedef r4300byte CPUREG;
-typedef r4300byte FPUREG;
-
 typedef enum
 {
     INST_UNDEF,
@@ -290,36 +281,36 @@ typedef union
 {
     struct
     {
-        CPUREG rs;
-        CPUREG rt;
-        r4300half immediate;
+        uint8_t rs;
+        uint8_t rt;
+        uint16_t immediate;
     } i;
 
     struct
     {
-        r4300word inst_index;
+        uint32_t inst_index;
     } j;
 
     struct
     {
-        CPUREG rs;
-        CPUREG rt;
-        CPUREG rd;
-        r4300byte sa;
+        uint8_t rs;
+        uint8_t rt;
+        uint8_t rd;
+        uint8_t sa;
     } r;
 
     struct
     {
-        FPUREG base;
-        FPUREG ft;
-        r4300half offset;
+        uint8_t base;
+        uint8_t ft;
+        uint16_t offset;
     } lf;
 
     struct
     {
-        FPUREG ft;
-        FPUREG fs;
-        FPUREG fd;
+        uint8_t ft;
+        uint8_t fs;
+        uint8_t fd;
     } cf;
 } INSTOPERAND;
 
@@ -331,16 +322,16 @@ typedef struct
     INSTOPERAND operand;
 } INSTDECODE;
 
-INST GetInstruction(r4300word w);
-void DecodeInstruction(r4300word w, INSTDECODE* d);
+INST GetInstruction(uint32_t w);
+void DecodeInstruction(uint32_t w, INSTDECODE* d);
 const char* GetOpecodeString(INSTDECODE* d);
-char* GetOperandString(char* buf, INSTDECODE* d, r4300word pc);
-char* DisassembleInstruction(char* buf, r4300word w, r4300word pc);
+char* GetOperandString(char* buf, INSTDECODE* d, uint32_t pc);
+char* DisassembleInstruction(char* buf, uint32_t w, uint32_t pc);
 //buf size:27
 
 extern const INSTFMT InstFormat[INST_COUNT];
 extern const INSTFTYPE InstFormatType[INSTF_COUNT];
 extern const char* const OpecodeName[INST_COUNT];
-extern void (*InstFormatTypeFunc[INSTFTYPE_COUNT])(r4300word, INSTOPERAND*);
+extern void (*InstFormatTypeFunc[INSTFTYPE_COUNT])(uint32_t, INSTOPERAND*);
 extern const char* const CPURegisterName[32];
 extern const char* const COP0RegisterName[32];

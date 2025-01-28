@@ -181,7 +181,7 @@ static INST LInstruction[1 << 6] = {
     INST_UNDEF, INST_UNDEF, INST_UNDEF, INST_UNDEF, INST_UNDEF, INST_UNDEF, INST_UNDEF, INST_UNDEF,
 };
 
-INST GetInstruction(r4300word w)
+INST GetInstruction(uint32_t w)
 {
     switch (OpInstructionSet[w >> 26])
     {
@@ -372,23 +372,23 @@ const char* const OpecodeName[INST_COUNT] = {
 
 #define BITS(n,length) (w>>(n) & ((1<<(length))-1))
 
-static void noneType(r4300word w, INSTOPERAND* f)
+static void noneType(uint32_t w, INSTOPERAND* f)
 {
 }
 
-static void iType(r4300word w, INSTOPERAND* f)
+static void iType(uint32_t w, INSTOPERAND* f)
 {
     f->i.rs = BITS(21, 5);
     f->i.rt = BITS(16, 5);
     f->i.immediate = BITS(0, 16);
 }
 
-static void jType(r4300word w, INSTOPERAND* f)
+static void jType(uint32_t w, INSTOPERAND* f)
 {
     f->j.inst_index = BITS(0, 26);
 }
 
-static void rType(r4300word w, INSTOPERAND* f)
+static void rType(uint32_t w, INSTOPERAND* f)
 {
     f->r.rs = BITS(21, 5);
     f->r.rt = BITS(16, 5);
@@ -396,14 +396,14 @@ static void rType(r4300word w, INSTOPERAND* f)
     f->r.sa = BITS(6, 5);
 }
 
-static void lfType(r4300word w, INSTOPERAND* f)
+static void lfType(uint32_t w, INSTOPERAND* f)
 {
     f->lf.base = BITS(21, 5);
     f->lf.ft = BITS(16, 5);
     f->lf.offset = BITS(0, 16);
 }
 
-static void cfType(r4300word w, INSTOPERAND* f)
+static void cfType(uint32_t w, INSTOPERAND* f)
 {
     f->cf.ft = BITS(16, 5);
     f->cf.fs = BITS(11, 5);
@@ -418,11 +418,11 @@ const INSTFTYPE InstFormatType[INSTF_COUNT] = {
     INSTFTYPE_LF, INSTFTYPE_LF,
     INSTFTYPE_CF, INSTFTYPE_CF, INSTFTYPE_CF
 };
-void (*InstFormatTypeFunc[INSTFTYPE_COUNT])(r4300word, INSTOPERAND*) = {
+void (*InstFormatTypeFunc[INSTFTYPE_COUNT])(uint32_t, INSTOPERAND*) = {
     noneType, iType, jType, rType, lfType, cfType
 };
 
-void DecodeInstruction(r4300word w, INSTDECODE* d)
+void DecodeInstruction(uint32_t w, INSTDECODE* d)
 {
     INST inst = GetInstruction(w);
     INSTFMT format;
@@ -510,13 +510,13 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'u':
             {
-                r4300half n = va_arg(v, r4300half);
+                uint16_t n = va_arg(v, uint16_t);
                 HEX4();
                 break;
             }
         case 's':
             {
-                r4300half n = va_arg(v, r4300half);
+                uint16_t n = va_arg(v, uint16_t);
                 if (n < 0x8000)
                 {
                     *q = '+';
@@ -532,8 +532,8 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'p':
             {
-                r4300word m = va_arg(v, r4300word);
-                r4300half n = m >> 16;
+                uint32_t m = va_arg(v, uint32_t);
+                uint16_t n = m >> 16;
                 HEX4();
                 n = m & 0xFFFF;
                 HEX4();
@@ -541,7 +541,7 @@ static char* sfmt(char* b, const char* f, ...)
             }
         case 'a':
             {
-                r4300byte n = va_arg(v, r4300byte);
+                uint8_t n = va_arg(v, uint8_t);
                 q[0] = x[n >> 4];
                 q[1] = x[n & 0xF];
                 q += 2;
@@ -559,9 +559,9 @@ static char* sfmt(char* b, const char* f, ...)
 }
 
 //max-length: 16+1
-char* GetOperandString(char* buf, INSTDECODE* d, r4300word pc)
+char* GetOperandString(char* buf, INSTDECODE* d, uint32_t pc)
 {
-#define BRANCH (pc+4+((r4300wordsigned)(r4300halfsigned)o->i.immediate << 2))
+#define BRANCH (pc+4+((int32_t)(int16_t)o->i.immediate << 2))
     INSTOPERAND* o = &d->operand;
     //max-length: r:2, c:10, f:3, s:5, u:4, p:8, a:2, *:1
     switch (d->format)
@@ -616,7 +616,7 @@ char* GetOperandString(char* buf, INSTDECODE* d, r4300word pc)
 }
 
 //max-size:27 = 9(opecode)+1(space)+16(operand)+1(NUL)
-char* DisassembleInstruction(char* buf, r4300word w, r4300word pc)
+char* DisassembleInstruction(char* buf, uint32_t w, uint32_t pc)
 {
     INSTDECODE decode;
     const char* p;

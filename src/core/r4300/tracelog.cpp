@@ -42,12 +42,12 @@ namespace tracelog
     }
 
 
-    void log_bin(r4300word pc, r4300word w)
+    void log_bin(uint32_t pc, uint32_t w)
     {
         char*& p = traceLoggingPointer;
         INSTDECODE decode;
         //little endian
-#define HEX8(n) 	*(r4300word*)p = n; p += 4
+#define HEX8(n) 	*(uint32_t*)p = n; p += 4
 
         DecodeInstruction(w, &decode);
         HEX8(pc);
@@ -61,9 +61,9 @@ namespace tracelog
 		REGCPU(m);
         //10�i��
 #define REGFPU(n) \
-	HEX8(*(r4300word*)reg_cop1_simple[n])
+	HEX8(*(uint32_t*)reg_cop1_simple[n])
 #define REGFPU2(n,m) REGFPU(n);REGFPU(m)
-#define NONE *(r4300word*)p=0;p+=4
+#define NONE *(uint32_t*)p=0;p+=4
 #define NONE2 NONE;NONE
 
         switch (decode.format)
@@ -89,19 +89,19 @@ namespace tracelog
             REGCPU2(o.i.rs, o.i.rt);
             break;
         case INSTF_ADDRW:
-            HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+            HEX8(reg[o.i.rs] + (int16_t)o.i.immediate);
             REGCPU(o.i.rt);
             break;
         case INSTF_ADDRR:
-            HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+            HEX8(reg[o.i.rs] + (int16_t)o.i.immediate);
             NONE;
             break;
         case INSTF_LFW:
-            HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+            HEX8(reg[o.lf.base] + (int16_t)o.lf.offset);
             REGFPU(o.lf.ft);
             break;
         case INSTF_LFR:
-            HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+            HEX8(reg[o.lf.base] + (int16_t)o.lf.offset);
             NONE;
             break;
         case INSTF_R1:
@@ -132,7 +132,7 @@ namespace tracelog
             NONE2;
             break;
         case INSTF_MFC1:
-            REGFPU(((FPUREG)o.r.rs));
+            REGFPU(((uint8_t)o.r.rs));
             NONE;
             break;
         }
@@ -164,19 +164,19 @@ namespace tracelog
         fclose(log_file);
     }
 
-    void log(r4300word pc, r4300word w)
+    void log(uint32_t pc, uint32_t w)
     {
         char*& p = traceLoggingPointer;
         INSTDECODE decode;
         const char* const x = "0123456789abcdef";
-#define HEX8(n) 	p[0] = x[(r4300word)(n)>>28&0xF];\
-	p[1] = x[(r4300word)(n)>>24&0xF];\
-	p[2] = x[(r4300word)(n)>>20&0xF];\
-	p[3] = x[(r4300word)(n)>>16&0xF];\
-	p[4] = x[(r4300word)(n)>>12&0xF];\
-	p[5] = x[(r4300word)(n)>>8&0xF];\
-	p[6] = x[(r4300word)(n)>>4&0xF];\
-	p[7] = x[(r4300word)(n)&0xF];\
+#define HEX8(n) 	p[0] = x[(uint32_t)(n)>>28&0xF];\
+	p[1] = x[(uint32_t)(n)>>24&0xF];\
+	p[2] = x[(uint32_t)(n)>>20&0xF];\
+	p[3] = x[(uint32_t)(n)>>16&0xF];\
+	p[4] = x[(uint32_t)(n)>>12&0xF];\
+	p[5] = x[(uint32_t)(n)>>8&0xF];\
+	p[6] = x[(uint32_t)(n)>>4&0xF];\
+	p[7] = x[(uint32_t)(n)&0xF];\
 	p+=8;
 
         DecodeInstruction(w, &decode);
@@ -255,7 +255,7 @@ namespace tracelog
         case INSTF_ADDRR:
             *(p++) = '@';
             *(p++) = '=';
-            HEX8(reg[o.i.rs] + (r4300halfsigned)o.i.immediate);
+            HEX8(reg[o.i.rs] + (int16_t)o.i.immediate);
             break;
         case INSTF_LFW:
             REGFPU(o.lf.ft);
@@ -263,7 +263,7 @@ namespace tracelog
         case INSTF_LFR:
             *(p++) = '@';
             *(p++) = '=';
-            HEX8(reg[o.lf.base] + (r4300halfsigned)o.lf.offset);
+            HEX8(reg[o.lf.base] + (int16_t)o.lf.offset);
             break;
         case INSTF_R1:
             REGCPU(o.r.rd);
@@ -289,7 +289,7 @@ namespace tracelog
         case INSTF_MFC0:
             break;
         case INSTF_MFC1:
-            REGFPU(((FPUREG)o.r.rs));
+            REGFPU(((uint8_t)o.r.rs));
             break;
         }
         *(p++) = '\n';
