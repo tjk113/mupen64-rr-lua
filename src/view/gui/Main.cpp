@@ -52,6 +52,7 @@
 #include "core/services/LoggingService.h"
 #include "view/helpers/IOHelpers.h"
 #include "wrapper/PersistentPathDialog.h"
+#include <view/gui/features/RecentMenu.h>
 
 // Throwaway actions which can be spammed get keys as to not clog up the async executor queue
 #define ASYNC_KEY_CLOSE_ROM (1)
@@ -589,71 +590,6 @@ std::wstring hotkey_to_string(const t_hotkey* hotkey)
     return string_to_wstring(buf);
 }
 
-namespace Recent
-{
-    void build(std::vector<std::wstring>& vec, int first_menu_id, HMENU parent_menu)
-    {
-    	assert(is_on_gui_thread());
-
-    	// First 3 items aren't dynamic and shouldn't be deleted
-    	constexpr int FIXED_ITEM_COUNT = 3;
-
-    	const int child_count = GetMenuItemCount(parent_menu) - FIXED_ITEM_COUNT;
-
-	    for (auto i = 0; i < child_count; ++i)
-	    {
-	    	DeleteMenu(parent_menu, FIXED_ITEM_COUNT, MF_BYPOSITION);
-	    }
-		
-        MENUITEMINFO menu_info = {0};
-        menu_info.cbSize = sizeof(MENUITEMINFO);
-        menu_info.fMask = MIIM_TYPE | MIIM_ID;
-        menu_info.fType = MFT_STRING;
-        menu_info.fState = MFS_ENABLED;
-
-        for (int i = vec.size() - 1; i >= 0; --i)
-        {
-            if (vec[i].empty())
-            {
-                continue;
-            }
-            menu_info.dwTypeData = vec[i].data();
-            menu_info.cch = vec[i].size();
-			menu_info.wID = first_menu_id + i;
-            auto result = InsertMenuItem(parent_menu, FIXED_ITEM_COUNT, TRUE, &menu_info);
-        }
-    }
-
-    void add(std::vector<std::wstring>& vec, std::wstring val, bool frozen, int first_menu_id, HMENU parent_menu)
-    {
-    	assert(is_on_gui_thread());
-
-        if (frozen)
-        {
-            return;
-        }
-        if (vec.size() > 5)
-        {
-            vec.pop_back();
-        }
-		std::erase_if(vec, [&](const auto str) {
-			return iequals(str, val) || std::filesystem::path(str).compare(val) == 0;
-		});
-        vec.insert(vec.begin(), val);
-        build(vec, first_menu_id, parent_menu);
-    }
-
-    std::wstring element_at(std::vector<std::wstring> vec, int first_menu_id, int menu_id)
-    {
-        const int index = menu_id - first_menu_id;
-        if (index >= 0 && index < vec.size())
-        {
-            return vec[index];
-        }
-        return L"";
-    }
-}
-
 std::filesystem::path get_screenshots_directory()
 {
     if (g_config.is_default_screenshots_directory_used)
@@ -728,7 +664,7 @@ void on_script_started(std::any data)
 	g_main_window_dispatcher->invoke([=]
 	{
 		auto value = std::any_cast<std::filesystem::path>(data);
-		Recent::add(g_config.recent_lua_script_paths, value.wstring(), g_config.is_recent_scripts_frozen, ID_LUA_RECENT, g_recent_lua_menu);
+		RecentMenu::add(g_config.recent_lua_script_paths, value.wstring(), g_config.is_recent_scripts_frozen, ID_LUA_RECENT, g_recent_lua_menu);
 	});
 }
 
@@ -749,7 +685,7 @@ void on_task_changed(std::any data)
 
 		if ((task_is_recording(value) && !task_is_recording(previous_value)) || task_is_playback(value) && !task_is_playback(previous_value) && !VCR::get_path().empty())
 		{
-			Recent::add(g_config.recent_movie_paths, VCR::get_path().wstring(), g_config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
+			RecentMenu::add(g_config.recent_movie_paths, VCR::get_path().wstring(), g_config.is_recent_movie_paths_frozen, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
 		}
 
 		update_titlebar();
@@ -794,7 +730,7 @@ void on_emu_launched_changed(std::any data)
 		{
 			g_vis_since_input_poll_warning_dismissed = false;
 
-			Recent::add(g_config.recent_rom_paths, get_rom_path().wstring(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, g_recent_roms_menu);
+			RecentMenu::add(g_config.recent_rom_paths, get_rom_path().wstring(), g_config.is_recent_rom_paths_frozen, ID_RECENTROMS_FIRST, g_recent_roms_menu);
 
 			for (const HWND hwnd : g_previously_running_luas)
 			{
@@ -1415,9 +1351,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             }
             CheckMenuItem(g_main_menu, IDM_SELECT_1 + g_config.st_slot, MF_CHECKED);
 
-    		Recent::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, g_recent_roms_menu);
-    		Recent::build(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
-    		Recent::build(g_config.recent_lua_script_paths, ID_LUA_RECENT, g_recent_lua_menu);
+    		RecentMenu::build(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, g_recent_roms_menu);
+    		RecentMenu::build(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, g_recent_movies_menu);
+    		RecentMenu::build(g_config.recent_lua_script_paths, ID_LUA_RECENT, g_recent_lua_menu);
         }
         break;
     case WM_ENTERMENULOOP:
@@ -2052,7 +1988,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     LOWORD(wParam) < (ID_RECENTROMS_FIRST + g_config.
                                                             recent_rom_paths.size()))
                 {
-                    auto path = Recent::element_at(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, LOWORD(wParam));
+                    auto path = RecentMenu::element_at(g_config.recent_rom_paths, ID_RECENTROMS_FIRST, LOWORD(wParam));
                     if (path.empty())
                         break;
 
@@ -2066,7 +2002,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     LOWORD(wParam) < (ID_RECENTMOVIES_FIRST + g_config.
                                                               recent_movie_paths.size()))
                 {
-                    auto path = Recent::element_at(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, LOWORD(wParam));
+                    auto path = RecentMenu::element_at(g_config.recent_movie_paths, ID_RECENTMOVIES_FIRST, LOWORD(wParam));
                     if (path.empty())
                         break;
 
@@ -2081,7 +2017,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 else if (LOWORD(wParam) >= ID_LUA_RECENT && LOWORD(wParam) < (
                     ID_LUA_RECENT + g_config.recent_lua_script_paths.size()))
                 {
-                    auto path = Recent::element_at(g_config.recent_lua_script_paths, ID_LUA_RECENT, LOWORD(wParam));
+                    auto path = RecentMenu::element_at(g_config.recent_lua_script_paths, ID_LUA_RECENT, LOWORD(wParam));
                     if (path.empty())
                         break;
 

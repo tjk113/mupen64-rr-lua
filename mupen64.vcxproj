@@ -298,6 +298,7 @@
     <ClInclude Include="src\view\capture\EncodingManager.h" />
     <ClInclude Include="src\view\capture\Resampler.h" />
     <ClInclude Include="src\view\gui\features\PianoRoll.h" />
+    <ClInclude Include="src\view\gui\features\RecentMenu.h" />
     <ClInclude Include="src\view\gui\features\UpdateChecker.h" />
     <ClInclude Include="src\view\gui\Loggers.h" />
     <ClInclude Include="src\view\helpers\IOHelpers.h" />
@@ -418,6 +419,7 @@
     <ClCompile Include="src\view\gui\features\MGECompositor.cpp" />
     <ClCompile Include="src\view\gui\features\MovieDialog.cpp" />
     <ClCompile Include="src\view\gui\features\PianoRoll.cpp" />
+    <ClCompile Include="src\view\gui\features\RecentMenu.cpp" />
     <ClCompile Include="src\view\gui\features\RomBrowser.cpp" />
     <ClCompile Include="src\view\gui\features\Runner.cpp" />
     <ClCompile Include="src\view\gui\features\Seeker.cpp" />
