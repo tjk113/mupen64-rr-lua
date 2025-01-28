@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef R4300_DISASM_H
-#define R4300_DISASM_H
+#pragma once
 
 typedef unsigned char r4300byte;
 typedef uint16_t r4300half;
@@ -345,5 +344,3 @@ extern const char* const OpecodeName[INST_COUNT];
 extern void (*InstFormatTypeFunc[INSTFTYPE_COUNT])(r4300word, INSTOPERAND*);
 extern const char* const CPURegisterName[32];
 extern const char* const COP0RegisterName[32];
-
-#endif

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#pragma once
 
 int32_t init_memory();
 constexpr uint32_t AddrMask = 0x7FFFFF;
@@ -450,5 +449,3 @@ extern void StoreRDRAMSafe(uint32_t addr, T value)
 {
     *((T*)(rdramb + ((ToAddr<T>(addr) & AddrMask)))) = value;
 }
-
-#endif

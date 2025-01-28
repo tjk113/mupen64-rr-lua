@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef COMMANDLINE_H
-#define COMMANDLINE_H
+#pragma once
 
 namespace Cli
 {
@@ -19,4 +18,3 @@ namespace Cli
 	 */
 	bool wants_fast_forward();
 }
-#endif

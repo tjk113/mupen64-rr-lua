@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef SUMMERCART_H
-#define SUMMERCART_H
+#pragma once
 
 struct summercart
 {
@@ -28,5 +27,3 @@ void load_summercart(const char* filename);
 void init_summercart();
 uint32_t read_summercart(uint32_t address);
 void write_summercart(uint32_t address, uint32_t value);
-
-#endif

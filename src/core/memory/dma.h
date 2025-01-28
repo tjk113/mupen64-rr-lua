@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef DMA_H
-#define DMA_H
+#pragma once
 
 void dma_pi_write();
 void dma_pi_read();
@@ -13,5 +12,3 @@ void dma_si_write();
 void dma_si_read();
 void dma_sp_write();
 void dma_sp_read();
-
-#endif

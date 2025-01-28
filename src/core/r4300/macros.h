@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef MACROS_H
-#define MACROS_H
+#pragma once
 
 #define sign_extended(a) a = (int64_t)((int32_t)a)
 #define sign_extendedb(a) a = (int64_t)((char)a)
@@ -111,4 +110,3 @@ __asm fistp output_width ptr [eax] \
 #define FLOAT_CONVERT_W_S(s,d) { float* src = s; int32_t* dest = (int32_t*)d;  FLOAT_CONVERT(dword, dword); }
 #define FLOAT_CONVERT_L_D(s,d) { double* src = s; int64_t* dest = (int64_t*)d; FLOAT_CONVERT(qword, dword); }
 #define FLOAT_CONVERT_W_D(s,d) { double* src = s; int32_t* dest = (int32_t*)d; FLOAT_CONVERT(qword, qword); }
-#endif

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef ASSEMBLE_H
-#define ASSEMBLE_H
+#pragma once
 
 #define EAX 0
 #define ECX 1
@@ -233,5 +232,3 @@ void fild_preg32_dword(int32_t reg32);
 void fclex();
 void fstsw_ax();
 void ud2();
-
-#endif // ASSEMBLE_H

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef REGCACHE_H
-#define REGCACHE_H
+#pragma once
 
 #include <core/r4300/recomp.h>
 
@@ -31,5 +30,3 @@ void allocate_register_manually_w(int32_t reg, uint32_t* addr, int32_t load);
 void force_32(int32_t reg);
 int32_t lru_register_exc1(int32_t exc1);
 void simplify_access();
-
-#endif // REGCACHE_H

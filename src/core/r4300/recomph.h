@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef RECOMPH_H
-#define RECOMPH_H
+#pragma once
 
 #include "recomp.h"
 
@@ -274,5 +273,3 @@ void gentestl();
 void gentestl_out();
 void gencheck_cop1_unusable();
 void genll();
-
-#endif

@@ -13,7 +13,7 @@
 #include <core/r4300/recomp.h>
 #include <core/r4300/recomph.h>
 #include <core/r4300/x86/assemble.h>
-#include <core/services/LuaService.h>
+#include <core/r4300/x86/regcache.h>
 
 void gensll()
 {

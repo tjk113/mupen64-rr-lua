@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef TLB_H
-#define TLB_H
+#pragma once
 
 typedef struct _tlb
 {
@@ -36,13 +35,3 @@ extern uint32_t tlb_LUT_r[0x100000];
 extern uint32_t tlb_LUT_w[0x100000];
 uint32_t virtual_to_physical_address(uint32_t addresse, int32_t w);
 int32_t probe_nop(uint32_t address);
-
-//uint32_t& get_tlb_LUT_r(int32_t index)
-//{
-//	return ::tlb_LUT_r[index];
-//}
-//uint32_t& get_tlb_LUT_w(int32_t index)
-//{
-//	return ::tlb_LUT_w[index];
-//}
-#endif

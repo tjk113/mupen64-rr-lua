@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef RECOMP_H
-#define RECOMP_H
+#pragma once
 
 #include <core/r4300/x86/assemble.h>
 
@@ -95,7 +94,3 @@ void recompile_now(uint32_t addr);
 void recompile_all();
 
 extern precomp_instr* dst;
-
-#include "x86/regcache.h"
-
-#endif

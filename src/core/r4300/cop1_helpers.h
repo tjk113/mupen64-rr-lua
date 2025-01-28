@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef COP1_HELPERS_H
-#define COP1_HELPERS_H
+#pragma once
 
 #include "macros.h"
 
@@ -44,6 +43,3 @@ void fail_float_convert();
         fail_float_convert(); \
         return; \
     } } } while (0)
-
-
-#endif /* COP1_HELPERS_H */

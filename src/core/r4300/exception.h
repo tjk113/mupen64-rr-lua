@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#pragma once
 
 void address_error_exception();
 void TLB_invalid_exception();
@@ -15,5 +14,3 @@ void integer_overflow_exception();
 void coprocessor_unusable_exception();
 
 void exception_general();
-
-#endif
