@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <spdlog/logger.h>
-
 /*
  *	Exposes an spdlog logger registry. 
  *

@@ -9,6 +9,8 @@
 #include <commctrl.h>
 #include <Shlwapi.h>
 #include <Windows.h>
+#include <shellapi.h>
+#include <timeapi.h>
 #include <strsafe.h>
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
@@ -29,7 +31,6 @@
 #include <view/helpers/MathHelpers.h>
 #include <view/helpers/WinHelpers.h>
 #include <view/lua/LuaConsole.h>
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <view/resource.h>
 #include "Commandline.h"

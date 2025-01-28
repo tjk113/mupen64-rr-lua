@@ -266,7 +266,7 @@ static void shift_listview_selection(const HWND hwnd, const int32_t offset)
 
     for (auto& selected_index : selection)
     {
-        selected_index = max(selected_index + offset, 0);
+        selected_index = std::max(selected_index + offset, static_cast<int64_t>(0));
     }
 
     for (const auto selected_index : selection)

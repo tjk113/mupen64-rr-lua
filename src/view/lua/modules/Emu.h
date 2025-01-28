@@ -4,22 +4,19 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "core/Messenger.h"
-
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
-#include <lualib.h>
 }
 
 #include <Windows.h>
-
-#include "LuaConsole.h"
-#include <view/gui/Main.h>
+#include <mmsystem.h>
+#include <core/Messenger.h>
 #include <core/memory/memory.h>
-#include <core/memory/pif.h>
 #include <core/r4300/timers.h>
+#include <view/gui/Main.h>
 #include <view/gui/features/Statusbar.h>
+#include <view/lua/LuaConsole.h>
 
 extern int32_t m_current_vi;
 extern int32_t m_current_sample;

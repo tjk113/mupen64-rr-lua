@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "UpdateChecker.h"
 #include <Windows.h>
+#include <shellapi.h>
 #include <json/json.hpp>
 #include <core/helpers/StlExtensions.h>
 #include <core/services/FrontendService.h>

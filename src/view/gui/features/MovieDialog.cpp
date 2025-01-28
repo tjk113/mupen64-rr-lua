@@ -397,7 +397,7 @@ namespace MovieDialog
         metadata.emplace_back(
             std::make_pair(L"C> Presses", std::to_wstring(count_button_presses(inputs, 8))));
 
-        const auto lag_frames = max(0, (int64_t)header.length_vis - 2 * (int64_t)header.length_samples);
+        const auto lag_frames = std::max((int64_t)0, (int64_t)header.length_vis - 2 * (int64_t)header.length_samples);
         metadata.emplace_back(
             std::make_pair(L"Lag Frames (approximation)", std::to_wstring(lag_frames)));
         metadata.emplace_back(

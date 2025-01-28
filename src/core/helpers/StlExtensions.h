@@ -6,8 +6,6 @@
  
 #pragma once
 
-#include <spdlog/spdlog.h>
-
 /**
  * \brief Records the execution time of a scope
  */

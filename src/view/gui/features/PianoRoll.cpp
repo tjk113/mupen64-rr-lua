@@ -327,7 +327,7 @@ namespace PianoRoll
     void ensure_relevant_item_visible()
     {
         const int32_t i = ListView_GetNextItem(g_lv_hwnd, -1, LVNI_SELECTED);
-    	const auto current_sample = min(ListView_GetItemCount(g_lv_hwnd), VCR::get_seek_completion().first + 10);
+    	const auto current_sample = std::min(ListView_GetItemCount(g_lv_hwnd), static_cast<int32_t>(VCR::get_seek_completion().first) + 10);
     	const auto playhead_sample = VCR::get_task() == e_task::recording ? current_sample - 1 : current_sample;
 
         if (g_config.piano_roll_keep_playhead_visible)
@@ -406,7 +406,7 @@ namespace PianoRoll
         }
 
         g_piano_roll_history.push_back(g_piano_roll_state);
-        g_piano_roll_state_index = min(g_piano_roll_state_index + 1, g_piano_roll_history.size() - 1);
+        g_piano_roll_state_index = std::min(g_piano_roll_state_index + 1, g_piano_roll_history.size() - 1);
 
         g_view_logger->info("[PianoRoll] Undo stack size: {}. Current index: {}.", g_piano_roll_history.size(), g_piano_roll_state_index);
         update_history_listbox();
@@ -777,7 +777,7 @@ namespace PianoRoll
             g_piano_roll_state.inputs = VCR::get_inputs();
 
             const auto item_count = VCR::get_task() == e_task::recording
-                                        ? min(VCR::get_seek_completion().first, g_piano_roll_state.inputs.size())
+                                        ? std::min(VCR::get_seek_completion().first, g_piano_roll_state.inputs.size())
                                         : g_piano_roll_state.inputs.size();
 
             g_view_logger->info("[PianoRoll] Setting item count to {} (input count: {})...", item_count, g_piano_roll_state.inputs.size());
@@ -978,7 +978,7 @@ namespace PianoRoll
 
         if (x > INT8_MAX || y > INT8_MAX || x < INT8_MIN || y < INT8_MIN)
         {
-            int div = max(abs(x), abs(y));
+            int div = std::max(abs(x), abs(y));
             x = x * INT8_MAX / div;
             y = y * INT8_MAX / div;
         }

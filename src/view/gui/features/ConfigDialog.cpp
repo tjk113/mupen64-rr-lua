@@ -6,6 +6,7 @@
 
 #include "stdafx.h"
 #include <shlobj.h>
+#include <shellapi.h>
 #include <view/lua/LuaConsole.h>
 #include <view/gui/Main.h>
 #include <view/resource.h>

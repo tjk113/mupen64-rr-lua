@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "LuaConsole.h"
 #include <Windows.h>
+#include <shellapi.h>
 #include <core/memory/memory.h>
 #include <core/r4300/Plugin.h>
 #include <core/r4300/r4300.h>
@@ -662,7 +663,7 @@ void LuaEnvironment::create_renderer()
     }
 
     // NOTE: We don't want negative or zero size on any axis, as that messes up comp surface creation
-    dc_size = {(UINT32)max(1, window_rect.right), (UINT32)max(1, window_rect.bottom)};
+    dc_size = {(UINT32)std::max(1, (int32_t)window_rect.right), (UINT32)std::max(1, (int32_t)window_rect.bottom)};
     g_view_logger->info("Lua dc size: {} {}", dc_size.width, dc_size.height);
 
     // Key 0 is reserved for clearing the image pool, too late to change it now...

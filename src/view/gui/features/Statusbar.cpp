@@ -204,12 +204,12 @@ namespace Statusbar
 
 		if (!g_config.statusbar_scale_down)
 		{
-			scale = max(scale, 1.0f);
+			scale = std::max(scale, 1.0f);
 		}
 
 		if (!g_config.statusbar_scale_up)
 		{
-			scale = min(scale, 1.0f);
+			scale = std::min(scale, 1.0f);
 		}
 
 		for (auto& size : sizes)
