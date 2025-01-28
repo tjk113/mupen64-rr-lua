@@ -5,10 +5,10 @@
  */
 
 #include "stdafx.h"
-#include "pif.h"
-#include "memory.h"
-#include "pif2.h"
-#include "savestates.h"
+#include <core/memory/memory.h>
+#include <core/memory/pif.h>
+#include <core/memory/pif_lut.h>
+#include <core/memory/savestates.h>
 #include <core/r4300/Plugin.h>
 #include <core/r4300/gameshark.h>
 #include <core/r4300/r4300.h>
@@ -23,13 +23,14 @@ size_t lag_count;
 void check_input_sync(unsigned char* value);
 
 #ifdef DEBUG_PIF
-void print_pif() {
-	int32_t i;
-	for (i = 0; i < (64 / 8); i++)
-		g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
-			PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
-			PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
-	//getchar();
+void print_pif()
+{
+    int32_t i;
+    for (i = 0; i < (64 / 8); i++)
+        g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
+                            PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
+                            PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
+    // getchar();
 }
 #endif
 
@@ -84,24 +85,23 @@ void format_mempacks()
 {
     unsigned char init[] =
     {
-        0x81, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
-        0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
-        0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x71, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03
-    };
+    0x81, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
+    0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0x05, 0x1a, 0x5f, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0x66, 0x25, 0x99, 0xcd,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x71, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x03};
     int32_t i, j;
     for (i = 0; i < 4; i++)
     {
@@ -125,7 +125,8 @@ unsigned char mempack_crc(unsigned char* data)
         {
             int32_t xor_tap = (CRC & 0x80) ? 0x85 : 0x00;
             CRC <<= 1;
-            if (i != 0x20 && (data[i] & mask)) CRC |= 1;
+            if (i != 0x20 && (data[i] & mask))
+                CRC |= 1;
             CRC ^= xor_tap;
         }
     }
@@ -147,7 +148,7 @@ void internal_ReadController(int32_t Control, uint8_t* Command)
             vcr_on_controller_poll(Control, &input);
             *((uint32_t*)(Command + 3)) = input.Value;
 #ifdef COMPARE_CORE
-				check_input_sync(Command + 3);
+            check_input_sync(Command + 3);
 #endif
         }
         break;
@@ -155,14 +156,16 @@ void internal_ReadController(int32_t Control, uint8_t* Command)
         if (Controls[Control].Present)
         {
             if (Controls[Control].Plugin == (int32_t)ControllerExtension::Raw)
-                if (controllerCommand) readController(Control, Command);
+                if (controllerCommand)
+                    readController(Control, Command);
         }
         break;
     case 3: // write controller pack
         if (Controls[Control].Present)
         {
             if (Controls[Control].Plugin == (int32_t)ControllerExtension::Raw)
-                if (controllerCommand) readController(Control, Command);
+                if (controllerCommand)
+                    readController(Control, Command);
         }
         break;
     }
@@ -235,7 +238,8 @@ void internal_ControllerCommand(int32_t Control, uint8_t* Command)
                 }
                 break;
             case (int32_t)ControllerExtension::Raw:
-                if (controllerCommand) controllerCommand(Control, Command);
+                if (controllerCommand)
+                    controllerCommand(Control, Command);
                 break;
             default:
                 memset(&Command[5], 0, 0x20);
@@ -279,7 +283,8 @@ void internal_ControllerCommand(int32_t Control, uint8_t* Command)
                 }
                 break;
             case (int32_t)ControllerExtension::Raw:
-                if (controllerCommand) controllerCommand(Control, Command);
+                if (controllerCommand)
+                    controllerCommand(Control, Command);
                 break;
             default:
                 Command[0x25] = mempack_crc(&Command[5]);
@@ -309,19 +314,19 @@ void update_pif_write()
         switch (PIF_RAMb[0x3F])
         {
         case 0x02:
-            for (i = 0; i < sizeof(pif2_lut) / 32; i++)
+            for (i = 0; i < sizeof(g_pif_lut) / 32; i++)
             {
-                if (!memcmp(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][0], 16))
+                if (!memcmp(PIF_RAMb + 64 - 2 * 8, g_pif_lut[i][0], 16))
                 {
-                    memcpy(PIF_RAMb + 64 - 2 * 8, pif2_lut[i][1], 16);
+                    memcpy(PIF_RAMb + 64 - 2 * 8, g_pif_lut[i][1], 16);
                     return;
                 }
             }
             g_core_logger->info("unknown pif2 code:");
             for (i = (64 - 2 * 8) / 8; i < (64 / 8); i++)
                 g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
-                       PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
-                       PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
+                                    PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
+                                    PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
             break;
         case 0x08:
             PIF_RAMb[0x3F] = 0;
@@ -337,7 +342,8 @@ void update_pif_write()
         {
         case 0x00:
             channel++;
-            if (channel > 6) i = 0x40;
+            if (channel > 6)
+                i = 0x40;
             break;
         case 0xFF:
             break;
@@ -364,7 +370,7 @@ void update_pif_write()
         }
         i++;
     }
-    //PIF_RAMb[0x3F] = 0;
+    // PIF_RAMb[0x3F] = 0;
     controllerCommand(-1, NULL);
     /*#ifdef DEBUG_PIF
         if (!one_frame_delay) {
@@ -380,14 +386,14 @@ void update_pif_write()
 
 void update_pif_read()
 {
-    //g_core_logger->info("pif entry");
+    // g_core_logger->info("pif entry");
     int32_t i = 0, channel = 0;
-    bool once = emu_paused | frame_advancing | g_vr_wait_before_input_poll; //used to pause only once during controller routine
-    bool stAllowed = true; //used to disallow .st being loaded after any controller has already been read
+    bool once = emu_paused | frame_advancing | g_vr_wait_before_input_poll; // used to pause only once during controller routine
+    bool stAllowed = true; // used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
-	g_core_logger->info("---------- before read ----------");
-	print_pif();
-	g_core_logger->info("---------------------------------");
+    g_core_logger->info("---------- before read ----------");
+    print_pif();
+    g_core_logger->info("---------------------------------");
 #endif
     while (i < 0x40)
     {
@@ -395,7 +401,8 @@ void update_pif_read()
         {
         case 0x00:
             channel++;
-            if (channel > 6) i = 0x40;
+            if (channel > 6)
+                i = 0x40;
             break;
         case 0xFE:
             i = 0x40;
@@ -407,8 +414,8 @@ void update_pif_read()
         case 0xB8:
             break;
         default:
-            //01 04 01 is read controller 4 bytes
-            if (!(PIF_RAMb[i] & 0xC0)) //mask error bits (isn't this wrong? error bits are on i+1???)
+            // 01 04 01 is read controller 4 bytes
+            if (!(PIF_RAMb[i] & 0xC0)) // mask error bits (isn't this wrong? error bits are on i+1???)
             {
                 if (channel < 4)
                 {
@@ -455,7 +462,7 @@ void update_pif_read()
                     }
                     if (g_st_old)
                     {
-                        //if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
+                        // if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
                         g_core_logger->info("old st detected");
                         g_st_old = false;
                         return;
@@ -466,9 +473,7 @@ void update_pif_read()
                     // we handle raw data-mode controllers here:
                     // this is incompatible with VCR!
                     if (Controls[channel].Present &&
-                        Controls[channel].RawData
-                        && VCR::get_task() == e_task::idle
-                    )
+                        Controls[channel].RawData && VCR::get_task() == e_task::idle)
                     {
                         readController(channel, &PIF_RAMb[i]);
                         auto ptr = (BUTTONS*)&PIF_RAMb[i + 3];
@@ -488,9 +493,9 @@ void update_pif_read()
     readController(-1, NULL);
 
 #ifdef DEBUG_PIF
-	g_core_logger->info("---------- after read -----------");
-	print_pif();
-	g_core_logger->info("---------------------------------");
+    g_core_logger->info("---------- after read -----------");
+    print_pif();
+    g_core_logger->info("---------------------------------");
 #endif
-    //g_core_logger->info("pif exit");
+    // g_core_logger->info("pif exit");
 }

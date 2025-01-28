@@ -257,11 +257,11 @@
     <ClInclude Include="src\core\CoreTypes.h" />
     <ClInclude Include="src\core\helpers\IOHelpers.h" />
     <ClInclude Include="src\core\helpers\StlExtensions.h" />
+    <ClInclude Include="src\core\memory\pif_lut.h" />
     <ClInclude Include="src\core\memory\dma.h" />
     <ClInclude Include="src\core\memory\flashram.h" />
     <ClInclude Include="src\core\memory\memory.h" />
     <ClInclude Include="src\core\memory\pif.h" />
-    <ClInclude Include="src\core\memory\pif2.h" />
     <ClInclude Include="src\core\memory\savestates.h" />
     <ClInclude Include="src\core\memory\summercart.h" />
     <ClInclude Include="src\core\memory\tlb.h" />
@@ -354,6 +354,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\core\helpers\IOHelpers.cpp" />
+    <ClCompile Include="src\core\memory\pif_lut.cpp" />
     <ClCompile Include="src\core\memory\dma.cpp" />
     <ClCompile Include="src\core\memory\flashram.cpp" />
     <ClCompile Include="src\core\memory\memory.cpp" />
