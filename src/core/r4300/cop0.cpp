@@ -5,18 +5,18 @@
  */
 
 #include "stdafx.h"
-#include "r4300.h"
-#include "macros.h"
-#include "ops.h"
-#include "interrupt.h"
-#include <core/services/LoggingService.h>
+#include <core/Core.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/macros.h>
+#include <core/r4300/ops.h>
+#include <core/r4300/interrupt.h>
 
 void MFC0()
 {
     switch (PC->f.r.nrd)
     {
     case 1:
-        g_core_logger->error("lecture de Random");
+        g_core->logger->error("lecture de Random");
         stop = 1;
     default:
         rrt32 = reg_cop0[PC->f.r.nrd];
@@ -33,7 +33,7 @@ void MTC0()
         core_Index = core_rrt & 0x8000003F;
         if ((core_Index & 0x3F) > 31)
         {
-            g_core_logger->error("il y a plus de 32 TLB");
+            g_core->logger->error("il y a plus de 32 TLB");
             stop = 1;
         }
         break;
@@ -112,7 +112,7 @@ void MTC0()
     case 13: // Cause
         if (core_rrt != 0)
         {
-            g_core_logger->error("écriture dans Cause");
+            g_core->logger->error("écriture dans Cause");
             stop = 1;
         }
         else
@@ -141,7 +141,7 @@ void MTC0()
         core_TagHi = 0;
         break;
     default:
-        g_core_logger->error("unknown mtc0 write : {}\n", PC->f.r.nrd);
+        g_core->logger->error("unknown mtc0 write : {}\n", PC->f.r.nrd);
         stop = 1;
     }
     PC++;

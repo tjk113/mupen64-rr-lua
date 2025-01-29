@@ -326,7 +326,6 @@ INST GetInstruction(uint32_t w);
 void DecodeInstruction(uint32_t w, INSTDECODE* d);
 const char* GetOpecodeString(INSTDECODE* d);
 char* GetOperandString(char* buf, INSTDECODE* d, uint32_t pc);
-char* DisassembleInstruction(char* buf, uint32_t w, uint32_t pc);
 //buf size:27
 
 extern const INSTFMT InstFormat[INST_COUNT];

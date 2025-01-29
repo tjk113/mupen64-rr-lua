@@ -5,23 +5,19 @@
  */
 
 #include "stdafx.h"
-#include "vcr.h"
-#include "r4300.h"
-#include "ops.h"
-#include "../memory/memory.h"
-#include "../memory/pif.h"
-#include "exception.h"
-#include "interrupt.h"
-#include "macros.h"
-#include "recomp.h"
-#include <core/services/LuaService.h>
-#include <core/Messenger.h>
-#include "../memory/savestates.h"
-#include <core/helpers/StlExtensions.h>
+#include <StlExtensions.h>
+#include <core/Core.h>
+#include <core/memory/memory.h>
+#include <core/memory/pif.h>
+#include <core/memory/savestates.h>
+#include <core/r4300/exception.h>
+#include <core/r4300/interrupt.h>
+#include <core/r4300/macros.h>
+#include <core/r4300/ops.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomp.h>
 #include <core/r4300/timers.h>
-#include <core/Config.h>
-#include <core/services/FrontendService.h>
-#include <core/services/LoggingService.h>
+#include <core/r4300/vcr.h>
 // Threading crap
 
 #include "gameshark.h"
@@ -40,11 +36,6 @@ std::atomic<bool> audio_thread_stop_requested;
 std::recursive_mutex emu_cs;
 
 std::filesystem::path rom_path;
-
-std::unique_ptr<Plugin> video_plugin;
-std::unique_ptr<Plugin> audio_plugin;
-std::unique_ptr<Plugin> input_plugin;
-std::unique_ptr<Plugin> rsp_plugin;
 
 bool g_vr_beq_ignore_jmp;
 volatile bool emu_launched = false;
@@ -84,14 +75,6 @@ int32_t vi_field = 0;
 bool g_vr_fast_forward;
 bool g_vr_frame_skipped;
 
-bool g_vr_benchmark_enabled = false;
-time_point g_vr_benchmark_start_time{};
-size_t g_vr_benchmark_start_frames = 0;
-uint64_t g_vr_benchmark_time_in_section[5];
-time_point g_vr_benchmark_last_start[5];
-
-bool g_vr_no_frameskip;
-
 // When true, the core will wait for the flag to be 0 before continuing input poll. It will hang around in the emu_paused loop during that.
 std::atomic<int32_t> g_vr_wait_before_input_poll = 0;
 
@@ -102,118 +85,52 @@ FILE* g_mpak_file;
 
 /*#define check_memory() \
    if (!invalid_code[address>>12]) \
-	   invalid_code[address>>12] = 1;*/
+       invalid_code[address>>12] = 1;*/
 
-#define check_memory() \
-   if (!invalid_code[address>>12]) \
-       if (blocks[address>>12]->block[(address&0xFFF)/4].ops != NOTCOMPILED) \
-	 invalid_code[address>>12] = 1;
+#define check_memory()                                                              \
+    if (!invalid_code[address >> 12])                                               \
+        if (blocks[address >> 12]->block[(address & 0xFFF) / 4].ops != NOTCOMPILED) \
+            invalid_code[address >> 12] = 1;
 
-std::filesystem::path get_rom_path()
+void core_vr_invalidate_visuals()
 {
-    return rom_path;
-}
-
-void Core::start_benchmark()
-{
-    if (g_vr_benchmark_enabled)
-    {
-        return;
-    }
-
-    g_vr_benchmark_enabled = true;
-    g_vr_benchmark_start_time = std::chrono::high_resolution_clock::now();
-    g_vr_benchmark_start_frames = g_total_frames;
-    memset(g_vr_benchmark_time_in_section, 0, std::size(g_vr_benchmark_time_in_section));
-    memset(g_vr_benchmark_last_start, 0, std::size(g_vr_benchmark_last_start));
-}
-
-double Core::stop_benchmark()
-{
-    if (!g_vr_benchmark_enabled)
-    {
-        return 0;
-    }
-
-    g_vr_benchmark_enabled = false;
-
-    const auto end_time = std::chrono::high_resolution_clock::now();
-    const auto elapsed_frames = g_total_frames - g_vr_benchmark_start_frames;
-    const auto elapsed_time = end_time - g_vr_benchmark_start_time;
-
-    g_core_logger->info("[Core] Profile results:");
-    g_core_logger->info("[Core] \tRSP: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[VR_SECTION_RSP]) / static_cast<double>(elapsed_time.count()) * 100.0);
-    g_core_logger->info("[Core] \tTimer: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[VR_SECTION_TIMER]) / static_cast<double>(elapsed_time.count()) * 100.0);
-    g_core_logger->info("[Core] \tLua AtInterval: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[VR_SECTION_LUA_ATINTERVAL]) / static_cast<double>(elapsed_time.count()) * 100.0);
-    g_core_logger->info("[Core] \tLua AtVI: {:.4f}%", static_cast<double>(g_vr_benchmark_time_in_section[VR_SECTION_LUA_ATVI]) / static_cast<double>(elapsed_time.count()) * 100.0);
-
-    return static_cast<double>(elapsed_frames) / (static_cast<double>(elapsed_time.count()) / 1000000000.0);
-}
-
-#ifdef VR_PROFILE
-
-void start_section(int32_t section_type)
-{
-    if (g_vr_benchmark_last_start[section_type].time_since_epoch() != std::chrono::seconds(0))
-    {
-        end_section(section_type);
-    }
-    g_vr_benchmark_last_start[section_type] = std::chrono::high_resolution_clock::now();
-}
-
-void end_section(int32_t section_type)
-{
-    g_vr_benchmark_time_in_section[section_type] += (std::chrono::high_resolution_clock::now() - g_vr_benchmark_last_start[section_type]).count();
-    g_vr_benchmark_last_start[section_type] = std::chrono::high_resolution_clock::time_point{std::chrono::seconds(0)};
-    // g_core_logger->info("[Core] Section {} elapsed {:.4f}s", section_type, g_vr_benchmark_time_in_section[section_type] / 1000000000.0);
-}
-
-#endif
-
-
-std::filesystem::path get_saves_directory()
-{
-    if (g_config.is_default_saves_directory_used)
-    {
-        return FrontendService::get_app_path().string() + "save\\";
-    }
-    return g_config.saves_directory;
+    screen_invalidated = true;
 }
 
 std::filesystem::path get_sram_path()
 {
-    return std::format(L"{}{} {}.sra", get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
+    return std::format(L"{}{} {}.sra", g_core->platform_service.get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), core_vr_country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_eeprom_path()
 {
-    return std::format(L"{}{} {}.eep", get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
+    return std::format(L"{}{} {}.eep", g_core->platform_service.get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), core_vr_country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_flashram_path()
 {
-    return std::format(L"{}{} {}.fla", get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
+    return std::format(L"{}{} {}.fla", g_core->platform_service.get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), core_vr_country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
 std::filesystem::path get_mempak_path()
 {
-    return std::format(L"{}{} {}.mpk", get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), country_code_to_country_name(ROM_HEADER.Country_code));
+    return std::format(L"{}{} {}.mpk", g_core->platform_service.get_saves_directory().wstring(), string_to_wstring((const char*)ROM_HEADER.nom), core_vr_country_code_to_country_name(ROM_HEADER.Country_code));
 }
 
-void resume_emu()
+void core_vr_resume_emu()
 {
     if (emu_launched)
     {
         emu_paused = 0;
     }
 
-    Messenger::broadcast(Messenger::Message::EmuPausedChanged, (bool)emu_paused);
+    g_core->callbacks.emu_paused_changed(emu_paused);
 }
 
 
-void pause_emu()
+void core_vr_pause_emu()
 {
-    if (!VCR::allows_core_pause())
+    if (!core_vcr_allows_core_pause())
     {
         return;
     }
@@ -223,7 +140,23 @@ void pause_emu()
         emu_paused = 1;
     }
 
-    Messenger::broadcast(Messenger::Message::EmuPausedChanged, (bool)emu_paused);
+    g_core->callbacks.emu_paused_changed(emu_paused);
+}
+
+void core_vr_frame_advance()
+{
+    frame_advancing = 1;
+    core_vr_resume_emu();
+}
+
+bool core_vr_get_paused()
+{
+    return emu_paused;
+}
+
+bool core_vr_get_frame_advance()
+{
+    return frame_advancing;
 }
 
 void terminate_emu()
@@ -231,24 +164,34 @@ void terminate_emu()
     stop = 1;
 }
 
+bool core_vr_get_core_executing()
+{
+    return core_executing;
+}
+
+bool core_vr_get_launched()
+{
+    return emu_launched;
+}
+
 void NI()
 {
-    g_core_logger->error("NI() @ {:#06x}\n", (int32_t)PC->addr);
-    g_core_logger->error("opcode not implemented : ");
+    g_core->logger->error("NI() @ {:#06x}\n", (int32_t)PC->addr);
+    g_core->logger->error("opcode not implemented : ");
     if (PC->addr >= 0xa4000000 && PC->addr < 0xa4001000)
-        g_core_logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)SP_DMEM[(PC->addr - 0xa4000000) / 4]);
+        g_core->logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)SP_DMEM[(PC->addr - 0xa4000000) / 4]);
     else
-        g_core_logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)rdram[(PC->addr - 0x80000000) / 4]);
+        g_core->logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)rdram[(PC->addr - 0x80000000) / 4]);
     stop = 1;
 }
 
 void RESERVED()
 {
-    g_core_logger->info("reserved opcode : ");
+    g_core->logger->info("reserved opcode : ");
     if (PC->addr >= 0xa4000000 && PC->addr < 0xa4001000)
-        g_core_logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)SP_DMEM[(PC->addr - 0xa4000000) / 4]);
+        g_core->logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)SP_DMEM[(PC->addr - 0xa4000000) / 4]);
     else
-        g_core_logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)rdram[(PC->addr - 0x80000000) / 4]);
+        g_core->logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)rdram[(PC->addr - 0x80000000) / 4]);
     stop = 1;
 }
 
@@ -258,7 +201,8 @@ void FIN_BLOCK()
     {
         jump_to((PC - 1)->addr + 4);
         PC->ops();
-        if (dynacore) dyna_jump();
+        if (dynacore)
+            dyna_jump();
     }
     else
     {
@@ -275,7 +219,8 @@ void FIN_BLOCK()
         else
             PC->ops();
 
-        if (dynacore) dyna_jump();
+        if (dynacore)
+            dyna_jump();
     }
 }
 
@@ -288,9 +233,10 @@ void J()
     delay_slot = 0;
     if (!skip_jump)
         PC = actual->block +
-            (((((PC - 2)->f.j.inst_index << 2) | ((PC - 1)->addr & 0xF0000000)) - actual->start) >> 2);
+        (((((PC - 2)->f.j.inst_index << 2) | ((PC - 1)->addr & 0xF0000000)) - actual->start) >> 2);
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void J_OUT()
@@ -304,7 +250,8 @@ void J_OUT()
     if (!skip_jump)
         jump_to(jump_target);
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void J_IDLE()
@@ -314,7 +261,8 @@ void J_IDLE()
     skip = next_interrupt - core_Count;
     if (skip > 3)
         core_Count += (skip & 0xFFFFFFFC);
-    else J();
+    else
+        J();
 }
 
 void JAL()
@@ -330,10 +278,11 @@ void JAL()
         sign_extended(reg[31]);
 
         PC = actual->block +
-            (((((PC - 2)->f.j.inst_index << 2) | ((PC - 1)->addr & 0xF0000000)) - actual->start) >> 2);
+        (((((PC - 2)->f.j.inst_index << 2) | ((PC - 1)->addr & 0xF0000000)) - actual->start) >> 2);
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void JAL_OUT()
@@ -352,7 +301,8 @@ void JAL_OUT()
         jump_to(jump_target);
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void JAL_IDLE()
@@ -362,7 +312,8 @@ void JAL_IDLE()
     skip = next_interrupt - core_Count;
     if (skip > 3)
         core_Count += (skip & 0xFFFFFFFC);
-    else JAL();
+    else
+        JAL();
 }
 
 void BEQ()
@@ -377,7 +328,8 @@ void BEQ()
     if (local_rs == local_rt && !skip_jump && !g_vr_beq_ignore_jmp)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BEQ_OUT()
@@ -393,7 +345,8 @@ void BEQ_OUT()
     if (!skip_jump && local_rs == local_rt)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BEQ_IDLE()
@@ -405,9 +358,11 @@ void BEQ_IDLE()
         skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
-        else BEQ();
+        else
+            BEQ();
     }
-    else BEQ();
+    else
+        BEQ();
 }
 
 void BNE()
@@ -422,7 +377,8 @@ void BNE()
     if (local_rs != local_rt && !skip_jump)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BNE_OUT()
@@ -438,7 +394,8 @@ void BNE_OUT()
     if (!skip_jump && local_rs != local_rt)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BNE_IDLE()
@@ -450,9 +407,11 @@ void BNE_IDLE()
         skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
-        else BNE();
+        else
+            BNE();
     }
-    else BNE();
+    else
+        BNE();
 }
 
 void BLEZ()
@@ -466,7 +425,8 @@ void BLEZ()
     if (local_rs <= 0 && !skip_jump)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BLEZ_OUT()
@@ -481,7 +441,8 @@ void BLEZ_OUT()
     if (!skip_jump && local_rs <= 0)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BLEZ_IDLE()
@@ -493,9 +454,11 @@ void BLEZ_IDLE()
         skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
-        else BLEZ();
+        else
+            BLEZ();
     }
-    else BLEZ();
+    else
+        BLEZ();
 }
 
 void BGTZ()
@@ -509,7 +472,8 @@ void BGTZ()
     if (local_rs > 0 && !skip_jump)
         PC += (PC - 2)->f.i.immediate - 1;
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BGTZ_OUT()
@@ -524,7 +488,8 @@ void BGTZ_OUT()
     if (!skip_jump && local_rs > 0)
         jump_to(PC->addr + ((jump_target - 1) << 2));
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BGTZ_IDLE()
@@ -536,9 +501,11 @@ void BGTZ_IDLE()
         skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
-        else BGTZ();
+        else
+            BGTZ();
     }
-    else BGTZ();
+    else
+        BGTZ();
 }
 
 void ADDI()
@@ -616,7 +583,8 @@ void BEQL()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BEQL_OUT()
@@ -638,7 +606,8 @@ void BEQL_OUT()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BEQL_IDLE()
@@ -650,9 +619,11 @@ void BEQL_IDLE()
         skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
-        else BEQL();
+        else
+            BEQL();
     }
-    else BEQL();
+    else
+        BEQL();
 }
 
 void BNEL()
@@ -673,7 +644,8 @@ void BNEL()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BNEL_OUT()
@@ -695,7 +667,8 @@ void BNEL_OUT()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BNEL_IDLE()
@@ -707,9 +680,11 @@ void BNEL_IDLE()
         skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
-        else BNEL();
+        else
+            BNEL();
     }
-    else BNEL();
+    else
+        BNEL();
 }
 
 void BLEZL()
@@ -730,7 +705,8 @@ void BLEZL()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BLEZL_OUT()
@@ -752,7 +728,8 @@ void BLEZL_OUT()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BLEZL_IDLE()
@@ -764,9 +741,11 @@ void BLEZL_IDLE()
         skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
-        else BLEZL();
+        else
+            BLEZL();
     }
-    else BLEZL();
+    else
+        BLEZL();
 }
 
 void BGTZL()
@@ -787,7 +766,8 @@ void BGTZL()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BGTZL_OUT()
@@ -809,7 +789,8 @@ void BGTZL_OUT()
         update_count();
     }
     last_addr = PC->addr;
-    if (next_interrupt <= core_Count) gen_interrupt();
+    if (next_interrupt <= core_Count)
+        gen_interrupt();
 }
 
 void BGTZL_IDLE()
@@ -821,9 +802,11 @@ void BGTZL_IDLE()
         skip = next_interrupt - core_Count;
         if (skip > 3)
             core_Count += (skip & 0xFFFFFFFC);
-        else BGTZL();
+        else
+            BGTZL();
     }
-    else BGTZL();
+    else
+        BGTZL();
 }
 
 void DADDI()
@@ -1414,7 +1397,8 @@ void LL()
 void LWC1()
 {
     uint64_t temp;
-    if (check_cop1_unusable()) return;
+    if (check_cop1_unusable())
+        return;
     PC++;
     address = core_lslfaddr;
     rdword = &temp;
@@ -1425,7 +1409,8 @@ void LWC1()
 
 void LDC1()
 {
-    if (check_cop1_unusable()) return;
+    if (check_cop1_unusable())
+        return;
     PC++;
     address = core_lslfaddr;
     rdword = (uint64_t*)reg_cop1_double[core_lslfft];
@@ -1443,7 +1428,7 @@ void LD()
 void SC()
 {
     /*PC++;
-    g_core_logger->info("SC");
+    g_core->logger->info("SC");
     if (llbit) {
        address = lsaddr;
        word = (uint32_t)(core_lsrt & 0xFFFFFFFF);
@@ -1469,7 +1454,8 @@ void SC()
 
 void SWC1()
 {
-    if (check_cop1_unusable()) return;
+    if (check_cop1_unusable())
+        return;
     PC++;
     address = core_lslfaddr;
     word = *((int32_t*)reg_cop1_simple[core_lslfft]);
@@ -1479,7 +1465,8 @@ void SWC1()
 
 void SDC1()
 {
-    if (check_cop1_unusable()) return;
+    if (check_cop1_unusable())
+        return;
     PC++;
     address = core_lslfaddr;
     dword = *((uint64_t*)reg_cop1_double[core_lslfft]);
@@ -1503,32 +1490,34 @@ void NOTCOMPILED()
     else
     {
         uint32_t paddr = 0;
-        if (PC->addr >= 0x80000000 && PC->addr < 0xc0000000) paddr = PC->addr;
-            //else paddr = (tlb_LUT_r[PC->addr>>12]&0xFFFFF000)|(PC->addr&0xFFF);
-        else paddr = virtual_to_physical_address(PC->addr, 2);
+        if (PC->addr >= 0x80000000 && PC->addr < 0xc0000000)
+            paddr = PC->addr;
+        // else paddr = (tlb_LUT_r[PC->addr>>12]&0xFFFFF000)|(PC->addr&0xFFF);
+        else
+            paddr = virtual_to_physical_address(PC->addr, 2);
         if (paddr)
         {
             if ((paddr & 0x1FFFFFFF) >= 0x10000000)
             {
-                //g_core_logger->info("not compiled rom:{:#06x}", paddr);
+                // g_core->logger->info("not compiled rom:{:#06x}", paddr);
                 recompile_block(
-                    (int32_t*)rom + ((((paddr - (PC->addr - blocks[PC->addr >> 12]->start)) & 0x1FFFFFFF) - 0x10000000) >>
-                        2),
-                    blocks[PC->addr >> 12], PC->addr);
+                (int32_t*)rom + ((((paddr - (PC->addr - blocks[PC->addr >> 12]->start)) & 0x1FFFFFFF) - 0x10000000) >> 2),
+                blocks[PC->addr >> 12], PC->addr);
             }
             else
                 recompile_block(
-                    (int32_t*)(rdram + (((paddr - (PC->addr - blocks[PC->addr >> 12]->start)) & 0x1FFFFFFF) >> 2)),
-                    blocks[PC->addr >> 12], PC->addr);
+                (int32_t*)(rdram + (((paddr - (PC->addr - blocks[PC->addr >> 12]->start)) & 0x1FFFFFFF) >> 2)),
+                blocks[PC->addr >> 12], PC->addr);
         }
-        else g_core_logger->info("not compiled exception");
+        else
+            g_core->logger->info("not compiled exception");
     }
     PC->ops();
     if (dynacore)
         dyna_jump();
     //*return_address = (uint32_t)(blocks[PC->addr>>12]->code + PC->local_addr);
-    //else
-    //PC->ops();
+    // else
+    // PC->ops();
 }
 
 void NOTCOMPILED2()
@@ -1540,14 +1529,18 @@ static inline uint32_t update_invalid_addr(uint32_t addr)
 {
     if (addr >= 0x80000000 && addr < 0xa0000000)
     {
-        if (invalid_code[addr >> 12]) invalid_code[(addr + 0x20000000) >> 12] = 1;
-        if (invalid_code[(addr + 0x20000000) >> 12]) invalid_code[addr >> 12] = 1;
+        if (invalid_code[addr >> 12])
+            invalid_code[(addr + 0x20000000) >> 12] = 1;
+        if (invalid_code[(addr + 0x20000000) >> 12])
+            invalid_code[addr >> 12] = 1;
         return addr;
     }
     else if (addr >= 0xa0000000 && addr < 0xc0000000)
     {
-        if (invalid_code[addr >> 12]) invalid_code[(addr - 0x20000000) >> 12] = 1;
-        if (invalid_code[(addr - 0x20000000) >> 12]) invalid_code[addr >> 12] = 1;
+        if (invalid_code[addr >> 12])
+            invalid_code[(addr - 0x20000000) >> 12] = 1;
+        if (invalid_code[(addr - 0x20000000) >> 12])
+            invalid_code[addr >> 12] = 1;
         return addr;
     }
     else
@@ -1557,10 +1550,14 @@ static inline uint32_t update_invalid_addr(uint32_t addr)
         {
             uint32_t beg_paddr = paddr - (addr - (addr & ~0xFFF));
             update_invalid_addr(paddr);
-            if (invalid_code[(beg_paddr + 0x000) >> 12]) invalid_code[addr >> 12] = 1;
-            if (invalid_code[(beg_paddr + 0xFFC) >> 12]) invalid_code[addr >> 12] = 1;
-            if (invalid_code[addr >> 12]) invalid_code[(beg_paddr + 0x000) >> 12] = 1;
-            if (invalid_code[addr >> 12]) invalid_code[(beg_paddr + 0xFFC) >> 12] = 1;
+            if (invalid_code[(beg_paddr + 0x000) >> 12])
+                invalid_code[addr >> 12] = 1;
+            if (invalid_code[(beg_paddr + 0xFFC) >> 12])
+                invalid_code[addr >> 12] = 1;
+            if (invalid_code[addr >> 12])
+                invalid_code[(beg_paddr + 0x000) >> 12] = 1;
+            if (invalid_code[addr >> 12])
+                invalid_code[(beg_paddr + 0xFFC) >> 12] = 1;
         }
         return paddr;
     }
@@ -1571,13 +1568,15 @@ uint32_t jump_to_address;
 
 inline void jump_to_func()
 {
-    //#ifdef _DEBUG
-    //	g_core_logger->info("dyna jump: {:#08x}", addr);
-    //#endif
+    // #ifdef _DEBUG
+    //	g_core->logger->info("dyna jump: {:#08x}", addr);
+    // #endif
     uint32_t paddr;
-    if (skip_jump) return;
+    if (skip_jump)
+        return;
     paddr = update_invalid_addr(addr);
-    if (!paddr) return;
+    if (!paddr)
+        return;
     actual = blocks[addr >> 12];
     if (invalid_code[addr >> 12])
     {
@@ -1596,7 +1595,8 @@ inline void jump_to_func()
     }
     PC = actual->block + ((addr - actual->start) >> 2);
 
-    if (dynacore) dyna_jump();
+    if (dynacore)
+        dyna_jump();
 }
 #undef addr
 
@@ -1622,17 +1622,18 @@ void update_count()
     {
         if (PC->addr < last_addr)
         {
-            g_core_logger->info("PC->addr < last_addr");
+            g_core->logger->info("PC->addr < last_addr");
         }
         core_Count = core_Count + (PC->addr - last_addr) / 2;
         last_addr = PC->addr;
     }
 #ifdef COMPARE_CORE
-	if (delay_slot)
-		compare_core();
+    if (delay_slot)
+        compare_core();
 #endif
 #ifdef DBG
-	if (debugger_mode) update_debugger();
+    if (debugger_mode)
+        update_debugger();
 #endif
 }
 
@@ -1655,30 +1656,30 @@ void init_blocks()
     init_block((int32_t*)SP_DMEM, blocks[0xa4000000 >> 12]);
     PC = actual->block + (0x40 / 4);
 #ifdef DBG
-	if (debugger_mode) // debugger shows initial state (before 1st instruction).
-		update_debugger();
+    if (debugger_mode) // debugger shows initial state (before 1st instruction).
+        update_debugger();
 #endif
 }
 
 
 void print_stop_debug()
 {
-    g_core_logger->info("PC={:#08x}:{:#08x}", (uint32_t)(PC->addr),
-                        (uint32_t)(rdram[(PC->addr & 0xFFFFFF) / 4]));
+    g_core->logger->info("PC={:#08x}:{:#08x}", (uint32_t)(PC->addr),
+                         (uint32_t)(rdram[(PC->addr & 0xFFFFFF) / 4]));
     for (int32_t j = 0; j < 16; j++)
-        g_core_logger->info("reg[{}]:{:#08x}{:#08x}        reg[{}]:{:#08x}{:#08x}",
-                            j,
-                            (uint32_t)(reg[j] >> 32),
-                            (uint32_t)reg[j],
-                            j + 16,
-                            (uint32_t)(reg[j + 16] >> 32),
-                            (uint32_t)reg[j + 16]);
-    g_core_logger->info("hi:{:#08x}{:#08x}        lo:{:#08x}{:#08x}",
-                        (uint32_t)(hi >> 32),
-                        (uint32_t)hi,
-                        (uint32_t)(lo >> 32),
-                        (uint32_t)lo);
-    g_core_logger->info("Executed {} ({:#08x}) instructions", debug_count, debug_count);
+        g_core->logger->info("reg[{}]:{:#08x}{:#08x}        reg[{}]:{:#08x}{:#08x}",
+                             j,
+                             (uint32_t)(reg[j] >> 32),
+                             (uint32_t)reg[j],
+                             j + 16,
+                             (uint32_t)(reg[j + 16] >> 32),
+                             (uint32_t)reg[j + 16]);
+    g_core->logger->info("hi:{:#08x}{:#08x}        lo:{:#08x}{:#08x}",
+                         (uint32_t)(hi >> 32),
+                         (uint32_t)hi,
+                         (uint32_t)(lo >> 32),
+                         (uint32_t)lo);
+    g_core->logger->info("Executed {} ({:#08x}) instructions", debug_count, debug_count);
 }
 
 void core_start()
@@ -1688,7 +1689,7 @@ void core_start()
 
     j = 0;
     debug_count = 0;
-    g_core_logger->info("demarrage r4300");
+    g_core->logger->info("demarrage r4300");
     memcpy((char*)SP_DMEM + 0x40, rom + 0x40, 0xFBC);
     delay_slot = 0;
     stop = 0;
@@ -1716,7 +1717,7 @@ void core_start()
         tlb_e[i].d_odd = 0;
         tlb_e[i].v_odd = 0;
         tlb_e[i].r = 0;
-        //tlb_e[i].check_parity_mask=0x1000;
+        // tlb_e[i].check_parity_mask=0x1000;
 
         tlb_e[i].start_even = 0;
         tlb_e[i].end_even = 0;
@@ -1912,64 +1913,64 @@ void core_start()
     set_rounding();
 
     last_addr = 0xa4000040;
-    //next_interrupt = 624999; //this is later overwritten with different value so what's the point...
+    // next_interrupt = 624999; //this is later overwritten with different value so what's the point...
     init_interrupt();
     interpcore = 0;
 
     if (!dynacore)
     {
-        g_core_logger->info("interpreter");
+        g_core->logger->info("interpreter");
         init_blocks();
         last_addr = PC->addr;
         core_executing = true;
-    	Messenger::broadcast(Messenger::Message::CoreExecutingChanged, core_executing);
-        g_core_logger->info(L"core_executing: {}", (bool)core_executing);
+        g_core->callbacks.core_executing_changed(core_executing);
+        g_core->logger->info(L"core_executing: {}", (bool)core_executing);
         while (!stop)
         {
-            //if ((debug_count+Count) >= 0x78a8091) break; // obj 0x16aeb8a
-            //if ((debug_count+Count) >= 0x16b1360)
+            // if ((debug_count+Count) >= 0x78a8091) break; // obj 0x16aeb8a
+            // if ((debug_count+Count) >= 0x16b1360)
             /*if ((debug_count+Count) >= 0xf203ae0)
               {
-             g_core_logger->info ("PC=%x:%x\n", (uint32_t)(PC->addr),
+             g_core->logger->info ("PC=%x:%x\n", (uint32_t)(PC->addr),
                  (uint32_t)(rdram[(PC->addr&0xFFFFFF)/4]));
              for (j=0; j<16; j++)
-               g_core_logger->info ("reg[%2d]:%8x%8x        reg[{}]:%8x%8x\n",
+               g_core->logger->info ("reg[%2d]:%8x%8x        reg[{}]:%8x%8x\n",
                    j,
                    (uint32_t)(reg[j] >> 32),
                    (uint32_t)reg[j],
                    j+16,
                    (uint32_t)(reg[j+16] >> 32),
                    (uint32_t)reg[j+16]);
-             g_core_logger->info("hi:%8x%8x        lo:%8x%8x\n",
+             g_core->logger->info("hi:%8x%8x        lo:%8x%8x\n",
                 (uint32_t)(hi >> 32),
                 (uint32_t)hi,
                 (uint32_t)(lo >> 32),
                 (uint32_t)lo);
-             g_core_logger->info("après {} instructions soit %x\n",(uint32_t)(debug_count+Count)
+             g_core->logger->info("après {} instructions soit %x\n",(uint32_t)(debug_count+Count)
                 ,(uint32_t)(debug_count+Count));
              getchar();
               }*/
             /*if ((debug_count+Count) >= 0x80000000)
-              g_core_logger->info("%x:%x, %x\n", (int32_t)PC->addr,
+              g_core->logger->info("%x:%x, %x\n", (int32_t)PC->addr,
                  (int32_t)rdram[(PC->addr & 0xFFFFFF)/4],
                  (int32_t)(debug_count+Count));*/
 #ifdef COMPARE_CORE
-			if (PC->ops == FIN_BLOCK &&
-				(PC->addr < 0x80000000 || PC->addr >= 0xc0000000))
-				virtual_to_physical_address(PC->addr, 2);
-			compare_core();
+            if (PC->ops == FIN_BLOCK &&
+                (PC->addr < 0x80000000 || PC->addr >= 0xc0000000))
+                virtual_to_physical_address(PC->addr, 2);
+            compare_core();
 #endif
             PC->ops();
             g_vr_beq_ignore_jmp = false;
             /*if (j!= (Count & 0xFFF00000))
               {
              j = (Count & 0xFFF00000);
-             g_core_logger->info("%x", j);
+             g_core->logger->info("%x", j);
               }*/
-            //check_PC;
+            // check_PC;
 #ifdef DBG
-			if (debugger_mode)
-				update_debugger();
+            if (debugger_mode)
+                update_debugger();
 #endif
         }
     }
@@ -1982,7 +1983,7 @@ void core_start()
     else
     {
         dynacore = 1;
-        g_core_logger->info("dynamic recompiler");
+        g_core->logger->info("dynamic recompiler");
         init_blocks();
 
         auto code_addr = actual->code + (actual->block[0x40 / 4].local_addr);
@@ -2016,14 +2017,15 @@ void core_start()
             blocks[i] = NULL;
         }
     }
-    if (!dynacore && interpcore) free(PC);
+    if (!dynacore && interpcore)
+        free(PC);
     core_executing = false;
-	Messenger::broadcast(Messenger::Message::CoreExecutingChanged, core_executing);
+    g_core->callbacks.core_executing_changed(core_executing);
 }
 
 bool open_core_file_stream(const std::filesystem::path& path, FILE** file)
 {
-    g_core_logger->info("[Core] Opening core stream from {}...", path.string().c_str());
+    g_core->logger->info("[Core] Opening core stream from {}...", path.string().c_str());
 
     if (!exists(path))
     {
@@ -2074,7 +2076,7 @@ void clear_save_data()
 
 void audio_thread()
 {
-    g_core_logger->info("Sound thread entering...");
+    g_core->logger->info("Sound thread entering...");
     while (true)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -2084,86 +2086,73 @@ void audio_thread()
             break;
         }
 
-        if (g_vr_fast_forward && g_config.fastforward_silent)
+        if (g_vr_fast_forward && g_core->cfg->fastforward_silent)
         {
             continue;
         }
 
-        if (VCR::is_seeking())
+        if (core_vcr_is_seeking())
         {
             continue;
         }
 
-        aiUpdate(0);
+        g_core->plugin_funcs.ai_update(0);
     }
-    g_core_logger->info("Sound thread exiting...");
+    g_core->logger->info("Sound thread exiting...");
 }
 
 void emu_thread()
 {
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    // HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
-    auto gfx_plugin_thread = std::thread([] { video_plugin->load_into_globals(); });
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    auto audio_plugin_thread = std::thread([] { audio_plugin->load_into_globals(); });
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    auto input_plugin_thread = std::thread([] { input_plugin->load_into_globals(); });
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    auto rsp_plugin_thread = std::thread([] { rsp_plugin->load_into_globals(); });
-
-    gfx_plugin_thread.join();
-    audio_plugin_thread.join();
-    input_plugin_thread.join();
-    rsp_plugin_thread.join();
-
+    g_core->callbacks.load_plugin_globals();
+    
     init_memory();
 
-    romOpen_gfx();
-    romOpen_input();
-    romOpen_audio();
+    g_core->plugin_funcs.rom_open_gfx();
+    g_core->plugin_funcs.rom_open_input();
+    g_core->plugin_funcs.rom_open_audio();
 
-    dynacore = g_config.core_type;
+    dynacore = g_core->cfg->core_type;
 
     audio_thread_handle = std::thread(audio_thread);
 
-    Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, true);
-    Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-    LuaService::call_reset();
+    g_core->callbacks.emu_launched_changed(true);
+    g_core->callbacks.emu_starting_changed(false);
+    g_core->callbacks.reset();
 
-    g_core_logger->info("[Core] Emu thread entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core->logger->info("[Core] Emu thread entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
     core_start();
 
-	Savestates::on_core_stop();
+    st_on_core_stop();
 
-    romClosed_gfx();
-    romClosed_audio();
-    romClosed_input();
-    romClosed_RSP();
-
-    closeDLL_gfx();
-    closeDLL_audio();
-    closeDLL_input();
-    closeDLL_RSP();
+    g_core->plugin_funcs.rom_closed_gfx();
+    g_core->plugin_funcs.rom_closed_audio();
+    g_core->plugin_funcs.rom_closed_input();
+    g_core->plugin_funcs.rom_closed_rsp();
+    g_core->plugin_funcs.close_dll_gfx();
+    g_core->plugin_funcs.close_dll_audio();
+    g_core->plugin_funcs.close_dll_input();
+    g_core->plugin_funcs.close_dll_rsp();
 
     emu_paused = true;
     emu_launched = false;
 
     if (!emu_resetting)
     {
-        Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
+        g_core->callbacks.emu_launched_changed(false);
     }
 }
 
 
-CoreResult vr_close_rom_impl(bool stop_vcr)
+core_result vr_close_rom_impl(bool stop_vcr)
 {
     if (!emu_launched)
     {
-        return CoreResult::VR_NotRunning;
+        return VR_NotRunning;
     }
 
-    resume_emu();
+    core_vr_resume_emu();
 
     audio_thread_stop_requested = true;
     audio_thread_handle.join();
@@ -2171,12 +2160,12 @@ CoreResult vr_close_rom_impl(bool stop_vcr)
 
     if (stop_vcr)
     {
-        VCR::stop_all();
+        core_vcr_stop_all();
     }
 
-    Messenger::broadcast(Messenger::Message::EmuStopping, nullptr);
+    g_core->callbacks.emu_stopping();
 
-    g_core_logger->info("[Core] Stopping emulation thread...");
+    g_core->logger->info("[Core] Stopping emulation thread...");
 
     // we signal the core to stop, then wait until thread exits
     terminate_emu();
@@ -2192,10 +2181,10 @@ CoreResult vr_close_rom_impl(bool stop_vcr)
     fclose(g_fram_file);
     fclose(g_mpak_file);
 
-    return CoreResult::Ok;
+    return Res_Ok;
 }
 
-CoreResult vr_start_rom_impl(std::filesystem::path path)
+core_result vr_start_rom_impl(std::filesystem::path path)
 {
     auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -2203,35 +2192,34 @@ CoreResult vr_start_rom_impl(std::filesystem::path path)
     if (emu_launched)
     {
         auto result = vr_close_rom_impl(true);
-        if (result != CoreResult::Ok)
+        if (result != Res_Ok)
         {
-            g_core_logger->info("[Core] Failed to close rom before starting rom.");
+            g_core->logger->info("[Core] Failed to close rom before starting rom.");
             return result;
         }
     }
 
-    Messenger::broadcast(Messenger::Message::EmuStartingChanged, true);
+    g_core->callbacks.emu_starting_changed(true);
 
     // If we get a movie instead of a rom, we try to search the available rom lists to find one matching the movie
     if (path.extension() == ".m64")
     {
         t_movie_header movie_header{};
-        if (VCR::parse_header(path, &movie_header) != CoreResult::Ok)
+        if (core_vcr_parse_header(path, &movie_header) != Res_Ok)
         {
-            Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-            return CoreResult::VR_RomInvalid;
+            g_core->callbacks.emu_starting_changed(false);
+            return VR_RomInvalid;
         }
 
-        const auto matching_rom = FrontendService::find_available_rom([&](auto header)
-        {
+        const auto matching_rom = g_core->frontend_service.find_available_rom([&](auto header) {
             strtrim((char*)header.nom, sizeof(header.nom));
             return movie_header.rom_crc1 == header.CRC1 && !_strnicmp((const char*)header.nom, movie_header.rom_name, 20);
         });
 
         if (matching_rom.empty())
         {
-            Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-            return CoreResult::VR_NoMatchingRom;
+            g_core->callbacks.emu_starting_changed(false);
+            return VR_NoMatchingRom;
         }
 
         path = matching_rom;
@@ -2239,63 +2227,28 @@ CoreResult vr_start_rom_impl(std::filesystem::path path)
 
     rom_path = path;
 
-    g_core_logger->info("Loading plugins");
-
-    if (video_plugin.get() && audio_plugin.get() && input_plugin.get() && rsp_plugin.get()
-        && video_plugin->path() == g_config.selected_video_plugin
-        && audio_plugin->path() == g_config.selected_audio_plugin
-        && input_plugin->path() == g_config.selected_input_plugin
-        && rsp_plugin->path() == g_config.selected_rsp_plugin)
+    if (!g_core->callbacks.load_plugins())
     {
-        g_core_logger->info("[Core] Plugins unchanged, reusing...");
-    }
-    else
-    {
-        video_plugin.reset();
-        audio_plugin.reset();
-        input_plugin.reset();
-        rsp_plugin.reset();
-
-        auto video_pl = Plugin::create(g_config.selected_video_plugin);
-        auto audio_pl = Plugin::create(g_config.selected_audio_plugin);
-        auto input_pl = Plugin::create(g_config.selected_input_plugin);
-        auto rsp_pl = Plugin::create(g_config.selected_rsp_plugin);
-
-        if (video_pl.second == nullptr || audio_pl.second == nullptr || input_pl.second == nullptr || rsp_pl.second == nullptr)
-        {
-            video_pl.second.reset();
-            audio_pl.second.reset();
-            input_pl.second.reset();
-            rsp_pl.second.reset();
-            Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-            return CoreResult::VR_PluginError;
-        }
-
-        video_plugin = std::move(video_pl.second);
-        audio_plugin = std::move(audio_pl.second);
-        input_plugin = std::move(input_pl.second);
-        rsp_plugin = std::move(rsp_pl.second);
+        g_core->callbacks.emu_starting_changed(false);
+        return VR_PluginError;
     }
 
     if (!rom_load(path.string().c_str()))
     {
-        Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-        return CoreResult::VR_RomInvalid;
+        g_core->callbacks.emu_starting_changed(false);
+        return VR_RomInvalid;
     }
 
     // Open all the save file streams
-    if (!open_core_file_stream(get_eeprom_path(), &g_eeprom_file)
-        || !open_core_file_stream(get_sram_path(), &g_sram_file)
-        || !open_core_file_stream(get_flashram_path(), &g_fram_file)
-        || !open_core_file_stream(get_mempak_path(), &g_mpak_file))
+    if (!open_core_file_stream(get_eeprom_path(), &g_eeprom_file) || !open_core_file_stream(get_sram_path(), &g_sram_file) || !open_core_file_stream(get_flashram_path(), &g_fram_file) || !open_core_file_stream(get_mempak_path(), &g_mpak_file))
     {
-        Messenger::broadcast(Messenger::Message::EmuStartingChanged, false);
-        return CoreResult::VR_FileOpenFailed;
+        g_core->callbacks.emu_starting_changed(false);
+        return VR_FileOpenFailed;
     }
 
-    timer_init(g_config.fps_modifier, &ROM_HEADER);
+    core_vr_on_speed_modifier_changed();
 
-    g_core_logger->info("[Core] vr_start_rom entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core->logger->info("[Core] vr_start_rom entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
 
     emu_paused = false;
     emu_launched = true;
@@ -2303,12 +2256,13 @@ CoreResult vr_start_rom_impl(std::filesystem::path path)
 
     // We need to wait until the core is actually done and running before we can continue, because we release the lock
     // If we return too early (before core is ready to also be killed), then another start or close might come in during the core initialization (catastrophe)
-    while (!core_executing);
+    while (!core_executing)
+        ;
 
-    return CoreResult::Ok;
+    return Res_Ok;
 }
 
-CoreResult vr_start_rom(std::filesystem::path path, bool wait)
+core_result core_vr_start_rom(std::filesystem::path path, bool wait)
 {
     if (wait)
     {
@@ -2319,14 +2273,14 @@ CoreResult vr_start_rom(std::filesystem::path path, bool wait)
     std::unique_lock lock(emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        g_core_logger->warn("[Core] vr_start_rom busy!");
-        return CoreResult::VR_Busy;
+        g_core->logger->warn("[Core] vr_start_rom busy!");
+        return VR_Busy;
     }
 
     return vr_start_rom_impl(path);
 }
 
-CoreResult vr_close_rom(bool stop_vcr, bool wait)
+core_result core_vr_close_rom(bool stop_vcr, bool wait)
 {
     if (wait)
     {
@@ -2337,17 +2291,17 @@ CoreResult vr_close_rom(bool stop_vcr, bool wait)
     std::unique_lock lock(emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        g_core_logger->warn("[Core] vr_close_rom busy!");
-        return CoreResult::VR_Busy;
+        g_core->logger->warn("[Core] vr_close_rom busy!");
+        return VR_Busy;
     }
 
     return vr_close_rom_impl(stop_vcr);
 }
 
-CoreResult vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
+core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
 {
     if (!emu_launched)
-        return CoreResult::VR_NotRunning;
+        return VR_NotRunning;
 
     // why is it so damned difficult to reset the game?
     // right now it's hacked to exit to the GUI then re-load the ROM,
@@ -2356,11 +2310,11 @@ CoreResult vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
     frame_advancing = false;
     emu_resetting = true;
 
-    CoreResult result = vr_close_rom(stop_vcr);
-    if (result != CoreResult::Ok)
+    core_result result = core_vr_close_rom(stop_vcr, false);
+    if (result != Res_Ok)
     {
         emu_resetting = false;
-        Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
+        g_core->callbacks.reset_completed();
         return result;
     }
 
@@ -2369,20 +2323,20 @@ CoreResult vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
         clear_save_data();
     }
 
-    result = vr_start_rom(rom_path);
-    if (result != CoreResult::Ok)
+    result = core_vr_start_rom(rom_path, false);
+    if (result != Res_Ok)
     {
         emu_resetting = false;
-        Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
+        g_core->callbacks.reset_completed();
         return result;
     }
 
     emu_resetting = false;
-    Messenger::broadcast(Messenger::Message::ResetCompleted, nullptr);
-    return CoreResult::Ok;
+    g_core->callbacks.reset_completed();
+    return Res_Ok;
 }
 
-CoreResult vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
+core_result core_vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
 {
     if (wait)
     {
@@ -2393,31 +2347,35 @@ CoreResult vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
     std::unique_lock lock(emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        g_core_logger->info("[Core] vr_reset_rom busy!");
-        return CoreResult::VR_Busy;
+        g_core->logger->info("[Core] vr_reset_rom busy!");
+        return VR_Busy;
     }
 
     return vr_reset_rom_impl(reset_save_data, stop_vcr);
 }
 
-void toggle_fullscreen_mode()
+void core_vr_toggle_fullscreen_mode()
 {
-    changeWindow();
+    g_core->plugin_funcs.change_window();
     fullscreen ^= true;
-    Messenger::broadcast(Messenger::Message::FullscreenChanged, fullscreen);
 }
 
-bool vr_is_fullscreen()
+void core_vr_set_fast_forward(bool value)
+{
+    g_vr_fast_forward = value;
+}
+
+bool core_vr_is_fullscreen()
 {
     return fullscreen;
 }
 
-bool get_gs_button()
+bool core_vr_get_gs_button()
 {
     return gs_button;
 }
 
-void set_gs_button(bool value)
+void core_vr_set_gs_button(bool value)
 {
     gs_button = value;
 }

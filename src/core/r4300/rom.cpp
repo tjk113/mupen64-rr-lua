@@ -5,13 +5,12 @@
  */
 
 #include "stdafx.h"
-#include "rom.h"
-#include "../memory/memory.h"
+#include <core/Core.h>
+#include <IOHelpers.h>
+#include <StlExtensions.h>
 #include <md5.h>
-#include <core/Config.h>
-#include <core/helpers/IOHelpers.h>
-#include <core/helpers/StlExtensions.h>
-#include <core/services/LoggingService.h>
+#include <core/memory/memory.h>
+#include <core/r4300/rom.h>
 
 std::unordered_map<std::filesystem::path, std::pair<uint8_t*, size_t>> rom_cache;
 
@@ -23,25 +22,25 @@ t_rom_header ROM_HEADER;
 
 void print_rom_info()
 {
-    g_core_logger->info("--- Rom Info ---");
-    g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x}", ROM_HEADER.init_PI_BSB_DOM1_LAT_REG,
+    g_core->logger->info("--- Rom Info ---");
+    g_core->logger->info("{:#06x} {:#06x} {:#06x} {:#06x}", ROM_HEADER.init_PI_BSB_DOM1_LAT_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PGS_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PWD_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PGS_REG2);
-    g_core_logger->info("Clock rate: {:#06x}", sl((uint32_t)ROM_HEADER.ClockRate));
-    g_core_logger->info("Version: {:#06x}", sl((uint32_t)ROM_HEADER.Release));
-    g_core_logger->info("CRC: {:#06x} {:#06x}", sl((uint32_t)ROM_HEADER.CRC1), sl((uint32_t)ROM_HEADER.CRC2));
-    g_core_logger->info("Name: {}", (char*)ROM_HEADER.nom);
-    if (sl(ROM_HEADER.Manufacturer_ID) == 'N') g_core_logger->info("Manufacturer: Nintendo");
-    else g_core_logger->info("Manufacturer: {:#06x}", (uint32_t)(ROM_HEADER.Manufacturer_ID));
-    g_core_logger->info("Cartridge ID: {:#06x}", ROM_HEADER.Cartridge_ID);
-    g_core_logger->info("Size: {}", rom_size);
-    g_core_logger->info("PC: {:#06x}\n", sl((uint32_t)ROM_HEADER.PC));
-    g_core_logger->info(L"Country: {}", country_code_to_country_name(ROM_HEADER.Country_code));
-    g_core_logger->info("----------------");
+    g_core->logger->info("Clock rate: {:#06x}", sl((uint32_t)ROM_HEADER.ClockRate));
+    g_core->logger->info("Version: {:#06x}", sl((uint32_t)ROM_HEADER.Release));
+    g_core->logger->info("CRC: {:#06x} {:#06x}", sl((uint32_t)ROM_HEADER.CRC1), sl((uint32_t)ROM_HEADER.CRC2));
+    g_core->logger->info("Name: {}", (char*)ROM_HEADER.nom);
+    if (sl(ROM_HEADER.Manufacturer_ID) == 'N') g_core->logger->info("Manufacturer: Nintendo");
+    else g_core->logger->info("Manufacturer: {:#06x}", (uint32_t)(ROM_HEADER.Manufacturer_ID));
+    g_core->logger->info("Cartridge ID: {:#06x}", ROM_HEADER.Cartridge_ID);
+    g_core->logger->info("Size: {}", rom_size);
+    g_core->logger->info("PC: {:#06x}\n", sl((uint32_t)ROM_HEADER.PC));
+    g_core->logger->info(L"Country: {}", core_vr_country_code_to_country_name(ROM_HEADER.Country_code));
+    g_core->logger->info("----------------");
 }
 
-std::wstring country_code_to_country_name(uint16_t country_code)
+std::wstring core_vr_country_code_to_country_name(uint16_t country_code)
 {
     switch (country_code & 0xFF)
     {
@@ -78,7 +77,12 @@ std::wstring country_code_to_country_name(uint16_t country_code)
     }
 }
 
-uint32_t get_vis_per_second(uint16_t country_code)
+t_rom_header* core_vr_get_rom_header()
+{
+    return &ROM_HEADER;
+}
+
+uint32_t core_vr_get_vis_per_second(uint16_t country_code)
 {
     switch (country_code & 0xFF)
     {
@@ -101,7 +105,7 @@ uint32_t get_vis_per_second(uint16_t country_code)
     }
 }
 
-void rom_byteswap(uint8_t* rom)
+void core_vr_byteswap(uint8_t* rom)
 {
     uint8_t tmp = 0;
 
@@ -133,13 +137,13 @@ bool rom_load(std::filesystem::path path)
     if (rom)
     {
         free(rom);
-        rom = nullptr;
+        g_core->rom = rom = nullptr;
     }
 
     if (rom_cache.contains(path))
     {
-        g_core_logger->info("[Core] Loading cached ROM...");
-        rom = (unsigned char*)malloc(rom_cache[path].second);
+        g_core->logger->info("[Core] Loading cached ROM...");
+        g_core->rom = rom = (unsigned char*)malloc(rom_cache[path].second);
         memcpy(rom, rom_cache[path].first, rom_cache[path].second);
         return true;
     }
@@ -154,9 +158,9 @@ bool rom_load(std::filesystem::path path)
 
     rom_size = decompressed_rom.size();
     uint32_t taille = rom_size;
-    if (g_config.use_summercart && taille < 0x4000000) taille = 0x4000000;
+    if (g_core->cfg->use_summercart && taille < 0x4000000) taille = 0x4000000;
 
-    rom = (unsigned char*)malloc(taille);
+    g_core->rom = rom = (unsigned char*)malloc(taille);
     memcpy(rom, decompressed_rom.data(), rom_size);
 
     uint8_t tmp;
@@ -188,11 +192,11 @@ bool rom_load(std::filesystem::path path)
 
     )
     {
-        g_core_logger->info("wrong file format !");
+        g_core->logger->info("wrong file format !");
         return false;
     }
 
-    g_core_logger->info("rom loaded succesfully");
+    g_core->logger->info("rom loaded succesfully");
 
     memcpy(&ROM_HEADER, rom, sizeof(t_rom_header));
     ROM_HEADER.unknown = 0;
@@ -219,9 +223,9 @@ bool rom_load(std::filesystem::path path)
     for (size_t i = 0; i < (rom_size / 4); i++)
         roml[i] = sl(roml[i]);
 
-    if (rom_cache.size() < g_config.rom_cache_size)
+    if (rom_cache.size() < g_core->cfg->rom_cache_size)
     {
-        g_core_logger->info("[Core] Putting ROM in cache... ({}/{} full)\n", rom_cache.size(), g_config.rom_cache_size);
+        g_core->logger->info("[Core] Putting ROM in cache... ({}/{} full)\n", rom_cache.size(), g_core->cfg->rom_cache_size);
         auto data = (uint8_t*)malloc(taille);
         memcpy(data, rom, taille);
         rom_cache[path] = std::make_pair(data, taille);

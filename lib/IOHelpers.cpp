@@ -4,10 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "stdafx.h"
 #include "IOHelpers.h"
 #include <libdeflate.h>
-#include <core/services/LoggingService.h>
 
 void vecwrite(std::vector<uint8_t>& vec, void* data, size_t len)
 {
@@ -57,7 +55,7 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec, size_t initial_s
     if (vec.size() < 2 || vec[0] != 0x1F && vec[1] != 0x8B)
     {
         // vec is decompressed already
-        g_shared_logger->info("Already decompressed");
+
         // we need a copy, not ref
         std::vector<uint8_t> out_vec = vec;
         return out_vec;
@@ -77,7 +75,6 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec, size_t initial_s
         if (result == LIBDEFLATE_SHORT_OUTPUT || result ==
             LIBDEFLATE_INSUFFICIENT_SPACE)
         {
-            g_shared_logger->info("Buffer size of {} insufficient...", buf_size);
             buf_size *= 2;
             continue;
         }
@@ -86,7 +83,6 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec, size_t initial_s
     }
     libdeflate_free_decompressor(decompressor);
 
-    g_shared_logger->info("Found size {}...", buf_size);
     out_buf = static_cast<uint8_t*>(realloc(out_buf, buf_size));
     std::vector<uint8_t> out_vec;
     out_vec.resize(buf_size);

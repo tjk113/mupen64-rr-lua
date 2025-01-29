@@ -14,6 +14,7 @@ extern "C" {
 
 #include <Windows.h>
 #include <xxh64.h>
+#include <StlExtensions.h>
 
 namespace LuaCore::D2D
 {

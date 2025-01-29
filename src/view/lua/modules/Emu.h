@@ -11,27 +11,23 @@ extern "C" {
 
 #include <Windows.h>
 #include <mmsystem.h>
-#include <core/Messenger.h>
-#include <core/memory/memory.h>
-#include <core/r4300/timers.h>
-#include <view/gui/Main.h>
-#include <view/gui/features/Statusbar.h>
-#include <view/lua/LuaConsole.h>
-
-extern int32_t m_current_vi;
-extern int32_t m_current_sample;
+#include <gui/Main.h>
+#include <gui/features/Statusbar.h>
+#include <lua/LuaConsole.h>
 
 namespace LuaCore::Emu
 {
     static int GetVICount(lua_State* L)
     {
-        lua_pushinteger(L, m_current_vi);
+        lua_pushinteger(L, core_vcr_get_current_vi());
         return 1;
     }
 
     static int GetSampleCount(lua_State* L)
     {
-        lua_pushinteger(L, m_current_sample);
+        std::pair<size_t, size_t> pair{};
+        core_vcr_get_seek_completion(pair);
+        lua_pushinteger(L, pair.first);
         return 1;
     }
 
@@ -267,7 +263,7 @@ namespace LuaCore::Emu
 
     static int Screenshot(lua_State* L)
     {
-        CaptureScreen((char*)luaL_checkstring(L, 1));
+        g_core.plugin_funcs.capture_screen((char*)luaL_checkstring(L, 1));
         return 0;
     }
 
@@ -296,18 +292,18 @@ namespace LuaCore::Emu
     {
         if (!lua_toboolean(L, 1))
         {
-            pause_emu();
+            core_vr_pause_emu();
         }
         else
         {
-            resume_emu();
+            core_vr_resume_emu();
         }
         return 0;
     }
 
     static int GetEmuPause(lua_State* L)
     {
-        lua_pushboolean(L, emu_paused);
+        lua_pushboolean(L, core_vr_get_paused());
         return 1;
     }
 
@@ -320,7 +316,7 @@ namespace LuaCore::Emu
     static int SetSpeed(lua_State* L)
     {
         g_config.fps_modifier = luaL_checkinteger(L, 1);
-        timer_init(g_config.fps_modifier, &ROM_HEADER);
+        core_vr_on_speed_modifier_changed();
         return 0;
     }
 
@@ -360,20 +356,20 @@ namespace LuaCore::Emu
 #define A(n) {#n, &n}
 #define B(n) {#n, n}
         const NameAndVariable list[] = {
-            A(rdram),
-            A(rdram_register),
-            A(MI_register),
-            A(pi_register),
-            A(sp_register),
-            A(rsp_register),
-            A(si_register),
-            A(vi_register),
-            A(ri_register),
-            A(ai_register),
-            A(dpc_register),
-            A(dps_register),
-            B(SP_DMEM),
-            B(PIF_RAM),
+            A(g_core.rdram),
+            A(g_core.rdram_register),
+            A(g_core.MI_register),
+            A(g_core.pi_register),
+            A(g_core.sp_register),
+            A(g_core.rsp_register),
+            A(g_core.si_register),
+            A(g_core.vi_register),
+            A(g_core.ri_register),
+            A(g_core.ai_register),
+            A(g_core.dpc_register),
+            A(g_core.dps_register),
+            B(g_core.SP_DMEM),
+            B(g_core.PIF_RAM),
             {NULL, NULL}
         };
 #undef A

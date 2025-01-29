@@ -8,6 +8,7 @@
 #include "tlb.h"
 #include "memory.h"
 #include <zlib.h>
+#include <core/Core.h>
 #include <core/r4300/exception.h>
 #include <core/r4300/interrupt.h>
 #include <core/r4300/macros.h>
@@ -15,7 +16,6 @@
 #include <core/r4300/r4300.h>
 #include <core/r4300/recomph.h>
 #include <core/r4300/rom.h>
-#include <core/services/LoggingService.h>
 
 uint32_t tlb_LUT_r[0x100000];
 uint32_t tlb_LUT_w[0x100000];
@@ -44,7 +44,7 @@ uint32_t virtual_to_physical_address(uint32_t addresse, int32_t w)
 		if (tlb_LUT_r[addresse >> 12])
 			return (tlb_LUT_r[addresse >> 12] & 0xFFFFF000) | (addresse & 0xFFF);
 	}
-	//g_core_logger->warn("tlb exception !!! @ {:#06x}, {:#06x}, add:{:#06x}", addresse, w, interp_addr);
+	//g_core->logger->warn("tlb exception !!! @ {:#06x}, {:#06x}, add:{:#06x}", addresse, w, interp_addr);
 	//getchar();
 	TLB_refill_exception(addresse, w);
 	//return 0x80000000;
@@ -100,14 +100,14 @@ uint32_t virtual_to_physical_address(uint32_t addresse, int32_t w)
 	        }
 	      else
 	        {
-	       g_core_logger->warn("tlb refill inconnu");
+	       g_core->logger->warn("tlb refill inconnu");
 	       TLB_refill_exception(addresse,w);
 	        }
 	   }
 	  }
 	BadVAddr = addresse;
 	TLB_refill_exception(addresse,w);
-	//g_core_logger->warn("TLB refill exception");
+	//g_core->logger->warn("TLB refill exception");
 	return 0x80000000;*/
 }
 
@@ -544,7 +544,7 @@ void ERET()
     update_count();
     if (core_Status & 0x4)
     {
-        g_core_logger->error("erreur dans ERET");
+        g_core->logger->error("erreur dans ERET");
         stop = 1;
     }
     else

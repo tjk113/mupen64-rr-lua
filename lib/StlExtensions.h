@@ -12,7 +12,7 @@
 class ScopeTimer
 {
 public:
-    ScopeTimer(const std::string& name, const std::shared_ptr<spdlog::logger>& logger)
+    ScopeTimer(const std::string& name, spdlog::logger* logger)
     {
         m_name = name;
         m_logger = logger;
@@ -31,7 +31,7 @@ public:
 
 private:
     std::string m_name;
-    std::shared_ptr<spdlog::logger> m_logger;
+    spdlog::logger* m_logger;
     std::chrono::time_point<std::chrono::steady_clock> m_start_time;
 };
 

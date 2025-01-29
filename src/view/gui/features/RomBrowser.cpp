@@ -5,25 +5,24 @@
  */
 
 #include "stdafx.h"
+#include <Config.h>
+#include <Shlwapi.h>
+#include <StlExtensions.h>
+#include <Uxtheme.h>
 #include <Windows.h>
 #include <commctrl.h>
-#include <Shlwapi.h>
-#include "RomBrowser.h"
-#include "Statusbar.h"
-#include "../Main.h"
-#include <view/resource.h>
-#include <core/helpers/StlExtensions.h>
-#include <core/services/IOService.h>
-#include <view/helpers/IOHelpers.h>
-#include <core/r4300/r4300.h>
-#include <core/Config.h>
-#include <Uxtheme.h>
-#include <core/Messenger.h>
-#include <view/gui/Loggers.h>
-#include <core/AsyncExecutor.h>
+#include <core_api.h>
+#include <resource.h>
+#include <gui/Loggers.h>
+#include <gui/Main.h>
+#include <gui/features/RomBrowser.h>
+#include <gui/features/Statusbar.h>
+#include <helpers/IOHelpers.h>
+#include <IOService.h>
+#include <AsyncExecutor.h>
+#include <Messenger.h>
 
-using t_rombrowser_entry = struct s_rombrowser_entry
-{
+using t_rombrowser_entry = struct s_rombrowser_entry {
     std::wstring path;
     size_t size;
     t_rom_header rom_header;
@@ -60,15 +59,11 @@ namespace RomBrowser
 
         std::vector<std::wstring> filtered_rom_paths;
 
-        std::ranges::copy_if(rom_paths, std::back_inserter(filtered_rom_paths), [](std::wstring val)
-        {
+        std::ranges::copy_if(rom_paths, std::back_inserter(filtered_rom_paths), [](std::wstring val) {
             wchar_t c_extension[260] = {0};
             _wsplitpath(val.c_str(), nullptr, nullptr, nullptr, c_extension);
 
-            return iequals(c_extension, L".z64")
-                || iequals(c_extension, L".n64")
-                || iequals(c_extension, L".v64")
-                || iequals(c_extension, L".rom");
+            return iequals(c_extension, L".z64") || iequals(c_extension, L".n64") || iequals(c_extension, L".v64") || iequals(c_extension, L".rom");
         });
         return filtered_rom_paths;
     }
@@ -76,19 +71,18 @@ namespace RomBrowser
     int CALLBACK rombrowser_compare(LPARAM lParam1, LPARAM lParam2, LPARAM _)
     {
         auto first = rombrowser_entries[g_config.rombrowser_sort_ascending
-                                            ? lParam1
-                                            : lParam2];
+                                        ? lParam1
+                                        : lParam2];
         auto second = rombrowser_entries[g_config.rombrowser_sort_ascending
-                                             ? lParam2
-                                             : lParam1];
+                                         ? lParam2
+                                         : lParam1];
 
         int32_t result = 0;
 
         switch (g_config.rombrowser_sorted_column)
         {
         case 0:
-            result = first->rom_header.Country_code - second->rom_header.
-                                                              Country_code;
+            result = first->rom_header.Country_code - second->rom_header.Country_code;
             break;
         case 1:
             // BUG: these are not null terminated!!!
@@ -140,7 +134,8 @@ namespace RomBrowser
                                          rcl.right - rcl.left,
                                          rcl.bottom - rcl.top - rtool.bottom +
                                          rtool
-                                         .top - rstatus.bottom + rstatus.top,
+                                         .top -
+                                         rstatus.bottom + rstatus.top,
                                          g_main_hwnd, (HMENU)IDC_ROMLIST,
                                          g_app_instance,
                                          NULL);
@@ -155,19 +150,21 @@ namespace RomBrowser
         const HIMAGELIST h_small = ImageList_Create(16, 16, ILC_COLORDDB | ILC_MASK, 11, 0);
         HICON h_icon;
 
-#define ADD_ICON(id) h_icon = LoadIcon(g_app_instance, MAKEINTRESOURCE(id)); ImageList_AddIcon(h_small, h_icon)
+#define ADD_ICON(id)                                        \
+    h_icon = LoadIcon(g_app_instance, MAKEINTRESOURCE(id)); \
+    ImageList_AddIcon(h_small, h_icon)
 
-    	ADD_ICON(IDI_GERMANY);
-    	ADD_ICON(IDI_USA);
-    	ADD_ICON(IDI_JAPAN);
-    	ADD_ICON(IDI_EUROPE);
-    	ADD_ICON(IDI_AUSTRALIA);
-    	ADD_ICON(IDI_ITALIA);
-    	ADD_ICON(IDI_FRANCE);
-    	ADD_ICON(IDI_SPAIN);
-    	ADD_ICON(IDI_UNKNOWN);
-    	ADD_ICON(IDI_DEMO);
-    	ADD_ICON(IDI_BETA);
+        ADD_ICON(IDI_GERMANY);
+        ADD_ICON(IDI_USA);
+        ADD_ICON(IDI_JAPAN);
+        ADD_ICON(IDI_EUROPE);
+        ADD_ICON(IDI_AUSTRALIA);
+        ADD_ICON(IDI_ITALIA);
+        ADD_ICON(IDI_FRANCE);
+        ADD_ICON(IDI_SPAIN);
+        ADD_ICON(IDI_UNKNOWN);
+        ADD_ICON(IDI_DEMO);
+        ADD_ICON(IDI_BETA);
 
         ListView_SetImageList(rombrowser_hwnd, h_small, LVSIL_SMALL);
 
@@ -220,7 +217,7 @@ namespace RomBrowser
             return 5; // Italy
         case 0x46: // IDI_FRANCE
             return 6;
-        case 'S': //SPAIN
+        case 'S': // SPAIN
             return 7;
         default:
             return 8; // IDI_N64CART
@@ -251,9 +248,9 @@ namespace RomBrowser
 
         auto rom_paths = find_available_roms();
 
-    	LV_ITEM lv_item = {0};
-    	lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
-    	lv_item.pszText = LPSTR_TEXTCALLBACK;
+        LV_ITEM lv_item = {0};
+        lv_item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
+        lv_item.pszText = LPSTR_TEXTCALLBACK;
 
         int32_t i = 0;
         for (auto& path : rom_paths)
@@ -280,7 +277,7 @@ namespace RomBrowser
                 t_rom_header header{};
                 fread(&header, sizeof(t_rom_header), 1, f);
 
-                rom_byteswap((uint8_t*)&header);
+                core_vr_byteswap((uint8_t*)&header);
 
                 strtrim((char*)header.nom, sizeof(header.nom));
 
@@ -290,22 +287,24 @@ namespace RomBrowser
                 rombrowser_entry->rom_header = header;
             }
 
-        	lv_item.lParam = i;
-        	lv_item.iItem = i;
-        	lv_item.iImage = rombrowser_country_code_to_image_index(rombrowser_entry->rom_header.Country_code);
-        	ListView_InsertItem(rombrowser_hwnd, &lv_item);
+            lv_item.lParam = i;
+            lv_item.iItem = i;
+            lv_item.iImage = rombrowser_country_code_to_image_index(rombrowser_entry->rom_header.Country_code);
+            ListView_InsertItem(rombrowser_hwnd, &lv_item);
 
             fclose(f);
 
-        	rombrowser_entries.push_back(rombrowser_entry);
+            rombrowser_entries.push_back(rombrowser_entry);
             i++;
         }
         rombrowser_update_sort();
         SendMessage(rombrowser_hwnd, WM_SETREDRAW, TRUE, 0);
 
         g_view_logger->info("Rombrowser loading took {}ms",
-               static_cast<int>((std::chrono::high_resolution_clock::now() -
-                   start_time).count() / 1'000'000));
+                            static_cast<int>((std::chrono::high_resolution_clock::now() -
+                                              start_time)
+                                             .count() /
+                                             1'000'000));
     }
 
     void build()
@@ -315,8 +314,8 @@ namespace RomBrowser
 
     void rombrowser_update_size()
     {
-        if (emu_launched) return;
-
+        if (core_vr_get_launched())
+            return;
         if (!IsWindow(rombrowser_hwnd))
             return;
 
@@ -361,24 +360,24 @@ namespace RomBrowser
                 switch (plvdi->item.iSubItem)
                 {
                 case 1:
-	                {
-		                // NOTE: The name may not be null-terminated, so we NEED to limit the size
-                		char str[sizeof(t_rom_header::nom) + 1] = {0};
-                		strncpy(str, (char*)rombrowser_entry->rom_header.nom, sizeof(t_rom_header::nom));
-						StrNCpy(plvdi->item.pszText, string_to_wstring(str).c_str(), plvdi->item.cchTextMax);
-                		break;
-	                }
+                    {
+                        // NOTE: The name may not be null-terminated, so we NEED to limit the size
+                        char str[sizeof(t_rom_header::nom) + 1] = {0};
+                        strncpy(str, (char*)rombrowser_entry->rom_header.nom, sizeof(t_rom_header::nom));
+                        StrNCpy(plvdi->item.pszText, string_to_wstring(str).c_str(), plvdi->item.cchTextMax);
+                        break;
+                    }
                 case 2:
                     {
                         wchar_t filename[MAX_PATH] = {0};
                         _wsplitpath(rombrowser_entry->path.c_str(), nullptr, nullptr, filename, nullptr);
-						StrNCpy(plvdi->item.pszText, filename, plvdi->item.cchTextMax);
+                        StrNCpy(plvdi->item.pszText, filename, plvdi->item.cchTextMax);
                         break;
                     }
                 case 3:
                     {
                         const auto size = std::to_wstring(rombrowser_entry->size / (1024 * 1024)) + L" MB";
-						StrNCpy(plvdi->item.pszText, size.c_str(), plvdi->item.cchTextMax);
+                        StrNCpy(plvdi->item.pszText, size.c_str(), plvdi->item.cchTextMax);
                         break;
                     }
                 default:
@@ -391,18 +390,22 @@ namespace RomBrowser
         case NM_DBLCLK:
             {
                 int32_t i = ListView_GetNextItem(
-                    rombrowser_hwnd, -1, LVNI_SELECTED);
+                rombrowser_hwnd, -1, LVNI_SELECTED);
 
-                if (i == -1) break;
+                if (i == -1)
+                    break;
 
                 LVITEM item = {0};
                 item.mask = LVIF_PARAM;
                 item.iItem = i;
                 ListView_GetItem(rombrowser_hwnd, &item);
                 auto path = rombrowser_entries[item.lParam]->path;
-                AsyncExecutor::invoke_async([path]
-                {
-                    const auto result = vr_start_rom(path);
+                AsyncExecutor::invoke_async([path] {
+                    const auto result = core_vr_start_rom(path, false);
+                    if (result == Res_Ok)
+                    {
+                        g_rom_path = path;
+                    }
                     show_error_dialog_for_result(result);
                 });
             }
@@ -426,7 +429,7 @@ namespace RomBrowser
                 auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
                 fread(header, sizeof(t_rom_header), 1, f);
 
-                rom_byteswap((uint8_t*)header);
+                core_vr_byteswap((uint8_t*)header);
 
                 if (predicate(*header))
                 {
@@ -455,20 +458,17 @@ namespace RomBrowser
     {
         rombrowser_create();
         Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, emu_launched_changed);
-        Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged, [](auto _)
-        {
+        Messenger::subscribe(Messenger::Message::StatusbarVisibilityChanged, [](auto _) {
             rombrowser_update_size();
         });
-        Messenger::subscribe(Messenger::Message::SizeChanged, [](auto _)
-        {
+        Messenger::subscribe(Messenger::Message::SizeChanged, [](auto _) {
             rombrowser_update_size();
         });
-        Messenger::subscribe(Messenger::Message::ConfigSaving, [](auto _)
-        {
+        Messenger::subscribe(Messenger::Message::ConfigSaving, [](auto _) {
             for (int i = 0; i < g_config.rombrowser_column_widths.size(); ++i)
             {
                 g_config.rombrowser_column_widths[i] = ListView_GetColumnWidth(rombrowser_hwnd, i);
             }
         });
     }
-}
+} // namespace RomBrowser

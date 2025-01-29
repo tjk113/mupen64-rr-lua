@@ -7,9 +7,10 @@
 #include "stdafx.h"
 #include "summercart.h"
 #include "memory.h"
+#include "core/Core.h"
+
 #include <core/r4300/r4300.h>
 #include <core/r4300/rom.h>
-#include <core/services/FrontendService.h>
 
 struct vhd
 {
@@ -61,7 +62,7 @@ struct summercart summercart;
 
 static char* get_sd_path()
 {
-    auto saves_path = get_saves_directory();
+    auto saves_path = g_core->platform_service.get_saves_directory();
     char* path;
     if ((path = (char*)malloc(strlen(saves_path.string().c_str()) + 8 + 1)))
     {
@@ -84,7 +85,7 @@ static char* get_st_path(const char* filename)
 
 static int32_t sd_error(const wchar_t* text, const wchar_t* caption)
 {
-    FrontendService::show_dialog(text, caption, FrontendService::DialogType::Error);
+    g_core->frontend_service.show_dialog(text, caption, fsvc_error, nullptr);
     return -1;
 }
 

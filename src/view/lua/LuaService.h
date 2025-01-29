@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2025, Mupen64 maintainers, contributors, and original authors (Hacktarux, ShadowPrince, linker).
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -6,15 +6,11 @@
 
 #pragma once
 
-/*
- *	Interface for Lua-related calls originating from core layer to the view layer
- *
- *	Must be implemented in the view layer.
- */
+extern "C" {
+#include <lua.h>
+}
 
-struct lua_State;
-
-#include <core/CoreTypes.h>
+#include <core_types.h>
 
 namespace LuaService
 {
@@ -76,7 +72,7 @@ namespace LuaService
      * \brief Notifies all lua instances of a seek operation completing
      */
     void call_seek_completed();
- 
+
     /**
      * \brief Notifies all lua instances of a warp modify operation's status changing
      */
@@ -85,6 +81,6 @@ namespace LuaService
 #pragma endregion
 
 #pragma region Raw Calls
-     int pcall_no_params(lua_State* L);
+    int pcall_no_params(lua_State* L);
 #pragma endregion
-}
+} // namespace LuaService

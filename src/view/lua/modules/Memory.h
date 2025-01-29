@@ -10,8 +10,8 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <core/memory/memory.h>
 #include <Windows.h>
+#include <gui/Main.h>
 
 namespace LuaCore::Memory
 {
@@ -259,19 +259,6 @@ namespace LuaCore::Memory
         LuaPushQword(L, value);
     }
 
-    template <typename T, void(**readmem_func)()>
-    static int ReadMemT(lua_State* L)
-    {
-        ULONGLONG *rdword_s = rdword, tmp, address_s = address;
-        address = LuaCheckIntegerU(L, 1);
-        rdword = &tmp;
-        readmem_func[address >> 16]();
-        PushT<T>(L, tmp);
-        rdword = rdword_s;
-        address = address_s;
-        return 1;
-    }
-
     template <typename T>
     static T CheckT(lua_State* L, int i)
     {
@@ -282,18 +269,5 @@ namespace LuaCore::Memory
     static ULONGLONG CheckT<ULONGLONG>(lua_State* L, int i)
     {
         return LuaCheckQWord(L, i);
-    }
-
-    template <typename T, void(**writemem_func)(), T& g_T>
-    static int WriteMemT(lua_State* L)
-    {
-        ULONGLONG *rdword_s = rdword, address_s = address;
-        T g_T_s = g_T;
-        address = LuaCheckIntegerU(L, 1);
-        g_T = CheckT<T>(L, 2);
-        writemem_func[address >> 16]();
-        address = address_s;
-        g_T = g_T_s;
-        return 0;
     }
 }

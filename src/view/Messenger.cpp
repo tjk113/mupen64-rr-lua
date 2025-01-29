@@ -5,8 +5,8 @@
  */
 
 #include "stdafx.h"
-#include "Messenger.h"
-#include <core/services/LoggingService.h>
+#include <Messenger.h>
+#include <gui/Main.h>
 
 namespace Messenger
 {
@@ -17,8 +17,7 @@ namespace Messenger
 #endif
 
     // Represents a subscriber to a message.
-    struct Subscriber
-    {
+    struct Subscriber {
         // A unique identifier.
         size_t uid;
 
@@ -43,7 +42,7 @@ namespace Messenger
     {
         while (g_broadcasting != 0)
         {
-            g_shared_logger->info("[Messenger] Waiting for broadcast end...");
+            g_core.logger->info("[Messenger] Waiting for broadcast end...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
@@ -52,15 +51,15 @@ namespace Messenger
     {
         while (g_subscribing != 0)
         {
-            g_shared_logger->info("[Messenger] Waiting for subscribe end...");
+            g_core.logger->info("[Messenger] Waiting for subscribe end...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
-    
+
     void init()
     {
     }
-    
+
     /**
      * Rebuilds the subscriber cache from the current subscriber vector.
      */
@@ -77,7 +76,7 @@ namespace Messenger
     void broadcast(const Message message, std::any data)
     {
         wait_for_subscribe_end();
-        
+
         ++g_broadcasting;
 
         for (const auto& subscriber : g_subscriber_cache[message])
@@ -87,30 +86,28 @@ namespace Messenger
 
         --g_broadcasting;
     }
-    
+
     std::function<void()> subscribe(Message message, t_user_callback callback)
     {
         wait_for_broadcast_end();
         wait_for_subscribe_end();
 
         ++g_subscribing;
-        
+
         Subscriber subscriber = {g_uid_accumulator++, callback};
 
         g_subscribers.emplace_back(message, subscriber);
         rebuild_subscriber_cache();
 
         --g_subscribing;
-        
-        return [=]
-        {
+
+        return [=] {
             wait_for_broadcast_end();
             wait_for_subscribe_end();
-            
+
             ++g_subscribing;
 
-            std::erase_if(g_subscribers, [=](const auto& pair)
-            {
+            std::erase_if(g_subscribers, [=](const auto& pair) {
                 return pair.second.uid == subscriber.uid;
             });
             rebuild_subscriber_cache();
@@ -118,4 +115,4 @@ namespace Messenger
             --g_subscribing;
         };
     }
-}
+} // namespace Messenger

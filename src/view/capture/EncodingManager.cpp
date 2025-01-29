@@ -6,21 +6,19 @@
 
 #include "stdafx.h"
 #include "EncodingManager.h"
-#include <core/services/FrontendService.h>
-#include <core/Messenger.h>
-#include <core/r4300/Plugin.h>
-#include <view/gui/Main.h>
-#include <core/r4300/rom.h>
-#include <core/Config.h>
-#include <core/memory/memory.h>
+
+#include "Config.h"
+#include "FrontendService.h"
+#include "Messenger.h"
 #include "encoders/AVIEncoder.h"
 #include "encoders/Encoder.h"
 #include "encoders/FFmpegEncoder.h"
-#include <view/gui/features/MGECompositor.h>
-#include <view/lua/LuaConsole.h>
-#include <view/gui/features/Dispatcher.h>
-#include <view/gui/Loggers.h>
-#include "core/r4300/r4300.h"
+#include "gui/features/Dispatcher.h"
+#include <core_api.h>
+#include <gui/Loggers.h>
+#include <gui/Main.h>
+#include <gui/features/MGECompositor.h>
+#include <lua/LuaConsole.h>
 
 namespace EncodingManager
 {
@@ -39,13 +37,13 @@ namespace EncodingManager
 	int32_t m_video_height;
 
 	std::atomic m_capturing = false;
-	EncoderType m_encoder_type;
+	core_encoder_type m_encoder_type;
 	std::unique_ptr<Encoder> m_encoder;
 	std::recursive_mutex m_mutex;
 
 	void readscreen_plugin(int32_t* width = nullptr, int32_t* height = nullptr)
 	{
-		if (is_mge_available())
+		if (core_is_mge_available())
 		{
 			MGECompositor::copy_video(m_video_buf);
 			MGECompositor::get_video_size(width, height);
@@ -54,9 +52,9 @@ namespace EncodingManager
 			void* buf = nullptr;
 			int32_t w;
 			int32_t h;
-			readScreen(&buf, &w, &h);
+			g_core.plugin_funcs.read_screen(&buf, &w, &h);
 			memcpy(m_video_buf, buf, w * h * 3);
-			DllCrtFree(buf);
+			g_core.plugin_funcs.dll_crt_free(buf);
 
 			if (width)
 			{
@@ -224,9 +222,9 @@ namespace EncodingManager
 	{
 		if (g_config.capture_mode == 0)
 		{
-			if (!is_mge_available() && !readScreen)
+			if (!core_is_mge_available() && !g_core.plugin_funcs.read_screen)
 			{
-				FrontendService::show_dialog(L"The current video plugin has no readScreen implementation.\nPlugin capture is not possible.", L"Capture", FrontendService::DialogType::Error);
+				FrontendService::show_dialog(L"The current video plugin has no readScreen implementation.\nPlugin capture is not possible.", L"Capture", fsvc_error);
 				stop_capture();
 				return;
 			}
@@ -240,9 +238,9 @@ namespace EncodingManager
 			readscreen_desktop();
 		} else if (g_config.capture_mode == 3)
 		{
-			if (!is_mge_available() && !readScreen)
+			if (!core_is_mge_available() && !g_core.plugin_funcs.read_screen)
 			{
-				FrontendService::show_dialog(L"The current video plugin has no readScreen implementation.\nHybrid capture is not possible.", L"Capture", FrontendService::DialogType::Error);
+				FrontendService::show_dialog(L"The current video plugin has no readScreen implementation.\nHybrid capture is not possible.", L"Capture", fsvc_error);
 				stop_capture();
 				return;
 			}
@@ -257,17 +255,17 @@ namespace EncodingManager
 	{
 		if (g_config.capture_mode == 0)
 		{
-			if (is_mge_available())
+			if (core_is_mge_available())
 			{
 				MGECompositor::get_video_size(width, height);
-			} else if(get_video_size)
+			} else if(g_core.plugin_funcs.get_video_size)
 			{
-				get_video_size(width, height);
+				g_core.plugin_funcs.get_video_size(width, height);
 			} else
 			{
 				void* buf = nullptr;
-				readScreen(&buf, width, height);
-				DllCrtFree(buf);
+				g_core.plugin_funcs.read_screen(&buf, width, height);
+				g_core.plugin_funcs.dll_crt_free(buf);
 			}
 		} else if (g_config.capture_mode == 1 || g_config.capture_mode == 2 || g_config.capture_mode == 3)
 		{
@@ -280,7 +278,7 @@ namespace EncodingManager
 		}
 	}
 
-	bool start_capture(std::filesystem::path path, EncoderType encoder_type, const bool ask_for_encoding_settings)
+	bool start_capture(std::filesystem::path path, core_encoder_type encoder_type, const bool ask_for_encoding_settings)
 	{
 		std::lock_guard lock(m_mutex);
 
@@ -295,10 +293,10 @@ namespace EncodingManager
 
 		switch (encoder_type)
 		{
-		case EncoderType::VFW:
+		case ENCODER_VFW:
 			m_encoder = std::make_unique<AVIEncoder>();
 			break;
-		case EncoderType::FFmpeg:
+		case ENCODER_FFMPEG:
 			m_encoder = std::make_unique<FFmpegEncoder>();
 			break;
 		default:
@@ -308,7 +306,7 @@ namespace EncodingManager
 		m_encoder_type = encoder_type;
 		m_current_path = path;
 
-		if (encoder_type == EncoderType::FFmpeg)
+		if (encoder_type == ENCODER_FFMPEG)
 		{
 			m_current_path.replace_extension(".mp4");
 		}
@@ -325,19 +323,19 @@ namespace EncodingManager
 			.path = m_current_path,
 			.width = (uint32_t)m_video_width,
 			.height = (uint32_t)m_video_height,
-			.fps = get_vis_per_second(ROM_HEADER.Country_code),
+			.fps = core_vr_get_vis_per_second(core_vr_get_rom_header()->Country_code),
 			.arate = (uint32_t)m_audio_freq,
 			.ask_for_encoding_settings = ask_for_encoding_settings,
 		});
 
 		if (!result)
 		{
-			FrontendService::show_dialog(L"Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", L"Capture", FrontendService::DialogType::Error);
+			FrontendService::show_dialog(L"Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", L"Capture", fsvc_error);
 			return false;
 		}
 
 		m_capturing = true;
-		g_vr_no_frameskip = true;
+	    g_config.render_throttling = false;
 
 		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 
@@ -357,14 +355,15 @@ namespace EncodingManager
 
 		if (!m_encoder->stop())
 		{
-			FrontendService::show_dialog(L"Failed to stop encoding.", L"Capture", FrontendService::DialogType::Error);
+			FrontendService::show_dialog(L"Failed to stop encoding.", L"Capture", fsvc_error);
 			return false;
 		}
 
 		m_encoder.release();
 
 		m_capturing = false;
-		g_vr_no_frameskip = false;
+	    g_config.render_throttling = true;
+	    
 		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 
 		g_view_logger->info("[EncodingManager]: Capture finished.");
@@ -395,7 +394,7 @@ namespace EncodingManager
 
 		FrontendService::show_dialog(
 			L"Failed to append frame to video.\nPerhaps you ran out of memory?",
-			L"Capture", FrontendService::DialogType::Error);
+			L"Capture", fsvc_error);
 		stop_capture();
 	}
 
@@ -403,11 +402,11 @@ namespace EncodingManager
 	{
 		std::lock_guard lock(m_mutex);
 
-		const auto p = reinterpret_cast<short*>((char*)rdram + (ai_register.ai_dram_addr & 0xFFFFFF));
+		const auto p = reinterpret_cast<short*>((char*)g_core.rdram + (g_core.ai_register->ai_dram_addr & 0xFFFFFF));
 		const auto buf = (char*)p;
-		const int ai_len = (int)ai_register.ai_len;
+		const int ai_len = (int)g_core.ai_register->ai_len;
 
-		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
+		m_audio_bitrate = (int)g_core.ai_register->ai_bitrate + 1;
 
 		if (!m_capturing)
 		{
@@ -421,36 +420,36 @@ namespace EncodingManager
 		{
 			FrontendService::show_dialog(
 				L"Failed to append audio data.\nCapture will be stopped.",
-				L"Capture", FrontendService::DialogType::Error);
+				L"Capture", fsvc_error);
 			stop_capture();
 		}
 	}
 
 	void ai_dacrate_changed(std::any data)
 	{
-		auto type = std::any_cast<SystemType>(data);
+		auto type = std::any_cast<system_type>(data);
 
 		if (m_capturing)
 		{
-			FrontendService::show_dialog(L"Audio frequency changed during capture.\r\nThe capture will be stopped.", L"Capture", FrontendService::DialogType::Error);
+			FrontendService::show_dialog(L"Audio frequency changed during capture.\r\nThe capture will be stopped.", L"Capture", fsvc_error);
 			g_main_window_dispatcher->invoke([] {
 				stop_capture();
 			});
 			return;
 		}
 
-		m_audio_bitrate = (int)ai_register.ai_bitrate + 1;
+		m_audio_bitrate = (int)g_core.ai_register->ai_bitrate + 1;
 
 		switch (type)
 		{
-		case SystemType::NTSC:
-			m_audio_freq = (int)(48681812 / (ai_register.ai_dacrate + 1));
+		case sys_ntsc:
+			m_audio_freq = (int)(48681812 / (g_core.ai_register->ai_dacrate + 1));
 			break;
-		case SystemType::PAL:
-			m_audio_freq = (int)(49656530 / (ai_register.ai_dacrate + 1));
+		case sys_pal:
+			m_audio_freq = (int)(49656530 / (g_core.ai_register->ai_dacrate + 1));
 			break;
-		case SystemType::MPAL:
-			m_audio_freq = (int)(48628316 / (ai_register.ai_dacrate + 1));
+		case sys_mpal:
+			m_audio_freq = (int)(48628316 / (g_core.ai_register->ai_dacrate + 1));
 			break;
 		default:
 			assert(false);

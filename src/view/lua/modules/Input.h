@@ -11,7 +11,7 @@ extern "C" {
 }
 
 #include <Windows.h>
-#include <view/gui/Main.h>
+#include <gui/Main.h>
 
 namespace LuaCore::Input
 {

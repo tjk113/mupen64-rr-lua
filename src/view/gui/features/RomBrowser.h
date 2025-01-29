@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core/r4300/rom.h>
+#include <core_api.h>
 
 namespace RomBrowser
 {

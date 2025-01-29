@@ -6,11 +6,11 @@
 
 #include "stdafx.h"
 #include "MGECompositor.h"
+#include <Messenger.h>
 #include <Windows.h>
-#include <core/Messenger.h>
-#include <core/r4300/Plugin.h>
-#include <view/gui/Main.h>
-#include <view/gui/Loggers.h>
+#include <gui/Main.h>
+#include <gui/Loggers.h>
+#include <core_api.h>
 
 namespace MGECompositor
 {
@@ -104,13 +104,13 @@ namespace MGECompositor
         Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, [](std::any data)
         {
             auto value = std::any_cast<bool>(data);
-            ShowWindow(control_hwnd, (value && is_mge_available()) ? SW_SHOW : SW_HIDE);
+            ShowWindow(control_hwnd, (value && core_is_mge_available()) ? SW_SHOW : SW_HIDE);
         });
     }
 
     void update_screen()
     {
-        ::get_video_size(&internal_buffer.width, &internal_buffer.height);
+        g_core.plugin_funcs.get_video_size(&internal_buffer.width, &internal_buffer.height);
 
         if (internal_buffer.width != internal_buffer.last_width || internal_buffer.height != internal_buffer.last_height)
         {
@@ -137,7 +137,7 @@ namespace MGECompositor
             MoveWindow(control_hwnd, 0, 0, internal_buffer.width, internal_buffer.height, true);
         }
 
-        read_video(&internal_buffer.buffer);
+        g_core.plugin_funcs.read_video(&internal_buffer.buffer);
 
         internal_buffer.last_width = internal_buffer.width;
         internal_buffer.last_height = internal_buffer.height;

@@ -5,17 +5,16 @@
  */
 
 #include "stdafx.h"
-#include "Runner.h"
+#include <AsyncExecutor.h>
+#include <Config.h>
+#include <Messenger.h>
 #include <Windows.h>
 #include <Windowsx.h>
-#include <view/resource.h>
-#include <view/gui/Main.h>
-#include <view/lua/LuaConsole.h>
-#include <core/Messenger.h>
-#include <core/Config.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/vcr.h>
-#include <core/AsyncExecutor.h>
+#include <core_api.h>
+#include <resource.h>
+#include <gui/Main.h>
+#include <gui/features/Runner.h>
+#include <lua/LuaConsole.h>
 
 namespace Runner
 {
@@ -26,20 +25,22 @@ namespace Runner
         switch (id)
         {
         case IDC_LIST_ROMS:
-            AsyncExecutor::invoke_async([path]
-            {
-                const auto result = vr_start_rom(path);
+            AsyncExecutor::invoke_async([path] {
+                const auto result = core_vr_start_rom(path, false);
+                if (result == Res_Ok)
+                {
+                    g_rom_path = path;
+                }
                 show_error_dialog_for_result(result);
             });
             break;
         case IDC_LIST_MOVIES:
             g_config.vcr_readonly = true;
             Messenger::broadcast(
-                Messenger::Message::ReadonlyChanged,
-                (bool)g_config.vcr_readonly);
-            AsyncExecutor::invoke_async([=]
-            {
-                VCR::start_playback(path);
+            Messenger::Message::ReadonlyChanged,
+            (bool)g_config.vcr_readonly);
+            AsyncExecutor::invoke_async([=] {
+                core_vcr_start_playback(path);
             });
             break;
         case IDC_LIST_SCRIPTS:
@@ -56,8 +57,7 @@ namespace Runner
         case WM_INITDIALOG:
             {
                 last_selected_id = -1;
-                auto populate_with_paths = [&](const int id, std::vector<std::wstring> paths)
-                {
+                auto populate_with_paths = [&](const int id, std::vector<std::wstring> paths) {
                     auto ctl = GetDlgItem(hwnd, id);
                     for (auto path : paths)
                     {
@@ -128,10 +128,12 @@ namespace Runner
             case IDCANCEL:
                 EndDialog(hwnd, IDCANCEL);
                 break;
-            default: break;
+            default:
+                break;
             }
             break;
-        default: break;
+        default:
+            break;
         }
         return FALSE;
     }
@@ -142,4 +144,4 @@ namespace Runner
                   MAKEINTRESOURCE(IDD_RUNNER), g_main_hwnd,
                   (DLGPROC)WndProc);
     }
-}
+} // namespace Runner

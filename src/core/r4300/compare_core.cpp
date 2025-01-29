@@ -5,9 +5,9 @@
  */
 
 #include "stdafx.h"
-#include "r4300.h"
-#include "../r4300/recomph.h"
-#include <core/services/LoggingService.h>
+#include <core/Core.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/recomph.h>
 
 static FILE* f;
 static int32_t pipe_opened = 0;
@@ -20,27 +20,27 @@ void display_error(const char* txt)
 {
     int32_t i;
     uint32_t* comp_reg2 = (uint32_t*)comp_reg;
-    g_core_logger->error("err: {}", txt);
+    g_core->logger->error("err: {}", txt);
     if (interpcore)
     {
-        g_core_logger->info("addr:{:#06x}", (int32_t)interp_addr);
-        if (!strcmp(txt, "PC")) g_core_logger->info("{:#06x} - {:#06x}", (int32_t)interp_addr, *(int32_t*)&comp_reg[0]);
+        g_core->logger->info("addr:{:#06x}", (int32_t)interp_addr);
+        if (!strcmp(txt, "PC")) g_core->logger->info("{:#06x} - {:#06x}", (int32_t)interp_addr, *(int32_t*)&comp_reg[0]);
     }
     else
     {
-        g_core_logger->info("addr:{:#06x}", (int32_t)PC->addr);
-        if (!strcmp(txt, "PC")) g_core_logger->info("{:#06x} - {:#06x}", (int32_t)PC->addr, *(int32_t*)&comp_reg[0]);
+        g_core->logger->info("addr:{:#06x}", (int32_t)PC->addr);
+        if (!strcmp(txt, "PC")) g_core->logger->info("{:#06x} - {:#06x}", (int32_t)PC->addr, *(int32_t*)&comp_reg[0]);
     }
-    g_core_logger->info("{:#06x}, {:#06x}", (uint32_t)reg_cop0[9], (uint32_t)comp_reg2[9]);
-    g_core_logger->info("erreur @:{:#06x}", (int32_t)old_op);
-    g_core_logger->info("erreur @:{:#06x}", (int32_t)vr_op);
+    g_core->logger->info("{:#06x}, {:#06x}", (uint32_t)reg_cop0[9], (uint32_t)comp_reg2[9]);
+    g_core->logger->info("erreur @:{:#06x}", (int32_t)old_op);
+    g_core->logger->info("erreur @:{:#06x}", (int32_t)vr_op);
 
     if (!strcmp(txt, "gpr"))
     {
         for (i = 0; i < 32; i++)
         {
             if (reg[i] != comp_reg[i])
-                g_core_logger->info("reg[{}]={:#08x} != reg[{}]={:#08x}",
+                g_core->logger->info("reg[{}]={:#08x} != reg[{}]={:#08x}",
                        i, reg[i], i, comp_reg[i]);
         }
     }
@@ -49,14 +49,14 @@ void display_error(const char* txt)
         for (i = 0; i < 32; i++)
         {
             if (reg_cop0[i] != comp_reg2[i])
-                g_core_logger->info("reg_cop0[{}]={:#06x} != reg_cop0[{}]={:#06x}",
+                g_core->logger->info("reg_cop0[{}]={:#06x} != reg_cop0[{}]={:#06x}",
                        i, (uint32_t)reg_cop0[i], i, (uint32_t)comp_reg2[i]);
         }
     }
     /*for (i=0; i<32; i++)
       {
      if (reg_cop0[i] != comp_reg[i])
-       g_core_logger->info("reg_cop0[{}]=%llx != reg[{}]=%llx",
+       g_core->logger->info("reg_cop0[{}]=%llx != reg[{}]=%llx",
           i, reg_cop0[i], i, comp_reg[i]);
       }*/
 
@@ -161,7 +161,7 @@ void compare_core()
     }
     else
     {
-        //if (reg_cop0[9] > 0x6800000) g_core_logger->info("PC={:#06x}", (int32_t)PC->addr);
+        //if (reg_cop0[9] > 0x6800000) g_core->logger->info("PC={:#06x}", (int32_t)PC->addr);
         if (pipe_opened != 2)
         {
             if (f) fclose(f);

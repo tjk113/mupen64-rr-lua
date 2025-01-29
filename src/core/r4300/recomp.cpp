@@ -2163,7 +2163,7 @@ void init_block(int32_t* source, precomp_block* block)
 {
     int32_t i, length, already_exist = 1;
     static int32_t init_length;
-    //g_core_logger->info("init block recompiled {:#06x}\n", (int32_t)block->start);
+    //g_core->logger->info("init block recompiled {:#06x}\n", (int32_t)block->start);
 
     length = (block->end - block->start) / 4;
 
@@ -2336,10 +2336,10 @@ void recompile_block(int32_t* source, precomp_block* block, uint32_t func)
         dst->reg_cache_infos.need_map = 0;
         dst->local_addr = code_length;
         recomp_ops[((src >> 26) & 0x3F)]();
-        if (tracelog::active())
+        if (core_vr_is_tracelog_active())
         {
             dst->s_ops = dst->ops;
-            dst->ops = tracelog::log_interp_ops;
+            dst->ops = tracelog_log_interp_ops;
             dst->src = src;
         }
         dst = block->block + i;
@@ -2400,7 +2400,7 @@ void recompile_block(int32_t* source, precomp_block* block, uint32_t func)
         block->max_code_length = max_code_length;
         free_assembler(&block->jumps_table, &block->jumps_number);
     }
-    //g_core_logger->info("block recompiled ({:#06x}-%x)\n", (int32_t)func, (int32_t)(block->start+i*4));
+    //g_core->logger->info("block recompiled ({:#06x}-%x)\n", (int32_t)func, (int32_t)(block->start+i*4));
     //getchar();
 }
 

@@ -12,21 +12,10 @@
  *	Must be implemented in the view layer.
  */
 
-#include <core/Config.h>
-#include <core/CoreTypes.h>
+#include <core_api.h>
 
 namespace FrontendService
 {
-    /**
-     * The tone of a dialog.
-     */
-    enum class DialogType
-    {
-        Error,
-        Warning,
-        Information,
-    };
-
     /**
      * Prompts the user to pick a choice from a provided collection of choices.
      * \param choices The collection of choices.
@@ -35,7 +24,7 @@ namespace FrontendService
      * \param hwnd The parent window
      * \return The index of the chosen choice
      */
-    size_t show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title = nullptr, DialogType type = DialogType::Warning, void* hwnd = nullptr);
+    size_t show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title = nullptr, fsvc_dialog_type type = fsvc_warning, void* hwnd = nullptr);
 
     /**
      * \brief Asks the user a yes/no question
@@ -55,7 +44,7 @@ namespace FrontendService
 	 * \param type The dialog tone.
 	 * \param hwnd The parent window.
 	 */
-	void show_dialog(const wchar_t* str, const wchar_t* title = nullptr, DialogType type = DialogType::Warning, void* hwnd = nullptr);
+	void show_dialog(const wchar_t* str, const wchar_t* title = nullptr, fsvc_dialog_type type = fsvc_warning, void* hwnd = nullptr);
 
     /**
      * \brief Shows text in the statusbar
@@ -74,32 +63,7 @@ namespace FrontendService
      * \remarks Because the shared layer is unaware of keycodes, the view must do this.
      * FIXME: While this works for now, storing platform-dependent keycodes in the config will make config files incompatible across platforms.
      */
-    void set_default_hotkey_keys(t_config* config);
-
-    /**
-     * \brief Gets the native handle of the app instance
-     */
-    void* get_app_instance_handle();
-
-    /**
-     * \brief Gets the native handle of the main emulator window
-     */
-    void* get_main_window_handle();
-
-    /**
-     * \brief Gets the native handle of the statusbar. Can be null.
-     */
-    void* get_statusbar_handle();
-
-    /**
-     * \brief Gets the native handle of the parent window of the plugin configuration dialog
-     */
-    void* get_plugin_config_parent_handle();
-
-    /**
-     * \brief Gets whether the view prefers the core to not skip rendering any frames
-     */
-    bool get_prefers_no_render_skip();
+    void set_default_hotkey_keys(core_cfg* config);
 
     /**
      * \brief Updates the screen with the current visual information
@@ -122,24 +86,4 @@ namespace FrontendService
      * \return The rom's path, or an empty string if no rom was found
      */
     std::wstring find_available_rom(const std::function<bool(const t_rom_header&)>& predicate);
-
-    /**
-     * Gets the current video size from the MGE compositor
-     * \param width The video width
-     * \param height The video height
-     */
-    void mge_get_video_size(int32_t* width, int32_t* height);
-
-    /**
-     * \brief Writes the MGE compositor's current emulation front buffer into the destination buffer.
-     * \param buffer The video buffer. Must be at least of size <c>width * height * 3</c>, as acquired by <c>mge_get_video_size</c>.
-     */
-    void mge_copy_video(void* buffer);
-
-    /**
-     * \brief Draws the given data to the MGE surface
-     * \param data The buffer holding video data. Must be at least of size <c>width * height * 3</c>, as acquired by <c>mge_get_video_size</c>.
-     * \remarks The video buffer's size must match the current video size provided by <c>get_video_size</c>.
-     */
-    void mge_load_screen(void* data);
 }

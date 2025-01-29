@@ -5,19 +5,18 @@
  */
 
 #include "stdafx.h"
-#include <core/services/LoggingService.h>
-#include "r4300.h"
-#include "exception.h"
-#include "../memory/memory.h"
-#include "macros.h"
-#include "interrupt.h"
-#include "cop1_helpers.h"
-#include "rom.h"
-#include "../memory/tlb.h"
-#include "tracelog.h"
-#include <core/Config.h>
-#include <core/Messenger.h>
-#include "debugger.h"
+#include <core/Core.h>
+#include <core/include/core_api.h>
+#include <core/memory/memory.h>
+#include <core/memory/tlb.h>
+#include <core/r4300/cop1_helpers.h>
+#include <core/r4300/debugger.h>
+#include <core/r4300/exception.h>
+#include <core/r4300/interrupt.h>
+#include <core/r4300/macros.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/rom.h>
+#include <core/r4300/tracelog.h>
 
 #ifdef DBG
 extern int32_t debugger_mode;
@@ -36,7 +35,7 @@ extern uint32_t next_vi;
 
 static void NI()
 {
-    g_core_logger->info("NI:{:#06x}", (uint32_t)vr_op);
+    g_core->logger->info("NI:{:#06x}", (uint32_t)vr_op);
     stop = 1;
 }
 
@@ -203,7 +202,7 @@ static void DIV()
         sign_extended(lo);
         sign_extended(hi);
     }
-    else g_core_logger->info("div");
+    else g_core->logger->info("div");
     interp_addr += 4;
 }
 
@@ -216,7 +215,7 @@ static void DIVU()
         sign_extended(lo);
         sign_extended(hi);
     }
-    else g_core_logger->info("divu");
+    else g_core->logger->info("divu");
     interp_addr += 4;
 }
 
@@ -300,7 +299,7 @@ static void DDIV()
         lo = (int64_t)core_rrs / (int64_t)core_rrt;
         hi = (int64_t)core_rrs % (int64_t)core_rrt;
     }
-    else g_core_logger->info("ddiv");
+    else g_core->logger->info("ddiv");
     interp_addr += 4;
 }
 
@@ -311,7 +310,7 @@ static void DDIVU()
         lo = (uint64_t)core_rrs / (uint64_t)core_rrt;
         hi = (uint64_t)core_rrs % (uint64_t)core_rrt;
     }
-    else g_core_logger->info("ddivu");
+    else g_core->logger->info("ddivu");
     interp_addr += 4;
 }
 
@@ -413,7 +412,7 @@ static void TEQ()
 {
     if (core_rrs == core_rrt)
     {
-        g_core_logger->error("trap exception in teq");
+        g_core->logger->error("trap exception in teq");
         stop = 1;
     }
     interp_addr += 4;
@@ -623,7 +622,7 @@ static void BLTZAL()
         if (local_rs < 0)
             interp_addr += (local_immediate - 1) * 4;
     }
-    else g_core_logger->error("erreur dans bltzal");
+    else g_core->logger->error("erreur dans bltzal");
     last_addr = interp_addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -658,7 +657,7 @@ static void BGEZAL()
         if (local_rs >= 0)
             interp_addr += (local_immediate - 1) * 4;
     }
-    else g_core_logger->error("erreur dans bgezal");
+    else g_core->logger->error("erreur dans bgezal");
     last_addr = interp_addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -696,7 +695,7 @@ static void BLTZALL()
         }
         else interp_addr += 8;
     }
-    else g_core_logger->error("erreur dans bltzall");
+    else g_core->logger->error("erreur dans bltzall");
     last_addr = interp_addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -734,7 +733,7 @@ static void BGEZALL()
         }
         else interp_addr += 8;
     }
-    else g_core_logger->info("erreur dans bgezall");
+    else g_core->logger->info("erreur dans bgezall");
     last_addr = interp_addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -945,7 +944,7 @@ static void ERET()
     update_count();
     if (core_Status & 0x4)
     {
-        g_core_logger->info("erreur dans ERET");
+        g_core->logger->info("erreur dans ERET");
         stop = 1;
     }
     else
@@ -976,7 +975,7 @@ static void MFC0()
     switch (PC->f.r.nrd)
     {
     case 1:
-        g_core_logger->info("lecture de Random");
+        g_core->logger->info("lecture de Random");
         stop = 1;
     default:
         rrt32 = reg_cop0[PC->f.r.nrd];
@@ -993,7 +992,7 @@ static void MTC0()
         core_Index = core_rrt & 0x8000003F;
         if ((core_Index & 0x3F) > 31)
         {
-            g_core_logger->info("il y a plus de 32 TLB");
+            g_core->logger->info("il y a plus de 32 TLB");
             stop = 1;
         }
         break;
@@ -1079,7 +1078,7 @@ static void MTC0()
     case 13: // Cause
         if (core_rrt != 0)
         {
-            g_core_logger->info("écriture dans Cause");
+            g_core->logger->info("écriture dans Cause");
             stop = 1;
         }
         else
@@ -1108,7 +1107,7 @@ static void MTC0()
         core_TagHi = 0;
         break;
     default:
-        g_core_logger->info("unknown mtc0 write : {}", PC->f.r.nrd);
+        g_core->logger->info("unknown mtc0 write : {}", PC->f.r.nrd);
         stop = 1;
     }
     interp_addr += 4;
@@ -1294,7 +1293,7 @@ static void DIV_S()
 {
     if ((FCR31 & 0x400) && *reg_cop1_simple[core_cfft] == 0)
     {
-        g_core_logger->info("div_s by 0");
+        g_core->logger->info("div_s by 0");
     }
     set_rounding();
     CHECK_INPUT(*reg_cop1_simple[core_cffs]);
@@ -1521,7 +1520,7 @@ static void C_SF_S()
 {
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     FCR31 &= ~0x800000;
@@ -1532,7 +1531,7 @@ static void C_NGLE_S()
 {
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     FCR31 &= ~0x800000;
@@ -1543,7 +1542,7 @@ static void C_SEQ_S()
 {
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] == *reg_cop1_simple[core_cfft])
@@ -1556,7 +1555,7 @@ static void C_NGL_S()
 {
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] == *reg_cop1_simple[core_cfft])
@@ -1569,7 +1568,7 @@ static void C_LT_S()
 {
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] < *reg_cop1_simple[core_cfft])
@@ -1582,7 +1581,7 @@ static void C_NGE_S()
 {
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] < *reg_cop1_simple[core_cfft])
@@ -1595,7 +1594,7 @@ static void C_LE_S()
 {
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] <= *reg_cop1_simple[core_cfft])
@@ -1608,7 +1607,7 @@ static void C_NGT_S()
 {
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] <= *reg_cop1_simple[core_cfft])
@@ -1670,7 +1669,7 @@ static void DIV_D()
         /*FCR31 |= 0x8000;
         Cause = 15 << 2;
         exception_general();*/
-        g_core_logger->info("div_d by 0");
+        g_core->logger->info("div_d by 0");
         //return;
     }
     set_rounding();
@@ -1802,7 +1801,7 @@ static void FLOOR_W_D()
 static void CVT_S_D()
 {
     CHECK_INPUT(*reg_cop1_double[core_cffs]);
-    if (g_config.wii_vc_emulation)
+    if (g_core->cfg->wii_vc_emulation)
     {
         set_trunc();
     }
@@ -1908,7 +1907,7 @@ static void C_SF_D()
 {
     if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     FCR31 &= ~0x800000;
@@ -1919,7 +1918,7 @@ static void C_NGLE_D()
 {
     if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     FCR31 &= ~0x800000;
@@ -1930,7 +1929,7 @@ static void C_SEQ_D()
 {
     if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
@@ -1943,7 +1942,7 @@ static void C_NGL_D()
 {
     if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_double[core_cffs] == *reg_cop1_double[core_cfft])
@@ -1956,7 +1955,7 @@ static void C_LT_D()
 {
     if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
@@ -1969,7 +1968,7 @@ static void C_NGE_D()
 {
     if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_double[core_cffs] < *reg_cop1_double[core_cfft])
@@ -1982,7 +1981,7 @@ static void C_LE_D()
 {
     if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
@@ -1995,7 +1994,7 @@ static void C_NGT_D()
 {
     if (isnan(*reg_cop1_double[core_cffs]) || isnan(*reg_cop1_double[core_cfft]))
     {
-        g_core_logger->info("Invalid operation exception in C opcode");
+        g_core->logger->info("Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_double[core_cffs] <= *reg_cop1_double[core_cfft])
@@ -2127,7 +2126,7 @@ static void CTC1()
         rounding_mode = FLOOR_MODE;
         break;
     }
-    //if ((FCR31 >> 7) & 0x1F) g_core_logger->info("FPU Exception enabled : {:#06x}\n",
+    //if ((FCR31 >> 7) & 0x1F) g_core->logger->info("FPU Exception enabled : {:#06x}\n",
     //				   (int32_t)((FCR31 >> 7) & 0x1F));
     set_rounding();
     interp_addr += 4;
@@ -3101,23 +3100,23 @@ void prefetch()
     fscanf(f, "%x", &comp);
     if (comp != interp_addr)
       {
-         g_core_logger->info("diff@%x, line:{}", interp_addr, line);
+         g_core->logger->info("diff@%x, line:{}", interp_addr, line);
          stop=1;
       }*/
     //line++;
-    //if ((debug_count+Count) > 0x50fe000) g_core_logger->info("line:{}", line);
+    //if ((debug_count+Count) > 0x50fe000) g_core->logger->info("line:{}", line);
     /*if ((debug_count+Count) > 0xb70000)
-      g_core_logger->info("count:%x, add:%x, op:%x, l{}\n", (int32_t)(Count+debug_count),
+      g_core->logger->info("count:%x, add:%x, op:%x, l{}\n", (int32_t)(Count+debug_count),
          interp_addr, op, line);*/
     //}
-    //g_core_logger->info("addr:%x", interp_addr);
+    //g_core->logger->info("addr:%x", interp_addr);
     if ((interp_addr >= 0x80000000) && (interp_addr < 0xc0000000))
     {
         if (/*(interp_addr >= 0x80000000) && */(interp_addr < 0x80800000))
         {
             vr_op = *(uint32_t*)&((unsigned char*)rdram)[(interp_addr & 0xFFFFFF)];
             /*if ((debug_count+Count) > 0xabaa20)
-              g_core_logger->info("count:%x, add:%x, op:%x, l{}\n", (int32_t)(Count+debug_count),
+              g_core->logger->info("count:%x, add:%x, op:%x, l{}\n", (int32_t)(Count+debug_count),
                  interp_addr, op, line);*/
             prefetch_opcode(vr_op);
         }
@@ -3134,7 +3133,7 @@ void prefetch()
         else
         {
             //unmapped memory exception
-            g_core_logger->info("Exception, attempt to prefetch unmapped memory at: {:#08x}\n", (int32_t)interp_addr);
+            g_core->logger->info("Exception, attempt to prefetch unmapped memory at: {:#08x}\n", (int32_t)interp_addr);
             stop = 1;
         }
     }
@@ -3155,8 +3154,8 @@ void prefetch()
         interp_addr = addr;
         return;
     }
-    if (tracelog::active())
-        tracelog::log_pure();
+    if (core_vr_is_tracelog_active())
+        tracelog_log_pure();
 }
 
 void pure_interpreter()
@@ -3166,17 +3165,17 @@ void pure_interpreter()
     PC = (precomp_instr*)malloc(sizeof(precomp_instr));
     last_addr = interp_addr;
     core_executing = true;
-	Messenger::broadcast(Messenger::Message::CoreExecutingChanged, core_executing);
-    g_core_logger->info(L"core_executing: {}", (bool)core_executing);
+    g_core->callbacks.core_executing_changed(core_executing);
+    g_core->logger->info(L"core_executing: {}", (bool)core_executing);
     while (!stop)
     {
         //if (interp_addr == 0x10022d08) stop = 1;
-        //g_core_logger->info("addr: %x", interp_addr);
+        //g_core->logger->info("addr: %x", interp_addr);
         prefetch();
 #ifdef COMPARE_CORE
 		compare_core();
 #endif
-        //if (Count > 0x2000000) g_core_logger->info("inter:%x,%x", interp_addr,op);
+        //if (Count > 0x2000000) g_core->logger->info("inter:%x,%x", interp_addr,op);
         //if ((Count+debug_count) > 0xabaa2c) stop=1;
         interp_ops[((vr_op >> 26) & 0x3F)]();
         g_vr_beq_ignore_jmp = false;
@@ -3187,7 +3186,7 @@ void pure_interpreter()
 		PC->addr = interp_addr;
 		if (debugger_mode) update_debugger();
 #endif
-        while (!Debugger::get_resumed())
+        while (!core_dbg_get_resumed())
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
@@ -3204,8 +3203,8 @@ void interprete_section(uint32_t addr)
     while (!stop && (addr >> 12) == (interp_addr >> 12))
     {
         prefetch();
-        if (tracelog::active())
-            tracelog::log_pure();
+        if (core_vr_is_tracelog_active())
+            tracelog_log_pure();
         PC->addr = interp_addr;
         interp_ops[((vr_op >> 26) & 0x3F)]();
 #ifdef DBG

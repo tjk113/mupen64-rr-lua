@@ -5,11 +5,10 @@
  */
 
 #include "stdafx.h"
-#include <core/Messenger.h>
+#include <core/Core.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/recomp.h>
 #include <core/r4300/recomph.h>
-#include <core/services/LoggingService.h>
 
 // NOTE: dynarec isn't compatible with the game debugger
 
@@ -29,8 +28,8 @@ void dyna_start(void (*code)())
     // –ß‚Á‚Ä‚«‚½ setjmp() ‚Í 1 ‚ð•Ô‚·‚Ì‚ÅAdyna_start() I—¹
     // ƒŒƒWƒXƒ^ ebx, esi, edi, ebp ‚Ì•Û‘¶‚Æ•œŒ³‚ª•K—v‚¾‚ªAsetjmp() ‚ª‚â‚Á‚Ä‚­‚ê‚é
     core_executing = true;
-	Messenger::broadcast(Messenger::Message::CoreExecutingChanged, core_executing);
-    g_core_logger->info(L"core_executing: {}", (bool)core_executing);
+    g_core->callbacks.core_executing_changed(core_executing);
+    g_core->logger->info(L"core_executing: {}", (bool)core_executing);
     if (setjmp(g_jmp_state) == 0)
     {
         code();

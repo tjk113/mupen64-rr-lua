@@ -9,10 +9,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/wincolor_sink.h>
 
-#include "core/services/LoggingService.h"
-
 std::shared_ptr<spdlog::logger> g_core_logger;
-std::shared_ptr<spdlog::logger> g_shared_logger;
 std::shared_ptr<spdlog::logger> g_view_logger;
 
 void Loggers::init()
@@ -36,23 +33,19 @@ void Loggers::init()
 
 #ifdef _DEBUG
     spdlog::sinks_init_list sink_list = {
-        std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log"),
-        std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>()
-    };
+    std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log"),
+    std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>()};
 #else
     spdlog::sinks_init_list sink_list = {
-        std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log"),
+    std::make_shared<spdlog::sinks::basic_file_sink_mt>("mupen.log"),
     };
 #endif
-    
+
     g_core_logger = std::make_shared<spdlog::logger>("Core", sink_list);
-    g_shared_logger = std::make_shared<spdlog::logger>("Shared", sink_list);
     g_view_logger = std::make_shared<spdlog::logger>("View", sink_list);
-    
+
     g_core_logger->set_level(spdlog::level::trace);
-    g_shared_logger->set_level(spdlog::level::trace);
     g_view_logger->set_level(spdlog::level::trace);
     g_core_logger->flush_on(spdlog::level::err);
-    g_shared_logger->flush_on(spdlog::level::err);
     g_view_logger->flush_on(spdlog::level::err);
 }

@@ -7,6 +7,7 @@
 #pragma once
 
 extern std::shared_ptr<spdlog::logger> g_view_logger;
+extern std::shared_ptr<spdlog::logger> g_core_logger;
 
 namespace Loggers
 {

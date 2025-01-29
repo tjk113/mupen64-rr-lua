@@ -5,7 +5,7 @@
  */
 
 #include "stdafx.h"
-#include <core/Config.h>
+#include <core/Core.h>
 #include <core/r4300/exception.h>
 #include <core/r4300/macros.h>
 #include <core/r4300/ops.h>
@@ -150,7 +150,7 @@ void genjr()
     uint32_t temp, temp2;
 
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)JR, 1);
         return;
@@ -219,7 +219,7 @@ void genjalr()
     uint32_t temp, temp2;
 
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)JALR, 1);
         return;

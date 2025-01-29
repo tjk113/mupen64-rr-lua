@@ -6,6 +6,7 @@
 
 #include "stdafx.h"
 #include "disasm.h"
+#include <core/include/core_api.h>
 
 typedef enum INSTSETOP_t
 {
@@ -616,7 +617,7 @@ char* GetOperandString(char* buf, INSTDECODE* d, uint32_t pc)
 }
 
 //max-size:27 = 9(opecode)+1(space)+16(operand)+1(NUL)
-char* DisassembleInstruction(char* buf, uint32_t w, uint32_t pc)
+char* core_dbg_disassemble(char* buf, uint32_t w, uint32_t pc)
 {
     INSTDECODE decode;
     const char* p;

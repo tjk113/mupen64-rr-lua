@@ -5,16 +5,14 @@
  */
 
 #include "stdafx.h"
-#include <view/lua/LuaConsole.h>
-#include <view/resource.h>
-#include <view/gui/Main.h>
-#include "CoreDbg.h"
+#include <Messenger.h>
 #include <Windows.h>
 #include <Windowsx.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/disasm.h>
-#include "core/r4300/debugger.h"
-#include "core/Messenger.h"
+#include <core_api.h>
+#include <resource.h>
+#include <gui/Main.h>
+#include <gui/features/CoreDbg.h>
+#include <lua/LuaConsole.h>
 
 #define WM_DEBUGGER_CPU_STATE_UPDATED (WM_USER + 20)
 #define WM_DEBUGGER_RESUMED_UPDATED (WM_USER + 21)
@@ -22,7 +20,7 @@
 namespace CoreDbg
 {
     std::atomic<HWND> g_hwnd = nullptr;
-    Debugger::t_cpu_state g_cpu_state{};
+    core_dbg_cpu_state g_cpu_state{};
 
 	INT_PTR CALLBACK coredbg_dlgproc(HWND hwnd, UINT msg, WPARAM w_param,
                                   LPARAM l_param)
@@ -44,16 +42,16 @@ namespace CoreDbg
             switch (LOWORD(w_param))
             {
             case IDC_COREDBG_CART_TILT:
-                Debugger::set_dma_read_enabled(!IsDlgButtonChecked(hwnd, IDC_COREDBG_CART_TILT));
+                core_dbg_set_dma_read_enabled(!IsDlgButtonChecked(hwnd, IDC_COREDBG_CART_TILT));
                 break;
             case IDC_COREDBG_RSP_TOGGLE:
-                Debugger::set_rsp_enabled(IsDlgButtonChecked(hwnd, IDC_COREDBG_RSP_TOGGLE));
+                core_dbg_set_rsp_enabled(IsDlgButtonChecked(hwnd, IDC_COREDBG_RSP_TOGGLE));
                 break;
             case IDC_COREDBG_STEP:
-                Debugger::step();
+                core_dbg_step();
                 break;
             case IDC_COREDBG_TOGGLEPAUSE:
-                Debugger::set_is_resumed(!Debugger::get_resumed());
+                core_dbg_set_is_resumed(!core_dbg_get_resumed());
                 break;
             default:
                 break;
@@ -64,7 +62,7 @@ namespace CoreDbg
                 HWND list_hwnd = GetDlgItem(g_hwnd, IDC_COREDBG_LIST);
 
                 char disasm[255] = {0};
-                DisassembleInstruction(disasm,
+                core_dbg_disassemble(disasm,
                                        g_cpu_state.opcode,
                                        g_cpu_state.address);
 
@@ -78,7 +76,7 @@ namespace CoreDbg
                 break;
             }
         case WM_DEBUGGER_RESUMED_UPDATED:
-            Button_SetText(GetDlgItem(g_hwnd, IDC_COREDBG_TOGGLEPAUSE), Debugger::get_resumed() ? L"Pause" : L"Resume");
+            Button_SetText(GetDlgItem(g_hwnd, IDC_COREDBG_TOGGLEPAUSE), core_dbg_get_resumed() ? L"Pause" : L"Resume");
             break;
         default:
             return FALSE;
@@ -101,7 +99,7 @@ namespace CoreDbg
     {
         Messenger::subscribe(Messenger::Message::DebuggerCpuStateChanged, [](std::any data)
         {
-            g_cpu_state = std::any_cast<Debugger::t_cpu_state>(data);
+            g_cpu_state = std::any_cast<core_dbg_cpu_state>(data);
 
             if (g_hwnd)
             {

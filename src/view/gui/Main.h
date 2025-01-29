@@ -7,10 +7,10 @@
 #pragma once
 
 #include <Windows.h>
-#include <core/Config.h>
 #include <spdlog/logger.h>
-#include <view/gui/features/Dispatcher.h>
-#include <core/r4300/vcr.h>
+#include <gui/features/Dispatcher.h>
+#include <core_api.h>
+#include <Plugin.h>
 
 #ifdef _DEBUG
 #define BUILD_TARGET_INFO L"-debug"
@@ -41,6 +41,9 @@
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
 
+extern core_params g_core;
+extern bool g_frame_changed;
+
 extern DWORD g_ui_thread_id;
 
 extern int g_last_wheel_delta;
@@ -55,6 +58,11 @@ extern std::filesystem::path g_app_path;
 extern std::shared_ptr<Dispatcher> g_main_window_dispatcher;
 
 /**
+ * \brief Currently loaded ROM's path, or empty.
+ */
+extern std::filesystem::path g_rom_path;
+
+/**
  * \brief Whether the statusbar needs to be updated with new input information
  */
 extern bool is_primary_statusbar_invalidated;
@@ -67,8 +75,7 @@ extern bool g_fast_forward;
 /**
  * \brief Pauses the emulation during the object's lifetime, resuming it if previously paused upon being destroyed
  */
-struct BetterEmulationLock
-{
+struct BetterEmulationLock {
 private:
     bool was_paused;
 
@@ -85,6 +92,60 @@ typedef struct
 } t_window_info;
 
 extern t_window_info window_info;
+
+static bool task_is_playback(vcr_task task)
+{
+    return task == task_playback || task == task_start_playback_from_reset || task ==
+        task_start_playback_from_snapshot;
+}
+
+static bool vcr_is_task_recording(vcr_task task)
+{
+    return task == task_recording || task == task_start_recording_from_reset || task == task_start_recording_from_existing_snapshot || task ==
+        task_start_recording_from_snapshot;
+}
+
+constexpr uint32_t AddrMask = 0x7FFFFF;
+#define S8 3
+#define S16 2
+#define Sh16 1
+
+template <typename T>
+static uint32_t ToAddr(uint32_t addr)
+{
+    return sizeof(T) == 4
+               ? addr
+               : sizeof(T) == 2
+               ? addr ^ S16
+               : sizeof(T) == 1
+               ? addr ^ S8
+               : throw"ToAddr: sizeof(T)";
+}
+
+/**
+ * \brief Gets the value at the specified address from RDRAM
+ * \tparam T The value's type
+ * \param addr The start address of the value
+ * \return The value at the address
+ */
+template <typename T>
+static T LoadRDRAMSafe(uint32_t addr)
+{
+    return *((T*)((uint8_t*)g_core.rdram + ((ToAddr<T>(addr) & AddrMask))));
+}
+
+/**
+ * \brief Sets the value at the specified address in RDRAM
+ * \tparam T The value's type
+ * \param addr The start address of the value
+ * \param value The value to set
+ */
+template <typename T>
+static void StoreRDRAMSafe(uint32_t addr, T value)
+{
+    *((T*)((uint8_t*)g_core.rdram + ((ToAddr<T>(addr) & AddrMask)))) = value;
+}
+
 
 t_window_info get_window_info();
 
@@ -108,27 +169,27 @@ bool confirm_user_exit();
 bool is_on_gui_thread();
 
 /**
-* Shows an error dialog for a core result. If the result indicates no error, no work is done.
-* \param result The result to show an error dialog for.
-* \param hwnd The parent window handle for the spawned dialog. If null, the main window is used.
-* \returns Whether the function was able to show an error dialog.
-*/
-bool show_error_dialog_for_result(CoreResult result, void* hwnd = nullptr);
+ * Shows an error dialog for a core result. If the result indicates no error, no work is done.
+ * \param result The result to show an error dialog for.
+ * \param hwnd The parent window handle for the spawned dialog. If null, the main window is used.
+ * \returns Whether the function was able to show an error dialog.
+ */
+bool show_error_dialog_for_result(core_result result, void* hwnd = nullptr);
 
 /**
  * Represents the result of a plugin discovery operation.
  */
 typedef struct
 {
-	/**
-	 * The discovered plugins matching the plugin API surface.
-	 */
-	std::vector<std::unique_ptr<Plugin>> plugins;
+    /**
+     * The discovered plugins matching the plugin API surface.
+     */
+    std::vector<std::unique_ptr<Plugin>> plugins;
 
-	/**
-	 * Vector of discovered plugins and their results.
-	 */
-	std::vector<std::pair<std::filesystem::path, std::wstring>> results;
+    /**
+     * Vector of discovered plugins and their results.
+     */
+    std::vector<std::pair<std::filesystem::path, std::wstring>> results;
 
 } t_plugin_discovery_result;
 

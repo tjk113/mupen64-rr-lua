@@ -101,7 +101,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>src/;lib/;lib/zlib;lib/lua/include;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/core/include;src/view;lib/;lib/zlib;lib/lua/include;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -109,8 +109,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4018;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
-      <UseFullPaths>false</UseFullPaths>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <UseFullPaths>false</UseFullPaths>
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
@@ -140,7 +140,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>src/;lib/;lib/zlib-x64;lib/lua-x64/include;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/core/include;src/view;lib/;lib/zlib-x64;lib/lua-x64/include;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -148,8 +148,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4018;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
-      <UseFullPaths>false</UseFullPaths>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <UseFullPaths>false</UseFullPaths>
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -176,13 +176,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src/;lib/;lib/zlib;lib/lua/include;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/core/include;src/view;lib/;lib/zlib;lib/lua/include;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4018;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -192,7 +193,6 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Strict</FloatingPointModel>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
@@ -215,13 +215,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src/;lib/;lib/zlib-x64;lib/lua-x64/include;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/core/include;src/view;lib/;lib/zlib-x64;lib/lua-x64/include;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4018;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -231,7 +232,6 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Strict</FloatingPointModel>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -254,11 +254,13 @@
   <ItemGroup>
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="lib\microlru.h" />
+    <ClInclude Include="src\view\AsyncExecutor.h" />
     <ClInclude Include="src\view\capture\encoders\AVIEncoder.h" />
     <ClInclude Include="src\view\capture\encoders\Encoder.h" />
     <ClInclude Include="src\view\capture\encoders\FFmpegEncoder.h" />
     <ClInclude Include="src\view\capture\EncodingManager.h" />
     <ClInclude Include="src\view\capture\Resampler.h" />
+    <ClInclude Include="src\view\FrontendService.h" />
     <ClInclude Include="src\view\gui\features\PianoRoll.h" />
     <ClInclude Include="src\view\gui\features\RecentMenu.h" />
     <ClInclude Include="src\view\gui\features\UpdateChecker.h" />
@@ -279,8 +281,12 @@
     <ClInclude Include="src\view\gui\features\Seeker.h" />
     <ClInclude Include="src\view\gui\features\Statusbar.h" />
     <ClInclude Include="src\view\gui\Main.h" />
+    <ClInclude Include="src\view\Config.h" />
     <ClInclude Include="src\view\gui\wrapper\PersistentPathDialog.h" />
+    <ClInclude Include="src\view\IOHelpers.h" />
+    <ClInclude Include="src\view\IOService.h" />
     <ClInclude Include="src\view\lua\LuaConsole.h" />
+    <ClInclude Include="src\view\lua\LuaService.h" />
     <ClInclude Include="src\view\lua\modules\AVI.h" />
     <ClInclude Include="src\view\lua\modules\D2D.h" />
     <ClInclude Include="src\view\lua\modules\Emu.h" />
@@ -295,6 +301,9 @@
     <ClInclude Include="src\view\lua\presenters\DCompPresenter.h" />
     <ClInclude Include="src\view\lua\presenters\GDIPresenter.h" />
     <ClInclude Include="src\view\lua\presenters\Presenter.h" />
+    <ClInclude Include="src\view\Messenger.h" />
+    <ClInclude Include="src\view\PlatformService.h" />
+    <ClInclude Include="src\view\Plugin.h" />
     <ClInclude Include="src\view\resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -303,6 +312,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="lib\IOHelpers.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="lib\speex\speex_resampler.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -316,10 +331,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\view\AsyncExecutor.cpp"/>
     <ClCompile Include="src\view\capture\encoders\AVIEncoder.cpp" />
     <ClCompile Include="src\view\capture\encoders\FFmpegEncoder.cpp" />
     <ClCompile Include="src\view\capture\EncodingManager.cpp" />
     <ClCompile Include="src\view\capture\Resampler.cpp" />
+    <ClCompile Include="src\view\Config.cpp"/>
+    <ClCompile Include="src\view\FrontendService.cpp"/>
     <ClCompile Include="src\view\gui\Commandline.cpp" />
     <ClCompile Include="src\view\gui\features\Cheats.cpp" />
     <ClCompile Include="src\view\gui\features\ConfigDialog.cpp" />
@@ -335,8 +353,7 @@
     <ClCompile Include="src\view\gui\features\Seeker.cpp" />
     <ClCompile Include="src\view\gui\features\Statusbar.cpp" />
     <ClCompile Include="src\view\gui\features\UpdateChecker.cpp" />
-    <ClCompile Include="src\view\gui\FrontendService.cpp" />
-    <ClCompile Include="src\view\gui\IOService.cpp" />
+    <ClCompile Include="src\view\IOService.cpp" />
     <ClCompile Include="src\view\gui\Loggers.cpp" />
     <ClCompile Include="src\view\gui\Main.cpp" />
     <ClCompile Include="src\view\gui\wrapper\PersistentPathDialog.cpp" />
@@ -344,7 +361,9 @@
     <ClCompile Include="src\view\lua\LuaService.cpp" />
     <ClCompile Include="src\view\lua\presenters\DCompPresenter.cpp" />
     <ClCompile Include="src\view\lua\presenters\GDIPresenter.cpp" />
+    <ClCompile Include="src\view\Messenger.cpp"/>
     <ClCompile Include="src\view\PlatformService.cpp" />
+    <ClCompile Include="src\view\Plugin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\view\icons\flag_unknown.ico" />
@@ -374,8 +393,9 @@
     <Manifest Include="src\view\app.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="Core\Core.vcxproj">
+    <ProjectReference Include="Core.vcxproj">
       <Project>{30467598-d6de-4adf-8098-ce1da988b88a}</Project>
+      <Name>Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

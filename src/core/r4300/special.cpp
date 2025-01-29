@@ -5,13 +5,12 @@
  */
 
 #include "stdafx.h"
-#include "r4300.h"
-#include "interrupt.h"
-#include "../memory/memory.h"
-#include "ops.h"
-#include "exception.h"
-#include "macros.h"
-#include <core/services/LoggingService.h>
+#include <core/Core.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/interrupt.h>
+#include <core/r4300/ops.h>
+#include <core/r4300/exception.h>
+#include <core/r4300/macros.h>
 
 void NOP()
 {
@@ -179,7 +178,7 @@ void DIV()
         sign_extended(lo);
         sign_extended(hi);
     }
-    else g_core_logger->info("div");
+    else g_core->logger->info("div");
     PC++;
 }
 
@@ -192,7 +191,7 @@ void DIVU()
         sign_extended(lo);
         sign_extended(hi);
     }
-    else g_core_logger->info("divu");
+    else g_core->logger->info("divu");
     PC++;
 }
 
@@ -276,7 +275,7 @@ void DDIV()
         lo = (int64_t)core_rrs / (int64_t)core_rrt;
         hi = (int64_t)core_rrs % (int64_t)core_rrt;
     }
-    //   else g_core_logger->info("ddiv");
+    //   else g_core->logger->info("ddiv");
     PC++;
 }
 
@@ -287,7 +286,7 @@ void DDIVU()
         lo = (uint64_t)core_rrs / (uint64_t)core_rrt;
         hi = (uint64_t)core_rrs % (uint64_t)core_rrt;
     }
-    //   else g_core_logger->info("ddivu");
+    //   else g_core->logger->info("ddivu");
     PC++;
 }
 
@@ -389,7 +388,7 @@ void TEQ()
 {
     if (core_rrs == core_rrt)
     {
-        g_core_logger->info("trap exception in teq");
+        g_core->logger->info("trap exception in teq");
         stop = 1;
     }
     PC++;

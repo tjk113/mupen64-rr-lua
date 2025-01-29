@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core/Config.h>
+#include <core_api.h>
 
 /**
  * Provides encoding functionality to the view.
@@ -53,7 +53,7 @@ namespace EncodingManager
      * \param ask_for_encoding_settings Whether the codec dialog should be shown. If false, the previously used codec or the default one will be used.
      * \return Whether the operation was successful
      */
-    bool start_capture(std::filesystem::path path, EncoderType encoder_type, bool ask_for_encoding_settings = true);
+    bool start_capture(std::filesystem::path path, core_encoder_type encoder_type, bool ask_for_encoding_settings = true);
 
     /**
      * \brief Stops capturing a video
