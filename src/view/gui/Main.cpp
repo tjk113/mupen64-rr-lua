@@ -171,47 +171,47 @@ static void prompt_plugin_change()
 
     if (result == 0)
     {
-        // auto plugin_discovery_result = do_plugin_discovery();
-        //
-        // auto first_video_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
-        // {
-        // 	return plugin->type() == plugin_video;
-        // });
-        //
-        // auto first_audio_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
-        // {
-        // 	return plugin->type() == plugin_audio;
-        // });
-        //
-        // auto first_input_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
-        // {
-        // 	return plugin->type() == plugin_input;
-        // });
-        //
-        // auto first_rsp_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
-        // {
-        // 	return plugin->type() == plugin_rsp;
-        // });
+        auto plugin_discovery_result = do_plugin_discovery();
+        
+        auto first_video_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
+        {
+        	return plugin->type() == plugin_video;
+        });
+        
+        auto first_audio_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
+        {
+        	return plugin->type() == plugin_audio;
+        });
+        
+        auto first_input_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
+        {
+        	return plugin->type() == plugin_input;
+        });
+        
+        auto first_rsp_plugin = std::ranges::find_if(plugin_discovery_result.plugins, [](const auto& plugin)
+        {
+        	return plugin->type() == plugin_rsp;
+        });
 
-        // if (first_video_plugin != plugin_discovery_result.plugins.end())
-        // {
-        // 	g_config.selected_video_plugin = first_video_plugin->get()->path();
-        // }
-        //
-        // if (first_audio_plugin != plugin_discovery_result.plugins.end())
-        // {
-        // 	g_config.selected_audio_plugin = first_audio_plugin->get()->path();
-        // }
-        //
-        // if (first_input_plugin != plugin_discovery_result.plugins.end())
-        // {
-        // 	g_config.selected_input_plugin = first_input_plugin->get()->path();
-        // }
-        //
-        // if (first_rsp_plugin != plugin_discovery_result.plugins.end())
-        // {
-        // 	g_config.selected_rsp_plugin = first_rsp_plugin->get()->path();
-        // }
+        if (first_video_plugin != plugin_discovery_result.plugins.end())
+        {
+        	g_config.selected_video_plugin = first_video_plugin->get()->path();
+        }
+        
+        if (first_audio_plugin != plugin_discovery_result.plugins.end())
+        {
+        	g_config.selected_audio_plugin = first_audio_plugin->get()->path();
+        }
+        
+        if (first_input_plugin != plugin_discovery_result.plugins.end())
+        {
+        	g_config.selected_input_plugin = first_input_plugin->get()->path();
+        }
+        
+        if (first_rsp_plugin != plugin_discovery_result.plugins.end())
+        {
+        	g_config.selected_rsp_plugin = first_rsp_plugin->get()->path();
+        }
 
         return;
     }
