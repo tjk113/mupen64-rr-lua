@@ -1971,14 +1971,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDC_DECREASE_MODIFIER:
                 g_config.fps_modifier = clamp(g_config.fps_modifier - 25, 25, 1000);
                 core_vr_on_speed_modifier_changed();
+                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.fps_modifier);
                 break;
             case IDC_INCREASE_MODIFIER:
                 g_config.fps_modifier = clamp(g_config.fps_modifier + 25, 25, 1000);
                 core_vr_on_speed_modifier_changed();
+                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.fps_modifier);
                 break;
             case IDC_RESET_MODIFIER:
                 g_config.fps_modifier = 100;
                 core_vr_on_speed_modifier_changed();
+                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.fps_modifier);
                 break;
             default:
                 if (LOWORD(wParam) >= IDM_SELECT_1 && LOWORD(wParam) <= IDM_SELECT_10)
