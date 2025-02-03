@@ -130,7 +130,7 @@ void core_vr_resume_emu()
 
 void core_vr_pause_emu()
 {
-    if (!core_vcr_allows_core_pause())
+    if (!vcr_allows_core_pause())
     {
         return;
     }

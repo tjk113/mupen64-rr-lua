@@ -251,7 +251,7 @@ std::vector<uint8_t> generate_savestate()
         vecwrite(b, freeze.input_buffer.data(), freeze.input_buffer.size() * sizeof(BUTTONS));
     }
 
-    if (core_is_mge_available() && g_core->cfg->st_screenshot)
+    if (core_vr_get_mge_available() && g_core->cfg->st_screenshot)
     {
         int32_t width;
         int32_t height;
@@ -484,7 +484,7 @@ void savestates_load_immediate_impl(const t_savestate_task& task)
         load_memory_from_buffer(g_first_block);
 
         // NOTE: We don't want to restore screen buffer while seeking, since it creates a int16_t ugly flicker when the movie restarts by loading state
-        if (core_is_mge_available() && video_buffer && !core_vcr_is_seeking())
+        if (core_vr_get_mge_available() && video_buffer && !core_vcr_is_seeking())
         {
             int32_t current_width, current_height;
             g_core->plugin_funcs.get_video_size(&current_width, &current_height);
@@ -832,12 +832,12 @@ void core_st_get_undo_savestate(std::vector<uint8_t>& buffer)
 }
 
 
-void core_vr_st_wait_increment()
+void core_st_wait_increment()
 {
     ++g_vr_wait_before_input_poll;
 }
 
-void core_vr_st_wait_decrement()
+void core_st_wait_decrement()
 {
     --g_vr_wait_before_input_poll;
 }

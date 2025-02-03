@@ -104,7 +104,7 @@ namespace MGECompositor
         Messenger::subscribe(Messenger::Message::EmuLaunchedChanged, [](std::any data)
         {
             auto value = std::any_cast<bool>(data);
-            ShowWindow(control_hwnd, (value && core_is_mge_available()) ? SW_SHOW : SW_HIDE);
+            ShowWindow(control_hwnd, (value && core_vr_get_mge_available()) ? SW_SHOW : SW_HIDE);
         });
     }
 

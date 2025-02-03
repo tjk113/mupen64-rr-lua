@@ -24,3 +24,5 @@ void vcr_on_vi();
 bool allows_core_pause();
 
 bool is_frame_skipped();
+
+bool vcr_allows_core_pause();

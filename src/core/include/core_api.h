@@ -229,12 +229,155 @@ typedef struct {
 #pragma endregion
 } core_params;
 
+/**
+ * \brief Initializes the core with the specified parameters.
+ * \remarks
+ * The core must be initialized before any other functions are called.
+ * The core parameters must be valid for the lifetime of the core.
+ */
 EXPORT core_result CALL core_init(core_params* params);
 
+#pragma region Emulator
+
 /**
- * \brief Gets the MGE availability status.
+ * \brief Performs an in-place endianness correction on a rom's header.
+ * \param rom The rom buffer, which must be at least 131 bytes large.
  */
-EXPORT bool CALL core_is_mge_available();
+EXPORT void CALL core_vr_byteswap(uint8_t* rom);
+
+/**
+ * \brief Gets the number of lag frames.
+ */
+EXPORT size_t CALL core_vr_get_lag_count();
+
+/**
+ * \brief Gets whether the core is currently executing.
+ */
+EXPORT bool CALL core_vr_get_core_executing();
+
+/**
+ * \brief Gets whether the emu is launched.
+ */
+EXPORT bool CALL core_vr_get_launched();
+
+/**
+ * \brief Gets whether the core is currently frame-advancing.
+ */
+EXPORT bool CALL core_vr_get_frame_advance();
+
+/**
+ * \brief Gets whether the core is currently paused.
+ */
+EXPORT bool CALL core_vr_get_paused();
+
+/**
+ * \brief Pauses the emulator.
+ */
+EXPORT void CALL core_vr_pause_emu();
+
+/**
+ * \brief Resumes the emulator.
+ */
+EXPORT void CALL core_vr_resume_emu();
+
+/**
+ * \brief Starts the emulator.
+ * \param path Path to a rom or corresponding movie file.
+ * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
+ * \return The operation result.
+ * \remarks This function must be called from a thread that isn't interlocked with the emulator thread.
+ */
+EXPORT core_result CALL core_vr_start_rom(std::filesystem::path path, bool wait);
+
+/**
+ * \brief Stops the emulator.
+ * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
+ * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
+ * \return The operation result.
+ * \remarks This function must be called from a thread that isn't interlocked with the emulator thread.
+ */
+EXPORT core_result CALL core_vr_close_rom(bool stop_vcr, bool wait);
+
+/**
+ * \brief Resets the emulator.
+ * \param reset_save_data Whether save data (e.g.: EEPROM, SRAM, Mempak) will be reset.
+ * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
+ * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
+ * \return The operation result.
+ * \remarks This function must be called from a thread that isn't interlocked with the emulator thread.
+ */
+EXPORT core_result CALL core_vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait);
+
+/**
+ * \brief Sets the frame-advance flag.
+ */
+EXPORT void CALL core_vr_frame_advance();
+
+/**
+ * \brief Toggles between fullscreen and windowed mode.
+ */
+EXPORT void CALL core_vr_toggle_fullscreen_mode();
+
+/**
+ * \brief Sets the fast-forward state.
+ */
+EXPORT void CALL core_vr_set_fast_forward(bool);
+
+/**
+ * \brief Gets whether tracelogging is active.
+ */
+EXPORT bool CALL core_vr_is_tracelog_active();
+
+/**
+ * \brief Gets the fullscreen state.
+ */
+EXPORT bool CALL core_vr_is_fullscreen();
+
+/**
+ * \brief Gets the GS button state.
+ */
+EXPORT bool CALL core_vr_get_gs_button();
+
+/**
+ * \brief Sets the GS button state.
+ */
+EXPORT void CALL core_vr_set_gs_button(bool);
+
+/**
+ * \param country_code A rom's country code.
+ * \return The maximum amount of VIs per second intended.
+ */
+EXPORT uint32_t CALL core_vr_get_vis_per_second(uint16_t country_code);
+
+/**
+ * \breif Gets the rom header.
+ */
+EXPORT t_rom_header* CALL core_vr_get_rom_header();
+
+/**
+ * \param country_code A rom's country code.
+ * \return The rom's country name.
+ */
+EXPORT std::wstring CALL core_vr_country_code_to_country_name(uint16_t country_code);
+
+/**
+ * \brief Updates internal timings after the speed modifier changes.
+ */
+EXPORT void CALL core_vr_on_speed_modifier_changed();
+
+/**
+ * \brief Invalidates the visuals, allowing an updateScreen call to happen.
+ */
+EXPORT void CALL core_vr_invalidate_visuals();
+
+/**
+ * \brief Gets whether the current set of plugin functions loaded in the core is capable of providing MGE functionality.
+ */
+EXPORT bool CALL core_vr_get_mge_available();
+
+#pragma endregion
+
+#pragma region VCR
 
 /**
  * \brief Parses a movie's header
@@ -419,166 +562,42 @@ EXPORT void CALL core_vcr_get_seek_savestate_frames(std::unordered_map<size_t, b
  */
 EXPORT bool CALL core_vcr_has_seek_savestate_at_frame(size_t frame);
 
+#pragma endregion
+
+#pragma region Tracelog
 /**
- * HACK: The VCR engine can prevent the core from pausing. Gets whether the core should be allowed to pause.
+ * \brief Starts trace logging to the specified file.
+ * \param path The output path.
+ * \param binary Whether log output is in a binary format.
+ * \param append Whether log output will be appended to the file.
  */
-EXPORT bool CALL core_vcr_allows_core_pause();
+EXPORT void CALL core_tl_start(std::filesystem::path path, bool binary, bool append);
 
 /**
- * \brief Gets the number of lag frames.
+ * \brief Stops trace logging.
  */
-EXPORT size_t CALL core_vr_get_lag_count();
+EXPORT void CALL core_tl_stop();
 
-/**
- * \brief Gets whether the core is currently executing.
- */
-EXPORT bool CALL core_vr_get_core_executing();
+#pragma endregion
 
-/**
- * \brief Gets whether the emu is launched.
- */
-EXPORT bool CALL core_vr_get_launched();
-
-/**
- * \brief Gets whether the core is currently paused.
- */
-EXPORT bool CALL core_vr_get_paused();
-
-/**
- * \brief Gets whether the core is currently frame-advancing.
- */
-EXPORT bool CALL core_vr_get_frame_advance();
-
-/**
- * \brief Performs an in-place byte order correction on a rom buffer depending on its header
- * \param rom The rom buffer
- */
-EXPORT void CALL core_vr_byteswap(uint8_t* rom);
-
-/**
- * \brief Resumes the emulator
- */
-EXPORT void CALL core_vr_resume_emu();
-
-/**
- * \brief Pauses the emulator
- */
-EXPORT void CALL core_vr_pause_emu();
-
-/**
- * \brief Starts the emulator
- * \param path Path to a rom or corresponding movie file
- * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
- * \return The operation result
- */
-EXPORT core_result CALL core_vr_start_rom(std::filesystem::path path, bool wait /*= false*/);
-
-/**
- * \brief Stops the emulator
- * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
- * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
- * \return The operation result
- */
-EXPORT core_result CALL core_vr_close_rom(bool stop_vcr /*= true*/, bool wait /*= false*/);
-
-/**
- * \brief Resets the emulator
- * \param reset_save_data Whether save data (e.g.: EEPROM, SRAM, Mempak) will be reset
- * \param stop_vcr Whether all VCR operations will be stopped. When resetting the ROM due to an in-movie restart, this needs to be false.
- * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
- * \return The operation result
- */
-EXPORT core_result CALL core_vr_reset_rom(bool reset_save_data /*= false*/, bool stop_vcr /*= true*/, bool wait /*= false*/);
-
-/**
- * \brief Sets the frame-advance flag.
- */
-EXPORT void CALL core_vr_frame_advance();
-
-/**
- * \brief Toggles between fullscreen and windowed mode
- */
-EXPORT void CALL core_vr_toggle_fullscreen_mode();
-
-/**
- * \brief Sets the fast-forward state.
- */
-EXPORT void CALL core_vr_set_fast_forward(bool);
-
-/**
- * \brief Gets whether tracelogging is active.
- */
-EXPORT bool CALL core_vr_is_tracelog_active();
-
-/**
- * \brief Gets the fullscreen state
- */
-EXPORT bool CALL core_vr_is_fullscreen();
-
-/**
- * \brief Gets the GS button state
- */
-EXPORT bool CALL core_vr_get_gs_button();
-
-/**
- * \brief Sets the GS button state
- */
-EXPORT void CALL core_vr_set_gs_button(bool);
-
-/**
- * \param country_code A rom's country code
- * \return The maximum amount of VIs per second intended
- */
-EXPORT uint32_t CALL core_vr_get_vis_per_second(uint16_t country_code);
-
-/**
- * \breif Gets the rom header.
- */
-EXPORT t_rom_header* CALL core_vr_get_rom_header();
-
-/**
- * \param country_code A rom's country code
- * \return The rom's country name
- */
-EXPORT std::wstring CALL core_vr_country_code_to_country_name(uint16_t country_code);
-
-/**
- * \brief Updates internal timings after the speed modifier changes.
- */
-EXPORT void CALL core_vr_on_speed_modifier_changed();
+#pragma region Savestates
 
 /**
  * \brief Increments the g_vr_wait_before_input_poll counter.
+ * \remarks If the counter is greater than 0, the core will wait for the flag to be 0 before continuing to the next frame. This function is thread-safe.
  */
-EXPORT void CALL core_vr_st_wait_increment();
+EXPORT void CALL core_st_wait_increment();
 
 /**
  * \brief Decrements the g_vr_wait_before_input_poll counter.
+ * \remarks If the counter is greater than 0, the core will wait for the flag to be 0 before continuing to the next frame. This function is thread-safe.
  */
-EXPORT void CALL core_vr_st_wait_decrement();
+EXPORT void CALL core_st_wait_decrement();
 
 /**
- * \brief Invalidates the visuals, allowing an updateScreen call to happen.
- */
-EXPORT void CALL core_vr_invalidate_visuals();
-
-/**
- * \brief Starts trace logging to the specified file
- * \param path The output path
- * \param binary Whether log output is in a binary format
- * \param append Whether log output will be appended to the file
- */
-EXPORT void CALL core_vr_tracelog_start(std::filesystem::path path, bool binary, bool append);
-
-/**
- * \brief Stops trace logging
- */
-EXPORT void CALL core_vr_tracelog_stop();
-
-/**
- * \brief Executes a savestate operation to a path
- * \param path The savestate's path
- * \param job The job to set
+ * \brief Executes a savestate operation to a path.
+ * \param path The savestate's path.
+ * \param job The job to set.
  * \param callback The callback to call when the operation is complete.
  * \param ignore_warnings Whether warnings, such as those about ROM compatibility, shouldn't be shown.
  * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
@@ -587,9 +606,9 @@ EXPORT void CALL core_vr_tracelog_stop();
 EXPORT bool CALL core_st_do_file(const std::filesystem::path& path, Job job, const t_savestate_callback& callback, bool ignore_warnings);
 
 /**
- * \brief Executes a savestate operation to a slot
+ * \brief Executes a savestate operation to a slot.
  * \param slot The slot to construct the savestate path with.
- * \param job The job to set
+ * \param job The job to set.
  * \param callback The callback to call when the operation is complete.
  * \param ignore_warnings Whether warnings, such as those about ROM compatibility, shouldn't be shown.
  * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
@@ -613,28 +632,32 @@ EXPORT bool CALL core_st_do_memory(const std::vector<uint8_t>& buffer, Job job, 
  */
 EXPORT void CALL core_st_get_undo_savestate(std::vector<uint8_t>& buffer);
 
+#pragma endregion
+
+#pragma region Debugger
+
 /**
- * \brief Gets whether execution is resumed
+ * \brief Gets whether execution is resumed.
  */
 EXPORT bool CALL core_dbg_get_resumed();
 
 /**
- * \brief Sets execution resumed status
+ * \brief Sets execution resumed status.
  */
 EXPORT void CALL core_dbg_set_is_resumed(bool);
 
 /**
- * Steps execution by one instruction
+ * Steps execution by one instruction.
  */
 EXPORT void CALL core_dbg_step();
 
 /**
- * \brief Gets whether DMA reads are allowed. If false, reads should return 0xFF
+ * \brief Gets whether DMA reads are allowed. If false, reads should return 0xFF.
  */
 EXPORT bool CALL core_dbg_get_dma_read_enabled();
 
 /**
- * \brief Sets whether DMA reads are allowed
+ * \brief Sets whether DMA reads are allowed.
  */
 EXPORT void CALL core_dbg_set_dma_read_enabled(bool);
 
@@ -652,6 +675,8 @@ EXPORT void CALL core_dbg_set_rsp_enabled(bool);
  * \brief Disassembles an instruction at a given address.
  */
 EXPORT char* CALL core_dbg_disassemble(char* buf, uint32_t w, uint32_t pc);
+
+#pragma endregion
 
 #ifdef __cplusplus
 }

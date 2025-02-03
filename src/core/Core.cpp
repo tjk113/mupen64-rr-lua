@@ -34,7 +34,7 @@ core_result core_init(core_params* params)
     return Res_Ok;
 }
 
-bool core_is_mge_available()
+bool core_vr_get_mge_available()
 {
     return g_core->plugin_funcs.read_video && g_core->plugin_funcs.get_video_size;
 }

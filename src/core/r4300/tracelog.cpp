@@ -332,7 +332,7 @@ void tracelog_log_interp_ops()
     PC->s_ops();
 }
 
-void core_vr_tracelog_start(std::filesystem::path path, bool binary, bool append)
+void core_tl_start(std::filesystem::path path, bool binary, bool append)
 {
     use_binary = binary;
     log_file = _wfopen(path.wstring().c_str(), L"wb");
@@ -345,7 +345,7 @@ void core_vr_tracelog_start(std::filesystem::path path, bool binary, bool append
     }
 }
 
-void core_vr_tracelog_stop()
+void core_tl_stop()
 {
     enabled = false;
     flush_buf();

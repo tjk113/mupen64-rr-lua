@@ -285,7 +285,7 @@ void FrontendService::set_default_hotkey_keys(core_cfg* config)
 
 void FrontendService::update_screen()
 {
-    if (core_is_mge_available())
+    if (core_vr_get_mge_available())
     {
         MGECompositor::update_screen();
     }

@@ -1113,9 +1113,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 if (!core_vr_get_launched())
                     break;
-                core_vr_st_wait_increment();
+                core_st_wait_increment();
                 AsyncExecutor::invoke_async([=] {
-                    core_vr_st_wait_decrement();
+                    core_st_wait_decrement();
                     core_st_do_file(fname, Job::Load, nullptr, false);
                 });
             }
@@ -1529,7 +1529,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     if (core_vr_is_tracelog_active())
                     {
-                        core_vr_tracelog_stop();
+                        core_tl_stop();
                         ModifyMenu(g_main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, L"Start &Trace Logger...");
                         break;
                     }
@@ -1544,7 +1544,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     auto result = MessageBox(g_main_hwnd, L"Should the trace log be generated in a binary format?", L"Trace Logger",
                                              MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1);
 
-                    core_vr_tracelog_start(path, result == IDYES, false);
+                    core_tl_start(path, result == IDYES, false);
                     ModifyMenu(g_main_menu, IDM_TRACELOG, MF_BYCOMMAND | MF_STRING, IDM_TRACELOG, L"Stop &Trace Logger");
                 }
                 break;
@@ -1756,14 +1756,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
                 break;
             case IDM_SAVE_SLOT:
-                core_vr_st_wait_increment();
+                core_st_wait_increment();
                 if (g_config.increment_slot)
                 {
                     g_config.st_slot >= 9 ? g_config.st_slot = 0 : g_config.st_slot++;
                     Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
                 }
                 AsyncExecutor::invoke_async([=] {
-                    core_vr_st_wait_decrement();
+                    core_st_wait_decrement();
                     core_st_do_slot(g_config.st_slot, Job::Save, nullptr, false);
                 });
                 break;
@@ -1777,17 +1777,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    core_vr_st_wait_increment();
+                    core_st_wait_increment();
                     AsyncExecutor::invoke_async([=] {
-                        core_vr_st_wait_decrement();
+                        core_st_wait_decrement();
                         core_st_do_file(path, Job::Save, nullptr, false);
                     });
                 }
                 break;
             case IDM_LOAD_SLOT:
-                core_vr_st_wait_increment();
+                core_st_wait_increment();
                 AsyncExecutor::invoke_async([=] {
-                    core_vr_st_wait_decrement();
+                    core_st_wait_decrement();
                     core_st_do_slot(g_config.st_slot, Job::Load, nullptr, false);
                 });
                 break;
@@ -1802,18 +1802,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    core_vr_st_wait_increment();
+                    core_st_wait_increment();
                     AsyncExecutor::invoke_async([=] {
-                        core_vr_st_wait_decrement();
+                        core_st_wait_decrement();
                         core_st_do_file(path, Job::Load, nullptr, false);
                     });
                 }
                 break;
             case IDM_UNDO_LOAD_STATE:
                 {
-                    core_vr_st_wait_increment();
+                    core_st_wait_increment();
                     AsyncExecutor::invoke_async([=] {
-                        core_vr_st_wait_decrement();
+                        core_st_wait_decrement();
 
                         std::vector<uint8_t> buf{};
                         core_st_get_undo_savestate(buf);
@@ -1993,26 +1993,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <= ID_SAVE_10)
                 {
                     auto slot = LOWORD(wParam) - ID_SAVE_1;
-                    core_vr_st_wait_increment();
+                    core_st_wait_increment();
 
                     g_config.st_slot = slot;
                     Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
 
                     AsyncExecutor::invoke_async([=] {
-                        core_vr_st_wait_decrement();
+                        core_st_wait_decrement();
                         core_st_do_slot(slot, Job::Save, nullptr, false);
                     });
                 }
                 else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_10)
                 {
                     auto slot = LOWORD(wParam) - ID_LOAD_1;
-                    core_vr_st_wait_increment();
+                    core_st_wait_increment();
 
                     g_config.st_slot = slot;
                     Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
 
                     AsyncExecutor::invoke_async([=] {
-                        core_vr_st_wait_decrement();
+                        core_st_wait_decrement();
                         core_st_do_slot(slot, Job::Load, nullptr, false);
                     });
                 }

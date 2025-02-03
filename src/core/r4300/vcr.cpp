@@ -782,7 +782,7 @@ void vcr_stop_seek_if_needed()
     }
 }
 
-bool core_vcr_allows_core_pause()
+bool vcr_allows_core_pause()
 {
     if (!core_vcr_is_seeking())
     {

@@ -43,7 +43,7 @@ namespace EncodingManager
 
 	void readscreen_plugin(int32_t* width = nullptr, int32_t* height = nullptr)
 	{
-		if (core_is_mge_available())
+		if (core_vr_get_mge_available())
 		{
 			MGECompositor::copy_video(m_video_buf);
 			MGECompositor::get_video_size(width, height);
@@ -222,7 +222,7 @@ namespace EncodingManager
 	{
 		if (g_config.capture_mode == 0)
 		{
-			if (!core_is_mge_available() && !g_core.plugin_funcs.read_screen)
+			if (!core_vr_get_mge_available() && !g_core.plugin_funcs.read_screen)
 			{
 				FrontendService::show_dialog(L"The current video plugin has no readScreen implementation.\nPlugin capture is not possible.", L"Capture", fsvc_error);
 				stop_capture();
@@ -238,7 +238,7 @@ namespace EncodingManager
 			readscreen_desktop();
 		} else if (g_config.capture_mode == 3)
 		{
-			if (!core_is_mge_available() && !g_core.plugin_funcs.read_screen)
+			if (!core_vr_get_mge_available() && !g_core.plugin_funcs.read_screen)
 			{
 				FrontendService::show_dialog(L"The current video plugin has no readScreen implementation.\nHybrid capture is not possible.", L"Capture", fsvc_error);
 				stop_capture();
@@ -255,7 +255,7 @@ namespace EncodingManager
 	{
 		if (g_config.capture_mode == 0)
 		{
-			if (core_is_mge_available())
+			if (core_vr_get_mge_available())
 			{
 				MGECompositor::get_video_size(width, height);
 			} else if(g_core.plugin_funcs.get_video_size)
