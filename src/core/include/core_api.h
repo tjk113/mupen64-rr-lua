@@ -678,6 +678,28 @@ EXPORT char* CALL core_dbg_disassemble(char* buf, uint32_t w, uint32_t pc);
 
 #pragma endregion
 
+#pragma region Cheats
+
+/**
+ * \brief Compiles a cheat code from code.
+ * \param code The cheat code. Must be in the GameShark format.
+ * \param cheat The compiled cheat. If the compilation fails, the cheat won't be mutated.
+ * \return Whether the compilation was successful.
+ */
+bool core_cht_compile(const std::wstring& code, core_cheat& cheat);
+
+/**
+ * \brief Gets the cheat list.
+ */
+EXPORT void CALL core_cht_get_list(std::vector<core_cheat>&);
+
+/**
+ * \brief Sets the cheat list.
+ */
+EXPORT void CALL core_cht_set_list(const std::vector<core_cheat>&);
+
+#pragma endregion
+
 #ifdef __cplusplus
 }
 #endif

@@ -139,7 +139,7 @@ void internal_ReadController(int32_t Control, uint8_t* Command)
     case 1:
         if (g_core->controls[Control].Present)
         {
-            //Gameshark::execute();
+            cht_execute();
 
             lag_count = 0;
             BUTTONS input = {0};

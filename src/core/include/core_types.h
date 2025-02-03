@@ -10,6 +10,16 @@
 #include <cstdint>
 
 /**
+ * \brief Represents a cheat.
+ */
+typedef struct CoreCheat {
+    std::wstring name = L"Unnamed Cheat";
+    std::wstring code;
+    bool active = true;
+    std::vector<std::tuple<bool, std::function<bool()>>> instructions;
+} core_cheat;
+
+/**
  * The tone of a dialog.
  */
 typedef enum {

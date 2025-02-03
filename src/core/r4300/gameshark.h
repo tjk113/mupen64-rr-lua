@@ -5,3 +5,5 @@
  */
 
 #pragma once
+
+void cht_execute();
