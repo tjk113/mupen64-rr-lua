@@ -2252,14 +2252,20 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.callbacks.seek_status_changed = []() {
         Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
     };
-    g_core.platform_service.get_saves_directory = get_saves_directory;
-    g_core.frontend_service.show_multiple_choice_dialog = FrontendService::show_multiple_choice_dialog;
-    g_core.frontend_service.show_ask_dialog = FrontendService::show_ask_dialog;
-    g_core.frontend_service.show_dialog = FrontendService::show_dialog;
-    g_core.frontend_service.show_statusbar = FrontendService::show_statusbar;
-    g_core.frontend_service.update_screen = FrontendService::update_screen;
-    g_core.frontend_service.find_available_rom = FrontendService::find_available_rom;
-    g_core.frontend_service.load_screen = MGECompositor::load_screen;
+    g_core.get_saves_directory = get_saves_directory;
+    g_core.show_multiple_choice_dialog = [] (const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, fsvc_dialog_type type) {
+        return FrontendService::show_multiple_choice_dialog(choices, str, title, type);
+    };
+    g_core.show_ask_dialog = [] (const wchar_t* str, const wchar_t* title, bool warning) {
+        return FrontendService::show_ask_dialog(str, title, warning);
+    };
+    g_core.show_dialog = [] (const wchar_t* str, const wchar_t* title, fsvc_dialog_type type) {
+        FrontendService::show_dialog(str, title, type);
+    };
+    g_core.show_statusbar = FrontendService::show_statusbar;
+    g_core.update_screen = FrontendService::update_screen;
+    g_core.find_available_rom = FrontendService::find_available_rom;
+    g_core.load_screen = MGECompositor::load_screen;
     g_core.invoke_async = AsyncExecutor::invoke_async;
 
     core_init(&g_core);

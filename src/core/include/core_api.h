@@ -19,6 +19,9 @@
 extern "C" {
 #endif
 
+/**
+ * \brief Callbacks for the core to call into the host.
+ */
 typedef struct {
     void (*vi)(void);
     void (*input)(BUTTONS* input, int index);
@@ -54,6 +57,9 @@ typedef struct {
     void (*seek_status_changed)(void);
 } core_callbacks;
 
+/**
+ * \brief The plugin function collection.
+ */
 typedef struct {
     CLOSEDLL_GFX close_dll_gfx;
     INITIATEGFX initiate_gfx;
@@ -104,34 +110,95 @@ typedef struct {
     ROMCLOSED_RSP rom_closed_rsp;
 } core_plugin_funcs;
 
-
-typedef struct {
-    std::filesystem::path (*get_saves_directory)(void);
-} core_platform_service;
-
-typedef struct {
-    size_t (*show_multiple_choice_dialog)(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, fsvc_dialog_type type, void* hwnd);
-    bool (*show_ask_dialog)(const wchar_t* str, const wchar_t* title, bool warning, void* hwnd);
-    void (*show_dialog)(const wchar_t* str, const wchar_t* title, fsvc_dialog_type type, void* hwnd);
-    void (*show_statusbar)(const wchar_t* str);
-    void (*update_screen)(void);
-    std::wstring (*find_available_rom)(const std::function<bool(const t_rom_header&)>& predicate);
-    void (*load_screen)(void* data);
-} core_frontend_service;
-
 /**
  * \brief The core's parameters.
  */
 typedef struct {
 
 #pragma region Host-Provided
+    /**
+     * \brief The core's configuration.
+     */
     core_cfg* cfg;
+
+    /**
+     * \brief The core's logger.
+     */
     spdlog::logger* logger;
+
+    /**
+     * \brief The core callbacks.
+     */
     core_callbacks callbacks;
+
+    /**
+     * \brief The plugin functions.
+     */
     core_plugin_funcs plugin_funcs;
-    core_platform_service platform_service;
-    core_frontend_service frontend_service;
+
+    /**
+     * \brief Executes a function on a background thread.
+     * \param func The function to be executed.
+     * \param key The function's key used for deduplication. If not 0, the function will not be queued if another function with the same key is already in the queue.
+     */
     void (*invoke_async)(const std::function<void()>& func, size_t key);
+
+    /**
+     * \brief Gets the directory in which savestates and persistent game saves should be stored.
+     */
+    std::filesystem::path (*get_saves_directory)(void);
+
+    /**
+     * Prompts the user to pick a choice from a provided collection of choices.
+     * \param choices The collection of choices.
+     * \param str The dialog content.
+     * \param title The dialog title.
+     * \return The index of the chosen choice.
+     */
+    size_t (*show_multiple_choice_dialog)(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, fsvc_dialog_type type);
+
+    /**
+     * Prompts the user to answer a Yes/No question.
+     * \param str The dialog content.
+     * \param title The dialog title.
+     * \param warning Whether the tone of the message is perceived as a warning.
+     * \return Whether the user answered yes.
+     * \remarks If the user has chosen to not use modals, this function will return true by default.
+     */
+    bool (*show_ask_dialog)(const wchar_t* str, const wchar_t* title, bool warning);
+
+    /**
+     * \brief Shows the user a dialog.
+     * \param str The dialog content.
+     * \param title The dialog title.
+     * \param type The dialog's tone.
+     */
+    void (*show_dialog)(const wchar_t* str, const wchar_t* title, fsvc_dialog_type type);
+
+    /**
+     * \brief Shows text in the notification section of the statusbar.
+     */
+    void (*show_statusbar)(const wchar_t* str);
+
+    /**
+     * \brief Updates the screen.
+     */
+    void (*update_screen)(void);
+
+    /**
+     * \brief Finds the first rom from the available ROM list which matches the predicate.
+     * \param predicate A predicate which determines if the rom matches.
+     * \return The rom's path, or an empty string if no rom was found.
+     */
+    std::wstring (*find_available_rom)(const std::function<bool(const t_rom_header&)>& predicate);
+
+    /**
+     * \brief Fills the screen with the specified data.
+     * The size of the buffer is determined by the resolution returned by the get_video_size (MGE) or readScreen (Non-MGE) functions.
+     * Note that the buffer format is 24bpp.
+     */
+    void (*load_screen)(void* data);
+
 #pragma endregion
 
 #pragma region Core-Provided

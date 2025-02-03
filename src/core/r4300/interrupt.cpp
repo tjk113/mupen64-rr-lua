@@ -468,7 +468,7 @@ void gen_interrupt()
             // The update-limiting logic doesn't apply in frameadvance because there are no high-frequency updates
             if (update || frame_advancing)
             {
-                g_core->frontend_service.update_screen();
+                g_core->update_screen();
                 screen_invalidated = false;
             }
 

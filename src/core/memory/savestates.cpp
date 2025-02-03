@@ -89,13 +89,13 @@ std::vector<uint8_t> g_undo_savestate;
 
 void get_paths_for_task(const t_savestate_task& task, std::filesystem::path& st_path, std::filesystem::path& sd_path)
 {
-    sd_path = std::format("{}{}.sd", g_core->platform_service.get_saves_directory().string(), (const char*)ROM_HEADER.nom);
+    sd_path = std::format("{}{}.sd", g_core->get_saves_directory().string(), (const char*)ROM_HEADER.nom);
 
     if (task.medium == Medium::Slot)
     {
         st_path = std::format(
         L"{}{} {}.st{}",
-        g_core->platform_service.get_saves_directory().wstring(),
+        g_core->get_saves_directory().wstring(),
         string_to_wstring((const char*)ROM_HEADER.nom),
         core_vr_country_code_to_country_name(ROM_HEADER.Country_code), std::to_wstring(task.params.slot));
     }
@@ -363,11 +363,11 @@ void savestates_load_immediate_impl(const t_savestate_task& task)
 
     if (!task.ignore_warnings && memcmp(md5, rom_md5, 32))
     {
-        auto result = g_core->frontend_service.show_ask_dialog(std::format(
-                                                               L"The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?",
-                                                               string_to_wstring(md5))
-                                                               .c_str(),
-                                                               L"Savestate", true, nullptr);
+        auto result = g_core->show_ask_dialog(std::format(
+                                              L"The savestate was created on a rom with hash {}, but is being loaded on another rom.\r\nThe emulator may crash. Are you sure you want to continue?",
+                                              string_to_wstring(md5))
+                                              .c_str(),
+                                              L"Savestate", true);
 
         if (!result)
         {
@@ -435,7 +435,7 @@ void savestates_load_immediate_impl(const t_savestate_task& task)
             }
             err_str += L" Loading the savestate might desynchronize the movie.\r\nAre you sure you want to continue?";
 
-            const auto result = g_core->frontend_service.show_ask_dialog(err_str.c_str(), L"Savestate", true, nullptr);
+            const auto result = g_core->show_ask_dialog(err_str.c_str(), L"Savestate", true);
             if (!result)
             {
                 task.callback(ST_Cancelled, {});
@@ -447,8 +447,8 @@ void savestates_load_immediate_impl(const t_savestate_task& task)
     {
         if (!task.ignore_warnings && (core_vcr_get_task() == task_recording || core_vcr_get_task() == task_playback))
         {
-            const auto result = g_core->frontend_service.show_ask_dialog(
-            L"The savestate is not from a movie. Loading it might desynchronize the movie.\r\nAre you sure you want to continue?", L"Savestate", true, nullptr);
+            const auto result = g_core->show_ask_dialog(
+            L"The savestate is not from a movie. Loading it might desynchronize the movie.\r\nAre you sure you want to continue?", L"Savestate", true);
             if (!result)
             {
                 task.callback(ST_Cancelled, {});
@@ -490,7 +490,7 @@ void savestates_load_immediate_impl(const t_savestate_task& task)
             g_core->plugin_funcs.get_video_size(&current_width, &current_height);
             if (current_width == video_width && current_height == video_height)
             {
-                g_core->frontend_service.load_screen(video_buffer);
+                g_core->load_screen(video_buffer);
                 free(video_buffer);
             }
         }
@@ -718,17 +718,17 @@ bool core_st_do_file(const std::filesystem::path& path, const Job job, const t_s
     auto pre_callback = [=](const core_result result, const std::vector<uint8_t>& buffer) {
         if (result == Res_Ok)
         {
-            g_core->frontend_service.show_statusbar(std::format(L"{} {}", job == Job::Save ? L"Saved" : L"Loaded", path.filename().wstring()).c_str());
+            g_core->show_statusbar(std::format(L"{} {}", job == Job::Save ? L"Saved" : L"Loaded", path.filename().wstring()).c_str());
         }
         else if (result == ST_Cancelled)
         {
-            g_core->frontend_service.show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
+            g_core->show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
         }
         else
         {
             const auto message = std::format(L"Failed to {} {} (error code {}).\nVerify that the savestate is valid and accessible.",
                                              job == Job::Save ? L"save" : L"load", path.filename().wstring(), (int32_t)result);
-            g_core->frontend_service.show_dialog(message.c_str(), L"Savestate", fsvc_error, nullptr);
+            g_core->show_dialog(message.c_str(), L"Savestate", fsvc_error);
         }
 
         if (callback)
@@ -767,15 +767,15 @@ bool core_st_do_slot(const int32_t slot, const Job job, const t_savestate_callba
     auto pre_callback = [=](const core_result result, const std::vector<uint8_t>& buffer) {
         if (result == Res_Ok)
         {
-            g_core->frontend_service.show_statusbar(std::format(L"{} slot {}", job == Job::Save ? L"Saved" : L"Loaded", slot + 1).c_str());
+            g_core->show_statusbar(std::format(L"{} slot {}", job == Job::Save ? L"Saved" : L"Loaded", slot + 1).c_str());
         }
         else if (result == ST_Cancelled)
         {
-            g_core->frontend_service.show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
+            g_core->show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
         }
         else
         {
-            g_core->frontend_service.show_statusbar(std::format(L"Failed to {} slot {}", job == Job::Save ? L"save" : L"load", slot + 1).c_str());
+            g_core->show_statusbar(std::format(L"Failed to {} slot {}", job == Job::Save ? L"save" : L"load", slot + 1).c_str());
         }
 
         if (callback)

@@ -62,7 +62,7 @@ struct summercart summercart;
 
 static char* get_sd_path()
 {
-    auto saves_path = g_core->platform_service.get_saves_directory();
+    auto saves_path = g_core->get_saves_directory();
     char* path;
     if ((path = (char*)malloc(strlen(saves_path.string().c_str()) + 8 + 1)))
     {
@@ -85,7 +85,7 @@ static char* get_st_path(const char* filename)
 
 static int32_t sd_error(const wchar_t* text, const wchar_t* caption)
 {
-    g_core->frontend_service.show_dialog(text, caption, fsvc_error, nullptr);
+    g_core->show_dialog(text, caption, fsvc_error);
     return -1;
 }
 
