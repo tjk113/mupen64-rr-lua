@@ -1851,7 +1851,7 @@ void vcr_on_vi()
 
 bool is_frame_skipped()
 {
-    if (g_core->cfg->render_throttling)
+    if (!g_core->cfg->render_throttling)
     {
         return false;
     }
