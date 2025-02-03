@@ -11,7 +11,7 @@
 extern uint8_t* rom;
 extern size_t rom_size;
 extern char rom_md5[33];
-extern t_rom_header ROM_HEADER;
+extern core_rom_header ROM_HEADER;
 
 /**
  * \brief Reads the specified rom and initializes the rom module's globals

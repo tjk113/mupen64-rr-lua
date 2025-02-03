@@ -142,7 +142,7 @@ void internal_ReadController(int32_t Control, uint8_t* Command)
             cht_execute();
 
             lag_count = 0;
-            BUTTONS input = {0};
+            core_buttons input = {0};
             vcr_on_controller_poll(Control, &input);
             *((uint32_t*)(Command + 3)) = input.Value;
 #ifdef COMPARE_CORE
@@ -465,7 +465,7 @@ void update_pif_read()
                         g_core->controls[channel].RawData && core_vcr_get_task() == task_idle)
                     {
                         g_core->plugin_funcs.read_controller(channel, &PIF_RAMb[i]);
-                        auto ptr = (BUTTONS*)&PIF_RAMb[i + 3];
+                        auto ptr = (core_buttons*)&PIF_RAMb[i + 3];
                         g_core->callbacks.input(ptr, channel);
                     }
                     else

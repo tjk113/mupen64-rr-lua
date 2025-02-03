@@ -24,7 +24,7 @@ extern "C" {
  */
 typedef struct {
     void (*vi)(void);
-    void (*input)(BUTTONS* input, int index);
+    void (*input)(core_buttons* input, int index);
     void (*frame)(void);
     void (*interval)(void);
     void (*ai_len_changed)();
@@ -45,12 +45,12 @@ typedef struct {
     void (*speed_modifier_changed)(int32_t);
     void (*warp_modify_status_changed)(bool);
     void (*current_sample_changed)(int32_t);
-    void (*task_changed)(vcr_task);
+    void (*task_changed)(core_vcr_task);
     void (*rerecords_changed)(uint64_t);
     void (*unfreeze_completed)(void);
     void (*seek_savestate_changed)(size_t);
     void (*readonly_changed)(bool);
-    void (*dacrate_changed)(system_type);
+    void (*dacrate_changed)(core_system_type);
     void (*debugger_resumed_changed)(bool);
     void (*debugger_cpu_state_changed)(core_dbg_cpu_state*);
     void (*lag_limit_exceeded)(void);
@@ -155,7 +155,7 @@ typedef struct {
      * \param title The dialog title.
      * \return The index of the chosen choice.
      */
-    size_t (*show_multiple_choice_dialog)(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, fsvc_dialog_type type);
+    size_t (*show_multiple_choice_dialog)(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, core_dialog_type type);
 
     /**
      * Prompts the user to answer a Yes/No question.
@@ -173,7 +173,7 @@ typedef struct {
      * \param title The dialog title.
      * \param type The dialog's tone.
      */
-    void (*show_dialog)(const wchar_t* str, const wchar_t* title, fsvc_dialog_type type);
+    void (*show_dialog)(const wchar_t* str, const wchar_t* title, core_dialog_type type);
 
     /**
      * \brief Shows text in the notification section of the statusbar.
@@ -190,7 +190,7 @@ typedef struct {
      * \param predicate A predicate which determines if the rom matches.
      * \return The rom's path, or an empty string if no rom was found.
      */
-    std::wstring (*find_available_rom)(const std::function<bool(const t_rom_header&)>& predicate);
+    std::wstring (*find_available_rom)(const std::function<bool(const core_rom_header&)>& predicate);
 
     /**
      * \brief Fills the screen with the specified data.
@@ -202,26 +202,26 @@ typedef struct {
 #pragma endregion
 
 #pragma region Core-Provided
-    CONTROL controls[4];
+    core_controller controls[4];
 
-    timer_delta g_frame_deltas[max_deltas];
+    core_timer_delta g_frame_deltas[core_timer_max_deltas];
     std::mutex g_frame_deltas_mutex;
-    timer_delta g_vi_deltas[max_deltas];
+    core_timer_delta g_vi_deltas[core_timer_max_deltas];
     std::mutex g_vi_deltas_mutex;
 
     uint8_t* rom;
     uint32_t* rdram;
-    RDRAM_register* rdram_register;
-    PI_register* pi_register;
-    mips_register* MI_register;
-    SP_register* sp_register;
-    SI_register* si_register;
-    VI_register* vi_register;
-    RSP_register* rsp_register;
-    RI_register* ri_register;
-    AI_register* ai_register;
-    DPC_register* dpc_register;
-    DPS_register* dps_register;
+    core_rdram_reg* rdram_register;
+    core_pi_reg* pi_register;
+    core_mips_reg* MI_register;
+    core_sp_reg* sp_register;
+    core_si_reg* si_register;
+    core_vi_reg* vi_register;
+    core_rsp_reg* rsp_register;
+    core_ri_reg* ri_register;
+    core_ai_reg* ai_register;
+    core_dpc_reg* dpc_register;
+    core_dps_reg* dps_register;
     uint32_t* SP_DMEM;
     uint32_t* SP_IMEM;
     uint32_t* PIF_RAM;
@@ -352,7 +352,7 @@ EXPORT uint32_t CALL core_vr_get_vis_per_second(uint16_t country_code);
 /**
  * \breif Gets the rom header.
  */
-EXPORT t_rom_header* CALL core_vr_get_rom_header();
+EXPORT core_rom_header* CALL core_vr_get_rom_header();
 
 /**
  * \param country_code A rom's country code.
@@ -385,7 +385,7 @@ EXPORT bool CALL core_vr_get_mge_available();
  * \param header The header to fill
  * \return The operation result
  */
-EXPORT core_result CALL core_vcr_parse_header(std::filesystem::path path, t_movie_header* header);
+EXPORT core_result CALL core_vcr_parse_header(std::filesystem::path path, core_vcr_movie_header* header);
 
 /**
  * \brief Reads the inputs from a movie
@@ -393,7 +393,7 @@ EXPORT core_result CALL core_vcr_parse_header(std::filesystem::path path, t_movi
  * \param inputs The button collection to fill
  * \return The operation result
  */
-EXPORT core_result CALL core_vcr_read_movie_inputs(std::filesystem::path path, std::vector<BUTTONS>& inputs);
+EXPORT core_result CALL core_vcr_read_movie_inputs(std::filesystem::path path, std::vector<core_buttons>& inputs);
 
 /**
  * \brief Starts playing back a movie
@@ -449,7 +449,7 @@ EXPORT core_result CALL core_vcr_begin_seek(std::wstring str, bool pause_at_end)
  * \param inputs The generated inputs
  * \return The operation result
  */
-EXPORT core_result CALL core_vcr_convert_freeze_buffer_to_movie(const t_movie_freeze& freeze, t_movie_header& header, std::vector<BUTTONS>& inputs);
+EXPORT core_result CALL core_vcr_convert_freeze_buffer_to_movie(const core_vcr_freeze_info& freeze, core_vcr_movie_header& header, std::vector<core_buttons>& inputs);
 
 /**
  * \brief Stops the current seek operation
@@ -465,14 +465,14 @@ EXPORT bool CALL core_vcr_is_seeking();
  * \brief Generates the current movie freeze buffer.
  * \return Whether a freeze buffer was generated.
  */
-EXPORT bool CALL core_vcr_freeze(t_movie_freeze* freeze);
+EXPORT bool CALL core_vcr_freeze(core_vcr_freeze_info* freeze);
 
 /**
  * \brief Restores the movie from a freeze buffer
  * \param freeze The freeze buffer
  * \return The operation result
  */
-EXPORT core_result CALL core_vcr_unfreeze(t_movie_freeze freeze);
+EXPORT core_result CALL core_vcr_unfreeze(core_vcr_freeze_info freeze);
 
 /**
  * \brief Writes a backup of the current movie to the backup folder.
@@ -494,7 +494,7 @@ EXPORT std::filesystem::path CALL core_vcr_get_path();
 /**
  * \brief Gets the current task
  */
-EXPORT vcr_task CALL core_vcr_get_task();
+EXPORT core_vcr_task CALL core_vcr_get_task();
 
 /**
  * Gets the sample length of the current movie. If no movie is active, the function returns UINT32_MAX.
@@ -514,7 +514,7 @@ EXPORT int32_t CALL core_vcr_get_current_vi();
 /**
  * Gets a copy of the current input buffer
  */
-EXPORT std::vector<BUTTONS> CALL core_vcr_get_inputs();
+EXPORT std::vector<core_buttons> CALL core_vcr_get_inputs();
 
 /**
  * Begins a warp modification operation. A "warp modification operation" is the changing of sample data which is temporally behind the current sample.
@@ -537,7 +537,7 @@ EXPORT std::vector<BUTTONS> CALL core_vcr_get_inputs();
  * \param inputs The input buffer to use.
  * \return The operation result
  */
-EXPORT core_result CALL core_vcr_begin_warp_modify(const std::vector<BUTTONS>& inputs);
+EXPORT core_result CALL core_vcr_begin_warp_modify(const std::vector<core_buttons>& inputs);
 
 /**
  * Gets the warp modify status
@@ -603,7 +603,7 @@ EXPORT void CALL core_st_wait_decrement();
  * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
  * \return Whether the operation was enqueued.
  */
-EXPORT bool CALL core_st_do_file(const std::filesystem::path& path, Job job, const t_savestate_callback& callback, bool ignore_warnings);
+EXPORT bool CALL core_st_do_file(const std::filesystem::path& path, core_st_job job, const core_st_callback& callback, bool ignore_warnings);
 
 /**
  * \brief Executes a savestate operation to a slot.
@@ -614,7 +614,7 @@ EXPORT bool CALL core_st_do_file(const std::filesystem::path& path, Job job, con
  * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
  * \return Whether the operation was enqueued.
  */
-EXPORT bool CALL core_st_do_slot(int32_t slot, Job job, const t_savestate_callback& callback, bool ignore_warnings);
+EXPORT bool CALL core_st_do_slot(int32_t slot, core_st_job job, const core_st_callback& callback, bool ignore_warnings);
 
 /**
  * Executes a savestate operation in-memory.
@@ -625,7 +625,7 @@ EXPORT bool CALL core_st_do_slot(int32_t slot, Job job, const t_savestate_callba
  * \warning The operation won't complete immediately. Must be called via AsyncExecutor unless calls are originating from the emu thread.
  * \return Whether the operation was enqueued.
  */
-EXPORT bool CALL core_st_do_memory(const std::vector<uint8_t>& buffer, Job job, const t_savestate_callback& callback, bool ignore_warnings);
+EXPORT bool CALL core_st_do_memory(const std::vector<uint8_t>& buffer, core_st_job job, const core_st_callback& callback, bool ignore_warnings);
 
 /**
  * Gets the undo savestate buffer. Will be empty will no undo savestate is available.

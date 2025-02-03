@@ -24,7 +24,7 @@ namespace FrontendService
      * \param hwnd The parent window
      * \return The index of the chosen choice
      */
-    size_t show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title = nullptr, fsvc_dialog_type type = fsvc_warning, void* hwnd = nullptr);
+    size_t show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title = nullptr, core_dialog_type type = fsvc_warning, void* hwnd = nullptr);
 
     /**
      * \brief Asks the user a yes/no question
@@ -44,7 +44,7 @@ namespace FrontendService
 	 * \param type The dialog tone.
 	 * \param hwnd The parent window.
 	 */
-	void show_dialog(const wchar_t* str, const wchar_t* title = nullptr, fsvc_dialog_type type = fsvc_warning, void* hwnd = nullptr);
+	void show_dialog(const wchar_t* str, const wchar_t* title = nullptr, core_dialog_type type = fsvc_warning, void* hwnd = nullptr);
 
     /**
      * \brief Shows text in the statusbar
@@ -85,5 +85,5 @@ namespace FrontendService
      * \param predicate A predicate which determines if the rom matches
      * \return The rom's path, or an empty string if no rom was found
      */
-    std::wstring find_available_rom(const std::function<bool(const t_rom_header&)>& predicate);
+    std::wstring find_available_rom(const std::function<bool(const core_rom_header&)>& predicate);
 }

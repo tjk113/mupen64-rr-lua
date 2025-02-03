@@ -22,7 +22,7 @@ namespace LuaCore::Savestate
         AsyncExecutor::invoke_async([=]
         {
             core_st_wait_decrement();
-            core_st_do_file(path, Job::Save, nullptr, false);
+            core_st_do_file(path, core_st_job_save, nullptr, false);
         });
         
         return 0;
@@ -36,7 +36,7 @@ namespace LuaCore::Savestate
         AsyncExecutor::invoke_async([=]
         {
             core_st_wait_decrement();
-            core_st_do_file(path, Job::Load, nullptr, false);
+            core_st_do_file(path, core_st_job_load, nullptr, false);
         });
         
         return 0;

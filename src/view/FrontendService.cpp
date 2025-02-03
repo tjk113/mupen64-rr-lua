@@ -19,7 +19,7 @@
 #include <gui/features/Statusbar.h>
 #include <lua/LuaConsole.h>
 
-size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, fsvc_dialog_type type, void* hwnd)
+size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, core_dialog_type type, void* hwnd)
 {
     std::vector<TASKDIALOG_BUTTON> buttons;
 
@@ -71,7 +71,7 @@ bool FrontendService::show_ask_dialog(const wchar_t* str, const wchar_t* title, 
     return MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_YESNO | (warning ? MB_ICONWARNING : MB_ICONQUESTION)) == IDYES;
 }
 
-void FrontendService::show_dialog(const wchar_t* str, const wchar_t* title, fsvc_dialog_type type, void* hwnd)
+void FrontendService::show_dialog(const wchar_t* str, const wchar_t* title, core_dialog_type type, void* hwnd)
 {
     int icon = 0;
 
@@ -315,7 +315,7 @@ void FrontendService::ai_len_changed()
     EncodingManager::ai_len_changed();
 }
 
-std::wstring FrontendService::find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
+std::wstring FrontendService::find_available_rom(const std::function<bool(const core_rom_header&)>& predicate)
 {
     return RomBrowser::find_available_rom(predicate);
 }

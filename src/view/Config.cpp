@@ -14,7 +14,7 @@
 #include <gui/Loggers.h>
 
 core_cfg g_config;
-std::vector<t_hotkey*> g_config_hotkeys;
+std::vector<core_hotkey*> g_config_hotkeys;
 
 core_cfg get_default_config()
 {
@@ -347,7 +347,7 @@ core_cfg get_default_config()
 
 const core_cfg g_default_config = get_default_config();
 
-void handle_config_value(mINI::INIStructure& ini, const std::wstring& field_name, int32_t is_reading, t_hotkey* hotkey)
+void handle_config_value(mINI::INIStructure& ini, const std::wstring& field_name, int32_t is_reading, core_hotkey* hotkey)
 {
     auto converted_key = wstring_to_string(field_name);
 
@@ -516,16 +516,16 @@ void handle_config_value(mINI::INIStructure& ini, const std::wstring& field_name
 const auto first_offset = offsetof(core_cfg, fast_forward_hotkey);
 const auto last_offset = offsetof(core_cfg, select_slot_10_hotkey);
 
-std::vector<t_hotkey*> collect_hotkeys(const core_cfg* config)
+std::vector<core_hotkey*> collect_hotkeys(const core_cfg* config)
 {
     // NOTE:
     // last_offset should contain the offset of the last hotkey
     // this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
     // i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
-    std::vector<t_hotkey*> vec;
-    for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(t_hotkey)) + 1; i++)
+    std::vector<core_hotkey*> vec;
+    for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(core_hotkey)) + 1; i++)
     {
-        auto hotkey = &(((t_hotkey*)config)[i]);
+        auto hotkey = &(((core_hotkey*)config)[i]);
         g_view_logger->info(L"Hotkey[{}]: {}", i, hotkey->identifier.c_str());
         vec.push_back(hotkey);
     }

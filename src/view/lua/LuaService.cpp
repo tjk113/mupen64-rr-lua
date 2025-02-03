@@ -34,7 +34,7 @@ namespace LuaService
     }
 
 #pragma region Call Implementations
-    BUTTONS get_last_controller_data(int index)
+    core_buttons get_last_controller_data(int index)
     {
         return last_controller_data[index];
     }
@@ -61,7 +61,7 @@ namespace LuaService
         });
     }
 
-    void call_input(BUTTONS* input, int index)
+    void call_input(core_buttons* input, int index)
     {
         // NOTE: Special callback, we store the input data for all scripts to access via joypad.get(n)
         // If they request a change via joypad.set(n, input), we change the input

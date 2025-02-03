@@ -43,17 +43,17 @@ extern void (*writememb[0xFFFF])();
 extern void (*writememh[0xFFFF])();
 extern void (*writememd[0xFFFF])();
 
-extern RDRAM_register rdram_register;
-extern PI_register pi_register;
-extern mips_register MI_register;
-extern SP_register sp_register;
-extern SI_register si_register;
-extern VI_register vi_register;
-extern RSP_register rsp_register;
-extern RI_register ri_register;
-extern AI_register ai_register;
-extern DPC_register dpc_register;
-extern DPS_register dps_register;
+extern core_rdram_reg rdram_register;
+extern core_pi_reg pi_register;
+extern core_mips_reg MI_register;
+extern core_sp_reg sp_register;
+extern core_si_reg si_register;
+extern core_vi_reg vi_register;
+extern core_rsp_reg rsp_register;
+extern core_ri_reg ri_register;
+extern core_ai_reg ai_register;
+extern core_dpc_reg dpc_register;
+extern core_dps_reg dps_register;
 
 #ifndef _BIG_ENDIAN
 #define sl(mot) \

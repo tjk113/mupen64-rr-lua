@@ -362,13 +362,13 @@ void set_menu_accelerator(int element_id, const wchar_t* acc)
     ModifyMenu(GetMenu(g_main_hwnd), element_id, MF_BYCOMMAND | MF_STRING, element_id, string);
 }
 
-void set_hotkey_menu_accelerators(t_hotkey* hotkey, int menu_item_id)
+void set_hotkey_menu_accelerators(core_hotkey* hotkey, int menu_item_id)
 {
     const auto hotkey_str = hotkey_to_string(hotkey);
     set_menu_accelerator(menu_item_id, hotkey_str == L"(nothing)" ? L"" : hotkey_str.c_str());
 }
 
-void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, t_hotkey* hotkey,
+void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, core_hotkey* hotkey,
                              int menuItemID)
 {
     const auto hotkey_str = hotkey_to_string(hotkey);
@@ -383,7 +383,7 @@ const wchar_t* get_input_text()
     static wchar_t text[1024]{};
     memset(text, 0, sizeof(text));
 
-    BUTTONS b = LuaService::get_last_controller_data(0);
+    core_buttons b = LuaService::get_last_controller_data(0);
     wsprintf(text, L"(%d, %d) ", b.Y_AXIS, b.X_AXIS);
     if (b.START_BUTTON)
         lstrcatW(text, L"S");
@@ -492,7 +492,7 @@ int config_action_to_menu_id(core_action action)
 }
 
 
-std::wstring hotkey_to_string(const t_hotkey* hotkey)
+std::wstring hotkey_to_string(const core_hotkey* hotkey)
 {
     char buf[260]{};
     const int k = hotkey->key;
@@ -699,7 +699,7 @@ void update_titlebar()
  * \param times A circular buffer of deltas
  * \return The average rate per second from the delta in the queue
  */
-static double get_rate_per_second_from_deltas(const std::span<timer_delta>& times)
+static double get_rate_per_second_from_deltas(const std::span<core_timer_delta>& times)
 {
     size_t count = 0;
     double sum = 0.0;
@@ -727,7 +727,7 @@ void on_script_started(std::any data)
 void on_task_changed(std::any data)
 {
     g_main_window_dispatcher->invoke([=] {
-        auto value = std::any_cast<vcr_task>(data);
+        auto value = std::any_cast<core_vcr_task>(data);
         static auto previous_value = value;
         if (!vcr_is_task_recording(value) && vcr_is_task_recording(previous_value))
         {
@@ -1010,7 +1010,7 @@ bool is_on_gui_thread()
 
 void ClearButtons()
 {
-    BUTTONS zero = {0};
+    core_buttons zero = {0};
     for (int i = 0; i < 4; i++)
     {
         g_core.plugin_funcs.set_keys(i, zero);
@@ -1116,7 +1116,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 core_st_wait_increment();
                 AsyncExecutor::invoke_async([=] {
                     core_st_wait_decrement();
-                    core_st_do_file(fname, Job::Load, nullptr, false);
+                    core_st_do_file(fname, core_st_job_load, nullptr, false);
                 });
             }
             else if (extension == ".lua")
@@ -1129,7 +1129,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_SYSKEYDOWN:
         {
             BOOL hit = FALSE;
-            for (t_hotkey* hotkey : g_config_hotkeys)
+            for (core_hotkey* hotkey : g_config_hotkeys)
             {
                 if ((int)wParam == hotkey->key)
                 {
@@ -1160,7 +1160,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_KEYUP:
         {
             BOOL hit = FALSE;
-            for (t_hotkey* hotkey : g_config_hotkeys)
+            for (core_hotkey* hotkey : g_config_hotkeys)
             {
                 if (hotkey->up_cmd == ACTION_NONE)
                 {
@@ -1764,7 +1764,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
                 AsyncExecutor::invoke_async([=] {
                     core_st_wait_decrement();
-                    core_st_do_slot(g_config.st_slot, Job::Save, nullptr, false);
+                    core_st_do_slot(g_config.st_slot, core_st_job_save, nullptr, false);
                 });
                 break;
             case IDM_SAVE_STATE_AS:
@@ -1780,7 +1780,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     core_st_wait_increment();
                     AsyncExecutor::invoke_async([=] {
                         core_st_wait_decrement();
-                        core_st_do_file(path, Job::Save, nullptr, false);
+                        core_st_do_file(path, core_st_job_save, nullptr, false);
                     });
                 }
                 break;
@@ -1788,7 +1788,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 core_st_wait_increment();
                 AsyncExecutor::invoke_async([=] {
                     core_st_wait_decrement();
-                    core_st_do_slot(g_config.st_slot, Job::Load, nullptr, false);
+                    core_st_do_slot(g_config.st_slot, core_st_job_load, nullptr, false);
                 });
                 break;
             case IDM_LOAD_STATE_AS:
@@ -1805,7 +1805,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     core_st_wait_increment();
                     AsyncExecutor::invoke_async([=] {
                         core_st_wait_decrement();
-                        core_st_do_file(path, Job::Load, nullptr, false);
+                        core_st_do_file(path, core_st_job_load, nullptr, false);
                     });
                 }
                 break;
@@ -1824,7 +1824,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                             return;
                         }
 
-                        core_st_do_memory(buf, Job::Load, [](const core_result result, auto) {
+                        core_st_do_memory(buf, core_st_job_load, [](const core_result result, auto) {
 							if (result == Res_Ok)
 							{
 								Statusbar::post(L"Undid load");
@@ -2000,7 +2000,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     AsyncExecutor::invoke_async([=] {
                         core_st_wait_decrement();
-                        core_st_do_slot(slot, Job::Save, nullptr, false);
+                        core_st_do_slot(slot, core_st_job_save, nullptr, false);
                     });
                 }
                 else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_10)
@@ -2013,7 +2013,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     AsyncExecutor::invoke_async([=] {
                         core_st_wait_decrement();
-                        core_st_do_slot(slot, Job::Load, nullptr, false);
+                        core_st_do_slot(slot, core_st_job_load, nullptr, false);
                     });
                 }
                 else if (LOWORD(wParam) >= ID_RECENTROMS_FIRST &&
@@ -2225,7 +2225,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.callbacks.current_sample_changed = [](int32_t value) {
         Messenger::broadcast(Messenger::Message::CurrentSampleChanged, value);
     };
-    g_core.callbacks.task_changed = [](vcr_task value) {
+    g_core.callbacks.task_changed = [](core_vcr_task value) {
         Messenger::broadcast(Messenger::Message::TaskChanged, value);
     };
     g_core.callbacks.rerecords_changed = [](uint64_t value) {
@@ -2240,7 +2240,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.callbacks.readonly_changed = [](bool value) {
         Messenger::broadcast(Messenger::Message::ReadonlyChanged, value);
     };
-    g_core.callbacks.dacrate_changed = [](system_type value) {
+    g_core.callbacks.dacrate_changed = [](core_system_type value) {
         Messenger::broadcast(Messenger::Message::DacrateChanged, value);
     };
     g_core.callbacks.debugger_resumed_changed = [](bool value) {
@@ -2256,13 +2256,13 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
     };
     g_core.get_saves_directory = get_saves_directory;
-    g_core.show_multiple_choice_dialog = [] (const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, fsvc_dialog_type type) {
+    g_core.show_multiple_choice_dialog = [] (const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, core_dialog_type type) {
         return FrontendService::show_multiple_choice_dialog(choices, str, title, type);
     };
     g_core.show_ask_dialog = [] (const wchar_t* str, const wchar_t* title, bool warning) {
         return FrontendService::show_ask_dialog(str, title, warning);
     };
-    g_core.show_dialog = [] (const wchar_t* str, const wchar_t* title, fsvc_dialog_type type) {
+    g_core.show_dialog = [] (const wchar_t* str, const wchar_t* title, core_dialog_type type) {
         FrontendService::show_dialog(str, title, type);
     };
     g_core.show_statusbar = FrontendService::show_statusbar;

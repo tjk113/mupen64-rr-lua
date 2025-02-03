@@ -211,12 +211,12 @@ extern uint64_t inputCount;
 /**
  * \brief The controller data at time of the last input poll
  */
-extern BUTTONS last_controller_data[4];
+extern core_buttons last_controller_data[4];
 
 /**
  * \brief The modified control data to be pushed the next frame
  */
-extern BUTTONS new_controller_data[4];
+extern core_buttons new_controller_data[4];
 
 /**
  * \brief Whether the <c>new_controller_data</c> of a controller should be pushed the next frame

@@ -22,17 +22,17 @@
 static int32_t frame;
 
 /* definitions of the rcp's structures and memory area */
-RDRAM_register rdram_register;
-mips_register MI_register;
-PI_register pi_register;
-SP_register sp_register;
-RSP_register rsp_register;
-SI_register si_register;
-VI_register vi_register;
-RI_register ri_register;
-AI_register ai_register;
-DPC_register dpc_register;
-DPS_register dps_register;
+core_rdram_reg rdram_register;
+core_mips_reg MI_register;
+core_pi_reg pi_register;
+core_sp_reg sp_register;
+core_rsp_reg rsp_register;
+core_si_reg si_register;
+core_vi_reg vi_register;
+core_ri_reg ri_register;
+core_ai_reg ai_register;
+core_dpc_reg dpc_register;
+core_dps_reg dps_register;
 uint32_t rdram[0x800000 / 4];
 uint8_t sram[0x8000];
 uint8_t flashram[0x20000];

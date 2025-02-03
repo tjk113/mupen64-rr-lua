@@ -51,7 +51,7 @@ void timer_new_frame()
     g_core->g_frame_deltas_mutex.lock();
     g_core->g_frame_deltas[frame_deltas_ptr] = current_frame_time - last_frame_time;
     g_core->g_frame_deltas_mutex.unlock();
-    frame_deltas_ptr = (frame_deltas_ptr + 1) % max_deltas;
+    frame_deltas_ptr = (frame_deltas_ptr + 1) % core_timer_max_deltas;
 
     g_core->callbacks.frame();
     last_frame_time = std::chrono::high_resolution_clock::now();
@@ -108,7 +108,7 @@ void timer_new_vi()
     g_core->g_vi_deltas_mutex.lock();
     g_core->g_vi_deltas[vi_deltas_ptr] = current_vi_time - last_vi_time;
     g_core->g_vi_deltas_mutex.unlock();
-    vi_deltas_ptr = (vi_deltas_ptr + 1) % max_deltas;
+    vi_deltas_ptr = (vi_deltas_ptr + 1) % core_timer_max_deltas;
 
     last_vi_time = std::chrono::high_resolution_clock::now();
 }

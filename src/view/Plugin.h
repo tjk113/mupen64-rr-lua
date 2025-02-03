@@ -75,7 +75,7 @@ public:
 private:
     std::filesystem::path m_path;
     std::string m_name;
-    plugin_type m_type;
+    core_plugin_type m_type;
     uint16_t m_version;
     void* m_module;
 };

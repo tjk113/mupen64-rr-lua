@@ -2204,7 +2204,7 @@ core_result vr_start_rom_impl(std::filesystem::path path)
     // If we get a movie instead of a rom, we try to search the available rom lists to find one matching the movie
     if (path.extension() == ".m64")
     {
-        t_movie_header movie_header{};
+        core_vcr_movie_header movie_header{};
         if (core_vcr_parse_header(path, &movie_header) != Res_Ok)
         {
             g_core->callbacks.emu_starting_changed(false);

@@ -45,13 +45,13 @@ struct t_savestate_task {
     };
 
     /// The job to perform.
-    Job job;
+    core_st_job job;
 
     /// The savestate's source or target medium.
-    Medium medium;
+    core_st_medium medium;
 
     /// Callback to invoke when the task finishes. Mustn't be null.
-    t_savestate_callback callback;
+    core_st_callback callback;
 
     /// The task's parameters. Only one field in the struct is valid at a time.
     t_params params{};
@@ -91,7 +91,7 @@ void get_paths_for_task(const t_savestate_task& task, std::filesystem::path& st_
 {
     sd_path = std::format("{}{}.sd", g_core->get_saves_directory().string(), (const char*)ROM_HEADER.nom);
 
-    if (task.medium == Medium::Slot)
+    if (task.medium == core_st_medium_slot)
     {
         st_path = std::format(
         L"{}{} {}.st{}",
@@ -104,22 +104,22 @@ void get_paths_for_task(const t_savestate_task& task, std::filesystem::path& st_
 
 void load_memory_from_buffer(uint8_t* p)
 {
-    memread(&p, &rdram_register, sizeof(RDRAM_register));
+    memread(&p, &rdram_register, sizeof(core_rdram_reg));
     if (rdram_register.rdram_device_manuf & RDRAM_DEVICE_MANUF_NEW_FIX_BIT)
     {
         rdram_register.rdram_device_manuf &= ~RDRAM_DEVICE_MANUF_NEW_FIX_BIT; // remove the trick
         g_st_skip_dma = true; // tell dma.c to skip it
     }
-    memread(&p, &MI_register, sizeof(mips_register));
-    memread(&p, &pi_register, sizeof(PI_register));
-    memread(&p, &sp_register, sizeof(SP_register));
-    memread(&p, &rsp_register, sizeof(RSP_register));
-    memread(&p, &si_register, sizeof(SI_register));
-    memread(&p, &vi_register, sizeof(VI_register));
-    memread(&p, &ri_register, sizeof(RI_register));
-    memread(&p, &ai_register, sizeof(AI_register));
-    memread(&p, &dpc_register, sizeof(DPC_register));
-    memread(&p, &dps_register, sizeof(DPS_register));
+    memread(&p, &MI_register, sizeof(core_mips_reg));
+    memread(&p, &pi_register, sizeof(core_pi_reg));
+    memread(&p, &sp_register, sizeof(core_sp_reg));
+    memread(&p, &rsp_register, sizeof(core_rsp_reg));
+    memread(&p, &si_register, sizeof(core_si_reg));
+    memread(&p, &vi_register, sizeof(core_vi_reg));
+    memread(&p, &ri_register, sizeof(core_ri_reg));
+    memread(&p, &ai_register, sizeof(core_ai_reg));
+    memread(&p, &dpc_register, sizeof(core_dpc_reg));
+    memread(&p, &dps_register, sizeof(core_dps_reg));
     memread(&p, rdram, 0x800000);
     memread(&p, SP_DMEM, 0x1000);
     memread(&p, SP_IMEM, 0x1000);
@@ -170,7 +170,7 @@ std::vector<uint8_t> generate_savestate()
     memset(g_flashram_buf, 0, sizeof(g_flashram_buf));
     memset(g_event_queue_buf, 0, sizeof(g_event_queue_buf));
 
-    t_movie_freeze freeze{};
+    core_vcr_freeze_info freeze{};
     uint32_t movie_active = core_vcr_freeze(&freeze);
 
     if (FIX_NEW_ST)
@@ -204,17 +204,17 @@ std::vector<uint8_t> generate_savestate()
     const int32_t event_queue_len = save_eventqueue_infos(g_event_queue_buf);
 
     vecwrite(b, rom_md5, 32);
-    vecwrite(b, &rdram_register, sizeof(RDRAM_register));
-    vecwrite(b, &MI_register, sizeof(mips_register));
-    vecwrite(b, &pi_register, sizeof(PI_register));
-    vecwrite(b, &sp_register, sizeof(SP_register));
-    vecwrite(b, &rsp_register, sizeof(RSP_register));
-    vecwrite(b, &si_register, sizeof(SI_register));
-    vecwrite(b, &vi_register, sizeof(VI_register));
-    vecwrite(b, &ri_register, sizeof(RI_register));
-    vecwrite(b, &ai_register, sizeof(AI_register));
-    vecwrite(b, &dpc_register, sizeof(DPC_register));
-    vecwrite(b, &dps_register, sizeof(DPS_register));
+    vecwrite(b, &rdram_register, sizeof(core_rdram_reg));
+    vecwrite(b, &MI_register, sizeof(core_mips_reg));
+    vecwrite(b, &pi_register, sizeof(core_pi_reg));
+    vecwrite(b, &sp_register, sizeof(core_sp_reg));
+    vecwrite(b, &rsp_register, sizeof(core_rsp_reg));
+    vecwrite(b, &si_register, sizeof(core_si_reg));
+    vecwrite(b, &vi_register, sizeof(core_vi_reg));
+    vecwrite(b, &ri_register, sizeof(core_ri_reg));
+    vecwrite(b, &ai_register, sizeof(core_ai_reg));
+    vecwrite(b, &dpc_register, sizeof(core_dpc_reg));
+    vecwrite(b, &dps_register, sizeof(core_dps_reg));
     vecwrite(b, rdram, 0x800000);
     vecwrite(b, SP_DMEM, 0x1000);
     vecwrite(b, SP_IMEM, 0x1000);
@@ -248,7 +248,7 @@ std::vector<uint8_t> generate_savestate()
         vecwrite(b, &freeze.current_sample, sizeof(freeze.current_sample));
         vecwrite(b, &freeze.current_vi, sizeof(freeze.current_vi));
         vecwrite(b, &freeze.length_samples, sizeof(freeze.length_samples));
-        vecwrite(b, freeze.input_buffer.data(), freeze.input_buffer.size() * sizeof(BUTTONS));
+        vecwrite(b, freeze.input_buffer.data(), freeze.input_buffer.size() * sizeof(core_buttons));
     }
 
     if (core_vr_get_mge_available() && g_core->cfg->st_screenshot)
@@ -277,7 +277,7 @@ void savestates_save_immediate_impl(const t_savestate_task& task)
 
     const auto st = generate_savestate();
 
-    if (task.medium == Medium::Slot || task.medium == Medium::Path)
+    if (task.medium == core_st_medium_slot || task.medium == core_st_medium_path)
     {
         // Always save summercart for some reason
         std::filesystem::path new_st_path = task.params.path;
@@ -329,11 +329,11 @@ void savestates_load_immediate_impl(const t_savestate_task& task)
 
     switch (task.medium)
     {
-    case Medium::Slot:
-    case Medium::Path:
+    case core_st_medium_slot:
+    case core_st_medium_path:
         st_buf = read_file_buffer(new_st_path);
         break;
-    case Medium::Memory:
+    case core_st_medium_memory:
         st_buf = task.params.buffer;
         break;
     default:
@@ -402,7 +402,7 @@ void savestates_load_immediate_impl(const t_savestate_task& task)
     {
         // this .st is part of a movie, we need to overwrite our current movie buffer
         // hash matches, load and verify rest of the data
-        t_movie_freeze freeze{};
+        core_vcr_freeze_info freeze{};
 
         memread(&ptr, &freeze.size, sizeof(freeze.size));
         memread(&ptr, &freeze.uid, sizeof(freeze.uid));
@@ -410,7 +410,7 @@ void savestates_load_immediate_impl(const t_savestate_task& task)
         memread(&ptr, &freeze.current_vi, sizeof(freeze.current_vi));
         memread(&ptr, &freeze.length_samples, sizeof(freeze.length_samples));
 
-        freeze.input_buffer.resize(sizeof(BUTTONS) * (freeze.length_samples + 1));
+        freeze.input_buffer.resize(sizeof(core_buttons) * (freeze.length_samples + 1));
         memread(&ptr, freeze.input_buffer.data(), freeze.input_buffer.size());
 
         const auto code = core_vcr_unfreeze(freeze);
@@ -536,7 +536,7 @@ void savestates_simplify_tasks()
     {
         const auto& task = g_tasks[i];
 
-        if (task.medium != Medium::Slot)
+        if (task.medium != core_st_medium_slot)
             continue;
 
         // 2. If a slot task is detected, loop through all other tasks up to the next load task to find duplicates
@@ -544,12 +544,12 @@ void savestates_simplify_tasks()
         {
             const auto& other_task = g_tasks[j];
 
-            if (other_task.job == Job::Load)
+            if (other_task.job == core_st_job_load)
             {
                 break;
             }
 
-            if (other_task.medium == Medium::Slot && task.params.slot == other_task.params.slot)
+            if (other_task.medium == core_st_medium_slot && task.params.slot == other_task.params.slot)
             {
                 g_core->logger->info("[ST] Found duplicate slot task at index {}", j);
                 duplicate_indicies.push_back(j);
@@ -570,13 +570,13 @@ void savestates_warn_if_load_after_save()
     bool encountered_load = false;
     for (const auto& task : g_tasks)
     {
-        if (task.job == Job::Save && encountered_load)
+        if (task.job == core_st_job_save && encountered_load)
         {
             g_core->logger->warn("[ST] A savestate save task is scheduled after a load task. This may cause unexpected behavior for the caller.");
             break;
         }
 
-        if (task.job == Job::Load)
+        if (task.job == core_st_job_load)
         {
             encountered_load = true;
         }
@@ -593,17 +593,17 @@ void savestates_log_tasks()
     savestates_warn_if_load_after_save();
     for (const auto& task : g_tasks)
     {
-        std::string job_str = (task.job == Job::Save) ? "Save" : "Load";
+        std::string job_str = (task.job == core_st_job_save) ? "Save" : "Load";
         std::string medium_str;
         switch (task.medium)
         {
-        case Medium::Slot:
+        case core_st_medium_slot:
             medium_str = "Slot";
             break;
-        case Medium::Path:
+        case core_st_medium_path:
             medium_str = "Path";
             break;
-        case Medium::Memory:
+        case core_st_medium_memory:
             medium_str = "Memory";
             break;
         default:
@@ -626,7 +626,7 @@ void savestates_create_undo_point()
     }
 
     bool queue_contains_load = std::ranges::any_of(g_tasks, [](const t_savestate_task& task) {
-        return task.job == Job::Load;
+        return task.job == core_st_job_load;
     });
 
     if (!queue_contains_load)
@@ -638,8 +638,8 @@ void savestates_create_undo_point()
     g_core->logger->trace("[ST] Inserting undo point creation into task queue...");
 
     const t_savestate_task task = {
-    .job = Job::Save,
-    .medium = Medium::Memory,
+    .job = core_st_job_save,
+    .medium = core_st_medium_memory,
     .callback = [](const core_result result, const std::vector<uint8_t>& buffer) {
         if (result != Res_Ok)
         {
@@ -674,7 +674,7 @@ void st_do_work()
 
     for (const auto& task : g_tasks)
     {
-        if (task.job == Job::Save)
+        if (task.job == core_st_job_save)
         {
             savestates_save_immediate_impl(task);
         }
@@ -701,7 +701,7 @@ bool can_push_work()
     return core_executing;
 }
 
-bool core_st_do_file(const std::filesystem::path& path, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
+bool core_st_do_file(const std::filesystem::path& path, const core_st_job job, const core_st_callback& callback, bool ignore_warnings)
 {
     std::scoped_lock lock(g_task_mutex);
 
@@ -718,16 +718,16 @@ bool core_st_do_file(const std::filesystem::path& path, const Job job, const t_s
     auto pre_callback = [=](const core_result result, const std::vector<uint8_t>& buffer) {
         if (result == Res_Ok)
         {
-            g_core->show_statusbar(std::format(L"{} {}", job == Job::Save ? L"Saved" : L"Loaded", path.filename().wstring()).c_str());
+            g_core->show_statusbar(std::format(L"{} {}", job == core_st_job_save ? L"Saved" : L"Loaded", path.filename().wstring()).c_str());
         }
         else if (result == ST_Cancelled)
         {
-            g_core->show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
+            g_core->show_statusbar(std::format(L"Cancelled {}", job == core_st_job_save ? L"save" : L"load").c_str());
         }
         else
         {
             const auto message = std::format(L"Failed to {} {} (error code {}).\nVerify that the savestate is valid and accessible.",
-                                             job == Job::Save ? L"save" : L"load", path.filename().wstring(), (int32_t)result);
+                                             job == core_st_job_save ? L"save" : L"load", path.filename().wstring(), (int32_t)result);
             g_core->show_dialog(message.c_str(), L"Savestate", fsvc_error);
         }
 
@@ -739,7 +739,7 @@ bool core_st_do_file(const std::filesystem::path& path, const Job job, const t_s
 
     const t_savestate_task task = {
     .job = job,
-    .medium = Medium::Path,
+    .medium = core_st_medium_path,
     .callback = pre_callback,
     .params = {
     .path = path},
@@ -750,7 +750,7 @@ bool core_st_do_file(const std::filesystem::path& path, const Job job, const t_s
     return true;
 }
 
-bool core_st_do_slot(const int32_t slot, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
+bool core_st_do_slot(const int32_t slot, const core_st_job job, const core_st_callback& callback, bool ignore_warnings)
 {
     std::scoped_lock lock(g_task_mutex);
 
@@ -767,15 +767,15 @@ bool core_st_do_slot(const int32_t slot, const Job job, const t_savestate_callba
     auto pre_callback = [=](const core_result result, const std::vector<uint8_t>& buffer) {
         if (result == Res_Ok)
         {
-            g_core->show_statusbar(std::format(L"{} slot {}", job == Job::Save ? L"Saved" : L"Loaded", slot + 1).c_str());
+            g_core->show_statusbar(std::format(L"{} slot {}", job == core_st_job_save ? L"Saved" : L"Loaded", slot + 1).c_str());
         }
         else if (result == ST_Cancelled)
         {
-            g_core->show_statusbar(std::format(L"Cancelled {}", job == Job::Save ? L"save" : L"load").c_str());
+            g_core->show_statusbar(std::format(L"Cancelled {}", job == core_st_job_save ? L"save" : L"load").c_str());
         }
         else
         {
-            g_core->show_statusbar(std::format(L"Failed to {} slot {}", job == Job::Save ? L"save" : L"load", slot + 1).c_str());
+            g_core->show_statusbar(std::format(L"Failed to {} slot {}", job == core_st_job_save ? L"save" : L"load", slot + 1).c_str());
         }
 
         if (callback)
@@ -786,7 +786,7 @@ bool core_st_do_slot(const int32_t slot, const Job job, const t_savestate_callba
 
     const t_savestate_task task = {
     .job = job,
-    .medium = Medium::Slot,
+    .medium = core_st_medium_slot,
     .callback = pre_callback,
     .params = {
     .slot = static_cast<size_t>(slot)},
@@ -797,7 +797,7 @@ bool core_st_do_slot(const int32_t slot, const Job job, const t_savestate_callba
     return true;
 }
 
-bool core_st_do_memory(const std::vector<uint8_t>& buffer, const Job job, const t_savestate_callback& callback, bool ignore_warnings)
+bool core_st_do_memory(const std::vector<uint8_t>& buffer, const core_st_job job, const core_st_callback& callback, bool ignore_warnings)
 {
     std::scoped_lock lock(g_task_mutex);
 
@@ -813,7 +813,7 @@ bool core_st_do_memory(const std::vector<uint8_t>& buffer, const Job job, const 
 
     const t_savestate_task task = {
     .job = job,
-    .medium = Medium::Memory,
+    .medium = core_st_medium_memory,
     .callback = callback,
     .params = {
     .buffer = buffer},

@@ -118,7 +118,7 @@ typedef struct OptionsItem {
 
         if (type == Type::Hotkey)
         {
-            auto hotkey_ptr = reinterpret_cast<t_hotkey*>(data);
+            auto hotkey_ptr = reinterpret_cast<core_hotkey*>(data);
             return hotkey_to_string(hotkey_ptr);
         }
 
@@ -170,8 +170,8 @@ typedef struct OptionsItem {
         }
         else if (type == Type::Hotkey)
         {
-            auto default_hotkey = (t_hotkey*)default_equivalent;
-            auto current_hotkey = (t_hotkey*)data;
+            auto default_hotkey = (core_hotkey*)default_equivalent;
+            auto current_hotkey = (core_hotkey*)data;
             current_hotkey->key = default_hotkey->key;
             current_hotkey->ctrl = default_hotkey->ctrl;
             current_hotkey->alt = default_hotkey->alt;
@@ -208,7 +208,7 @@ bool g_plugin_discovery_rescan = false;
 /// <returns>
 /// Whether a hotkey has successfully been picked
 /// </returns>
-int32_t get_user_hotkey(t_hotkey* hotkey)
+int32_t get_user_hotkey(core_hotkey* hotkey)
 {
     MSG msg;
     int i, j;
@@ -1512,7 +1512,7 @@ void advance_listview_selection()
 /**
  * Checks for a hotkey conflict and, if necessary, prompts the user to fix the conflict.
  */
-static void handle_hotkey_conflict(const HWND hwnd, t_hotkey* current_hotkey)
+static void handle_hotkey_conflict(const HWND hwnd, core_hotkey* current_hotkey)
 {
     const bool current_hotkey_unbound = current_hotkey->key == 0 && current_hotkey->ctrl == 0 && current_hotkey->shift == 0 && current_hotkey->alt == 0;
     if (current_hotkey_unbound)
@@ -1520,7 +1520,7 @@ static void handle_hotkey_conflict(const HWND hwnd, t_hotkey* current_hotkey)
         return;
     }
 
-    std::vector<t_hotkey*> conflicting_hotkeys;
+    std::vector<core_hotkey*> conflicting_hotkeys;
     for (const auto hotkey : g_config_hotkeys)
     {
         if (hotkey == current_hotkey)
@@ -1682,9 +1682,9 @@ bool begin_listview_edit(HWND hwnd)
     // For hotkeys, accept keyboard inputs
     if (option_item.type == OptionsItem::Type::Hotkey)
     {
-        t_hotkey* hotkey = (t_hotkey*)option_item.data;
+        core_hotkey* hotkey = (core_hotkey*)option_item.data;
 
-        t_hotkey prev_hotkey_data = *hotkey;
+        core_hotkey prev_hotkey_data = *hotkey;
 
         g_hotkey_active_index = std::make_optional(i);
         ListView_Update(g_lv_hwnd, i);
@@ -1894,7 +1894,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
 
             if (offset == 4 && option_item.type == OptionsItem::Type::Hotkey)
             {
-                auto current_hotkey = (t_hotkey*)option_item.data;
+                auto current_hotkey = (core_hotkey*)option_item.data;
                 current_hotkey->key = 0;
                 current_hotkey->ctrl = 0;
                 current_hotkey->alt = 0;
@@ -1966,8 +1966,8 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
                             }
                             else if (options_item.type == OptionsItem::Type::Hotkey)
                             {
-                                auto default_hotkey = (t_hotkey*)default_value_ptr;
-                                auto current_hotkey = (t_hotkey*)options_item.data;
+                                auto default_hotkey = (core_hotkey*)default_value_ptr;
+                                auto current_hotkey = (core_hotkey*)options_item.data;
 
                                 bool same = default_hotkey->key == current_hotkey->key && default_hotkey->ctrl == current_hotkey->ctrl && default_hotkey->alt == current_hotkey->alt && default_hotkey->shift == current_hotkey->shift;
 

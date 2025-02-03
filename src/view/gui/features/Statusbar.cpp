@@ -288,7 +288,7 @@ namespace Statusbar
 
 	void on_task_changed(std::any data)
 	{
-		auto value = std::any_cast<vcr_task>(data);
+		auto value = std::any_cast<core_vcr_task>(data);
 
 		if (value == task_idle)
 		{

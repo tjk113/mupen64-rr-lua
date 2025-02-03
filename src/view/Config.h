@@ -10,7 +10,7 @@
 
 extern core_cfg g_config;
 extern const core_cfg g_default_config;
-extern std::vector<t_hotkey*> g_config_hotkeys;
+extern std::vector<core_hotkey*> g_config_hotkeys;
 
 /**
  * \brief Initializes the config subsystem

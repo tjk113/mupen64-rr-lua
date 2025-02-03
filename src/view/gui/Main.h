@@ -93,13 +93,13 @@ typedef struct
 
 extern t_window_info window_info;
 
-static bool task_is_playback(vcr_task task)
+static bool task_is_playback(core_vcr_task task)
 {
     return task == task_playback || task == task_start_playback_from_reset || task ==
         task_start_playback_from_snapshot;
 }
 
-static bool vcr_is_task_recording(vcr_task task)
+static bool vcr_is_task_recording(core_vcr_task task)
 {
     return task == task_recording || task == task_start_recording_from_reset || task == task_start_recording_from_existing_snapshot || task ==
         task_start_recording_from_snapshot;
@@ -154,7 +154,7 @@ t_window_info get_window_info();
  * \param hotkey The hotkey to convert
  * \return The hotkey as a string
  */
-std::wstring hotkey_to_string(const t_hotkey* hotkey);
+std::wstring hotkey_to_string(const core_hotkey* hotkey);
 
 /**
  * \brief Demands user confirmation for an exit action

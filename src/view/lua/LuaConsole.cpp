@@ -41,8 +41,8 @@
 const auto D2D_OVERLAY_CLASS = L"lua_d2d_overlay";
 const auto GDI_OVERLAY_CLASS = L"lua_gdi_overlay";
 
-BUTTONS last_controller_data[4];
-BUTTONS new_controller_data[4];
+core_buttons last_controller_data[4];
+core_buttons new_controller_data[4];
 bool overwrite_controller_data[4];
 
 std::atomic g_d2d_drawing_section = false;

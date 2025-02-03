@@ -25,7 +25,7 @@
 using t_rombrowser_entry = struct s_rombrowser_entry {
     std::wstring path;
     size_t size;
-    t_rom_header rom_header;
+    core_rom_header rom_header;
 };
 
 HWND rombrowser_hwnd = nullptr;
@@ -272,10 +272,10 @@ namespace RomBrowser
             rombrowser_entry->size = len;
             rombrowser_entry->rom_header = {};
 
-            if (len > sizeof(t_rom_header))
+            if (len > sizeof(core_rom_header))
             {
-                t_rom_header header{};
-                fread(&header, sizeof(t_rom_header), 1, f);
+                core_rom_header header{};
+                fread(&header, sizeof(core_rom_header), 1, f);
 
                 core_vr_byteswap((uint8_t*)&header);
 
@@ -362,8 +362,8 @@ namespace RomBrowser
                 case 1:
                     {
                         // NOTE: The name may not be null-terminated, so we NEED to limit the size
-                        char str[sizeof(t_rom_header::nom) + 1] = {0};
-                        strncpy(str, (char*)rombrowser_entry->rom_header.nom, sizeof(t_rom_header::nom));
+                        char str[sizeof(core_rom_header::nom) + 1] = {0};
+                        strncpy(str, (char*)rombrowser_entry->rom_header.nom, sizeof(core_rom_header::nom));
                         StrNCpy(plvdi->item.pszText, string_to_wstring(str).c_str(), plvdi->item.cchTextMax);
                         break;
                     }
@@ -413,7 +413,7 @@ namespace RomBrowser
         }
     }
 
-    std::wstring find_available_rom(std::function<bool(const t_rom_header&)> predicate)
+    std::wstring find_available_rom(std::function<bool(const core_rom_header&)> predicate)
     {
         auto rom_paths = find_available_roms();
         for (auto rom_path : rom_paths)
@@ -424,10 +424,10 @@ namespace RomBrowser
             uint64_t len = ftell(f);
             fseek(f, 0, SEEK_SET);
 
-            if (len > sizeof(t_rom_header))
+            if (len > sizeof(core_rom_header))
             {
-                auto header = (t_rom_header*)malloc(sizeof(t_rom_header));
-                fread(header, sizeof(t_rom_header), 1, f);
+                auto header = (core_rom_header*)malloc(sizeof(core_rom_header));
+                fread(header, sizeof(core_rom_header), 1, f);
 
                 core_vr_byteswap((uint8_t*)header);
 

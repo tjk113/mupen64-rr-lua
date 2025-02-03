@@ -16,16 +16,16 @@
 #include <gui/Loggers.h>
 #include <gui/Main.h>
 
-GFX_INFO dummy_gfx_info;
-AUDIO_INFO dummy_audio_info;
-CONTROL_INFO dummy_control_info;
-RSP_INFO dummy_rsp_info;
+core_gfx_info dummy_gfx_info;
+core_audio_info dummy_audio_info;
+core_input_info dummy_control_info;
+core_rsp_info dummy_rsp_info;
 unsigned char dummy_header[0x40];
 
-GFX_INFO gfx_info;
-AUDIO_INFO audio_info;
-CONTROL_INFO control_info;
-RSP_INFO rsp_info;
+core_gfx_info gfx_info;
+core_audio_info audio_info;
+core_input_info control_info;
+core_rsp_info rsp_info;
 
 DLLABOUT dll_about;
 DLLCONFIG dll_config;
@@ -40,17 +40,17 @@ static void __cdecl dummy_void()
 {
 }
 
-static int32_t __cdecl dummy_initiateGFX(GFX_INFO Gfx_Info)
+static int32_t __cdecl dummy_initiateGFX(core_gfx_info Gfx_Info)
 {
     return 1;
 }
 
-static int32_t __cdecl dummy_initiateAudio(AUDIO_INFO Audio_Info)
+static int32_t __cdecl dummy_initiateAudio(core_audio_info Audio_Info)
 {
     return 1;
 }
 
-static void __cdecl dummy_initiateControllers(CONTROL_INFO Control_Info)
+static void __cdecl dummy_initiateControllers(core_input_info Control_Info)
 {
 }
 
@@ -71,11 +71,11 @@ static void __cdecl dummy_controllerCommand(int32_t Control, uint8_t* Command)
 {
 }
 
-static void __cdecl dummy_getKeys(int32_t Control, BUTTONS* Keys)
+static void __cdecl dummy_getKeys(int32_t Control, core_buttons* Keys)
 {
 }
 
-static void __cdecl dummy_setKeys(int32_t Control, BUTTONS Keys)
+static void __cdecl dummy_setKeys(int32_t Control, core_buttons Keys)
 {
 }
 
@@ -93,7 +93,7 @@ static void __cdecl dummy_keyUp(uint32_t wParam, int32_t lParam)
 
 static uint32_t dummy;
 
-static void __cdecl dummy_initiateRSP(RSP_INFO Rsp_Info,
+static void __cdecl dummy_initiateRSP(core_rsp_info Rsp_Info,
                                       uint32_t* CycleCount){};
 
 static void __cdecl dummy_fBRead(uint32_t addr){};
@@ -305,7 +305,7 @@ std::pair<std::wstring, std::unique_ptr<Plugin>> Plugin::create(std::filesystem:
         return std::make_pair(L"GetDllInfo missing", nullptr);
     }
 
-    PLUGIN_INFO plugin_info;
+    core_plugin_info plugin_info;
     get_dll_info(&plugin_info);
 
     const size_t plugin_name_len = strlen(plugin_info.Name);
@@ -318,7 +318,7 @@ std::pair<std::wstring, std::unique_ptr<Plugin>> Plugin::create(std::filesystem:
 
     plugin->m_path = path;
     plugin->m_name = std::string(plugin_info.Name);
-    plugin->m_type = static_cast<plugin_type>(plugin_info.Type);
+    plugin->m_type = static_cast<core_plugin_type>(plugin_info.Type);
     plugin->m_version = plugin_info.Version;
     plugin->m_module = module;
 

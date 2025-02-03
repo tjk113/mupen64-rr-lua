@@ -427,7 +427,7 @@ namespace EncodingManager
 
 	void ai_dacrate_changed(std::any data)
 	{
-		auto type = std::any_cast<system_type>(data);
+		auto type = std::any_cast<core_system_type>(data);
 
 		if (m_capturing)
 		{

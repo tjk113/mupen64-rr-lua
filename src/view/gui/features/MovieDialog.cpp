@@ -29,7 +29,7 @@ namespace MovieDialog
     HWND grid_hwnd;
     bool g_is_closing;
 
-    size_t count_button_presses(const std::vector<BUTTONS>& buttons, const int mask)
+    size_t count_button_presses(const std::vector<core_buttons>& buttons, const int mask)
     {
         size_t accumulator = 0;
         bool pressed = false;
@@ -50,7 +50,7 @@ namespace MovieDialog
         return accumulator;
     }
 
-    size_t count_unused_inputs(const std::vector<BUTTONS>& buttons)
+    size_t count_unused_inputs(const std::vector<core_buttons>& buttons)
     {
         size_t accumulator = 0;
         for (const auto btn : buttons)
@@ -63,7 +63,7 @@ namespace MovieDialog
         return accumulator;
     }
 
-    size_t count_joystick_frames(const std::vector<BUTTONS>& buttons)
+    size_t count_joystick_frames(const std::vector<core_buttons>& buttons)
     {
         size_t accumulator = 0;
         for (const auto btn : buttons)
@@ -76,10 +76,10 @@ namespace MovieDialog
         return accumulator;
     }
 
-    size_t count_input_changes(const std::vector<BUTTONS>& buttons)
+    size_t count_input_changes(const std::vector<core_buttons>& buttons)
     {
         size_t accumulator = 0;
-        BUTTONS last_input = {0};
+        core_buttons last_input = {0};
         for (const auto btn : buttons)
         {
             if (btn.Value != last_input.Value)
@@ -147,9 +147,9 @@ namespace MovieDialog
                 }
                 SendMessage(GetDlgItem(hwnd, IDC_INI_DESCRIPTION),
                             EM_SETLIMITTEXT,
-                            sizeof(t_movie_header::description), 0);
+                            sizeof(core_vcr_movie_header::description), 0);
                 SendMessage(GetDlgItem(hwnd, IDC_INI_AUTHOR), EM_SETLIMITTEXT,
-                            sizeof(t_movie_header::author),
+                            sizeof(core_vcr_movie_header::author),
                             0);
 
                 SetDlgItemText(hwnd, IDC_INI_AUTHOR,
@@ -166,11 +166,11 @@ namespace MovieDialog
             }
         case WM_DESTROY:
             {
-                wchar_t author[sizeof(t_movie_header::author)] = {0};
+                wchar_t author[sizeof(core_vcr_movie_header::author)] = {0};
                 GetDlgItemText(hwnd, IDC_INI_AUTHOR, author, std::size(author));
                 record_params.author = author;
 
-                wchar_t description[sizeof(t_movie_header::description)] = {0};
+                wchar_t description[sizeof(core_vcr_movie_header::description)] = {0};
                 GetDlgItemText(hwnd, IDC_INI_DESCRIPTION, description, std::size(description));
                 record_params.description = description;
 
@@ -311,14 +311,14 @@ namespace MovieDialog
 
     refresh:
         wchar_t tempbuf[520] = {0};
-        t_movie_header header = {};
+        core_vcr_movie_header header = {};
 
         if (core_vcr_parse_header(record_params.path, &header) != Res_Ok)
         {
             return FALSE;
         }
 
-        std::vector<BUTTONS> inputs = {};
+        std::vector<core_buttons> inputs = {};
 
         if (core_vcr_read_movie_inputs(record_params.path, inputs) != Res_Ok)
         {

@@ -48,7 +48,7 @@ namespace PianoRoll
     {
         // The input buffer for the piano roll, which is a copy of the inputs from the core and is modified by the user. When editing operations end, this buffer
         // is provided to begin_warp_modify and thereby applied to the core, changing the resulting emulator state.
-        std::vector<BUTTONS> inputs;
+        std::vector<core_buttons> inputs;
 
         // Selected indicies in the piano roll listview.
         std::vector<size_t> selected_indicies;
@@ -78,7 +78,7 @@ namespace PianoRoll
     //
     // This also applies for the inverse (gapless clipboard buffer and g_piano_roll_state.selected_indicies with gaps).
     //
-    std::vector<std::optional<BUTTONS>> g_clipboard{};
+    std::vector<std::optional<core_buttons>> g_clipboard{};
 
     // Whether a drag operation is happening
     bool g_lv_dragging = false;
@@ -178,7 +178,7 @@ namespace PianoRoll
      * \param i The column index. Must be in the range [3, 15] inclusive.
      * \return The button value at the given column index
      */
-    unsigned get_input_value_from_column_index(BUTTONS btn, size_t i)
+    unsigned get_input_value_from_column_index(core_buttons btn, size_t i)
     {
         switch (i)
         {
@@ -220,7 +220,7 @@ namespace PianoRoll
      * \param i The column index. Must be in the range [3, 15] inclusive.
      * \param value The button value to set
      */
-    void set_input_value_from_column_index(BUTTONS* btn, size_t i, bool value)
+    void set_input_value_from_column_index(core_buttons* btn, size_t i, bool value)
     {
         switch (i)
         {
@@ -375,7 +375,7 @@ namespace PianoRoll
             // FIXME: Precompute this, create a map, do anything but not this bru
             const bool gap = std::ranges::find(g_piano_roll_state.selected_indicies, i) == g_piano_roll_state.selected_indicies.end();
             // HACK: nullopt acquired via explicit constructor call...
-            std::optional<BUTTONS> opt;
+            std::optional<core_buttons> opt;
             g_clipboard.push_back(gap ? opt : g_piano_roll_state.inputs[i]);
         }
 
@@ -564,7 +564,7 @@ namespace PianoRoll
             {
                 if (item.has_value() && i < g_piano_roll_state.inputs.size())
                 {
-                    g_piano_roll_state.inputs[i] = merge ? BUTTONS{g_piano_roll_state.inputs[i].Value | item.value().Value} : item.value();
+                    g_piano_roll_state.inputs[i] = merge ? core_buttons{g_piano_roll_state.inputs[i].Value | item.value().Value} : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -582,7 +582,7 @@ namespace PianoRoll
 
                 if (item.has_value() && i < g_piano_roll_state.inputs.size() && included)
                 {
-                    g_piano_roll_state.inputs[i] = merge ? BUTTONS{g_piano_roll_state.inputs[i].Value | item.value().Value} : item.value();
+                    g_piano_roll_state.inputs[i] = merge ? core_buttons{g_piano_roll_state.inputs[i].Value | item.value().Value} : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -713,7 +713,7 @@ namespace PianoRoll
     {
         g_piano_roll_dispatcher->invoke([=]
         {
-            auto value = std::any_cast<vcr_task>(data);
+            auto value = std::any_cast<core_vcr_task>(data);
             static auto previous_value = value;
 
             if (value != previous_value)
@@ -887,7 +887,7 @@ namespace PianoRoll
             goto mouse_move;
         case WM_PAINT:
             {
-                BUTTONS input = {0};
+                core_buttons input = {0};
 
                 HPEN outline_pen;
                 HPEN line_pen;

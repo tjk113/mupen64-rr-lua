@@ -26,7 +26,7 @@ typedef enum {
     fsvc_error,
     fsvc_warning,
     fsvc_information
-} fsvc_dialog_type;
+} core_dialog_type;
 
 /**
  * An enum containing results that can be returned by the core.
@@ -123,7 +123,7 @@ typedef enum {
     plugin_audio = 3,
     plugin_input = 4,
     plugin_rsp = 1,
-} plugin_type;
+} core_plugin_type;
 
 typedef enum {
     ce_none = 1,
@@ -131,13 +131,13 @@ typedef enum {
     ce_rumblepak = 3,
     ce_transferpak = 4,
     ce_raw = 5
-} controller_extension;
+} core_controller_extension;
 
 typedef enum {
     sys_ntsc,
     sys_pal,
     sys_mpal
-} system_type;
+} core_system_type;
 
 typedef struct
 {
@@ -150,7 +150,7 @@ typedef struct
     int32_t NormalMemory; /* a normal uint8_t array */
     int32_t MemoryBswaped; /* a normal uint8_t array where the memory has been pre
                              bswap on a dword (32 bits) boundry */
-} PLUGIN_INFO;
+} core_plugin_info;
 
 typedef struct
 {
@@ -187,7 +187,7 @@ typedef struct
     void(__cdecl* ProcessAlistList)(void);
     void(__cdecl* ProcessRdpList)(void);
     void(__cdecl* ShowCFB)(void);
-} RSP_INFO;
+} core_rsp_info;
 
 typedef struct
 {
@@ -233,7 +233,7 @@ typedef struct
     uint32_t* VI_Y_SCALE_REG;
 
     void(__cdecl* CheckInterrupts)(void);
-} GFX_INFO;
+} core_gfx_info;
 
 typedef struct
 {
@@ -260,14 +260,14 @@ typedef struct
     uint32_t* AI_BITRATE_REG;
 
     void(__cdecl* CheckInterrupts)(void);
-} AUDIO_INFO;
+} core_audio_info;
 
 typedef struct
 {
     int32_t Present;
     int32_t RawData;
     int32_t Plugin;
-} CONTROL;
+} core_controller;
 
 typedef union {
     uint32_t Value;
@@ -296,7 +296,7 @@ typedef union {
 
         signed X_AXIS : 8;
     };
-} BUTTONS;
+} core_buttons;
 
 typedef struct
 {
@@ -308,11 +308,11 @@ typedef struct
     //	eg. the first 8 bytes are stored like this:
     //        4 3 2 1   8 7 6 5
     uint8_t* HEADER; // This is the rom header (first 40h bytes of the rom)
-    CONTROL* Controls; // A pointer to an array of 4 controllers .. eg:
+    core_controller* Controls; // A pointer to an array of 4 controllers .. eg:
     // CONTROL Controls[4];
-} CONTROL_INFO;
+} core_input_info;
 
-typedef struct s_rom_header {
+typedef struct {
     uint8_t init_PI_BSB_DOM1_LAT_REG;
     uint8_t init_PI_BSB_DOM1_PGS_REG;
     uint8_t init_PI_BSB_DOM1_PWD_REG;
@@ -329,7 +329,7 @@ typedef struct s_rom_header {
     uint16_t Cartridge_ID;
     uint16_t Country_code;
     uint32_t Boot_Code[1008];
-} t_rom_header;
+} core_rom_header;
 
 enum {
     MOVIE_START_FROM_SNAPSHOT = (1 << 0),
@@ -363,7 +363,7 @@ typedef union ExtendedMovieFlags {
         bool unused_6 : 1;
         bool unused_7 : 1;
     };
-} t_extended_movie_flags;
+} core_vcr_extended_movie_flags;
 
 /**
  * Additional data for extended movies. Must be 32 bytes large.
@@ -388,11 +388,12 @@ typedef struct ExtendedMovieData {
     uint64_t unused_2;
     uint32_t unused_3;
 } t_extended_movie_data;
+#pragma pack(pop)
 
 /**
  * \brief
  */
-typedef struct MovieHeader {
+typedef struct CoreVCRMovieHeader {
     /**
      * \brief <c>M64\0x1a</c>
      */
@@ -440,7 +441,7 @@ typedef struct MovieHeader {
     /**
      * The extended movie flags. Only valid if <c>extended_version != 0</c>.
      */
-    t_extended_movie_flags extended_flags;
+    core_vcr_extended_movie_flags extended_flags;
 
     /**
      * \brief Amount of input samples in the movie, ideally equal to <c>(file_length - 1024) / 4</c>
@@ -523,7 +524,7 @@ typedef struct MovieHeader {
      * \brief A description of what the movie is about as a UTF-8 string
      */
     char description[256];
-} t_movie_header;
+} core_vcr_movie_header;
 #pragma pack(pop)
 
 typedef enum {
@@ -535,7 +536,7 @@ typedef enum {
     task_start_playback_from_reset,
     task_start_playback_from_snapshot,
     task_playback
-} vcr_task;
+} core_vcr_task;
 
 /**
  * \brief The movie freeze buffer, which is used to store the movie (with only essential data) associated with a savestate inside the savestate.
@@ -546,9 +547,8 @@ typedef struct {
     uint32_t current_sample;
     uint32_t current_vi;
     uint32_t length_samples;
-    std::vector<BUTTONS> input_buffer;
-} t_movie_freeze;
-
+    std::vector<core_buttons> input_buffer;
+} core_vcr_freeze_info;
 
 /**
  * \brief Action that can be triggered by a hotkey
@@ -653,7 +653,6 @@ typedef enum {
     LAYOUT_MODERN_WITH_READONLY,
 } core_statusbar_layout;
 
-
 typedef struct Hotkey {
     std::wstring identifier;
     int32_t key;
@@ -662,75 +661,75 @@ typedef struct Hotkey {
     int32_t alt;
     core_action down_cmd;
     core_action up_cmd;
-} t_hotkey;
+} core_hotkey;
 
 #pragma pack(push, 1)
 typedef struct CoreCfg {
 #pragma region Hotkeys
-    t_hotkey fast_forward_hotkey;
-    t_hotkey gs_hotkey;
-    t_hotkey speed_down_hotkey;
-    t_hotkey speed_up_hotkey;
-    t_hotkey frame_advance_hotkey;
-    t_hotkey pause_hotkey;
-    t_hotkey toggle_read_only_hotkey;
-    t_hotkey toggle_movie_loop_hotkey;
-    t_hotkey start_movie_playback_hotkey;
-    t_hotkey start_movie_recording_hotkey;
-    t_hotkey stop_movie_hotkey;
-    t_hotkey create_movie_backup_hotkey;
-    t_hotkey take_screenshot_hotkey;
-    t_hotkey play_latest_movie_hotkey;
-    t_hotkey load_latest_script_hotkey;
-    t_hotkey new_lua_hotkey;
-    t_hotkey close_all_lua_hotkey;
-    t_hotkey load_rom_hotkey;
-    t_hotkey close_rom_hotkey;
-    t_hotkey reset_rom_hotkey;
-    t_hotkey load_latest_rom_hotkey;
-    t_hotkey fullscreen_hotkey;
-    t_hotkey settings_hotkey;
-    t_hotkey toggle_statusbar_hotkey;
-    t_hotkey refresh_rombrowser_hotkey;
-    t_hotkey seek_to_frame_hotkey;
-    t_hotkey run_hotkey;
-    t_hotkey piano_roll_hotkey;
-    t_hotkey cheats_hotkey;
-    t_hotkey save_current_hotkey;
-    t_hotkey load_current_hotkey;
-    t_hotkey save_as_hotkey;
-    t_hotkey load_as_hotkey;
-    t_hotkey undo_load_state_hotkey;
-    t_hotkey save_to_slot_1_hotkey;
-    t_hotkey save_to_slot_2_hotkey;
-    t_hotkey save_to_slot_3_hotkey;
-    t_hotkey save_to_slot_4_hotkey;
-    t_hotkey save_to_slot_5_hotkey;
-    t_hotkey save_to_slot_6_hotkey;
-    t_hotkey save_to_slot_7_hotkey;
-    t_hotkey save_to_slot_8_hotkey;
-    t_hotkey save_to_slot_9_hotkey;
-    t_hotkey save_to_slot_10_hotkey;
-    t_hotkey load_from_slot_1_hotkey;
-    t_hotkey load_from_slot_2_hotkey;
-    t_hotkey load_from_slot_3_hotkey;
-    t_hotkey load_from_slot_4_hotkey;
-    t_hotkey load_from_slot_5_hotkey;
-    t_hotkey load_from_slot_6_hotkey;
-    t_hotkey load_from_slot_7_hotkey;
-    t_hotkey load_from_slot_8_hotkey;
-    t_hotkey load_from_slot_9_hotkey;
-    t_hotkey load_from_slot_10_hotkey;
-    t_hotkey select_slot_1_hotkey;
-    t_hotkey select_slot_2_hotkey;
-    t_hotkey select_slot_3_hotkey;
-    t_hotkey select_slot_4_hotkey;
-    t_hotkey select_slot_5_hotkey;
-    t_hotkey select_slot_6_hotkey;
-    t_hotkey select_slot_7_hotkey;
-    t_hotkey select_slot_8_hotkey;
-    t_hotkey select_slot_9_hotkey;
-    t_hotkey select_slot_10_hotkey;
+    core_hotkey fast_forward_hotkey;
+    core_hotkey gs_hotkey;
+    core_hotkey speed_down_hotkey;
+    core_hotkey speed_up_hotkey;
+    core_hotkey frame_advance_hotkey;
+    core_hotkey pause_hotkey;
+    core_hotkey toggle_read_only_hotkey;
+    core_hotkey toggle_movie_loop_hotkey;
+    core_hotkey start_movie_playback_hotkey;
+    core_hotkey start_movie_recording_hotkey;
+    core_hotkey stop_movie_hotkey;
+    core_hotkey create_movie_backup_hotkey;
+    core_hotkey take_screenshot_hotkey;
+    core_hotkey play_latest_movie_hotkey;
+    core_hotkey load_latest_script_hotkey;
+    core_hotkey new_lua_hotkey;
+    core_hotkey close_all_lua_hotkey;
+    core_hotkey load_rom_hotkey;
+    core_hotkey close_rom_hotkey;
+    core_hotkey reset_rom_hotkey;
+    core_hotkey load_latest_rom_hotkey;
+    core_hotkey fullscreen_hotkey;
+    core_hotkey settings_hotkey;
+    core_hotkey toggle_statusbar_hotkey;
+    core_hotkey refresh_rombrowser_hotkey;
+    core_hotkey seek_to_frame_hotkey;
+    core_hotkey run_hotkey;
+    core_hotkey piano_roll_hotkey;
+    core_hotkey cheats_hotkey;
+    core_hotkey save_current_hotkey;
+    core_hotkey load_current_hotkey;
+    core_hotkey save_as_hotkey;
+    core_hotkey load_as_hotkey;
+    core_hotkey undo_load_state_hotkey;
+    core_hotkey save_to_slot_1_hotkey;
+    core_hotkey save_to_slot_2_hotkey;
+    core_hotkey save_to_slot_3_hotkey;
+    core_hotkey save_to_slot_4_hotkey;
+    core_hotkey save_to_slot_5_hotkey;
+    core_hotkey save_to_slot_6_hotkey;
+    core_hotkey save_to_slot_7_hotkey;
+    core_hotkey save_to_slot_8_hotkey;
+    core_hotkey save_to_slot_9_hotkey;
+    core_hotkey save_to_slot_10_hotkey;
+    core_hotkey load_from_slot_1_hotkey;
+    core_hotkey load_from_slot_2_hotkey;
+    core_hotkey load_from_slot_3_hotkey;
+    core_hotkey load_from_slot_4_hotkey;
+    core_hotkey load_from_slot_5_hotkey;
+    core_hotkey load_from_slot_6_hotkey;
+    core_hotkey load_from_slot_7_hotkey;
+    core_hotkey load_from_slot_8_hotkey;
+    core_hotkey load_from_slot_9_hotkey;
+    core_hotkey load_from_slot_10_hotkey;
+    core_hotkey select_slot_1_hotkey;
+    core_hotkey select_slot_2_hotkey;
+    core_hotkey select_slot_3_hotkey;
+    core_hotkey select_slot_4_hotkey;
+    core_hotkey select_slot_5_hotkey;
+    core_hotkey select_slot_6_hotkey;
+    core_hotkey select_slot_7_hotkey;
+    core_hotkey select_slot_8_hotkey;
+    core_hotkey select_slot_9_hotkey;
+    core_hotkey select_slot_10_hotkey;
 
 #pragma endregion
 
@@ -801,7 +800,7 @@ typedef struct CoreCfg {
     /// Throttles game rendering to 60 FPS.
     /// </summary>
     int32_t render_throttling = 1;
-    
+
     /// <summary>
     /// Maximum number of entries into the rom cache
     /// <para/>
@@ -1223,14 +1222,14 @@ typedef struct CoreCfg {
 } core_cfg;
 #pragma pack(pop)
 
-typedef void(__cdecl* GETDLLINFO)(PLUGIN_INFO*);
+typedef void(__cdecl* GETDLLINFO)(core_plugin_info*);
 typedef void(__cdecl* DLLCONFIG)(void*);
 typedef void(__cdecl* DLLTEST)(void*);
 typedef void(__cdecl* DLLABOUT)(void*);
 
 typedef void(__cdecl* CHANGEWINDOW)();
 typedef void(__cdecl* CLOSEDLL_GFX)();
-typedef int32_t(__cdecl* INITIATEGFX)(GFX_INFO);
+typedef int32_t(__cdecl* INITIATEGFX)(core_gfx_info);
 typedef void(__cdecl* PROCESSDLIST)();
 typedef void(__cdecl* PROCESSRDPLIST)();
 typedef void(__cdecl* ROMCLOSED_GFX)();
@@ -1253,7 +1252,7 @@ typedef void(__cdecl* AIDACRATECHANGED)(int32_t system_type);
 typedef void(__cdecl* AILENCHANGED)();
 typedef uint32_t(__cdecl* AIREADLENGTH)();
 typedef void(__cdecl* CLOSEDLL_AUDIO)();
-typedef int32_t(__cdecl* INITIATEAUDIO)(AUDIO_INFO);
+typedef int32_t(__cdecl* INITIATEAUDIO)(core_audio_info);
 typedef void(__cdecl* PROCESSALIST)();
 typedef void(__cdecl* ROMCLOSED_AUDIO)();
 typedef void(__cdecl* ROMOPEN_AUDIO)();
@@ -1261,10 +1260,10 @@ typedef void(__cdecl* AIUPDATE)(int32_t wait);
 
 typedef void(__cdecl* CLOSEDLL_INPUT)();
 typedef void(__cdecl* CONTROLLERCOMMAND)(int32_t controller, unsigned char* command);
-typedef void(__cdecl* GETKEYS)(int32_t controller, BUTTONS* keys);
-typedef void(__cdecl* SETKEYS)(int32_t controller, BUTTONS keys);
-typedef void(__cdecl* OLD_INITIATECONTROLLERS)(void* hwnd, CONTROL controls[4]);
-typedef void(__cdecl* INITIATECONTROLLERS)(CONTROL_INFO control_info);
+typedef void(__cdecl* GETKEYS)(int32_t controller, core_buttons* keys);
+typedef void(__cdecl* SETKEYS)(int32_t controller, core_buttons keys);
+typedef void(__cdecl* OLD_INITIATECONTROLLERS)(void* hwnd, core_controller controls[4]);
+typedef void(__cdecl* INITIATECONTROLLERS)(core_input_info control_info);
 typedef void(__cdecl* READCONTROLLER)(int32_t controller, unsigned char* command);
 typedef void(__cdecl* ROMCLOSED_INPUT)();
 typedef void(__cdecl* ROMOPEN_INPUT)();
@@ -1273,7 +1272,7 @@ typedef void(__cdecl* KEYUP)(uint32_t wParam, int32_t lParam);
 
 typedef void(__cdecl* CLOSEDLL_RSP)();
 typedef uint32_t(__cdecl* DORSPCYCLES)(uint32_t);
-typedef void(__cdecl* INITIATERSP)(RSP_INFO rsp_info, uint32_t* cycles);
+typedef void(__cdecl* INITIATERSP)(core_rsp_info rsp_info, uint32_t* cycles);
 typedef void(__cdecl* ROMCLOSED_RSP)();
 
 // frame buffer plugin spec extension
@@ -1299,7 +1298,7 @@ typedef struct CoreScript {
     std::wstring m_code;
 } core_script;
 
-typedef struct _RDRAM_register {
+typedef struct {
     uint32_t rdram_config;
     uint32_t rdram_device_id;
     uint32_t rdram_delay;
@@ -1310,9 +1309,9 @@ typedef struct _RDRAM_register {
     uint32_t rdram_min_interval;
     uint32_t rdram_addr_select;
     uint32_t rdram_device_manuf;
-} RDRAM_register;
+} core_rdram_reg;
 
-typedef struct _SP_register {
+typedef struct {
     uint32_t sp_mem_addr_reg;
     uint32_t sp_dram_addr_reg;
     uint32_t sp_rd_len_reg;
@@ -1337,14 +1336,14 @@ typedef struct _SP_register {
     uint32_t sp_dma_full_reg;
     uint32_t sp_dma_busy_reg;
     uint32_t sp_semaphore_reg;
-} SP_register;
+} core_sp_reg;
 
-typedef struct _RSP_register {
+typedef struct {
     uint32_t rsp_pc;
     uint32_t rsp_ibist;
-} RSP_register;
+} core_rsp_reg;
 
-typedef struct _DPC_register {
+typedef struct {
     uint32_t dpc_start;
     uint32_t dpc_end;
     uint32_t dpc_current;
@@ -1365,16 +1364,16 @@ typedef struct _DPC_register {
     uint32_t dpc_bufbusy;
     uint32_t dpc_pipebusy;
     uint32_t dpc_tmem;
-} DPC_register;
+} core_dpc_reg;
 
-typedef struct _DPS_register {
+typedef struct {
     uint32_t dps_tbist;
     uint32_t dps_test_mode;
     uint32_t dps_buftest_addr;
     uint32_t dps_buftest_data;
-} DPS_register;
+} core_dps_reg;
 
-typedef struct _mips_register {
+typedef struct {
     uint32_t w_mi_init_mode_reg;
     uint32_t mi_init_mode_reg;
     char init_length;
@@ -1391,9 +1390,9 @@ typedef struct _mips_register {
     char VI_intr_mask;
     char PI_intr_mask;
     char DP_intr_mask;
-} mips_register;
+} core_mips_reg;
 
-typedef struct _VI_register {
+typedef struct {
     uint32_t vi_status;
     uint32_t vi_origin;
     uint32_t vi_width;
@@ -1409,9 +1408,9 @@ typedef struct _VI_register {
     uint32_t vi_x_scale;
     uint32_t vi_y_scale;
     uint32_t vi_delay;
-} VI_register;
+} core_vi_reg;
 
-typedef struct _AI_register {
+typedef struct {
     uint32_t ai_dram_addr;
     // source address (in rdram) of sound sample to be played
     uint32_t ai_len; // amount of bytes(?) to be played
@@ -1425,9 +1424,9 @@ typedef struct _AI_register {
     uint32_t next_len;
     uint32_t current_delay;
     uint32_t current_len;
-} AI_register;
+} core_ai_reg;
 
-typedef struct _PI_register {
+typedef struct {
     uint32_t pi_dram_addr_reg;
     uint32_t pi_cart_addr_reg;
     uint32_t pi_rd_len_reg;
@@ -1441,9 +1440,9 @@ typedef struct _PI_register {
     uint32_t pi_bsd_dom2_pwd_reg;
     uint32_t pi_bsd_dom2_pgs_reg;
     uint32_t pi_bsd_dom2_rls_reg;
-} PI_register;
+} core_pi_reg;
 
-typedef struct _RI_register {
+typedef struct {
     uint32_t ri_mode;
     uint32_t ri_config;
     uint32_t ri_current_load;
@@ -1452,39 +1451,39 @@ typedef struct _RI_register {
     uint32_t ri_latency;
     uint32_t ri_error;
     uint32_t ri_werror;
-} RI_register;
+} core_ri_reg;
 
-typedef struct _SI_register {
+typedef struct {
     uint32_t si_dram_addr;
     uint32_t si_pif_addr_rd64b;
     uint32_t si_pif_addr_wr64b;
     uint32_t si_status;
-} SI_register;
+} core_si_reg;
 
-enum class Job {
+typedef enum {
     // A save operation
-    Save,
+    core_st_job_save,
     // A load operation
-    Load
-};
+    core_st_job_load
+} core_st_job;
 
-
-enum class Medium {
+typedef enum {
     // The target medium is a slot (0-9).
-    Slot,
+    core_st_medium_slot,
     // The target medium is a file with a path.
-    Path,
+    core_st_medium_path,
     // The target medium is in-memory.
-    Memory
-};
+    core_st_medium_memory,
+} core_st_medium;
+
+using core_st_callback = std::function<void(core_result result, const std::vector<uint8_t>&)>;
+
+typedef std::common_type_t<std::chrono::duration<int64_t, std::ratio<1, 1000000000>>, std::chrono::duration<int64_t, std::ratio<1, 1000000000>>> core_timer_delta;
 
 typedef struct
 {
     uint32_t opcode;
     uint32_t address;
 } core_dbg_cpu_state;
-using t_savestate_callback = std::function<void(core_result result, const std::vector<uint8_t>&)>;
 
-typedef std::common_type_t<std::chrono::duration<int64_t, std::ratio<1, 1000000000>>, std::chrono::duration<int64_t, std::ratio<1, 1000000000>>> timer_delta;
-
-const uint8_t max_deltas = 60;
+constexpr uint8_t core_timer_max_deltas = 60;

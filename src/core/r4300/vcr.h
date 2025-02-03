@@ -11,7 +11,7 @@
  * \param index The polled controller's index
  * \param input The controller's input data
  */
-void vcr_on_controller_poll(int32_t index, BUTTONS* input);
+void vcr_on_controller_poll(int32_t index, core_buttons* input);
 
 /**
  * \brief Notifies VCR engine about a new VI

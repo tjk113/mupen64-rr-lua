@@ -17,7 +17,7 @@ namespace LuaService
     /**
      * \brief Gets the last controller data for a controller index
      */
-    BUTTONS get_last_controller_data(int index);
+    core_buttons get_last_controller_data(int index);
 
 #pragma region Callbacks
 
@@ -36,7 +36,7 @@ namespace LuaService
      * \param input Pointer to the input data, can be modified by Lua scripts during this function
      * \param index The index of the controller being polled
      */
-    void call_input(BUTTONS* input, int index);
+    void call_input(core_buttons* input, int index);
 
     /**
      * \brief Notifies all lua instances of the heartbeat while paused

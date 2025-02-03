@@ -18,7 +18,7 @@ uint8_t* rom;
 size_t rom_size;
 char rom_md5[33];
 
-t_rom_header ROM_HEADER;
+core_rom_header ROM_HEADER;
 
 void print_rom_info()
 {
@@ -77,7 +77,7 @@ std::wstring core_vr_country_code_to_country_name(uint16_t country_code)
     }
 }
 
-t_rom_header* core_vr_get_rom_header()
+core_rom_header* core_vr_get_rom_header()
 {
     return &ROM_HEADER;
 }
@@ -198,7 +198,7 @@ bool rom_load(std::filesystem::path path)
 
     g_core->logger->info("rom loaded succesfully");
 
-    memcpy(&ROM_HEADER, rom, sizeof(t_rom_header));
+    memcpy(&ROM_HEADER, rom, sizeof(core_rom_header));
     ROM_HEADER.unknown = 0;
     // Clean up ROMs that accidentally set the unused bytes (ensuring previous fields are null terminated)
     ROM_HEADER.Unknown[0] = 0;

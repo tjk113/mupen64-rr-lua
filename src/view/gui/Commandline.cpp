@@ -77,7 +77,7 @@ namespace Cli
             return;
         }
         
-        core_st_do_file(commandline_st.c_str(), Job::Load, nullptr, false);
+        core_st_do_file(commandline_st.c_str(), core_st_job_load, nullptr, false);
     }
 
     static void start_lua()
@@ -124,7 +124,7 @@ namespace Cli
 
     static void on_task_changed(std::any data)
     {
-        auto value = std::any_cast<vcr_task>(data);
+        auto value = std::any_cast<core_vcr_task>(data);
         static auto previous_value = value;
 
         if (task_is_playback(previous_value) && !task_is_playback(value))
@@ -232,7 +232,7 @@ namespace Cli
         const auto movie_path = commandline_rom.extension() == ".m64" ? commandline_rom : commandline_movie;
         if (!movie_path.empty())
         {
-            t_movie_header hdr{};
+            core_vcr_movie_header hdr{};
             core_vcr_parse_header(movie_path, &hdr);
             is_movie_from_start = hdr.startFlags & MOVIE_START_FROM_NOTHING;
         }
