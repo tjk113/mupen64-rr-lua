@@ -2288,7 +2288,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     };
 
     core_init(&g_core);
-    setup_dummy_info();
 
     g_ui_thread_id = GetCurrentThreadId();
 
@@ -2355,6 +2354,8 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_config.window_x, g_config.window_y, g_config.window_width,
     g_config.window_height,
     NULL, NULL, hInstance, NULL);
+
+    setup_dummy_info();
 
     ShowWindow(g_main_hwnd, nCmdShow);
     SetWindowLong(g_main_hwnd, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
