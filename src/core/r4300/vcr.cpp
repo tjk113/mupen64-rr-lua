@@ -53,7 +53,7 @@ int32_t m_current_sample = -1;
 int32_t m_current_vi = -1;
 
 // Used for tracking user-invoked resets
-bool user_requested_reset;
+bool vcr_reset_requested;
 
 std::recursive_mutex vcr_mutex;
 
@@ -631,7 +631,7 @@ void vcr_handle_recording(int32_t index, core_buttons* input)
     bool use_inputs_from_buffer = g_movie_inputs.size() > effective_index || g_warp_modify_active;
 
     // Regular recording: the recording input source is the input plugin (along with the reset override)
-    if (user_requested_reset)
+    if (vcr_reset_requested)
     {
         *input = {
             .Reserved1 = 1,
@@ -665,14 +665,18 @@ void vcr_handle_recording(int32_t index, core_buttons* input)
     m_current_sample++;
     g_core->callbacks.current_sample_changed(m_current_sample);
 
-    if (user_requested_reset)
+    if (vcr_reset_requested)
     {
-        user_requested_reset = false;
+        vcr_reset_requested = false;
         g_reset_pending = true;
         g_core->invoke_async([]
         {
-            const auto result = core_vr_reset_rom(false, false, true);
-
+            core_result result;
+            {
+                std::lock_guard lock(g_emu_cs);
+                result = vr_reset_rom_impl(false, false, true);
+            }
+            
             std::scoped_lock lock(vcr_mutex);
 
             g_reset_pending = false;

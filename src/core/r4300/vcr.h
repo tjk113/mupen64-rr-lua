@@ -6,6 +6,8 @@
 
 #pragma once
 
+extern bool vcr_reset_requested;
+
 /**
  * \brief Notifies VCR engine about controller being polled
  * \param index The polled controller's index

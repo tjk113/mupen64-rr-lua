@@ -102,12 +102,7 @@ namespace Messenger
          * \brief The emulator has finished resetting
          */
         ResetCompleted,
-
-        /**
-         * \brief The user has requested a reset. The reset won't be performed after the message is handled.
-         */
-        ResetRequested,
-
+        
         /**
          * \brief The config will begin saving soon
          */

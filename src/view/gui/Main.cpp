@@ -1622,13 +1622,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
 
             case IDM_RESET_ROM:
-                if (g_config.is_reset_recording_enabled && core_vcr_get_task() == task_recording)
-                {
-                    Messenger::broadcast(Messenger::Message::ResetRequested, nullptr);
-                    break;
-                }
+            {
+                const bool reset_will_continue_recording = g_config.is_reset_recording_enabled && core_vcr_get_task() == task_recording;
 
-                if (!confirm_user_exit())
+                if (!reset_will_continue_recording && !confirm_user_exit())
                     break;
 
                 AsyncExecutor::invoke_async([] {
@@ -1637,7 +1634,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 },
                                             ASYNC_KEY_RESET_ROM);
                 break;
-
+            }
             case IDM_SETTINGS:
                 {
                     BetterEmulationLock lock;

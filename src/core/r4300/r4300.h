@@ -15,6 +15,8 @@
 #include <core/r4300/rom.h>
 #include <core/include/core_types.h>
 
+extern std::recursive_mutex g_emu_cs;
+
 extern precomp_instr* PC;
 extern uint32_t vr_op;
 
@@ -69,6 +71,8 @@ extern void jump_to_func();
 void update_count();
 int32_t check_cop1_unusable();
 void terminate_emu();
+
+core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr, bool skip_reset_recording_check = false);
 
 #define jump_to(a) { jump_to_address = a; jump_to_func(); }
 

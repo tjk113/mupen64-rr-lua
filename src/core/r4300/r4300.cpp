@@ -33,7 +33,7 @@ std::thread audio_thread_handle;
 std::atomic<bool> audio_thread_stop_requested;
 
 // Lock to prevent emu state change race conditions
-std::recursive_mutex emu_cs;
+std::recursive_mutex g_emu_cs;
 
 std::filesystem::path rom_path;
 
@@ -2266,11 +2266,11 @@ core_result core_vr_start_rom(std::filesystem::path path, bool wait)
 {
     if (wait)
     {
-        std::lock_guard lock(emu_cs);
+        std::lock_guard lock(g_emu_cs);
         return vr_start_rom_impl(path);
     }
 
-    std::unique_lock lock(emu_cs, std::try_to_lock);
+    std::unique_lock lock(g_emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
         g_core->logger->warn("[Core] vr_start_rom busy!");
@@ -2284,11 +2284,11 @@ core_result core_vr_close_rom(bool stop_vcr, bool wait)
 {
     if (wait)
     {
-        std::lock_guard lock(emu_cs);
+        std::lock_guard lock(g_emu_cs);
         return vr_close_rom_impl(stop_vcr);
     }
 
-    std::unique_lock lock(emu_cs, std::try_to_lock);
+    std::unique_lock lock(g_emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
         g_core->logger->warn("[Core] vr_close_rom busy!");
@@ -2298,11 +2298,22 @@ core_result core_vr_close_rom(bool stop_vcr, bool wait)
     return vr_close_rom_impl(stop_vcr);
 }
 
-core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr)
+core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr, bool skip_reset_recording_check)
 {
     if (!emu_launched)
         return VR_NotRunning;
-
+    
+    // Special case:
+    // If we're recording a movie and have reset recording enabled, we don't reset immediately, but let the VCR
+    // handle the reset instead. This is to ensure that the movie file is properly closed and saved.
+    const auto task = core_vcr_get_task();
+    if (g_core->cfg->is_reset_recording_enabled && !skip_reset_recording_check && task == task_recording)
+    {
+        g_core->logger->trace("{} Reset during recording, handing off to VCR", __func__);
+        vcr_reset_requested = true;
+        return Res_Ok;
+    }
+    
     // why is it so damned difficult to reset the game?
     // right now it's hacked to exit to the GUI then re-load the ROM,
     // but it should be possible to reset the game while it's still running
@@ -2340,11 +2351,11 @@ core_result core_vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
 {
     if (wait)
     {
-        std::lock_guard lock(emu_cs);
+        std::lock_guard lock(g_emu_cs);
         return vr_reset_rom_impl(reset_save_data, stop_vcr);
     }
 
-    std::unique_lock lock(emu_cs, std::try_to_lock);
+    std::unique_lock lock(g_emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
         g_core->logger->info("[Core] vr_reset_rom busy!");
