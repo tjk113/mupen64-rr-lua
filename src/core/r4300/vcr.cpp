@@ -217,11 +217,8 @@ static void set_rom_info(core_vcr_movie_header* header)
     header->video_plugin_name[0] = '\0';
     header->audio_plugin_name[0] = '\0';
     header->rsp_plugin_name[0] = '\0';
-    
-    //strncpy(header->video_plugin_name, video_plugin->name().c_str(), 64);
-    //strncpy(header->input_plugin_name, input_plugin->name().c_str(), 64);
-    //strncpy(header->audio_plugin_name, audio_plugin->name().c_str(), 64);
-    //strncpy(header->rsp_plugin_name, rsp_plugin->name().c_str(), 64);
+
+    g_core->get_plugin_names(header->video_plugin_name, header->audio_plugin_name, header->input_plugin_name, header->rsp_plugin_name);
 }
 
 static core_result read_movie_header(std::vector<uint8_t> buf, core_vcr_movie_header* header)

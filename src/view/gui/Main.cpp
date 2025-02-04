@@ -2255,6 +2255,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.callbacks.seek_status_changed = []() {
         Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
     };
+    g_core.invoke_async = AsyncExecutor::invoke_async;
     g_core.get_saves_directory = get_saves_directory;
     g_core.show_multiple_choice_dialog = [] (const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, core_dialog_type type) {
         return FrontendService::show_multiple_choice_dialog(choices, str, title, type);
@@ -2269,7 +2270,25 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.update_screen = FrontendService::update_screen;
     g_core.find_available_rom = FrontendService::find_available_rom;
     g_core.load_screen = MGECompositor::load_screen;
-    g_core.invoke_async = AsyncExecutor::invoke_async;
+    g_core.get_plugin_names = [](char* video, char* audio, char* input, char* rsp) {
+#define DO_COPY(type)                                                                          \
+    if (type)                                                                                  \
+    {                                                                                          \
+        if (g_##type##_plugin)                                                                 \
+        {                                                                                      \
+            strncpy(type, g_##type##_plugin->name().data(), 64);                               \
+        }                                                                                      \
+        else                                                                                   \
+        {                                                                                      \
+            g_view_logger->error("Tried to get {} plugin name while it wasn't loaded", #type); \
+        }                                                                                      \
+    }\
+    
+        DO_COPY(video)
+        DO_COPY(audio)
+        DO_COPY(input)
+        DO_COPY(rsp)
+    };
 
     core_init(&g_core);
     setup_dummy_info();

@@ -34,6 +34,7 @@ typedef struct {
     void (*load_state)(void);
     void (*reset)(void);
     void (*seek_completed)(void);
+    // FIXME: Move next two into host-provided section; they aren't optional!
     bool (*load_plugins)(void);
     void (*load_plugin_globals)(void);
     void (*core_executing_changed)(bool);
@@ -199,6 +200,16 @@ typedef struct {
      */
     void (*load_screen)(void* data);
 
+    /**
+     * \brief Gets the plugin names.
+     * \param video Pointer to the video plugin name buffer. Must be at least 64 bytes large. If null, no data will be written.
+     * \param audio Pointer to the audio plugin name buffer. Must be at least 64 bytes large. If null, no data will be written.
+     * \param input Pointer to the input plugin name buffer. Must be at least 64 bytes large. If null, no data will be written.
+     * \param rsp Pointer to the RSP plugin name buffer. Must be at least 64 bytes large. If null, no data will be written.
+     * \note Must be called after loading plugins and their globals.
+     */
+    void (*get_plugin_names)(char* video, char* audio, char* input, char* rsp);
+    
 #pragma endregion
 
 #pragma region Core-Provided
