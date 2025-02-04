@@ -388,7 +388,6 @@ typedef struct ExtendedMovieData {
     uint64_t unused_2;
     uint32_t unused_3;
 } t_extended_movie_data;
-#pragma pack(pop)
 
 /**
  * \brief
