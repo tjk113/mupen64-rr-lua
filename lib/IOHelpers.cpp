@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "stdafx.h"
 #include "IOHelpers.h"
 #include <libdeflate.h>
 
@@ -70,10 +71,9 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec, size_t initial_s
         out_buf = static_cast<uint8_t*>(realloc(out_buf, buf_size));
         size_t actual_size = 0;
         auto result = libdeflate_gzip_decompress(
-            decompressor, vec.data(), vec.size(), out_buf, buf_size,
-            &actual_size);
-        if (result == LIBDEFLATE_SHORT_OUTPUT || result ==
-            LIBDEFLATE_INSUFFICIENT_SPACE)
+        decompressor, vec.data(), vec.size(), out_buf, buf_size,
+        &actual_size);
+        if (result == LIBDEFLATE_SHORT_OUTPUT || result == LIBDEFLATE_INSUFFICIENT_SPACE)
         {
             buf_size *= 2;
             continue;
@@ -95,4 +95,132 @@ void memread(uint8_t** src, void* dest, unsigned int len)
 {
     memcpy(dest, *src, len);
     *src += len;
+}
+
+bool ichar_equals(wchar_t a, wchar_t b)
+{
+    return std::tolower(a) == std::tolower(b);
+}
+
+bool iequals(std::wstring_view lhs, std::wstring_view rhs)
+{
+    return std::ranges::equal(lhs, rhs, ichar_equals);
+}
+
+std::string to_lower(std::string a)
+{
+    std::ranges::transform(a, a.begin(),
+                           [](unsigned char c) { return std::tolower(c); });
+    return a;
+}
+
+bool contains(const std::string& a, const std::string& b)
+{
+    return a.find(b) != std::string::npos;
+}
+
+std::wstring string_to_wstring(const std::string& str)
+{
+    const auto wstr = static_cast<wchar_t*>(calloc(str.size() + 1, sizeof(wchar_t)));
+
+    if (!wstr)
+    {
+        // Is it appropriate to fail silently...
+        return L"";
+    }
+
+    mbstowcs(wstr, str.c_str(), str.length());
+
+    auto wstdstr = std::wstring(wstr);
+
+    free(wstr);
+    return wstdstr;
+}
+
+std::string wstring_to_string(const std::wstring& wstr)
+{
+    std::string str(wstr.length(), 0);
+    std::transform(wstr.begin(), wstr.end(), str.begin(), [](wchar_t c) {
+        return (char)c;
+    });
+    return str;
+}
+
+std::vector<std::wstring> split_string(const std::wstring& s, const std::wstring& delimiter)
+{
+    size_t pos_start = 0, pos_end;
+    const size_t delim_len = delimiter.length();
+    std::vector<std::wstring> res;
+
+    while ((pos_end = s.find(delimiter, pos_start)) != std::wstring::npos)
+    {
+        auto token = s.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back(token);
+    }
+
+    res.emplace_back(s.substr(pos_start));
+    return res;
+}
+
+// FIXME: Use template...
+
+std::vector<std::wstring> split_wstring(const std::wstring& s, const std::wstring& delimiter)
+{
+    size_t pos_start = 0, pos_end;
+    const size_t delim_len = delimiter.length();
+    std::vector<std::wstring> res;
+
+    while ((pos_end = s.find(delimiter, pos_start)) != std::wstring::npos)
+    {
+        std::wstring token = s.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back(token);
+    }
+
+    res.emplace_back(s.substr(pos_start));
+    return res;
+}
+
+void strtrim(char* str, size_t len)
+{
+    for (int i = 0; i < len; ++i)
+    {
+        if (i == 0)
+        {
+            continue;
+        }
+        if (str[i - 1] == ' ' && str[i] == ' ')
+        {
+            memset(str + i - 1, 0, len - i + 1);
+            return;
+        }
+    }
+}
+
+size_t str_nth_occurence(const std::string& str, const std::string& searched, size_t nth)
+{
+    if (searched.empty() || nth <= 0)
+    {
+        return std::string::npos;
+    }
+
+    size_t pos = 0;
+    int count = 0;
+
+    while (count < nth)
+    {
+        pos = str.find(searched, pos);
+        if (pos == std::string::npos)
+        {
+            return std::string::npos;
+        }
+        count++;
+        if (count < nth)
+        {
+            pos += searched.size();
+        }
+    }
+
+    return pos;
 }

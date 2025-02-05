@@ -6,7 +6,6 @@
 
 #include "stdafx.h"
 #include <Config.h>
-#include <StlExtensions.h>
 #include <core_api.h>
 #include <shlobj.h>
 #include <gui/wrapper/PersistentPathDialog.h>

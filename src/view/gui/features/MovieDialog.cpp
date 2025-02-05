@@ -19,7 +19,6 @@
 #include <gui/wrapper/PersistentPathDialog.h>
 #include <helpers/IOHelpers.h>
 #include <CommCtrl.h>
-#include <StlExtensions.h>
 #include <core_api.h>
 
 namespace MovieDialog

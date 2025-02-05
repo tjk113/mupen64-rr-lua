@@ -7,7 +7,6 @@
 #include "stdafx.h"
 #include <Config.h>
 #include <Shlwapi.h>
-#include <StlExtensions.h>
 #include <Uxtheme.h>
 #include <Windows.h>
 #include <commctrl.h>

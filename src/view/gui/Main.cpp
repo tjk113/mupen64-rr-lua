@@ -12,7 +12,6 @@
 #include <Messenger.h>
 #include <Plugin.h>
 #include <Shlwapi.h>
-#include <StlExtensions.h>
 #include <Windows.h>
 #include <commctrl.h>
 #include <core_api.h>

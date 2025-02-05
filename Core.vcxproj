@@ -171,6 +171,7 @@
     </ClInclude>
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="lib\microlru.h" />
+    <ClInclude Include="lib\IOHelpers.h" />
     <ClInclude Include="src\core\memory\pif_lut.h" />
     <ClInclude Include="src\core\memory\dma.h" />
     <ClInclude Include="src\core\memory\flashram.h" />

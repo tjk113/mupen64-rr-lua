@@ -5,7 +5,6 @@
  */
 
 #include "stdafx.h"
-#include <StlExtensions.h>
 #include <core/Core.h>
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>

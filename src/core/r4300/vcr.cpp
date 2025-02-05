@@ -6,7 +6,6 @@
 
 #include "stdafx.h"
 #include <IOHelpers.h>
-#include <StlExtensions.h>
 #include <core/Core.h>
 #include <core/include/core_api.h>
 #include <core/memory/pif.h>

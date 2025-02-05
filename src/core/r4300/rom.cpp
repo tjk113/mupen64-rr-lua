@@ -7,7 +7,6 @@
 #include "stdafx.h"
 #include <core/Core.h>
 #include <IOHelpers.h>
-#include <StlExtensions.h>
 #include <md5.h>
 #include <core/memory/memory.h>
 #include <core/r4300/rom.h>

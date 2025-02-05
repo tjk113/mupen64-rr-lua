@@ -8,7 +8,6 @@
 #include <Config.h>
 #include <FrontendService.h>
 #include <Messenger.h>
-#include <StlExtensions.h>
 #include <core_api.h>
 #include <ini.h>
 #include <gui/Loggers.h>

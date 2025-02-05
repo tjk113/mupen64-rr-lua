@@ -13,7 +13,6 @@
 #include <core/r4300/rom.h>
 #include <core/r4300/vcr.h>
 #include <core/include/core_api.h>
-#include <StlExtensions.h>
 #include <IOHelpers.h>
 #include "flashram.h"
 #include "memory.h"

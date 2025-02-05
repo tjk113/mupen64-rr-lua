@@ -6,9 +6,33 @@
 
 #pragma once
 
-#include <filesystem>
-#include <span>
-#include <vector>
+/**
+ * \brief Records the execution time of a scope
+ */
+class ScopeTimer {
+public:
+    ScopeTimer(const std::string& name, spdlog::logger* logger)
+    {
+        m_name = name;
+        m_logger = logger;
+        m_start_time = std::chrono::high_resolution_clock::now();
+    }
+
+    ~ScopeTimer()
+    {
+        print_duration();
+    }
+
+    void print_duration() const
+    {
+        m_logger->info("[ScopeTimer] {}: {}ms", m_name.c_str(), static_cast<int>((std::chrono::high_resolution_clock::now() - m_start_time).count() / 1'000'000));
+    }
+
+private:
+    std::string m_name;
+    spdlog::logger* m_logger;
+    std::chrono::time_point<std::chrono::steady_clock> m_start_time;
+};
 
 /**
  * \brief Writes data to a vector at its tail end based on its size, expanding it as needed
@@ -48,3 +72,89 @@ std::vector<uint8_t> auto_decompress(std::vector<uint8_t>& vec, size_t initial_s
  * \param len The destination buffer's length
  */
 void memread(uint8_t** src, void* dest, unsigned int len);
+
+bool ichar_equals(wchar_t a, wchar_t b);
+
+bool iequals(std::wstring_view lhs, std::wstring_view rhs);
+
+std::string to_lower(std::string a);
+
+bool contains(const std::string& a, const std::string& b);
+
+/**
+ * Erases the specified indicies in a vector.
+ * \tparam T The vector's contained type.
+ * \param data The vector.
+ * \param indices_to_delete The indices to delete.
+ * \return The vector with the indicies removed.
+ */
+template <typename T>
+std::vector<T> erase_indices(const std::vector<T>& data, std::vector<size_t>& indices_to_delete)
+{
+    if (indices_to_delete.empty())
+        return data;
+
+    std::vector<T> ret = data;
+
+    std::ranges::sort(indices_to_delete, std::greater<>());
+    for (auto i : indices_to_delete)
+    {
+        if (i >= ret.size())
+        {
+            continue;
+        }
+        ret.erase(ret.begin() + i);
+    }
+
+    return ret;
+}
+
+/**
+ * Converts a string to a wstring. Returns an empty string on fail.
+ * \param str The string to convert
+ * \return The string's wstring representation
+ */
+std::wstring string_to_wstring(const std::string& str);
+
+/**
+ * Converts a wstring to a string.
+ * \param wstr The wstring to convert
+ * \return The wstring's string representation
+ */
+std::string wstring_to_string(const std::wstring& wstr);
+
+/**
+ * Splits a string by a delimiter
+ * \param s The string to split
+ * \param delimiter The delimiter
+ * \return A vector of string segments split by the delimiter
+ * \remark See https://stackoverflow.com/a/46931770/14472122
+ */
+std::vector<std::wstring> split_string(const std::wstring& s, const std::wstring& delimiter);
+
+// FIXME: Use template...
+
+/**
+ * Splits a wstring by a delimiter
+ * \param s The wstring to split
+ * \param delimiter The delimiter
+ * \return A vector of wstring segments split by the delimiter
+ * \remark See https://stackoverflow.com/a/46931770/14472122
+ */
+std::vector<std::wstring> split_wstring(const std::wstring& s, const std::wstring& delimiter);
+
+/**
+ * Writes a nul terminator at the last space in the string
+ * \param str The string to trim
+ * \param len The string's length including the nul terminator
+ */
+void strtrim(char* str, size_t len);
+
+/**
+ * Finds the nth occurence of a pattern inside a string
+ * \param str The string to search in
+ * \param searched The pattern to search for
+ * \param nth The occurence index
+ * \return The start index of the occurence into the string, or std::string::npos if none was found
+ */
+size_t str_nth_occurence(const std::string& str, const std::string& searched, size_t nth);

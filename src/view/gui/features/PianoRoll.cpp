@@ -11,7 +11,6 @@
 #include "Config.h"
 #include "Messenger.h"
 
-#include <StlExtensions.h>
 #include <Windows.h>
 #include <windowsx.h>
 #include <commctrl.h>

@@ -36,8 +36,6 @@
 #include "presenters/DCompPresenter.h"
 #include "presenters/GDIPresenter.h"
 
-#include <StlExtensions.h>
-
 const auto D2D_OVERLAY_CLASS = L"lua_d2d_overlay";
 const auto GDI_OVERLAY_CLASS = L"lua_gdi_overlay";
 
