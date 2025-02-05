@@ -10,9 +10,8 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <core/AsyncExecutor.h>
-#include <core/Messenger.h>
-#include <core/r4300/vcr.h>
+#include <gui/Main.h>
+#include <AsyncExecutor.h>
 
 namespace LuaCore::Movie
 {
@@ -22,26 +21,26 @@ namespace LuaCore::Movie
         const char* fname = lua_tostring(L, 1);
         g_config.vcr_readonly = true;
         Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
-        AsyncExecutor::invoke_async([=] { VCR::start_playback(fname); });
+        AsyncExecutor::invoke_async([=] { core_vcr_start_playback(fname); });
         return 0;
     }
 
     static int StopMovie(lua_State* L)
     {
-        VCR::stop_all();
+        core_vcr_stop_all();
         return 0;
     }
 
     static int GetMovieFilename(lua_State* L)
     {
-        if (VCR::get_task() == e_task::idle)
+        if (core_vcr_get_task() == task_idle)
         {
             luaL_error(L, "No movie is currently playing");
             lua_pushstring(L, "");
         }
         else
         {
-            lua_pushstring(L, VCR::get_path().string().c_str());
+            lua_pushstring(L, core_vcr_get_path().string().c_str());
         }
         return 1;
     }
@@ -64,30 +63,31 @@ namespace LuaCore::Movie
         auto str = string_to_wstring(lua_tostring(L, 1));
         bool pause_at_end = lua_toboolean(L, 2);
 
-        lua_pushinteger(L, static_cast<int32_t>(VCR::begin_seek(str, pause_at_end)));
+        lua_pushinteger(L, static_cast<int32_t>(core_vcr_begin_seek(str, pause_at_end)));
         return 1;
     }
 
     static int stop_seek(lua_State* L)
     {
-        VCR::stop_seek();
+        core_vcr_stop_seek();
         return 0;
     }
 
     static int is_seeking(lua_State* L)
     {
-        lua_pushboolean(L, VCR::is_seeking());
+        lua_pushboolean(L, core_vcr_is_seeking());
         return 1;
     }
 
     static int get_seek_completion(lua_State* L)
     {
-        auto result = VCR::get_seek_completion();
+        std::pair<size_t, size_t> pair;
+        core_vcr_get_seek_completion(pair);
 
         lua_newtable(L);
-        lua_pushinteger(L, result.first);
+        lua_pushinteger(L, pair.first);
         lua_rawseti(L, -2, 1);
-        lua_pushinteger(L, result.second);
+        lua_pushinteger(L, pair.second);
         lua_rawseti(L, -2, 2);
 
         return 1;
@@ -110,7 +110,7 @@ namespace LuaCore::Movie
      */
     static int begin_warp_modify(lua_State* L)
     {
-        std::vector<BUTTONS> inputs;
+        std::vector<core_buttons> inputs;
 
         luaL_checktype(L, 1, LUA_TTABLE);
         lua_pushnil(L);
@@ -118,7 +118,7 @@ namespace LuaCore::Movie
         {
             luaL_checktype(L, -1, LUA_TTABLE);
             lua_pushnil(L);
-            BUTTONS buttons{};
+            core_buttons buttons{};
             while (lua_next(L, -2))
             {
                 std::string key = lua_tostring(L, -2);
@@ -199,7 +199,7 @@ namespace LuaCore::Movie
             lua_pop(L, 1);
         }
 
-        auto result = VCR::begin_warp_modify(inputs);
+        auto result = core_vcr_begin_warp_modify(inputs);
 
         lua_pushinteger(L, static_cast<int32_t>(result));
         return 1;

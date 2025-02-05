@@ -5,11 +5,10 @@
  */
 
 #include "stdafx.h"
-#include <core/services/LoggingService.h>
-#include "r4300.h"
-#include "exception.h"
-#include "cop1_helpers.h"
-#include <core/services/FrontendService.h>
+#include <core/Core.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/exception.h>
+#include <core/r4300/cop1_helpers.h>
 
 float largest_denormal_float = 1.1754942106924411e-38f; // (1U << 23) - 1
 double largest_denormal_double = 2.225073858507201e-308; // (1ULL << 52) - 1
@@ -17,7 +16,7 @@ double largest_denormal_double = 2.225073858507201e-308; // (1ULL << 52) - 1
 void fail_float(const std::wstring& msg)
 {
 	const auto buf = std::format(L"{}\nPC = {:#06x}", msg, interpcore ? interp_addr : PC->addr);
-	FrontendService::show_dialog(buf.c_str(), L"Core", FrontendService::DialogType::Error);
+	g_core->show_dialog(buf.c_str(), L"Core", fsvc_error);
 
     core_Cause = 15 << 2;
     exception_general();

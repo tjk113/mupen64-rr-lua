@@ -20,8 +20,7 @@ extern "C" {
 #include <d2d1.h>
 #include <dcomp.h>
 #include <dwrite.h>
-
-#include <core/r4300/Plugin.h>
+#include <core_api.h>
 
 typedef struct s_window_procedure_params
 {
@@ -87,6 +86,11 @@ static const auto REG_ATWARPMODIFYSTATUSCHANGED = "WS";
 
 static uint32_t lua_gdi_color_mask = RGB(255, 0, 255);
 static HBRUSH alpha_mask_brush = CreateSolidBrush(lua_gdi_color_mask);
+
+inline int pcall_no_params(lua_State* L)
+{
+    return lua_pcall(L, 0, 0, 0);
+}
 
 class LuaEnvironment
 {
@@ -207,12 +211,12 @@ extern uint64_t inputCount;
 /**
  * \brief The controller data at time of the last input poll
  */
-extern BUTTONS last_controller_data[4];
+extern core_buttons last_controller_data[4];
 
 /**
  * \brief The modified control data to be pushed the next frame
  */
-extern BUTTONS new_controller_data[4];
+extern core_buttons new_controller_data[4];
 
 /**
  * \brief Whether the <c>new_controller_data</c> of a controller should be pushed the next frame

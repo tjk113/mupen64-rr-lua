@@ -5,14 +5,12 @@
  */
 
 #include "stdafx.h"
-#include "PersistentPathDialog.h"
+#include <Config.h>
+#include <core_api.h>
 #include <shlobj.h>
-#include <core/helpers/IOHelpers.h>
-#include <core/helpers/StlExtensions.h>
-#include <core/services/LoggingService.h>
-#include <core/Config.h>
-#include <view/helpers/WinHelpers.h>
-#include <view/helpers/IOHelpers.h>
+#include <gui/wrapper/PersistentPathDialog.h>
+#include <helpers/IOHelpers.h>
+#include <helpers/WinHelpers.h>
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp
 

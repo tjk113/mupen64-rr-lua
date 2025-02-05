@@ -5,9 +5,10 @@
  */
 
 #include "stdafx.h"
-#include "AsyncExecutor.h"
-#include <core/services/LoggingService.h>
-#include "Config.h"
+#include <AsyncExecutor.h>
+#include <Config.h>
+#include <core_api.h>
+#include <gui/Loggers.h>
 
 std::deque<std::pair<size_t, std::function<void()>>> g_task_queue;
 std::mutex g_queue_mutex;
@@ -63,11 +64,11 @@ void AsyncExecutor::invoke_async(const std::function<void()>& func, size_t key)
     {
         if (g_config.async_executor_cuzz)
         {
-            std::thread([=]
-            {
+            std::thread([=] {
                 Sleep(500);
                 func();
-            }).detach();
+            })
+            .detach();
         }
         else
         {
@@ -85,7 +86,7 @@ void AsyncExecutor::invoke_async(const std::function<void()>& func, size_t key)
             {
                 if (task_key == key)
                 {
-                    g_shared_logger->info("[AsyncExecutor] Function with key {} already exists in the queue.", key);
+                    g_view_logger->info("[AsyncExecutor] Function with key {} already exists in the queue.", key);
                     return;
                 }
             }

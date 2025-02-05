@@ -5,23 +5,21 @@
  */
 
 #include "stdafx.h"
-#include <view/lua/LuaConsole.h>
+#include <Config.h>
+#include <FrontendService.h>
 #include <Windows.h>
 #include <commctrl.h>
-#include <core/services/FrontendService.h>
-#include <view/gui/Main.h>
-#include <core/r4300/tracelog.h>
-#include <core/r4300/vcr.h>
-#include <view/capture/EncodingManager.h>
-#include <core/Config.h>
-#include <view/gui/features/MGECompositor.h>
-#include "Loggers.h"
-#include "features/Dispatcher.h"
-#include "features/RomBrowser.h"
-#include "features/Statusbar.h"
-#include "core/helpers/StlExtensions.h"
+#include <core_api.h>
+#include <capture/EncodingManager.h>
+#include <gui/Loggers.h>
+#include <gui/Main.h>
+#include <gui/features/Dispatcher.h>
+#include <gui/features/MGECompositor.h>
+#include <gui/features/RomBrowser.h>
+#include <gui/features/Statusbar.h>
+#include <lua/LuaConsole.h>
 
-size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, DialogType type, void* hwnd)
+size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, core_dialog_type type, void* hwnd)
 {
     std::vector<TASKDIALOG_BUTTON> buttons;
 
@@ -34,25 +32,25 @@ size_t FrontendService::show_multiple_choice_dialog(const std::vector<std::wstri
     auto icon = TD_ERROR_ICON;
     switch (type)
     {
-    case DialogType::Error:
+    case fsvc_error:
         icon = TD_ERROR_ICON;
         break;
-    case DialogType::Warning:
+    case fsvc_warning:
         icon = TD_WARNING_ICON;
         break;
-    case DialogType::Information:
+    case fsvc_information:
         icon = TD_INFORMATION_ICON;
         break;
     }
 
     TASKDIALOGCONFIG task_dialog_config = {
-        .cbSize = sizeof(TASKDIALOGCONFIG),
-        .hwndParent = static_cast<HWND>(hwnd ? hwnd : g_main_hwnd),
-        .pszWindowTitle = title,
-        .pszMainIcon = icon,
-        .pszContent = str,
-        .cButtons = (UINT)buttons.size(),
-        .pButtons = buttons.data(),
+    .cbSize = sizeof(TASKDIALOGCONFIG),
+    .hwndParent = static_cast<HWND>(hwnd ? hwnd : g_main_hwnd),
+    .pszWindowTitle = title,
+    .pszMainIcon = icon,
+    .pszContent = str,
+    .cButtons = (UINT)buttons.size(),
+    .pButtons = buttons.data(),
     };
 
     int pressed_button = -1;
@@ -73,32 +71,32 @@ bool FrontendService::show_ask_dialog(const wchar_t* str, const wchar_t* title, 
     return MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, MB_YESNO | (warning ? MB_ICONWARNING : MB_ICONQUESTION)) == IDYES;
 }
 
-void FrontendService::show_dialog(const wchar_t* str, const wchar_t* title, DialogType type, void* hwnd)
+void FrontendService::show_dialog(const wchar_t* str, const wchar_t* title, core_dialog_type type, void* hwnd)
 {
-	int icon = 0;
+    int icon = 0;
 
-	switch (type)
-	{
-	case DialogType::Error:
-		g_view_logger->error(L"[FrontendService] {}", str);
-		icon = MB_ICONERROR;
-		break;
-	case DialogType::Warning:
-		g_view_logger->warn(L"[FrontendService] {}", str);
-		icon = MB_ICONWARNING;
-		break;
-	case DialogType::Information:
-		g_view_logger->info(L"[FrontendService] {}", str);
-		icon = MB_ICONINFORMATION;
-		break;
-	default:
-		assert(false);
-	}
+    switch (type)
+    {
+    case fsvc_error:
+        g_view_logger->error(L"[FrontendService] {}", str);
+        icon = MB_ICONERROR;
+        break;
+    case fsvc_warning:
+        g_view_logger->warn(L"[FrontendService] {}", str);
+        icon = MB_ICONWARNING;
+        break;
+    case fsvc_information:
+        g_view_logger->info(L"[FrontendService] {}", str);
+        icon = MB_ICONINFORMATION;
+        break;
+    default:
+        assert(false);
+    }
 
-	if (!g_config.silent_mode)
-	{
-		MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, icon);
-	}
+    if (!g_config.silent_mode)
+    {
+        MessageBox(static_cast<HWND>(hwnd ? hwnd : g_main_hwnd), str, title, icon);
+    }
 }
 
 void FrontendService::show_statusbar(const wchar_t* str)
@@ -111,7 +109,7 @@ std::filesystem::path FrontendService::get_app_path()
     return g_app_path;
 }
 
-void FrontendService::set_default_hotkey_keys(t_config* config)
+void FrontendService::set_default_hotkey_keys(core_cfg* config)
 {
     config->fast_forward_hotkey.key = VK_TAB;
 
@@ -211,8 +209,8 @@ void FrontendService::set_default_hotkey_keys(t_config* config)
     config->load_as_hotkey.key = 'M';
     config->load_as_hotkey.ctrl = true;
 
-	config->undo_load_state_hotkey.key = 'Z';
-	config->undo_load_state_hotkey.ctrl = true;
+    config->undo_load_state_hotkey.key = 'Z';
+    config->undo_load_state_hotkey.ctrl = true;
 
     config->save_to_slot_1_hotkey.key = '1';
     config->save_to_slot_1_hotkey.shift = true;
@@ -285,40 +283,15 @@ void FrontendService::set_default_hotkey_keys(t_config* config)
     config->select_slot_10_hotkey.key = '0';
 }
 
-void* FrontendService::get_app_instance_handle()
-{
-    return g_app_instance;
-}
-
-void* FrontendService::get_main_window_handle()
-{
-    return g_main_hwnd;
-}
-
-void* FrontendService::get_statusbar_handle()
-{
-    return Statusbar::hwnd();
-}
-
-void* FrontendService::get_plugin_config_parent_handle()
-{
-    return g_hwnd_plug;
-}
-
-bool FrontendService::get_prefers_no_render_skip()
-{
-    return EncodingManager::is_capturing();
-}
-
 void FrontendService::update_screen()
 {
-    if (is_mge_available())
+    if (core_vr_get_mge_available())
     {
         MGECompositor::update_screen();
     }
     else
     {
-        updateScreen();
+        g_core.plugin_funcs.update_screen();
     }
 }
 
@@ -329,7 +302,7 @@ void FrontendService::at_vi()
         return;
     }
 
-	EncodingManager::at_vi();
+    EncodingManager::at_vi();
 }
 
 void FrontendService::ai_len_changed()
@@ -339,25 +312,10 @@ void FrontendService::ai_len_changed()
         return;
     }
 
-	EncodingManager::ai_len_changed();
+    EncodingManager::ai_len_changed();
 }
 
-std::wstring FrontendService::find_available_rom(const std::function<bool(const t_rom_header&)>& predicate)
+std::wstring FrontendService::find_available_rom(const std::function<bool(const core_rom_header&)>& predicate)
 {
     return RomBrowser::find_available_rom(predicate);
-}
-
-void FrontendService::mge_get_video_size(int32_t* width, int32_t* height)
-{
-    MGECompositor::get_video_size(width, height);
-}
-
-void FrontendService::mge_copy_video(void* buffer)
-{
-    MGECompositor::copy_video(buffer);
-}
-
-void FrontendService::mge_load_screen(void* data)
-{
-    MGECompositor::load_screen(data);
 }

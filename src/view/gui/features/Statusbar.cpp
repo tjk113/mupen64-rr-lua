@@ -5,18 +5,15 @@
  */
 
 #include "stdafx.h"
-#include "Statusbar.h"
+#include <Config.h>
+#include <Messenger.h>
 #include <Windows.h>
 #include <commctrl.h>
-#include <core/Messenger.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/vcr.h>
-#include "RomBrowser.h"
-#include <view/resource.h>
-#include <view/helpers/WinHelpers.h>
-#include <core/Config.h>
-#include <view/gui/Main.h>
-#include <view/gui/Loggers.h>
+#include <core_api.h>
+#include <resource.h>
+#include <gui/Main.h>
+#include <gui/features/Statusbar.h>
+#include <helpers/WinHelpers.h>
 
 namespace Statusbar
 {
@@ -32,9 +29,9 @@ namespace Statusbar
 		std::vector<t_segment> idle_parts;
 	} t_segment_layout;
 
-	std::unordered_map<StatusbarLayout, t_segment_layout> g_layout_map = {
+	std::unordered_map<core_statusbar_layout, t_segment_layout> g_layout_map = {
 		{
-			StatusbarLayout::Classic, t_segment_layout{
+			LAYOUT_CLASSIC, t_segment_layout{
 				.emu_parts = {
 					t_segment{
 						.sections = {Section::VCR, Section::Notification},
@@ -57,7 +54,7 @@ namespace Statusbar
 			}
 		},
 		{
-			StatusbarLayout::Modern, t_segment_layout{
+			LAYOUT_MODERN, t_segment_layout{
 				.emu_parts = {
 					t_segment{
 						.sections = {Section::Notification, Section::Readonly},
@@ -92,7 +89,7 @@ namespace Statusbar
 			}
 		},
 		{
-			StatusbarLayout::ModernWithReadonly, t_segment_layout{
+			LAYOUT_MODERN_WITH_READONLY, t_segment_layout{
 				.emu_parts = {
 					t_segment{
 						.sections = {Section::Notification},
@@ -142,8 +139,8 @@ namespace Statusbar
 
 	std::vector<t_segment> get_current_parts()
 	{
-		const t_segment_layout layout = g_layout_map[static_cast<StatusbarLayout>(g_config.statusbar_layout)];
-		return emu_launched ? layout.emu_parts : layout.idle_parts;
+		const t_segment_layout layout = g_layout_map[static_cast<core_statusbar_layout>(g_config.statusbar_layout)];
+		return (core_vr_get_launched()) ? layout.emu_parts : layout.idle_parts;
 	}
 
 	size_t section_to_segment_index(const Section section)
@@ -291,9 +288,9 @@ namespace Statusbar
 
 	void on_task_changed(std::any data)
 	{
-		auto value = std::any_cast<e_task>(data);
+		auto value = std::any_cast<core_vcr_task>(data);
 
-		if (value == e_task::idle)
+		if (value == task_idle)
 		{
 			post(L"", Section::Rerecords);
 		}

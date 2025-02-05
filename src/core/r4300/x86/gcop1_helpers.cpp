@@ -5,7 +5,7 @@
  */
 
 #include "stdafx.h"
-#include <core/Config.h>
+#include <core/Core.h>
 #include <core/r4300/cop1_helpers.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/recomph.h>
@@ -123,7 +123,7 @@ void gencheck_float_output_valid()
  */
 void gencheck_float_conversion_valid()
 {
-    if (!g_config.is_float_exception_propagation_enabled)
+    if (!g_core->cfg->is_float_exception_propagation_enabled)
         return;
 
     fstsw_ax();

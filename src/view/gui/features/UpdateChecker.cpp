@@ -5,15 +5,16 @@
  */
 
 #include "stdafx.h"
-#include "UpdateChecker.h"
+#include <Config.h>
+#include <FrontendService.h>
 #include <Windows.h>
+#include <core_api.h>
 #include <shellapi.h>
-#include <json/json.hpp>
-#include <core/helpers/StlExtensions.h>
-#include <core/services/FrontendService.h>
-#include <view/gui/Loggers.h>
-#include <view/gui/Main.h>
 #include <winhttp.h>
+#include <gui/Loggers.h>
+#include <gui/Main.h>
+#include <gui/features/UpdateChecker.h>
+#include <json/json.hpp>
 
 namespace UpdateChecker
 {
@@ -143,8 +144,7 @@ namespace UpdateChecker
      */
     int version_compare(const std::wstring& version1, const std::wstring& version2)
     {
-        auto split_version = [](const std::wstring& version)
-        {
+        auto split_version = [](const std::wstring& version) {
             std::vector parts(4, 0);
             const std::size_t dash_pos = version.find(L'-');
             std::wstring main_part = dash_pos != std::wstring::npos ? version.substr(0, dash_pos) : version;
@@ -205,7 +205,7 @@ namespace UpdateChecker
             g_view_logger->trace("[UpdateChecker] Automatic update checking disabled. Ignoring update check.");
             return;
         }
-        
+
         const auto json = get_latest_release_as_json();
 
         if (json.empty())
@@ -237,13 +237,13 @@ namespace UpdateChecker
         {
             if (manual)
             {
-                FrontendService::show_dialog(L"You are already up-to-date.", L"Already up-to-date", FrontendService::DialogType::Information);
+                FrontendService::show_dialog(L"You are already up-to-date.", L"Already up-to-date", fsvc_information);
             }
-            
+
             return;
         }
-        
-        const auto result = FrontendService::show_multiple_choice_dialog({L"Update now", L"Skip this version", L"Ignore"}, std::format(L"Mupen64 {} is available for download.", version).c_str(), L"Update Available", FrontendService::DialogType::Information);
+
+        const auto result = FrontendService::show_multiple_choice_dialog({L"Update now", L"Skip this version", L"Ignore"}, std::format(L"Mupen64 {} is available for download.", version).c_str(), L"Update Available", fsvc_information);
 
         if (result == 1)
         {

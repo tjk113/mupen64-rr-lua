@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2025, Mupen64 maintainers, contributors, and original authors (Hacktarux, ShadowPrince, linker).
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -6,24 +6,18 @@
 
 #pragma once
 
-/*
- *	Interface for Lua-related calls originating from core layer to the view layer
- *
- *	Must be implemented in the view layer.
- */
-
 extern "C" {
 #include <lua.h>
 }
 
-#include <core/CoreTypes.h>
+#include <core_types.h>
 
 namespace LuaService
 {
     /**
      * \brief Gets the last controller data for a controller index
      */
-    BUTTONS get_last_controller_data(int index);
+    core_buttons get_last_controller_data(int index);
 
 #pragma region Callbacks
 
@@ -42,7 +36,7 @@ namespace LuaService
      * \param input Pointer to the input data, can be modified by Lua scripts during this function
      * \param index The index of the controller being polled
      */
-    void call_input(BUTTONS* input, int index);
+    void call_input(core_buttons* input, int index);
 
     /**
      * \brief Notifies all lua instances of the heartbeat while paused
@@ -78,7 +72,7 @@ namespace LuaService
      * \brief Notifies all lua instances of a seek operation completing
      */
     void call_seek_completed();
- 
+
     /**
      * \brief Notifies all lua instances of a warp modify operation's status changing
      */
@@ -87,6 +81,6 @@ namespace LuaService
 #pragma endregion
 
 #pragma region Raw Calls
-     int pcall_no_params(lua_State* L);
+    int pcall_no_params(lua_State* L);
 #pragma endregion
-}
+} // namespace LuaService

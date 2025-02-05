@@ -5,7 +5,7 @@
  */
 
 #include "stdafx.h"
-#include <core/Config.h>
+#include <core/Core.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/recomph.h>
 #include <core/r4300/x86/assemble.h>
@@ -13,7 +13,7 @@
 
 static void gencheck_eax_valid(int32_t stackBase)
 {
-    if (!g_config.is_float_exception_propagation_enabled)
+    if (!g_core->cfg->is_float_exception_propagation_enabled)
         return;
 
     mov_reg32_imm32(EBX, (uint32_t)&largest_denormal_float);
@@ -24,7 +24,7 @@ static void gencheck_eax_valid(int32_t stackBase)
 
 static void gencheck_result_valid()
 {
-    if (!g_config.is_float_exception_propagation_enabled)
+    if (!g_core->cfg->is_float_exception_propagation_enabled)
         return;
 
     mov_reg32_imm32(EBX, (uint32_t)&largest_denormal_float);

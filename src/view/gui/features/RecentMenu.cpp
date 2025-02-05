@@ -6,8 +6,7 @@
 
 #include "stdafx.h"
 #include "RecentMenu.h"
-#include <view/gui/Main.h>
-#include <core/helpers/StlExtensions.h>
+#include <gui/Main.h>
 
 void RecentMenu::build(const std::vector<std::wstring>& vec, const int first_menu_id, const HMENU parent_menu)
 {
@@ -56,7 +55,7 @@ void RecentMenu::add(std::vector<std::wstring>& vec, std::wstring val, const boo
         vec.pop_back();
     }
     std::erase_if(vec, [&](const auto str) {
-        return iequals(str, val) || std::filesystem::path(str).compare(val) == 0;
+        return ::iequals(str, val) || std::filesystem::path(str).compare(val) == 0;
     });
     vec.insert(vec.begin(), val);
     build(vec, first_menu_id, parent_menu);

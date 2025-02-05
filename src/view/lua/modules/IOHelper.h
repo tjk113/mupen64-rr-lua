@@ -10,7 +10,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <view/gui/wrapper/PersistentPathDialog.h>
+#include <gui/wrapper/PersistentPathDialog.h>
 
 namespace LuaCore::IOHelper
 {

@@ -5,9 +5,9 @@
  */
 
 #include "stdafx.h"
-#include <core/services/LuaService.h>
-#include <view/lua/LuaConsole.h>
-#include <view/gui/Main.h>
+#include <lua/LuaConsole.h>
+#include <gui/Main.h>
+#include <core_api.h>
 
 namespace LuaService
 {
@@ -16,11 +16,6 @@ namespace LuaService
 
     t_window_procedure_params window_proc_params = {0};
     int current_input_n = 0;
-
-    int pcall_no_params(lua_State* L)
-    {
-        return lua_pcall(L, 0, 0, 0);
-    }
 
     int AtInput(lua_State* L)
     {
@@ -39,7 +34,7 @@ namespace LuaService
     }
 
 #pragma region Call Implementations
-    BUTTONS get_last_controller_data(int index)
+    core_buttons get_last_controller_data(int index)
     {
         return last_controller_data[index];
     }
@@ -66,7 +61,7 @@ namespace LuaService
         });
     }
 
-    void call_input(BUTTONS* input, int index)
+    void call_input(core_buttons* input, int index)
     {
         // NOTE: Special callback, we store the input data for all scripts to access via joypad.get(n)
         // If they request a change via joypad.set(n, input), we change the input

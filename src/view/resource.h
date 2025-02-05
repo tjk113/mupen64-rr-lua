@@ -500,8 +500,6 @@
 #define IDM_STRESS_WARP_MODIFY          40086
 #define IDC_PIANO_ROLL_HISTORY          40087
 #define IDM_BENCHMARK_LUA_CALLBACK      40088
-#define IDM_BENCHMARK_CORE_START        40089
-#define IDM_BENCHMARK_CORE_STOP         40090
 #define IDC_SEEKER_SUBTEXT              40091
 #define IDC_VERSION_TEXT                40092
 #define IDC_PLUGIN_WARNING              40093

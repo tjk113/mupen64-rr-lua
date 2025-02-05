@@ -5,81 +5,85 @@
  */
 
 #include "stdafx.h"
-#include "debugger.h"
-#include "Plugin.h"
-#include "core/Messenger.h"
+#include <core/r4300/debugger.h>
+#include <core/Core.h>
 
 bool g_resumed = true;
 bool g_instruction_advancing = false;
 bool g_dma_read_enabled = true;
-Debugger::t_cpu_state g_cpu_state{};
+core_dbg_cpu_state g_cpu_state{};
 
 DORSPCYCLES g_original_do_rsp_cycles;
 
-bool Debugger::get_resumed()
+static uint32_t dummy_doRspCycles(uint32_t cycles)
+{
+    return cycles;
+}
+
+bool core_dbg_get_resumed()
 {
     return g_resumed;
 }
 
-void Debugger::set_is_resumed(bool value)
+void core_dbg_set_is_resumed(bool value)
 {
     if (value)
     {
         g_instruction_advancing = false;
     }
     g_resumed = value;
-    Messenger::broadcast(Messenger::Message::DebuggerResumedChanged, g_resumed);
+    g_core->callbacks.debugger_resumed_changed(g_resumed);
 }
 
-void Debugger::step()
+void core_dbg_step()
 {
     g_instruction_advancing = true;
     g_resumed = true;
 }
 
-bool Debugger::get_dma_read_enabled()
+bool core_dbg_get_dma_read_enabled()
 {
     return g_dma_read_enabled;
 }
 
-void Debugger::set_dma_read_enabled(bool value)
+void core_dbg_set_dma_read_enabled(bool value)
 {
     g_dma_read_enabled = value;
 }
 
-bool Debugger::get_rsp_enabled()
+bool core_dbg_get_rsp_enabled()
 {
-    return doRspCycles == g_original_do_rsp_cycles;
+    return g_core->plugin_funcs.do_rsp_cycles == g_original_do_rsp_cycles;
 }
 
-void Debugger::set_rsp_enabled(bool value)
+void core_dbg_set_rsp_enabled(bool value)
 {
-    // Stash the original plugin-provided doRspCycles once
+    // Stash the original plugin-provided do_rsp_cycles once
     if (!g_original_do_rsp_cycles)
     {
-        g_original_do_rsp_cycles = doRspCycles;
+        g_original_do_rsp_cycles = g_core->plugin_funcs.do_rsp_cycles;
     }
 
-    // If RSP is disabled, we swap out the real doRspCycles function for the dummy one thereby effectively disabling the rsp unit
+    // If RSP is disabled, we swap out the real do_rsp_cycles function for the dummy one thereby effectively disabling the rsp unit
     if (value)
-        doRspCycles = g_original_do_rsp_cycles;
+        g_core->plugin_funcs.do_rsp_cycles = g_original_do_rsp_cycles;
     else
-        doRspCycles = dummy_doRspCycles;
+        g_core->plugin_funcs.do_rsp_cycles = dummy_doRspCycles;
 }
 
 void Debugger::on_late_cycle(uint32_t opcode, uint32_t address)
 {
     g_cpu_state = {
-        .opcode = opcode,
-        .address = address,
+    .opcode = opcode,
+    .address = address,
     };
 
     if (g_instruction_advancing)
     {
         g_instruction_advancing = false;
         g_resumed = false;
-        Messenger::broadcast(Messenger::Message::DebuggerCpuStateChanged, g_cpu_state);
-        Messenger::broadcast(Messenger::Message::DebuggerResumedChanged, g_resumed);
+        g_core->callbacks.debugger_cpu_state_changed(&g_cpu_state);
+        g_core->callbacks.debugger_resumed_changed(g_resumed);
     }
 
     while (!g_resumed)

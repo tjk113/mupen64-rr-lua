@@ -12,14 +12,13 @@
 #include "savestates.h"
 #include "stdafx.h"
 #include "summercart.h"
-#include "core/r4300/debugger.h"
-#include <core/Config.h>
+#include <core/Core.h>
+#include <core/r4300/debugger.h>
 #include <core/r4300/interrupt.h>
 #include <core/r4300/macros.h>
 #include <core/r4300/ops.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/rom.h>
-#include <core/services/LoggingService.h>
 
 void dma_pi_read()
 {
@@ -45,7 +44,7 @@ void dma_pi_read()
         else
             dma_write_flashram();
     }
-    else if (g_config.use_summercart)
+    else if (g_core->cfg->use_summercart)
     {
         longueur = (pi_register.pi_rd_len_reg & 0xFFFFFF) + 1;
         if (pi_register.pi_cart_addr_reg >= 0x1ffe0000 &&
@@ -77,7 +76,7 @@ void dma_pi_read()
         return;
     }
     else
-        g_core_logger->warn("unknown dma read");
+        g_core->logger->warn("unknown dma read");
 
     pi_register.read_pi_status_reg |= 1;
     update_count();
@@ -112,7 +111,7 @@ void dma_pi_write()
         {
         }
         else
-            g_core_logger->warn("unknown dma write:{:#06x}", (int32_t)pi_register.pi_cart_addr_reg);
+            g_core->logger->warn("unknown dma write:{:#06x}", (int32_t)pi_register.pi_cart_addr_reg);
 
         pi_register.read_pi_status_reg |= 1;
         update_count();
@@ -123,7 +122,7 @@ void dma_pi_write()
 
     longueur = (pi_register.pi_wr_len_reg & 0xFFFFFF) + 1;
 
-    if (g_config.use_summercart && pi_register.pi_cart_addr_reg >= 0x1ffe0000 &&
+    if (g_core->cfg->use_summercart && pi_register.pi_cart_addr_reg >= 0x1ffe0000 &&
         pi_register.pi_cart_addr_reg < 0x1fff0000)
     {
         for (i = 0; i < longueur; i++)
@@ -169,7 +168,7 @@ void dma_pi_write()
             uint32_t rdram_address2 = pi_register.pi_dram_addr_reg + i + 0xa0000000;
 
             ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-                !Debugger::get_dma_read_enabled()
+                !core_dbg_get_dma_read_enabled()
                     ? 0xFF
                     : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
 
@@ -187,7 +186,7 @@ void dma_pi_write()
         for (i = 0; i < longueur; i++)
         {
             ((unsigned char*)rdram)[(pi_register.pi_dram_addr_reg + i) ^ S8] =
-                !Debugger::get_dma_read_enabled()
+                !core_dbg_get_dma_read_enabled()
                     ? 0xFF
                     : rom[(((pi_register.pi_cart_addr_reg - 0x10000000) & 0x3FFFFFF) + i) ^ S8];
         }
@@ -257,7 +256,7 @@ void dma_si_write()
     int32_t i;
     if (si_register.si_pif_addr_wr64b != 0x1FC007C0)
     {
-        g_core_logger->warn("unknown SI use");
+        g_core->logger->warn("unknown SI use");
         stop = 1;
     }
     for (i = 0; i < (64 / 4); i++)
@@ -272,7 +271,7 @@ void dma_si_read()
     int32_t i;
     if (si_register.si_pif_addr_rd64b != 0x1FC007C0)
     {
-        g_core_logger->warn("unknown SI use");
+        g_core->logger->warn("unknown SI use");
         stop = 1;
     }
     update_pif_read();

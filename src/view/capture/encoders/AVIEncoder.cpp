@@ -5,15 +5,15 @@
  */
 
 #include "stdafx.h"
-
-#include "AVIEncoder.h"
-#include <core/r4300/rom.h>
-#include <core/services/FrontendService.h>
-#include <view/capture/EncodingManager.h>
-#include <view/capture/Resampler.h>
-#include <view/gui/Main.h>
-#include <view/gui/Loggers.h>
-#include <view/helpers/IOHelpers.h>
+#include <Config.h>
+#include <FrontendService.h>
+#include <core_api.h>
+#include <capture/EncodingManager.h>
+#include <capture/Resampler.h>
+#include <capture/encoders/AVIEncoder.h>
+#include <gui/Loggers.h>
+#include <gui/Main.h>
+#include <helpers/IOHelpers.h>
 
 bool AVIEncoder::start(Params params)
 {
@@ -64,6 +64,7 @@ bool AVIEncoder::start(Params params)
 	{
 		if (!load_options())
 		{
+		    // TODO: Show a helpful error dialog...
 			g_view_logger->error("[AVIEncoder] Failed to load options");
 			return false;
 		}
@@ -234,7 +235,7 @@ bool AVIEncoder::append_audio(uint8_t* audio, size_t length, uint8_t bitrate)
 			g_view_logger->info(
 				"[EncodingManager]: Correcting for A/V desynchronization of %+Lf frames\n",
 				desync);
-			int len3 = (int)(m_params.arate / (long double)get_vis_per_second(ROM_HEADER.Country_code)) * (int)
+			int len3 = (int)(m_params.arate / (long double)core_vr_get_vis_per_second(core_vr_get_rom_header()->Country_code)) * (int)
 				desync;
 			len3 <<= 2;
 			const int empty_size =
@@ -299,7 +300,7 @@ bool AVIEncoder::write_sound(uint8_t* buf, int len, const int min_write_size, co
 
 				if (!ok)
 				{
-					FrontendService::show_dialog(L"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", L"AVI Encoder", FrontendService::DialogType::Error);
+					FrontendService::show_dialog(L"Audio output failure!\nA call to addAudioData() (AVIStreamWrite) failed.\nPerhaps you ran out of memory?", L"AVI Encoder", fsvc_error);
 					return false;
 				}
 			}
@@ -314,7 +315,7 @@ bool AVIEncoder::write_sound(uint8_t* buf, int len, const int min_write_size, co
 
 	if (static_cast<unsigned int>(sound_buf_pos + len) > SOUND_BUF_SIZE * sizeof(char))
 	{
-		FrontendService::show_dialog(L"Sound buffer overflow!\nCapture will be stopped.", L"AVI Encoder", FrontendService::DialogType::Error);
+		FrontendService::show_dialog(L"Sound buffer overflow!\nCapture will be stopped.", L"AVI Encoder", fsvc_error);
 		return false;
 	}
 
@@ -327,7 +328,7 @@ bool AVIEncoder::write_sound(uint8_t* buf, int len, const int min_write_size, co
 	memcpy(m_sound_buf + sound_buf_pos, (char*)buf, len);
 	sound_buf_pos += len;
 	m_audio_frame += ((len / 4) / (long double)m_params.arate) *
-		get_vis_per_second(ROM_HEADER.Country_code);
+		core_vr_get_vis_per_second(core_vr_get_rom_header()->Country_code);
 
 
 	return true;

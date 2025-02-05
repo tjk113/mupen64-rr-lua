@@ -7,20 +7,15 @@
 //#include "../config.h"
 
 #include "stdafx.h"
-#include "interrupt.h"
-#include "../memory/memory.h"
-#include "r4300.h"
-#include "macros.h"
-#include "exception.h"
-#include <core/services/LuaService.h>
-#include <core/r4300/Plugin.h>
-#include "../r4300/vcr.h"
+#include <core/Core.h>
+#include <core/r4300/interrupt.h>
+#include <core/memory/memory.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/macros.h>
+#include <core/r4300/exception.h>
+#include <core/r4300/vcr.h>
 #include <core/r4300/timers.h>
-#include "../memory/savestates.h"
-#include <core/Config.h>
-#include "../memory/pif.h"
-#include <core/services/FrontendService.h>
-#include <core/services/LoggingService.h>
+#include <core/memory/pif.h>
 
 typedef struct _interrupt_queue
 {
@@ -115,14 +110,14 @@ void print_queue()
 {
     interrupt_queue* aux;
     //if (Count < 0x7000000) return;
-    g_core_logger->info("------------------ {:#06x}", (uint32_t)core_Count);
+    g_core->logger->info("------------------ {:#06x}", (uint32_t)core_Count);
     aux = q;
     while (aux != NULL)
     {
-        g_core_logger->info("Count:{:#06x}, {:#06x}", (uint32_t)aux->count, aux->type);
+        g_core->logger->info("Count:{:#06x}, {:#06x}", (uint32_t)aux->count, aux->type);
         aux = aux->next;
     }
-    g_core_logger->info("------------------");
+    g_core->logger->info("------------------");
     //getchar();
 }
 
@@ -179,7 +174,7 @@ void add_interrupt_event(int32_t type, uint32_t delay)
 
     if (get_event(type))
     {
-        g_core_logger->info("two events of type {:#06x} in queue", type);
+        g_core->logger->info("two events of type {:#06x} in queue", type);
         print_queue();
     }
     interrupt_queue* aux = q;
@@ -330,9 +325,9 @@ int32_t save_eventqueue_infos(char* buf)
 {
 #ifdef _DEBUG
     if (get_event(SI_INT))
-        g_core_logger->info("SI_INT in queue, good");
+        g_core->logger->info("SI_INT in queue, good");
     else
-        g_core_logger->info("SI_INT not found");
+        g_core->logger->info("SI_INT not found");
 #endif
     int32_t len = 0;
     interrupt_queue* aux = q;
@@ -415,7 +410,7 @@ void gen_interrupt()
 {
     //auto starttime = std::chrono::high_resolution_clock::now();
     //if (!skip_jump)
-    //g_core_logger->info("interrupt:{:#06x} ({:#06x})", q->type, Count);
+    //g_core->logger->info("interrupt:{:#06x} ({:#06x})", q->type, Count);
 
     // dyna_stop()��longjmp()���邽�߁A�������O�ŃR���X�g���N�g����ƃf�X�g���N�^���Ă΂�Ȃ�
     if (stop)
@@ -454,7 +449,7 @@ void gen_interrupt()
     switch (q->type)
     {
     case SPECIAL_INT: // does nothing, spammed when Count is close to rolling over
-        //g_core_logger->info("SPECIAL, count: {:#06x}", q->count);
+        //g_core->logger->info("SPECIAL, count: {:#06x}", q->count);
         if (core_Count > 0x10000000) return;
         remove_interrupt_event();
         add_interrupt_event_count(SPECIAL_INT, 0);
@@ -465,35 +460,26 @@ void gen_interrupt()
         {
             lag_count++;
 
-            start_section(VR_SECTION_LUA_ATINTERVAL);
-            LuaService::call_interval();
-            end_section(VR_SECTION_LUA_ATINTERVAL);
-
             // NOTE: It's ok to not update screen when lagging, doesn't cause any obvious issues
-            auto skip = (g_config.skip_rendering_lag && lag_count > 1) || g_vr_frame_skipped;
-            auto update = FrontendService::get_prefers_no_render_skip() ? true : (screen_invalidated ? !skip : false);
+            auto skip = (g_core->cfg->skip_rendering_lag && lag_count > 1) || g_vr_frame_skipped;
+            auto update = g_core->cfg->render_throttling ? (screen_invalidated ? !skip : false) : true;
 
             // NOTE: When frame advancing, screen_invalidated has a higher change of being false despite the fact it should be true
             // The update-limiting logic doesn't apply in frameadvance because there are no high-frequency updates
             if (update || frame_advancing)
             {
-                FrontendService::update_screen();
+                g_core->update_screen();
                 screen_invalidated = false;
             }
 
-            start_section(VR_SECTION_LUA_ATVI);
-            LuaService::call_vi();
-            end_section(VR_SECTION_LUA_ATVI);
+            g_core->callbacks.vi();
 
             vcr_on_vi();
-            FrontendService::at_vi();
 
-            start_section(VR_SECTION_TIMER);
             timer_new_vi();
-            end_section(VR_SECTION_TIMER);
 
             if (vi_register.vi_v_sync == 0) vi_register.vi_delay = 500000;
-            else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * g_config.counter_factor));
+            else vi_register.vi_delay = ((vi_register.vi_v_sync + 1) * (1500 * g_core->cfg->counter_factor));
             // this is the place
             next_vi += vi_register.vi_delay;
             if (vi_register.vi_status & 0x40) vi_field = 1 - vi_field;
@@ -507,7 +493,7 @@ void gen_interrupt()
             break;
         }
     case COMPARE_INT: // game can set Compare register to some value, and make a timer like that
-        //g_core_logger->info("COMPARE, count: {:#06x}", q->count);
+        //g_core->logger->info("COMPARE, count: {:#06x}", q->count);
         remove_interrupt_event();
         core_Count += 2;
         add_interrupt_event_count(COMPARE_INT, core_Compare);
@@ -515,14 +501,14 @@ void gen_interrupt()
         break;
 
     case CHECK_INT: //fake interrupt used to trigger exception handler (when interrupt is pending)
-        //g_core_logger->info("CHECK, count: {:#06x}", q->count);
+        //g_core->logger->info("CHECK, count: {:#06x}", q->count);
         remove_interrupt_event();
         break;
 
     //serial interface, means that PIF copy/write happened (controllers)
     //notice this is spammed a lot during loading
     case SI_INT:
-        //g_core_logger->info("SI, count: {:#06x}", q->count);
+        //g_core->logger->info("SI, count: {:#06x}", q->count);
         PIF_RAMb[0x3F] = 0x0;
         remove_interrupt_event();
         MI_register.mi_intr_reg |= 0x02;
@@ -531,14 +517,14 @@ void gen_interrupt()
 
     //peripherial interface, dma between cartridge and rdram finished
     case PI_INT:
-        //g_core_logger->info("PI, count: {:#06x}", q->count);
+        //g_core->logger->info("PI, count: {:#06x}", q->count);
         remove_interrupt_event();
         MI_register.mi_intr_reg |= 0x10;
         pi_register.read_pi_status_reg &= ~3; //PI_STATUS_DMA_BUSY | PI_STATUS_IO_BUSY clear
         break;
 
     case AI_INT:
-        //g_core_logger->info("AI, count: {:#06x}", q->count);
+        //g_core->logger->info("AI, count: {:#06x}", q->count);
         if (ai_register.ai_status & 0x80000000) // full
         {
             uint32_t ai_event = get_event(AI_INT);
@@ -564,7 +550,7 @@ void gen_interrupt()
         break;
 
     case SP_INT: //related to rsp
-        //g_core_logger->info("SP, count: {:#06x}", q->count);
+        //g_core->logger->info("SP, count: {:#06x}", q->count);
         remove_interrupt_event();
         sp_register.sp_status_reg |= 0x303;
     //sp_register.signal1 = 1;
@@ -577,7 +563,7 @@ void gen_interrupt()
         break;
 
     case DP_INT:
-        //g_core_logger->info("DP, count: {:#06x}", q->count);
+        //g_core->logger->info("DP, count: {:#06x}", q->count);
         remove_interrupt_event();
         dpc_register.dpc_status &= ~2;
         dpc_register.dpc_status |= 0x81;
@@ -585,7 +571,7 @@ void gen_interrupt()
         break;
 
     default:
-        //g_core_logger->info("!!!!!!!!!!DEFAULT");
+        //g_core->logger->info("!!!!!!!!!!DEFAULT");
         remove_interrupt_event();
         break;
     }

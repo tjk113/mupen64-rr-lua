@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "core/services/FrontendService.h"
-
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
@@ -13,9 +11,10 @@ extern "C" {
 }
 
 #include <Windows.h>
-#include "LuaConsole.h"
-#include <view/gui/Main.h>
-#include <view/helpers/WinHelpers.h>
+#include <lua/LuaConsole.h>
+#include <gui/Main.h>
+#include <helpers/WinHelpers.h>
+#include <FrontendService.h>
 
 namespace LuaCore::Wgui
 {

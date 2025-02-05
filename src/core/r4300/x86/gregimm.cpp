@@ -5,7 +5,7 @@
  */
 
 #include "stdafx.h"
-#include <core/Config.h>
+#include <core/Core.h>
 #include <core/r4300/ops.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/recomp.h>
@@ -53,7 +53,7 @@ void genbltz()
 	gencallinterp((uint32_t)BLTZ, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZ, 1);
         return;
@@ -71,7 +71,7 @@ void genbltz_out()
 	gencallinterp((uint32_t)BLTZ_OUT, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZ_OUT, 1);
         return;
@@ -89,7 +89,7 @@ void genbltz_idle()
 	gencallinterp((uint32_t)BLTZ_IDLE, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZ_IDLE, 1);
         return;
@@ -141,7 +141,7 @@ void genbgez()
 	gencallinterp((uint32_t)BGEZ, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZ, 1);
         return;
@@ -159,7 +159,7 @@ void genbgez_out()
 	gencallinterp((uint32_t)BGEZ_OUT, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZ_OUT, 1);
         return;
@@ -177,7 +177,7 @@ void genbgez_idle()
 	gencallinterp((uint32_t)BGEZ_IDLE, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZ_IDLE, 1);
         return;
@@ -195,7 +195,7 @@ void genbltzl()
 	gencallinterp((uint32_t)BLTZL, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZL, 1);
         return;
@@ -213,7 +213,7 @@ void genbltzl_out()
 	gencallinterp((uint32_t)BLTZL_OUT, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZL_OUT, 1);
         return;
@@ -231,7 +231,7 @@ void genbltzl_idle()
 	gencallinterp((uint32_t)BLTZL_IDLE, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZL_IDLE, 1);
         return;
@@ -249,7 +249,7 @@ void genbgezl()
 	gencallinterp((uint32_t)BGEZL, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZL, 1);
         return;
@@ -267,7 +267,7 @@ void genbgezl_out()
 	gencallinterp((uint32_t)BGEZL_OUT, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZL_OUT, 1);
         return;
@@ -285,7 +285,7 @@ void genbgezl_idle()
 	gencallinterp((uint32_t)BGEZL_IDLE, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZL_IDLE, 1);
         return;
@@ -334,7 +334,7 @@ void genbltzal()
 	gencallinterp((uint32_t)BLTZAL, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZAL, 1);
         return;
@@ -353,7 +353,7 @@ void genbltzal_out()
 	gencallinterp((uint32_t)BLTZAL_OUT, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZAL_OUT, 1);
         return;
@@ -372,7 +372,7 @@ void genbltzal_idle()
 	gencallinterp((uint32_t)BLTZAL_IDLE, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZAL_IDLE, 1);
         return;
@@ -391,7 +391,7 @@ void genbgezal()
 	gencallinterp((uint32_t)BGEZAL, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZAL, 1);
         return;
@@ -410,7 +410,7 @@ void genbgezal_out()
 	gencallinterp((uint32_t)BGEZAL_OUT, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZAL_OUT, 1);
         return;
@@ -429,7 +429,7 @@ void genbgezal_idle()
 	gencallinterp((uint32_t)BGEZAL_IDLE, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZAL_IDLE, 1);
         return;
@@ -448,7 +448,7 @@ void genbltzall()
 	gencallinterp((uint32_t)BLTZALL, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZALL, 1);
         return;
@@ -467,7 +467,7 @@ void genbltzall_out()
 	gencallinterp((uint32_t)BLTZALL_OUT, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZALL_OUT, 1);
         return;
@@ -486,7 +486,7 @@ void genbltzall_idle()
 	gencallinterp((uint32_t)BLTZALL_IDLE, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BLTZALL_IDLE, 1);
         return;
@@ -505,7 +505,7 @@ void genbgezall()
 	gencallinterp((uint32_t)BGEZALL, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZALL, 1);
         return;
@@ -524,7 +524,7 @@ void genbgezall_out()
 	gencallinterp((uint32_t)BGEZALL_OUT, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZALL_OUT, 1);
         return;
@@ -543,7 +543,7 @@ void genbgezall_idle()
 	gencallinterp((uint32_t)BGEZALL_IDLE, 1);
 #else
     if (((dst->addr & 0xFFF) == 0xFFC &&
-        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_config.is_compiled_jump_enabled)
+        (dst->addr < 0x80000000 || dst->addr >= 0xC0000000)) || !g_core->cfg->is_compiled_jump_enabled)
     {
         gencallinterp((uint32_t)BGEZALL_IDLE, 1);
         return;

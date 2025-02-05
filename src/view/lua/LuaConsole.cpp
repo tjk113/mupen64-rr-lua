@@ -6,23 +6,21 @@
 
 #include "stdafx.h"
 #include "LuaConsole.h"
+
+#include "Config.h"
+#include "FrontendService.h"
+#include "Messenger.h"
+
 #include <Windows.h>
 #include <shellapi.h>
-#include <core/memory/memory.h>
-#include <core/r4300/Plugin.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/timers.h>
 #include <d2d1.h>
 #include <dwrite.h>
 #include <gdiplus.h>
-#include <core/Config.h>
-#include <core/helpers/StlExtensions.h>
-#include <core/services/LuaService.h>
-#include <view/gui/Main.h>
-#include <view/gui/features/Statusbar.h>
-#include <view/gui/wrapper/PersistentPathDialog.h>
-#include <view/helpers/WinHelpers.h>
-#include <view/resource.h>
+#include <gui/Main.h>
+#include <gui/features/Statusbar.h>
+#include <gui/wrapper/PersistentPathDialog.h>
+#include <helpers/WinHelpers.h>
+#include <resource.h>
 #include <wincodec.h>
 #include "modules/AVI.h"
 #include "modules/D2D.h"
@@ -37,13 +35,12 @@
 #include "modules/WGUI.h"
 #include "presenters/DCompPresenter.h"
 #include "presenters/GDIPresenter.h"
-#include "core/services/FrontendService.h"
 
 const auto D2D_OVERLAY_CLASS = L"lua_d2d_overlay";
 const auto GDI_OVERLAY_CLASS = L"lua_gdi_overlay";
 
-BUTTONS last_controller_data[4];
-BUTTONS new_controller_data[4];
+core_buttons last_controller_data[4];
+core_buttons new_controller_data[4];
 bool overwrite_controller_data[4];
 
 std::atomic g_d2d_drawing_section = false;
@@ -59,7 +56,7 @@ int at_panic(lua_State* L)
     const auto message = string_to_wstring(lua_tostring(L, -1));
 
     g_view_logger->info(L"Lua panic: {}", message);
-    FrontendService::show_dialog(message.c_str(), L"Lua", FrontendService::DialogType::Error);
+    FrontendService::show_dialog(message.c_str(), L"Lua", fsvc_error);
 
     return 0;
 }
@@ -511,12 +508,12 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             bool failed;
             if (!lua->presenter)
             {
-                failed = lua->invoke_callbacks_with_key(LuaService::pcall_no_params, REG_ATDRAWD2D);
+                failed = lua->invoke_callbacks_with_key(pcall_no_params, REG_ATDRAWD2D);
             }
             else
             {
                 lua->presenter->begin_present();
-                failed = lua->invoke_callbacks_with_key(LuaService::pcall_no_params, REG_ATDRAWD2D);
+                failed = lua->invoke_callbacks_with_key(pcall_no_params, REG_ATDRAWD2D);
                 lua->presenter->end_present();
             }
 
@@ -546,7 +543,7 @@ LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             HDC dc = BeginPaint(hwnd, &ps);
             GetClientRect(hwnd, &rect);
 
-            bool failed = lua->invoke_callbacks_with_key(LuaService::pcall_no_params, REG_ATUPDATESCREEN);
+            bool failed = lua->invoke_callbacks_with_key(pcall_no_params, REG_ATUPDATESCREEN);
 
             BitBlt(dc, 0, 0, lua->dc_size.width, lua->dc_size.height, lua->gdi_back_dc, 0, 0, SRCCOPY);
 
@@ -615,14 +612,14 @@ void LuaEnvironment::ensure_d2d_renderer_created()
     auto hr = CoInitialize(nullptr);
     if (hr != S_OK && hr != S_FALSE && hr != RPC_E_CHANGED_MODE)
     {
-        FrontendService::show_dialog(L"Failed to initialize COM.\r\nVerify that your system is up-to-date.", L"Lua", FrontendService::DialogType::Error);
+        FrontendService::show_dialog(L"Failed to initialize COM.\r\nVerify that your system is up-to-date.", L"Lua", fsvc_error);
         return;
     }
 
     DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(dw_factory), reinterpret_cast<IUnknown**>(&dw_factory));
 
 
-    if (g_config.presenter_type != static_cast<int32_t>(PresenterType::GDI))
+    if (g_config.presenter_type != static_cast<int32_t>(PRESENTER_GDI))
     {
         presenter = new DCompPresenter();
     }
@@ -633,7 +630,7 @@ void LuaEnvironment::ensure_d2d_renderer_created()
 
     if (!presenter->init(d2d_overlay_hwnd))
     {
-        FrontendService::show_dialog(L"Failed to initialize presenter.\r\nVerify that your system supports the selected presenter.", L"Lua", FrontendService::DialogType::Error);
+        FrontendService::show_dialog(L"Failed to initialize presenter.\r\nVerify that your system supports the selected presenter.", L"Lua", fsvc_error);
         return;
     }
 
@@ -801,7 +798,7 @@ std::string LuaEnvironment::create(const std::filesystem::path& path, HWND wnd)
 LuaEnvironment::~LuaEnvironment()
 {
     m_ignore_renderer_creation = true;
-    invoke_callbacks_with_key(LuaService::pcall_no_params, REG_ATSTOP);
+    invoke_callbacks_with_key(pcall_no_params, REG_ATSTOP);
     SelectObject(gdi_back_dc, nullptr);
     DeleteObject(brush);
     DeleteObject(pen);

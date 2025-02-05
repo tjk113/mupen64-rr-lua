@@ -10,9 +10,7 @@
 #include "flashram.h"
 #include "pif.h"
 #include "summercart.h"
-#include <core/Config.h>
-#include <core/Messenger.h>
-#include <core/r4300/Plugin.h>
+#include <core/Core.h>
 #include <core/r4300/interrupt.h>
 #include <core/r4300/macros.h>
 #include <core/r4300/ops.h>
@@ -20,23 +18,21 @@
 #include <core/r4300/recomph.h>
 #include <core/r4300/timers.h>
 #include <core/r4300/vcr.h>
-#include <core/services/FrontendService.h>
-#include <core/services/LoggingService.h>
 
 static int32_t frame;
 
 /* definitions of the rcp's structures and memory area */
-RDRAM_register rdram_register;
-mips_register MI_register;
-PI_register pi_register;
-SP_register sp_register;
-RSP_register rsp_register;
-SI_register si_register;
-VI_register vi_register;
-RI_register ri_register;
-AI_register ai_register;
-DPC_register dpc_register;
-DPS_register dps_register;
+core_rdram_reg rdram_register;
+core_mips_reg MI_register;
+core_pi_reg pi_register;
+core_sp_reg sp_register;
+core_rsp_reg rsp_register;
+core_si_reg si_register;
+core_vi_reg vi_register;
+core_ri_reg ri_register;
+core_ai_reg ai_register;
+core_dpc_reg dpc_register;
+core_dps_reg dps_register;
 uint32_t rdram[0x800000 / 4];
 uint8_t sram[0x8000];
 uint8_t flashram[0x20000];
@@ -97,11 +93,16 @@ static uint32_t* readdp[0xFFFF];
 static uint32_t* readdps[0xFFFF];
 
 // the frameBufferInfos
-static FrameBufferInfo frameBufferInfos[6];
+static core_fb_info frameBufferInfos[6];
 static char framebufferRead[0x800];
 static int32_t firstFrameBufferSetting;
 
 static const int32_t MemoryMaxCount = 0xFFFF;
+
+size_t core_vr_get_lag_count()
+{
+    return lag_count;
+}
 
 int32_t init_memory()
 {
@@ -990,7 +991,7 @@ int32_t init_memory()
     }
 
     //init SUMMERCART
-    if (g_config.use_summercart)
+    if (g_core->cfg->use_summercart)
     {
         readmem[0x9fff] = read_sc_reg;
         readmem[0xbfff] = read_sc_reg;
@@ -1018,7 +1019,7 @@ int32_t init_memory()
     fast_memory = 1;
     firstFrameBufferSetting = 1;
 
-    g_core_logger->info("memory initialized");
+    g_core->logger->info("memory initialized");
     return 0;
 }
 
@@ -1157,8 +1158,7 @@ void update_SP()
         if (SP_DMEM[0xFC0 / 4] == 1)
         {
             // unprotecting old frame buffers
-            if (fBGetFrameBufferInfo && fBRead && fBWrite &&
-                frameBufferInfos[0].addr)
+            if (g_core->plugin_funcs.fb_get_frame_buffer_info && g_core->plugin_funcs.fb_read && g_core->plugin_funcs.fb_write && frameBufferInfos[0].addr)
             {
                 int32_t i;
                 for (i = 0; i < 6; i++)
@@ -1201,19 +1201,15 @@ void update_SP()
             // NOTE: we increment this here, and not in vcr_updatescreen, since invocation of vcr_updatescreen depends on vi interrupts, which dont get generated if we skip rsp
             // if that happens, then we never increment screen_updates and thus are stuck in incorrect state
             g_total_frames++;
-            g_config.total_frames++;
+            g_core->cfg->total_frames++;
             g_vr_frame_skipped = is_frame_skipped();
             if (!g_vr_frame_skipped)
             {
-                start_section(VR_SECTION_RSP);
-                doRspCycles(100);
-                end_section(VR_SECTION_RSP);
+                g_core->plugin_funcs.do_rsp_cycles(100);
             }
 
             rsp_register.rsp_pc |= save_pc;
-            start_section(VR_SECTION_TIMER);
             timer_new_frame();
-            end_section(VR_SECTION_TIMER);
 
             MI_register.mi_intr_reg &= ~0x21;
             sp_register.sp_status_reg &= ~0x303;
@@ -1222,9 +1218,15 @@ void update_SP()
             add_interrupt_event(DP_INT, 1000);
 
             // protecting new frame buffers
-            if (fBGetFrameBufferInfo && fBRead && fBWrite) fBGetFrameBufferInfo(frameBufferInfos);
-            if (fBGetFrameBufferInfo && fBRead && fBWrite &&
-                frameBufferInfos[0].addr)
+            if (g_core->plugin_funcs.fb_get_frame_buffer_info && g_core->plugin_funcs.fb_read && g_core->plugin_funcs.fb_write)
+            {
+                g_core->plugin_funcs.fb_get_frame_buffer_info(frameBufferInfos);
+            }
+            
+            if (g_core->plugin_funcs.fb_get_frame_buffer_info
+                && g_core->plugin_funcs.fb_read
+                && g_core->plugin_funcs.fb_write
+                && frameBufferInfos[0].addr)
             {
                 int32_t i;
                 for (i = 0; i < 6; i++)
@@ -1282,11 +1284,9 @@ void update_SP()
             //processAList();
             rsp_register.rsp_pc &= 0xFFF;
 
-            if (!g_vr_fast_forward || !g_config.fastforward_silent)
+            if (!g_vr_fast_forward || !g_core->cfg->fastforward_silent)
             {
-                start_section(VR_SECTION_RSP);
-                doRspCycles(100);
-                end_section(VR_SECTION_RSP);
+                g_core->plugin_funcs.do_rsp_cycles(100);
             }
             rsp_register.rsp_pc |= save_pc;
 
@@ -1298,13 +1298,11 @@ void update_SP()
         }
         else
         {
-            //g_core_logger->info("other task");
+            //g_core->logger->info("other task");
             rsp_register.rsp_pc &= 0xFFF;
-            if (!g_vr_fast_forward || !g_config.fastforward_silent)
+            if (!g_vr_fast_forward || !g_core->cfg->fastforward_silent)
             {
-                start_section(VR_SECTION_RSP);
-                doRspCycles(100);
-                end_section(VR_SECTION_RSP);
+                g_core->plugin_funcs.do_rsp_cycles(100);
             }
             rsp_register.rsp_pc |= save_pc;
 
@@ -1313,7 +1311,7 @@ void update_SP()
             update_count();
             add_interrupt_event(SP_INT, 0/*100*/);
         }
-        //g_core_logger->info("unknown task type");
+        //g_core->logger->info("unknown task type");
         /*if (hle) execute_dlist();
         //if (hle) processDList();
         else sp_register.halt = 0;*/
@@ -1489,7 +1487,7 @@ void read_rdramFB()
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end &&
                 framebufferRead[(address & 0x7FFFFF) >> 12])
             {
-                fBRead(address);
+                g_core->plugin_funcs.fb_read(address);
                 framebufferRead[(address & 0x7FFFFF) >> 12] = 0;
             }
         }
@@ -1511,7 +1509,7 @@ void read_rdramFBb()
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end &&
                 framebufferRead[(address & 0x7FFFFF) >> 12])
             {
-                fBRead(address);
+                g_core->plugin_funcs.fb_read(address);
                 framebufferRead[(address & 0x7FFFFF) >> 12] = 0;
             }
         }
@@ -1533,7 +1531,7 @@ void read_rdramFBh()
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end &&
                 framebufferRead[(address & 0x7FFFFF) >> 12])
             {
-                fBRead(address);
+                g_core->plugin_funcs.fb_read(address);
                 framebufferRead[(address & 0x7FFFFF) >> 12] = 0;
             }
         }
@@ -1555,7 +1553,7 @@ void read_rdramFBd()
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end &&
                 framebufferRead[(address & 0x7FFFFF) >> 12])
             {
-                fBRead(address);
+                g_core->plugin_funcs.fb_read(address);
                 framebufferRead[(address & 0x7FFFFF) >> 12] = 0;
             }
         }
@@ -1596,7 +1594,7 @@ void write_rdramFB()
                 frameBufferInfos[i].height *
                 frameBufferInfos[i].size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end)
-                fBWrite(address, 4);
+                g_core->plugin_funcs.fb_write(address, 4);
         }
     }
     write_rdram();
@@ -1614,7 +1612,7 @@ void write_rdramFBb()
                 frameBufferInfos[i].height *
                 frameBufferInfos[i].size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end)
-                fBWrite(address ^ S8, 1);
+                g_core->plugin_funcs.fb_write(address ^ S8, 1);
         }
     }
     write_rdramb();
@@ -1632,7 +1630,7 @@ void write_rdramFBh()
                 frameBufferInfos[i].height *
                 frameBufferInfos[i].size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end)
-                fBWrite(address ^ S16, 2);
+                g_core->plugin_funcs.fb_write(address ^ S16, 2);
         }
     }
     write_rdramh();
@@ -1650,7 +1648,7 @@ void write_rdramFBd()
                 frameBufferInfos[i].height *
                 frameBufferInfos[i].size - 1;
             if ((address & 0x7FFFFF) >= start && (address & 0x7FFFFF) <= end)
-                fBWrite(address, 8);
+                g_core->plugin_funcs.fb_write(address, 8);
         }
     }
     write_rdramd();
@@ -2068,7 +2066,7 @@ void write_dp()
         dpc_register.dpc_current = dpc_register.dpc_start;
         break;
     case 0x4:
-        processRDPList();
+        g_core->plugin_funcs.process_rdp_list();
         MI_register.mi_intr_reg |= 0x20;
         check_interrupt();
         break;
@@ -2123,7 +2121,7 @@ void write_dpb()
     case 0x5:
     case 0x6:
     case 0x7:
-        processRDPList();
+        g_core->plugin_funcs.process_rdp_list();
         MI_register.mi_intr_reg |= 0x20;
         check_interrupt();
         break;
@@ -2162,7 +2160,7 @@ void write_dph()
         break;
     case 0x4:
     case 0x6:
-        processRDPList();
+        g_core->plugin_funcs.process_rdp_list();
         MI_register.mi_intr_reg |= 0x20;
         check_interrupt();
         break;
@@ -2189,7 +2187,7 @@ void write_dpd()
     {
     case 0x0:
         dpc_register.dpc_current = dpc_register.dpc_start;
-        processRDPList();
+        g_core->plugin_funcs.process_rdp_list();
         MI_register.mi_intr_reg |= 0x20;
         check_interrupt();
         break;
@@ -2420,7 +2418,7 @@ void write_vi()
         if (vi_register.vi_status != word)
         {
             vi_register.vi_status = word;
-            viStatusChanged();
+            g_core->plugin_funcs.vi_status_changed();
         }
         return;
         break;
@@ -2428,7 +2426,7 @@ void write_vi()
         if (vi_register.vi_width != word)
         {
             vi_register.vi_width = word;
-            viWidthChanged();
+            g_core->plugin_funcs.vi_width_changed();
         }
         return;
         break;
@@ -2456,7 +2454,7 @@ void write_vib()
         if (vi_register.vi_status != temp)
         {
             vi_register.vi_status = temp;
-            viStatusChanged();
+            g_core->plugin_funcs.vi_status_changed();
         }
         return;
         break;
@@ -2470,7 +2468,7 @@ void write_vib()
         if (vi_register.vi_width != temp)
         {
             vi_register.vi_width = temp;
-            viWidthChanged();
+            g_core->plugin_funcs.vi_width_changed();
         }
         return;
         break;
@@ -2500,7 +2498,7 @@ void write_vih()
         if (vi_register.vi_status != temp)
         {
             vi_register.vi_status = temp;
-            viStatusChanged();
+            g_core->plugin_funcs.vi_status_changed();
         }
         return;
         break;
@@ -2512,7 +2510,7 @@ void write_vih()
         if (vi_register.vi_width != temp)
         {
             vi_register.vi_width = temp;
-            viWidthChanged();
+            g_core->plugin_funcs.vi_width_changed();
         }
         return;
         break;
@@ -2535,7 +2533,7 @@ void write_vid()
         if (vi_register.vi_status != dword >> 32)
         {
             vi_register.vi_status = dword >> 32;
-            viStatusChanged();
+            g_core->plugin_funcs.vi_status_changed();
         }
         vi_register.vi_origin = dword & 0xFFFFFFFF;
         return;
@@ -2544,7 +2542,7 @@ void write_vid()
         if (vi_register.vi_width != dword >> 32)
         {
             vi_register.vi_width = dword >> 32;
-            viWidthChanged();
+            g_core->plugin_funcs.vi_width_changed();
         }
         vi_register.vi_v_intr = dword & 0xFFFFFFFF;
         return;
@@ -2648,8 +2646,8 @@ void write_ai()
     {
     case 0x4:
         ai_register.ai_len = word;
-        aiLenChanged();
-        FrontendService::ai_len_changed();
+        g_core->plugin_funcs.ai_len_changed();
+        g_core->callbacks.ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2679,7 +2677,7 @@ void write_ai()
             }
             break;
         }
-        if (!g_config.is_audio_delay_enabled) delay = 0;
+        if (!g_core->cfg->is_audio_delay_enabled) delay = 0;
         if (ai_register.ai_status & 0x40000000) // busy
         {
             ai_register.next_delay = delay;
@@ -2705,6 +2703,7 @@ void write_ai()
         if (ai_register.ai_dacrate != word)
         {
             ai_register.ai_dacrate = word;
+            // FIXME: Cache this!!!
             switch (ROM_HEADER.Country_code & 0xFF)
             {
             case 0x44:
@@ -2715,15 +2714,15 @@ void write_ai()
             case 0x55:
             case 0x58:
             case 0x59:
-                aiDacrateChanged(static_cast<int32_t>(SystemType::PAL));
-                Messenger::broadcast(Messenger::Message::DacrateChanged, SystemType::PAL);
+                g_core->plugin_funcs.ai_dacrate_changed(sys_pal);
+                g_core->callbacks.dacrate_changed(sys_pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                aiDacrateChanged(static_cast<int32_t>(SystemType::NTSC));
-                Messenger::broadcast(Messenger::Message::DacrateChanged, SystemType::NTSC);
+                g_core->plugin_funcs.ai_dacrate_changed(sys_ntsc);
+                g_core->callbacks.dacrate_changed(sys_ntsc);
                 break;
             }
         }
@@ -2747,8 +2746,8 @@ void write_aib()
         *((unsigned char*)&temp
             + ((*address_low & 3) ^ S8)) = g_byte;
         ai_register.ai_len = temp;
-        aiLenChanged();
-        FrontendService::ai_len_changed();
+        g_core->plugin_funcs.ai_len_changed();
+        g_core->callbacks.ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2815,15 +2814,15 @@ void write_aib()
             case 0x55:
             case 0x58:
             case 0x59:
-                aiDacrateChanged((int32_t)SystemType::PAL);
-                Messenger::broadcast(Messenger::Message::DacrateChanged, SystemType::PAL);
+                g_core->plugin_funcs.ai_dacrate_changed(sys_pal);
+                g_core->callbacks.dacrate_changed(sys_pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                aiDacrateChanged((int32_t)SystemType::NTSC);
-                Messenger::broadcast(Messenger::Message::DacrateChanged, SystemType::NTSC);
+                g_core->plugin_funcs.ai_dacrate_changed(sys_ntsc);
+                g_core->callbacks.dacrate_changed(sys_ntsc);
                 break;
             }
         }
@@ -2846,8 +2845,8 @@ void write_aih()
         *((uint16_t*)((unsigned char*)&temp
             + ((*address_low & 3) ^ S16))) = hword;
         ai_register.ai_len = temp;
-        aiLenChanged();
-        FrontendService::ai_len_changed();
+        g_core->plugin_funcs.ai_len_changed();
+        g_core->callbacks.ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2869,7 +2868,7 @@ void write_aih()
                 vi_register.vi_delay * 60) / 48681812;
             break;
         }
-        if (!g_config.is_audio_delay_enabled) delay = 0;
+        if (!g_core->cfg->is_audio_delay_enabled) delay = 0;
         if (ai_register.ai_status & 0x40000000) // busy
         {
             ai_register.next_delay = delay;
@@ -2910,15 +2909,15 @@ void write_aih()
             case 0x55:
             case 0x58:
             case 0x59:
-                aiDacrateChanged((int32_t)SystemType::PAL);
-                Messenger::broadcast(Messenger::Message::DacrateChanged, SystemType::PAL);
+                g_core->plugin_funcs.ai_dacrate_changed(sys_pal);
+                g_core->callbacks.dacrate_changed(sys_pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                aiDacrateChanged((int32_t)SystemType::NTSC);
-                Messenger::broadcast(Messenger::Message::DacrateChanged, SystemType::NTSC);
+                g_core->plugin_funcs.ai_dacrate_changed(sys_ntsc);
+                g_core->callbacks.dacrate_changed(sys_ntsc);
                 break;
             }
         }
@@ -2937,8 +2936,8 @@ void write_aid()
     case 0x0:
         ai_register.ai_dram_addr = dword >> 32;
         ai_register.ai_len = dword & 0xFFFFFFFF;
-        aiLenChanged();
-        FrontendService::ai_len_changed();
+        g_core->plugin_funcs.ai_len_changed();
+        g_core->callbacks.ai_len_changed();
         switch (ROM_HEADER.Country_code & 0xFF)
         {
         case 0x44:
@@ -2960,7 +2959,7 @@ void write_aid()
                 vi_register.vi_delay * 60) / 48681812;
             break;
         }
-        if (!g_config.is_audio_delay_enabled) delay = 0;
+        if (!g_core->cfg->is_audio_delay_enabled) delay = 0;
         if (ai_register.ai_status & 0x40000000) // busy
         {
             ai_register.next_delay = delay;
@@ -2997,15 +2996,15 @@ void write_aid()
             case 0x55:
             case 0x58:
             case 0x59:
-                aiDacrateChanged((int32_t)SystemType::PAL);
-                Messenger::broadcast(Messenger::Message::DacrateChanged, SystemType::PAL);
+                g_core->plugin_funcs.ai_dacrate_changed(sys_pal);
+                g_core->callbacks.dacrate_changed(sys_pal);
                 break;
             case 0x37:
             case 0x41:
             case 0x45:
             case 0x4a:
-                aiDacrateChanged((int32_t)SystemType::NTSC);
-                Messenger::broadcast(Messenger::Message::DacrateChanged, SystemType::NTSC);
+                g_core->plugin_funcs.ai_dacrate_changed(sys_ntsc);
+                g_core->callbacks.dacrate_changed(sys_ntsc);
                 break;
             }
         }
@@ -3420,22 +3419,24 @@ void read_flashram_status()
         use_flashram = 1;
     }
     else
-        g_core_logger->warn("unknown read in read_flashram_status");
+    {
+        g_core->logger->error("unknown read in read_flashram_status");
+    }
 }
 
 void read_flashram_statusb()
 {
-    g_core_logger->info("read_flashram_statusb");
+    g_core->logger->error("read_flashram_statusb");
 }
 
 void read_flashram_statush()
 {
-    g_core_logger->info("read_flashram_statush");
+    g_core->logger->error("read_flashram_statush");
 }
 
 void read_flashram_statusd()
 {
-    g_core_logger->info("read_flashram_statusd");
+    g_core->logger->error("read_flashram_statusd");
 }
 
 void write_flashram_dummy()
@@ -3462,22 +3463,24 @@ void write_flashram_command()
         use_flashram = 1;
     }
     else
-        g_core_logger->info("unknown write in write_flashram_command");
+    {
+        g_core->logger->error("unknown write in write_flashram_command");
+    }
 }
 
 void write_flashram_commandb()
 {
-    g_core_logger->info("write_flashram_commandb");
+    g_core->logger->error("write_flashram_commandb");
 }
 
 void write_flashram_commandh()
 {
-    g_core_logger->info("write_flashram_commandh");
+    g_core->logger->error("write_flashram_commandh");
 }
 
 void write_flashram_commandd()
 {
-    g_core_logger->info("write_flashram_commandd");
+    g_core->logger->error("write_flashram_commandd");
 }
 
 static uint32_t lastwrite = 0;
@@ -3518,7 +3521,7 @@ void read_pif()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core_logger->info("error in reading a word in PIF");
+		g_core->logger->info("error in reading a word in PIF");
 		*rdword = 0;
 		return;
 	}
@@ -3530,7 +3533,7 @@ void read_pifb()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core_logger->info("error in reading a byte in PIF");
+		g_core->logger->info("error in reading a byte in PIF");
 		*rdword = 0;
 		return;
 	}
@@ -3542,7 +3545,7 @@ void read_pifh()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core_logger->info("error in reading a hword in PIF");
+		g_core->logger->info("error in reading a hword in PIF");
 		*rdword = 0;
 		return;
 	}
@@ -3555,7 +3558,7 @@ void read_pifd()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core_logger->info("error in reading a double word in PIF");
+		g_core->logger->info("error in reading a double word in PIF");
 		*rdword = 0;
 		return;
 	}
@@ -3568,7 +3571,7 @@ void write_pif()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core_logger->info("error in writing a word in PIF");
+		g_core->logger->info("error in writing a word in PIF");
 		return;
 	}
 #endif
@@ -3590,7 +3593,7 @@ void write_pifb()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core_logger->info("error in writing a byte in PIF");
+		g_core->logger->info("error in writing a byte in PIF");
 		return;
 	}
 #endif
@@ -3612,7 +3615,7 @@ void write_pifh()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core_logger->info("error in writing a hword in PIF");
+		g_core->logger->info("error in writing a hword in PIF");
 		return;
 	}
 #endif
@@ -3635,7 +3638,7 @@ void write_pifd()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core_logger->info("error in writing a double word in PIF");
+		g_core->logger->info("error in writing a double word in PIF");
 		return;
 	}
 #endif
@@ -3673,7 +3676,7 @@ void read_sc_regh()
 
 void read_sc_regd()
 {
-	FrontendService::show_dialog(L"read_sc_regd not supported by RCP", L"Core", FrontendService::DialogType::Error);
+    g_core->show_dialog(L"read_sc_regd not supported by RCP", L"Core", fsvc_error);
     stop = 1;
 }
 

@@ -5,11 +5,11 @@
  */
 
 #include "stdafx.h"
-#include "r4300.h"
-#include "interrupt.h"
-#include "ops.h"
-#include "macros.h"
-#include <core/services/LoggingService.h>
+#include <core/Core.h>
+#include <core/r4300/r4300.h>
+#include <core/r4300/interrupt.h>
+#include <core/r4300/ops.h>
+#include <core/r4300/macros.h>
 
 void BLTZ()
 {
@@ -213,7 +213,7 @@ void BLTZAL()
         if (local_rs < 0 && !skip_jump)
             PC += (PC - 2)->f.i.immediate - 1;
     }
-    else g_core_logger->error("erreur dans bltzal");
+    else g_core->logger->error("erreur dans bltzal");
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -233,7 +233,7 @@ void BLTZAL_OUT()
         if (!skip_jump && local_rs < 0)
             jump_to(PC->addr + ((jump_target - 1) << 2));
     }
-    else g_core_logger->error("erreur dans bltzal");
+    else g_core->logger->error("erreur dans bltzal");
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -266,7 +266,7 @@ void BGEZAL()
         if (local_rs >= 0 && !skip_jump)
             PC += (PC - 2)->f.i.immediate - 1;
     }
-    else g_core_logger->info("erreur dans bgezal");
+    else g_core->logger->info("erreur dans bgezal");
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -286,7 +286,7 @@ void BGEZAL_OUT()
         if (!skip_jump && local_rs >= 0)
             jump_to(PC->addr + ((jump_target - 1) << 2));
     }
-    else g_core_logger->info("erreur dans bgezal");
+    else g_core->logger->info("erreur dans bgezal");
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -324,7 +324,7 @@ void BLTZALL()
         else
             PC += 2;
     }
-    else g_core_logger->info("erreur dans bltzall");
+    else g_core->logger->info("erreur dans bltzall");
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -349,7 +349,7 @@ void BLTZALL_OUT()
         else
             PC += 2;
     }
-    else g_core_logger->info("erreur dans bltzall");
+    else g_core->logger->info("erreur dans bltzall");
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -387,7 +387,7 @@ void BGEZALL()
         else
             PC += 2;
     }
-    else g_core_logger->info("erreur dans bgezall");
+    else g_core->logger->info("erreur dans bgezall");
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }
@@ -412,7 +412,7 @@ void BGEZALL_OUT()
         else
             PC += 2;
     }
-    else g_core_logger->info("erreur dans bgezall");
+    else g_core->logger->info("erreur dans bgezall");
     last_addr = PC->addr;
     if (next_interrupt <= core_Count) gen_interrupt();
 }

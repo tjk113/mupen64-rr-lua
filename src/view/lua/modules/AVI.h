@@ -12,7 +12,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <view/capture/EncodingManager.h>
+#include <capture/EncodingManager.h>
 
 namespace LuaCore::Avi
 {
@@ -21,7 +21,7 @@ namespace LuaCore::Avi
         const char* fname = lua_tostring(L, 1);
 
         if (!EncodingManager::is_capturing())
-            EncodingManager::start_capture(fname, static_cast<EncoderType>(g_config.encoder_type), false);
+            EncodingManager::start_capture(fname, static_cast<core_encoder_type>(g_config.encoder_type), false);
         else
             luaL_error(
                 L,

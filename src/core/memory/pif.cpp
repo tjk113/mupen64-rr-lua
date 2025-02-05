@@ -5,16 +5,14 @@
  */
 
 #include "stdafx.h"
+#include <core/Core.h>
 #include <core/memory/memory.h>
 #include <core/memory/pif.h>
 #include <core/memory/pif_lut.h>
 #include <core/memory/savestates.h>
-#include <core/r4300/Plugin.h>
 #include <core/r4300/gameshark.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/vcr.h>
-#include <core/services/LoggingService.h>
-#include <core/services/LuaService.h>
 
 int32_t frame_advancing = 0;
 // Amount of VIs since last input poll
@@ -27,7 +25,7 @@ void print_pif()
 {
     int32_t i;
     for (i = 0; i < (64 / 8); i++)
-        g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
+        g_core->logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
                             PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
                             PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
     // getchar();
@@ -77,7 +75,7 @@ void EepromCommand(uint8_t* Command)
         }
         break;
     default:
-        g_core_logger->warn("unknown command in EepromCommand : {:#06x}", Command[2]);
+        g_core->logger->warn("unknown command in EepromCommand : {:#06x}", Command[2]);
     }
 }
 
@@ -139,12 +137,12 @@ void internal_ReadController(int32_t Control, uint8_t* Command)
     switch (Command[2])
     {
     case 1:
-        if (Controls[Control].Present)
+        if (g_core->controls[Control].Present)
         {
-            Gameshark::execute();
+            cht_execute();
 
             lag_count = 0;
-            BUTTONS input = {0};
+            core_buttons input = {0};
             vcr_on_controller_poll(Control, &input);
             *((uint32_t*)(Command + 3)) = input.Value;
 #ifdef COMPARE_CORE
@@ -153,19 +151,11 @@ void internal_ReadController(int32_t Control, uint8_t* Command)
         }
         break;
     case 2: // read controller pack
-        if (Controls[Control].Present)
-        {
-            if (Controls[Control].Plugin == (int32_t)ControllerExtension::Raw)
-                if (controllerCommand)
-                    readController(Control, Command);
-        }
-        break;
     case 3: // write controller pack
-        if (Controls[Control].Present)
+        if (g_core->controls[Control].Present)
         {
-            if (Controls[Control].Plugin == (int32_t)ControllerExtension::Raw)
-                if (controllerCommand)
-                    readController(Control, Command);
+            if (g_core->controls[Control].Plugin == (int32_t)ce_raw && g_core->plugin_funcs.controller_command)
+                g_core->plugin_funcs.read_controller(Control, Command);
         }
         break;
     }
@@ -179,16 +169,16 @@ void internal_ControllerCommand(int32_t Control, uint8_t* Command)
     case 0xFF:
         if ((Command[1] & 0x80))
             break;
-        if (Controls[Control].Present)
+        if (g_core->controls[Control].Present)
         {
             Command[3] = 0x05;
             Command[4] = 0x00;
-            switch (Controls[Control].Plugin)
+            switch (g_core->controls[Control].Plugin)
             {
-            case (int32_t)ControllerExtension::Mempak:
+            case (int32_t)ce_mempak:
                 Command[5] = 1;
                 break;
-            case (int32_t)ControllerExtension::Raw:
+            case (int32_t)ce_raw:
                 Command[5] = 1;
                 break;
             default:
@@ -200,15 +190,15 @@ void internal_ControllerCommand(int32_t Control, uint8_t* Command)
             Command[1] |= 0x80;
         break;
     case 0x01:
-        if (!Controls[Control].Present)
+        if (!g_core->controls[Control].Present)
             Command[1] |= 0x80;
         break;
     case 0x02: // read controller pack
-        if (Controls[Control].Present)
+        if (g_core->controls[Control].Present)
         {
-            switch (Controls[Control].Plugin)
+            switch (g_core->controls[Control].Plugin)
             {
-            case (int32_t)ControllerExtension::Mempak:
+            case (int32_t)ce_mempak:
                 {
                     int32_t address = (Command[3] << 8) | Command[4];
                     if (address == 0x8001)
@@ -237,9 +227,9 @@ void internal_ControllerCommand(int32_t Control, uint8_t* Command)
                     }
                 }
                 break;
-            case (int32_t)ControllerExtension::Raw:
-                if (controllerCommand)
-                    controllerCommand(Control, Command);
+            case (int32_t)ce_raw:
+                if (g_core->plugin_funcs.controller_command)
+                    g_core->plugin_funcs.controller_command(Control, Command);
                 break;
             default:
                 memset(&Command[5], 0, 0x20);
@@ -250,11 +240,11 @@ void internal_ControllerCommand(int32_t Control, uint8_t* Command)
             Command[1] |= 0x80;
         break;
     case 0x03: // write controller pack
-        if (Controls[Control].Present)
+        if (g_core->controls[Control].Present)
         {
-            switch (Controls[Control].Plugin)
+            switch (g_core->controls[Control].Plugin)
             {
-            case (int32_t)ControllerExtension::Mempak:
+            case (int32_t)ce_mempak:
                 {
                     int32_t address = (Command[3] << 8) | Command[4];
                     if (address == 0x8001)
@@ -282,9 +272,9 @@ void internal_ControllerCommand(int32_t Control, uint8_t* Command)
                     }
                 }
                 break;
-            case (int32_t)ControllerExtension::Raw:
-                if (controllerCommand)
-                    controllerCommand(Control, Command);
+            case (int32_t)ce_raw:
+                if (g_core->plugin_funcs.controller_command)
+                    g_core->plugin_funcs.controller_command(Control, Command);
                 break;
             default:
                 Command[0x25] = mempack_crc(&Command[5]);
@@ -301,13 +291,13 @@ void update_pif_write()
     int32_t i = 0, channel = 0;
     /*#ifdef DEBUG_PIF
         if (input_delay) {
-            g_core_logger->info("------------- write -------------");
+            g_core->logger->info("------------- write -------------");
         }
         else {
-            g_core_logger->info("---------- before write ---------");
+            g_core->logger->info("---------- before write ---------");
         }
         print_pif();
-        g_core_logger->info("---------------------------------");
+        g_core->logger->info("---------------------------------");
     #endif*/
     if (PIF_RAMb[0x3F] > 1)
     {
@@ -322,9 +312,9 @@ void update_pif_write()
                     return;
                 }
             }
-            g_core_logger->info("unknown pif2 code:");
+            g_core->logger->info("unknown pif2 code:");
             for (i = (64 - 2 * 8) / 8; i < (64 / 8); i++)
-                g_core_logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
+                g_core->logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
                                     PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
                                     PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
             break;
@@ -332,7 +322,7 @@ void update_pif_write()
             PIF_RAMb[0x3F] = 0;
             break;
         default:
-            g_core_logger->info("error in update_pif_write : {:#06x}", PIF_RAMb[0x3F]);
+            g_core->logger->info("error in update_pif_write : {:#06x}", PIF_RAMb[0x3F]);
         }
         return;
     }
@@ -352,16 +342,16 @@ void update_pif_write()
             {
                 if (channel < 4)
                 {
-                    if (Controls[channel].Present &&
-                        Controls[channel].RawData)
-                        controllerCommand(channel, &PIF_RAMb[i]);
+                    if (g_core->controls[channel].Present &&
+                        g_core->controls[channel].RawData)
+                        g_core->plugin_funcs.controller_command(channel, &PIF_RAMb[i]);
                     else
                         internal_ControllerCommand(channel, &PIF_RAMb[i]);
                 }
                 else if (channel == 4)
                     EepromCommand(&PIF_RAMb[i]);
                 else
-                    g_core_logger->info("channel >= 4 in update_pif_write");
+                    g_core->logger->info("channel >= 4 in update_pif_write");
                 i += PIF_RAMb[i] + (PIF_RAMb[(i + 1)] & 0x3F) + 1;
                 channel++;
             }
@@ -371,14 +361,14 @@ void update_pif_write()
         i++;
     }
     // PIF_RAMb[0x3F] = 0;
-    controllerCommand(-1, NULL);
+    g_core->plugin_funcs.controller_command(-1, NULL);
     /*#ifdef DEBUG_PIF
         if (!one_frame_delay) {
-            g_core_logger->info("---------- after write ----------");
+            g_core->logger->info("---------- after write ----------");
         }
         print_pif();
         if (!one_frame_delay) {
-            g_core_logger->info("---------------------------------");
+            g_core->logger->info("---------------------------------");
         }
     #endif*/
 }
@@ -386,14 +376,14 @@ void update_pif_write()
 
 void update_pif_read()
 {
-    // g_core_logger->info("pif entry");
+    // g_core->logger->info("pif entry");
     int32_t i = 0, channel = 0;
     bool once = emu_paused | frame_advancing | g_vr_wait_before_input_poll; // used to pause only once during controller routine
     bool stAllowed = true; // used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
-    g_core_logger->info("---------- before read ----------");
+    g_core->logger->info("---------- before read ----------");
     print_pif();
-    g_core_logger->info("---------------------------------");
+    g_core->logger->info("---------------------------------");
 #endif
     while (i < 0x40)
     {
@@ -431,7 +421,7 @@ void update_pif_read()
                         if (g_vr_wait_before_input_poll == 0)
                         {
                             frame_advancing = 0;
-                            pause_emu();
+                            core_vr_pause_emu();
                         }
 
                         while (g_vr_wait_before_input_poll)
@@ -439,31 +429,30 @@ void update_pif_read()
                             std::this_thread::sleep_for(std::chrono::milliseconds(1));
                             if (stAllowed)
                             {
-                                Savestates::do_work();
+                                st_do_work();
                             }
                         }
 
                         while (emu_paused)
                         {
                             std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                            LuaService::call_interval();
-                            // COMPAT: Old input lua expects atvi to be called when paused (due to a bug in the invalidation)...
-                            LuaService::call_vi();
+                            
+                            g_core->callbacks.interval();
 
                             if (stAllowed)
                             {
-                                Savestates::do_work();
+                                st_do_work();
                             }
                         }
                     }
                     if (stAllowed)
                     {
-                        Savestates::do_work();
+                        st_do_work();
                     }
                     if (g_st_old)
                     {
                         // if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
-                        g_core_logger->info("old st detected");
+                        g_core->logger->info("old st detected");
                         g_st_old = false;
                         return;
                     }
@@ -472,12 +461,12 @@ void update_pif_read()
 
                     // we handle raw data-mode controllers here:
                     // this is incompatible with VCR!
-                    if (Controls[channel].Present &&
-                        Controls[channel].RawData && VCR::get_task() == e_task::idle)
+                    if (g_core->controls[channel].Present &&
+                        g_core->controls[channel].RawData && core_vcr_get_task() == task_idle)
                     {
-                        readController(channel, &PIF_RAMb[i]);
-                        auto ptr = (BUTTONS*)&PIF_RAMb[i + 3];
-                        LuaService::call_input(ptr, channel);
+                        g_core->plugin_funcs.read_controller(channel, &PIF_RAMb[i]);
+                        auto ptr = (core_buttons*)&PIF_RAMb[i + 3];
+                        g_core->callbacks.input(ptr, channel);
                     }
                     else
                         internal_ReadController(channel, &PIF_RAMb[i]);
@@ -490,12 +479,12 @@ void update_pif_read()
         }
         i++;
     }
-    readController(-1, NULL);
+    g_core->plugin_funcs.read_controller(-1, NULL);
 
 #ifdef DEBUG_PIF
-    g_core_logger->info("---------- after read -----------");
+    g_core->logger->info("---------- after read -----------");
     print_pif();
-    g_core_logger->info("---------------------------------");
+    g_core->logger->info("---------------------------------");
 #endif
-    // g_core_logger->info("pif exit");
+    // g_core->logger->info("pif exit");
 }

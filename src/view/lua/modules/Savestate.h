@@ -10,7 +10,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <core/memory/savestates.h>
+#include <gui/Main.h>
 
 namespace LuaCore::Savestate
 {
@@ -18,11 +18,11 @@ namespace LuaCore::Savestate
     {
         const std::string path = lua_tostring(L, 1);
 
-        ++g_vr_wait_before_input_poll;
+        core_st_wait_increment();
         AsyncExecutor::invoke_async([=]
         {
-            --g_vr_wait_before_input_poll;
-            ::Savestates::do_file(path, ::Savestates::Job::Save);
+            core_st_wait_decrement();
+            core_st_do_file(path, core_st_job_save, nullptr, false);
         });
         
         return 0;
@@ -32,11 +32,11 @@ namespace LuaCore::Savestate
     {
         const std::string path = lua_tostring(L, 1);
 
-        ++g_vr_wait_before_input_poll;
+        core_st_wait_increment();
         AsyncExecutor::invoke_async([=]
         {
-            --g_vr_wait_before_input_poll;
-            ::Savestates::do_file(path, ::Savestates::Job::Load);
+            core_st_wait_decrement();
+            core_st_do_file(path, core_st_job_load, nullptr, false);
         });
         
         return 0;

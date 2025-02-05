@@ -162,8 +162,6 @@ BEGIN
         MENUITEM "Stress warp modify",                      IDM_STRESS_WARP_MODIFY
         MENUITEM "Benchmark messenger",                     IDM_BENCHMARK_MESSENGER
         MENUITEM "Benchmark Lua callback",                  IDM_BENCHMARK_LUA_CALLBACK
-        MENUITEM "Start core benchmark",                    IDM_BENCHMARK_CORE_START
-        MENUITEM "Stop core benchmark",                     IDM_BENCHMARK_CORE_STOP
     END
 END
 

@@ -23,8 +23,8 @@
 #include <d3d11.h>
 #include <dwrite.h>
 #include <wincodec.h>
-#include <view/gui/Main.h>
-#include <view/gui/Loggers.h>
+#include <gui/Main.h>
+#include <gui/Loggers.h>
 
 static void set_checkbox_state(const HWND hwnd, const int32_t id,
                                int32_t is_checked)

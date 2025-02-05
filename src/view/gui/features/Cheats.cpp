@@ -6,12 +6,14 @@
 
 #include "stdafx.h"
 #include "Cheats.h"
+
+#include "FrontendService.h"
+
 #include <Windows.h>
 #include <Windowsx.h>
-#include <view/gui/Main.h>
-#include <view/resource.h>
-#include <core/services/FrontendService.h>
-#include <core/r4300/gameshark.h>
+#include <gui/Main.h>
+#include <resource.h>
+#include <core_api.h>
 
 namespace Cheats
 {
@@ -37,13 +39,19 @@ namespace Cheats
                 goto update_selection;
             case IDC_NEW_CHEAT:
                 {
-                    auto script = Gameshark::Script::compile(L"D033AFA1 0020\n8133B1BC 4220\nD033AFA1 0020\n8133B17C 0300\nD033AFA1 0020\n8133B17E 0880");
-                    if (script.has_value())
+                    core_cheat script;
+
+                    if (!core_cht_compile(L"D033AFA1 0020\n8133B1BC 4220\nD033AFA1 0020\n8133B17C 0300\nD033AFA1 0020\n8133B17E 0880", script))
                     {
-                        Gameshark::scripts.push_back(script.value());
-                        goto rebuild_list;
+                        break;
                     }
-                    break;
+
+                    std::vector<core_cheat> cheats;
+                    core_cht_get_list(cheats);
+                    cheats.push_back(script);
+                    core_cht_set_list(cheats);
+
+                    goto rebuild_list;
                 }
             case IDC_REMOVE_CHEAT:
                 {
@@ -54,9 +62,12 @@ namespace Cheats
                         break;
                     }
 
-                    Gameshark::scripts.erase(Gameshark::scripts.begin() + selected_index);
+                    std::vector<core_cheat> cheats;
+                    core_cht_get_list(cheats);
+                    cheats.erase(cheats.begin() + selected_index);
+                    core_cht_set_list(cheats);
+
                     goto rebuild_list;
-                    break;
                 }
             case IDC_CHECK_CHEAT_ENABLED:
                 {
@@ -66,8 +77,12 @@ namespace Cheats
                     {
                         break;
                     }
-                    auto script = Gameshark::scripts[selected_index];
-                    script->set_resumed(IsDlgButtonChecked(hwnd, IDC_CHECK_CHEAT_ENABLED) == BST_CHECKED);
+
+                    std::vector<core_cheat> cheats;
+                    core_cht_get_list(cheats);
+                    cheats[selected_index].active = IsDlgButtonChecked(hwnd, IDC_CHECK_CHEAT_ENABLED) == BST_CHECKED;
+                    core_cht_set_list(cheats);
+
                     goto rebuild_list;
                 }
 
@@ -80,7 +95,9 @@ namespace Cheats
                         break;
                     }
 
-                    const bool prev_resumed = Gameshark::scripts[selected_index]->resumed();
+                    std::vector<core_cheat> cheats;
+                    core_cht_get_list(cheats);
+                    const bool prev_active = cheats[selected_index].active;
 
                     wchar_t code[4096] = {};
                     Edit_GetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT), code, sizeof(code));
@@ -88,26 +105,29 @@ namespace Cheats
                     wchar_t name[256] = {};
                     Edit_GetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT_NAME), name, sizeof(name));
 
-                    // Replace with script recompiled with new code, while keeping some properties
-                    // Old script goes out of ref
-                    auto script = Gameshark::Script::compile(code);
+                    core_cheat script;
 
-                    if (!script.has_value())
+                    if (!core_cht_compile(code, script))
                     {
-                    	FrontendService::show_dialog(L"Cheat code could not be compiled.\r\nVerify that the syntax is correct", L"Cheats", FrontendService::DialogType::Error);
+                        FrontendService::show_dialog(L"Cheat code could not be compiled.\r\nVerify that the syntax is correct", L"Cheats", fsvc_error);
                         break;
                     }
 
-                    script.value()->set_name(name);
-                    script.value()->set_resumed(prev_resumed);
-                    Gameshark::scripts[selected_index] = script.value();
+                    script.name = name;
+                    script.active = prev_active;
+
+                    cheats[selected_index] = script;
+                    core_cht_set_list(cheats);
+
                     goto rebuild_list;
                 }
-            default: break;
+            default:
+                break;
             }
             break;
 
-        default: break;
+        default:
+            break;
         }
         return FALSE;
 
@@ -119,10 +139,12 @@ namespace Cheats
                 return FALSE;
             }
 
-            CheckDlgButton(hwnd, IDC_CHECK_CHEAT_ENABLED,
-                           Gameshark::scripts[selected_index]->resumed() ? BST_CHECKED : BST_UNCHECKED);
-            SetDlgItemText(hwnd, IDC_EDIT_CHEAT, Gameshark::scripts[selected_index]->code().c_str());
-            Edit_SetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT_NAME), Gameshark::scripts[selected_index]->name().c_str());
+            std::vector<core_cheat> cheats;
+            core_cht_get_list(cheats);
+
+            CheckDlgButton(hwnd, IDC_CHECK_CHEAT_ENABLED, cheats[selected_index].active ? BST_CHECKED : BST_UNCHECKED);
+            SetDlgItemText(hwnd, IDC_EDIT_CHEAT, cheats[selected_index].code.c_str());
+            Edit_SetText(GetDlgItem(hwnd, IDC_EDIT_CHEAT_NAME), cheats[selected_index].name.c_str());
         }
         return FALSE;
 
@@ -132,9 +154,13 @@ namespace Cheats
             auto lb_hwnd = GetDlgItem(hwnd, IDC_LIST_CHEATS);
             auto prev_index = ListBox_GetCurSel(lb_hwnd);
             ListBox_ResetContent(lb_hwnd);
-            for (auto script : Gameshark::scripts)
+            std::vector<core_cheat> cheats;
+            core_cht_get_list(cheats);
+            for (const auto& script : cheats)
             {
-                auto name = !script->resumed() ? script->name() + L" (Disabled)" : script->name();
+                auto name = !script.active
+                ? script.name + L" (Disabled)"
+                : script.name;
                 ListBox_AddString(lb_hwnd, name.c_str());
             }
             ListBox_SetCurSel(lb_hwnd, prev_index);
@@ -148,4 +174,4 @@ namespace Cheats
                   MAKEINTRESOURCE(IDD_CHEATS), g_main_hwnd,
                   (DLGPROC)WndProc);
     }
-}
+} // namespace Cheats

@@ -5,14 +5,13 @@
  */
 
 #include "stdafx.h"
-#include "Seeker.h"
+#include <Messenger.h>
+#include <Config.h>
 #include <Windows.h>
-#include <core/Messenger.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/vcr.h>
-#include "../Main.h"
-#include <view/resource.h>
-#include <core/Config.h>
+#include <core_api.h>
+#include <resource.h>
+#include <gui/Main.h>
+#include <gui/features/Seeker.h>
 
 #define WM_SEEK_COMPLETED (WM_USER + 11)
 
@@ -29,8 +28,8 @@ namespace Seeker
         case WM_INITDIALOG:
             current_hwnd = hwnd;
 
-        	SetDlgItemText(hwnd, IDC_SEEKER_STATUS, L"Idle");
-        	SetDlgItemText(hwnd, IDC_SEEKER_START, L"Start");
+            SetDlgItemText(hwnd, IDC_SEEKER_STATUS, L"Idle");
+            SetDlgItemText(hwnd, IDC_SEEKER_START, L"Start");
             SetDlgItemText(hwnd, IDC_SEEKER_FRAME, g_config.seeker_value.c_str());
 
             refresh_timer = SetTimer(hwnd, NULL, 1000 / 10, nullptr);
@@ -38,7 +37,7 @@ namespace Seeker
             break;
         case WM_DESTROY:
             KillTimer(hwnd, refresh_timer);
-            VCR::stop_seek();
+            core_vcr_stop_seek();
             break;
         case WM_CLOSE:
             EndDialog(hwnd, IDCANCEL);
@@ -46,15 +45,17 @@ namespace Seeker
         case WM_SEEK_COMPLETED:
             SetDlgItemText(hwnd, IDC_SEEKER_STATUS, L"Seek completed");
             SetDlgItemText(hwnd, IDC_SEEKER_START, L"Start");
-        	SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, L"");
+            SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, L"");
             break;
         case WM_TIMER:
             {
-                if (!VCR::is_seeking())
+                if (!core_vcr_is_seeking())
                 {
                     break;
                 }
-                auto [current, total] = VCR::get_seek_completion();
+                std::pair<size_t, size_t> pair;
+                core_vcr_get_seek_completion(pair);
+                auto [current, total] = pair;
                 const auto str = std::format(L"Seeked {:.2f}%", static_cast<float>(current) / static_cast<float>(total) * 100.0);
                 SetDlgItemText(hwnd, IDC_SEEKER_STATUS, str.c_str());
                 break;
@@ -71,23 +72,23 @@ namespace Seeker
                 break;
             case IDC_SEEKER_START:
                 {
-                    if (VCR::is_seeking())
+                    if (core_vcr_is_seeking())
                     {
-                        VCR::stop_seek();
+                        core_vcr_stop_seek();
                         break;
                     }
 
-            		SetDlgItemText(hwnd, IDC_SEEKER_START, L"Stop");
+                    SetDlgItemText(hwnd, IDC_SEEKER_START, L"Stop");
                     if (g_config.seek_savestate_interval == 0)
                     {
-                    	SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, L"Seek savestates disabled. Seeking backwards will be slower.");
+                        SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, L"Seek savestates disabled. Seeking backwards will be slower.");
                     }
 
-                    if (VCR::begin_seek(g_config.seeker_value, true) != CoreResult::Ok)
+                    if (core_vcr_begin_seek(g_config.seeker_value, true) != Res_Ok)
                     {
-                    	SetDlgItemText(hwnd, IDC_SEEKER_START, L"Start");
+                        SetDlgItemText(hwnd, IDC_SEEKER_START, L"Start");
                         SetDlgItemText(hwnd, IDC_SEEKER_STATUS, L"Couldn't seek");
-                    	SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, L"");
+                        SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, L"");
                         break;
                     }
 
@@ -96,10 +97,12 @@ namespace Seeker
             case IDCANCEL:
                 EndDialog(hwnd, IDCANCEL);
                 break;
-            default: break;
+            default:
+                break;
             }
             break;
-        default: break;
+        default:
+            break;
         }
         return FALSE;
     }
@@ -113,22 +116,21 @@ namespace Seeker
         }
 
         // We need to run the dialog on another thread, since we don't want to block the main one
-        std::thread([]
-        {
+        std::thread([] {
             DialogBox(g_app_instance,
                       MAKEINTRESOURCE(IDD_SEEKER), g_main_hwnd,
                       (DLGPROC)SeekerProc);
             current_hwnd = nullptr;
-        }).detach();
+        })
+        .detach();
     }
 
     void init()
     {
-        Messenger::subscribe(Messenger::Message::SeekCompleted, [](std::any)
-        {
+        Messenger::subscribe(Messenger::Message::SeekCompleted, [](std::any) {
             if (!current_hwnd)
                 return;
             SendMessage(current_hwnd, WM_SEEK_COMPLETED, 0, 0);
         });
     }
-}
+} // namespace Seeker

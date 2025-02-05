@@ -6,12 +6,10 @@
 
 #include "stdafx.h"
 #include "FFmpegEncoder.h"
-#include <core/Config.h>
-#include <core/services/LoggingService.h>
-#include <view/gui/Main.h>
-#include <view/gui/Loggers.h>
-#include "core/memory/pif.h"
-#include "core/services/FrontendService.h"
+#include <FrontendService.h>
+#include <Config.h>
+#include <gui/Main.h>
+#include <gui/Loggers.h>
 
 bool FFmpegEncoder::start(Params params)
 {
@@ -26,14 +24,14 @@ bool FFmpegEncoder::start(Params params)
 #define AUDIO_PIPE_NAME L"\\\\.\\pipe\\mupenaudio"
 
     m_video_pipe = CreateNamedPipe(
-        VIDEO_PIPE_NAME,
-        PIPE_ACCESS_OUTBOUND,
-        PIPE_TYPE_BYTE | PIPE_WAIT,
-        PIPE_UNLIMITED_INSTANCES,
-        bufsize_video,
-        bufsize_video,
-        0,
-        nullptr);
+    VIDEO_PIPE_NAME,
+    PIPE_ACCESS_OUTBOUND,
+    PIPE_TYPE_BYTE | PIPE_WAIT,
+    PIPE_UNLIMITED_INSTANCES,
+    bufsize_video,
+    bufsize_video,
+    0,
+    nullptr);
 
     if (!m_video_pipe)
     {
@@ -41,14 +39,14 @@ bool FFmpegEncoder::start(Params params)
     }
 
     m_audio_pipe = CreateNamedPipe(
-        AUDIO_PIPE_NAME,
-        PIPE_ACCESS_OUTBOUND,
-        PIPE_TYPE_BYTE | PIPE_WAIT,
-        PIPE_UNLIMITED_INSTANCES,
-        bufsize_audio,
-        bufsize_audio,
-        0,
-        nullptr);
+    AUDIO_PIPE_NAME,
+    PIPE_ACCESS_OUTBOUND,
+    PIPE_TYPE_BYTE | PIPE_WAIT,
+    PIPE_UNLIMITED_INSTANCES,
+    bufsize_audio,
+    bufsize_audio,
+    0,
+    nullptr);
 
     if (!m_audio_pipe)
     {
@@ -60,14 +58,14 @@ bool FFmpegEncoder::start(Params params)
     memset(options, 0, sizeof(options));
 
     wsprintf(options,
-            g_config.ffmpeg_final_options.data(),
-            m_params.width,
-            m_params.height,
-            m_params.fps,
-            VIDEO_PIPE_NAME,
-            m_params.arate,
-            AUDIO_PIPE_NAME,
-            m_params.path.wstring().data());
+             g_config.ffmpeg_final_options.data(),
+             m_params.width,
+             m_params.height,
+             m_params.fps,
+             VIDEO_PIPE_NAME,
+             m_params.arate,
+             AUDIO_PIPE_NAME,
+             m_params.path.wstring().data());
 
     g_view_logger->info(L"[FFmpegEncoder] Starting encode with commandline:");
     g_view_logger->info(L"[FFmpegEncoder] {}", options);
@@ -81,11 +79,10 @@ bool FFmpegEncoder::start(Params params)
                        nullptr,
                        nullptr,
                        &m_si,
-                       &m_pi)
-    )
+                       &m_pi))
     {
 
-        FrontendService::show_dialog(std::format(L"Could not start ffmpeg process! Does ffmpeg exist on disk at '{}'?", g_config.ffmpeg_path).c_str(), L"FFmpeg Encoder", FrontendService::DialogType::Error);
+        FrontendService::show_dialog(std::format(L"Could not start ffmpeg process! Does ffmpeg exist on disk at '{}'?", g_config.ffmpeg_path).c_str(), L"FFmpeg Encoder", fsvc_error);
         g_view_logger->info(L"CreateProcess failed ({}).", GetLastError());
         CloseHandle(m_video_pipe);
         CloseHandle(m_audio_pipe);
@@ -138,7 +135,7 @@ static bool write_pipe_checked(const HANDLE pipe, const char* buffer, const unsi
     const auto result = WriteFile(pipe, buffer, buffer_size, &written, nullptr);
     if (written != buffer_size || !result)
     {
-        //g_view_logger->error("[FFmpegEncoder] Error writing to {} pipe, error code {}", is_video ? "video" : "audio", GetLastError());
+        // g_view_logger->error("[FFmpegEncoder] Error writing to {} pipe, error code {}", is_video ? "video" : "audio", GetLastError());
         return false;
     }
 
@@ -148,11 +145,11 @@ static bool write_pipe_checked(const HANDLE pipe, const char* buffer, const unsi
 bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length)
 {
     uint8_t* buf = m_silence_buffer;
-	if (audio != m_silence_buffer)
-	{
-		buf = static_cast<uint8_t*>(malloc(length));
-		memcpy(buf, audio, length);
-	}
+    if (audio != m_silence_buffer)
+    {
+        buf = static_cast<uint8_t*>(malloc(length));
+        memcpy(buf, audio, length);
+    }
 
     m_last_write_was_video = false;
 
@@ -167,20 +164,21 @@ bool FFmpegEncoder::append_audio_impl(uint8_t* audio, size_t length)
 
 bool FFmpegEncoder::append_video(uint8_t* image)
 {
-	if (g_config.synchronization_mode == 1)
-	{
-		if (m_last_write_was_video)
-		{
-			return true;
-		}
-	} else if (g_config.synchronization_mode == 2)
-	{
-		if (lag_count > 2)
-		{
-			const auto samples_per_frame = static_cast<double>(m_params.arate) / 64;
-			append_audio_impl(m_silence_buffer, static_cast<size_t>(round(samples_per_frame)));
-		}
-	}
+    if (g_config.synchronization_mode == 1)
+    {
+        if (m_last_write_was_video)
+        {
+            return true;
+        }
+    }
+    else if (g_config.synchronization_mode == 2)
+    {
+        if (core_vr_get_lag_count() > 2)
+        {
+            const auto samples_per_frame = static_cast<double>(m_params.arate) / 64;
+            append_audio_impl(m_silence_buffer, static_cast<size_t>(round(samples_per_frame)));
+        }
+    }
 
     m_last_write_was_video = true;
 

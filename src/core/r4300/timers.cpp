@@ -5,25 +5,16 @@
  */
 
 #include "stdafx.h"
-#include "timers.h"
-#include <core/Config.h>
-#include <core/Messenger.h>
+#include <core/Core.h>
+#include <core/r4300/timers.h>
+#include <core/include/core_api.h>
 #include <core/memory/pif.h>
-#include <core/r4300/vcr.h>
 #include <core/r4300/r4300.h>
-#include <core/services/LoggingService.h>
 
-bool frame_changed = true;
 extern int32_t m_current_vi;
 extern int32_t m_current_sample;
 
 std::chrono::duration<double, std::milli> max_vi_s_ms;
-
-timer_delta g_frame_deltas[max_deltas]{};
-std::mutex g_frame_deltas_mutex;
-
-timer_delta g_vi_deltas[max_deltas]{};
-std::mutex g_vi_deltas_mutex;
 
 size_t frame_deltas_ptr = 0;
 size_t vi_deltas_ptr = 0;
@@ -31,48 +22,46 @@ size_t vi_deltas_ptr = 0;
 time_point last_vi_time;
 time_point last_frame_time;
 
-void timer_init(int32_t speed_modifier, t_rom_header* rom_header)
+void core_vr_on_speed_modifier_changed()
 {
-    const double max_vi_s = get_vis_per_second(rom_header->Country_code);
+    const double max_vi_s = core_vr_get_vis_per_second(ROM_HEADER.Country_code);
     max_vi_s_ms = std::chrono::duration<double, std::milli>(
-        1000.0 / (max_vi_s * static_cast<double>(speed_modifier) / 100));
+    1000.0 / (max_vi_s * static_cast<double>(g_core->cfg->fps_modifier) / 100));
 
     last_frame_time = std::chrono::high_resolution_clock::now();
     last_vi_time = std::chrono::high_resolution_clock::now();
 
-    for (auto& delta : g_frame_deltas)
+    for (auto& delta : g_core->g_frame_deltas)
     {
         delta = {};
     }
-    for (auto& delta : g_vi_deltas)
+    for (auto& delta : g_core->g_vi_deltas)
     {
         delta = {};
     }
 
     frame_deltas_ptr = 0;
     vi_deltas_ptr = 0;
-
-    Messenger::broadcast(Messenger::Message::SpeedModifierChanged, speed_modifier);
 }
 
 void timer_new_frame()
 {
     const auto current_frame_time = std::chrono::high_resolution_clock::now();
 
-    g_frame_deltas_mutex.lock();
-    g_frame_deltas[frame_deltas_ptr] = current_frame_time - last_frame_time;
-    g_frame_deltas_mutex.unlock();
-    frame_deltas_ptr = (frame_deltas_ptr + 1) % max_deltas;
+    g_core->g_frame_deltas_mutex.lock();
+    g_core->g_frame_deltas[frame_deltas_ptr] = current_frame_time - last_frame_time;
+    g_core->g_frame_deltas_mutex.unlock();
+    frame_deltas_ptr = (frame_deltas_ptr + 1) % core_timer_max_deltas;
 
-    frame_changed = true;
+    g_core->callbacks.frame();
     last_frame_time = std::chrono::high_resolution_clock::now();
 }
 
 void timer_new_vi()
 {
-    if (g_config.max_lag != 0 && lag_count >= g_config.max_lag)
+    if (g_core->cfg->max_lag != 0 && lag_count >= g_core->cfg->max_lag)
     {
-        Messenger::broadcast(Messenger::Message::LagLimitExceeded, nullptr);
+        g_core->callbacks.lag_limit_exceeded();
     }
 
     auto current_vi_time = std::chrono::high_resolution_clock::now();
@@ -86,17 +75,16 @@ void timer_new_vi()
         if (!frame_advancing && vi_time_diff < max_vi_s_ms)
         {
             auto sleep_time = max_vi_s_ms - vi_time_diff;
-            if (sleep_time.count() > 0 && sleep_time <
-                std::chrono::milliseconds(700))
+            if (sleep_time.count() > 0 && sleep_time < std::chrono::milliseconds(700))
             {
                 // we try to sleep for the overstepped time, but must account for sleeping inaccuracies
                 const auto goal_sleep = max_vi_s_ms - vi_time_diff -
-                    last_sleep_error;
+                last_sleep_error;
                 const auto start_sleep =
-                    std::chrono::high_resolution_clock::now();
+                std::chrono::high_resolution_clock::now();
                 std::this_thread::sleep_for(goal_sleep);
                 const auto end_sleep =
-                    std::chrono::high_resolution_clock::now();
+                std::chrono::high_resolution_clock::now();
 
                 // sleeping inaccuracy is difference between actual time spent sleeping and the goal sleep
                 // this value isnt usually too large
@@ -109,17 +97,18 @@ void timer_new_vi()
             {
                 // sleep time is unreasonable, log it and reset related state
                 const auto casted = std::chrono::duration_cast<
-                    std::chrono::milliseconds>(sleep_time).count();
-                g_core_logger->info("Invalid timer: %lld ms", casted);
+                                    std::chrono::milliseconds>(sleep_time)
+                                    .count();
+                g_core->logger->info("Invalid timer: %lld ms", casted);
                 sleep_time = sleep_time.zero();
             }
         }
     }
 
-    g_vi_deltas_mutex.lock();
-    g_vi_deltas[vi_deltas_ptr] = current_vi_time - last_vi_time;
-    g_vi_deltas_mutex.unlock();
-    vi_deltas_ptr = (vi_deltas_ptr + 1) % max_deltas;
+    g_core->g_vi_deltas_mutex.lock();
+    g_core->g_vi_deltas[vi_deltas_ptr] = current_vi_time - last_vi_time;
+    g_core->g_vi_deltas_mutex.unlock();
+    vi_deltas_ptr = (vi_deltas_ptr + 1) % core_timer_max_deltas;
 
     last_vi_time = std::chrono::high_resolution_clock::now();
 }
