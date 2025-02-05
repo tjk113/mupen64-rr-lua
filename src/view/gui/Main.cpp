@@ -2182,6 +2182,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.callbacks.vi = [] {
         LuaService::call_interval();
         LuaService::call_vi();
+        FrontendService::at_vi();
     };
     g_core.callbacks.input = LuaService::call_input;
     g_core.callbacks.frame = on_new_frame;
