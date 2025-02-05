@@ -8,6 +8,10 @@
 #include "IOHelpers.h"
 #include <libdeflate.h>
 
+#ifdef _WIN32
+#include <stringapiset.h>
+#endif
+
 void vecwrite(std::vector<uint8_t>& vec, void* data, size_t len)
 {
     vec.resize(vec.size() + len);
@@ -121,29 +125,30 @@ bool contains(const std::string& a, const std::string& b)
 
 std::wstring string_to_wstring(const std::string& str)
 {
-    const auto wstr = static_cast<wchar_t*>(calloc(str.size() + 1, sizeof(wchar_t)));
-
-    if (!wstr)
-    {
-        // Is it appropriate to fail silently...
+#ifdef _WIN32
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+    if (size_needed <= 0)
         return L"";
-    }
 
-    mbstowcs(wstr, str.c_str(), str.length());
-
-    auto wstdstr = std::wstring(wstr);
-
-    free(wstr);
-    return wstdstr;
+    std::wstring wstr(size_needed, 0);
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], size_needed);
+    wstr.pop_back();
+    return wstr;
+#endif
 }
 
 std::string wstring_to_string(const std::wstring& wstr)
 {
-    std::string str(wstr.length(), 0);
-    std::transform(wstr.begin(), wstr.end(), str.begin(), [](wchar_t c) {
-        return (char)c;
-    });
+#ifdef _WIN32
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    if (size_needed <= 0)
+        return "";
+
+    std::string str(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], size_needed, nullptr, nullptr);
+    str.pop_back();
     return str;
+#endif
 }
 
 std::vector<std::wstring> split_string(const std::wstring& s, const std::wstring& delimiter)
