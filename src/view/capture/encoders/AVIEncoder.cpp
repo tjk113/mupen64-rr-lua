@@ -64,6 +64,7 @@ bool AVIEncoder::start(Params params)
 	{
 		if (!load_options())
 		{
+		    // TODO: Show a helpful error dialog...
 			g_view_logger->error("[AVIEncoder] Failed to load options");
 			return false;
 		}
