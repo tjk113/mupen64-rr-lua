@@ -2265,6 +2265,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     };
     g_core.show_statusbar = FrontendService::show_statusbar;
     g_core.update_screen = FrontendService::update_screen;
+    g_core.copy_video = MGECompositor::copy_video;
     g_core.find_available_rom = FrontendService::find_available_rom;
     g_core.load_screen = MGECompositor::load_screen;
     g_core.get_plugin_names = [](char* video, char* audio, char* input, char* rsp) {

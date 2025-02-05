@@ -187,6 +187,12 @@ typedef struct {
     void (*update_screen)(void);
 
     /**
+     * \brief Writes the MGE compositor's current emulation front buffer into the destination buffer.
+     * \param buffer The video buffer. Must be at least of size <c>width * height * 3</c>, as acquired by <c>plugin_funcs.get_video_size</c>.
+     */
+    void (*copy_video)(void* buffer);
+
+    /**
      * \brief Finds the first rom from the available ROM list which matches the predicate.
      * \param predicate A predicate which determines if the rom matches.
      * \return The rom's path, or an empty string if no rom was found.
@@ -209,7 +215,7 @@ typedef struct {
      * \note Must be called after loading plugins and their globals.
      */
     void (*get_plugin_names)(char* video, char* audio, char* input, char* rsp);
-    
+
 #pragma endregion
 
 #pragma region Core-Provided

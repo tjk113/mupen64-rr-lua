@@ -255,15 +255,16 @@ std::vector<uint8_t> generate_savestate()
         int32_t width;
         int32_t height;
         g_core->plugin_funcs.get_video_size(&width, &height);
-
-        void* video = nullptr;
-        g_core->plugin_funcs.read_video(&video);
-
+        g_core->logger->trace("Writing screen buffer to savestate, width: {}, height: {}", width, height);
+        
+        void* video = malloc(width * height * 3);
+        g_core->copy_video(video);
+        
         vecwrite(b, screen_section, sizeof(screen_section));
         vecwrite(b, &width, sizeof(width));
         vecwrite(b, &height, sizeof(height));
         vecwrite(b, video, width * height * 3);
-
+        
         free(video);
     }
 
