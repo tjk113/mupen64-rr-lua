@@ -35,6 +35,8 @@ std::wstring AVIEncoder::start(Params params)
 	m_info_hdr.biClrUsed = 0;
 	m_info_hdr.biClrImportant = 0;
 
+    DeleteFile(params.path.wstring().c_str());
+    
 	AVIFileInit();
 	if (AVIFileOpen(&m_avi_file, params.path.wstring().c_str(), OF_WRITE | OF_CREATE, NULL))
 	{
