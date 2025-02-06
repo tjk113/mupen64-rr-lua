@@ -1644,6 +1644,15 @@ static void vcr_clear_seek_savestates()
     }
 }
 
+static void setkeys_with_zero()
+{
+    core_buttons zero = {0};
+    for (int i = 0; i < 4; i++)
+    {
+        g_core->plugin_funcs.set_keys(i, zero);
+    }
+}
+
 core_result core_vcr_stop_all()
 {
 	vcr_clear_seek_savestates();
@@ -1653,10 +1662,12 @@ core_result core_vcr_stop_all()
     case task_start_recording_from_reset:
     case task_start_recording_from_snapshot:
     case task_recording:
+        setkeys_with_zero();
         return vcr_stop_record();
     case task_start_playback_from_reset:
     case task_start_playback_from_snapshot:
     case task_playback:
+        setkeys_with_zero();
         return vcr_stop_playback();
     default:
         return Res_Ok;

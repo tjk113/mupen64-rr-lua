@@ -1007,15 +1007,6 @@ bool is_on_gui_thread()
     return GetCurrentThreadId() == g_ui_thread_id;
 }
 
-void ClearButtons()
-{
-    core_buttons zero = {0};
-    for (int i = 0; i < 4; i++)
-    {
-        g_core.plugin_funcs.set_keys(i, zero);
-    }
-}
-
 std::filesystem::path get_app_full_path()
 {
     wchar_t ret[MAX_PATH] = {0};
@@ -1885,9 +1876,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case IDM_STOP_MOVIE:
                 core_vcr_stop_all();
-
-                // TODO: Move this to the core...
-                ClearButtons();
                 break;
             case IDM_CREATE_MOVIE_BACKUP:
                 {
