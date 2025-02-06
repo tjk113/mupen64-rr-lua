@@ -11,7 +11,7 @@
 #include <gui/Main.h>
 #include <gui/Loggers.h>
 
-bool FFmpegEncoder::start(Params params)
+std::wstring FFmpegEncoder::start(Params params)
 {
     m_params = params;
 
@@ -35,7 +35,7 @@ bool FFmpegEncoder::start(Params params)
 
     if (!m_video_pipe)
     {
-        return false;
+        return L"Failed to create video pipe.";
     }
 
     m_audio_pipe = CreateNamedPipe(
@@ -51,7 +51,7 @@ bool FFmpegEncoder::start(Params params)
     if (!m_audio_pipe)
     {
         CloseHandle(m_video_pipe);
-        return false;
+        return L"Failed to create audio pipe.";
     }
 
     static wchar_t options[4096]{};
@@ -82,11 +82,10 @@ bool FFmpegEncoder::start(Params params)
                        &m_pi))
     {
 
-        FrontendService::show_dialog(std::format(L"Could not start ffmpeg process! Does ffmpeg exist on disk at '{}'?", g_config.ffmpeg_path).c_str(), L"FFmpeg Encoder", fsvc_error);
         g_view_logger->info(L"CreateProcess failed ({}).", GetLastError());
         CloseHandle(m_video_pipe);
         CloseHandle(m_audio_pipe);
-        return false;
+        return std::format(L"Failed to start ffmpeg process! Does ffmpeg exist on disk at '{}'?", g_config.ffmpeg_path);
     }
 
     m_silence_buffer = static_cast<uint8_t*>(calloc(params.arate, 1));
@@ -98,7 +97,7 @@ bool FFmpegEncoder::start(Params params)
 
     Sleep(500);
 
-    return true;
+    return L"";
 }
 
 bool FFmpegEncoder::stop()

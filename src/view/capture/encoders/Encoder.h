@@ -45,9 +45,9 @@ public:
     /**
      * \brief Starts encoding
      * \param params The parameters to encode with
-     * \return Whether the operation succeeded
+     * \return The error message, or an empty string if the operation succeeded.
      */
-    virtual bool start(Params params) = 0;
+    virtual std::wstring start(Params params) = 0;
 
     /**
      * \brief Stops encoding

@@ -15,7 +15,7 @@
 #include <gui/Main.h>
 #include <helpers/IOHelpers.h>
 
-bool AVIEncoder::start(Params params)
+std::wstring AVIEncoder::start(Params params)
 {
 	if (!m_splitting)
 	{
@@ -39,7 +39,7 @@ bool AVIEncoder::start(Params params)
 	if (AVIFileOpen(&m_avi_file, params.path.wstring().c_str(), OF_WRITE | OF_CREATE, NULL))
 	{
 		stop();
-		return false;
+		return L"Failed to open output file.";
 	}
 
 	ZeroMemory(&m_video_stream_hdr, sizeof(AVISTREAMINFO));
@@ -50,42 +50,39 @@ bool AVIEncoder::start(Params params)
 	if (AVIFileCreateStream(m_avi_file, &m_video_stream, &m_video_stream_hdr))
 	{
 		stop();
-		return false;
+		return L"Failed to create video file stream.";
 	}
 
 	if (params.ask_for_encoding_settings && !m_splitting)
 	{
 		if (!AVISaveOptions(g_main_hwnd, 0, 1, &m_video_stream, &m_avi_options))
 		{
-			g_view_logger->error("[AVIEncoder] Failed to save options");
-			return false;
+			return L"Failed to save options.";
 		}
 	} else
 	{
 		if (!load_options())
 		{
-		    // TODO: Show a helpful error dialog...
-			g_view_logger->error("[AVIEncoder] Failed to load options");
-			return false;
+		    return L"Failed to load options. Verify that the encoding preset file is present.";
 		}
 	}
 
 	if (!save_options())
 	{
 	    stop();
-	    return false;
+	    return L"Failed to save options.";
 	}
 
 	if (AVIMakeCompressedStream(&m_compressed_video_stream, m_video_stream, m_avi_options, NULL) != AVIERR_OK)
 	{
 		stop();
-		return false;
+		return L"Failed to make video compressed stream.";
 	}
 
 	if (AVIStreamSetFormat(m_compressed_video_stream, 0, &m_info_hdr, m_info_hdr.biSize + m_info_hdr.biClrUsed * sizeof(RGBQUAD)) != AVIERR_OK)
 	{
 		stop();
-		return false;
+		return L"Failed to set video stream format.";
 	}
 
 	m_sample = 0;
@@ -107,19 +104,19 @@ bool AVIEncoder::start(Params params)
 	if (AVIFileCreateStream(m_avi_file, &m_sound_stream, &m_sound_stream_hdr))
 	{
 		stop();
-		return false;
+		return L"Failed to create audio stream.";
 	}
 	if (AVIStreamSetFormat(m_sound_stream, 0, &m_sound_format, sizeof(WAVEFORMATEX)) != AVIERR_OK)
 	{
 		stop();
-		return false;
+		return L"Failed to set audio stream format.";
 	}
 
 	memset(m_sound_buf_empty, 0, sizeof(m_sound_buf_empty));
 	memset(m_sound_buf, 0, sizeof(m_sound_buf));
 	last_sound = 0;
 
-	return true;
+	return L"";
 }
 
 bool AVIEncoder::stop()

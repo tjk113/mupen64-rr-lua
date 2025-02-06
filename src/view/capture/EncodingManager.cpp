@@ -328,9 +328,9 @@ namespace EncodingManager
 			.ask_for_encoding_settings = ask_for_encoding_settings,
 		});
 
-		if (!result)
+		if (!result.empty())
 		{
-			FrontendService::show_dialog(L"Failed to start encoding.\r\nVerify that the encoding parameters are valid and try again.", L"Capture", fsvc_error);
+			FrontendService::show_dialog(result.c_str(), L"Capture", fsvc_error);
 			return false;
 		}
 
