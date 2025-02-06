@@ -57,7 +57,7 @@ void fail_float_convert();
     {                                                            \
         if (g_core->cfg->is_float_exception_propagation_enabled) \
         {                                                        \
-            if (fetestexcept(FE_ALL_EXCEPT))                     \
+            if (fetestexcept(FE_ALL_EXCEPT & (~FE_INEXACT)))     \
             {                                                    \
                 fail_float_convert();                            \
                 return;                                          \
