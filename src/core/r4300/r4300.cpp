@@ -65,8 +65,8 @@ precomp_instr* PC;
 char invalid_code[0x100000];
 std::atomic<bool> screen_invalidated = true;
 precomp_block *blocks[0x100000], *actual;
-int32_t rounding_mode = ROUND_MODE;
-int32_t trunc_mode = TRUNC_MODE, round_mode = ROUND_MODE, ceil_mode = CEIL_MODE, floor_mode = FLOOR_MODE;
+int32_t rounding_mode = MUP_ROUND_NEAREST;
+int32_t trunc_mode = MUP_ROUND_TRUNC, round_mode = MUP_ROUND_NEAREST, ceil_mode = MUP_ROUND_CEIL, floor_mode = MUP_ROUND_FLOOR;
 int16_t x87_status_word;
 void (*code)();
 uint32_t next_vi;
@@ -1908,7 +1908,7 @@ void core_start()
         break;
     }
 
-    rounding_mode = ROUND_MODE;
+    rounding_mode = MUP_ROUND_NEAREST;
     set_rounding();
 
     last_addr = 0xa4000040;

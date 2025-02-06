@@ -5,6 +5,7 @@
  */
 
 #include "stdafx.h"
+#include <core/r4300/macros.h>
 #include <core/r4300/r4300.h>
 #include <core/r4300/recomp.h>
 #include <core/r4300/recomph.h>
@@ -92,20 +93,20 @@ void genctc1()
 
     cmp_eax_imm32(0);
     jne_rj(12);
-    mov_m32_imm32((uint32_t*)&rounding_mode, ROUND_MODE); // 10
+    mov_m32_imm32((uint32_t*)&rounding_mode, MUP_ROUND_NEAREST); // 10
     jmp_imm_short(48); // 2
 
     cmp_eax_imm32(1); // 5
     jne_rj(12); // 2
-    mov_m32_imm32((uint32_t*)&rounding_mode, TRUNC_MODE); // 10
+    mov_m32_imm32((uint32_t*)&rounding_mode, MUP_ROUND_TRUNC); // 10
     jmp_imm_short(29); // 2
 
     cmp_eax_imm32(2); // 5
     jne_rj(12); // 2
-    mov_m32_imm32((uint32_t*)&rounding_mode, CEIL_MODE); // 10
+    mov_m32_imm32((uint32_t*)&rounding_mode, MUP_ROUND_CEIL); // 10
     jmp_imm_short(10); // 2
 
-    mov_m32_imm32((uint32_t*)&rounding_mode, FLOOR_MODE); // 10
+    mov_m32_imm32((uint32_t*)&rounding_mode, MUP_ROUND_FLOOR); // 10
 
     fldcw_m16((uint16_t*)&rounding_mode);
 #endif

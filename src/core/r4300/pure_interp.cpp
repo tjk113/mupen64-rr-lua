@@ -2114,16 +2114,16 @@ static void CTC1()
     switch ((FCR31 & 3))
     {
     case 0:
-        rounding_mode = ROUND_MODE;
+        rounding_mode = MUP_ROUND_NEAREST;
         break;
     case 1:
-        rounding_mode = TRUNC_MODE;
+        rounding_mode = MUP_ROUND_TRUNC;
         break;
     case 2:
-        rounding_mode = CEIL_MODE;
+        rounding_mode = MUP_ROUND_CEIL;
         break;
     case 3:
-        rounding_mode = FLOOR_MODE;
+        rounding_mode = MUP_ROUND_FLOOR;
         break;
     }
     //if ((FCR31 >> 7) & 0x1F) g_core->logger->info("FPU Exception enabled : {:#06x}\n",
