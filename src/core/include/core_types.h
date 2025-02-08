@@ -970,7 +970,7 @@ typedef struct CoreCfg {
     std::wstring ffmpeg_final_options =
     L"-y -f rawvideo -pixel_format bgr24 -video_size %dx%d -framerate %d -i %s "
     L"-f s16le -sample_rate %d -ac 2 -channel_layout stereo -i %s "
-    L"-c:v libx264 -preset fast -crf 23 -c:a copy -b:a 128k -vf \"vflip\" -f mp4 %s";
+    L"-c:v libx264 -preset veryfast -tune zerolatency -crf 23 -c:a aac -b:a 128k -vf \"vflip\" -f mp4 %s";
 
     /// <summary>
     /// FFmpeg binary path
