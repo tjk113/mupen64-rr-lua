@@ -1062,6 +1062,13 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .data = &g_config.plugin_discovery_async,
     .type = t_options_item::Type::Bool,
     },
+    t_options_item{
+    .group_id = interface_group.id,
+    .name = L"Auto-increment Slot",
+    .tooltip = L"Automatically increment the save slot upon saving a state.",
+    .data = &g_config.increment_slot,
+    .type = t_options_item::Type::Bool,
+    },
 
     t_options_item{
     .group_id = statusbar_group.id,
@@ -1271,13 +1278,6 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .name = L"WiiVC Mode",
     .tooltip = L"Enables WiiVC emulation.",
     .data = &g_config.wii_vc_emulation,
-    .type = t_options_item::Type::Bool,
-    },
-    t_options_item{
-    .group_id = core_group.id,
-    .name = L"Auto-increment Slot",
-    .tooltip = L"Automatically increment the save slot upon saving a state.",
-    .data = &g_config.increment_slot,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
