@@ -70,6 +70,8 @@ std::wstring FFmpegEncoder::start(Params params)
     g_view_logger->info(L"[FFmpegEncoder] Starting encode with commandline:");
     g_view_logger->info(L"[FFmpegEncoder] {}", options);
 
+    DeleteFile(params.path.wstring().c_str());
+    
     if (!CreateProcess(g_config.ffmpeg_path.c_str(),
                        options,
                        nullptr,
