@@ -62,7 +62,7 @@ void AsyncExecutor::invoke_async(const std::function<void()>& func, size_t key)
 {
     if (!g_config.use_async_executor)
     {
-        if (g_config.async_executor_cuzz)
+        if (g_config.concurrency_fuzzing)
         {
             std::thread([=] {
                 Sleep(500);

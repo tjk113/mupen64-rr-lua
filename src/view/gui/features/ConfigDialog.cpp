@@ -1371,9 +1371,9 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
 
     t_options_item{
     .group_id = debug_group.id,
-    .name = L"Async Executor Cuzz",
-    .tooltip = L"Whether the async executor will apply concurrency fuzzing. When enabled, task execution will be delayed to expose delayed task execution handling deficiencies at the callsite.\nDo not enable unless you are debugging the async executor.",
-    .data = &g_config.async_executor_cuzz,
+    .name = L"Concurrency Fuzzing",
+    .tooltip = L"Whether the view will apply concurrency fuzzing. When enabled, some functions will be delayed to expose delayed task execution handling deficiencies at the callsite.\nDo not enable unless you are debugging.",
+    .data = &g_config.concurrency_fuzzing,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{

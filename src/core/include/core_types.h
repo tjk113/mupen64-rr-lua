@@ -997,9 +997,9 @@ typedef struct CoreCfg {
     int32_t use_async_executor;
 
     /// <summary>
-    /// Whether the async executor will apply concurrency fuzzing. When enabled, task execution will be delayed to expose delayed task execution handling deficiencies at the callsite.
+    /// Whether the view will apply concurrency fuzzing. When enabled, some functions will be delayed to expose delayed task execution handling deficiencies at the callsite.
     /// </summary>
-    int32_t async_executor_cuzz;
+    int32_t concurrency_fuzzing;
 
     /// <summary>
     /// Whether the plugin discovery process is artificially lengthened.
