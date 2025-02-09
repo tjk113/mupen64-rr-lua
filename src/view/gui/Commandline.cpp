@@ -106,17 +106,16 @@ namespace Cli
             return;
         }
 
-        g_main_window_dispatcher->invoke([] {
-            EncodingManager::start_capture(commandline_avi.string().c_str(), static_cast<core_encoder_type>(g_config.encoder_type), false);
-        });
+        EncodingManager::start_capture(commandline_avi.string().c_str(), static_cast<core_encoder_type>(g_config.encoder_type), false);
     }
 
     static void on_movie_playback_stop()
     {
         if (commandline_close_on_movie_end)
         {
-            g_main_window_dispatcher->invoke([] {
-                EncodingManager::stop_capture();
+            EncodingManager::stop_capture([](auto result) {
+                if (!result)
+                    return;
                 PostMessage(g_main_hwnd, WM_CLOSE, 0, 0);
             });
         }

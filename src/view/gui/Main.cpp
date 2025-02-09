@@ -1899,24 +1899,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    // bool vfw = MessageBox(mainHWND, "Use VFW for capturing?", "Capture", MB_YESNO | MB_ICONQUESTION) == IDYES;
-                    // auto container = vfw ? EncodingManager::EncoderType::VFW : EncodingManager::EncoderType::FFmpeg;
                     bool ask_preset = LOWORD(wParam) == IDM_START_CAPTURE;
 
-                    // pass false to startCapture when "last preset" option was choosen
-                    if (EncodingManager::start_capture(
-                        path,
-                        static_cast<core_encoder_type>(g_config.encoder_type),
-                        ask_preset))
-                    {
-                        Statusbar::post(L"Capture started...");
-                    }
-
+                    EncodingManager::start_capture(path, (core_encoder_type)g_config.encoder_type, ask_preset, [](const auto result) {
+                        if (result)
+                        {
+                            Statusbar::post(L"Capture started...");
+                        }
+                    });
+                
                     break;
                 }
             case IDM_STOP_CAPTURE:
-                EncodingManager::stop_capture();
-                Statusbar::post(L"Capture stopped");
+                EncodingManager::stop_capture([](const auto result) {
+                    if (result)
+                    {
+                        Statusbar::post(L"Capture stopped");
+                    }
+                });
                 break;
             case IDM_SCREENSHOT:
                 g_core.plugin_funcs.capture_screen(get_screenshots_directory().string().data());

@@ -5,18 +5,18 @@
  */
 
 #include "stdafx.h"
-#include "EncodingManager.h"
-
-#include "Config.h"
-#include "FrontendService.h"
-#include "Messenger.h"
-#include "encoders/AVIEncoder.h"
-#include "encoders/Encoder.h"
-#include "encoders/FFmpegEncoder.h"
-#include "gui/features/Dispatcher.h"
+#include <AsyncExecutor.h>
+#include <Config.h>
+#include <FrontendService.h>
+#include <Messenger.h>
 #include <core_api.h>
+#include <capture/EncodingManager.h>
+#include <capture/encoders/AVIEncoder.h>
+#include <capture/encoders/Encoder.h>
+#include <capture/encoders/FFmpegEncoder.h>
 #include <gui/Loggers.h>
 #include <gui/Main.h>
+#include <gui/features/Dispatcher.h>
 #include <gui/features/MGECompositor.h>
 #include <lua/LuaConsole.h>
 
@@ -278,13 +278,40 @@ namespace EncodingManager
 		}
 	}
 
-	bool start_capture(std::filesystem::path path, core_encoder_type encoder_type, const bool ask_for_encoding_settings)
+    bool stop_capture_impl()
+	{
+	    std::lock_guard lock(m_mutex);
+
+	    if (!is_capturing())
+	    {
+	        return true;
+	    }
+
+	    if (!m_encoder->stop())
+	    {
+	        FrontendService::show_dialog(L"Failed to stop encoding.", L"Capture", fsvc_error);
+	        return false;
+	    }
+
+	    m_encoder.release();
+
+	    m_capturing = false;
+	    g_config.render_throttling = true;
+	    
+	    Messenger::broadcast(Messenger::Message::CapturingChanged, false);
+
+	    g_view_logger->info("[EncodingManager]: Capture finished.");
+	    return true;
+	    
+	}
+    
+	bool start_capture_impl(std::filesystem::path path, core_encoder_type encoder_type, const bool ask_for_encoding_settings)
 	{
 		std::lock_guard lock(m_mutex);
 
 		if (is_capturing())
 		{
-			if (!stop_capture())
+			if (!stop_capture_impl())
 			{
 				g_view_logger->info("[EncodingManager]: Couldn't start capture because the previous capture couldn't be stopped.");
 				return false;
@@ -344,30 +371,30 @@ namespace EncodingManager
 		return true;
 	}
 
-	bool stop_capture()
+    void start_capture(std::filesystem::path path, core_encoder_type encoder_type, const bool ask_for_encoding_settings, const std::function<void(bool)>& callback)
 	{
-		std::lock_guard lock(m_mutex);
-
-		if (!is_capturing())
-		{
-			return true;
-		}
-
-		if (!m_encoder->stop())
-		{
-			FrontendService::show_dialog(L"Failed to stop encoding.", L"Capture", fsvc_error);
-			return false;
-		}
-
-		m_encoder.release();
-
-		m_capturing = false;
-	    g_config.render_throttling = true;
-	    
-		Messenger::broadcast(Messenger::Message::CapturingChanged, false);
-
-		g_view_logger->info("[EncodingManager]: Capture finished.");
-		return true;
+	    core_st_wait_increment();
+	    AsyncExecutor::invoke_async([=] {
+	        const auto result = start_capture_impl(path, encoder_type, ask_for_encoding_settings);
+            if (callback)
+            {
+                callback(result);
+            }
+	        core_st_wait_decrement();
+	    });
+	}
+    
+	void stop_capture(const std::function<void(bool)>& callback)
+	{
+	    core_st_wait_increment();
+	    AsyncExecutor::invoke_async([=] {
+            const auto result = stop_capture_impl();
+            if (callback)
+            {
+                callback(result);
+            }
+            core_st_wait_decrement();
+        });
 	}
 
 	void at_vi()
@@ -432,7 +459,7 @@ namespace EncodingManager
 		if (m_capturing)
 		{
 			FrontendService::show_dialog(L"Audio frequency changed during capture.\r\nThe capture will be stopped.", L"Capture", fsvc_error);
-			g_main_window_dispatcher->invoke([] {
+			AsyncExecutor::invoke_async([] {
 				stop_capture();
 			});
 			return;

@@ -36,30 +36,32 @@ namespace EncodingManager
     };
 
     /**
+     * \brief Initializes the encoding manager
+     */
+    void init();
+    
+    /**
      * \brief Whether a capture is currently running
      * \remarks This method is thread-safe.
      */
     bool is_capturing();
 
     /**
-     * \brief Initializes the encoding manager
-     */
-    void init();
-
-    /**
-     * \brief Starts capturing a video
+     * \brief Starts capturing a video.
      * \param path The movie's path
      * \param encoder_type The encoder to use for capturing
      * \param ask_for_encoding_settings Whether the codec dialog should be shown. If false, the previously used codec or the default one will be used.
-     * \return Whether the operation was successful
+     * \param callback The callback that will be invoked when the operation completes. Can be null.
+     * \remarks This function must be called from a thread that isn't directly or indirectly interlocked with the emulator thread. Emulation will be paused until the operation completes.
      */
-    bool start_capture(std::filesystem::path path, core_encoder_type encoder_type, bool ask_for_encoding_settings = true);
+    void start_capture(std::filesystem::path path, core_encoder_type encoder_type, bool ask_for_encoding_settings = true, const std::function<void(bool)>& callback = nullptr);
 
     /**
-     * \brief Stops capturing a video
-     * \return Whether the operation was successful
+     * \brief Stops capturing a video.
+     * \param callback The callback that will be invoked when the operation completes. Can be null.
+     * \remarks This function must be called from a thread that isn't directly or indirectly interlocked with the emulator thread. Emulation will be paused until the operation completes.
      */
-    bool stop_capture();
+    void stop_capture(const std::function<void(bool)>& callback = nullptr);
 
     /**
      * \brief Notifies the encoding manager of a new VI
