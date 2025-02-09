@@ -10,6 +10,7 @@
 #include "memory/memory.h"
 
 core_params* g_core{};
+std::atomic<int32_t> g_wait_counter = 0;
 
 core_result core_init(core_params* params)
 {
@@ -37,4 +38,14 @@ core_result core_init(core_params* params)
 bool core_vr_get_mge_available()
 {
     return g_core->plugin_funcs.read_video && g_core->plugin_funcs.get_video_size;
+}
+
+void core_vr_wait_increment()
+{
+    ++g_wait_counter;
+}
+
+void core_vr_wait_decrement()
+{
+    --g_wait_counter;
 }

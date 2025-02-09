@@ -298,6 +298,18 @@ EXPORT void CALL core_vr_pause_emu();
 EXPORT void CALL core_vr_resume_emu();
 
 /**
+ * \brief Increments the wait counter.
+ * \remarks If the counter is greater than 0, the core will wait for the counter to be 0 before continuing to the next frame. This function is thread-safe.
+ */
+EXPORT void CALL core_vr_wait_increment();
+
+/**
+ * \brief Decrements the wait counter.
+ * \remarks If the counter is greater than 0, the core will wait for the counter to be 0 before continuing to the next frame. This function is thread-safe.
+ */
+EXPORT void CALL core_vr_wait_decrement();
+
+/**
  * \brief Starts the emulator.
  * \param path Path to a rom or corresponding movie file.
  * \param wait Whether the calling thread will wait for other core operations to complete. When true, the Busy result is never returned.
@@ -598,18 +610,6 @@ EXPORT void CALL core_tl_stop();
 #pragma endregion
 
 #pragma region Savestates
-
-/**
- * \brief Increments the g_vr_wait_before_input_poll counter.
- * \remarks If the counter is greater than 0, the core will wait for the flag to be 0 before continuing to the next frame. This function is thread-safe.
- */
-EXPORT void CALL core_st_wait_increment();
-
-/**
- * \brief Decrements the g_vr_wait_before_input_poll counter.
- * \remarks If the counter is greater than 0, the core will wait for the flag to be 0 before continuing to the next frame. This function is thread-safe.
- */
-EXPORT void CALL core_st_wait_decrement();
 
 /**
  * \brief Executes a savestate operation to a path.

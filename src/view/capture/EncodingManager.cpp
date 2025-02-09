@@ -373,27 +373,27 @@ namespace EncodingManager
 
     void start_capture(std::filesystem::path path, core_encoder_type encoder_type, const bool ask_for_encoding_settings, const std::function<void(bool)>& callback)
 	{
-	    core_st_wait_increment();
+	    core_vr_wait_increment();
 	    AsyncExecutor::invoke_async([=] {
 	        const auto result = start_capture_impl(path, encoder_type, ask_for_encoding_settings);
             if (callback)
             {
                 callback(result);
             }
-	        core_st_wait_decrement();
+	        core_vr_wait_decrement();
 	    });
 	}
     
 	void stop_capture(const std::function<void(bool)>& callback)
 	{
-	    core_st_wait_increment();
+	    core_vr_wait_increment();
 	    AsyncExecutor::invoke_async([=] {
             const auto result = stop_capture_impl();
             if (callback)
             {
                 callback(result);
             }
-            core_st_wait_decrement();
+            core_vr_wait_decrement();
         });
 	}
 

@@ -9,3 +9,4 @@
 #include <core/include/core_api.h>
 
 extern core_params* g_core;
+extern std::atomic<int32_t> g_wait_counter;

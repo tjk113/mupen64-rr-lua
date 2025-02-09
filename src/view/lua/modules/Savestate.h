@@ -18,10 +18,10 @@ namespace LuaCore::Savestate
     {
         const std::string path = lua_tostring(L, 1);
 
-        core_st_wait_increment();
+        core_vr_wait_increment();
         AsyncExecutor::invoke_async([=]
         {
-            core_st_wait_decrement();
+            core_vr_wait_decrement();
             core_st_do_file(path, core_st_job_save, nullptr, false);
         });
         
@@ -32,10 +32,10 @@ namespace LuaCore::Savestate
     {
         const std::string path = lua_tostring(L, 1);
 
-        core_st_wait_increment();
+        core_vr_wait_increment();
         AsyncExecutor::invoke_async([=]
         {
-            core_st_wait_decrement();
+            core_vr_wait_decrement();
             core_st_do_file(path, core_st_job_load, nullptr, false);
         });
         

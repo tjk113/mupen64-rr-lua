@@ -1103,9 +1103,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             {
                 if (!core_vr_get_launched())
                     break;
-                core_st_wait_increment();
+                core_vr_wait_increment();
                 AsyncExecutor::invoke_async([=] {
-                    core_st_wait_decrement();
+                    core_vr_wait_decrement();
                     core_st_do_file(fname, core_st_job_load, nullptr, false);
                 });
             }
@@ -1743,14 +1743,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
                 break;
             case IDM_SAVE_SLOT:
-                core_st_wait_increment();
+                core_vr_wait_increment();
                 if (g_config.increment_slot)
                 {
                     g_config.st_slot >= 9 ? g_config.st_slot = 0 : g_config.st_slot++;
                     Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
                 }
                 AsyncExecutor::invoke_async([=] {
-                    core_st_wait_decrement();
+                    core_vr_wait_decrement();
                     core_st_do_slot(g_config.st_slot, core_st_job_save, nullptr, false);
                 });
                 break;
@@ -1764,17 +1764,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    core_st_wait_increment();
+                    core_vr_wait_increment();
                     AsyncExecutor::invoke_async([=] {
-                        core_st_wait_decrement();
+                        core_vr_wait_decrement();
                         core_st_do_file(path, core_st_job_save, nullptr, false);
                     });
                 }
                 break;
             case IDM_LOAD_SLOT:
-                core_st_wait_increment();
+                core_vr_wait_increment();
                 AsyncExecutor::invoke_async([=] {
-                    core_st_wait_decrement();
+                    core_vr_wait_decrement();
                     core_st_do_slot(g_config.st_slot, core_st_job_load, nullptr, false);
                 });
                 break;
@@ -1789,18 +1789,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
 
-                    core_st_wait_increment();
+                    core_vr_wait_increment();
                     AsyncExecutor::invoke_async([=] {
-                        core_st_wait_decrement();
+                        core_vr_wait_decrement();
                         core_st_do_file(path, core_st_job_load, nullptr, false);
                     });
                 }
                 break;
             case IDM_UNDO_LOAD_STATE:
                 {
-                    core_st_wait_increment();
+                    core_vr_wait_increment();
                     AsyncExecutor::invoke_async([=] {
-                        core_st_wait_decrement();
+                        core_vr_wait_decrement();
 
                         std::vector<uint8_t> buf{};
                         core_st_get_undo_savestate(buf);
@@ -1977,26 +1977,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 else if (LOWORD(wParam) >= ID_SAVE_1 && LOWORD(wParam) <= ID_SAVE_10)
                 {
                     auto slot = LOWORD(wParam) - ID_SAVE_1;
-                    core_st_wait_increment();
+                    core_vr_wait_increment();
 
                     g_config.st_slot = slot;
                     Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
 
                     AsyncExecutor::invoke_async([=] {
-                        core_st_wait_decrement();
+                        core_vr_wait_decrement();
                         core_st_do_slot(slot, core_st_job_save, nullptr, false);
                     });
                 }
                 else if (LOWORD(wParam) >= ID_LOAD_1 && LOWORD(wParam) <= ID_LOAD_10)
                 {
                     auto slot = LOWORD(wParam) - ID_LOAD_1;
-                    core_st_wait_increment();
+                    core_vr_wait_increment();
 
                     g_config.st_slot = slot;
                     Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
 
                     AsyncExecutor::invoke_async([=] {
-                        core_st_wait_decrement();
+                        core_vr_wait_decrement();
                         core_st_do_slot(slot, core_st_job_load, nullptr, false);
                     });
                 }

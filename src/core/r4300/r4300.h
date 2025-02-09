@@ -63,7 +63,6 @@ extern FILE* g_fram_file;
 extern FILE* g_mpak_file;
 
 extern bool g_vr_benchmark_enabled;
-extern std::atomic<int32_t> g_vr_wait_before_input_poll;
 
 void pure_interpreter();
 void compare_core();

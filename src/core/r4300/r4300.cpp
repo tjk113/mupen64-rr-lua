@@ -74,9 +74,6 @@ int32_t vi_field = 0;
 bool g_vr_fast_forward;
 bool g_vr_frame_skipped;
 
-// When true, the core will wait for the flag to be 0 before continuing input poll. It will hang around in the emu_paused loop during that.
-std::atomic<int32_t> g_vr_wait_before_input_poll = 0;
-
 FILE* g_eeprom_file;
 FILE* g_sram_file;
 FILE* g_fram_file;

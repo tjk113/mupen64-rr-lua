@@ -830,14 +830,3 @@ void core_st_get_undo_savestate(std::vector<uint8_t>& buffer)
     buffer.clear();
     buffer = g_undo_savestate;
 }
-
-
-void core_st_wait_increment()
-{
-    ++g_vr_wait_before_input_poll;
-}
-
-void core_st_wait_decrement()
-{
-    --g_vr_wait_before_input_poll;
-}
