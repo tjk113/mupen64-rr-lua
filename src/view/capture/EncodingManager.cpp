@@ -309,6 +309,8 @@ namespace EncodingManager
 	{
 		std::lock_guard lock(m_mutex);
 
+	    g_view_logger->info("[EncodingManager]: Starting capture at {} x {}...", m_video_width, m_video_height);
+
 		if (is_capturing())
 		{
 			if (!stop_capture_impl())
@@ -365,9 +367,7 @@ namespace EncodingManager
 	    g_config.render_throttling = false;
 
 		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
-
-		g_view_logger->info("[EncodingManager]: Starting capture at {} x {}...", m_video_width, m_video_height);
-
+	    
 		return true;
 	}
 
@@ -459,9 +459,7 @@ namespace EncodingManager
 		if (m_capturing)
 		{
 			FrontendService::show_dialog(L"Audio frequency changed during capture.\r\nThe capture will be stopped.", L"Capture", fsvc_error);
-			AsyncExecutor::invoke_async([] {
-				stop_capture();
-			});
+		    stop_capture();
 			return;
 		}
 
