@@ -61,18 +61,18 @@ std::wstring AVIEncoder::start(Params params)
 		{
 			return L"Failed to save options.";
 		}
+
+	    if (!save_options())
+	    {
+	        stop();
+	        return L"Failed to save options.";
+	    }
 	} else
 	{
 		if (!load_options())
 		{
 		    return L"Failed to load options. Verify that the encoding preset file is present.";
 		}
-	}
-
-	if (!save_options())
-	{
-	    stop();
-	    return L"Failed to save options.";
 	}
 
 	if (AVIMakeCompressedStream(&m_compressed_video_stream, m_video_stream, m_avi_options, NULL) != AVIERR_OK)
