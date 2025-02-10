@@ -140,9 +140,14 @@ std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
     // A.B.C.m64->A.st, A.B.st, A.B.C.st
 
 
-    char drive[260] = {0};
-    char dir[260] = {0};
-    char filename[260] = {0};
+    static char drive[260] = {0};
+    static char dir[260] = {0};
+    static char filename[260] = {0};
+    
+    memset(drive, 0, std::size(drive));
+    memset(dir, 0, std::size(dir));
+    memset(filename, 0, std::size(filename));
+    
     _splitpath(path.string().c_str(), drive, dir, filename, nullptr);
 
     size_t i = 0;
