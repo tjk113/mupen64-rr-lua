@@ -2176,7 +2176,7 @@ void init_block(int32_t* source, precomp_block* block)
     {
         if (!block->code)
         {
-            block->code = (unsigned char*)malloc(5000);
+            block->code = (unsigned char*)malloc_exec(5000);
             max_code_length = 5000;
         }
         else

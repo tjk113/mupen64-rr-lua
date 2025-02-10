@@ -6,6 +6,7 @@
 
 #include "stdafx.h"
 #include "assemble.h"
+#include <core/r4300/r4300.h>
 #include <core/r4300/recomph.h>
 #include <core/r4300/x86/regcache.h>
 
@@ -82,7 +83,7 @@ inline void put8(unsigned char octet)
     if (code_length == max_code_length)
     {
         max_code_length += 1000;
-        *inst_pointer = (unsigned char*)realloc(*inst_pointer, max_code_length);
+        *inst_pointer = (unsigned char*)realloc_exec(*inst_pointer, code_length, max_code_length);
     }
 }
 
@@ -91,7 +92,7 @@ inline void put32(uint32_t dword)
     if ((code_length + 4) >= max_code_length)
     {
         max_code_length += 1000;
-        *inst_pointer = (unsigned char*)realloc(*inst_pointer, max_code_length);
+        *inst_pointer = (unsigned char*)realloc_exec(*inst_pointer, code_length, max_code_length);
     }
     *((uint32_t*)(&(*inst_pointer)[code_length])) = dword;
     code_length += 4;
@@ -102,7 +103,7 @@ inline void put16(uint16_t word)
     if ((code_length + 2) >= max_code_length)
     {
         max_code_length += 1000;
-        *inst_pointer = (unsigned char*)realloc(*inst_pointer, max_code_length);
+        *inst_pointer = (unsigned char*)realloc_exec(*inst_pointer, code_length, max_code_length);
     }
     *((uint16_t*)(&(*inst_pointer)[code_length])) = word;
     code_length += 2;

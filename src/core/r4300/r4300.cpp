@@ -2001,7 +2001,7 @@ void core_start()
             }
             if (blocks[i]->code)
             {
-                free(blocks[i]->code);
+                free_exec(blocks[i]->code);
                 blocks[i]->code = NULL;
             }
             if (blocks[i]->jumps_table)
@@ -2298,7 +2298,7 @@ core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr, bool skip_res
 {
     if (!emu_launched)
         return VR_NotRunning;
-    
+
     // Special case:
     // If we're recording a movie and have reset recording enabled, we don't reset immediately, but let the VCR
     // handle the reset instead. This is to ensure that the movie file is properly closed and saved.
@@ -2309,7 +2309,7 @@ core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr, bool skip_res
         vcr_reset_requested = true;
         return Res_Ok;
     }
-    
+
     // why is it so damned difficult to reset the game?
     // right now it's hacked to exit to the GUI then re-load the ROM,
     // but it should be possible to reset the game while it's still running
@@ -2341,6 +2341,41 @@ core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr, bool skip_res
     emu_resetting = false;
     g_core->callbacks.reset_completed();
     return Res_Ok;
+}
+
+// https://github.com/mupen64plus/mupen64plus-core/blob/e170c409fb006aa38fd02031b5eefab6886ec125/src/device/r4300/recomp.c#L995
+
+void* malloc_exec(size_t size)
+{
+#ifdef WIN32
+    return VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+#else
+    assert(false);
+#endif
+}
+
+void *realloc_exec(void *ptr, size_t oldsize, size_t newsize)
+{
+    void* block = malloc_exec(newsize);
+    if (block != NULL)
+    {
+        size_t copysize;
+        copysize = (oldsize < newsize)
+            ? oldsize
+            : newsize;
+        memcpy(block, ptr, copysize);
+    }
+    free_exec(ptr);
+    return block;
+}
+
+void free_exec(void* ptr)
+{
+#ifdef WIN32
+    VirtualFree(ptr, 0, MEM_RELEASE);
+#else
+    assert(false);
+#endif
 }
 
 core_result core_vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
