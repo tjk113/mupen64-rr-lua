@@ -1721,7 +1721,7 @@ inline void put8gr(unsigned char octet)
     code_length++;
     if (code_length == max_code_length)
     {
-        max_code_length += 1000;
+        max_code_length += JUMP_TABLE_SIZE;
         *inst_pointer = (unsigned char*)realloc(*inst_pointer, max_code_length);
     }
 }

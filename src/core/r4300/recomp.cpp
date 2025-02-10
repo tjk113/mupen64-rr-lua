@@ -7,6 +7,8 @@
 #include "stdafx.h"
 #include "ops.h"
 #include "recomp.h"
+
+#include "macros.h"
 #include "r4300.h"
 #include "../memory/memory.h"
 #include <core/r4300/x86/regcache.h>
@@ -2176,8 +2178,8 @@ void init_block(int32_t* source, precomp_block* block)
     {
         if (!block->code)
         {
-            block->code = (unsigned char*)malloc_exec(5000);
-            max_code_length = 5000;
+            block->code = (unsigned char*)malloc_exec(CODE_BLOCK_SIZE);
+            max_code_length = CODE_BLOCK_SIZE;
         }
         else
             max_code_length = block->max_code_length;

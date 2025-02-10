@@ -6,6 +6,9 @@
 
 #include "stdafx.h"
 #include "assemble.h"
+
+#include "core/r4300/macros.h"
+
 #include <core/r4300/r4300.h>
 #include <core/r4300/recomph.h>
 #include <core/r4300/x86/regcache.h>
@@ -29,9 +32,9 @@ void init_assembler(void* block_jumps_table, int32_t block_jumps_number)
     }
     else
     {
-        jumps_table = (jump_table*)malloc(1000 * sizeof(jump_table));
+        jumps_table = (jump_table*)malloc(JUMP_TABLE_SIZE * sizeof(jump_table));
         jumps_number = 0;
-        max_jumps_number = 1000;
+        max_jumps_number = JUMP_TABLE_SIZE;
     }
 }
 
@@ -45,7 +48,7 @@ static void add_jump(uint32_t pc_addr, uint32_t mi_addr)
 {
     if (jumps_number == max_jumps_number)
     {
-        max_jumps_number += 1000;
+        max_jumps_number += JUMP_TABLE_SIZE;
         jumps_table = (jump_table*)realloc(jumps_table, max_jumps_number * sizeof(jump_table));
     }
     jumps_table[jumps_number].pc_addr = pc_addr;
@@ -82,7 +85,7 @@ inline void put8(unsigned char octet)
     code_length++;
     if (code_length == max_code_length)
     {
-        max_code_length += 1000;
+        max_code_length += JUMP_TABLE_SIZE;
         *inst_pointer = (unsigned char*)realloc_exec(*inst_pointer, code_length, max_code_length);
     }
 }
@@ -91,7 +94,7 @@ inline void put32(uint32_t dword)
 {
     if ((code_length + 4) >= max_code_length)
     {
-        max_code_length += 1000;
+        max_code_length += JUMP_TABLE_SIZE;
         *inst_pointer = (unsigned char*)realloc_exec(*inst_pointer, code_length, max_code_length);
     }
     *((uint32_t*)(&(*inst_pointer)[code_length])) = dword;
@@ -102,7 +105,7 @@ inline void put16(uint16_t word)
 {
     if ((code_length + 2) >= max_code_length)
     {
-        max_code_length += 1000;
+        max_code_length += JUMP_TABLE_SIZE;
         *inst_pointer = (unsigned char*)realloc_exec(*inst_pointer, code_length, max_code_length);
     }
     *((uint16_t*)(&(*inst_pointer)[code_length])) = word;

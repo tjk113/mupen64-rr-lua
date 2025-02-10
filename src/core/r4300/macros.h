@@ -156,4 +156,7 @@ __asm fistp output_width ptr [eax] \
 #define FLOAT_CONVERT_L_D(s,d) { double* src = s; int64_t* dest = (int64_t*)d; FLOAT_CONVERT(qword, dword); }
 #define FLOAT_CONVERT_W_D(s,d) { double* src = s; int32_t* dest = (int32_t*)d; FLOAT_CONVERT(qword, qword); }
 
+#define CODE_BLOCK_SIZE 5000
+#define JUMP_TABLE_SIZE 1000
+
 #endif
