@@ -2118,6 +2118,23 @@ bool load_plugins()
         auto input_pl = Plugin::create(g_config.selected_input_plugin);
         auto rsp_pl = Plugin::create(g_config.selected_rsp_plugin);
 
+        if (!video_pl.first.empty())
+        {
+            g_view_logger->error(L"Failed to load video plugin: {}", video_pl.first);
+        }
+        if (!audio_pl.first.empty())
+        {
+            g_view_logger->error(L"Failed to load audio plugin: {}", audio_pl.first);
+        }
+        if (!input_pl.first.empty())
+        {
+            g_view_logger->error(L"Failed to load input plugin: {}", input_pl.first);
+        }
+        if (!rsp_pl.first.empty())
+        {
+            g_view_logger->error(L"Failed to load rsp plugin: {}", rsp_pl.first);
+        }
+        
         if (video_pl.second == nullptr || audio_pl.second == nullptr || input_pl.second == nullptr || rsp_pl.second == nullptr)
         {
             video_pl.second.reset();
