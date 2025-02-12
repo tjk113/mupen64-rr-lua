@@ -9,9 +9,9 @@
 #include <FrontendService.h>
 #include <Config.h>
 #include <Messenger.h>
-#include <Windows.h>
+
 #include <argh.h>
-#include <core_api.h>
+
 #include <capture/EncodingManager.h>
 #include <gui/Commandline.h>
 #include <gui/Loggers.h>

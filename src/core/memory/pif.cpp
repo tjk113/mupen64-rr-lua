@@ -5,14 +5,14 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/memory/memory.h>
-#include <core/memory/pif.h>
-#include <core/memory/pif_lut.h>
-#include <core/memory/savestates.h>
-#include <core/r4300/gameshark.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/vcr.h>
+#include <Core.h>
+#include <memory/memory.h>
+#include <memory/pif.h>
+#include <memory/pif_lut.h>
+#include <memory/savestates.h>
+#include <r4300/gameshark.h>
+#include <r4300/r4300.h>
+#include <r4300/vcr.h>
 
 int32_t frame_advancing = 0;
 // Amount of VIs since last input poll

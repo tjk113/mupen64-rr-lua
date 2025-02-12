@@ -12,7 +12,7 @@
 #include <FrontendService.h>
 #include <PlatformService.h>
 #include <Plugin.h>
-#include <core_api.h>
+
 #include <gui/Loggers.h>
 #include <gui/Main.h>
 

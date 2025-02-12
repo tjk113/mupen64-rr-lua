@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Encoder.h"
-#include <Windows.h>
+
 
 class FFmpegEncoder : public Encoder
 {

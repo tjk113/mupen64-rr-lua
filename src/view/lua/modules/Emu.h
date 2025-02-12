@@ -9,7 +9,7 @@ extern "C" {
 #include <lauxlib.h>
 }
 
-#include <Windows.h>
+
 #include <mmsystem.h>
 #include <gui/Main.h>
 #include <gui/features/Statusbar.h>

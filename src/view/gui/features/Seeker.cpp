@@ -7,9 +7,9 @@
 #include "stdafx.h"
 #include <Messenger.h>
 #include <Config.h>
-#include <Windows.h>
-#include <core_api.h>
-#include <resource.h>
+
+
+
 #include <gui/Main.h>
 #include <gui/features/Seeker.h>
 

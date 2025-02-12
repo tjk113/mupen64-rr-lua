@@ -5,12 +5,12 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/interrupt.h>
-#include <core/r4300/ops.h>
-#include <core/r4300/exception.h>
-#include <core/r4300/macros.h>
+#include <Core.h>
+#include <r4300/r4300.h>
+#include <r4300/interrupt.h>
+#include <r4300/ops.h>
+#include <r4300/exception.h>
+#include <r4300/macros.h>
 
 void NOP()
 {

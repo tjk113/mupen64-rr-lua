@@ -6,10 +6,10 @@
 
 #include "stdafx.h"
 #include <Config.h>
-#include <core_api.h>
-#include <shlobj.h>
+
+
 #include <gui/wrapper/PersistentPathDialog.h>
-#include <helpers/IOHelpers.h>
+
 #include <helpers/WinHelpers.h>
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp

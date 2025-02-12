@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core_api.h>
+
 
 class Plugin {
 public:

@@ -5,8 +5,8 @@
  */
 
 #include "stdafx.h"
-#include <core/r4300/ops.h>
-#include <core/r4300/recomph.h>
+#include <r4300/ops.h>
+#include <r4300/recomph.h>
 
 void gentlbwi()
 {

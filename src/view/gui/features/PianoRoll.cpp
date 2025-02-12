@@ -11,13 +11,13 @@
 #include "Config.h"
 #include "Messenger.h"
 
-#include <Windows.h>
-#include <windowsx.h>
-#include <commctrl.h>
-#include <core_api.h>
+
+
+
+
 #include <gui/Main.h>
 #include <helpers/WinHelpers.h>
-#include <resource.h>
+
 
 namespace PianoRoll
 {

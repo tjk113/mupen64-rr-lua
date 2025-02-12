@@ -15,13 +15,13 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
-    - name: Build
+    - name: Build x86
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild mupen64.sln -t:rebuild -property:Configuration=Release
+      run: msbuild mupen64.sln -t:rebuild -property:Configuration=Release 
 
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v4
       with:
         name: mupen-artifact
-        path: build/mupen64-x86.exe
+        path: build/Views.Win32/mupen64-x86-release.exe
         retention-days: 14

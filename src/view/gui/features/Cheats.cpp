@@ -9,11 +9,11 @@
 
 #include "FrontendService.h"
 
-#include <Windows.h>
-#include <Windowsx.h>
+
+
 #include <gui/Main.h>
-#include <resource.h>
-#include <core_api.h>
+
+
 
 namespace Cheats
 {

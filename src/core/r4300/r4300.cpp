@@ -5,18 +5,18 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/memory/memory.h>
-#include <core/memory/pif.h>
-#include <core/memory/savestates.h>
-#include <core/r4300/exception.h>
-#include <core/r4300/interrupt.h>
-#include <core/r4300/macros.h>
-#include <core/r4300/ops.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomp.h>
-#include <core/r4300/timers.h>
-#include <core/r4300/vcr.h>
+#include <Core.h>
+#include <memory/memory.h>
+#include <memory/pif.h>
+#include <memory/savestates.h>
+#include <r4300/exception.h>
+#include <r4300/interrupt.h>
+#include <r4300/macros.h>
+#include <r4300/ops.h>
+#include <r4300/r4300.h>
+#include <r4300/recomp.h>
+#include <r4300/timers.h>
+#include <r4300/vcr.h>
 // Threading crap
 
 #include "gameshark.h"

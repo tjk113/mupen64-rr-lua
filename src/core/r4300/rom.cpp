@@ -5,11 +5,11 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
+#include <Core.h>
 #include <IOHelpers.h>
 #include <md5.h>
-#include <core/memory/memory.h>
-#include <core/r4300/rom.h>
+#include <memory/memory.h>
+#include <r4300/rom.h>
 
 std::unordered_map<std::filesystem::path, std::pair<uint8_t*, size_t>> rom_cache;
 

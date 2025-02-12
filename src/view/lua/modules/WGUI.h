@@ -10,7 +10,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <Windows.h>
+
 #include <lua/LuaConsole.h>
 #include <gui/Main.h>
 #include <helpers/WinHelpers.h>

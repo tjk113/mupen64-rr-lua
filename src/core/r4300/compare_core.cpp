@@ -5,9 +5,9 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomph.h>
+#include <Core.h>
+#include <r4300/r4300.h>
+#include <r4300/recomph.h>
 
 static FILE* f;
 static int32_t pipe_opened = 0;

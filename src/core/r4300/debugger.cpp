@@ -5,8 +5,8 @@
  */
 
 #include "stdafx.h"
-#include <core/r4300/debugger.h>
-#include <core/Core.h>
+#include <r4300/debugger.h>
+#include <Core.h>
 
 bool g_resumed = true;
 bool g_instruction_advancing = false;

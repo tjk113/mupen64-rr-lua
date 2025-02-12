@@ -10,14 +10,14 @@
 #include "flashram.h"
 #include "pif.h"
 #include "summercart.h"
-#include <core/Core.h>
-#include <core/r4300/interrupt.h>
-#include <core/r4300/macros.h>
-#include <core/r4300/ops.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomph.h>
-#include <core/r4300/timers.h>
-#include <core/r4300/vcr.h>
+#include <Core.h>
+#include <r4300/interrupt.h>
+#include <r4300/macros.h>
+#include <r4300/ops.h>
+#include <r4300/r4300.h>
+#include <r4300/recomph.h>
+#include <r4300/timers.h>
+#include <r4300/vcr.h>
 
 static int32_t frame;
 

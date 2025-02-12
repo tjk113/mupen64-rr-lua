@@ -5,10 +5,10 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/memory/memory.h>
-#include <core/r4300/gameshark.h>
-#include <core/r4300/r4300.h>
+#include <Core.h>
+#include <memory/memory.h>
+#include <r4300/gameshark.h>
+#include <r4300/r4300.h>
 
 static std::vector<core_cheat> cheats;
 

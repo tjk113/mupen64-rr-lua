@@ -5,10 +5,10 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomp.h>
-#include <core/r4300/recomph.h>
+#include <Core.h>
+#include <r4300/r4300.h>
+#include <r4300/recomp.h>
+#include <r4300/recomph.h>
 
 // NOTE: dynarec isn't compatible with the game debugger
 

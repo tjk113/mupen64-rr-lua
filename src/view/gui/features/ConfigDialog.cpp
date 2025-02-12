@@ -9,11 +9,11 @@
 #include <Config.h>
 #include <FrontendService.h>
 #include <Messenger.h>
-#include <Windows.h>
-#include <core_api.h>
-#include <resource.h>
-#include <shellapi.h>
-#include <shlobj.h>
+
+
+
+
+
 #include <capture/EncodingManager.h>
 #include <gui/Main.h>
 #include <gui/features/configdialog.h>

@@ -6,8 +6,8 @@
 
 #include "stdafx.h"
 #include "memory.h"
-#include <core/Core.h>
-#include <core/r4300/r4300.h>
+#include <Core.h>
+#include <r4300/r4300.h>
 
 int32_t use_flashram;
 

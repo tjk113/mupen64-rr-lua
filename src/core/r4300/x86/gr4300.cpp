@@ -5,15 +5,15 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/memory/memory.h>
-#include <core/r4300/interrupt.h>
-#include <core/r4300/macros.h>
-#include <core/r4300/ops.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomph.h>
-#include <core/r4300/x86/assemble.h>
-#include <core/r4300/x86/regcache.h>
+#include <Core.h>
+#include <memory/memory.h>
+#include <r4300/interrupt.h>
+#include <r4300/macros.h>
+#include <r4300/ops.h>
+#include <r4300/r4300.h>
+#include <r4300/recomph.h>
+#include <r4300/x86/assemble.h>
+#include <r4300/x86/regcache.h>
 
 extern uint32_t src; //recomp.c
 

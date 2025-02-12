@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core/include/core_api.h>
+#include <include/core_api.h>
 
 extern uint8_t* rom;
 extern size_t rom_size;

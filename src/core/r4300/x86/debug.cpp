@@ -5,7 +5,7 @@
  */
 
 #include "stdafx.h"
-#include <core/r4300/x86/assemble.h>
+#include <r4300/x86/assemble.h>
 
 void debug()
 {

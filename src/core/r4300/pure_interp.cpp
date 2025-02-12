@@ -5,18 +5,18 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/include/core_api.h>
-#include <core/memory/memory.h>
-#include <core/memory/tlb.h>
-#include <core/r4300/cop1_helpers.h>
-#include <core/r4300/debugger.h>
-#include <core/r4300/exception.h>
-#include <core/r4300/interrupt.h>
-#include <core/r4300/macros.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/rom.h>
-#include <core/r4300/tracelog.h>
+#include <Core.h>
+#include <include/core_api.h>
+#include <memory/memory.h>
+#include <memory/tlb.h>
+#include <r4300/cop1_helpers.h>
+#include <r4300/debugger.h>
+#include <r4300/exception.h>
+#include <r4300/interrupt.h>
+#include <r4300/macros.h>
+#include <r4300/r4300.h>
+#include <r4300/rom.h>
+#include <r4300/tracelog.h>
 
 #ifdef DBG
 extern int32_t debugger_mode;

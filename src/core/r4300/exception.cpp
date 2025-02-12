@@ -5,12 +5,12 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/r4300/exception.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/macros.h>
-#include <core/memory/memory.h>
-#include <core/r4300/recomph.h>
+#include <Core.h>
+#include <r4300/exception.h>
+#include <r4300/r4300.h>
+#include <r4300/macros.h>
+#include <memory/memory.h>
+#include <r4300/recomph.h>
 
 extern uint32_t interp_addr;
 

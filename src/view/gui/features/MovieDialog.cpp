@@ -10,16 +10,16 @@
 #include "Config.h"
 #include "FrontendService.h"
 
-#include <Windows.h>
+
 #include "Statusbar.h"
 #include <gui/Main.h>
-#include <resource.h>
+
 #include <helpers/WinHelpers.h>
 #include <helpers/MathHelpers.h>
 #include <gui/wrapper/PersistentPathDialog.h>
-#include <helpers/IOHelpers.h>
-#include <CommCtrl.h>
-#include <core_api.h>
+
+
+
 
 namespace MovieDialog
 {

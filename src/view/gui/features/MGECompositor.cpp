@@ -7,10 +7,10 @@
 #include "stdafx.h"
 #include "MGECompositor.h"
 #include <Messenger.h>
-#include <Windows.h>
+
 #include <gui/Main.h>
 #include <gui/Loggers.h>
-#include <core_api.h>
+
 
 namespace MGECompositor
 {

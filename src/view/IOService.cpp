@@ -6,7 +6,7 @@
 
 #include "stdafx.h"
 #include <IOService.h>
-#include <Windows.h>
+
 
 std::vector<std::wstring> IOService::get_files_with_extension_in_directory(std::wstring directory, const std::wstring& extension)
 {

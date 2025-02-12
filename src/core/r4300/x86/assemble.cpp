@@ -5,13 +5,11 @@
  */
 
 #include "stdafx.h"
-#include "assemble.h"
-
-#include "core/r4300/macros.h"
-
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomph.h>
-#include <core/r4300/x86/regcache.h>
+#include <r4300/macros.h>
+#include <r4300/r4300.h>
+#include <r4300/recomph.h>
+#include <r4300/x86/assemble.h>
+#include <r4300/x86/regcache.h>
 
 typedef struct _jump_table
 {

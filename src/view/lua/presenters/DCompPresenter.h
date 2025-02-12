@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Presenter.h"
-#include <d2d1.h>
+
 #include <d2d1_3.h>
 #include <dcomp.h>
 #include <d3d11.h>

@@ -5,15 +5,15 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/r4300/exception.h>
-#include <core/r4300/macros.h>
-#include <core/r4300/ops.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomp.h>
-#include <core/r4300/recomph.h>
-#include <core/r4300/x86/assemble.h>
-#include <core/r4300/x86/regcache.h>
+#include <Core.h>
+#include <r4300/exception.h>
+#include <r4300/macros.h>
+#include <r4300/ops.h>
+#include <r4300/r4300.h>
+#include <r4300/recomp.h>
+#include <r4300/recomph.h>
+#include <r4300/x86/assemble.h>
+#include <r4300/x86/regcache.h>
 
 void gensll()
 {

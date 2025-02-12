@@ -7,9 +7,9 @@
 #include "stdafx.h"
 #include <Config.h>
 #include <FrontendService.h>
-#include <Windows.h>
-#include <core_api.h>
-#include <shellapi.h>
+
+
+
 #include <winhttp.h>
 #include <gui/Loggers.h>
 #include <gui/Main.h>

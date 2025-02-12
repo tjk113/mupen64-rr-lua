@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Windows.h>
+
 
 /**
  * Represents a dispatcher that can execute functions on a specific thread.

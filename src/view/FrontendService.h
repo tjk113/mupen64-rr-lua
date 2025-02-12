@@ -12,7 +12,7 @@
  *	Must be implemented in the view layer.
  */
 
-#include <core_api.h>
+
 
 namespace FrontendService
 {

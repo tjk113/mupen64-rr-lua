@@ -6,22 +6,22 @@
 
 #pragma once
 
-#include <Windows.h>
-#include <Windowsx.h>
-#include <CommCtrl.h>
-#include <Shlwapi.h>
+
+
+
+
 #include <gdiplus.h>
-#include <d2d1.h>
+
 #include <d2d1helper.h>
-#include <dwrite.h>
+
 #include <wincodec.h>
 #include <gdiplus.h>
-#include <d2d1.h>
+
 #include <d2d1_3.h>
 #include <d2d1helper.h>
 #include <dcomp.h>
 #include <d3d11.h>
-#include <dwrite.h>
+
 #include <wincodec.h>
 #include <gui/Main.h>
 #include <gui/Loggers.h>

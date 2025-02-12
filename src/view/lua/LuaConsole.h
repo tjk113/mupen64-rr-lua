@@ -15,12 +15,12 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <Windows.h>
+
 #include <gdiplus.h>
-#include <d2d1.h>
+
 #include <dcomp.h>
-#include <dwrite.h>
-#include <core_api.h>
+
+
 
 typedef struct s_window_procedure_params
 {

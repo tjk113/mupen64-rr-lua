@@ -9,7 +9,7 @@
 #include <Config.h>
 #include <FrontendService.h>
 #include <Messenger.h>
-#include <core_api.h>
+
 #include <capture/EncodingManager.h>
 #include <capture/encoders/AVIEncoder.h>
 #include <capture/encoders/Encoder.h>

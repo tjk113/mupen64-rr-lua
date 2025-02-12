@@ -10,7 +10,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <Windows.h>
+
 #include <gui/Main.h>
 
 namespace LuaCore::Input

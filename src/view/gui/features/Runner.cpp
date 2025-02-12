@@ -8,10 +8,10 @@
 #include <AsyncExecutor.h>
 #include <Config.h>
 #include <Messenger.h>
-#include <Windows.h>
-#include <Windowsx.h>
-#include <core_api.h>
-#include <resource.h>
+
+
+
+
 #include <gui/Main.h>
 #include <gui/features/Runner.h>
 #include <lua/LuaConsole.h>

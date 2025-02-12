@@ -12,7 +12,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <Windows.h>
+
 #include <xxh64.h>
 
 namespace LuaCore::D2D

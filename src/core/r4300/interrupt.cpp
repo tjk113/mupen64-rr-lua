@@ -7,15 +7,15 @@
 //#include "../config.h"
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/r4300/interrupt.h>
-#include <core/memory/memory.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/macros.h>
-#include <core/r4300/exception.h>
-#include <core/r4300/vcr.h>
-#include <core/r4300/timers.h>
-#include <core/memory/pif.h>
+#include <Core.h>
+#include <r4300/interrupt.h>
+#include <memory/memory.h>
+#include <r4300/r4300.h>
+#include <r4300/macros.h>
+#include <r4300/exception.h>
+#include <r4300/vcr.h>
+#include <r4300/timers.h>
+#include <memory/pif.h>
 
 typedef struct _interrupt_queue
 {

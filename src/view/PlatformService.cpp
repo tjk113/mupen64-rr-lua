@@ -7,9 +7,9 @@
 #include "stdafx.h"
 #include <PlatformService.h>
 #include <FrontendService.h>
-#include <Windows.h>
-#include <DbgHelp.h>
-#include <core_api.h>
+
+
+
 
 void* PlatformService::load_library(const wchar_t* path, uint64_t* error)
 {

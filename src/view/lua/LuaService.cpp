@@ -7,7 +7,7 @@
 #include "stdafx.h"
 #include <lua/LuaConsole.h>
 #include <gui/Main.h>
-#include <core_api.h>
+
 
 namespace LuaService
 {

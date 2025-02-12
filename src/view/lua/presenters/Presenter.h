@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <d2d1.h>
-#include <Windows.h>
+
+
 
 /**
  * A presenter is responsible for the following:

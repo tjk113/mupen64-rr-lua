@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Windows.h>
+
 
 /// <summary>
 /// A helper for generating exception logs

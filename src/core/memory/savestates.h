@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core/include/core_api.h>
+#include <include/core_api.h>
 
 extern bool g_st_skip_dma;
 extern bool g_st_old;

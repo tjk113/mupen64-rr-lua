@@ -5,8 +5,8 @@
  */
 
 #include "stdafx.h"
-#include <core/r4300/ops.h>
-#include <core/r4300/recomph.h>
+#include <r4300/ops.h>
+#include <r4300/recomph.h>
 
 // static uint32_t pMFC0 = (uint32_t)(MFC0);
 void genmfc0()

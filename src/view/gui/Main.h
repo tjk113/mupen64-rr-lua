@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <Windows.h>
+
 #include <spdlog/logger.h>
 #include <gui/features/Dispatcher.h>
-#include <core_api.h>
+
 #include <Plugin.h>
 
 #ifdef _DEBUG

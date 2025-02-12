@@ -7,7 +7,7 @@
 #include "stdafx.h"
 #include <AsyncExecutor.h>
 #include <Config.h>
-#include <core_api.h>
+
 #include <gui/Loggers.h>
 
 std::deque<std::pair<size_t, std::function<void()>>> g_task_queue;

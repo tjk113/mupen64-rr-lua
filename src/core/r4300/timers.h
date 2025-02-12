@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core/r4300/rom.h>
+#include <r4300/rom.h>
 
 typedef std::chrono::high_resolution_clock::time_point time_point;
 

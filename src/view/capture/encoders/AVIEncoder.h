@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Encoder.h"
-#include <Windows.h>
+
 #include <Vfw.h>
 
 class AVIEncoder final : public Encoder

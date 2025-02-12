@@ -7,13 +7,13 @@
 #include "stdafx.h"
 #include <Config.h>
 #include <FrontendService.h>
-#include <core_api.h>
+
 #include <capture/EncodingManager.h>
 #include <capture/Resampler.h>
 #include <capture/encoders/AVIEncoder.h>
 #include <gui/Loggers.h>
 #include <gui/Main.h>
-#include <helpers/IOHelpers.h>
+
 
 std::wstring AVIEncoder::start(Params params)
 {

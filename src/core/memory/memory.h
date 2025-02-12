@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core/include/core_types.h>
+#include <include/core_types.h>
 
 int32_t init_memory();
 constexpr uint32_t AddrMask = 0x7FFFFF;

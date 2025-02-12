@@ -10,10 +10,10 @@
 #define VR_PROFILE (1)
 #endif
 
-#include <core/r4300/recomp.h>
-#include <core/memory/tlb.h>
-#include <core/r4300/rom.h>
-#include <core/include/core_types.h>
+#include <r4300/recomp.h>
+#include <memory/tlb.h>
+#include <r4300/rom.h>
+#include <include/core_types.h>
 
 extern std::recursive_mutex g_emu_cs;
 

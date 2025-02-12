@@ -6,7 +6,7 @@
 
 #include "stdafx.h"
 #include "disasm.h"
-#include <core/include/core_api.h>
+#include <include/core_api.h>
 
 typedef enum INSTSETOP_t
 {

@@ -6,10 +6,10 @@
 
 #include "stdafx.h"
 #include <Messenger.h>
-#include <Windows.h>
-#include <Windowsx.h>
-#include <core_api.h>
-#include <resource.h>
+
+
+
+
 #include <gui/Main.h>
 #include <gui/features/CoreDbg.h>
 #include <lua/LuaConsole.h>

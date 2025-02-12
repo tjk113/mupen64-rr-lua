@@ -11,16 +11,16 @@
 #include "FrontendService.h"
 #include "Messenger.h"
 
-#include <Windows.h>
-#include <shellapi.h>
-#include <d2d1.h>
-#include <dwrite.h>
+
+
+
+
 #include <gdiplus.h>
 #include <gui/Main.h>
 #include <gui/features/Statusbar.h>
 #include <gui/wrapper/PersistentPathDialog.h>
 #include <helpers/WinHelpers.h>
-#include <resource.h>
+
 #include <wincodec.h>
 #include "modules/AVI.h"
 #include "modules/D2D.h"

@@ -5,12 +5,10 @@
  */
 
 #include "stdafx.h"
-#include "summercart.h"
-#include "memory.h"
-#include "core/Core.h"
-
-#include <core/r4300/r4300.h>
-#include <core/r4300/rom.h>
+#include <Core.h>
+#include <memory/memory.h>
+#include <memory/summercart.h>
+#include <r4300/rom.h>
 
 struct vhd
 {

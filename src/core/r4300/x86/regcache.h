@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core/r4300/recomp.h>
+#include <r4300/recomp.h>
 
 void init_cache(precomp_instr* start);
 void free_all_registers();

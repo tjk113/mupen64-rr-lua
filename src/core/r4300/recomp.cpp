@@ -11,7 +11,7 @@
 #include "macros.h"
 #include "r4300.h"
 #include "../memory/memory.h"
-#include <core/r4300/x86/regcache.h>
+#include <r4300/x86/regcache.h>
 #include "recomph.h"
 #include "rom.h"
 #include "tracelog.h"

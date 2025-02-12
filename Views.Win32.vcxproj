@@ -72,16 +72,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir>build\</OutDir>
-    <LocalDebuggerWorkingDirectory>build\</LocalDebuggerWorkingDirectory>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">build\obj-x86-debug\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">build\obj-x86\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">build\obj-x64-debug\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">build\obj-x64\</IntDir>
+    <OutDir>build\$(ProjectName)\</OutDir>
+    <LocalDebuggerWorkingDirectory>build\$(ProjectName)\</LocalDebuggerWorkingDirectory>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">build\$(ProjectName)\obj-x86-debug\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">build\$(ProjectName)\obj-x86-release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">build\$(ProjectName)\obj-x64-debug\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">build\$(ProjectName)\obj-x64-release\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">mupen64-x86-debug</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">mupen64-x86</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">mupen64-x86-release</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mupen64-x64-debug</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mupen64-x64</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mupen64-x64-release</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <EmbedManifest>true</EmbedManifest>
@@ -252,7 +252,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\view\stdafx.h" />
     <ClInclude Include="lib\microlru.h" />
     <ClInclude Include="lib\IOHelpers.h" />
     <ClInclude Include="src\view\AsyncExecutor.h" />
@@ -268,6 +268,7 @@
     <ClInclude Include="src\view\gui\Loggers.h" />
     <ClInclude Include="src\view\helpers\MathHelpers.h" />
     <ClInclude Include="src\view\helpers\WinHelpers.h" />
+    <ClInclude Include="src\view\helpers\IOHelpers.h" />
     <ClInclude Include="src\view\gui\Commandline.h" />
     <ClInclude Include="src\view\gui\features\Cheats.h" />
     <ClInclude Include="src\view\gui\features\ConfigDialog.h" />
@@ -306,7 +307,7 @@
     <ClInclude Include="src\view\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\stdafx.cpp">
+    <ClCompile Include="src\view\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

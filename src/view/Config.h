@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <core_api.h>
+
 
 extern core_cfg g_config;
 extern const core_cfg g_default_config;

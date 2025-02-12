@@ -7,10 +7,10 @@
 #include "stdafx.h"
 #include <Config.h>
 #include <Messenger.h>
-#include <Windows.h>
-#include <commctrl.h>
-#include <core_api.h>
-#include <resource.h>
+
+
+
+
 #include <gui/Main.h>
 #include <gui/features/Statusbar.h>
 #include <helpers/WinHelpers.h>

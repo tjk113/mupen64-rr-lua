@@ -7,7 +7,7 @@
 #include "stdafx.h"
 #include <Config.h>
 #include <Psapi.h>
-#include <core_api.h>
+
 #include <gui/Loggers.h>
 #include <gui/Main.h>
 #include <gui/features/CrashHelper.h>

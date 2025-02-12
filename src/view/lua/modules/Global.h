@@ -10,7 +10,7 @@ extern "C" {
 #include <lualib.h>
 }
 
-#include <Windows.h>
+
 
 namespace LuaCore::Global
 {

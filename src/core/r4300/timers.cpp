@@ -5,11 +5,11 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/r4300/timers.h>
-#include <core/include/core_api.h>
-#include <core/memory/pif.h>
-#include <core/r4300/r4300.h>
+#include <Core.h>
+#include <r4300/timers.h>
+#include <include/core_api.h>
+#include <memory/pif.h>
+#include <r4300/r4300.h>
 
 extern int32_t m_current_vi;
 extern int32_t m_current_sample;

@@ -6,9 +6,9 @@
 
 #include "stdafx.h"
 #include "regcache.h"
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomp.h>
-#include <core/r4300/recomph.h>
+#include <r4300/r4300.h>
+#include <r4300/recomp.h>
+#include <r4300/recomph.h>
 
 static uint32_t* reg_content[8];
 static precomp_instr* last_access[8];

@@ -11,12 +11,6 @@
 #include <IOService.h>
 #include <Messenger.h>
 #include <Plugin.h>
-#include <Shlwapi.h>
-#include <Windows.h>
-#include <commctrl.h>
-#include <core_api.h>
-#include <resource.h>
-#include <shellapi.h>
 #include <strsafe.h>
 #include <timeapi.h>
 #include <capture/EncodingManager.h>
@@ -38,7 +32,7 @@
 #include <gui/features/Statusbar.h>
 #include <gui/features/UpdateChecker.h>
 #include <gui/wrapper/PersistentPathDialog.h>
-#include <helpers/IOHelpers.h>
+
 #include <helpers/MathHelpers.h>
 #include <helpers/WinHelpers.h>
 #include <lua/LuaConsole.h>

@@ -5,12 +5,12 @@
  */
 
 #include "stdafx.h"
-#include <core/Core.h>
-#include <core/r4300/cop1_helpers.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/recomph.h>
-#include <core/r4300/x86/assemble.h>
-#include <core/r4300/x86/gcop1_helpers.h>
+#include <Core.h>
+#include <r4300/cop1_helpers.h>
+#include <r4300/r4300.h>
+#include <r4300/recomph.h>
+#include <r4300/x86/assemble.h>
+#include <r4300/x86/gcop1_helpers.h>
 
 static void patch_jump(uint32_t addr, uint32_t target)
 {

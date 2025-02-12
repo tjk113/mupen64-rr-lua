@@ -6,14 +6,14 @@
 
 #include "stdafx.h"
 #include <IOHelpers.h>
-#include <core/Core.h>
-#include <core/include/core_api.h>
-#include <core/memory/pif.h>
-#include <core/memory/savestates.h>
-#include <core/r4300/r4300.h>
-#include <core/r4300/rom.h>
-#include <core/r4300/timers.h>
-#include <core/r4300/vcr.h>
+#include <Core.h>
+#include <include/core_api.h>
+#include <memory/pif.h>
+#include <memory/savestates.h>
+#include <r4300/r4300.h>
+#include <r4300/rom.h>
+#include <r4300/timers.h>
+#include <r4300/vcr.h>
 
 // M64\0x1a
 enum

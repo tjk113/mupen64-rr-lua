@@ -6,17 +6,17 @@
 
 #include "stdafx.h"
 #include <Config.h>
-#include <Shlwapi.h>
+
 #include <Uxtheme.h>
-#include <Windows.h>
-#include <commctrl.h>
-#include <core_api.h>
-#include <resource.h>
+
+
+
+
 #include <gui/Loggers.h>
 #include <gui/Main.h>
 #include <gui/features/RomBrowser.h>
 #include <gui/features/Statusbar.h>
-#include <helpers/IOHelpers.h>
+
 #include <IOService.h>
 #include <AsyncExecutor.h>
 #include <Messenger.h>
