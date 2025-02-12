@@ -107,8 +107,15 @@ bool FFmpegEncoder::stop()
     m_stop_thread = true;
     m_video_cv.notify_all();
     m_audio_cv.notify_all();
+
+    // HACK: Give it some time to maybe accept the last writes...
+    Sleep(500);
+    
+    CancelIo(m_video_pipe);
+    CancelIo(m_audio_pipe);
     DisconnectNamedPipe(m_video_pipe);
     DisconnectNamedPipe(m_audio_pipe);
+    
     WaitForSingleObject(m_pi.hProcess, INFINITE);
     CloseHandle(m_pi.hProcess);
     CloseHandle(m_pi.hThread);
