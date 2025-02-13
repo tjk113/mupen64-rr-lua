@@ -90,6 +90,9 @@ stop=1; \
 #define core_TagHi reg_cop0[29]
 #define core_ErrorEPC reg_cop0[30]
 
+#define CODE_BLOCK_SIZE 5000
+#define JUMP_TABLE_SIZE 1000
+
 #ifdef _M_X64
 
 #define MUP_ROUND_TRUNC FE_TOWARDZERO
@@ -155,8 +158,5 @@ __asm fistp output_width ptr [eax] \
 #define FLOAT_CONVERT_W_S(s,d) { float* src = s; int32_t* dest = (int32_t*)d;  FLOAT_CONVERT(dword, dword); }
 #define FLOAT_CONVERT_L_D(s,d) { double* src = s; int64_t* dest = (int64_t*)d; FLOAT_CONVERT(qword, dword); }
 #define FLOAT_CONVERT_W_D(s,d) { double* src = s; int32_t* dest = (int32_t*)d; FLOAT_CONVERT(qword, qword); }
-
-#define CODE_BLOCK_SIZE 5000
-#define JUMP_TABLE_SIZE 1000
 
 #endif
