@@ -70,8 +70,10 @@ function emu.statusbar(message) end
 ---@return nil
 function emu.atvi(f, unregister) end
 
----Similar to `emu.atvi`, but for drawing commands. ONLY GDI AND GDI+ COMMANDS
----WILL WORK HERE. If `unregister` is set to true, the function `f` will no
+---Similar to `emu.atvi`, but for wgui drawing commands.
+---Only drawing functions from the wgui namespace will work here, those from d2d will not.
+---Emulator execution may be running in parallel with this callback and it's therefore disallowed to call any functions that perform unsynchronized reads or writes from and to the emulator state, such as those from the memory namespace. 
+---If `unregister` is set to true, the function `f` will no
 ---longer be called when this event occurs, but it will error if you never
 ---registered the function.
 ---@param f fun(): nil The function to be called after every VI frame.
@@ -79,9 +81,10 @@ function emu.atvi(f, unregister) end
 ---@return nil
 function emu.atupdatescreen(f, unregister) end
 
----Similar to `emu.atvi`, but for all drawing commands. GDI and GDI+ commands
----will still work here, but it is recommended to put those in
----`emu.atupdatescreen` If `unregister` is set to true, the function `f` will no
+---Similar to `emu.atvi`, but for d2d and wgui drawing commands.
+---Drawing functions from both the d2d and wgui namespaces will work here, but it's recommended to put wgui drawcalls into the `emu.atupdatescreen` callback for efficiency and compatibility reasons.
+---Emulator execution may be running in parallel with this callback and it's therefore disallowed to call any functions that perform unsynchronized reads or writes from and to the emulator state, such as those from the memory namespace. 
+---If `unregister` is set to true, the function `f` will no
 ---longer be called when this event occurs, but it will error if you never
 ---registered the function.
 ---@param f fun(): nil The function to be called after every VI frame.
