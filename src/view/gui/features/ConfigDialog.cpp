@@ -999,6 +999,10 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .id = ++id,
     .name = L"Core"};
 
+    t_options_group vcr_group = {
+    .id = ++id,
+    .name = L"VCR"};
+    
     t_options_group lua_group = {
     .id = ++id,
     .name = L"Lua"};
@@ -1011,7 +1015,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .id = ++id,
     .name = L"Hotkeys"};
 
-    groups = {interface_group, statusbar_group, seek_piano_roll_group, flow_group, capture_group, core_group, lua_group, debug_group, hotkey_group};
+    groups = {interface_group, statusbar_group, seek_piano_roll_group, flow_group, capture_group, core_group, vcr_group, lua_group, debug_group, hotkey_group};
 
     options = {
     t_options_item{
@@ -1283,31 +1287,10 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     },
     t_options_item{
     .group_id = core_group.id,
-    .name = L"Movie Backups",
-    .tooltip = L"Generate a backup of the currently recorded movie when loading a savestate.\nBackups are saved in the backups folder.",
-    .data = &g_config.core.vcr_backups,
-    .type = t_options_item::Type::Bool,
-    },
-    t_options_item{
-    .group_id = core_group.id,
-    .name = L"Extended Movie Format",
-    .tooltip = L"Whether movies are written using the new extended format.\nUseful when opening movies in external programs which don't handle the new format correctly.\nIf disabled, the extended format sections are set to 0.",
-    .data = &g_config.core.vcr_write_extended_format,
-    .type = t_options_item::Type::Bool,
-    },
-    t_options_item{
-    .group_id = core_group.id,
     .name = L"Fast-Forward Skip Frequency",
     .tooltip = L"Skip rendering every nth frame when in fast-forward mode.\n0 - Render nothing\n1 - Render every frame\nn - Render every nth frame",
     .data = &g_config.core.frame_skip_frequency,
     .type = t_options_item::Type::Number,
-    },
-    t_options_item{
-    .group_id = core_group.id,
-    .name = L"Record Resets",
-    .tooltip = L"Record manually performed resets to the current movie.\nThese resets will be repeated when the movie is played back.",
-    .data = &g_config.core.is_reset_recording_enabled,
-    .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
@@ -1338,6 +1321,28 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .type = t_options_item::Type::Number,
     },
 
+    t_options_item{
+    .group_id = vcr_group.id,
+    .name = L"Movie Backups",
+    .tooltip = L"Generate a backup of the currently recorded movie when loading a savestate.\nBackups are saved in the backups folder.",
+    .data = &g_config.core.vcr_backups,
+    .type = t_options_item::Type::Bool,
+    },
+    t_options_item{
+    .group_id = vcr_group.id,
+    .name = L"Extended Movie Format",
+    .tooltip = L"Whether movies are written using the new extended format.\nUseful when opening movies in external programs which don't handle the new format correctly.\nIf disabled, the extended format sections are set to 0.",
+    .data = &g_config.core.vcr_write_extended_format,
+    .type = t_options_item::Type::Bool,
+    },
+    t_options_item{
+    .group_id = vcr_group.id,
+    .name = L"Record Resets",
+    .tooltip = L"Record manually performed resets to the current movie.\nThese resets will be repeated when the movie is played back.",
+    .data = &g_config.core.is_reset_recording_enabled,
+    .type = t_options_item::Type::Bool,
+    },
+        
     t_options_item{
     .group_id = lua_group.id,
     .name = L"Presenter",
