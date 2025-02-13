@@ -73,6 +73,7 @@ uint32_t next_vi;
 int32_t vi_field = 0;
 bool g_vr_fast_forward;
 bool g_vr_frame_skipped;
+core_system_type g_sys_type;
 
 FILE* g_eeprom_file;
 FILE* g_sram_file;

@@ -2703,28 +2703,8 @@ void write_ai()
         if (ai_register.ai_dacrate != word)
         {
             ai_register.ai_dacrate = word;
-            // FIXME: Cache this!!!
-            switch (ROM_HEADER.Country_code & 0xFF)
-            {
-            case 0x44:
-            case 0x46:
-            case 0x49:
-            case 0x50:
-            case 0x53:
-            case 0x55:
-            case 0x58:
-            case 0x59:
-                g_core->plugin_funcs.ai_dacrate_changed(sys_pal);
-                g_core->callbacks.dacrate_changed(sys_pal);
-                break;
-            case 0x37:
-            case 0x41:
-            case 0x45:
-            case 0x4a:
-                g_core->plugin_funcs.ai_dacrate_changed(sys_ntsc);
-                g_core->callbacks.dacrate_changed(sys_ntsc);
-                break;
-            }
+            g_core->plugin_funcs.ai_dacrate_changed(g_sys_type);
+            g_core->callbacks.dacrate_changed(g_sys_type);
         }
         return;
         break;
@@ -2804,27 +2784,8 @@ void write_aib()
         if (ai_register.ai_dacrate != temp)
         {
             ai_register.ai_dacrate = temp;
-            switch (ROM_HEADER.Country_code & 0xFF)
-            {
-            case 0x44:
-            case 0x46:
-            case 0x49:
-            case 0x50:
-            case 0x53:
-            case 0x55:
-            case 0x58:
-            case 0x59:
-                g_core->plugin_funcs.ai_dacrate_changed(sys_pal);
-                g_core->callbacks.dacrate_changed(sys_pal);
-                break;
-            case 0x37:
-            case 0x41:
-            case 0x45:
-            case 0x4a:
-                g_core->plugin_funcs.ai_dacrate_changed(sys_ntsc);
-                g_core->callbacks.dacrate_changed(sys_ntsc);
-                break;
-            }
+            g_core->plugin_funcs.ai_dacrate_changed(g_sys_type);
+            g_core->callbacks.dacrate_changed(g_sys_type);
         }
         return;
         break;
@@ -2899,27 +2860,8 @@ void write_aih()
         if (ai_register.ai_dacrate != temp)
         {
             ai_register.ai_dacrate = temp;
-            switch (ROM_HEADER.Country_code & 0xFF)
-            {
-            case 0x44:
-            case 0x46:
-            case 0x49:
-            case 0x50:
-            case 0x53:
-            case 0x55:
-            case 0x58:
-            case 0x59:
-                g_core->plugin_funcs.ai_dacrate_changed(sys_pal);
-                g_core->callbacks.dacrate_changed(sys_pal);
-                break;
-            case 0x37:
-            case 0x41:
-            case 0x45:
-            case 0x4a:
-                g_core->plugin_funcs.ai_dacrate_changed(sys_ntsc);
-                g_core->callbacks.dacrate_changed(sys_ntsc);
-                break;
-            }
+            g_core->plugin_funcs.ai_dacrate_changed(g_sys_type);
+            g_core->callbacks.dacrate_changed(g_sys_type);
         }
         return;
         break;
@@ -2986,27 +2928,8 @@ void write_aid()
         if (ai_register.ai_dacrate != dword >> 32)
         {
             ai_register.ai_dacrate = dword >> 32;
-            switch (ROM_HEADER.Country_code & 0xFF)
-            {
-            case 0x44:
-            case 0x46:
-            case 0x49:
-            case 0x50:
-            case 0x53:
-            case 0x55:
-            case 0x58:
-            case 0x59:
-                g_core->plugin_funcs.ai_dacrate_changed(sys_pal);
-                g_core->callbacks.dacrate_changed(sys_pal);
-                break;
-            case 0x37:
-            case 0x41:
-            case 0x45:
-            case 0x4a:
-                g_core->plugin_funcs.ai_dacrate_changed(sys_ntsc);
-                g_core->callbacks.dacrate_changed(sys_ntsc);
-                break;
-            }
+            g_core->plugin_funcs.ai_dacrate_changed(g_sys_type);
+            g_core->callbacks.dacrate_changed(g_sys_type);
         }
         ai_register.ai_bitrate = dword & 0xFFFFFFFF;
         return;

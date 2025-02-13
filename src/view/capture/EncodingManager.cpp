@@ -473,9 +473,6 @@ namespace EncodingManager
 		case sys_pal:
 			m_audio_freq = (int)(49656530 / (g_core.ai_register->ai_dacrate + 1));
 			break;
-		case sys_mpal:
-			m_audio_freq = (int)(48628316 / (g_core.ai_register->ai_dacrate + 1));
-			break;
 		default:
 			assert(false);
 			break;

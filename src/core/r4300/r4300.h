@@ -56,6 +56,7 @@ extern uint32_t next_vi;
 extern int32_t compare_core_mode;
 extern bool g_vr_fast_forward;
 extern bool g_vr_frame_skipped;
+extern core_system_type g_sys_type;
 
 extern FILE* g_eeprom_file;
 extern FILE* g_sram_file;

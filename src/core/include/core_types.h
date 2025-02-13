@@ -136,7 +136,6 @@ typedef enum {
 typedef enum {
     sys_ntsc,
     sys_pal,
-    sys_mpal
 } core_system_type;
 
 typedef struct

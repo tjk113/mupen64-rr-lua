@@ -9,6 +9,7 @@
 #include <IOHelpers.h>
 #include <md5.h>
 #include <memory/memory.h>
+#include <r4300/r4300.h>
 #include <r4300/rom.h>
 
 std::unordered_map<std::filesystem::path, std::pair<uint8_t*, size_t>> rom_cache;
@@ -222,6 +223,29 @@ bool rom_load(std::filesystem::path path)
     for (size_t i = 0; i < (rom_size / 4); i++)
         roml[i] = sl(roml[i]);
 
+    switch (ROM_HEADER.Country_code & 0xFF)
+    {
+    case 0x44:
+    case 0x46:
+    case 0x49:
+    case 0x50:
+    case 0x53:
+    case 0x55:
+    case 0x58:
+    case 0x59:
+        g_sys_type = sys_pal;
+        break;
+    case 0x37:
+    case 0x41:
+    case 0x45:
+    case 0x4a:
+        g_sys_type = sys_ntsc;
+        break;
+    default:
+        g_core->logger->error("Unknown ccode: {:#06x}", ROM_HEADER.Country_code);
+        return false;
+    }
+    
     if (rom_cache.size() < g_core->cfg->rom_cache_size)
     {
         g_core->logger->info("[Core] Putting ROM in cache... ({}/{} full)\n", rom_cache.size(), g_core->cfg->rom_cache_size);
