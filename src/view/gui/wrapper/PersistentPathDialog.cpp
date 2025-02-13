@@ -6,11 +6,7 @@
 
 #include "stdafx.h"
 #include <Config.h>
-
-
 #include <gui/wrapper/PersistentPathDialog.h>
-
-#include <helpers/WinHelpers.h>
 
 #define FAILSAFE(operation) if(FAILED(operation)) goto cleanUp
 

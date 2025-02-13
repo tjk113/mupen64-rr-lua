@@ -255,6 +255,7 @@
     <ClInclude Include="src\view\stdafx.h" />
     <ClInclude Include="lib\microlru.h" />
     <ClInclude Include="lib\IOHelpers.h" />
+    <ClInclude Include="src\view\MiscHelpers.h" />
     <ClInclude Include="src\view\AsyncExecutor.h" />
     <ClInclude Include="src\view\capture\encoders\AVIEncoder.h" />
     <ClInclude Include="src\view\capture\encoders\Encoder.h" />
@@ -266,9 +267,6 @@
     <ClInclude Include="src\view\gui\features\RecentMenu.h" />
     <ClInclude Include="src\view\gui\features\UpdateChecker.h" />
     <ClInclude Include="src\view\gui\Loggers.h" />
-    <ClInclude Include="src\view\helpers\MathHelpers.h" />
-    <ClInclude Include="src\view\helpers\WinHelpers.h" />
-    <ClInclude Include="src\view\helpers\IOHelpers.h" />
     <ClInclude Include="src\view\gui\Commandline.h" />
     <ClInclude Include="src\view\gui\features\Cheats.h" />
     <ClInclude Include="src\view\gui\features\ConfigDialog.h" />
@@ -319,14 +317,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="lib\IOHelpers.cpp"/>
-    <ClCompile Include="src\view\AsyncExecutor.cpp"/>
+    <ClCompile Include="src\view\AsyncExecutor.cpp" />
     <ClCompile Include="src\view\capture\encoders\AVIEncoder.cpp" />
     <ClCompile Include="src\view\capture\encoders\FFmpegEncoder.cpp" />
     <ClCompile Include="src\view\capture\EncodingManager.cpp" />
     <ClCompile Include="src\view\capture\Resampler.cpp" />
-    <ClCompile Include="src\view\Config.cpp"/>
-    <ClCompile Include="src\view\FrontendService.cpp"/>
+    <ClCompile Include="src\view\Config.cpp" />
+    <ClCompile Include="src\view\FrontendService.cpp" />
     <ClCompile Include="src\view\gui\Commandline.cpp" />
     <ClCompile Include="src\view\gui\features\Cheats.cpp" />
     <ClCompile Include="src\view\gui\features\ConfigDialog.cpp" />
@@ -350,7 +347,7 @@
     <ClCompile Include="src\view\lua\LuaService.cpp" />
     <ClCompile Include="src\view\lua\presenters\DCompPresenter.cpp" />
     <ClCompile Include="src\view\lua\presenters\GDIPresenter.cpp" />
-    <ClCompile Include="src\view\Messenger.cpp"/>
+    <ClCompile Include="src\view\Messenger.cpp" />
     <ClCompile Include="src\view\PlatformService.cpp" />
     <ClCompile Include="src\view\Plugin.cpp" />
   </ItemGroup>

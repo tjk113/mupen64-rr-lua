@@ -6,7 +6,6 @@
 
 #include "stdafx.h"
 #include "DCompPresenter.h"
-#include <helpers/WinHelpers.h>
 
 DCompPresenter::~DCompPresenter()
 {

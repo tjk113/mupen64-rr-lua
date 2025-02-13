@@ -9,16 +9,10 @@
 #include <Config.h>
 #include <FrontendService.h>
 #include <Messenger.h>
-
-
-
-
-
 #include <capture/EncodingManager.h>
 #include <gui/Main.h>
 #include <gui/features/configdialog.h>
 #include <gui/wrapper/PersistentPathDialog.h>
-#include <helpers/WinHelpers.h>
 #include <lua/LuaConsole.h>
 
 #define WM_EDIT_END (WM_USER + 19)

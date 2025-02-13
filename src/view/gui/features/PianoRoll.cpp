@@ -6,18 +6,10 @@
 
 #include "stdafx.h"
 #include "PianoRoll.h"
-
 #include "AsyncExecutor.h"
 #include "Config.h"
 #include "Messenger.h"
-
-
-
-
-
 #include <gui/Main.h>
-#include <helpers/WinHelpers.h>
-
 
 namespace PianoRoll
 {

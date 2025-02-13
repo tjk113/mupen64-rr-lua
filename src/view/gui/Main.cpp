@@ -31,8 +31,6 @@
 #include <gui/features/Statusbar.h>
 #include <gui/features/UpdateChecker.h>
 #include <gui/wrapper/PersistentPathDialog.h>
-#include <helpers/MathHelpers.h>
-#include <helpers/WinHelpers.h>
 #include <lua/LuaConsole.h>
 #include <lua/LuaService.h>
 #include <spdlog/sinks/basic_file_sink.h>

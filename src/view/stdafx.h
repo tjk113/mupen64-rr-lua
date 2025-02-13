@@ -42,10 +42,10 @@
 #include <numeric>
 
 #include <spdlog/logger.h>
-#include <IOHelpers.h>
-#include <helpers/IOHelpers.h>
-#include <Windows.h>
 #include <core_api.h>
+#include <IOHelpers.h>
+#include <MiscHelpers.h>
+#include <Windows.h>
 #include <commctrl.h>
 #include <resource.h>
 #include <ShlObj.h>

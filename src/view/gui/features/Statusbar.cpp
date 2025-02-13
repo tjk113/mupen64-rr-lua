@@ -7,13 +7,8 @@
 #include "stdafx.h"
 #include <Config.h>
 #include <Messenger.h>
-
-
-
-
 #include <gui/Main.h>
 #include <gui/features/Statusbar.h>
-#include <helpers/WinHelpers.h>
 
 namespace Statusbar
 {

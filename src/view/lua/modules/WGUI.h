@@ -10,10 +10,8 @@ extern "C" {
 #include <lualib.h>
 }
 
-
 #include <lua/LuaConsole.h>
 #include <gui/Main.h>
-#include <helpers/WinHelpers.h>
 #include <FrontendService.h>
 
 namespace LuaCore::Wgui

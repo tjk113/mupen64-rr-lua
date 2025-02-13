@@ -6,59 +6,20 @@
 
 #pragma once
 
-
-
-
-
-#include <gdiplus.h>
-
-#include <d2d1helper.h>
-
-#include <wincodec.h>
-#include <gdiplus.h>
-
+#include <Windows.h>
 #include <d2d1_3.h>
 #include <d2d1helper.h>
-#include <dcomp.h>
+#include <d2d1helper.h>
 #include <d3d11.h>
-
+#include <dcomp.h>
+#include <gdiplus.h>
+#include <gdiplus.h>
+#include <shlobj_core.h>
 #include <wincodec.h>
-#include <gui/Main.h>
+#include <wincodec.h>
+#include <windowsx.h>
 #include <gui/Loggers.h>
-
-static void set_checkbox_state(const HWND hwnd, const int32_t id,
-                               int32_t is_checked)
-{
-    SendMessage(GetDlgItem(hwnd, id), BM_SETCHECK,
-                is_checked ? BST_CHECKED : BST_UNCHECKED, 0);
-}
-
-static int32_t get_checkbox_state(const HWND hwnd, const int32_t id)
-{
-    return SendDlgItemMessage(hwnd, id, BM_GETCHECK, 0, 0) == BST_CHECKED
-               ? TRUE
-               : FALSE;
-}
-
-static int32_t get_primary_monitor_refresh_rate()
-{
-    DISPLAY_DEVICE dd;
-    dd.cb = sizeof(dd);
-    EnumDisplayDevices(NULL, 0, &dd, 0);
-
-    DEVMODE dm;
-    dm.dmSize = sizeof(dm);
-    EnumDisplaySettings(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm);
-
-    return dm.dmDisplayFrequency;
-}
-
-static void read_combo_box_value(const HWND hwnd, const int resource_id, char* ret)
-{
-    int index = SendDlgItemMessage(hwnd, resource_id, CB_GETCURSEL, 0, 0);
-    SendDlgItemMessage(hwnd, resource_id, CB_GETLBTEXT, index, (LPARAM)ret);
-}
-
+#include <gui/Main.h>
 
 static RECT get_window_rect_client_space(HWND parent, HWND child)
 {
@@ -69,11 +30,10 @@ static RECT get_window_rect_client_space(HWND parent, HWND child)
     GetWindowRect(child, &client);
 
     return {
-        offset_client.left,
-        offset_client.top,
-        offset_client.left + (client.right - client.left),
-        offset_client.top + (client.bottom - client.top)
-    };
+    offset_client.left,
+    offset_client.top,
+    offset_client.left + (client.right - client.left),
+    offset_client.top + (client.bottom - client.top)};
 }
 
 static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory2** factory, IDXGIAdapter1** dxgiadapter, ID3D11Device** d3device,
@@ -126,11 +86,10 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
 
         const UINT dpi = GetDpiForWindow(hwnd);
         const D2D1_BITMAP_PROPERTIES1 props = D2D1::BitmapProperties1(
-            D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-            D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-            dpi,
-            dpi
-        );
+        D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
+        dpi,
+        dpi);
 
         (*d2d_dc)->CreateBitmapFromDxgiSurface(*dxgi_surface, props, bitmap);
 
@@ -149,7 +108,7 @@ static bool create_composition_surface(HWND hwnd, D2D1_SIZE_U size, IDXGIFactory
     desc.BindFlags = D3D11_BIND_RENDER_TARGET;
     desc.MiscFlags = D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
 
-	(*d3device)->CreateTexture2D(&desc, nullptr, d3d_gdi_tex);
+    (*d3device)->CreateTexture2D(&desc, nullptr, d3d_gdi_tex);
 
     (*swapchain)->GetBuffer(1, IID_PPV_ARGS(front_buffer));
     (*dxgi_surface)->QueryInterface(dxgi_surface_resource);
@@ -304,8 +263,7 @@ static void set_listview_selection(const HWND hwnd, const std::vector<size_t> in
 /**
  * \brief Initializes COM within the object's scope for the current thread
  */
-class COMInitializer
-{
+class COMInitializer {
 public:
     COMInitializer()
     {
@@ -329,3 +287,168 @@ public:
 private:
     bool m_init;
 };
+
+
+/**
+ * \brief Gets all files under all subdirectory of a specific directory, including the directory's shallow files
+ * \param directory The path joiner-terminated directory
+ */
+static std::vector<std::wstring> get_files_in_subdirectories(std::wstring directory)
+{
+    if (directory.back() != L'\\')
+    {
+        directory += L"\\";
+    }
+    WIN32_FIND_DATA find_file_data;
+    const HANDLE h_find = FindFirstFile((directory + L"*").c_str(),
+                                        &find_file_data);
+    if (h_find == INVALID_HANDLE_VALUE)
+    {
+        return {};
+    }
+
+    std::vector<std::wstring> paths;
+    std::wstring fixed_path = directory;
+    do
+    {
+        if (!lstrcmpW(find_file_data.cFileName, L".") || !lstrcmpW(find_file_data.cFileName, L".."))
+            continue;
+
+        auto full_path = directory + find_file_data.cFileName;
+
+        if (!(find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+        {
+            paths.push_back(full_path);
+            continue;
+        }
+
+        if (directory[directory.size() - 2] == '\0')
+        {
+            if (directory.back() == '\\')
+            {
+                fixed_path.pop_back();
+                fixed_path.pop_back();
+            }
+        }
+
+        if (directory.back() != '\\')
+        {
+            fixed_path.push_back('\\');
+        }
+
+        full_path = fixed_path + find_file_data.cFileName;
+        for (const auto& path : get_files_in_subdirectories(full_path + L"\\"))
+        {
+            paths.push_back(path);
+        }
+    }
+    while (FindNextFile(h_find, &find_file_data) != 0);
+
+    FindClose(h_find);
+
+    return paths;
+}
+
+/**
+ * \brief Removes the extension from a path
+ * \param path The path to remove the extension from
+ * \return The path without an extension
+ */
+static std::string strip_extension(const std::string& path)
+{
+    size_t i = path.find_last_of('.');
+
+    if (i != std::string::npos)
+    {
+        return path.substr(0, i);
+    }
+    return path;
+}
+
+/**
+ * \brief Removes the extension from a path
+ * \param path The path to remove the extension from
+ * \return The path without an extension
+ */
+static std::wstring strip_extension(const std::wstring& path)
+{
+    size_t i = path.find_last_of('.');
+
+    if (i != std::string::npos)
+    {
+        return path.substr(0, i);
+    }
+    return path;
+}
+
+/**
+ * \brief Gets the path to the current user's desktop
+ */
+static std::wstring get_desktop_path()
+{
+    wchar_t path[MAX_PATH + 1] = {0};
+    SHGetSpecialFolderPathW(HWND_DESKTOP, path, CSIDL_DESKTOP, FALSE);
+    return path;
+}
+
+/**
+ * \brief Creates a new path with a different name, keeping the extension and preceeding path intact
+ * \param path A path
+ * \param name The new name
+ * \return The modified path
+ */
+static std::filesystem::path with_name(std::filesystem::path path, std::string name)
+{
+    char drive[MAX_PATH] = {0};
+    char dir[MAX_PATH] = {0};
+    char filename[MAX_PATH] = {0};
+    _splitpath(path.string().c_str(), drive, dir, filename, nullptr);
+
+    return std::filesystem::path(std::string(drive) + std::string(dir) + name + path.extension().string());
+}
+
+/**
+ * \brief Gets the name (filename without extension) of a path
+ * \param path A path
+ * \return The path's name
+ */
+static std::string get_name(std::filesystem::path path)
+{
+    char filename[MAX_PATH] = {0};
+    _splitpath(path.string().c_str(), nullptr, nullptr, filename, nullptr);
+    return filename;
+}
+
+
+/**
+ * \brief Limits a value to a specific range
+ * \param value The value to limit
+ * \param min The lower bound
+ * \param max The upper bound
+ * \return The value, limited to the specified range
+ */
+template <typename T>
+static T clamp(const T value, const T min, const T max)
+{
+    if (value > max)
+    {
+        return max;
+    }
+    if (value < min)
+    {
+        return min;
+    }
+    return value;
+}
+
+/**
+ * \brief Formats a duration into a string of format HH:MM:SS
+ * \param seconds The duration in seconds
+ * \return The formatted duration
+ */
+static std::wstring format_duration(size_t seconds)
+{
+    wchar_t str[480] = {};
+    wsprintfW(str, L"%02u:%02u:%02u", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+    return str;
+}

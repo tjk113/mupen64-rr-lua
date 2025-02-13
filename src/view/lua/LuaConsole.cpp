@@ -19,8 +19,6 @@
 #include <gui/Main.h>
 #include <gui/features/Statusbar.h>
 #include <gui/wrapper/PersistentPathDialog.h>
-#include <helpers/WinHelpers.h>
-
 #include <wincodec.h>
 #include "modules/AVI.h"
 #include "modules/D2D.h"

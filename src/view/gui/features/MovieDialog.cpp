@@ -6,20 +6,10 @@
 
 #include "stdafx.h"
 #include "MovieDialog.h"
-
 #include "Config.h"
 #include "FrontendService.h"
-
-
-#include "Statusbar.h"
 #include <gui/Main.h>
-
-#include <helpers/WinHelpers.h>
-#include <helpers/MathHelpers.h>
 #include <gui/wrapper/PersistentPathDialog.h>
-
-
-
 
 namespace MovieDialog
 {
