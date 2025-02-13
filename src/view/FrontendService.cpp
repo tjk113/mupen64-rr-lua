@@ -109,7 +109,7 @@ std::filesystem::path FrontendService::get_app_path()
     return g_app_path;
 }
 
-void FrontendService::set_default_hotkey_keys(core_cfg* config)
+void FrontendService::set_default_hotkey_keys(cfg_view* config)
 {
     config->fast_forward_hotkey.key = VK_TAB;
 

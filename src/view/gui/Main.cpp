@@ -80,7 +80,7 @@ std::filesystem::path g_rom_path;
 
 constexpr auto WND_CLASS = L"myWindowClass";
 
-const std::map<core_action, int> ACTION_ID_MAP = {
+const std::map<cfg_action, int> ACTION_ID_MAP = {
 {ACTION_FASTFORWARD_ON, IDM_FASTFORWARD_ON},
 {ACTION_FASTFORWARD_OFF, IDM_FASTFORWARD_OFF},
 {ACTION_GAMESHARK_ON, IDM_GS_ON},
@@ -351,13 +351,13 @@ void set_menu_accelerator(int element_id, const wchar_t* acc)
     ModifyMenu(GetMenu(g_main_hwnd), element_id, MF_BYCOMMAND | MF_STRING, element_id, string);
 }
 
-void set_hotkey_menu_accelerators(core_hotkey* hotkey, int menu_item_id)
+void set_hotkey_menu_accelerators(cfg_hotkey* hotkey, int menu_item_id)
 {
     const auto hotkey_str = hotkey_to_string(hotkey);
     set_menu_accelerator(menu_item_id, hotkey_str == L"(nothing)" ? L"" : hotkey_str.c_str());
 }
 
-void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, core_hotkey* hotkey,
+void SetDlgItemHotkeyAndMenu(HWND hwnd, int idc, cfg_hotkey* hotkey,
                              int menuItemID)
 {
     const auto hotkey_str = hotkey_to_string(hotkey);
@@ -470,7 +470,7 @@ const wchar_t* get_status_text()
  * \returns The converted ID, or 0 if no match is found.
  * \remark In case of some toggle actions, the IDs dont map to a menu item, but only to an identifier which is handled in WM_COMMAND
  */
-int config_action_to_menu_id(core_action action)
+int config_action_to_menu_id(cfg_action action)
 {
     if (!ACTION_ID_MAP.contains(action))
     {
@@ -478,162 +478,6 @@ int config_action_to_menu_id(core_action action)
         return 0;
     }
     return ACTION_ID_MAP.at(action);
-}
-
-
-std::wstring hotkey_to_string(const core_hotkey* hotkey)
-{
-    char buf[260]{};
-    const int k = hotkey->key;
-
-    if (!hotkey->ctrl && !hotkey->shift && !hotkey->alt && !hotkey->key)
-    {
-        return L"(nothing)";
-    }
-
-    if (hotkey->ctrl)
-        strcat(buf, "Ctrl ");
-    if (hotkey->shift)
-        strcat(buf, "Shift ");
-    if (hotkey->alt)
-        strcat(buf, "Alt ");
-    if (k)
-    {
-        char buf2[64] = {0};
-        if ((k >= 0x30 && k <= 0x39) || (k >= 0x41 && k <= 0x5A))
-            sprintf(buf2, "%c", static_cast<char>(k));
-        else if ((k >= VK_F1 && k <= VK_F24))
-            sprintf(buf2, "F%d", k - (VK_F1 - 1));
-        else if ((k >= VK_NUMPAD0 && k <= VK_NUMPAD9))
-            sprintf(buf2, "Num%d", k - VK_NUMPAD0);
-        else
-            switch (k)
-            {
-            case VK_SPACE:
-                strcpy(buf2, "Space");
-                break;
-            case VK_BACK:
-                strcpy(buf2, "Backspace");
-                break;
-            case VK_TAB:
-                strcpy(buf2, "Tab");
-                break;
-            case VK_CLEAR:
-                strcpy(buf2, "Clear");
-                break;
-            case VK_RETURN:
-                strcpy(buf2, "Enter");
-                break;
-            case VK_PAUSE:
-                strcpy(buf2, "Pause");
-                break;
-            case VK_CAPITAL:
-                strcpy(buf2, "Caps");
-                break;
-            case VK_PRIOR:
-                strcpy(buf2, "PageUp");
-                break;
-            case VK_NEXT:
-                strcpy(buf2, "PageDn");
-                break;
-            case VK_END:
-                strcpy(buf2, "End");
-                break;
-            case VK_HOME:
-                strcpy(buf2, "Home");
-                break;
-            case VK_LEFT:
-                strcpy(buf2, "Left");
-                break;
-            case VK_UP:
-                strcpy(buf2, "Up");
-                break;
-            case VK_RIGHT:
-                strcpy(buf2, "Right");
-                break;
-            case VK_DOWN:
-                strcpy(buf2, "Down");
-                break;
-            case VK_SELECT:
-                strcpy(buf2, "Select");
-                break;
-            case VK_PRINT:
-                strcpy(buf2, "Print");
-                break;
-            case VK_SNAPSHOT:
-                strcpy(buf2, "PrintScrn");
-                break;
-            case VK_INSERT:
-                strcpy(buf2, "Insert");
-                break;
-            case VK_DELETE:
-                strcpy(buf2, "Delete");
-                break;
-            case VK_HELP:
-                strcpy(buf2, "Help");
-                break;
-            case VK_MULTIPLY:
-                strcpy(buf2, "Num*");
-                break;
-            case VK_ADD:
-                strcpy(buf2, "Num+");
-                break;
-            case VK_SUBTRACT:
-                strcpy(buf2, "Num-");
-                break;
-            case VK_DECIMAL:
-                strcpy(buf2, "Num.");
-                break;
-            case VK_DIVIDE:
-                strcpy(buf2, "Num/");
-                break;
-            case VK_NUMLOCK:
-                strcpy(buf2, "NumLock");
-                break;
-            case VK_SCROLL:
-                strcpy(buf2, "ScrollLock");
-                break;
-            case /*VK_OEM_PLUS*/ 0xBB:
-                strcpy(buf2, "=+");
-                break;
-            case /*VK_OEM_MINUS*/ 0xBD:
-                strcpy(buf2, "-_");
-                break;
-            case /*VK_OEM_COMMA*/ 0xBC:
-                strcpy(buf2, ",");
-                break;
-            case /*VK_OEM_PERIOD*/ 0xBE:
-                strcpy(buf2, ".");
-                break;
-            case VK_OEM_7:
-                strcpy(buf2, "'\"");
-                break;
-            case VK_OEM_6:
-                strcpy(buf2, "]}");
-                break;
-            case VK_OEM_5:
-                strcpy(buf2, "\\|");
-                break;
-            case VK_OEM_4:
-                strcpy(buf2, "[{");
-                break;
-            case VK_OEM_3:
-                strcpy(buf2, "`~");
-                break;
-            case VK_OEM_2:
-                strcpy(buf2, "/?");
-                break;
-            case VK_OEM_1:
-                strcpy(buf2, ";:");
-                break;
-            default:
-                sprintf(buf2, "(%d)", k);
-                break;
-            }
-        strcat(buf, buf2);
-    }
-    // TODO: Port to Unicode properly
-    return string_to_wstring(buf);
 }
 
 std::filesystem::path get_screenshots_directory()
@@ -652,6 +496,15 @@ std::filesystem::path get_plugins_directory()
         return g_app_path / L"plugin\\";
     }
     return g_config.plugins_directory;
+}
+
+std::filesystem::path get_backups_directory()
+{
+    if (g_config.is_default_backups_directory_used)
+    {
+        return "backups\\";
+    }
+    return g_config.backups_directory;
 }
 
 void update_titlebar()
@@ -1082,8 +935,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             }
             else if (extension == ".m64")
             {
-                g_config.vcr_readonly = true;
-                Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
+                g_config.core.vcr_readonly = true;
+                Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.core.vcr_readonly);
                 AsyncExecutor::invoke_async([fname] {
                     auto result = core_vcr_start_playback(fname);
                     show_error_dialog_for_result(result);
@@ -1109,7 +962,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_SYSKEYDOWN:
         {
             BOOL hit = FALSE;
-            for (core_hotkey* hotkey : g_config_hotkeys)
+            for (cfg_hotkey* hotkey : g_config_hotkeys)
             {
                 if ((int)wParam == hotkey->key)
                 {
@@ -1140,7 +993,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_KEYUP:
         {
             BOOL hit = FALSE;
-            for (core_hotkey* hotkey : g_config_hotkeys)
+            for (cfg_hotkey* hotkey : g_config_hotkeys)
             {
                 if (hotkey->up_cmd == ACTION_NONE)
                 {
@@ -1297,7 +1150,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             EnableMenuItem(g_main_menu, IDM_LOAD_SLOT, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SAVE_STATE_AS, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_LOAD_STATE_AS, core_executing ? MF_ENABLED : MF_GRAYED);
-            EnableMenuItem(g_main_menu, IDM_UNDO_LOAD_STATE, (core_executing && g_config.st_undo_load) ? MF_ENABLED : MF_GRAYED);
+            EnableMenuItem(g_main_menu, IDM_UNDO_LOAD_STATE, (core_executing && g_config.core.st_undo_load) ? MF_ENABLED : MF_GRAYED);
             for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
             {
                 EnableMenuItem(g_main_menu, i, core_executing ? MF_ENABLED : MF_GRAYED);
@@ -1308,7 +1161,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             EnableMenuItem(g_main_menu, IDM_STOP_MOVIE, vcr_active ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_CREATE_MOVIE_BACKUP, vcr_active ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_TRACELOG, core_executing ? MF_ENABLED : MF_GRAYED);
-            EnableMenuItem(g_main_menu, IDM_COREDBG, (core_executing && g_config.core_type == 2) ? MF_ENABLED : MF_GRAYED);
+            EnableMenuItem(g_main_menu, IDM_COREDBG, (core_executing && g_config.core.core_type == 2) ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SEEKER, (core_executing && vcr_active) ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_PIANO_ROLL, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_CHEATS, core_executing ? MF_ENABLED : MF_GRAYED);
@@ -1320,8 +1173,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             CheckMenuItem(g_main_menu, IDM_FREEZE_RECENT_ROMS, g_config.is_recent_rom_paths_frozen ? MF_CHECKED : MF_UNCHECKED);
             CheckMenuItem(g_main_menu, IDM_FREEZE_RECENT_MOVIES, g_config.is_recent_movie_paths_frozen ? MF_CHECKED : MF_UNCHECKED);
             CheckMenuItem(g_main_menu, IDM_FREEZE_RECENT_LUA, g_config.is_recent_scripts_frozen ? MF_CHECKED : MF_UNCHECKED);
-            CheckMenuItem(g_main_menu, IDM_LOOP_MOVIE, g_config.is_movie_loop_enabled ? MF_CHECKED : MF_UNCHECKED);
-            CheckMenuItem(g_main_menu, IDM_VCR_READONLY, g_config.vcr_readonly ? MF_CHECKED : MF_UNCHECKED);
+            CheckMenuItem(g_main_menu, IDM_LOOP_MOVIE, g_config.core.is_movie_loop_enabled ? MF_CHECKED : MF_UNCHECKED);
+            CheckMenuItem(g_main_menu, IDM_VCR_READONLY, g_config.core.vcr_readonly ? MF_CHECKED : MF_UNCHECKED);
             CheckMenuItem(g_main_menu, IDM_FULLSCREEN, core_vr_is_fullscreen() ? MF_CHECKED : MF_UNCHECKED);
 
             for (int i = IDM_SELECT_1; i < IDM_SELECT_10; ++i)
@@ -1539,13 +1392,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
 
             case IDM_VCR_READONLY:
-                g_config.vcr_readonly ^= true;
-                Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
+                g_config.core.vcr_readonly ^= true;
+                Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.core.vcr_readonly);
                 break;
 
             case IDM_LOOP_MOVIE:
-                g_config.is_movie_loop_enabled ^= true;
-                Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)g_config.is_movie_loop_enabled);
+                g_config.core.is_movie_loop_enabled ^= true;
+                Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)g_config.core.is_movie_loop_enabled);
                 break;
 
 
@@ -1555,7 +1408,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
             case IDM_RESET_ROM:
             {
-                const bool reset_will_continue_recording = g_config.is_reset_recording_enabled && core_vcr_get_task() == task_recording;
+                const bool reset_will_continue_recording = g_config.core.is_reset_recording_enabled && core_vcr_get_task() == task_recording;
 
                 if (!reset_will_continue_recording && !confirm_user_exit())
                     break;
@@ -1641,8 +1494,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 {
                     BetterEmulationLock lock;
 
-                    auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", format_duration(g_config.total_frames / 30),
-                                           g_config.total_rerecords);
+                    auto str = std::format(L"Total playtime: {}\r\nTotal rerecords: {}", format_duration(g_config.core.total_frames / 30),
+                                           g_config.core.total_rerecords);
 
                     MessageBoxW(g_main_hwnd,
                                 str.c_str(),
@@ -1807,8 +1660,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     core_vcr_replace_author_info(result.path, wstring_to_string(result.author), wstring_to_string(result.description));
 
-                    g_config.pause_at_frame = result.pause_at;
-                    g_config.pause_at_last_frame = result.pause_at_last;
+                    g_config.core.pause_at_frame = result.pause_at;
+                    g_config.core.pause_at_last_frame = result.pause_at_last;
 
                     AsyncExecutor::invoke_async([result] {
                         auto vcr_result = core_vcr_start_playback(result.path);
@@ -1843,7 +1696,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
                     bool ask_preset = LOWORD(wParam) == IDM_START_CAPTURE;
 
-                    EncodingManager::start_capture(path, (core_encoder_type)g_config.encoder_type, ask_preset, [](const auto result) {
+                    EncodingManager::start_capture(path, (cfg_encoder_type)g_config.encoder_type, ask_preset, [](const auto result) {
                         if (result)
                         {
                             Statusbar::post(L"Capture started...");
@@ -1895,19 +1748,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)g_config.is_statusbar_enabled);
                 break;
             case IDC_DECREASE_MODIFIER:
-                g_config.fps_modifier = clamp(g_config.fps_modifier - 25, 25, 1000);
+                g_config.core.fps_modifier = clamp(g_config.core.fps_modifier - 25, 25, 1000);
                 core_vr_on_speed_modifier_changed();
-                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.fps_modifier);
+                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.core.fps_modifier);
                 break;
             case IDC_INCREASE_MODIFIER:
-                g_config.fps_modifier = clamp(g_config.fps_modifier + 25, 25, 1000);
+                g_config.core.fps_modifier = clamp(g_config.core.fps_modifier + 25, 25, 1000);
                 core_vr_on_speed_modifier_changed();
-                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.fps_modifier);
+                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.core.fps_modifier);
                 break;
             case IDC_RESET_MODIFIER:
-                g_config.fps_modifier = 100;
+                g_config.core.fps_modifier = 100;
                 core_vr_on_speed_modifier_changed();
-                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.fps_modifier);
+                Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.core.fps_modifier);
                 break;
             default:
                 if (LOWORD(wParam) >= IDM_SELECT_1 && LOWORD(wParam) <= IDM_SELECT_10)
@@ -1966,8 +1819,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                     if (path.empty())
                         break;
 
-                    g_config.vcr_readonly = true;
-                    Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
+                    g_config.core.vcr_readonly = true;
+                    Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.core.vcr_readonly);
                     AsyncExecutor::invoke_async([path] {
                         auto result = core_vcr_start_playback(path);
                         show_error_dialog_for_result(result);
@@ -2178,7 +2031,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_view_logger->info("WinMain");
     g_view_logger->info(MUPEN_VERSION);
 
-    g_core.cfg = &g_config;
+    g_core.cfg = &g_config.core;
     g_core.logger = g_core_logger.get();
     g_core.callbacks = {};
     g_core.callbacks.vi = [] {
@@ -2257,6 +2110,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.initiate_plugins = initiate_plugins;
     g_core.invoke_async = AsyncExecutor::invoke_async;
     g_core.get_saves_directory = get_saves_directory;
+    g_core.get_backups_directory = get_backups_directory;
     g_core.show_multiple_choice_dialog = [] (const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, core_dialog_type type) {
         return FrontendService::show_multiple_choice_dialog(choices, str, title, type);
     };
@@ -2405,8 +2259,8 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     update_core_fast_forward(nullptr);
 
     Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)g_config.is_statusbar_enabled);
-    Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)g_config.is_movie_loop_enabled);
-    Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
+    Messenger::broadcast(Messenger::Message::MovieLoopChanged, (bool)g_config.core.is_movie_loop_enabled);
+    Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.core.vcr_readonly);
     Messenger::broadcast(Messenger::Message::EmuLaunchedChanged, false);
     Messenger::broadcast(Messenger::Message::CoreExecutingChanged, false);
     Messenger::broadcast(Messenger::Message::CapturingChanged, false);

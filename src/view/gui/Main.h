@@ -6,10 +6,8 @@
 
 #pragma once
 
-
 #include <spdlog/logger.h>
 #include <gui/features/Dispatcher.h>
-
 #include <Plugin.h>
 
 #ifdef _DEBUG
@@ -149,13 +147,6 @@ static void StoreRDRAMSafe(uint32_t addr, T value)
 
 
 t_window_info get_window_info();
-
-/**
- * \brief Gets the string representation of a hotkey
- * \param hotkey The hotkey to convert
- * \return The hotkey as a string
- */
-std::wstring hotkey_to_string(const core_hotkey* hotkey);
 
 /**
  * \brief Demands user confirmation for an exit action

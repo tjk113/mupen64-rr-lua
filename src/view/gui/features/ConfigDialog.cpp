@@ -111,7 +111,7 @@ typedef struct OptionsItem {
 
         if (type == Type::Hotkey)
         {
-            auto hotkey_ptr = reinterpret_cast<core_hotkey*>(data);
+            auto hotkey_ptr = reinterpret_cast<cfg_hotkey*>(data);
             return hotkey_to_string(hotkey_ptr);
         }
 
@@ -129,7 +129,7 @@ typedef struct OptionsItem {
     /**
      * Gets the option's default value from another config struct.
      */
-    void* get_default_value_ptr(const core_cfg* config) const
+    void* get_default_value_ptr(const cfg_view* config) const
     {
         // Find the field offset for the option relative to g_config and grab the equivalent from the default config
         size_t field_offset;
@@ -163,8 +163,8 @@ typedef struct OptionsItem {
         }
         else if (type == Type::Hotkey)
         {
-            auto default_hotkey = (core_hotkey*)default_equivalent;
-            auto current_hotkey = (core_hotkey*)data;
+            auto default_hotkey = (cfg_hotkey*)default_equivalent;
+            auto current_hotkey = (cfg_hotkey*)data;
             current_hotkey->key = default_hotkey->key;
             current_hotkey->ctrl = default_hotkey->ctrl;
             current_hotkey->alt = default_hotkey->alt;
@@ -185,7 +185,7 @@ std::vector<t_options_item> g_option_items;
 HWND g_lv_hwnd;
 HWND g_edit_hwnd;
 size_t g_edit_option_item_index;
-core_cfg g_prev_config;
+cfg_view g_prev_config;
 
 // Index of the hotkey currently being entered, if any
 std::optional<size_t> g_hotkey_active_index;
@@ -201,7 +201,7 @@ bool g_plugin_discovery_rescan = false;
 /// <returns>
 /// Whether a hotkey has successfully been picked
 /// </returns>
-int32_t get_user_hotkey(core_hotkey* hotkey)
+int32_t get_user_hotkey(cfg_hotkey* hotkey)
 {
     MSG msg;
     int i, j;
@@ -1102,7 +1102,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .group_id = seek_piano_roll_group.id,
     .name = L"Savestate Interval",
     .tooltip = L"The interval at which to create savestates for seeking. Piano Roll is exclusively read-only if this value is 0.\nHigher numbers will reduce the seek duration at cost of emulator performance, a value of 1 is not allowed.\n0 - Seek savestate generation disabled\nRecommended: 100",
-    .data = &g_config.seek_savestate_interval,
+    .data = &g_config.core.seek_savestate_interval,
     .type = t_options_item::Type::Number,
     .is_readonly = [] {
         return core_vcr_get_task() != task_idle;
@@ -1112,7 +1112,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .group_id = seek_piano_roll_group.id,
     .name = L"Savestate Max Count",
     .tooltip = L"The maximum amount of savestates to keep in memory for seeking.\nHigher numbers might cause an out of memory exception.",
-    .data = &g_config.seek_savestate_max_count,
+    .data = &g_config.core.seek_savestate_max_count,
     .type = t_options_item::Type::Number,
     },
     t_options_item{
@@ -1221,7 +1221,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .group_id = core_group.id,
     .name = L"Type",
     .tooltip = L"The core type to utilize for emulation.\nInterpreter - Slow and relatively accurate\nDynamic Recompiler - Fast, possibly less accurate, and only for x86 processors\nPure Interpreter - Very slow and accurate",
-    .data = &g_config.core_type,
+    .data = &g_config.core.core_type,
     .type = t_options_item::Type::Enum,
     .possible_values = {
     std::make_pair(L"Interpreter", 0),
@@ -1236,105 +1236,105 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .group_id = core_group.id,
     .name = L"Undo Savestate Load",
     .tooltip = L"Whether undo savestate load functionality is enabled.",
-    .data = &g_config.st_undo_load,
+    .data = &g_config.core.st_undo_load,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Counter Factor",
     .tooltip = L"The CPU's counter factor.\nValues above 1 are effectively 'lagless'.",
-    .data = &g_config.counter_factor,
+    .data = &g_config.core.counter_factor,
     .type = t_options_item::Type::Number,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Max Lag Frames",
     .tooltip = L"The maximum amount of lag frames before the core emits a warning\n0 - Disabled",
-    .data = &g_config.max_lag,
+    .data = &g_config.core.max_lag,
     .type = t_options_item::Type::Number,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Audio Delay",
     .tooltip = L"Whether to delay audio interrupts\nEnabled - More stability",
-    .data = &g_config.is_audio_delay_enabled,
+    .data = &g_config.core.is_audio_delay_enabled,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Compiled Jump",
     .tooltip = L"Whether to compile jumps\nEnabled - More stability",
-    .data = &g_config.is_compiled_jump_enabled,
+    .data = &g_config.core.is_compiled_jump_enabled,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"WiiVC Mode",
     .tooltip = L"Enables WiiVC emulation.",
-    .data = &g_config.wii_vc_emulation,
+    .data = &g_config.core.wii_vc_emulation,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Emulate Float Crashes",
     .tooltip = L"Emulate float operation-related crashes which would also crash on real hardware",
-    .data = &g_config.is_float_exception_propagation_enabled,
+    .data = &g_config.core.is_float_exception_propagation_enabled,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Movie Backups",
     .tooltip = L"Generate a backup of the currently recorded movie when loading a savestate.\nBackups are saved in the backups folder.",
-    .data = &g_config.vcr_backups,
+    .data = &g_config.core.vcr_backups,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Extended Movie Format",
     .tooltip = L"Whether movies are written using the new extended format.\nUseful when opening movies in external programs which don't handle the new format correctly.\nIf disabled, the extended format sections are set to 0.",
-    .data = &g_config.vcr_write_extended_format,
+    .data = &g_config.core.vcr_write_extended_format,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Fast-Forward Skip Frequency",
     .tooltip = L"Skip rendering every nth frame when in fast-forward mode.\n0 - Render nothing\n1 - Render every frame\nn - Render every nth frame",
-    .data = &g_config.frame_skip_frequency,
+    .data = &g_config.core.frame_skip_frequency,
     .type = t_options_item::Type::Number,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Record Resets",
     .tooltip = L"Record manually performed resets to the current movie.\nThese resets will be repeated when the movie is played back.",
-    .data = &g_config.is_reset_recording_enabled,
+    .data = &g_config.core.is_reset_recording_enabled,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Emulate SD Card",
     .tooltip = L"Enable SD card emulation.\nRequires a VHD-formatted SD card file named card.vhd in the same folder as Mupen.",
-    .data = &g_config.is_reset_recording_enabled,
+    .data = &g_config.core.is_reset_recording_enabled,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Instant Savestate Update",
     .tooltip = L"Saves and loads game graphics to savestates to allow instant graphics updates when loading savestates.\nGreatly increases savestate saving and loading time.",
-    .data = &g_config.st_screenshot,
+    .data = &g_config.core.st_screenshot,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"Skip rendering lag",
     .tooltip = L"Prevents calls to updateScreen during lag.\nMight improve performance on some video plugins at the cost of stability.",
-    .data = &g_config.skip_rendering_lag,
+    .data = &g_config.core.skip_rendering_lag,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{
     .group_id = core_group.id,
     .name = L"ROM Cache Size",
     .tooltip = L"Size of the ROM cache.\nImproves ROM loading performance at the cost of data staleness and high memory usage.\n0 - Disabled\nn - Maximum of n ROMs kept in cache",
-    .data = &g_config.rom_cache_size,
+    .data = &g_config.core.rom_cache_size,
     .type = t_options_item::Type::Number,
     },
 
@@ -1505,7 +1505,7 @@ void advance_listview_selection()
 /**
  * Checks for a hotkey conflict and, if necessary, prompts the user to fix the conflict.
  */
-static void handle_hotkey_conflict(const HWND hwnd, core_hotkey* current_hotkey)
+static void handle_hotkey_conflict(const HWND hwnd, cfg_hotkey* current_hotkey)
 {
     const bool current_hotkey_unbound = current_hotkey->key == 0 && current_hotkey->ctrl == 0 && current_hotkey->shift == 0 && current_hotkey->alt == 0;
     if (current_hotkey_unbound)
@@ -1513,7 +1513,7 @@ static void handle_hotkey_conflict(const HWND hwnd, core_hotkey* current_hotkey)
         return;
     }
 
-    std::vector<core_hotkey*> conflicting_hotkeys;
+    std::vector<cfg_hotkey*> conflicting_hotkeys;
     for (const auto hotkey : g_config_hotkeys)
     {
         if (hotkey == current_hotkey)
@@ -1675,9 +1675,9 @@ bool begin_listview_edit(HWND hwnd)
     // For hotkeys, accept keyboard inputs
     if (option_item.type == OptionsItem::Type::Hotkey)
     {
-        core_hotkey* hotkey = (core_hotkey*)option_item.data;
+        cfg_hotkey* hotkey = (cfg_hotkey*)option_item.data;
 
-        core_hotkey prev_hotkey_data = *hotkey;
+        cfg_hotkey prev_hotkey_data = *hotkey;
 
         g_hotkey_active_index = std::make_optional(i);
         ListView_Update(g_lv_hwnd, i);
@@ -1887,7 +1887,7 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
 
             if (offset == 4 && option_item.type == OptionsItem::Type::Hotkey)
             {
-                auto current_hotkey = (core_hotkey*)option_item.data;
+                auto current_hotkey = (cfg_hotkey*)option_item.data;
                 current_hotkey->key = 0;
                 current_hotkey->ctrl = 0;
                 current_hotkey->alt = 0;
@@ -1959,8 +1959,8 @@ INT_PTR CALLBACK general_cfg(const HWND hwnd, const UINT message, const WPARAM w
                             }
                             else if (options_item.type == OptionsItem::Type::Hotkey)
                             {
-                                auto default_hotkey = (core_hotkey*)default_value_ptr;
-                                auto current_hotkey = (core_hotkey*)options_item.data;
+                                auto default_hotkey = (cfg_hotkey*)default_value_ptr;
+                                auto current_hotkey = (cfg_hotkey*)options_item.data;
 
                                 bool same = default_hotkey->key == current_hotkey->key && default_hotkey->ctrl == current_hotkey->ctrl && default_hotkey->alt == current_hotkey->alt && default_hotkey->shift == current_hotkey->shift;
 

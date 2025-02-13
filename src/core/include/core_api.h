@@ -159,6 +159,11 @@ typedef struct {
     std::filesystem::path (*get_saves_directory)(void);
 
     /**
+     * \brief Gets the directory in which VCR backups should be stored.
+     */
+    std::filesystem::path (*get_backups_directory)(void);
+
+    /**
      * Prompts the user to pick a choice from a provided collection of choices.
      * \param choices The collection of choices.
      * \param str The dialog content.

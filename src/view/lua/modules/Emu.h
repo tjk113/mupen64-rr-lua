@@ -309,13 +309,13 @@ namespace LuaCore::Emu
 
     static int GetSpeed(lua_State* L)
     {
-        lua_pushinteger(L, g_config.fps_modifier);
+        lua_pushinteger(L, g_config.core.fps_modifier);
         return 1;
     }
 
     static int SetSpeed(lua_State* L)
     {
-        g_config.fps_modifier = luaL_checkinteger(L, 1);
+        g_config.core.fps_modifier = luaL_checkinteger(L, 1);
         core_vr_on_speed_modifier_changed();
         return 0;
     }
@@ -337,11 +337,11 @@ namespace LuaCore::Emu
     {
         if (!strcmp(luaL_checkstring(L, 1), "normal"))
         {
-            g_config.fps_modifier = 100;
+            g_config.core.fps_modifier = 100;
         }
         else
         {
-            g_config.fps_modifier = 10000;
+            g_config.core.fps_modifier = 10000;
         }
         return 0;
     }

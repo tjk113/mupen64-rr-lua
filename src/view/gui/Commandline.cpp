@@ -65,7 +65,7 @@ namespace Cli
         if (commandline_movie.empty())
             return;
 
-        g_config.vcr_readonly = true;
+        g_config.core.vcr_readonly = true;
         auto result = core_vcr_start_playback(commandline_movie);
         show_error_dialog_for_result(result);
     }
@@ -106,7 +106,7 @@ namespace Cli
             return;
         }
 
-        EncodingManager::start_capture(commandline_avi.string().c_str(), static_cast<core_encoder_type>(g_config.encoder_type), false);
+        EncodingManager::start_capture(commandline_avi.string().c_str(), static_cast<cfg_encoder_type>(g_config.encoder_type), false);
     }
 
     static void on_movie_playback_stop()
@@ -218,11 +218,11 @@ namespace Cli
             commandline_st.clear();
         }
 
-        if (commandline_close_on_movie_end && g_config.is_movie_loop_enabled)
+        if (commandline_close_on_movie_end && g_config.core.is_movie_loop_enabled)
         {
             FrontendService::show_dialog(L"Movie loop is not allowed when closing on movie end is enabled.\nThe movie loop option will be disabled.", L"CLI",
                                          fsvc_warning);
-            g_config.is_movie_loop_enabled = false;
+            g_config.core.is_movie_loop_enabled = false;
         }
 
         // TODO: Show warning when encoding with lazy lua renderer initialization enabled

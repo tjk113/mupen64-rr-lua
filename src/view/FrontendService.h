@@ -12,8 +12,6 @@
  *	Must be implemented in the view layer.
  */
 
-
-
 namespace FrontendService
 {
     /**
@@ -63,7 +61,7 @@ namespace FrontendService
      * \remarks Because the shared layer is unaware of keycodes, the view must do this.
      * FIXME: While this works for now, storing platform-dependent keycodes in the config will make config files incompatible across platforms.
      */
-    void set_default_hotkey_keys(core_cfg* config);
+    void set_default_hotkey_keys(cfg_view* config);
 
     /**
      * \brief Updates the screen with the current visual information

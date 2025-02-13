@@ -19,8 +19,8 @@ namespace LuaCore::Movie
     static int PlayMovie(lua_State* L)
     {
         const char* fname = lua_tostring(L, 1);
-        g_config.vcr_readonly = true;
-        Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
+        g_config.core.vcr_readonly = true;
+        Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.core.vcr_readonly);
         AsyncExecutor::invoke_async([=] { core_vcr_start_playback(fname); });
         return 0;
     }
@@ -47,14 +47,14 @@ namespace LuaCore::Movie
 
     static int GetVCRReadOnly(lua_State* L)
     {
-        lua_pushboolean(L, g_config.vcr_readonly);
+        lua_pushboolean(L, g_config.core.vcr_readonly);
         return 1;
     }
 
     static int SetVCRReadOnly(lua_State* L)
     {
-        g_config.vcr_readonly = lua_toboolean(L, 1);
-        Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.vcr_readonly);
+        g_config.core.vcr_readonly = lua_toboolean(L, 1);
+        Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.core.vcr_readonly);
         return 0;
     }
 

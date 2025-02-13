@@ -35,10 +35,10 @@ namespace Runner
             });
             break;
         case IDC_LIST_MOVIES:
-            g_config.vcr_readonly = true;
+            g_config.core.vcr_readonly = true;
             Messenger::broadcast(
             Messenger::Message::ReadonlyChanged,
-            (bool)g_config.vcr_readonly);
+            (bool)g_config.core.vcr_readonly);
             AsyncExecutor::invoke_async([=] {
                 core_vcr_start_playback(path);
             });

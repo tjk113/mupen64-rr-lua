@@ -12,12 +12,12 @@
 #include <ini.h>
 #include <gui/Loggers.h>
 
-core_cfg g_config;
-std::vector<core_hotkey*> g_config_hotkeys;
+cfg_view g_config;
+std::vector<cfg_hotkey*> g_config_hotkeys;
 
-core_cfg get_default_config()
+cfg_view get_default_config()
 {
-    core_cfg config = {};
+    cfg_view config = {};
 
     config.fast_forward_hotkey = {
     .identifier = L"Fast-forward",
@@ -344,9 +344,9 @@ core_cfg get_default_config()
     return config;
 }
 
-const core_cfg g_default_config = get_default_config();
+const cfg_view g_default_config = get_default_config();
 
-void handle_config_value(mINI::INIStructure& ini, const std::wstring& field_name, int32_t is_reading, core_hotkey* hotkey)
+void handle_config_value(mINI::INIStructure& ini, const std::wstring& field_name, int32_t is_reading, cfg_hotkey* hotkey)
 {
     auto converted_key = wstring_to_string(field_name);
 
@@ -512,19 +512,19 @@ void handle_config_value(mINI::INIStructure& ini, const std::wstring& field_name
     }
 }
 
-const auto first_offset = offsetof(core_cfg, fast_forward_hotkey);
-const auto last_offset = offsetof(core_cfg, select_slot_10_hotkey);
+const auto first_offset = offsetof(cfg_view, fast_forward_hotkey);
+const auto last_offset = offsetof(cfg_view, select_slot_10_hotkey);
 
-std::vector<core_hotkey*> collect_hotkeys(const core_cfg* config)
+std::vector<cfg_hotkey*> collect_hotkeys(const cfg_view* config)
 {
     // NOTE:
     // last_offset should contain the offset of the last hotkey
     // this also requires that the hotkeys are laid out contiguously, or else the pointer arithmetic fails
     // i recommend inserting your new hotkeys before the savestate hotkeys... pretty please
-    std::vector<core_hotkey*> vec;
-    for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(core_hotkey)) + 1; i++)
+    std::vector<cfg_hotkey*> vec;
+    for (size_t i = 0; i < ((last_offset - first_offset) / sizeof(cfg_hotkey)) + 1; i++)
     {
-        auto hotkey = &(((core_hotkey*)config)[i]);
+        auto hotkey = &(((cfg_hotkey*)config)[i]);
         g_view_logger->info(L"Hotkey[{}]: {}", i, hotkey->identifier.c_str());
         vec.push_back(hotkey);
     }
@@ -548,20 +548,19 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
         handle_config_value(ini, hotkey->identifier, is_reading, hotkey);
     }
 
-    HANDLE_P_VALUE(version)
     HANDLE_VALUE(ignored_version)
-    HANDLE_P_VALUE(total_rerecords)
-    HANDLE_P_VALUE(total_frames)
-    HANDLE_P_VALUE(core_type)
-    HANDLE_P_VALUE(fps_modifier)
-    HANDLE_P_VALUE(frame_skip_frequency)
+    HANDLE_P_VALUE(core.total_rerecords)
+    HANDLE_P_VALUE(core.total_frames)
+    HANDLE_P_VALUE(core.core_type)
+    HANDLE_P_VALUE(core.fps_modifier)
+    HANDLE_P_VALUE(core.frame_skip_frequency)
     HANDLE_P_VALUE(st_slot)
-    HANDLE_P_VALUE(fastforward_silent)
-    HANDLE_P_VALUE(skip_rendering_lag)
-    HANDLE_P_VALUE(rom_cache_size)
-    HANDLE_P_VALUE(st_screenshot)
-    HANDLE_P_VALUE(is_movie_loop_enabled)
-    HANDLE_P_VALUE(counter_factor)
+    HANDLE_P_VALUE(core.fastforward_silent)
+    HANDLE_P_VALUE(core.skip_rendering_lag)
+    HANDLE_P_VALUE(core.rom_cache_size)
+    HANDLE_P_VALUE(core.st_screenshot)
+    HANDLE_P_VALUE(core.is_movie_loop_enabled)
+    HANDLE_P_VALUE(core.counter_factor)
     HANDLE_P_VALUE(is_unfocused_pause_enabled)
     HANDLE_P_VALUE(is_statusbar_enabled)
     HANDLE_P_VALUE(statusbar_scale_up)
@@ -581,7 +580,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
     HANDLE_VALUE(recent_movie_paths)
     HANDLE_P_VALUE(is_recent_movie_paths_frozen)
     HANDLE_P_VALUE(is_rombrowser_recursion_enabled)
-    HANDLE_P_VALUE(is_reset_recording_enabled)
+    HANDLE_P_VALUE(core.is_reset_recording_enabled)
     HANDLE_P_VALUE(capture_mode)
     HANDLE_P_VALUE(presenter_type)
     HANDLE_P_VALUE(lazy_renderer_init)
@@ -597,18 +596,18 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
     HANDLE_VALUE(lua_script_path)
     HANDLE_VALUE(recent_lua_script_paths)
     HANDLE_P_VALUE(is_recent_scripts_frozen)
-    HANDLE_P_VALUE(seek_savestate_interval)
-    HANDLE_P_VALUE(seek_savestate_max_count)
+    HANDLE_P_VALUE(core.seek_savestate_interval)
+    HANDLE_P_VALUE(core.seek_savestate_max_count)
     HANDLE_P_VALUE(piano_roll_constrain_edit_to_column)
     HANDLE_P_VALUE(piano_roll_undo_stack_size)
     HANDLE_P_VALUE(piano_roll_keep_selection_visible)
     HANDLE_P_VALUE(piano_roll_keep_playhead_visible)
-    HANDLE_P_VALUE(st_undo_load)
-    HANDLE_P_VALUE(use_summercart)
-    HANDLE_P_VALUE(wii_vc_emulation)
-    HANDLE_P_VALUE(is_float_exception_propagation_enabled)
-    HANDLE_P_VALUE(is_audio_delay_enabled)
-    HANDLE_P_VALUE(is_compiled_jump_enabled)
+    HANDLE_P_VALUE(core.st_undo_load)
+    HANDLE_P_VALUE(core.use_summercart)
+    HANDLE_P_VALUE(core.wii_vc_emulation)
+    HANDLE_P_VALUE(core.is_float_exception_propagation_enabled)
+    HANDLE_P_VALUE(core.is_audio_delay_enabled)
+    HANDLE_P_VALUE(core.is_compiled_jump_enabled)
     HANDLE_VALUE(selected_video_plugin)
     HANDLE_VALUE(selected_audio_plugin)
     HANDLE_VALUE(selected_input_plugin)
@@ -625,17 +624,16 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
     HANDLE_P_VALUE(rombrowser_sorted_column)
     HANDLE_VALUE(persistent_folder_paths)
     HANDLE_P_VALUE(settings_tab)
-    HANDLE_P_VALUE(fast_reset)
     HANDLE_P_VALUE(vcr_0_index)
     HANDLE_P_VALUE(increment_slot)
-    HANDLE_P_VALUE(pause_at_frame)
-    HANDLE_P_VALUE(pause_at_last_frame)
-    HANDLE_P_VALUE(vcr_readonly)
-    HANDLE_P_VALUE(vcr_backups)
-    HANDLE_P_VALUE(vcr_write_extended_format)
+    HANDLE_P_VALUE(core.pause_at_frame)
+    HANDLE_P_VALUE(core.pause_at_last_frame)
+    HANDLE_P_VALUE(core.vcr_readonly)
+    HANDLE_P_VALUE(core.vcr_backups)
+    HANDLE_P_VALUE(core.vcr_write_extended_format)
     HANDLE_P_VALUE(automatic_update_checking)
     HANDLE_P_VALUE(silent_mode)
-    HANDLE_P_VALUE(max_lag)
+    HANDLE_P_VALUE(core.max_lag)
     HANDLE_VALUE(seeker_value)
 
     return ini;
@@ -666,9 +664,9 @@ void config_apply_limits()
     }
 
     // Causes too many issues
-    if (g_config.seek_savestate_interval == 1)
+    if (g_config.core.seek_savestate_interval == 1)
     {
-        g_config.seek_savestate_interval = 2;
+        g_config.core.seek_savestate_interval = 2;
     }
 
     g_config.settings_tab = std::min(std::max(g_config.settings_tab, 0), 2);

@@ -58,15 +58,6 @@ std::recursive_mutex vcr_mutex;
 
 bool vcr_is_task_recording(core_vcr_task task);
 
-std::filesystem::path get_backups_directory()
-{
-    if (g_core->cfg->is_default_backups_directory_used)
-    {
-        return "backups\\";
-    }
-    return g_core->cfg->backups_directory;
-}
-
 bool write_movie_impl(const core_vcr_movie_header* hdr, const std::vector<core_buttons>& inputs, const std::filesystem::path& path)
 {
     g_core->logger->info("[VCR] write_movie_impl to {}...", g_movie_path.string().c_str());
@@ -113,7 +104,7 @@ bool write_backup_impl()
     g_core->logger->info("[VCR] Backing up movie...");
     const auto filename = std::format("{}.{}.m64", g_movie_path.stem().string(), static_cast<uint64_t>(time(nullptr)));
 
-    return write_movie_impl(&g_header, g_movie_inputs, get_backups_directory() / filename);
+    return write_movie_impl(&g_header, g_movie_inputs, g_core->get_backups_directory() / filename);
 }
 
 bool is_task_playback(const core_vcr_task task)

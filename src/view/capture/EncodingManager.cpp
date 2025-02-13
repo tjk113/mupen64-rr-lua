@@ -37,7 +37,7 @@ namespace EncodingManager
 	int32_t m_video_height;
 
 	std::atomic m_capturing = false;
-	core_encoder_type m_encoder_type;
+	cfg_encoder_type m_encoder_type;
 	std::unique_ptr<Encoder> m_encoder;
 	std::recursive_mutex m_mutex;
 
@@ -296,7 +296,7 @@ namespace EncodingManager
 	    m_encoder.release();
 
 	    m_capturing = false;
-	    g_config.render_throttling = true;
+	    g_config.core.render_throttling = true;
 	    
 	    Messenger::broadcast(Messenger::Message::CapturingChanged, false);
 
@@ -305,7 +305,7 @@ namespace EncodingManager
 	    
 	}
     
-	bool start_capture_impl(std::filesystem::path path, core_encoder_type encoder_type, const bool ask_for_encoding_settings)
+	bool start_capture_impl(std::filesystem::path path, cfg_encoder_type encoder_type, const bool ask_for_encoding_settings)
 	{
 		std::lock_guard lock(m_mutex);
 
@@ -364,14 +364,14 @@ namespace EncodingManager
 		}
 
 		m_capturing = true;
-	    g_config.render_throttling = false;
+	    g_config.core.render_throttling = false;
 
 		Messenger::broadcast(Messenger::Message::CapturingChanged, true);
 	    
 		return true;
 	}
 
-    void start_capture(std::filesystem::path path, core_encoder_type encoder_type, const bool ask_for_encoding_settings, const std::function<void(bool)>& callback)
+    void start_capture(std::filesystem::path path, cfg_encoder_type encoder_type, const bool ask_for_encoding_settings, const std::function<void(bool)>& callback)
 	{
 	    core_vr_wait_increment();
 	    AsyncExecutor::invoke_async([=] {

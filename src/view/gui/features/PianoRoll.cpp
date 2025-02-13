@@ -117,8 +117,8 @@ namespace PianoRoll
             && pair.second == SIZE_MAX
             && core_vcr_get_task() == task_recording
             && !core_vcr_is_seeking()
-            && !g_config.vcr_readonly
-            && g_config.seek_savestate_interval > 0
+            && !g_config.core.vcr_readonly
+            && g_config.core.seek_savestate_interval > 0
             && core_vr_get_paused();
     }
 
@@ -127,7 +127,7 @@ namespace PianoRoll
      */
     bool can_seek()
     {
-        return g_config.seek_savestate_interval > 0;
+        return g_config.core.seek_savestate_interval > 0;
     }
 
     /**
@@ -713,7 +713,7 @@ namespace PianoRoll
                 update_inputs();
             }
 
-            if (g_config.seek_savestate_interval == 0)
+            if (g_config.core.seek_savestate_interval == 0)
             {
                 SetWindowText(g_status_hwnd, L"Piano Roll read-only.\nSeek savestates must be enabled.");
             }

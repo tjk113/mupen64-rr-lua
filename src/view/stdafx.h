@@ -42,6 +42,7 @@
 #include <numeric>
 
 #include <spdlog/logger.h>
+#include <Config.h>
 #include <core_api.h>
 #include <IOHelpers.h>
 #include <MiscHelpers.h>

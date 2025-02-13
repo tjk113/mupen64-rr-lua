@@ -24,7 +24,7 @@ namespace Statusbar
 		std::vector<t_segment> idle_parts;
 	} t_segment_layout;
 
-	std::unordered_map<core_statusbar_layout, t_segment_layout> g_layout_map = {
+	std::unordered_map<cfg_statusbar_layout, t_segment_layout> g_layout_map = {
 		{
 			LAYOUT_CLASSIC, t_segment_layout{
 				.emu_parts = {
@@ -134,7 +134,7 @@ namespace Statusbar
 
 	std::vector<t_segment> get_current_parts()
 	{
-		const t_segment_layout layout = g_layout_map[static_cast<core_statusbar_layout>(g_config.statusbar_layout)];
+		const t_segment_layout layout = g_layout_map[static_cast<cfg_statusbar_layout>(g_config.statusbar_layout)];
 		return (core_vr_get_launched()) ? layout.emu_parts : layout.idle_parts;
 	}
 

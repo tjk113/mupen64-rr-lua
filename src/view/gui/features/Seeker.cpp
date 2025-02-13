@@ -79,7 +79,7 @@ namespace Seeker
                     }
 
                     SetDlgItemText(hwnd, IDC_SEEKER_START, L"Stop");
-                    if (g_config.seek_savestate_interval == 0)
+                    if (g_config.core.seek_savestate_interval == 0)
                     {
                         SetDlgItemText(hwnd, IDC_SEEKER_SUBTEXT, L"Seek savestates disabled. Seeking backwards will be slower.");
                     }
