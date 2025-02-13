@@ -48,8 +48,7 @@ bool g_frame_changed = true;
 
 DWORD g_ui_thread_id;
 HWND g_hwnd_plug;
-UINT g_update_screen_timer;
-MMRESULT g_timer_invalidate;
+MMRESULT g_ui_timer;
 HWND g_main_hwnd;
 HMENU g_main_menu;
 HMENU g_recent_roms_menu;
@@ -1245,15 +1244,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
         });
         g_main_menu = GetMenu(hwnd);
         GetModuleFileName(NULL, path_buffer, sizeof(path_buffer));
-        g_update_screen_timer = SetTimer(hwnd, NULL, (uint32_t)(1000 / get_primary_monitor_refresh_rate()), NULL);
         MGECompositor::create(hwnd);
         PianoRoll::init();
         configdialog_init();
         return TRUE;
     case WM_DESTROY:
         save_config();
-        KillTimer(g_main_hwnd, g_update_screen_timer);
-        timeKillEvent(g_timer_invalidate);
+        timeKillEvent(g_ui_timer);
         AsyncExecutor::stop();
         Gdiplus::GdiplusShutdown(gdi_plus_token);
         PostQuitMessage(0);
@@ -1272,57 +1269,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             break;
         }
         return 0;
-    case WM_TIMER:
+    case WM_INVALIDATE_LUA:
+        for (const auto& map : g_hwnd_lua_map)
         {
-            static std::chrono::high_resolution_clock::time_point last_statusbar_update = std::chrono::high_resolution_clock::now();
-            std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
-
-            if (g_frame_changed)
-            {
-                Statusbar::post(get_input_text(), Statusbar::Section::Input);
-
-                if (EncodingManager::is_capturing())
-                {
-                    if (core_vcr_get_task() == task_idle)
-                    {
-                        Statusbar::post(std::format(L"{}", EncodingManager::get_video_frame()), Statusbar::Section::VCR);
-                    }
-                    else
-                    {
-                        Statusbar::post(std::format(L"{}({})", get_status_text(), EncodingManager::get_video_frame()), Statusbar::Section::VCR);
-                    }
-                }
-                else
-                {
-                    Statusbar::post(get_status_text(), Statusbar::Section::VCR);
-                }
-
-                g_frame_changed = false;
-            }
-
-            // NOTE: We don't invalidate the controls in their WM_PAINT, since that generates too many WM_PAINTs and fills up the message queue
-            // Instead, we invalidate them driven by not so high-freq heartbeat like previously.
-            for (auto map : g_hwnd_lua_map)
-            {
-                map.second->invalidate_visuals();
-            }
-
-            // We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
-            if (time - last_statusbar_update > std::chrono::seconds(1))
-            {
-                g_core.g_frame_deltas_mutex.lock();
-                auto fps = get_rate_per_second_from_deltas(g_core.g_frame_deltas);
-                g_core.g_frame_deltas_mutex.unlock();
-
-                g_core.g_vi_deltas_mutex.lock();
-                auto vis = get_rate_per_second_from_deltas(g_core.g_vi_deltas);
-                g_core.g_vi_deltas_mutex.unlock();
-
-                Statusbar::post(std::format(L"FPS: {:.1f}", fps), Statusbar::Section::FPS);
-                Statusbar::post(std::format(L"VI/s: {:.1f}", vis), Statusbar::Section::VIs);
-
-                last_statusbar_update = time;
-            }
+            map.second->invalidate_visuals();
         }
         break;
     case WM_WINDOWPOSCHANGING: // allow gfx plugin to set arbitrary size
@@ -2171,6 +2121,52 @@ void initiate_plugins()
 static void CALLBACK invalidate_callback(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
 {
     core_vr_invalidate_visuals();
+
+    // This has to be posted to ui thread since it requires synchronized access to the lua map
+    PostMessage(g_main_hwnd, WM_INVALIDATE_LUA, 0, 0);
+    
+    static std::chrono::high_resolution_clock::time_point last_statusbar_update = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
+
+    if (g_frame_changed)
+    {
+        Statusbar::post(get_input_text(), Statusbar::Section::Input);
+
+        if (EncodingManager::is_capturing())
+        {
+            if (core_vcr_get_task() == task_idle)
+            {
+                Statusbar::post(std::format(L"{}", EncodingManager::get_video_frame()), Statusbar::Section::VCR);
+            }
+            else
+            {
+                Statusbar::post(std::format(L"{}({})", get_status_text(), EncodingManager::get_video_frame()), Statusbar::Section::VCR);
+            }
+        }
+        else
+        {
+            Statusbar::post(get_status_text(), Statusbar::Section::VCR);
+        }
+
+        g_frame_changed = false;
+    }
+    
+    // We throttle FPS and VI/s visual updates to 1 per second, so no unstable values are displayed
+    if (time - last_statusbar_update > std::chrono::seconds(1))
+    {
+        g_core.g_frame_deltas_mutex.lock();
+        auto fps = get_rate_per_second_from_deltas(g_core.g_frame_deltas);
+        g_core.g_frame_deltas_mutex.unlock();
+
+        g_core.g_vi_deltas_mutex.lock();
+        auto vis = get_rate_per_second_from_deltas(g_core.g_vi_deltas);
+        g_core.g_vi_deltas_mutex.unlock();
+
+        Statusbar::post(std::format(L"FPS: {:.1f}", fps), Statusbar::Section::FPS);
+        Statusbar::post(std::format(L"VI/s: {:.1f}", vis), Statusbar::Section::VIs);
+
+        last_statusbar_update = time;
+    }
 }
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
@@ -2298,13 +2294,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     };
 
     core_init(&g_core);
-
-    g_timer_invalidate = timeSetEvent(16, 1, invalidate_callback, 0, TIME_PERIODIC | TIME_KILL_SYNCHRONOUS);
-    if (!g_timer_invalidate)
-    {
-        FrontendService::show_dialog(L"timeSetEvent call failed. Verify that your system supports multimedia timers.", L"Error", fsvc_error);
-        return -1;
-    }
     
     g_ui_thread_id = GetCurrentThreadId();
 
@@ -2436,6 +2425,13 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     // raise continuable exception
     // RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
 
+    g_ui_timer = timeSetEvent(16, 1, invalidate_callback, 0, TIME_PERIODIC | TIME_KILL_SYNCHRONOUS);
+    if (!g_ui_timer)
+    {
+        FrontendService::show_dialog(L"timeSetEvent call failed. Verify that your system supports multimedia timers.", L"Error", fsvc_error);
+        return -1;
+    }
+    
     SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_CHECK_FOR_UPDATES, 0), 1);
 
     while (GetMessage(&msg, NULL, 0, 0))

@@ -37,6 +37,7 @@
 
 #define WM_FOCUS_MAIN_WINDOW (WM_USER + 17)
 #define WM_EXECUTE_DISPATCHER (WM_USER + 18)
+#define WM_INVALIDATE_LUA (WM_USER + 23)
 
 extern BOOL CALLBACK CfgDlgProc(HWND hwnd, UINT Message, WPARAM wParam,
                                 LPARAM lParam);
