@@ -457,7 +457,7 @@ void Plugin::about()
         dll_about(g_hwnd_plug);
 }
 
-void Plugin::load_into_globals()
+void Plugin::initiate()
 {
     switch (m_type)
     {

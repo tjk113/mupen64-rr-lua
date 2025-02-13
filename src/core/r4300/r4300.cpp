@@ -2101,7 +2101,7 @@ void emu_thread()
 {
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    g_core->callbacks.load_plugin_globals();
+    g_core->initiate_plugins();
     
     init_memory();
 
@@ -2223,7 +2223,7 @@ core_result vr_start_rom_impl(std::filesystem::path path)
 
     rom_path = path;
 
-    if (!g_core->callbacks.load_plugins())
+    if (!g_core->load_plugins())
     {
         g_core->callbacks.emu_starting_changed(false);
         return VR_PluginError;

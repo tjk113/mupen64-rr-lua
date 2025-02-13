@@ -2151,16 +2151,16 @@ bool load_plugins()
     return true;
 }
 
-void load_plugin_globals()
+void initiate_plugins()
 {
     // HACK: We sleep between each plugin load, as that seems to remedy various plugins failing to initialize correctly.
-    auto gfx_plugin_thread = std::thread([] { g_video_plugin->load_into_globals(); });
+    auto gfx_plugin_thread = std::thread([] { g_video_plugin->initiate(); });
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    auto audio_plugin_thread = std::thread([] { g_audio_plugin->load_into_globals(); });
+    auto audio_plugin_thread = std::thread([] { g_audio_plugin->initiate(); });
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    auto input_plugin_thread = std::thread([] { g_input_plugin->load_into_globals(); });
+    auto input_plugin_thread = std::thread([] { g_input_plugin->initiate(); });
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    auto rsp_plugin_thread = std::thread([] { g_rsp_plugin->load_into_globals(); });
+    auto rsp_plugin_thread = std::thread([] { g_rsp_plugin->initiate(); });
 
     gfx_plugin_thread.join();
     audio_plugin_thread.join();
@@ -2197,8 +2197,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.callbacks.load_state = LuaService::call_load_state;
     g_core.callbacks.reset = LuaService::call_reset;
     g_core.callbacks.seek_completed = LuaService::call_seek_completed;
-    g_core.callbacks.load_plugins = load_plugins;
-    g_core.callbacks.load_plugin_globals = load_plugin_globals;
     g_core.callbacks.core_executing_changed = [](bool value) {
         Messenger::broadcast(Messenger::Message::CoreExecutingChanged, value);
     };
@@ -2256,6 +2254,8 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_core.callbacks.seek_status_changed = []() {
         Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
     };
+    g_core.load_plugins = load_plugins;
+    g_core.initiate_plugins = initiate_plugins;
     g_core.invoke_async = AsyncExecutor::invoke_async;
     g_core.get_saves_directory = get_saves_directory;
     g_core.show_multiple_choice_dialog = [] (const std::vector<std::wstring>& choices, const wchar_t* str, const wchar_t* title, core_dialog_type type) {

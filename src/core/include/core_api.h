@@ -34,9 +34,6 @@ typedef struct {
     void (*load_state)(void);
     void (*reset)(void);
     void (*seek_completed)(void);
-    // FIXME: Move next two into host-provided section; they aren't optional!
-    bool (*load_plugins)(void);
-    void (*load_plugin_globals)(void);
     void (*core_executing_changed)(bool);
     void (*emu_paused_changed)(bool);
     void (*emu_launched_changed)(bool);
@@ -136,6 +133,18 @@ typedef struct {
      * \brief The plugin functions.
      */
     core_plugin_funcs plugin_funcs;
+
+    /**
+     * \brief Loads the plugins specified by the config paths.
+     * \return Whether the plugins were loaded successfully.
+     */
+    bool (*load_plugins)(void);
+
+    /**
+     * \brief Called after load_plugins, this function loads plugin functions into plugin_funcs and calls the "initiate" family of functions for all plugins.
+     * \remark This function must be infallible.
+     */
+    void (*initiate_plugins)(void);
 
     /**
      * \brief Executes a function on a background thread.

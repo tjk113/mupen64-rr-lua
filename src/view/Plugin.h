@@ -36,9 +36,9 @@ public:
     void about();
 
     /**
-     * \brief Loads the plugin's exported functions into the globals
+     * \brief Loads the plugin's exported functions into the globals and calls the initiate function.
      */
-    void load_into_globals();
+    void initiate();
 
     /**
      * \brief Gets the plugin's path
