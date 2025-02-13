@@ -12,7 +12,6 @@
 #include <Messenger.h>
 #include <Plugin.h>
 #include <strsafe.h>
-#include <timeapi.h>
 #include <capture/EncodingManager.h>
 #include <gui/Commandline.h>
 #include <gui/Loggers.h>
@@ -32,7 +31,6 @@
 #include <gui/features/Statusbar.h>
 #include <gui/features/UpdateChecker.h>
 #include <gui/wrapper/PersistentPathDialog.h>
-
 #include <helpers/MathHelpers.h>
 #include <helpers/WinHelpers.h>
 #include <lua/LuaConsole.h>
@@ -51,6 +49,7 @@ bool g_frame_changed = true;
 DWORD g_ui_thread_id;
 HWND g_hwnd_plug;
 UINT g_update_screen_timer;
+MMRESULT g_timer_invalidate;
 HWND g_main_hwnd;
 HMENU g_main_menu;
 HMENU g_recent_roms_menu;
@@ -1254,6 +1253,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         save_config();
         KillTimer(g_main_hwnd, g_update_screen_timer);
+        timeKillEvent(g_timer_invalidate);
         AsyncExecutor::stop();
         Gdiplus::GdiplusShutdown(gdi_plus_token);
         PostQuitMessage(0);
@@ -2168,6 +2168,11 @@ void initiate_plugins()
     rsp_plugin_thread.join();
 }
 
+static void CALLBACK invalidate_callback(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
+{
+    core_vr_invalidate_visuals();
+}
+
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
 #ifdef _DEBUG
@@ -2294,6 +2299,13 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     core_init(&g_core);
 
+    g_timer_invalidate = timeSetEvent(16, 1, invalidate_callback, 0, TIME_PERIODIC | TIME_KILL_SYNCHRONOUS);
+    if (!g_timer_invalidate)
+    {
+        FrontendService::show_dialog(L"timeSetEvent call failed. Verify that your system supports multimedia timers.", L"Error", fsvc_error);
+        return -1;
+    }
+    
     g_ui_thread_id = GetCurrentThreadId();
 
     Gdiplus::GdiplusStartupInput startup_input;
@@ -2423,19 +2435,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     //
     // raise continuable exception
     // RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, NULL, NULL);
-
-    // We need to set the core updateScreen flag at 60 FPS.
-    // WM_TIMER isn't stable enough and the other multimedia or callback timers are too annoying
-    std::thread([] {
-        while (true)
-        {
-            core_vr_invalidate_visuals();
-            timeBeginPeriod(1);
-            Sleep(1000 / 60);
-            timeEndPeriod(1);
-        }
-    })
-    .detach();
 
     SendMessage(g_main_hwnd, WM_COMMAND, MAKEWPARAM(IDM_CHECK_FOR_UPDATES, 0), 1);
 
