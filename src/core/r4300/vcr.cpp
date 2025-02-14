@@ -123,7 +123,7 @@ void set_rerecord_count(const uint64_t value)
     g_header.extended_data.rerecord_count = static_cast<uint32_t>(value >> 32);
 }
 
-std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
+std::filesystem::path find_accompanying_file_for_movie(std::filesystem::path path, const std::vector<std::wstring>& extensions = {L".st", L".savestate"})
 {
     // To allow multiple m64s to reference on st, we construct the st name from the m64 name up to the first point only
     // A.m64 -> A.st
@@ -157,16 +157,16 @@ std::filesystem::path find_savestate_for_movie(std::filesystem::path path)
             matched_filename = std::string(filename).substr(0, result);
         }
 
-        auto st = std::string(drive) + std::string(dir) + matched_filename + ".st";
-        if (std::filesystem::exists(st))
+        std::string st;
+        
+        for (const auto& ext : extensions)
         {
-            return st;
-        }
-
-        st = std::string(drive) + std::string(dir) + matched_filename + ".savestate";
-        if (std::filesystem::exists(st))
-        {
-            return st;
+            // FIXME: Port this function to Unicode so we don't have to wstring_to_string the extension!!!
+            st = std::string(drive) + std::string(dir) + matched_filename + wstring_to_string(ext);
+            if (std::filesystem::exists(st))
+            {
+                return st;
+            }
         }
 
         if (result == std::string::npos)
@@ -953,7 +953,7 @@ core_result core_vcr_start_record(std::filesystem::path path, uint16_t flags, st
         // TODO: Verify that this flag still works after st task rewrite
 
         g_core->logger->info("[VCR] Loading state...");
-        auto st_path = find_savestate_for_movie(g_movie_path);
+        auto st_path = find_accompanying_file_for_movie(g_movie_path);
         if (st_path.empty())
         {
             return VCR_InvalidSavestate;
@@ -1290,7 +1290,7 @@ core_result core_vcr_start_playback(std::filesystem::path path)
         g_core->logger->info("[VCR] Loading state...");
 
         // Load appropriate state for movie
-        auto st_path = find_savestate_for_movie(g_movie_path);
+        auto st_path = find_accompanying_file_for_movie(g_movie_path);
 
         if (st_path.empty())
         {
