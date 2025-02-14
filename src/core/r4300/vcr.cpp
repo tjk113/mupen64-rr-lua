@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include <IOHelpers.h>
 #include <Core.h>
+#include <r4300/gameshark.h>
 #include <include/core_api.h>
 #include <memory/pif.h>
 #include <memory/savestates.h>
@@ -31,6 +32,7 @@ constexpr auto WII_VC_MISMATCH_A_WARNING_MESSAGE = L"The movie was recorded with
 constexpr auto WII_VC_MISMATCH_B_WARNING_MESSAGE = L"The movie was recorded with WiiVC mode disabled, but is being played back with it enabled.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 constexpr auto OLD_MOVIE_EXTENDED_SECTION_NONZERO_MESSAGE = L"The movie was recorded prior to the extended format being available, but contains data in an extended format section.\r\nThe movie may be corrupted. Are you sure you want to continue?";
 constexpr auto WARP_MODIFY_SEEKBACK_FAILED_MESSAGE = L"Failed to seek back during a warp modify operation, error code {}.\r\nPiano roll might be desynced.";
+constexpr auto CHEAT_ERROR_ASK_MESSAGE = L"This movie has a cheat file associated with it, but it could not be loaded.\r\nPlayback might desynchronize. Are you sure you want to continue?";
 
 volatile core_vcr_task g_task = task_idle;
 
@@ -1280,6 +1282,21 @@ core_result core_vcr_start_playback(std::filesystem::path path)
         }
     }
 
+    const auto cht_path = find_accompanying_file_for_movie(g_movie_path, {L".cht"});
+
+    if (!cht_path.empty())
+    {
+        if (!cht_add_from_file(cht_path))
+        {
+            const auto proceed = g_core->show_ask_dialog(CHEAT_ERROR_ASK_MESSAGE, L"VCR", true);
+
+            if (!proceed)
+            {
+                return VCR_Cancelled;
+            }
+        }
+    }
+    
     // Reset VCR-related state
     m_current_sample = 0;
     m_current_vi = 0;
