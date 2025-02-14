@@ -7,27 +7,6 @@
 // ReSharper disable CppInconsistentNaming
 #pragma once
 
-#include <cstdint>
-
-/**
- * \brief Represents a cheat.
- */
-typedef struct CoreCheat {
-    std::wstring name = L"Unnamed Cheat";
-    std::wstring code;
-    bool active = true;
-    std::vector<std::tuple<bool, std::function<bool()>>> instructions;
-} core_cheat;
-
-/**
- * The tone of a dialog.
- */
-typedef enum {
-    fsvc_error,
-    fsvc_warning,
-    fsvc_information
-} core_dialog_type;
-
 /**
  * An enum containing results that can be returned by the core.
  */
@@ -117,6 +96,329 @@ typedef enum {
     Pl_NoGetDllInfo,
 #pragma endregion
 } core_result;
+
+#pragma pack(push, 1)
+typedef struct CoreCfg {
+    /// <summary>
+    /// Statistic - Amount of state loads during recording
+    /// </summary>
+    uint64_t total_rerecords;
+
+    /// <summary>
+    /// Statistic - Amount of emulated frames
+    /// </summary>
+    uint64_t total_frames;
+
+    /// <summary>
+    /// The currently selected core type
+    /// <para/>
+    /// 0 - Cached Interpreter
+    /// 1 - Dynamic Recompiler
+    /// 2 - Pure Interpreter
+    /// </summary>
+    int32_t core_type = 1;
+
+    /// <summary>
+    /// The target FPS modifier as a percentage
+    /// <para/>
+    /// (100 = default)
+    /// </summary>
+    int32_t fps_modifier = 100;
+
+    /// <summary>
+    /// The frequency at which frames are skipped during fast-forward
+    /// <para/>
+    /// 0 = skip all frames
+    /// 1 = skip no frames
+    /// >0 = every nth frame is skipped
+    /// </summary>
+    int32_t frame_skip_frequency = 1;
+
+    /// <summary>
+    /// Whether fast-forward will mute audio
+    /// This option improves performance by skipping additional do_rsp_cycles calls, but may cause issues
+    /// </summary>
+    int32_t fastforward_silent;
+
+    /// <summary>
+    /// Maximum number of entries into the rom cache
+    /// <para/>
+    /// 0 = disabled
+    /// </summary>
+    int32_t rom_cache_size;
+
+    /// <summary>
+    /// Saves video buffer to savestates, slow!
+    /// </summary>
+    int32_t st_screenshot;
+
+    /// <summary>
+    /// Whether a playing movie will loop upon ending
+    /// </summary>
+    int32_t is_movie_loop_enabled;
+
+    /// <summary>
+    /// The CPU's counter factor. Higher values will generate less lag frames in-game at the cost of higher native CPU usage.
+    /// </summary>
+    int32_t counter_factor = 1;
+    
+    /// <summary>
+    /// Whether rom resets are not recorded in movies
+    /// </summary>
+    int32_t is_reset_recording_enabled;
+
+    /// <summary>
+    /// Whether undo savestate load functionality is enabled.
+    /// </summary>
+    int32_t st_undo_load = 1;
+
+    /// <summary>
+    /// SD card emulation
+    /// </summary>
+    int32_t use_summercart;
+
+    /// <summary>
+    /// Whether WiiVC emulation is enabled. Causes truncation instead of rounding when performing certain casts.
+    /// </summary>
+    int32_t wii_vc_emulation;
+
+    /// <summary>
+    /// Whether floating point exceptions will propagate and crash the emulator
+    /// </summary>
+    int32_t is_float_exception_propagation_enabled;
+
+    /// <summary>
+    /// Whether audio interrupts will be delayed
+    /// </summary>
+    int32_t is_audio_delay_enabled = 1;
+
+    /// <summary>
+    /// Whether jmp instructions will cause the following code to be JIT'd by dynarec
+    /// </summary>
+    int32_t is_compiled_jump_enabled = 1;
+
+    /// <summary>
+    /// The save interval for warp modify savestates in frames
+    /// </summary>
+    int32_t seek_savestate_interval = 0;
+
+    /// <summary>
+    /// The maximum amount of warp modify savestates to keep in memory
+    /// </summary>
+    int32_t seek_savestate_max_count = 20;
+
+    /// <summary>
+    /// The movie frame to automatically pause at
+    /// -1 none
+    /// </summary>
+    int32_t pause_at_frame = -1;
+
+    /// <summary>
+    /// Whether to pause at the last movie frame
+    /// </summary>
+    int32_t pause_at_last_frame;
+
+    /// <summary>
+    /// Whether VCR operates in read-only mode
+    /// </summary>
+    int32_t vcr_readonly;
+
+    /// <summary>
+    /// Whether VCR creates movie backups
+    /// </summary>
+    int32_t vcr_backups = 1;
+
+    /// <summary>
+    /// Whether movies are written using the new extended format.
+    /// If disabled, the extended format sections are set to 0.
+    /// </summary>
+    int32_t vcr_write_extended_format = 1;
+
+    /// <summary>
+    /// The maximum amount of VIs allowed to be generated since the last input poll before a warning dialog is shown
+    /// 0 - no warning
+    /// </summary>
+    int32_t max_lag = 480;
+
+    /// <summary>
+    /// Whether lag frames will cause updateScreen to be invoked
+    /// </summary>
+    int32_t skip_rendering_lag;
+
+    /// <summary>
+    /// Throttles game rendering to 60 FPS.
+    /// </summary>
+    int32_t render_throttling = 1;
+
+} core_cfg;
+#pragma pack(pop)
+
+#pragma region Emulator
+
+typedef std::common_type_t<std::chrono::duration<int64_t, std::ratio<1, 1000000000>>, std::chrono::duration<int64_t, std::ratio<1, 1000000000>>> core_timer_delta;
+constexpr uint8_t core_timer_max_deltas = 60;
+
+typedef struct {
+    uint32_t rdram_config;
+    uint32_t rdram_device_id;
+    uint32_t rdram_delay;
+    uint32_t rdram_mode;
+    uint32_t rdram_ref_interval;
+    uint32_t rdram_ref_row;
+    uint32_t rdram_ras_interval;
+    uint32_t rdram_min_interval;
+    uint32_t rdram_addr_select;
+    uint32_t rdram_device_manuf;
+} core_rdram_reg;
+
+typedef struct {
+    uint32_t sp_mem_addr_reg;
+    uint32_t sp_dram_addr_reg;
+    uint32_t sp_rd_len_reg;
+    uint32_t sp_wr_len_reg;
+    uint32_t w_sp_status_reg;
+    uint32_t sp_status_reg;
+    char halt;
+    char broke;
+    char dma_busy;
+    char dma_full;
+    char io_full;
+    char single_step;
+    char intr_break;
+    char signal0;
+    char signal1;
+    char signal2;
+    char signal3;
+    char signal4;
+    char signal5;
+    char signal6;
+    char signal7;
+    uint32_t sp_dma_full_reg;
+    uint32_t sp_dma_busy_reg;
+    uint32_t sp_semaphore_reg;
+} core_sp_reg;
+
+typedef struct {
+    uint32_t rsp_pc;
+    uint32_t rsp_ibist;
+} core_rsp_reg;
+
+typedef struct {
+    uint32_t dpc_start;
+    uint32_t dpc_end;
+    uint32_t dpc_current;
+    uint32_t w_dpc_status;
+    uint32_t dpc_status;
+    char xbus_dmem_dma;
+    char freeze;
+    char flush;
+    char start_glck;
+    char tmem_busy;
+    char pipe_busy;
+    char cmd_busy;
+    char cbuf_busy;
+    char dma_busy;
+    char end_valid;
+    char start_valid;
+    uint32_t dpc_clock;
+    uint32_t dpc_bufbusy;
+    uint32_t dpc_pipebusy;
+    uint32_t dpc_tmem;
+} core_dpc_reg;
+
+typedef struct {
+    uint32_t dps_tbist;
+    uint32_t dps_test_mode;
+    uint32_t dps_buftest_addr;
+    uint32_t dps_buftest_data;
+} core_dps_reg;
+
+typedef struct {
+    uint32_t w_mi_init_mode_reg;
+    uint32_t mi_init_mode_reg;
+    char init_length;
+    char init_mode;
+    char ebus_test_mode;
+    char RDRAM_reg_mode;
+    uint32_t mi_version_reg;
+    uint32_t mi_intr_reg;
+    uint32_t mi_intr_mask_reg;
+    uint32_t w_mi_intr_mask_reg;
+    char SP_intr_mask;
+    char SI_intr_mask;
+    char AI_intr_mask;
+    char VI_intr_mask;
+    char PI_intr_mask;
+    char DP_intr_mask;
+} core_mips_reg;
+
+typedef struct {
+    uint32_t vi_status;
+    uint32_t vi_origin;
+    uint32_t vi_width;
+    uint32_t vi_v_intr;
+    uint32_t vi_current;
+    uint32_t vi_burst;
+    uint32_t vi_v_sync;
+    uint32_t vi_h_sync;
+    uint32_t vi_leap;
+    uint32_t vi_h_start;
+    uint32_t vi_v_start;
+    uint32_t vi_v_burst;
+    uint32_t vi_x_scale;
+    uint32_t vi_y_scale;
+    uint32_t vi_delay;
+} core_vi_reg;
+
+typedef struct {
+    uint32_t ai_dram_addr;
+    // source address (in rdram) of sound sample to be played
+    uint32_t ai_len; // amount of bytes(?) to be played
+    uint32_t ai_control;
+    uint32_t ai_status; // info about whether dma active and is fifo full
+    uint32_t ai_dacrate;
+    // clock rate / audio rate, tells sound controller how to interpret the audio samples
+    uint32_t ai_bitrate;
+    // possible values 2 to 16, bits per sample?, this is always (dacRate / 66)-1 (by libultra)
+    uint32_t next_delay;
+    uint32_t next_len;
+    uint32_t current_delay;
+    uint32_t current_len;
+} core_ai_reg;
+
+typedef struct {
+    uint32_t pi_dram_addr_reg;
+    uint32_t pi_cart_addr_reg;
+    uint32_t pi_rd_len_reg;
+    uint32_t pi_wr_len_reg;
+    uint32_t read_pi_status_reg;
+    uint32_t pi_bsd_dom1_lat_reg;
+    uint32_t pi_bsd_dom1_pwd_reg;
+    uint32_t pi_bsd_dom1_pgs_reg;
+    uint32_t pi_bsd_dom1_rls_reg;
+    uint32_t pi_bsd_dom2_lat_reg;
+    uint32_t pi_bsd_dom2_pwd_reg;
+    uint32_t pi_bsd_dom2_pgs_reg;
+    uint32_t pi_bsd_dom2_rls_reg;
+} core_pi_reg;
+
+typedef struct {
+    uint32_t ri_mode;
+    uint32_t ri_config;
+    uint32_t ri_current_load;
+    uint32_t ri_select;
+    uint32_t ri_refresh;
+    uint32_t ri_latency;
+    uint32_t ri_error;
+    uint32_t ri_werror;
+} core_ri_reg;
+
+typedef struct {
+    uint32_t si_dram_addr;
+    uint32_t si_pif_addr_rd64b;
+    uint32_t si_pif_addr_wr64b;
+    uint32_t si_status;
+} core_si_reg;
 
 typedef enum {
     plugin_video = 2,
@@ -329,6 +631,74 @@ typedef struct {
     uint16_t Country_code;
     uint32_t Boot_Code[1008];
 } core_rom_header;
+
+
+typedef void(__cdecl* GETDLLINFO)(core_plugin_info*);
+typedef void(__cdecl* DLLCONFIG)(void*);
+typedef void(__cdecl* DLLTEST)(void*);
+typedef void(__cdecl* DLLABOUT)(void*);
+
+typedef void(__cdecl* CHANGEWINDOW)();
+typedef void(__cdecl* CLOSEDLL_GFX)();
+typedef int32_t(__cdecl* INITIATEGFX)(core_gfx_info);
+typedef void(__cdecl* PROCESSDLIST)();
+typedef void(__cdecl* PROCESSRDPLIST)();
+typedef void(__cdecl* ROMCLOSED_GFX)();
+typedef void(__cdecl* ROMOPEN_GFX)();
+typedef void(__cdecl* SHOWCFB)();
+typedef void(__cdecl* UPDATESCREEN)();
+typedef void(__cdecl* VISTATUSCHANGED)();
+typedef void(__cdecl* VIWIDTHCHANGED)();
+typedef void(__cdecl* READSCREEN)(void**, int32_t*, int32_t*);
+typedef void(__cdecl* DLLCRTFREE)(void*);
+typedef void(__cdecl* MOVESCREEN)(int32_t, int32_t);
+typedef void(__cdecl* CAPTURESCREEN)(char*);
+typedef void(__cdecl* GETVIDEOSIZE)(int32_t*, int32_t*);
+typedef void(__cdecl* READVIDEO)(void**);
+typedef void(__cdecl* FBREAD)(uint32_t);
+typedef void(__cdecl* FBWRITE)(uint32_t addr, uint32_t size);
+typedef void(__cdecl* FBGETFRAMEBUFFERINFO)(void*);
+
+typedef void(__cdecl* AIDACRATECHANGED)(int32_t system_type);
+typedef void(__cdecl* AILENCHANGED)();
+typedef uint32_t(__cdecl* AIREADLENGTH)();
+typedef void(__cdecl* CLOSEDLL_AUDIO)();
+typedef int32_t(__cdecl* INITIATEAUDIO)(core_audio_info);
+typedef void(__cdecl* PROCESSALIST)();
+typedef void(__cdecl* ROMCLOSED_AUDIO)();
+typedef void(__cdecl* ROMOPEN_AUDIO)();
+typedef void(__cdecl* AIUPDATE)(int32_t wait);
+
+typedef void(__cdecl* CLOSEDLL_INPUT)();
+typedef void(__cdecl* CONTROLLERCOMMAND)(int32_t controller, unsigned char* command);
+typedef void(__cdecl* GETKEYS)(int32_t controller, core_buttons* keys);
+typedef void(__cdecl* SETKEYS)(int32_t controller, core_buttons keys);
+typedef void(__cdecl* OLD_INITIATECONTROLLERS)(void* hwnd, core_controller controls[4]);
+typedef void(__cdecl* INITIATECONTROLLERS)(core_input_info control_info);
+typedef void(__cdecl* READCONTROLLER)(int32_t controller, unsigned char* command);
+typedef void(__cdecl* ROMCLOSED_INPUT)();
+typedef void(__cdecl* ROMOPEN_INPUT)();
+typedef void(__cdecl* KEYDOWN)(uint32_t wParam, int32_t lParam);
+typedef void(__cdecl* KEYUP)(uint32_t wParam, int32_t lParam);
+
+typedef void(__cdecl* CLOSEDLL_RSP)();
+typedef uint32_t(__cdecl* DORSPCYCLES)(uint32_t);
+typedef void(__cdecl* INITIATERSP)(core_rsp_info rsp_info, uint32_t* cycles);
+typedef void(__cdecl* ROMCLOSED_RSP)();
+
+// frame buffer plugin spec extension
+typedef struct
+{
+    uint32_t addr;
+    uint32_t size;
+    uint32_t width;
+    uint32_t height;
+} core_fb_info;
+
+#pragma endregion
+
+#pragma region VCR
+
 
 enum {
     MOVIE_START_FROM_SNAPSHOT = (1 << 0),
@@ -548,400 +918,40 @@ typedef struct {
     std::vector<core_buttons> input_buffer;
 } core_vcr_freeze_info;
 
-#pragma pack(push, 1)
-typedef struct CoreCfg {
-    /// <summary>
-    /// Statistic - Amount of state loads during recording
-    /// </summary>
-    uint64_t total_rerecords;
+#pragma endregion
 
-    /// <summary>
-    /// Statistic - Amount of emulated frames
-    /// </summary>
-    uint64_t total_frames;
+#pragma region Debugger
 
-    /// <summary>
-    /// The currently selected core type
-    /// <para/>
-    /// 0 - Cached Interpreter
-    /// 1 - Dynamic Recompiler
-    /// 2 - Pure Interpreter
-    /// </summary>
-    int32_t core_type = 1;
-
-    /// <summary>
-    /// The target FPS modifier as a percentage
-    /// <para/>
-    /// (100 = default)
-    /// </summary>
-    int32_t fps_modifier = 100;
-
-    /// <summary>
-    /// The frequency at which frames are skipped during fast-forward
-    /// <para/>
-    /// 0 = skip all frames
-    /// 1 = skip no frames
-    /// >0 = every nth frame is skipped
-    /// </summary>
-    int32_t frame_skip_frequency = 1;
-
-    /// <summary>
-    /// Whether fast-forward will mute audio
-    /// This option improves performance by skipping additional do_rsp_cycles calls, but may cause issues
-    /// </summary>
-    int32_t fastforward_silent;
-
-    /// <summary>
-    /// Maximum number of entries into the rom cache
-    /// <para/>
-    /// 0 = disabled
-    /// </summary>
-    int32_t rom_cache_size;
-
-    /// <summary>
-    /// Saves video buffer to savestates, slow!
-    /// </summary>
-    int32_t st_screenshot;
-
-    /// <summary>
-    /// Whether a playing movie will loop upon ending
-    /// </summary>
-    int32_t is_movie_loop_enabled;
-
-    /// <summary>
-    /// The CPU's counter factor. Higher values will generate less lag frames in-game at the cost of higher native CPU usage.
-    /// </summary>
-    int32_t counter_factor = 1;
-
-
-    /// <summary>
-    /// Whether rom resets are not recorded in movies
-    /// </summary>
-    int32_t is_reset_recording_enabled;
-
-    /// <summary>
-    /// Whether undo savestate load functionality is enabled.
-    /// </summary>
-    int32_t st_undo_load = 1;
-
-    /// <summary>
-    /// SD card emulation
-    /// </summary>
-    int32_t use_summercart;
-
-    /// <summary>
-    /// Whether WiiVC emulation is enabled. Causes truncation instead of rounding when performing certain casts.
-    /// </summary>
-    int32_t wii_vc_emulation;
-
-    /// <summary>
-    /// Whether floating point exceptions will propagate and crash the emulator
-    /// </summary>
-    int32_t is_float_exception_propagation_enabled;
-
-    /// <summary>
-    /// Whether audio interrupts will be delayed
-    /// </summary>
-    int32_t is_audio_delay_enabled = 1;
-
-    /// <summary>
-    /// Whether jmp instructions will cause the following code to be JIT'd by dynarec
-    /// </summary>
-    int32_t is_compiled_jump_enabled = 1;
-
-    /// <summary>
-    /// The save interval for warp modify savestates in frames
-    /// </summary>
-    int32_t seek_savestate_interval = 0;
-
-    /// <summary>
-    /// The maximum amount of warp modify savestates to keep in memory
-    /// </summary>
-    int32_t seek_savestate_max_count = 20;
-    
-    /// <summary>
-    /// The movie frame to automatically pause at
-    /// -1 none
-    /// </summary>
-    int32_t pause_at_frame = -1;
-
-    /// <summary>
-    /// Whether to pause at the last movie frame
-    /// </summary>
-    int32_t pause_at_last_frame;
-
-    /// <summary>
-    /// Whether VCR operates in read-only mode
-    /// </summary>
-    int32_t vcr_readonly;
-
-    /// <summary>
-    /// Whether VCR creates movie backups
-    /// </summary>
-    int32_t vcr_backups = 1;
-
-    /// <summary>
-    /// Whether movies are written using the new extended format.
-    /// If disabled, the extended format sections are set to 0.
-    /// </summary>
-    int32_t vcr_write_extended_format = 1;
-
-    /// <summary>
-    /// The maximum amount of VIs allowed to be generated since the last input poll before a warning dialog is shown
-    /// 0 - no warning
-    /// </summary>
-    int32_t max_lag = 480;
-    
-    /// <summary>
-    /// Whether lag frames will cause updateScreen to be invoked
-    /// </summary>
-    int32_t skip_rendering_lag;
-
-    /// <summary>
-    /// Throttles game rendering to 60 FPS.
-    /// </summary>
-    int32_t render_throttling = 1;
-    
-} core_cfg;
-#pragma pack(pop)
-
-typedef void(__cdecl* GETDLLINFO)(core_plugin_info*);
-typedef void(__cdecl* DLLCONFIG)(void*);
-typedef void(__cdecl* DLLTEST)(void*);
-typedef void(__cdecl* DLLABOUT)(void*);
-
-typedef void(__cdecl* CHANGEWINDOW)();
-typedef void(__cdecl* CLOSEDLL_GFX)();
-typedef int32_t(__cdecl* INITIATEGFX)(core_gfx_info);
-typedef void(__cdecl* PROCESSDLIST)();
-typedef void(__cdecl* PROCESSRDPLIST)();
-typedef void(__cdecl* ROMCLOSED_GFX)();
-typedef void(__cdecl* ROMOPEN_GFX)();
-typedef void(__cdecl* SHOWCFB)();
-typedef void(__cdecl* UPDATESCREEN)();
-typedef void(__cdecl* VISTATUSCHANGED)();
-typedef void(__cdecl* VIWIDTHCHANGED)();
-typedef void(__cdecl* READSCREEN)(void**, int32_t*, int32_t*);
-typedef void(__cdecl* DLLCRTFREE)(void*);
-typedef void(__cdecl* MOVESCREEN)(int32_t, int32_t);
-typedef void(__cdecl* CAPTURESCREEN)(char*);
-typedef void(__cdecl* GETVIDEOSIZE)(int32_t*, int32_t*);
-typedef void(__cdecl* READVIDEO)(void**);
-typedef void(__cdecl* FBREAD)(uint32_t);
-typedef void(__cdecl* FBWRITE)(uint32_t addr, uint32_t size);
-typedef void(__cdecl* FBGETFRAMEBUFFERINFO)(void*);
-
-typedef void(__cdecl* AIDACRATECHANGED)(int32_t system_type);
-typedef void(__cdecl* AILENCHANGED)();
-typedef uint32_t(__cdecl* AIREADLENGTH)();
-typedef void(__cdecl* CLOSEDLL_AUDIO)();
-typedef int32_t(__cdecl* INITIATEAUDIO)(core_audio_info);
-typedef void(__cdecl* PROCESSALIST)();
-typedef void(__cdecl* ROMCLOSED_AUDIO)();
-typedef void(__cdecl* ROMOPEN_AUDIO)();
-typedef void(__cdecl* AIUPDATE)(int32_t wait);
-
-typedef void(__cdecl* CLOSEDLL_INPUT)();
-typedef void(__cdecl* CONTROLLERCOMMAND)(int32_t controller, unsigned char* command);
-typedef void(__cdecl* GETKEYS)(int32_t controller, core_buttons* keys);
-typedef void(__cdecl* SETKEYS)(int32_t controller, core_buttons keys);
-typedef void(__cdecl* OLD_INITIATECONTROLLERS)(void* hwnd, core_controller controls[4]);
-typedef void(__cdecl* INITIATECONTROLLERS)(core_input_info control_info);
-typedef void(__cdecl* READCONTROLLER)(int32_t controller, unsigned char* command);
-typedef void(__cdecl* ROMCLOSED_INPUT)();
-typedef void(__cdecl* ROMOPEN_INPUT)();
-typedef void(__cdecl* KEYDOWN)(uint32_t wParam, int32_t lParam);
-typedef void(__cdecl* KEYUP)(uint32_t wParam, int32_t lParam);
-
-typedef void(__cdecl* CLOSEDLL_RSP)();
-typedef uint32_t(__cdecl* DORSPCYCLES)(uint32_t);
-typedef void(__cdecl* INITIATERSP)(core_rsp_info rsp_info, uint32_t* cycles);
-typedef void(__cdecl* ROMCLOSED_RSP)();
-
-// frame buffer plugin spec extension
 typedef struct
 {
-    uint32_t addr;
-    uint32_t size;
-    uint32_t width;
-    uint32_t height;
-} core_fb_info;
+    uint32_t opcode;
+    uint32_t address;
+} core_dbg_cpu_state;
 
-typedef struct CoreScript {
-    // Whether the script code gets executed
-    bool m_resumed = true;
+#pragma endregion
 
-    // Pair 1st element tells us whether instruction is a conditional. That's required for special treatment of buggy kaze blj anywhere code
-    std::vector<std::tuple<bool, std::function<bool()>>> m_instructions;
+#pragma region Cheats
 
+/**
+ * \brief Represents a cheat.
+ */
+typedef struct CoreCheat {
     // The script's name. FIXME: This should be read from the script
-    std::wstring m_name = L"Unnamed Script";
+    std::wstring name = L"Unnamed Cheat";
+    
+    // The script's code. Mutating after creation does nothing unless instructions are recompiled.
+    std::wstring code;
+    
+    // Whether the cheat is active.
+    bool active = true;
+    
+    // The cheat's instructions. The pair's 1st element tells us whether instruction is a conditional, which is required for special handling of buggy kaze blj anywhere code
+    std::vector<std::tuple<bool, std::function<bool()>>> instructions;
+} core_cheat;
 
-    // The script's code. Can't be mutated after creation.
-    std::wstring m_code;
-} core_script;
+#pragma endregion
 
-typedef struct {
-    uint32_t rdram_config;
-    uint32_t rdram_device_id;
-    uint32_t rdram_delay;
-    uint32_t rdram_mode;
-    uint32_t rdram_ref_interval;
-    uint32_t rdram_ref_row;
-    uint32_t rdram_ras_interval;
-    uint32_t rdram_min_interval;
-    uint32_t rdram_addr_select;
-    uint32_t rdram_device_manuf;
-} core_rdram_reg;
-
-typedef struct {
-    uint32_t sp_mem_addr_reg;
-    uint32_t sp_dram_addr_reg;
-    uint32_t sp_rd_len_reg;
-    uint32_t sp_wr_len_reg;
-    uint32_t w_sp_status_reg;
-    uint32_t sp_status_reg;
-    char halt;
-    char broke;
-    char dma_busy;
-    char dma_full;
-    char io_full;
-    char single_step;
-    char intr_break;
-    char signal0;
-    char signal1;
-    char signal2;
-    char signal3;
-    char signal4;
-    char signal5;
-    char signal6;
-    char signal7;
-    uint32_t sp_dma_full_reg;
-    uint32_t sp_dma_busy_reg;
-    uint32_t sp_semaphore_reg;
-} core_sp_reg;
-
-typedef struct {
-    uint32_t rsp_pc;
-    uint32_t rsp_ibist;
-} core_rsp_reg;
-
-typedef struct {
-    uint32_t dpc_start;
-    uint32_t dpc_end;
-    uint32_t dpc_current;
-    uint32_t w_dpc_status;
-    uint32_t dpc_status;
-    char xbus_dmem_dma;
-    char freeze;
-    char flush;
-    char start_glck;
-    char tmem_busy;
-    char pipe_busy;
-    char cmd_busy;
-    char cbuf_busy;
-    char dma_busy;
-    char end_valid;
-    char start_valid;
-    uint32_t dpc_clock;
-    uint32_t dpc_bufbusy;
-    uint32_t dpc_pipebusy;
-    uint32_t dpc_tmem;
-} core_dpc_reg;
-
-typedef struct {
-    uint32_t dps_tbist;
-    uint32_t dps_test_mode;
-    uint32_t dps_buftest_addr;
-    uint32_t dps_buftest_data;
-} core_dps_reg;
-
-typedef struct {
-    uint32_t w_mi_init_mode_reg;
-    uint32_t mi_init_mode_reg;
-    char init_length;
-    char init_mode;
-    char ebus_test_mode;
-    char RDRAM_reg_mode;
-    uint32_t mi_version_reg;
-    uint32_t mi_intr_reg;
-    uint32_t mi_intr_mask_reg;
-    uint32_t w_mi_intr_mask_reg;
-    char SP_intr_mask;
-    char SI_intr_mask;
-    char AI_intr_mask;
-    char VI_intr_mask;
-    char PI_intr_mask;
-    char DP_intr_mask;
-} core_mips_reg;
-
-typedef struct {
-    uint32_t vi_status;
-    uint32_t vi_origin;
-    uint32_t vi_width;
-    uint32_t vi_v_intr;
-    uint32_t vi_current;
-    uint32_t vi_burst;
-    uint32_t vi_v_sync;
-    uint32_t vi_h_sync;
-    uint32_t vi_leap;
-    uint32_t vi_h_start;
-    uint32_t vi_v_start;
-    uint32_t vi_v_burst;
-    uint32_t vi_x_scale;
-    uint32_t vi_y_scale;
-    uint32_t vi_delay;
-} core_vi_reg;
-
-typedef struct {
-    uint32_t ai_dram_addr;
-    // source address (in rdram) of sound sample to be played
-    uint32_t ai_len; // amount of bytes(?) to be played
-    uint32_t ai_control;
-    uint32_t ai_status; // info about whether dma active and is fifo full
-    uint32_t ai_dacrate;
-    // clock rate / audio rate, tells sound controller how to interpret the audio samples
-    uint32_t ai_bitrate;
-    // possible values 2 to 16, bits per sample?, this is always (dacRate / 66)-1 (by libultra)
-    uint32_t next_delay;
-    uint32_t next_len;
-    uint32_t current_delay;
-    uint32_t current_len;
-} core_ai_reg;
-
-typedef struct {
-    uint32_t pi_dram_addr_reg;
-    uint32_t pi_cart_addr_reg;
-    uint32_t pi_rd_len_reg;
-    uint32_t pi_wr_len_reg;
-    uint32_t read_pi_status_reg;
-    uint32_t pi_bsd_dom1_lat_reg;
-    uint32_t pi_bsd_dom1_pwd_reg;
-    uint32_t pi_bsd_dom1_pgs_reg;
-    uint32_t pi_bsd_dom1_rls_reg;
-    uint32_t pi_bsd_dom2_lat_reg;
-    uint32_t pi_bsd_dom2_pwd_reg;
-    uint32_t pi_bsd_dom2_pgs_reg;
-    uint32_t pi_bsd_dom2_rls_reg;
-} core_pi_reg;
-
-typedef struct {
-    uint32_t ri_mode;
-    uint32_t ri_config;
-    uint32_t ri_current_load;
-    uint32_t ri_select;
-    uint32_t ri_refresh;
-    uint32_t ri_latency;
-    uint32_t ri_error;
-    uint32_t ri_werror;
-} core_ri_reg;
-
-typedef struct {
-    uint32_t si_dram_addr;
-    uint32_t si_pif_addr_rd64b;
-    uint32_t si_pif_addr_wr64b;
-    uint32_t si_status;
-} core_si_reg;
+#pragma region Savestates
 
 typedef enum {
     // A save operation
@@ -961,12 +971,17 @@ typedef enum {
 
 using core_st_callback = std::function<void(core_result result, const std::vector<uint8_t>&)>;
 
-typedef std::common_type_t<std::chrono::duration<int64_t, std::ratio<1, 1000000000>>, std::chrono::duration<int64_t, std::ratio<1, 1000000000>>> core_timer_delta;
+#pragma endregion
 
-typedef struct
-{
-    uint32_t opcode;
-    uint32_t address;
-} core_dbg_cpu_state;
+#pragma region Host API Types
 
-constexpr uint8_t core_timer_max_deltas = 60;
+/**
+ * The tone of a dialog.
+ */
+typedef enum {
+    fsvc_error,
+    fsvc_warning,
+    fsvc_information
+} core_dialog_type;
+
+#pragma endregion
