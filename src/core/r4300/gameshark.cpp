@@ -189,3 +189,64 @@ void cht_execute()
         cht_execute(cheat);
     }
 }
+
+bool cht_add_from_file(const std::filesystem::path& path)
+{
+    FILE* f = nullptr;
+
+    if (_wfopen_s(&f, path.wstring().c_str(), L"r"))
+    {
+        return false;
+    }
+
+    fseek(f, 0, SEEK_END);
+    const auto len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    std::string str;
+    str.resize(len + sizeof(char));
+    fread(str.data(), sizeof(char), len, f);
+    
+    fclose(f);
+
+    std::wstring wstr = string_to_wstring(str);
+    
+    const auto lines = split_string(wstr, L"\n");
+
+    bool reading_cheat_code = false;
+    std::vector<core_cheat> cheats;
+    
+    for (const auto& line : lines)
+    {
+        if (line.empty())
+        {
+            continue;
+        }
+        
+        if (reading_cheat_code && !cheats.empty())
+        {
+            auto& cheat = cheats.back();
+            cheat.code += line + L"\n";
+        }
+        
+        if (line.starts_with(L"--"))
+        {
+            reading_cheat_code = true;
+            core_cheat cheat{};
+            cheat.name = line.substr(2);
+            cheats.emplace_back(cheat);
+        }
+    }
+
+    for (auto& cheat : cheats)
+    {
+        // We need to patch up the names since the cheats are reconstructed when compiling
+        const auto name = cheat.name;
+        core_cht_compile(cheat.code, cheat);
+        cheat.name = name;
+    }
+
+    core_cht_set_list(cheats);
+    
+    return true;
+}
