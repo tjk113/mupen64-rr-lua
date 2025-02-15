@@ -7,7 +7,7 @@
 #include "stdafx.h"
 #include <IOHelpers.h>
 #include <Core.h>
-#include <r4300/gameshark.h>
+#include <r4300/cheats.h>
 #include <include/core_api.h>
 #include <memory/pif.h>
 #include <memory/savestates.h>

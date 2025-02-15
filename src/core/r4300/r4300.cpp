@@ -19,8 +19,6 @@
 #include <r4300/vcr.h>
 // Threading crap
 
-#include "gameshark.h"
-
 #ifdef DBG
 extern int32_t debugger_mode;
 extern void update_debugger();

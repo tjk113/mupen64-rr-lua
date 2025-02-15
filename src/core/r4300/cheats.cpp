@@ -7,7 +7,7 @@
 #include "stdafx.h"
 #include <Core.h>
 #include <memory/memory.h>
-#include <r4300/gameshark.h>
+#include <r4300/cheats.h>
 #include <r4300/r4300.h>
 
 // TODO: Rename gameshark.cpp/h to cheats.cpp/h
