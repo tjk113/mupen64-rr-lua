@@ -53,7 +53,6 @@ extern uint32_t jump_to_address;
 extern std::atomic<bool> screen_invalidated;
 extern int32_t vi_field;
 extern uint32_t next_vi;
-extern int32_t compare_core_mode;
 extern bool g_vr_fast_forward;
 extern bool g_vr_frame_skipped;
 extern core_system_type g_sys_type;
@@ -66,7 +65,6 @@ extern FILE* g_mpak_file;
 extern bool g_vr_benchmark_enabled;
 
 void pure_interpreter();
-void compare_core();
 extern void jump_to_func();
 void update_count();
 int32_t check_cop1_unusable();

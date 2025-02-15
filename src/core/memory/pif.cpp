@@ -18,8 +18,6 @@ int32_t frame_advancing = 0;
 // Amount of VIs since last input poll
 size_t lag_count;
 
-void check_input_sync(unsigned char* value);
-
 #ifdef DEBUG_PIF
 void print_pif()
 {
@@ -145,9 +143,6 @@ void internal_ReadController(int32_t Control, uint8_t* Command)
             core_buttons input = {0};
             vcr_on_controller_poll(Control, &input);
             *((uint32_t*)(Command + 3)) = input.Value;
-#ifdef COMPARE_CORE
-            check_input_sync(Command + 3);
-#endif
         }
         break;
     case 2: // read controller pack

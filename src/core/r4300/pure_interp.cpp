@@ -18,11 +18,6 @@
 #include <r4300/rom.h>
 #include <r4300/tracelog.h>
 
-#ifdef DBG
-extern int32_t debugger_mode;
-extern void update_debugger();
-#endif
-
 uint32_t interp_addr;
 uint32_t vr_op;
 static int32_t skip;
@@ -3172,9 +3167,7 @@ void pure_interpreter()
         //if (interp_addr == 0x10022d08) stop = 1;
         //g_core->logger->info("addr: %x", interp_addr);
         prefetch();
-#ifdef COMPARE_CORE
-		compare_core();
-#endif
+
         //if (Count > 0x2000000) g_core->logger->info("inter:%x,%x", interp_addr,op);
         //if ((Count+debug_count) > 0xabaa2c) stop=1;
         interp_ops[((vr_op >> 26) & 0x3F)]();
@@ -3182,13 +3175,9 @@ void pure_interpreter()
 
         //Count = (uint32_t)Count + 2;
         //if (interp_addr == 0x80000180) last_addr = interp_addr;
-#ifdef DBG
-		PC->addr = interp_addr;
-		if (debugger_mode) update_debugger();
-#endif
         while (!core_dbg_get_resumed())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         Debugger::on_late_cycle(vr_op, interp_addr);
     }
@@ -3207,10 +3196,6 @@ void interprete_section(uint32_t addr)
             tracelog_log_pure();
         PC->addr = interp_addr;
         interp_ops[((vr_op >> 26) & 0x3F)]();
-#ifdef DBG
-		PC->addr = interp_addr;
-		if (debugger_mode) update_debugger();
-#endif
     }
     PC->addr = interp_addr;
 }

@@ -89,22 +89,10 @@ void gencallinterp(uint32_t addr, int32_t jump)
 
 void genupdate_count(uint32_t addr)
 {
-#ifndef COMPARE_CORE
-#ifndef DBG
     mov_reg32_imm32(EAX, addr);
     sub_reg32_m32(EAX, (uint32_t*)(&last_addr));
     shr_reg32_imm8(EAX, 1);
     add_m32_reg32((uint32_t*)(&core_Count), EAX);
-#else
-	mov_m32_imm32((uint32_t*)(&PC), (uint32_t)(dst + 1));
-	mov_reg32_imm32(EAX, (uint32_t)update_count);
-	call_reg32(EAX);
-#endif
-#else
-	mov_m32_imm32((uint32_t*)(&PC), (uint32_t)(dst + 1));
-	mov_reg32_imm32(EAX, (uint32_t)update_count);
-	call_reg32(EAX);
-#endif
 }
 
 void gendelayslot()

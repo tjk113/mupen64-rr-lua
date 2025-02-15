@@ -233,7 +233,6 @@
     <ClCompile Include="src\core\memory\tlb.cpp" />
     <ClCompile Include="src\core\r4300\debugger.cpp" />
     <ClCompile Include="src\core\r4300\pure_interp.cpp" />
-    <ClCompile Include="src\core\r4300\compare_core.cpp" />
     <ClCompile Include="src\core\r4300\cop0.cpp" />
     <ClCompile Include="src\core\r4300\cop1.cpp" />
     <ClCompile Include="src\core\r4300\cop1_d.cpp" />

@@ -17,12 +17,6 @@
 #include <r4300/recomp.h>
 #include <r4300/timers.h>
 #include <r4300/vcr.h>
-// Threading crap
-
-#ifdef DBG
-extern int32_t debugger_mode;
-extern void update_debugger();
-#endif
 
 std::thread emu_thread_handle;
 std::thread audio_thread_handle;
@@ -1622,14 +1616,6 @@ void update_count()
         core_Count = core_Count + (PC->addr - last_addr) / 2;
         last_addr = PC->addr;
     }
-#ifdef COMPARE_CORE
-    if (delay_slot)
-        compare_core();
-#endif
-#ifdef DBG
-    if (debugger_mode)
-        update_debugger();
-#endif
 }
 
 void init_blocks()
@@ -1650,10 +1636,6 @@ void init_blocks()
     actual = blocks[0xa4000000 >> 12];
     init_block((int32_t*)SP_DMEM, blocks[0xa4000000 >> 12]);
     PC = actual->block + (0x40 / 4);
-#ifdef DBG
-    if (debugger_mode) // debugger shows initial state (before 1st instruction).
-        update_debugger();
-#endif
 }
 
 
@@ -1922,51 +1904,8 @@ void core_start()
         g_core->logger->info(L"core_executing: {}", (bool)core_executing);
         while (!stop)
         {
-            // if ((debug_count+Count) >= 0x78a8091) break; // obj 0x16aeb8a
-            // if ((debug_count+Count) >= 0x16b1360)
-            /*if ((debug_count+Count) >= 0xf203ae0)
-              {
-             g_core->logger->info ("PC=%x:%x\n", (uint32_t)(PC->addr),
-                 (uint32_t)(rdram[(PC->addr&0xFFFFFF)/4]));
-             for (j=0; j<16; j++)
-               g_core->logger->info ("reg[%2d]:%8x%8x        reg[{}]:%8x%8x\n",
-                   j,
-                   (uint32_t)(reg[j] >> 32),
-                   (uint32_t)reg[j],
-                   j+16,
-                   (uint32_t)(reg[j+16] >> 32),
-                   (uint32_t)reg[j+16]);
-             g_core->logger->info("hi:%8x%8x        lo:%8x%8x\n",
-                (uint32_t)(hi >> 32),
-                (uint32_t)hi,
-                (uint32_t)(lo >> 32),
-                (uint32_t)lo);
-             g_core->logger->info("après {} instructions soit %x\n",(uint32_t)(debug_count+Count)
-                ,(uint32_t)(debug_count+Count));
-             getchar();
-              }*/
-            /*if ((debug_count+Count) >= 0x80000000)
-              g_core->logger->info("%x:%x, %x\n", (int32_t)PC->addr,
-                 (int32_t)rdram[(PC->addr & 0xFFFFFF)/4],
-                 (int32_t)(debug_count+Count));*/
-#ifdef COMPARE_CORE
-            if (PC->ops == FIN_BLOCK &&
-                (PC->addr < 0x80000000 || PC->addr >= 0xc0000000))
-                virtual_to_physical_address(PC->addr, 2);
-            compare_core();
-#endif
             PC->ops();
             g_vr_beq_ignore_jmp = false;
-            /*if (j!= (Count & 0xFFF00000))
-              {
-             j = (Count & 0xFFF00000);
-             g_core->logger->info("%x", j);
-              }*/
-            // check_PC;
-#ifdef DBG
-            if (debugger_mode)
-                update_debugger();
-#endif
         }
     }
     else if (dynacore == 2)
