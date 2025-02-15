@@ -10,7 +10,11 @@
 #include <r4300/gameshark.h>
 #include <r4300/r4300.h>
 
-static std::vector<core_cheat> cheats;
+// TODO: Rename gameshark.cpp/h to cheats.cpp/h
+
+static std::recursive_mutex cheats_mutex;
+static std::vector<core_cheat> host_cheats;
+static std::stack<std::vector<core_cheat>> cheat_stack;
 
 bool core_cht_compile(const std::wstring& code, core_cheat& cheat)
 {
@@ -60,7 +64,6 @@ bool core_cht_compile(const std::wstring& code, core_cheat& cheat)
             serial = false;
             continue;
         }
-
 
         if (opcode == L"80" || opcode == L"A0")
         {
@@ -145,57 +148,17 @@ bool core_cht_compile(const std::wstring& code, core_cheat& cheat)
 
     compiled_cheat.code = code;
     cheat = compiled_cheat;
-    
+
     return true;
 }
 
-
-void core_cht_get_list(std::vector<core_cheat>& list)
-{
-    list.clear();
-    list = cheats;
-}
-
-void core_cht_set_list(const std::vector<core_cheat>& list)
-{
-    cheats = list;
-}
-
-void cht_execute(const core_cheat& cheat)
-{
-    if (!cheat.active)
-    {
-        return;
-    }
-
-    bool execute = true;
-    for (auto instruction : cheat.instructions)
-    {
-        if (execute)
-        {
-            execute = std::get<1>(instruction)();
-        }
-        else if (!std::get<0>(instruction))
-        {
-            execute = true;
-        }
-    }
-}
-
-void cht_execute()
-{
-    for (const auto& cheat : cheats)
-    {
-        cht_execute(cheat);
-    }
-}
-
-bool cht_add_from_file(const std::filesystem::path& path)
+bool cht_read_from_file(const std::filesystem::path& path, std::vector<core_cheat>& cheats)
 {
     FILE* f = nullptr;
 
     if (_wfopen_s(&f, path.wstring().c_str(), L"r"))
     {
+        g_core->logger->error(L"cht_read_from_file failed to open file {}", path.wstring());
         return false;
     }
 
@@ -206,29 +169,29 @@ bool cht_add_from_file(const std::filesystem::path& path)
     std::string str;
     str.resize(len + sizeof(char));
     fread(str.data(), sizeof(char), len, f);
-    
+
     fclose(f);
 
     std::wstring wstr = string_to_wstring(str);
-    
+
     const auto lines = split_string(wstr, L"\n");
 
     bool reading_cheat_code = false;
-    std::vector<core_cheat> cheats;
-    
+    cheats.clear();
+
     for (const auto& line : lines)
     {
         if (line.empty())
         {
             continue;
         }
-        
+
         if (reading_cheat_code && !cheats.empty())
         {
             auto& cheat = cheats.back();
             cheat.code += line + L"\n";
         }
-        
+
         if (line.starts_with(L"--"))
         {
             reading_cheat_code = true;
@@ -246,7 +209,71 @@ bool cht_add_from_file(const std::filesystem::path& path)
         cheat.name = name;
     }
 
-    core_cht_set_list(cheats);
-    
     return true;
+}
+
+void core_cht_get_list(std::vector<core_cheat>& list)
+{
+    std::scoped_lock lock(cheats_mutex);
+
+    list.clear();
+
+    list = cheat_stack.empty() ? host_cheats : cheat_stack.top();
+}
+
+void core_cht_set_list(const std::vector<core_cheat>& list)
+{
+    std::scoped_lock lock(cheats_mutex);
+
+    if (!cheat_stack.empty())
+    {
+        g_core->logger->warn("core_cht_set_list ignored due to cheat stack not being empty");
+        return;
+    }
+
+    host_cheats = list;
+}
+
+void cht_layer_push(const std::vector<core_cheat>& cheats)
+{
+    std::scoped_lock lock(cheats_mutex);
+
+    g_core->logger->info("cht_layer_push pushing {} cheats", cheats.size());
+    
+    cheat_stack.push(cheats);
+}
+
+void cht_layer_pop()
+{
+    std::scoped_lock lock(cheats_mutex);
+
+    cheat_stack.pop();
+}
+
+void cht_execute()
+{
+    std::scoped_lock lock(cheats_mutex);
+
+    const auto& cheats = cheat_stack.empty() ? host_cheats : cheat_stack.top();
+
+    for (const auto& cheat : cheats)
+    {
+        if (!cheat.active)
+        {
+            return;
+        }
+
+        bool execute = true;
+        for (auto instruction : cheat.instructions)
+        {
+            if (execute)
+            {
+                execute = std::get<1>(instruction)();
+            }
+            else if (!std::get<0>(instruction))
+            {
+                execute = true;
+            }
+        }
+    }
 }

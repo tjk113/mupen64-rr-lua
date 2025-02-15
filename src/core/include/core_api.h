@@ -717,15 +717,17 @@ EXPORT char* CALL core_dbg_disassemble(char* buf, uint32_t w, uint32_t pc);
  * \param cheat The compiled cheat. If the compilation fails, the cheat won't be mutated.
  * \return Whether the compilation was successful.
  */
-bool core_cht_compile(const std::wstring& code, core_cheat& cheat);
+EXPORT bool CALL core_cht_compile(const std::wstring& code, core_cheat& cheat);
 
 /**
  * \brief Gets the cheat list.
+ * \remarks The returned cheat list may not be the one set via core_cht_set_list, as the core can apply cheat overrides.
  */
 EXPORT void CALL core_cht_get_list(std::vector<core_cheat>&);
 
 /**
  * \brief Sets the cheat list.
+ * \remarks If a core cheat override is active, core_cht_set_list will do nothing.
  */
 EXPORT void CALL core_cht_set_list(const std::vector<core_cheat>&);
 
