@@ -212,6 +212,13 @@ bool cht_read_from_file(const std::filesystem::path& path, std::vector<core_chea
     return true;
 }
 
+void core_cht_get_override_stack(std::stack<std::vector<core_cheat>>& stack)
+{
+    std::scoped_lock lock(cheats_mutex);
+
+    stack = cheat_stack;
+}
+
 void core_cht_get_list(std::vector<core_cheat>& list)
 {
     std::scoped_lock lock(cheats_mutex);

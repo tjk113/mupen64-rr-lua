@@ -720,6 +720,11 @@ EXPORT char* CALL core_dbg_disassemble(char* buf, uint32_t w, uint32_t pc);
 EXPORT bool CALL core_cht_compile(const std::wstring& code, core_cheat& cheat);
 
 /**
+ * \brief Gets the cheat override stack.
+ */
+EXPORT void CALL core_cht_get_override_stack(std::stack<std::vector<core_cheat>>&);
+    
+/**
  * \brief Gets the cheat list.
  * \remarks The returned cheat list may not be the one set via core_cht_set_list, as the core can apply cheat overrides.
  */
