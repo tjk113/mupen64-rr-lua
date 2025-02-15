@@ -24,6 +24,12 @@ namespace Cheats
         {
         case WM_INITDIALOG:
             {
+                std::stack<std::vector<core_cheat>> override_stack;
+                core_cht_get_override_stack(override_stack);
+                if (!override_stack.empty())
+                {
+                    SetDlgItemText(hwnd, IDC_CHEAT_STATUS, L"Read-only: Cheats are overriden by the core.");
+                }
                 goto rebuild_list;
             }
         case WM_DESTROY:
