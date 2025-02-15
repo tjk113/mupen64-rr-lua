@@ -222,9 +222,7 @@ void core_cht_get_override_stack(std::stack<std::vector<core_cheat>>& stack)
 void core_cht_get_list(std::vector<core_cheat>& list)
 {
     std::scoped_lock lock(cheats_mutex);
-
-    list.clear();
-
+    
     list = cheat_stack.empty() ? host_cheats : cheat_stack.top();
 }
 
