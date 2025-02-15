@@ -1259,20 +1259,6 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     },
     t_options_item{
     .group_id = core_group.id,
-    .name = L"Audio Delay",
-    .tooltip = L"Whether to delay audio interrupts\nEnabled - More stability",
-    .data = &g_config.core.is_audio_delay_enabled,
-    .type = t_options_item::Type::Bool,
-    },
-    t_options_item{
-    .group_id = core_group.id,
-    .name = L"Compiled Jump",
-    .tooltip = L"Whether to compile jumps\nEnabled - More stability",
-    .data = &g_config.core.is_compiled_jump_enabled,
-    .type = t_options_item::Type::Bool,
-    },
-    t_options_item{
-    .group_id = core_group.id,
     .name = L"WiiVC Mode",
     .tooltip = L"Enables WiiVC emulation.",
     .data = &g_config.core.wii_vc_emulation,
@@ -1380,6 +1366,20 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .name = L"Delay Plugin Discovery",
     .tooltip = L"Whether the plugin discovery process is artificially lengthened.\nDo not enable unless you are debugging the plugin discovery system or its surrounding components.",
     .data = &g_config.plugin_discovery_delayed,
+    .type = t_options_item::Type::Bool,
+    },
+    t_options_item{
+    .group_id = debug_group.id,
+    .name = L"Audio Delay",
+    .tooltip = L"Whether to delay audio interrupts.",
+    .data = &g_config.core.is_audio_delay_enabled,
+    .type = t_options_item::Type::Bool,
+    },
+    t_options_item{
+    .group_id = debug_group.id,
+    .name = L"Compiled Jump",
+    .tooltip = L"Whether the Dynamic Recompiler core compiles jumps.",
+    .data = &g_config.core.is_compiled_jump_enabled,
     .type = t_options_item::Type::Bool,
     },
     };
