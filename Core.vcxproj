@@ -172,6 +172,7 @@
   <ItemGroup>
     <ClInclude Include="lib\IOHelpers.h" />
     <ClInclude Include="src\core\Core.h" />
+    <ClInclude Include="src\core\cheats.h" />
     <ClInclude Include="src\core\include\core_types.h" />
     <ClInclude Include="src\core\include\core_api.h" />
     <ClInclude Include="src\core\stdafx.h" />
@@ -188,7 +189,6 @@
     <ClInclude Include="src\core\r4300\cop1_helpers.h" />
     <ClInclude Include="src\core\r4300\disasm.h" />
     <ClInclude Include="src\core\r4300\exception.h" />
-    <ClInclude Include="src\core\r4300\cheats.h" />
     <ClInclude Include="src\core\r4300\interrupt.h" />
     <ClInclude Include="src\core\r4300\macros.h" />
     <ClInclude Include="src\core\r4300\r4300.h" />
@@ -222,6 +222,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\core\Core.cpp" />
+    <ClCompile Include="src\core\cheats.cpp" />
     <ClCompile Include="src\core\memory\pif_lut.cpp" />
     <ClCompile Include="src\core\memory\dma.cpp" />
     <ClCompile Include="src\core\memory\flashram.cpp" />
@@ -242,7 +243,6 @@
     <ClCompile Include="src\core\r4300\cop1_w.cpp" />
     <ClCompile Include="src\core\r4300\disasm.cpp" />
     <ClCompile Include="src\core\r4300\exception.cpp" />
-    <ClCompile Include="src\core\r4300\cheats.cpp" />
     <ClCompile Include="src\core\r4300\interrupt.cpp" />
     <ClCompile Include="src\core\r4300\r4300.cpp" />
     <ClCompile Include="src\core\r4300\recomp.cpp" />

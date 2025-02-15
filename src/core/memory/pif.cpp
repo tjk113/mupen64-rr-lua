@@ -10,7 +10,7 @@
 #include <memory/pif.h>
 #include <memory/pif_lut.h>
 #include <memory/savestates.h>
-#include <r4300/cheats.h>
+#include <cheats.h>
 #include <r4300/r4300.h>
 #include <r4300/vcr.h>
 
