@@ -15,6 +15,8 @@ std::atomic<int32_t> g_wait_counter = 0;
 core_result core_init(core_params* params)
 {
     g_core = params;
+
+    // TODO: Patch up nullptr callbacks with dummy functions
     
     g_core->rdram = rdram;
     g_core->rdram_register = &rdram_register;
