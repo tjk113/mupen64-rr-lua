@@ -496,8 +496,15 @@ LRESULT CALLBACK d2d_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             }
 
             g_d2d_drawing_section = true;
+
             auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
+            if (!lua)
+            {
+                g_d2d_drawing_section = false;
+                return 0;
+            }
+        
             PAINTSTRUCT ps;
             RECT rect;
             BeginPaint(hwnd, &ps);
@@ -536,6 +543,11 @@ LRESULT CALLBACK gdi_overlay_wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
         {
             auto lua = (LuaEnvironment*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
+            if (!lua)
+            {
+                return 0;
+            }
+        
             PAINTSTRUCT ps;
             RECT rect;
             HDC dc = BeginPaint(hwnd, &ps);
@@ -796,6 +808,8 @@ std::string LuaEnvironment::create(const std::filesystem::path& path, HWND wnd)
 LuaEnvironment::~LuaEnvironment()
 {
     m_ignore_renderer_creation = true;
+    SetWindowLongPtr(gdi_overlay_hwnd, GWLP_USERDATA, 0);
+    SetWindowLongPtr(d2d_overlay_hwnd, GWLP_USERDATA, 0);
     invoke_callbacks_with_key(pcall_no_params, REG_ATSTOP);
     SelectObject(gdi_back_dc, nullptr);
     DeleteObject(brush);
