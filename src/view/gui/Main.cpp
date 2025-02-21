@@ -17,6 +17,7 @@
 #include <gui/Loggers.h>
 #include <gui/Main.h>
 #include <gui/features/Cheats.h>
+#include <gui/features/Compare.h>
 #include <gui/features/ConfigDialog.h>
 #include <gui/features/CoreDbg.h>
 #include <gui/features/CrashHelper.h>
@@ -748,7 +749,7 @@ void on_warp_modify_status_changed(std::any data)
 
 void update_core_fast_forward(std::any)
 {
-    core_vr_set_fast_forward(g_fast_forward || core_vcr_is_seeking() || Cli::wants_fast_forward());
+    core_vr_set_fast_forward(g_fast_forward || core_vcr_is_seeking() || Cli::wants_fast_forward() || Compare::active());
 }
 
 BetterEmulationLock::BetterEmulationLock()
@@ -2074,6 +2075,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         Messenger::broadcast(Messenger::Message::WarpModifyStatusChanged, value);
     };
     g_core.callbacks.current_sample_changed = [](int32_t value) {
+        Compare::compare(value);
         Messenger::broadcast(Messenger::Message::CurrentSampleChanged, value);
     };
     g_core.callbacks.task_changed = [](core_vcr_task value) {
@@ -2129,9 +2131,9 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 #define DO_COPY(type)                                                                          \
     if (type)                                                                                  \
     {                                                                                          \
-        if (g_##type##_plugin)                                                                 \
+        if (g_## type## _plugin)                                                                 \
         {                                                                                      \
-            strncpy(type, g_##type##_plugin->name().data(), 64);                               \
+            strncpy(type, g_## type## _plugin->name().data(), 64);                               \
         }                                                                                      \
         else                                                                                   \
         {                                                                                      \

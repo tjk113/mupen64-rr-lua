@@ -189,3 +189,5 @@ typedef struct
  * Performs a plugin discovery operation.
  */
 t_plugin_discovery_result do_plugin_discovery();
+
+std::filesystem::path get_saves_directory();

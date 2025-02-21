@@ -6,16 +6,15 @@
 
 #include "stdafx.h"
 #include <AsyncExecutor.h>
-#include <FrontendService.h>
 #include <Config.h>
+#include <FrontendService.h>
 #include <Messenger.h>
-
 #include <argh.h>
-
 #include <capture/EncodingManager.h>
 #include <gui/Commandline.h>
 #include <gui/Loggers.h>
 #include <gui/Main.h>
+#include <gui/features/Compare.h>
 #include <gui/features/Dispatcher.h>
 #include <lua/LuaConsole.h>
 
@@ -197,7 +196,11 @@ namespace Cli
         commandline_movie = cmdl({"--movie", "-m64"}, "").str();
         commandline_avi = cmdl({"--avi", "-avi"}, "").str();
         commandline_close_on_movie_end = cmdl["--close-on-movie-end"];
-
+        bool compare_control = cmdl["--cmp-ctl"] || cmdl["--compare-control"];
+        bool compare_actual = cmdl["--cmp-act"] || cmdl["--compare-actual"];
+        std::string compare_interval_str = cmdl({"--cmp-int", "--compare-interval"}, "100").str();
+        size_t compare_interval = std::stoi(compare_interval_str);
+        
         // handle "Open With...":
         if (cmdl.size() == 2 && cmdl.params().empty())
         {
@@ -236,6 +239,23 @@ namespace Cli
             core_vcr_movie_header hdr{};
             core_vcr_parse_header(movie_path, &hdr);
             is_movie_from_start = hdr.startFlags & MOVIE_START_FROM_NOTHING;
+        }
+
+        if (compare_control && compare_actual)
+        {
+            FrontendService::show_dialog(L"Can't activate more than one compare mode at once.\nThe comparison system will be disabled.", L"CLI", fsvc_warning);
+            compare_control = false;
+            compare_actual = false;
+        }
+
+        if (compare_control)
+        {
+            Compare::start(true, compare_interval);
+        }
+        
+        if (compare_actual)
+        {
+            Compare::start(false, compare_interval);
         }
 
         rom_is_movie = commandline_rom.extension() == ".m64";
