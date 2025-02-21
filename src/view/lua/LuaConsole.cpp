@@ -62,9 +62,11 @@ int at_panic(lua_State* L)
 void invoke_callbacks_with_key_on_all_instances(const std::function<int(lua_State*)>& function, const char* key)
 {
     // OPTIMIZATION: Store destruction-queued scripts in queue and destroy them after iteration to avoid having to clone the queue
-    // This is somehow faster lol
+    // OPTIMIZATION: Make the destruction queue static to avoid allocating it every entry 
+    static std::queue<LuaEnvironment*> destruction_queue;
 
-    std::queue<LuaEnvironment*> destruction_queue;
+    assert(destruction_queue.empty());
+    
     for (const auto& [_, env] : g_hwnd_lua_map)
     {
         if (env->invoke_callbacks_with_key(function, key))
