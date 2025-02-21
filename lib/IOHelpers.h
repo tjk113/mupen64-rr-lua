@@ -158,3 +158,11 @@ void strtrim(char* str, size_t len);
  * \return The start index of the occurence into the string, or std::string::npos if none was found
  */
 size_t str_nth_occurence(const std::string& str, const std::string& searched, size_t nth);
+
+/**
+ * \brief Checks whether files are byte-wise equal. If the files are not found, the function returns false. If the files are not of equal length, the function returns false.
+ * \param first Path to the first file.
+ * \param second Path to the second file.
+ * \remarks The files are opened in binary mode, hence "byte-wise".
+ */
+bool files_are_equal(const std::filesystem::path& first, const std::filesystem::path& second);

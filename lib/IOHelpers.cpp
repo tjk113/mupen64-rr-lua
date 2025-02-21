@@ -229,3 +229,41 @@ size_t str_nth_occurence(const std::string& str, const std::string& searched, si
 
     return pos;
 }
+
+bool files_are_equal(const std::filesystem::path& first, const std::filesystem::path& second)
+{
+    bool different = false;
+
+    FILE* fp1 = fopen(first.string().c_str(), "rb");
+    FILE* fp2 = fopen(second.string().c_str(), "rb");
+    
+    fseek(fp1, 0, SEEK_END);
+    fseek(fp2, 0, SEEK_END);
+    
+    const auto len1 = ftell(fp1);
+    const auto len2 = ftell(fp2);
+    
+    if (len1 != len2)
+    {
+        different = true;
+        goto cleanup;
+    }
+
+    fseek(fp1, 0, SEEK_SET);
+    fseek(fp2, 0, SEEK_SET);
+    
+    int ch1, ch2;
+    while ((ch1 = fgetc(fp1)) != EOF && (ch2 = fgetc(fp2)) != EOF)
+    {
+        if (ch1 != ch2)
+        {
+            different = true;
+            break;
+        }
+    }
+
+    cleanup:
+    fclose(fp1);
+    fclose(fp2);
+    return !different;
+}
