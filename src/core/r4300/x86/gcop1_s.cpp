@@ -13,7 +13,7 @@
 
 static void gencheck_eax_valid(int32_t stackBase)
 {
-    if (!g_core->cfg->is_float_exception_propagation_enabled)
+    if (!g_core->cfg->float_exception_emulation)
         return;
 
     mov_reg32_imm32(EBX, (uint32_t)&largest_denormal_float);
@@ -24,7 +24,7 @@ static void gencheck_eax_valid(int32_t stackBase)
 
 static void gencheck_result_valid()
 {
-    if (!g_core->cfg->is_float_exception_propagation_enabled)
+    if (!g_core->cfg->float_exception_emulation)
         return;
 
     mov_reg32_imm32(EBX, (uint32_t)&largest_denormal_float);

@@ -123,7 +123,7 @@ void gencheck_float_output_valid()
  */
 void gencheck_float_conversion_valid()
 {
-    if (!g_core->cfg->is_float_exception_propagation_enabled)
+    if (!g_core->cfg->float_exception_emulation)
         return;
 
     fstsw_ax();

@@ -21,7 +21,7 @@ void fail_float_convert();
 #define CHECK_INPUT(x)                                                                                         \
     do                                                                                                         \
     {                                                                                                          \
-        if (g_core->cfg->is_float_exception_propagation_enabled && !(fabs(x) > LARGEST_DENORMAL(x)) && x != 0) \
+        if (g_core->cfg->float_exception_emulation && !(fabs(x) > LARGEST_DENORMAL(x)) && x != 0) \
         {                                                                                                      \
             fail_float_input_arg(x);                                                                           \
             return;                                                                                            \
@@ -32,7 +32,7 @@ void fail_float_convert();
 #define CHECK_OUTPUT(x)                                                                              \
     do                                                                                               \
     {                                                                                                \
-        if (g_core->cfg->is_float_exception_propagation_enabled && !(fabs(x) > LARGEST_DENORMAL(x))) \
+        if (g_core->cfg->float_exception_emulation && !(fabs(x) > LARGEST_DENORMAL(x))) \
         {                                                                                            \
             if (isnan(x))                                                                            \
             {                                                                                        \
@@ -55,7 +55,7 @@ void fail_float_convert();
 #define CHECK_CONVERT_EXCEPTIONS()                               \
     do                                                           \
     {                                                            \
-        if (g_core->cfg->is_float_exception_propagation_enabled) \
+        if (g_core->cfg->float_exception_emulation) \
         {                                                        \
             if (fetestexcept(FE_ALL_EXCEPT & (~FE_INEXACT)))     \
             {                                                    \
@@ -69,7 +69,7 @@ void fail_float_convert();
 #define CHECK_CONVERT_EXCEPTIONS()                               \
     do                                                           \
     {                                                            \
-        if (g_core->cfg->is_float_exception_propagation_enabled) \
+        if (g_core->cfg->float_exception_emulation) \
         {                                                        \
             read_x87_status_word();                              \
             if (x87_status_word & 1)                             \

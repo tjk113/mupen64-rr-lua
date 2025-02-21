@@ -1268,7 +1268,7 @@ void get_config_listview_items(std::vector<t_options_group>& groups, std::vector
     .group_id = core_group.id,
     .name = L"Emulate Float Crashes",
     .tooltip = L"Emulate float operation-related crashes which would also crash on real hardware",
-    .data = &g_config.core.is_float_exception_propagation_enabled,
+    .data = &g_config.core.float_exception_emulation,
     .type = t_options_item::Type::Bool,
     },
     t_options_item{

@@ -183,9 +183,9 @@ typedef struct CoreCfg {
     int32_t wii_vc_emulation;
 
     /// <summary>
-    /// Whether floating point exceptions will propagate and crash the emulator
+    /// Determines whether floating point exceptions are emulated.
     /// </summary>
-    int32_t is_float_exception_propagation_enabled;
+    int32_t float_exception_emulation;
 
     /// <summary>
     /// Whether audio interrupts will be delayed

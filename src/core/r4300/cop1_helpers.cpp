@@ -13,13 +13,22 @@
 float largest_denormal_float = 1.1754942106924411e-38f; // (1U << 23) - 1
 double largest_denormal_double = 2.225073858507201e-308; // (1ULL << 52) - 1
 
+constexpr auto FLOAT_EXCEPTION_MSG = L"A floating point exception has occured in the core. This error is likely unrecoverable.\n\n{} (PC = {:#06x})\n\nHow would you like to proceed?";
+
 void fail_float(const std::wstring& msg)
 {
-	const auto buf = std::format(L"{}\nPC = {:#06x}", msg, interpcore ? interp_addr : PC->addr);
-	g_core->show_dialog(buf.c_str(), L"Core", fsvc_error);
+    const auto message = std::format(FLOAT_EXCEPTION_MSG, msg, interpcore ? interp_addr : PC->addr);
+    const auto choice = g_core->show_multiple_choice_dialog({L"Close ROM", L"Continue"}, message.c_str(), L"Core", fsvc_error);
 
     core_Cause = 15 << 2;
     exception_general();
+   
+    if (choice == 0)
+    {
+        g_core->invoke_async([] {
+            core_vr_close_rom(true, true);
+        }, 0);
+    }
 }
 
 void fail_float_input()
