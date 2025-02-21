@@ -25,7 +25,12 @@ public:
 
     void print_duration() const
     {
-        m_logger->info("[ScopeTimer] {}: {}ms", m_name.c_str(), static_cast<int>((std::chrono::high_resolution_clock::now() - m_start_time).count() / 1'000'000));
+        m_logger->info("[ScopeTimer] {}: {}ms", m_name.c_str(), momentary_ms());
+    }
+
+    [[nodiscard]] int momentary_ms() const
+    {
+        return static_cast<int>((std::chrono::high_resolution_clock::now() - m_start_time).count() / 1'000'000);
     }
 
 private:
