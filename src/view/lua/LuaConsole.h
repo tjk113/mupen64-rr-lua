@@ -15,12 +15,9 @@ extern "C" {
 #include <lualib.h>
 }
 
-
 #include <gdiplus.h>
 
-#include <dcomp.h>
-
-
+using callback_key = uint8_t;
 
 typedef struct s_window_procedure_params
 {
@@ -62,27 +59,26 @@ void stop_all_scripts();
  * \param function The native function
  * \param key The function's registration key
  */
-void invoke_callbacks_with_key_on_all_instances(
- const std::function<int(lua_State*)>& function, const char* key);
+void invoke_callbacks_with_key_on_all_instances(const std::function<int(lua_State*)>& function, callback_key key);
 
-static const auto REG_LUACLASS = "C";
-static const auto REG_ATUPDATESCREEN = "S";
-static const auto REG_ATDRAWD2D = "SD2D";
-static const auto REG_ATVI = "V";
-static const auto REG_ATINPUT = "I";
-static const auto REG_ATSTOP = "T";
-static const auto REG_SYNCBREAK = "B";
-static const auto REG_READBREAK = "R";
-static const auto REG_WRITEBREAK = "W";
-static const auto REG_WINDOWMESSAGE = "M";
-static const auto REG_ATINTERVAL = "N";
-static const auto REG_ATPLAYMOVIE = "PM";
-static const auto REG_ATSTOPMOVIE = "SM";
-static const auto REG_ATLOADSTATE = "LS";
-static const auto REG_ATSAVESTATE = "SS";
-static const auto REG_ATRESET = "RE";
-static const auto REG_ATSEEKCOMPLETED = "SC";
-static const auto REG_ATWARPMODIFYSTATUSCHANGED = "WS";
+static const callback_key REG_LUACLASS = 1;
+static const callback_key REG_ATUPDATESCREEN = 2;
+static const callback_key REG_ATDRAWD2D = 3;
+static const callback_key REG_ATVI = 4;
+static const callback_key REG_ATINPUT = 5;
+static const callback_key REG_ATSTOP = 6;
+static const callback_key REG_SYNCBREAK = 7;
+static const callback_key REG_READBREAK = 8;
+static const callback_key REG_WRITEBREAK = 9;
+static const callback_key REG_WINDOWMESSAGE = 10;
+static const callback_key REG_ATINTERVAL = 11;
+static const callback_key REG_ATPLAYMOVIE = 12;
+static const callback_key REG_ATSTOPMOVIE = 13;
+static const callback_key REG_ATLOADSTATE = 14;
+static const callback_key REG_ATSAVESTATE = 15;
+static const callback_key REG_ATRESET = 16;
+static const callback_key REG_ATSEEKCOMPLETED = 17;
+static const callback_key REG_ATWARPMODIFYSTATUSCHANGED = 18;
 
 static uint32_t lua_gdi_color_mask = RGB(255, 0, 255);
 static HBRUSH alpha_mask_brush = CreateSolidBrush(lua_gdi_color_mask);
@@ -182,7 +178,7 @@ public:
     
     //calls all functions that lua script has defined as callbacks, reads them from registry
     //returns true at fail
-    bool invoke_callbacks_with_key(const std::function<int(lua_State*)>& function, const char* key);
+    bool invoke_callbacks_with_key(const std::function<int(lua_State*)>& function, callback_key key);
 
     // Invalidates the composition layer
     void invalidate_visuals();
@@ -235,11 +231,11 @@ LuaEnvironment* get_lua_class(lua_State* lua_state);
  * \param L The lua state
  * \param key The function's key
  */
-int RegisterFunction(lua_State* L, const char* key);
+int RegisterFunction(lua_State* L, callback_key key);
 
 /**
  * \brief Unregisters a function with a key to a lua state
 * \param L The lua state
  * \param key The function's key
  */
-void UnregisterFunction(lua_State* L, const char* key);
+void UnregisterFunction(lua_State* L, callback_key key);

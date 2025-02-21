@@ -59,7 +59,7 @@ int at_panic(lua_State* L)
     return 0;
 }
 
-void invoke_callbacks_with_key_on_all_instances(const std::function<int(lua_State*)>& function, const char* key)
+void invoke_callbacks_with_key_on_all_instances(const std::function<int(lua_State*)>& function, callback_key key)
 {
     // OPTIMIZATION: Store destruction-queued scripts in queue and destroy them after iteration to avoid having to clone the queue
     // OPTIMIZATION: Make the destruction queue static to avoid allocating it every entry 
@@ -241,15 +241,15 @@ void lua_create_and_run(const std::wstring& path)
 
 LuaEnvironment* get_lua_class(lua_State* lua_state) { return g_lua_env_map[lua_state]; }
 
-int RegisterFunction(lua_State* L, const char* key)
+int RegisterFunction(lua_State* L, callback_key key)
 {
-    lua_getfield(L, LUA_REGISTRYINDEX, key);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, key);
     if (lua_isnil(L, -1))
     {
         lua_pop(L, 1);
         lua_newtable(L);
-        lua_setfield(L, LUA_REGISTRYINDEX, key);
-        lua_getfield(L, LUA_REGISTRYINDEX, key);
+        lua_rawseti(L, LUA_REGISTRYINDEX, key);
+        lua_rawgeti(L, LUA_REGISTRYINDEX, key);
     }
     int i = luaL_len(L, -1) + 1;
     lua_pushinteger(L, i);
@@ -259,9 +259,9 @@ int RegisterFunction(lua_State* L, const char* key)
     return i;
 }
 
-void UnregisterFunction(lua_State* L, const char* key)
+void UnregisterFunction(lua_State* L, callback_key key)
 {
-    lua_getfield(L, LUA_REGISTRYINDEX, key);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, key);
     if (lua_isnil(L, -1))
     {
         lua_pop(L, 1);
@@ -826,11 +826,11 @@ LuaEnvironment::~LuaEnvironment()
 
 // calls all functions that lua script has defined as callbacks, reads them from registry
 // returns true at fail
-bool LuaEnvironment::invoke_callbacks_with_key(const std::function<int(lua_State*)>& function, const char* key)
+bool LuaEnvironment::invoke_callbacks_with_key(const std::function<int(lua_State*)>& function, callback_key key)
 {
     assert(is_on_gui_thread());
 
-    lua_getfield(L, LUA_REGISTRYINDEX, key);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, key);
     // shouldn't ever happen but could cause kernel panic
     if lua_isnil (L, -1)
     {
