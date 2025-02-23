@@ -246,7 +246,7 @@ static void prompt_plugin_change()
 
 bool show_error_dialog_for_result(const core_result result, void* hwnd)
 {
-    if (result == Res_Ok || result == ST_Cancelled || result == VCR_Cancelled)
+    if (result == Res_Ok || result == ST_Cancelled || result == VCR_Cancelled || result == VCR_InvalidControllers)
     {
         return false;
     }
@@ -266,10 +266,6 @@ bool show_error_dialog_for_result(const core_result result, void* hwnd)
     case VCR_BadFile:
         module = L"VCR";
         error = L"The provided file is inaccessible or does not exist.";
-        break;
-    case VCR_InvalidControllers:
-        module = L"VCR";
-        error = L"The controller configuration is invalid.";
         break;
     case VCR_InvalidSavestate:
         module = L"VCR";
