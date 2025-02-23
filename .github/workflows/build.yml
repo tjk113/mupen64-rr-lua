@@ -15,7 +15,7 @@ jobs:
       - name: Set VERSION_SUFFIX
         shell: powershell
         run: |
-          $VERSION_SUFFIX = -$(git rev-parse --short HEAD)
+          $VERSION_SUFFIX = "-$(git rev-parse --short HEAD)"
           echo "VERSION_SUFFIX=$VERSION_SUFFIX" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
       - name: Display VERSION_SUFFIX
