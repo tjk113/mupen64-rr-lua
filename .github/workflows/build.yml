@@ -21,7 +21,7 @@ jobs:
       - name: Build x86
         working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
-          set CL=/D GIT_COMMIT=${{ env.GIT_COMMIT }}
+          set CL=/D VERSION_SUFFIX=L\"-${{ env.GIT_COMMIT }}\"
           msbuild mupen64.sln /p:Configuration=Release /p:Platform=Win32 /m
           
       - name: 'Upload x86 Artifact'
@@ -34,7 +34,7 @@ jobs:
       - name: Build x64
         working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
-          set CL=/D GIT_COMMIT=${{ env.GIT_COMMIT }}
+          set CL=/D VERSION_SUFFIX=L\"-${{ env.GIT_COMMIT }}\"
           msbuild mupen64.sln /p:Configuration=Release /p:Platform=x64 /m
 
       - name: 'Upload x64 Artifact'
