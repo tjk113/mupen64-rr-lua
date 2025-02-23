@@ -1123,41 +1123,36 @@ core_result vcr_stop_record()
     return Res_Ok;
 }
 
-int32_t check_warn_controllers(wchar_t* warning_str)
+bool show_controller_warning(std::wstring& str)
 {
     for (int32_t i = 0; i < 4; ++i)
     {
-        if (!g_core->controls[i].Present && (g_header.controller_flags &
-            CONTROLLER_X_PRESENT(i)))
+        if (!g_core->controls[i].Present && (g_header.controller_flags & CONTROLLER_X_PRESENT(i)))
         {
-            wsprintf(warning_str,
-                    L"Error: You have controller %d disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n",
-                    (i + 1));
-            return 0;
+            str = std::format(L"Error: You have controller {} disabled, but it is enabled in the movie file.\nIt cannot play back correctly unless you fix this first (in your input settings).\n", i + 1);
+            return false;
         }
-        if (g_core->controls[i].Present && !(g_header.controller_flags &
-            CONTROLLER_X_PRESENT(i)))
-            wsprintf(warning_str,
-                    L"Warning: You have controller %d enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n",
-                    (i + 1));
+        if (g_core->controls[i].Present && !(g_header.controller_flags & CONTROLLER_X_PRESENT(i)))
+        {
+            str = std::format(L"Warning: You have controller {} enabled, but it is disabled in the movie file.\nIt might not play back correctly unless you change this first (in your input settings).\n", i + 1);
+        }
         else
         {
             if (g_core->controls[i].Present && (g_core->controls[i].Plugin != (int32_t)ce_mempak) && (g_header.controller_flags & CONTROLLER_X_MEMPAK(i)))
-                wsprintf(warning_str,
-                        L"Warning: Controller %d has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
-                        (i + 1));
+            {
+                str = std::format(L"Warning: Controller {} has a rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", i + 1);
+            }
             if (g_core->controls[i].Present && (g_core->controls[i].Plugin != (int32_t)ce_rumblepak) && (g_header.controller_flags & CONTROLLER_X_RUMBLE(i)))
-                wsprintf(warning_str,
-                        L"Warning: Controller %d has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
-                        (i + 1));
-            if (g_core->controls[i].Present && (g_core->controls[i].Plugin != (int32_t)ce_none) && !(g_header.controller_flags & (CONTROLLER_X_MEMPAK(i) |
-                    CONTROLLER_X_RUMBLE(i))))
-                wsprintf(warning_str,
-                        L"Warning: Controller %d does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n",
-                        (i + 1));
+            {
+                str = std::format(L"Warning: Controller {} has a memory pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", i + 1);
+            }
+            if (g_core->controls[i].Present && (g_core->controls[i].Plugin != (int32_t)ce_none) && !(g_header.controller_flags & (CONTROLLER_X_MEMPAK(i) | CONTROLLER_X_RUMBLE(i))))
+            {
+                str = std::format(L"Warning: Controller {} does not have a mempak or rumble pack in the movie.\nYou may need to change your input plugin settings accordingly for this movie to play back correctly.\n", i + 1);
+            }
         }
     }
-    return 1;
+    return true;
 }
 
 core_result core_vcr_start_playback(std::filesystem::path path)
@@ -1214,15 +1209,17 @@ core_result core_vcr_start_playback(std::filesystem::path path)
         break;
     }
 
-    wchar_t dummy[1024] = {0};
-    if (!check_warn_controllers(dummy))
+    std::wstring controller_warning;
+    bool can_continue = show_controller_warning(controller_warning);
+
+    if (!controller_warning.empty())
     {
-        return VCR_InvalidControllers;
+    	g_core->show_dialog(controller_warning.c_str(), L"VCR", fsvc_warning);
     }
 
-    if (lstrlenW(dummy) > 0)
+    if (!can_continue)
     {
-    	g_core->show_dialog(dummy, L"VCR", fsvc_warning);
+        return VCR_InvalidControllers;
     }
 
     if (g_header.extended_version != 0)
