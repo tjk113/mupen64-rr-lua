@@ -150,6 +150,37 @@ const std::map<cfg_action, int> ACTION_ID_MAP = {
 {ACTION_SELECT_SLOT10, (IDM_SELECT_1 - 1) + 10},
 };
 
+std::wstring get_mupen_name()
+{
+#ifdef _DEBUG
+#define BUILD_TARGET_INFO L"-debug"
+#else
+#define BUILD_TARGET_INFO L""
+#endif
+
+#ifdef UNICODE
+#define CHARSET_INFO L""
+#else
+#define CHARSET_INFO L"-a"
+#endif
+
+#ifdef _M_X64
+#define ARCH_INFO L"-x64"
+#else
+#define ARCH_INFO L""
+#endif
+
+#define BASE_NAME L"Mupen 64 "
+
+    std::wstring version_suffix = VERSION_SUFFIX;
+    if (version_suffix.empty())
+    {
+        version_suffix = L"-" __DATE__ L" " __TIME__;
+    }
+
+    return BASE_NAME CURRENT_VERSION + version_suffix + ARCH_INFO CHARSET_INFO BUILD_TARGET_INFO;
+}
+
 /// Prompts the user to change their plugin selection.
 static void prompt_plugin_change()
 {
@@ -510,7 +541,7 @@ std::filesystem::path get_backups_directory()
 
 void update_titlebar()
 {
-    std::wstring text = MUPEN_VERSION;
+    std::wstring text = get_mupen_name();
 
     if (g_emu_starting)
     {
@@ -2031,7 +2062,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     Loggers::init();
 
     g_view_logger->info("WinMain");
-    g_view_logger->info(MUPEN_VERSION);
+    g_view_logger->info(get_mupen_name());
 
     g_core.cfg = &g_config.core;
     g_core.logger = g_core_logger.get();
@@ -2210,7 +2241,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_main_hwnd = CreateWindowEx(
     0,
     WND_CLASS,
-    MUPEN_VERSION,
+    get_mupen_name().c_str(),
     WS_OVERLAPPEDWINDOW | WS_EX_COMPOSITED,
     g_config.window_x, g_config.window_y, g_config.window_width,
     g_config.window_height,

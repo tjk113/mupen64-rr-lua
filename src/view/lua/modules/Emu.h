@@ -394,7 +394,7 @@ namespace LuaCore::Emu
     	// 0 = name + version number
     	// 1 = version number
 
-    	std::wstring version = MUPEN_VERSION;
+    	std::wstring version = get_mupen_name();
 
         if (type > 0)
         {

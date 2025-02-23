@@ -77,7 +77,7 @@ void CrashHelper::log_crash(_EXCEPTION_POINTERS* exception_pointers_ptr)
     GetSystemTime(&time);
 
     g_view_logger->critical(L"Crash!");
-    g_view_logger->critical(MUPEN_VERSION);
+    g_view_logger->critical(get_mupen_name());
     g_view_logger->critical(std::format(L"{:02}/{:02}/{} {:02}:{:02}:{:02}", time.wDay, time.wMonth, time.wYear, time.wHour, time.wMinute, time.wSecond));
     g_view_logger->critical(get_metadata_for_exception_address(exception_pointers_ptr->ExceptionRecord->ExceptionAddress));
     g_view_logger->critical(get_exception_code_friendly_name(exception_pointers_ptr));

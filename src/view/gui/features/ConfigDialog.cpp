@@ -412,7 +412,7 @@ INT_PTR CALLBACK about_dlg_proc(const HWND hwnd, const UINT message, const WPARA
     switch (message)
     {
     case WM_INITDIALOG:
-        SetDlgItemText(hwnd, IDC_VERSION_TEXT, MUPEN_VERSION);
+        SetDlgItemText(hwnd, IDC_VERSION_TEXT, get_mupen_name().c_str());
         break;
     case WM_CLOSE:
         EndDialog(hwnd, IDOK);

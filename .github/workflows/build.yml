@@ -12,17 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get Git Commit Hash
-        run: echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Set VERSION_SUFFIX
+        run: echo "VERSION_SUFFIX=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Display VERSION_SUFFIX
+        run: echo "VERSION_SUFFIX is $VERSION_SUFFIX"
         
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
       - name: Build x86
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: |
-          set CL=/D VERSION_SUFFIX=L\"-${{ env.GIT_COMMIT }}\"
-          msbuild mupen64.sln /p:Configuration=Release /p:Platform=Win32 /m
+        run:  msbuild mupen64.sln /p:Configuration=Release /p:Platform=Win32 /m
           
       - name: 'Upload x86 Artifact'
         uses: actions/upload-artifact@v4
@@ -33,9 +34,7 @@ jobs:
         
       - name: Build x64
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: |
-          set CL=/D VERSION_SUFFIX=L\"-${{ env.GIT_COMMIT }}\"
-          msbuild mupen64.sln /p:Configuration=Release /p:Platform=x64 /m
+        run: msbuild mupen64.sln /p:Configuration=Release /p:Platform=x64 /m
 
       - name: 'Upload x64 Artifact'
         uses: actions/upload-artifact@v4
