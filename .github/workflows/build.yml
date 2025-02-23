@@ -12,13 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get Git Commit Hash
+        run: echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
       - name: Build x86
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: msbuild mupen64.sln /p:Configuration=Release /p:Platform=Win32 /m
-
+        run: |
+          set CL=/D GIT_COMMIT=${{ env.GIT_COMMIT }}
+          msbuild mupen64.sln /p:Configuration=Release /p:Platform=Win32 /m
+          
       - name: 'Upload x86 Artifact'
         uses: actions/upload-artifact@v4
         with:
@@ -28,7 +33,9 @@ jobs:
         
       - name: Build x64
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: msbuild mupen64.sln /p:Configuration=Release /p:Platform=x64 /m
+        run: |
+          set CL=/D GIT_COMMIT=${{ env.GIT_COMMIT }}
+          msbuild mupen64.sln /p:Configuration=Release /p:Platform=x64 /m
 
       - name: 'Upload x64 Artifact'
         uses: actions/upload-artifact@v4
