@@ -9,5 +9,4 @@
 void update_pif_write();
 void update_pif_read();
 
-extern size_t frame_advance_outstanding;
 extern size_t lag_count;

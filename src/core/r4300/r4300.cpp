@@ -33,6 +33,7 @@ volatile bool emu_launched = false;
 volatile bool emu_paused = false;
 volatile bool core_executing = false;
 volatile bool emu_resetting = false;
+std::atomic<size_t> frame_advance_outstanding = 0;
 size_t g_total_frames = 0;
 bool fullscreen = false;
 bool gs_button = false;

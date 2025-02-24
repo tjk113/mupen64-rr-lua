@@ -15,6 +15,7 @@
 #include <r4300/rom.h>
 #include <include/core_types.h>
 
+extern std::atomic<size_t> frame_advance_outstanding;
 extern std::recursive_mutex g_emu_cs;
 
 extern precomp_instr* PC;

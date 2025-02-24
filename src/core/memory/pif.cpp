@@ -14,7 +14,6 @@
 #include <r4300/r4300.h>
 #include <r4300/vcr.h>
 
-size_t frame_advance_outstanding = 0;
 // Amount of VIs since last input poll
 size_t lag_count;
 
@@ -417,11 +416,11 @@ void update_pif_read()
                         {
                             if (frame_advance_outstanding == 1)
                             {
-                                frame_advance_outstanding--;
+                                --frame_advance_outstanding;
                                 core_vr_pause_emu();
-                            } else
+                            } else if (frame_advance_outstanding > 1)
                             {
-                                frame_advance_outstanding--;
+                                --frame_advance_outstanding;
                             }
                         }
 
