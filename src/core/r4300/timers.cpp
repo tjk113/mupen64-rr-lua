@@ -72,7 +72,7 @@ void timer_new_vi()
         // if we're playing game normally with no frame advance or ff and overstepping max time between frames,
         // we need to sleep to compensate the additional time
         const auto vi_time_diff = current_vi_time - last_vi_time;
-        if (!frame_advancing && vi_time_diff < max_vi_s_ms)
+        if (!frame_advance_outstanding && vi_time_diff < max_vi_s_ms)
         {
             auto sleep_time = max_vi_s_ms - vi_time_diff;
             if (sleep_time.count() > 0 && sleep_time < std::chrono::milliseconds(700))

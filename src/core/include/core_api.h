@@ -352,9 +352,9 @@ EXPORT core_result CALL core_vr_close_rom(bool stop_vcr, bool wait);
 EXPORT core_result CALL core_vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait);
 
 /**
- * \brief Sets the frame-advance flag.
+ * \brief Starts frame advancing the specified amount of frames.
  */
-EXPORT void CALL core_vr_frame_advance();
+EXPORT void CALL core_vr_frame_advance(size_t);
 
 /**
  * \brief Toggles between fullscreen and windowed mode.

@@ -14,7 +14,7 @@
 #include <r4300/r4300.h>
 #include <r4300/vcr.h>
 
-int32_t frame_advancing = 0;
+size_t frame_advance_outstanding = 0;
 // Amount of VIs since last input poll
 size_t lag_count;
 
@@ -373,7 +373,7 @@ void update_pif_read()
 {
     // g_core->logger->info("pif entry");
     int32_t i = 0, channel = 0;
-    bool once = emu_paused | frame_advancing | g_wait_counter; // used to pause only once during controller routine
+    bool once = emu_paused || (frame_advance_outstanding > 0) || g_wait_counter; // used to pause only once during controller routine
     bool stAllowed = true; // used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
     g_core->logger->info("---------- before read ----------");
@@ -415,8 +415,14 @@ void update_pif_read()
 
                         if (g_wait_counter == 0)
                         {
-                            frame_advancing = 0;
-                            core_vr_pause_emu();
+                            if (frame_advance_outstanding == 1)
+                            {
+                                frame_advance_outstanding--;
+                                core_vr_pause_emu();
+                            } else
+                            {
+                                frame_advance_outstanding--;
+                            }
                         }
 
                         while (g_wait_counter)

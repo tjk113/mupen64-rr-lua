@@ -1806,7 +1806,7 @@ core_result core_vcr_begin_warp_modify(const std::vector<core_buttons>& inputs)
 
     const auto target_sample = std::min(inputs.size(), (size_t)m_current_sample);
 
-    const auto result = vcr_begin_seek_impl(std::to_wstring(target_sample), emu_paused || frame_advancing, false, true);
+    const auto result = vcr_begin_seek_impl(std::to_wstring(target_sample), emu_paused || frame_advance_outstanding, false, true);
 
     if (result != Res_Ok)
     {

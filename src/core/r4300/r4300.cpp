@@ -132,9 +132,9 @@ void core_vr_pause_emu()
     g_core->callbacks.emu_paused_changed(emu_paused);
 }
 
-void core_vr_frame_advance()
+void core_vr_frame_advance(size_t count)
 {
-    frame_advancing = 1;
+    frame_advance_outstanding = count;
     core_vr_resume_emu();
 }
 
@@ -145,7 +145,7 @@ bool core_vr_get_paused()
 
 bool core_vr_get_frame_advance()
 {
-    return frame_advancing;
+    return frame_advance_outstanding;
 }
 
 void terminate_emu()
@@ -2252,7 +2252,7 @@ core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr, bool skip_res
     // right now it's hacked to exit to the GUI then re-load the ROM,
     // but it should be possible to reset the game while it's still running
     // simply by clearing out some memory and maybe notifying the plugins...
-    frame_advancing = false;
+    frame_advance_outstanding = 0;
     emu_resetting = true;
 
     core_result result = core_vr_close_rom(stop_vcr, false);
