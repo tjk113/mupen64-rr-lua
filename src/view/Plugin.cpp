@@ -600,6 +600,21 @@ std::wstring hotkey_to_string(const cfg_hotkey* hotkey)
         else
             switch (k)
             {
+            case VK_LBUTTON:
+                strcpy(buf2, "LMB");
+                break;
+            case VK_RBUTTON:
+                strcpy(buf2, "RMB");
+                break;
+            case VK_MBUTTON:
+                strcpy(buf2, "MMB");
+                break;
+            case VK_XBUTTON1:
+                strcpy(buf2, "XMB1");
+                break;
+            case VK_XBUTTON2:
+                strcpy(buf2, "XMB2");
+                break;
             case VK_SPACE:
                 strcpy(buf2, "Space");
                 break;

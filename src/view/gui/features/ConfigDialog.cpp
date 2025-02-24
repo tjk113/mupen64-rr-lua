@@ -211,11 +211,43 @@ int32_t get_user_hotkey(cfg_hotkey* hotkey)
         SleepEx(10, TRUE);
         for (j = 8; j < 254; j++)
         {
+            while (PeekMessage(&msg, NULL, WM_MOUSEFIRST, WM_MOUSELAST, PM_REMOVE));
+            
             if (j == VK_LCONTROL || j == VK_RCONTROL || j == VK_LMENU || j == VK_RMENU || j == VK_LSHIFT || j == VK_RSHIFT)
                 continue;
 
             if (GetAsyncKeyState(VK_RBUTTON))
             {
+                return 1;
+            }
+
+            if (GetAsyncKeyState(VK_MBUTTON))
+            {
+                hotkey->key = VK_MBUTTON;
+                hotkey->shift = 0;
+                hotkey->ctrl = 0;
+                hotkey->alt = 0;
+                while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+                return 1;
+            }
+
+            if (GetAsyncKeyState(VK_XBUTTON1))
+            {
+                hotkey->key = VK_XBUTTON1;
+                hotkey->shift = 0;
+                hotkey->ctrl = 0;
+                hotkey->alt = 0;
+                while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+                return 1;
+            }
+            
+            if (GetAsyncKeyState(VK_XBUTTON2))
+            {
+                hotkey->key = VK_XBUTTON2;
+                hotkey->shift = 0;
+                hotkey->ctrl = 0;
+                hotkey->alt = 0;
+                while (PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
                 return 1;
             }
 

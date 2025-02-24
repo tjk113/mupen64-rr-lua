@@ -996,6 +996,67 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+    case WM_SETCURSOR:
+        {
+            static bool last_lmb = false;
+            static bool last_rmb = false;
+            static bool last_mmb = false;
+            static bool last_xmb1 = false;
+            static bool last_xmb2 = false;
+            bool lmb = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
+            bool rmb = GetAsyncKeyState(VK_RBUTTON) & 0x8000;
+            bool mmb = GetAsyncKeyState(VK_MBUTTON) & 0x8000;
+            bool xmb1 = GetAsyncKeyState(VK_XBUTTON1) & 0x8000;
+            bool xmb2 = GetAsyncKeyState(VK_XBUTTON2) & 0x8000;
+        
+            BOOL hit = FALSE;
+            for (cfg_hotkey* hotkey : g_config_hotkeys)
+            {
+                const auto down =
+                (lmb && !last_lmb && hotkey->key == VK_LBUTTON) || (rmb && !last_rmb && hotkey->key == VK_RBUTTON) || (mmb && !last_mmb && hotkey->key == VK_MBUTTON) || (xmb1 && !last_xmb1 && hotkey->key == VK_XBUTTON1) || (xmb2 && !last_xmb2 && hotkey->key == VK_XBUTTON2);
+                const auto up =
+                (!lmb && last_lmb && hotkey->key == VK_LBUTTON) || (!rmb && last_rmb && hotkey->key == VK_RBUTTON) || (!mmb && last_mmb && hotkey->key == VK_MBUTTON) || (!xmb1 && last_xmb1 && hotkey->key == VK_XBUTTON1) || (!xmb2 && last_xmb2 && hotkey->key == VK_XBUTTON2);
+
+                if (down)
+                {
+                    auto down_cmd = config_action_to_menu_id(hotkey->down_cmd);
+                    // We only want to send it if the corresponding menu item exists and is enabled
+                    auto state = GetMenuState(g_main_menu, down_cmd, MF_BYCOMMAND);
+                    if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
+                    {
+                        g_view_logger->info(L"Dismissed {} ({})", hotkey->identifier.c_str(), down_cmd);
+                        continue;
+                    }
+                    g_view_logger->info(L"Sent down {} ({})", hotkey->identifier.c_str(), down_cmd);
+                    SendMessage(g_main_hwnd, WM_COMMAND, down_cmd, 0);
+                    hit = TRUE;
+                }
+                if (up)
+                {
+                    auto up_cmd = config_action_to_menu_id(hotkey->up_cmd);
+                    // We only want to send it if the corresponding menu item exists and is enabled
+                    auto state = GetMenuState(g_main_menu, up_cmd, MF_BYCOMMAND);
+                    if (state != -1 && (state & MF_DISABLED || state & MF_GRAYED))
+                    {
+                        g_view_logger->info(L"Dismissed {} ({})", hotkey->identifier.c_str(), up_cmd);
+                        continue;
+                    }
+                    g_view_logger->info(L"Sent up {} ({})", hotkey->identifier.c_str(), up_cmd);
+                    SendMessage(g_main_hwnd, WM_COMMAND, up_cmd, 0);
+                    hit = TRUE;
+                }
+            }
+
+            last_lmb = lmb;
+            last_rmb = rmb;
+            last_mmb = mmb;
+            last_xmb1 = xmb1;
+            last_xmb2 = xmb2;
+        
+            if (!hit)
+                return DefWindowProc(hwnd, Message, wParam, lParam);
+            break;
+        }
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
         {
