@@ -11,8 +11,7 @@ namespace Messenger
     /**
      * \brief Types of messages
      */
-    enum class Message
-    {
+    enum class Message {
         /**
          * \brief Debug message used for benchmarking which should not be subscribed to.
          */
@@ -23,10 +22,10 @@ namespace Messenger
          */
         EmuLaunchedChanged,
 
-    	/**
-		 * \brief The core executing state has changed
-		 */
-    	CoreExecutingChanged,
+        /**
+         * \brief The core executing state has changed
+         */
+        CoreExecutingChanged,
 
         /**
          * \brief The emulator is beginning the termination process
@@ -102,7 +101,7 @@ namespace Messenger
          * \brief The emulator has finished resetting
          */
         ResetCompleted,
-        
+
         /**
          * \brief The config will begin saving soon
          */
@@ -122,6 +121,11 @@ namespace Messenger
          * \brief The currently selected save slot changed
          */
         SlotChanged,
+
+        /**
+         * \brief The multi-frame advance count has changed.
+         */
+        MultiFrameAdvanceCountChanged,
 
         /**
          * \brief A VCR seek operation has completed
@@ -197,4 +201,4 @@ namespace Messenger
      * \remark This method is thread-safe.
      */
     std::function<void()> subscribe(Message message, t_user_callback callback);
-}
+} // namespace Messenger

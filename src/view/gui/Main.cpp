@@ -1440,12 +1440,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 break;
             case IDM_MULTI_FRAME_ADVANCE_INC:
                 g_config.multi_frame_advance_count += 1;
+                Messenger::broadcast(Messenger::Message::MultiFrameAdvanceCountChanged, std::nullopt);
                 break;
             case IDM_MULTI_FRAME_ADVANCE_DEC:
                 g_config.multi_frame_advance_count = std::max(1, g_config.multi_frame_advance_count - 1);
+                Messenger::broadcast(Messenger::Message::MultiFrameAdvanceCountChanged, std::nullopt);
                 break;
             case IDM_MULTI_FRAME_ADVANCE_RESET:
                 g_config.multi_frame_advance_count = g_default_config.multi_frame_advance_count;
+                Messenger::broadcast(Messenger::Message::MultiFrameAdvanceCountChanged, std::nullopt);
                 break;
             case IDM_VCR_READONLY:
                 g_config.core.vcr_readonly ^= true;

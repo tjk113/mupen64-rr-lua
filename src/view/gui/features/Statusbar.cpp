@@ -57,7 +57,7 @@ namespace Statusbar
 					},
 					t_segment{
 						.sections = {Section::VCR},
-						.width = 200,
+						.width = 180,
 					},
 					t_segment{
 						.sections = {Section::Input},
@@ -65,7 +65,7 @@ namespace Statusbar
 					},
 					t_segment{
 						.sections = {Section::Rerecords},
-						.width = 80,
+						.width = 70,
 					},
 					t_segment{
 						.sections = {Section::FPS},
@@ -77,8 +77,12 @@ namespace Statusbar
 					},
 					t_segment{
 						.sections = {Section::Slot},
-						.width = 80,
+						.width = 50,
 					},
+				    t_segment{
+				        .sections = {Section::MultiFrameAdvanceCount},
+                        .width = 60,
+                    },
 				},
 				.idle_parts = {},
 			}
@@ -92,7 +96,7 @@ namespace Statusbar
 					},
 					t_segment{
 						.sections = {Section::VCR},
-						.width = 150,
+						.width = 160,
 					},
 					t_segment{
 						.sections = {Section::Readonly},
@@ -104,7 +108,7 @@ namespace Statusbar
 					},
 					t_segment{
 						.sections = {Section::Rerecords},
-						.width = 80,
+						.width = 70,
 					},
 					t_segment{
 						.sections = {Section::FPS},
@@ -114,10 +118,14 @@ namespace Statusbar
 						.sections = {Section::VIs},
 						.width = 80,
 					},
-					t_segment{
-						.sections = {Section::Slot},
-						.width = 80,
-					},
+				    t_segment{
+				        .sections = {Section::Slot},
+                        .width = 50,
+                    },
+                    t_segment{
+                        .sections = {Section::MultiFrameAdvanceCount},
+                        .width = 60,
+                    },
 				},
 				.idle_parts = {},
 			}
@@ -234,6 +242,7 @@ namespace Statusbar
 		{
 			// Update this at first start, otherwise it doesnt initially appear
 			Messenger::broadcast(Messenger::Message::SlotChanged, (size_t)g_config.st_slot);
+			Messenger::broadcast(Messenger::Message::MultiFrameAdvanceCountChanged, 0);
 		}
 
 		refresh_segments();
@@ -302,6 +311,11 @@ namespace Statusbar
 		refresh_segments();
 	}
 
+    void on_multi_frame_advance_count_changed(std::any)
+    {
+        post(std::format(L"MFA {}x", g_config.multi_frame_advance_count), Section::MultiFrameAdvanceCount);
+    }
+
 	void init()
 	{
 		create();
@@ -311,6 +325,7 @@ namespace Statusbar
 		Messenger::subscribe(Messenger::Message::TaskChanged, on_task_changed);
 		Messenger::subscribe(Messenger::Message::RerecordsChanged, on_rerecords_changed);
 		Messenger::subscribe(Messenger::Message::SlotChanged, on_slot_changed);
+		Messenger::subscribe(Messenger::Message::MultiFrameAdvanceCountChanged, on_multi_frame_advance_count_changed);
 		Messenger::subscribe(Messenger::Message::SizeChanged, on_size_changed);
 		Messenger::subscribe(Messenger::Message::ConfigLoaded, [](std::any)
 		{

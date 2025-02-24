@@ -20,6 +20,7 @@ namespace Statusbar
         FPS,
         VIs,
         Slot,
+        MultiFrameAdvanceCount,
     };
 
     /**
