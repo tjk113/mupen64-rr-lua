@@ -118,6 +118,9 @@ void FrontendService::set_default_hotkey_keys(cfg_view* config)
     config->speed_down_hotkey.key = VK_OEM_MINUS;
 
     config->speed_up_hotkey.key = VK_OEM_PLUS;
+    
+    config->speed_reset_hotkey.key = VK_OEM_PLUS;
+    config->speed_reset_hotkey.ctrl = 1;
 
     config->frame_advance_hotkey.key = VK_OEM_5;
 

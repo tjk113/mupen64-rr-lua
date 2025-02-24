@@ -60,6 +60,9 @@ BEGIN
     POPUP "&Emulation"
     BEGIN
         MENUITEM "&Pause",                      IDM_PAUSE, GRAYED
+        MENUITEM "Speed &Down",                 IDM_SPEED_DOWN, GRAYED
+        MENUITEM "Speed &Up",                   IDM_SPEED_UP, GRAYED
+        MENUITEM "Reset Sp&eed",                IDM_SPEED_RESET, GRAYED
         MENUITEM "&Frame Advance",              IDM_FRAMEADVANCE, GRAYED
         MENUITEM "Take Sc&reenshot",            IDM_SCREENSHOT, GRAYED
         MENUITEM SEPARATOR

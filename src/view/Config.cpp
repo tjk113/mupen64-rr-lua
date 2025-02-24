@@ -39,6 +39,11 @@ cfg_view get_default_config()
     .down_cmd = ACTION_SPEED_UP,
     };
 
+    config.speed_reset_hotkey = {
+    .identifier = L"Speed reset",
+    .down_cmd = ACTION_SPEED_RESET,
+    };
+
     config.frame_advance_hotkey = {
     .identifier = L"Frame advance",
     .down_cmd = ACTION_FRAME_ADVANCE,

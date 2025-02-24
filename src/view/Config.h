@@ -19,6 +19,7 @@ typedef enum {
     ACTION_GAMESHARK_OFF,
     ACTION_SPEED_DOWN,
     ACTION_SPEED_UP,
+    ACTION_SPEED_RESET,
     ACTION_FRAME_ADVANCE,
     ACTION_PAUSE,
     ACTION_TOGGLE_READONLY,
@@ -128,6 +129,7 @@ typedef struct ViewCfg {
     cfg_hotkey gs_hotkey;
     cfg_hotkey speed_down_hotkey;
     cfg_hotkey speed_up_hotkey;
+    cfg_hotkey speed_reset_hotkey;
     cfg_hotkey frame_advance_hotkey;
     cfg_hotkey pause_hotkey;
     cfg_hotkey toggle_read_only_hotkey;

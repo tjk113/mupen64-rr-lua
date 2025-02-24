@@ -86,9 +86,10 @@ const std::map<cfg_action, int> ACTION_ID_MAP = {
 {ACTION_FASTFORWARD_OFF, IDM_FASTFORWARD_OFF},
 {ACTION_GAMESHARK_ON, IDM_GS_ON},
 {ACTION_GAMESHARK_OFF, IDM_GS_OFF},
-{ACTION_SPEED_DOWN, IDC_DECREASE_MODIFIER},
-{ACTION_SPEED_UP, IDC_INCREASE_MODIFIER},
 {ACTION_FRAME_ADVANCE, IDM_FRAMEADVANCE},
+{ACTION_SPEED_DOWN, IDM_SPEED_DOWN},
+{ACTION_SPEED_UP, IDM_SPEED_UP},
+{ACTION_SPEED_RESET, IDM_SPEED_RESET},
 {ACTION_PAUSE, IDM_PAUSE},
 {ACTION_TOGGLE_READONLY, IDM_VCR_READONLY},
 {ACTION_TOGGLE_MOVIE_LOOP, IDM_LOOP_MOVIE},
@@ -1172,6 +1173,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             EnableMenuItem(g_main_menu, IDM_CLOSE_ROM, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_RESET_ROM, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_PAUSE, core_executing ? MF_ENABLED : MF_GRAYED);
+            EnableMenuItem(g_main_menu, IDM_SPEED_DOWN, core_executing ? MF_ENABLED : MF_GRAYED);
+            EnableMenuItem(g_main_menu, IDM_SPEED_UP, core_executing ? MF_ENABLED : MF_GRAYED);
+            EnableMenuItem(g_main_menu, IDM_SPEED_RESET, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_FRAMEADVANCE, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SCREENSHOT, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SAVE_SLOT, core_executing ? MF_ENABLED : MF_GRAYED);
@@ -1776,17 +1780,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 g_config.is_statusbar_enabled ^= true;
                 Messenger::broadcast(Messenger::Message::StatusbarVisibilityChanged, (bool)g_config.is_statusbar_enabled);
                 break;
-            case IDC_DECREASE_MODIFIER:
+            case IDM_SPEED_DOWN:
                 g_config.core.fps_modifier = clamp(g_config.core.fps_modifier - 25, 25, 1000);
                 core_vr_on_speed_modifier_changed();
                 Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.core.fps_modifier);
                 break;
-            case IDC_INCREASE_MODIFIER:
+            case IDM_SPEED_UP:
                 g_config.core.fps_modifier = clamp(g_config.core.fps_modifier + 25, 25, 1000);
                 core_vr_on_speed_modifier_changed();
                 Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.core.fps_modifier);
                 break;
-            case IDC_RESET_MODIFIER:
+            case IDM_SPEED_RESET:
                 g_config.core.fps_modifier = 100;
                 core_vr_on_speed_modifier_changed();
                 Messenger::broadcast(Messenger::Message::SpeedModifierChanged, g_config.core.fps_modifier);

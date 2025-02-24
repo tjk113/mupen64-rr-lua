@@ -168,10 +168,6 @@
 #define IDC_FPSTITLE                    2258
 #define IDC_FPSTRACKBAR                 2259
 #define IDC_FPSTITLE2                   2259
-#define IDC_SPEEDMODIFIER_VALUE         2261
-#define IDC_INCREASE_MODIFIER           2262
-#define IDC_DECREASE_MODIFIER           2263
-#define IDC_RESET_MODIFIER              2264
 #define IDC_SKIPFREQ                    2265
 #define IDC_0INDEX                      2266
 #define IDC_FASTFORWARDSKIPFREQ         2268
@@ -509,6 +505,9 @@
 #define IDM_CHECK_FOR_UPDATES           40097
 #define IDM_CREATE_MOVIE_BACKUP         40098
 #define IDC_CHEAT_STATUS                40099
+#define IDM_SPEED_DOWN                  40100
+#define IDM_SPEED_UP                    40101
+#define IDM_SPEED_RESET                 40102
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
