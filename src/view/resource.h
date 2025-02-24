@@ -508,6 +508,10 @@
 #define IDM_SPEED_DOWN                  40100
 #define IDM_SPEED_UP                    40101
 #define IDM_SPEED_RESET                 40102
+#define IDM_MULTI_FRAME_ADVANCE         40103
+#define IDM_MULTI_FRAME_ADVANCE_INC     40104
+#define IDM_MULTI_FRAME_ADVANCE_DEC     40105
+#define IDM_MULTI_FRAME_ADVANCE_RESET   40106
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

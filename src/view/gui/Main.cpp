@@ -87,6 +87,10 @@ const std::map<cfg_action, int> ACTION_ID_MAP = {
 {ACTION_GAMESHARK_ON, IDM_GS_ON},
 {ACTION_GAMESHARK_OFF, IDM_GS_OFF},
 {ACTION_FRAME_ADVANCE, IDM_FRAMEADVANCE},
+{ACTION_MULTI_FRAME_ADVANCE, IDM_MULTI_FRAME_ADVANCE},
+{ACTION_MULTI_FRAME_ADVANCE_INC, IDM_MULTI_FRAME_ADVANCE_INC},
+{ACTION_MULTI_FRAME_ADVANCE_DEC, IDM_MULTI_FRAME_ADVANCE_DEC},
+{ACTION_MULTI_FRAME_ADVANCE_RESET, IDM_MULTI_FRAME_ADVANCE_RESET},
 {ACTION_SPEED_DOWN, IDM_SPEED_DOWN},
 {ACTION_SPEED_UP, IDM_SPEED_UP},
 {ACTION_SPEED_RESET, IDM_SPEED_RESET},
@@ -748,7 +752,7 @@ void on_fullscreen_changed(std::any data)
     });
 }
 
-void on_config_loaded(std::any)
+void apply_menu_item_accelerator_text()
 {
     for (auto hotkey : g_config_hotkeys)
     {
@@ -760,6 +764,11 @@ void on_config_loaded(std::any)
             set_hotkey_menu_accelerators(hotkey, down_cmd);
         }
     }
+}
+
+void on_config_loaded(std::any)
+{
+    apply_menu_item_accelerator_text();
     RomBrowser::build();
 }
 
@@ -1170,6 +1179,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             const auto core_executing = core_vr_get_launched();
             const auto vcr_active = core_vcr_get_task() != task_idle;
 
+            ModifyMenu(g_main_menu, IDM_MULTI_FRAME_ADVANCE, MF_BYCOMMAND | MF_STRING, IDM_MULTI_FRAME_ADVANCE, std::format(L"Multi-Frame Advance {}x", g_config.multi_frame_advance_count).c_str());
+            apply_menu_item_accelerator_text();
+         
             EnableMenuItem(g_main_menu, IDM_CLOSE_ROM, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_RESET_ROM, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_PAUSE, core_executing ? MF_ENABLED : MF_GRAYED);
@@ -1177,6 +1189,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             EnableMenuItem(g_main_menu, IDM_SPEED_UP, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SPEED_RESET, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_FRAMEADVANCE, core_executing ? MF_ENABLED : MF_GRAYED);
+            EnableMenuItem(g_main_menu, IDM_MULTI_FRAME_ADVANCE, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SCREENSHOT, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_SAVE_SLOT, core_executing ? MF_ENABLED : MF_GRAYED);
             EnableMenuItem(g_main_menu, IDM_LOAD_SLOT, core_executing ? MF_ENABLED : MF_GRAYED);
@@ -1418,12 +1431,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
                 }
 
             case IDM_FRAMEADVANCE:
-                {
-                    core_vr_frame_advance();
-                    core_vr_resume_emu();
-                }
+                core_vr_frame_advance(1);
+                core_vr_resume_emu();
                 break;
-
+            case IDM_MULTI_FRAME_ADVANCE:
+                core_vr_frame_advance(g_config.multi_frame_advance_count);
+                core_vr_resume_emu();
+                break;
+            case IDM_MULTI_FRAME_ADVANCE_INC:
+                g_config.multi_frame_advance_count += 1;
+                break;
+            case IDM_MULTI_FRAME_ADVANCE_DEC:
+                g_config.multi_frame_advance_count = std::max(1, g_config.multi_frame_advance_count - 1);
+                break;
+            case IDM_MULTI_FRAME_ADVANCE_RESET:
+                g_config.multi_frame_advance_count = g_default_config.multi_frame_advance_count;
+                break;
             case IDM_VCR_READONLY:
                 g_config.core.vcr_readonly ^= true;
                 Messenger::broadcast(Messenger::Message::ReadonlyChanged, (bool)g_config.core.vcr_readonly);

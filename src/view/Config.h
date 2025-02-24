@@ -8,6 +8,8 @@
 
 #include <core_types.h>
 
+// TODO: Remove the action abstraction, since hotkeys only exist in the frontend now :D
+
 /**
  * \brief Action that can be triggered by a hotkey
  */
@@ -21,6 +23,10 @@ typedef enum {
     ACTION_SPEED_UP,
     ACTION_SPEED_RESET,
     ACTION_FRAME_ADVANCE,
+    ACTION_MULTI_FRAME_ADVANCE,
+    ACTION_MULTI_FRAME_ADVANCE_INC,
+    ACTION_MULTI_FRAME_ADVANCE_DEC,
+    ACTION_MULTI_FRAME_ADVANCE_RESET,
     ACTION_PAUSE,
     ACTION_TOGGLE_READONLY,
     ACTION_TOGGLE_MOVIE_LOOP,
@@ -131,6 +137,10 @@ typedef struct ViewCfg {
     cfg_hotkey speed_up_hotkey;
     cfg_hotkey speed_reset_hotkey;
     cfg_hotkey frame_advance_hotkey;
+    cfg_hotkey multi_frame_advance_hotkey;
+    cfg_hotkey multi_frame_advance_inc_hotkey;
+    cfg_hotkey multi_frame_advance_dec_hotkey;
+    cfg_hotkey multi_frame_advance_reset_hotkey;
     cfg_hotkey pause_hotkey;
     cfg_hotkey toggle_read_only_hotkey;
     cfg_hotkey toggle_movie_loop_hotkey;
@@ -523,6 +533,11 @@ typedef struct ViewCfg {
     /// The current seeker input value
     /// </summary>
     std::wstring seeker_value;
+
+    /// <summary>
+    /// The multi-frame advance index.
+    /// </summary>
+    int32_t multi_frame_advance_count = 2;
 } cfg_view;
 #pragma pack(pop)
 

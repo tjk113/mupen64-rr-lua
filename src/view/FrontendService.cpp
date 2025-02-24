@@ -123,7 +123,20 @@ void FrontendService::set_default_hotkey_keys(cfg_view* config)
     config->speed_reset_hotkey.ctrl = 1;
 
     config->frame_advance_hotkey.key = VK_OEM_5;
+    
+    config->multi_frame_advance_hotkey.key = VK_OEM_5;
+    config->multi_frame_advance_hotkey.ctrl = 1;
 
+    config->multi_frame_advance_inc_hotkey.key = 'E';
+    config->multi_frame_advance_inc_hotkey.ctrl = 1;
+    
+    config->multi_frame_advance_dec_hotkey.key = 'Q';
+    config->multi_frame_advance_dec_hotkey.ctrl = 1;
+
+    config->multi_frame_advance_reset_hotkey.key = 'E';
+    config->multi_frame_advance_reset_hotkey.ctrl = 1;
+    config->multi_frame_advance_reset_hotkey.shift = 1;
+    
     config->pause_hotkey.key = VK_PAUSE;
 
     config->toggle_read_only_hotkey.key = 'R';

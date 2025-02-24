@@ -49,6 +49,26 @@ cfg_view get_default_config()
     .down_cmd = ACTION_FRAME_ADVANCE,
     };
 
+    config.multi_frame_advance_hotkey = {
+    .identifier = L"Multi-Frame advance",
+    .down_cmd = ACTION_MULTI_FRAME_ADVANCE,
+    };
+
+    config.multi_frame_advance_inc_hotkey = {
+    .identifier = L"Multi-Frame advance increment",
+    .down_cmd = ACTION_MULTI_FRAME_ADVANCE_INC,
+    };
+
+    config.multi_frame_advance_dec_hotkey = {
+    .identifier = L"Multi-Frame advance decrement",
+    .down_cmd = ACTION_MULTI_FRAME_ADVANCE_DEC,
+    };
+
+    config.multi_frame_advance_reset_hotkey = {
+    .identifier = L"Multi-Frame advance reset",
+    .down_cmd = ACTION_MULTI_FRAME_ADVANCE_RESET,
+    };
+
     config.pause_hotkey = {
     .identifier = L"Pause",
     .down_cmd = ACTION_PAUSE,
@@ -640,6 +660,7 @@ mINI::INIStructure handle_config_ini(bool is_reading, mINI::INIStructure ini)
     HANDLE_P_VALUE(silent_mode)
     HANDLE_P_VALUE(core.max_lag)
     HANDLE_VALUE(seeker_value)
+    HANDLE_P_VALUE(multi_frame_advance_count)
 
     return ini;
 }

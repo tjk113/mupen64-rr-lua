@@ -64,6 +64,7 @@ BEGIN
         MENUITEM "Speed &Up",                   IDM_SPEED_UP, GRAYED
         MENUITEM "Reset Sp&eed",                IDM_SPEED_RESET, GRAYED
         MENUITEM "&Frame Advance",              IDM_FRAMEADVANCE, GRAYED
+        MENUITEM "&Multi-Frame Advance",        IDM_MULTI_FRAME_ADVANCE, GRAYED
         MENUITEM "Take Sc&reenshot",            IDM_SCREENSHOT, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "Save State",                  IDM_SAVE_SLOT, GRAYED
@@ -71,6 +72,10 @@ BEGIN
         MENUITEM "&Save State As...",           IDM_SAVE_STATE_AS, GRAYED
         MENUITEM "&Load State As...",           IDM_LOAD_STATE_AS, GRAYED
         MENUITEM "Undo Load State",             IDM_UNDO_LOAD_STATE, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "Multi-Frame Advance +1", IDM_MULTI_FRAME_ADVANCE_INC
+        MENUITEM "Multi-Frame Advance -1", IDM_MULTI_FRAME_ADVANCE_DEC
+        MENUITEM "Multi-Frame Advance Reset", IDM_MULTI_FRAME_ADVANCE_RESET
         MENUITEM SEPARATOR
         POPUP "Current Save S&tate"
         BEGIN
